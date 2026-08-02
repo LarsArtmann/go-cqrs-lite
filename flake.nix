@@ -635,6 +635,47 @@
               echo "==> Secret scan complete"
             '';
 
+            # Ephemeral service apps — start databases from nixpkgs without
+            # Docker or testcontainers. Works on Linux AND macOS with Nix.
+            # Usage: nix run .#integration-pg
+            #        nix run .#integration-pg -- -run TestPostgresEventStore
+            integration-pg = mkApp "integration-pg" [
+              goPkg pkgs.gcc pkgs.postgresql
+            ] ''
+              export CGO_ENABLED=1
+              export GOEXPERIMENT=jsonv2
+              bash "$PWD/scripts/ephemeral-pg.sh" "$@"
+            '';
+
+            integration-mysql = mkApp "integration-mysql" [
+              goPkg pkgs.gcc pkgs.mariadb
+            ] ''
+              export CGO_ENABLED=1
+              export GOEXPERIMENT=jsonv2
+              bash "$PWD/scripts/ephemeral-mysql.sh" "$@"
+            '';
+
+            # NixOS VM integration tests — boot a QEMU VM with the database
+            # service, run Go integration tests inside. Hermetic and cached
+            # by Nix. Requires x86_64-linux + KVM for speed.
+            # Usage: nix run .#integration-pg-vm
+            #        nix run .#integration-mysql-vm
+            integration-pg-vm = mkApp "integration-pg-vm" [
+              goPkg pkgs.gcc
+            ] ''
+              export CGO_ENABLED=1
+              export GOEXPERIMENT=jsonv2
+              bash "$PWD/scripts/vm-pg.sh" "$@"
+            '';
+
+            integration-mysql-vm = mkApp "integration-mysql-vm" [
+              goPkg pkgs.gcc
+            ] ''
+              export CGO_ENABLED=1
+              export GOEXPERIMENT=jsonv2
+              bash "$PWD/scripts/vm-mysql.sh" "$@"
+            '';
+
             verify =
               mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc ]
                 ''
