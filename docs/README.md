@@ -131,7 +131,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0088](adr/0088-block-level-suppression.md)                | Block-level suppression for cqrs-lint                   | Accepted                 |
 | [0089](adr/0089-flight-recorder.md)                        | Flight Recorder integration                             | Accepted                 |
 | [0090](adr/0090-benchkit-evidence-metrics.md)              | Benchkit evidence-grade metrics                         | Accepted                 |
-| [0091](adr/0091-sse-consolidation-decision.md)              | SSE consolidation decision                              | Accepted                 |
+| [0091](adr/0091-sse-consolidation-decision.md)             | SSE consolidation decision                              | Accepted                 |
 
 ## API Reference
 

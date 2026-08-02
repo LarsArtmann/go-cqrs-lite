@@ -29,25 +29,25 @@ and is **never** duplicated here.
   - Evidence: `docs/status/2026-08-02_19-47_10M-soak-test.md`.
 
 - [ ] **Watcher typed-channel design** — `Watcher[V]` still exposes `chan any`,
-  which forces engine-specific reification in `metaengine/dx.go:163`. The
-  SQLite silent-drop bug is fixed via `reifyWatcherValue`, but a typed channel
-  design would eliminate the runtime type assertion entirely. Evidence:
-  `metaengine/dx.go:163`, `metaengine/watcher_typesafe_test.go:252`.
+      which forces engine-specific reification in `metaengine/dx.go:163`. The
+      SQLite silent-drop bug is fixed via `reifyWatcherValue`, but a typed channel
+      design would eliminate the runtime type assertion entirely. Evidence:
+      `metaengine/dx.go:163`, `metaengine/watcher_typesafe_test.go:252`.
 
 - [ ] **SSE + SQLite Last-Event-ID reconnect test** — verify `ServeSSE` replay
-  works end-to-end with the SQLite-backed `WatchWithSeq` path after the watcher
-  reification fix. Evidence: `metaengine/sse_replay.go:128`,
-  `docs/status/2026-08-02_19-58_metaengine-watcher-reification-fix.md`.
+      works end-to-end with the SQLite-backed `WatchWithSeq` path after the watcher
+      reification fix. Evidence: `metaengine/sse_replay.go:128`,
+      `docs/status/2026-08-02_19-58_metaengine-watcher-reification-fix.md`.
 
 - [ ] **Boundary keys-type validation at Store boundary** — `query.keyType` is
-  enforced during fold registration (`metaengine/fold_classify.go:86`) but not
-  when a caller passes a key directly to `Store.Execute`/`ExecuteTyped`. Add a
-  boundary check that returns `ErrKeyTypeMismatch`. Evidence:
-  `metaengine/execute.go`, `docs/planning/2026-08-01_19-40_metaengine-data-model-refactor.md:271`.
+      enforced during fold registration (`metaengine/fold_classify.go:86`) but not
+      when a caller passes a key directly to `Store.Execute`/`ExecuteTyped`. Add a
+      boundary check that returns `ErrKeyTypeMismatch`. Evidence:
+      `metaengine/execute.go`, `docs/planning/2026-08-01_19-40_metaengine-data-model-refactor.md:271`.
 
 - [ ] **Postgres GIN containment indexes** — add `@>` operator support for JSONB
-  path queries; currently only B-tree expression indexes are implemented.
-  Evidence: `metaengine/pgengine/pushdown.go`, `metaengine/pgengine/engine.go`.
+      path queries; currently only B-tree expression indexes are implemented.
+      Evidence: `metaengine/pgengine/pushdown.go`, `metaengine/pgengine/engine.go`.
 
 - [ ] **DuckDB LayoutPlanner follow-ups**
   - Add `explainScan` for planned and standard DuckDB paths (`metaengine/sqlite_engine.go`
@@ -67,9 +67,9 @@ and is **never** duplicated here.
   - Evidence: `docs/status/2026-08-02_19-47_DuckDB-LayoutPlanner.md`.
 
 - [ ] **Document `metaengine` watcher delete semantics** — delete notifications
-  now deliver the zero value of `V` after the reification fix; this contract change
-  should be documented in `metaengine/README.md` or `metaengine/COOKBOOK.md`.
-  Evidence: `docs/status/2026-08-02_19-58_metaengine-watcher-reification-fix.md`.
+      now deliver the zero value of `V` after the reification fix; this contract change
+      should be documented in `metaengine/README.md` or `metaengine/COOKBOOK.md`.
+      Evidence: `docs/status/2026-08-02_19-58_metaengine-watcher-reification-fix.md`.
 
 > Long-term metaengine work (`generic ScanResult[T]`, `metaengine-gen` code
 > generator, Vector/Search/Spatial engine backends, DuckDB columnar-native storage)
@@ -84,14 +84,14 @@ and is **never** duplicated here.
 > work is validation and finishing the Pareto backlog.
 
 - [ ] 🔥 **Run cqrs-lint against real consumer projects** — validate false-positive
-  rates against Kernovia, Standup-Killer, bank-sync, cqrs-htmx, DiscordSync.
-  This is the single highest-value non-coding task for cqrs-lint trustworthiness.
-  Evidence: `docs/status/2026-08-02_16-29_cqrs-lint-rules-and-metaengine-verification.md:162`.
+      rates against Kernovia, Standup-Killer, bank-sync, cqrs-htmx, DiscordSync.
+      This is the single highest-value non-coding task for cqrs-lint trustworthiness.
+      Evidence: `docs/status/2026-08-02_16-29_cqrs-lint-rules-and-metaengine-verification.md:162`.
 
 - [ ] **~14 remaining backlog items** — see the
-  [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
-  Highest impact: L1.29 event-type string typo detection, L1.30–L1.33 deep pattern
-  detection, L1.18 config inheritance, L1.47–L1.51 new rule categories (DOC/OBS/RES/DI).
+      [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
+      Highest impact: L1.29 event-type string typo detection, L1.30–L1.33 deep pattern
+      detection, L1.18 config inheritance, L1.47–L1.51 new rule categories (DOC/OBS/RES/DI).
 
 ---
 

@@ -350,3 +350,30 @@ func TestReifyWatcherValue_JSONValueFastPath(t *testing.T) {
 		t.Errorf("expected Status 'active', got %s", v.Status)
 	}
 }
+
+// TestWorkloadMeter_ReificationFailures pins the counter that Watch/WatchWithSeq
+// increment whenever a watcher value cannot be reified to V. A non-zero count
+// indicates an engine bug or a planned-type/stored-shape mismatch.
+func TestWorkloadMeter_ReificationFailures(t *testing.T) {
+	t.Parallel()
+
+	m := newWorkloadMeter()
+
+	if got := m.ReificationFailures(); got != 0 {
+		t.Fatalf("expected 0 reification failures initially, got %d", got)
+	}
+
+	m.IncReificationFailure()
+	m.IncReificationFailure()
+
+	if got := m.ReificationFailures(); got != 2 {
+		t.Fatalf("expected 2 reification failures, got %d", got)
+	}
+
+	// The counter is independent of workload-rate stats.
+	stats := m.Stats()
+	if stats.WriteRatePerSec != 0 || stats.ReadRatePerSec != 0 {
+		t.Errorf("expected zero read/write rates, got write=%f read=%f",
+			stats.WriteRatePerSec, stats.ReadRatePerSec)
+	}
+}

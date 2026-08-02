@@ -13,13 +13,13 @@ The DuckDB engine now supports storing query projections as **fully native colum
 
 **New public API surface (7 new exported symbols):**
 
-| Symbol | Location | Purpose |
-|--------|----------|---------|
-| `metaengine.WithColumnarLayout[R]()` | `query.go` | Query option: requests columnar-native layout |
-| `metaengine.LayoutPlanApplier` | `engine.go` | Interface: engine receives fully-built LayoutPlan with reflection-derived types |
-| `metaengine.BuildColumnarLayoutPlan(col, resultType)` | `layout.go` | Constructs a LayoutPlan from ALL exported fields of the result type |
-| `duckdbengine.ApplyLayout` | `layout_planner.go` | Now delegates to ApplyLayoutPlan |
-| `duckdbengine.ApplyLayoutPlan` | `layout_planner.go` | Creates native columnar table from a LayoutPlan |
+| Symbol                                                | Location            | Purpose                                                                         |
+| ----------------------------------------------------- | ------------------- | ------------------------------------------------------------------------------- |
+| `metaengine.WithColumnarLayout[R]()`                  | `query.go`          | Query option: requests columnar-native layout                                   |
+| `metaengine.LayoutPlanApplier`                        | `engine.go`         | Interface: engine receives fully-built LayoutPlan with reflection-derived types |
+| `metaengine.BuildColumnarLayoutPlan(col, resultType)` | `layout.go`         | Constructs a LayoutPlan from ALL exported fields of the result type             |
+| `duckdbengine.ApplyLayout`                            | `layout_planner.go` | Now delegates to ApplyLayoutPlan                                                |
+| `duckdbengine.ApplyLayoutPlan`                        | `layout_planner.go` | Creates native columnar table from a LayoutPlan                                 |
 
 **How it works (end-to-end flow):**
 

@@ -204,4 +204,4 @@ Only `metaengine` tests were run. The project rule says `nix run .#verify` is th
 
 ---
 
-*End of report.*
+_End of report._

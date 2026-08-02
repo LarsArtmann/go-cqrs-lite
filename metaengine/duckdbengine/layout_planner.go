@@ -389,7 +389,7 @@ func coerceForColumn(value any, column metaengine.PlannedColumn) any {
 	switch strings.ToUpper(column.Type) {
 	case "INTEGER":
 		return coerceInteger(value)
-	case "REAL":
+	case "REAL", "DOUBLE", "FLOAT", "FLOAT4", "FLOAT8":
 		return coerceReal(value)
 	case "TEXT":
 		return fmt.Sprint(value)

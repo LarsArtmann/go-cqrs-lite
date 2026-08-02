@@ -177,9 +177,9 @@ func inferColumnType(field string) string {
 // back to the name heuristic (TEXT-safe). This is the recommended constructor
 // when the result type is known at plan time.
 //
-// Type mapping: int*/float* → INTEGER/REAL, bool → INTEGER, string → TEXT,
-// time.Time → TEXT (ISO-8601). Everything else defaults to TEXT so JSON blobs
-// still round-trip.
+// Type mapping: int*/uint* → INTEGER, float32 → REAL, float64 → DOUBLE,
+// bool → INTEGER, string → TEXT, time.Time → TEXT (ISO-8601). Everything else
+// defaults to TEXT so JSON blobs still round-trip.
 func BuildLayoutPlanFromType[R any](
 	collection string,
 	filterFields, sortFields []string,
@@ -297,8 +297,10 @@ func sqlTypeOf(t reflect.Type) string {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return "INTEGER"
-	case reflect.Float32, reflect.Float64:
+	case reflect.Float32:
 		return "REAL"
+	case reflect.Float64:
+		return "DOUBLE"
 	case reflect.Bool:
 		return "INTEGER"
 	default:

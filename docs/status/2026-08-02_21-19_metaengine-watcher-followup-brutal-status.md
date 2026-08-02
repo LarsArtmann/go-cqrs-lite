@@ -1,7 +1,6 @@
-
 > **Date:** 2026-08-02 21:19 CEST
 > **Session scope:** Resume watcher reification fix, run full verify gate, add
->   cross-engine regression tests, documentation, metric tracking, CHANGELOG.
+> cross-engine regression tests, documentation, metric tracking, CHANGELOG.
 > **Honesty mode:** Brutal.
 
 ---
@@ -16,7 +15,7 @@
 2. **API stability golden regenerated** — Pre-existing stale golden from the
    DuckDB LayoutPlanner work (4 new exports: `ApplyLayout`, `BuildColumnarLayoutPlan`,
    `WithColumnarLayout`, `LayoutPlanApplier`). Ran `cd cmd/api-stability &&
-   GOWORK=off go run . -update` to sync from 3187→3192 exports.
+GOWORK=off go run . -update` to sync from 3187→3192 exports.
 
 3. **cqrs-lint go.mod tidy** — `go mod tidy` was needed (stale `go-finding`
    pseudo-version). After tidy + commit, all 12 cqrs-lint rule sub-packages
@@ -29,8 +28,8 @@
      delivers zero value, not silent drop.
    - `TestPebbleWatcher_WithReplayRecordsTypedValue` — verifies replay journal
      captures typed value, not seq=0.
-   Both PASS. Required introducing a local `watcherTaskID` branded type to
-   resolve the "ambiguous key" panic from `Remove[V]()` key inference.
+     Both PASS. Required introducing a local `watcherTaskID` branded type to
+     resolve the "ambiguous key" panic from `Remove[V]()` key inference.
 
 5. **DuckDB watcher regression tests** —
    `metaengine/duckdbengine/watcher_cgo_test.go` (2 tests, `//go:build cgo`):
@@ -38,13 +37,13 @@
      `map[string]any` reify fallback path (DuckDB returns decoded JSON maps).
    - `TestDuckDBWatcher_WithReplayRecordsTypedValue` — verifies replay journal
      records correctly via reify, not silent seq=0.
-   Both PASS.
+     Both PASS.
 
 6. **Postgres watcher regression tests** —
    `metaengine/pgengine/watcher_test.go` (2 tests, testcontainers):
    - `TestPostgresWatcher_DeleteNotificationDeliversZeroValue`
    - `TestPostgresWatcher_WithReplayRecordsTypedValue`
-   Both PASS against postgres:16-alpine via testcontainers.
+     Both PASS against postgres:16-alpine via testcontainers.
 
 7. **jsonValue fast-path test** — `TestReifyWatcherValue_JSONValueFastPath`
    in `metaengine/watcher_typesafe_test.go`. Feeds raw JSON bytes through
@@ -88,7 +87,7 @@
 2. **Full verify gate re-run** — I ran verify once early in the session (found
    the ADR index + API golden + cqrs-lint issues). After fixing those and
    adding all the new tests + metric code, I did **not** re-run `nix run
-   .#verify` to confirm the final state. The metaengine, pebbleengine,
+.#verify` to confirm the final state. The metaengine, pebbleengine,
    duckdbengine, and pgengine test subsets all pass individually, but the
    full gate (lint, race, doc-check, api-stability) was not re-verified
    end-to-end in this session after the metric wiring change. The daemon
@@ -184,11 +183,13 @@
 ## f) Next Steps (up to 50)
 
 ### Immediate (this session's loose ends)
+
 1. Add `TestWorkloadMeter_ReificationFailures` test (the one that failed to append)
 2. Run `nix run .#verify` to confirm green after all changes
 3. Verify the daemon's `aca6274b` "verify green" claim matches reality
 
 ### Short-term (next session)
+
 4. Promote `ReificationFailures()` to `Store` method or add to `WorkloadStats`
 5. Audit `.(map[string]any)` assertions in `duckdbengine/scan.go` and `pushdown.go`
 6. Audit `.(map[string]any)` assertions in `pgengine/scan.go` and `pushdown.go`
@@ -198,6 +199,7 @@
 10. Consider `WithReificationFailureCallback(fn func(collection string, key any, value any, err error))` option
 
 ### Watcher hardening
+
 11. Refactor `watcherEntry` to generic `watcherEntry[V]` to eliminate `chan any`
 12. Make `subscriberHub` generic or split by collection type parameter
 13. Add overflow counter for dropped notifications (consumer too slow)
@@ -207,6 +209,7 @@
 17. Consider `WatchFiltered(ctx, key, filterFunc)` for predicate-based filtering
 
 ### Cross-engine parity
+
 18. Add DuckDB watcher test with `FilterOnField` pushdown path
 19. Add Postgres watcher test with `FilterOnField` pushdown path
 20. Add Pebble watcher test with `RawValueReader` fast path
@@ -215,6 +218,7 @@
 23. Test watcher behavior under `SwapEngine` (does the old engine's watcher break?)
 
 ### SSE / Replay hardening
+
 24. Add SSE reconnect test with delete notification in the replay window
 25. Add SSE reconnect test with `jsonValue` fast-path values
 26. Test `SSEReplay` ring buffer eviction under high write rate
@@ -223,6 +227,7 @@
 29. Test SSE connection drop + reconnect with concurrent `ApplyBatch`
 
 ### Metaengine data model
+
 30. Consider `ScanResult[T]` generic to replace `[]any` (breaking, needs major bump)
 31. Add boundary key-type validation at Store boundary (not just fold time)
 32. Consider `metaengine-gen` CLI for typed Store methods from query declarations
@@ -230,6 +235,7 @@
 34. Consider versioned schema for `jsonValue` wrapper (add a version byte?)
 
 ### Observability
+
 35. Export watcher notification count per collection
 36. Export replay journal depth and capacity utilization
 37. Add OTel span for watcher notification dispatch (currently no tracing)
@@ -237,6 +243,7 @@
 39. Consider health check: `Store.HealthCheck()` includes reification failure rate
 
 ### Documentation
+
 40. Document watcher lifecycle: create → watch → close → re-watch
 41. Add ADR for watcher reification contract (delete = zero value)
 42. Update SKILL.md references with watcher delete semantics
@@ -244,6 +251,7 @@
 44. Document `reifyWatcherValue` contract in the package doc comment
 
 ### Cleanup
+
 45. Remove unused `layoutComplexity` function (gopls diagnostic)
 46. Remove unused `op` type in `property_test.go` (gopls diagnostic)
 47. Fix 6 `gopls stdversion` warnings in `reify.go` (json v2 requires go1.27)

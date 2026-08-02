@@ -39,7 +39,7 @@
 
 - **F009** (`TestF009_TimeAfterFuncWithoutScheduling`) — test didn't set
   `ctx.FeatureProfile.HasServer = true`, but the rule gates on `HasServer ||
-  CommandFlowCommands`. Added the missing profile flag.
+CommandFlowCommands`. Added the missing profile flag.
   - File: `cmd/cqrs-lint/pkg/rules/adoption/f001_f009_test.go:276`
 - **F015** (`TestF015_ManyQueriesWithoutMetaengine`) — same issue: rule gates on
   `HasServer`. Added `ctx.FeatureProfile.HasServer = true`.
@@ -162,8 +162,8 @@ the intermediate state was misleading.
    verification gate.
 
 2. **Read daemon-authored test files before marking items DONE.** File existence
-   + passing tests is necessary but not sufficient. The tests could be wrong,
-   trivial, or testing the wrong thing.
+   - passing tests is necessary but not sufficient. The tests could be wrong,
+     trivial, or testing the wrong thing.
 
 3. **Write a regression test for the DuckDB float coercion fix.** The
    `coerceForColumn` function was added by the daemon. It passes lint and
