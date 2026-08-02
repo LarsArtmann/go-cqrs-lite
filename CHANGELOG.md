@@ -576,6 +576,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **ADR-0089** — Flight recorder
 - **ADR-0090** — Benchkit evidence-grade metrics
 
+### Fixed
+
+#### Metaengine watcher reification and delete notifications
+
+- **Watcher delete notifications no longer silently dropped** — `Watcher[V]`
+  now delivers the zero value of `V` on `Remove[V]()` folds instead of dropping
+  the notification. The old path used `nil.(V)` which always panicked and was
+  recovered into a silent drop, so consumers never saw deletes.
+- **Cross-engine watcher reification** — `reifyWatcherValue[V]` handles three
+  cases: typed Go values (Memory engine), nil deletes, and engine-specific
+  representations such as `map[string]any` (SQLite/Postgres/DuckDB JSON decode)
+  and raw `jsonValue` (pushdown paths). This eliminates the silent type-
+  assertion failures that could cause lost events in the replay journal and
+  SSE reconnect path.
+- **`replayShim.recordValue` uses reification** — the replay journal no longer
+  records seq=0 when a SQL engine returns a different representation than the
+  watcher type `V`.
+- **Regression tests** added for memory, SQLite, DuckDB, Postgres, and Pebble
+  engines covering both delete notifications and `WithReplay` typed-value
+  capture. Added a `jsonValue` fast-path test for `reifyWatcherValue`.
+- **Documentation** updated in `metaengine/README.md` and `metaengine/COOKBOOK.md`
+  explaining delete-notification semantics and cross-engine value
+  representation.
+
 ## [v4.2.0] — 2026-07-27
 
 ### Added

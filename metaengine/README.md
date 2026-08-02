@@ -304,6 +304,18 @@ for v := range ch {
 }
 ```
 
+> **Delete notifications:** `Remove[V]()` folds notify watchers with the zero
+> value of `V` (`v.ID == ""`, etc.). A watcher consumer sees the same number
+> of values as `Apply` calls, so deletions are not silently dropped. The
+> zero-value delivery is a deliberate semantic contract; distinguish deletes
+> from updates by checking for the zero value of your view type.
+
+> **Cross-engine representation:** `MemoryEngine` returns typed Go values through
+> the watcher, while SQL engines (SQLite, Postgres, DuckDB) decode stored JSON
+> to `map[string]any` (or to raw `jsonValue` for pushdown paths). The watcher
+> pipeline reifies these engine-specific representations back to `V`
+> transparently, so the same consumer code works unchanged across engines.
+
 ## ServeSSE — HTTP Streaming of Query Results
 
 `ServeSSE` streams collection mutations to HTTP clients via Server-Sent Events.

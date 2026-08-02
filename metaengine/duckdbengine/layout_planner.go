@@ -388,83 +388,74 @@ func coerceForColumn(value any, column metaengine.PlannedColumn) any {
 		return nil
 	}
 
-	upper := strings.ToUpper(column.Type)
-	if upper == "INTEGER" {
-		switch v := value.(type) {
-		case int:
-			return int64(v)
-		case int8:
-			return int64(v)
-		case int16:
-			return int64(v)
-		case int32:
-			return int64(v)
-		case int64:
-			return v
-		case uint:
-			return int64(v)
-		case uint8:
-			return int64(v)
-		case uint16:
-			return int64(v)
-		case uint32:
-			return int64(v)
-		case uint64:
-			return int64(v)
-		case float64:
-			return int64(v)
-		case float32:
-			return int64(v)
-		case bool:
-			if v {
-				return int64(1)
-			}
-			return int64(0)
-		case string:
-			if n, err := strconv.ParseInt(v, 10, 64); err == nil {
-				return n
-			}
-		}
-	}
-
-	if upper == "REAL" {
-		switch v := value.(type) {
-		case int:
-			return float64(v)
-		case int8:
-			return float64(v)
-		case int16:
-			return float64(v)
-		case int32:
-			return float64(v)
-		case int64:
-			return float64(v)
-		case uint:
-			return float64(v)
-		case uint8:
-			return float64(v)
-		case uint16:
-			return float64(v)
-		case uint32:
-			return float64(v)
-		case uint64:
-			return float64(v)
-		case float64:
-			return v
-		case float32:
-			return float64(v)
-		case string:
-			if n, err := strconv.ParseFloat(v, 64); err == nil {
-				return n
-			}
-		}
-	}
-
-	if upper == "TEXT" {
+	switch strings.ToUpper(column.Type) {
+	case "INTEGER":
+		return coerceInteger(value)
+	case "REAL":
+		return coerceReal(value)
+	case "TEXT":
 		return fmt.Sprint(value)
+	default:
+		return value
+	}
+}
+
+// coerceInteger maps a Go value to int64. It handles bool (0/1), numeric
+// strings, and all signed/unsigned integer and float widths via reflection.
+func coerceInteger(value any) any {
+	switch v := value.(type) {
+	case bool:
+		if v {
+			return int64(1)
+		}
+
+		return int64(0)
+	case string:
+		if n, err := strconv.ParseInt(v, 10, 64); err == nil {
+			return n
+		}
+
+		return nil
 	}
 
-	return value
+	rv := reflect.ValueOf(value)
+
+	switch rv.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return rv.Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return int64(rv.Uint())
+	case reflect.Float32, reflect.Float64:
+		return int64(rv.Float())
+	default:
+		return nil
+	}
+}
+
+// coerceReal maps a Go value to float64. It handles numeric strings and all
+// signed/unsigned integer and float widths via reflection.
+func coerceReal(value any) any {
+	switch v := value.(type) {
+	case string:
+		if n, err := strconv.ParseFloat(v, 64); err == nil {
+			return n
+		}
+
+		return nil
+	}
+
+	rv := reflect.ValueOf(value)
+
+	switch rv.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return float64(rv.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return float64(rv.Uint())
+	case reflect.Float32, reflect.Float64:
+		return rv.Float()
+	default:
+		return nil
+	}
 }
 
 // quoteIdent wraps a SQL identifier in double quotes, escaping any embedded

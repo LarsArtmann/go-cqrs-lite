@@ -144,6 +144,52 @@ page2, _, _ := reader.ScanPage(ctx,
     metaengine.WithCursor(cursor1.Value))
 ```
 
+## Watcher Patterns
+
+### Reactive Map Updates
+
+Watch a Map query for live updates. This is the read-model push path that backs
+`ServeSSE`:
+
+```go
+watcher := metaengine.NewWatcher[itemView](store, "items")
+ch := watcher.Watch(ctx, nil) // nil = all keys
+
+for v := range ch {
+    if v.ID == "" {
+        // Delete notification: Remove[itemView]() delivers the zero value.
+        log.Printf("item %s deleted", lastKey)
+        continue
+    }
+    log.Printf("item updated: %+v", v)
+}
+```
+
+### Delete Notifications
+
+A `Remove[V]()` fold emits a watcher value with the zero value of `V`. Do not
+interpret "no value" as "deleted" — the zero value is the delete signal. Use
+an explicit tombstone field or compare against the zero value to distinguish
+updates from deletions:
+
+```go
+if v == (itemView{}) {
+    // handle delete
+}
+```
+
+### Cross-Engine Watcher Semantics
+
+The watcher pipeline reifies engine-specific value representations back to the
+declared type `V`:
+
+- **Memory engine:** returns typed Go values directly (fast path, no alloc).
+- **SQLite/Postgres/DuckDB:** stored JSON decodes to `map[string]any` (or to
+  raw `jsonValue` for pushdown paths). The watcher JSON round-trips to `V`
+  transparently.
+
+The same watcher consumer works unchanged across engines.
+
 ## Engine Selection Patterns
 
 ### When to Use Each Engine

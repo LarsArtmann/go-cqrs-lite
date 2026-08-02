@@ -105,7 +105,11 @@ func applyLayoutPlan(
 	filterFields, sortFields []string,
 ) error {
 	if lpa, ok := meta.QueryEngine().(LayoutPlanApplier); ok {
-		return lpa.ApplyLayoutPlan(plan)
+		if err := lpa.ApplyLayoutPlan(plan); err != nil {
+			return fmt.Errorf("apply layout plan %q: %w", plan.Collection, err)
+		}
+
+		return nil
 	}
 
 	lp, ok := meta.QueryEngine().(LayoutPlanner)
@@ -118,5 +122,9 @@ func applyLayoutPlan(
 		fields = plan.ColumnNames()
 	}
 
-	return lp.ApplyLayout(meta.QueryName(), fields, sortFields)
+	if err := lp.ApplyLayout(meta.QueryName(), fields, sortFields); err != nil {
+		return fmt.Errorf("apply layout %q: %w", meta.QueryName(), err)
+	}
+
+	return nil
 }

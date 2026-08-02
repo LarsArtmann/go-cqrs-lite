@@ -99,11 +99,15 @@ func (w *Watcher[V]) Watch(ctx context.Context, key any) <-chan V {
 				}
 
 				v, ok := unwrapWatcherValue[V](val)
-				if ok {
-					select {
-					case ch <- v:
-					default: // drop if consumer is slow
-					}
+				if !ok {
+					w.store.meter.IncReificationFailure()
+
+					continue
+				}
+
+				select {
+				case ch <- v:
+				default: // drop if consumer is slow
 				}
 			}
 		}
@@ -135,20 +139,24 @@ func (w *Watcher[V]) WatchWithSeq(ctx context.Context, key any) <-chan SeqValue[
 				}
 
 				sv, ok := unwrapWatcherSeqValue[V](val)
-				if ok {
-					select {
-					case ch <- sv:
-					default: // drop if consumer is slow
-					}
+				if !ok {
+					w.store.meter.IncReificationFailure()
+
+					continue
+				}
+
+				select {
+				case ch <- sv:
+				default: // drop if consumer is slow
 				}
 			}
 		}
 	}()
 
 	return ch
-}
+	}
 
-// reifyWatcherValue converts a notification channel value to type V.
+	// reifyWatcherValue converts a notification channel value to type V.
 // It handles three cases:
 //
 //  1. Fast path: the value is already V (MemoryEngine, fold-produced structs).

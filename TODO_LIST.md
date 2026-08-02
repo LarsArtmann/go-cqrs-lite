@@ -22,11 +22,21 @@ and is **never** duplicated here.
 
 - [ ] 🔥 **Run full `nix run .#verify` gate** — confirm whole-project green after
   the 2026-08-02 watcher reification, DuckDB LayoutPlanner, and 10M soak test
-  changes. Multiple recent sessions skipped the project-wide gate and declared
-  module-level green only. Evidence: `docs/status/2026-08-02_19-47_10M-soak-test.md`,
+  changes. `nix run .#verify-fast` was run (2026-08-02) and surfaced metaengine
+  lint issues; fix those first, then run the full gate. Evidence:
+  `docs/status/2026-08-02_19-47_10M-soak-test.md`,
   `docs/status/2026-08-02_19-47_DuckDB-LayoutPlanner.md`,
   `docs/status/2026-08-02_19-58_metaengine-watcher-reification-fix.md`,
   `docs/status/2026-08-02_17-37_docs-health-and-update-old-docs-brutal-status.md`.
+
+- [ ] 🔥 **Metaengine lint cleanup (post-LayoutPlanApplier)** — fix the lint
+  failures surfaced by `nix run .#verify-fast`:
+  - `metaengine/planner.go:127/130/136` err113 dynamic errors (use wrapped static
+    sentinels).
+  - `metaengine/register_query.go:108/121` wrapcheck (wrap errors from
+    `LayoutPlanApplier.ApplyLayoutPlan` and `LayoutPlanner.ApplyLayout`).
+  - `metaengine/duckdbengine/layout_planner.go:253` ineffassign (`whereStarted`).
+  - `metaengine/duckdbengine/layout_planner.go:386` gocyclo (`coerceForColumn` > 30).
 
 - [ ] 🔥 **10M soak test verification & hardening**
   - Add a 100K-event fast smoke variant that runs even when `SOAK_SKIP_10M=1`
@@ -44,8 +54,9 @@ and is **never** duplicated here.
 
 - [ ] **Cross-engine watcher regression tests** — add explicit delete/value
   notification tests for DuckDB, Postgres, and Pebble engines. Memory and SQLite
-  are covered; the remaining engines share the same `reify` fallback path but
-  have no dedicated regressions. Evidence:
+  are covered; Pebble tests are shipped (`metaengine/pebbleengine/watcher_test.go`);
+  DuckDB and Postgres tests are in progress (`metaengine/duckdbengine/watcher_cgo_test.go`,
+  `metaengine/pgengine/watcher_test.go` exist but are not yet committed). Evidence:
   `docs/status/2026-08-02_19-58_metaengine-watcher-reification-fix.md`.
 
 - [ ] **SSE + SQLite Last-Event-ID reconnect test** — verify `ServeSSE` replay
@@ -66,8 +77,10 @@ and is **never** duplicated here.
 - [ ] **DuckDB LayoutPlanner follow-ups**
   - Add `explainScan` for planned and standard DuckDB paths (`metaengine/sqlite_engine.go`
     has it; DuckDB returns placeholder).
-  - Fix `inferColumnType` float truncation (float-named fields map to `INTEGER`,
-    silently truncating values such as `2.0` / `1.50`). Evidence:
+  - Land the float/type-coercion fix for planned columns (`coerceForColumn` in
+    `metaengine/duckdbengine/layout_planner.go` is in progress but has gocyclo /
+    ineffassign lint issues). Ensure `INTEGER` / `REAL` columns do not silently
+    truncate values such as `2.0` / `1.50`. Evidence:
     `docs/status/2026-08-02_19-47_DuckDB-LayoutPlanner.md`.
   - Centralize planned-table helpers (`extractFields`, `jsonFieldName`,
     `quoteIdent`, `plansColumnCompatible`) that are currently duplicated between

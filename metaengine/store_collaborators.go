@@ -51,19 +51,29 @@ func (t *idempotencyTracker) CheckAndRecord(eventID string) bool {
 	return exists
 }
 
-// workloadMeter tracks read/write counts for workload statistics.
+// workloadMeter tracks read/write counts and diagnostic counters for workload
+// statistics and operational health.
 type workloadMeter struct {
-	writeCount atomic.Int64
-	readCount  atomic.Int64
-	startTime  time.Time
+	writeCount           atomic.Int64
+	readCount            atomic.Int64
+	reificationFailures  atomic.Int64
+	startTime            time.Time
 }
 
 func newWorkloadMeter() *workloadMeter {
 	return &workloadMeter{startTime: time.Now()}
 }
 
-func (m *workloadMeter) IncWrite() { m.writeCount.Add(1) }
-func (m *workloadMeter) IncRead()  { m.readCount.Add(1) }
+func (m *workloadMeter) IncWrite()              { m.writeCount.Add(1) }
+func (m *workloadMeter) IncRead()               { m.readCount.Add(1) }
+func (m *workloadMeter) IncReificationFailure() { m.reificationFailures.Add(1) }
+
+// ReificationFailures returns the number of watcher values that could not be
+// reified to the declared type V. Non-zero values indicate a bug in an engine
+// or a mismatch between the planned value type and the engine's stored shape.
+func (m *workloadMeter) ReificationFailures() int64 {
+	return m.reificationFailures.Load()
+}
 
 // Stats returns observed workload rates derived from internal counters.
 func (m *workloadMeter) Stats() WorkloadStats {
