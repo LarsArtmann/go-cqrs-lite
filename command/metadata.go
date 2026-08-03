@@ -22,6 +22,7 @@ type MetadataKey string
 // link.
 type Metadata struct {
 	metadata.Tracing
+
 	Custom map[MetadataKey]string `json:"custom,omitempty"`
 }
 

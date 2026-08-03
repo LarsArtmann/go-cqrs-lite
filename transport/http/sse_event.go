@@ -105,8 +105,5 @@ func WriteSSEHeartbeat(w io.Writer) error {
 //
 // Delegates to [sse.WriteRetry].
 func WriteSSERetry(w io.Writer, ms int) error {
-	return sse.WriteRetry(
-		w,
-		uint(ms),
-	) //nolint:gosec // ms is a caller-controlled millisecond count, never negative in practice
+	return sse.WriteRetry(w, uint(ms))
 }

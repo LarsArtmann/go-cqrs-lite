@@ -9,8 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 	sse "github.com/larsartmann/go-sse"
+
+	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 )
 
 // SSEConfig configures Server-Sent Events streaming behavior.
@@ -159,7 +160,7 @@ func writePlainSSEEvent[V any](w http.ResponseWriter, val V) error {
 		return nil //nolint:nilerr // skip unmarshalable, keep stream alive
 	}
 
-	return sse.WriteEvent(w, sse.Event{Data: string(data)})
+	return sse.WriteEvent(w, sse.Event{Data: string(data)}) //nolint:wrapcheck // go-sse wraps write errors internally
 }
 
 // serveSSEReplay is the reconnection path: subscribes first (to buffer live
@@ -206,10 +207,12 @@ func writeReplaySSEEvent[V any](w http.ResponseWriter, item SeqValue[V]) error {
 		return nil //nolint:nilerr // skip unmarshalable, keep stream alive
 	}
 
-	return sse.WriteEvent(w, sse.Event{
+	err = sse.WriteEvent(w, sse.Event{
 		ID:   sse.NewEventID(strconv.FormatUint(item.Seq, 10)),
 		Data: string(data),
 	})
+
+	return err //nolint:wrapcheck // go-sse wraps write errors internally
 }
 
 // replayMissedEvents writes events from the journal that the client missed
