@@ -57,6 +57,7 @@ func defaultRules(cfg planConfig) []PlanRule {
 		&layoutRule{dryRun: cfg.dryRun},
 		&writeAmpRule{budget: cfg.writeAmplificationBudget},
 		&replicationRule{},
+		&degradedADTRule{},
 	}
 
 	if len(cfg.stats) > 0 {

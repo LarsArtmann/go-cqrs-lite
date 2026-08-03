@@ -105,6 +105,14 @@ func (e *pebbleEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSortedMap: metaengine.ComplexityON, // O(limit) with sort index, O(N) fallback
 			metaengine.ADTLog:       metaengine.ComplexityOLogN,
 			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
+			metaengine.ADTVector:    metaengine.ComplexityON,
+			metaengine.ADTSearch:    metaengine.ComplexityON,
+			metaengine.ADTSpatial:   metaengine.ComplexityON,
+		},
+		DegradedADTs: map[metaengine.ADT]bool{
+			metaengine.ADTVector:  true,
+			metaengine.ADTSearch:  true,
+			metaengine.ADTSpatial: true,
 		},
 	}
 }

@@ -54,6 +54,13 @@ type EngineProfile struct {
 	// estimator as an additive fixed latency component — it does NOT scale
 	// with query volume.
 	NetworkRTT time.Duration
+
+	// DegradedADTs marks ADTs that the engine can execute only via a brute-force
+	// fallback (e.g. Vector search via O(N) scan on SQLite). An ADT in both
+	// Supports and DegradedADTs means: "I CAN do this, but I'm not good at it."
+	// The planner routes queries to degraded engines only when no native engine
+	// is available, and emits a DEGRADED diagnostic at plan time (ADR-0094).
+	DegradedADTs map[ADT]bool
 }
 
 // ReadNsPerOp returns the calibrated per-read-operation cost, falling back to
@@ -80,6 +87,12 @@ func (p EngineProfile) SupportsADT(adt ADT) (Complexity, bool) {
 	c, ok := p.Supports[adt]
 
 	return c, ok
+}
+
+// IsDegraded reports whether the engine handles the given ADT via a brute-force
+// fallback rather than a native backend. Returns false for ADTs not in Supports.
+func (p EngineProfile) IsDegraded(adt ADT) bool {
+	return p.DegradedADTs[adt]
 }
 
 func (p EngineProfile) String() string {
@@ -343,6 +356,14 @@ func SQLiteEngineProfile() EngineProfile {
 			ADTSortedMap: ComplexityOLogN,
 			ADTLog:       ComplexityOLogN,
 			ADTMultimap:  ComplexityOLogN,
+			ADTVector:    ComplexityON,
+			ADTSearch:    ComplexityON,
+			ADTSpatial:   ComplexityON,
+		},
+		DegradedADTs: map[ADT]bool{
+			ADTVector:  true,
+			ADTSearch:  true,
+			ADTSpatial: true,
 		},
 	}
 }

@@ -1547,6 +1547,7 @@ metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
+metaengine/method Apply
 metaengine/method ApplyBatch
 metaengine/method ApplyBatch
 metaengine/method ApplyEncoded
@@ -1634,6 +1635,7 @@ metaengine/method Insert
 metaengine/method Insert
 metaengine/method Inspect
 metaengine/method InspectJSON
+metaengine/method IsDegraded
 metaengine/method IsPoisoned
 metaengine/method IsReplicated
 metaengine/method Kind
@@ -1676,6 +1678,7 @@ metaengine/method MultiAdd
 metaengine/method MultiAdd
 metaengine/method MultiGet
 metaengine/method MultiGet
+metaengine/method Name
 metaengine/method Name
 metaengine/method Name
 metaengine/method Name
