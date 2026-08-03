@@ -282,3 +282,15 @@ The linter correctly identified several real architectural improvements:
 The feature-profile system is working well for `server`, `tracing`, `snapshot`, `command-flow`, and `soft-delete` — all correctly detected. The `store` detection is the only miss, and it's a single pattern-matching gap, not a fundamental design flaw.
 
 The rule taxonomy (A/B/C/E/F/S prefixes) and severity levels are well-designed and make it easy to triage findings by category.
+
+---
+
+## Resolution (2026-08-03)
+
+Per round-3 review: C036/feature profile store detection FIXED, B022 text FIXED, E007 lowered to Info. Remaining items:
+
+- **P2 (cqrs-htmx transport recognition):** DONE — `feature_detect.go:78` detects `cqrs-htmx` as transport, eliminates F013
+- **P3 (F017 sync-bus gating):** DONE — feature-profile gating shipped (`07-00`)
+- **P3 (C009 must-pattern recognition):** DONE — constructor `New*` pattern recognized as panic-safe
+- **P3 (C016 shutdown-timeout exemption):** DONE — `context.Background()` at shutdown exempted
+- **P4 (C008 opt-out for non-financial float64):** DONE — `c008-ignore-fields` config opt-out shipped

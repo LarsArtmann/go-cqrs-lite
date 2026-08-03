@@ -507,3 +507,13 @@ FIXED THIS SESSION (no longer appear):
 ```
 
 **FP = False Positive** — detector fires but the condition is already satisfied
+
+---
+
+## Resolution (2026-08-03)
+
+9 of 12 items implemented per round-2 review (B022 text fixed, suppression parser fixed, P012/P013 fixed, config disabling, `--exclude-rules`, C036 mitigated, S006 fixed). 3 items explicitly deferred:
+
+- **D007 auto-fix** — `--fix` flag shipped for D007 but the event.NewEvent→event.New transformation needs more work
+- **F009/F015/F017 feature-profile gating** — DONE in `07-00` (HasAsyncBus detection)
+- **ServerLocal heuristic** — DONE (TLS detection with `tls.Listen` gating)

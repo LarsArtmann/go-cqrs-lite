@@ -455,3 +455,13 @@ positives and design quirks.
 
 **Net score from two sessions:** 0/100 → 100/100, 23 suppressions with
 justifications, 7 real architectural improvements merged.
+
+---
+
+## Resolution (2026-08-03)
+
+All 5 bugs fixed per round-3 review (B013↔B022 contradiction, E007 severity, C036 mitigated, blank-line suppression, combined-directive suppression). Health score RawScore display added. Score 0→100.
+
+**Deferred design observations:**
+- **--adoption flag:** DONE — `--adoption` flag shipped (`100d3463`), shows F-series coaching but excludes from health score
+- **D005 version reference detection:** Still deferred — brittle pattern matching remains. See TODO_LIST.

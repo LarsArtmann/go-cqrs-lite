@@ -263,3 +263,16 @@ This is a new debt item not captured in any existing ADR — it was discovered d
 - **0056-0065**: Polish + extraction (timezone types, catalog REST, aggregate→stream rename, DLQ proposal, benchkit, metaengine SQLite, dep boundary, pushdown, retry extraction, idempotency extraction)
 - **0066-0080**: Metaengine deep dive (reify, tx-MapUpdate, multimap seq-seed, error helpers, transform observability, DuckDB CGo, pushdown impl, layout planning, Pebble engine, ADT test harness, raw readers, graph reconciliation, kv coexistence, SSE consolidation, dialect upsert)
 - **0081-0093**: Metaengine advanced (runtime casts, store redesign analysis, planner pipeline, layered architecture, new ADTs, DuckDB engine, Postgres engine, block suppression, flight recorder, benchkit evidence, SSE decision, columnar-native, replication model)
+
+---
+
+## Resolution (2026-08-03)
+
+This session's 4 recommended next steps have been routed:
+
+1. **Verify benchmark constants** → TODO_LIST "Benchmark Trust" (correctness assertions for 29 unasserted benchmarks + DuckDB/Postgres engine benchmarks)
+2. **Write ADR for SSE finding** → TODO_LIST "SSE Consolidation" (ADR for go-sse consumption; ADR-0091's rationale needs revisiting)
+3. **Execute four deferred debt items** → TODO_LIST "Deferred Debt" (ghost bus removal ADR-0028, metadata aliases ADR-0031, retry/ extraction ADR-0064, idempotency/ extraction ADR-0065)
+4. **Add SSE decision matrix to SKILL.md** → TODO_LIST "SSE Consolidation"
+
+The go-sse finding (go-sse exists as standalone library, go-cqrs-lite reimplements SSE) was the most significant discovery. ADR-0096 (Iroh evaluation) was also written from this session's work.
