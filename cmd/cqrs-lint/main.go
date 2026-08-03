@@ -157,6 +157,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err := setupChangelogCommand(cli); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
 	ctx := context.Background()
 	cli.ExecuteAndExit(ctx)
 }

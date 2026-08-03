@@ -62,7 +62,9 @@ You can override auto-detection in `.cqrs-lint.json`:
 		"server": false,
 		"soft-delete": true,
 		"tracing": "off",
-		"snapshot": "off"
+		"snapshot": "off",
+		"transport": false,
+		"server-local": false
 	}
 }
 ```
@@ -70,6 +72,15 @@ You can override auto-detection in `.cqrs-lint.json`:
 Each flag maps to a go-cqrs-lite module. Rules that depend on deployment
 context (S002 encryption, S003 signing, A015 global mutable, A016 idempotency,
 B014 OTel) consult these flags instead of guessing.
+
+**`transport`** — true when `transport/http`, `transport/grpc`, or an external
+transport module (like cqrs-htmx) is imported. When true, adoption rules that
+suggest adopting a transport module are suppressed.
+
+**`server-local`** — true when a server (HTTP or gRPC) is detected but lacks
+production signals (no TLS, no graceful `Shutdown`, no health endpoint). This
+classifies CLI tools with embedded dashboards correctly, suppressing
+server-only rules (health checks, Prometheus, transport suggestions).
 
 ### Presets
 
@@ -265,8 +276,10 @@ Built with [cmdguard](https://github.com/larsartmann/cmdguard) for type-safe fla
 | `--dry-run`         |       | false   | Show fixes without applying                                        |
 | `--fast`            |       | false   | Run only Critical correctness rules                                |
 | `--health-score`    |       | false   | Print the health score after findings                              |
+| `--adoption`        |       | false   | Show F-series coaching but exclude them from health score          |
 | `--fp-suspects`     |       | false   | Show only low-confidence findings (likely FPs). Exit code always 0 |
 | `--show-suppressed` |       | false   | Show suppressed findings with their suppression reason             |
+| `--strict-load`     |       | false   | Exit non-zero if any packages failed to load                       |
 | `--only`            |       |         | Filter by category or rule IDs (comma-separated)                   |
 | `--exclude`         |       |         | Exclude paths (comma-separated)                                    |
 | `--color`           |       | auto    | Colored output: auto, always, never                                |
@@ -341,6 +354,24 @@ mirror. For one-off cases, use the in-source marker instead (see
 [Suppression](#suppression)). Both mechanisms stack.
 
 Run `cqrs-lint doctor` to confirm your overrides were loaded.
+
+**C008 — ignore float64 fields and structs**
+
+C008 flags `float64` fields with monetary names. If some are intentionally
+float64 (cost estimates, metrics, observability counters), exclude them:
+
+```json
+{
+	"rules": {
+		"c008-ignore-fields": ["CostEstimate", "PriceIndex"],
+		"c008-ignore-structs": ["PricingMetrics", "CostEstimate"]
+	}
+}
+```
+
+`c008-ignore-fields` skips individual field names (case-insensitive substring
+match). `c008-ignore-structs` skips entire structs — all float64 fields in a
+matched struct are ignored.
 
 ## Suppression
 

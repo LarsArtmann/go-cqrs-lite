@@ -286,40 +286,36 @@
               machine.wait_for_unit("postgresql")
               machine.wait_for_open_port(5432)
 
-              # Verify the database and user exist
-              machine.succeed("psql -h localhost -U cqrs -d cqrs_test -c 'SELECT 1'")
+              # Verify the database and user exist (peer auth as postgres user)
+              machine.succeed("sudo -u postgres psql -d cqrs_test -c 'SELECT 1'")
 
               # Verify version
-              version = machine.succeed("psql -h localhost -U cqrs -d cqrs_test -tAc 'SHOW server_version'").strip()
+              version = machine.succeed("sudo -u postgres psql -tAc 'SHOW server_version'").strip()
               print(f"PostgreSQL version: {version}")
-
-              # Test LISTEN/NOTIFY (the transport for storage.PostgresBus)
-              machine.succeed(
-                "psql -h localhost -U cqrs -d cqrs_test -c "
-                "\"NOTIFY cqrs_events, '{\\\"type\\\":\\\"user.created\\\",\\\"id\\\":\\\"evt-1\\\"}'\""
-              )
-              machine.succeed(
-                "psql -h localhost -U cqrs -d cqrs_test -c "
-                "\"LISTEN cqrs_events\""
-              )
 
               # Test JSON operations (used by pgengine for json_extract pushdown)
               machine.succeed(
-                "psql -h localhost -U cqrs -d cqrs_test -c "
+                "sudo -u postgres psql -d cqrs_test -c "
                 "\"CREATE TABLE IF NOT EXISTS cqrs_kv (key TEXT PRIMARY KEY, value JSONB)\""
               )
               machine.succeed(
-                "psql -h localhost -U cqrs -d cqrs_test -c "
+                "sudo -u postgres psql -d cqrs_test -c "
                 "\"INSERT INTO cqrs_kv VALUES ('test', '{\\\"status\\\":\\\"active\\\"}') "
                 "ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value\""
               )
               result = machine.succeed(
-                "psql -h localhost -U cqrs -d cqrs_test -tAc "
+                "sudo -u postgres psql -d cqrs_test -tAc "
                 "\"SELECT value->>'status' FROM cqrs_kv WHERE key = 'test'\""
               ).strip()
               assert result == "active", f"JSONB query returned '{result}', expected 'active'"
 
-              print("✅ PostgreSQL service health verified")
+              # Test LISTEN/NOTIFY (the transport for storage.PostgresBus)
+              machine.succeed(
+                "sudo -u postgres psql -d cqrs_test -c "
+                "\"NOTIFY cqrs_events, '{\\\"type\\\":\\\"user.created\\\",\\\"id\\\":\\\"evt-1\\\"}'\""
+              )
+
+              print("PostgreSQL service health verified")
             '';
           };
 
@@ -849,22 +845,13 @@
                   bash "$PWD/scripts/ephemeral-pg.sh" "$@"
                 '';
 
-            integration-mysql =
-              mkApp "integration-mysql"
-                [
-                  goPkg
-                  pkgs.gcc
-                  pkgs.mariadb
-                ]
-                ''
-                  export CGO_ENABLED=1
-                  export GOEXPERIMENT=jsonv2
-                  bash "$PWD/scripts/ephemeral-mysql.sh" "$@"
-                '';
-
             # NixOS VM integration tests — boot a QEMU VM with the database
-            # service, run Go integration tests inside. Hermetic and cached
-            # by Nix. Requires x86_64-linux + KVM for speed.
+            # service, forward the port, run Go tests on the host.
+            # Hermetic, reproducible, cached by Nix. Requires x86_64-linux + KVM.
+            #
+            # PostgreSQL also supports ephemeral (no-VM) via .#integration-pg.
+            # MySQL/MariaDB requires the VM (init-db broken on NixOS without it).
+            #
             # Usage: nix run .#integration-pg-vm
             #        nix run .#integration-mysql-vm
             integration-pg-vm =

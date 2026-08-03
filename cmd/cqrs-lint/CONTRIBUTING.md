@@ -179,3 +179,71 @@ cmd/cqrs-lint/
 │   ├── fix/         # Auto-fix provider
 │   └── suppression/ # //cqrs-lint:ignore comment parser
 ```
+
+## Release Process
+
+Releasing cqrs-lint requires coordinating the Go version constant, the Nix
+vendorHash, the Go module checksums, and the git tag. Follow this checklist:
+
+### 1. Bump the version constant
+
+Edit `main.go` and set `const version` to the new semver (e.g., `"4.4.0"`).
+The version must match the next `cmd/cqrs-lint/vX.Y.Z` tag.
+
+### 2. Sync Go module dependencies
+
+```bash
+cd cmd/cqrs-lint
+GOWORK=off go mod tidy
+```
+
+### 3. Update the Nix vendorHash
+
+```bash
+nix build .#cqrs-lint
+# If hash mismatch: copy the "got:" hash from the error
+# Edit flake.nix line ~362: vendorHash = "sha256-NEW_HASH"
+nix build .#cqrs-lint  # verify it builds
+```
+
+### 4. Run the full verification suite
+
+```bash
+nix run .#verify  # build + vet + test + race + lint + doc-check
+```
+
+### 5. Tag and verify
+
+```bash
+git tag -a cmd/cqrs-lint/v4.4.0 -m "cqrs-lint v4.4.0"
+git push origin cmd/cqrs-lint/v4.4.0
+```
+
+### 6. Verify consumers can resolve
+
+```bash
+# From a temp project:
+go get github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint@v4.4.0
+```
+
+### Tag conventions
+
+- Tags use the full module path: `cmd/cqrs-lint/vX.Y.Z` (not `cqrs-lint/vX.Y.Z`)
+- Tags must be monotonically increasing in BOTH semver AND commit ancestry
+- Always use annotated tags (`git tag -a`), never lightweight tags
+- Verify with: `git tag -l 'cmd/cqrs-lint/v*' | sort -V | tail -1`
+
+### SystemNix distribution
+
+The system-installed `cqrs-lint` binary comes from the SystemNix flake
+(`~/projects/SystemNix`), which pins this repo as a `flake=false` input.
+After a release:
+
+```bash
+cd ~/projects/SystemNix
+nix flake update go-cqrs-lite
+sudo nixos-rebuild switch --flake .#l
+```
+
+The `scripts/bump-cqrs-lint.sh` helper automates the vendorHash + go mod tidy
++ nix build cycle from the repo root.

@@ -1,39 +1,27 @@
 # nix/vm/postgres.nix — NixOS module for the Postgres integration test VM.
 #
 # Built via `nix build .#pg-vm` or used by scripts/vm-pg.sh.
-# Run manually: nix build .#pg-vm && QEMU_NET_OPTS="hostfwd=tcp::55432-:5432" result/bin/run-nixos-vm
+# Also imported by the runNixOSTest checks in flake.nix.
 { pkgs, ... }:
 {
   services.postgresql = {
     enable = true;
     package = pkgs.postgresql_16;
     enableTCPIP = true;
-    ensureDatabases = [ "cqrs_test" ];
+
+    # Create both the user and matching database (ensureDBOwnership requires this).
+    ensureDatabases = [ "cqrs" "cqrs_test" ];
     ensureUsers = [
       {
         name = "cqrs";
         ensureDBOwnership = true;
       }
     ];
-    # Trust all local connections — test VM only, never production.
-    authentication = pkgs.lib.mkOverride 10 ''
-      # TYPE  DATABASE  USER  ADDRESS       METHOD
-      local   all       all                 trust
-      host    all       all   127.0.0.1/32  trust
-      host    all       all   ::1/128       trust
-      host    all       all   10.0.2.0/24   trust
-    '';
-    settings = {
-      listen_addresses = "*";
-    };
   };
 
-  # Lean VM — no docs, no X11, no audio
+  # Lean VM — no docs, no X11
   documentation.enable = false;
   services.xserver.enable = false;
-
-  # Port forwarding is set via QEMU_NET_OPTS in scripts/vm-pg.sh, not here.
-  # Memory/disk size are configured via the runNixOSTest nodes config.
 
   system.stateVersion = "25.05";
 }

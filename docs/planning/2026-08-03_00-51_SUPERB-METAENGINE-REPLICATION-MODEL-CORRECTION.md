@@ -1,7 +1,7 @@
 # SUPERB: Metaengine Distributed Engine Foundation — Replication Model, Universal ADTs, and the Path to Iroh
 
 > **Date:** 2026-08-03 00:51 (rewritten for superbness)
-> **Status:** Phase 1 (correction) DONE. Phases 2–6 (hardening, Iroh, universal ADT) NOT STARTED.
+> **Status:** Phase 1 (correction) + Phase 2 (hardening) DONE. Phase 3 (universal ADT) design doc DONE, implementation NOT STARTED. Phase 4 (Iroh) NOT STARTED.
 > **Owner:** Lars
 > **Related docs:**
 >
@@ -55,17 +55,16 @@ The initial implementation (commit `31f26b8c`) proposed a `VisibilityModel` with
 | Design doc updated to DDIA-canonical naming                                      | `72818e88` | Done   |
 | Deleted `visibility.go`                                                          | `72818e88` | Done   |
 
-### What Was NOT Done
+### What Was Done (Phase 2 — Hardening — COMPLETE)
 
-| What                                                                      | Why It Matters                                                                                                                      | Priority |
-| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| Planner emits diagnostics when `IsReplicated()` + `ReplicationLag > 0`    | Users need to see "routed to engine with 5s replication lag" warnings                                                               | P1       |
-| `NetworkRTT` calibration helper (like existing `Calibrate()` for nsPerOp) | RTT depends on deployment topology, not engine type — user must be able to set or measure it                                        | P1       |
-| `EngineProfile.String()` includes replication info                        | Debugging visibility — you can't debug what you can't print                                                                         | P2       |
-| `CollectionInfo` exposes replication to consumers                         | Consumers querying `store.Collections()` should know if a collection is replicated                                                  | P2       |
-| API-stability golden regenerated                                          | New exported types (`Replication`, `IsReplicated`, `EffectiveReplicationLag`, `EffectiveNetworkRTT`) changed the public API surface | P1       |
-| AGENTS.md updated with the replication model                              | Future sessions need to know this exists                                                                                            | P2       |
-| External engine profiles (Pebble, DuckDB, Postgres) verified to compile   | They inherit zero-value defaults, but explicit verification + CI gate is missing                                                    | P2       |
+| What                                                                    | Status |
+| ----------------------------------------------------------------------- | ------ |
+| Planner emits INFO diagnostic when `IsReplicated()` + `ReplicationLag > 0` (`rule_replication.go`) | Done   |
+| `EngineProfile.String()` includes replication mode, lag, and RTT        | Done   |
+| API-stability golden regenerated — new exported symbols tracked         | Done   |
+| AGENTS.md updated with replication model summary                        | Done   |
+| External engine modules (Pebble, DuckDB, Postgres) verified to compile + tests pass | Done   |
+| Universal-ADT design doc written ([`meta-engine-universal-adt-support.md`](meta-engine-universal-adt-support.md)) | Done   |
 
 ---
 
@@ -237,14 +236,14 @@ Sorted by importance / impact / effort / customer-value.
 | T5  | ~~Update planner call site~~                        | P1     | Critical  | 5min   | Planner uses correct costs        | DONE        |
 | T6  | ~~6 replication model tests~~                       | P1     | High      | 15min  | Model is pinned                   | DONE        |
 | T7  | ~~Update design doc~~                               | P1     | High      | 20min  | Contributors see correct model    | DONE        |
-| T8  | Regenerate API-stability golden                     | P1     | Critical  | 10min  | Public API surface is tracked     | NOT STARTED |
-| T9  | Add replication diagnostics to planner              | P1     | High      | 20min  | Users see lag/staleness warnings  | NOT STARTED |
-| T10 | Update `EngineProfile.String()` with replication    | P1     | Medium    | 10min  | Debugging visibility              | NOT STARTED |
-| T11 | Update AGENTS.md metaengine section                 | P2     | Medium    | 15min  | Future sessions know the model    | NOT STARTED |
-| T12 | Verify external engine modules compile              | P1     | High      | 10min  | Pebble/DuckDB/PG don't break      | NOT STARTED |
+| T8  | ~~Regenerate API-stability golden~~                     | P1     | Critical  | 10min  | Public API surface is tracked     | DONE        |
+| T9  | ~~Add replication diagnostics to planner~~              | P1     | High      | 20min  | Users see lag/staleness warnings  | DONE        |
+| T10 | ~~Update `EngineProfile.String()` with replication~~    | P1     | Medium    | 10min  | Debugging visibility              | DONE        |
+| T11 | ~~Update AGENTS.md metaengine section~~                 | P2     | Medium    | 15min  | Future sessions know the model    | DONE        |
+| T12 | ~~Verify external engine modules compile~~              | P1     | High      | 10min  | Pebble/DuckDB/PG don't break      | DONE        |
 | T13 | Add `CalibrateRTT()` helper (if Q1 = option c)      | P2     | Medium    | 20min  | Deployment-aware calibration      | NOT STARTED |
-| T14 | Write universal-ADT design exploration doc          | P2     | High      | 30min  | Design direction for pillar 2     | NOT STARTED |
-| T15 | Audit which engines skip which ADTs                 | P2     | High      | 15min  | Baseline for universal support    | NOT STARTED |
+| T14 | ~~Write universal-ADT design exploration doc~~          | P2     | High      | 30min  | Design direction for pillar 2     | DONE        |
+| T15 | ~~Audit which engines skip which ADTs~~                 | P2     | High      | 15min  | Baseline for universal support    | DONE        |
 | T16 | Design SCREAM diagnostic format                     | P2     | High      | 20min  | Honest cost signals for fallbacks | NOT STARTED |
 | T17 | Implement universal ADT `Supports` entries          | P2     | High      | 30min  | Every engine declares every ADT   | NOT STARTED |
 | T18 | Add SCREAM diagnostics to planner                   | P2     | High      | 25min  | Warnings surface tradeoffs        | NOT STARTED |
@@ -264,14 +263,14 @@ Sorted by importance / impact / effort / customer-value.
 | M5  | ~~Update planner call site~~                                                                           | T5     | 3min  | DONE        |
 | M6  | ~~Write replication tests~~                                                                            | T6     | 10min | DONE        |
 | M7  | ~~Update design doc~~                                                                                  | T7     | 12min | DONE        |
-| M8  | Run `cd cmd/api-stability && GOWORK=off go run main.go -update`                                        | T8     | 5min  | NOT STARTED |
-| M9  | Add `replicationRule` to `defaultRules()` in `rules.go` — emit INFO diagnostic when `IsReplicated()`   | T9     | 10min | NOT STARTED |
-| M10 | Add replication mode + lag to `EngineProfile.String()` output                                          | T10    | 5min  | NOT STARTED |
-| M11 | Build pebbleengine + duckdbengine + pgengine with new EngineProfile                                    | T12    | 5min  | NOT STARTED |
-| M12 | Add replication model section to AGENTS.md under metaengine                                            | T11    | 10min | NOT STARTED |
-| M13 | Write `docs/planning/meta-engine-universal-adt-support.md` skeleton                                    | T14    | 10min | NOT STARTED |
-| M14 | Grep all engine Profile() constructors, tabulate which ADTs each skips                                 | T15    | 8min  | NOT STARTED |
-| M15 | Run full test suite (`go test -tags "goexperiment.jsonv2" ./... -count=1`) to verify everything passes | T12    | 10min | NOT STARTED |
+| M8  | ~~Run `cd cmd/api-stability && GOWORK=off go run . -update`~~                                        | T8     | 5min  | DONE        |
+| M9  | ~~Add `replicationRule` to `defaultRules()` in `rules.go` — emit INFO diagnostic when `IsReplicated()`~~   | T9     | 10min | DONE        |
+| M10 | ~~Add replication mode + lag to `EngineProfile.String()` output~~                                          | T10    | 5min  | DONE        |
+| M11 | ~~Build pebbleengine + duckdbengine + pgengine with new EngineProfile~~                                    | T12    | 5min  | DONE        |
+| M12 | ~~Add replication model section to AGENTS.md under metaengine~~                                            | T11    | 10min | DONE        |
+| M13 | ~~Write `docs/planning/meta-engine-universal-adt-support.md` skeleton~~                                    | T14    | 10min | DONE        |
+| M14 | ~~Grep all engine Profile() constructors, tabulate which ADTs each skips~~                                 | T15    | 8min  | DONE        |
+| M15 | ~~Run full test suite (`go test -tags "goexperiment.jsonv2" ./... -count=1`) to verify everything passes~~ | T12    | 10min | DONE        |
 
 ---
 
@@ -284,12 +283,12 @@ Before this plan is considered complete (Phases 1–2):
 - [x] All existing metaengine tests pass (no regressions)
 - [x] Zero references to `Visibility`/`TypicalLag`/`estimateCostWithLag` in `.go` files
 - [x] Design doc uses DDIA-canonical naming throughout
-- [ ] `pebbleengine`, `duckdbengine`, `pgengine` all build — no errors
-- [ ] API-stability golden regenerated — new exported symbols tracked
-- [ ] Planner emits INFO diagnostic when routing to a replicated engine with non-zero lag
-- [ ] `EngineProfile.String()` includes replication info
-- [ ] AGENTS.md updated with replication model summary
-- [ ] Full `go test` suite passes across all modules
+- [x] `pebbleengine`, `duckdbengine`, `pgengine` all build — no errors
+- [x] API-stability golden regenerated — new exported symbols tracked
+- [x] Planner emits INFO diagnostic when routing to a replicated engine with non-zero lag
+- [x] `EngineProfile.String()` includes replication info
+- [x] AGENTS.md updated with replication model summary
+- [x] Full `go test` suite passes across all metaengine modules (core + pebble + duckdb + pg)
 
 Before Phase 3 (universal ADT) is considered complete:
 
