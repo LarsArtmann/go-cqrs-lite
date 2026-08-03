@@ -35,6 +35,17 @@ type CollectionInfo struct {
 	ReadPattern ReadPattern
 	EngineName  string
 	Complexity  Complexity
+
+	// Replication declares how the collection's engine propagates data
+	// across process boundaries (DDIA Ch5). ReplicationNone means single-node.
+	Replication Replication
+
+	// ReplicationLag is the expected staleness for replicated engines.
+	// Zero for single-node engines. Diagnostic-only, not latency.
+	ReplicationLag time.Duration
+
+	// NetworkRTT is the additive fixed latency to reach the engine's data.
+	NetworkRTT time.Duration
 }
 
 // Collections returns metadata for every registered query collection.
@@ -47,12 +58,16 @@ func (s *Store) Collections() []CollectionInfo {
 
 	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
 		q := s.queries[name]
+		profile := q.QueryEngine().Profile()
 		result = append(result, CollectionInfo{
-			Name:        q.QueryName(),
-			ADT:         q.QueryADT(),
-			ReadPattern: q.QueryReadPattern(),
-			EngineName:  q.QueryEngine().Profile().Name,
-			Complexity:  q.QueryComplexity(),
+			Name:           q.QueryName(),
+			ADT:            q.QueryADT(),
+			ReadPattern:    q.QueryReadPattern(),
+			EngineName:     profile.Name,
+			Complexity:     q.QueryComplexity(),
+			Replication:    profile.Replication,
+			ReplicationLag: profile.EffectiveReplicationLag(),
+			NetworkRTT:     profile.EffectiveNetworkRTT(),
 		})
 	}
 
