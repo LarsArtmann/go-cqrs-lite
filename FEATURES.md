@@ -1266,3 +1266,16 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | storage/SQLite | Load           | 48,505 | 20,233 |       554 |
 
 Full results: `benchmarks/2026-06-02_20-18-40.md` · Regression pipeline: `scripts/benchstat-compare.sh`
+
+---
+
+## Integration Test Infrastructure
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Ephemeral PostgreSQL (nixpkgs) | ✅ | `nix run .#integration-pg` — no VM, no Docker, ~3s startup |
+| NixOS VM — PostgreSQL | ✅ | `nix build .#checks.x86_64-linux.postgres-vm -L` — PG 16, JSONB, LISTEN/NOTIFY |
+| NixOS VM — MySQL | ✅ | `nix build .#checks.x86_64-linux.mysql-vm -L` — MariaDB 11.4, JSON |
+| VM launcher scripts | ✅ | `nix run .#integration-pg-vm` / `.#integration-mysql-vm` — driver-based, port-forwarded |
+| CI integration | ✅ | Matrix-parallelized `nixos-vm-tests` job + `ephemeral-pg-tests` job |
+| ADR-0095 | ✅ | Documents rationale, tradeoffs, MariaDB limitation |

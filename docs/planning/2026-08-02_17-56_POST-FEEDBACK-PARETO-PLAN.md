@@ -95,15 +95,15 @@ Sorted by importance/impact/effort/customer-value.
 | T3  | **Tag `stack/duckdb/v4.0.0`** + push tag                                                                            | Critical | 5min   | Consumers resolving this module get 404 without it     | `[BLOCKED]` |
 | T4  | **Tag `metaengine/pgengine/v4.0.0`** + push tag                                                                     | Critical | 5min   | Same — consumers get 404                               | `[BLOCKED]` |
 | T5  | **Tag `metaengine/duckdbengine/v4.0.0`** + push tag                                                                 | Critical | 5min   | Same — consumers get 404                               | `[BLOCKED]` |
-| T6  | **Wire metaengine dead code** — branded unit types (`NsPerRead`, `NsPerWrite`, `ByteSize`), `ApplyError`, `Valid()` | High     | 45min  | Completes the data model refactor; removes dead code   | `[ ]`       |
-| T7  | **Exhaustiveness guard test** — compile-time fold type coverage                                                     | High     | 30min  | Prevents silent fallthrough bugs forever               | `[ ]`       |
-| T8  | **MySQL testcontainer privilege fix**                                                                               | Medium   | 45min  | Reliable MySQL CI                                      | `[ ]`       |
-| T9  | **C037 scope expansion** — kv, command, query, stack.Materialize                                                    | Medium   | 60min  | Closes codec-mismatch gap for 4 more stores            | `[ ]`       |
-| T10 | **SSE consolidation ADR**                                                                                           | Medium   | 30min  | Documents intentional split, prevents future confusion | `[ ]`       |
-| T11 | **D007 `--fix` support**                                                                                            | Medium   | 90min  | Saves 30min per consumer migration                     | `[ ]`       |
-| T12 | **Investigate `TestRun_Postgres_Recovery`** flake                                                                   | Medium   | 30min  | Restores benchkit CI trust                             | `[ ]`       |
-| T13 | **Investigate `TestProperty_SQLiteTTLExpiry`** flake                                                                | Medium   | 30min  | Restores idempotency CI trust                          | `[ ]`       |
-| T14 | **F009/F015/F017 feature-profile gating**                                                                           | Medium   | 90min  | Eliminates 3 FPs on CLI projects                       | `[ ]`       |
+| T6  | **Wire metaengine dead code** — branded unit types (`NsPerRead`, `NsPerWrite`, `ByteSize`), `ApplyError`, `Valid()` | High     | 45min  | Completes the data model refactor; removes dead code   | `[x]`       |
+| T7  | **Exhaustiveness guard test** — compile-time fold type coverage                                                     | High     | 30min  | Prevents silent fallthrough bugs forever               | `[x]`       |
+| T8  | **MySQL testcontainer privilege fix**                                                                               | Medium   | 45min  | Reliable MySQL CI                                      | `[x]`       |
+| T9  | **C037 scope expansion** — kv, command, query, stack.Materialize                                                    | Medium   | 60min  | Closes codec-mismatch gap for 4 more stores            | `[x]`       |
+| T10 | **SSE consolidation ADR**                                                                                           | Medium   | 30min  | Documents intentional split, prevents future confusion | `[x]`       |
+| T11 | **D007 `--fix` support**                                                                                            | Medium   | 90min  | Saves 30min per consumer migration                     | `[x]`       |
+| T12 | **Investigate `TestRun_Postgres_Recovery`** flake                                                                   | Medium   | 30min  | Restores benchkit CI trust                             | `[x]`       |
+| T13 | **Investigate `TestProperty_SQLiteTTLExpiry`** flake                                                                | Medium   | 30min  | Restores idempotency CI trust                          | `[x]`       |
+| T14 | **F009/F015/F017 feature-profile gating**                                                                           | Medium   | 90min  | Eliminates 3 FPs on CLI projects                       | `[x]`       |
 
 ---
 
