@@ -1117,7 +1117,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | F-series adoption coaching | 21 rules (F001–F021) that proactively coach consumers toward unused features | ✅ |
 | T-series testing quality | 8 rules (T001–T008) detecting missing test helpers, parallel coverage gaps, snapshot store misuse | ✅ |
 | E-series architecture | 17 rules (E001–E017) detecting consumer design issues (preset bypass, missing HTTP, signing disabled, etc.) | ✅ |
-| 181 total rules | Correctness (36), API (31), boilerplate (28), adoption (21), architecture (17), consistency (16), performance (9), security (9), testing (8), version (6) | ✅ |
+| 185 total rules | Correctness (39), API (31), boilerplate (28), adoption (21), architecture (17), consistency (16), performance (9), security (10), testing (8), version (6) | ✅ |
 | A033 branded-ID roundtrip | Flags code that converts branded `id.Of[T]` to `string` and back (breaks type safety) | ✅ |
 | C037 codec mismatch | Detects codec mismatches across all typed stores: snapshot, command, query, kv (CBOR events + JSON snapshots = deserialization failure) | ✅ |
 
@@ -1213,10 +1213,10 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `stack/bench`                  | `…/stack/bench/v4`                  | 🧪 Benchmarks                                                                                                                                                                 |
 | `deriver`                      | `…/deriver/v4`                      | ✅ Production                                                                                                                                                                 |
 | `graph`                        | `…/graph/v4`                        | ✅ Production                                                                                                                                                                 |
-| `idempotency`                  | `…/idempotency/v4`                  | ✅ Production                                                                                                                                                                 |
+| `idempotency`                  | `…/idempotency/v4`                  | ✅ Production (alias shim — re-exports `go-idempotency`, ADR-0065)                                                                                                            |
 | `idempotency/kvstore`          | `…/idempotency/kvstore/v4`          | ✅ Production (KV-backed idempotency)                                                                                                                                         |
 | `idempotency/sqlstore`         | `…/idempotency/sqlstore/v4`         | ✅ Production (SQL-backed: SQLite + Postgres, `INSERT ON CONFLICT` + TTL)                                                                                                     |
-| `retry`                        | `…/retry/v4`                        | ✅ Production (zero-dep retry w/ backoff+jitter)                                                                                                                              |
+| `retry`                        | `…/retry/v4`                        | ✅ Production (alias shim — re-exports `go-retry`, ADR-0064)                                                                                                                  |
 | `projection`                   | `…/projection/v4`                   | ✅ Production                                                                                                                                                                 |
 | `projectionhost`               | `…/projectionhost/v4`               | ✅ Production                                                                                                                                                                 |
 | `scenario`                     | `…/scenario/v4`                     | ✅ Production                                                                                                                                                                 |
@@ -1233,7 +1233,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `flightrecorder`               | `…/flightrecorder/v4`               | 🧪 Experimental (Go 1.25 runtime/trace capture. Zero-dep. ADR-0089)                                                                                                           |
 | `benchkit`                     | `…/benchkit/v4`                     | 🧪 Experimental (functional, 88 tests, `--repeat N` available)                                                                                                                |
 | `cmd/cqrs-bench`               | `…/cmd/cqrs-bench`                  | 🔧 Tool                                                                                                                                                                       |
-| `cmd/cqrs-lint`                | `…/cmd/cqrs-lint`                   | 🔧 Tool (181-rule domain-aware linter: correctness 36, API 31, boilerplate 28, adoption 21, architecture 17, consistency 16, performance 9, security 9, testing 8, version 6) |
+| `cmd/cqrs-lint`                | `…/cmd/cqrs-lint`                   | 🔧 Tool (185-rule domain-aware linter: correctness 39, API 31, boilerplate 28, adoption 21, architecture 17, consistency 16, performance 9, security 10, testing 8, version 6) |
 
 ---
 

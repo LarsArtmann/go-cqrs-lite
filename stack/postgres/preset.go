@@ -227,5 +227,3 @@ func openBackend(
 		"postgres_preset.create_backend",
 	)
 }
-
-

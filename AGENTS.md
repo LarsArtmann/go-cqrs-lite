@@ -63,7 +63,7 @@ go-cqrs-lite/
 │                        #   [assumptions & query-planning](docs/planning/meta-engine-assumptions-and-query-planning.md)
 │                        # SQLite engine: tx-atomic MapUpdate, restart-safe multimap seq, ExecuteTyped reifies map[string]any→struct.
 │                        # Caller owns the *sql.DB (engine Close is a no-op).
-│                        # ADRs: [0061](docs/adr/0061-metaengine-sqlite-engine.md), [0062](docs/adr/0062-metaengine-dependency-boundary.md), [0063](docs/adr/0063-metaengine-pushdown.md), [0073](docs/adr/0073-metaengine-layout-planning.md)
+│                        # ADRs: [0061](docs/adr/0061-metaengine-sqlite-engine.md), [0062](docs/adr/0062-metaengine-dependency-boundary.md), [0063](docs/adr/0063-metaengine-pushdown.md), [0073](docs/adr/0073-metaengine-layout-planning.md), [0093](docs/adr/0093-metaengine-replication-model.md), [0094](docs/adr/0094-metaengine-universal-adt-support.md), [0096](docs/adr/0096-iroh-distributed-engine-bridge-evaluation.md)
 │                        # **Query pushdown** (Phase 1): FilterOnField/SortOnField → SQLite json_extract() WHERE/ORDER BY pushdown
 │                        # **Layout planning** (Phase 3): LayoutPlan generates DDL from declared query patterns (indexed columns, 10x faster)
 │                        # **Streaming reads** (Phase 5): StreamScan(ctx) iter.Seq2 for OOM-safe lazy iteration
