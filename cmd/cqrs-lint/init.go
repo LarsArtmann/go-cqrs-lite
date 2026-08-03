@@ -27,7 +27,7 @@ var presetConfigs = map[string]string{
   "min-severity": "info",
   "min-confidence": "low",
   "format": "text",
-  "exclude": [],
+  "exclude": "",
   "only": "",
   "features": {},
   "preset": ""

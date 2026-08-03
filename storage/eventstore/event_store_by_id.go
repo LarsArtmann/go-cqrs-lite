@@ -13,8 +13,7 @@ import (
 )
 
 // EventByIDLoader is an opt-in interface for stores that can load a single
-// event by its ID. This is used by the PostgresBus to re-fetch events after
-// receiving a NOTIFY — one indexed query instead of a version scan.
+// event by its ID. This enables one indexed query instead of a version scan.
 type EventByIDLoader interface {
 	LoadByEventID(ctx context.Context, eventID id.EventID) (event.Event, error)
 }

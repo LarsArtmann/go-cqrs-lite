@@ -17,7 +17,7 @@ type Capabilities struct {
 	Persistent bool
 
 	// Distributed is true when the bus propagates events across processes.
-	// postgres.WithDistributedBus = true; all others = false.
+	// Currently false for all presets (in-process bus only).
 	Distributed bool
 
 	// DurabilityRange lists the [DurabilityTier] values the backend supports.

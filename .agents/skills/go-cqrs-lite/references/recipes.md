@@ -59,12 +59,12 @@ b, _ := sqlite.New("app.db", sqlite.WithPragmas(sqlopt.WithoutWAL()))
 b, _ := turso.New("app.db", turso.WithPragmas(sqlopt.WithoutWAL()))
 ```
 
-#### Postgres distributed bus (cross-process pub/sub)
+#### Postgres preset
 
 ```go
-listener, _ := postgres.NewPgxListenerFromDSN(ctx, dsn)
-b, _ := postgres.New(dsn, postgres.WithDistributedBus(listener))
-// Events now propagate via LISTEN/NOTIFY to other processes sharing the DB
+b, _ := postgres.New("postgres://user:pass@localhost:5432/myapp?sslmode=disable")
+// Events use in-process bus (watermill GoChannel).
+// For cross-process pub/sub, wire a Watermill-backed bus externally.
 ```
 
 Available presets:
