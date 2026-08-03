@@ -74,14 +74,22 @@ func (s *Store) Collections() []CollectionInfo {
 	return result
 }
 
+// lookupQuery returns the queryMeta for a collection name under a read lock.
+// queryMeta values are immutable after Plan(), so the returned value remains
+// valid after the lock is released.
+func (s *Store) lookupQuery(name string) (queryMeta, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	q, ok := s.queries[name]
+	return q, ok
+}
+
 // collectionEngine returns the engine assigned to a query/collection by name.
 // Used by TypedReader to access the engine for typed reads without going through
 // the reflective Execute path.
 func (s *Store) collectionEngine(collection string) (Engine, bool) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	q, ok := s.queries[collection]
+	q, ok := s.lookupQuery(collection)
 	if !ok {
 		return nil, false
 	}
@@ -94,10 +102,7 @@ func (s *Store) collectionEngine(collection string) (Engine, bool) {
 // single-node. Use this to decide whether read-after-write consistency
 // guarantees apply (they don't for replicated engines with non-zero lag).
 func (s *Store) ReplicationMode(queryName string) Replication {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	q, ok := s.queries[queryName]
+	q, ok := s.lookupQuery(queryName)
 	if !ok {
 		return ReplicationNone
 	}
