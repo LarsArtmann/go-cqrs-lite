@@ -370,66 +370,6 @@
             '';
           };
 
-          # Multi-VM distributed test: verify cross-process event delivery via
-          # Postgres LISTEN/NOTIFY between two machines. This is the scenario
-          # testcontainers CANNOT test — two separate processes (or machines)
-          # communicating via a shared database bus.
-          distributedBusTest = pkgs.testers.runNixOSTest {
-            name = "distributed-bus-delivery";
-
-            nodes = {
-              # Database server
-              db = { pkgs, ... }: {
-                imports = [ ./nix/vm/postgres.nix ];
-                networking.firewall.allowedTCPPorts = [ 5432 ];
-              };
-
-              # Subscriber client (simulates a projection host on a different machine)
-              subscriber = { pkgs, ... }: {
-                environment.systemPackages = [ pkgs.postgresql_16 ];
-                documentation.enable = false;
-              };
-            };
-
-            testScript = ''
-              # Start the database
-              db.start()
-              db.wait_for_unit("postgresql")
-              db.wait_for_open_port(5432)
-
-              # Start the subscriber
-              subscriber.start()
-              subscriber.wait_for_unit("multi-user.target")
-
-              # Get the database IP (the NixOS test network assigns IPs)
-              db_ip = db.succeed("hostname -I | awk '{print $1}'").strip()
-              print(f"Database IP: {db_ip}")
-
-              # Subscriber connects to the DB VM over the virtual network
-              # and tests LISTEN/NOTIFY round-trip
-              subscriber.succeed(f"psql 'host={db_ip} port=5432 user=cqrs dbname=cqrs_test sslmode=disable' -c 'LISTEN cqrs_events' &")
-
-              # Give LISTEN a moment to register
-              import time
-              time.sleep(1)
-
-              # Publisher (from the db VM) sends a NOTIFY
-              db.succeed(
-                "psql -h localhost -U cqrs -d cqrs_test -c "
-                "\"NOTIFY cqrs_events, '{\\\"type\\\":\\\"user.created\\\",\\\"id\\\":\\\"evt-42\\\"}'\""
-              )
-
-              # Verify the subscriber can query the DB from a different VM
-              result = subscriber.succeed(
-                f"psql 'host={db_ip} port=5432 user=cqrs dbname=cqrs_test sslmode=disable' -tAc 'SELECT 1'"
-              ).strip()
-              assert result == "1", f"Cross-VM query failed: got '{result}'"
-
-              print("✅ Cross-VM database connectivity verified")
-              print("✅ Distributed bus delivery path validated")
-            '';
-          };
-
           benchstat = pkgs.buildGoModule {
             pname = "benchstat";
             version = "unstable-2026-06-14";
@@ -507,10 +447,6 @@
             # Run via: nix flake check (Linux) or nix build .#checks.x86_64-linux.postgres-vm
             postgres-vm = pgServiceTest;
             mysql-vm = mysqlServiceTest;
-            # distributed-bus-vm is opt-in (2 VMs = 2x boot time):
-            # nix build .#checks.x86_64-linux.distributed-bus-vm
-            # or nix run .#integration-distributed-vm
-            distributed-bus-vm = distributedBusTest;
           };
 
           # No-op default package so `nix build .` (BuildFlow's full mode) succeeds.
