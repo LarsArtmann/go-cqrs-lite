@@ -26,7 +26,7 @@ func Do(ctx context.Context, config Config, fn AttemptFunc) error {
 		ctx,
 		config,
 		fn,
-	) //nolint:wrapcheck // thin alias — caller sees the same errors
+	)
 }
 
 // Backoff computes the delay before the next attempt.
