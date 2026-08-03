@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"os/exec"
 	"strings"
 	"testing"
 
@@ -552,5 +553,37 @@ func TestFormatSuppressedFindings(t *testing.T) {
 	}
 	if !strings.Contains(out, "main.go:42:10") {
 		t.Errorf("output should contain file location, got:\n%s", out)
+	}
+}
+
+// TestVersionMatchesLatestTag verifies the version constant matches the latest
+// cmd/cqrs-lint/v* git tag. This catches the v0.2.2-vs-v4.2.0 mismatch class
+// of bug where the constant drifts from the release track.
+func TestVersionMatchesLatestTag(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping git-dependent test in short mode")
+	}
+
+	out, err := exec.Command("git", "tag", "-l", "cmd/cqrs-lint/v*", "--sort=-v:refname").Output()
+	if err != nil {
+		t.Skipf("git tag failed (not a git repo?): %v", err)
+	}
+
+	tags := strings.Fields(strings.TrimSpace(string(out)))
+	if len(tags) == 0 {
+		t.Skip("no cmd/cqrs-lint/v* tags found")
+	}
+
+	latest := tags[0]
+	// Extract semver from tag: cmd/cqrs-lint/v4.3.0 → 4.3.0
+	tagVersion := strings.TrimPrefix(latest, "cmd/cqrs-lint/v")
+
+	if version != tagVersion {
+		t.Errorf(
+			"version constant %q does not match latest tag %q (semver: %s)",
+			version,
+			latest,
+			tagVersion,
+		)
 	}
 }

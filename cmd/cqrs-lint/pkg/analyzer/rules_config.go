@@ -53,6 +53,17 @@ type RulesConfig struct {
 	//
 	//	{"rules": {"c008-ignore-fields": ["CostEstimate", "PriceIndex"]}}
 	IgnoreFloatFields []string `json:"c008-ignore-fields,omitempty"` //nolint:tagliatelle // CLI config key
+
+	// IgnoreStructs lists struct type names to exclude entirely from C008
+	// (float64-for-money). All float64 fields in a matched struct are ignored,
+	// regardless of their field name. Useful for DTOs and metrics structs
+	// where multiple fields use monetary names but none represent actual
+	// monetary values. Matching is case-insensitive.
+	//
+	// Example:
+	//
+	//	{"rules": {"c008-ignore-structs": ["PricingMetrics", "CostEstimate"]}}
+	IgnoreStructs []string `json:"c008-ignore-structs,omitempty"` //nolint:tagliatelle // CLI config key
 }
 
 // DisabledSet returns the set of disabled rule IDs as a map for O(1) lookup.
@@ -78,6 +89,7 @@ var knownRulesConfigKeys = map[string]bool{
 	"disable":                      true,
 	"external-api-struct-prefixes": true,
 	"c008-ignore-fields":           true,
+	"c008-ignore-structs":          true,
 }
 
 // Validate checks the rules config for common misconfigurations and writes
@@ -141,6 +153,19 @@ func (rc *RulesConfig) Validate(w io.Writer, rawRulesJSON []byte) {
 		cleanedIgnore = append(cleanedIgnore, trimmed)
 	}
 	rc.IgnoreFloatFields = cleanedIgnore
+
+	// Normalize ignore-structs: trim, lowercase, drop empties, deduplicate.
+	seenStructs := make(map[string]bool)
+	cleanedStructs := rc.IgnoreStructs[:0]
+	for _, s := range rc.IgnoreStructs {
+		trimmed := strings.ToLower(strings.TrimSpace(s))
+		if trimmed == "" || seenStructs[trimmed] {
+			continue
+		}
+		seenStructs[trimmed] = true
+		cleanedStructs = append(cleanedStructs, trimmed)
+	}
+	rc.IgnoreStructs = cleanedStructs
 
 	// Check for unknown keys in the raw JSON (catches typos).
 	if len(rawRulesJSON) > 0 {

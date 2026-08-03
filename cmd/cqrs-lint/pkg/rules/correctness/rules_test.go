@@ -630,6 +630,41 @@ type Invoice struct {
 	ruletest.AssertRule(t, findings, "C008", 0)
 }
 
+func TestC008_ConfigIgnoreStructs(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"model.go": `package main
+
+type PricingMetrics struct {
+	Amount float64
+	Price  float64
+}
+
+type Invoice struct {
+	Amount float64
+}`,
+	})
+	ctx.RulesConfig.IgnoreStructs = []string{"pricingmetrics"}
+
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	// PricingMetrics is ignored entirely; Invoice.Amount still fires.
+	ruletest.AssertRule(t, findings, "C008", 1)
+}
+
+func TestC008_ConfigIgnoreStructsCaseInsensitive(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"model.go": `package main
+
+type CostEstimate struct {
+	Amount float64
+	Price  float64
+}`,
+	})
+	ctx.RulesConfig.IgnoreStructs = []string{"COSTESTIMATE"}
+
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	ruletest.AssertRule(t, findings, "C008", 0)
+}
+
 func TestC016_ShutdownProximityBoundary5Lines(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"server.go": `package main

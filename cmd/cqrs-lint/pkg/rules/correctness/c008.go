@@ -81,6 +81,16 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					handled[st] = true
 
+					// Config opt-out: structs listed in c008-ignore-structs are
+					// skipped entirely — all float64 fields are ignored regardless
+					// of their name.
+					if matchesAny(
+						strings.ToLower(ts.Name.Name),
+						lowerStrings(ctx.RulesConfig.IgnoreStructs),
+					) {
+						return true
+					}
+
 					structMoney := pkgMoney ||
 						isMoneyStructName(ts.Name.Name, moneyKeywords) ||
 						hasMoneyEmbed(st, moneyKeywords)

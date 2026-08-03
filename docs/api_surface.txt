@@ -1546,6 +1546,7 @@ metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
+metaengine/method Apply
 metaengine/method ApplyBatch
 metaengine/method ApplyBatch
 metaengine/method ApplyEncoded
@@ -1675,6 +1676,7 @@ metaengine/method MultiAdd
 metaengine/method MultiAdd
 metaengine/method MultiGet
 metaengine/method MultiGet
+metaengine/method Name
 metaengine/method Name
 metaengine/method Name
 metaengine/method Name

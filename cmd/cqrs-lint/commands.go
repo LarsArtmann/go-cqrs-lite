@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os/exec"
 	"runtime"
 	"strings"
 
@@ -78,6 +79,32 @@ func versionVerbose() string {
 	b.WriteString("\n  arch:    " + runtime.GOOS + "/" + runtime.GOARCH)
 	b.WriteString("\n  module:  github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint")
 	return b.String()
+}
+
+func setupChangelogCommand(cli *cmdguard.CLI[AppConfig]) error {
+	cmd, err := cmdguard.NewCommand[AppConfig, cmdguard.NoFlags](
+		"changelog",
+		cmdguard.NoFlags{},
+		func(_ context.Context, _ *AppConfig, _ cmdguard.NoFlags) error {
+			out, err := exec.Command(
+				"git", "log", "--oneline",
+				"cmd/cqrs-lint/v"+version+"..HEAD",
+			).Output()
+			if err != nil {
+				// Fall back to last 20 commits if tag doesn't exist yet.
+				out, err = exec.Command("git", "log", "--oneline", "-20").Output()
+				if err != nil {
+					return fmt.Errorf("git log: %w", err)
+				}
+			}
+
+			fmt.Print(string(out))
+			return nil
+		},
+		cmdguard.WithShort("Print changelog (commits since last release tag)"),
+		cmdguard.WithNoArgs(),
+	)
+	return registerCommand(cli, "changelog", cmd, err)
 }
 
 // versionString returns the full version string, including commit hash and

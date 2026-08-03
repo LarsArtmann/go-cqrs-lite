@@ -73,6 +73,7 @@ go-cqrs-lite/
 │                        # **Materialize-vs-replay** (ES-specific killer feature): WithWorkloadStats, ReplayCost/MaterializeCost/ShouldMaterialize, materializeRule. Advisory INFO/WARN diagnostics.
 │                        # **StorageLayout + cost matrix**: Layout{Row,Columnar,LSM,KV}, (ADT × Layout)→Complexity, EngineProfile.Layouts, RuleTrace, SerializablePlan (JSON serialize/diff/pin).
 │                        # **Columnar-native storage** ([ADR-0092](docs/adr/0092-duckdb-columnar-native-storage.md)): WithColumnarLayout() extracts ALL exported fields of R into native SQL columns. LayoutPlanApplier interface (DuckDB) receives reflection-derived types (float64→DOUBLE, int→INTEGER). Enables vectorized GROUP BY/SUM/AVG on DuckDB.
+│                        # **Replication model** (DDIA Ch5): EngineProfile declares Replication (none/single-leader/multi-leader/leaderless), ReplicationLag (staleness, diagnostic-only), NetworkRTT (additive latency). All current engines are ReplicationNone (zero value). replicationRule emits INFO diagnostic for replicated engines with non-zero lag. Foundation for future distributed engines (Iroh, CockroachDB).
 │   └── pebbleengine/   # Pebble-backed metaengine Engine (LSM point reads, 7x faster than SQLite on MapGet). MapBackend, ScanBackend, SetBackend, CounterBackend, GraphBackend, MultimapBackend, LogBackend. **RawValueReader + RawScanReader** (eliminates JSON decode tax on point lookups and filtered scans). Separate module (cockroachdb/pebble dep)
 │   └── duckdbengine/   # DuckDB-backed metaengine Engine (columnar OLAP, CGo). MapBackend, CounterBackend, ScanBackend, **PushdownScan** (json_extract filter/sort pushdown), **LayoutPlanner** (planned tables with extracted columns + ART indexes), **LayoutPlanApplier** (columnar-native: WithColumnarLayout extracts all fields as typed columns, float64→DOUBLE). Cross-engine parity via adttest.RunMatrix. Separate module (duckdb-go dep, CGo required)
 │   └── pgengine/       # Postgres-backed metaengine Engine (JSONB + B-tree). MapBackend, CounterBackend, ScanBackend, **PushdownScan** (JSONB operator filter/sort pushdown), **LayoutPlanner** (expression indexes on JSONB paths). Cross-engine parity via adttest.RunMatrix. Pure Go (pgx driver, no CGo)
@@ -917,6 +918,30 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // The Memory engine tracks version chains for point-in-time reads:
 //   val, err := store.ExecuteAsOf(ctx, "users", "u1", timestamp)
 //   // Returns the value as it existed at that time, or metaengine.ErrNotFound
+
+// Metaengine replication model — distributed engine foundation (DDIA Ch5)
+//   // EngineProfile declares HOW data propagates (not queries — queries declare
+//   // WHAT to compute). All current engines are ReplicationNone (zero value).
+//   //
+//   //   Replication            = topology: none | single-leader | multi-leader | leaderless
+//   //   ReplicationLag         = staleness (diagnostics only, NOT latency)
+//   //   NetworkRTT             = additive latency (DDIA Ch1, does NOT scale with volume)
+//   //
+//   // Cost formula: estimated_latency = (ops × nsPerRead / 1e6) + NetworkRTT
+//   //
+//   // Declaring a replicated engine (future Iroh/CockroachDB):
+//   profile := metaengine.EngineProfile{
+//       Name: "iroh-sync",
+//       Supports: map[metaengine.ADT]metaengine.Complexity{
+//           metaengine.ADTMap: metaengine.ComplexityO1,
+//       },
+//       Replication:    metaengine.ReplicationLeaderless,  // CRDT convergence
+//       ReplicationLag: 200 * time.Millisecond,
+//       NetworkRTT:     5 * time.Millisecond,
+//   }
+//   // The planner emits an INFO diagnostic when routing to a replicated engine
+//   // with non-zero lag: "routed to leaderless engine ... reads may be stale by 200ms".
+//   // String() output: "iroh-sync: map@O(1) (replication=leaderless, lag=200ms, rtt=5ms)"
 
 // Pebble backup + graceful shutdown (production operations)
 //   b, _ := pebble.New("/var/lib/myapp/pebble")
