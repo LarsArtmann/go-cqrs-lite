@@ -320,3 +320,9 @@ I wrote a `cmd_deep_bench/main.go`, ran it, then deleted it. The results are in 
 | Deep benchmark executed                                    | ✅ memory vs sqlite vs pebble, Repeat=5 |
 | API surface golden                                         | ✅ Regenerated (3088 exports)           |
 | gofumpt formatting                                         | ⚠️ soak.go changes not formatted        |
+
+---
+
+## Resolution (2026-08-03)
+
+Soak GC/alloc drift metrics shipped (`SoakSample.GCMaxPause`, `AllocBytes`). `PrintComparison` updated with 11 evidence columns. Deep benchmark executed (3-backend comparison). The metaengine benchmark question ("do we benchmark well?") was answered: benchmarks overhauled in `20-45` (Map ADT, Scan/PointRead/ConcurrentApply, event-type bug fix). `-race` verification and full verify gate passed in later sessions.

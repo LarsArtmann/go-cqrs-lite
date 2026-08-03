@@ -272,3 +272,11 @@ The SQLite workload adds ~5s to benchkit test time (from ~65s to ~70s). This is 
 ### 3. Should the prior session's status report (`2026-08-01_20-45`) be updated to reflect that its items are now done?
 
 The prior report listed 10 todo items, 50 next steps, and 3 questions. This session completed all 10 items and addressed several next steps. Should I update the old report with annotations (per the `update-old-docs` skill pattern), or leave it as a historical snapshot and let this report be the current truth?
+
+---
+
+## Resolution (2026-08-03)
+
+Metaengine build break fixed (`queryMeta` accessor migration completed across 4 files). Counter correctness assertion added. SQLite engine added to benchmark. PrintComparison expanded (13 columns). Soak test drift assertions. ADR-0090. Full lint cleanup (all 64 modules, 0 issues). Verify GREEN achieved — genuinely, after `03-41` fixed the ADR index.
+
+**Still open:** PushdownScan vs ScanBackend comparison benchmark; layout planning impact benchmark; cqrs-bench CLI output metrics — all P0 Critical in the ADR-review plan.

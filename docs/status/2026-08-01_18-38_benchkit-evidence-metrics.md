@@ -390,3 +390,9 @@ All three pass the CoV < 10% threshold. SQLite's higher CoV (8.3%) is expected â
 ### Data Integrity
 
 All three backends: **0 integrity errors**. All 10K events round-trip correctly.
+
+---
+
+## Resolution (2026-08-03)
+
+7 new metric families shipped (CoV, GC pause, allocation, data integrity, write amplification, cold/warm read, environment). `PrintReport` and `WriteBenchstat` updated. The deferred outputs (`PrintComparison`, `PrintSweep`, `RunSuite`) were updated in later sessions (`19-45`, `20-45`). ADR-0090 written for evidence-metrics design. README "Metrics collected" section updated.

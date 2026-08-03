@@ -151,3 +151,15 @@ Every test that asserted `len == limit+1` needed manual correction to `len == li
 2. **Should this be a major version bump (`metaengine/v5`)?** The scan interface signatures changed (return type from `[]any` to `ScanResult`). Any consumer implementing `ScanBackend`, `PushdownScan`, or `RawScanReader` with a custom engine breaks. The module is tagged at `v4.2.0`. Is this a v5.0.0 or a v4.3.0 with breaking-change notes?
 
 3. **Should `ScanResult` be a generic `ScanResult[T any]`?** This would eliminate `RawScanResult` and give type safety on `Items`. But it complicates the interface (generic methods on non-generic interfaces require type parameters at the method level, which Go doesn't support — so it would need to be a function, not a method, or the interface itself becomes generic).
+
+---
+
+## Resolution (2026-08-03)
+
+`ScanResult{Items, HasMore}` and `RawScanResult` shipped across all scan interfaces (10 engine functions, 5 modules, 20+ test files). The `limit+1` convention was replaced.
+
+**Q1 (MultiGet/LogTail ScanResult):** Deferred — they still return `[]any`. Low priority (point lookups never paginate).
+**Q2 (major version bump):** Resolved as `metaengine/v4.3.0` (not v5) — scan interface changed but module consumers updated.
+**Q3 (generic ScanResult[T]):** Deferred — Go doesn't support generic methods on non-generic interfaces.
+
+Next steps: items 4 (tag) DONE (`metaengine/v4.4.0`); item 6 (HasMore in adttest) not confirmed; others are standing improvements captured in TODO_LIST.md.

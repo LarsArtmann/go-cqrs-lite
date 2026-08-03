@@ -333,3 +333,11 @@ Currently `SkipMetaEngine` skips both Counter and Map. Some users may want to ru
 ### 3. Should the deep benchmark results (memory/sqlite/pebble comparison) be committed as a reproducible example/test, or kept as throwaway validation?
 
 The prior session wrote a throwaway `cmd_deep_bench/main.go`, ran it, and deleted it. The results were in the status report but not reproducible. Should there be a committed example (like `example/benchmark/`) that anyone can run to reproduce the comparison? Or is the `cqrs-bench compare` CLI sufficient?
+
+---
+
+## Resolution (2026-08-03)
+
+Benchkit evidence-metrics overhaul shipped. Soak.go split, `-race` clean, derived metrics (AllocsPerOp, BytesPerOp, GCPercent, TailRatio), metaengine benchmark overhaul (Map ADT), RunSuite updated, PrintSweep rewritten, README expanded (13→25 metrics), ADR-0090. Verify GREEN achieved.
+
+**Still open:** benchmarks only test Memory engine (SQLite added in `22-39`; Pebble/DuckDB/Postgres engine benchmarks still missing — P0 Critical in ADR-review plan `2026-08-03_19-29`).

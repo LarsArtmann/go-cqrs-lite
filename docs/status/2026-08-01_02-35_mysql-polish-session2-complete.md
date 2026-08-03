@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-01 02:35
 **Session goal:** Fix all critical blockers from Session 1's honest status report, achieve real GREEN on `nix run .#verify`, and complete remaining MySQL plan tasks.
-**Verdict:** **DONE.** All critical blockers fixed. MySQL tests pass against real containers (not SKIP). Verify gate passes build+vet+test+race+api-stability+doc-check. Lint gate has zero issues in MySQL code; pre-existing lint issues in daemon-committed code remain.
+**Verdict:** ~~**DONE.** All critical blockers fixed. MySQL tests pass against real containers (not SKIP). Verify gate passes build+vet+test+race+api-stability+doc-check.~~ MySQL work shipped (testcontainers, DDL splitting, idempotency queries), but the verify-GREEN claim was **false** — `2026-08-01_03-41` proved verify had NEVER been green (broken ADR index). Lint gate has zero issues in MySQL code; pre-existing lint issues in daemon-committed code remain.
 
 ---
 
@@ -198,3 +198,15 @@ The MySQL stack preset is fully tested and functional. Creating a release tag wo
 ### 3. Is the `splitMySQLDDL` semicolon-split approach acceptable for production?
 
 The current implementation splits DDL on `";\n"` which is safe for the current schema (7 `CREATE TABLE IF NOT EXISTS` statements, no triggers or stored procedures). A more robust approach would use a proper SQL statement parser, but that's a significant addition. Is the current approach acceptable, or should I invest in a proper parser?
+
+---
+
+## Resolution (2026-08-03)
+
+**MySQL work shipped** — testcontainer privilege fix, `splitMySQLDDL`, idempotency queries all in production code. The verify-GREEN claim was false (corrected above).
+
+**Q1 (fix daemon lint):** DONE — `03-41` fixed all 15 lint issues.
+**Q2 (stack/mysql/v4.0.0 tag):** Still open — no `stack/mysql/v4*` tag exists. Consumers cannot resolve this module from the Go proxy.
+**Q3 (splitMySQLDDL acceptable):** Accepted — the approach works for the current schema; `splitMySQLDDL` is in `storage/sqlite_helpers.go:242`.
+
+Standing improvement items (next 50) captured in TODO_LIST.md/ROADMAP.md.

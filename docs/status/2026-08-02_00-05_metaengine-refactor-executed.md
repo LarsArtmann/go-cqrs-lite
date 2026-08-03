@@ -265,3 +265,11 @@ The concrete types are the single source of truth. Keeping the constants is harm
 they could mislead someone into thinking they need to use them for dispatch.
 Should we (a) keep them with a doc comment saying "diagnostic only", (b) deprecate them,
 or (c) remove them entirely and have `Kind()` return a string literal?
+
+---
+
+## Resolution (2026-08-03)
+
+Tier 1-3 fully shipped: sealed Fold interface (12 concrete types, zero reflect on hot path), queryRuntime eliminated into QueryDecl, Store 17→13 fields (4 collaborators extracted), 6-family enum validation. Tier 4 partial: branded units defined but not wired into EngineProfile. Tier 5: plan versioning + ApplyError defined but not wired. 161 tests pass, race clean, public API frozen.
+
+**Deferred:** M2 (Delta wrapper) explicitly deferred until major version bump. Branded units not wired into EngineProfile.NsPerOp (hardcoded constants used instead). Exhaustiveness guard test written.

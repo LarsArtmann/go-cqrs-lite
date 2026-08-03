@@ -237,3 +237,11 @@ This determines whether it's a `WithFlightRecorder(recorder, trigger)` option or
 | `docs/api_surface.txt`              | Regenerated  | 3117 exports                                  |
 | `AGENTS.md`                         | Modified     | +15 lines (tree, tier, patterns, module list) |
 | **Total**                           | **16 files** | **~1600 lines**                               |
+
+---
+
+## Resolution (2026-08-03)
+
+`flightrecorder/` module shipped (Recorder, TriggerFunc, options, once-semantics). CQRS middleware (command/event/query), decider/projectionhost/stack integration all wired. ADR-0089 written. SKILL.md + all reference files updated. Coverage 85.4%→92.5%.
+
+**Open items from this report — resolved by `20-44`:** `ErrAlreadyEnabled` sentinel added, `io.Closer` on Recorder, `ctx` pre-check in Snapshot, unused `Writer()` removed, `lazyFile.Close()` leak fixed. ADR-0089 written. End-to-end integration test added.

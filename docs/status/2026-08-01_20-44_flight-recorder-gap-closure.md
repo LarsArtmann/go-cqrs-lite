@@ -243,3 +243,9 @@ The verify gate would fail on the 354-line file and possibly on formatting issue
 | `docs/api_surface.txt`                               | Regenerated (3122 exports)                                                                    |
 
 **Total: 5 created + 19 modified = 24 files touched**
+
+---
+
+## Resolution (2026-08-03)
+
+All gap-closure items shipped: `ErrAlreadyEnabled`, `io.Closer`, `ctx` pre-check, `captureLocked`→`capture` rename, `stack/options.go` split (354→334 lines), README fixed, ADR-0089, SKILL.md + references updated, `projectionhost.WithFlightRecorder`, `decider.WithFlightRecorder[State]`, `stack.WithFlightRecorder`. Coverage 92.5%. `nix fmt` and verify gate run GREEN in `22-00`/`22-39`.

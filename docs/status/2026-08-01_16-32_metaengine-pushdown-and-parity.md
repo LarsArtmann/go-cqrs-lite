@@ -153,3 +153,13 @@ Nothing catastrophic. But several things worth calling out honestly:
 2. **Should the `limit+1` convention be part of the PushdownScan contract documentation?** The SQLite engine returns `limit+1` rows for has-more detection, and I matched this in both new engines. But the `PushdownScan` interface doc doesn't mention this — a new engine implementor would have to read the SQLite source to discover it. Should I add this to the interface contract, or is it intentionally undocumented?
 
 3. **Should pgengine get GIN indexes now, or wait until there are FilterSpec operators that use them?** GIN indexes only help with `@>`/`?`/`?|`/`?&` operators, which don't exist in FilterSpec yet. Adding GIN without the operators is dead code. But adding the operators without GIN means full-table scans on Postgres. Which comes first — the operators or the indexes?
+
+---
+
+## Resolution (2026-08-03)
+
+PushdownScan + LayoutPlanner shipped for both pgengine and duckdbengine. Items 48-50 resolved: `check-layers` added to verify gate (`d4dbebbd`); `pgengine/v4.0.0` + `duckdbengine/v4.0.0` tagged.
+
+**Q1 (DuckDB native columnar):** DONE — `WithColumnarLayout` shipped (`ADR-0092`, `c38b15ab`). DuckDB now extracts typed columns (float64→DOUBLE).
+**Q2 (limit+1 convention):** DONE — replaced by explicit `ScanResult{Items, HasMore}` (`18-14`).
+**Q3 (GIN indexes):** Still open — deferred as T23 in the Pareto plan. Requires deep pgengine PushdownScan understanding.

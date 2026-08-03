@@ -311,3 +311,13 @@ The daemon chose `value->'field'` (returns JSONB, preserves numeric types for co
 | Daemon commits during session | 5 (pushdown, matrix, docs, refactor)          |
 | `nix run .#verify` runs       | 4 (1 build failure, 2 lint failures, 1 GREEN) |
 | Final gate status             | ✅ GREEN                                      |
+
+---
+
+## Resolution (2026-08-03)
+
+All 8 tasks (L3.3-L3.5, L4.1-L4.4) shipped. PG testcontainers, ScanBackend tests, batch CounterIncrement, property-based VersionedStorage, ExecuteAsOf integration — all in production. MapUpdate version-recording bug fixed.
+
+**Q1 (daemon friction):** Process question — resolved by working patterns (worktree isolation documented in AGENTS.md).
+**Q2 (limit semantics):** DONE — unified via `ScanResult{HasMore}` (`18-14`). The n+1 convention was replaced.
+**Q3 (JSONB operators):** Design decision made — `value->'field'` (JSONB) chosen, preserves numeric types. GIN indexes still deferred (T23).

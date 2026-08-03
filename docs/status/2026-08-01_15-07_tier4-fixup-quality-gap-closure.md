@@ -373,3 +373,9 @@ The `versionedReadRule` exists in `temporal.go` but is not wired into `defaultRu
 | New doc files           | 2 (migration guide, updated SKILL recipes)            |
 | API surface exports     | 3080 → 3082                                           |
 | Final gate status       | ✅ GREEN                                              |
+
+---
+
+## Resolution (2026-08-03)
+
+All 8 quality gaps closed. The broad `golangci.yml` exclusion was later paid down (lint cleaned to 0 issues across all modules). PG tests later upgraded to testcontainers. `versionedReadRule` later wired into planner pipeline. Verify gate genuinely GREEN from `03-41` onward (this session's GREEN was the first post-Tier-4, but the ADR-index break meant it was premature — see `03-41`). Standing improvement items captured in TODO_LIST.md/ROADMAP.md.

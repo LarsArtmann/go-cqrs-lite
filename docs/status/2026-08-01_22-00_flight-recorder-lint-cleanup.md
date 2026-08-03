@@ -183,3 +183,9 @@ All changes are **uncommitted** (auto-commit daemon may pick them up):
 | `stack/accessors.go`           | Added `WithDiskSize` + `DiskSize()`                                                                                         | +19           |
 
 **Total: 5 modified + 1 rewritten + 2 split = 8 files touched**
+
+---
+
+## Resolution (2026-08-03)
+
+Flight recorder lint cleanup shipped: renamed `captureLocked`→`capture`, split `stack/options.go`, README fixed, struct alignment, gofumpt + goimports + nix fmt, projectionhost race condition fixed, all lint in flightrecorder/decider/projectionhost/middleware zeroed. The pre-existing metaengine build break (71 failing specs) and benchkit/metaengine lint issues were all fixed in `22-39`.
