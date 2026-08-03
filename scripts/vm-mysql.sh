@@ -27,6 +27,11 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+# Warn if KVM is not available (10-50x slowdown without it)
+if [ ! -e /dev/kvm ]; then
+    echo "WARNING: /dev/kvm not found — QEMU will use software emulation (10-50x slower)"
+fi
+
 echo "==> Building MySQL test driver (cached by Nix)"
 DRIVER=$(nix build .#checks.x86_64-linux.mysql-vm.driver --no-link --print-out-paths 2>&1 | tail -1)
 if [ ! -x "$DRIVER/bin/nixos-test-driver" ]; then

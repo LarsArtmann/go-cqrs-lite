@@ -30,6 +30,11 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+# Warn if KVM is not available (10-50x slowdown without it)
+if [ ! -e /dev/kvm ]; then
+    echo "WARNING: /dev/kvm not found — QEMU will use software emulation (10-50x slower)"
+fi
+
 echo "==> Building PostgreSQL test driver (cached by Nix)"
 DRIVER=$(nix build .#checks.x86_64-linux.postgres-vm.driver --no-link --print-out-paths 2>&1 | tail -1)
 if [ ! -x "$DRIVER/bin/nixos-test-driver" ]; then
@@ -90,10 +95,12 @@ if [ $# -gt 0 ]; then
         echo "==> Running: go test -tags=integration $*"
         go test -tags "integration goexperiment.jsonv2" "$@" -count=1 -v
     else
-        echo "==> Running integration tests matching: $*"
+        # Strip leading "-run " if user passed it explicitly
+        TEST_PATTERN="${*#-run }"
+        echo "==> Running integration tests matching: $TEST_PATTERN"
         go test -tags "integration goexperiment.jsonv2" \
             ./storage/... ./stack/postgres/... ./metaengine/pgengine/... ./benchkit/... \
-            -count=1 -v -run "$*"
+            -count=1 -v -run "$TEST_PATTERN"
     fi
 else
     echo "==> Running all PostgreSQL integration tests"
