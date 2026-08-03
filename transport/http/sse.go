@@ -7,6 +7,7 @@ import (
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	sse "github.com/larsartmann/go-sse"
 
 	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -212,9 +213,7 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 			return
 		}
 
-		w.Header().Set("Content-Type", "text/event-stream")
-		w.Header().Set("Cache-Control", "no-cache")
-		w.Header().Set("Connection", "keep-alive")
+		sse.SetHeaders(w)
 		w.WriteHeader(http.StatusOK)
 
 		flusher, ok := w.(http.Flusher)

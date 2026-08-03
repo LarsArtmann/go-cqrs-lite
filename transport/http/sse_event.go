@@ -1,19 +1,10 @@
 package http
 
 import (
-	"fmt"
 	"io"
-	"strconv"
-	"strings"
 
-	brandid "github.com/larsartmann/go-branded-id"
-	errorfamily "github.com/larsartmann/go-error-family"
+	sse "github.com/larsartmann/go-sse"
 )
-
-// sseEventBrand is the phantom brand type for SSEEventID.
-type sseEventBrand struct{}
-
-func (sseEventBrand) Name() string { return "SSEEvent" }
 
 // SSEEventID is a branded identifier for SSE event identifiers (the id: field
 // and the Last-Event-ID request header). It prevents accidental cross-assignment
@@ -22,42 +13,34 @@ func (sseEventBrand) Name() string { return "SSEEvent" }
 // SSE event IDs are arbitrary server-defined strings — they are NOT ULIDs.
 // Use ParseSSEEventID to construct from a string (rejects control characters
 // and newlines, which would corrupt the SSE wire format).
-type SSEEventID = brandid.ID[sseEventBrand, string]
+//
+// This is a type alias for [sse.EventID] from github.com/larsartmann/go-sse:
+// the wire-format identity, validation, and serialization are owned by go-sse
+// (ADR-0097). The alias preserves this package's public API while delegating
+// the implementation.
+type SSEEventID = sse.EventID
 
 // NewSSEEventID constructs an SSEEventID from a string. Performs no validation —
 // use ParseSSEEventID for untrusted input (e.g., from request headers).
-func NewSSEEventID(s string) SSEEventID { return brandid.NewID[sseEventBrand](s) }
-
-// base10 is the numeric base for decimal integer formatting (strconv base).
-const base10 = 10
-
-// errSSEEventIDInvalid is returned by ParseSSEEventID for malformed values.
-var errSSEEventIDInvalid = errorfamily.NewRejection(
-	"http.sse.event_id_invalid",
-	"sse event id: contains forbidden character (newline or carriage return)",
-)
+//
+// Delegates to [sse.NewEventID].
+func NewSSEEventID(s string) SSEEventID { return sse.NewEventID(s) }
 
 // ParseSSEEventID converts a string to an SSEEventID, rejecting values that
 // would corrupt the SSE wire format (newlines, carriage returns). Empty strings
 // are allowed (representing "no ID" / initial connection).
+//
+// Delegates to [sse.ParseEventID].
 func ParseSSEEventID(s string) (SSEEventID, error) {
-	if strings.ContainsAny(s, "\n\r") {
-		return SSEEventID{}, errorfamily.Wrapf(errSSEEventIDInvalid, errorfamily.Rejection,
-			"http.sse.event_id_invalid", "%q", s)
-	}
-
-	return NewSSEEventID(s), nil
+	return sse.ParseEventID(s)
 }
 
 // MustParseSSEEventID is the panicking variant of ParseSSEEventID for tests
 // and constants. Panics if the input contains newlines.
+//
+// Delegates to [sse.MustParseEventID].
 func MustParseSSEEventID(s string) SSEEventID {
-	id, err := ParseSSEEventID(s)
-	if err != nil {
-		panic(fmt.Errorf("MustParseSSEEventID: %w", err))
-	}
-
-	return id
+	return sse.MustParseEventID(s)
 }
 
 // SSEEvent represents a single Server-Sent Event.
@@ -68,6 +51,10 @@ func MustParseSSEEventID(s string) SSEEventID {
 //   - Data maps to the data: field. Multi-line data is split so each line gets
 //     its own "data:" prefix (required by the spec).
 //   - Retry maps to the retry: field, suggesting a reconnection interval in milliseconds.
+//
+// This struct is intentionally distinct from [sse.Event] to preserve the
+// historical Retry field type (int) in this package's public API. Wire-format
+// serialization is delegated to [sse.WriteEvent] via [WriteSSEEvent].
 type SSEEvent struct {
 	// Event is the SSE event name. Must match the client's event listener.
 	// For unnamed events, leave empty (the browser default "message" fires).
@@ -88,103 +75,35 @@ type SSEEvent struct {
 }
 
 // WriteSSEEvent writes a single SSE event to the writer in the standard
-// Server-Sent Events wire format. Uses io.WriteString and direct byte writes
-// instead of fmt.Fprintf to minimize allocations on the SSE hot path.
+// Server-Sent Events wire format.
+//
+// Delegates to [sse.WriteEvent] (ADR-0097), converting the [SSEEvent] into an
+// [sse.Event]. This eliminates the duplicated byte-append serializer and
+// multi-line splitter that previously lived in this package — both are now
+// owned and tested once in go-sse.
 func WriteSSEEvent(w io.Writer, evt SSEEvent) error {
-	var buf []byte
-
-	if evt.Event != "" {
-		buf = append(buf, 'e', 'v', 'e', 'n', 't', ':', ' ')
-		buf = append(buf, evt.Event...)
-		buf = append(buf, '\n')
-	}
-
-	for _, line := range splitSSELines(evt.Data) {
-		buf = append(buf, 'd', 'a', 't', 'a', ':', ' ')
-		buf = append(buf, line...)
-		buf = append(buf, '\n')
-	}
-
-	if !evt.ID.IsZero() {
-		buf = append(buf, 'i', 'd', ':', ' ')
-		buf = append(buf, evt.ID.Get()...)
-		buf = append(buf, '\n')
-	}
-
-	if evt.Retry > 0 {
-		buf = append(buf, 'r', 'e', 't', 'r', 'y', ':', ' ')
-		buf = strconv.AppendInt(buf, int64(evt.Retry), base10)
-		buf = append(buf, '\n')
-	}
-
-	buf = append(buf, '\n')
-
-	if _, err := w.Write(buf); err != nil {
-		return errorfamily.Wrapf(
-			err,
-			errorfamily.Transient,
-			"http.sse.write_failed",
-			"write sse event",
-		)
-	}
-
-	return nil
+	return sse.WriteEvent(w, sse.Event{
+		Event: evt.Event,
+		Data:  evt.Data,
+		ID:    evt.ID,
+		Retry: uint(evt.Retry),
+	})
 }
 
 // WriteSSEHeartbeat writes a comment frame (SSE comment line).
 // Browsers ignore it, but it keeps the connection alive through
 // ALB/Nginx/Cloudflare idle timeouts.
+//
+// Delegates to [sse.WriteHeartbeat].
 func WriteSSEHeartbeat(w io.Writer) error {
-	_, err := w.Write([]byte(": heartbeat\n\n"))
-
-	return err
+	return sse.WriteHeartbeat(w)
 }
 
 // WriteSSERetry writes the SSE retry field, telling the browser how many
 // milliseconds to wait before reconnecting after a connection drop.
 // Per the SSE spec, this is sent once and persists until overwritten.
+//
+// Delegates to [sse.WriteRetry].
 func WriteSSERetry(w io.Writer, ms int) error {
-	_, err := fmt.Fprintf(w, "retry: %d\n\n", ms)
-
-	return err
-}
-
-// splitSSELines splits a string into lines for SSE data field formatting.
-// Each line in the SSE spec must be prefixed with "data: ".
-// Fast path: if the data contains no newline, returns a single-element
-// slice without allocating a backing array.
-func splitSSELines(s string) []string {
-	if s == "" {
-		return []string{""}
-	}
-
-	if !strings.Contains(s, "\n") {
-		return []string{s}
-	}
-
-	var lines []string
-
-	start := 0
-
-	for i := range len(s) {
-		if s[i] == '\n' {
-			line := s[start:i]
-			if len(line) > 0 && line[len(line)-1] == '\r' {
-				line = line[:len(line)-1]
-			}
-
-			lines = append(lines, line)
-			start = i + 1
-		}
-	}
-
-	if start < len(s) {
-		lines = append(lines, s[start:])
-	}
-
-	if len(lines) == 0 {
-		return []string{""}
-	}
-
-	return lines
+	return sse.WriteRetry(w, uint(ms)) //nolint:gosec // ms is a caller-controlled millisecond count, never negative in practice
 }

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	sse "github.com/larsartmann/go-sse"
 	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 )
 
@@ -117,9 +118,7 @@ func ServeSSE[V any](
 		return errSSENoFlusher
 	}
 
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
+	sse.SetHeaders(w)
 	w.Header().Set("X-Accel-Buffering", "no") // disable nginx buffering
 
 	w.WriteHeader(http.StatusOK)
@@ -153,15 +152,14 @@ func serveSSEPlain[V any](
 
 // writePlainSSEEvent marshals val as JSON and writes a plain SSE data event.
 // Marshal failures are silently skipped to keep the stream alive.
+// Wire-format serialization is delegated to [sse.WriteEvent] (ADR-0097).
 func writePlainSSEEvent[V any](w http.ResponseWriter, val V) error {
 	data, err := json.Marshal(val)
 	if err != nil {
 		return nil //nolint:nilerr // skip unmarshalable, keep stream alive
 	}
 
-	_, err = fmt.Fprintf(w, "data: %s\n\n", data)
-
-	return err //nolint:wrapcheck
+	return sse.WriteEvent(w, sse.Event{Data: string(data)})
 }
 
 // serveSSEReplay is the reconnection path: subscribes first (to buffer live
@@ -201,15 +199,17 @@ func serveSSEReplay[V any](
 
 // writeReplaySSEEvent marshals item.Value as JSON and writes an SSE event
 // with the sequence number as the id field. Marshal failures are skipped.
+// Wire-format serialization is delegated to [sse.WriteEvent] (ADR-0097).
 func writeReplaySSEEvent[V any](w http.ResponseWriter, item SeqValue[V]) error {
 	data, err := json.Marshal(item.Value)
 	if err != nil {
 		return nil //nolint:nilerr // skip unmarshalable, keep stream alive
 	}
 
-	_, err = fmt.Fprintf(w, "id: %d\ndata: %s\n\n", item.Seq, data)
-
-	return err //nolint:wrapcheck
+	return sse.WriteEvent(w, sse.Event{
+		ID:   sse.NewEventID(strconv.FormatUint(item.Seq, 10)),
+		Data: string(data),
+	})
 }
 
 // replayMissedEvents writes events from the journal that the client missed
@@ -245,7 +245,10 @@ func replayMissedEvents[V any](
 			continue
 		}
 
-		if _, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", sv.Seq, data); err != nil {
+		if err := sse.WriteEvent(w, sse.Event{
+			ID:   sse.NewEventID(strconv.FormatUint(sv.Seq, 10)),
+			Data: string(data),
+		}); err != nil {
 			return ring, err //nolint:wrapcheck
 		}
 
@@ -351,7 +354,7 @@ func sseMainLoop[T any](
 			return nil
 
 		case <-heartbeatCh:
-			if _, err := fmt.Fprintf(w, ": keepalive\n\n"); err != nil {
+			if err := sse.WriteHeartbeat(w); err != nil {
 				return err //nolint:wrapcheck
 			}
 
