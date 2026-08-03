@@ -238,8 +238,10 @@ func TestMapUpdateReplicationRule_EmitsWarn(t *testing.T) {
 	}
 
 	if !found {
-		t.Errorf("expected MapUpdate WARN diagnostic for replicated engine with update folds, got: %v",
-			store.Plan().Diagnostics)
+		t.Errorf(
+			"expected MapUpdate WARN diagnostic for replicated engine with update folds, got: %v",
+			store.Plan().Diagnostics,
+		)
 	}
 }
 

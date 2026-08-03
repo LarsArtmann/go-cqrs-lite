@@ -820,6 +820,42 @@
                   bash "$PWD/scripts/vm-mysql.sh" "$@"
                 '';
 
+            # Run all integration tests (ephemeral PG + VM MySQL sequentially)
+            integration-all =
+              mkApp "integration-all"
+                [
+                  goPkg
+                  pkgs.gcc
+                ]
+                ''
+                  export CGO_ENABLED=1
+                  export GOEXPERIMENT=jsonv2
+                  echo "=== Ephemeral PG Integration Tests ==="
+                  bash "$PWD/scripts/ephemeral-pg.sh" "$@" || echo "⚠️ PG tests had failures"
+                  echo ""
+                  echo "=== MySQL VM Integration Tests ==="
+                  bash "$PWD/scripts/vm-mysql.sh" "$@" || echo "⚠️ MySQL tests had failures"
+                '';
+
+            # Composite gate: VM checks + ephemeral PG integration tests
+            verify-integration =
+              mkApp "verify-integration"
+                [
+                  goPkg
+                  pkgs.gcc
+                ]
+                ''
+                  export CGO_ENABLED=1
+                  export GOEXPERIMENT=jsonv2
+                  echo "=== Postgres VM Check ==="
+                  nix build .#checks.x86_64-linux.postgres-vm -L
+                  echo "=== MySQL VM Check ==="
+                  nix build .#checks.x86_64-linux.mysql-vm -L
+                  echo "=== Ephemeral PG Integration Tests ==="
+                  bash "$PWD/scripts/ephemeral-pg.sh" -short
+                  echo "✅ All integration checks passed"
+                '';
+
             verify =
               mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc ]
                 ''

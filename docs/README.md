@@ -135,6 +135,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0092](adr/0092-duckdb-columnar-native-storage.md)         | DuckDB columnar-native storage via LayoutPlanApplier    | Accepted                 |
 | [0093](adr/0093-metaengine-replication-model.md)           | Metaengine replication model (DDIA Ch5)                 | Accepted                 |
 | [0094](adr/0094-metaengine-universal-adt-support.md)       | Metaengine universal ADT support (DegradedADTs)         | Accepted                 |
+| [0095](adr/0095-nix-based-integration-testing.md)          | Nix-based integration testing                            | Accepted                 |
 
 ## API Reference
 

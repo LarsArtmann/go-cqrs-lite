@@ -60,9 +60,13 @@ func (r *mapUpdateReplicationRule) Apply(result *PlanResult, ctx PlanContext) er
 		})
 
 		result.RuleTrace = append(result.RuleTrace, RuleTraceEntry{
-			Rule:   r.Name(),
-			Query:  q.QueryName,
-			Reason: fmt.Sprintf("update fold on %s-replicated engine, lag=%s", profile.Replication, lag),
+			Rule:  r.Name(),
+			Query: q.QueryName,
+			Reason: fmt.Sprintf(
+				"update fold on %s-replicated engine, lag=%s",
+				profile.Replication,
+				lag,
+			),
 		})
 	}
 
