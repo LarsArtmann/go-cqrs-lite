@@ -21,8 +21,18 @@ cleanup() {
         pg_ctl -D "$PGDATA" -m fast stop -w 2>/dev/null || true
     fi
     rm -rf "$PGDATA" "$SOCKDIR"
+    # Verify no orphan postgres processes
+    if pgrep -u "$USER" -f "$PGDATA" >/dev/null 2>&1; then
+        echo "WARNING: orphan postgres processes detected, killing"
+        pkill -f "$PGDATA" 2>/dev/null || true
+    fi
 }
 trap cleanup EXIT INT TERM
+
+# Warn if KVM is not available (affects nix build performance)
+if [ ! -e /dev/kvm ] && [ "$(uname)" = "Linux" ]; then
+    echo "NOTE: /dev/kvm not found — builds may be slower"
+fi
 
 # Pick a free port if not overridden
 if [ -z "${PG_PORT:-}" ]; then

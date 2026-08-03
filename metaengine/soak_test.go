@@ -317,6 +317,7 @@ func TestSoak_MemoryBounded(t *testing.T) {
 	runtime.GC()
 	runtime.ReadMemStats(&after)
 
+	totalAllocDelta := int64(after.TotalAlloc) - int64(before.TotalAlloc)
 	heapGrowth := int64(after.HeapAlloc) - int64(before.HeapAlloc)
 	maxExpected := int64(
 		numKeys,
@@ -334,5 +335,7 @@ func TestSoak_MemoryBounded(t *testing.T) {
 			heapGrowth, numEvents, numKeys, maxExpected)
 	}
 
-	t.Logf("heap: %d bytes for %d keys after %d updates", heapGrowth, numKeys, numEvents)
+	t.Logf("heap: %d bytes for %d keys after %d updates (totalAlloc=%d, %.1f allocs/event)",
+		heapGrowth, numKeys, numEvents, totalAllocDelta,
+		float64(totalAllocDelta)/float64(numEvents))
 }

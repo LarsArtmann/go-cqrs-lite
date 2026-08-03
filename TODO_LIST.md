@@ -141,5 +141,37 @@ and is **never** duplicated here.
 
 ---
 
+## Integration Test Infrastructure
+
+> Session 2 (2026-08-03) built and verified the Nix-based integration test
+> infrastructure: ephemeral PG, NixOS VM tests (PG+MySQL), VM launcher scripts,
+> CI integration, and ADR-0095. See
+> [execution plan](docs/planning/2026-08-03_04-24_nix-integration-test-execution-plan.md).
+
+- [ ] **systemd-nspawn container type for MySQL VM** — Could make VM test 10x
+  faster (~131s → ~15s). The NixOS test driver supports `NspawnMachine`. Needs
+  prototyping. (M14)
+- [ ] **Shellcheck linting on VM scripts** — `shellcheck` not available on host.
+  Add as a flake check or devShell dependency. (M22)
+- [ ] **Connection retry logic with backoff in VM scripts** — More robust than
+  simple polling. (M28)
+- [ ] **Health check SQL verification before running tests** — Run `SELECT 1`
+  before Go tests, fail fast with clear message. (M29)
+- [ ] **macOS verification of ephemeral PG** — Script claims cross-platform but
+  never tested on Darwin. (M34)
+- [ ] **Cache ephemeral PG data dir** — Skip `initdb` on repeated runs. (M35)
+- [ ] **DuckDB CGo VM test** — Hermetic DuckDB testing with GCC in VM. (M38)
+- [ ] **SQLite WAL concurrency VM test** — Concurrent access patterns. (M39)
+- [ ] **Turso sync VM test** — Real libSQL server. (M40)
+- [ ] **Go test binaries inside QEMU VM** — Deeper coverage. (M41)
+- [ ] **`projectionhost` crash-restart PG integration test** — Verify checkpoint
+  replay after crash. (M43)
+- [ ] **`scheduling` durable timers across restarts test** — Timer survives
+  process restart. (M44)
+- [ ] **Contract test suite across ALL backends in VMs** — SQLite, PG, MySQL,
+  DuckDB simultaneously. (M46)
+
+---
+
 _Long-term direction lives in [ROADMAP.md](ROADMAP.md). Completed work is in
 [CHANGELOG.md](CHANGELOG.md)._
