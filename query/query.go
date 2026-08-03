@@ -45,7 +45,7 @@ type MetadataKey string
 // Unlike event.Metadata, query.Metadata does NOT carry event-only concerns
 // (Tombstone, Causation). Each module owns its own Metadata so a change to
 // the event's shape cannot silently reshape queries.
-type Metadata struct {
+type Metadata struct { //nolint:recvcheck // RO methods value, mutator pointer (math/big.Int pattern)
 	metadata.Tracing
 
 	Custom map[MetadataKey]string `json:"custom,omitempty"`

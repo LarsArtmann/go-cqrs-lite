@@ -21,6 +21,8 @@ var ErrExhausted = goretry.ErrExhausted
 var ErrCanceled = goretry.ErrCanceled
 
 // Do executes fn with retries according to config.
+//
+//nolint:wrapcheck // pure re-export alias; error is the retry package's own
 func Do(ctx context.Context, config Config, fn AttemptFunc) error {
 	return goretry.Do(
 		ctx,

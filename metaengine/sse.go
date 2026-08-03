@@ -160,10 +160,10 @@ func writePlainSSEEvent[V any](w http.ResponseWriter, val V) error {
 		return nil //nolint:nilerr // skip unmarshalable, keep stream alive
 	}
 
-	return sse.WriteEvent(
-		w,
-		sse.Event{Data: string(data)},
-	) //nolint:wrapcheck // go-sse wraps write errors internally
+	if err := sse.WriteEvent(w, sse.Event{Data: string(data)}); err != nil {
+		return fmt.Errorf("failed to write SSE event: %w", err)
+	}
+	return nil
 }
 
 // serveSSEReplay is the reconnection path: subscribes first (to buffer live

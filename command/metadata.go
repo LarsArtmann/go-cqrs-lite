@@ -20,7 +20,7 @@ type MetadataKey string
 // Unlike event.Metadata, command.Metadata does NOT carry event-only concerns
 // (Tombstone, Causation): commands have no tombstones and no event-causation
 // link.
-type Metadata struct {
+type Metadata struct { //nolint:recvcheck // RO methods value, mutator pointer (math/big.Int pattern)
 	metadata.Tracing
 
 	Custom map[MetadataKey]string `json:"custom,omitempty"`
