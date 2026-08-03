@@ -339,11 +339,15 @@
               machine.wait_for_unit("mysql")
               machine.wait_for_open_port(3306)
 
+              # Set password for the cqrs user (ensureUsers doesn't support passwords)
+              machine.succeed("mysql -u root -e \"ALTER USER 'cqrs'@'localhost' IDENTIFIED BY 'cqrs'; FLUSH PRIVILEGES;\" 2>/dev/null || true")
+              machine.succeed("mysql -u root -e \"CREATE USER IF NOT EXISTS 'cqrs'@'%' IDENTIFIED BY 'cqrs'; GRANT ALL PRIVILEGES ON *.* TO 'cqrs'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;\"")
+
               # Verify the database and user exist
               machine.succeed("mysql -h 127.0.0.1 -u cqrs --password=cqrs cqrs_test -e 'SELECT 1'")
 
               # Verify it's MariaDB or MySQL
-              version = machine.succeed("mysql -h 127.0.0.1 -u cqrs --password=cqrs cqrs_test -e 'SELECT VERSION()'").strip()
+              version = machine.succeed("mysql -h 127.0.0.1 -u cqrs --password=cqrs cqrs_test -N -e 'SELECT VERSION()'").strip()
               print(f"MySQL version: {version}")
 
               # Test JSON operations (used by the MySQL dialect)
@@ -362,7 +366,7 @@
               ).strip()
               assert result == '"active"', f"JSON query returned '{result}', expected '\"active\"'"
 
-              print("✅ MySQL service health verified")
+              print("MySQL service health verified")
             '';
           };
 
