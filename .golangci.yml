@@ -139,6 +139,7 @@ linters:
             - github.com/larsartmann/go-idempotency
             - github.com/larsartmann/go-composable-business-types
             - github.com/larsartmann/go-branded-id
+            - github.com/larsartmann/go-sse
             - github.com/google/uuid
             - github.com/cockroachdb/errors
             - github.com/go-json-experiment/json
