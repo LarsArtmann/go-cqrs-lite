@@ -3,6 +3,8 @@ package adoption_test
 import (
 	"testing"
 
+	"golang.org/x/tools/go/packages"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/adoption"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
@@ -114,6 +116,34 @@ func main() {
 	})
 	ctx.FeatureProfile.HasServer = true
 	ctx.FeatureProfile.HasTransport = true
+
+	findings := ruletest.RunDetector(t, adoption.NewF013Detector(ctx))
+	ruletest.AssertRule(t, findings, "F013", 0)
+}
+
+func TestF013_NoFindingWhenGRPCModuleImported(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	http.HandleFunc("/api", handler)
+	http.ListenAndServe(":8080", nil)
+}
+`,
+	})
+	ctx.Packages = []*packages.Package{
+		{
+			PkgPath: "example.com/app",
+			Imports: map[string]*packages.Package{
+				"github.com/larsartmann/go-cqrs-lite/transport/grpc/v4": {
+					PkgPath: "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4",
+				},
+			},
+		},
+	}
+	ctx.FeatureProfile = analyzer.DetectFeatures(ctx)
 
 	findings := ruletest.RunDetector(t, adoption.NewF013Detector(ctx))
 	ruletest.AssertRule(t, findings, "F013", 0)

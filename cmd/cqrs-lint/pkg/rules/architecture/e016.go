@@ -122,6 +122,7 @@ var healthEndpoints = map[string]bool{
 	"/healthz": true,
 	"/ready":   true,
 	"/readyz":  true,
+	"/livez":   true,
 }
 
 func isHealthEndpoint(path string) bool {

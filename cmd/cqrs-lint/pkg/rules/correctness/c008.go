@@ -147,7 +147,9 @@ func scanMoneyFields(
 
 			// Config opt-out: fields listed in c008-ignore-fields are
 			// intentionally float64 (cost estimates, metrics, etc.).
-			if matchesAny(lowerName, ctx.RulesConfig.IgnoreFloatFields) {
+			// Comparison is case-insensitive: the field name is lowercased,
+			// and so are the config entries.
+			if matchesAny(lowerName, lowerStrings(ctx.RulesConfig.IgnoreFloatFields)) {
 				continue
 			}
 
@@ -272,6 +274,16 @@ func matchesAny(name string, terms []string) bool {
 	}
 
 	return false
+}
+
+// lowerStrings returns a new slice with each string lowercased. Used to
+// normalize config-provided strings before case-insensitive comparison.
+func lowerStrings(ss []string) []string {
+	out := make([]string, len(ss))
+	for i, s := range ss {
+		out[i] = strings.ToLower(s)
+	}
+	return out
 }
 
 // isMoneyStructName reports whether a struct name contains a monetary keyword.

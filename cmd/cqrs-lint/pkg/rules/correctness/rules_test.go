@@ -606,12 +606,73 @@ func TestC008_ConfigIgnoreFields(t *testing.T) {
 type Estimate struct {
 	CostUSD  float64
 	Amount   float64
-}
-`,
+}`,
 	})
 	ctx.RulesConfig.IgnoreFloatFields = []string{"costusd"}
 
 	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
 	// CostUSD is ignored via config; Amount still fires.
 	ruletest.AssertRule(t, findings, "C008", 1)
+}
+
+func TestC008_ConfigIgnoreFieldsCaseInsensitive(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"model.go": `package main
+
+type Invoice struct {
+	TotalUSD  float64
+	BalanceEU float64
+}`,
+	})
+	ctx.RulesConfig.IgnoreFloatFields = []string{"TOTALUSD", "balanceeu"}
+
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	ruletest.AssertRule(t, findings, "C008", 0)
+}
+
+func TestC016_ShutdownProximityBoundary5Lines(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"server.go": `package main
+
+import (
+	"context"
+	"time"
+)
+
+func shutdown(ctx context.Context, srv *Server) {
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_ = cancel
+	_ = shutdownCtx
+	_ = shutdownCtx
+	srv.Shutdown(shutdownCtx)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC016Detector(ctx))
+	ruletest.AssertRule(t, findings, "C016", 0)
+}
+
+func TestC016_ShutdownProximityBoundary6LinesFires(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"server.go": `package main
+
+import (
+	"context"
+	"time"
+)
+
+func shutdown(ctx context.Context, srv *Server) {
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_ = cancel
+	_ = shutdownCtx
+	_ = shutdownCtx
+	_ = shutdownCtx
+	srv.Shutdown(shutdownCtx)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC016Detector(ctx))
+	ruletest.AssertRule(t, findings, "C016", 1)
 }

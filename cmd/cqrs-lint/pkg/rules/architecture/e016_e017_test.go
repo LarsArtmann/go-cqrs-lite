@@ -84,6 +84,25 @@ func runServer() {
 	ruletest.AssertRule(t, findings, "E016", 0)
 }
 
+func TestE016_NoFindingForLivezEndpoint(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"server.go": `package main
+
+import "net/http"
+
+func runServer() {
+	http.HandleFunc("/livez", healthHandler)
+	srv := &http.Server{Addr: ":8080"}
+	_ = srv.ListenAndServe()
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE016Detector(ctx))
+	ruletest.AssertRule(t, findings, "E016", 0)
+}
+
 func TestE017_DetectsMissingGracefulShutdown(t *testing.T) {
 	t.Parallel()
 
