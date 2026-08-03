@@ -19,7 +19,7 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 	// link the analyzer cannot otherwise trace.
 	scanGenericHandlerCall(ctx, call)
 
-	funcName, pkgName, ok := selectorNameAndPkg(call)
+	funcName, pkgName, ok := SelectorNameAndPkg(call)
 	if !ok {
 		return
 	}
@@ -29,7 +29,7 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 	switch {
 	case funcName == "New" && pkgName == "event":
 		if len(call.Args) > 0 {
-			if eventTypeStr := stringLit(call.Args[0]); eventTypeStr != "" {
+			if eventTypeStr := StringLit(call.Args[0]); eventTypeStr != "" {
 				ctx.Registry.EventTypesEmitted[eventTypeStr] = EventEmission{
 					File: gf.Path,
 					Line: pos.Line,
@@ -41,7 +41,7 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 
 	case funcName == "NewEvent" && pkgName == "event":
 		if len(call.Args) > 0 {
-			if eventTypeStr := stringLit(call.Args[0]); eventTypeStr != "" {
+			if eventTypeStr := StringLit(call.Args[0]); eventTypeStr != "" {
 				ctx.Registry.EventTypesEmitted[eventTypeStr] = EventEmission{
 					File: gf.Path,
 					Line: pos.Line,
@@ -81,7 +81,7 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 
 	case funcName == "Event" && pkgName == "catalog":
 		if len(call.Args) > 0 {
-			if eventTypeStr := stringLit(call.Args[0]); eventTypeStr != "" {
+			if eventTypeStr := StringLit(call.Args[0]); eventTypeStr != "" {
 				ctx.Registry.EventTypesInCatalog[eventTypeStr] = true
 			}
 		}
@@ -182,13 +182,13 @@ func scanProjectionRegistration(ctx *AnalysisContext, gf *GoFile, call *ast.Call
 	}
 
 	if len(call.Args) > 0 {
-		info.Name = stringLit(call.Args[0])
+		info.Name = StringLit(call.Args[0])
 	}
 
 	for _, arg := range call.Args {
 		if cl, ok := arg.(*ast.CompositeLit); ok {
 			for _, elt := range cl.Elts {
-				if eventTypeStr := stringLit(elt); eventTypeStr != "" {
+				if eventTypeStr := StringLit(elt); eventTypeStr != "" {
 					info.EventTypes = append(info.EventTypes, eventTypeStr)
 				}
 			}
@@ -210,7 +210,7 @@ func scanProjectionSubscription(
 ) {
 	eventTypeStr := ""
 	if len(call.Args) > 0 {
-		eventTypeStr = stringLit(call.Args[0])
+		eventTypeStr = StringLit(call.Args[0])
 	}
 
 	if eventTypeStr == "" {

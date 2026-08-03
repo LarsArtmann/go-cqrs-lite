@@ -141,7 +141,7 @@ func capturePayloadTypeFromVar(
 	call *ast.CallExpr,
 	varAssigns map[string]string,
 ) {
-	funcName, pkgName, ok := selectorNameAndPkg(call)
+	funcName, pkgName, ok := SelectorNameAndPkg(call)
 	if !ok {
 		return
 	}
@@ -190,7 +190,7 @@ func scanConstDecl(ctx *AnalysisContext, _ *GoFile, decl *ast.GenDecl) {
 			continue
 		}
 
-		val := stringLit(vs.Values[0])
+		val := StringLit(vs.Values[0])
 		if val == "" {
 			continue
 		}

@@ -62,7 +62,7 @@ func BaseTypeName(expr ast.Expr) string {
 	return ""
 }
 
-func stringLit(expr ast.Expr) string {
+func StringLit(expr ast.Expr) string {
 	lit, ok := expr.(*ast.BasicLit)
 	if !ok || lit.Kind != token.STRING {
 		return ""
@@ -71,10 +71,10 @@ func stringLit(expr ast.Expr) string {
 	return strings.Trim(lit.Value, `"`)
 }
 
-// selectorNameAndPkg extracts the function/method name and package qualifier
+// SelectorNameAndPkg extracts the function/method name and package qualifier
 // from a call expression. Returns ok=false when the call target is not a
 // selector (e.g. a bare ident or builtin).
-func selectorNameAndPkg(call *ast.CallExpr) (funcName, pkgName string, ok bool) {
+func SelectorNameAndPkg(call *ast.CallExpr) (funcName, pkgName string, ok bool) {
 	sel, alright := SelectorFromExpr(call.Fun)
 	if !alright {
 		return "", "", false

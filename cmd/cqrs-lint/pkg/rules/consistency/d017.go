@@ -95,21 +95,16 @@ func NewD017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // isRawErrorInDomain returns true for errors.New or fmt.Errorf (without %w)
 // calls — the patterns D017 owns in domain files.
 func isRawErrorInDomain(call *ast.CallExpr) bool {
-	sel, ok := analyzer.SelectorFromExpr(call.Fun)
+	funcName, pkgName, ok := analyzer.SelectorNameAndPkg(call)
 	if !ok {
 		return false
 	}
 
-	ident, ok := sel.X.(*ast.Ident)
-	if !ok {
-		return false
-	}
-
-	if ident.Name == "errors" && sel.Sel.Name == "New" {
+	if pkgName == "errors" && funcName == "New" {
 		return true
 	}
 
-	if ident.Name == "fmt" && sel.Sel.Name == "Errorf" && !lintutil.HasWrapVerb(call) {
+	if pkgName == "fmt" && funcName == "Errorf" && !lintutil.HasWrapVerb(call) {
 		return true
 	}
 

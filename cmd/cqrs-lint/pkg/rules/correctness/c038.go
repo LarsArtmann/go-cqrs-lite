@@ -115,7 +115,7 @@ func collectFoldCaseStrings(ctx *analyzer.AnalysisContext) []string {
 						}
 
 						for _, expr := range cc.List {
-							if s := lintutil.StringLit(expr); s != "" {
+							if s := analyzer.StringLit(expr); s != "" {
 								cases = append(cases, s)
 							}
 						}
