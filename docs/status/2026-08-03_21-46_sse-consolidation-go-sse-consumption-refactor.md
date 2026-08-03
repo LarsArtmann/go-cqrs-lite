@@ -9,6 +9,7 @@
 ## a) FULLY DONE
 
 ### Research
+
 - Read ADR-0091 (SSE consolidation decision — keep separate), ADR-0097 (go-sse consumption plan)
 - Read full go-sse library: `event.go` (WriteEvent, WriteHeartbeat, WriteRetry, Event, EventID), `stream.go` (Stream, SetHeaders, NewStream, Heartbeat, LastEventID), `broadcaster.go` + `fanout.go` (Broadcaster[T], fan-out hub), `replay.go` (EventStore, Replay, ReplayFiltered)
 - Read full go-cqrs-lite SSE implementations: `transport/http/sse_event.go` (190 LOC wire format), `transport/http/sse.go` (285 LOC broker), `transport/http/sse_replay.go` (273 LOC replay), `transport/http/sse_options.go` (193 LOC options), `transport/http/sse_backfill.go` (162 LOC backfill), `metaengine/sse.go` (393 LOC ServeSSE + Inspect), `metaengine/sse_replay.go` (135 LOC SSEReplay ring buffer)
@@ -18,6 +19,7 @@
 - Studied api-stability export collection mechanism (AST-based, tracks `func`/`method`/`type`/`struct`/`interface`/`const`/`var`)
 
 ### Refactor: transport/http SSEBroker → consumes go-sse
+
 - `transport/http/go.mod`: added `github.com/larsartmann/go-sse v0.4.0`
 - `transport/http/sse_event.go` rewritten (190 → 113 LOC, **−77 LOC**):
   - `SSEEventID` → type alias for `sse.EventID` (preserves public API)
@@ -35,6 +37,7 @@
 - `golangci-lint` clean (0 issues)
 
 ### Refactor: metaengine ServeSSE → consumes go-sse
+
 - `metaengine/go.mod`: added `github.com/larsartmann/go-sse v0.4.0` (transitively pulls `go-branded-id` + `go-error-family`)
 - `metaengine/sse.go` wire-format calls replaced:
   - Header setting → `sse.SetHeaders(w)` (kept `X-Accel-Buffering: no` separately — nginx-specific)
@@ -48,11 +51,13 @@
 - `golangci-lint` clean (0 issues)
 
 ### Infrastructure
+
 - `.golangci.yml`: added `github.com/larsartmann/go-sse` to depguard allow list
 - `docs/api_surface.txt`: regenerated (3183 → 3182 exports; removed `transport/http/method Name` — the `sseEventBrand.Name()` method that moved to go-sse's `eventBrand`)
 - api-stability verification passes
 
 ### SKILL.md Decision Matrix
+
 - Expanded the minimal 3-row SSE table into a comprehensive routing matrix:
   - 3 rows: raw events (SSEBroker), read-model values (ServeSSE), server-side worker (CatchUpSubscriber)
   - Columns: source, replay durability, key features
@@ -61,7 +66,9 @@
 - `doc-check` passed (1195 references valid across 41 packages)
 
 ### Auto-commits
+
 The auto-commit daemon committed all work:
+
 - `b7bb2647` chore(deps): add go-sse dependency
 - `bca4f31d` refactor(sse): delegate wire-format serialization to go-sse (ADR-0097)
 - `f7512176` refactor(sse): delegate wire-format per ADR-0097 (metaengine)
@@ -70,12 +77,12 @@ The auto-commit daemon committed all work:
 
 ## b) PARTIALLY DONE
 
-| Item | Status | Gap |
-|------|--------|-----|
-| Full verify gate (`nix run .#verify`) | **NOT RUN** — only per-module tests + lint | Need full build/vet/test/race/lint/doc-check/doc-assertions cycle |
-| `nix fmt` | **NOT RUN** — only gofumpt/goimports via golangci-lint | Need full treefmt pass |
-| Workspace-wide build verification | **PARTIAL** — built affected modules, not all consumers | Should run `go build ./...` across workspace |
-| Dedup LOC accounting | **NOT MEASURED** — ADR-0097 claims ~300 LOC dedup | Should run `nix run .#check-duplication` to verify |
+| Item                                  | Status                                                  | Gap                                                               |
+| ------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------- |
+| Full verify gate (`nix run .#verify`) | **NOT RUN** — only per-module tests + lint              | Need full build/vet/test/race/lint/doc-check/doc-assertions cycle |
+| `nix fmt`                             | **NOT RUN** — only gofumpt/goimports via golangci-lint  | Need full treefmt pass                                            |
+| Workspace-wide build verification     | **PARTIAL** — built affected modules, not all consumers | Should run `go build ./...` across workspace                      |
+| Dedup LOC accounting                  | **NOT MEASURED** — ADR-0097 claims ~300 LOC dedup       | Should run `nix run .#check-duplication` to verify                |
 
 ---
 
@@ -119,6 +126,7 @@ The auto-commit daemon committed all work:
 ## f) Up to 50 Things to Do Next
 
 ### Immediate (this session or next)
+
 1. Run `nix run .#verify` — full gate (build/vet/test/race/lint/doc-check/doc-assertions)
 2. Run `nix fmt` — full treefmt formatting pass
 3. Update `TODO_LIST.md` — check off the 3 SSE items under "SSE Consolidation"
@@ -130,6 +138,7 @@ The auto-commit daemon committed all work:
 9. Verify `go build ./...` across the FULL workspace (all consumers compile)
 
 ### Short-term (next few sessions)
+
 10. Update AGENTS.md "Key Patterns" SSE section — note go-sse delegation, update code examples
 11. Consider whether `transport/http` should also use `sse.Stream` for the per-connection handler (currently only `sse.SetHeaders` + `sse.WriteEvent` are used; `sse.Stream` provides mutex-guarded send, heartbeat goroutine, disconnect hooks — a deeper refactor)
 12. Consider whether `metaengine.ServeSSE` should use `sse.NewStream` instead of manual `http.Flusher` handling (would get mutex-guarded writes + heartbeat for free)
@@ -140,6 +149,7 @@ The auto-commit daemon committed all work:
 17. Consider adding `go-sse` to the Dependencies table in AGENTS.md
 
 ### Medium-term
+
 18. Explore `sse.EventStore` + `sse.Replay` for transport/http replay path — currently uses custom journal batching; go-sse's Replay could simplify if the journal adapter is built
 19. Explore `sse.FilteredEventStore` for transport/http event-filter replay pushdown
 20. Consider extracting a `transport/http.JournalSSEStore` adapter (like cqrs-htmx's pattern) that adapts `event.SeekableJournal` → `sse.EventStore`
@@ -148,17 +158,20 @@ The auto-commit daemon committed all work:
 23. Add a benchmark comparing go-sse `WriteEvent` vs the old hand-rolled serializer (should be equivalent or faster — both use byte appends)
 
 ### Metaengine SSE improvements
+
 24. The `sseMainLoop` function uses a generic `writeEvent` callback — could be simplified now that both write paths delegate to `sse.WriteEvent`
 25. The `forwardWithDropOld` function duplicates fan-out logic that `go-sse.Broadcaster` provides — future consolidation candidate
 26. The `serveSSEPlain` and `serveSSEReplay` code paths share the same `sseMainLoop` — good, but the replay path's `replayMissedEvents` still hand-writes the wire format via `sse.WriteEvent` in a loop; could use `sse.Replay` with an adapter
 
 ### Documentation
+
 27. Update `transport/http/README.md` if it references the old wire-format functions
 28. Update `metaengine/README.md` SSE section
 29. Add a section to `docs/architecture-understanding/` about the go-sse consumption decision
 30. Consider adding ADR-0098 or updating ADR-0097 with "implementation complete" status
 
 ### Testing
+
 31. Run the full metaengine test suite WITHOUT `-short` (includes soak tests)
 32. Run transport/http tests with `-race` to verify no new race conditions from the refactor
 33. Run metaengine tests with `-race`
@@ -166,6 +179,7 @@ The auto-commit daemon committed all work:
 35. Verify the `transport/http` example tests still produce correct SSE output
 
 ### Cleanup
+
 36. Check if any other modules reference the removed `sseEventBrand` type
 37. Check if the `base10` constant removal from `transport/http` broke anything (it was unexported)
 38. Verify the `splitSSELines` removal didn't break any test helpers
@@ -173,6 +187,7 @@ The auto-commit daemon committed all work:
 40. Run `go mod tidy` in the root workspace to ensure consistency
 
 ### Broader
+
 41. Consider tagging the transport/http and metaengine modules with new versions after verify
 42. Verify `cmd/api-stability` modules list is still complete
 43. Run `cmd/doc-check` on ALL docs (not just skill docs) to catch any stale references
