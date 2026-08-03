@@ -12,14 +12,19 @@ import (
 )
 
 // DuckDBNsPerOp is the calibrated per-write-operation cost.
-// DuckDB's columnar writes are amortized across batches; individual inserts
-// pay the JSON encoding + columnar flush cost.
-const DuckDBNsPerOp = 15000.0
+// Measured 2026-08-03 on AMD RYZEN AI MAX+ 395 via BenchmarkDuckDB_MapSet
+// at 100 iterations: ~4,800,000 ns/op. DuckDB's columnar format incurs
+// high per-insert cost (JSON encode + columnar flush + CGo boundary).
+// Batch operations amortize this; point inserts do not.
+const DuckDBNsPerOp = 4_800_000.0
 
-// DuckDBNsPerRead is the calibrated per-read cost. DuckDB's vectorized
-// execution engine makes aggregations (GROUP BY, SUM) extremely fast —
-// often 10-50x faster than row-oriented SQLite on analytical workloads.
-const DuckDBNsPerRead = 3000.0
+// DuckDBNsPerRead is the calibrated per-read cost.
+// Measured 2026-08-03 on AMD RYZEN AI MAX+ 395 via BenchmarkDuckDB_MapGet
+// at 100 iterations: ~546,000 ns/op. DuckDB's vectorized execution excels
+// at analytical aggregations (GROUP BY, SUM) but point lookups pay the full
+// column-scan + CGo decode cost. For analytical queries, the effective
+// per-row cost is far lower (amortized across the result set).
+const DuckDBNsPerRead = 546_000.0
 
 // duckdbEngine implements metaengine.Engine with DuckDB as the backend.
 type duckdbEngine struct {

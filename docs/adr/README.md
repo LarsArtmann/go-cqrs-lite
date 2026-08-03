@@ -198,5 +198,6 @@ watermill/     — Watermill protocol adapter
 | [0094](0094-metaengine-universal-adt-support.md)          | Metaengine Universal ADT Support                           | 2026-08-03 | Accepted                                                                                                                      |
 | [0095](0095-nix-based-integration-testing.md)             | Nix-based Integration Testing                              | 2026-08-03 | Accepted                                                                                                                      |
 | [0096](0096-iroh-distributed-engine-bridge-evaluation.md) | Iroh Distributed Engine Bridge Evaluation                  | 2026-08-03 | Research                                                                                                                      |
+| [0097](0097-sse-three-repo-finding-and-go-sse-consumption.md) | SSE Three-Repo Finding and go-sse Consumption          | 2026-08-03 | Accepted                                                                                                                      |
 
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).

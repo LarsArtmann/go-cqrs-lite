@@ -31,25 +31,25 @@ import (
 const sep = "\x00"
 
 // PebbleNsPerOp is the calibrated per-operation cost for the Pebble engine.
-// Calibrated via BenchmarkCalibration_PebbleSet/Get on 2026-07-28 (AMD Ryzen
-// AI MAX+ 395, in-memory vfs.NewMem):
-//   - MapSet (LSM insert + JSON encode): ~1,785 ns/op
-//   - MapGet (LSM point read + JSON decode): ~708 ns/op
+// Re-measured 2026-08-03 on AMD Ryzen AI MAX+ 395 (in-memory vfs.NewMem)
+// with correctness assertions enabled:
+//   - MapSet (LSM insert + JSON encode): ~2,526 ns/op
+//   - MapGet (LSM point read + JSON decode): ~1,328 ns/op
 //
-// The value 1,200 ns is biased toward the write path (fold-heavy workloads
-// dominate). Pebble is ~7x faster than SQLite on point reads and ~3.7x faster
+// The value 2,000 ns is biased toward the write path (fold-heavy workloads
+// dominate). Pebble is ~2.5x faster than SQLite on point reads and ~2.5x faster
 // on writes.
-const PebbleNsPerOp = 1200.0
+const PebbleNsPerOp = 2000.0
 
 // PebbleNsPerRead is the calibrated per-READ-operation cost (LSM point read +
-// JSON decode). Sourced from BenchmarkCalibration_PebbleGet (~708 ns/op).
+// JSON decode). Measured 2026-08-03 via BenchmarkCalibration_PebbleGet (~1,328 ns/op).
 // Used by the planner's read-cost path (EngineProfile.ReadNsPerOp).
-const PebbleNsPerRead = 708.0
+const PebbleNsPerRead = 1300.0
 
 // PebbleNsPerWrite is the calibrated per-WRITE-operation cost (LSM insert +
-// JSON encode). Sourced from BenchmarkCalibration_PebbleSet (~1,785 ns/op).
+// JSON encode). Measured 2026-08-03 via BenchmarkCalibration_PebbleSet (~2,526 ns/op).
 // Used by the planner's write-cost path (EngineProfile.WriteNsPerOp).
-const PebbleNsPerWrite = 1785.0
+const PebbleNsPerWrite = 2500.0
 
 type pebbleEngine struct {
 	db       *pebble.DB

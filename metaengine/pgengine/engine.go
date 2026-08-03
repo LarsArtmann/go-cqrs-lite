@@ -11,10 +11,10 @@
 //
 // Pure Go (no CGo): uses the pgx driver via database/sql.
 //
-// Calibrated cost model:
+// Calibrated cost model (measured 2026-08-03 on AMD RYZEN AI MAX+ 395):
 //
-//	PG_NsPerOp   = 12_000  (INSERT with JSONB encode + network round-trip)
-//	PG_NsPerRead =  5_000  (indexed SELECT + JSONB decode)
+//	PG_NsPerOp   = 33_000  (INSERT UPSERT with JSONB encode, measured via BenchmarkPostgres_MapSet)
+//	PG_NsPerRead = 28_000  (indexed SELECT + JSONB decode, measured via BenchmarkPostgres_MapGet)
 package pgengine
 
 import (
@@ -33,12 +33,14 @@ import (
 )
 
 // PG_NsPerOp is the calibrated per-write cost.
+// Measured 2026-08-03 via BenchmarkPostgres_MapSet at 100 iterations: ~33,300 ns/op.
 // Postgres writes include WAL fsync + network round-trip.
-const PG_NsPerOp = 12000.0
+const PG_NsPerOp = 33000.0
 
 // PG_NsPerRead is the calibrated per-read cost.
+// Measured 2026-08-03 via BenchmarkPostgres_MapGet at 100 iterations: ~27,535 ns/op.
 // Postgres point reads benefit from B-tree indexes + buffer cache.
-const PG_NsPerRead = 5000.0
+const PG_NsPerRead = 28000.0
 
 // pgEngine implements metaengine.Engine with Postgres as the backend.
 type pgEngine struct {

@@ -86,6 +86,12 @@ not be merged.**
 
 ## Alternatives Considered
 
+> **Update 2026-08-03:** ADR-0097 supplements this decision with the finding
+> that `github.com/larsartmann/go-sse` already exists as a standalone SSE
+> primitives library. ADR-0091 was written without knowledge of go-sse. The
+> consumption of go-sse wire-format primitives does NOT reverse this decision —
+> both implementations remain separate and serve different layers.
+
 ### Merge into `transport/http`
 
 Rejected: `transport/http` would need to import `metaengine` for `Watcher[V]`,
