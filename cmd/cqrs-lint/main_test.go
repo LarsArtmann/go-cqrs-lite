@@ -174,6 +174,43 @@ func TestVersionConstant(t *testing.T) {
 	}
 }
 
+func TestVersionFormat(t *testing.T) {
+	s := versionString()
+	if !strings.HasPrefix(s, "cqrs-lint "+version) {
+		t.Errorf("versionString() = %q, want prefix %q", s, "cqrs-lint "+version)
+	}
+}
+
+func TestVersionStringWithBoth(t *testing.T) {
+	oldCommit, oldDate := commitHash, buildDate
+	commitHash, buildDate = "abc1234", "20260803"
+	defer func() { commitHash, buildDate = oldCommit, oldDate }()
+
+	s := versionString()
+	if !strings.Contains(s, "commit: abc1234") {
+		t.Errorf("missing commit in %q", s)
+	}
+	if !strings.Contains(s, "built: 20260803") {
+		t.Errorf("missing build date in %q", s)
+	}
+}
+
+func TestVersionVerbose(t *testing.T) {
+	s := versionVerbose()
+	if !strings.HasPrefix(s, "cqrs-lint ") {
+		t.Errorf("versionVerbose() should start with cqrs-lint, got %q", s)
+	}
+	if !strings.Contains(s, "go:") {
+		t.Errorf("versionVerbose() should contain go: line, got %q", s)
+	}
+	if !strings.Contains(s, "arch:") {
+		t.Errorf("versionVerbose() should contain arch: line, got %q", s)
+	}
+	if !strings.Contains(s, "module:") {
+		t.Errorf("versionVerbose() should contain module: line, got %q", s)
+	}
+}
+
 func TestVersionStringLocal(t *testing.T) {
 	// Without ldflags injection, commitHash and buildDate are empty.
 	s := versionString()
@@ -227,6 +264,32 @@ func TestExcludeAdoptionFromScore(t *testing.T) {
 	}
 	if suppressed != 2 {
 		t.Errorf("expected 2 F-series suppressed, got %d", suppressed)
+	}
+}
+
+func TestAdoptionModeHealthScoreDifference(t *testing.T) {
+	t.Parallel()
+
+	// Simulate findings: 1 warning + 3 adoption (F-series) infos.
+	findings := []finding.Finding{
+		{Rule: "C007", Severity: finding.SeverityWarning, Confidence: finding.ConfidenceHigh},
+		{Rule: "F013", Severity: finding.SeverityInfo, Confidence: finding.ConfidenceLow},
+		{Rule: "F015", Severity: finding.SeverityInfo, Confidence: finding.ConfidenceLow},
+		{Rule: "F017", Severity: finding.SeverityInfo, Confidence: finding.ConfidenceLow},
+	}
+
+	// Without adoption mode: all findings count.
+	scoreWithout := ComputeHealthScore(findings)
+
+	// With adoption mode: F-series suppressed from score.
+	scoreWith := ComputeHealthScore(excludeAdoptionFromScore(findings))
+
+	if scoreWith.Score <= scoreWithout.Score {
+		t.Errorf(
+			"adoption mode should not lower score: with=%d without=%d",
+			scoreWith.Score,
+			scoreWithout.Score,
+		)
 	}
 }
 

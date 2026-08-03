@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"strings"
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
@@ -47,17 +48,36 @@ func setupRulesCommand(cli *cmdguard.CLI[AppConfig]) error {
 }
 
 func setupVersionCommand(cli *cmdguard.CLI[AppConfig]) error {
-	cmd, err := cmdguard.NewCommand[AppConfig, cmdguard.NoFlags](
+	cmd, err := cmdguard.NewCommand[AppConfig, versionFlags](
 		"version",
-		cmdguard.NoFlags{},
-		func(_ context.Context, _ *AppConfig, _ cmdguard.NoFlags) error {
-			fmt.Println(versionString())
+		versionFlags{},
+		func(_ context.Context, _ *AppConfig, flags versionFlags) error {
+			if flags.Verbose {
+				fmt.Println(versionVerbose())
+			} else {
+				fmt.Println(versionString())
+			}
 			return nil
 		},
 		cmdguard.WithShort("Print version"),
 		cmdguard.WithNoArgs(),
 	)
 	return registerCommand(cli, "version", cmd, err)
+}
+
+// versionFlags adds --verbose to the version subcommand.
+type versionFlags struct {
+	Verbose bool `default:"false" flag:"verbose" help:"Show Go version, OS/arch, and module path"`
+}
+
+// versionVerbose returns the full version string with build environment details.
+func versionVerbose() string {
+	var b strings.Builder
+	b.WriteString(versionString())
+	b.WriteString("\n  go:      " + runtime.Version())
+	b.WriteString("\n  arch:    " + runtime.GOOS + "/" + runtime.GOARCH)
+	b.WriteString("\n  module:  github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint")
+	return b.String()
 }
 
 // versionString returns the full version string, including commit hash and

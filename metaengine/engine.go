@@ -90,7 +90,23 @@ func (p EngineProfile) String() string {
 
 	sort.Strings(parts)
 
-	return fmt.Sprintf("%s: %s", p.Name, strings.Join(parts, " "))
+	extras := []string{}
+	if p.IsReplicated() {
+		extras = append(extras, fmt.Sprintf("replication=%s", p.Replication))
+		if p.ReplicationLag > 0 {
+			extras = append(extras, fmt.Sprintf("lag=%s", p.ReplicationLag))
+		}
+	}
+	if p.NetworkRTT > 0 {
+		extras = append(extras, fmt.Sprintf("rtt=%s", p.NetworkRTT))
+	}
+
+	suffix := ""
+	if len(extras) > 0 {
+		suffix = " (" + strings.Join(extras, ", ") + ")"
+	}
+
+	return fmt.Sprintf("%s: %s%s", p.Name, strings.Join(parts, " "), suffix)
 }
 
 // Per-ADT backend interfaces (ISP — engines implement only what they support).

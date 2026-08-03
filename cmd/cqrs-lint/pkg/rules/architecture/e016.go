@@ -74,11 +74,31 @@ func NewE016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					return true
 				})
 
-				// Recognize health endpoint route registrations via string literals:
-				// mux.HandleFunc("/healthz", ...) or healthPath := "/ready".
-				// These exact path strings are almost certainly health probes.
+				// Recognize health endpoint route registrations: only match string
+				// literals that are the first argument to a routing function call
+				// (HandleFunc, Handle, Mount, Get, Post, etc.). This avoids false
+				// positives from health-related strings in comments, descriptions,
+				// or non-routing variable assignments.
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
-					lit, ok := n.(*ast.BasicLit)
+					call, ok := n.(*ast.CallExpr)
+					if !ok {
+						return true
+					}
+
+					sel, ok := analyzer.SelectorFromExpr(call.Fun)
+					if !ok {
+						return true
+					}
+
+					if !routingMethods[sel.Sel.Name] {
+						return true
+					}
+
+					if len(call.Args) == 0 {
+						return true
+					}
+
+					lit, ok := call.Args[0].(*ast.BasicLit)
 					if !ok || lit.Kind != token.STRING {
 						return true
 					}
@@ -127,4 +147,29 @@ var healthEndpoints = map[string]bool{
 
 func isHealthEndpoint(path string) bool {
 	return healthEndpoints[path]
+}
+
+// routingMethods are HTTP-router method names whose first string argument is
+// a route path. Only these methods are checked for health-endpoint string
+// literals — this narrows the scan from "any string literal anywhere" to
+// "route registration calls."
+//
+//nolint:gochecknoglobals // read-only lookup set
+var routingMethods = map[string]bool{
+	"HandleFunc":     true,
+	"Handle":         true,
+	"Mount":          true,
+	"Get":            true,
+	"Post":           true,
+	"Put":            true,
+	"Patch":          true,
+	"Delete":         true,
+	"Any":            true,
+	"Group":          true,
+	"Route":          true,
+	"Path":           true,
+	"PathPrefix":     true,
+	"Method":         true,
+	"AddRoute":       true,
+	"RegisterRoute":  true,
 }

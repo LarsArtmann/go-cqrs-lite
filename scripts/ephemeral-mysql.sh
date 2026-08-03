@@ -6,7 +6,8 @@
 #
 # Usage:
 #   nix run .#integration-mysql                        # run all MySQL integration tests
-#   nix run .#integration-mysql -- go test -v ./stack/mysql/...
+#   nix run .#integration-mysql -- -run TestMultidb    # specific test
+#   nix run .#integration-mysql -- go test ./stack/mysql/...
 #
 # Environment:
 #   MYSQL_PORT — override the port (default: auto-select free port)
@@ -16,7 +17,7 @@ MYSQLDATA=$(mktemp -d /tmp/cqrs-mysql-XXXXXX)
 SOCKET_DIR=$(mktemp -d /tmp/cqrs-mysql-sock-XXXXXX)
 
 cleanup() {
-    if [ -f "$MYSQLDATA/mysql.pid" ] || pgrep -f "datadir=$MYSQLDATA" >/dev/null 2>&1; then
+    if pgrep -f "datadir=$MYSQLDATA" >/dev/null 2>&1; then
         mysqladmin --socket="$SOCKET_DIR/mysql.sock" shutdown 2>/dev/null || true
         sleep 0.5
         pkill -f "datadir=$MYSQLDATA" 2>/dev/null || true
@@ -68,7 +69,6 @@ echo "==> Starting $FLAVOR"
     --port="$MYSQL_PORT" \
     --pid-file="$MYSQLDATA/mysql.pid" \
     --skip-networking=false \
-    --default-authentication-plugin=mysql_native_password \
     --log-error="$MYSQLDATA/mysql.err" &
 
 MYSQLD_PID=$!
@@ -99,24 +99,32 @@ export MYSQL_TEST_DSN="cqrs:cqrs@tcp(127.0.0.1:$MYSQL_PORT)/cqrs_test?parseTime=
 
 echo "==> $FLAVOR ready: $MYSQL_TEST_DSN"
 
-# Determine what to run
-if [ $# -gt 0 ]; then
-    if [ "$1" = "go" ]; then
-        shift
-        echo "==> Running: go $*"
-        go "$@"
-    else
-        echo "==> Running: go test $*"
-        go test -tags "goexperiment.jsonv2" "$@" -count=1 -v
-    fi
+# Per-module GOWORK=off is required because the multi-module workspace
+# doesn't resolve integration build tags correctly in workspace mode.
+MYSQL_MODULES="stack/mysql"
+
+if [ $# -gt 0 ] && [ "$1" = "go" ]; then
+    shift
+    echo "==> Running: go $*"
+    go "$@"
 else
-    echo "==> Running all MySQL integration tests"
-    echo ""
-    echo "--- stack/mysql ---"
-    (
-        cd stack/mysql
-        CGO_ENABLED=1 GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1 -v 2>&1
-    )
+    EXTRA_ARGS="$*"
+    FAILED=0
+    for mod in $MYSQL_MODULES; do
+        echo ""
+        echo "--- $mod ---"
+        (
+            cd "$mod"
+            CGO_ENABLED=1 GOWORK=off \
+            go test -tags "goexperiment.jsonv2" ./... \
+                -count=1 -v $EXTRA_ARGS 2>&1
+        ) || FAILED=1
+    done
+    if [ "$FAILED" -ne 0 ]; then
+        echo ""
+        echo "❌ Some integration tests failed"
+        exit 1
+    fi
 fi
 
 echo ""

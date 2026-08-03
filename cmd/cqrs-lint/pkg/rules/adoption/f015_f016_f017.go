@@ -24,10 +24,12 @@ func NewF015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			// Metaengine is overkill for local SQLite — the query planner
-			// shines for distributed/complex query patterns, not single-file
-			// embedded databases.
-			if ctx.FeatureProfile.Store == analyzer.StoreSQLite {
+			// Metaengine is overkill for embedded/local stores — the query
+			// planner shines for distributed/complex query patterns, not
+			// single-file SQLite, in-process memory, or local LSM.
+			if ctx.FeatureProfile.Store == analyzer.StoreSQLite ||
+				ctx.FeatureProfile.Store == analyzer.StoreMemory ||
+				ctx.FeatureProfile.Store == analyzer.StorePebble {
 				return nil, nil
 			}
 

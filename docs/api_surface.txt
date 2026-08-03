@@ -1405,6 +1405,10 @@ metaengine/const ReadScan
 metaengine/const ReadSpatialRange
 metaengine/const ReadTraversal
 metaengine/const ReadVectorSearch
+metaengine/const ReplicationLeaderless
+metaengine/const ReplicationMultiLeader
+metaengine/const ReplicationNone
+metaengine/const ReplicationSingleLeader
 metaengine/const SQLiteNsPerOp
 metaengine/duckdbengine/const DuckDBNsPerOp
 metaengine/duckdbengine/const DuckDBNsPerRead
@@ -1569,6 +1573,8 @@ metaengine/method Distinct
 metaengine/method Do
 metaengine/method Doctor
 metaengine/method DotGraph
+metaengine/method EffectiveNetworkRTT
+metaengine/method EffectiveReplicationLag
 metaengine/method Encode
 metaengine/method Error
 metaengine/method EventSample
@@ -1628,6 +1634,7 @@ metaengine/method Insert
 metaengine/method Inspect
 metaengine/method InspectJSON
 metaengine/method IsPoisoned
+metaengine/method IsReplicated
 metaengine/method Kind
 metaengine/method Kind
 metaengine/method Kind
@@ -1874,6 +1881,7 @@ metaengine/type Nanoseconds
 metaengine/type QueryOption
 metaengine/type RatePerSecond
 metaengine/type ReadPattern
+metaengine/type Replication
 metaengine/type SSEOption
 metaengine/type ScanOption
 metaengine/type StorageLayout

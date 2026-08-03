@@ -225,6 +225,48 @@ func _() {
 	ruletest.AssertRule(t, findings, "F015", 0)
 }
 
+func TestF015_NoFindingForMemoryStore(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func _() {
+	query.RegisterTyped(d, t1, h1)
+	query.RegisterTyped(d, t2, h2)
+	query.RegisterTyped(d, t3, h3)
+	query.RegisterTyped(d, t4, h4)
+	query.RegisterTyped(d, t5, h5)
+}`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	ctx.FeatureProfile.Store = analyzer.StoreMemory
+
+	findings := ruletest.RunDetector(t, adoption.NewF015Detector(ctx))
+	ruletest.AssertRule(t, findings, "F015", 0)
+}
+
+func TestF015_NoFindingForPebbleStore(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func _() {
+	query.RegisterTyped(d, t1, h1)
+	query.RegisterTyped(d, t2, h2)
+	query.RegisterTyped(d, t3, h3)
+	query.RegisterTyped(d, t4, h4)
+	query.RegisterTyped(d, t5, h5)
+}`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	ctx.FeatureProfile.Store = analyzer.StorePebble
+
+	findings := ruletest.RunDetector(t, adoption.NewF015Detector(ctx))
+	ruletest.AssertRule(t, findings, "F015", 0)
+}
+
 func TestF016_ManyAggregatesWithoutListing(t *testing.T) {
 	t.Parallel()
 
