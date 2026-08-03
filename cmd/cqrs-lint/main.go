@@ -76,7 +76,7 @@ type HealthConfig struct {
 }
 
 func main() {
-	cli, err := cmdguard.NewCLI[AppConfig](
+	cli, err := cmdguard.NewCLI(
 		"cqrs-lint",
 		"Domain-aware linter for go-cqrs-lite consumers",
 		AppConfig{},

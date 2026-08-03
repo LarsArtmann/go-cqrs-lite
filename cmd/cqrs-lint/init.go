@@ -77,7 +77,7 @@ var presetConfigs = map[string]string{
 }
 
 func setupInitCommand(cli *cmdguard.CLI[AppConfig]) error {
-	cmd, err := cmdguard.NewCommand[AppConfig, initPresetFlags](
+	cmd, err := cmdguard.NewCommand(
 		"init",
 		initPresetFlags{},
 		func(_ context.Context, _ *AppConfig, flags initPresetFlags) error {

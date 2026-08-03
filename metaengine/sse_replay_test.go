@@ -523,7 +523,8 @@ func TestSSE_ReconnectWithSQLite(t *testing.T) {
 
 		data2 += string(buf[:n])
 
-		if strings.Contains(data2, "SQLite Replay 3") && strings.Contains(data2, "SQLite Replay 4") {
+		if strings.Contains(data2, "SQLite Replay 3") &&
+			strings.Contains(data2, "SQLite Replay 4") {
 			break
 		}
 	}

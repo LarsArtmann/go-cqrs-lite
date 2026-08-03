@@ -75,8 +75,10 @@ type versionFlags struct {
 func versionVerbose() string {
 	var b strings.Builder
 	b.WriteString(versionString())
-	b.WriteString("\n  go:      " + runtime.Version())
-	b.WriteString("\n  arch:    " + runtime.GOOS + "/" + runtime.GOARCH)
+	b.WriteString("\n  go:      ")
+	b.WriteString(runtime.Version())
+	b.WriteString("\n  arch:    ")
+	b.WriteString(runtime.GOOS + "/" + runtime.GOARCH)
 	b.WriteString("\n  module:  github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint")
 	return b.String()
 }

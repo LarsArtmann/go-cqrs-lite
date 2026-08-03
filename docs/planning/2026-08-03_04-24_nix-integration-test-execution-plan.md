@@ -58,7 +58,7 @@ Quality hardening, documentation, and CI improvements that make the infrastructu
 
 | #   | Task                                          | Why                                                                | Effort | Status                                                 |
 | --- | --------------------------------------------- | ------------------------------------------------------------------ | ------ | ------------------------------------------------------ |
-| 6   | Write ADR-0094: Nix-based integration testing | Document rationale, tradeoffs, MariaDB limitation                  | 15min  | **NOT DONE** (latest ADR is `0093`)                    |
+| 6   | Write ADR-0095: Nix-based integration testing | Document rationale, tradeoffs, MariaDB limitation                  | 15min  | **DONE** ([ADR-0095](../adr/0095-nix-based-integration-testing.md)) |
 | 7   | Add KVM detection to VM scripts               | Warn gracefully if `/dev/kvm` missing (10-50x slowdown without it) | 10min  | **NOT DONE** (no `/dev/kvm` check in scripts)          |
 | 8   | Add ephemeral PG as a fast CI path            | No VM, no Docker — fastest integration test path                   | 10min  | **NOT DONE** (CI has only `nixos-vm-tests`)            |
 | 9   | Matrix-parallelize `nixos-vm-tests` CI job    | PG + MySQL in parallel instead of sequential                       | 10min  | **NOT DONE** (`ci.yml:600-604` runs them sequentially) |
@@ -92,7 +92,7 @@ Sorted by priority, then impact, then effort, then customer-value.
 | ID  | Task                                                                    | Source      | Impact   | Effort | Priority | Status                        |
 | --- | ----------------------------------------------------------------------- | ----------- | -------- | ------ | -------- | ----------------------------- |
 | M01 | Run `nix run .#verify-fast` — confirm no regressions                    | T01/F1      | CRITICAL | 5min   | P0       | **DONE**                      |
-| M02 | Push trailing unpushed doc commit to remote                             | T02         | CRITICAL | 1min   | P0       | **NOT DONE** (13 commits ahead) |
+| M02 | Push trailing unpushed doc commit to remote                             | T02         | CRITICAL | 1min   | P0       | **NOT DONE** (26 commits ahead) |
 | M03 | Fix `stack/postgres` build (`undefined: storage.SQLiteSetSynchronous`)  | T05         | HIGH     | 10min  | P1       | **DONE**                      |
 | M04 | E2E test `vm-pg.sh` — build VM, boot, run tests                         | T03/F3      | HIGH     | 15min  | P1       | **DONE** (driver-based)       |
 | M05 | E2E test `vm-mysql.sh` — build VM, boot, run tests                      | T04/F4      | HIGH     | 15min  | P1       | **DONE** (driver-based)       |
@@ -105,24 +105,24 @@ Sorted by priority, then impact, then effort, then customer-value.
 | M12 | Matrix-parallelize `nixos-vm-tests` CI job (PG+MySQL parallel)          | T09/F29     | MEDIUM   | 10min  | P2       | **DONE**                      |
 | M13 | Validate CI YAML with `actionlint`                                      | F10         | MEDIUM   | 5min   | P2       | **DONE** (YAML valid)         |
 | M14 | Investigate `systemd-nspawn` container type for faster VM tests         | T10/F12     | MEDIUM   | 20min  | P2       | **NOT DONE**                  |
-| M15 | Update `CONTRIBUTING.md` with integration test commands                 | F35         | MEDIUM   | 8min   | P3       | **NOT DONE**                  |
-| M16 | Add `docs/testing-guide.md` with decision matrix                        | F36         | MEDIUM   | 12min  | P3       | **NOT DONE**                  |
-| M17 | Update `FEATURES.md` — mention NixOS VM testing                         | F37         | LOW      | 5min   | P3       | **NOT DONE**                  |
-| M18 | Update `TODO_LIST.md` with remaining integration work                   | F38         | LOW      | 5min   | P3       | **NOT DONE**                  |
-| M19 | Document MariaDB/NixOS limitation in troubleshooting section            | F39         | LOW      | 5min   | P3       | **NOT DONE**                  |
+| M15 | Update `CONTRIBUTING.md` with integration test commands                 | F35         | MEDIUM   | 8min   | P3       | **DONE**                      |
+| M16 | Add `docs/testing-guide.md` with decision matrix                        | F36         | MEDIUM   | 12min  | P3       | **DONE**                      |
+| M17 | Update `FEATURES.md` — mention NixOS VM testing                         | F37         | LOW      | 5min   | P3       | **DONE**                      |
+| M18 | Update `TODO_LIST.md` with remaining integration work                   | F38         | LOW      | 5min   | P3       | **DONE**                      |
+| M19 | Document MariaDB/NixOS limitation in troubleshooting section            | F39         | LOW      | 5min   | P3       | **DONE** (in testing-guide)   |
 | M20 | Add example outputs of each test command to docs                        | F40         | LOW      | 10min  | P3       | **NOT DONE**                  |
-| M21 | Verify `set -euo pipefail` present on all scripts                       | F41         | MEDIUM   | 3min   | P3       | **NOT DONE**                  |
+| M21 | Verify `set -euo pipefail` present on all scripts                       | F41         | MEDIUM   | 3min   | P3       | **DONE** (all 3 scripts)      |
 | M22 | Add shellcheck linting to new scripts                                   | F42         | MEDIUM   | 10min  | P3       | **NOT DONE**                  |
-| M23 | Add error handling for `nix build` failures in VM scripts               | F43         | MEDIUM   | 8min   | P3       | **NOT DONE**                  |
+| M23 | Add error handling for `nix build` failures in VM scripts               | F43         | MEDIUM   | 8min   | P3       | **DONE** (driver binary check)|
 | M24 | Add timeout to ephemeral PG script (prevent hanging)                    | F44         | MEDIUM   | 5min   | P3       | **NOT DONE**                  |
-| M25 | Add cleanup verification (no orphan postgres/mysqld processes)          | F45         | MEDIUM   | 8min   | P3       | **NOT DONE**                  |
+| M25 | Add cleanup verification (no orphan postgres/mysqld processes)          | F45         | MEDIUM   | 8min   | P3       | **DONE** (orphan check in trap)|
 | M26 | Add `--keep-alive` flag to VM scripts for interactive debugging         | T17/F46     | LOW      | 10min  | P3       | **NOT DONE**                  |
 | M27 | Add VM serial console log capture for CI debugging                      | T18/F47     | LOW      | 10min  | P3       | **NOT DONE**                  |
 | M28 | Add connection retry logic with backoff to VM scripts                   | T19/F49     | MEDIUM   | 10min  | P3       | **NOT DONE**                  |
-| M29 | Add health check endpoint verification for VM services                  | F48         | LOW      | 8min   | P3       | **NOT DONE**                  |
-| M30 | Add `nix run .#integration-all` aggregator app                          | F16         | LOW      | 10min  | P3       | **NOT DONE**                  |
-| M31 | Add `nix run .#verify-integration` composite gate                       | F34         | LOW      | 8min   | P3       | **NOT DONE**                  |
-| M32 | Cache VM images in GitHub Actions via `magic-nix-cache`                 | F32         | LOW      | 10min  | P3       | **NOT DONE**                  |
+| M29 | Add health check endpoint verification for VM services                  | F48         | LOW      | 8min   | P3       | **DONE** (pg_isready check)   |
+| M30 | Add `nix run .#integration-all` aggregator app                          | F16         | LOW      | 10min  | P3       | **DONE**                      |
+| M31 | Add `nix run .#verify-integration` composite gate                       | F34         | LOW      | 8min   | P3       | **DONE**                      |
+| M32 | Cache VM images in GitHub Actions via `magic-nix-cache`                 | F32         | LOW      | 10min  | P3       | **DONE** (already in CI)      |
 | M33 | Add CI badge for NixOS VM tests                                         | F33         | LOW      | 5min   | P3       | **NOT DONE**                  |
 | M34 | macOS verification of ephemeral PG script                               | T11/F9      | LOW      | 15min  | P4       | **NOT DONE**                  |
 | M35 | Cache ephemeral PG data dir for faster startup                          | T12/F14     | LOW      | 10min  | P4       | **NOT DONE**                  |
@@ -201,7 +201,7 @@ Sorted by priority, then impact, then effort, then customer-value.
 | M08.1 | `git diff HEAD -- flake.lock` — review nixpkgs input changes     | 3min |
 | M08.2 | If changed: verify the new nixpkgs revision is expected and safe | 2min |
 
-### M09: Write ADR-0094 (15min)
+### M09: Write ADR-0095 (15min)
 
 | ID    | Micro-Task                                                                                                                                          | Time |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
@@ -511,7 +511,7 @@ graph TD
     end
 
     subgraph "P2: Production hardening + CI"
-        M04 --> M09[M09: Write ADR-0094]
+        M04 --> M09[M09: Write ADR-0095]
         M05 --> M09
         M07 --> M09
         M09 --> M10[M10: KVM detection]
