@@ -748,6 +748,7 @@ github.com/larsartmann/go-atomic-write v0.4.0/go.mod h1:pkmHWPaCXUdJstjggiHCQufE
 github.com/larsartmann/go-atomic-write v0.4.1/go.mod h1:pkmHWPaCXUdJstjggiHCQufE1vquDCfwYsQfHPywxNI=
 github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4 v4.1.0/go.mod h1:br2nxuwBLugcV1w47bOLjX3ei/4TFXVjfJL5r6uaRB0=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.1.1/go.mod h1:4V33qjwL3R72tvRGPRM7AlBWMDHeB4JjA5wMG7uBZqU=
+github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.0.0-20260731174855-00ddf243d19f/go.mod h1:uvBIwEfMrARv0bekKcySaaV/CdAd9FzAkhHyVNoiES4=
 github.com/larsartmann/go-ndjson v0.0.1/go.mod h1:ueEJJ39Jei+zfPCEx455kpunYWZf/pkwn7HqETHrQkU=
 github.com/larsartmann/go-output v0.36.0/go.mod h1:WkfTNl5Lv0u7umW53PNGdB5UxVGZEq5aIW8YXay8rtk=
 github.com/larsartmann/go-output/d2 v0.35.0/go.mod h1:1Q9Y3wv1J1nGtEumeyOx1DB3ciyhIyBOEI5VRFDIEaY=

@@ -272,7 +272,6 @@
 
             nodes.machine =
               {
-                config,
                 pkgs,
                 ...
               }:
@@ -327,8 +326,6 @@
 
             nodes.machine =
               {
-                config,
-                pkgs,
                 ...
               }:
               {
@@ -495,7 +492,7 @@
 
             src = mkCqrsLintSource pkgs;
 
-            vendorHash = "sha256-aCxPXxJRbVGtzDsMRBY8H3O8ifMWCvdz9t2WNreIqYY=";
+            vendorHash = "sha256-/WMnSj9cVQYHTn6+eyFCOLNNt8xq/W8ma3krb61ocJw=";
             proxyVendor = true;
 
             subPackages = [ "." ];
