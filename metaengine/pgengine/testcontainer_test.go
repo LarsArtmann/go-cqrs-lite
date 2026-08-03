@@ -75,7 +75,7 @@ func TestMain(m *testing.M) {
 //
 // When POSTGRES_TEST_DSN is set (CI service container), the DSN is returned
 // directly without per-test isolation.
-func pgDSN(t *testing.T) string {
+func pgDSN(t testing.TB) string {
 	t.Helper()
 
 	if containerDSN == "" {
