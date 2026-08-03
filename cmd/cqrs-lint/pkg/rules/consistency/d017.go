@@ -110,23 +110,9 @@ func isRawErrorInDomain(call *ast.CallExpr) bool {
 		return true
 	}
 
-	if ident.Name == "fmt" && sel.Sel.Name == "Errorf" && !hasWrapVerb(call) {
+	if ident.Name == "fmt" && sel.Sel.Name == "Errorf" && !lintutil.HasWrapVerb(call) {
 		return true
 	}
 
 	return false
-}
-
-// hasWrapVerb returns true if the format string contains %w.
-func hasWrapVerb(call *ast.CallExpr) bool {
-	if len(call.Args) == 0 {
-		return false
-	}
-
-	lit, ok := call.Args[0].(*ast.BasicLit)
-	if !ok {
-		return true
-	}
-
-	return strings.Contains(lit.Value, "%w")
 }
