@@ -143,6 +143,26 @@ go test ./... -count=1 -coverprofile=coverage.out
 go tool cover -html=coverage.out
 ```
 
+### Integration Tests (Database)
+
+Three approaches, all Docker-free, powered by Nix:
+
+```bash
+# 1. Ephemeral PostgreSQL — fastest (no VM, no Docker)
+nix run .#integration-pg                          # all PG integration tests
+nix run .#integration-pg -- -run TestPostgresEventStore_CRUD
+
+# 2. NixOS VM tests — hermetic CI verification
+nix build .#checks.x86_64-linux.postgres-vm -L   # PG service health
+nix build .#checks.x86_64-linux.mysql-vm -L      # MySQL service health
+
+# 3. VM launcher scripts — interactive developer use
+nix run .#integration-pg-vm                       # PG VM + Go tests on host
+nix run .#integration-mysql-vm                    # MySQL VM + Go tests on host
+```
+
+See [ADR-0095](docs/adr/0095-nix-based-integration-testing.md) for the rationale.
+
 ### Coverage Requirements
 
 | Module Type  | Minimum |

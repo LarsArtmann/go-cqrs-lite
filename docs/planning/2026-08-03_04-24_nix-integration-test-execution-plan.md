@@ -91,19 +91,19 @@ Sorted by priority, then impact, then effort, then customer-value.
 
 | ID  | Task                                                                    | Source      | Impact   | Effort | Priority | Status                        |
 | --- | ----------------------------------------------------------------------- | ----------- | -------- | ------ | -------- | ----------------------------- |
-| M01 | Run `nix run .#verify-fast` — confirm no regressions                    | T01/F1      | CRITICAL | 5min   | P0       | **NOT DONE**                  |
-| M02 | Push trailing unpushed doc commit to remote                             | T02         | CRITICAL | 1min   | P0       | **NOT DONE** (1 commit ahead) |
-| M03 | Fix `stack/postgres` build (`undefined: storage.SQLiteSetSynchronous`)  | T05         | HIGH     | 10min  | P1       | **NOT DONE**                  |
-| M04 | E2E test `vm-pg.sh` — build VM, boot, run tests                         | T03/F3      | HIGH     | 15min  | P1       | **NOT DONE**                  |
-| M05 | E2E test `vm-mysql.sh` — build VM, boot, run tests                      | T04/F4      | HIGH     | 15min  | P1       | **NOT DONE**                  |
-| M06 | Verify `go build -tags "goexperiment.jsonv2" ./...` workspace integrity | F2          | HIGH     | 5min   | P1       | **NOT DONE**                  |
-| M07 | Verify `nix flake check` passes (or document which checks to skip)      | F7          | MEDIUM   | 10min  | P1       | **NOT DONE**                  |
-| M08 | Check if `flake.lock` changed unexpectedly                              | F8          | MEDIUM   | 5min   | P1       | **NOT DONE**                  |
-| M09 | Write ADR-0094: Nix-based integration testing                           | T06/F11     | MEDIUM   | 15min  | P2       | **NOT DONE**                  |
-| M10 | Add KVM detection to VM scripts (`/dev/kvm` check)                      | T07/F13     | MEDIUM   | 10min  | P2       | **NOT DONE**                  |
-| M11 | Add ephemeral PG fast path to CI (no VM, no Docker)                     | T08/F30     | MEDIUM   | 10min  | P2       | **NOT DONE**                  |
-| M12 | Matrix-parallelize `nixos-vm-tests` CI job (PG+MySQL parallel)          | T09/F29     | MEDIUM   | 10min  | P2       | **NOT DONE**                  |
-| M13 | Validate CI YAML with `actionlint`                                      | F10         | MEDIUM   | 5min   | P2       | **NOT DONE**                  |
+| M01 | Run `nix run .#verify-fast` — confirm no regressions                    | T01/F1      | CRITICAL | 5min   | P0       | **DONE**                      |
+| M02 | Push trailing unpushed doc commit to remote                             | T02         | CRITICAL | 1min   | P0       | **NOT DONE** (13 commits ahead) |
+| M03 | Fix `stack/postgres` build (`undefined: storage.SQLiteSetSynchronous`)  | T05         | HIGH     | 10min  | P1       | **DONE**                      |
+| M04 | E2E test `vm-pg.sh` — build VM, boot, run tests                         | T03/F3      | HIGH     | 15min  | P1       | **DONE** (driver-based)       |
+| M05 | E2E test `vm-mysql.sh` — build VM, boot, run tests                      | T04/F4      | HIGH     | 15min  | P1       | **DONE** (driver-based)       |
+| M06 | Verify `go build -tags "goexperiment.jsonv2" ./...` workspace integrity | F2          | HIGH     | 5min   | P1       | **DONE**                      |
+| M07 | Verify `nix flake check` passes (or document which checks to skip)      | F7          | MEDIUM   | 10min  | P1       | **DONE** (both VM checks pass) |
+| M08 | Check if `flake.lock` changed unexpectedly                              | F8          | MEDIUM   | 5min   | P1       | **DONE** (no changes)         |
+| M09 | Write ADR-0095: Nix-based integration testing                           | T06/F11     | MEDIUM   | 15min  | P2       | **DONE** (ADR-0095)           |
+| M10 | Add KVM detection to VM scripts (`/dev/kvm` check)                      | T07/F13     | MEDIUM   | 10min  | P2       | **DONE**                      |
+| M11 | Add ephemeral PG fast path to CI (no VM, no Docker)                     | T08/F30     | MEDIUM   | 10min  | P2       | **DONE**                      |
+| M12 | Matrix-parallelize `nixos-vm-tests` CI job (PG+MySQL parallel)          | T09/F29     | MEDIUM   | 10min  | P2       | **DONE**                      |
+| M13 | Validate CI YAML with `actionlint`                                      | F10         | MEDIUM   | 5min   | P2       | **DONE** (YAML valid)         |
 | M14 | Investigate `systemd-nspawn` container type for faster VM tests         | T10/F12     | MEDIUM   | 20min  | P2       | **NOT DONE**                  |
 | M15 | Update `CONTRIBUTING.md` with integration test commands                 | F35         | MEDIUM   | 8min   | P3       | **NOT DONE**                  |
 | M16 | Add `docs/testing-guide.md` with decision matrix                        | F36         | MEDIUM   | 12min  | P3       | **NOT DONE**                  |
