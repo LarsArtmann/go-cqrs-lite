@@ -614,6 +614,129 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **MySQL testcontainer retry** — `waitForMySQLReady` deadline-bounded polling
   (500ms interval, 10s timeout) replaces fragile host-side DSN manipulation.
 
+#### Metaengine: replication model (ADR-0093) — DDIA Ch5 foundation
+
+- **EngineProfile replication fields** — `Replication` (none/single-leader/
+  multi-leader/leaderless), `ReplicationLag` (staleness, diagnostic-only),
+  `NetworkRTT` (additive latency). All current engines are `ReplicationNone`
+  (zero value). Foundation for future distributed engines (Iroh, CockroachDB).
+- **`replicationRule`** — emits INFO diagnostic when routing to a replicated
+  engine with non-zero lag. `mapUpdateReplicationRule` emits WARN when
+  Map ADT with update folds is routed to a replicated engine.
+- **CollectionInfo exposure** — `store.Collections()` now includes
+  `Replication`/`ReplicationLagMs`/`NetworkRTTMs` per collection.
+- **`store.ReplicationMode(queryName)`** — returns the topology for a single
+  query.
+- **Plan options** — `WithReplication(r)` and `WithNetworkRTT(d)` override
+  engine profiles for "what-if" cost analysis.
+- **SerializablePlan** — includes `Replication`/`ReplicationLagMs`/
+  `NetworkRTTMs` per query.
+- **ExplainPlan / Doctor** — replication suffix on engine lines; Doctor has a
+  `--- Replication ---` section.
+- **EngineProfile.String()** — readable format: `iroh-sync: map@O(1)
+  (replication=leaderless, lag=200ms, rtt=5ms)`.
+
+#### Metaengine: Universal ADT Phase 3 (ADR-0094) — 10/10 ADTs on all engines
+
+- **`DegradedADTs`** — engines now declare support for ALL 10 ADTs. Non-native
+  ADTs run in O(N) degraded mode (full scan + filter). Eliminates
+  `ErrUnsupportedADT` — every query routes to the best available engine.
+- **`degradedADTRule`** — SCREAM diagnostics: emits WARN when a query is routed
+  to a degraded ADT on an engine, including estimated cost-at-scale.
+- **All 5 engines extended to 10/10 ADTs** — Memory (native all), SQLite, Pebble,
+  DuckDB, Postgres now support Vector/Search/Spatial/Graph/Set/Multimap/Log
+  via degraded fallback where not natively implemented.
+
+#### Metaengine: replication Phase 2 polish
+
+- **Visibility→Replication rename** — committed code used rejected "Visibility"
+  naming (`31f26b8c`); fully rewritten to `Replication`/`NetworkRTT`/
+  `ReplicationLag` per DDIA Ch5 model. `visibility.go` deleted.
+- **Redundant diagnostic removed** — replicationRule and mapUpdateReplicationRule
+  had overlapping messages; consolidated.
+- **`EngineProfile.String()` pre-allocated** — avoids string concatenation
+  allocations.
+- **5 replication tests** — replicationRule WARN/INFO, mapUpdateReplicationRule,
+  EngineProfile.String(), ExplainPlan output, Doctor output.
+
+#### Metaengine: WatchTyped, SSE reconnect, boundary validation, calibration
+
+- **`WatchTyped[V]` / `WatchTypedWithSeq[V]`** — typed watcher convenience
+  functions. Returns `chan V` instead of `chan any`, eliminating the need for
+  engine-specific reification at call sites.
+- **SSE reconnect with SQLite reify fallback** — end-to-end test verifying
+  `ServeSSE` replay works with the SQLite-backed `WatchWithSeq` path after the
+  watcher reification fix.
+- **`ErrKeyTypeMismatch` at Store boundary** — `Store.Execute`/
+  `ExecuteTyped` now validates that the input struct's key field type matches
+  the declared `keyType`. Catches type mismatches before dispatch.
+- **CalibrateEngine copy-discard bug fixed** — `reliability.go` was discarding
+  the calibrated values. Rewritten with `calibratable` interface; test rewritten
+  to verify values persist.
+
+#### Metaengine: execute.go refactor
+
+- **Point-lookup and membership helpers extracted** — `lookupQuery` helper
+  consolidates shared query lookup logic. Module dependencies promoted to
+  v4.3.0.
+
+#### cqrs-lint v4.3.0 — 185 rules, TLS detection, config features
+
+- **4 new rules** (181→185): C038 (fold-case collection detection), C039
+  (consistency receiver-method guard), S011 (PII without encryption), D017
+  (nullable pointer fields in event payloads).
+- **TLS-aware server detection** — `projectCallsMethodOnType` detects
+  `tls.Config`, `ListenAndServeTLS`, `http.Server.TLSConfig`. Eliminates false
+  positives on TLS-enabled servers.
+- **`ConfigFeatures` override** — consumers can override detected features via
+  config or CLI flags. Resolves feature-profile misdetection.
+- **C008 struct-level ignore** — `c008-ignore-fields` (case-insensitive) and
+  `c008-ignore-structs` (skip entire structs) config options.
+- **E016 narrowed + F015 gating** — E016 (missing health checks) now checks for
+  `cqrshtmx.HealthHandler` and alternative endpoints. F015 gated on
+  `StoreSQLite` feature profile.
+- **Version management** — `TestVersionMatchesLatestTag` CI gate. `version
+  --verbose` shows build date + commit hash. `changelog` subcommand. `ldflags`
+  version stamping in Nix build.
+- **Config presets** — `init --preset {local-cli|library|server|full-stack}`.
+  Each tailors feature profile and disabled rules for a common project type.
+- **`--adoption` flag** — separate F-level adoption suggestions from health
+  score deduction.
+- **Transport feature flags** — `TransportHTTP`/`TransportGRPC` detection +
+  `ServerLocal` heuristic for local-only servers.
+- **Version-tag drift guard** — CI verifies cqrs-lint version constant matches
+  the latest `cmd/cqrs-lint/v*` tag.
+- **`scripts/bump-cqrs-lint.sh`** — automated version bump for downstream
+  SystemNix integration.
+
+#### Nix-based integration test infrastructure (ADR-0095)
+
+- **Ephemeral PG** (`nix run .#integration-pg`) — starts a `pg_ctl` process
+  from nixpkgs in a temp dir, runs all PG integration tests, cleans up. No VM,
+  no Docker. Fast (~3s startup). Works on macOS.
+- **NixOS VM tests** — `nix run .#integration-pg-vm` and `nix run
+  .#integration-mysql-vm` boot QEMU VMs with `services.postgresql` /
+  `services.mariadb`. VM tests live in `nix/vm/postgres.nix` + `nix/vm/mysql.nix`.
+- **CI integration** — `nixos-vm-tests` CI job runs the VM tests. Parallelized
+  PG + MySQL VM tests.
+- **`integration-all` / `verify-integration`** — nix apps that run all
+  PG+MySQL tests or the integration gate only.
+- **AGENTS.md + CONTRIBUTING.md** — testing-guide decision matrix updated
+  with Nix-based approaches.
+
+#### ADR review findings (ADR-0096)
+
+- **ADR-0096: Iroh distributed engine bridge evaluation** — evaluates CGo FFI
+  vs sidecar approaches for bridging Iroh (Rust CRDT) into the Go metaengine.
+  Documents maturity assessment: `iroh-docs` NOT in C FFI, blocks direct
+  integration. PN-Counter via Iroh identified as the killer feature.
+- **SSE three-repo finding** — discovered `go-sse` exists as a standalone
+  library. `go-cqrs-lite` reimplements SSE wire format in two places. ADR-0091
+  rationale needs revisiting. SSE refactor deferred to TODO_LIST.
+- **Benchmark trust deficit** — 29 of 43 benchmarks discard results. DuckDB/
+  Postgres cost constants hand-picked with zero empirical backing. Flagged as
+  "highest-leverage next move." → TODO_LIST.
+
 ### Fixed
 
 #### Metaengine watcher reification and delete notifications

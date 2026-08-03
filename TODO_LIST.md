@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-02
+**Updated:** 2026-08-03
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -13,84 +13,145 @@ and is **never** duplicated here.
 
 ---
 
+## Benchmark Trust (cross-cutting — highest leverage)
+
+> The ADR review session flagged this as the single highest-leverage next move.
+> 29 of 43 benchmarks discard results; DuckDB and Postgres cost constants have
+> zero empirical backing.
+
+- [ ] 🔥 **Add correctness assertions to 29 unasserted benchmarks** — without
+      assertions, a benchmark can silently measure empty stores (the ADR-0090
+      lesson: the metaengine benchmark measured empty counters for sessions).
+- [ ] 🔥 **Create DuckDB + Postgres engine benchmarks** — 0 exist today. Cost
+      constants for these engines are completely fabricated.
+
+---
+
 ## Metaengine
 
-> 5 engines (Memory, SQLite, Pebble, DuckDB, Postgres), 10 ADTs, pushdown +
-> layout planning, rule pipeline, materialize-vs-replay, VersionedStorage,
-> streaming, and watcher/SSE delivery are shipped. Remaining work is
-> verification, typed APIs, and advanced indexing.
+> 5 engines (Memory, SQLite, Pebble, DuckDB, Postgres), 10/10 ADTs on all
+> engines (Universal ADT Phase 3 shipped, ADR-0094), replication model
+> (ADR-0093), WatchTyped, SSE reconnect test, boundary key validation, and
+> CalibrateEngine are all shipped. metaengine v4.4.0 tagged.
 
-- [ ] 🔥 **10M soak test verification & hardening**
-  - Add a 100K-event fast smoke variant that runs even when `SOAK_SKIP_10M=1`
-    (`metaengine/soak_10m_test.go`).
-  - Document `SOAK_SKIP_10M` in `AGENTS.md` / `CONTRIBUTING.md`.
-  - Add `runtime.MemStats.TotalAlloc` delta measurement in addition to heap.
-  - Run `TestSoak_MemoryBounded_10M` 3× with `-race` and record variance.
-  - Evidence: `docs/status/2026-08-02_19-47_10M-soak-test.md`.
-
-- [ ] **Watcher typed-channel design** — `Watcher[V]` still exposes `chan any`,
-      which forces engine-specific reification in `metaengine/dx.go:163`. The
-      SQLite silent-drop bug is fixed via `reifyWatcherValue`, but a typed channel
-      design would eliminate the runtime type assertion entirely. Evidence:
-      `metaengine/dx.go:163`, `metaengine/watcher_typesafe_test.go:252`.
-
-- [ ] **SSE + SQLite Last-Event-ID reconnect test** — verify `ServeSSE` replay
-      works end-to-end with the SQLite-backed `WatchWithSeq` path after the watcher
-      reification fix. Evidence: `metaengine/sse_replay.go:128`,
-      `docs/status/2026-08-02_19-58_metaengine-watcher-reification-fix.md`.
-
-- [ ] **Boundary keys-type validation at Store boundary** — `query.keyType` is
-      enforced during fold registration (`metaengine/fold_classify.go:86`) but not
-      when a caller passes a key directly to `Store.Execute`/`ExecuteTyped`. Add a
-      boundary check that returns `ErrKeyTypeMismatch`. Evidence:
-      `metaengine/execute.go`, `docs/planning/2026-08-01_19-40_metaengine-data-model-refactor.md:271`.
-
-- [ ] **Postgres GIN containment indexes** — add `@>` operator support for JSONB
-      path queries; currently only B-tree expression indexes are implemented.
-      Evidence: `metaengine/pgengine/pushdown.go`, `metaengine/pgengine/engine.go`.
+- [ ] **Postgres GIN containment indexes** — add `@>` operator support for
+      JSONB path queries; currently only B-tree expression indexes are
+      implemented. Needs `FilterContains`/`FilterExists` operators.
+      Evidence: `metaengine/pgengine/pushdown.go`.
 
 - [ ] **DuckDB LayoutPlanner follow-ups**
-  - Add `explainScan` for planned and standard DuckDB paths (`metaengine/sqlite_engine.go`
-    has it; DuckDB returns placeholder).
-  - ~~Verify the `coerceForColumn` fix resolves float truncation for planned columns~~
-    DONE: `sqlTypeOf` now maps float64→DOUBLE (not REAL), `coerceForColumn` handles DOUBLE/REAL/FLOAT.
-    Regression tests: `TestDuckDBEngine_ColumnarDoublePrecision`, `TestDuckDBEngine_ColumnarAggregation`
-    ([ADR-0092](docs/adr/0092-duckdb-columnar-native-storage.md)).
+  - Add `explainScan` for planned and standard DuckDB paths.
   - Centralize planned-table helpers (`extractFields`, `jsonFieldName`,
-    `quoteIdent`, `plansColumnCompatible`) that are currently duplicated between
-    `metaengine/planned_sqlite.go` and `metaengine/duckdbengine/layout_planner.go`.
-  - Document the no-backfill semantics of `ApplyLayout` (existing rows in
-    `meta_map` remain invisible to planned-table queries).
+    `quoteIdent`) duplicated between `metaengine/planned_sqlite.go` and
+    `metaengine/duckdbengine/layout_planner.go`.
   - Add a DuckDB layout benchmark.
   - Add `adttest` matrix coverage for the `LayoutPlanner` capability.
-  - Evidence: `docs/status/2026-08-02_19-47_DuckDB-LayoutPlanner.md`.
+  - Document the no-backfill semantics of `ApplyLayout` (existing rows in
+    `meta_map` remain invisible to planned-table queries).
+
+- [ ] **CalibrateEngine for external engines** — `calibratable` interface is
+      unexported; pebbleengine/duckdbengine/pgengine can't implement it.
+      CalibrateEngine silently does nothing for these engines.
+
+- [ ] **10M soak test verification & hardening**
+  - Run `TestSoak_MemoryBounded_10M` 3× with `-race` and record variance.
+  - Investigate the 10→12MB heap threshold bump (102KB/key expected?).
+  - Add engine parity soak tests (pgengine/duckdbengine/pebbleengine 1M/10M).
 
 - [ ] **Document `metaengine` watcher delete semantics** — delete notifications
-      now deliver the zero value of `V` after the reification fix; this contract change
+      deliver the zero value of `V` after the reification fix; this contract
       should be documented in `metaengine/README.md` or `metaengine/COOKBOOK.md`.
-      Evidence: `docs/status/2026-08-02_19-58_metaengine-watcher-reification-fix.md`.
 
-> Long-term metaengine work (`generic ScanResult[T]`, `metaengine-gen` code
-> generator, Vector/Search/Spatial engine backends, DuckDB columnar-native storage)
-> lives in [ROADMAP.md](ROADMAP.md).
+> Long-term metaengine work (`metaengine-gen` code generator, generic
+> `ScanResult[T]`, Vector/Search/Spatial engine backends, DuckDB
+> columnar-native storage, Iroh distributed engine) lives in
+> [ROADMAP.md](ROADMAP.md).
 
 ---
 
 ## cqrs-lint
 
-> 181 rules across 10 categories. Config-level disabling, block-level suppression,
-> A033/C037, import-alias resolution, and self-lint mode are shipped. Remaining
-> work is validation and finishing the Pareto backlog.
+> 185 rules across 10 categories (correctness 39, API 31, boilerplate 28,
+> adoption 21, architecture 17, consistency 16, security 10, performance 9,
+> testing 8, version 6). Config-level disabling, block-level suppression,
+> import-alias resolution, self-lint mode, TLS detection, `--adoption` flag,
+> changelog subcommand, and config presets are shipped. v4.3.0 tagged.
 
-- [ ] 🔥 **Run cqrs-lint against real consumer projects** — validate false-positive
-      rates against Kernovia, Standup-Killer, bank-sync, cqrs-htmx, DiscordSync.
-      This is the single highest-value non-coding task for cqrs-lint trustworthiness.
-      Evidence: `docs/status/2026-08-02_16-29_cqrs-lint-rules-and-metaengine-verification.md:162`.
+- [ ] 🔥 **Fix `cqrs-lint init` broken config** — `"exclude": []` generates an
+      array but the parser expects a string. SHOWSTOPPER for new users. Reported
+      by timesheets AND Cyberdom (2026-07-17), still unfixed.
+      Evidence: `docs/feedback/new/2026-08-03_timesheets_cqrs-lint-feedback.md`.
 
-- [ ] **~14 remaining backlog items** — see the
+- [ ] 🔥 **Publish cqrs-lint v4.3.0 binary** — all source fixes shipped but
+      published Nix binary is stale (v0.2.2). Every consumer using Nix hits
+      already-fixed bugs. **BLOCKED on user approval**.
+
+- [ ] 🔥 **Run cqrs-lint against real consumer projects** — validate
+      false-positive rates against Kernovia, Standup-Killer, bank-sync,
+      cqrs-htmx, DiscordSync, timesheets. This is the single highest-value
+      non-coding task for cqrs-lint trustworthiness.
+
+- [ ] **C036 library function recognition** — fires on `storage.OpenSQLite*`
+      functions that ARE from the library. Should recognize `go-cqrs-lite/`
+      imports as library-internal. Reported by 4 of 5 consumers.
+
+- [ ] **E009/E016 cqrs-htmx awareness** — linter doesn't recognize
+      `cqrs-htmx` as satisfying transport (E009) or health-check (E016)
+      requirements. Reported by timesheets + crush-daily.
+
+- [ ] **D007 auto-fix** (`event.NewEvent` → `event.New`) — `--fix`
+      infrastructure exists; needs payload-type heuristic.
+
+- [ ] **F013/C009/C016 feature-profile fixes** — recognize `cqrshtmx.New` as
+      transport (F013), `New*` constructor + panic as must-pattern (C009),
+      exempt `context.Background()` in graceful-shutdown paths (C016).
+
+- [ ] **`--adoption` flag for health score** — separate F-level adoption
+      suggestions from correctness findings in health score. `--preset
+      local-cli` is current workaround.
+
+- [ ] **~14 remaining Pareto backlog items** — see the
       [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
-      Highest impact: L1.29 event-type string typo detection, L1.30–L1.33 deep pattern
-      detection, L1.18 config inheritance, L1.47–L1.51 new rule categories (DOC/OBS/RES/DI).
+      Highest impact: L1.29 event-type string typo detection, L1.30–L1.33 deep
+      pattern detection, L1.47–L1.51 new rule categories (DOC/OBS/RES/DI).
+
+---
+
+## Deferred Debt (ADR-committed)
+
+> These four items were explicitly committed to in the 2026-08-03 ADR review
+> session as "the next real roadmap." Each has a clear ADR with rationale.
+
+- [ ] **Ghost bus removal** (ADR-0028) — delete `memory/bus.go`,
+      `memory/command_bus.go`, `storage/pg_bus.go`, reactive `EventBus`.
+      Largest blast radius — audit ALL consumer repos first, do first.
+- [ ] **Metadata aliases completion** (ADR-0031) — `command.Metadata` /
+      `query.Metadata` are repointed aliases, not standalone structs. Complete
+      the conversion (update SQL stores + tests).
+- [ ] **Extract `retry/` → `go-retry`** (ADR-0064) — create standalone repo +
+      re-export alias. 217 LOC, zero CQRS coupling.
+- [ ] **Extract `idempotency/` → `go-idempotency`** (ADR-0065) — create
+      standalone repo (3 modules) + re-export aliases. 553 LOC.
+
+---
+
+## SSE Consolidation
+
+> The 2026-08-03 ADR review discovered `go-sse` exists as a standalone SSE
+> library. `go-cqrs-lite` reimplements SSE wire format in TWO places instead
+> of consuming it. ADR-0091's rationale was written as if `go-sse` didn't exist.
+> Do NOT merge the two SSE implementations — different semantics (ADR-0091).
+> Instead, both should consume `go-sse` internally.
+
+- [ ] **Write ADR documenting SSE three-repo finding** — `go-sse` exists,
+      `go-cqrs-lite` should consume it, ADR-0091 rationale needs revisiting.
+- [ ] **SSE refactor: `transport/http.SSEBroker`** → consume `go-sse`
+      internally (~300 LOC dedup). Preserve external API (filter, transform,
+      budget, backfill).
+- [ ] **SSE refactor: `metaengine.ServeSSE`** → consume `go-sse` (~200 LOC
+      dedup). Preserve Watcher-based semantics.
+- [ ] **Add SSE decision matrix to SKILL.md** — route consumers between
+      raw-events SSE vs read-model SSE.
 
 ---
 
@@ -99,9 +160,47 @@ and is **never** duplicated here.
 - [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must v0.1.2).
-- [x] **Push `stack/duckdb/v4.0.0`, `metaengine/pgengine/v4.0.0`,
-      `metaengine/duckdbengine/v4.0.0` tags** — all three tags confirmed on origin
-      via `git ls-remote --tags origin`.
+
+- [ ] **Pin GitHub Actions to commit SHAs** — BuildFlow flagged 72+ unpinned
+      actions (supply-chain risk).
+
+- [ ] **gopls hint cleanup in cmd/cqrs-lint** — 6 `infertypeargs` + 1
+      `writestring` hints remain.
+
+---
+
+## Integration Test Infrastructure
+
+> Session 2 (2026-08-03) built and verified the Nix-based integration test
+> infrastructure: ephemeral PG, NixOS VM tests (PG+MySQL), VM launcher scripts,
+> CI integration, and ADR-0095.
+
+- [ ] **systemd-nspawn container type for MySQL VM** — could make VM test 10x
+      faster (~131s → ~15s). The NixOS test driver supports `NspawnMachine`.
+      Needs prototyping. (M14)
+- [ ] **macOS verification of ephemeral PG** — script claims cross-platform but
+      never tested on Darwin. (M34)
+- [ ] **Cache ephemeral PG data dir** — skip `initdb` on repeated runs. (M35)
+- [ ] **Performance profiling: ephemeral PG vs testcontainers** — measure
+      speedup and document. (M36)
+- [ ] **Explore `nixos-container` as lighter-weight VM alternative** (M37)
+- [ ] **DuckDB CGo VM test** — hermetic DuckDB testing with GCC in VM. (M38)
+- [ ] **SQLite WAL concurrency VM test** — concurrent access patterns. (M39)
+- [ ] **Turso sync VM test** — real libSQL server. (M40)
+- [ ] **Go test binaries inside QEMU VM** — deeper coverage. (M41)
+- [ ] **Pebble backup/restore lifecycle VM test** (M42)
+- [ ] **`projectionhost` crash-restart PG integration test** — verify
+      checkpoint replay after crash. (M43)
+- [ ] **`scheduling` durable timers across restarts test** — timer survives
+      process restart. (M44)
+- [ ] **`storage.PostgresBus` inside NixOS VM** — test LISTEN/NOTIFY with real
+      PG. (M45)
+- [ ] **Contract test suite across ALL backends in VMs** — SQLite, PG, MySQL,
+      DuckDB simultaneously. (M46)
+- [ ] **Ephemeral Redis/NATS for future integration tests** — Watermill adapter
+      testing with real brokers. (M47)
+- [ ] **`scripts/test-integration.sh` aggregator** — auto-detect best strategy
+      (ephemeral, VM, or testcontainers). (M48)
 
 ---
 
@@ -138,47 +237,18 @@ and is **never** duplicated here.
 - **Extract metaengine as standalone project** — → ROADMAP.
 - **`FluentBuilder` in metaengine** — deleted (ghost code, broken doc example).
   See ADR-0077.
-
----
-
-## Integration Test Infrastructure
-
-> Session 2 (2026-08-03) built and verified the Nix-based integration test
-> infrastructure: ephemeral PG, NixOS VM tests (PG+MySQL), VM launcher scripts,
-> CI integration, and ADR-0095. See
-> [execution plan](docs/planning/2026-08-03_04-24_nix-integration-test-execution-plan.md).
-
-- [ ] **systemd-nspawn container type for MySQL VM** — Could make VM test 10x
-      faster (~131s → ~15s). The NixOS test driver supports `NspawnMachine`. Needs
-      prototyping. (M14)
-- [x] **Shellcheck linting on VM scripts** — All 3 scripts clean. (M22)
-- [x] **Connection retry logic with backoff in VM scripts** — 120-iteration
-      polling loop with 1s sleep already handles this. (M28)
-- [x] **Health check SQL verification before running tests** — `pg_isready`
-      check in VM scripts, TCP port probe in MySQL script. (M29)
-- [ ] **macOS verification of ephemeral PG** — Script claims cross-platform but
-      never tested on Darwin. (M34)
-- [ ] **Cache ephemeral PG data dir** — Skip `initdb` on repeated runs. (M35)
-- [ ] **Performance profiling: ephemeral PG vs testcontainers** — Measure speedup
-      and document. (M36)
-- [ ] **Explore `nixos-container` as lighter-weight VM alternative** — systemd
-      containers instead of QEMU. (M37)
-- [ ] **DuckDB CGo VM test** — Hermetic DuckDB testing with GCC in VM. (M38)
-- [ ] **SQLite WAL concurrency VM test** — Concurrent access patterns. (M39)
-- [ ] **Turso sync VM test** — Real libSQL server. (M40)
-- [ ] **Go test binaries inside QEMU VM** — Deeper coverage. (M41)
-- [ ] **Pebble backup/restore lifecycle VM test** — Verify `Checkpoint` + restore. (M42)
-- [ ] **`projectionhost` crash-restart PG integration test** — Verify checkpoint
-      replay after crash. (M43)
-- [ ] **`scheduling` durable timers across restarts test** — Timer survives
-      process restart. (M44)
-- [ ] **`storage.PostgresBus` inside NixOS VM** — Test LISTEN/NOTIFY with real PG. (M45)
-- [ ] **Contract test suite across ALL backends in VMs** — SQLite, PG, MySQL,
-      DuckDB simultaneously. (M46)
-- [ ] **Ephemeral Redis/NATS for future integration tests** — Watermill adapter
-      testing with real brokers. (M47)
-- [ ] **`scripts/test-integration.sh` aggregator** — Auto-detect best strategy
-      (ephemeral, VM, or testcontainers). (M48)
+- **C033 middleware-chain awareness** — HIGH risk. Data-flow tracing through
+  `.Use()` chains is fragile and silences real bugs. Declined 2026-08-02.
+- **A032 framework deserialization awareness** — HIGH risk. Couples linter to
+  specific frameworks (Huma, Gin) that rot. Declined 2026-08-02.
+- **A017/B025 stream-length awareness** — MEDIUM risk. "1-event-per-stream"
+  detection is an unreliable heuristic. Declined 2026-08-02.
+- **D005 multi-module version detection** — LOW risk. Making it smarter risks
+  the simple case. Declined 2026-08-02.
+- **Merge the two SSE implementations** — different semantics (collection-watch
+  vs bus-to-client). ADR-0091 rationale is correct. Declined 2026-08-03.
+- **`systemd-nspawn` container type (near-term)** — not stable in nixpkgs.
+  Research only for now.
 
 ---
 
