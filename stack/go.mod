@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0
