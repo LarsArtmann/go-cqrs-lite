@@ -58,6 +58,7 @@ func defaultRules(cfg planConfig) []PlanRule {
 		&writeAmpRule{budget: cfg.writeAmplificationBudget},
 		&replicationRule{},
 		&degradedADTRule{},
+		&mapUpdateReplicationRule{},
 	}
 
 	if len(cfg.stats) > 0 {

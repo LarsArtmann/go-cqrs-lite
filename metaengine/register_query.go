@@ -33,7 +33,7 @@ func (s *Store) RegisterQuery(query any) error {
 		return fmt.Errorf("%w: %q", errDuplicateQuery, name)
 	}
 
-	assignment, err := planQuery(meta, s.engines)
+	assignment, err := planQuery(meta, s.engines, planConfig{writeAmplificationBudget: DefaultWriteAmplificationBudget})
 	if err != nil {
 		return fmt.Errorf("metaengine.RegisterQuery: %w", err)
 	}

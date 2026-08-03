@@ -20,6 +20,7 @@ cd "$REPO_ROOT"
 HOST_PORT="${PG_VM_PORT:-55432}"
 VM_LOG=$(mktemp /tmp/cqrs-pg-vm-XXXXXX.log)
 VM_PID=""
+VM_CLEANUP_LOG=true
 
 cleanup() {
     if [ -n "$VM_PID" ] && kill -0 "$VM_PID" 2>/dev/null; then
@@ -27,7 +28,9 @@ cleanup() {
         kill "$VM_PID" 2>/dev/null || true
         wait "$VM_PID" 2>/dev/null || true
     fi
-    rm -f "$VM_LOG"
+    if [ "$VM_CLEANUP_LOG" = true ]; then
+        rm -f "$VM_LOG"
+    fi
 }
 trap cleanup EXIT INT TERM
 
@@ -39,19 +42,21 @@ if [ ! -d "$VM_PATH" ]; then
 fi
 
 echo "==> Starting NixOS VM (PostgreSQL on host port $HOST_PORT)"
-# Headless mode (no GTK display required) + port forwarding
-export QEMU_OPTS="-display none"
+# Headless mode + serial console for debugging + port forwarding
+export QEMU_OPTS="-display none -serial file:$VM_LOG"
 export QEMU_NET_OPTS="hostfwd=tcp::${HOST_PORT}-:5432"
-"$VM_PATH/bin/run-nixos-vm" > "$VM_LOG" 2>&1 &
+"$VM_PATH/bin/run-nixos-vm" &
 VM_PID=$!
 
 echo "==> Waiting for PostgreSQL to accept connections..."
-# Wait up to 60 seconds for the VM to boot and Postgres to start
-for i in $(seq 1 60); do
+# Wait up to 90 seconds for the VM to boot and Postgres to start
+for i in $(seq 1 90); do
     # Check if QEMU is still running
     if ! kill -0 "$VM_PID" 2>/dev/null; then
         echo "ERROR: VM exited unexpectedly"
-        tail -30 "$VM_LOG"
+        echo "--- VM log (last 30 lines) ---"
+        tail -30 "$VM_LOG" 2>/dev/null || echo "(log not available)"
+        VM_CLEANUP_LOG=false
         exit 1
     fi
 
@@ -61,10 +66,11 @@ for i in $(seq 1 60); do
         break
     fi
 
-    if [ "$i" -eq 60 ]; then
-        echo "ERROR: PostgreSQL did not become ready within 60s"
+    if [ "$i" -eq 90 ]; then
+        echo "ERROR: PostgreSQL did not become ready within 90s"
         echo "--- VM log (last 30 lines) ---"
-        tail -30 "$VM_LOG"
+        tail -30 "$VM_LOG" 2>/dev/null || echo "(log not available)"
+        VM_CLEANUP_LOG=false
         exit 1
     fi
 

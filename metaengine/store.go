@@ -89,6 +89,22 @@ func (s *Store) collectionEngine(collection string) (Engine, bool) {
 	return q.QueryEngine(), true
 }
 
+// ReplicationMode returns the replication topology for a query's collection.
+// Returns ReplicationNone if the collection doesn't exist or the engine is
+// single-node. Use this to decide whether read-after-write consistency
+// guarantees apply (they don't for replicated engines with non-zero lag).
+func (s *Store) ReplicationMode(queryName string) Replication {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	q, ok := s.queries[queryName]
+	if !ok {
+		return ReplicationNone
+	}
+
+	return q.QueryEngine().Profile().Replication
+}
+
 // IsPoisoned returns the poison error if the collection was poisoned by a fold
 // panic, or nil if healthy. Once poisoned, a collection refuses reads until
 // the store is recreated (or the poison is cleared via Reset).

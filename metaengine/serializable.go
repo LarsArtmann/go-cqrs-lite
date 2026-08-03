@@ -25,11 +25,14 @@ type SerializablePlan struct {
 
 // SerializableQuery is the serializable form of a QueryAssignment.
 type SerializableQuery struct {
-	Name       string  `json:"name"`
-	ADT        ADT     `json:"adt"`
-	Engine     string  `json:"engine"`
-	Complexity string  `json:"complexity"`
-	LatencyMs  float64 `json:"latency_ms"`
+	Name             string      `json:"name"`
+	ADT              ADT         `json:"adt"`
+	Engine           string      `json:"engine"`
+	Complexity       string      `json:"complexity"`
+	LatencyMs        float64     `json:"latency_ms"`
+	Replication      Replication `json:"replication,omitempty"`
+	ReplicationLagMs int64       `json:"replication_lag_ms,omitempty"`
+	NetworkRTTMs     int64       `json:"network_rtt_ms,omitempty"`
 }
 
 // SerializableRule is the serializable form of a RuleTraceEntry.
@@ -50,6 +53,11 @@ type SerializableLayout struct {
 func Serialize(result *PlanResult, engines []Engine) *SerializablePlan {
 	sp := &SerializablePlan{}
 
+	engineByName := make(map[string]Engine, len(engines))
+	for _, e := range engines {
+		engineByName[e.Profile().Name] = e
+	}
+
 	engineNames := make([]string, len(engines))
 	for i, e := range engines {
 		engineNames[i] = e.Profile().Name
@@ -58,13 +66,22 @@ func Serialize(result *PlanResult, engines []Engine) *SerializablePlan {
 	sp.Engines = engineNames
 
 	for _, q := range result.Queries {
-		sp.Queries = append(sp.Queries, SerializableQuery{
+		sq := SerializableQuery{
 			Name:       q.QueryName,
 			ADT:        q.ADT,
 			Engine:     q.EngineName,
 			Complexity: string(q.Complexity),
 			LatencyMs:  q.Cost.EstimatedLatencyMs,
-		})
+		}
+
+		if eng, ok := engineByName[q.EngineName]; ok {
+			profile := eng.Profile()
+			sq.Replication = profile.Replication
+			sq.ReplicationLagMs = profile.EffectiveReplicationLag().Milliseconds()
+			sq.NetworkRTTMs = profile.EffectiveNetworkRTT().Milliseconds()
+		}
+
+		sp.Queries = append(sp.Queries, sq)
 	}
 
 	for _, rt := range result.RuleTrace {

@@ -9,6 +9,15 @@
     package = pkgs.postgresql_16;
     enableTCPIP = true;
 
+    # Allow TCP connections from the host (for QEMU port forwarding).
+    # The runNixOSTest checks connect via Unix socket (trust by default),
+    # but the standalone VM image (nix build .#pg-vm) needs explicit TCP auth.
+    authentication = ''
+      local all all trust
+      host all all 0.0.0.0/0 trust
+      host all all ::/0 trust
+    '';
+
     # initialScript runs as the postgres superuser on first init.
     # This is more reliable than ensureDatabases + ensureUsers for test VMs.
     initialScript = pkgs.writeText "pg-init.sql" ''

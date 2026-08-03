@@ -20,6 +20,8 @@ type planConfig struct {
 	writeAmplificationBudget int
 	dryRun                   bool
 	stats                    map[string]WorkloadStats
+	replicationOverride      *Replication   // overrides all engines' declared replication for cost estimation
+	networkRTTOverride       *time.Duration // overrides all engines' declared NetworkRTT for cost estimation
 }
 
 type planOption func(*planConfig)
@@ -46,6 +48,25 @@ func WithDryRun() planOption {
 // skipped during materialization analysis.
 func WithWorkloadStats(stats map[string]WorkloadStats) planOption {
 	return func(c *planConfig) { c.stats = stats }
+}
+
+// WithReplication overrides the replication mode declared by all engines
+// for cost estimation. This is a plan-time "what-if" tool: it changes the
+// cost estimate (latency includes NetworkRTT) but does NOT change the
+// engine's actual runtime behavior or diagnostics.
+//
+// Use this when the deployment topology differs from the engine's declared
+// profile, or to simulate what a replicated deployment would cost.
+func WithReplication(r Replication) planOption {
+	return func(c *planConfig) { c.replicationOverride = &r }
+}
+
+// WithNetworkRTT overrides the network round-trip time for all engines.
+// This adds a fixed per-query latency overhead to the cost estimate.
+// Use this when the engine's actual network distance differs from its
+// declared profile (e.g., Postgres in a different region).
+func WithNetworkRTT(rtt time.Duration) planOption {
+	return func(c *planConfig) { c.networkRTTOverride = &rtt }
 }
 
 // Plan creates a storage plan from available engines and declared queries.
@@ -95,7 +116,7 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 			return nil, fmt.Errorf("%w: %q", errDuplicateQuery, meta.QueryName())
 		}
 
-		assignment, err := planQuery(meta, engines)
+		assignment, err := planQuery(meta, engines, cfg)
 		if err != nil {
 			return nil, fmt.Errorf("metaengine.Plan: %w", err)
 		}
@@ -118,7 +139,7 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 	return store, nil
 }
 
-func planQuery(meta queryMeta, engines []Engine) (QueryAssignment, error) {
+func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment, error) {
 	folds := meta.QueryFolds()
 	adt := meta.QueryADT()
 	cfg := meta.QueryConfig()
@@ -159,8 +180,17 @@ func planQuery(meta queryMeta, engines []Engine) (QueryAssignment, error) {
 
 	for _, eng := range engines {
 		if c, ok := eng.Profile().SupportsADT(adt); ok {
-			readC := effectiveReadComplexity(meta.QueryReadPattern(), c)
 			profile := eng.Profile()
+
+			if pc.replicationOverride != nil {
+				profile.Replication = *pc.replicationOverride
+			}
+
+			if pc.networkRTTOverride != nil {
+				profile.NetworkRTT = *pc.networkRTTOverride
+			}
+
+			readC := effectiveReadComplexity(meta.QueryReadPattern(), c)
 			ranked = append(ranked, rankedEngine{
 				engine:     eng,
 				complexity: c,
