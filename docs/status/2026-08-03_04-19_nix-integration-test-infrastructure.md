@@ -81,6 +81,7 @@
 ## F) Up to 50 Things to Get Done Next
 
 ### Verification & Immediate Fixes
+
 1. Run `nix run .#verify-fast` to confirm no regressions from flake.nix changes
 2. Run `go build -tags "goexperiment.jsonv2" ./...` to verify workspace integrity
 3. End-to-end test `scripts/vm-pg.sh` (not just the runNixOSTest checks)
@@ -93,6 +94,7 @@
 10. Validate the CI YAML with `actionlint` or similar
 
 ### Architecture Improvements
+
 11. Write ADR-0094: "Nix-based integration testing" (rationale, tradeoffs, MariaDB limitation)
 12. Investigate `systemd-nspawn` container type for NixOS tests (faster than QEMU)
 13. Add KVM detection to VM scripts (`/dev/kvm` check with warning)
@@ -103,6 +105,7 @@
 18. Explore `nixos-container` as a lighter-weight alternative to full VM tests
 
 ### Deeper Test Coverage
+
 19. Compile Go test binaries and run them inside the QEMU VM
 20. Add a NixOS VM test for DuckDB (CGo — needs GCC in the VM)
 21. Add a NixOS VM test for SQLite WAL mode + concurrent access
@@ -115,6 +118,7 @@
 28. Add a contract test suite that runs against ALL backends in VMs (SQLite, PG, MySQL, DuckDB)
 
 ### CI Improvements
+
 29. Matrix-parallelize the `nixos-vm-tests` CI job (PG + MySQL in parallel)
 30. Add the ephemeral PG test path to CI (no VM, no Docker — fastest)
 31. Add a nightly `distributed-bus-vm` test job (too slow for per-commit)
@@ -123,6 +127,7 @@
 34. Consider a `nix run .#verify-integration` composite gate
 
 ### Documentation
+
 35. Update `CONTRIBUTING.md` with the new integration test commands
 36. Add a `docs/testing-guide.md` with decision matrix (when to use which approach)
 37. Update `FEATURES.md` to mention NixOS VM testing capability
@@ -131,6 +136,7 @@
 40. Add example outputs of each test command to docs
 
 ### Quality Hardening
+
 41. Add `set -euo pipefail` verification to all scripts (already present, verify)
 42. Add shellcheck linting to the new scripts
 43. Add error handling for `nix build` failures in VM scripts

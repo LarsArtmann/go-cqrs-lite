@@ -38,6 +38,8 @@ if [ ! -d "$VM_PATH" ]; then
 fi
 
 echo "==> Starting NixOS VM (MySQL on host port $HOST_PORT)"
+# Headless mode (no GTK display required) + port forwarding
+export QEMU_OPTS="-display none"
 export QEMU_NET_OPTS="hostfwd=tcp::${HOST_PORT}-:3306"
 "$VM_PATH/bin/run-nixos-vm" > "$VM_LOG" 2>&1 &
 VM_PID=$!

@@ -11,66 +11,66 @@ All 91 ADRs were read and analyzed. Three big arcs span the collection:
 
 ### Arc 1: Identity/Naming Honesty (0001 → 0024 → 0058)
 
-| ADR | Step |
-|-----|------|
-| 0001 | Kill OO aggregate (behavioral): Decider pattern replaces 9-method Aggregate Root |
-| 0024 | Export all 8 phantom marker types (consistency) |
+| ADR  | Step                                                                                                                                       |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 0001 | Kill OO aggregate (behavioral): Decider pattern replaces 9-method Aggregate Root                                                           |
+| 0024 | Export all 8 phantom marker types (consistency)                                                                                            |
 | 0058 | Rename `Aggregate*` → `Stream*` (identity): the library dismantled the concept, but the name survived on the types. 1:1 mechanical rename. |
 
 ### Arc 2: Codec Safety Net (0015 → 0044 → 0050 → 0051 → 0052 → 0053 → 0054)
 
 A multi-step journey from JSON default → CBOR default, with a safety net built first:
 
-| ADR | Step |
-|-----|------|
-| 0015 | Introduce CBOR codec (opt-in, JSON stays default) |
-| 0044 | Envelope wrapping for blind stores — every write stamps encoding, every read auto-detects |
-| 0050 | Envelope JSON fallback — keep forever (not a transitional measure) |
-| 0051 | Flip `event.DefaultCodec` to CBOR |
+| ADR  | Step                                                                                           |
+| ---- | ---------------------------------------------------------------------------------------------- |
+| 0015 | Introduce CBOR codec (opt-in, JSON stays default)                                              |
+| 0044 | Envelope wrapping for blind stores — every write stamps encoding, every read auto-detects      |
+| 0050 | Envelope JSON fallback — keep forever (not a transitional measure)                             |
+| 0051 | Flip `event.DefaultCodec` to CBOR                                                              |
 | 0052 | Transport boundary: SSE does NOT auto-convert; consumers use `WithPayloadTransform` explicitly |
-| 0053 | Unified codec default flip — all blind store defaults are now CBOR |
-| 0054 | `json/v2` case-insensitive decode (silent zero-value bug prevention) |
+| 0053 | Unified codec default flip — all blind store defaults are now CBOR                             |
+| 0054 | `json/v2` case-insensitive decode (silent zero-value bug prevention)                           |
 
 ### Arc 3: Metaengine Bet (0061 → 0093)
 
 33 ADRs consumed by the metaengine — the strategic future of the project:
 
-| ADR Range | Theme |
-|-----------|-------|
-| 0061-0068 | SQLite engine, dependency boundary, pushdown, tx-atomic MapUpdate, multimap seq-seed |
-| 0069-0070 | Error wrapping helpers, transform fallback observability |
-| 0071 | DuckDB CGo introduction (first CGo in the project) |
-| 0072-0076 | Pushdown, layout planning, Pebble engine, ADT test harness, raw readers |
-| 0077-0081 | Graph reconciliation, kv coexistence, SSE consolidation, dialect upsert, runtime casts |
-| 0082 | Store redesign analysis (4 alternatives to eliminate casts — all rejected) |
+| ADR Range | Theme                                                                                                                               |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 0061-0068 | SQLite engine, dependency boundary, pushdown, tx-atomic MapUpdate, multimap seq-seed                                                |
+| 0069-0070 | Error wrapping helpers, transform fallback observability                                                                            |
+| 0071      | DuckDB CGo introduction (first CGo in the project)                                                                                  |
+| 0072-0076 | Pushdown, layout planning, Pebble engine, ADT test harness, raw readers                                                             |
+| 0077-0081 | Graph reconciliation, kv coexistence, SSE consolidation, dialect upsert, runtime casts                                              |
+| 0082      | Store redesign analysis (4 alternatives to eliminate casts — all rejected)                                                          |
 | 0083-0085 | Planner rule pipeline, layered architecture (StorageLayout, cost matrix, materialize-vs-replay), new ADTs (Vector, Search, Spatial) |
-| 0086-0087 | DuckDB engine, Postgres engine |
-| 0088-0090 | Block-level suppression, flight recorder, benchkit evidence metrics |
-| 0091-0093 | SSE consolidation decision, DuckDB columnar-native, replication model (DDIA Ch5) |
+| 0086-0087 | DuckDB engine, Postgres engine                                                                                                      |
+| 0088-0090 | Block-level suppression, flight recorder, benchkit evidence metrics                                                                 |
+| 0091-0093 | SSE consolidation decision, DuckDB columnar-native, replication model (DDIA Ch5)                                                    |
 
 ### Cross-Cutting Patterns Identified
 
 **1. "Keep both" is a recurring verdict:**
 
-| ADR | Case | Verdict |
-|-----|------|---------|
-| 0077 | GraphBackend vs `graph/` module | Keep both — different layers (planner ADT vs projection tier) |
-| 0078 | kv.ViewStore vs metaengine | Keep both — different complexity tiers |
-| 0079/0091 | Two SSE implementations | Keep both — different push semantics (raw events vs read-model results) |
-| 0043 | Two DLQ types | Keep both — different lifecycles (dispatch-retry vs projection-poison) |
+| ADR       | Case                            | Verdict                                                                 |
+| --------- | ------------------------------- | ----------------------------------------------------------------------- |
+| 0077      | GraphBackend vs `graph/` module | Keep both — different layers (planner ADT vs projection tier)           |
+| 0078      | kv.ViewStore vs metaengine      | Keep both — different complexity tiers                                  |
+| 0079/0091 | Two SSE implementations         | Keep both — different push semantics (raw events vs read-model results) |
+| 0043      | Two DLQ types                   | Keep both — different lifecycles (dispatch-retry vs projection-poison)  |
 
 Each is individually justified. Collectively they signal a tolerance for parallel abstractions.
 
 **2. Deferred cleanup debt is real and tracked:**
 
-| ADR | What's deferred | Status |
-|-----|-----------------|--------|
-| 0028 | Ghost bus deletion (memory bus, PostgresBus, event.Bus reactive seam) | "not yet executed" |
-| 0027 | PostgresBus deprecated | Still present for backward compat |
-| 0031 | Metadata alias-to-struct conversion | Incomplete — aliases repointed but not removed |
-| 0064 | retry/ extraction to go-retry repo | Proposed |
-| 0065 | idempotency/ extraction to go-idempotency repo | Proposed |
-| 0059 | DLQ unification proposal | Proposed |
+| ADR  | What's deferred                                                       | Status                                         |
+| ---- | --------------------------------------------------------------------- | ---------------------------------------------- |
+| 0028 | Ghost bus deletion (memory bus, PostgresBus, event.Bus reactive seam) | "not yet executed"                             |
+| 0027 | PostgresBus deprecated                                                | Still present for backward compat              |
+| 0031 | Metadata alias-to-struct conversion                                   | Incomplete — aliases repointed but not removed |
+| 0064 | retry/ extraction to go-retry repo                                    | Proposed                                       |
+| 0065 | idempotency/ extraction to go-idempotency repo                        | Proposed                                       |
+| 0059 | DLQ unification proposal                                              | Proposed                                       |
 
 **3. Process lessons baked into ADRs (institutional memory):**
 
@@ -136,13 +136,13 @@ No proactive codegen investment. The casts (ADR-0081/0082) are bounded, fail lou
 
 ### Decision Summary Table
 
-| Theme | Stance | Implication |
-|-------|--------|-------------|
-| Metaengine scope | Undecided, demand-driven | No premature spinoff; let it grow until forced |
-| Deferred debt | Execute **all four** | This is the next real roadmap |
-| Keep-both philosophy | Case-by-case + SKILL.md matrix | Internal stays ad-hoc; consumers get routing guidance |
+| Theme                | Stance                         | Implication                                                              |
+| -------------------- | ------------------------------ | ------------------------------------------------------------------------ |
+| Metaengine scope     | Undecided, demand-driven       | No premature spinoff; let it grow until forced                           |
+| Deferred debt        | Execute **all four**           | This is the next real roadmap                                            |
+| Keep-both philosophy | Case-by-case + SKILL.md matrix | Internal stays ad-hoc; consumers get routing guidance                    |
 | Benchmark confidence | Low — "not very confident yet" | Re-verify cost constants with assertions before trusting planner routing |
-| Runtime casts | Revisit per-query | No proactive codegen; cqrs-gen earns its place per hot query |
+| Runtime casts        | Revisit per-query              | No proactive codegen; cqrs-gen earns its place per hot query             |
 
 ---
 
@@ -154,14 +154,14 @@ No proactive codegen investment. The casts (ADR-0081/0082) are bounded, fail lou
 
 ### The Two SSE Implementations in go-cqrs-lite
 
-| | `transport/http.SSEBroker` | `metaengine.ServeSSE` |
-|---|---|---|
-| **Pushes** | Raw domain events (`event.Event` bytes) | Materialized query results (typed `V` values) |
-| **Source** | `event.Bus` (event-sourcing layer) | `Watcher[V]` (read-model layer) |
-| **Example** | "user.created" event | "user count is 42" |
-| **Replay** | `event.SeekableJournal` (durable) | In-memory ring buffer (cheap, recent only) |
-| **Features** | Event filter, payload transform, byte budget, REST backfill, OTel spans | Heartbeat keepalive, collection-scoped subscription |
-| **Module tier** | Tier 4 (`transport/http`) | Tier 0 (`metaengine`) |
+|                 | `transport/http.SSEBroker`                                              | `metaengine.ServeSSE`                               |
+| --------------- | ----------------------------------------------------------------------- | --------------------------------------------------- |
+| **Pushes**      | Raw domain events (`event.Event` bytes)                                 | Materialized query results (typed `V` values)       |
+| **Source**      | `event.Bus` (event-sourcing layer)                                      | `Watcher[V]` (read-model layer)                     |
+| **Example**     | "user.created" event                                                    | "user count is 42"                                  |
+| **Replay**      | `event.SeekableJournal` (durable)                                       | In-memory ring buffer (cheap, recent only)          |
+| **Features**    | Event filter, payload transform, byte budget, REST backfill, OTel spans | Heartbeat keepalive, collection-scoped subscription |
+| **Module tier** | Tier 4 (`transport/http`)                                               | Tier 0 (`metaengine`)                               |
 
 ADR-0091 documented the rationale: they serve different layers (event-sourcing vs read-model), depend on different types, and merging would break the dependency boundary that keeps `metaengine` zero-dep (ADR-0062).
 
@@ -169,12 +169,12 @@ ADR-0091 documented the rationale: they serve different layers (event-sourcing v
 
 `/home/lars/projects/go-sse` is a standalone SSE transport library extracted from production use. It provides exactly the four primitives that both `go-cqrs-lite` SSE implementations reimplement from scratch:
 
-| Component | go-sse file | What it does |
-|-----------|-------------|--------------|
-| `Event`, `EventID`, `WriteEvent` | `event.go` | SSE wire-format types + allocation-minimized serializer |
-| `Stream` | `stream.go` | Single SSE connection — headers, mutex-guarded send, heartbeat, disconnect hooks, `Last-Event-ID` |
-| `Broadcaster[T]` + `fanOut[T]` | `broadcaster.go` + `fanout.go` | Generic subscriber fan-out — subscribe, broadcast, close, hooks. Non-blocking (drops to slow consumers) |
-| `EventStore` + `Replay` | `replay.go` | Reconnection replay — missed events sent on reconnect via `EventsAfter(lastID)` |
+| Component                        | go-sse file                    | What it does                                                                                            |
+| -------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `Event`, `EventID`, `WriteEvent` | `event.go`                     | SSE wire-format types + allocation-minimized serializer                                                 |
+| `Stream`                         | `stream.go`                    | Single SSE connection — headers, mutex-guarded send, heartbeat, disconnect hooks, `Last-Event-ID`       |
+| `Broadcaster[T]` + `fanOut[T]`   | `broadcaster.go` + `fanout.go` | Generic subscriber fan-out — subscribe, broadcast, close, hooks. Non-blocking (drops to slow consumers) |
+| `EventStore` + `Replay`          | `replay.go`                    | Reconnection replay — missed events sent on reconnect via `EventsAfter(lastID)`                         |
 
 **Critical finding: `go-cqrs-lite` imports `go-sse` ZERO times.** Both SSE implementations reimplement the wire format (`fmt.Fprintf`), fan-out (`map[clientID]chan`), and replay (`dedup.Ring` / ring buffer) from scratch.
 
@@ -182,29 +182,29 @@ ADR-0091 documented the rationale: they serve different layers (event-sourcing v
 
 `/home/lars/projects/cqrs-htmx` consumes `go-sse` v0.3.0 correctly — exactly the thin-adapter pattern that `go-cqrs-lite` should follow:
 
-| cqrs-htmx file | Role | Lines of real value |
-|----------------|------|---------------------|
-| `sse_event.go` | Pure type aliases: `SSEEvent = sse.Event`, `SSEStream = sse.Stream`, `WriteSSEEvent = sse.WriteEvent` | ~60 lines of delegation |
-| `sse_store.go` | `SSEEventStore = sse.EventStore`, `ReplayEvents = sse.Replay` (verbatim delegation) | ~25 lines of delegation |
-| `sse_broadcaster.go` | Embeds `*sse.Broadcaster[sse.Event]`, adds CQRS hooks (`BroadcastOnSuccess`, `BroadcastOnError`) | ~110 lines — the CQRS-specific value |
-| `event_store_sse.go` | `JournalSSEStore` — adapts `event.Journal` → `sse.EventStore` with consumer-provided `EventToSSEMapper` | ~200 lines — the CQRS bridge |
+| cqrs-htmx file       | Role                                                                                                    | Lines of real value                  |
+| -------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| `sse_event.go`       | Pure type aliases: `SSEEvent = sse.Event`, `SSEStream = sse.Stream`, `WriteSSEEvent = sse.WriteEvent`   | ~60 lines of delegation              |
+| `sse_store.go`       | `SSEEventStore = sse.EventStore`, `ReplayEvents = sse.Replay` (verbatim delegation)                     | ~25 lines of delegation              |
+| `sse_broadcaster.go` | Embeds `*sse.Broadcaster[sse.Event]`, adds CQRS hooks (`BroadcastOnSuccess`, `BroadcastOnError`)        | ~110 lines — the CQRS-specific value |
+| `event_store_sse.go` | `JournalSSEStore` — adapts `event.Journal` → `sse.EventStore` with consumer-provided `EventToSSEMapper` | ~200 lines — the CQRS bridge         |
 
 cqrs-htmx adds ~200 lines of real CQRS value (dispatch hooks + journal-backed replay adapter) on top of `go-sse`'s ~600 lines of primitives. The `//nolint:wrapcache // pure delegation` comments throughout are the signature of an adapter that delegates cleanly to a well-scoped extraction.
 
 ### The Three-Repo Comparison
 
-| Repo | SSE strategy | Consumes `go-sse`? | reimplements wire/fanout/replay? |
-|------|--------------|---------------------|----------------------------------|
-| `go-sse` | The extraction itself | — | N/A (IS the primitives) |
-| `cqrs-htmx` | Thin CQRS adapter on `go-sse` | ✅ Yes (v0.3.0, 12 go.mod files) | ❌ No |
-| `go-cqrs-lite` `SSEBroker` | Full reimplementation | ❌ No | ✅ Yes (wire format, fan-out, replay) |
-| `go-cqrs-lite` `ServeSSE` | Full reimplementation | ❌ No | ✅ Yes (wire format, fan-out, replay) |
+| Repo                       | SSE strategy                  | Consumes `go-sse`?               | reimplements wire/fanout/replay?      |
+| -------------------------- | ----------------------------- | -------------------------------- | ------------------------------------- |
+| `go-sse`                   | The extraction itself         | —                                | N/A (IS the primitives)               |
+| `cqrs-htmx`                | Thin CQRS adapter on `go-sse` | ✅ Yes (v0.3.0, 12 go.mod files) | ❌ No                                 |
+| `go-cqrs-lite` `SSEBroker` | Full reimplementation         | ❌ No                            | ✅ Yes (wire format, fan-out, replay) |
+| `go-cqrs-lite` `ServeSSE`  | Full reimplementation         | ❌ No                            | ✅ Yes (wire format, fan-out, replay) |
 
 ### The Contradiction with ADR-0091
 
 ADR-0091 explicitly rejected a "shared SSE utility package" with the rationale:
 
-> *"the shared code is trivial Go stdlib (`http.Flusher`, `fmt.Fprintf`); extracting it adds coupling without meaningful deduplication"*
+> _"the shared code is trivial Go stdlib (`http.Flusher`, `fmt.Fprintf`); extracting it adds coupling without meaningful deduplication"_
 
 This ADR was deciding between merging the **two go-cqrs-lite** SSE implementations. It never considered that `go-sse` — which IS the extracted shared utility — already existed and was already being consumed correctly by cqrs-htmx.
 

@@ -10,59 +10,59 @@
 
 ### P0: ADR-0093 Index (was blocking the verify gate)
 
-| #    | Task                                  | File(s)         | Evidence                                                                                        |
-| ---- | ------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------- |
-| P0-1 | ADR-0093 added to ADR index table     | `docs/README.md` | Row added: `\| [0093](adr/0093-metaengine-replication-model.md) \| Metaengine replication model (DDIA Ch5) \| Accepted \|` |
-| P0-2 | ADR count bumped 89 → 90              | `docs/README.md` | Header now says "90 ADRs"                                                                       |
-| P0-3 | ADR index completeness gate passes    | `scripts/verify-docs.sh` | `OK: all 91 ADRs indexed in docs/README.md` (91 files = 91 indexed — includes 0092 which was already there) |
+| #    | Task                               | File(s)                  | Evidence                                                                                                                   |
+| ---- | ---------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| P0-1 | ADR-0093 added to ADR index table  | `docs/README.md`         | Row added: `\| [0093](adr/0093-metaengine-replication-model.md) \| Metaengine replication model (DDIA Ch5) \| Accepted \|` |
+| P0-2 | ADR count bumped 89 → 90           | `docs/README.md`         | Header now says "90 ADRs"                                                                                                  |
+| P0-3 | ADR index completeness gate passes | `scripts/verify-docs.sh` | `OK: all 91 ADRs indexed in docs/README.md` (91 files = 91 indexed — includes 0092 which was already there)                |
 
 ### P2: CollectionInfo Replication Exposure (report items 4, 5)
 
-| #    | Task                                                      | File(s)                 | Evidence                                                                                              |
-| ---- | --------------------------------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------- |
-| M1   | `CollectionInfo` gains `Replication` field                | `metaengine/store.go`   | `Replication Replication` — topology from engine profile                                               |
-| M2   | `CollectionInfo` gains `ReplicationLagMs` field           | `metaengine/store.go`   | `ReplicationLagMs int64` — milliseconds (int64, not Duration, for JSON v2 compatibility)              |
-| M3   | `CollectionInfo` gains `NetworkRTTMs` field               | `metaengine/store.go`   | `NetworkRTTMs int64`                                                                                  |
-| M4   | `Collections()` wires new fields from engine profile      | `metaengine/store.go`   | Uses `profile.Replication`, `profile.EffectiveReplicationLag().Milliseconds()`, `.EffectiveNetworkRTT().Milliseconds()` |
-| M5   | 2 tests pinning CollectionInfo behavior                   | `metaengine/rule_replication_test.go` | `TestCollections_ExposesReplicationFields` (replicated engine) + `TestCollections_ZeroReplicationForLocalEngine` (local engine) |
+| #   | Task                                                 | File(s)                               | Evidence                                                                                                                        |
+| --- | ---------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | `CollectionInfo` gains `Replication` field           | `metaengine/store.go`                 | `Replication Replication` — topology from engine profile                                                                        |
+| M2  | `CollectionInfo` gains `ReplicationLagMs` field      | `metaengine/store.go`                 | `ReplicationLagMs int64` — milliseconds (int64, not Duration, for JSON v2 compatibility)                                        |
+| M3  | `CollectionInfo` gains `NetworkRTTMs` field          | `metaengine/store.go`                 | `NetworkRTTMs int64`                                                                                                            |
+| M4  | `Collections()` wires new fields from engine profile | `metaengine/store.go`                 | Uses `profile.Replication`, `profile.EffectiveReplicationLag().Milliseconds()`, `.EffectiveNetworkRTT().Milliseconds()`         |
+| M5  | 2 tests pinning CollectionInfo behavior              | `metaengine/rule_replication_test.go` | `TestCollections_ExposesReplicationFields` (replicated engine) + `TestCollections_ZeroReplicationForLocalEngine` (local engine) |
 
 **Design decision:** Used `int64` milliseconds instead of `time.Duration` for the lag/RTT fields. `time.Duration` has no default JSON v2 representation (`json: cannot marshal from Go time.Duration`). The first iteration used `time.Duration` and broke `TestInspectJSON_ValidJSON`. Caught immediately by running the full test suite. Consistent with `SerializablePlan.LatencyMs` (`float64` ms).
 
 ### P2: ExplainPlan + Doctor Replication Output (report items 8, 9)
 
-| #    | Task                                          | File(s)                 | Evidence                                                                     |
-| ---- | --------------------------------------------- | ----------------------- | ---------------------------------------------------------------------------- |
-| M6   | `ExplainPlan()` shows replication on engines  | `metaengine/explain.go` | Replicated engine lines now end with ` replication=X, lag=Y, rtt=Z`          |
-| M7   | `Doctor()` gains `--- Replication ---` section | `metaengine/explain.go` | Lists each replicated collection with mode/lag/RTT, or `none` if local-only  |
-| M8   | 3 tests pinning Explain/Doctor behavior       | `metaengine/rule_replication_test.go` | `TestExplainPlan_ShowsReplicationForReplicatedEngine`, `TestDoctor_ShowsReplicationSectionForReplicatedEngine`, `TestDoctor_NoReplicationSectionForLocalEngine` |
+| #   | Task                                           | File(s)                               | Evidence                                                                                                                                                        |
+| --- | ---------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M6  | `ExplainPlan()` shows replication on engines   | `metaengine/explain.go`               | Replicated engine lines now end with ` replication=X, lag=Y, rtt=Z`                                                                                             |
+| M7  | `Doctor()` gains `--- Replication ---` section | `metaengine/explain.go`               | Lists each replicated collection with mode/lag/RTT, or `none` if local-only                                                                                     |
+| M8  | 3 tests pinning Explain/Doctor behavior        | `metaengine/rule_replication_test.go` | `TestExplainPlan_ShowsReplicationForReplicatedEngine`, `TestDoctor_ShowsReplicationSectionForReplicatedEngine`, `TestDoctor_NoReplicationSectionForLocalEngine` |
 
 ### Documentation
 
-| #   | Task                          | File        | Evidence                                                          |
-| --- | ----------------------------- | ----------- | ----------------------------------------------------------------- |
-| D1  | AGENTS.md replication comment | `AGENTS.md` | Updated to mention CollectionInfo/ExplainPlan/Doctor exposure     |
+| #   | Task                          | File        | Evidence                                                      |
+| --- | ----------------------------- | ----------- | ------------------------------------------------------------- |
+| D1  | AGENTS.md replication comment | `AGENTS.md` | Updated to mention CollectionInfo/ExplainPlan/Doctor exposure |
 
 ### Quality Gates (ALL PASSED)
 
-| Gate                              | Status | Notes                                                                          |
-| --------------------------------- | ------ | ------------------------------------------------------------------------------ |
-| Build (`go build -tags jsonv2`)   | GREEN  | metaengine module compiles clean                                               |
-| Vet (`go vet -tags jsonv2`)       | GREEN  | No issues                                                                      |
-| Test (`go test -count=1`)         | GREEN  | 161 Ginkgo specs + all Go tests pass                                           |
-| Race (`go test -race -count=1`)   | GREEN  | Full metaengine suite (76s wall), 0 races                                      |
-| Doc-check                         | GREEN  | 507 references valid                                                           |
-| ADR index completeness            | GREEN  | 91 files = 91 indexed                                                          |
-| API-stability golden              | GREEN  | 3204 exports — no drift (struct fields don't count as top-level exports)       |
-| Format (gofumpt + goimports)      | GREEN  | All changed files clean                                                        |
+| Gate                            | Status | Notes                                                                    |
+| ------------------------------- | ------ | ------------------------------------------------------------------------ |
+| Build (`go build -tags jsonv2`) | GREEN  | metaengine module compiles clean                                         |
+| Vet (`go vet -tags jsonv2`)     | GREEN  | No issues                                                                |
+| Test (`go test -count=1`)       | GREEN  | 161 Ginkgo specs + all Go tests pass                                     |
+| Race (`go test -race -count=1`) | GREEN  | Full metaengine suite (76s wall), 0 races                                |
+| Doc-check                       | GREEN  | 507 references valid                                                     |
+| ADR index completeness          | GREEN  | 91 files = 91 indexed                                                    |
+| API-stability golden            | GREEN  | 3204 exports — no drift (struct fields don't count as top-level exports) |
+| Format (gofumpt + goimports)    | GREEN  | All changed files clean                                                  |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| Item                            | What's done                                       | What's missing                                                                              |
-| ------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Uncommitted working tree        | 2 files remain uncommitted (AGENTS.md, test file) | The auto-commit daemon will sweep them. My production code (store.go, explain.go, docs/README.md) was already committed by the daemon in `337a96e6` and `831ae046`. |
-| API-stability golden for `metaengine/projectionadapter/go.mod` | All modules build and test | Still has a pseudo-version for metaengine dep (`v4.0.0-00010101000000...` → needs `metaengine/v4` tag first). Daemon-authored, not mine. |
+| Item                                                           | What's done                                       | What's missing                                                                                                                                                      |
+| -------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Uncommitted working tree                                       | 2 files remain uncommitted (AGENTS.md, test file) | The auto-commit daemon will sweep them. My production code (store.go, explain.go, docs/README.md) was already committed by the daemon in `337a96e6` and `831ae046`. |
+| API-stability golden for `metaengine/projectionadapter/go.mod` | All modules build and test                        | Still has a pseudo-version for metaengine dep (`v4.0.0-00010101000000...` → needs `metaengine/v4` tag first). Daemon-authored, not mine.                            |
 
 ---
 
@@ -70,15 +70,15 @@
 
 These are from the prior report's 50-item backlog. I only touched items 1, 3, 4, 5, 8, 9. Everything below was deliberately deferred:
 
-| Item                                                   | Priority | Why deferred                                                                 |
-| ------------------------------------------------------ | -------- | --------------------------------------------------------------------------- |
-| `WithReplication()` / `WithNetworkRTT()` Plan options   | P2       | Architecturally ambiguous — how do plan-time overrides interact with engine-declared profiles? Needs design. |
-| Phase 3: Universal ADT implementation                  | P2       | Large multi-file effort — separate session. Design doc exists.              |
-| Phase 4: Iroh integration                              | P3       | Rust/Go bridge evaluation deferred.                                         |
-| Tag `metaengine/v4` release                            | P1       | Report's Q1 — user's call on release cadence.                              |
-| `SerializablePlan` replication info                    | P3       | For plan pinning/diffing — not blocking.                                    |
-| `Store.Verify()` replication consistency checks        | P3       | Validation layer — not blocking.                                            |
-| Benchmark `replicationRule` overhead                   | P3       | Micro-optimization — rule runs once per Plan(), not per query.              |
+| Item                                                  | Priority | Why deferred                                                                                                 |
+| ----------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------ |
+| `WithReplication()` / `WithNetworkRTT()` Plan options | P2       | Architecturally ambiguous — how do plan-time overrides interact with engine-declared profiles? Needs design. |
+| Phase 3: Universal ADT implementation                 | P2       | Large multi-file effort — separate session. Design doc exists.                                               |
+| Phase 4: Iroh integration                             | P3       | Rust/Go bridge evaluation deferred.                                                                          |
+| Tag `metaengine/v4` release                           | P1       | Report's Q1 — user's call on release cadence.                                                                |
+| `SerializablePlan` replication info                   | P3       | For plan pinning/diffing — not blocking.                                                                     |
+| `Store.Verify()` replication consistency checks       | P3       | Validation layer — not blocking.                                                                             |
+| Benchmark `replicationRule` overhead                  | P3       | Micro-optimization — rule runs once per Plan(), not per query.                                               |
 
 ---
 

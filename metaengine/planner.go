@@ -184,7 +184,9 @@ func planQuery(meta queryMeta, engines []Engine) (QueryAssignment, error) {
 	if len(ranked) == 0 {
 		return QueryAssignment{}, fmt.Errorf(
 			"query %q requires ADT %s but %w — add a Memory engine (supports all ADTs) or declare it as degraded on an existing engine via DegradedADTs",
-			meta.QueryName(), adt, errADTNotSupported,
+			meta.QueryName(),
+			adt,
+			errADTNotSupported,
 		)
 	}
 

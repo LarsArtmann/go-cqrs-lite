@@ -6,8 +6,8 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260803010942-3a73e43826b7
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260803024742-6f7c88388006
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.1-0.20260803024742-6f7c88388006
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/testcontainers/testcontainers-go v0.43.0
@@ -49,11 +49,11 @@ require (
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260803010942-3a73e43826b7 // indirect
+	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260803024742-6f7c88388006 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0 // indirect

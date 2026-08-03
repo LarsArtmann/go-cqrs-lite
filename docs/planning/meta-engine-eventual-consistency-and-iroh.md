@@ -276,7 +276,7 @@ Read path:   Engine.MapGet() → local read (always fast, always local)
 | `MapUpdate` (RMW)  | **No**                  | Local only — not a CRDT operation            |
 | `MapDelete`        | **Conditional**         | Tombstone (safe) vs physical delete (unsafe) |
 
-> **Footgun guard:** `MapUpdate` (atomic read-modify-write) cannot replicate — a CRDT cannot guarantee atomicity across replicas. On a distributed engine, `MapUpdate` executes locally but the result never syncs. **Recommended:** the planner should emit a **WARN diagnostic** when a query's fold includes `MapUpdate` and routes it to a `ReplicationLeaderless`/`MultiLeader` engine: *"non-CRDT operation MapUpdate will not replicate — use MapSet with LWW timestamp instead"*. This makes the silent-local-execution failure mode visible at plan time, not at runtime.
+> **Footgun guard:** `MapUpdate` (atomic read-modify-write) cannot replicate — a CRDT cannot guarantee atomicity across replicas. On a distributed engine, `MapUpdate` executes locally but the result never syncs. **Recommended:** the planner should emit a **WARN diagnostic** when a query's fold includes `MapUpdate` and routes it to a `ReplicationLeaderless`/`MultiLeader` engine: _"non-CRDT operation MapUpdate will not replicate — use MapSet with LWW timestamp instead"_. This makes the silent-local-execution failure mode visible at plan time, not at runtime.
 
 ---
 

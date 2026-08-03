@@ -39,7 +39,7 @@ The authoritative module index with README links lives in the **[project README]
 
 ## Architecture Decision Records (ADR)
 
-91 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
+92 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
 
 | ADR                                                        | Title                                                   | Status                   |
 | ---------------------------------------------------------- | ------------------------------------------------------- | ------------------------ |
@@ -133,7 +133,8 @@ The authoritative module index with README links lives in the **[project README]
 | [0090](adr/0090-benchkit-evidence-metrics.md)              | Benchkit evidence-grade metrics                         | Accepted                 |
 | [0091](adr/0091-sse-consolidation-decision.md)             | SSE consolidation decision                              | Accepted                 |
 | [0092](adr/0092-duckdb-columnar-native-storage.md)         | DuckDB columnar-native storage via LayoutPlanApplier    | Accepted                 |
-| [0093](adr/0093-metaengine-replication-model.md)             | Metaengine replication model (DDIA Ch5)                 | Accepted                 |
+| [0093](adr/0093-metaengine-replication-model.md)           | Metaengine replication model (DDIA Ch5)                 | Accepted                 |
+| [0094](adr/0094-metaengine-universal-adt-support.md)       | Metaengine universal ADT support (DegradedADTs)         | Accepted                 |
 
 ## API Reference
 

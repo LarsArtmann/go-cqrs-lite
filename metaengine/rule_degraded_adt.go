@@ -33,7 +33,9 @@ func (r *degradedADTRule) Apply(result *PlanResult, ctx PlanContext) error {
 			Query: q.QueryName,
 			Message: fmt.Sprintf(
 				"DEGRADED: %s routed to %s via %s fallback — native engine recommended for production",
-				q.ADT, profile.Name, q.Complexity,
+				q.ADT,
+				profile.Name,
+				q.Complexity,
 			),
 		})
 

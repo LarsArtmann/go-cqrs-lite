@@ -39,7 +39,8 @@ if [ ! -d "$VM_PATH" ]; then
 fi
 
 echo "==> Starting NixOS VM (PostgreSQL on host port $HOST_PORT)"
-# Override the forward port if PG_VM_PORT is set
+# Headless mode (no GTK display required) + port forwarding
+export QEMU_OPTS="-display none"
 export QEMU_NET_OPTS="hostfwd=tcp::${HOST_PORT}-:5432"
 "$VM_PATH/bin/run-nixos-vm" > "$VM_LOG" 2>&1 &
 VM_PID=$!
