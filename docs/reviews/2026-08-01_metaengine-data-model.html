@@ -1793,6 +1793,28 @@
           </p>
         </section>
 
+        <section id="resolution" style="border-top: 2px solid #4a9; padding-top: 1.5rem; margin-top: 2rem;">
+          <h2 style="color: #4a9;">Resolution (2026-08-03)</h2>
+          <p class="section-lede">
+            The refactor proposed in this review was <strong>executed</strong> in
+            <code>2026-08-02_00-05_metaengine-refactor-executed.md</code>. Per-item status:
+          </p>
+          <table style="width:100%; border-collapse: collapse; margin: 1rem 0;">
+            <tr style="border-bottom: 1px solid #333;"><th style="text-align:left; padding:4px;">Issue</th><th style="text-align:left; padding:4px;">Severity</th><th style="text-align:left; padding:4px;">Status</th></tr>
+            <tr style="border-bottom: 1px solid #222;"><td style="padding:4px;">C1: Fold god-struct</td><td style="padding:4px;">Critical</td><td style="padding:4px; color:#4a9;">DONE &mdash; sealed Fold interface (12 concrete types, zero reflect on hot path)</td></tr>
+            <tr style="border-bottom: 1px solid #222;"><td style="padding:4px;">C2: Universal any erasure</td><td style="padding:4px;">Critical</td><td style="padding:4px; color:#da6;">PARTIAL &mdash; key-type validation via ErrKeyTypeMismatch (cbc572c8), but engine-layer any erasure remains</td></tr>
+            <tr style="border-bottom: 1px solid #222;"><td style="padding:4px;">H1: String enums lack validation</td><td style="padding:4px;">High</td><td style="padding:4px; color:#4a9;">DONE &mdash; 6 enum families with Valid() in enum_validation.go</td></tr>
+            <tr style="border-bottom: 1px solid #222;"><td style="padding:4px;">H2: queryRuntime split-brain</td><td style="padding:4px;">High</td><td style="padding:4px; color:#4a9;">DONE &mdash; merged into QueryDecl</td></tr>
+            <tr style="border-bottom: 1px solid #222;"><td style="padding:4px;">H3: Store god-object (17 fields)</td><td style="padding:4px;">High</td><td style="padding:4px; color:#4a9;">DONE &mdash; 17 to 13 fields (4 collaborators extracted)</td></tr>
+            <tr style="border-bottom: 1px solid #222;"><td style="padding:4px;">M2: Delta wrapper</td><td style="padding:4px;">Medium</td><td style="padding:4px; color:#da6;">DEFERRED &mdash; until major version bump</td></tr>
+            <tr style="border-bottom: 1px solid #222;"><td style="padding:4px;">M3: Branded units</td><td style="padding:4px;">Medium</td><td style="padding:4px; color:#da6;">PARTIAL &mdash; defined but not wired into EngineProfile (hardcoded constants used)</td></tr>
+          </table>
+          <p class="muted" style="color: #888;">
+            Annotation added 2026-08-03. Full execution details in
+            docs/status/2026-08-02_00-05_metaengine-refactor-executed.md.
+          </p>
+        </section>
+
         <footer class="footer">
           metaengine data model review &middot; Bauhaus dark &middot; self-contained, zero
           dependencies

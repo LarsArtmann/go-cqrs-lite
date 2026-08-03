@@ -401,3 +401,37 @@ deduction), but the directionality is correct.
 **Net recommendation:** Keep using cqrs-lint — the value outweighs the noise.
 But fix `init`, fix B022, and add config-based suppression. Those three changes
 would move this from "useful but frustrating" to "indispensable."
+
+---
+
+## Review Summary (2026-08-03)
+
+**Overall assessment:** High-value feedback. 34 valid findings drove real architectural improvements. The tool is genuinely valuable for CQRS/event-sourcing anti-patterns.
+
+### False Positives — Resolution Status
+
+| Item | Status | Evidence |
+|------|--------|----------|
+| C036 ×4 (library's own storage functions flagged as "custom") | **Mitigated** | `collectEventStoreBackends` improved in round-2/3 reviews; shared `*sql.DB` detection added. May still trigger on some patterns. |
+| B022 (suggests nonexistent `decider.CommandCausalityEnricher`) | **FIXED** | Suggestion now references `event.CommandCausalityEnricher` (`b022_b025.go:13-16`) |
+| E009 (no transport — doesn't detect cqrs-htmx) | **FIXED** | `feature_detect.go:78` detects `cqrs-htmx` as transport layer |
+| E016 (no health endpoint — misses `/health`) | **FIXED** | `e016.go:141` now detects `/health`, `/healthz`, `/readyz`, `/livez` |
+
+### Linter Bugs — Resolution Status
+
+| Bug | Status | Notes |
+|-----|--------|-------|
+| `cqrs-lint init` generates `"exclude": []` (JSON array) vs parser expecting string | **STILL OPEN** | SHOWSTOPPER for new users. The default preset template in `init.go:30` generates `"exclude": []` but the `Exclude` CLI field is `string`. Fix: change template to `"exclude": ""` or change the field to `[]string`. See TODO_LIST. |
+| B022 suggests nonexistent API | **FIXED** | See above |
+
+### Feature Requests — Resolution Status
+
+| Request | Status |
+|---------|--------|
+| Config-based suppression for intentional declines | **DONE** — `c008-ignore-fields` + `c008-ignore-structs` config shipped |
+| Third-party module awareness (cqrs-htmx) | **DONE** — `feature_detect.go` detects cqrs-htmx |
+
+### Routed to TODO_LIST
+
+- `cqrs-lint init` broken config — SHOWSTOPPER, code fix needed
+- C036 library recognition — may need `IsLibrarySelfLint()` expansion

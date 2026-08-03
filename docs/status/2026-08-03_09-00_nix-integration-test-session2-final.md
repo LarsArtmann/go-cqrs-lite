@@ -106,3 +106,13 @@ M48 (test-integration.sh aggregator)
 - `TODO_LIST.md` — Added remaining integration test work
 - `docs/planning/2026-08-03_04-24_nix-integration-test-execution-plan.md` — Updated status
 - `docs/status/2026-08-03_08-27_nix-integration-test-session2.md` — This report
+
+---
+
+## Resolution (2026-08-03)
+
+This file is a **redundant summary** of the Nix integration test session 2 work. The authoritative reports are:
+- `2026-08-03_08-59_nix-integration-test-session2-brutal-review.md` (brutal self-review with all items)
+- `2026-08-03_09-36_integration-test-hardening-self-review.md` (final self-review with closure items)
+
+All 24/48 completed tasks are covered in those reports. The remaining 24 P3/P4 tasks are captured in TODO_LIST.md.
