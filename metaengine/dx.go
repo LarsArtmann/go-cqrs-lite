@@ -33,6 +33,40 @@ func NewWatcher[V any](store *Store, collection string) *Watcher[V] {
 	return &Watcher[V]{store: store, coll: collection}
 }
 
+// WatchTyped is a convenience function that creates a Watcher[V] for a collection
+// and returns a typed notification channel in a single call. The caller must
+// call Close on the returned *Watcher[V] when done (e.g., via defer).
+//
+// This eliminates the two-step NewWatcher + Watch boilerplate:
+//
+//	ch, w := metaengine.WatchTyped[MyView](store, ctx, "my_collection", nil)
+//	defer w.Close()
+//	for val := range ch { ... }
+//
+// The key parameter filters to a specific key (nil = all keys in the collection).
+func WatchTyped[V any](
+	store *Store,
+	ctx context.Context,
+	collection string,
+	key any,
+) (<-chan V, *Watcher[V]) {
+	w := NewWatcher[V](store, collection)
+	return w.Watch(ctx, key), w
+}
+
+// WatchTypedWithSeq is like WatchTyped but returns SeqValue[V] pairs
+// (sequence number + value) for SSE Last-Event-ID reconnection support.
+// Requires WithReplay to be called on the returned Watcher for non-zero seqs.
+func WatchTypedWithSeq[V any](
+	store *Store,
+	ctx context.Context,
+	collection string,
+	key any,
+) (<-chan SeqValue[V], *Watcher[V]) {
+	w := NewWatcher[V](store, collection)
+	return w.WatchWithSeq(ctx, key), w
+}
+
 // WithReplay attaches an SSEReplay journal to the watcher, enabling
 // Last-Event-ID reconnection for ServeSSE. The journal records recent value
 // changes with monotonic sequence numbers. When a client reconnects with the
