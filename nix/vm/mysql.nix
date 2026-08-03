@@ -48,6 +48,9 @@
     '';
   };
 
+  # Open firewall for TCP connections from the host (QEMU port forwarding).
+  networking.firewall.allowedTCPPorts = [ 3306 ];
+
   # Lean VM
   documentation.enable = false;
   services.xserver.enable = false;

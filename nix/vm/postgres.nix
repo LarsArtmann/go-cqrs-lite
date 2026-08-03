@@ -29,6 +29,11 @@
     '';
   };
 
+  # Open firewall for TCP connections from the host (QEMU port forwarding).
+  # The runNixOSTest checks connect via Unix socket/localhost (unaffected by
+  # firewall), but the standalone VM scripts need external TCP access.
+  networking.firewall.allowedTCPPorts = [ 5432 ];
+
   # Lean VM — no docs, no X11
   documentation.enable = false;
   services.xserver.enable = false;
