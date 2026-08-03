@@ -507,6 +507,9 @@
             # Run via: nix flake check (Linux) or nix build .#checks.x86_64-linux.postgres-vm
             postgres-vm = pgServiceTest;
             mysql-vm = mysqlServiceTest;
+            # distributed-bus-vm is opt-in (2 VMs = 2x boot time):
+            # nix build .#checks.x86_64-linux.distributed-bus-vm
+            # or nix run .#integration-distributed-vm
             distributed-bus-vm = distributedBusTest;
           };
 

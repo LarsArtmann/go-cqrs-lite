@@ -86,7 +86,8 @@ func setupChangelogCommand(cli *cmdguard.CLI[AppConfig]) error {
 		"changelog",
 		cmdguard.NoFlags{},
 		func(ctx context.Context, _ *AppConfig, _ cmdguard.NoFlags) error {
-			out, err := exec.CommandContext(ctx,
+			out, err := exec.CommandContext(
+				ctx,
 				"git", "log", "--oneline",
 				"cmd/cqrs-lint/v"+version+"..HEAD",
 			).Output()
