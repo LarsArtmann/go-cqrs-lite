@@ -383,3 +383,9 @@ SUPPRESSED — CONSCIOUS NON-ADOPTIONS (4):
   B004 ×2   handlers.go:110, tag_handlers.go:16    No cqrs-gen (hand-written constructors)
   F009      ingest_dedup_set.go:50                 No scheduling module (best-effort TTL cache)
 ```
+
+---
+
+## Resolution (2026-08-03)
+
+All reported bugs fixed per round-2 review: suppression parser space-after-`//` bug FIXED, C036 shared `*sql.DB` detection FIXED (`collectEventStoreBackends`), S006 `"total"` keyword REMOVED, B022 suggestion text FIXED. Remaining items are legitimate suppressions and conscious non-adoptions (accurate, not bugs).

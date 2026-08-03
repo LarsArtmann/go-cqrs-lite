@@ -39,3 +39,38 @@ go build -o cqrs-bench ./cmd/cqrs-bench/
 | Measuring latency percentiles at scale          | Measuring a single operation's ns/op        |
 | Checking codec impact (JSON vs CBOR)            | Checking allocation counts                  |
 | CI performance regression gates                 | Quick local iteration during development    |
+
+### Routing Decision Matrices
+
+#### SSE: Which implementation?
+
+| Use case | Module | Import |
+|----------|--------|--------|
+| Push raw domain events to browser/service | `transport/http` | `SSEBroker` from event.Bus + SeekableJournal |
+| Push materialized query results (read models) | `metaengine` | `ServeSSE` from Watcher[V] |
+| Both (event stream + read model push) | Both | Compose on separate endpoints (ADR-0091, ADR-0097) |
+
+#### Read models: Which tier?
+
+| Data shape | Query pattern | Recommended tier |
+|------------|--------------|-----------------|
+| One document per key | Get/Set by key | `kv.ViewStore[V,K]` or `stack.Materialize` |
+| Multi-table, joins, relations | SQL WHERE/ORDER BY/LIMIT | `storage.RelationalProjection` |
+| Variable-depth traversal, adjacency, paths | N-hop queries | `graph.GraphProjection` |
+| Event-folded aggregations, counters | Cost-planned queries | `metaengine` Store + `projectionadapter` |
+
+#### Dead-letter handling: Which layer?
+
+| Scenario | Module | Mechanism |
+|----------|--------|-----------|
+| Event projection poison messages | `projectionhost` | `WithDeadLetterStore(dlq, retries)` — per-worker retry + poison |
+| Command/event/query dispatch retry | `middleware` | `middleware.Retry` + `middleware.Recovery` |
+| Idempotent delivery dedup | `middleware` | `middleware.{Command,Event,Query}Idempotency` |
+
+#### Dedup: Which store?
+
+| Scenario | Module | Store |
+|----------|--------|-------|
+| In-process, fast, ephemeral | `idempotency` | `MemoryStore` |
+| SQL-backed, persistent | `idempotency/sqlstore` | `NewSQLiteStore` / `NewPostgresStore` |
+| KV-backed (Pebble, etc.) | `idempotency/kvstore` | `KVStore` with any `kv.Store` |

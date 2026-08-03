@@ -226,3 +226,9 @@ Phase 2 (replication model) is complete, backward-compatible, and well-tested. B
 ### Q3: Is the nolint band-aid acceptable for the ldflags globals, or should I refactor to pass build metadata through a struct?
 
 The ldflags-injected global pattern is idiomatic Go for CLI build metadata. But `gochecknoglobals` exists for a reason — globals are mutable shared state. The "correct" fix is to pass `commitHash`/`buildDate` through a `BuildInfo` struct injected at construction time. This would touch the version command and potentially the flake.nix `-ldflags`. Effort is small but touches build infrastructure. Should I do it, or is nolint the right tradeoff for build metadata?
+
+---
+
+## Resolution (2026-08-03)
+
+First true verify EXIT:0 achieved. Key finding (verify excludes check-layers/dup/coverage) resolved by T1 in `07-01` — extended verify gate (`d4dbebbd`). MapUpdate WARN (T18) implemented in `08-26`. Q1 (add to verify): option (a) chosen — all three added. Q2 (tag): `metaengine/v4.4.0` cut. Q3 (nolint band-aid): accepted as idiomatic for ldflags build metadata.

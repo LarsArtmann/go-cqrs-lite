@@ -176,3 +176,9 @@ They normalize pseudo-versions like `v4.0.0-00010101000000-000000000000` to tagg
 ### Q3: Should Phase 3 (universal ADT) be its own ADR + plan doc cycle, or should I fold it into the existing replication plan doc?
 
 The universal-ADT design doc (`meta-engine-universal-adt-support.md`) is already written but has no ADR. Phase 3 touches every engine's `Supports` map and changes `planQuery` behavior. It's architecturally independent from replication but they're conceptually related (both are about making the planner's routing space honest).
+
+---
+
+## Resolution (2026-08-03)
+
+Replication model (Phase 2) fully shipped: ADR-0093, replicationRule, String() suffix, CollectionInfo exposure. Q1 (tag timing): `metaengine/v4.4.0` later cut at `c45b39c8`. Q2 (go.mod files): committed by daemon. Q3 (Phase 3): shipped as Universal ADT (ADR-0094, `8b41f658`). The "GREEN — first time" claim was slightly premature — 4 cqrs-lint lint issues remained (exposed/fixed in `03-58`), but all session work shipped.

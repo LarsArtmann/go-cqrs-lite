@@ -199,3 +199,9 @@ The tags are for modules that were changed in prior sessions. Pushing them makes
 ### 3. Is the auto-commit daemon still running?
 
 Several files changed between the prior session's handoff and this session (notably `universal_adt_test.go` was rewritten, a new ADR 0094 appeared, `metaengine` was bumped to v4.3.0). If the daemon is still running, it will commit this status report and the TODO_LIST.md update automatically. Should I be aware of any pending daemon work?
+
+---
+
+## Resolution (2026-08-03)
+
+T14 (F009/F015/F017 feature-profile gating) verified complete. Verify GREEN, duplication passing (0 new clones), api-stability regenerated. All 3 questions resolved: clones resolved by daemon, tags later pushed, daemon confirmed active.

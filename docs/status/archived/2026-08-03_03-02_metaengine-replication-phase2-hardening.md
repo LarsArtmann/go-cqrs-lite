@@ -189,3 +189,9 @@ The project has 92 ADRs. The replication model is a significant architectural de
 ### Q3: The git status at session start showed `metaengine/duckdbengine/layout_planner_cgo_test.go` as modified and `docs/adr/0092-duckdb-columnar-native-storage.md` as untracked — are these from a prior session that I should leave alone, or should I investigate/commit them?
 
 These changes existed before my session started. I didn't touch them. The AGENTS.md says "NEVER revert changes you didn't author" — so I left them. But they may be relevant context or may need attention.
+
+---
+
+## Resolution (2026-08-03)
+
+All skipped-gate items resolved by the twin report `03-14` (12 min later): redundant diagnostic fixed, `String()` pre-allocation + 5 tests, `-race` clean, full verify GREEN, ADR-0093 written. All 3 questions answered (Q1: verify later run; Q2: ADR-0093 written; Q3: daemon changes handled).

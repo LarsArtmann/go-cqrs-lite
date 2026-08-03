@@ -196,3 +196,9 @@ The discrepancy exists because ADR-0092 was added in a prior session but the cou
 ### Q3: Should `WithReplication()` / `WithNetworkRTT()` Plan options override the engine's declared profile, or should they be rejected if they conflict?
 
 This is a design question. Two valid approaches: (a) Plan option wins — consumer knows their deployment better than the engine; (b) error on conflict — the engine's profile is its contract. I lean toward (a) with a WARN diagnostic, but this affects how consumers reason about routing decisions.
+
+---
+
+## Resolution (2026-08-03)
+
+All items shipped. CollectionInfo replication fields exposed, ExplainPlan/Doctor sections added, ADR-0093 index fixed. Q1 (verify): later run GREEN. Q2 (ADR count): updated. Q3 (WithReplication override): shipped — plan option wins (consumer knows deployment), documented in ADR-0093.

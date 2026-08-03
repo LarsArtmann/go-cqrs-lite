@@ -249,3 +249,9 @@ The verify gate has infrastructure flake issues: SIGBUS during `go build` under 
 **This session's work was unglamorous but necessary.** No new features were added. The work was: fix a numbering collision, stabilize two flaky tests, and pay down 15 lint debt items that should have been fixed when they were introduced. The verify gate is now GREEN for the first time.
 
 **The biggest process failure was running verify 10 times.** A systematic "lint first, fix all, then verify" approach would have saved ~30 minutes. Lesson learned for next session.
+
+---
+
+## Resolution (2026-08-03)
+
+Session scope fully completed. Verify gate achieved genuine EXIT:0 for the first time. All 3 pending questions resolved (ADR collision fixed, flaky tests stabilized with race-aware thresholds, lint debt paid down). No open items remain.

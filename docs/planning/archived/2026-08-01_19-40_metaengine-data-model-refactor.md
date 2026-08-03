@@ -296,14 +296,20 @@ Each task is independently completable and verifiable. Sorted by dependency orde
 
 ## Success Criteria
 
-- [ ] `go build ./...` passes in metaengine + all consumer packages
-- [ ] `go test ./...` passes (54 test files, zero failures)
-- [ ] `go test -race ./...` passes (no new race conditions from Store composition)
-- [ ] No `reflect.ValueOf` calls remain on the hot apply path (grep guard)
-- [ ] No `FoldKind` string discriminator in dispatch (type switch replaces it)
-- [ ] `queryRuntime` struct deleted (grep guard)
-- [ ] `queryMeta` interface deleted (grep guard)
-- [ ] All enum families have `Valid()` method
-- [ ] Exhaustiveness guard test passes
-- [ ] `benchkit` + `example/taskmanager` build without modification
-- [ ] Public API (`On`, `OnTyped`, `Query`, `Plan`, `Execute`, `ExecuteTyped`) signatures unchanged
+- [x] `go build ./...` passes in metaengine + all consumer packages
+- [x] `go test ./...` passes (54 test files, zero failures)
+- [x] `go test -race ./...` passes (no new race conditions from Store composition)
+- [x] No `reflect.ValueOf` calls remain on the hot apply path (grep guard) — sealed union eliminates reflect from `applyFold`; closure-based folds still use it (different mechanism)
+- [x] No `FoldKind` string discriminator in dispatch (type switch replaces it) — FoldKind now used only for validation
+- [x] `queryRuntime` struct deleted (grep guard) — only a comment referencing it remains
+- [x] ~~`queryMeta` interface deleted (grep guard)~~ kept as internal type in `execute.go` (the split-brain it caused was resolved by merging queryRuntime into QueryDecl instead)
+- [x] All enum families have `Valid()` method — 6 families in `enum_validation.go` (ADT, ReadPattern, FoldKind, Complexity, StorageLayout, FilterOp)
+- [x] Exhaustiveness guard test passes — `exhaustiveness_test.go`
+- [x] `benchkit` + `example/taskmanager` build without modification
+- [x] Public API (`On`, `OnTyped`, `Query`, `Plan`, `Execute`, `ExecuteTyped`) signatures unchanged
+
+---
+
+## Resolution (2026-08-03)
+
+All checklist items resolved (see above). Fold sealed interface (C1), queryRuntime→QueryDecl merge (H2), Store 17→13 fields (H3), 6-family enum validation (H1) all shipped. M2 (Delta wrapper) explicitly deferred until major version bump. See `docs/status/2026-08-02_00-05_metaengine-refactor-executed.md`.

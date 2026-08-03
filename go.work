@@ -27,6 +27,7 @@ use (
 	./idempotency
 	./idempotency/kvstore
 	./idempotency/sqlstore
+	../go-idempotency
 	./integration
 	./kv
 	./listing

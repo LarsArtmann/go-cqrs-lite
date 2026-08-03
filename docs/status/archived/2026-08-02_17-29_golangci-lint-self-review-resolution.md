@@ -255,3 +255,9 @@ The `replace github.com/larsartmann/go-must => /home/lars/projects/go-must` poin
 | BuildFlow lint result      | 65/65 modules, 0 issues, 6.3s                                                                         |
 | Tests run                  | taskmanager (pass), getting-started (pass), benchkit (pass)                                           |
 | Full verify gate run       | **NO** (gap — see section b)                                                                          |
+
+---
+
+## Resolution (2026-08-03)
+
+All 4 mistakes reviewed (3 confirmed correct, 1 exhaustive-switch reverted). All 3 open questions answered. BuildFlow lint 65/65 modules 0 issues. No open items remain.

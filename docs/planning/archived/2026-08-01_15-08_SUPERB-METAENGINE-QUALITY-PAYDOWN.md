@@ -317,3 +317,9 @@ graph TD
 | 4    | other 20% → 100% | 4     | ~2.25h | ~11h       |
 
 **Explicitly deferred:** L3.11 (DomainBias), L4.10 (cross-module lint), L4.11 (new lint categories), Vector/Search/Spatial backends for DuckDB/PG, LayoutPlanner for engines. These are valuable but not on the critical path for trust.
+
+---
+
+## Resolution (2026-08-03)
+
+All 8 gaps (GAP-1 through GAP-8) addressed. PG testcontainers, ScanBackend tests, batch CounterIncrement, property-based VersionedStorage, ExecuteAsOf integration all shipped. Deferred items (L3.11 DomainBias, L4.10 cross-module lint) captured in TODO_LIST.md/ROADMAP.md as long-term work.
