@@ -91,7 +91,11 @@ func BenchmarkPostgres_CounterIncrement(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		if err := cb.CounterIncrement(ctx, "bench", metaengine.Delta{fmt.Sprintf("c%d", i%10): 1}); err != nil {
+		if err := cb.CounterIncrement(
+			ctx,
+			"bench",
+			metaengine.Delta{fmt.Sprintf("c%d", i%10): 1},
+		); err != nil {
 			b.Fatalf("CounterIncrement %d: %v", i, err)
 		}
 	}
@@ -115,7 +119,11 @@ func BenchmarkPostgres_CounterGet(b *testing.B) {
 	ctx := context.Background()
 
 	for i := range 1000 {
-		if err := cb.CounterIncrement(ctx, "bench", metaengine.Delta{fmt.Sprintf("c%d", i): 1}); err != nil {
+		if err := cb.CounterIncrement(
+			ctx,
+			"bench",
+			metaengine.Delta{fmt.Sprintf("c%d", i): 1},
+		); err != nil {
 			b.Fatalf("pre-populate CounterIncrement %d: %v", i, err)
 		}
 	}

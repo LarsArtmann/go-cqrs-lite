@@ -11,6 +11,7 @@
 ### P0: Benchmark Trust Verification — CRITICAL FIX
 
 **What was done:**
+
 - Added correctness assertions to all benchmarks that discarded results with `_, _ =` / `_ =`
 - 8 files modified across `metaengine/` and `metaengine/pebbleengine/`
 - **Found and fixed a real ADR-0090 class bug**: `benchPayload` struct in `json_tax_bench_test.go` had no JSON tags, so filter on `"status"` matched nothing — benchmarks were measuring empty results silently
@@ -21,6 +22,7 @@
 - Updated cost constants in duckdbengine, pgengine, pebbleengine with evidence-based values and measurement timestamps
 
 **Files changed:**
+
 - `metaengine/calibration_bench_test.go` — 4 benchmarks: error checks + found assertions
 - `metaengine/json_tax_bench_test.go` — 6 sub-benchmarks: result checks + JSON tag fix
 - `metaengine/planner_bench_test.go` — 2 EndToEnd benchmarks: Apply + ExecuteTyped error checks
@@ -38,6 +40,7 @@
 ### P1: SSE Consolidation ADR
 
 **What was done:**
+
 - Wrote ADR-0097 documenting the SSE three-repo finding (go-sse exists, both go-cqrs-lite implementations ignore it)
 - Added ADR-0097 to the README index table
 - Updated ADR-0091 with a cross-reference note at the top of "Alternatives Considered"
@@ -45,6 +48,7 @@
 ### P2a: PostgresBus Removal
 
 **What was done:**
+
 - Audited all consumer repos: ZERO external consumers of `storage.PostgresBus`
 - Deleted 4 files: `pg_bus.go` (265 LOC), `pg_bus_dispatch.go` (188 LOC), `pg_bus_listen.go` (198 LOC), `pg_bus_test.go` (575 LOC) = 1,226 LOC removed
 - Verified storage module builds and tests pass
@@ -52,6 +56,7 @@
 ### P2b: Metadata Alias Completion
 
 **What was done:**
+
 - Converted `command.Metadata` from type alias (`metadata.CustomData[MetadataKey]`) to standalone struct with own Clone/Merge/EnsureCustom methods
 - Converted `query.Metadata` from type alias to standalone struct with same methods
 - Both use `metadata.Tracing` embed + `metadata.MergeCustomMaps` for shared logic
@@ -61,6 +66,7 @@
 ### P2c: retry/ Extraction
 
 **What was done:**
+
 - Created `/home/lars/projects/go-retry/` repo with `go.mod` (`module github.com/larsartmann/go-retry`)
 - Copied `config.go`, `doc.go`, `retry.go`, `retry_test.go` verbatim
 - Updated test imports to new module path
@@ -73,6 +79,7 @@
 ### P2d: idempotency/ Core Extraction
 
 **What was done:**
+
 - Created `/home/lars/projects/go-idempotency/` repo with `go.mod`
 - Copied `store.go`, `doc.go`, `store_test.go`, `property_test.go` verbatim
 - Updated test imports to new module path
@@ -85,6 +92,7 @@
 ### P3: SKILL.md Decision Matrices
 
 **What was done:**
+
 - Added 4 decision matrices to SKILL.md:
   1. SSE implementation routing (SSEBroker vs ServeSSE)
   2. Read model tier selection (KV vs Relational vs Graph vs Metaengine)
@@ -110,6 +118,7 @@
 ### P2c/P2d: Extraction completion
 
 **Status:** Core extraction done, but missing:
+
 - No git commits in go-retry or go-idempotency repos (only `git init`)
 - No annotated tags (using `v0.0.0` pseudo-versions with replace directives)
 - `kvstore/` and `sqlstore/` sub-modules NOT extracted (they depend on kv/, codec/ — complex)
@@ -163,6 +172,7 @@ The api-stability tool has a pre-existing build error (`collectExports` undefine
 ### No AGENTS.md Update
 
 Did not update:
+
 - Modules list (go-retry, go-idempotency not listed)
 - Dependency table (go-retry, go-idempotency not mentioned)
 - PostgresBus references in the structure description
@@ -201,6 +211,7 @@ Used `go build` and `go test` directly instead of the canonical verify gate. The
 ## f) Up to 50 Things to Get Done Next
 
 ### Critical (blocks CI / correctness)
+
 1. Revert or qualify DuckDB cost constants — add analytical benchmark before changing
 2. Revert or qualify Postgres cost constants — measure without Docker network overhead
 3. Fix api-stability tool (`collectExports` undefined) and regenerate golden
@@ -213,6 +224,7 @@ Used `go build` and `go test` directly instead of the canonical verify gate. The
 10. Tag go-idempotency with annotated v0.1.0
 
 ### High Priority (architecture debt)
+
 11. Update AGENTS.md modules list + dependency table with go-retry, go-idempotency
 12. Update AGENTS.md to remove PostgresBus references from structure description
 13. Add analytical GROUP BY benchmark for DuckDB (the real calibration use case)
@@ -223,6 +235,7 @@ Used `go build` and `go test` directly instead of the canonical verify gate. The
 18. Push go-retry and go-idempotency to GitHub
 
 ### Medium Priority (SSE refactor)
+
 19. Inventory SSEBroker features that go-sse lacks (filter, transform, budget, backfill, OTel)
 20. Map each SSEBroker feature to preservation strategy
 21. Add go-sse dependency to transport/http/go.mod
@@ -238,6 +251,7 @@ Used `go build` and `go test` directly instead of the canonical verify gate. The
 31. Run full metaengine test suite post-refactor
 
 ### Lower Priority (polish)
+
 32. Extract idempotency/kvstore to go-idempotency repo
 33. Extract idempotency/sqlstore to go-idempotency repo
 34. Update go.work.sum after all module changes

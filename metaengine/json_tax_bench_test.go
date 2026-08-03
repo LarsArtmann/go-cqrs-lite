@@ -152,7 +152,13 @@ func BenchmarkStmtCache(b *testing.B) {
 
 	b.Run("uncached", func(b *testing.B) {
 		for range b.N {
-			if _, err := se.db.ExecContext(ctx, se.queries.mapSet, "bench", "key", "val"); err != nil {
+			if _, err := se.db.ExecContext(
+				ctx,
+				se.queries.mapSet,
+				"bench",
+				"key",
+				"val",
+			); err != nil {
 				b.Fatal(err)
 			}
 		}

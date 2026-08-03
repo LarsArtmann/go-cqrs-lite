@@ -44,33 +44,43 @@ go build -o cqrs-bench ./cmd/cqrs-bench/
 
 #### SSE: Which implementation?
 
-| Use case | Module | Import |
-|----------|--------|--------|
-| Push raw domain events to browser/service | `transport/http` | `SSEBroker` from event.Bus + SeekableJournal |
-| Push materialized query results (read models) | `metaengine` | `ServeSSE` from Watcher[V] |
-| Both (event stream + read model push) | Both | Compose on separate endpoints (ADR-0091, ADR-0097) |
+go-cqrs-lite has **two SSE implementations** (ADR-0091: kept separate — different layers, different data sources). **Both consume [`go-sse`](https://github.com/larsartmann/go-sse) internally** for wire-format serialization (`sse.WriteEvent`, `sse.SetHeaders`, `sse.WriteHeartbeat`) — the duplicated `fmt.Fprintf`/byte-append serializer was eliminated in ADR-0097. They are NOT merged: each preserves its own fan-out, replay, and feature set.
+
+| You want to push…                                             | Module           | Function            | Source                                | Replay                                           | Key features                                                                                                           |
+| ------------------------------------------------------------- | ---------------- | ------------------- | ------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| **Raw domain events** to browser/HTTP client                  | `transport/http` | `SSEBroker`         | `event.Bus` + `event.SeekableJournal` | Journal-backed (**durable**)                     | Event filter, CBOR→JSON transform, byte budget, REST `BackfillHandler`, OTel replay metrics, `Last-Event-ID` reconnect |
+| **Materialized query results** (read-model values) to browser | `metaengine`     | `ServeSSE[V]`       | `Watcher[V]` (Store collection)       | In-memory ring (`SSEReplay[V]`, **recent-only**) | Heartbeat keepalive, `Last-Event-ID` reconnect, drop-old backpressure, timeout                                         |
+| **Events to a server-side worker/projection** (not a browser) | `watermill`      | `CatchUpSubscriber` | `event.SeekableJournal` + live sub    | Checkpoint store (**durable**)                   | Crash-restart, routes through any broker (NATS/Kafka/Redis), ordered delivery                                          |
+
+**Rule of thumb:**
+
+- Browser needs the **event log** (audit feed, notification stream, event-sourced UI) → `transport/http.SSEBroker`.
+- Browser needs the **current read-model state** (live-updating table/dashlet built from a `metaengine.Store`) → `metaengine.ServeSSE`.
+- Server-side projection/integration that must survive crashes → `watermill.CatchUpSubscriber` + `projectionhost.Host`.
+
+**Do NOT merge the two browser-facing implementations** — `SSEBroker` replays from a durable journal (survives restart, cross-process), while `ServeSSE` replays from an in-process ring buffer (cheap, recent-only, lost on restart). See `advanced.md` §6.15–6.16 for the full comparison and code.
 
 #### Read models: Which tier?
 
-| Data shape | Query pattern | Recommended tier |
-|------------|--------------|-----------------|
-| One document per key | Get/Set by key | `kv.ViewStore[V,K]` or `stack.Materialize` |
-| Multi-table, joins, relations | SQL WHERE/ORDER BY/LIMIT | `storage.RelationalProjection` |
-| Variable-depth traversal, adjacency, paths | N-hop queries | `graph.GraphProjection` |
-| Event-folded aggregations, counters | Cost-planned queries | `metaengine` Store + `projectionadapter` |
+| Data shape                                 | Query pattern            | Recommended tier                           |
+| ------------------------------------------ | ------------------------ | ------------------------------------------ |
+| One document per key                       | Get/Set by key           | `kv.ViewStore[V,K]` or `stack.Materialize` |
+| Multi-table, joins, relations              | SQL WHERE/ORDER BY/LIMIT | `storage.RelationalProjection`             |
+| Variable-depth traversal, adjacency, paths | N-hop queries            | `graph.GraphProjection`                    |
+| Event-folded aggregations, counters        | Cost-planned queries     | `metaengine` Store + `projectionadapter`   |
 
 #### Dead-letter handling: Which layer?
 
-| Scenario | Module | Mechanism |
-|----------|--------|-----------|
-| Event projection poison messages | `projectionhost` | `WithDeadLetterStore(dlq, retries)` — per-worker retry + poison |
-| Command/event/query dispatch retry | `middleware` | `middleware.Retry` + `middleware.Recovery` |
-| Idempotent delivery dedup | `middleware` | `middleware.{Command,Event,Query}Idempotency` |
+| Scenario                           | Module           | Mechanism                                                       |
+| ---------------------------------- | ---------------- | --------------------------------------------------------------- |
+| Event projection poison messages   | `projectionhost` | `WithDeadLetterStore(dlq, retries)` — per-worker retry + poison |
+| Command/event/query dispatch retry | `middleware`     | `middleware.Retry` + `middleware.Recovery`                      |
+| Idempotent delivery dedup          | `middleware`     | `middleware.{Command,Event,Query}Idempotency`                   |
 
 #### Dedup: Which store?
 
-| Scenario | Module | Store |
-|----------|--------|-------|
-| In-process, fast, ephemeral | `idempotency` | `MemoryStore` |
-| SQL-backed, persistent | `idempotency/sqlstore` | `NewSQLiteStore` / `NewPostgresStore` |
-| KV-backed (Pebble, etc.) | `idempotency/kvstore` | `KVStore` with any `kv.Store` |
+| Scenario                    | Module                 | Store                                 |
+| --------------------------- | ---------------------- | ------------------------------------- |
+| In-process, fast, ephemeral | `idempotency`          | `MemoryStore`                         |
+| SQL-backed, persistent      | `idempotency/sqlstore` | `NewSQLiteStore` / `NewPostgresStore` |
+| KV-backed (Pebble, etc.)    | `idempotency/kvstore`  | `KVStore` with any `kv.Store`         |

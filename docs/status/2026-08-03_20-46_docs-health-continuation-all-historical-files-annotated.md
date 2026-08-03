@@ -13,13 +13,13 @@
 
 Four parallel sub-agents read every file and classified each as ANNOTATE / ARCHIVE / SKIP / LEAVE ALONE. This produced the complete plan before any file was touched.
 
-| Classification | Count | Action taken |
-|---|---|---|
-| **ANNOTATE** (resolution appendix) | ~52 | Each got `## Resolution (2026-08-03)` with per-item status |
-| **ARCHIVE** (fully resolved → `archived/`) | 11 | Moved via `git mv` after resolution notes written |
-| **SKIP** (self-documenting) | 4 | 13-57 (has UPDATE note), round-2/round-3 reviews (ARE resolution docs), 20-30 (new concurrent session) |
-| **LEAVE ALONE** | 0 | All files had actionable items worth resolving |
-| **Stale openings inline-corrected** | 7 | False "verify GREEN" claims, REAL→DOUBLE change, "needs rewrite" verdict, etc. |
+| Classification                             | Count | Action taken                                                                                           |
+| ------------------------------------------ | ----- | ------------------------------------------------------------------------------------------------------ |
+| **ANNOTATE** (resolution appendix)         | ~52   | Each got `## Resolution (2026-08-03)` with per-item status                                             |
+| **ARCHIVE** (fully resolved → `archived/`) | 11    | Moved via `git mv` after resolution notes written                                                      |
+| **SKIP** (self-documenting)                | 4     | 13-57 (has UPDATE note), round-2/round-3 reviews (ARE resolution docs), 20-30 (new concurrent session) |
+| **LEAVE ALONE**                            | 0     | All files had actionable items worth resolving                                                         |
+| **Stale openings inline-corrected**        | 7     | False "verify GREEN" claims, REAL→DOUBLE change, "needs rewrite" verdict, etc.                         |
 
 ### 2. Annotation quality (every annotation passes "so what?" test)
 
@@ -31,11 +31,11 @@ Four parallel sub-agents read every file and classified each as ANNOTATE / ARCHI
 
 ### 3. Archival (11 fully-resolved files moved to `archived/`)
 
-| Directory | Files archived |
-|---|---|
-| `docs/status/archived/` | 8 status reports (03-41, 17-29, 00-50, 03-02, 03-14, 03-34, 03-58, 07-00) |
-| `docs/planning/archived/` | 2 planning docs (15-08 quality-paydown, 19-40 data-model-refactor) |
-| `docs/feedback/reviewed/archived/` | 1 feedback file (browser-history round-2) |
+| Directory                          | Files archived                                                            |
+| ---------------------------------- | ------------------------------------------------------------------------- |
+| `docs/status/archived/`            | 8 status reports (03-41, 17-29, 00-50, 03-02, 03-14, 03-34, 03-58, 07-00) |
+| `docs/planning/archived/`          | 2 planning docs (15-08 quality-paydown, 19-40 data-model-refactor)        |
+| `docs/feedback/reviewed/archived/` | 1 feedback file (browser-history round-2)                                 |
 
 All archived files have resolution notes. All were moved via `git mv` (history preserved). Created `docs/planning/archived/` and `docs/feedback/reviewed/archived/` directories.
 
@@ -215,6 +215,7 @@ The daemon removed `retry/`, restructured `idempotency/`, replaced `command.Meta
 ### Q1: Should I fix the `stack/postgres` build break, or is the daemon mid-extraction?
 
 The daemon's `e40528d3` commit removed `storage.PostgresBus*` types (`NotificationListener`, `PostgresBusOption`, `NewPostgresBus`) but `stack/postgres/preset.go` and `pg_listener.go` still reference them. The daemon may be mid-way through an extraction (moving PostgresBus to a separate repo or deleting it entirely). If I fix the references now, I might conflict with the daemon's next commit. Should I:
+
 - (a) Fix `stack/postgres` by removing the PostgresBus references (treating the removal as intentional)?
 - (b) Wait for the daemon to finish the extraction?
 - (c) Restore `storage.PostgresBus*` types (treating the removal as premature)?
@@ -231,19 +232,19 @@ The update-old-docs skill says "restraint is success" and "the number of files y
 
 ## Session Metrics
 
-| Metric | Value |
-|---|---|
-| Files classified | 75 |
-| Files annotated (resolution appendix) | ~52 |
-| Files archived (`git mv`) | 11 |
-| Stale openings inline-corrected | 7 |
-| Feedback files reviewed | 4 annotated + 1 moved to `reviewed/` |
-| HTML files annotated | 1 (resolution table with 7 issue statuses) |
-| Broken links fixed | ~20 (inbound refs + relative links in archived files) |
-| ADR index entries added | 1 (ADR-0097) |
-| Checklist items resolved | 11 (planning/19-40) |
-| Verify gate | ADR index PASS; Build FAIL (daemon-introduced) |
-| Generic annotations ("so what?" failures) | 0 |
-| Commits this session (by daemon, auto-commit) | ~8 |
-| Unpushed commits | 3 |
-| Time elapsed | ~50 minutes |
+| Metric                                        | Value                                                 |
+| --------------------------------------------- | ----------------------------------------------------- |
+| Files classified                              | 75                                                    |
+| Files annotated (resolution appendix)         | ~52                                                   |
+| Files archived (`git mv`)                     | 11                                                    |
+| Stale openings inline-corrected               | 7                                                     |
+| Feedback files reviewed                       | 4 annotated + 1 moved to `reviewed/`                  |
+| HTML files annotated                          | 1 (resolution table with 7 issue statuses)            |
+| Broken links fixed                            | ~20 (inbound refs + relative links in archived files) |
+| ADR index entries added                       | 1 (ADR-0097)                                          |
+| Checklist items resolved                      | 11 (planning/19-40)                                   |
+| Verify gate                                   | ADR index PASS; Build FAIL (daemon-introduced)        |
+| Generic annotations ("so what?" failures)     | 0                                                     |
+| Commits this session (by daemon, auto-commit) | ~8                                                    |
+| Unpushed commits                              | 3                                                     |
+| Time elapsed                                  | ~50 minutes                                           |

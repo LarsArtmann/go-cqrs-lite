@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/jackc/pgx/v5 v5.10.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.0.0-00010101000000-000000000000
 	github.com/testcontainers/testcontainers-go v0.43.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.43.0
 )
@@ -34,7 +34,10 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/klauspost/compress v1.18.5 // indirect
+	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-error-family v0.10.0 // indirect
+	github.com/larsartmann/go-sse v0.4.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.10 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect

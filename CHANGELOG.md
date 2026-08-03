@@ -653,7 +653,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **ExplainPlan / Doctor** — replication suffix on engine lines; Doctor has a
   `--- Replication ---` section.
 - **EngineProfile.String()** — readable format: `iroh-sync: map@O(1)
-  (replication=leaderless, lag=200ms, rtt=5ms)`.
+(replication=leaderless, lag=200ms, rtt=5ms)`.
 
 #### Metaengine: Universal ADT Phase 3 (ADR-0094) — 10/10 ADTs on all engines
 
@@ -715,7 +715,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `cqrshtmx.HealthHandler` and alternative endpoints. F015 gated on
   `StoreSQLite` feature profile.
 - **Version management** — `TestVersionMatchesLatestTag` CI gate. `version
-  --verbose` shows build date + commit hash. `changelog` subcommand. `ldflags`
+--verbose` shows build date + commit hash. `changelog` subcommand. `ldflags`
   version stamping in Nix build.
 - **Config presets** — `init --preset {local-cli|library|server|full-stack}`.
   Each tailors feature profile and disabled rules for a common project type.
@@ -734,7 +734,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   from nixpkgs in a temp dir, runs all PG integration tests, cleans up. No VM,
   no Docker. Fast (~3s startup). Works on macOS.
 - **NixOS VM tests** — `nix run .#integration-pg-vm` and `nix run
-  .#integration-mysql-vm` boot QEMU VMs with `services.postgresql` /
+.#integration-mysql-vm` boot QEMU VMs with `services.postgresql` /
   `services.mariadb`. VM tests live in `nix/vm/postgres.nix` + `nix/vm/mysql.nix`.
 - **CI integration** — `nixos-vm-tests` CI job runs the VM tests. Parallelized
   PG + MySQL VM tests.

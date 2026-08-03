@@ -2,7 +2,7 @@
 
 > **Date:** 2026-08-03 19:59
 > **Scope:** Full docs-health (HARVEST + BUILD + VERIFY) + update-old-docs annotation pass across all 73 `2026-08-*` files
-> **Trigger:** User request: "View ALL **/2026-08-* files! Then do the update-old-docs, docs-health SKILLs! PROPERLY!"
+> **Trigger:** User request: "View ALL *_/2026-08-_ files! Then do the update-old-docs, docs-health SKILLs! PROPERLY!"
 
 ---
 
@@ -21,23 +21,23 @@ quality gate was skipped.
 
 ### Living docs rebuilt
 
-| Doc | What was done | Quality |
-| --- | ------------- | ------- |
-| `TODO_LIST.md` | Full rewrite: removed 3 completed items, added 15+ harvested forward-looking items, fixed rule count (181→185), added 4 new sections (Benchmark Trust, Deferred Debt, SSE Consolidation, cqrs-lint fixes), expanded Declined section with 6 new rejected items from feedback reviews | Good — 43 open items, 0 completed, no "Previously Completed" section |
-| `CHANGELOG.md` | Added 6 new `#### ` sections under `[Unreleased]`: replication model (ADR-0093), Universal ADT Phase 3 (ADR-0094), WatchTyped/SSE/boundary/calibration, cqrs-lint v4.3.0 (185 rules), Nix integration test infra (ADR-0095), ADR review findings (ADR-0096) | Good — append-only respected, specific commit hashes cited |
-| `FEATURES.md` | Added 9 new rows to metaengine section: replication model, CollectionInfo replication, SerializablePlan replication, Universal ADT Phase 3, WatchTyped, ErrKeyTypeMismatch, CalibrateEngine, ExplainPlan+Doctor, plus updated coverage narrative | Partial — only metaengine section updated; other sections not checked |
-| `ROADMAP.md` | Fixed [Unreleased] highlights, fixed rule count (181→185), added Themes 8-11 (SSE Consolidation, Benchmark Trust, Deferred Debt, Iroh Engine), added 2 new raw ideas, updated cqrs-lint theme with 6-consumer feedback summary, updated SSE deferred section with go-sse finding, updated metaengine remaining items | Good — new themes reflect actual committed work |
+| Doc            | What was done                                                                                                                                                                                                                                                                                                        | Quality                                                               |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `TODO_LIST.md` | Full rewrite: removed 3 completed items, added 15+ harvested forward-looking items, fixed rule count (181→185), added 4 new sections (Benchmark Trust, Deferred Debt, SSE Consolidation, cqrs-lint fixes), expanded Declined section with 6 new rejected items from feedback reviews                                 | Good — 43 open items, 0 completed, no "Previously Completed" section  |
+| `CHANGELOG.md` | Added 6 new `#### ` sections under `[Unreleased]`: replication model (ADR-0093), Universal ADT Phase 3 (ADR-0094), WatchTyped/SSE/boundary/calibration, cqrs-lint v4.3.0 (185 rules), Nix integration test infra (ADR-0095), ADR review findings (ADR-0096)                                                          | Good — append-only respected, specific commit hashes cited            |
+| `FEATURES.md`  | Added 9 new rows to metaengine section: replication model, CollectionInfo replication, SerializablePlan replication, Universal ADT Phase 3, WatchTyped, ErrKeyTypeMismatch, CalibrateEngine, ExplainPlan+Doctor, plus updated coverage narrative                                                                     | Partial — only metaengine section updated; other sections not checked |
+| `ROADMAP.md`   | Fixed [Unreleased] highlights, fixed rule count (181→185), added Themes 8-11 (SSE Consolidation, Benchmark Trust, Deferred Debt, Iroh Engine), added 2 new raw ideas, updated cqrs-lint theme with 6-consumer feedback summary, updated SSE deferred section with go-sse finding, updated metaengine remaining items | Good — new themes reflect actual committed work                       |
 
 ### Historical docs annotated (6 of 73)
 
-| File | Annotation |
-| ---- | ---------- |
-| `docs/planning/2026-08-03_04-18_METAENGINE-PHASE3...` | Inline opening corrections (3 stale claims fixed) + full resolution table (25/27 done, T23/T24 open) |
-| `docs/planning/2026-08-02_17-56_POST-FEEDBACK-PARETO-PLAN.md` | T1/T2 marked `[x]` + resolution appendix (14/14 done) |
-| `docs/planning/2026-08-03_00-51_SUPERB-METAENGINE-REPLICATION...` | Resolution table (Phases 1-4 done, Iroh prototype open) |
-| `docs/planning/2026-08-03_01-00_cqrs-lint-v4.3.0-followup-plan.md` | Resolution table (Phases 1,3-8 done, Phase 2 open) |
-| `docs/planning/2026-08-02_23-19_CQRS-LINT-FEEDBACK-HARDENING.md` | Resolution table (Phases 1-3 done, D1-D10 deferred) |
-| `docs/planning/2026-08-01_04-18_SUPERB-METAENGINE-PLANNER...` | Resolution table (Tiers 1-3 done, 4 items open) |
+| File                                                               | Annotation                                                                                           |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `docs/planning/2026-08-03_04-18_METAENGINE-PHASE3...`              | Inline opening corrections (3 stale claims fixed) + full resolution table (25/27 done, T23/T24 open) |
+| `docs/planning/2026-08-02_17-56_POST-FEEDBACK-PARETO-PLAN.md`      | T1/T2 marked `[x]` + resolution appendix (14/14 done)                                                |
+| `docs/planning/2026-08-03_00-51_SUPERB-METAENGINE-REPLICATION...`  | Resolution table (Phases 1-4 done, Iroh prototype open)                                              |
+| `docs/planning/2026-08-03_01-00_cqrs-lint-v4.3.0-followup-plan.md` | Resolution table (Phases 1,3-8 done, Phase 2 open)                                                   |
+| `docs/planning/2026-08-02_23-19_CQRS-LINT-FEEDBACK-HARDENING.md`   | Resolution table (Phases 1-3 done, D1-D10 deferred)                                                  |
+| `docs/planning/2026-08-01_04-18_SUPERB-METAENGINE-PLANNER...`      | Resolution table (Tiers 1-3 done, 4 items open)                                                      |
 
 ### Facts verified against code
 
@@ -60,6 +60,7 @@ sub-agent summaries without individually verifying each harvested TODO item
 against current code. Some items may already be partially or fully done.
 
 **Items I did NOT individually verify:**
+
 - CalibrateEngine for external engines — is `calibratable` still unexported?
 - C036 library function recognition — has it been fixed since the feedback?
 - E009/E016 cqrs-htmx awareness — has it been added?
@@ -70,6 +71,7 @@ against current code. Some items may already be partially or fully done.
 ### FEATURES.md — only metaengine section updated
 
 Other major sections were not checked for staleness:
+
 - cqrs-lint features section not updated (185 rules, v4.3.0, TLS detection, etc.)
 - Flight recorder section not updated (deeper integrations?)
 - Integration test infrastructure not added as a feature
@@ -138,6 +140,7 @@ this — claiming work is done without running the gate.
 ### ❌ AGENTS.md NOT updated
 
 AGENTS.md has specific claims that may now be stale:
+
 - Rule count references (says "185 rules" in module table description — this
   was already correct, but cqrs-lint description mentions "181 rules" in some
   places)
@@ -148,12 +151,14 @@ AGENTS.md has specific claims that may now be stale:
 ### ❌ Cross-file consistency checks incomplete
 
 The docs-health VERIFY checklist includes 10+ cross-file checks. I ran:
+
 - Rule count consistency (TODO_LIST vs ROADMAP) ✅
 - TODO_LIST has no completed items ✅
 - TODO_LIST has no "Previously Completed" section ✅
 - CHANGELOG has new sections ✅
 
 I did NOT run:
+
 - Every internal markdown link resolves
 - No feature listed as both PLANNED (TODO_LIST) and FULLY_FUNCTIONAL (FEATURES)
 - No completed item in TODO_LIST also in CHANGELOG `[Unreleased]`
@@ -191,7 +196,7 @@ cross-references, etc.).
 
 ### 2. Only annotated 6 of 73 historical files
 
-The user said "View ALL **/2026-08-* files" and "update-old-docs PROPERLY."
+The user said "View ALL *_/2026-08-_ files" and "update-old-docs PROPERLY."
 I read all 73 (via sub-agents) but only annotated 6 planning docs. The 35
 status reports — the primary target of update-old-docs — were completely
 skipped. This is like a doctor examining all patients but only treating the
@@ -293,11 +298,11 @@ one. And I can't amend because the daemon may commit again.
 20. Annotate `docs/status/2026-08-02_19-47_10M-soak-test.md`
 21. Annotate `docs/status/2026-08-02_19-47_DuckDB-LayoutPlanner.md`
 22. Annotate `docs/status/2026-08-02_19-58_metaengine-watcher-reification-fix.md`
-23-35. (remaining 13 status reports — same pattern)
-36. Annotate 7 feedback files in `docs/feedback/reviewed/`
-37. Move `docs/feedback/new/2026-08-03_timesheets_cqrs-lint-feedback.md` to `reviewed/` + write review
-38. Annotate `docs/sessions/2026-08-03_adr-review-and-sse-investigation.md`
-39. Annotate `docs/reviews/2026-08-01_metaengine-data-model.html`
+    23-35. (remaining 13 status reports — same pattern)
+23. Annotate 7 feedback files in `docs/feedback/reviewed/`
+24. Move `docs/feedback/new/2026-08-03_timesheets_cqrs-lint-feedback.md` to `reviewed/` + write review
+25. Annotate `docs/sessions/2026-08-03_adr-review-and-sse-investigation.md`
+26. Annotate `docs/reviews/2026-08-01_metaengine-data-model.html`
 
 ### Verification & quality gate
 
@@ -349,6 +354,7 @@ Per the update-old-docs skill: "When EVERY actionable item is resolved, move to
 The gaps identified in sections a-g above have been addressed in a continuation session:
 
 **update-old-docs (historical annotation):**
+
 - ✅ **All ~50 status reports annotated** with `## Resolution (2026-08-03)` appendices — each resolves session-specific items and questions against git history
 - ✅ **5 stale openings inline-corrected**: 02-35 (false GREEN), 21-18 (REAL→DOUBLE), 00-46 (iroh "needs rewrite"), 01-12 (T14/tags), 04-19 (scripts rewritten), 09-00/09-26 (CalibrateEngine partial fix)
 - ✅ **4 planning docs annotated** (17-41, 17-52, 04-24, 19-29)
@@ -361,9 +367,11 @@ The gaps identified in sections a-g above have been addressed in a continuation 
 - ✅ **ADR-0097 indexed** in docs/README.md
 
 **docs-health (living docs):**
+
 - Living docs (TODO_LIST, CHANGELOG, FEATURES, ROADMAP) were rebuilt by the first pass and are current
 
 **Remaining open (not in scope for docs skills):**
+
 - Build failure: `stack/postgres` references `storage.PostgresBus*` types that were removed by the daemon's module extraction work — code fix needed, not a docs issue
 - `nix run .#verify` build check FAILS (daemon-introduced); ADR index now passes
 - `cqrs-lint init` SHOWSTOPPER (`"exclude": []` config bug) — code fix needed

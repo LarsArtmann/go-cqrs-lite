@@ -363,11 +363,11 @@ graph TD
 
 ## Resolution (2026-08-03)
 
-| Item | Status | Evidence |
-| ---- | ------ | -------- |
-| Phase 1: Replication model | ✅ DONE | ADR-0093, commits `72818e88`, `f25e1d21` |
-| Phase 2: Hardening | ✅ DONE | Diagnostics, API golden, AGENTS.md shipped |
-| Phase 3: Universal ADT | ✅ DONE | ADR-0094, commit `8b41f658` |
-| T13: CalibrateRTT | ✅ DONE | commit `c45b39c8` |
-| Phase 4: Iroh evaluation | ✅ DONE | ADR-0096 |
-| Iroh prototype wrapper | Open — see TODO_LIST.md |
+| Item                       | Status                  | Evidence                                   |
+| -------------------------- | ----------------------- | ------------------------------------------ |
+| Phase 1: Replication model | ✅ DONE                 | ADR-0093, commits `72818e88`, `f25e1d21`   |
+| Phase 2: Hardening         | ✅ DONE                 | Diagnostics, API golden, AGENTS.md shipped |
+| Phase 3: Universal ADT     | ✅ DONE                 | ADR-0094, commit `8b41f658`                |
+| T13: CalibrateRTT          | ✅ DONE                 | commit `c45b39c8`                          |
+| Phase 4: Iroh evaluation   | ✅ DONE                 | ADR-0096                                   |
+| Iroh prototype wrapper     | Open — see TODO_LIST.md |

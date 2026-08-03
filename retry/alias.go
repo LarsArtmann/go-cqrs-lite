@@ -22,7 +22,11 @@ var ErrCanceled = goretry.ErrCanceled
 
 // Do executes fn with retries according to config.
 func Do(ctx context.Context, config Config, fn AttemptFunc) error {
-	return goretry.Do(ctx, config, fn) //nolint:wrapcheck // thin alias — caller sees the same errors
+	return goretry.Do(
+		ctx,
+		config,
+		fn,
+	) //nolint:wrapcheck // thin alias — caller sees the same errors
 }
 
 // Backoff computes the delay before the next attempt.

@@ -31,29 +31,29 @@ successfully end-to-end.
 The auto-commit daemon shipped 4 breaking changes during the prior session that
 left all living docs stale:
 
-| Doc | What was stale | Fix applied |
-|-----|---------------|-------------|
-| `AGENTS.md:1101` | "aliases for `event.Metadata`" | → "standalone structs (NOT aliases)" |
-| `AGENTS.md:66` | Missing ADR-0093/0094/0096 references | Added to metaengine ADR line |
-| `flake.nix:268,313` | "foundation of storage.PostgresBus" | → "foundation for any future distributed-bus" |
-| `FEATURES.md:1120` | "181 total rules" | → "185 total rules" with corrected categories |
-| `FEATURES.md:1236` | Same stale count in maturity matrix | Updated to match |
-| `FEATURES.md:1216,1219` | retry/idempotency described as local code | → "alias shim — re-exports go-retry/go-idempotency" |
-| `TODO_LIST.md:80-83` | init SHOWSTOPPER open item | Removed (fixed this session) |
-| `TODO_LIST.md:109-111` | `--adoption` flag open item | Removed (shipped by daemon) |
-| `TODO_LIST.md:112-134` | Deferred Debt section (4 items) | Removed — all done (ghost bus, metadata, retry, idempotency) |
-| `TODO_LIST.md:138-139` | "Write ADR documenting SSE three-repo finding" | Removed — ADR-0097 exists |
-| `TODO_LIST.md:196-197` | PostgresBus VM test item (M45) | Removed — PostgresBus deleted |
-| `CHANGELOG.md` | No entries for daemon's extraction work | Added Fixed/Changed/Removed entries |
+| Doc                     | What was stale                                 | Fix applied                                                  |
+| ----------------------- | ---------------------------------------------- | ------------------------------------------------------------ |
+| `AGENTS.md:1101`        | "aliases for `event.Metadata`"                 | → "standalone structs (NOT aliases)"                         |
+| `AGENTS.md:66`          | Missing ADR-0093/0094/0096 references          | Added to metaengine ADR line                                 |
+| `flake.nix:268,313`     | "foundation of storage.PostgresBus"            | → "foundation for any future distributed-bus"                |
+| `FEATURES.md:1120`      | "181 total rules"                              | → "185 total rules" with corrected categories                |
+| `FEATURES.md:1236`      | Same stale count in maturity matrix            | Updated to match                                             |
+| `FEATURES.md:1216,1219` | retry/idempotency described as local code      | → "alias shim — re-exports go-retry/go-idempotency"          |
+| `TODO_LIST.md:80-83`    | init SHOWSTOPPER open item                     | Removed (fixed this session)                                 |
+| `TODO_LIST.md:109-111`  | `--adoption` flag open item                    | Removed (shipped by daemon)                                  |
+| `TODO_LIST.md:112-134`  | Deferred Debt section (4 items)                | Removed — all done (ghost bus, metadata, retry, idempotency) |
+| `TODO_LIST.md:138-139`  | "Write ADR documenting SSE three-repo finding" | Removed — ADR-0097 exists                                    |
+| `TODO_LIST.md:196-197`  | PostgresBus VM test item (M45)                 | Removed — PostgresBus deleted                                |
+| `CHANGELOG.md`          | No entries for daemon's extraction work        | Added Fixed/Changed/Removed entries                          |
 
 ### 3. Quality gates passed
 
-| Gate | Result |
-|------|--------|
-| `nix run .#build` | GREEN (exit 0) |
-| `cmd/doc-check` | 1195 references valid across 41 packages |
-| `cmd/api-stability` | PASS (golden current) |
-| `nix run .#verify-fast` | GREEN — all modules 0 lint issues |
+| Gate                    | Result                                   |
+| ----------------------- | ---------------------------------------- |
+| `nix run .#build`       | GREEN (exit 0)                           |
+| `cmd/doc-check`         | 1195 references valid across 41 packages |
+| `cmd/api-stability`     | PASS (golden current)                    |
+| `nix run .#verify-fast` | GREEN — all modules 0 lint issues        |
 
 ### 4. Build break already fixed by daemon
 

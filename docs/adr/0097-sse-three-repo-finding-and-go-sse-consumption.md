@@ -39,6 +39,7 @@ During the 2026-08-03 ADR review, a three-repo investigation revealed:
 
 Both implementations duplicate the same ~100 LOC of SSE wire-format code that
 `go-sse.Stream` already provides:
+
 - `Content-Type: text/event-stream` header
 - `Cache-Control: no-cache` header
 - `Connection: keep-alive` header
@@ -50,12 +51,12 @@ Both implementations duplicate the same ~100 LOC of SSE wire-format code that
 
 ADR-0091's rejection of a shared SSE utility was based on two premises:
 
-1. *"The shared code is trivial Go stdlib"* — True for the wire format, but
+1. _"The shared code is trivial Go stdlib"_ — True for the wire format, but
    `go-sse.Broadcaster[T]` provides non-trivial fan-out logic (subscriber
    lifecycle, non-blocking send, graceful close) that both implementations
    hand-roll independently.
 
-2. *"Extracting it adds coupling without meaningful deduplication"* — The
+2. _"Extracting it adds coupling without meaningful deduplication"_ — The
    coupling already exists: both implementations depend on the same SSE
    wire format and fan-out semantics. `go-sse` as an external dependency adds
    zero internal coupling (it's not a go-cqrs-lite module).

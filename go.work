@@ -2,6 +2,8 @@ go 1.26.5
 
 use (
 	.
+	../go-idempotency
+	../go-retry
 	./benchkit
 	./catalog
 	./cmd/api-stability
@@ -27,7 +29,6 @@ use (
 	./idempotency
 	./idempotency/kvstore
 	./idempotency/sqlstore
-	../go-idempotency
 	./integration
 	./kv
 	./listing
@@ -44,7 +45,6 @@ use (
 	./prometheus
 	./query
 	./retry
-	../go-retry
 	./scenario
 	./scheduling
 	./schema

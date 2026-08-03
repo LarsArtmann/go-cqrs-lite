@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/cockroachdb/pebble v1.1.5
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.0.0-00010101000000-000000000000
 	github.com/onsi/gomega v1.42.1
 )
 
@@ -24,7 +24,10 @@ require (
 	github.com/klauspost/compress v1.19.1 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-error-family v0.10.0 // indirect
+	github.com/larsartmann/go-sse v0.4.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.24.1 // indirect

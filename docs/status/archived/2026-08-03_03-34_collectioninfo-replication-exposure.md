@@ -10,11 +10,11 @@
 
 ### P0: ADR-0093 Index (was blocking the verify gate)
 
-| #    | Task                               | File(s)                  | Evidence                                                                                                                   |
-| ---- | ---------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| #    | Task                               | File(s)                  | Evidence                                                                                                                         |
+| ---- | ---------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
 | P0-1 | ADR-0093 added to ADR index table  | `docs/README.md`         | Row added: `\| [0093](../../adr/0093-metaengine-replication-model.md) \| Metaengine replication model (DDIA Ch5) \| Accepted \|` |
-| P0-2 | ADR count bumped 89 → 90           | `docs/README.md`         | Header now says "90 ADRs"                                                                                                  |
-| P0-3 | ADR index completeness gate passes | `scripts/verify-docs.sh` | `OK: all 91 ADRs indexed in docs/README.md` (91 files = 91 indexed — includes 0092 which was already there)                |
+| P0-2 | ADR count bumped 89 → 90           | `docs/README.md`         | Header now says "90 ADRs"                                                                                                        |
+| P0-3 | ADR index completeness gate passes | `scripts/verify-docs.sh` | `OK: all 91 ADRs indexed in docs/README.md` (91 files = 91 indexed — includes 0092 which was already there)                      |
 
 ### P2: CollectionInfo Replication Exposure (report items 4, 5)
 
