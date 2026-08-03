@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0

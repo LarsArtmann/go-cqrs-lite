@@ -91,11 +91,11 @@
     "go-finding": {
       "flake": false,
       "locked": {
-        "lastModified": 1785623506,
-        "narHash": "sha256-L411duGRlN7bSH5qV8zw+C9+wESxYl383SyBA6gLhCw=",
+        "lastModified": 1785742664,
+        "narHash": "sha256-hCwyLtxejUCh96FIv/JuREJ0jBfZAfis+CCpd5HYVEc=",
         "owner": "LarsArtmann",
         "repo": "go-finding",
-        "rev": "a8256fbda7126ae57a785013917ec70f51688b42",
+        "rev": "d94ce11f1e7f33aca5619287a59f3895540f2a6e",
         "type": "github"
       },
       "original": {
@@ -125,11 +125,11 @@
     "go-nix-helpers": {
       "flake": false,
       "locked": {
-        "lastModified": 1785725663,
-        "narHash": "sha256-NIrFintgkeCWXQEYQThv7WlZlpBbtIWbcFfs8wknWy8=",
+        "lastModified": 1785743198,
+        "narHash": "sha256-cRW/a5j2gXorDw7xOyzwdm1Z56xo+/JyOFl6SmgVy+w=",
         "owner": "LarsArtmann",
         "repo": "go-nix-helpers",
-        "rev": "4155195127a8c1f8e075e65daf753992570ed01b",
+        "rev": "064a269eecb548c64bbd8bd3627f99a13db952bb",
         "type": "github"
       },
       "original": {
@@ -175,11 +175,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1785571196,
-        "narHash": "sha256-KoTsyMQqnXQZq8deCEnu4QkyldkwH/bpMMhUcfMdGIw=",
+        "lastModified": 1785692966,
+        "narHash": "sha256-vUfIeBEfpbAfZ5zjgIkYk7eHBeVfCYVjLbWnMkseYnk=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "148bab9c1c3c53136ecb44a6ea356a0ed5b39b06",
+        "rev": "643809054d65fdd466a63e3155b8c498cb483c04",
         "type": "github"
       },
       "original": {
