@@ -64,11 +64,13 @@
 ## F) Next Tasks (Priority Order)
 
 ### Immediate (P1)
+
 1. **M05** — Test vm-mysql.sh E2E (driver built, just needs running)
 2. **M02** — Push all commits
 3. **Fix vm-pg.sh argument handling** — Strip leading `-run` from args
 
 ### P2 — Production Hardening
+
 4. **M09** — Write ADR-0094 (Nix-based integration testing)
 5. **M10** — Add KVM detection to VM scripts
 6. **M11** — Add ephemeral PG fast path to CI
@@ -77,6 +79,7 @@
 9. **M14** — Investigate systemd-nspawn
 
 ### P3 — Documentation
+
 10. **M15** — Update CONTRIBUTING.md
 11. **M16** — Add docs/testing-guide.md
 12. **M17** — Update FEATURES.md
@@ -85,6 +88,7 @@
 15. **M20** — Add example outputs
 
 ### P3 — Quality Hardening
+
 16. **M21** — Verify pipefail on scripts
 17. **M22** — Shellcheck linting
 18. **M23** — Error handling for nix build
@@ -100,6 +104,7 @@
 28. **M33** — CI badge
 
 ### P4 — Future
+
 29–48. All future coverage tasks (DuckDB VM, SQLite WAL VM, Turso VM, Go tests in VM, Pebble VM, projectionhost crash-restart, scheduling timers, PostgresBus in VM, contract suite, Redis/NATS, test-integration.sh)
 
 ---

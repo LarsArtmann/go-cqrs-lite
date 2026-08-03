@@ -44,6 +44,7 @@
 ## B) PARTIALLY DONE
 
 ### T6: Wire metaengine dead code — **INCOMPLETE**
+
 The `Valid()` calls and `ApplyError` wrapping are done. BUT `CalibrateEngine` in `metaengine/reliability.go:48-53` has a **copy-discard bug**:
 
 ```go
@@ -78,24 +79,31 @@ The fields ARE read downstream (`engine.go:69-70`, `engine.go:79-80` via `ReadCo
 ## D) TOTALLY FUCKED UP
 
 ### 1. Trusted the briefing's claimed failure mode
+
 The briefing said "3 duplication clone groups block GREEN." The ACTUAL blocker was ADR-0095 not being indexed in `docs/README.md`. I only discovered this because I ran the verify gate. I should have been more skeptical of the briefing's diagnosis — it was one session old and the daemon had changed things.
 
 **Lesson:** The briefing describes a SNAPSHOT of state that may already be stale. Always verify the claimed problem exists before investigating its cause.
 
 ### 2. Forgot to update the prior status report
+
 Both the briefing AND my own 07-00 report listed "Update `docs/status/2026-08-03_01-12_post-feedback-pareto-execution.md`" as a remaining step. I simply forgot. I updated the 07-00 report but not the 01-12 report.
 
 ### 3. Marked T6-T14 as done without deep verification
+
 I grepped for patterns ("does `Valid()` exist in planner.go?", "does `AutoFix` appear in catalog_extra.go?") but didn't actually verify the functionality works. Case in point: T6 is marked `[x]` but `CalibrateEngine` has a real bug that makes the NsPerRead/NsPerWrite wiring non-functional. The `Valid()` calls work, the `ApplyError` works, but the calibration is dead code.
 
 ### 4. Didn't check T1-T5 status
+
 T1-T5 are CRITICAL priority in the Pareto plan. I marked T6-T14 but left T1-T5 unchecked. Worse:
+
 - **T1** (push commits): 24 commits unpushed — CRITICAL
 - **T3-T5** (push tags): I assumed they were still blocked, but the tags ARE on origin already (`git ls-remote --tags origin` confirms all 3 exist). So T3-T5 are actually DONE but marked `[BLOCKED]`. The TODO_LIST.md line about unpushed tags is also stale.
 - **T2** (TODO_LIST update): never done
 
 ### 5. Ignored 38+ gopls diagnostics
+
 The verify gate doesn't run gopls, so these don't block GREEN. But several represent real issues:
+
 - `reliability.go:52-54`: Dead writes to `NsPerOp`/`NsPerRead`/`NsPerWrite` (real bug — see section B)
 - `layout_type.go:37`: `layoutComplexity` unused (has `nolint:unused` for "planned future")
 - `property_test.go:12`: `op` type unused (test infrastructure that was superseded)
@@ -124,6 +132,7 @@ The verify gate doesn't run gopls, so these don't block GREEN. But several repre
 ## F) THINGS TO GET DONE NEXT (up to 50)
 
 ### Critical — blocks visibility and correctness
+
 1. **Push 24 unpushed commits to origin** — `git push origin master` (needs user approval)
 2. **Fix `CalibrateEngine` copy-discard bug** in `metaengine/reliability.go:48-53` — return modified profile or use pointer
 3. **Update TODO_LIST.md** — mark B022, P012/P013, config-disable, suppression-parser, S006 as done (T2)
@@ -131,17 +140,20 @@ The verify gate doesn't run gopls, so these don't block GREEN. But several repre
 5. **Mark T3-T5 as `[x]` in the Pareto plan** — tags are confirmed on origin via `git ls-remote`
 
 ### Correctness — real bugs found this session
+
 6. **Write a test for `CalibrateEngine`** — verify that calibrated values actually take effect (currently they don't)
 7. **Remove unused `op` type** in `metaengine/property_test.go:12` — dead test infrastructure
 8. **Decide on `layoutComplexity`** in `metaengine/layout_type.go:37` — wire it or delete it (currently `nolint:unused`)
 9. **Decide on `txStmtCache.close()`** in `metaengine/transaction.go:67` — wire it or delete it (currently `nolint:unused`)
 
 ### Modernization — gopls hints
+
 10. **Modernize `context.WithCancel` → `t.Context()`** in `metaengine/features4_test.go:137,501`
 11. **Remove unnecessary type arguments** in `metaengine/features4_test.go:1016,1045`
 12. **Review all 38+ gopls diagnostics** — categorize as real bugs vs. intentional vs. cosmetic
 
 ### Documentation
+
 13. **Update `docs/status/2026-08-03_01-12_post-feedback-pareto-execution.md`** to reflect T14 completion
 14. **Update the Pareto plan step table (S1-S30)** — currently all still `[ ]`
 15. **Add a pre-commit check for ADR index completeness** — prevent the daemon from shipping unindexed ADRs
@@ -149,12 +161,14 @@ The verify gate doesn't run gopls, so these don't block GREEN. But several repre
 17. **Update CHANGELOG** — verify T6-T14 work is documented in the `[Unreleased]` section
 
 ### cqrs-lint
+
 18. **Add suppression-path tests for F009/F015/F017** — test the gating when `!HasServer`, `!HasAsyncBus`
 19. **Add `HasAsyncBus` to `FeatureProfile.String()`** — missing from doctor output
 20. **Add D007 auto-fix integration test** — verify the fix pipeline applies replacements
 21. **Self-lint cqrs-lint** — run cqrs-lint on its own source
 
 ### Metaengine
+
 22. **Add SSE reconnection tests** with `SSEReplay[V]` ring buffer
 23. **Add cursor-encoded prefetch tests** — `WithCursorString` parsing + key matching
 24. **Add materialize-vs-replay integration test** — `ShouldMaterialize` with real workload stats
@@ -162,12 +176,14 @@ The verify gate doesn't run gopls, so these don't block GREEN. But several repre
 26. **Add `VectorExecuteTyped`/`SearchExecuteTyped`/`SpatialExecuteTyped` tests** (ADR-0085 ADTs)
 
 ### Testing
+
 27. **Run `-race -count=3` on MySQL testcontainer test** — verify T8 fix holds under race detection
 28. **Run `-race -count=3` on idempotency/sqlstore TTL test** — verify T13 fix is stable
 29. **Run `nix run .#check-coverage`** — verify no coverage drift
 30. **Add CI soak test** for the 10M event scenario
 
 ### DevOps
+
 31. **Run `nix flake check`** — verify flake health
 32. **Verify CI workflow matches local verify gate** — ci.yml vs nix verify
 33. **Add a `go build ./...` pre-commit hook** — prevent broken-code commits
@@ -175,6 +191,7 @@ The verify gate doesn't run gopls, so these don't block GREEN. But several repre
 35. **Add `nix run .#check-duplication` to the PR review checklist**
 
 ### Architecture
+
 36. **Review whether `HasAsyncBus` should detect NATS/Redis/Kafka** directly (not just Watermill)
 37. **Consider `HasDispatch` as a separate flag** from `CommandFlow == CommandFlowCommands`
 38. **Evaluate F015's Store exclusion** (SQLite/Memory/Pebble) — Postgres is the main beneficiary
@@ -182,6 +199,7 @@ The verify gate doesn't run gopls, so these don't block GREEN. But several repre
 40. **Review seven-tier model accuracy** — metaengine is Tier 0 by deps but Tier 3 conceptually
 
 ### Polish
+
 41. **Clean up `docs/status/` directory** — 400+ files, many stale
 42. **Review all `//nolint` directives** — some may be stale after refactoring
 43. **Standardize error wrapping helper names** — `wrapXOrOK` vs `wrapX` inconsistency
@@ -198,10 +216,13 @@ The verify gate doesn't run gopls, so these don't block GREEN. But several repre
 ## G) QUESTIONS (that I CANNOT figure out myself)
 
 ### 1. Should I push the 24 unpushed commits now?
+
 24 commits from multiple sessions are invisible to origin. This is the single highest-risk item — a CI failure or fresh clone loses everything. But the safety rule says never push without explicit approval. Do you want me to push, or will you review first?
 
 ### 2. Should I fix the `CalibrateEngine` copy-discard bug right now?
+
 The function measures timings but throws them away because it writes to a value-copy of `EngineProfile`. Fix options: (a) return the modified profile, (b) make `Profile()` return `*EngineProfile`, (c) add a `SetProfile` method, (d) delete the function (YAGNI if nobody calls it). Which approach do you prefer?
 
 ### 3. Is the auto-commit daemon still actively running?
+
 Between the prior session and this one, the daemon created ADRs 0093-0095, rewrote `universal_adt_test.go`, resolved 3 duplication clones, and pushed 3 tags. If it's still running, it will commit this report and the Pareto plan update automatically. Should I be aware of any pending daemon work that might conflict?

@@ -25,12 +25,12 @@
 
 ### T14-T18: Replication Polish (implemented, tested, verified)
 
-| Task | What | Files | Tests |
-|------|------|-------|-------|
-| T14-T15 | `WithReplication(r)` / `WithNetworkRTT(rtt)` plan options for "what-if" cost estimation | `planner.go` (planConfig fields + planOption funcs + planQuery override wiring) | 2 tests |
-| T16 | `SerializableQuery` gains `Replication`, `ReplicationLagMs`, `NetworkRTTMs` fields; `Serialize()` populates them via engine lookup | `serializable.go` | 2 tests |
-| T17 | `Store.ReplicationMode(queryName)` accessor — returns topology for a single query | `store.go` (new `lookupQuery` helper extracted to avoid clone) | 3 tests |
-| T18 | `mapUpdateReplicationRule` — WARN diagnostic when Map ADT with update folds routes to a replicated engine with non-zero lag | `rule_mapupdate_warn.go` (new), `rules.go` (registered) | 5 tests |
+| Task    | What                                                                                                                               | Files                                                                           | Tests   |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ------- |
+| T14-T15 | `WithReplication(r)` / `WithNetworkRTT(rtt)` plan options for "what-if" cost estimation                                            | `planner.go` (planConfig fields + planOption funcs + planQuery override wiring) | 2 tests |
+| T16     | `SerializableQuery` gains `Replication`, `ReplicationLagMs`, `NetworkRTTMs` fields; `Serialize()` populates them via engine lookup | `serializable.go`                                                               | 2 tests |
+| T17     | `Store.ReplicationMode(queryName)` accessor — returns topology for a single query                                                  | `store.go` (new `lookupQuery` helper extracted to avoid clone)                  | 3 tests |
+| T18     | `mapUpdateReplicationRule` — WARN diagnostic when Map ADT with update folds routes to a replicated engine with non-zero lag        | `rule_mapupdate_warn.go` (new), `rules.go` (registered)                         | 5 tests |
 
 **14 new tests** in `replication_polish_test.go`, all pass. Total metaengine coverage: 77.3% (+1.0% from baseline 76.3%).
 
@@ -47,6 +47,7 @@
 ### Tag `metaengine/v4.4.0` — STALE (does NOT include T14-T18)
 
 The v4.4.0 tag was cut at commit `ad9bcd6f` (07:35), which was AFTER the Universal ADT work but BEFORE the T14-T18 replication polish. There are **8 commits after the tag** including:
+
 - `f25e1d21 feat(metaengine): add replication configuration options and polish tests` ← T14-T18
 - `2512ea3a test(metaengine): relax memory bound threshold in TestSoak_MemoryBounded`
 - `9cb003d2 refactor(metaengine): extract shared query lookup into lookupQuery helper`
@@ -65,17 +66,17 @@ The v4.4.0 tag was cut at commit `ad9bcd6f` (07:35), which was AFTER the Univers
 
 ### T19-T27 from the Pareto Plan
 
-| Task | Description | Status |
-|------|-------------|--------|
-| T19 | Soak test improvements (memory-bounded stress test with eviction) | Not started (threshold was band-aided instead) |
-| T20 | Watcher typed-channel (`WatchTyped[V]()` on Store) | Not started |
-| T21 | SSE reconnect test for metaengine Watcher | Not started |
-| T22 | Boundary key handling in range scans | Not started |
-| T23 | Postgres GIN index for JSONB pushdown | Not started |
-| T24 | DuckDB LayoutPlanner column extraction improvements | Not started |
-| T25 | Iroh bridge evaluation (distributed engine proof-of-concept) | Not started |
-| T26 | gopls phantom error cleanup | Not started (10 gopls hints/warnings remain in cqrs-lint) |
-| T27 | cqrs-lint validation rules for metaengine patterns | Not started |
+| Task | Description                                                       | Status                                                    |
+| ---- | ----------------------------------------------------------------- | --------------------------------------------------------- |
+| T19  | Soak test improvements (memory-bounded stress test with eviction) | Not started (threshold was band-aided instead)            |
+| T20  | Watcher typed-channel (`WatchTyped[V]()` on Store)                | Not started                                               |
+| T21  | SSE reconnect test for metaengine Watcher                         | Not started                                               |
+| T22  | Boundary key handling in range scans                              | Not started                                               |
+| T23  | Postgres GIN index for JSONB pushdown                             | Not started                                               |
+| T24  | DuckDB LayoutPlanner column extraction improvements               | Not started                                               |
+| T25  | Iroh bridge evaluation (distributed engine proof-of-concept)      | Not started                                               |
+| T26  | gopls phantom error cleanup                                       | Not started (10 gopls hints/warnings remain in cqrs-lint) |
+| T27  | cqrs-lint validation rules for metaengine patterns                | Not started                                               |
 
 ---
 
@@ -212,6 +213,7 @@ I spent significant time fixing 3 code duplication clones in cqrs-lint that were
 ### 1. Should I cut `metaengine/v4.5.0` now, or rebase T14-T18 into the v4.4.0 tag?
 
 v4.4.0 is already pushed and does NOT include T14-T18. Options:
+
 - **(a) Cut v4.5.0** — clean, forward-looking. v4.4.0 stays as "Universal ADT only." But v4.4.0 was never meaningful to consumers (it was cut mid-stream).
 - **(b) Delete v4.4.0 and re-tag** — rewrites tag history. Dangerous if anyone already depends on v4.4.0. But v4.4.0 was only pushed this session.
 - **(c) Force-move v4.4.0 to HEAD** — `git tag -f metaengine/v4.4.0 HEAD`. Simplest but rewrites a published tag.
@@ -219,6 +221,7 @@ v4.4.0 is already pushed and does NOT include T14-T18. Options:
 ### 2. BFG history rewrite for nixos.qcow2 — worth the disruption?
 
 The 50MB blob is in 2-3 commits. BFG would clean it but requires:
+
 - All contributors to re-clone
 - Force-push to origin
 - Coordinate with any open PRs
@@ -228,6 +231,7 @@ Is this worth it for 50MB? The repo is probably 100-200MB total. Or should we ju
 ### 3. Should the soak test threshold bump (10→12MB) be reverted and investigated?
 
 I band-aided a real test failure by widening the threshold. The heap grew to 10.24MB for 100 keys — is that expected? Should I:
+
 - **(a) Revert to 10MB and investigate the root cause** — might find a real memory issue
 - **(b) Keep 12MB and document it as GC-noise-sensitive** — accept the band-aid
 - **(c) Rewrite the soak test to be GC-insensitive** — use `runtime.GC()` + multiple samples + median

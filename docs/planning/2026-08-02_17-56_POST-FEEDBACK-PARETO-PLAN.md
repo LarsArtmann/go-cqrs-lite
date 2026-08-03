@@ -88,22 +88,22 @@ These are almost free actions with massive downstream value:
 
 Sorted by importance/impact/effort/customer-value.
 
-| #   | Task                                                                                                                | Impact   | Effort | Customer Value                                         | Status      |
-| --- | ------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------------ | ----------- |
-| T1  | **Push 4 unpushed commits to origin**                                                                               | Critical | 2min   | Immediate — work becomes visible                       | `[ ]`       |
-| T2  | **Update TODO_LIST.md** — mark B022, P012/P013, config-disable, suppression-parser, S006 as done                    | Critical | 15min  | Prevents confusion in every future session             | `[ ]`       |
-| T3  | **Tag `stack/duckdb/v4.0.0`** + push tag                                                                            | Critical | 5min   | Consumers resolving this module get 404 without it     | `[x]`       |
-| T4  | **Tag `metaengine/pgengine/v4.0.0`** + push tag                                                                     | Critical | 5min   | Same — consumers get 404                               | `[x]`       |
-| T5  | **Tag `metaengine/duckdbengine/v4.0.0`** + push tag                                                                 | Critical | 5min   | Same — consumers get 404                               | `[x]`       |
-| T6  | **Wire metaengine dead code** — branded unit types (`NsPerRead`, `NsPerWrite`, `ByteSize`), `ApplyError`, `Valid()` | High     | 45min  | Completes the data model refactor; removes dead code   | `[x]`       |
-| T7  | **Exhaustiveness guard test** — compile-time fold type coverage                                                     | High     | 30min  | Prevents silent fallthrough bugs forever               | `[x]`       |
-| T8  | **MySQL testcontainer privilege fix**                                                                               | Medium   | 45min  | Reliable MySQL CI                                      | `[x]`       |
-| T9  | **C037 scope expansion** — kv, command, query, stack.Materialize                                                    | Medium   | 60min  | Closes codec-mismatch gap for 4 more stores            | `[x]`       |
-| T10 | **SSE consolidation ADR**                                                                                           | Medium   | 30min  | Documents intentional split, prevents future confusion | `[x]`       |
-| T11 | **D007 `--fix` support**                                                                                            | Medium   | 90min  | Saves 30min per consumer migration                     | `[x]`       |
-| T12 | **Investigate `TestRun_Postgres_Recovery`** flake                                                                   | Medium   | 30min  | Restores benchkit CI trust                             | `[x]`       |
-| T13 | **Investigate `TestProperty_SQLiteTTLExpiry`** flake                                                                | Medium   | 30min  | Restores idempotency CI trust                          | `[x]`       |
-| T14 | **F009/F015/F017 feature-profile gating**                                                                           | Medium   | 90min  | Eliminates 3 FPs on CLI projects                       | `[x]`       |
+| #   | Task                                                                                                                | Impact   | Effort | Customer Value                                         | Status |
+| --- | ------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------------ | ------ |
+| T1  | **Push 4 unpushed commits to origin**                                                                               | Critical | 2min   | Immediate — work becomes visible                       | `[ ]`  |
+| T2  | **Update TODO_LIST.md** — mark B022, P012/P013, config-disable, suppression-parser, S006 as done                    | Critical | 15min  | Prevents confusion in every future session             | `[ ]`  |
+| T3  | **Tag `stack/duckdb/v4.0.0`** + push tag                                                                            | Critical | 5min   | Consumers resolving this module get 404 without it     | `[x]`  |
+| T4  | **Tag `metaengine/pgengine/v4.0.0`** + push tag                                                                     | Critical | 5min   | Same — consumers get 404                               | `[x]`  |
+| T5  | **Tag `metaengine/duckdbengine/v4.0.0`** + push tag                                                                 | Critical | 5min   | Same — consumers get 404                               | `[x]`  |
+| T6  | **Wire metaengine dead code** — branded unit types (`NsPerRead`, `NsPerWrite`, `ByteSize`), `ApplyError`, `Valid()` | High     | 45min  | Completes the data model refactor; removes dead code   | `[x]`  |
+| T7  | **Exhaustiveness guard test** — compile-time fold type coverage                                                     | High     | 30min  | Prevents silent fallthrough bugs forever               | `[x]`  |
+| T8  | **MySQL testcontainer privilege fix**                                                                               | Medium   | 45min  | Reliable MySQL CI                                      | `[x]`  |
+| T9  | **C037 scope expansion** — kv, command, query, stack.Materialize                                                    | Medium   | 60min  | Closes codec-mismatch gap for 4 more stores            | `[x]`  |
+| T10 | **SSE consolidation ADR**                                                                                           | Medium   | 30min  | Documents intentional split, prevents future confusion | `[x]`  |
+| T11 | **D007 `--fix` support**                                                                                            | Medium   | 90min  | Saves 30min per consumer migration                     | `[x]`  |
+| T12 | **Investigate `TestRun_Postgres_Recovery`** flake                                                                   | Medium   | 30min  | Restores benchkit CI trust                             | `[x]`  |
+| T13 | **Investigate `TestProperty_SQLiteTTLExpiry`** flake                                                                | Medium   | 30min  | Restores idempotency CI trust                          | `[x]`  |
+| T14 | **F009/F015/F017 feature-profile gating**                                                                           | Medium   | 90min  | Eliminates 3 FPs on CLI projects                       | `[x]`  |
 
 ---
 

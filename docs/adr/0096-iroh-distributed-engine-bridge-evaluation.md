@@ -29,23 +29,24 @@ recommended bridge approach.
 
 ### Iroh Go Binding Availability (as of 2026-08-03)
 
-| Source | Status | Platforms | Notes |
-| ------ | ------ | --------- | ----- |
-| Official Rust crate (`iroh`) | v0.97.0 | All | Described as "stabilized 1.0 surface" despite 0.x version |
-| Official Python/Swift/Kotlin/JS | Official | All | Via `iroh-ffi` (uniffi) |
-| Official C bindings (`iroh-c-ffi`) | Official | Linux x86_64, macOS arm64, Windows x86_64 | Raw C API via `safer-ffi`; no prebuilt binaries (must `cargo build`) |
-| Go (`decentral1se/iroh-go`) | Community, experimental | Linux x86_64 + aarch64 (musl) | Not built by n0; may lag behind releases |
-| `n0-computer/iroh-ffi/iroh-go` (pkg.go.dev) | **Abandoned** | — | Legacy v0.12.0 from pre-1.0 era; directory removed from `iroh-ffi` repo |
+| Source                                      | Status                  | Platforms                                 | Notes                                                                   |
+| ------------------------------------------- | ----------------------- | ----------------------------------------- | ----------------------------------------------------------------------- |
+| Official Rust crate (`iroh`)                | v0.97.0                 | All                                       | Described as "stabilized 1.0 surface" despite 0.x version               |
+| Official Python/Swift/Kotlin/JS             | Official                | All                                       | Via `iroh-ffi` (uniffi)                                                 |
+| Official C bindings (`iroh-c-ffi`)          | Official                | Linux x86_64, macOS arm64, Windows x86_64 | Raw C API via `safer-ffi`; no prebuilt binaries (must `cargo build`)    |
+| Go (`decentral1se/iroh-go`)                 | Community, experimental | Linux x86_64 + aarch64 (musl)             | Not built by n0; may lag behind releases                                |
+| `n0-computer/iroh-ffi/iroh-go` (pkg.go.dev) | **Abandoned**           | —                                         | Legacy v0.12.0 from pre-1.0 era; directory removed from `iroh-ffi` repo |
 
 ### Critical Gap: `iroh-docs` Not in C FFI
 
 The design doc's entire Level 2 architecture depends on `iroh-docs` (the CRDT
-key-value store). However, `iroh-ffi` explicitly states: *"higher-level
+key-value store). However, `iroh-ffi` explicitly states: _"higher-level
 protocols not yet at 1.0 (`iroh-blobs`, `iroh-docs`, `iroh-gossip`) are out of
-scope."* The `iroh-c-ffi` covers only the networking layer (endpoints,
+scope."_ The `iroh-c-ffi` covers only the networking layer (endpoints,
 connections, tickets, relays) — not `iroh-docs`.
 
 This means:
+
 - **CGo FFI over `iroh-c-ffi`**: Can access QUIC networking, NAT traversal,
   and blob transfer — but NOT the CRDT document store that the design requires.
 - **CGo FFI over raw Rust crate**: Would require building a custom C shim over
@@ -100,6 +101,7 @@ distributed := irohengine.Replicated(
 - **Planner** is unchanged — it picks the local engine; replication is transparent
 
 This is architecturally superior to Level 1 (Iroh as direct engine) because:
+
 1. Full query power retained (SQLite pushdown, DuckDB vectorization, Pebble point reads)
 2. No new EngineProfile to teach the planner about
 3. CRDT-safe operations replicate automatically; non-CRDT operations (MapUpdate)

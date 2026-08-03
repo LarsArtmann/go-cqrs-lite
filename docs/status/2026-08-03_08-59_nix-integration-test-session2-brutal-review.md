@@ -113,93 +113,93 @@
 
 ### Critical (must do before claiming session GREEN)
 
-| # | Task | Effort | Why |
-|---|------|--------|-----|
-| 1 | Run `nix run .#verify-fast` after ALL session changes | 5min | Stale GREEN anti-pattern — MUST verify |
-| 2 | Run `cd cmd/doc-check && GOWORK=off go run . ../../CONTRIBUTING.md` | 1min | Verify doc import paths |
-| 3 | Investigate uncommitted `metaengine/dx.go` (28 lines) | 5min | Unknown change in working tree |
-| 4 | Fix stale ADR-0094 → ADR-0095 references in plan document | 5min | 3 occurrences in planning doc |
-| 5 | Update AGENTS.md Quick Reference with `integration-all` + `verify-integration` apps | 3min | Canonical app list is stale |
-| 6 | Verify `nix run .#integration-pg -- -short` still works after script changes | 5min | Modified ephemeral-pg.sh, never re-tested |
+| #   | Task                                                                                | Effort | Why                                       |
+| --- | ----------------------------------------------------------------------------------- | ------ | ----------------------------------------- |
+| 1   | Run `nix run .#verify-fast` after ALL session changes                               | 5min   | Stale GREEN anti-pattern — MUST verify    |
+| 2   | Run `cd cmd/doc-check && GOWORK=off go run . ../../CONTRIBUTING.md`                 | 1min   | Verify doc import paths                   |
+| 3   | Investigate uncommitted `metaengine/dx.go` (28 lines)                               | 5min   | Unknown change in working tree            |
+| 4   | Fix stale ADR-0094 → ADR-0095 references in plan document                           | 5min   | 3 occurrences in planning doc             |
+| 5   | Update AGENTS.md Quick Reference with `integration-all` + `verify-integration` apps | 3min   | Canonical app list is stale               |
+| 6   | Verify `nix run .#integration-pg -- -short` still works after script changes        | 5min   | Modified ephemeral-pg.sh, never re-tested |
 
 ### High Value
 
-| # | Task | Effort | Why |
-|---|------|--------|-----|
-| 7 | Verify api-stability golden is current | 3min | Added flake apps, may affect exports |
-| 8 | Run `nix build .#pg-vm --no-link` and `.#mysql-vm --no-link` | 5min | Verify standalone packages still build |
-| 9 | Push all commits (24 ahead) | 1min | Unpushed work = lost work |
-| 10 | Remove redundant `docs/status/2026-08-03_09-00_*` status report | 1min | Duplicate of this one |
+| #   | Task                                                            | Effort | Why                                    |
+| --- | --------------------------------------------------------------- | ------ | -------------------------------------- |
+| 7   | Verify api-stability golden is current                          | 3min   | Added flake apps, may affect exports   |
+| 8   | Run `nix build .#pg-vm --no-link` and `.#mysql-vm --no-link`    | 5min   | Verify standalone packages still build |
+| 9   | Push all commits (24 ahead)                                     | 1min   | Unpushed work = lost work              |
+| 10  | Remove redundant `docs/status/2026-08-03_09-00_*` status report | 1min   | Duplicate of this one                  |
 
 ### Medium Value — Script Hardening
 
-| # | Task | Effort | Why |
-|---|------|--------|-----|
-| 11 | M22: Install `shellcheck` via nix-shell and lint all scripts | 10min | Catch quoting/word-splitting bugs |
-| 12 | M23: Add `nix build` failure trap to VM scripts | 8min | Clearer error messages |
-| 13 | M24: Add `timeout 300` to ephemeral-pg.sh test block | 5min | Prevent hanging |
-| 14 | M26: Add `--keep-alive` flag to VM scripts | 10min | Interactive debugging |
-| 15 | M28: Add connection retry with backoff | 10min | More robust than 1s polling |
-| 16 | M29: Add `SELECT 1` health check before tests | 8min | Fail fast on connection issues |
+| #   | Task                                                         | Effort | Why                               |
+| --- | ------------------------------------------------------------ | ------ | --------------------------------- |
+| 11  | M22: Install `shellcheck` via nix-shell and lint all scripts | 10min  | Catch quoting/word-splitting bugs |
+| 12  | M23: Add `nix build` failure trap to VM scripts              | 8min   | Clearer error messages            |
+| 13  | M24: Add `timeout 300` to ephemeral-pg.sh test block         | 5min   | Prevent hanging                   |
+| 14  | M26: Add `--keep-alive` flag to VM scripts                   | 10min  | Interactive debugging             |
+| 15  | M28: Add connection retry with backoff                       | 10min  | More robust than 1s polling       |
+| 16  | M29: Add `SELECT 1` health check before tests                | 8min   | Fail fast on connection issues    |
 
 ### Low Value — Documentation Polish
 
-| # | Task | Effort | Why |
-|---|------|--------|-----|
-| 17 | M20: Capture example outputs of each test command | 10min | User-facing docs |
-| 18 | Update plan document M14–M48 status columns | 5min | Plan accuracy |
-| 19 | Add ephemeral-pg.sh to AGENTS.md Quick Reference | 3min | Discoverability |
+| #   | Task                                              | Effort | Why              |
+| --- | ------------------------------------------------- | ------ | ---------------- |
+| 17  | M20: Capture example outputs of each test command | 10min  | User-facing docs |
+| 18  | Update plan document M14–M48 status columns       | 5min   | Plan accuracy    |
+| 19  | Add ephemeral-pg.sh to AGENTS.md Quick Reference  | 3min   | Discoverability  |
 
 ### Future Coverage (P4)
 
-| # | Task | Effort | Why |
-|---|------|--------|-----|
-| 20 | M34: macOS verification of ephemeral PG | 15min | Cross-platform claim |
-| 21 | M35: Cache ephemeral PG data dir | 10min | Faster startup |
-| 22 | M36: Performance profiling: ephemeral vs testcontainers | 15min | Marketing data |
-| 23 | M37: Explore `nixos-container` alternative | 12min | Lighter than QEMU |
-| 24 | M38: DuckDB CGo VM test | 20min | Extended coverage |
-| 25 | M39: SQLite WAL concurrency VM test | 15min | Extended coverage |
-| 26 | M40: Turso sync VM test | 20min | Extended coverage |
-| 27 | M41: Run Go test binaries inside QEMU VM | 30min | Deeper coverage |
-| 28 | M42: Pebble backup/restore VM test | 15min | Extended coverage |
-| 29 | M43: `projectionhost` crash-restart PG integration test | 20min | Critical path verification |
-| 30 | M44: `scheduling` durable timers across restarts test | 20min | Critical path verification |
-| 31 | M45: `storage.PostgresBus` Go code inside NixOS VM | 20min | Deeper coverage |
-| 32 | M46: Contract test suite across ALL backends in VMs | 30min | Cross-backend parity |
-| 33 | M47: Ephemeral Redis/NATS for future integration tests | 20min | Future-proofing |
-| 34 | M48: `scripts/test-integration.sh` aggregator | 12min | Developer convenience |
+| #   | Task                                                    | Effort | Why                        |
+| --- | ------------------------------------------------------- | ------ | -------------------------- |
+| 20  | M34: macOS verification of ephemeral PG                 | 15min  | Cross-platform claim       |
+| 21  | M35: Cache ephemeral PG data dir                        | 10min  | Faster startup             |
+| 22  | M36: Performance profiling: ephemeral vs testcontainers | 15min  | Marketing data             |
+| 23  | M37: Explore `nixos-container` alternative              | 12min  | Lighter than QEMU          |
+| 24  | M38: DuckDB CGo VM test                                 | 20min  | Extended coverage          |
+| 25  | M39: SQLite WAL concurrency VM test                     | 15min  | Extended coverage          |
+| 26  | M40: Turso sync VM test                                 | 20min  | Extended coverage          |
+| 27  | M41: Run Go test binaries inside QEMU VM                | 30min  | Deeper coverage            |
+| 28  | M42: Pebble backup/restore VM test                      | 15min  | Extended coverage          |
+| 29  | M43: `projectionhost` crash-restart PG integration test | 20min  | Critical path verification |
+| 30  | M44: `scheduling` durable timers across restarts test   | 20min  | Critical path verification |
+| 31  | M45: `storage.PostgresBus` Go code inside NixOS VM      | 20min  | Deeper coverage            |
+| 32  | M46: Contract test suite across ALL backends in VMs     | 30min  | Cross-backend parity       |
+| 33  | M47: Ephemeral Redis/NATS for future integration tests  | 20min  | Future-proofing            |
+| 34  | M48: `scripts/test-integration.sh` aggregator           | 12min  | Developer convenience      |
 
 ### Process Improvements
 
-| # | Task | Effort | Why |
-|---|------|--------|-----|
-| 35 | Add `verify-fast` as a pre-commit git hook | 10min | Prevent stale GREEN claims |
-| 36 | Add `shellcheck` to devShell | 5min | Always available |
-| 37 | Add `pkill -f qemu` to VM script startup | 2min | Prevent port conflicts |
-| 38 | Document the NixOS firewall gotcha in AGENTS.md | 3min | Future developers |
-| 39 | Add CI step that runs `nix run .#verify-integration` | 5min | Integration test gate |
-| 40 | Add `nix build .#pg-vm` and `.#mysql-vm` to CI | 5min | Verify standalone packages |
+| #   | Task                                                 | Effort | Why                        |
+| --- | ---------------------------------------------------- | ------ | -------------------------- |
+| 35  | Add `verify-fast` as a pre-commit git hook           | 10min  | Prevent stale GREEN claims |
+| 36  | Add `shellcheck` to devShell                         | 5min   | Always available           |
+| 37  | Add `pkill -f qemu` to VM script startup             | 2min   | Prevent port conflicts     |
+| 38  | Document the NixOS firewall gotcha in AGENTS.md      | 3min   | Future developers          |
+| 39  | Add CI step that runs `nix run .#verify-integration` | 5min   | Integration test gate      |
+| 40  | Add `nix build .#pg-vm` and `.#mysql-vm` to CI       | 5min   | Verify standalone packages |
 
 ### Cleanup
 
-| # | Task | Effort | Why |
-|---|------|--------|-----|
-| 41 | Review and commit or discard `metaengine/dx.go` | 5min | Clean working tree |
-| 42 | Verify no temp files left in `/tmp/` | 1min | Hygiene |
-| 43 | Verify no orphan QEMU/driver processes | 1min | Hygiene |
-| 44 | Remove `nixos.qcow2` from git history (if tracked) | 10min | Repo bloat |
-| 45 | Consolidate the two status reports (08-27 + 09-00) | 5min | Reduce noise |
+| #   | Task                                               | Effort | Why                |
+| --- | -------------------------------------------------- | ------ | ------------------ |
+| 41  | Review and commit or discard `metaengine/dx.go`    | 5min   | Clean working tree |
+| 42  | Verify no temp files left in `/tmp/`               | 1min   | Hygiene            |
+| 43  | Verify no orphan QEMU/driver processes             | 1min   | Hygiene            |
+| 44  | Remove `nixos.qcow2` from git history (if tracked) | 10min  | Repo bloat         |
+| 45  | Consolidate the two status reports (08-27 + 09-00) | 5min   | Reduce noise       |
 
 ### Research
 
-| # | Task | Effort | Why |
-|---|------|--------|-----|
-| 46 | Prototype `NspawnMachine` for MySQL VM | 20min | 10x speedup potential |
-| 47 | Research `nixos-container` vs `runNixOSTest` | 12min | Lighter-weight testing |
-| 48 | Profile ephemeral PG vs VM vs testcontainers | 15min | Data-driven test strategy |
-| 49 | Investigate `forwardPorts` option in test driver | 10min | Alternative to QEMU_NET_OPTS |
-| 50 | Research if `--keep-machine-state` speeds up repeated VM runs | 5min | Developer iteration speed |
+| #   | Task                                                          | Effort | Why                          |
+| --- | ------------------------------------------------------------- | ------ | ---------------------------- |
+| 46  | Prototype `NspawnMachine` for MySQL VM                        | 20min  | 10x speedup potential        |
+| 47  | Research `nixos-container` vs `runNixOSTest`                  | 12min  | Lighter-weight testing       |
+| 48  | Profile ephemeral PG vs VM vs testcontainers                  | 15min  | Data-driven test strategy    |
+| 49  | Investigate `forwardPorts` option in test driver              | 10min  | Alternative to QEMU_NET_OPTS |
+| 50  | Research if `--keep-machine-state` speeds up repeated VM runs | 5min   | Developer iteration speed    |
 
 ---
 

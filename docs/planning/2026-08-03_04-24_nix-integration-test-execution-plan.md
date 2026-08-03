@@ -56,13 +56,13 @@ These unblock the full integration test story and verify the infrastructure actu
 
 Quality hardening, documentation, and CI improvements that make the infrastructure production-grade.
 
-| #   | Task                                          | Why                                                                | Effort | Status                                                 |
-| --- | --------------------------------------------- | ------------------------------------------------------------------ | ------ | ------------------------------------------------------ |
+| #   | Task                                          | Why                                                                | Effort | Status                                                              |
+| --- | --------------------------------------------- | ------------------------------------------------------------------ | ------ | ------------------------------------------------------------------- |
 | 6   | Write ADR-0095: Nix-based integration testing | Document rationale, tradeoffs, MariaDB limitation                  | 15min  | **DONE** ([ADR-0095](../adr/0095-nix-based-integration-testing.md)) |
-| 7   | Add KVM detection to VM scripts               | Warn gracefully if `/dev/kvm` missing (10-50x slowdown without it) | 10min  | **NOT DONE** (no `/dev/kvm` check in scripts)          |
-| 8   | Add ephemeral PG as a fast CI path            | No VM, no Docker — fastest integration test path                   | 10min  | **NOT DONE** (CI has only `nixos-vm-tests`)            |
-| 9   | Matrix-parallelize `nixos-vm-tests` CI job    | PG + MySQL in parallel instead of sequential                       | 10min  | **NOT DONE** (`ci.yml:600-604` runs them sequentially) |
-| 10  | Investigate `systemd-nspawn` container type   | Could make MySQL VM test 10x faster (131s → ~15s)                  | 20min  | **NOT DONE** (no `containerType` in nix files)         |
+| 7   | Add KVM detection to VM scripts               | Warn gracefully if `/dev/kvm` missing (10-50x slowdown without it) | 10min  | **NOT DONE** (no `/dev/kvm` check in scripts)                       |
+| 8   | Add ephemeral PG as a fast CI path            | No VM, no Docker — fastest integration test path                   | 10min  | **NOT DONE** (CI has only `nixos-vm-tests`)                         |
+| 9   | Matrix-parallelize `nixos-vm-tests` CI job    | PG + MySQL in parallel instead of sequential                       | 10min  | **NOT DONE** (`ci.yml:600-604` runs them sequentially)              |
+| 10  | Investigate `systemd-nspawn` container type   | Could make MySQL VM test 10x faster (131s → ~15s)                  | 20min  | **NOT DONE** (no `containerType` in nix files)                      |
 
 ### The Other 20% (Future / Nice-to-Have)
 
@@ -89,56 +89,56 @@ Merged from the Pareto tables (T01–T20) and the status report's 50-item backlo
 Distributed-bus items (F5, F6, F24, F31) are **DEAD** — the test was removed (commit `8754b842`).
 Sorted by priority, then impact, then effort, then customer-value.
 
-| ID  | Task                                                                    | Source      | Impact   | Effort | Priority | Status                        |
-| --- | ----------------------------------------------------------------------- | ----------- | -------- | ------ | -------- | ----------------------------- |
-| M01 | Run `nix run .#verify-fast` — confirm no regressions                    | T01/F1      | CRITICAL | 5min   | P0       | **DONE**                      |
-| M02 | Push trailing unpushed doc commit to remote                             | T02         | CRITICAL | 1min   | P0       | **NOT DONE** (26 commits ahead) |
-| M03 | Fix `stack/postgres` build (`undefined: storage.SQLiteSetSynchronous`)  | T05         | HIGH     | 10min  | P1       | **DONE**                      |
-| M04 | E2E test `vm-pg.sh` — build VM, boot, run tests                         | T03/F3      | HIGH     | 15min  | P1       | **DONE** (driver-based)       |
-| M05 | E2E test `vm-mysql.sh` — build VM, boot, run tests                      | T04/F4      | HIGH     | 15min  | P1       | **DONE** (driver-based)       |
-| M06 | Verify `go build -tags "goexperiment.jsonv2" ./...` workspace integrity | F2          | HIGH     | 5min   | P1       | **DONE**                      |
-| M07 | Verify `nix flake check` passes (or document which checks to skip)      | F7          | MEDIUM   | 10min  | P1       | **DONE** (both VM checks pass) |
-| M08 | Check if `flake.lock` changed unexpectedly                              | F8          | MEDIUM   | 5min   | P1       | **DONE** (no changes)         |
-| M09 | Write ADR-0095: Nix-based integration testing                           | T06/F11     | MEDIUM   | 15min  | P2       | **DONE** (ADR-0095)           |
-| M10 | Add KVM detection to VM scripts (`/dev/kvm` check)                      | T07/F13     | MEDIUM   | 10min  | P2       | **DONE**                      |
-| M11 | Add ephemeral PG fast path to CI (no VM, no Docker)                     | T08/F30     | MEDIUM   | 10min  | P2       | **DONE**                      |
-| M12 | Matrix-parallelize `nixos-vm-tests` CI job (PG+MySQL parallel)          | T09/F29     | MEDIUM   | 10min  | P2       | **DONE**                      |
-| M13 | Validate CI YAML with `actionlint`                                      | F10         | MEDIUM   | 5min   | P2       | **DONE** (YAML valid)         |
+| ID  | Task                                                                    | Source      | Impact   | Effort | Priority | Status                                 |
+| --- | ----------------------------------------------------------------------- | ----------- | -------- | ------ | -------- | -------------------------------------- |
+| M01 | Run `nix run .#verify-fast` — confirm no regressions                    | T01/F1      | CRITICAL | 5min   | P0       | **DONE**                               |
+| M02 | Push trailing unpushed doc commit to remote                             | T02         | CRITICAL | 1min   | P0       | **NOT DONE** (26 commits ahead)        |
+| M03 | Fix `stack/postgres` build (`undefined: storage.SQLiteSetSynchronous`)  | T05         | HIGH     | 10min  | P1       | **DONE**                               |
+| M04 | E2E test `vm-pg.sh` — build VM, boot, run tests                         | T03/F3      | HIGH     | 15min  | P1       | **DONE** (driver-based)                |
+| M05 | E2E test `vm-mysql.sh` — build VM, boot, run tests                      | T04/F4      | HIGH     | 15min  | P1       | **DONE** (driver-based)                |
+| M06 | Verify `go build -tags "goexperiment.jsonv2" ./...` workspace integrity | F2          | HIGH     | 5min   | P1       | **DONE**                               |
+| M07 | Verify `nix flake check` passes (or document which checks to skip)      | F7          | MEDIUM   | 10min  | P1       | **DONE** (both VM checks pass)         |
+| M08 | Check if `flake.lock` changed unexpectedly                              | F8          | MEDIUM   | 5min   | P1       | **DONE** (no changes)                  |
+| M09 | Write ADR-0095: Nix-based integration testing                           | T06/F11     | MEDIUM   | 15min  | P2       | **DONE** (ADR-0095)                    |
+| M10 | Add KVM detection to VM scripts (`/dev/kvm` check)                      | T07/F13     | MEDIUM   | 10min  | P2       | **DONE**                               |
+| M11 | Add ephemeral PG fast path to CI (no VM, no Docker)                     | T08/F30     | MEDIUM   | 10min  | P2       | **DONE**                               |
+| M12 | Matrix-parallelize `nixos-vm-tests` CI job (PG+MySQL parallel)          | T09/F29     | MEDIUM   | 10min  | P2       | **DONE**                               |
+| M13 | Validate CI YAML with `actionlint`                                      | F10         | MEDIUM   | 5min   | P2       | **DONE** (YAML valid)                  |
 | M14 | Investigate `systemd-nspawn` container type for faster VM tests         | T10/F12     | MEDIUM   | 20min  | P2       | **RESEARCHED** (not stable in nixpkgs) |
-| M15 | Update `CONTRIBUTING.md` with integration test commands                 | F35         | MEDIUM   | 8min   | P3       | **DONE**                      |
-| M16 | Add `docs/testing-guide.md` with decision matrix                        | F36         | MEDIUM   | 12min  | P3       | **DONE**                      |
-| M17 | Update `FEATURES.md` — mention NixOS VM testing                         | F37         | LOW      | 5min   | P3       | **DONE**                      |
-| M18 | Update `TODO_LIST.md` with remaining integration work                   | F38         | LOW      | 5min   | P3       | **DONE**                      |
-| M19 | Document MariaDB/NixOS limitation in troubleshooting section            | F39         | LOW      | 5min   | P3       | **DONE** (in testing-guide)   |
-| M20 | Add example outputs of each test command to docs                        | F40         | LOW      | 10min  | P3       | **DONE** (testing-guide)      |
-| M21 | Verify `set -euo pipefail` present on all scripts                       | F41         | MEDIUM   | 3min   | P3       | **DONE** (all 3 scripts)      |
-| M22 | Add shellcheck linting to new scripts                                   | F42         | MEDIUM   | 10min  | P3       | **DONE** (all 3 clean)        |
-| M23 | Add error handling for `nix build` failures in VM scripts               | F43         | MEDIUM   | 8min   | P3       | **DONE** (driver binary check)|
-| M24 | Add timeout to ephemeral PG script (prevent hanging)                    | F44         | MEDIUM   | 5min   | P3       | **DONE** (TEST_TIMEOUT env)   |
-| M25 | Add cleanup verification (no orphan postgres/mysqld processes)          | F45         | MEDIUM   | 8min   | P3       | **DONE** (orphan check in trap)|
-| M26 | Add `--keep-alive` flag to VM scripts for interactive debugging         | T17/F46     | LOW      | 10min  | P3       | **DONE** (both VM scripts)    |
-| M27 | Add VM serial console log capture for CI debugging                      | T18/F47     | LOW      | 10min  | P3       | **DONE** (driver captures)    |
-| M28 | Add connection retry logic with backoff to VM scripts                   | T19/F49     | MEDIUM   | 10min  | P3       | **DONE** (120-iteration poll) |
-| M29 | Add health check endpoint verification for VM services                  | F48         | LOW      | 8min   | P3       | **DONE** (pg_isready check)   |
-| M30 | Add `nix run .#integration-all` aggregator app                          | F16         | LOW      | 10min  | P3       | **DONE**                      |
-| M31 | Add `nix run .#verify-integration` composite gate                       | F34         | LOW      | 8min   | P3       | **DONE**                      |
-| M32 | Cache VM images in GitHub Actions via `magic-nix-cache`                 | F32         | LOW      | 10min  | P3       | **DONE** (already in CI)      |
-| M33 | Add CI badge for NixOS VM tests                                         | F33         | LOW      | 5min   | P3       | **N/A** (CI badge covers all) |
-| M34 | macOS verification of ephemeral PG script                               | T11/F9      | LOW      | 15min  | P4       | **NOT DONE**                  |
-| M35 | Cache ephemeral PG data dir for faster startup                          | T12/F14     | LOW      | 10min  | P4       | **NOT DONE**                  |
-| M36 | Performance profiling: ephemeral PG vs testcontainers                   | T13/F17     | LOW      | 15min  | P4       | **NOT DONE**                  |
-| M37 | Explore `nixos-container` as lighter-weight VM alternative              | F18         | LOW      | 12min  | P4       | **NOT DONE**                  |
-| M38 | DuckDB CGo VM test (needs GCC in VM)                                    | T14/F20     | LOW      | 20min  | P4       | **NOT DONE**                  |
-| M39 | SQLite WAL concurrency VM test                                          | T15/F21     | LOW      | 15min  | P4       | **NOT DONE**                  |
-| M40 | Turso sync VM test (real libSQL server)                                 | T16/F23     | LOW      | 20min  | P4       | **NOT DONE**                  |
-| M41 | Run Go test binaries inside QEMU VM                                     | T15-old/F19 | LOW      | 30min  | P4       | **NOT DONE**                  |
-| M42 | Pebble backup/restore lifecycle VM test                                 | F22         | LOW      | 15min  | P4       | **NOT DONE**                  |
-| M43 | `projectionhost` crash-restart PG integration test                      | F25         | LOW      | 20min  | P4       | **NOT DONE**                  |
-| M44 | `scheduling` module durable timers across restarts test                 | F26         | LOW      | 20min  | P4       | **NOT DONE**                  |
-| M45 | `storage.PostgresBus` Go code inside NixOS VM                           | F27         | LOW      | 20min  | P4       | **NOT DONE**                  |
-| M46 | Contract test suite across ALL backends in VMs                          | F28         | LOW      | 30min  | P4       | **NOT DONE**                  |
-| M47 | Ephemeral Redis/NATS for future integration tests                       | F15         | LOW      | 20min  | P4       | **NOT DONE**                  |
-| M48 | `scripts/test-integration.sh` aggregator (picks best strategy)          | F50         | LOW      | 12min  | P4       | **NOT DONE**                  |
+| M15 | Update `CONTRIBUTING.md` with integration test commands                 | F35         | MEDIUM   | 8min   | P3       | **DONE**                               |
+| M16 | Add `docs/testing-guide.md` with decision matrix                        | F36         | MEDIUM   | 12min  | P3       | **DONE**                               |
+| M17 | Update `FEATURES.md` — mention NixOS VM testing                         | F37         | LOW      | 5min   | P3       | **DONE**                               |
+| M18 | Update `TODO_LIST.md` with remaining integration work                   | F38         | LOW      | 5min   | P3       | **DONE**                               |
+| M19 | Document MariaDB/NixOS limitation in troubleshooting section            | F39         | LOW      | 5min   | P3       | **DONE** (in testing-guide)            |
+| M20 | Add example outputs of each test command to docs                        | F40         | LOW      | 10min  | P3       | **DONE** (testing-guide)               |
+| M21 | Verify `set -euo pipefail` present on all scripts                       | F41         | MEDIUM   | 3min   | P3       | **DONE** (all 3 scripts)               |
+| M22 | Add shellcheck linting to new scripts                                   | F42         | MEDIUM   | 10min  | P3       | **DONE** (all 3 clean)                 |
+| M23 | Add error handling for `nix build` failures in VM scripts               | F43         | MEDIUM   | 8min   | P3       | **DONE** (driver binary check)         |
+| M24 | Add timeout to ephemeral PG script (prevent hanging)                    | F44         | MEDIUM   | 5min   | P3       | **DONE** (TEST_TIMEOUT env)            |
+| M25 | Add cleanup verification (no orphan postgres/mysqld processes)          | F45         | MEDIUM   | 8min   | P3       | **DONE** (orphan check in trap)        |
+| M26 | Add `--keep-alive` flag to VM scripts for interactive debugging         | T17/F46     | LOW      | 10min  | P3       | **DONE** (both VM scripts)             |
+| M27 | Add VM serial console log capture for CI debugging                      | T18/F47     | LOW      | 10min  | P3       | **DONE** (driver captures)             |
+| M28 | Add connection retry logic with backoff to VM scripts                   | T19/F49     | MEDIUM   | 10min  | P3       | **DONE** (120-iteration poll)          |
+| M29 | Add health check endpoint verification for VM services                  | F48         | LOW      | 8min   | P3       | **DONE** (pg_isready check)            |
+| M30 | Add `nix run .#integration-all` aggregator app                          | F16         | LOW      | 10min  | P3       | **DONE**                               |
+| M31 | Add `nix run .#verify-integration` composite gate                       | F34         | LOW      | 8min   | P3       | **DONE**                               |
+| M32 | Cache VM images in GitHub Actions via `magic-nix-cache`                 | F32         | LOW      | 10min  | P3       | **DONE** (already in CI)               |
+| M33 | Add CI badge for NixOS VM tests                                         | F33         | LOW      | 5min   | P3       | **N/A** (CI badge covers all)          |
+| M34 | macOS verification of ephemeral PG script                               | T11/F9      | LOW      | 15min  | P4       | **NOT DONE**                           |
+| M35 | Cache ephemeral PG data dir for faster startup                          | T12/F14     | LOW      | 10min  | P4       | **NOT DONE**                           |
+| M36 | Performance profiling: ephemeral PG vs testcontainers                   | T13/F17     | LOW      | 15min  | P4       | **NOT DONE**                           |
+| M37 | Explore `nixos-container` as lighter-weight VM alternative              | F18         | LOW      | 12min  | P4       | **NOT DONE**                           |
+| M38 | DuckDB CGo VM test (needs GCC in VM)                                    | T14/F20     | LOW      | 20min  | P4       | **NOT DONE**                           |
+| M39 | SQLite WAL concurrency VM test                                          | T15/F21     | LOW      | 15min  | P4       | **NOT DONE**                           |
+| M40 | Turso sync VM test (real libSQL server)                                 | T16/F23     | LOW      | 20min  | P4       | **NOT DONE**                           |
+| M41 | Run Go test binaries inside QEMU VM                                     | T15-old/F19 | LOW      | 30min  | P4       | **NOT DONE**                           |
+| M42 | Pebble backup/restore lifecycle VM test                                 | F22         | LOW      | 15min  | P4       | **NOT DONE**                           |
+| M43 | `projectionhost` crash-restart PG integration test                      | F25         | LOW      | 20min  | P4       | **NOT DONE**                           |
+| M44 | `scheduling` module durable timers across restarts test                 | F26         | LOW      | 20min  | P4       | **NOT DONE**                           |
+| M45 | `storage.PostgresBus` Go code inside NixOS VM                           | F27         | LOW      | 20min  | P4       | **NOT DONE**                           |
+| M46 | Contract test suite across ALL backends in VMs                          | F28         | LOW      | 30min  | P4       | **NOT DONE**                           |
+| M47 | Ephemeral Redis/NATS for future integration tests                       | F15         | LOW      | 20min  | P4       | **NOT DONE**                           |
+| M48 | `scripts/test-integration.sh` aggregator (picks best strategy)          | F50         | LOW      | 12min  | P4       | **NOT DONE**                           |
 
 ---
 

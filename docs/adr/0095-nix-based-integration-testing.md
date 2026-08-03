@@ -11,6 +11,7 @@ against real database servers. Historically, these tests used `testcontainers-go
 which requires Docker.
 
 Problems with the testcontainers approach:
+
 - **Docker dependency**: Developers and CI must run Docker, which is heavy,
   unreliable in CI, and unavailable on some platforms (notably NixOS without
   Docker installed).
@@ -73,12 +74,12 @@ nix run .#integration-mysql-vm                       # MySQL tests
 
 ## Alternatives Considered
 
-| Approach | Docker? | Hermetic? | Speed | Platforms |
-|----------|---------|-----------|-------|-----------|
-| **testcontainers-go** (previous) | Yes | No (image drift) | ~10s/container | Docker-capable only |
-| **Ephemeral process** (nixpkgs) | No | Yes (pinned by flake.lock) | ~3s | Linux, macOS |
-| **NixOS QEMU VM** (runNixOSTest) | No | Yes | ~17-131s | Linux only |
-| **systemd-nspawn** (future) | No | Yes | ~5s est. | Linux (kernel shared) |
+| Approach                         | Docker? | Hermetic?                  | Speed          | Platforms             |
+| -------------------------------- | ------- | -------------------------- | -------------- | --------------------- |
+| **testcontainers-go** (previous) | Yes     | No (image drift)           | ~10s/container | Docker-capable only   |
+| **Ephemeral process** (nixpkgs)  | No      | Yes (pinned by flake.lock) | ~3s            | Linux, macOS          |
+| **NixOS QEMU VM** (runNixOSTest) | No      | Yes                        | ~17-131s       | Linux only            |
+| **systemd-nspawn** (future)      | No      | Yes                        | ~5s est.       | Linux (kernel shared) |
 
 ## Key Design Decisions
 
@@ -89,7 +90,7 @@ nix run .#integration-mysql-vm                       # MySQL tests
 
 2. **Firewall rules required for TCP**: NixOS enables the firewall by default.
    The VM modules open the database ports (`networking.firewall.allowedTCPPorts
-   = [ 5432 ]` for PG, `[ 3306 ]` for MySQL) so QEMU port forwarding works.
+= [ 5432 ]` for PG, `[ 3306 ]` for MySQL) so QEMU port forwarding works.
 
 3. **PostgreSQL TCP authentication**: The `authentication` option in
    `postgres.nix` sets `pg_hba.conf` to `trust` for all TCP connections, since

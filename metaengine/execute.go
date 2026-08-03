@@ -58,6 +58,78 @@ func (s *Store) executeQuery(
 	return result, err
 }
 
+// checkKeyTypeMatch returns ErrKeyTypeMismatch when the query expects a
+// key type but the extracted key is nil (input struct has no matching field).
+func checkKeyTypeMatch(q queryMeta, key any) error {
+	if q.QueryKeyType() != nil && key == nil {
+		return fmt.Errorf(
+			"%w: query %q expects key type %s",
+			errKeyTypeMismatch, q.QueryName(), q.QueryKeyType(),
+		)
+	}
+
+	return nil
+}
+
+// executePointLookup handles the ReadPointLookup pattern: extract key from
+// input, validate type match, then try RawValueReader fast path or MapBackend.
+func (s *Store) executePointLookup(ctx context.Context, q queryMeta, input any) (any, error) {
+	key := extractKeyValueByType(input, q.QueryKeyType())
+
+	if err := checkKeyTypeMatch(q, key); err != nil {
+		return nil, err
+	}
+
+	if rvr, ok := q.QueryEngine().(RawValueReader); ok {
+		raw, found, err := rvr.GetRawValue(ctx, q.QueryName(), key)
+		if err != nil {
+			return nil, fmt.Errorf("raw get %s: %w", q.QueryName(), err)
+		}
+
+		if !found {
+			return nil, nil //nolint:nilnil // not-found signalled as (nil, nil)
+		}
+
+		return jsonValue(raw), nil
+	}
+
+	if mb, ok := q.QueryEngine().(MapBackend); ok {
+		val, found, err := mb.MapGet(ctx, q.QueryName(), key)
+		if err != nil {
+			return nil, fmt.Errorf("map get %s: %w", q.QueryName(), err)
+		}
+
+		if !found {
+			return nil, nil //nolint:nilnil // not-found is signalled as (nil result, nil error)
+		}
+
+		return val, nil
+	}
+
+	return nil, unsupportedEngine(errUnsupportedMapReads, q.QueryEngine().Profile().Name)
+}
+
+// executeMembership handles the ReadMembership pattern: extract key, validate,
+// then check set containment via SetBackend.
+func (s *Store) executeMembership(ctx context.Context, q queryMeta, input any) (any, error) {
+	key := extractKeyValueByType(input, q.QueryKeyType())
+
+	if err := checkKeyTypeMatch(q, key); err != nil {
+		return nil, err
+	}
+
+	if sb, ok := q.QueryEngine().(SetBackend); ok {
+		contained, err := sb.SetContains(ctx, q.QueryName(), key)
+		if err != nil {
+			return false, fmt.Errorf("set contains %s: %w", q.QueryName(), err)
+		}
+
+		return contained, nil
+	}
+
+	return nil, unsupportedEngine(errUnsupportedSetReads, q.QueryEngine().Profile().Name)
+}
+
 func (s *Store) executeQueryInner(
 	ctx context.Context,
 	q queryMeta,
@@ -65,64 +137,10 @@ func (s *Store) executeQueryInner(
 ) (any, error) {
 	switch q.QueryReadPattern() {
 	case ReadPointLookup:
-		key := extractKeyValueByType(input, q.QueryKeyType())
-
-		if q.QueryKeyType() != nil && key == nil {
-			return nil, fmt.Errorf(
-				"%w: query %q expects key type %s",
-				errKeyTypeMismatch, q.QueryName(), q.QueryKeyType(),
-			)
-		}
-
-		// Fast path: raw JSON bytes → direct decode to R (1 JSON op instead of 3).
-		if rvr, ok := q.QueryEngine().(RawValueReader); ok {
-			raw, found, err := rvr.GetRawValue(ctx, q.QueryName(), key)
-			if err != nil {
-				return nil, fmt.Errorf("raw get %s: %w", q.QueryName(), err)
-			}
-
-			if !found {
-				return nil, nil //nolint:nilnil // not-found signalled as (nil, nil)
-			}
-
-			return jsonValue(raw), nil
-		}
-
-		if mb, ok := q.QueryEngine().(MapBackend); ok {
-			val, found, err := mb.MapGet(ctx, q.QueryName(), key)
-			if err != nil {
-				return nil, fmt.Errorf("map get %s: %w", q.QueryName(), err)
-			}
-
-			if !found {
-				return nil, nil //nolint:nilnil // not-found is signalled as (nil result, nil error); see ExecuteTyped
-			}
-
-			return val, nil
-		}
-
-		return nil, unsupportedEngine(errUnsupportedMapReads, q.QueryEngine().Profile().Name)
+		return s.executePointLookup(ctx, q, input)
 
 	case ReadMembership:
-		key := extractKeyValueByType(input, q.QueryKeyType())
-
-		if q.QueryKeyType() != nil && key == nil {
-			return nil, fmt.Errorf(
-				"%w: query %q expects key type %s",
-				errKeyTypeMismatch, q.QueryName(), q.QueryKeyType(),
-			)
-		}
-
-		if sb, ok := q.QueryEngine().(SetBackend); ok {
-			contained, err := sb.SetContains(ctx, q.QueryName(), key)
-			if err != nil {
-				return false, fmt.Errorf("set contains %s: %w", q.QueryName(), err)
-			}
-
-			return contained, nil
-		}
-
-		return nil, unsupportedEngine(errUnsupportedSetReads, q.QueryEngine().Profile().Name)
+		return s.executeMembership(ctx, q, input)
 
 	case ReadFilteredScan:
 		return s.executeFilteredScan(ctx, q, input)

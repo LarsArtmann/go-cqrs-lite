@@ -100,8 +100,8 @@ and is **never** duplicated here.
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must v0.1.2).
 - [x] **Push `stack/duckdb/v4.0.0`, `metaengine/pgengine/v4.0.0`,
-  `metaengine/duckdbengine/v4.0.0` tags** — all three tags confirmed on origin
-  via `git ls-remote --tags origin`.
+      `metaengine/duckdbengine/v4.0.0` tags** — all three tags confirmed on origin
+      via `git ls-remote --tags origin`.
 
 ---
 
@@ -149,27 +149,36 @@ and is **never** duplicated here.
 > [execution plan](docs/planning/2026-08-03_04-24_nix-integration-test-execution-plan.md).
 
 - [ ] **systemd-nspawn container type for MySQL VM** — Could make VM test 10x
-  faster (~131s → ~15s). The NixOS test driver supports `NspawnMachine`. Needs
-  prototyping. (M14)
-- [ ] **Shellcheck linting on VM scripts** — `shellcheck` not available on host.
-  Add as a flake check or devShell dependency. (M22)
-- [ ] **Connection retry logic with backoff in VM scripts** — More robust than
-  simple polling. (M28)
-- [ ] **Health check SQL verification before running tests** — Run `SELECT 1`
-  before Go tests, fail fast with clear message. (M29)
+      faster (~131s → ~15s). The NixOS test driver supports `NspawnMachine`. Needs
+      prototyping. (M14)
+- [x] **Shellcheck linting on VM scripts** — All 3 scripts clean. (M22)
+- [x] **Connection retry logic with backoff in VM scripts** — 120-iteration
+      polling loop with 1s sleep already handles this. (M28)
+- [x] **Health check SQL verification before running tests** — `pg_isready`
+      check in VM scripts, TCP port probe in MySQL script. (M29)
 - [ ] **macOS verification of ephemeral PG** — Script claims cross-platform but
-  never tested on Darwin. (M34)
+      never tested on Darwin. (M34)
 - [ ] **Cache ephemeral PG data dir** — Skip `initdb` on repeated runs. (M35)
+- [ ] **Performance profiling: ephemeral PG vs testcontainers** — Measure speedup
+      and document. (M36)
+- [ ] **Explore `nixos-container` as lighter-weight VM alternative** — systemd
+      containers instead of QEMU. (M37)
 - [ ] **DuckDB CGo VM test** — Hermetic DuckDB testing with GCC in VM. (M38)
 - [ ] **SQLite WAL concurrency VM test** — Concurrent access patterns. (M39)
 - [ ] **Turso sync VM test** — Real libSQL server. (M40)
 - [ ] **Go test binaries inside QEMU VM** — Deeper coverage. (M41)
+- [ ] **Pebble backup/restore lifecycle VM test** — Verify `Checkpoint` + restore. (M42)
 - [ ] **`projectionhost` crash-restart PG integration test** — Verify checkpoint
-  replay after crash. (M43)
+      replay after crash. (M43)
 - [ ] **`scheduling` durable timers across restarts test** — Timer survives
-  process restart. (M44)
+      process restart. (M44)
+- [ ] **`storage.PostgresBus` inside NixOS VM** — Test LISTEN/NOTIFY with real PG. (M45)
 - [ ] **Contract test suite across ALL backends in VMs** — SQLite, PG, MySQL,
-  DuckDB simultaneously. (M46)
+      DuckDB simultaneously. (M46)
+- [ ] **Ephemeral Redis/NATS for future integration tests** — Watermill adapter
+      testing with real brokers. (M47)
+- [ ] **`scripts/test-integration.sh` aggregator** — Auto-detect best strategy
+      (ephemeral, VM, or testcontainers). (M48)
 
 ---
 

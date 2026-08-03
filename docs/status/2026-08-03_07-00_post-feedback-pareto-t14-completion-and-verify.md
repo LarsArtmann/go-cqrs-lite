@@ -36,11 +36,13 @@
 ---
 
 ## B) T14: F-series feature-profile gating — FULLY DONE
+
 - **Code changes:** DONE and committed (F009, F015, F017 gated)
 - **Tests:** PASS
 - **Pareto plan:** T6–T14 all marked `[x]` in the plan document
 
 ### Verify gate GREEN
+
 - **Duplication check now PASSES** — `art-dupl check . --threshold 3 --semantic` reports 0 new clones (baseline: 47). The 3 clone groups flagged in the prior session were resolved by daemon activity between sessions.
 - Local is 4 commits ahead of origin (push requires user approval)
 
@@ -56,7 +58,9 @@
 ## D) TOTALLY FUCKED UP
 
 ### 1. The "broken tests" were never broken
+
 I was handed a briefing that said 3 tests were broken. The FIRST thing I should have done was run them to confirm. Instead, I:
+
 - Read all the test source files
 - Read the detector source files
 - Read the feature profile detection code
@@ -66,14 +70,17 @@ I was handed a briefing that said 3 tests were broken. The FIRST thing I should 
 **Lesson:** Verify the problem exists before investigating its cause. The prior session had already fixed the tests via feature-profile overrides (`ctx.FeatureProfile.HasServer = true`).
 
 ### 2. Added a function then immediately removed it
+
 I added `newQueryForADT()` to `fixtures_test.go` to fix a compilation error in `universal_adt_test.go`. But the daemon had already rewritten that test file to not need the function. So I had to immediately remove it.
 
 **Lesson:** The auto-commit daemon changes files between sessions. Always re-read the file's CURRENT state before acting on a briefing about its state. The daemon can rewrite tests, add imports, reformat code — all between sessions.
 
 ### 3. Did not mark T14 done in TODO_LIST.md
+
 I had this in my todo list as the last step and didn't execute it before the user asked for a status report.
 
 ### 4. Duplication baseline was stale (3 new clone groups) — RESOLVED
+
 The verify gate previously failed on the duplication check with 3 clone groups in cqrs-lint rule files.
 These were resolved by daemon activity between sessions — the current `art-dupl check` reports 0 new clones.
 
@@ -98,16 +105,19 @@ These were resolved by daemon activity between sessions — the current `art-dup
 ## F) THINGS TO GET DONE NEXT (up to 50)
 
 ### Critical (blocks GREEN verify gate)
+
 1. ~~Fix or baseline the 3 new duplication clones~~ — **RESOLVED** (0 new clones, baseline matches)
 2. ~~Mark T14 as DONE~~ — **DONE** (Pareto plan updated, T6–T14 all `[x]`)
 3. ~~Update status report~~ — **DONE** (this report)
 
 ### Releases
+
 4. **Push the 3 local tags** (needs user approval)
 5. **Verify all module tags are monotonically increasing** — `git tag -l '<module>/v4*' | sort -V | tail -1`
 6. **Run `nix run .#vulncheck`** to verify no version-sequence breaks in published tags
 
 ### Code quality
+
 7. **Deduplicate the `*ast.BasicLit` extraction** — shared helper in `ast_helpers.go`, used by `c038.go`
 8. **Deduplicate the `len(call.Args) == 0` guard** — shared helper in `lintutil.go`, used by `d017.go`
 9. **Deduplicate the `call.Fun.(*ast.SelectorExpr)` assertion** — shared helper, used by `c032.go` + `d017.go`
@@ -119,6 +129,7 @@ These were resolved by daemon activity between sessions — the current `art-dup
 15. **Remove unnecessary type arguments** in `metaengine/features4_test.go:1016,1045`
 
 ### cqrs-lint improvements
+
 16. **Add more F-series tests** — test the gating suppression paths (F009 when !HasServer && CommandFlow != Commands, F015 when !HasServer, F017 when !HasAsyncBus)
 17. **Add C037 test for mixed codecs across all 4 stores** — currently only snapshot has "same codec no finding" test
 18. **Add D007 auto-fix integration test** — verify the fix pipeline actually applies the replacement
@@ -126,6 +137,7 @@ These were resolved by daemon activity between sessions — the current `art-dup
 20. **Add `HasAsyncBus` to `FeatureProfile.String()`** — it's missing from the doctor output
 
 ### Metaengine
+
 21. **Wire `ByteSize` type** if it exists (plan mentioned it but prior session concluded it doesn't)
 22. **Add SSE reconnection tests** with the new `SSEReplay[V]` ring buffer
 23. **Add cursor-encoded prefetch tests** — `WithCursorString` parsing + matching keys
@@ -134,12 +146,14 @@ These were resolved by daemon activity between sessions — the current `art-dup
 26. **Add `VectorExecuteTyped`/`SearchExecuteTyped`/`SpatialExecuteTyped` tests** — the new ADTs from ADR-0085
 
 ### Testing
+
 27. **Run `-race -count=3` on the MySQL testcontainer test** — verify the fix holds under repeated race detection
 28. **Run `-race -count=3` on the idempotency/sqlstore TTL test** — verify the timing fix is stable
 29. **Add a CI soak test for the 10M event scenario** — the soak test from 2026-08-02 passed but isn't in regular CI
 30. **Run coverage check** — `nix run .#check-coverage` to verify no drift
 
 ### Documentation
+
 31. **Update AGENTS.md** — document `go run .` (not `go run main.go`) for api-stability
 32. **Add ADR for the F-series feature-profile gating pattern** — document how rules suppress based on project profile
 33. **Update FEATURES.md** — mark F009/F015/F017 gating as DONE
@@ -147,6 +161,7 @@ These were resolved by daemon activity between sessions — the current `art-dup
 35. **Review and close stale ADRs** — 92 ADRs, some may be superseded
 
 ### Architecture
+
 36. **Review whether `HasAsyncBus` should also detect NATS/Redis/Kafka** directly (not just Watermill)
 37. **Consider adding `HasDispatch` as a separate flag** from `CommandFlow == CommandFlowCommands`
 38. **Evaluate whether F015's Store exclusion (SQLite/Memory/Pebble) is correct** — Postgres is the main beneficiary
@@ -154,6 +169,7 @@ These were resolved by daemon activity between sessions — the current `art-dup
 40. **Review the seven-tier model accuracy** — metaengine is Tier 0 by deps but Tier 3 conceptually
 
 ### DevOps
+
 41. **Run `nix flake check`** — verify the flake is healthy
 42. **Verify CI workflow matches local verify gate** — ci.yml vs nix verify
 43. **Add a pre-commit hook that runs `go build ./...`** — prevents broken-code commits
@@ -161,6 +177,7 @@ These were resolved by daemon activity between sessions — the current `art-dup
 45. **Add `nix run .#check-duplication` to the PR review checklist**
 
 ### Polish
+
 46. **Clean up the `docs/status/` directory** — 400+ files, many stale; archive old ones
 47. **Add a `make verify-quick` alias** for the common dev loop (build + vet + test, skip lint/race/docs)
 48. **Review gopls diagnostics** — 38+ hints/warnings across the project
@@ -172,10 +189,13 @@ These were resolved by daemon activity between sessions — the current `art-dup
 ## G) QUESTIONS (that I cannot figure out myself)
 
 ### 1. Should I update the duplication baseline or deduplicate the 3 new clone groups?
+
 **RESOLVED** — The clones were resolved by daemon activity between sessions. `art-dupl check` now reports 0 new clones. No action needed.
 
 ### 2. Should I push the 3 local tags now?
+
 The tags are for modules that were changed in prior sessions. Pushing them makes the new APIs available to consumers resolving "latest". But the safety rule says never push without explicit approval. Do you want me to push them, or will you review them first?
 
 ### 3. Is the auto-commit daemon still running?
+
 Several files changed between the prior session's handoff and this session (notably `universal_adt_test.go` was rewritten, a new ADR 0094 appeared, `metaengine` was bumped to v4.3.0). If the daemon is still running, it will commit this status report and the TODO_LIST.md update automatically. Should I be aware of any pending daemon work?

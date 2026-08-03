@@ -42,13 +42,13 @@ nix run .#check-coverage
 
 Three Docker-free approaches, powered by Nix. See [ADR-0095](adr/0095-nix-based-integration-testing.md).
 
-| Approach | Command | Speed | Docker? | Platforms |
-|----------|---------|-------|---------|-----------|
-| Ephemeral PG | `nix run .#integration-pg` | ~3s startup | No | Linux, macOS |
-| NixOS VM (PG) | `nix build .#checks.x86_64-linux.postgres-vm -L` | ~17s | No | Linux |
-| NixOS VM (MySQL) | `nix build .#checks.x86_64-linux.mysql-vm -L` | ~15s | No | Linux |
-| VM launcher (PG) | `nix run .#integration-pg-vm` | ~25s to first test | No | Linux |
-| VM launcher (MySQL) | `nix run .#integration-mysql-vm` | ~20s to first test | No | Linux |
+| Approach            | Command                                          | Speed              | Docker? | Platforms    |
+| ------------------- | ------------------------------------------------ | ------------------ | ------- | ------------ |
+| Ephemeral PG        | `nix run .#integration-pg`                       | ~3s startup        | No      | Linux, macOS |
+| NixOS VM (PG)       | `nix build .#checks.x86_64-linux.postgres-vm -L` | ~17s               | No      | Linux        |
+| NixOS VM (MySQL)    | `nix build .#checks.x86_64-linux.mysql-vm -L`    | ~15s               | No      | Linux        |
+| VM launcher (PG)    | `nix run .#integration-pg-vm`                    | ~25s to first test | No      | Linux        |
+| VM launcher (MySQL) | `nix run .#integration-mysql-vm`                 | ~20s to first test | No      | Linux        |
 
 > **MariaDB limitation**: Ephemeral MySQL without a VM is impossible on NixOS —
 > `mariadb-install-db` fails (read-only Nix store plugin dir). VM is required.

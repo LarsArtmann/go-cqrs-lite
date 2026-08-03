@@ -9,45 +9,57 @@
 ## a) FULLY DONE (verified, committed, tests passing)
 
 ### T1: Extend `nix run .#verify` with check-layers + check-duplication + check-coverage
+
 - **What:** Added three quality gates to the `verify` app in `flake.nix` (lines ~833-835). These now run automatically between Lint and API Stability.
 - **Bug found and fixed:** `check-module-layers.sh` was missing 21 of 64 modules from its LAYER and DEP_BUDGET maps. `stack` budget was 14 but actual production deps were 17. Added all missing modules (metaengine, pebbleengine, duckdbengine, pgengine, projectionadapter, flightrecorder, retry, transport/grpc, idempotency/kvstore, idempotency/sqlstore, benchkit, stack/duckdb, stack/mysql, stack/turso). Removed `testutil` from LAYER (it's test-only infrastructure, creates false layer violations from lower-tier modules).
 - **Verified:** All three checks now exit 0 individually AND as part of `nix run .#verify`.
 - **Commit:** `d4dbebbd`
 
 ### T2: Fix design doc lie — MapUpdate "emits" → "should emit"
+
 - **What:** Changed `docs/planning/meta-engine-eventual-consistency-and-iroh.md:279` from "The planner emits a WARN diagnostic" to "Recommended: the planner should emit a WARN diagnostic."
 - **Commit:** auto-committed by daemon
 
 ### T3: Push unpushed commits
+
 - **What:** All commits pushed to `origin/master`.
 
 ### T4: Tag `metaengine/v4.3.0`
+
 - **What:** Created annotated tag `metaengine/v4.3.0` with message describing replication model work. Tag pushed to remote.
 - **Commit tagged:** `6f7c8838`
 
 ### T5: Add `DegradedADTs` field to `EngineProfile`
+
 - **What:** Added `DegradedADTs map[ADT]bool` field to `EngineProfile` struct in `metaengine/engine.go`. Added `IsDegraded(adt ADT) bool` method. Documented semantics: Supports = "can I do this?", DegradedADTs = "am I good at this?"
 
 ### T6: Extend SQLite engine to 10/10 ADTs
+
 - **What:** Added ADTVector, ADTSearch, ADTSpatial to SQLite `Supports` map as `ComplexityON`. Marked all three in `DegradedADTs`.
 
 ### T7: Extend Pebble engine to 10/10 ADTs
+
 - **What:** Same as SQLite — added Vector/Search/Spatial as O(N) degraded.
 
 ### T8: Extend DuckDB engine to 10/10 ADTs
+
 - **What:** Added 7 missing ADTs (Set, Graph, Log, Multimap, Vector, Search, Spatial) all as O(N) degraded.
 
 ### T9: Extend Postgres engine to 10/10 ADTs
+
 - **What:** Added same 7 missing ADTs as DuckDB, all as O(N) degraded.
 
 ### T10: Implement `degradedADTRule` with SCREAM diagnostics
+
 - **What:** Created `metaengine/rule_degraded_adt.go`. Rule emits `DEGRADED` diagnostic: `"DEGRADED: {adt} routed to {engine} via {complexity} fallback — native engine recommended for production"`. Also adds RuleTrace entry.
 - **Registered** in `defaultRules()` in `rules.go`.
 
 ### T11: Improve `errADTNotSupported` error message
+
 - **What:** Changed error message in `planner.go:184` to include actionable guidance: `"add a Memory engine (supports all ADTs) or declare it as degraded on an existing engine via DegradedADTs"`.
 
 ### T12: Integration tests for universal ADT (8 tests, all pass)
+
 - **What:** Created `metaengine/universal_adt_test.go` with 8 tests:
   - `TestUniversalADT_MemoryEngineHasAllTenADTs` — verifies Memory has all 10 ADTs, none degraded
   - `TestUniversalADT_DegradedDiagnosticEmitted` — verifies SCREAM diagnostic fires for degraded routing
@@ -59,23 +71,24 @@
 - **All pass** under `-count=1`.
 
 ### T13: Write ADR-0094: Universal ADT Support
+
 - **What:** Created `docs/adr/0094-metaengine-universal-adt-support.md`. Full ADR with context (fragmentation problem), decision (DegradedADTs + SCREAM), coverage matrix (before/after), consequences.
 - **docs/README.md** ADR index updated: count 91→92, added ADR-0094 entry.
 
 ### Coverage matrix after T5-T13 (ALL engines at 10/10)
 
-| ADT | Memory | SQLite | Pebble | DuckDB | Postgres |
-|-----|--------|--------|--------|--------|----------|
-| Map | O(1) | O(logN) | O(1) | O(logN) | O(logN) |
-| Set | O(1) | O(logN) | O(1) | O(N)* | O(N)* |
-| Counter | O(1) | O(1) | O(N) | O(1) | O(1) |
-| Graph | O(deg) | O(N) | O(N) | O(N)* | O(N)* |
-| SortedMap | O(N) | O(logN) | O(N) | O(logN) | O(logN) |
-| Log | O(N) | O(logN) | O(logN) | O(N)* | O(N)* |
-| Multimap | O(1) | O(logN) | O(logN) | O(N)* | O(N)* |
-| Vector | O(N) | O(N)* | O(N)* | O(N)* | O(N)* |
-| Search | O(N) | O(N)* | O(N)* | O(N)* | O(N)* |
-| Spatial | O(N) | O(N)* | O(N)* | O(N)* | O(N)* |
+| ADT       | Memory | SQLite  | Pebble  | DuckDB  | Postgres |
+| --------- | ------ | ------- | ------- | ------- | -------- |
+| Map       | O(1)   | O(logN) | O(1)    | O(logN) | O(logN)  |
+| Set       | O(1)   | O(logN) | O(1)    | O(N)*   | O(N)*    |
+| Counter   | O(1)   | O(1)    | O(N)    | O(1)    | O(1)     |
+| Graph     | O(deg) | O(N)    | O(N)    | O(N)*   | O(N)*    |
+| SortedMap | O(N)   | O(logN) | O(N)    | O(logN) | O(logN)  |
+| Log       | O(N)   | O(logN) | O(logN) | O(N)*   | O(N)*    |
+| Multimap  | O(1)   | O(logN) | O(logN) | O(N)*   | O(N)*    |
+| Vector    | O(N)   | O(N)*   | O(N)*   | O(N)*   | O(N)*    |
+| Search    | O(N)   | O(N)*   | O(N)*   | O(N)*   | O(N)*    |
+| Spatial   | O(N)   | O(N)*   | O(N)*   | O(N)*   | O(N)*    |
 
 `*` = degraded (non-native fallback)
 
@@ -84,6 +97,7 @@
 ## b) PARTIALLY DONE (started but interrupted)
 
 ### T14-T18: Replication Polish — NOT STARTED (0%)
+
 The plan to add `WithReplication()`, `WithNetworkRTT()`, SerializablePlan replication fields, `ReplicationMode()` accessor, and MapUpdate WARN diagnostic was **not started**. The `planConfig` struct in `planner.go` was about to be edited (read the struct, understood the pattern) but no code was written. No partial changes exist in the working tree.
 
 ---
@@ -91,6 +105,7 @@ The plan to add `WithReplication()`, `WithNetworkRTT()`, SerializablePlan replic
 ## c) NOT STARTED
 
 ### T19-T24: TODO_LIST Backlog (0%)
+
 - T19: 10M soak test hardening — not started
 - T20: Watcher typed-channel — not started
 - T21: SSE+SQLite reconnect test — not started
@@ -99,6 +114,7 @@ The plan to add `WithReplication()`, `WithNetworkRTT()`, SerializablePlan replic
 - T24: DuckDB LayoutPlanner follow-ups — not started
 
 ### T25-T27: Other (0%)
+
 - T25: Iroh bridge evaluation ADR — not started
 - T26: gopls hint cleanup (6 infertypeargs + 1 writestring) — not started
 - T27: Run cqrs-lint against real consumer projects — not started
@@ -108,25 +124,32 @@ The plan to add `WithReplication()`, `WithNetworkRTT()`, SerializablePlan replic
 ## d) TOTALLY FUCKED UP
 
 ### 1. `nixos.qcow2` (43MB binary) committed to git
+
 A 43MB NixOS VM disk image (`nixos.qcow2`) was committed to the repository root. It is NOT in `.gitignore`. This bloats the repo and should be removed from tracking immediately. **Root cause:** a prior session's NixOS VM testing left the artifact, and the auto-commit daemon committed it.
 
 ### 2. API surface golden NOT regenerated for new symbols
+
 `docs/api_surface.txt` has `metaengine/method IsDegraded` but is **missing**:
+
 - `metaengine/field DegradedADTs` (the struct field on EngineProfile)
 - `metaengine/method (EngineProfile).IsDegraded` is present but the field is missing
 
 The AGENTS.md lint convention says: "API-surface changes require golden regen in the same edit." This was violated. The `nix run .#check-api-stability` gate will catch this, but it was not run in this session.
 
 ### 3. `nix run .#verify` was NOT run after all changes
+
 Despite T1 being "extend the verify gate," the full verify gate was **never run end-to-end** after the T5-T13 changes. Only individual checks (check-layers, check-duplication, check-coverage, metaengine tests) were run. This is the exact "STALE GREEN" anti-pattern documented in AGENTS.md.
 
 ### 4. No race-detector run on new tests
+
 The 8 universal ADT tests were verified with `-count=1` but NOT with `-race`. The plan explicitly calls for `go test -race ./metaengine/...` (S3.38).
 
 ### 5. Metaengine v4.3.0 tag does NOT include the Universal ADT work
+
 The tag `metaengine/v4.3.0` was cut at commit `6f7c8838`, which is **before** the Universal ADT changes (commits `d4dbebbd` through `8b41f658`). The DegradedADTs field, degradedADTRule, universal_adt_test.go, and ADR-0094 are all **unreleased**. Consumers resolving `metaengine/v4` get v4.3.0 which has none of this work. A v4.4.0 tag is needed after verify passes.
 
 ### 6. Commit message corruption
+
 Commit `8b41f658` has message `"ore(metaengine): add ADR 0094..."` — the `ch` prefix of `chore` was truncated by the auto-commit daemon.
 
 ---
@@ -146,6 +169,7 @@ Commit `8b41f658` has message `"ore(metaengine): add ADR 0094..."` — the `ch` 
 ## f) Up to 50 Things to Get Done Next
 
 ### Critical (do first)
+
 1. Run `nix run .#verify` end-to-end after T5-T13 changes
 2. Regenerate `docs/api_surface.txt` (`cd cmd/api-stability && GOWORK=off go run main.go -update`)
 3. Add `nixos.qcow2` to `.gitignore` and `git rm --cached nixos.qcow2`
@@ -153,6 +177,7 @@ Commit `8b41f658` has message `"ore(metaengine): add ADR 0094..."` — the `ch` 
 5. Tag `metaengine/v4.4.0` after verify passes (includes Universal ADT work)
 
 ### T14-T18: Replication Polish
+
 6. Add `WithReplication(r Replication)` planOption to planner.go
 7. Add `WithNetworkRTT(d time.Duration)` planOption
 8. Wire overrides into EngineProfile during Plan()
@@ -166,11 +191,12 @@ Commit `8b41f658` has message `"ore(metaengine): add ADR 0094..."` — the `ch` 
 16. Write test for MapUpdate WARN diagnostic
 
 ### T19-T24: TODO_LIST Backlog
+
 17. T19: Add 100K-event smoke variant (SOAK_SKIP_10M=1)
 18. T19: Add runtime.MemStats.TotalAlloc delta measurement
 19. T19: Run soak test 3× with -race, document variance
 20. T20: Design typed Watcher[V] interface
-21. T20: Implement WatchTyped[V]() on Store (new method, keep chan any)
+21. T20: Implement WatchTyped[V](<>) on Store (new method, keep chan any)
 22. T20: Update dx.go reifyWatcherValue for typed path
 23. T20: Write TestWatcher_TypedChannel_NoAssertion
 24. T21: Write TestSSE_ReconnectWithSQLite end-to-end
@@ -186,6 +212,7 @@ Commit `8b41f658` has message `"ore(metaengine): add ADR 0094..."` — the `ch` 
 34. T24: Add adttest matrix coverage for LayoutPlanner
 
 ### T25-T27: Other
+
 35. T25: Research Iroh C bindings (iroh-ffi, iroh-go) availability
 36. T25: Evaluate CGo FFI vs sidecar tradeoffs
 37. T25: Write ADR-0095: Iroh bridge decision
@@ -196,6 +223,7 @@ Commit `8b41f658` has message `"ore(metaengine): add ADR 0094..."` — the `ch` 
 42. T27: Document false-positive findings
 
 ### Meta/Quality
+
 43. Add meta-test: every go.mod dir must be in check-module-layers.sh LAYER map
 44. Add meta-test: every go.mod dir must be in check-module-layers.sh DEP_BUDGET map
 45. Update AGENTS.md with DegradedADTs pattern + ADR-0094 reference
