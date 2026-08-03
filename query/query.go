@@ -47,6 +47,7 @@ type MetadataKey string
 // the event's shape cannot silently reshape queries.
 type Metadata struct {
 	metadata.Tracing
+
 	Custom map[MetadataKey]string `json:"custom,omitempty"`
 }
 
