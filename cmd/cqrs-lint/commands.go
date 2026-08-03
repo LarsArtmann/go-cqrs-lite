@@ -29,7 +29,7 @@ func registerCommand[F any](
 }
 
 func setupRulesCommand(cli *cmdguard.CLI[AppConfig]) error {
-	cmd, err := cmdguard.NewCommand[AppConfig, cmdguard.NoFlags](
+	cmd, err := cmdguard.NewCommand(
 		"rules",
 		cmdguard.NoFlags{},
 		func(_ context.Context, cfg *AppConfig, _ cmdguard.NoFlags) error {
@@ -49,7 +49,7 @@ func setupRulesCommand(cli *cmdguard.CLI[AppConfig]) error {
 }
 
 func setupVersionCommand(cli *cmdguard.CLI[AppConfig]) error {
-	cmd, err := cmdguard.NewCommand[AppConfig, versionFlags](
+	cmd, err := cmdguard.NewCommand(
 		"version",
 		versionFlags{},
 		func(_ context.Context, _ *AppConfig, flags versionFlags) error {
@@ -82,7 +82,7 @@ func versionVerbose() string {
 }
 
 func setupChangelogCommand(cli *cmdguard.CLI[AppConfig]) error {
-	cmd, err := cmdguard.NewCommand[AppConfig, cmdguard.NoFlags](
+	cmd, err := cmdguard.NewCommand(
 		"changelog",
 		cmdguard.NoFlags{},
 		func(ctx context.Context, _ *AppConfig, _ cmdguard.NoFlags) error {

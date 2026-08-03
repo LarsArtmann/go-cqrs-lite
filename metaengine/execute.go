@@ -105,6 +105,14 @@ func (s *Store) executeQueryInner(
 
 	case ReadMembership:
 		key := extractKeyValueByType(input, q.QueryKeyType())
+
+		if q.QueryKeyType() != nil && key == nil {
+			return nil, fmt.Errorf(
+				"%w: query %q expects key type %s",
+				errKeyTypeMismatch, q.QueryName(), q.QueryKeyType(),
+			)
+		}
+
 		if sb, ok := q.QueryEngine().(SetBackend); ok {
 			contained, err := sb.SetContains(ctx, q.QueryName(), key)
 			if err != nil {

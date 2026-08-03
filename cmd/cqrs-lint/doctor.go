@@ -14,7 +14,7 @@ import (
 )
 
 func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
-	cmd, err := cmdguard.NewCommand[AppConfig, cmdguard.NoFlags](
+	cmd, err := cmdguard.NewCommand(
 		"doctor",
 		cmdguard.NoFlags{},
 		func(_ context.Context, cfg *AppConfig, _ cmdguard.NoFlags) error {
