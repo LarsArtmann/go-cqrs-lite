@@ -18,6 +18,7 @@ This session picked up all 6 items and resolved them. The auto-commit daemon als
 ## a) FULLY DONE
 
 ### 1. Reverted DuckDB cost constants (CRITICAL)
+
 - `DuckDBNsPerOp`: 4,800,000 → **15,000** (reverted to original)
 - `DuckDBNsPerRead`: 546,000 → **3,000** (reverted to original)
 - **Why:** The prior session changed these based on point-lookup benchmarks (MapGet). DuckDB is a columnar analytical engine — point lookups are its worst case (full column scan + CGo boundary). The new values would have made the planner route EVERYTHING away from DuckDB, including analytical GROUP BY workloads where DuckDB should dominate by 10-50x.
@@ -25,12 +26,14 @@ This session picked up all 6 items and resolved them. The auto-commit daemon als
 - `metaengine/duckdbengine/doc.go` was already correct (showed original values 15,000/3,000) — now matches engine.go again.
 
 ### 2. Reverted Postgres cost constants
+
 - `PG_NsPerOp`: 33,000 → **12,000** (reverted to original)
 - `PG_NsPerRead`: 28,000 → **5,000** (reverted to original)
 - **Why:** Docker testcontainer network overhead inflated measurements 3-5x. The values should model production Postgres (same-datacenter network or Unix socket).
 - Added comments noting the Docker-measured values for reference.
 
 ### 3. Fixed broken `stack/postgres` build (CRITICAL — prior session's bug)
+
 - **Root cause:** The prior session deleted `storage.PostgresBus` types (`NotificationListener`, `PostgresBusOption`, `NewPostgresBus`) but left `stack/postgres/` referencing them — compile-breaking.
 - **Why it wasn't caught:** `go build ./...` in workspace mode gives a **false green** — it doesn't compile individual module directories. Only `nix run .#build` or `cd module && GOWORK=off go build ./...` catches this.
 - **What was removed (1,177 LOC across 5 files):**
@@ -43,32 +46,39 @@ This session picked up all 6 items and resolved them. The auto-commit daemon als
 - `stack/postgres/go.mod` tidied (removed unused pgxpool imports)
 
 ### 4. Added depguard allow-list entries
+
 - `.golangci.yml`: Added `github.com/larsartmann/go-retry` and `github.com/larsartmann/go-idempotency` to the depguard `Main` allow list.
 
 ### 5. Regenerated api-stability golden
+
 - `docs/api_surface.txt`: Regenerated twice (first after PostgresBus removal → 3,200 exports, then after PgxListener removal → 3,183 exports).
 - The api-stability tool itself was NOT broken (prior session misdiagnosed `collectExports undefined` — it only fails with `go run main.go`, not `go run .`).
 
 ### 6. Updated AGENTS.md
+
 - `storage/` line: removed `PostgresListenNotifyBus` reference
 - `retry/` line: updated from "standalone, extraction planned" to "re-export aliases for go-retry"
 - `idempotency/` line: updated from "extraction planned" to "re-export aliases for go-idempotency"
 - Dependency table: added `go-retry` and `go-idempotency` to Production deps
 
 ### 7. Tagged external repos
+
 - `go-retry`: tagged v0.1.0 (annotated)
 - `go-idempotency`: tagged v0.1.0 (annotated)
 - Both repos already had commits from the prior session + daemon additions
 
 ### 8. Formatted all changed files
+
 - `gofumpt` + `goimports` on 17+ changed .go files across metaengine, storage, stack, command, query, retry, idempotency
 
 ### 9. Lint fixes
+
 - `godoclint`: Removed duplicate package doc comments from `retry/alias.go` and `idempotency/alias.go` (only `doc.go` should carry the package godoc)
 - `wrapcheck`: Added `//nolint:wrapcheck` to `retry/alias.go` (thin alias — caller sees the same errors)
 - `gci`: Fixed import ordering in `stack/postgres/preset.go`
 
 ### 10. Verify gate: GREEN
+
 - Two consecutive clean runs of `nix run .#verify` (build + vet + test + race + lint + doc-check)
 - One initial flake in `benchkit.TestCompare_ThreeBackends` (timing-sensitive) — passed on retry
 
@@ -77,12 +87,14 @@ This session picked up all 6 items and resolved them. The auto-commit daemon als
 ## b) PARTIALLY DONE
 
 ### SSE Consolidation (P1)
+
 - The **daemon** committed SSE refactoring work during this session (commits `b7bb2647`, `bca4f31d`, `f7512176`) — delegating wire-format serialization to `go-sse` library per ADR-0097
 - Files changed by daemon: `metaengine/sse.go`, `transport/http/sse_event.go`, `transport/http/go.mod`
 - **I did NOT review, test, or verify this daemon work** — it happened in parallel
 - The remaining uncommitted files include `metaengine/sse.go` and `transport/http/sse_event.go`
 
 ### Extraction completion (P2c/P2d)
+
 - go-retry: core extracted + tagged, but NOT pushed to GitHub
 - go-idempotency: core extracted + tagged, but NOT pushed to GitHub
 - Both repos have local `replace` directives in go-cqrs-lite — they resolve locally only
@@ -103,6 +115,7 @@ This session picked up all 6 items and resolved them. The auto-commit daemon als
 ## d) TOTALLY FUCKED UP
 
 ### Prior session shipped a BROKEN BUILD (not this session)
+
 - The prior session deleted `storage.PostgresBus` (4 files, 1,226 LOC) but left `stack/postgres/` with 6 files referencing the deleted types
 - They claimed "go build ./... — PASS" and "go test — ALL PASS" — **both were false greens**
 - `go build ./...` in workspace mode does NOT compile individual modules' dependencies; it resolves them from the workspace and can skip type-checking of transitive imports
@@ -111,6 +124,7 @@ This session picked up all 6 items and resolved them. The auto-commit daemon als
 - The breakage persisted for ~3 hours and was only caught when this session ran `nix run .#verify`
 
 ### DuckDB cost constant change was a planner regression
+
 - The prior session changed constants from analytical-cost values to point-lookup values
 - This would have made the planner route everything AWAY from DuckDB, even for analytical workloads where it should win by 10-50x
 - The execution plan itself documented this risk ("Open Risk: DuckDB Cost Constants") but shipped it anyway
@@ -132,6 +146,7 @@ This session picked up all 6 items and resolved them. The auto-commit daemon als
 ## f) Up to 50 Things We Should Get Done Next
 
 ### Critical (correctness / CI-blocking)
+
 1. Review daemon's SSE refactoring (metaengine/sse.go, transport/http/sse_event.go) — verify it works
 2. Audit consumers of `PgxListener` / `NewPgxListenerFromDSN` across all external repos
 3. Run `nix run .#verify` one more time to confirm the daemon's SSE commits didn't break anything
@@ -142,6 +157,7 @@ This session picked up all 6 items and resolved them. The auto-commit daemon als
 8. Run `nix run .#vulncheck` to verify no module resolution issues with the new external deps
 
 ### Cost Model
+
 9. Write a DuckDB analytical GROUP BY benchmark (vectorized aggregation, not point lookup)
 10. Write a Postgres analytical benchmark without Docker network overhead (Unix socket or same-host)
 11. Add a `NsPerAnalyticalRead` field to EngineProfile (separate from `NsPerRead` for point lookups)
@@ -149,6 +165,7 @@ This session picked up all 6 items and resolved them. The auto-commit daemon als
 13. Document the dual-model cost constants in the metaengine design docs
 
 ### Architecture Debt
+
 14. Evaluate `command/bus.go` for removal (zero external consumers, internal watermill consumer)
 15. Extract `idempotency/kvstore` to go-idempotency (blocked on kv/ dependency)
 16. Extract `idempotency/sqlstore` to go-idempotency (blocked on storage/sql/ dependency)
@@ -157,6 +174,7 @@ This session picked up all 6 items and resolved them. The auto-commit daemon als
 19. Complete SSE consolidation — verify all SSE code paths use go-sse primitives
 
 ### Documentation
+
 20. Update ADR-0097 with SSE refactoring completion status
 21. Update ADR-0064 (retry extraction) with "v0.1.0 tagged" status
 22. Update ADR-0065 (idempotency extraction) with "core tagged, sub-modules deferred" status
@@ -167,6 +185,7 @@ This session picked up all 6 items and resolved them. The auto-commit daemon als
 27. Update CHANGELOG for all changes this session
 
 ### Testing
+
 28. Add integration test for the SSE refactoring (daemon's work — needs verification)
 29. Add a regression test that catches the "workspace false green" pattern (per-module build check)
 30. Add property-based test for planner routing with the reverted constants
@@ -175,6 +194,7 @@ This session picked up all 6 items and resolved them. The auto-commit daemon als
 33. Run `nix run .#check-coverage` to verify coverage didn't regress
 
 ### Cleanup
+
 34. Remove the `event` import from `stack/postgres/preset.go` if unused (was kept for `io.Closer`)
 35. Check if `stack/postgres/go.mod` still has the pgx dependency (may be transitively needed)
 36. Clean up `go.work.sum` after all module changes
@@ -183,11 +203,13 @@ This session picked up all 6 items and resolved them. The auto-commit daemon als
 39. Run `nix flake check` to verify the flake is still valid
 
 ### Metaengine Polish
+
 40. Add Pebble cost constant comments noting they WERE re-measured and kept (2000/1300/2500)
 41. Add a "How to calibrate" doc section in metaengine explaining the benchmark methodology
 42. Consider adding a `CalibrationBenchmarks` section to the metaengine README
 
 ### Consumer Impact Assessment
+
 43. Check if any consumer repo uses `postgres.WithDistributedBus`
 44. Check if any consumer repo uses `postgres.NewPgxListener`
 45. Check if any consumer repo uses `postgres.NewPgxListenerFromDSN`
@@ -195,6 +217,7 @@ This session picked up all 6 items and resolved them. The auto-commit daemon als
 47. Document migration path for consumers who relied on distributed bus
 
 ### Process
+
 48. Add a pre-commit check that runs `GOWORK=off go build ./...` per module
 49. Document the "workspace false green" trap more prominently in AGENTS.md
 50. Consider making `nix run .#verify` a hard gate before any daemon commit
@@ -204,13 +227,17 @@ This session picked up all 6 items and resolved them. The auto-commit daemon als
 ## g) Questions (that I CANNOT figure out myself)
 
 ### 1. Should the daemon's SSE refactoring work be trusted or reviewed?
+
 The daemon committed SSE wire-format delegation to go-sse (commits `b7bb2647`, `bca4f31d`, `f7512177`) during this session. I did NOT write, review, or test this code. There are still uncommitted changes in `metaengine/sse.go` and `transport/http/sse_event.go`. Should I:
+
 - a) Trust the daemon and commit the remaining changes?
 - b) Review every daemon SSE commit before committing?
 - c) Revert the daemon's SSE work entirely?
 
 ### 2. Was PgxListener independently consumed by external repos?
+
 The prior session confirmed zero consumers of `storage.PostgresBus`, but no audit was done for `postgres.PgxListener` / `postgres.NewPgxListenerFromDSN` specifically. PgxListener was a standalone LISTEN-side implementation — it may have been imported independently of PostgresBus. Should I grep the consumer repos, or do you know definitively whether any consumer used it?
 
 ### 3. Should go-retry and go-idempotency be pushed to GitHub now?
+
 Both repos are local-only with v0.1.0 tags. The go-cqrs-lite modules use `replace` directives pointing to local paths. Pushing would make them resolvable by external consumers but also makes them public. Should I push, or wait until they're more mature (tests, README, CI)?

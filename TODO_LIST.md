@@ -126,6 +126,32 @@ and is **never** duplicated here.
 - [ ] **Add SSE decision matrix to SKILL.md** — route consumers between
       raw-events SSE vs read-model SSE.
 
+- [ ] **Resolve metaengine SSE layer-leak (ADR-0062 violation)** —
+      `metaengine/sse.go` pulls `go-sse` + `dedup` as **production** deps into
+      a module whose core is documented as "zero production deps (stdlib +
+      `database/sql` only)" (ADR-0062). Three options: (a) move SSE to
+      `transport/http` behind a source adapter, (b) split into
+      `metaengine/sse` sub-module with own go.mod, (c) amend ADR-0062 to
+      acknowledge the exception. Needs a decision + ADR. See
+      [2026-08-03 status report](docs/status/2026-08-03_21-43_sse-layering-and-watermill-fitness.md).
+      **BLOCKED on user input**: is `metaengine.ServeSSE` stable public API
+      that external consumers import?
+
+- [ ] **Move `Inspect()` / `InspectJSON()` out of `sse.go`** —
+      `metaengine/sse.go:372-398` defines `Store.Inspect()` and
+      `Store.InspectJSON()` (collection introspection) which have nothing to
+      do with SSE. Pure file-cohesion fix; zero behavior change. Belongs in
+      `inspect.go` or `store.go`.
+
+- [ ] **Measure SSE loop duplication** — run `art-dupl` between
+      `transport/http/sse*.go` and `metaengine/sse.go` to quantify actual
+      shared logic (heartbeat, timeout, flush, drop-old, replay handoff).
+      Input to whether a shared `sseloop` internal package is worth
+      extracting. Decision required: the two implementations stream
+      different data models (`event.Event` vs `SeqValue[V]`) — do NOT force
+      a shared source interface. See
+      [2026-08-03 status report](docs/status/2026-08-03_21-43_sse-layering-and-watermill-fitness.md).
+
 ---
 
 ## CI / Release / Infrastructure

@@ -76,7 +76,7 @@
    explicitly say "checkout /watermill." I should have ruled it in or out as
    part of the original answer.
 3. **Overstated sharing.** I said "the shared loop logic is already generic
-   and reusable" — true *inside* metaengine (`sseMainLoop[T]`), but I implied
+   and reusable" — true _inside_ metaengine (`sseMainLoop[T]`), but I implied
    `transport/http` shares it. It does not; they are separate reimplementations.
    I conflated "could be shared" with "is shared."
 4. **Speculation presented as recommendation.** The `SSESource[V]` interface
@@ -95,8 +95,8 @@
   command.MemoryBus) before answering.
 - **Measure duplication before proposing extraction.** `art-dupl` exists in
   this repo specifically for this. Run it.
-- **Separate "is" from "should be."** Saying the loop *is* shared when it
-  *could be* shared is a lie. Say "could be" until measured.
+- **Separate "is" from "should be."** Saying the loop _is_ shared when it
+  _could be_ shared is a lie. Say "could be" until measured.
 
 ### Codebase (real findings)
 
