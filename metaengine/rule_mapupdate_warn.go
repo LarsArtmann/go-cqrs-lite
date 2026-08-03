@@ -49,7 +49,9 @@ func (r *mapUpdateReplicationRule) Apply(result *PlanResult, ctx PlanContext) er
 
 		msg := fmt.Sprintf(
 			"MapUpdate on replicated engine %q (%s, lag=%s) — updates may conflict; use idempotent folds or single-leader topology",
-			profile.Name, profile.Replication, lag,
+			profile.Name,
+			profile.Replication,
+			lag,
 		)
 		result.Diagnostics = append(result.Diagnostics, Diagnostic{
 			Level:   DiagLevelWarn,
