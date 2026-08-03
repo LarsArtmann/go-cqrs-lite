@@ -91,3 +91,34 @@ func TestReplicationRule_NoDiagnosticWhenReplicatedButZeroLag(t *testing.T) {
 		}
 	}
 }
+
+func TestEngineProfileString_IncludesReplicationSuffix(t *testing.T) {
+	t.Parallel()
+
+	p := metaengine.EngineProfile{
+		Name: "iroh-sync",
+		Supports: map[metaengine.ADT]metaengine.Complexity{
+			metaengine.ADTMap: metaengine.ComplexityO1,
+		},
+		Replication:    metaengine.ReplicationLeaderless,
+		ReplicationLag: 200 * time.Millisecond,
+		NetworkRTT:     5 * time.Millisecond,
+	}
+
+	s := p.String()
+	for _, want := range []string{"iroh-sync", "replication=leaderless", "lag=200ms", "rtt=5ms"} {
+		if !strings.Contains(s, want) {
+			t.Errorf("String() missing %q, got: %s", want, s)
+		}
+	}
+}
+
+func TestEngineProfileString_NoSuffixForLocalEngine(t *testing.T) {
+	t.Parallel()
+
+	p := metaengine.NewMemoryEngine().Profile()
+	s := p.String()
+	if strings.Contains(s, "replication=") {
+		t.Errorf("local engine String() should not contain replication suffix, got: %s", s)
+	}
+}

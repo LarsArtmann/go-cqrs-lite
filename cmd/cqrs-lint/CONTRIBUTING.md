@@ -246,4 +246,5 @@ sudo nixos-rebuild switch --flake .#l
 ```
 
 The `scripts/bump-cqrs-lint.sh` helper automates the vendorHash + go mod tidy
-+ nix build cycle from the repo root.
+
+- nix build cycle from the repo root.

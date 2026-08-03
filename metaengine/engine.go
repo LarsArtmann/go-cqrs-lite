@@ -90,7 +90,7 @@ func (p EngineProfile) String() string {
 
 	sort.Strings(parts)
 
-	extras := []string{}
+	extras := make([]string, 0, 3)
 	if p.IsReplicated() {
 		extras = append(extras, fmt.Sprintf("replication=%s", p.Replication))
 		if p.ReplicationLag > 0 {

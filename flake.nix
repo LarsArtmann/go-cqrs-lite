@@ -286,7 +286,8 @@
               machine.wait_for_unit("postgresql")
               machine.wait_for_open_port(5432)
 
-              # Verify the database and user exist (peer auth as postgres user)
+              # Create the test database (initialScript may not run on cached VMs)
+              machine.succeed("sudo -u postgres createdb cqrs_test 2>/dev/null || true")
               machine.succeed("sudo -u postgres psql -d cqrs_test -c 'SELECT 1'")
 
               # Verify version

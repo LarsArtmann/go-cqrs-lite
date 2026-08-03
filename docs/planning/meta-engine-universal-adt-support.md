@@ -20,19 +20,19 @@ Every engine should declare complexity for **all 10 ADTs** instead of silently s
 
 The planner currently skips engines that don't list an ADT in their `Supports` map. If no engine supports the ADT, `planQuery` returns `errADTNotSupported`. The routing space is fragmented:
 
-| ADT          | Memory | SQLite | Pebble | DuckDB | Postgres |
-| ------------ | :----: | :----: | :----: | :----: | :-------: |
-| ADTMap       | O(1)   | O(logN)| O(1)   | O(logN)| O(logN)   |
-| ADTSet       | O(1)   | O(logN)| O(1)   |   —    |    —      |
-| ADTCounter   | O(1)   | O(1)   | O(N)   | O(1)   | O(1)      |
-| ADTGraph     | O(deg) | O(N)   | O(N)   |   —    |    —      |
-| ADTSortedMap | O(N)   | O(logN)| O(N)   | O(logN)| O(logN)   |
-| ADTLog       | O(N)   | O(logN)| O(logN)|   —    |    —      |
-| ADTMultimap  | O(1)   | O(logN)| O(logN)|   —    |    —      |
-| ADTVector    | O(N)   |   —    |   —    |   —    |    —      |
-| ADTSearch    | O(N)   |   —    |   —    |   —    |    —      |
-| ADTSpatial   | O(N)   |   —    |   —    |   —    |    —      |
-| **Total**    | **10** | **7**  | **7**  | **3**  | **3**     |
+| ADT          | Memory | SQLite  | Pebble  | DuckDB  | Postgres |
+| ------------ | :----: | :-----: | :-----: | :-----: | :------: |
+| ADTMap       |  O(1)  | O(logN) |  O(1)   | O(logN) | O(logN)  |
+| ADTSet       |  O(1)  | O(logN) |  O(1)   |    —    |    —     |
+| ADTCounter   |  O(1)  |  O(1)   |  O(N)   |  O(1)   |   O(1)   |
+| ADTGraph     | O(deg) |  O(N)   |  O(N)   |    —    |    —     |
+| ADTSortedMap |  O(N)  | O(logN) |  O(N)   | O(logN) | O(logN)  |
+| ADTLog       |  O(N)  | O(logN) | O(logN) |    —    |    —     |
+| ADTMultimap  |  O(1)  | O(logN) | O(logN) |    —    |    —     |
+| ADTVector    |  O(N)  |    —    |    —    |    —    |    —     |
+| ADTSearch    |  O(N)  |    —    |    —    |    —    |    —     |
+| ADTSpatial   |  O(N)  |    —    |    —    |    —    |    —     |
+| **Total**    | **10** |  **7**  |  **7**  |  **3**  |  **3**   |
 
 **Three consequences:**
 
@@ -48,13 +48,13 @@ The planner currently skips engines that don't list an ADT in their `Supports` m
 
 Each engine's `Supports` map grows to cover all 10 ADTs. Non-native ADTs get a **degraded complexity** reflecting the brute-force cost:
 
-| Engine   | Native ADTs                | Fallback strategy                         | Fallback complexity |
-| -------- | -------------------------- | ----------------------------------------- | -------------------- |
-| Memory   | All 10 (brute-force native)| N/A                                       | N/A                  |
-| SQLite   | Map, Set, Counter, Graph, SortedMap, Log, Multimap | Full-table scan + in-memory computation | O(N) for Vector/Search/Spatial |
-| Pebble   | Same 7 as SQLite           | Prefix scan + in-memory computation       | O(N) for Vector/Search/Spatial |
-| DuckDB   | Map, Counter, SortedMap    | Full-table scan + SQL aggregation for Set/Log/Multimap; in-memory for Vector/Search/Spatial | O(N) for all fallbacks |
-| Postgres | Map, Counter, SortedMap    | Same as DuckDB + `pg_trgm` for Search     | O(N) for all fallbacks |
+| Engine   | Native ADTs                                        | Fallback strategy                                                                           | Fallback complexity            |
+| -------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------ |
+| Memory   | All 10 (brute-force native)                        | N/A                                                                                         | N/A                            |
+| SQLite   | Map, Set, Counter, Graph, SortedMap, Log, Multimap | Full-table scan + in-memory computation                                                     | O(N) for Vector/Search/Spatial |
+| Pebble   | Same 7 as SQLite                                   | Prefix scan + in-memory computation                                                         | O(N) for Vector/Search/Spatial |
+| DuckDB   | Map, Counter, SortedMap                            | Full-table scan + SQL aggregation for Set/Log/Multimap; in-memory for Vector/Search/Spatial | O(N) for all fallbacks         |
+| Postgres | Map, Counter, SortedMap                            | Same as DuckDB + `pg_trgm` for Search                                                       | O(N) for all fallbacks         |
 
 ### Step 2: SCREAM diagnostics at plan time
 
@@ -81,6 +81,7 @@ ERROR: vector_search routed to sqlite (DEGRADED at plan time) but
 ```
 
 This is acceptable because:
+
 - The SCREAM diagnostic warned at plan time (the consumer SAW the tradeoff)
 - The consumer chose to proceed (ignored or accepted the warning)
 - Runtime failure is the honest outcome of ignoring a degraded plan

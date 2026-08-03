@@ -57,13 +57,13 @@ The initial implementation (commit `31f26b8c`) proposed a `VisibilityModel` with
 
 ### What Was Done (Phase 2 — Hardening — COMPLETE)
 
-| What                                                                    | Status |
-| ----------------------------------------------------------------------- | ------ |
-| Planner emits INFO diagnostic when `IsReplicated()` + `ReplicationLag > 0` (`rule_replication.go`) | Done   |
-| `EngineProfile.String()` includes replication mode, lag, and RTT        | Done   |
-| API-stability golden regenerated — new exported symbols tracked         | Done   |
-| AGENTS.md updated with replication model summary                        | Done   |
-| External engine modules (Pebble, DuckDB, Postgres) verified to compile + tests pass | Done   |
+| What                                                                                                              | Status |
+| ----------------------------------------------------------------------------------------------------------------- | ------ |
+| Planner emits INFO diagnostic when `IsReplicated()` + `ReplicationLag > 0` (`rule_replication.go`)                | Done   |
+| `EngineProfile.String()` includes replication mode, lag, and RTT                                                  | Done   |
+| API-stability golden regenerated — new exported symbols tracked                                                   | Done   |
+| AGENTS.md updated with replication model summary                                                                  | Done   |
+| External engine modules (Pebble, DuckDB, Postgres) verified to compile + tests pass                               | Done   |
 | Universal-ADT design doc written ([`meta-engine-universal-adt-support.md`](meta-engine-universal-adt-support.md)) | Done   |
 
 ---
@@ -227,50 +227,50 @@ estimated_latency = (ops × nsPerRead / 1e6) + NetworkRTT
 
 Sorted by importance / impact / effort / customer-value.
 
-| #   | Task                                                | Pillar | Impact    | Effort | Customer Value                    | Status      |
-| --- | --------------------------------------------------- | ------ | --------- | ------ | --------------------------------- | ----------- |
-| T1  | ~~Create `replication.go` with `Replication` type~~ | P1     | Critical  | 10min  | Correct foundation                | DONE        |
-| T2  | ~~Fix EngineProfile: 3 new fields~~                 | P1     | Critical  | 10min  | Honest cost model                 | DONE        |
-| T3  | ~~Remove visibility from QueryConfig~~              | P1     | Critical  | 5min   | Clean query API                   | DONE        |
-| T4  | ~~Fix cost estimator: NetworkRTT additive~~         | P1     | Critical  | 10min  | Correct latency                   | DONE        |
-| T5  | ~~Update planner call site~~                        | P1     | Critical  | 5min   | Planner uses correct costs        | DONE        |
-| T6  | ~~6 replication model tests~~                       | P1     | High      | 15min  | Model is pinned                   | DONE        |
-| T7  | ~~Update design doc~~                               | P1     | High      | 20min  | Contributors see correct model    | DONE        |
-| T8  | ~~Regenerate API-stability golden~~                     | P1     | Critical  | 10min  | Public API surface is tracked     | DONE        |
-| T9  | ~~Add replication diagnostics to planner~~              | P1     | High      | 20min  | Users see lag/staleness warnings  | DONE        |
-| T10 | ~~Update `EngineProfile.String()` with replication~~    | P1     | Medium    | 10min  | Debugging visibility              | DONE        |
-| T11 | ~~Update AGENTS.md metaengine section~~                 | P2     | Medium    | 15min  | Future sessions know the model    | DONE        |
-| T12 | ~~Verify external engine modules compile~~              | P1     | High      | 10min  | Pebble/DuckDB/PG don't break      | DONE        |
-| T13 | Add `CalibrateRTT()` helper (if Q1 = option c)      | P2     | Medium    | 20min  | Deployment-aware calibration      | NOT STARTED |
-| T14 | ~~Write universal-ADT design exploration doc~~          | P2     | High      | 30min  | Design direction for pillar 2     | DONE        |
-| T15 | ~~Audit which engines skip which ADTs~~                 | P2     | High      | 15min  | Baseline for universal support    | DONE        |
-| T16 | Design SCREAM diagnostic format                     | P2     | High      | 20min  | Honest cost signals for fallbacks | NOT STARTED |
-| T17 | Implement universal ADT `Supports` entries          | P2     | High      | 30min  | Every engine declares every ADT   | NOT STARTED |
-| T18 | Add SCREAM diagnostics to planner                   | P2     | High      | 25min  | Warnings surface tradeoffs        | NOT STARTED |
-| T19 | Evaluate Iroh C binding maturity                    | P3     | High      | 30min  | Go/no-go for CGo approach         | NOT STARTED |
-| T20 | Prototype `iroh.Replicated(engine)` wrapper         | P3     | Strategic | 60min+ | CRDT convergence POC              | NOT STARTED |
+| #   | Task                                                 | Pillar | Impact    | Effort | Customer Value                    | Status      |
+| --- | ---------------------------------------------------- | ------ | --------- | ------ | --------------------------------- | ----------- |
+| T1  | ~~Create `replication.go` with `Replication` type~~  | P1     | Critical  | 10min  | Correct foundation                | DONE        |
+| T2  | ~~Fix EngineProfile: 3 new fields~~                  | P1     | Critical  | 10min  | Honest cost model                 | DONE        |
+| T3  | ~~Remove visibility from QueryConfig~~               | P1     | Critical  | 5min   | Clean query API                   | DONE        |
+| T4  | ~~Fix cost estimator: NetworkRTT additive~~          | P1     | Critical  | 10min  | Correct latency                   | DONE        |
+| T5  | ~~Update planner call site~~                         | P1     | Critical  | 5min   | Planner uses correct costs        | DONE        |
+| T6  | ~~6 replication model tests~~                        | P1     | High      | 15min  | Model is pinned                   | DONE        |
+| T7  | ~~Update design doc~~                                | P1     | High      | 20min  | Contributors see correct model    | DONE        |
+| T8  | ~~Regenerate API-stability golden~~                  | P1     | Critical  | 10min  | Public API surface is tracked     | DONE        |
+| T9  | ~~Add replication diagnostics to planner~~           | P1     | High      | 20min  | Users see lag/staleness warnings  | DONE        |
+| T10 | ~~Update `EngineProfile.String()` with replication~~ | P1     | Medium    | 10min  | Debugging visibility              | DONE        |
+| T11 | ~~Update AGENTS.md metaengine section~~              | P2     | Medium    | 15min  | Future sessions know the model    | DONE        |
+| T12 | ~~Verify external engine modules compile~~           | P1     | High      | 10min  | Pebble/DuckDB/PG don't break      | DONE        |
+| T13 | Add `CalibrateRTT()` helper (if Q1 = option c)       | P2     | Medium    | 20min  | Deployment-aware calibration      | NOT STARTED |
+| T14 | ~~Write universal-ADT design exploration doc~~       | P2     | High      | 30min  | Design direction for pillar 2     | DONE        |
+| T15 | ~~Audit which engines skip which ADTs~~              | P2     | High      | 15min  | Baseline for universal support    | DONE        |
+| T16 | Design SCREAM diagnostic format                      | P2     | High      | 20min  | Honest cost signals for fallbacks | NOT STARTED |
+| T17 | Implement universal ADT `Supports` entries           | P2     | High      | 30min  | Every engine declares every ADT   | NOT STARTED |
+| T18 | Add SCREAM diagnostics to planner                    | P2     | High      | 25min  | Warnings surface tradeoffs        | NOT STARTED |
+| T19 | Evaluate Iroh C binding maturity                     | P3     | High      | 30min  | Go/no-go for CGo approach         | NOT STARTED |
+| T20 | Prototype `iroh.Replicated(engine)` wrapper          | P3     | Strategic | 60min+ | CRDT convergence POC              | NOT STARTED |
 
 ## Micro-Tasks — 12min max each
 
 Sorted by importance / impact / effort / customer-value.
 
-| #   | Task                                                                                                   | Parent | Est   | Status      |
-| --- | ------------------------------------------------------------------------------------------------------ | ------ | ----- | ----------- |
-| M1  | ~~Create `replication.go`~~                                                                            | T1     | 8min  | DONE        |
-| M2  | ~~Fix EngineProfile fields~~                                                                           | T2     | 8min  | DONE        |
-| M3  | ~~Remove visibility from QueryConfig~~                                                                 | T3     | 3min  | DONE        |
-| M4  | ~~Fix `estimateCost` signature~~                                                                       | T4     | 8min  | DONE        |
-| M5  | ~~Update planner call site~~                                                                           | T5     | 3min  | DONE        |
-| M6  | ~~Write replication tests~~                                                                            | T6     | 10min | DONE        |
-| M7  | ~~Update design doc~~                                                                                  | T7     | 12min | DONE        |
-| M8  | ~~Run `cd cmd/api-stability && GOWORK=off go run . -update`~~                                        | T8     | 5min  | DONE        |
-| M9  | ~~Add `replicationRule` to `defaultRules()` in `rules.go` — emit INFO diagnostic when `IsReplicated()`~~   | T9     | 10min | DONE        |
-| M10 | ~~Add replication mode + lag to `EngineProfile.String()` output~~                                          | T10    | 5min  | DONE        |
-| M11 | ~~Build pebbleengine + duckdbengine + pgengine with new EngineProfile~~                                    | T12    | 5min  | DONE        |
-| M12 | ~~Add replication model section to AGENTS.md under metaengine~~                                            | T11    | 10min | DONE        |
-| M13 | ~~Write `docs/planning/meta-engine-universal-adt-support.md` skeleton~~                                    | T14    | 10min | DONE        |
-| M14 | ~~Grep all engine Profile() constructors, tabulate which ADTs each skips~~                                 | T15    | 8min  | DONE        |
-| M15 | ~~Run full test suite (`go test -tags "goexperiment.jsonv2" ./... -count=1`) to verify everything passes~~ | T12    | 10min | DONE        |
+| #   | Task                                                                                                       | Parent | Est   | Status |
+| --- | ---------------------------------------------------------------------------------------------------------- | ------ | ----- | ------ |
+| M1  | ~~Create `replication.go`~~                                                                                | T1     | 8min  | DONE   |
+| M2  | ~~Fix EngineProfile fields~~                                                                               | T2     | 8min  | DONE   |
+| M3  | ~~Remove visibility from QueryConfig~~                                                                     | T3     | 3min  | DONE   |
+| M4  | ~~Fix `estimateCost` signature~~                                                                           | T4     | 8min  | DONE   |
+| M5  | ~~Update planner call site~~                                                                               | T5     | 3min  | DONE   |
+| M6  | ~~Write replication tests~~                                                                                | T6     | 10min | DONE   |
+| M7  | ~~Update design doc~~                                                                                      | T7     | 12min | DONE   |
+| M8  | ~~Run `cd cmd/api-stability && GOWORK=off go run . -update`~~                                              | T8     | 5min  | DONE   |
+| M9  | ~~Add `replicationRule` to `defaultRules()` in `rules.go` — emit INFO diagnostic when `IsReplicated()`~~   | T9     | 10min | DONE   |
+| M10 | ~~Add replication mode + lag to `EngineProfile.String()` output~~                                          | T10    | 5min  | DONE   |
+| M11 | ~~Build pebbleengine + duckdbengine + pgengine with new EngineProfile~~                                    | T12    | 5min  | DONE   |
+| M12 | ~~Add replication model section to AGENTS.md under metaengine~~                                            | T11    | 10min | DONE   |
+| M13 | ~~Write `docs/planning/meta-engine-universal-adt-support.md` skeleton~~                                    | T14    | 10min | DONE   |
+| M14 | ~~Grep all engine Profile() constructors, tabulate which ADTs each skips~~                                 | T15    | 8min  | DONE   |
+| M15 | ~~Run full test suite (`go test -tags "goexperiment.jsonv2" ./... -count=1`) to verify everything passes~~ | T12    | 10min | DONE   |
 
 ---
 
