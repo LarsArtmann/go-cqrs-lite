@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 # vm-pg.sh — Start a NixOS QEMU VM with PostgreSQL and run integration tests.
 #
-# This boots a lightweight NixOS VM (from nixpkgs, pinned by flake.lock) with
-# PostgreSQL 16, forwards port 55432→5432, and runs Go integration tests
-# against it on the host. No Docker, no testcontainers.
-#
-# The VM image is built once and cached by Nix — subsequent runs reuse it.
+# Uses the runNixOSTest driver (not eval-config.nix) for reliable service
+# management. The driver boots the VM, waits for PostgreSQL to be ready,
+# then keeps the VM alive while Go tests run on the host against the
+# port-forwarded database.
 #
 # Usage:
 #   nix run .#integration-pg-vm                          # run all PG integration tests
@@ -18,59 +17,56 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
 HOST_PORT="${PG_VM_PORT:-55432}"
-VM_LOG=$(mktemp /tmp/cqrs-pg-vm-XXXXXX.log)
-VM_PID=""
-VM_CLEANUP_LOG=true
+DRIVER_PID=""
+DRIVER_LOG=$(mktemp /tmp/cqrs-pg-driver-XXXXXX.log)
 
 cleanup() {
-    if [ -n "$VM_PID" ] && kill -0 "$VM_PID" 2>/dev/null; then
-        echo "==> Stopping VM (PID $VM_PID)"
-        kill "$VM_PID" 2>/dev/null || true
-        wait "$VM_PID" 2>/dev/null || true
+    if [ -n "$DRIVER_PID" ] && kill -0 "$DRIVER_PID" 2>/dev/null; then
+        echo "==> Stopping test driver (PID $DRIVER_PID)"
+        kill "$DRIVER_PID" 2>/dev/null || true
+        wait "$DRIVER_PID" 2>/dev/null || true
     fi
-    if [ "$VM_CLEANUP_LOG" = true ]; then
-        rm -f "$VM_LOG"
-    fi
+    rm -f "$DRIVER_LOG"
 }
 trap cleanup EXIT INT TERM
 
-echo "==> Building PostgreSQL VM image (cached by Nix)"
-VM_PATH=$(nix build .#pg-vm --no-link --print-out-paths 2>&1 | tail -1)
-if [ ! -d "$VM_PATH" ]; then
-    echo "ERROR: VM build failed: $VM_PATH"
+echo "==> Building PostgreSQL test driver (cached by Nix)"
+DRIVER=$(nix build .#checks.x86_64-linux.postgres-vm.driver --no-link --print-out-paths 2>&1 | tail -1)
+if [ ! -x "$DRIVER/bin/nixos-test-driver" ]; then
+    echo "ERROR: Driver build failed: $DRIVER"
     exit 1
 fi
 
-echo "==> Starting NixOS VM (PostgreSQL on host port $HOST_PORT)"
-# Headless mode + serial console for debugging + port forwarding
-export QEMU_OPTS="-display none -serial file:$VM_LOG"
+echo "==> Starting NixOS test driver (PostgreSQL on host port $HOST_PORT)"
 export QEMU_NET_OPTS="hostfwd=tcp::${HOST_PORT}-:5432"
-"$VM_PATH/bin/run-nixos-vm" &
-VM_PID=$!
 
-echo "==> Waiting for PostgreSQL to accept connections..."
-# Wait up to 90 seconds for the VM to boot and Postgres to start
-for i in $(seq 1 90); do
-    # Check if QEMU is still running
-    if ! kill -0 "$VM_PID" 2>/dev/null; then
-        echo "ERROR: VM exited unexpectedly"
-        echo "--- VM log (last 30 lines) ---"
-        tail -30 "$VM_LOG" 2>/dev/null || echo "(log not available)"
-        VM_CLEANUP_LOG=false
+# Feed a test script that boots the VM, waits for PG, then sleeps forever.
+# The driver handles VM lifecycle, port forwarding, and service readiness.
+"$DRIVER/bin/nixos-test-driver" <<EOF &
+machine.start()
+machine.wait_for_unit("postgresql.service")
+machine.succeed("echo 'POSTGRESQL_READY'")
+print("POSTGRESQL_READY", flush=True)
+import time
+time.sleep(999999)
+EOF
+DRIVER_PID=$!
+
+echo "==> Waiting for PostgreSQL to become ready..."
+for i in $(seq 1 120); do
+    if ! kill -0 "$DRIVER_PID" 2>/dev/null; then
+        echo "ERROR: Driver exited unexpectedly"
+        cat "$DRIVER_LOG" 2>/dev/null | tail -30
         exit 1
     fi
 
-    # Try to connect
     if pg_isready -h 127.0.0.1 -p "$HOST_PORT" -U cqrs -d cqrs_test 2>/dev/null; then
         echo "==> PostgreSQL is ready"
         break
     fi
 
-    if [ "$i" -eq 90 ]; then
-        echo "ERROR: PostgreSQL did not become ready within 90s"
-        echo "--- VM log (last 30 lines) ---"
-        tail -30 "$VM_LOG" 2>/dev/null || echo "(log not available)"
-        VM_CLEANUP_LOG=false
+    if [ "$i" -eq 120 ]; then
+        echo "ERROR: PostgreSQL did not become ready within 120s"
         exit 1
     fi
 

@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 # vm-mysql.sh — Start a NixOS QEMU VM with MySQL/MariaDB and run integration tests.
 #
-# This boots a lightweight NixOS VM (from nixpkgs, pinned by flake.lock) with
-# MariaDB (MySQL-compatible), forwards port 33070→3306, and runs Go integration
-# tests against it on the host. No Docker, no testcontainers.
-#
-# The VM image is built once and cached by Nix — subsequent runs reuse it.
+# Uses the runNixOSTest driver (not eval-config.nix) for reliable service
+# management. The driver boots the VM, waits for MySQL to be ready,
+# then keeps the VM alive while Go tests run on the host against the
+# port-forwarded database.
 #
 # Usage:
 #   nix run .#integration-mysql-vm                    # run all MySQL integration tests
@@ -17,57 +16,53 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
 HOST_PORT="${MYSQL_VM_PORT:-33070}"
-VM_LOG=$(mktemp /tmp/cqrs-mysql-vm-XXXXXX.log)
-VM_PID=""
-VM_CLEANUP_LOG=true
+DRIVER_PID=""
 
 cleanup() {
-    if [ -n "$VM_PID" ] && kill -0 "$VM_PID" 2>/dev/null; then
-        echo "==> Stopping VM (PID $VM_PID)"
-        kill "$VM_PID" 2>/dev/null || true
-        wait "$VM_PID" 2>/dev/null || true
-    fi
-    if [ "$VM_CLEANUP_LOG" = true ]; then
-        rm -f "$VM_LOG"
+    if [ -n "$DRIVER_PID" ] && kill -0 "$DRIVER_PID" 2>/dev/null; then
+        echo "==> Stopping test driver (PID $DRIVER_PID)"
+        kill "$DRIVER_PID" 2>/dev/null || true
+        wait "$DRIVER_PID" 2>/dev/null || true
     fi
 }
 trap cleanup EXIT INT TERM
 
-echo "==> Building MySQL VM image (cached by Nix)"
-VM_PATH=$(nix build .#mysql-vm --no-link --print-out-paths 2>&1 | tail -1)
-if [ ! -d "$VM_PATH" ]; then
-    echo "ERROR: VM build failed: $VM_PATH"
+echo "==> Building MySQL test driver (cached by Nix)"
+DRIVER=$(nix build .#checks.x86_64-linux.mysql-vm.driver --no-link --print-out-paths 2>&1 | tail -1)
+if [ ! -x "$DRIVER/bin/nixos-test-driver" ]; then
+    echo "ERROR: Driver build failed: $DRIVER"
     exit 1
 fi
 
-echo "==> Starting NixOS VM (MySQL on host port $HOST_PORT)"
-# Headless mode + serial console for debugging + port forwarding
-export QEMU_OPTS="-display none -serial file:$VM_LOG"
+echo "==> Starting NixOS test driver (MySQL on host port $HOST_PORT)"
 export QEMU_NET_OPTS="hostfwd=tcp::${HOST_PORT}-:3306"
-"$VM_PATH/bin/run-nixos-vm" &
-VM_PID=$!
 
-echo "==> Waiting for MySQL to accept connections..."
-for i in $(seq 1 120); do
-    if ! kill -0 "$VM_PID" 2>/dev/null; then
-        echo "ERROR: VM exited unexpectedly"
-        echo "--- VM log (last 30 lines) ---"
-        tail -30 "$VM_LOG" 2>/dev/null || echo "(log not available)"
-        VM_CLEANUP_LOG=false
+# Feed a test script that boots the VM, waits for MySQL, then sleeps forever.
+# The driver handles VM lifecycle, port forwarding, and service readiness.
+"$DRIVER/bin/nixos-test-driver" <<EOF &
+machine.start()
+machine.wait_for_unit("mysql.service")
+machine.succeed("mysql -u root -e \"CREATE USER IF NOT EXISTS 'cqrs'@'%' IDENTIFIED BY 'cqrs'; GRANT ALL PRIVILEGES ON *.* TO 'cqrs'@'%'; FLUSH PRIVILEGES;\"")
+print("MYSQL_READY", flush=True)
+import time
+time.sleep(999999)
+EOF
+DRIVER_PID=$!
+
+echo "==> Waiting for MySQL to become ready..."
+for i in $(seq 1 180); do
+    if ! kill -0 "$DRIVER_PID" 2>/dev/null; then
+        echo "ERROR: Driver exited unexpectedly"
         exit 1
     fi
 
-    # Check if MySQL responds to ping
     if mysqladmin ping -h 127.0.0.1 -P "$HOST_PORT" -u cqrs --password=cqrs 2>/dev/null | grep -q "alive"; then
         echo "==> MySQL is ready"
         break
     fi
 
-    if [ "$i" -eq 120 ]; then
-        echo "ERROR: MySQL did not become ready within 120s"
-        echo "--- VM log (last 30 lines) ---"
-        tail -30 "$VM_LOG" 2>/dev/null || echo "(log not available)"
-        VM_CLEANUP_LOG=false
+    if [ "$i" -eq 180 ]; then
+        echo "ERROR: MySQL did not become ready within 180s"
         exit 1
     fi
 
