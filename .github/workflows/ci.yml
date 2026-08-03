@@ -583,6 +583,28 @@ jobs:
           echo "✓ All catalog golden files are fresh"
 
     timeout-minutes: 15
+
+  # NixOS VM-based integration tests — no Docker required.
+  # These boot a QEMU VM with the database service, verify health + SQL operations.
+  # Faster than testcontainers on cached builds. Hermetic and reproducible.
+  nixos-vm-tests:
+    name: NixOS VM Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Postgres VM test (service health + JSONB + LISTEN/NOTIFY)
+        run: nix build .#checks.x86_64-linux.postgres-vm -L
+
+      - name: MySQL VM test (service health + JSON)
+        run: nix build .#checks.x86_64-linux.mysql-vm -L
+
+    timeout-minutes: 20
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
