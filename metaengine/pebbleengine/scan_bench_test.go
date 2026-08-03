@@ -43,7 +43,13 @@ func BenchmarkPebbleScanRawValues_FilterIndex(b *testing.B) {
 			b.ResetTimer()
 
 			for range b.N {
-				_, _ = rsr.ScanRawValues(ctx, "items", filter, sortSpec, nil, 10)
+				result, err := rsr.ScanRawValues(ctx, "items", filter, sortSpec, nil, 10)
+				if err != nil {
+					b.Fatal(err)
+				}
+				if len(result.Items) == 0 {
+					b.Fatal("expected non-empty results")
+				}
 			}
 		})
 	}
@@ -75,7 +81,13 @@ func BenchmarkPebbleScanRawValues_FullScan(b *testing.B) {
 			b.ResetTimer()
 
 			for range b.N {
-				_, _ = rsr.ScanRawValues(ctx, "items", nil, sortSpec, nil, 10)
+				result, err := rsr.ScanRawValues(ctx, "items", nil, sortSpec, nil, 10)
+				if err != nil {
+					b.Fatal(err)
+				}
+				if len(result.Items) == 0 {
+					b.Fatal("expected non-empty results")
+				}
 			}
 		})
 	}
@@ -112,7 +124,13 @@ func BenchmarkPebbleScanRawValues_SortIndex(b *testing.B) {
 			b.ResetTimer()
 
 			for range b.N {
-				_, _ = rsr.ScanRawValues(ctx, "items", nil, sortSpec, nil, 10)
+				result, err := rsr.ScanRawValues(ctx, "items", nil, sortSpec, nil, 10)
+				if err != nil {
+					b.Fatal(err)
+				}
+				if len(result.Items) == 0 {
+					b.Fatal("expected non-empty results")
+				}
 			}
 		})
 	}
@@ -150,8 +168,14 @@ func BenchmarkPebbleScanRawValues_CursorPagination100K(b *testing.B) {
 	b.ResetTimer()
 
 	for range b.N {
-		_, _ = rsr.ScanRawValues(ctx, "items",
+		result, err := rsr.ScanRawValues(ctx, "items",
 			[]metaengine.FilterSpec{{Column: "score", Op: metaengine.FilterGt, Value: lastScore}},
 			sortSpec, nil, 10)
+		if err != nil {
+			b.Fatal(err)
+		}
+		if len(result.Items) == 0 {
+			b.Fatal("expected non-empty results")
+		}
 	}
 }

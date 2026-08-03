@@ -160,8 +160,8 @@ func BenchmarkStmtCache(b *testing.B) {
 }
 
 type benchPayload struct {
-	ID     string
-	Status string
+	ID     string `json:"id"`
+	Status string `json:"status"`
 }
 
 func setupBenchDB(b *testing.B) *sql.DB {

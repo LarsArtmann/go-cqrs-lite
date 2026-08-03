@@ -37,7 +37,10 @@ func BenchmarkMixedWorkload_ReadsDuringWrites(b *testing.B) {
 						Status:   "open",
 						Priority: i % 10,
 					}
-					_ = store.Apply(ctx, "benchItemResult", item)
+					if err := store.Apply(ctx, "benchItemResult", item); err != nil {
+					b.Errorf("Apply %d: %v", i, err)
+					return
+				}
 				}
 			}()
 
@@ -47,7 +50,10 @@ func BenchmarkMixedWorkload_ReadsDuringWrites(b *testing.B) {
 
 				go func(_ int) {
 					defer wg.Done()
-					_, _ = store.Execute(benchListInput{Status: "open"})
+					if _, err := store.Execute(benchListInput{Status: "open"}); err != nil {
+						b.Errorf("Execute: %v", err)
+						return
+					}
 				}(r)
 			}
 

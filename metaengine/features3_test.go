@@ -86,8 +86,16 @@ func BenchmarkLargePayload_SQLite(b *testing.B) {
 			ParentID:    "parent-xyz",
 			MilestoneID: "m-42",
 		}
-		_ = mb.MapSet(ctx, "bench", p.ID, p)
-		_, _, _ = mb.MapGet(ctx, "bench", p.ID)
+		if err := mb.MapSet(ctx, "bench", p.ID, p); err != nil {
+			b.Fatalf("MapSet %d: %v", i, err)
+		}
+		_, found, err := mb.MapGet(ctx, "bench", p.ID)
+		if err != nil {
+			b.Fatalf("MapGet %d: %v", i, err)
+		}
+		if !found {
+			b.Fatalf("MapGet %d: key %s not found", i, p.ID)
+		}
 	}
 }
 
@@ -117,8 +125,16 @@ func BenchmarkLargePayload_Memory(b *testing.B) {
 			ParentID:    "parent-xyz",
 			MilestoneID: "m-42",
 		}
-		_ = mb.MapSet(ctx, "bench", p.ID, p)
-		_, _, _ = mb.MapGet(ctx, "bench", p.ID)
+		if err := mb.MapSet(ctx, "bench", p.ID, p); err != nil {
+			b.Fatalf("MapSet %d: %v", i, err)
+		}
+		_, found, err := mb.MapGet(ctx, "bench", p.ID)
+		if err != nil {
+			b.Fatalf("MapGet %d: %v", i, err)
+		}
+		if !found {
+			b.Fatalf("MapGet %d: key %s not found", i, p.ID)
+		}
 	}
 }
 

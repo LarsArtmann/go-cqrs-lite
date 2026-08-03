@@ -212,13 +212,17 @@ func BenchmarkSQLitePlanner_EndToEnd(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_ = store.Apply(ctx, "TaskCompleted", TaskCompleted{
+		if err := store.Apply(ctx, "TaskCompleted", TaskCompleted{
 			ID: TaskID(fmt.Sprintf("t-%d", i%tasks)),
 			At: now,
-		})
-		_, _ = metaengine.ExecuteTyped[FindTask, FindTaskResult](
+		}); err != nil {
+			b.Fatalf("Apply %d: %v", i, err)
+		}
+		if _, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](
 			ctx, store, FindTask{ID: TaskID(fmt.Sprintf("t-%d", i%tasks))},
-		)
+		); err != nil {
+			b.Fatalf("ExecuteTyped %d: %v", i, err)
+		}
 	}
 }
 
@@ -243,12 +247,16 @@ func BenchmarkMemoryPlanner_EndToEnd(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_ = store.Apply(ctx, "TaskCompleted", TaskCompleted{
+		if err := store.Apply(ctx, "TaskCompleted", TaskCompleted{
 			ID: TaskID(fmt.Sprintf("t-%d", i%tasks)),
 			At: now,
-		})
-		_, _ = metaengine.ExecuteTyped[FindTask, FindTaskResult](
+		}); err != nil {
+			b.Fatalf("Apply %d: %v", i, err)
+		}
+		if _, err := metaengine.ExecuteTyped[FindTask, FindTaskResult](
 			ctx, store, FindTask{ID: TaskID(fmt.Sprintf("t-%d", i%tasks))},
-		)
+		); err != nil {
+			b.Fatalf("ExecuteTyped %d: %v", i, err)
+		}
 	}
 }
