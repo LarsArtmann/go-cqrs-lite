@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
-	"go/token"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -116,7 +115,7 @@ func collectFoldCaseStrings(ctx *analyzer.AnalysisContext) []string {
 						}
 
 						for _, expr := range cc.List {
-							if s := extractStringLit(expr); s != "" {
+							if s := lintutil.StringLit(expr); s != "" {
 								cases = append(cases, s)
 							}
 						}
@@ -202,12 +201,3 @@ func min3(a, b, c int) int {
 	return a
 }
 
-// extractStringLit extracts a string literal value from an AST expression.
-func extractStringLit(expr ast.Expr) string {
-	lit, ok := expr.(*ast.BasicLit)
-	if !ok || lit.Kind != token.STRING {
-		return ""
-	}
-
-	return strings.Trim(lit.Value, `"`)
-}

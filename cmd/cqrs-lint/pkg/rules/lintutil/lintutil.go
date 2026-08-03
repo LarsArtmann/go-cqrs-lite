@@ -219,6 +219,17 @@ func HasWrapVerb(call *ast.CallExpr) bool {
 	return strings.Contains(lit.Value, "%w")
 }
 
+// StringLit extracts a string literal value from an AST expression.
+// Returns "" when the expression is not a string literal.
+func StringLit(expr ast.Expr) string {
+	lit, ok := expr.(*ast.BasicLit)
+	if !ok || lit.Kind != token.STRING {
+		return ""
+	}
+
+	return strings.Trim(lit.Value, `"`)
+}
+
 // FileImportsCQRS returns true if the file's import declarations include
 // any go-cqrs-lite module path. Shared by D006 (consistency) and C025
 // (correctness) to gate CQRS-specific error-handling checks.

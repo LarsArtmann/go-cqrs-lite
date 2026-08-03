@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
-	"strings"
 
 	"github.com/larsartmann/go-finding"
 
@@ -96,7 +95,7 @@ func NewD017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // isRawErrorInDomain returns true for errors.New or fmt.Errorf (without %w)
 // calls — the patterns D017 owns in domain files.
 func isRawErrorInDomain(call *ast.CallExpr) bool {
-	sel, ok := call.Fun.(*ast.SelectorExpr)
+	sel, ok := analyzer.SelectorFromExpr(call.Fun)
 	if !ok {
 		return false
 	}

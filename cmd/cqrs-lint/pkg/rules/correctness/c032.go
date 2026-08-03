@@ -161,7 +161,7 @@ func receiverTypeName(expr ast.Expr) string {
 // isContextCreation reports whether the call is context.Background() or
 // context.TODO().
 func isContextCreation(call *ast.CallExpr) bool {
-	sel, ok := call.Fun.(*ast.SelectorExpr)
+	sel, ok := analyzer.SelectorFromExpr(call.Fun)
 	if !ok {
 		return false
 	}
