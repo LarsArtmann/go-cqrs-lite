@@ -37,19 +37,22 @@ if [ ! -x "$DRIVER/bin/nixos-test-driver" ]; then
     exit 1
 fi
 
-echo "==> Starting NixOS test driver (PostgreSQL on host port $HOST_PORT)"
-export QEMU_NET_OPTS="hostfwd=tcp::${HOST_PORT}-:5432"
-
-# Feed a test script that boots the VM, waits for PG, then sleeps forever.
-# The driver handles VM lifecycle, port forwarding, and service readiness.
-"$DRIVER/bin/nixos-test-driver" <<EOF &
+# Custom test script: boot VM, wait for PG, keep alive for external tests
+TEST_SCRIPT=$(mktemp /tmp/cqrs-pg-test-XXXXXX.py)
+cat > "$TEST_SCRIPT" <<'PYEOF'
 machine.start()
 machine.wait_for_unit("postgresql.service")
-machine.succeed("echo 'POSTGRESQL_READY'")
 print("POSTGRESQL_READY", flush=True)
 import time
 time.sleep(999999)
-EOF
+PYEOF
+
+echo "==> Starting NixOS test driver (PostgreSQL on host port $HOST_PORT)"
+export QEMU_NET_OPTS="hostfwd=tcp::${HOST_PORT}-:5432"
+
+# Feed a custom test script that boots the VM, waits for PG, then sleeps forever.
+# The driver handles VM lifecycle, port forwarding, and service readiness.
+"$DRIVER/bin/nixos-test-driver" --test-script "$TEST_SCRIPT" &
 DRIVER_PID=$!
 
 echo "==> Waiting for PostgreSQL to become ready..."
