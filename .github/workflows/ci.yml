@@ -585,10 +585,30 @@ jobs:
     timeout-minutes: 15
 
   # NixOS VM-based integration tests — no Docker required.
-  # These boot a QEMU VM with the database service, verify health + SQL operations.
-  # Faster than testcontainers on cached builds. Hermetic and reproducible.
+  # Matrix runs PG and MySQL in parallel for faster CI feedback.
   nixos-vm-tests:
-    name: NixOS VM Tests
+    name: NixOS VM Test (${{ matrix.db }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        db: [postgres, mysql]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v17
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: ${{ matrix.db }} VM test
+        run: nix build .#checks.x86_64-linux.${{ matrix.db }}-vm -L
+
+    timeout-minutes: 15
+
+  # Ephemeral PostgreSQL integration tests — fastest path, no VM, no Docker.
+  # Starts PG from nixpkgs in a temp dir and runs Go integration tests against it.
+  ephemeral-pg-tests:
+    name: Ephemeral PG Integration Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -597,13 +617,10 @@ jobs:
 
       - uses: DeterminateSystems/magic-nix-cache-action@v8
 
-      - name: Postgres VM test (service health + JSONB + LISTEN/NOTIFY)
-        run: nix build .#checks.x86_64-linux.postgres-vm -L
+      - name: Run PG integration tests via ephemeral PostgreSQL
+        run: nix run .#integration-pg -- -short
 
-      - name: MySQL VM test (service health + JSON)
-        run: nix build .#checks.x86_64-linux.mysql-vm -L
-
-    timeout-minutes: 20
+    timeout-minutes: 10
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

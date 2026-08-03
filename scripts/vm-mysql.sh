@@ -64,8 +64,9 @@ for i in $(seq 1 180); do
         exit 1
     fi
 
-    if mysqladmin ping -h 127.0.0.1 -P "$HOST_PORT" -u cqrs --password=cqrs 2>/dev/null | grep -q "alive"; then
-        echo "==> MySQL is ready"
+    # Check TCP port connectivity (mysqladmin may not be installed on host)
+    if (echo > /dev/tcp/127.0.0.1/"$HOST_PORT") 2>/dev/null; then
+        echo "==> MySQL is ready (TCP port $HOST_PORT accepting connections)"
         break
     fi
 
