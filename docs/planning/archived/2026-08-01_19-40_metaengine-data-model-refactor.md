@@ -2,9 +2,9 @@
 
 > **Created:** 2026-08-01 19:40
 > **Module:** `go-cqrs-lite/metaengine/v4` (71 source files, 79 test files, ~15K LOC)
-> **Source review:** [docs/reviews/2026-08-01_metaengine-data-model.html](../reviews/2026-08-01_metaengine-data-model.html)
+> **Source review:** [docs/reviews/2026-08-01_metaengine-data-model.html](../../reviews/2026-08-01_metaengine-data-model.html)
 > **Status:** ~~PLANNING — not yet started~~ **EXECUTED** (Tiers 1–3 + partial 4 + Tier 5) — see
-> [`docs/status/2026-08-02_00-05_metaengine-refactor-executed.md`](../status/2026-08-02_00-05_metaengine-refactor-executed.md)
+> [`docs/status/2026-08-02_00-05_metaengine-refactor-executed.md`](../../status/2026-08-02_00-05_metaengine-refactor-executed.md)
 > (Fold sealed interface, queryRuntime collapse, Store composition, enum
 > validation, branded units defined-but-not-wired).
 

@@ -382,9 +382,9 @@ Before claiming any tier is complete:
 - [Universal ADT design](meta-engine-universal-adt-support.md) — DegradedADTs, SCREAM diagnostics, coverage matrix
 - [ADR-0093](../adr/0093-metaengine-replication-model.md) — Replication model decisions
 - [TODO_LIST.md](../../TODO_LIST.md) — Living backlog
-- [Status report 03-58](../status/2026-08-03_03-58_design-doc-review-and-lint-gate-zero.md) — Latest session findings
-- [Status report 03-34](../status/2026-08-03_03-34_collectioninfo-replication-exposure.md) — CollectionInfo exposure
-- [Status report 03-14](../status/2026-08-03_03-14_metaengine-replication-phase2-complete.md) — Phase 2 completion
+- [Status report 03-58](../status/archived/2026-08-03_03-58_design-doc-review-and-lint-gate-zero.md) — Latest session findings
+- [Status report 03-34](../status/archived/2026-08-03_03-34_collectioninfo-replication-exposure.md) — CollectionInfo exposure
+- [Status report 03-14](../status/archived/2026-08-03_03-14_metaengine-replication-phase2-complete.md) — Phase 2 completion
 
 ---
 

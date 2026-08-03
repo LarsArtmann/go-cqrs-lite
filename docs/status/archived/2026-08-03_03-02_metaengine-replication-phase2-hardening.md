@@ -1,7 +1,7 @@
 # Status Report: Metaengine Replication Model — Phase 2 Hardening
 
 > **Date:** 2026-08-03 03:02
-> **Session scope:** Phase 2 hardening of the replication model (tasks M8–M15 from [`2026-08-03_00-51_SUPERB-METAENGINE-REPLICATION-MODEL-CORRECTION.md`](../planning/2026-08-03_00-51_SUPERB-METAENGINE-REPLICATION-MODEL-CORRECTION.md))
+> **Session scope:** Phase 2 hardening of the replication model (tasks M8–M15 from [`2026-08-03_00-51_SUPERB-METAENGINE-REPLICATION-MODEL-CORRECTION.md`](../../planning/2026-08-03_00-51_SUPERB-METAENGINE-REPLICATION-MODEL-CORRECTION.md))
 > **Overall assessment:** **SOLID BUT INCOMPLETE** — all planned tasks executed, all tests green, but several quality gates skipped and several items dropped silently.
 
 ---

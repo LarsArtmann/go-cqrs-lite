@@ -4,7 +4,7 @@
 **Version used:** go-cqrs-lite v4.0.x (event v4.0.2, decider v4.0.1, command/query v4.0.0, watermill v4.0.2, storage v4.0.1, middleware v4.0.1, idempotency/kvstore v4.0.0, kv v4.0.1)
 **lint version:** `cqrs-lint` (rebuilt from `cmd/cqrs-lint` at HEAD, 2026-08-02)
 **Date:** 2026-08-02
-**Previous feedback:** [2026-07-20_browser-history_cqrs-lint-feedback.md](../2026-07-20_browser-history_cqrs-lint-feedback.md) (round 1)
+**Previous feedback:** [2026-07-20_browser-history_cqrs-lint-feedback.md](../../2026-07-20_browser-history_cqrs-lint-feedback.md) (round 1)
 
 ---
 
@@ -243,7 +243,7 @@ Exclude matches like `TotalVisits`, `TotalCount`, `TotalSize`, `TotalDuration`, 
 
 ### FP 3: B022 — Custom enricher false positive (confirmed, same as bank-sync)
 
-**Severity: MEDIUM** — 2 false positives. Already reported by bank-sync in [2026-08-02_bank-sync_cqrs-lint-improvement-proposals.md](./2026-08-02_bank-sync_cqrs-lint-improvement-proposals.md) Bug 1.
+**Severity: MEDIUM** — 2 false positives. Already reported by bank-sync in [2026-08-02_bank-sync_cqrs-lint-improvement-proposals.md](../2026-08-02_bank-sync_cqrs-lint-improvement-proposals.md) Bug 1.
 
 Confirming: browser-history has the identical issue. Code uses `event.CommandCausalityEnricher` (the canonical enricher):
 
