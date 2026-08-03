@@ -12,7 +12,6 @@ require (
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/testcontainers/testcontainers-go v0.43.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.43.0
-	pgregory.net/rapid v1.3.0
 )
 
 require (

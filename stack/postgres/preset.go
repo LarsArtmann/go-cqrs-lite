@@ -8,7 +8,6 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
@@ -25,8 +24,6 @@ type config struct {
 	maxOpenConns     int
 	maxIdleConns     int
 	statementTimeout time.Duration
-	listener         storage.NotificationListener // nil → in-memory bus
-	busOpts          []storage.PostgresBusOption  // forwarded when listener != nil
 }
 
 func defaultConfig() config {
@@ -41,8 +38,6 @@ func defaultConfig() config {
 		maxOpenConns:     0,
 		maxIdleConns:     0,
 		statementTimeout: 0,
-		listener:         nil,
-		busOpts:          nil,
 	}
 }
 
@@ -99,28 +94,6 @@ func WithDSN(opts ...sqlopt.DSNOption) Option {
 	return func(c *config) { sqlopt.ApplyTo(opts, &c.DSNConfig) }
 }
 
-// WithDistributedBus enables cross-process event propagation via Postgres
-// LISTEN/NOTIFY. The listener is typically a [PgxListener] constructed from
-// the same database DSN. When this option is set, the preset wires
-// [storage.PostgresBus] instead of the default in-memory bus; the listener
-// is registered with the Bundle for Close-time cleanup.
-//
-// Optional busOpts (e.g. [storage.WithBusChannel], [storage.WithRefetchAttempts])
-// are forwarded to [storage.NewPostgresBus] when the distributed bus is active.
-// They are ignored when no listener is set.
-//
-// Without this option, the preset uses watermill.EventBus (GoChannel) — fine
-// for single-process deployments but invisible to other processes sharing the DB.
-func WithDistributedBus(
-	listener storage.NotificationListener,
-	busOpts ...storage.PostgresBusOption,
-) Option {
-	return func(c *config) {
-		c.listener = listener
-		c.busOpts = busOpts
-	}
-}
-
 // New opens a PostgreSQL database at dsn, configures it, and returns a
 // fully-wired [stack.Bundle].
 //
@@ -129,9 +102,8 @@ func WithDistributedBus(
 // opened with the pure-Go pgx driver (no CGo required).
 //
 // Events, commands, queries, snapshots, checkpoints, AND read models are all
-// persisted to the database. By default the event bus is watermill.EventBus
-// (GoChannel, in-process) for single-process use; pass [WithDistributedBus]
-// to wire storage.PostgresBus (LISTEN/NOTIFY) for multi-process pub/sub.
+// persisted to the database. The event bus is watermill.EventBus (GoChannel,
+// in-process) for single-process use.
 //
 // On any setup failure the database is closed before the error is returned —
 // no resource leaks. The returned Bundle owns the *sql.DB; Close releases it.
@@ -159,20 +131,14 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 			"initialize Postgres stack")
 	}
 
-	bus, busCleanup, err := buildBus(sqlDB, backend.EventStore(), cfg)
-	if err != nil {
-		closePrimary()
-
-		return nil, errorfamily.WrapInfrastructure(err, "postgres_preset.bus",
-			"build event bus")
-	}
+	bus := cqrswatermill.NewEventBus()
 
 	stackOpts = append(stackOpts, stack.WithBus(bus))
 	stackOpts = append(stackOpts, stack.WithDurability(cfg.durability))
 	stackOpts = append(stackOpts, stack.WithCapabilities(stack.Capabilities{
 		Backend:     "postgres",
 		Persistent:  true,
-		Distributed: cfg.listener != nil,
+		Distributed: false,
 		DurabilityRange: []stack.DurabilityTier{
 			stack.DurabilityStrict,
 			stack.DurabilityNormal,
@@ -183,10 +149,6 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 		Embedded:    false,
 		SyncEnabled: false,
 	}))
-
-	if busCleanup != nil {
-		stackOpts = append(stackOpts, stack.WithCloser(busCleanup))
-	}
 
 	bundle, err := sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, "postgres", cfg.ViewDSN,
 		func(dsn string) (*sql.DB, error) { return openSecondaryDB(dsn, cfg) },
@@ -266,25 +228,4 @@ func openBackend(
 	)
 }
 
-// buildBus returns the event bus to wire into the Bundle. When cfg.listener
-// is set, the bus is a storage.PostgresBus backed by Postgres LISTEN/NOTIFY
-// and the listener is returned so the caller can register it for Close-time
-// cleanup. Otherwise the bus is watermill.EventBus (GoChannel) for
-// single-process use.
-func buildBus(
-	dbHandle *sql.DB,
-	store event.EventSource,
-	cfg config,
-) (event.Bus, io.Closer, error) {
-	if cfg.listener == nil {
-		return cqrswatermill.NewEventBus(), nil, nil
-	}
 
-	pgBus, err := storage.NewPostgresBus(dbHandle, store, cfg.listener, cfg.busOpts...)
-	if err != nil {
-		return nil, nil, errorfamily.WrapInfrastructure(err, "postgres_preset.create_bus",
-			"create postgres LISTEN/NOTIFY bus")
-	}
-
-	return pgBus, pgBus, nil
-}
