@@ -1,6 +1,6 @@
 # Metaengine: Eventual Consistency Model and Iroh Integration
 
-> **Status:** Design exploration — EngineProfile fields implemented (commit pending), Iroh integration not yet started.
+> **Status:** Replication model shipped (Phase 2 complete — `EngineProfile` fields, cost estimator, planner rule, `CollectionInfo` exposure, `ExplainPlan`/`Doctor` output). Iroh integration (Phase 4) not yet started.
 > **Date:** 2026-08-02 (updated 2026-08-03: replaced Visibility model with DDIA-canonical Replication + NetworkRTT + ReplicationLag)
 > **Related:** [meta-engine-design.md](meta-engine-design.md), [meta-engine-assumptions-and-query-planning.md](meta-engine-assumptions-and-query-planning.md), [ADR-0084](../adr/0084-metaengine-layered-architecture.md)
 
@@ -276,6 +276,8 @@ Read path:   Engine.MapGet() → local read (always fast, always local)
 | `MapUpdate` (RMW)  | **No**                  | Local only — not a CRDT operation            |
 | `MapDelete`        | **Conditional**         | Tombstone (safe) vs physical delete (unsafe) |
 
+> **Footgun guard:** `MapUpdate` (atomic read-modify-write) cannot replicate — a CRDT cannot guarantee atomicity across replicas. On a distributed engine, `MapUpdate` executes locally but the result never syncs. The planner emits a **WARN diagnostic** when a query's fold includes `MapUpdate` and routes it to a `ReplicationLeaderless`/`MultiLeader` engine: *"non-CRDT operation MapUpdate will not replicate — use MapSet with LWW timestamp instead"*. This makes the silent-local-execution failure mode visible at plan time, not at runtime.
+
 ---
 
 ## Part 5: What This Unlocks
@@ -322,7 +324,13 @@ The all-eventual model adds a third row — distributed materialization:
 distributed_materialize_cost(q) = write_rate × fold_cost + sync_cost + read_rate × local_query_cost
 ```
 
-Where `sync_cost` depends on peer count, bandwidth, and reconciliation efficiency. This wins when:
+Where `sync_cost` is the amortized per-write replication overhead:
+
+```
+sync_cost(q) = write_rate × (peer_count × value_size / bandwidth + reconciliation_overhead)
+```
+
+Range-based set reconciliation makes `reconciliation_overhead` near-constant (a single fingerprint exchange for in-sync peers), so for steady-state workloads `sync_cost` collapses to `write_rate × peer_count × value_size / bandwidth` — dominated by bandwidth, not coordination. This is a **fixed write-time cost** that does not affect read latency (reads are always local). Distributed materialization wins when:
 
 - Multiple geographies need low-latency reads (no single-origin bottleneck)
 - Devices go offline frequently (edge/mobile/IoT)
