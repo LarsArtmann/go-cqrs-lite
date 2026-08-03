@@ -240,21 +240,7 @@ Go 1.25 `runtime/trace` capture on slow/error/always triggers (ADR-0089):
   `transport/http` SSE hook, `metaengine` Store hook, example/taskmanager demo,
   trace file validity integration test.
 
-### 8. SSE Consolidation — consume `go-sse`
-
-The 2026-08-03 ADR review discovered `go-sse` exists as a standalone SSE
-library. `go-cqrs-lite` reimplements the SSE wire format in TWO places
-(`transport/http.SSEBroker` and `metaengine.ServeSSE`) instead of consuming
-it. ADR-0091's rationale was written as if `go-sse` didn't exist. Do NOT
-merge the two implementations — they serve different layers (bus-to-client
-vs collection-watch). Instead, both should consume `go-sse` internally.
-
-- [ ] Write ADR documenting SSE three-repo finding
-- [ ] Refactor `transport/http.SSEBroker` → consume `go-sse` (~300 LOC dedup)
-- [ ] Refactor `metaengine.ServeSSE` → consume `go-sse` (~200 LOC dedup)
-- [ ] SSE decision matrix in SKILL.md (raw-events SSE vs read-model SSE)
-
-### 9. Benchmark Trust — evidence-based cost constants
+### 8. Benchmark Trust — evidence-based cost constants
 
 The ADR review session flagged this as the "highest-leverage next move."
 29 of 43 metaengine benchmarks discard results (no correctness assertions).
@@ -266,7 +252,7 @@ backing (0 benchmarks exist for these engines).
 - [ ] Pin cost constants with evidence or fix what they reveal
 - [ ] Regression baseline + CI integration
 
-### 10. Deferred Debt (ADR-committed)
+### 9. Deferred Debt (ADR-committed)
 
 Four items explicitly committed to in the 2026-08-03 ADR review as "the next
 real roadmap." Each has a clear ADR with rationale.
@@ -281,7 +267,7 @@ real roadmap." Each has a clear ADR with rationale.
 - [ ] **Extract `idempotency/` → `go-idempotency`** (ADR-0065) — create
       standalone repo (3 modules) + re-export aliases.
 
-### 11. Iroh Distributed Engine (ADR-0096)
+### 10. Iroh Distributed Engine (ADR-0096)
 
 Evaluating Iroh (Rust CRDT) as a distributed metaengine backend. The
 replication model (ADR-0093) established the foundation; Iroh would be the
@@ -381,6 +367,7 @@ Extracting a shared `sse` helper package from `metaengine/sse.go` and
 were added to both files instead.
 
 > **Update 2026-08-03:** The ADR review session discovered `go-sse` exists as
-> a standalone library. Both implementations should consume it internally
-> instead of reimplementing the wire format. See **Theme 8: SSE Consolidation**
-> above for the execution plan. ADR-0091 rationale needs revisiting.
+> a standalone library; both SSE implementations now consume it internally for
+> wire-format serialization (ADR-0097, shipped — see CHANGELOG [Unreleased]).
+> ADR-0091's rationale was revisited: the two implementations stay separate
+> (different layers), but no longer reimplement the wire format.

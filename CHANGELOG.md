@@ -356,6 +356,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **SSE wire-format delegation to `go-sse`** (ADR-0097) — both SSE
+  implementations now consume [`go-sse`](https://github.com/larsartmann/go-sse)
+  v0.4.0 internally for wire-format serialization instead of reimplementing it:
+  - `transport/http.SSEBroker` — `sse_event.go` shrank from 190→113 LOC.
+    `SSEEventID` is now a type alias for `sse.EventID`; `NewSSEEventID`,
+    `ParseSSEEventID`, `MustParseSSEEventID`, `WriteSSEEvent`,
+    `WriteSSEHeartbeat`, and `WriteSSERetry` all delegate to go-sse. All
+    external APIs unchanged (filter, transform, budget, backfill, OTel).
+  - `metaengine.ServeSSE` — `sse.go` delegates event/heartbeat/replay writes to
+    `sse.WriteEvent` / `sse.WriteHeartbeat`; headers via `sse.SetHeaders`.
+    Watcher-based semantics preserved.
+  - The two implementations remain **separate** (ADR-0091): different layers
+    (event-bus-to-client vs collection-watch), different data models
+    (`event.Event` vs `SeqValue[V]`). Only the wire-format serializer was shared.
+  - New production dependency: `github.com/larsartmann/go-sse v0.4.0` (zero
+    non-stdlib deps except `go-branded-id` + `go-error-family`).
+
 - **Module extraction: `retry/` → `go-retry`** (ADR-0064) — the retry module
   is now a thin alias shim re-exporting `github.com/larsartmann/go-retry`.
   Backward-compatible: existing imports of `go-cqrs-lite/retry/v4` continue
