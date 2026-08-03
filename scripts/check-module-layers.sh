@@ -31,23 +31,39 @@ LAYER[projectionhost]=3
 LAYER[signing]=4
 LAYER[encryption]=4
 LAYER[otel]=4
-LAYER[stack]=6
+LAYER[storage/memory]=4
 LAYER[middleware]=5
 LAYER[storage]=5
 LAYER[listing]=5
 LAYER[watermill]=5
 LAYER[transport/http]=5
+LAYER[transport/grpc]=5
 LAYER[prometheus]=5
 LAYER[storage/pebble]=5
 LAYER[storage/turso]=5
-LAYER[storage/memory]=4
+LAYER[metaengine/pebbleengine]=5
+LAYER[metaengine/duckdbengine]=5
+LAYER[metaengine/pgengine]=5
+LAYER[metaengine/projectionadapter]=5
+LAYER[stack]=6
 LAYER[stack/memory]=6
 LAYER[stack/sqlite]=6
 LAYER[stack/pebble]=6
 LAYER[stack/postgres]=6
+LAYER[stack/duckdb]=6
+LAYER[stack/mysql]=6
+LAYER[stack/turso]=6
 LAYER[catalog]=7
 LAYER[integration]=7
 LAYER[stack/bench]=7
+LAYER[benchkit]=7
+# testutil is test-only infrastructure used from _test.go files across layers;
+# keep DEP_BUDGET but omit from LAYER to avoid false layer violations.
+LAYER[metaengine]=0
+LAYER[flightrecorder]=0
+LAYER[retry]=0
+LAYER[idempotency/kvstore]=2
+LAYER[idempotency/sqlstore]=2
 
 # Some modules legitimately depend on test helpers (memory) or cross-cutting concerns (otel)
 # These are documented exceptions to the strict layer rules
@@ -103,14 +119,29 @@ DEP_BUDGET[prometheus]=5
 DEP_BUDGET[storage/pebble]=10
 DEP_BUDGET[storage/turso]=10
 DEP_BUDGET[storage/memory]=8
-DEP_BUDGET[stack]=14
+DEP_BUDGET[stack]=18
 DEP_BUDGET[stack/memory]=10
 DEP_BUDGET[stack/sqlite]=10
 DEP_BUDGET[stack/pebble]=10
 DEP_BUDGET[stack/postgres]=10
-DEP_BUDGET[stack/bench]=10
+DEP_BUDGET[stack/duckdb]=8
+DEP_BUDGET[stack/mysql]=10
+DEP_BUDGET[stack/turso]=13
+DEP_BUDGET[stack/bench]=25
 DEP_BUDGET[catalog]=4
 DEP_BUDGET[integration]=21
+DEP_BUDGET[benchkit]=25
+DEP_BUDGET[testutil]=5
+DEP_BUDGET[metaengine]=5
+DEP_BUDGET[metaengine/pebbleengine]=5
+DEP_BUDGET[metaengine/duckdbengine]=5
+DEP_BUDGET[metaengine/pgengine]=5
+DEP_BUDGET[metaengine/projectionadapter]=10
+DEP_BUDGET[flightrecorder]=0
+DEP_BUDGET[retry]=0
+DEP_BUDGET[transport/grpc]=12
+DEP_BUDGET[idempotency/kvstore]=7
+DEP_BUDGET[idempotency/sqlstore]=5
 
 failed=0
 

@@ -831,6 +831,9 @@
                   echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 && \
                   echo "=== Race ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 && \
                   echo "=== Lint ===" && nix run .#lint && \
+                  echo "=== Check Layers ===" && nix run .#check-layers && \
+                  echo "=== Check Duplication ===" && nix run .#check-duplication && \
+                  echo "=== Check Coverage ===" && nix run .#check-coverage && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
                   echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md) && \
                   echo "✅ All verification checks passed"
@@ -848,6 +851,9 @@
                   echo "=== Test (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -count=1 && \
                   echo "=== Race (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -race -count=1 && \
                   echo "=== Lint ===" && nix run .#lint && \
+                  echo "=== Check Layers ===" && nix run .#check-layers && \
+                  echo "=== Check Duplication ===" && nix run .#check-duplication && \
+                  echo "=== Check Coverage ===" && nix run .#check-coverage && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
                   echo "✅ All fast verification checks passed (soak tests skipped)"
                 '';
