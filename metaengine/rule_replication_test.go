@@ -196,3 +196,75 @@ func TestCollections_ZeroReplicationForLocalEngine(t *testing.T) {
 		t.Errorf("local engine NetworkRTTMs: expected 0, got %d", c.NetworkRTTMs)
 	}
 }
+
+func TestExplainPlan_ShowsReplicationForReplicatedEngine(t *testing.T) {
+	t.Parallel()
+
+	engine := &fakeEngine{profile: metaengine.EngineProfile{
+		Name: "replicated-pg",
+		Supports: map[metaengine.ADT]metaengine.Complexity{
+			metaengine.ADTMap: metaengine.ComplexityO1,
+		},
+		Replication:    metaengine.ReplicationSingleLeader,
+		ReplicationLag: 50 * time.Millisecond,
+		NetworkRTT:     5 * time.Millisecond,
+	}}
+
+	store, err := metaengine.Plan([]metaengine.Engine{engine}, findTaskQuery())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+
+	output := store.ExplainPlan()
+	for _, want := range []string{"replication=single-leader", "lag=50ms", "rtt=5ms"} {
+		if !strings.Contains(output, want) {
+			t.Errorf("ExplainPlan: expected %q in output, got:\n%s", want, output)
+		}
+	}
+}
+
+func TestDoctor_ShowsReplicationSectionForReplicatedEngine(t *testing.T) {
+	t.Parallel()
+
+	engine := &fakeEngine{profile: metaengine.EngineProfile{
+		Name: "replicated-pg",
+		Supports: map[metaengine.ADT]metaengine.Complexity{
+			metaengine.ADTMap: metaengine.ComplexityO1,
+		},
+		Replication:    metaengine.ReplicationLeaderless,
+		ReplicationLag: 200 * time.Millisecond,
+		NetworkRTT:     10 * time.Millisecond,
+	}}
+
+	store, err := metaengine.Plan([]metaengine.Engine{engine}, findTaskQuery())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+
+	output := store.Doctor(t.Context())
+	for _, want := range []string{"--- Replication ---", "find_task", "leaderless", "lag=200ms"} {
+		if !strings.Contains(output, want) {
+			t.Errorf("Doctor: expected %q in output, got:\n%s", want, output)
+		}
+	}
+}
+
+func TestDoctor_NoReplicationSectionForLocalEngine(t *testing.T) {
+	t.Parallel()
+
+	store, err := metaengine.Plan(
+		[]metaengine.Engine{metaengine.NewMemoryEngine()},
+		findTaskQuery(),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+
+	output := store.Doctor(t.Context())
+	if !strings.Contains(output, "--- Replication ---\n  none") {
+		t.Errorf("Doctor: local engine should show 'none' in replication section, got:\n%s", output)
+	}
+}
