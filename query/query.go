@@ -2,6 +2,7 @@ package query
 
 import (
 	"context"
+	"maps"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
@@ -37,14 +38,41 @@ type Query interface {
 type MetadataKey string
 
 // Metadata contains tracing and contextual information for queries.
-// It is a type alias for metadata.CustomData[MetadataKey] so that Clone, Merge,
-// and EnsureCustom are inherited directly — no per-module wrapper methods are
-// needed. See ADR-0031.
+// It is a standalone struct (not a type alias) so that Clone and Merge return
+// query.Metadata directly. The JSON shape is identical to the previous
+// metadata.CustomData[MetadataKey] alias (ADR-0031).
 //
-// Unlike the old alias of event.Metadata, query.Metadata does NOT carry
-// event-only concerns (Tombstone, Causation). Each module owns its own
-// Metadata so a change to the event's shape cannot silently reshape queries.
-type Metadata = metadata.CustomData[MetadataKey]
+// Unlike event.Metadata, query.Metadata does NOT carry event-only concerns
+// (Tombstone, Causation). Each module owns its own Metadata so a change to
+// the event's shape cannot silently reshape queries.
+type Metadata struct {
+	metadata.Tracing
+	Custom map[MetadataKey]string `json:"custom,omitempty"`
+}
+
+// Clone returns a copy of m with a cloned Custom map.
+func (m Metadata) Clone() Metadata {
+	return Metadata{
+		Tracing: m.Tracing,
+		Custom:  maps.Clone(m.Custom),
+	}
+}
+
+// Merge returns a new Metadata with tracing and custom entries from other
+// overlaid onto m.
+func (m Metadata) Merge(other Metadata) Metadata {
+	return Metadata{
+		Tracing: m.Tracing.Merge(other.Tracing),
+		Custom:  metadata.MergeCustomMaps(m.Custom, other.Custom),
+	}
+}
+
+// EnsureCustom lazily initializes the Custom map if nil.
+func (m *Metadata) EnsureCustom() {
+	if m.Custom == nil {
+		m.Custom = make(map[MetadataKey]string)
+	}
+}
 
 // Option configures query creation.
 type Option func(*BasicQuery)
