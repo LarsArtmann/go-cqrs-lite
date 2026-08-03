@@ -134,8 +134,7 @@ func TestWatcher_PerKeyFiltering(t *testing.T) {
 		t.Fatalf("Plan: %v", err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	watcher := NewWatcher[testTask](store, "tasks")
 	defer watcher.Close()
@@ -498,8 +497,7 @@ func TestSQLiteWatcher_ReceivesValue(t *testing.T) {
 
 	store := newSQLiteTestStore(t)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	watcher := NewWatcher[testTask](store, "tasks")
 	defer watcher.Close()
@@ -854,7 +852,7 @@ func TestSSE_MultiSubscriberFanOut(t *testing.T) {
 		t.Fatalf("Plan: %v", err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
 	watcher := NewWatcher[testTask](store, "tasks")
@@ -1013,7 +1011,7 @@ func TestMapUpdateTyped_ReifiesPrevValue(t *testing.T) {
 	_ = store.Apply(ctx, "task_created", testTask{ID: "tu1", Title: "Original"})
 
 	// Update via MapUpdateTyped — prev should be correctly typed.
-	err = MapUpdateTyped[testTask](store, ctx, "tasks", testTaskID("tu1"),
+	err = MapUpdateTyped(store, ctx, "tasks", testTaskID("tu1"),
 		func(prev testTask, found bool) testTask {
 			if !found {
 				t.Error("expected found=true for existing key")
@@ -1042,7 +1040,7 @@ func TestMapUpdateTyped_ReifiesPrevValue(t *testing.T) {
 	}
 
 	// Test not-found case — data stored under the key, not the returned value's ID.
-	err = MapUpdateTyped[testTask](store, ctx, "tasks", testTaskID("nonexistent"),
+	err = MapUpdateTyped(store, ctx, "tasks", testTaskID("nonexistent"),
 		func(prev testTask, found bool) testTask {
 			if found {
 				t.Error("expected found=false for nonexistent key")

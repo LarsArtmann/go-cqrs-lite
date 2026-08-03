@@ -64,8 +64,6 @@ func (c *txStmtCache) query(ctx context.Context, query string, args ...any) (*sq
 	return c.tx.QueryContext(ctx, query, args...) //nolint:wrapcheck
 }
 
-func (c *txStmtCache) close() {} //nolint:unused // mirrors stmtCache.close for API symmetry
-
 // txExecutor wraps a *sql.Tx and its txStmtCache.
 type txExecutor struct {
 	tx    *sql.Tx

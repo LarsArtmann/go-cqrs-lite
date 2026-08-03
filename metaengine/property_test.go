@@ -8,14 +8,6 @@ import (
 	"pgregory.net/rapid"
 )
 
-// op is a single Map operation in a randomly generated sequence.
-type op struct {
-	kind   int // 0=Set, 1=Get, 2=Delete
-	key    string
-	value  any
-	delete bool
-}
-
 // TestProperty_MapSetGetParity_MemoryVsSQLite verifies that the memory engine
 // and SQLite engine agree on MapSet/MapGet/MapDelete results for arbitrary
 // sequences of operations with JSON-compatible values.

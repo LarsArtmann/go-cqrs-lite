@@ -1484,6 +1484,8 @@ metaengine/func SpatialExecuteTyped
 metaengine/func VectorExecuteTyped
 metaengine/func VerifyChecksum
 metaengine/func Volume
+metaengine/func WatchTyped
+metaengine/func WatchTypedWithSeq
 metaengine/func WithColumnarLayout
 metaengine/func WithCursor
 metaengine/func WithCursorString
@@ -1899,6 +1901,7 @@ metaengine/type StoreHooks
 metaengine/var ErrAmbiguousKey
 metaengine/var ErrDuplicateEvent
 metaengine/var ErrExecuteTypeMismatch
+metaengine/var ErrKeyTypeMismatch
 metaengine/var ErrLayoutConflict
 metaengine/var ErrNoQueryForInputType
 metaengine/var ErrNotFound

@@ -492,11 +492,31 @@ func TestCalibrateEngine(t *testing.T) {
 	t.Parallel()
 
 	eng := NewMemoryEngine()
+
+	// Before calibration: NsPerRead/NsPerWrite are zero (only NsPerOp is set).
+	before := eng.Profile()
+	if before.NsPerRead != 0 || before.NsPerWrite != 0 {
+		t.Fatalf("precondition: expected zero NsPerRead/NsPerWrite, got read=%f write=%f",
+			before.NsPerRead, before.NsPerWrite)
+	}
+
 	CalibrateEngine(eng, 100)
 
-	profile := eng.Profile()
-	if profile.NsPerOp <= 0 {
-		t.Error("expected calibrated NsPerOp > 0")
+	// After calibration: NsPerRead/NsPerWrite must be non-zero — proves
+	// the calibration values actually reached the engine's profile, not a
+	// discarded value copy (the bug this test guards against).
+	after := eng.Profile()
+
+	if after.NsPerRead <= 0 {
+		t.Errorf("expected calibrated NsPerRead > 0, got %f", after.NsPerRead)
+	}
+
+	if after.NsPerWrite <= 0 {
+		t.Errorf("expected calibrated NsPerWrite > 0, got %f", after.NsPerWrite)
+	}
+
+	if after.NsPerOp <= 0 {
+		t.Errorf("expected calibrated NsPerOp > 0, got %f", after.NsPerOp)
 	}
 }
 

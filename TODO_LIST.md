@@ -99,9 +99,9 @@ and is **never** duplicated here.
 - [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must v0.1.2).
-- [BLOCKED] **Push `stack/duckdb/v4.0.0`, `metaengine/pgengine/v4.0.0`,
-  `metaengine/duckdbengine/v4.0.0` tags** — all three tags created locally but
-  not pushed (per safety rules). Consumers get 404 from Go proxy until pushed.
+- [x] **Push `stack/duckdb/v4.0.0`, `metaengine/pgengine/v4.0.0`,
+  `metaengine/duckdbengine/v4.0.0` tags** — all three tags confirmed on origin
+  via `git ls-remote --tags origin`.
 
 ---
 

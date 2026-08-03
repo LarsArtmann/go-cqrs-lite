@@ -10,6 +10,44 @@ import (
 
 // --- Cost Model Auto-Calibration ---
 
+// calibration holds runtime-calibrated cost overrides for an engine.
+// Zero values mean "use the engine's default" (backward compatible).
+// Core engines embed this struct to support CalibrateEngine.
+type calibration struct {
+	nsPerOp    float64
+	nsPerRead  float64
+	nsPerWrite float64
+}
+
+func (c *calibration) setCalibration(op, read, write float64) {
+	c.nsPerOp = op
+	c.nsPerRead = read
+	c.nsPerWrite = write
+}
+
+// applyTo overrides the profile's cost fields with calibrated values
+// when they are non-zero. Zero values preserve the engine's defaults.
+func (c *calibration) applyTo(p *EngineProfile) {
+	if c.nsPerOp > 0 {
+		p.NsPerOp = c.nsPerOp
+	}
+
+	if c.nsPerRead > 0 {
+		p.NsPerRead = c.nsPerRead
+	}
+
+	if c.nsPerWrite > 0 {
+		p.NsPerWrite = c.nsPerWrite
+	}
+}
+
+// calibratable is an optional interface for engines that support runtime
+// cost calibration. CalibrateEngine type-asserts to this interface to
+// apply measured timings.
+type calibratable interface {
+	setCalibration(nsPerOp, nsPerRead, nsPerWrite float64)
+}
+
 // CalibrateEngine runs a micro-benchmark to measure the actual per-operation
 // cost of an engine, overriding the hardcoded NsPerOp. Call after NewSQLiteEngine
 // or NewMemoryEngine to get hardware-accurate cost estimates.
@@ -20,8 +58,6 @@ func CalibrateEngine(eng Engine, iterations int) {
 	if iterations <= 0 {
 		iterations = 1000
 	}
-
-	profile := eng.Profile()
 
 	if mb, ok := eng.(MapBackend); ok {
 		ctx := context.Background()
@@ -49,9 +85,9 @@ func CalibrateEngine(eng Engine, iterations int) {
 			_ = mb.MapDelete(ctx, "__calibrate", i)
 		}
 
-		profile.NsPerOp = (writeNs + readNs) / 2
-		profile.NsPerRead = readNs
-		profile.NsPerWrite = writeNs
+		if c, ok := eng.(calibratable); ok {
+			c.setCalibration((writeNs+readNs)/2, readNs, writeNs)
+		}
 	}
 }
 

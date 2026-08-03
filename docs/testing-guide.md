@@ -57,6 +57,33 @@ Three Docker-free approaches, powered by Nix. See [ADR-0095](adr/0095-nix-based-
 > CI applies `GOEXPERIMENT=jsonv2` via the env, so the tag is implicit there.
 > In `GOWORK=off` per-module mode, pass `-tags "goexperiment.jsonv2"` explicitly.
 
+### Example output (ephemeral PG)
+
+```
+$ nix run .#integration-pg
+==> Initializing ephemeral PostgreSQL (port 55432, data /tmp/cqrs-pg-XXXXXX)
+==> Starting PostgreSQL
+==> PostgreSQL ready: postgres://cqrs@127.0.0.1:55432/cqrs_test?sslmode=disable
+
+--- storage ---
+=== RUN   TestPostgresEventStore_CRUD
+--- PASS: TestPostgresEventStore_CRUD (0.03s)
+PASS
+
+✅ Integration tests passed
+```
+
+### Example output (NixOS VM check)
+
+```
+$ nix build .#checks.x86_64-linux.postgres-vm -L
+machine # starting
+(machine # machine starting
+(machine # finished activating
+(postgresql-vm # machine waiting for unit 'postgresql.service'
+OK
+```
+
 ## Race-aware test thresholds
 
 The `-race` detector inflates allocations and CPU 5–10x. Hardcoded timing or

@@ -70,16 +70,18 @@ if [ $# -gt 0 ] && [ "$1" = "go" ]; then
     echo "==> Running: go $*"
     go "$@"
 else
-    EXTRA_ARGS="$*"
+    EXTRA_ARGS=("$@")
     FAILED=0
+    TEST_TIMEOUT="${TEST_TIMEOUT:-300}"
     for mod in $PG_MODULES; do
         echo ""
-        echo "--- $mod ---"
+        echo "--- $mod (timeout ${TEST_TIMEOUT}s) ---"
         (
             cd "$mod"
             CGO_ENABLED=1 GOWORK=off \
+            timeout "$TEST_TIMEOUT" \
             go test -tags "integration goexperiment.jsonv2" ./... \
-                -count=1 -v $EXTRA_ARGS 2>&1
+                -count=1 -v "${EXTRA_ARGS[@]}" 2>&1
         ) || FAILED=1
     done
     if [ "$FAILED" -ne 0 ]; then

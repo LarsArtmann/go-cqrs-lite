@@ -16,6 +16,7 @@ type memoryEngine struct {
 	searchIdx  *MemorySearchIndex
 	spatialIdx *MemorySpatialIndex
 	versions   map[string]map[string]*versionChain // collection → key → chain
+	cal        calibration
 }
 
 type memData struct {
@@ -59,8 +60,13 @@ func NewMemoryEngineWithVersioning() Engine {
 	return eng
 }
 
+// setCalibration implements calibratable for runtime cost calibration.
+func (m *memoryEngine) setCalibration(op, read, write float64) {
+	m.cal.setCalibration(op, read, write)
+}
+
 func (m *memoryEngine) Profile() EngineProfile {
-	return EngineProfile{
+	p := EngineProfile{
 		Name:    "memory",
 		NsPerOp: MemoryNsPerOp,
 		Supports: map[ADT]Complexity{
@@ -76,6 +82,9 @@ func (m *memoryEngine) Profile() EngineProfile {
 			ADTSpatial:   ComplexityON,
 		},
 	}
+	m.cal.applyTo(&p)
+
+	return p
 }
 
 // MemoryNsPerOp is the calibrated per-operation cost for the in-memory engine.

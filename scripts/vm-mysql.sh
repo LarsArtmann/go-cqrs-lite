@@ -11,6 +11,12 @@
 #   nix run .#integration-mysql-vm -- ./stack/mysql/...
 set -euo pipefail
 
+KEEP_ALIVE=false
+if [ "${1:-}" = "--keep-alive" ]; then
+    KEEP_ALIVE=true
+    shift
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
@@ -103,3 +109,11 @@ fi
 
 echo ""
 echo "✅ Integration tests passed"
+
+if [ "$KEEP_ALIVE" = true ]; then
+    echo ""
+    echo "==> --keep-alive: VM is still running on port $HOST_PORT"
+    echo "    DSN: $MYSQL_TEST_DSN"
+    echo "    Press Ctrl+C to stop the VM and exit."
+    wait "$DRIVER_PID"
+fi

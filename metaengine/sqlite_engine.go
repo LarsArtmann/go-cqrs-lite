@@ -26,6 +26,7 @@ type sqliteEngine struct {
 	plans    map[string]LayoutPlan
 	txMu     sync.Mutex
 	activeTx atomic.Pointer[txExecutor]
+	cal      calibration
 }
 
 // sqliteQuerySet holds pre-built SQL strings for each operation.
@@ -115,8 +116,16 @@ func NewSQLiteEngine(database *sql.DB) (Engine, error) {
 	return eng, nil
 }
 
+// setCalibration implements calibratable for runtime cost calibration.
+func (e *sqliteEngine) setCalibration(op, read, write float64) {
+	e.cal.setCalibration(op, read, write)
+}
+
 func (e *sqliteEngine) Profile() EngineProfile {
-	return SQLiteEngineProfile()
+	p := SQLiteEngineProfile()
+	e.cal.applyTo(&p)
+
+	return p
 }
 
 func (e *sqliteEngine) Close() error {

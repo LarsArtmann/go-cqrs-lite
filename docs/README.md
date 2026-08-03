@@ -39,7 +39,7 @@ The authoritative module index with README links lives in the **[project README]
 
 ## Architecture Decision Records (ADR)
 
-92 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
+94 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
 
 | ADR                                                        | Title                                                   | Status                   |
 | ---------------------------------------------------------- | ------------------------------------------------------- | ------------------------ |
@@ -136,6 +136,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0093](adr/0093-metaengine-replication-model.md)           | Metaengine replication model (DDIA Ch5)                 | Accepted                 |
 | [0094](adr/0094-metaengine-universal-adt-support.md)       | Metaengine universal ADT support (DegradedADTs)         | Accepted                 |
 | [0095](adr/0095-nix-based-integration-testing.md)          | Nix-based integration testing                            | Accepted                 |
+| [0096](adr/0096-iroh-distributed-engine-bridge-evaluation.md) | Iroh distributed engine bridge evaluation             | Research                 |
 
 ## API Reference
 

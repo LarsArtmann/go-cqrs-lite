@@ -45,8 +45,7 @@ Added `StorageLayout` constants: `LayoutRow`, `LayoutColumnar`, `LayoutLSM`,
 `LayoutKV`. Added `Layouts map[ADT]StorageLayout` field to `EngineProfile`
 (additive — zero existing fields changed, default = current behavior).
 
-Built universal cost matrix `(ADT × StorageLayout) → Complexity` in
-`layout_type.go:layoutComplexity()`. Example:
+Built universal cost matrix `(ADT × StorageLayout) → Complexity`. Example:
 
 - `(Counter, Columnar)` → O(1) via native aggregation
 - `(Counter, Row)` → O(N) via full scan
