@@ -91,11 +91,11 @@
     "go-finding": {
       "flake": false,
       "locked": {
-        "lastModified": 1785742664,
-        "narHash": "sha256-hCwyLtxejUCh96FIv/JuREJ0jBfZAfis+CCpd5HYVEc=",
+        "lastModified": 1785778049,
+        "narHash": "sha256-ug8yNsfI8zfQZmW3Kska8KlhFXfSmwU2GT1jitwYaC0=",
         "owner": "LarsArtmann",
         "repo": "go-finding",
-        "rev": "d94ce11f1e7f33aca5619287a59f3895540f2a6e",
+        "rev": "52e62d82669f79da54eb15fabe4dedf8f640911e",
         "type": "github"
       },
       "original": {
