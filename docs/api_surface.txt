@@ -3100,7 +3100,6 @@ transport/http/method Close
 transport/http/method CloseWithGrace
 transport/http/method IsZero
 transport/http/method Journal
-transport/http/method Name
 transport/http/method PayloadTransform
 transport/http/method RecordReplay
 transport/http/method RemoveClient
