@@ -579,12 +579,15 @@ func TestPrefetchCache_CursorEncodeRoundTrip(t *testing.T) {
 		t.Fatalf("expected 3 items on page1, got %d", len(page1))
 	}
 
-	if cursor1 == nil {
+	var c1 *Cursor
+	if cursor1 != nil {
+		c1 = cursor1
+	} else {
 		t.Fatal("expected non-nil cursor after page1")
 	}
 
 	// Encode the cursor for HTTP transport.
-	encoded, err := cursor1.Encode()
+	encoded, err := c1.Encode()
 	if err != nil {
 		t.Fatalf("cursor.Encode: %v", err)
 	}
@@ -616,12 +619,12 @@ func TestPrefetchCache_CursorEncodeRoundTrip(t *testing.T) {
 		t.Fatalf("expected 3 items on page2a, got %d", len(page2a))
 	}
 
-	// Page 2 via WithCursor(cursor1.Value) (the raw value path).
+	// Page 2 via WithCursor(c1.Value) (the raw value path).
 	page2b, cursor2b, err := reader.ScanPage(
 		ctx,
 		WithSort("Title", false),
 		WithLimit(3),
-		WithCursor(cursor1.Value),
+		WithCursor(c1.Value),
 	)
 	if err != nil {
 		t.Fatalf("ScanPage page2b (WithCursor): %v", err)
@@ -640,11 +643,15 @@ func TestPrefetchCache_CursorEncodeRoundTrip(t *testing.T) {
 	}
 
 	// Both should produce the same next cursor.
-	if cursor2a == nil || cursor2b == nil {
+	var c2a, c2b *Cursor
+	if cursor2a != nil && cursor2b != nil {
+		c2a = cursor2a
+		c2b = cursor2b
+	} else {
 		t.Fatal("expected non-nil cursors after page2")
 	}
 
-	if cursor2a.Value != cursor2b.Value {
+	if c2a.Value != c2b.Value {
 		t.Errorf("cursor mismatch: WithCursorString=%v, WithCursor=%v",
 			cursor2a.Value, cursor2b.Value)
 	}
