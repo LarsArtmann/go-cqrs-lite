@@ -1496,9 +1496,11 @@ metaengine/func WithIn
 metaengine/func WithLatencyBudget
 metaengine/func WithLimit
 metaengine/func WithMetrics
+metaengine/func WithNetworkRTT
 metaengine/func WithOr
 metaengine/func WithRange
 metaengine/func WithReadCoalescer
+metaengine/func WithReplication
 metaengine/func WithSSEHeartbeat
 metaengine/func WithSSEMaxBuffer
 metaengine/func WithSSEReplayLimit
@@ -1539,6 +1541,7 @@ metaengine/interface Transactional
 metaengine/interface VectorBackend
 metaengine/interface VersionedStorage
 metaengine/method Aggregate
+metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
@@ -1684,6 +1687,7 @@ metaengine/method Name
 metaengine/method Name
 metaengine/method Name
 metaengine/method Name
+metaengine/method Name
 metaengine/method ObservedWorkloadStats
 metaengine/method Plan
 metaengine/method Poison
@@ -1713,6 +1717,7 @@ metaengine/method RegisterQuery
 metaengine/method ReificationFailures
 metaengine/method Replay
 metaengine/method Replay
+metaengine/method ReplicationMode
 metaengine/method Report
 metaengine/method Report
 metaengine/method RunInTx
