@@ -48,8 +48,10 @@
     '';
   };
 
-  # Open firewall for TCP connections from the host (QEMU port forwarding).
-  networking.firewall.allowedTCPPorts = [ 3306 ];
+  # Disable firewall for TCP connections from the host (QEMU port forwarding).
+  # The NixOS firewall blocks external TCP to port 3306 by default.
+  # allowedTCPPorts didn't work reliably in the test VM; disable entirely.
+  networking.firewall.enable = false;
 
   # Lean VM
   documentation.enable = false;
