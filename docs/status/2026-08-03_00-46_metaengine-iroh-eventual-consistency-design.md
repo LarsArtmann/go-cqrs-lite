@@ -2,7 +2,7 @@
 
 > **Date:** 2026-08-03 00:46
 > **Session scope:** Iroh integration analysis → eventual consistency design → visibility model implementation → naming crisis → model redesign
-> **Verdict:** Design exploration valuable; implementation half-committed then proven wrong; needs full rewrite
+> **Verdict:** ~~Design exploration valuable; implementation half-committed then proven wrong; needs full rewrite~~ **Rewritten.** The wrong `Visibility` model was replaced by `Replication` (`72818e88`, ADR-0093). Phase 2 polish (`f25e1d21`), Universal ADT Phase 3 (`8b41f658`, ADR-0094), and Iroh evaluation (ADR-0096) all completed.
 
 ---
 
@@ -236,3 +236,9 @@ A Pebble engine is in-process (RTT=0), but a shared Postgres might be on localho
 ### Q3: Do you want me to capture the "universal ADT support with cost screams" insight as a formal design doc, or just leave it as a note for now?
 
 Your Q4 answer proposed a significant design direction change: every engine should support every ADT (with honest cost warnings) rather than silently skipping. This affects the planner's routing logic, the engine interface contract, and every engine's Profile() implementation. It's big enough to warrant its own doc, but it's also a separate concern from the replication model.
+
+---
+
+## Resolution (2026-08-03)
+
+The design exploration was valuable. The wrong `Visibility` model was replaced by the `Replication` model (`72818e88`, ADR-0093). All P0-P2 code/doc tasks resolved by later sessions. The PN-Counter insight informed the replication design. Iroh integration evaluated in ADR-0096 (deferred — requires CRDT expertise and iroh-docs authors). The `metaengine/irohengine/` module skeleton was NOT created (Iroh deferred).

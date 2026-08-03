@@ -3,6 +3,8 @@
 **Date:** 2026-08-02 21:18
 **Session scope:** Implement columnar-native DuckDB storage — every exported field of the result type becomes a native SQL column, enabling DuckDB's vectorized execution engine.
 
+> **Update 2026-08-03 (commit `3c18f4d6`, `c38b15ab`):** The type inference and API described below were **changed in the next session** (`22-17`): `float64` now maps to `DOUBLE` (not `REAL`), the decorative `[R any]` generic parameter was removed from `WithColumnarLayout()`, and reserved-name collision handling (fields named `key`/`value`) was added. The "TOTALLY FUCKED UP" section below is preserved as historical record — all issues were fixed. See `2026-08-02_22-17_duckdb-columnar-hardening-cleanup.md`.
+
 ---
 
 ## a) FULLY DONE
@@ -198,3 +200,11 @@ The type parameter `R` in `WithColumnarLayout[R]()` is never used in the functio
 2. **Should `WithColumnarLayout` be auto-enabled for Counter and Aggregate read patterns on DuckDB?** Currently it's opt-in. If a consumer declares a Counter query on DuckDB without `WithColumnarLayout`, the counter values are stored in `meta_counter` (separate table, already native BIGINT). But Map queries with `ReadAggregate` pattern would benefit from auto-columnar. Is implicit opt-in too magical, or is it the right default for an analytical engine?
 
 3. **Should I write the ADR and complete the documentation (AGENTS.md, doc.go, COOKBOOK) now, or move to the next backlog item?** The feature is functionally complete and tested. The documentation gap is real but non-blocking. The next backlog items (Postgres GIN indexes, Vector/Search/Spatial backends) are also valuable. Where should the next investment go?
+
+---
+
+## Resolution (2026-08-03)
+
+Feature shipped. The REAL→DOUBLE fix, decorative `[R]` generic removal, and reserved-name collision handling were all done in the immediately following session (`22-17`, commits `3c18f4d6`, `c38b15ab`). ADR-0092 written + indexed. AGENTS.md + TODO_LIST.md updated.
+
+**Still open:** SQLite/Postgres `LayoutPlanApplier` (only DuckDB implements it); schema evolution (no `ALTER TABLE ADD COLUMN`); DuckDB layout benchmark; `adttest.RunMatrix` coverage for LayoutPlanner. All captured in TODO_LIST.md.

@@ -34,9 +34,10 @@ Created annotated tag `metaengine/duckdbengine/v4.0.0` with release notes
 describing the DuckDB-backed metaengine Engine (columnar OLAP, CGo,
 PushdownScan, cross-engine parity via adttest.RunMatrix).
 
-**Note:** All three tags (T3/T4/T5) are created locally but NOT pushed (per
+**Note:** ~~All three tags (T3/T4/T5) are created locally but NOT pushed (per
 safety rules — never push without explicit user approval). Consumers get 404
-from Go proxy until pushed. TODO_LIST updated to reflect this blocked state.
+from Go proxy until pushed.~~ **Tags later pushed to origin** — confirmed on remote.
+TODO_LIST updated to reflect this blocked state.
 
 ### T6: Wire metaengine dead code — DONE
 
@@ -187,7 +188,7 @@ rapid iterations each).
 
 ## b) PARTIALLY DONE
 
-### T14: F009/F015/F017 feature-profile gating — PARTIALLY DONE (~80%)
+### ~~T14: F009/F015/F017 feature-profile gating — PARTIALLY DONE (~80%)~~ T14: **COMPLETE** — verified in `2026-08-03_07-00` (all 3 rules gated, api-stability regenerated, verify GREEN)
 
 **What's done:**
 

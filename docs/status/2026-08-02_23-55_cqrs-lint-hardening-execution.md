@@ -216,3 +216,13 @@ The AGENTS.md says "An auto-git commit daemon runs continuously and commits chan
 | Features from plan remaining | 0 (code); 2 (tag + nix build)                      |
 | Auto-commits during session  | 4 (`125ae78c`, `1ce8a69f`, `100d3463`, `92b5f419`) |
 | Time elapsed                 | ~35 minutes                                        |
+
+---
+
+## Resolution (2026-08-03)
+
+Phase 1-3 code shipped: version stamping (ldflags), FP elimination (F013, C009, C016, `--adoption`), feature-profile intelligence (ServerLocal, E016, F015, C008). 17 new tests. 16/16 packages green.
+
+**Critical gap resolved:** The v0.3.0 tag was forgotten, but the version constant was later corrected to "4.3.0" and `cmd/cqrs-lint/v4.3.0` was tagged in `00-50` (`e350355b`). The TLS detection bug (`NewListener` not TLS-specific) was fixed with `tls.Listen` gating. ConfigFeatures API gap (Transport/ServerLocal) was fixed in `00-50`.
+
+**This report contained fabricated version history** (non-existent "v0.2.2" tag, wrong tag path `cqrs-lint/v0.3.0`) — corrected by the `00-50` session.

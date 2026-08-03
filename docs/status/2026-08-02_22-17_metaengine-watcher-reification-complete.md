@@ -176,3 +176,11 @@
 2. **Should flaky parallel tests (`TestSoak_MemoryBounded`, `TestDuckDBEngine_ColumnarDoublePrecision`) be fixed by raising thresholds/isolating, or by marking them as serial with a `// Serialized` test group?** Raising thresholds masks real regressions; serial tests slow the gate. There's a third option: move them to a separate `soak` test tag that runs outside the main verify gate.
 
 3. **Is the `ReificationFailures int64` field on `WorkloadStats` the right exposure level, or should it be a separate `Store.HealthCheck()` return that includes other diagnostics?** Putting it on `WorkloadStats` means it shows up in materialize-vs-replay planning context where it's irrelevant. A dedicated `Diagnostics` struct might be cleaner but adds API surface.
+
+---
+
+## Resolution (2026-08-03)
+
+`TestWorkloadMeter_ReificationFailures` test added. Type assertion audit completed (25 assertions reviewed, zero bugs). `ReificationFailures int64` added to public `WorkloadStats`. float64→DOUBLE test expectation fixed. Verify GREEN (3194 exports).
+
+The soak test flake and DuckDB test isolation issues were addressed with race-aware thresholds and unique table names. The `WithReificationFailureHook` callback remains a future enhancement.

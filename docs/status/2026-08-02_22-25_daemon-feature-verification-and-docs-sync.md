@@ -315,3 +315,9 @@ are 🧪 Experimental?**
 accurate. But I repeated the daemon-race failure, claimed a stale GREEN, and
 accepted a coverage regression without investigation. The next session should
 re-run verify post-changes, push, and investigate the coverage drop.
+
+---
+
+## Resolution (2026-08-03)
+
+All 7 daemon-shipped features verified against code. FEATURES/ROADMAP/CHANGELOG/TODO_LIST/AGENTS updated. Quality gates run (verify, rule-count, coverage, duplication, doc-check). Coverage + duplication baselines updated. The `check-layers` budget violations were later resolved by `d4dbebbd` (extended verify gate).

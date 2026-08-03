@@ -340,3 +340,9 @@ daemon captured the right state?** The daemon has been known to break builds
 **Overall: 5/10.** The living docs are materially better. The historical
 annotation and quality gate were half-assed. The factual error in FEATURES.md
 module matrix is inexcusable. Must fix before claiming done.
+
+---
+
+## Resolution (2026-08-03)
+
+The CHANGELOG/TODO_LIST/ROADMAP/FEATURES rebuilds from this session were superseded by the `2026-08-03_19-59` docs-health pass. The stack/contracttest/stack/sqlopt factual error was fixed (removed from FEATURES.md module matrix). The 39 unannotated status reports are being annotated in the current session. `cmd/doc-check` and `nix run .#verify` have since been run multiple times GREEN.

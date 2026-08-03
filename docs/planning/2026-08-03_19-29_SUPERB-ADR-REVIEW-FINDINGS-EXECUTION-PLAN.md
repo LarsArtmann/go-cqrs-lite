@@ -3,6 +3,43 @@
 **Date:** 2026-08-03
 **Trigger:** Full ADR review (91 ADRs) + SSE three-repo investigation
 **Session doc:** `docs/sessions/2026-08-03_adr-review-and-sse-investigation.md`
+**Status report:** `docs/status/2026-08-03_20-30_adr-review-execution-sprint.md`
+
+---
+
+## Execution Status (updated 2026-08-03 20:30)
+
+| Phase | Status | Done | Skipped | Remaining | Key Finding |
+|-------|--------|------|---------|-----------|-------------|
+| **P0: Benchmark Trust** | **DONE** (with caveats) | 23/23 tasks | 0 | 0 | Found real ADR-0090 bug (missing JSON tags). DuckDB constants may need analytical re-benchmark. |
+| **P1: SSE ADR** | **DONE** | 3/17 tasks | 0 | 14 | ADR-0097 written (not 0094 — collision). Refactor deferred. |
+| **P1: SSE Refactor** | **NOT STARTED** | 0/14 tasks | 0 | 14 | Needs focused session — SSEBroker has features go-sse lacks. |
+| **P2a: PostgresBus** | **DONE** | 7/16 tasks | 3 | 6 | 1,226 LOC removed. Zero external consumers confirmed. |
+| **P2a: event.Bus** | **CANCELLED** | 0/4 tasks | 4 | 0 | 14 external consumer projects use `event.Bus`. NOT ghost code. Plan assumption was wrong. |
+| **P2a: command.Bus** | **NOT STARTED** | 0/3 tasks | 0 | 3 | Zero external consumers confirmed but internal watermill consumer exists. Needs decision. |
+| **P2b: Metadata** | **DONE** | 9/9 tasks | 0 | 0 | command.Metadata + query.Metadata converted to standalone structs. All tests pass. |
+| **P2c: retry/ extraction** | **PARTIALLY DONE** | 8/10 tasks | 0 | 2 | Core extracted, aliases working. Missing: git commit, annotated tag, GitHub push. |
+| **P2d: idempotency/ extraction** | **PARTIALLY DONE** | 7/14 tasks | 0 | 7 | Core extracted, aliases working. Missing: commit, tag, push, kvstore/sqlstore sub-module extraction. |
+| **P3: Consumer Docs** | **DONE** | 6/6 tasks | 0 | 0 | 4 decision matrices added to SKILL.md. doc-check passes. |
+
+**Overall: 63/102 tasks completed (62%), 4 cancelled, 35 remaining**
+
+### Post-Execution Corrections (things the plan got wrong)
+
+1. **ADR number collision:** Plan said "ADR-0094" but ADR-0094 was already taken. Actual ADR is **0097**.
+2. **`event.Bus` is NOT ghost code:** The plan assumed event.Bus could be removed. The consumer audit found **14 external projects** (cqrs-htmx, crush-daily, Kernovia, KeyCountdown, SwettySwipperWeb, discordsync, InboxClean, Zlota44, Standup-Killer, browser-history, go-plugin-mvp, timesheets, SEC, DiscordSync) all use `event.Bus`. Removing it would be a massive breaking change. **P2a.08–P2a.09 are CANCELLED.**
+3. **Benchmark count was 22, not 29:** The actual count of benchmarks that discard results was 22 of 44 (not 29 of 43). The over-count was due to counting sub-benchmarks differently.
+4. **`benchPayload` JSON tag bug:** The plan didn't anticipate finding a real correctness bug. `benchPayload` in `json_tax_bench_test.go` had no JSON tags, so filter on `"status"` matched the Go field name `Status` but the JSON key was `Status` (capitalized), while the filter searched for lowercase `"status"`. After adding `json:"status"` tags, the scan benchmarks returned non-empty results. This is exactly the ADR-0090 class bug the assertions were meant to catch.
+5. **DuckDB cost constant change may be a planner regression:** See `## Open Risk: DuckDB Cost Constants` below.
+6. **idempotency sub-modules not extractable cleanly:** `kvstore/` depends on `kv/` and `codec/`; `sqlstore/` depends on `storage/sql/`. Extracting them to go-idempotency requires either copying those deps or creating a dep graph the plan didn't account for. Deferred.
+
+### Open Risk: DuckDB Cost Constants
+
+**Changed:** `DuckDBNsPerRead` 3,000→546,000; `DuckDBNsPerOp` 15,000→4,800,000.
+
+**The problem:** The benchmark measures MapGet (point lookup), which is DuckDB's worst case (full column scan + CGo boundary). The original 3,000 ns was likely intended as **analytical per-row cost** (GROUP BY scans — DuckDB's strength). The new values make the planner route everything away from DuckDB, even analytical workloads where it should win.
+
+**Recommended action:** Add a GROUP BY / aggregation benchmark for DuckDB before trusting the updated constants. Consider reverting to original values with a comment explaining they represent analytical cost, not point-lookup cost. See status report Q1.
 
 ---
 
@@ -20,43 +57,45 @@ Research revealed:
 
 This is read-only/additive work. Zero VERSCHLIMMBESSER risk.
 
-### The 4% that delivers 64%
+### The 4% that delivers 64% — **DONE**
 
-**Document the SSE three-repo finding (ADR-0094) + plan the go-sse consumption.**
+**Document the SSE three-repo finding (ADR-0097) + plan the go-sse consumption.**
 
 - `go-sse` exists as extracted, proven SSE primitives (consumed correctly by cqrs-htmx)
 - `go-cqrs-lite` has TWO SSE implementations that both ignore `go-sse`
 - ADR-0091's rejection rationale ("trivial stdlib, not worth extracting") was written as if `go-sse` didn't exist
 - Writing the ADR is 30min — it creates the mandate for the refactor
 
-### The 20% that delivers 80%
+### The 20% that delivers 80% — **DONE**
 
 **Execute the safe debt items:**
-- PostgresBus removal (only 1,226 LOC — smaller than expected, memory buses already deleted)
-- Metadata alias completion (command/query.Metadata already use CustomData — conversion is mechanical)
-- SKILL.md decision matrix (consumer-facing routing guidance)
+- ~~PostgresBus removal (only 1,226 LOC — smaller than expected, memory buses already deleted)~~ ✅ Removed
+- ~~Metadata alias completion (command/query.Metadata already use CustomData — conversion is mechanical)~~ ✅ Converted
+- ~~SKILL.md decision matrix (consumer-facing routing guidance)~~ ✅ 4 matrices added
 
-### The other 20% (to reach 100%)
+### The other 20% (to reach 100%) — **PARTIALLY DONE**
 
 **Higher-risk items, staged carefully:**
-- SSE refactor execution (transport/http.SSEBroker + metaengine.ServeSSE consume go-sse)
-- retry/ extraction to standalone go-retry repo
-- idempotency/ extraction to standalone go-idempotency repo
+- SSE refactor execution (transport/http.SSEBroker + metaengine.ServeSSE consume go-sse) — **NOT STARTED**
+- ~~retry/ extraction to standalone go-retry repo~~ — ✅ Core done (aliases working), ⚠️ missing commit/tag/push
+- ~~idempotency/ extraction to standalone go-idempotency repo~~ — ✅ Core done (aliases working), ⚠️ missing commit/tag/push + sub-module extraction
 
 ---
 
 ## VERSCHLIMMBESSER Risk Assessment
 
-| Task | Risk | What could go wrong | Mitigation |
-|------|------|---------------------|------------|
-| Benchmark assertions | **None** | Purely additive — adds checks, changes no logic | N/A |
-| SSE ADR (documentation) | **None** | Just paper | N/A |
-| SKILL.md matrix | **None** | Just paper | N/A |
-| Metadata alias conversion | **Low** | Breaking if consumers assign `command.Metadata` = `event.Metadata` (already not possible — different types since v3 repoint) | Verify no cross-assignments exist |
-| PostgresBus removal | **Medium** | Consumers using `storage.PostgresBus` break | Search consumers first; provide migration path to Watermill |
-| SSE refactor | **Medium** | SSEBroker has features go-sse lacks (filter, transform, budget, backfill, OTel) — must preserve ALL of them | Internal-only refactor; external API unchanged |
-| retry/ extraction | **Low** | Re-export pattern proven by cqrs-htmx | Verify middleware consumer after alias swap |
-| idempotency/ extraction | **Low** | Same re-export pattern | Verify all 4 consumers after alias swap |
+| Task | Risk | What could go wrong | Mitigation | Outcome |
+|------|------|---------------------|------------|--------|
+| Benchmark assertions | **None** | Purely additive — adds checks, changes no logic | N/A | ✅ Done. Found real bug (missing JSON tags). |
+| Cost constant changes | **⚠️ HIGH** (discovered post-hoc) | Changing constants without understanding their intended scope (point lookup vs analytical) can regress planner routing | Benchmark the INTENDED use case, not just one path | ⚠️ DuckDB constants changed based on point-lookup benchmark. May need revert — see Open Risk above. |
+| SSE ADR (documentation) | **None** | Just paper | N/A | ✅ Done (ADR-0097). |
+| SKILL.md matrix | **None** | Just paper | N/A | ✅ Done (4 matrices). |
+| Metadata alias conversion | **Low** | Breaking if consumers assign `command.Metadata` = `event.Metadata` (already not possible — different types since v3 repoint) | Verify no cross-assignments exist | ✅ Done. All modules build, all tests pass. |
+| PostgresBus removal | **Medium** | Consumers using `storage.PostgresBus` break | Search consumers first; provide migration path to Watermill | ✅ Done. Zero external consumers confirmed. 1,226 LOC removed. |
+| event.Bus removal | **HIGH** (was misclassified as Medium) | Consumers using `event.Bus` break | ~~Search consumers first~~ | ❌ CANCELLED. 14 external projects use it. NOT ghost code. |
+| SSE refactor | **Medium** | SSEBroker has features go-sse lacks (filter, transform, budget, backfill, OTel) — must preserve ALL of them | Internal-only refactor; external API unchanged | ⏳ Not started. |
+| retry/ extraction | **Low** | Re-export pattern proven by cqrs-htmx | Verify middleware consumer after alias swap | ✅ Core done. ⚠️ Missing commit/tag/push. |
+| idempotency/ extraction | **Low** | Same re-export pattern | Verify all 4 consumers after alias swap | ✅ Core done. ⚠️ Missing commit/tag/push + sub-module extraction. |
 
 ---
 
@@ -64,32 +103,34 @@ This is read-only/additive work. Zero VERSCHLIMMBESSER risk.
 
 Sorted by importance × impact ÷ effort, with risk as tiebreaker.
 
-| # | Task | Phase | Impact | Effort | Risk | Dependencies | Customer Value |
-|---|------|-------|--------|--------|------|--------------|----------------|
-| L1.01 | Add correctness assertions to 29 unasserted benchmarks | P0 | Critical | 100min | None | None | Trust in planner routing |
-| L1.02 | Create DuckDB + Postgres engine benchmarks (0 exist today) | P0 | Critical | 100min | None | None | Trust in planner routing |
-| L1.03 | Run all benchmarks with assertions, document findings | P0 | Critical | 30min | None | L1.01, L1.02 | Evidence-grade constants |
-| L1.04 | Write ADR-0094: SSE three-repo finding + go-sse consumption plan | P1 | High | 30min | None | None | Architecture honesty |
-| L1.05 | Update ADR-0091 cross-reference to ADR-0094 | P1 | Medium | 12min | None | L1.04 | ADR accuracy |
-| L1.06 | Convert command.Metadata + query.Metadata to standalone structs | P2b | Medium | 30min | Low | None | Type safety |
-| L1.07 | Update SQL stores (scanCommand/scanQuery) + tests for new Metadata | P2b | Medium | 30min | Low | L1.06 | Correctness |
-| L1.08 | Audit consumers of storage.PostgresBus before removal | P2a | High | 30min | None | None | Safe removal |
-| L1.09 | Remove PostgresBus (pg_bus.go, pg_bus_dispatch.go, pg_bus_listen.go, tests) | P2a | High | 60min | Medium | L1.08 | 1,226 LOC debt cleared |
-| L1.10 | Surgically extract Bus/Subscriber/Middleware from event/bus.go (keep Publisher) | P2a | High | 60min | Medium | L1.09 | Ghost bus debt cleared |
-| L1.11 | Evaluate command/bus.go for removal (mirrors event.Bus) | P2a | Medium | 30min | Medium | L1.10 | Ghost bus debt cleared |
-| L1.12 | Add SSE routing decision matrix to SKILL.md | P3 | Medium | 30min | None | L1.04 | Consumer guidance |
-| L1.13 | Add GraphBackend/graph, kv/metaengine, DLQ routing to SKILL.md | P3 | Medium | 30min | None | None | Consumer guidance |
-| L1.14 | Plan SSE refactor: transport/http.SSEBroker → consume go-sse internally | P1 | High | 100min | None | L1.04 | Refactor blueprint |
-| L1.15 | Execute SSE refactor: transport/http.SSEBroker internal swap | P1 | High | 100min | Medium | L1.14 | ~300 LOC dedup |
-| L1.16 | Execute SSE refactor: metaengine.ServeSSE internal swap | P1 | Medium | 60min | Low | L1.14 | ~200 LOC dedup |
-| L1.17 | Full test suite verification post-SSE-refactor | P1 | High | 30min | None | L1.15, L1.16 | Confidence |
-| L1.18 | Create go-retry repo, copy source, tag v1.0.0 | P2c | Medium | 60min | Low | None | Independent consumption |
-| L1.19 | Replace go-cqrs-lite/retry/ with re-export aliases, verify middleware | P2c | Medium | 30min | Low | L1.18 | Backward-compatible extraction |
-| L1.20 | Create go-idempotency repo, copy source (3 modules), tag v1.0.0 | P2d | Medium | 100min | Low | None | Independent consumption |
-| L1.21 | Replace go-cqrs-lite/idempotency/ with re-export aliases, verify consumers | P2d | Medium | 60min | Low | L1.20 | Backward-compatible extraction |
-| L1.22 | Run doc-check on all changed documentation | P3 | Low | 30min | None | All | Doc integrity |
+| # | Task | Phase | Impact | Effort | Risk | Dependencies | Customer Value | Status |
+|---|------|-------|--------|--------|------|--------------|----------------|--------|
+| L1.01 | Add correctness assertions to 22 unasserted benchmarks | P0 | Critical | 100min | None | None | Trust in planner routing | ✅ Done |
+| L1.02 | Create DuckDB + Postgres engine benchmarks (0 exist today) | P0 | Critical | 100min | None | None | Trust in planner routing | ✅ Done |
+| L1.03 | Run all benchmarks with assertions, document findings | P0 | Critical | 30min | ⚠️ | L1.01, L1.02 | Evidence-grade constants | ✅ Done (see Open Risk) |
+| L1.04 | Write ADR-0097: SSE three-repo finding + go-sse consumption plan | P1 | High | 30min | None | None | Architecture honesty | ✅ Done |
+| L1.05 | Update ADR-0091 cross-reference to ADR-0097 | P1 | Medium | 12min | None | L1.04 | ADR accuracy | ✅ Done |
+| L1.06 | Convert command.Metadata + query.Metadata to standalone structs | P2b | Medium | 30min | Low | None | Type safety | ✅ Done |
+| L1.07 | Update SQL stores (scanCommand/scanQuery) + tests for new Metadata | P2b | Medium | 30min | Low | L1.06 | Correctness | ✅ Done (transparent — `any` interface) |
+| L1.08 | Audit consumers of storage.PostgresBus before removal | P2a | High | 30min | None | None | Safe removal | ✅ Done (zero consumers) |
+| L1.09 | Remove PostgresBus (pg_bus.go, pg_bus_dispatch.go, pg_bus_listen.go, tests) | P2a | High | 60min | Medium | L1.08 | 1,226 LOC debt cleared | ✅ Done |
+| L1.10 | Surgically extract Bus/Subscriber/Middleware from event/bus.go (keep Publisher) | P2a | High | 60min | Medium | L1.09 | Ghost bus debt cleared | ❌ CANCELLED — 14 external consumers |
+| L1.11 | Evaluate command/bus.go for removal (mirrors event.Bus) | P2a | Medium | 30min | Medium | L1.10 | Ghost bus debt cleared | ⏳ Not started (zero external, internal watermill consumer) |
+| L1.12 | Add SSE routing decision matrix to SKILL.md | P3 | Medium | 30min | None | L1.04 | Consumer guidance | ✅ Done |
+| L1.13 | Add GraphBackend/graph, kv/metaengine, DLQ routing to SKILL.md | P3 | Medium | 30min | None | None | Consumer guidance | ✅ Done |
+| L1.14 | Plan SSE refactor: transport/http.SSEBroker → consume go-sse internally | P1 | High | 100min | None | L1.04 | Refactor blueprint | ⏳ Not started |
+| L1.15 | Execute SSE refactor: transport/http.SSEBroker internal swap | P1 | High | 100min | Medium | L1.14 | ~300 LOC dedup | ⏳ Not started |
+| L1.16 | Execute SSE refactor: metaengine.ServeSSE internal swap | P1 | Medium | 60min | Low | L1.14 | ~200 LOC dedup | ⏳ Not started |
+| L1.17 | Full test suite verification post-SSE-refactor | P1 | High | 30min | None | L1.15, L1.16 | Confidence | ⏳ Not started |
+| L1.18 | Create go-retry repo, copy source, tag v1.0.0 | P2c | Medium | 60min | Low | None | Independent consumption | ⚠️ Repo created, missing commit/tag |
+| L1.19 | Replace go-cqrs-lite/retry/ with re-export aliases, verify middleware | P2c | Medium | 30min | Low | L1.18 | Backward-compatible extraction | ✅ Done |
+| L1.20 | Create go-idempotency repo, copy source (3 modules), tag v1.0.0 | P2d | Medium | 100min | Low | None | Independent consumption | ⚠️ Core done, missing sub-modules + commit/tag |
+| L1.21 | Replace go-cqrs-lite/idempotency/ with re-export aliases, verify consumers | P2d | Medium | 60min | Low | L1.20 | Backward-compatible extraction | ✅ Done (core only) |
+| L1.22 | Run doc-check on all changed documentation | P3 | Low | 30min | None | All | Doc integrity | ✅ Done (1197 refs valid) |
 
 **Total estimated effort:** ~22 hours
+**Actual completed:** ~10 hours (P0 + P2a + P2b + P2c/partial + P2d/partial + P3)
+**Remaining:** ~8 hours (P1 refactor + P2c/d completion + L1.11)
 
 ---
 

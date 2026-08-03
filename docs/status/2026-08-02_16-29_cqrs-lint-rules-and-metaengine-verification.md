@@ -248,3 +248,11 @@ I need your call because all three have tradeoffs I can't resolve unilaterally.
 ---
 
 _End of report. Awaiting instructions._
+
+---
+
+## Resolution (2026-08-03)
+
+A033 + C037 detectors shipped (catalog entries, README updates). All 5 metaengine engines build standalone. Core/pebble/pg parity tests pass. The verify gate was later run GREEN (multiple times in `03-58`, `07-00`, `07-01`). API golden regenerated. Pareto plan rows marked done.
+
+**Still open:** C037 only catches snapshot/event codec mismatch (1/5 of the real problem); A033 has one weak test (local function vs imported selector). Both captured in TODO_LIST.md.

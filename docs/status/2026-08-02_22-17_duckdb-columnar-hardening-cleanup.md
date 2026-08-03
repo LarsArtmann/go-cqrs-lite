@@ -162,3 +162,11 @@ Currently `WithColumnarLayout` on SQLite silently degrades to name heuristics. T
 ### Q3: Should `WithColumnarLayout` emit a warning diagnostic when the engine doesn't implement `LayoutPlanApplier`?
 
 When a consumer writes `WithColumnarLayout()` but the assigned engine is SQLite/Memory/Pebble, the columnar flag is silently ignored (falls back to `LayoutPlanner` with name heuristics or no-op). A `Diagnostic{Level: Warn}` at plan time would make this visible. Should I add it?
+
+---
+
+## Resolution (2026-08-03)
+
+REAL→DOUBLE fix shipped (`sqlTypeOf`: float64→DOUBLE, float32→REAL). Decorative `[R any]` generic removed. Reserved-name collision fix (fields named `key`/`value` skipped). `TestDuckDBEngine_ColumnarDoublePrecision` added. ADR-0092 written + indexed. AGENTS.md + TODO_LIST.md updated. Verify GREEN (80+ modules).
+
+**Still open:** SQLite/Postgres `LayoutPlanApplier`; schema evolution (`ALTER TABLE`); DuckDB layout benchmark; `adttest.RunMatrix` coverage. Captured in TODO_LIST.md.

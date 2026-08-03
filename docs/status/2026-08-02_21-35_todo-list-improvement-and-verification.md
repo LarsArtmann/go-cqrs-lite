@@ -265,3 +265,9 @@ the intermediate state was misleading.
    DONE based on file existence + passing tests, but I didn't read the test
    bodies. If the daemon wrote trivial tests that don't exercise the
    `reifyWatcherValue` delete path, the regression coverage is false confidence.
+
+---
+
+## Resolution (2026-08-03)
+
+TODO_LIST.md rebuilt (10 completed items removed, forward-looking items harvested). 3 broken cqrs-lint tests fixed (F009/F015/F017). API golden regenerated. `verify-fast` GREEN. TODO_LIST has since been rebuilt again by the `2026-08-03_19-59` docs-health pass. Status report annotation is being done in the current session.

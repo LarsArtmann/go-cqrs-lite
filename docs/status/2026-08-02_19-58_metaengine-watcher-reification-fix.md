@@ -205,3 +205,11 @@ Only `metaengine` tests were run. The project rule says `nix run .#verify` is th
 ---
 
 _End of report._
+
+---
+
+## Resolution (2026-08-03)
+
+`reifyWatcherValue[V]` helper shipped (nil→zero, typed fast-path, JSON round-trip fallback). 8 regression tests. DuckDB/Postgres/Pebble watcher regression tests added in `21-19`. SSE + SQLite replay reconnection test added as T21 (`31ec083b`). `WorkloadStats.ReificationFailures` added to public API (`22-17`).
+
+**Still open:** JSON round-trip fallback benchmark; delete-notification semantics (opt-in vs default). Captured in TODO_LIST.md.

@@ -281,3 +281,11 @@ GOWORK=off go run . -update` to sync from 3187→3192 exports.
    it by type parameter, which ripples into `Store.registerWatcher`. This is a
    medium-sized architectural change. I cannot determine if you want to pay
    that cost now or accept the `chan any` boundary as a permanent tradeoff.
+
+---
+
+## Resolution (2026-08-03)
+
+ADR-0091 index fixed. API golden regenerated. Pebble/DuckDB/Postgres watcher regression tests added (6 tests). jsonValue fast-path test added. README + COOKBOOK updated. CHANGELOG entry recorded. `ReificationFailures` promoted to public `WorkloadStats` (`22-17`). `TestWorkloadMeter_ReificationFailures` test added (`22-17`).
+
+**Still open:** `watcherEntry` generic refactor (never started); watcher notification latency benchmark. Low priority — captured in ROADMAP.md.

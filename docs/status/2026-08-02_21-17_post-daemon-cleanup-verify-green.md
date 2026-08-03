@@ -268,3 +268,9 @@ daemon-shipped architectural changes, or is that revisionist history?**
 But I lost control of my commits, didn't verify daemon work, and didn't
 sync the docs. The next session should verify daemon-shipped items
 against code and update FEATURES/ROADMAP/CHANGELOG.
+
+---
+
+## Resolution (2026-08-03)
+
+`nix run .#verify` EXIT 0 achieved (build/vet/test/race/lint/doc-check/api-stability all 64 modules). `gocritic singleCaseSwitch` lint fixed. API golden regenerated (3192→3194). TODO_LIST, FEATURES, ROADMAP subsequently updated by the `22-25` and `2026-08-03` docs-health passes.

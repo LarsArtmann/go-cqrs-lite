@@ -245,3 +245,11 @@ Currently D006 (info severity, all files) and D017 (warning severity, domain fil
 ### Q3: The cqrs-htmx feedback says "publish the round-2 fixes to Nix" (item 1). This is a distribution task, not a code task. Should I trigger a Nix rebuild, or is that your call?
 
 The stale Nix binary (`d6be91ca`) is 19+ commits behind source HEAD. Publishing a new binary requires `nix build` + cache push, which may need your credentials. I cannot do this autonomously.
+
+---
+
+## Resolution (2026-08-03)
+
+4 new cqrs-lint rules shipped (C038, C039, S011, D017). Version bumped to 0.3.0 (later corrected to 4.3.0). Config inheritance (`loadParentRulesConfig`) shipped. Catalog updated (181→185 rules). The verify gate, API golden, and doc-check were later run in subsequent sessions. C039 receiver-method detection was fixed. Config inheritance test was added.
+
+**Note:** The version constant was corrected from "0.3.0" to "4.3.0" in `00-50` (the version was disconnected from the tag track since the v0.2.0→v4.2.0 jump).
