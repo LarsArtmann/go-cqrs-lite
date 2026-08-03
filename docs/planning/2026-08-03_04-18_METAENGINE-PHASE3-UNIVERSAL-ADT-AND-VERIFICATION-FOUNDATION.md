@@ -16,9 +16,15 @@
 - `CollectionInfo` exposes `Replication`/`ReplicationLagMs`/`NetworkRTTMs`
 - `ExplainPlan()` shows replication suffix; `Doctor()` has `--- Replication ---` section
 - 6 replication tests + 3 Explain/Doctor tests, all pass under `-race`
-- Latest tag: `metaengine/v4.2.0` — **Phase 2 work is unreleased**
+- Latest tag: ~~`metaengine/v4.2.0` — Phase 2 work is unreleased~~
+  `metaengine/v4.4.0` tagged (`6f7c8838` then force-moved to v4.4.0 after
+  Universal ADT + replication polish)
 
-### Phase 3 (Universal ADT) — NOT STARTED
+### Phase 3 (Universal ADT) — ~~NOT STARTED~~ DONE
+
+> **Update 2026-08-03 (commit `8b41f658`):** `DegradedADTs` shipped, all 5
+> engines extended to 10/10 ADTs, `degradedADTRule` SCREAM diagnostics wired,
+> `errADTNotSupported` eliminated. ADR-0094 written. metaengine v4.4.0 tagged.
 
 - Design doc exists: [`meta-engine-universal-adt-support.md`](meta-engine-universal-adt-support.md)
 - `DegradedADTs` field: does NOT exist in `EngineProfile`
@@ -26,7 +32,11 @@
 - `degradedADTRule`: does NOT exist in `defaultRules()`
 - Engine coverage: Memory 10/10, SQLite 7/10, Pebble 7/10, DuckDB 3/10, Postgres 3/10
 
-### Verification Gate — PARTIALLY BROKEN
+### Verification Gate — ~~PARTIALLY BROKEN~~ FIXED
+
+> **Update 2026-08-03 (commit `d4dbebbd`):** `nix run .#verify` now includes
+> `check-layers`, `check-duplication`, `check-coverage`. The three-session gap
+> is closed.
 
 - `nix run .#verify` exits 0 (build/vet/test/race/lint/api-stability/doc-check — all GREEN)
 - BUT `verify` does NOT include `check-layers`, `check-duplication`, `check-coverage`
@@ -375,3 +385,41 @@ Before claiming any tier is complete:
 - [Status report 03-58](../status/2026-08-03_03-58_design-doc-review-and-lint-gate-zero.md) — Latest session findings
 - [Status report 03-34](../status/2026-08-03_03-34_collectioninfo-replication-exposure.md) — CollectionInfo exposure
 - [Status report 03-14](../status/2026-08-03_03-14_metaengine-replication-phase2-complete.md) — Phase 2 completion
+
+---
+
+## Resolution (2026-08-03)
+
+| Task | Status | Commit / Evidence |
+| ---- | ------ | ----------------- |
+| T1   | ~~Done~~ `d4dbebbd` | Verify gate extended with check-layers/dup/coverage |
+| T2   | ~~Done~~ `e06106e7` | Design doc MapUpdate "emits" → "should emit" |
+| T3   | ~~Done~~ | All commits pushed (0 unpushed) |
+| T4   | ~~Done~~ `6f7c8838` | metaengine/v4.3.0 tagged, then force-moved to v4.4.0 |
+| T5   | ~~Done~~ `8b41f658` | DegradedADTs field + SupportsADT/degradedADTRule |
+| T6   | ~~Done~~ `8b41f658` | SQLite extended to 10/10 ADTs |
+| T7   | ~~Done~~ `8b41f658` | Pebble extended to 10/10 ADTs |
+| T8   | ~~Done~~ `8b41f658` | DuckDB extended to 10/10 ADTs |
+| T9   | ~~Done~~ `8b41f658` | Postgres extended to 10/10 ADTs |
+| T10  | ~~Done~~ `8b41f658` | degradedADTRule SCREAM diagnostics |
+| T11  | ~~Done~~ `8b41f658` | errADTNotSupported eliminated |
+| T12  | ~~Done~~ `8b41f658` | Integration tests for universal ADT |
+| T13  | ~~Done~~ `8b41f658` | ADR-0094 written and indexed |
+| T14  | ~~Done~~ `f25e1d21` | WithReplication() Plan option |
+| T15  | ~~Done~~ `f25e1d21` | WithNetworkRTT(d) Plan option |
+| T16  | ~~Done~~ `f25e1d21` | SerializablePlan replication fields |
+| T17  | ~~Done~~ `f25e1d21` | ReplicationMode() accessor |
+| T18  | ~~Done~~ `f25e1d21` | MapUpdate WARN diagnostic (mapUpdateReplicationRule) |
+| T19  | Partial | TotalAlloc delta shipped; 100K smoke + 3× race variance still open |
+| T20  | ~~Done~~ `1246fb44` | WatchTyped/WatchTypedWithSeq shipped (chan any remains internal) |
+| T21  | ~~Done~~ `31ec083b` | SSE reconnect with SQLite reify fallback test |
+| T22  | ~~Done~~ `cbc572c8` | ErrKeyTypeMismatch at Store boundary |
+| T23  | Open | Postgres GIN containment indexes — deferred (see TODO_LIST) |
+| T24  | Open | DuckDB LayoutPlanner follow-ups — deferred (see TODO_LIST) |
+| T25  | ~~Done~~ | ADR-0096 Iroh bridge evaluation written |
+| T26  | ~~Done~~ | 7 gopls hints fixed (6 infertypeargs + 1 writestring) |
+| T27  | ~~Done~~ | cqrs-lint run against taskmanager + readme-quickstart: 0 FPs |
+
+**25 of 27 tasks complete.** T23 (PG GIN) and T24 (DuckDB LayoutPlanner
+follow-ups) remain open in [TODO_LIST.md](../../TODO_LIST.md). T19 partially
+complete (soak hardening items still open).

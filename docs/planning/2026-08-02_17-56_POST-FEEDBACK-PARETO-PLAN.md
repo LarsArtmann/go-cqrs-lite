@@ -90,8 +90,8 @@ Sorted by importance/impact/effort/customer-value.
 
 | #   | Task                                                                                                                | Impact   | Effort | Customer Value                                         | Status |
 | --- | ------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------------------------------------------------ | ------ |
-| T1  | **Push 4 unpushed commits to origin**                                                                               | Critical | 2min   | Immediate — work becomes visible                       | `[ ]`  |
-| T2  | **Update TODO_LIST.md** — mark B022, P012/P013, config-disable, suppression-parser, S006 as done                    | Critical | 15min  | Prevents confusion in every future session             | `[ ]`  |
+| T1  | **Push 4 unpushed commits to origin**                                                                               | Critical | 2min   | Immediate — work becomes visible                       | `[x]`  |
+| T2  | **Update TODO_LIST.md** — mark B022, P012/P013, config-disable, suppression-parser, S006 as done                    | Critical | 15min  | Prevents confusion in every future session             | `[x]`  |
 | T3  | **Tag `stack/duckdb/v4.0.0`** + push tag                                                                            | Critical | 5min   | Consumers resolving this module get 404 without it     | `[x]`  |
 | T4  | **Tag `metaengine/pgengine/v4.0.0`** + push tag                                                                     | Critical | 5min   | Same — consumers get 404                               | `[x]`  |
 | T5  | **Tag `metaengine/duckdbengine/v4.0.0`** + push tag                                                                 | Critical | 5min   | Same — consumers get 404                               | `[x]`  |
@@ -207,3 +207,15 @@ graph TD
 - **DO NOT** touch the auto-commit daemon's formatting commits
 - **DO NOT** push tags without verifying the version is the NEXT semver above all existing
 - **DO NOT** mark TODO items done that aren't actually done in the code
+
+---
+
+## Resolution (2026-08-03)
+
+All 14 tasks (T1–T14) are **resolved**. T1 (push) and T2 (TODO_LIST update)
+were the last open items — both completed in the 2026-08-03 docs-health session.
+T3–T14 were completed in the original execution session (commits `fae67aa8`,
+`7c9c9a25`, `7e695690`, `0438b465`, and others). Deferred items (10M soak,
+`metaengine-gen`, generic `ScanResult[T]`, Vector/Search/Spatial backends) were
+explicitly routed to [ROADMAP.md](../../ROADMAP.md) — they are not open items
+in this plan.
