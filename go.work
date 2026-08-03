@@ -43,6 +43,7 @@ use (
 	./prometheus
 	./query
 	./retry
+	../go-retry
 	./scenario
 	./scheduling
 	./schema
