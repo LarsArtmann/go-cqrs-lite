@@ -265,7 +265,7 @@
           mysqlVM = mkNixOSVM ./nix/vm/mysql.nix;
 
           # NixOS VM test: verify the Postgres module boots correctly and
-          # LISTEN/NOTIFY works (the foundation of storage.PostgresBus).
+          # JSONB operations work (used by pgengine for json_extract pushdown).
           # Runs via `nix flake check` on x86_64-linux.
           pgServiceTest = pkgs.testers.runNixOSTest {
             name = "postgres-service-health";
@@ -310,7 +310,8 @@
               ).strip()
               assert result == "active", f"JSONB query returned '{result}', expected 'active'"
 
-              # Test LISTEN/NOTIFY (the transport for storage.PostgresBus)
+              # Test LISTEN/NOTIFY (Postgres capability — foundation for
+              # any future distributed-bus implementation)
               machine.succeed(
                 "sudo -u postgres psql -d cqrs_test -c "
                 "\"NOTIFY cqrs_events, '{\\\"type\\\":\\\"user.created\\\",\\\"id\\\":\\\"evt-1\\\"}'\""
