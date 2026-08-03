@@ -80,6 +80,9 @@ example/todo/cmd/api/api
 result
 result-*
 .direnv/
+
+# VM disk images (NixOS build testing)
+*.qcow2
 # Copy/paste detection report
 /reports/
 /report/jscpd-report.json
