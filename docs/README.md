@@ -137,6 +137,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0094](adr/0094-metaengine-universal-adt-support.md)          | Metaengine universal ADT support (DegradedADTs)         | Accepted                 |
 | [0095](adr/0095-nix-based-integration-testing.md)             | Nix-based integration testing                           | Accepted                 |
 | [0096](adr/0096-iroh-distributed-engine-bridge-evaluation.md) | Iroh distributed engine bridge evaluation               | Research                 |
+| [0097](adr/0097-sse-three-repo-finding-and-go-sse-consumption.md) | SSE three-repo finding and go-sse consumption plan | Accepted                 |
 
 ## API Reference
 

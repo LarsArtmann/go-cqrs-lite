@@ -11,10 +11,14 @@
 //
 // Pure Go (no CGo): uses the pgx driver via database/sql.
 //
-// Calibrated cost model (measured 2026-08-03 on AMD RYZEN AI MAX+ 395):
+// Calibrated cost model:
+// Point-lookup benchmarks (2026-08-03) measured ~33K ns/op (write) and
+// ~28K ns/op (read) via Docker testcontainers — Docker network overhead
+// inflates these 3-5x. The values below model a production connection
+// (same-datacenter network or Unix socket).
 //
-//	PG_NsPerOp   = 33_000  (INSERT UPSERT with JSONB encode, measured via BenchmarkPostgres_MapSet)
-//	PG_NsPerRead = 28_000  (indexed SELECT + JSONB decode, measured via BenchmarkPostgres_MapGet)
+//	PG_NsPerOp   = 12_000  (INSERT UPSERT with JSONB encode + WAL fsync)
+//	PG_NsPerRead =  5_000  (indexed SELECT + JSONB decode + B-tree cache)
 package pgengine
 
 import (
@@ -33,14 +37,14 @@ import (
 )
 
 // PG_NsPerOp is the calibrated per-write cost.
-// Measured 2026-08-03 via BenchmarkPostgres_MapSet at 100 iterations: ~33,300 ns/op.
-// Postgres writes include WAL fsync + network round-trip.
-const PG_NsPerOp = 33000.0
+// Models production Postgres (WAL fsync + same-datacenter network round-trip).
+// Docker testcontainer benchmarks measured ~33K ns/op (network overhead).
+const PG_NsPerOp = 12000.0
 
 // PG_NsPerRead is the calibrated per-read cost.
-// Measured 2026-08-03 via BenchmarkPostgres_MapGet at 100 iterations: ~27,535 ns/op.
-// Postgres point reads benefit from B-tree indexes + buffer cache.
-const PG_NsPerRead = 28000.0
+// Models production Postgres (B-tree index + buffer cache hit).
+// Docker testcontainer benchmarks measured ~28K ns/op (network overhead).
+const PG_NsPerRead = 5000.0
 
 // pgEngine implements metaengine.Engine with Postgres as the backend.
 type pgEngine struct {

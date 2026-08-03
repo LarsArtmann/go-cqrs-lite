@@ -38,9 +38,9 @@ func BenchmarkMixedWorkload_ReadsDuringWrites(b *testing.B) {
 						Priority: i % 10,
 					}
 					if err := store.Apply(ctx, "benchItemResult", item); err != nil {
-					b.Errorf("Apply %d: %v", i, err)
-					return
-				}
+						b.Errorf("Apply %d: %v", i, err)
+						return
+					}
 				}
 			}()
 

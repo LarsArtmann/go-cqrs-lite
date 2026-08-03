@@ -341,3 +341,31 @@ Per the update-old-docs skill: "When EVERY actionable item is resolved, move to
 `archived/`." The Phase 3 plan has 25/27 done (2 open), the Pareto plan has
 14/14 done. The Pareto plan qualifies for archival; the Phase 3 plan does not
 (2 items still open). Should I archive the fully-resolved ones now?
+
+---
+
+## Resolution (2026-08-03, continuation session)
+
+The gaps identified in sections a-g above have been addressed in a continuation session:
+
+**update-old-docs (historical annotation):**
+- ✅ **All ~50 status reports annotated** with `## Resolution (2026-08-03)` appendices — each resolves session-specific items and questions against git history
+- ✅ **5 stale openings inline-corrected**: 02-35 (false GREEN), 21-18 (REAL→DOUBLE), 00-46 (iroh "needs rewrite"), 01-12 (T14/tags), 04-19 (scripts rewritten), 09-00/09-26 (CalibrateEngine partial fix)
+- ✅ **4 planning docs annotated** (17-41, 17-52, 04-24, 19-29)
+- ✅ **4 feedback files annotated** (bank-sync, crush-daily, Standup-Killer, timesheets)
+- ✅ **1 session file annotated** (adr-review-and-sse-investigation)
+- ✅ **1 HTML review annotated** (metaengine-data-model.html — resolution table with 7 issue statuses)
+- ✅ **11 fully-resolved files archived** via `git mv` to `archived/` subdirectories
+- ✅ **Timesheets feedback moved** from `new/` to `reviewed/` with review summary (SHOWSTOPPER `cqrs-lint init` config bug identified, B022/E009/E016 confirmed fixed)
+- ✅ **All broken links fixed** (inbound references to archived files + relative links within archived files)
+- ✅ **ADR-0097 indexed** in docs/README.md
+
+**docs-health (living docs):**
+- Living docs (TODO_LIST, CHANGELOG, FEATURES, ROADMAP) were rebuilt by the first pass and are current
+
+**Remaining open (not in scope for docs skills):**
+- Build failure: `stack/postgres` references `storage.PostgresBus*` types that were removed by the daemon's module extraction work — code fix needed, not a docs issue
+- `nix run .#verify` build check FAILS (daemon-introduced); ADR index now passes
+- `cqrs-lint init` SHOWSTOPPER (`"exclude": []` config bug) — code fix needed
+- `cmd/cqrs-lint/v4.4.0` tag does not exist — release needed for post-v4.3.0 fixes
+- CalibrateEngine external engines (Pebble/DuckDB/Postgres) still silently discard calibration
