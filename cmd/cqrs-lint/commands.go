@@ -85,14 +85,14 @@ func setupChangelogCommand(cli *cmdguard.CLI[AppConfig]) error {
 	cmd, err := cmdguard.NewCommand[AppConfig, cmdguard.NoFlags](
 		"changelog",
 		cmdguard.NoFlags{},
-		func(_ context.Context, _ *AppConfig, _ cmdguard.NoFlags) error {
-			out, err := exec.Command(
+		func(ctx context.Context, _ *AppConfig, _ cmdguard.NoFlags) error {
+			out, err := exec.CommandContext(ctx,
 				"git", "log", "--oneline",
 				"cmd/cqrs-lint/v"+version+"..HEAD",
 			).Output()
 			if err != nil {
 				// Fall back to last 20 commits if tag doesn't exist yet.
-				out, err = exec.Command("git", "log", "--oneline", "-20").Output()
+				out, err = exec.CommandContext(ctx, "git", "log", "--oneline", "-20").Output()
 				if err != nil {
 					return fmt.Errorf("git log: %w", err)
 				}

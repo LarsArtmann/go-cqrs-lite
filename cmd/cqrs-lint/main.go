@@ -20,8 +20,8 @@ const version = "4.3.0"
 // commitHash and buildDate are injected via -ldflags at build time (Nix flake,
 // CI). When empty (local `go build`), the version output omits them.
 var (
-	commitHash string
-	buildDate  string
+	commitHash string //nolint:gochecknoglobals // injected via -ldflags
+	buildDate  string //nolint:gochecknoglobals // injected via -ldflags
 )
 
 // errFindingsWithErrors signals that error-severity findings were found.
