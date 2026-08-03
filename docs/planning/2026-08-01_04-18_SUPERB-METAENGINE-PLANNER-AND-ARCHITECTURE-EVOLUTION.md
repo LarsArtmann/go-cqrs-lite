@@ -537,3 +537,21 @@ These are NOT on the critical path but are tracked for completeness:
 ---
 
 _This plan is the synthesis. The 14 predecessors are the evidence._
+
+---
+
+## Resolution (2026-08-03)
+
+| Item | Status | Evidence |
+| ---- | ------ | -------- |
+| Tier 1–3: Planner pipeline, cost matrix, serialization | ✅ DONE | Shipped before Aug 2026 |
+| Replication model | ✅ DONE | ADR-0093, commits `72818e88`, `f25e1d21` |
+| Universal ADT Phase 3 | ✅ DONE | ADR-0094, commit `8b41f658` |
+| CalibrateEngine | ✅ DONE | commit `c45b39c8` |
+| WatchTyped | ✅ DONE | commit `1246fb44` |
+| cqrs-lint 185 rules | ✅ DONE | Tagged `cmd/cqrs-lint/v4.3.0` |
+| Iroh evaluation | ✅ DONE | ADR-0096 |
+| Extract retry/ + idempotency/ | Open — see TODO_LIST.md "Deferred Debt" |
+| Postgres GIN indexes | Open — see TODO_LIST.md |
+| metaengine-gen code generator | Open — see ROADMAP.md |
+| Generic ScanResult[T] | Open — see ROADMAP.md |

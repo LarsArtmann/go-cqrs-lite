@@ -317,3 +317,14 @@ All 36 tasks sorted by impact/effort/customer-value. Execute top-to-bottom.
 - Each detector change gets 2 tests: one for the new exemption, one verifying the detector STILL fires for the non-exempt case
 - Full suite run after every phase
 - Self-lint after all changes (dogfooding)
+
+---
+
+## Resolution (2026-08-03)
+
+| Item | Status | Evidence |
+| ---- | ------ | -------- |
+| Phase 1: Release + version stamping | ✅ DONE | v4.3.0 tagged, 185 rules |
+| Phase 2: High-freq FP elimination | ✅ DONE | F013, C009, C016, `--adoption` shipped |
+| Phase 3: Feature-profile smarts | ✅ DONE | ServerLocal, E016 narrowing, F015 gating, C008 config |
+| Deferred items (D1–D10) | Still deferred — see TODO_LIST.md "Declined/Rejected" |
