@@ -154,8 +154,14 @@ func (s *Store) ExplainPlan() string {
 
 	for _, eng := range s.engines {
 		p := eng.Profile()
-		fmt.Fprintf(&b, "  %s (read=%.0fns/op, write=%.0fns/op)\n",
+		fmt.Fprintf(&b, "  %s (read=%.0fns/op, write=%.0fns/op)",
 			p.Name, p.ReadNsPerOp(), p.WriteNsPerOp())
+		if p.IsReplicated() {
+			fmt.Fprintf(&b, " replication=%s, lag=%s, rtt=%s",
+				p.Replication, p.EffectiveReplicationLag(), p.EffectiveNetworkRTT())
+		}
+
+		b.WriteString("\n")
 	}
 
 	b.WriteString("\n--- Queries ---\n")
@@ -229,6 +235,23 @@ func (s *Store) Doctor(ctx context.Context) string {
 	s.poison.mu.RUnlock()
 
 	if !poisonedAny {
+		b.WriteString("  none\n")
+	}
+
+	b.WriteString("\n--- Replication ---\n")
+
+	replicatedAny := false
+	for _, c := range s.Collections() {
+		if c.Replication == ReplicationNone {
+			continue
+		}
+
+		fmt.Fprintf(&b, "  %s: %s (lag=%dms, rtt=%dms)\n",
+			c.Name, c.Replication, c.ReplicationLagMs, c.NetworkRTTMs)
+		replicatedAny = true
+	}
+
+	if !replicatedAny {
 		b.WriteString("  none\n")
 	}
 

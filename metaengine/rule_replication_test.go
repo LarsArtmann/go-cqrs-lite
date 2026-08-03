@@ -122,3 +122,77 @@ func TestEngineProfileString_NoSuffixForLocalEngine(t *testing.T) {
 		t.Errorf("local engine String() should not contain replication suffix, got: %s", s)
 	}
 }
+
+func TestCollections_ExposesReplicationFields(t *testing.T) {
+	t.Parallel()
+
+	lag := 50 * time.Millisecond
+	rtt := 5 * time.Millisecond
+	engine := &fakeEngine{profile: metaengine.EngineProfile{
+		Name: "replicated-pg",
+		Supports: map[metaengine.ADT]metaengine.Complexity{
+			metaengine.ADTMap: metaengine.ComplexityO1,
+		},
+		Replication:    metaengine.ReplicationSingleLeader,
+		ReplicationLag: lag,
+		NetworkRTT:     rtt,
+	}}
+
+	store, err := metaengine.Plan([]metaengine.Engine{engine}, findTaskQuery())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+
+	collections := store.Collections()
+	if len(collections) != 1 {
+		t.Fatalf("expected 1 collection, got %d", len(collections))
+	}
+
+	c := collections[0]
+	if c.Name != "find_task" {
+		t.Errorf("expected collection 'find_task', got %q", c.Name)
+	}
+	if c.Replication != metaengine.ReplicationSingleLeader {
+		t.Errorf("Replication: expected %q, got %q",
+			metaengine.ReplicationSingleLeader, c.Replication)
+	}
+	if c.ReplicationLagMs != lag.Milliseconds() {
+		t.Errorf("ReplicationLagMs: expected %d, got %d",
+			lag.Milliseconds(), c.ReplicationLagMs)
+	}
+	if c.NetworkRTTMs != rtt.Milliseconds() {
+		t.Errorf("NetworkRTTMs: expected %d, got %d",
+			rtt.Milliseconds(), c.NetworkRTTMs)
+	}
+}
+
+func TestCollections_ZeroReplicationForLocalEngine(t *testing.T) {
+	t.Parallel()
+
+	store, err := metaengine.Plan(
+		[]metaengine.Engine{metaengine.NewMemoryEngine()},
+		findTaskQuery(),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+
+	collections := store.Collections()
+	if len(collections) != 1 {
+		t.Fatalf("expected 1 collection, got %d", len(collections))
+	}
+
+	c := collections[0]
+	if c.Replication != metaengine.ReplicationNone {
+		t.Errorf("local engine Replication: expected %q, got %q",
+			metaengine.ReplicationNone, c.Replication)
+	}
+	if c.ReplicationLagMs != 0 {
+		t.Errorf("local engine ReplicationLagMs: expected 0, got %d", c.ReplicationLagMs)
+	}
+	if c.NetworkRTTMs != 0 {
+		t.Errorf("local engine NetworkRTTMs: expected 0, got %d", c.NetworkRTTMs)
+	}
+}
