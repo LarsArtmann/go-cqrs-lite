@@ -426,3 +426,9 @@ functions to include the appropriate feature-profile signals (e.g., add
 **Overall:** 13/14 tasks fully complete. T14 needs ~15 min of test updates to
 finish. The auto-commit daemon committed the broken T14 state, so the working
 tree is clean but CI will fail on the 3 F-series tests.
+
+---
+
+## Resolution (2026-08-03)
+
+T4-T13 shipped (tags created, dead-code wiring, exhaustiveness guard, MySQL fix, C037 scope, ADR-0091, D007 --fix). T14 completed in `07-00`. All tags pushed to origin. The `CalibrateEngine` copy-discard bug discovered here was fixed in `09-26` (core engines only — external engines still affected, see TODO_LIST).

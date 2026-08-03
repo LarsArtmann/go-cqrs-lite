@@ -210,3 +210,9 @@
 2. **Should the `pg-vm`/`mysql-vm` standalone packages (eval-config.nix) be removed from flake.nix since the VM scripts now use the runNixOSTest driver instead?** Keeping them means maintaining two VM build paths that share the same NixOS modules. The standalone path doesn't work reliably for service testing (the reason we switched to the driver).
 
 3. **Should the two earlier status reports (08-27, 09-00) be deleted or kept as historical record?** They're partially stale (wrong ADR number references, incomplete picture). The 09-00 report is nearly identical to this one.
+
+---
+
+## Resolution (2026-08-03)
+
+All M01-M33 items shipped. `verify-fast` run 2× GREEN in `09-36`. Doc-check GREEN (519 refs). Uncommitted `metaengine/dx.go` committed (holds `WatchTyped`). CI YAML syntax validated. The `nix run .#integration-all` and `#verify-integration` aggregator apps were created but not yet exercised end-to-end (see TODO_LIST).

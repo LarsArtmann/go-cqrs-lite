@@ -163,3 +163,11 @@
 2. **The auto-commit daemon made significant changes I didn't author (ADR-0096, docs/README.md 192-line reformat, metaengine execute.go refactor, calibration fix). Should I review and vet these, or trust the daemon?** The daemon's commit `c45b39c8` mixes my work with its own (calibration persistence fix, dead code removal, formatting). I cannot tell which parts you'd want to keep vs investigate.
 
 3. **The working tree has 18 modified + 3 untracked files — a mix of my edits, the daemon's edits, and test artifacts. Should I commit everything, selectively stage only my changes, or let the daemon handle it?** The daemon will likely auto-commit these, but the mix makes it hard to attribute authorship cleanly.
+
+---
+
+## Resolution (2026-08-03)
+
+15 verification/closure items shipped: boundary-key commit (`cbc572c8`), ADR-0094→0095 fix, M01-M48 status corrected, AGENTS.md updated, doc-check GREEN (519 refs), api-stability regenerated, verify-fast 2× GREEN, ephemeral PG verified.
+
+**Still open:** `executeQueryInner` gocyclo warning (complexity 31); `nix run .#integration-all` and `#verify-integration` not yet exercised end-to-end. Captured in TODO_LIST.md.

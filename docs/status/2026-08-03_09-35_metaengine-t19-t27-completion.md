@@ -136,3 +136,11 @@
 - `docs/README.md` — ADR index: 0096 added, count updated to 94
 - `docs/adr/README.md` — ADR index: 0083-0096 added
 - `docs/api_surface.txt` — Regenerated (3212→3215)
+
+---
+
+## Resolution (2026-08-03)
+
+T19 (soak `TotalAlloc` + `SOAK_SKIP_10M`), T20 (`WatchTyped[V]`/`WatchTypedWithSeq[V]`), T21 (`TestSSE_ReconnectWithSQLite` `31ec083b`), T22 (`ErrKeyTypeMismatch` `cbc572c8`), T25 (Iroh research + ADR-0096), T26 (7 gopls hints), T27 (cqrs-lint vs 3 examples, 0 false positives). v4.4.0 force-moved to `c45b39c8`. API 3212→3215.
+
+**Deferred:** T23 (Postgres GIN Containment Indexes), T24 (DuckDB LayoutPlanner follow-ups). Captured in TODO_LIST.md.

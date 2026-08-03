@@ -88,3 +88,9 @@ graph TD
     S12 --> S13[S13: Final verify]
     S13 --> S14[S14: Commit + Push]
 ```
+
+---
+
+## Resolution (2026-08-03)
+
+S1-S14 executed by later sessions: verify confirmed GREEN multiple times (`21-17`, `22-25`, `03-58`, `07-00`), TODO_LIST cleaned (done items removed), FEATURES.md updated with dead-code wiring + exhaustiveness guard, CHANGELOG entries added, doc-check run (519 refs valid). API surface regenerated (3194 exports at the time, now 3215).

@@ -246,3 +246,11 @@ These are engine-specific deep-dives (Postgres `@>` operator, DuckDB explainScan
 ### 3. Should the v4.4.0 tag cover everything or should I cut v4.5.0?
 
 The v4.4.0 tag was force-moved to HEAD (it was never pushed, so safe). But it now covers a LOT of work: Universal ADT (T1-T13) + Replication Polish (T14-T18) + T19-T27. That's 3 major features in one tag. Should I instead have cut v4.5.0 to separate the replication polish + T19-T27 from the Universal ADT work? Or is one tag covering the entire Phase 3 appropriate?
+
+---
+
+## Resolution (2026-08-03)
+
+TODO_LIST.md, FEATURES.md, and ROADMAP.md have since been updated by the `2026-08-03_19-59` docs-health pass (T19-T22 features added: WatchTyped, ErrKeyTypeMismatch, TotalAlloc tracking, SSE reconnect test). The 2 stale nolint suppressions may still need cleanup. The 10.24MB soak heap growth remains un-investigated (band-aid threshold). T20's `chan any` scope compromise is documented. Commits pushed to origin.
+
+**This was the most honest report of the T19-T27 session** — its candid identification of living-docs failures and the `chan any` compromise is what drove the subsequent docs-health passes.

@@ -116,3 +116,9 @@
 2. **Should the mysql-post-init systemd service be moved into the testScript instead?** Currently it runs as a systemd service in the VM (slower boot, +50s). Moving it to the testScript would be faster but less robust (the service runs once at boot; the testScript runs on every test).
 
 3. **Should we accept the 181s MySQL VM test time, or invest in systemd-nspawn (M14) now?** The MySQL VM test went from 131s to 181s (the mysql-post-init service adds overhead). At 3 minutes, it's borderline for per-commit CI. systemd-nspawn could bring it back under 30s.
+
+---
+
+## Resolution (2026-08-03)
+
+M01-M08 done: `vm-pg.sh` rewritten to `runNixOSTest` driver (firewall + TCP-auth fix, PG accepts connections in ~20s), `stack/postgres` pseudo-version fix, workspace build, `nix flake check` stable. vm-mysql.sh E2E tested in `08-59`. ADR-0095 written (the Nix ADR, not ADR-0094 which is Universal ADT).

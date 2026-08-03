@@ -589,3 +589,13 @@ graph TD
 2. **Should the VM launcher scripts (`vm-pg.sh`, `vm-mysql.sh`) be the primary dev path, or should devs use `nix build .#checks.x86_64-linux.postgres-vm` directly?** The scripts are more convenient (auto port-forward, cleanup) but the checks are more hermetic. Which should be documented as the recommended path? (M16 testing-guide.md will resolve this.)
 
 3. **~~Should we fix the pre-existing `benchkit` build failure~~** (`metaengine.FilterOnField` undefined)? — Still open. Separate from M03 (stack/postgres). If `benchkit` still fails to build, its integration tests can't run via ephemeral PG. Not blocking the Nix infra itself but limits its usefulness.
+
+---
+
+## Resolution (2026-08-03)
+
+M01-M33 shipped: ephemeral-pg.sh, Nix VM checks (PG+MySQL), CI matrix-parallelization, ADR-0095, KVM detection, CONTRIBUTING/testing-guide docs, `integration-all` + `verify-integration` flake apps, shellcheck-clean scripts. VM scripts rewritten to `runNixOSTest` driver in `08-27`.
+
+**Not done (M34-M48):** macOS verification of ephemeral PG; cache data dir; performance profiling; nixos-container alternative; DuckDB CGo VM test; SQLite WAL concurrency VM test; Turso sync VM test; Go test binaries in QEMU; Pebble backup/restore VM test; PostgresBus crash-restart; scheduling timers VM test; contract test suite across backends; ephemeral Redis/NATS; test-integration.sh aggregator. All captured in TODO_LIST.md as long-term integration test work.
+
+The distributed-bus multi-VM test was removed (`8754b842`) — unverified, slow, and single-VM checks validate the same semantics.

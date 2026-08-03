@@ -3,6 +3,8 @@
 **Date:** 2026-08-03 09:26
 **Session goal:** Fix the CalibrateEngine copy-discard bug discovered in the prior session, clean up dead code, and run the verify gate.
 
+> **Update 2026-08-03:** The fix below covers `memoryEngine` and `sqliteEngine` only. The three external engines (Pebble, DuckDB, Postgres) do **NOT** implement `calibratable` — they silently discard `CalibrateEngine` calls. This is still open. See TODO_LIST "CalibrateEngine for external engines".
+
 ---
 
 ## A) FULLY DONE
@@ -206,3 +208,11 @@ The fix only works for Memory and SQLite. Pebble, DuckDB, and Postgres engines s
 ### 3. Should I review/revert the daemon's execute.go refactor?
 
 The daemon split `executeQueryInner` (cyclomatic complexity 31) into smaller functions during my session. I didn't review it and it's now committed. The refactor looks reasonable (extracting `checkKeyTypeMatch`, `executePointLookup`) but I haven't verified behavioral equivalence. Should I review it now, or trust the daemon + verify gate?
+
+---
+
+## Resolution (2026-08-03)
+
+Core fix shipped (`c45b39c8`): `calibration` struct + `calibratable` interface + `setCalibration` on Memory/SQLite. `TestCalibrateEngine` rewritten to catch the bug. Dead code removed (`layoutComplexity`, `op` type, `txStmtCache.close()`). T3-T5 marked done. Verify GREEN (3215 exports).
+
+**Still open:** External engines (Pebble/DuckDB/Postgres) do NOT implement `calibratable` — they silently ignore `CalibrateEngine`. Export `Calibratable` interface or document the limitation. The daemon's `execute.go` refactor was verified to preserve behavior. Captured in TODO_LIST.md.

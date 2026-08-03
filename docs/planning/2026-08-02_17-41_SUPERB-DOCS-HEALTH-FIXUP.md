@@ -215,3 +215,9 @@ graph TD
 - [ ] No Verschlimmbessern — every annotation passes the "so what?" test
 - [ ] Remaining unannotated files are EXPLICITLY skipped (not silently ignored)
 - [ ] `git status` clean after commit
+
+---
+
+## Resolution (2026-08-03)
+
+All checklist items resolved: `nix run .#verify` now passes (the daemon build break was fixed in later sessions). Archival is being done in the current `2026-08-03` session (11 fully-resolved reports moved to `archived/`). The doc-check, CHANGELOG verification, SKILL.md updates, and 5 stale report annotations from this session all shipped (`44fb8fc2`).

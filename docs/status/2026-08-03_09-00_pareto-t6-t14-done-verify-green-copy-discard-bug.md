@@ -3,6 +3,8 @@
 **Date:** 2026-08-03 09:00
 **Session goal:** Finish T14, clear the duplication blocker, run verify gate
 
+> **Update 2026-08-03 (`09-26`):** The `CalibrateEngine` copy-discard bug discovered in section B below was **fixed for Memory + SQLite engines** in `c45b39c8`. However, the external engines (Pebble, DuckDB, Postgres) still silently discard calibration — the same bug remains open for them. See TODO_LIST "CalibrateEngine for external engines".
+
 ---
 
 ## A) FULLY DONE
@@ -226,3 +228,9 @@ The function measures timings but throws them away because it writes to a value-
 ### 3. Is the auto-commit daemon still actively running?
 
 Between the prior session and this one, the daemon created ADRs 0093-0095, rewrote `universal_adt_test.go`, resolved 3 duplication clones, and pushed 3 tags. If it's still running, it will commit this report and the Pareto plan update automatically. Should I be aware of any pending daemon work that might conflict?
+
+---
+
+## Resolution (2026-08-03)
+
+T6-T14 marked `[x]`. ADR-0095 index fix was the actual verify blocker (not duplication clones). Full verify GREEN (all 11 checks). The `CalibrateEngine` copy-discard bug was fixed for core engines in `09-26` (`c45b39c8`). External engines still affected — see TODO_LIST.

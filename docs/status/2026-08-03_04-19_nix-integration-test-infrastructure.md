@@ -3,6 +3,8 @@
 **Date:** 2026-08-03 04:19
 **Session scope:** Building better integration tests leveraging Nix VMs
 
+> **Update 2026-08-03 (`08-27`):** The `vm-pg.sh`/`vm-mysql.sh` scripts described below were **rewritten** to the `runNixOSTest` driver because the `eval-config.nix` path never reliably started Postgres. `ephemeral-mysql.sh` was deleted. The `ephemeral-pg.sh` script remains. See `2026-08-03_08-27_nix-integration-test-session2.md`.
+
 ---
 
 ## A) FULLY DONE
@@ -157,3 +159,11 @@
 2. **Should we run Go integration tests inside the VM or on the host against a port-forwarded VM?** Running on the host is simpler (no Go toolchain in the VM) but requires QEMU port forwarding which may be fragile. Running inside the VM is more hermetic but requires compiling Go test binaries into the VM image. Which approach do you prefer for the long-term design?
 
 3. **Should the pre-existing `benchkit` build failure and `stack/postgres` go.sum drift be fixed in this session?** They block those modules' integration tests from running via our new ephemeral PG script. They're pre-existing (not caused by our changes), but they limit the usefulness of the new infrastructure.
+
+---
+
+## Resolution (2026-08-03)
+
+Infrastructure built: `ephemeral-pg.sh`, Nix VM checks for PG+MySQL, CI job, ADR-0095, CONTRIBUTING/testing-guide docs, KVM detection, matrix-parallelized CI. Scripts shellchecked. The `vm-pg.sh`/`vm-mysql.sh` were rewritten to `runNixOSTest` driver in `08-27` (the `eval-config.nix` path never reliably started Postgres). Distributed-bus VM test was removed (opt-in, never successfully run).
+
+**Still open:** Go test binaries inside VM; `nix run .#integration-all` and `#verify-integration` aggregator apps not yet exercised end-to-end. Captured in TODO_LIST.md.

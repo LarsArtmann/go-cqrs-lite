@@ -242,3 +242,9 @@ Commit `8b41f658` has message `"ore(metaengine): add ADR 0094..."` — the `ch` 
 2. **Should the `metaengine/v4.4.0` tag wait until T14-T18 (replication polish) is also done, or cut immediately after verify passes?** Cutting now gives consumers DegradedADTs sooner. Waiting gives a more complete replication story. The plan assumed separate tags.
 
 3. **For T20 (Watcher typed-channel), should WatchTyped[V] be a generic method on Store or a separate TypedReader-like type?** The plan says "add as NEW method, keep chan any for backward compat" but doesn't specify the receiver type. Store is not generic, so a generic method on a non-generic type is valid Go but unusual in this codebase's style.
+
+---
+
+## Resolution (2026-08-03)
+
+T1 (extended verify gate: `d4dbebbd`), T5-T13 (Universal ADT: `DegradedADTs`, all 5 engines 10/10, `degradedADTRule`, ADR-0094 `8b41f658`), T3 (push), T4 (`metaengine/v4.3.0` tag) all shipped. `nixos.qcow2` untracked (`502bc338`). API golden regenerated. `metaengine/v4.4.0` force-moved to `c45b39c8` in `09-35`.
