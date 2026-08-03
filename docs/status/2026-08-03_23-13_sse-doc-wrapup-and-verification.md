@@ -23,19 +23,19 @@ unrelated to SSE.
 
 ## a) FULLY DONE (this session)
 
-| # | Task | Evidence |
-|---|------|----------|
-| 1 | Verified git state — confirmed 3 SSE refactor commits exist (`b7bb2647`, `bca4f31d`, `f7512176`), working tree clean | `git log`, `git status` |
-| 2 | Verified SSE refactoring in place — `go-sse v0.4.0` in both `transport/http/go.mod` and `metaengine/go.mod`; `sse_event.go` delegates; ADR-0097 file exists | file reads, `rg go-sse` |
-| 3 | Ran `nix fmt` — full treefmt pass, 0 files changed (code already formatted) | exit 0, clean tree |
-| 4 | Updated `TODO_LIST.md` — removed 3 done SSE items (project convention: no `[x]`, done items leave for CHANGELOG), rewrote section blockquote to reflect completion + retain 3 open follow-up items | commit `15b785eb` |
-| 5 | Updated `ROADMAP.md` — removed completed Theme 8 (all 4 items shipped), renumbered Themes 9-11 → 8-10, fixed internal "Theme 8" cross-reference at line 385 | commit `7ff6def4` |
-| 6 | Added `CHANGELOG.md` [Unreleased] → Changed entry — documents both SSE modules, LOC reduction, API preservation, ADR-0091 separation rationale, new dependency | commit `7ff6def4` |
-| 7 | Scanned `AGENTS.md` for stale `fmt.Fprintf("data:` wire-format examples — **none found** (only high-level `NewSSEBroker` API calls, which are still correct) | `rg` scan |
-| 8 | Confirmed SKILL.md SSE decision matrix in place (3-row routing table: SSEBroker / ServeSSE / CatchUpSubscriber, rule-of-thumb guidance) | `sed` read |
-| 9 | Verified `transport/http` in isolation — tests PASS (1.4s), golangci-lint 0 issues | isolated run |
-| 10 | Verified `metaengine` in isolation — tests PASS (9.5s) | isolated run |
-| 11 | Auto-commit daemon committed all documentation edits (commits `15b785eb`, `7ff6def4`) | `git log` |
+| #   | Task                                                                                                                                                                                               | Evidence                |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| 1   | Verified git state — confirmed 3 SSE refactor commits exist (`b7bb2647`, `bca4f31d`, `f7512176`), working tree clean                                                                               | `git log`, `git status` |
+| 2   | Verified SSE refactoring in place — `go-sse v0.4.0` in both `transport/http/go.mod` and `metaengine/go.mod`; `sse_event.go` delegates; ADR-0097 file exists                                        | file reads, `rg go-sse` |
+| 3   | Ran `nix fmt` — full treefmt pass, 0 files changed (code already formatted)                                                                                                                        | exit 0, clean tree      |
+| 4   | Updated `TODO_LIST.md` — removed 3 done SSE items (project convention: no `[x]`, done items leave for CHANGELOG), rewrote section blockquote to reflect completion + retain 3 open follow-up items | commit `15b785eb`       |
+| 5   | Updated `ROADMAP.md` — removed completed Theme 8 (all 4 items shipped), renumbered Themes 9-11 → 8-10, fixed internal "Theme 8" cross-reference at line 385                                        | commit `7ff6def4`       |
+| 6   | Added `CHANGELOG.md` [Unreleased] → Changed entry — documents both SSE modules, LOC reduction, API preservation, ADR-0091 separation rationale, new dependency                                     | commit `7ff6def4`       |
+| 7   | Scanned `AGENTS.md` for stale `fmt.Fprintf("data:` wire-format examples — **none found** (only high-level `NewSSEBroker` API calls, which are still correct)                                       | `rg` scan               |
+| 8   | Confirmed SKILL.md SSE decision matrix in place (3-row routing table: SSEBroker / ServeSSE / CatchUpSubscriber, rule-of-thumb guidance)                                                            | `sed` read              |
+| 9   | Verified `transport/http` in isolation — tests PASS (1.4s), golangci-lint 0 issues                                                                                                                 | isolated run            |
+| 10  | Verified `metaengine` in isolation — tests PASS (9.5s)                                                                                                                                             | isolated run            |
+| 11  | Auto-commit daemon committed all documentation edits (commits `15b785eb`, `7ff6def4`)                                                                                                              | `git log`               |
 
 ---
 
@@ -161,13 +161,13 @@ These are structural duplications that may be intentional (parallel module shape
 
 ## Session Metrics
 
-| Metric | Value |
-|--------|-------|
-| Commits this session (by daemon) | 2 (`15b785eb`, `7ff6def4`) |
-| Files edited | 3 (TODO_LIST.md, ROADMAP.md, CHANGELOG.md) |
-| SSE module tests | transport/http ✅ · metaengine ✅ |
-| SSE module lint | transport/http ✅ (0 issues) · metaengine ❓ (inconsistent) |
-| Full verify gate | ❌ exit 1 (1 flaky unrelated test) |
-| Duplication check | 2 new groups (unrelated to SSE) |
-| nix fmt | ✅ clean (0 changes) |
-| Working tree | clean |
+| Metric                           | Value                                                       |
+| -------------------------------- | ----------------------------------------------------------- |
+| Commits this session (by daemon) | 2 (`15b785eb`, `7ff6def4`)                                  |
+| Files edited                     | 3 (TODO_LIST.md, ROADMAP.md, CHANGELOG.md)                  |
+| SSE module tests                 | transport/http ✅ · metaengine ✅                           |
+| SSE module lint                  | transport/http ✅ (0 issues) · metaengine ❓ (inconsistent) |
+| Full verify gate                 | ❌ exit 1 (1 flaky unrelated test)                          |
+| Duplication check                | 2 new groups (unrelated to SSE)                             |
+| nix fmt                          | ✅ clean (0 changes)                                        |
+| Working tree                     | clean                                                       |
