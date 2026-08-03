@@ -111,20 +111,14 @@ and is **never** duplicated here.
 
 ## SSE Consolidation
 
-> The 2026-08-03 ADR review discovered `go-sse` exists as a standalone SSE
-> library. `go-cqrs-lite` reimplements SSE wire format in TWO places instead
-> of consuming it. ADR-0097 documents the three-repo finding. ADR-0091's
-> rationale was written as if `go-sse` didn't exist. Do NOT merge the two SSE
-> implementations — different semantics (ADR-0091). Instead, both should
-> consume `go-sse` internally.
-
-- [ ] **SSE refactor: `transport/http.SSEBroker`** → consume `go-sse`
-      internally (~300 LOC dedup). Preserve external API (filter, transform,
-      budget, backfill).
-- [ ] **SSE refactor: `metaengine.ServeSSE`** → consume `go-sse` (~200 LOC
-      dedup). Preserve Watcher-based semantics.
-- [ ] **Add SSE decision matrix to SKILL.md** — route consumers between
-      raw-events SSE vs read-model SSE.
+> ADR-0097 documented that `go-cqrs-lite` reimplemented the SSE wire format in
+> two places instead of consuming the standalone `go-sse` library. The
+> consumption refactor is **complete** — both `transport/http.SSEBroker` and
+> `metaengine.ServeSSE` now delegate wire-format serialization to `go-sse`
+> (see CHANGELOG [Unreleased]). ADR-0091's rationale stands: do NOT merge the
+> two implementations — they serve different layers (event-bus-to-client vs
+> collection-watch). The items below are follow-up concerns surfaced by the
+> refactor.
 
 - [ ] **Resolve metaengine SSE layer-leak (ADR-0062 violation)** —
       `metaengine/sse.go` pulls `go-sse` + `dedup` as **production** deps into
