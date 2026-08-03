@@ -108,9 +108,17 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 
 			method := sel.Sel.Name
 
-			// Server detection: http.ListenAndServe, http.Server, grpc.NewServer.
-			if method == "ListenAndServe" || method == "Serve" {
+			// Server detection: http.ListenAndServe, http.ListenAndServeTLS,
+			// http.Server.Serve, grpc.NewServer.
+			if method == "ListenAndServe" || method == "ListenAndServeTLS" ||
+				method == "Serve" {
 				fp.HasServer = true
+			}
+			if method == "Listen" || method == "NewListener" {
+				if strings.Contains(SelectorPackage(sel), "tls") ||
+					strings.Contains(SelectorPackage(sel), "net") {
+					fp.HasServer = true
+				}
 			}
 			if method == "NewServer" {
 				pkgName := SelectorPackage(sel)

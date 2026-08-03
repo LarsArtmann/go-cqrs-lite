@@ -565,3 +565,171 @@ func main() {
 		t.Error("Server with /healthz route should NOT be server-local")
 	}
 }
+
+// --- Phase 2: ConfigFeatures override tests ---
+
+func TestResolveFeatureProfile_TransportOverride(t *testing.T) {
+	t.Parallel()
+
+	detected := FeatureProfile{
+		HasTransport: true,
+	}
+
+	cfg := ConfigFeatures{
+		Transport: new(false),
+	}
+
+	resolved := ResolveFeatureProfile(cfg, PresetNone, detected)
+	if resolved.HasTransport {
+		t.Error("ConfigFeatures.Transport=false should override detected HasTransport=true")
+	}
+}
+
+func TestResolveFeatureProfile_TransportOverrideTrue(t *testing.T) {
+	t.Parallel()
+
+	detected := FeatureProfile{
+		HasTransport: false,
+	}
+
+	cfg := ConfigFeatures{
+		Transport: new(true),
+	}
+
+	resolved := ResolveFeatureProfile(cfg, PresetNone, detected)
+	if !resolved.HasTransport {
+		t.Error("ConfigFeatures.Transport=true should override detected HasTransport=false")
+	}
+}
+
+func TestResolveFeatureProfile_ServerLocalOverride(t *testing.T) {
+	t.Parallel()
+
+	detected := FeatureProfile{
+		ServerLocal: false,
+	}
+
+	cfg := ConfigFeatures{
+		ServerLocal: new(true),
+	}
+
+	resolved := ResolveFeatureProfile(cfg, PresetNone, detected)
+	if !resolved.ServerLocal {
+		t.Error("ConfigFeatures.ServerLocal=true should override detected ServerLocal=false")
+	}
+}
+
+func TestResolveFeatureProfile_ServerLocalOverrideFalse(t *testing.T) {
+	t.Parallel()
+
+	detected := FeatureProfile{
+		ServerLocal: true,
+	}
+
+	cfg := ConfigFeatures{
+		ServerLocal: new(false),
+	}
+
+	resolved := ResolveFeatureProfile(cfg, PresetNone, detected)
+	if resolved.ServerLocal {
+		t.Error("ConfigFeatures.ServerLocal=false should override detected ServerLocal=true")
+	}
+}
+
+func TestToConfigFeatures_RoundTrip_Transport(t *testing.T) {
+	t.Parallel()
+
+	original := FeatureProfile{
+		HasTransport: true,
+		HasServer:    true,
+	}
+
+	cf := original.ToConfigFeatures()
+	resolved := ResolveFeatureProfile(cf, PresetNone, FeatureProfile{})
+
+	if !resolved.HasTransport {
+		t.Error("round-trip detect→config→resolve should preserve HasTransport=true")
+	}
+}
+
+func TestToConfigFeatures_RoundTrip_ServerLocal(t *testing.T) {
+	t.Parallel()
+
+	original := FeatureProfile{
+		ServerLocal: true,
+		HasServer:   true,
+	}
+
+	cf := original.ToConfigFeatures()
+	resolved := ResolveFeatureProfile(cf, PresetNone, FeatureProfile{})
+
+	if !resolved.ServerLocal {
+		t.Error("round-trip detect→config→resolve should preserve ServerLocal=true")
+	}
+}
+
+// --- Phase 2: TLS detection precision tests ---
+
+func TestDetectFeatures_TLSListenDetectsTLS(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	_ = tls.Listen("tcp", ":443", config)
+}
+`,
+	})
+
+	fp := DetectFeatures(ctx)
+	if !fp.HasServer {
+		t.Fatal("tls.Listen should detect HasServer")
+	}
+	if fp.ServerLocal {
+		t.Error("tls.Listen should detect TLS → not ServerLocal")
+	}
+}
+
+func TestDetectFeatures_NetListenNotTLS(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	lis, _ := net.Listen("tcp", ":8080")
+	_ = lis
+}
+`,
+	})
+
+	fp := DetectFeatures(ctx)
+	if !fp.HasServer {
+		t.Fatal("net.Listen should detect HasServer")
+	}
+	if !fp.ServerLocal {
+		t.Error("net.Listen without TLS/Shutdown/health should be ServerLocal")
+	}
+}
+
+func TestDetectFeatures_ListenAndServeTLSDetectsTLS(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	http.ListenAndServeTLS(":443", "cert.pem", "key.pem", nil)
+}
+`,
+	})
+
+	fp := DetectFeatures(ctx)
+	if !fp.HasServer {
+		t.Fatal("ListenAndServeTLS should detect HasServer")
+	}
+	if fp.ServerLocal {
+		t.Error("ListenAndServeTLS should detect TLS → not ServerLocal")
+	}
+}
