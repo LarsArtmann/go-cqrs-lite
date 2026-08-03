@@ -36,6 +36,9 @@ var (
 	errExecuteTypeMismatch = errors.New(
 		"metaengine.ExecuteTyped: result type does not match expected",
 	)
+	errKeyTypeMismatch = errors.New(
+		"metaengine.Execute: input struct has no field matching the declared key type",
+	)
 
 	// Engine capability errors. Wrapped with the offending engine's name at the
 	// call site, e.g. fmt.Errorf("%w: engine %s", errUnsupportedMapReads, name).
@@ -143,6 +146,11 @@ var (
 	// ErrExecuteTypeMismatch is returned by ExecuteTyped when the result type
 	// does not match the expected type parameter.
 	ErrExecuteTypeMismatch = errExecuteTypeMismatch
+
+	// ErrKeyTypeMismatch is returned by Execute/ExecuteTyped when the input
+	// struct has no field matching the query's declared key type. This catches
+	// a common footgun: passing the wrong struct to a point-lookup query.
+	ErrKeyTypeMismatch = errKeyTypeMismatch
 
 	// ErrDuplicateEvent is returned when ApplyIdempotent detects a duplicate
 	// event ID. The event is silently skipped (no error returned to caller);

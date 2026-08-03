@@ -418,6 +418,134 @@ func TestSSE_ReplayLimit(t *testing.T) {
 	}
 }
 
+// --- SSE reconnect with SQLite engine (reify fallback path) ---
+
+// TestSSE_ReconnectWithSQLite verifies that Last-Event-ID reconnection works
+// end-to-end when the backing engine is SQLite. SQLite returns map[string]any
+// from JSON-decoded rows, so the replay journal and watcher must reify values
+// to the typed V via JSON round-trip. This test catches regressions in the
+// reifyWatcherValue fallback path under SSE replay.
+func TestSSE_ReconnectWithSQLite(t *testing.T) {
+	store := newSQLiteTestStore(t)
+	defer store.Close()
+
+	watcher := NewWatcher[testTask](store, "tasks")
+	watcher.WithReplay(100)
+	defer watcher.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
+		_ = ServeSSE(w, r, watcher, WithSSETimeout(5*time.Second))
+	})
+
+	srv := &http.Server{Handler: mux}
+	defer srv.Close()
+
+	ln, _ := net.Listen("tcp", "127.0.0.1:0")
+	srv.Addr = ln.Addr().String()
+	go srv.Serve(ln)
+
+	time.Sleep(100 * time.Millisecond)
+
+	// Phase 1: connect, receive live events from SQLite.
+	conn1, err := net.Dial("tcp", srv.Addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer conn1.Close()
+
+	_, _ = conn1.Write([]byte("GET /events HTTP/1.0\r\nHost: localhost\r\n\r\n"))
+	time.Sleep(200 * time.Millisecond)
+
+	_ = store.Apply(ctx, "task_created", testTask{ID: "s1", Title: "SQLite Live 1"})
+	_ = store.Apply(ctx, "task_created", testTask{ID: "s2", Title: "SQLite Live 2"})
+
+	var data1 string
+
+	buf := make([]byte, 8192)
+	deadline := time.Now().Add(5 * time.Second)
+
+	for time.Now().Before(deadline) {
+		conn1.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
+		n, err := conn1.Read(buf)
+		if err != nil {
+			break
+		}
+
+		data1 += string(buf[:n])
+
+		if strings.Contains(data1, "SQLite Live 2") {
+			break
+		}
+	}
+
+	if !strings.Contains(data1, "id: 1") {
+		t.Errorf("expected 'id: 1' in SSE output, got: %s", data1)
+	}
+
+	if !strings.Contains(data1, "SQLite Live 1") {
+		t.Errorf("expected 'SQLite Live 1' in data, got: %s", data1)
+	}
+
+	// Phase 2: disconnect, apply more events, reconnect with Last-Event-ID: 2.
+	conn1.Close()
+	time.Sleep(100 * time.Millisecond)
+
+	_ = store.Apply(ctx, "task_created", testTask{ID: "s3", Title: "SQLite Replay 3"})
+	_ = store.Apply(ctx, "task_created", testTask{ID: "s4", Title: "SQLite Replay 4"})
+
+	time.Sleep(100 * time.Millisecond)
+
+	conn2, err := net.Dial("tcp", srv.Addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer conn2.Close()
+
+	_, _ = conn2.Write(
+		[]byte("GET /events HTTP/1.0\r\nHost: localhost\r\nLast-Event-ID: 2\r\n\r\n"),
+	)
+
+	var data2 string
+	deadline2 := time.Now().Add(5 * time.Second)
+
+	for time.Now().Before(deadline2) {
+		conn2.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
+		n, err := conn2.Read(buf)
+		if err != nil {
+			break
+		}
+
+		data2 += string(buf[:n])
+
+		if strings.Contains(data2, "SQLite Replay 3") && strings.Contains(data2, "SQLite Replay 4") {
+			break
+		}
+	}
+
+	if !strings.Contains(data2, "id: 3") {
+		t.Errorf("expected 'id: 3' in replayed output, got: %s", data2)
+	}
+
+	if !strings.Contains(data2, "id: 4") {
+		t.Errorf("expected 'id: 4' in replayed output, got: %s", data2)
+	}
+
+	if !strings.Contains(data2, "SQLite Replay 3") {
+		t.Errorf("expected 'SQLite Replay 3' in replayed data, got: %s", data2)
+	}
+
+	// Should NOT include pre-Last-Event-ID events.
+	if strings.Contains(data2, "SQLite Live 1") {
+		t.Errorf("replay should not include 'SQLite Live 1' (before Last-Event-ID), got: %s", data2)
+	}
+}
+
 // --- Cursor/PrefetchCache integration tests ---
 
 func TestPrefetchCache_CursorEncodeRoundTrip(t *testing.T) {

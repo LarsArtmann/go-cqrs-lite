@@ -67,6 +67,13 @@ func (s *Store) executeQueryInner(
 	case ReadPointLookup:
 		key := extractKeyValueByType(input, q.QueryKeyType())
 
+		if q.QueryKeyType() != nil && key == nil {
+			return nil, fmt.Errorf(
+				"%w: query %q expects key type %s",
+				errKeyTypeMismatch, q.QueryName(), q.QueryKeyType(),
+			)
+		}
+
 		// Fast path: raw JSON bytes → direct decode to R (1 JSON op instead of 3).
 		if rvr, ok := q.QueryEngine().(RawValueReader); ok {
 			raw, found, err := rvr.GetRawValue(ctx, q.QueryName(), key)
