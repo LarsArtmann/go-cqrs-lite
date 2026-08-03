@@ -15,7 +15,7 @@ CHANGELOG `[Unreleased]`.
 
 | Version      | Date       | Highlights                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | ------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Unreleased] | —          | Flight recorder (ADR-0089), metaengine Tier 4 (Vector/Search/Spatial ADTs, DuckDB+Postgres engines, rule pipeline, materialize-vs-replay, StorageLayout, SerializablePlan, VersionedStorage, data model refactor), benchkit evidence-grade metrics (ADR-0090), backend tradeoff framework (DurabilityTier, Capabilities), MySQL/MariaDB support (ADR-0080), Pebble sort index (1,233x speedup), cqrs-lint 179→181 rules (A033, C037, block-level suppression), verify gate repair |
+| [Unreleased] | —          | Flight recorder (ADR-0089), metaengine Tier 4 (Vector/Search/Spatial ADTs, DuckDB+Postgres engines, rule pipeline, materialize-vs-replay, StorageLayout, SerializablePlan, VersionedStorage, data model refactor), replication model (ADR-0093, DDIA Ch5 foundation), Universal ADT Phase 3 (ADR-0094, 10/10 ADTs on all engines), WatchTyped, boundary key validation, CalibrateEngine fix, benchkit evidence-grade metrics (ADR-0090), backend tradeoff framework (DurabilityTier, Capabilities), MySQL/MariaDB support (ADR-0080), Pebble sort index (1,233x speedup), cqrs-lint 179→185 rules + v4.3.0 (TLS detection, config presets, --adoption, changelog subcommand, block-level suppression), Nix-based integration test infrastructure (ADR-0095, ephemeral PG + NixOS VMs), Iroh bridge evaluation (ADR-0096), verify gate repair |
 | v4.2.0       | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family)                                                                                                                                                                                                                                                           |
 | v4.1.0       | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058)                                                                                                                                                                                                                                                                                                                              |
 | v4.0.4       | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs                                                                                                                                                                                                                                                                                                                                                          |
@@ -97,8 +97,23 @@ production maturity chain is complete:
 - ✅ **Reification failure tracking** — `IncReificationFailure()` /
   `ReificationFailures()` surfaces type mismatches between planned and stored
   types
+- ✅ **Replication model** (ADR-0093) — `EngineProfile.Replication`/
+  `ReplicationLag`/`NetworkRTT` (DDIA Ch5). `replicationRule` +
+  `mapUpdateReplicationRule` diagnostics. `WithReplication`/`WithNetworkRTT`
+  plan options. `CollectionInfo` exposure. `SerializablePlan` replication fields.
+  `ExplainPlan`/`Doctor` replication output. Foundation for distributed engines
+- ✅ **Universal ADT Phase 3** (ADR-0094) — `DegradedADTs`: all 5 engines
+  declare 10/10 ADTs. Non-native ADTs run in O(N) degraded mode. Eliminates
+  `ErrUnsupportedADT`. `degradedADTRule` SCREAM diagnostics
+- ✅ **WatchTyped** — `WatchTyped[V]`/`WatchTypedWithSeq[V]` typed watcher
+  convenience functions
+- ✅ **Boundary key validation** — `ErrKeyTypeMismatch` at `Store.Execute`/
+  `ExecuteTyped` boundary
+- ✅ **CalibrateEngine** — `calibratable` interface; copy-discard bug fixed
 
-**Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** Postgres GIN indexes.
+**Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** Postgres GIN
+indexes, CalibrateEngine for external engines, benchmark trust deficit,
+DuckDB LayoutPlanner follow-ups.
 
 **Remaining (long-term, ROADMAP):**
 
@@ -142,26 +157,31 @@ Evidence-grade metrics added (2026-08-01, ADR-0090).
 
 ### 3. cqrs-lint → Trustworthy
 
-The linter grew from 65 to 181 rules across 10 categories. Quality has been
-hardened through multiple brutal review passes.
+The linter grew from 65 to **185 rules** across 10 categories. Quality has been
+hardened through multiple brutal review passes and 6 consumer feedback rounds.
 
-- ✅ **181 rules shipped** across correctness (36), API (31), boilerplate (28),
-  adoption (21), architecture (17), consistency (16), performance (9),
-  security (9), testing (8), version (6)
+- ✅ **185 rules shipped** across correctness (39), API (31), boilerplate (28),
+  adoption (21), architecture (17), consistency (16), security (10), performance
+  (9), testing (8), version (6)
 - ✅ **Feature profile system** — auto-detects consumer module usage and adapts
-  context-dependent rules
+  context-dependent rules. TLS-aware server detection, ServerLocal heuristic
 - ✅ **Self-lint mode** — `IsLibrarySelfLint()` auto-detects and skips 29
   consumer-coaching rules when linting the go-cqrs-lite source itself
 - ✅ **Quality hardening done** — E010/E011/E013/E014 rewritten with type-aware
   matching; import-alias resolution built; C030/S006 reviewed; suppression
-  parser fixed; block-level suppression (ADR-0088)
-- ✅ **Consumer feedback received** — bank-sync v0.2.2 review surfaced P0 bugs
-  (B022 wrong function name, P012/P013 cross-file blindness) and feature gaps
-  (config-level rule disabling, `--exclude-rules` CLI flag)
-- **~14 remaining backlog items** — see the
-  [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md)
-- **Consumer validation needed** — run against real consumer projects to
-  establish trustworthy false-positive rates. See [TODO_LIST.md](TODO_LIST.md).
+  parser fixed; block-level suppression (ADR-0088); C008 struct-level ignore
+  config
+- ✅ **v4.3.0 shipped** — TLS detection, `ConfigFeatures` override, config
+  presets (`init --preset`), `--adoption` flag, `changelog` subcommand, version
+  stamping via `ldflags`, `TestVersionMatchesLatestTag` CI gate
+- ✅ **Consumer feedback received** — 6 consumer reviews (crush-daily,
+  Standup-Killer, bank-sync, cqrs-htmx, browser-history, timesheets). Drove
+  signal-to-noise from ~25% to ~90%+. Most reported issues were already fixed
+  in source but unpublished (stale Nix binary v0.2.2)
+- **Publish v4.3.0 binary** — all fixes in source but published binary stale.
+  See [TODO_LIST.md](TODO_LIST.md).
+- **Run against real consumers** — validate false-positive rates against live
+  projects. See [TODO_LIST.md](TODO_LIST.md).
 
 ### 4. Module Extraction
 
@@ -220,11 +240,64 @@ Go 1.25 `runtime/trace` capture on slow/error/always triggers (ADR-0089):
   `transport/http` SSE hook, `metaengine` Store hook, example/taskmanager demo,
   trace file validity integration test.
 
+### 8. SSE Consolidation — consume `go-sse`
+
+The 2026-08-03 ADR review discovered `go-sse` exists as a standalone SSE
+library. `go-cqrs-lite` reimplements the SSE wire format in TWO places
+(`transport/http.SSEBroker` and `metaengine.ServeSSE`) instead of consuming
+it. ADR-0091's rationale was written as if `go-sse` didn't exist. Do NOT
+merge the two implementations — they serve different layers (bus-to-client
+vs collection-watch). Instead, both should consume `go-sse` internally.
+
+- [ ] Write ADR documenting SSE three-repo finding
+- [ ] Refactor `transport/http.SSEBroker` → consume `go-sse` (~300 LOC dedup)
+- [ ] Refactor `metaengine.ServeSSE` → consume `go-sse` (~200 LOC dedup)
+- [ ] SSE decision matrix in SKILL.md (raw-events SSE vs read-model SSE)
+
+### 9. Benchmark Trust — evidence-based cost constants
+
+The ADR review session flagged this as the "highest-leverage next move."
+29 of 43 metaengine benchmarks discard results (no correctness assertions).
+DuckDB and Postgres engine cost constants are hand-picked with zero empirical
+backing (0 benchmarks exist for these engines).
+
+- [ ] Add correctness assertions to 29 unasserted benchmarks
+- [ ] Create DuckDB + Postgres engine benchmarks (0 exist today)
+- [ ] Pin cost constants with evidence or fix what they reveal
+- [ ] Regression baseline + CI integration
+
+### 10. Deferred Debt (ADR-committed)
+
+Four items explicitly committed to in the 2026-08-03 ADR review as "the next
+real roadmap." Each has a clear ADR with rationale.
+
+- [ ] **Ghost bus removal** (ADR-0028) — delete `memory/bus.go`,
+  `memory/command_bus.go`, `storage/pg_bus.go`. Largest blast radius — audit
+  ALL consumer repos first.
+- [ ] **Metadata aliases completion** (ADR-0031) — `command.Metadata` /
+  `query.Metadata` → standalone structs (currently repointed aliases).
+- [ ] **Extract `retry/` → `go-retry`** (ADR-0064) — create standalone repo +
+  re-export alias.
+- [ ] **Extract `idempotency/` → `go-idempotency`** (ADR-0065) — create
+  standalone repo (3 modules) + re-export aliases.
+
+### 11. Iroh Distributed Engine (ADR-0096)
+
+Evaluating Iroh (Rust CRDT) as a distributed metaengine backend. The
+replication model (ADR-0093) established the foundation; Iroh would be the
+first `ReplicationLeaderless` engine.
+
+- ✅ **ADR-0096 written** — evaluates CGo FFI vs sidecar bridge approaches.
+  Documents maturity assessment: `iroh-docs` NOT in C FFI, blocks direct
+  integration. PN-Counter via Iroh identified as the killer feature.
+- [ ] Prototype `iroh.Replicated(pebbleEngine)` wrapper (Level 2 POC)
+- [ ] Evaluate Iroh C binding maturity over time
+
 ---
 
 ## Raw Ideas (No Design Yet)
 
-> _Triage 2026-08-02: 12 items reviewed. None stale, none ready to drop._
+> _Triage 2026-08-03: 14 items reviewed. None stale, none ready to drop._
 
 - Event stream compaction / log truncation strategies
 - Multi-tenant event store (schema-per-tenant)
@@ -243,6 +316,10 @@ Go 1.25 `runtime/trace` capture on slow/error/always triggers (ADR-0089):
   joins at read time.
 - Metaengine plugin registry — third-party engine backends registered at
   runtime without recompiling (operator YAML config for engine selection).
+- CALM theorem ADR for metaengine — document why monotonic folds are CRDT-safe
+  for replicated engines (supports Iroh integration, ADR-0096).
+- `cqrs-lint init` broken config — array vs string parser mismatch. SHOWSTOPPER
+  for new users. See [TODO_LIST.md](TODO_LIST.md).
 
 > Items with design docs graduate to a Theme above, then to [TODO_LIST.md](TODO_LIST.md)
 > when actively worked.
@@ -299,8 +376,11 @@ the passthrough use case without coupling.
 Extracting a shared `sse` helper package from `metaengine/sse.go` and
 `transport/http/sse.go`. The two implementations serve different layers:
 `metaengine/sse.go` watches a Store collection for mutations (collection-watch
+→ replay), while `transport/http/sse.go` bridges an `event.Bus` to HTTP clients
+(bus-to-client). Merging risks a leaky abstraction. Cross-reference comments
+were added to both files instead.
 
-- replay), while `transport/http/sse.go` bridges an `event.Bus` to HTTP clients
-  (bus-to-client). Merging risks a leaky abstraction. Cross-reference comments
-  were added to both files instead. An ADR documenting the intentional split is
-  still needed — see TODO_LIST.
+> **Update 2026-08-03:** The ADR review session discovered `go-sse` exists as
+> a standalone library. Both implementations should consume it internally
+> instead of reimplementing the wire format. See **Theme 8: SSE Consolidation**
+> above for the execution plan. ADR-0091 rationale needs revisiting.

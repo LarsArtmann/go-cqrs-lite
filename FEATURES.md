@@ -270,10 +270,18 @@ developer never declares "I need a Map" or "I need a Counter."
 | Exhaustiveness guard         | `TestApplyFoldExhaustiveness` — count check + mirror switch catches unhandled fold types at test time                                              | 🧪     |
 | Reification failure tracking | `IncReificationFailure()` / `ReificationFailures()` on workloadMeter — surfaces type mismatches between planned and stored types                   | 🧪     |
 | Columnar layout query option | `WithColumnarLayout` query option enables column-native storage planning for analytical workloads                                                  | 🧪     |
+| Replication model            | `EngineProfile.Replication`/`ReplicationLag`/`NetworkRTT` (DDIA Ch5). `replicationRule`, `mapUpdateReplicationRule` diagnostics. `WithReplication`/`WithNetworkRTT` plan options | 🧪     |
+| CollectionInfo replication   | `store.Collections()` exposes `Replication`/`ReplicationLagMs`/`NetworkRTTMs`. `store.ReplicationMode(queryName)` accessor                                                        | 🧪     |
+| SerializablePlan replication | `SerializablePlan` includes `Replication`/`ReplicationLagMs`/`NetworkRTTMs` per query. `Serialize`/`Deserialize` for diff/pin                                                       | 🧪     |
+| Universal ADT (Phase 3)      | `DegradedADTs`: all 5 engines declare 10/10 ADTs. Non-native ADTs run in O(N) degraded mode. Eliminates `ErrUnsupportedADT`. `degradedADTRule` SCREAM diagnostics (ADR-0094) | 🧪     |
+| `WatchTyped[V]`              | Typed watcher convenience: `chan V` instead of `chan any`. `WatchTypedWithSeq[V]` for seq-stamped values                                                                          | 🧪     |
+| `ErrKeyTypeMismatch`         | Store boundary validates input struct key field type matches declared `keyType`                                                                                                   | 🧪     |
+| CalibrateEngine              | `calibratable` interface. Memory + SQLite support runtime cost calibration. External engines (Pebble/DuckDB/PG) not yet calibratable                                              | 🧪     |
+| ExplainPlan + Doctor         | `store.Explain(ctx)` shows engine assignments + rule diagnostics + replication suffix. `store.Doctor()` health check with `--- Replication ---` section                            | 🧪     |
 
 **Coverage:** 76.3% (verified `go test -cover ./...` 2026-08-02). 174 BDD specs + 150 cross-engine
-meta specs + 12 ADT harness self-tests. The metaengine went through 10+ hardening
-sessions (2026-07-30 to 2026-08-02): transaction API fix, SQL injection fix,
+meta specs + 12 ADT harness self-tests. The metaengine went through 15+ hardening
+sessions (2026-07-30 to 2026-08-03): transaction API fix, SQL injection fix,
 hooks-on-error, ReadCoalescer wiring, Watcher with per-key filtering,
 PrefetchCache with cursor-encoded auto-population, SSE adapter with
 Last-Event-ID reconnection, ContractSuite expanded to all 10 ADTs, Pebble
@@ -281,10 +289,12 @@ LayoutPlanner (108x speedup), Pebble sort index (1,233x speedup),
 RawValueReader/RawScanReader (single-pass decode), rule pipeline extraction,
 materialize-vs-replay cost model, StorageLayout + cost matrix, SerializablePlan,
 VersionedStorage temporal queries, Fold sealed interface refactor, 5-engine
-cross-engine parity, Vector/Search/Spatial ADTs, pgengine + duckdbengine.
-API surface: 3194 exports.
+cross-engine parity, Vector/Search/Spatial ADTs, pgengine + duckdbengine,
+replication model (ADR-0093), Universal ADT Phase 3 (ADR-0094), WatchTyped,
+boundary key validation, CalibrateEngine fix.
 
-Remaining: Postgres GIN indexes, Vector/Search/Spatial engine backends. See [TODO_LIST.md](TODO_LIST.md).
+Remaining: Postgres GIN indexes, CalibrateEngine for external engines, benchmark
+trust deficit. See [TODO_LIST.md](TODO_LIST.md).
 
 ---
 
