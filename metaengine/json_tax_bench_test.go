@@ -26,13 +26,28 @@ func BenchmarkRawReader_Get(b *testing.B) {
 	b.ResetTimer()
 	b.Run("RawValueReader", func(b *testing.B) {
 		for range b.N {
-			_, _, _ = se.GetRawValue(ctx, col, "key")
+			raw, found, err := se.GetRawValue(ctx, col, "key")
+			if err != nil {
+				b.Fatal(err)
+			}
+			if !found {
+				b.Fatal("expected to find key")
+			}
+			if len(raw) == 0 {
+				b.Fatal("expected non-empty raw value")
+			}
 		}
 	})
 
 	b.Run("MapGet", func(b *testing.B) {
 		for range b.N {
-			_, _, _ = se.MapGet(ctx, col, "key")
+			_, found, err := se.MapGet(ctx, col, "key")
+			if err != nil {
+				b.Fatal(err)
+			}
+			if !found {
+				b.Fatal("expected to find key")
+			}
 		}
 	})
 }
@@ -57,13 +72,25 @@ func BenchmarkRawReader_Scan(b *testing.B) {
 
 	b.Run("ScanRawValues", func(b *testing.B) {
 		for range b.N {
-			_, _ = se.ScanRawValues(ctx, col, filters, nil, nil, 10)
+			result, err := se.ScanRawValues(ctx, col, filters, nil, nil, 10)
+			if err != nil {
+				b.Fatal(err)
+			}
+			if len(result.Items) == 0 {
+				b.Fatal("expected non-empty results")
+			}
 		}
 	})
 
 	b.Run("PushdownMapScan", func(b *testing.B) {
 		for range b.N {
-			_, _ = se.PushdownMapScan(ctx, col, filters, nil, nil, 10)
+			result, err := se.PushdownMapScan(ctx, col, filters, nil, nil, 10)
+			if err != nil {
+				b.Fatal(err)
+			}
+			if len(result.Items) == 0 {
+				b.Fatal("expected non-empty results")
+			}
 		}
 	})
 }
@@ -72,13 +99,19 @@ func BenchmarkRawReader_Scan(b *testing.B) {
 func BenchmarkKeyEncoding(b *testing.B) {
 	b.Run("string", func(b *testing.B) {
 		for range b.N {
-			_ = encodeKey("user:abc-123")
+			k := encodeKey("user:abc-123")
+			if len(k) == 0 {
+				b.Fatal("expected non-empty key")
+			}
 		}
 	})
 
 	b.Run("int64", func(b *testing.B) {
 		for range b.N {
-			_ = encodeKey(int64(42))
+			k := encodeKey(int64(42))
+			if len(k) == 0 {
+				b.Fatal("expected non-empty key")
+			}
 		}
 	})
 
@@ -89,7 +122,10 @@ func BenchmarkKeyEncoding(b *testing.B) {
 		}
 
 		for range b.N {
-			_ = encodeKey(complexKey{Tenant: "acme", ID: "user-123"})
+			k := encodeKey(complexKey{Tenant: "acme", ID: "user-123"})
+			if len(k) == 0 {
+				b.Fatal("expected non-empty key")
+			}
 		}
 	})
 }
@@ -108,13 +144,17 @@ func BenchmarkStmtCache(b *testing.B) {
 
 	b.Run("cached", func(b *testing.B) {
 		for range b.N {
-			_, _ = se.cache.exec(ctx, se.queries.mapSet, "bench", "key", "val")
+			if _, err := se.cache.exec(ctx, se.queries.mapSet, "bench", "key", "val"); err != nil {
+				b.Fatal(err)
+			}
 		}
 	})
 
 	b.Run("uncached", func(b *testing.B) {
 		for range b.N {
-			_, _ = se.db.ExecContext(ctx, se.queries.mapSet, "bench", "key", "val")
+			if _, err := se.db.ExecContext(ctx, se.queries.mapSet, "bench", "key", "val"); err != nil {
+				b.Fatal(err)
+			}
 		}
 	})
 }

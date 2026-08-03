@@ -18,7 +18,9 @@ func BenchmarkCalibration_MapSet(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_ = mb.MapSet(ctx, "bench", i, i*2)
+		if err := mb.MapSet(ctx, "bench", i, i*2); err != nil {
+			b.Fatalf("MapSet %d: %v", i, err)
+		}
 	}
 }
 
@@ -31,13 +33,21 @@ func BenchmarkCalibration_MapGet(b *testing.B) {
 
 	// Pre-populate.
 	for i := 0; i < 1000; i++ {
-		_ = mb.MapSet(ctx, "bench", i, i*2)
+		if err := mb.MapSet(ctx, "bench", i, i*2); err != nil {
+			b.Fatalf("pre-populate MapSet %d: %v", i, err)
+		}
 	}
 
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_, _, _ = mb.MapGet(ctx, "bench", i%1000)
+		_, found, err := mb.MapGet(ctx, "bench", i%1000)
+		if err != nil {
+			b.Fatalf("MapGet %d: %v", i, err)
+		}
+		if !found {
+			b.Fatalf("MapGet %d: key not found", i)
+		}
 	}
 }
 
@@ -65,7 +75,9 @@ func BenchmarkCalibration_SQLiteSet(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_ = mb.MapSet(ctx, "bench", i, i*2)
+		if err := mb.MapSet(ctx, "bench", i, i*2); err != nil {
+			b.Fatalf("MapSet %d: %v", i, err)
+		}
 	}
 }
 
@@ -92,12 +104,20 @@ func BenchmarkCalibration_SQLiteGet(b *testing.B) {
 
 	// Pre-populate.
 	for i := 0; i < 1000; i++ {
-		_ = mb.MapSet(ctx, "bench", i, i*2)
+		if err := mb.MapSet(ctx, "bench", i, i*2); err != nil {
+			b.Fatalf("pre-populate MapSet %d: %v", i, err)
+		}
 	}
 
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_, _, _ = mb.MapGet(ctx, "bench", i%1000)
+		_, found, err := mb.MapGet(ctx, "bench", i%1000)
+		if err != nil {
+			b.Fatalf("MapGet %d: %v", i, err)
+		}
+		if !found {
+			b.Fatalf("MapGet %d: key not found", i)
+		}
 	}
 }
