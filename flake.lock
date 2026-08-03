@@ -142,11 +142,11 @@
     "go-output": {
       "flake": false,
       "locked": {
-        "lastModified": 1785444239,
-        "narHash": "sha256-25THEf9yE/XV44OKv9P/I5OqqlsPClsckmw4E2Lt26o=",
+        "lastModified": 1785722189,
+        "narHash": "sha256-GjhkmvTsv0dpq7y/c5MbWDgQgYI7Q5Xwkh8NZzPeS1c=",
         "owner": "LarsArtmann",
         "repo": "go-output",
-        "rev": "330fe8636020d12b1963bada74638d9733ad0ecd",
+        "rev": "f61b60b233f411a0d452f2db6e209f481ecdd7f7",
         "type": "github"
       },
       "original": {
