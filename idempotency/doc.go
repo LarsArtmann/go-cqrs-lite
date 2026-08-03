@@ -28,4 +28,7 @@
 // middleware package and use CommandIdempotency, EventIdempotency, or
 // QueryIdempotency. For custom integrations (transport hooks, manual
 // checks), use the Store interface directly.
+//
+// The canonical implementation lives in [github.com/larsartmann/go-idempotency];
+// this package re-exports it for backward compatibility (ADR-0065).
 package idempotency

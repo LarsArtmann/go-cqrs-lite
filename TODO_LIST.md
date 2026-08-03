@@ -77,14 +77,10 @@ and is **never** duplicated here.
 > import-alias resolution, self-lint mode, TLS detection, `--adoption` flag,
 > changelog subcommand, and config presets are shipped. v4.3.0 tagged.
 
-- [ ] 🔥 **Fix `cqrs-lint init` broken config** — `"exclude": []` generates an
-      array but the parser expects a string. SHOWSTOPPER for new users. Reported
-      by timesheets AND Cyberdom (2026-07-17), still unfixed.
-      Evidence: `docs/feedback/new/2026-08-03_timesheets_cqrs-lint-feedback.md`.
-
-- [ ] 🔥 **Publish cqrs-lint v4.3.0 binary** — all source fixes shipped but
-      published Nix binary is stale (v0.2.2). Every consumer using Nix hits
-      already-fixed bugs. **BLOCKED on user approval**.
+- [ ] 🔥 **Publish cqrs-lint v4.4.0** — v4.3.0 tagged but post-v4.3.0 fixes
+      (init SHOWSTOPPER fix, E009 cqrs-htmx transport detection) remain
+      unreleased. Also: published Nix binary is stale (v0.2.2).
+      **BLOCKED on user approval**.
 
 - [ ] 🔥 **Run cqrs-lint against real consumer projects** — validate
       false-positive rates against Kernovia, Standup-Killer, bank-sync,
@@ -106,10 +102,6 @@ and is **never** duplicated here.
       transport (F013), `New*` constructor + panic as must-pattern (C009),
       exempt `context.Background()` in graceful-shutdown paths (C016).
 
-- [ ] **`--adoption` flag for health score** — separate F-level adoption
-      suggestions from correctness findings in health score. `--preset
-      local-cli` is current workaround.
-
 - [ ] **~14 remaining Pareto backlog items** — see the
       [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
       Highest impact: L1.29 event-type string typo detection, L1.30–L1.33 deep
@@ -117,34 +109,15 @@ and is **never** duplicated here.
 
 ---
 
-## Deferred Debt (ADR-committed)
-
-> These four items were explicitly committed to in the 2026-08-03 ADR review
-> session as "the next real roadmap." Each has a clear ADR with rationale.
-
-- [ ] **Ghost bus removal** (ADR-0028) — delete `memory/bus.go`,
-      `memory/command_bus.go`, `storage/pg_bus.go`, reactive `EventBus`.
-      Largest blast radius — audit ALL consumer repos first, do first.
-- [ ] **Metadata aliases completion** (ADR-0031) — `command.Metadata` /
-      `query.Metadata` are repointed aliases, not standalone structs. Complete
-      the conversion (update SQL stores + tests).
-- [ ] **Extract `retry/` → `go-retry`** (ADR-0064) — create standalone repo +
-      re-export alias. 217 LOC, zero CQRS coupling.
-- [ ] **Extract `idempotency/` → `go-idempotency`** (ADR-0065) — create
-      standalone repo (3 modules) + re-export aliases. 553 LOC.
-
----
-
 ## SSE Consolidation
 
 > The 2026-08-03 ADR review discovered `go-sse` exists as a standalone SSE
 > library. `go-cqrs-lite` reimplements SSE wire format in TWO places instead
-> of consuming it. ADR-0091's rationale was written as if `go-sse` didn't exist.
-> Do NOT merge the two SSE implementations — different semantics (ADR-0091).
-> Instead, both should consume `go-sse` internally.
+> of consuming it. ADR-0097 documents the three-repo finding. ADR-0091's
+> rationale was written as if `go-sse` didn't exist. Do NOT merge the two SSE
+> implementations — different semantics (ADR-0091). Instead, both should
+> consume `go-sse` internally.
 
-- [ ] **Write ADR documenting SSE three-repo finding** — `go-sse` exists,
-      `go-cqrs-lite` should consume it, ADR-0091 rationale needs revisiting.
 - [ ] **SSE refactor: `transport/http.SSEBroker`** → consume `go-sse`
       internally (~300 LOC dedup). Preserve external API (filter, transform,
       budget, backfill).
@@ -193,8 +166,6 @@ and is **never** duplicated here.
       checkpoint replay after crash. (M43)
 - [ ] **`scheduling` durable timers across restarts test** — timer survives
       process restart. (M44)
-- [ ] **`storage.PostgresBus` inside NixOS VM** — test LISTEN/NOTIFY with real
-      PG. (M45)
 - [ ] **Contract test suite across ALL backends in VMs** — SQLite, PG, MySQL,
       DuckDB simultaneously. (M46)
 - [ ] **Ephemeral Redis/NATS for future integration tests** — Watermill adapter

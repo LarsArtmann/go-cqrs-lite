@@ -324,6 +324,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **`cqrs-lint init` SHOWSTOPPER** — the default preset generated
+  `"exclude": []` (JSON array) but the `Exclude` config field is a `string`.
+  Every new user's `.cqrs-lint.json` failed to load. Fixed: `"exclude": ""`.
+  Regression test (`TestPresetConfigsLoadIntoAppConfig`) verifies all presets
+  unmarshal into `AppConfig` without error. Reported by timesheets + Cyberdom.
+
 - **Pebble engine `nextKey` + `MapUpdate`** (`metaengine/pebbleengine`) — the
   auto-commit daemon reverted the `nextKey` fix to the broken `slices.Backward`
   form THREE TIMES (range yields copies, so the increment was discarded and every
@@ -349,6 +355,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `github:` shorthand couldn't resolve the tag via SSH. Fixed `flake.lock`.
 
 ### Changed
+
+- **Module extraction: `retry/` → `go-retry`** (ADR-0064) — the retry module
+  is now a thin alias shim re-exporting `github.com/larsartmann/go-retry`.
+  Backward-compatible: existing imports of `go-cqrs-lite/retry/v4` continue
+  to work. The canonical code lives in the standalone repo.
+- **Module extraction: `idempotency/` → `go-idempotency`** (ADR-0065) — the
+  core idempotency types (`Store`, `MemoryStore`, `ErrDuplicate`) are now
+  aliases re-exporting `github.com/larsartmann/go-idempotency`. The
+  `kvstore/` and `sqlstore/` submodules remain local. Backward-compatible.
+- **`command.Metadata` / `query.Metadata` are standalone structs** (ADR-0031) —
+  no longer type aliases for `event.Metadata`. Each module owns its own shape
+  (no Tombstone/Causation fields on command/query metadata). The JSON shape
+  is identical to the previous alias, so serialized data is unaffected.
 
 - **`storage/memory` read-path dedup** — extracted a generic `withReadLock[T]`
   helper that centralises the `wrapClosed` + `RLock` preamble for the three
@@ -3078,6 +3097,13 @@ The **Bundle composition layer**: consumers stop deciding on infrastructure. A d
 
 ### Removed
 
+- **`storage.PostgresBus` (LISTEN/NOTIFY)** — the Postgres LISTEN/NOTIFY bus
+  implementation and all associated types (`PostgresListenNotifyBus`,
+  `NewPostgresBus`, `PostgresBusOption`, `NotificationListener`, `PgxListener`)
+  were removed. The `stack/postgres` preset now uses an in-process bus
+  (watermill GoChannel). For cross-process pub/sub, wire a Watermill-backed
+  bus externally. The NixOS VM test still verifies LISTEN/NOTIFY as a Postgres
+  capability (foundation for future distributed-bus work).
 - **`storage/options.go`** — deleted `NewSQLEventStoreWithOptions`, `WithOwnership`, `SQLEventStoreOption` (zero external consumers)
 - **`storage/doc.go`** — removed 5 unused re-exports
 - **`pebble/config.go`** — deleted entire config abstraction layer (`Backend`, `Config`, `NewConfig`, etc.)

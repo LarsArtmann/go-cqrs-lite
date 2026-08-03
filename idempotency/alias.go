@@ -1,7 +1,3 @@
-// Re-exports github.com/larsartmann/go-idempotency (ADR-0065).
-// The standalone go-idempotency module is the canonical home for this code;
-// these aliases preserve backward compatibility for existing consumers
-// of go-cqrs-lite/idempotency/v4.
 package idempotency
 
 import (

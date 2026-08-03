@@ -1,7 +1,3 @@
-// Re-exports github.com/larsartmann/go-retry (ADR-0064).
-// The standalone go-retry module is the canonical home for this code;
-// these aliases preserve backward compatibility for existing consumers
-// of go-cqrs-lite/retry/v4.
 package retry
 
 import (
