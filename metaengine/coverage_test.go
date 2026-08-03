@@ -119,9 +119,6 @@ func TestPlan_OutputStability(t *testing.T) {
 	defer store.Close()
 
 	plan := store.Plan()
-	if plan == nil {
-		t.Fatal("Plan() returned nil")
-	}
 
 	if len(plan.Queries) != 1 {
 		t.Fatalf("plan has %d queries, want 1", len(plan.Queries))
@@ -258,7 +255,10 @@ func TestTypedReader_WithPrefetch(t *testing.T) {
 		t.Fatalf("page1 len = %d, want 10", len(page1))
 	}
 
-	if cursor1 == nil {
+	var cursor1Value any
+	if cursor1 != nil {
+		cursor1Value = cursor1.Value
+	} else {
 		t.Fatal("cursor1 should not be nil")
 	}
 
@@ -266,7 +266,7 @@ func TestTypedReader_WithPrefetch(t *testing.T) {
 	page2, _, err := prefetchReader.ScanPage(ctx,
 		metaengine.WithSort("Priority", false),
 		metaengine.WithLimit(10),
-		metaengine.WithCursor(cursor1.Value))
+		metaengine.WithCursor(cursor1Value))
 	if err != nil {
 		t.Fatalf("ScanPage 2: %v", err)
 	}

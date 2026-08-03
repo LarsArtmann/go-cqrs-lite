@@ -655,19 +655,22 @@ func TestWithTracing_CreatesSpans(t *testing.T) {
 		}
 	}
 
-	if foldSpan == nil {
+	if foldSpan != nil {
+		if !foldSpan.ended {
+			t.Error("tracing: fold span not ended")
+		}
+
+		if foldSpan.attributes["collection"] != "tasks" {
+			t.Errorf(
+				"tracing: expected collection 'tasks', got %v",
+				foldSpan.attributes["collection"],
+			)
+		}
+
+		if foldSpan.attributes["event"] != "task_created" {
+			t.Errorf("tracing: expected event 'task_created', got %v", foldSpan.attributes["event"])
+		}
+	} else {
 		t.Fatal("tracing: no fold span found")
-	}
-
-	if !foldSpan.ended {
-		t.Error("tracing: fold span not ended")
-	}
-
-	if foldSpan.attributes["collection"] != "tasks" {
-		t.Errorf("tracing: expected collection 'tasks', got %v", foldSpan.attributes["collection"])
-	}
-
-	if foldSpan.attributes["event"] != "task_created" {
-		t.Errorf("tracing: expected event 'task_created', got %v", foldSpan.attributes["event"])
 	}
 }

@@ -760,7 +760,10 @@ func TestPrefetchCache_EndToEndPagination(t *testing.T) {
 		t.Fatalf("expected 3 items on page1, got %d", len(page1))
 	}
 
-	if cursor1 == nil {
+	var cursor1Value any
+	if cursor1 != nil {
+		cursor1Value = cursor1.Value
+	} else {
 		t.Fatal("expected non-nil cursor after page1 (more pages exist)")
 	}
 
@@ -769,7 +772,7 @@ func TestPrefetchCache_EndToEndPagination(t *testing.T) {
 		ctx,
 		WithSort("Title", false),
 		WithLimit(3),
-		WithCursor(cursor1.Value),
+		WithCursor(cursor1Value),
 	)
 	if err != nil {
 		t.Fatalf("ScanPage page2: %v", err)
@@ -821,7 +824,10 @@ func TestPrefetchCache_SQLiteEndToEnd(t *testing.T) {
 		t.Fatalf("expected 3 items on page1, got %d", len(page1))
 	}
 
-	if cursor1 == nil {
+	var cursor1Value any
+	if cursor1 != nil {
+		cursor1Value = cursor1.Value
+	} else {
 		t.Fatal("expected non-nil cursor after page1")
 	}
 
@@ -830,7 +836,7 @@ func TestPrefetchCache_SQLiteEndToEnd(t *testing.T) {
 		ctx,
 		WithSort("Title", false),
 		WithLimit(3),
-		WithCursor(cursor1.Value),
+		WithCursor(cursor1Value),
 	)
 	if err != nil {
 		t.Fatalf("ScanPage page2: %v", err)
