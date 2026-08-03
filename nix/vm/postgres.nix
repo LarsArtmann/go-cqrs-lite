@@ -9,14 +9,15 @@
     package = pkgs.postgresql_16;
     enableTCPIP = true;
 
-    # Create both the user and matching database (ensureDBOwnership requires this).
-    ensureDatabases = [ "cqrs" "cqrs_test" ];
-    ensureUsers = [
-      {
-        name = "cqrs";
-        ensureDBOwnership = true;
-      }
-    ];
+    # initialScript runs as the postgres superuser on first init.
+    # This is more reliable than ensureDatabases + ensureUsers for test VMs.
+    initialScript = pkgs.writeText "pg-init.sql" ''
+      CREATE USER cqrs WITH SUPERUSER;
+      CREATE DATABASE cqrs_test OWNER cqrs;
+      CREATE DATABASE cqrs OWNER cqrs;
+      GRANT ALL PRIVILEGES ON DATABASE cqrs_test TO cqrs;
+      GRANT ALL PRIVILEGES ON DATABASE cqrs TO cqrs;
+    '';
   };
 
   # Lean VM — no docs, no X11

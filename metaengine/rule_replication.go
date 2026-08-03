@@ -35,8 +35,8 @@ func (r *replicationRule) Apply(result *PlanResult, ctx PlanContext) error {
 			Level: DiagLevelInfo,
 			Query: q.QueryName,
 			Message: fmt.Sprintf(
-				"routed to %s engine %q with %s replication — reads may be stale by up to %s",
-				profile.Replication, profile.Name, profile.Replication, lag,
+				"routed to replicated engine %q (%s, lag=%s) — reads may be stale",
+				profile.Name, profile.Replication, lag,
 			),
 		})
 

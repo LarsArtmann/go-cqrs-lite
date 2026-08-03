@@ -376,7 +376,6 @@
               # Database server
               db = { pkgs, ... }: {
                 imports = [ ./nix/vm/postgres.nix ];
-                virtualisation.forwardPorts = [ ];
                 networking.firewall.allowedTCPPorts = [ 5432 ];
               };
 
@@ -384,7 +383,6 @@
               subscriber = { pkgs, ... }: {
                 environment.systemPackages = [ pkgs.postgresql_16 ];
                 documentation.enable = false;
-                virtualisation.memorySize = 512;
               };
             };
 
