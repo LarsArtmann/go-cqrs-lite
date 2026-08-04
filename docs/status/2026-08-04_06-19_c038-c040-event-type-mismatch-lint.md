@@ -88,10 +88,10 @@ The working tree had uncommitted changes from another session (feature_detect.go
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
 | E1  | Run `nix run .#verify` before claiming done — non-negotiable per AGENTS.md                                                                                                                                     | **CRITICAL** |
 | E2  | Check for existing rules before proposing new ones — search `catalog.go` by topic keyword                                                                                                                      | **HIGH**     |
-| E3  | ~~Always regenerate API-stability golden when adding exported symbols~~ done at `63e972a0`                                                                                                                       | **HIGH**     |
+| E3  | ~~Always regenerate API-stability golden when adding exported symbols~~ done at `63e972a0`                                                                                                                     | **HIGH**     |
 | E4  | Self-lint the library after adding a new rule — dogfooding catches real issues                                                                                                                                 | **HIGH**     |
-| E5  | ~~Run `nix fmt` before committing — prevents golines/gofumpt formatting failures~~ done at `5c7d23c1`                                                                                                            | **MEDIUM**   |
-| E6  | ~~Update AGENTS.md inline rule counts (185→186 in the module description)~~ done at `2203aad3`                                                                                                                   | **MEDIUM**   |
+| E5  | ~~Run `nix fmt` before committing — prevents golines/gofumpt formatting failures~~ done at `5c7d23c1`                                                                                                          | **MEDIUM**   |
+| E6  | ~~Update AGENTS.md inline rule counts (185→186 in the module description)~~ done at `2203aad3`                                                                                                                 | **MEDIUM**   |
 | E7  | Check `cqrs-lint changelog` subcommand for programmatic changelog updates                                                                                                                                      | **MEDIUM**   |
 | E8  | Consider projection handler dead-case detection (not just folds)                                                                                                                                               | **MEDIUM**   |
 | E9  | Add const-identifier resolution for event type strings (V2 for both C038+C040)                                                                                                                                 | **LOW**      |
@@ -106,11 +106,11 @@ The working tree had uncommitted changes from another session (feature_detect.go
 ### Immediate fixes (this session's debt)
 
 1. **Run `nix run .#verify`** — confirm the full gate passes with C040
-~~2. **Run `nix fmt`** — fix any formatting issues in the new/modified files~~ done at `5c7d23c1`
-~~3. **Regenerate API-stability golden** — `cd cmd/api-stability && GOWORK=off go run main.go -update`~~ done at `63e972a0`
-~~4. **Update AGENTS.md** — change "185 rules" to "186 rules" in the cqrs-lint module description~~ done at `2203aad3`
-5. **Run `nix run .#lint`** — catch golangci-lint issues before they hit CI
-6. **Self-lint the library** — run `cqrs-lint` on the go-cqrs-lite source itself to validate C038/C040 against real code
+   ~~2. **Run `nix fmt`** — fix any formatting issues in the new/modified files~~ done at `5c7d23c1`
+   ~~3. **Regenerate API-stability golden** — `cd cmd/api-stability && GOWORK=off go run main.go -update`~~ done at `63e972a0`
+   ~~4. **Update AGENTS.md** — change "185 rules" to "186 rules" in the cqrs-lint module description~~ done at `2203aad3`
+2. **Run `nix run .#lint`** — catch golangci-lint issues before they hit CI
+3. **Self-lint the library** — run `cqrs-lint` on the go-cqrs-lite source itself to validate C038/C040 against real code
 
 ### C040/C038 refinements
 
@@ -201,7 +201,6 @@ The verify gate takes 3-4 minutes. AGENTS.md says every session that changes cod
 The commit message for `50e5d5eb` says "add --group-by aggregate output and per-module feature profiles" but it also contains all the C040 code. This makes the history misleading — someone looking for C040 would not find it by commit message.
 
 **I cannot decide this myself** because fixing this would require `git reset` or interactive rebase, both of which are destructive operations in the "NEVER DO" list without explicit approval.
-
 
 ---
 

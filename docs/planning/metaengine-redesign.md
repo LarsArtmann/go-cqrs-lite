@@ -515,11 +515,11 @@ is mature enough to deprecate it.
 
 **Rationale:**
 
-| Option | Pro | Con |
-| --- | --- | --- |
-| **A: Dual presets (all at once)** | Cleanest separation | Duplication — every engine wired twice upfront |
-| **B: Gradual (CHOSEN)** | Ship sqlite+memory fast, prove design, add engines mechanically | Non-sqlite operators wait |
-| **C: System in stack/** | Single module, shared deps | Old structural debt contaminates new design |
+| Option                            | Pro                                                             | Con                                            |
+| --------------------------------- | --------------------------------------------------------------- | ---------------------------------------------- |
+| **A: Dual presets (all at once)** | Cleanest separation                                             | Duplication — every engine wired twice upfront |
+| **B: Gradual (CHOSEN)**           | Ship sqlite+memory fast, prove design, add engines mechanically | Non-sqlite operators wait                      |
+| **C: System in stack/**           | Single module, shared deps                                      | Old structural debt contaminates new design    |
 
 B is fastest to a working System, avoids duplication, and avoids the `stack/`
 baggage. The driver registry pattern means adding engines later is mechanical
@@ -706,11 +706,11 @@ practice), or very large volumes where total events >> RAM (low hit rate).
 The cache tier uses `maypok86/otter/v2` — the same library already used by
 `decider.StateCache`. Research evaluated alternatives:
 
-| Library | Eviction | Maturity | Fit for immutable events |
-| --- | --- | --- | --- |
-| **otter v2** (CHOSEN) | Adaptive W-TinyLFU | v2, production (Grafana) | Perfect — frequency-based eviction is provably optimal for immutable data |
-| samber/hot | 9 pluggable (ARC, S3-FIFO, SIEVE...) | v0, 265 stars | Good but policy pluggability is irrelevant when W-TinyLFU dominates |
-| hand-rolled ARC | ARC | — | Tempting (ZFS connection) but W-TinyLFU outperforms ARC in benchmarks |
+| Library               | Eviction                             | Maturity                 | Fit for immutable events                                                  |
+| --------------------- | ------------------------------------ | ------------------------ | ------------------------------------------------------------------------- |
+| **otter v2** (CHOSEN) | Adaptive W-TinyLFU                   | v2, production (Grafana) | Perfect — frequency-based eviction is provably optimal for immutable data |
+| samber/hot            | 9 pluggable (ARC, S3-FIFO, SIEVE...) | v0, 265 stars            | Good but policy pluggability is irrelevant when W-TinyLFU dominates       |
+| hand-rolled ARC       | ARC                                  | —                        | Tempting (ZFS connection) but W-TinyLFU outperforms ARC in benchmarks     |
 
 **Why otter over samber/hot:** for immutable data (events never change), the
 invalidation problem is eliminated — the only concern is eviction policy.
@@ -750,7 +750,7 @@ instances:
       engine: hot-cache # references the named Memory engine
       # Library: otter v2 (Adaptive W-TinyLFU eviction)
       # No invalidation policy — events are immutable.
-      capacity: 10000      # max entries (otter handles sizing)
+      capacity: 10000 # max entries (otter handles sizing)
 ```
 
 **Scream store interaction:** removing a cache tier is always safe (read-through
@@ -785,14 +785,14 @@ as a bolt-on filter (`LoadToTimestamp`), not a first-class storage dimension.
 3. **Engine-native time support** — some databases can answer point-in-time
    queries in O(1) without replay:
 
-   | Engine | Native temporal support | Mechanism |
-   | --- | --- | --- |
-   | **BigTable** | ✅ | Versioned cells (cell timestamps = event time) |
-   | **Postgres** | ✅ | `temporal_range` (PG 17+) or `AS OF` system versioning |
-   | **DuckDB** | ✅ | Time-travel (`SELECT ... FOR SYSTEM_TIME AS OF`) |
-   | **SQLite** | ⚠️ | Via version column + index (O(log N) scan) |
-   | **Pebble** | ⚠️ | Via versioned keys (O(log N) seek) |
-   | **Memory** | ✅ | Version chains + binary search (already implemented!) |
+   | Engine       | Native temporal support | Mechanism                                              |
+   | ------------ | ----------------------- | ------------------------------------------------------ |
+   | **BigTable** | ✅                      | Versioned cells (cell timestamps = event time)         |
+   | **Postgres** | ✅                      | `temporal_range` (PG 17+) or `AS OF` system versioning |
+   | **DuckDB**   | ✅                      | Time-travel (`SELECT ... FOR SYSTEM_TIME AS OF`)       |
+   | **SQLite**   | ⚠️                      | Via version column + index (O(log N) scan)             |
+   | **Pebble**   | ⚠️                      | Via versioned keys (O(log N) seek)                     |
+   | **Memory**   | ✅                      | Version chains + binary search (already implemented!)  |
 
 **The StreamLogBackend must include time as a first-class operation:**
 
@@ -947,6 +947,7 @@ samber/do Root Scope
 ```
 
 **Key invariants across all topologies:**
+
 - Source-of-truth instances always use persistent-only engine pools
 - Events publish to bus(es) after Save (sync for local, configurable for remote)
 - ProjectionHost reads the journal (pull) and optionally subscribes to a bus (push)
@@ -1098,10 +1099,10 @@ Based on the current codebase research, the write path is synchronous
 end-to-end: `store.Save` → `publisher.Publish` → all handlers complete → return.
 The multi-bus model extends this with per-bus mode configuration:
 
-| Bus mode | Publish behavior | Ordering guarantee | Latency impact |
-| --- | --- | --- | --- |
-| `sync` (default for local) | Save blocks until bus acknowledges | Strong ordering — events delivered sequentially | Couples write latency to slowest subscriber |
-| `async` (default for remote) | Save returns immediately; bus publishes in background | Best-effort ordering — may reorder under load | Zero added latency on write path |
+| Bus mode                     | Publish behavior                                      | Ordering guarantee                              | Latency impact                              |
+| ---------------------------- | ----------------------------------------------------- | ----------------------------------------------- | ------------------------------------------- |
+| `sync` (default for local)   | Save blocks until bus acknowledges                    | Strong ordering — events delivered sequentially | Couples write latency to slowest subscriber |
+| `async` (default for remote) | Save returns immediately; bus publishes in background | Best-effort ordering — may reorder under load   | Zero added latency on write path            |
 
 The current GoChannel bus uses `BlockPublishUntilSubscriberAck=true` (sync).
 Remote buses (NATS, Redis) default to async because network latency on every
@@ -1120,23 +1121,23 @@ mode.
 
 ### 6.3 The key difference from the current stack
 
-| Aspect                 | Current (stack.Bundle)         | Target (system.New)                       |
-| ---------------------- | ------------------------------ | ----------------------------------------- |
-| Who picks engines      | Consumer (hardcoded in Go)     | Operator (config string)                  |
-| Who opens DB           | Consumer (`sql.Open`)          | System (via driver registry)              |
-| Who constructs bus     | Consumer (manual wiring)       | System (operator picks driver)            |
-| Who owns projectionhost | Consumer (manual wiring)      | System (D6 — full infrastructure)         |
-| Event decoder          | Consumer writes 77-line switch | System auto-decodes via `OnEvent`         |
-| Metaengine integration | Bolted-on (`WithMetaEngine`)   | First-class (N instances)                 |
-| Event log storage      | Separate from metaengine       | metaengine StreamLog instance(s)          |
-| Instance count         | Fixed (1 Bundle)               | N — operator decides grouping             |
-| Multi-DB support       | Partial (metaengine re-opens)  | Native (one DB per instance, or shared)   |
-| Source-of-truth safety | None                           | Persistent-only engine pools (structural) |
-| Cache tier             | None                           | otter W-TinyLFU read-through (§5.5)       |
-| Temporal queries       | Partial (LoadToTimestamp only) | First-class dimension (§5.6)              |
-| Bus                    | Single, consumer-constructed   | Multi-bus (D9), operator-configured       |
-| Admin topology         | None                           | Unified (all instances + buses + cache)   |
-| Backend swap           | Recompile                      | Config change (+ restart or hot-reload)   |
+| Aspect                  | Current (stack.Bundle)         | Target (system.New)                       |
+| ----------------------- | ------------------------------ | ----------------------------------------- |
+| Who picks engines       | Consumer (hardcoded in Go)     | Operator (config string)                  |
+| Who opens DB            | Consumer (`sql.Open`)          | System (via driver registry)              |
+| Who constructs bus      | Consumer (manual wiring)       | System (operator picks driver)            |
+| Who owns projectionhost | Consumer (manual wiring)       | System (D6 — full infrastructure)         |
+| Event decoder           | Consumer writes 77-line switch | System auto-decodes via `OnEvent`         |
+| Metaengine integration  | Bolted-on (`WithMetaEngine`)   | First-class (N instances)                 |
+| Event log storage       | Separate from metaengine       | metaengine StreamLog instance(s)          |
+| Instance count          | Fixed (1 Bundle)               | N — operator decides grouping             |
+| Multi-DB support        | Partial (metaengine re-opens)  | Native (one DB per instance, or shared)   |
+| Source-of-truth safety  | None                           | Persistent-only engine pools (structural) |
+| Cache tier              | None                           | otter W-TinyLFU read-through (§5.5)       |
+| Temporal queries        | Partial (LoadToTimestamp only) | First-class dimension (§5.6)              |
+| Bus                     | Single, consumer-constructed   | Multi-bus (D9), operator-configured       |
+| Admin topology          | None                           | Unified (all instances + buses + cache)   |
+| Backend swap            | Recompile                      | Config change (+ restart or hot-reload)   |
 
 ### 6.4 LiveStore parallel
 
@@ -1219,7 +1220,7 @@ engines:
 
 buses:
   local:
-    driver: gochannel      # watermill GoChannel (in-process)
+    driver: gochannel # watermill GoChannel (in-process)
   cross-service:
     driver: nats
     url: "nats://cluster:4222"
@@ -1228,14 +1229,14 @@ instances:
   - role: events
     engine: primary
     durability: strict
-    publish: [local, cross-service]   # fan-out to both buses
+    publish: [local, cross-service] # fan-out to both buses
   - role: commands
     engine: primary
   - role: queries
     engine: analytics
   - role: projections
     engine: views
-    subscribe: local                    # projections consume from local bus
+    subscribe: local # projections consume from local bus
 ```
 
 ```bash
@@ -1265,10 +1266,10 @@ sys, _ := system.New(ctx, cfg)
 The introspection API exposes a config endpoint. Changes are validated by the
 scream store before applying. Two categories:
 
-| Change type | Examples | Mechanism |
-| --- | --- | --- |
-| **Hot-reloadable** | Add cache tier, add read replica, adjust cache capacity | Applied live, no restart |
-| **Structural** | Swap event log engine, change durability tier, add/remove bus | Graceful restart required |
+| Change type        | Examples                                                      | Mechanism                 |
+| ------------------ | ------------------------------------------------------------- | ------------------------- |
+| **Hot-reloadable** | Add cache tier, add read replica, adjust cache capacity       | Applied live, no restart  |
+| **Structural**     | Swap event log engine, change durability tier, add/remove bus | Graceful restart required |
 
 Hot-reloadable changes are applied via a transactional config-swap: the new
 config is validated against the pinned manifest, then atomically swapped in.
@@ -1350,11 +1351,11 @@ config := system.Config{
 }
 ```
 
-| Bus driver | Default mode | Ordering | Use case |
-| --- | --- | --- | --- |
-| `gochannel` | sync | Strong (sequential dispatch) | In-process projections, derivers, audit |
-| `nats` | async | Best-effort | Cross-service fan-out, microservice communication |
-| `redis` | async | Best-effort | Cache invalidation, pub/sub fan-out |
+| Bus driver  | Default mode | Ordering                     | Use case                                          |
+| ----------- | ------------ | ---------------------------- | ------------------------------------------------- |
+| `gochannel` | sync         | Strong (sequential dispatch) | In-process projections, derivers, audit           |
+| `nats`      | async        | Best-effort                  | Cross-service fan-out, microservice communication |
+| `redis`     | async        | Best-effort                  | Cache invalidation, pub/sub fan-out               |
 
 The operator can override the mode per bus (`Mode: "sync"` forces NATS to block
 on publish — useful for distributed strong ordering at the cost of write
@@ -1668,17 +1669,17 @@ for _, d := range report.Diagnostics {
 Based on codebase analysis of SQLite PRAGMAs, Postgres synchronous_commit, and
 Pebble WAL settings:
 
-| Change | Tier | Justification |
-| --- | --- | --- |
-| Removing persistent engine (data loss) | **SCREAM** | Collections silently empty on restart — irreversible |
-| Changing projection key type | **SCREAM** | Existing rows unfindable — silent data corruption |
-| Changing ADT for existing collection | **SCREAM** | Stored shape incompatible — read failure |
-| SQLite `synchronous=OFF` on source-of-truth | **SCREAM** | Power loss can **corrupt** the DB file (not just data loss) |
-| Durability Strict→Normal (SQLite WAL) | **WARN+OVERRIDE** | Safe against app/OS crash; loses checkpoint window on power loss only |
-| Durability Strict→Normal (Postgres) | **WARN+OVERRIDE** | Safe against app crash; loses ~200ms on power loss |
-| Replicated → non-replicated swap | **WARN+OVERRIDE** | Consistency loss — operator must ACK |
-| Adding volatile cache tier | **ADVISORY** | Cache is read-only — data is safe, read path changes |
-| Durability downgrade on projections | **ADVISORY** | Projections are rebuildable from event log |
+| Change                                      | Tier              | Justification                                                         |
+| ------------------------------------------- | ----------------- | --------------------------------------------------------------------- |
+| Removing persistent engine (data loss)      | **SCREAM**        | Collections silently empty on restart — irreversible                  |
+| Changing projection key type                | **SCREAM**        | Existing rows unfindable — silent data corruption                     |
+| Changing ADT for existing collection        | **SCREAM**        | Stored shape incompatible — read failure                              |
+| SQLite `synchronous=OFF` on source-of-truth | **SCREAM**        | Power loss can **corrupt** the DB file (not just data loss)           |
+| Durability Strict→Normal (SQLite WAL)       | **WARN+OVERRIDE** | Safe against app/OS crash; loses checkpoint window on power loss only |
+| Durability Strict→Normal (Postgres)         | **WARN+OVERRIDE** | Safe against app crash; loses ~200ms on power loss                    |
+| Replicated → non-replicated swap            | **WARN+OVERRIDE** | Consistency loss — operator must ACK                                  |
+| Adding volatile cache tier                  | **ADVISORY**      | Cache is read-only — data is safe, read path changes                  |
+| Durability downgrade on projections         | **ADVISORY**      | Projections are rebuildable from event log                            |
 
 The key insight from the research: SQLite `synchronous=NORMAL` (WAL mode) is
 safe against app and OS crashes — only power loss has a small data window.
@@ -1822,30 +1823,30 @@ names if needed.
 
 ## 11. Glossary
 
-| Term                     | Definition                                                                                                                                                                                                                                                    |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **ADT**                  | Abstract Data Type. The metaengine infers the ADT from fold return types: `func(e)(K,V)`→Map, `func(e)Delta`→Counter, `func(e)Append`→Log, etc.                                                                                                               |
-| **Backend**              | A storage engine implementation (SQLite, Pebble, Postgres, DuckDB, Memory). Each implements `metaengine.Engine` + whichever ADT backends it supports.                                                                                                         |
-| **Bundle**               | The current composition root (`stack.Bundle`). A bag of optional capability fields. To be replaced by `system.System`.                                                                                                                                        |
-| **Cache Tier**           | An optional read-through volatile cache (typically Memory) sitting in front of an instance's authoritative engine. Exploits event immutability: no invalidation needed, only eviction. NOT a planner concern — a transparent adapter wrapper.                 |
-| **Named Engine**         | A declared engine configuration (driver + DSN + options) identified by a semantic name (e.g., "primary", "analytics", "hot-cache"). Instances reference engines by name, enabling swaps without topology changes.                                             |
-| **Deployer / Operator**  | The person configuring the deployment. Picks engines, DSNs, durability. Does NOT write domain code.                                                                                                                                                           |
-| **Consumer / Developer** | The person writing the application. Declares events, commands, queries, folds. Does NOT pick infrastructure.                                                                                                                                                  |
-| **Fold**                 | A pure function that maps an event to a projection update. The return type determines the ADT.                                                                                                                                                                |
-| **Instance**             | A single `*metaengine.Store` created by `metaengine.Plan(engines, queries)`. The redesign uses N instances (one or more per layer), each with its own engine pool. Source-of-truth instances use persistent-only pools; projection instances use mixed pools. |
-| **Layer**                | A semantic grouping of instances: Source of Truth (logs, snapshots, checkpoints) or Projections (derived views). Each layer has 1..N instances.                                                                                                               |
-| **Journal**              | The cross-stream event reader (`event.Journal.ReadAll`). Used by projectionhost to replay events.                                                                                                                                                             |
-| **Log ADT**              | The append-only ordered log ADT (`metaengine.ADTLog`). Already implemented by all 5 engines. The redesign uses it for event/command/query storage.                                                                                                            |
-| **Plan**                 | The output of `metaengine.Plan()`. Assigns engines to queries based on cost. Contains diagnostics, layouts, rule traces.                                                                                                                                      |
-| **Projection**           | A derived view built from events. Has a fold function and query patterns.                                                                                                                                                                                     |
-| **Temporal / Time-Aware** | An engine or query that supports point-in-time reads ("what was the state at time T?"). Some engines have native support (BigTable versioned cells, Postgres temporal tables, DuckDB time-travel); others fall back to version-chain scan. The 4th dimension of the storage model — see §5.6.|
-| **VersionedStorage** | The metaengine interface for point-in-time reads: `MapGetAsOf(ctx, collection, key, t)`. Currently implemented on Memory engine only (version chain + binary search). |
-| **StreamLogBackend** | A new ADT-level interface for stream-keyed append-only logs. All engines implement it. Three adapters (Event, Command, Query) wrap it. Includes time-bounded reads (StreamReadAsOf). See §10.1. |
-| **Scream Store**         | The safety mechanism that detects and blocks unsafe operator changes by diffing the current plan against a pinned manifest.                                                                                                                                   |
-| **SerializablePlan**     | A JSON-serializable snapshot of PlanResult, stripping runtime closures and reflect.Type values.                                                                                                                                                               |
-| **Source of Truth**      | The event log (and command/query audit logs). The authoritative, immutable record.                                                                                                                                                                            |
-| **System**               | The new composition root (replacing Bundle). Owns construction, lifecycle, topology, and introspection.                                                                                                                                                       |
-| **Topology**             | A structured snapshot of the entire wired deployment (engines, stores, projections, bus, dispatchers).                                                                                                                                                        |
+| Term                      | Definition                                                                                                                                                                                                                                                                                    |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ADT**                   | Abstract Data Type. The metaengine infers the ADT from fold return types: `func(e)(K,V)`→Map, `func(e)Delta`→Counter, `func(e)Append`→Log, etc.                                                                                                                                               |
+| **Backend**               | A storage engine implementation (SQLite, Pebble, Postgres, DuckDB, Memory). Each implements `metaengine.Engine` + whichever ADT backends it supports.                                                                                                                                         |
+| **Bundle**                | The current composition root (`stack.Bundle`). A bag of optional capability fields. To be replaced by `system.System`.                                                                                                                                                                        |
+| **Cache Tier**            | An optional read-through volatile cache (typically Memory) sitting in front of an instance's authoritative engine. Exploits event immutability: no invalidation needed, only eviction. NOT a planner concern — a transparent adapter wrapper.                                                 |
+| **Named Engine**          | A declared engine configuration (driver + DSN + options) identified by a semantic name (e.g., "primary", "analytics", "hot-cache"). Instances reference engines by name, enabling swaps without topology changes.                                                                             |
+| **Deployer / Operator**   | The person configuring the deployment. Picks engines, DSNs, durability. Does NOT write domain code.                                                                                                                                                                                           |
+| **Consumer / Developer**  | The person writing the application. Declares events, commands, queries, folds. Does NOT pick infrastructure.                                                                                                                                                                                  |
+| **Fold**                  | A pure function that maps an event to a projection update. The return type determines the ADT.                                                                                                                                                                                                |
+| **Instance**              | A single `*metaengine.Store` created by `metaengine.Plan(engines, queries)`. The redesign uses N instances (one or more per layer), each with its own engine pool. Source-of-truth instances use persistent-only pools; projection instances use mixed pools.                                 |
+| **Layer**                 | A semantic grouping of instances: Source of Truth (logs, snapshots, checkpoints) or Projections (derived views). Each layer has 1..N instances.                                                                                                                                               |
+| **Journal**               | The cross-stream event reader (`event.Journal.ReadAll`). Used by projectionhost to replay events.                                                                                                                                                                                             |
+| **Log ADT**               | The append-only ordered log ADT (`metaengine.ADTLog`). Already implemented by all 5 engines. The redesign uses it for event/command/query storage.                                                                                                                                            |
+| **Plan**                  | The output of `metaengine.Plan()`. Assigns engines to queries based on cost. Contains diagnostics, layouts, rule traces.                                                                                                                                                                      |
+| **Projection**            | A derived view built from events. Has a fold function and query patterns.                                                                                                                                                                                                                     |
+| **Temporal / Time-Aware** | An engine or query that supports point-in-time reads ("what was the state at time T?"). Some engines have native support (BigTable versioned cells, Postgres temporal tables, DuckDB time-travel); others fall back to version-chain scan. The 4th dimension of the storage model — see §5.6. |
+| **VersionedStorage**      | The metaengine interface for point-in-time reads: `MapGetAsOf(ctx, collection, key, t)`. Currently implemented on Memory engine only (version chain + binary search).                                                                                                                         |
+| **StreamLogBackend**      | A new ADT-level interface for stream-keyed append-only logs. All engines implement it. Three adapters (Event, Command, Query) wrap it. Includes time-bounded reads (StreamReadAsOf). See §10.1.                                                                                               |
+| **Scream Store**          | The safety mechanism that detects and blocks unsafe operator changes by diffing the current plan against a pinned manifest.                                                                                                                                                                   |
+| **SerializablePlan**      | A JSON-serializable snapshot of PlanResult, stripping runtime closures and reflect.Type values.                                                                                                                                                                                               |
+| **Source of Truth**       | The event log (and command/query audit logs). The authoritative, immutable record.                                                                                                                                                                                                            |
+| **System**                | The new composition root (replacing Bundle). Owns construction, lifecycle, topology, and introspection.                                                                                                                                                                                       |
+| **Topology**              | A structured snapshot of the entire wired deployment (engines, stores, projections, bus, dispatchers).                                                                                                                                                                                        |
 
 ---
 

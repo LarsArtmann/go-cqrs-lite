@@ -10,37 +10,39 @@
 
 ## Implementation Summary
 
-| Category | Status | Details |
-|---|---|---|
-| Core type + constants + helpers | ✅ Done | `persistence.go`, `IsVolatile()`, `IsPersistent()` |
-| EngineProfile field + String() | ✅ Done | Volatile suffix in `String()` |
-| All 5 engines declare persistence | ✅ Done | Memory, SQLite, Pebble (dynamic), DuckDB (dynamic), Postgres |
-| CollectionInfo + Store accessor | ✅ Done | `Store.Persistence(queryName)` |
-| SerializableQuery | ✅ Done | JSON tag `persistence,omitempty` |
-| durabilityRule | ⚠️ Partial | WARN + INFO work; INFO shows absolute NsPerOp not cost delta (see [divergence](#divergence-1-infographic-cost-format)) |
-| Doctor() + ExplainPlan() | ✅ Done | `--- Persistence ---` section, `volatile` suffix |
-| Tests (core module) | ✅ Done | 22 tests, all green, `-race` clean |
-| Tests (engine modules) | ❌ Missing | Pebble/DuckDB/PG engine-specific persistence tests not written |
-| API surface golden | ✅ Done | 6 new symbols, api-stability test passes |
-| ADR | ✅ Done | `docs/adr/0098-metaengine-persistence-enum.md` |
-| COOKBOOK.md | ✅ Done | 5-engine table with Persistence column |
-| README.md | ❌ Missing | Zero mentions of Persistence |
-| AGENTS.md | ❌ Missing | Zero mentions of Persistence |
-| SKILL.md references | ❌ Missing | Consumer-facing skill docs not updated |
-| `nix run .#lint` | ❌ Not run | Only `gofumpt`/`goimports` checked locally |
-| `nix run .#verify` | ❌ Not run | Full quality gate not executed |
+| Category                          | Status     | Details                                                                                                                |
+| --------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Core type + constants + helpers   | ✅ Done    | `persistence.go`, `IsVolatile()`, `IsPersistent()`                                                                     |
+| EngineProfile field + String()    | ✅ Done    | Volatile suffix in `String()`                                                                                          |
+| All 5 engines declare persistence | ✅ Done    | Memory, SQLite, Pebble (dynamic), DuckDB (dynamic), Postgres                                                           |
+| CollectionInfo + Store accessor   | ✅ Done    | `Store.Persistence(queryName)`                                                                                         |
+| SerializableQuery                 | ✅ Done    | JSON tag `persistence,omitempty`                                                                                       |
+| durabilityRule                    | ⚠️ Partial | WARN + INFO work; INFO shows absolute NsPerOp not cost delta (see [divergence](#divergence-1-infographic-cost-format)) |
+| Doctor() + ExplainPlan()          | ✅ Done    | `--- Persistence ---` section, `volatile` suffix                                                                       |
+| Tests (core module)               | ✅ Done    | 22 tests, all green, `-race` clean                                                                                     |
+| Tests (engine modules)            | ❌ Missing | Pebble/DuckDB/PG engine-specific persistence tests not written                                                         |
+| API surface golden                | ✅ Done    | 6 new symbols, api-stability test passes                                                                               |
+| ADR                               | ✅ Done    | `docs/adr/0098-metaengine-persistence-enum.md`                                                                         |
+| COOKBOOK.md                       | ✅ Done    | 5-engine table with Persistence column                                                                                 |
+| README.md                         | ❌ Missing | Zero mentions of Persistence                                                                                           |
+| AGENTS.md                         | ❌ Missing | Zero mentions of Persistence                                                                                           |
+| SKILL.md references               | ❌ Missing | Consumer-facing skill docs not updated                                                                                 |
+| `nix run .#lint`                  | ❌ Not run | Only `gofumpt`/`goimports` checked locally                                                                             |
+| `nix run .#verify`                | ❌ Not run | Full quality gate not executed                                                                                         |
 
 ### Divergences from Plan
 
 #### Divergence 1: INFO diagnostic cost format
 
 **Planned:**
+
 ```
 INFO  query "find_user" routed to volatile engine "memory"
       (persistent alternative available: "sqlite" at O(logN), +0.007ms/op)
 ```
 
 **Actual:**
+
 ```
 INFO  routed to volatile engine "memory" — data lost on restart
       (persistent alternative: sqlite at O(logN), 7000ns/op)
@@ -263,12 +265,14 @@ persistent for the same ADT.
 ### INFO — volatile engine chosen, persistent alternative exists
 
 **Planned format:**
+
 ```
 INFO  query "find_user" routed to volatile engine "memory"
       (persistent alternative available: "sqlite" at O(logN), +0.007ms/op)
 ```
 
 **Actual implemented format:**
+
 ```
 INFO  routed to volatile engine "memory" — data lost on restart
       (persistent alternative: sqlite at O(logN), 7000ns/op)
@@ -408,9 +412,9 @@ Every file touched, grouped by module. Status reflects actual implementation.
 
 ### `metaengine/` (core module)
 
-| File                      | Change                                                                                                 | New?     | Status |
-| ------------------------- | ------------------------------------------------------------------------------------------------------ | -------- | ------ |
-| `persistence.go`          | `Persistence` type, 2 constants, doc comments, `IsVolatile()`/`IsPersistent()` helpers                | **NEW**  | ✅ Done |
+| File                      | Change                                                                                                 | New?     | Status  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ | -------- | ------- |
+| `persistence.go`          | `Persistence` type, 2 constants, doc comments, `IsVolatile()`/`IsPersistent()` helpers                 | **NEW**  | ✅ Done |
 | `persistence_test.go`     | 14 tests: zero-value, constants, helpers, String(), engines, CollectionInfo, Store accessor, serialize | **NEW**  | ✅ Done |
 | `rule_durability.go`      | `durabilityRule` struct, `Name()`, `Apply()`                                                           | **NEW**  | ✅ Done |
 | `durability_rule_test.go` | 8 tests: WARN, INFO, silent paths, RuleTrace, ExplainPlan, Doctor                                      | **NEW**  | ✅ Done |
@@ -424,36 +428,36 @@ Every file touched, grouped by module. Status reflects actual implementation.
 
 ### `metaengine/pebbleengine/` (separate module)
 
-| File        | Change                                                                                     | Status |
-| ----------- | ------------------------------------------------------------------------------------------ | ------ |
+| File        | Change                                                                                     | Status  |
+| ----------- | ------------------------------------------------------------------------------------------ | ------- |
 | `engine.go` | Add `persistence` field to struct, set in constructors (dir vs mem), return in `Profile()` | ✅ Done |
 
 > ❌ **Missing:** Engine-specific test asserting `NewPebbleEngine("")` → volatile, `NewPebbleEngine(dir)` → persistent
 
 ### `metaengine/duckdbengine/` (separate module)
 
-| File        | Change                                                                                           | Status |
-| ----------- | ------------------------------------------------------------------------------------------------ | ------ |
+| File        | Change                                                                                           | Status  |
+| ----------- | ------------------------------------------------------------------------------------------------ | ------- |
 | `engine.go` | Add `persistence` field to struct, set in constructors (file vs :memory:), return in `Profile()` | ✅ Done |
 
 > ❌ **Missing:** Engine-specific test asserting `New("")` → volatile, `New("file.db")` → persistent
 
 ### `metaengine/pgengine/` (separate module)
 
-| File        | Change                                                  | Status |
-| ----------- | ------------------------------------------------------- | ------ |
+| File        | Change                                                  | Status  |
+| ----------- | ------------------------------------------------------- | ------- |
 | `engine.go` | Set `Persistence: PersistencePersistent` in `Profile()` | ✅ Done |
 
 > ❌ **Missing:** Engine-specific test asserting `Profile().IsPersistent() == true`
 
 ### Docs + tooling
 
-| File                                           | Change                                               | Status |
-| ---------------------------------------------- | ---------------------------------------------------- | ------ |
-| `docs/adr/0098-metaengine-persistence-enum.md` | **NEW** — decision record with rejected alternatives | ✅ Done |
+| File                                           | Change                                               | Status          |
+| ---------------------------------------------- | ---------------------------------------------------- | --------------- |
+| `docs/adr/0098-metaengine-persistence-enum.md` | **NEW** — decision record with rejected alternatives | ✅ Done         |
 | `metaengine/README.md`                         | Add Persistence column to engine table               | ❌ **NOT DONE** |
-| `metaengine/COOKBOOK.md`                       | Add Persistence column to engine comparison table    | ✅ Done |
-| `cmd/api-stability/main.go`                    | Regen golden (new exported symbols)                  | ✅ Done |
+| `metaengine/COOKBOOK.md`                       | Add Persistence column to engine comparison table    | ✅ Done         |
+| `cmd/api-stability/main.go`                    | Regen golden (new exported symbols)                  | ✅ Done         |
 | `AGENTS.md`                                    | Update metaengine section with Persistence info      | ❌ **NOT DONE** |
 | `SKILL.md` + references                        | Update consumer-facing skill docs                    | ❌ **NOT DONE** |
 
@@ -463,18 +467,18 @@ Every file touched, grouped by module. Status reflects actual implementation.
 
 Sorted by impact (Pareto tier) then dependency order.
 
-| #   | Task                                                               | Files                                                        | Impact                                        | Effort | Tier      | Status |
-| --- | ------------------------------------------------------------------ | ------------------------------------------------------------ | --------------------------------------------- | ------ | --------- | ------ |
-| M1  | Create persistence.go: type, constants, doc comments               | `persistence.go` (NEW)                                       | Atomic foundation — nothing exists without it | 30min  | 1%        | ✅ Done |
-| M2  | Add Persistence to EngineProfile + helper methods + String()       | `engine.go`                                                  | Carries the truth on every engine             | 30min  | 1%        | ✅ Done |
-| M3  | Set Memory=volatile, SQLite=persistent in profiles                 | `memory_engine.go`, `sqlite_engine.go`                       | Two most common engines honest                | 30min  | 4%        | ✅ Done |
-| M4  | Set Pebble persistence dynamically (dir vs vfs.NewMem)             | `pebbleengine/engine.go`                                     | Engine that blurs the line most               | 45min  | 20%       | ✅ Done |
-| M5  | Set DuckDB persistence dynamically (file vs :memory:)              | `duckdbengine/engine.go`                                     | Same blur, different engine                   | 45min  | 20%       | ✅ Done |
-| M6  | Set Postgres=persistent in profile                                 | `pgengine/engine.go`                                         | Trivial but completes the matrix              | 15min  | 20%       | ✅ Done |
-| M7  | Add Persistence to CollectionInfo + Store.Persistence() accessor   | `store.go`                                                   | Makes durability queryable at runtime         | 30min  | 20%       | ✅ Done |
-| M8  | Add Persistence to SerializableQuery + Serialize()                 | `serializable.go`                                            | Plan diff/pin/audit includes durability       | 30min  | 20%       | ✅ Done |
+| #   | Task                                                               | Files                                                        | Impact                                        | Effort | Tier      | Status     |
+| --- | ------------------------------------------------------------------ | ------------------------------------------------------------ | --------------------------------------------- | ------ | --------- | ---------- |
+| M1  | Create persistence.go: type, constants, doc comments               | `persistence.go` (NEW)                                       | Atomic foundation — nothing exists without it | 30min  | 1%        | ✅ Done    |
+| M2  | Add Persistence to EngineProfile + helper methods + String()       | `engine.go`                                                  | Carries the truth on every engine             | 30min  | 1%        | ✅ Done    |
+| M3  | Set Memory=volatile, SQLite=persistent in profiles                 | `memory_engine.go`, `sqlite_engine.go`                       | Two most common engines honest                | 30min  | 4%        | ✅ Done    |
+| M4  | Set Pebble persistence dynamically (dir vs vfs.NewMem)             | `pebbleengine/engine.go`                                     | Engine that blurs the line most               | 45min  | 20%       | ✅ Done    |
+| M5  | Set DuckDB persistence dynamically (file vs :memory:)              | `duckdbengine/engine.go`                                     | Same blur, different engine                   | 45min  | 20%       | ✅ Done    |
+| M6  | Set Postgres=persistent in profile                                 | `pgengine/engine.go`                                         | Trivial but completes the matrix              | 15min  | 20%       | ✅ Done    |
+| M7  | Add Persistence to CollectionInfo + Store.Persistence() accessor   | `store.go`                                                   | Makes durability queryable at runtime         | 30min  | 20%       | ✅ Done    |
+| M8  | Add Persistence to SerializableQuery + Serialize()                 | `serializable.go`                                            | Plan diff/pin/audit includes durability       | 30min  | 20%       | ✅ Done    |
 | M9  | Create durabilityRule + wire into defaultRules()                   | `rule_durability.go` (NEW), `rules.go`                       | The killer feature — planner warnings         | 45min  | 20%       | ⚠️ Partial |
-| M10 | Show persistence in Doctor() + ExplainPlan()                       | `explain.go`                                                 | Operator visibility                           | 30min  | 20%       | ✅ Done |
+| M10 | Show persistence in Doctor() + ExplainPlan()                       | `explain.go`                                                 | Operator visibility                           | 30min  | 20%       | ✅ Done    |
 | M11 | Write all tests (type, rule, CollectionInfo, serializable, String) | `persistence_test.go` (NEW), `durability_rule_test.go` (NEW) | Correctness proof                             | 60min  | remaining | ⚠️ Partial |
 | M12 | API surface golden regen + ADR + docs                              | `cmd/api-stability`, `docs/adr/`, `README.md`, `COOKBOOK.md` | Completeness                                  | 45min  | remaining | ⚠️ Partial |
 | M13 | Build + test + verify gate                                         | —                                                            | Ship confidence                               | 30min  | remaining | ⚠️ Partial |
@@ -496,73 +500,73 @@ Sorted by impact (Pareto tier) then dependency order.
 Each medium task broken into atomic, independently-verifiable steps.
 Sorted by impact then dependency.
 
-| #                                  | Task                                                                                                   | Verifies         | Est   | Status |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------- | ----- | ------ |
-| **M1 — persistence.go**            |                                                                                                        |                  |       |        |
-| F1                                 | Write `Persistence` type doc comment (domain rationale: DDIA Ch1, survivability axis)                  | compiles         | 5min  | ✅ Done |
-| F2                                 | Write `PersistenceVolatile` constant (= "") with doc comment                                           | compiles         | 3min  | ✅ Done |
-| F3                                 | Write `PersistencePersistent` constant (= "persistent") with doc comment                               | compiles         | 3min  | ✅ Done |
-| **M2 — EngineProfile wiring**      |                                                                                                        |                  |       |        |
-| F4                                 | Add `Persistence Persistence` field to EngineProfile struct with doc comment                           | `go build`       | 5min  | ✅ Done |
-| F5                                 | Add `IsVolatile() bool` method on EngineProfile                                                        | unit test inline | 5min  | ✅ Done |
-| F6                                 | Add `IsPersistent() bool` method on EngineProfile                                                      | unit test inline | 5min  | ✅ Done |
-| F7                                 | Update `String()` to append persistence suffix when volatile                                           | eyeball output   | 8min  | ✅ Done |
-| **M3 — Memory + SQLite**           |                                                                                                        |                  |       |        |
-| F8                                 | Set `Persistence: PersistenceVolatile` in memoryEngine.Profile()                                       | build            | 5min  | ✅ Done |
-| F9                                 | Set `Persistence: PersistencePersistent` in SQLiteEngineProfile()                                      | build            | 5min  | ✅ Done |
-| **M4 — Pebble dynamic**            |                                                                                                        |                  |       |        |
-| F10                                | Add `persistence Persistence` field to pebbleEngine struct                                             | build            | 5min  | ✅ Done |
-| F11                                | Set field in NewPebbleEngine: dir=="" → volatile, else persistent                                      | build            | 5min  | ✅ Done |
-| F12                                | Set field in NewPebbleEngineFromDB: assume persistent (caller owns disk DB)                            | build            | 3min  | ✅ Done |
-| F13                                | Return field in pebbleEngine.Profile()                                                                 | build            | 5min  | ✅ Done |
-| **M5 — DuckDB dynamic**            |                                                                                                        |                  |       |        |
-| F14                                | Add `persistence Persistence` field to duckdbEngine struct                                             | build            | 5min  | ✅ Done |
-| F15                                | Set field in New(): dsn=="" or ":memory:" → volatile, else persistent                                  | build            | 5min  | ✅ Done |
-| F16                                | Set field in NewFromDB(): assume persistent                                                            | build            | 3min  | ✅ Done |
-| F17                                | Return field in duckdbEngine.Profile()                                                                 | build            | 5min  | ✅ Done |
-| **M6 — Postgres**                  |                                                                                                        |                  |       |        |
-| F18                                | Set `Persistence: PersistencePersistent` in pgEngine.Profile()                                         | build            | 5min  | ✅ Done |
-| **M7 — CollectionInfo + accessor** |                                                                                                        |                  |       |        |
-| F19                                | Add `Persistence Persistence` field to CollectionInfo struct                                           | build            | 5min  | ✅ Done |
-| F20                                | Populate field in Store.Collections() from engine profile                                              | build            | 5min  | ✅ Done |
-| F21                                | Add `Store.Persistence(queryName string) Persistence` accessor method                                  | build            | 5min  | ✅ Done |
-| **M8 — SerializableQuery**         |                                                                                                        |                  |       |        |
-| F22                                | Add `Persistence Persistence` field to SerializableQuery (json tag)                                    | build            | 5min  | ✅ Done |
-| F23                                | Populate field in Serialize() from engine profile                                                      | build            | 5min  | ✅ Done |
-| **M9 — durabilityRule**            |                                                                                                        |                  |       |        |
-| F24                                | Create rule_durability.go: durabilityRule struct + Name()                                              | build            | 5min  | ✅ Done |
-| F25                                | Implement Apply(): volatile engine → WARN diagnostic                                                   | eyeball          | 8min  | ✅ Done |
+| #                                  | Task                                                                                                   | Verifies         | Est   | Status      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------- | ----- | ----------- |
+| **M1 — persistence.go**            |                                                                                                        |                  |       |             |
+| F1                                 | Write `Persistence` type doc comment (domain rationale: DDIA Ch1, survivability axis)                  | compiles         | 5min  | ✅ Done     |
+| F2                                 | Write `PersistenceVolatile` constant (= "") with doc comment                                           | compiles         | 3min  | ✅ Done     |
+| F3                                 | Write `PersistencePersistent` constant (= "persistent") with doc comment                               | compiles         | 3min  | ✅ Done     |
+| **M2 — EngineProfile wiring**      |                                                                                                        |                  |       |             |
+| F4                                 | Add `Persistence Persistence` field to EngineProfile struct with doc comment                           | `go build`       | 5min  | ✅ Done     |
+| F5                                 | Add `IsVolatile() bool` method on EngineProfile                                                        | unit test inline | 5min  | ✅ Done     |
+| F6                                 | Add `IsPersistent() bool` method on EngineProfile                                                      | unit test inline | 5min  | ✅ Done     |
+| F7                                 | Update `String()` to append persistence suffix when volatile                                           | eyeball output   | 8min  | ✅ Done     |
+| **M3 — Memory + SQLite**           |                                                                                                        |                  |       |             |
+| F8                                 | Set `Persistence: PersistenceVolatile` in memoryEngine.Profile()                                       | build            | 5min  | ✅ Done     |
+| F9                                 | Set `Persistence: PersistencePersistent` in SQLiteEngineProfile()                                      | build            | 5min  | ✅ Done     |
+| **M4 — Pebble dynamic**            |                                                                                                        |                  |       |             |
+| F10                                | Add `persistence Persistence` field to pebbleEngine struct                                             | build            | 5min  | ✅ Done     |
+| F11                                | Set field in NewPebbleEngine: dir=="" → volatile, else persistent                                      | build            | 5min  | ✅ Done     |
+| F12                                | Set field in NewPebbleEngineFromDB: assume persistent (caller owns disk DB)                            | build            | 3min  | ✅ Done     |
+| F13                                | Return field in pebbleEngine.Profile()                                                                 | build            | 5min  | ✅ Done     |
+| **M5 — DuckDB dynamic**            |                                                                                                        |                  |       |             |
+| F14                                | Add `persistence Persistence` field to duckdbEngine struct                                             | build            | 5min  | ✅ Done     |
+| F15                                | Set field in New(): dsn=="" or ":memory:" → volatile, else persistent                                  | build            | 5min  | ✅ Done     |
+| F16                                | Set field in NewFromDB(): assume persistent                                                            | build            | 3min  | ✅ Done     |
+| F17                                | Return field in duckdbEngine.Profile()                                                                 | build            | 5min  | ✅ Done     |
+| **M6 — Postgres**                  |                                                                                                        |                  |       |             |
+| F18                                | Set `Persistence: PersistencePersistent` in pgEngine.Profile()                                         | build            | 5min  | ✅ Done     |
+| **M7 — CollectionInfo + accessor** |                                                                                                        |                  |       |             |
+| F19                                | Add `Persistence Persistence` field to CollectionInfo struct                                           | build            | 5min  | ✅ Done     |
+| F20                                | Populate field in Store.Collections() from engine profile                                              | build            | 5min  | ✅ Done     |
+| F21                                | Add `Store.Persistence(queryName string) Persistence` accessor method                                  | build            | 5min  | ✅ Done     |
+| **M8 — SerializableQuery**         |                                                                                                        |                  |       |             |
+| F22                                | Add `Persistence Persistence` field to SerializableQuery (json tag)                                    | build            | 5min  | ✅ Done     |
+| F23                                | Populate field in Serialize() from engine profile                                                      | build            | 5min  | ✅ Done     |
+| **M9 — durabilityRule**            |                                                                                                        |                  |       |             |
+| F24                                | Create rule_durability.go: durabilityRule struct + Name()                                              | build            | 5min  | ✅ Done     |
+| F25                                | Implement Apply(): volatile engine → WARN diagnostic                                                   | eyeball          | 8min  | ✅ Done     |
 | F26                                | Add INFO diagnostic when persistent alternative engine exists for same query                           | eyeball          | 8min  | ⚠️ Diverged |
-| F27                                | Add RuleTraceEntry for durability warnings                                                             | build            | 5min  | ✅ Done |
-| F28                                | Wire `&durabilityRule{}` into defaultRules() in rules.go                                               | build            | 3min  | ✅ Done |
-| **M10 — Doctor + ExplainPlan**     |                                                                                                        |                  |       |        |
-| F29                                | Add "--- Persistence ---" section to Doctor()                                                          | eyeball          | 8min  | ✅ Done |
-| F30                                | Append persistence suffix to engine lines in ExplainPlan()                                             | eyeball          | 5min  | ✅ Done |
-| **M11 — Tests**                    |                                                                                                        |                  |       |        |
-| F31                                | Test IsVolatile/IsPersistent on zero-value profile (should be volatile)                                | `go test`        | 5min  | ✅ Done |
-| F32                                | Test String() includes "volatile" for volatile, omits for persistent                                   | `go test`        | 5min  | ✅ Done |
-| F33                                | Test Memory engine Profile().IsVolatile() == true                                                      | `go test`        | 5min  | ✅ Done |
-| F34                                | Test SQLite engine Profile().IsPersistent() == true                                                    | `go test`        | 5min  | ✅ Done |
-| F35                                | Test Pebble: NewPebbleEngine("") → volatile, NewPebbleEngine(dir) → persistent                         | `go test`        | 8min  | ❌ Missing |
-| F36                                | Test durabilityRule emits WARN for volatile-only plan                                                  | `go test`        | 8min  | ✅ Done |
-| F37                                | Test durabilityRule emits INFO when persistent alternative exists                                      | `go test`        | 8min  | ✅ Done |
-| F38                                | Test durabilityRule silent when engine is persistent                                                   | `go test`        | 5min  | ✅ Done |
-| F39                                | Test CollectionInfo.Persistence populated correctly                                                    | `go test`        | 5min  | ✅ Done |
-| F40                                | Test SerializableQuery.Persistence in round-trip JSON                                                  | `go test`        | 8min  | ✅ Done |
-| F41                                | Test Store.Persistence(queryName) accessor                                                             | `go test`        | 5min  | ✅ Done |
-| **M12 — Golden + ADR + docs**      |                                                                                                        |                  |       |        |
-| F42                                | Regen API surface golden: `cd cmd/api-stability && GOWORK=off go run main.go -update`                  | golden matches   | 5min  | ✅ Done |
-| F43                                | Write ADR: `docs/adr/0098-metaengine-persistence-enum.md` (two-level decision + rejected alternatives) | reads well       | 10min | ✅ Done |
-| F44                                | Update README engine table: add Persistence column                                                     | reads well       | 5min  | ❌ Missing |
-| F45                                | Update COOKBOOK engine comparison table: add Persistence column                                        | reads well       | 5min  | ✅ Done |
-| **M13 — Verify**                   |                                                                                                        |                  |       |        |
-| F46                                | `go build -tags "goexperiment.jsonv2" ./metaengine/...`                                                | compiles         | 3min  | ✅ Done |
-| F47                                | `go test ./metaengine/... -count=1 -run Persistence`                                                   | green            | 5min  | ✅ Done |
-| F48                                | `go test ./metaengine/... -count=1 -run Durability`                                                    | green            | 5min  | ✅ Done |
-| F49                                | `go test ./metaengine/pebbleengine/... -count=1`                                                       | green            | 5min  | ✅ Done |
-| F50                                | `go test ./metaengine/duckdbengine/... -count=1` (CGo)                                                 | green            | 5min  | ✅ Done |
-| F51                                | `go test ./metaengine/pgengine/... -count=1` (testcontainer)                                           | green            | 8min  | ✅ Done |
-| F52                                | Full metaengine test suite: `go test ./... -count=1`                                                   | green            | 8min  | ✅ Done |
+| F27                                | Add RuleTraceEntry for durability warnings                                                             | build            | 5min  | ✅ Done     |
+| F28                                | Wire `&durabilityRule{}` into defaultRules() in rules.go                                               | build            | 3min  | ✅ Done     |
+| **M10 — Doctor + ExplainPlan**     |                                                                                                        |                  |       |             |
+| F29                                | Add "--- Persistence ---" section to Doctor()                                                          | eyeball          | 8min  | ✅ Done     |
+| F30                                | Append persistence suffix to engine lines in ExplainPlan()                                             | eyeball          | 5min  | ✅ Done     |
+| **M11 — Tests**                    |                                                                                                        |                  |       |             |
+| F31                                | Test IsVolatile/IsPersistent on zero-value profile (should be volatile)                                | `go test`        | 5min  | ✅ Done     |
+| F32                                | Test String() includes "volatile" for volatile, omits for persistent                                   | `go test`        | 5min  | ✅ Done     |
+| F33                                | Test Memory engine Profile().IsVolatile() == true                                                      | `go test`        | 5min  | ✅ Done     |
+| F34                                | Test SQLite engine Profile().IsPersistent() == true                                                    | `go test`        | 5min  | ✅ Done     |
+| F35                                | Test Pebble: NewPebbleEngine("") → volatile, NewPebbleEngine(dir) → persistent                         | `go test`        | 8min  | ❌ Missing  |
+| F36                                | Test durabilityRule emits WARN for volatile-only plan                                                  | `go test`        | 8min  | ✅ Done     |
+| F37                                | Test durabilityRule emits INFO when persistent alternative exists                                      | `go test`        | 8min  | ✅ Done     |
+| F38                                | Test durabilityRule silent when engine is persistent                                                   | `go test`        | 5min  | ✅ Done     |
+| F39                                | Test CollectionInfo.Persistence populated correctly                                                    | `go test`        | 5min  | ✅ Done     |
+| F40                                | Test SerializableQuery.Persistence in round-trip JSON                                                  | `go test`        | 8min  | ✅ Done     |
+| F41                                | Test Store.Persistence(queryName) accessor                                                             | `go test`        | 5min  | ✅ Done     |
+| **M12 — Golden + ADR + docs**      |                                                                                                        |                  |       |             |
+| F42                                | Regen API surface golden: `cd cmd/api-stability && GOWORK=off go run main.go -update`                  | golden matches   | 5min  | ✅ Done     |
+| F43                                | Write ADR: `docs/adr/0098-metaengine-persistence-enum.md` (two-level decision + rejected alternatives) | reads well       | 10min | ✅ Done     |
+| F44                                | Update README engine table: add Persistence column                                                     | reads well       | 5min  | ❌ Missing  |
+| F45                                | Update COOKBOOK engine comparison table: add Persistence column                                        | reads well       | 5min  | ✅ Done     |
+| **M13 — Verify**                   |                                                                                                        |                  |       |             |
+| F46                                | `go build -tags "goexperiment.jsonv2" ./metaengine/...`                                                | compiles         | 3min  | ✅ Done     |
+| F47                                | `go test ./metaengine/... -count=1 -run Persistence`                                                   | green            | 5min  | ✅ Done     |
+| F48                                | `go test ./metaengine/... -count=1 -run Durability`                                                    | green            | 5min  | ✅ Done     |
+| F49                                | `go test ./metaengine/pebbleengine/... -count=1`                                                       | green            | 5min  | ✅ Done     |
+| F50                                | `go test ./metaengine/duckdbengine/... -count=1` (CGo)                                                 | green            | 5min  | ✅ Done     |
+| F51                                | `go test ./metaengine/pgengine/... -count=1` (testcontainer)                                           | green            | 8min  | ✅ Done     |
+| F52                                | Full metaengine test suite: `go test ./... -count=1`                                                   | green            | 8min  | ✅ Done     |
 
 > **F26 diverged:** INFO shows absolute NsPerOp (`7000ns/op`) instead of computed cost delta (`+0.007ms/op`). See [Divergence 1](#divergence-1-infographic-cost-format).
 >

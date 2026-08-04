@@ -252,7 +252,6 @@ I measured batch writes via raw multi-VALUES INSERT because `MapBackend` has no 
 
 I ran the metaengine `-short` suite (PASS) and confirmed no golden tests reference the constant. But integration tests, soak tests, and cross-engine parity tests were not run. Should I ship this now, or revert the constant change and ship only the benchmarks (keeping the old constants until the verify gate passes)?
 
-
 ---
 
 ## Annotation (2026-08-04)

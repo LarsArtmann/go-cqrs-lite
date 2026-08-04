@@ -273,7 +273,6 @@ But the execution was sloppy in ways that matter:
 
 The feature is shippable. The craftsmanship is not yet at the bar.
 
-
 ---
 
 ## Annotation (2026-08-04)

@@ -20,27 +20,27 @@ and test-gap items remain (detailed below).
 
 ## a) FULLY DONE (verified green)
 
-| Item | Evidence |
-|---|---|
-| `persistence.go` — Persistence type + 2 constants + IsVolatile/IsPersistent helpers | Compiles, 4 tests pass |
-| `EngineProfile.Persistence` field + String() volatile suffix | Compiles, 2 String tests pass |
-| Memory engine = volatile | `TestMemoryEngine_ProfileIsVolatile` passes |
-| SQLite engine = persistent | `TestSQLiteEngineProfile_IsPersistent` passes |
-| Pebble engine = dynamic (dir/mem) | Struct field set in constructor, builds, pebble tests pass |
-| DuckDB engine = dynamic (file/:memory:) | Struct field set in constructor, builds, duckdb tests pass |
-| Postgres engine = persistent | Set in Profile(), builds, pg tests pass |
-| `CollectionInfo.Persistence` field + `Store.Persistence()` accessor | 3 tests pass |
-| `SerializableQuery.Persistence` + Serialize() population | Round-trip test passes |
-| `durabilityRule` (WARN/INFO/silent) + wired into defaultRules() | 3 rule tests + 1 RuleTrace test pass |
-| `Doctor()` `--- Persistence ---` section | 2 Doctor tests pass |
-| `ExplainPlan()` volatile suffix on engine lines | 2 ExplainPlan tests pass |
-| API surface golden regenerated | api-stability test passes, 6 new symbols present |
-| ADR-0098 written | `docs/adr/0098-metaengine-persistence-enum.md` |
-| COOKBOOK.md engine table updated | 5 engines with Persistence column |
-| `go build` all metaengine modules | All pass |
-| `go test` all metaengine modules (core, pebble, duckdb, pg) | All green |
-| `-race` flag on persistence/durability tests | Green |
-| `gofumpt` / `goimports` on all changed files | Clean (no issues) |
+| Item                                                                                | Evidence                                                   |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `persistence.go` — Persistence type + 2 constants + IsVolatile/IsPersistent helpers | Compiles, 4 tests pass                                     |
+| `EngineProfile.Persistence` field + String() volatile suffix                        | Compiles, 2 String tests pass                              |
+| Memory engine = volatile                                                            | `TestMemoryEngine_ProfileIsVolatile` passes                |
+| SQLite engine = persistent                                                          | `TestSQLiteEngineProfile_IsPersistent` passes              |
+| Pebble engine = dynamic (dir/mem)                                                   | Struct field set in constructor, builds, pebble tests pass |
+| DuckDB engine = dynamic (file/:memory:)                                             | Struct field set in constructor, builds, duckdb tests pass |
+| Postgres engine = persistent                                                        | Set in Profile(), builds, pg tests pass                    |
+| `CollectionInfo.Persistence` field + `Store.Persistence()` accessor                 | 3 tests pass                                               |
+| `SerializableQuery.Persistence` + Serialize() population                            | Round-trip test passes                                     |
+| `durabilityRule` (WARN/INFO/silent) + wired into defaultRules()                     | 3 rule tests + 1 RuleTrace test pass                       |
+| `Doctor()` `--- Persistence ---` section                                            | 2 Doctor tests pass                                        |
+| `ExplainPlan()` volatile suffix on engine lines                                     | 2 ExplainPlan tests pass                                   |
+| API surface golden regenerated                                                      | api-stability test passes, 6 new symbols present           |
+| ADR-0098 written                                                                    | `docs/adr/0098-metaengine-persistence-enum.md`             |
+| COOKBOOK.md engine table updated                                                    | 5 engines with Persistence column                          |
+| `go build` all metaengine modules                                                   | All pass                                                   |
+| `go test` all metaengine modules (core, pebble, duckdb, pg)                         | All green                                                  |
+| `-race` flag on persistence/durability tests                                        | Green                                                      |
+| `gofumpt` / `goimports` on all changed files                                        | Clean (no issues)                                          |
 
 **Auto-commit daemon committed the code** across commits `d9d48d58`,
 `26c4937b`, `2203aad3`, `c18372fa`. (Note: commit messages were written by
@@ -53,12 +53,14 @@ the daemon, not me — some are misleading about scope.)
 ### durabilityRule INFO diagnostic — cost format mismatch
 
 **What the plan specified:**
+
 ```
 INFO  query "find_user" routed to volatile engine "memory"
       (persistent alternative available: "sqlite" at O(logN), +0.007ms/op)
 ```
 
 **What I implemented:**
+
 ```
 INFO  routed to volatile engine "memory" — data lost on restart
       (persistent alternative: sqlite at O(logN), 7000ns/op)
@@ -103,6 +105,7 @@ the new Persistence type, durabilityRule, Store.Persistence() accessor, and
 ### Engine-specific persistence tests (Pebble, DuckDB, PG)
 
 The plan listed:
+
 - F35: Test Pebble `NewPebbleEngine("")` → volatile, `NewPebbleEngine(dir)` → persistent
 - F36-F38: DuckDB and Postgres equivalent tests
 
@@ -271,6 +274,7 @@ shows the alternative's absolute `NsPerOp` instead. Computing the delta
 requires calling `estimateCost()` with the query's volume for both engines —
 but the rule runs AFTER engine assignment, and the volume might not be
 available at that point. **Should I:**
+
 - (a) Add the cost delta computation (requires access to query volume in the rule)?
 - (b) Keep the absolute NsPerOp (simpler, still useful)?
 - (c) Remove the cost entirely and just name the alternative engine?
@@ -303,7 +307,6 @@ and all observability surfaces work correctly across all 5 engine modules.
 **Debt remaining: README, AGENTS.md, engine-specific tests, full lint gate.**
 These are documentation and test-coverage gaps, not correctness issues. They
 should be addressed before the next release tag.
-
 
 ---
 

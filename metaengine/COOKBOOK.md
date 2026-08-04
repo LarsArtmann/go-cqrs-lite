@@ -194,13 +194,13 @@ The same watcher consumer works unchanged across engines.
 
 ### When to Use Each Engine
 
-| Engine   | Best For                                       | Persistence         | Filter Pushdown                 |
-| -------- | ---------------------------------------------- | ------------------- | ------------------------------- |
-| Memory   | Counters, small datasets, testing              | Volatile            | O(N) Go-side                    |
-| SQLite   | Filtered scans, point lookups with persistence | Persistent          | json_extract WHERE/ORDER BY     |
-| Pebble   | Ultra-fast point lookups (LSM)                 | Dynamic (dir/mem)   | Raw value scan + closure filter |
-| DuckDB   | Analytical queries, GROUP BY aggregations      | Dynamic (file/mem)  | json_extract WHERE/ORDER BY     |
-| Postgres | Remote persistent storage, JSONB + B-tree      | Persistent          | JSONB operator WHERE/ORDER BY   |
+| Engine   | Best For                                       | Persistence        | Filter Pushdown                 |
+| -------- | ---------------------------------------------- | ------------------ | ------------------------------- |
+| Memory   | Counters, small datasets, testing              | Volatile           | O(N) Go-side                    |
+| SQLite   | Filtered scans, point lookups with persistence | Persistent         | json_extract WHERE/ORDER BY     |
+| Pebble   | Ultra-fast point lookups (LSM)                 | Dynamic (dir/mem)  | Raw value scan + closure filter |
+| DuckDB   | Analytical queries, GROUP BY aggregations      | Dynamic (file/mem) | json_extract WHERE/ORDER BY     |
+| Postgres | Remote persistent storage, JSONB + B-tree      | Persistent         | JSONB operator WHERE/ORDER BY   |
 
 > **Persistence** is now a first-class type on `EngineProfile` (ADR-0098).
 > The planner emits WARN when a query routes to a volatile engine with no

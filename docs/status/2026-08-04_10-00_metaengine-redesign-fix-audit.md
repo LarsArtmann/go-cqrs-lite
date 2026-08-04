@@ -24,65 +24,65 @@ sloppy editing created new defects while fixing old ones.
 
 ## A) FULLY DONE ✅
 
-| # | Work item | Evidence |
-|---|---|---|
-| 1 | Duplicate TOC entry removed | Line 35 duplicate of line 32 — gone |
-| 2 | §5.2 updated to reference StreamLogBackend | Now cross-references §10.1 |
-| 3 | Topology diagrams redrawn with buses + cache + System scope | §6.1 all 3 topologies show Publish/Subscribe/Cache/Buses |
-| 4 | InstanceConfig Go struct has Publish/Subscribe/Cache fields | §6.2 operator code shows full struct |
-| 5 | Consumer-facing API section added | §6.2 shows sys.Command(), sys.Query(), sys.Decider(), sys.UseCommandMiddleware() |
-| 6 | Bus driver registry section added | §7.5 with gochannel/nats/redis, sync/async modes table |
-| 7 | Cache tier wrapper code written | §7.6 CachedEventStore with otter read-through |
-| 8 | Scream store operator-facing API added | §9.6 with startup check, ACK flag, tier boundary table with SQLite/Postgres/Pebble research |
-| 9 | Comparison tables updated (§6.3, §6.4) | Added cache, temporal, multi-bus rows |
-| 10 | Multi-bus publish model documented | §6.2 publish model table (sync local, async remote) |
-| 11 | ProjectionHost consumption model documented | §6.2 explains pull (journal) vs push (bus) |
-| 12 | All 10 open questions resolved | 0 `**Question:**` lines remain in §10 |
-| 13 | Deep research: multi-bus ordering | EventBus internals, BlockPublishUntilSubscriberAck, dispatchLocal sequential model |
-| 14 | Deep research: decider ownership | Current Repository API, taskmanager wiring, minimum consumer surface |
-| 15 | Deep research: scream store boundaries | SQLite PRAGMA semantics, WAL+NORMAL safety, synchronous=OFF corruption risk |
-| 16 | D10 driver registration resolved | init()-based — operator doesn't code |
-| 17 | D11 scope model resolved | Hybrid: per-instance projections, per-layer source-of-truth |
-| 18 | D12 codec resolved | CBOR default + per-instance override |
-| 19 | D13 engine sharing resolved | Shared pool as named samber/do service |
-| 20 | Scream store tier boundary table | Grounded in actual SQLite/Postgres PRAGMA research — Normal is WAL-safe, OFF corrupts |
+| #   | Work item                                                   | Evidence                                                                                    |
+| --- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| 1   | Duplicate TOC entry removed                                 | Line 35 duplicate of line 32 — gone                                                         |
+| 2   | §5.2 updated to reference StreamLogBackend                  | Now cross-references §10.1                                                                  |
+| 3   | Topology diagrams redrawn with buses + cache + System scope | §6.1 all 3 topologies show Publish/Subscribe/Cache/Buses                                    |
+| 4   | InstanceConfig Go struct has Publish/Subscribe/Cache fields | §6.2 operator code shows full struct                                                        |
+| 5   | Consumer-facing API section added                           | §6.2 shows sys.Command(), sys.Query(), sys.Decider(), sys.UseCommandMiddleware()            |
+| 6   | Bus driver registry section added                           | §7.5 with gochannel/nats/redis, sync/async modes table                                      |
+| 7   | Cache tier wrapper code written                             | §7.6 CachedEventStore with otter read-through                                               |
+| 8   | Scream store operator-facing API added                      | §9.6 with startup check, ACK flag, tier boundary table with SQLite/Postgres/Pebble research |
+| 9   | Comparison tables updated (§6.3, §6.4)                      | Added cache, temporal, multi-bus rows                                                       |
+| 10  | Multi-bus publish model documented                          | §6.2 publish model table (sync local, async remote)                                         |
+| 11  | ProjectionHost consumption model documented                 | §6.2 explains pull (journal) vs push (bus)                                                  |
+| 12  | All 10 open questions resolved                              | 0 `**Question:**` lines remain in §10                                                       |
+| 13  | Deep research: multi-bus ordering                           | EventBus internals, BlockPublishUntilSubscriberAck, dispatchLocal sequential model          |
+| 14  | Deep research: decider ownership                            | Current Repository API, taskmanager wiring, minimum consumer surface                        |
+| 15  | Deep research: scream store boundaries                      | SQLite PRAGMA semantics, WAL+NORMAL safety, synchronous=OFF corruption risk                 |
+| 16  | D10 driver registration resolved                            | init()-based — operator doesn't code                                                        |
+| 17  | D11 scope model resolved                                    | Hybrid: per-instance projections, per-layer source-of-truth                                 |
+| 18  | D12 codec resolved                                          | CBOR default + per-instance override                                                        |
+| 19  | D13 engine sharing resolved                                 | Shared pool as named samber/do service                                                      |
+| 20  | Scream store tier boundary table                            | Grounded in actual SQLite/Postgres PRAGMA research — Normal is WAL-safe, OFF corrupts       |
 
 ---
 
 ## B) PARTIALLY DONE ⚠️
 
-| # | Item | Done | Missing |
-|---|---|---|---|
-| 1 | **§4 intro cleanup** | Paragraph updated to "Nine architectural decisions" | The edit MERGED the intro line with the §4.1 header text, destroying it. See D-1. |
-| 2 | **Decider ownership API** | §6.2 shows `sys.Decider(ctx, streamID, ...)` and `sys.Command()` | The Config struct shows `Decider: TaskDecider` but doesn't show multi-deider support (multiple aggregates). Real apps have many deciders, not one. |
-| 3 | **Multi-decider registration** | Not addressed at all. The current `taskmanager` example has one decider (Task). Real systems have many (Order, User, Inventory...). The Config has a single `Decider` field, not `[]Decider` or a registration API. | Need either `Deciders: map[string]Decider` or `sys.RegisterDecider(streamType, deciderDef)`. |
-| 4 | **Connection pool as samber/do named service** | §10.10 text says "Connection pools are named services in samber/do" | No design for HOW pools are configured, sized, or hot-reloaded. Just states "samber/do should help." |
-| 5 | **§7.5 bus driver registry** | Section exists with 3 drivers, sync/async table | No code for how a bus driver registers (the init() function). Storage has full import examples; buses only have import stubs. |
-| 6 | **Glossary** | StreamLogBackend, Cache Tier, Named Engine, Temporal added | Missing: Bus Topology, Multi-Bus, CachedEventStore, InstanceConfig, Publish Model |
+| #   | Item                                           | Done                                                                                                                                                                                                                | Missing                                                                                                                                            |
+| --- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **§4 intro cleanup**                           | Paragraph updated to "Nine architectural decisions"                                                                                                                                                                 | The edit MERGED the intro line with the §4.1 header text, destroying it. See D-1.                                                                  |
+| 2   | **Decider ownership API**                      | §6.2 shows `sys.Decider(ctx, streamID, ...)` and `sys.Command()`                                                                                                                                                    | The Config struct shows `Decider: TaskDecider` but doesn't show multi-deider support (multiple aggregates). Real apps have many deciders, not one. |
+| 3   | **Multi-decider registration**                 | Not addressed at all. The current `taskmanager` example has one decider (Task). Real systems have many (Order, User, Inventory...). The Config has a single `Decider` field, not `[]Decider` or a registration API. | Need either `Deciders: map[string]Decider` or `sys.RegisterDecider(streamType, deciderDef)`.                                                       |
+| 4   | **Connection pool as samber/do named service** | §10.10 text says "Connection pools are named services in samber/do"                                                                                                                                                 | No design for HOW pools are configured, sized, or hot-reloaded. Just states "samber/do should help."                                               |
+| 5   | **§7.5 bus driver registry**                   | Section exists with 3 drivers, sync/async table                                                                                                                                                                     | No code for how a bus driver registers (the init() function). Storage has full import examples; buses only have import stubs.                      |
+| 6   | **Glossary**                                   | StreamLogBackend, Cache Tier, Named Engine, Temporal added                                                                                                                                                          | Missing: Bus Topology, Multi-Bus, CachedEventStore, InstanceConfig, Publish Model                                                                  |
 
 ---
 
 ## C) NOT STARTED ❌
 
-| # | Item | Why it matters |
-|---|---|---|
-| 1 | **ADRs** | 9+ decisions (D1-D13), zero ADRs cut |
-| 2 | **Implementation** | Entire `system/` module — zero code written |
-| 3 | **Multi-decider design** | How does the System handle multiple aggregate types? Each has its own Decider[State]. |
-| 4 | **Operator config-driven decider routing** | The operator doesn't pick deciders (that's domain logic), but the System must route commands to the right decider. How? |
-| 5 | **Connection pool lifecycle** | Pools need max connections, idle timeout, hot-reload. No design. |
-| 6 | **Lua scripting for operator** | Q1 answer mentioned "max LUA kind of scripting" for operators. No design for how this would work. |
-| 7 | **koanf config schema** | D7 says koanf but no formal schema document (env var prefix, YAML structure validation) |
-| 8 | **Snapshot-to-instance mapping** | Snapshots are mentioned in topologies but the ADT/instance model for them isn't specified. Map ADT? Separate instance? |
+| #   | Item                                       | Why it matters                                                                                                          |
+| --- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| 1   | **ADRs**                                   | 9+ decisions (D1-D13), zero ADRs cut                                                                                    |
+| 2   | **Implementation**                         | Entire `system/` module — zero code written                                                                             |
+| 3   | **Multi-decider design**                   | How does the System handle multiple aggregate types? Each has its own Decider[State].                                   |
+| 4   | **Operator config-driven decider routing** | The operator doesn't pick deciders (that's domain logic), but the System must route commands to the right decider. How? |
+| 5   | **Connection pool lifecycle**              | Pools need max connections, idle timeout, hot-reload. No design.                                                        |
+| 6   | **Lua scripting for operator**             | Q1 answer mentioned "max LUA kind of scripting" for operators. No design for how this would work.                       |
+| 7   | **koanf config schema**                    | D7 says koanf but no formal schema document (env var prefix, YAML structure validation)                                 |
+| 8   | **Snapshot-to-instance mapping**           | Snapshots are mentioned in topologies but the ADT/instance model for them isn't specified. Map ADT? Separate instance?  |
 
 ---
 
 ## D) TOTALLY FUCKED UP 💥
 
-| # | What | Evidence | Fix |
-|---|---|---|---|
-| 1 | **§4.1 header destroyed** | The edit to clean up the §4 intro merged "Nine architectural decisions recorded below." with the §4.1 title text, producing: `Nine architectural decisions recorded below.: Hybrid (registry + config), leaning runtime`. The `### 4.1 Backend selection: Hybrid (registry + config), leaning runtime` heading is GONE. Grep for `### 4.1` returns nothing. | Reconstruct the §4.1 header |
-| 2 | **§4 intro runs into §4.1 body** | Line 358: `Nine architectural decisions recorded below.: Hybrid (registry + config), leaning runtime` — the intro sentence runs directly into the first sentence of D1 with a colon. The section break is lost. | Add newline + `### 4.1` header between intro and D1 body |
+| #   | What                             | Evidence                                                                                                                                                                                                                                                                                                                                                    | Fix                                                      |
+| --- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| 1   | **§4.1 header destroyed**        | The edit to clean up the §4 intro merged "Nine architectural decisions recorded below." with the §4.1 title text, producing: `Nine architectural decisions recorded below.: Hybrid (registry + config), leaning runtime`. The `### 4.1 Backend selection: Hybrid (registry + config), leaning runtime` heading is GONE. Grep for `### 4.1` returns nothing. | Reconstruct the §4.1 header                              |
+| 2   | **§4 intro runs into §4.1 body** | Line 358: `Nine architectural decisions recorded below.: Hybrid (registry + config), leaning runtime` — the intro sentence runs directly into the first sentence of D1 with a colon. The section break is lost.                                                                                                                                             | Add newline + `### 4.1` header between intro and D1 body |
 
 ---
 
@@ -199,6 +199,7 @@ type) but it's a domain-modeling decision.
 ### Q2: Should the Config struct separate consumer and operator concerns?
 
 Currently `system.Config` mixes both:
+
 ```go
 Config{
     Decider:   TaskDecider,          // consumer
@@ -210,6 +211,7 @@ Config{
 ```
 
 Should these be separate types?
+
 ```go
 system.New(ctx, system.DomainConfig{...}, system.DeploymentConfig{...})
 ```
@@ -224,6 +226,7 @@ snapshot at or below a given version. The Map ADT is key-value (streamID →
 snapshot), which works for "latest snapshot" but not for "snapshot at version N."
 
 Options:
+
 - Map ADT with versioned keys (key = `streamID:version`) — scan backward
 - A new SnapshotBackend interface (like StreamLogBackend)
 - Store all snapshots, query by version range (SQL: WHERE version <= N ORDER BY version DESC LIMIT 1)
@@ -235,18 +238,18 @@ versioning should work in the new instance model.
 
 ## Document Metrics
 
-| Metric | Value |
-|---|---|
-| Total lines | 1850 |
-| Decisions recorded | 13 (D1-D13) |
-| Open questions | 0 |
-| Resolved questions | 13 |
-| Active corruptions | 2 (§4.1 header destroyed, intro/body merged) |
-| Design gaps | 4 (multi-decider, pool lifecycle, snapshot ADT, Lua scripting) |
-| ADRs cut | 0 |
-| Lines of implementation code | 0 |
-| Sections | 11 |
-| TOC entries | 11 (matches sections) |
+| Metric                       | Value                                                          |
+| ---------------------------- | -------------------------------------------------------------- |
+| Total lines                  | 1850                                                           |
+| Decisions recorded           | 13 (D1-D13)                                                    |
+| Open questions               | 0                                                              |
+| Resolved questions           | 13                                                             |
+| Active corruptions           | 2 (§4.1 header destroyed, intro/body merged)                   |
+| Design gaps                  | 4 (multi-decider, pool lifecycle, snapshot ADT, Lua scripting) |
+| ADRs cut                     | 0                                                              |
+| Lines of implementation code | 0                                                              |
+| Sections                     | 11                                                             |
+| TOC entries                  | 11 (matches sections)                                          |
 
 ---
 

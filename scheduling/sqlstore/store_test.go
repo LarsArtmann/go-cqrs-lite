@@ -196,4 +196,3 @@ func TestSQLiteTimerStore_EmptyDue(t *testing.T) {
 		t.Fatalf("expected nil slice for empty Due, got %v", due)
 	}
 }
-

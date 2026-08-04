@@ -194,7 +194,7 @@
 6. **Consolidate CHANGELOG `[Unreleased]`** — Remove duplicate C038 references
    between old v4.3.0 section and new post-v4.3.0 section.
 7. **Regenerate API-stability golden** — `cd cmd/api-stability && GOWORK=off
-   go run main.go -update`.
+go run main.go -update`.
 
 ### High Priority (P1 — finishing the docs-health job)
 
@@ -205,32 +205,32 @@
 12. **Verify `.golangci.yml` has go-sse in depguard allow list.**
 13. **Check SKILL.md references for consistency** with new features.
 14. **Verify every FEATURES.md row** — Line-by-line against code, not just
-       the rows I added.
+    the rows I added.
 15. **Run `nix run .#check-duplication`** — Check for new clone groups.
 16. **Run `nix run .#check-coverage`** — Check for coverage drift.
 
 ### Medium Priority (P2 — open items from the harvest)
 
 17. **Export `Calibratable` interface** — pebbleengine/duckdbengine/pgengine
-       silently discard CalibrateEngine.
+    silently discard CalibrateEngine.
 18. **Wire `persistence.go` into `EngineProfile`** — Type exists, field doesn't.
 19. **Serialize `ReadCosts` into `SerializablePlan`** — Plan diffing gap.
 20. **Write ADR for ReadCosts design** — No ADR documents the decision.
 21. **Fix `metaengine/sse.go` over 350-line limit** — Extract `sseMainLoop`.
 22. **Fix encryption double-clone** — `crypto_helpers.go:66`.
 23. **Fix flaky `idempotency/kvstore` TTL test** — Blocked verify gate multiple
-       times.
+    times.
 24. **Publish cqrs-lint v4.4.0** — Version constant still "4.3.0".
 25. **Run cqrs-lint against real consumer projects** — Validate FP rates.
 26. **Scorecard: eliminate category-priority split brain** — Two sources of
-       truth for category ordering.
+    truth for category ordering.
 27. **Scorecard: render `Evidence` field** — Show which import path triggered
-       detection.
+    detection.
 28. **Doctor/explain test coverage** — Both have zero unit tests.
 29. **Migrate global detectors to per-module evaluation** — 26 detectors still
-       on primary profile.
+    on primary profile.
 30. **Fix `commentTextStart` multi-line string literal bug** — Block suppression
-       parser.
+    parser.
 31. **Push go-retry + go-idempotency to GitHub** — Created + tagged, not pushed.
 32. **Tag `stack/mysql/v4`** — Source stable, tag missing.
 33. **Pin GitHub Actions to commit SHAs** — 72+ unpinned.
@@ -241,7 +241,7 @@
 35. **B025 cross-package helper tracing** — Only same-package traced.
 36. **JSONC trailing comma support** — Parser limitation.
 37. **DuckDB LayoutPlanner follow-ups** — explainScan, centralize helpers,
-       benchmark, adttest matrix.
+    benchmark, adttest matrix.
 38. **Postgres GIN containment indexes** — `@>` operator support.
 39. **10M soak test hardening** — 3× -race, TotalAlloc tracking, heap root cause.
 40. **Document watcher delete semantics** — Zero value of V after reification.
@@ -255,9 +255,9 @@
 48. **Contract test suite across ALL backends in VMs** (M46).
 49. **CALM theorem ADR for metaengine** — Monotonic folds are CRDT-safe.
 50. **Metaengine redesign: resolve 10 open design questions** (§10 of
-       `metaengine-redesign.md`) — driver registration, config format, migration
-       path, scope boundaries, bus integration, codec defaults, cache tier
-       policy, named engine sharing, HTTP admin, instance grouping.
+    `metaengine-redesign.md`) — driver registration, config format, migration
+    path, scope boundaries, bus integration, codec defaults, cache tier
+    policy, named engine sharing, HTTP admin, instance grouping.
 
 ---
 

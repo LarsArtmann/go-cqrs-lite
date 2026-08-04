@@ -47,6 +47,7 @@ use (
 	./retry
 	./scenario
 	./scheduling
+	./scheduling/sqlstore
 	./schema
 	./signing
 	./snapshot

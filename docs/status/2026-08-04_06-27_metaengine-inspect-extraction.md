@@ -142,7 +142,6 @@ Nothing is _broken_ — no compile errors, no test failures, no behavior change.
 | **File-size gate** | `nix run .#check-file-size`                             | ❌ **NOT RUN** — would fail (sse.go=369>350) |
 | Full verify gate   | `nix run .#verify`                                      | ❌ NOT RUN                                   |
 
-
 ---
 
 ## Annotation (2026-08-04)

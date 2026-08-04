@@ -156,8 +156,8 @@ github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0 h1:gq6lOmj5AbfUBh5MfCwdZ+uTF
 github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0/go.mod h1:zSIkYBJc4VLgECEHPu1K2xsgt0Z+2PVsF8/fIbczur0=
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0 h1:crv4LiYKOql624vrc2XvClk9vgo9/qumWU1M0IEPmMc=
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0/go.mod h1:ftzLBt4BpjwVqSWoy9QJoztDJnxMYcsNDv3pDBg25GI=
-github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260804052633-f53870fe6446 h1:eSiUc1ZVMOO/OM2v3H6M1CybpoG/5DvZorlnuV+MtCc=
-github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260804052633-f53870fe6446/go.mod h1:AuZLD6VfU2mPj7DENWMRag8kXzsf4+dHgM6fAbODszQ=
+github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260804080339-8e2c71a68455 h1:QgMOri0yVQV07EFDMWnez82VnDhsVse6HbndzwWei7c=
+github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260804080339-8e2c71a68455/go.mod h1:AuZLD6VfU2mPj7DENWMRag8kXzsf4+dHgM6fAbODszQ=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0 h1:/sMxhws4RcEa1fZTZzI9/abXhYs5QBDDBeyrTbGXK9U=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0/go.mod h1:kcwycOA9+V6+pbGbjN3nVRlMPhOAx9ZV8EzDI1Z/R70=
 github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0 h1:/6jCquRNzVdEI8sP4CwNu2K7CbRaF79lYD7ntMgLEhw=
@@ -194,8 +194,8 @@ github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.2.0 h1:9ehF8NUkwH+QGlruYV
 github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.2.0/go.mod h1:szD9EASoRuvH15/julXFeb0dobzl8zCmpK/1kw2DfhQ=
 github.com/larsartmann/go-cqrs-lite/stack/turso/v4 v4.2.0 h1:h/QjEl3sm91dNxf/vebu/jLYgrs6uF7bpPYoT8bs0QY=
 github.com/larsartmann/go-cqrs-lite/stack/turso/v4 v4.2.0/go.mod h1:0309Jd22b6x4KdvfrtouKNzHex+gdYNew24FqJzKwdQ=
-github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260804052633-f53870fe6446 h1:nm7C5Xke/HOyzwjWQ2lxFofHgWlMZUYqLSGiEIQm3MQ=
-github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260804052633-f53870fe6446/go.mod h1:7K5YGzvNGliB5mDEJZCJMWU8OFwF4e9UmLnNhs9MYB4=
+github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260804080339-8e2c71a68455 h1:jdGXv+N3sxJlFUvVxYBsFx+r8o3DvoSs8gpbo6ITQEw=
+github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260804080339-8e2c71a68455/go.mod h1:7K5YGzvNGliB5mDEJZCJMWU8OFwF4e9UmLnNhs9MYB4=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0 h1:IfflVEKfoLckinbpJl1AZhGOs2OisO6lt2UYXVUTsB4=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0/go.mod h1:PuyvXJMSamLDrCPGLo4Z0cVmao4ZzrfoEK9ho+X60C4=
 github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.2.0 h1:3XpOY76woOMKrIODAKDCWL3S3OKETX7SAGyfsqiUhh0=

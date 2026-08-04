@@ -138,9 +138,9 @@
 5. Write doctor test with no config file: verify "(not found)" message
 6. Write explain output test: assert non-empty, contains "JSONC", contains all 4 preset names, contains all top-level key names
 7. Write integration test: create temp `.cqrs-lint.json` with comments → verify `doctor` reads it
-~~8. Write test: `cqrs-lint init` output passes through `stripJSONComments` and loads into `AppConfig`~~ done at `41f6c6b7`
-9. Add test for `JSONCLoader.Load` directly (not just `stripJSONComments`): pass bytes with comments, verify struct population + setFields return
-10. Add test for trailing block comment at EOF (no closing `*/`)
+   ~~8. Write test: `cqrs-lint init` output passes through `stripJSONComments` and loads into `AppConfig`~~ done at `41f6c6b7`
+8. Add test for `JSONCLoader.Load` directly (not just `stripJSONComments`): pass bytes with comments, verify struct population + setFields return
+9. Add test for trailing block comment at EOF (no closing `*/`)
 
 ### JSONC Enhancements
 
@@ -227,7 +227,6 @@ The JSONC spec (as used by VS Code, TypeScript, esprima) allows trailing commas.
 ### Q3: Should the interleaved auto-commit-daemon commits be cleaned up via rebase?
 
 The git history has empty-message commits and commits mixing cqrs-lint changes with unrelated benchmark/metaengine changes. A `git rebase -i` could squash these into clean topic commits. But this is a destructive git operation (rewrites history) and per the AGENTS.md rules, requires explicit user approval.
-
 
 ---
 

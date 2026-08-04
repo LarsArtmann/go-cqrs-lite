@@ -34,7 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   config (array vs string parser mismatch). Now generates valid JSONC via
   `generateInitConfig`.
 - **Module catalog extraction** — `cmd/cqrs-lint/pkg/analyzer/module_catalog.go`
-  + `module_catalog_data.go` extracted from monolithic analyzer.
+  - `module_catalog_data.go` extracted from monolithic analyzer.
 
 #### Metaengine: ReadCosts, DuckDB+PG calibration, inspect.go extraction
 

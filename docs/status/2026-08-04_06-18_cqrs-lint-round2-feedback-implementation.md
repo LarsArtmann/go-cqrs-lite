@@ -139,11 +139,7 @@ Priority-ordered within each tier.
 
 ### Ship-blocking (must do before tagging a release)
 
-~~1. **Regenerate api-stability golden** — `cd cmd/api-stability && GOWORK=off go run main.go -update` (adds the 4 new exported symbols).~~ done at `63e972a0`
-2. **Run `nix run .#verify`** end-to-end and fix anything it surfaces.
-3. **Run `nix fmt`** and review the diff for formatting nits in the new files.
-4. **Decide version: v4.4.0** (new exported API = minor bump) and update `const version`, then verify `TestVersionMatchesLatestTag` still matches (it checks the constant equals the LATEST tag, so cut the tag after).
-5. **Commit the regenerated golden + version bump** together.
+~~1. **Regenerate api-stability golden** — `cd cmd/api-stability && GOWORK=off go run main.go -update` (adds the 4 new exported symbols).~~ done at `63e972a0` 2. **Run `nix run .#verify`** end-to-end and fix anything it surfaces. 3. **Run `nix fmt`** and review the diff for formatting nits in the new files. 4. **Decide version: v4.4.0** (new exported API = minor bump) and update `const version`, then verify `TestVersionMatchesLatestTag` still matches (it checks the constant equals the LATEST tag, so cut the tag after). 5. **Commit the regenerated golden + version bump** together.
 
 ### High-value correctness/robustness
 
@@ -217,7 +213,6 @@ Priority-ordered within each tier.
 2. **Migrate the remaining 26 global FeatureProfile reads now, or ship the primary-profile approach first?** Full per-module migration touches ~15 detector files and needs per-detector judgment (some signals — e.g. `Domain` — are legitimately project-wide, not per-module). Do you want that as a follow-up session, or blocked on a consumer hitting a residual false positive?
 
 3. **Run `nix run .#verify` now, or let the daemon/CI catch it?** The verify gate takes 3-4 min and will surface the api-stability golden drift (certain) plus possibly formatting/lint nits. I can fix all of it in this session if you want; or you may prefer to inspect the diff first. Which?
-
 
 ---
 

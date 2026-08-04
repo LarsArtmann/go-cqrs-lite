@@ -8,19 +8,19 @@
 
 ## a) FULLY DONE
 
-| Item | Evidence |
-|------|----------|
-| Fix FEATURES.md rule count 185→186 (gate-breaking) | `FEATURES.md:1249` updated, `check-rule-count.sh` passes |
-| Update FEATURES.md persistence row 🧪→✅ | `FEATURES.md:281` — persistence enum shipped (ADR-0098) |
-| Consolidate CHANGELOG C038 duplication | `CHANGELOG.md:775` — old v4.3.0 entry now cross-references "(rewritten post-v4.3.0 — see Unreleased section above)" |
-| Verify AGENTS.md rule count + features description | Already correct at 186 rules + scorecard/group-by/explain/C038-C040/JSONC/per-module — updated by daemon in prior commits |
-| `check-rule-count.sh` passes (all 3 files) | FEATURES.md=186, ROADMAP.md=186, AGENTS.md=186 |
-| ADR-0098 indexed in `docs/README.md` | Added after `verify-fast` caught the gap |
-| ANNOTATE 10 status reports with inline `done at` markers | All 10 reports have inline strikethroughs + annotation footers |
-| Update `cmd/cqrs-lint/README.md` | Added C038/C039/C040 to rules table, scorecard + group-by to CLI usage |
-| Update `cmd/cqrs-lint/CHANGELOG.md` | Added post-v4.3.0 section: scorecard, group-by, C038 rewrite, C039, C040, per-module detection |
-| `verify-fast` doc assertions pass | Build check, CHANGELOG count, module count, license, ADR index, error family — all OK |
-| Git push | `d0f78d3d` pushed to origin/master (4 commits: daemon-committed my changes) |
+| Item                                                     | Evidence                                                                                                                  |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Fix FEATURES.md rule count 185→186 (gate-breaking)       | `FEATURES.md:1249` updated, `check-rule-count.sh` passes                                                                  |
+| Update FEATURES.md persistence row 🧪→✅                 | `FEATURES.md:281` — persistence enum shipped (ADR-0098)                                                                   |
+| Consolidate CHANGELOG C038 duplication                   | `CHANGELOG.md:775` — old v4.3.0 entry now cross-references "(rewritten post-v4.3.0 — see Unreleased section above)"       |
+| Verify AGENTS.md rule count + features description       | Already correct at 186 rules + scorecard/group-by/explain/C038-C040/JSONC/per-module — updated by daemon in prior commits |
+| `check-rule-count.sh` passes (all 3 files)               | FEATURES.md=186, ROADMAP.md=186, AGENTS.md=186                                                                            |
+| ADR-0098 indexed in `docs/README.md`                     | Added after `verify-fast` caught the gap                                                                                  |
+| ANNOTATE 10 status reports with inline `done at` markers | All 10 reports have inline strikethroughs + annotation footers                                                            |
+| Update `cmd/cqrs-lint/README.md`                         | Added C038/C039/C040 to rules table, scorecard + group-by to CLI usage                                                    |
+| Update `cmd/cqrs-lint/CHANGELOG.md`                      | Added post-v4.3.0 section: scorecard, group-by, C038 rewrite, C039, C040, per-module detection                            |
+| `verify-fast` doc assertions pass                        | Build check, CHANGELOG count, module count, license, ADR index, error family — all OK                                     |
+| Git push                                                 | `d0f78d3d` pushed to origin/master (4 commits: daemon-committed my changes)                                               |
 
 ---
 
@@ -46,13 +46,13 @@ The handoff document listed `CONTRIBUTING.md` as needing JSONC loader, explain, 
 
 ## c) NOT STARTED
 
-| Item | Why it matters |
-|------|----------------|
-| **CONTRIBUTING.md update** | JSONC loader, explain subcommand, scorecard docs missing from contributor guide |
-| **Plan file tracked** | `docs/planning/2026-08-04_07-43_SUPERB-DOCS-HEALTH-FIXUP.md` was written but may be untracked |
-| **Self-review report tracked** | `docs/status/2026-08-04_07-40_docs-health-and-update-old-docs-self-review.md` status unclear |
+| Item                              | Why it matters                                                                                                        |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **CONTRIBUTING.md update**        | JSONC loader, explain subcommand, scorecard docs missing from contributor guide                                       |
+| **Plan file tracked**             | `docs/planning/2026-08-04_07-43_SUPERB-DOCS-HEALTH-FIXUP.md` was written but may be untracked                         |
+| **Self-review report tracked**    | `docs/status/2026-08-04_07-40_docs-health-and-update-old-docs-self-review.md` status unclear                          |
 | **AGENTS.md uncommitted changes** | `git status` shows `AGENTS.md` as modified (M) — the daemon has uncommitted metadata refactoring on top of my changes |
-| **Annotation quality spot-check** | Never verified that strikethrough markers render correctly in GitHub markdown (especially in table rows) |
+| **Annotation quality spot-check** | Never verified that strikethrough markers render correctly in GitHub markdown (especially in table rows)              |
 
 ---
 
@@ -82,18 +82,18 @@ I sent 3 parallel sub-agents to analyze 10 reports in detail (item-by-item, with
 
 ## e) WHAT WE SHOULD IMPROVE
 
-| # | Improvement | Priority |
-|---|-------------|----------|
-| 1 | **Commit manually before the daemon grabs changes** — the daemon interleaves unrelated work into single commits, destroying provenance | **CRITICAL** |
-| 2 | **Run `nix run .#verify` (full gate), not just `verify-fast`** — the AGENTS.md "stale GREEN" warning exists for exactly this scenario | **CRITICAL** |
-| 3 | **Read files before editing** — the edit tool requires prior View; I wasted a round trip by batch-multiediting unread files | **HIGH** |
-| 4 | **Don't use sub-agents for annotation** — they can't edit files, so the analysis round-trips through text output, doubling the work | **HIGH** |
-| 5 | **Investigate test failures, don't dismiss them** — "pre-existing and unrelated" is an assumption, not a verification | **HIGH** |
-| 6 | **Check `git status` before pushing** — I pushed while AGENTS.md had uncommitted daemon changes layered on top | **MEDIUM** |
-| 7 | **Update CONTRIBUTING.md when adding CLI features** — JSONC/explain/scorecard are user-facing but undocumented in the contributor guide | **MEDIUM** |
-| 8 | **Verify markdown renders** — strikethrough in table cells (`~~text~~`) can fail on some markdown renderers; spot-check on GitHub | **MEDIUM** |
-| 9 | **Track plan and self-review files** — I wrote `docs/planning/2026-08-04_07-43_*.md` and `docs/status/2026-08-04_07-40_*.md` but never verified they were committed | **LOW** |
-| 10 | **Batch-add footers with grep guard** — adding footers via bash loop without checking file content first risks duplicate or malformed footers | **LOW** |
+| #   | Improvement                                                                                                                                                         | Priority     |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| 1   | **Commit manually before the daemon grabs changes** — the daemon interleaves unrelated work into single commits, destroying provenance                              | **CRITICAL** |
+| 2   | **Run `nix run .#verify` (full gate), not just `verify-fast`** — the AGENTS.md "stale GREEN" warning exists for exactly this scenario                               | **CRITICAL** |
+| 3   | **Read files before editing** — the edit tool requires prior View; I wasted a round trip by batch-multiediting unread files                                         | **HIGH**     |
+| 4   | **Don't use sub-agents for annotation** — they can't edit files, so the analysis round-trips through text output, doubling the work                                 | **HIGH**     |
+| 5   | **Investigate test failures, don't dismiss them** — "pre-existing and unrelated" is an assumption, not a verification                                               | **HIGH**     |
+| 6   | **Check `git status` before pushing** — I pushed while AGENTS.md had uncommitted daemon changes layered on top                                                      | **MEDIUM**   |
+| 7   | **Update CONTRIBUTING.md when adding CLI features** — JSONC/explain/scorecard are user-facing but undocumented in the contributor guide                             | **MEDIUM**   |
+| 8   | **Verify markdown renders** — strikethrough in table cells (`~~text~~`) can fail on some markdown renderers; spot-check on GitHub                                   | **MEDIUM**   |
+| 9   | **Track plan and self-review files** — I wrote `docs/planning/2026-08-04_07-43_*.md` and `docs/status/2026-08-04_07-40_*.md` but never verified they were committed | **LOW**      |
+| 10  | **Batch-add footers with grep guard** — adding footers via bash loop without checking file content first risks duplicate or malformed footers                       | **LOW**      |
 
 ---
 
