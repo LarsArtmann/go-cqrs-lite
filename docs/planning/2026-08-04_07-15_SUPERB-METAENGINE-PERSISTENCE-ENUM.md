@@ -2,7 +2,76 @@
 
 > **STATUS:** IMPLEMENTED — ADR-0098.
 > Created: 2026-08-04 07:15
-> Completed: 2026-08-04 07:42
+> Implemented: 2026-08-04 07:42
+>
+> **Status report:** [`docs/status/2026-08-04_07-45_METAENGINE-PERSISTENCE-ENUM-IMPLEMENTED.md`](../status/2026-08-04_07-45_METAENGINE-PERSISTENCE-ENUM-IMPLEMENTED.md)
+
+---
+
+## Implementation Summary
+
+| Category | Status | Details |
+|---|---|---|
+| Core type + constants + helpers | ✅ Done | `persistence.go`, `IsVolatile()`, `IsPersistent()` |
+| EngineProfile field + String() | ✅ Done | Volatile suffix in `String()` |
+| All 5 engines declare persistence | ✅ Done | Memory, SQLite, Pebble (dynamic), DuckDB (dynamic), Postgres |
+| CollectionInfo + Store accessor | ✅ Done | `Store.Persistence(queryName)` |
+| SerializableQuery | ✅ Done | JSON tag `persistence,omitempty` |
+| durabilityRule | ⚠️ Partial | WARN + INFO work; INFO shows absolute NsPerOp not cost delta (see [divergence](#divergence-1-infographic-cost-format)) |
+| Doctor() + ExplainPlan() | ✅ Done | `--- Persistence ---` section, `volatile` suffix |
+| Tests (core module) | ✅ Done | 22 tests, all green, `-race` clean |
+| Tests (engine modules) | ❌ Missing | Pebble/DuckDB/PG engine-specific persistence tests not written |
+| API surface golden | ✅ Done | 6 new symbols, api-stability test passes |
+| ADR | ✅ Done | `docs/adr/0098-metaengine-persistence-enum.md` |
+| COOKBOOK.md | ✅ Done | 5-engine table with Persistence column |
+| README.md | ❌ Missing | Zero mentions of Persistence |
+| AGENTS.md | ❌ Missing | Zero mentions of Persistence |
+| SKILL.md references | ❌ Missing | Consumer-facing skill docs not updated |
+| `nix run .#lint` | ❌ Not run | Only `gofumpt`/`goimports` checked locally |
+| `nix run .#verify` | ❌ Not run | Full quality gate not executed |
+
+### Divergences from Plan
+
+#### Divergence 1: INFO diagnostic cost format
+
+**Planned:**
+```
+INFO  query "find_user" routed to volatile engine "memory"
+      (persistent alternative available: "sqlite" at O(logN), +0.007ms/op)
+```
+
+**Actual:**
+```
+INFO  routed to volatile engine "memory" — data lost on restart
+      (persistent alternative: sqlite at O(logN), 7000ns/op)
+```
+
+The plan specified a **cost delta** (`+0.007ms/op` = how much slower the
+persistent alternative would be for this query's volume). The implementation
+shows the alternative's **absolute NsPerOp** instead. Computing the delta
+requires running `estimateCost()` for both engines with the query's volume,
+which adds complexity — deferred for now. The WARN path (no alternative) is
+fully correct.
+
+#### Divergence 2: README.md not updated
+
+The plan listed `metaengine/README.md` in the file manifest. **Skipped during
+implementation.** Zero mentions of Persistence remain in the README.
+
+#### Divergence 3: Engine-specific tests not written
+
+The plan listed F35 (Pebble), F36-F38 (implied DuckDB/PG) for engine-specific
+persistence tests. **None written.** The core module tests cover
+`fakeEngine` + Memory + SQLite profile, but not the actual Pebble/DuckDB/PG
+constructor behavior.
+
+#### Divergence 4: Full lint/verify gate not run
+
+Only `go build`, `go test`, `gofumpt`, `goimports` were run locally.
+`nix run .#lint` (golangci-lint via treefmt) and `nix run .#verify` (full
+quality gate) were **not executed**.
+
+---
 
 ## Problem
 
@@ -189,20 +258,33 @@ WARN  query "find_user" routed to volatile engine "memory" —
 Emitted when: query routes to `PersistenceVolatile` engine AND no other engine in the plan is
 persistent for the same ADT.
 
+> ✅ **Implemented exactly as specified.**
+
 ### INFO — volatile engine chosen, persistent alternative exists
 
+**Planned format:**
 ```
 INFO  query "find_user" routed to volatile engine "memory"
       (persistent alternative available: "sqlite" at O(logN), +0.007ms/op)
+```
+
+**Actual implemented format:**
+```
+INFO  routed to volatile engine "memory" — data lost on restart
+      (persistent alternative: sqlite at O(logN), 7000ns/op)
 ```
 
 Emitted when: query routes to `PersistenceVolatile` engine AND at least one persistent engine in
 the plan supports the same ADT. The cost delta is shown so the operator can decide whether the
 speed gain is worth the restart-rebuild cost.
 
+> ⚠️ **Implemented with divergence** — see [Divergence 1](#divergence-1-infographic-cost-format) above. Uses absolute NsPerOp instead of computed cost delta.
+
 ### Silent — persistent engine
 
 No diagnostic. This is the happy path.
+
+> ✅ **Implemented exactly as specified.**
 
 ---
 
@@ -213,38 +295,39 @@ No diagnostic. This is the happy path.
 The `Persistence` type exists as a first-class concept in the type system.
 Without this atom, nothing else can be built.
 
-- `persistence.go`: type + 2 constants + doc comments
-- `EngineProfile.Persistence` field
-- `IsVolatile()` / `IsPersistent()` helper methods on EngineProfile
+- ✅ `persistence.go`: type + 2 constants + doc comments
+- ✅ `EngineProfile.Persistence` field
+- ✅ `IsVolatile()` / `IsPersistent()` helper methods on EngineProfile
 
 ### 4% that delivers 64%
 
 The two most common engines declare their persistence honestly.
 
-- Memory engine: `PersistenceVolatile`
-- SQLite engine: `PersistencePersistent`
-- `String()` includes persistence suffix
+- ✅ Memory engine: `PersistenceVolatile`
+- ✅ SQLite engine: `PersistencePersistent`
+- ✅ `String()` includes persistence suffix
 
 ### 20% that delivers 80%
 
 The planner actively uses persistence, and ALL engines declare it.
 
-- `durabilityRule`: WARN when query routes to volatile engine, INFO when persistent alternative exists
-- Pebble engine: dynamic (dir → persistent, "" → volatile)
-- DuckDB engine: dynamic (file → persistent, ":memory:" → volatile)
-- Postgres engine: always persistent
-- `CollectionInfo` exposes persistence + `Store.Persistence(queryName)` accessor
-- `SerializableQuery` includes persistence (plan diff/pin/audit)
+- ✅ `durabilityRule`: WARN when query routes to volatile engine, INFO when persistent alternative exists
+- ✅ Pebble engine: dynamic (dir → persistent, "" → volatile)
+- ✅ DuckDB engine: dynamic (file → persistent, ":memory:" → volatile)
+- ✅ Postgres engine: always persistent
+- ✅ `CollectionInfo` exposes persistence + `Store.Persistence(queryName)` accessor
+- ✅ `SerializableQuery` includes persistence (plan diff/pin/audit)
 
 ### Remaining 20% → 100%
 
-- `Doctor()` shows `--- Persistence ---` section
-- `ExplainPlan()` shows persistence on engine lines
-- Tests for every surface (type, rule, CollectionInfo, serializable, String)
-- API surface golden regen
-- ADR documenting the two-level decision + rejected alternatives
-- README + COOKBOOK table update (add Persistence column)
-- Build + test + verify gate
+- ✅ `Doctor()` shows `--- Persistence ---` section
+- ✅ `ExplainPlan()` shows persistence on engine lines
+- ✅ Tests for every surface (type, rule, CollectionInfo, serializable, String)
+- ✅ API surface golden regen
+- ✅ ADR documenting the two-level decision + rejected alternatives
+- ✅ COOKBOOK table update (add Persistence column)
+- ❌ README table update — **NOT DONE**
+- ❌ Build + test + verify gate — **PARTIAL** (build+test done, lint/verify NOT run)
 
 ---
 
