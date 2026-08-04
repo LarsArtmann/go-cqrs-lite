@@ -30,6 +30,7 @@ type SerializableQuery struct {
 	Engine           string      `json:"engine"`
 	Complexity       string      `json:"complexity"`
 	LatencyMs        float64     `json:"latency_ms"`
+	Persistence      Persistence `json:"persistence,omitempty"`
 	Replication      Replication `json:"replication,omitempty"`
 	ReplicationLagMs int64       `json:"replication_lag_ms,omitempty"`
 	NetworkRTTMs     int64       `json:"network_rtt_ms,omitempty"`
@@ -76,6 +77,7 @@ func Serialize(result *PlanResult, engines []Engine) *SerializablePlan {
 
 		if eng, ok := engineByName[q.EngineName]; ok {
 			profile := eng.Profile()
+			sq.Persistence = profile.Persistence
 			sq.Replication = profile.Replication
 			sq.ReplicationLagMs = profile.EffectiveReplicationLag().Milliseconds()
 			sq.NetworkRTTMs = profile.EffectiveNetworkRTT().Milliseconds()

@@ -13,16 +13,16 @@ CHANGELOG `[Unreleased]`.
 
 ## Release History
 
-| Version      | Date       | Highlights                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ------------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Unreleased] | —          | Flight recorder (ADR-0089), metaengine Tier 4 (Vector/Search/Spatial ADTs, DuckDB+Postgres engines, rule pipeline, materialize-vs-replay, StorageLayout, SerializablePlan, VersionedStorage, data model refactor), replication model (ADR-0093, DDIA Ch5 foundation), Universal ADT Phase 3 (ADR-0094, 10/10 ADTs on all engines), WatchTyped, boundary key validation, CalibrateEngine fix, benchkit evidence-grade metrics (ADR-0090), backend tradeoff framework (DurabilityTier, Capabilities), MySQL/MariaDB support (ADR-0080), Pebble sort index (1,233x speedup), cqrs-lint 179→185 rules + v4.3.0 (TLS detection, config presets, --adoption, changelog subcommand, block-level suppression), Nix-based integration test infrastructure (ADR-0095, ephemeral PG + NixOS VMs), Iroh bridge evaluation (ADR-0096), verify gate repair |
-| v4.2.0       | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| v4.1.0       | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| v4.0.4       | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| v4.0.3       | 2026-07-22 | SQL dialect abstraction, stack preset centralization, JSON v2 migration, harmful duplication elimination, cqrs-lint scanner overhaul                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| v4.0.2       | 2026-07-18 | CBOR time encoding fix, timezone-safe types (Instant, WallTime, Date), cqrs-lint loader error surfacing                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| v4.0.1       | 2026-07-16 | projectionhost deadlock/leak/sort fix, watermill deadlock fix, storage/view IS NULL+RawWhere+ViewUpdater, cqrs-lint first release (60 rules)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| v4.0.0       | 2026-07-11 | CBOR defaults, API cleanup, BackfillHandler consolidation, HealthCheck, storage split, `/v4` path migration                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Version      | Date       | Highlights                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Unreleased] | —          | Flight recorder (ADR-0089), metaengine Tier 4 (Vector/Search/Spatial ADTs, DuckDB+Postgres engines, rule pipeline, materialize-vs-replay, StorageLayout, SerializablePlan, VersionedStorage, data model refactor), replication model (ADR-0093, DDIA Ch5 foundation), Universal ADT Phase 3 (ADR-0094, 10/10 ADTs on all engines), WatchTyped, boundary key validation, CalibrateEngine fix, ReadCosts (per-read-pattern costs), benchkit evidence-grade metrics (ADR-0090), backend tradeoff framework (DurabilityTier, Capabilities), MySQL/MariaDB support (ADR-0080), Pebble sort index (1,233x speedup), cqrs-lint 179→186 rules + scorecard + group-by aggregate + C038-C040 + per-module detection + JSONC loader + explain command, go-sse consumption (ADR-0097), Nix-based integration test infrastructure (ADR-0095, ephemeral PG + NixOS VMs), Iroh bridge evaluation (ADR-0096), verify gate repair |
+| v4.2.0       | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| v4.1.0       | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| v4.0.4       | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| v4.0.3       | 2026-07-22 | SQL dialect abstraction, stack preset centralization, JSON v2 migration, harmful duplication elimination, cqrs-lint scanner overhaul                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| v4.0.2       | 2026-07-18 | CBOR time encoding fix, timezone-safe types (Instant, WallTime, Date), cqrs-lint loader error surfacing                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| v4.0.1       | 2026-07-16 | projectionhost deadlock/leak/sort fix, watermill deadlock fix, storage/view IS NULL+RawWhere+ViewUpdater, cqrs-lint first release (60 rules)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| v4.0.0       | 2026-07-11 | CBOR defaults, API cleanup, BackfillHandler consolidation, HealthCheck, storage split, `/v4` path migration                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
 ---
 
@@ -112,8 +112,8 @@ production maturity chain is complete:
 - ✅ **CalibrateEngine** — `calibratable` interface; copy-discard bug fixed
 
 **Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** Postgres GIN
-indexes, CalibrateEngine for external engines, benchmark trust deficit,
-DuckDB LayoutPlanner follow-ups.
+indexes, CalibrateEngine for external engines, persistence enum wiring,
+serialize ReadCosts into SerializablePlan, DuckDB LayoutPlanner follow-ups.
 
 **Remaining (long-term, ROADMAP):**
 
@@ -168,28 +168,34 @@ Evidence-grade metrics added (2026-08-01, ADR-0090).
 
 ### 3. cqrs-lint → Trustworthy
 
-The linter grew from 65 to **185 rules** across 10 categories. Quality has been
-hardened through multiple brutal review passes and 6 consumer feedback rounds.
+The linter grew from 65 to **186 rules** across 10 categories. Quality has been
+hardened through multiple brutal review passes and 7 consumer feedback rounds.
 
-- ✅ **185 rules shipped** across correctness (39), API (31), boilerplate (28),
+- ✅ **186 rules shipped** across correctness (41), API (31), boilerplate (28),
   adoption (21), architecture (17), consistency (16), security (10), performance
   (9), testing (8), version (6)
 - ✅ **Feature profile system** — auto-detects consumer module usage and adapts
-  context-dependent rules. TLS-aware server detection, ServerLocal heuristic
+  context-dependent rules. TLS-aware server detection, ServerLocal heuristic.
+  Per-module detection infrastructure (`ProfileForFile`) — C017 migrated, 26
+  detectors still on primary profile
 - ✅ **Self-lint mode** — `IsLibrarySelfLint()` auto-detects and skips 29
   consumer-coaching rules when linting the go-cqrs-lite source itself
 - ✅ **Quality hardening done** — E010/E011/E013/E014 rewritten with type-aware
   matching; import-alias resolution built; C030/S006 reviewed; suppression
   parser fixed; block-level suppression (ADR-0088); C008 struct-level ignore
-  config
-- ✅ **v4.3.0 shipped** — TLS detection, `ConfigFeatures` override, config
-  presets (`init --preset`), `--adoption` flag, `changelog` subcommand, version
-  stamping via `ldflags`, `TestVersionMatchesLatestTag` CI gate
-- ✅ **Consumer feedback received** — 6 consumer reviews (crush-daily,
-  Standup-Killer, bank-sync, cqrs-htmx, browser-history, timesheets). Drove
-  signal-to-noise from ~25% to ~90%+. Most reported issues were already fixed
-  in source but unpublished (stale Nix binary v0.2.2)
-- **Publish v4.3.0 binary** — all fixes in source but published binary stale.
+  config; C038/C039/C040 event-type mismatch + dead-fold-case detection
+- ✅ **Scorecard** — `--scorecard` / `scorecard` subcommand. Module adoption
+  scorecard with used/missing/irrelevant partitioning, coverage %, top-3
+  recommendations. Text + JSON output
+- ✅ **Group-by aggregate** — `--group-by aggregate` infers aggregate from
+  event-type prefixes + decider state types, groups findings by aggregate
+- ✅ **Config UX** — JSONC config loader (comment support), `explain`
+  interactive documentation explorer, `doctor` overhaul with preset + override
+  display, config presets unified as single source of truth
+- ✅ **Consumer feedback received** — 7 consumer reviews (crush-daily,
+  Standup-Killer, bank-sync, cqrs-htmx, browser-history, timesheets, DiscordSync).
+  Drove signal-to-noise from ~25% to ~90%+.
+- **Publish v4.4.0** — all fixes in source but version constant still "4.3.0".
   See [TODO_LIST.md](TODO_LIST.md).
 - **Run against real consumers** — validate false-positive rates against live
   projects. See [TODO_LIST.md](TODO_LIST.md).
@@ -258,10 +264,17 @@ The ADR review session flagged this as the "highest-leverage next move."
 DuckDB and Postgres engine cost constants are hand-picked with zero empirical
 backing (0 benchmarks exist for these engines).
 
-- [ ] Add correctness assertions to 29 unasserted benchmarks
-- [ ] Create DuckDB + Postgres engine benchmarks (0 exist today)
-- [ ] Pin cost constants with evidence or fix what they reveal
-- [ ] Regression baseline + CI integration
+- ✅ Add correctness assertions to benchmarks — 50+ benchmarks across 18 files
+  now assert results. Found 3 real bugs (empty-stream Save, wrong cursor,
+  JSON map decode failure).
+- ✅ Create DuckDB + Postgres engine benchmarks — 4 calibration benchmarks per
+  engine (batch insert, pushdown scan, vectorized aggregation, full scan).
+- ✅ ReadCosts — per-read-pattern cost model added to `EngineProfile`. Exposes
+  the 4000× gap between DuckDB point lookups and aggregations.
+- [ ] Export `Calibratable` for external engines — pebbleengine/duckdbengine/
+      pgengine silently discard CalibrateEngine.
+- [ ] Regression baseline + CI integration — calibration benchmarks should run
+      in CI and fail if constants drift >3×.
 
 ### 9. Deferred Debt (ADR-committed)
 
@@ -290,11 +303,29 @@ first `ReplicationLeaderless` engine.
 - [ ] Prototype `iroh.Replicated(pebbleEngine)` wrapper (Level 2 POC)
 - [ ] Evaluate Iroh C binding maturity over time
 
+### 11. Metaengine Persistence + System Redesign
+
+Two interconnected design efforts documented in late 2026-08 planning sessions.
+
+**Persistence enum** (`docs/planning/2026-08-04_07-15_SUPERB-METAENGINE-PERSISTENCE-ENUM.md`):
+Declares whether an engine's data survives process exit (DDIA Ch1 reliability
+axis). `metaengine/persistence.go` type exists but is not yet wired into
+`EngineProfile`. The `durabilityRule` will emit WARN when volatile engines
+hold materialized projections across restarts.
+
+**System topology redesign** (`docs/planning/metaengine-redesign.md`):
+A comprehensive design for a `system.System` type that replaces the current
+`Bundle` with an operator-configured, driver-registered, `samber/do`-scoped
+composition root. Features: driver registry (database/sql model), operator
+YAML+env config, N-instance composition (source-of-truth + projection layers),
+scream store (tiered deployment enforcement), cache tier, HTTP admin. 10 open
+design questions remain (§10 of the design doc).
+
 ---
 
 ## Raw Ideas (No Design Yet)
 
-> _Triage 2026-08-03: 14 items reviewed. None stale, none ready to drop._
+> _Triage 2026-08-04: 14 items reviewed. `cqrs-lint init` SHOWSTOPPER removed (fixed). None stale._
 
 - Event stream compaction / log truncation strategies
 - Multi-tenant event store (schema-per-tenant)
@@ -315,8 +346,8 @@ first `ReplicationLeaderless` engine.
   runtime without recompiling (operator YAML config for engine selection).
 - CALM theorem ADR for metaengine — document why monotonic folds are CRDT-safe
   for replicated engines (supports Iroh integration, ADR-0096).
-- `cqrs-lint init` broken config — array vs string parser mismatch. SHOWSTOPPER
-  for new users. See [TODO_LIST.md](TODO_LIST.md).
+- `CalibrateScanEngine` — runtime calibration for scan/aggregation costs (not
+  just point lookups; `CalibrateEngine` only measures `MapGet`).
 
 > Items with design docs graduate to a Theme above, then to [TODO_LIST.md](TODO_LIST.md)
 > when actively worked.

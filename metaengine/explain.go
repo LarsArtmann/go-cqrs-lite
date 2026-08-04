@@ -175,6 +175,9 @@ func (s *Store) ExplainPlan() string {
 			fmt.Fprintf(&b, " replication=%s, lag=%s, rtt=%s",
 				p.Replication, p.EffectiveReplicationLag(), p.EffectiveNetworkRTT())
 		}
+		if p.IsVolatile() {
+			fmt.Fprintf(&b, " volatile")
+		}
 
 		b.WriteString("\n")
 	}
@@ -268,6 +271,22 @@ func (s *Store) Doctor(ctx context.Context) string {
 
 	if !replicatedAny {
 		b.WriteString("  none\n")
+	}
+
+	b.WriteString("\n--- Persistence ---\n")
+
+	volatileAny := false
+	for _, c := range s.Collections() {
+		if c.Persistence != PersistenceVolatile {
+			continue
+		}
+
+		fmt.Fprintf(&b, "  %s: volatile (engine=%s)\n", c.Name, c.EngineName)
+		volatileAny = true
+	}
+
+	if !volatileAny {
+		b.WriteString("  all persistent\n")
 	}
 
 	return b.String()

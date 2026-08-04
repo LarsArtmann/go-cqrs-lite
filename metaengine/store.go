@@ -116,6 +116,19 @@ func (s *Store) ReplicationMode(queryName string) Replication {
 	return q.QueryEngine().Profile().Replication
 }
 
+// Persistence returns the durability classification for a query's collection.
+// Returns PersistenceVolatile if the collection doesn't exist or the engine
+// is RAM-backed. Use this to decide whether a restart will lose the projection
+// (requiring a replay from the event log).
+func (s *Store) Persistence(queryName string) Persistence {
+	q, ok := s.lookupQuery(queryName)
+	if !ok {
+		return PersistenceVolatile
+	}
+
+	return q.QueryEngine().Profile().Persistence
+}
+
 // IsPoisoned returns the poison error if the collection was poisoned by a fold
 // panic, or nil if healthy. Once poisoned, a collection refuses reads until
 // the store is recreated (or the poison is cleared via Reset).
