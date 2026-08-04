@@ -8,6 +8,57 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### cqrs-lint post-v4.3.0: scorecard, group-by aggregate, C038-C040, config UX
+
+- **Scorecard subcommand** — `cqrs-lint --scorecard` / `cqrs-lint scorecard`.
+  Module adoption scorecard: detects used/missing go-cqrs-lite modules,
+  computes coverage %, recommends top-3 modules. `ModuleCatalog` with 28
+  modules across 7 categories. Profile-relative filtering. Text + JSON output.
+- **Group-by aggregate** — `--group-by aggregate` infers aggregate names from
+  event-type prefixes (`user.created` → `user`) and decider/fold state types
+  (`CounterState` → `counter`). Groups findings by aggregate (most issues first).
+- **C038/C039/C040 rewritten** — C038 now detects near-miss event type strings
+  in `switch evt.Type()` blocks via Levenshtein distance. C039 flags event types
+  emitted but never handled. C040 detects dead `case` branches in fold switch
+  statements. Rule count: 185→186.
+- **Per-module feature detection** — `ProfileForFile` evaluates feature profiles
+  per-module in multi-module workspaces. C017 migrated; 26 detectors still on
+  primary profile.
+- **JSONC config loader** — `.cqrs-lint.json` now supports comments (`//` line
+  comments and `/* */` block comments) via `stripJSONComments` parser.
+- **`explain` subcommand** — interactive documentation explorer for config keys,
+  presets, rules, and feature flags.
+- **`doctor` overhaul** — now shows active preset, resolved feature overrides,
+  disabled rules, suppression counts, and parent-config inheritance chain.
+- **`init` SHOWSTOPPER fix** — `cqrs-lint init` no longer produces a broken
+  config (array vs string parser mismatch). Now generates valid JSONC via
+  `generateInitConfig`.
+- **Module catalog extraction** — `cmd/cqrs-lint/pkg/analyzer/module_catalog.go`
+  + `module_catalog_data.go` extracted from monolithic analyzer.
+
+#### Metaengine: ReadCosts, DuckDB+PG calibration, inspect.go extraction
+
+- **`ReadCosts` per-read-pattern cost model** — `EngineProfile.ReadCosts` adds
+  separate cost fields for point-lookup, scan, and aggregation reads. Exposes
+  the 4000× gap between DuckDB point lookups (~133 ns) and aggregations.
+  DuckDB + Postgres engines calibrated. `metaengine/readcost_selection_test.go`
+  validates planner selection with ReadCosts.
+- **DuckDB + Postgres calibration benchmarks** — 4 benchmarks per engine
+  (batch insert, pushdown scan, vectorized aggregation, full scan). Exposed
+  the single-scalar cost model flaw that led to ReadCosts.
+- **Benchmark correctness assertions** — 50+ benchmarks across 18 files now
+  assert results. Found 3 real bugs: (1) `BenchmarkMemoryStore_Save` used
+  expectedVersion=1 on empty stream; (2) `BenchmarkMemoryStore_ReadFrom_Scale`
+  read from LAST event ID (always empty); (3) JSON map decode silently failed.
+  `benchkit.RunSuite` now `b.Fatalf`s on integrity errors.
+- **`Store.Inspect()` / `InspectJSON()` extraction** — moved from `sse.go` to
+  `metaengine/inspect.go` for file cohesion. Collection introspection (key
+  count, engine, ADT) has nothing to do with SSE.
+- **`metaengine/persistence.go`** — defines `Persistence` type +
+  `PersistenceVolatile`/`PersistencePersistent` constants (DDIA Ch1 reliability
+  axis). Foundation for `durabilityRule` diagnostics. NOT yet wired into
+  `EngineProfile`.
+
 #### MySQL/MariaDB support: stack preset, dialect methods, classifier, docs
 
 - **`stack/mysql` preset** — full MySQL/MariaDB stack bundle with
