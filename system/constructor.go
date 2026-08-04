@@ -242,9 +242,9 @@ func RegisterCommand[Cmd command.Command, State any](
 
 		op := handler(ctx, typed)
 
-		sys.mu.Lock()
+		sys.mu.RLock()
 		repoAny, exists := sys.repos[string(op.streamType)]
-		sys.mu.Unlock()
+		sys.mu.RUnlock()
 
 		if !exists {
 			return fmt.Errorf("system: no decider registered for stream type %q", op.streamType)

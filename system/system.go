@@ -187,6 +187,12 @@ func Execute[State any](_ context.Context, streamID id.StreamID, streamType id.S
 	}
 }
 
+// StreamID returns the target stream for this Op.
+func (o Op[State]) StreamID() id.StreamID { return o.streamID }
+
+// StreamType returns the stream type (entity type) for this Op.
+func (o Op[State]) StreamType() id.StreamType { return o.streamType }
+
 // ─── System type ───
 
 // System is the composition root that owns ALL infrastructure wiring (D6).
@@ -200,7 +206,7 @@ func Execute[State any](_ context.Context, streamID id.StreamID, streamType id.S
 //   - [System.MetaEngine] — access the projection-layer store
 //   - [System.Start] / [System.Stop] — lifecycle
 type System struct {
-	mu sync.Mutex
+	mu sync.RWMutex
 
 	deployment DeploymentConfig
 
