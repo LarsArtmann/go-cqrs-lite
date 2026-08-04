@@ -34,6 +34,7 @@ const DuckDBNsPerOp = 15000.0
 //   - BenchmarkCalibration_DuckDB_AggregateSum: ~111 ns/row (vectorized SUM)
 //   - BenchmarkCalibration_DuckDB_PushdownScan: ~425 ns/row (filtered scan + JSON decode)
 //   - BenchmarkCalibration_DuckDB_FullScan:     ~810 ns/row (full scan + JSON decode)
+//
 // The constant (1.5x the full-scan measurement) is conservative for slower
 // hardware; it also leaves headroom for DuckDB's vectorized advantage to grow
 // at 1M+ rows where columnar compression and zone maps dominate.

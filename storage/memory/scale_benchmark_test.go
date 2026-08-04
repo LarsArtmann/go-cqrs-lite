@@ -2,6 +2,7 @@ package memory_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"testing"
@@ -17,7 +18,11 @@ func benchPopulateStore(b *testing.B, store *memory.MemoryStore, ctx context.Con
 	for range n {
 		streamID := id.NewStreamID()
 		evt := benchEvent(b, streamID, 1)
-		if err := store.AppendBatch(ctx, id.NewStreamRef("Bench", streamID), []event.Event{evt}); err != nil {
+		if err := store.AppendBatch(
+			ctx,
+			id.NewStreamRef("Bench", streamID),
+			[]event.Event{evt},
+		); err != nil {
 			b.Fatalf("seed AppendBatch: %v", err)
 		}
 	}
@@ -119,7 +124,12 @@ func BenchmarkMemoryStore_Save_Concurrent(b *testing.B) {
 			defer wg.Done()
 			newID := id.NewStreamID()
 			newEvt := benchEvent(b, newID, 1)
-			if err := store.Save(ctx, id.NewStreamRef("Bench", newID), []event.Event{newEvt}, 0); err != nil {
+			if err := store.Save(
+				ctx,
+				id.NewStreamRef("Bench", newID),
+				[]event.Event{newEvt},
+				0,
+			); err != nil {
 				errOnce.Do(func() { firstErr = err })
 			}
 		}()
@@ -167,7 +177,7 @@ func BenchmarkMemoryStore_ReadWrite_Concurrent(b *testing.B) {
 				errOnce.Do(func() { firstErr = fmt.Errorf("ReadAll: %w", err) })
 			}
 			if len(events) == 0 {
-				errOnce.Do(func() { firstErr = fmt.Errorf("ReadAll returned empty") })
+				errOnce.Do(func() { firstErr = errors.New("ReadAll returned empty") })
 			}
 		}()
 
@@ -175,7 +185,12 @@ func BenchmarkMemoryStore_ReadWrite_Concurrent(b *testing.B) {
 			defer wg.Done()
 			streamID := id.NewStreamID()
 			evt := benchEvent(b, streamID, 1)
-			if err := store.Save(ctx, id.NewStreamRef("Bench", streamID), []event.Event{evt}, 0); err != nil {
+			if err := store.Save(
+				ctx,
+				id.NewStreamRef("Bench", streamID),
+				[]event.Event{evt},
+				0,
+			); err != nil {
 				errOnce.Do(func() { firstErr = err })
 			}
 		}()

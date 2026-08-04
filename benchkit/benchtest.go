@@ -95,7 +95,10 @@ func RunSuite(b *testing.B, config Config, factory Factory) {
 
 	if result.IntegrityErrors > 0 {
 		b.ReportMetric(float64(result.IntegrityErrors), "integrity-errors")
-		b.Fatalf("integrity check failed: %d events failed read-back verification", result.IntegrityErrors)
+		b.Fatalf(
+			"integrity check failed: %d events failed read-back verification",
+			result.IntegrityErrors,
+		)
 	}
 
 	if result.MetaEngineApplyLatency.Count > 0 {

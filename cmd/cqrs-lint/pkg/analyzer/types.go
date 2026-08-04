@@ -124,9 +124,9 @@ type PackageLoadError struct {
 
 // GoFile wraps a parsed Go file with its package context.
 type GoFile struct {
-	Path string
-	Pkg  *packages.Package
-	AST  *ast.File
+	Path   string
+	Pkg    *packages.Package
+	AST    *ast.File
 	IsTest bool
 	// ModuleDir is the filesystem path of the go.mod directory this file belongs
 	// to. Set in BuildContext so feature detection can be partitioned per module

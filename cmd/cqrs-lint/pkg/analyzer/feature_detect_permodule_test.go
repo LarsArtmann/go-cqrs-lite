@@ -32,8 +32,8 @@ func parseGoFile(t *testing.T, fset *token.FileSet, name, src, moduleDir string)
 // paths, for import-based feature detection in tests.
 func pkgWithImports(pkgPath string, imports ...string) *packages.Package {
 	pkg := &packages.Package{
-		PkgPath:   pkgPath,
-		Imports:   map[string]*packages.Package{},
+		PkgPath: pkgPath,
+		Imports: map[string]*packages.Package{},
 	}
 	for _, imp := range imports {
 		pkg.Imports[imp] = &packages.Package{PkgPath: imp}
@@ -120,9 +120,9 @@ func TestProfileForFile_ResolvesByLongestPrefix(t *testing.T) {
 	}
 
 	tests := []struct {
-		name string
-		file string
-		want StoreKind
+		name   string
+		file   string
+		want   StoreKind
 		server bool
 	}{
 		{"root module file", "/repo/lib/foo.go", StorePostgres, false},

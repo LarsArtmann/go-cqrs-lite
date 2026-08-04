@@ -75,7 +75,8 @@ func NewC040Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithConfidence(finding.ConfidenceMedium).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion(fmt.Sprintf(
-						"Remove the case for %q or verify it is emitted in another module", fc.Value,
+						"Remove the case for %q or verify it is emitted in another module",
+						fc.Value,
 					)).
 					WithSnippet(ctx.SourceLine(fc.File, fc.Pos.Line)).
 					Build()

@@ -19,9 +19,17 @@ and is **never** duplicated here.
 > 29 of 43 benchmarks discard results; DuckDB and Postgres cost constants have
 > zero empirical backing.
 
-- [ ] 🔥 **Add correctness assertions to 29 unasserted benchmarks** — without
+- [x] 🔥 **Add correctness assertions to 29 unasserted benchmarks** — without
       assertions, a benchmark can silently measure empty stores (the ADR-0090
       lesson: the metaengine benchmark measured empty counters for sessions).
+      **Done:** Added assertions to 50+ benchmarks across 18 files (kv, storage/memory,
+      decider, event, id, signing, integration, storage/pebble, storage/turso, catalog,
+      benchkit). Found 3 real bugs: (1) `BenchmarkMemoryStore_Save` used expectedVersion=1
+      on an empty stream — every Save silently failed; (2) `BenchmarkMemoryStore_ReadFrom_Scale`
+      read from the LAST event ID — always returned empty; (3) `BenchmarkDecodePayload_clone_vs_direct`
+      used `map[string]string` for JSON with numeric `"age"` field — decode silently failed.
+      Plus: `benchkit.RunSuite` now `b.Fatalf`s on integrity errors instead of only reporting
+      the metric.
 - [ ] 🔥 **Create DuckDB + Postgres engine benchmarks** — 0 exist today. Cost
       constants for these engines are completely fabricated.
 

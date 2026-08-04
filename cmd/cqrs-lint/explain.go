@@ -1,0 +1,500 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"sort"
+	"strings"
+
+	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+)
+
+func setupExplainCommand(cli *cmdguard.CLI[AppConfig]) error {
+	cmd, err := cmdguard.NewCommand(
+		"explain",
+		cmdguard.NoFlags{},
+		func(_ context.Context, _ *AppConfig, _ cmdguard.NoFlags) error {
+			fmt.Print(renderExplain())
+			return nil
+		},
+		cmdguard.WithShort("Explain the .cqrs-lint.json config format, all keys, presets, and features"),
+		cmdguard.WithNoArgs(),
+	)
+	return registerCommand(cli, "explain", cmd, err)
+}
+
+// presetDescriptions maps preset names to human-readable descriptions.
+// These explain WHY each preset exists and WHEN to use it.
+//
+//nolint:gochecknoglobals // read-only documentation table
+var presetDescriptions = map[analyzer.ConfigPreset]string{
+	analyzer.PresetLocalCLI:   "Single-user CLIs and local tools: no network server, no tracing.",
+	analyzer.PresetProduction: "Deployed services: pins server=true and tracing=on for production safety.",
+	analyzer.PresetLibrary:    "Library/SDK modules consumed by other Go programs: silences app-only rules.",
+	analyzer.PresetReadOnly:   "Event/query consumers that never dispatch commands.",
+}
+
+func renderExplain() string {
+	var b strings.Builder
+
+	renderConfigFileSection(&b)
+	renderTopLevelKeys(&b)
+	renderPresets(&b)
+	renderFeatures(&b)
+	renderRulesConfig(&b)
+	renderHealthConfig(&b)
+	renderResolutionOrder(&b)
+	renderSuppressionSyntax(&b)
+
+	return b.String()
+}
+
+func renderConfigFileSection(b *strings.Builder) {
+	b.WriteString("CONFIG FILE\n")
+	b.WriteString("───────────\n")
+	b.WriteString("  Location:  .cqrs-lint.json (in the directory where you run cqrs-lint)\n")
+	b.WriteString("  Format:    JSON with Comments (JSONC)\n")
+	b.WriteString("             // line comments and /* block comments */ are supported.\n")
+	b.WriteString("             Comments are stripped before parsing — document every setting inline.\n")
+	b.WriteString("\n")
+	b.WriteString("  Example:\n")
+	b.WriteString("    {\n")
+	b.WriteString("      // Use the production preset for deployed services\n")
+	b.WriteString("      \"preset\": \"production\",\n")
+	b.WriteString("\n")
+	b.WriteString("      // Only show warnings and errors (hide info-level noise)\n")
+	b.WriteString("      \"min-severity\": \"warning\",\n")
+	b.WriteString("\n")
+	b.WriteString("      \"rules\": {\n")
+	b.WriteString("        // D002 is a false positive: our API structs mirror Discord's snake_case\n")
+	b.WriteString("        \"disable\": [\"D002\"]\n")
+	b.WriteString("      }\n")
+	b.WriteString("    }\n")
+	b.WriteString("\n")
+	b.WriteString("\n")
+}
+
+// topLevelKey describes one top-level config key.
+type topLevelKey struct {
+	key         string
+	typ         string
+	def         string
+	description string
+}
+
+//
+//nolint:gochecknoglobals // read-only documentation table
+var topLevelKeys = []topLevelKey{
+	{"preset", "string", `""`, "Named set of feature-flag and rule defaults (see PRESETS below)"},
+	{"min-severity", "string", `"info"`, "Minimum severity to show: info, warning, error, critical"},
+	{"min-confidence", "string", `"low"`, "Minimum confidence to show: low, medium, high"},
+	{"format", "string", `"text"`, "Output format: text, json, sarif, markdown"},
+	{"exclude", "string", `""`, "Paths to exclude (comma-separated glob patterns)"},
+	{"exclude-rules", "string", `""`, "Rule IDs to exclude (comma-separated, e.g. \"C007,A001\")"},
+	{"color", "string", `"auto"`, "Color output: auto, always, never"},
+	{"group-by", "string", `""`, "Group findings by: none, module, aggregate"},
+	{"features", "object", "{}", "Override auto-detected feature profile (see FEATURES below)"},
+	{"rules", "object", "{}", "Rule-specific configuration (see RULES below)"},
+	{"health", "object", "{}", "Health-score tuning (see HEALTH below)"},
+}
+
+func renderTopLevelKeys(b *strings.Builder) {
+	b.WriteString("TOP-LEVEL KEYS\n")
+	b.WriteString("──────────────\n")
+	b.WriteString("\n")
+
+	keyWidth := len("Key")
+	typeWidth := len("Type")
+	defWidth := len("Default")
+
+	for _, k := range topLevelKeys {
+		if len(k.key) > keyWidth {
+			keyWidth = len(k.key)
+		}
+		if len(k.typ) > typeWidth {
+			typeWidth = len(k.typ)
+		}
+		if len(k.def) > defWidth {
+			defWidth = len(k.def)
+		}
+	}
+
+	header := fmt.Sprintf("  %-*s  %-*s  %-*s  %s\n",
+		keyWidth, "Key",
+		typeWidth, "Type",
+		defWidth, "Default",
+		"Description")
+	b.WriteString(header)
+	sep := fmt.Sprintf("  %s  %s  %s  %s\n",
+		strings.Repeat("─", keyWidth),
+		strings.Repeat("─", typeWidth),
+		strings.Repeat("─", defWidth),
+		strings.Repeat("─", len("Description")))
+	b.WriteString(sep)
+
+	for _, k := range topLevelKeys {
+		fmt.Fprintf(b, "  %-*s  %-*s  %-*s  %s\n",
+			keyWidth, k.key,
+			typeWidth, k.typ,
+			defWidth, k.def,
+			k.description)
+	}
+
+	b.WriteString("\n\n")
+}
+
+func renderPresets(b *strings.Builder) {
+	b.WriteString("PRESETS\n")
+	b.WriteString("───────\n")
+	b.WriteString("\n")
+	b.WriteString("  Presets are convenience bundles. They expand to a set of feature flags,\n")
+	b.WriteString("  rule disables, and a severity floor. Explicit config always overrides\n")
+	b.WriteString("  preset values. The severity floor is a LOWER BOUND — you can raise it\n")
+	b.WriteString("  (e.g. to \"error\") but cannot lower it below the preset floor.\n")
+	b.WriteString("\n")
+
+	names := analyzer.ValidPresetNames()
+
+	for _, name := range names {
+		preset := analyzer.ConfigPreset(name)
+		def := analyzer.ResolvePresetDefinition(preset)
+		desc := presetDescriptions[preset]
+
+		fmt.Fprintf(b, "  %s\n", name)
+		fmt.Fprintf(b, "    %s\n", desc)
+
+		if f := formatConfigFeatures(def.Features); f != "" {
+			fmt.Fprintf(b, "    Features pinned:  %s\n", f)
+		}
+
+		if len(def.Rules.Disable) > 0 {
+			fmt.Fprintf(b, "    Rules disabled:   %s\n", strings.Join(def.Rules.Disable, ", "))
+		}
+
+		if def.MinSeverity != "" {
+			fmt.Fprintf(b, "    Severity floor:   %s\n", def.MinSeverity)
+		}
+
+		b.WriteString("\n")
+		fmt.Fprintf(b, "    \"preset\": \"%s\"\n", name)
+		b.WriteString("\n\n")
+	}
+}
+
+// formatConfigFeatures renders a ConfigFeatures as a human-readable list of
+// "key=value" pairs, omitting nil fields.
+func formatConfigFeatures(cf analyzer.ConfigFeatures) string {
+	var parts []string
+
+	if cf.Store != nil {
+		parts = append(parts, fmt.Sprintf("store=%s", *cf.Store))
+	}
+	if cf.CommandFlow != nil {
+		parts = append(parts, fmt.Sprintf("command-flow=%s", *cf.CommandFlow))
+	}
+	if cf.Server != nil {
+		parts = append(parts, fmt.Sprintf("server=%t", *cf.Server))
+	}
+	if cf.SoftDelete != nil {
+		parts = append(parts, fmt.Sprintf("soft-delete=%t", *cf.SoftDelete))
+	}
+	if cf.Tracing != nil {
+		parts = append(parts, fmt.Sprintf("tracing=%s", *cf.Tracing))
+	}
+	if cf.Snapshot != nil {
+		parts = append(parts, fmt.Sprintf("snapshot=%s", *cf.Snapshot))
+	}
+	if cf.Domain != nil {
+		parts = append(parts, fmt.Sprintf("domain=%s", *cf.Domain))
+	}
+	if cf.Transport != nil {
+		parts = append(parts, fmt.Sprintf("transport=%t", *cf.Transport))
+	}
+	if cf.ServerLocal != nil {
+		parts = append(parts, fmt.Sprintf("server-local=%t", *cf.ServerLocal))
+	}
+	if cf.AsyncBus != nil {
+		parts = append(parts, fmt.Sprintf("async-bus=%t", *cf.AsyncBus))
+	}
+
+	return strings.Join(parts, ", ")
+}
+
+// featureKey describes one features.* config key.
+type featureKey struct {
+	key         string
+	typ         string
+	validValues []string
+	description string
+}
+
+//
+//nolint:gochecknoglobals // read-only documentation table
+var featureKeys = []featureKey{
+	{
+		"store", "string",
+		[]string{"sqlite", "postgres", "mysql", "pebble", "memory", "turso", "custom", "none"},
+		"Persistence backend the consumer wires up",
+	},
+	{
+		"command-flow", "string",
+		[]string{"read-only", "sync", "commands"},
+		"Command-dispatch pattern (read-only = no dispatcher)",
+	},
+	{
+		"server", "bool",
+		[]string{"true", "false"},
+		"Network listener (HTTP or gRPC) is present",
+	},
+	{
+		"soft-delete", "bool",
+		[]string{"true", "false"},
+		"Domain emits tombstone-like events",
+	},
+	{
+		"tracing", "string",
+		[]string{"on", "off"},
+		"OpenTelemetry tracing middleware is wired",
+	},
+	{
+		"snapshot", "string",
+		[]string{"on", "off"},
+		"Snapshot store or strategy is configured",
+	},
+	{
+		"domain", "string",
+		[]string{"financial", "internal", "security"},
+		"Business domain (escalates security/money rules for financial)",
+	},
+	{
+		"transport", "bool",
+		[]string{"true", "false"},
+		"CQRS transport layer (http/grpc) is wired",
+	},
+	{
+		"server-local", "bool",
+		[]string{"true", "false"},
+		"Server without production signals (CLI with embedded dashboard)",
+	},
+	{
+		"async-bus", "bool",
+		[]string{"true", "false"},
+		"Distributed event bus (Watermill-backed) is wired",
+	},
+}
+
+func renderFeatures(b *strings.Builder) {
+	b.WriteString("FEATURES\n")
+	b.WriteString("────────\n")
+	b.WriteString("\n")
+	b.WriteString("  Each feature flag overrides the auto-detected value. Set only the\n")
+	b.WriteString("  ones you want to pin; unset flags use auto-detection.\n")
+	b.WriteString("\n")
+
+	keyWidth := len("Key")
+	typeWidth := len("Type")
+	valWidth := 0
+
+	for _, f := range featureKeys {
+		if len(f.key) > keyWidth {
+			keyWidth = len(f.key)
+		}
+		if len(f.typ) > typeWidth {
+			typeWidth = len(f.typ)
+		}
+		vw := len(strings.Join(f.validValues, ", "))
+		if vw > valWidth {
+			valWidth = vw
+		}
+	}
+
+	fmt.Fprintf(b, "  %-*s  %-*s  %-*s  %s\n",
+		keyWidth, "Key",
+		typeWidth, "Type",
+		valWidth, "Valid Values",
+		"Description")
+	fmt.Fprintf(b, "  %s  %s  %s  %s\n",
+		strings.Repeat("─", keyWidth),
+		strings.Repeat("─", typeWidth),
+		strings.Repeat("─", valWidth),
+		strings.Repeat("─", len("Description")))
+
+	for _, f := range featureKeys {
+		fmt.Fprintf(b, "  %-*s  %-*s  %-*s  %s\n",
+			keyWidth, f.key,
+			typeWidth, f.typ,
+			valWidth, strings.Join(f.validValues, ", "),
+			f.description)
+	}
+
+	b.WriteString("\n\n")
+}
+
+// ruleConfigKey describes one rules.* config key.
+type ruleConfigKey struct {
+	key         string
+	typ         string
+	description string
+	example     string
+}
+
+//
+//nolint:gochecknoglobals // read-only documentation table
+var ruleConfigKeys = []ruleConfigKey{
+	{
+		"disable", "[]string",
+		"Rule IDs to suppress project-wide",
+		`["P012", "C007"]`,
+	},
+	{
+		"external-api-struct-prefixes",
+		"[]string",
+		"Struct-name prefixes whose JSON tags mirror an external API (Discord, Stripe). Excludes them from D002 mixed-casing check.",
+		`["Discord", "Stripe"]`,
+	},
+	{
+		"c008-ignore-fields", "[]string",
+		"Field names to exclude from C008 (float64-for-money). Case-insensitive.",
+		`["CostEstimate", "PriceIndex"]`,
+	},
+	{
+		"c008-ignore-structs", "[]string",
+		"Struct type names to exclude entirely from C008. Case-insensitive.",
+		`["PricingMetrics"]`,
+	},
+}
+
+func renderRulesConfig(b *strings.Builder) {
+	b.WriteString("RULES\n")
+	b.WriteString("─────\n")
+	b.WriteString("\n")
+
+	keyWidth := len("Key")
+	typeWidth := len("Type")
+
+	for _, r := range ruleConfigKeys {
+		if len(r.key) > keyWidth {
+			keyWidth = len(r.key)
+		}
+		if len(r.typ) > typeWidth {
+			typeWidth = len(r.typ)
+		}
+	}
+
+	fmt.Fprintf(b, "  %-*s  %-*s  %s\n",
+		keyWidth, "Key",
+		typeWidth, "Type",
+		"Description")
+	fmt.Fprintf(b, "  %s  %s  %s\n",
+		strings.Repeat("─", keyWidth),
+		strings.Repeat("─", typeWidth),
+		strings.Repeat("─", 60))
+
+	for _, r := range ruleConfigKeys {
+		fmt.Fprintf(b, "  %-*s  %-*s  %s\n",
+			keyWidth, r.key,
+			typeWidth, r.typ,
+			r.description)
+		fmt.Fprintf(b, "  %sExample: %s\n",
+			strings.Repeat(" ", keyWidth+typeWidth+6),
+			r.example)
+	}
+
+	b.WriteString("\n\n")
+}
+
+func renderHealthConfig(b *strings.Builder) {
+	b.WriteString("HEALTH\n")
+	b.WriteString("──────\n")
+	b.WriteString("\n")
+	b.WriteString("  Key       Type    Default  Description\n")
+	b.WriteString("  ───       ────    ───────  ───────────\n")
+	b.WriteString("  info-cap  int     0 (→20)  Maximum health-score penalty from info findings.\n")
+	b.WriteString("                             Set to 0 for the built-in default (20).\n")
+	b.WriteString("                             Negative is treated as 0 (no cap).\n")
+	b.WriteString("\n")
+	b.WriteString("  Example:\n")
+	b.WriteString("    {\"health\": {\"info-cap\": 15}}\n")
+	b.WriteString("\n\n")
+}
+
+func renderResolutionOrder(b *strings.Builder) {
+	b.WriteString("CONFIG RESOLUTION ORDER\n")
+	b.WriteString("───────────────────────\n")
+	b.WriteString("\n")
+	b.WriteString("  Settings are resolved in this order (later overrides earlier):\n")
+	b.WriteString("\n")
+	b.WriteString("    1. Built-in defaults (from struct tags)\n")
+	b.WriteString("    2. Preset (if set: features, rule disables, severity floor)\n")
+	b.WriteString("    3. Config file (.cqrs-lint.json: explicit overrides)\n")
+	b.WriteString("    4. Auto-detection (fills in what's not pinned)\n")
+	b.WriteString("    5. CLI flags (highest priority)\n")
+	b.WriteString("\n")
+	b.WriteString("  Severity floor: the preset's min-severity is a LOWER BOUND.\n")
+	b.WriteString("  You can raise it (e.g. to \"error\") but not lower it below the preset floor.\n")
+	b.WriteString("\n")
+	b.WriteString("  Rule disables from preset and config are UNIONED (never subtracted).\n")
+	b.WriteString("  Parent .cqrs-lint.json files (ancestor directories) are also merged\n")
+	b.WriteString("  (monorepo config inheritance).\n")
+	b.WriteString("\n\n")
+}
+
+func renderSuppressionSyntax(b *strings.Builder) {
+	b.WriteString("SUPPRESSION SYNTAX\n")
+	b.WriteString("──────────────────\n")
+	b.WriteString("\n")
+	b.WriteString("  Inline (single rule):\n")
+	b.WriteString("    //cqrs-lint:ignore(C007) reason text\n")
+	b.WriteString("\n")
+	b.WriteString("  Inline (multiple rules):\n")
+	b.WriteString("    //cqrs-lint:ignore(C007,A001) reason text\n")
+	b.WriteString("\n")
+	b.WriteString("  Block:\n")
+	b.WriteString("    //cqrs-lint:ignore-start\n")
+	b.WriteString("    ...code...\n")
+	b.WriteString("    //cqrs-lint:ignore-end\n")
+	b.WriteString("\n")
+	b.WriteString("  Block (specific rules):\n")
+	b.WriteString("    //cqrs-lint:ignore-start(C007,A001)\n")
+	b.WriteString("    ...code...\n")
+	b.WriteString("    //cqrs-lint:ignore-end\n")
+	b.WriteString("\n")
+	b.WriteString("  Disable project-wide via config:\n")
+	b.WriteString("    {\"rules\": {\"disable\": [\"P012\"]}}\n")
+	b.WriteString("\n")
+	b.WriteString("  Both //cqrs-lint: and // cqrs-lint: (with space) are accepted.\n")
+	b.WriteString("  Place inline suppressions on the line above the code or at end of line.\n")
+}
+
+// renderConfigForDoctor produces a compact one-line summary of the current
+// config file's resolved state for the doctor command. Returns "(not found)"
+// if no config file exists.
+func renderConfigForDoctor(cfg *AppConfig) string {
+	data, err := os.ReadFile(".cqrs-lint.json")
+	if err != nil {
+		return "(not found)"
+	}
+
+	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
+	if len(lines) == 1 {
+		return strings.TrimSpace(string(data))
+	}
+
+	return fmt.Sprintf("%d lines, %d bytes", len(lines), len(data))
+}
+
+// formatSortedStrings joins a slice as a sorted, comma-separated string.
+func formatSortedStrings(items []string) string {
+	if len(items) == 0 {
+		return "(none)"
+	}
+
+	sorted := make([]string, len(items))
+	copy(sorted, items)
+	sort.Strings(sorted)
+
+	return strings.Join(sorted, ", ")
+}

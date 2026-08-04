@@ -186,10 +186,7 @@ func BenchmarkCalibration_Postgres_BatchInsert(b *testing.B) {
 		args = append(args, r.col, r.key, r.val)
 	}
 
-	q := fmt.Sprintf(
-		`INSERT INTO meta_map (collection, key, value) VALUES %s`,
-		strings.Join(placeholders, ", "),
-	)
+	q := "INSERT INTO meta_map (collection, key, value) VALUES " + strings.Join(placeholders, ", ")
 
 	b.ResetTimer()
 

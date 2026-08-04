@@ -17,6 +17,7 @@ functions and triggering false positives on utility helpers like
 `NewSQLiteBackend`, `SQLiteEnableWAL`.
 
 **Fix (3 changes in `correctness/c036.go`):**
+
 1. `detectBackend` now takes `*ast.File` and resolves the `storage` qualifier
    to `go-cqrs-lite/storage` via `lintutil.QualifierResolvesTo` — rejects
    consumer-defined packages named `storage`.
@@ -70,6 +71,7 @@ fixes the WRONG `event.NewEvent(` call when multiple exist in the same file.
 Also, the suggestion message incorrectly claimed they were "aliases".
 
 **Fix (2 files):**
+
 1. `fix/provider.go`: Added `positionBasedIndex` that converts the finding's
    line:column to a byte offset and verifies `BeforeCode` matches there.
    Falls back to `bytes.Index` when position is unavailable.
@@ -180,7 +182,7 @@ violation. Fixing now.
 
 7. **C036 `detectBackend` signature change** — I changed the function
    signature from `(pkg, fnName string)` to `(file *ast.File, pkg, fnName
-   string)`. This is a breaking API change for any external consumers of
+string)`. This is a breaking API change for any external consumers of
    the function (though it's unexported, so low risk).
 
 8. **C016 `collectContextCreationBgPositions` uses token.Pos** — This
@@ -207,6 +209,7 @@ violation. Fixing now.
 ## f) Up to 50 things we should get done next
 
 ### Immediate fixes (session followup)
+
 1. Write the F013 + cqrs-htmx regression test
 2. Run `gofumpt -w` on all changed files
 3. Run `cqrs-lint` self-lint on its own codebase
@@ -215,6 +218,7 @@ violation. Fixing now.
 6. Publish cqrs-lint v4.4.0 with these fixes (BLOCKED on user approval)
 
 ### High-impact Pareto items (from the plan)
+
 7. **L1.5**: Domain-based severity calibration (`DomainBias` in FeatureProfile)
 8. **L1.30**: Orphaned event types detection (cross-ref emitted vs folded)
 9. **L1.31**: Orphaned commands detection (extend E005 for HTTP layer)
@@ -223,6 +227,7 @@ violation. Fixing now.
 12. **L1.23**: Linter benchmark suite (parallel rule safety verification)
 
 ### New rule categories (ambitious, L1.47-L1.51)
+
 13. **L1.47**: DOC-series rules (missing docs, stale catalog, undocumented events)
 14. **L1.48**: OBS-series rules (tracing spans, metrics, structured logging)
 15. **L1.49**: RES-series rules (retry, circuit breaker, DLQ, graceful shutdown)
@@ -230,6 +235,7 @@ violation. Fixing now.
 17. **L1.51**: Stack preset boundary awareness
 
 ### cqrs-lint trust building
+
 18. Run cqrs-lint against Kernovia
 19. Run cqrs-lint against Standup-Killer
 20. Run cqrs-lint against bank-sync
@@ -242,6 +248,7 @@ violation. Fixing now.
 27. Document the false-positive rate in a validation report
 
 ### Code quality
+
 28. Add C036 test for aliased import of storage package
 29. Add C036 test for consumer-defined `storage` package (not go-cqrs-lite)
 30. Add C016 test for `context.WithDeadline(context.Background(), time)`
@@ -254,6 +261,7 @@ violation. Fixing now.
 37. Add integration test for fix provider with multiple findings in one file
 
 ### DX improvements
+
 38. **L1.19**: Feature adoption scorecard
 39. **L1.20**: Grouped output by aggregate/domain
 40. **L1.18**: Config inheritance (parent `.cqrs-lint.json` with local overrides) — marked done in plan but verify
@@ -261,12 +269,14 @@ violation. Fixing now.
 42. Document the `cqrs-htmx` recognition in cqrs-lint README
 
 ### Architecture
+
 43. Extract import-path collection into shared helper (eliminate Pass 1/1b dup)
 44. Consider unifying E009 and F013 transport detection (both now use HasTransport)
 45. Add feature-detection test for AST import scanning (Pass 1b)
 46. Add feature-detection test for multi-module workspace (cqrs-htmx in one module)
 
 ### Testing infrastructure
+
 47. Add property-based test for C036 detectBackend (rapid-generated inputs)
 48. Add property-based test for C016 lifecycle exemption
 49. Add property-based test for fix provider position matching

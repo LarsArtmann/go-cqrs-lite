@@ -67,7 +67,11 @@ type Foo struct{}
 	// mistaken for real directives.
 	stale := suppression.DetectStaleSuppressions([]string{src}, nil)
 	if len(stale) != 0 {
-		t.Errorf("doc strings/comments should not be flagged as stale; got %d: %v", len(stale), stale)
+		t.Errorf(
+			"doc strings/comments should not be flagged as stale; got %d: %v",
+			len(stale),
+			stale,
+		)
 	}
 }
 

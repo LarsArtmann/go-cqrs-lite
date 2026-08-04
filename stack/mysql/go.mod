@@ -6,7 +6,7 @@ require (
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260803205344-7ff6def486b7
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260804044209-4839974dddaa
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
@@ -46,7 +46,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260803205344-7ff6def486b7 // indirect
+	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260804044209-4839974dddaa // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect

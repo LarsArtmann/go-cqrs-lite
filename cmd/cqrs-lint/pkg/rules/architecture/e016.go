@@ -112,12 +112,12 @@ func NewE016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			// cqrs-htmx provides an integrated server with built-in health
-		// checking. When imported, health endpoints are handled internally.
-		if lintutil.ModuleImportsPath(ctx, "cqrs-htmx") {
-			hasHealthCheck = true
-		}
+			// checking. When imported, health endpoints are handled internally.
+			if lintutil.ModuleImportsPath(ctx, "cqrs-htmx") {
+				hasHealthCheck = true
+			}
 
-		if (hasBundle || hasServer) && !hasHealthCheck {
+			if (hasBundle || hasServer) && !hasHealthCheck {
 				f, err := finding.NewBuilder(
 					"E016", toolName,
 					"Server-mode project without HealthCheck — Kubernetes probes need stack.Bundle.HealthCheck()",

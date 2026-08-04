@@ -45,7 +45,8 @@ func NewP012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				pos := ctx.Fset.Position(site.call.Pos())
 
 				f, err := finding.NewBuilder(
-					"P012", toolName,
+					"P012",
+					toolName,
 					"SQLite store without WAL mode — prone to 'database is locked' errors under concurrent access",
 					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
@@ -54,8 +55,8 @@ func NewP012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithConfidence(finding.ConfidenceMedium).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion(
-						"Add journal_mode(WAL) to the DSN "+
-							"(e.g. ?_pragma=journal_mode(WAL) for modernc.org/sqlite) "+
+						"Add journal_mode(WAL) to the DSN " +
+							"(e.g. ?_pragma=journal_mode(WAL) for modernc.org/sqlite) " +
 							"or call db.Exec(\"PRAGMA journal_mode = WAL\") after opening",
 					).
 					WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).

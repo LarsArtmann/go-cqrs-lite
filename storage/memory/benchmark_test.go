@@ -159,7 +159,12 @@ func BenchmarkMemoryStore_ConcurrentWriters(b *testing.B) {
 							version,
 							nil,
 						)
-						if err := store.Save(ctx, refs[workerID], []event.Event{evt}, version-1); err != nil {
+						if err := store.Save(
+							ctx,
+							refs[workerID],
+							[]event.Event{evt},
+							version-1,
+						); err != nil {
 							errOnce.Do(func() {
 								firstErr = fmt.Errorf("Save w=%d i=%d: %w", workerID, i, err)
 							})

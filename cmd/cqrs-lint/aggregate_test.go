@@ -87,10 +87,10 @@ func TestBuildFileAggregateMap(t *testing.T) {
 
 	reg := &analyzer.CQRSRegistry{
 		EventTypesEmitted: map[string]analyzer.EventEmission{
-			"user.created":  {File: "user/events.go", Line: 10},
-			"user.updated":  {File: "user/events.go", Line: 20},
-			"order.placed":  {File: "order/events.go", Line: 5},
-			"payment.paid":  {File: "payment/events.go", Line: 15},
+			"user.created": {File: "user/events.go", Line: 10},
+			"user.updated": {File: "user/events.go", Line: 20},
+			"order.placed": {File: "order/events.go", Line: 5},
+			"payment.paid": {File: "payment/events.go", Line: 15},
 		},
 		Deciders: []analyzer.DeciderInfo{
 			{StateType: "UserState", File: "user/decider.go"},
@@ -153,8 +153,8 @@ func TestBuildFileAggregateMap_MultipleAggregatesPerFile(t *testing.T) {
 
 	reg := &analyzer.CQRSRegistry{
 		EventTypesEmitted: map[string]analyzer.EventEmission{
-			"user.created":  {File: "shared/events.go"},
-			"order.placed":  {File: "shared/events.go"},
+			"user.created": {File: "shared/events.go"},
+			"order.placed": {File: "shared/events.go"},
 		},
 	}
 
@@ -186,8 +186,8 @@ func TestEnrichWithAggregate(t *testing.T) {
 	actx := &analyzer.AnalysisContext{
 		Registry: &analyzer.CQRSRegistry{
 			EventTypesEmitted: map[string]analyzer.EventEmission{
-				"user.created":  {File: "user/events.go"},
-				"order.placed":  {File: "order/events.go"},
+				"user.created": {File: "user/events.go"},
+				"order.placed": {File: "order/events.go"},
 			},
 		},
 	}
@@ -211,7 +211,10 @@ func TestEnrichWithAggregate(t *testing.T) {
 
 	// Already-set aggregate should be preserved
 	if result[3].Metadata["aggregate"] != "AlreadySet" {
-		t.Errorf("finding 3 aggregate = %q, want AlreadySet (detector-stamped)", result[3].Metadata["aggregate"])
+		t.Errorf(
+			"finding 3 aggregate = %q, want AlreadySet (detector-stamped)",
+			result[3].Metadata["aggregate"],
+		)
 	}
 }
 

@@ -59,8 +59,8 @@ func NewP013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithConfidence(finding.ConfidenceMedium).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion(
-						"Add busy_timeout to the DSN "+
-							"(e.g. ?_pragma=busy_timeout(5000) for modernc.org/sqlite) "+
+						"Add busy_timeout to the DSN " +
+							"(e.g. ?_pragma=busy_timeout(5000) for modernc.org/sqlite) " +
 							"or call db.Exec(\"PRAGMA busy_timeout = 5000\") after opening",
 					).
 					WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).

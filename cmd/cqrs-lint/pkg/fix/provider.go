@@ -81,7 +81,7 @@ func positionBasedIndex(content []byte, f finding.Finding, beforeCode string) in
 
 	line, col := 1, 1
 
-	for i := 0; i < len(content); i++ {
+	for i := range content {
 		if line == f.Position.Line && col == f.Position.Column {
 			if i+len(beforeCode) <= len(content) &&
 				string(content[i:i+len(beforeCode)]) == beforeCode {

@@ -57,7 +57,11 @@ func DetectFeaturesPerModule(
 
 	profiles := make(map[string]FeatureProfile, len(dirs))
 	for _, dir := range dirs {
-		profiles[dir] = detectFeatureSignals(packagesByModule[dir], filesByModule[dir], ctx.Registry)
+		profiles[dir] = detectFeatureSignals(
+			packagesByModule[dir],
+			filesByModule[dir],
+			ctx.Registry,
+		)
 	}
 
 	return profiles
@@ -173,11 +177,13 @@ func detectFeatureSignals(
 				fp.Store = StoreCustom
 			}
 
-			if strings.Contains(path, "mattn/go-sqlite3") || strings.Contains(path, "modernc.org/sqlite") {
+			if strings.Contains(path, "mattn/go-sqlite3") ||
+				strings.Contains(path, "modernc.org/sqlite") {
 				hasSQLiteImport = true
 			}
 
-			if strings.Contains(path, "go.opentelemetry.io") || strings.Contains(path, "go-cqrs-lite/otel") {
+			if strings.Contains(path, "go.opentelemetry.io") ||
+				strings.Contains(path, "go-cqrs-lite/otel") {
 				hasOTelImport = true
 			}
 
@@ -189,7 +195,8 @@ func detectFeatureSignals(
 				fp.HasAsyncBus = true
 			}
 
-			if strings.Contains(path, "go-cqrs-lite/transport") || strings.Contains(path, "cqrs-htmx") {
+			if strings.Contains(path, "go-cqrs-lite/transport") ||
+				strings.Contains(path, "cqrs-htmx") {
 				fp.HasTransport = true
 			}
 		}
@@ -381,7 +388,7 @@ func pathDepth(dir string) int {
 		return 0
 	}
 	count := 1
-	for i := 0; i < len(dir); i++ {
+	for i := range len(dir) {
 		if dir[i] == os.PathSeparator {
 			count++
 		}

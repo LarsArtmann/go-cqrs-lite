@@ -3,6 +3,7 @@ package performance
 import (
 	"go/ast"
 	"go/token"
+	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
@@ -63,7 +64,7 @@ func findSQLiteOpenSites(ctx *analyzer.AnalysisContext) []sqliteOpenSite {
 					file:     gf.AST,
 				})
 
-		case "OpenDB":
+			case "OpenDB":
 				if !fileImportsSQLiteDriver(gf.AST) {
 					return true
 				}
@@ -99,10 +100,8 @@ func fileImportsSQLiteDriver(file *ast.File) bool {
 
 		p := strings.Trim(imp.Path.Value, `"`)
 
-		for _, d := range knownDrivers {
-			if p == d {
-				return true
-			}
+		if slices.Contains(knownDrivers, p) {
+			return true
 		}
 	}
 
@@ -140,7 +139,7 @@ func enclosingFunc(ctx *analyzer.AnalysisContext, pos token.Pos) *ast.FuncDecl {
 //   - Parenthesized expressions: (expr) → resolveStringExpr(expr)
 //
 // Returns "" when the expression cannot be statically resolved (e.g. function
-// call results, field access, etc.). Callers must treat "" as "unknown."
+// call results, field access, etc.). Callers must treat "" as "unknown.".
 func resolveStringExpr(
 	expr ast.Expr,
 	constMap map[string]string,
@@ -259,7 +258,12 @@ func buildConstStringMap(ctx *analyzer.AnalysisContext) map[string]string {
 	// Second pass: resolve each const, allowing consts to reference other
 	// consts in the map (handles const chains).
 	for name, expr := range rawValues {
-		if resolved := resolveStringExpr(expr, result, nil); resolved != "" || isStringLiteral(expr) {
+		if resolved := resolveStringExpr(
+			expr,
+			result,
+			nil,
+		); resolved != "" ||
+			isStringLiteral(expr) {
 			result[name] = resolved
 		}
 	}
@@ -267,7 +271,12 @@ func buildConstStringMap(ctx *analyzer.AnalysisContext) map[string]string {
 	// Third pass: re-resolve to pick up any consts that reference consts
 	// resolved in the second pass (handles ordering).
 	for name, expr := range rawValues {
-		if resolved := resolveStringExpr(expr, result, nil); resolved != "" || isStringLiteral(expr) {
+		if resolved := resolveStringExpr(
+			expr,
+			result,
+			nil,
+		); resolved != "" ||
+			isStringLiteral(expr) {
 			result[name] = resolved
 		}
 	}

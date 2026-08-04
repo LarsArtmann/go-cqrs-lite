@@ -436,7 +436,9 @@ func BenchmarkAdvisor_MissingIndexes(b *testing.B) {
 			b.Fatalf("MissingIndexes: %v", err)
 		}
 		if len(recs) == 0 {
-			b.Fatal("MissingIndexes returned 0 recommendations — expected data with missing indexes")
+			b.Fatal(
+				"MissingIndexes returned 0 recommendations — expected data with missing indexes",
+			)
 		}
 	}
 }

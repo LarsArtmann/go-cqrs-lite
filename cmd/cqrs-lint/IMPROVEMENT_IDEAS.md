@@ -576,22 +576,22 @@
 
 208. **Const-identifier event type resolution** — Both C038 and C040 only handle string-literal event types (`case "user.created":`). Const-identifier cases (`case UserTypeCreated:`) are silently skipped. Resolve via `TypeConstValues` map. Effort: 30min.
 
-| Category              | Rules in code                    | Open ideas                                                                                                             |
-| --------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Correctness (C)       | 40 (C001-C040)                   | 0                                                                                                                      |
-| API Misuse (A)        | 30 (A001-A027, A029, A030, A032) | A028 skipped (too project-specific)                                                                                    |
-| Boilerplate (B)       | 28 (B001-B028)                   | 0                                                                                                                      |
-| Architecture (E)      | 17 (E001-E017)                   | DONE (items 40-47, 164-165)                                                                                            |
-| Consistency (D)       | 13 (D001, D002, D003, D005-D015) | 0                                                                                                                      |
-| Security (S)          | 9 (S001-S003, S005-S010)         | S004 proposed (item 54)                                                                                                |
-| Performance (P)       | 7 (P001, P006-P012)              | P002-P005 are NOT-DO (duplicates)                                                                                      |
-| Version/Migration (V) | 6 (V001-V006)                    | 0                                                                                                                      |
-| Testing (T)           | 8 (T001-T008)                    | 0                                                                                                                      |
-| Feature Adoption (F)  | 17 (F001-F017)                   | 0                                                                                                                      |
-| DX & Infrastructure   | N/A                              | 22 items (99-133, 13 pruned as won't-implement)                                                                        |
-| Extended Ideas        | N/A                              | 34 items (134-179, 12 pruned, 13 done — incl. item 135 C038+C040)                                                     |
-| Session 2026-08-04    | N/A                              | 17 items (192-208): 5 aggregate follow-ups, 4 round-2 feedback, 2 pre-existing test failures (resolved), 4 new (206-208) |
-| **Total**             | **186 rules + `--group-by aggregate`** | ~58 open                                                                                                               |
+| Category              | Rules in code                          | Open ideas                                                                                                               |
+| --------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Correctness (C)       | 40 (C001-C040)                         | 0                                                                                                                        |
+| API Misuse (A)        | 30 (A001-A027, A029, A030, A032)       | A028 skipped (too project-specific)                                                                                      |
+| Boilerplate (B)       | 28 (B001-B028)                         | 0                                                                                                                        |
+| Architecture (E)      | 17 (E001-E017)                         | DONE (items 40-47, 164-165)                                                                                              |
+| Consistency (D)       | 13 (D001, D002, D003, D005-D015)       | 0                                                                                                                        |
+| Security (S)          | 9 (S001-S003, S005-S010)               | S004 proposed (item 54)                                                                                                  |
+| Performance (P)       | 7 (P001, P006-P012)                    | P002-P005 are NOT-DO (duplicates)                                                                                        |
+| Version/Migration (V) | 6 (V001-V006)                          | 0                                                                                                                        |
+| Testing (T)           | 8 (T001-T008)                          | 0                                                                                                                        |
+| Feature Adoption (F)  | 17 (F001-F017)                         | 0                                                                                                                        |
+| DX & Infrastructure   | N/A                                    | 22 items (99-133, 13 pruned as won't-implement)                                                                          |
+| Extended Ideas        | N/A                                    | 34 items (134-179, 12 pruned, 13 done — incl. item 135 C038+C040)                                                        |
+| Session 2026-08-04    | N/A                                    | 17 items (192-208): 5 aggregate follow-ups, 4 round-2 feedback, 2 pre-existing test failures (resolved), 4 new (206-208) |
+| **Total**             | **186 rules + `--group-by aggregate`** | ~58 open                                                                                                                 |
 
 ---
 

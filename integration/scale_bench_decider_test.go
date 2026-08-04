@@ -107,7 +107,11 @@ func BenchmarkScale_DeciderLoad_10KStreams(b *testing.B) {
 				b.Fatalf("Load: %v", err)
 			}
 			if state.Value < 1 {
-				b.Fatalf("Load: state=%+v for stream %s, expected events — store was empty", state, streamID)
+				b.Fatalf(
+					"Load: state=%+v for stream %s, expected events — store was empty",
+					state,
+					streamID,
+				)
 			}
 		}
 	}

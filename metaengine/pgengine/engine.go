@@ -22,6 +22,7 @@
 //   - AggregateSum (10K-row SUM): ~149 ns/row (SQL-level aggregation)
 //   - PushdownScan (10K filtered): ~402 ns/row (JSONB WHERE pushdown + decode)
 //   - FullScan (10K unfiltered): ~805 ns/row (full scan + Go JSON decode)
+//
 // The scan per-row costs are lower than PG_NsPerRead because a single query
 // amortizes setup across all rows; the constant models per-operation cost
 // (dominated by the single point-lookup case).
