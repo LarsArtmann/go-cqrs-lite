@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json/jsontext"
-	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"os"
@@ -56,35 +54,13 @@ func setupInitCommand(cli *cmdguard.CLI[AppConfig]) error {
 	return registerCommand(cli, "init", cmd, err)
 }
 
-// defaultConfigSkeleton is the minimal set of commonly-tuned knobs, written at
-// their default values so new users can see what's available without noise.
-type defaultConfigSkeleton struct {
-	MinSeverity   string `json:"min-severity"`   //nolint:tagliatelle // CLI config key
-	MinConfidence string `json:"min-confidence"` //nolint:tagliatelle // CLI config key
-	Format        string `json:"format"`
-}
-
-// presetConfigSkeleton writes just the preset name — the runtime resolves
-// features and rule defaults from PresetDefinitions at lint time. This is DRY:
-// changing a preset's behaviour only requires updating PresetDefinitions.
-// MinSeverity is included when the preset recommends a non-default floor
-// (e.g. local-cli recommends "warning"), so the user sees and can edit it.
-type presetConfigSkeleton struct {
-	Preset      string `json:"preset"`
-	MinSeverity string `json:"min-severity,omitempty"` //nolint:tagliatelle // CLI config key
-}
-
 // generateInitConfig produces the .cqrs-lint.json content for the given preset.
-// For the empty default it writes a clean skeleton with core knobs at defaults.
-// For a named preset it writes just the preset name (the runtime resolves the
-// rest). Returns an error for unknown preset names.
+// The output includes JSONC comments (// lines) explaining each setting, so
+// users immediately see that comments are supported and understand what each
+// key does. Returns an error for unknown preset names.
 func generateInitConfig(preset string) (string, error) {
 	if preset == "" {
-		return marshalInitConfig(defaultConfigSkeleton{
-			MinSeverity:   "info",
-			MinConfidence: "low",
-			Format:        "text",
-		})
+		return defaultConfigTemplate(), nil
 	}
 
 	if !analyzer.IsKnownPreset(analyzer.ConfigPreset(preset)) {
@@ -95,22 +71,48 @@ func generateInitConfig(preset string) (string, error) {
 		)
 	}
 
-	return marshalInitConfig(presetConfigSkeleton{
-		Preset:      preset,
-		MinSeverity: analyzer.ResolvePresetDefinition(analyzer.ConfigPreset(preset)).MinSeverity,
-	})
+	return presetConfigTemplate(preset), nil
 }
 
-// marshalInitConfig serializes v to indented JSON with a trailing newline,
-// matching the formatting of hand-written config files.
-func marshalInitConfig(v any) (string, error) {
-	raw, err := json.Marshal(
-		v,
-		jsontext.WithIndentPrefix(""),
-		jsontext.WithIndent("  "),
-	)
-	if err != nil {
-		return "", fmt.Errorf("marshal config: %w", err)
+// defaultConfigTemplate returns a commented default config with all core knobs.
+func defaultConfigTemplate() string {
+	return `{
+  // cqrs-lint configuration — JSON with Comments is supported
+  // Run 'cqrs-lint explain' for full documentation of all keys
+
+  // Minimum severity to show: info, warning, error, critical
+  "min-severity": "info",
+
+  // Minimum confidence to show: low, medium, high
+  "min-confidence": "low",
+
+  // Output format: text, json, sarif, markdown
+  "format": "text"
+}
+`
+}
+
+// presetConfigTemplate returns a commented config for a named preset.
+func presetConfigTemplate(preset string) string {
+	desc := presetDescriptions[analyzer.ConfigPreset(preset)]
+	presetDef := analyzer.ResolvePresetDefinition(analyzer.ConfigPreset(preset))
+
+	var b strings.Builder
+	b.WriteString("{\n")
+	b.WriteString("  // ")
+	b.WriteString(desc)
+	b.WriteString("\n  // Run 'cqrs-lint explain' for full documentation\n")
+	fmt.Fprintf(&b, "  \"preset\": \"%s\"", preset)
+
+	if presetDef.MinSeverity != "" {
+		b.WriteString(",\n\n")
+		b.WriteString("  // Minimum severity: \"")
+		b.WriteString(presetDef.MinSeverity)
+		b.WriteString("\" is the preset floor (lower bound).\n")
+		b.WriteString("  // You can raise this (e.g. to \"error\") but not lower it.\n")
+		fmt.Fprintf(&b, "  \"min-severity\": \"%s\"", presetDef.MinSeverity)
 	}
-	return string(raw) + "\n", nil
+
+	b.WriteString("\n}\n")
+	return b.String()
 }

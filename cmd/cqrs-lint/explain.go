@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-	"sort"
 	"strings"
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
@@ -467,34 +465,4 @@ func renderSuppressionSyntax(b *strings.Builder) {
 	b.WriteString("\n")
 	b.WriteString("  Both //cqrs-lint: and // cqrs-lint: (with space) are accepted.\n")
 	b.WriteString("  Place inline suppressions on the line above the code or at end of line.\n")
-}
-
-// renderConfigForDoctor produces a compact one-line summary of the current
-// config file's resolved state for the doctor command. Returns "(not found)"
-// if no config file exists.
-func renderConfigForDoctor(cfg *AppConfig) string {
-	data, err := os.ReadFile(".cqrs-lint.json")
-	if err != nil {
-		return "(not found)"
-	}
-
-	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
-	if len(lines) == 1 {
-		return strings.TrimSpace(string(data))
-	}
-
-	return fmt.Sprintf("%d lines, %d bytes", len(lines), len(data))
-}
-
-// formatSortedStrings joins a slice as a sorted, comma-separated string.
-func formatSortedStrings(items []string) string {
-	if len(items) == 0 {
-		return "(none)"
-	}
-
-	sorted := make([]string, len(items))
-	copy(sorted, items)
-	sort.Strings(sorted)
-
-	return strings.Join(sorted, ", ")
 }

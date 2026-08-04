@@ -21,7 +21,8 @@ func TestGenerateInitConfigDefaultProducesValidJSON(t *testing.T) {
 	}
 
 	var cfg AppConfig
-	err = json.Unmarshal([]byte(content), &cfg,
+	cleaned := stripJSONComments([]byte(content))
+	err = json.Unmarshal(cleaned, &cfg,
 		json.MatchCaseInsensitiveNames(true))
 	if err != nil {
 		t.Fatalf("default config does not load into AppConfig: %v\nconfig:\n%s",
@@ -54,7 +55,8 @@ func TestGenerateInitConfigAllValidPresets(t *testing.T) {
 			}
 
 			var cfg AppConfig
-			err = json.Unmarshal([]byte(content), &cfg,
+			cleaned := stripJSONComments([]byte(content))
+			err = json.Unmarshal(cleaned, &cfg,
 				json.MatchCaseInsensitiveNames(true))
 			if err != nil {
 				t.Fatalf("preset %q config does not load into AppConfig: %v\nconfig:\n%s",
