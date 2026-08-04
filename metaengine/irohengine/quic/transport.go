@@ -47,9 +47,10 @@ type QuicTransport struct {
 	rttMu      sync.Mutex
 	rttSamples []time.Duration
 
-	// Relay dedup (prevents op echo loops when relay is enabled)
-	relayMu   sync.Mutex
-	relaySeen map[string]struct{}
+	// Op-level dedup (prevents double-application of non-idempotent ops
+	// like SetAdd/CounterIncrement under redelivery or relay echo)
+	dedupMu   sync.Mutex
+	dedupSeen map[string]struct{}
 
 	acceptWG sync.WaitGroup
 }
@@ -86,7 +87,7 @@ func New(opts ...Option) (*QuicTransport, error) {
 		alpn:      cfg.alpn,
 		cfg:       cfg,
 		conns:     make(map[string]*peerConn),
-		relaySeen: make(map[string]struct{}),
+		dedupSeen: make(map[string]struct{}),
 	}
 
 	// Start accept loop
@@ -345,6 +346,12 @@ func (t *QuicTransport) handleStream(
 		return
 	}
 
+	// Op-level dedup: skip if already seen. Prevents double-application of
+	// non-idempotent ops (SetAdd, CounterIncrement) under redelivery or relay echo.
+	if !t.markSeen(op.ID) {
+		return
+	}
+
 	// Record real RTT
 	if rtt := conn.Rtt(); rtt != nil {
 		t.recordRTT(time.Duration(*rtt))
@@ -364,22 +371,26 @@ func (t *QuicTransport) handleStream(
 	}
 }
 
-// relayToOthers forwards an op to all connected peers except the source.
-// Uses a seen-set keyed by op.ID to prevent echo loops.
-func (t *QuicTransport) relayToOthers(sourcePeerID string, op irohengine.WriteOp) {
-	t.relayMu.Lock()
-	if _, seen := t.relaySeen[op.ID]; seen {
-		t.relayMu.Unlock()
-		return
+// markSeen records opID as seen, returning false if it was already seen.
+// The seen-set is bounded; when it exceeds 10K entries it resets to prevent
+// unbounded memory growth.
+func (t *QuicTransport) markSeen(opID string) bool {
+	t.dedupMu.Lock()
+	defer t.dedupMu.Unlock()
+	if _, seen := t.dedupSeen[opID]; seen {
+		return false
 	}
-	t.relaySeen[op.ID] = struct{}{}
+	t.dedupSeen[opID] = struct{}{}
+	if len(t.dedupSeen) > 10000 {
+		t.dedupSeen = make(map[string]struct{})
+		t.dedupSeen[opID] = struct{}{}
+	}
+	return true
+}
 
-	// Trim seen-set if it grows too large
-	if len(t.relaySeen) > 10000 {
-		t.relaySeen = make(map[string]struct{})
-		t.relaySeen[op.ID] = struct{}{}
-	}
-	t.relayMu.Unlock()
+// relayToOthers forwards an op to all connected peers except the source.
+// Dedup is handled by markSeen in handleStream before this is called.
+func (t *QuicTransport) relayToOthers(sourcePeerID string, op irohengine.WriteOp) {
 
 	data, err := encodeOp(op)
 	if err != nil {

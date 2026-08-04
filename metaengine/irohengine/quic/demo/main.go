@@ -195,6 +195,21 @@ func runNode(ticket string, writeCount int) {
 	fmt.Println("═══════════════════════════════════════════════════════════")
 	waitForSignal()
 }
+
+// formatDuration renders a time.Duration with honest labeling for localhost.
+// On localhost, QUIC RTT is sub-microsecond; showing "0s" looks fake even
+// though it's real. This shows "<1us (localhost)" for sub-microsecond values.
+func formatDuration(d time.Duration) string {
+	if d == 0 {
+		return "0s (no samples yet)"
+	}
+	if d < time.Microsecond {
+		return "<1us (localhost)"
+	}
+	return d.String()
+}
+
+func waitForSignal() {
 	waitSigCh := make(chan os.Signal, 1)
 	signal.Notify(waitSigCh, syscall.SIGINT, syscall.SIGTERM)
 	<-waitSigCh
