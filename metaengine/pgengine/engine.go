@@ -356,4 +356,5 @@ var (
 	_ metaengine.PushdownScan     = (*pgEngine)(nil)
 	_ metaengine.LayoutPlanner    = (*pgEngine)(nil)
 	_ metaengine.StreamLogBackend = (*pgEngine)(nil)
+	_ metaengine.AtomicAppender  = (*pgEngine)(nil)
 )

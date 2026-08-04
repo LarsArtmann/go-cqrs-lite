@@ -296,7 +296,7 @@ func (t *LoopbackTransport) handleConnection(conn net.Conn) {
 
 		// Optional simulated delay (for convergence testing)
 		if t.maxDelay > 0 {
-			time.Sleep(time.Duration(rand.Int64N(t.maxDelay.Nanoseconds()))) //nolint:gosec G404
+			time.Sleep(time.Duration(rand.Int63n(t.maxDelay.Nanoseconds()))) //nolint:gosec G404
 		}
 
 		// Dispatch to subscribers
