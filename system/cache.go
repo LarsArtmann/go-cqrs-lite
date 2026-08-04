@@ -12,16 +12,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// CachedEventStore wraps an event.Store with a read-through cache using
-// otter v2 (Adaptive W-TinyLFU eviction). Events are immutable, so the cache
-// never needs invalidation — only eviction (capacity management).
-//
-// Writes always go to the authoritative store. Reads check cache first;
-// on miss, read-through and populate. The cache is volatile: a dropped
-// entry is just a cache miss, never data loss.
+// CachedEventStore wraps an event.Store with a read-through cache.
 type CachedEventStore struct {
-	store event.Store
-	cache *otter.Cache[string, []event.Event]
+	store    event.Store
+	cache    *otter.Cache[string, []event.Event]
+	capacity int
 }
 
 // NewCachedEventStore wraps an event.Store with a read-through cache.
@@ -34,7 +29,7 @@ func NewCachedEventStore(store event.Store, capacity int) (*CachedEventStore, er
 		MaximumSize: capacity,
 	})
 
-	return &CachedEventStore{store: store, cache: cache}, nil
+	return &CachedEventStore{store: store, cache: cache, capacity: capacity}, nil
 }
 
 func (c *CachedEventStore) Save(
@@ -103,5 +98,5 @@ func (c *CachedEventStore) ReadFrom(
 
 // CacheStats returns basic cache statistics for introspection.
 func (c *CachedEventStore) CacheStats() (size int, capacity int) {
-	return c.cache.Size(), c.cache.Capacity()
+	return c.cache.EstimatedSize(), c.capacity
 }

@@ -99,7 +99,11 @@ func encodeStreamValue(v any) string {
 // scanStreamValues executes a query and scans all rows as stream log values.
 // Each value is decoded from its stored representation (string passthrough or
 // JSON decode).
-func (e *sqliteEngine) scanStreamValues(ctx context.Context, query string, args ...any) ([]any, error) {
+func (e *sqliteEngine) scanStreamValues(
+	ctx context.Context,
+	query string,
+	args ...any,
+) ([]any, error) {
 	rows, err := e.xd().QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough

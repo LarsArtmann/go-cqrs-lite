@@ -1,30 +1,29 @@
 #!/usr/bin/env bash
-# vm-mysql-nspawn.sh — Start a systemd-nspawn container with MySQL/MariaDB and run integration tests.
+# vm-mysql-nspawn.sh — Start a systemd-nspawn container with MySQL/MariaDB and
+# run integration tests. ~10x faster than QEMU (~15s vs ~131s) because nspawn
+# shares the host kernel — no full VM boot.
 #
-# ~10x faster than the QEMU VM (~15s startup vs ~131s) because nspawn shares
-# the host kernel — no full VM boot. The NixOS test driver uses NspawnMachine
-# instead of QEMUMachine.
+# HOW IT WORKS:
+#   1. Builds the nspawn test DRIVER (no uid-range needed — just a regular build)
+#   2. Runs the driver binary with sudo (systemd-nspawn needs root)
+#   3. The driver boots the container, starts MySQL, then sleeps
+#   4. Go tests run on the host against the container's MySQL
 #
-# REQUIREMENTS (host must support nspawn):
-#   nix.settings = {
-#     auto-allocate-uids = true;
-#     system-features = [ "uid-range" "nixos-test" "kvm" ];
-#     experimental-features = [ "flakes" "nix-command" "cgroups" ];
-#   };
-#   systemd is required (nspawn needs cgroups).
-#   Interactive runs need root (systemd-nspawn requires CAP_SYS_ADMIN).
-#
-# If nspawn is not available, this script falls back to the QEMU VM script.
+# For the CHECK path (nix build .#checks.x86_64-linux.mysql-nspawn), the host
+# needs `uid-range` system feature + `auto-allocate-uids`. Run
+# scripts/enable-nspawn-support.sh once to enable.
 #
 # Usage:
-#   sudo nix run .#integration-mysql-nspawn                    # run all MySQL tests
-#   sudo nix run .#integration-mysql-nspawn -- ./stack/mysql/...
-#   nix run .#integration-mysql-nspawn -- --check-only          # just verify nspawn works
+#   sudo bash scripts/vm-mysql-nspawn.sh                     # run all MySQL tests
+#   sudo bash scripts/vm-mysql-nspawn.sh -- ./stack/mysql/...
+#   sudo nix run .#integration-mysql-nspawn                   # same via nix
+#
+# If nspawn is not available, falls back to the QEMU VM script.
 set -euo pipefail
 
-CHECK_ONLY=false
-if [ "${1:-}" = "--check-only" ]; then
-    CHECK_ONLY=true
+KEEP_ALIVE=false
+if [ "${1:-}" = "--keep-alive" ]; then
+    KEEP_ALIVE=true
     shift
 fi
 
@@ -32,11 +31,14 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
-HOST_PORT="${MYSQL_VM_PORT:-3306}"
+# The nspawn container gets VLAN 1, IP 192.168.1.1 (first machine).
+# The bridge br1 is on the host, so we connect directly — no port forwarding.
+CONTAINER_IP="192.168.1.1"
+CONTAINER_PORT="${MYSQL_VM_PORT:-3306}"
 
-# --- Check if nspawn is supported on this host -------------------------------
+# --- Check if nspawn is viable -----------------------------------------------
 
-check_nspawn_support() {
+check_nspawn() {
     local errors=()
 
     # systemd-nspawn binary
@@ -44,38 +46,16 @@ check_nspawn_support() {
         errors+=("systemd-nspawn binary not found")
     fi
 
-    # uid-range system feature (required by the test driver derivation)
-    local sys_features
-    sys_features=$(nix show-config 2>/dev/null | grep '^system-features' | sed 's/.*= //' || echo "")
-    if ! echo "$sys_features" | grep -qw uid-range; then
-        errors+=("uid-range not in system-features (need: nix.settings.system-features = [ \"uid-range\" ... ])")
-    fi
-
-    # auto-allocate-uids
-    local auto_uids
-    auto_uids=$(nix show-config 2>/dev/null | grep '^auto-allocate-uids' | sed 's/.*= //' || echo "")
-    if [ "$auto_uids" != "true" ]; then
-        errors+=("auto-allocate-uids is not enabled (need: nix.settings.auto-allocate-uids = true)")
-    fi
-
-    # Root privileges (interactive nspawn requires CAP_SYS_ADMIN)
+    # Root privileges (systemd-nspawn requires CAP_SYS_ADMIN)
     if [ "$(id -u)" -ne 0 ]; then
-        errors+=("not running as root (interactive nspawn requires sudo)")
+        errors+=("not running as root (use: sudo bash scripts/vm-mysql-nspawn.sh)")
     fi
 
     if [ ${#errors[@]} -gt 0 ]; then
-        echo "ERROR: nspawn not supported on this host:" >&2
+        echo "⚠️  nspawn not available:" >&2
         for e in "${errors[@]}"; do
-            echo "  - $e" >&2
+            echo "   - $e" >&2
         done
-        echo "" >&2
-        echo "To enable nspawn, add to your NixOS configuration:" >&2
-        echo "  nix.settings = {" >&2
-        echo "    auto-allocate-uids = true;" >&2
-        echo '    system-features = [ "uid-range" "nixos-test" "kvm" "benchmark" "big-parallel" ];' >&2
-        echo '    experimental-features = [ "flakes" "nix-command" "cgroups" ];' >&2
-        echo "  };" >&2
-        echo "Then rebuild and run with: sudo nix run .#integration-mysql-nspawn" >&2
         return 1
     fi
     return 0
@@ -88,28 +68,15 @@ fallback_to_qemu() {
     exec bash "$SCRIPT_DIR/vm-mysql.sh" "$@"
 }
 
-# --- Check nspawn support, fall back if unavailable -------------------------
+# --- Main --------------------------------------------------------------------
 
-if ! check_nspawn_support 2>/dev/null; then
-    echo "⚠️  nspawn not available — falling back to QEMU VM"
+if ! check_nspawn 2>/dev/null; then
     fallback_to_qemu "$@"
 fi
 
-echo "==> nspawn support detected"
-
-# --- Check-only mode: just build and run the check --------------------------
-
-if [ "$CHECK_ONLY" = true ]; then
-    echo "==> Building and running nspawn MySQL check"
-    nix build .#checks.x86_64-linux.mysql-nspawn -L
-    echo "✅ nspawn MySQL check passed"
-    exit 0
-fi
-
-# --- Integration test mode: keep container alive, run Go tests --------------
+echo "==> nspawn support detected (running as root)"
 
 DRIVER_PID=""
-CONTAINER_IP=""
 
 cleanup() {
     if [ -n "$DRIVER_PID" ] && kill -0 "$DRIVER_PID" 2>/dev/null; then
@@ -117,6 +84,10 @@ cleanup() {
         kill "$DRIVER_PID" 2>/dev/null || true
         wait "$DRIVER_PID" 2>/dev/null || true
     fi
+    # Clean up any leftover nspawn containers and bridges
+    machinectl poweroff machine 2>/dev/null || true
+    ip link delete br1 2>/dev/null || true
+    ip netns delete nixos-nspawn-machine 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
@@ -128,8 +99,8 @@ if [ ! -x "$DRIVER/bin/nixos-test-driver" ]; then
 fi
 
 # Custom test script: boot container, wait for MySQL, set up TCP user, keep alive.
-# The nspawn container shares the host network namespace (no vlans configured),
-# so MySQL binds to the host's 0.0.0.0:3306 — accessible from 127.0.0.1.
+# The nspawn container gets VLAN 1 → IP 192.168.1.1. MySQL binds to 0.0.0.0:3306
+# inside the container, reachable from the host via the bridge.
 TEST_SCRIPT=$(mktemp /tmp/cqrs-mysql-nspawn-XXXXXX.py)
 cat > "$TEST_SCRIPT" <<'PYEOF'
 machine.start()
@@ -141,34 +112,35 @@ import time
 time.sleep(999999)
 PYEOF
 
-echo "==> Starting nspawn test driver (MySQL on host port $HOST_PORT)"
+echo "==> Starting nspawn container (MySQL at ${CONTAINER_IP}:${CONTAINER_PORT})"
 
-# Feed the custom test script. The driver process stays alive (time.sleep).
 "$DRIVER/bin/nixos-test-driver" --test-script "$TEST_SCRIPT" &
 DRIVER_PID=$!
 
-echo "==> Waiting for MySQL to become ready..."
+echo "==> Waiting for MySQL to become ready at ${CONTAINER_IP}:${CONTAINER_PORT}..."
 for i in $(seq 1 60); do
     if ! kill -0 "$DRIVER_PID" 2>/dev/null; then
         echo "ERROR: Driver exited unexpectedly"
         exit 1
     fi
 
-    # Check TCP port connectivity (nspawn container shares host network)
-    if (echo > /dev/tcp/127.0.0.1/"$HOST_PORT") 2>/dev/null; then
-        echo "==> MySQL is ready (TCP port $HOST_PORT accepting connections)"
+    # Check TCP connectivity to the container's MySQL via the bridge
+    if (echo > /dev/tcp/"$CONTAINER_IP"/"$CONTAINER_PORT") 2>/dev/null; then
+        echo "==> MySQL is ready (${CONTAINER_IP}:${CONTAINER_PORT} accepting connections)"
         break
     fi
 
     if [ "$i" -eq 60 ]; then
         echo "ERROR: MySQL did not become ready within 60s"
+        echo "   The nspawn container may still be booting. Try:"
+        echo "   sudo nix build .#checks.x86_64-linux.mysql-nspawn -L"
         exit 1
     fi
 
     sleep 1
 done
 
-export MYSQL_TEST_DSN="cqrs:cqrs@tcp(127.0.0.1:${HOST_PORT})/cqrs_test?parseTime=true&multiStatements=true"
+export MYSQL_TEST_DSN="cqrs:cqrs@tcp(${CONTAINER_IP}:${CONTAINER_PORT})/cqrs_test?parseTime=true&multiStatements=true"
 echo "==> DSN: $MYSQL_TEST_DSN"
 
 if [ $# -gt 0 ]; then
@@ -193,3 +165,11 @@ fi
 
 echo ""
 echo "✅ Integration tests passed (nspawn)"
+
+if [ "$KEEP_ALIVE" = true ]; then
+    echo ""
+    echo "==> --keep-alive: container is still running at ${CONTAINER_IP}:${CONTAINER_PORT}"
+    echo "    DSN: $MYSQL_TEST_DSN"
+    echo "    Press Ctrl+C to stop the container and exit."
+    wait "$DRIVER_PID"
+fi

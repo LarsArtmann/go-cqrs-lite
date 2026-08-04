@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 type demoNode struct {

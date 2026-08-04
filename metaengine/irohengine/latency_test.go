@@ -44,7 +44,8 @@ func TestLatencyMeasuredFromRealTraffic(t *testing.T) {
 
 	// Profile AFTER traffic: measured
 	p1 := nodeA.Profile()
-	g.Expect(p1.ReplicationLag).To(gomega.BeNumerically(">", 0), "lag must be measured after traffic")
+	g.Expect(p1.ReplicationLag).
+		To(gomega.BeNumerically(">", 0), "lag must be measured after traffic")
 	g.Expect(p1.NetworkRTT).To(gomega.BeNumerically(">", 0), "rtt must be measured after traffic")
 
 	// With 15ms max delay, P99 should be within a reasonable bound
@@ -54,7 +55,8 @@ func TestLatencyMeasuredFromRealTraffic(t *testing.T) {
 	// Delivery stats should have real samples
 	c := net.Collector()
 	dStats := c.DeliveryStats()
-	g.Expect(dStats.Samples).To(gomega.Equal(30), "one delivery sample per op (2 peers, but only 1 other node)")
+	g.Expect(dStats.Samples).
+		To(gomega.Equal(30), "one delivery sample per op (2 peers, but only 1 other node)")
 
 	convStats := c.ConvergenceStats()
 	g.Expect(convStats.Samples).To(gomega.Equal(30), "one convergence sample per op")

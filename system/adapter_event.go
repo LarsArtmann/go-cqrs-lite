@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -17,16 +18,16 @@ import (
 // StreamLogBackends. The Memory engine stores pointers directly; SQL engines
 // store this envelope as a TEXT value.
 type serializedEvent struct {
-	ID            string          `json:"id"`
-	Type          string          `json:"type"`
-	StreamID      string          `json:"stream_id"`
-	StreamType    string          `json:"stream_type"`
-	Version       int             `json:"version"`
-	SchemaVersion int             `json:"schema_version"`
-	Payload       []byte          `json:"payload"`
-	Encoding      string          `json:"encoding"`
-	Metadata      json.RawMessage `json:"metadata"`
-	OccurredAt    time.Time       `json:"occurred_at"`
+	ID            string    `json:"id"`
+	Type          string    `json:"type"`
+	StreamID      string    `json:"stream_id"`
+	StreamType    string    `json:"stream_type"`
+	Version       int       `json:"version"`
+	SchemaVersion int       `json:"schema_version"`
+	Payload       []byte    `json:"payload"`
+	Encoding      string    `json:"encoding"`
+	Metadata      []byte    `json:"metadata"`
+	OccurredAt    time.Time `json:"occurred_at"`
 }
 
 // EventAdapterOption tunes an EventAdapter at construction time.
@@ -88,7 +89,13 @@ func (a *EventAdapter) Save(
 	values := a.eventsToAny(events)
 
 	if ap, ok := a.backend.(metaengine.AtomicAppender); ok {
-		if err := ap.StreamAppendExpected(ctx, a.collection, sid, int64(expectedVersion), values); err != nil {
+		if err := ap.StreamAppendExpected(
+			ctx,
+			a.collection,
+			sid,
+			int64(expectedVersion),
+			values,
+		); err != nil {
 			if errors.Is(err, metaengine.ErrVersionConflict) {
 				return event.ErrVersionConflict
 			}
@@ -321,7 +328,7 @@ func (a *EventAdapter) encodeEvent(evt event.Event) string {
 		SchemaVersion: evt.SchemaVersion().Int(),
 		Payload:       event.PayloadReadOnly(evt),
 		Encoding:      string(evt.Encoding()),
-		Metadata:      json.RawMessage(metaJSON),
+		Metadata:      metaJSON,
 		OccurredAt:    evt.OccurredAt(),
 	}
 
@@ -354,7 +361,7 @@ func (a *EventAdapter) decodeEvent(s string) (event.Event, error) {
 		env.Version, env.SchemaVersion,
 		env.Payload, env.Metadata,
 		env.OccurredAt,
-		event.Encoding(env.Encoding),
+		codec.Encoding(env.Encoding),
 		"system",
 	)
 	if err != nil {

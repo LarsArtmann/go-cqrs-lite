@@ -51,12 +51,12 @@ type sqliteQuerySet struct {
 	// Graph
 	graphAddEdge string
 	// Stream Log
-	streamAppend      string
-	streamRead        string
-	streamVersion     string
-	streamAppendExp   string
-	journalReadAll    string
-	journalReadFrom   string
+	streamAppend    string
+	streamRead      string
+	streamVersion   string
+	streamAppendExp string
+	journalReadAll  string
+	journalReadFrom string
 	// DDL
 	ddl string
 }
@@ -108,12 +108,12 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		logAppend:        `INSERT INTO meta_log (collection, value) VALUES (?, ?)`,
 		logTail:          `SELECT value FROM meta_log WHERE collection = ? ORDER BY id DESC LIMIT ?`,
 		graphAddEdge:     `INSERT INTO meta_graph_edges (collection, from_node, to_node) VALUES (?, ?, ?)`,
-		streamAppend:      `INSERT INTO meta_stream_log (collection, stream_id, value) VALUES (?, ?, ?)`,
-		streamRead:        `SELECT value FROM meta_stream_log WHERE collection = ? AND stream_id = ? ORDER BY seq`,
-		streamVersion:     `SELECT COUNT(*) FROM meta_stream_log WHERE collection = ? AND stream_id = ?`,
-		streamAppendExp:   `INSERT INTO meta_stream_log (collection, stream_id, value) VALUES (?, ?, ?)`,
-		journalReadAll:    `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
-		journalReadFrom:   `SELECT value FROM meta_stream_log WHERE collection = ? AND seq > ? ORDER BY seq LIMIT ?`,
+		streamAppend:     `INSERT INTO meta_stream_log (collection, stream_id, value) VALUES (?, ?, ?)`,
+		streamRead:       `SELECT value FROM meta_stream_log WHERE collection = ? AND stream_id = ? ORDER BY seq`,
+		streamVersion:    `SELECT COUNT(*) FROM meta_stream_log WHERE collection = ? AND stream_id = ?`,
+		streamAppendExp:  `INSERT INTO meta_stream_log (collection, stream_id, value) VALUES (?, ?, ?)`,
+		journalReadAll:   `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
+		journalReadFrom:  `SELECT value FROM meta_stream_log WHERE collection = ? AND seq > ? ORDER BY seq LIMIT ?`,
 	}
 }
 

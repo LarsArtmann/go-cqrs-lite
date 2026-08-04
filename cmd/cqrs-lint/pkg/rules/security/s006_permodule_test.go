@@ -6,8 +6,8 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/security"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
 )
 
 // TestS006_PerModuleProfileDowngradesNonServerModule verifies that S006

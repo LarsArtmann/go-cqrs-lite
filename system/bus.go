@@ -15,11 +15,11 @@ import (
 // For production message distribution, operators configure external bus drivers
 // (NATS, Redis, Kafka) via the bus driver registry.
 type simpleBus struct {
-	mu              sync.RWMutex
-	handlers        map[event.Type][]event.Handler
-	allHandlers     []event.Handler
-	middleware      []event.Middleware
-	pubMiddleware   []event.PublishMiddleware
+	mu            sync.RWMutex
+	handlers      map[event.Type][]event.Handler
+	allHandlers   []event.Handler
+	middleware    []event.Middleware
+	pubMiddleware []event.PublishMiddleware
 }
 
 func newSimpleBus() *simpleBus {

@@ -24,7 +24,7 @@ func NewQueryAdapter(backend metaengine.StreamLogBackend, collection string) *Qu
 
 // Compile-time assertions.
 var (
-	_ query.QueryStore          = (*QueryAdapter)(nil)
+	_ query.QueryStore           = (*QueryAdapter)(nil)
 	_ query.SeekableQueryJournal = (*QueryAdapter)(nil)
 )
 
@@ -84,7 +84,7 @@ func (a *QueryAdapter) ReadQueriesFrom(
 	limit int,
 ) ([]*query.PersistedQuery, error) {
 	afterSeq := int64(0)
-	if afterRequestID != "" {
+	if afterRequestID != (id.RequestID{}) {
 		all, err := a.backend.JournalReadAll(ctx, a.collection)
 		if err != nil {
 			return nil, fmt.Errorf("query adapter: read from: %w", err)

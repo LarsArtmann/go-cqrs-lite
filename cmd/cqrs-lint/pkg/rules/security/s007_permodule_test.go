@@ -29,7 +29,7 @@ func NewInMemorySessionStore() *InMemorySessionStore { return &InMemorySessionSt
 	// Simulate a multi-module workspace: the library has no server,
 	// but an example sub-module does.
 	ctx.FeatureProfiles = map[string]analyzer.FeatureProfile{
-		"/repo/lib":         {HasServer: false},
+		"/repo/lib":          {HasServer: false},
 		"/repo/examples/app": {HasServer: true},
 	}
 	// Primary profile reflects the example app (the "most significant" module).
