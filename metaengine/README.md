@@ -234,11 +234,18 @@ time:
 | `NewSQLiteEngine(db)`    | Persistent  | File or `:memory:` (profile) |
 | `NewPebbleEngine("")`    | Volatile    | `vfs.NewMem()`               |
 | `NewPebbleEngine("/db")` | Persistent  | LSM on disk                  |
-| `NewPebbleEngineFromDB`  | Persistent  | Caller owns a disk DB        |
+| `NewPebbleEngineFromDB(db)` | Persistent  | Caller owns DB; seeds seq counters (returns `(Engine, error)`) |
 | `duckdb.New("")`         | Volatile    | `:memory:`                   |
 | `duckdb.New("file.db")`  | Persistent  | Disk file                    |
 | `duckdb.NewFromDB`       | Persistent  | Caller owns a DB             |
 | `pgengine.New(dsn)`      | Persistent  | Remote server                |
+
+> **Pebble seq seeding**: When a persistent Pebble engine is constructed
+> (`NewPebbleEngine("/db")` or `NewPebbleEngineFromDB(db)`), all internal
+> sequence counters (stream, journal, log, multimap) are seeded from existing
+> data via an O(N) scan. This prevents key collisions after restart. The scan
+> runs once at construction. `NewPebbleEngineFromDB` returns `(Engine, error)`
+> because seeding can fail.
 
 ### Planner Durability Rule
 

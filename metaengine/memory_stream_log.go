@@ -29,6 +29,33 @@ func (m *memoryEngine) StreamReadAsOfVersion(
 	return slices.Clone(stream[:maxVersion]), nil
 }
 
+// StreamReadFromVersion returns all values for a stream starting at minVersion.
+// This implements the StreamTemporalReader optional interface.
+func (m *memoryEngine) StreamReadFromVersion(
+	_ context.Context,
+	col, sid string,
+	minVersion int64,
+) ([]any, error) {
+	if minVersion <= 0 {
+		m.mu.RLock()
+		defer m.mu.RUnlock()
+
+		return slices.Clone(m.data.streams[col][sid]), nil
+	}
+
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	stream := m.data.streams[col][sid]
+	start := minVersion - 1 // 1-indexed to 0-indexed
+
+	if start >= int64(len(stream)) {
+		return []any{}, nil
+	}
+
+	return slices.Clone(stream[start:]), nil
+}
+
 func (m *memoryEngine) StreamAppend(_ context.Context, col, sid string, values []any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()

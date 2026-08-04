@@ -4,13 +4,13 @@ go 1.26.5
 
 require (
 	git.coopcloud.tech/decentral1se/iroh-go v0.0.0-20260731195909-77011195d3d6
+	github.com/fxamacker/cbor/v2 v2.9.2
 	github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.0.0
 	github.com/onsi/gomega v1.42.1
 )
 
 require (
-	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect

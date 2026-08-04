@@ -481,6 +481,16 @@ type StreamTemporalReader interface {
 		collection, streamID string,
 		maxVersion int64,
 	) ([]any, error)
+
+	// StreamReadFromVersion returns all values for a stream starting at and
+	// including minVersion (1-indexed: minVersion=3 skips entries 1-2).
+	// If minVersion is 0 or negative, returns all values.
+	// If minVersion exceeds the stream length, returns an empty slice.
+	StreamReadFromVersion(
+		ctx context.Context,
+		collection, streamID string,
+		minVersion int64,
+	) ([]any, error)
 }
 
 // SnapshotBackend is an optional interface for engines that support snapshot
