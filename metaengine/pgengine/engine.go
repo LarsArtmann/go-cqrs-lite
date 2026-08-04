@@ -349,11 +349,11 @@ func (e *pgEngine) CounterGet(ctx context.Context, col string) (map[string]int64
 
 // Compile-time assertions.
 var (
-	_ metaengine.Engine          = (*pgEngine)(nil)
-	_ metaengine.MapBackend      = (*pgEngine)(nil)
-	_ metaengine.CounterBackend  = (*pgEngine)(nil)
-	_ metaengine.ScanBackend     = (*pgEngine)(nil)
-	_ metaengine.PushdownScan    = (*pgEngine)(nil)
-	_ metaengine.LayoutPlanner   = (*pgEngine)(nil)
+	_ metaengine.Engine           = (*pgEngine)(nil)
+	_ metaengine.MapBackend       = (*pgEngine)(nil)
+	_ metaengine.CounterBackend   = (*pgEngine)(nil)
+	_ metaengine.ScanBackend      = (*pgEngine)(nil)
+	_ metaengine.PushdownScan     = (*pgEngine)(nil)
+	_ metaengine.LayoutPlanner    = (*pgEngine)(nil)
 	_ metaengine.StreamLogBackend = (*pgEngine)(nil)
 )

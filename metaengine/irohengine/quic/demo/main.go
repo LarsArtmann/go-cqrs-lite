@@ -7,6 +7,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/quic/v4"
@@ -109,7 +111,7 @@ func runCoordinator(waitFor, writeCount int) {
 	time.Sleep(1 * time.Second)
 
 	fmt.Printf("  Writing %d keys...\n", writeCount)
-	for i := 0; i < writeCount; i++ {
+	for i := range writeCount {
 		key := fmt.Sprintf("coord-key-%d", i)
 		val := fmt.Sprintf("value-from-coordinator-%d", i)
 		if err := engine.(metaengine.MapBackend).MapSet(ctx, "demo", key, val); err != nil {
@@ -130,9 +132,9 @@ func runCoordinator(waitFor, writeCount int) {
 	fmt.Printf("  ReplicationLag (P99): %s\n", profile.ReplicationLag)
 	fmt.Printf("  NetworkRTT (2×P50):   %s\n", profile.NetworkRTT)
 	fmt.Println("\n═══════════════════════════════════════════════════════════")
-	fmt.Println("  Coordinator finished. Press Ctrl+C to exit.")
+	fmt.Println("  Coordinator running. Waiting for SIGINT/SIGTERM to exit...")
 	fmt.Println("═══════════════════════════════════════════════════════════")
-	select {}
+	waitForSignal()
 }
 
 func runNode(ticket string, writeCount int) {
@@ -168,7 +170,7 @@ func runNode(ticket string, writeCount int) {
 	time.Sleep(1 * time.Second)
 
 	fmt.Printf("\n  Writing %d keys...\n", writeCount)
-	for i := 0; i < writeCount; i++ {
+	for i := range writeCount {
 		key := fmt.Sprintf("node-key-%d", i)
 		val := fmt.Sprintf("value-from-node-%d", i)
 		if err := engine.(metaengine.MapBackend).MapSet(ctx, "demo", key, val); err != nil {
@@ -189,9 +191,14 @@ func runNode(ticket string, writeCount int) {
 	fmt.Printf("  ReplicationLag (P99): %s\n", profile.ReplicationLag)
 	fmt.Printf("  NetworkRTT (2×P50):   %s\n", profile.NetworkRTT)
 	fmt.Println("\n═══════════════════════════════════════════════════════════")
-	fmt.Println("  Node finished. Press Ctrl+C to exit.")
+	fmt.Println("  Node running. Waiting for SIGINT/SIGTERM to exit...")
 	fmt.Println("═══════════════════════════════════════════════════════════")
-	select {}
+	waitForSignal()
+}
+	waitSigCh := make(chan os.Signal, 1)
+	signal.Notify(waitSigCh, syscall.SIGINT, syscall.SIGTERM)
+	<-waitSigCh
+	fmt.Println("\n  Shutting down...")
 }
 
 func printMapContents(ctx context.Context, engine metaengine.Engine, collection string) {

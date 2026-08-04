@@ -220,6 +220,8 @@
             "metaengine/projectionadapter"
             "metaengine/duckdbengine"
             "metaengine/pgengine"
+            "metaengine/irohengine"
+            "metaengine/irohengine/quic"
             "system"
             "flightrecorder"
           ];

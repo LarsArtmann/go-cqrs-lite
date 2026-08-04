@@ -13,10 +13,10 @@ const (
 	// loss. Source-of-truth data (event logs) on volatile engines with no
 	// persistent alternative emit this level. The system's scream store treats
 	// SCREAM-tier diagnostics as hard failures (New() refuses to start).
-	DiagLevelScream = "SCREAM"
-	DiagLevelWarn   = "WARN"
+	DiagLevelScream   = "SCREAM"
+	DiagLevelWarn     = "WARN"
 	DiagLevelDegraded = "DEGRADED"
-	DiagLevelInfo   = "INFO"
+	DiagLevelInfo     = "INFO"
 )
 
 type Diagnostic struct {

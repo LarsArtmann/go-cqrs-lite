@@ -202,6 +202,7 @@ linters:
             - github.com/xo/terminfo
             - go.uber.org/multierr
             - github.com/inconshreveable/mousetrap
+            - git.coopcloud.tech/decentral1se/iroh-go
             - golang.org/x/mod
             - golang.org/x/term
             - golang.org/x/text

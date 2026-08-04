@@ -282,8 +282,6 @@ func BuildColumnarLayoutPlan(collection string, resultType reflect.Type) LayoutP
 	}
 }
 
-
-
 func sqlTypeOf(t reflect.Type) string {
 	if t.Kind() == reflect.Pointer {
 		t = t.Elem()

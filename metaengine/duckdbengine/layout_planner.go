@@ -359,5 +359,3 @@ func coerceReal(value any) any {
 		return nil
 	}
 }
-
-

@@ -227,10 +227,10 @@ func layoutScenarios() []LayoutScenario {
 			Filter: []metaengine.FilterSpec{
 				{Column: "status", Op: metaengine.FilterEq, Value: "active"},
 			},
-			Sort:          nil,
-			Limit:         0,
-			ExpectCount:   3,
-			Canonicalize:  canonicalize,
+			Sort:         nil,
+			Limit:        0,
+			ExpectCount:  3,
+			Canonicalize: canonicalize,
 		},
 		{
 			Name:         "layout_sort",
@@ -251,10 +251,10 @@ func layoutScenarios() []LayoutScenario {
 			Filter: []metaengine.FilterSpec{
 				{Column: "status", Op: metaengine.FilterEq, Value: "active"},
 			},
-			Sort:          &metaengine.SortSpec{Column: "price", Desc: true},
-			Limit:         0,
-			ExpectCount:   3,
-			Canonicalize:  canonicalize,
+			Sort:         &metaengine.SortSpec{Column: "price", Desc: true},
+			Limit:        0,
+			ExpectCount:  3,
+			Canonicalize: canonicalize,
 		},
 	}
 }
