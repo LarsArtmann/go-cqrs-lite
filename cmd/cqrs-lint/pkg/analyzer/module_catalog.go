@@ -163,13 +163,21 @@ func (e ModuleEntry) RelevantForProfile(fp FeatureProfile, preset ConfigPreset) 
 	return false
 }
 
-// CategoryPriority returns the recommendation priority for this entry's category.
+// CategoryPriority returns the recommendation priority for a category.
 // Lower number = higher priority (Security missing > Documentation missing).
-func (e ModuleEntry) CategoryPriority() int {
-	if p, ok := categoryPriority[e.Category]; ok {
+// This is the single source of truth — both ModuleEntry.CategoryPriority()
+// and external callers (e.g. scorecard sorter) must use this function.
+func CategoryPriority(cat ModuleCategory) int {
+	if p, ok := categoryPriority[cat]; ok {
 		return p
 	}
 	return 99
+}
+
+// CategoryPriority returns the recommendation priority for this entry's category.
+// Lower number = higher priority (Security missing > Documentation missing).
+func (e ModuleEntry) CategoryPriority() int {
+	return CategoryPriority(e.Category)
 }
 
 // DefaultCatalog is the canonical universe of adoptable go-cqrs-lite modules.

@@ -77,14 +77,14 @@ func ComputeScorecard(
 
 	// Sort Used by category priority then key.
 	sort.SliceStable(result.Used, func(i, j int) bool {
-		return scorecardLess(result.Used[i], result.Used[j], catalog)
+		return scorecardLess(result.Used[i], result.Used[j])
 	})
 	// Sort Missing by category priority then key (recommendations are the first 3).
 	sort.SliceStable(result.Missing, func(i, j int) bool {
-		return scorecardLess(result.Missing[i], result.Missing[j], catalog)
+		return scorecardLess(result.Missing[i], result.Missing[j])
 	})
 	sort.SliceStable(result.Irrelevant, func(i, j int) bool {
-		return scorecardLess(result.Irrelevant[i], result.Irrelevant[j], catalog)
+		return scorecardLess(result.Irrelevant[i], result.Irrelevant[j])
 	})
 
 	// Compute summary.
@@ -108,41 +108,13 @@ func ComputeScorecard(
 
 // scorecardLess defines the sort order for scorecard rows: by category
 // priority (lower = first), then by key for determinism.
-func scorecardLess(a, b ScorecardModule, catalog analyzer.Catalog) bool {
-	priA := categoryPriorityFor(a.Category)
-	priB := categoryPriorityFor(b.Category)
+func scorecardLess(a, b ScorecardModule) bool {
+	priA := analyzer.CategoryPriority(analyzer.ModuleCategory(a.Category))
+	priB := analyzer.CategoryPriority(analyzer.ModuleCategory(b.Category))
 	if priA != priB {
 		return priA < priB
 	}
 	return a.Key < b.Key
-}
-
-// categoryPriorityFor maps a category string to its recommendation priority.
-func categoryPriorityFor(cat string) int {
-	switch cat {
-	case "Security":
-		return 1
-	case "Reliability":
-		return 2
-	case "Observability":
-		return 3
-	case "Persistence":
-		return 4
-	case "Schema":
-		return 5
-	case "Projections":
-		return 6
-	case "Workflow":
-		return 7
-	case "Messaging":
-		return 8
-	case "Optimization":
-		return 9
-	case "Documentation":
-		return 10
-	default:
-		return 99
-	}
 }
 
 // generateRecommendations extracts up to N suggestions from the missing list.

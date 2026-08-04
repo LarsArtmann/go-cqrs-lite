@@ -1756,7 +1756,7 @@ config loader. The operator interacts with it in three contexts:
 
 ```go
 // system.New runs the scream store check automatically.
-sys, err := system.New(ctx, config)
+sys, err := system.New(ctx, domain, deployment)
 if errors.Is(err, screamstore.ErrUnsafeChange) {
     // SCREAM-tier change detected. System refuses to start.
     // The error lists every SCREAM violation with details.
