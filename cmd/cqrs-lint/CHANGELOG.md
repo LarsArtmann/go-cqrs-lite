@@ -29,7 +29,9 @@ Tags use the full module path: `cmd/cqrs-lint/vX.Y.Z`.
 
 ### Improved
 
-- **init generates configs programmatically** — no more hardcoded JSON string templates; `init` now marshals from struct definitions, eliminating trailing-comma corruption risk and format drift
+- **`doctor` completely overhauled** — now shows: (1) the raw config file content with path and byte count, (2) active preset with full description and features/rules/severity details, (3) effective settings after all resolution with source annotations (default vs config vs preset floor), (4) total/active/disabled rule counts with per-source breakdown (from preset vs from config), (5) parent config inheritance chain, (6) per-module profiles, (7) suggested config, (8) inline suppression counts sorted by frequency
+- **Severity floor semantics documented** — the preset's `min-severity` is a lower bound; users can raise it (stricter) but not lower it below the preset floor. This is now visible in `doctor` output (source annotation) and `explain` output (resolution order section)
+- **init generates configs programmatically** — no more hardcoded JSON string templates; `init` now generates from struct definitions and preset descriptions, eliminating trailing-comma corruption risk and format drift
 - **init writes DRY configs** — named presets write just `{"preset": "name"}` (the runtime resolves features + rule defaults); the default skeleton writes only 3 core knobs instead of 7 no-op zero-value keys
 - **Preset rules applied at runtime** — presets now control both feature flags AND rule-disable defaults; explicit `rules.disable` entries are added on top (union)
 - **init help text** — `--preset` help now lists the correct presets: `local-cli, production, library, read-only` (was `local-cli, library, server, full-stack`)

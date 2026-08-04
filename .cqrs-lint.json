@@ -1,3 +1,6 @@
 {
+  // Library/SDK preset: silences rules that only apply to deployed applications.
+  // A library defines types and infrastructure; it cannot force consumers to
+  // adopt catalog docs, encryption, signing, or relational projections.
   "preset": "library"
 }
