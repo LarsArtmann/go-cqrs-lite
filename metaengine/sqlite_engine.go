@@ -226,7 +226,7 @@ func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 func (e *sqliteEngine) MapDelete(ctx context.Context, col string, key any) error {
 	if plan, ok := e.plans[col]; ok {
 		_, err := e.xd().ExecContext(ctx,
-			fmt.Sprintf("DELETE FROM %s WHERE key = ?", quoteIdent(plan.Table)),
+			fmt.Sprintf("DELETE FROM %s WHERE key = ?", QuoteIdent(plan.Table)),
 			encodeKey(key))
 
 		return err //nolint:wrapcheck // passthrough
@@ -311,7 +311,7 @@ func (e *sqliteEngine) MapScan(
 	var err error
 
 	if plan, ok := e.plans[col]; ok {
-		rows, err = e.xd().QueryContext(ctx, "SELECT value FROM "+quoteIdent(plan.Table))
+		rows, err = e.xd().QueryContext(ctx, "SELECT value FROM "+QuoteIdent(plan.Table))
 	} else {
 		rows, err = e.xd().QueryContext(ctx, `SELECT value FROM meta_map WHERE collection = ?`, col)
 	}
@@ -530,7 +530,7 @@ func (e *sqliteEngine) buildStreamQuery(
 	var b strings.Builder
 
 	if plan, ok := e.plans[col]; ok {
-		fmt.Fprintf(&b, "SELECT value FROM %s", quoteIdent(plan.Table))
+		fmt.Fprintf(&b, "SELECT value FROM %s", QuoteIdent(plan.Table))
 
 		args := make([]any, 0, len(filters))
 
@@ -541,12 +541,12 @@ func (e *sqliteEngine) buildStreamQuery(
 				b.WriteString(" AND ")
 			}
 
-			fmt.Fprintf(&b, "%s %s ?", quoteIdent(f.Column), string(f.Op))
+			fmt.Fprintf(&b, "%s %s ?", QuoteIdent(f.Column), string(f.Op))
 			args = append(args, f.Value)
 		}
 
 		if sort != nil {
-			fmt.Fprintf(&b, " ORDER BY %s", quoteIdent(sort.Column))
+			fmt.Fprintf(&b, " ORDER BY %s", QuoteIdent(sort.Column))
 
 			if sort.Desc {
 				b.WriteString(" DESC")

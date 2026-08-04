@@ -103,9 +103,9 @@ func (e *sqliteEngine) aggregatePlanned(
 	args := []any{}
 
 	if fn == AggregateCount {
-		fmt.Fprintf(&b, "SELECT COUNT(*) FROM %s", quoteIdent(plan.Table))
+		fmt.Fprintf(&b, "SELECT COUNT(*) FROM %s", QuoteIdent(plan.Table))
 	} else {
-		fmt.Fprintf(&b, "SELECT %s(%s) FROM %s", fn, quoteIdent(column), quoteIdent(plan.Table))
+		fmt.Fprintf(&b, "SELECT %s(%s) FROM %s", fn, QuoteIdent(column), QuoteIdent(plan.Table))
 	}
 
 	whereStarted := false

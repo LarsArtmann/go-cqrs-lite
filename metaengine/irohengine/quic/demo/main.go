@@ -43,10 +43,19 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  demo -mode coordinator [-wait-nodes N] [-writes M]")
 	fmt.Fprintln(os.Stderr, "  demo -mode node -ticket <ticket> [-writes M]")
 	fmt.Fprintln(os.Stderr)
-	fmt.Fprintln(os.Stderr, "Coordinator prints a ticket, waits for N nodes to connect, then writes M keys.")
-	fmt.Fprintln(os.Stderr, "Nodes connect via ticket and write M keys. Both sides verify CRDT convergence.")
+	fmt.Fprintln(
+		os.Stderr,
+		"Coordinator prints a ticket, waits for N nodes to connect, then writes M keys.",
+	)
+	fmt.Fprintln(
+		os.Stderr,
+		"Nodes connect via ticket and write M keys. Both sides verify CRDT convergence.",
+	)
 	fmt.Fprintln(os.Stderr)
-	fmt.Fprintln(os.Stderr, "This is REAL QUIC networking: separate OS processes communicating over UDP.")
+	fmt.Fprintln(
+		os.Stderr,
+		"This is REAL QUIC networking: separate OS processes communicating over UDP.",
+	)
 }
 
 func runCoordinator(waitFor, writeCount int) {

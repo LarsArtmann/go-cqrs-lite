@@ -58,10 +58,10 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 
 // yamlConfig is the YAML representation of DeploymentConfig.
 type yamlConfig struct {
-	Engines   map[string]yamlEngine   `yaml:"engines"`
-	Buses     map[string]yamlBus      `yaml:"buses"`
-	Instances []yamlInstance          `yaml:"instances"`
-	AckWarns  []string                `yaml:"acknowledge_warnings"`
+	Engines   map[string]yamlEngine `yaml:"engines"`
+	Buses     map[string]yamlBus    `yaml:"buses"`
+	Instances []yamlInstance        `yaml:"instances"`
+	AckWarns  []string              `yaml:"acknowledge_warnings"`
 }
 
 type yamlEngine struct {
@@ -113,12 +113,12 @@ func parseYAML(data []byte, cfg *DeploymentConfig) error {
 
 	for _, inst := range yc.Instances {
 		ic := InstanceConfig{
-			Role:      InstanceRole(inst.Role),
-			Engine:    inst.Engine,
-			Engines:   inst.Engines,
+			Role:       InstanceRole(inst.Role),
+			Engine:     inst.Engine,
+			Engines:    inst.Engines,
 			Durability: DurabilityTier(inst.Durability),
-			Publish:   inst.Publish,
-			Subscribe: inst.Subscribe,
+			Publish:    inst.Publish,
+			Subscribe:  inst.Subscribe,
 		}
 
 		if ic.Durability == "" {

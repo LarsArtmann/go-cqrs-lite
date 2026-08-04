@@ -115,7 +115,7 @@ func (e *sqliteEngine) MigrateLayout(collection string, newPlan LayoutPlan) erro
 		return nil // no existing plan, nothing to migrate
 	}
 
-	if plansColumnCompatible(existing, newPlan) {
+	if PlansColumnCompatible(existing, newPlan) {
 		return nil // compatible, no migration needed
 	}
 
@@ -130,7 +130,7 @@ func (e *sqliteEngine) MigrateLayout(collection string, newPlan LayoutPlan) erro
 	for _, newCol := range newPlan.Columns {
 		if !existingCols[newCol.Name] {
 			ddl := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s",
-				quoteIdent(newPlan.Table), quoteIdent(newCol.Name), newCol.Type)
+				QuoteIdent(newPlan.Table), QuoteIdent(newCol.Name), newCol.Type)
 			if _, err := e.db.ExecContext(ctx, ddl); err != nil {
 				return err //nolint:wrapcheck
 			}

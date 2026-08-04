@@ -117,28 +117,31 @@ func init() {
 		return metaengine.NewMemoryEngine(), nil
 	})
 
-	RegisterDriver("sqlite", func(ctx context.Context, cfg EngineConfig) (metaengine.Engine, error) {
-		dsn := cfg.DSN
-		if dsn == "" {
-			dsn = ":memory:"
-		}
-
-		db, err := sql.Open("sqlite", dsn)
-		if err != nil {
-			return nil, fmt.Errorf("system: open sqlite %q: %w", dsn, err)
-		}
-
-		// Apply pragmas if specified.
-		for _, pragma := range cfg.Pragmas {
-			if _, err := db.ExecContext(ctx, "PRAGMA "+pragma); err != nil {
-				_ = db.Close()
-
-				return nil, fmt.Errorf("system: sqlite pragma %q: %w", pragma, err)
+	RegisterDriver(
+		"sqlite",
+		func(ctx context.Context, cfg EngineConfig) (metaengine.Engine, error) {
+			dsn := cfg.DSN
+			if dsn == "" {
+				dsn = ":memory:"
 			}
-		}
 
-		return metaengine.NewSQLiteEngine(db) //nolint:contextcheck // takes *sql.DB
-	})
+			db, err := sql.Open("sqlite", dsn)
+			if err != nil {
+				return nil, fmt.Errorf("system: open sqlite %q: %w", dsn, err)
+			}
+
+			// Apply pragmas if specified.
+			for _, pragma := range cfg.Pragmas {
+				if _, err := db.ExecContext(ctx, "PRAGMA "+pragma); err != nil {
+					_ = db.Close()
+
+					return nil, fmt.Errorf("system: sqlite pragma %q: %w", pragma, err)
+				}
+			}
+
+			return metaengine.NewSQLiteEngine(db) //nolint:contextcheck // takes *sql.DB
+		},
+	)
 
 	// Register the built-in gochannel bus driver (in-process pub/sub).
 	RegisterBusDriver("gochannel", func(_ BusConfig) (any, error) {

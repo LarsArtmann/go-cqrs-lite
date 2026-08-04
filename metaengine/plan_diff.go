@@ -15,22 +15,22 @@ import (
 
 // PlanDiffResult describes the differences between two SerializablePlans.
 type PlanDiffResult struct {
-	EnginesAdded    []string
-	EnginesRemoved  []string
-	QueriesAdded    []string
-	QueriesRemoved  []string
-	QueriesChanged  []QueryChange
-	LayoutsAdded    []string
-	LayoutsRemoved  []string
+	EnginesAdded   []string
+	EnginesRemoved []string
+	QueriesAdded   []string
+	QueriesRemoved []string
+	QueriesChanged []QueryChange
+	LayoutsAdded   []string
+	LayoutsRemoved []string
 }
 
 // QueryChange describes a query whose assignment changed between plans.
 type QueryChange struct {
-	Name       string
-	OldEngine  string
-	NewEngine  string
-	OldADT     ADT
-	NewADT     ADT
+	Name      string
+	OldEngine string
+	NewEngine string
+	OldADT    ADT
+	NewADT    ADT
 }
 
 // IsEmpty returns true if the diff has no changes.

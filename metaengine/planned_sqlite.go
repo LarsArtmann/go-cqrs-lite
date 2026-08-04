@@ -46,7 +46,7 @@ func (e *sqliteEngine) ApplyLayout(collection string, filterFields, sortFields [
 	if existing, exists := e.plans[collection]; exists {
 		// Idempotent: same column set → no-op. Different columns → conflict.
 		newPlan := BuildLayoutPlan(collection, filterFields, sortFields)
-		if !plansColumnCompatible(existing, newPlan) {
+		if !PlansColumnCompatible(existing, newPlan) {
 			return fmt.Errorf("%w: collection %q already has columns %v, requested %v",
 				ErrLayoutConflict, collection, existing.ColumnNames(), newPlan.ColumnNames())
 		}
@@ -63,9 +63,9 @@ func (e *sqliteEngine) ApplyLayout(collection string, filterFields, sortFields [
 	return nil
 }
 
-// plansColumnCompatible returns true when two plans have the same set of
+// PlansColumnCompatible returns true when two plans have the same set of
 // column names (order-independent). Used to detect layout conflicts.
-func plansColumnCompatible(a, b LayoutPlan) bool {
+func PlansColumnCompatible(a, b LayoutPlan) bool {
 	ac := a.ColumnNames()
 
 	bc := b.ColumnNames()
@@ -127,15 +127,15 @@ func execPlannedSet(
 	value any,
 ) error {
 	valueJSON := encodeValue(value)
-	extracted := extractFields(value, plan.Columns)
+	extracted := ExtractFields(value, plan.Columns)
 
 	quotedColNames := make([]string, 0, 2+len(plan.Columns))
-	quotedColNames = append(quotedColNames, quoteIdent("key"), quoteIdent("value"))
+	quotedColNames = append(quotedColNames, QuoteIdent("key"), QuoteIdent("value"))
 	args := make([]any, 0, 2+len(plan.Columns))
 	args = append(args, encodeKey(key), valueJSON)
 
 	for _, c := range plan.Columns {
-		quotedColNames = append(quotedColNames, quoteIdent(c.Name))
+		quotedColNames = append(quotedColNames, QuoteIdent(c.Name))
 		args = append(args, extracted[c.Name])
 	}
 
@@ -144,7 +144,7 @@ func execPlannedSet(
 
 	query := fmt.Sprintf(
 		"INSERT OR REPLACE INTO %s (%s) VALUES %s",
-		quoteIdent(plan.Table), strings.Join(quotedColNames, ", "), placeholder,
+		QuoteIdent(plan.Table), strings.Join(quotedColNames, ", "), placeholder,
 	)
 
 	_, err := exec.ExecContext(ctx, query, args...)
@@ -160,7 +160,7 @@ func (e *sqliteEngine) mapGetPlanned(
 	var valStr string
 
 	err := e.xd().QueryRowContext(ctx,
-		fmt.Sprintf("SELECT value FROM %s WHERE key = ?", quoteIdent(plan.Table)),
+		fmt.Sprintf("SELECT value FROM %s WHERE key = ?", QuoteIdent(plan.Table)),
 		encodeKey(key)).Scan(&valStr)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -189,7 +189,7 @@ func (e *sqliteEngine) mapUpdatePlanned(
 		var valStr string
 
 		err := xd.QueryRowContext(ctx,
-			fmt.Sprintf("SELECT value FROM %s WHERE key = ?", quoteIdent(plan.Table)),
+			fmt.Sprintf("SELECT value FROM %s WHERE key = ?", QuoteIdent(plan.Table)),
 			encodeKey(key)).Scan(&valStr)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return err //nolint:wrapcheck // passthrough
@@ -210,7 +210,7 @@ func (e *sqliteEngine) mapUpdatePlanned(
 		func(ctx context.Context, tx *sql.Tx) (any, error) {
 			var valStr string
 			if err := tx.QueryRowContext(ctx,
-				fmt.Sprintf("SELECT value FROM %s WHERE key = ?", quoteIdent(plan.Table)),
+				fmt.Sprintf("SELECT value FROM %s WHERE key = ?", QuoteIdent(plan.Table)),
 				encodeKey(key)).Scan(&valStr); err != nil {
 				return nil, err //nolint:wrapcheck // ErrNoRows handled by caller
 			}
@@ -278,12 +278,12 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 	return ScanResult{Items: rows, HasMore: hasMore}, nil
 }
 
-// extractFields pulls field values from a Go value (struct or map) for the
+// ExtractFields pulls field values from a Go value (struct or map) for the
 // planned columns. Missing fields produce nil (stored as NULL).
 //
 // Structs use a reflect fast path (no JSON marshal/unmarshal on writes).
 // Maps and other types fall back to JSON round-trip.
-func extractFields(value any, columns []PlannedColumn) map[string]any {
+func ExtractFields(value any, columns []PlannedColumn) map[string]any {
 	result := make(map[string]any, len(columns))
 
 	if m, ok := value.(map[string]any); ok {
@@ -313,7 +313,7 @@ func extractFields(value any, columns []PlannedColumn) map[string]any {
 					continue
 				}
 
-				fieldName := jsonFieldName(f)
+				fieldName := JSONFieldName(f)
 
 				if strings.EqualFold(fieldName, c.Name) {
 					result[c.Name] = rv.Field(i).Interface()
@@ -350,9 +350,9 @@ func extractFields(value any, columns []PlannedColumn) map[string]any {
 	return result
 }
 
-// jsonFieldName returns the JSON field name for a struct field, respecting
+// JSONFieldName returns the JSON field name for a struct field, respecting
 // json tags. Falls back to the Go field name when no tag is present.
-func jsonFieldName(f reflect.StructField) string {
+func JSONFieldName(f reflect.StructField) string {
 	if tag := f.Tag.Get("json"); tag != "" {
 		if name, _, _ := strings.Cut(tag, ","); name != "" {
 			return name

@@ -79,7 +79,8 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 			// Auto-detect serialization: Memory stores pointers directly; all
 			// other engines need JSON envelope serialization.
 			var adapterOpts []EventAdapterOption
-			if engCfg, hasCfg := deployment.Engines[engineName]; hasCfg && engCfg.Driver != "memory" {
+			if engCfg, hasCfg := deployment.Engines[engineName]; hasCfg &&
+				engCfg.Driver != "memory" {
 				adapterOpts = append(adapterOpts, WithSerialization())
 			}
 
@@ -239,7 +240,7 @@ func RegisterDecider[State any](sys *System, streamType string, d decider.Decide
 		return errors.New("system: cannot register decider: no event store")
 	}
 
-	repo, err := decider.NewRepository[State](sys.eventStore, sys.pubBus, d)
+	repo, err := decider.NewRepository(sys.eventStore, sys.pubBus, d)
 	if err != nil {
 		return fmt.Errorf("system: create repository for %q: %w", streamType, err)
 	}

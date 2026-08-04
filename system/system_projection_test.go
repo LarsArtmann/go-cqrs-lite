@@ -92,7 +92,8 @@ func TestSystem_ProjectionE2E(t *testing.T) {
 	defer sys.Close()
 
 	// Dispatch command BEFORE starting projections — the host will replay from journal.
-	if err := sys.CommandDispatcher().Dispatch(ctx, newCmd("task.create", id.NewStreamID())); err != nil {
+	if err := sys.CommandDispatcher().
+		Dispatch(ctx, newCmd("task.create", id.NewStreamID())); err != nil {
 		t.Fatalf("dispatch create: %v", err)
 	}
 
@@ -189,7 +190,8 @@ func TestSystem_ProjectionWithSQLite(t *testing.T) {
 	}
 	defer sys.Close()
 
-	if err := sys.CommandDispatcher().Dispatch(ctx, newCmd("task.create", id.NewStreamID())); err != nil {
+	if err := sys.CommandDispatcher().
+		Dispatch(ctx, newCmd("task.create", id.NewStreamID())); err != nil {
 		t.Fatalf("dispatch create: %v", err)
 	}
 

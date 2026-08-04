@@ -101,12 +101,12 @@ func (p LayoutPlan) ColumnNames() []string {
 func (p LayoutPlan) DDL() string {
 	var b strings.Builder
 
-	fmt.Fprintf(&b, "CREATE TABLE IF NOT EXISTS %s (\n", quoteIdent(p.Table))
+	fmt.Fprintf(&b, "CREATE TABLE IF NOT EXISTS %s (\n", QuoteIdent(p.Table))
 	b.WriteString("  key TEXT PRIMARY KEY,\n")
 	b.WriteString("  value TEXT NOT NULL")
 
 	for _, c := range p.Columns {
-		fmt.Fprintf(&b, ",\n  %s %s", quoteIdent(c.Name), c.Type)
+		fmt.Fprintf(&b, ",\n  %s %s", QuoteIdent(c.Name), c.Type)
 	}
 
 	b.WriteString("\n);")
@@ -114,21 +114,21 @@ func (p LayoutPlan) DDL() string {
 	for _, idx := range p.Indexes {
 		quotedCols := make([]string, len(idx.Columns))
 		for i, col := range idx.Columns {
-			quotedCols[i] = quoteIdent(col)
+			quotedCols[i] = QuoteIdent(col)
 		}
 
 		colList := strings.Join(quotedCols, ", ")
 		fmt.Fprintf(&b, "\nCREATE INDEX IF NOT EXISTS %s ON %s(%s);",
-			quoteIdent(idx.Name), quoteIdent(p.Table), colList)
+			QuoteIdent(idx.Name), QuoteIdent(p.Table), colList)
 	}
 
 	return b.String()
 }
 
-// quoteIdent wraps a SQL identifier in double quotes, escaping any embedded
+// QuoteIdent wraps a SQL identifier in double quotes, escaping any embedded
 // double quotes by doubling them (SQL standard). This prevents SQL injection
 // through user-declared field names used as column/table identifiers.
-func quoteIdent(name string) string {
+func QuoteIdent(name string) string {
 	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
 }
 
@@ -227,7 +227,7 @@ func lookupFieldType(fields map[string]reflect.Type, name string) (reflect.Type,
 // such as DuckDB. The key and value columns are still present so MapGet can
 // reconstruct the original value without a full-column scan.
 //
-// Field names respect json tags (same as the engine's extractFields). When the
+// Field names respect json tags (same as the engine's ExtractFields). When the
 // result type is not a struct the plan contains only key and value columns.
 func BuildColumnarLayoutPlan(collection string, resultType reflect.Type) LayoutPlan {
 	table := "meta_planned_" + sanitize(collection)
@@ -245,7 +245,7 @@ func BuildColumnarLayoutPlan(collection string, resultType reflect.Type) LayoutP
 				continue
 			}
 
-			name := layoutJSONFieldName(f)
+			name := JSONFieldName(f)
 			if name == "" || seen[name] {
 				continue
 			}
@@ -282,17 +282,7 @@ func BuildColumnarLayoutPlan(collection string, resultType reflect.Type) LayoutP
 	}
 }
 
-// layoutJSONFieldName returns the JSON field name for a struct field, respecting
-// json tags. Falls back to the Go field name when no tag is present.
-func layoutJSONFieldName(f reflect.StructField) string {
-	if tag := f.Tag.Get("json"); tag != "" {
-		if name, _, _ := strings.Cut(tag, ","); name != "" {
-			return name
-		}
-	}
 
-	return f.Name
-}
 
 func sqlTypeOf(t reflect.Type) string {
 	if t.Kind() == reflect.Pointer {

@@ -6,6 +6,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // Topology describes the entire wired deployment as a graph.
@@ -168,4 +170,40 @@ func (s *System) Explain(ctx context.Context) string {
 	fmt.Fprintf(&b, "  Time: %s\n", time.Now().Format(time.RFC3339))
 
 	return b.String()
+}
+
+// ProjectionPlan returns the serializable plan for the projection layer, or
+// nil if no projection store is configured. Useful for pinning plans and
+// detecting drift across restarts.
+func (s *System) ProjectionPlan() *metaengine.SerializablePlan {
+	if s.projStore == nil {
+		return nil
+	}
+
+	result := s.projStore.Plan()
+	if result == nil {
+		return nil
+	}
+
+	return metaengine.Serialize(result, s.engines)
+}
+
+// VerifyProjections checks the consistency of the projection layer plan
+// against the configured engines. Returns nil if no projection store exists.
+func (s *System) VerifyProjections(ctx context.Context) error {
+	if s.projStore == nil {
+		return nil
+	}
+
+	return s.projStore.Verify(ctx, s.engines)
+}
+
+// ProjectionExplain returns a human-readable plan explanation for the
+// projection layer, or an empty string if no projection store is configured.
+func (s *System) ProjectionExplain() string {
+	if s.projStore == nil {
+		return ""
+	}
+
+	return s.projStore.ExplainPlan()
 }

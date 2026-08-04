@@ -30,9 +30,30 @@ func newSimpleBus() *simpleBus {
 }
 
 // buildEventBus creates the event bus based on the deployment config.
-// If any source-of-truth instance has multiple Publish targets, a MultiBus
-// is created to fan-out events. Otherwise, a single simpleBus is used (D9).
+// If the deployment configures a bus with a known driver, the driver factory
+// is used. Otherwise a single simpleBus is created (D9).
 func buildEventBus(deployment DeploymentConfig) event.Bus {
+	// If a bus is explicitly configured, try the driver registry.
+	for _, busCfg := range deployment.Buses {
+		if busCfg.Driver == "" || busCfg.Driver == "gochannel" {
+			continue
+		}
+
+		factory, err := lookupBusDriver(busCfg.Driver)
+		if err != nil {
+			continue // unknown driver, fall through to simpleBus
+		}
+
+		bus, err := factory(busCfg)
+		if err != nil {
+			continue // factory error, fall through to simpleBus
+		}
+
+		if eb, ok := bus.(event.Bus); ok {
+			return eb
+		}
+	}
+
 	return newSimpleBus()
 }
 

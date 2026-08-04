@@ -42,7 +42,7 @@ func (e *duckdbEngine) ApplyLayoutPlan(plan metaengine.LayoutPlan) error {
 	}
 
 	if existing, exists := e.plans[plan.Collection]; exists {
-		if !plansColumnCompatible(existing, plan) {
+		if !metaengine.PlansColumnCompatible(existing, plan) {
 			return fmt.Errorf(
 				"%w: collection %q already has columns %v, requested %v",
 				metaengine.ErrLayoutConflict,
@@ -77,10 +77,10 @@ func (e *duckdbEngine) mapSetPlanned(
 		return fmt.Errorf("duckdbengine.mapSetPlanned: marshal: %w", err)
 	}
 
-	extracted := extractFields(value, plan.Columns)
+	extracted := metaengine.ExtractFields(value, plan.Columns)
 
 	quotedCols := make([]string, 0, 2+len(plan.Columns))
-	quotedCols = append(quotedCols, quoteIdent("key"), quoteIdent("value"))
+	quotedCols = append(quotedCols, metaengine.QuoteIdent("key"), metaengine.QuoteIdent("value"))
 
 	placeholders := make([]string, 0, 2+len(plan.Columns))
 	placeholders = append(placeholders, "$1", "$2")
@@ -89,7 +89,7 @@ func (e *duckdbEngine) mapSetPlanned(
 	args = append(args, fmt.Sprint(key), string(data))
 
 	for i, c := range plan.Columns {
-		quotedCols = append(quotedCols, quoteIdent(c.Name))
+		quotedCols = append(quotedCols, metaengine.QuoteIdent(c.Name))
 		placeholders = append(placeholders, fmt.Sprintf("$%d", i+3))
 		args = append(args, coerceForColumn(extracted[c.Name], c))
 	}
@@ -97,22 +97,22 @@ func (e *duckdbEngine) mapSetPlanned(
 	setCols := make([]string, 0, 1+len(plan.Columns))
 	setCols = append(
 		setCols,
-		fmt.Sprintf("%s = excluded.%s", quoteIdent("value"), quoteIdent("value")),
+		fmt.Sprintf("%s = excluded.%s", metaengine.QuoteIdent("value"), metaengine.QuoteIdent("value")),
 	)
 
 	for _, c := range plan.Columns {
 		setCols = append(
 			setCols,
-			fmt.Sprintf("%s = excluded.%s", quoteIdent(c.Name), quoteIdent(c.Name)),
+			fmt.Sprintf("%s = excluded.%s", metaengine.QuoteIdent(c.Name), metaengine.QuoteIdent(c.Name)),
 		)
 	}
 
 	query := fmt.Sprintf(
 		"INSERT INTO %s (%s) VALUES (%s) ON CONFLICT (%s) DO UPDATE SET %s",
-		quoteIdent(plan.Table),
+		metaengine.QuoteIdent(plan.Table),
 		strings.Join(quotedCols, ", "),
 		strings.Join(placeholders, ", "),
-		quoteIdent("key"),
+		metaengine.QuoteIdent("key"),
 		strings.Join(setCols, ", "),
 	)
 
@@ -132,7 +132,7 @@ func (e *duckdbEngine) mapGetPlanned(
 
 	err := e.db.QueryRowContext(
 		ctx,
-		fmt.Sprintf("SELECT value FROM %s WHERE key = $1", quoteIdent(plan.Table)),
+		fmt.Sprintf("SELECT value FROM %s WHERE key = $1", metaengine.QuoteIdent(plan.Table)),
 		fmt.Sprint(key),
 	).Scan(&raw)
 	if err != nil {
@@ -158,7 +158,7 @@ func (e *duckdbEngine) mapDeletePlanned(
 ) error {
 	_, err := e.db.ExecContext(
 		ctx,
-		fmt.Sprintf("DELETE FROM %s WHERE key = $1", quoteIdent(plan.Table)),
+		fmt.Sprintf("DELETE FROM %s WHERE key = $1", metaengine.QuoteIdent(plan.Table)),
 		fmt.Sprint(key),
 	)
 	if err != nil {
@@ -206,7 +206,7 @@ func buildPlannedSelectQuery(
 
 	args := []any{}
 
-	fmt.Fprintf(&b, "SELECT value FROM %s", quoteIdent(plan.Table))
+	fmt.Fprintf(&b, "SELECT value FROM %s", metaengine.QuoteIdent(plan.Table))
 
 	whereStarted := false
 	argIdx := 1
@@ -227,11 +227,11 @@ func buildPlannedSelectQuery(
 				argIdx++
 			}
 
-			fmt.Fprintf(&b, "%s IN (%s)", quoteIdent(f.Column), strings.Join(placeholders, ", "))
+			fmt.Fprintf(&b, "%s IN (%s)", metaengine.QuoteIdent(f.Column), strings.Join(placeholders, ", "))
 		} else {
 			writeWhereOrAnd(&b, &whereStarted)
 
-			fmt.Fprintf(&b, "%s %s $%d", quoteIdent(f.Column), string(f.Op), argIdx)
+			fmt.Fprintf(&b, "%s %s $%d", metaengine.QuoteIdent(f.Column), string(f.Op), argIdx)
 			args = append(args, f.Value)
 			argIdx++
 		}
@@ -245,13 +245,13 @@ func buildPlannedSelectQuery(
 			op = "<"
 		}
 
-		fmt.Fprintf(&b, "%s %s $%d", quoteIdent(sort.Column), op, argIdx)
+		fmt.Fprintf(&b, "%s %s $%d", metaengine.QuoteIdent(sort.Column), op, argIdx)
 		args = append(args, cursor)
 		argIdx++
 	}
 
 	if sort != nil {
-		fmt.Fprintf(&b, " ORDER BY %s", quoteIdent(sort.Column))
+		fmt.Fprintf(&b, " ORDER BY %s", metaengine.QuoteIdent(sort.Column))
 		if sort.Desc {
 			b.WriteString(" DESC")
 		}
@@ -276,106 +276,6 @@ func writeWhereOrAnd(b *strings.Builder, whereStarted *bool) {
 	}
 
 	b.WriteString(" AND ")
-}
-
-// extractFields pulls field values from a Go value for the planned columns.
-// Missing fields produce nil (stored as NULL). Mirrors the metaengine
-// extractFields logic (which is unexported).
-func extractFields(value any, columns []metaengine.PlannedColumn) map[string]any {
-	result := make(map[string]any, len(columns))
-
-	if m, ok := value.(map[string]any); ok {
-		for _, c := range columns {
-			for k, v := range m {
-				if strings.EqualFold(k, c.Name) {
-					result[c.Name] = v
-					break
-				}
-			}
-		}
-
-		return result
-	}
-
-	rv := reflect.ValueOf(value)
-
-	if rv.IsValid() && rv.Kind() == reflect.Struct {
-		rt := rv.Type()
-
-		for _, c := range columns {
-			for i := range rt.NumField() {
-				f := rt.Field(i)
-				if !f.IsExported() {
-					continue
-				}
-
-				fieldName := jsonFieldName(f)
-
-				if strings.EqualFold(fieldName, c.Name) {
-					result[c.Name] = rv.Field(i).Interface()
-					break
-				}
-			}
-		}
-
-		return result
-	}
-
-	b, err := json.Marshal(value)
-	if err != nil {
-		return result
-	}
-
-	var m map[string]any
-	if err := json.Unmarshal(b, &m); err != nil {
-		return result
-	}
-
-	for _, c := range columns {
-		for k, v := range m {
-			if strings.EqualFold(k, c.Name) {
-				result[c.Name] = v
-				break
-			}
-		}
-	}
-
-	return result
-}
-
-// jsonFieldName returns the JSON field name for a struct field, respecting
-// json tags. Falls back to the Go field name when no tag is present.
-func jsonFieldName(f reflect.StructField) string {
-	if tag := f.Tag.Get("json"); tag != "" {
-		if name, _, _ := strings.Cut(tag, ","); name != "" {
-			return name
-		}
-	}
-
-	return f.Name
-}
-
-// plansColumnCompatible returns true when two plans have the same set of
-// column names (order-independent). Used to detect layout conflicts.
-func plansColumnCompatible(a, b metaengine.LayoutPlan) bool {
-	ac := a.ColumnNames()
-	bc := b.ColumnNames()
-	if len(ac) != len(bc) {
-		return false
-	}
-
-	bset := make(map[string]bool, len(bc))
-	for _, c := range bc {
-		bset[c] = true
-	}
-
-	for _, c := range ac {
-		if !bset[c] {
-			return false
-		}
-	}
-
-	return true
 }
 
 // coerceForColumn converts a Go value to a type compatible with the planned
@@ -455,9 +355,4 @@ func coerceReal(value any) any {
 	}
 }
 
-// quoteIdent wraps a SQL identifier in double quotes, escaping any embedded
-// double quotes by doubling them (SQL standard). This prevents SQL injection
-// through user-declared field names used as column/table identifiers.
-func quoteIdent(name string) string {
-	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
-}
+

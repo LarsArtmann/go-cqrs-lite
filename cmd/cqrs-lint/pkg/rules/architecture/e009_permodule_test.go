@@ -132,6 +132,9 @@ func setup() {
 	}
 
 	if len(findings) != 1 {
-		t.Errorf("expected 1 finding for single-module project without transport, got %d", len(findings))
+		t.Errorf(
+			"expected 1 finding for single-module project without transport, got %d",
+			len(findings),
+		)
 	}
 }

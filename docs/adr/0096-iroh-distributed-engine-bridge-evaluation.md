@@ -4,7 +4,11 @@ Date: 2026-08-03
 
 ## Status
 
-**Prototype Available** — Level 2 replication wrapper implemented (`metaengine/irohengine/`) with in-process mock transport. Real Iroh FFI integration remains deferred pending `iroh-docs` C binding maturity.
+**Real QUIC Transport Available** — Level 2 replication wrapper implemented (`metaengine/irohengine/`) with two transports:
+- `InProcessNetwork`: goroutine-based delivery for unit tests (no CGo)
+- `quic.QuicTransport`: real QUIC streams via `iroh-go` CGo bindings (Linux, CGo required)
+
+Real bidirectional CRDT convergence verified between separate OS processes over UDP/QUIC.
 
 ## Context
 
@@ -153,13 +157,44 @@ zero wrapper changes needed.
 
 ### What the prototype does NOT do
 
-- Real QUIC networking (mock transport is in-process, synchronous by default)
-- Real Iroh `iroh-docs` CRDT range reconciliation
-- Actual NAT traversal / P2P discovery
-- `WithNetworkDelay` / `WithNetworkDropRate` simulate adverse conditions but
-  do not model real network topology
+- ~~Real QUIC networking (mock transport is in-process, synchronous by default)~~ **DONE** — see `metaengine/irohengine/quic/` for real QUIC transport
+- Real Iroh `iroh-docs` CRDT range reconciliation (our Go CRDT logic handles convergence; `iroh-docs` is a separate optional track)
+- ~~Actual NAT traversal / P2P discovery~~ **DONE** — `iroh-go` provides NAT traversal via relay servers (`PresetN0()`); `WithLocalOnly()` disables it for tests
+- ~~`WithNetworkDelay` / `WithNetworkDropRate` simulate adverse conditions~~ Still available on `InProcessNetwork` for CI without CGo; `tc netem` can shape real traffic for `QuicTransport`
 
-These are deferred to the real Iroh FFI integration.
+## Real QUIC Implementation (2026-08-04)
+
+### What was built
+
+`metaengine/irohengine/quic/` is a separate Go module (own `go.mod`, `//go:build cgo` guard)
+that implements `irohengine.Transport` over real Iroh QUIC streams:
+
+```go
+transport, _ := quic.New(quic.WithLocalOnly())
+engine := irohengine.Replicated(
+    metaengine.NewMemoryEngine(),
+    irohengine.WithTransport(transport),
+)
+ticket, _ := transport.Ticket()
+// Share ticket with another process...
+otherTransport.Connect(ticket)
+```
+
+### How it works
+
+1. Each node binds a real Iroh QUIC endpoint (`iroh.EndpointBind`)
+2. Node A generates a ticket (`EndpointTicketFromAddr`) and shares it (base32 string)
+3. Node B parses the ticket and connects (`endpoint.Connect`)
+4. Writes serialize `WriteOp` as JSON and send over `conn.OpenBi()` BiStreams
+5. The accept loop (`conn.AcceptBi()`) deserializes and dispatches to subscribers
+6. RTT is measured from QUIC's own ACK timing (`conn.Rtt()`) — not `time.Sleep`
+
+### What was verified
+
+- 7 convergence tests pass (Map, Bidirectional, PN-Counter, Set, LWW, RTT, Log)
+- All tests pass 3x with `-race`
+- Multi-process demo: coordinator + node in separate processes see all keys
+- Both nodes see 6/6 keys (3 from each side) with real QUIC delivery
 
 ## Consequences
 

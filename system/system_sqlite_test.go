@@ -271,7 +271,8 @@ func TestSystem_SQLitePersistence(t *testing.T) {
 	}
 
 	taskStreamID := id.NewStreamID()
-	if err := sys1.CommandDispatcher().Dispatch(ctx, newCmd("task.create", taskStreamID)); err != nil {
+	if err := sys1.CommandDispatcher().
+		Dispatch(ctx, newCmd("task.create", taskStreamID)); err != nil {
 		t.Fatalf("dispatch: %v", err)
 	}
 

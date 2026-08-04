@@ -31,7 +31,7 @@ func (e *sqliteEngine) GetRawValue(ctx context.Context, col string, key any) ([]
 
 	if plan, ok := e.plans[col]; ok {
 		err = e.xc().queryRow(ctx,
-			fmt.Sprintf("SELECT value FROM %s WHERE key = ?", quoteIdent(plan.Table)),
+			fmt.Sprintf("SELECT value FROM %s WHERE key = ?", QuoteIdent(plan.Table)),
 			encodeKey(key)).Scan(&valStr)
 	} else {
 		err = e.xc().queryRow(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
@@ -155,7 +155,7 @@ func buildPlannedSelectQuery(
 
 	args := []any{}
 
-	fmt.Fprintf(&b, "SELECT value FROM %s", quoteIdent(plan.Table))
+	fmt.Fprintf(&b, "SELECT value FROM %s", QuoteIdent(plan.Table))
 
 	whereStarted := false
 
@@ -177,13 +177,13 @@ func buildPlannedSelectQuery(
 			op = "<"
 		}
 
-		fmt.Fprintf(&b, "%s %s ?", quoteIdent(sort.Column), op)
+		fmt.Fprintf(&b, "%s %s ?", QuoteIdent(sort.Column), op)
 
 		args = append(args, cursor)
 	}
 
 	if sort != nil {
-		fmt.Fprintf(&b, " ORDER BY %s", quoteIdent(sort.Column))
+		fmt.Fprintf(&b, " ORDER BY %s", QuoteIdent(sort.Column))
 
 		if sort.Desc {
 			b.WriteString(" DESC")
