@@ -9,9 +9,14 @@ import (
 
 // Diagnostic levels for plan output.
 const (
-	DiagLevelWarn     = "WARN"
+	// DiagLevelScream indicates a configuration that will cause permanent data
+	// loss. Source-of-truth data (event logs) on volatile engines with no
+	// persistent alternative emit this level. The system's scream store treats
+	// SCREAM-tier diagnostics as hard failures (New() refuses to start).
+	DiagLevelScream = "SCREAM"
+	DiagLevelWarn   = "WARN"
 	DiagLevelDegraded = "DEGRADED"
-	DiagLevelInfo     = "INFO"
+	DiagLevelInfo   = "INFO"
 )
 
 type Diagnostic struct {
@@ -29,6 +34,19 @@ type Diagnostics []Diagnostic
 func (d Diagnostics) HasWarnings() bool {
 	for _, diag := range d {
 		if diag.Level == DiagLevelWarn || diag.Level == DiagLevelDegraded {
+			return true
+		}
+	}
+
+	return false
+}
+
+// HasErrors returns true if any SCREAM-tier diagnostics exist. These indicate
+// configurations that will cause permanent data loss (e.g., source-of-truth
+// data on a volatile engine with no persistent alternative).
+func (d Diagnostics) HasErrors() bool {
+	for _, diag := range d {
+		if diag.Level == DiagLevelScream {
 			return true
 		}
 	}

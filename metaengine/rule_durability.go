@@ -74,13 +74,28 @@ func (r *durabilityRule) Apply(result *PlanResult, ctx PlanContext) error {
 				),
 			})
 		} else {
-			result.Diagnostics = append(result.Diagnostics, Diagnostic{
-				Level: DiagLevelWarn,
-				Query: q.QueryName,
-				Message: fmt.Sprintf(
-					"routed to volatile engine %q — projection will be lost on restart and must be rebuilt from the event log",
+			// No persistent alternative exists.
+			// SCREAM if this is a Log ADT — losing the event log is permanent
+			// data loss (projections can be rebuilt, but events cannot).
+			// WARN for other ADTs — projections can be rebuilt from the event log.
+			level := DiagLevelWarn
+			msg := fmt.Sprintf(
+				"routed to volatile engine %q — projection will be lost on restart and must be rebuilt from the event log",
+				profile.Name,
+			)
+
+			if adt == ADTLog {
+				level = DiagLevelScream
+				msg = fmt.Sprintf(
+					"routed to volatile engine %q for Log ADT — event log will be permanently lost on restart (no persistent alternative available)",
 					profile.Name,
-				),
+				)
+			}
+
+			result.Diagnostics = append(result.Diagnostics, Diagnostic{
+				Level:   level,
+				Query:   q.QueryName,
+				Message: msg,
 			})
 		}
 
