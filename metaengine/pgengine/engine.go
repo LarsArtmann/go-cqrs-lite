@@ -116,6 +116,14 @@ func (e *pgEngine) init() error {
 			value BIGINT NOT NULL DEFAULT 0,
 			PRIMARY KEY (collection, key)
 		)`,
+		`CREATE TABLE IF NOT EXISTS meta_stream_log (
+			seq BIGSERIAL PRIMARY KEY,
+			collection TEXT NOT NULL,
+			stream_id TEXT NOT NULL,
+			value TEXT NOT NULL
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_stream_log_stream ON meta_stream_log(collection, stream_id, seq)`,
+		`CREATE INDEX IF NOT EXISTS idx_stream_log_journal ON meta_stream_log(collection, seq)`,
 	}
 
 	for _, ddl := range ddls {
@@ -341,10 +349,11 @@ func (e *pgEngine) CounterGet(ctx context.Context, col string) (map[string]int64
 
 // Compile-time assertions.
 var (
-	_ metaengine.Engine         = (*pgEngine)(nil)
-	_ metaengine.MapBackend     = (*pgEngine)(nil)
-	_ metaengine.CounterBackend = (*pgEngine)(nil)
-	_ metaengine.ScanBackend    = (*pgEngine)(nil)
-	_ metaengine.PushdownScan   = (*pgEngine)(nil)
-	_ metaengine.LayoutPlanner  = (*pgEngine)(nil)
+	_ metaengine.Engine          = (*pgEngine)(nil)
+	_ metaengine.MapBackend      = (*pgEngine)(nil)
+	_ metaengine.CounterBackend  = (*pgEngine)(nil)
+	_ metaengine.ScanBackend     = (*pgEngine)(nil)
+	_ metaengine.PushdownScan    = (*pgEngine)(nil)
+	_ metaengine.LayoutPlanner   = (*pgEngine)(nil)
+	_ metaengine.StreamLogBackend = (*pgEngine)(nil)
 )

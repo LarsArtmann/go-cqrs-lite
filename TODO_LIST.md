@@ -136,22 +136,25 @@ and is **never** duplicated here.
       implemented. Needs `FilterContains`/`FilterExists` operators.
       Evidence: `metaengine/pgengine/pushdown.go`.
 
-- [ ] **DuckDB LayoutPlanner follow-ups**
-  - Add `explainScan` for planned and standard DuckDB paths.
-  - Centralize planned-table helpers (`extractFields`, `jsonFieldName`,
-    `quoteIdent`) duplicated between `metaengine/planned_sqlite.go` and
-    `metaengine/duckdbengine/layout_planner.go`.
-  - Add a DuckDB layout benchmark.
-  - Add `adttest` matrix coverage for the `LayoutPlanner` capability.
-  - Document the no-backfill semantics of `ApplyLayout` (existing rows in
-    `meta_map` remain invisible to planned-table queries).
+- [x] **DuckDB LayoutPlanner follow-ups** (completed 2026-08-04)
+  - Added `ExplainableScan` interface + `ExplainScanQuery` on DuckDB engine
+    (standard json_extract + planned-table direct-column paths).
+  - Centralized planned-table helpers: `ExtractFields`, `JSONFieldName`,
+    `QuoteIdent`, `PlansColumnCompatible` exported from metaengine; removed
+    duplicates from `metaengine/duckdbengine/layout_planner.go`.
+  - Added DuckDB layout benchmarks: `BenchmarkDuckDB_LayoutPushdownScan`,
+    `BenchmarkDuckDB_StandardPushdownScan`, `BenchmarkDuckDB_LayoutPushdownSort`.
+  - Added `adttest.RunLayoutMatrix` + `RunLayoutConflictTest` — tests
+    filter, sort, filter+sort parity + conflict detection across engines.
+  - Documented no-backfill semantics on `LayoutPlanner` interface and DuckDB
+    `ApplyLayout` (existing meta_map rows NOT migrated to planned tables).
 
-- [ ] **CalibrateEngine for external engines** — `calibratable` interface is
-      unexported (`metaengine/reliability.go:47`); pebbleengine/duckdbengine/
-      pgengine can't implement it. CalibrateEngine silently does nothing for
-      these engines. Needs export as `Calibratable` + extended signature to
-      accept `ReadCosts`. See
-      [Read Costs problem analysis](docs/planning/2026-08-04_07-00_READ-COSTS-PER-OPERATION-VARIANCE.md#remaining-work).
+- [x] **CalibrateEngine for external engines** (completed 2026-08-04)
+      Exported `Calibratable` interface, `Calibration` struct, and
+      `CalibrationCosts` (includes `ReadCosts`). All external engines
+      (duckdbengine, pebbleengine, pgengine) now embed `Calibration` and
+      implement `Calibratable` — `CalibrateEngine` no longer silently
+      does nothing for them.
 
 - [ ] **Serialize `ReadCosts` into `SerializablePlan`** — `ReadCosts` is NOT
       in the plan JSON; plan diffing between deploys won't show what ReadCosts

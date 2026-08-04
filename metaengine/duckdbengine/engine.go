@@ -104,6 +104,13 @@ func (e *duckdbEngine) init() error {
 			value BIGINT NOT NULL DEFAULT 0,
 			PRIMARY KEY (collection, key)
 		)`,
+		`CREATE SEQUENCE IF NOT EXISTS seq_stream_log`,
+		`CREATE TABLE IF NOT EXISTS meta_stream_log (
+			seq BIGINT PRIMARY KEY DEFAULT nextval('seq_stream_log'),
+			collection VARCHAR NOT NULL,
+			stream_id VARCHAR NOT NULL,
+			value VARCHAR NOT NULL
+		)`,
 	}
 
 	for _, ddl := range ddls {
@@ -341,4 +348,5 @@ var (
 	_ metaengine.PushdownScan      = (*duckdbEngine)(nil)
 	_ metaengine.LayoutPlanner     = (*duckdbEngine)(nil)
 	_ metaengine.LayoutPlanApplier = (*duckdbEngine)(nil)
+	_ metaengine.StreamLogBackend  = (*duckdbEngine)(nil)
 )
