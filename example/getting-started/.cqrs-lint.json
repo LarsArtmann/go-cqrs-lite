@@ -1,3 +1,4 @@
 {
+  // Minimal example: local CLI tool, no server or tracing needed
   "preset": "local-cli"
 }

@@ -361,9 +361,11 @@ catalog/var ErrEmptyServiceID
 cmd/cqrs-gen/struct Entry
 cmd/cqrs-lint/func ComputeHealthScore
 cmd/cqrs-lint/func ComputeHealthScoreWithCap
+cmd/cqrs-lint/method Load
 cmd/cqrs-lint/struct AppConfig
 cmd/cqrs-lint/struct HealthConfig
 cmd/cqrs-lint/struct HealthScore
+cmd/cqrs-lint/struct JSONCLoader
 codec/const COSEAlgAES256GCM
 codec/const COSEAlgChaCha20Poly1305
 codec/const COSEAlgEd25519
@@ -1689,6 +1691,7 @@ metaengine/method Name
 metaengine/method Name
 metaengine/method Name
 metaengine/method Name
+metaengine/method NsForRead
 metaengine/method ObservedWorkloadStats
 metaengine/method Plan
 metaengine/method Poison
@@ -1857,6 +1860,7 @@ metaengine/struct QueryDecl
 metaengine/struct RangeSpec
 metaengine/struct RawScanResult
 metaengine/struct ReadCoalescer
+metaengine/struct ReadCosts
 metaengine/struct RulePipeline
 metaengine/struct RuleTraceEntry
 metaengine/struct SSEConfig

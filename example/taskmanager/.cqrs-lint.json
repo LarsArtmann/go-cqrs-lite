@@ -1,3 +1,5 @@
 {
+  // Flagship example: full HTTP service with event sourcing, CQRS, and OTel.
+  // The production preset pins server=true and tracing=on.
   "preset": "production"
 }
