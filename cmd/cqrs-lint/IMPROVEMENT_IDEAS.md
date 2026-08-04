@@ -558,9 +558,9 @@
 
 ### Pre-existing test failures noticed (not caused by this session)
 
-201. **TestReadmeRuleCountMatchesCatalog mismatch** — README.md documents 185 rules but the catalog has 186. The catalog gained a rule (c040 from a previous session) without a README update. Effort: 10min.
+201. ~~**TestReadmeRuleCountMatchesCatalog mismatch** — README.md documents 185 rules but the catalog has 186. The catalog gained a rule (c040 from a previous session) without a README update. Effort: 10min.~~ **done** — README updated to 186 rules at `307ee970` (2026-08-04 session).
 
-202. **TestC038_NoFindingOnNormalizedMatch false positive** — C038 fires on `"user.created"` vs `"UserCreated"` with edit distance 0, but the normalized comparison should suppress this. Source: `pkg/rules/correctness/c038.go`. Effort: 20min.
+202. ~~**TestC038_NoFindingOnNormalizedMatch false positive** — C038 fires on `"user.created"` vs `"UserCreated"` with edit distance 0, but the normalized comparison should suppress this. Source: `pkg/rules/correctness/c038.go`. Effort: 20min.~~ **resolved** — this was NOT a false positive. `"user.created"` and `"UserCreated"` ARE different strings at runtime; the fold will silently drop the event. C038 correctly fires. The test was renamed to `TestC038_NormalizationCatchesCaseConventionMismatch` and asserts 1 finding (the correct behavior). Normalization helps DETECT mismatches that were previously below the Levenshtein threshold, not suppress them.
 
 ### Aggregate inference engine improvements
 
@@ -569,6 +569,12 @@
 204. **Aggregate inference from command/query types** — Currently aggregates are inferred only from event type prefixes and state type names. Command and query struct names (`CreateUserCmd`, `GetUserQuery`) also encode aggregate boundaries. Add `aggregateFromCommandType`/`aggregateFromQueryType` extractors. Effort: 20min.
 
 205. **`groupFindingsBy` generic helper** — `groupFindingsByModule` and `groupFindingsByAggregate` share identical structure (build map → collect → sort). Extract a generic `groupFindingsBy(key func(finding.Finding) string, sort func([]findingGroup)) []findingGroup` to eliminate duplication. Effort: 15min.
+
+206. **Projection handler dead-case detection (extend C040)** — C040 currently only checks fold functions. Projection handlers also `switch evt.Type()` and can have dead cases. Requires a separate AST walk for projection handler bodies. Note: projections intentionally handle a subset of events, so false-positive surface is higher than folds. Effort: 30min.
+
+207. **Shared fold-case collector dedup** — C038's `collectFoldCaseStrings` and C040's `collectFoldCasesWithPos` are ~90% identical. Extract a shared `collectFoldCases(ctx) []foldCaseInfo` that both rules consume. Effort: 15min.
+
+208. **Const-identifier event type resolution** — Both C038 and C040 only handle string-literal event types (`case "user.created":`). Const-identifier cases (`case UserTypeCreated:`) are silently skipped. Resolve via `TypeConstValues` map. Effort: 30min.
 
 | Category              | Rules in code                    | Open ideas                                                                                                             |
 | --------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
