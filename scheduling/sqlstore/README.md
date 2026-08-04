@@ -53,13 +53,13 @@ using both see no conflicts. The caller owns the `*sql.DB`; `Close` is a no-op.
 
 ## API
 
-| Method     | Description                                       |
-| ---------- | ------------------------------------------------- |
-| `Schedule` | Insert timer (no-op if ID exists — idempotent)    |
-| `Due`      | Return timers where `fire_at <= now`, ordered ASC |
-| `MarkFired`| Delete timer after dispatch                       |
-| `Cancel`   | Delete timer before it fires                      |
-| `Close`    | No-op (caller owns the `*sql.DB`)                 |
+| Method      | Description                                       |
+| ----------- | ------------------------------------------------- |
+| `Schedule`  | Insert timer (no-op if ID exists — idempotent)    |
+| `Due`       | Return timers where `fire_at <= now`, ordered ASC |
+| `MarkFired` | Delete timer after dispatch                       |
+| `Cancel`    | Delete timer before it fires                      |
+| `Close`     | No-op (caller owns the `*sql.DB`)                 |
 
 ## Constructors
 
