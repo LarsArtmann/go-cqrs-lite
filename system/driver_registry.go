@@ -139,6 +139,11 @@ func init() {
 
 		return metaengine.NewSQLiteEngine(db) //nolint:contextcheck // takes *sql.DB
 	})
+
+	// Register the built-in gochannel bus driver (in-process pub/sub).
+	RegisterBusDriver("gochannel", func(_ BusConfig) (any, error) {
+		return newSimpleBus(), nil
+	})
 }
 
 // createEngineFromDriver looks up the driver and constructs an engine.

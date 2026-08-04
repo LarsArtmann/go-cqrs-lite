@@ -3,18 +3,36 @@ package system
 import (
 	"fmt"
 	"os"
+
+	"gopkg.in/yaml.v3"
 )
 
 // LoadConfig loads a DeploymentConfig from a YAML file and env var overrides.
-// This uses a minimal inline YAML parser for the initial implementation.
-// The full koanf integration will replace this when the system/ module adds
-// the koanf dependency.
+//
+// The YAML structure mirrors DeploymentConfig:
+//
+//	engines:
+//	  primary:
+//	    driver: sqlite
+//	    dsn: file:events.db
+//	    pragmas: [journal_mode=wal, foreign_keys=on]
+//	buses:
+//	  local:
+//	    driver: gochannel
+//	    mode: sync
+//	instances:
+//	  - role: source-of-truth
+//	    engine: primary
+//	    durability: normal
+//	  - role: projections
+//	    engine: primary
+//	acknowledge_warnings:
+//	  - "volatile-source-of-truth:source-of-truth"
 //
 // Env var overrides use the CQRS_ prefix:
 //
-//	CQRS_ENGINES_PRIMARY_DRIVER=sqlite
-//	CQRS_ENGINES_PRIMARY_DSN=file:events.db
-//	CQRS_BUSES_LOCAL_DRIVER=gochannel
+//	CQRS_DEFAULT_DRIVER=sqlite
+//	CQRS_DEFAULT_DSN=file:events.db
 func LoadConfig(path string) (DeploymentConfig, error) {
 	cfg := DeploymentConfig{
 		Engines:   make(map[string]EngineConfig),
@@ -38,13 +56,83 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 	return cfg, nil
 }
 
-// parseYAML is a minimal placeholder. The real implementation will use koanf.
-// For now, it accepts empty configs (the common test case).
-func parseYAML(_ []byte, _ *DeploymentConfig) error {
+// yamlConfig is the YAML representation of DeploymentConfig.
+type yamlConfig struct {
+	Engines   map[string]yamlEngine   `yaml:"engines"`
+	Buses     map[string]yamlBus      `yaml:"buses"`
+	Instances []yamlInstance          `yaml:"instances"`
+	AckWarns  []string                `yaml:"acknowledge_warnings"`
+}
+
+type yamlEngine struct {
+	Driver  string   `yaml:"driver"`
+	DSN     string   `yaml:"dsn"`
+	Pragmas []string `yaml:"pragmas"`
+}
+
+type yamlBus struct {
+	Driver string `yaml:"driver"`
+	URL    string `yaml:"url"`
+	Mode   string `yaml:"mode"`
+}
+
+type yamlInstance struct {
+	Role       string   `yaml:"role"`
+	Engine     string   `yaml:"engine"`
+	Engines    []string `yaml:"engines"`
+	Durability string   `yaml:"durability"`
+	Publish    []string `yaml:"publish"`
+	Subscribe  []string `yaml:"subscribe"`
+}
+
+func parseYAML(data []byte, cfg *DeploymentConfig) error {
+	if len(data) == 0 {
+		return nil
+	}
+
+	var yc yamlConfig
+	if err := yaml.Unmarshal(data, &yc); err != nil {
+		return fmt.Errorf("yaml unmarshal: %w", err)
+	}
+
+	for name, eng := range yc.Engines {
+		cfg.Engines[name] = EngineConfig{
+			Driver:  eng.Driver,
+			DSN:     eng.DSN,
+			Pragmas: eng.Pragmas,
+		}
+	}
+
+	for name, bus := range yc.Buses {
+		cfg.Buses[name] = BusConfig{
+			Driver: bus.Driver,
+			URL:    bus.URL,
+			Mode:   bus.Mode,
+		}
+	}
+
+	for _, inst := range yc.Instances {
+		ic := InstanceConfig{
+			Role:      InstanceRole(inst.Role),
+			Engine:    inst.Engine,
+			Engines:   inst.Engines,
+			Durability: DurabilityTier(inst.Durability),
+			Publish:   inst.Publish,
+			Subscribe: inst.Subscribe,
+		}
+
+		if ic.Durability == "" {
+			ic.Durability = DurabilityNormal
+		}
+
+		cfg.Instances = append(cfg.Instances, ic)
+	}
+
+	cfg.AcknowledgeWarnings = append(cfg.AcknowledgeWarnings, yc.AckWarns...)
+
 	return nil
 }
 
-// applyEnvOverrides reads CQRS_* env vars and applies them to the config.
 func applyEnvOverrides(cfg *DeploymentConfig) {
 	if driver := os.Getenv("CQRS_DEFAULT_DRIVER"); driver != "" {
 		if _, ok := cfg.Engines["primary"]; !ok {
