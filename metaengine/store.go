@@ -36,6 +36,11 @@ type CollectionInfo struct {
 	EngineName  string
 	Complexity  Complexity
 
+	// Persistence declares whether the collection's data survives process
+	// exit (DDIA Ch1: survivability). PersistenceVolatile means data is lost
+	// on restart and must be rebuilt from the event log.
+	Persistence Persistence
+
 	// Replication declares how the collection's engine propagates data
 	// across process boundaries (DDIA Ch5). ReplicationNone means single-node.
 	Replication Replication
@@ -65,6 +70,7 @@ func (s *Store) Collections() []CollectionInfo {
 			ReadPattern:      q.QueryReadPattern(),
 			EngineName:       profile.Name,
 			Complexity:       q.QueryComplexity(),
+			Persistence:      profile.Persistence,
 			Replication:      profile.Replication,
 			ReplicationLagMs: profile.EffectiveReplicationLag().Milliseconds(),
 			NetworkRTTMs:     profile.EffectiveNetworkRTT().Milliseconds(),

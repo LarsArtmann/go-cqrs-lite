@@ -1307,12 +1307,58 @@ These need resolution before implementation. Ordered by blocking impact.
 
 ### 10.1 Log ADT extension scope
 
-The current `LogBackend` has `LogAppend` + `LogTail`. `event.Store` needs:
-stream-keyed `Save(ctx, ref, events, expectedVersion)`, `Load(ctx, ref)`,
-`LoadFromVersion`, `LoadToTimestamp`, `ReadAll` (journal), `ReadFrom` (seekable).
+**Resolved:** New `StreamLogBackend` interface at the ADT level. All engines
+implement it. Three thin adapters (EventAdapter, CommandAdapter, QueryAdapter)
+wrap it to implement `event.Store`, `command.Store`, `query.Store`.
 
-**Question:** Do we extend `LogBackend` with stream-keyed operations, or do we
-create a new `EventLogBackend` interface that engines implement additionally?
+**Key insight:** events, commands, and queries are ALL stream-keyed append-only
+logs. They differ only in adapter logic (expectedVersion for events, nothing
+extra for commands, flat mode for queries). The storage primitive is one
+interface, not three.
+
+```go
+// StreamLogBackend — ONE interface for all source-of-truth storage.
+// Implemented by all 5 engines (SQLite, Pebble, DuckDB, Postgres, Memory).
+type StreamLogBackend interface {
+    // Append values to a stream (collection + streamID key)
+    StreamAppend(ctx context.Context, collection, streamID string, values []any) error
+
+    // Read all values for a stream
+    StreamRead(ctx context.Context, collection, streamID string) ([]any, error)
+
+    // Journal: read across ALL streams (for projectionhost replay)
+    JournalReadAll(ctx context.Context, collection string) ([]any, error)
+
+    // Seekable journal: read from a position (for CatchUpSubscriber)
+    JournalReadFrom(ctx context.Context, collection, afterID string, limit int) ([]any, error)
+}
+
+// EventAdapter adds optimistic concurrency on top of StreamLogBackend:
+func (a *EventAdapter) Save(ctx, ref, events, expectedVersion) error {
+    return a.engine.RunInTx(ctx, func(tx) error {
+        current := tx.StreamVersion(collection, ref.StreamID())
+        if current != expectedVersion {
+            return ErrConcurrencyConflict
+        }
+        return tx.StreamAppend(collection, ref.StreamID(), encode(events))
+    })
+}
+
+// CommandAdapter is simpler — no version check:
+func (a *CommandAdapter) Save(ctx, ref, cmd) error {
+    return a.engine.StreamAppend(collection, ref.StreamID(), encode(cmd))
+}
+
+// QueryAdapter is flat — no streamID (or streamID = requestID):
+func (a *QueryAdapter) SaveQuery(ctx, q) error {
+    return a.engine.StreamAppend(collection, q.RequestID.String(), encode(q))
+}
+```
+
+The existing `LogBackend` (flat append + tail) stays as-is — it serves
+projection queries that are log-shaped. `StreamLogBackend` is a separate
+interface for source-of-truth storage. Engines can implement one, both, or
+neither (though source-of-truth engines MUST implement StreamLogBackend).
 
 ### 10.1b Instance grouping defaults
 

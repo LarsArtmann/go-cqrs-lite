@@ -129,9 +129,10 @@ func (e *pgEngine) init() error {
 // Profile returns the cost profile for this Postgres engine.
 func (e *pgEngine) Profile() metaengine.EngineProfile {
 	return metaengine.EngineProfile{
-		Name:      "postgres",
-		NsPerOp:   PG_NsPerOp,
-		NsPerRead: PG_NsPerRead,
+		Name:        "postgres",
+		NsPerOp:     PG_NsPerOp,
+		NsPerRead:   PG_NsPerRead,
+		Persistence: metaengine.PersistencePersistent, // remote server — always survives
 		// Per-read-pattern calibrated costs (see calibration_bench_test.go).
 		// Postgres has a real B-tree index on meta_map PK, so point lookups
 		// are genuinely fast (unlike DuckDB's columnar scan). Scan/aggregation

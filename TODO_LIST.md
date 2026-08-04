@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-03
+**Updated:** 2026-08-04
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -13,39 +13,13 @@ and is **never** duplicated here.
 
 ---
 
-## Benchmark Trust (cross-cutting — highest leverage)
-
-> The ADR review session flagged this as the single highest-leverage next move.
-> 29 of 43 benchmarks discard results; DuckDB and Postgres cost constants have
-> zero empirical backing.
-
-- [x] 🔥 **Add correctness assertions to 29 unasserted benchmarks** — without
-      assertions, a benchmark can silently measure empty stores (the ADR-0090
-      lesson: the metaengine benchmark measured empty counters for sessions).
-      **Done:** Added assertions to 50+ benchmarks across 18 files (kv, storage/memory,
-      decider, event, id, signing, integration, storage/pebble, storage/turso, catalog,
-      benchkit). Found 3 real bugs: (1) `BenchmarkMemoryStore_Save` used expectedVersion=1
-      on an empty stream — every Save silently failed; (2) `BenchmarkMemoryStore_ReadFrom_Scale`
-      read from the LAST event ID — always returned empty; (3) `BenchmarkDecodePayload_clone_vs_direct`
-      used `map[string]string` for JSON with numeric `"age"` field — decode silently failed.
-      Plus: `benchkit.RunSuite` now `b.Fatalf`s on integrity errors instead of only reporting
-      the metric.
-- [x] 🔥 **Create DuckDB + Postgres engine benchmarks** — 0 existed for analytical
-      workloads. Added 4 calibration benchmarks per engine (batch insert, pushdown
-      scan, vectorized aggregation, full scan). Exposed a deeper design flaw: the
-      single-scalar `NsPerRead` cost model could not express the 4000× gap between
-      DuckDB's point lookups and aggregations, causing wrong engine selection.
-      **Fixed:** Added `ReadCosts` (per-read-pattern costs) to `EngineProfile`.
-      See [the problem analysis](docs/planning/2026-08-04_07-00_READ-COSTS-PER-OPERATION-VARIANCE.md).
-
----
-
 ## Metaengine
 
 > 5 engines (Memory, SQLite, Pebble, DuckDB, Postgres), 10/10 ADTs on all
 > engines (Universal ADT Phase 3 shipped, ADR-0094), replication model
-> (ADR-0093), WatchTyped, SSE reconnect test, boundary key validation, and
-> CalibrateEngine are all shipped. metaengine v4.4.0 tagged.
+> (ADR-0093), WatchTyped, SSE reconnect test, boundary key validation,
+> CalibrateEngine, ReadCosts (per-read-pattern costs), and inspect.go extraction
+> are all shipped. metaengine v4.4.0 tagged.
 
 - [ ] **Postgres GIN containment indexes** — add `@>` operator support for
       JSONB path queries; currently only B-tree expression indexes are
@@ -63,15 +37,39 @@ and is **never** duplicated here.
     `meta_map` remain invisible to planned-table queries).
 
 - [ ] **CalibrateEngine for external engines** — `calibratable` interface is
-      unexported; pebbleengine/duckdbengine/pgengine can't implement it.
-      CalibrateEngine silently does nothing for these engines. Needs export as
-      `Calibratable` + extended signature to accept `ReadCosts`. See
+      unexported (`metaengine/reliability.go:47`); pebbleengine/duckdbengine/
+      pgengine can't implement it. CalibrateEngine silently does nothing for
+      these engines. Needs export as `Calibratable` + extended signature to
+      accept `ReadCosts`. See
       [Read Costs problem analysis](docs/planning/2026-08-04_07-00_READ-COSTS-PER-OPERATION-VARIANCE.md#remaining-work).
+
+- [ ] **Wire `persistence.go` into EngineProfile** — `metaengine/persistence.go`
+      defines `Persistence` type + constants (`PersistenceVolatile`/
+      `PersistencePersistent`) but the field is NOT yet on `EngineProfile`.
+      Needs: field on `EngineProfile`, `IsVolatile()`/`IsPersistent()` helpers,
+      per-engine `Profile()` updates, `durabilityRule` diagnostics,
+      `CollectionInfo`/`SerializablePlan` fields, `Doctor()`/`ExplainPlan()`
+      output. See
+      [persistence enum plan](docs/planning/2026-08-04_07-15_SUPERB-METAENGINE-PERSISTENCE-ENUM.md).
+
+- [ ] **Serialize `ReadCosts` into `SerializablePlan`** — `ReadCosts` is NOT
+      in the plan JSON; plan diffing between deploys won't show what ReadCosts
+      values were active. Add `read_costs` field to `SerializableQuery`.
+      Evidence: `metaengine/engine.go:89` (`type ReadCosts struct`).
+
+- [ ] **ADR for ReadCosts design** — no ADR documents the per-read-pattern cost
+      model decision. Should cover: why 11 ReadPatterns → 4 cost fields, the
+      conservative-margin methodology, calibration approach.
 
 - [ ] **10M soak test verification & hardening**
   - Run `TestSoak_MemoryBounded_10M` 3× with `-race` and record variance.
   - Investigate the 10→12MB heap threshold bump (102KB/key expected?).
+  - Add `TotalAlloc` tracking to the 10M variant.
   - Add engine parity soak tests (pgengine/duckdbengine/pebbleengine 1M/10M).
+
+- [ ] **`sse.go` over 350-line CI limit** — `metaengine/sse.go` is 369 lines
+      after the `Inspect()` extraction. Extract `sseMainLoop`/`forwardWithDropOld`
+      into `sse_loop.go` to get under 350. Evidence: `wc -l metaengine/sse.go`.
 
 - [ ] **Document `metaengine` watcher delete semantics** — delete notifications
       deliver the zero value of `V` after the reification fix; this contract
@@ -79,51 +77,62 @@ and is **never** duplicated here.
 
 > Long-term metaengine work (`metaengine-gen` code generator, generic
 > `ScanResult[T]`, Vector/Search/Spatial engine backends, DuckDB
-> columnar-native storage, Iroh distributed engine) lives in
-> [ROADMAP.md](ROADMAP.md).
+> columnar-native storage, Iroh distributed engine, `System` topology redesign)
+> lives in [ROADMAP.md](ROADMAP.md).
 
 ---
 
 ## cqrs-lint
 
-> 185 rules across 10 categories (correctness 39, API 31, boilerplate 28,
-> adoption 21, architecture 17, consistency 16, security 10, performance 9,
-> testing 8, version 6). Config-level disabling, block-level suppression,
-> import-alias resolution, self-lint mode, TLS detection, `--adoption` flag,
-> changelog subcommand, and config presets are shipped. v4.3.0 tagged.
+> 186 rules across 10 categories. Config presets, `--adoption`/`--scorecard`/
+> `--group-by` flags, changelog subcommand, self-lint mode, block-level
+> suppression, C038-C040 (event-type mismatch/dead-fold-case detection),
+> per-module feature profiles, and `init` SHOWSTOPPER fix are shipped.
+> v4.3.0 tagged; v4.4.0 pending.
 
-- [ ] 🔥 **Publish cqrs-lint v4.4.0** — v4.3.0 tagged but post-v4.3.0 fixes
-      (init SHOWSTOPPER fix, E009 cqrs-htmx transport detection) remain
-      unreleased. Also: published Nix binary is stale (v0.2.2).
+- [ ] 🔥 **Publish cqrs-lint v4.4.0** — v4.3.0 tagged but post-v4.3.0 work
+      (init SHOWSTOPPER fix, C038-C040 rules, scorecard, group-by aggregate,
+      per-module detection, JSONC config loader, `explain` command, doctor
+      overhaul, E009 cqrs-htmx transport detection) remains unreleased.
+      Also: published Nix binary is stale (v0.2.2).
       **BLOCKED on user approval**.
 
 - [ ] 🔥 **Run cqrs-lint against real consumer projects** — validate
       false-positive rates against Kernovia, Standup-Killer, bank-sync,
-      cqrs-htmx, DiscordSync, timesheets. This is the single highest-value
-      non-coding task for cqrs-lint trustworthiness.
+      cqrs-htmx, DiscordSync, timesheets, crush-daily. This is the single
+      highest-value non-coding task for cqrs-lint trustworthiness.
 
-- [x] **C036 library function recognition** — FIXED: `detectBackend` now
-      requires constructor prefix (New/Open) + resolves `storage` qualifier
-      to `go-cqrs-lite/storage` via import path. `describeMismatchStore`
-      default returns "" instead of "store" — utility helpers no longer
-      flagged. Reported by 4 of 5 consumers.
+- [ ] **Scorecard follow-ups**
+  - Eliminate category-priority split brain (`categoryPriorityFor` in
+    `scorecard.go` duplicates `ModuleEntry.CategoryPriority()` in catalog).
+  - Render `Evidence` field in text output (show which import path triggered
+    detection).
+  - Expand catalog: `middleware`, `storage`, `stack/memory`, `scenario` are
+    adoptable but excluded.
+  - Add `--scorecard-threshold N` CI gate flag (exit non-zero below N%).
+  - Add SARIF + markdown output formats.
 
-- [x] **E009/E016 cqrs-htmx awareness** — FIXED: E009 now uses
-      `FeatureProfile.HasTransport` (recognizes cqrs-htmx). E016 exempts
-      health checks when `cqrs-htmx` is imported. Also added Pass 1b AST
-      import scanning to `detectFeatureSignals` so feature detection works
-      in test contexts where `pkg.Imports` is empty.
+- [ ] **Doctor/explain test coverage** — doctor command was completely
+      rewritten, `explain.go` is 468 lines — both have **zero** unit tests.
+      Refactor `renderDoctor*` to accept `io.Writer`, add output assertions.
 
-- [x] **D007 auto-fix** (`event.NewEvent` → `event.New`) — FIXED: `event.New`
-      accepts `any` (superset of `[]byte`), so the replacement is always safe.
-      Fix provider now uses position-based offset matching (not first-
-      occurrence `bytes.Index`) to fix the correct call site when multiple
-      `event.NewEvent(` calls exist.
+- [ ] **Migrate global detectors to per-module evaluation** —
+      `ProfileForFile` infrastructure exists but only `C017` uses it. The
+      other 26 global `FeatureProfile` reads still use the primary profile,
+      not per-module. High false-positive risk for multi-module workspaces.
 
-- [x] **F013/C009/C016 feature-profile fixes** — FIXED: F013 works via
-      `HasTransport` (cqrs-htmx now detected from AST imports). C009 exempts
-      ALL `New*` constructors (not just pointer-returning ones). C016 exempts
-      `context.With*(context.Background(), ...)` patterns unconditionally.
+- [ ] **`commentTextStart` multi-line string literal bug** — the block
+      suppression parser resets state per line; a raw string literal spanning
+      multiple lines causes false matches. Fix with `go/scanner` or carry
+      string-literal state across lines. Evidence: `cmd/cqrs-lint/run.go`.
+
+- [ ] **B025 cross-package helper tracing** — only same-package helpers are
+      traced. Cross-package wiring functions (e.g. `pkg.helper(...)`) are
+      invisible. Needs import-graph tracing via `golang.org/x/tools/go/callgraph`.
+
+- [ ] **JSONC trailing comma support** — the `stripJSONComments` parser does
+      not support trailing commas (allowed by JSONC spec). Edge case for
+      hand-edited `.cqrs-lint.json` files.
 
 - [ ] **~14 remaining Pareto backlog items** — see the
       [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
@@ -134,14 +143,10 @@ and is **never** duplicated here.
 
 ## SSE Consolidation
 
-> ADR-0097 documented that `go-cqrs-lite` reimplemented the SSE wire format in
-> two places instead of consuming the standalone `go-sse` library. The
-> consumption refactor is **complete** — both `transport/http.SSEBroker` and
+> ADR-0097 documented that both `transport/http.SSEBroker` and
 > `metaengine.ServeSSE` now delegate wire-format serialization to `go-sse`
-> (see CHANGELOG [Unreleased]). ADR-0091's rationale stands: do NOT merge the
-> two implementations — they serve different layers (event-bus-to-client vs
-> collection-watch). The items below are follow-up concerns surfaced by the
-> refactor.
+> (shipped). ADR-0091's rationale stands: do NOT merge the two implementations
+> — they serve different layers (event-bus-to-client vs collection-watch).
 
 - [ ] **Resolve metaengine SSE layer-leak (ADR-0062 violation)** —
       `metaengine/sse.go` pulls `go-sse` + `dedup` as **production** deps into
@@ -154,12 +159,6 @@ and is **never** duplicated here.
       **BLOCKED on user input**: is `metaengine.ServeSSE` stable public API
       that external consumers import?
 
-- [ ] **Move `Inspect()` / `InspectJSON()` out of `sse.go`** —
-      `metaengine/sse.go:372-398` defines `Store.Inspect()` and
-      `Store.InspectJSON()` (collection introspection) which have nothing to
-      do with SSE. Pure file-cohesion fix; zero behavior change. Belongs in
-      `inspect.go` or `store.go`.
-
 - [ ] **Measure SSE loop duplication** — run `art-dupl` between
       `transport/http/sse*.go` and `metaengine/sse.go` to quantify actual
       shared logic (heartbeat, timeout, flush, drop-old, replay handoff).
@@ -171,17 +170,44 @@ and is **never** duplicated here.
 
 ---
 
+## Code Quality
+
+- [ ] **Encryption double-clone** — `encryption/crypto_helpers.go:66`:
+      `evt.Metadata().Clone()` is a redundant double-clone (`Metadata()`
+      already returns a clone). Wasted allocation on every decrypt hot path.
+      Remove the extra `.Clone()`.
+
+- [ ] **Metadata immutability** — `command.Metadata` and `query.Metadata`
+      still use `EnsureCustom()` (mutable map access) instead of `WithCustom()`
+      (functional). Decision needed: make Metadata fully immutable (all value
+      receivers, `WithCustom` instead of `EnsureCustom`). Currently suppressed
+      with `//nolint:recvcheck`.
+
+- [ ] **Fix flaky `idempotency/kvstore` TTL test** — has blocked the verify
+      gate multiple times. Needs `testutil.RaceEnabled` threshold or longer
+      TTL.
+
+---
+
 ## CI / Release / Infrastructure
 
 - [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must v0.1.2).
 
-- [ ] **Pin GitHub Actions to commit SHAs** — BuildFlow flagged 72+ unpinned
-      actions (supply-chain risk).
+- [BLOCKED] **Push go-retry + go-idempotency to GitHub** — repos created +
+  annotated tags cut locally, but not pushed. go-cqrs-lite go.mod still uses
+  `replace` directives pointing to local paths. Sub-modules (`kvstore`,
+  `sqlstore`) blocked on kv/ and codec/ dependency complexity.
 
-- [ ] **gopls hint cleanup in cmd/cqrs-lint** — 6 `infertypeargs` + 1
-      `writestring` hints remain.
+- [ ] **Tag `stack/mysql/v4`** — source is stable but tag doesn't exist.
+
+- [ ] **Pin GitHub Actions to commit SHAs** — 72+ unpinned actions
+      (supply-chain risk).
+
+- [ ] **Regenerate API-stability golden** — `docs/api_surface.txt` at 3186
+      exports; C040/C039/scorecard/group-by added exported symbols since last
+      golden regen. Run `cd cmd/api-stability && GOWORK=off go run main.go -update`.
 
 ---
 
@@ -215,6 +241,24 @@ and is **never** duplicated here.
       testing with real brokers. (M47)
 - [ ] **`scripts/test-integration.sh` aggregator** — auto-detect best strategy
       (ephemeral, VM, or testcontainers). (M48)
+
+---
+
+## Deferred Debt (ADR-committed)
+
+Four items explicitly committed to in the 2026-08-03 ADR review as "the next
+real roadmap." Each has a clear ADR with rationale.
+
+- [ ] **Ghost bus removal** (ADR-0028) — delete `memory/bus.go`,
+      `memory/command_bus.go`, `storage/pg_bus.go`. Largest blast radius — audit
+      ALL consumer repos first.
+- [ ] **Metadata aliases completion** (ADR-0031) — `command.Metadata` /
+      `query.Metadata` → standalone structs (currently repointed aliases).
+- [ ] **Extract `retry/` → `go-retry`** (ADR-0064) — standalone repo created +
+      tagged, needs push + update go-cqrs-lite replace directive to published tag.
+- [ ] **Extract `idempotency/` → `go-idempotency`** (ADR-0065) — standalone repo
+      created + tagged, needs push. Sub-modules (`kvstore`, `sqlstore`) blocked
+      on kv/ and codec/ dependencies.
 
 ---
 

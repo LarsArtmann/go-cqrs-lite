@@ -81,6 +81,7 @@ func (m *memoryEngine) Profile() EngineProfile {
 			ADTSearch:    ComplexityON,
 			ADTSpatial:   ComplexityON,
 		},
+		Persistence: PersistenceVolatile, // pure RAM — data lost on process exit
 	}
 	m.cal.applyTo(&p)
 

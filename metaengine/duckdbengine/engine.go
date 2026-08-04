@@ -42,11 +42,12 @@ const DuckDBNsPerRead = 1200.0
 
 // duckdbEngine implements metaengine.Engine with DuckDB as the backend.
 type duckdbEngine struct {
-	db       *sql.DB
-	mu       sync.Mutex
-	took     bool // closed flag
-	plans    map[string]metaengine.LayoutPlan
-	layoutMu sync.Mutex
+	db          *sql.DB
+	persistence metaengine.Persistence
+	mu          sync.Mutex
+	took        bool // closed flag
+	plans       map[string]metaengine.LayoutPlan
+	layoutMu    sync.Mutex
 }
 
 // New creates a DuckDB-backed metaengine Engine.
@@ -54,8 +55,10 @@ type duckdbEngine struct {
 //
 // Requires CGo and the DuckDB C++ runtime (statically linked).
 func New(dsn string) (metaengine.Engine, error) {
+	persistence := metaengine.PersistencePersistent
 	if dsn == "" {
 		dsn = ":memory:"
+		persistence = metaengine.PersistenceVolatile
 	}
 
 	db, err := sql.Open("duckdb", dsn)
@@ -63,7 +66,7 @@ func New(dsn string) (metaengine.Engine, error) {
 		return nil, fmt.Errorf("duckdbengine.New: open %q: %w", dsn, err)
 	}
 
-	eng := &duckdbEngine{db: db}
+	eng := &duckdbEngine{db: db, persistence: persistence}
 
 	if err := eng.init(); err != nil {
 		_ = db.Close()
@@ -77,7 +80,7 @@ func New(dsn string) (metaengine.Engine, error) {
 // NewFromDB wraps an existing *sql.DB connected to DuckDB.
 // The caller owns the DB lifecycle — Close is a no-op.
 func NewFromDB(db *sql.DB) (metaengine.Engine, error) {
-	eng := &duckdbEngine{db: db}
+	eng := &duckdbEngine{db: db, persistence: metaengine.PersistencePersistent}
 
 	if err := eng.init(); err != nil {
 		return nil, err
@@ -114,9 +117,10 @@ func (e *duckdbEngine) init() error {
 // Profile returns the cost profile for this DuckDB engine.
 func (e *duckdbEngine) Profile() metaengine.EngineProfile {
 	return metaengine.EngineProfile{
-		Name:      "duckdb",
-		NsPerOp:   DuckDBNsPerOp,
-		NsPerRead: DuckDBNsPerRead,
+		Name:        "duckdb",
+		NsPerOp:     DuckDBNsPerOp,
+		NsPerRead:   DuckDBNsPerRead,
+		Persistence: e.persistence,
 		// Per-read-pattern calibrated costs (see calibration_bench_test.go).
 		// DuckDB's read operations span 4000x: a point lookup (full PK scan +
 		// JSON decode via database/sql) is ~500x slower than a vectorized

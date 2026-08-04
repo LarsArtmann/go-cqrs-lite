@@ -454,6 +454,7 @@ func SQLiteEngineProfile() EngineProfile {
 			ADTSearch:  true,
 			ADTSpatial: true,
 		},
+		Persistence: PersistencePersistent, // SQLite is file-backed by default
 	}
 }
 

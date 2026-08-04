@@ -291,10 +291,13 @@ materialize-vs-replay cost model, StorageLayout + cost matrix, SerializablePlan,
 VersionedStorage temporal queries, Fold sealed interface refactor, 5-engine
 cross-engine parity, Vector/Search/Spatial ADTs, pgengine + duckdbengine,
 replication model (ADR-0093), Universal ADT Phase 3 (ADR-0094), WatchTyped,
-boundary key validation, CalibrateEngine fix.
+boundary key validation, CalibrateEngine fix, ReadCosts (per-read-pattern
+costs), go-sse consumption (ADR-0097), DuckDB+PG calibration benchmarks,
+benchmark correctness assertions.
 
-Remaining: Postgres GIN indexes, CalibrateEngine for external engines, benchmark
-trust deficit. See [TODO_LIST.md](TODO_LIST.md).
+Remaining: Postgres GIN indexes, CalibrateEngine for external engines,
+persistence enum wiring, serialize ReadCosts into SerializablePlan. See
+[TODO_LIST.md](TODO_LIST.md).
 
 ---
 
@@ -1108,7 +1111,9 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | CLI features | `--only C001,C002`, `--exclude`, `--color`, `--verbose`, `--health-score`, `init`, `--min-confidence` | ✅ |
 | Config file | `.cqrs-lint.json` via cmdguard; presets (local-cli, library, server, full-stack) | ✅ |
 | Config presets | `local-cli`, `library`, `server`, `full-stack` — sugar over feature flags | ✅ |
+| JSONC config loader | `.cqrs-lint.json` supports comments (`//`, `/* */`) via `stripJSONComments` parser | ✅ |
 | Feature profile system | Auto-detects which go-cqrs-lite modules a consumer uses (store, command-flow, server, soft-delete, tracing, snapshot) and adapts rules | ✅ |
+| Per-module detection | `ProfileForFile` evaluates feature profiles per-module in multi-module workspaces (C017 migrated; 26 detectors still on primary profile) | 🧪 |
 | Self-lint mode | `IsLibrarySelfLint()` auto-skips 29 consumer-coaching rules when linting the library source | ✅ |
 | Import-alias resolution | `QualifierToImportPath` + `ImportQualifierMap` — rules work with aliased imports | ✅ |
 | Monorepo support | Multi-module scanning via go.mod discovery | ✅ |

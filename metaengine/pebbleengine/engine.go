@@ -52,13 +52,14 @@ const PebbleNsPerRead = 1300.0
 const PebbleNsPerWrite = 2500.0
 
 type pebbleEngine struct {
-	db       *pebble.DB
-	ownsDB   bool
-	mu       sync.Mutex // guards counter/multimap/log seq operations
-	logSeq   sync.Map   // collection → *atomic.Int64 (log sequence counter)
-	mmSeq    sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
-	layoutMu sync.Mutex
-	layouts  map[string]layoutPlan // collection → layout plan (secondary indexes)
+	db          *pebble.DB
+	ownsDB      bool
+	persistence metaengine.Persistence
+	mu          sync.Mutex // guards counter/multimap/log seq operations
+	logSeq      sync.Map   // collection → *atomic.Int64 (log sequence counter)
+	mmSeq       sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
+	layoutMu    sync.Mutex
+	layouts     map[string]layoutPlan // collection → layout plan (secondary indexes)
 }
 
 // NewPebbleEngine creates a Pebble-backed metaengine engine. If dir is empty,
@@ -67,8 +68,10 @@ type pebbleEngine struct {
 // Engine and must call Close.
 func NewPebbleEngine(dir string) (metaengine.Engine, error) {
 	opts := &pebble.Options{}
+	persistence := metaengine.PersistencePersistent
 	if dir == "" {
 		opts.FS = vfs.NewMem()
+		persistence = metaengine.PersistenceVolatile
 	}
 
 	db, err := pebble.Open(dir, opts)
@@ -77,8 +80,9 @@ func NewPebbleEngine(dir string) (metaengine.Engine, error) {
 	}
 
 	return &pebbleEngine{
-		db:     db,
-		ownsDB: true,
+		db:          db,
+		ownsDB:      true,
+		persistence: persistence,
 	}, nil
 }
 
@@ -86,17 +90,19 @@ func NewPebbleEngine(dir string) (metaengine.Engine, error) {
 // ownership of the DB — Close on the engine is a no-op.
 func NewPebbleEngineFromDB(db *pebble.DB) metaengine.Engine {
 	return &pebbleEngine{
-		db:     db,
-		ownsDB: false,
+		db:          db,
+		ownsDB:      false,
+		persistence: metaengine.PersistencePersistent, // caller owns a disk DB
 	}
 }
 
 func (e *pebbleEngine) Profile() metaengine.EngineProfile {
 	return metaengine.EngineProfile{
-		Name:       "pebble",
-		NsPerOp:    PebbleNsPerOp,
-		NsPerRead:  PebbleNsPerRead,
-		NsPerWrite: PebbleNsPerWrite,
+		Name:        "pebble",
+		NsPerOp:     PebbleNsPerOp,
+		NsPerRead:   PebbleNsPerRead,
+		NsPerWrite:  PebbleNsPerWrite,
+		Persistence: e.persistence,
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityO1, // LSM point read
 			metaengine.ADTSet:       metaengine.ComplexityO1,
