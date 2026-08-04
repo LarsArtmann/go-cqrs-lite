@@ -27,14 +27,18 @@ func NewS007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"S007-in-memory-session-store",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !ctx.FeatureProfile.HasServer {
-				return nil, nil
-			}
-
 			var findings []finding.Finding
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
+					continue
+				}
+
+				// Evaluate per-module: an in-memory session store is only a
+				// concern when THIS file's module runs a server. Using the
+				// primary profile would flag library files when an example
+				// sub-module happens to have a server.
+				if !ctx.ProfileForFile(gf.Path).HasServer {
 					continue
 				}
 
