@@ -510,8 +510,6 @@ The metaengine can already BE a log. What's missing:
 
 ### 5.3 Why each objection dissolves
 
-### 5.4 Why each objection dissolves
-
 | Original objection                 | Why it dissolves with N instances                                                                                                                                                                           |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Bootstrap circular dependency**  | Log instances boot first. Projection instances boot second and read the events journal. DAG, not cycle.                                                                                                     |
@@ -520,7 +518,7 @@ The metaengine can already BE a log. What's missing:
 | **Dependency-direction violation** | The decider imports `event.Store` (Tier 1 interface) — unchanged. The metaengine Log instance _implements_ that interface. Dependency inversion, not violation.                                             |
 | **Conflated schema evolution**     | Separate instances = separate evolution models. Event upcasters on log instances. Layout migration on projection instances.                                                                                 |
 
-### 5.5 Why N instances, not 2 (the invariant constraint argument)
+### 5.4 Why N instances, not 2 (the invariant constraint argument)
 
 The metaengine cost-planner optimizes for **cheapest** assignment. If events,
 commands, and queries share one Store instance with a mixed engine pool
@@ -546,19 +544,100 @@ Projection collections have **preferences**, not invariants:
 **The structural solution:** separate instances with constrained engine pools.
 
 ```go
-// Source-of-truth instances: only persistent engines in the pool.
-// The planner CANNOT route to Memory — it's not in the list.
-eventsStore, _   := metaengine.Plan([]Engine{sqliteEng}, eventsQuery)
-commandsStore, _ := metaengine.Plan([]Engine{sqliteEng}, commandsQuery)
-queriesStore, _  := metaengine.Plan([]Engine{duckdbEng}, queriesQuery)
+// Source-of-truth instances: only persistent engines in the AUTHORITATIVE pool.
+// The planner CANNOT route the event log to Memory — it's not in the list.
+// (Memory can still serve as a read-through CACHE tier — see §5.5.)
+eventsStore, _   := metaengine.Plan([]Engine{primaryEng}, eventsQuery)
+commandsStore, _ := metaengine.Plan([]Engine{primaryEng}, commandsQuery)
+queriesStore, _  := metaengine.Plan([]Engine{analyticsEng}, queriesQuery)
 
 // Projection instances: mixed pool — planner routes freely for cost.
-projStore, _     := metaengine.Plan([]Engine{memEng, sqliteEng, pebbleEng}, projQueries...)
+projStore, _     := metaengine.Plan([]Engine{memEng, primaryEng, pebbleEng}, projQueries...)
 ```
 
-The constraint is enforced structurally (the engine pool), not via advisory
-rules. The planner literally cannot make the wrong choice because the wrong
-engine isn't available.
+The constraint is enforced structurally (the authoritative engine pool), not
+via advisory rules. The planner literally cannot make the wrong choice because
+the wrong engine isn't available. Volatile engines can still participate as
+**cache tiers** (§5.5) — read-only, never authoritative.
+
+### 5.5 The Cache Tier: ZFS-ARC for Immutable Events
+
+Lars's insight: events are immutable — so we can cache them in RAM without any
+invalidation concern. This is the same property ZFS exploits with its ARC
+(Adaptive Replacement Cache): copy-on-write blocks are never modified in place,
+so the cache is always consistent.
+
+**Why this is architecturally significant (not "just caching"):**
+
+Cache invalidation is the hardest problem in caching. In mutable systems, every
+write can stale cache entries, requiring complex invalidation protocols. Event
+sourcing eliminates this entirely: once written, an event is valid forever. The
+cache never goes stale — the only concern is eviction (capacity management).
+
+**The model:** each instance can have an optional **read-through cache tier**
+sitting in front of its authoritative engine:
+
+```
+Read  → [Cache (Memory)] → miss → [Authoritative (SQLite)]
+              ↑                           │
+              └─── populate on miss ──────┘
+
+Write → [Authoritative (SQLite)]     (cache is not written to directly;
+       ↑                              events are immutable so there is
+       └── no invalidation needed      no stale-entry problem)
+```
+
+Writes always go to the authoritative engine (persistent). Reads check the
+cache first; on a miss, they read through to the authoritative engine and
+populate the cache. The cache is volatile — a dropped entry is just a cache
+miss, never data loss.
+
+**When this helps:**
+
+| Scenario                       | Why                                                                        |
+| ------------------------------ | -------------------------------------------------------------------------- |
+| Hot aggregate loads            | Decider loads the same stream repeatedly. First load warms cache.          |
+| Parallel projection rebuilds   | Multiple projections replay the same log. First warms; others read RAM.    |
+| CatchUpSubscriber replay       | Live handoff replays recent events. Cache holds the recent tail.          |
+| Time-travel queries            | Historical state reconstruction reads events up to a version.              |
+
+**When it does NOT help:** write-once-read-rarely streams (most event logs in
+practice), or very large volumes where total events >> RAM (low hit rate).
+
+**Design decision: instance-level concern, NOT planner concern.**
+
+The metaengine planner assigns engines to queries (a one-time cost decision).
+Caching is orthogonal — it avoids the query entirely (runtime behavior).
+Conflating them violates separation of concerns. The cache is a transparent
+read-through wrapper around the instance's `event.Store` adapter. The planner
+never knows about it.
+
+**Complementary to `decider.StateCache`** — they cache at different levels:
+
+| Cache             | What it caches     | Cache hit effect                                  |
+| ----------------- | ------------------ | ------------------------------------------------- |
+| `StateCache`      | Folded state       | Skips event loading entirely (loads delta only)   |
+| Event cache (NEW) | Raw events         | Speeds up event loading on StateCache miss        |
+
+**Config (named engines — see [§7.1](#71-driver-registry-the-databasesql-model)):**
+
+```yaml
+engines:
+  primary:   {driver: sqlite, dsn: "file:events.db"}
+  hot-cache: {driver: memory}
+
+instances:
+  - role: events
+    engine: primary        # authoritative (persistent)
+    cache:                 # optional read-through cache tier
+      engine: hot-cache    # references the named Memory engine
+      # No invalidation policy — events are immutable.
+      # Only eviction policy: LRU (default), or ARC (future).
+```
+
+**Scream store interaction:** removing a cache tier is always safe (read-through
+falls back to authoritative). Adding a cache tier is ADVISORY at most. Changing
+the authoritative engine from persistent to volatile is SCREAM (§9).
 
 ---
 
@@ -682,41 +761,51 @@ sys, err := system.New(ctx, system.Config{
 ```go
 // ── OPERATOR CODE (deployment-specific) ──
 //
-// The operator declares INSTANCES (logical groups of collections), each with
-// its own engine(s), DSN, and durability. The system constructs the
-// metaengine.Store instances, wires adapters (event.Store, command.Store, etc.),
-// and connects the projection pipeline.
+// Engines are DECLARED by name (semantic roles, not engine types).
+// Instances REFERENCE engines by name. Swap DuckDB→ClickHouse by changing
+// the declaration — the topology stays the same.
 
 // Minimal: one instance per layer
 sys, err := system.New(ctx, system.Config{
     Queries: queries, // consumer's query declarations
+    Engines: map[string]system.EngineConfig{
+        "primary":   {Driver: "sqlite", DSN: "file:app.db"},
+        "hot-cache": {Driver: "memory"},
+    },
     Instances: []system.InstanceConfig{
         {
-            Role:       system.RoleSourceOfTruth,
+            Role:        system.RoleSourceOfTruth,
             Collections: []string{"events", "commands", "queries", "snapshots", "checkpoints"},
-            Engine:     "sqlite:file:app.db",
-            Durability: system.DurabilityStrict,
+            Engine:      "primary",
+            Durability:  system.DurabilityStrict,
         },
         {
-            Role:       system.RoleProjections,
-            Collections: []string{"task_views", "task_counts"}, // from consumer's queries
-            Engines:    []string{"sqlite:file:views.db", "memory"}, // planner routes
-            Durability: system.DurabilityNormal,
+            Role:        system.RoleProjections,
+            Collections: []string{"task_views", "task_counts"},
+            Engines:     []string{"primary", "hot-cache"}, // planner routes
+            Durability:  system.DurabilityNormal,
         },
     },
 })
 
 // Split: events+commands on SQLite, queries on DuckDB, graph on Pebble
-sys, err := system.New(ctx, system.Config{
+sys, err = system.New(ctx, system.Config{
     Queries: queries,
+    Engines: map[string]system.EngineConfig{
+        "primary":    {Driver: "sqlite",  DSN: "file:events.db"},
+        "analytics":  {Driver: "duckdb",  DSN: "file:analytics.db"},
+        "views":      {Driver: "sqlite",  DSN: "file:views.db"},
+        "hot-cache":  {Driver: "memory"},
+        "graph-lsm":  {Driver: "pebble",  DSN: "/data/graph"},
+    },
     Instances: []system.InstanceConfig{
-        {Role: system.RoleEvents,    Engine: "sqlite:file:events.db",   Durability: system.DurabilityStrict},
-        {Role: system.RoleCommands,  Engine: "sqlite:file:events.db"}, // shared connection
-        {Role: system.RoleQueries,   Engine: "duckdb:file:analytics.db"},
+        {Role: system.RoleEvents,      Engine: "primary",   Durability: system.DurabilityStrict},
+        {Role: system.RoleCommands,    Engine: "primary"},                     // shared connection
+        {Role: system.RoleQueries,     Engine: "analytics"},                   // OLAP-grade audit
         {Role: system.RoleProjections, Collections: []string{"task_views", "task_counts"},
-            Engines: []string{"sqlite:file:views.db", "memory"}},
+            Engines: []string{"views", "hot-cache"}},
         {Role: system.RoleProjections, Collections: []string{"user_graph"},
-            Engine: "pebble:/data/graph"},
+            Engine: "graph-lsm"},
     },
 })
 ```
@@ -766,14 +855,21 @@ import _ "github.com/larsartmann/go-cqrs-lite/drivers/pebble"
 import _ "github.com/larsartmann/go-cqrs-lite/drivers/duckdb"
 // The binary now has sqlite + pebble + duckdb available.
 
-// Operator config picks which to use per instance (runtime flexibility):
+// Engines are declared BY NAME (operator assigns semantic names).
+// Instances reference engines BY NAME — swap engine type without touching
+// the instance topology.
 config := system.Config{
+    Engines: map[string]system.EngineConfig{
+        "primary":   {Driver: "sqlite", DSN: "file:events.db"},
+        "analytics": {Driver: "duckdb", DSN: "file:analytics.db"},
+        "views":     {Driver: "sqlite", DSN: "file:views.db"},
+        "hot-cache": {Driver: "memory"},
+    },
     Instances: []system.InstanceConfig{
-        {Role: system.RoleEvents,   Engine: "sqlite:file:events.db"},
-        {Role: system.RoleCommands, Engine: "sqlite:file:events.db"}, // shared DB
-        {Role: system.RoleQueries,  Engine: "duckdb:file:analytics.db"}, // different engine!
-        {Role: system.RoleProjections,
-         Engines: []string{"sqlite:file:views.db", "memory"}}, // planner routes
+        {Role: system.RoleEvents,     Engine: "primary"},   // persistent
+        {Role: system.RoleCommands,   Engine: "primary"},   // shared connection
+        {Role: system.RoleQueries,    Engine: "analytics"}, // OLAP engine
+        {Role: system.RoleProjections, Engines: []string{"views", "hot-cache"}}, // planner routes
     },
 }
 ```
@@ -782,6 +878,10 @@ This is directly analogous to `database/sql`:
 
 - `import _ "modernc.org/sqlite"` registers the driver.
 - `sql.Open("sqlite", dsn)` looks it up by name.
+
+The two-level indirection (driver type → named engine → instance reference)
+means the operator can swap `analytics` from DuckDB to ClickHouse by changing
+ONE declaration — no instance topology changes needed.
 
 ### 7.2 Config format
 
@@ -809,24 +909,36 @@ or the same engine with a different DSN:
 ```go
 // Three-way SQLite split (the goal's exact example)
 config := system.Config{
+    Engines: map[string]system.EngineConfig{
+        "events-db":  {Driver: "sqlite", DSN: "file:events.db"},
+        "queries-db": {Driver: "sqlite", DSN: "file:queries.db"},
+        "views-db":   {Driver: "sqlite", DSN: "file:views.db"},
+        "hot-cache":  {Driver: "memory"},
+    },
     Instances: []system.InstanceConfig{
         // DB 1: Command + Event Sourcing
-        {Role: system.RoleEvents,   Engine: "sqlite:file:events.db",  Durability: system.DurabilityStrict},
-        {Role: system.RoleCommands, Engine: "sqlite:file:events.db"},  // shared connection
+        {Role: system.RoleEvents,   Engine: "events-db",  Durability: system.DurabilityStrict},
+        {Role: system.RoleCommands, Engine: "events-db"},  // shared connection
         // DB 2: Query logs
-        {Role: system.RoleQueries,  Engine: "sqlite:file:queries.db"},
+        {Role: system.RoleQueries,  Engine: "queries-db"},
         // DB 3: Materialized views
-        {Role: system.RoleProjections, Engine: "sqlite:file:views.db"},
+        {Role: system.RoleProjections, Engine: "views-db"},
     },
 }
 
 // Or: SQLite for events + DuckDB for query analytics (different engines!)
-config := system.Config{
+config = system.Config{
+    Engines: map[string]system.EngineConfig{
+        "events-db": {Driver: "sqlite", DSN: "file:events.db"},
+        "analytics": {Driver: "duckdb", DSN: "file:queries.db"},
+        "views-db":  {Driver: "sqlite", DSN: "file:views.db"},
+        "hot-cache": {Driver: "memory"},
+    },
     Instances: []system.InstanceConfig{
-        {Role: system.RoleEvents,     Engine: "sqlite:file:events.db"},
-        {Role: system.RoleCommands,   Engine: "sqlite:file:events.db"},
-        {Role: system.RoleQueries,    Engine: "duckdb:file:queries.db"},  // columnar audit
-        {Role: system.RoleProjections, Engines: []string{"sqlite:file:views.db", "memory"}},
+        {Role: system.RoleEvents,     Engine: "events-db"},
+        {Role: system.RoleCommands,   Engine: "events-db"},
+        {Role: system.RoleQueries,    Engine: "analytics"},    // columnar audit
+        {Role: system.RoleProjections, Engines: []string{"views-db", "hot-cache"}},
     },
 }
 ```
@@ -857,13 +969,21 @@ type Topology struct {
 type InstanceTopology struct {
     Name          string              // operator-assigned instance name
     Role          InstanceRole        // RoleEvents, RoleCommands, RoleQueries, RoleProjections
-    EngineName    string              // "sqlite", "pebble", "duckdb", "memory"
+    EngineName    string              // named engine reference (e.g., "primary", "analytics")
     Capabilities  Capabilities
     Collections   []CollectionInfo   // from metaengine.Store.Collections()
     Plan          *SerializablePlan  // from metaengine.Store.Plan()
     Durability    DurabilityTier
     DiskUsage     int64
     HealthStatus  HealthStatus
+    Cache         *CacheTierInfo     // nil if no cache tier configured
+}
+
+type CacheTierInfo struct {
+    EngineName string  // named cache engine (e.g., "hot-cache")
+    HitRate   float64 // cache hits / total reads
+    Size      int     // current entry count
+    MaxSize   int     // capacity limit
 }
 
 type InstanceRole string
@@ -1083,6 +1203,18 @@ models: CBOR, stack: configurable).
 **Question:** Does the System unify codec selection? Does the operator configure
 it, or is it always CBOR?
 
+### 10.9 Cache tier policy
+
+**Question:** What eviction policy for the event cache? LRU (simple, default)?
+ARC (ZFS-style adaptive recency+frequency, optimal but complex)? Clock
+(approximation of LRU, simpler)? Should the cache be per-stream or global?
+
+### 10.10 Named engine sharing semantics
+
+**Question:** When two instances reference the same named engine (e.g., events +
+commands both → "primary"), do they share a connection pool / *sql.DB, or does
+each instance get its own connection? Shared is efficient; isolated is safer.
+
 ---
 
 ## 11. Glossary
@@ -1092,6 +1224,8 @@ it, or is it always CBOR?
 | **ADT**                  | Abstract Data Type. The metaengine infers the ADT from fold return types: `func(e)(K,V)`→Map, `func(e)Delta`→Counter, `func(e)Append`→Log, etc.                                                                                                               |
 | **Backend**              | A storage engine implementation (SQLite, Pebble, Postgres, DuckDB, Memory). Each implements `metaengine.Engine` + whichever ADT backends it supports.                                                                                                         |
 | **Bundle**               | The current composition root (`stack.Bundle`). A bag of optional capability fields. To be replaced by `system.System`.                                                                                                                                        |
+| **Cache Tier**           | An optional read-through volatile cache (typically Memory) sitting in front of an instance's authoritative engine. Exploits event immutability: no invalidation needed, only eviction. NOT a planner concern — a transparent adapter wrapper.                |
+| **Named Engine**         | A declared engine configuration (driver + DSN + options) identified by a semantic name (e.g., "primary", "analytics", "hot-cache"). Instances reference engines by name, enabling swaps without topology changes.                                         |
 | **Deployer / Operator**  | The person configuring the deployment. Picks engines, DSNs, durability. Does NOT write domain code.                                                                                                                                                           |
 | **Consumer / Developer** | The person writing the application. Declares events, commands, queries, folds. Does NOT pick infrastructure.                                                                                                                                                  |
 | **Fold**                 | A pure function that maps an event to a projection update. The return type determines the ADT.                                                                                                                                                                |

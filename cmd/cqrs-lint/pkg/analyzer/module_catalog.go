@@ -177,4 +177,3 @@ func (e ModuleEntry) CategoryPriority() int {
 //
 //nolint:gochecknoglobals // read-only catalog data
 var DefaultCatalog = Catalog{entries: buildDefaultCatalog()}
-
