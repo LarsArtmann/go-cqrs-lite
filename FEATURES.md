@@ -278,7 +278,7 @@ developer never declares "I need a Map" or "I need a Counter."
 | `ErrKeyTypeMismatch`         | Store boundary validates input struct key field type matches declared `keyType`                                                                                                  | 🧪     |
 | CalibrateEngine              | `calibratable` interface. Memory + SQLite support runtime cost calibration. External engines (Pebble/DuckDB/PG) not yet calibratable                                             | 🧪     |
 | ExplainPlan + Doctor         | `store.Explain(ctx)` shows engine assignments + rule diagnostics + replication suffix. `store.Doctor()` health check with `--- Replication ---` section                          | 🧪     |
-| Persistence enum (ADR-0098)  | `EngineProfile.Persistence` (`PersistenceVolatile`/`PersistencePersistent`). `durabilityRule` WARN when volatile engines hold materialized projections. DDIA Ch1 reliability axis    | 🧪     |
+| Persistence enum (ADR-0098)  | `EngineProfile.Persistence` (`PersistenceVolatile`/`PersistencePersistent`). `durabilityRule` WARN when volatile engines hold materialized projections. DDIA Ch1 reliability axis    | ✅     |
 
 **Coverage:** 76.3% (verified `go test -cover ./...` 2026-08-02). 174 BDD specs + 150 cross-engine
 meta specs + 12 ADT harness self-tests. The metaengine went through 15+ hardening
@@ -1246,7 +1246,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `flightrecorder`               | `…/flightrecorder/v4`               | 🧪 Experimental (Go 1.25 runtime/trace capture. Zero-dep. ADR-0089)                                                                                                            |
 | `benchkit`                     | `…/benchkit/v4`                     | 🧪 Experimental (functional, 88 tests, `--repeat N` available)                                                                                                                 |
 | `cmd/cqrs-bench`               | `…/cmd/cqrs-bench`                  | 🔧 Tool                                                                                                                                                                        |
-| `cmd/cqrs-lint`                | `…/cmd/cqrs-lint`                   | 🔧 Tool (185-rule domain-aware linter: correctness 39, API 31, boilerplate 28, adoption 21, architecture 17, consistency 16, performance 9, security 10, testing 8, version 6) |
+| `cmd/cqrs-lint`                | `…/cmd/cqrs-lint`                   | 🔧 Tool (186-rule domain-aware linter: correctness 40, API 31, boilerplate 28, adoption 21, architecture 17, consistency 16, performance 9, security 10, testing 8, version 6) |
 
 ---
 

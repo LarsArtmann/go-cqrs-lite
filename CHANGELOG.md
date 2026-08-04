@@ -772,7 +772,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 #### cqrs-lint v4.3.0 — 185 rules, TLS detection, config features
 
-- **4 new rules** (181→185): C038 (fold-case collection detection), C039
+- **4 new rules** (181→185): C038 (fold-case collection detection; rewritten
+  post-v4.3.0 — see Unreleased section above), C039
   (consistency receiver-method guard), S011 (PII without encryption), D017
   (nullable pointer fields in event payloads).
 - **TLS-aware server detection** — `projectCallsMethodOnType` detects
