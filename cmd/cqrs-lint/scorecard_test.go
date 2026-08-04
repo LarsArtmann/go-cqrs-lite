@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	output "github.com/larsartmann/go-output"
 )
 
 func TestComputeScorecard_AllUsed(t *testing.T) {
@@ -231,23 +232,10 @@ func TestComputeScorecard_EvidencePropagation(t *testing.T) {
 	}
 
 	// Verify Evidence appears in text rendering.
-	text := renderScorecardText(result, 0)
+	text := renderScorecardText(result, output.ColorModeNever)
 	if !strings.Contains(text, evidencePath) {
 		t.Errorf("evidence path %q not found in rendered scorecard text", evidencePath)
 	}
-}
-
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsStr(s, substr))
-}
-
-func containsStr(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
 }
 
 func TestScoreGrade(t *testing.T) {
