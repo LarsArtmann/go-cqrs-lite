@@ -192,9 +192,8 @@ func TestCatalogGet(t *testing.T) {
 func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 	t.Parallel()
 
-	// This test prevents catalog drift: every library module in go.work must
-	// either be in the catalog or explicitly excluded. Mirrors the
-	// TestEveryGoModDirIsInModulesList pattern from api-stability.
+	// Prevents catalog drift: every library module in go.work must be in the
+	// catalog or explicitly excluded. Mirrors TestEveryGoModDirIsInModulesList.
 
 	goWorkPath := findGoWork(t)
 	data, err := os.ReadFile(goWorkPath)
@@ -202,10 +201,8 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		t.Skipf("cannot read go.work: %v (skipping drift check)", err)
 	}
 
-	// Extract module paths from the "use" block.
 	goWorkModules := extractUseModules(t, string(data))
 
-	// Build a set of catalog keys as import-path suffixes.
 	catalogHints := make(map[string]bool)
 	for _, e := range DefaultCatalog.All() {
 		for _, h := range e.ImportHints {
@@ -213,12 +210,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		}
 	}
 
-	// Modules intentionally excluded from the catalog. These are either:
-	// - tooling (cmd/*), test helpers (eventtest, testutil, integration)
-	// - sub-packages covered by a parent (idempotency/kvstore → idempotency)
-	// - low-level internals (storage/*, dispatcher, projection, scenario)
-	// - the library root itself (.)
-	// - benchmarking utilities (benchkit, stack/bench)
+	// Excluded: tooling, test helpers, sub-packages, low-level internals, root.
 	excludedModules := map[string]string{
 		".":                            "library root (consumers import sub-modules, not the root)",
 		"benchkit":                     "benchmarking utility (niche, not a typical adoption decision)",
