@@ -87,14 +87,31 @@ func run(ctx context.Context, cfg *AppConfig) error {
 // overrides onto the auto-detected analysis context. Also validates rule config
 // keys to surface typos that would silently disable an override.
 func applyConfigOverrides(cfg *AppConfig, actx *analyzer.AnalysisContext) {
+	// Warn on unknown preset name (typo detection — consistent with rules-key validation).
+	validatePresetName(os.Stderr, cfg.Preset)
+
+	// Resolve preset definition (single source of truth for features + rules).
+	presetDef := analyzer.ResolvePresetDefinition(cfg.Preset)
+
+	// Merge preset rule defaults BEFORE the config's explicit rules so the
+	// user's disables are appended on top (union). Validate deduplicates.
+	cfg.Rules.Disable = mergeStringSlices(presetDef.Rules.Disable, cfg.Rules.Disable)
+	cfg.Rules.ExternalAPIStructPrefixes = mergeStringSlices(
+		presetDef.Rules.ExternalAPIStructPrefixes, cfg.Rules.ExternalAPIStructPrefixes)
+
+	// Resolve features: preset defaults overridden by explicit config flags.
 	actx.FeatureProfile = analyzer.ResolveFeatureProfile(
 		cfg.Features,
 		cfg.Preset,
 		actx.FeatureProfile,
 	)
 
+	// Validate + normalize rules config (catches typos in rules keys).
 	rawRules := loadRawRulesJSON()
 	cfg.Rules.Validate(os.Stderr, rawRules)
+
+	// Warn on disabled rule IDs that don't match any known rule (likely typos).
+	validateDisabledRuleIDs(os.Stderr, cfg.Rules.Disable)
 
 	// Merge parent .cqrs-lint.json configs (config inheritance / monorepo support).
 	parentRules := loadParentRulesConfig(cfg.Path)
@@ -105,6 +122,15 @@ func applyConfigOverrides(cfg *AppConfig, actx *analyzer.AnalysisContext) {
 	)
 
 	actx.RulesConfig = cfg.Rules
+}
+
+// mergeStringSlices concatenates two slices into a fresh allocation. Used to
+// merge preset defaults with config overrides without aliasing backing arrays.
+func mergeStringSlices(preset, config []string) []string {
+	result := make([]string, 0, len(preset)+len(config))
+	result = append(result, preset...)
+	result = append(result, config...)
+	return result
 }
 
 // handleLoadErrors processes package-loading failures and returns an error

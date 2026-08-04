@@ -175,7 +175,7 @@ func (rc *RulesConfig) Validate(w io.Writer, rawRulesJSON []byte) {
 				if !knownRulesConfigKeys[key] {
 					_, _ = fmt.Fprintf(
 						w,
-						"warning: unknown rules config key %q (known: disable, external-api-struct-prefixes, c008-ignore-fields)\n",
+						"warning: unknown rules config key %q (known: disable, external-api-struct-prefixes, c008-ignore-fields, c008-ignore-structs)\n",
 						key,
 					)
 				}

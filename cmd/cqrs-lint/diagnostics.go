@@ -7,11 +7,13 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/larsartmann/go-finding/pipeline"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules"
 )
 
 func printLoadErrors(w io.Writer, errors []analyzer.PackageLoadError) {
@@ -104,6 +106,43 @@ func loadParentRulesConfig(lintPath string) analyzer.RulesConfig {
 	}
 
 	return merged
+}
+
+// validatePresetName warns if the preset name is not recognized. This catches
+// typos like "prod" instead of "production" or stale names from older versions
+// ("server", "full-stack") that would otherwise silently disable every preset
+// override.
+func validatePresetName(w io.Writer, preset analyzer.ConfigPreset) {
+	if preset == "" || analyzer.IsKnownPreset(preset) {
+		return
+	}
+	fmt.Fprintf(w,
+		"warning: unknown preset %q (available: %s)\n",
+		preset,
+		strings.Join(analyzer.ValidPresetNames(), ", "),
+	)
+}
+
+// validateDisabledRuleIDs warns when the disable list references rule IDs that
+// don't match any known rule. This catches typos like "C99" instead of "C009"
+// or references to rules that were renamed/removed — both would silently
+// disable nothing, leaving the user thinking a rule is off when it isn't.
+func validateDisabledRuleIDs(w io.Writer, disabled []string) {
+	if len(disabled) == 0 {
+		return
+	}
+	for _, id := range disabled {
+		id = strings.ToUpper(strings.TrimSpace(id))
+		if id == "" {
+			continue
+		}
+		if _, ok := rules.LookupRule(id); !ok {
+			fmt.Fprintf(w,
+				"warning: disabled rule %q is not a known rule ID (typo or removed rule?)\n",
+				id,
+			)
+		}
+	}
 }
 
 func printDetectorTimings(w io.Writer, snap pipeline.MetricsSnapshot) {
