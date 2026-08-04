@@ -87,20 +87,28 @@ and is **never** duplicated here.
       cqrs-htmx, DiscordSync, timesheets. This is the single highest-value
       non-coding task for cqrs-lint trustworthiness.
 
-- [ ] **C036 library function recognition** — fires on `storage.OpenSQLite*`
-      functions that ARE from the library. Should recognize `go-cqrs-lite/`
-      imports as library-internal. Reported by 4 of 5 consumers.
+- [x] **C036 library function recognition** — FIXED: `detectBackend` now
+      requires constructor prefix (New/Open) + resolves `storage` qualifier
+      to `go-cqrs-lite/storage` via import path. `describeMismatchStore`
+      default returns "" instead of "store" — utility helpers no longer
+      flagged. Reported by 4 of 5 consumers.
 
-- [ ] **E009/E016 cqrs-htmx awareness** — linter doesn't recognize
-      `cqrs-htmx` as satisfying transport (E009) or health-check (E016)
-      requirements. Reported by timesheets + crush-daily.
+- [x] **E009/E016 cqrs-htmx awareness** — FIXED: E009 now uses
+      `FeatureProfile.HasTransport` (recognizes cqrs-htmx). E016 exempts
+      health checks when `cqrs-htmx` is imported. Also added Pass 1b AST
+      import scanning to `detectFeatureSignals` so feature detection works
+      in test contexts where `pkg.Imports` is empty.
 
-- [ ] **D007 auto-fix** (`event.NewEvent` → `event.New`) — `--fix`
-      infrastructure exists; needs payload-type heuristic.
+- [x] **D007 auto-fix** (`event.NewEvent` → `event.New`) — FIXED: `event.New`
+      accepts `any` (superset of `[]byte`), so the replacement is always safe.
+      Fix provider now uses position-based offset matching (not first-
+      occurrence `bytes.Index`) to fix the correct call site when multiple
+      `event.NewEvent(` calls exist.
 
-- [ ] **F013/C009/C016 feature-profile fixes** — recognize `cqrshtmx.New` as
-      transport (F013), `New*` constructor + panic as must-pattern (C009),
-      exempt `context.Background()` in graceful-shutdown paths (C016).
+- [x] **F013/C009/C016 feature-profile fixes** — FIXED: F013 works via
+      `HasTransport` (cqrs-htmx now detected from AST imports). C009 exempts
+      ALL `New*` constructors (not just pointer-returning ones). C016 exempts
+      `context.With*(context.Background(), ...)` patterns unconditionally.
 
 - [ ] **~14 remaining Pareto backlog items** — see the
       [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).

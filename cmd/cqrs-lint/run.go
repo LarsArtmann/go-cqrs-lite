@@ -96,15 +96,7 @@ func applyConfigOverrides(cfg *AppConfig, actx *analyzer.AnalysisContext) {
 	// Apply preset severity floor: the preset's min-severity acts as a lower
 	// bound. Users can raise it (stricter, e.g. "error") but cannot go below
 	// the preset floor (e.g. local-cli's "warning" hides info-level noise).
-	if presetDef.MinSeverity != "" {
-		presetSev, err := finding.ParseSeverity(presetDef.MinSeverity)
-		if err == nil {
-			currentSev, err := finding.ParseSeverity(cfg.MinSeverity)
-			if err == nil && presetSev.GreaterThan(currentSev) {
-				cfg.MinSeverity = presetDef.MinSeverity
-			}
-		}
-	}
+	cfg.MinSeverity = resolveMinSeverity(presetDef.MinSeverity, cfg.MinSeverity)
 
 	// Merge preset rule defaults BEFORE the config's explicit rules so the
 	// user's disables are appended on top (union). Validate deduplicates.
@@ -157,6 +149,34 @@ func mergeStringSlices(preset, config []string) []string {
 	result = append(result, preset...)
 	result = append(result, config...)
 	return result
+}
+
+// resolveMinSeverity applies the preset severity floor to the user's min-severity
+// setting. The preset's value acts as a lower bound: users can raise it (e.g.
+// "error" is stricter than "warning") but cannot go below the floor (e.g.
+// local-cli's "warning" hides info-level noise for single-user CLI tools).
+// When the preset has no severity floor (empty string), the user's value is
+// returned unchanged.
+func resolveMinSeverity(presetMinSeverity, userMinSeverity string) string {
+	if presetMinSeverity == "" {
+		return userMinSeverity
+	}
+
+	presetSev, err := finding.ParseSeverity(presetMinSeverity)
+	if err != nil {
+		return userMinSeverity
+	}
+
+	userSev, err := finding.ParseSeverity(userMinSeverity)
+	if err != nil {
+		return presetMinSeverity
+	}
+
+	if presetSev.GreaterThan(userSev) {
+		return presetMinSeverity
+	}
+
+	return userMinSeverity
 }
 
 // handleLoadErrors processes package-loading failures and returns an error

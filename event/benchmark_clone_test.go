@@ -117,7 +117,7 @@ func BenchmarkDecodePayload_clone_vs_direct(b *testing.B) {
 		b.ReportAllocs()
 		for b.Loop() {
 			p := evt.Payload()
-			var target map[string]string
+			var target map[string]any
 			if err := c.Decode(p, &target); err != nil {
 				b.Fatalf("Decode: %v", err)
 			}
@@ -131,7 +131,7 @@ func BenchmarkDecodePayload_clone_vs_direct(b *testing.B) {
 		b.ReportAllocs()
 		for b.Loop() {
 			p := evt.payload
-			var target map[string]string
+			var target map[string]any
 			if err := c.Decode(p, &target); err != nil {
 				b.Fatalf("Decode: %v", err)
 			}
@@ -144,7 +144,7 @@ func BenchmarkDecodePayload_clone_vs_direct(b *testing.B) {
 	b.Run("DecodePayload_optimized", func(b *testing.B) {
 		b.ReportAllocs()
 		for b.Loop() {
-			result, err := DecodePayload[map[string]string](evt, c)
+			result, err := DecodePayload[map[string]any](evt, c)
 			if err != nil {
 				b.Fatalf("DecodePayload: %v", err)
 			}

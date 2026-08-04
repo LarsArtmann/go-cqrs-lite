@@ -27,7 +27,8 @@ import (
 //   - DuckDBNsPerRead → vectorized scan + aggregation (BenchmarkCalibration_DuckDB_PushdownScan,
 //                       BenchmarkCalibration_DuckDB_AggregateSum, BenchmarkCalibration_DuckDB_FullScan)
 //
-// Run: GOWORK=off go test -tags 'cgo goexperiment.jsonv2' -run='^$' -bench='BenchmarkCalibration_DuckDB' -benchmem ./...
+// Run: GOWORK=off go test -tags 'cgo goexperiment.jsonv2' -run='^$' \
+//      -bench='BenchmarkCalibration_DuckDB' -benchmem ./...
 //
 // Interpretation: the "ns/row" custom metric is the per-row amortized cost.
 // Compare against DuckDBNsPerOp (write) and DuckDBNsPerRead (read).
