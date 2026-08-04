@@ -22,10 +22,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 )
 
-// pgTimerDB opens a Postgres connection for the timer store. Each test gets
-// its own fresh database. The timer store creates its own timers table via
-// CREATE TABLE IF NOT EXISTS.
-func pgTimerDB(t *testing.T) *sql.DB {
+// pgOpen opens a Postgres connection, drops any existing timers table for
+// per-test isolation (the DSN is shared across tests when ephemeral-pg.sh sets
+// DATABASE_URL), and pings the server. NewPostgresStore recreates the table.
+func pgOpen(t *testing.T) *sql.DB {
 	t.Helper()
 
 	url := pgTestDSN(t)
@@ -35,13 +35,15 @@ func pgTimerDB(t *testing.T) *sql.DB {
 		t.Fatalf("open pg: %v", err)
 	}
 
-	t.Cleanup(func() { _ = db.Close() })
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := db.PingContext(ctx); err != nil {
 		t.Fatalf("ping pg: %v", err)
+	}
+
+	if _, err := db.ExecContext(ctx, "DROP TABLE IF EXISTS timers"); err != nil {
+		t.Fatalf("drop timers table: %v", err)
 	}
 
 	return db
@@ -52,7 +54,8 @@ func pgTimerDB(t *testing.T) *sql.DB {
 // $N placeholder substitution, and ascending FireAt ordering.
 func TestIntegration_PostgresTimerStore_ScheduleAndDue(t *testing.T) {
 	ctx := context.Background()
-	db := pgTimerDB(t)
+	db := pgOpen(t)
+	defer func() { _ = db.Close() }()
 
 	store, err := sqlstore.NewPostgresStore[testPayload](ctx, db)
 	if err != nil {
@@ -106,7 +109,8 @@ func TestIntegration_PostgresTimerStore_ScheduleAndDue(t *testing.T) {
 // DO NOTHING works on PostgreSQL — re-scheduling the same ID is a no-op.
 func TestIntegration_PostgresTimerStore_IdempotentSchedule(t *testing.T) {
 	ctx := context.Background()
-	db := pgTimerDB(t)
+	db := pgOpen(t)
+	defer func() { _ = db.Close() }()
 
 	store, err := sqlstore.NewPostgresStore[testPayload](ctx, db)
 	if err != nil {
@@ -149,13 +153,9 @@ func TestIntegration_PostgresTimerStore_IdempotentSchedule(t *testing.T) {
 // database.
 func TestIntegration_PostgresTimerStore_SurvivesRestart(t *testing.T) {
 	ctx := context.Background()
-	url := pgTestDSN(t)
 
 	// Phase 1: "first process" schedules a timer, then crashes.
-	db1, err := sql.Open("pgx", url)
-	if err != nil {
-		t.Fatalf("open db1: %v", err)
-	}
+	db1 := pgOpen(t)
 
 	store1, err := sqlstore.NewPostgresStore[testPayload](ctx, db1)
 	if err != nil {
@@ -179,12 +179,12 @@ func TestIntegration_PostgresTimerStore_SurvivesRestart(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Phase 2: "second process" opens a fresh connection and recovers.
-	db2, err := sql.Open("pgx", url)
+	db2, err := sql.Open("pgx", pgTestDSN(t))
 	if err != nil {
 		t.Fatalf("open db2: %v", err)
 	}
 
-	t.Cleanup(func() { _ = db2.Close() })
+	defer func() { _ = db2.Close() }()
 
 	store2, err := sqlstore.NewPostgresStore[testPayload](ctx, db2)
 	if err != nil {
@@ -228,13 +228,9 @@ func TestIntegration_PostgresTimerStore_SurvivesRestart(t *testing.T) {
 // full scheduler + Postgres store loop recovers overdue timers after a restart.
 func TestIntegration_PostgresTimerStore_SchedulerIntegration_Recovery(t *testing.T) {
 	ctx := context.Background()
-	url := pgTestDSN(t)
 
 	// Phase 1: schedule a timer with a very short deadline, then "crash".
-	db1, err := sql.Open("pgx", url)
-	if err != nil {
-		t.Fatalf("open db1: %v", err)
-	}
+	db1 := pgOpen(t)
 
 	store1, err := sqlstore.NewPostgresStore[testPayload](ctx, db1)
 	if err != nil {
@@ -258,12 +254,12 @@ func TestIntegration_PostgresTimerStore_SchedulerIntegration_Recovery(t *testing
 	time.Sleep(50 * time.Millisecond)
 
 	// Phase 2: restart with a fresh scheduler that recovers the overdue timer.
-	db2, err := sql.Open("pgx", url)
+	db2, err := sql.Open("pgx", pgTestDSN(t))
 	if err != nil {
 		t.Fatalf("open db2: %v", err)
 	}
 
-	t.Cleanup(func() { _ = db2.Close() })
+	defer func() { _ = db2.Close() }()
 
 	store2, err := sqlstore.NewPostgresStore[testPayload](ctx, db2)
 	if err != nil {

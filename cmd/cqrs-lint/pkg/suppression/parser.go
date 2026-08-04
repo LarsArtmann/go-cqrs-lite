@@ -20,12 +20,16 @@ const blockEndPrefix = "//cqrs-lint:ignore-end"
 
 // lineCache caches file contents to avoid re-reading for multiple findings.
 type lineCache struct {
-	mu    sync.Mutex
-	files map[string][]string
+	mu         sync.Mutex
+	files      map[string][]string
+	rawStrings map[string]map[int]bool // cached raw-string-line sets
 }
 
 func newLineCache() *lineCache {
-	return &lineCache{files: make(map[string][]string)}
+	return &lineCache{
+		files:      make(map[string][]string),
+		rawStrings: make(map[string]map[int]bool),
+	}
 }
 
 func (c *lineCache) getLines(path string) []string {
@@ -63,6 +67,50 @@ func (c *lineCache) getLines(path string) []string {
 	c.files[path] = lines
 
 	return lines
+}
+
+// getRawStringLines returns a set of 0-based line indices that fall ENTIRELY
+// inside a multi-line raw string literal (backtick string). Lines containing
+// a backtick are NOT included — commentTextStart handles those via its
+// single-line tracking. The result is cached alongside the file's lines.
+func (c *lineCache) getRawStringLines(path string) map[int]bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if m, ok := c.rawStrings[path]; ok {
+		return m
+	}
+
+	lines := c.files[path]
+	m := computeRawStringLines(lines)
+	c.rawStrings[path] = m
+
+	return m
+}
+
+// computeRawStringLines scans lines forward and returns a set of 0-based line
+// indices that fall entirely inside a multi-line raw string literal (backtick
+// string that spans lines). This is needed because commentTextStart operates
+// per-line and cannot know that a line is inside a raw string opened on a
+// previous line. Without this, a //cqrs-lint:ignore directive that appears
+// as literal text inside a multi-line raw string would be falsely treated as
+// a real suppression comment.
+func computeRawStringLines(lines []string) map[int]bool {
+	result := make(map[int]bool)
+	inRawString := false
+
+	for i, line := range lines {
+		if inRawString && !strings.Contains(line, "`") {
+			result[i] = true
+		}
+
+		backtickCount := strings.Count(line, "`")
+		if backtickCount%2 != 0 {
+			inRawString = !inRawString
+		}
+	}
+
+	return result
 }
 
 // normalizeCommentPrefix converts the Go-idiomatic "// cqrs-lint:..." (space
@@ -177,11 +225,12 @@ func checkSuppressionInFile(cache *lineCache, f finding.Finding) bool {
 		return false
 	}
 
+	rawLines := cache.getRawStringLines(filePath)
 	ruleID := string(f.Rule)
 	line := f.Position.Line // 1-based
 
 	// Check the finding's own line.
-	if line >= 1 && line <= len(lines) {
+	if line >= 1 && line <= len(lines) && !rawLines[line-1] {
 		suppressedRules := ParseSuppressions(lines[line-1])
 		if _, ok := suppressedRules[ruleID]; ok {
 			return true
@@ -193,6 +242,9 @@ func checkSuppressionInFile(cache *lineCache, f finding.Finding) bool {
 	// the next declaration. Without this skip, a blank line between a
 	// suppression comment and the finding silently breaks suppression.
 	for checkLine := line - 1; checkLine >= 1; checkLine-- {
+		if rawLines[checkLine-1] {
+			continue // line is inside a multi-line raw string
+		}
 		text := strings.TrimSpace(lines[checkLine-1])
 		if text == "" {
 			continue
@@ -236,6 +288,7 @@ func checkBlockSuppressionInFile(cache *lineCache, f finding.Finding) bool {
 		return false
 	}
 
+	rawLines := cache.getRawStringLines(filePath)
 	ruleID := string(f.Rule)
 	line := f.Position.Line // 1-based
 
@@ -247,6 +300,9 @@ func checkBlockSuppressionInFile(cache *lineCache, f finding.Finding) bool {
 	// or end. If we find a start first, we're inside a block. If we find an
 	// end first (or run out of lines), we're not.
 	for i := line; i >= 1; i-- {
+		if rawLines[i-1] {
+			continue // line is inside a multi-line raw string
+		}
 		text := strings.TrimSpace(lines[i-1])
 		// Normalize: accept "//cqrs-lint:ignore-start" and "// cqrs-lint:ignore-start"
 		text = normalizeCommentPrefix(text)
