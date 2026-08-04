@@ -2,7 +2,6 @@ package system
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
@@ -13,7 +12,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
-	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
 
 // New constructs a System from a DomainConfig (consumer) and a DeploymentConfig
@@ -234,21 +232,6 @@ func isSourceOfTruth(role InstanceRole) bool {
 }
 
 // ─── D10: Generic registration functions ───
-
-// RegisterDeciderOption tunes decider registration.
-type RegisterDeciderOption func(*registerDeciderConfig)
-
-type registerDeciderConfig struct {
-	snapshotStrategy snapshot.SnapshotStrategy
-}
-
-// WithSnapshotStrategy sets the snapshot strategy for the decider. When the
-// engine implements SnapshotBackend, this enables automatic snapshot creation.
-// Without a strategy, the snapshot store is wired for reads but snapshots are
-// never written automatically.
-func WithSnapshotStrategy(s snapshot.SnapshotStrategy) RegisterDeciderOption {
-	return func(c *registerDeciderConfig) { c.snapshotStrategy = s }
-}
 
 // RegisterDecider registers a decider for a stream type. The System creates
 // a [decider.Repository] for it, backed by the EventAdapter.

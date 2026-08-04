@@ -344,5 +344,5 @@ func (a *EventAdapter) decodeValue(val any) (event.Event, error) {
 		return a.decodeEvent(string(data))
 	}
 
-	return nil, fmt.Errorf("event adapter: unsupported value type %T", val)
+	return nil, fmt.Errorf("%w: %T", ErrUnsupportedValueType, val)
 }

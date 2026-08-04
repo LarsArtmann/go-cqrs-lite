@@ -64,8 +64,8 @@ func lookupDriver(name string) (DriverFactory, error) {
 	factory, ok := drivers[name]
 	if !ok {
 		return nil, fmt.Errorf(
-			"system: unknown driver %q (did you import the driver package?)",
-			name,
+			"%w %q (did you import the driver package?)",
+			ErrUnknownDriver, name,
 		)
 	}
 
@@ -79,7 +79,7 @@ func lookupBusDriver(name string) (BusDriverFactory, error) {
 
 	factory, ok := busDrivers[name]
 	if !ok {
-		return nil, fmt.Errorf("system: unknown bus driver %q", name)
+		return nil, fmt.Errorf("%w: %q", ErrUnknownBusDriver, name)
 	}
 
 	return factory, nil

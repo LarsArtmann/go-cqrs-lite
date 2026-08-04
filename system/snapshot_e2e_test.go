@@ -41,7 +41,10 @@ func TestSystem_SnapshotAdapterDirect(t *testing.T) {
 
 	// Save a snapshot.
 	state := TaskState{Title: "test-snap", Status: "pending", Exists: true}
-	stateBytes, _ := json.Marshal(state)
+	stateBytes, err := json.Marshal(state)
+	if err != nil {
+		t.Fatalf("marshal state: %v", err)
+	}
 
 	snap := snapshot.Snapshot{
 		StreamID:   streamID,
@@ -116,7 +119,10 @@ func TestSystem_SnapshotAdapterLoadAtVersion(t *testing.T) {
 
 	streamID := id.NewStreamID()
 	ref := id.NewStreamRef("Task", streamID)
-	stateBytes, _ := json.Marshal(TaskState{Title: "v10", Status: "pending"})
+	stateBytes, err := json.Marshal(TaskState{Title: "v10", Status: "pending"})
+	if err != nil {
+		t.Fatalf("marshal state: %v", err)
+	}
 
 	// Save at version 10.
 	if err := snapStore.Save(ctx, snapshot.Snapshot{
