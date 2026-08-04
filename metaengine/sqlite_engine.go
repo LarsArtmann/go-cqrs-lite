@@ -50,6 +50,13 @@ type sqliteQuerySet struct {
 	logTail   string
 	// Graph
 	graphAddEdge string
+	// Stream Log
+	streamAppend      string
+	streamRead        string
+	streamVersion     string
+	streamAppendExp   string
+	journalReadAll    string
+	journalReadFrom   string
 	// DDL
 	ddl string
 }
@@ -80,7 +87,15 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		collection TEXT NOT NULL, from_node TEXT NOT NULL, to_node TEXT NOT NULL
 	);
 	CREATE INDEX IF NOT EXISTS idx_graph_from ON meta_graph_edges(collection, from_node);
-	CREATE INDEX IF NOT EXISTS idx_graph_to ON meta_graph_edges(collection, to_node);`,
+	CREATE INDEX IF NOT EXISTS idx_graph_to ON meta_graph_edges(collection, to_node);
+	CREATE TABLE IF NOT EXISTS meta_stream_log (
+		seq INTEGER PRIMARY KEY AUTOINCREMENT,
+		collection TEXT NOT NULL,
+		stream_id TEXT NOT NULL,
+		value TEXT NOT NULL
+	);
+	CREATE INDEX IF NOT EXISTS idx_stream_log_stream ON meta_stream_log(collection, stream_id, seq);
+	CREATE INDEX IF NOT EXISTS idx_stream_log_journal ON meta_stream_log(collection, seq);`,
 		mapSet:           `INSERT OR REPLACE INTO meta_map (collection, key, value) VALUES (?, ?, ?)`,
 		mapGet:           `SELECT value FROM meta_map WHERE collection = ? AND key = ?`,
 		mapDelete:        `DELETE FROM meta_map WHERE collection = ? AND key = ?`,
@@ -93,6 +108,12 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		logAppend:        `INSERT INTO meta_log (collection, value) VALUES (?, ?)`,
 		logTail:          `SELECT value FROM meta_log WHERE collection = ? ORDER BY id DESC LIMIT ?`,
 		graphAddEdge:     `INSERT INTO meta_graph_edges (collection, from_node, to_node) VALUES (?, ?, ?)`,
+		streamAppend:      `INSERT INTO meta_stream_log (collection, stream_id, value) VALUES (?, ?, ?)`,
+		streamRead:        `SELECT value FROM meta_stream_log WHERE collection = ? AND stream_id = ? ORDER BY seq`,
+		streamVersion:     `SELECT COUNT(*) FROM meta_stream_log WHERE collection = ? AND stream_id = ?`,
+		streamAppendExp:   `INSERT INTO meta_stream_log (collection, stream_id, value) VALUES (?, ?, ?)`,
+		journalReadAll:    `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
+		journalReadFrom:   `SELECT value FROM meta_stream_log WHERE collection = ? AND seq > ? ORDER BY seq LIMIT ?`,
 	}
 }
 

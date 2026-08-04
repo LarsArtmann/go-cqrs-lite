@@ -385,6 +385,9 @@
                 imports = [ ./nix/vm/mysql.nix ];
               };
 
+            # Container-only test: no QEMU/KVM needed, just uid-range for nspawn
+            requiredFeatures.kvm = false;
+
             testScript = ''
               machine.start()
               machine.wait_for_unit("mysql")

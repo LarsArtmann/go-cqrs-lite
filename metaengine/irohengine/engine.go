@@ -19,7 +19,6 @@ type replicatedEngine struct {
 
 	mu         sync.Mutex
 	timestamps map[string]time.Time // "col\x00key" → latest LWW timestamp
-	applying   bool                 // re-entrancy guard: true when applying remote op
 }
 
 func lwwKey(collection string, key any) string {
@@ -68,15 +67,11 @@ func (e *replicatedEngine) Close() error {
 	return e.local.Close()
 }
 
-// publish sends a WriteOp to remote nodes (skip when applying remote or no transport).
+// publish sends a WriteOp to remote nodes. No re-entrancy guard needed:
+// applyRemote calls the local engine directly, never the wrapper methods,
+// so publish cannot be triggered from a remote-op application.
 func (e *replicatedEngine) publish(op WriteOp) {
 	if e.cfg.transport == nil {
-		return
-	}
-	e.mu.Lock()
-	skip := e.applying
-	e.mu.Unlock()
-	if skip {
 		return
 	}
 	op.ID = nextOpID()
@@ -85,16 +80,9 @@ func (e *replicatedEngine) publish(op WriteOp) {
 }
 
 // applyRemote dispatches an incoming WriteOp to the local engine.
+// Calls the LOCAL engine directly (not the wrapper methods), so there is
+// no re-entrancy risk of triggering another publish.
 func (e *replicatedEngine) applyRemote(op WriteOp) {
-	e.mu.Lock()
-	e.applying = true
-	e.mu.Unlock()
-	defer func() {
-		e.mu.Lock()
-		e.applying = false
-		e.mu.Unlock()
-	}()
-
 	ctx := context.Background()
 
 	switch op.Kind {

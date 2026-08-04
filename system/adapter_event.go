@@ -2,6 +2,7 @@ package system
 
 import (
 	"context"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"sync"
@@ -12,36 +13,60 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// serializedEvent is the JSON envelope for persisting events in SQL-based
+// StreamLogBackends. The Memory engine stores pointers directly; SQL engines
+// store this envelope as a TEXT value.
+type serializedEvent struct {
+	ID            string          `json:"id"`
+	Type          string          `json:"type"`
+	StreamID      string          `json:"stream_id"`
+	StreamType    string          `json:"stream_type"`
+	Version       int             `json:"version"`
+	SchemaVersion int             `json:"schema_version"`
+	Payload       []byte          `json:"payload"`
+	Encoding      string          `json:"encoding"`
+	Metadata      json.RawMessage `json:"metadata"`
+	OccurredAt    time.Time       `json:"occurred_at"`
+}
+
+// EventAdapterOption tunes an EventAdapter at construction time.
+type EventAdapterOption func(*EventAdapter)
+
+// WithSerialization enables event serialization for persistent engines
+// (SQLite, Pebble). When enabled, events are encoded to JSON envelope strings
+// on write and decoded on read. For the Memory engine, this option should NOT
+// be set — events are stored as direct pointers.
+func WithSerialization() EventAdapterOption {
+	return func(a *EventAdapter) { a.serialize = true }
+}
+
 // EventAdapter wraps a [metaengine.StreamLogBackend] as an [event.Store].
-// It bridges the new storage primitive (stream-keyed append-only log of any
-// values) to the standard CQRS event interfaces (EventSink, EventSource,
-// Journal, SeekableJournal).
-//
-// For the Memory engine, events are stored as direct pointers (no encoding).
-// For SQL engines, events are encoded via a codec at the adapter boundary.
-//
-// Optimistic concurrency uses [metaengine.AtomicAppender] when available
-// (single-lock atomic version-check-then-append), falling back to
-// [metaengine.Transactional.RunInTx], then to a non-atomic check-then-append.
 type EventAdapter struct {
 	backend    metaengine.StreamLogBackend
 	collection string
+	serialize  bool
 
-	// seqCache maps event ID strings to global journal sequence numbers.
-	// Built lazily on the first ReadFrom call; updated incrementally from
-	// ReadFrom results. Enables O(1) EventID→seq lookup instead of O(N) scan.
 	seqCache   map[string]int64
 	seqCacheMu sync.RWMutex
 }
 
 // NewEventAdapter creates an event.Store backed by a StreamLogBackend.
-// The collection parameter names the stream log collection (e.g., "events").
-func NewEventAdapter(backend metaengine.StreamLogBackend, collection string) *EventAdapter {
-	return &EventAdapter{
+func NewEventAdapter(
+	backend metaengine.StreamLogBackend,
+	collection string,
+	opts ...EventAdapterOption,
+) *EventAdapter {
+	a := &EventAdapter{
 		backend:    backend,
 		collection: collection,
 		seqCache:   make(map[string]int64),
 	}
+
+	for _, opt := range opts {
+		opt(a)
+	}
+
+	return a
 }
 
 // Compile-time assertions.
@@ -60,17 +85,10 @@ func (a *EventAdapter) Save(
 	expectedVersion event.Version,
 ) error {
 	sid := ref.StreamKey()
-	values := eventsToAny(events)
+	values := a.eventsToAny(events)
 
-	// Fast path: engine supports atomic version-check-then-append.
 	if ap, ok := a.backend.(metaengine.AtomicAppender); ok {
-		if err := ap.StreamAppendExpected(
-			ctx,
-			a.collection,
-			sid,
-			int64(expectedVersion),
-			values,
-		); err != nil {
+		if err := ap.StreamAppendExpected(ctx, a.collection, sid, int64(expectedVersion), values); err != nil {
 			if errors.Is(err, metaengine.ErrVersionConflict) {
 				return event.ErrVersionConflict
 			}
@@ -81,7 +99,6 @@ func (a *EventAdapter) Save(
 		return nil
 	}
 
-	// Fallback: use Transactional if available.
 	if tx, ok := a.backend.(metaengine.Transactional); ok {
 		return tx.RunInTx(ctx, func(ctx context.Context) error {
 			current, err := a.backend.StreamVersion(ctx, a.collection, sid)
@@ -97,7 +114,6 @@ func (a *EventAdapter) Save(
 		})
 	}
 
-	// Last resort: non-atomic check-then-append.
 	current, err := a.backend.StreamVersion(ctx, a.collection, sid)
 	if err != nil {
 		return fmt.Errorf("event adapter: stream version: %w", err)
@@ -115,28 +131,22 @@ func (a *EventAdapter) AppendBatch(
 	ref id.StreamRef,
 	events []event.Event,
 ) error {
-	sid := ref.StreamKey()
-
-	return a.backend.StreamAppend(ctx, a.collection, sid, eventsToAny(events))
+	return a.backend.StreamAppend(ctx, a.collection, ref.StreamKey(), a.eventsToAny(events))
 }
 
 // ─── EventSource ───
 
 func (a *EventAdapter) Load(ctx context.Context, ref id.StreamRef) ([]event.Event, error) {
-	sid := ref.StreamKey()
-
-	values, err := a.backend.StreamRead(ctx, a.collection, sid)
+	values, err := a.backend.StreamRead(ctx, a.collection, ref.StreamKey())
 	if err != nil {
 		return nil, fmt.Errorf("event adapter: load: %w", err)
 	}
 
-	return anyToEvents(values)
+	return a.anyToEvents(values)
 }
 
 func (a *EventAdapter) LoadFromVersion(
-	ctx context.Context,
-	ref id.StreamRef,
-	version event.Version,
+	ctx context.Context, ref id.StreamRef, version event.Version,
 ) ([]event.Event, error) {
 	all, err := a.Load(ctx, ref)
 	if err != nil {
@@ -149,9 +159,7 @@ func (a *EventAdapter) LoadFromVersion(
 }
 
 func (a *EventAdapter) LoadToVersion(
-	ctx context.Context,
-	ref id.StreamRef,
-	maxVersion event.Version,
+	ctx context.Context, ref id.StreamRef, maxVersion event.Version,
 ) ([]event.Event, error) {
 	all, err := a.Load(ctx, ref)
 	if err != nil {
@@ -164,9 +172,7 @@ func (a *EventAdapter) LoadToVersion(
 }
 
 func (a *EventAdapter) LoadToTimestamp(
-	ctx context.Context,
-	ref id.StreamRef,
-	maxTime time.Time,
+	ctx context.Context, ref id.StreamRef, maxTime time.Time,
 ) ([]event.Event, error) {
 	all, err := a.Load(ctx, ref)
 	if err != nil {
@@ -191,7 +197,7 @@ func (a *EventAdapter) ReadAll(ctx context.Context) ([]event.Event, error) {
 		return nil, fmt.Errorf("event adapter: read all: %w", err)
 	}
 
-	return anyToEvents(values)
+	return a.anyToEvents(values)
 }
 
 // ─── SeekableJournal ───
@@ -208,14 +214,11 @@ func (a *EventAdapter) ReadFrom(
 		return nil, fmt.Errorf("event adapter: read from: %w", err)
 	}
 
-	events, err := anyToEvents(values)
+	events, err := a.anyToEvents(values)
 	if err != nil {
 		return nil, err
 	}
 
-	// Incrementally populate the seq cache from results.
-	// Journal entries are contiguous: the i-th entry after afterSeq has
-	// seq = afterSeq + i + 1.
 	a.seqCacheMu.Lock()
 	for i, evt := range events {
 		a.seqCache[evt.ID().String()] = afterSeq + int64(i) + 1
@@ -226,9 +229,6 @@ func (a *EventAdapter) ReadFrom(
 }
 
 // lookupSeq returns the global journal sequence number for the given event ID.
-// It checks the seq cache first (O(1)); on miss, it scans the full journal
-// once to build the cache, then retries. Subsequent lookups for events in the
-// cache are O(1).
 func (a *EventAdapter) lookupSeq(ctx context.Context, eventID id.EventID) int64 {
 	key := eventID.String()
 
@@ -240,19 +240,18 @@ func (a *EventAdapter) lookupSeq(ctx context.Context, eventID id.EventID) int64 
 		return seq
 	}
 
-	// Cache miss: scan the journal to populate the cache.
 	all, err := a.backend.JournalReadAll(ctx, a.collection)
 	if err != nil {
 		return 0
 	}
 
+	events, _ := a.anyToEvents(all)
+
 	a.seqCacheMu.Lock()
 	defer a.seqCacheMu.Unlock()
 
-	for i, val := range all {
-		if evt, ok := val.(event.Event); ok {
-			a.seqCache[evt.ID().String()] = int64(i + 1)
-		}
+	for i, evt := range events {
+		a.seqCache[evt.ID().String()] = int64(i + 1)
 	}
 
 	if seq, ok := a.seqCache[key]; ok {
@@ -264,25 +263,103 @@ func (a *EventAdapter) lookupSeq(ctx context.Context, eventID id.EventID) int64 
 
 // ─── helpers ───
 
-func eventsToAny(events []event.Event) []any {
+func (a *EventAdapter) eventsToAny(events []event.Event) []any {
+	if !a.serialize {
+		result := make([]any, len(events))
+		for i, evt := range events {
+			result[i] = evt
+		}
+
+		return result
+	}
+
 	result := make([]any, len(events))
 	for i, evt := range events {
-		result[i] = evt
+		result[i] = a.encodeEvent(evt)
 	}
 
 	return result
 }
 
-func anyToEvents(values []any) ([]event.Event, error) {
+func (a *EventAdapter) anyToEvents(values []any) ([]event.Event, error) {
 	result := make([]event.Event, 0, len(values))
 	for _, val := range values {
-		evt, ok := val.(event.Event)
-		if !ok {
-			return nil, fmt.Errorf("event adapter: value is not event.Event (got %T)", val)
+		evt, err := a.decodeValue(val)
+		if err != nil {
+			return nil, err
 		}
 
 		result = append(result, evt)
 	}
 
 	return result, nil
+}
+
+func (a *EventAdapter) decodeValue(val any) (event.Event, error) {
+	// Direct pointer (Memory engine).
+	if evt, ok := val.(event.Event); ok {
+		return evt, nil
+	}
+
+	// Serialized string (SQLite/Pebble engine).
+	if s, ok := val.(string); ok {
+		return a.decodeEvent(s)
+	}
+
+	return nil, fmt.Errorf("event adapter: unsupported value type %T", val)
+}
+
+func (a *EventAdapter) encodeEvent(evt event.Event) string {
+	metaJSON, _ := event.MarshalMetadataJSON(evt.Metadata(), "system")
+
+	env := serializedEvent{
+		ID:            evt.ID().String(),
+		Type:          string(evt.Type()),
+		StreamID:      evt.StreamID().String(),
+		StreamType:    string(evt.StreamType()),
+		Version:       evt.Version().Int(),
+		SchemaVersion: evt.SchemaVersion().Int(),
+		Payload:       event.PayloadReadOnly(evt),
+		Encoding:      string(evt.Encoding()),
+		Metadata:      json.RawMessage(metaJSON),
+		OccurredAt:    evt.OccurredAt(),
+	}
+
+	data, _ := json.Marshal(env)
+
+	return string(data)
+}
+
+func (a *EventAdapter) decodeEvent(s string) (event.Event, error) {
+	var env serializedEvent
+	if err := json.Unmarshal([]byte(s), &env); err != nil {
+		return nil, fmt.Errorf("event adapter: decode envelope: %w", err)
+	}
+
+	eventID, err := id.ParseEventID(env.ID)
+	if err != nil {
+		return nil, fmt.Errorf("event adapter: parse event ID: %w", err)
+	}
+
+	streamID, err := id.ParseStreamID(env.StreamID)
+	if err != nil {
+		return nil, fmt.Errorf("event adapter: parse stream ID: %w", err)
+	}
+
+	evt, err := event.ReconstructEventFromFields(
+		eventID,
+		event.Type(env.Type),
+		id.StreamType(env.StreamType),
+		streamID,
+		env.Version, env.SchemaVersion,
+		env.Payload, env.Metadata,
+		env.OccurredAt,
+		event.Encoding(env.Encoding),
+		"system",
+	)
+	if err != nil {
+		return nil, fmt.Errorf("event adapter: reconstruct event: %w", err)
+	}
+
+	return evt, nil
 }
