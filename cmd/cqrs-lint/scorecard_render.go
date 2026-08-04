@@ -16,10 +16,14 @@ func renderScorecard(
 	format string,
 	colorMode output.ColorMode,
 ) (string, error) {
-	if strings.ToLower(format) == "json" {
+	switch strings.ToLower(format) {
+	case "json":
 		return renderScorecardJSON(result)
+	case "markdown", "md":
+		return renderScorecardMarkdown(result), nil
+	default:
+		return renderScorecardText(result, colorMode), nil
 	}
-	return renderScorecardText(result, colorMode), nil
 }
 
 // renderScorecardText renders the scorecard as a human-readable table with
@@ -137,4 +141,52 @@ func renderScorecardJSON(result ScorecardResult) (string, error) {
 		return "", fmt.Errorf("marshal scorecard JSON: %w", err)
 	}
 	return string(data) + "\n", nil
+}
+
+// renderScorecardMarkdown renders the scorecard as a GitHub-flavored Markdown
+// document — ideal for PR comments, README badges, and CI artifacts. The
+// output uses standard Markdown tables so it renders natively on GitHub,
+// GitLab, and most Markdown renderers.
+func renderScorecardMarkdown(result ScorecardResult) string {
+	var b strings.Builder
+
+	fmt.Fprintf(&b, "## cqrs-lint Adoption Scorecard\n\n")
+	fmt.Fprintf(&b, "**Adoption: %d/%d relevant modules (%d%%)** — Grade: %s\n",
+		result.Summary.UsedCount,
+		result.Summary.RelevantTotal,
+		result.Summary.CoveragePercent,
+		result.Summary.Grade)
+	if result.Summary.IrrelevantCount > 0 {
+		fmt.Fprintf(&b, "\n_%d modules excluded as irrelevant for this profile._\n",
+			result.Summary.IrrelevantCount)
+	}
+
+	renderMarkdownTable := func(title string, modules []ScorecardModule) {
+		if len(modules) == 0 {
+			return
+		}
+		fmt.Fprintf(&b, "\n### %s (%d)\n\n", title, len(modules))
+		b.WriteString("| Module | Category | Status | Suggestion |\n")
+		b.WriteString("|--------|----------|--------|------------|\n")
+		for _, m := range modules {
+			suggestion := m.Suggestion
+			if suggestion == "" {
+				suggestion = "—"
+			}
+			fmt.Fprintf(&b, "| %s | %s | %s | %s |\n",
+				m.DisplayName, m.Category, m.Status, suggestion)
+		}
+	}
+
+	renderMarkdownTable("Used", result.Used)
+	renderMarkdownTable("Missing", result.Missing)
+
+	if len(result.Recommendations) > 0 {
+		b.WriteString("\n### Recommendations\n\n")
+		for _, rec := range result.Recommendations {
+			fmt.Fprintf(&b, "- %s\n", rec)
+		}
+	}
+
+	return b.String()
 }

@@ -199,3 +199,29 @@ func TestStripJSONComments_TrailingCommaNested(t *testing.T) {
 		t.Errorf("preset = %v, want production", m["preset"])
 	}
 }
+
+func TestJSONCLoader_GroupByFromConfig(t *testing.T) {
+	t.Parallel()
+
+	data := []byte(`{"group-by": "aggregate"}`)
+
+	var cfg AppConfig
+	setFields, err := JSONCLoader{}.Load(data, &cfg)
+	if err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+
+	if cfg.GroupBy != "aggregate" {
+		t.Errorf("GroupBy = %q, want aggregate", cfg.GroupBy)
+	}
+
+	found := false
+	for _, f := range setFields {
+		if f == "GroupBy" {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("GroupBy not in setFields %v", setFields)
+	}
+}
