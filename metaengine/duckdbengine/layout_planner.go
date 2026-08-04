@@ -23,6 +23,11 @@ import (
 // After ApplyLayout, MapSet writes to the planned table (with extracted
 // columns) instead of meta_map, and PushdownMapScan queries the planned
 // table with direct column references instead of json_extract.
+//
+// No-backfill: existing rows in meta_map are NOT migrated to the planned
+// table. Only writes AFTER ApplyLayout are visible to planned-table queries.
+// To populate the planned table with existing data, replay the events that
+// produced the meta_map rows.
 func (e *duckdbEngine) ApplyLayout(collection string, filterFields, sortFields []string) error {
 	plan := metaengine.BuildLayoutPlan(collection, filterFields, sortFields)
 

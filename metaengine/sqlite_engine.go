@@ -95,7 +95,11 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		value TEXT NOT NULL
 	);
 	CREATE INDEX IF NOT EXISTS idx_stream_log_stream ON meta_stream_log(collection, stream_id, seq);
-	CREATE INDEX IF NOT EXISTS idx_stream_log_journal ON meta_stream_log(collection, seq);`,
+	CREATE INDEX IF NOT EXISTS idx_stream_log_journal ON meta_stream_log(collection, seq);
+	CREATE TABLE IF NOT EXISTS meta_snapshot (
+		collection TEXT NOT NULL, stream_id TEXT NOT NULL, version INTEGER NOT NULL, data BLOB NOT NULL,
+		PRIMARY KEY (collection, stream_id)
+	);`,
 		mapSet:           `INSERT OR REPLACE INTO meta_map (collection, key, value) VALUES (?, ?, ?)`,
 		mapGet:           `SELECT value FROM meta_map WHERE collection = ? AND key = ?`,
 		mapDelete:        `DELETE FROM meta_map WHERE collection = ? AND key = ?`,

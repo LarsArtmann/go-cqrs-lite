@@ -337,6 +337,14 @@ type StreamingScan interface {
 // implement this interface. Plan() calls ApplyLayout automatically when a query
 // uses FilterOnField/SortOnField and the assigned engine implements this
 // interface, eliminating the need for manual NewPlannedSQLiteEngine setup.
+//
+// No-backfill semantics: ApplyLayout creates a new dedicated table for the
+// collection. Rows written to meta_map BEFORE ApplyLayout was called remain in
+// meta_map and are NOT migrated to the planned table. Only writes AFTER
+// ApplyLayout go to the planned table, so queries against a planned collection
+// will not see pre-existing meta_map rows. To make existing data visible after
+// applying a layout, replay the events (or re-apply the data) so that writes
+// are routed to the planned table.
 type LayoutPlanner interface {
 	ApplyLayout(collection string, filterFields, sortFields []string) error
 }
