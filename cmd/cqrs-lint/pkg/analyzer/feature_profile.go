@@ -212,7 +212,35 @@ var PresetDefinitions = map[ConfigPreset]PresetDefinition{
 			Snapshot:    new(SnapshotOff),
 		},
 		Rules: RulesConfig{
-			Disable: []string{"E003", "E016"},
+			// Rules that are inherent false-positives for library/SDK modules
+			// consumed by other Go programs. A library defines types and
+			// infrastructure but cannot force its consumers to adopt catalog
+			// docs, encryption, signing, or relational projections — those are
+			// the DEPLOYING APPLICATION's responsibility (use the "production"
+			// preset there).
+			//
+			// E003/E016: a library's domain package legitimately mixes
+			//   command/event/fold concerns — splitting creates artificial
+			//   module boundaries that hurt consumers.
+			// F002: library defines event types but doesn't own the catalog;
+			//   the consumer registers events in their own catalog.
+			// F006: library defines PII-bearing payloads but the consumer
+			//   configures encryption middleware.
+			// F010: library offers hierarchical queries; recursive CTEs or
+			//   other strategies are the consumer's choice (graph is opt-in).
+			// F011: library performs multi-table reads/writes in read models;
+			//   relational projection is the consumer's deployment choice.
+			// S002: same as F006 — library cannot force encryption on consumers.
+			// S003: library creates events without signing; the consumer wires
+			//   signing middleware at the bus boundary.
+			//
+			// Note: F009 and S007 already self-skip under Server=false, so they
+			// are not listed here to avoid redundant disables.
+			Disable: []string{
+				"E003", "E016", // architecture: domain-package mixing
+				"F002", "F006", "F010", "F011", // adoption coaching (consumer's job)
+				"S002", "S003", // security middleware (consumer wires it)
+			},
 		},
 	},
 	PresetReadOnly: {

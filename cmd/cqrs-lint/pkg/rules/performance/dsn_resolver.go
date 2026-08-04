@@ -275,32 +275,28 @@ func buildConstStringMap(ctx *analyzer.AnalysisContext) map[string]string {
 	return result
 }
 
-// buildLocalScope scans a function body for short variable declarations
-// (name := expr) and assignments (name = expr) where the RHS is a string
-// expression, and returns a map of variable name → resolved string value.
-func buildLocalScope(fn *ast.FuncDecl, constMap map[string]string) map[string]string {
+// buildLocalExprScope scans a function body for short variable declarations
+// (name := expr) and assignments (name = expr), returning a map of variable
+// name → RHS expression. Unlike buildLocalScope (which tries to resolve to a
+// string), this preserves the raw expression so that partially-resolvable
+// assignments (e.g. path + pragmas) can be inspected for individual string
+// parts.
+func buildLocalExprScope(fn *ast.FuncDecl) map[string]ast.Expr {
 	if fn == nil || fn.Body == nil {
 		return nil
 	}
 
-	scope := make(map[string]string)
+	scope := make(map[string]ast.Expr)
 
 	ast.Inspect(fn.Body, func(n ast.Node) bool {
-		switch stmt := n.(type) {
-		case *ast.AssignStmt:
+		if stmt, ok := n.(*ast.AssignStmt); ok {
 			for i, lhs := range stmt.Lhs {
 				if i >= len(stmt.Rhs) {
 					break
 				}
 
-				ident, ok := lhs.(*ast.Ident)
-				if !ok || ident.Name == "_" {
-					continue
-				}
-
-				resolved := resolveStringExpr(stmt.Rhs[i], constMap, scope)
-				if resolved != "" || isStringLiteral(stmt.Rhs[i]) {
-					scope[ident.Name] = resolved
+				if ident, ok := lhs.(*ast.Ident); ok && ident.Name != "_" {
+					scope[ident.Name] = stmt.Rhs[i]
 				}
 			}
 		}

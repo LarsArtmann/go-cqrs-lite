@@ -77,43 +77,39 @@ func NewP013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // busy_timeout is configured for the given sql.Open call site. Returns true
 // (suppress the finding) when any of these hold:
 //
-//  1. The resolved DSN string contains "busy_timeout" (any driver syntax).
+//  1. Any resolvable string part of the DSN expression contains "busy_timeout"
+//     (checks literals, resolved consts, resolved local vars).
 //  2. The enclosing function calls db.Exec("PRAGMA busy_timeout ...").
 //  3. The file calls a known library wrapper (SQLiteEnableWAL, etc.).
-//  4. The DSN argument is opaque (cannot be statically resolved) — we
-//     suppress to avoid false positives on dynamically constructed DSNs
-//     that may set busy_timeout via runtime logic we cannot see.
+//  4. The DSN argument is fully opaque (no string literals or resolvable
+//     identifiers) — suppress to avoid false positives on dynamically
+//     constructed DSNs that may set busy_timeout via runtime logic we cannot see.
 func hasBusyTimeoutEvidence(
-	ctx *analyzer.AnalysisContext,
+	_ *analyzer.AnalysisContext,
 	site sqliteOpenSite,
 	constMap map[string]string,
 ) bool {
-	// If the DSN argument is present and resolvable, check its content.
-	if site.dsnArg != nil {
-		localScope := buildLocalScope(site.funcDecl, constMap)
-		resolved := resolveStringExpr(site.dsnArg, constMap, localScope)
+	localExprScope := buildLocalExprScope(site.funcDecl)
 
-		if resolved != "" {
-			// We successfully resolved the DSN — check it directly.
-			return dsnHasBusyTimeout(resolved)
+	// 1. Check if any resolvable string part of the DSN contains busy_timeout.
+	if site.dsnArg != nil {
+		if dsnExprContainsPragma(site.dsnArg, constMap, localExprScope, nil, dsnHasBusyTimeout) {
+			return true
 		}
 
-		// DSN is a literal but empty string, or a concatenation that includes
-		// at least one string literal. If it's purely opaque (function call,
-		// field access, etc.), we can't resolve it.
-		if !containsStringLiteral(site.dsnArg) {
-			// Opaque DSN — suppress to avoid false positives.
+		// If the DSN has no inspectable string parts at all (no literals, no
+		// resolvable consts/vars), it's fully opaque — suppress.
+		if !hasInspectableStringParts(site.dsnArg, constMap, localExprScope, nil) {
 			return true
 		}
 	}
 
-	// DSN is resolvable but empty, or absent (sql.OpenDB). Check for
-	// post-open PRAGMA in the same function.
+	// 2. Check for post-open PRAGMA in the enclosing function.
 	if funcSetsPragma(site.funcDecl, "busy_timeout") {
 		return true
 	}
 
-	// Check for library wrapper calls in the same file.
+	// 3. Check for library wrapper calls in the same file.
 	if site.file != nil &&
 		fileHasWrapperCall(site.file, "SQLiteEnableWAL", "EnsureSQLiteDSNBusyTimeout") {
 		return true
@@ -122,13 +118,24 @@ func hasBusyTimeoutEvidence(
 	return false
 }
 
-// containsStringLiteral reports whether the expression tree contains at least
-// one string literal node. Used to distinguish "opaque DSN" (no literals at
-// all, e.g. a function call result) from "DSN with literals but unresolvable
-// parts" (e.g. path + someFunc()). When a DSN contains literals but can't be
-// fully resolved, we still flag it because the literal parts are visible and
-// should contain busy_timeout if it's set.
-func containsStringLiteral(expr ast.Expr) bool {
+// dsnExprContainsPragma walks the DSN expression tree and checks every
+// resolvable string value (literals, resolved package-level consts, resolved
+// local variable expressions) against the provided predicate. Returns true if
+// any value matches.
+//
+// The visited set prevents infinite recursion through self-referential
+// variable assignments (a := a + b).
+func dsnExprContainsPragma(
+	expr ast.Expr,
+	constMap map[string]string,
+	localExprScope map[string]ast.Expr,
+	visited map[string]bool,
+	pred func(string) bool,
+) bool {
+	if visited == nil {
+		visited = make(map[string]bool)
+	}
+
 	found := false
 
 	ast.Inspect(expr, func(n ast.Node) bool {
@@ -136,9 +143,79 @@ func containsStringLiteral(expr ast.Expr) bool {
 			return false
 		}
 
-		if lit, ok := n.(*ast.BasicLit); ok && lit.Kind == token.STRING {
-			found = true
+		switch e := n.(type) {
+		case *ast.BasicLit:
+			if e.Kind == token.STRING && pred(unquoteGoString(e.Value)) {
+				found = true
+				return false
+			}
+
+		case *ast.Ident:
+			// Check package-level constants.
+			if val, ok := constMap[e.Name]; ok && pred(val) {
+				found = true
+				return false
+			}
+
+			// Recursively check local variable assignments.
+			if rhs, ok := localExprScope[e.Name]; ok && !visited[e.Name] {
+				visited[e.Name] = true
+
+				if dsnExprContainsPragma(rhs, constMap, localExprScope, visited, pred) {
+					found = true
+					return false
+				}
+			}
+		}
+
+		return true
+	})
+
+	return found
+}
+
+// hasInspectableStringParts returns true if the expression contains at least
+// one string literal or an identifier that resolves to a string (const or
+// local var). When false, the DSN is fully opaque and we suppress the finding.
+func hasInspectableStringParts(
+	expr ast.Expr,
+	constMap map[string]string,
+	localExprScope map[string]ast.Expr,
+	visited map[string]bool,
+) bool {
+	if visited == nil {
+		visited = make(map[string]bool)
+	}
+
+	found := false
+
+	ast.Inspect(expr, func(n ast.Node) bool {
+		if found {
 			return false
+		}
+
+		switch e := n.(type) {
+		case *ast.BasicLit:
+			if e.Kind == token.STRING {
+				found = true
+				return false
+			}
+
+		case *ast.Ident:
+			if _, ok := constMap[e.Name]; ok {
+				found = true
+				return false
+			}
+
+			// Recursively check local variable assignments.
+			if rhs, ok := localExprScope[e.Name]; ok && !visited[e.Name] {
+				visited[e.Name] = true
+
+				if hasInspectableStringParts(rhs, constMap, localExprScope, visited) {
+					found = true
+					return false
+				}
+			}
 		}
 
 		return true

@@ -3,6 +3,7 @@ package analyzer
 import (
 	"encoding/json/jsontext"
 	"encoding/json/v2"
+	"slices"
 	"strings"
 	"testing"
 
@@ -206,6 +207,28 @@ func TestResolveFeatureProfile_PresetLibrary(t *testing.T) {
 	}
 	if resolved.Snapshot != SnapshotOff {
 		t.Errorf("preset library should force Snapshot=off, got %s", resolved.Snapshot)
+	}
+}
+
+func TestPresetLibrary_DisablesAdoptionAndSecurityFalsePositives(t *testing.T) {
+	t.Parallel()
+
+	// A library/SDK defines types and infrastructure but cannot force its
+	// consumers to adopt catalog docs, encryption, signing, or relational
+	// projections. These rules are inherent false-positives for library code
+	// and must be in the preset's disable list so consumers don't have to
+	// suppress them one-by-one.
+	def := PresetDefinitions[PresetLibrary]
+
+	wantDisabled := []string{
+		"E003", "E016", // domain-package mixing
+		"F002", "F006", "F010", "F011", // adoption coaching (consumer's job)
+		"S002", "S003", // security middleware (consumer wires it)
+	}
+	for _, rule := range wantDisabled {
+		if !slices.Contains(def.Rules.Disable, rule) {
+			t.Errorf("library preset should disable %s (inherent library false-positive)", rule)
+		}
 	}
 }
 

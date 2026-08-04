@@ -281,6 +281,9 @@ func filterFindings(
 	// Enrich findings with doc URLs from the catalog.
 	allFindings = enrichWithDocURLs(allFindings)
 
+	// Stamp aggregate/domain context from the CQRSRegistry onto each finding.
+	allFindings = enrichWithAggregate(allFindings, actx)
+
 	unsuppressed, suppressed = filterSuppressed(allFindings)
 	suppressed = append(suppressed, librarySuppressed...)
 

@@ -303,6 +303,82 @@ func setup() {
 	ruletest.AssertRule(t, findings, "B025", 0)
 }
 
+// TestB025_NoFindingWithStateCacheViaHelper verifies the detector traces
+// through an option-builder helper spread into NewRepository. This is the
+// common pattern in libraries with reusable wiring (cqrs-htmx): the helper
+// constructs WithStateCache, but the call site only shows a variadic spread.
+func TestB025_NoFindingWithStateCacheViaHelper(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func repositoryOptions(cfg Config) []decider.RepositoryOption[State] {
+	opts := snapshotOptions(cfg)
+	return append(opts, decider.WithStateCache[State](decider.NewStateCache[State](0)))
+}
+
+func setup() {
+	repo, _ := decider.NewRepository(store, bus, d, repositoryOptions(cfg)...)
+	_ = repo
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB025Detector(ctx))
+	ruletest.AssertRule(t, findings, "B025", 0)
+}
+
+// TestB025_NoFindingWithStateCacheViaGenericHelper covers the generic
+// instantiation form: repositoryOptions[State](cfg)... where the helper is a
+// generic function. This is the exact pattern reported by the cqrs-htmx
+// consumer (helper builds options across multiple State types).
+func TestB025_NoFindingWithStateCacheViaGenericHelper(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func repositoryOptions[State any](cfg Config) []decider.RepositoryOption[State] {
+	return []decider.RepositoryOption[State]{
+		decider.WithStateCache[State](decider.NewStateCache[State](0)),
+	}
+}
+
+func setup() {
+	repo, _ := decider.NewRepository(store, bus, d, repositoryOptions[State](cfg)...)
+	_ = repo
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB025Detector(ctx))
+	ruletest.AssertRule(t, findings, "B025", 0)
+}
+
+// TestB025_FiresWhenHelperLacksStateCache ensures the detector still fires
+// when a helper IS used but does NOT wire WithStateCache — the trace must not
+// suppress genuine missing-cache findings.
+func TestB025_FiresWhenHelperLacksStateCache(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+func repositoryOptions(cfg Config) []decider.RepositoryOption[State] {
+	return []decider.RepositoryOption[State]{
+		decider.WithSnapshotStore[State](snap),
+	}
+}
+
+func setup() {
+	repo, _ := decider.NewRepository(store, bus, d, repositoryOptions(cfg)...)
+	_ = repo
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB025Detector(ctx))
+	ruletest.AssertRule(t, findings, "B025", 1)
+}
+
 func TestB026_DetectsMissingCatalogRegistration(t *testing.T) {
 	t.Parallel()
 

@@ -142,6 +142,14 @@ func containsEnricher(s string) bool {
 //
 //nolint:ireturn // factory returns public interface
 func NewB025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
+	// Build a name → declarations index of all top-level functions in the
+	// analyzed packages. Consumers commonly construct repository options inside
+	// a helper (e.g. repositoryOptions[State](cfg)...) that the call-site scan
+	// cannot see through. This index lets the detector trace into such helpers
+	// and recognize an indirect WithStateCache wiring, eliminating a frequent
+	// false positive for libraries with reusable wiring.
+	funcDeclsByName := indexFuncDecls(ctx)
+
 	return finding.NamedDetectorFunc(
 		"B025-missing-state-cache",
 		func(_ context.Context) ([]finding.Finding, error) {
@@ -197,6 +205,21 @@ func NewB025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						}
 					}
 
+					// Trace through an option-builder helper. When NewRepository
+					// receives a variadic spread from a function call (e.g.
+					// repo := decider.NewRepository(s, b, d, repositoryOptions[State](cfg)...)),
+					// inspect that helper's body for a WithStateCache call. This
+					// recognizes indirect wiring that the direct argument scan
+					// above cannot see, which is the common pattern in libraries
+					// with reusable repository-wiring helpers.
+					if !hasStateCache {
+						if helper := spreadHelperName(call); helper != "" {
+							if funcBodyContainsCall(funcDeclsByName, helper, "WithStateCache") {
+								hasStateCache = true
+							}
+						}
+					}
+
 					if hasStateCache {
 						return true
 					}
@@ -228,4 +251,114 @@ func NewB025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// indexFuncDecls builds a name → declarations index of all top-level function
+// declarations across the analyzed (non-test) Go files. Used by detectors that
+// need to trace a helper function's body for a specific call (e.g. B025 looking
+// for an indirect WithStateCache wiring).
+func indexFuncDecls(ctx *analyzer.AnalysisContext) map[string][]*ast.FuncDecl {
+	index := map[string][]*ast.FuncDecl{}
+
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		for _, decl := range gf.AST.Decls {
+			fd, ok := decl.(*ast.FuncDecl)
+			if !ok || fd.Body == nil {
+				continue
+			}
+
+			index[fd.Name.Name] = append(index[fd.Name.Name], fd)
+		}
+	}
+
+	return index
+}
+
+// spreadHelperName returns the function name being invoked when the last
+// argument of call is a variadic spread from a function call. For example,
+// given:
+//
+//	decider.NewRepository(s, b, d, repositoryOptions[State](cfg)...)
+//
+// it returns "repositoryOptions". Returns "" when there is no variadic spread
+// or the spread source is not a function call (e.g. a bare identifier or
+// composite literal that cannot be traced).
+func spreadHelperName(call *ast.CallExpr) string {
+	if !call.Ellipsis.IsValid() || len(call.Args) == 0 {
+		return ""
+	}
+
+	helperCall, ok := call.Args[len(call.Args)-1].(*ast.CallExpr)
+	if !ok {
+		return ""
+	}
+
+	return callFunctionName(helperCall.Fun)
+}
+
+// callFunctionName extracts the name of the function being called, handling
+// bare calls (foo()), selector calls (pkg.foo()), and generic instantiations
+// (foo[T]() and pkg.foo[T]()). Returns "" when the name cannot be determined.
+func callFunctionName(fun ast.Expr) string {
+	switch e := fun.(type) {
+	case *ast.Ident:
+		return e.Name
+	case *ast.SelectorExpr:
+		return e.Sel.Name
+	case *ast.IndexExpr: // single type-parameter instantiation: foo[T]()
+		return callFunctionName(e.X)
+	case *ast.IndexListExpr: // multi type-parameter instantiation: foo[T, U]()
+		return callFunctionName(e.X)
+	default:
+		return ""
+	}
+}
+
+// funcBodyContainsCall reports whether any top-level function named funcName in
+// the index contains a call to the named option (matched by selector or bare
+// identifier, e.g. "WithStateCache"). This is a shallow textual-ish match on
+// the call name; it does not resolve types or cross package boundaries, so it
+// is intentionally conservative: it only suppresses a finding when the helper
+// visibly constructs the option, never the reverse.
+func funcBodyContainsCall(index map[string][]*ast.FuncDecl, funcName, option string) bool {
+	for _, fd := range index[funcName] {
+		if funcDeclCallsOption(fd, option) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func funcDeclCallsOption(fd *ast.FuncDecl, option string) bool {
+	found := false
+
+	ast.Inspect(fd.Body, func(n ast.Node) bool {
+		if found {
+			return false
+		}
+
+		call, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+
+		if sel, ok := analyzer.SelectorFromExpr(call.Fun); ok && sel.Sel.Name == option {
+			found = true
+			return false
+		}
+
+		if ident, ok := call.Fun.(*ast.Ident); ok && ident.Name == option {
+			found = true
+			return false
+		}
+
+		return true
+	})
+
+	return found
 }
