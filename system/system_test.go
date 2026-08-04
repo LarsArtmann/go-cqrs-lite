@@ -16,27 +16,6 @@ import (
 
 // ── Domain types ──
 
-type TaskStreamID = id.Of[id.StreamMarker]
-
-type CreateTaskCmd struct {
-	cmdID  id.CommandID
-	taskID id.StreamID
-	title  string
-}
-
-func (c *CreateTaskCmd) Type() command.Type   { return "task.create" }
-func (c *CreateTaskCmd) StreamID() id.StreamID { return c.taskID }
-func (c *CreateTaskCmd) ID() id.CommandID      { return c.cmdID }
-
-type CompleteTaskCmd struct {
-	cmdID  id.CommandID
-	taskID id.StreamID
-}
-
-func (c *CompleteTaskCmd) Type() command.Type   { return "task.complete" }
-func (c *CompleteTaskCmd) StreamID() id.StreamID { return c.taskID }
-func (c *CompleteTaskCmd) ID() id.CommandID      { return c.cmdID }
-
 type TaskCreated struct {
 	Title string
 	At    time.Time
@@ -63,6 +42,7 @@ func applyTask(state TaskState, evt event.Event) (TaskState, error) {
 	case "task.completed":
 		state.Status = "completed"
 	}
+
 	return state, nil
 }
 
@@ -75,22 +55,17 @@ func mustEvent(evt event.Event, err error) event.Event {
 	if err != nil {
 		panic(err)
 	}
+
 	return evt
 }
 
-func newCreateCmd(title string) *CreateTaskCmd {
-	return &CreateTaskCmd{
-		cmdID:  id.New[id.CommandID](),
-		taskID: id.New[id.StreamID](),
-		title:  title,
+func newCmd(cmdType command.Type, streamID id.StreamID) *command.BasicCommand {
+	cmd, err := command.New(cmdType, streamID)
+	if err != nil {
+		panic(err)
 	}
-}
 
-func newCompleteCmd(taskID id.StreamID) *CompleteTaskCmd {
-	return &CompleteTaskCmd{
-		cmdID:  id.New[id.CommandID](),
-		taskID: taskID,
-	}
+	return cmd
 }
 
 // ── Tests ──
@@ -104,26 +79,28 @@ func TestSystem_FullCQRSRoundtrip(t *testing.T) {
 		Commands: func(sys *system.System) {
 			system.RegisterDecider(sys, "Task", TaskDecider)
 
-			system.RegisterCommand[*CreateTaskCmd, TaskState](sys, "task.create",
-				func(ctx context.Context, cmd *CreateTaskCmd) system.Op[TaskState] {
+			system.RegisterCommand[*command.BasicCommand, TaskState](sys, "task.create",
+				func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
 					return system.Execute(ctx, cmd.StreamID(), "Task",
 						func(state TaskState, ver event.Version) ([]event.Event, error) {
 							if state.Exists {
 								return nil, fmt.Errorf("task already exists")
 							}
+
 							return []event.Event{mustEvent(event.New("task.created",
 								cmd.StreamID(), "Task", ver+1,
-								TaskCreated{Title: cmd.title, At: time.Now()}))}, nil
+								TaskCreated{Title: "test task", At: time.Now()}))}, nil
 						})
 				})
 
-			system.RegisterCommand[*CompleteTaskCmd, TaskState](sys, "task.complete",
-				func(ctx context.Context, cmd *CompleteTaskCmd) system.Op[TaskState] {
+			system.RegisterCommand[*command.BasicCommand, TaskState](sys, "task.complete",
+				func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
 					return system.Execute(ctx, cmd.StreamID(), "Task",
 						func(state TaskState, ver event.Version) ([]event.Event, error) {
 							if !state.Exists {
 								return nil, fmt.Errorf("task not found")
 							}
+
 							return []event.Event{mustEvent(event.New("task.completed",
 								cmd.StreamID(), "Task", ver+1,
 								TaskCompleted{At: time.Now()}))}, nil
@@ -144,13 +121,14 @@ func TestSystem_FullCQRSRoundtrip(t *testing.T) {
 	defer sys.Close()
 
 	// Create a task
-	createCmd := newCreateCmd("Write tests")
+	taskStreamID := id.NewStreamID()
+	createCmd := newCmd("task.create", taskStreamID)
 	if err := sys.CommandDispatcher().Dispatch(ctx, createCmd); err != nil {
 		t.Fatalf("dispatch create: %v", err)
 	}
 
-	// Verify events
-	ref := id.NewStreamRef("Task", createCmd.StreamID())
+	// Verify events persisted
+	ref := id.NewStreamRef("Task", taskStreamID)
 	events, err := sys.EventStore().Load(ctx, ref)
 	if err != nil {
 		t.Fatalf("load events: %v", err)
@@ -163,7 +141,7 @@ func TestSystem_FullCQRSRoundtrip(t *testing.T) {
 	}
 
 	// Complete the task
-	completeCmd := newCompleteCmd(createCmd.StreamID())
+	completeCmd := newCmd("task.complete", taskStreamID)
 	if err := sys.CommandDispatcher().Dispatch(ctx, completeCmd); err != nil {
 		t.Fatalf("dispatch complete: %v", err)
 	}
@@ -175,7 +153,7 @@ func TestSystem_FullCQRSRoundtrip(t *testing.T) {
 
 	// Optimistic concurrency conflict
 	err = sys.EventStore().Save(ctx, ref,
-		[]event.Event{mustEvent(event.New("task.completed", createCmd.StreamID(), "Task", 99,
+		[]event.Event{mustEvent(event.New("task.completed", taskStreamID, "Task", 99,
 			TaskCompleted{At: time.Now()}))},
 		event.Version(0))
 	if err == nil {
@@ -191,13 +169,13 @@ func TestSystem_Journal(t *testing.T) {
 	domain := system.DomainConfig{
 		Commands: func(sys *system.System) {
 			system.RegisterDecider(sys, "Task", TaskDecider)
-			system.RegisterCommand[*CreateTaskCmd, TaskState](sys, "task.create",
-				func(ctx context.Context, cmd *CreateTaskCmd) system.Op[TaskState] {
+			system.RegisterCommand[*command.BasicCommand, TaskState](sys, "task.create",
+				func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
 					return system.Execute(ctx, cmd.StreamID(), "Task",
 						func(state TaskState, ver event.Version) ([]event.Event, error) {
 							return []event.Event{mustEvent(event.New("task.created",
 								cmd.StreamID(), "Task", ver+1,
-								TaskCreated{Title: cmd.title, At: time.Now()}))}, nil
+								TaskCreated{Title: "test", At: time.Now()}))}, nil
 						})
 				})
 		},
@@ -212,7 +190,8 @@ func TestSystem_Journal(t *testing.T) {
 	defer sys.Close()
 
 	for i := range 3 {
-		cmd := newCreateCmd(fmt.Sprintf("Task %d", i))
+		streamID := id.NewStreamID()
+		cmd := newCmd("task.create", streamID)
 		if err := sys.CommandDispatcher().Dispatch(ctx, cmd); err != nil {
 			t.Fatalf("dispatch %d: %v", i, err)
 		}
