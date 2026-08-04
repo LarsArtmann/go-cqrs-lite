@@ -11,7 +11,11 @@ import (
 
 // renderScorecard renders the scorecard as a text table or JSON based on the
 // format parameter. Returns the rendered string.
-func renderScorecard(result ScorecardResult, format string, colorMode output.ColorMode) (string, error) {
+func renderScorecard(
+	result ScorecardResult,
+	format string,
+	colorMode output.ColorMode,
+) (string, error) {
 	if strings.ToLower(format) == "json" {
 		return renderScorecardJSON(result)
 	}

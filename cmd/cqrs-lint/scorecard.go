@@ -8,10 +8,10 @@ import (
 
 // ScorecardSummary is the headline math for the scorecard.
 type ScorecardSummary struct {
-	UsedCount       int `json:"used_count"`
-	RelevantTotal   int `json:"relevant_total"`
-	IrrelevantCount int `json:"irrelevant_count"`
-	CoveragePercent int `json:"coverage_percent"`
+	UsedCount       int    `json:"used_count"`
+	RelevantTotal   int    `json:"relevant_total"`
+	IrrelevantCount int    `json:"irrelevant_count"`
+	CoveragePercent int    `json:"coverage_percent"`
 	Grade           string `json:"grade"`
 }
 
@@ -19,20 +19,20 @@ type ScorecardSummary struct {
 // catalog into Used / Missing / Irrelevant based on the detected usage and
 // the project's feature profile.
 type ScorecardResult struct {
-	Summary         ScorecardSummary           `json:"summary"`
-	Used            []ScorecardModule          `json:"used"`
-	Missing         []ScorecardModule          `json:"missing"`
-	Irrelevant      []ScorecardModule          `json:"irrelevant,omitempty"`
-	Recommendations []string                   `json:"recommendations,omitempty"`
+	Summary         ScorecardSummary  `json:"summary"`
+	Used            []ScorecardModule `json:"used"`
+	Missing         []ScorecardModule `json:"missing"`
+	Irrelevant      []ScorecardModule `json:"irrelevant,omitempty"`
+	Recommendations []string          `json:"recommendations,omitempty"`
 }
 
 // ScorecardModule is one row in the scorecard output.
 type ScorecardModule struct {
-	Key         string                    `json:"key"`
-	DisplayName string                    `json:"display_name"`
-	Category    string                    `json:"category"`
-	Status      string                    `json:"status"`
-	Suggestion  string                    `json:"suggestion,omitempty"`
+	Key         string `json:"key"`
+	DisplayName string `json:"display_name"`
+	Category    string `json:"category"`
+	Status      string `json:"status"`
+	Suggestion  string `json:"suggestion,omitempty"`
 }
 
 // ComputeScorecard partitions the catalog into Used / Missing / Irrelevant

@@ -40,6 +40,21 @@ func run(ctx context.Context, cfg *AppConfig) error {
 
 	detectors := selectDetectors(cfg, actx)
 
+	// Scorecard mode: compute module adoption and exit early (no findings needed).
+	if cfg.Scorecard {
+		usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, analyzer.DefaultCatalog)
+		result := ComputeScorecard(
+			analyzer.DefaultCatalog, usage,
+			actx.FeatureProfile, cfg.Preset,
+		)
+		out, err := renderScorecard(result, cfg.Format, parseColorMode(cfg.Color))
+		if err != nil {
+			return fmt.Errorf("render scorecard: %w", err)
+		}
+		fmt.Print(out)
+		return nil
+	}
+
 	result, err := runPipeline(ctx, cfg, detectors)
 	if err != nil {
 		return err

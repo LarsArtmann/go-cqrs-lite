@@ -43,7 +43,9 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 
 			return nil
 		},
-		cmdguard.WithShort("Show the project's full resolved cqrs-lint configuration and detected profile"),
+		cmdguard.WithShort(
+			"Show the project's full resolved cqrs-lint configuration and detected profile",
+		),
 		cmdguard.WithNoArgs(),
 	)
 	return registerCommand(cli, "doctor", cmd, err)
@@ -285,7 +287,9 @@ func renderDoctorFeatureProfile(actx *analyzer.AnalysisContext) {
 		cf.Domain != nil || cf.Transport != nil || cf.ServerLocal != nil || cf.AsyncBus != nil
 
 	if hasOverrides {
-		fmt.Println("  Note: some features are pinned by config/preset (see EFFECTIVE SETTINGS above).")
+		fmt.Println(
+			"  Note: some features are pinned by config/preset (see EFFECTIVE SETTINGS above).",
+		)
 		fmt.Println("        Unpinned features were auto-detected from source code analysis.")
 		fmt.Println()
 	}

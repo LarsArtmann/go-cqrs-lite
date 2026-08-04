@@ -369,14 +369,14 @@ A `.cqrs-lint.json` file in the project root is auto-loaded. The format is
 
 ```jsonc
 {
-  // Output JSON for CI pipelines
-  "format": "json",
+	// Output JSON for CI pipelines
+	"format": "json",
 
-  /* Hide info-level findings — only show warnings and errors */
-  "min-severity": "warning",
-  "min-confidence": "medium",
+	/* Hide info-level findings — only show warnings and errors */
+	"min-severity": "warning",
+	"min-confidence": "medium",
 
-  "fast": false
+	"fast": false,
 }
 ```
 

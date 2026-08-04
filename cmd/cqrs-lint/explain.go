@@ -18,7 +18,9 @@ func setupExplainCommand(cli *cmdguard.CLI[AppConfig]) error {
 			fmt.Print(renderExplain())
 			return nil
 		},
-		cmdguard.WithShort("Explain the .cqrs-lint.json config format, all keys, presets, and features"),
+		cmdguard.WithShort(
+			"Explain the .cqrs-lint.json config format, all keys, presets, and features",
+		),
 		cmdguard.WithNoArgs(),
 	)
 	return registerCommand(cli, "explain", cmd, err)
@@ -56,7 +58,9 @@ func renderConfigFileSection(b *strings.Builder) {
 	b.WriteString("  Location:  .cqrs-lint.json (in the directory where you run cqrs-lint)\n")
 	b.WriteString("  Format:    JSON with Comments (JSONC)\n")
 	b.WriteString("             // line comments and /* block comments */ are supported.\n")
-	b.WriteString("             Comments are stripped before parsing — document every setting inline.\n")
+	b.WriteString(
+		"             Comments are stripped before parsing — document every setting inline.\n",
+	)
 	b.WriteString("\n")
 	b.WriteString("  Example:\n")
 	b.WriteString("    {\n")
@@ -67,7 +71,9 @@ func renderConfigFileSection(b *strings.Builder) {
 	b.WriteString("      \"min-severity\": \"warning\",\n")
 	b.WriteString("\n")
 	b.WriteString("      \"rules\": {\n")
-	b.WriteString("        // D002 is a false positive: our API structs mirror Discord's snake_case\n")
+	b.WriteString(
+		"        // D002 is a false positive: our API structs mirror Discord's snake_case\n",
+	)
 	b.WriteString("        \"disable\": [\"D002\"]\n")
 	b.WriteString("      }\n")
 	b.WriteString("    }\n")
@@ -87,7 +93,12 @@ type topLevelKey struct {
 //nolint:gochecknoglobals // read-only documentation table
 var topLevelKeys = []topLevelKey{
 	{"preset", "string", `""`, "Named set of feature-flag and rule defaults (see PRESETS below)"},
-	{"min-severity", "string", `"info"`, "Minimum severity to show: info, warning, error, critical"},
+	{
+		"min-severity",
+		"string",
+		`"info"`,
+		"Minimum severity to show: info, warning, error, critical",
+	},
 	{"min-confidence", "string", `"low"`, "Minimum confidence to show: low, medium, high"},
 	{"format", "string", `"text"`, "Output format: text, json, sarif, markdown"},
 	{"exclude", "string", `""`, "Paths to exclude (comma-separated glob patterns)"},
@@ -432,7 +443,9 @@ func renderResolutionOrder(b *strings.Builder) {
 	b.WriteString("    5. CLI flags (highest priority)\n")
 	b.WriteString("\n")
 	b.WriteString("  Severity floor: the preset's min-severity is a LOWER BOUND.\n")
-	b.WriteString("  You can raise it (e.g. to \"error\") but not lower it below the preset floor.\n")
+	b.WriteString(
+		"  You can raise it (e.g. to \"error\") but not lower it below the preset floor.\n",
+	)
 	b.WriteString("\n")
 	b.WriteString("  Rule disables from preset and config are UNIONED (never subtracted).\n")
 	b.WriteString("  Parent .cqrs-lint.json files (ancestor directories) are also merged\n")

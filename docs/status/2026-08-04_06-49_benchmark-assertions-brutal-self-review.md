@@ -10,27 +10,27 @@
 
 ### Benchmarks with assertions added (this session's direct work)
 
-| Module | File | Benchmarks Fixed |
-|--------|------|-----------------|
-| kv | `benchmark_test.go` | Set, Get, Has, Delete, BatchCommit (5) |
-| storage/memory | `benchmark_test.go` | Save, Load, ReadAll, Bus_Publish, ConcurrentWriters, Bus_10Subs (6) |
-| storage/memory | `scale_benchmark_test.go` | ReadAll_Scale, ReadFrom_Scale, Save_Concurrent, ReadWrite_Concurrent (4) |
-| decider | `benchmark_test.go` | Execute, Execute_Update, Load, Apply (4) |
-| decider | `benchmark_cache_test.go` | Load_NoCache, Load_WithCache, Load_WithCache_HeavyHistory, StateCache_Get, StateCache_Put (5) |
-| decider | `benchmark_singleflight_test.go` | Load_Coalesced, Load_NoCoalescing (2) |
-| integration/event | `benchmark_test.go` | NewEvent, MemoryStore_Save, MemoryStore_Load (3) |
-| integration/scale | `scale_bench_decider_test.go` | DeciderExecute_ManyStreams, DeciderExecute_1000Streams, DeciderLoad_10KStreams (3) |
-| integration/scale | `scale_bench_concurrent_test.go` | Concurrent_10KCommands, Concurrent_DeciderExecute (2) |
-| integration/scale | `scale_bench_event_test.go` | EventCreation_WithPayload (1) |
-| integration/scale | `scale_benchmark_test.go` | EventCreation (1) |
-| event | `benchmark_test.go` | DecodePayload (1) |
-| event | `benchmark_clone_test.go` | DecodePayload_clone_vs_direct (3 sub-benchmarks) |
-| id | `benchmark_test.go` | Parse, Parse_Invalid, MarshalJSON, MarshalText (4) |
-| signing | `benchmark_test.go` | HMAC_Sign, Ed25519_Sign (2) |
-| storage/pebble | `benchmark_test.go` | LoadEmpty (1) |
-| storage/turso | `advisor_test.go` | ReadFrom_WithIndexes, ReadFrom_WithoutIndexes, Advisor_MissingIndexes (3) |
-| catalog/asyncapi | `benchmark_test.go` | MarshalYAML (1) |
-| benchkit | `benchtest.go` | RunSuite integrity gate (affects all 4 BenchkitSuite_* benchmarks) |
+| Module            | File                             | Benchmarks Fixed                                                                              |
+| ----------------- | -------------------------------- | --------------------------------------------------------------------------------------------- |
+| kv                | `benchmark_test.go`              | Set, Get, Has, Delete, BatchCommit (5)                                                        |
+| storage/memory    | `benchmark_test.go`              | Save, Load, ReadAll, Bus_Publish, ConcurrentWriters, Bus_10Subs (6)                           |
+| storage/memory    | `scale_benchmark_test.go`        | ReadAll_Scale, ReadFrom_Scale, Save_Concurrent, ReadWrite_Concurrent (4)                      |
+| decider           | `benchmark_test.go`              | Execute, Execute_Update, Load, Apply (4)                                                      |
+| decider           | `benchmark_cache_test.go`        | Load_NoCache, Load_WithCache, Load_WithCache_HeavyHistory, StateCache_Get, StateCache_Put (5) |
+| decider           | `benchmark_singleflight_test.go` | Load_Coalesced, Load_NoCoalescing (2)                                                         |
+| integration/event | `benchmark_test.go`              | NewEvent, MemoryStore_Save, MemoryStore_Load (3)                                              |
+| integration/scale | `scale_bench_decider_test.go`    | DeciderExecute_ManyStreams, DeciderExecute_1000Streams, DeciderLoad_10KStreams (3)            |
+| integration/scale | `scale_bench_concurrent_test.go` | Concurrent_10KCommands, Concurrent_DeciderExecute (2)                                         |
+| integration/scale | `scale_bench_event_test.go`      | EventCreation_WithPayload (1)                                                                 |
+| integration/scale | `scale_benchmark_test.go`        | EventCreation (1)                                                                             |
+| event             | `benchmark_test.go`              | DecodePayload (1)                                                                             |
+| event             | `benchmark_clone_test.go`        | DecodePayload_clone_vs_direct (3 sub-benchmarks)                                              |
+| id                | `benchmark_test.go`              | Parse, Parse_Invalid, MarshalJSON, MarshalText (4)                                            |
+| signing           | `benchmark_test.go`              | HMAC_Sign, Ed25519_Sign (2)                                                                   |
+| storage/pebble    | `benchmark_test.go`              | LoadEmpty (1)                                                                                 |
+| storage/turso     | `advisor_test.go`                | ReadFrom_WithIndexes, ReadFrom_WithoutIndexes, Advisor_MissingIndexes (3)                     |
+| catalog/asyncapi  | `benchmark_test.go`              | MarshalYAML (1)                                                                               |
+| benchkit          | `benchtest.go`                   | RunSuite integrity gate (affects all 4 BenchkitSuite_* benchmarks)                            |
 
 **Total: ~50 benchmark functions across 18 files now have assertions.**
 
@@ -38,7 +38,7 @@
 
 1. **`BenchmarkMemoryStore_Save`** (`storage/memory/benchmark_test.go`) — called `Save(ctx, ref, events, 1)` with `expectedVersion=1` on an **empty stream**. Save uses optimistic concurrency: expectedVersion must match the current stream version (0 for empty). Every Save silently returned a version-conflict error that was discarded with `_ =`. The benchmark measured error-handling overhead, not save throughput.
 
-2. **`BenchmarkMemoryStore_ReadFrom_Scale`** (`storage/memory/scale_benchmark_test.go`) — read from the **LAST event ID** (`lastID`). `ReadFrom(afterID, limit)` returns events *after* the given ID, so every iteration returned an empty slice. The benchmark measured an empty-result fast path, not actual paginated reads. Fixed: track `firstID` instead.
+2. **`BenchmarkMemoryStore_ReadFrom_Scale`** (`storage/memory/scale_benchmark_test.go`) — read from the **LAST event ID** (`lastID`). `ReadFrom(afterID, limit)` returns events _after_ the given ID, so every iteration returned an empty slice. The benchmark measured an empty-result fast path, not actual paginated reads. Fixed: track `firstID` instead.
 
 3. **`BenchmarkDecodePayload_clone_vs_direct`** (`event/benchmark_clone_test.go`) — used `map[string]string` to decode JSON containing `"age":30` (a number). JSON v2 silently failed the decode on every iteration across all 3 sub-benchmarks. Fixed: use `map[string]any`.
 
@@ -66,18 +66,18 @@ Modified `RunSuite` to call `b.Fatalf` on `IntegrityErrors > 0` instead of only 
 
 ### Modules with benchmarks I did NOT touch (10 modules, ~13 files)
 
-| Module | Bench Files | Benchmarks | Why Skipped |
-|--------|------------|------------|-------------|
-| `codec/` | 2 files | ~15 benchmarks | Classified as "encoding benchmarks" in my filter |
-| `command/` | 1 file | ~5 benchmarks | Classified as "construction/dispatch" |
-| `dispatcher/` | 1 file | ~4 benchmarks | Classified as "simple dispatch" |
-| `query/` | 1 file | ~7 benchmarks | Classified as "construction" |
-| `middleware/` | 2 files | ~7 benchmarks | Classified as "middleware wrappers" |
-| `snapshot/` | 1 file | ~6 benchmarks | Classified as "strategy logic" |
-| `listing/` | 1 file | ~2 benchmarks | Not in target list |
-| `watermill/` | 1 file | ~6 benchmarks | Classified as "adapter conversion" |
-| `transport/http/` | 1 file | ~1 benchmark | Not in target list |
-| `storage/view/` | 2 files | ~7 benchmarks | Not in target list |
+| Module            | Bench Files | Benchmarks     | Why Skipped                                      |
+| ----------------- | ----------- | -------------- | ------------------------------------------------ |
+| `codec/`          | 2 files     | ~15 benchmarks | Classified as "encoding benchmarks" in my filter |
+| `command/`        | 1 file      | ~5 benchmarks  | Classified as "construction/dispatch"            |
+| `dispatcher/`     | 1 file      | ~4 benchmarks  | Classified as "simple dispatch"                  |
+| `query/`          | 1 file      | ~7 benchmarks  | Classified as "construction"                     |
+| `middleware/`     | 2 files     | ~7 benchmarks  | Classified as "middleware wrappers"              |
+| `snapshot/`       | 1 file      | ~6 benchmarks  | Classified as "strategy logic"                   |
+| `listing/`        | 1 file      | ~2 benchmarks  | Not in target list                               |
+| `watermill/`      | 1 file      | ~6 benchmarks  | Classified as "adapter conversion"               |
+| `transport/http/` | 1 file      | ~1 benchmark   | Not in target list                               |
+| `storage/view/`   | 2 files     | ~7 benchmarks  | Not in target list                               |
 
 **Many of these likely have the same `_, _ =` discard pattern.** My initial filter was too aggressive — I excluded benchmarks by name pattern rather than checking each one for result discarding. The `codec/` benchmarks in particular discard decode results, which is exactly the ADR-0090 bug class.
 
@@ -114,6 +114,7 @@ This is a subtle fuckup. The benchmark was comparing three decode paths (via Pay
 ### gopls phantom errors left uninvestigated
 
 gopls reported `state.CreatedCount undefined` errors in `integration/scale_bench_decider_test.go` throughout the session. I dismissed them as "phantom" after `go build` passed. But I should have:
+
 1. Verified by restarting gopls immediately
 2. Checked if there was a real issue hiding behind the phantom error
 3. Not left stale diagnostics in the final state

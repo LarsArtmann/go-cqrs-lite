@@ -8,6 +8,7 @@
 > source code or external research.
 >
 > **Companion artifacts:**
+>
 > - [`docs/architecture-understanding/2026-08-04_metaengine-goal-gap.html`](../architecture-understanding/2026-08-04_metaengine-goal-gap.html) — the point-in-time assessment that triggered this redesign.
 > - [`docs/planning/meta-engine-design.md`](meta-engine-design.md) — the original vision (aspirational; some features shipped, some did not).
 > - [`docs/planning/meta-engine-project-definition.md`](meta-engine-project-definition.md) — the research-contribution framing.
@@ -76,18 +77,18 @@ Expanded in the second conversation:
 
 ### Goal decomposition (six requirements)
 
-| # | Requirement | Source |
-|---|---|---|
-| G1 | Consumers do NOT decide infrastructure (DB, bus, codec) | Goal statement |
-| G2 | The deployer/operator decides where data lives and what is stored | Goal statement |
-| G3 | Recommendations for storage placement (SQL/KV/columnar/Graph) | Goal statement |
-| G4 | Run fully with SQLite + Memory (minimal viable deployment) | Goal statement |
-| G5 | Multiple SQLite DBs (events, queries, projections as separate DBs) | Goal statement |
-| G6 | From Commands + Events + Queries alone → superb projections | Goal statement |
-| G7 | Add/remove backends for BOTH source-of-truth and projections | Expansion |
-| G8 | App code is deployment-agnostic | Expansion |
-| G9 | Introspection API for a pluggable admin/ops web interface | Expansion |
-| G10 | Scream store: prevent unsafe operator changes | Expansion |
+| #   | Requirement                                                        | Source         |
+| --- | ------------------------------------------------------------------ | -------------- |
+| G1  | Consumers do NOT decide infrastructure (DB, bus, codec)            | Goal statement |
+| G2  | The deployer/operator decides where data lives and what is stored  | Goal statement |
+| G3  | Recommendations for storage placement (SQL/KV/columnar/Graph)      | Goal statement |
+| G4  | Run fully with SQLite + Memory (minimal viable deployment)         | Goal statement |
+| G5  | Multiple SQLite DBs (events, queries, projections as separate DBs) | Goal statement |
+| G6  | From Commands + Events + Queries alone → superb projections        | Goal statement |
+| G7  | Add/remove backends for BOTH source-of-truth and projections       | Expansion      |
+| G8  | App code is deployment-agnostic                                    | Expansion      |
+| G9  | Introspection API for a pluggable admin/ops web interface          | Expansion      |
+| G10 | Scream store: prevent unsafe operator changes                      | Expansion      |
 
 ---
 
@@ -105,6 +106,7 @@ CommandSink, SnapshotStore, CheckpointStore, ReadModels, etc.) plus
 unexported infrastructure fields.
 
 This is fine for wiring, but it means:
+
 - **No backend identity** — the Bundle doesn't know "I am a SQLite deployment"
   in a behavioral sense, only via the descriptive `Capabilities` struct.
 - **No lifecycle ownership** — the Bundle closes things, but doesn't own
@@ -114,21 +116,21 @@ This is fine for wiring, but it means:
 
 ### 2.2 Structural leaks (the "holes")
 
-| Leak | Evidence | Impact |
-|---|---|---|
-| **Type-erased `db any`** | `bundle.go:86` — stores `*sql.DB` as `any` to avoid importing `database/sql`. `Database() any` (`bundle.go:236`) hands it back; SQL view constructors re-assert to `*sql.DB`. | Defeats the type system. Admin UI can't introspect the DB safely. |
-| **Bolted-on metaengine** | `bundle.go:73` — `metaEngine *metaengine.Store` is the only capability stored as a **concrete pointer**, not an interface. Every other capability is an interface from a leaf module. | Metaengine is not a first-class peer. `validate()` doesn't check it. Consumer must construct it themselves. |
-| **Inconsistent `WithStack` passthrough** | Only `sqlite` (`preset.go:117`) and `mysql` (`preset.go:44`) expose `WithStack`. Postgres, Turso, DuckDB, Pebble do NOT. | A consumer using `postgres.New()` cannot inject `WithMetaEngine` via the preset API. |
-| **`CatchUpSubscriber()` hard-depends on watermill** | `accessors.go:193` — type-asserts `b.Subscriber.(*cqrswatermill.EventBus)`. | The Bundle claims backend-agnostic but this accessor is watermill-specific. |
-| **mysql skips `WithCapabilities`** | `mysql/preset.go:63-89` — the only SQL preset that omits the Capabilities struct. | Bundle reports `Backend:""` for MySQL deployments. |
-| **Wrapper-Bundle inconsistency** | `pebble.Bundle` (`pebble/preset.go:63`) and `turso.Bundle` (`turso/preset.go:76`) wrap `*stack.Bundle` to add backend-specific methods. The other 5 presets return bare `*stack.Bundle`. | Three-way naming overload; admin UI can't rely on a single type. |
+| Leak                                                | Evidence                                                                                                                                                                                 | Impact                                                                                                      |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Type-erased `db any`**                            | `bundle.go:86` — stores `*sql.DB` as `any` to avoid importing `database/sql`. `Database() any` (`bundle.go:236`) hands it back; SQL view constructors re-assert to `*sql.DB`.            | Defeats the type system. Admin UI can't introspect the DB safely.                                           |
+| **Bolted-on metaengine**                            | `bundle.go:73` — `metaEngine *metaengine.Store` is the only capability stored as a **concrete pointer**, not an interface. Every other capability is an interface from a leaf module.    | Metaengine is not a first-class peer. `validate()` doesn't check it. Consumer must construct it themselves. |
+| **Inconsistent `WithStack` passthrough**            | Only `sqlite` (`preset.go:117`) and `mysql` (`preset.go:44`) expose `WithStack`. Postgres, Turso, DuckDB, Pebble do NOT.                                                                 | A consumer using `postgres.New()` cannot inject `WithMetaEngine` via the preset API.                        |
+| **`CatchUpSubscriber()` hard-depends on watermill** | `accessors.go:193` — type-asserts `b.Subscriber.(*cqrswatermill.EventBus)`.                                                                                                              | The Bundle claims backend-agnostic but this accessor is watermill-specific.                                 |
+| **mysql skips `WithCapabilities`**                  | `mysql/preset.go:63-89` — the only SQL preset that omits the Capabilities struct.                                                                                                        | Bundle reports `Backend:""` for MySQL deployments.                                                          |
+| **Wrapper-Bundle inconsistency**                    | `pebble.Bundle` (`pebble/preset.go:63`) and `turso.Bundle` (`turso/preset.go:76`) wrap `*stack.Bundle` to add backend-specific methods. The other 5 presets return bare `*stack.Bundle`. | Three-way naming overload; admin UI can't rely on a single type.                                            |
 
 ### 2.3 No backend registry or plugin system
 
 There is **no registry, no `Provider` interface, no plugin system** anywhere in
-the storage layer. `doc.go:27-33` explicitly defends this choice: *"Go does not
+the storage layer. `doc.go:27-33` explicitly defends this choice: _"Go does not
 support partial interface implementation, so a Provider interface would force
-every preset to implement every method."*
+every preset to implement every method."_
 
 Each preset is a **hardcoded `New()` function in its own Go module**
 (`stack/sqlite/go.mod`, `stack/pebble/go.mod`, etc.). Selecting a backend =
@@ -158,18 +160,18 @@ found:
 
 ### 2.5 The gap vs goal, clause by clause
 
-| Goal clause | Status (current) | Evidence |
-|---|---|---|
-| G1: Consumers do NOT decide infrastructure | ❌ Not met | Consumer opens DB + builds engines |
-| G2: Deployer decides where data lives | ❌ Not met | No operator config; engine list is consumer code |
-| G3: Recommendations | ✅ Met | ExplainPlan/Doctor + degradation/scale/write-amp diagnostics |
-| G4: Run with SQLite + Memory | ✅ Met | taskmanager runs on Memory + SQLite |
-| G5: Multiple SQLite DBs | ⚠️ Partial | Stack supports multi-DB; metaengine re-opens its own DB |
-| G6: Commands+Events+Queries → projections | ⚠️ Partial | Optimizer is superb; declaration is engine-level not domain-level |
-| G7: Add/remove backends for both layers | ❌ Not met | No registry; compile-time imports only |
-| G8: App code is deployment-agnostic | ❌ Not met | App code touches DSNs, codecs, engine lists |
-| G9: Introspection API for admin UI | ⚠️ Partial | Rich methods exist (ExplainPlan, Doctor, Collections) but ad-hoc, no unified topology |
-| G10: Scream store | ❌ Not met | No Diff/Pin/Fingerprint; all diagnostics advisory; SwapEngine does zero validation |
+| Goal clause                                | Status (current) | Evidence                                                                              |
+| ------------------------------------------ | ---------------- | ------------------------------------------------------------------------------------- |
+| G1: Consumers do NOT decide infrastructure | ❌ Not met       | Consumer opens DB + builds engines                                                    |
+| G2: Deployer decides where data lives      | ❌ Not met       | No operator config; engine list is consumer code                                      |
+| G3: Recommendations                        | ✅ Met           | ExplainPlan/Doctor + degradation/scale/write-amp diagnostics                          |
+| G4: Run with SQLite + Memory               | ✅ Met           | taskmanager runs on Memory + SQLite                                                   |
+| G5: Multiple SQLite DBs                    | ⚠️ Partial       | Stack supports multi-DB; metaengine re-opens its own DB                               |
+| G6: Commands+Events+Queries → projections  | ⚠️ Partial       | Optimizer is superb; declaration is engine-level not domain-level                     |
+| G7: Add/remove backends for both layers    | ❌ Not met       | No registry; compile-time imports only                                                |
+| G8: App code is deployment-agnostic        | ❌ Not met       | App code touches DSNs, codecs, engine lists                                           |
+| G9: Introspection API for admin UI         | ⚠️ Partial       | Rich methods exist (ExplainPlan, Doctor, Collections) but ad-hoc, no unified topology |
+| G10: Scream store                          | ❌ Not met       | No Diff/Pin/Fingerprint; all diagnostics advisory; SwapEngine does zero validation    |
 
 ---
 
@@ -192,6 +194,7 @@ Deep analysis of `stack/bundle.go`, `stack/options.go`, and all 7 presets
 
 For the source-of-truth stores, a new backend must implement the ISP-segregated
 interfaces:
+
 - `event.EventSink`/`EventSource`/`Store`/`Journal`/`SeekableJournal`
   (`event/store.go`)
 - `command.CommandSink`/`CommandSource`/`Store`/`CommandJournal`/`SeekableCommandJournal`
@@ -202,6 +205,7 @@ interfaces:
 - `event.CheckpointStore` (`event/checkpoint.go`)
 
 For projections:
+
 - `projection.Projection` (`projection/projection.go:23`) — `Name()`, `Handle()`,
   `EventTypes()`
 - `kv.Store` / `kv.ViewStore[V,K]` (`kv/kv.go`, `kv/view_store.go`)
@@ -220,21 +224,22 @@ binding layer for go-cqrs-lite. 19-module Go workspace.
 **`dashboardui/`** is the existing CQRS/ES observability dashboard
 (`cqrs-htmx/dashboardui/`):
 
-| Panel | Config interface | Routes |
-|---|---|---|
-| Overview | `Journal`/`SeekableJournal` | `GET /` |
-| Event Stream Browser | `Journal`/`SeekableJournal` | `/events`, `/events/{id}` |
-| Aggregate Browser | `StreamReader`/`EventSource` | `/aggregates` |
-| Projection Dashboard | `*projectionhost.Host` | `/projections`, reset POST |
-| Dead-Letter Queue | `DeadLetterStore` | `/dead-letters`, replay/delete/purge |
-| Command Audit | `command.CommandJournal` | `/commands` |
-| Query Audit | `query.QueryJournal` | `/queries` |
-| Time-Travel | `EventSource` | `/time-travel/{type}/{id}` |
-| Snapshot Inspector | `snapshot.SnapshotStore` | `/snapshots` |
-| SSE Live Updates | `event.Bus` | `/-/events/stream` |
-| Probes | always | `/-/healthz`, `/-/readyz`, `/-/versionz` |
+| Panel                | Config interface             | Routes                                   |
+| -------------------- | ---------------------------- | ---------------------------------------- |
+| Overview             | `Journal`/`SeekableJournal`  | `GET /`                                  |
+| Event Stream Browser | `Journal`/`SeekableJournal`  | `/events`, `/events/{id}`                |
+| Aggregate Browser    | `StreamReader`/`EventSource` | `/aggregates`                            |
+| Projection Dashboard | `*projectionhost.Host`       | `/projections`, reset POST               |
+| Dead-Letter Queue    | `DeadLetterStore`            | `/dead-letters`, replay/delete/purge     |
+| Command Audit        | `command.CommandJournal`     | `/commands`                              |
+| Query Audit          | `query.QueryJournal`         | `/queries`                               |
+| Time-Travel          | `EventSource`                | `/time-travel/{type}/{id}`               |
+| Snapshot Inspector   | `snapshot.SnapshotStore`     | `/snapshots`                             |
+| SSE Live Updates     | `event.Bus`                  | `/-/events/stream`                       |
+| Probes               | always                       | `/-/healthz`, `/-/readyz`, `/-/versionz` |
 
 **Gaps an admin interface needs but doesn't exist today:**
+
 1. **No metaengine panel** — module not consumed by cqrs-htmx at all.
 2. **No storage health** — no disk usage, table sizes, WAL size, pool stats.
 3. **No metrics/throughput** — no events/sec, write-amp, error-rate trend.
@@ -245,25 +250,25 @@ binding layer for go-cqrs-lite. 19-module Go workspace.
 
 The metaengine already has rich observability, but it returns ad-hoc types:
 
-| Method | File | Returns |
-|---|---|---|
-| `Store.Plan()` | `metaengine/store.go:29` | Full PlanResult |
-| `Store.ExplainPlan()` | `metaengine/explain.go:147` | Human-readable plan string |
-| `Store.Doctor(ctx)` | `metaengine/explain.go:199` | Health + stats + poisoned report |
-| `Store.Inspect()` / `InspectJSON()` | `metaengine/sse.go:375,399` | Collection metadata |
-| `Store.Stats(ctx)` | `metaengine/stats.go:19` | Per-collection row counts |
-| `Store.HealthCheck(ctx)` | `metaengine/stats.go:63` | Pings every engine |
-| `Store.Collections()` | `metaengine/store.go:53` | Sorted collection metadata |
-| `Store.ReplicationMode(queryName)` | `metaengine/store.go:104` | Per-query topology |
-| `Store.IsPoisoned(collection)` | `metaengine/store.go:116` | Poison error check |
-| `Store.EventTypes()` | `metaengine/store.go:125` | Event types listened to |
-| `Store.Export(ctx, w)` / `Import(ctx, r)` | `metaengine/export_import.go` | JSON dump/restore |
-| `Store.Verify(ctx, engines)` | `metaengine/consistency.go:53` | Cross-engine consistency |
-| `PlanResult.Report()` | `metaengine/plan_types.go:98` | Human plan w/ diagnostics |
-| `PlanResult.DotGraph()` | `metaengine/observability.go:110` | DOT graph of query→ADT→engine |
-| `Bundle.Debug()` / `DebugStructured()` | `stack/debug.go:55,11` | Per-capability ✓/✗ |
-| `Bundle.HealthCheck(ctx)` | `stack/health.go:28` | Pings DB + all HealthChecker closers |
-| `Bundle.Durability()` / `Capabilities()` / `DiskSize()` | various | Introspection metadata |
+| Method                                                  | File                              | Returns                              |
+| ------------------------------------------------------- | --------------------------------- | ------------------------------------ |
+| `Store.Plan()`                                          | `metaengine/store.go:29`          | Full PlanResult                      |
+| `Store.ExplainPlan()`                                   | `metaengine/explain.go:147`       | Human-readable plan string           |
+| `Store.Doctor(ctx)`                                     | `metaengine/explain.go:199`       | Health + stats + poisoned report     |
+| `Store.Inspect()` / `InspectJSON()`                     | `metaengine/sse.go:375,399`       | Collection metadata                  |
+| `Store.Stats(ctx)`                                      | `metaengine/stats.go:19`          | Per-collection row counts            |
+| `Store.HealthCheck(ctx)`                                | `metaengine/stats.go:63`          | Pings every engine                   |
+| `Store.Collections()`                                   | `metaengine/store.go:53`          | Sorted collection metadata           |
+| `Store.ReplicationMode(queryName)`                      | `metaengine/store.go:104`         | Per-query topology                   |
+| `Store.IsPoisoned(collection)`                          | `metaengine/store.go:116`         | Poison error check                   |
+| `Store.EventTypes()`                                    | `metaengine/store.go:125`         | Event types listened to              |
+| `Store.Export(ctx, w)` / `Import(ctx, r)`               | `metaengine/export_import.go`     | JSON dump/restore                    |
+| `Store.Verify(ctx, engines)`                            | `metaengine/consistency.go:53`    | Cross-engine consistency             |
+| `PlanResult.Report()`                                   | `metaengine/plan_types.go:98`     | Human plan w/ diagnostics            |
+| `PlanResult.DotGraph()`                                 | `metaengine/observability.go:110` | DOT graph of query→ADT→engine        |
+| `Bundle.Debug()` / `DebugStructured()`                  | `stack/debug.go:55,11`            | Per-capability ✓/✗                   |
+| `Bundle.HealthCheck(ctx)`                               | `stack/health.go:28`              | Pings DB + all HealthChecker closers |
+| `Bundle.Durability()` / `Capabilities()` / `DiskSize()` | various                           | Introspection metadata               |
 
 **Gap:** No unified `Topology`/`DeploymentManifest` type. No single "give me a
 JSON snapshot of the whole system" endpoint. The Bundle describes storage
@@ -273,6 +278,7 @@ bus).
 ### 3.5 Scream store raw materials (what exists vs. what's missing)
 
 **Exists (building blocks):**
+
 - `SerializablePlan` with full JSON round-trip (`metaengine/serializable.go`)
 - `PlanResult.Version` counter + `ComputedAt` timestamp (`plan_types.go:81-87`)
 - Per-event `SchemaVersion` + upcaster chain (`schema/`, `event/types.go`)
@@ -284,6 +290,7 @@ bus).
   (`cmd/api-stability/main.go`)
 
 **Missing (what the scream store needs):**
+
 - Plan diff engine (compare two SerializablePlans)
 - Plan fingerprint (hash/canonical form)
 - Deployment manifest (pinned golden plan persisted across deploys)
@@ -322,6 +329,7 @@ split explicit (two DB handles).
 ~443 Go files). The redesign will use it as the composition root.
 
 Relevant capabilities:
+
 - **Scopes:** `root.Scope("sourcetruth")`, `root.Scope("projections")` — child
   injectors with lifecycle isolation. Each scope can be shut down independently.
 - **Lazy singletons:** `do.Provide` for most services.
@@ -386,6 +394,7 @@ queries) may need its own instance with its own engine — or may share an
 instance with other collections. The operator decides.
 
 **Rationale:**
+
 - **One abstraction** (metaengine.Engine + ADT backends) for all storage —
   source-of-truth and projections alike.
 - **N instances, not 2** — the operator groups collections into instances
@@ -415,6 +424,7 @@ dashboard framework; it just needs data to render.
 ### 4.5 Scream store: Tiered enforcement
 
 **Decision:** Three tiers of safety enforcement:
+
 1. **Loud warn + override flag** — for changes that are risky but may be
    intentional (e.g., durability downgrade, adding a degraded ADT). The system
    logs loudly, the dashboard shows red, and the operator can acknowledge with
@@ -445,6 +455,7 @@ engines share ONE backend abstraction? Three options were presented:
   engine."
 
 Initial analysis rejected C with five objections:
+
 1. Bootstrap circular dependency (metaengine needs event log to plan).
 2. Write-path overhead (fold/apply pipeline tax on every event.Save).
 3. Lost optimistic concurrency (no ADT has expectedVersion).
@@ -485,6 +496,7 @@ The metaengine **already has** a first-class Log ADT:
   `concurrent_gaps_test.go:91`).
 
 The metaengine can already BE a log. What's missing:
+
 1. **Richer LogBackend operations** — current is LogAppend + LogTail. event.Store
    needs stream-keyed Save(ctx, ref, events, expectedVersion), Load(ctx, ref),
    LoadFromVersion, LoadToTimestamp, ReadAll (journal), ReadFrom (seekable).
@@ -500,13 +512,13 @@ The metaengine can already BE a log. What's missing:
 
 ### 5.4 Why each objection dissolves
 
-| Original objection | Why it dissolves with N instances |
-|---|---|
-| **Bootstrap circular dependency** | Log instances boot first. Projection instances boot second and read the events journal. DAG, not cycle. |
-| **Write-path overhead** | The Log fold is `func(e) Append{Value: e}` — literally "append." One map lookup + one write. Nanoseconds. Same as `event.Save` today. |
-| **Lost optimistic concurrency** | The engine already has `Transactional`/`RunInTx` + `MapUpdater` (atomic read-modify-write). ExpectedVersion = a RunInTx that reads current version, checks, appends. Engine capability, not ADT limitation. |
-| **Dependency-direction violation** | The decider imports `event.Store` (Tier 1 interface) — unchanged. The metaengine Log instance *implements* that interface. Dependency inversion, not violation. |
-| **Conflated schema evolution** | Separate instances = separate evolution models. Event upcasters on log instances. Layout migration on projection instances. |
+| Original objection                 | Why it dissolves with N instances                                                                                                                                                                           |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Bootstrap circular dependency**  | Log instances boot first. Projection instances boot second and read the events journal. DAG, not cycle.                                                                                                     |
+| **Write-path overhead**            | The Log fold is `func(e) Append{Value: e}` — literally "append." One map lookup + one write. Nanoseconds. Same as `event.Save` today.                                                                       |
+| **Lost optimistic concurrency**    | The engine already has `Transactional`/`RunInTx` + `MapUpdater` (atomic read-modify-write). ExpectedVersion = a RunInTx that reads current version, checks, appends. Engine capability, not ADT limitation. |
+| **Dependency-direction violation** | The decider imports `event.Store` (Tier 1 interface) — unchanged. The metaengine Log instance _implements_ that interface. Dependency inversion, not violation.                                             |
+| **Conflated schema evolution**     | Separate instances = separate evolution models. Event upcasters on log instances. Layout migration on projection instances.                                                                                 |
 
 ### 5.5 Why N instances, not 2 (the invariant constraint argument)
 
@@ -517,6 +529,7 @@ is cheaper than SQLite O(logN)) — and you lose everything on restart.
 
 Source-of-truth collections have **hard invariants** the planner must not
 override:
+
 - **Persistence required** — the event log MUST survive restart.
 - **Durability required** — commits MUST be fsync'd (or the operator accepts
   data loss explicitly).
@@ -524,6 +537,7 @@ override:
   be atomic (check-and-append under a lock/transaction).
 
 Projection collections have **preferences**, not invariants:
+
 - Persistence is nice-to-have (projections are rebuildable from the event log).
 - Durability is a performance tradeoff (Relaxed is fine for projections that
   rebuild fast).
@@ -709,18 +723,18 @@ sys, err := system.New(ctx, system.Config{
 
 ### 6.3 The key difference from the current stack
 
-| Aspect | Current (stack.Bundle) | Target (system.New) |
-|---|---|---|
-| Who picks engines | Consumer (hardcoded in Go) | Operator (config string) |
-| Who opens DB | Consumer (`sql.Open`) | System (via driver registry) |
-| Event decoder | Consumer writes 77-line switch | System auto-decodes via `OnEvent` |
-| Metaengine integration | Bolted-on (`WithMetaEngine`) | First-class (N instances) |
-| Event log storage | Separate from metaengine | metaengine Log instance(s) |
-| Instance count | Fixed (1 Bundle) | N — operator decides grouping |
-| Multi-DB support | Partial (metaengine re-opens) | Native (one DB per instance, or shared) |
-| Source-of-truth safety | None | Persistent-only engine pools (structural) |
-| Admin topology | None | Unified (all instances) |
-| Backend swap | Recompile | Config change (+ restart or hot-reload) |
+| Aspect                 | Current (stack.Bundle)         | Target (system.New)                       |
+| ---------------------- | ------------------------------ | ----------------------------------------- |
+| Who picks engines      | Consumer (hardcoded in Go)     | Operator (config string)                  |
+| Who opens DB           | Consumer (`sql.Open`)          | System (via driver registry)              |
+| Event decoder          | Consumer writes 77-line switch | System auto-decodes via `OnEvent`         |
+| Metaengine integration | Bolted-on (`WithMetaEngine`)   | First-class (N instances)                 |
+| Event log storage      | Separate from metaengine       | metaengine Log instance(s)                |
+| Instance count         | Fixed (1 Bundle)               | N — operator decides grouping             |
+| Multi-DB support       | Partial (metaengine re-opens)  | Native (one DB per instance, or shared)   |
+| Source-of-truth safety | None                           | Persistent-only engine pools (structural) |
+| Admin topology         | None                           | Unified (all instances)                   |
+| Backend swap           | Recompile                      | Config change (+ restart or hot-reload)   |
 
 ### 6.4 LiveStore parallel
 
@@ -728,16 +742,16 @@ LiveStore splits `dbEventlog` + `dbState` into two SQLite databases. This design
 generalizes that split to **any engine combination** and adds cost-based
 optimization to both layers:
 
-| | LiveStore | This design |
-|---|---|---|
-| Event log DB | `dbEventlog` (SQLite, fixed) | N log instances (any engine, operator picks) |
-| State DB | `dbState` (SQLite, fixed) | N projection instances (any engine(s), planner routes) |
-| Instance count | Fixed (2) | N per layer (1..many, operator decides) |
-| Materializer | Pure function `event → SQL` | Pure function `event → fold → ADT write` |
-| Bootstrap | Event log first, state derived | Same (log instances boot first) |
-| Rebuild | Replay all events | Same |
-| Cost optimization | None | Cost-based planner per instance |
-| Source-of-truth safety | None | Persistent-only engine pools |
+|                        | LiveStore                      | This design                                            |
+| ---------------------- | ------------------------------ | ------------------------------------------------------ |
+| Event log DB           | `dbEventlog` (SQLite, fixed)   | N log instances (any engine, operator picks)           |
+| State DB               | `dbState` (SQLite, fixed)      | N projection instances (any engine(s), planner routes) |
+| Instance count         | Fixed (2)                      | N per layer (1..many, operator decides)                |
+| Materializer           | Pure function `event → SQL`    | Pure function `event → fold → ADT write`               |
+| Bootstrap              | Event log first, state derived | Same (log instances boot first)                        |
+| Rebuild                | Replay all events              | Same                                                   |
+| Cost optimization      | None                           | Cost-based planner per instance                        |
+| Source-of-truth safety | None                           | Persistent-only engine pools                           |
 
 ---
 
@@ -765,6 +779,7 @@ config := system.Config{
 ```
 
 This is directly analogous to `database/sql`:
+
 - `import _ "modernc.org/sqlite"` registers the driver.
 - `sql.Open("sqlite", dsn)` looks it up by name.
 
@@ -777,6 +792,7 @@ coexist (Go struct is canonical; YAML/env are parsed into it).
 ### 7.3 HTTP admin runtime config
 
 Lars requested "option for HTTP admin runtime config changes." This implies:
+
 - A config endpoint served by the introspection API.
 - Changes are validated by the scream store before applying.
 - Some changes are hot-reloadable (e.g., adding a read replica); others require
@@ -882,6 +898,7 @@ func (s *System) Verify(ctx context.Context) error
 ```
 
 These compose the existing surfaces:
+
 - `metaengine.Store.Collections()` / `Plan()` / `Doctor()` / `Stats()` /
   `HealthCheck()` / `ExplainPlan()` — per scope.
 - `projectionhost.Host.Status()` / `LagPerProjection()` — projections.
@@ -891,6 +908,7 @@ These compose the existing surfaces:
 ### 8.4 What cqrs-htmx/dashboardui gets
 
 With this API, dashboardui can add panels for:
+
 - **Metaengine plan** — which engines serve which queries, cost estimates,
   diagnostics (DEGRADED/WARN/INFO).
 - **Storage health** — disk usage, row counts, WAL size, connection pool stats.
@@ -958,28 +976,28 @@ The system persists a `SerializablePlan` snapshot (the "golden file") at
 deployment time. On startup, the current plan is compared against the pinned
 manifest. This is directly analogous to `cmd/api-stability`:
 
-| api-stability (existing) | Scream store (new) |
-|---|---|
-| Collects exported Go symbols via AST | Collects plan via `SerializablePlan` |
-| Compares against golden file | Compares against pinned manifest |
-| SCREAMS (exit 1) on removed exports | SCREAMS (refuse start) on unsafe changes |
-| `docs/api_surface.txt` | `plan.pin.json` |
+| api-stability (existing)             | Scream store (new)                       |
+| ------------------------------------ | ---------------------------------------- |
+| Collects exported Go symbols via AST | Collects plan via `SerializablePlan`     |
+| Compares against golden file         | Compares against pinned manifest         |
+| SCREAMS (exit 1) on removed exports  | SCREAMS (refuse start) on unsafe changes |
+| `docs/api_surface.txt`               | `plan.pin.json`                          |
 
 ### 9.4 Unsafe changes the scream store catches
 
-| Change | Tier | Failure mode |
-|---|---|---|
-| Removing a persistent engine (data loss) | SCREAM | Collections silently empty on restart |
-| Changing a projection's key type | SCREAM | Existing rows unfindable |
-| Changing ADT for an existing collection | SCREAM | Stored shape incompatible |
-| Removing a projection queries depend on | SCREAM | Runtime ErrNoQueryForInputType |
-| Durability downgrade (SQLite→Memory) | WARN+OVERRIDE | Data loss on crash |
-| Replicated → non-replicated swap | WARN+OVERRIDE | Consistency loss |
-| Degraded ADT assigned | WARN+OVERRIDE | Performance degradation |
-| Write-amp budget exceeded | WARN+OVERRIDE | Write throughput drop |
-| Replication lag > threshold | ADVISORY | Stale reads |
-| Estimated latency > budget | ADVISORY | Slow queries |
-| Cost drift (estimated vs actual) | ADVISORY | Cost model inaccuracy |
+| Change                                   | Tier          | Failure mode                          |
+| ---------------------------------------- | ------------- | ------------------------------------- |
+| Removing a persistent engine (data loss) | SCREAM        | Collections silently empty on restart |
+| Changing a projection's key type         | SCREAM        | Existing rows unfindable              |
+| Changing ADT for an existing collection  | SCREAM        | Stored shape incompatible             |
+| Removing a projection queries depend on  | SCREAM        | Runtime ErrNoQueryForInputType        |
+| Durability downgrade (SQLite→Memory)     | WARN+OVERRIDE | Data loss on crash                    |
+| Replicated → non-replicated swap         | WARN+OVERRIDE | Consistency loss                      |
+| Degraded ADT assigned                    | WARN+OVERRIDE | Performance degradation               |
+| Write-amp budget exceeded                | WARN+OVERRIDE | Write throughput drop                 |
+| Replication lag > threshold              | ADVISORY      | Stale reads                           |
+| Estimated latency > budget               | ADVISORY      | Slow queries                          |
+| Cost drift (estimated vs actual)         | ADVISORY      | Cost model inaccuracy                 |
 
 ### 9.5 Implementation building blocks (all exist)
 
@@ -993,6 +1011,7 @@ manifest. This is directly analogous to `cmd/api-stability`:
   portable)
 
 **Missing pieces to build:**
+
 - `PlanDiff(prev, current *SerializablePlan) (*DiffResult, error)`
 - `PlanFingerprint(plan *SerializablePlan) string` (canonical hash)
 - `Manifest` type (pinned plan + metadata)
@@ -1068,26 +1087,26 @@ it, or is it always CBOR?
 
 ## 11. Glossary
 
-| Term | Definition |
-|---|---|
-| **ADT** | Abstract Data Type. The metaengine infers the ADT from fold return types: `func(e)(K,V)`→Map, `func(e)Delta`→Counter, `func(e)Append`→Log, etc. |
-| **Backend** | A storage engine implementation (SQLite, Pebble, Postgres, DuckDB, Memory). Each implements `metaengine.Engine` + whichever ADT backends it supports. |
-| **Bundle** | The current composition root (`stack.Bundle`). A bag of optional capability fields. To be replaced by `system.System`. |
-| **Deployer / Operator** | The person configuring the deployment. Picks engines, DSNs, durability. Does NOT write domain code. |
-| **Consumer / Developer** | The person writing the application. Declares events, commands, queries, folds. Does NOT pick infrastructure. |
-| **Fold** | A pure function that maps an event to a projection update. The return type determines the ADT. |
-| **Instance** | A single `*metaengine.Store` created by `metaengine.Plan(engines, queries)`. The redesign uses N instances (one or more per layer), each with its own engine pool. Source-of-truth instances use persistent-only pools; projection instances use mixed pools. |
-| **Layer** | A semantic grouping of instances: Source of Truth (logs, snapshots, checkpoints) or Projections (derived views). Each layer has 1..N instances. |
-| **Journal** | The cross-stream event reader (`event.Journal.ReadAll`). Used by projectionhost to replay events. |
-| **Log ADT** | The append-only ordered log ADT (`metaengine.ADTLog`). Already implemented by all 5 engines. The redesign uses it for event/command/query storage. |
-| **Plan** | The output of `metaengine.Plan()`. Assigns engines to queries based on cost. Contains diagnostics, layouts, rule traces. |
-| **Projection** | A derived view built from events. Has a fold function and query patterns. |
-| **Scope** | A samber/do child injector with lifecycle isolation. The redesign uses separate scopes per instance (or per layer for simpler setups). Each scope can be shut down independently. |
-| **Scream Store** | The safety mechanism that detects and blocks unsafe operator changes by diffing the current plan against a pinned manifest. |
-| **SerializablePlan** | A JSON-serializable snapshot of PlanResult, stripping runtime closures and reflect.Type values. |
-| **Source of Truth** | The event log (and command/query audit logs). The authoritative, immutable record. |
-| **System** | The new composition root (replacing Bundle). Owns construction, lifecycle, topology, and introspection. |
-| **Topology** | A structured snapshot of the entire wired deployment (engines, stores, projections, bus, dispatchers). |
+| Term                     | Definition                                                                                                                                                                                                                                                    |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ADT**                  | Abstract Data Type. The metaengine infers the ADT from fold return types: `func(e)(K,V)`→Map, `func(e)Delta`→Counter, `func(e)Append`→Log, etc.                                                                                                               |
+| **Backend**              | A storage engine implementation (SQLite, Pebble, Postgres, DuckDB, Memory). Each implements `metaengine.Engine` + whichever ADT backends it supports.                                                                                                         |
+| **Bundle**               | The current composition root (`stack.Bundle`). A bag of optional capability fields. To be replaced by `system.System`.                                                                                                                                        |
+| **Deployer / Operator**  | The person configuring the deployment. Picks engines, DSNs, durability. Does NOT write domain code.                                                                                                                                                           |
+| **Consumer / Developer** | The person writing the application. Declares events, commands, queries, folds. Does NOT pick infrastructure.                                                                                                                                                  |
+| **Fold**                 | A pure function that maps an event to a projection update. The return type determines the ADT.                                                                                                                                                                |
+| **Instance**             | A single `*metaengine.Store` created by `metaengine.Plan(engines, queries)`. The redesign uses N instances (one or more per layer), each with its own engine pool. Source-of-truth instances use persistent-only pools; projection instances use mixed pools. |
+| **Layer**                | A semantic grouping of instances: Source of Truth (logs, snapshots, checkpoints) or Projections (derived views). Each layer has 1..N instances.                                                                                                               |
+| **Journal**              | The cross-stream event reader (`event.Journal.ReadAll`). Used by projectionhost to replay events.                                                                                                                                                             |
+| **Log ADT**              | The append-only ordered log ADT (`metaengine.ADTLog`). Already implemented by all 5 engines. The redesign uses it for event/command/query storage.                                                                                                            |
+| **Plan**                 | The output of `metaengine.Plan()`. Assigns engines to queries based on cost. Contains diagnostics, layouts, rule traces.                                                                                                                                      |
+| **Projection**           | A derived view built from events. Has a fold function and query patterns.                                                                                                                                                                                     |
+| **Scope**                | A samber/do child injector with lifecycle isolation. The redesign uses separate scopes per instance (or per layer for simpler setups). Each scope can be shut down independently.                                                                             |
+| **Scream Store**         | The safety mechanism that detects and blocks unsafe operator changes by diffing the current plan against a pinned manifest.                                                                                                                                   |
+| **SerializablePlan**     | A JSON-serializable snapshot of PlanResult, stripping runtime closures and reflect.Type values.                                                                                                                                                               |
+| **Source of Truth**      | The event log (and command/query audit logs). The authoritative, immutable record.                                                                                                                                                                            |
+| **System**               | The new composition root (replacing Bundle). Owns construction, lifecycle, topology, and introspection.                                                                                                                                                       |
+| **Topology**             | A structured snapshot of the entire wired deployment (engines, stores, projections, bus, dispatchers).                                                                                                                                                        |
 
 ---
 

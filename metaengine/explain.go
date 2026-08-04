@@ -157,13 +157,16 @@ func (s *Store) ExplainPlan() string {
 
 		if rc := p.ReadCosts; rc.NsPerPointLookup > 0 || rc.NsPerFilteredScan > 0 ||
 			rc.NsPerAggregate > 0 || rc.NsPerScan > 0 {
-			fmt.Fprintf(&b, "  %s (point=%.0fns, scan=%.0fns/row, push=%.0fns/row, agg=%.0fns/row, write=%.0fns/op)",
+			fmt.Fprintf(
+				&b,
+				"  %s (point=%.0fns, scan=%.0fns/row, push=%.0fns/row, agg=%.0fns/row, write=%.0fns/op)",
 				p.Name,
 				p.NsForRead(ReadPointLookup),
 				p.NsForRead(ReadScan),
 				p.NsForRead(ReadFilteredScan),
 				p.NsForRead(ReadAggregate),
-				p.WriteNsPerOp())
+				p.WriteNsPerOp(),
+			)
 		} else {
 			fmt.Fprintf(&b, "  %s (read=%.0fns/op, write=%.0fns/op)",
 				p.Name, p.ReadNsPerOp(), p.WriteNsPerOp())

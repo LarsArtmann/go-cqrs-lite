@@ -62,8 +62,13 @@ func TestCatalogImportHintsUnique(t *testing.T) {
 				continue
 			}
 			if hintA != hintB && hintMatchesAtBoundary(hintA, hintB) {
-				t.Errorf("import hint %q (module %s) matches at path boundary within %q (module %s) — ambiguous detection",
-					hintA, keyA, hintB, keyB)
+				t.Errorf(
+					"import hint %q (module %s) matches at path boundary within %q (module %s) — ambiguous detection",
+					hintA,
+					keyA,
+					hintB,
+					keyB,
+				)
 			}
 		}
 	}
@@ -215,36 +220,36 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 	// - the library root itself (.)
 	// - benchmarking utilities (benchkit, stack/bench)
 	excludedModules := map[string]string{
-		".":                       "library root (consumers import sub-modules, not the root)",
-		"benchkit":                "benchmarking utility (niche, not a typical adoption decision)",
-		"cmd/api-stability":       "tooling",
-		"cmd/cqrs-bench":          "tooling",
-		"cmd/cqrs-gen":            "tooling",
-		"cmd/cqrs-lint":           "tooling",
-		"cmd/doc-check":           "tooling",
-		"dispatcher":              "internal infrastructure (generic dispatcher used by command/query)",
-		"event/v4/eventtest":      "test helper sub-package",
-		"example/getting-started": "example project",
-		"example/readme-quickstart": "example project",
-		"example/taskmanager":     "example project",
-		"idempotency/kvstore":     "sub-package (covered by idempotency)",
-		"idempotency/sqlstore":    "sub-package (covered by idempotency)",
-		"integration":             "cross-module integration tests",
-		"metaengine/duckdbengine":  "sub-engine (covered by metaengine)",
-		"metaengine/pebbleengine":  "sub-engine (covered by metaengine)",
-		"metaengine/pgengine":      "sub-engine (covered by metaengine)",
+		".":                            "library root (consumers import sub-modules, not the root)",
+		"benchkit":                     "benchmarking utility (niche, not a typical adoption decision)",
+		"cmd/api-stability":            "tooling",
+		"cmd/cqrs-bench":               "tooling",
+		"cmd/cqrs-gen":                 "tooling",
+		"cmd/cqrs-lint":                "tooling",
+		"cmd/doc-check":                "tooling",
+		"dispatcher":                   "internal infrastructure (generic dispatcher used by command/query)",
+		"event/v4/eventtest":           "test helper sub-package",
+		"example/getting-started":      "example project",
+		"example/readme-quickstart":    "example project",
+		"example/taskmanager":          "example project",
+		"idempotency/kvstore":          "sub-package (covered by idempotency)",
+		"idempotency/sqlstore":         "sub-package (covered by idempotency)",
+		"integration":                  "cross-module integration tests",
+		"metaengine/duckdbengine":      "sub-engine (covered by metaengine)",
+		"metaengine/pebbleengine":      "sub-engine (covered by metaengine)",
+		"metaengine/pgengine":          "sub-engine (covered by metaengine)",
 		"metaengine/projectionadapter": "sub-package (covered by metaengine)",
-		"middleware":              "middleware is adopted transitively via otel stack bundles; not a standalone adoption decision",
-		"projection":              "interface-only module (consumers use projectionhost)",
-		"scenario":                "test DSL (niche, not a production adoption decision)",
-		"stack":                   "root stack types (consumers import stack/<backend> presets)",
-		"stack/bench":             "benchmarking utility",
-		"stack/memory":            "in-memory preset (dev/test only, not a production adoption decision)",
-		"storage":                 "low-level SQL facade (consumers use stack/* presets)",
-		"storage/memory":          "low-level in-memory store (covered by stack/memory)",
-		"storage/pebble":          "low-level Pebble store (covered by stack/pebble)",
-		"storage/turso":           "low-level Turso connector (covered by stack/turso)",
-		"testutil":                "test utility package",
+		"middleware":                   "middleware is adopted transitively via otel stack bundles; not a standalone adoption decision",
+		"projection":                   "interface-only module (consumers use projectionhost)",
+		"scenario":                     "test DSL (niche, not a production adoption decision)",
+		"stack":                        "root stack types (consumers import stack/<backend> presets)",
+		"stack/bench":                  "benchmarking utility",
+		"stack/memory":                 "in-memory preset (dev/test only, not a production adoption decision)",
+		"storage":                      "low-level SQL facade (consumers use stack/* presets)",
+		"storage/memory":               "low-level in-memory store (covered by stack/memory)",
+		"storage/pebble":               "low-level Pebble store (covered by stack/pebble)",
+		"storage/turso":                "low-level Turso connector (covered by stack/turso)",
+		"testutil":                     "test utility package",
 	}
 
 	// Also exclude external workspace entries (../go-* paths).

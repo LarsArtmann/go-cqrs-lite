@@ -12,12 +12,12 @@ A single `NsPerRead` scalar was used for **every read operation** an engine coul
 perform, regardless of what the query actually did. On DuckDB, these operations
 span **4,000×**:
 
-| Read Pattern | What it does | DuckDB actual cost | Old model (`NsPerRead=1200`) | Error |
-|---|---|---|---|---|
-| **PointLookup** | `MapGet` — column scan for one key | **546,000 ns** | 1,200 ns | **455× underestimated** |
-| **FilteredScan** | `PushdownMapScan` — SQL WHERE pushdown | **454 ns/row** | 1,200 ns | 2.6× overestimated |
-| **Aggregate** | `SUM(CAST(...))` — vectorized GROUP BY | **133 ns/row** | 1,200 ns | 9× overestimated |
-| **FullScan** | `MapScan` — full table + Go decode | **975 ns/row** | 1,200 ns | 1.2× overestimated |
+| Read Pattern     | What it does                           | DuckDB actual cost | Old model (`NsPerRead=1200`) | Error                   |
+| ---------------- | -------------------------------------- | ------------------ | ---------------------------- | ----------------------- |
+| **PointLookup**  | `MapGet` — column scan for one key     | **546,000 ns**     | 1,200 ns                     | **455× underestimated** |
+| **FilteredScan** | `PushdownMapScan` — SQL WHERE pushdown | **454 ns/row**     | 1,200 ns                     | 2.6× overestimated      |
+| **Aggregate**    | `SUM(CAST(...))` — vectorized GROUP BY | **133 ns/row**     | 1,200 ns                     | 9× overestimated        |
+| **FullScan**     | `MapScan` — full table + Go decode     | **975 ns/row**     | 1,200 ns                     | 1.2× overestimated      |
 
 The planner uses this constant in its cost formula:
 
@@ -34,10 +34,10 @@ and "DuckDB is terrible at point lookups." Both used the same 1,200 ns constant.
 
 When both Memory and DuckDB were available:
 
-| Query | Memory cost | DuckDB cost (old) | DuckDB cost (new) | Right answer |
-|---|---|---|---|---|
-| Point lookup | 500 ns | 1,200 ns | **50,000 ns** | Memory |
-| Aggregation (10K rows) | 5,000,000 ns (N×500) | 12,000,000 ns (N×1200) | **1,500,000 ns** (N×150) | DuckDB |
+| Query                  | Memory cost          | DuckDB cost (old)      | DuckDB cost (new)        | Right answer |
+| ---------------------- | -------------------- | ---------------------- | ------------------------ | ------------ |
+| Point lookup           | 500 ns               | 1,200 ns               | **50,000 ns**            | Memory       |
+| Aggregation (10K rows) | 5,000,000 ns (N×500) | 12,000,000 ns (N×1200) | **1,500,000 ns** (N×150) | DuckDB       |
 
 Before the fix, the planner picked **Memory** for everything because DuckDB's
 single scalar (1,200) was higher than Memory's (500). DuckDB's vectorized
@@ -123,33 +123,34 @@ to before. Zero regressions.
 
 **DuckDB** (`duckdbengine/engine.go`):
 
-| Field | Value (ns) | Benchmark source |
-|---|---|---|
-| `NsPerPointLookup` | 50,000 | `BenchmarkDuckDB_MapGet`: 546K measured, 50K conservative |
-| `NsPerFilteredScan` | 450 | `BenchmarkCalibration_DuckDB_PushdownScan`: 454 ns/row |
-| `NsPerAggregate` | 150 | `BenchmarkCalibration_DuckDB_AggregateSum`: 133 ns/row |
-| `NsPerScan` | 1,000 | `BenchmarkCalibration_DuckDB_FullScan`: 975 ns/row |
+| Field               | Value (ns) | Benchmark source                                          |
+| ------------------- | ---------- | --------------------------------------------------------- |
+| `NsPerPointLookup`  | 50,000     | `BenchmarkDuckDB_MapGet`: 546K measured, 50K conservative |
+| `NsPerFilteredScan` | 450        | `BenchmarkCalibration_DuckDB_PushdownScan`: 454 ns/row    |
+| `NsPerAggregate`    | 150        | `BenchmarkCalibration_DuckDB_AggregateSum`: 133 ns/row    |
+| `NsPerScan`         | 1,000      | `BenchmarkCalibration_DuckDB_FullScan`: 975 ns/row        |
 
 **Postgres** (`pgengine/engine.go`):
 
-| Field | Value (ns) | Benchmark source |
-|---|---|---|
-| `NsPerPointLookup` | 5,000 | Production model (Docker measured ~28K, network-adjusted) |
-| `NsPerFilteredScan` | 400 | `BenchmarkCalibration_Postgres_PushdownScan`: 402 ns/row |
-| `NsPerAggregate` | 150 | `BenchmarkCalibration_Postgres_AggregateSum`: 149 ns/row |
-| `NsPerScan` | 800 | `BenchmarkCalibration_Postgres_FullScan`: 805 ns/row |
+| Field               | Value (ns) | Benchmark source                                          |
+| ------------------- | ---------- | --------------------------------------------------------- |
+| `NsPerPointLookup`  | 5,000      | Production model (Docker measured ~28K, network-adjusted) |
+| `NsPerFilteredScan` | 400        | `BenchmarkCalibration_Postgres_PushdownScan`: 402 ns/row  |
+| `NsPerAggregate`    | 150        | `BenchmarkCalibration_Postgres_AggregateSum`: 149 ns/row  |
+| `NsPerScan`         | 800        | `BenchmarkCalibration_Postgres_FullScan`: 805 ns/row      |
 
 ### Planner decisions: before vs after
 
-| Query | Before (single scalar) | After (ReadCosts) | Correct? |
-|---|---|---|---|
-| Point lookup (Memory + DuckDB) | Either (both ~1200) | **Memory** (500 vs 50K) | Fixed |
-| Aggregation (Memory + DuckDB) | Memory (N×500 < N×1200) | **DuckDB** (N×150 < N×500) | Fixed |
-| Filtered scan (Memory + DuckDB) | Memory (N×500 < N×1200) | **DuckDB** (N×450 < N×500) | Fixed |
+| Query                           | Before (single scalar)  | After (ReadCosts)          | Correct? |
+| ------------------------------- | ----------------------- | -------------------------- | -------- |
+| Point lookup (Memory + DuckDB)  | Either (both ~1200)     | **Memory** (500 vs 50K)    | Fixed    |
+| Aggregation (Memory + DuckDB)   | Memory (N×500 < N×1200) | **DuckDB** (N×150 < N×500) | Fixed    |
+| Filtered scan (Memory + DuckDB) | Memory (N×500 < N×1200) | **DuckDB** (N×450 < N×500) | Fixed    |
 
 ### Tests proving the fix
 
 `metaengine/readcost_selection_test.go` (5 tests, all passing):
+
 - `TestReadCosts_PlannerPicksMemoryForPointLookup` — Memory wins point lookups by 100×
 - `TestReadCosts_PlannerPicksDuckDBForAggregate` — DuckDB wins aggregations by 3.3×
 - `TestReadCosts_NsForReadFallbackChain` — legacy engines (no ReadCosts) unaffected
@@ -200,15 +201,15 @@ the values are conservative and documented — but the long-term fix is:
 
 ## Files Changed
 
-| File | Change |
-|---|---|
-| `metaengine/engine.go` | Added `ReadCosts` struct + `NsForRead(ReadPattern)` method |
-| `metaengine/planner.go` | `ReadNsPerOp()` → `NsForRead(meta.QueryReadPattern())` (1 line) |
-| `metaengine/explain.go` | Explain output shows per-pattern costs when `ReadCosts` is set |
-| `metaengine/cost.go` | Updated HONESTY NOTE |
-| `metaengine/readcost_selection_test.go` | **New** — 5 tests proving correct selection |
-| `duckdbengine/engine.go` | Set calibrated `ReadCosts` from benchmark measurements |
-| `pgengine/engine.go` | Set calibrated `ReadCosts` from benchmark measurements |
+| File                                    | Change                                                          |
+| --------------------------------------- | --------------------------------------------------------------- |
+| `metaengine/engine.go`                  | Added `ReadCosts` struct + `NsForRead(ReadPattern)` method      |
+| `metaengine/planner.go`                 | `ReadNsPerOp()` → `NsForRead(meta.QueryReadPattern())` (1 line) |
+| `metaengine/explain.go`                 | Explain output shows per-pattern costs when `ReadCosts` is set  |
+| `metaengine/cost.go`                    | Updated HONESTY NOTE                                            |
+| `metaengine/readcost_selection_test.go` | **New** — 5 tests proving correct selection                     |
+| `duckdbengine/engine.go`                | Set calibrated `ReadCosts` from benchmark measurements          |
+| `pgengine/engine.go`                    | Set calibrated `ReadCosts` from benchmark measurements          |
 
 ## See Also
 

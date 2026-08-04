@@ -51,6 +51,7 @@ type AppConfig struct {
 	ShowSuppressed bool   `default:"false" flag:"show-suppressed" help:"Show suppressed findings with their suppression reason"`
 	StrictLoad     bool   `default:"false" flag:"strict-load"     help:"Exit non-zero if any packages failed to load (partial analysis)"`
 	Adoption       bool   `default:"false" flag:"adoption"        help:"Show F-series adoption coaching but exclude them from health score"`
+	Scorecard      bool   `default:"false" flag:"scorecard"       help:"Print module adoption scorecard (used/missing/coverage)"`
 
 	// Features declares which go-cqrs-lite modules the consumer uses.
 	// Each non-nil flag overrides auto-detection. See FeatureProfile docs.
@@ -101,6 +102,7 @@ func main() {
 		"  cqrs-lint rules              List all available rules\n" +
 		"  cqrs-lint explain            Explain the .cqrs-lint.json config format in detail\n" +
 		"  cqrs-lint doctor             Show resolved config + detected feature profile\n" +
+		"  cqrs-lint scorecard          Show module adoption scorecard (used/missing/coverage)\n" +
 		"  cqrs-lint init               Create a .cqrs-lint.json with defaults\n" +
 		"  cqrs-lint version            Print version\n\n" +
 		"SUPPRESSIONS:\n\n" +
@@ -157,6 +159,11 @@ func main() {
 	}
 
 	if err := setupDoctorCommand(cli); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := setupScorecardCommand(cli); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
