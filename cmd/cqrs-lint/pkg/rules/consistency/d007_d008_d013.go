@@ -268,7 +268,7 @@ func selectorPkgAndName(expr ast.Expr) (pkg, name string, ok bool) {
 		return "", "", false
 	}
 
-	ident, ok := sel.X.(*ast.Ident)
+	ident, ok := lintutil.SelectorIdent(sel)
 	if !ok {
 		return "", "", false
 	}

@@ -122,6 +122,14 @@ func SelectorMatches(sel *ast.SelectorExpr, pkgName string, selNames ...string) 
 	return slices.Contains(selNames, sel.Sel.Name)
 }
 
+// SelectorIdent returns the package qualifier identifier from a selector
+// expression (e.g. the "event" in event.New). Shared by rules that need the
+// raw qualifier without matching a specific package name (d007, c037).
+func SelectorIdent(sel *ast.SelectorExpr) (*ast.Ident, bool) {
+	ident, ok := sel.X.(*ast.Ident)
+	return ident, ok
+}
+
 // ExprCallSelector extracts the selector from an expression that is a function
 // call: expr → *ast.CallExpr → analyzer.SelectorFromExpr(call.Fun). Returns
 // (nil, false) when expr is not a call or its target is not a selector.

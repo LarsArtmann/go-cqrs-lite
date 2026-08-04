@@ -30,6 +30,7 @@ import (
 var ErrUnknownDialect = errors.New("sqlstore: unknown dialect")
 
 // Dialect selects SQL syntax for table creation and placeholders.
+// Intentional duplicate: see idempotency/sqlstore/store.go. Values MUST match.
 type Dialect int
 
 const (

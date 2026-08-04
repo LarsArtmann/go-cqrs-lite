@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "threshold": 3,
-  "recordedAt": "2026-08-04T22:59:01.348822438Z",
+  "recordedAt": "2026-08-04T23:51:25.975046587Z",
   "entries": [
     {
       "hash": "044538ad6d07b40f",
@@ -63,15 +63,15 @@
       "tokens": 6
     },
     {
-      "hash": "1aacd504be9c3da7",
+      "hash": "1c3097e8137b7a1c",
       "files": [
-        "kv/mem.go",
-        "metaengine/irohengine/transport.go"
+        "metaengine/pebbleengine/scan_count.go",
+        "metaengine/pebbleengine/stream_log.go"
       ],
       "tokens": 6
     },
     {
-      "hash": "1be99d48e9d063d7",
+      "hash": "22ad9ed13dfe7b35",
       "files": [
         "metaengine/irohengine/quic/latency.go",
         "metaengine/irohengine/loopback/transport.go"
@@ -79,10 +79,10 @@
       "tokens": 6
     },
     {
-      "hash": "1c3097e8137b7a1c",
+      "hash": "244b850924a62e68",
       "files": [
-        "metaengine/pebbleengine/scan_count.go",
-        "metaengine/pebbleengine/stream_log.go"
+        "metaengine/irohengine/loopback/transport.go",
+        "metaengine/irohengine/quic/transport.go"
       ],
       "tokens": 6
     },
@@ -123,6 +123,14 @@
         "cmd/cqrs-lint/pkg/rules/performance/p012_test.go"
       ],
       "tokens": 32
+    },
+    {
+      "hash": "289843d3a6a68477",
+      "files": [
+        "cmd/cqrs-lint/pkg/rules/consistency/d007_d008_d013.go",
+        "cmd/cqrs-lint/pkg/rules/correctness/c037.go"
+      ],
+      "tokens": 6
     },
     {
       "hash": "2ba447b1f4245aac",
@@ -173,14 +181,6 @@
       "files": [
         "stack/postgres/preset.go",
         "stack/duckdb/preset.go"
-      ],
-      "tokens": 8
-    },
-    {
-      "hash": "43cd18073444e530",
-      "files": [
-        "metaengine/irohengine/loopback/transport.go",
-        "metaengine/irohengine/quic/transport.go"
       ],
       "tokens": 8
     },
@@ -350,14 +350,6 @@
       "tokens": 10
     },
     {
-      "hash": "8ae563aebde78964",
-      "files": [
-        "metaengine/irohengine/quic/latency.go",
-        "metaengine/irohengine/loopback/frame.go"
-      ],
-      "tokens": 14
-    },
-    {
       "hash": "8bbf2c1eb147134d",
       "files": [
         "stack/mysql/preset.go",
@@ -405,6 +397,14 @@
       "tokens": 6
     },
     {
+      "hash": "9bba267600d2bda3",
+      "files": [
+        "metaengine/memory_stream_log.go",
+        "metaengine/memory_stream_log.go"
+      ],
+      "tokens": 6
+    },
+    {
       "hash": "9de157265ec9e677",
       "files": [
         "kv/cache.go",
@@ -427,14 +427,6 @@
         "catalog/internal/cattest/catalog.go"
       ],
       "tokens": 8
-    },
-    {
-      "hash": "a09d2b027bb00df6",
-      "files": [
-        "cmd/cqrs-lint/explain.go",
-        "cmd/cqrs-lint/explain.go"
-      ],
-      "tokens": 6
     },
     {
       "hash": "a88ff7e88ded5cb0",
@@ -580,28 +572,12 @@
       "tokens": 8
     },
     {
-      "hash": "f3e16f188bf766a2",
-      "files": [
-        "cmd/cqrs-lint/pkg/rules/consistency/d007_d008_d013.go",
-        "cmd/cqrs-lint/pkg/rules/correctness/c037.go"
-      ],
-      "tokens": 6
-    },
-    {
       "hash": "fc3e850f71cdf42a",
       "files": [
         "storage/pebble/command_read.go",
         "storage/pebble/query_read.go"
       ],
       "tokens": 6
-    },
-    {
-      "hash": "fdedccccec7c947e",
-      "files": [
-        "metaengine/pebbleengine/seq_seeding.go",
-        "metaengine/pebbleengine/seq_seeding.go"
-      ],
-      "tokens": 10
     },
     {
       "hash": "fe9149b263644fa7",

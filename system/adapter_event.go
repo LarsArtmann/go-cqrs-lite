@@ -144,19 +144,20 @@ func (a *EventAdapter) Load(ctx context.Context, ref id.StreamRef) ([]event.Even
 	return a.anyToEvents(values)
 }
 
-func (a *EventAdapter) LoadFromVersion(
-	ctx context.Context, ref id.StreamRef, version event.Version,
+// loadVersioned implements the temporal-fast-path-then-fallback pattern shared
+// by LoadFromVersion and LoadToVersion. temporalRead is only called when
+// a.temporal is non-nil. sliceFallback slices the full-stream fallback result.
+func (a *EventAdapter) loadVersioned(
+	ctx context.Context,
+	ref id.StreamRef,
+	temporalRead func() ([]any, error),
+	errLabel string,
+	sliceFallback func(all []event.Event) []event.Event,
 ) ([]event.Event, error) {
-	// Fast path: if the backend supports StreamTemporalReader, delegate to
-	// StreamReadFromVersion to avoid loading the full stream into memory.
-	// version is 0-indexed for LoadFromVersion (skip N events), but
-	// StreamReadFromVersion is 1-indexed inclusive, so add 1.
 	if a.temporal != nil {
-		values, err := a.temporal.StreamReadFromVersion(
-			ctx, a.collection, ref.StreamKey(), int64(version)+1,
-		)
+		values, err := temporalRead()
 		if err != nil {
-			return nil, fmt.Errorf("event adapter: load from version: %w", err)
+			return nil, fmt.Errorf("event adapter: %s: %w", errLabel, err)
 		}
 
 		return a.anyToEvents(values)
@@ -167,35 +168,43 @@ func (a *EventAdapter) LoadFromVersion(
 		return nil, err
 	}
 
-	start := min(int(version), len(all))
+	return sliceFallback(all), nil
+}
 
-	return all[start:], nil
+func (a *EventAdapter) LoadFromVersion(
+	ctx context.Context, ref id.StreamRef, version event.Version,
+) ([]event.Event, error) {
+	// StreamReadFromVersion is 1-indexed inclusive; LoadFromVersion's version
+	// is 0-indexed (skip N events), so add 1.
+	return a.loadVersioned(
+		ctx, ref,
+		func() ([]any, error) {
+			return a.temporal.StreamReadFromVersion(
+				ctx, a.collection, ref.StreamKey(), int64(version)+1,
+			)
+		},
+		"load from version",
+		func(all []event.Event) []event.Event {
+			return all[min(int(version), len(all)):]
+		},
+	)
 }
 
 func (a *EventAdapter) LoadToVersion(
 	ctx context.Context, ref id.StreamRef, maxVersion event.Version,
 ) ([]event.Event, error) {
-	// Fast path: if the backend supports StreamTemporalReader, delegate directly
-	// to avoid loading the full stream into memory.
-	if a.temporal != nil {
-		values, err := a.temporal.StreamReadAsOfVersion(
-			ctx, a.collection, ref.StreamKey(), int64(maxVersion),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("event adapter: load to version: %w", err)
-		}
-
-		return a.anyToEvents(values)
-	}
-
-	all, err := a.Load(ctx, ref)
-	if err != nil {
-		return nil, err
-	}
-
-	end := min(int(maxVersion), len(all))
-
-	return all[:end], nil
+	return a.loadVersioned(
+		ctx, ref,
+		func() ([]any, error) {
+			return a.temporal.StreamReadAsOfVersion(
+				ctx, a.collection, ref.StreamKey(), int64(maxVersion),
+			)
+		},
+		"load to version",
+		func(all []event.Event) []event.Event {
+			return all[:min(int(maxVersion), len(all))]
+		},
+	)
 }
 
 func (a *EventAdapter) LoadToTimestamp(

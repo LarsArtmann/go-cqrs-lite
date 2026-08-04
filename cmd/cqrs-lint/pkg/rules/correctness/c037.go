@@ -143,7 +143,7 @@ func codecFromTypedStore(call *ast.CallExpr) (storeDesc, codecName string, ok bo
 		return "", "", false
 	}
 
-	pkg, ok := sel.X.(*ast.Ident)
+	pkg, ok := lintutil.SelectorIdent(sel)
 	if !ok {
 		return "", "", false
 	}

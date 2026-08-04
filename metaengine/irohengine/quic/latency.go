@@ -80,4 +80,3 @@ var opDecMode = func() cbor.DecMode {
 	}.DecMode()
 	return dm
 }()
-
