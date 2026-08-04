@@ -13,9 +13,9 @@
 
 **Root cause confirmed:** `ParseSuppressions` used `strings.HasPrefix(line, commentPrefix)`, so a trailing comment after code (`x := sdk.X //cqrs-lint:ignore(A008)`) never matched.
 
-**Fix:** `pkg/suppression/parser.go` — replaced the `HasPrefix` guard with `strings.Index(line, commentPrefix)` and slices from the match onward. This recognizes the suppression prefix anywhere in the line, including end-of-line comments. Both `//cqrs-lint:` and `// cqrs-lint:` (space) variants work, as do comma-separated rule lists (`//cqrs-lint:ignore(B025,A017,E008)`).
+**Fix:** `pkg/suppression/parser.go` — replaced the `HasPrefix` guard with a comment-aware scan: locate the line's Go comment (first `//` outside a string literal) and require the directive at the START of that comment's text. This recognizes end-of-line comments (`code //cqrs-lint:ignore(A008)`) while rejecting two classes of false match that an anywhere-in-line search would catch: (1) doc/example strings (`fmt.Println("//cqrs-lint:ignore(RULE)")` — the `//` is inside a string) and (2) godoc comments that merely mention the syntax (`// see the //cqrs-lint:ignore docs` — the directive is not at the comment's start). Both `//cqrs-lint:` and `// cqrs-lint:` (space) variants work, as do comma-separated rule lists.
 
-**Propagate:** the fix flows through stale-suppression detection (`stale.go` calls `ParseSuppressions` per line) automatically.
+**Propagate:** the fix flows through stale-suppression detection (inline + block + unknown-rule paths, all unified on the same comment-aware scan) automatically.
 
 **Tests added:** `TestParseSuppressions_EndOfLine`, `TestParseSuppressions_EndOfLine_SpaceAfterSlashes`, `TestParseSuppressions_EndOfLine_CommaSeparated`, `TestNewSuppressionFilter_EndOfLineCommentInFile`.
 
@@ -109,5 +109,6 @@ This is conservative: it only suppresses when the helper *visibly* constructs th
 
 - `go build ./...` — clean
 - `go vet ./...` — clean
-- `go test ./...` — all packages green (suppression, analyzer, all rule categories)
-- New tests: 11 added across suppression (4), feature-profile (2), per-module (3), B025 (3), library preset (1)
+- `go test ./... -race` — all packages green (suppression, analyzer, all rule categories)
+- New tests: 14 added across suppression parser (6), stale detection (1), feature-profile (1), per-module detection (3), B025 helper tracing (3)
+- Self-lint of `cmd/cqrs-lint` on its own source: no stale/unknown-rule false warnings (previously the help-text strings mentioning the suppression syntax were falsely flagged)

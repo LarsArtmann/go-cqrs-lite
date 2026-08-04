@@ -35,6 +35,42 @@ func TestDetectStaleSuppressions_FindsStaleComment(t *testing.T) {
 	}
 }
 
+// TestDetectStaleSuppressions_IgnoresDocStringMentions ensures documentation
+// strings and doc comments that merely mention the suppression syntax are NOT
+// reported as stale suppressions. This guards against false positives where a
+// help text string or a godoc comment contains "//cqrs-lint:ignore(RULE)" or
+// "//cqrs-lint:ignore-start" as illustrative text rather than a real directive.
+func TestDetectStaleSuppressions_IgnoresDocStringMentions(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "example.go")
+
+	content := `package main
+
+import "fmt"
+
+// countSuppressions scans for //cqrs-lint:ignore(RULE) comments in the source.
+func help() {
+	fmt.Println("Suppress with //cqrs-lint:ignore(RULE)")
+	fmt.Println("    //cqrs-lint:ignore-start ... //cqrs-lint:ignore-end")
+}
+
+type Foo struct{}
+`
+	if err := os.WriteFile(src, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// With zero findings every REAL suppression would be stale. Asserting ZERO
+	// stale reports proves none of the doc strings / godoc mentions were
+	// mistaken for real directives.
+	stale := suppression.DetectStaleSuppressions([]string{src}, nil)
+	if len(stale) != 0 {
+		t.Errorf("doc strings/comments should not be flagged as stale; got %d: %v", len(stale), stale)
+	}
+}
+
 func TestDetectStaleSuppressions_NoStaleWhenFindingMatches(t *testing.T) {
 	tmp := t.TempDir()
 	src := filepath.Join(tmp, "example.go")

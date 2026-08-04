@@ -8,6 +8,7 @@ Tags use the full module path: `cmd/cqrs-lint/vX.Y.Z`.
 ### Fixed
 
 - **End-of-line suppressions now work** — `//cqrs-lint:ignore(RULE)` comments placed at the end of a code line (e.g. `EventType = sdk.EventType //cqrs-lint:ignore(A008) re-export`) are now recognized. Previously the parser required the line to START with the comment prefix, so trailing suppressions were silently ignored despite the help text advertising "at end of line" support. Both `//cqrs-lint:` and `// cqrs-lint:` variants work end-of-line, including comma-separated rule lists. (cqrs-htmx feedback round 2, issue 1)
+- **Suppression parser ignores doc strings and godoc mentions** — the parser now locates the line's Go comment (first `//` outside a string literal) and requires the directive at the START of that comment's text. This means documentation strings (`fmt.Println("//cqrs-lint:ignore(RULE)")`) and godoc comments that merely mention the syntax (`// see the //cqrs-lint:ignore docs`) are no longer mistaken for real suppressions or flagged as stale. Applies to inline, block, and unknown-rule detection.
 - **Preset split-brain eliminated** — the `init` command and runtime no longer maintain separate preset definitions. Previously `init` had `server`+`full-stack` presets (silently ignored at runtime) while the runtime had `production`+`read-only` (not generatable by init). Now both read from a single `PresetDefinitions` map
 - **Stale known-keys warning** — the unknown-rules-key warning now lists all 4 valid keys (was missing `c008-ignore-structs`)
 
