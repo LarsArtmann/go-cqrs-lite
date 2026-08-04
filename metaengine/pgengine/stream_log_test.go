@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 func TestPostgresEngine_StreamLogRoundtrip(t *testing.T) {

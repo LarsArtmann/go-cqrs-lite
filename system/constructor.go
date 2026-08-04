@@ -262,7 +262,8 @@ func RegisterDecider[State any](
 
 	// Wire snapshot store + codec if available (D12: snapshot support through System).
 	if sys.snapStore != nil {
-		repoOpts = append(repoOpts,
+		repoOpts = append(
+			repoOpts,
 			decider.WithSnapshotStore[State](sys.snapStore),
 			decider.WithCodec[State](codec.JSONCodec{}),
 		)

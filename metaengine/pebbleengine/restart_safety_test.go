@@ -8,8 +8,8 @@ import (
 	"github.com/cockroachdb/pebble"
 	. "github.com/onsi/gomega"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // TestPebbleRestartSafety_StreamAndJournal verifies that reopening a persistent

@@ -175,7 +175,8 @@ func TestSystem_SnapshotE2E_DeciderLifecycle(t *testing.T) {
 				panic(err2)
 			}
 
-			if err := system.RegisterDecider(sys, "Task", TaskDecider,
+			if err := system.RegisterDecider(
+				sys, "Task", TaskDecider,
 				system.WithSnapshotStrategy(strategy),
 			); err != nil {
 				panic(err)

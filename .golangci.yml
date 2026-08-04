@@ -377,9 +377,15 @@ linters:
           - forcetypeassert
           - gocyclo
           - cyclop
+          - maintidx
       - path: metaengine/irohengine/
         linters:
           - exhaustruct
+          - wrapcheck
+          - prealloc
+          - gochecknoglobals
+          - predeclared
+          - gocritic
       - path: testhelpers/fake.*\.go$
         linters:
           - exhaustruct
