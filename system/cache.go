@@ -103,10 +103,5 @@ func (c *CachedEventStore) ReadFrom(
 
 // CacheStats returns basic cache statistics for introspection.
 func (c *CachedEventStore) CacheStats() (size int, capacity int) {
-	count := 0
-	for range c.cache.Keys() {
-		count++
-	}
-
-	return count, 0
+	return c.cache.Size(), c.cache.Capacity()
 }

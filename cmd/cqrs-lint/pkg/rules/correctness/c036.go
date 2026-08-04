@@ -27,13 +27,6 @@ func NewC036Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"C036-store-backend-mismatch",
 		func(_ context.Context) ([]finding.Finding, error) {
-			eventBackend := ctx.FeatureProfile.Store
-			if eventBackend == analyzer.StoreUnknown ||
-				eventBackend == analyzer.StoreNone ||
-				eventBackend == analyzer.StoreMemory {
-				return nil, nil
-			}
-
 			// Collect the actual backends used by event store constructors
 			// across all files. This catches the common pattern where the
 			// feature profile classifies the store as "custom" (no stack
@@ -47,6 +40,18 @@ func NewC036Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
+					continue
+				}
+
+				// Evaluate the store backend per-module: the "expected"
+				// backend is THIS file's module's event store, not the
+				// workspace-wide primary profile. Using the primary profile
+				// would flag secondary stores in a library module against
+				// an example module's backend.
+				eventBackend := ctx.ProfileForFile(gf.Path).Store
+				if eventBackend == analyzer.StoreUnknown ||
+					eventBackend == analyzer.StoreNone ||
+					eventBackend == analyzer.StoreMemory {
 					continue
 				}
 

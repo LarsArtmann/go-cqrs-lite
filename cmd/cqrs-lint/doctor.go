@@ -5,6 +5,7 @@ import (
 	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -26,20 +27,19 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 				return fmt.Errorf("load packages: %w", err)
 			}
 
-			renderDoctorLoadErrors(actx)
-
-			renderDoctorConfigFile(cfg)
+			renderDoctorLoadErrors(os.Stderr, actx)
+			renderDoctorConfigFile(os.Stdout, cfg)
 
 			// Resolve all overrides so the rest of the output shows the
 			// EFFECTIVE configuration, not just the raw detected values.
 			applyConfigOverrides(cfg, actx)
 
-			renderDoctorPreset(cfg)
-			renderDoctorEffectiveSettings(cfg)
-			renderDoctorFeatureProfile(actx)
-			renderDoctorPerModuleProfiles(actx)
-			renderDoctorSuggestedConfig(cfg, actx)
-			renderDoctorSuppressions(actx)
+			renderDoctorPreset(os.Stdout, cfg)
+			renderDoctorEffectiveSettings(os.Stdout, cfg)
+			renderDoctorFeatureProfile(os.Stdout, actx)
+			renderDoctorPerModuleProfiles(os.Stdout, actx)
+			renderDoctorSuggestedConfig(os.Stdout, cfg, actx)
+			renderDoctorSuppressions(os.Stdout, actx)
 
 			return nil
 		},
@@ -52,75 +52,75 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 }
 
 // renderDoctorLoadErrors prints package-loading failures if any were detected.
-func renderDoctorLoadErrors(actx *analyzer.AnalysisContext) {
+func renderDoctorLoadErrors(w io.Writer, actx *analyzer.AnalysisContext) {
 	if len(actx.LoadErrors) == 0 {
 		return
 	}
 
 	fmt.Fprintln(
-		os.Stderr,
+		w,
 		"WARNING: package loading was partial; the profile below may be incomplete or misleading.",
 	)
 	for _, le := range actx.LoadErrors {
 		if le.PkgPath != "" {
-			fmt.Fprintf(os.Stderr, "  %s (%s):\n", le.Module, le.PkgPath)
+			fmt.Fprintf(w, "  %s (%s):\n", le.Module, le.PkgPath)
 		} else {
-			fmt.Fprintf(os.Stderr, "  %s:\n", le.Module)
+			fmt.Fprintf(w, "  %s:\n", le.Module)
 		}
 		for _, msg := range le.Errors {
-			fmt.Fprintf(os.Stderr, "    %s\n", msg)
+			fmt.Fprintf(w, "    %s\n", msg)
 		}
 	}
-	fmt.Fprintln(os.Stderr)
+	fmt.Fprintln(w)
 }
 
 // renderDoctorConfigFile shows the raw .cqrs-lint.json content (if present),
 // including parent configs found in ancestor directories.
-func renderDoctorConfigFile(cfg *AppConfig) {
-	fmt.Println("CONFIG FILE")
-	fmt.Println("───────────")
+func renderDoctorConfigFile(w io.Writer, cfg *AppConfig) {
+	fmt.Fprintln(w, "CONFIG FILE")
+	fmt.Fprintln(w, "───────────")
 
 	configPath := filepath.Join(cfg.Path, ".cqrs-lint.json")
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		absPath, _ := filepath.Abs(configPath)
-		fmt.Printf("  Path:    %s\n", absPath)
-		fmt.Println("  Status:  NOT FOUND")
-		fmt.Println()
-		fmt.Println("  No .cqrs-lint.json found. Run 'cqrs-lint init' to create one,")
-		fmt.Println("  or 'cqrs-lint explain' to see all available options.")
-		fmt.Println()
-		fmt.Println()
+		fmt.Fprintf(w, "  Path:    %s\n", absPath)
+		fmt.Fprintln(w, "  Status:  NOT FOUND")
+		fmt.Fprintln(w)
+		fmt.Fprintln(w, "  No .cqrs-lint.json found. Run 'cqrs-lint init' to create one,")
+		fmt.Fprintln(w, "  or 'cqrs-lint explain' to see all available options.")
+		fmt.Fprintln(w)
+		fmt.Fprintln(w)
 		return
 	}
 
 	absPath, _ := filepath.Abs(configPath)
 	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
-	fmt.Printf("  Path:    %s\n", absPath)
-	fmt.Printf("  Status:  Found (%d lines, %d bytes)\n", len(lines), len(data))
-	fmt.Println()
-	fmt.Println("  Content:")
+	fmt.Fprintf(w, "  Path:    %s\n", absPath)
+	fmt.Fprintf(w, "  Status:  Found (%d lines, %d bytes)\n", len(lines), len(data))
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "  Content:")
 
 	for _, line := range lines {
-		fmt.Printf("    %s\n", line)
+		fmt.Fprintf(w, "    %s\n", line)
 	}
 
 	// Show parent configs (monorepo inheritance)
 	parents := findParentConfigs(cfg.Path)
 	if len(parents) > 0 {
-		fmt.Println()
-		fmt.Println("  Parent configs (merged for rule disables):")
+		fmt.Fprintln(w)
+		fmt.Fprintln(w, "  Parent configs (merged for rule disables):")
 		for _, p := range parents {
 			rel, err := filepath.Rel(cfg.Path, p)
 			if err != nil {
 				rel = p
 			}
-			fmt.Printf("    %s\n", rel)
+			fmt.Fprintf(w, "    %s\n", rel)
 		}
 	}
 
-	fmt.Println()
-	fmt.Println()
+	fmt.Fprintln(w)
+	fmt.Fprintln(w)
 }
 
 // findParentConfigs walks up the directory tree and returns paths to all
@@ -152,52 +152,53 @@ func findParentConfigs(lintPath string) []string {
 }
 
 // renderDoctorPreset shows the active preset with its description and what it provides.
-func renderDoctorPreset(cfg *AppConfig) {
-	fmt.Println("ACTIVE PRESET")
-	fmt.Println("─────────────")
+func renderDoctorPreset(w io.Writer, cfg *AppConfig) {
+	fmt.Fprintln(w, "ACTIVE PRESET")
+	fmt.Fprintln(w, "─────────────")
 
 	if cfg.Preset == "" {
-		fmt.Println("  (none)")
-		fmt.Println()
-		fmt.Println("  No preset active. All features are auto-detected.")
-		fmt.Println("  See 'cqrs-lint explain' for available presets.")
-		fmt.Println()
-		fmt.Println()
+		fmt.Fprintln(w, "  (none)")
+		fmt.Fprintln(w)
+		fmt.Fprintln(w, "  No preset active. All features are auto-detected.")
+		fmt.Fprintln(w, "  See 'cqrs-lint explain' for available presets.")
+		fmt.Fprintln(w)
+		fmt.Fprintln(w)
 		return
 	}
 
 	desc := presetDescriptions[cfg.Preset]
 	presetDef := analyzer.ResolvePresetDefinition(cfg.Preset)
 
-	fmt.Printf("  %s\n", cfg.Preset)
+	fmt.Fprintf(w, "  %s\n", cfg.Preset)
 	if desc != "" {
-		fmt.Printf("    %s\n", desc)
+		fmt.Fprintf(w, "    %s\n", desc)
 	}
 
 	if f := formatConfigFeatures(presetDef.Features); f != "" {
-		fmt.Printf("    Features pinned:  %s\n", f)
+		fmt.Fprintf(w, "    Features pinned:  %s\n", f)
 	}
 
 	if len(presetDef.Rules.Disable) > 0 {
-		fmt.Printf("    Rules disabled:   %s\n", strings.Join(presetDef.Rules.Disable, ", "))
+		fmt.Fprintf(w, "    Rules disabled:   %s\n", strings.Join(presetDef.Rules.Disable, ", "))
 	}
 
 	if presetDef.MinSeverity != "" {
-		fmt.Printf("    Severity floor:   %s\n", presetDef.MinSeverity)
+		fmt.Fprintf(w, "    Severity floor:   %s\n", presetDef.MinSeverity)
 	}
 
-	fmt.Println()
-	fmt.Println()
+	fmt.Fprintln(w)
+	fmt.Fprintln(w)
 }
 
 // renderDoctorEffectiveSettings shows the resolved configuration after all
 // overrides (preset, config file, auto-detection) are applied.
-func renderDoctorEffectiveSettings(cfg *AppConfig) {
-	fmt.Println("EFFECTIVE SETTINGS")
-	fmt.Println("──────────────────")
-	fmt.Println()
+func renderDoctorEffectiveSettings(w io.Writer, cfg *AppConfig) {
+	fmt.Fprintln(w, "EFFECTIVE SETTINGS")
+	fmt.Fprintln(w, "──────────────────")
+	fmt.Fprintln(w)
 
 	presetDef := analyzer.ResolvePresetDefinition(cfg.Preset)
+
 	effectiveSev := resolveMinSeverity(presetDef.MinSeverity, cfg.MinSeverity)
 	sevSource := "default"
 	if presetDef.MinSeverity != "" && effectiveSev == presetDef.MinSeverity {
@@ -206,20 +207,20 @@ func renderDoctorEffectiveSettings(cfg *AppConfig) {
 		sevSource = "config"
 	}
 
-	fmt.Printf("  min-severity:    %s  (%s)\n", effectiveSev, sevSource)
-	fmt.Printf("  min-confidence:  %s\n", cfg.MinConfidence)
-	fmt.Printf("  format:          %s\n", cfg.Format)
-	fmt.Printf("  color:           %s\n", cfg.Color)
+	fmt.Fprintf(w, "  min-severity:    %s  (%s)\n", effectiveSev, sevSource)
+	fmt.Fprintf(w, "  min-confidence:  %s\n", cfg.MinConfidence)
+	fmt.Fprintf(w, "  format:          %s\n", cfg.Format)
+	fmt.Fprintf(w, "  color:           %s\n", cfg.Color)
 
 	if cfg.Preset != "" {
-		fmt.Printf("  preset:          %s\n", cfg.Preset)
+		fmt.Fprintf(w, "  preset:          %s\n", cfg.Preset)
 	}
 
 	// Disabled rules with source breakdown
 	totalRules := len(rules.AllRules())
 	disabledCount := len(cfg.Rules.Disable)
 	activeCount := totalRules - disabledCount
-	fmt.Printf("  rules:           %d total, %d active, %d disabled\n",
+	fmt.Fprintf(w, "  rules:           %d total, %d active, %d disabled\n",
 		totalRules, activeCount, disabledCount)
 
 	if disabledCount > 0 {
@@ -239,46 +240,46 @@ func renderDoctorEffectiveSettings(cfg *AppConfig) {
 		}
 
 		if len(fromPreset) > 0 {
-			fmt.Printf("    from preset:   %s\n", strings.Join(fromPreset, ", "))
+			fmt.Fprintf(w, "    from preset:   %s\n", strings.Join(fromPreset, ", "))
 		}
 		if len(fromConfig) > 0 {
-			fmt.Printf("    from config:   %s\n", strings.Join(fromConfig, ", "))
+			fmt.Fprintf(w, "    from config:   %s\n", strings.Join(fromConfig, ", "))
 		}
 	}
 
 	// Rules overrides
 	if len(cfg.Rules.ExternalAPIStructPrefixes) > 0 {
-		fmt.Printf("  external-api-struct-prefixes: %s\n",
+		fmt.Fprintf(w, "  external-api-struct-prefixes: %s\n",
 			strings.Join(cfg.Rules.ExternalAPIStructPrefixes, ", "))
 	}
 	if len(cfg.Rules.IgnoreFloatFields) > 0 {
-		fmt.Printf("  c008-ignore-fields: %s\n",
+		fmt.Fprintf(w, "  c008-ignore-fields: %s\n",
 			strings.Join(cfg.Rules.IgnoreFloatFields, ", "))
 	}
 	if len(cfg.Rules.IgnoreStructs) > 0 {
-		fmt.Printf("  c008-ignore-structs: %s\n",
+		fmt.Fprintf(w, "  c008-ignore-structs: %s\n",
 			strings.Join(cfg.Rules.IgnoreStructs, ", "))
 	}
 
 	// Health config
 	if cfg.Health.InfoCap != 0 {
-		fmt.Printf("  health.info-cap: %d\n", cfg.Health.InfoCap)
+		fmt.Fprintf(w, "  health.info-cap: %d\n", cfg.Health.InfoCap)
 	}
 
-	fmt.Println()
-	fmt.Println()
+	fmt.Fprintln(w)
+	fmt.Fprintln(w)
 }
 
 // renderDoctorFeatureProfile shows the resolved feature profile, annotating
 // which features were pinned by config/preset vs auto-detected.
-func renderDoctorFeatureProfile(actx *analyzer.AnalysisContext) {
+func renderDoctorFeatureProfile(w io.Writer, actx *analyzer.AnalysisContext) {
 	profile := actx.FeatureProfile
 
-	fmt.Println("FEATURE PROFILE")
-	fmt.Println("───────────────")
-	fmt.Println()
-	fmt.Print(profile)
-	fmt.Println()
+	fmt.Fprintln(w, "FEATURE PROFILE")
+	fmt.Fprintln(w, "───────────────")
+	fmt.Fprintln(w)
+	fmt.Fprint(w, profile)
+	fmt.Fprintln(w)
 
 	// Show config overrides if any features were explicitly pinned
 	cf := actx.FeatureProfile.ToConfigFeatures()
@@ -287,24 +288,24 @@ func renderDoctorFeatureProfile(actx *analyzer.AnalysisContext) {
 		cf.Domain != nil || cf.Transport != nil || cf.ServerLocal != nil || cf.AsyncBus != nil
 
 	if hasOverrides {
-		fmt.Println(
+		fmt.Fprintln(w,
 			"  Note: some features are pinned by config/preset (see EFFECTIVE SETTINGS above).",
 		)
-		fmt.Println("        Unpinned features were auto-detected from source code analysis.")
-		fmt.Println()
+		fmt.Fprintln(w, "        Unpinned features were auto-detected from source code analysis.")
+		fmt.Fprintln(w)
 	}
 }
 
 // renderDoctorPerModuleProfiles shows each module's profile in multi-module workspaces.
-func renderDoctorPerModuleProfiles(actx *analyzer.AnalysisContext) {
+func renderDoctorPerModuleProfiles(w io.Writer, actx *analyzer.AnalysisContext) {
 	if len(actx.FeatureProfiles) <= 1 {
 		return
 	}
 
-	fmt.Println()
-	fmt.Printf("PER-MODULE PROFILES (%d modules)\n", len(actx.FeatureProfiles))
-	fmt.Println("─────────────────────────────────")
-	fmt.Println()
+	fmt.Fprintln(w)
+	fmt.Fprintf(w, "PER-MODULE PROFILES (%d modules)\n", len(actx.FeatureProfiles))
+	fmt.Fprintln(w, "─────────────────────────────────")
+	fmt.Fprintln(w)
 
 	type modProfile struct {
 		dir     string
@@ -326,15 +327,15 @@ func renderDoctorPerModuleProfiles(actx *analyzer.AnalysisContext) {
 			rel = "(root)"
 		}
 
-		fmt.Printf("=== %s ===\n", rel)
-		fmt.Print(m.profile)
-		fmt.Println()
+		fmt.Fprintf(w, "=== %s ===\n", rel)
+		fmt.Fprint(w, m.profile)
+		fmt.Fprintln(w)
 	}
 }
 
 // renderDoctorSuggestedConfig outputs a copy-pasteable .cqrs-lint.json features
 // section based on the detected profile.
-func renderDoctorSuggestedConfig(cfg *AppConfig, actx *analyzer.AnalysisContext) {
+func renderDoctorSuggestedConfig(w io.Writer, cfg *AppConfig, actx *analyzer.AnalysisContext) {
 	profile := actx.FeatureProfile
 	features := profile.ToConfigFeatures()
 
@@ -347,12 +348,12 @@ func renderDoctorSuggestedConfig(cfg *AppConfig, actx *analyzer.AnalysisContext)
 		return
 	}
 
-	fmt.Println("SUGGESTED .cqrs-lint.json")
-	fmt.Println("─────────────────────────")
-	fmt.Println()
-	fmt.Println("  Copy-paste to pin the detected profile (prevents auto-detection drift):")
-	fmt.Println()
-	fmt.Println(string(raw))
+	fmt.Fprintln(w, "SUGGESTED .cqrs-lint.json")
+	fmt.Fprintln(w, "─────────────────────────")
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "  Copy-paste to pin the detected profile (prevents auto-detection drift):")
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, string(raw))
 
 	// Show rules overrides if loaded
 	if len(cfg.Rules.ExternalAPIStructPrefixes) > 0 {
@@ -362,28 +363,28 @@ func renderDoctorSuggestedConfig(cfg *AppConfig, actx *analyzer.AnalysisContext)
 			jsontext.WithIndent("  "),
 		)
 		if err == nil {
-			fmt.Println()
-			fmt.Println("  Loaded rules overrides:")
-			fmt.Println()
-			fmt.Println(string(rulesRaw))
+			fmt.Fprintln(w)
+			fmt.Fprintln(w, "  Loaded rules overrides:")
+			fmt.Fprintln(w)
+			fmt.Fprintln(w, string(rulesRaw))
 		}
 	}
 
-	fmt.Println()
+	fmt.Fprintln(w)
 }
 
 // renderDoctorSuppressions counts and displays inline //cqrs-lint:ignore comments.
-func renderDoctorSuppressions(actx *analyzer.AnalysisContext) {
+func renderDoctorSuppressions(w io.Writer, actx *analyzer.AnalysisContext) {
 	suppressionCounts := countSuppressions(actx)
 	if len(suppressionCounts) == 0 {
 		return
 	}
 
-	fmt.Println("INLINE SUPPRESSIONS")
-	fmt.Println("───────────────────")
-	fmt.Println()
-	fmt.Println("  //cqrs-lint:ignore(RULE) counts per rule:")
-	fmt.Println()
+	fmt.Fprintln(w, "INLINE SUPPRESSIONS")
+	fmt.Fprintln(w, "───────────────────")
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "  //cqrs-lint:ignore(RULE) counts per rule:")
+	fmt.Fprintln(w)
 
 	type suppressionEntry struct {
 		rule  string
@@ -400,13 +401,13 @@ func renderDoctorSuppressions(actx *analyzer.AnalysisContext) {
 	})
 
 	for _, e := range entries {
-		fmt.Printf("    %-8s  %d suppressed\n", e.rule, e.count)
+		fmt.Fprintf(w, "    %-8s  %d suppressed\n", e.rule, e.count)
 	}
 
-	fmt.Println()
-	fmt.Println("  High suppression counts may signal a rule heuristic that needs tuning.")
-	fmt.Println("  Consider reporting these as false positives.")
-	fmt.Println()
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "  High suppression counts may signal a rule heuristic that needs tuning.")
+	fmt.Fprintln(w, "  Consider reporting these as false positives.")
+	fmt.Fprintln(w)
 }
 
 // countSuppressions scans all Go files for //cqrs-lint:ignore(RULE) comments

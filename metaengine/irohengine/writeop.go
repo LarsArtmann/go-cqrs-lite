@@ -24,13 +24,19 @@ const (
 // mutation to its local engine. The Timestamp field implements last-writer-wins
 // (LWW) resolution for MapSet and MapDelete operations.
 //
+// ID uniquely identifies this op for delivery tracking and convergence measurement.
+// PublishedAt is set by the transport at the moment the op enters the network,
+// enabling real delivery-latency measurement on receiving nodes.
+//
 // Non-CRDT operations (MapUpdate) are intentionally NOT representable as WriteOps.
 type WriteOp struct {
-	Collection string
-	Kind       OpKind
-	Author     string
-	Timestamp  time.Time
-	Key        any
-	Value      any
-	Delta      metaengine.Delta
+	ID          string
+	PublishedAt time.Time
+	Collection  string
+	Kind        OpKind
+	Author      string
+	Timestamp   time.Time
+	Key         any
+	Value       any
+	Delta       metaengine.Delta
 }

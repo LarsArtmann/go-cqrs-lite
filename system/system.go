@@ -43,6 +43,10 @@ type DomainConfig struct {
 	// auto-wire into projection instances.
 	Projections []metaengine.QueryDecl[any, any]
 
+	// ProjectionDecoder decodes event payloads for the projection fold handlers.
+	// If nil, events are decoded as generic JSON (map[string]any).
+	ProjectionDecoder func(eventType string, payload []byte) (any, error)
+
 	// Middleware is command-level domain middleware (validation, authz, etc.).
 	Middleware []command.Middleware
 }

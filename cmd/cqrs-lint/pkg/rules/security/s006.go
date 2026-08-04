@@ -119,7 +119,7 @@ func NewS006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					// Filtered by scoreFinancialStruct; unreachable here.
 				}
 
-				if !ctx.FeatureProfile.HasServer {
+				if !ctx.ProfileForFile(m.filename).HasServer {
 					severity = finding.SeverityInfo
 					if confidence > finding.ConfidenceLow {
 						confidence = finding.ConfidenceLow

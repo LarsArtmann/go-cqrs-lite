@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
@@ -44,7 +45,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		sys.engines = append(sys.engines, eng)
 	}
 
-	// Find the source-of-truth instance and wire the EventAdapter.
+	// Find the source-of-truth instance and wire the adapters.
 	for _, inst := range deployment.Instances {
 		if isSourceOfTruth(inst.Role) {
 			engineName := inst.Engine
@@ -70,6 +71,25 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 			}
 
 			sys.eventStore = NewEventAdapter(backend, "events")
+
+			// Wire command and query audit stores from the same backend.
+			if inst.Role == RoleSourceOfTruth || inst.Role == RoleCommands {
+				sys.cmdStore = NewCommandAdapter(backend, "commands")
+			}
+
+			if inst.Role == RoleSourceOfTruth || inst.Role == RoleQueries {
+				sys.queryStore = NewQueryAdapter(backend, "queries")
+			}
+
+			// Wire cache tier if configured.
+			if inst.Cache != nil && inst.Cache.Capacity > 0 {
+				cached, err := NewCachedEventStore(sys.eventStore, inst.Cache.Capacity)
+				if err != nil {
+					return nil, fmt.Errorf("system: create cache: %w", err)
+				}
+
+				sys.eventStore = cached
+			}
 		}
 
 		if inst.Role == RoleProjections && sys.projStore == nil {
@@ -137,6 +157,17 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		host, err := projectionhost.New(journal, &memoryCheckpointStore{})
 		if err != nil {
 			return nil, fmt.Errorf("system: create projection host: %w", err)
+		}
+
+		// Register a projection adapter that feeds events into the metaengine Store.
+		var decoder projectionadapter.PayloadDecoder
+		if domain.ProjectionDecoder != nil {
+			decoder = projectionadapter.PayloadDecoder(domain.ProjectionDecoder)
+		}
+
+		adapter := projectionadapter.New("projections", sys.projStore, decoder)
+		if err := host.Register(adapter); err != nil {
+			return nil, fmt.Errorf("system: register projection adapter: %w", err)
 		}
 
 		sys.projHost = host

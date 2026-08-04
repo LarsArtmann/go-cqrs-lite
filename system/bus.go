@@ -36,7 +36,7 @@ var (
 
 func (b *simpleBus) Publish(ctx context.Context, events ...event.Event) error {
 	// Apply publish middleware chain.
-	publisher := event.PublisherFunc(func(ctx context.Context, evts ...event.Event) error {
+	var publisher event.Publisher = event.PublisherFunc(func(ctx context.Context, evts ...event.Event) error {
 		for _, evt := range evts {
 			if err := b.dispatch(ctx, evt); err != nil {
 				return err

@@ -1,6 +1,7 @@
 package irohengine
 
 import (
+	"sync/atomic"
 	"time"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -10,12 +11,12 @@ import (
 type Option func(*config)
 
 type config struct {
-	namespace      string
-	author         string
-	transport      Transport
-	replicationLag time.Duration
-	networkRTT     time.Duration
+	namespace string
+	author    string
+	transport Transport
 }
+
+const defaultAuthor = "default"
 
 // WithNamespace sets the logical namespace for this node's writes.
 // Maps to iroh-docs' NamespaceId in a real Iroh integration.
@@ -37,36 +38,41 @@ func WithTransport(t Transport) Option {
 	return func(c *config) { c.transport = t }
 }
 
-// WithReplicationLag sets the expected replication lag for the engine profile.
-// Diagnostic-only; does not affect latency estimation. Defaults to 100ms.
-func WithReplicationLag(d time.Duration) Option {
-	return func(c *config) { c.replicationLag = d }
-}
-
-// WithNetworkRTT sets the round-trip time for the engine profile's cost model.
-// Additive latency: total = compute + NetworkRTT. Defaults to 50ms to model
-// a realistic P2P relay scenario.
-func WithNetworkRTT(d time.Duration) Option {
-	return func(c *config) { c.networkRTT = d }
-}
-
-const (
-	defaultReplicationLag = 100 * time.Millisecond
-	defaultNetworkRTT     = 50 * time.Millisecond
-	defaultAuthor         = "default"
-)
-
 func defaultConfig() *config {
 	return &config{
-		author:         defaultAuthor,
-		replicationLag: defaultReplicationLag,
-		networkRTT:     defaultNetworkRTT,
+		author: defaultAuthor,
 	}
+}
+
+var opSeq uint64
+
+func nextOpID() string {
+	return time.Now().Format("20060102-150405.000000000") + "-" +
+		itoa(int(atomic.AddUint64(&opSeq, 1)))
+}
+
+func itoa(n int) string {
+	if n == 0 {
+		return "0"
+	}
+	buf := [20]byte{}
+	pos := len(buf)
+	for n > 0 {
+		pos--
+		buf[pos] = byte('0' + n%10)
+		n /= 10
+	}
+	return string(buf[pos:])
 }
 
 // Replicated wraps a local engine with CRDT replication. The local engine
 // handles all reads (full query power retained); CRDT-safe writes are applied
 // locally AND published to the transport for cross-node convergence.
+//
+// ReplicationLag and NetworkRTT in the resulting EngineProfile are MEASURED
+// from actual delivery traffic — never hardcoded. The transport records real
+// delivery and convergence times; Profile() returns P99 convergence as lag and
+// 2× P50 delivery as RTT.
 //
 // Supported CRDT-safe operations:
 //   - MapSet (LWW-Map: latest timestamp wins)
@@ -92,6 +98,9 @@ func Replicated(local metaengine.Engine, opts ...Option) metaengine.Engine {
 	}
 
 	if cfg.transport != nil {
+		if lp, ok := cfg.transport.(LatencyProvider); ok {
+			eng.latency = lp
+		}
 		_ = cfg.transport.Subscribe(eng.applyRemote)
 	}
 

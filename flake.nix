@@ -369,6 +369,58 @@
             '';
           };
 
+          # NixOS nspawn container test: same MySQL health checks as mysqlServiceTest
+          # but ~10x faster (~15s vs ~131s) because systemd-nspawn shares the host
+          # kernel — no full QEMU VM boot. Requires the `uid-range` system feature
+          # and `auto-allocate-uids` on the host (see AGENTS.md → nspawn setup).
+          mysqlNspawnTest = pkgs.testers.runNixOSTest {
+            name = "mysql-service-health-nspawn";
+
+            # containers instead of nodes → systemd-nspawn, not QEMU
+            containers.machine =
+              {
+                ...
+              }:
+              {
+                imports = [ ./nix/vm/mysql.nix ];
+              };
+
+            testScript = ''
+              machine.start()
+              machine.wait_for_unit("mysql")
+              machine.wait_for_open_port(3306)
+
+              # Set password for the cqrs user (ensureUsers doesn't support passwords)
+              machine.succeed("mysql -u root -e \"ALTER USER 'cqrs'@'localhost' IDENTIFIED BY 'cqrs'; FLUSH PRIVILEGES;\" 2>/dev/null || true")
+              machine.succeed("mysql -u root -e \"CREATE USER IF NOT EXISTS 'cqrs'@'%' IDENTIFIED BY 'cqrs'; GRANT ALL PRIVILEGES ON *.* TO 'cqrs'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;\"")
+
+              # Verify the database and user exist
+              machine.succeed("mysql -h 127.0.0.1 -u cqrs --password=cqrs cqrs_test -e 'SELECT 1'")
+
+              # Verify it's MariaDB or MySQL
+              version = machine.succeed("mysql -h 127.0.0.1 -u cqrs --password=cqrs cqrs_test -N -e 'SELECT VERSION()'").strip()
+              print(f"MySQL version: {version}")
+
+              # Test JSON operations (used by the MySQL dialect)
+              machine.succeed(
+                "mysql -h 127.0.0.1 -u cqrs --password=cqrs cqrs_test -e "
+                "\"CREATE TABLE IF NOT EXISTS cqrs_kv (k VARCHAR(255) PRIMARY KEY, v JSON)\""
+              )
+              machine.succeed(
+                "mysql -h 127.0.0.1 -u cqrs --password=cqrs cqrs_test -e "
+                "\"INSERT INTO cqrs_kv VALUES ('test', '{\\\"status\\\":\\\"active\\\"}') "
+                "ON DUPLICATE KEY UPDATE v = VALUES(v)\""
+              )
+              result = machine.succeed(
+                "mysql -h 127.0.0.1 -u cqrs --password=cqrs cqrs_test -N -e "
+                "\"SELECT JSON_EXTRACT(v, '$.status') FROM cqrs_kv WHERE k = 'test'\""
+              ).strip()
+              assert result == '"active"', f"JSON query returned '{result}', expected '\"active\"'"
+
+              print("MySQL service health verified (nspawn)")
+            '';
+          };
+
           benchstat = pkgs.buildGoModule {
             pname = "benchstat";
             version = "unstable-2026-06-14";
@@ -446,6 +498,9 @@
             # Run via: nix flake check (Linux) or nix build .#checks.x86_64-linux.postgres-vm
             postgres-vm = pgServiceTest;
             mysql-vm = mysqlServiceTest;
+            # nspawn variant — ~10x faster, requires uid-range system feature.
+            # Run: nix build .#checks.x86_64-linux.mysql-nspawn -L
+            mysql-nspawn = mysqlNspawnTest;
           };
 
           # No-op default package so `nix build .` (BuildFlow's full mode) succeeds.
@@ -819,6 +874,21 @@
                   bash "$PWD/scripts/vm-mysql.sh" "$@"
                 '';
 
+            # nspawn variant — ~10x faster than QEMU. Falls back to QEMU if
+            # the host lacks uid-range / auto-allocate-uids support.
+            # Usage: nix run .#integration-mysql-nspawn
+            integration-mysql-nspawn =
+              mkApp "integration-mysql-nspawn"
+                [
+                  goPkg
+                  pkgs.gcc
+                ]
+                ''
+                  export CGO_ENABLED=1
+                  export GOEXPERIMENT=jsonv2
+                  bash "$PWD/scripts/vm-mysql-nspawn.sh" "$@"
+                '';
+
             # Run all integration tests (ephemeral PG + VM MySQL sequentially)
             integration-all =
               mkApp "integration-all"
@@ -848,8 +918,9 @@
                   export GOEXPERIMENT=jsonv2
                   echo "=== Postgres VM Check ==="
                   nix build .#checks.x86_64-linux.postgres-vm -L
-                  echo "=== MySQL VM Check ==="
-                  nix build .#checks.x86_64-linux.mysql-vm -L
+                  echo "=== MySQL Check (nspawn preferred, QEMU fallback) ==="
+                  nix build .#checks.x86_64-linux.mysql-nspawn -L 2>/dev/null \
+                    || nix build .#checks.x86_64-linux.mysql-vm -L
                   echo "=== Ephemeral PG Integration Tests ==="
                   bash "$PWD/scripts/ephemeral-pg.sh" -short
                   echo "✅ All integration checks passed"
