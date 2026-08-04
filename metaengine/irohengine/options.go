@@ -45,11 +45,11 @@ func defaultConfig() *config {
 	}
 }
 
-var opSeq uint64
+var opSeq atomic.Uint64
 
 func nextOpID() string {
 	return time.Now().Format("20060102-150405.000000000") + "-" +
-		strconv.FormatUint(atomic.AddUint64(&opSeq, 1), 10)
+		strconv.FormatUint(opSeq.Add(1), 10)
 }
 
 // Replicated wraps a local engine with CRDT replication. The local engine

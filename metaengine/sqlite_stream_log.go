@@ -12,7 +12,7 @@ func (e *sqliteEngine) StreamAppend(ctx context.Context, col, sid string, values
 	for _, v := range values {
 		encoded := encodeStreamValue(v)
 		if _, err := e.xc().exec(ctx, e.queries.streamAppend, col, sid, encoded); err != nil {
-			return err //nolint:wrapcheck // passthrough
+			return err
 		}
 	}
 
@@ -80,7 +80,7 @@ func (e *sqliteEngine) StreamAppendExpected(
 		for _, v := range values {
 			encoded := encodeStreamValue(v)
 			if _, err := e.xc().exec(ctx, e.queries.streamAppend, col, sid, encoded); err != nil {
-				return err //nolint:wrapcheck // passthrough
+				return err
 			}
 		}
 

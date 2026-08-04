@@ -55,7 +55,7 @@ func main() {
 
 	// --- Phase 1: Warmup ---
 	section("Phase 1: Warmup — 20 Map operations to build measurement history")
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		n := nodes[rand.Intn(len(nodes))]
 		must(mb(n.engine).MapSet(ctx, "warmup", fmt.Sprintf("k%d", i), fmt.Sprintf("v%d", i)))
 		progressBar("warmup", i+1, 20)
@@ -69,7 +69,7 @@ func main() {
 		wg.Add(1)
 		go func(n demoNode) {
 			defer wg.Done()
-			for i := 0; i < 50; i++ {
+			for i := range 50 {
 				key := fmt.Sprintf("%s-%d", n.name, i)
 				_ = mb(n.engine).MapSet(ctx, "storm", key, fmt.Sprintf("val-%d", i))
 			}
@@ -82,7 +82,7 @@ func main() {
 	// --- Phase 3: Correctness ---
 	section("Phase 3: Correctness — verify all nodes converged")
 	allOK := true
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		key := fmt.Sprintf("k%d", i)
 		for _, n := range nodes {
 			_, ok, _ := mb(n.engine).MapGet(ctx, "warmup", key)
@@ -93,7 +93,7 @@ func main() {
 		}
 	}
 	for _, name := range []string{"alpha", "beta", "gamma"} {
-		for i := 0; i < 50; i++ {
+		for i := range 50 {
 			key := fmt.Sprintf("%s-%d", name, i)
 			for _, n := range nodes {
 				_, ok, _ := mb(n.engine).MapGet(ctx, "storm", key)
@@ -110,7 +110,7 @@ func main() {
 
 	// --- Phase 4: Counter ---
 	section("Phase 4: PN-Counter — 30 increments across 3 nodes")
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		for _, n := range nodes {
 			must(cb(n.engine).CounterIncrement(ctx, "hits", metaengine.Delta{"total": 1}))
 		}

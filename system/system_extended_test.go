@@ -323,6 +323,7 @@ func TestSystem_EventBusPubSub(t *testing.T) {
 	// Subscribe before dispatching.
 	_ = sys.Bus().Subscribe("task.created", func(_ context.Context, evt event.Event) error {
 		received.Add(1)
+
 		return nil
 	})
 
@@ -347,10 +348,12 @@ func TestMultiBus_FanOut(t *testing.T) {
 
 	bus1 := event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
 		count1.Add(1)
+
 		return nil
 	})
 	bus2 := event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
 		count2.Add(1)
+
 		return nil
 	})
 

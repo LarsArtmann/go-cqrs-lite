@@ -5,11 +5,13 @@ package quic
 import (
 	"context"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
 
 	iroh_ffi "git.coopcloud.tech/decentral1se/iroh-go"
+
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 )
 
@@ -101,7 +103,7 @@ func (t *QuicTransport) Ticket() (string, error) {
 	closed := t.closed
 	t.mu.RUnlock()
 	if closed {
-		return "", fmt.Errorf("transport closed")
+		return "", errors.New("transport closed")
 	}
 
 	ticket, err := iroh_ffi.EndpointTicketFromAddr(t.endpoint.Addr())
@@ -132,7 +134,7 @@ func (t *QuicTransport) Connect(ticketStr string) error {
 	closed := t.closed
 	t.mu.RUnlock()
 	if closed {
-		return fmt.Errorf("transport closed")
+		return errors.New("transport closed")
 	}
 
 	ticket, err := iroh_ffi.EndpointTicketFromString(ticketStr)

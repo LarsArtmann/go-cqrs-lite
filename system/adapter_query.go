@@ -84,6 +84,7 @@ func (a *QueryAdapter) ReadQueriesFrom(
 	limit int,
 ) ([]*query.PersistedQuery, error) {
 	afterSeq := int64(0)
+
 	if afterRequestID != (id.RequestID{}) {
 		all, err := a.backend.JournalReadAll(ctx, a.collection)
 		if err != nil {

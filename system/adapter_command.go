@@ -67,6 +67,7 @@ func (a *CommandAdapter) LoadFromTimestamp(
 	}
 
 	var result []*command.PersistedCommand
+
 	for _, cmd := range all {
 		if cmd.ReceivedAt().After(after) {
 			result = append(result, cmd)
@@ -85,6 +86,7 @@ func (a *CommandAdapter) LoadToTimestamp(
 	}
 
 	var result []*command.PersistedCommand
+
 	for _, cmd := range all {
 		if !cmd.ReceivedAt().After(maxTime) {
 			result = append(result, cmd)
@@ -109,6 +111,7 @@ func (a *CommandAdapter) ReadFrom(
 	limit int,
 ) ([]*command.PersistedCommand, error) {
 	afterSeq := int64(0)
+
 	if afterCommandID != (id.CommandID{}) {
 		all, err := a.backend.JournalReadAll(ctx, a.collection)
 		if err != nil {
@@ -119,6 +122,7 @@ func (a *CommandAdapter) ReadFrom(
 			cmd, ok := val.(*command.PersistedCommand)
 			if ok && cmd.ID() == afterCommandID {
 				afterSeq = int64(i + 1)
+
 				break
 			}
 		}

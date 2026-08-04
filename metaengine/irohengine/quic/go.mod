@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	git.coopcloud.tech/decentral1se/iroh-go v0.0.0-20260731195909-77011195d3d6
-	github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.0.0
 	github.com/onsi/gomega v1.42.1
 )

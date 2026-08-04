@@ -1,7 +1,7 @@
 package irohengine
 
 import (
-	"sort"
+	"slices"
 	"sync"
 	"time"
 )
@@ -94,7 +94,7 @@ func computeStats(samples []time.Duration) LatencyStats {
 		return LatencyStats{}
 	}
 	sorted := append([]time.Duration(nil), samples...)
-	sort.Slice(sorted, func(i, j int) bool { return sorted[i] < sorted[j] })
+	slices.Sort(sorted)
 
 	var sum time.Duration
 	for _, d := range sorted {

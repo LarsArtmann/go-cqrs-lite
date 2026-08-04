@@ -2,6 +2,7 @@ package system
 
 import (
 	"context"
+	"slices"
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -46,8 +47,8 @@ func (b *simpleBus) Publish(ctx context.Context, events ...event.Event) error {
 		return nil
 	})
 
-	for i := len(b.pubMiddleware) - 1; i >= 0; i-- {
-		publisher = b.pubMiddleware[i](publisher)
+	for _, v := range slices.Backward(b.pubMiddleware) {
+		publisher = v(publisher)
 	}
 
 	return publisher.Publish(ctx, events...)
@@ -55,6 +56,7 @@ func (b *simpleBus) Publish(ctx context.Context, events ...event.Event) error {
 
 func (b *simpleBus) dispatch(ctx context.Context, evt event.Event) error {
 	b.mu.RLock()
+
 	handlers := make([]event.Handler, 0)
 
 	// Typed handlers.
@@ -84,8 +86,8 @@ func (b *simpleBus) dispatch(ctx context.Context, evt event.Event) error {
 	}
 
 	// Apply middleware.
-	for i := len(b.middleware) - 1; i >= 0; i-- {
-		chain = b.middleware[i](chain)
+	for _, v := range slices.Backward(b.middleware) {
+		chain = v(chain)
 	}
 
 	b.mu.RUnlock()

@@ -5,6 +5,20 @@ Tags use the full module path: `cmd/cqrs-lint/vX.Y.Z`.
 
 ## [Unreleased]
 
+### Added
+
+- **Scorecard markdown output** — `cqrs-lint scorecard --format markdown` (alias `md`) renders the adoption scorecard as a GitHub-flavored Markdown document with tables. Ideal for PR comments, README badges, and CI artifacts.
+- **Per-module evaluation for S002/S003** — PII encryption (S002) and event signing (S003) now evaluate `HasServer` per-module via `ProfileForFile`. A library module defining event stores or PII payloads is no longer flagged with server-deployment severity just because an example sub-module has a server. S002 downgrades to Info and S003 skips entirely for non-server modules in multi-module workspaces.
+
+### Improved
+
+- **E006 now checks fold cases** — orphaned event detection no longer fires for events consumed by decider fold/apply functions. An event handled by a fold (state evolution) is NOT orphaned even when no projection subscribes to it. Uses the shared `CollectFoldCaseStrings` helper (extracted from C038 to eliminate duplication).
+- **Shared fold-case-string extraction** — `AnalysisContext.CollectFoldCaseStrings()` centralized in the analyzer package, used by both C038 (typo detection) and E006 (orphaned events).
+
+### Fixed
+
+- **Catalog drift** — `metaengine/irohengine/quic` added to the exclusion list (sub-engine transport, covered by `metaengine/irohengine`).
+
 ### Fixed
 
 - **Preset severity floor now applied at runtime** — `PresetDefinition.MinSeverity` (e.g. `"warning"` for `local-cli`) was defined but never applied. A user writing `{"preset":"local-cli"}` now correctly gets `min-severity: "warning"` instead of the default `"info"`. The floor is a lower bound: users can raise it (e.g. `"error"`) but cannot go below the preset floor.

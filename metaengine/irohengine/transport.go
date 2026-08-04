@@ -110,7 +110,7 @@ func (n *InProcessNetwork) getOtherPeers(from string) []*peerTransport {
 // and convergence times. Blocks until all peers have processed the op
 // (or the network is closed).
 //
-//nolint:gosec // G404: math/rand is fine for simulated delay — not security-sensitive
+
 func (n *InProcessNetwork) deliver(from string, op WriteOp) {
 	n.mu.RLock()
 	if n.closed {
@@ -129,7 +129,7 @@ func (n *InProcessNetwork) deliver(from string, op WriteOp) {
 
 	for _, p := range peers {
 		if n.dropRate > 0 &&
-			rand.Float64() < n.dropRate { //nolint:gosec // G404: not security-sensitive
+			rand.Float64() < n.dropRate {
 			continue
 		}
 
@@ -140,7 +140,7 @@ func (n *InProcessNetwork) deliver(from string, op WriteOp) {
 			if n.maxDelay > 0 {
 				time.Sleep(
 					time.Duration(rand.Int63n(int64(n.maxDelay))),
-				) //nolint:gosec // G404: not security-sensitive
+				)
 			}
 
 			deliveryLatency := time.Since(op.PublishedAt)
