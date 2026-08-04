@@ -3,11 +3,21 @@ package loopback
 import (
 	"math/rand"
 	"net"
+	"reflect"
 	"time"
 
 	"github.com/fxamacker/cbor/v2"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 )
+
+// opDecMode decodes CBOR maps into map[string]interface{} (matching JSON
+// semantics) instead of the default map[interface{}]interface{}.
+var opDecMode = func() cbor.DecMode {
+	dm, _ := cbor.DecOptions{
+		DefaultMapType: reflect.TypeOf(map[string]interface{}{}),
+	}.DecMode()
+	return dm
+}()
 
 func (t *LoopbackTransport) acceptLoop() {
 	defer t.acceptWG.Done()
@@ -38,7 +48,7 @@ func (t *LoopbackTransport) handleConnection(conn net.Conn) {
 		}
 
 		var op irohengine.WriteOp
-		if err := cbor.Unmarshal(data, &op); err != nil {
+		if err := opDecMode.Unmarshal(data, &op); err != nil {
 			continue
 		}
 

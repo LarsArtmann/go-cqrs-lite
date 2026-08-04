@@ -35,7 +35,7 @@ func (a *SnapshotAdapter) Save(ctx context.Context, snap snapshot.Snapshot) erro
 	return a.backend.SnapshotSave(
 		ctx,
 		a.collection,
-		snap.StreamID.String(),
+		snap.StreamType.String()+":"+snap.StreamID.String(),
 		int64(snap.Version),
 		snap.State,
 	)

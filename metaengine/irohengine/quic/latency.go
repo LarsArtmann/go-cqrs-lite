@@ -4,6 +4,7 @@ package quic
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/fxamacker/cbor/v2"
@@ -63,12 +64,21 @@ func encodeOp(op irohengine.WriteOp) ([]byte, error) {
 
 func decodeOp(data []byte) (irohengine.WriteOp, error) {
 	var op irohengine.WriteOp
-	if err := cbor.Unmarshal(data, &op); err != nil {
+	if err := opDecMode.Unmarshal(data, &op); err != nil {
 		return irohengine.WriteOp{}, fmt.Errorf("decode writeop: %w", err)
 	}
 
 	return op, nil
 }
+
+// opDecMode decodes CBOR maps into map[string]interface{} (matching JSON
+// semantics) instead of the default map[interface{}]interface{}.
+var opDecMode = func() cbor.DecMode {
+	dm, _ := cbor.DecOptions{
+		DefaultMapType: reflect.TypeOf(map[string]interface{}{}),
+	}.DecMode()
+	return dm
+}()
 
 // --- Helpers ---
 

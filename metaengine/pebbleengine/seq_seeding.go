@@ -1,6 +1,7 @@
 package pebbleengine
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 	"sync"
@@ -104,7 +105,7 @@ func (e *pebbleEngine) seedMultimapSeqs() error {
 		}
 
 		rest := key[tagLen:]
-		nulIdx := indexOfByte(rest, 0)
+		nulIdx := bytes.IndexByte(rest, 0)
 		if nulIdx < 0 {
 			continue
 		}
@@ -144,17 +145,6 @@ func extractGroupAndSeq(key []byte, prefixLen int) (string, int64, bool) {
 	}
 
 	return string(key[prefixLen : len(key)-21]), seq, true
-}
-
-// indexOfByte returns the index of the first occurrence of b in data, or -1.
-func indexOfByte(data []byte, b byte) int {
-	for i, c := range data {
-		if c == b {
-			return i
-		}
-	}
-
-	return -1
 }
 
 // seedSyncMapMax seeds a sync.Map (storing *atomic.Int64) to at least seq.
