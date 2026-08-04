@@ -1266,7 +1266,7 @@ import _ "github.com/larsartmann/go-cqrs-lite/drivers/duckdb"
 // Engines are declared BY NAME (operator assigns semantic names).
 // Instances reference engines BY NAME — swap engine type without touching
 // the instance topology.
-config := system.Config{
+config := system.DeploymentConfig{
     Engines: map[string]system.EngineConfig{
         "primary":   {Driver: "sqlite", DSN: "file:events.db"},
         "analytics": {Driver: "duckdb", DSN: "file:analytics.db"},
@@ -1338,7 +1338,7 @@ CQRS_BUSES_CROSS_SERVICE_URL=nats://prod-cluster:4222
 
 ```go
 // Go struct (canonical — koanf unmarshals into this)
-config := system.Config{
+config := system.DeploymentConfig{
     Engines: map[string]system.EngineConfig{...},
     Buses:   map[string]system.BusConfig{
         "local":        {Driver: "gochannel"},
@@ -1375,7 +1375,7 @@ or the same engine with a different DSN:
 
 ```go
 // Three-way SQLite split (the goal's exact example)
-config := system.Config{
+config := system.DeploymentConfig{
     Engines: map[string]system.EngineConfig{
         "events-db":  {Driver: "sqlite", DSN: "file:events.db"},
         "queries-db": {Driver: "sqlite", DSN: "file:queries.db"},
@@ -1394,7 +1394,7 @@ config := system.Config{
 }
 
 // Or: SQLite for events + DuckDB for query analytics (different engines!)
-config = system.Config{
+config = system.DeploymentConfig{
     Engines: map[string]system.EngineConfig{
         "events-db": {Driver: "sqlite", DSN: "file:events.db"},
         "analytics": {Driver: "duckdb", DSN: "file:queries.db"},
@@ -1424,7 +1424,7 @@ import _ "github.com/larsartmann/go-cqrs-lite/busdrivers/redis"
 // The binary now has gochannel + nats + redis available.
 
 // Operator config declares buses BY NAME (like engines):
-config := system.Config{
+config := system.DeploymentConfig{
     Buses: map[string]system.BusConfig{
         "local":         {Driver: "gochannel"},
         "cross-service": {
@@ -1727,7 +1727,7 @@ if errors.Is(err, screamstore.ErrUnsafeChange) {
 
 ```go
 // YAML: acknowledge risky changes explicitly
-config := system.Config{
+config := system.DeploymentConfig{
     // ...
     AcknowledgeWarnings: []string{
         "durability-downgrade:events",        // acknowledge Strict→Normal on events
