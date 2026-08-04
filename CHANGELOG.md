@@ -8,6 +8,115 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### system/ package: operator-configured CQRS topology (first pass)
+
+- **`system.System` type** — a new module implementing the operator-configured,
+  driver-registered composition root from the
+  [metaengine redesign](docs/planning/metaengine-redesign.md). Replaces the
+  manual `stack.Bundle` wiring with a `New(ctx, deployment, domains...)` entry
+  point where the operator provides engines/config and the consumer provides
+  domain deciders/projections. Separate module (`system/v4`).
+- **DomainConfig / DeploymentConfig separation** (D11) — consumer config
+  (deciders, commands, projections, fold functions) vs operator config (engine
+  drivers, DSNs, bus topology, durability tiers, cache).
+- **Driver registry** (D1 — `database/sql` model) — `RegisterDriver(name,
+  factory)`, `RegisteredDrivers()`, `createEngineFromDriver()`. Memory
+  auto-registered in `init()`.
+- **`Op[State]` declarative routing** (D10) — `Op[State]{StreamID, StreamType,
+  Decide}` with `Execute()` method. Op accessors: `StreamID()`, `StreamType()`.
+- **EventAdapter** — wraps `metaengine.StreamLogBackend` as an
+  `event.Store`/`event.SeekableJournal`. AtomicAppender fast path with `RunInTx`
+  fallback. Seq cache for O(1) `ReadFrom` lookup. `WithSerialization()` option
+  for SQL engines (`serializedEvent` JSON envelope).
+- **CommandAdapter** — full `command.Store` + `command.SeekableCommandJournal`
+  (Save, AppendBatch, Load, ReadAll, ReadFrom).
+- **QueryAdapter** — full `query.QueryStore` + `query.SeekableQueryJournal`
+  (SaveQuery, LoadQueries, ReadAllQueries, ReadQueriesFrom).
+- **Event bus** — `simpleBus` implements `event.Bus` (Publisher + Subscriber +
+  middleware chains). Synchronous dispatch. `MultiBus` fans out `Publish` to N
+  publishers with first-error semantics.
+- **`CachedEventStore`** — otter v2 W-TinyLFU read-through cache tier. Wraps
+  event store; `CacheStats` via O(1) `cache.EstimatedSize()`.
+- **SnapshotBackend** — `SnapshotBackend` interface + `memorySnapshotBackend`
+  (instance-isolated, `sync.Mutex`-protected). `NewMemorySnapshotBackend()`
+  exported for testing.
+- **Scream store types** — `ScreamTier`, `ScreamDiagnostic`, `ScreamReport`,
+  `ErrUnsafeChange`. `CheckSafety()` with 2 rules: `volatile-source-of-truth`,
+  `durability-downgrade`.
+- **Introspection API** — `Snapshot(ctx)`, `Health(ctx)`, `Explain(ctx)`.
+  `Topology` types (InstanceTopology, BusTopology, CacheTierInfo). ⚠️ Returns
+  hardcoded values — wiring to live runtime state is pending.
+- **Instance roles** — `RoleSourceOfTruth`, `RoleEvents`, `RoleCommands`,
+  `RoleQueries`, `RoleProjections`.
+- **Durability tiers** — `DurabilityStrict`, `DurabilityNormal`,
+  `DurabilityRelaxed` (same vocabulary as stack presets).
+- **Config loader stub** — `LoadConfig(path)` signature + env var reads
+  (`CQRS_DEFAULT_DRIVER`, `CQRS_DEFAULT_DSN`). YAML parsing not yet implemented.
+- **Projection wiring** — constructor creates `projectionadapter.Adapter` from
+  `sys.projStore` and registers on `projectionhost.Host`. `DomainConfig.
+  ProjectionDecoder` field for typed event decoders.
+- **15-test suite** — `system_extended_test.go`: query dispatch, driver
+  registry, snapshot backend + isolation, multi-decider (two stream types),
+  concurrent dispatch (20 goroutines, race detector), event bus pub/sub,
+  MultiBus fan-out, Op accessors, atomic concurrency conflict, journal,
+  unbounded stream log cursor. All pass with `-race`.
+- **⚠️ Known critical gaps** — constructor bypasses the driver registry
+  (hardcoded `createEngine()` supporting only "memory"); SQLite is unreachable
+  through System; MultiBus/SnapshotBackend/scream store not wired into `New()`;
+  two files exceed the 350-line CI limit. See
+  [TODO_LIST.md](TODO_LIST.md) → System section.
+
+#### Irohengine: real QUIC FFI transport
+
+- **`metaengine/irohengine/quic`** — new module implementing
+  `irohengine.Transport` over **real Iroh QUIC streams** via the `iroh-go` C
+  bindings (CGo required). This is NOT the in-process mock — every `Publish`
+  opens a QUIC BiStream, serializes the `WriteOp`, and sends it to all peers.
+  Latency measured from QUIC's own ACK timing via `conn.Rtt()`.
+  - `QuicTransport.New(nodeDir)` binds a real Iroh QUIC endpoint.
+  - RTT measurement (rolling window of 256 samples, percentile computation).
+  - `maxOpSize` (16 MB) guard prevents memory exhaustion.
+  - `DefaultALPN` protocol negotiation (`irohengine/crdt/v1`).
+  - Demo executable (`quic/demo/main.go`) with real latency measurements.
+- **Relaxed convergence test timings** — QUIC convergence tests adjusted to
+  avoid CI flakes under variable network conditions.
+
+#### Metaengine: AtomicAppender interface
+
+- **`AtomicAppender` interface** (`metaengine/engine.go`) —
+  `StreamAppendExpected(ctx, collection, streamID, expectedVersion, entries)`
+  performs version-check-then-append under a single lock acquisition — true
+  atomic optimistic concurrency without the deadlock risk of `RunInTx` holding
+  the mutex. `ErrVersionConflict` sentinel. Implemented by Memory and SQLite
+  engines (compile-time assertions).
+- **SQLite StreamLogBackend** — full implementation in
+  `metaengine/sqlite_stream_log.go`: `meta_stream_log` table with indexes on
+  `(collection, stream_id, seq)` and `(collection, seq)`. `StreamAppendExpected`
+  uses `RunInTx` for transactional isolation. `JournalReadFrom` with `limit <= 0`
+  correctly applies `seq > afterSeq` filter.
+- **Unbounded stream log cursor fix** — cursor position preserved when reading
+  unbounded stream logs (was reset, causing duplicate reads).
+
+#### cqrs-lint: scorecard markdown, fold-aware E006, per-module migration
+
+- **Scorecard Markdown output** — `cqrs-lint scorecard --format markdown`
+  (alias `md`) renders GFM tables. 5 new tests (summary, tables,
+  recommendations, no-missing edge case, format dispatch).
+- **E006 fold-aware orphaned event detection** — E006 no longer fires for
+  events consumed by decider fold/apply functions. Extracted shared
+  `CollectFoldCaseStrings()` to analyzer package. 2 new E006 tests.
+- **S002/S003 per-module profile migration** — PII encryption (S002) and event
+  signing (S003) now evaluate `HasServer` per-file via `ProfileForFile`. 4 new
+  per-module tests. Library modules no longer inherit server-deployment severity
+  from example sub-modules.
+- **Group-by config round-trip test** — `TestJSONCLoader_GroupByFromConfig`
+  proves `{"group-by": "aggregate"}` in `.cqrs-lint.json` correctly populates
+  `AppConfig.GroupBy`.
+- **Catalog drift fix** — `metaengine/irohengine/quic` added to
+  `excludedModules` (was added to `go.work` but not registered, breaking
+  `TestCatalogEveryGoWorkModuleCovered`).
+- **Scorecard Markdown output already shipped** (commit `00d05abc`).
+
 #### cqrs-lint post-v4.3.0: scorecard, group-by aggregate, C038-C040, config UX
 
 - **Scorecard subcommand** — `cqrs-lint --scorecard` / `cqrs-lint scorecard`.

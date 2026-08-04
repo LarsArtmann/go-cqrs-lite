@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-04 (M43+M44 completed)
+**Updated:** 2026-08-04 (system/ first pass + iroh QUIC + cqrs-lint per-module)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -13,13 +13,123 @@ and is **never** duplicated here.
 
 ---
 
+## System Package (EXPERIMENTAL — first pass shipped, wiring incomplete)
+
+> The `system/` module implements the operator-configured CQRS topology from
+> the [metaengine redesign](docs/planning/metaengine-redesign.md). 14 files,
+> 2925 lines, 15 tests — types exist but critical wiring gaps prevent
+> production use. Full audit:
+> [design-vs-reality](docs/status/2026-08-04_22-32_metaengine-redesign-audit-design-vs-reality.md).
+> Execution plan:
+> [Pareto breakdown](docs/planning/2026-08-04_22-34_metaengine-system-pareto-execution-plan.md).
+
+### P0 — Critical (blocks ALL production use)
+
+- [ ] 🔥 **Replace `createEngine()` with `createEngineFromDriver()`** — the
+      constructor at `system/constructor.go:39` calls a hardcoded switch
+      supporting only `"memory"`. The entire driver registry (`RegisterDriver`,
+      `lookupDriver`, `createEngineFromDriver`) is dead code. SQLite is
+      completely unreachable through `system.New()` despite being fully
+      implemented and tested at the metaengine level.
+      Evidence: `system/constructor.go:39,216-229`, `system/driver_registry.go`.
+
+- [ ] 🔥 **Register SQLite driver in `init()`** — open `*sql.DB` from DSN, call
+      `metaengine.NewSQLiteEngine(db)`, register via `RegisterDriver("sqlite",
+      factory)`. Only Memory is currently registered.
+      Evidence: `system/driver_registry.go`.
+
+- [ ] 🔥 **Auto-detect serialization for SQL engines** — `NewEventAdapter` at
+      `system/constructor.go:73` never passes `WithSerialization()`. SQL-
+      persisted events lose typed reconstruction. Detect non-Memory engine and
+      pass the option.
+      Evidence: `system/adapter_event.go` (`WithSerialization`, `serializedEvent`).
+
+- [ ] 🔥 **SQLite-through-System integration test** — full CQRS roundtrip:
+      construct System with `Driver: "sqlite"`, dispatch command, verify event
+      persisted, restart simulation (new System, same DSN), verify events
+      survive. Blocked by the constructor bypass above.
+
+- [ ] 🔥 **Projection E2E test** — dispatch command → `host.Start(ctx)` →
+      verify projection store updated. The projectionadapter wiring compiles
+      but the full event→projection flow is unproven.
+      Evidence: `system/constructor.go` (projection wiring).
+
+- [ ] **Split `constructor.go` (369→<350 lines)** — extract projection wiring
+      into `system/projections.go`. CI-enforced 350-line limit will fail.
+      Evidence: `wc -l system/constructor.go`.
+
+- [ ] **Split `adapter_event.go` (372→<350 lines)** — extract serialization
+      (`serializedEvent`, `encodeEvent`, `decodeEvent`) into
+      `system/adapter_event_sql.go`.
+      Evidence: `wc -l system/adapter_event.go`.
+
+- [ ] **Add `system/` to api-stability modules list + regen golden** —
+      `cmd/api-stability/main.go` does not include `"system"`.
+      `TestEveryGoModDirIsInModulesList` will fail. All new exported symbols
+      (`NewMemorySnapshotBackend`, `NewMultiBus`, `NewCommandAdapter`,
+      `NewQueryAdapter`, `WithSerialization`, `Op.StreamID`, `Op.StreamType`,
+      `AtomicAppender`, `ErrVersionConflict`, etc.) need golden entries.
+
+### P1 — High value (makes the design actually work)
+
+- [ ] **Fix `simpleBus` handler independence** — `dispatch` chains ALL handlers
+      into a single sequential chain; if one handler errors, subsequent
+      handlers are skipped. Standard `event.Bus` calls each handler
+      independently. Behavioral correctness issue for projections and
+      side-effects. Evidence: `system/bus.go`.
+
+- [ ] **Wire MultiBus into `New()`** — MultiBus exists and is tested in
+      isolation, but the constructor always creates a single `simpleBus`.
+      Fan-out to multiple publishers (D9) doesn't work through `New()`.
+      Evidence: `system/multi_bus.go`, `system/constructor.go`.
+
+- [ ] **Wire SnapshotBackend into `New()` + System lifecycle** —
+      `memorySnapshotBackend` exists and is tested but not connected to the
+      System lifecycle. Snapshots don't persist through System.
+      Evidence: `system/snapshot.go`.
+
+- [ ] **Fix introspection hardcoded values** — `Snapshot()` returns
+      `HealthStatus: "ok"` (hardcoded), `Handlers: 0` (hardcoded). No actual
+      health checks (no `db.PingContext`, no `projHost.Status()`). An admin UI
+      consuming this data would display false information.
+      Evidence: `system/introspection.go:77,92`.
+
+- [ ] **Wire scream store into `New()`** — call `CheckSafety(ctx, deployment)`
+      on startup; return `ErrUnsafeChange` on SCREAM-tier violations. Currently
+      `New()` never calls `CheckSafety()` at all.
+      Evidence: `system/scream_store.go`.
+
+### P2 — Important for completeness
+
+- [ ] **Scream store: PlanDiff / PlanFingerprint / Manifest** — the scream
+      store's value proposition is detecting unsafe runtime changes by diffing
+      the current `SerializablePlan` against a pinned manifest. Without these,
+      it's a config validator, not a scream store. Design ref: §9.3–9.5.
+- [ ] **koanf YAML + env config loading** — `LoadConfig(path)` has a stub
+      `parseYAML` (returns nil). Only reads env vars. G2 ("deployer decides")
+      is unmet.
+- [ ] **Bus driver registry** — types exist, zero bus drivers registered.
+      `BusConfig{Driver: "gochannel"}` does nothing.
+- [ ] **Pebble/DuckDB/Postgres StreamLogBackend** — only Memory + SQLite
+      implement it (2 of 5 engines). Each needs 5 stream-keyed methods. The
+      design doc claims "all 5 engines" — false until implemented.
+- [ ] **CommandAdapter + QueryAdapter serialization** — both adapters compile
+      but need a `serializedCommand`/`serializedQuery` envelope for SQL engines
+      (same pattern as `serializedEvent`).
+- [ ] **Migrate example/taskmanager to System** — proves the consumer
+      experience end-to-end. Depends on SQLite working through System.
+- [ ] **System.Verify/Plan/Explain methods** — cross-instance consistency
+      check, combined plan, human-readable explanation. Design ref: §8.3.
+
+---
+
 ## Metaengine
 
 > 5 engines (Memory, SQLite, Pebble, DuckDB, Postgres), 10/10 ADTs on all
 > engines (Universal ADT Phase 3 shipped, ADR-0094), replication model
-> (ADR-0093), WatchTyped, SSE reconnect test, boundary key validation,
-> CalibrateEngine, ReadCosts (per-read-pattern costs), and inspect.go extraction
-> are all shipped. metaengine v4.4.0 tagged.
+> (ADR-0093), persistence enum (ADR-0098), WatchTyped, SSE reconnect test,
+> boundary key validation, CalibrateEngine, ReadCosts (per-read-pattern costs),
+> and inspect.go extraction are all shipped. metaengine v4.4.0 tagged.
 
 - [ ] **Postgres GIN containment indexes** — add `@>` operator support for
       JSONB path queries; currently only B-tree expression indexes are
@@ -68,24 +178,44 @@ and is **never** duplicated here.
 
 > Long-term metaengine work (`metaengine-gen` code generator, generic
 > `ScanResult[T]`, Vector/Search/Spatial engine backends, DuckDB
-> columnar-native storage, Iroh distributed engine (Level 2 prototype shipped — real FFI pending), `System` topology redesign)
+> columnar-native storage, Iroh distributed engine, `System` topology redesign)
 > lives in [ROADMAP.md](ROADMAP.md).
+
+---
+
+## Irohengine
+
+> Level 2 prototype shipped with CRDT-safe operations. Real QUIC FFI transport
+> (`metaengine/irohengine/quic/`) now uses `iroh-go` C bindings for real
+> networking — NOT the in-process mock. CGo required.
+
+- [ ] **Evaluate `iroh-go` C binding stability** — the QUIC transport depends
+      on `git.coopcloud.tech/decentral1se/iroh-go`, a third-party Go binding for
+      Iroh (Rust). Assess upstream maintenance, API stability, and whether to
+      vendor/fork. Evidence: `metaengine/irohengine/quic/transport.go:14`.
+- [ ] **QUIC transport integration with `adttest.RunMatrix`** — the in-process
+      mock passes the full matrix; verify the QUIC transport also passes parity
+      tests (LWW resolution, PN-Counter, MapUpdate-does-not-replicate).
+- [ ] **Non-CRDT op rejection on QUIC path** — verify `MapUpdate` operations
+      stay local-only and are NOT sent over QUIC (would break CRDT convergence).
 
 ---
 
 ## cqrs-lint
 
 > 186 rules across 10 categories. Config presets, `--adoption`/`--scorecard`/
-> `--group-by` flags, changelog subcommand, self-lint mode, block-level
-> suppression, C038-C040 (event-type mismatch/dead-fold-case detection),
-> per-module feature profiles, and `init` SHOWSTOPPER fix are shipped.
-> v4.3.0 tagged; v4.4.0 pending.
+> `--group-by` flags (text + JSON + Markdown output), changelog subcommand,
+> self-lint mode, block-level suppression, C038-C040 (event-type mismatch/
+> dead-fold-case detection), per-module feature profiles (S002/S003/S006/S007/
+> C017/C036 migrated), E006 fold-aware, JSONC config loader, `explain` command,
+> doctor overhaul, and `init` SHOWSTOPPER fix are shipped. v4.3.0 tagged;
+> v4.4.0 pending.
 
 - [ ] 🔥 **Publish cqrs-lint v4.4.0** — v4.3.0 tagged but post-v4.3.0 work
-      (init SHOWSTOPPER fix, C038-C040 rules, scorecard, group-by aggregate,
-      per-module detection, JSONC config loader, `explain` command, doctor
-      overhaul, E009 cqrs-htmx transport detection) remains unreleased.
-      Also: published Nix binary is stale (v0.2.2).
+      (init SHOWSTOPPER fix, C038-C040 rules, scorecard + markdown, group-by
+      aggregate, per-module detection, JSONC config loader, `explain` command,
+      doctor overhaul, E006 fold-aware, E009 cqrs-htmx transport detection)
+      remains unreleased. Also: published Nix binary is stale (v0.2.2).
       **BLOCKED on user approval**.
 
 - [ ] 🔥 **Run cqrs-lint against real consumer projects** — validate
@@ -93,57 +223,30 @@ and is **never** duplicated here.
       cqrs-htmx, DiscordSync, timesheets, crush-daily. This is the single
       highest-value non-coding task for cqrs-lint trustworthiness.
 
-- [ ] **Scorecard follow-ups**
-  - Eliminate category-priority split brain (`categoryPriorityFor` in
-    `scorecard.go` duplicates `ModuleEntry.CategoryPriority()` in catalog).
-  - Render `Evidence` field in text output (show which import path triggered
-    detection).
-  - Expand catalog: `middleware`, `storage`, `stack/memory`, `scenario` are
-    adoptable but excluded.
-  - Add `--scorecard-threshold N` CI gate flag (exit non-zero below N%).
-  - Add SARIF + markdown output formats.
-
-- [ ] **Doctor/explain test coverage** — doctor command was completely
-      rewritten, `explain.go` is 468 lines — both have **zero** unit tests.
-      Refactor `renderDoctor*` to accept `io.Writer`, add output assertions.
-
 - [ ] **Migrate global detectors to per-module evaluation** —
-      `ProfileForFile` infrastructure exists but only `C017` uses it. The
-      other 26 global `FeatureProfile` reads still use the primary profile,
-      not per-module. High false-positive risk for multi-module workspaces.
+      `ProfileForFile` infrastructure exists. S002, S003, S006, S007, C017,
+      C036 are migrated. A015 (global mutable state), B014 (missing otel
+      middleware), E008/E011 (transport detection), A009/A013 (soft-delete
+      detection) still use `ctx.FeatureProfile` directly. F-series rules are
+      intentionally project-level (they coach the whole project). High
+      false-positive risk for multi-module workspaces.
 
-- [ ] **`commentTextStart` multi-line string literal bug** — the block
-      suppression parser resets state per line; a raw string literal spanning
-      multiple lines causes false matches. Fix with `go/scanner` or carry
-      string-literal state across lines. Evidence: `cmd/cqrs-lint/run.go`.
+- [ ] **Scorecard SARIF output** — scorecard already has text + JSON + Markdown
+      output. SARIF could represent adoption metrics as `notifications` (not
+      `results`). Worth revisiting for CI integration.
 
 - [ ] **B025 cross-package helper tracing** — only same-package helpers are
       traced. Cross-package wiring functions (e.g. `pkg.helper(...)`) are
       invisible. Needs import-graph tracing via `golang.org/x/tools/go/callgraph`.
 
-- [ ] **JSONC trailing comma support** — the `stripJSONComments` parser does
-      not support trailing commas (allowed by JSONC spec). Edge case for
-      hand-edited `.cqrs-lint.json` files.
-
-- [ ] **F013 cqrs-htmx regression test** — F013 (missing transport detection)
-      was fixed via `HasTransport` but no dedicated regression test proves
-      `cqrs-htmx` import suppresses it. Verification gap that could regress
-      silently. Evidence: `cmd/cqrs-lint/pkg/rules/api/e009.go`.
-
-- [ ] **`printFindingsByAggregate` output test** — the grouped-output renderer
-      (`--group-by aggregate`) has zero tests on the actual rendered text (group
-      headers, finding placement, format strings). If someone changes the
-      template, no test catches it. Evidence:
-      `cmd/cqrs-lint/aggregate.go`.
-
-- [ ] **`group-by` in `.cqrs-lint.json` config schema** — group-by is CLI-only
-      (`--group-by aggregate`). Consumers cannot set it in the config file. The
-      `init` subcommand doesn't generate it. Gap for config-file workflows.
+- [ ] **L1.5 domain severity calibration** — highest-impact open Pareto item.
+      Add `DomainBias` to `FeatureProfile`, detect financial/security projects,
+      escalate severity. Makes ALL 186 rules smarter instead of adding more.
 
 - [ ] **~14 remaining Pareto backlog items** — see the
       [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
-      Highest impact: L1.29 event-type string typo detection, L1.30–L1.33 deep
-      pattern detection, L1.47–L1.51 new rule categories (DOC/OBS/RES/DI).
+      Highest impact: L1.30–L1.33 deep pattern detection, L1.47–L1.51 new rule
+      categories (DOC/OBS/RES/DI).
 
 ---
 
@@ -215,31 +318,28 @@ and is **never** duplicated here.
 
 - [ ] **Tag `stack/mysql/v4`** — source is stable but tag doesn't exist.
 
+- [ ] **Tag `system/v4`** — new module, no tag exists yet. Blocked on P0
+      wiring fixes (constructor bypass, file-size limit).
+
 - [ ] **Pin GitHub Actions to commit SHAs** — 72+ unpinned actions
       (supply-chain risk).
-
-- [x] **Regenerate API-stability golden** — regenerated 2026-08-04 (3211
-      exports after `scheduling/sqlstore` added 13). Re-run if new exported
-      symbols are added: `cd cmd/api-stability && GOWORK=off go run . -update`.
 
 - [ ] **Update CONTRIBUTING.md** — JSONC config loader, `explain` subcommand,
       `scorecard` feature, and `--group-by` flag are undocumented in the
       contributor guide. Consumers learn about these only from the README.
 
+- [ ] **Update AGENTS.md module list** — now 68 `go.mod` files (was 65).
+      `system/` and `metaengine/irohengine/quic/` are missing from the module
+      table, build command, and test command.
+
 ---
 
 ## Integration Test Infrastructure
 
-> Session 2 (2026-08-03) built and verified the Nix-based integration test
-> infrastructure: ephemeral PG, NixOS VM tests (PG+MySQL), VM launcher scripts,
-> CI integration, and ADR-0095.
+> Nix-based integration test infrastructure shipped: ephemeral PG, NixOS VM
+> tests (PG+MySQL), nspawn MySQL (M14, ~15s), projectionhost PG crash-restart
+> (M43), scheduling/sqlstore durable timers (M44).
 
-- [x] **systemd-nspawn container type for MySQL VM** — Implemented as
-      `mysqlNspawnTest` in flake.nix using `containers.machine` instead of
-      `nodes.machine`. ~10x faster (~15s vs ~131s). Requires `uid-range` system
-      feature (one-shot setup: `sudo bash scripts/enable-nspawn-support.sh`).
-      Check: `nix build .#checks.x86_64-linux.mysql-nspawn -L`. Integration:
-      `sudo nix run .#integration-mysql-nspawn`. QEMU fallback preserved. (M14)
 - [ ] **macOS verification of ephemeral PG** — script claims cross-platform but
       never tested on Darwin. (M34)
 - [ ] **Cache ephemeral PG data dir** — skip `initdb` on repeated runs. (M35)
@@ -251,36 +351,8 @@ and is **never** duplicated here.
 - [ ] **Turso sync VM test** — real libSQL server. (M40)
 - [ ] **Go test binaries inside QEMU VM** — deeper coverage. (M41)
 - [ ] **Pebble backup/restore lifecycle VM test** (M42)
-- [x] **`projectionhost` crash-restart PG integration test** — verify
-      checkpoint replay after crash. **Done (M43):**
-      `projectionhost/pg_integration_test.go` proves checkpoint recovery
-      against real PG via `nix run .#integration-pg`. Host stops mid-replay,
-      new host resumes from persisted PG checkpoint (only new events
-      processed). Wired into `ephemeral-pg.sh` PG_MODULES.
-      (M43)
-- [x] **`scheduling` durable timers across restarts test** — timer survives
-      process restart. **Done (M44):** new `scheduling/sqlstore/` module with
-      `SQLTimerStore[P]` (SQLite/Postgres/MySQL). Two restart tests prove
-      timers survive DB close→reopen + full Scheduler recovery of overdue
-      timers. 7 tests, all pass with `-race`.
-      (M44)
 - [ ] **Contract test suite across ALL backends in VMs** — SQLite, PG, MySQL,
       DuckDB simultaneously. (M46)
-- [x] **Add `scheduling/sqlstore` to PG integration suite** — the Postgres
-      dialect path (`NewPostgresStore`, native `time.Time`, `$N` placeholders,
-      `BYTEA`) is now tested against real PG via `nix run .#integration-pg`.
-      Added to `scripts/ephemeral-pg.sh` PG_MODULES + 4 PG integration tests
-      (ScheduleAndDue, IdempotentSchedule, SurvivesRestart, SchedulerRecovery).
-      Evidence: `scheduling/sqlstore/pg_integration_test.go`.
-- [x] **MySQL syntax test for `scheduling/sqlstore`** —
-      `scheduling/sqlstore/mysql_queries_test.go` verifies VARCHAR(255) PK,
-      DATETIME(3), CURRENT_TIMESTAMP(3), ON DUPLICATE KEY UPDATE no-op, and
-      `?` placeholders — following the `idempotency/sqlstore` pattern.
-- [x] **`scheduling/sqlstore` property + concurrency tests** — 5 `rapid`-based
-      property tests: idempotent schedule, concurrent same-ID schedule, Due
-      ordering, MarkFired removes timer, concurrent Schedule+MarkFired+Due.
-      All pass with `-race` (100 iterations each).
-      Evidence: `scheduling/sqlstore/property_test.go`.
 - [ ] **Ephemeral Redis/NATS for future integration tests** — Watermill adapter
       testing with real brokers. (M47)
 - [ ] **`scripts/test-integration.sh` aggregator** — auto-detect best strategy
