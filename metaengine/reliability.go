@@ -10,24 +10,43 @@ import (
 
 // --- Cost Model Auto-Calibration ---
 
-// calibration holds runtime-calibrated cost overrides for an engine.
+// CalibrationCosts holds measured per-operation costs from a calibration run.
+// Zero values mean "no override" — the engine's compile-time defaults are used.
+// CalibrateEngine builds this from micro-benchmarks; consumers can also
+// construct it manually from their own measurements and pass it to
+// SetCalibration.
+type CalibrationCosts struct {
+	NsPerOp    float64
+	NsPerRead  float64
+	NsPerWrite float64
+	ReadCosts  ReadCosts
+}
+
+// Calibration holds runtime-calibrated cost overrides for an engine.
 // Zero values mean "use the engine's default" (backward compatible).
-// Core engines embed this struct to support CalibrateEngine.
-type calibration struct {
+// Core engines (memoryEngine, sqliteEngine) embed this struct to support
+// CalibrateEngine. External engine packages (duckdbengine, pebbleengine,
+// pgengine) embed it the same way.
+type Calibration struct {
 	nsPerOp    float64
 	nsPerRead  float64
 	nsPerWrite float64
+	readCosts  ReadCosts
 }
 
-func (c *calibration) setCalibration(op, read, write float64) {
-	c.nsPerOp = op
-	c.nsPerRead = read
-	c.nsPerWrite = write
+// SetCalibration stores measured cost values. CalibrateEngine calls this
+// via the Calibratable interface.
+func (c *Calibration) SetCalibration(costs CalibrationCosts) {
+	c.nsPerOp = costs.NsPerOp
+	c.nsPerRead = costs.NsPerRead
+	c.nsPerWrite = costs.NsPerWrite
+	c.readCosts = costs.ReadCosts
 }
 
-// applyTo overrides the profile's cost fields with calibrated values
+// ApplyCalibration overrides the profile's cost fields with calibrated values
 // when they are non-zero. Zero values preserve the engine's defaults.
-func (c *calibration) applyTo(p *EngineProfile) {
+// Engines call this inside their Profile() method.
+func (c *Calibration) ApplyCalibration(p *EngineProfile) {
 	if c.nsPerOp > 0 {
 		p.NsPerOp = c.nsPerOp
 	}
@@ -39,21 +58,56 @@ func (c *calibration) applyTo(p *EngineProfile) {
 	if c.nsPerWrite > 0 {
 		p.NsPerWrite = c.nsPerWrite
 	}
+
+	if c.readCosts.NsPerPointLookup > 0 {
+		p.ReadCosts.NsPerPointLookup = c.readCosts.NsPerPointLookup
+	}
+
+	if c.readCosts.NsPerFilteredScan > 0 {
+		p.ReadCosts.NsPerFilteredScan = c.readCosts.NsPerFilteredScan
+	}
+
+	if c.readCosts.NsPerAggregate > 0 {
+		p.ReadCosts.NsPerAggregate = c.readCosts.NsPerAggregate
+	}
+
+	if c.readCosts.NsPerScan > 0 {
+		p.ReadCosts.NsPerScan = c.readCosts.NsPerScan
+	}
 }
 
-// calibratable is an optional interface for engines that support runtime
+// Calibratable is an optional interface for engines that support runtime
 // cost calibration. CalibrateEngine type-asserts to this interface to
-// apply measured timings.
-type calibratable interface {
-	setCalibration(nsPerOp, nsPerRead, nsPerWrite float64)
+// apply measured timings. External engine packages embed Calibration to
+// implement this interface without writing boilerplate.
+type Calibratable interface {
+	SetCalibration(costs CalibrationCosts)
 }
 
 // CalibrateEngine runs a micro-benchmark to measure the actual per-operation
-// cost of an engine, overriding the hardcoded NsPerOp. Call after NewSQLiteEngine
-// or NewMemoryEngine to get hardware-accurate cost estimates.
+// cost of an engine, overriding the hardcoded cost constants. Call after
+// constructing any engine that implements Calibratable (memory, SQLite, DuckDB,
+// Pebble, Postgres) to get hardware-accurate cost estimates.
 //
 //	store, _ := Plan([]Engine{eng}, query)
 //	metaengine.CalibrateEngine(eng, 1000)
+//
+// For engines with per-read-pattern costs (e.g. DuckDB's 4000x span between
+// point lookups and vectorized scans), run the engine-specific calibration
+// benchmarks and construct CalibrationCosts manually with ReadCosts fields:
+//
+//	metaengine.CalibrateEngine(engine, 1000) // sets NsPerOp/Read/Write
+//	// Then override ReadCosts from calibration_bench_test results:
+//	if c, ok := engine.(metaengine.Calibratable); ok {
+//	    c.SetCalibration(metaengine.CalibrationCosts{
+//	        ReadCosts: metaengine.ReadCosts{
+//	            NsPerPointLookup: 50_000,
+//	            NsPerFilteredScan: 450,
+//	            NsPerAggregate:   150,
+//	            NsPerScan:        1_000,
+//	        },
+//	    })
+//	}
 func CalibrateEngine(eng Engine, iterations int) {
 	if iterations <= 0 {
 		iterations = 1000
@@ -85,8 +139,12 @@ func CalibrateEngine(eng Engine, iterations int) {
 			_ = mb.MapDelete(ctx, "__calibrate", i)
 		}
 
-		if c, ok := eng.(calibratable); ok {
-			c.setCalibration((writeNs+readNs)/2, readNs, writeNs)
+		if c, ok := eng.(Calibratable); ok {
+			c.SetCalibration(CalibrationCosts{
+				NsPerOp:    (writeNs + readNs) / 2,
+				NsPerRead:  readNs,
+				NsPerWrite: writeNs,
+			})
 		}
 	}
 }
