@@ -51,7 +51,8 @@ func TestProperty_ScheduleIsIdempotent(t *testing.T) {
 		ctx := context.Background()
 
 		id := "timer-" + rapid.String().Draw(rt, "id")
-		fireAt := time.Now().Add(time.Duration(rapid.IntRange(1, 3600).Draw(rt, "seconds")) * time.Second)
+		fireAt := time.Now().
+			Add(time.Duration(rapid.IntRange(1, 3600).Draw(rt, "seconds")) * time.Second)
 		originalPayload := testPayload{
 			Action: "original",
 			Amount: rapid.IntRange(1, 1000).Draw(rt, "amount"),

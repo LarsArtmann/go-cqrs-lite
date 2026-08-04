@@ -2,6 +2,7 @@ package system
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -31,6 +32,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 	// Create engines from the deployment config.
 	engineCache := make(map[string]metaengine.Engine)
+
 	for name, cfg := range deployment.Engines {
 		eng, err := createEngine(cfg)
 		if err != nil {
@@ -51,12 +53,19 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 			eng, ok := engineCache[engineName]
 			if !ok {
-				return nil, fmt.Errorf("system: instance %q references unknown engine %q", inst.Role, engineName)
+				return nil, fmt.Errorf(
+					"system: instance %q references unknown engine %q",
+					inst.Role,
+					engineName,
+				)
 			}
 
 			backend, ok := eng.(metaengine.StreamLogBackend)
 			if !ok {
-				return nil, fmt.Errorf("system: engine %q does not implement StreamLogBackend", engineName)
+				return nil, fmt.Errorf(
+					"system: engine %q does not implement StreamLogBackend",
+					engineName,
+				)
 			}
 
 			sys.eventStore = NewEventAdapter(backend, "events")
@@ -69,6 +78,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 			}
 
 			var projEngines []metaengine.Engine
+
 			for _, name := range engineNames {
 				if eng, ok := engineCache[name]; ok {
 					projEngines = append(projEngines, eng)
@@ -120,7 +130,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	if sys.projStore != nil {
 		journal, ok := sys.eventStore.(event.SeekableJournal)
 		if !ok {
-			return nil, fmt.Errorf("system: event store does not implement SeekableJournal")
+			return nil, errors.New("system: event store does not implement SeekableJournal")
 		}
 
 		host, err := projectionhost.New(journal, &memoryCheckpointStore{})
@@ -152,7 +162,7 @@ func (s *System) Start(ctx context.Context) error {
 	defer s.mu.Unlock()
 
 	if s.started {
-		return fmt.Errorf("system: already started")
+		return errors.New("system: already started")
 	}
 
 	s.started = true
@@ -179,7 +189,10 @@ func createEngine(cfg EngineConfig) (metaengine.Engine, error) {
 	case "memory":
 		return metaengine.NewMemoryEngine(), nil
 	default:
-		return nil, fmt.Errorf("unsupported driver %q (only \"memory\" supported in initial implementation)", cfg.Driver)
+		return nil, fmt.Errorf(
+			"unsupported driver %q (only \"memory\" supported in initial implementation)",
+			cfg.Driver,
+		)
 	}
 }
 
@@ -193,7 +206,7 @@ func createEngine(cfg EngineConfig) (metaengine.Engine, error) {
 // system.Execute call.
 func RegisterDecider[State any](sys *System, streamType string, d decider.Decider[State]) error {
 	if sys.eventStore == nil {
-		return fmt.Errorf("system: cannot register decider: no event store")
+		return errors.New("system: cannot register decider: no event store")
 	}
 
 	repo, err := decider.NewRepository[State](sys.eventStore, nil, d)
@@ -252,14 +265,17 @@ func RegisterQuery[Q any, R any](
 	name string,
 	handler func(ctx context.Context, q Q) (R, error),
 ) error {
-	return sys.qryDisp.Register(query.Type(name), func(ctx context.Context, q query.Query) (any, error) {
-		typed, ok := q.(Q)
-		if !ok {
-			return nil, fmt.Errorf("system: query type mismatch for %q: got %T", name, q)
-		}
+	return sys.qryDisp.Register(
+		query.Type(name),
+		func(ctx context.Context, q query.Query) (any, error) {
+			typed, ok := q.(Q)
+			if !ok {
+				return nil, fmt.Errorf("system: query type mismatch for %q: got %T", name, q)
+			}
 
-		return handler(ctx, typed)
-	})
+			return handler(ctx, typed)
+		},
+	)
 }
 
 // DispatchQuery dispatches a typed query and returns the result.
@@ -267,12 +283,14 @@ func DispatchQuery[Q query.Query, R any](ctx context.Context, sys *System, q Q) 
 	result, err := sys.qryDisp.Dispatch(ctx, q)
 	if err != nil {
 		var zero R
+
 		return zero, err
 	}
 
 	typed, ok := result.(R)
 	if !ok {
 		var zero R
+
 		return zero, fmt.Errorf("system: query result type mismatch: got %T", result)
 	}
 
@@ -286,7 +304,11 @@ type memoryCheckpointStore struct {
 	data map[string]event.Checkpoint
 }
 
-func (s *memoryCheckpointStore) Save(_ context.Context, projection string, cp event.Checkpoint) error {
+func (s *memoryCheckpointStore) Save(
+	_ context.Context,
+	projection string,
+	cp event.Checkpoint,
+) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -299,7 +321,10 @@ func (s *memoryCheckpointStore) Save(_ context.Context, projection string, cp ev
 	return nil
 }
 
-func (s *memoryCheckpointStore) Load(_ context.Context, projection string) (event.Checkpoint, error) {
+func (s *memoryCheckpointStore) Load(
+	_ context.Context,
+	projection string,
+) (event.Checkpoint, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

@@ -81,6 +81,7 @@ func (a *EventAdapter) AppendBatch(
 	events []event.Event,
 ) error {
 	sid := ref.StreamKey()
+
 	return a.backend.StreamAppend(ctx, a.collection, sid, eventsToAny(events))
 }
 
@@ -88,6 +89,7 @@ func (a *EventAdapter) AppendBatch(
 
 func (a *EventAdapter) Load(ctx context.Context, ref id.StreamRef) ([]event.Event, error) {
 	sid := ref.StreamKey()
+
 	values, err := a.backend.StreamRead(ctx, a.collection, sid)
 	if err != nil {
 		return nil, fmt.Errorf("event adapter: load: %w", err)
@@ -106,10 +108,7 @@ func (a *EventAdapter) LoadFromVersion(
 		return nil, err
 	}
 
-	start := int(version)
-	if start > len(all) {
-		start = len(all)
-	}
+	start := min(int(version), len(all))
 
 	return all[start:], nil
 }
@@ -124,10 +123,7 @@ func (a *EventAdapter) LoadToVersion(
 		return nil, err
 	}
 
-	end := int(maxVersion)
-	if end > len(all) {
-		end = len(all)
-	}
+	end := min(int(maxVersion), len(all))
 
 	return all[:end], nil
 }
@@ -178,10 +174,12 @@ func (a *EventAdapter) ReadFrom(
 	}
 
 	afterSeq := int64(0)
+
 	for i, val := range all {
 		evt, ok := val.(event.Event)
 		if ok && evt.ID() == afterEventID {
 			afterSeq = int64(i + 1) // skip the event itself
+
 			break
 		}
 	}

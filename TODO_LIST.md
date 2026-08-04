@@ -263,19 +263,21 @@ and is **never** duplicated here.
       (M44)
 - [ ] **Contract test suite across ALL backends in VMs** — SQLite, PG, MySQL,
       DuckDB simultaneously. (M46)
-- [ ] **Add `scheduling/sqlstore` to PG integration suite** — the Postgres
+- [x] **Add `scheduling/sqlstore` to PG integration suite** — the Postgres
       dialect path (`NewPostgresStore`, native `time.Time`, `$N` placeholders,
-      `BYTEA`) is entirely untested against real PG. Add to
-      `scripts/ephemeral-pg.sh` PG_MODULES + write PG restart durability test.
-      Evidence: `scheduling/sqlstore/store.go` DialectPostgres branch.
-- [ ] **MySQL syntax test for `scheduling/sqlstore`** — `idempotency/sqlstore`
-      ships `mysql_queries_test.go` verifying backtick quoting, `ON DUPLICATE
-      KEY UPDATE`, `IF()` without a live MySQL connection. `scheduling/sqlstore`
-      has `mysqlQueries()` but no equivalent syntax test.
-      Evidence: `scheduling/sqlstore/store.go:80`.
-- [ ] **`scheduling/sqlstore` property + concurrency tests** — concurrent
-      Schedule/MarkFired/Due races are untested. Add `rapid`-based property
-      test following the `idempotency/sqlstore/property_test.go` pattern.
+      `BYTEA`) is now tested against real PG via `nix run .#integration-pg`.
+      Added to `scripts/ephemeral-pg.sh` PG_MODULES + 4 PG integration tests
+      (ScheduleAndDue, IdempotentSchedule, SurvivesRestart, SchedulerRecovery).
+      Evidence: `scheduling/sqlstore/pg_integration_test.go`.
+- [x] **MySQL syntax test for `scheduling/sqlstore`** —
+      `scheduling/sqlstore/mysql_queries_test.go` verifies VARCHAR(255) PK,
+      DATETIME(3), CURRENT_TIMESTAMP(3), ON DUPLICATE KEY UPDATE no-op, and
+      `?` placeholders — following the `idempotency/sqlstore` pattern.
+- [x] **`scheduling/sqlstore` property + concurrency tests** — 5 `rapid`-based
+      property tests: idempotent schedule, concurrent same-ID schedule, Due
+      ordering, MarkFired removes timer, concurrent Schedule+MarkFired+Due.
+      All pass with `-race` (100 iterations each).
+      Evidence: `scheduling/sqlstore/property_test.go`.
 - [ ] **Ephemeral Redis/NATS for future integration tests** — Watermill adapter
       testing with real brokers. (M47)
 - [ ] **`scripts/test-integration.sh` aggregator** — auto-detect best strategy

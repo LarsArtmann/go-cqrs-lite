@@ -115,7 +115,14 @@ func formatModuleList(modules []ScorecardModule) string {
 	var b strings.Builder
 	for _, m := range modules {
 		if m.Evidence != "" {
-			fmt.Fprintf(&b, "  %-24s  %-16s  %-8s  %s\n", m.DisplayName, m.Category, m.Status, m.Evidence)
+			fmt.Fprintf(
+				&b,
+				"  %-24s  %-16s  %-8s  %s\n",
+				m.DisplayName,
+				m.Category,
+				m.Status,
+				m.Evidence,
+			)
 		} else {
 			fmt.Fprintf(&b, "  %-24s  %-16s  %s\n", m.DisplayName, m.Category, m.Status)
 		}

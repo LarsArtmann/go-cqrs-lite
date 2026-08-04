@@ -3,7 +3,7 @@ package system_test
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"testing"
 	"time"
 
@@ -84,7 +84,7 @@ func TestSystem_FullCQRSRoundtrip(t *testing.T) {
 					return system.Execute(ctx, cmd.StreamID(), "Task",
 						func(state TaskState, ver event.Version) ([]event.Event, error) {
 							if state.Exists {
-								return nil, fmt.Errorf("task already exists")
+								return nil, errors.New("task already exists")
 							}
 
 							return []event.Event{mustEvent(event.New("task.created",
@@ -98,7 +98,7 @@ func TestSystem_FullCQRSRoundtrip(t *testing.T) {
 					return system.Execute(ctx, cmd.StreamID(), "Task",
 						func(state TaskState, ver event.Version) ([]event.Event, error) {
 							if !state.Exists {
-								return nil, fmt.Errorf("task not found")
+								return nil, errors.New("task not found")
 							}
 
 							return []event.Event{mustEvent(event.New("task.completed",

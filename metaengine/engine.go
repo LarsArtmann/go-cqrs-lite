@@ -433,7 +433,12 @@ type StreamLogBackend interface {
 	// ordered by global append sequence. Used for position-based resumption
 	// (CatchUpSubscriber, incremental projection processing).
 	// If limit <= 0, returns all remaining values.
-	JournalReadFrom(ctx context.Context, collection string, afterSeq int64, limit int) ([]any, error)
+	JournalReadFrom(
+		ctx context.Context,
+		collection string,
+		afterSeq int64,
+		limit int,
+	) ([]any, error)
 }
 
 // Closer is the lifecycle interface.
@@ -449,19 +454,19 @@ type Engine interface {
 
 // Compile-time assertions that memoryEngine implements all backend interfaces.
 var (
-	_ Engine          = (*memoryEngine)(nil)
-	_ MapBackend      = (*memoryEngine)(nil)
-	_ MapUpdater      = (*memoryEngine)(nil)
-	_ ScanBackend     = (*memoryEngine)(nil)
-	_ SetBackend      = (*memoryEngine)(nil)
-	_ CounterBackend  = (*memoryEngine)(nil)
-	_ GraphBackend    = (*memoryEngine)(nil)
-	_ MultimapBackend = (*memoryEngine)(nil)
-	_ LogBackend      = (*memoryEngine)(nil)
+	_ Engine           = (*memoryEngine)(nil)
+	_ MapBackend       = (*memoryEngine)(nil)
+	_ MapUpdater       = (*memoryEngine)(nil)
+	_ ScanBackend      = (*memoryEngine)(nil)
+	_ SetBackend       = (*memoryEngine)(nil)
+	_ CounterBackend   = (*memoryEngine)(nil)
+	_ GraphBackend     = (*memoryEngine)(nil)
+	_ MultimapBackend  = (*memoryEngine)(nil)
+	_ LogBackend       = (*memoryEngine)(nil)
 	_ StreamLogBackend = (*memoryEngine)(nil)
-	_ VectorBackend   = (*memoryEngine)(nil)
-	_ SearchBackend   = (*memoryEngine)(nil)
-	_ SpatialBackend  = (*memoryEngine)(nil)
+	_ VectorBackend    = (*memoryEngine)(nil)
+	_ SearchBackend    = (*memoryEngine)(nil)
+	_ SpatialBackend   = (*memoryEngine)(nil)
 )
 
 // SQLiteEngineProfile returns the cost profile for a SQLite engine.

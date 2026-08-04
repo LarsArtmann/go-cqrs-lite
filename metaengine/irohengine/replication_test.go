@@ -19,11 +19,13 @@ func TestMapUpdateDoesNotReplicate(t *testing.T) {
 	ctx := context.Background()
 
 	net := irohengine.NewNetwork()
-	nodeA := irohengine.Replicated(metaengine.NewMemoryEngine(),
+	nodeA := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-a"),
 		irohengine.WithTransport(net.Join("a")),
 	)
-	nodeB := irohengine.Replicated(metaengine.NewMemoryEngine(),
+	nodeB := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-b"),
 		irohengine.WithTransport(net.Join("b")),
 	)

@@ -2,6 +2,7 @@ package irohengine
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -15,9 +16,9 @@ type replicatedEngine struct {
 	local metaengine.Engine
 	cfg   *config
 
-	mu          sync.Mutex
-	timestamps  map[string]time.Time // "col\x00key" → latest LWW timestamp
-	applying    bool                 // re-entrancy guard: true when applying remote op
+	mu         sync.Mutex
+	timestamps map[string]time.Time // "col\x00key" → latest LWW timestamp
+	applying   bool                 // re-entrancy guard: true when applying remote op
 }
 
 func lwwKey(collection string, key any) string {
@@ -129,7 +130,12 @@ func (e *replicatedEngine) applyRemote(op WriteOp) {
 
 // --- MapBackend (CRDT-safe: LWW-Map) ---
 
-func (e *replicatedEngine) MapSet(ctx context.Context, collection string, key any, value any) error {
+func (e *replicatedEngine) MapSet(
+	ctx context.Context,
+	collection string,
+	key any,
+	value any,
+) error {
 	now := time.Now()
 	e.recordLWW(collection, key, now)
 	if err := e.local.(metaengine.MapBackend).MapSet(ctx, collection, key, value); err != nil {
@@ -142,7 +148,11 @@ func (e *replicatedEngine) MapSet(ctx context.Context, collection string, key an
 	return nil
 }
 
-func (e *replicatedEngine) MapGet(ctx context.Context, collection string, key any) (any, bool, error) {
+func (e *replicatedEngine) MapGet(
+	ctx context.Context,
+	collection string,
+	key any,
+) (any, bool, error) {
 	return e.local.(metaengine.MapBackend).MapGet(ctx, collection, key)
 }
 
@@ -161,11 +171,16 @@ func (e *replicatedEngine) MapDelete(ctx context.Context, collection string, key
 
 // --- MapUpdater (NOT CRDT-safe: local only) ---
 
-func (e *replicatedEngine) MapUpdate(ctx context.Context, collection string, key any, update func(prev any) any) error {
+func (e *replicatedEngine) MapUpdate(
+	ctx context.Context,
+	collection string,
+	key any,
+	update func(prev any) any,
+) error {
 	if mu, ok := e.local.(metaengine.MapUpdater); ok {
 		return mu.MapUpdate(ctx, collection, key, update)
 	}
-	return fmt.Errorf("local engine does not implement MapUpdater")
+	return errors.New("local engine does not implement MapUpdater")
 }
 
 // --- ScanBackend (local passthrough) ---
@@ -179,7 +194,7 @@ func (e *replicatedEngine) MapScan(
 	if sb, ok := e.local.(metaengine.ScanBackend); ok {
 		return sb.MapScan(ctx, collection, filterFn, sortFunc, cursor, limit)
 	}
-	return metaengine.ScanResult{}, fmt.Errorf("local engine does not implement ScanBackend")
+	return metaengine.ScanResult{}, errors.New("local engine does not implement ScanBackend")
 }
 
 // --- SetBackend (CRDT-safe: OR-Set) ---
@@ -195,14 +210,26 @@ func (e *replicatedEngine) SetAdd(ctx context.Context, collection string, key an
 	return nil
 }
 
-func (e *replicatedEngine) SetContains(ctx context.Context, collection string, key any) (bool, error) {
+func (e *replicatedEngine) SetContains(
+	ctx context.Context,
+	collection string,
+	key any,
+) (bool, error) {
 	return e.local.(metaengine.SetBackend).SetContains(ctx, collection, key)
 }
 
 // --- CounterBackend (CRDT-safe: PN-Counter) ---
 
-func (e *replicatedEngine) CounterIncrement(ctx context.Context, collection string, deltas metaengine.Delta) error {
-	if err := e.local.(metaengine.CounterBackend).CounterIncrement(ctx, collection, deltas); err != nil {
+func (e *replicatedEngine) CounterIncrement(
+	ctx context.Context,
+	collection string,
+	deltas metaengine.Delta,
+) error {
+	if err := e.local.(metaengine.CounterBackend).CounterIncrement(
+		ctx,
+		collection,
+		deltas,
+	); err != nil {
 		return err
 	}
 	e.publish(WriteOp{
@@ -212,30 +239,52 @@ func (e *replicatedEngine) CounterIncrement(ctx context.Context, collection stri
 	return nil
 }
 
-func (e *replicatedEngine) CounterGet(ctx context.Context, collection string) (map[string]int64, error) {
+func (e *replicatedEngine) CounterGet(
+	ctx context.Context,
+	collection string,
+) (map[string]int64, error) {
 	return e.local.(metaengine.CounterBackend).CounterGet(ctx, collection)
 }
 
 // --- GraphBackend (local passthrough) ---
 
-func (e *replicatedEngine) GraphAddEdge(ctx context.Context, collection string, edge metaengine.Edge) error {
+func (e *replicatedEngine) GraphAddEdge(
+	ctx context.Context,
+	collection string,
+	edge metaengine.Edge,
+) error {
 	if gb, ok := e.local.(metaengine.GraphBackend); ok {
 		return gb.GraphAddEdge(ctx, collection, edge)
 	}
-	return fmt.Errorf("local engine does not implement GraphBackend")
+	return errors.New("local engine does not implement GraphBackend")
 }
 
-func (e *replicatedEngine) GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error) {
+func (e *replicatedEngine) GraphNeighbors(
+	ctx context.Context,
+	collection string,
+	node any,
+	depth int,
+) ([]any, error) {
 	if gb, ok := e.local.(metaengine.GraphBackend); ok {
 		return gb.GraphNeighbors(ctx, collection, node, depth)
 	}
-	return nil, fmt.Errorf("local engine does not implement GraphBackend")
+	return nil, errors.New("local engine does not implement GraphBackend")
 }
 
 // --- MultimapBackend (CRDT-safe: OR-Set per key) ---
 
-func (e *replicatedEngine) MultiAdd(ctx context.Context, collection string, key any, value any) error {
-	if err := e.local.(metaengine.MultimapBackend).MultiAdd(ctx, collection, key, value); err != nil {
+func (e *replicatedEngine) MultiAdd(
+	ctx context.Context,
+	collection string,
+	key any,
+	value any,
+) error {
+	if err := e.local.(metaengine.MultimapBackend).MultiAdd(
+		ctx,
+		collection,
+		key,
+		value,
+	); err != nil {
 		return err
 	}
 	e.publish(WriteOp{
@@ -245,7 +294,11 @@ func (e *replicatedEngine) MultiAdd(ctx context.Context, collection string, key 
 	return nil
 }
 
-func (e *replicatedEngine) MultiGet(ctx context.Context, collection string, key any) ([]any, error) {
+func (e *replicatedEngine) MultiGet(
+	ctx context.Context,
+	collection string,
+	key any,
+) ([]any, error) {
 	return e.local.(metaengine.MultimapBackend).MultiGet(ctx, collection, key)
 }
 
@@ -262,56 +315,87 @@ func (e *replicatedEngine) LogAppend(ctx context.Context, collection string, val
 	return nil
 }
 
-func (e *replicatedEngine) LogTail(ctx context.Context, collection string, limit int) ([]any, error) {
+func (e *replicatedEngine) LogTail(
+	ctx context.Context,
+	collection string,
+	limit int,
+) ([]any, error) {
 	return e.local.(metaengine.LogBackend).LogTail(ctx, collection, limit)
 }
 
 // --- VectorBackend (local passthrough) ---
 
-func (e *replicatedEngine) VectorInsert(ctx context.Context, collection string, emb metaengine.Embedding) error {
+func (e *replicatedEngine) VectorInsert(
+	ctx context.Context,
+	collection string,
+	emb metaengine.Embedding,
+) error {
 	if vb, ok := e.local.(metaengine.VectorBackend); ok {
 		return vb.VectorInsert(ctx, collection, emb)
 	}
-	return fmt.Errorf("local engine does not implement VectorBackend")
+	return errors.New("local engine does not implement VectorBackend")
 }
 
-func (e *replicatedEngine) VectorSearch(ctx context.Context, collection string, query []float32, k int, metric string) ([]metaengine.VectorResult, error) {
+func (e *replicatedEngine) VectorSearch(
+	ctx context.Context,
+	collection string,
+	query []float32,
+	k int,
+	metric string,
+) ([]metaengine.VectorResult, error) {
 	if vb, ok := e.local.(metaengine.VectorBackend); ok {
 		return vb.VectorSearch(ctx, collection, query, k, metric)
 	}
-	return nil, fmt.Errorf("local engine does not implement VectorBackend")
+	return nil, errors.New("local engine does not implement VectorBackend")
 }
 
 // --- SearchBackend (local passthrough) ---
 
-func (e *replicatedEngine) SearchInsert(ctx context.Context, collection string, doc metaengine.IndexedText) error {
+func (e *replicatedEngine) SearchInsert(
+	ctx context.Context,
+	collection string,
+	doc metaengine.IndexedText,
+) error {
 	if sb, ok := e.local.(metaengine.SearchBackend); ok {
 		return sb.SearchInsert(ctx, collection, doc)
 	}
-	return fmt.Errorf("local engine does not implement SearchBackend")
+	return errors.New("local engine does not implement SearchBackend")
 }
 
-func (e *replicatedEngine) SearchQuery(ctx context.Context, collection, query string, limit int) ([]metaengine.SearchResult, error) {
+func (e *replicatedEngine) SearchQuery(
+	ctx context.Context,
+	collection, query string,
+	limit int,
+) ([]metaengine.SearchResult, error) {
 	if sb, ok := e.local.(metaengine.SearchBackend); ok {
 		return sb.SearchQuery(ctx, collection, query, limit)
 	}
-	return nil, fmt.Errorf("local engine does not implement SearchBackend")
+	return nil, errors.New("local engine does not implement SearchBackend")
 }
 
 // --- SpatialBackend (local passthrough) ---
 
-func (e *replicatedEngine) SpatialInsert(ctx context.Context, collection string, pt metaengine.Point) error {
+func (e *replicatedEngine) SpatialInsert(
+	ctx context.Context,
+	collection string,
+	pt metaengine.Point,
+) error {
 	if sb, ok := e.local.(metaengine.SpatialBackend); ok {
 		return sb.SpatialInsert(ctx, collection, pt)
 	}
-	return fmt.Errorf("local engine does not implement SpatialBackend")
+	return errors.New("local engine does not implement SpatialBackend")
 }
 
-func (e *replicatedEngine) SpatialRange(ctx context.Context, collection string, x, y, radius float64, limit int) ([]metaengine.SpatialResult, error) {
+func (e *replicatedEngine) SpatialRange(
+	ctx context.Context,
+	collection string,
+	x, y, radius float64,
+	limit int,
+) ([]metaengine.SpatialResult, error) {
 	if sb, ok := e.local.(metaengine.SpatialBackend); ok {
 		return sb.SpatialRange(ctx, collection, x, y, radius, limit)
 	}
-	return nil, fmt.Errorf("local engine does not implement SpatialBackend")
+	return nil, errors.New("local engine does not implement SpatialBackend")
 }
 
 // Compile-time assertions that replicatedEngine implements all backend interfaces.

@@ -85,12 +85,12 @@ func (n *Network) deliver(from string, op WriteOp) {
 	}
 	n.mu.RUnlock()
 
-	if n.dropRate > 0 && rand.Float64() < n.dropRate { //nolint:gosec // simulation only
+	if n.dropRate > 0 && rand.Float64() < n.dropRate {
 		return
 	}
 
 	if n.maxDelay > 0 {
-		time.Sleep(time.Duration(rand.Int63n(int64(n.maxDelay)))) //nolint:gosec // simulation only
+		time.Sleep(time.Duration(rand.Int63n(int64(n.maxDelay))))
 	}
 
 	for _, p := range peers {

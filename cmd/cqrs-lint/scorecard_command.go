@@ -17,9 +17,9 @@ var errScorecardBelowThreshold = errors.New("scorecard coverage below threshold"
 
 // scorecardFlags adds --format, --color, and --scorecard-threshold to the scorecard subcommand.
 type scorecardFlags struct {
-	Format    string `default:"text" flag:"format"               help:"Output format (text, json)"                      short:"o"`
-	Color     string `default:"auto" flag:"color"                help:"Colored output: auto,always,never"`
-	Threshold int    `default:"0"   flag:"scorecard-threshold"   help:"Exit non-zero if coverage is below N% (CI gate)"`
+	Format    string `default:"text" flag:"format"              help:"Output format (text, json)"                      short:"o"`
+	Color     string `default:"auto" flag:"color"               help:"Colored output: auto,always,never"`
+	Threshold int    `default:"0"    flag:"scorecard-threshold" help:"Exit non-zero if coverage is below N% (CI gate)"`
 }
 
 func setupScorecardCommand(cli *cmdguard.CLI[AppConfig]) error {

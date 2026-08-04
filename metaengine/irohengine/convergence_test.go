@@ -17,18 +17,21 @@ func TestMapConvergence2Node(t *testing.T) {
 	ctx := context.Background()
 
 	net := irohengine.NewNetwork()
-	nodeA := irohengine.Replicated(metaengine.NewMemoryEngine(),
+	nodeA := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-a"),
 		irohengine.WithTransport(net.Join("a")),
 	)
-	nodeB := irohengine.Replicated(metaengine.NewMemoryEngine(),
+	nodeB := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-b"),
 		irohengine.WithTransport(net.Join("b")),
 	)
 	defer nodeA.Close()
 	defer nodeB.Close()
 
-	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "users", "u1", map[string]any{"name": "Alice"})).To(gomega.Succeed())
+	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "users", "u1", map[string]any{"name": "Alice"})).
+		To(gomega.Succeed())
 
 	val, ok, err := nodeB.(metaengine.MapBackend).MapGet(ctx, "users", "u1")
 	g.Expect(err).NotTo(gomega.HaveOccurred())
@@ -44,14 +47,16 @@ func TestMapConvergence3Node(t *testing.T) {
 	net := irohengine.NewNetwork()
 	nodes := make([]metaengine.Engine, 3)
 	for i, id := range []string{"a", "b", "c"} {
-		nodes[i] = irohengine.Replicated(metaengine.NewMemoryEngine(),
+		nodes[i] = irohengine.Replicated(
+			metaengine.NewMemoryEngine(),
 			irohengine.WithAuthor("node-"+id),
 			irohengine.WithTransport(net.Join(id)),
 		)
 		defer nodes[i].Close()
 	}
 
-	g.Expect(nodes[0].(metaengine.MapBackend).MapSet(ctx, "orders", "o1", "pending")).To(gomega.Succeed())
+	g.Expect(nodes[0].(metaengine.MapBackend).MapSet(ctx, "orders", "o1", "pending")).
+		To(gomega.Succeed())
 
 	for i, n := range nodes {
 		val, ok, err := n.(metaengine.MapBackend).MapGet(ctx, "orders", "o1")
@@ -67,20 +72,24 @@ func TestLWWResolution(t *testing.T) {
 	ctx := context.Background()
 
 	net := irohengine.NewNetwork()
-	nodeA := irohengine.Replicated(metaengine.NewMemoryEngine(),
+	nodeA := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-a"),
 		irohengine.WithTransport(net.Join("a")),
 	)
-	nodeB := irohengine.Replicated(metaengine.NewMemoryEngine(),
+	nodeB := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-b"),
 		irohengine.WithTransport(net.Join("b")),
 	)
 	defer nodeA.Close()
 	defer nodeB.Close()
 
-	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "users", "u1", "Alice-old")).To(gomega.Succeed())
+	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "users", "u1", "Alice-old")).
+		To(gomega.Succeed())
 	time.Sleep(10 * time.Millisecond)
-	g.Expect(nodeB.(metaengine.MapBackend).MapSet(ctx, "users", "u1", "Bob-new")).To(gomega.Succeed())
+	g.Expect(nodeB.(metaengine.MapBackend).MapSet(ctx, "users", "u1", "Bob-new")).
+		To(gomega.Succeed())
 
 	valA, _, err := nodeA.(metaengine.MapBackend).MapGet(ctx, "users", "u1")
 	g.Expect(err).NotTo(gomega.HaveOccurred())
@@ -97,19 +106,23 @@ func TestPNCounter(t *testing.T) {
 	ctx := context.Background()
 
 	net := irohengine.NewNetwork()
-	nodeA := irohengine.Replicated(metaengine.NewMemoryEngine(),
+	nodeA := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-a"),
 		irohengine.WithTransport(net.Join("a")),
 	)
-	nodeB := irohengine.Replicated(metaengine.NewMemoryEngine(),
+	nodeB := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-b"),
 		irohengine.WithTransport(net.Join("b")),
 	)
 	defer nodeA.Close()
 	defer nodeB.Close()
 
-	g.Expect(nodeA.(metaengine.CounterBackend).CounterIncrement(ctx, "visits", metaengine.Delta{"total": 5})).To(gomega.Succeed())
-	g.Expect(nodeB.(metaengine.CounterBackend).CounterIncrement(ctx, "visits", metaengine.Delta{"total": 3})).To(gomega.Succeed())
+	g.Expect(nodeA.(metaengine.CounterBackend).CounterIncrement(ctx, "visits", metaengine.Delta{"total": 5})).
+		To(gomega.Succeed())
+	g.Expect(nodeB.(metaengine.CounterBackend).CounterIncrement(ctx, "visits", metaengine.Delta{"total": 3})).
+		To(gomega.Succeed())
 
 	counts, err := nodeA.(metaengine.CounterBackend).CounterGet(ctx, "visits")
 	g.Expect(err).NotTo(gomega.HaveOccurred())
@@ -126,11 +139,13 @@ func TestSetConvergence(t *testing.T) {
 	ctx := context.Background()
 
 	net := irohengine.NewNetwork()
-	nodeA := irohengine.Replicated(metaengine.NewMemoryEngine(),
+	nodeA := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-a"),
 		irohengine.WithTransport(net.Join("a")),
 	)
-	nodeB := irohengine.Replicated(metaengine.NewMemoryEngine(),
+	nodeB := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-b"),
 		irohengine.WithTransport(net.Join("b")),
 	)
@@ -155,19 +170,23 @@ func TestLogConvergence(t *testing.T) {
 	ctx := context.Background()
 
 	net := irohengine.NewNetwork()
-	nodeA := irohengine.Replicated(metaengine.NewMemoryEngine(),
+	nodeA := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-a"),
 		irohengine.WithTransport(net.Join("a")),
 	)
-	nodeB := irohengine.Replicated(metaengine.NewMemoryEngine(),
+	nodeB := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-b"),
 		irohengine.WithTransport(net.Join("b")),
 	)
 	defer nodeA.Close()
 	defer nodeB.Close()
 
-	g.Expect(nodeA.(metaengine.LogBackend).LogAppend(ctx, "audit", "user-login")).To(gomega.Succeed())
-	g.Expect(nodeA.(metaengine.LogBackend).LogAppend(ctx, "audit", "file-upload")).To(gomega.Succeed())
+	g.Expect(nodeA.(metaengine.LogBackend).LogAppend(ctx, "audit", "user-login")).
+		To(gomega.Succeed())
+	g.Expect(nodeA.(metaengine.LogBackend).LogAppend(ctx, "audit", "file-upload")).
+		To(gomega.Succeed())
 
 	entries, err := nodeB.(metaengine.LogBackend).LogTail(ctx, "audit", 10)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
@@ -182,20 +201,25 @@ func TestMultimapConvergence(t *testing.T) {
 	ctx := context.Background()
 
 	net := irohengine.NewNetwork()
-	nodeA := irohengine.Replicated(metaengine.NewMemoryEngine(),
+	nodeA := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-a"),
 		irohengine.WithTransport(net.Join("a")),
 	)
-	nodeB := irohengine.Replicated(metaengine.NewMemoryEngine(),
+	nodeB := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-b"),
 		irohengine.WithTransport(net.Join("b")),
 	)
 	defer nodeA.Close()
 	defer nodeB.Close()
 
-	g.Expect(nodeA.(metaengine.MultimapBackend).MultiAdd(ctx, "members", "team-a", "alice")).To(gomega.Succeed())
-	g.Expect(nodeA.(metaengine.MultimapBackend).MultiAdd(ctx, "members", "team-a", "bob")).To(gomega.Succeed())
-	g.Expect(nodeB.(metaengine.MultimapBackend).MultiAdd(ctx, "members", "team-a", "carol")).To(gomega.Succeed())
+	g.Expect(nodeA.(metaengine.MultimapBackend).MultiAdd(ctx, "members", "team-a", "alice")).
+		To(gomega.Succeed())
+	g.Expect(nodeA.(metaengine.MultimapBackend).MultiAdd(ctx, "members", "team-a", "bob")).
+		To(gomega.Succeed())
+	g.Expect(nodeB.(metaengine.MultimapBackend).MultiAdd(ctx, "members", "team-a", "carol")).
+		To(gomega.Succeed())
 
 	vals, err := nodeA.(metaengine.MultimapBackend).MultiGet(ctx, "members", "team-a")
 	g.Expect(err).NotTo(gomega.HaveOccurred())

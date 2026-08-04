@@ -46,13 +46,13 @@ type memGraph struct {
 func NewMemoryEngine() Engine {
 	return &memoryEngine{
 		data: &memData{
-			maps:      make(map[string]map[any]any),
-			sets:      make(map[string]map[any]struct{}),
-			counters:  make(map[string]map[string]int64),
-			graphs:    make(map[string]*memGraph),
-			multimaps: make(map[string]map[any][]any),
-			logs:      make(map[string][]any),
-			streams:   make(map[string]map[string][]any),
+			maps:          make(map[string]map[any]any),
+			sets:          make(map[string]map[any]struct{}),
+			counters:      make(map[string]map[string]int64),
+			graphs:        make(map[string]*memGraph),
+			multimaps:     make(map[string]map[any][]any),
+			logs:          make(map[string][]any),
+			streams:       make(map[string]map[string][]any),
 			streamJournal: make(map[string][]streamJournalEntry),
 		},
 		vectorIdx:  NewMemoryVectorIndex(),

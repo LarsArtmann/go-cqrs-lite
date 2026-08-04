@@ -205,9 +205,9 @@ type System struct {
 	deployment DeploymentConfig
 
 	// Adapters wrap StreamLogBackend as standard CQRS interfaces.
-	eventStore   event.Store
-	cmdStore     command.Store
-	queryStore   query.QueryStore
+	eventStore event.Store
+	cmdStore   command.Store
+	queryStore query.QueryStore
 
 	// Infrastructure owned by the System (D6).
 	repos    map[string]any // streamType -> *decider.Repository[State]
@@ -257,6 +257,7 @@ func (s *System) UseCommandMiddleware(mw ...command.Middleware) {
 	if s.cmdDisp == nil {
 		return
 	}
+
 	for _, m := range mw {
 		s.cmdDisp.Use(m)
 	}
@@ -275,6 +276,7 @@ func (s *System) Close() error {
 	if s.stopped {
 		return nil
 	}
+
 	s.stopped = true
 
 	var firstErr error

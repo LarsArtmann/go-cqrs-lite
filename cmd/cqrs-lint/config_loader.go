@@ -159,21 +159,21 @@ func stripTrailingCommas(data []byte) []byte {
 			continue
 		}
 
-		switch {
-		case c == '"':
+		switch c {
+		case '"':
 			inString = true
 			result = append(result, c)
 			pendingComma = -1
-		case c == ',':
+		case ',':
 			result = append(result, c)
 			pendingComma = len(result) - 1
-		case c == '}' || c == ']':
+		case '}', ']':
 			if pendingComma >= 0 {
 				result = result[:pendingComma]
 			}
 			result = append(result, c)
 			pendingComma = -1
-		case c == ' ' || c == '\t' || c == '\n' || c == '\r':
+		case ' ', '\t', '\n', '\r':
 			result = append(result, c)
 		default:
 			result = append(result, c)

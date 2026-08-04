@@ -4,8 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	output "github.com/larsartmann/go-output"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
 
 func TestComputeScorecard_AllUsed(t *testing.T) {

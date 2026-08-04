@@ -65,9 +65,21 @@ func TestIntegration_PostgresTimerStore_ScheduleAndDue(t *testing.T) {
 	now := time.Now().UTC().Truncate(time.Millisecond)
 
 	timers := []scheduling.Timer[testPayload]{
-		{ID: "pg-t3", FireAt: now.Add(30 * time.Second), Payload: testPayload{Action: "c", Amount: 3}},
-		{ID: "pg-t1", FireAt: now.Add(5 * time.Second), Payload: testPayload{Action: "a", Amount: 1}},
-		{ID: "pg-t2", FireAt: now.Add(10 * time.Second), Payload: testPayload{Action: "b", Amount: 2}},
+		{
+			ID:      "pg-t3",
+			FireAt:  now.Add(30 * time.Second),
+			Payload: testPayload{Action: "c", Amount: 3},
+		},
+		{
+			ID:      "pg-t1",
+			FireAt:  now.Add(5 * time.Second),
+			Payload: testPayload{Action: "a", Amount: 1},
+		},
+		{
+			ID:      "pg-t2",
+			FireAt:  now.Add(10 * time.Second),
+			Payload: testPayload{Action: "b", Amount: 2},
+		},
 	}
 
 	for _, tm := range timers {

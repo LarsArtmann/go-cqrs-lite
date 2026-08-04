@@ -116,7 +116,11 @@ func TestIntegration_ProjectionHost_CrashRestart_CheckpointReplay(t *testing.T) 
 	// Phase 1: seed 10 events.
 	for range 10 {
 		evt, _ := event.New("item.added", streamID, "Item", 1, []byte("phase1"))
-		if err := eventStore.AppendBatch(context.Background(), ref, []event.Event{evt}); err != nil {
+		if err := eventStore.AppendBatch(
+			context.Background(),
+			ref,
+			[]event.Event{evt},
+		); err != nil {
 			t.Fatalf("seed phase1: %v", err)
 		}
 	}
@@ -169,7 +173,11 @@ func TestIntegration_ProjectionHost_CrashRestart_CheckpointReplay(t *testing.T) 
 	// Phase 2: seed 5 MORE events while the host is "down".
 	for range 5 {
 		evt, _ := event.New("item.added", streamID, "Item", 1, []byte("phase2"))
-		if err := eventStore.AppendBatch(context.Background(), ref, []event.Event{evt}); err != nil {
+		if err := eventStore.AppendBatch(
+			context.Background(),
+			ref,
+			[]event.Event{evt},
+		); err != nil {
 			t.Fatalf("seed phase2: %v", err)
 		}
 	}

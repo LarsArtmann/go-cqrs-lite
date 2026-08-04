@@ -61,7 +61,12 @@ func (m *memoryEngine) JournalReadAll(_ context.Context, col string) ([]any, err
 	return result, nil
 }
 
-func (m *memoryEngine) JournalReadFrom(_ context.Context, col string, afterSeq int64, limit int) ([]any, error) {
+func (m *memoryEngine) JournalReadFrom(
+	_ context.Context,
+	col string,
+	afterSeq int64,
+	limit int,
+) ([]any, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
