@@ -31,16 +31,9 @@ func run(ctx context.Context, cfg *AppConfig) error {
 
 	applyConfigOverrides(cfg, actx)
 
-	if err := handleLoadErrors(cfg, actx); err != nil {
-		if errors.Is(err, errAbortClean) {
-			return nil
-		}
-		return err
-	}
-
-	detectors := selectDetectors(cfg, actx)
-
-	// Scorecard mode: compute module adoption and exit early (no findings needed).
+	// Scorecard mode: compute module adoption and exit early. Runs before
+	// handleLoadErrors because the scorecard only needs import paths (AST),
+	// not compiled types — it works even when the project has build errors.
 	if cfg.Scorecard {
 		usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, analyzer.DefaultCatalog)
 		result := ComputeScorecard(
@@ -54,6 +47,15 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		fmt.Print(out)
 		return nil
 	}
+
+	if err := handleLoadErrors(cfg, actx); err != nil {
+		if errors.Is(err, errAbortClean) {
+			return nil
+		}
+		return err
+	}
+
+	detectors := selectDetectors(cfg, actx)
 
 	result, err := runPipeline(ctx, cfg, detectors)
 	if err != nil {

@@ -151,12 +151,9 @@ func generateRecommendations(missing []ScorecardModule, n int) []string {
 	if len(missing) == 0 {
 		return nil
 	}
-	limit := n
-	if limit > len(missing) {
-		limit = len(missing)
-	}
+	limit := min(n, len(missing))
 	recs := make([]string, 0, limit)
-	for i := 0; i < limit; i++ {
+	for i := range limit {
 		if missing[i].Suggestion != "" {
 			recs = append(recs, missing[i].Suggestion)
 		}

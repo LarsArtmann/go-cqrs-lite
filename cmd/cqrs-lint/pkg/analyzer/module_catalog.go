@@ -1,6 +1,6 @@
 package analyzer
 
-import "sort"
+import "slices"
 
 // ModuleCategory groups adoptable modules for display grouping and
 // recommendation priority ordering.
@@ -150,18 +150,14 @@ func (e ModuleEntry) RelevantForProfile(fp FeatureProfile, preset ConfigPreset) 
 		return true
 	}
 	// Check explicit preset match.
-	for _, p := range e.Profiles {
-		if p == preset {
-			return true
-		}
+	if slices.Contains(e.Profiles, preset) {
+		return true
 	}
 	// Derive effective preset from FeatureProfile signals.
 	// A production server (HasServer && !ServerLocal) implies the production preset.
 	if fp.HasServer && !fp.ServerLocal {
-		for _, p := range e.Profiles {
-			if p == PresetProduction {
-				return true
-			}
+		if slices.Contains(e.Profiles, PresetProduction) {
+			return true
 		}
 	}
 	return false
@@ -422,8 +418,6 @@ func buildDefaultCatalog() []ModuleEntry {
 // sortedKeys returns keys sorted alphabetically for deterministic test output.
 func (c Catalog) sortedKeys() []ModuleKey {
 	keys := c.Keys()
-	sort.Slice(keys, func(i, j int) bool {
-		return keys[i] < keys[j]
-	})
+	slices.Sort(keys)
 	return keys
 }

@@ -29,14 +29,14 @@ func renderScorecardText(result ScorecardResult, colorMode output.ColorMode) str
 
 	// Summary banner.
 	b.WriteString("\n")
-	b.WriteString(fmt.Sprintf("Adoption: %d/%d relevant modules (%d%%) — Grade: %s\n",
+	fmt.Fprintf(&b, "Adoption: %d/%d relevant modules (%d%%) — Grade: %s\n",
 		result.Summary.UsedCount,
 		result.Summary.RelevantTotal,
 		result.Summary.CoveragePercent,
-		result.Summary.Grade))
+		result.Summary.Grade)
 	if result.Summary.IrrelevantCount > 0 {
-		b.WriteString(fmt.Sprintf("  (%d modules excluded as irrelevant for this profile)\n",
-			result.Summary.IrrelevantCount))
+		fmt.Fprintf(&b, "  (%d modules excluded as irrelevant for this profile)\n",
+			result.Summary.IrrelevantCount)
 	}
 	b.WriteString("\n")
 
@@ -68,7 +68,7 @@ func renderScorecardText(result ScorecardResult, colorMode output.ColorMode) str
 	if len(result.Recommendations) > 0 {
 		b.WriteString("RECOMMENDATIONS\n")
 		for _, rec := range result.Recommendations {
-			b.WriteString(fmt.Sprintf("  → %s\n", rec))
+			fmt.Fprintf(&b, "  → %s\n", rec)
 		}
 		b.WriteString("\n")
 	}
@@ -96,7 +96,7 @@ func renderModuleTable(modules []ScorecardModule, colorMode output.ColorMode) (s
 func formatModuleList(modules []ScorecardModule) string {
 	var b strings.Builder
 	for _, m := range modules {
-		b.WriteString(fmt.Sprintf("  %-24s  %-16s  %s\n", m.DisplayName, m.Category, m.Status))
+		fmt.Fprintf(&b, "  %-24s  %-16s  %s\n", m.DisplayName, m.Category, m.Status)
 	}
 	return b.String()
 }
