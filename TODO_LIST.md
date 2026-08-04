@@ -125,6 +125,21 @@ and is **never** duplicated here.
       not support trailing commas (allowed by JSONC spec). Edge case for
       hand-edited `.cqrs-lint.json` files.
 
+- [ ] **F013 cqrs-htmx regression test** — F013 (missing transport detection)
+      was fixed via `HasTransport` but no dedicated regression test proves
+      `cqrs-htmx` import suppresses it. Verification gap that could regress
+      silently. Evidence: `cmd/cqrs-lint/pkg/rules/api/e009.go`.
+
+- [ ] **`printFindingsByAggregate` output test** — the grouped-output renderer
+      (`--group-by aggregate`) has zero tests on the actual rendered text (group
+      headers, finding placement, format strings). If someone changes the
+      template, no test catches it. Evidence:
+      `cmd/cqrs-lint/aggregate.go`.
+
+- [ ] **`group-by` in `.cqrs-lint.json` config schema** — group-by is CLI-only
+      (`--group-by aggregate`). Consumers cannot set it in the config file. The
+      `init` subcommand doesn't generate it. Gap for config-file workflows.
+
 - [ ] **~14 remaining Pareto backlog items** — see the
       [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
       Highest impact: L1.29 event-type string typo detection, L1.30–L1.33 deep
@@ -178,6 +193,13 @@ and is **never** duplicated here.
       gate multiple times. Needs `testutil.RaceEnabled` threshold or longer
       TTL.
 
+- [ ] **Benchmark audit for 10 skipped modules** — benchmark assertion sweep
+      covered 18 files but skipped: codec, command, dispatcher, query,
+      middleware, snapshot, listing, watermill, transport/http, storage/view.
+      These likely have the same `_, _ =` result-discarding pattern that was
+      fixed in the other modules. Evidence:
+      `docs/status/2026-08-04_06-49_benchmark-assertions-brutal-self-review.md`.
+
 ---
 
 ## CI / Release / Infrastructure
@@ -199,6 +221,10 @@ and is **never** duplicated here.
 - [ ] **Regenerate API-stability golden** — `docs/api_surface.txt` at 3186
       exports; C040/C039/scorecard/group-by added exported symbols since last
       golden regen. Run `cd cmd/api-stability && GOWORK=off go run main.go -update`.
+
+- [ ] **Update CONTRIBUTING.md** — JSONC config loader, `explain` subcommand,
+      `scorecard` feature, and `--group-by` flag are undocumented in the
+      contributor guide. Consumers learn about these only from the README.
 
 ---
 
