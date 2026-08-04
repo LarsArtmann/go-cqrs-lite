@@ -733,3 +733,65 @@ func main() {
 		t.Error("ListenAndServeTLS should detect TLS → not ServerLocal")
 	}
 }
+
+func TestPresetDefinitions_AllPresetsHaveFeatures(t *testing.T) {
+	t.Parallel()
+
+	for name, def := range PresetDefinitions {
+		t.Run(string(name), func(t *testing.T) {
+			t.Parallel()
+
+			if def.Features.Server == nil && def.Features.CommandFlow == nil &&
+				def.Features.Tracing == nil && def.Features.Snapshot == nil &&
+				def.Features.SoftDelete == nil && def.Features.Store == nil &&
+				def.Features.Domain == nil && def.Features.Transport == nil {
+				t.Errorf("preset %q has no feature overrides at all", name)
+			}
+		})
+	}
+}
+
+func TestResolvePresetDefinition_BackwardCompatWithResolvePreset(t *testing.T) {
+	t.Parallel()
+
+	for _, name := range ValidPresetNames() {
+		def := ResolvePresetDefinition(ConfigPreset(name))
+		features := ResolvePreset(ConfigPreset(name))
+
+		if def.Features.Server != features.Server {
+			t.Errorf("preset %q: ResolvePresetDefinition().Features.Server != ResolvePreset().Server", name)
+		}
+	}
+}
+
+func TestIsKnownPreset(t *testing.T) {
+	t.Parallel()
+
+	if !IsKnownPreset(PresetNone) {
+		t.Error("PresetNone should be known")
+	}
+	if !IsKnownPreset(PresetLocalCLI) {
+		t.Error("PresetLocalCLI should be known")
+	}
+	if IsKnownPreset(ConfigPreset("server")) {
+		t.Error("'server' should NOT be known (stale init preset)")
+	}
+	if IsKnownPreset(ConfigPreset("full-stack")) {
+		t.Error("'full-stack' should NOT be known (stale init preset)")
+	}
+}
+
+func TestValidPresetNames_ContainsAllFourPresets(t *testing.T) {
+	t.Parallel()
+
+	names := ValidPresetNames()
+	expected := []string{"library", "local-cli", "production", "read-only"}
+	if len(names) != len(expected) {
+		t.Fatalf("expected %d preset names, got %d: %v", len(expected), len(names), names)
+	}
+	for i, want := range expected {
+		if names[i] != want {
+			t.Errorf("ValidPresetNames()[%d] = %q, want %q", i, names[i], want)
+		}
+	}
+}

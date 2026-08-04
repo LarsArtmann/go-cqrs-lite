@@ -39,7 +39,8 @@ cqrs-lint --fix ./...
 cqrs-lint rules
 
 # Config file support (auto-loaded from .cqrs-lint.json)
-echo '{"min-severity":"warning","format":"json"}' > .cqrs-lint.json
+cqrs-lint init --preset local-cli   # generate a config for a local CLI project
+cqrs-lint init                       # generate a default config skeleton
 cqrs-lint ./...
 ```
 
@@ -84,22 +85,35 @@ server-only rules (health checks, Prometheus, transport suggestions).
 
 ### Presets
 
-For convenience, named presets set common flag combinations:
+For convenience, named presets set common flag combinations. Generate a config
+with `cqrs-lint init --preset <name>`:
+
+```bash
+cqrs-lint init --preset local-cli   # writes {"preset": "local-cli"} to .cqrs-lint.json
+cqrs-lint init                       # writes a clean default skeleton
+```
+
+Or set the preset directly in `.cqrs-lint.json`:
 
 ```json
 {
-	"preset": "local-cli"
+  "preset": "local-cli"
 }
 ```
 
-| Preset       | Effect                                                                      |
-| ------------ | --------------------------------------------------------------------------- |
-| `local-cli`  | `server: false`, `tracing: off`                                             |
-| `production` | `server: true`, `tracing: on`                                               |
-| `library`    | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` |
-| `read-only`  | `command-flow: read-only`                                                   |
+Each preset pins feature flags AND disables rules that are known false-positives
+for that project type. Explicit `features` flags always override preset values;
+explicit `rules.disable` entries are added on top (union).
 
-Explicit `features` flags always override preset values.
+| Preset       | Features                                           | Rule defaults                    | Severity floor |
+| ------------ | -------------------------------------------------- | -------------------------------- | -------------- |
+| `local-cli`  | `server: false`, `tracing: off`                    | F004, F009, F013, F015, F017     | `warning`      |
+| `production` | `server: true`, `tracing: on`                      | (none)                           | (default)      |
+| `library`    | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016 | (default) |
+| `read-only`  | `command-flow: read-only`                          | (none)                           | (default)      |
+
+cqrs-lint warns on unknown preset names (typos) and unknown disabled rule IDs,
+so misconfigurations surface immediately instead of silently doing nothing.
 
 ## Rule Count
 
