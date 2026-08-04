@@ -15,15 +15,15 @@ import (
 )
 
 // TestSystem_SnapshotAdapterDirect verifies the SnapshotAdapter Save/Load/Delete
-// roundtrip through the System. The System must wire the adapter when the engine
-// implements SnapshotBackend.
+// roundtrip through the System with a SQLite engine (which implements
+// SnapshotBackend).
 func TestSystem_SnapshotAdapterDirect(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
 
 	sys, err := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
-		Engines:   map[string]system.EngineConfig{"primary": {Driver: "memory"}},
+		Engines:   map[string]system.EngineConfig{"primary": {Driver: "sqlite"}},
 		Instances: []system.InstanceConfig{{Role: system.RoleSourceOfTruth, Engine: "primary"}},
 	})
 	if err != nil {
@@ -33,7 +33,7 @@ func TestSystem_SnapshotAdapterDirect(t *testing.T) {
 
 	snapStore := sys.SnapshotStore()
 	if snapStore == nil {
-		t.Fatal("expected non-nil snapshot store — Memory engine should implement SnapshotBackend")
+		t.Fatal("expected non-nil snapshot store — SQLite engine implements SnapshotBackend")
 	}
 
 	streamID := id.NewStreamID()
@@ -101,7 +101,7 @@ func TestSystem_SnapshotAdapterLoadAtVersion(t *testing.T) {
 	ctx := context.Background()
 
 	sys, err := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
-		Engines:   map[string]system.EngineConfig{"primary": {Driver: "memory"}},
+		Engines:   map[string]system.EngineConfig{"primary": {Driver: "sqlite"}},
 		Instances: []system.InstanceConfig{{Role: system.RoleSourceOfTruth, Engine: "primary"}},
 	})
 	if err != nil {
@@ -154,8 +154,8 @@ func TestSystem_SnapshotAdapterLoadAtVersion(t *testing.T) {
 }
 
 // TestSystem_SnapshotE2E_DeciderLifecycle verifies the full decider → snapshot → reload
-// cycle through the System. The decider is registered with WithSnapshotStrategy
-// so snapshots fire automatically on writes.
+// cycle through the System with a SQLite engine. The decider is registered with
+// WithSnapshotStrategy so snapshots fire automatically on writes.
 func TestSystem_SnapshotE2E_DeciderLifecycle(t *testing.T) {
 	t.Parallel()
 
@@ -164,7 +164,6 @@ func TestSystem_SnapshotE2E_DeciderLifecycle(t *testing.T) {
 	domain := system.DomainConfig{
 		Commands: func(sys *system.System) {
 			// Register decider with snapshot strategy: snapshot after every 1 event.
-			// This ensures snapshots fire immediately for the test.
 			strategy, err2 := snapshot.EveryNEvents(1)
 			if err2 != nil {
 				panic(err2)
@@ -201,7 +200,7 @@ func TestSystem_SnapshotE2E_DeciderLifecycle(t *testing.T) {
 	}
 
 	sys, err := system.New(ctx, domain, system.DeploymentConfig{
-		Engines:   map[string]system.EngineConfig{"primary": {Driver: "memory"}},
+		Engines:   map[string]system.EngineConfig{"primary": {Driver: "sqlite"}},
 		Instances: []system.InstanceConfig{{Role: system.RoleSourceOfTruth, Engine: "primary"}},
 	})
 	if err != nil {
@@ -211,7 +210,7 @@ func TestSystem_SnapshotE2E_DeciderLifecycle(t *testing.T) {
 
 	snapStore := sys.SnapshotStore()
 	if snapStore == nil {
-		t.Fatal("expected non-nil snapshot store — Memory engine implements SnapshotBackend")
+		t.Fatal("expected non-nil snapshot store — SQLite engine implements SnapshotBackend")
 	}
 
 	// Dispatch a command to create the task.
