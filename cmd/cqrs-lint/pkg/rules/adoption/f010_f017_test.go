@@ -303,3 +303,44 @@ func _() {
 	findings := ruletest.RunDetector(t, adoption.NewF017Detector(ctx))
 	ruletest.AssertRule(t, findings, "F017", 1)
 }
+
+// TestF013_CQRSHtmxImportSuppressesFinding is a dedicated regression test
+// proving that importing the external cqrs-htmx module triggers
+// HasTransport detection (feature_detect.go:143,199), which suppresses F013.
+// Without this, a project using cqrs-htmx for its transport layer would be
+// falsely flagged as missing transport.
+func TestF013_CQRSHtmxImportSuppressesFinding(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "net/http"
+
+func main() {
+	http.HandleFunc("/api", handler)
+	http.ListenAndServe(":8080", nil)
+}
+`,
+	})
+	ctx.Packages = []*packages.Package{
+		{
+			PkgPath: "example.com/app",
+			Imports: map[string]*packages.Package{
+				"github.com/larsartmann/cqrs-htmx/v4": {
+					PkgPath: "github.com/larsartmann/cqrs-htmx/v4",
+				},
+			},
+		},
+	}
+	ctx.FeatureProfile = analyzer.DetectFeatures(ctx)
+
+	// Verify the detection pipeline recognized cqrs-htmx as a transport.
+	if !ctx.FeatureProfile.HasTransport {
+		t.Fatal("cqrs-htmx import should set HasTransport=true")
+	}
+
+	// F013 should NOT fire because HasTransport is true.
+	findings := ruletest.RunDetector(t, adoption.NewF013Detector(ctx))
+	ruletest.AssertRule(t, findings, "F013", 0)
+}

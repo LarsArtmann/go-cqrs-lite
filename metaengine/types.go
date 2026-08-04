@@ -9,6 +9,7 @@ const (
 	ADTCounter   ADT = "counter"
 	ADTGraph     ADT = "graph"
 	ADTLog       ADT = "log"
+	ADTStreamLog ADT = "stream_log"
 	ADTSortedMap ADT = "sorted_map"
 	ADTMultimap  ADT = "multimap"
 )
