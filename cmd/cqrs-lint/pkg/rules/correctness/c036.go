@@ -64,7 +64,7 @@ func NewC036Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					fnName := sel.Sel.Name
 					pkg := analyzer.SelectorPackage(sel)
 
-					storeBackend := detectBackend(pkg, fnName)
+					storeBackend := detectBackend(gf.AST, pkg, fnName)
 					if storeBackend == "" || storeBackend == string(eventBackend) {
 						return true
 					}
@@ -154,7 +154,7 @@ func collectEventStoreBackends(ctx *analyzer.AnalysisContext) map[string]bool {
 				return true
 			}
 
-			backend := detectBackend(pkg, fnName)
+			backend := detectBackend(gf.AST, pkg, fnName)
 			if backend != "" {
 				backends[backend] = true
 			}
@@ -166,15 +166,37 @@ func collectEventStoreBackends(ctx *analyzer.AnalysisContext) map[string]bool {
 	return backends
 }
 
+// isStoreConstructor reports whether fnName looks like a constructor call
+// (New*, Open*) rather than a utility/helper function (Enable*, Ensure*, etc.).
+func isStoreConstructor(fnName string) bool {
+	return strings.HasPrefix(fnName, "New") || strings.HasPrefix(fnName, "Open")
+}
+
 // detectBackend returns the backend type ("sqlite", "pebble", "postgres",
 // "turso") for a store constructor call, or "" if not a store constructor.
-func detectBackend(pkg, fnName string) string {
+// Requires a constructor-like prefix (New/Open) to avoid matching utility
+// helpers (e.g., SQLiteEnableWAL, EnsureSQLiteDSNBusyTimeout). When a file
+// is provided, the package qualifier is resolved to its import path to verify
+// it is a go-cqrs-lite module, preventing false matches from a consumer's
+// own "storage" package.
+func detectBackend(file *ast.File, pkg, fnName string) string {
+	if !isStoreConstructor(fnName) {
+		return ""
+	}
+
+	isCQRS := func(suffix string) bool {
+		if file == nil {
+			return true // fall back to raw qualifier match (tests)
+		}
+		return lintutil.QualifierResolvesTo(file, pkg, suffix)
+	}
+
 	switch {
 	case pkg == "pebble" && strings.HasPrefix(fnName, "New"):
 		return "pebble"
-	case pkg == "storage" && strings.Contains(fnName, "SQLite"):
+	case pkg == "storage" && strings.Contains(fnName, "SQLite") && isCQRS("go-cqrs-lite/storage"):
 		return "sqlite"
-	case pkg == "storage" && strings.Contains(fnName, "Postgres"):
+	case pkg == "storage" && strings.Contains(fnName, "Postgres") && isCQRS("go-cqrs-lite/storage"):
 		return "postgres"
 	case strings.HasPrefix(pkg, "turso") && strings.HasPrefix(fnName, "New"):
 		return "turso"
@@ -196,7 +218,10 @@ func isStackPresetCall(pkg, fnName string) bool {
 }
 
 // describeMismatchStore returns a human-readable description for known
-// store constructor names, or "" if not relevant.
+// secondary store constructor names, or "" if not relevant.
+// Only known secondary store types are flagged — the default case returns ""
+// to avoid flagging utility functions (NewSQLiteBackend, SQLiteEnableWAL, etc.)
+// that happen to contain a backend keyword.
 func describeMismatchStore(fnName string) string {
 	switch {
 	case strings.Contains(fnName, "Checkpoint"):
@@ -207,9 +232,7 @@ func describeMismatchStore(fnName string) string {
 		return "dead-letter store"
 	case strings.Contains(fnName, "Idempotency") || strings.Contains(fnName, "Dedup"):
 		return "idempotency store"
-	case strings.Contains(fnName, "EventStore") || strings.Contains(fnName, "Event"):
-		return "" // the event store itself — not a mismatch
 	default:
-		return "store"
+		return ""
 	}
 }
