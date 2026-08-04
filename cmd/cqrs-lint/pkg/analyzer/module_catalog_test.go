@@ -84,11 +84,11 @@ func TestCatalogHasExpectedCounts(t *testing.T) {
 	if len(core) != 6 {
 		t.Fatalf("expected 6 core entries, got %d: %+v", len(core), core)
 	}
-	if len(scored) != 28 {
-		t.Fatalf("expected 28 scored entries, got %d", len(scored))
+	if len(scored) != 32 {
+		t.Fatalf("expected 32 scored entries, got %d", len(scored))
 	}
-	if len(all) != 34 {
-		t.Fatalf("expected 34 total entries, got %d", len(all))
+	if len(all) != 38 {
+		t.Fatalf("expected 38 total entries, got %d", len(all))
 	}
 }
 
@@ -227,21 +227,20 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"idempotency/kvstore":          "sub-package (covered by idempotency)",
 		"idempotency/sqlstore":         "sub-package (covered by idempotency)",
 		"integration":                  "cross-module integration tests",
+		"metaengine/irohengine":      "sub-engine (covered by metaengine)",
+		"metaengine/adttest":         "test helper sub-package",
 		"metaengine/duckdbengine":      "sub-engine (covered by metaengine)",
 		"metaengine/pebbleengine":      "sub-engine (covered by metaengine)",
 		"metaengine/pgengine":          "sub-engine (covered by metaengine)",
 		"metaengine/projectionadapter": "sub-package (covered by metaengine)",
-		"middleware":                   "middleware is adopted transitively via otel stack bundles; not a standalone adoption decision",
 		"projection":                   "interface-only module (consumers use projectionhost)",
-		"scenario":                     "test DSL (niche, not a production adoption decision)",
 		"scheduling/sqlstore":          "sub-package (covered by scheduling)",
 		"stack":                        "root stack types (consumers import stack/<backend> presets)",
 		"stack/bench":                  "benchmarking utility",
-		"stack/memory":                 "in-memory preset (dev/test only, not a production adoption decision)",
-		"storage":                      "low-level SQL facade (consumers use stack/* presets)",
 		"storage/memory":               "low-level in-memory store (covered by stack/memory)",
 		"storage/pebble":               "low-level Pebble store (covered by stack/pebble)",
 		"storage/turso":                "low-level Turso connector (covered by stack/turso)",
+		"system":                       "system-level utilities (not a domain module)",
 		"testutil":                     "test utility package",
 	}
 

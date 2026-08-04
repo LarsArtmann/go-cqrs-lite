@@ -234,5 +234,31 @@ func buildDefaultCatalog() []ModuleEntry {
 			Description: "Payload encoding (JSON, CBOR deterministic, Raw)",
 			Suggestion:  "CBOR codec for ~35% smaller event payloads",
 		},
+
+		// ── Infrastructure ─────────────────────────────────────────────
+		{
+			Key: "middleware", DisplayName: "Middleware", Category: CategoryObservability,
+			ImportHints: []string{"go-cqrs-lite/middleware"},
+			Description: "Cross-cutting middleware (tracing, metrics, retry, recovery, validation)",
+			Suggestion:  "Middleware for tracing, metrics, retry, and recovery",
+		},
+		{
+			Key: "storage", DisplayName: "SQL Storage", Category: CategoryPersistence,
+			ImportHints: []string{"go-cqrs-lite/storage"},
+			Description: "SQL backend facade, event/command/query stores, relational projections",
+			Suggestion:  "SQL backend for custom store wiring without a stack preset",
+		},
+		{
+			Key: "stack/memory", DisplayName: "Memory Stack", Category: CategoryPersistence,
+			ImportHints: []string{"go-cqrs-lite/stack/memory"},
+			Description: "In-memory stack preset for testing and development",
+			Suggestion:  "In-memory stack preset for fast tests and local development",
+		},
+		{
+			Key: "scenario", DisplayName: "Scenario Testing", Category: CategoryReliability,
+			ImportHints: []string{"go-cqrs-lite/scenario"},
+			Description: "Fluent BDD test DSL (Given/When/Then) for deciders and projections",
+			Suggestion:  "BDD scenario tests for decider and projection behavior",
+		},
 	}
 }

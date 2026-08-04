@@ -16,6 +16,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"time"
 
@@ -23,6 +24,10 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 )
+
+// ErrUnknownDialect is returned when an unsupported [Dialect] is passed to a
+// constructor.
+var ErrUnknownDialect = errors.New("sqlstore: unknown dialect")
 
 // Dialect selects SQL syntax for table creation and placeholders.
 type Dialect int
@@ -130,7 +135,7 @@ func newStore[P any](ctx context.Context, db *sql.DB, d Dialect) (*SQLTimerStore
 	case DialectMySQL:
 		q = mysqlQueries()
 	default:
-		return nil, fmt.Errorf("sqlstore: unknown dialect %d", d)
+		return nil, fmt.Errorf("%w: %d", ErrUnknownDialect, d)
 	}
 
 	if _, err := db.ExecContext(ctx, q.ddl); err != nil {
@@ -183,7 +188,7 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 			"query due timers",
 		)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var timers []scheduling.Timer[P]
 
@@ -224,7 +229,15 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 		})
 	}
 
-	return timers, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"scheduling.sqlstore.due_iter",
+			"iterate due timers",
+		)
+	}
+
+	return timers, nil
 }
 
 // MarkFired removes a timer after it has been dispatched.
