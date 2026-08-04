@@ -139,7 +139,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0096](adr/0096-iroh-distributed-engine-bridge-evaluation.md)     | Iroh distributed engine bridge evaluation               | Research                 |
 | [0097](adr/0097-sse-three-repo-finding-and-go-sse-consumption.md) | SSE three-repo finding and go-sse consumption plan      | Accepted                 |
 | [0098](adr/0098-metaengine-persistence-enum.md)                   | Metaengine persistence enum (DDIA Ch1 reliability axis) | Accepted                 |
-| [0099](adr/0099-backend-selection-hybrid.md)                   | Backend selection: hybrid registry + config              | Accepted                 |
+| [0099](adr/0099-backend-selection-hybrid.md)                      | Backend selection: hybrid registry + config             | Accepted                 |
 
 ## API Reference
 

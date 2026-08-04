@@ -20,10 +20,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   (deciders, commands, projections, fold functions) vs operator config (engine
   drivers, DSNs, bus topology, durability tiers, cache).
 - **Driver registry** (D1 — `database/sql` model) — `RegisterDriver(name,
-  factory)`, `RegisteredDrivers()`, `createEngineFromDriver()`. Memory
+factory)`, `RegisteredDrivers()`, `createEngineFromDriver()`. Memory
   auto-registered in `init()`.
 - **`Op[State]` declarative routing** (D10) — `Op[State]{StreamID, StreamType,
-  Decide}` with `Execute()` method. Op accessors: `StreamID()`, `StreamType()`.
+Decide}` with `Execute()` method. Op accessors: `StreamID()`, `StreamType()`.
 - **EventAdapter** — wraps `metaengine.StreamLogBackend` as an
   `event.Store`/`event.SeekableJournal`. AtomicAppender fast path with `RunInTx`
   fallback. Seq cache for O(1) `ReadFrom` lookup. `WithSerialization()` option
@@ -54,7 +54,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   (`CQRS_DEFAULT_DRIVER`, `CQRS_DEFAULT_DSN`). YAML parsing not yet implemented.
 - **Projection wiring** — constructor creates `projectionadapter.Adapter` from
   `sys.projStore` and registers on `projectionhost.Host`. `DomainConfig.
-  ProjectionDecoder` field for typed event decoders.
+ProjectionDecoder` field for typed event decoders.
 - **15-test suite** — `system_extended_test.go`: query dispatch, driver
   registry, snapshot backend + isolation, multi-decider (two stream types),
   concurrent dispatch (20 goroutines, race detector), event bus pub/sub,

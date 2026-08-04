@@ -35,7 +35,7 @@ and is **never** duplicated here.
 
 - [ ] 🔥 **Register SQLite driver in `init()`** — open `*sql.DB` from DSN, call
       `metaengine.NewSQLiteEngine(db)`, register via `RegisterDriver("sqlite",
-      factory)`. Only Memory is currently registered.
+    factory)`. Only Memory is currently registered.
       Evidence: `system/driver_registry.go`.
 
 - [ ] 🔥 **Auto-detect serialization for SQL engines** — `NewEventAdapter` at
@@ -318,11 +318,11 @@ and is **never** duplicated here.
   modules depend on the real tagged versions (go-finding v1.4.1, go-must v0.1.2).
 
 - [x] **Push go-retry + go-idempotency to GitHub** — DONE. Both repos pushed
-  with annotated tags (go-retry v0.1.0, go-idempotency v0.1.0 + v0.1.1).
-  go-cqrs-lite `retry/go.mod` + `idempotency/go.mod` use real versioned
-  `require` directives (no local replaces). Sub-modules (`kvstore`, `sqlstore`)
-  also resolved: they build, test, and `go mod verify` clean standalone
-  (GOWORK=off) against tagged kv/v4.2.0, codec/v4.2.0, idempotency/v4.2.0.
+      with annotated tags (go-retry v0.1.0, go-idempotency v0.1.0 + v0.1.1).
+      go-cqrs-lite `retry/go.mod` + `idempotency/go.mod` use real versioned
+      `require` directives (no local replaces). Sub-modules (`kvstore`, `sqlstore`)
+      also resolved: they build, test, and `go mod verify` clean standalone
+      (GOWORK=off) against tagged kv/v4.2.0, codec/v4.2.0, idempotency/v4.2.0.
 
 - [ ] **Tag `stack/mysql/v4`** — source is stable but tag doesn't exist.
 

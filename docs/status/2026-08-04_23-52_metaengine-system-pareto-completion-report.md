@@ -11,63 +11,63 @@
 
 ### Tasks completed in Sessions 1-2 (prior session, verified passing):
 
-| # | Task | Status |
-|---|------|--------|
-| T1 | Replace `createEngine()` with `createEngineFromDriver()` | DONE |
-| T2 | Register SQLite driver in `init()` | DONE |
-| T3 | Auto-detect serialization for non-Memory engines | DONE |
-| T4 | SQLite-through-System integration test | DONE |
-| T5 | Projection E2E test | DONE |
-| T6 | Split `constructor.go` (369→332) | DONE |
-| T7 | Split `adapter_event.go` (372→311) | DONE |
-| T8 | Add `system/` to api-stability + regen golden | DONE |
-| T9 | Fix simpleBus handler independence | DONE |
-| T10 | Wire MultiBus into `New()` | DONE |
-| T12 | Fix introspection: real health checks + handler counts | DONE |
-| T13 | Wire scream store into `New()` | DONE |
-| T14 | Update AGENTS.md with system/ module entry | DONE |
-| T15 | Implement `PlanDiff` in metaengine | DONE |
-| T16 | Implement `PlanFingerprint` canonical hash | DONE |
-| T17 | Implement `Manifest` type + persistence | DONE |
-| T18 | Real YAML config parsing (using yaml.v3, not koanf) | DONE |
-| T19 | Register gochannel bus driver | DONE |
-| T23 | System ProjectionPlan/VerifyProjections/ProjectionExplain methods | DONE |
-| T25 | Fix design doc claims | DONE |
+| #   | Task                                                              | Status |
+| --- | ----------------------------------------------------------------- | ------ |
+| T1  | Replace `createEngine()` with `createEngineFromDriver()`          | DONE   |
+| T2  | Register SQLite driver in `init()`                                | DONE   |
+| T3  | Auto-detect serialization for non-Memory engines                  | DONE   |
+| T4  | SQLite-through-System integration test                            | DONE   |
+| T5  | Projection E2E test                                               | DONE   |
+| T6  | Split `constructor.go` (369→332)                                  | DONE   |
+| T7  | Split `adapter_event.go` (372→311)                                | DONE   |
+| T8  | Add `system/` to api-stability + regen golden                     | DONE   |
+| T9  | Fix simpleBus handler independence                                | DONE   |
+| T10 | Wire MultiBus into `New()`                                        | DONE   |
+| T12 | Fix introspection: real health checks + handler counts            | DONE   |
+| T13 | Wire scream store into `New()`                                    | DONE   |
+| T14 | Update AGENTS.md with system/ module entry                        | DONE   |
+| T15 | Implement `PlanDiff` in metaengine                                | DONE   |
+| T16 | Implement `PlanFingerprint` canonical hash                        | DONE   |
+| T17 | Implement `Manifest` type + persistence                           | DONE   |
+| T18 | Real YAML config parsing (using yaml.v3, not koanf)               | DONE   |
+| T19 | Register gochannel bus driver                                     | DONE   |
+| T23 | System ProjectionPlan/VerifyProjections/ProjectionExplain methods | DONE   |
+| T25 | Fix design doc claims                                             | DONE   |
 
 ### Tasks completed in Session 3 (this session):
 
-| # | Task | What was done | Verified |
-|---|------|---------------|----------|
-| **T20** | Pebble StreamLogBackend | `metaengine/pebbleengine/stream_log.go` (319 lines). 5 StreamLogBackend methods + AtomicAppender. Key-prefix encoding (`sl\x00col\x00sid\x00seq`) + global journal (`jl\x00col\x00gseq`). Per-stream + per-collection seq counters via `sync.Map`. Batch writes via `pebble.Batch`. | Build clean, tests pass |
-| **T21** | DuckDB StreamLogBackend | `metaengine/duckdbengine/stream_log.go` (123 lines). 5 StreamLogBackend methods. Uses `CREATE SEQUENCE` + `nextval()` for DuckDB's auto-increment. `$N` placeholders. | Build clean, tests pass |
-| **T22** | Postgres StreamLogBackend | `metaengine/pgengine/stream_log.go` (131 lines). 5 StreamLogBackend methods. Uses `BIGSERIAL` for seq, creates indexes. `$N` placeholders. Transactional append. | Build clean, tests pass |
-| **T24** | StreamReadAsOfVersion | Added `StreamTemporalReader` optional interface to `metaengine/engine.go`. Implemented `StreamReadAsOfVersion` on Memory (slice index) + SQLite (LIMIT clause). 2 tests in `stream_temporal_test.go`. | Build clean, 4 tests pass |
-| **T26** | SnapshotBackend in metaengine | Moved `SnapshotBackend` interface from `system/snapshot.go` to `metaengine/engine.go`. Implemented on Memory (`memory_snapshot.go`, 95 lines) + SQLite (`sqlite_snapshot.go`, 96 lines). 2 tests in `snapshot_test.go`. System `snapshot.go` is now a thin alias (19 lines). | Build clean, 4 tests pass |
-| **T27** | SCREAM severity in Diagnostics | Added `DiagLevelScream` constant + `HasErrors()` method to metaengine `Diagnostics`. Enhanced `durabilityRule`: emits SCREAM when a Log ADT (event log) is routed to a volatile engine with no persistent alternative. WARN for other ADTs (rebuildable projections). | Build clean, tests pass |
+| #       | Task                           | What was done                                                                                                                                                                                                                                                                       | Verified                  |
+| ------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| **T20** | Pebble StreamLogBackend        | `metaengine/pebbleengine/stream_log.go` (319 lines). 5 StreamLogBackend methods + AtomicAppender. Key-prefix encoding (`sl\x00col\x00sid\x00seq`) + global journal (`jl\x00col\x00gseq`). Per-stream + per-collection seq counters via `sync.Map`. Batch writes via `pebble.Batch`. | Build clean, tests pass   |
+| **T21** | DuckDB StreamLogBackend        | `metaengine/duckdbengine/stream_log.go` (123 lines). 5 StreamLogBackend methods. Uses `CREATE SEQUENCE` + `nextval()` for DuckDB's auto-increment. `$N` placeholders.                                                                                                               | Build clean, tests pass   |
+| **T22** | Postgres StreamLogBackend      | `metaengine/pgengine/stream_log.go` (131 lines). 5 StreamLogBackend methods. Uses `BIGSERIAL` for seq, creates indexes. `$N` placeholders. Transactional append.                                                                                                                    | Build clean, tests pass   |
+| **T24** | StreamReadAsOfVersion          | Added `StreamTemporalReader` optional interface to `metaengine/engine.go`. Implemented `StreamReadAsOfVersion` on Memory (slice index) + SQLite (LIMIT clause). 2 tests in `stream_temporal_test.go`.                                                                               | Build clean, 4 tests pass |
+| **T26** | SnapshotBackend in metaengine  | Moved `SnapshotBackend` interface from `system/snapshot.go` to `metaengine/engine.go`. Implemented on Memory (`memory_snapshot.go`, 95 lines) + SQLite (`sqlite_snapshot.go`, 96 lines). 2 tests in `snapshot_test.go`. System `snapshot.go` is now a thin alias (19 lines).        | Build clean, 4 tests pass |
+| **T27** | SCREAM severity in Diagnostics | Added `DiagLevelScream` constant + `HasErrors()` method to metaengine `Diagnostics`. Enhanced `durabilityRule`: emits SCREAM when a Log ADT (event log) is routed to a volatile engine with no persistent alternative. WARN for other ADTs (rebuildable projections).               | Build clean, tests pass   |
 
 ### CI-blocker fixes done this session:
 
-| Issue | Fix | Verified |
-|-------|-----|----------|
-| `system.go` 360 lines (10 over limit) | Moved 3 Projection methods to `introspection.go` (now 324 lines) | `wc -l` confirms |
-| `lookupBusDriver` unused (gopls lint) | Wired into `buildEventBus()` — bus driver registry now actively used | Build clean |
-| `bus.go` unused parameter `deployment` | `buildEventBus` now iterates `deployment.Buses` to find configured drivers | Build clean |
-| `constructor.go` unnecessary type args | Removed explicit `[State]` from `decider.NewRepository` call | Build clean |
-| `system` not in flake.nix testModules | Added `"system"` to flake.nix testModules list | Warning resolved |
+| Issue                                  | Fix                                                                        | Verified         |
+| -------------------------------------- | -------------------------------------------------------------------------- | ---------------- |
+| `system.go` 360 lines (10 over limit)  | Moved 3 Projection methods to `introspection.go` (now 324 lines)           | `wc -l` confirms |
+| `lookupBusDriver` unused (gopls lint)  | Wired into `buildEventBus()` — bus driver registry now actively used       | Build clean      |
+| `bus.go` unused parameter `deployment` | `buildEventBus` now iterates `deployment.Buses` to find configured drivers | Build clean      |
+| `constructor.go` unnecessary type args | Removed explicit `[State]` from `decider.NewRepository` call               | Build clean      |
+| `system` not in flake.nix testModules  | Added `"system"` to flake.nix testModules list                             | Warning resolved |
 
 ### Test gaps filled this session:
 
-| Test | File | What it tests |
-|------|------|---------------|
-| `TestSystem_ProjectionPlan_NilWhenNoProjections` | `system_wiring_test.go` | ProjectionPlan/Verify/Explain return nil/empty when no projection store |
-| `TestSystem_ProjectionPlan_WithProjectionStore` | `system_wiring_test.go` | All 3 methods return non-nil data when projection store exists |
-| `TestSystem_MultiBusFanOut` | `system_wiring_test.go` | Events delivered to local bus + catch-all handler with MultiBus config |
-| `TestSystem_GochannelBusDriverRegistered` | `system_wiring_test.go` | gochannel in RegisteredBusDrivers() |
-| `TestSystem_RegisteredDriversIncludesMemoryAndSQLite` | `system_wiring_test.go` | memory + sqlite in RegisteredDrivers() |
-| `TestSnapshotBackend_Memory` | `snapshot_test.go` | Save/Load/LoadAtVersion/Delete roundtrip on Memory |
-| `TestSnapshotBackend_SQLite` | `snapshot_test.go` | Save/Load/LoadAtVersion/Delete roundtrip on SQLite |
-| `TestStreamReadAsOfVersion_Memory` | `stream_temporal_test.go` | Version-bounded reads on Memory (3, 100, 0 cases) |
-| `TestStreamReadAsOfVersion_SQLite` | `stream_temporal_test.go` | Version-bounded reads on SQLite (3, 100, 0 cases) |
+| Test                                                  | File                      | What it tests                                                           |
+| ----------------------------------------------------- | ------------------------- | ----------------------------------------------------------------------- |
+| `TestSystem_ProjectionPlan_NilWhenNoProjections`      | `system_wiring_test.go`   | ProjectionPlan/Verify/Explain return nil/empty when no projection store |
+| `TestSystem_ProjectionPlan_WithProjectionStore`       | `system_wiring_test.go`   | All 3 methods return non-nil data when projection store exists          |
+| `TestSystem_MultiBusFanOut`                           | `system_wiring_test.go`   | Events delivered to local bus + catch-all handler with MultiBus config  |
+| `TestSystem_GochannelBusDriverRegistered`             | `system_wiring_test.go`   | gochannel in RegisteredBusDrivers()                                     |
+| `TestSystem_RegisteredDriversIncludesMemoryAndSQLite` | `system_wiring_test.go`   | memory + sqlite in RegisteredDrivers()                                  |
+| `TestSnapshotBackend_Memory`                          | `snapshot_test.go`        | Save/Load/LoadAtVersion/Delete roundtrip on Memory                      |
+| `TestSnapshotBackend_SQLite`                          | `snapshot_test.go`        | Save/Load/LoadAtVersion/Delete roundtrip on SQLite                      |
+| `TestStreamReadAsOfVersion_Memory`                    | `stream_temporal_test.go` | Version-bounded reads on Memory (3, 100, 0 cases)                       |
+| `TestStreamReadAsOfVersion_SQLite`                    | `stream_temporal_test.go` | Version-bounded reads on SQLite (3, 100, 0 cases)                       |
 
 ### Infrastructure changes this session:
 
@@ -81,22 +81,27 @@
 ## B) PARTIALLY DONE
 
 ### 1. StreamLogBackend cross-engine test coverage
+
 - **Done:** Memory and SQLite have individual unit tests. Pebble/DuckDB/PG build and pass existing tests.
 - **Missing:** `metaengine/adttest/harness.go` (RunMatrix) does NOT test `StreamLogBackend`. There is no shared cross-engine parity test for streams. The 3 new engine implementations (Pebble, DuckDB, PG) have NO dedicated StreamLogBackend tests — they rely on compile-time assertions only.
 
 ### 2. AtomicAppender on DuckDB and Postgres
+
 - **Done:** Pebble implements `AtomicAppender` (`StreamAppendExpected`) via `e.mu.Lock()`.
 - **Missing:** DuckDB and Postgres do NOT implement `AtomicAppender`. No compile-time assertion for it. This means `system.EventAdapter` cannot use optimistic concurrency on DuckDB or Postgres engines. The system falls back to plain `StreamAppend` (no version check), which is a race condition under concurrent writes.
 
 ### 3. SnapshotBackend integration into constructor
+
 - **Done:** `SnapshotBackend` interface is in metaengine. Memory + SQLite implement it. System aliases it.
 - **Missing:** `system/constructor.go` does NOT detect or wire `SnapshotBackend` into `decider.Repository`. The T11 task (wire SnapshotBackend into `New()`) was listed as "completed" in the prior session, but `grep -n "SnapshotBackend" constructor.go` returns NOTHING. The decider never gets a snapshot store, even when the engine implements `SnapshotBackend`.
 
 ### 4. StreamReadAsOf integration into EventAdapter
+
 - **Done:** `StreamTemporalReader` interface exists, implemented on Memory + SQLite.
 - **Missing:** `system/adapter_event.go` does NOT use `StreamReadAsOfVersion`. The adapter has `LoadFromVersion` but it doesn't check for `StreamTemporalReader` capability. Temporal reads are available at the engine level but not wired through the adapter to CQRS consumers.
 
 ### 5. Pebble StreamLogBackend journal seq counter restart safety
+
 - **Done:** Pebble uses in-memory `sync.Map` seq counters (`streamSeq`, `journalSeq`). These work correctly within a process.
 - **Missing:** The counters reset to 0 on every process restart. This means `JournalReadFrom(afterSeq)` is broken after restart — `afterSeq` from the previous process means nothing to the restarted seq space. SQLite and PG use database-level auto-increment (survives restart); Pebble needs a persistent counter or a restart-seed mechanism (similar to the existing `multimap` restart-seed pattern documented in ADR-0067).
 
@@ -105,6 +110,7 @@
 ## C) NOT STARTED
 
 ### From the original 27-task plan:
+
 All 27 tasks are now "started." None remain unstarted.
 
 ### But discovered during implementation — these were NOT in the original plan:
@@ -124,18 +130,23 @@ All 27 tasks are now "started." None remain unstarted.
 ## D) TOTALLY FUCKED UP
 
 ### 1. SnapshotBackend claim vs reality (T11)
+
 The prior session's status report listed T11 as "Wire SnapshotBackend into `New()` — DONE." This is FALSE. `constructor.go` has zero references to `SnapshotBackend`. The interface exists, the implementations exist, the test passes, but the constructor NEVER WIRES IT. Any consumer relying on snapshots through System would get no snapshotting. This is a lying claim that was carried forward into the "27/27 done" summary.
 
 ### 2. DuckDB/PG "implements StreamLogBackend" without AtomicAppender
+
 I added compile-time assertions for `StreamLogBackend` on DuckDB and PG, and the design doc claims "ALL 5 engines implement StreamLogBackend." But neither implements `AtomicAppender`. The system's `EventAdapter` uses `AtomicAppender` for optimistic concurrency (the entire point of event sourcing). Without it, concurrent writes to the same stream silently race — no version conflict error, just corrupted interleaved data. This is worse than not implementing StreamLogBackend at all, because it creates a false sense of completeness.
 
 ### 3. Pebble journal seq not restart-safe
+
 The Pebble StreamLogBackend implementation looks correct for in-process use, but `JournalReadFrom(afterSeq)` is fundamentally broken after restart because seq counters reset. This means a projectionhost that restarts would re-process ALL events from the beginning (checkpoint seq values are meaningless after restart). This is the exact same class of bug documented in AGENTS.md (`slices.Backward` broke `nextKey`). The fix pattern exists (ADR-0067 multimap seq-seed), but I didn't apply it.
 
 ### 4. "31 tests pass" is misleading
+
 The system/ test count went from 26 to 31, but the 5 new tests are superficial wiring checks. The MultiBus test subscribes on the LOCAL bus, not the fan-out buses — it doesn't actually prove events reach `bus1` and `bus2`. The ProjectionPlan test calls `VerifyProjections` and ignores the error (`_ = sys.VerifyProjections(ctx)`). These tests provide false confidence.
 
 ### 5. `bytesIndex` reinvents `bytes.Index`
+
 In `pebbleengine/stream_log.go`, I wrote a hand-rolled `bytesIndex` function instead of importing `bytes.Index`. This is unnecessary code — the stdlib has this exact function. It's a minor thing but violates the "don't reinvent the stdlib" principle and adds 30 lines of code that could have bugs.
 
 ---
@@ -244,6 +255,7 @@ In `pebbleengine/stream_log.go`, I wrote a hand-rolled `bytesIndex` function ins
 ### Q1: Should the system constructor hard-fail or warn when an engine doesn't implement AtomicAppender?
 
 **Context:** DuckDB and Postgres implement StreamLogBackend but NOT AtomicAppender. This means `EventAdapter` falls back to plain `StreamAppend` — no version check, so concurrent writes silently corrupt the stream. Two options:
+
 - **(a) Hard-fail:** `New()` returns an error if the SOT engine doesn't implement AtomicAppender. This is safe but prevents DuckDB/PG from being used as SOT until they implement it.
 - **(b) Warn:** Start with a SCREAM/WARN diagnostic, let the operator decide.
 - **(c) Implement RunInTx fallback:** The adapter could fall back to `Transactional.RunInTx` when `AtomicAppender` is not available, but DuckDB/PG don't implement `Transactional` either.
@@ -259,6 +271,7 @@ In `pebbleengine/stream_log.go`, I wrote a hand-rolled `bytesIndex` function ins
 ### Q3: Should the Pebble journal seq counter be persistent (restart-safe), or is restart-from-zero acceptable with a checkpoint wipe?
 
 **Context:** The Pebble StreamLogBackend uses in-memory seq counters that reset on restart. `JournalReadFrom(afterSeq)` is broken after restart because `afterSeq` values from the previous process are meaningless. Two fixes:
+
 - **(a) Persistent seq:** Seed the counter from `max(key)` on engine construction (follows ADR-0067 multimap pattern). ~15 lines of code.
 - **(b) Checkpoint wipe:** Document that Pebble restart implies full projection replay (checkpoint reset). Zero code, but means every Pebble restart reprocesses the entire event log.
 

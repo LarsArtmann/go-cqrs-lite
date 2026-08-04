@@ -5,6 +5,7 @@ Date: 2026-08-03
 ## Status
 
 **Real QUIC Transport Available** — Level 2 replication wrapper implemented (`metaengine/irohengine/`) with two transports:
+
 - `InProcessNetwork`: goroutine-based delivery for unit tests (no CGo)
 - `quic.QuicTransport`: real QUIC streams via `iroh-go` CGo bindings (Linux, CGo required)
 

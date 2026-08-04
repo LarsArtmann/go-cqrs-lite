@@ -10,40 +10,40 @@
 
 ### go-retry (`github.com/larsartmann/go-retry`)
 
-| Check | Result |
-|---|---|
-| Repo exists on GitHub | YES — `git@github.com:LarsArtmann/go-retry.git` |
-| Tag `v0.1.0` on remote | YES — annotated tag (`tag` type, tagger: Lars Artmann) |
-| LICENSE + README present | YES |
-| `go mod download` succeeds (GOWORK=off) | YES |
-| `retry/go.mod` uses `require v0.1.0` (no local replace) | YES |
-| `go mod verify` | all modules verified |
-| `go build` (GOWORK=off) | OK |
-| `go test` (GOWORK=off) | ok 0.012s |
+| Check                                                   | Result                                                 |
+| ------------------------------------------------------- | ------------------------------------------------------ |
+| Repo exists on GitHub                                   | YES — `git@github.com:LarsArtmann/go-retry.git`        |
+| Tag `v0.1.0` on remote                                  | YES — annotated tag (`tag` type, tagger: Lars Artmann) |
+| LICENSE + README present                                | YES                                                    |
+| `go mod download` succeeds (GOWORK=off)                 | YES                                                    |
+| `retry/go.mod` uses `require v0.1.0` (no local replace) | YES                                                    |
+| `go mod verify`                                         | all modules verified                                   |
+| `go build` (GOWORK=off)                                 | OK                                                     |
+| `go test` (GOWORK=off)                                  | ok 0.012s                                              |
 
 ### go-idempotency (`github.com/larsartmann/go-idempotency`)
 
-| Check | Result |
-|---|---|
-| Repo exists on GitHub | YES — `git@github.com:LarsArtmann/go-idempotency.git` |
-| Tags `v0.1.0` + `v0.1.1` on remote | YES — both annotated |
-| LICENSE + README present | YES |
-| `go mod download` succeeds (GOWORK=off) | YES |
-| `idempotency/go.mod` uses `require v0.1.1` (no local replace) | YES |
-| `go mod verify` | all modules verified |
-| `go build` + `go test` (GOWORK=off) | OK / ok 7.023s |
+| Check                                                         | Result                                                |
+| ------------------------------------------------------------- | ----------------------------------------------------- |
+| Repo exists on GitHub                                         | YES — `git@github.com:LarsArtmann/go-idempotency.git` |
+| Tags `v0.1.0` + `v0.1.1` on remote                            | YES — both annotated                                  |
+| LICENSE + README present                                      | YES                                                   |
+| `go mod download` succeeds (GOWORK=off)                       | YES                                                   |
+| `idempotency/go.mod` uses `require v0.1.1` (no local replace) | YES                                                   |
+| `go mod verify`                                               | all modules verified                                  |
+| `go build` + `go test` (GOWORK=off)                           | OK / ok 7.023s                                        |
 
 ### Sub-modules (`idempotency/kvstore`, `idempotency/sqlstore`)
 
 The TODO claimed these were "blocked on kv/ and codec/ dependency complexity." **This is no longer true.**
 
-| Check | kvstore | sqlstore |
-|---|---|---|
-| Tags on remote | `v4.0.0`–`v4.2.0` | `v4.0.0`, `v4.2.0` |
-| `go build` (GOWORK=off) | OK | OK |
-| `go test` (GOWORK=off) | ok 5.189s | ok 50.904s |
-| `go mod verify` | all modules verified | all modules verified |
-| Depends on (tagged) | `kv/v4.2.0`, `codec/v4.2.0`, `idempotency/v4.2.0`, `sqlstore/v4.0.0` | `idempotency/v4.2.0` |
+| Check                   | kvstore                                                              | sqlstore             |
+| ----------------------- | -------------------------------------------------------------------- | -------------------- |
+| Tags on remote          | `v4.0.0`–`v4.2.0`                                                    | `v4.0.0`, `v4.2.0`   |
+| `go build` (GOWORK=off) | OK                                                                   | OK                   |
+| `go test` (GOWORK=off)  | ok 5.189s                                                            | ok 50.904s           |
+| `go mod verify`         | all modules verified                                                 | all modules verified |
+| Depends on (tagged)     | `kv/v4.2.0`, `codec/v4.2.0`, `idempotency/v4.2.0`, `sqlstore/v4.0.0` | `idempotency/v4.2.0` |
 
 All kv/codec/idempotency dependencies resolve to real tagged versions on the remote. No replace directives needed.
 
@@ -126,6 +126,7 @@ All kv/codec/idempotency dependencies resolve to real tagged versions on the rem
 ### f) Up to 50 Things to Get Done Next
 
 #### Release / Publication (highest leverage)
+
 1. Tag `flightrecorder/v4` — eliminates 4 replace directives
 2. Tag `codec/v4` at a version that signing/encryption/transport/http can consume — eliminates 3 replaces
 3. Publish `go-finding` to GitHub with annotated tags — eliminates cmd/cqrs-lint local replace
@@ -138,12 +139,14 @@ All kv/codec/idempotency dependencies resolve to real tagged versions on the rem
 10. Verify `nix run .#check-layers` passes after all publication changes
 
 #### Metaengine (strategic future)
+
 11. Tag `metaengine/v4` once stable — eliminates 4+ replaces
 12. Resolve `metaengine/projectionadapter` multi-sibling replace block
 13. Review `docs/planning/metaengine-redesign.md` (currently uncommitted changes)
 14. Finalize irohengine replication wrapper vs real Iroh FFI decision
 
 #### CI / Infrastructure
+
 15. Pin all 72+ GitHub Actions to commit SHAs
 16. Update CONTRIBUTING.md with JSONC config loader + explain subcommand docs
 17. Run full `nix run .#verify` gate (may be stale per AGENTS.md "stale GREEN" warning)
@@ -153,11 +156,13 @@ All kv/codec/idempotency dependencies resolve to real tagged versions on the rem
 21. Regenerate api-stability golden if any exports changed: `cd cmd/api-stability && GOWORK=off go run main.go -update`
 
 #### System Module (observed uncommitted changes)
+
 22. Review `system/config_loader_test.go` (uncommitted)
 23. Fix P0 wiring issues in system/ (constructor bypass, file-size limit)
 24. Verify system/ MultiBus + introspection works end-to-end
 
 #### Code Quality
+
 25. Audit the 16 remaining replace directives for publish-readiness
 26. Run `nix run .#lint` to check for new issues
 27. Run `nix fmt` before any lint directive changes
@@ -165,6 +170,7 @@ All kv/codec/idempotency dependencies resolve to real tagged versions on the rem
 29. Verify `go-retry` and `go-idempotency` don't need version bumps (new features since extraction?)
 
 #### Documentation
+
 30. Update AGENTS.md module list if any new modules added
 31. Verify `cmd/doc-check` passes (Go import paths in markdown)
 32. Update FEATURES.md with extraction completion status
@@ -172,6 +178,7 @@ All kv/codec/idempotency dependencies resolve to real tagged versions on the rem
 34. Add go-retry/go-idempotency to the module graph diagram if missing
 
 #### Testing
+
 35. Run `nix run .#test` (full suite, workspace mode) to confirm nothing regressed
 36. Run Postgres integration tests: `nix run .#integration-pg`
 37. Run MySQL integration tests: `nix run .#integration-mysql-nspawn`
@@ -179,6 +186,7 @@ All kv/codec/idempotency dependencies resolve to real tagged versions on the rem
 39. Verify `-race` tests still pass for retry/idempotency modules
 
 #### Dependency Hygiene
+
 40. Run `go mod tidy` across all modules to clean up go.sum
 41. Check for unused indirect dependencies
 42. Audit `modernc.org/sqlite` version consistency across modules
@@ -186,6 +194,7 @@ All kv/codec/idempotency dependencies resolve to real tagged versions on the rem
 44. Check `go.opentelemetry.io/otel` version alignment
 
 #### Operational
+
 45. Verify the auto-commit daemon won't revert the TODO_LIST.md change
 46. Check `system/config_loader_test.go` uncommitted change isn't broken
 47. Review `docs/planning/metaengine-redesign.md` uncommitted change

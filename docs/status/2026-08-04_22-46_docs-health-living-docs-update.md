@@ -257,106 +257,106 @@ self-review.
 
 ### Immediate fixes (THIS SESSION's debt)
 
-| #  | Task                                                         | Impact   | Effort |
-| -- | ------------------------------------------------------------ | -------- | ------ |
-| 1  | **Run `nix run .#verify`** to confirm doc edits don't break | Critical | 4min   |
-| 2  | **Update AGENTS.md module count** (65→68) + add `system/` +  | Critical | 10min  |
-|    | `metaengine/irohengine/quic/` to module table + commands     |          |        |
-| 3  | **Fix CHANGELOG duplicate `### Fixed` header** (merge 934    | High     | 5min   |
-|    | into 482, or reclassify)                                     |          |        |
-| 4  | **Run `cmd/doc-check`** on edited FEATURES.md + ROADMAP.md   | High     | 2min   |
-| 5  | **Regenerate api-stability golden** (add `system/` to        | High     | 10min  |
-|    | modules list + `go run main.go -update`)                     |          |        |
+| #   | Task                                                        | Impact   | Effort |
+| --- | ----------------------------------------------------------- | -------- | ------ |
+| 1   | **Run `nix run .#verify`** to confirm doc edits don't break | Critical | 4min   |
+| 2   | **Update AGENTS.md module count** (65→68) + add `system/` + | Critical | 10min  |
+|     | `metaengine/irohengine/quic/` to module table + commands    |          |        |
+| 3   | **Fix CHANGELOG duplicate `### Fixed` header** (merge 934   | High     | 5min   |
+|     | into 482, or reclassify)                                    |          |        |
+| 4   | **Run `cmd/doc-check`** on edited FEATURES.md + ROADMAP.md  | High     | 2min   |
+| 5   | **Regenerate api-stability golden** (add `system/` to       | High     | 10min  |
+|     | modules list + `go run main.go -update`)                    |          |        |
 
 ### System package P0 (blocks ALL production use)
 
-| #  | Task                                                         | Impact   | Effort |
-| -- | ------------------------------------------------------------ | -------- | ------ |
-| 6  | Replace `createEngine()` with `createEngineFromDriver()`     | Critical | 15min  |
-| 7  | Register SQLite driver in `init()`                           | Critical | 20min  |
-| 8  | Auto-detect serialization for SQL engines                    | Critical | 15min  |
-| 9  | SQLite-through-System integration test                       | Critical | 60min  |
-| 10 | Projection E2E test (command → host.Start → projection)      | Critical | 60min  |
-| 11 | Split `constructor.go` (369→<350)                             | High     | 30min  |
-| 12 | Split `adapter_event.go` (372→<350)                           | High     | 30min  |
+| #   | Task                                                     | Impact   | Effort |
+| --- | -------------------------------------------------------- | -------- | ------ |
+| 6   | Replace `createEngine()` with `createEngineFromDriver()` | Critical | 15min  |
+| 7   | Register SQLite driver in `init()`                       | Critical | 20min  |
+| 8   | Auto-detect serialization for SQL engines                | Critical | 15min  |
+| 9   | SQLite-through-System integration test                   | Critical | 60min  |
+| 10  | Projection E2E test (command → host.Start → projection)  | Critical | 60min  |
+| 11  | Split `constructor.go` (369→<350)                        | High     | 30min  |
+| 12  | Split `adapter_event.go` (372→<350)                      | High     | 30min  |
 
 ### System package P1 (makes the design work)
 
-| #  | Task                                                         | Impact   | Effort |
-| -- | ------------------------------------------------------------ | -------- | ------ |
-| 13 | Fix `simpleBus` handler independence                         | High     | 30min  |
-| 14 | Wire MultiBus into `New()`                                   | High     | 45min  |
-| 15 | Wire SnapshotBackend into `New()` + lifecycle                | High     | 45min  |
-| 16 | Fix introspection hardcoded values                           | High     | 45min  |
-| 17 | Wire scream store into `New()`                               | Medium   | 30min  |
+| #   | Task                                          | Impact | Effort |
+| --- | --------------------------------------------- | ------ | ------ |
+| 13  | Fix `simpleBus` handler independence          | High   | 30min  |
+| 14  | Wire MultiBus into `New()`                    | High   | 45min  |
+| 15  | Wire SnapshotBackend into `New()` + lifecycle | High   | 45min  |
+| 16  | Fix introspection hardcoded values            | High   | 45min  |
+| 17  | Wire scream store into `New()`                | Medium | 30min  |
 
 ### cqrs-lint
 
-| #  | Task                                                         | Impact   | Effort |
-| -- | ------------------------------------------------------------ | -------- | ------ |
-| 18 | Publish cqrs-lint v4.4.0 (BLOCKED on user approval)          | High     | 5min   |
-| 19 | Run cqrs-lint against real consumer projects                 | High     | 60min  |
-| 20 | Migrate A015 (global mutable state) to `ProfileForFile`      | Medium   | 30min  |
-| 21 | Migrate B014 (missing otel middleware) to `ProfileForFile`   | Medium   | 30min  |
-| 22 | B025 cross-package helper tracing (callgraph)                | Medium   | 90min  |
-| 23 | L1.5 domain severity calibration                             | High     | 90min  |
-| 24 | Scorecard SARIF output                                       | Low      | 45min  |
+| #   | Task                                                       | Impact | Effort |
+| --- | ---------------------------------------------------------- | ------ | ------ |
+| 18  | Publish cqrs-lint v4.4.0 (BLOCKED on user approval)        | High   | 5min   |
+| 19  | Run cqrs-lint against real consumer projects               | High   | 60min  |
+| 20  | Migrate A015 (global mutable state) to `ProfileForFile`    | Medium | 30min  |
+| 21  | Migrate B014 (missing otel middleware) to `ProfileForFile` | Medium | 30min  |
+| 22  | B025 cross-package helper tracing (callgraph)              | Medium | 90min  |
+| 23  | L1.5 domain severity calibration                           | High   | 90min  |
+| 24  | Scorecard SARIF output                                     | Low    | 45min  |
 
 ### Metaengine
 
-| #  | Task                                                         | Impact   | Effort |
-| -- | ------------------------------------------------------------ | -------- | ------ |
-| 25 | Postgres GIN containment indexes (`@>` operator)             | Medium   | 60min  |
-| 26 | Export `Calibratable` for external engines                   | Medium   | 30min  |
-| 27 | Serialize `ReadCosts` into `SerializablePlan`                | Medium   | 30min  |
-| 28 | ADR for ReadCosts design                                     | Low      | 30min  |
-| 29 | Split `sse.go` (369→<350)                                    | Medium   | 20min  |
+| #   | Task                                             | Impact | Effort |
+| --- | ------------------------------------------------ | ------ | ------ |
+| 25  | Postgres GIN containment indexes (`@>` operator) | Medium | 60min  |
+| 26  | Export `Calibratable` for external engines       | Medium | 30min  |
+| 27  | Serialize `ReadCosts` into `SerializablePlan`    | Medium | 30min  |
+| 28  | ADR for ReadCosts design                         | Low    | 30min  |
+| 29  | Split `sse.go` (369→<350)                        | Medium | 20min  |
 
 ### Irohengine
 
-| #  | Task                                                         | Impact   | Effort |
-| -- | ------------------------------------------------------------ | -------- | ------ |
-| 30 | Evaluate `iroh-go` C binding stability                       | Medium   | 30min  |
-| 31 | QUIC transport `adttest.RunMatrix` parity                    | Medium   | 60min  |
-| 32 | Non-CRDT op rejection on QUIC path                           | Medium   | 30min  |
+| #   | Task                                      | Impact | Effort |
+| --- | ----------------------------------------- | ------ | ------ |
+| 30  | Evaluate `iroh-go` C binding stability    | Medium | 30min  |
+| 31  | QUIC transport `adttest.RunMatrix` parity | Medium | 60min  |
+| 32  | Non-CRDT op rejection on QUIC path        | Medium | 30min  |
 
 ### CI / Release / Infrastructure
 
-| #  | Task                                                         | Impact   | Effort |
-| -- | ------------------------------------------------------------ | -------- | ------ |
-| 33 | Tag `stack/mysql/v4`                                         | Medium   | 5min   |
-| 34 | Tag `system/v4` (after P0 fixes)                             | Medium   | 5min   |
-| 35 | Pin GitHub Actions to commit SHAs                            | Low      | 60min  |
-| 36 | Update CONTRIBUTING.md (JSONC, explain, scorecard, group-by) | Low      | 30min  |
-| 37 | Push go-retry + go-idempotency to GitHub (BLOCKED)           | Medium   | 10min  |
+| #   | Task                                                         | Impact | Effort |
+| --- | ------------------------------------------------------------ | ------ | ------ |
+| 33  | Tag `stack/mysql/v4`                                         | Medium | 5min   |
+| 34  | Tag `system/v4` (after P0 fixes)                             | Medium | 5min   |
+| 35  | Pin GitHub Actions to commit SHAs                            | Low    | 60min  |
+| 36  | Update CONTRIBUTING.md (JSONC, explain, scorecard, group-by) | Low    | 30min  |
+| 37  | Push go-retry + go-idempotency to GitHub (BLOCKED)           | Medium | 10min  |
 
 ### Code Quality
 
-| #  | Task                                                         | Impact   | Effort |
-| -- | ------------------------------------------------------------ | -------- | ------ |
-| 38 | Encryption double-clone fix                                  | Low      | 5min   |
-| 39 | Metadata immutability (command/query)                        | Medium   | 45min  |
-| 40 | Fix flaky `idempotency/kvstore` TTL test                     | Medium   | 20min  |
-| 41 | Benchmark audit for 10 skipped modules                       | Medium   | 90min  |
+| #   | Task                                     | Impact | Effort |
+| --- | ---------------------------------------- | ------ | ------ |
+| 38  | Encryption double-clone fix              | Low    | 5min   |
+| 39  | Metadata immutability (command/query)    | Medium | 45min  |
+| 40  | Fix flaky `idempotency/kvstore` TTL test | Medium | 20min  |
+| 41  | Benchmark audit for 10 skipped modules   | Medium | 90min  |
 
 ### Documentation
 
-| #  | Task                                                         | Impact   | Effort |
-| -- | ------------------------------------------------------------ | -------- | ------ |
-| 42 | Write `system/` module README.md                             | Medium   | 30min  |
-| 43 | Update cqrs-lint per-category rule counts in FEATURES/ROADMAP| Low      | 10min  |
-| 44 | Bump cqrs-lint version constant to "4.4.0"                   | Low      | 2min   |
-| 45 | Annotate the 2026-08-04 status reports (mark done items)     | Low      | 30min  |
+| #   | Task                                                          | Impact | Effort |
+| --- | ------------------------------------------------------------- | ------ | ------ |
+| 42  | Write `system/` module README.md                              | Medium | 30min  |
+| 43  | Update cqrs-lint per-category rule counts in FEATURES/ROADMAP | Low    | 10min  |
+| 44  | Bump cqrs-lint version constant to "4.4.0"                    | Low    | 2min   |
+| 45  | Annotate the 2026-08-04 status reports (mark done items)      | Low    | 30min  |
 
 ### System P2 (strategic future)
 
-| #  | Task                                                         | Impact   | Effort |
-| -- | ------------------------------------------------------------ | -------- | ------ |
-| 46 | Scream store: PlanDiff / PlanFingerprint / Manifest          | Medium   | 90min  |
-| 47 | koanf YAML + env config loading                              | Medium   | 90min  |
-| 48 | Pebble/DuckDB/Postgres StreamLogBackend (5 methods each)     | Medium   | 270min |
-| 49 | CommandAdapter + QueryAdapter serialization envelopes        | Medium   | 60min  |
-| 50 | Migrate example/taskmanager to System                        | High     | 90min  |
+| #   | Task                                                     | Impact | Effort |
+| --- | -------------------------------------------------------- | ------ | ------ |
+| 46  | Scream store: PlanDiff / PlanFingerprint / Manifest      | Medium | 90min  |
+| 47  | koanf YAML + env config loading                          | Medium | 90min  |
+| 48  | Pebble/DuckDB/Postgres StreamLogBackend (5 methods each) | Medium | 270min |
+| 49  | CommandAdapter + QueryAdapter serialization envelopes    | Medium | 60min  |
+| 50  | Migrate example/taskmanager to System                    | High   | 90min  |
 
 ---
 

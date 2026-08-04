@@ -39,35 +39,35 @@ Scream store PlanDiff/Fingerprint/Manifest, koanf config loading, bus driver reg
 
 Sorted by importance/impact/effort/customer-value. P0 = blocker, P1 = high value, P2 = important, P3 = future.
 
-| # | Task | Impact | Effort | Tier | Customer Value |
-|---|------|--------|--------|------|----------------|
-| 1 | Replace `createEngine()` with `createEngineFromDriver()` in constructor | CRITICAL | 15min | P0 | SQLite becomes usable |
-| 2 | Register SQLite driver in `init()` (open DB, create engine) | CRITICAL | 20min | P0 | SQLite becomes usable |
-| 3 | Auto-detect serialization: pass `WithSerialization()` for non-Memory | CRITICAL | 15min | P0 | SQL events decode correctly |
-| 4 | Write SQLite-through-System integration test | CRITICAL | 60min | P0 | Proves G4 works |
-| 5 | Write projection E2E test (command→event→projection) | CRITICAL | 60min | P0 | Proves G6 works |
-| 6 | Split `constructor.go` (369→<350): extract projection wiring | HIGH | 30min | P0 | CI gate passes |
-| 7 | Split `adapter_event.go` (372→<350): extract serialization | HIGH | 30min | P0 | CI gate passes |
-| 8 | Add `system/` to api-stability modules list + regen golden | HIGH | 30min | P0 | CI gate passes |
-| 9 | Fix simpleBus handler independence (each handler called separately) | HIGH | 30min | P1 | Correct event delivery |
-| 10 | Wire MultiBus into `New()` when multiple Publish targets | HIGH | 45min | P1 | D9 multi-bus works |
-| 11 | Wire SnapshotBackend into `New()` + System lifecycle | HIGH | 45min | P1 | Snapshots persist |
-| 12 | Fix introspection: real health checks + real handler counts | HIGH | 45min | P1 | Admin UI gets real data |
-| 13 | Wire scream store into `New()` — call CheckSafety on startup | MEDIUM | 30min | P1 | Safety enforcement |
-| 14 | Update AGENTS.md with system/ module entry | MEDIUM | 30min | P1 | Docs current |
-| 15 | Implement `PlanDiff(prev, current)` in metaengine | MEDIUM | 90min | P2 | Scream store foundation |
-| 16 | Implement `PlanFingerprint(plan)` canonical hash | MEDIUM | 45min | P2 | Scream store foundation |
-| 17 | Implement `Manifest` type + pinned plan persistence | MEDIUM | 60min | P2 | Scream store foundation |
-| 18 | Integrate koanf for YAML + env config loading | MEDIUM | 90min | P2 | G2 deployer decides |
-| 19 | Register gochannel bus driver (wrap simpleBus or watermill) | MEDIUM | 45min | P2 | Bus type configurable |
-| 20 | Implement Pebble StreamLogBackend (5 methods) | MEDIUM | 90min | P2 | G7 add backends |
-| 21 | Implement DuckDB StreamLogBackend (5 methods) | LOW | 90min | P3 | G7 add backends |
-| 22 | Implement Postgres StreamLogBackend (5 methods) | LOW | 90min | P3 | G7 add backends |
-| 23 | Implement System.Verify/Plan/Explain methods | LOW | 60min | P2 | Introspection complete |
-| 24 | Implement StreamReadAsOf on StreamLogBackend + Memory + SQLite | LOW | 90min | P3 | Temporal reads |
-| 25 | Fix design doc claims (StreamLogBackend = 2/5 not 5/5) | LOW | 15min | P2 | Doc accuracy |
-| 26 | Implement SnapshotBackend in metaengine (engines implement) | LOW | 60min | P3 | D12 complete |
-| 27 | Add SCREAM severity to Diagnostics + durability-aware rules | LOW | 60min | P3 | G10 scream store |
+| #   | Task                                                                    | Impact   | Effort | Tier | Customer Value              |
+| --- | ----------------------------------------------------------------------- | -------- | ------ | ---- | --------------------------- |
+| 1   | Replace `createEngine()` with `createEngineFromDriver()` in constructor | CRITICAL | 15min  | P0   | SQLite becomes usable       |
+| 2   | Register SQLite driver in `init()` (open DB, create engine)             | CRITICAL | 20min  | P0   | SQLite becomes usable       |
+| 3   | Auto-detect serialization: pass `WithSerialization()` for non-Memory    | CRITICAL | 15min  | P0   | SQL events decode correctly |
+| 4   | Write SQLite-through-System integration test                            | CRITICAL | 60min  | P0   | Proves G4 works             |
+| 5   | Write projection E2E test (command→event→projection)                    | CRITICAL | 60min  | P0   | Proves G6 works             |
+| 6   | Split `constructor.go` (369→<350): extract projection wiring            | HIGH     | 30min  | P0   | CI gate passes              |
+| 7   | Split `adapter_event.go` (372→<350): extract serialization              | HIGH     | 30min  | P0   | CI gate passes              |
+| 8   | Add `system/` to api-stability modules list + regen golden              | HIGH     | 30min  | P0   | CI gate passes              |
+| 9   | Fix simpleBus handler independence (each handler called separately)     | HIGH     | 30min  | P1   | Correct event delivery      |
+| 10  | Wire MultiBus into `New()` when multiple Publish targets                | HIGH     | 45min  | P1   | D9 multi-bus works          |
+| 11  | Wire SnapshotBackend into `New()` + System lifecycle                    | HIGH     | 45min  | P1   | Snapshots persist           |
+| 12  | Fix introspection: real health checks + real handler counts             | HIGH     | 45min  | P1   | Admin UI gets real data     |
+| 13  | Wire scream store into `New()` — call CheckSafety on startup            | MEDIUM   | 30min  | P1   | Safety enforcement          |
+| 14  | Update AGENTS.md with system/ module entry                              | MEDIUM   | 30min  | P1   | Docs current                |
+| 15  | Implement `PlanDiff(prev, current)` in metaengine                       | MEDIUM   | 90min  | P2   | Scream store foundation     |
+| 16  | Implement `PlanFingerprint(plan)` canonical hash                        | MEDIUM   | 45min  | P2   | Scream store foundation     |
+| 17  | Implement `Manifest` type + pinned plan persistence                     | MEDIUM   | 60min  | P2   | Scream store foundation     |
+| 18  | Integrate koanf for YAML + env config loading                           | MEDIUM   | 90min  | P2   | G2 deployer decides         |
+| 19  | Register gochannel bus driver (wrap simpleBus or watermill)             | MEDIUM   | 45min  | P2   | Bus type configurable       |
+| 20  | Implement Pebble StreamLogBackend (5 methods)                           | MEDIUM   | 90min  | P2   | G7 add backends             |
+| 21  | Implement DuckDB StreamLogBackend (5 methods)                           | LOW      | 90min  | P3   | G7 add backends             |
+| 22  | Implement Postgres StreamLogBackend (5 methods)                         | LOW      | 90min  | P3   | G7 add backends             |
+| 23  | Implement System.Verify/Plan/Explain methods                            | LOW      | 60min  | P2   | Introspection complete      |
+| 24  | Implement StreamReadAsOf on StreamLogBackend + Memory + SQLite          | LOW      | 90min  | P3   | Temporal reads              |
+| 25  | Fix design doc claims (StreamLogBackend = 2/5 not 5/5)                  | LOW      | 15min  | P2   | Doc accuracy                |
+| 26  | Implement SnapshotBackend in metaengine (engines implement)             | LOW      | 60min  | P3   | D12 complete                |
+| 27  | Add SCREAM severity to Diagnostics + durability-aware rules             | LOW      | 60min  | P3   | G10 scream store            |
 
 **Total: 27 tasks. Estimated: ~28 hours.**
 
@@ -79,94 +79,94 @@ Each task broken into subtasks small enough to complete and verify in under 12 m
 
 ### Phase 1: The 1% (Tasks 1-3) — SQLite Unlocked
 
-| # | Subtask | Est | Verifies |
-|---|---------|-----|----------|
-| 1.1 | In `constructor.go`, replace `createEngine(cfg)` call at line ~39 with `createEngineFromDriver(ctx, cfg)` | 5min | Build passes |
-| 1.2 | Remove or deprecate `createEngine` function (lines 219-229) | 5min | Build passes |
-| 1.3 | Add `_ "modernc.org/sqlite"` import to `driver_registry.go` | 5min | Import resolves |
-| 1.4 | Write SQLite `DriverFactory` in `init()`: open DB from DSN, call `metaengine.NewSQLiteEngine(db)` | 10min | `RegisteredDrivers()` includes "sqlite" |
-| 1.5 | Add `modernc.org/sqlite` to `system/go.mod` (via `go get`) | 5min | `go mod tidy` clean |
-| 2.1 | In constructor, detect if engine is Memory (type assertion or profile name check) | 10min | Detection works |
-| 2.2 | For non-Memory engines, pass `WithSerialization()` to `NewEventAdapter` | 5min | EventAdapter gets serialization option |
-| 2.3 | Run existing tests to confirm Memory still works | 5min | All 12 tests pass |
-| 2.4 | Write minimal test: `Driver: "sqlite", DSN: ":memory:"` through System | 10min | System starts with SQLite |
+| #   | Subtask                                                                                                   | Est   | Verifies                                |
+| --- | --------------------------------------------------------------------------------------------------------- | ----- | --------------------------------------- |
+| 1.1 | In `constructor.go`, replace `createEngine(cfg)` call at line ~39 with `createEngineFromDriver(ctx, cfg)` | 5min  | Build passes                            |
+| 1.2 | Remove or deprecate `createEngine` function (lines 219-229)                                               | 5min  | Build passes                            |
+| 1.3 | Add `_ "modernc.org/sqlite"` import to `driver_registry.go`                                               | 5min  | Import resolves                         |
+| 1.4 | Write SQLite `DriverFactory` in `init()`: open DB from DSN, call `metaengine.NewSQLiteEngine(db)`         | 10min | `RegisteredDrivers()` includes "sqlite" |
+| 1.5 | Add `modernc.org/sqlite` to `system/go.mod` (via `go get`)                                                | 5min  | `go mod tidy` clean                     |
+| 2.1 | In constructor, detect if engine is Memory (type assertion or profile name check)                         | 10min | Detection works                         |
+| 2.2 | For non-Memory engines, pass `WithSerialization()` to `NewEventAdapter`                                   | 5min  | EventAdapter gets serialization option  |
+| 2.3 | Run existing tests to confirm Memory still works                                                          | 5min  | All 12 tests pass                       |
+| 2.4 | Write minimal test: `Driver: "sqlite", DSN: ":memory:"` through System                                    | 10min | System starts with SQLite               |
 
 ### Phase 2: The 4% (Tasks 4-5) — Proven E2E
 
-| # | Subtask | Est | Verifies |
-|---|---------|-----|----------|
-| 3.1 | Write test setup: domain types (TaskCreated, TaskState), decider, command registration | 10min | Compiles |
-| 3.2 | Write test: construct System with `Driver: "sqlite", DSN: file:test.db` | 10min | System constructs |
-| 3.3 | Write test: dispatch command, verify event persisted via EventStore.Load | 10min | Event roundtrips |
-| 3.4 | Write test: dispatch second command on same stream, verify optimistic concurrency | 10min | Version conflict works |
-| 3.5 | Write test: restart simulation (new System, same DSN), verify events survive | 10min | Persistence proven |
-| 4.1 | Write test: register a metaengine projection query (Map ADT, task_views) | 10min | Query declared |
-| 4.2 | Write test: wire projectionadapter, register with projectionhost | 10min | Host registered |
-| 4.3 | Write test: dispatch command, call `sys.Start(ctx)`, wait for processing | 10min | Host runs |
-| 4.4 | Write test: verify projection store has the expected view after processing | 10min | Projection updated |
-| 4.5 | Write test: dispatch update command, verify projection updates incrementally | 10min | Live updates work |
+| #   | Subtask                                                                                | Est   | Verifies               |
+| --- | -------------------------------------------------------------------------------------- | ----- | ---------------------- |
+| 3.1 | Write test setup: domain types (TaskCreated, TaskState), decider, command registration | 10min | Compiles               |
+| 3.2 | Write test: construct System with `Driver: "sqlite", DSN: file:test.db`                | 10min | System constructs      |
+| 3.3 | Write test: dispatch command, verify event persisted via EventStore.Load               | 10min | Event roundtrips       |
+| 3.4 | Write test: dispatch second command on same stream, verify optimistic concurrency      | 10min | Version conflict works |
+| 3.5 | Write test: restart simulation (new System, same DSN), verify events survive           | 10min | Persistence proven     |
+| 4.1 | Write test: register a metaengine projection query (Map ADT, task_views)               | 10min | Query declared         |
+| 4.2 | Write test: wire projectionadapter, register with projectionhost                       | 10min | Host registered        |
+| 4.3 | Write test: dispatch command, call `sys.Start(ctx)`, wait for processing               | 10min | Host runs              |
+| 4.4 | Write test: verify projection store has the expected view after processing             | 10min | Projection updated     |
+| 4.5 | Write test: dispatch update command, verify projection updates incrementally           | 10min | Live updates work      |
 
 ### Phase 3: The 20% (Tasks 6-14) — CI-Green + Wiring
 
-| # | Subtask | Est | Verifies |
-|---|---------|-----|----------|
-| 5.1 | Read constructor.go fully, identify projection wiring section to extract | 5min | Section identified |
-| 5.2 | Create `system/projections.go`, move projection wiring code there | 10min | Compiles |
-| 5.3 | Verify constructor.go is now <350 lines | 5min | `wc -l` confirms |
-| 6.1 | Read adapter_event.go, identify serialization section to extract | 5min | Section identified |
-| 6.2 | Create `system/adapter_event_sql.go`, move serializedEvent + encode/decode there | 10min | Compiles |
-| 6.3 | Verify adapter_event.go is now <350 lines | 5min | `wc -l` confirms |
-| 7.1 | Add `"system"` to modules slice in `cmd/api-stability/main.go` | 5min | Test sees it |
-| 7.2 | Run `cd cmd/api-stability && GOWORK=off go run main.go -update` | 10min | Golden regenerated |
-| 7.3 | Verify golden includes all system/ exported symbols | 5min | Spot check |
-| 8.1 | Read `bus.go` dispatch method, understand handler chaining | 5min | Pattern understood |
-| 8.2 | Rewrite `dispatch` to call each handler independently (collect errors, don't chain) | 10min | Handlers independent |
-| 8.3 | Write test: first handler returns error, second handler still executes | 10min | Independence proven |
-| 9.1 | In constructor, check if source-of-truth instance has multiple `Publish` targets | 5min | Detection works |
-| 9.2 | If multiple targets, build MultiBus from registered bus publishers | 10min | MultiBus constructed |
-| 9.3 | Write test: two buses, verify event published to both | 10min | Fan-out proven |
-| 10.1 | In constructor, detect SnapshotBackend capability on engine | 5min | Detection works |
-| 10.2 | If engine implements SnapshotBackend, wire it into decider.Repository | 10min | Snapshot wired |
-| 10.3 | Write test: save snapshot, load snapshot, verify roundtrip | 10min | Snapshots persist |
-| 11.1 | Replace hardcoded `HealthStatus: "ok"` with real check (engine.Ping or HealthCheck) | 10min | Real health |
-| 11.2 | Replace hardcoded `Handlers: 0` with actual dispatcher handler count | 10min | Real counts |
-| 11.3 | Write test: snapshot topology, verify health + handler count are real | 10min | Not hardcoded |
-| 12.1 | In constructor, call `CheckSafety(ctx, deployment)` before starting | 5min | Safety checked |
-| 12.2 | If `report.HasErrors()`, return `ErrUnsafeChange` from `New()` | 5min | Hard fail on SCREAM |
-| 12.3 | Write test: SOT with Memory driver → ErrUnsafeChange returned | 10min | Safety enforced |
-| 13.1 | Add system/ to modules list in AGENTS.md | 5min | Entry added |
-| 13.2 | Add system/ build/test commands to AGENTS.md Quick Reference | 10min | Commands documented |
-| 13.3 | Run doc-check to verify import paths | 10min | Paths valid |
+| #    | Subtask                                                                             | Est   | Verifies             |
+| ---- | ----------------------------------------------------------------------------------- | ----- | -------------------- |
+| 5.1  | Read constructor.go fully, identify projection wiring section to extract            | 5min  | Section identified   |
+| 5.2  | Create `system/projections.go`, move projection wiring code there                   | 10min | Compiles             |
+| 5.3  | Verify constructor.go is now <350 lines                                             | 5min  | `wc -l` confirms     |
+| 6.1  | Read adapter_event.go, identify serialization section to extract                    | 5min  | Section identified   |
+| 6.2  | Create `system/adapter_event_sql.go`, move serializedEvent + encode/decode there    | 10min | Compiles             |
+| 6.3  | Verify adapter_event.go is now <350 lines                                           | 5min  | `wc -l` confirms     |
+| 7.1  | Add `"system"` to modules slice in `cmd/api-stability/main.go`                      | 5min  | Test sees it         |
+| 7.2  | Run `cd cmd/api-stability && GOWORK=off go run main.go -update`                     | 10min | Golden regenerated   |
+| 7.3  | Verify golden includes all system/ exported symbols                                 | 5min  | Spot check           |
+| 8.1  | Read `bus.go` dispatch method, understand handler chaining                          | 5min  | Pattern understood   |
+| 8.2  | Rewrite `dispatch` to call each handler independently (collect errors, don't chain) | 10min | Handlers independent |
+| 8.3  | Write test: first handler returns error, second handler still executes              | 10min | Independence proven  |
+| 9.1  | In constructor, check if source-of-truth instance has multiple `Publish` targets    | 5min  | Detection works      |
+| 9.2  | If multiple targets, build MultiBus from registered bus publishers                  | 10min | MultiBus constructed |
+| 9.3  | Write test: two buses, verify event published to both                               | 10min | Fan-out proven       |
+| 10.1 | In constructor, detect SnapshotBackend capability on engine                         | 5min  | Detection works      |
+| 10.2 | If engine implements SnapshotBackend, wire it into decider.Repository               | 10min | Snapshot wired       |
+| 10.3 | Write test: save snapshot, load snapshot, verify roundtrip                          | 10min | Snapshots persist    |
+| 11.1 | Replace hardcoded `HealthStatus: "ok"` with real check (engine.Ping or HealthCheck) | 10min | Real health          |
+| 11.2 | Replace hardcoded `Handlers: 0` with actual dispatcher handler count                | 10min | Real counts          |
+| 11.3 | Write test: snapshot topology, verify health + handler count are real               | 10min | Not hardcoded        |
+| 12.1 | In constructor, call `CheckSafety(ctx, deployment)` before starting                 | 5min  | Safety checked       |
+| 12.2 | If `report.HasErrors()`, return `ErrUnsafeChange` from `New()`                      | 5min  | Hard fail on SCREAM  |
+| 12.3 | Write test: SOT with Memory driver → ErrUnsafeChange returned                       | 10min | Safety enforced      |
+| 13.1 | Add system/ to modules list in AGENTS.md                                            | 5min  | Entry added          |
+| 13.2 | Add system/ build/test commands to AGENTS.md Quick Reference                        | 10min | Commands documented  |
+| 13.3 | Run doc-check to verify import paths                                                | 10min | Paths valid          |
 
 ### Phase 4: The Remaining 20% (Tasks 15-27) — Strategic Future
 
-| # | Subtask | Est | Verifies |
-|---|---------|-----|----------|
-| 14.1 | Design DiffResult type (added/removed/changed collections, ADTs, engines) | 10min | Type compiles |
-| 14.2 | Implement PlanDiff by comparing two SerializablePlans field by field | 10min | Diff works |
-| 14.3 | Test PlanDiff with identical plans (empty diff), with changes | 10min | Tests pass |
-| 15.1 | Implement PlanFingerprint: JSON-marshal plan, SHA-256 hash, hex encode | 10min | Hash stable |
-| 15.2 | Test fingerprint stability (same plan → same hash) | 5min | Deterministic |
-| 16.1 | Design Manifest type (SerializablePlan + timestamp + version) | 10min | Type compiles |
-| 16.2 | Implement SaveManifest/LoadManifest (write/read JSON file) | 10min | Roundtrips |
-| 17.1 | Add koanf to system/go.mod | 5min | Dependency added |
-| 17.2 | Implement `LoadConfig(path)` using koanf providers (file + env) | 10min | Config loads |
-| 17.3 | Test: YAML file → DeploymentConfig, env override → changed value | 10min | Merge works |
-| 18.1 | Register gochannel bus driver in init() (returns simpleBus) | 5min | Registered |
-| 18.2 | In constructor, use bus driver registry when BusConfig.Driver is set | 10min | Bus configurable |
-| 19.1-19.5 | Pebble StreamLogBackend: implement 5 methods (Append, Read, Version, JournalAll, JournalFrom) | 50min | Tests pass |
-| 20.1-20.5 | DuckDB StreamLogBackend: same 5 methods | 50min | Tests pass |
-| 21.1-21.5 | Postgres StreamLogBackend: same 5 methods | 50min | Tests pass |
-| 22.1 | Implement System.Verify() — delegate to metaengine.Store.Verify | 10min | Works |
-| 22.2 | Implement System.Plan() — merge all instance plans | 10min | Works |
-| 22.3 | Implement System.Explain() — human-readable combined plan | 10min | Works |
-| 23.1 | Add StreamReadAsOf/StreamReadAsOfVersion to StreamLogBackend interface | 5min | Interface updated |
-| 23.2 | Implement on Memory engine (filter by timestamp) | 10min | Works |
-| 23.3 | Implement on SQLite engine (WHERE clause on timestamp) | 10min | Works |
-| 24.1 | Fix design doc: "all 5 engines" → "Memory + SQLite (Pebble/DuckDB/PG pending)" | 5min | Doc accurate |
-| 25.1 | Define SnapshotBackend in metaengine/engine.go | 5min | Interface exists |
-| 25.2 | Implement on Memory engine | 10min | Works |
-| 25.3 | Implement on SQLite engine | 10min | Works |
+| #         | Subtask                                                                                       | Est   | Verifies          |
+| --------- | --------------------------------------------------------------------------------------------- | ----- | ----------------- |
+| 14.1      | Design DiffResult type (added/removed/changed collections, ADTs, engines)                     | 10min | Type compiles     |
+| 14.2      | Implement PlanDiff by comparing two SerializablePlans field by field                          | 10min | Diff works        |
+| 14.3      | Test PlanDiff with identical plans (empty diff), with changes                                 | 10min | Tests pass        |
+| 15.1      | Implement PlanFingerprint: JSON-marshal plan, SHA-256 hash, hex encode                        | 10min | Hash stable       |
+| 15.2      | Test fingerprint stability (same plan → same hash)                                            | 5min  | Deterministic     |
+| 16.1      | Design Manifest type (SerializablePlan + timestamp + version)                                 | 10min | Type compiles     |
+| 16.2      | Implement SaveManifest/LoadManifest (write/read JSON file)                                    | 10min | Roundtrips        |
+| 17.1      | Add koanf to system/go.mod                                                                    | 5min  | Dependency added  |
+| 17.2      | Implement `LoadConfig(path)` using koanf providers (file + env)                               | 10min | Config loads      |
+| 17.3      | Test: YAML file → DeploymentConfig, env override → changed value                              | 10min | Merge works       |
+| 18.1      | Register gochannel bus driver in init() (returns simpleBus)                                   | 5min  | Registered        |
+| 18.2      | In constructor, use bus driver registry when BusConfig.Driver is set                          | 10min | Bus configurable  |
+| 19.1-19.5 | Pebble StreamLogBackend: implement 5 methods (Append, Read, Version, JournalAll, JournalFrom) | 50min | Tests pass        |
+| 20.1-20.5 | DuckDB StreamLogBackend: same 5 methods                                                       | 50min | Tests pass        |
+| 21.1-21.5 | Postgres StreamLogBackend: same 5 methods                                                     | 50min | Tests pass        |
+| 22.1      | Implement System.Verify() — delegate to metaengine.Store.Verify                               | 10min | Works             |
+| 22.2      | Implement System.Plan() — merge all instance plans                                            | 10min | Works             |
+| 22.3      | Implement System.Explain() — human-readable combined plan                                     | 10min | Works             |
+| 23.1      | Add StreamReadAsOf/StreamReadAsOfVersion to StreamLogBackend interface                        | 5min  | Interface updated |
+| 23.2      | Implement on Memory engine (filter by timestamp)                                              | 10min | Works             |
+| 23.3      | Implement on SQLite engine (WHERE clause on timestamp)                                        | 10min | Works             |
+| 24.1      | Fix design doc: "all 5 engines" → "Memory + SQLite (Pebble/DuckDB/PG pending)"                | 5min  | Doc accurate      |
+| 25.1      | Define SnapshotBackend in metaengine/engine.go                                                | 5min  | Interface exists  |
+| 25.2      | Implement on Memory engine                                                                    | 10min | Works             |
+| 25.3      | Implement on SQLite engine                                                                    | 10min | Works             |
 
 **Total subtasks: ~120. Each under 12 minutes.**
 
@@ -263,14 +263,14 @@ Everything in Phase 4 can proceed in parallel after Phase 3.
 
 ## 6. Risk Analysis (VERSCHLIMMBESSER Prevention)
 
-| Risk | Mitigation |
-|------|------------|
-| Changing constructor signature breaks callers | Internal package, no external consumers yet. Safe. |
-| SQLite driver registration adds dep to system/ | Use separate driver package OR inline init. Q1 for user. |
-| Splitting files breaks imports | Both files stay in `package system`. No import changes. |
-| simpleBus behavior change breaks tests | Write the independence test FIRST, then change behavior. |
+| Risk                                             | Mitigation                                                                                     |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| Changing constructor signature breaks callers    | Internal package, no external consumers yet. Safe.                                             |
+| SQLite driver registration adds dep to system/   | Use separate driver package OR inline init. Q1 for user.                                       |
+| Splitting files breaks imports                   | Both files stay in `package system`. No import changes.                                        |
+| simpleBus behavior change breaks tests           | Write the independence test FIRST, then change behavior.                                       |
 | MultiBus wiring changes event delivery semantics | Only active when multiple Publish targets configured. Single bus = current behavior unchanged. |
-| koanf adds heavy dependency | Defer to Phase 4. Phase 1-3 don't need it. |
+| koanf adds heavy dependency                      | Defer to Phase 4. Phase 1-3 don't need it.                                                     |
 
 ---
 

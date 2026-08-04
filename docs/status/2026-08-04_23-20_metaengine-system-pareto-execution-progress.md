@@ -10,20 +10,20 @@
 
 ### Phase 1 — SQLite Unlocked (3 tasks — CRITICAL PATH)
 
-| # | Task | Status | Verification |
-|---|------|--------|-------------|
-| T1 | Replace `createEngine()` with `createEngineFromDriver()` in constructor | DONE | Build passes, all tests pass |
-| T2 | Register SQLite driver in `init()` + add `modernc.org/sqlite` dep | DONE | `TestSystem_SQLiteDriverRegistered` passes |
-| T3 | Auto-detect serialization for non-Memory engines | DONE | `TestSystem_SQLiteFullCQRSRoundtrip` proves events decode correctly |
+| #   | Task                                                                    | Status | Verification                                                        |
+| --- | ----------------------------------------------------------------------- | ------ | ------------------------------------------------------------------- |
+| T1  | Replace `createEngine()` with `createEngineFromDriver()` in constructor | DONE   | Build passes, all tests pass                                        |
+| T2  | Register SQLite driver in `init()` + add `modernc.org/sqlite` dep       | DONE   | `TestSystem_SQLiteDriverRegistered` passes                          |
+| T3  | Auto-detect serialization for non-Memory engines                        | DONE   | `TestSystem_SQLiteFullCQRSRoundtrip` proves events decode correctly |
 
 **Impact:** SQLite is now usable through System for the first time. Previously only Memory worked. The entire driver registry pattern (which existed as dead code) is now live.
 
 ### Phase 2 — Proven E2E (2 tasks)
 
-| # | Task | Status | Verification |
-|---|------|--------|-------------|
-| T4 | SQLite-through-System integration test | DONE | 5 tests: full roundtrip, optimistic concurrency, journal, persistence (restart), driver registered |
-| T5 | Projection E2E test (command→event→projection) | DONE | 2 tests: Memory + SQLite, proving projection host processes events into metaengine store |
+| #   | Task                                           | Status | Verification                                                                                       |
+| --- | ---------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------- |
+| T4  | SQLite-through-System integration test         | DONE   | 5 tests: full roundtrip, optimistic concurrency, journal, persistence (restart), driver registered |
+| T5  | Projection E2E test (command→event→projection) | DONE   | 2 tests: Memory + SQLite, proving projection host processes events into metaengine store           |
 
 **Impact:** The system now has proven end-to-end CQRS flow through SQLite with persistence across restarts. Both source-of-truth and projection layers are verified.
 
@@ -31,62 +31,67 @@
 
 ### Phase 3 — CI-Green + Wiring (9 tasks)
 
-| # | Task | Status | Verification |
-|---|------|--------|-------------|
-| T6 | Split `constructor.go` (369→332 lines) | DONE | Extracted `memoryCheckpointStore` to `checkpoint.go`, removed unused `sync` import |
-| T7 | Split `adapter_event.go` (372→311 lines) | DONE | Extracted `serializedEvent` + `encodeEvent`/`decodeEvent` to `adapter_event_serial.go` |
-| T8 | Add `system/` to api-stability modules list + regen golden | DONE | 120 system exports in golden file |
-| T9 | Fix simpleBus handler independence | DONE | Each handler now executes independently; first error returned. `TestSimpleBus_HandlerIndependence` proves handler2 runs even when handler1 errors |
-| T10 | Wire MultiBus into `New()` when multiple Publish targets | DONE | `buildPublisher` wraps MultiBus when instance has >1 Publish target; `buildEventBus` returns simpleBus for local subscribers |
-| T12 | Fix introspection hardcodes | DONE | `HealthStatus` now calls `instanceHealth()` (returns "healthy"/"stopped"/"missing-engine"); `Handlers` reflects real `cmdHandlerCount` |
-| T13 | Wire scream store into `New()` | DONE | `CheckSafety()` called at top of `New()`; SCREAM-tier violations return `ErrUnsafeChange` |
-| T14 | Update AGENTS.md with system/ module entry | DONE | Modules list, test command, directory tree all updated |
-| T11 | Wire SnapshotBackend | DEFERRED (see below) | Engines don't implement SnapshotBackend yet; interface exists only in system/snapshot.go |
+| #   | Task                                                       | Status               | Verification                                                                                                                                      |
+| --- | ---------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T6  | Split `constructor.go` (369→332 lines)                     | DONE                 | Extracted `memoryCheckpointStore` to `checkpoint.go`, removed unused `sync` import                                                                |
+| T7  | Split `adapter_event.go` (372→311 lines)                   | DONE                 | Extracted `serializedEvent` + `encodeEvent`/`decodeEvent` to `adapter_event_serial.go`                                                            |
+| T8  | Add `system/` to api-stability modules list + regen golden | DONE                 | 120 system exports in golden file                                                                                                                 |
+| T9  | Fix simpleBus handler independence                         | DONE                 | Each handler now executes independently; first error returned. `TestSimpleBus_HandlerIndependence` proves handler2 runs even when handler1 errors |
+| T10 | Wire MultiBus into `New()` when multiple Publish targets   | DONE                 | `buildPublisher` wraps MultiBus when instance has >1 Publish target; `buildEventBus` returns simpleBus for local subscribers                      |
+| T12 | Fix introspection hardcodes                                | DONE                 | `HealthStatus` now calls `instanceHealth()` (returns "healthy"/"stopped"/"missing-engine"); `Handlers` reflects real `cmdHandlerCount`            |
+| T13 | Wire scream store into `New()`                             | DONE                 | `CheckSafety()` called at top of `New()`; SCREAM-tier violations return `ErrUnsafeChange`                                                         |
+| T14 | Update AGENTS.md with system/ module entry                 | DONE                 | Modules list, test command, directory tree all updated                                                                                            |
+| T11 | Wire SnapshotBackend                                       | DEFERRED (see below) | Engines don't implement SnapshotBackend yet; interface exists only in system/snapshot.go                                                          |
 
 ### Phase 4 — Strategic Future (6 of 12 tasks done)
 
-| # | Task | Status | Verification |
-|---|------|--------|-------------|
-| T15 | Implement PlanDiff in metaengine | DONE | `plan_diff.go`: PlanDiffResult type, QueryChange, IsEmpty, 5 tests |
-| T16 | Implement PlanFingerprint canonical hash | DONE | SHA-256 hex hash, deterministic, 2 tests |
-| T17 | Implement Manifest type + persistence | DONE | Manifest with SaveManifest/LoadManifest/VerifyFingerprint, 1 roundtrip test |
-| T18 | Real YAML config parsing (not koanf, but yaml.v3) | DONE | `config_loader.go` rewritten with real YAML parsing, 3 tests (YAML, empty path, env override) |
-| T19 | Register gochannel bus driver | DONE | Registered in `init()`, returns simpleBus |
-| T23 | Implement System.Verify/Plan/Explain methods | DONE | `ProjectionPlan()`, `VerifyProjections()`, `ProjectionExplain()` added to System |
-| T25 | Fix design doc false claims | DONE | Annotated 3 false claims with "VERIFIED" status and implementation counts |
+| #   | Task                                              | Status | Verification                                                                                  |
+| --- | ------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------- |
+| T15 | Implement PlanDiff in metaengine                  | DONE   | `plan_diff.go`: PlanDiffResult type, QueryChange, IsEmpty, 5 tests                            |
+| T16 | Implement PlanFingerprint canonical hash          | DONE   | SHA-256 hex hash, deterministic, 2 tests                                                      |
+| T17 | Implement Manifest type + persistence             | DONE   | Manifest with SaveManifest/LoadManifest/VerifyFingerprint, 1 roundtrip test                   |
+| T18 | Real YAML config parsing (not koanf, but yaml.v3) | DONE   | `config_loader.go` rewritten with real YAML parsing, 3 tests (YAML, empty path, env override) |
+| T19 | Register gochannel bus driver                     | DONE   | Registered in `init()`, returns simpleBus                                                     |
+| T23 | Implement System.Verify/Plan/Explain methods      | DONE   | `ProjectionPlan()`, `VerifyProjections()`, `ProjectionExplain()` added to System              |
+| T25 | Fix design doc false claims                       | DONE   | Annotated 3 false claims with "VERIFIED" status and implementation counts                     |
 
 ---
 
 ## b) PARTIALLY DONE
 
 ### T11 — Wire SnapshotBackend
+
 The `SnapshotBackend` interface exists at `system/snapshot.go` and a memory implementation exists, but:
+
 - The metaengine engines do NOT implement it (design doc D12 says they should)
 - The constructor does NOT wire it into `decider.Repository`
 - No `WithSnapshotStore` option is passed to `NewRepository`
-**Why deferred:** Can't wire something that doesn't exist at the engine level. The interface is defined but no engine implements it.
+  **Why deferred:** Can't wire something that doesn't exist at the engine level. The interface is defined but no engine implements it.
 
 ### T18 — Config loading
+
 Implemented real YAML parsing with `gopkg.in/yaml.v3` (which was already an indirect dependency). Did NOT use koanf (it would add a new heavy dependency). The current implementation covers:
+
 - Full YAML file parsing (engines, buses, instances, acknowledge_warnings)
 - Env var overrides (CQRS_DEFAULT_DRIVER, CQRS_DEFAULT_DSN)
 - What's missing: nested env override (CQRS_ENGINES_PRIMARY_DSN=...), config validation, koanf provider chain
 
 ### T25 — Design doc fixes
+
 Fixed 3 false claims (StreamLogBackend 5/5→2/5, "all engines implement" annotations, Log ADT). Did NOT fix every aspirational claim in the 1987-line doc — only the verified false ones.
 
 ---
 
 ## c) NOT STARTED (6 tasks from the plan)
 
-| # | Task | Why Not Started |
-|---|------|----------------|
-| T20 | Implement Pebble StreamLogBackend (5 methods) | Requires deep knowledge of Pebble key-prefix patterns; 90min task |
-| T21 | Implement DuckDB StreamLogBackend | CGo + DuckDB-specific SQL; 90min task |
-| T22 | Implement Postgres StreamLogBackend | Requires JSONB knowledge; 90min task |
-| T24 | Implement StreamReadAsOf/StreamReadAsOfVersion | Interface methods don't exist yet; 90min task |
-| T26 | Implement SnapshotBackend in metaengine engines | Design decision needed: should SnapshotBackend be on Engine or StreamLogBackend? |
-| T27 | Add SCREAM severity to Diagnostics + durability-aware rules | Lower priority; current scream store catches the main violations |
+| #   | Task                                                        | Why Not Started                                                                  |
+| --- | ----------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| T20 | Implement Pebble StreamLogBackend (5 methods)               | Requires deep knowledge of Pebble key-prefix patterns; 90min task                |
+| T21 | Implement DuckDB StreamLogBackend                           | CGo + DuckDB-specific SQL; 90min task                                            |
+| T22 | Implement Postgres StreamLogBackend                         | Requires JSONB knowledge; 90min task                                             |
+| T24 | Implement StreamReadAsOf/StreamReadAsOfVersion              | Interface methods don't exist yet; 90min task                                    |
+| T26 | Implement SnapshotBackend in metaengine engines             | Design decision needed: should SnapshotBackend be on Engine or StreamLogBackend? |
+| T27 | Add SCREAM severity to Diagnostics + durability-aware rules | Lower priority; current scream store catches the main violations                 |
 
 ---
 
