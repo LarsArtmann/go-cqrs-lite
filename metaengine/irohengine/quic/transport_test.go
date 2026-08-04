@@ -42,21 +42,12 @@ func eventuallyGet(
 	expected any,
 	timeout time.Duration,
 ) {
-	deadline := time.Now().Add(timeout)
-	for time.Now().Before(deadline) {
+	g.Eventually(func(g gomega.Gomega) {
 		val, ok, err := node.(metaengine.MapBackend).MapGet(context.Background(), collection, key)
-		if err == nil && ok {
-			matcher := gomega.Equal(expected)
-			if success, _ := matcher.Match(val); success {
-				return
-			}
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
-	val, ok, err := node.(metaengine.MapBackend).MapGet(context.Background(), collection, key)
-	g.Expect(err).NotTo(gomega.HaveOccurred())
-	g.Expect(ok).To(gomega.BeTrue())
-	g.Expect(val).To(gomega.Equal(expected))
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(ok).To(gomega.BeTrue())
+		g.Expect(val).To(gomega.Equal(expected))
+	}, timeout, 50*time.Millisecond).Should(gomega.Succeed())
 }
 
 // setupTwoNodeQuic creates two connected QuicTransport nodes with engines.
@@ -170,20 +161,13 @@ func TestQuicSetConvergence(t *testing.T) {
 	g.Expect(nodeA.(metaengine.SetBackend).SetAdd(ctx, "tags", "go")).To(gomega.Succeed())
 	g.Expect(nodeA.(metaengine.SetBackend).SetAdd(ctx, "tags", "cqrs")).To(gomega.Succeed())
 
-	deadline := time.Now().Add(15 * time.Second)
-	for time.Now().Before(deadline) {
-		contains, _ := nodeB.(metaengine.SetBackend).SetContains(ctx, "tags", "go")
-		if contains {
-			break
-		}
-		time.Sleep(50 * time.Millisecond)
-	}
+	g.Eventually(func(g gomega.Gomega) {
+		contains, err := nodeB.(metaengine.SetBackend).SetContains(ctx, "tags", "go")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(contains).To(gomega.BeTrue())
+	}, 15*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
 
-	contains, err := nodeB.(metaengine.SetBackend).SetContains(ctx, "tags", "go")
-	g.Expect(err).NotTo(gomega.HaveOccurred())
-	g.Expect(contains).To(gomega.BeTrue())
-
-	contains, err = nodeB.(metaengine.SetBackend).SetContains(ctx, "tags", "cqrs")
+	contains, err := nodeB.(metaengine.SetBackend).SetContains(ctx, "tags", "cqrs")
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(contains).To(gomega.BeTrue())
 }
@@ -244,18 +228,11 @@ func TestQuicLogConvergence(t *testing.T) {
 	g.Expect(nodeA.(metaengine.LogBackend).LogAppend(ctx, "audit", "file-upload")).
 		To(gomega.Succeed())
 
-	deadline := time.Now().Add(15 * time.Second)
-	for time.Now().Before(deadline) {
-		entries, _ := nodeB.(metaengine.LogBackend).LogTail(ctx, "audit", 10)
-		if len(entries) >= 2 {
-			break
-		}
-		time.Sleep(50 * time.Millisecond)
-	}
-
-	entries, err := nodeB.(metaengine.LogBackend).LogTail(ctx, "audit", 10)
-	g.Expect(err).NotTo(gomega.HaveOccurred())
-	g.Expect(entries).To(gomega.HaveLen(2))
-	g.Expect(entries[0]).To(gomega.Equal("user-login"))
-	g.Expect(entries[1]).To(gomega.Equal("file-upload"))
+	g.Eventually(func(g gomega.Gomega) {
+		entries, err := nodeB.(metaengine.LogBackend).LogTail(ctx, "audit", 10)
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(entries).To(gomega.HaveLen(2))
+		g.Expect(entries[0]).To(gomega.Equal("user-login"))
+		g.Expect(entries[1]).To(gomega.Equal("file-upload"))
+	}, 15*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
 }
