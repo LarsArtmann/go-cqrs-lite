@@ -8,7 +8,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -231,7 +230,7 @@ func RegisterCommand[Cmd command.Command, State any](
 		op := handler(ctx, typed)
 
 		sys.mu.Lock()
-		repoAny, exists := sys.repos[op.streamType]
+		repoAny, exists := sys.repos[string(op.streamType)]
 		sys.mu.Unlock()
 
 		if !exists {
@@ -284,23 +283,23 @@ func DispatchQuery[Q query.Query, R any](ctx context.Context, sys *System, q Q) 
 
 type memoryCheckpointStore struct {
 	mu   sync.RWMutex
-	data map[string]string
+	data map[string]event.Checkpoint
 }
 
-func (s *memoryCheckpointStore) Save(_ context.Context, projection string, checkpoint string) error {
+func (s *memoryCheckpointStore) Save(_ context.Context, projection string, cp event.Checkpoint) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if s.data == nil {
-		s.data = make(map[string]string)
+		s.data = make(map[string]event.Checkpoint)
 	}
 
-	s.data[projection] = checkpoint
+	s.data[projection] = cp
 
 	return nil
 }
 
-func (s *memoryCheckpointStore) Load(_ context.Context, projection string) (string, error) {
+func (s *memoryCheckpointStore) Load(_ context.Context, projection string) (event.Checkpoint, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

@@ -19,6 +19,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -167,30 +168,16 @@ const (
 
 // Op[State] carries the information the System needs to execute a command
 // against a decider. It is returned by command handlers registered via
-// [System.Command].
-//
-// The System captures the command->streamType relationship as DATA at
-// registration time (D10). This enables automatic projection wiring,
-// audit, and routing without erased closures.
+// [RegisterCommand].
 type Op[State any] struct {
-	streamID   string
-	streamType string
+	streamID   id.StreamID
+	streamType id.StreamType
 	decide     decider.DecideFunc[State]
 }
 
 // Execute creates an [Op] that the System will execute against the decider
-// registered for streamType. The decide function receives the current state
-// and version, and returns the events to append.
-//
-// Usage:
-//
-//	sys.Command("task.create", func(ctx context.Context, cmd CreateTaskCmd) system.Op[TaskState] {
-//	    return system.Execute(ctx, cmd.StreamID(), "Task",
-//	        func(state TaskState, ver event.Version) ([]event.Event, error) {
-//	            return []event.Event{mustEvent(event.NewEvent(...))}, nil
-//	        })
-//	})
-func Execute[State any](_ context.Context, streamID, streamType string,
+// registered for streamType.
+func Execute[State any](_ context.Context, streamID id.StreamID, streamType id.StreamType,
 	decide decider.DecideFunc[State],
 ) Op[State] {
 	return Op[State]{

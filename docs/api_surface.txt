@@ -1703,6 +1703,8 @@ metaengine/method IsPersistent
 metaengine/method IsPoisoned
 metaengine/method IsReplicated
 metaengine/method IsVolatile
+metaengine/method JournalReadAll
+metaengine/method JournalReadFrom
 metaengine/method Kind
 metaengine/method Kind
 metaengine/method Kind
@@ -1786,6 +1788,7 @@ metaengine/method ReplicationMode
 metaengine/method Report
 metaengine/method Report
 metaengine/method RunInTx
+metaengine/method RunInTx
 metaengine/method Scan
 metaengine/method ScanPage
 metaengine/method ScanRawValues
@@ -1801,7 +1804,10 @@ metaengine/method SpatialInsert
 metaengine/method SpatialRange
 metaengine/method Stats
 metaengine/method Stats
+metaengine/method StreamAppend
+metaengine/method StreamRead
 metaengine/method StreamScan
+metaengine/method StreamVersion
 metaengine/method String
 metaengine/method String
 metaengine/method String
@@ -2373,6 +2379,7 @@ scheduling/sqlstore/method MarkFired
 scheduling/sqlstore/method Schedule
 scheduling/sqlstore/struct SQLTimerStore
 scheduling/sqlstore/type Dialect
+scheduling/sqlstore/var ErrUnknownDialect
 scheduling/struct MemoryTimerStore
 scheduling/struct Scheduler
 scheduling/struct Timer

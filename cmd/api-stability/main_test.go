@@ -33,6 +33,7 @@ func TestEveryGoModDirIsInModulesList(t *testing.T) {
 		"example/getting-started":   "example application",
 		"example/readme-quickstart": "example application",
 		"example/taskmanager":       "example application",
+		"system":                    "WIP module (references unimplemented metaengine types, does not compile yet)",
 	}
 
 	err := filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
