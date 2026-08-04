@@ -2,6 +2,7 @@ package analyzer
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -160,38 +161,101 @@ const (
 	PresetReadOnly ConfigPreset = "read-only"
 )
 
-// Presets maps preset names to their feature-flag defaults. A nil pointer
-// means "leave as auto-detected" — the preset only pins the flags that matter
-// for its intent.
+// PresetDefinition is the single source of truth for a named preset. It bundles
+// the feature flags, rule disables, and severity floor that together express
+// "what kind of project is this?" Both the init command (which generates
+// .cqrs-lint.json) and the runtime (which resolves the config) read from
+// PresetDefinitions, eliminating the split-brain drift that occurred when init
+// used hardcoded JSON strings and the runtime used a separate Go map.
+type PresetDefinition struct {
+	Features ConfigFeatures `json:"features,omitempty"`
+	Rules    RulesConfig    `json:"rules,omitempty"`
+	// MinSeverity sets the lowest severity shown (e.g. "warning" hides info).
+	// Empty means use the default ("info").
+	MinSeverity string `json:"min-severity,omitempty"` //nolint:tagliatelle // CLI config key
+}
+
+// PresetDefinitions is the canonical map of preset names to their full
+// definitions. This is the ONLY place presets are defined — init generates
+// config files from it, and the runtime resolves features + rules from it.
+//
+// Rule-disable lists encode rules that are known false-positives for the
+// preset's project type (e.g. server-infrastructure adoption rules for a
+// local CLI). They are applied as defaults; explicit config disables are
+// added on top (union), never subtracted.
 //
 //nolint:gochecknoglobals // read-only lookup table
-var Presets = map[ConfigPreset]ConfigFeatures{
+var PresetDefinitions = map[ConfigPreset]PresetDefinition{
 	PresetLocalCLI: {
-		Server:  new(false),
-		Tracing: new(TracingOff),
+		Features: ConfigFeatures{
+			Server:  new(false),
+			Tracing: new(TracingOff),
+		},
+		Rules: RulesConfig{
+			Disable: []string{"F004", "F009", "F013", "F015", "F017"},
+		},
+		MinSeverity: "warning",
 	},
 	PresetProduction: {
-		Server:  new(true),
-		Tracing: new(TracingOn),
+		Features: ConfigFeatures{
+			Server:  new(true),
+			Tracing: new(TracingOn),
+		},
 	},
 	PresetLibrary: {
-		Server:      new(false),
-		CommandFlow: new(CommandFlowReadOnly),
-		Tracing:     new(TracingOff),
-		Snapshot:    new(SnapshotOff),
+		Features: ConfigFeatures{
+			Server:      new(false),
+			CommandFlow: new(CommandFlowReadOnly),
+			Tracing:     new(TracingOff),
+			Snapshot:    new(SnapshotOff),
+		},
+		Rules: RulesConfig{
+			Disable: []string{"E003", "E016"},
+		},
 	},
 	PresetReadOnly: {
-		CommandFlow: new(CommandFlowReadOnly),
+		Features: ConfigFeatures{
+			CommandFlow: new(CommandFlowReadOnly),
+		},
 	},
+}
+
+// ValidPresetNames returns the sorted list of valid preset names (excluding the
+// empty default). Used by init for error messages and by validation to detect
+// typos in the "preset" config key.
+func ValidPresetNames() []string {
+	names := make([]string, 0, len(PresetDefinitions))
+	for name := range PresetDefinitions {
+		names = append(names, string(name))
+	}
+	sort.Strings(names)
+	return names
+}
+
+// IsKnownPreset reports whether name is a recognized preset (including the
+// empty default PresetNone).
+func IsKnownPreset(name ConfigPreset) bool {
+	if name == PresetNone {
+		return true
+	}
+	_, ok := PresetDefinitions[name]
+	return ok
+}
+
+// ResolvePresetDefinition returns the full definition for a preset name.
+// Returns a zero PresetDefinition (no overrides) for PresetNone or unknown
+// names. Unknown names should be caught by validation before reaching here.
+func ResolvePresetDefinition(name ConfigPreset) PresetDefinition {
+	if name == PresetNone {
+		return PresetDefinition{}
+	}
+	return PresetDefinitions[name]
 }
 
 // ResolvePreset returns the ConfigFeatures for a preset name.
 // Returns an empty ConfigFeatures (no overrides) for PresetNone or unknown names.
 func ResolvePreset(name ConfigPreset) ConfigFeatures {
-	if name == PresetNone {
-		return ConfigFeatures{}
-	}
-	return Presets[name]
+	return ResolvePresetDefinition(name).Features
 }
 
 // ResolveFeatureProfile merges auto-detected values with config overrides.
