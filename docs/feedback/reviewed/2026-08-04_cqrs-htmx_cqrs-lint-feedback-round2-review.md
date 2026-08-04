@@ -55,14 +55,14 @@
 
 **Fix:** `pkg/analyzer/feature_profile.go` — the `library` preset's `Rules.Disable` list now also includes:
 
-| Rule | Why it's a library false-positive |
-|------|-----------------------------------|
+| Rule | Why it's a library false-positive                                                 |
+| ---- | --------------------------------------------------------------------------------- |
 | F002 | Library defines event types but doesn't own the catalog (consumer registers them) |
-| F006 | Library defines PII payloads but the consumer configures encryption |
-| F010 | Library offers hierarchical queries; graph traversal is the consumer's choice |
-| F011 | Library does multi-table reads; relational projection is a deployment choice |
-| S002 | Library cannot force encryption on consumers (same as F006) |
-| S003 | Library creates events without signing; consumer wires signing middleware |
+| F006 | Library defines PII payloads but the consumer configures encryption               |
+| F010 | Library offers hierarchical queries; graph traversal is the consumer's choice     |
+| F011 | Library does multi-table reads; relational projection is a deployment choice      |
+| S002 | Library cannot force encryption on consumers (same as F006)                       |
+| S003 | Library creates events without signing; consumer wires signing middleware         |
 
 `F009` and `S007` were NOT added because they already self-skip under the preset's `server=false` feature flag (verified via their guards) — adding them would be redundant.
 
@@ -91,7 +91,7 @@
 2. When `NewRepository` receives a variadic spread from a function call, extracts the helper name (handling generic instantiation `foo[T]()` and selector `pkg.foo()`).
 3. Inspects the helper's body for a `WithStateCache` call; if found, suppresses the finding.
 
-This is conservative: it only suppresses when the helper *visibly* constructs the option. Helpers that DON'T wire the cache still fire (verified by test). Cross-package helpers fall through to the current behavior (fire at low confidence).
+This is conservative: it only suppresses when the helper _visibly_ constructs the option. Helpers that DON'T wire the cache still fire (verified by test). Cross-package helpers fall through to the current behavior (fire at low confidence).
 
 **Tests added:** `TestB025_NoFindingWithStateCacheViaHelper`, `TestB025_NoFindingWithStateCacheViaGenericHelper` (the exact cqrs-htmx generic pattern), `TestB025_FiresWhenHelperLacksStateCache`.
 

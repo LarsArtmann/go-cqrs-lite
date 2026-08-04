@@ -336,7 +336,7 @@
 
 ### Output and reporting
 
-112. **Group findings by aggregate/domain** — Instead of a flat list, group findings by the aggregate or domain they affect. "Your User aggregate has 5 issues" is more actionable than 5 scattered findings.
+112. ~~**Group findings by aggregate/domain** — Instead of a flat list, group findings by the aggregate or domain they affect. "Your User aggregate has 5 issues" is more actionable than 5 scattered findings.~~ **done** at `50e5d5eb` — `--group-by aggregate` flag added; `enrichWithAggregate` stamps `Finding.Metadata["aggregate"]` from event type prefixes + decider/fold state types via file-level map; `groupFindingsByAggregate` orders by count desc then alphabetical; uncategorized findings bucket separately. Backward-compatible: `--verbose` maps to `--group-by module`. **Follow-ups open:** see items 192-196.
 
 113. **Show feature adoption scorecard** — Beyond the health score, show which features the project uses vs misses. "You use 8/15 modules. Consider: scheduling, encryption, catalog."
 
@@ -532,23 +532,60 @@
 
 ---
 
-## Summary Statistics
+## Session 2026-08-04: Aggregate grouping follow-ups + round-2 feedback (192-205)
 
-| Category              | Rules in code                    | Open ideas                                      |
-| --------------------- | -------------------------------- | ----------------------------------------------- |
-| Correctness (C)       | 33 (C001-C034)                   | 0                                               |
-| API Misuse (A)        | 30 (A001-A027, A029, A030, A032) | A028 skipped (too project-specific)             |
-| Boilerplate (B)       | 28 (B001-B028)                   | 0                                               |
-| Architecture (E)      | 17 (E001-E017)                   | DONE (items 40-47, 164-165)                     |
-| Consistency (D)       | 13 (D001, D002, D003, D005-D015) | 0                                               |
-| Security (S)          | 9 (S001-S003, S005-S010)         | S004 proposed (item 54)                         |
-| Performance (P)       | 7 (P001, P006-P012)              | P002-P005 are NOT-DO (duplicates)               |
-| Version/Migration (V) | 6 (V001-V006)                    | 0                                               |
-| Testing (T)           | 8 (T001-T008)                    | 0                                               |
-| Feature Adoption (F)  | 17 (F001-F017)                   | 0                                               |
-| DX & Infrastructure   | N/A                              | 22 items (99-133, 13 pruned as won't-implement) |
-| Extended Ideas        | N/A                              | 34 items (134-179, 12 pruned, 12 done)          |
-| **Total**             | **171**                          | ~42 open                                        |
+### Aggregate grouping (item 112 follow-ups)
+
+192. **Struct-level aggregate inference (AST walk)** — Current file-level mapping covers the 80% case but fails when a file contains multiple aggregates (e.g. `events.go` with `user.created` and `order.placed`). The precise path is to walk the AST from each finding's line to find the enclosing struct/type declaration, then map that type to an aggregate via `EventInfo.Name`/`CommandInfo.Name`. Effort: 60min.
+
+193. **Detector-level aggregate stamping** — Detectors that fire on a specific `CommandInfo`/`EventInfo`/`DeciderInfo` (E005, B025, etc.) know the aggregate at detection time. They should stamp `Finding.Metadata["aggregate"]` directly instead of relying on file-level post-hoc inference. Currently zero detectors do this. Effort: 30min for the top 5 detectors.
+
+194. **`--group-by` in `.cqrs-lint.json` config** — Consumers can only set grouping via CLI flag. Add `"group-by": "aggregate"` to the config schema and `cqrs-lint init` output. Effort: 15min.
+
+195. **Aggregate grouping in markdown/SARIF output** — `--group-by aggregate` only affects text output. Markdown table output and SARIF output should also support aggregate grouping (SARIF via `logicalLocations`). Effort: 30min.
+
+196. **Aggregate-aware output enhancements** — Color-code aggregate headers by max severity in group; show severity sub-totals in headers (`User (5: 2 errors, 3 warnings)`); add `--aggregate-filter` flag to show only one aggregate's findings. Effort: 30min total.
+
+### Round-2 consumer feedback (cqrs-htmx, 2026-08-04)
+
+197. **End-of-line suppressions silently don't work (BUG, HIGH)** — The parser uses `strings.HasPrefix(line, commentPrefix)` on the full trimmed line, so `code //cqrs-lint:ignore(A008)` is never recognized. Consumers waste hours discovering this empirically. Fix: use `strings.Index` + slice from the prefix onward. Source: `pkg/suppression/parser.go:267`. Effort: 15min.
+
+198. **Per-module feature profiles for multi-module workspaces (MEDIUM)** — A `go.work` with library modules + example apps gets one merged profile wrong for every module. `ListenAndServe` in `examples/basic/main.go` sets `server=true` for the library. Fix: detect features per `go.mod` directory. Partially done by auto-commit daemon (`50e5d5eb` includes per-module detection scaffolding), but needs verification. Source: `pkg/analyzer/feature_detect.go`. Effort: 60min remaining.
+
+199. **Extend `library` preset to disable consumer-responsibility rules (LOW)** — The `library` preset disables E003/E016 but misses F002, F006, F009, F010, F011, S002, S003, S007 — rules that fire on library code that can't enforce these (consumer configures encryption/signing/catalog). Effort: 15min.
+
+200. **B025 helper-function tracing** — B025 fires on `NewRepository(store, bus, d, opts...)` when `opts` doesn't literally contain `WithStateCache`, but the options may be built by a helper function that does contain it. Suggestion: when `NewRepository` receives a `...opts` spread from a function call, check if that function contains `WithStateCache`, or at minimum lower confidence. Effort: 30min.
+
+### Pre-existing test failures noticed (not caused by this session)
+
+201. **TestReadmeRuleCountMatchesCatalog mismatch** — README.md documents 185 rules but the catalog has 186. The catalog gained a rule (c040 from a previous session) without a README update. Effort: 10min.
+
+202. **TestC038_NoFindingOnNormalizedMatch false positive** — C038 fires on `"user.created"` vs `"UserCreated"` with edit distance 0, but the normalized comparison should suppress this. Source: `pkg/rules/correctness/c038.go`. Effort: 20min.
+
+### Aggregate inference engine improvements
+
+203. **Extract inference helpers to `pkg/analyzer/`** — `aggregateFromEventType` and `aggregateFromStateType` currently live in package `main`. Rule packages (`pkg/rules/`) that want to stamp aggregates directly can't import them. Move to `pkg/analyzer/aggregate.go` for cross-package reuse. Effort: 20min.
+
+204. **Aggregate inference from command/query types** — Currently aggregates are inferred only from event type prefixes and state type names. Command and query struct names (`CreateUserCmd`, `GetUserQuery`) also encode aggregate boundaries. Add `aggregateFromCommandType`/`aggregateFromQueryType` extractors. Effort: 20min.
+
+205. **`groupFindingsBy` generic helper** — `groupFindingsByModule` and `groupFindingsByAggregate` share identical structure (build map → collect → sort). Extract a generic `groupFindingsBy(key func(finding.Finding) string, sort func([]findingGroup)) []findingGroup` to eliminate duplication. Effort: 15min.
+
+| Category              | Rules in code                    | Open ideas                                                                                                             |
+| --------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Correctness (C)       | 33 (C001-C034)                   | 0                                                                                                                      |
+| API Misuse (A)        | 30 (A001-A027, A029, A030, A032) | A028 skipped (too project-specific)                                                                                    |
+| Boilerplate (B)       | 28 (B001-B028)                   | 0                                                                                                                      |
+| Architecture (E)      | 17 (E001-E017)                   | DONE (items 40-47, 164-165)                                                                                            |
+| Consistency (D)       | 13 (D001, D002, D003, D005-D015) | 0                                                                                                                      |
+| Security (S)          | 9 (S001-S003, S005-S010)         | S004 proposed (item 54)                                                                                                |
+| Performance (P)       | 7 (P001, P006-P012)              | P002-P005 are NOT-DO (duplicates)                                                                                      |
+| Version/Migration (V) | 6 (V001-V006)                    | 0                                                                                                                      |
+| Testing (T)           | 8 (T001-T008)                    | 0                                                                                                                      |
+| Feature Adoption (F)  | 17 (F001-F017)                   | 0                                                                                                                      |
+| DX & Infrastructure   | N/A                              | 22 items (99-133, 13 pruned as won't-implement)                                                                        |
+| Extended Ideas        | N/A                              | 34 items (134-179, 12 pruned, 12 done)                                                                                 |
+| Session 2026-08-04    | N/A                              | 14 items (192-205): 5 aggregate follow-ups, 4 round-2 feedback, 2 pre-existing test failures, 3 inference improvements |
+| **Total**             | **171 + `--group-by aggregate`** | ~56 open                                                                                                               |
 
 ---
 

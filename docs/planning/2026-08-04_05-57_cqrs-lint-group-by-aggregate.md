@@ -16,6 +16,7 @@ issues" is far more actionable than 5 findings spread across the output.
 ## Root Cause
 
 The `CQRSRegistry` already knows aggregate boundaries:
+
 - `EventTypesEmitted["user.created"]` — the prefix before `.` IS the aggregate
 - `DeciderInfo.StateType` = "UserState" — strip "State" suffix
 - `FoldInfo.StateType` — same extraction
@@ -34,6 +35,7 @@ Post-hoc enrichment, same pattern as `enrichWithDocURLs`. Runs in
 aggregate map built from registry data.
 
 **Priority chain:**
+
 1. Detector already stamped `Metadata["aggregate"]` → respect it
 2. File-level map from registry (event type prefix → file) → use it
 3. No match → leave unset (falls to "Uncategorized" bucket in output)
@@ -87,38 +89,38 @@ Enrichment + output grouping flag + output formatter. The consumer sees:
 
 ## Comprehensive Plan (30-100min tasks)
 
-| # | Task | Impact | Effort | Priority |
-|---|------|--------|--------|----------|
-| 1 | **Create aggregate inference engine** (`aggregate.go`): `aggregateFromEventType`, `aggregateFromStateType`, `buildFileAggregateMap`, `enrichWithAggregate` | CRITICAL — the core 51% | 60min | P0 |
-| 2 | **Wire enrichment** into `filterFindings` (one line after `enrichWithDocURLs`) | HIGH — activates Layer 1 | 10min | P0 |
-| 3 | **Add `--group-by` flag** + output grouping functions (`groupFindingsByAggregate`, `printFindingsByAggregate`, wire into `outputFindings`) | HIGH — the user-visible feature | 45min | P1 |
-| 4 | **Write tests** for inference, enrichment, and grouping | HIGH — correctness guarantee | 40min | P1 |
-| 5 | **Update docs** (AGENTS.md cqrs-lint description, help text) | MEDIUM — discoverability | 15min | P2 |
-| 6 | **Build + verify** — compile, run tests, check no regressions | CRITICAL — quality gate | 15min | P0 |
+| #   | Task                                                                                                                                                       | Impact                          | Effort | Priority |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ------ | -------- |
+| 1   | **Create aggregate inference engine** (`aggregate.go`): `aggregateFromEventType`, `aggregateFromStateType`, `buildFileAggregateMap`, `enrichWithAggregate` | CRITICAL — the core 51%         | 60min  | P0       |
+| 2   | **Wire enrichment** into `filterFindings` (one line after `enrichWithDocURLs`)                                                                             | HIGH — activates Layer 1        | 10min  | P0       |
+| 3   | **Add `--group-by` flag** + output grouping functions (`groupFindingsByAggregate`, `printFindingsByAggregate`, wire into `outputFindings`)                 | HIGH — the user-visible feature | 45min  | P1       |
+| 4   | **Write tests** for inference, enrichment, and grouping                                                                                                    | HIGH — correctness guarantee    | 40min  | P1       |
+| 5   | **Update docs** (AGENTS.md cqrs-lint description, help text)                                                                                               | MEDIUM — discoverability        | 15min  | P2       |
+| 6   | **Build + verify** — compile, run tests, check no regressions                                                                                              | CRITICAL — quality gate         | 15min  | P0       |
 
 ## Detailed Breakdown (max 12min tasks)
 
-| # | Task | Depends On | Est |
-|---|------|------------|-----|
-| 1.1 | Create `aggregate.go` with `aggregateFromEventType(string) string` | — | 8min |
-| 1.2 | Add `aggregateFromStateType(string) string` to `aggregate.go` | 1.1 | 8min |
-| 1.3 | Add `buildFileAggregateMap(*CQRSRegistry) map[string][]string` | 1.1, 1.2 | 10min |
-| 1.4 | Add `enrichWithAggregate([]Finding, *AnalysisContext) []Finding` | 1.3 | 10min |
-| 2.1 | Wire `enrichWithAggregate` call into `filterFindings` | 1.4 | 5min |
-| 3.1 | Add `GroupBy string` field to `AppConfig` struct | — | 3min |
-| 3.2 | Add `groupFindingsByAggregate([]Finding) []findingGroup` | 1.4 | 10min |
-| 3.3 | Add `printFindingsByAggregate` output formatter | 3.2 | 10min |
-| 3.4 | Wire `--group-by` into `outputFindings` dispatcher + resolve `--verbose` compat | 3.1, 3.3 | 8min |
-| 4.1 | Test: `aggregateFromEventType` table-driven | 1.1 | 8min |
-| 4.2 | Test: `aggregateFromStateType` table-driven | 1.2 | 8min |
-| 4.3 | Test: `buildFileAggregateMap` with mock registry | 1.3 | 10min |
-| 4.4 | Test: `enrichWithAggregate` stamps correct metadata | 1.4 | 10min |
-| 4.5 | Test: `groupFindingsByAggregate` groups correctly | 3.2 | 10min |
-| 4.6 | Test: `printFindingsByAggregate` output format | 3.3 | 10min |
-| 5.1 | Update help text in `main.go` | 3.1 | 5min |
-| 5.2 | Update AGENTS.md cqrs-lint description | — | 5min |
-| 6.1 | Build + run cqrs-lint tests | All | 10min |
-| 6.2 | Run cqrs-lint on example/taskmanager to verify real output | 6.1 | 8min |
+| #   | Task                                                                            | Depends On | Est   |
+| --- | ------------------------------------------------------------------------------- | ---------- | ----- |
+| 1.1 | Create `aggregate.go` with `aggregateFromEventType(string) string`              | —          | 8min  |
+| 1.2 | Add `aggregateFromStateType(string) string` to `aggregate.go`                   | 1.1        | 8min  |
+| 1.3 | Add `buildFileAggregateMap(*CQRSRegistry) map[string][]string`                  | 1.1, 1.2   | 10min |
+| 1.4 | Add `enrichWithAggregate([]Finding, *AnalysisContext) []Finding`                | 1.3        | 10min |
+| 2.1 | Wire `enrichWithAggregate` call into `filterFindings`                           | 1.4        | 5min  |
+| 3.1 | Add `GroupBy string` field to `AppConfig` struct                                | —          | 3min  |
+| 3.2 | Add `groupFindingsByAggregate([]Finding) []findingGroup`                        | 1.4        | 10min |
+| 3.3 | Add `printFindingsByAggregate` output formatter                                 | 3.2        | 10min |
+| 3.4 | Wire `--group-by` into `outputFindings` dispatcher + resolve `--verbose` compat | 3.1, 3.3   | 8min  |
+| 4.1 | Test: `aggregateFromEventType` table-driven                                     | 1.1        | 8min  |
+| 4.2 | Test: `aggregateFromStateType` table-driven                                     | 1.2        | 8min  |
+| 4.3 | Test: `buildFileAggregateMap` with mock registry                                | 1.3        | 10min |
+| 4.4 | Test: `enrichWithAggregate` stamps correct metadata                             | 1.4        | 10min |
+| 4.5 | Test: `groupFindingsByAggregate` groups correctly                               | 3.2        | 10min |
+| 4.6 | Test: `printFindingsByAggregate` output format                                  | 3.3        | 10min |
+| 5.1 | Update help text in `main.go`                                                   | 3.1        | 5min  |
+| 5.2 | Update AGENTS.md cqrs-lint description                                          | —          | 5min  |
+| 6.1 | Build + run cqrs-lint tests                                                     | All        | 10min |
+| 6.2 | Run cqrs-lint on example/taskmanager to verify real output                      | 6.1        | 8min  |
 
 ---
 
@@ -194,14 +196,14 @@ metadata value stores the title-cased form for consistency.
 
 ### Aggregate name extraction rules
 
-| Source | Input | Output | Rule |
-|--------|-------|--------|------|
-| Event type | `"user.created"` | `"User"` | Prefix before `.`, capitalize first letter |
-| Event type | `"order.shipped"` | `"Order"` | Same |
-| Event type | `"payment"` (no dot) | `"Payment"` | Whole string, capitalize |
-| StateType | `"UserState"` | `"User"` | Strip `"State"` suffix |
-| StateType | `"OrderAggregateState"` | `"Order"` | Strip `"State"` then `"Aggregate"` |
-| StateType | `"CounterState"` | `"Counter"` | Strip `"State"` suffix |
+| Source     | Input                   | Output      | Rule                                       |
+| ---------- | ----------------------- | ----------- | ------------------------------------------ |
+| Event type | `"user.created"`        | `"User"`    | Prefix before `.`, capitalize first letter |
+| Event type | `"order.shipped"`       | `"Order"`   | Same                                       |
+| Event type | `"payment"` (no dot)    | `"Payment"` | Whole string, capitalize                   |
+| StateType  | `"UserState"`           | `"User"`    | Strip `"State"` suffix                     |
+| StateType  | `"OrderAggregateState"` | `"Order"`   | Strip `"State"` then `"Aggregate"`         |
+| StateType  | `"CounterState"`        | `"Counter"` | Strip `"State"` suffix                     |
 
 ### Edge cases
 

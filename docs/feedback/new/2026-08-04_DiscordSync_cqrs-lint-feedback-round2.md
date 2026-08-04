@@ -47,6 +47,7 @@ linter suggests calling is imaginary. The actual library API for WAL is:
 3. The `stack/sqlite` bundle — auto-configures WAL.
 
 **Suggested fix:** Two options:
+
 1. **Detect DSN-level WAL:** scan for `_pragma=journal_mode(WAL)` or
    `journal_mode=WAL` in the DSN string passed to `sql.Open`. This is the
    canonical way to set WAL in modernc.org/sqlite.
@@ -116,7 +117,7 @@ and the `cancel` func is returned to the caller. But the linter fires
 because `ctx` (the original parameter name) doesn't appear in the goroutine
 body.
 
-**Same pattern appears at:** `bot.go:386` (already suppressed), 
+**Same pattern appears at:** `bot.go:386` (already suppressed),
 `idempotency_sweeper.go:52` (already suppressed).
 
 **Suggested fix:** Trace context derivation. If a variable is assigned from
@@ -262,15 +263,15 @@ just vanish from the breakdown, making it hard to audit what's disabled).
 
 ## Summary Table
 
-| Rule  | Type          | Status     | Action Taken                        |
-| ----- | ------------- | ---------- | ----------------------------------- |
-| P012  | False positive | Disabled  | `rules.disable` (SQLiteEnableWAL doesn't exist) |
-| P013  | False positive | Disabled  | `rules.disable` (DSN pragma already set)        |
-| C034  | False positive | Suppressed | Inline comment (derived context pattern)        |
-| C036  | Stale suppress | Removed   | Linter caught stale suppression (`--strict`)    |
-| C008  | Accepted      | Suppressed | 26 inline comments (rates, not money)           |
-| V006  | Valid          | Accepted  | Can't suppress in go.mod                       |
-| D005  | Symptom of V006 | Accepted | Docs can't match mismatched go.mod             |
+| Rule | Type            | Status     | Action Taken                                    |
+| ---- | --------------- | ---------- | ----------------------------------------------- |
+| P012 | False positive  | Disabled   | `rules.disable` (SQLiteEnableWAL doesn't exist) |
+| P013 | False positive  | Disabled   | `rules.disable` (DSN pragma already set)        |
+| C034 | False positive  | Suppressed | Inline comment (derived context pattern)        |
+| C036 | Stale suppress  | Removed    | Linter caught stale suppression (`--strict`)    |
+| C008 | Accepted        | Suppressed | 26 inline comments (rates, not money)           |
+| V006 | Valid           | Accepted   | Can't suppress in go.mod                        |
+| D005 | Symptom of V006 | Accepted   | Docs can't match mismatched go.mod              |
 
 ---
 

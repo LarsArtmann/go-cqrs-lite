@@ -41,16 +41,16 @@ Catalog metadata, registration, meta-test count bump, build verification, planni
 
 ## Gap Analysis: C038 Current State
 
-| Capability | C038 Today | After Enhancement | C040 (New) |
-|---|---|---|---|
-| Levenshtein typo detection (distance ≤ 2) | Yes | Yes | — |
-| Case-insensitive comparison | Yes (lowercases) | Yes | — |
-| Separator normalization (`.`, `_`, `-`) | **No** | **Yes** | — |
-| Reports at emission site | Yes | Yes | — |
-| Reports at fold case site | No | No | **Yes** |
-| Dead fold case detection (reverse direction) | No | No | **Yes** |
-| Suppresses when near-miss handled by other rule | — | — | **Yes** |
-| Suppresses when no emissions (cross-module safety) | Yes | Yes | **Yes** |
+| Capability                                         | C038 Today       | After Enhancement | C040 (New) |
+| -------------------------------------------------- | ---------------- | ----------------- | ---------- |
+| Levenshtein typo detection (distance ≤ 2)          | Yes              | Yes               | —          |
+| Case-insensitive comparison                        | Yes (lowercases) | Yes               | —          |
+| Separator normalization (`.`, `_`, `-`)            | **No**           | **Yes**           | —          |
+| Reports at emission site                           | Yes              | Yes               | —          |
+| Reports at fold case site                          | No               | No                | **Yes**    |
+| Dead fold case detection (reverse direction)       | No               | No                | **Yes**    |
+| Suppresses when near-miss handled by other rule    | —                | —                 | **Yes**    |
+| Suppresses when no emissions (cross-module safety) | Yes              | Yes               | **Yes**    |
 
 ---
 
@@ -75,6 +75,7 @@ If fold case `"UserCreated"` has a near-miss in the emit set (e.g., `"user.creat
 ### D4: No StrictApply suppression
 
 Initially considered suppressing findings when the fold is wrapped in `decider.StrictApply`. Dropped because:
+
 - C038 findings at the emission site are still bugs regardless of fold-side protection
 - C040 detects dead code, which StrictApply doesn't address (StrictApply checks the knownTypes list, not the switch cases)
 - Adding suppression adds complexity without clear value
@@ -89,15 +90,15 @@ C040 reuses C038's `nearestMatch`, `editDistance`, `normalizeEventType` (all pac
 
 ### Files to Modify/Create
 
-| File | Action | Lines Changed |
-|---|---|---|
-| `cmd/cqrs-lint/pkg/rules/correctness/c038.go` | Modify: add `normalizeEventType`, enhance `nearestMatch` | ~15 |
-| `cmd/cqrs-lint/pkg/rules/correctness/c040.go` | **Create**: dead fold case detector | ~120 |
-| `cmd/cqrs-lint/pkg/rules/correctness/c040_test.go` | **Create**: test suite | ~100 |
-| `cmd/cqrs-lint/pkg/rules/correctness/c038_test.go` | Modify: add normalization test | ~25 |
-| `cmd/cqrs-lint/pkg/rules/register.go` | Modify: add C040 registration | 1 |
-| `cmd/cqrs-lint/pkg/rules/catalog.go` | Modify: add C040 RuleInfo | 8 |
-| `cmd/cqrs-lint/pkg/rules/meta_test.go` | Modify: bump 185 → 186 | 1 |
+| File                                               | Action                                                   | Lines Changed |
+| -------------------------------------------------- | -------------------------------------------------------- | ------------- |
+| `cmd/cqrs-lint/pkg/rules/correctness/c038.go`      | Modify: add `normalizeEventType`, enhance `nearestMatch` | ~15           |
+| `cmd/cqrs-lint/pkg/rules/correctness/c040.go`      | **Create**: dead fold case detector                      | ~120          |
+| `cmd/cqrs-lint/pkg/rules/correctness/c040_test.go` | **Create**: test suite                                   | ~100          |
+| `cmd/cqrs-lint/pkg/rules/correctness/c038_test.go` | Modify: add normalization test                           | ~25           |
+| `cmd/cqrs-lint/pkg/rules/register.go`              | Modify: add C040 registration                            | 1             |
+| `cmd/cqrs-lint/pkg/rules/catalog.go`               | Modify: add C040 RuleInfo                                | 8             |
+| `cmd/cqrs-lint/pkg/rules/meta_test.go`             | Modify: bump 185 → 186                                   | 1             |
 
 ---
 
@@ -149,41 +150,41 @@ graph TD
 
 ## Task Breakdown — Level 1 (30-100min tasks)
 
-| # | Task | Impact | Effort | Customer Value | Priority |
-|---|------|--------|--------|----------------|----------|
-| T1 | Enhance C038 with normalization | HIGH | LOW (20min) | Catches all case-format mismatches, not just distance ≤ 2 | **P0** |
-| T2 | Implement C040 detector | HIGH | MEDIUM (30min) | New capability: dead fold case detection | **P0** |
-| T3 | Wire C040 into linter infrastructure | MEDIUM | LOW (10min) | Makes C040 discoverable and active | **P1** |
-| T4 | C038 normalization tests | MEDIUM | LOW (15min) | Regression protection for normalization | **P1** |
-| T5 | C040 test suite | HIGH | MEDIUM (25min) | Validates detection + false-positive suppression | **P1** |
-| T6 | Build + test verification | HIGH | LOW (15min) | Ensures no regressions | **P0** |
-| T7 | Planning doc + commit | LOW | LOW (10min) | Documentation + version control | **P2** |
+| #   | Task                                 | Impact | Effort         | Customer Value                                            | Priority |
+| --- | ------------------------------------ | ------ | -------------- | --------------------------------------------------------- | -------- |
+| T1  | Enhance C038 with normalization      | HIGH   | LOW (20min)    | Catches all case-format mismatches, not just distance ≤ 2 | **P0**   |
+| T2  | Implement C040 detector              | HIGH   | MEDIUM (30min) | New capability: dead fold case detection                  | **P0**   |
+| T3  | Wire C040 into linter infrastructure | MEDIUM | LOW (10min)    | Makes C040 discoverable and active                        | **P1**   |
+| T4  | C038 normalization tests             | MEDIUM | LOW (15min)    | Regression protection for normalization                   | **P1**   |
+| T5  | C040 test suite                      | HIGH   | MEDIUM (25min) | Validates detection + false-positive suppression          | **P1**   |
+| T6  | Build + test verification            | HIGH   | LOW (15min)    | Ensures no regressions                                    | **P0**   |
+| T7  | Planning doc + commit                | LOW    | LOW (10min)    | Documentation + version control                           | **P2**   |
 
 ---
 
 ## Task Breakdown — Level 2 (max 12min tasks)
 
-| # | Task | Parent | Time | Details |
-|---|------|--------|------|---------|
-| S1 | Add `normalizeEventType()` to c038.go | T1 | 5min | lowercase + strip `.`, `_`, `-` |
-| S2 | Enhance `nearestMatch` with normalization pre-check | T1 | 7min | Check `normalize(a)==normalize(b)` → distance 0 |
-| S3 | Add C038 normalization test (multi-separator) | T1/T4 | 5min | `"user_profile.updated"` vs `"UserProfileUpdated"` |
-| S4 | Create c040.go: package, imports, constructor | T2 | 5min | Skeleton matching C038 structure |
-| S5 | Implement `collectFoldCasesWithPos()` | T2 | 10min | Walk folds, collect case strings + positions |
-| S6 | Implement dead-case detection logic | T2 | 10min | For each fold case: not emitted, no near-miss → report |
-| S7 | Build findings with position + message | T2 | 7min | Warning severity, Medium confidence, at fold case |
-| S8 | Add C040 to register.go (after C039) | T3 | 2min | `correctness.NewC040Detector(ctx),` |
-| S9 | Add C040 catalog entry (after C039) | T3 | 3min | RuleInfo struct |
-| S10 | Bump meta_test.go count 185→186 | T3 | 2min | `if len(detectors) != 186` |
-| S11 | C040 test: dead case fires | T5 | 8min | Fold handles "x", nobody emits "x" or near-miss |
-| S12 | C040 test: no finding on exact match | T5 | 5min | Fold case matches an emission |
-| S13 | C040 test: no finding on near-miss | T5 | 5min | C038 handles the mismatch from emit side |
-| S14 | C040 test: no finding without emissions | T5 | 5min | Cross-module safety: no emit data → suppress |
-| S15 | `go build -tags "goexperiment.jsonv2" ./...` | T6 | 3min | Compile check |
-| S16 | `go test ./cmd/cqrs-lint/...` | T6 | 5min | Full linter test suite |
-| S17 | Verify meta_test passes with new count | T6 | 2min | `go test -run TestAllDetectors` |
-| S18 | Write planning doc to .md | T7 | 8min | This file + mermaid graph |
-| S19 | git commit + push | T7 | 4min | Detailed commit message |
+| #   | Task                                                | Parent | Time  | Details                                                |
+| --- | --------------------------------------------------- | ------ | ----- | ------------------------------------------------------ |
+| S1  | Add `normalizeEventType()` to c038.go               | T1     | 5min  | lowercase + strip `.`, `_`, `-`                        |
+| S2  | Enhance `nearestMatch` with normalization pre-check | T1     | 7min  | Check `normalize(a)==normalize(b)` → distance 0        |
+| S3  | Add C038 normalization test (multi-separator)       | T1/T4  | 5min  | `"user_profile.updated"` vs `"UserProfileUpdated"`     |
+| S4  | Create c040.go: package, imports, constructor       | T2     | 5min  | Skeleton matching C038 structure                       |
+| S5  | Implement `collectFoldCasesWithPos()`               | T2     | 10min | Walk folds, collect case strings + positions           |
+| S6  | Implement dead-case detection logic                 | T2     | 10min | For each fold case: not emitted, no near-miss → report |
+| S7  | Build findings with position + message              | T2     | 7min  | Warning severity, Medium confidence, at fold case      |
+| S8  | Add C040 to register.go (after C039)                | T3     | 2min  | `correctness.NewC040Detector(ctx),`                    |
+| S9  | Add C040 catalog entry (after C039)                 | T3     | 3min  | RuleInfo struct                                        |
+| S10 | Bump meta_test.go count 185→186                     | T3     | 2min  | `if len(detectors) != 186`                             |
+| S11 | C040 test: dead case fires                          | T5     | 8min  | Fold handles "x", nobody emits "x" or near-miss        |
+| S12 | C040 test: no finding on exact match                | T5     | 5min  | Fold case matches an emission                          |
+| S13 | C040 test: no finding on near-miss                  | T5     | 5min  | C038 handles the mismatch from emit side               |
+| S14 | C040 test: no finding without emissions             | T5     | 5min  | Cross-module safety: no emit data → suppress           |
+| S15 | `go build -tags "goexperiment.jsonv2" ./...`        | T6     | 3min  | Compile check                                          |
+| S16 | `go test ./cmd/cqrs-lint/...`                       | T6     | 5min  | Full linter test suite                                 |
+| S17 | Verify meta_test passes with new count              | T6     | 2min  | `go test -run TestAllDetectors`                        |
+| S18 | Write planning doc to .md                           | T7     | 8min  | This file + mermaid graph                              |
+| S19 | git commit + push                                   | T7     | 4min  | Detailed commit message                                |
 
 ---
 
@@ -281,9 +282,9 @@ Fix:        Suggest removing the case or checking for a cross-module emission
 
 ## Risk Assessment
 
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| C040 false positives from cross-module events | MEDIUM | LOW | Suppress when no emissions exist; Medium confidence |
-| Normalization over-matches (two different events normalize same) | LOW | LOW | Event types that normalize the same ARE likely the same event by convention |
-| Breaking existing C038 tests | LOW | MEDIUM | Normalization only adds detections; existing exact-match tests still pass (distance 0 either way) |
-| Meta-test count mismatch | LOW | LOW | Bump 185→186 in same change |
+| Risk                                                             | Likelihood | Impact | Mitigation                                                                                        |
+| ---------------------------------------------------------------- | ---------- | ------ | ------------------------------------------------------------------------------------------------- |
+| C040 false positives from cross-module events                    | MEDIUM     | LOW    | Suppress when no emissions exist; Medium confidence                                               |
+| Normalization over-matches (two different events normalize same) | LOW        | LOW    | Event types that normalize the same ARE likely the same event by convention                       |
+| Breaking existing C038 tests                                     | LOW        | MEDIUM | Normalization only adds detections; existing exact-match tests still pass (distance 0 either way) |
+| Meta-test count mismatch                                         | LOW        | LOW    | Bump 185→186 in same change                                                                       |

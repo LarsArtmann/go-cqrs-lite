@@ -8,19 +8,19 @@
 
 ## A) FULLY DONE
 
-| Item | Evidence |
-|------|----------|
-| C038 `normalizeEventType()` added | `c038.go` — strips `.`, `_`, `-` before comparison, catches multi-separator mismatches |
-| C040 detector created | `c040.go` — reverse-direction dead-fold-case detection, position-aware reporting |
-| C040 test suite (6 tests) | `c040_test.go` — dead case fires, exact match, near-miss suppression, normalized match, no emissions, multiple dead cases |
-| C038 normalization tests (3 tests) | `c038_test.go` — multi-separator, case-convention mismatch, normalization regression |
-| Catalog entry added | `catalog.go` — C040 RuleInfo with "dead-fold-case" name |
-| Registration wired | `register.go` — `correctness.NewC040Detector(ctx)` after C039 |
-| Meta-test count bumped | `meta_test.go` — 185 → 186 |
-| README rule count updated | `README.md` — 185 → 186, correctness 39 → 40 |
-| Planning doc written | `docs/planning/2026-08-04_05-54_event-type-mismatch-lint-c038-c040.md` |
-| All 17 cqrs-lint packages pass | `go test ./...` GREEN |
-| Committed + pushed | `307ee970` (code was auto-committed in `50e5d5eb` by daemon) |
+| Item                               | Evidence                                                                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| C038 `normalizeEventType()` added  | `c038.go` — strips `.`, `_`, `-` before comparison, catches multi-separator mismatches                                    |
+| C040 detector created              | `c040.go` — reverse-direction dead-fold-case detection, position-aware reporting                                          |
+| C040 test suite (6 tests)          | `c040_test.go` — dead case fires, exact match, near-miss suppression, normalized match, no emissions, multiple dead cases |
+| C038 normalization tests (3 tests) | `c038_test.go` — multi-separator, case-convention mismatch, normalization regression                                      |
+| Catalog entry added                | `catalog.go` — C040 RuleInfo with "dead-fold-case" name                                                                   |
+| Registration wired                 | `register.go` — `correctness.NewC040Detector(ctx)` after C039                                                             |
+| Meta-test count bumped             | `meta_test.go` — 185 → 186                                                                                                |
+| README rule count updated          | `README.md` — 185 → 186, correctness 39 → 40                                                                              |
+| Planning doc written               | `docs/planning/2026-08-04_05-54_event-type-mismatch-lint-c038-c040.md`                                                    |
+| All 17 cqrs-lint packages pass     | `go test ./...` GREEN                                                                                                     |
+| Committed + pushed                 | `307ee970` (code was auto-committed in `50e5d5eb` by daemon)                                                              |
 
 ---
 
@@ -29,6 +29,7 @@
 ### 1. `nix run .#lint` NOT RUN
 
 The AGENTS.md says lint is `nix run .#lint` (golangci-lint). I only ran `go build` + `go test` directly. The nix-based lint gate was not executed. This means:
+
 - `golines` (max-len: 120) may flag lines in `c040.go` or `c038.go`
 - `golangci-lint` may flag style issues (nolint comment placement, etc.)
 - The `nix fmt` step (treefmt) was not run — formatting may be off
@@ -53,13 +54,13 @@ No `CHANGELOG.md` or equivalent entry was written for the new rule or the C038 e
 
 ## C) NOT STARTED
 
-| Item | Why It Matters |
-|------|----------------|
-| **Lint C038/C040 against the library itself** | Self-lint (`cqrs-lint` on `go-cqrs-lite` source) would surface real dead-fold-cases or type mismatches in the library's own decider/example code. Good dogfooding check. |
-| **C038/C040 tested against `example/taskmanager`** | The flagship example has real fold functions and event emissions. Running the linter against it would validate real-world behavior. |
-| **Const-based event type resolution** | Both C038 and C040 only handle string-literal event types (`case "user.created":`). Const-identifier cases (`case UserTypeCreated:`) are silently skipped. The `TypeConstValues` map in the registry could resolve these. |
-| **Projection handler type checking** | C040 only checks fold functions. Projection handlers also switch on `evt.Type()` — dead cases there are equally problematic. |
-| **`cqrs-lint changelog` subcommand update** | If the linter has a programmatic changelog, C040 needs to be added there. |
+| Item                                               | Why It Matters                                                                                                                                                                                                            |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Lint C038/C040 against the library itself**      | Self-lint (`cqrs-lint` on `go-cqrs-lite` source) would surface real dead-fold-cases or type mismatches in the library's own decider/example code. Good dogfooding check.                                                  |
+| **C038/C040 tested against `example/taskmanager`** | The flagship example has real fold functions and event emissions. Running the linter against it would validate real-world behavior.                                                                                       |
+| **Const-based event type resolution**              | Both C038 and C040 only handle string-literal event types (`case "user.created":`). Const-identifier cases (`case UserTypeCreated:`) are silently skipped. The `TypeConstValues` map in the registry could resolve these. |
+| **Projection handler type checking**               | C040 only checks fold functions. Projection handlers also switch on `evt.Type()` — dead cases there are equally problematic.                                                                                              |
+| **`cqrs-lint changelog` subcommand update**        | If the linter has a programmatic changelog, C040 needs to be added there.                                                                                                                                                 |
 
 ---
 
@@ -83,20 +84,20 @@ The working tree had uncommitted changes from another session (feature_detect.go
 
 ## E) WHAT WE SHOULD IMPROVE
 
-| # | Improvement | Priority |
-|---|-------------|----------|
-| E1 | Run `nix run .#verify` before claiming done — non-negotiable per AGENTS.md | **CRITICAL** |
-| E2 | Check for existing rules before proposing new ones — search `catalog.go` by topic keyword | **HIGH** |
-| E3 | Always regenerate API-stability golden when adding exported symbols | **HIGH** |
-| E4 | Self-lint the library after adding a new rule — dogfooding catches real issues | **HIGH** |
-| E5 | Run `nix fmt` before committing — prevents golines/gofumpt formatting failures | **MEDIUM** |
-| E6 | Update AGENTS.md inline rule counts (185→186 in the module description) | **MEDIUM** |
-| E7 | Check `cqrs-lint changelog` subcommand for programmatic changelog updates | **MEDIUM** |
-| E8 | Consider projection handler dead-case detection (not just folds) | **MEDIUM** |
-| E9 | Add const-identifier resolution for event type strings (V2 for both C038+C040) | **LOW** |
-| E10 | Test with real multi-module projects (example/taskmanager) to validate cross-module safety | **LOW** |
-| E11 | The `normalizeEventType` function could over-match: two genuinely different events that happen to normalize the same (e.g. `"user.delete"` vs `"userDelete"` — unlikely but possible). Document this tradeoff. | **LOW** |
-| E12 | C040 `collectFoldCasesWithPos` duplicates C038's `collectFoldCaseStrings` logic almost verbatim — extract a shared helper | **LOW** |
+| #   | Improvement                                                                                                                                                                                                    | Priority     |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| E1  | Run `nix run .#verify` before claiming done — non-negotiable per AGENTS.md                                                                                                                                     | **CRITICAL** |
+| E2  | Check for existing rules before proposing new ones — search `catalog.go` by topic keyword                                                                                                                      | **HIGH**     |
+| E3  | Always regenerate API-stability golden when adding exported symbols                                                                                                                                            | **HIGH**     |
+| E4  | Self-lint the library after adding a new rule — dogfooding catches real issues                                                                                                                                 | **HIGH**     |
+| E5  | Run `nix fmt` before committing — prevents golines/gofumpt formatting failures                                                                                                                                 | **MEDIUM**   |
+| E6  | Update AGENTS.md inline rule counts (185→186 in the module description)                                                                                                                                        | **MEDIUM**   |
+| E7  | Check `cqrs-lint changelog` subcommand for programmatic changelog updates                                                                                                                                      | **MEDIUM**   |
+| E8  | Consider projection handler dead-case detection (not just folds)                                                                                                                                               | **MEDIUM**   |
+| E9  | Add const-identifier resolution for event type strings (V2 for both C038+C040)                                                                                                                                 | **LOW**      |
+| E10 | Test with real multi-module projects (example/taskmanager) to validate cross-module safety                                                                                                                     | **LOW**      |
+| E11 | The `normalizeEventType` function could over-match: two genuinely different events that happen to normalize the same (e.g. `"user.delete"` vs `"userDelete"` — unlikely but possible). Document this tradeoff. | **LOW**      |
+| E12 | C040 `collectFoldCasesWithPos` duplicates C038's `collectFoldCaseStrings` logic almost verbatim — extract a shared helper                                                                                      | **LOW**      |
 
 ---
 

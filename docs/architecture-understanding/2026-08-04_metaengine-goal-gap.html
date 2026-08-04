@@ -872,9 +872,9 @@
           <div class="eyebrow">ARCHITECTURE REVIEW &middot; 2026-08-04</div>
           <h1>Metaengine: How close to the "deployer-decides" goal?</h1>
           <p class="subtitle">
-            Evidence-based assessment of the <code>metaengine/</code> module against Lars's stated goal:
-            consumers declare Commands + Events + Queries; the deployer picks infrastructure; the
-            optimizer builds superb projections. Verdict: the engine is research-grade and
+            Evidence-based assessment of the <code>metaengine/</code> module against Lars's stated
+            goal: consumers declare Commands + Events + Queries; the deployer picks infrastructure;
+            the optimizer builds superb projections. Verdict: the engine is research-grade and
             feature-complete on the optimizer side, but the developer/operator ergonomics gap is the
             binding constraint on the goal.
           </p>
@@ -928,70 +928,89 @@
 
         <section id="strengths">
           <h2><span class="num">&#9670;</span>What's already excellent</h2>
-          <p>These are real, verified capabilities &mdash; not aspirational. Each maps directly to a clause of the goal.</p>
+          <p>
+            These are real, verified capabilities &mdash; not aspirational. Each maps directly to a
+            clause of the goal.
+          </p>
 
           <div class="strengths">
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>5 cross-parity engines, dependency-isolated</strong>
-                <span>Memory, SQLite, Pebble, DuckDB, Postgres &mdash; each its own module so a
-                consumer who imports one never pays for the others' deps (CGo for DuckDB, pgx for
-                PG, Pebble for LSM). <code>adttest.RunMatrix</code> enforces 10/10 ADT parity.</span>
+                <span
+                  >Memory, SQLite, Pebble, DuckDB, Postgres &mdash; each its own module so a
+                  consumer who imports one never pays for the others' deps (CGo for DuckDB, pgx for
+                  PG, Pebble for LSM). <code>adttest.RunMatrix</code> enforces 10/10 ADT
+                  parity.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>The fold-return-type-IS-the-ADT insight</strong>
-                <span>Developers never write "I need a Map." <code>func(e)(K,V)</code> &rarr; Map,
-                <code>func(e) Delta</code> &rarr; Counter, etc. This is the cleanest realization of
-                "declare intent, not mechanism" in the codebase.</span>
+                <span
+                  >Developers never write "I need a Map." <code>func(e)(K,V)</code> &rarr; Map,
+                  <code>func(e) Delta</code> &rarr; Counter, etc. This is the cleanest realization
+                  of "declare intent, not mechanism" in the codebase.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Typed filter/sort with real pushdown</strong>
-                <span><code>FilterOnField</code>/<code>SortOnField</code> become SQLite
-                <code>json_extract()</code>, PG JSONB <code>-&gt;&gt;</code>, DuckDB
-                <code>json_extract()</code> WHERE/ORDER BY &mdash; O(logN) not O(N). Pebble gets a
-                secondary index (108x) and sort index (1,233x).</span>
+                <span
+                  ><code>FilterOnField</code>/<code>SortOnField</code> become SQLite
+                  <code>json_extract()</code>, PG JSONB <code>-&gt;&gt;</code>, DuckDB
+                  <code>json_extract()</code> WHERE/ORDER BY &mdash; O(logN) not O(N). Pebble gets a
+                  secondary index (108x) and sort index (1,233x).</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>"Recommendations" exist &mdash; as diagnostics</strong>
-                <span>The goal asks for storage recommendations. <code>store.ExplainPlan()</code>,
-                <code>store.Doctor()</code>, degradation WARNs, scale-threshold WARNs, and
-                write-amp budgets are exactly that &mdash; advisory, not silent.</span>
+                <span
+                  >The goal asks for storage recommendations. <code>store.ExplainPlan()</code>,
+                  <code>store.Doctor()</code>, degradation WARNs, scale-threshold WARNs, and
+                  write-amp budgets are exactly that &mdash; advisory, not silent.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Materialize-vs-replay: the ES-specific killer feature</strong>
-                <span>Because the source of truth is an event log, the planner can advise whether to
-                materialize a projection or replay on read. No general-purpose DB planner can do
-                this.</span>
+                <span
+                  >Because the source of truth is an event log, the planner can advise whether to
+                  materialize a projection or replay on read. No general-purpose DB planner can do
+                  this.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>SQLite+Memory minimal path works</strong>
-                <span>The taskmanager example runs end-to-end on Memory + SQLite &mdash; one clause
-                of the goal ("run fully with just SQLite + Memory") is met today.</span>
+                <span
+                  >The taskmanager example runs end-to-end on Memory + SQLite &mdash; one clause of
+                  the goal ("run fully with just SQLite + Memory") is met today.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Replication model laid (DDIA Ch5)</strong>
-                <span><code>Replication</code>/<code>ReplicationLag</code>/<code>NetworkRTT</code>
-                on EngineProfile + <code>replicationRule</code> diagnostics. Foundation for the Iroh
-                distributed engine (ADR-0096) and the multi-machine deployments the goal implies.</span>
+                <span
+                  ><code>Replication</code>/<code>ReplicationLag</code>/<code>NetworkRTT</code> on
+                  EngineProfile + <code>replicationRule</code> diagnostics. Foundation for the Iroh
+                  distributed engine (ADR-0096) and the multi-machine deployments the goal
+                  implies.</span
+                >
               </div>
             </div>
           </div>
@@ -999,21 +1018,26 @@
 
         <section id="findings">
           <h2><span class="num">01</span>Where the goal is NOT yet met</h2>
-          <p>Ordered by impact on the stated goal. Each cites the evidence in the flagship example.</p>
+          <p>
+            Ordered by impact on the stated goal. Each cites the evidence in the flagship example.
+          </p>
 
           <div class="issue issue-critical" id="issue-1">
             <span class="severity severity-critical">Blocking &middot; High impact</span>
             <h3>The consumer, not the deployer, picks and wires the infrastructure</h3>
-            <div class="where">example/taskmanager/setup.go:83-102 &middot; metaengine.go:163-193</div>
+            <div class="where">
+              example/taskmanager/setup.go:83-102 &middot; metaengine.go:163-193
+            </div>
             <p>
               The goal: "consumers should NOT decide on infrastructure &hellip; the person deploying
               the App decides." Reality: <code>setupMetaEngine</code> calls
               <code>sql.Open("sqlite", dsn)</code>, sets WAL/busy_timeout pragmas,
-              <code>SetMaxOpenConns(1)</code>, constructs <code>metaengine.NewSQLiteEngine(meDB)</code>,
-              and hardcodes <code>[]Engine{NewMemoryEngine(), sqliteEng}</code> into
-              <code>Plan()</code>. <code>stack.WithMetaEngine</code> only registers an
-              <em>already-built</em> store for Close + benchkit discovery. Swapping Memory&rarr;Pebble
-              requires editing consumer code, not config. There is no operator config/registry at all.
+              <code>SetMaxOpenConns(1)</code>, constructs
+              <code>metaengine.NewSQLiteEngine(meDB)</code>, and hardcodes
+              <code>[]Engine{NewMemoryEngine(), sqliteEng}</code> into <code>Plan()</code>.
+              <code>stack.WithMetaEngine</code> only registers an <em>already-built</em> store for
+              Close + benchkit discovery. Swapping Memory&rarr;Pebble requires editing consumer
+              code, not config. There is no operator config/registry at all.
             </p>
             <pre><code>// What the consumer writes today (example/taskmanager/setup.go)
 meDB, _ := sql.Open("sqlite", dsn)
@@ -1025,49 +1049,64 @@ store, _ := metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine(), sq
               <strong>Fix direction</strong>
               A <code>stack.WithMetaEngineQueries(queries...)</code> path where the Bundle (which
               already owns the backend/DSN) supplies the engine list from its own capabilities, and
-              the consumer passes only query declarations. The deployer's preset choice
-              (<code>sqlite.New</code> vs <code>pebble.New</code>) then decides engines with zero
-              consumer-code change.
+              the consumer passes only query declarations. The deployer's preset choice (<code
+                >sqlite.New</code
+              >
+              vs <code>pebble.New</code>) then decides engines with zero consumer-code change.
             </div>
           </div>
 
           <div class="issue issue-critical" id="issue-2">
             <span class="severity severity-critical">Blocking &middot; High impact</span>
             <h3>The event&rarr;projection bridge is hand-written per event type</h3>
-            <div class="where">example/taskmanager/metaengine.go:75-151 (taskEventDecoder, 77 lines)</div>
+            <div class="where">
+              example/taskmanager/metaengine.go:75-151 (taskEventDecoder, 77 lines)
+            </div>
             <p>
               The goal: "knowing ONLY the Commands + Events + Queries &hellip; build superb
-              projections." But the consumer maintains a <strong>second</strong> source of truth about
-              every event type &mdash; a 77-line switch that re-decodes each payload and wraps it in
-              <code>eventWithID[P]{ID: evt.StreamID(), Payload: p}</code>. The fold handlers
+              projections." But the consumer maintains a <strong>second</strong> source of truth
+              about every event type &mdash; a 77-line switch that re-decodes each payload and wraps
+              it in <code>eventWithID[P]{ID: evt.StreamID(), Payload: p}</code>. The fold handlers
               (<code>metaengine.go:200-299</code>) already encode event&rarr;view logic; the decoder
               duplicates that event knowledge. Adding an event means touching two places, and the
-              ID-from-StreamID wrapper is pure boilerplate (the entity key for an event-sourced Map is
-              <em>always</em> the stream ID).
+              ID-from-StreamID wrapper is pure boilerplate (the entity key for an event-sourced Map
+              is <em>always</em> the stream ID).
             </p>
             <div class="callout callout-teal">
               <strong>Fix direction</strong>
               Let fold handlers be keyed by the CQRS event-type <em>string</em> and receive the raw
-              payload + stream ID directly (the <code>onTyped</code> helper is a local workaround for
-              this exact gap). An <code>EventDecoder</code> that defaults to "JSON-unmarshal into the
-              fold's sample type + attach StreamID" removes the parallel switch for the common case.
+              payload + stream ID directly (the <code>onTyped</code> helper is a local workaround
+              for this exact gap). An <code>EventDecoder</code> that defaults to "JSON-unmarshal
+              into the fold's sample type + attach StreamID" removes the parallel switch for the
+              common case.
             </div>
           </div>
 
           <div class="issue issue-important" id="issue-3">
             <span class="severity severity-important">Important &middot; Medium impact</span>
-            <h3>The vision's declarative projection API (<code>projection.Declare</code>) does not exist</h3>
-            <div class="where">docs/planning/meta-engine-design.md:6-9, 385-411 &middot; shipped: metaengine.Query</div>
+            <h3>
+              The vision's declarative projection API (<code>projection.Declare</code>) does not
+              exist
+            </h3>
+            <div class="where">
+              docs/planning/meta-engine-design.md:6-9, 385-411 &middot; shipped: metaengine.Query
+            </div>
             <p>
-              The design doc is explicit: <code>projection.Declare[V,K]("users", &hellip;,
-              projection.Lookup(), projection.Filter("status"), projection.Sort("joined_at"),
-              projection.Count("status"))</code> and generated accessors
-              <code>store.Users.ByStatus()</code> are <strong>NOT shipped</strong>. What shipped is
-              the lower-level <code>metaengine.Query[Input, Result]("name", folds...,
-              FilterOnField(...), SortOnField(...))</code> + reflective
-              <code>ExecuteTyped[In,Out]</code>/<code>TypedReader[V].Scan</code>. Powerful, but more
-              mechanism than the "declare operations, get typed accessors" vision.
-              <code>metaengine-gen</code> (ROADMAP) would close the accessor half.
+              The design doc is explicit:
+              <code
+                >projection.Declare[V,K]("users", &hellip;, projection.Lookup(),
+                projection.Filter("status"), projection.Sort("joined_at"),
+                projection.Count("status"))</code
+              >
+              and generated accessors <code>store.Users.ByStatus()</code> are
+              <strong>NOT shipped</strong>. What shipped is the lower-level
+              <code
+                >metaengine.Query[Input, Result]("name", folds..., FilterOnField(...),
+                SortOnField(...))</code
+              >
+              + reflective <code>ExecuteTyped[In,Out]</code>/<code>TypedReader[V].Scan</code>.
+              Powerful, but more mechanism than the "declare operations, get typed accessors"
+              vision. <code>metaengine-gen</code> (ROADMAP) would close the accessor half.
             </p>
           </div>
 
@@ -1076,22 +1115,26 @@ store, _ := metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine(), sq
             <h3>Only 1 of 3 examples uses the metaengine</h3>
             <div class="where">example/getting-started, example/readme-quickstart</div>
             <p>
-              <code>getting-started</code> uses <code>stack.NewMaterialize</code> + <code>kv.MemStore</code>;
-              <code>readme-quickstart</code> uses <strong>no projection at all</strong> (replays the
-              aggregate). If the metaengine is "THE STRATEGIC FUTURE," the on-ramping example teaches
-              the older, more boilerplate-heavy Materialize path instead. New consumers learn the
-              pattern the goal is meant to replace.
+              <code>getting-started</code> uses <code>stack.NewMaterialize</code> +
+              <code>kv.MemStore</code>; <code>readme-quickstart</code> uses
+              <strong>no projection at all</strong> (replays the aggregate). If the metaengine is
+              "THE STRATEGIC FUTURE," the on-ramping example teaches the older, more
+              boilerplate-heavy Materialize path instead. New consumers learn the pattern the goal
+              is meant to replace.
             </p>
           </div>
 
           <div class="issue issue-nice" id="issue-5">
             <span class="severity severity-nice">Nice to have &middot; Low impact</span>
             <h3>Multi-SQLite-DB goal clause: stack has it, metaengine re-opens its own DB</h3>
-            <div class="where">stack multi-DB (WithEventDB/WithQueryDB/WithViewDB) vs example/taskmanager/setup.go:167</div>
+            <div class="where">
+              stack multi-DB (WithEventDB/WithQueryDB/WithViewDB) vs
+              example/taskmanager/setup.go:167
+            </div>
             <p>
-              The goal explicitly wants "multiple SQLite DBs e.g. 1 for Command+ES, 1 for Query logs,
-              1 for materialized views." The stack supports this, but the metaengine bypasses it and
-              opens its own separate connection to the same DSN. Not wrong (separate tables:
+              The goal explicitly wants "multiple SQLite DBs e.g. 1 for Command+ES, 1 for Query
+              logs, 1 for materialized views." The stack supports this, but the metaengine bypasses
+              it and opens its own separate connection to the same DSN. Not wrong (separate tables:
               meta_map, meta_counter), but the metaengine isn't a first-class citizen of the
               multi-DB layout.
             </p>
@@ -1114,46 +1157,68 @@ store, _ := metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine(), sq
               <tr>
                 <td>metaengine &rarr; stack.Bundle</td>
                 <td class="no">Lifecycle only</td>
-                <td><code>WithMetaEngine</code> registers a pre-built Store for Close + benchkit. No auto-wiring of engines from the bundle's backend.</td>
+                <td>
+                  <code>WithMetaEngine</code> registers a pre-built Store for Close + benchkit. No
+                  auto-wiring of engines from the bundle's backend.
+                </td>
               </tr>
               <tr>
                 <td>metaengine &rarr; projectionhost</td>
                 <td class="yes">Functional</td>
-                <td><code>projectionadapter</code> wraps Store as <code>projection.Projection</code>; used in taskmanager. Works, but the EventDecoder is manual.</td>
+                <td>
+                  <code>projectionadapter</code> wraps Store as <code>projection.Projection</code>;
+                  used in taskmanager. Works, but the EventDecoder is manual.
+                </td>
               </tr>
               <tr>
                 <td>metaengine &harr; event</td>
                 <td class="no">Manual bridge</td>
-                <td>Consumer writes the decoder switch. No first-class "fold by CQRS event type + StreamID" path.</td>
+                <td>
+                  Consumer writes the decoder switch. No first-class "fold by CQRS event type +
+                  StreamID" path.
+                </td>
               </tr>
               <tr>
                 <td>metaengine &rarr; catalog/docs</td>
                 <td class="no">Deferred (YAGNI)</td>
-                <td>ROADMAP: catalogbridge deferred until a consumer asks. Query collections are undocumented in OpenAPI/AsyncAPI.</td>
+                <td>
+                  ROADMAP: catalogbridge deferred until a consumer asks. Query collections are
+                  undocumented in OpenAPI/AsyncAPI.
+                </td>
               </tr>
               <tr>
                 <td>metaengine &rarr; benchkit</td>
                 <td class="yes">Auto-discovered</td>
-                <td>Bundle.MetaEngine() accessor; benchkit measures Apply throughput + ExecuteTyped latency.</td>
+                <td>
+                  Bundle.MetaEngine() accessor; benchkit measures Apply throughput + ExecuteTyped
+                  latency.
+                </td>
               </tr>
               <tr>
                 <td>Examples adoption</td>
                 <td class="no">1 of 3</td>
-                <td>Only taskmanager. The two on-ramping examples teach different (older) read-model patterns.</td>
+                <td>
+                  Only taskmanager. The two on-ramping examples teach different (older) read-model
+                  patterns.
+                </td>
               </tr>
             </tbody>
           </table>
           <div class="callout callout-amber">
             <strong>Interpretation</strong>
-            The metaengine is wired in enough to <em>run</em>, but not enough to <em>realize the
-            goal</em>. The integration is "consumer does the wiring, bundle closes it." The goal wants
-            "deployer does the wiring, consumer declares intent." That inversion is the work.
+            The metaengine is wired in enough to <em>run</em>, but not enough to
+            <em>realize the goal</em>. The integration is "consumer does the wiring, bundle closes
+            it." The goal wants "deployer does the wiring, consumer declares intent." That inversion
+            is the work.
           </div>
         </section>
 
         <section id="proposal">
           <h2><span class="num">03</span>Target state (the goal realized)</h2>
-          <p>If the binding-constraint gaps close, consumer code shrinks from ~150 lines of wiring to this:</p>
+          <p>
+            If the binding-constraint gaps close, consumer code shrinks from ~150 lines of wiring to
+            this:
+          </p>
           <pre><code>// CONSUMER declares ONLY events, queries, and folds.
 type TaskCreated struct{ ... }
 type TaskView struct{ ... }
@@ -1173,10 +1238,11 @@ host.Register(bundle.MetaEngineAdapter())              // adapter built from the
           <div class="callout callout-teal">
             <strong>This is the target</strong>
             The consumer never imports <code>database/sql</code>, never constructs an engine, never
-            writes an event decoder. The deployer's <code>sqlite.New</code> vs <code>pebble.New</code>
-            vs a future multi-engine registry decides where data lives. That is the goal, verbatim.
-            Two design pieces unlock it: (1) <code>OnEvent(typeString, sample, fn)</code> that injects
-            StreamID; (2) <code>WithMetaEngineQueries</code> that derives engines from the bundle.
+            writes an event decoder. The deployer's <code>sqlite.New</code> vs
+            <code>pebble.New</code> vs a future multi-engine registry decides where data lives. That
+            is the goal, verbatim. Two design pieces unlock it: (1)
+            <code>OnEvent(typeString, sample, fn)</code> that injects StreamID; (2)
+            <code>WithMetaEngineQueries</code> that derives engines from the bundle.
           </div>
         </section>
 
@@ -1219,14 +1285,16 @@ host.Register(bundle.MetaEngineAdapter())              // adapter built from the
               <tr>
                 <td>From Commands+Events+Queries &rarr; superb projections</td>
                 <td class="no">Partial</td>
-                <td>Optimizer is superb; declaration is engine-level not domain-level (Issues 2, 3).</td>
+                <td>
+                  Optimizer is superb; declaration is engine-level not domain-level (Issues 2, 3).
+                </td>
               </tr>
             </tbody>
           </table>
-          <p style="margin-top:1rem;font-size:.9rem;color:var(--text-muted)">
-            Evidence base: <code>metaengine/README.md</code>,
-            <code>metaengine/store.go</code>, <code>stack/options.go</code>,
-            <code>stack/bundle.go</code>, <code>example/taskmanager/{setup,metaengine}.go</code>,
+          <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted)">
+            Evidence base: <code>metaengine/README.md</code>, <code>metaengine/store.go</code>,
+            <code>stack/options.go</code>, <code>stack/bundle.go</code>,
+            <code>example/taskmanager/{setup,metaengine}.go</code>,
             <code>docs/planning/meta-engine-{project-definition,design}.md</code>,
             <code>ROADMAP.md</code>, <code>TODO_LIST.md</code>. Harvested the operator-driven
             engine-selection gap into <code>ROADMAP.md</code> &rarr; Theme 1 (long-term).
@@ -1235,8 +1303,8 @@ host.Register(bundle.MetaEngineAdapter())              // adapter built from the
 
         <footer class="footer">
           <p>
-            Generated 2026-08-04 &middot; Assessed against metaengine/v4.4.0 &middot; All code claims
-            verified against source
+            Generated 2026-08-04 &middot; Assessed against metaengine/v4.4.0 &middot; All code
+            claims verified against source
           </p>
         </footer>
       </main>

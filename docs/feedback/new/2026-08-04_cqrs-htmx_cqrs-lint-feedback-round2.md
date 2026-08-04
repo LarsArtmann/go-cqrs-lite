@@ -154,14 +154,14 @@ cqrs-htmx is a Go workspace (`go.work`) with 19 independent Go modules:
 cqrs-lint detects features across the ENTIRE workspace and applies a single
 merged `FeatureProfile` to all modules. This means:
 
-| Detected value | Source | Correct for library? | Correct for examples? |
-|---------------|--------|---------------------|----------------------|
-| `store: sqlite` | `examples/*` import `stack/sqlite` | WRONG — library supports all backends | Correct |
-| `server: true` | `examples/*` call `ListenAndServe` | WRONG — library has no `main()` | Correct |
-| `command-flow: commands` | `usermgmt` calls `Dispatch` | Misleading — library provides dispatch infrastructure | N/A |
-| `tracing: on` | Library imports `go.opentelemetry.io` | Misleading — library doesn't force tracing | N/A |
-| `snapshot: on` | Library imports `snapshot` module | Misleading — library makes snapshot opt-in | N/A |
-| `transport: true` | Library IS `cqrs-htmx` | Correct | Correct |
+| Detected value           | Source                                | Correct for library?                                  | Correct for examples? |
+| ------------------------ | ------------------------------------- | ----------------------------------------------------- | --------------------- |
+| `store: sqlite`          | `examples/*` import `stack/sqlite`    | WRONG — library supports all backends                 | Correct               |
+| `server: true`           | `examples/*` call `ListenAndServe`    | WRONG — library has no `main()`                       | Correct               |
+| `command-flow: commands` | `usermgmt` calls `Dispatch`           | Misleading — library provides dispatch infrastructure | N/A                   |
+| `tracing: on`            | Library imports `go.opentelemetry.io` | Misleading — library doesn't force tracing            | N/A                   |
+| `snapshot: on`           | Library imports `snapshot` module     | Misleading — library makes snapshot opt-in            | N/A                   |
+| `transport: true`        | Library IS `cqrs-htmx`                | Correct                                               | Correct               |
 
 ### Root cause
 
@@ -232,17 +232,17 @@ PresetLibrary: {
 This is a good start but misses several rules that are false positives for
 library code:
 
-| Rule | Why it fires on libraries | Why it shouldn't |
-|------|--------------------------|-----------------|
-| **F002** (no event catalog) | Library defines event types but doesn't own the catalog | Consumer registers events in their catalog |
-| **F006** (PII without encryption) | Library defines PII-bearing event payloads | Consumer configures encryption middleware |
-| **F009** (no scheduling module) | Library has time-based features (session expiry) | Consumer chooses scheduling strategy |
-| **F010** (no graph module) | Library has hierarchical queries | Consumer chooses graph traversal strategy |
-| **F011** (no relational projection) | Library does multi-table writes in read models | Consumer chooses projection strategy |
-| **S002** (PII without encryption middleware) | Same as F006 | Same |
-| **S003** (no event signing) | Library creates events without signing | Consumer configures signing middleware |
-| **S007** (in-memory session store) | Library provides in-memory store as default | Consumer configures persistent store |
-| **B025** (no state cache) | Library creates repositories without WithStateCache | Library DOES wire state cache via a helper function |
+| Rule                                         | Why it fires on libraries                               | Why it shouldn't                                    |
+| -------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------- |
+| **F002** (no event catalog)                  | Library defines event types but doesn't own the catalog | Consumer registers events in their catalog          |
+| **F006** (PII without encryption)            | Library defines PII-bearing event payloads              | Consumer configures encryption middleware           |
+| **F009** (no scheduling module)              | Library has time-based features (session expiry)        | Consumer chooses scheduling strategy                |
+| **F010** (no graph module)                   | Library has hierarchical queries                        | Consumer chooses graph traversal strategy           |
+| **F011** (no relational projection)          | Library does multi-table writes in read models          | Consumer chooses projection strategy                |
+| **S002** (PII without encryption middleware) | Same as F006                                            | Same                                                |
+| **S003** (no event signing)                  | Library creates events without signing                  | Consumer configures signing middleware              |
+| **S007** (in-memory session store)           | Library provides in-memory store as default             | Consumer configures persistent store                |
+| **B025** (no state cache)                    | Library creates repositories without WithStateCache     | Library DOES wire state cache via a helper function |
 
 ### Suggestion
 
@@ -265,10 +265,10 @@ workspace. This inflated the suppression count significantly.
 ```json
 // Root .cqrs-lint.json — applies to library modules
 {
-  "preset": "library",
-  "rules": {
-    "disable": ["F002", "F006", "F009", "F010", "F011", "S002", "S003", "S007"]
-  }
+	"preset": "library",
+	"rules": {
+		"disable": ["F002", "F006", "F009", "F010", "F011", "S002", "S003", "S007"]
+	}
 }
 ```
 
@@ -277,7 +277,7 @@ And per-module overrides for examples:
 ```json
 // examples/*/.cqrs-lint.json
 {
-  "preset": "production"
+	"preset": "production"
 }
 ```
 
@@ -313,18 +313,18 @@ This would eliminate ~30-40 of the 130 suppressions.
 
 ### Rules that produce false positives for library code
 
-| Rule | Category | False positive pattern |
-|------|----------|----------------------|
+| Rule     | Category     | False positive pattern                                                                                                                             |
+| -------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **E003** | Architecture | "Package mixes command/event/fold concerns" — but identity-model IS the domain model package; separating would create artificial module boundaries |
-| **E005** | Architecture | "Command type has no registered handler" — fires on internal/test command types that are never dispatched |
-| **E009** | Architecture | "No HTTP/gRPC transport layer" — fires on dashboardui which IS the transport layer |
-| **E014** | Architecture | "No projection drain/sync call" — fires on dashboardui which consumes projections, doesn't own them |
-| **F002** | Adoption | "No event catalog" — fires on observability/dashboard modules that display data, not produce events |
-| **F006** | Adoption | "PII field without encryption module" — fires on library event payload definitions; consumer configures encryption |
-| **F010** | Adoption | "No graph module" — fires on modules with tree/hierarchy queries; recursive CTEs are often sufficient |
-| **F011** | Adoption | "No relational projection" — fires on read-only modules that don't own projections |
-| **S002** | Security | "PII without encryption middleware" — same as F006; library can't force encryption on consumers |
-| **B025** | Boilerplate | "No WithStateCache" — fires even when state cache IS wired, just via a helper function the linter can't see through |
+| **E005** | Architecture | "Command type has no registered handler" — fires on internal/test command types that are never dispatched                                          |
+| **E009** | Architecture | "No HTTP/gRPC transport layer" — fires on dashboardui which IS the transport layer                                                                 |
+| **E014** | Architecture | "No projection drain/sync call" — fires on dashboardui which consumes projections, doesn't own them                                                |
+| **F002** | Adoption     | "No event catalog" — fires on observability/dashboard modules that display data, not produce events                                                |
+| **F006** | Adoption     | "PII field without encryption module" — fires on library event payload definitions; consumer configures encryption                                 |
+| **F010** | Adoption     | "No graph module" — fires on modules with tree/hierarchy queries; recursive CTEs are often sufficient                                              |
+| **F011** | Adoption     | "No relational projection" — fires on read-only modules that don't own projections                                                                 |
+| **S002** | Security     | "PII without encryption middleware" — same as F006; library can't force encryption on consumers                                                    |
+| **B025** | Boilerplate  | "No WithStateCache" — fires even when state cache IS wired, just via a helper function the linter can't see through                                |
 
 ### B025 — specific detector improvement needed
 
@@ -358,14 +358,14 @@ recognize the pattern `someFunction(opts...)` and lower the confidence
 
 ### Breakdown of the 130 suppressed findings (post-session)
 
-| Category | Count | Root cause | Fixable by |
-|----------|-------|-----------|------------|
-| **Library design decisions** | ~40 | Legitimate suppressions for opt-in patterns (snapshot, tracing, signing, encryption, session store) | Neither — these ARE library design decisions |
-| **Examples/demo code** | ~30 | Demo seed data discards errors, omits catalog, omits schema versions | Linter: add `examples` exclusion or `demo` preset. Consumer: `.cqrs-lint.json` per-module |
-| **Consumer-responsibility rules** | ~25 | F002/F006/F009/F010/F011/S002/S003 fire on library code that can't enforce these | Linter: extend `library` preset to disable F-series + S-series |
-| **Detector limitations** | ~15 | B025 can't see through helper functions; A032 flags display DTOs; C009 flags constructor guards | Linter: improve detectors. Consumer: suppress. |
-| **Multi-module workspace** | ~10 | Wrong feature profile causes server/store/snapshot rules to fire on library modules | Linter: per-module profiles. Consumer: `.cqrs-lint.json` |
-| **gofmt-normalized comments** | ~10 | C009 panics, C035 maps, P011 unbounded maps | Legitimate suppressions for dev/test patterns |
+| Category                          | Count | Root cause                                                                                          | Fixable by                                                                                |
+| --------------------------------- | ----- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| **Library design decisions**      | ~40   | Legitimate suppressions for opt-in patterns (snapshot, tracing, signing, encryption, session store) | Neither — these ARE library design decisions                                              |
+| **Examples/demo code**            | ~30   | Demo seed data discards errors, omits catalog, omits schema versions                                | Linter: add `examples` exclusion or `demo` preset. Consumer: `.cqrs-lint.json` per-module |
+| **Consumer-responsibility rules** | ~25   | F002/F006/F009/F010/F011/S002/S003 fire on library code that can't enforce these                    | Linter: extend `library` preset to disable F-series + S-series                            |
+| **Detector limitations**          | ~15   | B025 can't see through helper functions; A032 flags display DTOs; C009 flags constructor guards     | Linter: improve detectors. Consumer: suppress.                                            |
+| **Multi-module workspace**        | ~10   | Wrong feature profile causes server/store/snapshot rules to fire on library modules                 | Linter: per-module profiles. Consumer: `.cqrs-lint.json`                                  |
+| **gofmt-normalized comments**     | ~10   | C009 panics, C035 maps, P011 unbounded maps                                                         | Legitimate suppressions for dev/test patterns                                             |
 
 ### What the linter could eliminate
 
@@ -420,7 +420,7 @@ server-local:  false       ← Correct (server=false)
 ```json
 // .cqrs-lint.json (root — applies to library modules)
 {
-  "preset": "library"
+	"preset": "library"
 }
 ```
 
@@ -432,7 +432,7 @@ For examples, a separate `.cqrs-lint.json` per example directory:
 ```json
 // examples/dashboard-demo/.cqrs-lint.json
 {
-  "preset": "production"
+	"preset": "production"
 }
 ```
 
@@ -440,13 +440,13 @@ For examples, a separate `.cqrs-lint.json` per example directory:
 
 ## Summary of Recommendations
 
-| # | Issue | Type | Fix effort | Impact |
-|---|-------|------|-----------|--------|
-| 1 | End-of-line suppressions silently ignored | BUG | Small (parser fix) | HIGH — eliminates silent DX failures |
-| 2 | Per-module feature profiles | DESIGN | Medium (group by go.mod) | HIGH — eliminates ~10 false positives per workspace |
-| 3 | Extend `library` preset | DESIGN | Small (add rule disables) | MEDIUM — eliminates ~25 suppressions per library |
-| 4 | B025 helper-function tracing | DETECTOR | Medium (AST tracing) | LOW — 4 findings in this project |
-| 5 | `examples` exclusion or `demo` preset | DESIGN | Small | MEDIUM — eliminates ~30 suppressions |
+| #   | Issue                                     | Type     | Fix effort                | Impact                                              |
+| --- | ----------------------------------------- | -------- | ------------------------- | --------------------------------------------------- |
+| 1   | End-of-line suppressions silently ignored | BUG      | Small (parser fix)        | HIGH — eliminates silent DX failures                |
+| 2   | Per-module feature profiles               | DESIGN   | Medium (group by go.mod)  | HIGH — eliminates ~10 false positives per workspace |
+| 3   | Extend `library` preset                   | DESIGN   | Small (add rule disables) | MEDIUM — eliminates ~25 suppressions per library    |
+| 4   | B025 helper-function tracing              | DETECTOR | Medium (AST tracing)      | LOW — 4 findings in this project                    |
+| 5   | `examples` exclusion or `demo` preset     | DESIGN   | Small                     | MEDIUM — eliminates ~30 suppressions                |
 
 ---
 
