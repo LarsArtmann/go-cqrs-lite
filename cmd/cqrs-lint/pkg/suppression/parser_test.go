@@ -418,3 +418,103 @@ func TestSuppression_WorksForAllNewRuleIDs(t *testing.T) {
 		})
 	}
 }
+
+// TestSuppression_MultiLineRawStringDoesNotTriggerBlockSuppression ensures
+// that //cqrs-lint:ignore-start / ignore-end comments appearing as LITERAL
+// TEXT inside a multi-line raw string literal (backtick string) are NOT
+// mistaken for real suppression block markers. Before the fix, the block
+// suppression scanner processed each line independently without tracking
+// raw-string state across lines, so a raw string containing ignore-start
+// would falsely suppress all findings below it.
+func TestSuppression_MultiLineRawStringDoesNotTriggerBlockSuppression(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	filePath := tmpDir + "/example.go"
+
+	content := "package main\n" +
+		"\n" +
+		"import \"time\"\n" +
+		"\n" +
+		"var help = `Usage:\n" +
+		"//cqrs-lint:ignore-start\n" +
+		"This is just documentation.\n" +
+		"//cqrs-lint:ignore-end\n" +
+		"Run the server`\n" +
+		"\n" +
+		"func fold() {\n" +
+		"\tnow := time.Now()\n" +
+		"\t_ = now\n" +
+		"}\n"
+
+	if err := os.WriteFile(filePath, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	filter := suppression.NewSuppressionFilter()
+
+	f, _ := finding.NewBuilder(
+		"C007", "cqrs-lint", "time.Now in decider",
+		finding.SeverityWarning, finding.Pos(finding.FilePath(filePath), 12, 2),
+	).Build()
+
+	out, err := filter.Transform(context.TODO(), []finding.Finding{f})
+	if err != nil {
+		t.Fatalf("Transform() error: %v", err)
+	}
+	if len(out) != 1 {
+		t.Fatalf("got %d findings, want 1", len(out))
+	}
+	if out[0].Suppression != nil {
+		t.Fatal(
+			"finding should NOT be suppressed — block markers inside a raw string are literal text, not directives",
+		)
+	}
+}
+
+// TestSuppression_MultiLineRawStringDoesNotTriggerInlineSuppression ensures
+// that an inline //cqrs-lint:ignore directive appearing as literal text
+// inside a multi-line raw string does not suppress findings on lines below
+// the string. This tests the checkSuppressionInFile path.
+func TestSuppression_MultiLineRawStringDoesNotTriggerInlineSuppression(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	filePath := tmpDir + "/example.go"
+
+	content := "package main\n" +
+		"\n" +
+		"import \"time\"\n" +
+		"\n" +
+		"var help = `//cqrs-lint:ignore(C007) this is literal text\n" +
+		"more raw string content`\n" +
+		"\n" +
+		"func fold() {\n" +
+		"\tnow := time.Now()\n" +
+		"\t_ = now\n" +
+		"}\n"
+
+	if err := os.WriteFile(filePath, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	filter := suppression.NewSuppressionFilter()
+
+	f, _ := finding.NewBuilder(
+		"C007", "cqrs-lint", "time.Now in decider",
+		finding.SeverityWarning, finding.Pos(finding.FilePath(filePath), 9, 2),
+	).Build()
+
+	out, err := filter.Transform(context.TODO(), []finding.Finding{f})
+	if err != nil {
+		t.Fatalf("Transform() error: %v", err)
+	}
+	if len(out) != 1 {
+		t.Fatalf("got %d findings, want 1", len(out))
+	}
+	if out[0].Suppression != nil {
+		t.Fatal(
+			"finding should NOT be suppressed — inline directive inside a raw string is literal text",
+		)
+	}
+}

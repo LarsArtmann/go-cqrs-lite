@@ -75,8 +75,9 @@ func collectConfigKeys(raw map[string]jsontext.Value, keys map[string]bool) {
 
 // stripJSONComments removes // line comments and /* block */ comments from JSON
 // data while respecting string literals. A // or /* inside a "..." string is
-// preserved as-is. This makes JSONC-compatible config files parseable by any
-// strict JSON parser.
+// preserved as-is. It also strips trailing commas (allowed by the JSONC spec
+// but rejected by strict JSON parsers). This makes JSONC-compatible config
+// files parseable by any strict JSON parser.
 func stripJSONComments(data []byte) []byte {
 	var result []byte
 	result = make([]byte, 0, len(data))
@@ -126,6 +127,57 @@ func stripJSONComments(data []byte) []byte {
 		default:
 			result = append(result, c)
 			i++
+		}
+	}
+
+	return stripTrailingCommas(result)
+}
+
+// stripTrailingCommas removes commas that are followed only by whitespace
+// until a closing } or ]. This handles the JSONC trailing comma convention
+// while respecting string literals (a comma inside a string followed by } is
+// NOT removed).
+func stripTrailingCommas(data []byte) []byte {
+	result := make([]byte, 0, len(data))
+	inString := false
+	pendingComma := -1 // index in result where a comma may be trailing
+
+	for i := 0; i < len(data); i++ {
+		c := data[i]
+
+		if inString {
+			if c == '\\' && i+1 < len(data) {
+				result = append(result, c, data[i+1])
+				i++
+				continue
+			}
+			if c == '"' {
+				inString = false
+			}
+			result = append(result, c)
+			pendingComma = -1
+			continue
+		}
+
+		switch {
+		case c == '"':
+			inString = true
+			result = append(result, c)
+			pendingComma = -1
+		case c == ',':
+			result = append(result, c)
+			pendingComma = len(result) - 1
+		case c == '}' || c == ']':
+			if pendingComma >= 0 {
+				result = result[:pendingComma]
+			}
+			result = append(result, c)
+			pendingComma = -1
+		case c == ' ' || c == '\t' || c == '\n' || c == '\r':
+			result = append(result, c)
+		default:
+			result = append(result, c)
+			pendingComma = -1
 		}
 	}
 
