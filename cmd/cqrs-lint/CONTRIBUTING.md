@@ -4,7 +4,7 @@
 
 ### 1. Choose a Category and ID
 
-Rules are organized into 6 categories:
+Rules are organized into 10 categories:
 
 | Category     | Prefix | Example | Description                             |
 | ------------ | ------ | ------- | --------------------------------------- |
@@ -14,8 +14,12 @@ Rules are organized into 6 categories:
 | architecture | E      | E001    | Structural violations (layer deps)      |
 | consistency  | D      | D001    | Inconsistent conventions                |
 | security     | S      | S001    | Security vulnerabilities                |
+| performance  | P      | P001    | Performance anti-patterns               |
+| version      | V      | V001    | Version compatibility issues            |
+| testing      | T      | T001    | Test-quality issues                     |
+| adoption     | F      | F001    | Coaching toward library adoption        |
 
-Find the next available ID in your category by checking `rules.ListRules()`.
+Find the next available ID in your category by checking `rules.AllRules()`.
 
 ### 2. Register the Rule Metadata
 
@@ -103,6 +107,16 @@ func TestC013_DetectsIssue(t *testing.T) {
 }
 ```
 
+### 5b. Context-dependent rules (feature profile + presets)
+
+If your rule should only fire for certain project types (e.g. server-only,
+no-server), gate it on `ctx.FeatureProfile`. See `feature_profile.go` for the
+full `FeatureProfile` struct. Presets (`PresetDefinitions` map in
+`feature_profile.go`) are the single source of truth for preset feature flags
+and rule-disable defaults — both `init` and the runtime read from them. If your
+new rule should be disabled by default in a preset (e.g. server-infrastructure
+rules for local CLIs), add its ID to the preset's `Rules.Disable` list.
+
 ### 6. Verify
 
 ```bash
@@ -170,12 +184,16 @@ cmd/cqrs-lint/
 │   │   ├── ast_helpers.go      # SelectorFromExpr, unwrapSelector (generics support)
 │   │   └── ...
 │   ├── rules/       # Rule catalog, registration, filtering
-│   │   ├── correctness/   # C001-C012
-│   │   ├── api/           # A001-A019
-│   │   ├── boilerplate/   # B001-B015
-│   │   ├── architecture/  # E001-E007
-│   │   ├── consistency/   # D001-D005
-│   │   └── security/      # S001-S003
+│   │   ├── correctness/   # C001-C039
+│   │   ├── api/           # A001-A033
+│   │   ├── boilerplate/   # B001-B028
+│   │   ├── architecture/  # E001-E017
+│   │   ├── consistency/   # D001-D017
+│   │   ├── security/      # S001-S011
+│   │   ├── performance/   # P001-P013
+│   │   ├── version/       # V001-V006
+│   │   ├── testing/       # T001-T008
+│   │   └── adoption/      # F001-F021
 │   ├── fix/         # Auto-fix provider
 │   └── suppression/ # //cqrs-lint:ignore comment parser
 ```
