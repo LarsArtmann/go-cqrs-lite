@@ -120,6 +120,27 @@ func setup() {
 	ruletest.AssertRule(t, findings, "E009", 0)
 }
 
+func TestE009_NoFindingWithCqrsHtmx(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/command"
+	"github.com/larsartmann/go-cqrs-lite/query"
+	"github.com/larsartmann/cqrs-htmx"
+)
+
+func setup() {
+	_ = command.BasicCommand{}
+	_ = query.PaginatedResult[any]{}
+	_ = cqrshtmx.New()
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE009Detector(ctx))
+	ruletest.AssertRule(t, findings, "E009", 0)
+}
+
 // --- E010: Event capture without validation ---
 
 func TestE010_DetectsDirectStoreSave(t *testing.T) {

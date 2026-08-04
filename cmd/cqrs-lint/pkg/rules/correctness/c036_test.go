@@ -61,3 +61,43 @@ func setup() {
 	findings := ruletest.RunDetector(t, correctness.NewC036Detector(ctx))
 	ruletest.AssertRule(t, findings, "C036", 0)
 }
+
+func TestC036_LibraryUtilityNotFlagged(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+import storage "github.com/larsartmann/go-cqrs-lite/storage/v4"
+
+func setup() {
+	backend, _ := storage.NewSQLiteBackend(db)
+	_ = backend
+}
+`,
+	})
+	ctx.FeatureProfile.Store = analyzer.StorePostgres
+
+	findings := ruletest.RunDetector(t, correctness.NewC036Detector(ctx))
+	ruletest.AssertRule(t, findings, "C036", 0)
+}
+
+func TestC036_RealSecondaryStoreMismatchFlagged(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
+
+import storage "github.com/larsartmann/go-cqrs-lite/storage/v4"
+
+func setup() {
+	cpStore, _ := storage.NewSQLiteCheckpointStore(db)
+	_ = cpStore
+}
+`,
+	})
+	ctx.FeatureProfile.Store = analyzer.StorePostgres
+
+	findings := ruletest.RunDetector(t, correctness.NewC036Detector(ctx))
+	ruletest.AssertRule(t, findings, "C036", 1)
+}

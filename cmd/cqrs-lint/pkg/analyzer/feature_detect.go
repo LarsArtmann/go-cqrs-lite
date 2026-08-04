@@ -142,6 +142,59 @@ func detectFeatureSignals(
 		}
 	}
 
+	// Pass 1b: AST import-based detection. Supplements Pass 1 which uses
+	// pkg.Imports (populated by go/packages). In test contexts where
+	// pkg.Imports is empty, AST import declarations are the only source.
+	// This ensures HasTransport, HasAsyncBus, store, and snapshot detection
+	// work correctly in unit tests.
+	for _, gf := range gofiles {
+		if gf.IsTest {
+			continue
+		}
+		for _, imp := range gf.AST.Imports {
+			if imp == nil || imp.Path == nil {
+				continue
+			}
+			path := strings.Trim(imp.Path.Value, `"`)
+
+			if strings.Contains(path, "go-cqrs-lite/stack/sqlite") && fp.Store == StoreUnknown {
+				fp.Store = StoreSQLite
+			} else if strings.Contains(path, "go-cqrs-lite/stack/postgres") && fp.Store == StoreUnknown {
+				fp.Store = StorePostgres
+			} else if strings.Contains(path, "go-cqrs-lite/stack/mysql") && fp.Store == StoreUnknown {
+				fp.Store = StoreMySQL
+			} else if strings.Contains(path, "go-cqrs-lite/stack/pebble") && fp.Store == StoreUnknown {
+				fp.Store = StorePebble
+			} else if strings.Contains(path, "go-cqrs-lite/stack/memory") && fp.Store == StoreUnknown {
+				fp.Store = StoreMemory
+			} else if strings.Contains(path, "go-cqrs-lite/stack/turso") && fp.Store == StoreUnknown {
+				fp.Store = StoreTurso
+			} else if strings.Contains(path, "go-cqrs-lite/storage/") && fp.Store == StoreUnknown {
+				fp.Store = StoreCustom
+			}
+
+			if strings.Contains(path, "mattn/go-sqlite3") || strings.Contains(path, "modernc.org/sqlite") {
+				hasSQLiteImport = true
+			}
+
+			if strings.Contains(path, "go.opentelemetry.io") || strings.Contains(path, "go-cqrs-lite/otel") {
+				hasOTelImport = true
+			}
+
+			if strings.Contains(path, "go-cqrs-lite/snapshot") {
+				hasSnapshotImport = true
+			}
+
+			if strings.Contains(path, "go-cqrs-lite/watermill") {
+				fp.HasAsyncBus = true
+			}
+
+			if strings.Contains(path, "go-cqrs-lite/transport") || strings.Contains(path, "cqrs-htmx") {
+				fp.HasTransport = true
+			}
+		}
+	}
+
 	// If no stack preset was found but SQLite driver is imported, infer SQLite.
 	if fp.Store == StoreUnknown && hasSQLiteImport {
 		fp.Store = StoreSQLite

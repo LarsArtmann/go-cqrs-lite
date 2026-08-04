@@ -125,6 +125,32 @@ func runServer() {
 	ruletest.AssertRule(t, findings, "E016", 1)
 }
 
+func TestE016_NoFindingWithCqrsHtmx(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"server.go": `package main
+
+import (
+	"net/http"
+
+	"github.com/larsartmann/cqrs-htmx"
+)
+
+func runServer() {
+	app := cqrshtmx.New()
+	srv := &http.Server{Addr: ":8080"}
+	_ = srv.ListenAndServe()
+	_ = app
+}
+`,
+	})
+	ctx.FeatureProfile.ServerLocal = false
+
+	findings := ruletest.RunDetector(t, architecture.NewE016Detector(ctx))
+	ruletest.AssertRule(t, findings, "E016", 0)
+}
+
 func TestE017_DetectsMissingGracefulShutdown(t *testing.T) {
 	t.Parallel()
 

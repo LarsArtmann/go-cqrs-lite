@@ -29,15 +29,18 @@ func BenchmarkMemoryStore_Save(b *testing.B) {
 	store := memory.NewMemoryStore()
 	b.Cleanup(func() { _ = store.Close() })
 
-	streamID := id.NewStreamID()
 	ctx := context.Background()
-	ref := id.NewStreamRef("Bench", streamID)
 
 	b.ResetTimer()
 
 	for b.Loop() {
+		// New stream per iteration so expectedVersion=0 matches the empty stream.
+		streamID := id.NewStreamID()
+		ref := id.NewStreamRef("Bench", streamID)
 		evt := benchEvent(b, streamID, 1)
-		_ = store.Save(ctx, ref, []event.Event{evt}, 1)
+		if err := store.Save(ctx, ref, []event.Event{evt}, 0); err != nil {
+			b.Fatalf("Save: %v", err)
+		}
 	}
 }
 
@@ -53,13 +56,21 @@ func BenchmarkMemoryStore_Load(b *testing.B) {
 
 	for i := range 100 {
 		evt := benchEvent(b, streamID, event.Version(i+1))
-		_ = store.AppendBatch(ctx, ref, []event.Event{evt})
+		if err := store.AppendBatch(ctx, ref, []event.Event{evt}); err != nil {
+			b.Fatalf("seed AppendBatch %d: %v", i, err)
+		}
 	}
 
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _ = store.Load(ctx, ref)
+		events, err := store.Load(ctx, ref)
+		if err != nil {
+			b.Fatalf("Load: %v", err)
+		}
+		if len(events) == 0 {
+			b.Fatal("Load returned empty — store not populated")
+		}
 	}
 }
 
@@ -76,7 +87,13 @@ func BenchmarkMemoryStore_ReadAll(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _ = store.ReadAll(ctx)
+		events, err := store.ReadAll(ctx)
+		if err != nil {
+			b.Fatalf("ReadAll: %v", err)
+		}
+		if len(events) == 0 {
+			b.Fatal("ReadAll returned empty — store not populated")
+		}
 	}
 }
 
@@ -95,7 +112,9 @@ func BenchmarkMemoryBus_Publish(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_ = bus.Publish(ctx, evt)
+		if err := bus.Publish(ctx, evt); err != nil {
+			b.Fatalf("Publish: %v", err)
+		}
 	}
 }
 
@@ -122,6 +141,9 @@ func BenchmarkMemoryStore_ConcurrentWriters(b *testing.B) {
 			b.ResetTimer()
 
 			var wg sync.WaitGroup
+			var firstErr error
+			var errOnce sync.Once
+
 			wg.Add(concurrency)
 
 			for w := range concurrency {
@@ -137,12 +159,32 @@ func BenchmarkMemoryStore_ConcurrentWriters(b *testing.B) {
 							version,
 							nil,
 						)
-						_ = store.Save(ctx, refs[workerID], []event.Event{evt}, version-1)
+						if err := store.Save(ctx, refs[workerID], []event.Event{evt}, version-1); err != nil {
+							errOnce.Do(func() {
+								firstErr = fmt.Errorf("Save w=%d i=%d: %w", workerID, i, err)
+							})
+							return
+						}
 					}
 				}(w)
 			}
 
 			wg.Wait()
+
+			if firstErr != nil {
+				b.Fatalf("%v", firstErr)
+			}
+
+			// Verify each worker's stream has data.
+			for i := range concurrency {
+				loaded, err := store.Load(ctx, refs[i])
+				if err != nil {
+					b.Fatalf("verify Load w=%d: %v", i, err)
+				}
+				if len(loaded) == 0 {
+					b.Fatalf("verify Load w=%d: stream empty — Save was a no-op", i)
+				}
+			}
 		})
 	}
 }
@@ -164,6 +206,8 @@ func BenchmarkMemoryBus_Publish_10Subscribers(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_ = bus.Publish(ctx, evt)
+		if err := bus.Publish(ctx, evt); err != nil {
+			b.Fatalf("Publish: %v", err)
+		}
 	}
 }

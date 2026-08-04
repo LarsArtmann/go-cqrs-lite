@@ -64,9 +64,7 @@ func NewE009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			hasHTTP := importsPathSuffix(ctx, "go-cqrs-lite/transport/http") ||
-				importsPathSuffix(ctx, "go-cqrs-lite/transport/grpc")
-			if hasHTTP {
+			if ctx.FeatureProfile.HasTransport {
 				return nil, nil
 			}
 
