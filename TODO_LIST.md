@@ -68,7 +68,7 @@ and is **never** duplicated here.
 
 > Long-term metaengine work (`metaengine-gen` code generator, generic
 > `ScanResult[T]`, Vector/Search/Spatial engine backends, DuckDB
-> columnar-native storage, Iroh distributed engine, `System` topology redesign)
+> columnar-native storage, Iroh distributed engine (Level 2 prototype shipped — real FFI pending), `System` topology redesign)
 > lives in [ROADMAP.md](ROADMAP.md).
 
 ---

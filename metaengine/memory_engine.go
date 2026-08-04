@@ -26,6 +26,17 @@ type memData struct {
 	graphs    map[string]*memGraph
 	multimaps map[string]map[any][]any
 	logs      map[string][]any
+	// streams stores stream-keyed append-only values: collection → streamID → values.
+	streams map[string]map[string][]any
+	// streamJournal stores cross-stream ordered entries for JournalReadAll/ReadFrom.
+	streamJournal map[string][]streamJournalEntry
+}
+
+// streamJournalEntry is one entry in the global journal for a collection.
+type streamJournalEntry struct {
+	seq      int64
+	streamID string
+	value    any
 }
 
 type memGraph struct {

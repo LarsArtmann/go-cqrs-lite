@@ -300,8 +300,11 @@ first `ReplicationLeaderless` engine.
 - ✅ **ADR-0096 written** — evaluates CGo FFI vs sidecar bridge approaches.
   Documents maturity assessment: `iroh-docs` NOT in C FFI, blocks direct
   integration. PN-Counter via Iroh identified as the killer feature.
-- [ ] Prototype `iroh.Replicated(pebbleEngine)` wrapper (Level 2 POC)
-- [ ] Evaluate Iroh C binding maturity over time
+- ✅ **Level 2 prototype shipped** — `metaengine/irohengine/` implements
+  `Replicated(localEngine, ...)` with a pluggable `Transport` interface. In-process
+  `Network` mock simulates P2P convergence. Passes `adttest.RunMatrix` parity,
+  LWW resolution, PN-Counter, and MapUpdate-does-not-replicate tests.
+- [ ] Evaluate Iroh C binding maturity over time (swap mock Transport for real FFI)
 
 ### 11. Metaengine Persistence + System Redesign
 

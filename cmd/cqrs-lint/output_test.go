@@ -201,3 +201,117 @@ func TestGroupFindingsByModule(t *testing.T) {
 		}
 	}
 }
+
+func TestGroupFindingsByAggregate_GroupsByMetadata(t *testing.T) {
+	t.Parallel()
+
+	findings := []finding.Finding{
+		{Rule: "C001", Metadata: map[string]string{"aggregate": "User"}},
+		{Rule: "C002", Metadata: map[string]string{"aggregate": "User"}},
+		{Rule: "C003", Metadata: map[string]string{"aggregate": "Order"}},
+		{Rule: "C004"}, // Uncategorized
+	}
+
+	groups := groupFindingsByAggregate(findings)
+
+	if len(groups) != 3 {
+		t.Fatalf("expected 3 groups, got %d", len(groups))
+	}
+
+	// User has 2 findings → should be first (sorted by count desc).
+	if groups[0].name != "User" || len(groups[0].findings) != 2 {
+		t.Errorf("first group should be User (2 findings), got %s (%d)",
+			groups[0].name, len(groups[0].findings))
+	}
+
+	// Order and Uncategorized both have 1 → alphabetical.
+	var foundUncategorized, foundOrder bool
+	for _, g := range groups {
+		switch g.name {
+		case "Order":
+			foundOrder = true
+		case "Uncategorized":
+			foundUncategorized = true
+		}
+	}
+	if !foundOrder {
+		t.Error("Order group not found")
+	}
+	if !foundUncategorized {
+		t.Error("Uncategorized group not found")
+	}
+}
+
+func TestPrintFindingsByAggregate_RendersHeadersAndFindings(t *testing.T) {
+	t.Parallel()
+
+	findings := []finding.Finding{
+		{
+			Rule:     "C007",
+			ToolName: "cqrs-lint",
+			Message:  "time.Now in decider",
+			Severity: finding.SeverityWarning,
+			Position: finding.Position{File: finding.FilePath("user.go"), Line: 10, Column: 5},
+			Metadata: map[string]string{"aggregate": "User"},
+		},
+		{
+			Rule:     "C001",
+			ToolName: "cqrs-lint",
+			Message:  "missing event type",
+			Severity: finding.SeverityError,
+			Position: finding.Position{File: finding.FilePath("order.go"), Line: 20, Column: 1},
+			Metadata: map[string]string{"aggregate": "Order"},
+		},
+	}
+
+	var buf bytes.Buffer
+	printFindingsByAggregate(&buf, findings, parseColorMode("never"))
+
+	output := buf.String()
+
+	if !strings.Contains(output, "--- User (1) ---") {
+		t.Errorf("expected User group header, got: %s", output)
+	}
+	if !strings.Contains(output, "--- Order (1) ---") {
+		t.Errorf("expected Order group header, got: %s", output)
+	}
+	if !strings.Contains(output, "time.Now in decider") {
+		t.Error("expected User finding message in output")
+	}
+	if !strings.Contains(output, "missing event type") {
+		t.Error("expected Order finding message in output")
+	}
+}
+
+func TestPrintFindingsByAggregate_EmptyFindings(t *testing.T) {
+	t.Parallel()
+
+	var buf bytes.Buffer
+	printFindingsByAggregate(&buf, nil, parseColorMode("never"))
+
+	if buf.String() != "" {
+		t.Errorf("expected empty output for no findings, got %q", buf.String())
+	}
+}
+
+func TestPrintFindingsByAggregate_UntaggedFindingsGoToUncategorized(t *testing.T) {
+	t.Parallel()
+
+	findings := []finding.Finding{
+		{
+			Rule:     "C007",
+			ToolName: "cqrs-lint",
+			Message:  "no aggregate tag",
+			Severity: finding.SeverityWarning,
+			Position: finding.Position{File: finding.FilePath("main.go"), Line: 1, Column: 1},
+		},
+	}
+
+	var buf bytes.Buffer
+	printFindingsByAggregate(&buf, findings, parseColorMode("never"))
+
+	output := buf.String()
+	if !strings.Contains(output, "--- Uncategorized (1) ---") {
+		t.Errorf("expected Uncategorized group header, got: %s", output)
+	}
+}
