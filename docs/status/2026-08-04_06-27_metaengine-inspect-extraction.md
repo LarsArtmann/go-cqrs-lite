@@ -141,3 +141,10 @@ Nothing is _broken_ — no compile errors, no test failures, no behavior change.
 | Full module tests  | `go test ./...` (metaengine)                            | ✅ `ok` 9.4s                                 |
 | **File-size gate** | `nix run .#check-file-size`                             | ❌ **NOT RUN** — would fail (sse.go=369>350) |
 | Full verify gate   | `nix run .#verify`                                      | ❌ NOT RUN                                   |
+
+
+---
+
+## Annotation (2026-08-04)
+
+Items marked `done at <hash>` were resolved by subsequent commits. Items without markers remain open. See TODO_LIST.md for current status.

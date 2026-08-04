@@ -166,8 +166,8 @@ violation. Fixing now.
    never wrote a test proving `cqrs-htmx` import suppresses F013. This is
    a verification gap that could bite us later.
 
-3. **No gofumpt/goimports formatting run** — I did not run `gofumpt -w` or
-   `goimports -w` on my changed files. The nix fmt gate may complain.
+~~3. **No gofumpt/goimports formatting run** — I did not run `gofumpt -w` or~~
+~~   `goimports -w` on my changed files. The nix fmt gate may complain.~~ done at `5c7d23c1`
 
 4. **No self-lint verification** — I did not run `cqrs-lint` on its own
    codebase to verify the changes don't create new false positives. The
@@ -201,8 +201,8 @@ string)`. This is a breaking API change for any external consumers of
 11. **Verify F013 explicitly** — Don't claim "works via HasTransport" without
     a test proving it.
 
-12. **Run `nix fmt` or at minimum `gofumpt -w` before finishing** —
-    Formatting issues can fail the verify gate.
+~~12. **Run `nix fmt` or at minimum `gofumpt -w` before finishing** —~~
+~~    Formatting issues can fail the verify gate.~~ done at `5c7d23c1`
 
 ---
 
@@ -211,7 +211,7 @@ string)`. This is a breaking API change for any external consumers of
 ### Immediate fixes (session followup)
 
 1. Write the F013 + cqrs-htmx regression test
-2. Run `gofumpt -w` on all changed files
+~~2. Run `gofumpt -w` on all changed files~~ done at `5c7d23c1`
 3. Run `cqrs-lint` self-lint on its own codebase
 4. Refactor Pass 1b to eliminate duplication with Pass 1
 5. Update IMPROVEMENT_IDEAS.md (strike through completed items)
@@ -311,3 +311,10 @@ but could also miss a real mismatch on a constructor we haven't cataloged
 consumers, false negatives are undetectable. I chose to eliminate FPs. Is
 this the right call, or should unknown constructors produce a low-confidence
 info finding instead?
+
+
+---
+
+## Annotation (2026-08-04)
+
+Items marked `done at <hash>` were resolved by subsequent commits. Items without markers remain open. See TODO_LIST.md for current status.

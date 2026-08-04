@@ -38,15 +38,15 @@ The AGENTS.md says lint is `nix run .#lint` (golangci-lint). I only ran `go buil
 
 The AGENTS.md explicitly warns: "every session that changes code must run `nix run .#verify` before claiming GREEN. A stale GREEN claim is worse than no claim." I did NOT run verify. I ran targeted Go tests only, not the full verification gate (build + vet + test + race + lint + doc-check + doc-assertions).
 
-### 3. API-stability golden NOT regenerated
+~~### 3. API-stability golden NOT regenerated~~ done at `63e972a0`
 
 AGENTS.md: "Whenever you add/rename/remove an exported symbol, immediately regenerate the api-stability golden." C040 adds `NewC040Detector` — an exported function. The golden file was not regenerated. The `#verify` gate will catch this, but I should have done it in-session.
 
-### 4. AGENTS.md module table NOT updated
+~~### 4. AGENTS.md module table NOT updated~~ done at `2203aad3`
 
 The Quick Reference table in AGENTS.md says "185 rules" in the cqrs-lint description and lists module descriptions. It was not updated to reflect 186 rules. Though — looking again — the AGENTS.md description says "185 rules across 10 categories" inline in the cqrs-lint bullet. This should be 186.
 
-### 5. C038/C040 changelog entry NOT added
+~~### 5. C038/C040 changelog entry NOT added~~ done at `addb8d5e`
 
 No `CHANGELOG.md` or equivalent entry was written for the new rule or the C038 enhancement. The cqrs-lint subcommand has a `changelog` subcommand — I didn't check if there's an automated changelog that needs updating.
 
@@ -88,10 +88,10 @@ The working tree had uncommitted changes from another session (feature_detect.go
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
 | E1  | Run `nix run .#verify` before claiming done — non-negotiable per AGENTS.md                                                                                                                                     | **CRITICAL** |
 | E2  | Check for existing rules before proposing new ones — search `catalog.go` by topic keyword                                                                                                                      | **HIGH**     |
-| E3  | Always regenerate API-stability golden when adding exported symbols                                                                                                                                            | **HIGH**     |
+| E3  | ~~Always regenerate API-stability golden when adding exported symbols~~ done at `63e972a0`                                                                                                                       | **HIGH**     |
 | E4  | Self-lint the library after adding a new rule — dogfooding catches real issues                                                                                                                                 | **HIGH**     |
-| E5  | Run `nix fmt` before committing — prevents golines/gofumpt formatting failures                                                                                                                                 | **MEDIUM**   |
-| E6  | Update AGENTS.md inline rule counts (185→186 in the module description)                                                                                                                                        | **MEDIUM**   |
+| E5  | ~~Run `nix fmt` before committing — prevents golines/gofumpt formatting failures~~ done at `5c7d23c1`                                                                                                            | **MEDIUM**   |
+| E6  | ~~Update AGENTS.md inline rule counts (185→186 in the module description)~~ done at `2203aad3`                                                                                                                   | **MEDIUM**   |
 | E7  | Check `cqrs-lint changelog` subcommand for programmatic changelog updates                                                                                                                                      | **MEDIUM**   |
 | E8  | Consider projection handler dead-case detection (not just folds)                                                                                                                                               | **MEDIUM**   |
 | E9  | Add const-identifier resolution for event type strings (V2 for both C038+C040)                                                                                                                                 | **LOW**      |
@@ -106,9 +106,9 @@ The working tree had uncommitted changes from another session (feature_detect.go
 ### Immediate fixes (this session's debt)
 
 1. **Run `nix run .#verify`** — confirm the full gate passes with C040
-2. **Run `nix fmt`** — fix any formatting issues in the new/modified files
-3. **Regenerate API-stability golden** — `cd cmd/api-stability && GOWORK=off go run main.go -update`
-4. **Update AGENTS.md** — change "185 rules" to "186 rules" in the cqrs-lint module description
+~~2. **Run `nix fmt`** — fix any formatting issues in the new/modified files~~ done at `5c7d23c1`
+~~3. **Regenerate API-stability golden** — `cd cmd/api-stability && GOWORK=off go run main.go -update`~~ done at `63e972a0`
+~~4. **Update AGENTS.md** — change "185 rules" to "186 rules" in the cqrs-lint module description~~ done at `2203aad3`
 5. **Run `nix run .#lint`** — catch golangci-lint issues before they hit CI
 6. **Self-lint the library** — run `cqrs-lint` on the go-cqrs-lite source itself to validate C038/C040 against real code
 
@@ -201,3 +201,10 @@ The verify gate takes 3-4 minutes. AGENTS.md says every session that changes cod
 The commit message for `50e5d5eb` says "add --group-by aggregate output and per-module feature profiles" but it also contains all the C040 code. This makes the history misleading — someone looking for C040 would not find it by commit message.
 
 **I cannot decide this myself** because fixing this would require `git reset` or interactive rebase, both of which are destructive operations in the "NEVER DO" list without explicit approval.
+
+
+---
+
+## Annotation (2026-08-04)
+
+Items marked `done at <hash>` were resolved by subsequent commits. Items without markers remain open. See TODO_LIST.md for current status.

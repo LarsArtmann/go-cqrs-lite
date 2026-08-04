@@ -303,3 +303,10 @@ and all observability surfaces work correctly across all 5 engine modules.
 **Debt remaining: README, AGENTS.md, engine-specific tests, full lint gate.**
 These are documentation and test-coverage gaps, not correctness issues. They
 should be addressed before the next release tag.
+
+
+---
+
+## Annotation (2026-08-04)
+
+Items marked `done at <hash>` were resolved by subsequent commits. Items without markers remain open. See TODO_LIST.md for current status.

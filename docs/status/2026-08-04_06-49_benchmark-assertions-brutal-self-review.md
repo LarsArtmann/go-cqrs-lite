@@ -126,7 +126,7 @@ gopls reported `state.CreatedCount undefined` errors in `integration/scale_bench
 ### Process improvements
 
 1. **Run the verify gate** — Every session that changes code must run `nix run .#verify` before claiming done. This is documented in AGENTS.md but I skipped it.
-2. **Run `nix fmt` before finishing** — I changed code across 18 files without formatting. The next person to run `nix fmt` will see a massive unrelated diff.
+~~2. **Run `nix fmt` before finishing** — I changed code across 18 files without formatting. The next person to run `nix fmt` will see a massive unrelated diff.~~ done at `5c7d23c1`
 3. **Don't change benchmark semantics without documenting** — When a benchmark's workload changes (not just adds assertions), the commit message should say so explicitly.
 4. **Use `-benchtime=10x` minimum for semantic changes** — 1x only verifies no crash, not correctness.
 5. **The benchmark audit script should be a CI gate** — The `find_discarded.py` script I wrote should be integrated as a pre-commit check so new benchmarks can't ship with `_, _ =` patterns.
@@ -144,7 +144,7 @@ gopls reported `state.CreatedCount undefined` errors in `integration/scale_bench
 ### Critical (P0)
 
 1. Run `nix run .#verify` to validate all changes pass the full gate
-2. Run `nix fmt` to format all changed files
+~~2. Run `nix fmt` to format all changed files~~ done at `5c7d23c1`
 3. Fix the 10 modules I skipped (codec, command, dispatcher, query, middleware, snapshot, listing, watermill, transport/http, storage/view)
 4. Audit `codec/` benchmarks — they discard decode results, same bug class
 5. Audit `middleware/` benchmarks — circuit breaker and retry benchmarks likely discard results
@@ -209,3 +209,10 @@ gopls reported `state.CreatedCount undefined` errors in `integration/scale_bench
 2. **Should the `BenchmarkMemoryStore_Save` semantics change (new stream per iteration) be documented as a workload change?** The old benchmark measured "append to same stream" (broken), the new one measures "create new stream" (correct but different workload). Which workload is more valuable to benchmark — append or create?
 
 3. **Should the benchmark audit script (`find_discarded.py`) become a CI gate or a pre-commit hook?** A CI gate catches it at PR time; a pre-commit hook catches it earlier but requires developer setup. The project already has `nix run .#check-*` gates — should this be `nix run .#check-benchmark-assertions`?
+
+
+---
+
+## Annotation (2026-08-04)
+
+Items marked `done at <hash>` were resolved by subsequent commits. Items without markers remain open. See TODO_LIST.md for current status.

@@ -251,3 +251,10 @@ I measured batch writes via raw multi-VALUES INSERT because `MapBackend` has no 
 ### 3. Is the DuckDBNsPerRead change (3000 → 1200) safe to ship without running the full verify gate?
 
 I ran the metaengine `-short` suite (PASS) and confirmed no golden tests reference the constant. But integration tests, soak tests, and cross-engine parity tests were not run. Should I ship this now, or revert the constant change and ship only the benchmarks (keeping the old constants until the verify gate passes)?
+
+
+---
+
+## Annotation (2026-08-04)
+
+Items marked `done at <hash>` were resolved by subsequent commits. Items without markers remain open. See TODO_LIST.md for current status.

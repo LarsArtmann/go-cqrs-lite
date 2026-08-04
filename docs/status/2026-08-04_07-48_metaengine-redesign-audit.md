@@ -251,3 +251,10 @@ deployments.
 ---
 
 _End of report. The design document is richer but has coherence gaps. Fix Tier 1 items before continuing._
+
+
+---
+
+## Annotation (2026-08-04)
+
+Items marked `done at <hash>` were resolved by subsequent commits. Items without markers remain open. See TODO_LIST.md for current status.

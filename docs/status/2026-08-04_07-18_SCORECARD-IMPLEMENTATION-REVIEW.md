@@ -104,13 +104,13 @@ Two independent sources of truth for category priority ordering:
 
 These encode the SAME ordering but in two places. If one changes, the other drifts. The `ModuleEntry.CategoryPriority()` method I wrote is never even called — the scorecard uses its own duplicate function.
 
-### 3. **The `sortedKeys` method was dead code**
+~~### 3. **The `sortedKeys` method was dead code**~~
 
-I wrote `Catalog.sortedKeys()` using `slices.Sort` but it was never called anywhere. I caught this during the file split (removed it), but it shouldn't have been written in the first place.
+~~I wrote `Catalog.sortedKeys()` using `slices.Sort` but it was never called anywhere. I caught this during the file split (removed it), but it shouldn't have been written in the first place.~~ done at `c209e22f`
 
-### 4. **`slices` import forgotten during file split**
+~~### 4. **`slices` import forgotten during file split**~~
 
-When I extracted `buildDefaultCatalog` to a separate data file, I removed the `slices` import from `module_catalog.go` — but `RelevantForProfile` still used `slices.Contains`. The build broke. I fixed it reactively instead of proactively. A proper "read before edit" pass would have caught this.
+~~When I extracted `buildDefaultCatalog` to a separate data file, I removed the `slices` import from `module_catalog.go` — but `RelevantForProfile` still used `slices.Contains`. The build broke. I fixed it reactively instead of proactively. A proper "read before edit" pass would have caught this.~~ done at `c209e22f`
 
 ### 5. **No explicit git commits per task**
 
@@ -272,3 +272,10 @@ But the execution was sloppy in ways that matter:
 - **No manual commits** (daemon-generated history is messy)
 
 The feature is shippable. The craftsmanship is not yet at the bar.
+
+
+---
+
+## Annotation (2026-08-04)
+
+Items marked `done at <hash>` were resolved by subsequent commits. Items without markers remain open. See TODO_LIST.md for current status.

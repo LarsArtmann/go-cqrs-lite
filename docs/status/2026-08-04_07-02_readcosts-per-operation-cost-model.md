@@ -247,7 +247,7 @@ Same gap as the previous report. `BenchmarkCalibration_DuckDB_BatchInsert` uses 
 45. Update `AGENTS.md` metaengine section with ReadCosts
 46. Add calibration methodology section to `docs/planning/2026-08-04_07-00_READ-COSTS-PER-OPERATION-VARIANCE.md`
 47. Document the conservative-margin methodology for constant selection
-48. Add `cmd/api-stability` golden update (new exported `ReadCosts` type + `NsForRead` method)
+~~48. Add `cmd/api-stability` golden update (new exported `ReadCosts` type + `NsForRead` method)~~ done at `63e972a0`
 
 #### Metaengine broader
 
@@ -269,3 +269,10 @@ The verify gate takes 3-4 minutes. The ReadCosts change is backward-compatible (
 ### 3. The ReadCosts groupings bundle 11 ReadPatterns into 4 cost fields. Is this the right granularity?
 
 I grouped them as: PointLookup (4 patterns), FilteredScan (1), Aggregate (1), Scan (5). An alternative is per-pattern constants (11 fields), but that's verbose and several patterns have identical cost profiles. Or fewer fields (just "indexed" vs "sequential"), but that loses the aggregate-vs-scan distinction which is DuckDB's key advantage. Is 4 the right number, or should I reconsider the groupings?
+
+
+---
+
+## Annotation (2026-08-04)
+
+Items marked `done at <hash>` were resolved by subsequent commits. Items without markers remain open. See TODO_LIST.md for current status.
