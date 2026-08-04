@@ -52,9 +52,16 @@ func renderExplain() string {
 	return b.String()
 }
 
+// writeSectionHeader writes a titled section header: the title, an
+// underline of box-drawing dashes matching its length, and a blank line.
+func writeSectionHeader(b *strings.Builder, title string) {
+	b.WriteString(title + "\n")
+	b.WriteString(strings.Repeat("─", len(title)) + "\n")
+	b.WriteString("\n")
+}
+
 func renderConfigFileSection(b *strings.Builder) {
-	b.WriteString("CONFIG FILE\n")
-	b.WriteString("───────────\n")
+	writeSectionHeader(b, "CONFIG FILE")
 	b.WriteString("  Location:  .cqrs-lint.json (in the directory where you run cqrs-lint)\n")
 	b.WriteString("  Format:    JSON with Comments (JSONC)\n")
 	b.WriteString("             // line comments and /* block comments */ are supported.\n")
@@ -111,9 +118,7 @@ var topLevelKeys = []topLevelKey{
 }
 
 func renderTopLevelKeys(b *strings.Builder) {
-	b.WriteString("TOP-LEVEL KEYS\n")
-	b.WriteString("──────────────\n")
-	b.WriteString("\n")
+	writeSectionHeader(b, "TOP-LEVEL KEYS")
 
 	keyWidth := len("Key")
 	typeWidth := len("Type")
@@ -156,9 +161,7 @@ func renderTopLevelKeys(b *strings.Builder) {
 }
 
 func renderPresets(b *strings.Builder) {
-	b.WriteString("PRESETS\n")
-	b.WriteString("───────\n")
-	b.WriteString("\n")
+	writeSectionHeader(b, "PRESETS")
 	b.WriteString("  Presets are convenience bundles. They expand to a set of feature flags,\n")
 	b.WriteString("  rule disables, and a severity floor. Explicit config always overrides\n")
 	b.WriteString("  preset values. The severity floor is a LOWER BOUND — you can raise it\n")
@@ -296,9 +299,7 @@ var featureKeys = []featureKey{
 }
 
 func renderFeatures(b *strings.Builder) {
-	b.WriteString("FEATURES\n")
-	b.WriteString("────────\n")
-	b.WriteString("\n")
+	writeSectionHeader(b, "FEATURES")
 	b.WriteString("  Each feature flag overrides the auto-detected value. Set only the\n")
 	b.WriteString("  ones you want to pin; unset flags use auto-detection.\n")
 	b.WriteString("\n")
@@ -377,9 +378,7 @@ var ruleConfigKeys = []ruleConfigKey{
 }
 
 func renderRulesConfig(b *strings.Builder) {
-	b.WriteString("RULES\n")
-	b.WriteString("─────\n")
-	b.WriteString("\n")
+	writeSectionHeader(b, "RULES")
 
 	keyWidth := len("Key")
 	typeWidth := len("Type")
@@ -416,9 +415,7 @@ func renderRulesConfig(b *strings.Builder) {
 }
 
 func renderHealthConfig(b *strings.Builder) {
-	b.WriteString("HEALTH\n")
-	b.WriteString("──────\n")
-	b.WriteString("\n")
+	writeSectionHeader(b, "HEALTH")
 	b.WriteString("  Key       Type    Default  Description\n")
 	b.WriteString("  ───       ────    ───────  ───────────\n")
 	b.WriteString("  info-cap  int     0 (→20)  Maximum health-score penalty from info findings.\n")
@@ -431,9 +428,7 @@ func renderHealthConfig(b *strings.Builder) {
 }
 
 func renderResolutionOrder(b *strings.Builder) {
-	b.WriteString("CONFIG RESOLUTION ORDER\n")
-	b.WriteString("───────────────────────\n")
-	b.WriteString("\n")
+	writeSectionHeader(b, "CONFIG RESOLUTION ORDER")
 	b.WriteString("  Settings are resolved in this order (later overrides earlier):\n")
 	b.WriteString("\n")
 	b.WriteString("    1. Built-in defaults (from struct tags)\n")
@@ -454,9 +449,7 @@ func renderResolutionOrder(b *strings.Builder) {
 }
 
 func renderSuppressionSyntax(b *strings.Builder) {
-	b.WriteString("SUPPRESSION SYNTAX\n")
-	b.WriteString("──────────────────\n")
-	b.WriteString("\n")
+	writeSectionHeader(b, "SUPPRESSION SYNTAX")
 	b.WriteString("  Inline (single rule):\n")
 	b.WriteString("    //cqrs-lint:ignore(C007) reason text\n")
 	b.WriteString("\n")
