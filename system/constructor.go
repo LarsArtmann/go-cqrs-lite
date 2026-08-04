@@ -28,6 +28,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		deciders:   make(map[string]any),
 		cmdDisp:    command.NewDispatcher(),
 		qryDisp:    query.NewDispatcher(),
+		bus:        newSimpleBus(),
 	}
 
 	// Create engines from the deployment config.
@@ -209,7 +210,7 @@ func RegisterDecider[State any](sys *System, streamType string, d decider.Decide
 		return errors.New("system: cannot register decider: no event store")
 	}
 
-	repo, err := decider.NewRepository[State](sys.eventStore, nil, d)
+	repo, err := decider.NewRepository[State](sys.eventStore, sys.bus, d)
 	if err != nil {
 		return fmt.Errorf("system: create repository for %q: %w", streamType, err)
 	}

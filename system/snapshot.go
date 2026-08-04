@@ -96,7 +96,10 @@ func (m *memorySnapshotBackend) SnapshotLoadAtVersion(
 	return entry.data, entry.version, nil
 }
 
-func (m *memorySnapshotBackend) SnapshotDelete(_ context.Context, collection, streamID string) error {
+func (m *memorySnapshotBackend) SnapshotDelete(
+	_ context.Context,
+	collection, streamID string,
+) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

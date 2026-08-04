@@ -1,0 +1,130 @@
+package system
+
+import (
+	"context"
+	"sync"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+)
+
+// simpleBus is a minimal in-process event bus. It implements event.Bus
+// (Publisher + Subscriber + middleware). Handlers are invoked synchronously
+// on the publishing goroutine.
+//
+// This is intentionally simple — no persistence, no retries, no async dispatch.
+// For production message distribution, operators configure external bus drivers
+// (NATS, Redis, Kafka) via the bus driver registry.
+type simpleBus struct {
+	mu              sync.RWMutex
+	handlers        map[event.Type][]event.Handler
+	allHandlers     []event.Handler
+	middleware      []event.Middleware
+	pubMiddleware   []event.PublishMiddleware
+}
+
+func newSimpleBus() *simpleBus {
+	return &simpleBus{
+		handlers: make(map[event.Type][]event.Handler),
+	}
+}
+
+// Compile-time assertions.
+var (
+	_ event.Publisher = (*simpleBus)(nil)
+	_ event.Bus       = (*simpleBus)(nil)
+)
+
+func (b *simpleBus) Publish(ctx context.Context, events ...event.Event) error {
+	// Apply publish middleware chain.
+	publisher := event.PublisherFunc(func(ctx context.Context, evts ...event.Event) error {
+		for _, evt := range evts {
+			if err := b.dispatch(ctx, evt); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	for i := len(b.pubMiddleware) - 1; i >= 0; i-- {
+		publisher = b.pubMiddleware[i](publisher)
+	}
+
+	return publisher.Publish(ctx, events...)
+}
+
+func (b *simpleBus) dispatch(ctx context.Context, evt event.Event) error {
+	b.mu.RLock()
+	handlers := make([]event.Handler, 0)
+
+	// Typed handlers.
+	if typed, ok := b.handlers[evt.Type()]; ok {
+		handlers = append(handlers, typed...)
+	}
+
+	// Catch-all handlers.
+	handlers = append(handlers, b.allHandlers...)
+
+	// Build the middleware chain.
+	chain := func(_ context.Context, _ event.Event) error { return nil }
+	if len(handlers) > 0 {
+		chain = handlers[0]
+		for i := 1; i < len(handlers); i++ {
+			prev := chain
+			current := handlers[i]
+
+			chain = func(ctx context.Context, e event.Event) error {
+				if err := prev(ctx, e); err != nil {
+					return err
+				}
+
+				return current(ctx, e)
+			}
+		}
+	}
+
+	// Apply middleware.
+	for i := len(b.middleware) - 1; i >= 0; i-- {
+		chain = b.middleware[i](chain)
+	}
+
+	b.mu.RUnlock()
+
+	return chain(ctx, evt)
+}
+
+func (b *simpleBus) Subscribe(eventType event.Type, handler event.Handler) error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	b.handlers[eventType] = append(b.handlers[eventType], handler)
+
+	return nil
+}
+
+func (b *simpleBus) SubscribeAll(handler event.Handler) error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	b.allHandlers = append(b.allHandlers, handler)
+
+	return nil
+}
+
+func (b *simpleBus) Use(middleware ...event.Middleware) error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	b.middleware = append(b.middleware, middleware...)
+
+	return nil
+}
+
+func (b *simpleBus) UsePublish(middleware ...event.PublishMiddleware) error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	b.pubMiddleware = append(b.pubMiddleware, middleware...)
+
+	return nil
+}

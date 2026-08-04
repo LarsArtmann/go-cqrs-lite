@@ -222,6 +222,7 @@ type System struct {
 	cmdDisp  *command.Dispatcher
 	qryDisp  *query.Dispatcher
 	projHost *projectionhost.Host
+	bus      event.Bus
 
 	// Projection-layer metaengine store.
 	projStore *metaengine.Store
@@ -255,6 +256,12 @@ func (s *System) QueryDispatcher() *query.Dispatcher {
 // ProjectionHost returns the projection host, or nil if not configured.
 func (s *System) ProjectionHost() *projectionhost.Host {
 	return s.projHost
+}
+
+// Bus returns the event bus for pub/sub. Consumers use this to subscribe to
+// events for custom side-effects (notifications, webhooks, etc.).
+func (s *System) Bus() event.Bus {
+	return s.bus
 }
 
 // UseCommandMiddleware adds domain middleware to the command dispatcher.

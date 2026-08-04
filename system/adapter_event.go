@@ -64,7 +64,13 @@ func (a *EventAdapter) Save(
 
 	// Fast path: engine supports atomic version-check-then-append.
 	if ap, ok := a.backend.(metaengine.AtomicAppender); ok {
-		if err := ap.StreamAppendExpected(ctx, a.collection, sid, int64(expectedVersion), values); err != nil {
+		if err := ap.StreamAppendExpected(
+			ctx,
+			a.collection,
+			sid,
+			int64(expectedVersion),
+			values,
+		); err != nil {
 			if errors.Is(err, metaengine.ErrVersionConflict) {
 				return event.ErrVersionConflict
 			}
