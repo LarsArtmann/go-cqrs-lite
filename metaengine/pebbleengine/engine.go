@@ -58,6 +58,8 @@ type pebbleEngine struct {
 	mu          sync.Mutex // guards counter/multimap/log seq operations
 	logSeq      sync.Map   // collection → *atomic.Int64 (log sequence counter)
 	mmSeq       sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
+	streamSeq   sync.Map   // "col\x00sid" → *atomic.Int64 (per-stream sequence)
+	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
 	layoutMu    sync.Mutex
 	layouts     map[string]layoutPlan // collection → layout plan (secondary indexes)
 	cal         metaengine.Calibration
