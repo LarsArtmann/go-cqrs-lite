@@ -25,6 +25,11 @@
 2. [Why the Current Stack Is a "Hack"](#2-why-the-current-stack-is-a-hack)
 3. [Research Evidence](#3-research-evidence)
 4. [Decisions (Recorded)](#4-decisions-recorded)
+   - [4.1 Backend selection](#41-backend-selection-hybrid-registry--config-leaning-runtime)
+   - [4.2 Redesign scope](#42-redesign-scope-parallel-new-alongside-old-gradual-migration)
+   - [4.3 Backend abstraction](#43-backend-abstraction-n-instance-metaengine-with-operator-configured-grouping)
+   - [4.4 Admin web interface](#44-admin-web-interface-introspection-api-only)
+   - [4.5 Scream store](#45-scream-store-tiered-enforcement)
    - [4.6 System scope](#46-system-scope-layered-full-owns-all-infrastructure)
    - [4.7 Config format](#47-config-format-go-struct--yaml--env-via-koanf)
    - [4.8 Migration path](#48-migration-path-gradual-new-system-module)
@@ -33,14 +38,27 @@
    - [4.11 Config separation](#411-config-separation-domainconfig--deploymentconfig)
    - [4.12 Snapshot storage](#412-snapshot-storage-new-snapshotbackend-interface)
 5. [The Key Insight: Multi-Instance Metaengine](#5-the-key-insight-multi-instance-metaengine)
+   - [5.1 The mistake that was corrected](#51-the-mistake-that-was-corrected)
+   - [5.2 Verification: the Log ADT already exists](#52-verification-the-log-adt-already-exists)
+   - [5.3 Why each objection dissolves](#53-why-each-objection-dissolves)
+   - [5.4 Why N instances, not 2](#54-why-n-instances-not-2-the-invariant-constraint-argument)
    - [5.5 Cache Tier](#55-the-cache-tier-zfs-arc-for-immutable-events)
    - [5.6 The 4th Dimension: Time](#56-the-4th-dimension-time)
 6. [Target Architecture](#6-target-architecture)
 7. [Operator Configuration Surface](#7-operator-configuration-surface)
+   - [7.1 Driver registry](#71-driver-registry-the-databasesql-model)
+   - [7.2 Config format](#72-config-format)
+   - [7.3 HTTP admin runtime config](#73-http-admin-runtime-config)
+   - [7.4 Multi-DB SQLite](#74-multi-db-sqlite-goal-g5)
    - [7.5 Bus driver registry](#75-bus-driver-registry)
    - [7.6 Cache tier wrapper](#76-cache-tier-wrapper-implementation-sketch)
 8. [Introspection API (for cqrs-htmx)](#8-introspection-api-for-cqrs-htmx)
 9. [Scream Store (Safety Model)](#9-scream-store-safety-model)
+   - [9.1 Concept](#91-concept)
+   - [9.2 Architecture](#92-architecture)
+   - [9.3 The pinned manifest](#93-the-pinned-manifest)
+   - [9.4 Unsafe changes](#94-unsafe-changes-the-scream-store-catches)
+   - [9.5 Implementation building blocks](#95-implementation-building-blocks-all-exist)
    - [9.6 Operator-facing API](#96-operator-facing-api)
 10. [Open Questions](#10-open-questions)
 11. [Glossary](#11-glossary)
@@ -87,7 +105,7 @@ Expanded in the second conversation:
 > (and prevents failures) if an Operator makes a metaengine change that
 > is unsafe.
 
-### Goal decomposition (six requirements)
+### Goal decomposition (ten requirements)
 
 | #   | Requirement                                                        | Source         |
 | --- | ------------------------------------------------------------------ | -------------- |
@@ -1100,6 +1118,17 @@ var taskViews = metaengine.Query[ListTasks, TaskView]("task_views",
     metaengine.FilterOnField[TaskView]("status", metaengine.FilterEq),
 )
 
+var taskCounts = metaengine.Query[ListTasks, map[string]int64]("task_counts",
+    metaengine.OnEvent("task.created", TaskCreated{},
+        func(_ id.StreamID, _ TaskCreated) metaengine.Delta {
+            return metaengine.Delta{"total": +1}
+        }),
+    metaengine.OnEvent("task.completed", TaskCompleted{},
+        func(_ id.StreamID, _ TaskCompleted) metaengine.Delta {
+            return metaengine.Delta{"completed": +1}
+        }),
+)
+
 // 6. Domain middleware (validation, authorization — consumer's concern)
 sys.UseCommandMiddleware(
     validation.Middleware,
@@ -1129,13 +1158,14 @@ sys, err := system.New(ctx,
 // Minimal: one instance per layer, single bus
 sys, err := system.New(ctx, domain,
     system.DeploymentConfig{
-        "primary":   {Driver: "sqlite", DSN: "file:app.db"},
-        "hot-cache": {Driver: "memory"},
-    },
-    Buses: map[string]system.BusConfig{
-        "local": {Driver: "gochannel"},
-    },
-    Instances: []system.InstanceConfig{
+        Engines: map[string]system.EngineConfig{
+            "primary":   {Driver: "sqlite", DSN: "file:app.db"},
+            "hot-cache": {Driver: "memory"},
+        },
+        Buses: map[string]system.BusConfig{
+            "local": {Driver: "gochannel"},
+        },
+        Instances: []system.InstanceConfig{
         {
             Role:        system.RoleSourceOfTruth,
             Collections: []string{"events", "commands", "queries", "snapshots", "checkpoints"},
@@ -1157,7 +1187,6 @@ sys, err := system.New(ctx, domain,
 // Split: multi-bus (local + NATS), DuckDB for queries, graph on Pebble
 sys, err = system.New(ctx, domain,
     system.DeploymentConfig{
-    Queries:     registerQueries,
     Engines: map[string]system.EngineConfig{
         "primary":   {Driver: "sqlite", DSN: "file:events.db"},
         "analytics": {Driver: "duckdb", DSN: "file:analytics.db"},
@@ -1348,8 +1377,8 @@ config := system.DeploymentConfig{
 }
 
 // Or load via koanf (YAML + env merge):
-cfg, _ := system.LoadConfig("config.yaml")  // koanf-powered loader
-sys, _ := system.New(ctx, cfg)
+deployment, _ := system.LoadConfig("config.yaml")  // returns DeploymentConfig
+sys, _ := system.New(ctx, domain, deployment)       // domain = DomainConfig (consumer code)
 ```
 
 ### 7.3 HTTP admin runtime config
@@ -1554,11 +1583,12 @@ type CacheTierInfo struct {
 
 type InstanceRole string
 const (
-    RoleEvents      InstanceRole = "events"
-    RoleCommands    InstanceRole = "commands"
-    RoleQueries     InstanceRole = "queries"
-    RoleSnapshots   InstanceRole = "snapshots"
-    RoleProjections InstanceRole = "projections"
+    RoleSourceOfTruth InstanceRole = "source-of-truth" // combined events+commands+queries+snapshots+checkpoints
+    RoleEvents        InstanceRole = "events"
+    RoleCommands      InstanceRole = "commands"
+    RoleQueries       InstanceRole = "queries"
+    RoleSnapshots     InstanceRole = "snapshots"
+    RoleProjections   InstanceRole = "projections"
 )
 ```
 
@@ -1941,4 +1971,4 @@ names if needed.
 
 ---
 
-_End of document. All 10 open questions resolved. Implementation can begin._
+_End of document. All 11 open questions resolved. Implementation can begin._

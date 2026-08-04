@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-04
+**Updated:** 2026-08-04 (M43+M44 completed)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -218,9 +218,9 @@ and is **never** duplicated here.
 - [ ] **Pin GitHub Actions to commit SHAs** — 72+ unpinned actions
       (supply-chain risk).
 
-- [ ] **Regenerate API-stability golden** — `docs/api_surface.txt` at 3186
-      exports; C040/C039/scorecard/group-by added exported symbols since last
-      golden regen. Run `cd cmd/api-stability && GOWORK=off go run main.go -update`.
+- [x] **Regenerate API-stability golden** — regenerated 2026-08-04 (3211
+      exports after `scheduling/sqlstore` added 13). Re-run if new exported
+      symbols are added: `cd cmd/api-stability && GOWORK=off go run . -update`.
 
 - [ ] **Update CONTRIBUTING.md** — JSONC config loader, `explain` subcommand,
       `scorecard` feature, and `--group-by` flag are undocumented in the
@@ -248,12 +248,34 @@ and is **never** duplicated here.
 - [ ] **Turso sync VM test** — real libSQL server. (M40)
 - [ ] **Go test binaries inside QEMU VM** — deeper coverage. (M41)
 - [ ] **Pebble backup/restore lifecycle VM test** (M42)
-- [ ] **`projectionhost` crash-restart PG integration test** — verify
-      checkpoint replay after crash. (M43)
-- [ ] **`scheduling` durable timers across restarts test** — timer survives
-      process restart. (M44)
+- [x] **`projectionhost` crash-restart PG integration test** — verify
+      checkpoint replay after crash. **Done (M43):**
+      `projectionhost/pg_integration_test.go` proves checkpoint recovery
+      against real PG via `nix run .#integration-pg`. Host stops mid-replay,
+      new host resumes from persisted PG checkpoint (only new events
+      processed). Wired into `ephemeral-pg.sh` PG_MODULES.
+      (M43)
+- [x] **`scheduling` durable timers across restarts test** — timer survives
+      process restart. **Done (M44):** new `scheduling/sqlstore/` module with
+      `SQLTimerStore[P]` (SQLite/Postgres/MySQL). Two restart tests prove
+      timers survive DB close→reopen + full Scheduler recovery of overdue
+      timers. 7 tests, all pass with `-race`.
+      (M44)
 - [ ] **Contract test suite across ALL backends in VMs** — SQLite, PG, MySQL,
       DuckDB simultaneously. (M46)
+- [ ] **Add `scheduling/sqlstore` to PG integration suite** — the Postgres
+      dialect path (`NewPostgresStore`, native `time.Time`, `$N` placeholders,
+      `BYTEA`) is entirely untested against real PG. Add to
+      `scripts/ephemeral-pg.sh` PG_MODULES + write PG restart durability test.
+      Evidence: `scheduling/sqlstore/store.go` DialectPostgres branch.
+- [ ] **MySQL syntax test for `scheduling/sqlstore`** — `idempotency/sqlstore`
+      ships `mysql_queries_test.go` verifying backtick quoting, `ON DUPLICATE
+      KEY UPDATE`, `IF()` without a live MySQL connection. `scheduling/sqlstore`
+      has `mysqlQueries()` but no equivalent syntax test.
+      Evidence: `scheduling/sqlstore/store.go:80`.
+- [ ] **`scheduling/sqlstore` property + concurrency tests** — concurrent
+      Schedule/MarkFired/Due races are untested. Add `rapid`-based property
+      test following the `idempotency/sqlstore/property_test.go` pattern.
 - [ ] **Ephemeral Redis/NATS for future integration tests** — Watermill adapter
       testing with real brokers. (M47)
 - [ ] **`scripts/test-integration.sh` aggregator** — auto-detect best strategy

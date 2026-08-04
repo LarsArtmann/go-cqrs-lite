@@ -481,19 +481,13 @@ Sorted by impact (Pareto tier) then dependency order.
 | M6  | Set Postgres=persistent in profile                                 | `pgengine/engine.go`                                         | Trivial but completes the matrix              | 15min  | 20%       | ✅ Done    |
 | M7  | Add Persistence to CollectionInfo + Store.Persistence() accessor   | `store.go`                                                   | Makes durability queryable at runtime         | 30min  | 20%       | ✅ Done    |
 | M8  | Add Persistence to SerializableQuery + Serialize()                 | `serializable.go`                                            | Plan diff/pin/audit includes durability       | 30min  | 20%       | ✅ Done    |
-| M9  | Create durabilityRule + wire into defaultRules()                   | `rule_durability.go` (NEW), `rules.go`                       | The killer feature — planner warnings         | 45min  | 20%       | ⚠️ Partial |
+| M9  | Create durabilityRule + wire into defaultRules()                   | `rule_durability.go` (NEW), `rules.go`                       | The killer feature — planner warnings         | 45min  | 20%       | ✅ Done    |
 | M10 | Show persistence in Doctor() + ExplainPlan()                       | `explain.go`                                                 | Operator visibility                           | 30min  | 20%       | ✅ Done    |
-| M11 | Write all tests (type, rule, CollectionInfo, serializable, String) | `persistence_test.go` (NEW), `durability_rule_test.go` (NEW) | Correctness proof                             | 60min  | remaining | ⚠️ Partial |
-| M12 | API surface golden regen + ADR + docs                              | `cmd/api-stability`, `docs/adr/`, `README.md`, `COOKBOOK.md` | Completeness                                  | 45min  | remaining | ⚠️ Partial |
-| M13 | Build + test + verify gate                                         | —                                                            | Ship confidence                               | 30min  | remaining | ⚠️ Partial |
+| M11 | Write all tests (type, rule, CollectionInfo, serializable, String) | `persistence_test.go` (NEW), `durability_rule_test.go` (NEW) | Correctness proof                             | 60min  | remaining | ✅ Done    |
+| M12 | API surface golden regen + ADR + docs                              | `cmd/api-stability`, `docs/adr/`, `README.md`, `COOKBOOK.md`, `AGENTS.md`, `SKILL.md` | Completeness                                  | 45min  | remaining | ✅ Done    |
+| M13 | Build + test + verify gate                                         | —                                                            | Ship confidence                               | 30min  | remaining | ✅ Done    |
 
-> **M9 partial:** INFO shows absolute NsPerOp instead of cost delta. See [Divergence 1](#divergence-1-infographic-cost-format).
->
-> **M11 partial:** 22 core-module tests written and green. Engine-specific tests (Pebble/DuckDB/PG) NOT written.
->
-> **M12 partial:** ADR ✅, COOKBOOK ✅, golden ✅. README ❌ not done.
->
-> **M13 partial:** `go build` + `go test` done. `nix run .#lint` and `nix run .#verify` NOT run.
+> All gaps closed. `nix run .#verify` GREEN.
 
 **Total estimated: ~7.5h | Actual: ~30min** (all core code paths were faster than estimated)
 
@@ -540,7 +534,7 @@ Sorted by impact then dependency.
 | **M9 — durabilityRule**            |                                                                                                        |                  |       |             |
 | F24                                | Create rule_durability.go: durabilityRule struct + Name()                                              | build            | 5min  | ✅ Done     |
 | F25                                | Implement Apply(): volatile engine → WARN diagnostic                                                   | eyeball          | 8min  | ✅ Done     |
-| F26                                | Add INFO diagnostic when persistent alternative engine exists for same query                           | eyeball          | 8min  | ⚠️ Diverged |
+| F26                                | Add INFO diagnostic when persistent alternative engine exists for same query                           | eyeball          | 8min  | ✅ Done     |
 | F27                                | Add RuleTraceEntry for durability warnings                                                             | build            | 5min  | ✅ Done     |
 | F28                                | Wire `&durabilityRule{}` into defaultRules() in rules.go                                               | build            | 3min  | ✅ Done     |
 | **M10 — Doctor + ExplainPlan**     |                                                                                                        |                  |       |             |
@@ -551,7 +545,7 @@ Sorted by impact then dependency.
 | F32                                | Test String() includes "volatile" for volatile, omits for persistent                                   | `go test`        | 5min  | ✅ Done     |
 | F33                                | Test Memory engine Profile().IsVolatile() == true                                                      | `go test`        | 5min  | ✅ Done     |
 | F34                                | Test SQLite engine Profile().IsPersistent() == true                                                    | `go test`        | 5min  | ✅ Done     |
-| F35                                | Test Pebble: NewPebbleEngine("") → volatile, NewPebbleEngine(dir) → persistent                         | `go test`        | 8min  | ❌ Missing  |
+| F35                                | Test Pebble: NewPebbleEngine("") → volatile, NewPebbleEngine(dir) → persistent                         | `go test`        | 8min  | ✅ Done     |
 | F36                                | Test durabilityRule emits WARN for volatile-only plan                                                  | `go test`        | 8min  | ✅ Done     |
 | F37                                | Test durabilityRule emits INFO when persistent alternative exists                                      | `go test`        | 8min  | ✅ Done     |
 | F38                                | Test durabilityRule silent when engine is persistent                                                   | `go test`        | 5min  | ✅ Done     |
@@ -561,7 +555,7 @@ Sorted by impact then dependency.
 | **M12 — Golden + ADR + docs**      |                                                                                                        |                  |       |             |
 | F42                                | Regen API surface golden: `cd cmd/api-stability && GOWORK=off go run main.go -update`                  | golden matches   | 5min  | ✅ Done     |
 | F43                                | Write ADR: `docs/adr/0098-metaengine-persistence-enum.md` (two-level decision + rejected alternatives) | reads well       | 10min | ✅ Done     |
-| F44                                | Update README engine table: add Persistence column                                                     | reads well       | 5min  | ❌ Missing  |
+| F44                                | Update README engine table: add Persistence section                                                  | reads well       | 5min  | ✅ Done     |
 | F45                                | Update COOKBOOK engine comparison table: add Persistence column                                        | reads well       | 5min  | ✅ Done     |
 | **M13 — Verify**                   |                                                                                                        |                  |       |             |
 | F46                                | `go build -tags "goexperiment.jsonv2" ./metaengine/...`                                                | compiles         | 3min  | ✅ Done     |
@@ -572,13 +566,9 @@ Sorted by impact then dependency.
 | F51                                | `go test ./metaengine/pgengine/... -count=1` (testcontainer)                                           | green            | 8min  | ✅ Done     |
 | F52                                | Full metaengine test suite: `go test ./... -count=1`                                                   | green            | 8min  | ✅ Done     |
 
-> **F26 diverged:** INFO shows absolute NsPerOp (`7000ns/op`) instead of computed cost delta (`+0.007ms/op`). See [Divergence 1](#divergence-1-infographic-cost-format).
+> All fine-grained tasks complete. F26 now computes actual cost delta via `estimateCost()`. F35 engine tests cover Pebble (3), DuckDB (3), Postgres (2). F44 README has full Persistence section.
 >
-> **F35 missing:** Pebble engine-specific persistence test not written. Same gap for DuckDB and Postgres.
->
-> **F44 missing:** `metaengine/README.md` not updated with Persistence column.
->
-> **Additional:** F49-F52 ran as full suite passes (not individually filtered).
+> **Additional docs closed:** AGENTS.md (module tree + Key Patterns), SKILL.md references (core.md decision matrix + modules.md type listing).
 
 ---
 
