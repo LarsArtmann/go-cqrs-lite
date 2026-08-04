@@ -34,8 +34,11 @@
    - [5.6 The 4th Dimension: Time](#56-the-4th-dimension-time)
 6. [Target Architecture](#6-target-architecture)
 7. [Operator Configuration Surface](#7-operator-configuration-surface)
+   - [7.5 Bus driver registry](#75-bus-driver-registry)
+   - [7.6 Cache tier wrapper](#76-cache-tier-wrapper-implementation-sketch)
 8. [Introspection API (for cqrs-htmx)](#8-introspection-api-for-cqrs-htmx)
 9. [Scream Store (Safety Model)](#9-scream-store-safety-model)
+   - [9.6 Operator-facing API](#96-operator-facing-api)
 10. [Open Questions](#10-open-questions)
 11. [Glossary](#11-glossary)
 
@@ -1606,6 +1609,79 @@ manifest. This is directly analogous to `cmd/api-stability`:
 - `Manifest` type (pinned plan + metadata)
 - `SCREAM` severity level on `Diagnostics`
 - Safety rules (the table above, codified)
+
+### 9.6 Operator-facing API
+
+The scream store exposes its findings through the introspection API and the
+config loader. The operator interacts with it in three contexts:
+
+**On startup (automatic):**
+
+```go
+// system.New runs the scream store check automatically.
+sys, err := system.New(ctx, config)
+if errors.Is(err, screamstore.ErrUnsafeChange) {
+    // SCREAM-tier change detected. System refuses to start.
+    // The error lists every SCREAM violation with details.
+    log.Fatal(err)
+}
+// If only WARN+OVERRIDE diagnostics exist, system.New succeeds but
+// logs loudly. The operator must ACK via the override flag.
+```
+
+**Override flag (ACK for WARN+OVERRIDE):**
+
+```go
+// YAML: acknowledge risky changes explicitly
+config := system.Config{
+    // ...
+    AcknowledgeWarnings: []string{
+        "durability-downgrade:events",        // acknowledge Strict→Normal on events
+        "replicated-to-standalone:graph-lsm", // acknowledge replica loss
+    },
+}
+// Or via env: CQRS_ACKNOWLEDGE_WARNINGS=durability-downgrade:events,...
+// Or via CLI: --acknowledge-warning durability-downgrade:events
+```
+
+**Runtime inspection (via introspection API):**
+
+```go
+// System.ScreamReport returns the current safety status.
+report := sys.ScreamReport()
+for _, d := range report.Diagnostics {
+    switch d.Tier {
+    case screamstore.TierScream:
+        // Hard block — should never appear (system refused to start)
+    case screamstore.TierWarnOverride:
+        log.Warnf("ACKED: %s — %s", d.Rule, d.Detail)
+    case screamstore.TierAdvisory:
+        log.Infof("ADVISORY: %s — %s", d.Rule, d.Detail)
+    }
+}
+```
+
+**Scream store tier boundary (from durability research):**
+
+Based on codebase analysis of SQLite PRAGMAs, Postgres synchronous_commit, and
+Pebble WAL settings:
+
+| Change | Tier | Justification |
+| --- | --- | --- |
+| Removing persistent engine (data loss) | **SCREAM** | Collections silently empty on restart — irreversible |
+| Changing projection key type | **SCREAM** | Existing rows unfindable — silent data corruption |
+| Changing ADT for existing collection | **SCREAM** | Stored shape incompatible — read failure |
+| SQLite `synchronous=OFF` on source-of-truth | **SCREAM** | Power loss can **corrupt** the DB file (not just data loss) |
+| Durability Strict→Normal (SQLite WAL) | **WARN+OVERRIDE** | Safe against app/OS crash; loses checkpoint window on power loss only |
+| Durability Strict→Normal (Postgres) | **WARN+OVERRIDE** | Safe against app crash; loses ~200ms on power loss |
+| Replicated → non-replicated swap | **WARN+OVERRIDE** | Consistency loss — operator must ACK |
+| Adding volatile cache tier | **ADVISORY** | Cache is read-only — data is safe, read path changes |
+| Durability downgrade on projections | **ADVISORY** | Projections are rebuildable from event log |
+
+The key insight from the research: SQLite `synchronous=NORMAL` (WAL mode) is
+safe against app and OS crashes — only power loss has a small data window.
+This is fundamentally different from `synchronous=OFF` which can corrupt the
+database. The scream store treats these as different tiers accordingly.
 
 ---
 
