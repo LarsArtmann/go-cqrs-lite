@@ -1,8 +1,9 @@
 # Metaengine Persistence Enum
 
-> **STATUS:** IMPLEMENTED — ADR-0098.
+> **STATUS:** COMPLETE — all gaps closed. ADR-0098.
 > Created: 2026-08-04 07:15
 > Implemented: 2026-08-04 07:42
+> Gaps closed: 2026-08-04 10:15 (durabilityRule cost delta, engine tests, README/AGENTS/SKILL docs, lint+verify GREEN)
 >
 > **Status report:** [`docs/status/2026-08-04_07-45_METAENGINE-PERSISTENCE-ENUM-IMPLEMENTED.md`](../status/2026-08-04_07-45_METAENGINE-PERSISTENCE-ENUM-IMPLEMENTED.md)
 
@@ -17,22 +18,25 @@
 | All 5 engines declare persistence | ✅ Done    | Memory, SQLite, Pebble (dynamic), DuckDB (dynamic), Postgres                                                           |
 | CollectionInfo + Store accessor   | ✅ Done    | `Store.Persistence(queryName)`                                                                                         |
 | SerializableQuery                 | ✅ Done    | JSON tag `persistence,omitempty`                                                                                       |
-| durabilityRule                    | ⚠️ Partial | WARN + INFO work; INFO shows absolute NsPerOp not cost delta (see [divergence](#divergence-1-infographic-cost-format)) |
+| durabilityRule                    | ✅ Done    | WARN + INFO with computed cost delta (`+Xms/query`)                                                                   |
 | Doctor() + ExplainPlan()          | ✅ Done    | `--- Persistence ---` section, `volatile` suffix                                                                       |
 | Tests (core module)               | ✅ Done    | 22 tests, all green, `-race` clean                                                                                     |
-| Tests (engine modules)            | ❌ Missing | Pebble/DuckDB/PG engine-specific persistence tests not written                                                         |
+| Tests (engine modules)            | ✅ Done    | Pebble (3 tests), DuckDB (3 tests), Postgres (2 tests) — all green                                                     |
 | API surface golden                | ✅ Done    | 6 new symbols, api-stability test passes                                                                               |
 | ADR                               | ✅ Done    | `docs/adr/0098-metaengine-persistence-enum.md`                                                                         |
 | COOKBOOK.md                       | ✅ Done    | 5-engine table with Persistence column                                                                                 |
-| README.md                         | ❌ Missing | Zero mentions of Persistence                                                                                           |
-| AGENTS.md                         | ❌ Missing | Zero mentions of Persistence                                                                                           |
-| SKILL.md references               | ❌ Missing | Consumer-facing skill docs not updated                                                                                 |
-| `nix run .#lint`                  | ❌ Not run | Only `gofumpt`/`goimports` checked locally                                                                             |
-| `nix run .#verify`                | ❌ Not run | Full quality gate not executed                                                                                         |
+| README.md                         | ✅ Done    | Full Persistence section with constructor mapping table, planner rule docs, inspection examples                         |
+| AGENTS.md                         | ✅ Done    | Module tree comment + Key Patterns code example with Persistence API                                                   |
+| SKILL.md references               | ✅ Done    | `core.md` decision matrix row + `modules.md` type listing updated                                                      |
+| `nix run .#lint`                  | ✅ Done    | 0 issues in metaengine + all engine modules                                                                            |
+| `nix run .#verify`                | ✅ Done    | Full quality gate GREEN (build+vet+test+race+lint+doc-check)                                                           |
 
-### Divergences from Plan
+### Resolved Divergences
 
-#### Divergence 1: INFO diagnostic cost format
+All four divergences from the initial implementation have been resolved in a
+two-step process:
+
+#### ~~Divergence 1: INFO diagnostic cost format~~ (RESOLVED)
 
 **Planned:**
 
@@ -41,37 +45,37 @@ INFO  query "find_user" routed to volatile engine "memory"
       (persistent alternative available: "sqlite" at O(logN), +0.007ms/op)
 ```
 
-**Actual:**
+**Now implemented (cost delta):**
 
 ```
 INFO  routed to volatile engine "memory" — data lost on restart
-      (persistent alternative: sqlite at O(logN), 7000ns/op)
+      (persistent alternative: sqlite at O(logN), +0.007ms/query)
 ```
 
-The plan specified a **cost delta** (`+0.007ms/op` = how much slower the
-persistent alternative would be for this query's volume). The implementation
-shows the alternative's **absolute NsPerOp** instead. Computing the delta
-requires running `estimateCost()` for both engines with the query's volume,
-which adds complexity — deferred for now. The WARN path (no alternative) is
-fully correct.
+The rule now computes the actual latency cost delta by calling `estimateCost()`
+for both the volatile and persistent engines with the query's volume and read
+pattern, then subtracting: `deltaMs = altCost - currentCost`. This gives the
+operator the exact per-query latency cost of switching to the durable engine.
 
-#### Divergence 2: README.md not updated
+#### ~~Divergence 2: README.md not updated~~ (RESOLVED)
 
-The plan listed `metaengine/README.md` in the file manifest. **Skipped during
-implementation.** Zero mentions of Persistence remain in the README.
+`metaengine/README.md` now has a full **Persistence (Survivability)** section
+with constructor mapping table, planner durability rule documentation, and
+inspection examples (Profile, Store.Persistence, Doctor).
 
-#### Divergence 3: Engine-specific tests not written
+#### ~~Divergence 3: Engine-specific tests not written~~ (RESOLVED)
 
-The plan listed F35 (Pebble), F36-F38 (implied DuckDB/PG) for engine-specific
-persistence tests. **None written.** The core module tests cover
-`fakeEngine` + Memory + SQLite profile, but not the actual Pebble/DuckDB/PG
-constructor behavior.
+Engine-specific persistence tests written for all three dynamic engines:
+- Pebble: `persistence_test.go` (3 tests — in-memory volatile, on-disk persistent, FromDB persistent)
+- DuckDB: `persistence_cgo_test.go` (3 tests — in-memory volatile, on-disk persistent, FromDB persistent)
+- Postgres: `persistence_test.go` (2 tests — New persistent, FromDB persistent)
 
-#### Divergence 4: Full lint/verify gate not run
+All 8 engine tests pass green.
 
-Only `go build`, `go test`, `gofumpt`, `goimports` were run locally.
-`nix run .#lint` (golangci-lint via treefmt) and `nix run .#verify` (full
-quality gate) were **not executed**.
+#### ~~Divergence 4: Full lint/verify gate not run~~ (RESOLVED)
+
+Both `nix run .#lint` (0 issues in metaengine modules) and `nix run .#verify`
+(full quality gate: build+vet+test+race+lint+doc-check) now pass GREEN.
 
 ---
 
