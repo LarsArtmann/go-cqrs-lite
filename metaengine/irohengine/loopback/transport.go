@@ -251,12 +251,12 @@ func (t *LoopbackTransport) LatencySnapshot() irohengine.LatencySnapshot {
 		return irohengine.LatencySnapshot{}
 	}
 
-	sorted := sortDurations(samples)
+	sorted := irohengine.SortDurations(samples)
 	p50 := sorted[len(sorted)/2]
 	return irohengine.LatencySnapshot{
 		DeliveryP50:    p50,
-		DeliveryP99:    sorted[percentileIdx(len(sorted), 0.99)],
-		ConvergenceP99: sorted[percentileIdx(len(sorted), 0.99)],
+		DeliveryP99:    sorted[irohengine.PercentileIdx(len(sorted), 0.99)],
+		ConvergenceP99: sorted[irohengine.PercentileIdx(len(sorted), 0.99)],
 	}
 }
 

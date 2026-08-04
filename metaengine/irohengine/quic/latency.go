@@ -25,12 +25,12 @@ func (t *QuicTransport) LatencySnapshot() irohengine.LatencySnapshot {
 		return irohengine.LatencySnapshot{}
 	}
 
-	sorted := sortDurations(samples)
+	sorted := irohengine.SortDurations(samples)
 	rtt := sorted[len(sorted)/2] // P50
 	return irohengine.LatencySnapshot{
 		DeliveryP50:    rtt / 2, // one-way approx RTT/2
-		DeliveryP99:    sorted[percentileIdx(len(sorted), 0.99)] / 2,
-		ConvergenceP99: sorted[percentileIdx(len(sorted), 0.99)],
+		DeliveryP99:    sorted[irohengine.PercentileIdx(len(sorted), 0.99)] / 2,
+		ConvergenceP99: sorted[irohengine.PercentileIdx(len(sorted), 0.99)],
 	}
 }
 
@@ -81,25 +81,3 @@ var opDecMode = func() cbor.DecMode {
 	return dm
 }()
 
-// --- Helpers ---
-
-func sortDurations(d []time.Duration) []time.Duration {
-	cp := append([]time.Duration(nil), d...)
-	for i := 1; i < len(cp); i++ {
-		for j := i; j > 0 && cp[j-1] > cp[j]; j-- {
-			cp[j-1], cp[j] = cp[j], cp[j-1]
-		}
-	}
-	return cp
-}
-
-func percentileIdx(n int, p float64) int {
-	idx := int(float64(n-1) * p)
-	if idx >= n {
-		idx = n - 1
-	}
-	if idx < 0 {
-		idx = 0
-	}
-	return idx
-}

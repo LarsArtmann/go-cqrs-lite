@@ -60,6 +60,39 @@ func writeSectionHeader(b *strings.Builder, title string) {
 	b.WriteString("\n")
 }
 
+// renderKeyTable writes a 4-column aligned table: three padded columns plus
+// an unpadded description column. Column widths are auto-computed from the
+// header and row content. Terminated by a blank line. Shared by
+// renderTopLevelKeys and renderFeatures.
+func renderKeyTable(b *strings.Builder, headers [4]string, rows [][4]string) {
+	w0, w1, w2 := len(headers[0]), len(headers[1]), len(headers[2])
+
+	for _, r := range rows {
+		if len(r[0]) > w0 {
+			w0 = len(r[0])
+		}
+		if len(r[1]) > w1 {
+			w1 = len(r[1])
+		}
+		if len(r[2]) > w2 {
+			w2 = len(r[2])
+		}
+	}
+
+	fmt.Fprintf(b, "  %-*s  %-*s  %-*s  %s\n",
+		w0, headers[0], w1, headers[1], w2, headers[2], headers[3])
+	fmt.Fprintf(b, "  %s  %s  %s  %s\n",
+		strings.Repeat("─", w0), strings.Repeat("─", w1),
+		strings.Repeat("─", w2), strings.Repeat("─", len(headers[3])))
+
+	for _, r := range rows {
+		fmt.Fprintf(b, "  %-*s  %-*s  %-*s  %s\n",
+			w0, r[0], w1, r[1], w2, r[2], r[3])
+	}
+
+	b.WriteString("\n\n")
+}
+
 func renderConfigFileSection(b *strings.Builder) {
 	writeSectionHeader(b, "CONFIG FILE")
 	b.WriteString("  Location:  .cqrs-lint.json (in the directory where you run cqrs-lint)\n")
@@ -120,44 +153,12 @@ var topLevelKeys = []topLevelKey{
 func renderTopLevelKeys(b *strings.Builder) {
 	writeSectionHeader(b, "TOP-LEVEL KEYS")
 
-	keyWidth := len("Key")
-	typeWidth := len("Type")
-	defWidth := len("Default")
-
-	for _, k := range topLevelKeys {
-		if len(k.key) > keyWidth {
-			keyWidth = len(k.key)
-		}
-		if len(k.typ) > typeWidth {
-			typeWidth = len(k.typ)
-		}
-		if len(k.def) > defWidth {
-			defWidth = len(k.def)
-		}
+	rows := make([][4]string, len(topLevelKeys))
+	for i, k := range topLevelKeys {
+		rows[i] = [4]string{k.key, k.typ, k.def, k.description}
 	}
 
-	header := fmt.Sprintf("  %-*s  %-*s  %-*s  %s\n",
-		keyWidth, "Key",
-		typeWidth, "Type",
-		defWidth, "Default",
-		"Description")
-	b.WriteString(header)
-	sep := fmt.Sprintf("  %s  %s  %s  %s\n",
-		strings.Repeat("─", keyWidth),
-		strings.Repeat("─", typeWidth),
-		strings.Repeat("─", defWidth),
-		strings.Repeat("─", len("Description")))
-	b.WriteString(sep)
-
-	for _, k := range topLevelKeys {
-		fmt.Fprintf(b, "  %-*s  %-*s  %-*s  %s\n",
-			keyWidth, k.key,
-			typeWidth, k.typ,
-			defWidth, k.def,
-			k.description)
-	}
-
-	b.WriteString("\n\n")
+	renderKeyTable(b, [4]string{"Key", "Type", "Default", "Description"}, rows)
 }
 
 func renderPresets(b *strings.Builder) {
@@ -304,43 +305,12 @@ func renderFeatures(b *strings.Builder) {
 	b.WriteString("  ones you want to pin; unset flags use auto-detection.\n")
 	b.WriteString("\n")
 
-	keyWidth := len("Key")
-	typeWidth := len("Type")
-	valWidth := 0
-
-	for _, f := range featureKeys {
-		if len(f.key) > keyWidth {
-			keyWidth = len(f.key)
-		}
-		if len(f.typ) > typeWidth {
-			typeWidth = len(f.typ)
-		}
-		vw := len(strings.Join(f.validValues, ", "))
-		if vw > valWidth {
-			valWidth = vw
-		}
+	rows := make([][4]string, len(featureKeys))
+	for i, f := range featureKeys {
+		rows[i] = [4]string{f.key, f.typ, strings.Join(f.validValues, ", "), f.description}
 	}
 
-	fmt.Fprintf(b, "  %-*s  %-*s  %-*s  %s\n",
-		keyWidth, "Key",
-		typeWidth, "Type",
-		valWidth, "Valid Values",
-		"Description")
-	fmt.Fprintf(b, "  %s  %s  %s  %s\n",
-		strings.Repeat("─", keyWidth),
-		strings.Repeat("─", typeWidth),
-		strings.Repeat("─", valWidth),
-		strings.Repeat("─", len("Description")))
-
-	for _, f := range featureKeys {
-		fmt.Fprintf(b, "  %-*s  %-*s  %-*s  %s\n",
-			keyWidth, f.key,
-			typeWidth, f.typ,
-			valWidth, strings.Join(f.validValues, ", "),
-			f.description)
-	}
-
-	b.WriteString("\n\n")
+	renderKeyTable(b, [4]string{"Key", "Type", "Valid Values", "Description"}, rows)
 }
 
 // ruleConfigKey describes one rules.* config key.

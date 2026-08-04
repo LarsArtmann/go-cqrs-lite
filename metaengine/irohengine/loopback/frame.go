@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"time"
 )
 
 // writeFrame writes a length-prefixed message to w.
@@ -51,27 +50,3 @@ func readFrame(r io.Reader) ([]byte, error) {
 
 // errFrameTooLarge is returned when a received frame exceeds maxOpSize.
 var errFrameTooLarge = errors.New("frame too large")
-
-func sortDurations(d []time.Duration) []time.Duration {
-	cp := append([]time.Duration(nil), d...)
-	for i := 1; i < len(cp); i++ {
-		for j := i; j > 0 && cp[j-1] > cp[j]; j-- {
-			cp[j-1], cp[j] = cp[j], cp[j-1]
-		}
-	}
-
-	return cp
-}
-
-func percentileIdx(n int, p float64) int {
-	idx := int(float64(n-1) * p)
-	if idx >= n {
-		idx = n - 1
-	}
-
-	if idx < 0 {
-		idx = 0
-	}
-
-	return idx
-}
