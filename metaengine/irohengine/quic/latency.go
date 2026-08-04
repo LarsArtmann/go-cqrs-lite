@@ -4,6 +4,7 @@ package quic
 
 import (
 	"encoding/json/v2"
+	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
@@ -43,13 +44,21 @@ func (t *QuicTransport) recordRTT(d time.Duration) {
 // --- Codec ---
 
 func encodeOp(op irohengine.WriteOp) ([]byte, error) {
-	return json.Marshal(op)
+	data, err := json.Marshal(op)
+	if err != nil {
+		return nil, fmt.Errorf("encode writeop: %w", err)
+	}
+
+	return data, nil
 }
 
 func decodeOp(data []byte) (irohengine.WriteOp, error) {
 	var op irohengine.WriteOp
-	err := json.Unmarshal(data, &op)
-	return op, err
+	if err := json.Unmarshal(data, &op); err != nil {
+		return irohengine.WriteOp{}, fmt.Errorf("decode writeop: %w", err)
+	}
+
+	return op, nil
 }
 
 // --- Helpers ---

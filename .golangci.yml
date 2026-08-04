@@ -344,6 +344,13 @@ linters:
           - forbidigo
           - exhaustruct
           - wrapcheck
+      - path: metaengine/irohengine/quic/demo/
+        linters:
+          - forbidigo
+          - errcheck
+          - gocritic
+          - revive
+          - unused
       - path: testhelpers/fake.*\.go$
         linters:
           - exhaustruct

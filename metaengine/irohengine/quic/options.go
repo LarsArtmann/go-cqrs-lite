@@ -17,7 +17,7 @@ type config struct {
 func defaultConfig() *config {
 	return &config{
 		alpn:     DefaultALPN,
-		presetFn: func() iroh_ffi.Preset { return iroh_ffi.PresetN0() },
+		presetFn: iroh_ffi.PresetN0,
 		bindAddr: "0.0.0.0:0",
 		relay:    false,
 	}
@@ -34,7 +34,7 @@ func WithALPN(alpn []byte) Option {
 // (no relay servers, 127.0.0.1 bind). Ideal for tests and local demos.
 func WithLocalOnly() Option {
 	return func(c *config) {
-		c.presetFn = func() iroh_ffi.Preset { return iroh_ffi.PresetN0DisableRelay() }
+		c.presetFn = iroh_ffi.PresetN0DisableRelay
 		c.bindAddr = "127.0.0.1:0"
 	}
 }

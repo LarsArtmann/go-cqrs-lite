@@ -16,7 +16,7 @@ import (
 
 // DefaultALPN is the Application-Layer Protocol Negotiation bytes used by all
 // QuicTransport endpoints. All nodes must share the same ALPN to connect.
-var DefaultALPN = []byte("irohengine/crdt/v1")
+var DefaultALPN = []byte("irohengine/crdt/v1") //nolint:gochecknoglobals // configurable default
 
 // maxOpSize is the maximum serialized WriteOp size accepted over a QUIC stream.
 // 16 MB is generous for CRDT ops while preventing memory exhaustion.
@@ -59,6 +59,8 @@ type peerConn struct {
 	conn   *iroh_ffi.Connection
 	peerID string
 }
+
+var errQuicTransportClosed = errors.New("transport closed")
 
 // New creates a QuicTransport by binding a real Iroh QUIC endpoint.
 // The endpoint starts listening immediately; use Ticket() to get the
@@ -103,7 +105,7 @@ func (t *QuicTransport) Ticket() (string, error) {
 	closed := t.closed
 	t.mu.RUnlock()
 	if closed {
-		return "", errors.New("transport closed")
+		return "", errQuicTransportClosed
 	}
 
 	ticket, err := iroh_ffi.EndpointTicketFromAddr(t.endpoint.Addr())
@@ -134,7 +136,7 @@ func (t *QuicTransport) Connect(ticketStr string) error {
 	closed := t.closed
 	t.mu.RUnlock()
 	if closed {
-		return errors.New("transport closed")
+		return errQuicTransportClosed
 	}
 
 	ticket, err := iroh_ffi.EndpointTicketFromString(ticketStr)

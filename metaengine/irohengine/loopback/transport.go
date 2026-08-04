@@ -71,6 +71,9 @@ type LoopbackTransport struct {
 	acceptWG sync.WaitGroup
 }
 
+// errTransportClosed is returned when an operation is attempted on a closed transport.
+var errTransportClosed = errors.New("transport closed")
+
 // Option configures a LoopbackTransport.
 type Option func(*config)
 
@@ -85,11 +88,11 @@ func WithAddr(addr string) Option {
 	return func(c *config) { c.addr = addr }
 }
 
-// WithSimulatedDelay injects random latency [0, max) into message delivery,
+// WithSimulatedDelay injects random latency [0, maxDelay) into message delivery.
 // useful for testing convergence behavior under network delay.
 // Zero means no delay (messages delivered as fast as TCP allows).
-func WithSimulatedDelay(max time.Duration) Option {
-	return func(c *config) { c.maxDelay = max }
+func WithSimulatedDelay(maxDelay time.Duration) Option {
+	return func(c *config) { c.maxDelay = maxDelay }
 }
 
 // New creates a LoopbackTransport by binding a real TCP listener.
@@ -101,7 +104,7 @@ func New(opts ...Option) (*LoopbackTransport, error) {
 		opt(cfg)
 	}
 
-	listener, err := net.Listen("tcp", cfg.addr)
+	listener, err := (&net.ListenConfig{}).Listen(context.Background(), "tcp", cfg.addr)
 	if err != nil {
 		return nil, fmt.Errorf("loopback listen failed: %w", err)
 	}
@@ -131,10 +134,10 @@ func (t *LoopbackTransport) Connect(addr string) error {
 	closed := t.closed
 	t.mu.RUnlock()
 	if closed {
-		return errors.New("transport closed")
+		return errTransportClosed
 	}
 
-	conn, err := net.Dial("tcp", addr)
+	conn, err := (&net.Dialer{}).DialContext(context.Background(), "tcp", addr)
 	if err != nil {
 		return fmt.Errorf("loopback connect failed: %w", err)
 	}
