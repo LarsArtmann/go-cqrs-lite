@@ -162,7 +162,13 @@ func BenchmarkMemoryStore_ReadWrite_Concurrent(b *testing.B) {
 
 		go func() {
 			defer wg.Done()
-			_, _ = store.ReadAll(ctx)
+			events, err := store.ReadAll(ctx)
+			if err != nil {
+				errOnce.Do(func() { firstErr = fmt.Errorf("ReadAll: %w", err) })
+			}
+			if len(events) == 0 {
+				errOnce.Do(func() { firstErr = fmt.Errorf("ReadAll returned empty") })
+			}
 		}()
 
 		go func() {
