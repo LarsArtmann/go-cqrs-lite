@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -12,6 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
 
 // New constructs a System from a DomainConfig (consumer) and a DeploymentConfig
@@ -234,22 +236,58 @@ func isSourceOfTruth(role InstanceRole) bool {
 
 // ─── D10: Generic registration functions ───
 
+// RegisterDeciderOption tunes decider registration.
+type RegisterDeciderOption func(*registerDeciderConfig)
+
+type registerDeciderConfig struct {
+	snapshotStrategy snapshot.SnapshotStrategy
+}
+
+// WithSnapshotStrategy sets the snapshot strategy for the decider. When the
+// engine implements SnapshotBackend, this enables automatic snapshot creation.
+// Without a strategy, the snapshot store is wired for reads but snapshots are
+// never written automatically.
+func WithSnapshotStrategy(s snapshot.SnapshotStrategy) RegisterDeciderOption {
+	return func(c *registerDeciderConfig) { c.snapshotStrategy = s }
+}
+
 // RegisterDecider registers a decider for a stream type. The System creates
 // a [decider.Repository] for it, backed by the EventAdapter.
 //
 // Multiple commands targeting the same stream type share the same repository
 // automatically — just call RegisterCommand with the same streamType in the
 // system.Execute call.
-func RegisterDecider[State any](sys *System, streamType string, d decider.Decider[State]) error {
+//
+// When the engine implements SnapshotBackend, the snapshot store and a default
+// JSON codec are wired automatically. Pass [WithSnapshotStrategy] to enable
+// automatic snapshot creation on writes.
+func RegisterDecider[State any](
+	sys *System,
+	streamType string,
+	d decider.Decider[State],
+	opts ...RegisterDeciderOption,
+) error {
 	if sys.eventStore == nil {
 		return errors.New("system: cannot register decider: no event store")
 	}
 
+	cfg := registerDeciderConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
 	var repoOpts []decider.RepositoryOption[State]
 
-	// Wire snapshot store if available (D12: snapshot support through System).
+	// Wire snapshot store + codec if available (D12: snapshot support through System).
 	if sys.snapStore != nil {
-		repoOpts = append(repoOpts, decider.WithSnapshotStore[State](sys.snapStore))
+		repoOpts = append(repoOpts,
+			decider.WithSnapshotStore[State](sys.snapStore),
+			decider.WithCodec[State](codec.JSONCodec{}),
+		)
+
+		if cfg.snapshotStrategy != nil {
+			repoOpts = append(repoOpts, decider.WithSnapshotStrategy[State](cfg.snapshotStrategy))
+		}
 	}
 
 	repo, err := decider.NewRepository(sys.eventStore, sys.pubBus, d, repoOpts...)

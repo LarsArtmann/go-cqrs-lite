@@ -3,10 +3,10 @@
 package quic
 
 import (
-	"encoding/json/v2"
 	"fmt"
 	"time"
 
+	"github.com/fxamacker/cbor/v2"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 )
 
@@ -43,8 +43,17 @@ func (t *QuicTransport) recordRTT(d time.Duration) {
 
 // --- Codec ---
 
+// opEncMode encodes time.Time as a dynamic Unix timestamp (integer when no
+// sub-second component, float64 otherwise) so LWW timestamp ordering survives
+// the wire round-trip. The default cbor.Marshal truncates time to whole seconds,
+// collapsing sub-second LWW comparisons into ties.
+var opEncMode = func() cbor.EncMode {
+	em, _ := cbor.EncOptions{Time: cbor.TimeUnixDynamic}.EncMode()
+	return em
+}()
+
 func encodeOp(op irohengine.WriteOp) ([]byte, error) {
-	data, err := json.Marshal(op)
+	data, err := opEncMode.Marshal(op)
 	if err != nil {
 		return nil, fmt.Errorf("encode writeop: %w", err)
 	}
@@ -54,7 +63,7 @@ func encodeOp(op irohengine.WriteOp) ([]byte, error) {
 
 func decodeOp(data []byte) (irohengine.WriteOp, error) {
 	var op irohengine.WriteOp
-	if err := json.Unmarshal(data, &op); err != nil {
+	if err := cbor.Unmarshal(data, &op); err != nil {
 		return irohengine.WriteOp{}, fmt.Errorf("decode writeop: %w", err)
 	}
 

@@ -18,13 +18,13 @@ package loopback
 
 import (
 	"context"
-	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"net"
 	"sync"
 	"time"
 
+	"github.com/fxamacker/cbor/v2"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 )
 
@@ -73,6 +73,15 @@ type LoopbackTransport struct {
 
 // errTransportClosed is returned when an operation is attempted on a closed transport.
 var errTransportClosed = errors.New("transport closed")
+
+// opEncMode encodes time.Time as a dynamic Unix timestamp (integer when no
+// sub-second component, float64 otherwise) so LWW timestamp ordering survives
+// the wire round-trip. The default cbor.Marshal truncates time to whole seconds,
+// collapsing sub-second LWW comparisons into ties.
+var opEncMode = func() cbor.EncMode {
+	em, _ := cbor.EncOptions{Time: cbor.TimeUnixDynamic}.EncMode()
+	return em
+}()
 
 // Option configures a LoopbackTransport.
 type Option func(*config)
@@ -165,7 +174,7 @@ func (t *LoopbackTransport) Publish(_ context.Context, op irohengine.WriteOp) er
 		op.PublishedAt = time.Now()
 	}
 
-	data, err := json.Marshal(op)
+	data, err := opEncMode.Marshal(op)
 	if err != nil {
 		return fmt.Errorf("encode op: %w", err)
 	}

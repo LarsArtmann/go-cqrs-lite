@@ -1,11 +1,11 @@
 package loopback
 
 import (
-	"encoding/json/v2"
 	"math/rand"
 	"net"
 	"time"
 
+	"github.com/fxamacker/cbor/v2"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 )
 
@@ -38,7 +38,7 @@ func (t *LoopbackTransport) handleConnection(conn net.Conn) {
 		}
 
 		var op irohengine.WriteOp
-		if err := json.Unmarshal(data, &op); err != nil {
+		if err := cbor.Unmarshal(data, &op); err != nil {
 			continue
 		}
 

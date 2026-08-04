@@ -301,6 +301,13 @@ func (s *System) EventStore() event.Store {
 	return s.eventStore
 }
 
+// SnapshotStore returns the snapshot store if the engine implements
+// SnapshotBackend, or nil otherwise. Consumers can use this to manage snapshots
+// directly (e.g., manual SaveSnapshot after batch imports).
+func (s *System) SnapshotStore() snapshot.SnapshotStore {
+	return s.snapStore
+}
+
 // Close shuts down all owned infrastructure: projection host, engines, stores.
 func (s *System) Close() error {
 	s.mu.Lock()

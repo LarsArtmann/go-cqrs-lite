@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/cockroachdb/pebble"
 	. "github.com/onsi/gomega"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -16,10 +17,10 @@ import (
 // collisions and data loss. The test:
 //
 //  1. Opens a persistent engine on disk
-//  2. Appends events to stream "s1" (version 3) and uses Map ADT
+//  2. Appends events to stream "s1" (version 3) + writes Map + Multimap entries
 //  3. Closes the engine
 //  4. Reopens on the same directory
-//  5. Appends MORE events to "s1" and the same Map collection
+//  5. Appends MORE events to "s1" and the same Map/Multimap collections
 //  6. Verifies no data was overwritten — stream has 5 events, journal has 5 entries
 func TestPebbleRestartSafety_StreamAndJournal(t *testing.T) {
 	t.Parallel()
@@ -35,15 +36,21 @@ func TestPebbleRestartSafety_StreamAndJournal(t *testing.T) {
 	slb1, ok := eng1.(metaengine.StreamLogBackend)
 	g.Expect(ok).To(BeTrue(), "engine must implement StreamLogBackend")
 
+	mb1, ok := eng1.(metaengine.MapBackend)
+	g.Expect(ok).To(BeTrue())
+
+	mmb1, ok := eng1.(metaengine.MultimapBackend)
+	g.Expect(ok).To(BeTrue())
+
 	// Append 3 events to stream "s1".
 	g.Expect(slb1.StreamAppend(ctx, "events", "s1", []any{"e1", "e2", "e3"})).
 		To(Succeed(), "first StreamAppend")
 
-	// Also test the Log ADT to verify journalSeq seeding.
-	g.Expect(eng1.MapSet(ctx, "kv", "key1", "val1")).To(Succeed())
+	// Map ADT — verify journalSeq seeding doesn't collide.
+	g.Expect(mb1.MapSet(ctx, "kv", "key1", "val1")).To(Succeed())
 
-	// Also test the Multimap ADT to verify mmSeq seeding.
-	g.Expect(eng1.MultiAdd(ctx, "mm1", "entry1", "val1")).To(Succeed())
+	// Multimap ADT — verify mmSeq seeding doesn't collide.
+	g.Expect(mmb1.MultiAdd(ctx, "mm1", "entry1", "val1")).To(Succeed())
 
 	ver1, err := slb1.StreamVersion(ctx, "events", "s1")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -61,6 +68,12 @@ func TestPebbleRestartSafety_StreamAndJournal(t *testing.T) {
 	defer eng2.Close()
 
 	slb2, ok := eng2.(metaengine.StreamLogBackend)
+	g.Expect(ok).To(BeTrue())
+
+	mb2, ok := eng2.(metaengine.MapBackend)
+	g.Expect(ok).To(BeTrue())
+
+	mmb2, ok := eng2.(metaengine.MultimapBackend)
 	g.Expect(ok).To(BeTrue())
 
 	// Append 2 MORE events — without seq seeding these would overwrite seqs 1-2.
@@ -83,15 +96,23 @@ func TestPebbleRestartSafety_StreamAndJournal(t *testing.T) {
 	g.Expect(journal2).To(HaveLen(5), "journal should retain all 5 entries after restart")
 
 	// Verify Map ADT data survived.
-	mapVal, err := eng2.MapGet(ctx, "kv", "key1")
+	mapVal, found, err := mb2.MapGet(ctx, "kv", "key1")
 	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(found).To(BeTrue(), "Map key1 should exist after restart")
 	g.Expect(mapVal).To(Equal("val1"), "Map data should survive restart")
 
 	// Verify new Map write doesn't overwrite existing.
-	g.Expect(eng2.MapSet(ctx, "kv", "key2", "val2")).To(Succeed())
-	mapVal2, err := eng2.MapGet(ctx, "kv", "key2")
+	g.Expect(mb2.MapSet(ctx, "kv", "key2", "val2")).To(Succeed())
+	mapVal2, found2, err := mb2.MapGet(ctx, "kv", "key2")
 	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(found2).To(BeTrue())
 	g.Expect(mapVal2).To(Equal("val2"))
+
+	// Verify new Multimap entry doesn't collide with existing.
+	g.Expect(mmb2.MultiAdd(ctx, "mm1", "entry1", "val2")).To(Succeed())
+	mmVals, err := mmb2.MultiGet(ctx, "mm1", "entry1")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(mmVals).To(HaveLen(2), "multimap should have 2 values after restart append")
 }
 
 // TestPebbleRestartSafety_FromDB verifies seq seeding when using
