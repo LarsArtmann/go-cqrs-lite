@@ -44,6 +44,9 @@ cqrs-lint init --preset local-cli   # generate a config for a local CLI project
 cqrs-lint init                       # generate a default config skeleton
 cqrs-lint explain                    # full documentation of every config key
 cqrs-lint doctor                     # show resolved config + detected profile
+cqrs-lint scorecard                  # module adoption scorecard (Used/Missing/Irrelevant)
+cqrs-lint --scorecard                # same via flag
+cqrs-lint --group-by aggregate ./... # group findings by aggregate/domain
 cqrs-lint ./...
 ```
 
@@ -214,6 +217,9 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 | C028 | swallowed-cqrs-error                      | Warning  | Error from Dispatch/Execute/Load/Register discarded — operation failures indicate real problems      |
 | C029 | queryidempotency-nil-keyextractor         | Error    | QueryIdempotency with nil keyExtractor panics at runtime — queries have no default identity          |
 | C030 | no-ctx-cancel-in-loop                     | Warning  | Infinite loop without context cancellation — goroutine leaks on shutdown                             |
+| C038 | event-type-typo                           | Error    | Emitted event type string is a likely typo of a fold case label — event silently dropped during replay |
+| C039 | goroutine-leak-in-handler                 | Warning  | Unmanaged goroutine inside event/command handler — resource leak and ordering violation              |
+| C040 | dead-fold-case                            | Warning  | Fold switch case handles an event type that is never emitted via event.New — dead code or a typo      |
 
 ## API Misuse Rules
 

@@ -65,9 +65,9 @@ func TestTypedCommandStore_PreservesMetadata(t *testing.T) {
 
 	ref := command.NewStreamRef("Todo", id.NewStreamID())
 
-	md := command.Metadata{}
-	md.EnsureCustom()
-	md.Custom["user_id"] = "user-123"
+	md := command.Metadata{
+		Custom: map[command.MetadataKey]string{"user_id": "user-123"},
+	}
 
 	err := ts.Save(ctx, ref, command.TypedPersistedCommand[createTodoPayload]{
 		Type:     "todo.create",

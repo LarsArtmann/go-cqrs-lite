@@ -195,11 +195,11 @@ func TestSQLCommandStore_MetadataRoundtrip(t *testing.T) {
 		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
 
-	meta := command.Metadata{}
+	meta := command.Metadata{
+		Custom: map[command.MetadataKey]string{"source": "test"},
+	}
 	meta.CorrelationID = id.NewCorrelationID()
 	meta.UserID = id.NewUserID()
-	meta.EnsureCustom()
-	meta.Custom["source"] = "test"
 
 	cmd, err := command.NewPersistedCommand(
 		"CreateUser", ref, []byte(`{"name":"Alice"}`),

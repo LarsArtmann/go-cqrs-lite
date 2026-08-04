@@ -70,13 +70,14 @@ func TestDurabilityRule_INFOWhenPersistentAlternativeExists(t *testing.T) {
 	for _, d := range store.Plan().Diagnostics {
 		if d.Query == "find_task" && d.Level == metaengine.DiagLevelInfo &&
 			strings.Contains(d.Message, "volatile") &&
-			strings.Contains(d.Message, "persistent alternative") {
+			strings.Contains(d.Message, "persistent alternative") &&
+			strings.Contains(d.Message, "ms/query") {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Errorf("expected INFO diagnostic about persistent alternative, got: %v",
+		t.Errorf("expected INFO diagnostic about persistent alternative with cost delta, got: %v",
 			store.Plan().Diagnostics)
 	}
 }

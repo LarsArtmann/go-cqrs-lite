@@ -32,9 +32,8 @@ func (r *durabilityRule) Apply(result *PlanResult, ctx PlanContext) error {
 		adt := meta.QueryADT()
 
 		// Check if any other engine in the plan is persistent and supports the same ADT.
-		var altName string
+		var altProfile EngineProfile
 		var altComplexity Complexity
-		var altNsPerOp float64
 		for _, eng := range ctx.Store.engines {
 			ep := eng.Profile()
 			if ep.Name == profile.Name {
@@ -44,23 +43,29 @@ func (r *durabilityRule) Apply(result *PlanResult, ctx PlanContext) error {
 				continue
 			}
 			if c, supported := ep.SupportsADT(adt); supported {
-				altName = ep.Name
+				altProfile = ep
 				altComplexity = c
-				altNsPerOp = ep.NsPerOp
 				break
 			}
 		}
 
-		if altName != "" {
+		if altProfile.Name != "" {
+			// Compute the latency cost of switching to the persistent alternative,
+			// mirroring the planner's cost formula exactly.
+			altReadNs := altProfile.NsForRead(q.ReadPattern)
+			altReadComplexity := effectiveReadComplexity(q.ReadPattern, altComplexity)
+			altCost := estimateCost(altReadComplexity, q.Cost.Volume, altReadNs, altProfile.NetworkRTT)
+			deltaMs := altCost.EstimatedLatencyMs - q.Cost.EstimatedLatencyMs
+
 			result.Diagnostics = append(result.Diagnostics, Diagnostic{
 				Level: DiagLevelInfo,
 				Query: q.QueryName,
 				Message: fmt.Sprintf(
-					"routed to volatile engine %q — data lost on restart (persistent alternative: %s at %s, %.0fns/op)",
+					"routed to volatile engine %q — data lost on restart (persistent alternative: %s at %s, +%.3fms/query)",
 					profile.Name,
-					altName,
+					altProfile.Name,
 					altComplexity,
-					altNsPerOp,
+					deltaMs,
 				),
 			})
 		} else {

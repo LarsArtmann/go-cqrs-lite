@@ -1752,11 +1752,9 @@ neither (though source-of-truth engines MUST implement StreamLogBackend).
 
 ### 10.1b Instance grouping defaults
 
-**Question:** What are the default instance groupings if the operator doesn't
-specify any? Options: (a) one instance per collection type (events, commands,
-queries, snapshots, checkpoints — 5 instances), (b) one instance per layer (2
-instances), (c) one instance for everything (1 instance, like current Bundle).
-Probably (b) is the right default — simple but separated.
+**Resolved:** Default = one instance per layer (source-of-truth + projections = 2
+instances). Operator can split further. See [§6.1](#61-high-level-diagram-n-instance-model)
+Topology 1.
 
 ### 10.2 Config format
 
@@ -1770,13 +1768,19 @@ See [§7.3](#73-http-admin-runtime-config).
 
 ### 10.4 Driver registration API
 
-**Question:** `init()`-based (like database/sql) or explicit `system.Register()`
-call? `init()` is more Go-idiomatic but harder to test.
+**Resolved:** `init()`-based (like database/sql). The developer compiles drivers
+via `import _ "drivers/sqlite"`. The operator picks via YAML config (`driver:
+sqlite`) — NO Go code, NO compilation required from the operator. The operator
+should not need to code; at most declarative config (YAML/env). Future: runtime
+scripting (Lua-style) for advanced hot-reload scenarios.
 
 ### 10.5 samber/do scope boundaries
 
-**Question:** Do source-of-truth and projections get separate `do.Scope` instances
-with independent shutdown, or are they providers within the root scope?
+**Resolved:** Hybrid model — per-instance scopes for projections (they get
+added/removed at runtime, need isolated health/drain/poison isolation),
+per-layer scope for source-of-truth (stable, rarely changes at runtime).
+Connection pools are named services in samber/do, smartly wired and
+hot-reloadable.
 
 ### 10.6 Migration path from Bundle
 
@@ -1793,11 +1797,9 @@ See [§4.6](#46-system-scope-layered-full-owns-all-infrastructure) and
 
 ### 10.8 Codec defaults
 
-Currently different layers have different default codecs (events: CBOR, read
-models: CBOR, stack: configurable).
-
-**Question:** Does the System unify codec selection? Does the operator configure
-it, or is it always CBOR?
+**Resolved:** CBOR default everywhere, with per-instance override. Operator can
+set `codec: json` on a specific instance for debugging. Events are
+self-describing (Encoding stamp on every event). See [§4.7](#47-config-format-go-struct--yaml--env-via-koanf).
 
 ### 10.9 Cache tier policy
 
@@ -1807,9 +1809,12 @@ data. See [§5.5](#55-the-cache-tier-zfs-arc-for-immutable-events).
 
 ### 10.10 Named engine sharing semantics
 
-**Question:** When two instances reference the same named engine (e.g., events +
-commands both → "primary"), do they share a connection pool / *sql.DB, or does
-each instance get its own connection? Shared is efficient; isolated is safer.
+**Resolved:** Shared connection pool by default. Connection pools are named
+services in samber/do (`do.ProvideNamed(injector, "conn:primary", ...)`).
+When two instances reference the same named engine, they resolve the same
+pool. Pools are separately configurable entities (max connections, idle
+timeout) and hot-reloadable. Operators can isolate by using different engine
+names if needed.
 
 ---
 
@@ -1842,4 +1847,4 @@ each instance get its own connection? Shared is efficient; isolated is safer.
 
 ---
 
-_End of document. Implementation begins when open questions are resolved._
+_End of document. All 10 open questions resolved. Implementation can begin._

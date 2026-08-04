@@ -20,7 +20,7 @@ type MetadataKey string
 // Unlike event.Metadata, command.Metadata does NOT carry event-only concerns
 // (Tombstone, Causation): commands have no tombstones and no event-causation
 // link.
-type Metadata struct { //nolint:recvcheck // RO methods value, mutator pointer (math/big.Int pattern)
+type Metadata struct {
 	metadata.Tracing
 
 	Custom map[MetadataKey]string `json:"custom,omitempty"`
@@ -43,10 +43,17 @@ func (m Metadata) Merge(other Metadata) Metadata {
 	}
 }
 
-// EnsureCustom lazily initializes the Custom map if nil.
-func (m *Metadata) EnsureCustom() {
-	if m.Custom == nil {
-		m.Custom = make(map[MetadataKey]string)
+// WithCustom returns a copy of m with the given key-value pair added to
+// Custom. The original Metadata is not modified.
+func (m Metadata) WithCustom(key MetadataKey, value string) Metadata {
+	custom := maps.Clone(m.Custom)
+	if custom == nil {
+		custom = make(map[MetadataKey]string)
+	}
+	custom[key] = value
+	return Metadata{
+		Tracing: m.Tracing,
+		Custom:  custom,
 	}
 }
 
@@ -84,7 +91,6 @@ func WithRequestID(v id.RequestID) Option {
 // metadata (e.g. gRPC payload, correlation context).
 func WithCustomMetadata(key, value string) Option {
 	return func(c *BasicCommand) {
-		c.metadata.EnsureCustom()
-		c.metadata.Custom[MetadataKey(key)] = value
+		c.metadata = c.metadata.WithCustom(MetadataKey(key), value)
 	}
 }

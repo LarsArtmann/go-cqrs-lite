@@ -37,6 +37,15 @@ Tags use the full module path: `cmd/cqrs-lint/vX.Y.Z`.
 - **init help text** — `--preset` help now lists the correct presets: `local-cli, production, library, read-only` (was `local-cli, library, server, full-stack`)
 - **doctor per-module view** — `doctor` now prints each module's feature profile separately when the workspace has more than one module
 
+### Added (post-v4.3.0)
+
+- **Scorecard subcommand** — `cqrs-lint scorecard` (or `--scorecard`) prints a bilateral module-adoption scorecard: "Adoption: X/Y relevant modules (Z%)" with Used/Missing/Irrelevant tables and top-3 recommendations. Uses a hand-curated ModuleCatalog (28 scored + 6 core modules) with profile-relative denominators.
+- **Group-by aggregate** — `--group-by aggregate` stamps `Finding.Metadata["aggregate"]` from event type prefixes and decider/fold state types, then groups output by aggregate (most issues first). Also supports `--group-by module` and `--group-by none` (default).
+- **C038 rewritten** — now detects near-miss event type strings (fold-case typos) using normalization + edit distance. Catches `"user.created"` emitted vs `"UserCreated"` in fold — silent event-drop bug.
+- **C039** — goroutine-leak-in-handler: unmanaged goroutine inside event/command handler.
+- **C040** — dead-fold-case: fold switch case handles an event type that is never emitted — dead code or a typo.
+- **Per-module feature detection** — `ProfileForFile` resolves each finding's module in multi-module workspaces. C017 migrated to per-module evaluation.
+
 ## [4.3.0] - 2026-08-03
 
 ### Fixed

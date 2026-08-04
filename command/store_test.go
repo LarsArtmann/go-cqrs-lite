@@ -107,9 +107,9 @@ func TestNewPersistedCommand_MetadataIsolation(t *testing.T) {
 	t.Parallel()
 
 	ref := validRef(t)
-	meta := command.Metadata{}
-	meta.EnsureCustom()
-	meta.Custom["key1"] = "value1"
+	meta := command.Metadata{
+		Custom: map[command.MetadataKey]string{"key1": "value1"},
+	}
 
 	cmd, err := command.NewPersistedCommand(
 		"CreateUser", ref, nil,
@@ -132,9 +132,9 @@ func TestWithCommandMetadata_IntakeIsolation(t *testing.T) {
 	t.Parallel()
 
 	ref := validRef(t)
-	meta := command.Metadata{}
-	meta.EnsureCustom()
-	meta.Custom["key"] = "original"
+	meta := command.Metadata{
+		Custom: map[command.MetadataKey]string{"key": "original"},
+	}
 
 	cmd, err := command.NewPersistedCommand(
 		"CreateUser", ref, nil,
