@@ -202,18 +202,16 @@ func NewB013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // B014: Missing OTel middleware.
 // Detects bus/dispatcher setups without tracing middleware.
-// Suppressed for local-only systems (no server) — distributed tracing adds
-// overhead without value for single-user CLI tools.
+// Suppressed for non-server modules — distributed tracing adds overhead
+// without value for single-user CLI tools. Evaluated per-module via
+// ProfileForFile so library files are not flagged when an example sub-module
+// runs a server.
 //
 //nolint:ireturn // factory returns public interface
 func NewB014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B014-missing-otel-middleware",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !ctx.FeatureProfile.HasServer {
-				return nil, nil
-			}
-
 			var findings []finding.Finding
 
 			hasOTel := false
@@ -256,6 +254,13 @@ func NewB014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			if hasOTel || !hasMiddleware {
+				return nil, nil
+			}
+
+			// Evaluate per-module: only flag middleware setups in modules that
+			// run a server. Using the primary profile would flag library files
+			// when an example sub-module happens to have a server.
+			if !ctx.ProfileForFile(mwFile).HasServer {
 				return nil, nil
 			}
 

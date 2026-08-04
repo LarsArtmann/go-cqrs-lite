@@ -1,7 +1,13 @@
 package boilerplate_test
 
 import (
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"go/types"
 	"testing"
+
+	"golang.org/x/tools/go/packages"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/boilerplate"

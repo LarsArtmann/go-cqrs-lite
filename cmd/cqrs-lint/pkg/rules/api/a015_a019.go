@@ -15,18 +15,16 @@ import (
 // Detects package-level var declarations that are mutated at runtime.
 // Only flags globals that are actually written to after initialization
 // (not read-only lookup tables initialized at package load).
-// Suppressed for local-only systems (no server) — race conditions require
-// concurrent access, which only happens in server deployments.
+// Suppressed for non-server modules — race conditions require concurrent
+// access, which only happens in server deployments. Evaluated per-module via
+// ProfileForFile so a library module is not flagged when an example sub-module
+// happens to run a server.
 //
 //nolint:ireturn // factory returns public interface
 func NewA015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A015-global-mutable-state",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !ctx.FeatureProfile.HasServer {
-				return nil, nil
-			}
-
 			var findings []finding.Finding
 
 			candidates := collectGlobalMutables(ctx)
@@ -73,6 +71,13 @@ func collectGlobalMutables(ctx *analyzer.AnalysisContext) []globalCandidate {
 
 	for _, gf := range ctx.GoFiles {
 		if gf.IsTest {
+			continue
+		}
+
+		// Evaluate per-module: race conditions require concurrent access,
+		// which only happens in server deployments. Using the primary profile
+		// would flag library files when an example sub-module runs a server.
+		if !ctx.ProfileForFile(gf.Path).HasServer {
 			continue
 		}
 
@@ -166,19 +171,16 @@ func isGlobalWrittenAfterInit(ctx *analyzer.AnalysisContext, varName string) boo
 
 // A016: Missing idempotency middleware.
 // Detects command dispatchers without idempotency middleware.
-// Only flags when the consumer actually dispatches commands (CommandFlowCommands).
-// Read-only systems (no dispatcher) and sync/batch systems are not at risk.
-// Detection of command-flow now lives in ctx.FeatureProfile (centralized).
+// Only flags when the dispatcher's module actually dispatches commands
+// (CommandFlowCommands). Read-only systems (no dispatcher) and sync/batch
+// systems are not at risk. Command-flow is evaluated per-module via
+// ProfileForFile so a dispatcher in a read-only sub-module is not flagged.
 //
 //nolint:ireturn // factory returns public interface
 func NewA016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A016-missing-idempotency-middleware",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if ctx.FeatureProfile.CommandFlow != analyzer.CommandFlowCommands {
-				return nil, nil
-			}
-
 			hasIdempotency := false
 			dispFile := ""
 			dispLine := 0
@@ -227,6 +229,14 @@ func NewA016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			if hasIdempotency || dispFile == "" {
+				return nil, nil
+			}
+
+			// Evaluate per-module: only flag dispatchers in modules that
+			// actually dispatch commands. Using the primary profile would
+			// flag a read-only sub-module when the primary module has
+			// command flow.
+			if ctx.ProfileForFile(dispFile).CommandFlow != analyzer.CommandFlowCommands {
 				return nil, nil
 			}
 

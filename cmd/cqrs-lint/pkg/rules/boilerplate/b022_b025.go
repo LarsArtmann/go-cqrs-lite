@@ -140,15 +140,16 @@ func containsEnricher(s string) bool {
 // Detects decider.NewRepository calls without the WithStateCache option.
 // For hot streams, incremental loads via state cache are 7.4x faster.
 //
+// The detector traces through option-builder helpers — including those in
+// OTHER packages within the analyzed workspace. When NewRepository receives
+// a variadic spread from a helper call (e.g. wiring.repositoryOptions(cfg)...),
+// the detector resolves the helper's package via the import graph and inspects
+// its body for a WithStateCache call. This eliminates false positives for
+// codebases with shared wiring packages that do not directly import CQRS.
+//
 //nolint:ireturn // factory returns public interface
 func NewB025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
-	// Build a name → declarations index of all top-level functions in the
-	// analyzed packages. Consumers commonly construct repository options inside
-	// a helper (e.g. repositoryOptions[State](cfg)...) that the call-site scan
-	// cannot see through. This index lets the detector trace into such helpers
-	// and recognize an indirect WithStateCache wiring, eliminating a frequent
-	// false positive for libraries with reusable wiring.
-	funcDeclsByName := indexFuncDecls(ctx)
+	fnIndex := buildCrossPkgFuncIndex(ctx)
 
 	return finding.NamedDetectorFunc(
 		"B025-missing-state-cache",
@@ -207,14 +208,19 @@ func NewB025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					// Trace through an option-builder helper. When NewRepository
 					// receives a variadic spread from a function call (e.g.
-					// repo := decider.NewRepository(s, b, d, repositoryOptions[State](cfg)...)),
-					// inspect that helper's body for a WithStateCache call. This
-					// recognizes indirect wiring that the direct argument scan
-					// above cannot see, which is the common pattern in libraries
-					// with reusable repository-wiring helpers.
+					// repo := decider.NewRepository(s, b, d, wiring.repositoryOptions(cfg)...)),
+					// resolve the helper's package and inspect its body for a
+					// WithStateCache call. This recognizes indirect wiring in both
+					// same-package and cross-package helpers — the common pattern
+					// in codebases with reusable repository-wiring packages.
 					if !hasStateCache {
-						if helper := spreadHelperName(call); helper != "" {
-							if funcBodyContainsCall(funcDeclsByName, helper, "WithStateCache") {
+						if helperName, pkgAlias := spreadHelperInfo(call); helperName != "" {
+							pkgPath := ""
+							if pkgAlias != "" {
+								pkgPath = resolveImportPath(gf.AST, pkgAlias)
+							}
+
+							if fnIndex.containsOption(pkgPath, helperName, "WithStateCache") {
 								hasStateCache = true
 							}
 						}
@@ -253,79 +259,120 @@ func NewB025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// indexFuncDecls builds a name → declarations index of all top-level function
-// declarations across the analyzed (non-test) Go files. Used by detectors that
-// need to trace a helper function's body for a specific call (e.g. B025 looking
-// for an indirect WithStateCache wiring).
-func indexFuncDecls(ctx *analyzer.AnalysisContext) map[string][]*ast.FuncDecl {
-	index := map[string][]*ast.FuncDecl{}
+// funcIndex is a cross-package index of top-level function declarations.
+// It enables B025 to trace through helper functions that live in a different
+// package than the call site — the common pattern in consumer codebases with
+// shared wiring packages (e.g. myapp/wiring.repositoryOptions).
+type funcIndex struct {
+	// byPkgFunc maps "pkgPath\x00funcName" to declarations — precise cross-
+	// package lookup when the import alias is resolved.
+	byPkgFunc map[string][]*ast.FuncDecl
+	// byName maps bare funcName to declarations — fallback for same-package
+	// lookups and test contexts where import resolution is unavailable.
+	byName map[string][]*ast.FuncDecl
+}
 
+// buildCrossPkgFuncIndex indexes all top-level function declarations across
+// every analyzed package — including non-CQRS packages that do not appear in
+// ctx.GoFiles. This closes the B025 cross-package helper gap: a wiring helper
+// in myapp/wiring (which does not import CQRS directly) is now visible because
+// packages.Load already parsed its syntax; it just was not being indexed.
+func buildCrossPkgFuncIndex(ctx *analyzer.AnalysisContext) *funcIndex {
+	idx := &funcIndex{
+		byPkgFunc: map[string][]*ast.FuncDecl{},
+		byName:    map[string][]*ast.FuncDecl{},
+	}
+
+	seen := map[string]bool{} // dedup by file path
+
+	// Pass 1: ctx.GoFiles (CQRS-importing packages — scanned and registered).
 	for _, gf := range ctx.GoFiles {
 		if gf.IsTest {
 			continue
 		}
 
-		for _, decl := range gf.AST.Decls {
-			fd, ok := decl.(*ast.FuncDecl)
-			if !ok || fd.Body == nil {
+		if gf.Path != "" {
+			seen[gf.Path] = true
+		}
+
+		pkgPath := ""
+		if gf.Pkg != nil {
+			pkgPath = gf.Pkg.PkgPath
+		}
+
+		idx.addFile(pkgPath, gf.AST)
+	}
+
+	// Pass 2: ctx.Packages — ALL loaded packages with syntax, including
+	// non-CQRS packages whose files are not in ctx.GoFiles.
+	for _, pkg := range ctx.Packages {
+		if pkg == nil {
+			continue
+		}
+
+		for i, syntax := range pkg.Syntax {
+			if syntax == nil {
 				continue
 			}
 
-			index[fd.Name.Name] = append(index[fd.Name.Name], fd)
+			var path string
+			if i < len(pkg.GoFiles) {
+				path = pkg.GoFiles[i]
+			}
+
+			if path != "" && seen[path] {
+				continue // already indexed from GoFiles
+			}
+
+			if path != "" {
+				seen[path] = true
+			}
+
+			idx.addFile(pkg.PkgPath, syntax)
 		}
 	}
 
-	return index
+	return idx
 }
 
-// spreadHelperName returns the function name being invoked when the last
-// argument of call is a variadic spread from a function call. For example,
-// given:
-//
-//	decider.NewRepository(s, b, d, repositoryOptions[State](cfg)...)
-//
-// it returns "repositoryOptions". Returns "" when there is no variadic spread
-// or the spread source is not a function call (e.g. a bare identifier or
-// composite literal that cannot be traced).
-func spreadHelperName(call *ast.CallExpr) string {
-	if !call.Ellipsis.IsValid() || len(call.Args) == 0 {
-		return ""
+func (idx *funcIndex) addFile(pkgPath string, file *ast.File) {
+	if file == nil {
+		return
 	}
 
-	helperCall, ok := call.Args[len(call.Args)-1].(*ast.CallExpr)
-	if !ok {
-		return ""
-	}
+	for _, decl := range file.Decls {
+		fd, ok := decl.(*ast.FuncDecl)
+		if !ok || fd.Body == nil || fd.Name == nil {
+			continue
+		}
 
-	return callFunctionName(helperCall.Fun)
-}
+		name := fd.Name.Name
+		idx.byName[name] = append(idx.byName[name], fd)
 
-// callFunctionName extracts the name of the function being called, handling
-// bare calls (foo()), selector calls (pkg.foo()), and generic instantiations
-// (foo[T]() and pkg.foo[T]()). Returns "" when the name cannot be determined.
-func callFunctionName(fun ast.Expr) string {
-	switch e := fun.(type) {
-	case *ast.Ident:
-		return e.Name
-	case *ast.SelectorExpr:
-		return e.Sel.Name
-	case *ast.IndexExpr: // single type-parameter instantiation: foo[T]()
-		return callFunctionName(e.X)
-	case *ast.IndexListExpr: // multi type-parameter instantiation: foo[T, U]()
-		return callFunctionName(e.X)
-	default:
-		return ""
+		if pkgPath != "" {
+			key := pkgPath + "\x00" + name
+			idx.byPkgFunc[key] = append(idx.byPkgFunc[key], fd)
+		}
 	}
 }
 
-// funcBodyContainsCall reports whether any top-level function named funcName in
+// containsOption reports whether any function matching (pkgPath, funcName) in
 // the index contains a call to the named option (matched by selector or bare
-// identifier, e.g. "WithStateCache"). This is a shallow textual-ish match on
-// the call name; it does not resolve types or cross package boundaries, so it
-// is intentionally conservative: it only suppresses a finding when the helper
-// visibly constructs the option, never the reverse.
-func funcBodyContainsCall(index map[string][]*ast.FuncDecl, funcName, option string) bool {
-	for _, fd := range index[funcName] {
+// identifier, e.g. "WithStateCache"). When pkgPath is non-empty, it first
+// tries a precise lookup; it always falls back to a bare-name search across
+// all packages. This is intentionally conservative: it only suppresses a
+// finding when the helper visibly constructs the option, never the reverse.
+func (idx *funcIndex) containsOption(pkgPath, funcName, option string) bool {
+	if pkgPath != "" {
+		key := pkgPath + "\x00" + funcName
+		for _, fd := range idx.byPkgFunc[key] {
+			if funcDeclCallsOption(fd, option) {
+				return true
+			}
+		}
+	}
+
+	for _, fd := range idx.byName[funcName] {
 		if funcDeclCallsOption(fd, option) {
 			return true
 		}
@@ -334,6 +381,89 @@ func funcBodyContainsCall(index map[string][]*ast.FuncDecl, funcName, option str
 	return false
 }
 
+// spreadHelperInfo extracts the function name and package qualifier from a
+// variadic spread argument. Given:
+//
+//	decider.NewRepository(s, b, d, wiring.repositoryOptions(cfg)...)
+//
+// it returns ("repositoryOptions", "wiring"). For a bare same-package call:
+//
+//	decider.NewRepository(s, b, d, repositoryOptions[State](cfg)...)
+//
+// it returns ("repositoryOptions", ""). Returns ("", "") when there is no
+// variadic spread or the spread source is not a function call.
+func spreadHelperInfo(call *ast.CallExpr) (funcName, pkgAlias string) {
+	if !call.Ellipsis.IsValid() || len(call.Args) == 0 {
+		return "", ""
+	}
+
+	helperCall, ok := call.Args[len(call.Args)-1].(*ast.CallExpr)
+	if !ok {
+		return "", ""
+	}
+
+	return callNameAndQualifier(helperCall.Fun)
+}
+
+// callNameAndQualifier extracts the function name and optional package
+// qualifier from a call expression's Fun node, handling generic instantiations
+// (foo[T]() and pkg.foo[T]()).
+func callNameAndQualifier(fun ast.Expr) (name, qualifier string) {
+	switch e := fun.(type) {
+	case *ast.Ident:
+		return e.Name, ""
+	case *ast.SelectorExpr:
+		if ident, ok := e.X.(*ast.Ident); ok {
+			return e.Sel.Name, ident.Name
+		}
+
+		return e.Sel.Name, ""
+	case *ast.IndexExpr: // single type-parameter: foo[T]()
+		return callNameAndQualifier(e.X)
+	case *ast.IndexListExpr: // multi type-parameter: foo[T, U]()
+		return callNameAndQualifier(e.X)
+	default:
+		return "", ""
+	}
+}
+
+// resolveImportPath resolves an import alias to the full package import path
+// using the file's import declarations. Handles both aliased imports
+// (import w "myapp/wiring") and path-derived aliases (import "myapp/wiring").
+// Returns "" when the alias does not match any import.
+func resolveImportPath(file *ast.File, alias string) string {
+	if file == nil || alias == "" {
+		return ""
+	}
+
+	for _, imp := range file.Imports {
+		if imp.Path == nil {
+			continue
+		}
+
+		path := strings.Trim(imp.Path.Value, `"`)
+
+		if imp.Name != nil {
+			if imp.Name.Name == alias {
+				return path
+			}
+
+			continue
+		}
+
+		// No explicit alias: derive from the last path segment.
+		parts := strings.Split(path, "/")
+		if len(parts) > 0 && parts[len(parts)-1] == alias {
+			return path
+		}
+	}
+
+	return ""
+}
+
+// funcDeclCallsOption reports whether a function declaration's body contains a
+// call to the named option (matched by selector or bare identifier). This is a
+// shallow textual match; it does not resolve types.
 func funcDeclCallsOption(fd *ast.FuncDecl, option string) bool {
 	found := false
 

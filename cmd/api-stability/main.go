@@ -82,6 +82,7 @@ var modules = []string{
 	"testutil",
 	"catalog",
 	"benchkit",
+	"system",
 	"cmd/cqrs-lint",
 	"cmd/cqrs-bench",
 	"cmd/cqrs-gen",

@@ -67,32 +67,31 @@ func (b *simpleBus) dispatch(ctx context.Context, evt event.Event) error {
 	// Catch-all handlers.
 	handlers = append(handlers, b.allHandlers...)
 
-	// Build the middleware chain.
-	chain := func(_ context.Context, _ event.Event) error { return nil }
-	if len(handlers) > 0 {
-		chain = handlers[0]
-		for i := 1; i < len(handlers); i++ {
-			prev := chain
-			current := handlers[i]
-
-			chain = func(ctx context.Context, e event.Event) error {
-				if err := prev(ctx, e); err != nil {
-					return err
-				}
-
-				return current(ctx, e)
-			}
-		}
-	}
-
-	// Apply middleware.
-	for _, v := range slices.Backward(b.middleware) {
-		chain = v(chain)
-	}
+	// Clone middleware snapshot for independent handler calls.
+	middleware := slices.Clone(b.middleware)
 
 	b.mu.RUnlock()
 
-	return chain(ctx, evt)
+	// Call each handler independently so one handler's error does not
+	// prevent the others from executing. The first error is returned.
+	var firstErr error
+
+	for _, handler := range handlers {
+		h := handler
+
+		// Apply middleware chain for this handler.
+		chain := h
+
+		for _, v := range slices.Backward(middleware) {
+			chain = v(chain)
+		}
+
+		if err := chain(ctx, evt); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+
+	return firstErr
 }
 
 func (b *simpleBus) Subscribe(eventType event.Type, handler event.Handler) error {
