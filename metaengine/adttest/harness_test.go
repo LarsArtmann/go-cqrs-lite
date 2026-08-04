@@ -127,12 +127,12 @@ func TestCanonicalizeScanResults_NonSliceFallback(t *testing.T) {
 	}
 }
 
-func TestScenarios_AllTenADTs(t *testing.T) {
+func TestScenarios_AllElevenADTs(t *testing.T) {
 	t.Parallel()
 
 	scenarios := Scenarios()
-	if len(scenarios) != 10 {
-		t.Errorf("Scenarios() returned %d scenarios, want 10", len(scenarios))
+	if len(scenarios) != 11 {
+		t.Errorf("Scenarios() returned %d scenarios, want 11", len(scenarios))
 	}
 
 	seen := make(map[string]bool)
