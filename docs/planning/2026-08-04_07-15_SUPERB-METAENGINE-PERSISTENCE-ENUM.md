@@ -11,32 +11,194 @@ Whether an engine's data survives process exit is currently implicit in construc
 comments. The planner cannot reason about it, cannot warn when a query is routed to a volatile
 engine, and cannot factor restart-rebuild cost into materialize-vs-replay decisions.
 
-## Decision: Two levels, volatile as zero value
+### What the planner can't do today
+
+| Scenario | What happens today | What SHOULD happen |
+|---|---|---|
+| Only Memory engine passed to `Plan()` | Silently routes everything to volatile RAM. Data lost on restart. No warning. | WARN: "all queries routed to volatile engine — data lost on restart" |
+| Memory + SQLite, Memory wins on cost | Silently picks Memory (O(1) beats O(logN)). No mention of durability tradeoff. | INFO: "query X routed to volatile engine (persistent alternative: sqlite)" |
+| `Doctor()` / `ExplainPlan()` | Shows cost, replication, ADT — but NOT whether data survives. | Shows persistence per engine/collection |
+| Materialize-vs-replay analysis | Assumes materialized data persists. Can't model restart-rebuild cost. | Factor persistence into cost (volatile → replay is free, materialize is pointless for durability) |
+
+### Concrete failure mode
+
+A consumer deploys with:
+```go
+store, _ := metaengine.Plan(
+    []metaengine.Engine{metaengine.NewMemoryEngine()},
+    userQuery,
+)
+```
+Everything works in dev. In production, the process restarts (deploy, crash, OOM kill) and **every
+projection is gone** — silently. No log, no warning, no diagnostic. The only path to discovering
+this is data loss in production. This is the class of bug that persistence-as-a-type prevents.
+
+---
+
+## Design Decision: Two levels, volatile as zero value
 
 ```go
 type Persistence string
 
 const (
-    PersistenceVolatile   Persistence = ""            // zero value — safe default
+    // PersistenceVolatile: data lives in process RAM, lost on exit.
+    // Zero value — the safe default. If you forget to set it, the planner
+    // assumes volatile and warns, rather than silently assuming durability.
+    PersistenceVolatile Persistence = ""
+
+    // PersistencePersistent: data survives process exit (disk file or remote server).
     PersistencePersistent Persistence = "persistent"
 )
 ```
 
-**Why only two levels:**
+### Why volatile is the zero value
 
-| Considered | Rejected because |
-|---|---|
-| `PersistenceRemote` (client/server DB) | "Remote" is already modeled by `NetworkRTT` (latency) + `Replication` (topology). A third persistence level double-counts it. |
-| `PersistenceDiskRelaxed` (no fsync) | The fsync tier is already modeled by `stack.Durability` (Strict/Normal/Relaxed). Orthogonal axis — that's "how durable is the write," not "is there a disk file at all." |
-| `PersistenceReplicatedVolatile` (Redis cluster) | Collapses: Redis with AOF is persistent, without it is volatile. No engine in this codebase fits. |
-
-**Why volatile is the zero value:** Mirrors the `Replication` pattern (`ReplicationNone = ""`).
+Mirrors the `Replication` pattern (`ReplicationNone = ""` is the safe default).
 If you forget to declare persistence, the planner assumes the worst and warns — it does NOT silently
 assume durability. Safe default = loud warning, not false security.
 
-**Why it must be dynamic (not a profile constant):** Three engines (SQLite, Pebble, DuckDB) are
-volatile OR persistent depending on constructor arguments (`:memory:` vs file path). The persistence
-value must be set at construction time, not hardcoded in a shared profile function.
+This follows the "make impossible states unrepresentable" principle from the project's AGENTS.md:
+forgetting to set persistence should never produce a false sense of security.
+
+### Why it must be dynamic (not a profile constant)
+
+Three engines are volatile OR persistent depending on constructor arguments:
+
+| Engine constructor | Persistence | Why |
+|---|---|---|
+| `NewMemoryEngine()` | Volatile | Pure RAM |
+| `NewSQLiteEngine(":memory:")` | Volatile | RAM-backed SQL |
+| `NewSQLiteEngine("file:app.db")` | Persistent | Disk file |
+| `NewPebbleEngine("")` | Volatile | `vfs.NewMem()` |
+| `NewPebbleEngine("/data/pebble")` | Persistent | LSM on disk |
+| `duckdb.New("")` | Volatile | `:memory:` |
+| `duckdb.New("analytics.db")` | Persistent | Disk file |
+| `pgengine.New(dsn)` | Persistent | Remote server |
+
+The persistence value must be set at construction time, not hardcoded in a shared profile function.
+This is why `SQLiteEngineProfile()` returns persistent, but `NewSQLiteEngine(":memory:")` must
+override it — the profile describes the engine *family*, the constructor knows the *instance*.
+
+---
+
+## Rejected Alternatives
+
+### `PersistenceRemote` (three levels: volatile / persistent / remote)
+
+Postgres is "more durable" than a local SQLite file because it survives single-node hardware
+failure. But this is a **reliability** axis, not a persistence axis. The codebase already models
+"remote" via `NetworkRTT` (latency) and `Replication` (topology). A third persistence level
+double-counts what those fields already express.
+
+### `PersistenceDiskRelaxed` (fsync tiers)
+
+SQLite `synchronous=OFF` might lose data on crash. But the codebase already has
+`stack.Durability` (Strict/Normal/Relaxed) for exactly this fsync-tier question. That's an
+orthogonal axis — "how durable is the persistent write," not "is there a disk file at all."
+
+### `PersistenceCache` / TTL-based eviction
+
+**Cache/TTL is a different axis entirely, not a persistence level.** The key insight: persistence
+and eviction answer two independent questions:
+
+| Question | Axis | Answers |
+|---|---|---|
+| Does data survive process exit? | **Persistence** | Volatile / Persistent |
+| Can data disappear *while the process is running*? | **Eviction** (future) | Stable / Ephemeral |
+
+The 2×2 matrix proves they're orthogonal — all four quadrants are real:
+
+| | **Stable** (no eviction) | **Ephemeral** (TTL/LRU) |
+|---|---|---|
+| **Volatile** | Memory engine, `:memory:`, `vfs.NewMem()` | In-process LRU cache, Redis no-AOF + TTL |
+| **Persistent** | SQLite file, Pebble on disk, Postgres | Redis AOF + TTL, Postgres + cache extension |
+
+Redis maps to **all four quadrants** depending on configuration:
+
+| Redis config | Persistence | Eviction |
+|---|---|---|
+| AOF/RDB on, no TTL | Persistent | Stable |
+| AOF/RDB on, TTL set | Persistent | Ephemeral |
+| No persistence, no TTL | Volatile | Stable |
+| No persistence, TTL set | Volatile | Ephemeral |
+
+A 3-level persistence enum (`volatile` / `persistent` / `cache`) cannot represent "persistent +
+evicting" (Redis AOF + TTL). It conflates two independent properties into one axis, and it breaks
+the zero-value safety contract (a cache is arguably worse than volatile since data can vanish
+mid-request, but a third level muddies the default).
+
+**If a cache engine ever arrives**, add eviction as a separate field:
+
+```go
+type EngineProfile struct {
+    // ... existing fields ...
+    Persistence Persistence     // survives process exit?
+    Eviction    EvictionPolicy  // can vanish during runtime? (future, YAGNI)
+}
+
+type EvictionPolicy string
+const (
+    EvictionNone EvictionPolicy = ""     // stable (zero value = safe)
+    EvictionTTL  EvictionPolicy = "ttl"  // time-based
+    EvictionLRU  EvictionPolicy = "lru"  // capacity-based
+)
+```
+
+Two clean binary axes, four representable states, zero-value safety preserved. **Build none of this
+until a cache engine actually exists** — YAGNI.
+
+---
+
+## Existing Patterns (precedent in the codebase)
+
+This design follows three existing patterns exactly. Persistence is not novel — it's the fourth
+dimension in the same shape.
+
+| Dimension | Type | Zero value | Planner rule | Doctor section |
+|---|---|---|---|---|
+| Replication topology | `Replication` (string) | `ReplicationNone = ""` | `replicationRule` | `--- Replication ---` |
+| Network latency | `time.Duration` | `0` (in-process) | (cost estimator) | (inline) |
+| ADT degradation | `map[ADT]bool` | `nil` (no degraded ADTs) | `degradedADTRule` | (diagnostics) |
+| **Persistence** (NEW) | **`Persistence` (string)** | **`PersistenceVolatile = ""`** | **`durabilityRule`** | **`--- Persistence ---`** |
+
+The implementation pattern for each is identical:
+1. Type + constants in a dedicated file (`replication.go` → `persistence.go`)
+2. Field on `EngineProfile` with helper methods (`IsReplicated()` → `IsVolatile()`/`IsPersistent()`)
+3. Planner rule in a dedicated file (`rule_replication.go` → `rule_durability.go`)
+4. Wired into `defaultRules()` in `rules.go`
+5. Exposed in `CollectionInfo` + `SerializableQuery`
+6. Shown in `Doctor()` + `ExplainPlan()`
+
+---
+
+## durabilityRule: Concrete Diagnostic Examples
+
+The rule emits two kinds of diagnostics:
+
+### WARN — volatile engine, no persistent alternative
+
+```
+WARN  query "find_user" routed to volatile engine "memory" —
+      projection will be lost on restart and must be rebuilt from the event log
+```
+
+Emitted when: query routes to `PersistenceVolatile` engine AND no other engine in the plan is
+persistent for the same ADT.
+
+### INFO — volatile engine chosen, persistent alternative exists
+
+```
+INFO  query "find_user" routed to volatile engine "memory"
+      (persistent alternative available: "sqlite" at O(logN), +0.007ms/op)
+```
+
+Emitted when: query routes to `PersistenceVolatile` engine AND at least one persistent engine in
+the plan supports the same ADT. The cost delta is shown so the operator can decide whether the
+speed gain is worth the restart-rebuild cost.
+
+### Silent — persistent engine
+
+No diagnostic. This is the happy path.
 
 ---
 
@@ -47,7 +209,7 @@ value must be set at construction time, not hardcoded in a shared profile functi
 The `Persistence` type exists as a first-class concept in the type system.
 Without this atom, nothing else can be built.
 
-- `persistence.go`: type + 2 constants + helper methods
+- `persistence.go`: type + 2 constants + doc comments
 - `EngineProfile.Persistence` field
 - `IsVolatile()` / `IsPersistent()` helper methods on EngineProfile
 
@@ -72,12 +234,12 @@ The planner actively uses persistence, and ALL engines declare it.
 
 ### Remaining 20% → 100%
 
-- `Doctor()` shows persistence section
+- `Doctor()` shows `--- Persistence ---` section
 - `ExplainPlan()` shows persistence on engine lines
 - Tests for every surface (type, rule, CollectionInfo, serializable, String)
 - API surface golden regen
-- ADR documenting the two-level decision
-- README + COOKBOOK table update
+- ADR documenting the two-level decision + rejected alternatives
+- README + COOKBOOK table update (add Persistence column)
 - Build + test + verify gate
 
 ---
@@ -148,6 +310,55 @@ graph TD
     T18 --> T20
     T19 --> T20
 ```
+
+---
+
+## File-by-File Change Manifest
+
+Every file touched, grouped by module:
+
+### `metaengine/` (core module)
+
+| File | Change | New? |
+|---|---|---|
+| `persistence.go` | `Persistence` type, 2 constants, doc comments | **NEW** |
+| `persistence_test.go` | Unit tests: zero-value, String, helpers | **NEW** |
+| `rule_durability.go` | `durabilityRule` struct, `Name()`, `Apply()` | **NEW** |
+| `durability_rule_test.go` | Tests: WARN, INFO, silent paths | **NEW** |
+| `engine.go` | Add `Persistence` field to `EngineProfile`, `IsVolatile()`/`IsPersistent()` methods, update `String()` | modified |
+| `memory_engine.go` | Set `Persistence: PersistenceVolatile` in `Profile()` | modified |
+| `sqlite_engine.go` | Set `Persistence: PersistencePersistent` in `SQLiteEngineProfile()` | modified |
+| `store.go` | Add `Persistence` to `CollectionInfo`, populate in `Collections()`, add `Store.Persistence()` accessor | modified |
+| `serializable.go` | Add `Persistence` to `SerializableQuery`, populate in `Serialize()` | modified |
+| `rules.go` | Add `&durabilityRule{}` to `defaultRules()` | modified |
+| `explain.go` | Add persistence to `ExplainPlan()` engine lines + `Doctor()` section | modified |
+
+### `metaengine/pebbleengine/` (separate module)
+
+| File | Change |
+|---|---|
+| `engine.go` | Add `persistence` field to struct, set in constructors (dir vs mem), return in `Profile()` |
+
+### `metaengine/duckdbengine/` (separate module)
+
+| File | Change |
+|---|---|
+| `engine.go` | Add `persistence` field to struct, set in constructors (file vs :memory:), return in `Profile()` |
+
+### `metaengine/pgengine/` (separate module)
+
+| File | Change |
+|---|---|
+| `engine.go` | Set `Persistence: PersistencePersistent` in `Profile()` |
+
+### Docs + tooling
+
+| File | Change |
+|---|---|
+| `docs/adr/00XX-metaengine-persistence-enum.md` | **NEW** — decision record with rejected alternatives |
+| `metaengine/README.md` | Add Persistence column to engine table |
+| `metaengine/COOKBOOK.md` | Add Persistence column to engine comparison table |
+| `cmd/api-stability/main.go` | Regen golden (new exported symbols) |
 
 ---
 
@@ -236,7 +447,7 @@ Sorted by impact then dependency.
 | F41 | Test Store.Persistence(queryName) accessor | `go test` | 5min |
 | **M12 — Golden + ADR + docs** ||||
 | F42 | Regen API surface golden: `cd cmd/api-stability && GOWORK=off go run main.go -update` | golden matches | 5min |
-| F43 | Write ADR: `docs/adr/00XX-metaengine-persistence-enum.md` | reads well | 10min |
+| F43 | Write ADR: `docs/adr/00XX-metaengine-persistence-enum.md` (two-level decision + rejected alternatives) | reads well | 10min |
 | F44 | Update README engine table: add Persistence column | reads well | 5min |
 | F45 | Update COOKBOOK engine comparison table: add Persistence column | reads well | 5min |
 | **M13 — Verify** ||||
@@ -257,3 +468,4 @@ Sorted by impact then dependency.
 | Materialize-vs-replay restart cost | Replay is "free" for volatile (data is gone anyway); materialize is "paid" for persistent (write amp) | Future enhancement to materializeRule |
 | `WithPersistence(p)` plan option | "What-if" analysis: force volatile to see cost of losing durability | Future, mirrors WithReplication |
 | Projection host restart-time estimate | Volatile engine → estimate replay time from event count | Future diagnostic |
+| EvictionPolicy axis | Separate field for cache engines (TTL/LRU) | When a cache engine arrives (YAGNI until then) |
