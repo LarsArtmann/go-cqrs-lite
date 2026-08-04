@@ -45,7 +45,7 @@ type AppConfig struct {
 	Exclude        string `default:""      flag:"exclude"         help:"Exclude paths (comma-separated)"`
 	Color          string `default:"auto"  flag:"color"           help:"Colored output: auto,always,never"`
 	Verbose        bool   `default:"false" flag:"verbose"         help:"Verbose output"`
-	GroupBy        string `default:""      flag:"group-by"        help:"Group findings by: none, module, aggregate"`
+	GroupBy        string `default:""      flag:"group-by"        help:"Group findings by: none, module, aggregate" json:"group-by,omitempty"`
 	Quiet          bool   `default:"false" flag:"quiet"           help:"Suppress non-finding output"                                        short:"q"`
 	FPSuspects     bool   `default:"false" flag:"fp-suspects"     help:"Show only low-confidence findings (likely false positives)"`
 	ShowSuppressed bool   `default:"false" flag:"show-suppressed" help:"Show suppressed findings with their suppression reason"`
