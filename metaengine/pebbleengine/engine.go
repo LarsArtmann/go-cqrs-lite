@@ -749,3 +749,12 @@ func nextKey(prefix []byte) []byte {
 	// All bytes were 0xFF — return a longer key.
 	return append(result, 0)
 }
+
+// newPrefixIter creates an iterator over the half-open range
+// [prefix, nextKey(prefix)). Callers must defer iter.Close().
+func (e *pebbleEngine) newPrefixIter(prefix []byte) (*pebble.Iterator, error) {
+	return e.db.NewIter(&pebble.IterOptions{
+		LowerBound: prefix,
+		UpperBound: nextKey(prefix),
+	})
+}

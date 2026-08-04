@@ -3,8 +3,6 @@ package pebbleengine
 import (
 	"context"
 
-	"github.com/cockroachdb/pebble"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -28,13 +26,7 @@ func (e *pebbleEngine) ScanCount(
 	col string,
 	filters []metaengine.FilterSpec,
 ) (int64, error) {
-	prefix := collectionPrefix(col)
-	upperBound := nextKey(prefix)
-
-	iter, err := e.db.NewIter(&pebble.IterOptions{
-		LowerBound: prefix,
-		UpperBound: upperBound,
-	})
+	iter, err := e.newPrefixIter(collectionPrefix(col))
 	if err != nil {
 		return 0, err
 	}

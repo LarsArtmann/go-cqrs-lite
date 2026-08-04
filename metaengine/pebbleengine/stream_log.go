@@ -81,13 +81,7 @@ func (e *pebbleEngine) StreamAppend(_ context.Context, col, sid string, values [
 }
 
 func (e *pebbleEngine) StreamRead(_ context.Context, col, sid string) ([]any, error) {
-	prefix := streamPrefix(col, sid)
-	upperBound := nextKey(prefix)
-
-	iter, err := e.db.NewIter(&pebble.IterOptions{
-		LowerBound: prefix,
-		UpperBound: upperBound,
-	})
+	iter, err := e.newPrefixIter(streamPrefix(col, sid))
 	if err != nil {
 		return nil, fmt.Errorf("pebbleengine.StreamRead: %w", err)
 	}
@@ -112,13 +106,7 @@ func (e *pebbleEngine) StreamRead(_ context.Context, col, sid string) ([]any, er
 }
 
 func (e *pebbleEngine) StreamVersion(_ context.Context, col, sid string) (int64, error) {
-	prefix := streamPrefix(col, sid)
-	upperBound := nextKey(prefix)
-
-	iter, err := e.db.NewIter(&pebble.IterOptions{
-		LowerBound: prefix,
-		UpperBound: upperBound,
-	})
+	iter, err := e.newPrefixIter(streamPrefix(col, sid))
 	if err != nil {
 		return 0, fmt.Errorf("pebbleengine.StreamVersion: %w", err)
 	}
@@ -138,13 +126,7 @@ func (e *pebbleEngine) StreamVersion(_ context.Context, col, sid string) (int64,
 }
 
 func (e *pebbleEngine) JournalReadAll(_ context.Context, col string) ([]any, error) {
-	prefix := journalPrefix(col)
-	upperBound := nextKey(prefix)
-
-	iter, err := e.db.NewIter(&pebble.IterOptions{
-		LowerBound: prefix,
-		UpperBound: upperBound,
-	})
+	iter, err := e.newPrefixIter(journalPrefix(col))
 	if err != nil {
 		return nil, fmt.Errorf("pebbleengine.JournalReadAll: %w", err)
 	}
@@ -182,8 +164,7 @@ func (e *pebbleEngine) JournalReadFrom(
 	afterSeq int64,
 	limit int,
 ) ([]any, error) {
-	prefix := journalPrefix(col)
-	upperBound := nextKey(prefix)
+	upperBound := nextKey(journalPrefix(col))
 
 	// LowerBound is exclusive of afterSeq: start at afterSeq+1.
 	startKey := journalKey(col, afterSeq+1)
@@ -270,13 +251,7 @@ func (e *pebbleEngine) StreamAppendExpected(
 }
 
 func (e *pebbleEngine) countStreamEntries(col, sid string) (int64, error) {
-	prefix := streamPrefix(col, sid)
-	upperBound := nextKey(prefix)
-
-	iter, err := e.db.NewIter(&pebble.IterOptions{
-		LowerBound: prefix,
-		UpperBound: upperBound,
-	})
+	iter, err := e.newPrefixIter(streamPrefix(col, sid))
 	if err != nil {
 		return 0, err
 	}

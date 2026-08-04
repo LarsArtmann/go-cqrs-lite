@@ -89,6 +89,30 @@ func extractSearchQuery(input any) (text string, limit int) {
 	return text, limit
 }
 
+// executeSliceResult is the shared body of the Vector/Search/Spatial
+// ExecuteTyped wrappers: execute, nil-check, type-assert to []R.
+func executeSliceResult[R any](
+	ctx context.Context,
+	store *Store,
+	input any,
+) ([]R, error) {
+	raw, err := store.ExecuteCtx(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	if raw == nil {
+		return nil, ErrNotFound
+	}
+
+	results, ok := raw.([]R)
+	if !ok {
+		return nil, errExecuteTypeMismatch
+	}
+
+	return results, nil
+}
+
 // VectorExecuteTyped is the type-safe wrapper for vector similarity search.
 // It dispatches the query input and type-asserts the result to []VectorResult.
 //
@@ -101,21 +125,7 @@ func VectorExecuteTyped[Q any](
 	store *Store,
 	input Q,
 ) ([]VectorResult, error) {
-	raw, err := store.ExecuteCtx(ctx, input)
-	if err != nil {
-		return nil, err
-	}
-
-	if raw == nil {
-		return nil, ErrNotFound
-	}
-
-	results, ok := raw.([]VectorResult)
-	if !ok {
-		return nil, errExecuteTypeMismatch
-	}
-
-	return results, nil
+	return executeSliceResult[VectorResult](ctx, store, input)
 }
 
 // SearchExecuteTyped is the type-safe wrapper for full-text search.
@@ -130,21 +140,7 @@ func SearchExecuteTyped[Q any](
 	store *Store,
 	input Q,
 ) ([]SearchResult, error) {
-	raw, err := store.ExecuteCtx(ctx, input)
-	if err != nil {
-		return nil, err
-	}
-
-	if raw == nil {
-		return nil, ErrNotFound
-	}
-
-	results, ok := raw.([]SearchResult)
-	if !ok {
-		return nil, errExecuteTypeMismatch
-	}
-
-	return results, nil
+	return executeSliceResult[SearchResult](ctx, store, input)
 }
 
 // extractSpatialQuery reads the center coordinates, radius, and limit from a
@@ -202,19 +198,5 @@ func SpatialExecuteTyped[Q any](
 	store *Store,
 	input Q,
 ) ([]SpatialResult, error) {
-	raw, err := store.ExecuteCtx(ctx, input)
-	if err != nil {
-		return nil, err
-	}
-
-	if raw == nil {
-		return nil, ErrNotFound
-	}
-
-	results, ok := raw.([]SpatialResult)
-	if !ok {
-		return nil, errExecuteTypeMismatch
-	}
-
-	return results, nil
+	return executeSliceResult[SpatialResult](ctx, store, input)
 }

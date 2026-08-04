@@ -38,19 +38,15 @@ func (e *pebbleEngine) seedSeqCounters() error {
 // seedStreamSeqs scans the sl\x00 prefix and seeds streamSeq counters.
 // The sync.Map key for streamSeq is "col\x00sid" (matching streamSeqKey).
 func (e *pebbleEngine) seedStreamSeqs() error {
-	prefix := []byte("sl" + sep)
-
-	iter, err := e.db.NewIter(&pebble.IterOptions{
-		LowerBound: prefix,
-		UpperBound: nextKey(prefix),
-	})
+	tag := "sl"
+	iter, err := e.newPrefixIter([]byte(tag + sep))
 	if err != nil {
 		return err
 	}
 
 	defer func() { _ = iter.Close() }()
 
-	tagLen := len("sl" + sep)
+	tagLen := len(tag + sep)
 
 	for iter.First(); iter.Valid(); iter.Next() {
 		key := iter.Key()
