@@ -64,17 +64,16 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 			eng, ok := engineCache[engineName]
 			if !ok {
 				return nil, fmt.Errorf(
-					"system: instance %q references unknown engine %q",
-					inst.Role,
-					engineName,
+					"%w: instance %q references engine %q",
+					ErrUnknownEngine, inst.Role, engineName,
 				)
 			}
 
 			backend, ok := eng.(metaengine.StreamLogBackend)
 			if !ok {
 				return nil, fmt.Errorf(
-					"system: engine %q does not implement StreamLogBackend",
-					engineName,
+					"%w: engine %q",
+					ErrNotStreamLogBackend, engineName,
 				)
 			}
 
@@ -168,7 +167,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	if sys.projStore != nil {
 		journal, ok := sys.eventStore.(event.SeekableJournal)
 		if !ok {
-			return nil, errors.New("system: event store does not implement SeekableJournal")
+			return nil, ErrSeekableJournalMissing
 		}
 
 		host, err := projectionhost.New(journal, &memoryCheckpointStore{})
@@ -215,7 +214,7 @@ func (s *System) Start(ctx context.Context) error {
 	defer s.mu.Unlock()
 
 	if s.started {
-		return errors.New("system: already started")
+		return ErrAlreadyStarted
 	}
 
 	s.started = true
@@ -268,7 +267,7 @@ func RegisterDecider[State any](
 	opts ...RegisterDeciderOption,
 ) error {
 	if sys.eventStore == nil {
-		return errors.New("system: cannot register decider: no event store")
+		return ErrEventStoreMissing
 	}
 
 	cfg := registerDeciderConfig{}
@@ -322,7 +321,7 @@ func RegisterCommand[Cmd command.Command, State any](
 	return sys.cmdDisp.Register(name, func(ctx context.Context, cmd command.Command) error {
 		typed, ok := any(cmd).(Cmd)
 		if !ok {
-			return fmt.Errorf("system: command type mismatch for %q: got %T", name, cmd)
+			return fmt.Errorf("%w: got %T", ErrCommandTypeMismatch, cmd)
 		}
 
 		op := handler(ctx, typed)
@@ -332,12 +331,12 @@ func RegisterCommand[Cmd command.Command, State any](
 		sys.mu.RUnlock()
 
 		if !exists {
-			return fmt.Errorf("system: no decider registered for stream type %q", op.streamType)
+			return fmt.Errorf("%w: stream type %q", ErrNoDecider, op.streamType)
 		}
 
 		repo, ok := repoAny.(*decider.Repository[State])
 		if !ok {
-			return fmt.Errorf("system: decider type mismatch for stream type %q", op.streamType)
+			return fmt.Errorf("%w: stream type %q", ErrDeciderTypeMismatch, op.streamType)
 		}
 
 		return repo.Execute(ctx, op.streamID, op.streamType, op.decide)

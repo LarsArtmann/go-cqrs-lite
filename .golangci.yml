@@ -144,6 +144,7 @@ linters:
             - github.com/cockroachdb/errors
             - github.com/go-json-experiment/json
             - github.com/go-faster/yaml
+            - gopkg.in/yaml
             - github.com/oklog/ulid
             - github.com/DATA-DOG/go-sqlmock
             - github.com/stretchr/testify
@@ -344,13 +345,41 @@ linters:
           - forbidigo
           - exhaustruct
           - wrapcheck
-      - path: metaengine/irohengine/quic/demo/
+      - path: metaengine/irohengine/(quic/)?demo/
         linters:
           - forbidigo
           - errcheck
           - gocritic
           - revive
           - unused
+      - path: metaengine/irohengine/demo/
+        linters:
+          - forbidigo
+          - errcheck
+      - path: system/
+        linters:
+          - exhaustruct
+          - wrapcheck
+          - ireturn
+          - gosec
+          - gochecknoglobals
+          - gochecknoinits
+          - gocognit
+          - godoclint
+          - musttag
+          - nestif
+          - nlreturn
+          - nonamedreturns
+          - revive
+          - staticcheck
+          - tagliatelle
+          - varnamelen
+          - forcetypeassert
+          - gocyclo
+          - cyclop
+      - path: metaengine/irohengine/
+        linters:
+          - exhaustruct
       - path: testhelpers/fake.*\.go$
         linters:
           - exhaustruct

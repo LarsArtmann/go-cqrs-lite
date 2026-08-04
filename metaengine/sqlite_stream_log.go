@@ -108,6 +108,28 @@ func (e *sqliteEngine) StreamReadAsOfVersion(
 	)
 }
 
+// StreamReadFromVersion returns all values for a stream starting at minVersion.
+// This implements the StreamTemporalReader optional interface.
+// Uses OFFSET because seq is global (not per-stream), so we skip the first
+// (minVersion - 1) entries within this stream's ordered result set.
+func (e *sqliteEngine) StreamReadFromVersion(
+	ctx context.Context,
+	col, sid string,
+	minVersion int64,
+) ([]any, error) {
+	if minVersion <= 0 {
+		return e.scanStreamValues(ctx, e.queries.streamRead, col, sid)
+	}
+
+	return e.scanStreamValues(
+		ctx,
+		`SELECT value FROM meta_stream_log WHERE collection = ? AND stream_id = ? ORDER BY seq LIMIT -1 OFFSET ?`,
+		col,
+		sid,
+		minVersion-1,
+	)
+}
+
 // encodeStreamValue serializes a value for storage in the stream log TEXT column.
 // Strings are stored as-is; all other types are JSON-encoded via encodeJSON.
 func encodeStreamValue(v any) string {

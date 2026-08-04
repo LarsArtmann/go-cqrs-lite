@@ -22,7 +22,7 @@ type CachedEventStore struct {
 // NewCachedEventStore wraps an event.Store with a read-through cache.
 func NewCachedEventStore(store event.Store, capacity int) (*CachedEventStore, error) {
 	if capacity <= 0 {
-		return nil, fmt.Errorf("system: cache capacity must be positive, got %d", capacity)
+		return nil, fmt.Errorf("%w: got %d", ErrCacheCapacityInvalid, capacity)
 	}
 
 	cache := otter.Must(&otter.Options[string, []event.Event]{
@@ -83,7 +83,7 @@ func (c *CachedEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 		return j.ReadAll(ctx)
 	}
 
-	return nil, errors.New("system: underlying store does not implement event.Journal")
+	return nil, ErrJournalMissing
 }
 
 func (c *CachedEventStore) ReadFrom(
@@ -93,7 +93,7 @@ func (c *CachedEventStore) ReadFrom(
 		return sj.ReadFrom(ctx, afterEventID, limit)
 	}
 
-	return nil, errors.New("system: underlying store does not implement event.SeekableJournal")
+	return nil, ErrSeekableJournalMissing
 }
 
 // CacheStats returns basic cache statistics for introspection.

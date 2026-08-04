@@ -147,6 +147,21 @@ func (a *EventAdapter) Load(ctx context.Context, ref id.StreamRef) ([]event.Even
 func (a *EventAdapter) LoadFromVersion(
 	ctx context.Context, ref id.StreamRef, version event.Version,
 ) ([]event.Event, error) {
+	// Fast path: if the backend supports StreamTemporalReader, delegate to
+	// StreamReadFromVersion to avoid loading the full stream into memory.
+	// version is 0-indexed for LoadFromVersion (skip N events), but
+	// StreamReadFromVersion is 1-indexed inclusive, so add 1.
+	if a.temporal != nil {
+		values, err := a.temporal.StreamReadFromVersion(
+			ctx, a.collection, ref.StreamKey(), int64(version)+1,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("event adapter: load from version: %w", err)
+		}
+
+		return a.anyToEvents(values)
+	}
+
 	all, err := a.Load(ctx, ref)
 	if err != nil {
 		return nil, err
