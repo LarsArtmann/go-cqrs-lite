@@ -279,6 +279,13 @@ developer never declares "I need a Map" or "I need a Counter."
 | CalibrateEngine              | `calibratable` interface. Memory + SQLite support runtime cost calibration. External engines (Pebble/DuckDB/PG) not yet calibratable                                              | 🧪     |
 | ExplainPlan + Doctor         | `store.Explain(ctx)` shows engine assignments + rule diagnostics + replication suffix. `store.Doctor()` health check with `--- Replication ---` section                           | 🧪     |
 | Persistence enum (ADR-0098)  | `EngineProfile.Persistence` (`PersistenceVolatile`/`PersistencePersistent`). `durabilityRule` WARN when volatile engines hold materialized projections. DDIA Ch1 reliability axis | ✅     |
+| StreamLogBackend             | 5-method interface for stream-keyed event journals (StreamAppend, StreamRead, StreamVersion, JournalReadAll, JournalReadFrom). Memory + SQLite implement it; Pebble/DuckDB/PG pending | 🧪     |
+| AtomicAppender               | `StreamAppendExpected(ctx, collection, streamID, expectedVersion, entries)` — atomic optimistic concurrency under a single lock. Memory + SQLite (compile-time assertions). `ErrVersionConflict` sentinel | 🧪     |
+| SQLite stream log            | `meta_stream_log` table with indexes on `(collection, stream_id, seq)` and `(collection, seq)`. `StreamAppendExpected` uses `RunInTx` | 🧪     |
+| Iroh engine (Level 2)        | `metaengine/irohengine` — `Replicated(localEngine, ...)` adds CRDT convergence via pluggable `Transport`. In-process `Network` mock simulates P2P sync. CRDT-safe: MapSet (LWW), SetAdd (OR-Set), CounterIncrement (PN-Counter). Non-CRDT ops stay local | 🧪     |
+| Iroh QUIC FFI transport      | `metaengine/irohengine/quic` — real Iroh QUIC streams via `iroh-go` C bindings (CGo). RTT measured from QUIC ACK timing. NOT the in-process mock | 🧪     |
+| ReadCosts                    | `EngineProfile.ReadCosts` — per-read-pattern cost fields (point-lookup, scan, aggregation). Exposes the 4000× gap between DuckDB point lookups and aggregations | 🧪     |
+| Store.Inspect/InspectJSON    | Collection introspection (key count, engine, ADT) extracted to `metaengine/inspect.go` | 🧪     |
 
 **Coverage:** 76.3% (verified `go test -cover ./...` 2026-08-02). 174 BDD specs + 150 cross-engine
 meta specs + 12 ADT harness self-tests. The metaengine went through 15+ hardening
@@ -299,6 +306,43 @@ benchmark correctness assertions.
 Remaining: Postgres GIN indexes, CalibrateEngine for external engines,
 serialize ReadCosts into SerializablePlan. See
 [TODO_LIST.md](TODO_LIST.md).
+
+---
+
+## System Package 🧪 EXPERIMENTAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/system/v4"`
+
+Operator-configured CQRS topology from the
+[metaengine redesign](docs/planning/metaengine-redesign.md). Replaces manual
+`stack.Bundle` wiring with a `New(ctx, deployment, domains...)` composition root
+where the operator provides engines/config and the consumer provides domain
+deciders/projections.
+
+**⚠️ FIRST PASS — critical wiring gaps prevent production use.** The constructor
+bypasses the driver registry (hardcoded Memory-only); SQLite is unreachable
+through System. See [TODO_LIST.md](TODO_LIST.md) → System section.
+
+| Feature                       | Detail                                                                                                                                          | Status |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| DomainConfig / DeploymentConfig | Consumer config (deciders, commands, projections, fold functions) vs operator config (engines, DSNs, bus, durability, cache) (D11)            | 🧪     |
+| System struct                 | All infra fields: eventStore, cmdStore, queryStore, dispatchers, projHost, bus, projStore                                                        | 🧪     |
+| Op[State] declarative routing | `{StreamID, StreamType, Decide}` with `Execute()`, `StreamID()`, `StreamType()` accessors (D10)                                                 | 🧪     |
+| Driver registry               | `RegisterDriver(name, factory)`, `RegisteredDrivers()`, `createEngineFromDriver()` — database/sql model (D1). Memory auto-registered            | 🧪     |
+| EventAdapter                  | Wraps `StreamLogBackend` as `event.Store`/`event.SeekableJournal`. AtomicAppender fast path, seq cache for O(1) ReadFrom, `WithSerialization()` | 🧪     |
+| CommandAdapter                | Full `command.Store` + `command.SeekableCommandJournal`                                                                                         | 🧪     |
+| QueryAdapter                  | Full `query.QueryStore` + `query.SeekableQueryJournal`                                                                                          | 🧪     |
+| Event bus (simpleBus)         | `event.Bus` impl: Publisher + Subscriber + middleware chains. Synchronous dispatch. ⚠️ Handler independence bug (chained, not independent)     | 🧪     |
+| MultiBus                      | Fan-out `Publish` to N publishers with first-error semantics. ⚠️ NOT wired into `New()`                                                         | 🧪     |
+| CachedEventStore              | Otter v2 W-TinyLFU read-through cache tier. `CacheStats` via O(1) `EstimatedSize()`                                                              | 🧪     |
+| SnapshotBackend               | Interface + `memorySnapshotBackend` (instance-isolated, `sync.Mutex`). ⚠️ NOT wired into `New()`                                                | 🧪     |
+| Scream store                  | `ScreamTier`, `ScreamDiagnostic`, `ScreamReport`, `ErrUnsafeChange`. 2 rules: `volatile-source-of-truth`, `durability-downgrade`. ⚠️ Stub       | 🧪     |
+| Introspection                 | `Snapshot(ctx)`, `Health(ctx)`, `Explain(ctx)`. ⚠️ Returns hardcoded values — wiring to live runtime state pending                              | 🧪     |
+| Instance roles                | `RoleSourceOfTruth`, `RoleEvents`, `RoleCommands`, `RoleQueries`, `RoleProjections`                                                             | 🧪     |
+| Durability tiers              | `DurabilityStrict`, `DurabilityNormal`, `DurabilityRelaxed` (same vocabulary as stack presets)                                                  | 🧪     |
+| Config loader                 | `LoadConfig(path)` signature + env var reads. ⚠️ YAML parsing not implemented (stub)                                                            | 🧪     |
+| Projection wiring             | Constructor creates `projectionadapter.Adapter` + registers on `projectionhost.Host`. ⚠️ E2E unproven                                           | 🧪     |
+| Test suite                    | 15 tests: query dispatch, driver registry, snapshot isolation, multi-decider, concurrent dispatch (20 goroutines, race detector), bus pub/sub, MultiBus, Op accessors, atomic conflict, journal. All pass with `-race` | ✅ |
 
 ---
 
@@ -1114,14 +1158,14 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | Config presets | `local-cli`, `library`, `server`, `full-stack` — sugar over feature flags | ✅ |
 | JSONC config loader | `.cqrs-lint.json` supports comments (`//`, `/* */`) via `stripJSONComments` parser | ✅ |
 | Feature profile system | Auto-detects which go-cqrs-lite modules a consumer uses (store, command-flow, server, soft-delete, tracing, snapshot) and adapts rules | ✅ |
-| Per-module detection | `ProfileForFile` evaluates feature profiles per-module in multi-module workspaces (C017 migrated; 26 detectors still on primary profile) | 🧪 |
+| Per-module detection | `ProfileForFile` evaluates feature profiles per-module in multi-module workspaces (C017, S002, S003, S006, S007, C036 migrated; ~20 detectors still on primary profile) | 🧪 |
 | Self-lint mode | `IsLibrarySelfLint()` auto-skips 29 consumer-coaching rules when linting the library source | ✅ |
 | Import-alias resolution | `QualifierToImportPath` + `ImportQualifierMap` — rules work with aliased imports | ✅ |
 | Monorepo support | Multi-module scanning via go.mod discovery | ✅ |
 | Source snippets | Most detectors emit source-line context for SARIF/IDE integration | ✅ |
 | `doctor` subcommand | Prints detected feature profile, active preset, resolved feature overrides, disabled rules, suppression counts | ✅ |
 | `explain` subcommand | Interactive config/rules/presets documentation explorer (JSONC + preset + feature-flag reference) | ✅ |
-| `scorecard` subcommand | Module adoption scorecard: detects used/missing go-cqrs-lite modules, computes coverage %, recommends top-3. Text + JSON output | ✅ |
+| `scorecard` subcommand | Module adoption scorecard: detects used/missing go-cqrs-lite modules, computes coverage %, recommends top-3. Text + JSON + Markdown output. `--scorecard-threshold N` CI gate | ✅ |
 | `changelog` subcommand | Prints the programmatic changelog of cqrs-lint versions | ✅ |
 | `--group-by` flag | Group findings by: none, module, or aggregate (infers aggregate from event-type prefixes + decider state types) | ✅ |
 | F-series adoption coaching | 21 rules (F001–F021) that proactively coach consumers toward unused features | ✅ |
@@ -1132,7 +1176,8 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | C037 codec mismatch | Detects codec mismatches across all typed stores: snapshot, command, query, kv (CBOR events + JSON snapshots = deserialization failure) | ✅ |
 | C038 event-type mismatch | Detects near-miss event type strings in `switch evt.Type()` blocks (Levenshtein distance) | ✅ |
 | C039 unused event type | Flags event types emitted but never handled in any fold or projection | ✅ |
-| C040 dead fold case | Detects `case` branches in fold switch statements that can never match any emitted event type | ✅ |
+| E006 fold-aware | Orphaned event detection skips events consumed by decider fold/apply functions (no false positives for fold-handled events) | ✅ |
+| E009 transport detection | Detects `cqrs-htmx` import and suppresses missing-transport finding | ✅ |
 
 ---
 
@@ -1178,7 +1223,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 ## Module Maturity Matrix
 
-> 64 independently importable modules in `go.work` (64 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
+> 68 independently importable modules in `go.work` (68 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
 
 | Module                         | Import Path                         | Maturity                                                                                                                                                                       |
 | ------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -1243,6 +1288,10 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `metaengine/duckdbengine`      | `…/metaengine/duckdbengine/v4`      | 🧪 Experimental (DuckDB columnar engine: MapBackend, CounterBackend, PushdownScan. CGo)                                                                                        |
 | `metaengine/pgengine`          | `…/metaengine/pgengine/v4`          | 🧪 Experimental (Postgres engine: MapBackend, CounterBackend, ScanBackend, PushdownScan, LayoutPlanner. Pure Go)                                                               |
 | `metaengine/adttest`           | `…/metaengine/adttest/v4`           | 🧪 Test harness (RunMatrix cross-engine parity for 10 ADTs)                                                                                                                    |
+| `metaengine/irohengine`        | `…/metaengine/irohengine/v4`        | 🧪 Experimental (Iroh Level 2 CRDT replication wrapper. In-process Network mock simulates P2P sync)                                                                           |
+| `metaengine/irohengine/quic`   | `…/metaengine/irohengine/quic/v4`   | 🧪 Experimental (real QUIC FFI transport via iroh-go C bindings. CGo required)                                                                                                |
+| `system`                       | `…/system/v4`                       | 🧪 Experimental (operator-configured CQRS topology — first pass, wiring incomplete)                                                                                            |
+| `scheduling/sqlstore`          | `…/scheduling/sqlstore/v4`          | ✅ Production (SQL-backed timers: SQLite + Postgres + MySQL. Durable across restarts, M44)                                                                                     |
 | `flightrecorder`               | `…/flightrecorder/v4`               | 🧪 Experimental (Go 1.25 runtime/trace capture. Zero-dep. ADR-0089)                                                                                                            |
 | `benchkit`                     | `…/benchkit/v4`                     | 🧪 Experimental (functional, 88 tests, `--repeat N` available)                                                                                                                 |
 | `cmd/cqrs-bench`               | `…/cmd/cqrs-bench`                  | 🔧 Tool                                                                                                                                                                        |

@@ -15,7 +15,7 @@ CHANGELOG `[Unreleased]`.
 
 | Version      | Date       | Highlights                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Unreleased] | —          | Flight recorder (ADR-0089), metaengine Tier 4 (Vector/Search/Spatial ADTs, DuckDB+Postgres engines, rule pipeline, materialize-vs-replay, StorageLayout, SerializablePlan, VersionedStorage, data model refactor), replication model (ADR-0093, DDIA Ch5 foundation), Universal ADT Phase 3 (ADR-0094, 10/10 ADTs on all engines), WatchTyped, boundary key validation, CalibrateEngine fix, ReadCosts (per-read-pattern costs), benchkit evidence-grade metrics (ADR-0090), backend tradeoff framework (DurabilityTier, Capabilities), MySQL/MariaDB support (ADR-0080), Pebble sort index (1,233x speedup), cqrs-lint 179→186 rules + scorecard + group-by aggregate + C038-C040 + per-module detection + JSONC loader + explain command, go-sse consumption (ADR-0097), Nix-based integration test infrastructure (ADR-0095, ephemeral PG + NixOS VMs), Iroh bridge evaluation (ADR-0096), verify gate repair |
+| [Unreleased] | —          | Flight recorder (ADR-0089), metaengine Tier 4 (Vector/Search/Spatial ADTs, DuckDB+Postgres engines, rule pipeline, materialize-vs-replay, StorageLayout, SerializablePlan, VersionedStorage, data model refactor, AtomicAppender + StreamLogBackend), replication model (ADR-0093, DDIA Ch5 foundation), Universal ADT Phase 3 (ADR-0094, 10/10 ADTs on all engines), WatchTyped, boundary key validation, CalibrateEngine fix, ReadCosts (per-read-pattern costs), persistence enum (ADR-0098), benchkit evidence-grade metrics (ADR-0090), backend tradeoff framework (DurabilityTier, Capabilities), MySQL/MariaDB support (ADR-0080), Pebble sort index (1,233x speedup), cqrs-lint 179→186 rules + scorecard markdown + group-by aggregate + C038-C040 + per-module detection + E006 fold-aware + JSONC loader + explain command, go-sse consumption (ADR-0097), Nix-based integration test infrastructure (ADR-0095, ephemeral PG + NixOS VMs + nspawn MySQL), Iroh bridge evaluation (ADR-0096) + Level 2 prototype + real QUIC FFI transport, system/ operator-configured topology (first pass — wiring incomplete), verify gate repair |
 | v4.2.0       | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | v4.1.0       | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | v4.0.4       | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
@@ -110,6 +110,11 @@ production maturity chain is complete:
 - ✅ **Boundary key validation** — `ErrKeyTypeMismatch` at `Store.Execute`/
   `ExecuteTyped` boundary
 - ✅ **CalibrateEngine** — `calibratable` interface; copy-discard bug fixed
+- ✅ **AtomicAppender** — `StreamAppendExpected(ctx, collection, streamID,
+  expectedVersion, entries)` — atomic optimistic concurrency under a single
+  lock. Memory + SQLite. `ErrVersionConflict` sentinel
+- ✅ **StreamLogBackend** — 5-method interface for stream-keyed event journals.
+  Memory + SQLite implementations. Foundation for the `system/` package
 
 **Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** Postgres GIN
 indexes, CalibrateEngine for external engines, serialize ReadCosts into
@@ -186,7 +191,7 @@ hardened through multiple brutal review passes and 7 consumer feedback rounds.
   config; C038/C039/C040 event-type mismatch + dead-fold-case detection
 - ✅ **Scorecard** — `--scorecard` / `scorecard` subcommand. Module adoption
   scorecard with used/missing/irrelevant partitioning, coverage %, top-3
-  recommendations. Text + JSON output
+  recommendations. Text + JSON + Markdown output. `--scorecard-threshold N` CI gate
 - ✅ **Group-by aggregate** — `--group-by aggregate` infers aggregate from
   event-type prefixes + decider state types, groups findings by aggregate
 - ✅ **Config UX** — JSONC config loader (comment support), `explain`
@@ -304,7 +309,12 @@ first `ReplicationLeaderless` engine.
   `Replicated(localEngine, ...)` with a pluggable `Transport` interface. In-process
   `Network` mock simulates P2P convergence. Passes `adttest.RunMatrix` parity,
   LWW resolution, PN-Counter, and MapUpdate-does-not-replicate tests.
-- [ ] Evaluate Iroh C binding maturity over time (swap mock Transport for real FFI)
+- ✅ **Real QUIC FFI transport shipped** — `metaengine/irohengine/quic/` implements
+  `Transport` over **real Iroh QUIC streams** via the `iroh-go` C bindings (CGo
+  required). Every `Publish` opens a QUIC BiStream, serializes the `WriteOp`, and
+  sends it to all connected peers. RTT measured from QUIC's own ACK timing via
+  `conn.Rtt()`. Demo executable with real latency measurements.
+- [ ] Evaluate `iroh-go` C binding stability (third-party binding for Iroh Rust)
 
 ### 11. Metaengine Persistence + System Redesign
 
@@ -322,8 +332,20 @@ A comprehensive design for a `system.System` type that replaces the current
 `Bundle` with an operator-configured, driver-registered, `samber/do`-scoped
 composition root. Features: driver registry (database/sql model), operator
 YAML+env config, N-instance composition (source-of-truth + projection layers),
-scream store (tiered deployment enforcement), cache tier, HTTP admin. 10 open
-design questions remain (§10 of the design doc).
+scream store (tiered deployment enforcement), cache tier, HTTP admin.
+
+🧪 **First pass implemented** (`system/v4` module — 14 files, 2925 lines, 15
+tests). DomainConfig/DeploymentConfig separation, Op[State] routing, driver
+registry, EventAdapter/CommandAdapter/QueryAdapter, simpleBus + MultiBus,
+CachedEventStore, SnapshotBackend, scream store types, introspection API —
+all shipped. **⚠️ Critical wiring gaps:** constructor bypasses the driver
+registry (Memory-only), SQLite unreachable through System, MultiBus/
+SnapshotBackend/scream store not wired into `New()`, introspection returns
+hardcoded values. 10 open design questions remain (§10 of the design doc).
+Full audit:
+[design-vs-reality](docs/status/2026-08-04_22-32_metaengine-redesign-audit-design-vs-reality.md).
+Pareto plan:
+[execution breakdown](docs/planning/2026-08-04_22-34_metaengine-system-pareto-execution-plan.md).
 
 ---
 

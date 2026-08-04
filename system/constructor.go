@@ -32,11 +32,11 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		bus:        newSimpleBus(),
 	}
 
-	// Create engines from the deployment config.
+	// Create engines from the deployment config via the driver registry.
 	engineCache := make(map[string]metaengine.Engine)
 
 	for name, cfg := range deployment.Engines {
-		eng, err := createEngine(cfg)
+		eng, err := createEngineFromDriver(ctx, cfg)
 		if err != nil {
 			return nil, fmt.Errorf("system: create engine %q: %w", name, err)
 		}
@@ -70,7 +70,14 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 				)
 			}
 
-			sys.eventStore = NewEventAdapter(backend, "events")
+			// Auto-detect serialization: Memory stores pointers directly; all
+			// other engines need JSON envelope serialization.
+			var adapterOpts []EventAdapterOption
+			if engCfg, hasCfg := deployment.Engines[engineName]; hasCfg && engCfg.Driver != "memory" {
+				adapterOpts = append(adapterOpts, WithSerialization())
+			}
+
+			sys.eventStore = NewEventAdapter(backend, "events", adapterOpts...)
 
 			// Wire command and query audit stores from the same backend.
 			if inst.Role == RoleSourceOfTruth || inst.Role == RoleCommands {
@@ -211,21 +218,6 @@ func (s *System) Start(ctx context.Context) error {
 // isSourceOfTruth returns true for instances that hold event/command/query logs.
 func isSourceOfTruth(role InstanceRole) bool {
 	return role == RoleSourceOfTruth || role == RoleEvents
-}
-
-// createEngine constructs an engine from an EngineConfig. Only Memory is
-// supported in this initial implementation. SQLite and others are added via
-// the driver registry (M16).
-func createEngine(cfg EngineConfig) (metaengine.Engine, error) {
-	switch cfg.Driver {
-	case "memory":
-		return metaengine.NewMemoryEngine(), nil
-	default:
-		return nil, fmt.Errorf(
-			"unsupported driver %q (only \"memory\" supported in initial implementation)",
-			cfg.Driver,
-		)
-	}
 }
 
 // ─── D10: Generic registration functions ───

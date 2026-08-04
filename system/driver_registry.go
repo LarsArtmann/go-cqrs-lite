@@ -2,10 +2,12 @@ package system
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	_ "modernc.org/sqlite" // SQLite driver registered with database/sql
 )
 
 // DriverFactory creates a metaengine.Engine from an EngineConfig.
@@ -106,10 +108,32 @@ func RegisteredBusDrivers() []string {
 	return names
 }
 
-// init registers the built-in Memory driver.
+// init registers built-in drivers.
 func init() {
 	RegisterDriver("memory", func(_ EngineConfig) (metaengine.Engine, error) {
 		return metaengine.NewMemoryEngine(), nil
+	})
+
+	RegisterDriver("sqlite", func(cfg EngineConfig) (metaengine.Engine, error) {
+		dsn := cfg.DSN
+		if dsn == "" {
+			dsn = ":memory:"
+		}
+
+		db, err := sql.Open("sqlite", dsn)
+		if err != nil {
+			return nil, fmt.Errorf("system: open sqlite %q: %w", dsn, err)
+		}
+
+		// Apply pragmas if specified.
+		for _, pragma := range cfg.Pragmas {
+			if _, err := db.ExecContext(context.Background(), "PRAGMA "+pragma); err != nil {
+				_ = db.Close()
+				return nil, fmt.Errorf("system: sqlite pragma %q: %w", pragma, err)
+			}
+		}
+
+		return metaengine.NewSQLiteEngine(db)
 	})
 }
 
