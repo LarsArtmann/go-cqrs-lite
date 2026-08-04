@@ -15,7 +15,7 @@ import (
 // Called once during construction when the engine wraps a persistent DB.
 // The scan is O(N) in existing key count — acceptable as a one-time startup cost.
 func (e *pebbleEngine) seedSeqCounters() error {
-	if err := e.seedStreamSeqs(); err != nil {
+	if err := e.seedCollectionSeqs("sl", &e.streamSeq); err != nil {
 		return fmt.Errorf("seed stream seqs: %w", err)
 	}
 
@@ -32,32 +32,6 @@ func (e *pebbleEngine) seedSeqCounters() error {
 	}
 
 	return nil
-}
-
-// seedStreamSeqs scans the sl\x00 prefix and seeds streamSeq counters.
-// The sync.Map key for streamSeq is "col\x00sid" (matching streamSeqKey).
-func (e *pebbleEngine) seedStreamSeqs() error {
-	tag := "sl"
-	iter, err := e.newPrefixIter([]byte(tag + sep))
-	if err != nil {
-		return err
-	}
-
-	defer func() { _ = iter.Close() }()
-
-	tagLen := len(tag + sep)
-
-	for iter.First(); iter.Valid(); iter.Next() {
-		key := iter.Key()
-		group, seq, ok := extractGroupAndSeq(key, tagLen)
-		if !ok {
-			continue
-		}
-
-		seedSyncMapMax(&e.streamSeq, group, seq)
-	}
-
-	return iter.Error()
 }
 
 // seedCollectionSeqs scans a tag prefix (e.g. "jl", "l") and seeds a

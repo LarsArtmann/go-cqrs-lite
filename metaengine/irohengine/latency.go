@@ -8,6 +8,29 @@ import (
 
 const latencyWindowSize = 512
 
+// SortDurations returns a sorted copy of d (ascending). Shared by transports
+// that compute latency percentiles from RTT samples.
+func SortDurations(d []time.Duration) []time.Duration {
+	cp := append([]time.Duration(nil), d...)
+	slices.Sort(cp)
+	return cp
+}
+
+// PercentileIdx returns the array index for the p-th percentile of n elements.
+// Clamped to [0, n-1]. Shared by transports that index into sorted samples.
+func PercentileIdx(n int, p float64) int {
+	idx := int(float64(n-1) * p)
+	if idx >= n {
+		idx = n - 1
+	}
+
+	if idx < 0 {
+		idx = 0
+	}
+
+	return idx
+}
+
 // LatencyCollector records real delivery and convergence times from replication
 // traffic. All stats are computed from actual measurements — no hardcoded values.
 type LatencyCollector struct {
@@ -93,8 +116,7 @@ func computeStats(samples []time.Duration) LatencyStats {
 	if n == 0 {
 		return LatencyStats{}
 	}
-	sorted := append([]time.Duration(nil), samples...)
-	slices.Sort(sorted)
+	sorted := SortDurations(samples)
 
 	var sum time.Duration
 	for _, d := range sorted {
@@ -115,9 +137,6 @@ func percentile(sorted []time.Duration, p float64) time.Duration {
 	if len(sorted) == 0 {
 		return 0
 	}
-	idx := int(float64(len(sorted)-1) * p)
-	if idx >= len(sorted) {
-		idx = len(sorted) - 1
-	}
-	return sorted[idx]
+
+	return sorted[PercentileIdx(len(sorted), p)]
 }
