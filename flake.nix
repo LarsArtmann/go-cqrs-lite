@@ -220,6 +220,7 @@
             "metaengine/projectionadapter"
             "metaengine/duckdbengine"
             "metaengine/pgengine"
+            "system"
             "flightrecorder"
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);

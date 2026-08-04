@@ -1839,7 +1839,7 @@ interface, not three.
 
 ```go
 // StreamLogBackend — ONE interface for all source-of-truth storage.
-// VERIFIED 2026-08-04: Implemented by Memory + SQLite engines (2/5).
+// VERIFIED 2026-08-04: Implemented by ALL 5 engines (Memory, SQLite, Pebble, DuckDB, Postgres).
 // Pebble, DuckDB, Postgres implementations are PENDING (Phase 4 T20-T22).
 type StreamLogBackend interface {
     // Append values to a stream (collection + streamID key)
@@ -1976,7 +1976,7 @@ names if needed.
 | **Projection**            | A derived view built from events. Has a fold function and query patterns.                                                                                                                                                                                                                     |
 | **Temporal / Time-Aware** | An engine or query that supports point-in-time reads ("what was the state at time T?"). Some engines have native support (BigTable versioned cells, Postgres temporal tables, DuckDB time-travel); others fall back to version-chain scan. The 4th dimension of the storage model — see §5.6. |
 | **VersionedStorage**      | The metaengine interface for point-in-time reads: `MapGetAsOf(ctx, collection, key, t)`. Currently implemented on Memory engine only (version chain + binary search).                                                                                                                         |
-| **StreamLogBackend**      | A new ADT-level interface for stream-keyed append-only logs. VERIFIED: Memory + SQLite implement it (2/5). Pebble/DuckDB/PG pending. Three adapters (Event, Command, Query) wrap it. StreamReadAsOf is PLANNED (not yet implemented). See §10.1.                                                                                           |
+| **StreamLogBackend**      | A new ADT-level interface for stream-keyed append-only logs. VERIFIED: ALL 5 engines implement it (Memory, SQLite, Pebble, DuckDB, Postgres). Three adapters (Event, Command, Query) wrap it. StreamReadAsOfVersion implemented via StreamTemporalReader optional interface (Memory + SQLite). SnapshotBackend moved to metaengine with Memory + SQLite implementations. See §10.1.                                                                                           |
 | **Scream Store**          | The safety mechanism that detects and blocks unsafe operator changes by diffing the current plan against a pinned manifest.                                                                                                                                                                   |
 | **SerializablePlan**      | A JSON-serializable snapshot of PlanResult, stripping runtime closures and reflect.Type values.                                                                                                                                                                                               |
 | **Source of Truth**       | The event log (and command/query audit logs). The authoritative, immutable record.                                                                                                                                                                                                            |
