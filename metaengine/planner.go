@@ -197,7 +197,7 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 				cost: estimateCost(
 					readC,
 					cfg.Volume,
-					profile.ReadNsPerOp(),
+					profile.NsForRead(meta.QueryReadPattern()),
 					profile.NetworkRTT,
 				),
 			})

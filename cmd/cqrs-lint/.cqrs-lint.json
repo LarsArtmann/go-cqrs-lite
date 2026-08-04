@@ -1,0 +1,9 @@
+{
+  // Single-user CLIs and local tools: no network server, no tracing.
+  // Run 'cqrs-lint explain' for full documentation
+  "preset": "local-cli",
+
+  // Minimum severity: "warning" is the preset floor (lower bound).
+  // You can raise this (e.g. to "error") but not lower it.
+  "min-severity": "warning"
+}

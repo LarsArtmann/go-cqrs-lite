@@ -132,6 +132,25 @@ func (e *pgEngine) Profile() metaengine.EngineProfile {
 		Name:      "postgres",
 		NsPerOp:   PG_NsPerOp,
 		NsPerRead: PG_NsPerRead,
+		// Per-read-pattern calibrated costs (see calibration_bench_test.go).
+		// Postgres has a real B-tree index on meta_map PK, so point lookups
+		// are genuinely fast (unlike DuckDB's columnar scan). Scan/aggregation
+		// per-row costs are lower than NsPerRead because a single query
+		// amortizes connection setup across all rows.
+		ReadCosts: metaengine.ReadCosts{
+			// Indexed B-tree point lookup. Measured ~28K via Docker (inflated);
+			// production (same-datacenter) ~5K. Matches PG_NsPerRead.
+			NsPerPointLookup: 5_000,
+			// Measured ~402 ns/row via Docker (BenchmarkCalibration_Postgres_PushdownScan).
+			// JSONB WHERE pushdown + row decode.
+			NsPerFilteredScan: 400,
+			// Measured ~149 ns/row via Docker (BenchmarkCalibration_Postgres_AggregateSum).
+			// SQL-level SUM with JSONB cast.
+			NsPerAggregate: 150,
+			// Measured ~805 ns/row via Docker (BenchmarkCalibration_Postgres_FullScan).
+			// Full scan + Go-side JSON decode.
+			NsPerScan: 800,
+		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityOLogN,
 			metaengine.ADTCounter:   metaengine.ComplexityO1,

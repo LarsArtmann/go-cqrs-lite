@@ -30,11 +30,26 @@ type EngineProfile struct {
 	// scans). Engines whose read and write costs differ noticeably (e.g. Pebble:
 	// fast LSM point reads, slower writes) should set this. When zero, the
 	// planner falls back to NsPerOp, preserving backward compatibility.
+	//
+	// Deprecated in favor of ReadCosts, which lets engines express different
+	// costs for different read operations (point lookup vs scan vs aggregate).
+	// Engines that do not set ReadCosts fall back to this value for all reads.
 	NsPerRead float64
 
 	// NsPerWrite is the calibrated nanoseconds-per-WRITE-operation (inserts,
 	// updates, folds). When zero, the planner falls back to NsPerOp.
 	NsPerWrite float64
+
+	// ReadCosts holds per-read-pattern calibrated costs. A single NsPerRead
+	// scalar cannot model an engine whose read operations span orders of
+	// magnitude (e.g. DuckDB: point lookup ~546K ns, vectorized aggregation
+	// ~133 ns/row — a 4000x gap). ReadCosts lets the planner pick the right
+	// constant based on what the query actually DOES, not a single average.
+	//
+	// All fields are optional. When a field is zero, NsForRead falls back to
+	// NsPerRead, then NsPerOp. Engines that don't set any field behave exactly
+	// as before.
+	ReadCosts ReadCosts
 
 	// Replication declares how this engine's data propagates across process
 	// boundaries (DDIA Ch5). ReplicationNone (zero value) means single-node:
@@ -61,6 +76,67 @@ type EngineProfile struct {
 	// The planner routes queries to degraded engines only when no native engine
 	// is available, and emits a DEGRADED diagnostic at plan time (ADR-0094).
 	DegradedADTs map[ADT]bool
+}
+
+// ReadCosts holds calibrated per-operation costs for the four fundamental read
+// workloads. These span up to 3 orders of magnitude on some engines (DuckDB:
+// point lookup is 4000x slower than vectorized aggregation), so a single scalar
+// cannot represent them.
+//
+// Field semantics differ: PointLookup is a per-QUERY cost (one indexed
+// lookup), while the scan/aggregate fields are per-ROW costs (the planner
+// multiplies by volume N).
+type ReadCosts struct {
+	// NsPerPointLookup is the cost of a single indexed key lookup (MapGet).
+	// Applies to ReadPointLookup, ReadMembership, ReadMultiLookup, ReadLogTail.
+	// Per-QUERY cost: the planner multiplies by ops=1 (O(1)) or ops=log2(N) (O(logN)).
+	NsPerPointLookup float64
+
+	// NsPerFilteredScan is the per-ROW cost of a filtered scan with SQL WHERE
+	// pushdown (PushdownMapScan). Applies to ReadFilteredScan.
+	// Per-ROW cost: the planner multiplies by volume N.
+	NsPerFilteredScan float64
+
+	// NsPerAggregate is the per-ROW cost of a vectorized aggregation
+	// (SUM/COUNT/GROUP BY). Applies to ReadAggregate.
+	// Per-ROW cost: the planner multiplies by volume N.
+	NsPerAggregate float64
+
+	// NsPerScan is the per-ROW cost of a full collection scan without SQL
+	// pushdown (MapScan — load all rows into Go, decode, filter in Go).
+	// Applies to ReadScan, ReadTraversal, ReadVectorSearch,
+	// ReadFullTextSearch, ReadSpatialRange.
+	// Per-ROW cost: the planner multiplies by volume N.
+	NsPerScan float64
+}
+
+// NsForRead returns the calibrated per-operation cost for the given read
+// pattern, falling back through a priority chain:
+//  1. Specific ReadCosts field (if set)
+//  2. NsPerRead (legacy scalar)
+//  3. NsPerOp
+//  4. defaultNsPerOp (100ns)
+func (p EngineProfile) NsForRead(pattern ReadPattern) float64 {
+	switch pattern {
+	case ReadPointLookup, ReadMembership, ReadMultiLookup, ReadLogTail:
+		if p.ReadCosts.NsPerPointLookup > 0 {
+			return p.ReadCosts.NsPerPointLookup
+		}
+	case ReadFilteredScan:
+		if p.ReadCosts.NsPerFilteredScan > 0 {
+			return p.ReadCosts.NsPerFilteredScan
+		}
+	case ReadAggregate:
+		if p.ReadCosts.NsPerAggregate > 0 {
+			return p.ReadCosts.NsPerAggregate
+		}
+	case ReadScan, ReadTraversal, ReadVectorSearch, ReadFullTextSearch, ReadSpatialRange:
+		if p.ReadCosts.NsPerScan > 0 {
+			return p.ReadCosts.NsPerScan
+		}
+	}
+
+	return p.ReadNsPerOp()
 }
 
 // ReadNsPerOp returns the calibrated per-read-operation cost, falling back to
