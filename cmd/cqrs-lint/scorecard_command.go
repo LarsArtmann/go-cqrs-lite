@@ -27,7 +27,11 @@ func setupScorecardCommand(cli *cmdguard.CLI[AppConfig]) error {
 
 			applyConfigOverrides(cfg, actx)
 
-			usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, analyzer.DefaultCatalog)
+			usage := analyzer.DetectUsedModules(
+				actx.Packages,
+				actx.GoFiles,
+				analyzer.DefaultCatalog,
+			)
 			result := ComputeScorecard(
 				analyzer.DefaultCatalog, usage,
 				actx.FeatureProfile, cfg.Preset,

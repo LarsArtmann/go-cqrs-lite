@@ -235,7 +235,10 @@ func main() { fmt.Println("hello") }
 		t.Errorf("expected 0 used modules for empty project, got %d", result.Summary.UsedCount)
 	}
 	if result.Summary.CoveragePercent != 0 {
-		t.Errorf("expected 0%% coverage for empty project, got %d%%", result.Summary.CoveragePercent)
+		t.Errorf(
+			"expected 0%% coverage for empty project, got %d%%",
+			result.Summary.CoveragePercent,
+		)
 	}
 	if len(result.Recommendations) == 0 {
 		t.Error("empty project should have recommendations")

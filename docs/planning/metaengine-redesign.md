@@ -601,12 +601,12 @@ miss, never data loss.
 
 **When this helps:**
 
-| Scenario                       | Why                                                                        |
-| ------------------------------ | -------------------------------------------------------------------------- |
-| Hot aggregate loads            | Decider loads the same stream repeatedly. First load warms cache.          |
-| Parallel projection rebuilds   | Multiple projections replay the same log. First warms; others read RAM.    |
-| CatchUpSubscriber replay       | Live handoff replays recent events. Cache holds the recent tail.          |
-| Time-travel queries            | Historical state reconstruction reads events up to a version.              |
+| Scenario                     | Why                                                                     |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| Hot aggregate loads          | Decider loads the same stream repeatedly. First load warms cache.       |
+| Parallel projection rebuilds | Multiple projections replay the same log. First warms; others read RAM. |
+| CatchUpSubscriber replay     | Live handoff replays recent events. Cache holds the recent tail.        |
+| Time-travel queries          | Historical state reconstruction reads events up to a version.           |
 
 **When it does NOT help:** write-once-read-rarely streams (most event logs in
 practice), or very large volumes where total events >> RAM (low hit rate).
@@ -621,23 +621,23 @@ never knows about it.
 
 **Complementary to `decider.StateCache`** — they cache at different levels:
 
-| Cache             | What it caches     | Cache hit effect                                  |
-| ----------------- | ------------------ | ------------------------------------------------- |
-| `StateCache`      | Folded state       | Skips event loading entirely (loads delta only)   |
-| Event cache (NEW) | Raw events         | Speeds up event loading on StateCache miss        |
+| Cache             | What it caches | Cache hit effect                                |
+| ----------------- | -------------- | ----------------------------------------------- |
+| `StateCache`      | Folded state   | Skips event loading entirely (loads delta only) |
+| Event cache (NEW) | Raw events     | Speeds up event loading on StateCache miss      |
 
 **Config (named engines — see [§7.1](#71-driver-registry-the-databasesql-model)):**
 
 ```yaml
 engines:
-  primary:   {driver: sqlite, dsn: "file:events.db"}
-  hot-cache: {driver: memory}
+  primary: { driver: sqlite, dsn: "file:events.db" }
+  hot-cache: { driver: memory }
 
 instances:
   - role: events
-    engine: primary        # authoritative (persistent)
-    cache:                 # optional read-through cache tier
-      engine: hot-cache    # references the named Memory engine
+    engine: primary # authoritative (persistent)
+    cache: # optional read-through cache tier
+      engine: hot-cache # references the named Memory engine
       # No invalidation policy — events are immutable.
       # Only eviction policy: LRU (default), or ARC (future).
 ```
@@ -1231,8 +1231,8 @@ each instance get its own connection? Shared is efficient; isolated is safer.
 | **ADT**                  | Abstract Data Type. The metaengine infers the ADT from fold return types: `func(e)(K,V)`→Map, `func(e)Delta`→Counter, `func(e)Append`→Log, etc.                                                                                                               |
 | **Backend**              | A storage engine implementation (SQLite, Pebble, Postgres, DuckDB, Memory). Each implements `metaengine.Engine` + whichever ADT backends it supports.                                                                                                         |
 | **Bundle**               | The current composition root (`stack.Bundle`). A bag of optional capability fields. To be replaced by `system.System`.                                                                                                                                        |
-| **Cache Tier**           | An optional read-through volatile cache (typically Memory) sitting in front of an instance's authoritative engine. Exploits event immutability: no invalidation needed, only eviction. NOT a planner concern — a transparent adapter wrapper.                |
-| **Named Engine**         | A declared engine configuration (driver + DSN + options) identified by a semantic name (e.g., "primary", "analytics", "hot-cache"). Instances reference engines by name, enabling swaps without topology changes.                                         |
+| **Cache Tier**           | An optional read-through volatile cache (typically Memory) sitting in front of an instance's authoritative engine. Exploits event immutability: no invalidation needed, only eviction. NOT a planner concern — a transparent adapter wrapper.                 |
+| **Named Engine**         | A declared engine configuration (driver + DSN + options) identified by a semantic name (e.g., "primary", "analytics", "hot-cache"). Instances reference engines by name, enabling swaps without topology changes.                                             |
 | **Deployer / Operator**  | The person configuring the deployment. Picks engines, DSNs, durability. Does NOT write domain code.                                                                                                                                                           |
 | **Consumer / Developer** | The person writing the application. Declares events, commands, queries, folds. Does NOT pick infrastructure.                                                                                                                                                  |
 | **Fold**                 | A pure function that maps an event to a projection update. The return type determines the ADT.                                                                                                                                                                |

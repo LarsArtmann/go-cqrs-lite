@@ -11,32 +11,32 @@
 
 ### Core Feature — Scorecard is functional and tested
 
-| Component | Status | Evidence |
-|-----------|--------|----------|
-| **ModuleCatalog** (34 entries: 6 core + 28 scored) | ✅ Done | `module_catalog.go` + `module_catalog_data.go` |
-| **Presence scanner** (path-boundary import detection) | ✅ Done | `module_detect.go` — Pass 1 + Pass 1b |
-| **Scorecard computation** (Used/Missing/Irrelevant partition) | ✅ Done | `scorecard.go` — coverage %, grade, top-3 recommendations |
-| **Text table renderer** | ✅ Done | `scorecard_render.go` — summary banner + Used/Missing tables |
-| **JSON renderer** | ✅ Done | `scorecard_render.go` — round-trip verified |
-| **`--scorecard` CLI flag** | ✅ Done | `main.go` + `run.go` — runs before handleLoadErrors |
-| **`scorecard` subcommand** | ✅ Done | `scorecard_command.go` — mirrors doctor pattern |
-| **Profile-relative denominator** | ✅ Done | local-CLI excludes transport/prometheus/watermill |
-| **Catalog drift CI gate** | ✅ Done | `TestCatalogEveryGoWorkModuleCovered` |
-| **Import-hint uniqueness test** | ✅ Done | `TestCatalogImportHintsUnique` (path-boundary aware) |
-| **E2E on real examples** | ✅ Done | verified on `getting-started`, `readme-quickstart` |
-| **AGENTS.md documentation** | ✅ Done | Updated cqrs-lint description |
-| **Build + vet + test + gofumpt** | ✅ Done | All green, 186 detectors unchanged |
+| Component                                                     | Status  | Evidence                                                     |
+| ------------------------------------------------------------- | ------- | ------------------------------------------------------------ |
+| **ModuleCatalog** (34 entries: 6 core + 28 scored)            | ✅ Done | `module_catalog.go` + `module_catalog_data.go`               |
+| **Presence scanner** (path-boundary import detection)         | ✅ Done | `module_detect.go` — Pass 1 + Pass 1b                        |
+| **Scorecard computation** (Used/Missing/Irrelevant partition) | ✅ Done | `scorecard.go` — coverage %, grade, top-3 recommendations    |
+| **Text table renderer**                                       | ✅ Done | `scorecard_render.go` — summary banner + Used/Missing tables |
+| **JSON renderer**                                             | ✅ Done | `scorecard_render.go` — round-trip verified                  |
+| **`--scorecard` CLI flag**                                    | ✅ Done | `main.go` + `run.go` — runs before handleLoadErrors          |
+| **`scorecard` subcommand**                                    | ✅ Done | `scorecard_command.go` — mirrors doctor pattern              |
+| **Profile-relative denominator**                              | ✅ Done | local-CLI excludes transport/prometheus/watermill            |
+| **Catalog drift CI gate**                                     | ✅ Done | `TestCatalogEveryGoWorkModuleCovered`                        |
+| **Import-hint uniqueness test**                               | ✅ Done | `TestCatalogImportHintsUnique` (path-boundary aware)         |
+| **E2E on real examples**                                      | ✅ Done | verified on `getting-started`, `readme-quickstart`           |
+| **AGENTS.md documentation**                                   | ✅ Done | Updated cqrs-lint description                                |
+| **Build + vet + test + gofumpt**                              | ✅ Done | All green, 186 detectors unchanged                           |
 
 ### Test Coverage
 
-| Test File | Tests | Status |
-|-----------|-------|--------|
-| `module_catalog_test.go` | 7 tests | ✅ All pass |
-| `module_detect_test.go` | 8 tests | ✅ All pass |
-| `scorecard_test.go` | 6 tests | ✅ All pass |
-| `scorecard_render_test.go` | 7 tests | ✅ All pass |
-| `scorecard_e2e_test.go` | 4 tests | ✅ All pass |
-| **Total new tests** | **32 tests** | ✅ |
+| Test File                  | Tests        | Status      |
+| -------------------------- | ------------ | ----------- |
+| `module_catalog_test.go`   | 7 tests      | ✅ All pass |
+| `module_detect_test.go`    | 8 tests      | ✅ All pass |
+| `scorecard_test.go`        | 6 tests      | ✅ All pass |
+| `scorecard_render_test.go` | 7 tests      | ✅ All pass |
+| `scorecard_e2e_test.go`    | 4 tests      | ✅ All pass |
+| **Total new tests**        | **32 tests** | ✅          |
 
 ---
 
@@ -66,26 +66,26 @@ The plan specified 55 micro-tasks (max 12 min each). I created 8 phase-level tod
 
 ### From the plan's "other 20%" section:
 
-| Item | Plan Section | Status |
-|------|-------------|--------|
-| **SARIF output for scorecard** | §2.4 Output formats | ❌ Not started — only text + JSON |
-| **`--scorecard-threshold` CI gate flag** | §2.4 Robustness | ❌ Not started — no way to fail CI below X% coverage |
-| **Markdown output format** | §2.4 Output formats | ❌ Not started |
-| **Multi-module workspace scorecard** | §8 Risk Assessment | ❌ Not tested — scorecard uses primary profile only |
-| **Self-lint scorecard on cqrs-lint itself** | — | ❌ Not attempted |
-| **Active usage detection (AST constructor calls)** | §3.3 Pass 2 | ❌ Not started — `UsageActive` tier exists but is never populated |
+| Item                                               | Plan Section        | Status                                                            |
+| -------------------------------------------------- | ------------------- | ----------------------------------------------------------------- |
+| **SARIF output for scorecard**                     | §2.4 Output formats | ❌ Not started — only text + JSON                                 |
+| **`--scorecard-threshold` CI gate flag**           | §2.4 Robustness     | ❌ Not started — no way to fail CI below X% coverage              |
+| **Markdown output format**                         | §2.4 Output formats | ❌ Not started                                                    |
+| **Multi-module workspace scorecard**               | §8 Risk Assessment  | ❌ Not tested — scorecard uses primary profile only               |
+| **Self-lint scorecard on cqrs-lint itself**        | —                   | ❌ Not attempted                                                  |
+| **Active usage detection (AST constructor calls)** | §3.3 Pass 2         | ❌ Not started — `UsageActive` tier exists but is never populated |
 
 ### Micro-tasks silently skipped:
 
-| Task | Description | Why skipped |
-|------|-------------|-------------|
-| 8.2 | Category subtotals row after each table group | Forgot |
-| 8.3 | Color: green for Used, yellow for Missing, gray for Irrelevant | Forgot — output is monochrome |
-| 8.4 | Summary banner with grade | Partially done — has grade but no color |
-| 12.4 | Route `--format json` to JSON renderer when `--scorecard` active | Works but untested via flag path |
-| 13.2 | Assert scorecard summary math in E2E | Done in unit tests, not in E2E explicitly |
-| 14.3 | Self-lint: `go vet ./...` | Done but not documented as a gate |
-| 15.2 | Update AGENTS.md: add ModuleCatalog to module list description | Partially — mentioned in cqrs-lint entry |
+| Task | Description                                                      | Why skipped                               |
+| ---- | ---------------------------------------------------------------- | ----------------------------------------- |
+| 8.2  | Category subtotals row after each table group                    | Forgot                                    |
+| 8.3  | Color: green for Used, yellow for Missing, gray for Irrelevant   | Forgot — output is monochrome             |
+| 8.4  | Summary banner with grade                                        | Partially done — has grade but no color   |
+| 12.4 | Route `--format json` to JSON renderer when `--scorecard` active | Works but untested via flag path          |
+| 13.2 | Assert scorecard summary math in E2E                             | Done in unit tests, not in E2E explicitly |
+| 14.3 | Self-lint: `go vet ./...`                                        | Done but not documented as a gate         |
+| 15.2 | Update AGENTS.md: add ModuleCatalog to module list description   | Partially — mentioned in cqrs-lint entry  |
 
 ---
 
@@ -98,6 +98,7 @@ I marked Phase 6 (Documentation) as `completed` when the changelog entry was nev
 ### 2. **Category priority split brain**
 
 Two independent sources of truth for category priority ordering:
+
 - `categoryPriority` map in `module_catalog.go` (analyzer package) — used by `ModuleEntry.CategoryPriority()`
 - `categoryPriorityFor` function in `scorecard.go` (main package) — used by `scorecardLess()`
 
@@ -124,6 +125,7 @@ This is confusing — same feature, two different invocation patterns.
 ### 7. **The exclusion list in `TestCatalogEveryGoWorkModuleCovered` is too aggressive**
 
 30+ modules are excluded, including `middleware`, `storage`, `dispatcher`, `projection`, `scenario`, `stack/memory`. Some of these ARE adoptable:
+
 - **`middleware/`** — consumers absolutely import this for logging, retry, recovery middleware
 - **`storage/`** — consumers using the SQL facade directly (not via stack presets) import this
 - **`stack/memory`** — consumers use this for in-memory testing
@@ -262,6 +264,7 @@ The plan says "v1 counts Imported as Used" and Active is "infrastructure for fut
 The core feature works. 32 tests pass. Build is green. The scorecard delivers the promised bilateral "You use X/Y modules" view with profile-relative denominators. E2E verified on real examples.
 
 But the execution was sloppy in ways that matter:
+
 - **TODO tracking lied** (changelog marked done when it wasn't)
 - **Split brain** (duplicate category priority)
 - **6 plan tasks silently dropped** (color, subtotals, etc.)
