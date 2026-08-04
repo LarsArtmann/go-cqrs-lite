@@ -76,6 +76,16 @@ type EngineProfile struct {
 	// The planner routes queries to degraded engines only when no native engine
 	// is available, and emits a DEGRADED diagnostic at plan time (ADR-0094).
 	DegradedADTs map[ADT]bool
+
+	// Persistence declares whether this engine's data survives process exit
+	// (DDIA Ch1: survivability). PersistenceVolatile (zero value) means data
+	// lives in process RAM and is lost on restart. PersistencePersistent means
+	// data survives via a disk file or remote server.
+	//
+	// The zero value is the safe default — forgetting to set it causes the
+	// planner to WARN, not silently assume durability. Three engines (SQLite,
+	// Pebble, DuckDB) set this dynamically based on constructor args.
+	Persistence Persistence
 }
 
 // ReadCosts holds calibrated per-operation costs for the four fundamental read
@@ -179,7 +189,7 @@ func (p EngineProfile) String() string {
 
 	sort.Strings(parts)
 
-	extras := make([]string, 0, 3)
+	extras := make([]string, 0, 4)
 	if p.IsReplicated() {
 		extras = append(extras, fmt.Sprintf("replication=%s", p.Replication))
 		if p.ReplicationLag > 0 {
@@ -188,6 +198,9 @@ func (p EngineProfile) String() string {
 	}
 	if p.NetworkRTT > 0 {
 		extras = append(extras, fmt.Sprintf("rtt=%s", p.NetworkRTT))
+	}
+	if p.IsVolatile() {
+		extras = append(extras, "volatile")
 	}
 
 	suffix := ""
