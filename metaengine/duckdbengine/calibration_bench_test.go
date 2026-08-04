@@ -80,12 +80,14 @@ func openDuckDBForBench(t testing.TB) *sql.DB {
 }
 
 // BenchmarkCalibration_DuckDB_BatchInsert measures batch-amortized columnar
-// writes: 1000 inserts inside a single transaction. This is the workload
-// DuckDBNsPerOp models — DuckDB amortizes the columnar flush across the batch.
+// writes: a single multi-VALUES INSERT of 1000 rows in one statement. This is
+// the canonical "batch-amortized columnar write" workload DuckDBNsPerOp models
+// — DuckDB's vectorized execution engine amortizes the columnar flush across
+// the entire batch in one statement.
 // The "ns/row" metric calibrates the per-write constant.
 //
 // Contrast with BenchmarkDuckDB_MapSet (bench_test.go) which measures
-// single-statement autocommit writes — DuckDB's worst case.
+// single-statement autocommit writes — DuckDB's worst case (~3.9M ns/op).
 func BenchmarkCalibration_DuckDB_BatchInsert(b *testing.B) {
 	const batchSize = 1000
 
@@ -93,60 +95,49 @@ func BenchmarkCalibration_DuckDB_BatchInsert(b *testing.B) {
 	defer func() { _ = db.Close() }()
 
 	ctx := context.Background()
+
+	// Pre-build the payloads (marshal is not part of the measured write cost).
+	type row struct{ col, key, val string }
+	batch := make([]row, batchSize)
+
+	for i := range batchSize {
+		raw, err := json.Marshal(calibrationPayload{
+			ID: i, Status: "active", Amount: float64(i) * 1.5,
+		})
+		if err != nil {
+			b.Fatalf("marshal: %v", err)
+		}
+
+		batch[i] = row{col: "batch", key: fmt.Sprintf("k%d", i), val: string(raw)}
+	}
+
+	// Pre-build the VALUES clause once (parameter placeholders are stable).
+	placeholders := make([]string, batchSize)
+	args := make([]any, 0, batchSize*3)
+
+	for i, r := range batch {
+		placeholders[i] = fmt.Sprintf("($%d, $%d, $%d)", i*3+1, i*3+2, i*3+3)
+		args = append(args, r.col, r.key, r.val)
+	}
+
+	q := fmt.Sprintf(
+		`INSERT INTO meta_map (collection, key, value) VALUES %s`,
+		strings.Join(placeholders, ", "),
+	)
+
 	b.ResetTimer()
 
 	for iter := 0; iter < b.N; iter++ {
-		b.StopTimer()
-
-		// Fresh collection per iteration to avoid PK conflicts.
+		// Unique collection per iteration to avoid PK conflicts. Every row's
+		// collection arg (indices 0, 3, 6, ...) must be updated.
 		col := fmt.Sprintf("batch_%d", iter)
 
-		tx, err := db.BeginTx(ctx, nil)
-		if err != nil {
-			b.Fatalf("begin tx: %v", err)
-		}
-
-		stmt, err := tx.PrepareContext(
-			ctx,
-			`INSERT INTO meta_map (collection, key, value) VALUES ($1, $2, $3)`,
-		)
-		if err != nil {
-			_ = tx.Rollback()
-			b.Fatalf("prepare: %v", err)
-		}
-
-		b.StartTimer()
-
 		for i := range batchSize {
-			p := calibrationPayload{
-				ID:     i,
-				Status: "active",
-				Amount: float64(i) * 1.5,
-			}
-
-			raw, err := json.Marshal(p)
-			if err != nil {
-				_ = stmt.Close()
-				_ = tx.Rollback()
-				b.Fatalf("marshal: %v", err)
-			}
-
-			if _, err := stmt.ExecContext(ctx, col, fmt.Sprintf("k%d", i), string(raw)); err != nil {
-				_ = stmt.Close()
-				_ = tx.Rollback()
-				b.Fatalf("exec %d: %v", i, err)
-			}
+			args[i*3] = col
 		}
 
-		b.StopTimer()
-
-		if err := stmt.Close(); err != nil {
-			_ = tx.Rollback()
-			b.Fatalf("close stmt: %v", err)
-		}
-
-		if err := tx.Commit(); err != nil {
-			b.Fatalf("commit: %v", err)
+		if _, err := db.ExecContext(ctx, q, args...); err != nil {
+			b.Fatalf("batch insert %d: %v", iter, err)
 		}
 	}
 

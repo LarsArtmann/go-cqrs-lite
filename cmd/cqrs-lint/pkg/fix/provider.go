@@ -44,7 +44,16 @@ func (p *CQRSFixProvider) Edits(content []byte, f finding.Finding) ([]pipeline.F
 		return nil, nil
 	}
 
-	idx := bytes.Index(content, []byte(beforeCode))
+	// Position-based matching: convert the finding's line:column to a byte
+	// offset and check if BeforeCode appears there. This handles files with
+	// multiple occurrences of the same pattern (e.g., multiple event.NewEvent
+	// calls) by fixing the exact one the finding refers to.
+	idx := positionBasedIndex(content, f, beforeCode)
+	if idx == -1 {
+		// Fall back to first-occurrence substring search.
+		idx = bytes.Index(content, []byte(beforeCode))
+	}
+
 	if idx == -1 {
 		return nil, nil
 	}
@@ -60,4 +69,35 @@ func (p *CQRSFixProvider) Edits(content []byte, f finding.Finding) ([]pipeline.F
 		Replacement: replacement,
 		Source:      f,
 	}}, nil
+}
+
+// positionBasedIndex converts the finding's line:column to a byte offset and
+// checks if beforeCode appears at that offset. Returns -1 if the position is
+// invalid or beforeCode does not match at the expected location.
+func positionBasedIndex(content []byte, f finding.Finding, beforeCode string) int {
+	if f.Position.Line <= 0 || f.Position.Column <= 0 {
+		return -1
+	}
+
+	line, col := 1, 1
+
+	for i := 0; i < len(content); i++ {
+		if line == f.Position.Line && col == f.Position.Column {
+			if i+len(beforeCode) <= len(content) &&
+				string(content[i:i+len(beforeCode)]) == beforeCode {
+				return i
+			}
+
+			return -1
+		}
+
+		if content[i] == '\n' {
+			line++
+			col = 1
+		} else {
+			col++
+		}
+	}
+
+	return -1
 }

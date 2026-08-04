@@ -60,9 +60,12 @@ func BenchmarkDecider_Load_WithCache(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _, err := repo.Load(ctx, streamID, "Counter")
+		state, _, err := repo.Load(ctx, streamID, "Counter")
 		if err != nil {
 			b.Fatalf("Load: %v", err)
+		}
+		if state.Value != 500 {
+			b.Fatalf("Load: state.Value=%d, want 500", state.Value)
 		}
 	}
 }
@@ -114,7 +117,10 @@ func BenchmarkStateCache_Get(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _, _ = cache.Get(ref)
+		_, _, found := cache.Get(ref)
+		if !found {
+			b.Fatal("cache.Get: expected found=true for existing key")
+		}
 	}
 }
 
@@ -128,5 +134,10 @@ func BenchmarkStateCache_Put(b *testing.B) {
 
 	for b.Loop() {
 		cache.Put(ref, counterState{Value: 42}, event.Version(10))
+	}
+
+	val, _, found := cache.Get(ref)
+	if !found || val.Value != 42 {
+		b.Fatalf("post-loop Get: found=%v value=%d, want 42", found, val.Value)
 	}
 }

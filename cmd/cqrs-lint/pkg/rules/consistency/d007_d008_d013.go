@@ -84,7 +84,7 @@ func NewD007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithFixStrategy(finding.FixStrategyDirect).
 					WithBeforeCode("event.NewEvent(").
 					WithAfterCode("event.New(").
-					WithSuggestion("Replace event.NewEvent with event.New — they are aliases").
+					WithSuggestion("Replace event.NewEvent with event.New — same arguments, New auto-stamps encoding metadata").
 					WithSnippet(ctx.SourceLine(s.file, s.line)).
 					Build()
 				lintutil.AppendBuild(&findings, f, err)

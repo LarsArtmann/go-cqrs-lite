@@ -17,7 +17,9 @@ func benchPopulateStore(b *testing.B, store *memory.MemoryStore, ctx context.Con
 	for range n {
 		streamID := id.NewStreamID()
 		evt := benchEvent(b, streamID, 1)
-		_ = store.AppendBatch(ctx, id.NewStreamRef("Bench", streamID), []event.Event{evt})
+		if err := store.AppendBatch(ctx, id.NewStreamRef("Bench", streamID), []event.Event{evt}); err != nil {
+			b.Fatalf("seed AppendBatch: %v", err)
+		}
 	}
 }
 
@@ -34,7 +36,13 @@ func benchStoreWithNEvents(b *testing.B, n int) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _ = store.ReadAll(ctx)
+		events, err := store.ReadAll(ctx)
+		if err != nil {
+			b.Fatalf("ReadAll: %v", err)
+		}
+		if len(events) == 0 {
+			b.Fatal("ReadAll returned empty — store not populated")
+		}
 	}
 }
 
@@ -60,23 +68,33 @@ func BenchmarkMemoryStore_ReadFrom_Scale(b *testing.B) {
 			b.Cleanup(func() { _ = store.Close() })
 
 			ctx := context.Background()
-			var lastID id.EventID
+			var firstID id.EventID
 
 			for range n {
 				streamID := id.NewStreamID()
 				evt := benchEvent(b, streamID, 1)
-				lastID = evt.ID()
-				_ = store.AppendBatch(
+				if firstID == (id.EventID{}) {
+					firstID = evt.ID()
+				}
+				if err := store.AppendBatch(
 					ctx,
 					id.NewStreamRef("Bench", streamID),
 					[]event.Event{evt},
-				)
+				); err != nil {
+					b.Fatalf("seed AppendBatch: %v", err)
+				}
 			}
 
 			b.ResetTimer()
 
 			for b.Loop() {
-				_, _ = store.ReadFrom(ctx, lastID, 100)
+				events, err := store.ReadFrom(ctx, firstID, 100)
+				if err != nil {
+					b.Fatalf("ReadFrom: %v", err)
+				}
+				if len(events) == 0 {
+					b.Fatal("ReadFrom returned empty — store not populated")
+				}
 			}
 		})
 	}
@@ -90,6 +108,8 @@ func BenchmarkMemoryStore_Save_Concurrent(b *testing.B) {
 
 	ctx := context.Background()
 	var wg sync.WaitGroup
+	var firstErr error
+	var errOnce sync.Once
 
 	b.ResetTimer()
 
@@ -99,11 +119,26 @@ func BenchmarkMemoryStore_Save_Concurrent(b *testing.B) {
 			defer wg.Done()
 			newID := id.NewStreamID()
 			newEvt := benchEvent(b, newID, 1)
-			_ = store.Save(ctx, id.NewStreamRef("Bench", newID), []event.Event{newEvt}, 0)
+			if err := store.Save(ctx, id.NewStreamRef("Bench", newID), []event.Event{newEvt}, 0); err != nil {
+				errOnce.Do(func() { firstErr = err })
+			}
 		}()
 	}
 
 	wg.Wait()
+
+	if firstErr != nil {
+		b.Fatalf("Save: %v", firstErr)
+	}
+
+	// Verify data was written.
+	events, err := store.ReadAll(ctx)
+	if err != nil {
+		b.Fatalf("verify ReadAll: %v", err)
+	}
+	if len(events) == 0 {
+		b.Fatal("verify ReadAll: empty — Save was a no-op")
+	}
 }
 
 func BenchmarkMemoryStore_ReadWrite_Concurrent(b *testing.B) {
@@ -117,6 +152,8 @@ func BenchmarkMemoryStore_ReadWrite_Concurrent(b *testing.B) {
 	benchPopulateStore(b, store, ctx, 100)
 
 	var wg sync.WaitGroup
+	var firstErr error
+	var errOnce sync.Once
 
 	b.ResetTimer()
 
@@ -132,9 +169,15 @@ func BenchmarkMemoryStore_ReadWrite_Concurrent(b *testing.B) {
 			defer wg.Done()
 			streamID := id.NewStreamID()
 			evt := benchEvent(b, streamID, 1)
-			_ = store.Save(ctx, id.NewStreamRef("Bench", streamID), []event.Event{evt}, 0)
+			if err := store.Save(ctx, id.NewStreamRef("Bench", streamID), []event.Event{evt}, 0); err != nil {
+				errOnce.Do(func() { firstErr = err })
+			}
 		}()
 	}
 
 	wg.Wait()
+
+	if firstErr != nil {
+		b.Fatalf("Save: %v", firstErr)
+	}
 }

@@ -64,9 +64,21 @@ func BenchmarkDecider_Execute(b *testing.B) {
 	b.ReportAllocs()
 	repo, ctx := newBenchRepo(b)
 
+	var lastStream id.StreamID
+
 	for b.Loop() {
 		streamID := id.NewStreamID()
+		lastStream = streamID
 		benchExecute(b, repo, ctx, streamID, "CounterCreated")
+	}
+
+	// Verify events were persisted (not silently dropped).
+	state, _, err := repo.Load(ctx, lastStream, "Counter")
+	if err != nil {
+		b.Fatalf("post-loop Load: %v", err)
+	}
+	if state.Value != 1 {
+		b.Fatalf("post-loop Load: state.Value=%d, want 1 — Execute was a no-op", state.Value)
 	}
 }
 
@@ -82,6 +94,15 @@ func BenchmarkDecider_Execute_Update(b *testing.B) {
 	for b.Loop() {
 		benchExecute(b, repo, ctx, streamID, "CounterIncremented")
 	}
+
+	// Verify the increment events were persisted.
+	state, _, err := repo.Load(ctx, streamID, "Counter")
+	if err != nil {
+		b.Fatalf("post-loop Load: %v", err)
+	}
+	if state.Value < 101 {
+		b.Fatalf("post-loop Load: state.Value=%d, want >=101 — increments were no-ops", state.Value)
+	}
 }
 
 func BenchmarkDecider_Load(b *testing.B) {
@@ -94,9 +115,12 @@ func BenchmarkDecider_Load(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _, err := repo.Load(ctx, streamID, "Counter")
+		state, _, err := repo.Load(ctx, streamID, "Counter")
 		if err != nil {
 			b.Fatalf("Load: %v", err)
+		}
+		if state.Value != 100 {
+			b.Fatalf("Load: state.Value=%d, want 100 — fold produced wrong state", state.Value)
 		}
 	}
 }
@@ -118,7 +142,15 @@ func BenchmarkDecider_Apply(b *testing.B) {
 		s := state
 
 		for _, evt := range events {
-			s, _ = applyCounter(s, evt)
+			var err error
+			s, err = applyCounter(s, evt)
+			if err != nil {
+				b.Fatalf("applyCounter: %v", err)
+			}
+		}
+
+		if s.Value != 100 {
+			b.Fatalf("after folding 100 increments: state.Value=%d, want 100", s.Value)
 		}
 	}
 }
