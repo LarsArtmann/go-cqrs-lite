@@ -366,11 +366,18 @@ has zero runtime overhead — driver registration is a map insert at init time;
 lookup is a map read at startup. After construction, all calls go directly to
 the concrete implementation.
 
-**Open sub-question:** exact config format (YAML? env? Go struct? all three?)
-and the HTTP admin runtime-change mechanism (hot reload? graceful restart?
-transactional config swap?). See [§10](#10-open-questions).
+**Resolved:** Config is Go struct (canonical) + YAML + env, merged via
+[koanf](https://github.com/knadh/koanf/). Koanf handles multi-source merging
+(file + env + flags → struct) with multiple parser backends. The Go struct
+remains the single source of truth; koanf is the input mechanism. See [§7.2](#72-config-format).
 
-### 4.2 Redesign scope: Parallel (new alongside old)
+HTTP admin runtime-change mechanism is hot-reload for additive changes (add
+cache tier, add read replica) and graceful restart for structural changes
+(swap event log engine, change durability tier). A transactional config-swap
+mechanism validates the new config against the scream store before applying.
+Design details deferred to implementation.
+
+### 4.2 Redesign scope: Parallel (new alongside old), gradual migration
 
 **Decision:** Build a new `System` type alongside the existing `Bundle`.
 Migrate gradually. Deprecate `Bundle` later.
