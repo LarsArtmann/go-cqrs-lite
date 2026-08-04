@@ -81,13 +81,26 @@ func RunLayoutMatrix(t *testing.T, factories []Factory) {
 					collection := scenario.Name
 
 					// Apply layout BEFORE seeding (no-backfill semantics).
-					if err := lp.ApplyLayout(collection, scenario.FilterFields, scenario.SortFields); err != nil {
+					if err := lp.ApplyLayout(
+						collection,
+						scenario.FilterFields,
+						scenario.SortFields,
+					); err != nil {
 						t.Fatalf("%s/%s: ApplyLayout: %v", factory.Name, scenario.Name, err)
 					}
 
 					// Idempotent: re-applying with the same fields must not error.
-					if err := lp.ApplyLayout(collection, scenario.FilterFields, scenario.SortFields); err != nil {
-						t.Fatalf("%s/%s: ApplyLayout (idempotent): %v", factory.Name, scenario.Name, err)
+					if err := lp.ApplyLayout(
+						collection,
+						scenario.FilterFields,
+						scenario.SortFields,
+					); err != nil {
+						t.Fatalf(
+							"%s/%s: ApplyLayout (idempotent): %v",
+							factory.Name,
+							scenario.Name,
+							err,
+						)
 					}
 
 					// Seed data via MapBackend.
@@ -102,7 +115,14 @@ func RunLayoutMatrix(t *testing.T, factories []Factory) {
 					}
 
 					// Query via PushdownScan.
-					res, err := ps.PushdownMapScan(ctx, collection, scenario.Filter, scenario.Sort, nil, scenario.Limit)
+					res, err := ps.PushdownMapScan(
+						ctx,
+						collection,
+						scenario.Filter,
+						scenario.Sort,
+						nil,
+						scenario.Limit,
+					)
 					if err != nil {
 						t.Fatalf("%s/%s: PushdownMapScan: %v", factory.Name, scenario.Name, err)
 					}

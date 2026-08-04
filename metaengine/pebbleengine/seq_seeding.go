@@ -20,11 +20,11 @@ func (e *pebbleEngine) seedSeqCounters() error {
 		return fmt.Errorf("seed stream seqs: %w", err)
 	}
 
-	if err := e.seedCollectionSeqs("jl", e.journalSeq); err != nil {
+	if err := e.seedCollectionSeqs("jl", &e.journalSeq); err != nil {
 		return fmt.Errorf("seed journal seqs: %w", err)
 	}
 
-	if err := e.seedCollectionSeqs("l", e.logSeq); err != nil {
+	if err := e.seedCollectionSeqs("l", &e.logSeq); err != nil {
 		return fmt.Errorf("seed log seqs: %w", err)
 	}
 
@@ -67,7 +67,7 @@ func (e *pebbleEngine) seedStreamSeqs() error {
 
 // seedCollectionSeqs scans a tag prefix (e.g. "jl", "l") and seeds a
 // per-collection counter sync.Map. The group key is the collection name only.
-func (e *pebbleEngine) seedCollectionSeqs(tag string, target sync.Map) error {
+func (e *pebbleEngine) seedCollectionSeqs(tag string, target *sync.Map) error {
 	prefix := []byte(tag + sep)
 
 	iter, err := e.db.NewIter(&pebble.IterOptions{
@@ -89,7 +89,7 @@ func (e *pebbleEngine) seedCollectionSeqs(tag string, target sync.Map) error {
 			continue
 		}
 
-		seedSyncMapMax(&target, group, seq)
+		seedSyncMapMax(target, group, seq)
 	}
 
 	return iter.Error()

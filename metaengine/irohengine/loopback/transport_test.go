@@ -49,7 +49,9 @@ func eventuallyGet(
 	}, timeout, 50*time.Millisecond).Should(gomega.Succeed())
 }
 
-func setupTwoNodeLoopback(t *testing.T) (nodeA, nodeB metaengine.Engine, tA, tB *loopback.LoopbackTransport) {
+func setupTwoNodeLoopback(
+	t *testing.T,
+) (nodeA, nodeB metaengine.Engine, tA, tB *loopback.LoopbackTransport) {
 	t.Helper()
 	g := gomega.NewWithT(t)
 
@@ -99,8 +101,10 @@ func TestLoopbackBidirectionalConvergence(t *testing.T) {
 	ctx := context.Background()
 	nodeA, nodeB, _, _ := setupTwoNodeLoopback(t)
 
-	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "coll", "a-key", "a-val")).To(gomega.Succeed())
-	g.Expect(nodeB.(metaengine.MapBackend).MapSet(ctx, "coll", "b-key", "b-val")).To(gomega.Succeed())
+	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "coll", "a-key", "a-val")).
+		To(gomega.Succeed())
+	g.Expect(nodeB.(metaengine.MapBackend).MapSet(ctx, "coll", "b-key", "b-val")).
+		To(gomega.Succeed())
 
 	eventuallyGet(g, nodeA, "coll", "b-key", "b-val", 5*time.Second)
 	eventuallyGet(g, nodeB, "coll", "a-key", "a-val", 5*time.Second)
@@ -113,7 +117,8 @@ func TestLoopbackCounterConvergence(t *testing.T) {
 	nodeA, nodeB, _, _ := setupTwoNodeLoopback(t)
 
 	cb := nodeA.(metaengine.CounterBackend)
-	g.Expect(cb.CounterIncrement(ctx, "counters", metaengine.Delta{"alice": 5})).To(gomega.Succeed())
+	g.Expect(cb.CounterIncrement(ctx, "counters", metaengine.Delta{"alice": 5})).
+		To(gomega.Succeed())
 
 	g.Eventually(func(g gomega.Gomega) {
 		cb2 := nodeB.(metaengine.CounterBackend)
@@ -185,7 +190,12 @@ func TestLoopbackFrameEncodingRoundTrip(t *testing.T) {
 
 	ops := []irohengine.WriteOp{
 		{ID: "op1", Collection: "c", Kind: irohengine.OpMapSet, Key: "k", Value: "v"},
-		{ID: "op2", Collection: "c", Kind: irohengine.OpCounterInc, Delta: metaengine.Delta{"alice": 5}},
+		{
+			ID:         "op2",
+			Collection: "c",
+			Kind:       irohengine.OpCounterInc,
+			Delta:      metaengine.Delta{"alice": 5},
+		},
 		{ID: "op3", Collection: "c", Kind: irohengine.OpSetAdd, Key: "set1", Value: "tag1"},
 	}
 

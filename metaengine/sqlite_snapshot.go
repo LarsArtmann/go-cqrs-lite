@@ -17,9 +17,13 @@ func (e *sqliteEngine) SnapshotSave(
 	version int64,
 	data []byte,
 ) error {
-	_, err := e.db.ExecContext(ctx,
+	_, err := e.db.ExecContext(
+		ctx,
 		`INSERT OR REPLACE INTO meta_snapshot (collection, stream_id, version, data) VALUES (?, ?, ?, ?)`,
-		collection, streamID, version, data,
+		collection,
+		streamID,
+		version,
+		data,
 	)
 	if err != nil {
 		return fmt.Errorf("metaengine: snapshot save %s/%s: %w", collection, streamID, err)
@@ -71,7 +75,12 @@ func (e *sqliteEngine) SnapshotLoadAtVersion(
 	}
 
 	if err != nil {
-		return nil, 0, fmt.Errorf("metaengine: snapshot load at version %s/%s: %w", collection, streamID, err)
+		return nil, 0, fmt.Errorf(
+			"metaengine: snapshot load at version %s/%s: %w",
+			collection,
+			streamID,
+			err,
+		)
 	}
 
 	return data, version, nil

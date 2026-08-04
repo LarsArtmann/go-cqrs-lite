@@ -16,7 +16,13 @@ func TestSnapshotBackend_Memory(t *testing.T) {
 	ctx := context.Background()
 
 	// Save a snapshot.
-	if err := backend.SnapshotSave(ctx, "snapshots", "stream-1", 5, []byte("state-v5")); err != nil {
+	if err := backend.SnapshotSave(
+		ctx,
+		"snapshots",
+		"stream-1",
+		5,
+		[]byte("state-v5"),
+	); err != nil {
 		t.Fatalf("SnapshotSave: %v", err)
 	}
 
@@ -35,7 +41,13 @@ func TestSnapshotBackend_Memory(t *testing.T) {
 	}
 
 	// Overwrite with newer version.
-	if err := backend.SnapshotSave(ctx, "snapshots", "stream-1", 10, []byte("state-v10")); err != nil {
+	if err := backend.SnapshotSave(
+		ctx,
+		"snapshots",
+		"stream-1",
+		10,
+		[]byte("state-v10"),
+	); err != nil {
 		t.Fatalf("SnapshotSave overwrite: %v", err)
 	}
 
@@ -95,7 +107,13 @@ func TestSnapshotBackend_SQLite(t *testing.T) {
 	}
 
 	// Save a snapshot.
-	if err := backend.SnapshotSave(ctx, "snapshots", "stream-1", 5, []byte("state-v5")); err != nil {
+	if err := backend.SnapshotSave(
+		ctx,
+		"snapshots",
+		"stream-1",
+		5,
+		[]byte("state-v5"),
+	); err != nil {
 		t.Fatalf("SnapshotSave: %v", err)
 	}
 
@@ -110,7 +128,13 @@ func TestSnapshotBackend_SQLite(t *testing.T) {
 	}
 
 	// Overwrite with newer version.
-	if err := backend.SnapshotSave(ctx, "snapshots", "stream-1", 10, []byte("state-v10")); err != nil {
+	if err := backend.SnapshotSave(
+		ctx,
+		"snapshots",
+		"stream-1",
+		10,
+		[]byte("state-v10"),
+	); err != nil {
 		t.Fatalf("SnapshotSave overwrite: %v", err)
 	}
 

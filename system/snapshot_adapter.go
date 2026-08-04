@@ -32,7 +32,13 @@ func NewSnapshotAdapter(backend metaengine.SnapshotBackend, collection string) *
 var _ snapshot.SnapshotStore = (*SnapshotAdapter)(nil)
 
 func (a *SnapshotAdapter) Save(ctx context.Context, snap snapshot.Snapshot) error {
-	return a.backend.SnapshotSave(ctx, a.collection, snap.StreamID.String(), int64(snap.Version), snap.State)
+	return a.backend.SnapshotSave(
+		ctx,
+		a.collection,
+		snap.StreamID.String(),
+		int64(snap.Version),
+		snap.State,
+	)
 }
 
 func (a *SnapshotAdapter) Delete(ctx context.Context, ref id.StreamRef) error {

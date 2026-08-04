@@ -99,9 +99,13 @@ func (e *sqliteEngine) StreamReadAsOfVersion(
 		return []any{}, nil
 	}
 
-	return e.scanStreamValues(ctx,
+	return e.scanStreamValues(
+		ctx,
 		`SELECT value FROM meta_stream_log WHERE collection = ? AND stream_id = ? ORDER BY seq LIMIT ?`,
-		col, sid, maxVersion)
+		col,
+		sid,
+		maxVersion,
+	)
 }
 
 // encodeStreamValue serializes a value for storage in the stream log TEXT column.

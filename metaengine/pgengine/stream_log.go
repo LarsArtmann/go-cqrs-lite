@@ -21,7 +21,8 @@ func (e *pgEngine) StreamAppend(ctx context.Context, col, sid string, values []a
 
 	for _, v := range values {
 		encoded := metaengine.EncodeStreamValue(v)
-		if _, err := tx.ExecContext(ctx,
+		if _, err := tx.ExecContext(
+			ctx,
 			`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
 			col, sid, encoded,
 		); err != nil {
@@ -54,7 +55,8 @@ func (e *pgEngine) StreamAppendExpected(
 
 	var current int64
 
-	err = tx.QueryRowContext(ctx,
+	err = tx.QueryRowContext(
+		ctx,
 		`SELECT COUNT(*) FROM meta_stream_log WHERE collection = $1 AND stream_id = $2`,
 		col, sid,
 	).Scan(&current)
@@ -68,7 +70,8 @@ func (e *pgEngine) StreamAppendExpected(
 
 	for _, v := range values {
 		encoded := metaengine.EncodeStreamValue(v)
-		if _, err := tx.ExecContext(ctx,
+		if _, err := tx.ExecContext(
+			ctx,
 			`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
 			col, sid, encoded,
 		); err != nil {
@@ -92,7 +95,8 @@ func (e *pgEngine) StreamRead(ctx context.Context, col, sid string) ([]any, erro
 func (e *pgEngine) StreamVersion(ctx context.Context, col, sid string) (int64, error) {
 	var count int64
 
-	err := e.db.QueryRowContext(ctx,
+	err := e.db.QueryRowContext(
+		ctx,
 		`SELECT COUNT(*) FROM meta_stream_log WHERE collection = $1 AND stream_id = $2`,
 		col, sid,
 	).Scan(&count)
@@ -125,9 +129,13 @@ func (e *pgEngine) JournalReadFrom(
 			col, afterSeq)
 	}
 
-	return e.scanStreamValues(ctx,
+	return e.scanStreamValues(
+		ctx,
 		`SELECT value FROM meta_stream_log WHERE collection = $1 AND seq > $2 ORDER BY seq LIMIT $3`,
-		col, afterSeq, limit)
+		col,
+		afterSeq,
+		limit,
+	)
 }
 
 func (e *pgEngine) scanStreamValues(

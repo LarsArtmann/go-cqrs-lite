@@ -185,8 +185,8 @@ func (e *pebbleEngine) JournalReadFrom(
 	prefix := journalPrefix(col)
 	upperBound := nextKey(prefix)
 
-	// Start from afterSeq+1 by seeking to the specific key.
-	startKey := journalKey(col, afterSeq)
+	// LowerBound is exclusive of afterSeq: start at afterSeq+1.
+	startKey := journalKey(col, afterSeq+1)
 
 	iter, err := e.db.NewIter(&pebble.IterOptions{
 		LowerBound: startKey,

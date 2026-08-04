@@ -102,13 +102,21 @@ func (e *duckdbEngine) mapSetPlanned(
 	setCols := make([]string, 0, 1+len(plan.Columns))
 	setCols = append(
 		setCols,
-		fmt.Sprintf("%s = excluded.%s", metaengine.QuoteIdent("value"), metaengine.QuoteIdent("value")),
+		fmt.Sprintf(
+			"%s = excluded.%s",
+			metaengine.QuoteIdent("value"),
+			metaengine.QuoteIdent("value"),
+		),
 	)
 
 	for _, c := range plan.Columns {
 		setCols = append(
 			setCols,
-			fmt.Sprintf("%s = excluded.%s", metaengine.QuoteIdent(c.Name), metaengine.QuoteIdent(c.Name)),
+			fmt.Sprintf(
+				"%s = excluded.%s",
+				metaengine.QuoteIdent(c.Name),
+				metaengine.QuoteIdent(c.Name),
+			),
 		)
 	}
 
@@ -232,7 +240,12 @@ func buildPlannedSelectQuery(
 				argIdx++
 			}
 
-			fmt.Fprintf(&b, "%s IN (%s)", metaengine.QuoteIdent(f.Column), strings.Join(placeholders, ", "))
+			fmt.Fprintf(
+				&b,
+				"%s IN (%s)",
+				metaengine.QuoteIdent(f.Column),
+				strings.Join(placeholders, ", "),
+			)
 		} else {
 			writeWhereOrAnd(&b, &whereStarted)
 
