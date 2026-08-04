@@ -50,7 +50,9 @@ func (m Metadata) WithCustom(key MetadataKey, value string) Metadata {
 	if custom == nil {
 		custom = make(map[MetadataKey]string)
 	}
+
 	custom[key] = value
+
 	return Metadata{
 		Tracing: m.Tracing,
 		Custom:  custom,

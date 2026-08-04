@@ -234,6 +234,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"middleware":                   "middleware is adopted transitively via otel stack bundles; not a standalone adoption decision",
 		"projection":                   "interface-only module (consumers use projectionhost)",
 		"scenario":                     "test DSL (niche, not a production adoption decision)",
+		"scheduling/sqlstore":          "sub-package (covered by scheduling)",
 		"stack":                        "root stack types (consumers import stack/<backend> presets)",
 		"stack/bench":                  "benchmarking utility",
 		"stack/memory":                 "in-memory preset (dev/test only, not a production adoption decision)",

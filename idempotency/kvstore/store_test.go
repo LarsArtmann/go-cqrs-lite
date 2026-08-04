@@ -24,6 +24,7 @@ func ttlTestParams() (ttl, wait time.Duration) {
 	if raceEnabled {
 		return 100 * time.Millisecond, 400 * time.Millisecond
 	}
+
 	return 10 * time.Millisecond, 50 * time.Millisecond
 }
 
