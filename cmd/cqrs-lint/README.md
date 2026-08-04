@@ -39,8 +39,11 @@ cqrs-lint --fix ./...
 cqrs-lint rules
 
 # Config file support (auto-loaded from .cqrs-lint.json)
+# .cqrs-lint.json supports // line comments and /* block comments */ (JSONC)
 cqrs-lint init --preset local-cli   # generate a config for a local CLI project
 cqrs-lint init                       # generate a default config skeleton
+cqrs-lint explain                    # full documentation of every config key
+cqrs-lint doctor                     # show resolved config + detected profile
 cqrs-lint ./...
 ```
 
@@ -123,7 +126,10 @@ so misconfigurations surface immediately instead of silently doing nothing.
 ## Configuration Reference
 
 All keys are optional. The file is auto-loaded from `.cqrs-lint.json` in the
-current directory. Generate one with `cqrs-lint init [--preset <name>]`.
+current directory. **Comments are supported** — the file uses JSONC format
+(`//` line comments and `/* block comments */` are stripped before parsing).
+Generate one with `cqrs-lint init [--preset <name>]`, or run `cqrs-lint explain`
+for a full interactive reference.
 
 ### Top-level keys
 
@@ -358,16 +364,25 @@ Built with [cmdguard](https://github.com/larsartmann/cmdguard) for type-safe fla
 
 ### Config File
 
-A `.cqrs-lint.json` file in the project root is auto-loaded:
+A `.cqrs-lint.json` file in the project root is auto-loaded. The format is
+**JSONC** — `//` line comments and `/* block comments */` are supported:
 
-```json
+```jsonc
 {
-	"format": "json",
-	"min-severity": "warning",
-	"min-confidence": "medium",
-	"fast": false
+  // Output JSON for CI pipelines
+  "format": "json",
+
+  /* Hide info-level findings — only show warnings and errors */
+  "min-severity": "warning",
+  "min-confidence": "medium",
+
+  "fast": false
 }
 ```
+
+Run `cqrs-lint explain` for a complete reference of every key, type, default,
+and valid value. Run `cqrs-lint doctor` to see the fully resolved configuration
+(preset + config + auto-detection) and detected feature profile.
 
 ### Health Scoring
 

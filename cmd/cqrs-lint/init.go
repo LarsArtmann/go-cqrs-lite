@@ -41,9 +41,11 @@ func setupInitCommand(cli *cmdguard.CLI[AppConfig]) error {
 
 			if preset == "" {
 				fmt.Println("Created .cqrs-lint.json with default settings")
+				fmt.Println("Run 'cqrs-lint explain' for full documentation of all config keys.")
 			} else {
 				fmt.Printf("Created .cqrs-lint.json with preset %q\n", preset)
 				fmt.Println("Run 'cqrs-lint doctor' to see the resolved feature profile.")
+				fmt.Println("Run 'cqrs-lint explain' for full documentation of all config keys.")
 			}
 
 			return nil

@@ -1,14 +1,18 @@
 // Package metaengine cost model for the planner.
 //
 // HONESTY NOTE: This is a rough first-order model, not a calibrated query
-// optimizer. The nsPerOp constants come from a single benchmark run on one
-// machine (see engine.go calibration comments). The graph-traversal defaults
-// assume a branching factor and depth that will be wrong for most real graphs.
+// optimizer. Per-engine cost constants come from calibration benchmarks
+// (see calibration_bench_test.go in each engine module). Engines with
+// ReadCosts express different costs per read pattern (point lookup vs scan
+// vs aggregate) — critical for engines like DuckDB where these span 4000x.
+// Engines without ReadCosts fall back to a single NsPerRead scalar.
+//
 // The model's purpose is to pick the obviously-right engine (O(1) memory vs
-// O(N) scan) and to flag when no engine meets a latency budget — not to make
-// fine-grained decisions between two engines with similar profiles. Re-run
-// BenchmarkCalibration_* on the target hardware before trusting absolute
-// latency estimates; relative rankings are more stable.
+// O(N) scan, or point-lookup-optimized vs aggregation-optimized) and to flag
+// when no engine meets a latency budget — not to make fine-grained decisions
+// between two engines with similar profiles. Re-run calibration benchmarks on
+// the target hardware before trusting absolute latency estimates; relative
+// rankings are more stable.
 package metaengine
 
 import (

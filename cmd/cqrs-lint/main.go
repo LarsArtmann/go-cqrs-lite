@@ -99,6 +99,9 @@ func main() {
 		"Usage:\n" +
 		"  cqrs-lint [path] [flags]     Lint Go project for CQRS anti-patterns (default)\n" +
 		"  cqrs-lint rules              List all available rules\n" +
+		"  cqrs-lint explain            Explain the .cqrs-lint.json config format in detail\n" +
+		"  cqrs-lint doctor             Show resolved config + detected feature profile\n" +
+		"  cqrs-lint init               Create a .cqrs-lint.json with defaults\n" +
 		"  cqrs-lint version            Print version\n\n" +
 		"SUPPRESSIONS:\n\n" +
 		"  Inline (single rule):\n" +
