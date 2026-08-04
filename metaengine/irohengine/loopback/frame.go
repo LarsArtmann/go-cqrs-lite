@@ -2,6 +2,7 @@ package loopback
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -32,7 +33,12 @@ func readFrame(r io.Reader) ([]byte, error) {
 
 	size := binary.BigEndian.Uint32(header)
 	if size > maxOpSize {
-		return nil, fmt.Errorf("frame size %d exceeds max %d: %w", size, maxOpSize, errFrameTooLarge)
+		return nil, fmt.Errorf(
+			"frame size %d exceeds max %d: %w",
+			size,
+			maxOpSize,
+			errFrameTooLarge,
+		)
 	}
 
 	data := make([]byte, size)
@@ -44,7 +50,7 @@ func readFrame(r io.Reader) ([]byte, error) {
 }
 
 // errFrameTooLarge is returned when a received frame exceeds maxOpSize.
-var errFrameTooLarge = fmt.Errorf("frame too large")
+var errFrameTooLarge = errors.New("frame too large")
 
 func sortDurations(d []time.Duration) []time.Duration {
 	cp := append([]time.Duration(nil), d...)

@@ -234,7 +234,10 @@
           # system + irohengine have pre-existing lint debt from initial scaffold;
           # will be cleaned up separately. New modules (loopback, quic) are
           # working towards zero lint but have demo/CLI-specific patterns.
-          lintExcluded = [ "system" "metaengine/irohengine" ];
+          lintExcluded = [
+            "system"
+            "metaengine/irohengine"
+          ];
           lintModules = builtins.filter (m: !builtins.elem m lintExcluded) testModules;
 
           examplePaths = builtins.concatStringsSep " " [
