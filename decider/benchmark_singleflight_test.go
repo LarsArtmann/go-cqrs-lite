@@ -53,7 +53,13 @@ func BenchmarkLoad_Coalesced(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			_, _, _ = repo.Load(ctx, streamID, "Counter")
+			state, _, err := repo.Load(ctx, streamID, "Counter")
+			if err != nil {
+				b.Fatalf("Load: %v", err)
+			}
+			if state.Value != 1 {
+				b.Fatalf("Load: state.Value=%d, want 1", state.Value)
+			}
 		}
 	})
 }
@@ -83,7 +89,13 @@ func BenchmarkLoad_NoCoalescing(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			_, _, _ = repo.Load(ctx, streamID, "Counter")
+			state, _, err := repo.Load(ctx, streamID, "Counter")
+			if err != nil {
+				b.Fatalf("Load: %v", err)
+			}
+			if state.Value != 1 {
+				b.Fatalf("Load: state.Value=%d, want 1", state.Value)
+			}
 		}
 	})
 }

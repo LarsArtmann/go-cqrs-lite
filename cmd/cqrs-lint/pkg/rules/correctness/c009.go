@@ -81,10 +81,11 @@ func NewC009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 //
 //   - Must*/must* (e.g., MustParseUserID, mustCommand) — the standard Go
 //     "panic on programming error" convention, like regexp.MustCompile.
-//   - New* returning a pointer (e.g., NewCollectCommand) — constructor
-//     panics on invalid arguments are a widely used Go idiom. The pointer
-//     return constraint narrows to constructors and avoids factory functions
-//     that return (value, error).
+//   - New* (e.g., NewCollectCommand, NewServer) — constructor panics on
+//     invalid arguments are a widely used Go idiom. All New* functions are
+//     exempted regardless of return type (pointer, value, interface, or
+//     multi-return with error) because constructor-validation panics are
+//     conventional in Go.
 func isMustFunc(fn *ast.FuncDecl) bool {
 	if fn.Name == nil {
 		return false
@@ -96,19 +97,9 @@ func isMustFunc(fn *ast.FuncDecl) bool {
 		return true
 	}
 
-	if strings.HasPrefix(name, "New") && len(name) > 3 && returnsPointer(fn) {
+	if strings.HasPrefix(name, "New") && len(name) > 3 {
 		return true
 	}
 
 	return false
-}
-
-// returnsPointer reports whether the function's first result is a pointer type.
-func returnsPointer(fn *ast.FuncDecl) bool {
-	if fn.Type == nil || fn.Type.Results == nil || len(fn.Type.Results.List) == 0 {
-		return false
-	}
-
-	_, ok := fn.Type.Results.List[0].Type.(*ast.StarExpr)
-	return ok
 }

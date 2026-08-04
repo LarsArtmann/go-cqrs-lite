@@ -32,6 +32,8 @@ func BenchmarkScale_Concurrent_10KCommands_8Goroutines(b *testing.B) {
 	b.ResetTimer()
 
 	var wg sync.WaitGroup
+	var dispatchErr error
+	var errOnce sync.Once
 
 	for b.Loop() {
 		wg.Add(workers)
@@ -43,12 +45,18 @@ func BenchmarkScale_Concurrent_10KCommands_8Goroutines(b *testing.B) {
 
 				for range opsPerWorker {
 					cmd := testutil.NewCmd(b, "bench.cmd", streamID)
-					_ = dispatcher.Dispatch(ctx, cmd)
+					if err := dispatcher.Dispatch(ctx, cmd); err != nil {
+						errOnce.Do(func() { dispatchErr = err })
+					}
 				}
 			}()
 		}
 
 		wg.Wait()
+	}
+
+	if dispatchErr != nil {
+		b.Fatalf("Dispatch: %v", dispatchErr)
 	}
 
 	b.ReportMetric(float64(b.N*workers*opsPerWorker)/b.Elapsed().Seconds(), "commands/sec")

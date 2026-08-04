@@ -15,7 +15,13 @@ func BenchmarkNewEvent(b *testing.B) {
 	streamID := id.NewStreamID()
 
 	for b.Loop() {
-		_, _ = event.NewEvent("BenchEvent", streamID, "Bench", 1, nil)
+		evt, err := event.NewEvent("BenchEvent", streamID, "Bench", 1, nil)
+		if err != nil {
+			b.Fatalf("NewEvent: %v", err)
+		}
+		if evt == nil {
+			b.Fatal("NewEvent returned nil")
+		}
 	}
 }
 
@@ -48,17 +54,18 @@ func BenchmarkMemoryBus_Publish(b *testing.B) {
 func BenchmarkMemoryStore_Save(b *testing.B) {
 	b.ReportAllocs()
 	store := memory.NewMemoryStore()
-	streamID := id.NewStreamID()
 	ctx := context.Background()
 
 	for b.Loop() {
-		evt, _ := event.NewEvent("BenchEvent", streamID, "Bench", 1, nil)
-		_ = store.Save(
-			ctx,
-			id.NewStreamRef(id.StreamType("Bench"), streamID),
-			[]event.Event{evt},
-			1,
-		)
+		streamID := id.NewStreamID()
+		ref := id.NewStreamRef(id.StreamType("Bench"), streamID)
+		evt, err := event.NewEvent("BenchEvent", streamID, "Bench", 1, nil)
+		if err != nil {
+			b.Fatalf("NewEvent: %v", err)
+		}
+		if err := store.Save(ctx, ref, []event.Event{evt}, 0); err != nil {
+			b.Fatalf("Save: %v", err)
+		}
 	}
 }
 
@@ -70,15 +77,24 @@ func BenchmarkMemoryStore_Load(b *testing.B) {
 
 	for i := range 10 {
 		evt, _ := event.NewEvent("BenchEvent", streamID, "Bench", 1, nil)
-		_ = store.Save(
+		if err := store.AppendBatch(
 			ctx,
 			id.NewStreamRef(id.StreamType("Bench"), streamID),
 			[]event.Event{evt},
-			event.Version(i+1),
-		)
+		); err != nil {
+			b.Fatalf("seed AppendBatch %d: %v", i, err)
+		}
 	}
 
+	ref := id.NewStreamRef(id.StreamType("Bench"), streamID)
+
 	for b.Loop() {
-		_, _ = store.Load(ctx, id.NewStreamRef(id.StreamType("Bench"), streamID))
+		events, err := store.Load(ctx, ref)
+		if err != nil {
+			b.Fatalf("Load: %v", err)
+		}
+		if len(events) != 10 {
+			b.Fatalf("Load: got %d events, want 10", len(events))
+		}
 	}
 }

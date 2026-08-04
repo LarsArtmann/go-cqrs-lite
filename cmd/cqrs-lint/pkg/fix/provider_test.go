@@ -102,6 +102,42 @@ func TestCQRSFixProvider_CannotHandleNonCQRS(t *testing.T) {
 	}
 }
 
+func TestCQRSFixProvider_PositionBasedMatching(t *testing.T) {
+	provider := fix.NewCQRSFixProvider()
+
+	// Two identical event.NewEvent( calls on different lines.
+	// The finding points to the SECOND one (line 5, col 2).
+	// Without position-based matching, the fix would only replace the first.
+	f, err := finding.NewBuilder(
+		"D007", "cqrs-lint", "standardize on event.New",
+		finding.SeverityInfo, finding.Pos("test.go", 5, 1),
+	).
+		WithFixStrategy(finding.FixStrategyDirect).
+		WithBeforeCode("event.NewEvent(").
+		WithAfterCode("event.New(").
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	content := []byte("package main\n\nevent.NewEvent(\n\nevent.NewEvent(\n")
+	edits, err := provider.Edits(content, f)
+	if err != nil {
+		t.Fatalf("Edits() error: %v", err)
+	}
+	if len(edits) != 1 {
+		t.Fatalf("Edits() returned %d edits, want 1", len(edits))
+	}
+
+	// Verify the edit is at the SECOND occurrence (line 5), not the first (line 3).
+	result := applyEdit(content, edits[0])
+	// After fix: first occurrence unchanged, second replaced.
+	expected := "event.NewEvent(\n\nevent.New("
+	if !bytes.Contains(result, []byte(expected)) {
+		t.Errorf("Position-based fix should target the correct occurrence\ngot: %s", result)
+	}
+}
+
 func applyEdit(content []byte, edit pipeline.FixEdit) []byte {
 	result := make([]byte, 0, len(content)-edit.Length+len(edit.Replacement))
 	result = append(result, content[:edit.Offset]...)

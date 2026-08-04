@@ -26,6 +26,15 @@ func BenchmarkScale_DeciderExecute_ManyStreams(b *testing.B) {
 	for i := range aggIDs {
 		benchCreateItem(b, repo, ctx, aggIDs[i])
 	}
+
+	// Verify events were persisted (not silently dropped).
+	state, _, err := repo.Load(ctx, aggIDs[0], "Item")
+	if err != nil {
+		b.Fatalf("post-loop Load: %v", err)
+	}
+	if state.Value < 1 {
+		b.Fatalf("post-loop Load: state=%+v, expected Value >= 1 — Execute was a no-op", state)
+	}
 }
 
 func BenchmarkScale_DeciderExecute_1000Streams_100UpdatesEach(b *testing.B) {
@@ -51,6 +60,15 @@ func BenchmarkScale_DeciderExecute_1000Streams_100UpdatesEach(b *testing.B) {
 	}
 
 	b.ReportMetric(float64(b.N*aggCount)/b.Elapsed().Seconds(), "executes/sec")
+
+	// Verify events persisted after all iterations.
+	state, _, err := repo.Load(ctx, aggIDs[0], "Item")
+	if err != nil {
+		b.Fatalf("post-loop Load: %v", err)
+	}
+	if state.Value < 1 {
+		b.Fatalf("post-loop Load: state=%+v, expected events — Execute was a no-op", state)
+	}
 }
 
 func BenchmarkScale_DeciderLoad_10KStreams(b *testing.B) {
@@ -84,9 +102,12 @@ func BenchmarkScale_DeciderLoad_10KStreams(b *testing.B) {
 
 	for b.Loop() {
 		for _, streamID := range aggIDs {
-			_, _, err := repo.Load(ctx, streamID, "Item")
+			state, _, err := repo.Load(ctx, streamID, "Item")
 			if err != nil {
 				b.Fatalf("Load: %v", err)
+			}
+			if state.Value < 1 {
+				b.Fatalf("Load: state=%+v for stream %s, expected events — store was empty", state, streamID)
 			}
 		}
 	}

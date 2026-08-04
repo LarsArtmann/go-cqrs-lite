@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
+	"go/token"
 
 	"github.com/larsartmann/go-finding"
 
@@ -43,6 +44,12 @@ func NewC016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					// ListenAndServe, Serve) so we can exempt the
 					// context.WithTimeout(context.Background(), ...) shutdown idiom.
 					lifecycleLines := collectServerLifecycleLines(ctx, fnDecl)
+
+					// Collect positions of context.Background()/TODO() calls that
+					// are arguments to context.WithCancel/WithTimeout/WithDeadline/
+					// WithValue — these are legitimate parent-context creation
+					// patterns, not detached handler contexts.
+					legitBgPositions := collectContextCreationBgPositions(fnDecl)
 
 					// Walk the function body for context.Background()/TODO() calls.
 					if fnDecl.Body == nil {
@@ -84,6 +91,14 @@ func NewC016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						// Background() is the shutdown timeout root — not a
 						// detached handler context.
 						if nearServerLifecycle(pos.Line, lifecycleLines) {
+							return true
+						}
+
+						// Exempt context.Background()/TODO() used as the parent for
+						// context.WithCancel/WithTimeout/WithDeadline/WithValue —
+						// these are root-context creation patterns, not detached
+						// handler contexts.
+						if legitBgPositions[call.Pos()] {
 							return true
 						}
 
@@ -220,4 +235,74 @@ func nearServerLifecycle(line int, lifecycleLines map[int]bool) bool {
 	}
 
 	return false
+}
+
+// contextWithFuncs lists context package functions that create derived
+// contexts from a parent. When context.Background() or context.TODO() is
+// passed as the parent argument, it is a legitimate root-context pattern
+// — not a detached handler context.
+var contextWithFuncs = map[string]bool{ //nolint:gochecknoglobals // static lookup
+	"WithCancel":      true,
+	"WithTimeout":     true,
+	"WithDeadline":    true,
+	"WithValue":       true,
+	"WithoutCancel":   true,
+	"WithCancelCause": true,
+}
+
+// collectContextCreationBgPositions returns the positions of context.Background()
+// and context.TODO() calls that appear as arguments to context.With* functions.
+// These are legitimate parent-context creation patterns that C016 should exempt.
+func collectContextCreationBgPositions(fn *ast.FuncDecl) map[token.Pos]bool {
+	positions := make(map[token.Pos]bool)
+
+	if fn.Body == nil {
+		return positions
+	}
+
+	ast.Inspect(fn.Body, func(n ast.Node) bool {
+		call, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+
+		sel, ok := call.Fun.(*ast.SelectorExpr)
+		if !ok {
+			return true
+		}
+
+		ident, ok := sel.X.(*ast.Ident)
+		if !ok || ident.Name != "context" {
+			return true
+		}
+
+		if !contextWithFuncs[sel.Sel.Name] {
+			return true
+		}
+
+		for _, arg := range call.Args {
+			argCall, ok := arg.(*ast.CallExpr)
+			if !ok {
+				continue
+			}
+
+			argSel, ok := argCall.Fun.(*ast.SelectorExpr)
+			if !ok {
+				continue
+			}
+
+			argIdent, ok := argSel.X.(*ast.Ident)
+			if !ok || argIdent.Name != "context" {
+				continue
+			}
+
+			if argSel.Sel.Name == "Background" || argSel.Sel.Name == "TODO" {
+				positions[argCall.Pos()] = true
+			}
+		}
+
+		return true
+	})
+
+	return positions
 }
