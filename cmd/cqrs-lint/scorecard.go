@@ -32,6 +32,7 @@ type ScorecardModule struct {
 	DisplayName string `json:"display_name"`
 	Category    string `json:"category"`
 	Status      string `json:"status"`
+	Evidence    string `json:"evidence,omitempty"`
 	Suggestion  string `json:"suggestion,omitempty"`
 }
 
@@ -65,6 +66,7 @@ func ComputeScorecard(
 		u, isUsed := usage[e.Key]
 		if isUsed && u.Status >= analyzer.UsageImported {
 			row.Status = "used"
+			row.Evidence = u.Evidence
 			result.Used = append(result.Used, row)
 		} else if relevantSet[e.Key] {
 			row.Status = "missing"

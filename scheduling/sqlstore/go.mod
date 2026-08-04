@@ -6,6 +6,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
 	modernc.org/sqlite v1.55.0
+	pgregory.net/rapid v1.3.0
 )
 
 require (

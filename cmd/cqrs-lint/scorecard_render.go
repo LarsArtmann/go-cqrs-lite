@@ -76,13 +76,31 @@ func renderScorecardText(result ScorecardResult, colorMode output.ColorMode) str
 	return b.String()
 }
 
-// renderModuleTable renders a list of modules as a table.
+// renderModuleTable renders a list of modules as a table. The Evidence
+// column is included only when at least one module has non-empty evidence
+// (typically the USED table — missing/irrelevant modules have none).
 func renderModuleTable(modules []ScorecardModule, colorMode output.ColorMode) (string, error) {
-	builder := output.NewTableBuilder().
-		SetHeaders("Module", "Category", "Status")
+	showEvidence := false
+	for _, m := range modules {
+		if m.Evidence != "" {
+			showEvidence = true
+			break
+		}
+	}
+
+	builder := output.NewTableBuilder()
+	if showEvidence {
+		builder.SetHeaders("Module", "Category", "Status", "Evidence")
+	} else {
+		builder.SetHeaders("Module", "Category", "Status")
+	}
 
 	for _, m := range modules {
-		builder.AddRow(m.DisplayName, m.Category, m.Status)
+		if showEvidence {
+			builder.AddRow(m.DisplayName, m.Category, m.Status, m.Evidence)
+		} else {
+			builder.AddRow(m.DisplayName, m.Category, m.Status)
+		}
 	}
 
 	builder.SetFooter(fmt.Sprintf("%d modules", len(modules)))
@@ -96,7 +114,11 @@ func renderModuleTable(modules []ScorecardModule, colorMode output.ColorMode) (s
 func formatModuleList(modules []ScorecardModule) string {
 	var b strings.Builder
 	for _, m := range modules {
-		fmt.Fprintf(&b, "  %-24s  %-16s  %s\n", m.DisplayName, m.Category, m.Status)
+		if m.Evidence != "" {
+			fmt.Fprintf(&b, "  %-24s  %-16s  %-8s  %s\n", m.DisplayName, m.Category, m.Status, m.Evidence)
+		} else {
+			fmt.Fprintf(&b, "  %-24s  %-16s  %s\n", m.DisplayName, m.Category, m.Status)
+		}
 	}
 	return b.String()
 }
