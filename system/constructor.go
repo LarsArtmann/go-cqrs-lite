@@ -86,6 +86,11 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 			sys.eventStore = NewEventAdapter(backend, "events", adapterOpts...)
 
+			// Wire snapshot store if the engine implements SnapshotBackend (D12).
+			if snapBackend, ok := eng.(metaengine.SnapshotBackend); ok {
+				sys.snapStore = NewSnapshotAdapter(snapBackend, "snapshots")
+			}
+
 			// Wire command and query audit stores from the same backend.
 			if inst.Role == RoleSourceOfTruth || inst.Role == RoleCommands {
 				sys.cmdStore = NewCommandAdapter(backend, "commands")
@@ -240,7 +245,14 @@ func RegisterDecider[State any](sys *System, streamType string, d decider.Decide
 		return errors.New("system: cannot register decider: no event store")
 	}
 
-	repo, err := decider.NewRepository(sys.eventStore, sys.pubBus, d)
+	var repoOpts []decider.RepositoryOption[State]
+
+	// Wire snapshot store if available (D12: snapshot support through System).
+	if sys.snapStore != nil {
+		repoOpts = append(repoOpts, decider.WithSnapshotStore[State](sys.snapStore))
+	}
+
+	repo, err := decider.NewRepository(sys.eventStore, sys.pubBus, d, repoOpts...)
 	if err != nil {
 		return fmt.Errorf("system: create repository for %q: %w", streamType, err)
 	}

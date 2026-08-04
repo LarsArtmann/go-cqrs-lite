@@ -2,6 +2,8 @@ package loopback_test
 
 import (
 	"context"
+	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -111,13 +113,13 @@ func TestLoopbackCounterConvergence(t *testing.T) {
 	nodeA, nodeB, _, _ := setupTwoNodeLoopback(t)
 
 	cb := nodeA.(metaengine.CounterBackend)
-	g.Expect(cb.CounterIncrement(ctx, "counters", "views", "alice", 5)).To(gomega.Succeed())
+	g.Expect(cb.CounterIncrement(ctx, "counters", metaengine.Delta{"alice": 5})).To(gomega.Succeed())
 
 	g.Eventually(func(g gomega.Gomega) {
 		cb2 := nodeB.(metaengine.CounterBackend)
-		val, err := cb2.CounterValue(ctx, "counters", "views")
+		counts, err := cb2.CounterGet(ctx, "counters")
 		g.Expect(err).NotTo(gomega.HaveOccurred())
-		g.Expect(val).To(gomega.Equal(int64(5)))
+		g.Expect(counts["alice"]).To(gomega.Equal(int64(5)))
 	}, 5*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
 }
 
@@ -128,15 +130,17 @@ func TestLoopbackSetConvergence(t *testing.T) {
 	nodeA, nodeB, _, _ := setupTwoNodeLoopback(t)
 
 	sb := nodeA.(metaengine.SetBackend)
-	g.Expect(sb.SetAdd(ctx, "tags", "post-1", "go")).To(gomega.Succeed())
-	g.Expect(sb.SetAdd(ctx, "tags", "post-1", "crdt")).To(gomega.Succeed())
+	g.Expect(sb.SetAdd(ctx, "tags", "go")).To(gomega.Succeed())
+	g.Expect(sb.SetAdd(ctx, "tags", "crdt")).To(gomega.Succeed())
 
 	g.Eventually(func(g gomega.Gomega) {
 		sb2 := nodeB.(metaengine.SetBackend)
-		members, err := sb2.SetMembers(ctx, "tags", "post-1")
+		contains, err := sb2.SetContains(ctx, "tags", "go")
 		g.Expect(err).NotTo(gomega.HaveOccurred())
-		g.Expect(members).To(gomega.ContainElements("go", "crdt"))
-		g.Expect(members).To(gomega.HaveLen(2))
+		g.Expect(contains).To(gomega.BeTrue())
+		contains2, err := sb2.SetContains(ctx, "tags", "crdt")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(contains2).To(gomega.BeTrue())
 	}, 5*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
 }
 
@@ -146,12 +150,10 @@ func TestLoopbackLWWConvergence(t *testing.T) {
 	ctx := context.Background()
 	nodeA, nodeB, _, _ := setupTwoNodeLoopback(t)
 
-	// Both write the same key with different values
 	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "lww", "key", "first")).To(gomega.Succeed())
 	time.Sleep(50 * time.Millisecond)
 	g.Expect(nodeB.(metaengine.MapBackend).MapSet(ctx, "lww", "key", "second")).To(gomega.Succeed())
 
-	// Both should converge to the later value
 	time.Sleep(2 * time.Second)
 	valA, _, _ := nodeA.(metaengine.MapBackend).MapGet(ctx, "lww", "key")
 	valB, _, _ := nodeB.(metaengine.MapBackend).MapGet(ctx, "lww", "key")
@@ -170,18 +172,20 @@ func TestLoopbackFrameEncodingRoundTrip(t *testing.T) {
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	t.Cleanup(func() { _ = tB.Close() })
 
+	var mu sync.Mutex
 	var received []irohengine.WriteOp
 	g.Expect(tB.Subscribe(func(op irohengine.WriteOp) {
+		mu.Lock()
 		received = append(received, op)
+		mu.Unlock()
 	})).To(gomega.Succeed())
 
 	g.Expect(tB.Connect(tA.Addr())).To(gomega.Succeed())
 	waitForPeers(t, []*loopback.LoopbackTransport{tA, tB}, 1)
 
-	// Send various op kinds to exercise serialization
 	ops := []irohengine.WriteOp{
 		{ID: "op1", Collection: "c", Kind: irohengine.OpMapSet, Key: "k", Value: "v"},
-		{ID: "op2", Collection: "c", Kind: irohengine.OpCounterInc, Key: "counter", Delta: metaengine.Delta{"alice": 5}},
+		{ID: "op2", Collection: "c", Kind: irohengine.OpCounterInc, Delta: metaengine.Delta{"alice": 5}},
 		{ID: "op3", Collection: "c", Kind: irohengine.OpSetAdd, Key: "set1", Value: "tag1"},
 	}
 
@@ -190,6 +194,8 @@ func TestLoopbackFrameEncodingRoundTrip(t *testing.T) {
 	}
 
 	g.Eventually(func(g gomega.Gomega) {
+		mu.Lock()
+		defer mu.Unlock()
 		g.Expect(received).To(gomega.HaveLen(3))
 	}, 5*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
 }
@@ -203,19 +209,18 @@ func TestLoopbackLargeScaleConvergence(t *testing.T) {
 	const opCount = 100
 	mb := nodeA.(metaengine.MapBackend)
 	for i := range opCount {
-		key := "key-" + itoa(i)
-		val := "val-" + itoa(i)
+		key := "key-" + strconv.Itoa(i)
+		val := "val-" + strconv.Itoa(i)
 		g.Expect(mb.MapSet(ctx, "bulk", key, val)).To(gomega.Succeed())
 	}
 
-	// Verify all keys converge
 	g.Eventually(func(g gomega.Gomega) {
 		mb2 := nodeB.(metaengine.MapBackend)
 		for i := range opCount {
-			val, ok, err := mb2.MapGet(ctx, "bulk", "key-"+itoa(i))
+			val, ok, err := mb2.MapGet(ctx, "bulk", "key-"+strconv.Itoa(i))
 			g.Expect(err).NotTo(gomega.HaveOccurred())
 			g.Expect(ok).To(gomega.BeTrue())
-			g.Expect(val).To(gomega.Equal("val-" + itoa(i)))
+			g.Expect(val).To(gomega.Equal("val-" + strconv.Itoa(i)))
 		}
 	}, 10*time.Second, 100*time.Millisecond).Should(gomega.Succeed())
 }
@@ -224,46 +229,13 @@ func TestLoopbackLatencyMeasurement(t *testing.T) {
 	t.Parallel()
 	g := gomega.NewWithT(t)
 	ctx := context.Background()
-	_, nodeB, tA, _ := setupTwoNodeLoopback(t)
+	nodeA, _, tA, _ := setupTwoNodeLoopback(t)
 
-	// Write to trigger traffic
-	_ = tA.Publish(ctx, irohengine.WriteOp{
-		ID:         "latency-test",
-		PublishedAt: time.Now(),
-		Collection: "c",
-		Kind:       irohengine.OpMapSet,
-		Key:        "k",
-		Value:      "v",
-	})
+	mb := nodeA.(metaengine.MapBackend)
+	g.Expect(mb.MapSet(ctx, "c", "k", "v")).To(gomega.Succeed())
 
 	time.Sleep(500 * time.Millisecond)
 
 	snap := tA.LatencySnapshot()
-	// On localhost, latency should be sub-millisecond but non-zero after traffic
-	// (may be zero if no inbound ops arrived — only outbound ops were sent)
 	_ = snap // just verify it doesn't panic
-	_ = nodeB
-}
-
-// itoa is a simple int-to-string without strconv to avoid an extra import.
-func itoa(n int) string {
-	if n == 0 {
-		return "0"
-	}
-	neg := n < 0
-	if neg {
-		n = -n
-	}
-	var buf [20]byte
-	pos := len(buf)
-	for n > 0 {
-		pos--
-		buf[pos] = byte('0' + n%10)
-		n /= 10
-	}
-	if neg {
-		pos--
-		buf[pos] = '-'
-	}
-	return string(buf[pos:])
 }

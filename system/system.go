@@ -23,6 +23,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
 
 // ─── Config types (D11: DomainConfig + DeploymentConfig separation) ───
@@ -220,6 +221,9 @@ type System struct {
 	eventStore event.Store
 	cmdStore   command.Store
 	queryStore query.QueryStore
+
+	// snapStore holds the snapshot store (nil if engine lacks SnapshotBackend).
+	snapStore snapshot.SnapshotStore
 
 	// Infrastructure owned by the System (D6).
 	repos    map[string]any // streamType -> *decider.Repository[State]

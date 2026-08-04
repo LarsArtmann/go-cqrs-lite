@@ -221,6 +221,7 @@
             "metaengine/duckdbengine"
             "metaengine/pgengine"
             "metaengine/irohengine"
+            "metaengine/irohengine/loopback"
             "metaengine/irohengine/quic"
             "system"
             "flightrecorder"

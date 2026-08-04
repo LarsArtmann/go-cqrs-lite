@@ -12,6 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0
 	github.com/maypok86/otter/v2 v2.3.0
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.56.0
@@ -31,7 +32,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
