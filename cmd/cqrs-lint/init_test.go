@@ -85,3 +85,27 @@ func TestGenerateInitConfigUnknownPresetErrors(t *testing.T) {
 		t.Errorf("expected available presets in error, got: %v", err)
 	}
 }
+
+// TestGenerateInitConfigLocalCLIIncludesMinSeverity verifies that the local-cli
+// preset's recommended min-severity ("warning") is baked into the generated
+// config, while presets without a severity recommendation omit the key.
+func TestGenerateInitConfigLocalCLIIncludesMinSeverity(t *testing.T) {
+	t.Parallel()
+
+	content, err := generateInitConfig("local-cli")
+	if err != nil {
+		t.Fatalf("generateInitConfig(local-cli) failed: %v", err)
+	}
+	if !strings.Contains(content, `"min-severity": "warning"`) {
+		t.Errorf("local-cli config should include min-severity: warning\ngot: %s", content)
+	}
+
+	// Presets without a severity floor should NOT include min-severity.
+	content, err = generateInitConfig("production")
+	if err != nil {
+		t.Fatalf("generateInitConfig(production) failed: %v", err)
+	}
+	if strings.Contains(content, "min-severity") {
+		t.Errorf("production config should NOT include min-severity\ngot: %s", content)
+	}
+}

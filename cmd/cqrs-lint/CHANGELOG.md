@@ -3,6 +3,27 @@
 All notable changes to cqrs-lint are documented here.
 Tags use the full module path: `cmd/cqrs-lint/vX.Y.Z`.
 
+## [Unreleased]
+
+### Fixed
+
+- **Preset split-brain eliminated** — the `init` command and runtime no longer maintain separate preset definitions. Previously `init` had `server`+`full-stack` presets (silently ignored at runtime) while the runtime had `production`+`read-only` (not generatable by init). Now both read from a single `PresetDefinitions` map
+- **Stale known-keys warning** — the unknown-rules-key warning now lists all 4 valid keys (was missing `c008-ignore-structs`)
+
+### Added
+
+- **Preset validation** — unknown preset names (typos like `"prod"` or stale names like `"server"`) now produce a warning listing valid presets, instead of silently doing nothing
+- **Disabled-rule-ID validation** — rule IDs in `rules.disable` that don't match any known rule now produce a warning, catching typos like `"C99"` and references to removed rules
+- **`.cqrs-lint.json` for the library itself** — the repo root now carries `{"preset": "library"}` so self-linting is explicit and reproducible
+- `PresetDefinition` type, `PresetDefinitions` map, `ResolvePresetDefinition`, `IsKnownPreset`, `ValidPresetNames` in the analyzer package
+
+### Improved
+
+- **init generates configs programmatically** — no more hardcoded JSON string templates; `init` now marshals from struct definitions, eliminating trailing-comma corruption risk and format drift
+- **init writes DRY configs** — named presets write just `{"preset": "name"}` (the runtime resolves features + rule defaults); the default skeleton writes only 3 core knobs instead of 7 no-op zero-value keys
+- **Preset rules applied at runtime** — presets now control both feature flags AND rule-disable defaults; explicit `rules.disable` entries are added on top (union)
+- **init help text** — `--preset` help now lists the correct presets: `local-cli, production, library, read-only` (was `local-cli, library, server, full-stack`)
+
 ## [4.3.0] - 2026-08-03
 
 ### Fixed

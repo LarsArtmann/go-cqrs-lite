@@ -67,8 +67,11 @@ type defaultConfigSkeleton struct {
 // presetConfigSkeleton writes just the preset name — the runtime resolves
 // features and rule defaults from PresetDefinitions at lint time. This is DRY:
 // changing a preset's behaviour only requires updating PresetDefinitions.
+// MinSeverity is included when the preset recommends a non-default floor
+// (e.g. local-cli recommends "warning"), so the user sees and can edit it.
 type presetConfigSkeleton struct {
-	Preset string `json:"preset"`
+	Preset      string `json:"preset"`
+	MinSeverity string `json:"min-severity,omitempty"` //nolint:tagliatelle // CLI config key
 }
 
 // generateInitConfig produces the .cqrs-lint.json content for the given preset.
@@ -92,7 +95,10 @@ func generateInitConfig(preset string) (string, error) {
 		)
 	}
 
-	return marshalInitConfig(presetConfigSkeleton{Preset: preset})
+	return marshalInitConfig(presetConfigSkeleton{
+		Preset:      preset,
+		MinSeverity: analyzer.ResolvePresetDefinition(analyzer.ConfigPreset(preset)).MinSeverity,
+	})
 }
 
 // marshalInitConfig serializes v to indented JSON with a trailing newline,
