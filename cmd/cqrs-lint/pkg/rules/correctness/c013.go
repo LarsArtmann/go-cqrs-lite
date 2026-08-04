@@ -184,12 +184,7 @@ func looksLikeProjectionView(structName, filePath string) bool {
 		}
 	}
 
-	base := filePath
-	if idx := strings.LastIndex(base, "/"); idx >= 0 {
-		base = base[idx+1:]
-	}
-
-	base = strings.TrimSuffix(base, ".go")
+	base := lintutil.BaseFileName(filePath)
 
 	return base == "views" || base == "projection" || base == "readmodel"
 }

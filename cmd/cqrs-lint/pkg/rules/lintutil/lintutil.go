@@ -237,6 +237,18 @@ func FileImportsCQRS(file *ast.File) bool {
 	return false
 }
 
+// BaseFileName strips the directory prefix and ".go" suffix from a file path,
+// returning the bare base name (e.g. "events" from "pkg/foo/events.go").
+// Shared by the payload/view/read-model heuristics that classify structs by
+// the file they live in.
+func BaseFileName(filePath string) string {
+	base := filePath
+	if idx := strings.LastIndex(base, "/"); idx >= 0 {
+		base = base[idx+1:]
+	}
+	return strings.TrimSuffix(base, ".go")
+}
+
 // LooksLikeEventPayload checks if a struct name or file path suggests the
 // struct is an event payload. Shared by C013 (correctness) and the F-series
 // adoption rules to avoid duplicating the heuristic across packages.
@@ -249,12 +261,7 @@ func LooksLikeEventPayload(structName, filePath string) bool {
 		}
 	}
 
-	base := filePath
-	if idx := strings.LastIndex(base, "/"); idx >= 0 {
-		base = base[idx+1:]
-	}
-
-	base = strings.TrimSuffix(base, ".go")
+	base := BaseFileName(filePath)
 
 	return base == "events" || base == "payloads"
 }
