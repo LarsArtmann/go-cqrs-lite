@@ -35,6 +35,7 @@ use (
 	./metadata
 	./metaengine
 	./metaengine/duckdbengine
+	./metaengine/irohengine
 	./metaengine/pebbleengine
 	./metaengine/pgengine
 	./metaengine/projectionadapter

@@ -131,3 +131,71 @@ func TestStripJSONComments_EscapedQuotes(t *testing.T) {
 		t.Errorf("text = %v, want He said \"hello //world\"", m["text"])
 	}
 }
+
+func TestStripJSONComments_TrailingCommaObject(t *testing.T) {
+	t.Parallel()
+
+	input := []byte(`{
+  "preset": "production",
+  "min-severity": "warning",
+}`)
+	stripped := stripJSONComments(input)
+
+	var m map[string]any
+	if err := json.Unmarshal(stripped, &m); err != nil {
+		t.Fatalf("stripped result is not valid JSON: %v\n%s", err, stripped)
+	}
+	if m["preset"] != "production" {
+		t.Errorf("preset = %v, want production", m["preset"])
+	}
+}
+
+func TestStripJSONComments_TrailingCommaArray(t *testing.T) {
+	t.Parallel()
+
+	input := []byte(`{
+  "rules": {
+    "disable": ["D002", "C007",]
+  }
+}`)
+	stripped := stripJSONComments(input)
+
+	var m map[string]any
+	if err := json.Unmarshal(stripped, &m); err != nil {
+		t.Fatalf("stripped result is not valid JSON: %v\n%s", err, stripped)
+	}
+	rules, ok := m["rules"].(map[string]any)
+	if !ok {
+		t.Fatal("rules key missing or wrong type")
+	}
+	disable, ok := rules["disable"].([]any)
+	if !ok {
+		t.Fatal("disable key missing or wrong type")
+	}
+	if len(disable) != 2 {
+		t.Errorf("disable length = %d, want 2", len(disable))
+	}
+}
+
+func TestStripJSONComments_TrailingCommaNested(t *testing.T) {
+	t.Parallel()
+
+	input := []byte(`{
+  "preset": "production",
+  "rules": {
+    "disable": ["D002"],
+  },
+  "health": {
+    "info-cap": 50,
+  },
+}`)
+	stripped := stripJSONComments(input)
+
+	var m map[string]any
+	if err := json.Unmarshal(stripped, &m); err != nil {
+		t.Fatalf("stripped result is not valid JSON: %v\n%s", err, stripped)
+	}
+	if m["preset"] != "production" {
+		t.Errorf("preset = %v, want production", m["preset"])
+	}
+}
