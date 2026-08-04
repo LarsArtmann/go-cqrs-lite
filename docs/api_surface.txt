@@ -478,7 +478,6 @@ command/method AppendBatch
 command/method Clone
 command/method Close
 command/method Dispatch
-command/method EnsureCustom
 command/method ID
 command/method ID
 command/method IsZero
@@ -504,6 +503,7 @@ command/method Type
 command/method Type
 command/method Use
 command/method Use
+command/method WithCustom
 command/struct BasicCommand
 command/struct Dispatcher
 command/struct MemoryBus
@@ -2233,7 +2233,6 @@ query/interface SeekableQueryJournal
 query/method Clone
 query/method Close
 query/method Dispatch
-query/method EnsureCustom
 query/method HasNext
 query/method HasPrev
 query/method ID
@@ -2253,6 +2252,7 @@ query/method Type
 query/method Type
 query/method Use
 query/method Validate
+query/method WithCustom
 query/querytest/func New
 query/struct BasicQuery
 query/struct Dispatcher
@@ -2310,6 +2310,19 @@ scheduling/method Due
 scheduling/method MarkFired
 scheduling/method Schedule
 scheduling/method Start
+scheduling/sqlstore/const DialectMySQL
+scheduling/sqlstore/const DialectPostgres
+scheduling/sqlstore/const DialectSQLite
+scheduling/sqlstore/func NewMySQLStore
+scheduling/sqlstore/func NewPostgresStore
+scheduling/sqlstore/func NewSQLiteStore
+scheduling/sqlstore/method Cancel
+scheduling/sqlstore/method Close
+scheduling/sqlstore/method Due
+scheduling/sqlstore/method MarkFired
+scheduling/sqlstore/method Schedule
+scheduling/sqlstore/struct SQLTimerStore
+scheduling/sqlstore/type Dialect
 scheduling/struct MemoryTimerStore
 scheduling/struct Scheduler
 scheduling/struct Timer

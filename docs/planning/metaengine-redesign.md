@@ -354,7 +354,9 @@ Relevant capabilities:
 
 ## 4. Decisions (Recorded)
 
-Nine architectural decisions recorded below.: Hybrid (registry + config), leaning runtime
+Nine architectural decisions recorded below.
+
+### 4.1 Backend selection: Hybrid (registry + config), leaning runtime
 
 **Decision:** Somewhere between runtime config and hybrid. Drivers are
 registered at compile time (which are available), but operator config picks

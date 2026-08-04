@@ -44,6 +44,7 @@ var modules = []string{
 	"scenario",
 	"projectionhost",
 	"scheduling",
+	"scheduling/sqlstore",
 	"metadata",
 	"metaengine",
 	"metaengine/pebbleengine",
