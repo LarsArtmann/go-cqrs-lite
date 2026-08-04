@@ -249,6 +249,94 @@ func fold() {
 	}
 }
 
+func TestParseSuppressions_EndOfLine(t *testing.T) {
+	t.Parallel()
+
+	// An end-of-line comment: code precedes the suppression directive. Before
+	// the fix, ParseSuppressions required the line to START with the comment
+	// prefix, so trailing suppressions were silently ignored.
+	suppressions := suppression.ParseSuppressions(
+		"EventType = sdk.EventType //cqrs-lint:ignore(A008) re-export of SDK type",
+	)
+	if len(suppressions) != 1 {
+		t.Fatalf("got %d suppressions, want 1", len(suppressions))
+	}
+	if _, ok := suppressions["A008"]; !ok {
+		t.Error("A008 not recognized in end-of-line suppression")
+	}
+}
+
+func TestParseSuppressions_EndOfLine_SpaceAfterSlashes(t *testing.T) {
+	t.Parallel()
+
+	// End-of-line variant WITH a space after //: "// cqrs-lint:ignore".
+	// normalizeCommentPrefix must rewrite it before the Index search.
+	suppressions := suppression.ParseSuppressions(
+		"var Foo = bar.Foo // cqrs-lint:ignore(E003) domain-model package",
+	)
+	if len(suppressions) != 1 {
+		t.Fatalf("got %d suppressions, want 1", len(suppressions))
+	}
+	if reason, ok := suppressions["E003"]; !ok || reason != "domain-model package" {
+		t.Errorf("E003 reason = %q, want %q", reason, "domain-model package")
+	}
+}
+
+func TestParseSuppressions_EndOfLine_CommaSeparated(t *testing.T) {
+	t.Parallel()
+
+	suppressions := suppression.ParseSuppressions(
+		"repo := decider.NewRepository(s, b, d) //cqrs-lint:ignore(B025,A017,E008)",
+	)
+	if len(suppressions) != 3 {
+		t.Fatalf("got %d suppressions, want 3", len(suppressions))
+	}
+	for _, id := range []string{"B025", "A017", "E008"} {
+		if _, ok := suppressions[id]; !ok {
+			t.Errorf("%s not recognized in end-of-line comma-separated suppression", id)
+		}
+	}
+}
+
+func TestNewSuppressionFilter_EndOfLineCommentInFile(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	filePath := tmpDir + "/example.go"
+
+	// The suppression is an end-of-line comment on the SAME line as the finding.
+	content := `package main
+
+import "time"
+
+func fold() {
+	now := time.Now() //cqrs-lint:ignore(C007) domain clock
+	_ = now
+}
+`
+	if err := os.WriteFile(filePath, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	filter := suppression.NewSuppressionFilter()
+
+	f, _ := finding.NewBuilder(
+		"C007", "cqrs-lint", "time.Now in decider",
+		finding.SeverityWarning, finding.Pos(finding.FilePath(filePath), 6, 2),
+	).Build()
+
+	out, err := filter.Transform(context.TODO(), []finding.Finding{f})
+	if err != nil {
+		t.Fatalf("Transform() error: %v", err)
+	}
+	if len(out) != 1 {
+		t.Fatalf("got %d findings, want 1", len(out))
+	}
+	if out[0].Suppression == nil {
+		t.Fatal("end-of-line suppression on the finding's own line should be recognized")
+	}
+}
+
 func TestSuppression_WorksForAllNewRuleIDs(t *testing.T) {
 	t.Parallel()
 

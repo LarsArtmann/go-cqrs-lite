@@ -272,9 +272,18 @@ func ParseSuppressions(commentText string) map[string]string {
 		line = strings.TrimSpace(line)
 		// Normalize: accept both "//cqrs-lint:ignore" and "// cqrs-lint:ignore".
 		line = normalizeCommentPrefix(line)
-		if !strings.HasPrefix(line, commentPrefix) {
+		// Find the suppression prefix anywhere in the line, not just at the
+		// start. This recognizes end-of-line comments:
+		//
+		//	EventType = sdk.EventType //cqrs-lint:ignore(A008) re-export
+		//
+		// Without this, trailing suppressions after code were silently ignored
+		// because HasPrefix requires the line to START with the comment prefix.
+		idx := strings.Index(line, commentPrefix)
+		if idx < 0 {
 			continue
 		}
+		line = line[idx:]
 
 		rest := strings.TrimPrefix(line, commentPrefix)
 
