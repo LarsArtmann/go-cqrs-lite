@@ -78,6 +78,7 @@ go-cqrs-lite/
 │                        # **StorageLayout + cost matrix**: Layout{Row,Columnar,LSM,KV}, (ADT × Layout)→Complexity, EngineProfile.Layouts, RuleTrace, SerializablePlan (JSON serialize/diff/pin).
 │                        # **Columnar-native storage** ([ADR-0092](docs/adr/0092-duckdb-columnar-native-storage.md)): WithColumnarLayout() extracts ALL exported fields of R into native SQL columns. LayoutPlanApplier interface (DuckDB) receives reflection-derived types (float64→DOUBLE, int→INTEGER). Enables vectorized GROUP BY/SUM/AVG on DuckDB.
 │                        # **Replication model** (DDIA Ch5): EngineProfile declares Replication (none/single-leader/multi-leader/leaderless), ReplicationLag (staleness, diagnostic-only), NetworkRTT (additive latency). All current engines are ReplicationNone (zero value). replicationRule emits INFO diagnostic for replicated engines with non-zero lag. mapUpdateReplicationRule emits WARN when Map ADT with update folds is routed to a replicated engine. CollectionInfo exposes Replication/ReplicationLagMs/NetworkRTTMs via store.Collections(). store.ReplicationMode(queryName) returns the topology for a single query. WithReplication/WithNetworkRTT plan options override engine profiles for cost estimation ("what-if" analysis). SerializablePlan includes Replication/ReplicationLagMs/NetworkRTTMs per query. ExplainPlan() shows replication suffix on engine lines; Doctor() has a --- Replication --- section. Foundation for future distributed engines (Iroh, CockroachDB).
+│                        # **Persistence** ([ADR-0098](docs/adr/0098-metaengine-persistence-enum.md)): EngineProfile declares Persistence (volatile="" / persistent="persistent"). Zero value is PersistenceVolatile — safe default, planner WARNs. Three engines set it dynamically: SQLite/Pebble/DuckDB are volatile for in-memory constructors (":memory:", vfs.NewMem, dir=""), persistent for file/DB constructors. Memory engine is always volatile; Postgres is always persistent. durabilityRule emits WARN (no persistent alternative) / INFO (persistent alternative exists, shows +Xms/query cost delta) / silent (persistent engine). CollectionInfo exposes Persistence via store.Collections(). store.Persistence(queryName) returns the classification for a single query. SerializableQuery includes Persistence. ExplainPlan() shows "volatile" suffix on engine lines; Doctor() has a --- Persistence --- section listing volatile collections.
 │   └── pebbleengine/   # Pebble-backed metaengine Engine (LSM point reads, 7x faster than SQLite on MapGet). MapBackend, ScanBackend, SetBackend, CounterBackend, GraphBackend, MultimapBackend, LogBackend. **RawValueReader + RawScanReader** (eliminates JSON decode tax on point lookups and filtered scans). Separate module (cockroachdb/pebble dep)
 │   └── duckdbengine/   # DuckDB-backed metaengine Engine (columnar OLAP, CGo). MapBackend, CounterBackend, ScanBackend, **PushdownScan** (json_extract filter/sort pushdown), **LayoutPlanner** (planned tables with extracted columns + ART indexes), **LayoutPlanApplier** (columnar-native: WithColumnarLayout extracts all fields as typed columns, float64→DOUBLE). Cross-engine parity via adttest.RunMatrix. Separate module (duckdb-go dep, CGo required)
 │   └── pgengine/       # Postgres-backed metaengine Engine (JSONB + B-tree). MapBackend, CounterBackend, ScanBackend, **PushdownScan** (JSONB operator filter/sort pushdown), **LayoutPlanner** (expression indexes on JSONB paths). Cross-engine parity via adttest.RunMatrix. Pure Go (pgx driver, no CGo)
@@ -946,6 +947,32 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   // The planner emits an INFO diagnostic when routing to a replicated engine
 //   // with non-zero lag: "routed to leaderless engine ... reads may be stale by 200ms".
 //   // String() output: "iroh-sync: map@O(1) (replication=leaderless, lag=200ms, rtt=5ms)"
+
+// Metaengine persistence — survivability classification (DDIA Ch1, ADR-0098)
+//   // EngineProfile declares WHETHER data survives process exit.
+//   // Zero value is PersistenceVolatile — safe default, planner WARNs.
+//   //
+//   //   Persistence = volatile ("" / zero value) | persistent ("persistent")
+//   //
+//   // Three engines set it dynamically:
+//   //   pebbleengine.NewPebbleEngine("")    → volatile (vfs.NewMem)
+//   //   pebbleengine.NewPebbleEngine("/db") → persistent (disk LSM)
+//   //   duckdbengine.New("")                → volatile (:memory:)
+//   //   duckdbengine.New("file.db")         → persistent (disk)
+//   //   Memory engine                       → always volatile
+//   //   Postgres                            → always persistent
+//   //
+//   // The durabilityRule planner rule emits:
+//   //   WARN  — volatile engine, no persistent alternative exists
+//   //   INFO  — volatile engine, persistent alternative exists (+Xms/query cost delta)
+//   //   silent — persistent engine
+//   //
+//   // Inspect:
+//   eng.Profile().IsVolatile()                // bool
+//   eng.Profile().IsPersistent()              // bool
+//   store.Persistence("find_user")            // PersistenceVolatile or PersistencePersistent
+//   report := store.Doctor(ctx)               // --- Persistence --- section lists volatile collections
+//   // SerializableQuery includes Persistence for plan serialization/diff/pin
 
 // Pebble backup + graceful shutdown (production operations)
 //   b, _ := pebble.New("/var/lib/myapp/pebble")

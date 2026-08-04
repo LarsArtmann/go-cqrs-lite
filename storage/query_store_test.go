@@ -208,11 +208,11 @@ func TestSQLQueryStore_MetadataRoundtrip(t *testing.T) {
 	store := newTestQueryStore(t)
 	ctx := context.Background()
 
-	meta := query.Metadata{}
+	meta := query.Metadata{
+		Custom: map[query.MetadataKey]string{"source": "test"},
+	}
 	meta.CorrelationID = id.NewCorrelationID()
 	meta.UserID = id.NewUserID()
-	meta.EnsureCustom()
-	meta.Custom["source"] = "test"
 
 	q, err := query.NewPersistedQuery("user.search", []byte(`{}`), query.WithQueryMetadata(meta))
 	if err != nil {

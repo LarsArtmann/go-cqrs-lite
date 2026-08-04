@@ -122,6 +122,7 @@ with projection + read model.
 | Schedule delayed commands / durable deadlines         | `scheduling`                                                                                   | advanced §6.11  |
 | Dead-letter failed dispatches (retry exhaustion)      | `middleware` (DLQ)                                                                             | recipes §2.8    |
 | Cost-based query planner (7 ADTs, O(1) aggregates)    | `metaengine` + `stack.WithMetaEngine`                                                          | recipes §2.10   |
+| Survivable read models across restart (volatile vs persistent engine) | `metaengine` (`EngineProfile.Persistence`, ADR-0098)                              | modules §5      |
 | Derive commands reactively from events                | `deriver`                                                                                      | advanced §6.12  |
 | Build graph/traversal read models (nodes + edges)     | `graph`                                                                                        | advanced §6.13  |
 | Expose CQRS metrics via Prometheus `/metrics`         | `prometheus`                                                                                   | advanced §6.14  |

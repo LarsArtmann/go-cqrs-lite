@@ -10,15 +10,15 @@ import (
 func TestQuery_MetadataMerge(t *testing.T) {
 	t.Parallel()
 
-	base := query.Metadata{}
+	base := query.Metadata{
+		Custom: map[query.MetadataKey]string{"tenant": "acme"},
+	}
 	base.CorrelationID = id.NewCorrelationID()
-	base.EnsureCustom()
-	base.Custom["tenant"] = "acme"
 
-	overlay := query.Metadata{}
+	overlay := query.Metadata{
+		Custom: map[query.MetadataKey]string{"region": "us-east-1"},
+	}
 	overlay.UserID = id.NewUserID()
-	overlay.EnsureCustom()
-	overlay.Custom["region"] = "us-east-1"
 
 	merged := base.Merge(overlay)
 
@@ -47,9 +47,9 @@ func TestQuery_MetadataMerge(t *testing.T) {
 func TestQuery_MetadataKeyIsLocal(t *testing.T) {
 	t.Parallel()
 
-	md := query.Metadata{}
-	md.EnsureCustom()
-	md.Custom["source"] = "test"
+	md := query.Metadata{
+		Custom: map[query.MetadataKey]string{"source": "test"},
+	}
 
 	if md.Custom["source"] != "test" {
 		t.Errorf("Custom write/read failed: got %q", md.Custom["source"])

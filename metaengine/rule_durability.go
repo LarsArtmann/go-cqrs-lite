@@ -54,7 +54,12 @@ func (r *durabilityRule) Apply(result *PlanResult, ctx PlanContext) error {
 			// mirroring the planner's cost formula exactly.
 			altReadNs := altProfile.NsForRead(q.ReadPattern)
 			altReadComplexity := effectiveReadComplexity(q.ReadPattern, altComplexity)
-			altCost := estimateCost(altReadComplexity, q.Cost.Volume, altReadNs, altProfile.NetworkRTT)
+			altCost := estimateCost(
+				altReadComplexity,
+				q.Cost.Volume,
+				altReadNs,
+				altProfile.NetworkRTT,
+			)
 			deltaMs := altCost.EstimatedLatencyMs - q.Cost.EstimatedLatencyMs
 
 			result.Diagnostics = append(result.Diagnostics, Diagnostic{

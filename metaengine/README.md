@@ -213,6 +213,65 @@ read back through `ExecuteTyped` are JSON-reified across the SQL boundary
 ([ADR-0066](../docs/adr/0066-metaengine-reify-fallback.md)) — use exported
 fields on result types.
 
+## Persistence (Survivability)
+
+`Persistence` declares whether an engine's data survives process exit (DDIA
+Chapter 1: the survivability axis). It answers a single binary question: "if
+the process exits, is the data gone?"
+
+This is orthogonal to `Replication` (topology), `NetworkRTT` (distance), and
+`stack.Durability` (fsync tiers). The zero value is `PersistenceVolatile` —
+the safe default that causes the planner to WARN rather than silently assume
+durability.
+
+Three engines (SQLite, Pebble, DuckDB) are volatile OR persistent depending on
+constructor arguments. The engine sets the field dynamically at construction
+time:
+
+| Constructor              | Persistence | Why                          |
+| ------------------------ | ----------- | ---------------------------- |
+| `NewMemoryEngine()`      | Volatile    | Pure RAM                     |
+| `NewSQLiteEngine(db)`    | Persistent  | File or `:memory:` (profile) |
+| `NewPebbleEngine("")`    | Volatile    | `vfs.NewMem()`               |
+| `NewPebbleEngine("/db")` | Persistent  | LSM on disk                  |
+| `NewPebbleEngineFromDB`  | Persistent  | Caller owns a disk DB        |
+| `duckdb.New("")`         | Volatile    | `:memory:`                   |
+| `duckdb.New("file.db")`  | Persistent  | Disk file                    |
+| `duckdb.NewFromDB`       | Persistent  | Caller owns a DB             |
+| `pgengine.New(dsn)`      | Persistent  | Remote server                |
+
+### Planner Durability Rule
+
+When a query is routed to a volatile engine, the `durabilityRule` planner rule
+emits:
+
+- **WARN** if no persistent alternative exists for the same ADT — the
+  projection will be lost on restart and must be rebuilt from the event log.
+- **INFO** if a persistent alternative exists, showing the engine name and the
+  latency cost delta (`+Xms/query`) of switching to it.
+- **Silent** if the engine is already persistent.
+
+### Inspecting Persistence
+
+```go
+// On an engine profile:
+profile := eng.Profile()
+profile.IsVolatile()    // true for Memory, in-memory Pebble/DuckDB
+profile.IsPersistent()  // true for SQLite file, disk Pebble/DuckDB, Postgres
+
+// On the Store (per query):
+persistence := store.Persistence("find_user")  // PersistenceVolatile or Persistent
+
+// In Doctor output:
+report := store.Doctor(ctx)
+// --- Persistence ---
+//   find_user: volatile (engine=memory)
+//   all persistent    ← when every collection survives restart
+```
+
+See [ADR-0098](../docs/adr/0098-metaengine-persistence-enum.md) for the design
+rationale and rejected alternatives.
+
 ## Build Tag (Portability)
 
 This module is built with the `goexperiment.jsonv2` build tag (Go 1.26+), which

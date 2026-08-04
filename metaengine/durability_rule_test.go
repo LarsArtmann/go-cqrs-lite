@@ -104,7 +104,8 @@ func TestDurabilityRule_SilentWhenPersistentEngine(t *testing.T) {
 	defer store.Close()
 
 	for _, d := range store.Plan().Diagnostics {
-		if strings.Contains(d.Message, "volatile") || strings.Contains(d.Message, "lost on restart") {
+		if strings.Contains(d.Message, "volatile") ||
+			strings.Contains(d.Message, "lost on restart") {
 			t.Errorf("persistent engine should not emit durability diagnostic: %s", d.Message)
 		}
 	}

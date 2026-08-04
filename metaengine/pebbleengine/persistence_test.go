@@ -4,9 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	. "github.com/onsi/gomega"
-
 	"github.com/cockroachdb/pebble"
+	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 )
