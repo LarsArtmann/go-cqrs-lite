@@ -212,22 +212,49 @@ func NewSuppressionFilter() pipeline.FindingTransformer {
 	)
 }
 
-// checkSuppressionInFile reads the source file and checks the finding's line
-// and the line above for a suppression comment.
-func checkSuppressionInFile(cache *lineCache, f finding.Finding) bool {
+// findingLines holds the cached source lines and finding metadata needed by
+// both checkSuppressionInFile and checkBlockSuppressionInFile.
+type findingLines struct {
+	lines    []string
+	rawLines map[int]bool
+	ruleID   string
+	line     int
+}
+
+// loadFindingLines extracts the file path from the finding, loads cached
+// source lines, and bundles them with the rule ID and line number. Returns
+// ok=false when the file path is empty or the source could not be loaded.
+func loadFindingLines(cache *lineCache, f finding.Finding) (findingLines, bool) {
 	filePath := string(f.Position.File)
 	if filePath == "" {
-		return false
+		return findingLines{}, false
 	}
 
 	lines := cache.getLines(filePath)
 	if lines == nil {
+		return findingLines{}, false
+	}
+
+	return findingLines{
+		lines:    lines,
+		rawLines: cache.getRawStringLines(filePath),
+		ruleID:   string(f.Rule),
+		line:     f.Position.Line, // 1-based
+	}, true
+}
+
+// checkSuppressionInFile reads the source file and checks the finding's line
+// and the line above for a suppression comment.
+func checkSuppressionInFile(cache *lineCache, f finding.Finding) bool {
+	fl, ok := loadFindingLines(cache, f)
+	if !ok {
 		return false
 	}
 
-	rawLines := cache.getRawStringLines(filePath)
-	ruleID := string(f.Rule)
-	line := f.Position.Line // 1-based
+	lines := fl.lines
+	rawLines := fl.rawLines
+	ruleID := fl.ruleID
+	line := fl.line
 
 	// Check the finding's own line.
 	if line >= 1 && line <= len(lines) && !rawLines[line-1] {
@@ -278,19 +305,15 @@ func checkSuppressionInSnippet(f finding.Finding) bool {
 // If the block start specifies rule IDs (e.g. ignore-start(A001)), only
 // those rules are suppressed. If no IDs are specified, all rules are suppressed.
 func checkBlockSuppressionInFile(cache *lineCache, f finding.Finding) bool {
-	filePath := string(f.Position.File)
-	if filePath == "" {
+	fl, ok := loadFindingLines(cache, f)
+	if !ok {
 		return false
 	}
 
-	lines := cache.getLines(filePath)
-	if lines == nil {
-		return false
-	}
-
-	rawLines := cache.getRawStringLines(filePath)
-	ruleID := string(f.Rule)
-	line := f.Position.Line // 1-based
+	lines := fl.lines
+	rawLines := fl.rawLines
+	ruleID := fl.ruleID
+	line := fl.line
 
 	if line < 1 || line > len(lines) {
 		return false

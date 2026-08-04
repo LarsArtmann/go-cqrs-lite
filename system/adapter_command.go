@@ -61,24 +61,22 @@ func (a *CommandAdapter) Load(
 func (a *CommandAdapter) LoadFromTimestamp(
 	ctx context.Context, ref command.StreamRef, after time.Time,
 ) ([]*command.PersistedCommand, error) {
-	all, err := a.Load(ctx, ref)
-	if err != nil {
-		return nil, err
-	}
-
-	var result []*command.PersistedCommand
-
-	for _, cmd := range all {
-		if cmd.ReceivedAt().After(after) {
-			result = append(result, cmd)
-		}
-	}
-
-	return result, nil
+	return a.loadFiltered(ctx, ref, func(cmd *command.PersistedCommand) bool {
+		return cmd.ReceivedAt().After(after)
+	})
 }
 
 func (a *CommandAdapter) LoadToTimestamp(
 	ctx context.Context, ref command.StreamRef, maxTime time.Time,
+) ([]*command.PersistedCommand, error) {
+	return a.loadFiltered(ctx, ref, func(cmd *command.PersistedCommand) bool {
+		return !cmd.ReceivedAt().After(maxTime)
+	})
+}
+
+func (a *CommandAdapter) loadFiltered(
+	ctx context.Context, ref command.StreamRef,
+	keep func(cmd *command.PersistedCommand) bool,
 ) ([]*command.PersistedCommand, error) {
 	all, err := a.Load(ctx, ref)
 	if err != nil {
@@ -88,7 +86,7 @@ func (a *CommandAdapter) LoadToTimestamp(
 	var result []*command.PersistedCommand
 
 	for _, cmd := range all {
-		if !cmd.ReceivedAt().After(maxTime) {
+		if keep(cmd) {
 			result = append(result, cmd)
 		}
 	}
