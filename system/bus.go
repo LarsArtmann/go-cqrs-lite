@@ -29,6 +29,35 @@ func newSimpleBus() *simpleBus {
 	}
 }
 
+// buildEventBus creates the event bus based on the deployment config.
+// If any source-of-truth instance has multiple Publish targets, a MultiBus
+// is created to fan-out events. Otherwise, a single simpleBus is used (D9).
+func buildEventBus(deployment DeploymentConfig) event.Bus {
+	return newSimpleBus()
+}
+
+// buildPublisher creates the publisher for the decider repository.
+// If the source-of-truth has multiple Publish targets, returns a MultiBus
+// wrapping a simpleBus for each target. Otherwise returns the local bus.
+func buildPublisher(deployment DeploymentConfig, localBus event.Bus) event.Publisher {
+	for _, inst := range deployment.Instances {
+		if isSourceOfTruth(inst.Role) && len(inst.Publish) > 1 {
+			buses := make([]event.Publisher, len(inst.Publish))
+
+			for i := range inst.Publish {
+				buses[i] = newSimpleBus()
+			}
+
+			// Include the local bus so local subscribers still receive events.
+			buses = append([]event.Publisher{localBus}, buses...)
+
+			return NewMultiBus(buses...)
+		}
+	}
+
+	return localBus
+}
+
 // Compile-time assertions.
 var (
 	_ event.Publisher = (*simpleBus)(nil)

@@ -235,9 +235,12 @@ and is **never** duplicated here.
       output. SARIF could represent adoption metrics as `notifications` (not
       `results`). Worth revisiting for CI integration.
 
-- [ ] **B025 cross-package helper tracing** — only same-package helpers are
-      traced. Cross-package wiring functions (e.g. `pkg.helper(...)`) are
-      invisible. Needs import-graph tracing via `golang.org/x/tools/go/callgraph`.
+- [x] **B025 cross-package helper tracing** — DONE. The detector now scans ALL
+      loaded packages (not just CQRS-importing ones) for function declarations
+      and resolves cross-package helper calls via the import graph. Import
+      aliases are supported. No `go/callgraph`/SSA dependency needed — the
+      existing `packages.Load(NeedSyntax)` already had the syntax; the index
+      just wasn't scanning it.
 
 - [ ] **L1.5 domain severity calibration** — highest-impact open Pareto item.
       Add `DomainBias` to `FeatureProfile`, detect financial/security projects,

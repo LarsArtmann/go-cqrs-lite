@@ -6,13 +6,16 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	_ "modernc.org/sqlite" // SQLite driver registered with database/sql
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // DriverFactory creates a metaengine.Engine from an EngineConfig.
 // Implementations are registered via [RegisterDriver] at init time.
-type DriverFactory func(cfg EngineConfig) (metaengine.Engine, error)
+// The context flows from [New] so engines can respect cancellation/timeouts
+// during construction (e.g., SQLite pragma execution).
+type DriverFactory func(ctx context.Context, cfg EngineConfig) (metaengine.Engine, error)
 
 // BusDriverFactory creates an event bus from a BusConfig.
 type BusDriverFactory func(cfg BusConfig) (any, error)
@@ -32,7 +35,7 @@ var (
 // Typical usage in a driver package's init():
 //
 //	func init() {
-//	    system.RegisterDriver("sqlite", func(cfg system.EngineConfig) (metaengine.Engine, error) {
+//	    system.RegisterDriver("sqlite", func(ctx context.Context, cfg system.EngineConfig) (metaengine.Engine, error) {
 //	        db, err := sql.Open("sqlite", cfg.DSN)
 //	        if err != nil { return nil, err }
 //	        return metaengine.NewSQLiteEngine(db)
@@ -110,11 +113,11 @@ func RegisteredBusDrivers() []string {
 
 // init registers built-in drivers.
 func init() {
-	RegisterDriver("memory", func(_ EngineConfig) (metaengine.Engine, error) {
+	RegisterDriver("memory", func(_ context.Context, _ EngineConfig) (metaengine.Engine, error) {
 		return metaengine.NewMemoryEngine(), nil
 	})
 
-	RegisterDriver("sqlite", func(cfg EngineConfig) (metaengine.Engine, error) {
+	RegisterDriver("sqlite", func(ctx context.Context, cfg EngineConfig) (metaengine.Engine, error) {
 		dsn := cfg.DSN
 		if dsn == "" {
 			dsn = ":memory:"
@@ -127,13 +130,14 @@ func init() {
 
 		// Apply pragmas if specified.
 		for _, pragma := range cfg.Pragmas {
-			if _, err := db.ExecContext(context.Background(), "PRAGMA "+pragma); err != nil {
+			if _, err := db.ExecContext(ctx, "PRAGMA "+pragma); err != nil {
 				_ = db.Close()
+
 				return nil, fmt.Errorf("system: sqlite pragma %q: %w", pragma, err)
 			}
 		}
 
-		return metaengine.NewSQLiteEngine(db)
+		return metaengine.NewSQLiteEngine(db) //nolint:contextcheck // takes *sql.DB
 	})
 }
 
@@ -145,7 +149,7 @@ func createEngineFromDriver(ctx context.Context, cfg EngineConfig) (metaengine.E
 		return nil, err
 	}
 
-	eng, err := factory(cfg)
+	eng, err := factory(ctx, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("system: driver %q create: %w", cfg.Driver, err)
 	}

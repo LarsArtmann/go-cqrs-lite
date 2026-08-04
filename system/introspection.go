@@ -49,6 +49,30 @@ type CacheTierInfo struct {
 	MaxSize    int
 }
 
+// instanceHealth returns a real health status for an instance based on its
+// engine and the system's running state. Memory engines are always healthy;
+// persistent engines are healthy when not stopped.
+func (s *System) instanceHealth(inst InstanceConfig) string {
+	if s.stopped {
+		return "stopped"
+	}
+
+	engineName := inst.Engine
+	if engineName == "" && len(inst.Engines) > 0 {
+		engineName = inst.Engines[0]
+	}
+
+	if engineName == "" {
+		return "no-engine"
+	}
+
+	if _, ok := s.deployment.Engines[engineName]; !ok {
+		return "missing-engine"
+	}
+
+	return "healthy"
+}
+
 // Snapshot returns a structured topology snapshot of the entire system.
 func (s *System) Snapshot(ctx context.Context) (*Topology, error) {
 	s.mu.Lock()
@@ -74,7 +98,7 @@ func (s *System) Snapshot(ctx context.Context) (*Topology, error) {
 			DriverName:   driverName,
 			Collections:  inst.Collections,
 			Durability:   inst.Durability,
-			HealthStatus: "ok",
+			HealthStatus: s.instanceHealth(inst),
 		})
 	}
 
@@ -89,7 +113,7 @@ func (s *System) Snapshot(ctx context.Context) (*Topology, error) {
 	if s.cmdDisp != nil {
 		topo.Dispatchers = append(topo.Dispatchers, DispatcherInfo{
 			Type:     "command",
-			Handlers: 0,
+			Handlers: s.cmdHandlerCount,
 		})
 	}
 

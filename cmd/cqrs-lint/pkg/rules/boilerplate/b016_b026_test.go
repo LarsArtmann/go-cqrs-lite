@@ -385,6 +385,173 @@ func setup() {
 	ruletest.AssertRule(t, findings, "B025", 1)
 }
 
+// TestB025_NoFindingWithStateCacheViaCrossPkgHelper verifies the detector
+// traces through helpers in OTHER packages — the cross-package gap where a
+// wiring package (myapp/wiring) that does not import CQRS directly is invisible
+// to the old same-package-only index. The helper package is loaded in
+// ctx.Packages (with syntax) but NOT in ctx.GoFiles, simulating a non-CQRS
+// package discovered by packages.Load("./...").
+func TestB025_NoFindingWithStateCacheViaCrossPkgHelper(t *testing.T) {
+	t.Parallel()
+
+	helperSrc := `package wiring
+
+func repositoryOptions(cfg Config) []decider.RepositoryOption[State] {
+	return []decider.RepositoryOption[State]{
+		decider.WithStateCache[State](decider.NewStateCache[State](0)),
+	}
+}
+`
+	callSrc := `package app
+
+import "myapp/wiring"
+
+func setup() {
+	repo, _ := decider.NewRepository(store, bus, d, wiring.repositoryOptions(cfg)...)
+	_ = repo
+}
+`
+
+	ctx := buildCrossPkgContext(t, helperSrc, callSrc, "myapp/wiring", "myapp/app")
+	findings := ruletest.RunDetector(t, boilerplate.NewB025Detector(ctx))
+	ruletest.AssertRule(t, findings, "B025", 0)
+}
+
+// TestB025_NoFindingWithStateCacheViaCrossPkgGenericHelper covers the generic
+// instantiation form across packages: wiring.repositoryOptions[State](cfg)...
+func TestB025_NoFindingWithStateCacheViaCrossPkgGenericHelper(t *testing.T) {
+	t.Parallel()
+
+	helperSrc := `package wiring
+
+func repositoryOptions[State any](cfg Config) []decider.RepositoryOption[State] {
+	return []decider.RepositoryOption[State]{
+		decider.WithStateCache[State](decider.NewStateCache[State](0)),
+	}
+}
+`
+	callSrc := `package app
+
+import "myapp/wiring"
+
+func setup() {
+	repo, _ := decider.NewRepository(store, bus, d, wiring.repositoryOptions[State](cfg)...)
+	_ = repo
+}
+`
+
+	ctx := buildCrossPkgContext(t, helperSrc, callSrc, "myapp/wiring", "myapp/app")
+	findings := ruletest.RunDetector(t, boilerplate.NewB025Detector(ctx))
+	ruletest.AssertRule(t, findings, "B025", 0)
+}
+
+// TestB025_FiresWhenCrossPkgHelperLacksStateCache ensures the detector still
+// fires when a cross-package helper IS used but does NOT wire WithStateCache.
+func TestB025_FiresWhenCrossPkgHelperLacksStateCache(t *testing.T) {
+	t.Parallel()
+
+	helperSrc := `package wiring
+
+func repositoryOptions(cfg Config) []decider.RepositoryOption[State] {
+	return []decider.RepositoryOption[State]{
+		decider.WithSnapshotStore[State](snap),
+	}
+}
+`
+	callSrc := `package app
+
+import "myapp/wiring"
+
+func setup() {
+	repo, _ := decider.NewRepository(store, bus, d, wiring.repositoryOptions(cfg)...)
+	_ = repo
+}
+`
+
+	ctx := buildCrossPkgContext(t, helperSrc, callSrc, "myapp/wiring", "myapp/app")
+	findings := ruletest.RunDetector(t, boilerplate.NewB025Detector(ctx))
+	ruletest.AssertRule(t, findings, "B025", 1)
+}
+
+// TestB025_CrossPkgHelperWithImportAlias verifies import alias resolution:
+// import w "myapp/wiring" → w.repositoryOptions(cfg)...
+func TestB025_CrossPkgHelperWithImportAlias(t *testing.T) {
+	t.Parallel()
+
+	helperSrc := `package wiring
+
+func repositoryOptions(cfg Config) []decider.RepositoryOption[State] {
+	return []decider.RepositoryOption[State]{
+		decider.WithStateCache[State](decider.NewStateCache[State](0)),
+	}
+}
+`
+	callSrc := `package app
+
+import w "myapp/wiring"
+
+func setup() {
+	repo, _ := decider.NewRepository(store, bus, d, w.repositoryOptions(cfg)...)
+	_ = repo
+}
+`
+
+	ctx := buildCrossPkgContext(t, helperSrc, callSrc, "myapp/wiring", "myapp/app")
+	findings := ruletest.RunDetector(t, boilerplate.NewB025Detector(ctx))
+	ruletest.AssertRule(t, findings, "B025", 0)
+}
+
+// buildCrossPkgContext simulates the production scenario where a non-CQRS
+// wiring package is loaded by packages.Load("./...") with syntax, but is NOT
+// in ctx.GoFiles (which only contains CQRS-importing packages). The helper
+// source goes into ctx.Packages only; the call source goes into both
+// ctx.Packages and ctx.GoFiles (as a CQRS-importing package would).
+func buildCrossPkgContext(
+	t *testing.T,
+	helperSrc, callSrc, helperPkgPath, callPkgPath string,
+) *analyzer.AnalysisContext {
+	t.Helper()
+
+	fset := token.NewFileSet()
+
+	helperFile, err := parser.ParseFile(fset, "wiring/options.go", helperSrc, parser.ParseComments)
+	if err != nil {
+		t.Fatalf("parse helper: %v", err)
+	}
+
+	callFile, err := parser.ParseFile(fset, "app/setup.go", callSrc, parser.ParseComments)
+	if err != nil {
+		t.Fatalf("parse call: %v", err)
+	}
+
+	helperPkg := &packages.Package{
+		PkgPath:   helperPkgPath,
+		Syntax:    []*ast.File{helperFile},
+		GoFiles:   []string{"wiring/options.go"},
+		TypesInfo: &types.Info{},
+	}
+
+	callPkg := &packages.Package{
+		PkgPath:   callPkgPath,
+		Syntax:    []*ast.File{callFile},
+		GoFiles:   []string{"app/setup.go"},
+		TypesInfo: &types.Info{},
+	}
+
+	ctx := &analyzer.AnalysisContext{
+		Fset:     fset,
+		Registry: analyzer.NewCQRSRegistry(),
+		Packages: []*packages.Package{helperPkg, callPkg},
+		GoFiles: []*analyzer.GoFile{
+			{Path: "app/setup.go", AST: callFile, Pkg: callPkg},
+		},
+	}
+
+	ctx.FeatureProfile = analyzer.DetectFeatures(ctx)
+
+	return ctx
+}
+
 func TestB026_DetectsMissingCatalogRegistration(t *testing.T) {
 	t.Parallel()
 

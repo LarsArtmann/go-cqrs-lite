@@ -3,6 +3,7 @@ package architecture
 import (
 	"context"
 	"fmt"
+	"go/token"
 
 	"github.com/larsartmann/go-finding"
 
@@ -48,42 +49,83 @@ func NewE008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // E009: No HTTP integration for CQRS.
-// Detects projects that have both command and query dispatching but no HTTP
+// Detects modules that have both command and query dispatching but no HTTP
 // transport layer. Commands and queries can only be dispatched programmatically,
 // making the system inaccessible via REST/SSE. This is a coaching rule — CLI
 // tools and background workers legitimately don't need HTTP.
+// Evaluated per-module via ProfileForFile so a library sub-module is not
+// suppressed when an example sub-module has transport.
 //
 //nolint:ireturn // factory returns public interface
 func NewE009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"E009-no-http-integration",
 		func(_ context.Context) ([]finding.Finding, error) {
-			hasCommand := importsPathSuffix(ctx, "go-cqrs-lite/command")
-			hasQuery := importsPathSuffix(ctx, "go-cqrs-lite/query")
-			if !hasCommand || !hasQuery {
-				return nil, nil
+			// Group files by module directory, tracking which modules
+			// import both command and query. This lets us evaluate
+			// transport per-module instead of workspace-wide.
+			type moduleState struct {
+				hasCommand bool
+				hasQuery   bool
+				firstPos   token.Position
+				hasPos     bool
 			}
 
-			if ctx.FeatureProfile.HasTransport {
-				return nil, nil
+			modules := make(map[string]*moduleState)
+
+			for _, gf := range ctx.GoFiles {
+				if gf.IsTest {
+					continue
+				}
+
+				state := modules[gf.ModuleDir]
+				if state == nil {
+					state = &moduleState{}
+					modules[gf.ModuleDir] = state
+				}
+
+				if fileImportsPath(gf, "go-cqrs-lite/command") {
+					state.hasCommand = true
+				}
+
+				if fileImportsPath(gf, "go-cqrs-lite/query") {
+					state.hasQuery = true
+				}
+
+				if !state.hasPos && gf.AST.Package != token.NoPos {
+					state.firstPos = ctx.Fset.Position(gf.AST.Package)
+					state.hasPos = true
+				}
 			}
 
-			pos, ok := firstFilePos(ctx)
-			if !ok {
-				return nil, nil
+			var findings []finding.Finding
+
+			for _, state := range modules {
+				if !state.hasCommand || !state.hasQuery || !state.hasPos {
+					continue
+				}
+
+				// Evaluate transport per-module: a module with command+query
+				// but no transport should be flagged, even if another module
+				// in the workspace has transport.
+				if ctx.ProfileForFile(state.firstPos.Filename).HasTransport {
+					continue
+				}
+
+				findings = append(findings, singleFinding(
+					ctx,
+					"E009",
+					"Module has command and query dispatchers but no HTTP/gRPC transport layer — "+
+						"commands and queries can only be dispatched programmatically",
+					"Add transport/http (SSE event delivery, HTTP handlers) or transport/grpc "+
+						"to expose the CQRS API to external clients",
+					state.firstPos,
+					finding.SeverityInfo,
+					finding.ConfidenceLow,
+				)...)
 			}
 
-			return singleFinding(
-				ctx,
-				"E009",
-				"Project has command and query dispatchers but no HTTP/gRPC transport layer — "+
-					"commands and queries can only be dispatched programmatically",
-				"Add transport/http (SSE event delivery, HTTP handlers) or transport/grpc "+
-					"to expose the CQRS API to external clients",
-				pos,
-				finding.SeverityInfo,
-				finding.ConfidenceLow,
-			), nil
+			return findings, nil
 		},
 	)
 }

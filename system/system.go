@@ -229,6 +229,7 @@ type System struct {
 	qryDisp  *query.Dispatcher
 	projHost *projectionhost.Host
 	bus      event.Bus
+	pubBus   event.Publisher // publisher for decider repository (may be MultiBus)
 
 	// Projection-layer metaengine store.
 	projStore *metaengine.Store
@@ -236,6 +237,9 @@ type System struct {
 	// Engines and closers for lifecycle management.
 	engines []metaengine.Engine
 	closers []func() error
+
+	// handlerCount tracks registered command handlers for introspection.
+	cmdHandlerCount int
 
 	started bool
 	stopped bool

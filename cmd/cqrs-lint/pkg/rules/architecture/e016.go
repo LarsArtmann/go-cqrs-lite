@@ -23,11 +23,6 @@ func NewE016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			var findings []finding.Finding
 
-			// CLI tools with embedded dashboards don't need Kubernetes probes.
-			if ctx.FeatureProfile.ServerLocal {
-				return nil, nil
-			}
-
 			hasBundle := false
 			hasServer := false
 			hasHealthCheck := false
@@ -118,6 +113,14 @@ func NewE016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			if (hasBundle || hasServer) && !hasHealthCheck {
+				// Evaluate per-module: CLI tools with embedded dashboards
+				// don't need Kubernetes probes. Using the primary profile
+				// would suppress the finding when the primary module is
+				// local-only even though the server runs in a sub-module.
+				if ctx.ProfileForFile(triggerPos.Filename).ServerLocal {
+					return findings, nil
+				}
+
 				f, err := finding.NewBuilder(
 					"E016", toolName,
 					"Server-mode project without HealthCheck — Kubernetes probes need stack.Bundle.HealthCheck()",

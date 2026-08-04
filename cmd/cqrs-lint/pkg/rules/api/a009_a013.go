@@ -49,8 +49,12 @@ func NewA009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			var findings []finding.Finding
 
+			// Evaluate per-module: use the primary module's store backend
+			// for the suggestion text, resolved via ProfileForFile for
+			// consistency with other per-module detectors.
+			primaryStore := ctx.ProfileForFile(ctx.ProjectRoot + "/go.mod").Store
 			suggestion := "Use stack/sqlite.New(dsn) or stack/pebble.New(dir) for one-call setup with sane defaults"
-			switch ctx.FeatureProfile.Store {
+			switch primaryStore {
 			case analyzer.StoreSQLite:
 				suggestion = "Use stack/sqlite.New(dsn) for one-call setup with sane defaults"
 			case analyzer.StorePostgres:
@@ -166,23 +170,27 @@ func NewA010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // A012: Missing tombstone handling.
 // Detects fold/apply functions that don't check for tombstone events.
-// Only flags when the project's event types include tombstone-like names
+// Only flags when the fold's module includes tombstone-like event types
 // (Deleted, Removed, Archived) — domains without soft-delete don't need it.
-// Detection now consults ctx.FeatureProfile.HasSoftDelete (centralized).
+// Evaluated per-module via ProfileForFile so a library sub-module is not
+// flagged when an example sub-module happens to emit tombstone events.
 //
 //nolint:ireturn // factory returns public interface
 func NewA012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A012-missing-tombstone-handling",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !ctx.FeatureProfile.HasSoftDelete {
-				return nil, nil
-			}
-
 			var findings []finding.Finding
 
 			for _, fold := range ctx.Registry.Folds {
 				if !fold.HasSwitch {
+					continue
+				}
+
+				// Evaluate per-module: only flag folds in modules that emit
+				// tombstone-like events. Using the primary profile would flag
+				// library folds when an example sub-module has soft-delete.
+				if !ctx.ProfileForFile(fold.File).HasSoftDelete {
 					continue
 				}
 

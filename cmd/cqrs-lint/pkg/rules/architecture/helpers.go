@@ -21,15 +21,26 @@ func importsPathSuffix(ctx *analyzer.AnalysisContext, suffix string) bool {
 			continue
 		}
 
-		for _, imp := range gf.AST.Imports {
-			if imp == nil || imp.Path == nil {
-				continue
-			}
+		if fileImportsPath(gf, suffix) {
+			return true
+		}
+	}
 
-			path := strings.Trim(imp.Path.Value, `"`)
-			if strings.Contains(path, suffix) {
-				return true
-			}
+	return false
+}
+
+// fileImportsPath reports whether a single GoFile imports a path containing
+// suffix. Used by per-module detectors (e.g. E009) that need to evaluate
+// imports per-module rather than workspace-wide.
+func fileImportsPath(gf *analyzer.GoFile, suffix string) bool {
+	for _, imp := range gf.AST.Imports {
+		if imp == nil || imp.Path == nil {
+			continue
+		}
+
+		path := strings.Trim(imp.Path.Value, `"`)
+		if strings.Contains(path, suffix) {
+			return true
 		}
 	}
 

@@ -22,6 +22,13 @@ import (
 // via the generic top-level functions (RegisterDecider, RegisterCommand,
 // RegisterQuery). Then call Start to begin projection processing.
 func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) (*System, error) {
+	// Safety check: refuse to start if SCREAM-tier violations exist.
+	if report, err := CheckSafety(ctx, deployment); err != nil {
+		return nil, fmt.Errorf("system: safety check: %w", err)
+	} else if report.HasErrors() {
+		return nil, fmt.Errorf("%w: %s", ErrUnsafeChange, report.Diagnostics[0].Detail)
+	}
+
 	sys := &System{
 		deployment: deployment,
 		repos:      make(map[string]any),
@@ -114,9 +121,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 			if len(projEngines) > 0 && len(domain.Projections) > 0 {
 				args := make([]any, len(domain.Projections))
-				for i, q := range domain.Projections {
-					args[i] = q
-				}
+				copy(args, domain.Projections)
 
 				store, err := metaengine.Plan(projEngines, args...)
 				if err != nil {
@@ -141,9 +146,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		sys.engines = append(sys.engines, eng)
 
 		args := make([]any, len(domain.Projections))
-		for i, q := range domain.Projections {
-			args[i] = q
-		}
+		copy(args, domain.Projections)
 
 		store, err := metaengine.Plan([]metaengine.Engine{eng}, args...)
 		if err != nil {
@@ -178,6 +181,10 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 		sys.projHost = host
 	}
+
+	// Wire MultiBus if the source-of-truth instance has multiple Publish targets (D9).
+	sys.bus = buildEventBus(deployment)
+	sys.pubBus = buildPublisher(deployment, sys.bus)
 
 	// Register domain middleware.
 	sys.UseCommandMiddleware(domain.Middleware...)
@@ -232,7 +239,7 @@ func RegisterDecider[State any](sys *System, streamType string, d decider.Decide
 		return errors.New("system: cannot register decider: no event store")
 	}
 
-	repo, err := decider.NewRepository[State](sys.eventStore, sys.bus, d)
+	repo, err := decider.NewRepository[State](sys.eventStore, sys.pubBus, d)
 	if err != nil {
 		return fmt.Errorf("system: create repository for %q: %w", streamType, err)
 	}
@@ -257,6 +264,10 @@ func RegisterCommand[Cmd command.Command, State any](
 	name command.Type,
 	handler func(ctx context.Context, cmd Cmd) Op[State],
 ) error {
+	sys.mu.Lock()
+	sys.cmdHandlerCount++
+	sys.mu.Unlock()
+
 	return sys.cmdDisp.Register(name, func(ctx context.Context, cmd command.Command) error {
 		typed, ok := any(cmd).(Cmd)
 		if !ok {

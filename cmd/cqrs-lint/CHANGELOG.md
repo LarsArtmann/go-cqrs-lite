@@ -14,6 +14,7 @@ Tags use the full module path: `cmd/cqrs-lint/vX.Y.Z`.
 
 - **E006 now checks fold cases** — orphaned event detection no longer fires for events consumed by decider fold/apply functions. An event handled by a fold (state evolution) is NOT orphaned even when no projection subscribes to it. Uses the shared `CollectFoldCaseStrings` helper (extracted from C038 to eliminate duplication).
 - **Shared fold-case-string extraction** — `AnalysisContext.CollectFoldCaseStrings()` centralized in the analyzer package, used by both C038 (typo detection) and E006 (orphaned events).
+- **B025 cross-package helper tracing** — the detector now traces option-builder helpers across package boundaries, not just within the same package. When `NewRepository` receives a variadic spread from a cross-package helper (e.g. `wiring.repositoryOptions(cfg)...`), the detector resolves the helper's package via the import graph and inspects its body. The function index now scans ALL loaded packages (including non-CQRS wiring packages), eliminating false positives for codebases with shared wiring packages. Import aliases (`import w "myapp/wiring"`) are resolved correctly.
 
 ### Fixed
 
