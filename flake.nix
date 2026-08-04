@@ -178,6 +178,7 @@
             "projectionhost"
             "scenario"
             "scheduling"
+            "scheduling/sqlstore"
             "storage/memory"
             "storage/pebble"
             "storage/turso"

@@ -89,7 +89,11 @@ func defaultConfigTemplate() string {
   "min-confidence": "low",
 
   // Output format: text, json, sarif, markdown
-  "format": "text"
+  "format": "text",
+
+  // Group findings by: none, module, aggregate
+  // Uncomment to enable:
+  // "group-by": "module"
 }
 `
 }

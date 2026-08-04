@@ -52,6 +52,8 @@ func NewMemoryEngine() Engine {
 			graphs:    make(map[string]*memGraph),
 			multimaps: make(map[string]map[any][]any),
 			logs:      make(map[string][]any),
+			streams:   make(map[string]map[string][]any),
+			streamJournal: make(map[string][]streamJournalEntry),
 		},
 		vectorIdx:  NewMemoryVectorIndex(),
 		searchIdx:  NewMemorySearchIndex(),

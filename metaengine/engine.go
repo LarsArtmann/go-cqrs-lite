@@ -458,6 +458,7 @@ var (
 	_ GraphBackend    = (*memoryEngine)(nil)
 	_ MultimapBackend = (*memoryEngine)(nil)
 	_ LogBackend      = (*memoryEngine)(nil)
+	_ StreamLogBackend = (*memoryEngine)(nil)
 	_ VectorBackend   = (*memoryEngine)(nil)
 	_ SearchBackend   = (*memoryEngine)(nil)
 	_ SpatialBackend  = (*memoryEngine)(nil)
