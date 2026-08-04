@@ -63,7 +63,7 @@ func decryptEvent(evt event.Event, dec Decrypter) (event.Event, error) {
 		)
 	}
 
-	md := evt.Metadata().Clone()
+	md := evt.Metadata()
 	delete(md.Custom, MetadataKey)
 	delete(md.Custom, AlgorithmKey)
 	delete(md.Custom, KeyIDKey)
