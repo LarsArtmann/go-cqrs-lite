@@ -86,8 +86,9 @@ func Replicated(local metaengine.Engine, opts ...Option) metaengine.Engine {
 	}
 
 	eng := &replicatedEngine{
-		local: local,
-		cfg:   cfg,
+		local:      local,
+		cfg:        cfg,
+		timestamps: make(map[string]time.Time),
 	}
 
 	if cfg.transport != nil {

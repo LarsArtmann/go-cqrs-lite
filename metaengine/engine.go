@@ -400,6 +400,42 @@ type LogBackend interface {
 	LogTail(ctx context.Context, collection string, limit int) ([]any, error)
 }
 
+// StreamLogBackend handles stream-keyed append-only log collections.
+// This is the storage primitive for events, commands, and queries — all of
+// which are stream-keyed append-only logs that differ only in adapter logic.
+//
+// The interface stores []any values. The system package's adapters
+// (EventAdapter, CommandAdapter, QueryAdapter) encode typed domain objects
+// to []any on write and decode on read. The engine implementation is
+// agnostic to what the values contain.
+//
+// For optimistic concurrency (event.Save with expectedVersion), engines
+// should also implement [Transactional] so the adapter can perform an atomic
+// version-check-then-append via RunInTx.
+type StreamLogBackend interface {
+	// StreamAppend appends values to a stream identified by (collection, streamID).
+	// Values are appended in order. Returns an error if the engine is closed.
+	StreamAppend(ctx context.Context, collection, streamID string, values []any) error
+
+	// StreamRead reads all values for a stream, ordered by append sequence.
+	// Returns an empty slice (not nil) if the stream has no values.
+	StreamRead(ctx context.Context, collection, streamID string) ([]any, error)
+
+	// StreamVersion returns the current version (number of entries) for a stream.
+	// Returns 0 for a stream that has no entries.
+	StreamVersion(ctx context.Context, collection, streamID string) (int64, error)
+
+	// JournalReadAll reads all values across ALL streams in a collection,
+	// ordered by global append sequence. Used by projectionhost for full replay.
+	JournalReadAll(ctx context.Context, collection string) ([]any, error)
+
+	// JournalReadFrom reads values across all streams starting after afterSeq,
+	// ordered by global append sequence. Used for position-based resumption
+	// (CatchUpSubscriber, incremental projection processing).
+	// If limit <= 0, returns all remaining values.
+	JournalReadFrom(ctx context.Context, collection string, afterSeq int64, limit int) ([]any, error)
+}
+
 // Closer is the lifecycle interface.
 type Closer interface {
 	Close() error

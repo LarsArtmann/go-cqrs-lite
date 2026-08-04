@@ -4,7 +4,7 @@ Date: 2026-08-03
 
 ## Status
 
-Research — No Implementation (Decision Recorded for Future Reference)
+**Prototype Available** — Level 2 replication wrapper implemented (`metaengine/irohengine/`) with in-process mock transport. Real Iroh FFI integration remains deferred pending `iroh-docs` C binding maturity.
 
 ## Context
 
@@ -114,6 +114,52 @@ The `mapUpdateReplicationRule` (T18) and `WithReplication`/`WithNetworkRTT`
 plan options (T14-T15) already provide the planner infrastructure for
 distributed engines. When `iroh-docs` C bindings mature, the implementation
 can proceed without planner changes.
+
+## Prototype Implementation (2026-08-04)
+
+A Level 2 replication wrapper prototype is now available in
+`metaengine/irohengine/`. It validates the architecture from this ADR using a
+pure-Go in-process `Network` that simulates P2P delivery — no CGo, no Rust,
+no real Iroh dependency required.
+
+### What the prototype proves
+
+1. **Level 2 architecture works** — `Replicated(localEngine, ...)` wraps any
+   existing Engine and transparently replicates CRDT-safe writes
+2. **CALM theorem in practice** — monotonic folds (MapSet, SetAdd,
+   CounterIncrement, MultiAdd, LogAppend) converge across nodes without coordination
+3. **Non-CRDT detection** — MapUpdate (atomic RMW) executes locally but does NOT
+   replicate (verified by test)
+4. **LWW resolution** — concurrent MapSet from different nodes resolves to the
+   latest timestamp
+5. **PN-Counter** — concurrent CounterIncrement from multiple authors sums correctly
+6. **Cross-engine parity** — `adttest.RunMatrix` passes (identical results to Memory)
+
+### Transport interface
+
+The `Transport` interface is the swap point for a real Iroh integration:
+
+```go
+type Transport interface {
+    Publish(ctx context.Context, op WriteOp) error
+    Subscribe(handler func(op WriteOp)) error
+    Close() error
+}
+```
+
+The in-process `Network` implements this today. When `iroh-docs` C bindings
+mature, an `IrohTransport` struct implements the same interface via CGo FFI —
+zero wrapper changes needed.
+
+### What the prototype does NOT do
+
+- Real QUIC networking (mock transport is in-process, synchronous by default)
+- Real Iroh `iroh-docs` CRDT range reconciliation
+- Actual NAT traversal / P2P discovery
+- `WithNetworkDelay` / `WithNetworkDropRate` simulate adverse conditions but
+  do not model real network topology
+
+These are deferred to the real Iroh FFI integration.
 
 ## Consequences
 
