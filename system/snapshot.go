@@ -14,7 +14,11 @@ import (
 type SnapshotBackend interface {
 	SnapshotSave(ctx context.Context, collection, streamID string, version int64, data []byte) error
 	SnapshotLoad(ctx context.Context, collection, streamID string) ([]byte, int64, error)
-	SnapshotLoadAtVersion(ctx context.Context, collection, streamID string, maxVersion int64) ([]byte, int64, error)
+	SnapshotLoadAtVersion(
+		ctx context.Context,
+		collection, streamID string,
+		maxVersion int64,
+	) ([]byte, int64, error)
 	SnapshotDelete(ctx context.Context, collection, streamID string) error
 }
 
@@ -35,7 +39,13 @@ func newMemorySnapshotBackend() *memorySnapshotBackend {
 // snapshotStore holds snapshot data per collection+streamID.
 var snapshotStore = make(map[string]map[string]snapshotEntry)
 
-func (m *memorySnapshotBackend) SnapshotSave(_ context.Context, _ string, streamID string, version int64, data []byte) error {
+func (m *memorySnapshotBackend) SnapshotSave(
+	_ context.Context,
+	_ string,
+	streamID string,
+	version int64,
+	data []byte,
+) error {
 	if snapshotStore["snapshots"] == nil {
 		snapshotStore["snapshots"] = make(map[string]snapshotEntry)
 	}
@@ -45,7 +55,11 @@ func (m *memorySnapshotBackend) SnapshotSave(_ context.Context, _ string, stream
 	return nil
 }
 
-func (m *memorySnapshotBackend) SnapshotLoad(_ context.Context, _ string, streamID string) ([]byte, int64, error) {
+func (m *memorySnapshotBackend) SnapshotLoad(
+	_ context.Context,
+	_ string,
+	streamID string,
+) ([]byte, int64, error) {
 	entry, ok := snapshotStore["snapshots"][streamID]
 	if !ok {
 		return nil, 0, fmt.Errorf("snapshot not found for stream %s", streamID)
@@ -54,10 +68,19 @@ func (m *memorySnapshotBackend) SnapshotLoad(_ context.Context, _ string, stream
 	return entry.data, entry.version, nil
 }
 
-func (m *memorySnapshotBackend) SnapshotLoadAtVersion(_ context.Context, _ string, streamID string, maxVersion int64) ([]byte, int64, error) {
+func (m *memorySnapshotBackend) SnapshotLoadAtVersion(
+	_ context.Context,
+	_ string,
+	streamID string,
+	maxVersion int64,
+) ([]byte, int64, error) {
 	entry, ok := snapshotStore["snapshots"][streamID]
 	if !ok || entry.version > maxVersion {
-		return nil, 0, fmt.Errorf("snapshot not found for stream %s at version <= %d", streamID, maxVersion)
+		return nil, 0, fmt.Errorf(
+			"snapshot not found for stream %s at version <= %d",
+			streamID,
+			maxVersion,
+		)
 	}
 
 	return entry.data, entry.version, nil

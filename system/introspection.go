@@ -10,9 +10,9 @@ import (
 
 // Topology describes the entire wired deployment as a graph.
 type Topology struct {
-	Instances     []InstanceTopology
-	Buses         []BusTopology
-	Dispatchers   []DispatcherInfo
+	Instances      []InstanceTopology
+	Buses          []BusTopology
+	Dispatchers    []DispatcherInfo
 	ProjectionHost *ProjectionHostInfo
 }
 
@@ -137,7 +137,9 @@ func (s *System) Explain(ctx context.Context) string {
 	}
 
 	if s.projStore != nil {
-		b.WriteString(fmt.Sprintf("  ProjectionStore: %d collections\n", len(s.projStore.Collections())))
+		b.WriteString(
+			fmt.Sprintf("  ProjectionStore: %d collections\n", len(s.projStore.Collections())),
+		)
 	}
 
 	b.WriteString(fmt.Sprintf("  Go version: %s\n", runtime.Version()))
