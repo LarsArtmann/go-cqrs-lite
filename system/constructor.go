@@ -354,7 +354,7 @@ func RegisterQuery[Q any, R any](
 		func(ctx context.Context, q query.Query) (any, error) {
 			typed, ok := q.(Q)
 			if !ok {
-				return nil, fmt.Errorf("system: query type mismatch for %q: got %T", name, q)
+				return nil, fmt.Errorf("%w: got %T", ErrQueryTypeMismatch, q)
 			}
 
 			return handler(ctx, typed)
@@ -375,7 +375,7 @@ func DispatchQuery[Q query.Query, R any](ctx context.Context, sys *System, q Q) 
 	if !ok {
 		var zero R
 
-		return zero, fmt.Errorf("system: query result type mismatch: got %T", result)
+		return zero, fmt.Errorf("%w: got %T", ErrQueryResultMismatch, result)
 	}
 
 	return typed, nil
