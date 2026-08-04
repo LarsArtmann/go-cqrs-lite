@@ -156,4 +156,9 @@ var (
 	// event ID. The event is silently skipped (no error returned to caller);
 	// this sentinel is available for consumers building their own dedup layers.
 	ErrDuplicateEvent = errors.New("metaengine: duplicate event (idempotent skip)")
+
+	// ErrVersionConflict is returned by StreamAppendExpected when the stream's
+	// current version does not match the expected version. This is the
+	// optimistic concurrency sentinel for the StreamLogBackend.
+	ErrVersionConflict = errors.New("metaengine: version conflict")
 )

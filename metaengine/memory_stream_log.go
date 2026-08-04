@@ -91,9 +91,52 @@ func (m *memoryEngine) JournalReadFrom(
 }
 
 // RunInTx executes fn without additional locking for the memory engine.
-// Individual operations already hold the mutex, so for the Memory engine
-// this provides best-effort atomicity (sufficient for tests; SQLite provides
-// true transactional isolation).
+// Individual operations (Map, Counter, etc.) already hold the mutex
+// independently, so for cross-collection Store.InTransaction this provides
+// sequential execution. For optimistic concurrency on stream logs, engines
+// should implement AtomicAppender instead — see [StreamAppendExpected].
 func (m *memoryEngine) RunInTx(ctx context.Context, fn func(context.Context) error) error {
 	return fn(ctx)
+}
+
+// StreamAppendExpected appends values only if the stream's current version
+// matches expectedVersion. This is the atomic optimistic-concurrency
+// primitive: the version check and append happen under a single lock
+// acquisition, eliminating the race between check and append.
+//
+// Returns event.ErrVersionConflict if the current version doesn't match.
+func (m *memoryEngine) StreamAppendExpected(
+	_ context.Context,
+	col, sid string,
+	expectedVersion int64,
+	values []any,
+) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	current := int64(len(m.data.streams[col][sid]))
+	if current != expectedVersion {
+		return ErrVersionConflict
+	}
+
+	if m.data.streams[col] == nil {
+		m.data.streams[col] = make(map[string][]any)
+	}
+
+	m.data.streams[col][sid] = append(m.data.streams[col][sid], values...)
+
+	for _, v := range values {
+		nextSeq := int64(1)
+		if j := m.data.streamJournal[col]; len(j) > 0 {
+			nextSeq = j[len(j)-1].seq + 1
+		}
+
+		m.data.streamJournal[col] = append(m.data.streamJournal[col], streamJournalEntry{
+			seq:      nextSeq,
+			streamID: sid,
+			value:    v,
+		})
+	}
+
+	return nil
 }

@@ -3,6 +3,7 @@ package system
 import (
 	"context"
 	"fmt"
+	"sync"
 )
 
 // SnapshotBackend is a metaengine-level interface for snapshot storage (D12).
@@ -30,37 +31,44 @@ type snapshotEntry struct {
 }
 
 // memorySnapshotBackend stores snapshots in-memory for testing.
-type memorySnapshotBackend struct{}
-
-func newMemorySnapshotBackend() *memorySnapshotBackend {
-	return &memorySnapshotBackend{}
+// Each instance has its own isolated data — no shared global state.
+type memorySnapshotBackend struct {
+	mu   sync.Mutex
+	data map[string]map[string]snapshotEntry // collection → streamID → entry
 }
 
-// snapshotStore holds snapshot data per collection+streamID.
-var snapshotStore = make(map[string]map[string]snapshotEntry)
+func newMemorySnapshotBackend() *memorySnapshotBackend {
+	return &memorySnapshotBackend{
+		data: make(map[string]map[string]snapshotEntry),
+	}
+}
 
 func (m *memorySnapshotBackend) SnapshotSave(
 	_ context.Context,
-	_ string,
-	streamID string,
+	collection, streamID string,
 	version int64,
 	data []byte,
 ) error {
-	if snapshotStore["snapshots"] == nil {
-		snapshotStore["snapshots"] = make(map[string]snapshotEntry)
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if m.data[collection] == nil {
+		m.data[collection] = make(map[string]snapshotEntry)
 	}
 
-	snapshotStore["snapshots"][streamID] = snapshotEntry{version: version, data: data}
+	m.data[collection][streamID] = snapshotEntry{version: version, data: data}
 
 	return nil
 }
 
 func (m *memorySnapshotBackend) SnapshotLoad(
 	_ context.Context,
-	_ string,
-	streamID string,
+	collection, streamID string,
 ) ([]byte, int64, error) {
-	entry, ok := snapshotStore["snapshots"][streamID]
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	entry, ok := m.data[collection][streamID]
 	if !ok {
 		return nil, 0, fmt.Errorf("snapshot not found for stream %s", streamID)
 	}
@@ -70,11 +78,13 @@ func (m *memorySnapshotBackend) SnapshotLoad(
 
 func (m *memorySnapshotBackend) SnapshotLoadAtVersion(
 	_ context.Context,
-	_ string,
-	streamID string,
+	collection, streamID string,
 	maxVersion int64,
 ) ([]byte, int64, error) {
-	entry, ok := snapshotStore["snapshots"][streamID]
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	entry, ok := m.data[collection][streamID]
 	if !ok || entry.version > maxVersion {
 		return nil, 0, fmt.Errorf(
 			"snapshot not found for stream %s at version <= %d",
@@ -86,8 +96,14 @@ func (m *memorySnapshotBackend) SnapshotLoadAtVersion(
 	return entry.data, entry.version, nil
 }
 
-func (m *memorySnapshotBackend) SnapshotDelete(_ context.Context, _ string, streamID string) error {
-	delete(snapshotStore["snapshots"], streamID)
+func (m *memorySnapshotBackend) SnapshotDelete(_ context.Context, collection, streamID string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	delete(m.data[collection], streamID)
 
 	return nil
 }
+
+// Compile-time assertion.
+var _ SnapshotBackend = (*memorySnapshotBackend)(nil)

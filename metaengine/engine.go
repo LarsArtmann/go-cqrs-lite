@@ -441,6 +441,22 @@ type StreamLogBackend interface {
 	) ([]any, error)
 }
 
+// AtomicAppender performs an atomic version-check-then-append on a stream.
+// Engines implement this to provide optimistic concurrency without requiring
+// the adapter to use [Transactional.RunInTx]. The version check and append
+// happen under a single lock acquisition, eliminating the race between
+// check and append.
+//
+// Returns [ErrVersionConflict] if the current version does not match expectedVersion.
+type AtomicAppender interface {
+	StreamAppendExpected(
+		ctx context.Context,
+		collection, streamID string,
+		expectedVersion int64,
+		values []any,
+	) error
+}
+
 // Closer is the lifecycle interface.
 type Closer interface {
 	Close() error
@@ -464,6 +480,7 @@ var (
 	_ MultimapBackend  = (*memoryEngine)(nil)
 	_ LogBackend       = (*memoryEngine)(nil)
 	_ StreamLogBackend = (*memoryEngine)(nil)
+	_ AtomicAppender   = (*memoryEngine)(nil)
 	_ VectorBackend    = (*memoryEngine)(nil)
 	_ SearchBackend    = (*memoryEngine)(nil)
 	_ SpatialBackend   = (*memoryEngine)(nil)
