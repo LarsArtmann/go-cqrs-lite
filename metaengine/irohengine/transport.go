@@ -128,7 +128,8 @@ func (n *InProcessNetwork) deliver(from string, op WriteOp) {
 	var maxLatency atomic.Int64
 
 	for _, p := range peers {
-		if n.dropRate > 0 && rand.Float64() < n.dropRate { //nolint:gosec // G404: not security-sensitive
+		if n.dropRate > 0 &&
+			rand.Float64() < n.dropRate { //nolint:gosec // G404: not security-sensitive
 			continue
 		}
 
@@ -137,7 +138,9 @@ func (n *InProcessNetwork) deliver(from string, op WriteOp) {
 			defer wg.Done()
 
 			if n.maxDelay > 0 {
-				time.Sleep(time.Duration(rand.Int63n(int64(n.maxDelay)))) //nolint:gosec // G404: not security-sensitive
+				time.Sleep(
+					time.Duration(rand.Int63n(int64(n.maxDelay))),
+				) //nolint:gosec // G404: not security-sensitive
 			}
 
 			deliveryLatency := time.Since(op.PublishedAt)

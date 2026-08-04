@@ -4,7 +4,7 @@ package quic
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"sync"
 	"time"
@@ -36,9 +36,9 @@ type QuicTransport struct {
 	alpn     []byte
 	cfg      *config
 
-	mu    sync.RWMutex
-	conns map[string]*peerConn // peerID string → connection
-	subs  []func(op irohengine.WriteOp)
+	mu     sync.RWMutex
+	conns  map[string]*peerConn // peerID string → connection
+	subs   []func(op irohengine.WriteOp)
 	closed bool
 
 	// RTT measurement (real QUIC ACK timing)
@@ -114,6 +114,14 @@ func (t *QuicTransport) Ticket() (string, error) {
 // NodeID returns this endpoint's unique identifier (ed25519 public key hex).
 func (t *QuicTransport) NodeID() string {
 	return t.endpoint.Id().String()
+}
+
+// PeerCount returns the number of currently connected peers.
+// Useful for tests to wait until connections are established.
+func (t *QuicTransport) PeerCount() int {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+	return len(t.conns)
 }
 
 // Connect dials a remote endpoint using its ticket string and establishes
@@ -316,7 +324,11 @@ func (t *QuicTransport) handleConnection(conn *iroh_ffi.Connection, peerID strin
 	}
 }
 
-func (t *QuicTransport) handleStream(conn *iroh_ffi.Connection, sourcePeerID string, stream *iroh_ffi.BiStream) {
+func (t *QuicTransport) handleStream(
+	conn *iroh_ffi.Connection,
+	sourcePeerID string,
+	stream *iroh_ffi.BiStream,
+) {
 	data, err := stream.Recv().ReadToEnd(maxOpSize)
 	if err != nil {
 		return

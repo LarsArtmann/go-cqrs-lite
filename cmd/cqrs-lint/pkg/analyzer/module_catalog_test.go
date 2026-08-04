@@ -228,6 +228,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"idempotency/sqlstore":         "sub-package (covered by idempotency)",
 		"integration":                  "cross-module integration tests",
 		"metaengine/irohengine":        "sub-engine (covered by metaengine)",
+		"metaengine/irohengine/quic":   "sub-engine transport (covered by metaengine/irohengine)",
 		"metaengine/adttest":           "test helper sub-package",
 		"metaengine/duckdbengine":      "sub-engine (covered by metaengine)",
 		"metaengine/pebbleengine":      "sub-engine (covered by metaengine)",

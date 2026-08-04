@@ -167,11 +167,6 @@ func NewS003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"S003-missing-event-signing",
 		func(_ context.Context) ([]finding.Finding, error) {
-			// S003 evaluates HasServer per-file: an event store in a non-server
-			// module (e.g. a library defining test stores) should not trigger
-			// signing coaching meant for server deployments.
-			_ = ctx.FeatureProfile // primary profile no longer used directly
-
 			hasSigning := false
 			for _, pkg := range ctx.Packages {
 				for _, imp := range pkg.Imports {
