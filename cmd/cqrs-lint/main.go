@@ -82,7 +82,7 @@ func main() {
 		"Domain-aware linter for go-cqrs-lite consumers",
 		AppConfig{},
 		cmdguard.WithCLIVersion(version),
-		cmdguard.WithConfigFile(".cqrs-lint.json"),
+		cmdguard.WithConfigFileLoader(JSONCLoader{}, ".cqrs-lint.json"),
 		cmdguard.WithCLILong(
 			"cqrs-lint detects anti-patterns in projects consuming the go-cqrs-lite library.",
 		),

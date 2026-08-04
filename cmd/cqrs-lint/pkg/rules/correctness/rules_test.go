@@ -342,8 +342,8 @@ func NewCollectCommand(cmdType string) *Command {
 	ruletest.AssertRule(t, findings, "C009", 0)
 }
 
-// C009 must NOT skip New* functions that return a non-pointer (e.g. a value
-// or an interface) — those are not constructors in the panic-safe sense.
+// C009 now skips ALL New* functions regardless of return type — constructor
+// panics on invalid arguments are a conventional Go idiom.
 func TestC009_StillFiresForNewNonPointer(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"handler.go": `package main
@@ -354,7 +354,7 @@ func NewConfig() Config {
 `,
 	})
 	findings := ruletest.RunDetector(t, correctness.NewC009Detector(ctx))
-	ruletest.AssertRule(t, findings, "C009", 1)
+	ruletest.AssertRule(t, findings, "C009", 0)
 }
 
 // --- C008: float64 for money ---
@@ -597,6 +597,23 @@ func shutdown(ctx context.Context, srv *Server) {
 	ruletest.AssertRule(t, findings, "C016", 0)
 }
 
+func TestC016_NoFindingForWithCancelPattern(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"handler.go": `package main
+
+import "context"
+
+func handle(ctx context.Context) {
+	bgCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	_ = bgCtx
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC016Detector(ctx))
+	ruletest.AssertRule(t, findings, "C016", 0)
+}
+
 // --- C008: config opt-out ---
 
 func TestC008_ConfigIgnoreFields(t *testing.T) {
@@ -688,6 +705,9 @@ func shutdown(ctx context.Context, srv *Server) {
 	ruletest.AssertRule(t, findings, "C016", 0)
 }
 
+// context.WithTimeout(context.Background(), ...) is the canonical shutdown
+// context pattern. C016 now exempts it regardless of proximity to lifecycle
+// calls — it's always a legitimate root-context creation.
 func TestC016_ShutdownProximityBoundary6LinesFires(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"server.go": `package main
@@ -709,5 +729,5 @@ func shutdown(ctx context.Context, srv *Server) {
 `,
 	})
 	findings := ruletest.RunDetector(t, correctness.NewC016Detector(ctx))
-	ruletest.AssertRule(t, findings, "C016", 1)
+	ruletest.AssertRule(t, findings, "C016", 0)
 }

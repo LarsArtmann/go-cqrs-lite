@@ -93,6 +93,19 @@ func applyConfigOverrides(cfg *AppConfig, actx *analyzer.AnalysisContext) {
 	// Resolve preset definition (single source of truth for features + rules).
 	presetDef := analyzer.ResolvePresetDefinition(cfg.Preset)
 
+	// Apply preset severity floor: the preset's min-severity acts as a lower
+	// bound. Users can raise it (stricter, e.g. "error") but cannot go below
+	// the preset floor (e.g. local-cli's "warning" hides info-level noise).
+	if presetDef.MinSeverity != "" {
+		presetSev, err := finding.ParseSeverity(presetDef.MinSeverity)
+		if err == nil {
+			currentSev, err := finding.ParseSeverity(cfg.MinSeverity)
+			if err == nil && presetSev.GreaterThan(currentSev) {
+				cfg.MinSeverity = presetDef.MinSeverity
+			}
+		}
+	}
+
 	// Merge preset rule defaults BEFORE the config's explicit rules so the
 	// user's disables are appended on top (union). Validate deduplicates.
 	cfg.Rules.Disable = mergeStringSlices(presetDef.Rules.Disable, cfg.Rules.Disable)

@@ -37,6 +37,12 @@ func BenchmarkAsyncAPI_MarshalYAML(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _ = doc.MarshalYAML()
+		data, err := doc.MarshalYAML()
+		if err != nil {
+			b.Fatalf("MarshalYAML: %v", err)
+		}
+		if len(data) == 0 {
+			b.Fatal("MarshalYAML: returned empty bytes")
+		}
 	}
 }

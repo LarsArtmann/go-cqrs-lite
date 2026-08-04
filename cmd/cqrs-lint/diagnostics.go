@@ -42,8 +42,8 @@ func countModules(files []*analyzer.GoFile) int {
 // the file is absent, unreadable, or has no "rules" key — validation is
 // best-effort and must never block a lint run.
 func loadRawRulesJSON() []byte {
-	data, err := os.ReadFile(".cqrs-lint.json")
-	if err != nil {
+	data := loadConfigFileBytes(".cqrs-lint.json")
+	if data == nil {
 		return nil
 	}
 
@@ -59,6 +59,18 @@ func loadRawRulesJSON() []byte {
 	}
 
 	return nil
+}
+
+// loadConfigFileBytes reads .cqrs-lint.json from the current directory and returns
+// the raw bytes, with JSONC comments stripped. Returns nil if the file is
+// absent or unreadable — callers are best-effort and must never block a lint run.
+func loadConfigFileBytes(path string) []byte {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil
+	}
+
+	return stripJSONComments(data)
 }
 
 // loadParentRulesConfig walks up the directory tree from lintPath looking for
@@ -88,8 +100,8 @@ func loadParentRulesConfig(lintPath string) analyzer.RulesConfig {
 		}
 
 		configPath := filepath.Join(parent, ".cqrs-lint.json")
-		data, err := os.ReadFile(configPath)
-		if err == nil {
+		data := loadConfigFileBytes(configPath)
+		if data != nil {
 			var top struct {
 				Rules analyzer.RulesConfig `json:"rules"`
 			}

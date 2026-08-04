@@ -382,8 +382,16 @@ func BenchmarkReadFrom_WithIndexes(b *testing.B) {
 			 WHERE aggregate_type = ? AND aggregate_id = ? AND occurred_at > '2020-01-01' AND id > 'evt-0-0'
 			 ORDER BY occurred_at ASC, id ASC LIMIT 100`,
 			"Test", streamID)
-		if err == nil {
-			_ = rows.Close()
+		if err != nil {
+			b.Fatalf("QueryContext: %v", err)
+		}
+		count := 0
+		for rows.Next() {
+			count++
+		}
+		_ = rows.Close()
+		if count == 0 {
+			b.Fatal("QueryContext returned 0 rows — test data not seeded")
 		}
 	}
 }
@@ -401,8 +409,16 @@ func BenchmarkReadFrom_WithoutIndexes(b *testing.B) {
 			 WHERE aggregate_type = ? AND aggregate_id = ? AND occurred_at > '2020-01-01' AND id > 'evt-0-0'
 			 ORDER BY occurred_at ASC, id ASC LIMIT 100`,
 			"Test", streamID)
-		if err == nil {
-			_ = rows.Close()
+		if err != nil {
+			b.Fatalf("QueryContext: %v", err)
+		}
+		count := 0
+		for rows.Next() {
+			count++
+		}
+		_ = rows.Close()
+		if count == 0 {
+			b.Fatal("QueryContext returned 0 rows — test data not seeded")
 		}
 	}
 }
@@ -415,6 +431,12 @@ func BenchmarkAdvisor_MissingIndexes(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _ = advisor.MissingIndexes(ctx)
+		recs, err := advisor.MissingIndexes(ctx)
+		if err != nil {
+			b.Fatalf("MissingIndexes: %v", err)
+		}
+		if len(recs) == 0 {
+			b.Fatal("MissingIndexes returned 0 recommendations — expected data with missing indexes")
+		}
 	}
 }

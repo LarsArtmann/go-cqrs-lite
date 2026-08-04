@@ -23,7 +23,13 @@ func BenchmarkScale_EventCreation_WithPayload(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _ = event.NewEvent("ItemCreated", streamID, "Item", 1, payload)
+		evt, err := event.NewEvent("ItemCreated", streamID, "Item", 1, payload)
+		if err != nil {
+			b.Fatalf("NewEvent: %v", err)
+		}
+		if evt == nil {
+			b.Fatal("NewEvent returned nil")
+		}
 	}
 
 	b.ReportMetric(float64(b.N)/b.Elapsed().Seconds(), "events/sec")

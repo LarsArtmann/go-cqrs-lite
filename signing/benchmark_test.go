@@ -43,7 +43,13 @@ func BenchmarkHMAC_Sign(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _ = signer.Sign(evt)
+		sig, err := signer.Sign(evt)
+		if err != nil {
+			b.Fatalf("Sign: %v", err)
+		}
+		if len(sig) == 0 {
+			b.Fatal("Sign: returned empty signature")
+		}
 	}
 }
 
@@ -86,7 +92,13 @@ func BenchmarkEd25519_Sign(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _ = signer.Sign(evt)
+		sig, err := signer.Sign(evt)
+		if err != nil {
+			b.Fatalf("Sign: %v", err)
+		}
+		if len(sig) == 0 {
+			b.Fatal("Sign: returned empty signature")
+		}
 	}
 }
 

@@ -14,17 +14,30 @@ import (
 // DuckDBNsPerOp is the calibrated per-write-operation cost.
 // DuckDB's columnar writes are amortized across batches; individual inserts
 // pay the JSON encoding + columnar flush cost. Point-lookup benchmarks
-// (BenchmarkDuckDB_MapSet, ~4.8M ns/op) are NOT representative — they measure
+// (BenchmarkDuckDB_MapSet, ~3.9M ns/op) are NOT representative — they measure
 // DuckDB's worst case. This value models batch-amortized columnar writes.
+//
+// Measured (BenchmarkCalibration_DuckDB_BatchInsert, 1000-row multi-VALUES
+// INSERT, AMD Ryzen dev machine): ~8,950 ns/row. The constant adds a 1.7x
+// conservative margin for slower hardware and larger payloads.
+// Re-run the benchmark on target hardware before trusting absolute estimates.
 const DuckDBNsPerOp = 15000.0
 
-// DuckDBNsPerRead is the calibrated per-read cost. DuckDB's vectorized
-// execution engine makes aggregations (GROUP BY, SUM) extremely fast —
-// often 10-50x faster than row-oriented SQLite on analytical workloads.
+// DuckDBNsPerRead is the calibrated per-read cost for scans and aggregations —
+// DuckDB's intended OLAP workload. Its vectorized execution engine makes
+// aggregations (GROUP BY, SUM) extremely fast, often 10-50x faster than
+// row-oriented SQLite on analytical workloads at scale.
 // Point-lookup benchmarks (BenchmarkDuckDB_MapGet, ~546K ns/op) measure
-// full column scans which is NOT the intended use case. This value models
-// analytical per-row cost (vectorized GROUP BY on hot columnar cache).
-const DuckDBNsPerRead = 3000.0
+// full column scans for a single key, which is NOT the intended use case.
+//
+// Measured (10K rows, AMD Ryzen dev machine):
+//   - BenchmarkCalibration_DuckDB_AggregateSum: ~111 ns/row (vectorized SUM)
+//   - BenchmarkCalibration_DuckDB_PushdownScan: ~425 ns/row (filtered scan + JSON decode)
+//   - BenchmarkCalibration_DuckDB_FullScan:     ~810 ns/row (full scan + JSON decode)
+// The constant (1.5x the full-scan measurement) is conservative for slower
+// hardware; it also leaves headroom for DuckDB's vectorized advantage to grow
+// at 1M+ rows where columnar compression and zone maps dominate.
+const DuckDBNsPerRead = 1200.0
 
 // duckdbEngine implements metaengine.Engine with DuckDB as the backend.
 type duckdbEngine struct {

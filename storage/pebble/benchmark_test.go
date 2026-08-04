@@ -130,6 +130,12 @@ func BenchmarkPebbleStore_LoadEmpty(b *testing.B) {
 	b.ResetTimer()
 
 	for range b.N {
-		_, _ = store.Load(ctx, ref)
+		events, err := store.Load(ctx, ref)
+		if err != nil {
+			b.Fatalf("Load: %v", err)
+		}
+		if len(events) != 0 {
+			b.Fatalf("Load: got %d events, want 0 for empty stream", len(events))
+		}
 	}
 }

@@ -19,8 +19,8 @@
 // It is isolated in its own Go module so consumers who don't import it
 // never need CGo.
 //
-// Calibrated cost model:
+// Calibrated cost model (see calibration_bench_test.go for measurements):
 //
-//	DuckDBNsPerOp   = 15_000  (INSERT with JSON encode — columnar write amortized)
-//	DuckDBNsPerRead =  3_000  (vectorized GROUP BY on hot columnar cache)
+//	DuckDBNsPerOp   = 15_000  (batch multi-VALUES INSERT, measured ~8,950 ns/row)
+//	DuckDBNsPerRead =  1_200  (vectorized scan + aggregation, measured 111-810 ns/row)
 package duckdbengine

@@ -11,11 +11,20 @@
 //
 // Pure Go (no CGo): uses the pgx driver via database/sql.
 //
-// Calibrated cost model:
+// Calibrated cost model (see calibration_bench_test.go for measurements):
 // Point-lookup benchmarks (2026-08-03) measured ~33K ns/op (write) and
 // ~28K ns/op (read) via Docker testcontainers — Docker network overhead
 // inflates these 3-5x. The values below model a production connection
 // (same-datacenter network or Unix socket).
+//
+// Additional batch/scan measurements (BenchmarkCalibration_Postgres_*, Docker):
+//   - BatchInsert (1000-row multi-VALUES): ~3,375 ns/row (WAL fsync amortized)
+//   - AggregateSum (10K-row SUM): ~149 ns/row (SQL-level aggregation)
+//   - PushdownScan (10K filtered): ~402 ns/row (JSONB WHERE pushdown + decode)
+//   - FullScan (10K unfiltered): ~805 ns/row (full scan + Go JSON decode)
+// The scan per-row costs are lower than PG_NsPerRead because a single query
+// amortizes setup across all rows; the constant models per-operation cost
+// (dominated by the single point-lookup case).
 //
 //	PG_NsPerOp   = 12_000  (INSERT UPSERT with JSONB encode + WAL fsync)
 //	PG_NsPerRead =  5_000  (indexed SELECT + JSONB decode + B-tree cache)
@@ -38,12 +47,16 @@ import (
 
 // PG_NsPerOp is the calibrated per-write cost.
 // Models production Postgres (WAL fsync + same-datacenter network round-trip).
-// Docker testcontainer benchmarks measured ~33K ns/op (network overhead).
+// Docker testcontainer benchmarks measured ~33K ns/op (network overhead);
+// batch writes amortize the fsync to ~3,375 ns/row (BenchmarkCalibration_Postgres_BatchInsert).
 const PG_NsPerOp = 12000.0
 
 // PG_NsPerRead is the calibrated per-read cost.
 // Models production Postgres (B-tree index + buffer cache hit).
 // Docker testcontainer benchmarks measured ~28K ns/op (network overhead).
+// Scan workloads are cheaper per-row (~402-805 ns/row via
+// BenchmarkCalibration_Postgres_PushdownScan/FullScan) because a single query
+// amortizes setup; the constant governs the per-operation case (point lookups).
 const PG_NsPerRead = 5000.0
 
 // pgEngine implements metaengine.Engine with Postgres as the backend.

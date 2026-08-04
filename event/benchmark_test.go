@@ -136,9 +136,12 @@ func BenchmarkDecodePayload(b *testing.B) {
 	c := codec.JSONCodec{}
 
 	for b.Loop() {
-		_, err = event.DecodePayload[map[string]string](evt, c)
+		result, err := event.DecodePayload[map[string]string](evt, c)
 		if err != nil {
 			b.Fatalf("DecodePayload: %v", err)
+		}
+		if result["name"] != "Alice" {
+			b.Fatalf("DecodePayload: result=%v, want name=Alice", result)
 		}
 	}
 }

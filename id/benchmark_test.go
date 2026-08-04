@@ -16,14 +16,23 @@ func BenchmarkParse(b *testing.B) {
 	validID := "01HK1549P84T9XF8R94E960633"
 
 	for b.Loop() {
-		_, _ = Parse[StreamID](validID)
+		parsed, err := Parse[StreamID](validID)
+		if err != nil {
+			b.Fatalf("Parse: %v", err)
+		}
+		if parsed.String() != validID {
+			b.Fatalf("Parse: got %q, want %q", parsed.String(), validID)
+		}
 	}
 }
 
 func BenchmarkParse_Invalid(b *testing.B) {
 	b.ReportAllocs()
 	for b.Loop() {
-		_, _ = Parse[StreamID]("")
+		_, err := Parse[StreamID]("")
+		if err == nil {
+			b.Fatal("Parse(\"\"): expected error for invalid input")
+		}
 	}
 }
 
@@ -41,7 +50,13 @@ func BenchmarkMarshalJSON(b *testing.B) {
 	streamID := New[StreamID]()
 
 	for b.Loop() {
-		_, _ = streamID.MarshalJSON()
+		data, err := streamID.MarshalJSON()
+		if err != nil {
+			b.Fatalf("MarshalJSON: %v", err)
+		}
+		if len(data) == 0 {
+			b.Fatal("MarshalJSON: returned empty bytes")
+		}
 	}
 }
 
@@ -50,6 +65,12 @@ func BenchmarkMarshalText(b *testing.B) {
 	streamID := New[StreamID]()
 
 	for b.Loop() {
-		_, _ = streamID.MarshalText()
+		data, err := streamID.MarshalText()
+		if err != nil {
+			b.Fatalf("MarshalText: %v", err)
+		}
+		if len(data) == 0 {
+			b.Fatal("MarshalText: returned empty bytes")
+		}
 	}
 }
