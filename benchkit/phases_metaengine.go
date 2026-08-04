@@ -13,6 +13,25 @@ import (
 // while still being large enough to reveal O(N) scan costs.
 const maxMetaEngineSamples = 2000
 
+// setupMemoryMetaEngineStore creates a Memory engine, plans the given query
+// args, and computes the sample count for the workload. Callers must defer
+// store.Close().
+func (r *runner) setupMemoryMetaEngineStore(args ...any) (*metaengine.Store, int, error) {
+	eng := metaengine.NewMemoryEngine()
+
+	store, err := metaengine.Plan([]metaengine.Engine{eng}, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	sampleCount := min(r.config.Profile.Streams, maxMetaEngineSamples)
+	if sampleCount <= 0 {
+		sampleCount = 1
+	}
+
+	return store, sampleCount, nil
+}
+
 // Sentinel errors for metaengine correctness checks.
 var (
 	errMEEmptyCounter = errors.New(
@@ -79,19 +98,12 @@ func (r *runner) metaEnginePhase(ctx context.Context) error {
 // counter (Delta map[string]int64 increment). This isolates the fold dispatch
 // + engine write path from any scan or materialization cost.
 func (r *runner) metaEngineCounterWorkload(ctx context.Context) error {
-	eng := metaengine.NewMemoryEngine()
-
-	store, err := metaengine.Plan([]metaengine.Engine{eng}, meBenchCounterQuery())
+	store, sampleCount, err := r.setupMemoryMetaEngineStore(meBenchCounterQuery())
 	if err != nil {
 		return err
 	}
 
 	defer store.Close()
-
-	sampleCount := min(r.config.Profile.Streams, maxMetaEngineSamples)
-	if sampleCount <= 0 {
-		sampleCount = 1
-	}
 
 	statuses := []string{"open", "done", "cancelled"}
 

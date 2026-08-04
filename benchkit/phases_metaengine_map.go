@@ -48,19 +48,12 @@ func meBenchMapQuery() metaengine.QueryDecl[struct{}, map[string]meBenchItem] {
 // This workload reveals the planner's read-path performance — the real reason
 // consumers adopt metaengine instead of hand-rolling projections.
 func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
-	eng := metaengine.NewMemoryEngine()
-
-	store, err := metaengine.Plan([]metaengine.Engine{eng}, meBenchMapQuery())
+	store, sampleCount, err := r.setupMemoryMetaEngineStore(meBenchMapQuery())
 	if err != nil {
 		return err
 	}
 
 	defer store.Close()
-
-	sampleCount := min(r.config.Profile.Streams, maxMetaEngineSamples)
-	if sampleCount <= 0 {
-		sampleCount = 1
-	}
 
 	statuses := []string{"active", "pending", "closed", "archived"}
 
