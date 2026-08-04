@@ -581,11 +581,12 @@ relationship to streams/events. The System infers routing.
 
 ```go
 // Consumer declares: this command targets this stream type, uses this decider
-sys.Command("task.create", func(cmd CreateTaskCmd) system.Op[TaskState] {
-    return system.Execute(cmd.StreamID(), "Task",
+sys.Command("task.create", func(ctx context.Context, cmd CreateTaskCmd) system.Op[TaskState] {
+    return system.Execute(ctx, cmd.StreamID(), "Task",
         func(state TaskState, ver event.Version) ([]event.Event, error) {
             return []event.Event{mustEvent(event.NewEvent("task.created",
-                cmd.StreamID(), "Task", ver+1, TaskCreated{...}))}, nil
+                cmd.StreamID(), "Task", ver+1,
+                TaskCreated{ID: cmd.ID, Title: cmd.Title}))}, nil
         })
 })
 
@@ -1085,15 +1086,27 @@ var TaskDecider = decider.Decider[TaskState]{
     Apply:   applyTaskEvents,  // fold function
 }
 
-// 3. Command handlers (typed, compile-safe)
+// 3. Command handlers (typed, compile-safe — routing captured as data per D10)
 func registerCommands(sys *system.System) {
-    sys.Command("task.create", func(ctx context.Context, cmd CreateTaskCmd) error {
-        return sys.Decider(ctx, cmd.StreamID(), "Task",
-            Create(TaskCreated{ID: cmd.ID, Title: cmd.Title}))
+    sys.RegisterDecider("Task", TaskDecider)
+    sys.Command("task.create", func(ctx context.Context, cmd CreateTaskCmd) system.Op[TaskState] {
+        return system.Execute(ctx, cmd.StreamID(), "Task",
+            func(state TaskState, ver event.Version) ([]event.Event, error) {
+                return []event.Event{mustEvent(event.NewEvent("task.created",
+                    cmd.StreamID(), "Task", ver+1,
+                    TaskCreated{ID: cmd.ID, Title: cmd.Title}))}, nil
+            })
     })
-    sys.Command("task.complete", func(ctx context.Context, cmd CompleteTaskCmd) error {
-        return sys.Decider(ctx, cmd.StreamID(), "Task",
-            Complete(TaskCompleted{ID: cmd.ID}))
+    sys.Command("task.complete", func(ctx context.Context, cmd CompleteTaskCmd) system.Op[TaskState] {
+        return system.Execute(ctx, cmd.StreamID(), "Task",
+            func(state TaskState, ver event.Version) ([]event.Event, error) {
+                if state.Status != "pending" {
+                    return nil, fmt.Errorf("task already completed")
+                }
+                return []event.Event{mustEvent(event.NewEvent("task.completed",
+                    cmd.StreamID(), "Task", ver+1,
+                    TaskCompleted{ID: cmd.ID}))}, nil
+            })
     })
 }
 
