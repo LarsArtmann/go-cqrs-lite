@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"sort"
 	"strings"
 	"testing"
 )
@@ -21,55 +20,50 @@ func TestCatalogNoDuplicateKeys(t *testing.T) {
 	}
 }
 
+// hintMatchesAtBoundary checks whether hint would match longerHint at a path
+// boundary. E.g. "go-cqrs-lite/id" matches "go-cqrs-lite/id/v4" (boundary: /)
+// but NOT "go-cqrs-lite/idempotency" (next char: 'e', not '/'). This mirrors
+// the path-boundary matching used by DetectUsedModules.
+func hintMatchesAtBoundary(hint, candidate string) bool {
+	idx := strings.Index(candidate, hint)
+	if idx < 0 {
+		return false
+	}
+	end := idx + len(hint)
+	if end >= len(candidate) {
+		return true // hint matches at end of string
+	}
+	// Path boundary: next char must be '/' for a clean module-path match.
+	return candidate[end] == '/'
+}
+
 func TestCatalogImportHintsUnique(t *testing.T) {
 	t.Parallel()
 
 	// Build a map of every hint to the module that owns it. A hint that is a
-	// substring of another hint causes ambiguous matches (e.g.
-	// "go-cqrs-lite/event" would match before "go-cqrs-lite/event/v4/eventtest").
+	// path-boundary prefix of another hint causes ambiguous matches at the
+	// module level (e.g. "go-cqrs-lite/id" vs "go-cqrs-lite/id/v4/eventtest").
 	hintToKey := make(map[string]ModuleKey)
-	var hints []string
 	for _, e := range DefaultCatalog.All() {
 		for _, h := range e.ImportHints {
 			if existing, ok := hintToKey[h]; ok && existing != e.Key {
 				t.Fatalf("import hint %q shared by %s and %s", h, existing, e.Key)
 			}
 			hintToKey[h] = e.Key
-			hints = append(hints, h)
 		}
 	}
 
-	// Check no hint is a substring of another (would cause priority ambiguity).
-	sort.Slice(hints, func(i, j int) bool { return len(hints[i]) > len(hints[j]) })
-	for i, long := range hints {
-		for _, short := range hints[i+1:] {
-			if long != short && strings.Contains(long, short) {
-				t.Errorf("import hint %q is a substring of %q — matches will be ambiguous",
-					short, long)
+	// Check no hint is a path-boundary prefix of another hint. This catches
+	// real detection ambiguity: if hint A matches at a path boundary within
+	// hint B, then an import of module B would also be detected as module A.
+	for hintA, keyA := range hintToKey {
+		for hintB, keyB := range hintToKey {
+			if keyA == keyB {
+				continue
 			}
-		}
-	}
-}
-
-func TestCatalogImportHintsNoSubstringConflicts(t *testing.T) {
-	t.Parallel()
-
-	// Extra check: ensure no hint is a prefix of another. This catches
-	// "go-cqrs-lite/stack" matching "go-cqrs-lite/stack/sqlite" — which would
-	// cause a match on the shorter path to win over the more specific one.
-	allEntries := DefaultCatalog.All()
-	for i, a := range allEntries {
-		for _, ha := range a.ImportHints {
-			for j, b := range allEntries {
-				if i == j {
-					continue
-				}
-				for _, hb := range b.ImportHints {
-					if ha != hb && strings.HasPrefix(ha, hb) {
-						t.Errorf("hint %q (module %s) has prefix %q (module %s) — ambiguous",
-							ha, a.Key, hb, b.Key)
-					}
-				}
+			if hintA != hintB && hintMatchesAtBoundary(hintA, hintB) {
+				t.Errorf("import hint %q (module %s) matches at path boundary within %q (module %s) — ambiguous detection",
+					hintA, keyA, hintB, keyB)
 			}
 		}
 	}
