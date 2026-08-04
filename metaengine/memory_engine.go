@@ -16,7 +16,7 @@ type memoryEngine struct {
 	searchIdx  *MemorySearchIndex
 	spatialIdx *MemorySpatialIndex
 	versions   map[string]map[string]*versionChain // collection → key → chain
-	cal        calibration
+	cal        Calibration
 }
 
 type memData struct {
@@ -73,9 +73,9 @@ func NewMemoryEngineWithVersioning() Engine {
 	return eng
 }
 
-// setCalibration implements calibratable for runtime cost calibration.
-func (m *memoryEngine) setCalibration(op, read, write float64) {
-	m.cal.setCalibration(op, read, write)
+// SetCalibration implements Calibratable for runtime cost calibration.
+func (m *memoryEngine) SetCalibration(costs CalibrationCosts) {
+	m.cal.SetCalibration(costs)
 }
 
 func (m *memoryEngine) Profile() EngineProfile {
@@ -96,7 +96,7 @@ func (m *memoryEngine) Profile() EngineProfile {
 		},
 		Persistence: PersistenceVolatile, // pure RAM — data lost on process exit
 	}
-	m.cal.applyTo(&p)
+	m.cal.ApplyCalibration(&p)
 
 	return p
 }

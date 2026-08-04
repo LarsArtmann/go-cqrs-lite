@@ -13,7 +13,17 @@ import (
 type ExplainOptions struct {
 	Filters []FilterSpec
 	Sort    *SortSpec
+	Cursor  any
 	Limit   int
+}
+
+// ExplainableScan is an optional capability for engines that can show the SQL
+// query that would execute for a scan without running it. External engine
+// packages (duckdbengine, pgengine) implement this to support
+// TypedReader.Explain. The internal sqliteEngine uses an unexported method
+// checked separately.
+type ExplainableScan interface {
+	ExplainScanQuery(ctx context.Context, collection string, opts ExplainOptions) (string, []any)
 }
 
 // Explain returns the SQL that would execute for a scan query, without running
@@ -39,6 +49,28 @@ func (r *TypedReader[V]) Explain(
 		return "-- no engine for collection " + r.collection, nil
 	}
 
+	// Exported interface: external engines (duckdb, pg) that can't implement
+	// the unexported scanConfig-based method.
+	if es, ok := eng.(ExplainableScan); ok {
+		filters := cfg.filters
+
+		for _, rg := range cfg.ranges {
+			filters = append(
+				filters,
+				FilterSpec{Column: rg.Column, Op: FilterGe, Value: rg.Low},
+				FilterSpec{Column: rg.Column, Op: FilterLe, Value: rg.High},
+			)
+		}
+
+		return es.ExplainScanQuery(ctx, r.collection, ExplainOptions{
+			Filters: filters,
+			Sort:    cfg.sort,
+			Cursor:  cfg.cursor,
+			Limit:   cfg.limit,
+		})
+	}
+
+	// Unexported interface: internal engines (sqlite) that take scanConfig directly.
 	if se, ok := eng.(interface {
 		explainScan(ctx context.Context, col string, cfg scanConfig) (string, []any)
 	}); ok {

@@ -457,6 +457,33 @@ type AtomicAppender interface {
 	) error
 }
 
+// SnapshotBackend is an optional interface for engines that support snapshot
+// storage (D12). Engines implement it to enable decider snapshotting —
+// storing a serialized aggregate state at a given version to avoid replaying
+// the full event history on every load.
+//
+// The system package wraps this as snapshot.SnapshotStore via SnapshotAdapter.
+type SnapshotBackend interface {
+	// SnapshotSave stores a snapshot for the given stream at the given version.
+	// Overwrites any existing snapshot for the same stream.
+	SnapshotSave(ctx context.Context, collection, streamID string, version int64, data []byte) error
+
+	// SnapshotLoad returns the latest snapshot for a stream.
+	// Returns ErrNotFound if no snapshot exists.
+	SnapshotLoad(ctx context.Context, collection, streamID string) ([]byte, int64, error)
+
+	// SnapshotLoadAtVersion returns the latest snapshot at or below maxVersion.
+	// Returns ErrNotFound if no snapshot satisfies the constraint.
+	SnapshotLoadAtVersion(
+		ctx context.Context,
+		collection, streamID string,
+		maxVersion int64,
+	) ([]byte, int64, error)
+
+	// SnapshotDelete removes the snapshot for a stream.
+	SnapshotDelete(ctx context.Context, collection, streamID string) error
+}
+
 // Closer is the lifecycle interface.
 type Closer interface {
 	Close() error

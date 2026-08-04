@@ -48,6 +48,7 @@ type duckdbEngine struct {
 	took        bool // closed flag
 	plans       map[string]metaengine.LayoutPlan
 	layoutMu    sync.Mutex
+	cal         metaengine.Calibration
 }
 
 // New creates a DuckDB-backed metaengine Engine.
@@ -116,7 +117,7 @@ func (e *duckdbEngine) init() error {
 
 // Profile returns the cost profile for this DuckDB engine.
 func (e *duckdbEngine) Profile() metaengine.EngineProfile {
-	return metaengine.EngineProfile{
+	p := metaengine.EngineProfile{
 		Name:        "duckdb",
 		NsPerOp:     DuckDBNsPerOp,
 		NsPerRead:   DuckDBNsPerRead,
@@ -169,6 +170,14 @@ func (e *duckdbEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSortedMap: metaengine.LayoutColumnar,
 		},
 	}
+	e.cal.ApplyCalibration(&p)
+
+	return p
+}
+
+// SetCalibration implements metaengine.Calibratable.
+func (e *duckdbEngine) SetCalibration(costs metaengine.CalibrationCosts) {
+	e.cal.SetCalibration(costs)
 }
 
 // Close closes the underlying database. Safe to call multiple times.

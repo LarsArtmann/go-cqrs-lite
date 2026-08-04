@@ -60,6 +60,7 @@ type pebbleEngine struct {
 	mmSeq       sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
 	layoutMu    sync.Mutex
 	layouts     map[string]layoutPlan // collection → layout plan (secondary indexes)
+	cal         metaengine.Calibration
 }
 
 // NewPebbleEngine creates a Pebble-backed metaengine engine. If dir is empty,
@@ -97,7 +98,7 @@ func NewPebbleEngineFromDB(db *pebble.DB) metaengine.Engine {
 }
 
 func (e *pebbleEngine) Profile() metaengine.EngineProfile {
-	return metaengine.EngineProfile{
+	p := metaengine.EngineProfile{
 		Name:        "pebble",
 		NsPerOp:     PebbleNsPerOp,
 		NsPerRead:   PebbleNsPerRead,
@@ -121,6 +122,14 @@ func (e *pebbleEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSpatial: true,
 		},
 	}
+	e.cal.ApplyCalibration(&p)
+
+	return p
+}
+
+// SetCalibration implements metaengine.Calibratable.
+func (e *pebbleEngine) SetCalibration(costs metaengine.CalibrationCosts) {
+	e.cal.SetCalibration(costs)
 }
 
 func (e *pebbleEngine) Close() error {
