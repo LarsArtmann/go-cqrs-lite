@@ -31,16 +31,22 @@ func main() {
 		}
 		runNode(*ticket, *writeCount)
 	default:
-		fmt.Fprintln(os.Stderr, `Iroh QUIC Demo — Real P2P CRDT Replication
-
-Usage:
-  demo -mode coordinator [-wait-nodes N] [-writes M]
-  demo -mode node -ticket <ticket> [-writes M]
-
-Coordinator prints a ticket, waits for N nodes to connect, then writes M keys.
-Nodes connect via ticket and write M keys. Both sides verify CRDT convergence.`)
+		printUsage()
 		os.Exit(1)
 	}
+}
+
+func printUsage() {
+	fmt.Fprintln(os.Stderr, "Iroh QUIC Demo: Real P2P CRDT Replication")
+	fmt.Fprintln(os.Stderr)
+	fmt.Fprintln(os.Stderr, "Usage:")
+	fmt.Fprintln(os.Stderr, "  demo -mode coordinator [-wait-nodes N] [-writes M]")
+	fmt.Fprintln(os.Stderr, "  demo -mode node -ticket <ticket> [-writes M]")
+	fmt.Fprintln(os.Stderr)
+	fmt.Fprintln(os.Stderr, "Coordinator prints a ticket, waits for N nodes to connect, then writes M keys.")
+	fmt.Fprintln(os.Stderr, "Nodes connect via ticket and write M keys. Both sides verify CRDT convergence.")
+	fmt.Fprintln(os.Stderr)
+	fmt.Fprintln(os.Stderr, "This is REAL QUIC networking: separate OS processes communicating over UDP.")
 }
 
 func runCoordinator(waitFor, writeCount int) {
@@ -52,6 +58,13 @@ func runCoordinator(waitFor, writeCount int) {
 		os.Exit(1)
 	}
 	defer transport.Close()
+
+	engine := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
+		irohengine.WithAuthor("coordinator"),
+		irohengine.WithTransport(transport),
+	)
+	defer engine.Close()
 
 	ticket, err := transport.Ticket()
 	if err != nil {
@@ -84,12 +97,7 @@ func runCoordinator(waitFor, writeCount int) {
 	}
 	fmt.Printf("  ✓ %d node(s) connected!\n\n", transport.PeerCount())
 
-	engine := irohengine.Replicated(
-		metaengine.NewMemoryEngine(),
-		irohengine.WithAuthor("coordinator"),
-		irohengine.WithTransport(transport),
-	)
-	defer engine.Close()
+	time.Sleep(1 * time.Second)
 
 	fmt.Printf("  Writing %d keys...\n", writeCount)
 	for i := 0; i < writeCount; i++ {
@@ -101,11 +109,11 @@ func runCoordinator(waitFor, writeCount int) {
 		fmt.Printf("    wrote %s = %s\n", key, val)
 	}
 
-	fmt.Println("\n  Waiting for node writes to arrive...")
+	fmt.Println("\n  Waiting for convergence...")
 	time.Sleep(3 * time.Second)
 
-	fmt.Println("\n  Received keys:")
-	printAllMapKeys(ctx, engine, "demo")
+	fmt.Println("\n  All keys visible on this node:")
+	printMapContents(ctx, engine, "demo")
 
 	profile := engine.Profile()
 	fmt.Println("\n  ── Real QUIC Measurements ──")
@@ -128,6 +136,13 @@ func runNode(ticket string, writeCount int) {
 	}
 	defer transport.Close()
 
+	engine := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
+		irohengine.WithAuthor("node"),
+		irohengine.WithTransport(transport),
+	)
+	defer engine.Close()
+
 	fmt.Println("═══════════════════════════════════════════════════════════")
 	fmt.Println("  Iroh QUIC Demo — Node (real QUIC networking)")
 	fmt.Println("═══════════════════════════════════════════════════════════")
@@ -141,12 +156,7 @@ func runNode(ticket string, writeCount int) {
 	time.Sleep(500 * time.Millisecond)
 	fmt.Printf("  ✓ Connected! Peers: %d\n", transport.PeerCount())
 
-	engine := irohengine.Replicated(
-		metaengine.NewMemoryEngine(),
-		irohengine.WithAuthor("node"),
-		irohengine.WithTransport(transport),
-	)
-	defer engine.Close()
+	time.Sleep(1 * time.Second)
 
 	fmt.Printf("\n  Writing %d keys...\n", writeCount)
 	for i := 0; i < writeCount; i++ {
@@ -158,11 +168,11 @@ func runNode(ticket string, writeCount int) {
 		fmt.Printf("    wrote %s = %s\n", key, val)
 	}
 
-	fmt.Println("\n  Waiting for coordinator writes to arrive...")
+	fmt.Println("\n  Waiting for convergence...")
 	time.Sleep(3 * time.Second)
 
-	fmt.Println("\n  Received keys:")
-	printAllMapKeys(ctx, engine, "demo")
+	fmt.Println("\n  All keys visible on this node:")
+	printMapContents(ctx, engine, "demo")
 
 	profile := engine.Profile()
 	fmt.Println("\n  ── Real QUIC Measurements ──")
@@ -175,7 +185,7 @@ func runNode(ticket string, writeCount int) {
 	select {}
 }
 
-func printAllMapKeys(ctx context.Context, engine metaengine.Engine, collection string) {
+func printMapContents(ctx context.Context, engine metaengine.Engine, collection string) {
 	scanResult, err := engine.(metaengine.ScanBackend).MapScan(
 		ctx, collection,
 		func(item any) bool { return true },
