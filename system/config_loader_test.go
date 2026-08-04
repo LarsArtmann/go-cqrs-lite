@@ -97,8 +97,6 @@ func TestLoadConfig_EmptyPath(t *testing.T) {
 }
 
 func TestLoadConfig_EnvOverride(t *testing.T) {
-	t.Parallel()
-
 	t.Setenv("CQRS_DEFAULT_DRIVER", "sqlite")
 	t.Setenv("CQRS_DEFAULT_DSN", "file:env.db")
 

@@ -314,10 +314,12 @@ and is **never** duplicated here.
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must v0.1.2).
 
-- [BLOCKED] **Push go-retry + go-idempotency to GitHub** — repos created +
-  annotated tags cut locally, but not pushed. go-cqrs-lite go.mod still uses
-  `replace` directives pointing to local paths. Sub-modules (`kvstore`,
-  `sqlstore`) blocked on kv/ and codec/ dependency complexity.
+- [x] **Push go-retry + go-idempotency to GitHub** — DONE. Both repos pushed
+  with annotated tags (go-retry v0.1.0, go-idempotency v0.1.0 + v0.1.1).
+  go-cqrs-lite `retry/go.mod` + `idempotency/go.mod` use real versioned
+  `require` directives (no local replaces). Sub-modules (`kvstore`, `sqlstore`)
+  also resolved: they build, test, and `go mod verify` clean standalone
+  (GOWORK=off) against tagged kv/v4.2.0, codec/v4.2.0, idempotency/v4.2.0.
 
 - [ ] **Tag `stack/mysql/v4`** — source is stable but tag doesn't exist.
 
