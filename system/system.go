@@ -40,8 +40,10 @@ type DomainConfig struct {
 	Queries func(*System)
 
 	// Projections are metaengine query declarations that the System will
-	// auto-wire into projection instances.
-	Projections []metaengine.QueryDecl[any, any]
+	// auto-wire into projection instances. Pass them as []any because Go
+	// generics are invariant — QueryDecl[ConcreteInput, ConcreteResult] is
+	// not assignable to QueryDecl[any, any].
+	Projections []any
 
 	// ProjectionDecoder decodes event payloads for the projection fold handlers.
 	// If nil, events are decoded as generic JSON (map[string]any).
