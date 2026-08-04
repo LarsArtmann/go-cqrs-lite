@@ -1,7 +1,7 @@
 # C038 Enhancement + C040: Event Type Mismatch Detection
 
 > **Date:** 2026-08-04 05:54
-> **Status:** PLANNING
+> **Status:** COMPLETE
 > **Scope:** Enhance existing C038 (event-type-typo) + create C040 (dead-fold-case)
 
 ---
