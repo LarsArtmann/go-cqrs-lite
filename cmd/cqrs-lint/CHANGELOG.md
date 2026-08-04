@@ -7,15 +7,20 @@ Tags use the full module path: `cmd/cqrs-lint/vX.Y.Z`.
 
 ### Fixed
 
+- **End-of-line suppressions now work** — `//cqrs-lint:ignore(RULE)` comments placed at the end of a code line (e.g. `EventType = sdk.EventType //cqrs-lint:ignore(A008) re-export`) are now recognized. Previously the parser required the line to START with the comment prefix, so trailing suppressions were silently ignored despite the help text advertising "at end of line" support. Both `//cqrs-lint:` and `// cqrs-lint:` variants work end-of-line, including comma-separated rule lists. (cqrs-htmx feedback round 2, issue 1)
 - **Preset split-brain eliminated** — the `init` command and runtime no longer maintain separate preset definitions. Previously `init` had `server`+`full-stack` presets (silently ignored at runtime) while the runtime had `production`+`read-only` (not generatable by init). Now both read from a single `PresetDefinitions` map
 - **Stale known-keys warning** — the unknown-rules-key warning now lists all 4 valid keys (was missing `c008-ignore-structs`)
 
 ### Added
 
+- **Per-module feature profiles** — in a multi-module workspace (multiple `go.mod` files), cqrs-lint now detects the feature profile once PER MODULE instead of merging every module into one. An `examples/` app's `ListenAndServe` no longer flips `server=true` for the library module, and an example's SQLite import no longer triggers SQLite-specific rules on library packages. The primary (root) module's profile drives global detectors and `doctor`; per-file detectors resolve each finding's module via the new `AnalysisContext.ProfileForFile(path)`. `doctor` prints a per-module breakdown when more than one module is present. Single-module projects are unchanged. (cqrs-htmx feedback round 2, issue 2)
+- **`library` preset disables adoption-coaching + security-middleware false positives** — the `library` preset now also disables `F002`, `F006`, `F010`, `F011` (adoption rules that coach the CONSUMER to adopt catalog/encryption/graph/relational features the library cannot force) and `S002`, `S003` (encryption/signing middleware the consumer wires at the bus boundary). A library defines types and infrastructure; it cannot mandate how its consumers deploy them. (cqrs-htmx feedback round 2, issue 3)
+- **B025 traces option-builder helpers** — `decider.NewRepository(s, b, d, helper(cfg)...)` no longer reports a missing state cache when the helper function (defined in the same package, including generic instantiations like `repositoryOptions[State](cfg)...`) constructs `WithStateCache`. The detector builds a function-name index of the analyzed package and inspects helper bodies for the option call. Genuine missing-cache cases (helpers without `WithStateCache`) still fire. (cqrs-htmx feedback round 2, issue 5)
 - **Preset validation** — unknown preset names (typos like `"prod"` or stale names like `"server"`) now produce a warning listing valid presets, instead of silently doing nothing
 - **Disabled-rule-ID validation** — rule IDs in `rules.disable` that don't match any known rule now produce a warning, catching typos like `"C99"` and references to removed rules
 - **`.cqrs-lint.json` for the library itself** — the repo root now carries `{"preset": "library"}` so self-linting is explicit and reproducible
 - `PresetDefinition` type, `PresetDefinitions` map, `ResolvePresetDefinition`, `IsKnownPreset`, `ValidPresetNames` in the analyzer package
+- `DetectFeaturesPerModule`, `AnalysisContext.FeatureProfiles`, `AnalysisContext.ProfileForFile`, `GoFile.ModuleDir` in the analyzer package
 
 ### Improved
 
@@ -23,6 +28,7 @@ Tags use the full module path: `cmd/cqrs-lint/vX.Y.Z`.
 - **init writes DRY configs** — named presets write just `{"preset": "name"}` (the runtime resolves features + rule defaults); the default skeleton writes only 3 core knobs instead of 7 no-op zero-value keys
 - **Preset rules applied at runtime** — presets now control both feature flags AND rule-disable defaults; explicit `rules.disable` entries are added on top (union)
 - **init help text** — `--preset` help now lists the correct presets: `local-cli, production, library, read-only` (was `local-cli, library, server, full-stack`)
+- **doctor per-module view** — `doctor` now prints each module's feature profile separately when the workspace has more than one module
 
 ## [4.3.0] - 2026-08-03
 

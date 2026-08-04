@@ -6,6 +6,7 @@ import (
 	"encoding/json/v2"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
@@ -65,6 +66,41 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 			fmt.Println()
 			fmt.Print(profile)
 			fmt.Println()
+
+			// In a multi-module workspace, show each module's own profile. This is
+			// the key diagnostic for the per-module feature detection: a library
+			// module and an examples/ module can (and should) differ. Without this
+			// view a consumer cannot tell why a rule fired or didn't.
+			if len(actx.FeatureProfiles) > 1 {
+				fmt.Println()
+				fmt.Printf("Per-module feature profiles (%d modules):\n", len(actx.FeatureProfiles))
+				fmt.Println()
+
+				type modProfile struct {
+					dir     string
+					profile analyzer.FeatureProfile
+				}
+
+				mods := make([]modProfile, 0, len(actx.FeatureProfiles))
+				for dir, p := range actx.FeatureProfiles {
+					mods = append(mods, modProfile{dir, p})
+				}
+
+				sort.Slice(mods, func(i, j int) bool {
+					return len(mods[i].dir) < len(mods[j].dir)
+				})
+
+				for _, m := range mods {
+					rel := m.dir
+					if rel == "" {
+						rel = "(root)"
+					}
+
+					fmt.Printf("=== %s ===\n", rel)
+					fmt.Print(m.profile)
+					fmt.Println()
+				}
+			}
 
 			features := profile.ToConfigFeatures()
 			raw, err := json.Marshal(

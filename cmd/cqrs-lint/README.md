@@ -114,7 +114,7 @@ explicit `rules.disable` entries are added on top (union).
 | ------------ | --------------------------------------------------------------------------- | ---------------------------- | -------------- |
 | `local-cli`  | `server: false`, `tracing: off`                                             | F004, F009, F013, F015, F017 | `warning`      |
 | `production` | `server: true`, `tracing: on`                                               | (none)                       | (default)      |
-| `library`    | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016                   | (default)      |
+| `library`    | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F002, F006, F010, F011, S002, S003 | (default)      |
 | `read-only`  | `command-flow: read-only`                                                   | (none)                       | (default)      |
 
 cqrs-lint warns on unknown preset names (typos) and unknown disabled rule IDs,

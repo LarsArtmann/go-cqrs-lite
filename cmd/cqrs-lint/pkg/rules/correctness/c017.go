@@ -23,10 +23,6 @@ func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"C017-inmem-store-persistent-eventstore",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !isPersistentStore(ctx.FeatureProfile.Store) {
-				return nil, nil
-			}
-
 			var findings []finding.Finding
 
 			memoryStoreFns := map[string]bool{
@@ -38,6 +34,16 @@ func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
+					continue
+				}
+
+				// Evaluate the store backend per-module: an in-memory store is
+				// only a problem when THIS file's module uses a persistent event
+				// store. Using the primary profile would miss a persistent
+				// sub-module or, conversely, flag files in a purely in-memory
+				// example module.
+				profile := ctx.ProfileForFile(gf.Path)
+				if !isPersistentStore(profile.Store) {
 					continue
 				}
 
@@ -76,7 +82,7 @@ func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						"C017",
 						toolName,
 						"In-memory "+what+" paired with persistent event store ("+string(
-							ctx.FeatureProfile.Store,
+							profile.Store,
 						)+
 							") — lost on restart",
 						finding.SeverityError,
