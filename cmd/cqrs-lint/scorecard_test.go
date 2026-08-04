@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
@@ -193,6 +194,60 @@ func TestComputeScorecard_MixedUsage(t *testing.T) {
 	if result.Summary.CoveragePercent != expected {
 		t.Errorf("expected %d%%, got %d%%", expected, result.Summary.CoveragePercent)
 	}
+}
+
+func TestComputeScorecard_EvidencePropagation(t *testing.T) {
+	t.Parallel()
+
+	usage := make(map[analyzer.ModuleKey]analyzer.ModuleUsage)
+	for _, e := range analyzer.DefaultCatalog.Scored() {
+		usage[e.Key] = analyzer.ModuleUsage{Key: e.Key, Status: analyzer.UsageAbsent}
+	}
+
+	const evidencePath = "github.com/example/myapp/vendor/go-cqrs-lite/encryption/v4"
+	encKey := analyzer.ModuleKey("encryption")
+	usage[encKey] = analyzer.ModuleUsage{
+		Key:      encKey,
+		Status:   analyzer.UsageImported,
+		Evidence: evidencePath,
+	}
+
+	result := ComputeScorecard(
+		analyzer.DefaultCatalog, usage,
+		analyzer.FeatureProfile{}, analyzer.PresetNone,
+	)
+
+	var found bool
+	for _, m := range result.Used {
+		if m.Key == "encryption" {
+			found = true
+			if m.Evidence != evidencePath {
+				t.Errorf("expected evidence %q, got %q", evidencePath, m.Evidence)
+			}
+		}
+	}
+	if !found {
+		t.Fatal("encryption module not found in Used list")
+	}
+
+	// Verify Evidence appears in text rendering.
+	text := renderScorecardText(result, 0)
+	if !strings.Contains(text, evidencePath) {
+		t.Errorf("evidence path %q not found in rendered scorecard text", evidencePath)
+	}
+}
+
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsStr(s, substr))
+}
+
+func containsStr(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }
 
 func TestScoreGrade(t *testing.T) {
