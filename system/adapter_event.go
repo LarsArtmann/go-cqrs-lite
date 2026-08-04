@@ -308,9 +308,20 @@ func (a *EventAdapter) decodeValue(val any) (event.Event, error) {
 		return evt, nil
 	}
 
-	// Serialized string (SQLite/Pebble engine).
+	// Serialized string (SQLite/Pebble engine, raw string passthrough).
 	if s, ok := val.(string); ok {
 		return a.decodeEvent(s)
+	}
+
+	// Decoded JSON map (SQLite engine auto-decodes JSON strings on read).
+	// Re-marshal to JSON and decode as a serializedEvent envelope.
+	if m, ok := val.(map[string]any); ok {
+		data, err := json.Marshal(m)
+		if err != nil {
+			return nil, fmt.Errorf("event adapter: re-marshal decoded value: %w", err)
+		}
+
+		return a.decodeEvent(string(data))
 	}
 
 	return nil, fmt.Errorf("event adapter: unsupported value type %T", val)

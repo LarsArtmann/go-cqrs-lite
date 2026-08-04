@@ -171,7 +171,7 @@
 | Event dedup     | `middleware.EventIdempotency(store, ttl, keyFn)` — defaults to `evt.ID().String()` when keyFn is nil            | ✅     |
 | Query dedup     | `middleware.QueryIdempotency(store, ttl, keyFn)` — panics if keyFn is nil (queries have no built-in identity)   | ✅     |
 | KVStore         | `idempotency/kvstore` — persistent dedup backed by any `kv.Store`                                               | ✅     |
-| SQLStore        | `idempotency/sqlstore` — `NewSQLiteStore` / `NewPostgresStore` with `INSERT ON CONFLICT DO NOTHING` + TTL sweep | ✅     |
+| SQLStore        | `idempotency/sqlstore` — `NewSQLiteStore` / `NewPostgresStore` / `NewMySQLStore` with `INSERT ON CONFLICT DO NOTHING` + TTL sweep | ✅     |
 
 **Sentinel errors:** `ErrDuplicate` (Conflict)
 
@@ -1273,7 +1273,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `graph`                        | `…/graph/v4`                        | ✅ Production                                                                                                                                                                  |
 | `idempotency`                  | `…/idempotency/v4`                  | ✅ Production (alias shim — re-exports `go-idempotency`, ADR-0065)                                                                                                             |
 | `idempotency/kvstore`          | `…/idempotency/kvstore/v4`          | ✅ Production (KV-backed idempotency)                                                                                                                                          |
-| `idempotency/sqlstore`         | `…/idempotency/sqlstore/v4`         | ✅ Production (SQL-backed: SQLite + Postgres, `INSERT ON CONFLICT` + TTL)                                                                                                      |
+| `idempotency/sqlstore`         | `…/idempotency/sqlstore/v4`         | ✅ Production (SQL-backed: SQLite + Postgres + MySQL, `INSERT ON CONFLICT` + TTL)                                                                                              |
 | `retry`                        | `…/retry/v4`                        | ✅ Production (alias shim — re-exports `go-retry`, ADR-0064)                                                                                                                   |
 | `projection`                   | `…/projection/v4`                   | ✅ Production                                                                                                                                                                  |
 | `projectionhost`               | `…/projectionhost/v4`               | ✅ Production                                                                                                                                                                  |

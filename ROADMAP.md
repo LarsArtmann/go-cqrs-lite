@@ -4,10 +4,11 @@
 
 ---
 
-**v4.2.0 tagged** (2026-07-27) — 53 modules tagged and pushed. Significant
-post-v4.2.0 work is unreleased (flight recorder, metaengine Tier 4, benchkit
-evidence metrics, backend tradeoff framework, MySQL/MariaDB support). See
-CHANGELOG `[Unreleased]`.
+**v4.2.0 tagged** (2026-07-27) — 53 modules tagged and pushed (68 total in
+`go.work`). Significant post-v4.2.0 work is unreleased (flight recorder,
+metaengine Tier 4 + persistence enum + AtomicAppender, benchkit evidence
+metrics, backend tradeoff framework, MySQL/MariaDB support, system/ operator
+topology first pass, Iroh QUIC FFI transport). See CHANGELOG `[Unreleased]`.
 
 ---
 
@@ -181,14 +182,15 @@ hardened through multiple brutal review passes and 7 consumer feedback rounds.
   (9), testing (8), version (6)
 - ✅ **Feature profile system** — auto-detects consumer module usage and adapts
   context-dependent rules. TLS-aware server detection, ServerLocal heuristic.
-  Per-module detection infrastructure (`ProfileForFile`) — C017 migrated, 26
-  detectors still on primary profile
+  Per-module detection infrastructure (`ProfileForFile`) — C017, S002, S003,
+  S006, S007, C036 migrated; ~20 detectors still on primary profile
 - ✅ **Self-lint mode** — `IsLibrarySelfLint()` auto-detects and skips 29
   consumer-coaching rules when linting the go-cqrs-lite source itself
 - ✅ **Quality hardening done** — E010/E011/E013/E014 rewritten with type-aware
   matching; import-alias resolution built; C030/S006 reviewed; suppression
   parser fixed; block-level suppression (ADR-0088); C008 struct-level ignore
-  config; C038/C039/C040 event-type mismatch + dead-fold-case detection
+  config; C038/C039/C040 event-type mismatch + dead-fold-case detection;
+  E006 fold-aware orphaned event detection
 - ✅ **Scorecard** — `--scorecard` / `scorecard` subcommand. Module adoption
   scorecard with used/missing/irrelevant partitioning, coverage %, top-3
   recommendations. Text + JSON + Markdown output. `--scorecard-threshold N` CI gate
