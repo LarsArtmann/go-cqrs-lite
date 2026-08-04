@@ -32,7 +32,6 @@
 5. [The Key Insight: Multi-Instance Metaengine](#5-the-key-insight-multi-instance-metaengine)
    - [5.5 Cache Tier](#55-the-cache-tier-zfs-arc-for-immutable-events)
    - [5.6 The 4th Dimension: Time](#56-the-4th-dimension-time)
-5. [The Key Insight: Multi-Instance Metaengine](#5-the-key-insight-multi-instance-metaengine)
 6. [Target Architecture](#6-target-architecture)
 7. [Operator Configuration Surface](#7-operator-configuration-surface)
 8. [Introspection API (for cqrs-htmx)](#8-introspection-api-for-cqrs-htmx)
@@ -352,9 +351,7 @@ Relevant capabilities:
 
 ## 4. Decisions (Recorded)
 
-Nine architectural decisions recorded below.
-
-### 4.1 Backend selection: Hybrid (registry + config), leaning runtime
+Nine architectural decisions recorded below.: Hybrid (registry + config), leaning runtime
 
 **Decision:** Somewhere between runtime config and hybrid. Drivers are
 registered at compile time (which are available), but operator config picks
@@ -579,31 +576,29 @@ projections), with the operator deciding the grouping:
 
 ### 5.2 Verification: the Log ADT already exists
 
-The metaengine **already has** a first-class Log ADT:
+The metaengine **already has** a first-class Log ADT. The original vision was
+to extend it for source-of-truth storage. That vision is now realized via
+`StreamLogBackend` (see [§10.1](#101-log-adt-extension-scope) for the resolved
+design) — a new interface for stream-keyed append-only logs.
+
+Building blocks that already exist:
 
 - `ADTLog` is defined in `metaengine/types.go:11`.
-- `LogBackend` interface exists at `metaengine/engine.go:309`:
-  `LogAppend(ctx, collection, value)` + `LogTail(ctx, collection, limit)`.
-- **All 5 engines implement it** (Memory, SQLite, Pebble, DuckDB, Postgres —
-  all declare `ADTLog` in their profiles with complexity ratings).
-- The `Append` sentinel type exists for fold declaration (`types.go:59`).
-- The fold classifier already maps `func(e) Append` → `ADTLog`
-  (`fold_classify.go:52`).
-- Cross-engine parity is tested (`adttest/harness.go:328`, `restart_test.go`,
-  `concurrent_gaps_test.go:91`).
+- `LogBackend` interface at `metaengine/engine.go:309` (flat append + tail).
+- All 5 engines declare ADTLog support.
+- The `Append` sentinel type (`types.go:59`).
+- Fold classifier maps `func(e) Append` → `ADTLog` (`fold_classify.go:52`).
+- Cross-engine parity tested (`adttest/harness.go:328`).
 
-The metaengine can already BE a log. What's missing:
+What's been added (resolved in [§10.1](#101-log-adt-extension-scope)):
 
-1. **Richer LogBackend operations** — current is LogAppend + LogTail. event.Store
-   needs stream-keyed Save(ctx, ref, events, expectedVersion), Load(ctx, ref),
-   LoadFromVersion, LoadToTimestamp, ReadAll (journal), ReadFrom (seekable).
-   These are extensions to the existing ADT, not a redesign.
-2. **A `metaengine-eventstore` adapter** — wraps a Log ADT collection as
-   `event.Store` (like `projectionadapter` wraps a Store as
-   `projection.Projection`).
-3. **N-instance composition** — multiple `*metaengine.Store` instances wired
-   via journals, managed by samber/do scopes. The operator decides how many
-   instances and which collections go in each.
+1. **StreamLogBackend** — new ADT-level interface with stream-keyed operations
+   (Append, Read, ReadAsOf, JournalReadAll, JournalReadFrom). All engines
+   implement it.
+2. **Three adapters** — EventAdapter (adds expectedVersion concurrency),
+   CommandAdapter (direct mapping), QueryAdapter (flat mode).
+3. **N-instance composition** — multiple stores wired via journals, managed by
+   samber/do scopes.
 
 ### 5.3 Why each objection dissolves
 
@@ -847,55 +842,75 @@ type EngineProfile struct {
 ### 6.1 High-level diagram (N-instance model)
 
 The operator decides how many instances and how to group collections. Three
-example topologies, from minimal to maximum isolation:
+example topologies, from minimal to maximum isolation. All diagrams show
+buses (D9), cache tiers (§5.5), and the projectionhost wiring (D6).
 
 ```
 ═══════════════════════════════════════════════════════════════
-TOPOLOGY 1: Minimal (one instance per layer — SQLite + Memory only)
+TOPOLOGY 1: Minimal (one instance per layer — SQLite + Memory)
 ═══════════════════════════════════════════════════════════════
 
 samber/do Root Scope
 │
+├── Engines: "primary" (SQLite), "hot-cache" (Memory)
+├── Buses:   "local" (GoChannel, in-process, ordered)
+│
 ├── Source of Truth Layer
-│   └── Instance: logs-store (engine: SQLite)
-│       ├── "events"     (Log ADT) → event.Store
-│       ├── "commands"   (Log ADT) → command.Store
-│       ├── "queries"    (Log ADT) → query.Store
-│       ├── "snapshots"  (Map ADT) → snapshot.SnapshotStore
-│       └── "checkpoints" (Map ADT) → event.CheckpointStore
+│   └── Instance: logs-store (engine: primary)
+│       ├── "events"      (StreamLog) → event.Store      ─┐ publish → local
+│       ├── "commands"    (StreamLog) → command.Store     │
+│       ├── "queries"     (StreamLog) → query.Store       │
+│       ├── "snapshots"   (Map ADT)  → snapshot.Store     │
+│       └── "checkpoints" (Map ADT)  → checkpoint.Store  ─┘
 │
 ├── Projection Layer
-│   └── Instance: proj-store (engines: Memory + SQLite, planner routes)
-│       ├── "task_views"  (Map + FilterOnField)
+│   └── Instance: proj-store (engines: primary + hot-cache, planner routes)
+│       ├── cache: hot-cache (otter W-TinyLFU, capacity 10000)
+│       ├── "task_views"  (Map + FilterOnField, temporal-aware)
 │       └── "task_counts" (Counter)
 │
-└── System Scope
-    ├── decider.Repository    ← writes to logs-store["events"]
-    ├── projectionhost.Host   ← reads logs-store["events"] journal
-    │                           feeds proj-store
-    └── Introspection API     ← queries both layers
+└── System Scope (owns ALL infrastructure per D6)
+    ├── Bus: "local"             ← events published here on Save
+    ├── Decider.Repository       ← writes to logs-store["events"]
+    ├── Command.Dispatcher       ← consumer registers typed handlers
+    ├── Query.Dispatcher         ← consumer registers typed handlers
+    ├── ProjectionHost           ← reads logs-store["events"] journal (pull)
+    │                             ← subscribes to bus "local" (push, optional)
+    │                             ← feeds proj-store
+    └── Introspection API        ← queries both layers + buses + cache stats
 
 ═══════════════════════════════════════════════════════════════
-TOPOLOGY 2: Split (LiveStore-style — separate DBs per concern)
+TOPOLOGY 2: Split (LiveStore-style + multi-bus + cache)
 ═══════════════════════════════════════════════════════════════
 
 samber/do Root Scope
 │
+├── Engines: "primary" (SQLite), "analytics" (DuckDB),
+│            "views" (SQLite), "hot-cache" (Memory), "graph-lsm" (Pebble)
+├── Buses:   "local" (GoChannel), "cross-service" (NATS)
+│
 ├── Source of Truth Layer
-│   ├── Instance: events-store   (engine: SQLite, events.db)
+│   ├── Instance: events-store   (engine: primary, durability: strict)
 │   │   └── "events" + "snapshots" + "checkpoints"
-│   ├── Instance: commands-store (engine: SQLite, events.db, shared conn)
+│   │        publish → [local, cross-service]    ← fan-out to both buses
+│   ├── Instance: commands-store (engine: primary, shared conn)
 │   │   └── "commands"
-│   └── Instance: queries-store  (engine: DuckDB, analytics.db)
-│       └── "queries"  (analytics-grade audit log)
+│   └── Instance: queries-store  (engine: analytics)
+│       └── "queries"  (analytics-grade audit log, native temporal)
 │
 ├── Projection Layer
-│   ├── Instance: task-projections (engines: SQLite + Memory)
+│   ├── Instance: task-projections (engines: views + hot-cache)
+│   │   ├── cache: hot-cache (otter, capacity 10000)
 │   │   └── "task_views" + "task_counts"
-│   └── Instance: graph-projections (engine: Pebble)
+│   └── Instance: graph-projections (engine: graph-lsm)
 │       └── "user_graph"  (LSM-optimized adjacency)
 │
-└── System Scope (same wiring, multiple instances)
+└── System Scope
+    ├── Bus: "local"         ← events published sync (blocks Save)
+    ├── Bus: "cross-service" ← events published async (fire-and-forget)
+    ├── ProjectionHost       ← reads events-store journal
+    │                         ← subscribes to "local" bus only
+    └── Introspection API    ← both buses, all instances, cache stats
 
 ═══════════════════════════════════════════════════════════════
 TOPOLOGY 3: Maximum isolation (one instance per collection)
@@ -903,29 +918,40 @@ TOPOLOGY 3: Maximum isolation (one instance per collection)
 
 samber/do Root Scope
 │
-├── Source of Truth Layer
-│   ├── Instance: events     (engine: SQLite, events.db,     durability: strict)
-│   ├── Instance: commands   (engine: SQLite, commands.db,   durability: normal)
-│   ├── Instance: queries    (engine: DuckDB, queries.db)
-│   ├── Instance: snapshots  (engine: SQLite, snapshots.db)
-│   └── Instance: checkpoints (engine: SQLite, checkpoints.db)
+├── Engines: "events-db" (SQLite), "commands-db" (SQLite),
+│            "queries-db" (DuckDB), "snap-db" (SQLite),
+│            "cp-db" (SQLite), "views-db" (SQLite),
+│            "counts-mem" (Memory), "graph-lsm" (Pebble)
+├── Buses:   "local" (GoChannel)
+│
+├── Source of Truth Layer (each collection isolated)
+│   ├── Instance: events      (engine: events-db, durability: strict)
+│   │   publish → [local]
+│   ├── Instance: commands    (engine: commands-db, durability: normal)
+│   ├── Instance: queries     (engine: queries-db, native temporal)
+│   ├── Instance: snapshots   (engine: snap-db)
+│   └── Instance: checkpoints (engine: cp-db)
 │
 ├── Projection Layer
-│   ├── Instance: task_views   (engine: SQLite, views.db)
-│   ├── Instance: task_counts  (engine: Memory)
-│   └── Instance: user_graph   (engine: Pebble, /data/graph)
+│   ├── Instance: task_views  (engine: views-db)
+│   │   cache: hot-cache (otter, capacity 5000)
+│   ├── Instance: task_counts (engine: counts-mem)  ← volatile OK (rebuildable)
+│   └── Instance: user_graph  (engine: graph-lsm)
 │
-└── System Scope (same wiring, fine-grained instances)
+└── System Scope (fine-grained instances, same wiring)
 ```
 
-**Key invariant:** source-of-truth instances always use persistent-only engine
-pools. The planner cannot route the event log to a volatile engine. Projection
-instances use mixed pools — the planner routes freely for cost optimization.
+**Key invariants across all topologies:**
+- Source-of-truth instances always use persistent-only engine pools
+- Events publish to bus(es) after Save (sync for local, configurable for remote)
+- ProjectionHost reads the journal (pull) and optionally subscribes to a bus (push)
+- Cache tiers are optional per-instance (read-through, otter W-TinyLFU)
 
 ### 6.2 The consumer experience (target state)
 
-The consumer declares ONLY domain types, query patterns, and folds. The
-operator provides engines. The system wires everything.
+The consumer declares ONLY domain types, decider logic, query patterns, and
+folds. The system wires all infrastructure (D6). The operator provides engines,
+buses, and durability.
 
 ```go
 // ── CONSUMER CODE (deployment-agnostic) ──
@@ -933,9 +959,36 @@ operator provides engines. The system wires everything.
 // 1. Domain types (pure Go structs)
 type TaskCreated struct { ID TaskID; Title string; At time.Time }
 type TaskCompleted struct { ID TaskID }
+type TaskState struct { ID TaskID; Title string; Status string }
 
-// 2. Query declarations (fold return types infer ADTs)
-taskViews := metaengine.Query[ListTasks, TaskView]("task_views",
+// 2. Decider definition (domain logic — the consumer's IP)
+var TaskDecider = decider.Decider[TaskState]{
+    Initial: TaskState{},
+    Apply:   applyTaskEvents,  // fold function
+}
+
+// 3. Command handlers (typed, compile-safe)
+func registerCommands(sys *system.System) {
+    sys.Command("task.create", func(ctx context.Context, cmd CreateTaskCmd) error {
+        return sys.Decider(ctx, cmd.StreamID(), "Task",
+            Create(TaskCreated{ID: cmd.ID, Title: cmd.Title}))
+    })
+    sys.Command("task.complete", func(ctx context.Context, cmd CompleteTaskCmd) error {
+        return sys.Decider(ctx, cmd.StreamID(), "Task",
+            Complete(TaskCompleted{ID: cmd.ID}))
+    })
+}
+
+// 4. Query handlers (typed, compile-safe)
+func registerQueries(sys *system.System) {
+    sys.Query("task.list", func(ctx context.Context, q ListTasksQuery) ([]TaskView, error) {
+        return metaengine.ExecuteTyped[ListTasksQuery, []TaskView](ctx,
+            sys.MetaEngine(), q)
+    })
+}
+
+// 5. Projection declarations (fold return types infer ADTs)
+var taskViews = metaengine.Query[ListTasks, TaskView]("task_views",
     metaengine.OnEvent("task.created", TaskCreated{},
         func(s id.StreamID, e TaskCreated) (string, TaskView) {
             return s.String(), TaskView{ID: e.ID, Title: e.Title, Status: "pending"}
@@ -947,31 +1000,41 @@ taskViews := metaengine.Query[ListTasks, TaskView]("task_views",
     metaengine.FilterOnField[TaskView]("status", metaengine.FilterEq),
 )
 
-taskCounts := metaengine.Query[StatsInput, map[string]int64]("task_counts",
-    metaengine.OnEvent("task.created", TaskCreated{},
-        func(_ TaskCreated) metaengine.Delta { return metaengine.Delta{"pending": 1} }),
+// 6. Domain middleware (validation, authorization — consumer's concern)
+sys.UseCommandMiddleware(
+    validation.Middleware,
+    authz.RequireRole("admin"),
 )
 
-// 3. System construction (one call — operator config decides engines)
+// 7. System construction (one call — operator config decides infrastructure)
 sys, err := system.New(ctx, system.Config{
-    Queries: []metaengine.QueryDecl[any, any]{taskViews, taskCounts},
-    // NO engine list, NO DSN, NO *sql.DB — that's the operator's job
+    Decider:     TaskDecider,
+    Projections: []metaengine.QueryDecl[any, any]{taskViews, taskCounts},
+    Commands:    registerCommands,
+    Queries:     registerQueries,
+    // NO engine list, NO DSN, NO bus type — that's the operator's job
 })
 ```
 
 ```go
 // ── OPERATOR CODE (deployment-specific) ──
 //
-// Engines are DECLARED by name (semantic roles, not engine types).
-// Instances REFERENCE engines by name. Swap DuckDB→ClickHouse by changing
-// the declaration — the topology stays the same.
+// Engines are DECLARED by name. Buses are DECLARED by name.
+// Instances REFERENCE both by name. Swap DuckDB→ClickHouse or
+// GoChannel→NATS by changing the declaration — topology stays the same.
 
-// Minimal: one instance per layer
+// Minimal: one instance per layer, single bus
 sys, err := system.New(ctx, system.Config{
-    Queries: queries, // consumer's query declarations
+    Decider:     TaskDecider,
+    Projections: queries,
+    Commands:    registerCommands,
+    Queries:     registerQueries,
     Engines: map[string]system.EngineConfig{
         "primary":   {Driver: "sqlite", DSN: "file:app.db"},
         "hot-cache": {Driver: "memory"},
+    },
+    Buses: map[string]system.BusConfig{
+        "local": {Driver: "gochannel"},
     },
     Instances: []system.InstanceConfig{
         {
@@ -979,37 +1042,76 @@ sys, err := system.New(ctx, system.Config{
             Collections: []string{"events", "commands", "queries", "snapshots", "checkpoints"},
             Engine:      "primary",
             Durability:  system.DurabilityStrict,
+            Publish:     []string{"local"},
         },
         {
             Role:        system.RoleProjections,
             Collections: []string{"task_views", "task_counts"},
-            Engines:     []string{"primary", "hot-cache"}, // planner routes
+            Engines:     []string{"primary", "hot-cache"},
             Durability:  system.DurabilityNormal,
+            Cache:       &system.CacheConfig{Engine: "hot-cache", Capacity: 10000},
+            Subscribe:   []string{"local"},
         },
     },
 })
 
-// Split: events+commands on SQLite, queries on DuckDB, graph on Pebble
+// Split: multi-bus (local + NATS), DuckDB for queries, graph on Pebble
 sys, err = system.New(ctx, system.Config{
-    Queries: queries,
+    Decider:     TaskDecider,
+    Projections: queries,
+    Commands:    registerCommands,
+    Queries:     registerQueries,
     Engines: map[string]system.EngineConfig{
-        "primary":    {Driver: "sqlite",  DSN: "file:events.db"},
-        "analytics":  {Driver: "duckdb",  DSN: "file:analytics.db"},
-        "views":      {Driver: "sqlite",  DSN: "file:views.db"},
-        "hot-cache":  {Driver: "memory"},
-        "graph-lsm":  {Driver: "pebble",  DSN: "/data/graph"},
+        "primary":   {Driver: "sqlite", DSN: "file:events.db"},
+        "analytics": {Driver: "duckdb", DSN: "file:analytics.db"},
+        "views":     {Driver: "sqlite", DSN: "file:views.db"},
+        "hot-cache": {Driver: "memory"},
+        "graph-lsm": {Driver: "pebble", DSN: "/data/graph"},
+    },
+    Buses: map[string]system.BusConfig{
+        "local":        {Driver: "gochannel"},
+        "cross-service": {Driver: "nats", URL: "nats://cluster:4222", Mode: "async"},
     },
     Instances: []system.InstanceConfig{
-        {Role: system.RoleEvents,      Engine: "primary",   Durability: system.DurabilityStrict},
-        {Role: system.RoleCommands,    Engine: "primary"},                     // shared connection
-        {Role: system.RoleQueries,     Engine: "analytics"},                   // OLAP-grade audit
+        {Role: system.RoleEvents, Engine: "primary", Durability: system.DurabilityStrict,
+            Publish: []string{"local", "cross-service"}},
+        {Role: system.RoleCommands, Engine: "primary"},
+        {Role: system.RoleQueries, Engine: "analytics"},
         {Role: system.RoleProjections, Collections: []string{"task_views", "task_counts"},
-            Engines: []string{"views", "hot-cache"}},
+            Engines: []string{"views", "hot-cache"},
+            Cache:     &system.CacheConfig{Engine: "hot-cache", Capacity: 10000},
+            Subscribe: []string{"local"}},
         {Role: system.RoleProjections, Collections: []string{"user_graph"},
             Engine: "graph-lsm"},
     },
 })
 ```
+
+**Multi-bus publish model (D9 + research):**
+
+Based on the current codebase research, the write path is synchronous
+end-to-end: `store.Save` → `publisher.Publish` → all handlers complete → return.
+The multi-bus model extends this with per-bus mode configuration:
+
+| Bus mode | Publish behavior | Ordering guarantee | Latency impact |
+| --- | --- | --- | --- |
+| `sync` (default for local) | Save blocks until bus acknowledges | Strong ordering — events delivered sequentially | Couples write latency to slowest subscriber |
+| `async` (default for remote) | Save returns immediately; bus publishes in background | Best-effort ordering — may reorder under load | Zero added latency on write path |
+
+The current GoChannel bus uses `BlockPublishUntilSubscriberAck=true` (sync).
+Remote buses (NATS, Redis) default to async because network latency on every
+write is unacceptable. The operator overrides per-bus via `Mode: "sync"` if
+they need distributed strong ordering.
+
+**ProjectionHost consumption model (from research):**
+
+The projectionhost is decoupled from the bus by default. It pulls from the
+event journal (`SeekableJournal.ReadFrom`) on its own schedule — no bus
+dependency. The bus subscription (`Subscribe` on InstanceConfig) is an optional
+live-tailing optimization. When specified, the host uses `CatchUpSubscriber`
+(replay from journal + live handoff with dedup). The host always processes
+events sequentially per projection — ordering is guaranteed regardless of bus
+mode.
 
 ### 6.3 The key difference from the current stack
 
@@ -1017,13 +1119,18 @@ sys, err = system.New(ctx, system.Config{
 | ---------------------- | ------------------------------ | ----------------------------------------- |
 | Who picks engines      | Consumer (hardcoded in Go)     | Operator (config string)                  |
 | Who opens DB           | Consumer (`sql.Open`)          | System (via driver registry)              |
+| Who constructs bus     | Consumer (manual wiring)       | System (operator picks driver)            |
+| Who owns projectionhost | Consumer (manual wiring)      | System (D6 — full infrastructure)         |
 | Event decoder          | Consumer writes 77-line switch | System auto-decodes via `OnEvent`         |
 | Metaengine integration | Bolted-on (`WithMetaEngine`)   | First-class (N instances)                 |
-| Event log storage      | Separate from metaengine       | metaengine Log instance(s)                |
+| Event log storage      | Separate from metaengine       | metaengine StreamLog instance(s)          |
 | Instance count         | Fixed (1 Bundle)               | N — operator decides grouping             |
 | Multi-DB support       | Partial (metaengine re-opens)  | Native (one DB per instance, or shared)   |
 | Source-of-truth safety | None                           | Persistent-only engine pools (structural) |
-| Admin topology         | None                           | Unified (all instances)                   |
+| Cache tier             | None                           | otter W-TinyLFU read-through (§5.5)       |
+| Temporal queries       | Partial (LoadToTimestamp only) | First-class dimension (§5.6)              |
+| Bus                    | Single, consumer-constructed   | Multi-bus (D9), operator-configured       |
+| Admin topology         | None                           | Unified (all instances + buses + cache)   |
 | Backend swap           | Recompile                      | Config change (+ restart or hot-reload)   |
 
 ### 6.4 LiveStore parallel
@@ -1042,6 +1149,9 @@ optimization to both layers:
 | Rebuild                | Replay all events              | Same                                                   |
 | Cost optimization      | None                           | Cost-based planner per instance                        |
 | Source-of-truth safety | None                           | Persistent-only engine pools                           |
+| Cache                  | None                           | otter W-TinyLFU read-through (immutable events)        |
+| Temporal queries       | None                           | First-class dimension with engine-native O(1) support  |
+| Multi-bus              | None                           | Multiple simultaneous buses (local + distributed)      |
 
 ---
 
@@ -1202,6 +1312,97 @@ config = system.Config{
     },
 }
 ```
+
+### 7.5 Bus driver registry
+
+Buses follow the same driver registry pattern as storage engines (§7.1).
+Drivers register at compile time; the operator picks which to activate and
+configures them by name.
+
+```go
+// Bus drivers register at init time (compile-time safety):
+import _ "github.com/larsartmann/go-cqrs-lite/busdrivers/gochannel"
+import _ "github.com/larsartmann/go-cqrs-lite/busdrivers/nats"
+import _ "github.com/larsartmann/go-cqrs-lite/busdrivers/redis"
+// The binary now has gochannel + nats + redis available.
+
+// Operator config declares buses BY NAME (like engines):
+config := system.Config{
+    Buses: map[string]system.BusConfig{
+        "local":         {Driver: "gochannel"},
+        "cross-service": {
+            Driver: "nats",
+            URL:    "nats://cluster:4222",
+            Mode:   "async",           // async = fire-and-forget (default for remote)
+        },
+        "cache-invalidation": {
+            Driver: "redis",
+            URL:    "redis://cache:6379",
+            Mode:   "sync",             // sync = block until acknowledged
+        },
+    },
+    // ...
+}
+```
+
+| Bus driver | Default mode | Ordering | Use case |
+| --- | --- | --- | --- |
+| `gochannel` | sync | Strong (sequential dispatch) | In-process projections, derivers, audit |
+| `nats` | async | Best-effort | Cross-service fan-out, microservice communication |
+| `redis` | async | Best-effort | Cache invalidation, pub/sub fan-out |
+
+The operator can override the mode per bus (`Mode: "sync"` forces NATS to block
+on publish — useful for distributed strong ordering at the cost of write
+latency).
+
+### 7.6 Cache tier wrapper (implementation sketch)
+
+The cache tier is a transparent read-through wrapper around an instance's
+`event.Store` adapter. It uses otter v2 (Adaptive W-TinyLFU).
+
+```go
+// CachedEventStore wraps an event.Store with a read-through cache.
+// Writes ALWAYS go to the authoritative store (bypass cache).
+// Reads check cache first; on miss, read-through and populate.
+type CachedEventStore struct {
+    store    event.Store          // authoritative (persistent)
+    cache    *otter.Cache[string, []event.Event]  // key = streamID
+}
+
+func (c *CachedEventStore) Load(ctx context.Context, ref id.StreamRef) ([]event.Event, error) {
+    key := ref.String()
+    if events, ok := c.cache.GetIfPresent(key); ok {
+        return events, nil          // cache hit — no invalidation needed (immutable)
+    }
+    events, err := c.store.Load(ctx, ref)  // cache miss — read-through
+    if err != nil { return nil, err }
+    c.cache.Set(key, events)               // populate (events are immutable — safe)
+    return events, nil
+}
+
+// Save always delegates to authoritative store. Events are immutable,
+// so newly saved events don't invalidate cached entries for OTHER streams.
+// The saved stream's cache entry becomes stale, but event sourcing means
+// the decider always calls Load BEFORE Save (optimistic concurrency),
+// so the cache is naturally refreshed on the next Load.
+func (c *CachedEventStore) Save(ctx context.Context, ref id.StreamRef, events []event.Event, v event.Version) error {
+    return c.store.Save(ctx, ref, events, v)
+}
+
+// Construction (inside system.New when Cache is configured on an instance):
+func newCachedEventStore(store event.Store, capacity int) *CachedEventStore {
+    cache := otter.Must(&otter.Options[string, []event.Event]{
+        MaximumSize: capacity,
+    })
+    return &CachedEventStore{store: store, cache: cache}
+}
+```
+
+The wrapper is applied transparently when an InstanceConfig has `Cache` set.
+The consumer never knows caching is active — the `event.Store` interface is
+unchanged. The otter cache provides built-in singleflight (dedup concurrent
+Load calls for the same stream — cache stampede protection during parallel
+projection rebuilds).
 
 ---
 
