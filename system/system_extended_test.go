@@ -53,7 +53,11 @@ func TestSystem_QueryDispatch(t *testing.T) {
 	}
 	defer sys.Close()
 
-	result, err := system.DispatchQuery[countQuery, countResult](ctx, sys, countQuery{Filter: "all"})
+	result, err := system.DispatchQuery[countQuery, countResult](
+		ctx,
+		sys,
+		countQuery{Filter: "all"},
+	)
 	if err != nil {
 		t.Fatalf("DispatchQuery: %v", err)
 	}
@@ -352,13 +356,19 @@ func TestMultiBus_FanOut(t *testing.T) {
 
 	multi := system.NewMultiBus(bus1, bus2)
 
-	evt := mustEvent(event.New("test.event", id.NewStreamID(), "Test", 1, map[string]string{"k": "v"}))
+	evt := mustEvent(
+		event.New("test.event", id.NewStreamID(), "Test", 1, map[string]string{"k": "v"}),
+	)
 	if err := multi.Publish(ctx, evt); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}
 
 	if count1.Load() != 1 || count2.Load() != 1 {
-		t.Fatalf("expected both buses to receive event: bus1=%d, bus2=%d", count1.Load(), count2.Load())
+		t.Fatalf(
+			"expected both buses to receive event: bus1=%d, bus2=%d",
+			count1.Load(),
+			count2.Load(),
+		)
 	}
 }
 
@@ -443,16 +453,29 @@ func TestSystem_AtomicConcurrencyConflict(t *testing.T) {
 	// Direct Save with wrong version should fail.
 	ref := id.NewStreamRef("Task", id.NewStreamID())
 	err = sys.EventStore().Save(ctx, ref,
-		[]event.Event{mustEvent(event.New("task.created", ref.ID, "Task", 1, TaskCreated{Title: "x", At: time.Now()}))},
+		[]event.Event{
+			mustEvent(
+				event.New(
+					"task.created",
+					ref.ID,
+					"Task",
+					1,
+					TaskCreated{Title: "x", At: time.Now()},
+				),
+			),
+		},
 		event.Version(0))
-
 	if err != nil {
 		t.Fatalf("first Save should succeed: %v", err)
 	}
 
 	// Second Save with same expected version (0) should conflict.
 	err = sys.EventStore().Save(ctx, ref,
-		[]event.Event{mustEvent(event.New("task.completed", ref.ID, "Task", 2, TaskCompleted{At: time.Now()}))},
+		[]event.Event{
+			mustEvent(
+				event.New("task.completed", ref.ID, "Task", 2, TaskCompleted{At: time.Now()}),
+			),
+		},
 		event.Version(0))
 
 	if err == nil {

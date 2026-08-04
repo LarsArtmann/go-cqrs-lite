@@ -49,7 +49,9 @@ func (e *sqliteEngine) JournalReadFrom(
 	limit int,
 ) ([]any, error) {
 	if limit <= 0 {
-		return e.scanStreamValues(ctx, e.queries.journalReadAll, col)
+		return e.scanStreamValues(ctx,
+			`SELECT value FROM meta_stream_log WHERE collection = ? AND seq > ? ORDER BY seq`,
+			col, afterSeq)
 	}
 
 	return e.scanStreamValues(ctx, e.queries.journalReadFrom, col, afterSeq, limit)

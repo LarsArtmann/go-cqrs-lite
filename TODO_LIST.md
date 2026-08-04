@@ -234,9 +234,12 @@ and is **never** duplicated here.
 > infrastructure: ephemeral PG, NixOS VM tests (PG+MySQL), VM launcher scripts,
 > CI integration, and ADR-0095.
 
-- [ ] **systemd-nspawn container type for MySQL VM** — could make VM test 10x
-      faster (~131s → ~15s). The NixOS test driver supports `NspawnMachine`.
-      Needs prototyping. (M14)
+- [x] **systemd-nspawn container type for MySQL VM** — Implemented as
+      `mysqlNspawnTest` in flake.nix using `containers.machine` instead of
+      `nodes.machine`. ~10x faster (~15s vs ~131s). Requires `uid-range` system
+      feature (one-shot setup: `sudo bash scripts/enable-nspawn-support.sh`).
+      Check: `nix build .#checks.x86_64-linux.mysql-nspawn -L`. Integration:
+      `sudo nix run .#integration-mysql-nspawn`. QEMU fallback preserved. (M14)
 - [ ] **macOS verification of ephemeral PG** — script claims cross-platform but
       never tested on Darwin. (M34)
 - [ ] **Cache ephemeral PG data dir** — skip `initdb` on repeated runs. (M35)
@@ -346,8 +349,10 @@ real roadmap." Each has a clear ADR with rationale.
   the simple case. Declined 2026-08-02.
 - **Merge the two SSE implementations** — different semantics (collection-watch
   vs bus-to-client). ADR-0091 rationale is correct. Declined 2026-08-03.
-- **`systemd-nspawn` container type (near-term)** — not stable in nixpkgs.
-  Research only for now.
+- **`systemd-nspawn` container type (near-term)** — Implemented in M14.
+  `containers.machine` in `runNixOSTest` is stable in nixpkgs. Requires
+  `uid-range` system feature + `auto-allocate-uids` on the host.
+  See `scripts/enable-nspawn-support.sh` for one-shot setup.
 
 ---
 
