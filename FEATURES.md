@@ -1126,7 +1126,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | F-series adoption coaching | 21 rules (F001–F021) that proactively coach consumers toward unused features | ✅ |
 | T-series testing quality | 8 rules (T001–T008) detecting missing test helpers, parallel coverage gaps, snapshot store misuse | ✅ |
 | E-series architecture | 17 rules (E001–E017) detecting consumer design issues (preset bypass, missing HTTP, signing disabled, etc.) | ✅ |
-| 186 total rules | Correctness (41), API (31), boilerplate (28), adoption (21), architecture (17), consistency (16), performance (9), security (10), testing (8), version (6) | ✅ |
+| 186 total rules | Correctness (40), API (31), boilerplate (28), adoption (21), architecture (17), consistency (16), performance (9), security (10), testing (8), version (6) | ✅ |
 | A033 branded-ID roundtrip | Flags code that converts branded `id.Of[T]` to `string` and back (breaks type safety) | ✅ |
 | C037 codec mismatch | Detects codec mismatches across all typed stores: snapshot, command, query, kv (CBOR events + JSON snapshots = deserialization failure) | ✅ |
 | C038 event-type mismatch | Detects near-miss event type strings in `switch evt.Type()` blocks (Levenshtein distance) | ✅ |

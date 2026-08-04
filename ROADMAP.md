@@ -171,7 +171,7 @@ Evidence-grade metrics added (2026-08-01, ADR-0090).
 The linter grew from 65 to **186 rules** across 10 categories. Quality has been
 hardened through multiple brutal review passes and 7 consumer feedback rounds.
 
-- ✅ **186 rules shipped** across correctness (41), API (31), boilerplate (28),
+- ✅ **186 rules shipped** across correctness (40), API (31), boilerplate (28),
   adoption (21), architecture (17), consistency (16), security (10), performance
   (9), testing (8), version (6)
 - ✅ **Feature profile system** — auto-detects consumer module usage and adapts
