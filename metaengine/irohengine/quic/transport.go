@@ -16,7 +16,7 @@ import (
 
 // DefaultALPN is the Application-Layer Protocol Negotiation bytes used by all
 // QuicTransport endpoints. All nodes must share the same ALPN to connect.
-var DefaultALPN = []byte("irohengine/crdt/v1") //nolint:gochecknoglobals // configurable default
+var DefaultALPN = []byte("irohengine/crdt/v1")
 
 // maxOpSize is the maximum serialized WriteOp size accepted over a QUIC stream.
 // 16 MB is generous for CRDT ops while preventing memory exhaustion.

@@ -228,17 +228,8 @@
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
-          # All modules are linted. Previously experimental modules
-          # (metaengine, projectionadapter, sqlstore, doc-check) had lint
-          # exclusions, but all issues have been resolved.
-          # system + irohengine have pre-existing lint debt from initial scaffold;
-          # will be cleaned up separately. New modules (loopback, quic) are
-          # working towards zero lint but have demo/CLI-specific patterns.
-          lintExcluded = [
-            "system"
-            "metaengine/irohengine"
-          ];
-          lintModules = builtins.filter (m: !builtins.elem m lintExcluded) testModules;
+          # All modules are linted.
+          lintModules = testModules;
 
           examplePaths = builtins.concatStringsSep " " [
             "./example/getting-started/..."

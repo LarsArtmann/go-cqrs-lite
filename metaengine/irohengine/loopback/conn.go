@@ -61,7 +61,6 @@ func (t *LoopbackTransport) handleConnection(conn net.Conn) {
 		}
 
 		if t.maxDelay > 0 {
-			//nolint:gosec // G404: math/rand is safe for simulated delay
 			time.Sleep(time.Duration(rand.Int63n(t.maxDelay.Nanoseconds())))
 		}
 

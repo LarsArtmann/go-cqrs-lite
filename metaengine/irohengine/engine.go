@@ -2,7 +2,6 @@ package irohengine
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -70,13 +69,13 @@ func (e *replicatedEngine) Close() error {
 // publish sends a WriteOp to remote nodes. No re-entrancy guard needed:
 // applyRemote calls the local engine directly, never the wrapper methods,
 // so publish cannot be triggered from a remote-op application.
-func (e *replicatedEngine) publish(op WriteOp) {
+func (e *replicatedEngine) publish(ctx context.Context, op WriteOp) {
 	if e.cfg.transport == nil {
 		return
 	}
 	op.ID = nextOpID()
 	op.PublishedAt = time.Now()
-	_ = e.cfg.transport.Publish(context.Background(), op)
+	_ = e.cfg.transport.Publish(ctx, op)
 }
 
 // applyRemote dispatches an incoming WriteOp to the local engine.
@@ -139,7 +138,7 @@ func (e *replicatedEngine) MapSet(
 	if err := e.local.(metaengine.MapBackend).MapSet(ctx, collection, key, value); err != nil {
 		return err
 	}
-	e.publish(WriteOp{
+	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpMapSet, Author: e.cfg.author,
 		Timestamp: now, Key: key, Value: value,
 	})
@@ -160,7 +159,7 @@ func (e *replicatedEngine) MapDelete(ctx context.Context, collection string, key
 	if err := e.local.(metaengine.MapBackend).MapDelete(ctx, collection, key); err != nil {
 		return err
 	}
-	e.publish(WriteOp{
+	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpMapDelete, Author: e.cfg.author,
 		Timestamp: now, Key: key,
 	})
@@ -178,7 +177,7 @@ func (e *replicatedEngine) MapUpdate(
 	if mu, ok := e.local.(metaengine.MapUpdater); ok {
 		return mu.MapUpdate(ctx, collection, key, update)
 	}
-	return errors.New("local engine does not implement MapUpdater")
+	return ErrMapUpdaterNotImplemented
 }
 
 // --- SetBackend (CRDT-safe: OR-Set) ---
@@ -187,7 +186,7 @@ func (e *replicatedEngine) SetAdd(ctx context.Context, collection string, key an
 	if err := e.local.(metaengine.SetBackend).SetAdd(ctx, collection, key); err != nil {
 		return err
 	}
-	e.publish(WriteOp{
+	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpSetAdd, Author: e.cfg.author,
 		Timestamp: time.Now(), Key: key,
 	})
@@ -216,7 +215,7 @@ func (e *replicatedEngine) CounterIncrement(
 	); err != nil {
 		return err
 	}
-	e.publish(WriteOp{
+	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpCounterInc, Author: e.cfg.author,
 		Timestamp: time.Now(), Delta: deltas,
 	})
@@ -246,7 +245,7 @@ func (e *replicatedEngine) MultiAdd(
 	); err != nil {
 		return err
 	}
-	e.publish(WriteOp{
+	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpMultiAdd, Author: e.cfg.author,
 		Timestamp: time.Now(), Key: key, Value: value,
 	})
@@ -267,7 +266,7 @@ func (e *replicatedEngine) LogAppend(ctx context.Context, collection string, val
 	if err := e.local.(metaengine.LogBackend).LogAppend(ctx, collection, value); err != nil {
 		return err
 	}
-	e.publish(WriteOp{
+	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpLogAppend, Author: e.cfg.author,
 		Timestamp: time.Now(), Value: value,
 	})

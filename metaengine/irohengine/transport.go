@@ -165,12 +165,6 @@ func (n *InProcessNetwork) deliver(from string, op WriteOp) {
 	}
 }
 
-func (n *InProcessNetwork) close() {
-	n.mu.Lock()
-	defer n.mu.Unlock()
-	n.closed = true
-}
-
 // peerTransport is a per-node Transport backed by an InProcessNetwork.
 type peerTransport struct {
 	nodeID  string

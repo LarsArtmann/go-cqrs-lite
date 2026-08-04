@@ -2,7 +2,6 @@ package irohengine
 
 import (
 	"context"
-	"errors"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -22,7 +21,7 @@ func (e *replicatedEngine) MapScan(
 	if sb, ok := e.local.(metaengine.ScanBackend); ok {
 		return sb.MapScan(ctx, collection, filterFn, sortFunc, cursor, limit)
 	}
-	return metaengine.ScanResult{}, errors.New("local engine does not implement ScanBackend")
+	return metaengine.ScanResult{}, ErrScanBackendNotImplemented
 }
 
 // --- GraphBackend (local passthrough) ---
@@ -35,7 +34,7 @@ func (e *replicatedEngine) GraphAddEdge(
 	if gb, ok := e.local.(metaengine.GraphBackend); ok {
 		return gb.GraphAddEdge(ctx, collection, edge)
 	}
-	return errors.New("local engine does not implement GraphBackend")
+	return ErrGraphBackendNotImplemented
 }
 
 func (e *replicatedEngine) GraphNeighbors(
@@ -47,7 +46,7 @@ func (e *replicatedEngine) GraphNeighbors(
 	if gb, ok := e.local.(metaengine.GraphBackend); ok {
 		return gb.GraphNeighbors(ctx, collection, node, depth)
 	}
-	return nil, errors.New("local engine does not implement GraphBackend")
+	return nil, ErrGraphBackendNotImplemented
 }
 
 // --- VectorBackend (local passthrough) ---
@@ -60,7 +59,7 @@ func (e *replicatedEngine) VectorInsert(
 	if vb, ok := e.local.(metaengine.VectorBackend); ok {
 		return vb.VectorInsert(ctx, collection, emb)
 	}
-	return errors.New("local engine does not implement VectorBackend")
+	return ErrVectorBackendNotImplemented
 }
 
 func (e *replicatedEngine) VectorSearch(
@@ -73,7 +72,7 @@ func (e *replicatedEngine) VectorSearch(
 	if vb, ok := e.local.(metaengine.VectorBackend); ok {
 		return vb.VectorSearch(ctx, collection, query, k, metric)
 	}
-	return nil, errors.New("local engine does not implement VectorBackend")
+	return nil, ErrVectorBackendNotImplemented
 }
 
 // --- SearchBackend (local passthrough) ---
@@ -86,7 +85,7 @@ func (e *replicatedEngine) SearchInsert(
 	if sb, ok := e.local.(metaengine.SearchBackend); ok {
 		return sb.SearchInsert(ctx, collection, doc)
 	}
-	return errors.New("local engine does not implement SearchBackend")
+	return ErrSearchBackendNotImplemented
 }
 
 func (e *replicatedEngine) SearchQuery(
@@ -97,7 +96,7 @@ func (e *replicatedEngine) SearchQuery(
 	if sb, ok := e.local.(metaengine.SearchBackend); ok {
 		return sb.SearchQuery(ctx, collection, query, limit)
 	}
-	return nil, errors.New("local engine does not implement SearchBackend")
+	return nil, ErrSearchBackendNotImplemented
 }
 
 // --- SpatialBackend (local passthrough) ---
@@ -110,7 +109,7 @@ func (e *replicatedEngine) SpatialInsert(
 	if sb, ok := e.local.(metaengine.SpatialBackend); ok {
 		return sb.SpatialInsert(ctx, collection, pt)
 	}
-	return errors.New("local engine does not implement SpatialBackend")
+	return ErrSpatialBackendNotImplemented
 }
 
 func (e *replicatedEngine) SpatialRange(
@@ -122,5 +121,5 @@ func (e *replicatedEngine) SpatialRange(
 	if sb, ok := e.local.(metaengine.SpatialBackend); ok {
 		return sb.SpatialRange(ctx, collection, x, y, radius, limit)
 	}
-	return nil, errors.New("local engine does not implement SpatialBackend")
+	return nil, ErrSpatialBackendNotImplemented
 }
