@@ -1,6 +1,7 @@
 package irohengine
 
 import (
+	"strconv"
 	"sync/atomic"
 	"time"
 
@@ -48,21 +49,7 @@ var opSeq uint64
 
 func nextOpID() string {
 	return time.Now().Format("20060102-150405.000000000") + "-" +
-		itoa(int(atomic.AddUint64(&opSeq, 1)))
-}
-
-func itoa(n int) string {
-	if n == 0 {
-		return "0"
-	}
-	buf := [20]byte{}
-	pos := len(buf)
-	for n > 0 {
-		pos--
-		buf[pos] = byte('0' + n%10)
-		n /= 10
-	}
-	return string(buf[pos:])
+		strconv.FormatUint(atomic.AddUint64(&opSeq, 1), 10)
 }
 
 // Replicated wraps a local engine with CRDT replication. The local engine

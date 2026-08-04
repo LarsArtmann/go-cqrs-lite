@@ -82,28 +82,28 @@
 
 ## F) Up to 50 Things We Should Get Done Next
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | **Run nspawn test with sudo** — verify MySQL boots, JSON ops work, measure timing | Critical | 5 min |
-| 2 | **Measure QEMU baseline** — time `nix build .#checks.x86_64-linux.mysql-vm -L` | High | 5 min |
-| 3 | **Extract shared `mysqlHealthCheck` test script** — eliminate duplication | Medium | 5 min |
-| 4 | **Fix `enable-nspawn-support.sh`** — use `test` not `switch`, add confirmation | Medium | 10 min |
-| 5 | **Unify `MYSQL_VM_PORT` env var** — document bridge IP vs port-forward difference | Medium | 10 min |
-| 6 | **Add ADR-0099** — nspawn container test pattern | Medium | 15 min |
-| 7 | **Postgres nspawn test** — `pgNspawnTest` for parity | Low | 10 min |
-| 8 | **CI: add nspawn job** — only if GitHub Actions supports uid-range (unlikely) | Low | 30 min |
-| 9 | **Add `--driver-only` mode to nspawn script** — build driver, run with sudo, no uid-range needed | Medium | 10 min |
-| 10 | **Test `auto-allocate-uids` interaction** — verify no side effects on other builds | Medium | 15 min |
-| 11 | **Document networking model** — how container MySQL is reachable (bridge IP, not localhost) | Medium | 10 min |
-| 12 | **Add `nix run .#integration-mysql-nspawn -- --keep-alive`** — verify keep-alive works with nspawn | Low | 5 min |
-| 13 | **Cleanup function improvements** — verify bridge/netns cleanup is reliable | Low | 5 min |
-| 14 | **Add nspawn to `verify` gate** — prefer nspawn, fall back to QEMU | Medium | 10 min |
-| 15 | **Test with multiple containers** — verify the pattern scales to multi-node tests | Low | 30 min |
-| 16 | **Explore nspawn for DuckDB VM tests** — DuckDB needs CGo, nspawn may be faster | Low | 30 min |
-| 17 | **Explore nspawn for Turso sync tests** — real libSQL server in container | Low | 30 min |
-| 18 | **Add `machinectl status` to script** — show container health during keep-alive | Low | 5 min |
-| 19 | **Verify nspawn container state persistence** — `--keep-machine-state` flag | Low | 10 min |
-| 20 | **Add nspawn support detection to devShell** — warn on `nix develop` if uid-range missing | Low | 10 min |
+| #   | Task                                                                                               | Impact   | Effort |
+| --- | -------------------------------------------------------------------------------------------------- | -------- | ------ |
+| 1   | **Run nspawn test with sudo** — verify MySQL boots, JSON ops work, measure timing                  | Critical | 5 min  |
+| 2   | **Measure QEMU baseline** — time `nix build .#checks.x86_64-linux.mysql-vm -L`                     | High     | 5 min  |
+| 3   | **Extract shared `mysqlHealthCheck` test script** — eliminate duplication                          | Medium   | 5 min  |
+| 4   | **Fix `enable-nspawn-support.sh`** — use `test` not `switch`, add confirmation                     | Medium   | 10 min |
+| 5   | **Unify `MYSQL_VM_PORT` env var** — document bridge IP vs port-forward difference                  | Medium   | 10 min |
+| 6   | **Add ADR-0099** — nspawn container test pattern                                                   | Medium   | 15 min |
+| 7   | **Postgres nspawn test** — `pgNspawnTest` for parity                                               | Low      | 10 min |
+| 8   | **CI: add nspawn job** — only if GitHub Actions supports uid-range (unlikely)                      | Low      | 30 min |
+| 9   | **Add `--driver-only` mode to nspawn script** — build driver, run with sudo, no uid-range needed   | Medium   | 10 min |
+| 10  | **Test `auto-allocate-uids` interaction** — verify no side effects on other builds                 | Medium   | 15 min |
+| 11  | **Document networking model** — how container MySQL is reachable (bridge IP, not localhost)        | Medium   | 10 min |
+| 12  | **Add `nix run .#integration-mysql-nspawn -- --keep-alive`** — verify keep-alive works with nspawn | Low      | 5 min  |
+| 13  | **Cleanup function improvements** — verify bridge/netns cleanup is reliable                        | Low      | 5 min  |
+| 14  | **Add nspawn to `verify` gate** — prefer nspawn, fall back to QEMU                                 | Medium   | 10 min |
+| 15  | **Test with multiple containers** — verify the pattern scales to multi-node tests                  | Low      | 30 min |
+| 16  | **Explore nspawn for DuckDB VM tests** — DuckDB needs CGo, nspawn may be faster                    | Low      | 30 min |
+| 17  | **Explore nspawn for Turso sync tests** — real libSQL server in container                          | Low      | 30 min |
+| 18  | **Add `machinectl status` to script** — show container health during keep-alive                    | Low      | 5 min  |
+| 19  | **Verify nspawn container state persistence** — `--keep-machine-state` flag                        | Low      | 10 min |
+| 20  | **Add nspawn support detection to devShell** — warn on `nix develop` if uid-range missing          | Low      | 10 min |
 
 ---
 

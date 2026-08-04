@@ -373,6 +373,63 @@ func emit() {
 	ruletest.AssertRule(t, findings, "E006", 1)
 }
 
+// E006 must NOT flag an event that is consumed by a fold (decider apply
+// function). The fold IS the handler for decider state evolution — an event
+// handled by a fold is not orphaned even when no projection subscribes to it.
+func TestE006_NoFindingWhenFoldHandlesEvent(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"emit.go": `package main
+
+func emit() {
+	_ = event.New("user.created", id, "User", 1, payload)
+}
+`,
+		"fold.go": `package main
+
+import "event"
+
+func foldUser(state UserState, evt event.Event) (UserState, error) {
+	switch evt.Type() {
+	case "user.created":
+		return state, nil
+	default:
+		return state, nil
+	}
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE006Detector(ctx))
+	ruletest.AssertRule(t, findings, "E006", 0)
+}
+
+// E006 fires when a fold handles a DIFFERENT event type — the emitted type
+// is genuinely orphaned (handled by neither fold nor projection).
+func TestE006_FiresWhenFoldHandlesDifferentEvent(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"emit.go": `package main
+
+func emit() {
+	_ = event.New("user.deleted", id, "User", 1, payload)
+}
+`,
+		"fold.go": `package main
+
+import "event"
+
+func foldUser(state UserState, evt event.Event) (UserState, error) {
+	switch evt.Type() {
+	case "user.created":
+		return state, nil
+	default:
+		return state, nil
+	}
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE006Detector(ctx))
+	ruletest.AssertRule(t, findings, "E006", 1)
+}
+
 // E006 must NOT flag a SQL row struct whose name coincidentally matches an event
 // naming pattern (e.g. "Candidate") but is never emitted via event.New(). The
 // registry only tracks types actually emitted, so pure data structs are safe.

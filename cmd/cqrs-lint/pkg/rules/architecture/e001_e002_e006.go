@@ -144,8 +144,12 @@ func NewE002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// E006: Event without projection.
-// Detects event types emitted by deciders but not handled by any projection.
+// E006: Event without projection or fold handler.
+// Detects event types emitted by deciders but not handled by any projection
+// or fold/apply function. An event that IS consumed by a fold (decider state
+// evolution) is NOT orphaned even if no projection handles it — the fold is
+// the handler. This rule only fires for truly orphaned events: emitted but
+// consumed by neither a fold nor a projection.
 //
 //nolint:ireturn // factory returns public interface
 func NewE006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -155,18 +159,22 @@ func NewE006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var findings []finding.Finding
 
 			emittedTypes := make(map[string]analyzer.EventEmission)
-			projectedTypes := make(map[string]bool)
+			handledTypes := make(map[string]bool)
 
 			maps.Copy(emittedTypes, ctx.Registry.EventTypesEmitted)
 
 			for _, proj := range ctx.Registry.Projections {
 				for _, t := range proj.EventTypes {
-					projectedTypes[t] = true
+					handledTypes[t] = true
 				}
 			}
 
+			for _, c := range ctx.CollectFoldCaseStrings() {
+				handledTypes[c] = true
+			}
+
 			for evtType, emission := range emittedTypes {
-				if projectedTypes[evtType] {
+				if handledTypes[evtType] {
 					continue
 				}
 
@@ -177,13 +185,13 @@ func NewE006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 				f, err := finding.NewBuilder(
 					"E006", toolName,
-					fmt.Sprintf("Event type %q is emitted but no projection handles it", evtType),
+					fmt.Sprintf("Event type %q is emitted but no projection or fold handles it", evtType),
 					finding.SeverityInfo,
 					pos,
 				).
 					WithCategory(finding.CategoryStructure).
 					WithConfidence(finding.ConfidenceLow).
-					WithSuggestion("Register a projection that handles this event type, or mark it as intentionally unhandled").
+					WithSuggestion("Register a projection or add a fold case for this event type, or suppress if intentionally unhandled").
 					WithSnippet(ctx.SourceLine(emission.File, emission.Line)).
 					Build()
 				if err == nil {

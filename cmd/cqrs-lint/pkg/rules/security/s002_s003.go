@@ -75,7 +75,7 @@ func NewS002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			confidence := finding.ConfidenceMedium
 			suggestion := "Add encryption.EncryptMiddleware(enc) to your bus.UsePublish chain"
 
-			if !ctx.FeatureProfile.HasServer {
+			if !ctx.ProfileForFile(pos.Filename).HasServer {
 				severity = finding.SeverityInfo
 				confidence = finding.ConfidenceLow
 				suggestion = "This appears to be a local-only project (no HTTP/gRPC server). Consider adding encryption if the data may be exposed to networks"
@@ -167,9 +167,10 @@ func NewS003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"S003-missing-event-signing",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !ctx.FeatureProfile.HasServer {
-				return nil, nil
-			}
+			// S003 evaluates HasServer per-file: an event store in a non-server
+			// module (e.g. a library defining test stores) should not trigger
+			// signing coaching meant for server deployments.
+			_ = ctx.FeatureProfile // primary profile no longer used directly
 
 			hasSigning := false
 			for _, pkg := range ctx.Packages {
@@ -196,6 +197,12 @@ func NewS003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
+					continue
+				}
+
+				// Skip event stores in non-server modules — signing is a
+				// server-deployment concern, not a library definition concern.
+				if !ctx.ProfileForFile(gf.Path).HasServer {
 					continue
 				}
 

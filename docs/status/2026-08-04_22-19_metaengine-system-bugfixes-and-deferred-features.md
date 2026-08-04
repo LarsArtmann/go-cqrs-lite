@@ -234,108 +234,108 @@
 
 ### Critical Path (blocks production use)
 
-| #  | Task                                                                                       | Impact   | Effort   |
-| -- | ------------------------------------------------------------------------------------------ | -------- | -------- |
-| 1  | Replace `createEngine` with `createEngineFromDriver` in constructor                        | Critical | 5min     |
-| 2  | Register SQLite driver in `init()` (open sql.DB, call NewSQLiteEngine)                     | Critical | 15min    |
-| 3  | Auto-detect serialization: pass `WithSerialization()` for non-Memory engines               | Critical | 15min    |
-| 4  | Write SQLite-through-System integration test (full CQRS roundtrip on SQLite)               | Critical | 30min    |
-| 5  | Write projection E2E test (command → host.Start → verify projection updated)               | Critical | 45min    |
-| 6  | Fix simpleBus handler independence (each handler called separately)                        | High     | 20min    |
+| #   | Task                                                                         | Impact   | Effort |
+| --- | ---------------------------------------------------------------------------- | -------- | ------ |
+| 1   | Replace `createEngine` with `createEngineFromDriver` in constructor          | Critical | 5min   |
+| 2   | Register SQLite driver in `init()` (open sql.DB, call NewSQLiteEngine)       | Critical | 15min  |
+| 3   | Auto-detect serialization: pass `WithSerialization()` for non-Memory engines | Critical | 15min  |
+| 4   | Write SQLite-through-System integration test (full CQRS roundtrip on SQLite) | Critical | 30min  |
+| 5   | Write projection E2E test (command → host.Start → verify projection updated) | Critical | 45min  |
+| 6   | Fix simpleBus handler independence (each handler called separately)          | High     | 20min  |
 
 ### File Size / CI Gate
 
-| #  | Task                                                       | Impact | Effort |
-| -- | ---------------------------------------------------------- | ------ | ------ |
-| 7  | Split constructor.go (369→<350): extract projection wiring | High   | 15min  |
-| 8  | Split adapter_event.go (372→<350): extract serialization   | High   | 15min  |
-| 9  | Run `gofumpt -w` on all new files                          | Medium | 5min   |
+| #   | Task                                                       | Impact | Effort |
+| --- | ---------------------------------------------------------- | ------ | ------ |
+| 7   | Split constructor.go (369→<350): extract projection wiring | High   | 15min  |
+| 8   | Split adapter_event.go (372→<350): extract serialization   | High   | 15min  |
+| 9   | Run `gofumpt -w` on all new files                          | Medium | 5min   |
 
 ### Test Coverage Gaps
 
-| #  | Task                                                                      | Impact | Effort |
-| -- | ------------------------------------------------------------------------- | ------ | ------ |
-| 10 | Cache hit/miss/eviction test                                              | High   | 20min  |
-| 11 | CommandAdapter save/load/journal test                                     | High   | 20min  |
-| 12 | QueryAdapter save/load/journal test                                       | High   | 20min  |
-| 13 | Serialization roundtrip test (encode → store → decode → verify identity)  | High   | 20min  |
-| 14 | Multi-bus error propagation test                                          | Medium | 10min  |
-| 15 | Concurrent ReadFrom + Save test (race detector)                           | Medium | 15min  |
-| 16 | Test bus middleware (Use + UsePublish)                                    | Medium | 15min  |
-| 17 | Test bus SubscribeAll (catch-all handler)                                 | Medium | 10min  |
+| #   | Task                                                                     | Impact | Effort |
+| --- | ------------------------------------------------------------------------ | ------ | ------ |
+| 10  | Cache hit/miss/eviction test                                             | High   | 20min  |
+| 11  | CommandAdapter save/load/journal test                                    | High   | 20min  |
+| 12  | QueryAdapter save/load/journal test                                      | High   | 20min  |
+| 13  | Serialization roundtrip test (encode → store → decode → verify identity) | High   | 20min  |
+| 14  | Multi-bus error propagation test                                         | Medium | 10min  |
+| 15  | Concurrent ReadFrom + Save test (race detector)                          | Medium | 15min  |
+| 16  | Test bus middleware (Use + UsePublish)                                   | Medium | 15min  |
+| 17  | Test bus SubscribeAll (catch-all handler)                                | Medium | 10min  |
 
 ### Integration & Admin
 
-| #  | Task                                                                  | Impact | Effort |
-| -- | --------------------------------------------------------------------- | ------ | ------ |
-| 18 | Add `system/` to cmd/api-stability modules list                       | High   | 5min   |
-| 19 | Regenerate api-stability golden file                                  | High   | 10min  |
-| 20 | Update AGENTS.md module list + test commands                          | High   | 15min  |
-| 21 | Run `nix fmt` on system/ and metaengine/ new files                    | Medium | 5min   |
-| 22 | Verify `nix run .#build` passes (all modules)                         | High   | 5min   |
-| 23 | Verify `nix run .#lint` passes (file size, depguard, gosec)           | High   | 5min   |
+| #   | Task                                                        | Impact | Effort |
+| --- | ----------------------------------------------------------- | ------ | ------ |
+| 18  | Add `system/` to cmd/api-stability modules list             | High   | 5min   |
+| 19  | Regenerate api-stability golden file                        | High   | 10min  |
+| 20  | Update AGENTS.md module list + test commands                | High   | 15min  |
+| 21  | Run `nix fmt` on system/ and metaengine/ new files          | Medium | 5min   |
+| 22  | Verify `nix run .#build` passes (all modules)               | High   | 5min   |
+| 23  | Verify `nix run .#lint` passes (file size, depguard, gosec) | High   | 5min   |
 
 ### Serialization for Command/Query Adapters
 
-| #  | Task                                                                     | Impact | Effort |
-| -- | ------------------------------------------------------------------------ | ------ | ------ |
-| 24 | Add serialization envelope for CommandAdapter (serializedCommand)        | Medium | 20min  |
-| 25 | Add serialization envelope for QueryAdapter (serializedQuery)            | Medium | 20min  |
-| 26 | Test CommandAdapter serialization roundtrip on SQLite                    | Medium | 15min  |
-| 27 | Test QueryAdapter serialization roundtrip on SQLite                      | Medium | 15min  |
+| #   | Task                                                              | Impact | Effort |
+| --- | ----------------------------------------------------------------- | ------ | ------ |
+| 24  | Add serialization envelope for CommandAdapter (serializedCommand) | Medium | 20min  |
+| 25  | Add serialization envelope for QueryAdapter (serializedQuery)     | Medium | 20min  |
+| 26  | Test CommandAdapter serialization roundtrip on SQLite             | Medium | 15min  |
+| 27  | Test QueryAdapter serialization roundtrip on SQLite               | Medium | 15min  |
 
 ### Scream Store
 
-| #  | Task                                                              | Impact | Effort |
-| -- | ----------------------------------------------------------------- | ------ | ------ |
-| 28 | Implement PlanDiff (compare two SerializablePlans)               | Medium | 45min  |
-| 29 | Implement PlanFingerprint (canonical hash)                       | Medium | 20min  |
-| 30 | Implement pinned manifest (persist SerializablePlan)             | Medium | 30min  |
-| 31 | Implement full safety rules table from design doc §9.4           | Medium | 30min  |
-| 32 | Test SCREAM-tier blocks startup                                   | Medium | 20min  |
+| #   | Task                                                   | Impact | Effort |
+| --- | ------------------------------------------------------ | ------ | ------ |
+| 28  | Implement PlanDiff (compare two SerializablePlans)     | Medium | 45min  |
+| 29  | Implement PlanFingerprint (canonical hash)             | Medium | 20min  |
+| 30  | Implement pinned manifest (persist SerializablePlan)   | Medium | 30min  |
+| 31  | Implement full safety rules table from design doc §9.4 | Medium | 30min  |
+| 32  | Test SCREAM-tier blocks startup                        | Medium | 20min  |
 
 ### Introspection API
 
-| #  | Task                                                                | Impact | Effort |
-| -- | ------------------------------------------------------------------- | ------ | ------ |
-| 33 | Wire Snapshot() to live runtime data (handler counts, worker status) | Medium | 30min  |
-| 34 | Wire Health() to engine health checks (db.PingContext)             | Medium | 20min  |
-| 35 | Wire Explain() to metaengine store.Explain()                       | Medium | 20min  |
-| 36 | Test introspection API returns correct topology                    | Medium | 20min  |
+| #   | Task                                                                 | Impact | Effort |
+| --- | -------------------------------------------------------------------- | ------ | ------ |
+| 33  | Wire Snapshot() to live runtime data (handler counts, worker status) | Medium | 30min  |
+| 34  | Wire Health() to engine health checks (db.PingContext)               | Medium | 20min  |
+| 35  | Wire Explain() to metaengine store.Explain()                         | Medium | 20min  |
+| 36  | Test introspection API returns correct topology                      | Medium | 20min  |
 
 ### Config Loader
 
-| #  | Task                                                       | Impact | Effort |
-| -- | ---------------------------------------------------------- | ------ | ------ |
-| 37 | Add koanf dependency to go.mod                             | Low    | 5min   |
-| 38 | Implement real YAML parsing                               | Low    | 30min  |
-| 39 | Implement full env var mapping (CQRS_ENGINES__, etc.)      | Low    | 20min  |
-| 40 | Test config loader (YAML + env override)                   | Low    | 15min  |
+| #   | Task                                                  | Impact | Effort |
+| --- | ----------------------------------------------------- | ------ | ------ |
+| 37  | Add koanf dependency to go.mod                        | Low    | 5min   |
+| 38  | Implement real YAML parsing                           | Low    | 30min  |
+| 39  | Implement full env var mapping (CQRS_ENGINES__, etc.) | Low    | 20min  |
+| 40  | Test config loader (YAML + env override)              | Low    | 15min  |
 
 ### Real-World Validation
 
-| #  | Task                                                              | Impact | Effort |
-| -- | ----------------------------------------------------------------- | ------ | ------ |
-| 41 | Migrate example/taskmanager to System                             | High   | 90min  |
-| 42 | Write system/ module README.md                                    | Medium | 30min  |
-| 43 | Add system/ to cqrs-lint feature profile detection                | Low    | 20min  |
-| 44 | Write Example_* test function showing full consumer usage         | Medium | 20min  |
+| #   | Task                                                      | Impact | Effort |
+| --- | --------------------------------------------------------- | ------ | ------ |
+| 41  | Migrate example/taskmanager to System                     | High   | 90min  |
+| 42  | Write system/ module README.md                            | Medium | 30min  |
+| 43  | Add system/ to cqrs-lint feature profile detection        | Low    | 20min  |
+| 44  | Write Example_* test function showing full consumer usage | Medium | 20min  |
 
 ### Connection Pool Lifecycle
 
-| #  | Task                                                       | Impact | Effort |
-| -- | ---------------------------------------------------------- | ------ | ------ |
-| 45 | Add samber/do dependency                                   | Low    | 5min   |
-| 46 | Implement named service lifecycle (RegisterNamed, InvokeNamed) | Low  | 45min  |
-| 47 | Wire connection pool into System.Close() ordering           | Low    | 30min  |
+| #   | Task                                                           | Impact | Effort |
+| --- | -------------------------------------------------------------- | ------ | ------ |
+| 45  | Add samber/do dependency                                       | Low    | 5min   |
+| 46  | Implement named service lifecycle (RegisterNamed, InvokeNamed) | Low    | 45min  |
+| 47  | Wire connection pool into System.Close() ordering              | Low    | 30min  |
 
 ### Polish
 
-| #  | Task                                                       | Impact | Effort |
-| -- | ---------------------------------------------------------- | ------ | ------ |
-| 48 | Add godoc to all new exported functions                    | Medium | 20min  |
-| 49 | Update the design doc status from "DESIGN" to "IMPLEMENTED" | Low    | 5min   |
-| 50 | Write a `system/` getting-started guide                    | Low    | 30min  |
+| #   | Task                                                        | Impact | Effort |
+| --- | ----------------------------------------------------------- | ------ | ------ |
+| 48  | Add godoc to all new exported functions                     | Medium | 20min  |
+| 49  | Update the design doc status from "DESIGN" to "IMPLEMENTED" | Low    | 5min   |
+| 50  | Write a `system/` getting-started guide                     | Low    | 30min  |
 
 ---
 

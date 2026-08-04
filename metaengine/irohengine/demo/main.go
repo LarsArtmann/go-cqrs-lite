@@ -223,7 +223,7 @@ func progressBar(label string, done, total int) {
 	}
 }
 
-func printStats(net *irohengine.Network) {
+func printStats(net *irohengine.InProcessNetwork) {
 	c := net.Collector()
 	d := c.DeliveryStats()
 	conv := c.ConvergenceStats()

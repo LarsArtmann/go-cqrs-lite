@@ -3,7 +3,6 @@ package correctness
 import (
 	"context"
 	"fmt"
-	"go/ast"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -30,7 +29,7 @@ func NewC038Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"C038-event-type-typo",
 		func(_ context.Context) ([]finding.Finding, error) {
-			foldCases := collectFoldCaseStrings(ctx)
+			foldCases := ctx.CollectFoldCaseStrings()
 			if len(foldCases) == 0 {
 				return nil, nil
 			}
@@ -77,59 +76,6 @@ func NewC038Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-// collectFoldCaseStrings walks all fold functions in the registry and extracts
-// the string-literal case labels from their switch statements. A fold function
-// is identified by the scanner as a function with signature
-// func(state, event) (state, error) — see detectFoldFunc in scanner_folds.go.
-func collectFoldCaseStrings(ctx *analyzer.AnalysisContext) []string {
-	var cases []string
-
-	for _, fold := range ctx.Registry.Folds {
-		for _, gf := range ctx.GoFiles {
-			if gf.Path != fold.File {
-				continue
-			}
-
-			ast.Inspect(gf.AST, func(n ast.Node) bool {
-				fn, ok := n.(*ast.FuncDecl)
-				if !ok || fn.Name == nil {
-					return true
-				}
-
-				if fn.Name.Name != fold.FuncName {
-					return true
-				}
-
-				ast.Inspect(fn.Body, func(nn ast.Node) bool {
-					sw, ok := nn.(*ast.SwitchStmt)
-					if !ok {
-						return true
-					}
-
-					for _, stmt := range sw.Body.List {
-						cc, ok := stmt.(*ast.CaseClause)
-						if !ok || cc.List == nil {
-							continue
-						}
-
-						for _, expr := range cc.List {
-							if s := analyzer.StringLit(expr); s != "" {
-								cases = append(cases, s)
-							}
-						}
-					}
-
-					return true
-				})
-
-				return true
-			})
-		}
-	}
-
-	return cases
 }
 
 // nearestMatch returns the closest string from candidates to target, along

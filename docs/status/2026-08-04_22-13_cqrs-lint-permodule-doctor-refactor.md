@@ -12,11 +12,11 @@
 
 Migrated 3 detectors from `ctx.FeatureProfile` (workspace-wide primary) to `ctx.ProfileForFile(path)` (per-module). These are the detectors that iterate `ctx.GoFiles` and emit per-file findings — the ones where using the primary profile causes false positives in multi-module workspaces.
 
-| Detector | File | Change | Bug Fixed |
-|----------|------|--------|-----------|
-| **S007** | `pkg/rules/security/s007.go:30` | Moved `HasServer` check from early-return into file loop, using `ctx.ProfileForFile(gf.Path)` | In-memory session store in a library module fired when an example sub-module had a server |
+| Detector | File                               | Change                                                                                                       | Bug Fixed                                                                                                   |
+| -------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| **S007** | `pkg/rules/security/s007.go:30`    | Moved `HasServer` check from early-return into file loop, using `ctx.ProfileForFile(gf.Path)`                | In-memory session store in a library module fired when an example sub-module had a server                   |
 | **C036** | `pkg/rules/correctness/c036.go:30` | Moved `eventBackend` computation from early-return into file loop, using `ctx.ProfileForFile(gf.Path).Store` | Store backend mismatch compared every file against the primary profile's backend, not the file's own module |
-| **S006** | `pkg/rules/security/s006.go:122` | Changed `ctx.FeatureProfile.HasServer` to `ctx.ProfileForFile(m.filename).HasServer` for per-match severity | Financial structs in a library module got full server severity when an example sub-module had a server |
+| **S006** | `pkg/rules/security/s006.go:122`   | Changed `ctx.FeatureProfile.HasServer` to `ctx.ProfileForFile(m.filename).HasServer` for per-match severity  | Financial structs in a library module got full server severity when an example sub-module had a server      |
 
 C017 was already migrated (the original pattern reference).
 
@@ -24,27 +24,29 @@ C017 was already migrated (the original pattern reference).
 
 Rewrote `doctor.go` — all 8 `renderDoctor*` functions now accept `io.Writer`:
 
-| Function | Old Signature | New Signature |
-|----------|---------------|---------------|
-| `renderDoctorLoadErrors` | `(actx)` | `(w io.Writer, actx)` |
-| `renderDoctorConfigFile` | `(cfg)` | `(w io.Writer, cfg)` |
-| `renderDoctorPreset` | `(cfg)` | `(w io.Writer, cfg)` |
-| `renderDoctorEffectiveSettings` | `(cfg)` | `(w io.Writer, cfg)` |
-| `renderDoctorFeatureProfile` | `(actx)` | `(w io.Writer, actx)` |
-| `renderDoctorPerModuleProfiles` | `(actx)` | `(w io.Writer, actx)` |
-| `renderDoctorSuggestedConfig` | `(cfg, actx)` | `(w io.Writer, cfg, actx)` |
-| `renderDoctorSuppressions` | `(actx)` | `(w io.Writer, actx)` |
+| Function                        | Old Signature | New Signature              |
+| ------------------------------- | ------------- | -------------------------- |
+| `renderDoctorLoadErrors`        | `(actx)`      | `(w io.Writer, actx)`      |
+| `renderDoctorConfigFile`        | `(cfg)`       | `(w io.Writer, cfg)`       |
+| `renderDoctorPreset`            | `(cfg)`       | `(w io.Writer, cfg)`       |
+| `renderDoctorEffectiveSettings` | `(cfg)`       | `(w io.Writer, cfg)`       |
+| `renderDoctorFeatureProfile`    | `(actx)`      | `(w io.Writer, actx)`      |
+| `renderDoctorPerModuleProfiles` | `(actx)`      | `(w io.Writer, actx)`      |
+| `renderDoctorSuggestedConfig`   | `(cfg, actx)` | `(w io.Writer, cfg, actx)` |
+| `renderDoctorSuppressions`      | `(actx)`      | `(w io.Writer, actx)`      |
 
 Command handler passes `os.Stdout` / `os.Stderr`. Tests pass `*bytes.Buffer`.
 
 ### 3. Tests Written (18 new tests across 4 files)
 
 **Per-module migration tests:**
+
 - `s007_permodule_test.go` (3 tests): suppresses non-server module, fires for server module, single-module fallback
 - `c036_permodule_test.go` (3 tests): evaluates by module, same-backend no mismatch, skips non-persistent module
 - `s006_permodule_test.go` (2 tests): downgrades non-server module, full severity for server module
 
 **Doctor render tests:**
+
 - `doctor_render_test.go` (10 tests): preset (none/with), feature profile, effective settings, suppressions (none/with), per-module profiles (single/multiple), load errors (none/with)
 
 ### 4. Build/Vet/Test Verification
@@ -67,6 +69,7 @@ TESTS: 16 packages, ALL PASS, 0 failures
 
 **Category A — Project-scoped early-return detectors (16 detectors):**
 These gate on the profile ONCE before doing project-wide scans. Examples:
+
 - F003/F004: `if !ctx.FeatureProfile.HasServer { return nil, nil }` then scan all imports
 - S002/S003: `if !ctx.FeatureProfile.HasServer` then scan all packages
 - F007: `if ctx.FeatureProfile.CommandFlow != CommandFlowCommands` then scan all calls
@@ -78,6 +81,7 @@ These gate on the profile ONCE before doing project-wide scans. Examples:
 
 **Category B — Per-file severity modulators (5 detectors):**
 These iterate files and modulate severity based on the profile:
+
 - S002: `if !ctx.FeatureProfile.HasServer { severity = Info }` — could use ProfileForFile
 - A009: `switch ctx.FeatureProfile.Store` for suggestion text — cosmetic, low priority
 - E009: `if ctx.FeatureProfile.HasTransport` — project-level, not per-file
@@ -89,6 +93,7 @@ These iterate files and modulate severity based on the profile:
 **Tested:** 8 of 10 render functions.
 
 **Not tested:**
+
 - `renderDoctorConfigFile` — reads filesystem (`os.ReadFile`), would need temp dir setup
 - `renderDoctorSuggestedConfig` — uses `json.Marshal` with `jsontext` options, harder to assert on exact formatting
 
@@ -230,6 +235,7 @@ Nothing catastrophically broken. But these are real gaps:
 ### 1. Finding cardinality for per-module adoption rules
 
 When F003 (no OTel tracing) is migrated to per-module, a 5-module workspace where no module has OTel would produce 5 F003 findings instead of 1. Should I:
+
 - **(a)** Keep one finding per project (current behavior, suppress duplicates)?
 - **(b)** Emit one finding per module (more precise, but noisier)?
 - **(c)** Emit one finding but list all affected modules in the message?
