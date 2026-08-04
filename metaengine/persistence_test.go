@@ -20,7 +20,10 @@ func TestPersistence_Constants(t *testing.T) {
 	t.Parallel()
 
 	if metaengine.PersistenceVolatile != "" {
-		t.Errorf("PersistenceVolatile should be empty string, got %q", metaengine.PersistenceVolatile)
+		t.Errorf(
+			"PersistenceVolatile should be empty string, got %q",
+			metaengine.PersistenceVolatile,
+		)
 	}
 	if metaengine.PersistencePersistent != "persistent" {
 		t.Errorf("PersistencePersistent should be \"persistent\", got %q",

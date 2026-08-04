@@ -57,7 +57,10 @@ func (r *durabilityRule) Apply(result *PlanResult, ctx PlanContext) error {
 				Query: q.QueryName,
 				Message: fmt.Sprintf(
 					"routed to volatile engine %q — data lost on restart (persistent alternative: %s at %s, %.0fns/op)",
-					profile.Name, altName, altComplexity, altNsPerOp,
+					profile.Name,
+					altName,
+					altComplexity,
+					altNsPerOp,
 				),
 			})
 		} else {
