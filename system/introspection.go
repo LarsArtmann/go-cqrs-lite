@@ -128,22 +128,20 @@ func (s *System) Explain(ctx context.Context) string {
 	var b strings.Builder
 
 	b.WriteString("System Topology:\n")
-	b.WriteString(fmt.Sprintf("  Drivers: %s\n", strings.Join(RegisteredDrivers(), ", ")))
-	b.WriteString(fmt.Sprintf("  Engines: %d\n", len(s.engines)))
-	b.WriteString(fmt.Sprintf("  Started: %v\n", s.started))
+	fmt.Fprintf(&b, "  Drivers: %s\n", strings.Join(RegisteredDrivers(), ", "))
+	fmt.Fprintf(&b, "  Engines: %d\n", len(s.engines))
+	fmt.Fprintf(&b, "  Started: %v\n", s.started)
 
 	if s.projHost != nil {
 		b.WriteString("  ProjectionHost: configured\n")
 	}
 
 	if s.projStore != nil {
-		b.WriteString(
-			fmt.Sprintf("  ProjectionStore: %d collections\n", len(s.projStore.Collections())),
-		)
+		fmt.Fprintf(&b, "  ProjectionStore: %d collections\n", len(s.projStore.Collections()))
 	}
 
-	b.WriteString(fmt.Sprintf("  Go version: %s\n", runtime.Version()))
-	b.WriteString(fmt.Sprintf("  Time: %s\n", time.Now().Format(time.RFC3339)))
+	fmt.Fprintf(&b, "  Go version: %s\n", runtime.Version())
+	fmt.Fprintf(&b, "  Time: %s\n", time.Now().Format(time.RFC3339))
 
 	return b.String()
 }

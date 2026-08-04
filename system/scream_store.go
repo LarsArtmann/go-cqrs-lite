@@ -2,6 +2,7 @@ package system
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -37,6 +38,7 @@ func (r *ScreamReport) HasErrors() bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -47,12 +49,13 @@ func (r *ScreamReport) HasWarnings() bool {
 			return true
 		}
 	}
+
 	return false
 }
 
 // ErrUnsafeChange is returned when the scream store detects a SCREAM-tier
 // violation. The system refuses to start.
-var ErrUnsafeChange = fmt.Errorf("system: unsafe deployment change detected (SCREAM-tier)")
+var ErrUnsafeChange = errors.New("system: unsafe deployment change detected (SCREAM-tier)")
 
 // CheckSafety validates the deployment config against safety rules.
 // This is the initial implementation — the full scream store will diff
@@ -109,11 +112,13 @@ func isAcknowledged(cfg DeploymentConfig, ruleKey string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
 // ScreamReportAccess returns the safety report for the running system.
 func (s *System) ScreamReport() *ScreamReport {
 	report, _ := CheckSafety(context.Background(), s.deployment)
+
 	return report
 }

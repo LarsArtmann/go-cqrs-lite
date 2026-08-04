@@ -2,12 +2,14 @@ package system
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/maypok86/otter/v2"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/maypok86/otter/v2"
 )
 
 // CachedEventStore wraps an event.Store with a read-through cache using
@@ -86,7 +88,7 @@ func (c *CachedEventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
 		return j.ReadAll(ctx)
 	}
 
-	return nil, fmt.Errorf("system: underlying store does not implement event.Journal")
+	return nil, errors.New("system: underlying store does not implement event.Journal")
 }
 
 func (c *CachedEventStore) ReadFrom(
@@ -96,7 +98,7 @@ func (c *CachedEventStore) ReadFrom(
 		return sj.ReadFrom(ctx, afterEventID, limit)
 	}
 
-	return nil, fmt.Errorf("system: underlying store does not implement event.SeekableJournal")
+	return nil, errors.New("system: underlying store does not implement event.SeekableJournal")
 }
 
 // CacheStats returns basic cache statistics for introspection.
@@ -105,5 +107,6 @@ func (c *CachedEventStore) CacheStats() (size int, capacity int) {
 	for range c.cache.Keys() {
 		count++
 	}
+
 	return count, 0
 }
