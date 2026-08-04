@@ -1,5 +1,10 @@
 # cqrs-lint Validation Report
 
+> **HISTORICAL SNAPSHOT — 2026-07-30.** This report captured the state at 65→84
+> rules across 6→8 categories. The linter has since grown to 185 rules across 10
+> categories. See `CHANGELOG.md` for the current state and `README.md` for the
+> authoritative rule count.
+
 > **Date:** 2026-07-30
 > **Scope:** Improvement plan execution — 65→84 rules, 6→8 categories
 > **Status:** ALL GREEN — build, test, vet clean

@@ -1,5 +1,11 @@
 # cqrs-lint Improvement Ideas
 
+> **HISTORICAL IDEAS BACKLOG.** Generated from a deep analysis of **45 consumer
+> projects** (21 analyzed from source code on disk). Many ideas have since been
+> implemented — see `CHANGELOG.md` for the current rule count (185+ rules across
+> 10 categories). Remaining open items are candidates for future rule additions.
+> Struck-through items are done.
+
 > Generated from a deep analysis of **45 consumer projects** (21 analyzed from source code on disk).
 > Each idea is grounded in a real anti-pattern observed in one or more consumer codebases.
 > The current linter has **171 rules** (C001-C034, A001-A027+A029+A030+A032, B001-B028, D001-D003+D005-D014, E001-E017, S001-S003+S005-S010, P001+P006-P011, V001-V006, T001-T008, F001-F017).

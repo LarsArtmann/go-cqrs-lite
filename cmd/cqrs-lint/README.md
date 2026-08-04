@@ -102,7 +102,7 @@ Or set the preset directly in `.cqrs-lint.json`:
 
 ```json
 {
-  "preset": "local-cli"
+	"preset": "local-cli"
 }
 ```
 
@@ -110,15 +110,65 @@ Each preset pins feature flags AND disables rules that are known false-positives
 for that project type. Explicit `features` flags always override preset values;
 explicit `rules.disable` entries are added on top (union).
 
-| Preset       | Features                                           | Rule defaults                    | Severity floor |
-| ------------ | -------------------------------------------------- | -------------------------------- | -------------- |
-| `local-cli`  | `server: false`, `tracing: off`                    | F004, F009, F013, F015, F017     | `warning`      |
-| `production` | `server: true`, `tracing: on`                      | (none)                           | (default)      |
-| `library`    | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016 | (default) |
-| `read-only`  | `command-flow: read-only`                          | (none)                           | (default)      |
+| Preset       | Features                                                                    | Rule defaults                | Severity floor |
+| ------------ | --------------------------------------------------------------------------- | ---------------------------- | -------------- |
+| `local-cli`  | `server: false`, `tracing: off`                                             | F004, F009, F013, F015, F017 | `warning`      |
+| `production` | `server: true`, `tracing: on`                                               | (none)                       | (default)      |
+| `library`    | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016                   | (default)      |
+| `read-only`  | `command-flow: read-only`                                                   | (none)                       | (default)      |
 
 cqrs-lint warns on unknown preset names (typos) and unknown disabled rule IDs,
 so misconfigurations surface immediately instead of silently doing nothing.
+
+## Configuration Reference
+
+All keys are optional. The file is auto-loaded from `.cqrs-lint.json` in the
+current directory. Generate one with `cqrs-lint init [--preset <name>]`.
+
+### Top-level keys
+
+| Key              | Type   | Default     | Description                                                    |
+| ---------------- | ------ | ----------- | -------------------------------------------------------------- |
+| `preset`         | string | `""` (none) | Preset name: `local-cli`, `production`, `library`, `read-only` |
+| `min-severity`   | string | `"info"`    | Minimum severity shown: `info`, `warning`, `error`, `critical` |
+| `min-confidence` | string | `"low"`     | Minimum confidence shown: `low`, `medium`, `high`              |
+| `format`         | string | `"text"`    | Output format: `text`, `json`, `sarif`, `markdown`             |
+| `exclude`        | string | `""`        | Comma-separated paths to exclude                               |
+| `features`       | object | `{}`        | Feature profile overrides (see below)                          |
+| `rules`          | object | `{}`        | Rule-specific overrides (see below)                            |
+| `health`         | object | `{}`        | Health-score tuning (see below)                                |
+
+### `features` keys
+
+Each key overrides auto-detection. Set only the ones you want to pin.
+
+| Key            | Type   | Values                                                                       |
+| -------------- | ------ | ---------------------------------------------------------------------------- |
+| `store`        | string | `sqlite`, `postgres`, `mysql`, `pebble`, `memory`, `turso`, `custom`, `none` |
+| `command-flow` | string | `read-only`, `sync`, `commands`                                              |
+| `server`       | bool   | `true` if a network listener is present                                      |
+| `soft-delete`  | bool   | `true` if tombstone events are emitted                                       |
+| `tracing`      | string | `off`, `on`                                                                  |
+| `snapshot`     | string | `off`, `on`                                                                  |
+| `domain`       | string | `financial` (escalates security/money rules), `internal`, `security`         |
+| `transport`    | bool   | `true` if transport/http or transport/grpc imported                          |
+| `server-local` | bool   | `true` if server lacks production signals                                    |
+| `async-bus`    | bool   | `true` if a distributed (Watermill) bus is wired                             |
+
+### `rules` keys
+
+| Key                            | Type     | Description                                               |
+| ------------------------------ | -------- | --------------------------------------------------------- |
+| `disable`                      | string[] | Rule IDs to suppress project-wide                         |
+| `external-api-struct-prefixes` | string[] | Struct prefixes mirroring external APIs (suppresses D002) |
+| `c008-ignore-fields`           | string[] | Field names to exclude from C008 (case-insensitive)       |
+| `c008-ignore-structs`          | string[] | Struct names to exclude entirely from C008                |
+
+### `health` keys
+
+| Key        | Type | Default | Description                                                                   |
+| ---------- | ---- | ------- | ----------------------------------------------------------------------------- |
+| `info-cap` | int  | `20`    | Max health-score penalty from Info findings. `0` = default, negative = no cap |
 
 ## Rule Count
 

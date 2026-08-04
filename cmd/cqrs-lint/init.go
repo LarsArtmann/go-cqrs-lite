@@ -104,7 +104,8 @@ func generateInitConfig(preset string) (string, error) {
 // marshalInitConfig serializes v to indented JSON with a trailing newline,
 // matching the formatting of hand-written config files.
 func marshalInitConfig(v any) (string, error) {
-	raw, err := json.Marshal(v,
+	raw, err := json.Marshal(
+		v,
 		jsontext.WithIndentPrefix(""),
 		jsontext.WithIndent("  "),
 	)

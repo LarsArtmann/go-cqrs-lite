@@ -759,7 +759,10 @@ func TestResolvePresetDefinition_BackwardCompatWithResolvePreset(t *testing.T) {
 		features := ResolvePreset(ConfigPreset(name))
 
 		if def.Features.Server != features.Server {
-			t.Errorf("preset %q: ResolvePresetDefinition().Features.Server != ResolvePreset().Server", name)
+			t.Errorf(
+				"preset %q: ResolvePresetDefinition().Features.Server != ResolvePreset().Server",
+				name,
+			)
 		}
 	}
 }

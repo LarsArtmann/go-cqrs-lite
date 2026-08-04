@@ -97,7 +97,8 @@ func applyConfigOverrides(cfg *AppConfig, actx *analyzer.AnalysisContext) {
 	// user's disables are appended on top (union). Validate deduplicates.
 	cfg.Rules.Disable = mergeStringSlices(presetDef.Rules.Disable, cfg.Rules.Disable)
 	cfg.Rules.ExternalAPIStructPrefixes = mergeStringSlices(
-		presetDef.Rules.ExternalAPIStructPrefixes, cfg.Rules.ExternalAPIStructPrefixes)
+		presetDef.Rules.ExternalAPIStructPrefixes, cfg.Rules.ExternalAPIStructPrefixes,
+	)
 
 	// Resolve features: preset defaults overridden by explicit config flags.
 	actx.FeatureProfile = analyzer.ResolveFeatureProfile(
