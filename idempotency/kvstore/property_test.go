@@ -197,13 +197,13 @@ func TestProperty_TTLExpiry_AllStores(t *testing.T) {
 
 	runPropertyAllStores(t, func(rt *rapid.T, store idempotency.Store) {
 		key := rapid.String().Draw(rt, "key")
-		ttl := 50 * time.Millisecond
+		ttl, wait := ttlTestParams()
 
 		if err := store.CheckAndRecord(context.Background(), key, ttl); err != nil {
 			rt.Fatalf("CheckAndRecord (first): %v", err)
 		}
 
-		time.Sleep(ttl + 30*time.Millisecond)
+		time.Sleep(wait)
 
 		seen, err := store.Seen(context.Background(), key)
 		if err != nil {

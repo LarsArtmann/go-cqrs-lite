@@ -105,8 +105,9 @@ func TestStore_CheckAndRecord_Expired_OverwritesAndClaims(t *testing.T) {
 	backend := kv.NewMemStore()
 	store := kvstore.New(backend)
 	ctx := context.Background()
-	_ = store.Record(ctx, "key", 10*time.Millisecond)
-	time.Sleep(20 * time.Millisecond)
+	ttl, wait := ttlTestParams()
+	_ = store.Record(ctx, "key", ttl)
+	time.Sleep(wait)
 	if err := store.CheckAndRecord(ctx, "key", time.Minute); err != nil {
 		t.Fatalf("CheckAndRecord on expired key: %v", err)
 	}
