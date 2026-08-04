@@ -200,9 +200,13 @@ func newSQLiteStoreForContract(t *testing.T) *idemsqlstore.Store {
 
 // TestStore_Record_MatchesMemoryStoreContract verifies the kvstore Record/Seen
 // contract matches the reference MemoryStore implementation AND the SQL store.
-// All three implementations must be a no-op on an existing key and never extend
-// the TTL. This is the authoritative cross-implementation contract test
-// (closing the 2-of-3 gap; previously only Memory + KV were covered).
+// All three implementations must be a no-op on an existing non-expired key and
+// never extend the TTL. This is the authoritative cross-implementation contract
+// test (closing the 2-of-3 gap; previously only Memory + KV were covered).
+//
+// Note: MemoryStore.Record intentionally re-records EXPIRED entries (sets a
+// fresh TTL). This test only covers the non-expired case, which all three
+// implementations agree on: Record is a no-op when the key is still valid.
 func TestStore_Record_MatchesMemoryStoreContract(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
@@ -221,11 +225,17 @@ func TestStore_Record_MatchesMemoryStoreContract(t *testing.T) {
 			if err := s.Record(ctx, "k", shortTTL); err != nil {
 				t.Fatalf("first Record: %v", err)
 			}
-			time.Sleep(wait)
 
+			// Immediately Record again with a longer TTL. The entry is still
+			// valid (not expired), so all implementations must treat this as a
+			// no-op and NOT extend the TTL.
 			if err := s.Record(ctx, "k", time.Hour); err != nil {
 				t.Fatalf("second Record: %v", err)
 			}
+
+			// Wait for the original shortTTL to expire. If the second Record
+			// had extended the TTL to 1h, the entry would still be valid.
+			time.Sleep(wait)
 
 			seen, err := s.Seen(ctx, "k")
 			if err != nil {
@@ -233,7 +243,7 @@ func TestStore_Record_MatchesMemoryStoreContract(t *testing.T) {
 			}
 			if seen {
 				t.Fatalf(
-					"Record extended the TTL (Seen=true after expiry); contract requires no-op on existing",
+					"Record extended the TTL (Seen=true after original TTL expiry); contract requires no-op on existing",
 				)
 			}
 		})
