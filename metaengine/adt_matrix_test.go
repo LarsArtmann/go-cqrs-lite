@@ -28,3 +28,33 @@ func TestADTMatrix(t *testing.T) {
 		},
 	})
 }
+
+func TestLayoutMatrix(t *testing.T) {
+	t.Parallel()
+
+	adttest.RunLayoutMatrix(t, []adttest.Factory{
+		{
+			Name:   "memory",
+			Create: func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() },
+		},
+		{
+			Name:   "sqlite",
+			Create: func(t *testing.T) metaengine.Engine { return newIsolatedSQLiteEngine(t) },
+		},
+	})
+}
+
+func TestLayoutConflict(t *testing.T) {
+	t.Parallel()
+
+	adttest.RunLayoutConflictTest(t, []adttest.Factory{
+		{
+			Name:   "memory",
+			Create: func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() },
+		},
+		{
+			Name:   "sqlite",
+			Create: func(t *testing.T) metaengine.Engine { return newIsolatedSQLiteEngine(t) },
+		},
+	})
+}

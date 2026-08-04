@@ -7,6 +7,28 @@ import (
 
 // --- StreamLogBackend ---
 
+// StreamReadAsOfVersion returns all values for a stream up to maxVersion.
+// This implements the StreamTemporalReader optional interface.
+func (m *memoryEngine) StreamReadAsOfVersion(
+	_ context.Context,
+	col, sid string,
+	maxVersion int64,
+) ([]any, error) {
+	if maxVersion <= 0 {
+		return []any{}, nil
+	}
+
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	stream := m.data.streams[col][sid]
+	if maxVersion >= int64(len(stream)) {
+		return slices.Clone(stream), nil
+	}
+
+	return slices.Clone(stream[:maxVersion]), nil
+}
+
 func (m *memoryEngine) StreamAppend(_ context.Context, col, sid string, values []any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -140,3 +162,10 @@ func (m *memoryEngine) StreamAppendExpected(
 
 	return nil
 }
+
+// Compile-time assertions for memoryEngine.
+var (
+	_ StreamLogBackend     = (*memoryEngine)(nil)
+	_ AtomicAppender       = (*memoryEngine)(nil)
+	_ StreamTemporalReader = (*memoryEngine)(nil)
+)

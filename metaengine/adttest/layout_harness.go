@@ -3,7 +3,6 @@ package adttest
 import (
 	"context"
 	"errors"
-	"reflect"
 	"sort"
 	"sync"
 	"testing"
@@ -269,6 +268,3 @@ func joinStrings(s []string) string {
 
 	return result
 }
-
-// _ ensures reflect is imported (used for type assertions in future scenarios).
-var _ = reflect.TypeOf

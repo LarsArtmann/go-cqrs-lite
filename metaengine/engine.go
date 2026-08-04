@@ -465,6 +465,24 @@ type AtomicAppender interface {
 	) error
 }
 
+// StreamTemporalReader provides version-bounded reads on stream logs.
+// Engines implement this to support temporal queries: "give me the state of
+// this stream as it was at version N." This is the stream-log equivalent of
+// [VersionedStorage] for map collections.
+//
+// Not all engines implement this — check with a type assertion.
+type StreamTemporalReader interface {
+	// StreamReadAsOfVersion returns all values for a stream up to and
+	// including maxVersion (1-indexed: maxVersion=3 returns the first 3 entries).
+	// If maxVersion is 0 or negative, returns an empty slice.
+	// If maxVersion exceeds the stream length, returns all values.
+	StreamReadAsOfVersion(
+		ctx context.Context,
+		collection, streamID string,
+		maxVersion int64,
+	) ([]any, error)
+}
+
 // SnapshotBackend is an optional interface for engines that support snapshot
 // storage (D12). Engines implement it to enable decider snapshotting —
 // storing a serialized aggregate state at a given version to avoid replaying

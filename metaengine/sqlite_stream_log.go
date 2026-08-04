@@ -88,6 +88,22 @@ func (e *sqliteEngine) StreamAppendExpected(
 	})
 }
 
+// StreamReadAsOfVersion returns all values for a stream up to maxVersion.
+// This implements the StreamTemporalReader optional interface.
+func (e *sqliteEngine) StreamReadAsOfVersion(
+	ctx context.Context,
+	col, sid string,
+	maxVersion int64,
+) ([]any, error) {
+	if maxVersion <= 0 {
+		return []any{}, nil
+	}
+
+	return e.scanStreamValues(ctx,
+		`SELECT value FROM meta_stream_log WHERE collection = ? AND stream_id = ? ORDER BY seq LIMIT ?`,
+		col, sid, maxVersion)
+}
+
 // encodeStreamValue serializes a value for storage in the stream log TEXT column.
 // Strings are stored as-is; all other types are JSON-encoded via encodeJSON.
 func encodeStreamValue(v any) string {
@@ -133,6 +149,8 @@ func (e *sqliteEngine) scanStreamValues(
 
 // Compile-time assertions for sqliteEngine.
 var (
-	_ StreamLogBackend = (*sqliteEngine)(nil)
-	_ AtomicAppender   = (*sqliteEngine)(nil)
+	_ StreamLogBackend     = (*sqliteEngine)(nil)
+	_ AtomicAppender       = (*sqliteEngine)(nil)
+	_ StreamTemporalReader = (*sqliteEngine)(nil)
+	_ SnapshotBackend      = (*sqliteEngine)(nil)
 )
