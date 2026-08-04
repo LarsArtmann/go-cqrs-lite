@@ -142,13 +142,21 @@ func detectStaleBlocks(
 
 	var openBlocks []block
 
-	for lineIdx, line := range lines {
+	for lineIdx, raw := range lines {
 		lineNum := lineIdx + 1
 
-		line = normalizeCommentPrefix(line)
+		// Only consider real Go comments, not string literals that mention the
+		// block syntax (e.g. help-text examples in fmt.Println strings). The
+		// block marker must be at the start of the comment text.
+		cs := commentTextStart(raw)
+		if cs < 0 {
+			continue
+		}
 
-		if strings.Contains(line, blockStartPrefix) {
-			rules := parseBlockStart(line)
+		commentText := normalizeCommentPrefix(strings.TrimSpace(raw[cs:]))
+
+		if strings.HasPrefix(commentText, blockStartPrefix) {
+			rules := parseBlockStart(commentText)
 			openBlocks = append(openBlocks, block{
 				startLine: lineNum,
 				rules:     rules,
@@ -157,7 +165,7 @@ func detectStaleBlocks(
 			continue
 		}
 
-		if strings.Contains(line, blockEndPrefix) {
+		if strings.HasPrefix(commentText, blockEndPrefix) {
 			if len(openBlocks) == 0 {
 				continue // unmatched ignore-end; not a stale block issue
 			}

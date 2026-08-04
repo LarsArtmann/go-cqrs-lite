@@ -298,6 +298,47 @@ func TestParseSuppressions_EndOfLine_CommaSeparated(t *testing.T) {
 	}
 }
 
+// TestParseSuppressions_IgnoresDocStringMentions ensures documentation/example
+// strings that merely mention the suppression syntax are NOT mistaken for real
+// suppressions. Without the out-of-string check, a line like the help text
+// fmt.Println("//cqrs-lint:ignore(RULE)") would be flagged as a (stale)
+// suppression referencing unknown rule "RULE".
+func TestParseSuppressions_IgnoresDocStringMentions(t *testing.T) {
+	t.Parallel()
+
+	cases := []string{
+		// double-quoted string mentions the syntax as documentation
+		`fmt.Println("Suppress confirmed FPs with //cqrs-lint:ignore(RULE)")`,
+		// double-quoted string with the space variant
+		`s := "// cqrs-lint:ignore(C007) example"`,
+		// backtick raw string
+		"msg := `use //cqrs-lint:ignore(A001) to suppress`",
+	}
+	for _, line := range cases {
+		suppressions := suppression.ParseSuppressions(line)
+		if len(suppressions) != 0 {
+			t.Errorf("doc string should not be parsed as suppression: %q -> %v", line, suppressions)
+		}
+	}
+}
+
+// TestParseSuppressions_RealCommentAfterStringLiteral ensures a genuine
+// end-of-line suppression following a string literal on the same line still
+// works — the string-aware scan must not over-suppress.
+func TestParseSuppressions_RealCommentAfterStringLiteral(t *testing.T) {
+	t.Parallel()
+
+	suppressions := suppression.ParseSuppressions(
+		`_ = "//cqrs-lint:ignore(NOPE)" //cqrs-lint:ignore(C007) real`,
+	)
+	if len(suppressions) != 1 {
+		t.Fatalf("got %d suppressions, want 1 (only the real comment)", len(suppressions))
+	}
+	if _, ok := suppressions["C007"]; !ok {
+		t.Errorf("C007 (real end-of-line comment) should be recognized; got %v", suppressions)
+	}
+}
+
 func TestNewSuppressionFilter_EndOfLineCommentInFile(t *testing.T) {
 	t.Parallel()
 

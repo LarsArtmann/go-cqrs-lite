@@ -12,9 +12,6 @@ import (
 	"github.com/larsartmann/go-finding/pipeline"
 )
 
-// commentPrefix is the inline suppression comment prefix.
-const commentPrefix = "//cqrs-lint:ignore"
-
 // blockStartPrefix is the block suppression start comment prefix.
 const blockStartPrefix = "//cqrs-lint:ignore-start"
 
@@ -74,6 +71,49 @@ func (c *lineCache) getLines(path string) []string {
 // naturally write "// cqrs-lint:ignore(C007)" — this must work.
 func normalizeCommentPrefix(line string) string {
 	return strings.Replace(line, "// cqrs-lint:", "//cqrs-lint:", 1)
+}
+
+// commentTextStart returns the byte index in line of the first "//" that
+// begins a Go line comment AND is not inside a string literal (double- or
+// backtick-quoted). Only this first "//" starts the comment; everything after
+// it is comment text, so a later "//cqrs-lint:ignore" appearing in an
+// already-open comment or a doc string is literal text, not a directive.
+// Returns -1 when the line has no out-of-string line comment.
+func commentTextStart(line string) int {
+	inDouble := false
+	inBacktick := false
+
+	for i := 0; i < len(line); i++ {
+		c := line[i]
+
+		switch {
+		case inBacktick:
+			if c == '`' {
+				inBacktick = false
+			}
+		case inDouble:
+			if c == '\\' { // skip the next (escaped) byte
+				i++
+				continue
+			}
+			if c == '"' {
+				inDouble = false
+			}
+		default:
+			switch c {
+			case '`':
+				inBacktick = true
+			case '"':
+				inDouble = true
+			case '/':
+				if i+1 < len(line) && line[i+1] == '/' {
+					return i
+				}
+			}
+		}
+	}
+
+	return -1
 }
 
 // NewSuppressionFilter creates a FindingTransformer that marks findings
@@ -270,24 +310,27 @@ func ParseSuppressions(commentText string) map[string]string {
 	lines := strings.SplitSeq(commentText, "\n")
 	for line := range lines {
 		line = strings.TrimSpace(line)
-		// Normalize: accept both "//cqrs-lint:ignore" and "// cqrs-lint:ignore".
-		line = normalizeCommentPrefix(line)
-		// Find the suppression prefix anywhere in the line, not just at the
-		// start. This recognizes end-of-line comments:
+		// Locate the line's comment: the first "//" outside a string literal.
+		// Everything after it is comment text. This recognizes end-of-line
+		// suppressions ("code //cqrs-lint:ignore(A008)") while rejecting two
+		// classes of false match that an anywhere-in-line search would catch:
 		//
-		//	EventType = sdk.EventType //cqrs-lint:ignore(A008) re-export
-		//
-		// Without this, trailing suppressions after code were silently ignored
-		// because HasPrefix requires the line to START with the comment prefix.
-		idx := strings.Index(line, commentPrefix)
-		if idx < 0 {
+		//   1. Doc/example strings: fmt.Println("//cqrs-lint:ignore(RULE)")
+		//      (the // is inside a string literal → skipped).
+		//   2. Doc comments that merely mention the syntax:
+		//      "// see the //cqrs-lint:ignore docs" (the directive is NOT at the
+		//      start of the comment text → rejected by the HasPrefix check).
+		cs := commentTextStart(line)
+		if cs < 0 {
 			continue
 		}
-		line = line[idx:]
 
-		rest := strings.TrimPrefix(line, commentPrefix)
+		text := strings.TrimSpace(line[cs+2:])
+		if !strings.HasPrefix(text, "cqrs-lint:ignore") {
+			continue
+		}
 
-		rest = strings.TrimSpace(rest)
+		rest := strings.TrimSpace(strings.TrimPrefix(text, "cqrs-lint:ignore"))
 		if strings.HasPrefix(rest, "(") {
 			end := strings.Index(rest, ")")
 			if end > 0 {
