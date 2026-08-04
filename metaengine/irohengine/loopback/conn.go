@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/fxamacker/cbor/v2"
+
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 )
 
@@ -14,7 +15,7 @@ import (
 // semantics) instead of the default map[interface{}]interface{}.
 var opDecMode = func() cbor.DecMode {
 	dm, _ := cbor.DecOptions{
-		DefaultMapType: reflect.TypeOf(map[string]interface{}{}),
+		DefaultMapType: reflect.TypeFor[map[string]any](),
 	}.DecMode()
 	return dm
 }()
