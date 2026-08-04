@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
-
-	"github.com/cockroachdb/pebble"
 )
 
 // seedSeqCounters scans existing keys and seeds all in-memory sequence counters
@@ -64,12 +62,7 @@ func (e *pebbleEngine) seedStreamSeqs() error {
 // seedCollectionSeqs scans a tag prefix (e.g. "jl", "l") and seeds a
 // per-collection counter sync.Map. The group key is the collection name only.
 func (e *pebbleEngine) seedCollectionSeqs(tag string, target *sync.Map) error {
-	prefix := []byte(tag + sep)
-
-	iter, err := e.db.NewIter(&pebble.IterOptions{
-		LowerBound: prefix,
-		UpperBound: nextKey(prefix),
-	})
+	iter, err := e.newPrefixIter([]byte(tag + sep))
 	if err != nil {
 		return err
 	}
@@ -94,19 +87,15 @@ func (e *pebbleEngine) seedCollectionSeqs(tag string, target *sync.Map) error {
 // seedMultimapSeqs scans the mm\x00 prefix and seeds mmSeq counters.
 // The mmSeq counter is keyed by collection name only (not collection+key).
 func (e *pebbleEngine) seedMultimapSeqs() error {
-	prefix := []byte("mm" + sep)
-
-	iter, err := e.db.NewIter(&pebble.IterOptions{
-		LowerBound: prefix,
-		UpperBound: nextKey(prefix),
-	})
+	tag := "mm"
+	iter, err := e.newPrefixIter([]byte(tag + sep))
 	if err != nil {
 		return err
 	}
 
 	defer func() { _ = iter.Close() }()
 
-	tagLen := len("mm" + sep)
+	tagLen := len(tag + sep)
 
 	for iter.First(); iter.Valid(); iter.Next() {
 		key := iter.Key()
