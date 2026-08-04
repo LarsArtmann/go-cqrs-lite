@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0
 	github.com/maypok86/otter/v2 v2.3.0
 	gopkg.in/yaml.v3 v3.0.1
-	modernc.org/sqlite v1.55.0
+	modernc.org/sqlite v1.56.0
 )
 
 require (
