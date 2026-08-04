@@ -107,6 +107,18 @@ func applyConfigOverrides(cfg *AppConfig, actx *analyzer.AnalysisContext) {
 		actx.FeatureProfile,
 	)
 
+	// Resolve per-module profiles with the SAME config/preset so each module's
+	// detected features are pinned consistently. Without this, a multi-module
+	// workspace would carry raw auto-detected per-module profiles that ignore
+	// the user's preset (e.g. "library"). The primary FeatureProfile resolved
+	// above is the source of truth for global detectors; these per-module
+	// profiles drive ProfileForFile for per-file evaluation.
+	for dir, detected := range actx.FeatureProfiles {
+		actx.FeatureProfiles[dir] = analyzer.ResolveFeatureProfile(
+			cfg.Features, cfg.Preset, detected,
+		)
+	}
+
 	// Validate + normalize rules config (catches typos in rules keys).
 	rawRules := loadRawRulesJSON()
 	cfg.Rules.Validate(os.Stderr, rawRules)

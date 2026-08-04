@@ -100,12 +100,12 @@ type UserReadModel struct {
 		},
 		{
 			"P012",
-			map[string]string{"setup.go": `//cqrs-lint:ignore(P012) wal not needed
-package main
+			map[string]string{"setup.go": `package main
 
 import "database/sql"
 
 func setup() {
+	//cqrs-lint:ignore(P012) wal not needed
 	db, _ := sql.Open("sqlite", "test.db")
 	_ = db
 }

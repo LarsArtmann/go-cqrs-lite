@@ -83,6 +83,11 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 		Registry:    NewCQRSRegistry(),
 	}
 
+	// packagesByModule records which packages were loaded from each go.mod dir.
+	// *packages.Package does not carry its module dir, so we capture it here for
+	// per-module feature detection (DetectFeaturesPerModule).
+	packagesByModule := map[string][]*packages.Package{}
+
 	for _, dir := range modDirs {
 		pkgs, err := loadFromDir(dir, fset)
 		if err != nil {
@@ -94,6 +99,7 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 		}
 
 		ctx.Packages = append(ctx.Packages, pkgs...)
+		packagesByModule[dir] = append(packagesByModule[dir], pkgs...)
 
 		for _, pkg := range pkgs {
 			if len(pkg.Errors) > 0 {
@@ -132,10 +138,11 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 
 				path := pkg.GoFiles[i]
 				goFile := &GoFile{
-					Path:   path,
-					Pkg:    pkg,
-					AST:    file,
-					IsTest: strings.HasSuffix(path, "_test.go"),
+					Path:      path,
+					Pkg:       pkg,
+					AST:       file,
+					IsTest:    strings.HasSuffix(path, "_test.go"),
+					ModuleDir: dir,
 				}
 				ctx.GoFiles = append(ctx.GoFiles, goFile)
 
@@ -150,9 +157,52 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 	ResolveRegisteredTypeConsts(ctx.Registry)
 	ResolveHandlerMethods(ctx)
 
-	ctx.FeatureProfile = DetectFeatures(ctx)
+	// Per-module feature detection. For a single-module project this produces
+	// one profile identical to the old merged detection. For a multi-module
+	// workspace each module gets its own profile (so an examples/ app's
+	// ListenAndServe no longer flips server=true for the library module), and
+	// the PRIMARY module's profile (shallowest dir, typically the project root)
+	// is exposed via FeatureProfile for global detectors + doctor output.
+	if len(modDirs) > 1 {
+		ctx.FeatureProfiles = DetectFeaturesPerModule(ctx, packagesByModule)
+		ctx.FeatureProfile = primaryModuleProfile(ctx.FeatureProfiles, projectRoot, modDirs)
+	} else {
+		ctx.FeatureProfile = DetectFeatures(ctx)
+	}
 
 	return ctx, nil
+}
+
+// primaryModuleProfile selects the profile of the project's primary module from
+// a per-module map. The primary module is the go.mod at projectRoot when one
+// exists; otherwise the shallowest module dir. Callers only invoke this when
+// the map is non-empty.
+func primaryModuleProfile(
+	profiles map[string]FeatureProfile,
+	projectRoot string,
+	modDirs []string,
+) FeatureProfile {
+	if p, ok := profiles[projectRoot]; ok {
+		return p
+	}
+
+	// Shallowest dir wins (closest to the filesystem root).
+	var best string
+	for dir := range profiles {
+		if best == "" || pathDepth(dir) < pathDepth(best) {
+			best = dir
+		}
+	}
+	if best != "" {
+		return profiles[best]
+	}
+
+	// Last resort: first module dir.
+	if len(modDirs) > 0 {
+		return profiles[modDirs[0]]
+	}
+
+	return FeatureProfile{}
 }
 
 // filterEventPayloads removes structs from Registry.Events that are not

@@ -85,7 +85,19 @@ type AnalysisContext struct {
 	// FeatureProfile centralizes "what kind of system is this?" as feature flags.
 	// Detectors consult this instead of independently re-deriving project context.
 	// Computed once in BuildContext after the scan completes.
+	//
+	// In a multi-module workspace this holds the PRIMARY module's profile (the
+	// go.mod at the project root, or the shallowest module). It is NOT a cross-
+	// module merge, so an example app's ListenAndServe no longer flips
+	// server=true for the library module. Per-module refinement is available
+	// via FeatureProfiles / ProfileForFile.
 	FeatureProfile FeatureProfile
+
+	// FeatureProfiles holds a per-module FeatureProfile keyed by the module's
+	// go.mod directory. Populated in BuildContext by DetectFeaturesPerModule.
+	// Per-file detectors resolve the correct profile for each finding's file via
+	// ProfileForFile. Empty for single-module projects (use FeatureProfile).
+	FeatureProfiles map[string]FeatureProfile
 
 	// RulesConfig carries rule-specific overrides from .cqrs-lint.json (the
 	// "rules" key). Detectors consult it to suppress documented false-positive
@@ -112,10 +124,46 @@ type PackageLoadError struct {
 
 // GoFile wraps a parsed Go file with its package context.
 type GoFile struct {
-	Path   string
-	Pkg    *packages.Package
-	AST    *ast.File
+	Path string
+	Pkg  *packages.Package
+	AST  *ast.File
 	IsTest bool
+	// ModuleDir is the filesystem path of the go.mod directory this file belongs
+	// to. Set in BuildContext so feature detection can be partitioned per module
+	// (a multi-module workspace gets one FeatureProfile per module instead of a
+	// single cross-module merge). Empty when the file's module is unknown.
+	ModuleDir string
+}
+
+// ProfileForFile returns the FeatureProfile for the module that owns the given
+// file path. This lets per-file detectors evaluate each finding against its own
+// module's features rather than a workspace-wide merge (so a server call in an
+// examples/ module does not enable server-only rules for the library module).
+// Falls back to the primary FeatureProfile when no per-module profile matches
+// (e.g. single-module projects, files outside any known module).
+func (ctx *AnalysisContext) ProfileForFile(path string) FeatureProfile {
+	if len(ctx.FeatureProfiles) == 0 {
+		return ctx.FeatureProfile
+	}
+
+	// A file belongs to the module whose dir is the longest matching prefix of
+	// the file path (handles nested modules: /repo/examples/basic owns files
+	// under /repo/examples/basic/...).
+	var bestDir string
+	for dir := range ctx.FeatureProfiles {
+		if !strings.HasPrefix(path, dir+string(os.PathSeparator)) && path != dir {
+			continue
+		}
+		if len(dir) > len(bestDir) {
+			bestDir = dir
+		}
+	}
+
+	if bestDir != "" {
+		return ctx.FeatureProfiles[bestDir]
+	}
+
+	return ctx.FeatureProfile
 }
 
 // SourceLine reads the source file at the given line number and returns the trimmed line.

@@ -422,6 +422,15 @@ func correctnessRules() []RuleInfo {
 			Description: "Unmanaged goroutine inside event/command handler — resource leak and ordering violation",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C040",
+			Name:        "dead-fold-case",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Fold switch case handles an event type that is never emitted via event.New — dead code or a typo in the fold case string",
+			AutoFix:     false,
+		},
 	}
 }
 

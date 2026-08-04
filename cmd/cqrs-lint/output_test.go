@@ -187,14 +187,14 @@ func TestGroupFindingsByModule(t *testing.T) {
 
 	// Check alphabetical order
 	for i := 1; i < len(groups); i++ {
-		if groups[i-1].module > groups[i].module {
+		if groups[i-1].name > groups[i].name {
 			t.Error("groups should be sorted alphabetically")
 		}
 	}
 
 	// Find the services/api group
 	for _, g := range groups {
-		if g.module == "services/api" {
+		if g.name == "services/api" {
 			if len(g.findings) != 2 {
 				t.Errorf("expected 2 findings in services/api, got %d", len(g.findings))
 			}

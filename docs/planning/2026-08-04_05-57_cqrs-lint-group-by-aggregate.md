@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-04
 **Feedback Item:** #112 — "Group findings by aggregate/domain instead of a flat list"
-**Status:** Planning
+**Status:** Implemented
 
 ---
 

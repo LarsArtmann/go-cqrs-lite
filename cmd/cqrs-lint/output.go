@@ -266,10 +266,16 @@ func outputFindings(ctx context.Context, findings []finding.Finding, cfg *AppCon
 			return nil
 		}
 
-		if cfg.Verbose {
-			printFindingsGrouped(os.Stdout, findings, parseColorMode(cfg.Color))
-		} else {
-			formatFindingsText(os.Stdout, findings, parseColorMode(cfg.Color))
+		cm := parseColorMode(cfg.Color)
+		groupMode := resolveGroupMode(cfg)
+
+		switch groupMode {
+		case "aggregate":
+			printFindingsByAggregate(os.Stdout, findings, cm)
+		case "module":
+			printFindingsGrouped(os.Stdout, findings, cm)
+		default:
+			formatFindingsText(os.Stdout, findings, cm)
 		}
 	}
 
@@ -284,7 +290,7 @@ func printFindingsGrouped(w io.Writer, findings []finding.Finding, cm output.Col
 	groups := groupFindingsByModule(findings)
 
 	for _, g := range groups {
-		header := fmt.Sprintf("=== %s (%d) ===", g.module, len(g.findings))
+		header := fmt.Sprintf("=== %s (%d) ===", g.name, len(g.findings))
 		if useColor {
 			header = ansiBold + ansiCyan + header + ansiReset
 		}
@@ -295,7 +301,7 @@ func printFindingsGrouped(w io.Writer, findings []finding.Finding, cm output.Col
 }
 
 type findingGroup struct {
-	module   string
+	name     string
 	findings []finding.Finding
 }
 
@@ -309,11 +315,11 @@ func groupFindingsByModule(findings []finding.Finding) []findingGroup {
 
 	groups := make([]findingGroup, 0, len(groupMap))
 	for mod, fs := range groupMap {
-		groups = append(groups, findingGroup{module: mod, findings: fs})
+		groups = append(groups, findingGroup{name: mod, findings: fs})
 	}
 
 	sort.Slice(groups, func(i, j int) bool {
-		return groups[i].module < groups[j].module
+		return groups[i].name < groups[j].name
 	})
 
 	return groups
@@ -328,4 +334,76 @@ func moduleFromPath(path string) string {
 	}
 
 	return dir
+}
+
+// resolveGroupMode determines which grouping mode to use for text output.
+// Explicit --group-by takes precedence. When unset, --verbose maps to "module"
+// (backward compatibility). Otherwise, no grouping (flat output).
+func resolveGroupMode(cfg *AppConfig) string {
+	if cfg.GroupBy != "" {
+		return strings.ToLower(cfg.GroupBy)
+	}
+
+	if cfg.Verbose {
+		return "module"
+	}
+
+	return "none"
+}
+
+// groupFindingsByAggregate groups findings by their stamped aggregate metadata
+// (Finding.Metadata["aggregate"]). Findings without an aggregate tag land in
+// the "Uncategorized" bucket. Groups are sorted by finding count descending,
+// then alphabetically — the most issues surface first.
+func groupFindingsByAggregate(findings []finding.Finding) []findingGroup {
+	const uncategorized = "Uncategorized"
+
+	groupMap := make(map[string][]finding.Finding)
+
+	for _, f := range findings {
+		agg := uncategorized
+
+		if f.Metadata != nil {
+			if a := f.Metadata[aggregateMetadataKey]; a != "" {
+				agg = a
+			}
+		}
+
+		groupMap[agg] = append(groupMap[agg], f)
+	}
+
+	groups := make([]findingGroup, 0, len(groupMap))
+
+	for name, fs := range groupMap {
+		groups = append(groups, findingGroup{name: name, findings: fs})
+	}
+
+	sort.Slice(groups, func(i, j int) bool {
+		if len(groups[i].findings) != len(groups[j].findings) {
+			return len(groups[i].findings) > len(groups[j].findings)
+		}
+
+		return groups[i].name < groups[j].name
+	})
+
+	return groups
+}
+
+// printFindingsByAggregate prints findings grouped by aggregate/domain.
+// Each group is preceded by a header showing the aggregate name and finding
+// count. Groups are ordered by severity (most findings first).
+func printFindingsByAggregate(w io.Writer, findings []finding.Finding, cm output.ColorMode) {
+	useColor := shouldColor(cm, w)
+
+	groups := groupFindingsByAggregate(findings)
+
+	for _, g := range groups {
+		header := fmt.Sprintf("--- %s (%d) ---", g.name, len(g.findings))
+		if useColor {
+			header = ansiBold + ansiCyan + header + ansiReset
+		}
+
+		_, _ = fmt.Fprintln(w, header)
+		formatFindingsText(w, g.findings, cm)
+	}
 }

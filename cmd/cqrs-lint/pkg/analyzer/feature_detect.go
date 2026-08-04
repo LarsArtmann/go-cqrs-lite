@@ -2,7 +2,11 @@ package analyzer
 
 import (
 	"go/ast"
+	"os"
+	"sort"
 	"strings"
+
+	"golang.org/x/tools/go/packages"
 )
 
 // DetectFeatures scans the analyzed project and returns a FeatureProfile
@@ -10,6 +14,64 @@ import (
 // per-detector heuristics (isLocalOnlyProject, hasTombstoneLikeEvents,
 // hasDispatch) with one centralized declaration that all detectors consult.
 func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
+	return detectFeatureSignals(ctx.Packages, ctx.GoFiles, ctx.Registry)
+}
+
+// DetectFeaturesPerModule partitions the analyzed files/packages by their go.mod
+// directory and runs feature detection once per module. The result is keyed by
+// module directory path. This prevents a multi-module workspace from getting a
+// single merged profile that is wrong for every individual module (e.g. an
+// examples/ app's ListenAndServe flipping server=true for the library module).
+//
+// packagesByModule maps each module dir to the packages loaded from it; only
+// BuildContext has this mapping (*packages.Package does not carry its module
+// dir). The registry-derived signals (soft-delete, domain) use the global
+// registry since those are weak, project-wide heuristics; the strong import/AST
+// signals (store, server, command-flow, tracing, snapshot, transport,
+// async-bus) are derived from each module's own files.
+func DetectFeaturesPerModule(
+	ctx *AnalysisContext,
+	packagesByModule map[string][]*packages.Package,
+) map[string]FeatureProfile {
+	filesByModule := groupGoFilesByModule(ctx)
+
+	// Union of module dirs from both partitions, ordered shallowest-first.
+	dirSet := map[string]struct{}{}
+	for dir := range packagesByModule {
+		dirSet[dir] = struct{}{}
+	}
+	for dir := range filesByModule {
+		dirSet[dir] = struct{}{}
+	}
+	dirs := make([]string, 0, len(dirSet))
+	for dir := range dirSet {
+		dirs = append(dirs, dir)
+	}
+	sort.Slice(dirs, func(i, j int) bool {
+		di, dj := pathDepth(dirs[i]), pathDepth(dirs[j])
+		if di != dj {
+			return di < dj
+		}
+		return dirs[i] < dirs[j]
+	})
+
+	profiles := make(map[string]FeatureProfile, len(dirs))
+	for _, dir := range dirs {
+		profiles[dir] = detectFeatureSignals(packagesByModule[dir], filesByModule[dir], ctx.Registry)
+	}
+
+	return profiles
+}
+
+// detectFeatureSignals runs the import + AST based detection passes over an
+// explicit set of packages and files, then overlays the registry-derived
+// soft-delete and domain signals from the (global) registry. This is the shared
+// core used by both the workspace-wide DetectFeatures and per-module detection.
+func detectFeatureSignals(
+	pkgs []*packages.Package,
+	gofiles []*GoFile,
+	registry *CQRSRegistry,
+) FeatureProfile {
 	fp := FeatureProfile{
 		Store:       StoreUnknown,
 		CommandFlow: CommandFlowUnknown,
@@ -28,8 +90,7 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 	hasHealthRoute := false
 
 	// Pass 1: import-based detection (store, tracing, snapshot presence).
-	// Skip packages with errors — their import metadata may be unreliable.
-	for _, pkg := range ctx.Packages {
+	for _, pkg := range pkgs {
 		if len(pkg.Errors) > 0 {
 			continue
 		}
@@ -90,7 +151,7 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 	}
 
 	// Pass 2: AST-based detection (server, command-flow, snapshot usage, tracing wiring).
-	for _, gf := range ctx.GoFiles {
+	for _, gf := range gofiles {
 		if gf.IsTest {
 			continue
 		}
@@ -221,8 +282,11 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 		fp.CommandFlow = CommandFlowReadOnly
 	}
 
-	// Resolve soft-delete from event registry.
-	fp.HasSoftDelete = detectSoftDelete(ctx)
+	// Resolve soft-delete and domain from the registry. These are weak,
+	// project-wide heuristics and intentionally use the global registry rather
+	// than a per-module partition (which would require splitting scanFile).
+	fp.HasSoftDelete = detectSoftDeleteRegistry(registry)
+	fp.Domain = detectDomainRegistry(registry)
 
 	// Resolve tracing.
 	if fp.Tracing == TracingUnknown {
@@ -243,10 +307,33 @@ func DetectFeatures(ctx *AnalysisContext) FeatureProfile {
 		fp.Snapshot = SnapshotOff
 	}
 
-	// Resolve domain from event/command type names.
-	fp.Domain = detectDomain(ctx)
-
 	return fp
+}
+
+func groupGoFilesByModule(ctx *AnalysisContext) map[string][]*GoFile {
+	out := map[string][]*GoFile{}
+	for _, gf := range ctx.GoFiles {
+		if gf.ModuleDir == "" {
+			continue
+		}
+		out[gf.ModuleDir] = append(out[gf.ModuleDir], gf)
+	}
+	return out
+}
+
+// pathDepth counts path separators in dir, used to order modules shallowest-
+// first so the project root module sorts before nested example/demo modules.
+func pathDepth(dir string) int {
+	if dir == "" {
+		return 0
+	}
+	count := 1
+	for i := 0; i < len(dir); i++ {
+		if dir[i] == os.PathSeparator {
+			count++
+		}
+	}
+	return count
 }
 
 // financialKeywords are event/command type name fragments that indicate a
@@ -275,10 +362,10 @@ var financialKeywords = []string{ //nolint:gochecknoglobals // constant lookup t
 	"payroll",
 }
 
-// detectDomain scans event and command type names for domain-specific
+// detectDomainRegistry scans event and command type names for domain-specific
 // keywords. Returns DomainFinancial when financial keywords are found,
 // DomainUnknown otherwise.
-func detectDomain(ctx *AnalysisContext) DomainKind {
+func detectDomainRegistry(registry *CQRSRegistry) DomainKind {
 	check := func(name string) bool {
 		lower := strings.ToLower(name)
 		for _, kw := range financialKeywords {
@@ -289,13 +376,13 @@ func detectDomain(ctx *AnalysisContext) DomainKind {
 		return false
 	}
 
-	for eventType := range ctx.Registry.EventTypesEmitted {
+	for eventType := range registry.EventTypesEmitted {
 		if check(eventType) {
 			return DomainFinancial
 		}
 	}
 
-	for cmdType := range ctx.Registry.CommandTypesRegistered {
+	for cmdType := range registry.CommandTypesRegistered {
 		if check(cmdType) {
 			return DomainFinancial
 		}
@@ -304,10 +391,10 @@ func detectDomain(ctx *AnalysisContext) DomainKind {
 	return DomainUnknown
 }
 
-// detectSoftDelete returns true if any emitted event type name contains words
-// associated with soft-delete (Deleted, Removed, Archived, Tombstoned).
-func detectSoftDelete(ctx *AnalysisContext) bool {
-	for eventType := range ctx.Registry.EventTypesEmitted {
+// detectSoftDeleteRegistry returns true if any emitted event type name contains
+// words associated with soft-delete (Deleted, Removed, Archived, Tombstoned).
+func detectSoftDeleteRegistry(registry *CQRSRegistry) bool {
+	for eventType := range registry.EventTypesEmitted {
 		lower := strings.ToLower(eventType)
 		for _, keyword := range []string{"deleted", "removed", "archived", "tombstoned"} {
 			if strings.Contains(lower, keyword) {

@@ -3,69 +3,9 @@ package performance
 import (
 	"go/ast"
 	"slices"
-	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
-
-// directlyOpensSQLite returns true if the file contains a direct
-// database/sql.Open (or sql.OpenDB) call with a SQLite driver. Only direct
-// opens are flagged by P012/P013 — constructor calls like sqlite.New,
-// NewSQLiteBackend, and NewSQLiteEventStore are NOT flagged because they
-// either apply PRAGMAs internally (stack preset) or receive an already-opened
-// *sql.DB (PRAGMA responsibility is in the caller file, which we do flag).
-//
-// This fixes the cross-file false positive where sqlite.New is called from a
-// CLI file but PRAGMAs are applied in a storage wrapper file: the CLI file
-// only calls a constructor, so it is no longer flagged.
-func directlyOpensSQLite(root ast.Node) bool {
-	direct := false
-
-	ast.Inspect(root, func(n ast.Node) bool {
-		if direct {
-			return false
-		}
-
-		call, ok := n.(*ast.CallExpr)
-		if !ok {
-			return true
-		}
-
-		sel, ok := analyzer.SelectorFromExpr(call.Fun)
-		if !ok {
-			return true
-		}
-
-		// Only sql.Open and sql.OpenDB are "direct opens".
-		if sel.Sel.Name != "Open" && sel.Sel.Name != "OpenDB" {
-			return true
-		}
-
-		pkg := analyzer.SelectorPackage(sel)
-		if pkg != "sql" {
-			return true
-		}
-
-		// For sql.Open, the first argument is the driver name string.
-		if sel.Sel.Name == "Open" && len(call.Args) > 0 {
-			if lit, ok := call.Args[0].(*ast.BasicLit); ok {
-				driver := strings.Trim(lit.Value, `"`)
-				if strings.Contains(strings.ToLower(driver), "sqlite") {
-					direct = true
-					return false
-				}
-			}
-		}
-
-		// For sql.OpenDB we can't statically determine the driver from the
-		// connector argument. Fall back to checking whether the file imports
-		// a sqlite driver path — handled by the caller via usesSQLiteDriverImport.
-
-		return true
-	})
-
-	return direct
-}
 
 // callHasOption returns true if any argument to call is a function call
 // whose selector name matches optionName (e.g. "WithBatchSize").

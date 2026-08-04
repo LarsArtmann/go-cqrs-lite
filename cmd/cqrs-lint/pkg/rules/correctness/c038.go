@@ -134,7 +134,19 @@ func collectFoldCaseStrings(ctx *analyzer.AnalysisContext) []string {
 
 // nearestMatch returns the closest string from candidates to target, along
 // with its edit distance. Returns "" if candidates is empty.
+//
+// Two-tier matching:
+//  1. Normalized match — if target and candidate differ only in case and
+//     separators (., _, -), return distance 0 (certain match).
+//  2. Levenshtein distance — catches character-level typos.
 func nearestMatch(target string, candidates []string) (string, int) {
+	normTarget := normalizeEventType(target)
+	for _, c := range candidates {
+		if normalizeEventType(c) == normTarget {
+			return c, 0
+		}
+	}
+
 	best := ""
 	bestDist := -1
 
@@ -147,6 +159,18 @@ func nearestMatch(target string, candidates []string) (string, int) {
 	}
 
 	return best, bestDist
+}
+
+// normalizeEventType lowercases the string and removes common separators
+// (., _, -). Two event types that normalize to the same string are almost
+// certainly the same event with different naming conventions (PascalCase
+// vs dot.notation vs snake_case).
+func normalizeEventType(s string) string {
+	s = strings.ToLower(s)
+	for _, sep := range []string{".", "_", "-"} {
+		s = strings.ReplaceAll(s, sep, "")
+	}
+	return s
 }
 
 // editDistance computes the Levenshtein distance between two strings.

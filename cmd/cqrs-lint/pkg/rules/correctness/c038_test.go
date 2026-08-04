@@ -95,3 +95,52 @@ func decideCreate() {
 	findings := ruletest.RunDetector(t, correctness.NewC038Detector(ctx))
 	ruletest.AssertRule(t, findings, "C038", 0)
 }
+
+func TestC038_NormalizationMultiSeparator(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+func decideCreate() {
+	_ = event.New("UserProfileUpdated", streamID, "User", UserProfileUpdated{})
+}
+
+func foldUser(state State, evt event.Event) (State, error) {
+	switch evt.Type() {
+	case "user.profile.updated":
+		// handle
+	}
+	return state, nil
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, correctness.NewC038Detector(ctx))
+	ruletest.AssertRule(t, findings, "C038", 1)
+}
+
+func TestC038_NormalizationCatchesCaseConventionMismatch(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+func decideCreate() {
+	_ = event.New("user.created", streamID, "User", UserCreated{})
+}
+
+func foldUser(state State, evt event.Event) (State, error) {
+	switch evt.Type() {
+	case "UserCreated":
+		// PascalCase vs dot.notation — same event, different strings
+		// The fold will NOT match "user.created" at runtime
+	}
+	return state, nil
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, correctness.NewC038Detector(ctx))
+	ruletest.AssertRule(t, findings, "C038", 1)
+}
