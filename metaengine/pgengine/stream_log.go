@@ -6,6 +6,8 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // --- StreamLogBackend implementation ---
@@ -30,6 +32,53 @@ func (e *pgEngine) StreamAppend(ctx context.Context, col, sid string, values []a
 
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("pgengine.StreamAppend commit: %w", err)
+	}
+
+	return nil
+}
+
+// StreamAppendExpected appends values atomically if the stream version matches.
+// Uses a transaction for true atomic version-check-then-append.
+// Returns metaengine.ErrVersionConflict if the current version does not match.
+func (e *pgEngine) StreamAppendExpected(
+	ctx context.Context,
+	col, sid string,
+	expectedVersion int64,
+	values []any,
+) error {
+	tx, err := e.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("pgengine.StreamAppendExpected begin tx: %w", err)
+	}
+
+	defer func() { _ = tx.Rollback() }()
+
+	var current int64
+
+	err = tx.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM meta_stream_log WHERE collection = $1 AND stream_id = $2`,
+		col, sid,
+	).Scan(&current)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("pgengine.StreamAppendExpected version: %w", err)
+	}
+
+	if current != expectedVersion {
+		return metaengine.ErrVersionConflict
+	}
+
+	for _, v := range values {
+		encoded := encodePGStreamValue(v)
+		if _, err := tx.ExecContext(ctx,
+			`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
+			col, sid, encoded,
+		); err != nil {
+			return fmt.Errorf("pgengine.StreamAppendExpected insert: %w", err)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("pgengine.StreamAppendExpected commit: %w", err)
 	}
 
 	return nil

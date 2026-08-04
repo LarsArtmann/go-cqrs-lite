@@ -6,6 +6,8 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // --- StreamLogBackend implementation ---
@@ -21,6 +23,45 @@ func (e *duckdbEngine) StreamAppend(ctx context.Context, col, sid string, values
 			col, sid, encoded,
 		); err != nil {
 			return fmt.Errorf("duckdbengine.StreamAppend: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// StreamAppendExpected appends values atomically if the stream version matches.
+// The mutex serializes the version-check-then-append, eliminating the TOCTOU race.
+// Returns metaengine.ErrVersionConflict if the current version does not match.
+func (e *duckdbEngine) StreamAppendExpected(
+	ctx context.Context,
+	col, sid string,
+	expectedVersion int64,
+	values []any,
+) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	var current int64
+
+	err := e.db.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM meta_stream_log WHERE collection = $1 AND stream_id = $2`,
+		col, sid,
+	).Scan(&current)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("duckdbengine.StreamAppendExpected: %w", err)
+	}
+
+	if current != expectedVersion {
+		return metaengine.ErrVersionConflict
+	}
+
+	for _, v := range values {
+		encoded := encodeDuckDBStreamValue(v)
+		if _, err := e.db.ExecContext(ctx,
+			`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
+			col, sid, encoded,
+		); err != nil {
+			return fmt.Errorf("duckdbengine.StreamAppendExpected insert: %w", err)
 		}
 	}
 
