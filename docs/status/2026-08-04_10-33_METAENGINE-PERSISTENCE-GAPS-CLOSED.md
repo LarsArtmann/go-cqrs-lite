@@ -21,25 +21,25 @@ The feature is **COMPLETE — zero debt remaining.**
 
 ## a) FULLY DONE (verified green)
 
-| Item | Evidence |
-| --- | --- |
-| durabilityRule cost delta computation | `rule_durability.go` now calls `estimateCost()` for both engines, shows `+Xms/query` instead of absolute `NsPerOp` |
-| durabilityRule test updated | `durability_rule_test.go` asserts `ms/query` in diagnostic message |
-| Pebble engine persistence test (3 tests) | `pebbleengine/persistence_test.go` — in-memory volatile, on-disk persistent, FromDB persistent |
-| DuckDB engine persistence test (3 tests) | `duckdbengine/persistence_cgo_test.go` — in-memory volatile, on-disk persistent, FromDB persistent (CGo) |
-| Postgres engine persistence test (2 tests) | `pgengine/persistence_test.go` — New persistent, FromDB persistent (testcontainer) |
-| `metaengine/README.md` Persistence section | Full section: constructor mapping table (9 entries), planner rule docs, inspection examples |
-| `AGENTS.md` module tree + Key Patterns | Persistence type/comment in module tree + full code example in Key Patterns section |
-| `core.md` decision matrix row | "Survivable read models across restart" row added |
-| `modules.md` type listing | `Persistence`, `EngineProfile`, `durabilityRule` added to metaengine row |
-| `nix fmt` (treefmt) | Ran clean, formatted 4 changed files |
-| `nix run .#lint` | 0 issues in metaengine + all engine modules |
-| `nix run .#verify` | FULL GREEN — build+vet+test+race+lint+doc-check (1303 doc references valid) |
-| `api-stability` golden regenerated | `scheduling/sqlstore` added to modules list, golden matches |
-| `cqrs-lint` module catalog | `scheduling/sqlstore` added to exclusion list |
-| idempotency/kvstore contract test fix | Swapped Record/wait order to test non-expired no-op (was testing expired-entry behavior which MemoryStore intentionally overwrites) |
-| Planning doc updated | All `⚠️`/`❌` markers → `✅`, divergences marked RESOLVED |
-| Status report updated | All NOT STARTED → RESOLVED with evidence |
+| Item                                       | Evidence                                                                                                                            |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| durabilityRule cost delta computation      | `rule_durability.go` now calls `estimateCost()` for both engines, shows `+Xms/query` instead of absolute `NsPerOp`                  |
+| durabilityRule test updated                | `durability_rule_test.go` asserts `ms/query` in diagnostic message                                                                  |
+| Pebble engine persistence test (3 tests)   | `pebbleengine/persistence_test.go` — in-memory volatile, on-disk persistent, FromDB persistent                                      |
+| DuckDB engine persistence test (3 tests)   | `duckdbengine/persistence_cgo_test.go` — in-memory volatile, on-disk persistent, FromDB persistent (CGo)                            |
+| Postgres engine persistence test (2 tests) | `pgengine/persistence_test.go` — New persistent, FromDB persistent (testcontainer)                                                  |
+| `metaengine/README.md` Persistence section | Full section: constructor mapping table (9 entries), planner rule docs, inspection examples                                         |
+| `AGENTS.md` module tree + Key Patterns     | Persistence type/comment in module tree + full code example in Key Patterns section                                                 |
+| `core.md` decision matrix row              | "Survivable read models across restart" row added                                                                                   |
+| `modules.md` type listing                  | `Persistence`, `EngineProfile`, `durabilityRule` added to metaengine row                                                            |
+| `nix fmt` (treefmt)                        | Ran clean, formatted 4 changed files                                                                                                |
+| `nix run .#lint`                           | 0 issues in metaengine + all engine modules                                                                                         |
+| `nix run .#verify`                         | FULL GREEN — build+vet+test+race+lint+doc-check (1303 doc references valid)                                                         |
+| `api-stability` golden regenerated         | `scheduling/sqlstore` added to modules list, golden matches                                                                         |
+| `cqrs-lint` module catalog                 | `scheduling/sqlstore` added to exclusion list                                                                                       |
+| idempotency/kvstore contract test fix      | Swapped Record/wait order to test non-expired no-op (was testing expired-entry behavior which MemoryStore intentionally overwrites) |
+| Planning doc updated                       | All `⚠️`/`❌` markers → `✅`, divergences marked RESOLVED                                                                           |
+| Status report updated                      | All NOT STARTED → RESOLVED with evidence                                                                                            |
 
 ---
 

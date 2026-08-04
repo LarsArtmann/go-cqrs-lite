@@ -3,6 +3,7 @@
 ## Session Goal
 
 Two milestones from the TODO list:
+
 - **M43**: projectionhost crash-restart PG integration test — verify checkpoint replay after crash
 - **M44**: scheduling durable timers across restarts test — timer survives process restart
 
@@ -15,15 +16,17 @@ Two milestones from the TODO list:
 Created an entirely new Go module `scheduling/sqlstore/` following the established `idempotency/sqlstore` pattern.
 
 **Files created:**
-| File | Purpose |
-|------|---------|
-| `scheduling/sqlstore/store.go` | `SQLTimerStore[P]` — generic SQL-backed `TimerStore[P]` with 3 dialects (SQLite, Postgres, MySQL) |
-| `scheduling/sqlstore/store_test.go` | 5 CRUD tests: Schedule+Due ordering, idempotent schedule, MarkFired, Cancel, empty Due |
-| `scheduling/sqlstore/restart_test.go` | 2 durability tests: store-level restart recovery + full Scheduler integration recovery |
-| `scheduling/sqlstore/go.mod` / `go.sum` | Standalone module (scheduling/v4 + go-error-family + modernc/sqlite for tests) |
-| `scheduling/sqlstore/README.md` | Consumer-facing docs with quickstart, durability explanation, API table |
+
+| File                                    | Purpose                                                                                           |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `scheduling/sqlstore/store.go`          | `SQLTimerStore[P]` — generic SQL-backed `TimerStore[P]` with 3 dialects (SQLite, Postgres, MySQL) |
+| `scheduling/sqlstore/store_test.go`     | 5 CRUD tests: Schedule+Due ordering, idempotent schedule, MarkFired, Cancel, empty Due            |
+| `scheduling/sqlstore/restart_test.go`   | 2 durability tests: store-level restart recovery + full Scheduler integration recovery            |
+| `scheduling/sqlstore/go.mod` / `go.sum` | Standalone module (scheduling/v4 + go-error-family + modernc/sqlite for tests)                    |
+| `scheduling/sqlstore/README.md`         | Consumer-facing docs with quickstart, durability explanation, API table                           |
 
 **Design:**
+
 - Payloads serialized as JSON into `payload` BLOB/BYTEA column
 - Time formatting is dialect-aware: SQLite uses fixed-width RFC3339 text (lexicographic ordering), Postgres/MySQL use native `time.Time` / `DATETIME(3)`
 - Idempotent Schedule via `ON CONFLICT(id) DO NOTHING` (SQLite/PG) / `ON DUPLICATE KEY UPDATE id=id` (MySQL)
@@ -31,6 +34,7 @@ Created an entirely new Go module `scheduling/sqlstore/` following the establish
 - Error wrapping via `go-error-family` (Corruption for marshal/parse failures, Infrastructure for SQL errors)
 
 **Tests (7 total, all PASS including -race):**
+
 1. `TestSQLiteTimerStore_ScheduleAndDue` — 3 timers, ordering, payload round-trip
 2. `TestSQLiteTimerStore_ScheduleIsIdempotent` — re-schedule is no-op, original payload preserved
 3. `TestSQLiteTimerStore_MarkFired` — timer removed after dispatch
@@ -42,6 +46,7 @@ Created an entirely new Go module `scheduling/sqlstore/` following the establish
 **Coverage:** 66.1% of statements (uncovered: MySQL/Postgres dialect branches + error paths — see improvements)
 
 **Wiring:**
+
 - Added to `go.work` (was already present)
 - Added to `cmd/api-stability/main.go` modules list (was already present)
 - Regenerated `docs/api_surface.txt` (13 new exports)
@@ -50,12 +55,14 @@ Created an entirely new Go module `scheduling/sqlstore/` following the establish
 ### M43: `projectionhost` PG Crash-Restart Integration Test
 
 **Files created:**
-| File | Purpose |
-|------|---------|
-| `projectionhost/pg_integration_test.go` | `//go:build integration` — `TestIntegration_ProjectionHost_CrashRestart_CheckpointReplay` |
+
+| File                                      | Purpose                                                                                                   |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `projectionhost/pg_integration_test.go`   | `//go:build integration` — `TestIntegration_ProjectionHost_CrashRestart_CheckpointReplay`                 |
 | `projectionhost/pg_testcontainer_test.go` | `//go:build integration` — TestMain + shared container + per-test DB isolation (mirrors storage/ pattern) |
 
 **The crash-restart test proves:**
+
 1. Seed 10 events → host1 processes all 10 → checkpoint persisted to PG
 2. Stop host1 (simulated crash)
 3. Seed 5 MORE events while host is down
@@ -63,11 +70,13 @@ Created an entirely new Go module `scheduling/sqlstore/` following the establish
 5. host2 processes ONLY the 5 new events (not 15) — checkpoint recovery works
 
 **Wiring:**
+
 - Added `projectionhost` to `scripts/ephemeral-pg.sh` PG_MODULES
 - Added `pgx/v5` + `testcontainers-go` + `testcontainers-go/modules/postgres` to `projectionhost/go.mod`
 - Verified against real PostgreSQL via `nix run .#integration-pg` — PASS
 
 **Verification gate (this session):**
+
 - `go build -tags "goexperiment.jsonv2" ./...` — clean
 - `go vet` on both modules — clean
 - `go test -race` on both modules — PASS
@@ -82,9 +91,11 @@ Created an entirely new Go module `scheduling/sqlstore/` following the establish
 ## B) PARTIALLY DONE
 
 ### MySQL support — code exists, no syntax test
+
 `idempotency/sqlstore` ships `mysql_queries_test.go` verifying MySQL SQL syntax (backtick quoting, `ON DUPLICATE KEY UPDATE`, `IF()` conditional) without a live MySQL connection. My `scheduling/sqlstore` has `mysqlQueries()` but **no equivalent syntax test**. The MySQL SQL path is completely unverified.
 
 ### Postgres timer store — code exists, no PG integration test
+
 `NewPostgresStore[P]` exists and builds, but **`scheduling/sqlstore` is NOT in `scripts/ephemeral-pg.sh` PG_MODULES**. The Postgres dialect path (native `time.Time` scanning, `$N` placeholders, `BYTEA` column) has never been tested against a real PG instance. This is the single biggest gap.
 
 ---
@@ -92,12 +103,15 @@ Created an entirely new Go module `scheduling/sqlstore/` following the establish
 ## C) NOT STARTED
 
 ### Property-based testing
+
 `idempotency/sqlstore` has `property_test.go` using `pgregory.net/rapid` for concurrent stress testing. No equivalent exists for `scheduling/sqlstore` — concurrent Schedule/MarkFired/Due races are untested.
 
 ### Benchmarks
+
 No performance benchmarks for the SQL timer store (insert throughput, Due scan latency at scale).
 
 ### Codec option
+
 The store hardcodes `encoding/json` for payload serialization. The project defaults to CBOR in many modules. A `WithCodec(codec.Codec)` option would allow consumers to choose CBOR for ~35% smaller payloads. Design decision deferred — JSON is more debuggable in DB tools.
 
 ---
@@ -124,6 +138,7 @@ Nothing. Both milestones delivered, tested, and passing. No broken builds, no st
 ## F) Up to 50 Things to Get Done Next
 
 ### Immediate (this session's gaps)
+
 1. Add `scheduling/sqlstore` to `scripts/ephemeral-pg.sh` PG_MODULES
 2. Write PG integration test for `scheduling/sqlstore.NewPostgresStore` (restart durability against real PG)
 3. Write `mysql_queries_test.go` for `scheduling/sqlstore` (syntax verification without live MySQL)
@@ -131,6 +146,7 @@ Nothing. Both milestones delivered, tested, and passing. No broken builds, no st
 5. Run `nix run .#verify` or `nix run .#verify-fast` for the full gate
 
 ### M44 maturation
+
 6. Add property-based test (rapid) for concurrent Schedule/Due/MarkFired
 7. Add benchmarks (insert throughput, Due scan at 1K/10K/100K timers)
 8. Add `WithCodec(codec.Codec)` option for CBOR payload support
@@ -143,6 +159,7 @@ Nothing. Both milestones delivered, tested, and passing. No broken builds, no st
 15. Add Sweep/TTL mechanism for orphaned timers (timers whose process crashed before MarkFired)
 
 ### M43 maturation
+
 16. Add PG-backed event store variant (full SQL stack crash-restart)
 17. Add crash-restart with DLQ (poison event survives restart)
 18. Add multi-projection crash-restart (multiple projections, independent checkpoints)
@@ -150,11 +167,13 @@ Nothing. Both milestones delivered, tested, and passing. No broken builds, no st
 20. Test projectionhost with Pebble-backed checkpoint store across restart
 
 ### Integration infrastructure
+
 21. Add `scheduling/sqlstore` to MySQL VM test (`nix run .#integration-mysql-vm`)
 22. Add projectionhost to MySQL VM test
 23. Consider a shared testcontainer harness across modules (reduce duplication of `pg_testcontainer_test.go`)
 
 ### Documentation
+
 24. Add `scheduling/sqlstore` usage example to SKILL.md recipes
 25. Update `docs/architecture-understanding/FOUR-TIER-MODEL.md` with scheduling/sqlstore position
 26. Add ADR for scheduling/sqlstore (following ADR-0065 pattern for idempotency/sqlstore)
@@ -162,6 +181,7 @@ Nothing. Both milestones delivered, tested, and passing. No broken builds, no st
 28. Update TODO_LIST.md — mark M43/M44 as done
 
 ### Testing quality
+
 29. Add `TestSQLiteTimerStore_PayloadCorruption` — manually corrupt payload BLOB, verify Corruption error
 30. Add `TestSQLiteTimerStore_ConcurrentSchedule` — two goroutines schedule same ID, verify exactly one wins
 31. Add `TestSQLiteTimerStore_TimezoneRoundTrip` — verify FireAt survives UTC↔local conversion
@@ -169,12 +189,14 @@ Nothing. Both milestones delivered, tested, and passing. No broken builds, no st
 33. Add stress test: 10K timers scheduled, Due query performance
 
 ### Code quality
+
 34. Verify `created_at` column is populated correctly across all dialects
 35. Add `context.Context` propagation verification (cancel mid-query)
 36. Verify connection pool behavior under load
 37. Consider prepared statement caching for hot queries
 
 ### Release
+
 38. Tag `scheduling/sqlstore/v4.0.0` (first release)
 39. Verify `git tag -l 'scheduling/sqlstore/v4*'` before tagging
 40. Update `cmd/cqrs-lint` module catalog (28 scored modules → 29)
@@ -182,6 +204,7 @@ Nothing. Both milestones delivered, tested, and passing. No broken builds, no st
 42. Run `nix run .#secrets-scan`
 
 ### Broader project
+
 43. Run full `nix run .#verify` gate (3-4 min)
 44. Check if `flake.nix` testModules needs updating for the new module
 45. Verify `nix run .#check-coverage` passes with the new module's 66%

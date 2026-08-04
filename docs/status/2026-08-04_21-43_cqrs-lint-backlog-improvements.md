@@ -10,30 +10,36 @@
 ## A) FULLY DONE (11 items shipped)
 
 ### 1. Scorecard category-priority split brain eliminated
+
 - **What:** Deleted the hand-maintained `categoryPriorityFor` switch statement in `scorecard.go` that duplicated the `categoryPriority` map in `module_catalog.go`. Exported `analyzer.CategoryPriority(ModuleCategory)` as the single source of truth.
 - **Files:** `scorecard.go`, `pkg/analyzer/module_catalog.go`
 - **Impact:** Adding/reordering a category in the catalog map now automatically flows to the scorecard sorter. No more silent drift between two parallel priority systems. Also fixed the gopls `unusedparams` warning on `scorecardLess` (the `catalog` parameter was unused after the refactor).
 
 ### 2. Scorecard Evidence field rendered in output
+
 - **What:** Added `Evidence` field to `ScorecardModule`, populated from `ModuleUsage.Evidence` (the import path that triggered detection). The text table now conditionally shows a 4th "Evidence" column when any module has non-empty evidence.
 - **Files:** `scorecard.go`, `scorecard_render.go`
 - **Test:** `TestComputeScorecard_EvidencePropagation` verifies both data propagation and text rendering.
 
 ### 3. commentTextStart multi-line raw string literal bug fixed
+
 - **What:** The suppression parser (`pkg/suppression/parser.go`) processed each line independently, so `//cqrs-lint:ignore` directives appearing as literal text inside multi-line backtick raw strings were falsely treated as real suppression comments. Added `computeRawStringLines` which tracks backtick string state across lines, and modified both `checkSuppressionInFile` and `checkBlockSuppressionInFile` to skip lines entirely inside multi-line raw strings.
 - **Files:** `pkg/suppression/parser.go`
 - **Tests:** `TestSuppression_MultiLineRawStringDoesNotTriggerBlockSuppression`, `TestSuppression_MultiLineRawStringDoesNotTriggerInlineSuppression`
 
 ### 4. JSONC trailing comma support added
+
 - **What:** Added `stripTrailingCommas` post-processor to the config loader. It removes commas followed by `}` or `]` while respecting string literals. This handles the JSONC spec's allowance of trailing commas in objects and arrays, which strict JSON parsers reject.
 - **Files:** `config_loader.go`
 - **Tests:** `TestStripJSONComments_TrailingCommaObject`, `TestStripJSONComments_TrailingCommaArray`, `TestStripJSONComments_TrailingCommaNested`
 
 ### 5. F013 cqrs-htmx regression test added
+
 - **What:** Dedicated regression test proving that importing the external `cqrs-htmx` module triggers `HasTransport` detection via the feature detection pipeline, which suppresses F013 (missing transport module). The test also explicitly asserts `ctx.FeatureProfile.HasTransport == true` to catch detection pipeline regressions independently of the F013 rule.
 - **Files:** `pkg/rules/adoption/f010_f017_test.go`
 
 ### 6. Doctor/explain test coverage added (0 → 8 tests)
+
 - **What:** Doctor command (`doctor.go`) and explain command (`explain.go`) had ZERO unit tests. Added tests for the testable pure functions:
   - `countSuppressions` — detects inline `//cqrs-lint:ignore(RULE)` comments, counts per rule
   - `findParentConfigs` — walks ancestor directories for monorepo config inheritance
@@ -42,16 +48,19 @@
 - **Files:** `doctor_test.go` (new), `explain_test.go` (new)
 
 ### 7. printFindingsByAggregate output tests added
+
 - **What:** The grouped-output renderer (`--group-by aggregate`) had ZERO tests on the actual rendered text. Added tests for:
   - `groupFindingsByAggregate` — grouping by metadata, sorting by count desc then name
   - `printFindingsByAggregate` — header rendering (`--- Name (count) ---`), finding messages, empty findings, uncategorized bucket
 - **Files:** `output_test.go`
 
 ### 8. group-by added to .cqrs-lint.json config schema
+
 - **What:** The `GroupBy` field had `flag:"group-by"` but no JSON tag, so consumers could not set it in the config file. Added `json:"group-by,omitempty"` tag and documented it in the init-generated default config template.
 - **Files:** `main.go`, `init.go`
 
 ### 9. Module catalog expanded (28 → 32 scored modules)
+
 - **What:** Added 4 previously-excluded modules to the scorecard catalog:
   - `middleware` (Observability) — tracing, metrics, retry, recovery, validation
   - `storage` (Persistence) — SQL backend facade, custom store wiring
@@ -61,10 +70,12 @@
 - **Files:** `pkg/analyzer/module_catalog_data.go`, `pkg/analyzer/module_catalog.go`, `pkg/analyzer/module_catalog_test.go`
 
 ### 10. --scorecard-threshold CI gate flag added
+
 - **What:** New `--scorecard-threshold N` flag on the `scorecard` subcommand. When N > 0 and coverage is below N%, the command writes a diagnostic to stderr and returns `errScorecardBelowThreshold`, causing cmdguard to exit non-zero. This enables CI pipelines to gate on adoption coverage.
 - **Files:** `scorecard_command.go`
 
 ### 11. All tests pass, go vet clean
+
 - 17 packages, all `ok`. `go vet` clean. No new diagnostics introduced.
 
 ---
@@ -72,11 +83,13 @@
 ## B) PARTIALLY DONE
 
 ### Doctor render* function testability
+
 - **Status:** The `renderDoctor*` functions (`renderDoctorPreset`, `renderDoctorEffectiveSettings`, `renderDoctorFeatureProfile`, etc.) still write directly to `os.Stdout`/`os.Stderr` via `fmt.Println`/`fmt.Fprintf`. They are NOT testable without capturing stdout.
 - **What was done instead:** Tested the pure helper functions they call (`countSuppressions`, `findParentConfigs`, `formatConfigFeatures`). The render functions themselves remain untested.
 - **What remains:** Refactor `renderDoctor*` to accept `io.Writer` parameters (or return strings like `renderExplain` does), then add output assertions.
 
 ### Explain command coverage
+
 - **Status:** `renderExplain()` is tested for section presence and preset descriptions, but NOT for output accuracy of individual sections (top-level keys table, features docs, rules config docs, resolution order, suppression syntax). A render snapshot test would catch drift.
 
 ---
@@ -143,6 +156,7 @@
 ## F) UP TO 50 THINGS TO DO NEXT
 
 ### Immediate (this week)
+
 1. Bump `version` constant from `"4.3.0"` to `"4.4.0"` in `main.go:18`
 2. Regenerate api-stability golden (`cd cmd/api-stability && GOWORK=off go run main.go -update`)
 3. Run `nix fmt` on the changed files
@@ -153,6 +167,7 @@
 8. Add markdown output format for scorecard
 
 ### Scorecard follow-ups
+
 9. Render Evidence field in JSON output (already included via struct tag, but verify)
 10. Add `--scorecard-threshold` to the explain command's top-level keys documentation
 11. Add scorecard threshold pass/fail to JSON output structure
@@ -161,6 +176,7 @@
 14. Add trend tracking: compare scorecard to previous run (store in `.cqrs-lint-cache.json`)
 
 ### Doctor/Explain
+
 15. Refactor `renderDoctorPreset` to return string or accept `io.Writer`
 16. Refactor `renderDoctorEffectiveSettings` to return string or accept `io.Writer`
 17. Refactor `renderDoctorFeatureProfile` to return string or accept `io.Writer`
@@ -171,6 +187,7 @@
 22. Add `group-by` to explain command's top-level keys table documentation
 
 ### Suppression parser
+
 23. Add test for raw string literal at end of file (no closing backtick)
 24. Add test for multiple consecutive multi-line raw strings
 25. Add test for raw string containing both backtick and `//cqrs-lint:ignore`
@@ -178,6 +195,7 @@
 27. Add test for block suppression (`ignore-start`/`ignore-end`) spanning across raw string boundaries
 
 ### Config loader
+
 28. Add test for trailing comma inside string value containing `}`
 29. Add test for deeply nested trailing commas (4+ levels)
 30. Add test for trailing comma before a comment line
@@ -185,6 +203,7 @@
 32. Add JSONC support documentation to the explain command output
 
 ### Catalog expansion follow-ups
+
 33. Add `storage/memory` to catalog (currently excluded as "covered by stack/memory")
 34. Add `storage/pebble` to catalog (currently excluded)
 35. Add `storage/turso` to catalog (currently excluded)
@@ -195,6 +214,7 @@
 40. Verify scorecard recommendations make sense with 32-module catalog
 
 ### Per-module profile migration
+
 41. Migrate F012 to use `ProfileForFile` instead of `ctx.FeatureProfile`
 42. Migrate F013 (already partially done)
 43. Migrate F014 to use `ProfileForFile`
@@ -203,6 +223,7 @@
 46. Migrate all E-series architecture detectors to per-module profiles
 
 ### Pareto backlog
+
 47. L1.5: Add `DomainBias` to `FeatureProfile` for domain-based severity calibration
 48. L1.47: Start DOC-series rules (missing docs, stale catalog, undocumented events)
 49. L1.48: Start OBS-series rules (tracing spans, metrics, structured logging)
@@ -213,10 +234,13 @@
 ## G) QUESTIONS FOR THE USER
 
 ### 1. Should I bump the version to v4.4.0 and publish a tag now?
+
 All 11 items are shipped, tested, and committed. The version constant still says `"4.3.0"`. You mentioned v4.4.0 was "pending" and "BLOCKED on user approval". Should I bump + tag, or are you holding off for more work first?
 
 ### 2. Should the catalog expansion (28→32 modules) be treated as a breaking change?
+
 Adding 4 modules to the scored catalog changes every consumer's coverage percentage. Projects at 53% coverage drop to ~47%. Should I add a deprecation notice or migration guide, or is this just an expected evolution of the tool?
 
 ### 3. Should I prioritize refactoring `renderDoctor*` functions for testability, or is the pure-function coverage sufficient?
+
 The doctor command has 9 render functions that all write to stdout. Refactoring them to return strings (like `renderExplain`) would enable comprehensive snapshot testing but touches 400+ lines of working code. Is this worth doing now, or should I move to higher-value work (per-module profile migration, new rule categories)?

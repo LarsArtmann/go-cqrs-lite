@@ -18,6 +18,7 @@ in-process `Network` simulates P2P convergence for testing. When real Iroh bindi
 a new `IrohTransport` implements the same `Transport` interface — zero wrapper changes.
 
 **What this proves:**
+
 1. The Level 2 architecture (`Replicated(localEngine, ...)`) from ADR-0096 works
 2. CRDT-safe fold operations (MapSet, SetAdd, CounterIncrement, MultiAdd, LogAppend) converge without coordination
 3. Non-CRDT operations (MapUpdate) stay local and are detected
@@ -25,6 +26,7 @@ a new `IrohTransport` implements the same `Transport` interface — zero wrapper
 5. Cross-engine parity holds (adttest.RunMatrix green)
 
 **What this does NOT do:**
+
 - Real QUIC networking (mock transport is in-process)
 - Real Iroh `iroh-docs` CRDT sync (no Rust/CGo dependency)
 - Actual NAT traversal / P2P discovery
@@ -70,17 +72,17 @@ intercept-local-write → publish → apply-remote pattern. Now all 5 monotonic 
 
 ## Task Breakdown (30-100 min tasks)
 
-| # | Task | Impact | Effort | Dependencies |
-|---|------|--------|--------|--------------|
-| T1 | Module scaffolding: go.mod, go.work entry, api-stability list | Medium | 15min | None |
-| T2 | Core types: WriteOp, Transport interface, Network mock, Options | High | 45min | T1 |
-| T3 | Replicated engine: Profile() override + Map/Set/Counter/Multimap/Log backend interception | Critical | 60min | T2 |
-| T4 | Non-CRDT delegation: ScanBackend, MapUpdater, Graph/Vector/Search/Spatial passthrough | Medium | 30min | T3 |
-| T5 | Convergence tests: 2-node Map convergence, 3-node, LWW, PN-Counter | Critical | 45min | T3 |
-| T6 | adttest.RunMatrix parity test | High | 20min | T3, T4 |
-| T7 | MapUpdate replication warning test | Medium | 15min | T3 |
-| T8 | Docs: ADR-0096 update, AGENTS.md, ROADMAP, TODO_LIST | Medium | 30min | T3-T6 |
-| T9 | api-stability golden regen + verify gate | Medium | 20min | T1-T8 |
+| #   | Task                                                                                      | Impact   | Effort | Dependencies |
+| --- | ----------------------------------------------------------------------------------------- | -------- | ------ | ------------ |
+| T1  | Module scaffolding: go.mod, go.work entry, api-stability list                             | Medium   | 15min  | None         |
+| T2  | Core types: WriteOp, Transport interface, Network mock, Options                           | High     | 45min  | T1           |
+| T3  | Replicated engine: Profile() override + Map/Set/Counter/Multimap/Log backend interception | Critical | 60min  | T2           |
+| T4  | Non-CRDT delegation: ScanBackend, MapUpdater, Graph/Vector/Search/Spatial passthrough     | Medium   | 30min  | T3           |
+| T5  | Convergence tests: 2-node Map convergence, 3-node, LWW, PN-Counter                        | Critical | 45min  | T3           |
+| T6  | adttest.RunMatrix parity test                                                             | High     | 20min  | T3, T4       |
+| T7  | MapUpdate replication warning test                                                        | Medium   | 15min  | T3           |
+| T8  | Docs: ADR-0096 update, AGENTS.md, ROADMAP, TODO_LIST                                      | Medium   | 30min  | T3-T6        |
+| T9  | api-stability golden regen + verify gate                                                  | Medium   | 20min  | T1-T8        |
 
 **Total: ~280 min (4.7 hours)**
 
@@ -90,89 +92,89 @@ intercept-local-write → publish → apply-remote pattern. Now all 5 monotonic 
 
 ### T1: Module Scaffolding (4 subtasks)
 
-| Subtask | Est |
-|---------|-----|
-| T1.1 Create `metaengine/irohengine/go.mod` (copy pebbleengine pattern, replace deps) | 5min |
-| T1.2 Add `./metaengine/irohengine` to go.work | 3min |
-| T1.3 Add `"metaengine/irohengine"` to api-stability modules list | 3min |
+| Subtask                                                                                    | Est  |
+| ------------------------------------------------------------------------------------------ | ---- |
+| T1.1 Create `metaengine/irohengine/go.mod` (copy pebbleengine pattern, replace deps)       | 5min |
+| T1.2 Add `./metaengine/irohengine` to go.work                                              | 3min |
+| T1.3 Add `"metaengine/irohengine"` to api-stability modules list                           | 3min |
 | T1.4 Verify `cd metaengine/irohengine && GOWORK=off go build ./...` compiles empty package | 2min |
 
 ### T2: Core Types (8 subtasks)
 
-| Subtask | Est |
-|---------|-----|
+| Subtask                                                                                 | Est   |
+| --------------------------------------------------------------------------------------- | ----- |
 | T2.1 Write `WriteOp` struct (Collection, ADT, Author, Timestamp, Op, Key, Value, Delta) | 10min |
-| T2.2 Write `Transport` interface (Publish, Subscribe, Close) | 5min |
-| T2.3 Write `Network` struct (in-process P2P simulation, peer registry) | 12min |
-| T2.4 Write `peerTransport` (per-node Transport impl backed by Network) | 10min |
-| T2.5 Write `NetworkOption` funcs: WithNetworkDelay, WithNetworkDropRate | 8min |
-| T2.6 Write engine `Option` funcs: WithNamespace, WithAuthor, WithTransport | 8min |
-| T2.7 Write `NewNetwork()` + `Network.Join(nodeID)` constructor | 5min |
-| T2.8 Compile + fix type errors | 5min |
+| T2.2 Write `Transport` interface (Publish, Subscribe, Close)                            | 5min  |
+| T2.3 Write `Network` struct (in-process P2P simulation, peer registry)                  | 12min |
+| T2.4 Write `peerTransport` (per-node Transport impl backed by Network)                  | 10min |
+| T2.5 Write `NetworkOption` funcs: WithNetworkDelay, WithNetworkDropRate                 | 8min  |
+| T2.6 Write engine `Option` funcs: WithNamespace, WithAuthor, WithTransport              | 8min  |
+| T2.7 Write `NewNetwork()` + `Network.Join(nodeID)` constructor                          | 5min  |
+| T2.8 Compile + fix type errors                                                          | 5min  |
 
 ### T3: Replicated Engine Wrapper (7 subtasks)
 
-| Subtask | Est |
-|---------|-----|
-| T3.1 Write `replicatedEngine` struct + `Replicated()` constructor | 10min |
-| T3.2 Write `Profile()` override (copy local profile, set ReplicationLeaderless) | 8min |
+| Subtask                                                                              | Est   |
+| ------------------------------------------------------------------------------------ | ----- |
+| T3.1 Write `replicatedEngine` struct + `Replicated()` constructor                    | 10min |
+| T3.2 Write `Profile()` override (copy local profile, set ReplicationLeaderless)      | 8min  |
 | T3.3 Write MapBackend interception (MapSet→publish, MapGet→local, MapDelete→publish) | 10min |
-| T3.4 Write SetBackend interception (SetAdd→publish, SetContains→local) | 8min |
-| T3.5 Write CounterBackend interception (CounterIncrement→publish, CounterGet→local) | 10min |
-| T3.6 Write MultimapBackend + LogBackend interception | 10min |
-| T3.7 Write `applyRemote(op)` handler (dispatches incoming WriteOps to local engine) | 12min |
+| T3.4 Write SetBackend interception (SetAdd→publish, SetContains→local)               | 8min  |
+| T3.5 Write CounterBackend interception (CounterIncrement→publish, CounterGet→local)  | 10min |
+| T3.6 Write MultimapBackend + LogBackend interception                                 | 10min |
+| T3.7 Write `applyRemote(op)` handler (dispatches incoming WriteOps to local engine)  | 12min |
 
 ### T4: Non-CRDT Backend Delegation (5 subtasks)
 
-| Subtask | Est |
-|---------|-----|
-| T4.1 ScanBackend delegation (MapScan → local passthrough) | 5min |
-| T4.2 MapUpdater delegation (MapUpdate → local, log warning) | 5min |
+| Subtask                                                             | Est  |
+| ------------------------------------------------------------------- | ---- |
+| T4.1 ScanBackend delegation (MapScan → local passthrough)           | 5min |
+| T4.2 MapUpdater delegation (MapUpdate → local, log warning)         | 5min |
 | T4.3 GraphBackend delegation (GraphAddEdge, GraphNeighbors → local) | 5min |
-| T4.4 VectorBackend + SearchBackend + SpatialBackend delegation | 8min |
-| T4.5 Compile + verify all interface assertions pass | 5min |
+| T4.4 VectorBackend + SearchBackend + SpatialBackend delegation      | 8min |
+| T4.5 Compile + verify all interface assertions pass                 | 5min |
 
 ### T5: Convergence Tests (6 subtasks)
 
-| Subtask | Est |
-|---------|-----|
-| T5.1 TestMapConvergence: write on A, read on B, value converged | 10min |
-| T5.2 Test3NodeConvergence: write on A, converges on B and C | 10min |
-| T5.3 TestLWWResolution: concurrent MapSet, latest timestamp wins | 10min |
+| Subtask                                                                     | Est   |
+| --------------------------------------------------------------------------- | ----- |
+| T5.1 TestMapConvergence: write on A, read on B, value converged             | 10min |
+| T5.2 Test3NodeConvergence: write on A, converges on B and C                 | 10min |
+| T5.3 TestLWWResolution: concurrent MapSet, latest timestamp wins            | 10min |
 | T5.4 TestPNCounter: concurrent CounterIncrement from 2 authors, sum correct | 10min |
-| T5.5 TestSetConvergence: SetAdd on A, SetContains true on B | 8min |
-| T5.6 TestLogConvergence: LogAppend on A, LogTail returns on B | 8min |
+| T5.5 TestSetConvergence: SetAdd on A, SetContains true on B                 | 8min  |
+| T5.6 TestLogConvergence: LogAppend on A, LogTail returns on B               | 8min  |
 
 ### T6: adttest.RunMatrix (2 subtasks)
 
-| Subtask | Est |
-|---------|-----|
+| Subtask                                                            | Est   |
+| ------------------------------------------------------------------ | ----- |
 | T6.1 Write `adt_matrix_test.go` with memory + replicated factories | 10min |
-| T6.2 Run matrix, fix any parity divergences | 10min |
+| T6.2 Run matrix, fix any parity divergences                        | 10min |
 
 ### T7: MapUpdate Warning Test (1 subtask)
 
-| Subtask | Est |
-|---------|-----|
+| Subtask                                                                 | Est   |
+| ----------------------------------------------------------------------- | ----- |
 | T7.1 TestMapUpdateDoesNotReplicate: MapUpdate on A, value not seen on B | 10min |
 
 ### T8: Documentation (5 subtasks)
 
-| Subtask | Est |
-|---------|-----|
+| Subtask                                                                                | Est  |
+| -------------------------------------------------------------------------------------- | ---- |
 | T8.1 Update ADR-0096 status to "Prototype Available (Level 2 wrapper, mock transport)" | 8min |
-| T8.2 Add irohengine to AGENTS.md modules list + module description | 8min |
-| T8.3 Update ROADMAP.md Theme 10 (prototype done) | 5min |
-| T8.4 Update TODO_LIST.md (mark Iroh prototype as done) | 3min |
-| T8.5 Add irohengine section to CHANGELOG.md | 5min |
+| T8.2 Add irohengine to AGENTS.md modules list + module description                     | 8min |
+| T8.3 Update ROADMAP.md Theme 10 (prototype done)                                       | 5min |
+| T8.4 Update TODO_LIST.md (mark Iroh prototype as done)                                 | 3min |
+| T8.5 Add irohengine section to CHANGELOG.md                                            | 5min |
 
 ### T9: Verification (3 subtasks)
 
-| Subtask | Est |
-|---------|-----|
-| T9.1 Run api-stability golden regen | 5min |
-| T9.2 Run `cd metaengine/irohengine && GOWORK=off go test ./... -count=1 -race` | 5min |
-| T9.3 Run `nix run .#verify` or `nix run .#verify-fast` | 10min |
+| Subtask                                                                        | Est   |
+| ------------------------------------------------------------------------------ | ----- |
+| T9.1 Run api-stability golden regen                                            | 5min  |
+| T9.2 Run `cd metaengine/irohengine && GOWORK=off go test ./... -count=1 -race` | 5min  |
+| T9.3 Run `nix run .#verify` or `nix run .#verify-fast`                         | 10min |
 
 ---
 
@@ -235,17 +237,17 @@ Read path:   Engine.MapGet() → local.MapGet() (always local, always fast)
 
 ### CRDT Safety Matrix (implemented)
 
-| Operation          | Replicated? | CRDT Type                |
-|--------------------|-------------|--------------------------|
-| MapSet             | Yes         | LWW-Map (timestamp)      |
-| MapDelete          | Yes         | Tombstone (LWW)          |
-| SetAdd             | Yes         | OR-Set (add-only)        |
-| CounterIncrement   | Yes         | PN-Counter (per-author)  |
-| MultiAdd           | Yes         | OR-Set per key           |
-| LogAppend          | Yes         | Per-author append-only   |
-| MapUpdate (RMW)    | No          | Local only (warning)     |
-| MapScan            | No          | Local passthrough        |
-| Graph/Vector/etc   | No          | Local passthrough        |
+| Operation        | Replicated? | CRDT Type               |
+| ---------------- | ----------- | ----------------------- |
+| MapSet           | Yes         | LWW-Map (timestamp)     |
+| MapDelete        | Yes         | Tombstone (LWW)         |
+| SetAdd           | Yes         | OR-Set (add-only)       |
+| CounterIncrement | Yes         | PN-Counter (per-author) |
+| MultiAdd         | Yes         | OR-Set per key          |
+| LogAppend        | Yes         | Per-author append-only  |
+| MapUpdate (RMW)  | No          | Local only (warning)    |
+| MapScan          | No          | Local passthrough       |
+| Graph/Vector/etc | No          | Local passthrough       |
 
 ---
 
@@ -326,21 +328,21 @@ graph TD
 
 ## Risk Assessment
 
-| Risk | Likelihood | Mitigation |
-|------|-----------|------------|
-| Interface type assertions fail (replicatedEngine doesn't implement all backends) | Medium | Compile-time `var _ MapBackend = (*replicatedEngine)(nil)` assertions |
-| adttest.RunMatrix parity diverges (canonical form mismatch) | Low | Mock transport is synchronous for matrix tests (no async lag) |
-| LWW timestamp resolution race in tests | Medium | Use monotonic clock + deterministic test ordering |
-| MapUpdate not detected as non-replicating | Low | Integration with existing `mapUpdateReplicationRule` — verify WARN fires |
-| go.work / go.mod replace cycle breaks build | Low | Follow exact pebbleengine pattern |
+| Risk                                                                             | Likelihood | Mitigation                                                               |
+| -------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------ |
+| Interface type assertions fail (replicatedEngine doesn't implement all backends) | Medium     | Compile-time `var _ MapBackend = (*replicatedEngine)(nil)` assertions    |
+| adttest.RunMatrix parity diverges (canonical form mismatch)                      | Low        | Mock transport is synchronous for matrix tests (no async lag)            |
+| LWW timestamp resolution race in tests                                           | Medium     | Use monotonic clock + deterministic test ordering                        |
+| MapUpdate not detected as non-replicating                                        | Low        | Integration with existing `mapUpdateReplicationRule` — verify WARN fires |
+| go.work / go.mod replace cycle breaks build                                      | Low        | Follow exact pebbleengine pattern                                        |
 
 ---
 
 ## Why This Approach (Not Another)
 
-| Alternative | Why Not |
-|-------------|---------|
-| Rust sidecar binary | Heavy (Rust toolchain, process lifecycle, IPC protocol). Overkill for a prototype. |
-| CGo over iroh-c-ffi | `iroh-docs` NOT in C FFI. Only networking exposed. Can't implement the CRDT KV store. |
-| Pure-Go Iroh reimplementation | Insane effort. Would need QUIC + gossip + range reconciliation from scratch. |
+| Alternative                             | Why Not                                                                               |
+| --------------------------------------- | ------------------------------------------------------------------------------------- |
+| Rust sidecar binary                     | Heavy (Rust toolchain, process lifecycle, IPC protocol). Overkill for a prototype.    |
+| CGo over iroh-c-ffi                     | `iroh-docs` NOT in C FFI. Only networking exposed. Can't implement the CRDT KV store. |
+| Pure-Go Iroh reimplementation           | Insane effort. Would need QUIC + gossip + range reconciliation from scratch.          |
 | **Level 2 wrapper + mock transport** ✅ | Validates architecture, tests API, zero external deps, swappable for real Iroh later. |

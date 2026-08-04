@@ -18,6 +18,7 @@ Complete the remaining `scheduling/sqlstore` TODO_LIST gaps that were identified
 **Problem:** `scheduling/sqlstore` shipped `mysqlQueries()` but had zero tests verifying the MySQL SQL syntax. The `idempotency/sqlstore` sibling module has `mysql_queries_test.go` for exactly this purpose.
 
 **What was done:**
+
 - Created `mysql_queries_test.go` (internal `package sqlstore` to access unexported `mysqlQueries()`)
 - 6 subtests verify: `CREATE TABLE IF NOT EXISTS timers`, `VARCHAR(255) PRIMARY KEY`, `DATETIME(3)` for millisecond precision, `CURRENT_TIMESTAMP(3)` default, `ON DUPLICATE KEY UPDATE id = id` (no-op idempotent insert), all queries use `?` placeholders (not `$1`)
 
@@ -28,6 +29,7 @@ Complete the remaining `scheduling/sqlstore` TODO_LIST gaps that were identified
 **Problem:** Concurrent Schedule/MarkFired/Due races were entirely untested. The `idempotency/sqlstore` sibling has `property_test.go` using `pgregory.net/rapid`.
 
 **What was done:**
+
 - Added `pgregory.net/rapid v1.3.0` as a test dependency
 - Created 5 `rapid.Check` property tests (100 iterations each):
   1. `TestProperty_ScheduleIsIdempotent` — repeated Schedule of same ID never errors, original payload preserved
@@ -44,6 +46,7 @@ Complete the remaining `scheduling/sqlstore` TODO_LIST gaps that were identified
 **Problem:** `NewPostgresStore` existed but the Postgres dialect path (native `time.Time` scanning, `$N` placeholders, `BYTEA` column, `TIMESTAMP WITH TIME ZONE`) was **100% untested** against real PG. The module was not even in `ephemeral-pg.sh` PG_MODULES.
 
 **What was done:**
+
 - Added `scheduling/sqlstore` to `scripts/ephemeral-pg.sh` PG_MODULES (line 66)
 - Added `pgx/v5 v5.10.0` + `testcontainers-go v0.43.0` + `testcontainers-go/modules/postgres v0.43.0` as test deps
 - Created `pg_testcontainer_test.go` — TestMain + shared container + per-test DB isolation (mirrors `projectionhost/pg_testcontainer_test.go` pattern exactly)
@@ -62,6 +65,7 @@ Complete the remaining `scheduling/sqlstore` TODO_LIST gaps that were identified
 **Problem:** `scheduling/sqlstore` was **not in `flake.nix` `testModules` list**, so `nix run .#lint` never linted it. When added, golangci-lint found 3 issues.
 
 **What was done:**
+
 - Added `"scheduling/sqlstore"` to `flake.nix` `testModules` list (line 181)
 - Fixed 3 lint issues:
   - **err113** (dynamic error): Extracted `ErrUnknownDialect` sentinel + `fmt.Errorf("%w: %d", ErrUnknownDialect, d)`
@@ -75,6 +79,7 @@ Complete the remaining `scheduling/sqlstore` TODO_LIST gaps that were identified
 **Problem:** The new `ErrUnknownDialect` export was not in the golden. Also, a WIP `system/` module (added by another session/daemon) appeared on disk with `go.mod` but doesn't compile (references unimplemented `metaengine.StreamLogBackend`), breaking `TestEveryGoModDirIsInModulesList`.
 
 **What was done:**
+
 - Added `"system": "WIP module (references unimplemented metaengine types, does not compile yet)"` to the `excluded` map in `cmd/api-stability/main_test.go`
 - Regenerated `docs/api_surface.txt` (3261 → 3268 exports: +`scheduling/sqlstore/var ErrUnknownDialect` + 5 metaengine stream methods)
 - All 4 api-stability tests PASS
@@ -82,6 +87,7 @@ Complete the remaining `scheduling/sqlstore` TODO_LIST gaps that were identified
 ### 6. Full Verify Gate
 
 **What was done:** Ran `nix run .#verify-fast` (build + vet + test + race + lint):
+
 - **Build**: clean (including `integration` build tag)
 - **Vet**: clean
 - **Test (short)**: all 66+ module test suites PASS (including `scheduling/sqlstore/v4`)
@@ -99,6 +105,7 @@ Marked all 3 scheduling/sqlstore gap items as `[x]` with completion evidence.
 ### Coverage at 76.3% (with integration tag) — still 23.7% uncovered
 
 The uncovered branches are:
+
 - MySQL dialect paths in production code (`mysqlQueries()` is tested via syntax test but `NewMySQLStore` has never run against live MySQL)
 - Error paths in `Schedule`/`Due`/`MarkFired`/`Cancel` (marshal failures, SQL errors, parse failures)
 - The `parseTime` default branch (`unexpected scan destination type`) — unreachable in practice but uncovered
@@ -146,6 +153,7 @@ Nothing. All work delivered, tested, passing, lint-clean, committed.
 ## F) Up to 50 Things to Get Done Next
 
 ### scheduling/sqlstore maturation
+
 1. Run `nix run .#check-coverage` to verify coverage drift gate passes at 76.3%
 2. Add error path tests: marshal failure, SQL connection error, parse failure
 3. Add `TestSQLiteTimerStore_PayloadCorruption` — manually corrupt payload BLOB, verify Corruption error
@@ -163,47 +171,56 @@ Nothing. All work delivered, tested, passing, lint-clean, committed.
 15. Add `scheduling/sqlstore` usage example to SKILL.md recipes
 
 ### WIP module hygiene (system + irohengine)
+
 16. Fix or remove the `system/` module — it doesn't compile (references `metaengine.StreamLogBackend`)
 17. Audit `metaengine/irohengine` — verify it compiles, decide if it stays in `go.work`
 18. If system/ stays, add it to `flake.nix` testModules and remove the api-stability exclusion
 19. If irohengine stays, add it to `flake.nix` testModules
 
 ### flake.nix / module wiring systemic fix
+
 20. Auto-derive `testModules` from `go.work` in flake.nix (eliminate manual list drift)
 21. OR: add a meta-test `TestEveryGoWorkModuleInFlakeTestModules` that catches drift
 22. Verify the new `scheduling/sqlstore` entry survives a `nix flake check`
 
 ### Pre-existing lint debt (not from this session)
+
 23. Fix `transport/http/sse_span_test.go` SA5011 nil pointer dereference (breaks lint gate)
 24. Fix `cmd/cqrs-lint` errcheck (2 unchecked `fmt.Fprintf`) and tagliatelle (5 json tags)
 25. Fix `idempotency/kvstore` nonamedreturns
 26. Fix `metaengine/engine.go` gocritic deprecatedComment format
 
 ### Integration test infrastructure
+
 27. Add `scheduling/sqlstore` to MySQL VM test (`nix run .#integration-mysql-vm`)
 28. Add projectionhost to MySQL VM test
 29. Consider a shared testcontainer harness across modules (reduce `pg_testcontainer_test.go` duplication)
 30. Write `scripts/test-integration.sh` aggregator (M48)
 
 ### Full verify
+
 31. Run `nix run .#verify` (full gate: doc-check + doc-assertions + coverage + vulncheck)
 32. Run `nix run .#vulncheck` on the new module
 33. Run `nix run .#secrets-scan`
 34. Run `nix flake check`
 
 ### Documentation
+
 35. Update `docs/architecture-understanding/FOUR-TIER-MODEL.md` with scheduling/sqlstore position
 36. Update FEATURES.md with the new module status
 37. Update `CONTRIBUTING.md` module list if needed
 38. Verify `cmd/doc-check` passes with the new README
 
 ### cqrs-lint
+
 39. Update `cmd/cqrs-lint` module catalog (28 scored modules → 29, now that scheduling/sqlstore is tested)
 
 ### Metaengine (unrelated, noticed during verify)
+
 40. Investigate the 5 new `metaengine` exports (`JournalReadAll`, `JournalReadFrom`, `StreamAppend`, `StreamRead`, `StreamVersion`) — these appeared in the api-surface golden regen, presumably from the StreamLogBackend work in another session. Verify they're intentional.
 
 ### Broader project
+
 41. Run the encryption double-clone fix (TODO_LIST Code Quality section)
 42. Fix the flaky `idempotency/kvstore` TTL test
 43. Benchmark audit for 10 skipped modules

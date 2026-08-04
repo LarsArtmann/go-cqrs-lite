@@ -98,6 +98,7 @@ section now includes a full code example showing the Persistence API.
 ### ~~Engine-specific persistence tests~~ (RESOLVED)
 
 Engine-specific persistence tests written for all three dynamic engines:
+
 - **Pebble:** `persistence_test.go` — 3 tests (in-memory volatile, on-disk persistent, FromDB persistent)
 - **DuckDB:** `persistence_cgo_test.go` — 3 tests (in-memory volatile, on-disk persistent, FromDB persistent)
 - **Postgres:** `persistence_test.go` — 2 tests (New persistent, FromDB persistent)
@@ -113,6 +114,7 @@ All 8 engine tests pass green with `-race`.
 ### ~~`nix run .#lint` and `nix run .#verify` — NOT run~~ (RESOLVED)
 
 Both gates now pass:
+
 - `nix run .#lint`: 0 issues in metaengine + all engine modules
 - `nix run .#verify`: Full quality gate GREEN (build+vet+test+race+lint+doc-check)
 
@@ -151,7 +153,7 @@ not mine), but this didn't corrupt my work.
    shows volatile ones (by design, mirroring Replication). Could add a verbose
    mode that lists every collection with its classification.
 
-5. **Doctor() should show ALL collections' persistence, not just volatile** —
+6. **Doctor() should show ALL collections' persistence, not just volatile** —
    The asymmetry (only showing problems) is consistent with Replication, but
    for persistence the happy path ("all your data survives restart") is
    worth confirming explicitly per collection.
