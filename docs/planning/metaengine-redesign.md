@@ -25,6 +25,10 @@
 2. [Why the Current Stack Is a "Hack"](#2-why-the-current-stack-is-a-hack)
 3. [Research Evidence](#3-research-evidence)
 4. [Decisions (Recorded)](#4-decisions-recorded)
+   - [4.6 System scope](#46-system-scope-layered-full-owns-all-infrastructure)
+   - [4.7 Config format](#47-config-format-go-struct--yaml--env-via-koanf)
+   - [4.8 Migration path](#48-migration-path-gradual-new-system-module)
+   - [4.9 Bus](#49-bus-operator-configured-multi-bus-support)
 5. [The Key Insight: Multi-Instance Metaengine](#5-the-key-insight-multi-instance-metaengine)
 6. [Target Architecture](#6-target-architecture)
 7. [Operator Configuration Surface](#7-operator-configuration-surface)
@@ -345,8 +349,7 @@ Relevant capabilities:
 
 ## 4. Decisions (Recorded)
 
-Five architectural forks were presented to Lars via the question tool. Decisions
-recorded below.
+Nine architectural decisions recorded below.
 
 ### 4.1 Backend selection: Hybrid (registry + config), leaning runtime
 
@@ -446,6 +449,90 @@ dashboard framework; it just needs data to render.
 **Rationale:** Lars selected "Loud warn + override" AND "Advisory" — a tiered
 model. The system should scream loudly but not prevent informed operator
 decisions, except for genuinely destructive changes.
+
+### 4.6 System scope: Layered-full (owns all infrastructure)
+
+**Decision:** The System owns ALL infrastructure wiring: storage instances,
+bus(es), projectionhost, dispatchers. The consumer provides ONLY domain types,
+fold functions, and domain middleware. The operator decides engines, bus types,
+durability tiers, cache tiers.
+
+**Clarification:** The initial "layered" answer was underspecified. Lars
+confirmed the System must own:
+
+1. **Projectionhost** — reads from the event journal (metaengine Log instance)
+   and feeds projection instances. If the consumer wires this manually, app code
+   still cares about deployment (violates G8).
+2. **Multi-bus support** — like the N-instance metaengine insight, the System
+   supports MULTIPLE buses simultaneously (e.g., in-process GoChannel for local
+   projections + NATS for cross-service fan-out). Not just one overridable bus.
+3. **Consumer extension points** — even though the System owns the bus +
+   dispatchers, the consumer must be able to inject domain middleware
+   (validation, idempotency, tracing) and register handlers/projections.
+   Ownership is not a closed box.
+4. **Bus type is an operator concern** — bus type (NATS vs GoChannel) is a
+   deployment decision = operator config. The System constructs it. The consumer
+   only adds domain handlers to whatever bus the operator configured.
+
+**What the consumer provides (domain-only):**
+
+- Event/command/query types (Go structs)
+- Fold functions / projection handlers (domain logic)
+- Domain middleware (validation, idempotency, authorization)
+- Decider definitions (decide + fold functions)
+
+**What the operator provides (infrastructure):**
+
+- Engine instances (named engines, DSNs, durability tiers)
+- Bus type(s) and configuration
+- Cache tiers
+- Projection-to-instance assignments
+
+### 4.7 Config format: Go struct + YAML + env via koanf
+
+**Decision:** Go struct is the canonical type. [koanf](https://github.com/knadh/koanf/)
+handles multi-source merging: YAML file + env var overrides → Go struct. All
+three sources coexist; the Go struct is the single source of truth.
+
+**Rationale:** koanf is a lightweight, extensible config library that supports
+multiple backends (files, env, flags, S3, etcd) and parsers (YAML, JSON, TOML).
+It handles the merge ordering (env overrides file overrides defaults) without
+reinventing the wheel. The go-cqrs-lite library ships the Go struct types +
+koanf integration; consumers can use it directly or bring their own config
+loader.
+
+### 4.8 Migration path: Gradual (new system/ module)
+
+**Decision:** New `system/` Go module. Start with sqlite + memory drivers.
+Add pebble, postgres, duckdb, turso mechanically via the driver registry once
+the architecture is proven. Bundle stays untouched in `stack/` until the System
+is mature enough to deprecate it.
+
+**Rationale:**
+
+| Option | Pro | Con |
+| --- | --- | --- |
+| **A: Dual presets (all at once)** | Cleanest separation | Duplication — every engine wired twice upfront |
+| **B: Gradual (CHOSEN)** | Ship sqlite+memory fast, prove design, add engines mechanically | Non-sqlite operators wait |
+| **C: System in stack/** | Single module, shared deps | Old structural debt contaminates new design |
+
+B is fastest to a working System, avoids duplication, and avoids the `stack/`
+baggage. The driver registry pattern means adding engines later is mechanical
+(register driver, write adapter, test). Lessons from sqlite+memory inform the
+remaining integrations.
+
+### 4.9 Bus: Operator-configured, multi-bus support
+
+**Decision:** The System supports MULTIPLE buses simultaneously, configured by
+the operator. Like the N-instance metaengine insight: one bus for local
+projections (in-process GoChannel), another for cross-service fan-out (NATS).
+Events can be published to multiple buses (fan-out). Consumers subscribe to
+whichever bus is appropriate for their use case.
+
+**Rationale:** Real deployments need both local fast-path delivery (projections
+that must be in-process for ordering) AND distributed delivery (cross-service
+communication). A single bus forces a compromise. Multiple buses, each with a
+named driver, give the operator full control.
 
 ---
 
@@ -892,20 +979,79 @@ ONE declaration — no instance topology changes needed.
 
 ### 7.2 Config format
 
-TBD — see [§10](#10-open-questions). Options: Go struct (preferred for library
-SDK), YAML (for file-based deployment), env vars (for 12-factor). All three can
-coexist (Go struct is canonical; YAML/env are parsed into it).
+**Resolved:** Go struct (canonical) + YAML + env, merged via
+[koanf](https://github.com/knadh/koanf/).
+
+```yaml
+# config.yaml — operator writes this (or uses Go struct / env vars)
+engines:
+  primary:
+    driver: sqlite
+    dsn: "file:events.db"
+    pragmas: [wal, foreign_keys]
+  analytics:
+    driver: duckdb
+    dsn: "file:analytics.db"
+  hot-cache:
+    driver: memory
+
+buses:
+  local:
+    driver: gochannel      # watermill GoChannel (in-process)
+  cross-service:
+    driver: nats
+    url: "nats://cluster:4222"
+
+instances:
+  - role: events
+    engine: primary
+    durability: strict
+    publish: [local, cross-service]   # fan-out to both buses
+  - role: commands
+    engine: primary
+  - role: queries
+    engine: analytics
+  - role: projections
+    engine: views
+    subscribe: local                    # projections consume from local bus
+```
+
+```bash
+# Environment variable override (koanf merges: env > file > defaults)
+CQRS_INSTANCES_0_ENGINE=primary
+CQRS_BUSES_CROSS_SERVICE_URL=nats://prod-cluster:4222
+```
+
+```go
+// Go struct (canonical — koanf unmarshals into this)
+config := system.Config{
+    Engines: map[string]system.EngineConfig{...},
+    Buses:   map[string]system.BusConfig{
+        "local":        {Driver: "gochannel"},
+        "cross-service": {Driver: "nats", URL: "nats://cluster:4222"},
+    },
+    Instances: []system.InstanceConfig{...},
+}
+
+// Or load via koanf (YAML + env merge):
+cfg, _ := system.LoadConfig("config.yaml")  // koanf-powered loader
+sys, _ := system.New(ctx, cfg)
+```
 
 ### 7.3 HTTP admin runtime config
 
-Lars requested "option for HTTP admin runtime config changes." This implies:
+The introspection API exposes a config endpoint. Changes are validated by the
+scream store before applying. Two categories:
 
-- A config endpoint served by the introspection API.
-- Changes are validated by the scream store before applying.
-- Some changes are hot-reloadable (e.g., adding a read replica); others require
-  graceful restart (e.g., changing the event log engine).
+| Change type | Examples | Mechanism |
+| --- | --- | --- |
+| **Hot-reloadable** | Add cache tier, add read replica, adjust cache capacity | Applied live, no restart |
+| **Structural** | Swap event log engine, change durability tier, add/remove bus | Graceful restart required |
 
-Design TBD — see [§10](#10-open-questions).
+Hot-reloadable changes are applied via a transactional config-swap: the new
+config is validated against the pinned manifest, then atomically swapped in.
+Structural changes require a graceful restart (drain connections, stop
+instances, reconfigure, restart).
 
 ### 7.4 Multi-DB SQLite (goal G5)
 
@@ -966,12 +1112,20 @@ renders them. No HTML, no handlers, no embedded UI in go-cqrs-lite.
 // This is the single "what's actually running" snapshot for admin UIs.
 // Supports N instances across both layers.
 type Topology struct {
-    Instances     []InstanceTopology  // all metaengine.Store instances
-    Bus           string              // "watermill-gochannel", "nats", ""
-    Dispatchers   []DispatcherInfo
+    Instances      []InstanceTopology  // all metaengine.Store instances
+    Buses          []BusTopology       // all configured buses (multi-bus)
+    Dispatchers    []DispatcherInfo
     ProjectionHost *ProjectionHostInfo // nil if not configured
     ScreamStore    *ScreamReport       // nil if not configured
 }
+
+type BusTopology struct {
+    Name       string // operator-assigned name (e.g., "local", "cross-service")
+    Driver     string // "gochannel", "nats", "redis"
+    Endpoints  []string // publish/subscribe topics
+}
+
+// BusTopology replaces the single `Bus string` field.
 
 type InstanceTopology struct {
     Name          string              // operator-assigned instance name
@@ -1170,13 +1324,13 @@ Probably (b) is the right default — simple but separated.
 
 ### 10.2 Config format
 
-**Question:** Go struct (canonical) + YAML parser + env var override? Or just
-Go struct (operators write `config.go`)? Or all three?
+**Resolved:** Go struct + YAML + env via koanf. See [§4.7](#47-config-format-go-struct--yaml--env-via-koanf) and [§7.2](#72-config-format).
 
 ### 10.3 HTTP admin runtime changes
 
-**Question:** Which changes are hot-reloadable (no restart) vs require graceful
-restart? Is there a transactional config-swap mechanism?
+**Resolved:** Hot-reload for additive changes (cache tier, read replica);
+graceful restart for structural changes (swap engine, change durability).
+See [§7.3](#73-http-admin-runtime-config).
 
 ### 10.4 Driver registration API
 
@@ -1190,17 +1344,16 @@ with independent shutdown, or are they providers within the root scope?
 
 ### 10.6 Migration path from Bundle
 
-**Question:** Do presets (sqlite, pebble, etc.) get dual implementations (Bundle +
-System), or do they migrate one at a time?
+**Resolved:** Gradual — new `system/` module, sqlite+memory first, add engines
+mechanically. See [§4.8](#48-migration-path-gradual-new-system-module).
 
 ### 10.7 Bus and dispatcher integration
 
-The event bus, command dispatcher, and query dispatcher are currently wired
-outside the Bundle by the consumer. The new System should own them.
-
-**Question:** Does the System auto-construct a watermill GoChannel bus by
-default, with operator config to swap for NATS/Redis? Or does the consumer still
-pass the bus?
+**Resolved:** System owns ALL infrastructure (storage, buses, projectionhost,
+dispatchers). Multi-bus support (multiple simultaneous buses). Bus type is
+operator-configured. Consumer provides domain types + folds + middleware.
+See [§4.6](#46-system-scope-layered-full-owns-all-infrastructure) and
+[§4.9](#49-bus-operator-configured-multi-bus-support).
 
 ### 10.8 Codec defaults
 
