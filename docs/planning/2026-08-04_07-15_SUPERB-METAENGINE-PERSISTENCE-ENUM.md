@@ -275,18 +275,18 @@ INFO  query "find_user" routed to volatile engine "memory"
       (persistent alternative available: "sqlite" at O(logN), +0.007ms/op)
 ```
 
-**Actual implemented format:**
+**Actual implemented format (cost delta):**
 
 ```
 INFO  routed to volatile engine "memory" — data lost on restart
-      (persistent alternative: sqlite at O(logN), 7000ns/op)
+      (persistent alternative: sqlite at O(logN), +0.007ms/query)
 ```
 
 Emitted when: query routes to `PersistenceVolatile` engine AND at least one persistent engine in
-the plan supports the same ADT. The cost delta is shown so the operator can decide whether the
-speed gain is worth the restart-rebuild cost.
+the plan supports the same ADT. The cost delta shows how much slower the persistent alternative
+would be per query, computed via `estimateCost()` for both engines.
 
-> ⚠️ **Implemented with divergence** — see [Divergence 1](#divergence-1-infographic-cost-format) above. Uses absolute NsPerOp instead of computed cost delta.
+> ✅ **Implemented exactly as specified** — cost delta computed via `estimateCost()` for both engines.
 
 ### Silent — persistent engine
 
@@ -319,7 +319,7 @@ The two most common engines declare their persistence honestly.
 
 The planner actively uses persistence, and ALL engines declare it.
 
-- ✅ `durabilityRule`: WARN when query routes to volatile engine, INFO when persistent alternative exists
+- ✅ `durabilityRule`: WARN when query routes to volatile engine, INFO with cost delta when persistent alternative exists
 - ✅ Pebble engine: dynamic (dir → persistent, "" → volatile)
 - ✅ DuckDB engine: dynamic (file → persistent, ":memory:" → volatile)
 - ✅ Postgres engine: always persistent
@@ -334,14 +334,14 @@ The planner actively uses persistence, and ALL engines declare it.
 - ✅ API surface golden regen
 - ✅ ADR documenting the two-level decision + rejected alternatives
 - ✅ COOKBOOK table update (add Persistence column)
-- ❌ README table update — **NOT DONE**
-- ❌ Build + test + verify gate — **PARTIAL** (build+test done, lint/verify NOT run)
+- ✅ README table update — Persistence section with constructor mapping + inspection examples
+- ✅ Build + test + verify gate — `nix run .#verify` GREEN (build+vet+test+race+lint+doc-check)
 
 ---
 
 ## Execution Graph
 
-> All tasks T1–T13 completed. T14–T16 partially done. T17–T18 done. T19 partially done. T20 partially done (build+test, not lint/verify).
+> All tasks T1–T20 completed. All gaps closed.
 
 ```mermaid
 graph TD
@@ -356,7 +356,7 @@ graph TD
     end
 
     subgraph "20% — 80% ✅"
-        T5[T5: durabilityRule ✅<br/>WARN/INFO diagnostics ⚠️]
+        T5[T5: durabilityRule ✅<br/>WARN/INFO with cost delta ✅]
         T6[T6: Pebble dynamic ✅<br/>dir vs vfs.NewMem]
         T7[T7: DuckDB dynamic ✅<br/>file vs :memory:]
         T8[T8: Postgres = persistent ✅]
@@ -365,16 +365,16 @@ graph TD
         T11[T11: Wire durabilityRule ✅<br/>into defaultRules ✅]
     end
 
-    subgraph "Remaining — 100% ⚠️"
+    subgraph "Remaining — 100% ✅"
         T12[T12: Doctor persistence section ✅]
         T13[T13: ExplainPlan persistence ✅]
         T14[T14: persistence_test.go ✅]
         T15[T15: durability rule test ✅]
-        T16[T16: CollectionInfo + serializable tests ✅<br/>❌ Engine-specific tests missing]
+        T16[T16: All tests ✅<br/>+ Engine-specific tests ✅]
         T17[T17: API surface golden ✅]
         T18[T18: ADR ✅]
-        T19[T19: README ❌ + COOKBOOK ✅]
-        T20[T20: Build + test ✅ + verify ❌]
+        T19[T19: README ✅ + COOKBOOK ✅<br/>+ AGENTS.md ✅ + SKILL.md ✅]
+        T20[T20: Build + test ✅ + verify ✅<br/>nix run .#lint ✅ + .#verify ✅]
     end
 
     T1 --> T2
@@ -436,7 +436,7 @@ Every file touched, grouped by module. Status reflects actual implementation.
 | ----------- | ------------------------------------------------------------------------------------------ | ------- |
 | `engine.go` | Add `persistence` field to struct, set in constructors (dir vs mem), return in `Profile()` | ✅ Done |
 
-> ❌ **Missing:** Engine-specific test asserting `NewPebbleEngine("")` → volatile, `NewPebbleEngine(dir)` → persistent
+> ✅ **Engine-specific tests written:** `persistence_test.go` (3 tests — in-memory volatile, on-disk persistent, FromDB persistent)
 
 ### `metaengine/duckdbengine/` (separate module)
 
@@ -444,7 +444,7 @@ Every file touched, grouped by module. Status reflects actual implementation.
 | ----------- | ------------------------------------------------------------------------------------------------ | ------- |
 | `engine.go` | Add `persistence` field to struct, set in constructors (file vs :memory:), return in `Profile()` | ✅ Done |
 
-> ❌ **Missing:** Engine-specific test asserting `New("")` → volatile, `New("file.db")` → persistent
+> ✅ **Engine-specific tests written:** `persistence_cgo_test.go` (3 tests — in-memory volatile, on-disk persistent, FromDB persistent)
 
 ### `metaengine/pgengine/` (separate module)
 
@@ -452,18 +452,18 @@ Every file touched, grouped by module. Status reflects actual implementation.
 | ----------- | ------------------------------------------------------- | ------- |
 | `engine.go` | Set `Persistence: PersistencePersistent` in `Profile()` | ✅ Done |
 
-> ❌ **Missing:** Engine-specific test asserting `Profile().IsPersistent() == true`
+> ✅ **Engine-specific tests written:** `persistence_test.go` (2 tests — New persistent, FromDB persistent)
 
 ### Docs + tooling
 
 | File                                           | Change                                               | Status          |
 | ---------------------------------------------- | ---------------------------------------------------- | --------------- |
 | `docs/adr/0098-metaengine-persistence-enum.md` | **NEW** — decision record with rejected alternatives | ✅ Done         |
-| `metaengine/README.md`                         | Add Persistence column to engine table               | ❌ **NOT DONE** |
+| `metaengine/README.md`                         | Full Persistence section with constructor table + inspection examples  | ✅ Done         |
 | `metaengine/COOKBOOK.md`                       | Add Persistence column to engine comparison table    | ✅ Done         |
 | `cmd/api-stability/main.go`                    | Regen golden (new exported symbols)                  | ✅ Done         |
-| `AGENTS.md`                                    | Update metaengine section with Persistence info      | ❌ **NOT DONE** |
-| `SKILL.md` + references                        | Update consumer-facing skill docs                    | ❌ **NOT DONE** |
+| `AGENTS.md`                                    | Module tree comment + Key Patterns code example      | ✅ Done         |
+| `SKILL.md` + references                        | `core.md` decision matrix + `modules.md` type listing | ✅ Done         |
 
 ---
 
