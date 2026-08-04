@@ -29,6 +29,9 @@
    - [4.7 Config format](#47-config-format-go-struct--yaml--env-via-koanf)
    - [4.8 Migration path](#48-migration-path-gradual-new-system-module)
    - [4.9 Bus](#49-bus-operator-configured-multi-bus-support)
+   - [4.10 Decider routing](#410-decider-routing-declarative-commandeventstream-relationships)
+   - [4.11 Config separation](#411-config-separation-domainconfig--deploymentconfig)
+   - [4.12 Snapshot storage](#412-snapshot-storage-new-snapshotbackend-interface)
 5. [The Key Insight: Multi-Instance Metaengine](#5-the-key-insight-multi-instance-metaengine)
    - [5.5 Cache Tier](#55-the-cache-tier-zfs-arc-for-immutable-events)
    - [5.6 The 4th Dimension: Time](#56-the-4th-dimension-time)
@@ -354,7 +357,7 @@ Relevant capabilities:
 
 ## 4. Decisions (Recorded)
 
-Nine architectural decisions recorded below.
+Twelve architectural decisions recorded below.
 
 ### 4.1 Backend selection: Hybrid (registry + config), leaning runtime
 
@@ -538,6 +541,97 @@ whichever bus is appropriate for their use case.
 that must be in-process for ordering) AND distributed delivery (cross-service
 communication). A single bus forces a compromise. Multiple buses, each with a
 named driver, give the operator full control.
+
+### 4.10 Decider routing: declarative command→event→stream relationships
+
+**Decision:** The System captures command→event→stream-type relationships as
+**data** at registration time, enabling automatic routing. The consumer declares
+the relationships; the System builds a routing graph.
+
+**This is the realization of Lars's core goal:** "Knowing ONLY the Commands +
+Events + Queries and their relations we should be able to build superb
+Projections."
+
+**What's missing today:** The current codebase has NO declarative relationship
+layer. Every command→event→stream link is a hardcoded procedural closure
+(`handlers.go:112-175`). The `Decider[State]` struct has zero knowledge of
+commands — `DecideFunc` captures the command in a closure, invisible to the
+runtime. There is no type registry mapping command types to stream types.
+
+**The target model:** the consumer declares command types and their
+relationship to streams/events. The System infers routing.
+
+```go
+// Consumer declares: this command targets this stream type, uses this decider
+sys.Command("task.create", func(cmd CreateTaskCmd) system.Op[TaskState] {
+    return system.Execute(cmd.StreamID(), "Task",
+        func(state TaskState, ver event.Version) ([]event.Event, error) {
+            return []event.Event{mustEvent(event.NewEvent("task.created",
+                cmd.StreamID(), "Task", ver+1, TaskCreated{...}))}, nil
+        })
+})
+
+// The System now knows: "task.create" → TaskState → "Task" stream → task.created event
+// Multiple commands on the same stream type share the decider automatically.
+```
+
+**Design note:** the exact API shape (closure-based vs struct-based vs
+registry-based) needs prototyping. The key invariant: the System MUST capture
+the command→stream-type→event-type relationship as data, not as erased closures.
+This is what enables auto-wiring of projections, audit, and routing.
+
+### 4.11 Config separation: DomainConfig + DeploymentConfig
+
+**Decision:** The Config is split into two types: `DomainConfig` (consumer
+concerns: deciders, commands, queries, projections, middleware) and
+`DeploymentConfig` (operator concerns: engines, buses, instances, durability,
+cache).
+
+```go
+sys, err := system.New(ctx,
+    system.DomainConfig{
+        Commands:    registerCommands,    // func(*system.System)
+        Queries:     registerQueries,
+        Projections: []metaengine.QueryDecl[any, any]{taskViews, taskCounts},
+        Middleware:  []command.Middleware{validation.Middleware},
+    },
+    system.DeploymentConfig{
+        Engines:   map[string]system.EngineConfig{"primary": {...}},
+        Buses:     map[string]system.BusConfig{"local": {...}},
+        Instances: []system.InstanceConfig{...},
+    },
+)
+```
+
+**Rationale:** Enforces G1/G2 (consumer doesn't decide infrastructure, operator
+doesn't write domain code) at the TYPE level. DomainConfig is Go code (closures,
+typed handlers). DeploymentConfig is data (YAML/env via koanf). The boundary is
+compiler-enforced.
+
+### 4.12 Snapshot storage: new SnapshotBackend interface
+
+**Decision:** New `SnapshotBackend` interface at the ADT level (like
+StreamLogBackend). Engines implement it. The SnapshotAdapter wraps it as
+`snapshot.SnapshotStore`.
+
+**Rationale:** Snapshots need `LoadAtVersion(streamID, version)` — find the
+snapshot at or below a given version. The Map ADT (key→value) can only store
+the latest snapshot per key. Versioned keys (streamID:version) work but require
+backward scanning that isn't a natural Map operation. A dedicated
+`SnapshotBackend` gives engines the right operations:
+
+```go
+type SnapshotBackend interface {
+    SnapshotSave(ctx context.Context, collection, streamID string, version int64, data []byte) error
+    SnapshotLoad(ctx context.Context, collection, streamID string) ([]byte, int64, error)  // latest
+    SnapshotLoadAtVersion(ctx context.Context, collection, streamID string, maxVersion int64) ([]byte, int64, error)
+    SnapshotDelete(ctx context.Context, collection, streamID string) error
+}
+```
+
+This enables `decider.LoadAtVersion` to use the latest snapshot at or below the
+target version, then replay events from there — the same optimization the
+current `decider.Repository` provides, but as a first-class engine interface.
 
 ---
 
@@ -1012,14 +1106,17 @@ sys.UseCommandMiddleware(
     authz.RequireRole("admin"),
 )
 
-// 7. System construction (one call — operator config decides infrastructure)
-sys, err := system.New(ctx, system.Config{
-    Decider:     TaskDecider,
-    Projections: []metaengine.QueryDecl[any, any]{taskViews, taskCounts},
-    Commands:    registerCommands,
-    Queries:     registerQueries,
+// 7. System construction (DomainConfig + DeploymentConfig separated per D11)
+sys, err := system.New(ctx,
+    system.DomainConfig{
+        Commands:    registerCommands,     // func(*system.System)
+        Queries:     registerQueries,
+        Projections: []metaengine.QueryDecl[any, any]{taskViews, taskCounts},
+        Middleware:  []command.Middleware{validation.Middleware, authz.RequireRole("admin")},
+    },
     // NO engine list, NO DSN, NO bus type — that's the operator's job
-})
+    system.DeploymentConfig{}, // operator fills this (see below)
+)
 ```
 
 ```go
@@ -1030,12 +1127,8 @@ sys, err := system.New(ctx, system.Config{
 // GoChannel→NATS by changing the declaration — topology stays the same.
 
 // Minimal: one instance per layer, single bus
-sys, err := system.New(ctx, system.Config{
-    Decider:     TaskDecider,
-    Projections: queries,
-    Commands:    registerCommands,
-    Queries:     registerQueries,
-    Engines: map[string]system.EngineConfig{
+sys, err := system.New(ctx, domain,
+    system.DeploymentConfig{
         "primary":   {Driver: "sqlite", DSN: "file:app.db"},
         "hot-cache": {Driver: "memory"},
     },
@@ -1062,10 +1155,8 @@ sys, err := system.New(ctx, system.Config{
 })
 
 // Split: multi-bus (local + NATS), DuckDB for queries, graph on Pebble
-sys, err = system.New(ctx, system.Config{
-    Decider:     TaskDecider,
-    Projections: queries,
-    Commands:    registerCommands,
+sys, err = system.New(ctx, domain,
+    system.DeploymentConfig{
     Queries:     registerQueries,
     Engines: map[string]system.EngineConfig{
         "primary":   {Driver: "sqlite", DSN: "file:events.db"},
