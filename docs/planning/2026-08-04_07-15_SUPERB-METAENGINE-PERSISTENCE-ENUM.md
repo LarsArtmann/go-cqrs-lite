@@ -1,7 +1,8 @@
 # Metaengine Persistence Enum
 
-> **STATUS:** PLAN — not yet implemented.
+> **STATUS:** IMPLEMENTED — ADR-0098.
 > Created: 2026-08-04 07:15
+> Completed: 2026-08-04 07:42
 
 ## Problem
 

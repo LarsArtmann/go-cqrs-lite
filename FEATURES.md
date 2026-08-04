@@ -278,6 +278,7 @@ developer never declares "I need a Map" or "I need a Counter."
 | `ErrKeyTypeMismatch`         | Store boundary validates input struct key field type matches declared `keyType`                                                                                                  | 🧪     |
 | CalibrateEngine              | `calibratable` interface. Memory + SQLite support runtime cost calibration. External engines (Pebble/DuckDB/PG) not yet calibratable                                             | 🧪     |
 | ExplainPlan + Doctor         | `store.Explain(ctx)` shows engine assignments + rule diagnostics + replication suffix. `store.Doctor()` health check with `--- Replication ---` section                          | 🧪     |
+| Persistence enum (ADR-0098)  | `EngineProfile.Persistence` (`PersistenceVolatile`/`PersistencePersistent`). `durabilityRule` WARN when volatile engines hold materialized projections. DDIA Ch1 reliability axis    | 🧪     |
 
 **Coverage:** 76.3% (verified `go test -cover ./...` 2026-08-02). 174 BDD specs + 150 cross-engine
 meta specs + 12 ADT harness self-tests. The metaengine went through 15+ hardening
@@ -296,7 +297,7 @@ costs), go-sse consumption (ADR-0097), DuckDB+PG calibration benchmarks,
 benchmark correctness assertions.
 
 Remaining: Postgres GIN indexes, CalibrateEngine for external engines,
-persistence enum wiring, serialize ReadCosts into SerializablePlan. See
+serialize ReadCosts into SerializablePlan. See
 [TODO_LIST.md](TODO_LIST.md).
 
 ---

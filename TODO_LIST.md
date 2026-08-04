@@ -43,15 +43,6 @@ and is **never** duplicated here.
       accept `ReadCosts`. See
       [Read Costs problem analysis](docs/planning/2026-08-04_07-00_READ-COSTS-PER-OPERATION-VARIANCE.md#remaining-work).
 
-- [ ] **Wire `persistence.go` into EngineProfile** — `metaengine/persistence.go`
-      defines `Persistence` type + constants (`PersistenceVolatile`/
-      `PersistencePersistent`) but the field is NOT yet on `EngineProfile`.
-      Needs: field on `EngineProfile`, `IsVolatile()`/`IsPersistent()` helpers,
-      per-engine `Profile()` updates, `durabilityRule` diagnostics,
-      `CollectionInfo`/`SerializablePlan` fields, `Doctor()`/`ExplainPlan()`
-      output. See
-      [persistence enum plan](docs/planning/2026-08-04_07-15_SUPERB-METAENGINE-PERSISTENCE-ENUM.md).
-
 - [ ] **Serialize `ReadCosts` into `SerializablePlan`** — `ReadCosts` is NOT
       in the plan JSON; plan diffing between deploys won't show what ReadCosts
       values were active. Add `read_costs` field to `SerializableQuery`.

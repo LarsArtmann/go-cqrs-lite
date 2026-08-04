@@ -361,11 +361,15 @@ catalog/var ErrEmptyServiceID
 cmd/cqrs-gen/struct Entry
 cmd/cqrs-lint/func ComputeHealthScore
 cmd/cqrs-lint/func ComputeHealthScoreWithCap
+cmd/cqrs-lint/func ComputeScorecard
 cmd/cqrs-lint/method Load
 cmd/cqrs-lint/struct AppConfig
 cmd/cqrs-lint/struct HealthConfig
 cmd/cqrs-lint/struct HealthScore
 cmd/cqrs-lint/struct JSONCLoader
+cmd/cqrs-lint/struct ScorecardModule
+cmd/cqrs-lint/struct ScorecardResult
+cmd/cqrs-lint/struct ScorecardSummary
 codec/const COSEAlgAES256GCM
 codec/const COSEAlgChaCha20Poly1305
 codec/const COSEAlgEd25519
@@ -1395,6 +1399,8 @@ metaengine/const LayoutKV
 metaengine/const LayoutLSM
 metaengine/const LayoutRow
 metaengine/const MemoryNsPerOp
+metaengine/const PersistencePersistent
+metaengine/const PersistenceVolatile
 metaengine/const ReadAggregate
 metaengine/const ReadFilteredScan
 metaengine/const ReadFullTextSearch
@@ -1554,6 +1560,7 @@ metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
+metaengine/method Apply
 metaengine/method ApplyBatch
 metaengine/method ApplyBatch
 metaengine/method ApplyEncoded
@@ -1642,8 +1649,10 @@ metaengine/method Insert
 metaengine/method Inspect
 metaengine/method InspectJSON
 metaengine/method IsDegraded
+metaengine/method IsPersistent
 metaengine/method IsPoisoned
 metaengine/method IsReplicated
+metaengine/method IsVolatile
 metaengine/method Kind
 metaengine/method Kind
 metaengine/method Kind
@@ -1691,8 +1700,10 @@ metaengine/method Name
 metaengine/method Name
 metaengine/method Name
 metaengine/method Name
+metaengine/method Name
 metaengine/method NsForRead
 metaengine/method ObservedWorkloadStats
+metaengine/method Persistence
 metaengine/method Plan
 metaengine/method Poison
 metaengine/method Primary
@@ -1893,6 +1904,7 @@ metaengine/type FilterOp
 metaengine/type FoldKind
 metaengine/type ItemCount
 metaengine/type Nanoseconds
+metaengine/type Persistence
 metaengine/type QueryOption
 metaengine/type RatePerSecond
 metaengine/type ReadPattern

@@ -54,10 +54,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`Store.Inspect()` / `InspectJSON()` extraction** — moved from `sse.go` to
   `metaengine/inspect.go` for file cohesion. Collection introspection (key
   count, engine, ADT) has nothing to do with SSE.
-- **`metaengine/persistence.go`** — defines `Persistence` type +
-  `PersistenceVolatile`/`PersistencePersistent` constants (DDIA Ch1 reliability
-  axis). Foundation for `durabilityRule` diagnostics. NOT yet wired into
-  `EngineProfile`.
+- **Persistence enum (ADR-0098)** — `EngineProfile.Persistence` field
+  (`PersistenceVolatile`/`PersistencePersistent`, DDIA Ch1 reliability axis).
+  Per-engine `Profile()` sets persistence dynamically (Memory=volatile,
+  SQLite/Pebble/DuckDB/PG=persistent). `durabilityRule` emits WARN when volatile
+  engines hold materialized projections across restarts. `CollectionInfo` +
+  `SerializablePlan` include persistence. `Doctor()` has `--- Persistence ---`
+  section. `ExplainPlan()` shows persistence on engine lines.
 
 #### MySQL/MariaDB support: stack preset, dialect methods, classifier, docs
 

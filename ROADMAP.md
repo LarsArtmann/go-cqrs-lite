@@ -112,8 +112,8 @@ production maturity chain is complete:
 - ✅ **CalibrateEngine** — `calibratable` interface; copy-discard bug fixed
 
 **Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** Postgres GIN
-indexes, CalibrateEngine for external engines, persistence enum wiring,
-serialize ReadCosts into SerializablePlan, DuckDB LayoutPlanner follow-ups.
+indexes, CalibrateEngine for external engines, serialize ReadCosts into
+SerializablePlan, DuckDB LayoutPlanner follow-ups.
 
 **Remaining (long-term, ROADMAP):**
 
@@ -307,11 +307,12 @@ first `ReplicationLeaderless` engine.
 
 Two interconnected design efforts documented in late 2026-08 planning sessions.
 
-**Persistence enum** (`docs/planning/2026-08-04_07-15_SUPERB-METAENGINE-PERSISTENCE-ENUM.md`):
+**Persistence enum** (ADR-0098, `docs/planning/2026-08-04_07-15_SUPERB-METAENGINE-PERSISTENCE-ENUM.md`):
 Declares whether an engine's data survives process exit (DDIA Ch1 reliability
-axis). `metaengine/persistence.go` type exists but is not yet wired into
-`EngineProfile`. The `durabilityRule` will emit WARN when volatile engines
-hold materialized projections across restarts.
+axis). ✅ Shipped — `Persistence` field on `EngineProfile`, per-engine
+`Profile()` updates (Memory=volatile, SQLite/Pebble/DuckDB/PG=persistent),
+`durabilityRule` WARN/INFO diagnostics, `CollectionInfo`/`SerializablePlan`
+fields, `Doctor()`/`ExplainPlan()` output.
 
 **System topology redesign** (`docs/planning/metaengine-redesign.md`):
 A comprehensive design for a `system.System` type that replaces the current

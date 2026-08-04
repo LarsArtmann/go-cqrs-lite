@@ -30,6 +30,9 @@
    - [4.8 Migration path](#48-migration-path-gradual-new-system-module)
    - [4.9 Bus](#49-bus-operator-configured-multi-bus-support)
 5. [The Key Insight: Multi-Instance Metaengine](#5-the-key-insight-multi-instance-metaengine)
+   - [5.5 Cache Tier](#55-the-cache-tier-zfs-arc-for-immutable-events)
+   - [5.6 The 4th Dimension: Time](#56-the-4th-dimension-time)
+5. [The Key Insight: Multi-Instance Metaengine](#5-the-key-insight-multi-instance-metaengine)
 6. [Target Architecture](#6-target-architecture)
 7. [Operator Configuration Surface](#7-operator-configuration-surface)
 8. [Introspection API (for cqrs-htmx)](#8-introspection-api-for-cqrs-htmx)
@@ -698,6 +701,26 @@ miss, never data loss.
 **When it does NOT help:** write-once-read-rarely streams (most event logs in
 practice), or very large volumes where total events >> RAM (low hit rate).
 
+**Cache library: otter (already a dependency, already proven).**
+
+The cache tier uses `maypok86/otter/v2` — the same library already used by
+`decider.StateCache`. Research evaluated alternatives:
+
+| Library | Eviction | Maturity | Fit for immutable events |
+| --- | --- | --- | --- |
+| **otter v2** (CHOSEN) | Adaptive W-TinyLFU | v2, production (Grafana) | Perfect — frequency-based eviction is provably optimal for immutable data |
+| samber/hot | 9 pluggable (ARC, S3-FIFO, SIEVE...) | v0, 265 stars | Good but policy pluggability is irrelevant when W-TinyLFU dominates |
+| hand-rolled ARC | ARC | — | Tempting (ZFS connection) but W-TinyLFU outperforms ARC in benchmarks |
+
+**Why otter over samber/hot:** for immutable data (events never change), the
+invalidation problem is eliminated — the only concern is eviction policy.
+Adaptive W-TinyLFU is the state-of-the-art eviction algorithm (based on
+Caffeine, battle-tested at scale). samber/hot's key advantage — pluggable
+eviction policies — adds no value when one policy (W-TinyLFU) provably
+dominates for this workload. otter also provides built-in singleflight (cache
+stampede protection) and stale-while-revalidate — both useful for the event
+cache (parallel projection rebuilds hitting the same stream).
+
 **Design decision: instance-level concern, NOT planner concern.**
 
 The metaengine planner assigns engines to queries (a one-time cost decision).
@@ -725,13 +748,97 @@ instances:
     engine: primary # authoritative (persistent)
     cache: # optional read-through cache tier
       engine: hot-cache # references the named Memory engine
+      # Library: otter v2 (Adaptive W-TinyLFU eviction)
       # No invalidation policy — events are immutable.
-      # Only eviction policy: LRU (default), or ARC (future).
+      capacity: 10000      # max entries (otter handles sizing)
 ```
 
 **Scream store interaction:** removing a cache tier is always safe (read-through
 falls back to authoritative). Adding a cache tier is ADVISORY at most. Changing
 the authoritative engine from persistent to volatile is SCREAM (§9).
+
+### 5.6 The 4th Dimension: Time
+
+Lars's insight: time is a first-class dimension in event sourcing — not just a
+filter on event reads, but a query capability that some databases support
+natively (BigTable versioned cells, Postgres temporal tables, DuckDB
+time-travel). The metaengine should expose this uniformly.
+
+**Why this matters architecturally:**
+
+Event sourcing IS temporal data management. Every event has an `OccurredAt`
+timestamp. Every stream is a time-ordered sequence. "What was the state of this
+aggregate at time T?" is THE core ES query. Yet the current system treats time
+as a bolt-on filter (`LoadToTimestamp`), not a first-class storage dimension.
+
+**Three layers where time matters:**
+
+1. **StreamLogBackend (source-of-truth logs)** — events and commands are
+   inherently timestamped. Time-bounded reads (`LoadToTimestamp`,
+   `LoadFromTimestamp`) are core operations, not optional filters.
+
+2. **Projection instances (metaengine)** — the experimental `ExecuteAsOf`
+   (Memory-only today) enables "what was this projection's value at time T?"
+   This is powerful for debugging, auditing, and compliance. But it's only
+   implemented on Memory; SQL engines fall back to full replay.
+
+3. **Engine-native time support** — some databases can answer point-in-time
+   queries in O(1) without replay:
+
+   | Engine | Native temporal support | Mechanism |
+   | --- | --- | --- |
+   | **BigTable** | ✅ | Versioned cells (cell timestamps = event time) |
+   | **Postgres** | ✅ | `temporal_range` (PG 17+) or `AS OF` system versioning |
+   | **DuckDB** | ✅ | Time-travel (`SELECT ... FOR SYSTEM_TIME AS OF`) |
+   | **SQLite** | ⚠️ | Via version column + index (O(log N) scan) |
+   | **Pebble** | ⚠️ | Via versioned keys (O(log N) seek) |
+   | **Memory** | ✅ | Version chains + binary search (already implemented!) |
+
+**The StreamLogBackend must include time as a first-class operation:**
+
+```go
+type StreamLogBackend interface {
+    // ... append/read methods (from §10.1) ...
+
+    // Time-bounded reads — engines with native temporal support
+    // (BigTable, Postgres, DuckDB) answer in O(1).
+    // Others fall back to version/timestamp filtering (O(log N)).
+    StreamReadAsOf(ctx context.Context, collection, streamID string, asOf time.Time) ([]any, error)
+    StreamReadAsOfVersion(ctx context.Context, collection, streamID string, maxVersion int64) ([]any, error)
+}
+```
+
+**The metaengine planner should detect temporal queries and prefer engines with
+native time support:**
+
+```go
+// A query declares temporal intent by including an AsOf field in its input.
+type AuditInput struct {
+    AsOf time.Time // planner detects this → prefers VersionedStorage engines
+}
+
+// The planner routes to BigTable/Postgres when available,
+// falls back to Memory (version chain) or SQLite (version scan):
+type EngineProfile struct {
+    // ...
+    NativeTemporal bool // true for BigTable, Postgres, DuckDB
+}
+```
+
+**What already exists (verified):**
+
+- `LoadToTimestamp` / `LoadToVersion` on `event.Store` — all backends ✅
+- `LoadAtTime` / `LoadAtVersion` on `decider.Repository` — replays to a point in time ✅
+- `metaengine.VersionedStorage` interface — `MapGetAsOf` / `MapExistsAsOf` 🧪
+- `metaengine.ExecuteAsOf` — Memory engine only (version chain + binary search) 🧪
+- `snapshot.SnapshotStore.LoadAtVersion` — find snapshot at/below version ✅
+
+**What's missing:**
+
+- `ExecuteAsOf` on SQLite, Postgres, DuckDB, Pebble engines
+- Planner auto-detection of temporal query intent (AsOf field in input struct)
+- `StreamReadAsOf` on the StreamLogBackend interface (source-of-truth logs)
+- `EngineProfile.NativeTemporal` flag (planner routing signal)
 
 ---
 
@@ -1326,6 +1433,12 @@ type StreamLogBackend interface {
     // Read all values for a stream
     StreamRead(ctx context.Context, collection, streamID string) ([]any, error)
 
+    // Time-bounded reads (§5.6) — engines with native temporal support
+    // (BigTable, Postgres, DuckDB) answer in O(1). Others fall back to
+    // version/timestamp filtering (O(log N)).
+    StreamReadAsOf(ctx context.Context, collection, streamID string, asOf time.Time) ([]any, error)
+    StreamReadAsOfVersion(ctx context.Context, collection, streamID string, maxVersion int64) ([]any, error)
+
     // Journal: read across ALL streams (for projectionhost replay)
     JournalReadAll(ctx context.Context, collection string) ([]any, error)
 
@@ -1411,9 +1524,9 @@ it, or is it always CBOR?
 
 ### 10.9 Cache tier policy
 
-**Question:** What eviction policy for the event cache? LRU (simple, default)?
-ARC (ZFS-style adaptive recency+frequency, optimal but complex)? Clock
-(approximation of LRU, simpler)? Should the cache be per-stream or global?
+**Resolved:** otter v2 (Adaptive W-TinyLFU). Already a dependency, already
+proven in `decider.StateCache`. W-TinyLFU is state-of-the-art for immutable
+data. See [§5.5](#55-the-cache-tier-zfs-arc-for-immutable-events).
 
 ### 10.10 Named engine sharing semantics
 
@@ -1441,7 +1554,9 @@ each instance get its own connection? Shared is efficient; isolated is safer.
 | **Log ADT**              | The append-only ordered log ADT (`metaengine.ADTLog`). Already implemented by all 5 engines. The redesign uses it for event/command/query storage.                                                                                                            |
 | **Plan**                 | The output of `metaengine.Plan()`. Assigns engines to queries based on cost. Contains diagnostics, layouts, rule traces.                                                                                                                                      |
 | **Projection**           | A derived view built from events. Has a fold function and query patterns.                                                                                                                                                                                     |
-| **Scope**                | A samber/do child injector with lifecycle isolation. The redesign uses separate scopes per instance (or per layer for simpler setups). Each scope can be shut down independently.                                                                             |
+| **Temporal / Time-Aware** | An engine or query that supports point-in-time reads ("what was the state at time T?"). Some engines have native support (BigTable versioned cells, Postgres temporal tables, DuckDB time-travel); others fall back to version-chain scan. The 4th dimension of the storage model — see §5.6.|
+| **VersionedStorage** | The metaengine interface for point-in-time reads: `MapGetAsOf(ctx, collection, key, t)`. Currently implemented on Memory engine only (version chain + binary search). |
+| **StreamLogBackend** | A new ADT-level interface for stream-keyed append-only logs. All engines implement it. Three adapters (Event, Command, Query) wrap it. Includes time-bounded reads (StreamReadAsOf). See §10.1. |
 | **Scream Store**         | The safety mechanism that detects and blocks unsafe operator changes by diffing the current plan against a pinned manifest.                                                                                                                                   |
 | **SerializablePlan**     | A JSON-serializable snapshot of PlanResult, stripping runtime closures and reflect.Type values.                                                                                                                                                               |
 | **Source of Truth**      | The event log (and command/query audit logs). The authoritative, immutable record.                                                                                                                                                                            |
