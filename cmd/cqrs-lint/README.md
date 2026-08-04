@@ -64,6 +64,7 @@ You can override auto-detection in `.cqrs-lint.json`:
 		"soft-delete": true,
 		"tracing": "off",
 		"snapshot": "off",
+		"domain": "financial",
 		"transport": false,
 		"server-local": false
 	}
@@ -73,6 +74,10 @@ You can override auto-detection in `.cqrs-lint.json`:
 Each flag maps to a go-cqrs-lite module. Rules that depend on deployment
 context (S002 encryption, S003 signing, A015 global mutable, A016 idempotency,
 B014 OTel) consult these flags instead of guessing.
+
+**`domain`** — `"financial"` escalates security and money-handling rules to
+error severity. Also supports `"internal"` and `"security"`. Auto-detected from
+event/command type names but can be overridden here.
 
 **`transport`** — true when `transport/http`, `transport/grpc`, or an external
 transport module (like cqrs-htmx) is imported. When true, adoption rules that

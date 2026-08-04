@@ -127,6 +127,17 @@ DuckDB LayoutPlanner follow-ups.
   Currently only expression indexes (B-tree on JSONB paths).
 - **`metaengine-gen` code generator** — `cmd/metaengine-gen` for typed Store
   methods from query declarations. Go AST parsing + template generation.
+- **Operator-driven engine selection (close the "deployer decides" gap)** —
+  today the *consumer* opens the `*sql.DB`, sets pragmas, constructs
+  `metaengine.NewSQLiteEngine`, and hardcodes the engine list passed to `Plan`
+  (see `example/taskmanager/setup.go` + `metaengine.go`: ~140-line
+  `taskEventDecoder`, per-event `eventWithID[P]` wrappers, `onTyped` helper).
+  The design vision (`meta-engine-design.md` §6) is the opposite: the *operator*
+  provides engines (config/registry), the consumer declares query patterns only.
+  Target: a `stack.WithMetaEngineFromBundle` (or engine-registry) path where the
+  bundle supplies available engines and the consumer never touches a `*sql.DB`.
+  Pairs with the deferred auto event-decoder (fold handlers keyed by CQRS event
+  type string, removing the parallel decoder switch).
 
 ### 2. Benchkit → Evidence-Grade
 

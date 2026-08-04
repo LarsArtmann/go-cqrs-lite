@@ -114,6 +114,7 @@ func (fp FeatureProfile) String() string {
 	_, _ = fmt.Fprintf(&b, "domain:        %s\n", fp.Domain)
 	_, _ = fmt.Fprintf(&b, "transport:     %t\n", fp.HasTransport)
 	_, _ = fmt.Fprintf(&b, "server-local:  %t\n", fp.ServerLocal)
+	_, _ = fmt.Fprintf(&b, "async-bus:     %t\n", fp.HasAsyncBus)
 	return b.String()
 }
 
@@ -130,6 +131,7 @@ type ConfigFeatures struct {
 	Domain      *DomainKind      `json:"domain,omitempty"`
 	Transport   *bool            `json:"transport,omitempty"`
 	ServerLocal *bool            `json:"server-local,omitempty"` //nolint:tagliatelle // CLI config key
+	AsyncBus    *bool            `json:"async-bus,omitempty"`    //nolint:tagliatelle // CLI config key
 }
 
 // ConfigPreset is a named set of feature-flag defaults. Presets are sugar:
@@ -300,6 +302,9 @@ func ResolveFeatureProfile(
 	if merged.ServerLocal != nil {
 		result.ServerLocal = *merged.ServerLocal
 	}
+	if merged.AsyncBus != nil {
+		result.HasAsyncBus = *merged.AsyncBus
+	}
 
 	return result
 }
@@ -332,6 +337,9 @@ func mergeConfigFeatures(dst *ConfigFeatures, src ConfigFeatures) {
 	}
 	if src.ServerLocal != nil {
 		dst.ServerLocal = src.ServerLocal
+	}
+	if src.AsyncBus != nil {
+		dst.AsyncBus = src.AsyncBus
 	}
 }
 
@@ -367,6 +375,9 @@ func (fp FeatureProfile) ToConfigFeatures() ConfigFeatures {
 	}
 	if fp.ServerLocal {
 		cf.ServerLocal = &fp.ServerLocal
+	}
+	if fp.HasAsyncBus {
+		cf.AsyncBus = &fp.HasAsyncBus
 	}
 	return cf
 }

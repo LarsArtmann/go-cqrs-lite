@@ -43,6 +43,24 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 
 			profile := actx.FeatureProfile
 
+			// Show active preset and what it resolved to, so users have full
+			// visibility into how their config interacts with preset defaults.
+			if cfg.Preset != "" {
+				presetDef := analyzer.ResolvePresetDefinition(cfg.Preset)
+				fmt.Printf("Active preset: %s\n", cfg.Preset)
+				if len(presetDef.Rules.Disable) > 0 {
+					fmt.Printf("  Preset-disabled rules: %s\n",
+						strings.Join(presetDef.Rules.Disable, ", "))
+				}
+				if presetDef.MinSeverity != "" {
+					fmt.Printf("  Preset severity floor: %s\n", presetDef.MinSeverity)
+				}
+				fmt.Println()
+			} else {
+				fmt.Println("Active preset: (none)")
+				fmt.Println()
+			}
+
 			fmt.Println("Detected go-cqrs-lite feature profile:")
 			fmt.Println()
 			fmt.Print(profile)
