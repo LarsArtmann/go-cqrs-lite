@@ -30,8 +30,13 @@ and is **never** duplicated here.
       used `map[string]string` for JSON with numeric `"age"` field — decode silently failed.
       Plus: `benchkit.RunSuite` now `b.Fatalf`s on integrity errors instead of only reporting
       the metric.
-- [ ] 🔥 **Create DuckDB + Postgres engine benchmarks** — 0 exist today. Cost
-      constants for these engines are completely fabricated.
+- [x] 🔥 **Create DuckDB + Postgres engine benchmarks** — 0 existed for analytical
+      workloads. Added 4 calibration benchmarks per engine (batch insert, pushdown
+      scan, vectorized aggregation, full scan). Exposed a deeper design flaw: the
+      single-scalar `NsPerRead` cost model could not express the 4000× gap between
+      DuckDB's point lookups and aggregations, causing wrong engine selection.
+      **Fixed:** Added `ReadCosts` (per-read-pattern costs) to `EngineProfile`.
+      See [the problem analysis](docs/planning/2026-08-04_07-00_READ-COSTS-PER-OPERATION-VARIANCE.md).
 
 ---
 
@@ -59,7 +64,9 @@ and is **never** duplicated here.
 
 - [ ] **CalibrateEngine for external engines** — `calibratable` interface is
       unexported; pebbleengine/duckdbengine/pgengine can't implement it.
-      CalibrateEngine silently does nothing for these engines.
+      CalibrateEngine silently does nothing for these engines. Needs export as
+      `Calibratable` + extended signature to accept `ReadCosts`. See
+      [Read Costs problem analysis](docs/planning/2026-08-04_07-00_READ-COSTS-PER-OPERATION-VARIANCE.md#remaining-work).
 
 - [ ] **10M soak test verification & hardening**
   - Run `TestSoak_MemoryBounded_10M` 3× with `-race` and record variance.

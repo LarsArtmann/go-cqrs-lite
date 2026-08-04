@@ -372,25 +372,35 @@ simultaneously. Incremental evolution carries the structural debt forever. The
 parallel approach lets early adopters use the new `System` while existing
 consumers keep using `Bundle`. Both coexist until migration is complete.
 
-### 4.3 Backend abstraction: Multi-instance metaengine with parallel scopes
+### 4.3 Backend abstraction: N-instance metaengine with operator-configured grouping
 
 **Decision:** The metaengine manages BOTH the source-of-truth logs AND
-projections, via **multiple metaengine instances** composed in separate
-samber/do scopes. The Log ADT already exists in the metaengine; it will be
-extended to support the full event.Store interface.
+projections, via **N metaengine.Store instances** (not just two). The operator
+decides how to group collections into instances and which engine(s) each
+instance uses. The Log ADT already exists in the metaengine; it will be extended
+to support the full event.Store interface.
 
-This was the key insight (see [§5](#5-the-key-insight-multi-instance-metaengine)).
+This was the key insight (see [§5](#5-the-key-insight-multi-instance-metaengine)),
+further refined by Lars's observation that each collection (events, commands,
+queries) may need its own instance with its own engine — or may share an
+instance with other collections. The operator decides.
 
 **Rationale:**
 - **One abstraction** (metaengine.Engine + ADT backends) for all storage —
   source-of-truth and projections alike.
-- **Physical and logical separation** via separate instances + scopes —
-  no bootstrap circular dependency, no conflated schema evolution.
+- **N instances, not 2** — the operator groups collections into instances
+  freely (e.g., events+commands on SQLite, queries on DuckDB, projections split
+  by domain). Each instance has its own engine pool, durability tier, and
+  lifecycle.
+- **Hard invariants per layer** — source-of-truth instances use
+  persistent-only engine pools (the planner literally can't route the event
+  log to Memory because Memory isn't in the pool). Projection instances use
+  mixed pools (the planner routes freely for cost optimization).
 - **LiveStore-proven model** — dbEventlog + dbState split, generalized to any
-  engine combination.
-- **Cost-based optimization applies to both layers** — the planner can optimize
-  event log storage AND projection storage independently.
-- **Unified introspection** — one topology, one admin view, two scopes.
+  number of instances on any engine combination.
+- **Cost-based optimization applies per instance** — each instance has its own
+  plan; the planner optimizes within the instance's engine pool.
+- **Unified introspection** — one topology shows all N instances.
 
 ### 4.4 Admin web interface: Introspection API only
 
@@ -444,10 +454,20 @@ Initial analysis rejected C with five objections:
 **Lars's insight broke all five objections:** "Who says we can only have 1
 instance of the MetaEngine Service?"
 
-Multiple metaengine instances — one for source-of-truth (Log ADTs), one for
-projections (Map/Counter/etc.) — dissolves the circular dependency. Instance A
-(the log) boots first. Instance B (projections) boots second and reads A's
-journal. It's a DAG, not a cycle.
+Multiple metaengine instances dissolves the circular dependency. The log
+instances boot first. The projection instances boot second and read the
+events instance's journal. It's a DAG, not a cycle.
+
+**Lars's second refinement:** there should not be just TWO instances (one log,
+one projection). Each collection (events, commands, queries) may get its own
+instance — or share one — at the operator's discretion. Same for projections.
+This is critical because source-of-truth collections have **hard invariants**
+(must be persistent, must be durable) that the cost-planner must not override.
+Separate instances with constrained engine pools enforce these invariants
+structurally rather than hoping the planner respects them.
+
+The model is **N instances across two semantic layers** (source-of-truth +
+projections), with the operator deciding the grouping:
 
 ### 5.2 Verification: the Log ADT already exists
 
@@ -472,60 +492,141 @@ The metaengine can already BE a log. What's missing:
 2. **A `metaengine-eventstore` adapter** — wraps a Log ADT collection as
    `event.Store` (like `projectionadapter` wraps a Store as
    `projection.Projection`).
-3. **Multi-instance composition** — two `*metaengine.Store` instances wired via
-   journal, managed by samber/do scopes.
+3. **N-instance composition** — multiple `*metaengine.Store` instances wired
+   via journals, managed by samber/do scopes. The operator decides how many
+   instances and which collections go in each.
 
 ### 5.3 Why each objection dissolves
 
-| Original objection | Why it dissolves with multiple instances |
+### 5.4 Why each objection dissolves
+
+| Original objection | Why it dissolves with N instances |
 |---|---|
-| **Bootstrap circular dependency** | Instance A (Log) boots first. Instance B (Projections) boots second and reads A's journal. DAG, not cycle. |
+| **Bootstrap circular dependency** | Log instances boot first. Projection instances boot second and read the events journal. DAG, not cycle. |
 | **Write-path overhead** | The Log fold is `func(e) Append{Value: e}` — literally "append." One map lookup + one write. Nanoseconds. Same as `event.Save` today. |
 | **Lost optimistic concurrency** | The engine already has `Transactional`/`RunInTx` + `MapUpdater` (atomic read-modify-write). ExpectedVersion = a RunInTx that reads current version, checks, appends. Engine capability, not ADT limitation. |
 | **Dependency-direction violation** | The decider imports `event.Store` (Tier 1 interface) — unchanged. The metaengine Log instance *implements* that interface. Dependency inversion, not violation. |
-| **Conflated schema evolution** | Separate instances = separate evolution models. Event upcasters on Instance A. Layout migration on Instance B. |
+| **Conflated schema evolution** | Separate instances = separate evolution models. Event upcasters on log instances. Layout migration on projection instances. |
+
+### 5.5 Why N instances, not 2 (the invariant constraint argument)
+
+The metaengine cost-planner optimizes for **cheapest** assignment. If events,
+commands, and queries share one Store instance with a mixed engine pool
+(Memory + SQLite), the planner could route the **event log to Memory** (O(1)
+is cheaper than SQLite O(logN)) — and you lose everything on restart.
+
+Source-of-truth collections have **hard invariants** the planner must not
+override:
+- **Persistence required** — the event log MUST survive restart.
+- **Durability required** — commits MUST be fsync'd (or the operator accepts
+  data loss explicitly).
+- **Optimistic concurrency** — `Save(ctx, ref, events, expectedVersion)` MUST
+  be atomic (check-and-append under a lock/transaction).
+
+Projection collections have **preferences**, not invariants:
+- Persistence is nice-to-have (projections are rebuildable from the event log).
+- Durability is a performance tradeoff (Relaxed is fine for projections that
+  rebuild fast).
+- No optimistic concurrency needed (projections are derived, not authoritative).
+
+**The structural solution:** separate instances with constrained engine pools.
+
+```go
+// Source-of-truth instances: only persistent engines in the pool.
+// The planner CANNOT route to Memory — it's not in the list.
+eventsStore, _   := metaengine.Plan([]Engine{sqliteEng}, eventsQuery)
+commandsStore, _ := metaengine.Plan([]Engine{sqliteEng}, commandsQuery)
+queriesStore, _  := metaengine.Plan([]Engine{duckdbEng}, queriesQuery)
+
+// Projection instances: mixed pool — planner routes freely for cost.
+projStore, _     := metaengine.Plan([]Engine{memEng, sqliteEng, pebbleEng}, projQueries...)
+```
+
+The constraint is enforced structurally (the engine pool), not via advisory
+rules. The planner literally cannot make the wrong choice because the wrong
+engine isn't available.
 
 ---
 
 ## 6. Target Architecture
 
-### 6.1 High-level diagram
+### 6.1 High-level diagram (N-instance model)
+
+The operator decides how many instances and how to group collections. Three
+example topologies, from minimal to maximum isolation:
 
 ```
-samber/do Root Scope (composition root)
+═══════════════════════════════════════════════════════════════
+TOPOLOGY 1: Minimal (one instance per layer — SQLite + Memory only)
+═══════════════════════════════════════════════════════════════
+
+samber/do Root Scope
 │
-├── Source of Truth Scope (boots FIRST)
-│   └── metaengine.Store Instance A
-│       ├── Collection: "events"   (Log ADT, stream-keyed)
-│       │   → implements event.Store via eventstore-adapter
-│       ├── Collection: "commands" (Log ADT)
-│       │   → implements command.Store
-│       ├── Collection: "queries"  (Log ADT)
-│       │   → implements query.Store
-│       ├── Collection: "snapshots"(Map ADT)
-│       │   → implements snapshot.SnapshotStore
-│       └── Collection: "checkpoints" (Map ADT)
-│           → implements event.CheckpointStore
-│       Engine: chosen by OPERATOR (Memory/SQLite/Pebble/Postgres/...)
+├── Source of Truth Layer
+│   └── Instance: logs-store (engine: SQLite)
+│       ├── "events"     (Log ADT) → event.Store
+│       ├── "commands"   (Log ADT) → command.Store
+│       ├── "queries"    (Log ADT) → query.Store
+│       ├── "snapshots"  (Map ADT) → snapshot.SnapshotStore
+│       └── "checkpoints" (Map ADT) → event.CheckpointStore
 │
-├── Projections Scope (boots SECOND, reads A's journal)
-│   └── metaengine.Store Instance B
-│       ├── Collection: "task_views"  (Map + FilterOnField)
-│       ├── Collection: "task_counts" (Counter)
-│       ├── Collection: "user_graph"  (Graph)
-│       └── ... (any ADT, cost-planner routes)
-│       Engine(s): chosen by OPERATOR, cost-planner routes
-│       Input: event.SeekableJournal from Instance A
-│       Lifecycle: projectionhost.Host manages replay + live
+├── Projection Layer
+│   └── Instance: proj-store (engines: Memory + SQLite, planner routes)
+│       ├── "task_views"  (Map + FilterOnField)
+│       └── "task_counts" (Counter)
 │
-└── System Scope (wires everything together)
-    ├── decider.Repository ← writes to Instance A via event.Store
-    ├── projectionhost.Host ← reads Instance A journal, feeds Instance B
-    ├── command.Dispatcher ← consumer's handlers
-    ├── query.Dispatcher ← consumer's handlers
-    ├── event.Bus ← pub/sub
-    └── Introspection API ← queries BOTH scopes (see §8)
+└── System Scope
+    ├── decider.Repository    ← writes to logs-store["events"]
+    ├── projectionhost.Host   ← reads logs-store["events"] journal
+    │                           feeds proj-store
+    └── Introspection API     ← queries both layers
+
+═══════════════════════════════════════════════════════════════
+TOPOLOGY 2: Split (LiveStore-style — separate DBs per concern)
+═══════════════════════════════════════════════════════════════
+
+samber/do Root Scope
+│
+├── Source of Truth Layer
+│   ├── Instance: events-store   (engine: SQLite, events.db)
+│   │   └── "events" + "snapshots" + "checkpoints"
+│   ├── Instance: commands-store (engine: SQLite, events.db, shared conn)
+│   │   └── "commands"
+│   └── Instance: queries-store  (engine: DuckDB, analytics.db)
+│       └── "queries"  (analytics-grade audit log)
+│
+├── Projection Layer
+│   ├── Instance: task-projections (engines: SQLite + Memory)
+│   │   └── "task_views" + "task_counts"
+│   └── Instance: graph-projections (engine: Pebble)
+│       └── "user_graph"  (LSM-optimized adjacency)
+│
+└── System Scope (same wiring, multiple instances)
+
+═══════════════════════════════════════════════════════════════
+TOPOLOGY 3: Maximum isolation (one instance per collection)
+═══════════════════════════════════════════════════════════════
+
+samber/do Root Scope
+│
+├── Source of Truth Layer
+│   ├── Instance: events     (engine: SQLite, events.db,     durability: strict)
+│   ├── Instance: commands   (engine: SQLite, commands.db,   durability: normal)
+│   ├── Instance: queries    (engine: DuckDB, queries.db)
+│   ├── Instance: snapshots  (engine: SQLite, snapshots.db)
+│   └── Instance: checkpoints (engine: SQLite, checkpoints.db)
+│
+├── Projection Layer
+│   ├── Instance: task_views   (engine: SQLite, views.db)
+│   ├── Instance: task_counts  (engine: Memory)
+│   └── Instance: user_graph   (engine: Pebble, /data/graph)
+│
+└── System Scope (same wiring, fine-grained instances)
 ```
+
+**Key invariant:** source-of-truth instances always use persistent-only engine
+pools. The planner cannot route the event log to a volatile engine. Projection
+instances use mixed pools — the planner routes freely for cost optimization.
 
 ### 6.2 The consumer experience (target state)
 
@@ -566,17 +667,43 @@ sys, err := system.New(ctx, system.Config{
 
 ```go
 // ── OPERATOR CODE (deployment-specific) ──
+//
+// The operator declares INSTANCES (logical groups of collections), each with
+// its own engine(s), DSN, and durability. The system constructs the
+// metaengine.Store instances, wires adapters (event.Store, command.Store, etc.),
+// and connects the projection pipeline.
 
+// Minimal: one instance per layer
+sys, err := system.New(ctx, system.Config{
+    Queries: queries, // consumer's query declarations
+    Instances: []system.InstanceConfig{
+        {
+            Role:       system.RoleSourceOfTruth,
+            Collections: []string{"events", "commands", "queries", "snapshots", "checkpoints"},
+            Engine:     "sqlite:file:app.db",
+            Durability: system.DurabilityStrict,
+        },
+        {
+            Role:       system.RoleProjections,
+            Collections: []string{"task_views", "task_counts"}, // from consumer's queries
+            Engines:    []string{"sqlite:file:views.db", "memory"}, // planner routes
+            Durability: system.DurabilityNormal,
+        },
+    },
+})
+
+// Split: events+commands on SQLite, queries on DuckDB, graph on Pebble
 sys, err := system.New(ctx, system.Config{
     Queries: queries,
-    Engines: system.EngineConfig{
-        SourceOfTruth: "sqlite:file:events.db",   // operator picks
-        Projections:   "sqlite:file:views.db",     // separate DB (G5)
-        // Or: SourceOfTruth: "pebble:/data/events"
-        // Or: SourceOfTruth: "postgres://host/events"
-        // Or: Projections:   "duckdb:file:analytics.db"
+    Instances: []system.InstanceConfig{
+        {Role: system.RoleEvents,    Engine: "sqlite:file:events.db",   Durability: system.DurabilityStrict},
+        {Role: system.RoleCommands,  Engine: "sqlite:file:events.db"}, // shared connection
+        {Role: system.RoleQueries,   Engine: "duckdb:file:analytics.db"},
+        {Role: system.RoleProjections, Collections: []string{"task_views", "task_counts"},
+            Engines: []string{"sqlite:file:views.db", "memory"}},
+        {Role: system.RoleProjections, Collections: []string{"user_graph"},
+            Engine: "pebble:/data/graph"},
     },
-    Durability: system.DurabilityStrict,
 })
 ```
 
@@ -587,10 +714,12 @@ sys, err := system.New(ctx, system.Config{
 | Who picks engines | Consumer (hardcoded in Go) | Operator (config string) |
 | Who opens DB | Consumer (`sql.Open`) | System (via driver registry) |
 | Event decoder | Consumer writes 77-line switch | System auto-decodes via `OnEvent` |
-| Metaengine integration | Bolted-on (`WithMetaEngine`) | First-class (Instance B) |
-| Event log storage | Separate from metaengine | metaengine Instance A (Log ADT) |
-| Multi-DB support | Partial (metaengine re-opens) | Native (separate scopes) |
-| Admin topology | None | Unified (both scopes) |
+| Metaengine integration | Bolted-on (`WithMetaEngine`) | First-class (N instances) |
+| Event log storage | Separate from metaengine | metaengine Log instance(s) |
+| Instance count | Fixed (1 Bundle) | N — operator decides grouping |
+| Multi-DB support | Partial (metaengine re-opens) | Native (one DB per instance, or shared) |
+| Source-of-truth safety | None | Persistent-only engine pools (structural) |
+| Admin topology | None | Unified (all instances) |
 | Backend swap | Recompile | Config change (+ restart or hot-reload) |
 
 ### 6.4 LiveStore parallel
@@ -601,12 +730,14 @@ optimization to both layers:
 
 | | LiveStore | This design |
 |---|---|---|
-| Event log DB | `dbEventlog` (SQLite) | metaengine Instance A (any engine) |
-| State DB | `dbState` (SQLite) | metaengine Instance B (any engine(s)) |
+| Event log DB | `dbEventlog` (SQLite, fixed) | N log instances (any engine, operator picks) |
+| State DB | `dbState` (SQLite, fixed) | N projection instances (any engine(s), planner routes) |
+| Instance count | Fixed (2) | N per layer (1..many, operator decides) |
 | Materializer | Pure function `event → SQL` | Pure function `event → fold → ADT write` |
-| Bootstrap | Event log first, state derived | Same |
+| Bootstrap | Event log first, state derived | Same (log instances boot first) |
 | Rebuild | Replay all events | Same |
-| Cost optimization | None | Cost-based planner for both layers |
+| Cost optimization | None | Cost-based planner per instance |
+| Source-of-truth safety | None | Persistent-only engine pools |
 
 ---
 
@@ -618,12 +749,18 @@ optimization to both layers:
 // Drivers register at init time (compile-time safety):
 import _ "github.com/larsartmann/go-cqrs-lite/drivers/sqlite"
 import _ "github.com/larsartmann/go-cqrs-lite/drivers/pebble"
-// The binary now has sqlite + pebble available.
+import _ "github.com/larsartmann/go-cqrs-lite/drivers/duckdb"
+// The binary now has sqlite + pebble + duckdb available.
 
-// Operator config picks which to use (runtime flexibility):
-config := system.EngineConfig{
-    SourceOfTruth: "sqlite:file:events.db",
-    Projections:   "pebble:/data/projections",
+// Operator config picks which to use per instance (runtime flexibility):
+config := system.Config{
+    Instances: []system.InstanceConfig{
+        {Role: system.RoleEvents,   Engine: "sqlite:file:events.db"},
+        {Role: system.RoleCommands, Engine: "sqlite:file:events.db"}, // shared DB
+        {Role: system.RoleQueries,  Engine: "duckdb:file:analytics.db"}, // different engine!
+        {Role: system.RoleProjections,
+         Engines: []string{"sqlite:file:views.db", "memory"}}, // planner routes
+    },
 }
 ```
 
@@ -649,21 +786,34 @@ Design TBD — see [§10](#10-open-questions).
 
 ### 7.4 Multi-DB SQLite (goal G5)
 
-The operator can split databases by specifying separate DSNs:
+The operator can split databases by specifying separate DSNs per instance. The
+N-instance model makes this natural — each instance can use a different engine
+or the same engine with a different DSN:
 
 ```go
-config := system.EngineConfig{
-    SourceOfTruth: "sqlite:file:events.db",    // events + commands + snapshots
-    Projections:   "sqlite:file:views.db",      // materialized views
-    // Or three-way split:
-    // SourceOfTruth: "sqlite:file:events.db",
-    // AuditLog:      "sqlite:file:queries.db",  // command + query audit
-    // Projections:   "sqlite:file:views.db",
+// Three-way SQLite split (the goal's exact example)
+config := system.Config{
+    Instances: []system.InstanceConfig{
+        // DB 1: Command + Event Sourcing
+        {Role: system.RoleEvents,   Engine: "sqlite:file:events.db",  Durability: system.DurabilityStrict},
+        {Role: system.RoleCommands, Engine: "sqlite:file:events.db"},  // shared connection
+        // DB 2: Query logs
+        {Role: system.RoleQueries,  Engine: "sqlite:file:queries.db"},
+        // DB 3: Materialized views
+        {Role: system.RoleProjections, Engine: "sqlite:file:views.db"},
+    },
+}
+
+// Or: SQLite for events + DuckDB for query analytics (different engines!)
+config := system.Config{
+    Instances: []system.InstanceConfig{
+        {Role: system.RoleEvents,     Engine: "sqlite:file:events.db"},
+        {Role: system.RoleCommands,   Engine: "sqlite:file:events.db"},
+        {Role: system.RoleQueries,    Engine: "duckdb:file:queries.db"},  // columnar audit
+        {Role: system.RoleProjections, Engines: []string{"sqlite:file:views.db", "memory"}},
+    },
 }
 ```
-
-This is native to the multi-instance model — each scope can use a different
-engine (or the same engine with a different DSN).
 
 ---
 
@@ -679,17 +829,19 @@ renders them. No HTML, no handlers, no embedded UI in go-cqrs-lite.
 ```go
 // system.Topology describes the entire wired deployment as a graph.
 // This is the single "what's actually running" snapshot for admin UIs.
+// Supports N instances across both layers.
 type Topology struct {
-    SourceOfTruth  ScopeTopology
-    Projections    ScopeTopology
-    Bus            string          // "watermill-gochannel", "nats", ""
-    Dispatchers    []DispatcherInfo
+    Instances     []InstanceTopology  // all metaengine.Store instances
+    Bus           string              // "watermill-gochannel", "nats", ""
+    Dispatchers   []DispatcherInfo
     ProjectionHost *ProjectionHostInfo // nil if not configured
     ScreamStore    *ScreamReport       // nil if not configured
 }
 
-type ScopeTopology struct {
-    EngineName    string
+type InstanceTopology struct {
+    Name          string              // operator-assigned instance name
+    Role          InstanceRole        // RoleEvents, RoleCommands, RoleQueries, RoleProjections
+    EngineName    string              // "sqlite", "pebble", "duckdb", "memory"
     Capabilities  Capabilities
     Collections   []CollectionInfo   // from metaengine.Store.Collections()
     Plan          *SerializablePlan  // from metaengine.Store.Plan()
@@ -697,6 +849,15 @@ type ScopeTopology struct {
     DiskUsage     int64
     HealthStatus  HealthStatus
 }
+
+type InstanceRole string
+const (
+    RoleEvents      InstanceRole = "events"
+    RoleCommands    InstanceRole = "commands"
+    RoleQueries     InstanceRole = "queries"
+    RoleSnapshots   InstanceRole = "snapshots"
+    RoleProjections InstanceRole = "projections"
+)
 ```
 
 ### 8.3 The introspection methods (wiring existing surfaces)
@@ -853,6 +1014,14 @@ stream-keyed `Save(ctx, ref, events, expectedVersion)`, `Load(ctx, ref)`,
 **Question:** Do we extend `LogBackend` with stream-keyed operations, or do we
 create a new `EventLogBackend` interface that engines implement additionally?
 
+### 10.1b Instance grouping defaults
+
+**Question:** What are the default instance groupings if the operator doesn't
+specify any? Options: (a) one instance per collection type (events, commands,
+queries, snapshots, checkpoints — 5 instances), (b) one instance per layer (2
+instances), (c) one instance for everything (1 instance, like current Bundle).
+Probably (b) is the right default — simple but separated.
+
 ### 10.2 Config format
 
 **Question:** Go struct (canonical) + YAML parser + env var override? Or just
@@ -907,12 +1076,13 @@ it, or is it always CBOR?
 | **Deployer / Operator** | The person configuring the deployment. Picks engines, DSNs, durability. Does NOT write domain code. |
 | **Consumer / Developer** | The person writing the application. Declares events, commands, queries, folds. Does NOT pick infrastructure. |
 | **Fold** | A pure function that maps an event to a projection update. The return type determines the ADT. |
-| **Instance** | A single `*metaengine.Store` created by `metaengine.Plan(engines, queries)`. The redesign uses multiple instances (one for logs, one for projections). |
+| **Instance** | A single `*metaengine.Store` created by `metaengine.Plan(engines, queries)`. The redesign uses N instances (one or more per layer), each with its own engine pool. Source-of-truth instances use persistent-only pools; projection instances use mixed pools. |
+| **Layer** | A semantic grouping of instances: Source of Truth (logs, snapshots, checkpoints) or Projections (derived views). Each layer has 1..N instances. |
 | **Journal** | The cross-stream event reader (`event.Journal.ReadAll`). Used by projectionhost to replay events. |
 | **Log ADT** | The append-only ordered log ADT (`metaengine.ADTLog`). Already implemented by all 5 engines. The redesign uses it for event/command/query storage. |
 | **Plan** | The output of `metaengine.Plan()`. Assigns engines to queries based on cost. Contains diagnostics, layouts, rule traces. |
 | **Projection** | A derived view built from events. Has a fold function and query patterns. |
-| **Scope** | A samber/do child injector with lifecycle isolation. The redesign uses separate scopes for source-of-truth and projections. |
+| **Scope** | A samber/do child injector with lifecycle isolation. The redesign uses separate scopes per instance (or per layer for simpler setups). Each scope can be shut down independently. |
 | **Scream Store** | The safety mechanism that detects and blocks unsafe operator changes by diffing the current plan against a pinned manifest. |
 | **SerializablePlan** | A JSON-serializable snapshot of PlanResult, stripping runtime closures and reflect.Type values. |
 | **Source of Truth** | The event log (and command/query audit logs). The authoritative, immutable record. |
