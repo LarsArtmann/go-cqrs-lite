@@ -257,18 +257,18 @@ func unwrapWatcherSeqValue[V any](val any) (SeqValue[V], bool) {
 }
 
 // Close stops all subscriptions and unregisters the replay journal if attached.
+// Channels are closed under the subscriber hub mutex (via closeEntries) to
+// prevent a race with notify's non-blocking sends.
 func (w *Watcher[V]) Close() {
 	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	for _, entry := range w.entries {
-		close(entry.ch)
-		entry.closed = true
-	}
-
+	entries := w.entries
 	w.entries = nil
+	hasReplay := w.replay != nil
+	w.mu.Unlock()
 
-	if w.replay != nil {
+	w.store.subs.closeEntries(entries)
+
+	if hasReplay {
 		w.store.unregisterReplay(w.coll)
 	}
 }
