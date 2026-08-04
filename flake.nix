@@ -892,7 +892,8 @@
                   bash "$PWD/scripts/vm-mysql-nspawn.sh" "$@"
                 '';
 
-            # Run all integration tests (ephemeral PG + VM MySQL sequentially)
+            # Run all integration tests (ephemeral PG + MySQL sequentially).
+            # MySQL uses nspawn (faster) with QEMU fallback.
             integration-all =
               mkApp "integration-all"
                 [
@@ -905,8 +906,8 @@
                   echo "=== Ephemeral PG Integration Tests ==="
                   bash "$PWD/scripts/ephemeral-pg.sh" "$@" || echo "⚠️ PG tests had failures"
                   echo ""
-                  echo "=== MySQL VM Integration Tests ==="
-                  bash "$PWD/scripts/vm-mysql.sh" "$@" || echo "⚠️ MySQL tests had failures"
+                  echo "=== MySQL Integration Tests (nspawn preferred, QEMU fallback) ==="
+                  bash "$PWD/scripts/vm-mysql-nspawn.sh" "$@" || bash "$PWD/scripts/vm-mysql.sh" "$@" || echo "⚠️ MySQL tests had failures"
                 '';
 
             # Composite gate: VM checks + ephemeral PG integration tests

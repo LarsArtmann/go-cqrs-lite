@@ -43,6 +43,12 @@ func newMemorySnapshotBackend() *memorySnapshotBackend {
 	}
 }
 
+// NewMemorySnapshotBackend creates an in-memory SnapshotBackend for testing.
+// Each instance has isolated data (no shared global state).
+func NewMemorySnapshotBackend() SnapshotBackend {
+	return newMemorySnapshotBackend()
+}
+
 func (m *memorySnapshotBackend) SnapshotSave(
 	_ context.Context,
 	collection, streamID string,
