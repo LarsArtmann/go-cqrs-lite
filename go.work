@@ -65,6 +65,7 @@ use (
 	./storage/memory
 	./storage/pebble
 	./storage/turso
+	./system
 	./testutil
 	./transport/grpc
 	./transport/http
