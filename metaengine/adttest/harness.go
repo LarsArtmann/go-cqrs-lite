@@ -53,16 +53,17 @@ type Scenario struct {
 // required backend interface, RunMatrix skips that subtest instead of
 // panicking on a failed type assertion inside Setup/Read.
 var backendInterfaces = map[string]reflect.Type{ //nolint:gochecknoglobals // immutable lookup table
-	"MapBackend":      reflect.TypeFor[metaengine.MapBackend](),
-	"SetBackend":      reflect.TypeFor[metaengine.SetBackend](),
-	"CounterBackend":  reflect.TypeFor[metaengine.CounterBackend](),
-	"GraphBackend":    reflect.TypeFor[metaengine.GraphBackend](),
-	"ScanBackend":     reflect.TypeFor[metaengine.ScanBackend](),
-	"LogBackend":      reflect.TypeFor[metaengine.LogBackend](),
-	"MultimapBackend": reflect.TypeFor[metaengine.MultimapBackend](),
-	"VectorBackend":   reflect.TypeFor[metaengine.VectorBackend](),
-	"SearchBackend":   reflect.TypeFor[metaengine.SearchBackend](),
-	"SpatialBackend":  reflect.TypeFor[metaengine.SpatialBackend](),
+	"MapBackend":       reflect.TypeFor[metaengine.MapBackend](),
+	"SetBackend":       reflect.TypeFor[metaengine.SetBackend](),
+	"CounterBackend":   reflect.TypeFor[metaengine.CounterBackend](),
+	"GraphBackend":     reflect.TypeFor[metaengine.GraphBackend](),
+	"ScanBackend":      reflect.TypeFor[metaengine.ScanBackend](),
+	"LogBackend":       reflect.TypeFor[metaengine.LogBackend](),
+	"MultimapBackend":  reflect.TypeFor[metaengine.MultimapBackend](),
+	"StreamLogBackend": reflect.TypeFor[metaengine.StreamLogBackend](),
+	"VectorBackend":    reflect.TypeFor[metaengine.VectorBackend](),
+	"SearchBackend":    reflect.TypeFor[metaengine.SearchBackend](),
+	"SpatialBackend":   reflect.TypeFor[metaengine.SpatialBackend](),
 }
 
 // RunMatrix runs all ADT scenarios across all engine factories and asserts
@@ -374,6 +375,35 @@ func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
 				mb := eng.(metaengine.MultimapBackend)
 
 				return mb.MultiGet(ctx, "tasks_by_user", "alice")
+			},
+			Canonicalize: CanonicalizeAny,
+		},
+
+		// --- StreamLog ADT: StreamAppend + StreamRead + JournalReadAll ---
+		{
+			Name:     "StreamLog",
+			Requires: "StreamLogBackend",
+			Setup: func(ctx context.Context, eng metaengine.Engine) error {
+				slb := eng.(metaengine.StreamLogBackend)
+				if err := slb.StreamAppend(ctx, "events", "s1", []any{"e1", "e2", "e3"}); err != nil {
+					return err //nolint:wrapcheck
+				}
+
+				return slb.StreamAppend(ctx, "events", "s2", []any{"e4", "e5"}) //nolint:wrapcheck
+			},
+			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
+				slb := eng.(metaengine.StreamLogBackend)
+				values, err := slb.StreamRead(ctx, "events", "s1")
+				if err != nil {
+					return nil, err //nolint:wrapcheck
+				}
+
+				ver, err := slb.StreamVersion(ctx, "events", "s1")
+				if err != nil {
+					return nil, err //nolint:wrapcheck
+				}
+
+				return map[string]any{"values": values, "version": ver}, nil
 			},
 			Canonicalize: CanonicalizeAny,
 		},

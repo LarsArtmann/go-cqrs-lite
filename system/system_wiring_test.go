@@ -96,8 +96,6 @@ func TestSystem_MultiBusFanOut(t *testing.T) {
 
 	ctx := context.Background()
 
-	var bus1Count, bus2Count atomic.Int32
-
 	domain := system.DomainConfig{
 		Commands: func(sys *system.System) {
 			system.RegisterDecider(sys, "Task", TaskDecider)
@@ -132,12 +130,36 @@ func TestSystem_MultiBusFanOut(t *testing.T) {
 	}
 	defer sys.Close()
 
-	// Subscribe on the local bus to track delivery.
-	_ = sys.Bus().Subscribe("task.created", func(_ context.Context, _ event.Event) error {
+	// Type-assert the publisher as MultiBus to access individual fan-out buses.
+	multi, ok := sys.Publisher().(*system.MultiBus)
+	if !ok {
+		t.Fatalf("expected publisher to be *MultiBus, got %T", sys.Publisher())
+	}
+
+	pubs := multi.Publishers()
+	if len(pubs) != 3 { // local + bus1 + bus2
+		t.Fatalf("expected 3 publishers (local + bus1 + bus2), got %d", len(pubs))
+	}
+
+	// Subscribe on each fan-out bus independently to verify independent delivery.
+	// pubs[0] = local bus, pubs[1] = bus1, pubs[2] = bus2.
+	var bus1Count, bus2Count atomic.Int32
+
+	bus1, ok := pubs[1].(event.Bus)
+	if !ok {
+		t.Fatalf("expected fan-out bus 1 to implement event.Bus, got %T", pubs[1])
+	}
+
+	bus2, ok := pubs[2].(event.Bus)
+	if !ok {
+		t.Fatalf("expected fan-out bus 2 to implement event.Bus, got %T", pubs[2])
+	}
+
+	_ = bus1.Subscribe("task.created", func(_ context.Context, _ event.Event) error {
 		bus1Count.Add(1)
 		return nil
 	})
-	_ = sys.Bus().SubscribeAll(func(_ context.Context, _ event.Event) error {
+	_ = bus2.Subscribe("task.created", func(_ context.Context, _ event.Event) error {
 		bus2Count.Add(1)
 		return nil
 	})
@@ -145,18 +167,13 @@ func TestSystem_MultiBusFanOut(t *testing.T) {
 	streamID := id.NewStreamID()
 	_ = sys.CommandDispatcher().Dispatch(ctx, newCmd("task.create", streamID))
 
-	// The local bus should receive the event at least once.
-	if bus1Count.Load() < 1 {
-		t.Fatalf("expected bus1 to receive event, got %d", bus1Count.Load())
+	// Each fan-out bus must receive the event independently.
+	if bus1Count.Load() != 1 {
+		t.Fatalf("expected bus1 to receive exactly 1 event, got %d", bus1Count.Load())
 	}
 
-	if bus2Count.Load() < 1 {
-		t.Fatalf("expected catch-all to receive event, got %d", bus2Count.Load())
-	}
-
-	// Verify MultiBus was actually used: pubBus should not be the same as bus.
-	if sys.Bus() == nil {
-		t.Fatal("expected non-nil bus")
+	if bus2Count.Load() != 1 {
+		t.Fatalf("expected bus2 to receive exactly 1 event, got %d", bus2Count.Load())
 	}
 }
 

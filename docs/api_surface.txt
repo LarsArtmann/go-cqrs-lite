@@ -1439,6 +1439,7 @@ metaengine/duckdbengine/method Profile
 metaengine/duckdbengine/method PushdownMapScan
 metaengine/duckdbengine/method SetCalibration
 metaengine/duckdbengine/method StreamAppend
+metaengine/duckdbengine/method StreamAppendExpected
 metaengine/duckdbengine/method StreamRead
 metaengine/duckdbengine/method StreamVersion
 metaengine/func AllADTs
@@ -1454,7 +1455,9 @@ metaengine/func CalibrateEngine
 metaengine/func Checksum
 metaengine/func CompareValues
 metaengine/func ContractSuite
+metaengine/func DecodeStreamValue
 metaengine/func DeserializePlan
+metaengine/func EncodeStreamValue
 metaengine/func EvalFilterOp
 metaengine/func EventTypeName
 metaengine/func ExecuteTyped
@@ -1591,6 +1594,18 @@ metaengine/irohengine/func WithNetworkDropRate
 metaengine/irohengine/func WithTransport
 metaengine/irohengine/interface LatencyProvider
 metaengine/irohengine/interface Transport
+metaengine/irohengine/loopback/func New
+metaengine/irohengine/loopback/func WithAddr
+metaengine/irohengine/loopback/func WithSimulatedDelay
+metaengine/irohengine/loopback/method Addr
+metaengine/irohengine/loopback/method Close
+metaengine/irohengine/loopback/method Connect
+metaengine/irohengine/loopback/method LatencySnapshot
+metaengine/irohengine/loopback/method PeerCount
+metaengine/irohengine/loopback/method Publish
+metaengine/irohengine/loopback/method Subscribe
+metaengine/irohengine/loopback/struct LoopbackTransport
+metaengine/irohengine/loopback/type Option
 metaengine/irohengine/method Close
 metaengine/irohengine/method Close
 metaengine/irohengine/method Collector
@@ -1961,6 +1976,7 @@ metaengine/pgengine/method Profile
 metaengine/pgengine/method PushdownMapScan
 metaengine/pgengine/method SetCalibration
 metaengine/pgengine/method StreamAppend
+metaengine/pgengine/method StreamAppendExpected
 metaengine/pgengine/method StreamRead
 metaengine/pgengine/method StreamVersion
 metaengine/projectionadapter/func New
@@ -3227,6 +3243,7 @@ system/func NewEventAdapter
 system/func NewMemorySnapshotBackend
 system/func NewMultiBus
 system/func NewQueryAdapter
+system/func NewSnapshotAdapter
 system/func RegisterBusDriver
 system/func RegisterCommand
 system/func RegisterDecider
@@ -3245,6 +3262,7 @@ system/method Close
 system/method Close
 system/method Close
 system/method CommandDispatcher
+system/method Delete
 system/method EventStore
 system/method Explain
 system/method HasErrors
@@ -3254,6 +3272,8 @@ system/method Load
 system/method Load
 system/method Load
 system/method Load
+system/method Load
+system/method LoadAtVersion
 system/method LoadFromTimestamp
 system/method LoadFromVersion
 system/method LoadFromVersion
@@ -3269,6 +3289,8 @@ system/method ProjectionHost
 system/method ProjectionPlan
 system/method Publish
 system/method Publish
+system/method Publisher
+system/method Publishers
 system/method QueryDispatcher
 system/method ReadAll
 system/method ReadAll
@@ -3278,6 +3300,7 @@ system/method ReadFrom
 system/method ReadFrom
 system/method ReadFrom
 system/method ReadQueriesFrom
+system/method Save
 system/method Save
 system/method Save
 system/method Save
@@ -3313,6 +3336,7 @@ system/struct ProjectionHostInfo
 system/struct QueryAdapter
 system/struct ScreamDiagnostic
 system/struct ScreamReport
+system/struct SnapshotAdapter
 system/struct System
 system/struct Topology
 system/type BusDriverFactory

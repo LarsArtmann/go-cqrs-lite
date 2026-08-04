@@ -3,7 +3,6 @@ package duckdbengine
 import (
 	"context"
 	"database/sql"
-	"encoding/json/v2"
 	"errors"
 	"fmt"
 
@@ -17,7 +16,7 @@ func (e *duckdbEngine) StreamAppend(ctx context.Context, col, sid string, values
 	defer e.mu.Unlock()
 
 	for _, v := range values {
-		encoded := encodeDuckDBStreamValue(v)
+		encoded := metaengine.EncodeStreamValue(v)
 		if _, err := e.db.ExecContext(ctx,
 			`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
 			col, sid, encoded,
@@ -56,7 +55,7 @@ func (e *duckdbEngine) StreamAppendExpected(
 	}
 
 	for _, v := range values {
-		encoded := encodeDuckDBStreamValue(v)
+		encoded := metaengine.EncodeStreamValue(v)
 		if _, err := e.db.ExecContext(ctx,
 			`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
 			col, sid, encoded,
@@ -115,24 +114,6 @@ func (e *duckdbEngine) JournalReadFrom(
 		col, afterSeq, limit)
 }
 
-func encodeDuckDBStreamValue(v any) string {
-	if s, ok := v.(string); ok {
-		return s
-	}
-
-	data, _ := json.Marshal(v)
-	return string(data)
-}
-
-func decodeDuckDBStreamValue(s string) any {
-	var v any
-	if err := json.Unmarshal([]byte(s), &v); err != nil {
-		return s
-	}
-
-	return v
-}
-
 func (e *duckdbEngine) scanStreamValues(
 	ctx context.Context,
 	query string,
@@ -153,7 +134,7 @@ func (e *duckdbEngine) scanStreamValues(
 			return nil, fmt.Errorf("duckdbengine.scanStreamValues scan: %w", err)
 		}
 
-		result = append(result, decodeDuckDBStreamValue(valStr))
+		result = append(result, metaengine.DecodeStreamValue(valStr))
 	}
 
 	if result == nil {

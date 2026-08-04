@@ -36,6 +36,7 @@ use (
 	./metaengine
 	./metaengine/duckdbengine
 	./metaengine/irohengine
+	./metaengine/irohengine/loopback
 	./metaengine/irohengine/quic
 	./metaengine/pebbleengine
 	./metaengine/pgengine

@@ -18,12 +18,9 @@ package loopback
 
 import (
 	"context"
-	"encoding/binary"
 	"encoding/json/v2"
 	"errors"
 	"fmt"
-	"io"
-	"math/rand"
 	"net"
 	"sync"
 	"time"
@@ -61,8 +58,8 @@ type LoopbackTransport struct {
 	closed bool
 
 	// Latency measurement (real one-way delivery times)
-	latencyMu  sync.Mutex
-	latencyMs  []time.Duration
+	latencyMu sync.Mutex
+	latencyMs []time.Duration
 
 	// Op-level dedup (prevents double-application under redelivery)
 	dedupMu   sync.Mutex
@@ -248,139 +245,6 @@ func (t *LoopbackTransport) LatencySnapshot() irohengine.LatencySnapshot {
 		DeliveryP99:    sorted[percentileIdx(len(sorted), 0.99)],
 		ConvergenceP99: sorted[percentileIdx(len(sorted), 0.99)],
 	}
-}
-
-// --- Internal ---
-
-func (t *LoopbackTransport) acceptLoop() {
-	defer t.acceptWG.Done()
-	for {
-		conn, err := t.listener.Accept()
-		if err != nil {
-			return // listener closed
-		}
-
-		t.mu.Lock()
-		if t.closed {
-			t.mu.Unlock()
-			_ = conn.Close()
-			return
-		}
-		t.conns[conn.RemoteAddr().String()] = conn
-		t.mu.Unlock()
-
-		go t.handleConnection(conn)
-	}
-}
-
-func (t *LoopbackTransport) handleConnection(conn net.Conn) {
-	for {
-		data, err := readFrame(conn)
-		if err != nil {
-			return // connection closed or error
-		}
-
-		var op irohengine.WriteOp
-		if err := json.Unmarshal(data, &op); err != nil {
-			continue
-		}
-
-		if !t.markSeen(op.ID) {
-			continue
-		}
-
-		// Measure real one-way delivery latency
-		if !op.PublishedAt.IsZero() {
-			t.recordLatency(time.Since(op.PublishedAt))
-		}
-
-		// Optional simulated delay (for convergence testing)
-		if t.maxDelay > 0 {
-			time.Sleep(time.Duration(rand.Int63n(t.maxDelay.Nanoseconds()))) //nolint:gosec G404
-		}
-
-		// Dispatch to subscribers
-		t.mu.RLock()
-		subs := t.subs
-		t.mu.RUnlock()
-		for _, s := range subs {
-			s(op)
-		}
-	}
-}
-
-func (t *LoopbackTransport) recordLatency(d time.Duration) {
-	t.latencyMu.Lock()
-	defer t.latencyMu.Unlock()
-	t.latencyMs = append(t.latencyMs, d)
-	if len(t.latencyMs) > rttWindowSize {
-		t.latencyMs = t.latencyMs[len(t.latencyMs)-rttWindowSize:]
-	}
-}
-
-func (t *LoopbackTransport) markSeen(opID string) bool {
-	t.dedupMu.Lock()
-	defer t.dedupMu.Unlock()
-	if _, seen := t.dedupSeen[opID]; seen {
-		return false
-	}
-	t.dedupSeen[opID] = struct{}{}
-	if len(t.dedupSeen) > 10000 {
-		t.dedupSeen = make(map[string]struct{})
-		t.dedupSeen[opID] = struct{}{}
-	}
-	return true
-}
-
-// --- Frame encoding: 4-byte big-endian length prefix + payload ---
-
-func writeFrame(w io.Writer, data []byte) error {
-	header := make([]byte, frameHeaderSize)
-	binary.BigEndian.PutUint32(header, uint32(len(data)))
-	if _, err := w.Write(header); err != nil {
-		return err
-	}
-	_, err := w.Write(data)
-	return err
-}
-
-func readFrame(r io.Reader) ([]byte, error) {
-	header := make([]byte, frameHeaderSize)
-	if _, err := io.ReadFull(r, header); err != nil {
-		return nil, err
-	}
-	size := binary.BigEndian.Uint32(header)
-	if size > maxOpSize {
-		return nil, fmt.Errorf("frame size %d exceeds max %d", size, maxOpSize)
-	}
-	data := make([]byte, size)
-	if _, err := io.ReadFull(r, data); err != nil {
-		return nil, err
-	}
-	return data, nil
-}
-
-// --- Helpers ---
-
-func sortDurations(d []time.Duration) []time.Duration {
-	cp := append([]time.Duration(nil), d...)
-	for i := 1; i < len(cp); i++ {
-		for j := i; j > 0 && cp[j-1] > cp[j]; j-- {
-			cp[j-1], cp[j] = cp[j], cp[j-1]
-		}
-	}
-	return cp
-}
-
-func percentileIdx(n int, p float64) int {
-	idx := int(float64(n-1) * p)
-	if idx >= n {
-		idx = n - 1
-	}
-	if idx < 0 {
-		idx = 0
-	}
-	return idx
 }
 
 // Compile-time assertion.

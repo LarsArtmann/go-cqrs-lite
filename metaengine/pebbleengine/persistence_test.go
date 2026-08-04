@@ -49,7 +49,8 @@ func TestPebblePersistence_FromDBIsPersistent(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	defer db.Close()
 
-	eng := pebbleengine.NewPebbleEngineFromDB(db)
+	eng, err := pebbleengine.NewPebbleEngineFromDB(db)
+	g.Expect(err).NotTo(HaveOccurred())
 	defer eng.Close()
 
 	g.Expect(eng.Profile().IsPersistent()).To(BeTrue(),

@@ -51,6 +51,7 @@ var modules = []string{
 	"metaengine/duckdbengine",
 	"metaengine/pgengine",
 	"metaengine/irohengine",
+	"metaengine/irohengine/loopback",
 	"metaengine/irohengine/quic",
 	"metaengine/projectionadapter",
 	// Layer 4

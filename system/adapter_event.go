@@ -30,6 +30,10 @@ type EventAdapter struct {
 	collection string
 	serialize  bool
 
+	// temporal is non-nil when the backend implements StreamTemporalReader,
+	// enabling efficient version-bounded reads without loading the full stream.
+	temporal metaengine.StreamTemporalReader
+
 	seqCache   map[string]int64
 	seqCacheMu sync.RWMutex
 }
@@ -48,6 +52,11 @@ func NewEventAdapter(
 
 	for _, opt := range opts {
 		opt(a)
+	}
+
+	// Detect StreamTemporalReader support for efficient version-bounded reads.
+	if tr, ok := backend.(metaengine.StreamTemporalReader); ok {
+		a.temporal = tr
 	}
 
 	return a
@@ -151,6 +160,19 @@ func (a *EventAdapter) LoadFromVersion(
 func (a *EventAdapter) LoadToVersion(
 	ctx context.Context, ref id.StreamRef, maxVersion event.Version,
 ) ([]event.Event, error) {
+	// Fast path: if the backend supports StreamTemporalReader, delegate directly
+	// to avoid loading the full stream into memory.
+	if a.temporal != nil {
+		values, err := a.temporal.StreamReadAsOfVersion(
+			ctx, a.collection, ref.StreamKey(), int64(maxVersion),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("event adapter: load to version: %w", err)
+		}
+
+		return a.anyToEvents(values)
+	}
+
 	all, err := a.Load(ctx, ref)
 	if err != nil {
 		return nil, err

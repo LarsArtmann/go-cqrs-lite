@@ -3,6 +3,7 @@ package system
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -32,6 +33,15 @@ func (m *MultiBus) AddPublisher(p event.Publisher) {
 	defer m.mu.Unlock()
 
 	m.publishers = append(m.publishers, p)
+}
+
+// Publishers returns a snapshot of the child publishers in fan-out order.
+// Index 0 is always the local bus (if included during construction).
+func (m *MultiBus) Publishers() []event.Publisher {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	return slices.Clone(m.publishers)
 }
 
 // Publish sends events to all registered publishers sequentially.

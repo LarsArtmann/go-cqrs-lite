@@ -1,6 +1,7 @@
 package pebbleengine
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"sync/atomic"
@@ -156,7 +157,7 @@ func (e *pebbleEngine) JournalReadAll(_ context.Context, col string) ([]any, err
 		// Journal entries are stored as "streamID\x00value".
 		// Extract the value part.
 		raw := iter.Value()
-		idx := bytesIndex(raw, []byte(sep))
+		idx := bytes.Index(raw, []byte(sep))
 		if idx >= 0 {
 			result = append(result, decodeJSON(raw[idx+1:]))
 		} else {
@@ -206,7 +207,7 @@ func (e *pebbleEngine) JournalReadFrom(
 		}
 
 		raw := iter.Value()
-		idx := bytesIndex(raw, []byte(sep))
+		idx := bytes.Index(raw, []byte(sep))
 		if idx >= 0 {
 			result = append(result, decodeJSON(raw[idx+1:]))
 		} else {
@@ -288,28 +289,6 @@ func (e *pebbleEngine) countStreamEntries(col, sid string) (int64, error) {
 	}
 
 	return count, iter.Error()
-}
-
-// bytesIndex finds the index of sep in data, like bytes.Index.
-func bytesIndex(data, sep []byte) int {
-	if len(sep) == 0 {
-		return 0
-	}
-
-	for i := 0; i <= len(data)-len(sep); i++ {
-		match := true
-		for j := range sep {
-			if data[i+j] != sep[j] {
-				match = false
-				break
-			}
-		}
-		if match {
-			return i
-		}
-	}
-
-	return -1
 }
 
 // Compile-time assertions.

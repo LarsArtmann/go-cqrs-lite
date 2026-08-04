@@ -267,6 +267,12 @@ func (s *System) QueryDispatcher() *query.Dispatcher {
 	return s.qryDisp
 }
 
+// Publisher returns the event publisher used by decider repositories.
+// This may be a MultiBus if the deployment configures multiple Publish targets.
+func (s *System) Publisher() event.Publisher {
+	return s.pubBus
+}
+
 // ProjectionHost returns the projection host, or nil if not configured.
 func (s *System) ProjectionHost() *projectionhost.Host {
 	return s.projHost

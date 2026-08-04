@@ -82,21 +82,39 @@ func NewPebbleEngine(dir string) (metaengine.Engine, error) {
 		return nil, fmt.Errorf("pebbleengine: open: %w", err)
 	}
 
-	return &pebbleEngine{
+	eng := &pebbleEngine{
 		db:          db,
 		ownsDB:      true,
 		persistence: persistence,
-	}, nil
+	}
+
+	// Seed seq counters from existing data on persistent DBs to prevent
+	// key collisions on restart (all counters would start from 0 otherwise).
+	if persistence == metaengine.PersistencePersistent {
+		if err := eng.seedSeqCounters(); err != nil {
+			_ = db.Close()
+			return nil, fmt.Errorf("pebbleengine: seed seq counters: %w", err)
+		}
+	}
+
+	return eng, nil
 }
 
 // NewPebbleEngineFromDB wraps an existing *pebble.DB. The caller retains
 // ownership of the DB — Close on the engine is a no-op.
-func NewPebbleEngineFromDB(db *pebble.DB) metaengine.Engine {
-	return &pebbleEngine{
+func NewPebbleEngineFromDB(db *pebble.DB) (metaengine.Engine, error) {
+	eng := &pebbleEngine{
 		db:          db,
 		ownsDB:      false,
-		persistence: metaengine.PersistencePersistent, // caller owns a disk DB
+		persistence: metaengine.PersistencePersistent,
 	}
+
+	// Seed seq counters from existing data to prevent key collisions on restart.
+	if err := eng.seedSeqCounters(); err != nil {
+		return nil, fmt.Errorf("pebbleengine: seed seq counters: %w", err)
+	}
+
+	return eng, nil
 }
 
 func (e *pebbleEngine) Profile() metaengine.EngineProfile {

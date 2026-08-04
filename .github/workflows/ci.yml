@@ -100,7 +100,7 @@ jobs:
     timeout-minutes: 15
 
   cgo:
-    name: CGo Build (DuckDB)
+    name: CGo Build (DuckDB + Iroh QUIC)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -123,6 +123,15 @@ jobs:
           nix develop -c bash -c '
             set -e
             cd stack/duckdb && GOWORK=off CGO_ENABLED=1 go test -tags "goexperiment.jsonv2" ./... -count=1
+          '
+
+      - name: Build + Test Iroh QUIC (CGo required, pre-compiled static lib)
+        run: |
+          nix develop -c bash -c '
+            set -e
+            CGO_ENABLED=1 go build -tags "goexperiment.jsonv2" ./metaengine/irohengine/quic/...
+            CGO_ENABLED=1 go vet -tags "goexperiment.jsonv2" ./metaengine/irohengine/quic/...
+            cd metaengine/irohengine/quic && GOWORK=off CGO_ENABLED=1 go test -tags "goexperiment.jsonv2" ./... -count=1
           '
 
   verify-fast-gate:
