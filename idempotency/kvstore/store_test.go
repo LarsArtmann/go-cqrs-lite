@@ -17,6 +17,16 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
+// ttlTestParams returns a (ttl, wait) pair with enough headroom to survive
+// -race detector scheduling inflation. The base values are deliberately large
+// enough that clock resolution jitter on CI VMs cannot flip the expiry check.
+func ttlTestParams() (ttl, wait time.Duration) {
+	if raceEnabled {
+		return 100 * time.Millisecond, 400 * time.Millisecond
+	}
+	return 10 * time.Millisecond, 50 * time.Millisecond
+}
+
 func TestStore_SeenReturnsFalseForNewKey(t *testing.T) {
 	t.Parallel()
 	store := kvstore.New(kv.NewMemStore())
@@ -49,8 +59,9 @@ func TestStore_ExpiredEntriesAreNotSeen(t *testing.T) {
 	store := kvstore.New(kv.NewMemStore())
 	ctx := context.Background()
 
-	store.Record(ctx, "expired", 1*time.Millisecond)
-	time.Sleep(5 * time.Millisecond)
+	ttl, wait := ttlTestParams()
+	store.Record(ctx, "expired", ttl)
+	time.Sleep(wait)
 
 	seen, _ := store.Seen(ctx, "expired")
 	if seen {
@@ -88,8 +99,9 @@ func TestStore_ExpiredKeyCanBeReclaimed(t *testing.T) {
 	store := kvstore.New(kv.NewMemStore())
 	ctx := context.Background()
 
-	store.CheckAndRecord(ctx, "reclaim", 1*time.Millisecond)
-	time.Sleep(5 * time.Millisecond)
+	ttl, wait := ttlTestParams()
+	store.CheckAndRecord(ctx, "reclaim", ttl)
+	time.Sleep(wait)
 
 	if err := store.CheckAndRecord(ctx, "reclaim", time.Minute); err != nil {
 		t.Fatalf("expected reclaim after expiry, got %v", err)
@@ -145,10 +157,11 @@ func TestStore_Record_DoesNotExtendTTL(t *testing.T) {
 	// window. Record must be a no-op on an existing key, so the long TTL is
 	// NOT applied and the key stays expired. (The previous overwrite-on-Set
 	// implementation would extend the TTL here; this guards against regression.)
-	if err := store.Record(ctx, "k", 1*time.Millisecond); err != nil {
+	shortTTL, wait := ttlTestParams()
+	if err := store.Record(ctx, "k", shortTTL); err != nil {
 		t.Fatalf("first Record: %v", err)
 	}
-	time.Sleep(5 * time.Millisecond)
+	time.Sleep(wait)
 
 	if err := store.Record(ctx, "k", time.Hour); err != nil {
 		t.Fatalf("second Record: %v", err)
@@ -203,10 +216,11 @@ func TestStore_Record_MatchesMemoryStoreContract(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			if err := s.Record(ctx, "k", 1*time.Millisecond); err != nil {
+			shortTTL, wait := ttlTestParams()
+			if err := s.Record(ctx, "k", shortTTL); err != nil {
 				t.Fatalf("first Record: %v", err)
 			}
-			time.Sleep(5 * time.Millisecond)
+			time.Sleep(wait)
 
 			if err := s.Record(ctx, "k", time.Hour); err != nil {
 				t.Fatalf("second Record: %v", err)
@@ -288,10 +302,11 @@ func TestStore_Seen_LazilyDeletesExpiredEntry(t *testing.T) {
 	defer backend.Close()
 	store := kvstore.New(backend)
 
-	if err := store.Record(ctx, "k", 1*time.Millisecond); err != nil {
+	shortTTL, wait := ttlTestParams()
+	if err := store.Record(ctx, "k", shortTTL); err != nil {
 		t.Fatalf("Record: %v", err)
 	}
-	time.Sleep(5 * time.Millisecond)
+	time.Sleep(wait)
 
 	seen, err := store.Seen(ctx, "k")
 	if err != nil {
