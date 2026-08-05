@@ -31,7 +31,7 @@ type EngineProfile struct {
 	// fast LSM point reads, slower writes) should set this. When zero, the
 	// planner falls back to NsPerOp, preserving backward compatibility.
 	//
-	// Deprecated in favor of ReadCosts, which lets engines express different
+	// Deprecated: in favor of ReadCosts, which lets engines express different
 	// costs for different read operations (point lookup vs scan vs aggregate).
 	// Engines that do not set ReadCosts fall back to this value for all reads.
 	NsPerRead float64

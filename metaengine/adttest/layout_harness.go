@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sort"
+	"strings"
 	"sync"
 	"testing"
 
@@ -281,10 +282,11 @@ func layoutScenarios() []LayoutScenario {
 
 // joinStrings joins strings without a separator for compact canonical comparison.
 func joinStrings(s []string) string {
-	result := ""
+	var sb strings.Builder
 	for _, v := range s {
-		result += v + ","
+		sb.WriteString(v)
+		sb.WriteByte(',')
 	}
 
-	return result
+	return sb.String()
 }

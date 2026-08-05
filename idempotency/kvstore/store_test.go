@@ -20,7 +20,7 @@ import (
 // ttlTestParams returns a (ttl, wait) pair with enough headroom to survive
 // -race detector scheduling inflation. The base values are deliberately large
 // enough that clock resolution jitter on CI VMs cannot flip the expiry check.
-func ttlTestParams() (ttl, wait time.Duration) {
+func ttlTestParams() (time.Duration, time.Duration) {
 	if raceEnabled {
 		return 100 * time.Millisecond, 400 * time.Millisecond
 	}

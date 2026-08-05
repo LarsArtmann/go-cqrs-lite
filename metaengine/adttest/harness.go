@@ -394,7 +394,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
 					return err //nolint:wrapcheck
 				}
 
-				return slb.StreamAppend(ctx, "events", "s2", []any{"e4", "e5"}) //nolint:wrapcheck
+				return slb.StreamAppend(ctx, "events", "s2", []any{"e4", "e5"})
 			},
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
 				slb := eng.(metaengine.StreamLogBackend)
