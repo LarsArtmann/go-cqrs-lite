@@ -24,11 +24,11 @@ Unlike `InProcessNetwork` (goroutine calls, no serialization) and `QuicTransport
 
 ## Transport Testing Pyramid
 
-| Tier | Transport         | CGo | Speed   | Catches                                        |
-| ---- | ----------------- | --- | ------- | ---------------------------------------------- |
-| 0    | InProcessNetwork  | No  | ~0.6us  | CRDT merge logic, subscriber dispatch          |
-| 1    | LoopbackTransport | No  | ~10us   | Serialization, framing, connection lifecycle   |
-| 2    | QuicTransport     | Yes | ~86us   | NAT traversal, real QUIC ACK timing            |
+| Tier | Transport         | CGo | Speed  | Catches                                      |
+| ---- | ----------------- | --- | ------ | -------------------------------------------- |
+| 0    | InProcessNetwork  | No  | ~0.6us | CRDT merge logic, subscriber dispatch        |
+| 1    | LoopbackTransport | No  | ~10us  | Serialization, framing, connection lifecycle |
+| 2    | QuicTransport     | Yes | ~86us  | NAT traversal, real QUIC ACK timing          |
 
 Each tier catches a different bug class. None subsumes another.
 
@@ -82,14 +82,14 @@ func main() {
 
 ## CRDT-Safe Operations
 
-| Op              | CRDT Type     | Convergent? |
-| --------------- | ------------- | ----------- |
-| `MapSet`        | LWW-Map       | Yes         |
-| `MapDelete`     | LWW tombstone | Yes         |
-| `SetAdd`        | OR-Set        | Yes         |
-| `CounterIncrement` | PN-Counter | Yes         |
-| `MultiAdd`      | PN-Map        | Yes         |
-| `LogAppend`     | Append-only   | Yes         |
+| Op                 | CRDT Type     | Convergent? |
+| ------------------ | ------------- | ----------- |
+| `MapSet`           | LWW-Map       | Yes         |
+| `MapDelete`        | LWW tombstone | Yes         |
+| `SetAdd`           | OR-Set        | Yes         |
+| `CounterIncrement` | PN-Counter    | Yes         |
+| `MultiAdd`         | PN-Map        | Yes         |
+| `LogAppend`        | Append-only   | Yes         |
 
 Non-CRDT operations (`MapUpdate`) are local-only and not replicated.
 

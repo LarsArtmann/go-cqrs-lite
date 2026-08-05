@@ -28,12 +28,14 @@
 - `TestSystem_SnapshotE2E_DeciderLifecycle`: Full decider → snapshot → reload cycle. Dispatches `task.create` → verifies snapshot saved at v1 → dispatches `task.complete` → verifies snapshot updated to v2 with correct state.
 
 **Bug #1 found and fixed: `SnapshotAdapter.Save` key mismatch**
+
 - Save used `snap.StreamID.String()` (bare ID: `"01HXY..."`)
 - Load/Delete used `ref.StreamKey()` (`"Type:ID"`: `"Task:01HXY..."`)
 - These are different strings — snapshots written via Save could never be found via Load.
 - **Fix:** Changed Save to construct the key as `snap.StreamType.String()+":"+snap.StreamID.String()` to match `StreamKey()`.
 
 **Bug #2 found and fixed: `RegisterDecider` missing codec wiring**
+
 - Prior session wired `WithSnapshotStore` but not `WithCodec`.
 - Without a codec, `snapshot.ShouldSnapshotFor` always returns false (requires strategy + store + codec all non-nil).
 - Snapshots were silently never written — the wiring was dead code.
@@ -152,6 +154,7 @@ But there are issues worth calling out:
 ### ⚠️ The auto-commit daemon caused significant interference
 
 The daemon committed **18+ times** during this session, including:
+
 - Refactoring my code while I was still working on it (e.g., `system/adapter_event.go` was refactored by the daemon's "share temporal-fast-path logic" commit)
 - Adding new exports to `irohengine` that broke the api-stability golden 3 times
 - Breaking the build with an unused `errors` import in `irohengine/engine.go`
@@ -267,6 +270,7 @@ Currently only Memory + SQLite implement `StreamTemporalReader`. The system Even
 ### Q2: Should the auto-commit daemon be disabled during verify-gate sessions?
 
 The daemon committed 18+ times during this session, causing:
+
 - 3 api-stability golden regenerations (new exports added between regen and verify)
 - 1 build breakage (unused import)
 - Refactoring of my code while I was still editing it

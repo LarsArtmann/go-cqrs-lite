@@ -9,16 +9,19 @@
 ## a) FULLY DONE (Verified Working)
 
 ### T1: DuckDB AtomicAppender — ✅ DONE
+
 - `metaengine/duckdbengine/stream_log.go`: Added `StreamAppendExpected` using `e.mu.Lock()` + `SELECT COUNT(*)` + version check + `INSERT`.
 - Compile-time assertion `_ metaengine.AtomicAppender = (*duckdbEngine)(nil)` in `engine.go`.
 - Test: `TestStreamLogBackend_DuckDBAtomicAppender` passes with `-race`.
 
 ### T2: PG AtomicAppender — ✅ DONE
+
 - `metaengine/pgengine/stream_log.go`: Added `StreamAppendExpected` using `BeginTx` + `SELECT COUNT(*)` + version check + `INSERT` + `COMMIT`.
 - Compile-time assertion `_ metaengine.AtomicAppender = (*pgEngine)(nil)` in `engine.go`.
 - No dedicated PG test (requires live PG or testcontainers — see gaps below).
 
 ### T3: Wire SnapshotBackend into constructor — ✅ DONE
+
 - Created `system/snapshot_adapter.go`: `SnapshotAdapter` wraps `metaengine.SnapshotBackend` as `snapshot.SnapshotStore` (4 methods: Save, Delete, Load, LoadAtVersion).
 - Added `snapStore` field to `System` struct.
 - Wired type assertion in `constructor.go` `New()`: `if snapBackend, ok := eng.(metaengine.SnapshotBackend); ok { sys.snapStore = NewSnapshotAdapter(...) }`.
@@ -27,6 +30,7 @@
 - All system tests pass with `-race`.
 
 ### T4: Pebble seq restart safety — ✅ DONE (but missing test)
+
 - Created `metaengine/pebbleengine/seq_seeding.go`: `seedSeqCounters()` scans existing keys on persistent DBs.
 - Seeds all 4 counters: `streamSeq` (per-stream), `journalSeq` (per-collection global), `logSeq` (log ADT), `mmSeq` (multimap).
 - Called from `NewPebbleEngine(dir string)` when `persistence == PersistencePersistent`.
@@ -35,51 +39,60 @@
 - **MISSING**: No restart safety test (append → close → reopen → append → verify no collision). See gaps.
 
 ### T5: Fix MultiBus test — ✅ DONE
+
 - Added `MultiBus.Publishers()` accessor returning snapshot of child publishers.
 - Added `System.Publisher()` accessor returning `pubBus`.
 - Rewrote `TestSystem_MultiBusFanOut`: type-asserts publisher as `*MultiBus`, subscribes on each fan-out bus individually via `event.Bus` interface, verifies each receives exactly 1 event.
 - Previous test subscribed on local bus (index 0), not fan-out buses — was lying.
 
 ### T6: Replace bytesIndex — ✅ DONE
+
 - Replaced `bytesIndex(raw, []byte(sep))` with `bytes.Index(raw, []byte(sep))` in 2 locations.
 - Deleted the 20-line `bytesIndex` function.
 - Added `"bytes"` to imports.
 
 ### T7: Concurrent-write race test — ✅ DONE
+
 - Created `metaengine/concurrent_append_test.go`: 2 tests (Memory + SQLite).
 - 10 goroutines race to append at `expectedVersion=0`; verifies exactly 1 succeeds, 9 get `ErrVersionConflict`.
 - SQLite variant: builds version to 2 first, then 5 goroutines race at v2.
 - Tested 3x with `-count=3 -race` — all pass.
 
 ### T8: Wire StreamTemporalReader — ✅ DONE (with deviation)
+
 - Added `temporal` field to `EventAdapter` struct.
 - Auto-detected in `NewEventAdapter` via type assertion.
 - **Deviation from plan**: Wired into `LoadToVersion`, not `LoadFromVersion`. Reason: `StreamReadAsOfVersion` returns events UP TO a version (inclusive), which semantically matches `LoadToVersion`, not `LoadFromVersion`. The plan said `LoadFromVersion` but that was a semantic mismatch.
 - `LoadFromVersion` still uses the full-load-then-slice approach.
 
 ### T9: StreamLogBackend in adttest.RunMatrix — ✅ DONE
+
 - Added `"StreamLogBackend"` to `backendInterfaces` map in `harness.go`.
 - Added `StreamLog` scenario: appends to 2 streams, reads back + verifies version.
 - Updated `TestScenarios_AllTenADTs` → `TestScenarios_AllElevenADTs` (count 10→11).
 
 ### T10: Consolidate encode/decode helpers — ✅ DONE
+
 - Created `metaengine/stream_codec.go`: exported `EncodeStreamValue(v any) string` and `DecodeStreamValue(s string) any`.
 - Updated DuckDB `stream_log.go`: replaced `encodeDuckDBStreamValue`/`decodeDuckDBStreamValue` with shared helpers, removed `encoding/json/v2` import.
 - Updated PG `stream_log.go`: replaced `encodePGStreamValue`/`decodePGStreamValue` with shared helpers, removed `encoding/json/v2` import.
 - SQLite `encodeStreamValue` kept as-is (it wraps `encodeJSON` which is local to the SQLite engine).
 
 ### T11: Pebble StreamLog tests — ✅ DONE
+
 - Created `metaengine/pebbleengine/stream_log_test.go`: 2 tests.
   - `TestStreamLogBackend_PebbleRoundtrip`: append/read/version/journal/journalReadFrom.
   - `TestStreamLogBackend_PebbleAtomicAppender`: append expected, version conflict.
 - **Found and fixed a pre-existing bug**: `JournalReadFrom` had `LowerBound: journalKey(col, afterSeq)` which INCLUDES `afterSeq`. Fixed to `journalKey(col, afterSeq+1)` (exclusive).
 
 ### T12: DuckDB StreamLog tests — ✅ DONE
+
 - Created `metaengine/duckdbengine/stream_log_cgo_test.go` (CGo-gated): 2 tests.
   - `TestStreamLogBackend_DuckDBRoundtrip`: same roundtrip as Pebble.
   - `TestStreamLogBackend_DuckDBAtomicAppender`: same AtomicAppender test.
 
 ### T13: Polish — ✅ PARTIALLY DONE
+
 - gofumpt'd all modified files.
 - `go vet` clean on all modules.
 - api-stability golden regenerated (3502 exports, up from 3478).
@@ -92,14 +105,17 @@
 ## b) PARTIALLY DONE
 
 ### T4 Pebble seq restart safety — MISSING TEST
+
 - Implementation is complete and compiles. The existing Pebble test suite passes.
 - **No dedicated restart test**: the plan called for "append events → close engine → reopen → append more → verify no key collision". This test was NOT written. The implementation is unverified by a direct test.
 
 ### T8 StreamTemporalReader — SEMANTIC DEVIATION
+
 - The plan said wire into `LoadFromVersion`. I wired into `LoadToVersion` instead because the semantics of `StreamReadAsOfVersion` (returns events UP TO version N) match `LoadToVersion`, not `LoadFromVersion`.
 - `LoadFromVersion` still does full-load-then-slice. The plan was semantically wrong. This is a justified deviation, but it means `LoadFromVersion` was NOT optimized.
 
 ### T13 doc-check — NOT RUN ON ALL DOCS
+
 - Only ran on `metaengine-redesign.md`. The plan called for checking all changed docs.
 - The `metaengine/README.md` still shows the old `NewPebbleEngineFromDB` signature (no error return) — see gaps.
 
@@ -108,15 +124,19 @@
 ## c) NOT STARTED
 
 ### PG StreamLog tests (plan item 2.4/T12-equivalent)
+
 - No dedicated PG StreamLogBackend roundtrip or AtomicAppender test was written. PG tests require a live Postgres or testcontainers, which runs but takes 60s. The existing PG test suite passes, but there's no direct StreamLogBackend test.
 
 ### Pebble restart safety test (plan item 4.5)
+
 - See above — the implementation exists but the test does not.
 
 ### E2E snapshot integration test through System (plan item 3.6)
+
 - The plan called for: "System with SQLite engine, dispatch commands, verify snapshots saved/loaded." Not written. The snapshot adapter compiles and wires correctly, but no end-to-end test proves snapshots actually fire through the System.
 
 ### LoadFromVersion optimization
+
 - Not done. `LoadFromVersion` still loads the full stream and slices. This could be optimized by combining `StreamReadAsOfVersion` + slicing, but the semantics are subtle (need to read ALL then slice from version, which requires knowing total count).
 
 ---
@@ -126,6 +146,7 @@
 Nothing is totally fucked up. But there are issues:
 
 ### ⚠️ BREAKING API CHANGE: `NewPebbleEngineFromDB` signature changed
+
 - **Before**: `func NewPebbleEngineFromDB(db *pebble.DB) metaengine.Engine`
 - **After**: `func NewPebbleEngineFromDB(db *pebble.DB) (metaengine.Engine, error)`
 - This is because `seedSeqCounters` can fail and must return an error.
@@ -134,6 +155,7 @@ Nothing is totally fucked up. But there are issues:
 - **api-stability**: The golden was regenerated, so the CI gate won't catch this as a regression — it's now "the new normal." But any external consumer upgrading will break.
 
 ### ⚠️ Metaengine go.mod version mismatch in engine modules
+
 - `duckdbengine/go.mod` requires `metaengine/v4 v4.0.0` (with `replace => ../`).
 - `pgengine/go.mod` requires `metaengine/v4 v4.0.0` (with `replace => ../`).
 - The actual metaengine is at v4.4.0 (per system/go.mod). The replace directive masks this in workspace mode, but if these modules are ever consumed standalone (GOWORK=off without replace), they'd get v4.0.0 which lacks `EncodeStreamValue`/`DecodeStreamValue`. This is a **latent breakage** — works now because of replace directives, but would fail for external consumers.
@@ -233,20 +255,26 @@ Nothing is totally fucked up. But there are issues:
 ## g) Questions I CANNOT Answer Myself
 
 ### Q1: Should `NewPebbleEngineFromDB` seeding be opt-in or always-on?
+
 The `seedSeqCounters()` call does an O(N) scan of all keys on construction. For a large persistent DB (100K+ keys), this could add seconds of startup time. Should this be:
+
 - **(a) Always-on** (current implementation — safe but slow on startup), or
 - **(b) Opt-in** via an option like `WithSeqSeeding()` (faster startup, consumer must remember to call it), or
 - **(c) Lazy** (seed on first access per-collection — amortized cost, but first write per collection pays the scan)?
 
 ### Q2: Should `LoadFromVersion` also be optimized using temporal reads?
+
 The plan said to optimize `LoadFromVersion`, but `StreamReadAsOfVersion` returns events UP TO version N (inclusive), which matches `LoadToVersion`, not `LoadFromVersion`. To optimize `LoadFromVersion` we'd need either:
+
 - **(a)** A new backend method `StreamReadFromVersion(col, sid, minVersion)` that returns events FROM version N onward, or
 - **(b)** Load full stream via `StreamRead` (current behavior) — which is what the adapter already does.
 
 Should I add `StreamReadFromVersion` to the interface, or is the current full-load-then-slice acceptable?
 
 ### Q3: Is the `NewPebbleEngineFromDB` breaking change acceptable, or should I add a new constructor?
+
 Changing `NewPebbleEngineFromDB(db) metaengine.Engine` to `NewPebbleEngineFromDB(db) (metaengine.Engine, error)` breaks all consumers. Alternatives:
+
 - **(a) Keep the breaking change** (current — api-stability golden was regenerated), or
 - **(b) Add `NewPebbleEngineFromDBWithSeeding(db) (metaengine.Engine, error)` as a new constructor and keep the old one as-is (no seeding, unsafe but backwards-compatible), or
 - **(c) Make seeding best-effort** (log a warning on error, return the engine anyway)?

@@ -12,6 +12,7 @@
 **Root cause**: `Watcher.Close()` at `dx.go:260` closed channels under `w.mu` (Watcher mutex), while `subscriberHub.notify()` at `subscribers.go:49` sent on those channels under `h.mu` (hub mutex). Two different locks guarding the same `chan any` → `send on closed channel` panic under `-race`.
 
 **Fix**:
+
 - `notify()` now holds `h.mu` for the ENTIRE iteration (including channel sends), not just the snapshot copy
 - New `closeEntries(entries)` method closes channels under `h.mu`, serializing against `notify()`
 - `Watcher.Close()` calls `closeEntries()` instead of closing channels directly
@@ -26,6 +27,7 @@
 **Fix**: Switched both `loopback` and `quic` modules from `encoding/json/v2` to `fxamacker/cbor/v2` (v2.9.2, already in repo).
 
 Two CBOR-specific issues discovered and fixed during testing:
+
 - **`time.Time` truncation**: Default CBOR also truncates to seconds. Fix: `cbor.EncOptions{Time: cbor.TimeUnixDynamic}` encoder mode preserves sub-second precision as float64.
 - **`map[interface{}]interface{}` decode**: CBOR defaults to `map[any]any` for `any` fields, breaking `gomega.Equal` with `map[string]any`. Fix: `cbor.DecOptions{DefaultMapType: reflect.TypeFor[map[string]any]()}` decoder mode.
 
@@ -34,6 +36,7 @@ Two CBOR-specific issues discovered and fixed during testing:
 ### 3. Lint Debt Cleanup (removed `lintExcluded` band-aid)
 
 **What was done**:
+
 - **system/**: Created `errors.go` with 15 sentinel errors (`ErrAlreadyStarted`, `ErrCacheCapacityInvalid`, etc.). Fixed all 16 `err113` violations by replacing `errors.New(...)` / `fmt.Errorf(...)` with `%w` wrapping of sentinels. Fixed 2 `errchkjson` violations (unchecked `json.Marshal` in tests).
 - **irohengine/**: Created `errors.go` with 6 backend-capability sentinels (`ErrScanBackendNotImplemented`, etc.). Fixed 10 `err113` violations. Fixed 6 `contextcheck` violations by passing `ctx` through `publish()`. Removed unused `InProcessNetwork.close()` method (`unused` lint).
 - **loopback/quic/**: Fixed `gci` import ordering, `modernize` (`reflect.TypeFor`), `nolintlint` (stale directives).
@@ -63,15 +66,15 @@ Exported 21 new sentinel errors (15 in system/, 6 in irohengine/). Regenerated `
 
 The `err113`, `contextcheck`, `errchkjson`, and `unused` issues were **genuinely fixed** (code changes). But the majority of the 161 original lint issues were **hidden via path exclusions** rather than fixed at the code level:
 
-| Linter        | Issues Hidden | Could Be Fixed?                                    |
-| ------------- | ------------- | -------------------------------------------------- |
-| `wrapcheck`   | 25 (system) + 22 (irohengine) = 47 | Yes — add `fmt.Errorf("...: %w", err)` wrappers. Tedious but mechanical. |
-| `ireturn`     | 8 (system)    | Debatable — returning interfaces is idiomatic Go for DI containers |
-| `gosec`       | 10 (system)   | Yes — G115 integer overflow needs helper functions, G304 file inclusion needs allowlist |
-| `gocyclo`     | 1 (system)    | Yes — extract `New()` into sub-functions           |
-| `tagliatelle` | 5 (system)    | Yes — rename JSON tags from `snake_case` to `camelCase` |
-| `varnamelen`  | 4 (system)    | Yes — rename short variables                        |
-| `forcetypeassert` | 1 (system) | Yes — add `ok` check                                |
+| Linter            | Issues Hidden                      | Could Be Fixed?                                                                         |
+| ----------------- | ---------------------------------- | --------------------------------------------------------------------------------------- |
+| `wrapcheck`       | 25 (system) + 22 (irohengine) = 47 | Yes — add `fmt.Errorf("...: %w", err)` wrappers. Tedious but mechanical.                |
+| `ireturn`         | 8 (system)                         | Debatable — returning interfaces is idiomatic Go for DI containers                      |
+| `gosec`           | 10 (system)                        | Yes — G115 integer overflow needs helper functions, G304 file inclusion needs allowlist |
+| `gocyclo`         | 1 (system)                         | Yes — extract `New()` into sub-functions                                                |
+| `tagliatelle`     | 5 (system)                         | Yes — rename JSON tags from `snake_case` to `camelCase`                                 |
+| `varnamelen`      | 4 (system)                         | Yes — rename short variables                                                            |
+| `forcetypeassert` | 1 (system)                         | Yes — add `ok` check                                                                    |
 
 **Assessment**: The exclusions are a pragmatic shortcut matching the repo's existing style. But ~60 issues could be genuinely fixed with moderate effort.
 
@@ -121,6 +124,7 @@ Nothing was irreversibly broken. But:
 ## F) Up to 50 Things to Get Done Next
 
 ### High Priority (blocks release)
+
 1. Run `nix run .#verify` — the full gate
 2. Run `nix fmt` — repo-wide formatting
 3. Update `quic/README.md` — change "JSON" references to "CBOR"
@@ -128,6 +132,7 @@ Nothing was irreversibly broken. But:
 5. Fix 4 pre-existing metaengine core lint issues (`errcheck`, `gocritic`, `modernize`, `nolintlint`)
 
 ### Medium Priority (lint debt reduction)
+
 6. Fix system/ `wrapcheck` violations (25 issues) — add `fmt.Errorf` wrappers
 7. Fix irohengine/ `wrapcheck` violations (22 issues) — add `fmt.Errorf` wrappers
 8. Fix system/ `gosec` G115 integer overflow (10 issues) — extract helper functions
@@ -140,6 +145,7 @@ Nothing was irreversibly broken. But:
 15. Remove irohengine/demo lint exclusions once demo is cleaned up
 
 ### Lower Priority (polish)
+
 16. Fix gopls `for i := range n` hints in `quic/demo/main.go`
 17. Update `system/go.mod` — the gopls warning about `yaml.v3` should be direct
 18. Document the `publish()` context propagation decision (ctx passed through, applyRemote uses Background)
@@ -152,6 +158,7 @@ Nothing was irreversibly broken. But:
 25. Add `flake.nix` integration test that builds quic with CGo in CI
 
 ### Architecture / Future
+
 26. Consider whether `WriteOp.Value any` should be `[]byte` (pre-serialized) to avoid per-hop reification
 27. Document the transport testing pyramid in AGENTS.md (currently only in status reports)
 28. Consider adding a `quic.WithInsecureSkipVerify()` option for local development

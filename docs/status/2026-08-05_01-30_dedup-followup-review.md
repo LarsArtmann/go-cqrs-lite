@@ -9,20 +9,21 @@
 
 ### 8 production-code extractions shipped (all tests green per-module)
 
-| # | Module | Clone eliminated | Helper extracted |
-|---|--------|-----------------|-----------------|
-| 1 | `cmd/cqrs-lint/pkg/rules` | c013 + c035 + lintutil all duplicated `base := filePath` + path-strip | `lintutil.BaseFileName(filePath)` |
-| 2 | `metaengine` | 3 identical Vector/Search/Spatial ExecuteTyped wrappers | `executeSliceResult[R](ctx, store, input)` |
-| 3 | `metaengine/pebbleengine` | 5 prefix-iterator creation sites (stream_log ×3, scan_count, seq_seeding ×3) | `(*pebbleEngine).newPrefixIter(prefix)` |
-| 4 | `cmd/cqrs-lint` | 8 manually-computed section headers in explain.go | `writeSectionHeader(b, title)` |
-| 5 | `cmd/cqrs-lint/pkg/suppression` | 2 identical file-loading boilerplate (filePath + cache + lines) | `loadFindingLines(cache, finding)` + `findingLines` struct |
-| 6 | `system` | LoadFromTimestamp + LoadToTimestamp shared load+filter loop | `(*CommandAdapter).loadFiltered(ctx, ref, keep)` |
-| 7 | `benchkit` | 2 identical metaengine setup (engine+plan+sampleCount) | `(*runner).setupMemoryMetaEngineStore(args...)` |
-| 8 | Baseline + gate | Updated `.art-dupl-baseline.json` to reflect new state | `art-dupl check` → 0 new clones |
+| #   | Module                          | Clone eliminated                                                             | Helper extracted                                           |
+| --- | ------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| 1   | `cmd/cqrs-lint/pkg/rules`       | c013 + c035 + lintutil all duplicated `base := filePath` + path-strip        | `lintutil.BaseFileName(filePath)`                          |
+| 2   | `metaengine`                    | 3 identical Vector/Search/Spatial ExecuteTyped wrappers                      | `executeSliceResult[R](ctx, store, input)`                 |
+| 3   | `metaengine/pebbleengine`       | 5 prefix-iterator creation sites (stream_log ×3, scan_count, seq_seeding ×3) | `(*pebbleEngine).newPrefixIter(prefix)`                    |
+| 4   | `cmd/cqrs-lint`                 | 8 manually-computed section headers in explain.go                            | `writeSectionHeader(b, title)`                             |
+| 5   | `cmd/cqrs-lint/pkg/suppression` | 2 identical file-loading boilerplate (filePath + cache + lines)              | `loadFindingLines(cache, finding)` + `findingLines` struct |
+| 6   | `system`                        | LoadFromTimestamp + LoadToTimestamp shared load+filter loop                  | `(*CommandAdapter).loadFiltered(ctx, ref, keep)`           |
+| 7   | `benchkit`                      | 2 identical metaengine setup (engine+plan+sampleCount)                       | `(*runner).setupMemoryMetaEngineStore(args...)`            |
+| 8   | Baseline + gate                 | Updated `.art-dupl-baseline.json` to reflect new state                       | `art-dupl check` → 0 new clones                            |
 
 ### Clone classification: all 40 remaining groups catalogued
 
 Every remaining clone group is now classified into one of:
+
 - **Cross-module isolation** (duckdb↔pgengine, loopback↔quic, stack↔system) — 11 groups, separate modules by design
 - **Table-driven test patterns** — 8 groups (109 individual clones), idiomatic Go
 - **Testcontainer setup** — 3 groups, borderline extractable
@@ -37,6 +38,7 @@ Every remaining clone group is now classified into one of:
 ### 1. `nix run .#verify` NOT RUN — THE BIGGEST GAP
 
 **This is the single most important incomplete item.** AGENTS.md is explicit:
+
 > "every session that changes code, go.mod, or docs must run `nix run .#verify`"
 
 I ran per-module `go test` and `go build` on the 5 touched modules. The canonical verify gate
@@ -46,7 +48,7 @@ This is the "Stale GREEN" anti-pattern documented in AGENTS.md.
 ### 2. api-stability golden NOT regenerated
 
 AGENTS.md: "Whenever you add/rename/remove an exported symbol, immediately regenerate the
-api-stability golden." All 8 new helpers are unexported, so this *should* be a no-op — but I
+api-stability golden." All 8 new helpers are unexported, so this _should_ be a no-op — but I
 did not verify. The `TestEveryGoModDirIsInModulesList` meta-test could also fail if any module
 structure changed (it didn't, but unverified).
 
@@ -147,7 +149,7 @@ are the most tempting but correctly left alone (module isolation).
 7. **The duckdb↔pgengine parity is the elephant in the room** — 7 clone groups, ~300 lines of
    near-identical code (engine creation, stream_log, scan, pushdown, watcher, engine_test).
    These are separate Go modules by design (CGo isolation for DuckDB). The correct solution
-   is NOT a shared module (violates isolation) but rather a shared *test contract* module
+   is NOT a shared module (violates isolation) but rather a shared _test contract_ module
    (like `adttest` already does for ADT parity). The production code clones are the real cost
    of multi-module isolation — accept it.
 
@@ -177,7 +179,7 @@ are the most tempting but correctly left alone (module isolation).
 ### Cross-module test infrastructure (bigger effort):
 
 9. Evaluate creating `testutil/pgtest` shared module — would eliminate 3 testcontainer clone groups (projectionhost, scheduling, pgengine, stack/postgres). Tradeoff: adds a workspace module + dependency.
-10. Evaluate creating a shared engine *test contract* module (extends `adttest`) — could reduce duckdb↔pgengine test parity clones (engine_test, watcher_test). Production code stays isolated; only test fixtures are shared.
+10. Evaluate creating a shared engine _test contract_ module (extends `adttest`) — could reduce duckdb↔pgengine test parity clones (engine_test, watcher_test). Production code stays isolated; only test fixtures are shared.
 
 ### Code quality (not dedup-related, noticed while working):
 
@@ -208,6 +210,7 @@ are the most tempting but correctly left alone (module isolation).
 ### Question 1: Should I run `nix run .#verify` now?
 
 I know AGENTS.md says I must. I'm asking because:
+
 - It takes 3-4 minutes
 - The auto-commit daemon may have already committed changes that conflict
 - If it fails, I need to know whether you want me to fix the failures or just report them

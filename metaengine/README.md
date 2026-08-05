@@ -228,17 +228,17 @@ Three engines (SQLite, Pebble, DuckDB) are volatile OR persistent depending on
 constructor arguments. The engine sets the field dynamically at construction
 time:
 
-| Constructor              | Persistence | Why                          |
-| ------------------------ | ----------- | ---------------------------- |
-| `NewMemoryEngine()`      | Volatile    | Pure RAM                     |
-| `NewSQLiteEngine(db)`    | Persistent  | File or `:memory:` (profile) |
-| `NewPebbleEngine("")`    | Volatile    | `vfs.NewMem()`               |
-| `NewPebbleEngine("/db")` | Persistent  | LSM on disk                  |
+| Constructor                 | Persistence | Why                                                            |
+| --------------------------- | ----------- | -------------------------------------------------------------- |
+| `NewMemoryEngine()`         | Volatile    | Pure RAM                                                       |
+| `NewSQLiteEngine(db)`       | Persistent  | File or `:memory:` (profile)                                   |
+| `NewPebbleEngine("")`       | Volatile    | `vfs.NewMem()`                                                 |
+| `NewPebbleEngine("/db")`    | Persistent  | LSM on disk                                                    |
 | `NewPebbleEngineFromDB(db)` | Persistent  | Caller owns DB; seeds seq counters (returns `(Engine, error)`) |
-| `duckdb.New("")`         | Volatile    | `:memory:`                   |
-| `duckdb.New("file.db")`  | Persistent  | Disk file                    |
-| `duckdb.NewFromDB`       | Persistent  | Caller owns a DB             |
-| `pgengine.New(dsn)`      | Persistent  | Remote server                |
+| `duckdb.New("")`            | Volatile    | `:memory:`                                                     |
+| `duckdb.New("file.db")`     | Persistent  | Disk file                                                      |
+| `duckdb.NewFromDB`          | Persistent  | Caller owns a DB                                               |
+| `pgengine.New(dsn)`         | Persistent  | Remote server                                                  |
 
 > **Pebble seq seeding**: When a persistent Pebble engine is constructed
 > (`NewPebbleEngine("/db")` or `NewPebbleEngineFromDB(db)`), all internal
