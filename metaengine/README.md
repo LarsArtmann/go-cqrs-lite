@@ -43,6 +43,56 @@ result, _ := metaengine.ExecuteTyped[FindUser, FindUserResult](
 // → FindUserResult{ID: "u1", Name: "Alice", ...}
 ```
 
+## Quick Setup (SQLite, One-Liner)
+
+For the most common setup — Memory + SQLite engines, plan, log:
+
+```go
+// 1. Declare queries (same as above)
+// 2. One-shot: open SQLite, create Memory engine, plan queries
+store, db, err := metaengine.PlanFromSQLite("app.db", findUser, statsQuery)
+defer store.Close()
+defer db.Close()
+
+// 3. Log the planner's decisions (which engine for which query)
+store.LogPlan(logger)
+```
+
+For in-memory only (dev/test):
+
+```go
+store, err := metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine()}, findUser)
+```
+
+## Event Sourcing Integration (projectionadapter)
+
+When using metaengine with go-cqrs-lite's event store, use the
+`projectionadapter` package to wire events into the metaengine Store:
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
+
+// 1. Declare a query using EventWithID (wraps payload with stream ID)
+var findUser = metaengine.Query[FindUser, FindUserResult]("find_user",
+    metaengine.OnTyped("user.created",
+        projectionadapter.EventWithID[UserCreated]{},
+        func(e projectionadapter.EventWithID[UserCreated]) (string, FindUserResult) {
+            return e.ID, FindUserResult{ID: e.ID, Name: e.Payload.Name}
+        }),
+)
+
+// 2. Build a TypeDecoder — replaces 70+ lines of switch/case boilerplate
+dec := projectionadapter.NewTypeDecoder(
+    projectionadapter.Register(event.Type("user.created"), UserCreated{}),
+    projectionadapter.Register(event.Type("user.deleted"), UserDeleted{}),
+)
+
+// 3. Create adapter + register with projection host
+store, db, _ := metaengine.PlanFromSQLite("app.db", findUser)
+adapter := projectionadapter.NewWithDecoder("users", store, dec)
+host.Register(adapter)
+```
+
 ## The Fold Return Type IS the ADT
 
 The developer never declares "I need a Map" or "I need a Counter."

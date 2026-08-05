@@ -17,7 +17,11 @@ analysis revealed this system was fake:
 1. `kv/` claims Layer 0 but depends on `codec/` — not a true leaf
 2. `event/` claims Layer 1 but depends on Tier 2–4 modules via test deps that leak into go.mod
 3. 44 of 68 modules depend on `codec/` — the true hub was invisible in the old system
-4. `command/` has a hard compile dependency on `event/` — violates CQRS separation
+4. `command/` and `query/` each pull `event/` into their go.mod as `// indirect`
+   via `storage/memory/` (test-only dep). Production code has zero `event/`
+   imports — the `metadata/` extraction (ADR-0031) broke the real compile
+   dependency. The indirect leak remains: `storage/memory/` transitively
+   requires `event/`, `snapshot/`, and `query/` for its own purposes.
 
 The 7-layer system provided false confidence that dependencies were well-stratified when
 they were not.

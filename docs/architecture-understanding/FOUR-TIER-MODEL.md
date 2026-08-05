@@ -66,9 +66,11 @@ The core CQRS vocabulary: events, commands, queries, scheduling, metadata.
 | `scheduling/`| Durable deadline timers: TimerStore, Scheduler     |
 | `metadata/`  | Tracing, CustomData (shared metadata types)         |
 
-> **`command/` has a hard compile dependency on `event/`** — this violates
-> textbook CQRS separation at the compile level, but is an intentional design
-> choice (command types embed event metadata types).
+> **CQRS separation is clean at compile level.** `command/` and `query/` have
+> zero `event/` imports in production code. Shared types (Tracing, CustomData)
+> were extracted to `metadata/` (ADR-0031), breaking the old dependency. The
+> only remaining leak: `storage/memory/` as a test dep pulls `event/` into
+> go.mod indirect for both modules.
 
 ---
 
@@ -245,9 +247,10 @@ lies:
    (ADR-0045) reduced this, but Go modules still list test deps in `require`.
 3. **44 of 68 modules depend on `codec/`** — the true hub was invisible in the
    old system. `codec/` is now correctly placed in Tier 0.
-4. **`command/` has a hard compile dependency on `event/`** — violates textbook
-   CQRS separation. The new model accepts this as an intentional design choice
-   rather than hiding it.
+4. **`command/` and `query/` pull `event/` as `// indirect` in go.mod** —
+   via `storage/memory/` (test-only dep). Production code has zero `event/`
+   imports — the `metadata/` extraction (ADR-0031) broke the compile dependency.
+   The indirect leak is cosmetic but still inflates perceived coupling.
 
 ## What This Changes
 

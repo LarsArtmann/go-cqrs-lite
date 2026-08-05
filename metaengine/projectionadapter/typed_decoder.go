@@ -33,9 +33,62 @@ type EventWithID[P any] struct {
 	Payload P
 }
 
-// TypeDecoder is a fluent builder that eliminates the manual switch/case
-// event decoder every consumer previously had to write. Register each event
-// type with its payload Go type, then pass the decoder to NewWithDecoder.
+// EventRegistration is a single event-type-to-payload-type mapping, created
+// by the generic Register function. Collect them and pass to NewTypeDecoder.
+type EventRegistration struct {
+	eventType string
+	handler   func(event.Event) (any, error)
+}
+
+// Register creates an EventRegistration that maps an event type to its
+// payload Go type. The event type is an event.Type (a string typedef).
+// Go infers the payload type from the sample argument.
+//
+// The payload is decoded via encoding/json/v2 and wrapped in EventWithID,
+// giving fold handlers access to both the entity ID and the typed payload.
+//
+//	projectionadapter.Register(evtTaskCreated, TaskCreatedPayload{})
+func Register[E any](eventType event.Type, _ E) EventRegistration {
+	t := string(eventType)
+
+	return EventRegistration{
+		eventType: t,
+		handler: func(evt event.Event) (any, error) {
+			var p E
+
+			if len(evt.Payload()) > 0 {
+				if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+					return nil, fmt.Errorf("projectionadapter: decode %s: %w", t, err)
+				}
+			}
+
+			return EventWithID[E]{ID: evt.StreamID().String(), Payload: p}, nil
+		},
+	}
+}
+
+// RegisterString is like Register but accepts a plain string event type,
+// for consumers that use string constants instead of event.Type.
+func RegisterString[E any](eventType string, _ E) EventRegistration {
+	return EventRegistration{
+		eventType: eventType,
+		handler: func(evt event.Event) (any, error) {
+			var p E
+
+			if len(evt.Payload()) > 0 {
+				if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+					return nil, fmt.Errorf("projectionadapter: decode %s: %w", eventType, err)
+				}
+			}
+
+			return EventWithID[E]{ID: evt.StreamID().String(), Payload: p}, nil
+		},
+	}
+}
+
+// TypeDecoder eliminates the manual switch/case event decoder every consumer
+// previously had to write. Register each event type with its payload Go type
+// via Register, then pass the decoder to NewWithDecoder.
 //
 // Before (77 lines of boilerplate per consumer):
 //
@@ -43,65 +96,38 @@ type EventWithID[P any] struct {
 //	    switch evt.Type() {
 //	    case "task.created":
 //	        var p TaskCreatedPayload
-//	        if err := json.Unmarshal(evt.Payload(), &p); err != nil { return nil, err }
+//	        json.Unmarshal(evt.Payload(), &p)
 //	        return eventWithID[TaskCreatedPayload]{ID: evt.StreamID().String(), Payload: p}, nil
 //	    case "task.assigned":
-//	        var p TaskAssignedPayload
-//	        if err := json.Unmarshal(evt.Payload(), &p); err != nil { return nil, err }
-//	        return eventWithID[TaskAssignedPayload]{ID: evt.StreamID().String(), Payload: p}, nil
-//	    // ... 9 more cases, each identical ...
+//	        // ... identical 5-line pattern ...
+//	    // ... 9 more cases ...
 //	    }
 //	}
 //
 // After (5 lines):
 //
-//	dec := projectionadapter.NewTypeDecoder().
-//	    On(evtTaskCreated, TaskCreatedPayload{}).
-//	    On(evtTaskAssigned, TaskAssignedPayload{}).
-//	    On(evtTaskDeleted, TaskDeletedPayload{})
+//	dec := projectionadapter.NewTypeDecoder(
+//	    projectionadapter.Register(evtTaskCreated, TaskCreatedPayload{}),
+//	    projectionadapter.Register(evtTaskAssigned, TaskAssignedPayload{}),
+//	    projectionadapter.Register(evtTaskDeleted, TaskDeletedPayload{}),
+//	)
 //	adapter := projectionadapter.NewWithDecoder("tasks", store, dec)
 type TypeDecoder struct {
 	handlers map[string]func(event.Event) (any, error)
 }
 
-// NewTypeDecoder creates an empty TypeDecoder ready for event registration.
-func NewTypeDecoder() *TypeDecoder {
-	return &TypeDecoder{handlers: make(map[string]func(event.Event) (any, error))}
-}
+// NewTypeDecoder creates a TypeDecoder from event registrations. Each
+// registration maps an event type to its payload Go type. The decoder
+// will JSON-decode each event payload, wrap it in EventWithID (with the
+// stream ID as the entity key), and pass it to the metaengine fold handlers.
+func NewTypeDecoder(regs ...EventRegistration) *TypeDecoder {
+	d := &TypeDecoder{handlers: make(map[string]func(event.Event) (any, error), len(regs))}
 
-// On registers a payload type for an event type. The event type is an
-// event.Type (a string typedef with a String() method). Go infers the
-// payload type from the sample argument. Returns the decoder for chaining.
-//
-// The payload is decoded via encoding/json/v2 and wrapped in EventWithID,
-// giving fold handlers access to both the entity ID and the typed payload.
-func (d *TypeDecoder) On[E any](eventType event.Type, _ E) *TypeDecoder {
-	t := string(eventType)
-	d.handlers[t] = d.makeHandler[E](t)
-
-	return d
-}
-
-// OnString is like On but accepts a plain string event type, for consumers
-// that use string constants instead of event.Type.
-func (d *TypeDecoder) OnString[E any](eventType string, _ E) *TypeDecoder {
-	d.handlers[eventType] = d.makeHandler[E](eventType)
-
-	return d
-}
-
-func (d *TypeDecoder) makeHandler[E any](label string) func(event.Event) (any, error) {
-	return func(evt event.Event) (any, error) {
-		var p E
-
-		if len(evt.Payload()) > 0 {
-			if err := json.Unmarshal(evt.Payload(), &p); err != nil {
-				return nil, fmt.Errorf("projectionadapter: decode %s: %w", label, err)
-			}
-		}
-
-		return EventWithID[E]{ID: evt.StreamID().String(), Payload: p}, nil
+	for _, r := range regs {
+		d.handlers[r.eventType] = r.handler
 	}
+
+	return d
 }
 
 // Decode implements EventDecoder. It decodes the event's payload into the
@@ -116,8 +142,8 @@ func (d *TypeDecoder) Decode(evt event.Event) (any, error) {
 	return h(evt)
 }
 
-// EventTypes returns all registered event type strings, sorted for determinism.
-// This is useful for verifying that all fold event types are covered.
+// EventTypes returns all registered event type strings, unsorted.
+// Useful for verifying that all fold event types are covered.
 func (d *TypeDecoder) EventTypes() []string {
 	types := make([]string, 0, len(d.handlers))
 	for t := range d.handlers {
