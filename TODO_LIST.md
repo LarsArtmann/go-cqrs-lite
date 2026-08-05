@@ -35,7 +35,7 @@ and is **never** duplicated here.
 
 - [ ] 🔥 **Register SQLite driver in `init()`** — open `*sql.DB` from DSN, call
       `metaengine.NewSQLiteEngine(db)`, register via `RegisterDriver("sqlite",
-  factory)`. Only Memory is currently registered.
+factory)`. Only Memory is currently registered.
       Evidence: `system/driver_registry.go`.
 
 - [ ] 🔥 **Auto-detect serialization for SQL engines** — `NewEventAdapter` at

@@ -10,35 +10,36 @@
 
 ### Pass 2 Extractions (Tasks A-E)
 
-| Task | File(s) | What was done | Verified |
-|------|---------|---------------|----------|
-| A | `metaengine/pebbleengine/seq_seeding.go` | Deleted `seedStreamSeqs()` (24 lines) — the generic `seedCollectionSeqs(tag, target)` already existed and did the exact same thing. Replaced call with `seedCollectionSeqs("sl", &e.streamSeq)`. | pebbleengine tests pass |
-| B | `metaengine/irohengine/latency.go`, `loopback/frame.go`, `loopback/transport.go`, `quic/latency.go` | Exported `SortDurations` + `PercentileIdx` to parent `irohengine` package. Removed byte-identical local copies from loopback and quic. Also DRY'd the parent's own `computeStats`/`percentile` to use the new exported helpers. | irohengine + loopback + quic tests pass (-race), CGo quic build verified |
-| C | `cmd/cqrs-lint/explain.go` | Extracted `renderKeyTable(b, headers, rows)` helper. Refactored `renderTopLevelKeys` (40→12 lines) and `renderFeatures` (43→12 lines) to use it. | **Byte-identical output verified via md5sum diff** before and after refactor + after formatting |
-| D | `system/adapter_event.go` | Extracted `(*EventAdapter).loadVersioned(ctx, ref, temporalRead, errLabel, sliceFallback)` helper. Refactored `LoadFromVersion` and `LoadToVersion` to use it. | system tests pass |
-| E | `cmd/cqrs-lint/pkg/rules/lintutil/lintutil.go`, `consistency/d007_d008_d013.go`, `correctness/c037.go` | Added `SelectorIdent(sel) (*ast.Ident, bool)` to lintutil. Refactored `selectorPkgAndName` in d007 and `codecFromTypedStore` in c037. | cqrs-lint tests pass |
+| Task | File(s)                                                                                                | What was done                                                                                                                                                                                                                   | Verified                                                                                        |
+| ---- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| A    | `metaengine/pebbleengine/seq_seeding.go`                                                               | Deleted `seedStreamSeqs()` (24 lines) — the generic `seedCollectionSeqs(tag, target)` already existed and did the exact same thing. Replaced call with `seedCollectionSeqs("sl", &e.streamSeq)`.                                | pebbleengine tests pass                                                                         |
+| B    | `metaengine/irohengine/latency.go`, `loopback/frame.go`, `loopback/transport.go`, `quic/latency.go`    | Exported `SortDurations` + `PercentileIdx` to parent `irohengine` package. Removed byte-identical local copies from loopback and quic. Also DRY'd the parent's own `computeStats`/`percentile` to use the new exported helpers. | irohengine + loopback + quic tests pass (-race), CGo quic build verified                        |
+| C    | `cmd/cqrs-lint/explain.go`                                                                             | Extracted `renderKeyTable(b, headers, rows)` helper. Refactored `renderTopLevelKeys` (40→12 lines) and `renderFeatures` (43→12 lines) to use it.                                                                                | **Byte-identical output verified via md5sum diff** before and after refactor + after formatting |
+| D    | `system/adapter_event.go`                                                                              | Extracted `(*EventAdapter).loadVersioned(ctx, ref, temporalRead, errLabel, sliceFallback)` helper. Refactored `LoadFromVersion` and `LoadToVersion` to use it.                                                                  | system tests pass                                                                               |
+| E    | `cmd/cqrs-lint/pkg/rules/lintutil/lintutil.go`, `consistency/d007_d008_d013.go`, `correctness/c037.go` | Added `SelectorIdent(sel) (*ast.Ident, bool)` to lintutil. Refactored `selectorPkgAndName` in d007 and `codecFromTypedStore` in c037.                                                                                           | cqrs-lint tests pass                                                                            |
 
 ### Split-Brain Documentation (Tasks F-G)
 
-| Task | File | Comment added |
-|------|------|---------------|
-| F | `system/system.go:159` | `// Intentional duplicate: see stack/durability.go. Values MUST match.` on `DurabilityTier` |
-| G | `scheduling/sqlstore/store.go:33` | `// Intentional duplicate: see idempotency/sqlstore/store.go. Values MUST match.` on `Dialect` |
+| Task | File                              | Comment added                                                                                  |
+| ---- | --------------------------------- | ---------------------------------------------------------------------------------------------- |
+| F    | `system/system.go:159`            | `// Intentional duplicate: see stack/durability.go. Values MUST match.` on `DurabilityTier`    |
+| G    | `scheduling/sqlstore/store.go:33` | `// Intentional duplicate: see idempotency/sqlstore/store.go. Values MUST match.` on `Dialect` |
 
 ### Gate Tasks (Tasks H-J)
 
-| Task | Command | Result |
-|------|---------|--------|
-| H | `art-dupl baseline . --threshold 3 --semantic` | 66 clone groups recorded (down from 68 in pass 1 baseline) |
-| H | `art-dupl check . --threshold 3 --semantic` | ✅ 0 new clones detected |
-| I | `cd cmd/api-stability && GOWORK=off go run main.go -update` | Updated `docs/api_surface.txt` — 2 new exports: `PercentileIdx`, `SortDurations` |
-| J | `nix run .#verify` | ✅ **FULLY GREEN** — build, vet, test, race, lint, doc-check ALL pass |
+| Task | Command                                                     | Result                                                                           |
+| ---- | ----------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| H    | `art-dupl baseline . --threshold 3 --semantic`              | 66 clone groups recorded (down from 68 in pass 1 baseline)                       |
+| H    | `art-dupl check . --threshold 3 --semantic`                 | ✅ 0 new clones detected                                                         |
+| I    | `cd cmd/api-stability && GOWORK=off go run main.go -update` | Updated `docs/api_surface.txt` — 2 new exports: `PercentileIdx`, `SortDurations` |
+| J    | `nix run .#verify`                                          | ✅ **FULLY GREEN** — build, vet, test, race, lint, doc-check ALL pass            |
 
 ### Bonus: Fixed 46 Pre-Existing Lint Issues
 
 The verify gate had accumulated 46 pre-existing lint failures across 12 files. These were NOT caused by pass 2 — they existed from prior sessions. I fixed them to make the gate GREEN:
 
 **errcheck (31 fixes):**
+
 - `metaengine/sqlite_stream_log.go:156` — `defer rows.Close()` → `defer func() { _ = rows.Close() }()`
 - `metaengine/pgengine/stream_log.go:151` — same pattern
 - `metaengine/duckdbengine/stream_log.go:135` — same pattern
@@ -47,6 +48,7 @@ The verify gate had accumulated 46 pre-existing lint failures across 12 files. T
 - `cmd/cqrs-lint/doctor.go` (22 fixes) — `fmt.Fprintf`/`fmt.Fprintln`/`fmt.Fprint` unchecked returns
 
 **Other lint fixes (15):**
+
 - `metaengine/engine.go:34` — `// Deprecated` → `// Deprecated:` (gocritic)
 - `metaengine/adttest/layout_harness.go:283-290` — string concatenation in loop → `strings.Builder` (modernize)
 - `metaengine/adttest/harness.go:397` — removed unused `//nolint:wrapcheck` directive (nolintlint)
@@ -86,6 +88,7 @@ The first `nix run .#verify` run failed with golangci-lint `typecheck` errors sh
 ### D2: Transient VCS stamping failure in cqrs-bench tests
 
 The second verify run failed on `cmd/cqrs-bench` tests with:
+
 ```
 error obtaining VCS status: exit status 128
 Use -buildvcs=false to disable VCS stamping.

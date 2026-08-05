@@ -179,7 +179,11 @@ func renderDoctorPreset(w io.Writer, cfg *AppConfig) {
 	}
 
 	if len(presetDef.Rules.Disable) > 0 {
-		_, _ = fmt.Fprintf(w, "    Rules disabled:   %s\n", strings.Join(presetDef.Rules.Disable, ", "))
+		_, _ = fmt.Fprintf(
+			w,
+			"    Rules disabled:   %s\n",
+			strings.Join(presetDef.Rules.Disable, ", "),
+		)
 	}
 
 	if presetDef.MinSeverity != "" {
@@ -292,7 +296,10 @@ func renderDoctorFeatureProfile(w io.Writer, actx *analyzer.AnalysisContext) {
 			w,
 			"  Note: some features are pinned by config/preset (see EFFECTIVE SETTINGS above).",
 		)
-		_, _ = fmt.Fprintln(w, "        Unpinned features were auto-detected from source code analysis.")
+		_, _ = fmt.Fprintln(
+			w,
+			"        Unpinned features were auto-detected from source code analysis.",
+		)
 		_, _ = fmt.Fprintln(w)
 	}
 }
@@ -352,7 +359,10 @@ func renderDoctorSuggestedConfig(w io.Writer, cfg *AppConfig, actx *analyzer.Ana
 	_, _ = fmt.Fprintln(w, "SUGGESTED .cqrs-lint.json")
 	_, _ = fmt.Fprintln(w, "─────────────────────────")
 	_, _ = fmt.Fprintln(w)
-	_, _ = fmt.Fprintln(w, "  Copy-paste to pin the detected profile (prevents auto-detection drift):")
+	_, _ = fmt.Fprintln(
+		w,
+		"  Copy-paste to pin the detected profile (prevents auto-detection drift):",
+	)
 	_, _ = fmt.Fprintln(w)
 	_, _ = fmt.Fprintln(w, string(raw))
 
@@ -406,7 +416,10 @@ func renderDoctorSuppressions(w io.Writer, actx *analyzer.AnalysisContext) {
 	}
 
 	_, _ = fmt.Fprintln(w)
-	_, _ = fmt.Fprintln(w, "  High suppression counts may signal a rule heuristic that needs tuning.")
+	_, _ = fmt.Fprintln(
+		w,
+		"  High suppression counts may signal a rule heuristic that needs tuning.",
+	)
 	_, _ = fmt.Fprintln(w, "  Consider reporting these as false positives.")
 	_, _ = fmt.Fprintln(w)
 }
