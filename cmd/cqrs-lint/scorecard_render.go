@@ -272,13 +272,13 @@ type sarifRule struct {
 	Name             string       `json:"name"`
 	ShortDescription sarifMessage `json:"shortDescription"`
 	FullDescription  sarifMessage `json:"fullDescription"`
-	DefaultConfig    sarifConfig  `json:"defaultConfiguration"` //nolint:tagliatelle // SARIF spec key
+	DefaultConfig    sarifConfig  `json:"defaultConfiguration"`
 }
 
 type sarifDriver struct {
 	Name           string      `json:"name"`
 	Version        string      `json:"version"`
-	InformationURI string      `json:"informationUri"` //nolint:tagliatelle // SARIF spec key
+	InformationURI string      `json:"informationUri"`
 	Rules          []sarifRule `json:"rules,omitempty"`
 }
 
