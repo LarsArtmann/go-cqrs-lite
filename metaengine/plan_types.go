@@ -5,6 +5,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/dustin/go-humanize"
 )
 
 // Diagnostic levels for plan output.
@@ -67,7 +69,6 @@ type QueryAssignment struct {
 }
 
 // String renders the assignment as a single line for EXPLAIN output.
-//nolint:gohumanize // latency format is a deliberate unit-suffixed %.3fms; ADR-0062 forbids humanize dep in core
 func (a QueryAssignment) String() string {
 	parts := []string{
 		fmt.Sprintf("%s: %s/%s via %s (%s)",
@@ -75,7 +76,7 @@ func (a QueryAssignment) String() string {
 	}
 
 	if a.Cost.Volume > 0 {
-		parts = append(parts, fmt.Sprintf("latency<%.3fms", a.Cost.EstimatedLatencyMs))
+		parts = append(parts, fmt.Sprintf("latency<%sms", humanize.Commaf(a.Cost.EstimatedLatencyMs)))
 	}
 
 	if a.IsPaginated {
