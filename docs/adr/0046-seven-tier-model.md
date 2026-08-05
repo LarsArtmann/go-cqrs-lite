@@ -56,7 +56,199 @@ Tier assignment uses two inputs:
    `idempotency/` has zero deps but is Tier 2 (domain utility).
 
 Same-tier dependencies are allowed (e.g. `kv/` → `codec/`, both Tier 0;
-`command/` → `event/`, both Tier 1) as long as there is no cycle.
+`metaengine/` → `dedup/`, both Tier 0) as long as there is no cycle.
+
+### Tier Diagram
+
+```mermaid
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "13px"}}}%%
+flowchart TB
+
+  %% ── Tier 6 ──
+  subgraph T6["Tier 6 — Tooling & Examples (13)"]
+    direction LR
+    catalog["catalog/"]
+    integration["integration/"]
+    benchkit["benchkit/"]
+    stackbench["stack/bench/"]
+    cqrsgen["cmd/cqrs-gen/"]
+    cqrslint["cmd/cqrs-lint/"]
+    cqrsbench["cmd/cqrs-bench/"]
+    apistability["cmd/api-stability/"]
+    doccheck["cmd/doc-check/"]
+    exTaskmgr["example/taskmanager/"]
+    exGetting["example/getting-started/"]
+    exReadme["example/readme-quickstart/"]
+    eventtest["event/v4/eventtest/"]
+  end
+
+  %% ── Tier 5 ──
+  subgraph T5["Tier 5 — Composition (9)"]
+    direction LR
+    stack["stack/"]
+    stackMem["stack/memory/"]
+    stackSqlite["stack/sqlite/"]
+    stackDuck["stack/duckdb/"]
+    stackPebble["stack/pebble/"]
+    stackPg["stack/postgres/"]
+    stackMysql["stack/mysql/"]
+    stackTurso["stack/turso/"]
+    system["system/"]
+  end
+
+  %% ── Tier 4 ──
+  subgraph T4["Tier 4 — Infrastructure (23)"]
+    direction LR
+    subgraph T4storage["Storage Backends"]
+      stMem["storage/memory/"]
+      storage["storage/"]
+      stPebble["storage/pebble/"]
+      stTurso["storage/turso/"]
+    end
+    subgraph T4sec["Security"]
+      signing["signing/"]
+      encryption["encryption/"]
+    end
+    subgraph T4obs["Observability"]
+      otel["otel/ ⚡0 deps"]
+      prometheus["prometheus/"]
+    end
+    subgraph T4cross["Cross-Cutting"]
+      middleware["middleware/"]
+      testutil["testutil/"]
+    end
+    subgraph T4trans["Transport"]
+      trHttp["transport/http/"]
+      trGrpc["transport/grpc/"]
+    end
+    subgraph T4msg["Messaging"]
+      watermill["watermill/"]
+    end
+    subgraph T4me["Metaengine Infra"]
+      meAdapter["metaengine/projectionadapter/"]
+      mePebble["metaengine/pebbleengine/"]
+      meDuck["metaengine/duckdbengine/"]
+      mePg["metaengine/pgengine/"]
+      meIroh["metaengine/irohengine/"]
+      meLoop["metaengine/irohengine/loopback/"]
+      meQuic["metaengine/irohengine/quic/"]
+    end
+    subgraph T4sub["Sub-Stores"]
+      idemSql["idempotency/sqlstore/"]
+      idemKv["idempotency/kvstore/"]
+      schedSql["scheduling/sqlstore/"]
+    end
+  end
+
+  %% ── Tier 3 ──
+  subgraph T3["Tier 3 — Aggregation (5)"]
+    direction LR
+    decider["decider/"]
+    graph["graph/"]
+    scenario["scenario/"]
+    projectionhost["projectionhost/"]
+    listing["listing/"]
+  end
+
+  %% ── Tier 2 ──
+  subgraph T2["Tier 2 — Domain Utilities (5)"]
+    direction LR
+    schema["schema/"]
+    snapshot["snapshot/"]
+    projection["projection/"]
+    idempotency["idempotency/ ⚡0 deps"]
+    deriver["deriver/"]
+  end
+
+  %% ── Tier 1 ──
+  subgraph T1["Tier 1 — Core Domain (5)"]
+    direction LR
+    event["event/"]
+    command["command/"]
+    query["query/"]
+    scheduling["scheduling/"]
+    metadata["metadata/"]
+  end
+
+  %% ── Tier 0 ──
+  subgraph T0["Tier 0 — Primitives (8)"]
+    direction LR
+    id["id/"]
+    codec["codec/ ❗44/68 depend on this"]
+    kv["kv/"]
+    dedup["dedup/"]
+    dispatcher["dispatcher/"]
+    retry["retry/"]
+    flightrec["flightrecorder/"]
+    metaengine["metaengine/"]
+  end
+
+  %% ── Same-tier deps (Tier 0) ──
+  kv --> codec
+  metaengine --> dedup
+
+  %% ── Representative cross-tier deps ──
+  %% Tier 1 → Tier 0
+  event --> codec
+  event --> id
+  event --> metadata
+  command --> dispatcher
+  command --> metadata
+  query --> dispatcher
+  scheduling --> metadata
+
+  %% Tier 2 → Tier 1
+  schema --> event
+  snapshot --> event
+  projection --> event
+  deriver --> command
+
+  %% Tier 3 → Tier 2/1
+  decider --> event
+  decider --> snapshot
+  graph --> projection
+  projectionhost --> projection
+  projectionhost --> schema
+
+  %% Tier 4 → Tier 3/2/1
+  storage --> event
+  storage --> kv
+  signing --> event
+  encryption --> event
+  middleware --> command
+  middleware --> event
+  trHttp --> event
+  watermill --> event
+  meAdapter --> metaengine
+  meAdapter --> projection
+  otel -.-> |"conceptual: 0 deps"| T0
+
+  %% Tier 5 → Tier 4
+  stack --> storage
+  stack --> metaengine
+  system --> projectionhost
+  system --> metaengine
+
+  %% ── CQRS separation callout ──
+  command -.-> |"✗ NO compile dep"| event
+  query -.-> |"✗ NO compile dep"| event
+
+  %% ── Styling ──
+  classDef zeroDep fill:#2d5a3d,color:#fff,stroke:#4a9d6a
+  classDef hub fill:#8B4513,color:#fff,stroke:#d4823c
+  classDef noDep fill:#1a3a5c,color:#fff,stroke:#4a8dc4
+
+  class codec hub
+  class otel,idempotency,catalog noDep
+``n
+> **Key insights:**
+> - **`codec/` is the true hub** — 44 of 68 modules depend on it (more than `id/`)
+> - **CQRS separation is clean** — `command/` and `query/` have zero `event/`
+>   production imports (dotted arrows = no dependency). Shared types live in
+>   `metadata/` (ADR-0031).
+> - **⚡ = zero-dep modules** tiered by conceptual role, not dependency structure:
+>   `otel/` (Tier 4), `idempotency/` (Tier 2), `catalog/` (Tier 6)
+> - **Same-tier deps are allowed** — `kv/` → `codec/`, `metaengine/` → `dedup/`
 
 See [`FOUR-TIER-MODEL.md`](../architecture-understanding/FOUR-TIER-MODEL.md) for
 the complete module-to-tier mapping with every module listed.
