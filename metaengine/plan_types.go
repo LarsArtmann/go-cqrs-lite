@@ -73,7 +73,7 @@ func (a QueryAssignment) String() string {
 	}
 
 	if a.Cost.Volume > 0 {
-		parts = append(parts, fmt.Sprintf("latency<%.3fms", a.Cost.EstimatedLatencyMs))
+		parts = append(parts, fmt.Sprintf("latency<%.3fms", a.Cost.EstimatedLatencyMs)) //nolint:H009 // latency unit-suffixed; ADR-0062 forbids humanize dep in core
 	}
 
 	if a.IsPaginated {

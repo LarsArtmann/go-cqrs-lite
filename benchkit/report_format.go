@@ -1,8 +1,8 @@
 package benchkit
 
 import (
-	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -29,33 +29,11 @@ func formatInt(n int) string {
 }
 
 func formatFloat(f float64) string {
-	switch {
-	case f >= 1_000_000:
-		return fmt.Sprintf("%.1fM", f/1_000_000)
-	case f >= 1_000:
-		return fmt.Sprintf("%.1fK", f/1_000)
-	default:
-		return fmt.Sprintf("%.0f", f)
-	}
+	return strings.TrimSpace(humanize.SIWithDigits(f, 1, ""))
 }
 
 func formatBytes(b uint64) string {
-	const (
-		kib = 1024
-		mib = 1024 * kib
-		gib = 1024 * mib
-	)
-
-	switch {
-	case b >= gib:
-		return fmt.Sprintf("%.1f GB", float64(b)/float64(gib))
-	case b >= mib:
-		return fmt.Sprintf("%.1f MB", float64(b)/float64(mib))
-	case b >= kib:
-		return fmt.Sprintf("%.1f KB", float64(b)/float64(kib))
-	default:
-		return fmt.Sprintf("%d B", b)
-	}
+	return humanize.IBytes(b)
 }
 
 func formatCPUDuration(ns uint64) string {
