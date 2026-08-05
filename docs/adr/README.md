@@ -87,7 +87,7 @@ saga/          — Long-running process orchestration (later removed — ADR-000
 watermill/     — Watermill protocol adapter
 ```
 
-> **Historical:** This was the original 9-module layout. The project has since grown to 55 modules. See `AGENTS.md` for the current structure.
+> **Historical:** This was the original 9-module layout. The project has since grown to 68 modules. See `AGENTS.md` for the current structure.
 
 ### Consequences
 
@@ -95,7 +95,7 @@ watermill/     — Watermill protocol adapter
 - **+** External consumers import only what they need
 - **+** CI can test modules in parallel and in isolation (`GOWORK=off`)
 - **-** `replace` directives required until v1.0.0 tags are pushed to remote
-- **-** Version management across 55 modules requires discipline
+- **-** Version management across 68 modules requires discipline
 - **-** `golangci-lint` doesn't work well with `go.work` (pre-existing tooling issue)
 
 ---

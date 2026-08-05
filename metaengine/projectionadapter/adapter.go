@@ -136,6 +136,34 @@ func (a *Adapter) Handle(ctx context.Context, evt event.Event) error {
 // Compile-time assertion that Adapter implements projection.Projection.
 var _ projection.Projection = (*Adapter)(nil)
 
+// NewWithDecoder creates an Adapter using a TypeDecoder — the recommended
+// constructor for all consumers. It replaces the boilerplate pattern of
+// passing nil to New and overriding with WithEventDecoder:
+//
+// Before:
+//
+//	dec := buildDecoderManually() // 77-line switch/case function
+//	adapter := projectionadapter.New("tasks", store, nil,
+//	    projectionadapter.WithEventDecoder(dec))
+//
+// After:
+//
+//	dec := projectionadapter.NewTypeDecoder().
+//	    On(evtTaskCreated, TaskCreatedPayload{}).
+//	    On(evtTaskDeleted, TaskDeletedPayload{})
+//	adapter := projectionadapter.NewWithDecoder("tasks", store, dec)
+func NewWithDecoder(
+	name string,
+	store *metaengine.Store,
+	decoder *TypeDecoder,
+	opts ...AdapterOption,
+) *Adapter {
+	a := New(name, store, nil, opts...)
+	a.eventDecoder = decoder.Decode
+
+	return a
+}
+
 // RegisterWithHost is a convenience that creates an Adapter and registers it
 // with a projectionhost.Host in one call. This is the one-liner for wiring
 // a metaengine Store into the CQRS event sourcing lifecycle:

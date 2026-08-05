@@ -10,7 +10,7 @@ go get github.com/larsartmann/go-cqrs-lite/metadata/v4
 
 ## Why?
 
-Before this package existed, `Tracing` and `CustomData` lived inside `event/`. Every module needing them (command, query) had to import `event/`, creating tight coupling that violated the four-tier module model (ADR-0046). The `metadata/` module breaks that dependency: `command/` and `query/` embed these types directly without pulling in the full `event/` package.
+Before this package existed, `Tracing` and `CustomData` lived inside `event/`. Every module needing them (command, query) had to import `event/`, creating tight coupling that violated the seven-tier module model (ADR-0046). The `metadata/` module breaks that dependency: `command/` and `query/` embed these types directly without pulling in the full `event/` package.
 
 ## Types
 

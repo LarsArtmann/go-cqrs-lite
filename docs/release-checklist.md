@@ -43,7 +43,7 @@
 
 ## Tagging
 
-1. **Verify all modules are tagged.** 57 of 58 modules should have tags reachable
+1. **Verify all modules are tagged.** 67 of 68 modules should have tags reachable
    from HEAD:
 
    ```bash
