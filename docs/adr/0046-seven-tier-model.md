@@ -240,7 +240,8 @@ flowchart TB
 
   class codec hub
   class otel,idempotency,catalog noDep
-``n
+```
+
 > **Key insights:**
 > - **`codec/` is the true hub** — 44 of 68 modules depend on it (more than `id/`)
 > - **CQRS separation is clean** — `command/` and `query/` have zero `event/`
