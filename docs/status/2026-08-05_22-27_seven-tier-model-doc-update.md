@@ -27,15 +27,15 @@ User said ADR-0046 "feels old." It was — written 2026-07-09, referenced 55 mod
 
 ## a) FULLY DONE
 
-| # | Task | Status |
-|---|------|--------|
-| 1 | Verified all 68 modules' internal dependencies by reading go.mod files | DONE — every module checked |
-| 2 | Counted codec/ dependents accurately (44 of 68) | DONE |
-| 3 | Rewrote `docs/adr/0046-seven-tier-model.md` | DONE — complete rewrite with accurate counts, structural-vs-conceptual tiering principle, notable exceptions, alternatives |
-| 4 | Rewrote `docs/architecture-understanding/FOUR-TIER-MODEL.md` | DONE — all 68 modules mapped to 7 tiers, sub-packages documented, stats updated |
-| 5 | Updated `AGENTS.md` module graph (Tier 4/5/6 were incomplete, had ~14 missing modules) | DONE |
-| 6 | Fixed stale `four-tier` → `seven-tier` naming in AGENTS.md, metadata/README.md | DONE |
-| 7 | Fixed stale module counts (55/58 → 68) across 7 files | DONE — README.md, CONTRIBUTING.md, docs/adr/0003, docs/adr/README.md, docs/release-checklist.md |
+| #   | Task                                                                                   | Status                                                                                                                     |
+| --- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Verified all 68 modules' internal dependencies by reading go.mod files                 | DONE — every module checked                                                                                                |
+| 2   | Counted codec/ dependents accurately (44 of 68)                                        | DONE                                                                                                                       |
+| 3   | Rewrote `docs/adr/0046-seven-tier-model.md`                                            | DONE — complete rewrite with accurate counts, structural-vs-conceptual tiering principle, notable exceptions, alternatives |
+| 4   | Rewrote `docs/architecture-understanding/FOUR-TIER-MODEL.md`                           | DONE — all 68 modules mapped to 7 tiers, sub-packages documented, stats updated                                            |
+| 5   | Updated `AGENTS.md` module graph (Tier 4/5/6 were incomplete, had ~14 missing modules) | DONE                                                                                                                       |
+| 6   | Fixed stale `four-tier` → `seven-tier` naming in AGENTS.md, metadata/README.md         | DONE                                                                                                                       |
+| 7   | Fixed stale module counts (55/58 → 68) across 7 files                                  | DONE — README.md, CONTRIBUTING.md, docs/adr/0003, docs/adr/README.md, docs/release-checklist.md                            |
 
 ### Module count verification
 
@@ -55,21 +55,21 @@ Tier 6 (Tooling):       13 modules
 
 ## b) PARTIALLY DONE
 
-| # | Task | What's done | What's missing |
-|---|------|-------------|----------------|
-| 1 | Stale reference cleanup | Fixed 7 authoritative docs (README, CONTRIBUTING, AGENTS, ADR-0046, FOUR-TIER-MODEL, ADR-0003, adr/README, release-checklist, metadata/README) | ~10 more references exist in historical docs (CHANGELOG, status reports, reviews, research docs) — deliberately left as point-in-time snapshots |
-| 2 | Tier assignment documentation | All 68 modules assigned and documented | The `nix run .#check-layers` tooling was NOT verified against the new assignments — the doc claims what it checks but I didn't run it |
+| #   | Task                          | What's done                                                                                                                                    | What's missing                                                                                                                                  |
+| --- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Stale reference cleanup       | Fixed 7 authoritative docs (README, CONTRIBUTING, AGENTS, ADR-0046, FOUR-TIER-MODEL, ADR-0003, adr/README, release-checklist, metadata/README) | ~10 more references exist in historical docs (CHANGELOG, status reports, reviews, research docs) — deliberately left as point-in-time snapshots |
+| 2   | Tier assignment documentation | All 68 modules assigned and documented                                                                                                         | The `nix run .#check-layers` tooling was NOT verified against the new assignments — the doc claims what it checks but I didn't run it           |
 
 ---
 
 ## c) NOT STARTED
 
-| # | Task | Why not |
-|---|------|---------|
-| 1 | Running `nix run .#check-layers` to validate tier assignments | Didn't run — Nix evaluation can be slow and user only asked to update the doc |
-| 2 | Running `cmd/doc-check` to verify markdown links | Didn't run — mentioned in AGENTS.md as the verification command but not executed this session |
-| 3 | Adding a D2 architecture diagram of the 7 tiers | FOUR-TIER-MODEL.md references one but doesn't include it; no diagram was created |
-| 4 | Updating the Crush skill (`SKILL.md` + `references/modules.md`) with new tier info | Not in scope of user's request but the skill also references module structure |
+| #   | Task                                                                               | Why not                                                                                       |
+| --- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 1   | Running `nix run .#check-layers` to validate tier assignments                      | Didn't run — Nix evaluation can be slow and user only asked to update the doc                 |
+| 2   | Running `cmd/doc-check` to verify markdown links                                   | Didn't run — mentioned in AGENTS.md as the verification command but not executed this session |
+| 3   | Adding a D2 architecture diagram of the 7 tiers                                    | FOUR-TIER-MODEL.md references one but doesn't include it; no diagram was created              |
+| 4   | Updating the Crush skill (`SKILL.md` + `references/modules.md`) with new tier info | Not in scope of user's request but the skill also references module structure                 |
 
 ---
 
@@ -98,6 +98,7 @@ I edited multiple markdown files with Go import paths and symbol references. The
 ### Gap 4: `query/` depends on `storage/memory/` in production go.mod
 
 `query/go.mod` lists `storage/memory/v4` as a direct require — not just test. This means query (Tier 1) depends on storage/memory (Tier 4). This is either:
+
 - A test dep leaking into go.mod (same historical problem ADR-0046 identified)
 - Or query genuinely uses storage/memory at compile time
 
@@ -223,6 +224,7 @@ Same issue — event (Tier 1) lists Tier 2-4 modules in its go.mod. This is the 
 These documents are point-in-time snapshots. Updating them would make them historically inaccurate ("as of 2026-07-23 we had 68 modules" is a lie — we had 55). But leaving them creates grep noise for anyone searching for the current count.
 
 **Options:**
+
 - A) Leave historical docs as-is (they're snapshots)
 - B) Add a banner: "Note: module count updated to 68 as of 2026-08-05"
 - C) Update them (rewrites history)
@@ -231,7 +233,7 @@ I chose A this session. Do you want B or C?
 
 ### Q2: Should `FOUR-TIER-MODEL.md` be renamed to `SEVEN-TIER-MODEL.md`?
 
-The filename is a lie (says "four", means seven). Every reference would need updating: AGENTS.md, ADR-0046, ADR-0091, ADR-0097, docs/reviews/*, docs/status/*. The file header already explains the naming history, but the filename itself is confusing for newcomers.
+The filename is a lie (says "four", means seven). Every reference would need updating: AGENTS.md, ADR-0046, ADR-0091, ADR-0097, docs/reviews/_, docs/status/_. The file header already explains the naming history, but the filename itself is confusing for newcomers.
 
 This is a `git mv` + reference sweep. Should I do it?
 

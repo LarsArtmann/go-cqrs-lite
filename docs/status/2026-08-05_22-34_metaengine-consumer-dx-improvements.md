@@ -10,11 +10,11 @@
 
 ### metaengine core — `dsl.go` (new file, 114 lines)
 
-| Helper | What it does | Boilerplate eliminated |
-|--------|-------------|----------------------|
-| `NewSQLiteEngineFromDSN(dsn)` | One-call SQLite setup: `sql.Open` + `SetMaxOpenConns(1)` + PRAGMA WAL + PRAGMA busy_timeout + `NewSQLiteEngine` | ~27 lines → 1 call |
-| `PlanFromSQLite(dsn, queries...)` | One-shot: Memory + SQLite engines + Plan | ~30 lines → 1 call |
-| `Store.LogPlan(logger)` | Logs planner decisions via slog | ~19 lines → 1 call |
+| Helper                            | What it does                                                                                                    | Boilerplate eliminated |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| `NewSQLiteEngineFromDSN(dsn)`     | One-call SQLite setup: `sql.Open` + `SetMaxOpenConns(1)` + PRAGMA WAL + PRAGMA busy_timeout + `NewSQLiteEngine` | ~27 lines → 1 call     |
+| `PlanFromSQLite(dsn, queries...)` | One-shot: Memory + SQLite engines + Plan                                                                        | ~30 lines → 1 call     |
+| `Store.LogPlan(logger)`           | Logs planner decisions via slog                                                                                 | ~19 lines → 1 call     |
 
 - **Tests:** 6 tests in `dsl_test.go` (190 lines), all pass with `-race`
 - **Build:** Clean with `-tags "goexperiment.jsonv2"`
@@ -24,13 +24,13 @@
 
 ### projectionadapter — `typed_decoder.go` (new file, 154 lines)
 
-| Helper | What it does | Boilerplate eliminated |
-|--------|-------------|----------------------|
-| `EventWithID[P]` | Exported generic struct wrapping payload + stream ID | ~4 lines/consumer (reinvented type) |
-| `Register[E](eventType, sample)` | Generic registration of event type → payload type | Eliminates one switch/case arm |
-| `RegisterString[E](eventType, sample)` | Same, for string constants | Same |
-| `NewTypeDecoder(regs...)` | Builder that collects registrations, produces a decoder | Replaces the entire 77-line decoder switch |
-| `NewWithDecoder(name, store, dec)` | Clean constructor (no `nil` + override) | 1 line, clean |
+| Helper                                 | What it does                                            | Boilerplate eliminated                     |
+| -------------------------------------- | ------------------------------------------------------- | ------------------------------------------ |
+| `EventWithID[P]`                       | Exported generic struct wrapping payload + stream ID    | ~4 lines/consumer (reinvented type)        |
+| `Register[E](eventType, sample)`       | Generic registration of event type → payload type       | Eliminates one switch/case arm             |
+| `RegisterString[E](eventType, sample)` | Same, for string constants                              | Same                                       |
+| `NewTypeDecoder(regs...)`              | Builder that collects registrations, produces a decoder | Replaces the entire 77-line decoder switch |
+| `NewWithDecoder(name, store, dec)`     | Clean constructor (no `nil` + override)                 | 1 line, clean                              |
 
 - **Tests:** 7 tests in `typed_decoder_test.go` (264 lines), all pass with `-race`
 - **Build:** Clean
@@ -48,9 +48,11 @@
 ## B) PARTIALLY DONE
 
 ### Canonical example not updated
+
 The `example/taskmanager/metaengine.go` — the reference implementation every consumer copies from — still uses the old patterns (49 references to `eventWithID`, `taskEventDecoder`, `onTyped`, `errNoFoldForEventType`). It compiles and tests pass, but it doesn't showcase the new DX. A consumer reading the example today sees the old boilerplate, not the new helpers.
 
 ### Recipes reference not updated
+
 `.agents/skills/go-cqrs-lite/references/recipes.md` line 792-810 still shows consumers how to write the manual `eventWithID[P]` struct and decoder. It should be updated to show `projectionadapter.Register` + `NewTypeDecoder`.
 
 ---
@@ -67,6 +69,7 @@ The `example/taskmanager/metaengine.go` — the reference implementation every c
 ## D) TOTALLY FUCKED UP
 
 ### Nothing is fucked up.
+
 All code compiles, all tests pass (including `-race`), vet is clean, lint is clean. The auto-commit daemon committed everything cleanly (2 commits). No broken state.
 
 ### But I cut corners I shouldn't have:
@@ -184,6 +187,7 @@ All code compiles, all tests pass (including `-race`), vet is clean, lint is cle
 ### 1. Should `Plan` (and `PlanFromSQLite`) accept `...any` or should we introduce a typed query builder?
 
 Currently `Plan(engines []Engine, args ...any) (*Store, error)` accepts `...any` for queries + plan options mixed together. This is type-unsafe — you can pass a string or a random struct and get a runtime error. But Go's generics make a fully typed variadic impossible (`Plan[Q1, Q2, ...]` doesn't work). The options I see:
+
 - (a) Keep `...any`, add runtime validation + better error messages
 - (b) Introduce a `QueryBuilder` that collects typed queries and is passed to `Plan`
 - (c) Accept `...QueryDecl[any, any]` (erased generics) for compile-time "must be a query" checking
@@ -202,18 +206,18 @@ Currently `EventWithID[P]` and `Register[E]` live in `projectionadapter` because
 
 ## Summary
 
-| Metric | Value |
-|--------|-------|
-| Files created | 4 (dsl.go, dsl_test.go, typed_decoder.go, typed_decoder_test.go) |
-| Files modified | 3 (adapter.go, README.md, AGENTS.md) |
-| Lines added | ~722 (code + tests) |
-| Boilerplate eliminated per consumer | ~130 lines → ~6 lines |
-| Tests added | 13 (6 metaengine + 7 projectionadapter) |
-| All tests pass (incl. -race) | ✅ |
-| Build clean | ✅ |
-| Vet clean | ✅ |
-| Lint clean | ✅ |
-| Verify gate run | ❌ (NOT RUN — see section D) |
-| api-stability golden regenerated | ❌ |
-| Canonical example updated | ❌ |
-| SKILL.md recipes updated | ❌ |
+| Metric                              | Value                                                            |
+| ----------------------------------- | ---------------------------------------------------------------- |
+| Files created                       | 4 (dsl.go, dsl_test.go, typed_decoder.go, typed_decoder_test.go) |
+| Files modified                      | 3 (adapter.go, README.md, AGENTS.md)                             |
+| Lines added                         | ~722 (code + tests)                                              |
+| Boilerplate eliminated per consumer | ~130 lines → ~6 lines                                            |
+| Tests added                         | 13 (6 metaengine + 7 projectionadapter)                          |
+| All tests pass (incl. -race)        | ✅                                                               |
+| Build clean                         | ✅                                                               |
+| Vet clean                           | ✅                                                               |
+| Lint clean                          | ✅                                                               |
+| Verify gate run                     | ❌ (NOT RUN — see section D)                                     |
+| api-stability golden regenerated    | ❌                                                               |
+| Canonical example updated           | ❌                                                               |
+| SKILL.md recipes updated            | ❌                                                               |

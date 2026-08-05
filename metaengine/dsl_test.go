@@ -77,7 +77,11 @@ func TestPlanFromSQLite_OneShot(t *testing.T) {
 	defer db.Close()
 
 	// Apply an event and query it.
-	if err := store.Apply(context.Background(), "dslItem", dslItem{ID: "x1", Name: "Widget", Count: 5}); err != nil {
+	if err := store.Apply(
+		context.Background(),
+		"dslItem",
+		dslItem{ID: "x1", Name: "Widget", Count: 5},
+	); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 

@@ -30,15 +30,15 @@ they were not.
 
 Replace the fake 7-layer system with an honest **seven-tier model** (0–6):
 
-| Tier | Name               | Rule                  | Modules |
-| ---- | ------------------ | --------------------- | ------- |
+| Tier | Name               | Rule                                 | Modules |
+| ---- | ------------------ | ------------------------------------ | ------- |
 | 0    | Primitives         | No internal deps (or same-tier only) | 8       |
-| 1    | Core Domain        | Depends on Tier 0     | 5       |
-| 2    | Domain Utilities   | Depends on Tier 0–1   | 5       |
-| 3    | Aggregation        | Depends on Tier 0–2   | 5       |
-| 4    | Infrastructure     | Depends on Tier 0–3   | 23      |
-| 5    | Composition        | Depends on Tier 0–4   | 9       |
-| 6    | Tooling & Examples | Depends on all        | 13      |
+| 1    | Core Domain        | Depends on Tier 0                    | 5       |
+| 2    | Domain Utilities   | Depends on Tier 0–1                  | 5       |
+| 3    | Aggregation        | Depends on Tier 0–2                  | 5       |
+| 4    | Infrastructure     | Depends on Tier 0–3                  | 23      |
+| 5    | Composition        | Depends on Tier 0–4                  | 9       |
+| 6    | Tooling & Examples | Depends on all                       | 13      |
 
 **Total: 68 modules** across 69 `go.mod` files (68 modules + 1 root workspace
 placeholder).
@@ -297,3 +297,4 @@ Collapsing them would hide the real dependency distances.
 Rejected: Would place `catalog/` and `otel/` in Tier 0 alongside `id/` and
 `codec/`, which is misleading. A documentation generator is not a primitive,
 even if it has zero deps. Conceptual role must be able to raise the tier.
+```
