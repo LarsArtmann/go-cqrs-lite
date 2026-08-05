@@ -174,12 +174,28 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		}
 
 		// Register a projection adapter that feeds events into the metaengine Store.
-		var decoder projectionadapter.PayloadDecoder
-		if domain.ProjectionDecoder != nil {
-			decoder = projectionadapter.PayloadDecoder(domain.ProjectionDecoder)
+		// Decoder priority: TypeDecoder > EventDecoder > PayloadDecoder > generic JSON.
+		var adapter *projectionadapter.Adapter
+
+		switch {
+		case domain.ProjectionTypeDecoder != nil:
+			adapter = projectionadapter.NewWithDecoder(
+				"projections", sys.projStore, domain.ProjectionTypeDecoder,
+			)
+		case domain.ProjectionEventDecoder != nil:
+			adapter = projectionadapter.New("projections", sys.projStore, nil,
+				projectionadapter.WithEventDecoder(domain.ProjectionEventDecoder),
+			)
+		default:
+			var decoder projectionadapter.PayloadDecoder
+
+			if domain.ProjectionDecoder != nil {
+				decoder = projectionadapter.PayloadDecoder(domain.ProjectionDecoder)
+			}
+
+			adapter = projectionadapter.New("projections", sys.projStore, decoder)
 		}
 
-		adapter := projectionadapter.New("projections", sys.projStore, decoder)
 		if err := host.Register(adapter); err != nil {
 			return nil, fmt.Errorf("system: register projection adapter: %w", err)
 		}

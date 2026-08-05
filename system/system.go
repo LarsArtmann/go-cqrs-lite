@@ -20,6 +20,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -48,7 +49,28 @@ type DomainConfig struct {
 
 	// ProjectionDecoder decodes event payloads for the projection fold handlers.
 	// If nil, events are decoded as generic JSON (map[string]any).
+	//
+	// This is a PayloadDecoder — it does NOT have access to the event's
+	// StreamID. For Map ADT queries keyed by entity ID, use
+	// ProjectionTypeDecoder or ProjectionEventDecoder instead.
 	ProjectionDecoder func(eventType string, payload []byte) (any, error)
+
+	// ProjectionTypeDecoder is the recommended way to decode events for
+	// projection folds. It wraps each event's payload in EventWithID,
+	// giving fold handlers access to the stream ID (entity key) needed
+	// for Map ADT queries. Build it with projectionadapter.NewTypeDecoder(
+	// projectionadapter.Register(...), ...).
+	//
+	// If set, takes precedence over ProjectionEventDecoder and ProjectionDecoder.
+	ProjectionTypeDecoder *projectionadapter.TypeDecoder
+
+	// ProjectionEventDecoder provides full event context (StreamID, metadata,
+	// version) to fold handlers. Use this when you need a custom decoder that
+	// doesn't fit the TypeDecoder registration pattern.
+	//
+	// If set, takes precedence over ProjectionDecoder. Ignored if
+	// ProjectionTypeDecoder is also set.
+	ProjectionEventDecoder projectionadapter.EventDecoder
 
 	// Middleware is command-level domain middleware (validation, authz, etc.).
 	Middleware []command.Middleware
