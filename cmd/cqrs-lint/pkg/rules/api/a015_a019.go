@@ -112,6 +112,7 @@ func NewA018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		"A018-no-actual-event-sourcing",
 		func(_ context.Context) ([]finding.Finding, error) {
 			hasSaveOrPublish := false
+			hasDispatch := false
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
@@ -136,11 +137,24 @@ func NewA018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return false
 					}
 
-					return true
-				})
+						if sel.Sel.Name == "Dispatch" || sel.Sel.Name == "DispatchTyped" ||
+							sel.Sel.Name == "RegisterTyped" || sel.Sel.Name == "RegisterQuery" ||
+							sel.Sel.Name == "NewDispatcher" {
+							hasDispatch = true
+						}
+
+						return true
+					})
 			}
 
 			if hasSaveOrPublish || len(ctx.Registry.Folds) > 0 {
+				return nil, nil
+			}
+
+			// If command/query dispatch is actively used, the import is NOT dead —
+			// the consumer is using CQRS-without-event-sourcing by design. A025
+			// already covers the "consider adding event sourcing" coaching case.
+			if hasDispatch {
 				return nil, nil
 			}
 
@@ -149,12 +163,13 @@ func NewA018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			f, err := finding.NewBuilder(
 				"A018",
 				toolName,
-				"Project imports go-cqrs-lite but never calls Save/Publish — possible dead import or missing wiring",
+				"Project imports go-cqrs-lite but never calls Save/Publish/Dispatch — "+
+					"possible dead import or missing wiring",
 				finding.SeverityInfo,
 				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
 			).
 				WithCategory(finding.CategoryBestPractice).
-				WithConfidence(finding.ConfidenceHigh).
+				WithConfidence(finding.ConfidenceMedium).
 				WithSuggestion("Wire up an event store and bus, or remove the unused import").
 				Build()
 			if err == nil {

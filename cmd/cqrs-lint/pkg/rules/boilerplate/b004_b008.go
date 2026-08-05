@@ -19,10 +19,20 @@ func NewB004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"B004-command-constructor-boilerplate",
 		func(_ context.Context) ([]finding.Finding, error) {
+			constructorNames := collectConstructorNames(ctx)
+
 			var findings []finding.Finding
 
 			for _, cmd := range ctx.Registry.Commands {
 				if len(cmd.Fields) < 3 {
+					continue
+				}
+
+				// Skip if a hand-written constructor already exists for this
+				// command type (NewXxx or NewXxxCommand). Generated constructors
+				// would lack any custom validation the hand-written one has.
+				if constructorNames["New"+cmd.Name] ||
+					constructorNames["New"+cmd.Name+"Command"] {
 					continue
 				}
 
@@ -38,7 +48,7 @@ func NewB004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					finding.Pos(finding.FilePath(cmd.File), cmd.Pos.Line, cmd.Pos.Column),
 				).
 					WithCategory(finding.CategoryBestPractice).
-					WithConfidence(finding.ConfidenceHigh).
+					WithConfidence(finding.ConfidenceMedium).
 					WithSuggestion("Run cqrs-gen to auto-generate typed constructors from struct tags").
 					WithSnippet(ctx.SourceLine(cmd.File, cmd.Pos.Line)).
 					Build()
@@ -52,6 +62,33 @@ func NewB004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// collectConstructorNames scans all non-test Go files for top-level function
+// declarations matching New* patterns. This lets B004 skip commands that
+// already have hand-written constructors (with validation logic that
+// generated code would lack).
+func collectConstructorNames(ctx *analyzer.AnalysisContext) map[string]bool {
+	names := make(map[string]bool)
+
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		for _, decl := range gf.AST.Decls {
+			fn, ok := decl.(*ast.FuncDecl)
+			if !ok {
+				continue
+			}
+
+			if strings.HasPrefix(fn.Name.Name, "New") {
+				names[fn.Name.Name] = true
+			}
+		}
+	}
+
+	return names
 }
 
 // B005: Fold switch boilerplate.
