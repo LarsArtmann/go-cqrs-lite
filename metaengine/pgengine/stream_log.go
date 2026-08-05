@@ -148,7 +148,7 @@ func (e *pgEngine) scanStreamValues(
 		return nil, fmt.Errorf("pgengine.scanStreamValues: %w", err)
 	}
 
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var result []any
 

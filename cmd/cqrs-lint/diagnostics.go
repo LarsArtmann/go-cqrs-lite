@@ -128,7 +128,7 @@ func validatePresetName(w io.Writer, preset analyzer.ConfigPreset) {
 	if preset == "" || analyzer.IsKnownPreset(preset) {
 		return
 	}
-	fmt.Fprintf(
+	_, _ = fmt.Fprintf(
 		w,
 		"warning: unknown preset %q (available: %s)\n",
 		preset,
@@ -150,7 +150,7 @@ func validateDisabledRuleIDs(w io.Writer, disabled []string) {
 			continue
 		}
 		if _, ok := rules.LookupRule(id); !ok {
-			fmt.Fprintf(
+			_, _ = fmt.Fprintf(
 				w,
 				"warning: disabled rule %q is not a known rule ID (typo or removed rule?)\n",
 				id,

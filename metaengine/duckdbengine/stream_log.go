@@ -132,7 +132,7 @@ func (e *duckdbEngine) scanStreamValues(
 		return nil, fmt.Errorf("duckdbengine.scanStreamValues: %w", err)
 	}
 
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var result []any
 

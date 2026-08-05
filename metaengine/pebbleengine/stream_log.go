@@ -60,7 +60,7 @@ func (e *pebbleEngine) StreamAppend(_ context.Context, col, sid string, values [
 	defer e.mu.Unlock()
 
 	batch := e.db.NewBatch()
-	defer batch.Close()
+	defer func() { _ = batch.Close() }()
 
 	for _, v := range values {
 		seq := e.nextStreamSeq(col, sid)
@@ -69,8 +69,8 @@ func (e *pebbleEngine) StreamAppend(_ context.Context, col, sid string, values [
 		valBytes := encodeJSON(v)
 		journalEntry := fmt.Sprintf("%s%s%s", sid, sep, string(valBytes))
 
-		batch.Set(streamKey(col, sid, seq), valBytes, nil)
-		batch.Set(journalKey(col, gseq), []byte(journalEntry), nil)
+		_ = batch.Set(streamKey(col, sid, seq), valBytes, nil)
+		_ = batch.Set(journalKey(col, gseq), []byte(journalEntry), nil)
 	}
 
 	if err := batch.Commit(pebble.Sync); err != nil {
@@ -230,7 +230,7 @@ func (e *pebbleEngine) StreamAppendExpected(
 	}
 
 	batch := e.db.NewBatch()
-	defer batch.Close()
+	defer func() { _ = batch.Close() }()
 
 	for _, v := range values {
 		seq := e.nextStreamSeq(col, sid)
@@ -239,8 +239,8 @@ func (e *pebbleEngine) StreamAppendExpected(
 		valBytes := encodeJSON(v)
 		journalEntry := fmt.Sprintf("%s%s%s", sid, sep, string(valBytes))
 
-		batch.Set(streamKey(col, sid, seq), valBytes, nil)
-		batch.Set(journalKey(col, gseq), []byte(journalEntry), nil)
+		_ = batch.Set(streamKey(col, sid, seq), valBytes, nil)
+		_ = batch.Set(journalKey(col, gseq), []byte(journalEntry), nil)
 	}
 
 	if err := batch.Commit(pebble.Sync); err != nil {

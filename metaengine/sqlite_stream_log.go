@@ -153,7 +153,7 @@ func (e *sqliteEngine) scanStreamValues(
 		return nil, err //nolint:wrapcheck // passthrough
 	}
 
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var result []any
 
