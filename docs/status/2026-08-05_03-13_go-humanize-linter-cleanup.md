@@ -36,7 +36,7 @@ Nothing partial. All findings closed or replaced.
 ## c) NOT STARTED
 
 - **`benchkit` build failure** — `phases_metaengine.go:82: r.bundle.MetaEngine
-  undefined (type *stack.Bundle has no field or method MetaEngine)`. Pre-existing,
+undefined (type *stack.Bundle has no field or method MetaEngine)`. Pre-existing,
   unrelated to this task. The `benchkit/go.mod` pins `stack/v4 v4.2.0` which
   doesn't yet export `MetaEngine()` / `WithMetaEngine`. Latest stack tag that
   exports them is in pseudo-version `v4.2.1-0.20260801224155-…` (un-tagged, not
@@ -120,7 +120,7 @@ Priority-ordered (Pareto: 1% → 51% impact first):
 5. **Run `go mod tidy` workspace-wide** to clean any indirect-now-unused deps
    that got demoted by the benchkit/metaengine swaps.
 6. **Verify workspace build** — `cd /home/lars/projects/go-cqrs-lite && go build
-   -tags "goexperiment.jsonv2" ./...` (the project's authoritative build command).
+-tags "goexperiment.jsonv2" ./...` (the project's authoritative build command).
 7. **Run `nix run .#verify-fast`** to confirm tests still pass after the dep
    promotion in `metaengine/go.mod`.
 8. **Document the `//nolint:gohumanize` syntax in CONTRIBUTING.md** — current
@@ -131,7 +131,7 @@ Priority-ordered (Pareto: 1% → 51% impact first):
    shouldn't change. Verify with `cd cmd/api-stability && GOWORK=off go run main.go`.
 10. **Add a regression test** for `QueryAssignment.String()` that asserts the
     output uses `humanize.Commaf` formatting (e.g. for `EstimatedLatencyMs =
-    1234.5`, expect `"latency<1,234.5ms"`).
+1234.5`, expect `"latency<1,234.5ms"`).
 11. **Confirm the daemon's `66f259ff` "consolidate linter directives" commit**
     isn't stale after my `//nolint` removal — it likely referenced the directive
     that's now gone.
@@ -175,8 +175,7 @@ Priority-ordered (Pareto: 1% → 51% impact first):
 26. **`system/snapshot_e2e_test.go`** — was changed by the daemon to use
     `encoding/json/v2`. Verify the change is consistent with the rest of the
     system package's JSON migration.
-27. **Dustin / `dustin/go-humanize` upgrade** — current pin is `v1.0.1` from
-    2024. Check if newer versions exist (v1.0.2+) and whether they fix bugs
+27. **Dustin / `dustin/go-humanize` upgrade** — current pin is `v1.0.1` from 2024. Check if newer versions exist (v1.0.2+) and whether they fix bugs
     relevant to the latency/comma use cases.
 28. **`event/` module** — event store uses CBOR by default; if any error
     message formats byte sizes (`"read N bytes"`), check for hand-rolled

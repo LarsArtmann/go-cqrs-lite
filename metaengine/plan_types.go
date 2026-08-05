@@ -76,7 +76,10 @@ func (a QueryAssignment) String() string {
 	}
 
 	if a.Cost.Volume > 0 {
-		parts = append(parts, fmt.Sprintf("latency<%sms", humanize.Commaf(a.Cost.EstimatedLatencyMs)))
+		parts = append(
+			parts,
+			fmt.Sprintf("latency<%sms", humanize.Commaf(a.Cost.EstimatedLatencyMs)),
+		)
 	}
 
 	if a.IsPaginated {
