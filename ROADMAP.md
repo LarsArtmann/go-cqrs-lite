@@ -209,13 +209,14 @@ hardened through multiple brutal review passes and 7 consumer feedback rounds.
 
 ### 4. Module Extraction
 
-Two modules are zero-CQRS-coupling candidates for standalone repos (see
+Two modules extracted to standalone repos (see
 [extraction analysis](docs/planning/2026-07-23_extraction-analysis.md)):
 
-- ✅ **Extract `retry/` → `go-retry`** — ADR-0064 written (217 LOC, zero CQRS
-  coupling). Execution requires creating the standalone repo.
-- ✅ **Extract `idempotency/` → `go-idempotency`** — ADR-0065 written (553 LOC
-  across 3 modules). Execution requires creating the repo.
+- ✅ **Extract `retry/` → `go-retry`** — ADR-0064. Repo created, pushed, tagged
+  (v0.1.0). go-cqrs-lite `retry/go.mod` uses real versioned require directives.
+- ✅ **Extract `idempotency/` → `go-idempotency`** — ADR-0065. Repo created,
+  pushed, tagged (v0.1.0 + v0.1.1). Sub-modules (`kvstore`, `sqlstore`) resolved
+  against tagged deps.
 - ✅ **Extract `flightrecorder/` → standalone** — zero-dep module (stdlib only).
   Natural standalone candidate once API stabilizes.
 
@@ -289,18 +290,15 @@ backing (0 benchmarks exist for these engines).
 
 ### 9. Deferred Debt (ADR-committed)
 
-Four items explicitly committed to in the 2026-08-03 ADR review as "the next
+Two items explicitly committed to in the 2026-08-03 ADR review as "the next
 real roadmap." Each has a clear ADR with rationale.
 
 - [ ] **Ghost bus removal** (ADR-0028) — delete `memory/bus.go`,
       `memory/command_bus.go`, `storage/pg_bus.go`. Largest blast radius — audit
       ALL consumer repos first.
 - [ ] **Metadata aliases completion** (ADR-0031) — `command.Metadata` /
-      `query.Metadata` → standalone structs (currently repointed aliases).
-- [ ] **Extract `retry/` → `go-retry`** (ADR-0064) — create standalone repo +
-      re-export alias.
-- [ ] **Extract `idempotency/` → `go-idempotency`** (ADR-0065) — create
-      standalone repo (3 modules) + re-export aliases.
+      `query.Metadata` → standalone structs (currently repointed aliases with
+      functional `WithCustom`, but not yet fully standalone types).
 
 ### 10. Iroh Distributed Engine (ADR-0096)
 

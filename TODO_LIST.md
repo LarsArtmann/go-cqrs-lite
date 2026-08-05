@@ -321,7 +321,7 @@ real roadmap." Each has a clear ADR with rationale.
       updated to 7 tiers but the filename still says "four".
 - [ ] **Remove dead exception** — `EXCEPTIONS[storage]="listing"` is no longer
       needed (listing moved to Layer 3).
-- [ ] **Expand go-arch-lint to remaining 62 of 68 modules** — only 6 modules
+- [ ] **Expand go-arch-lint to remaining 63 of 69 modules** — only 6 modules
       have per-module go-arch-lint configs. The bash script is the enforcement
       mechanism for the rest.
 - [ ] **Consider rewriting `check-module-layers.sh` as `cmd/check-layers`** —

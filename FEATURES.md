@@ -279,11 +279,18 @@ developer never declares "I need a Map" or "I need a Counter."
 | CalibrateEngine              | `calibratable` interface. Memory + SQLite support runtime cost calibration. External engines (Pebble/DuckDB/PG) not yet calibratable                                                                                                                     | 🧪     |
 | ExplainPlan + Doctor         | `store.Explain(ctx)` shows engine assignments + rule diagnostics + replication suffix. `store.Doctor()` health check with `--- Replication ---` section                                                                                                  | 🧪     |
 | Persistence enum (ADR-0098)  | `EngineProfile.Persistence` (`PersistenceVolatile`/`PersistencePersistent`). `durabilityRule` WARN when volatile engines hold materialized projections. DDIA Ch1 reliability axis                                                                        | ✅     |
-| StreamLogBackend             | 5-method interface for stream-keyed event journals (StreamAppend, StreamRead, StreamVersion, JournalReadAll, JournalReadFrom). Memory + SQLite implement it; Pebble/DuckDB/PG pending                                                                    | 🧪     |
-| AtomicAppender               | `StreamAppendExpected(ctx, collection, streamID, expectedVersion, entries)` — atomic optimistic concurrency under a single lock. Memory + SQLite (compile-time assertions). `ErrVersionConflict` sentinel                                                | 🧪     |
-| SQLite stream log            | `meta_stream_log` table with indexes on `(collection, stream_id, seq)` and `(collection, seq)`. `StreamAppendExpected` uses `RunInTx`                                                                                                                    | 🧪     |
-| Iroh engine (Level 2)        | `metaengine/irohengine` — `Replicated(localEngine, ...)` adds CRDT convergence via pluggable `Transport`. In-process `Network` mock simulates P2P sync. CRDT-safe: MapSet (LWW), SetAdd (OR-Set), CounterIncrement (PN-Counter). Non-CRDT ops stay local | 🧪     |
-| Iroh QUIC FFI transport      | `metaengine/irohengine/quic` — real Iroh QUIC streams via `iroh-go` C bindings (CGo). RTT measured from QUIC ACK timing. NOT the in-process mock                                                                                                         | 🧪     |
+| StreamLogBackend             | 5-method interface for stream-keyed event journals. ALL 5 engines implement it (Memory, SQLite, Pebble, DuckDB, Postgres)                                                                                                                              | ✅     |
+| AtomicAppender               | `StreamAppendExpected(ctx, collection, streamID, expectedVersion, entries)` — atomic optimistic concurrency under a single lock. Memory + SQLite + DuckDB + Postgres. `ErrVersionConflict` sentinel                                                    | ✅     |
+| SQLite stream log            | `meta_stream_log` table with indexes on `(collection, stream_id, seq)` and `(collection, seq)`. `StreamAppendExpected` uses `RunInTx`                                                                                                                    | ✅     |
+| Stream codec                 | `EncodeStreamValue` / `DecodeStreamValue` consolidated in `metaengine/stream_codec.go`. Used by DuckDB + Postgres engines                                                                                                                               | ✅     |
+| StreamTemporalReader         | `StreamReadFromVersion` / `StreamReadAsOfVersion` on Memory + SQLite. Wired into `system/adapter_event.go`                                                                                                                                              | 🧪     |
+| Iroh engine (Level 2)        | `metaengine/irohengine` — `Replicated(localEngine, ...)` adds CRDT convergence via pluggable `Transport`. CRDT-safe: MapSet (LWW), SetAdd (OR-Set), CounterIncrement (PN-Counter). Non-CRDT ops stay local                                              | 🧪     |
+| Iroh QUIC FFI transport      | `metaengine/irohengine/quic` — real Iroh QUIC streams via `iroh-go` C bindings (CGo). RTT measured from QUIC ACK timing. Op-level dedup ring                                                                                                            | 🧪     |
+| Iroh loopback transport      | `metaengine/irohengine/loopback` — real TCP connections with length-prefix framing. NO CGo required. Catches serialization/framing bugs that InProcessNetwork cannot                                                                                   | 🧪     |
+| Latency measurement          | `LatencyCollector` with rolling 512-sample window (mean/P50/P95/P99/max). `Profile()` returns measured values from real traffic                                                                                                                         | 🧪     |
+| CalibrateEngine (exported)   | `Calibratable` interface + `Calibration` struct + `CalibrationCosts` (includes `ReadCosts`). All external engines embed `Calibration`                                                                                                                  | ✅     |
+| Consumer DX helpers          | `NewSQLiteEngineFromDSN(dsn)`, `PlanFromSQLite(dsn, queries...)`, `Store.LogPlan(logger)`. Eliminates ~130 lines of boilerplate per integration                                                                                                         | 🧪     |
+| Typed projection decoders    | `EventWithID[P]`, `Register[E]`, `RegisterString[E]`, `NewTypeDecoder(regs...)`, `NewWithDecoder(name, store, dec)` in `projectionadapter`                                                                                                             | 🧪     |
 | ReadCosts                    | `EngineProfile.ReadCosts` — per-read-pattern cost fields (point-lookup, scan, aggregation). Exposes the 4000× gap between DuckDB point lookups and aggregations                                                                                          | 🧪     |
 | Store.Inspect/InspectJSON    | Collection introspection (key count, engine, ADT) extracted to `metaengine/inspect.go`                                                                                                                                                                   | 🧪     |
 
@@ -319,30 +326,36 @@ Operator-configured CQRS topology from the
 where the operator provides engines/config and the consumer provides domain
 deciders/projections.
 
-**⚠️ FIRST PASS — critical wiring gaps prevent production use.** The constructor
-bypasses the driver registry (hardcoded Memory-only); SQLite is unreachable
-through System. See [TODO_LIST.md](TODO_LIST.md) → System section.
+**Pareto P0/P1 fixes shipped**: driver registry wired (SQLite works through
+`New()`), serialization auto-detected, handler independence fixed, MultiBus/
+SnapshotBackend/scream store wired, introspection real, config YAML parsing,
+Verify/Plan/Explain methods, projection decoder wiring. **Remaining gaps**:
+three files exceed 350-line CI limit, CommandAdapter/QueryAdapter serialization
+for SQL, example migration. See [TODO_LIST.md](TODO_LIST.md) → System section.
 
 | Feature                         | Detail                                                                                                                                                                                                                 | Status |
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | DomainConfig / DeploymentConfig | Consumer config (deciders, commands, projections, fold functions) vs operator config (engines, DSNs, bus, durability, cache) (D11)                                                                                     | 🧪     |
 | System struct                   | All infra fields: eventStore, cmdStore, queryStore, dispatchers, projHost, bus, projStore                                                                                                                              | 🧪     |
 | Op[State] declarative routing   | `{StreamID, StreamType, Decide}` with `Execute()`, `StreamID()`, `StreamType()` accessors (D10)                                                                                                                        | 🧪     |
-| Driver registry                 | `RegisterDriver(name, factory)`, `RegisteredDrivers()`, `createEngineFromDriver()` — database/sql model (D1). Memory auto-registered                                                                                   | 🧪     |
-| EventAdapter                    | Wraps `StreamLogBackend` as `event.Store`/`event.SeekableJournal`. AtomicAppender fast path, seq cache for O(1) ReadFrom, `WithSerialization()`                                                                        | 🧪     |
-| CommandAdapter                  | Full `command.Store` + `command.SeekableCommandJournal`                                                                                                                                                                | 🧪     |
-| QueryAdapter                    | Full `query.QueryStore` + `query.SeekableQueryJournal`                                                                                                                                                                 | 🧪     |
-| Event bus (simpleBus)           | `event.Bus` impl: Publisher + Subscriber + middleware chains. Synchronous dispatch. ⚠️ Handler independence bug (chained, not independent)                                                                             | 🧪     |
-| MultiBus                        | Fan-out `Publish` to N publishers with first-error semantics. ⚠️ NOT wired into `New()`                                                                                                                                | 🧪     |
+| Driver registry                 | `RegisterDriver(name, factory)`, `RegisteredDrivers()`, `createEngineFromDriver()` — database/sql model (D1). Memory + SQLite registered. Wired into `New()`                                                          | 🧪     |
+| EventAdapter                    | Wraps `StreamLogBackend` as `event.Store`/`event.SeekableJournal`. AtomicAppender fast path, seq cache for O(1) ReadFrom, `WithSerialization()` auto-detected for SQL engines                                            | 🧪     |
+| CommandAdapter                  | Full `command.Store` + `command.SeekableCommandJournal`. ⚠️ No SQL serialization envelope yet                                                                                                                          | 🧪     |
+| QueryAdapter                    | Full `query.QueryStore` + `query.SeekableQueryJournal`. ⚠️ No SQL serialization envelope yet                                                                                                                           | 🧪     |
+| Event bus (simpleBus)           | `event.Bus` impl: Publisher + Subscriber + middleware chains. Synchronous dispatch. Handler independence (each handler called independently)                                                                            | 🧪     |
+| MultiBus                        | Fan-out `Publish` to N publishers with first-error semantics. Wired into `New()` via `WithMultiBus()`                                                                                                                  | 🧪     |
 | CachedEventStore                | Otter v2 W-TinyLFU read-through cache tier. `CacheStats` via O(1) `EstimatedSize()`                                                                                                                                    | 🧪     |
-| SnapshotBackend                 | Interface + `memorySnapshotBackend` (instance-isolated, `sync.Mutex`). ⚠️ NOT wired into `New()`                                                                                                                       | 🧪     |
-| Scream store                    | `ScreamTier`, `ScreamDiagnostic`, `ScreamReport`, `ErrUnsafeChange`. 2 rules: `volatile-source-of-truth`, `durability-downgrade`. ⚠️ Stub                                                                              | 🧪     |
-| Introspection                   | `Snapshot(ctx)`, `Health(ctx)`, `Explain(ctx)`. ⚠️ Returns hardcoded values — wiring to live runtime state pending                                                                                                     | 🧪     |
+| SnapshotBackend                 | Interface + `memorySnapshotBackend` + `SnapshotAdapter`. Wired into `New()` with codec + strategy via `WithSnapshotStore`                                                                                              | 🧪     |
+| Scream store                    | `ScreamTier`, `ScreamDiagnostic`, `ScreamReport`, `ErrUnsafeChange`. `CheckSafety()` called on startup. 2 rules: `volatile-source-of-truth`, `durability-downgrade`. ⚠️ Missing PlanDiff/Manifest                     | 🧪     |
+| Introspection                   | `Snapshot(ctx)`, `Health(ctx)`, `Explain(ctx)`. Returns real handler counts and health status                                                                                                                          | 🧪     |
 | Instance roles                  | `RoleSourceOfTruth`, `RoleEvents`, `RoleCommands`, `RoleQueries`, `RoleProjections`                                                                                                                                    | 🧪     |
 | Durability tiers                | `DurabilityStrict`, `DurabilityNormal`, `DurabilityRelaxed` (same vocabulary as stack presets)                                                                                                                         | 🧪     |
-| Config loader                   | `LoadConfig(path)` signature + env var reads. ⚠️ YAML parsing not implemented (stub)                                                                                                                                   | 🧪     |
-| Projection wiring               | Constructor creates `projectionadapter.Adapter` + registers on `projectionhost.Host`. ⚠️ E2E unproven                                                                                                                  | 🧪     |
-| Test suite                      | 15 tests: query dispatch, driver registry, snapshot isolation, multi-decider, concurrent dispatch (20 goroutines, race detector), bus pub/sub, MultiBus, Op accessors, atomic conflict, journal. All pass with `-race` | ✅     |
+| Config loader                   | `LoadConfig(path)` + env vars + YAML parsing (`yaml.v3`). gochannel bus driver registered                                                                                                                              | 🧪     |
+| Projection wiring               | Constructor creates `projectionadapter.Adapter` + registers on `projectionhost.Host`. E2E proven (dispatch → host.Start → projection updated). `ProjectionTypeDecoder` / `ProjectionEventDecoder` for typed decoders    | 🧪     |
+| StreamLogBackend (5 engines)    | Memory + SQLite + Pebble + DuckDB + Postgres. All implement `StreamLogBackend`. DuckDB + Postgres + Memory have `AtomicAppender`                                                                                       | 🧪     |
+| StreamTemporalReader            | `StreamReadFromVersion` / `StreamReadAsOfVersion` on Memory + SQLite. Wired into EventAdapter                                                                                                                          | 🧪     |
+| System.Verify/Plan/Explain      | Cross-instance consistency check, combined plan, human-readable explanation                                                                                                                                            | 🧪     |
+| Test suite                      | 21+ tests: query dispatch, driver registry, snapshot isolation + E2E, multi-decider, concurrent dispatch (20 goroutines, race detector), bus pub/sub, MultiBus, Op accessors, atomic conflict, journal, projection E2E. All pass with `-race` | ✅     |
 
 ---
 
@@ -1158,16 +1171,16 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | Config presets | `local-cli`, `library`, `server`, `full-stack` — sugar over feature flags | ✅ |
 | JSONC config loader | `.cqrs-lint.json` supports comments (`//`, `/* */`) via `stripJSONComments` parser | ✅ |
 | Feature profile system | Auto-detects which go-cqrs-lite modules a consumer uses (store, command-flow, server, soft-delete, tracing, snapshot) and adapts rules | ✅ |
-| Per-module detection | `ProfileForFile` evaluates feature profiles per-module in multi-module workspaces (C017, S002, S003, S006, S007, C036 migrated; ~20 detectors still on primary profile) | 🧪 |
+| Per-module detection | `ProfileForFile` evaluates feature profiles per-module in multi-module workspaces (C017, S002, S003, S006, S007, C036, A015, A016, B014, E009, A012, A009, E016 migrated; ~20 detectors still on primary profile) | 🧪 |
 | Self-lint mode | `IsLibrarySelfLint()` auto-skips 29 consumer-coaching rules when linting the library source | ✅ |
 | Import-alias resolution | `QualifierToImportPath` + `ImportQualifierMap` — rules work with aliased imports | ✅ |
 | Monorepo support | Multi-module scanning via go.mod discovery | ✅ |
 | Source snippets | Most detectors emit source-line context for SARIF/IDE integration | ✅ |
 | `doctor` subcommand | Prints detected feature profile, active preset, resolved feature overrides, disabled rules, suppression counts | ✅ |
 | `explain` subcommand | Interactive config/rules/presets documentation explorer (JSONC + preset + feature-flag reference) | ✅ |
-| `scorecard` subcommand | Module adoption scorecard: detects used/missing go-cqrs-lite modules, computes coverage %, recommends top-3. Text + JSON + Markdown output. `--scorecard-threshold N` CI gate | ✅ |
+| `scorecard` subcommand | Module adoption scorecard: detects used/missing go-cqrs-lite modules, computes coverage %, recommends top-3. Text + JSON + Markdown + **SARIF** output. `--scorecard-threshold N` CI gate | ✅ |
 | `changelog` subcommand | Prints the programmatic changelog of cqrs-lint versions | ✅ |
-| `--group-by` flag | Group findings by: none, module, or aggregate (infers aggregate from event-type prefixes + decider state types) | ✅ |
+| `--group-by` flag | Group findings by: none, module, or aggregate (infers aggregate from event-type prefixes + decider state types). Works with text + markdown output | ✅ |
 | F-series adoption coaching | 21 rules (F001–F021) that proactively coach consumers toward unused features | ✅ |
 | T-series testing quality | 8 rules (T001–T008) detecting missing test helpers, parallel coverage gaps, snapshot store misuse | ✅ |
 | E-series architecture | 17 rules (E001–E017) detecting consumer design issues (preset bypass, missing HTTP, signing disabled, etc.) | ✅ |
@@ -1178,6 +1191,8 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | C039 unused event type | Flags event types emitted but never handled in any fold or projection | ✅ |
 | E006 fold-aware | Orphaned event detection skips events consumed by decider fold/apply functions (no false positives for fold-handled events) | ✅ |
 | E009 transport detection | Detects `cqrs-htmx` import and suppresses missing-transport finding | ✅ |
+| B025 cross-package tracing | Scans ALL loaded packages for function declarations, resolves cross-package helper calls via import graph (including aliases) | ✅ |
+| Server detection | HTTP framework import detection (Gin/Echo/Fiber/Chi) for `HasServer` | ✅ |
 
 ---
 
@@ -1223,7 +1238,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 ## Module Maturity Matrix
 
-> 68 independently importable modules in `go.work` (68 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
+> 69 independently importable modules in `go.work` (69 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
 
 | Module                         | Import Path                         | Maturity                                                                                                                                                                       |
 | ------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -1290,7 +1305,8 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `metaengine/adttest`           | `…/metaengine/adttest/v4`           | 🧪 Test harness (RunMatrix cross-engine parity for 10 ADTs)                                                                                                                    |
 | `metaengine/irohengine`        | `…/metaengine/irohengine/v4`        | 🧪 Experimental (Iroh Level 2 CRDT replication wrapper. In-process Network mock simulates P2P sync)                                                                            |
 | `metaengine/irohengine/quic`   | `…/metaengine/irohengine/quic/v4`   | 🧪 Experimental (real QUIC FFI transport via iroh-go C bindings. CGo required)                                                                                                 |
-| `system`                       | `…/system/v4`                       | 🧪 Experimental (operator-configured CQRS topology — first pass, wiring incomplete)                                                                                            |
+| `metaengine/irohengine/loopback`| `…/metaengine/irohengine/loopback/v4`| 🧪 Experimental (real TCP transport with length-prefix framing. NO CGo)                                                                                                       |
+| `system`                       | `…/system/v4`                       | 🧪 Experimental (operator-configured CQRS topology — driver registry wired, SQLite working, P0/P1 shipped)                                                                    |
 | `scheduling/sqlstore`          | `…/scheduling/sqlstore/v4`          | ✅ Production (SQL-backed timers: SQLite + Postgres + MySQL. Durable across restarts, M44)                                                                                     |
 | `flightrecorder`               | `…/flightrecorder/v4`               | 🧪 Experimental (Go 1.25 runtime/trace capture. Zero-dep. ADR-0089)                                                                                                            |
 | `benchkit`                     | `…/benchkit/v4`                     | 🧪 Experimental (functional, 88 tests, `--repeat N` available)                                                                                                                 |
@@ -1303,7 +1319,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                                                                                                                                                                 |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Lint posture           | `nix run .#lint` passes with 0 issues across all modules. `nix run .#verify` is GREEN: build + vet + test + race + lint + api-stability (3162 exports, with `TestEveryGoModDirIsInModulesList` meta-test) + doc-check. |
+| Lint posture           | `nix run .#lint` passes with 0 issues across all modules. `nix run .#verify` is GREEN: build + vet + test + race + lint + api-stability (3530 exports, with `TestEveryGoModDirIsInModulesList` meta-test) + doc-check. |
 | Race-free              | `go test -race` passes across all modules                                                                                                                                                                              |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                                                                                                                                         |
 | Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI                                                                                                                     |
