@@ -45,6 +45,7 @@ cqrs-lint init                       # generate a default config skeleton
 cqrs-lint explain                    # full documentation of every config key
 cqrs-lint doctor                     # show resolved config + detected profile
 cqrs-lint scorecard                  # module adoption scorecard (Used/Missing/Irrelevant)
+cqrs-lint scorecard --format sarif   # SARIF output for CI/Code Scanning integration
 cqrs-lint --scorecard                # same via flag
 cqrs-lint --group-by aggregate ./... # group findings by aggregate/domain
 cqrs-lint ./...

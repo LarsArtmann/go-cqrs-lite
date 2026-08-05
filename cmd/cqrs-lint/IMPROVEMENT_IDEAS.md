@@ -542,7 +542,7 @@
 
 194. **`--group-by` in `.cqrs-lint.json` config** — Consumers can only set grouping via CLI flag. Add `"group-by": "aggregate"` to the config schema and `cqrs-lint init` output. Effort: 15min.
 
-195. **Aggregate grouping in markdown/SARIF output** — `--group-by aggregate` only affects text output. Markdown table output and SARIF output should also support aggregate grouping (SARIF via `logicalLocations`). Effort: 30min.
+195. **Aggregate grouping in markdown/SARIF output** — ✅ DONE (markdown). `--group-by aggregate` and `--group-by module` now work with `--format markdown`. SARIF `logicalLocations` grouping still pending (requires go-finding library support). Effort: 30min (markdown done, SARIF pending).
 
 196. **Aggregate-aware output enhancements** — Color-code aggregate headers by max severity in group; show severity sub-totals in headers (`User (5: 2 errors, 3 warnings)`); add `--aggregate-filter` flag to show only one aggregate's findings. Effort: 30min total.
 
