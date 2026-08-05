@@ -10,10 +10,10 @@
 
 ### system/ DomainConfig — two new fields
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `ProjectionTypeDecoder` | `*projectionadapter.TypeDecoder` | Recommended. Wraps events in `EventWithID[P]` with stream ID. Replaces 77-line decoder switch. |
-| `ProjectionEventDecoder` | `projectionadapter.EventDecoder` | For custom decoders needing full event context but not using TypeDecoder. |
+| Field                    | Type                             | Purpose                                                                                        |
+| ------------------------ | -------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `ProjectionTypeDecoder`  | `*projectionadapter.TypeDecoder` | Recommended. Wraps events in `EventWithID[P]` with stream ID. Replaces 77-line decoder switch. |
+| `ProjectionEventDecoder` | `projectionadapter.EventDecoder` | For custom decoders needing full event context but not using TypeDecoder.                      |
 
 Added to `system/system.go` with godoc explaining priority chain and when to use each.
 
@@ -27,10 +27,10 @@ Implemented as a `switch` statement in `constructor.go:176-196`. Backward-compat
 
 ### Tests — 2 new, both pass with `-race`
 
-| Test | What it proves |
-|------|---------------|
+| Test                                        | What it proves                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `TestSystem_ProjectionTypeDecoder_MapByKey` | Map ADT query keyed by stream ID works through `system.New()`. Dispatches a command, the event flows through projectionhost → projectionadapter (with TypeDecoder) → metaengine fold handler. Querying by `streamID.String()` returns the projected value. **This was previously impossible** — PayloadDecoder has no access to `evt.StreamID()`. |
-| `TestSystem_ProjectionEventDecoder` | Same flow but using a custom EventDecoder function instead of TypeDecoder. Proves the EventDecoder branch works. |
+| `TestSystem_ProjectionEventDecoder`         | Same flow but using a custom EventDecoder function instead of TypeDecoder. Proves the EventDecoder branch works.                                                                                                                                                                                                                                  |
 
 Full existing system test suite also passes (all tests, with `-race`).
 
@@ -49,12 +49,15 @@ Full existing system test suite also passes (all tests, with `-race`).
 ## B) PARTIALLY DONE
 
 ### api-stability golden NOT regenerated
+
 Same gap as last round. We added exported symbols (`ProjectionTypeDecoder`, `ProjectionEventDecoder` fields on `DomainConfig`) but did NOT regenerate the api-stability golden. The `TestAPIStability` gate will fail on the next `nix run .#verify`.
 
 ### Full verify gate NOT run
+
 Again. I ran targeted tests (`go test -race ./system/...`) but not `nix run .#verify` or `nix run .#verify-fast`. The "stale GREEN" anti-pattern persists.
 
 ### Coverage not checked
+
 system/ is at 58.6% coverage. The new tests add coverage but I didn't verify it didn't drift relative to a baseline.
 
 ---
@@ -71,6 +74,7 @@ system/ is at 58.6% coverage. The new tests add coverage but I didn't verify it 
 ## D) TOTALLY FUCKED UP
 
 ### Nothing is broken.
+
 All code compiles, all tests pass with `-race`, both repos pushed cleanly. No broken state.
 
 ### But the process failures are now a pattern:
@@ -189,6 +193,7 @@ All code compiles, all tests pass with `-race`, both repos pushed cleanly. No br
 ### 1. Should we deprecate `stack.Bundle` now that `system/` is the recommended composition root?
 
 `system/` is described as replacing `stack.Bundle` (the package doc says so). But `stack.Bundle` still exists, is still tested, and the taskmanager example still uses it. If we're recommending `system/` to nsfw-classifier (Appendix B), should we:
+
 - (a) Add a deprecation notice to `stack.Bundle` pointing consumers to `system/`?
 - (b) Keep both indefinitely (they serve different complexity levels)?
 - (c) Migrate the taskmanager example to `system/` and leave `stack.Bundle` as-is?
@@ -207,15 +212,15 @@ The nsfw-classifier plan has an "audit-grade, durable" requirement. But `system/
 
 ## Summary
 
-| Metric | Value |
-|--------|-------|
-| Files created | 3 (system_typed_decoder_test.go, planning doc, Appendix B) |
-| Files modified | 2 (system.go, constructor.go) |
-| Lines added | ~292 (system/) + Appendix B |
-| Tests added | 2 (both pass with `-race`) |
-| All system tests pass (-race) | ✅ |
-| Build clean | ✅ |
-| Verify gate run | ❌ (third time) |
-| api-stability golden regenerated | ❌ (second time) |
-| Canonical example updated | ❌ |
-| Pushed to remote | ✅ both repos |
+| Metric                           | Value                                                      |
+| -------------------------------- | ---------------------------------------------------------- |
+| Files created                    | 3 (system_typed_decoder_test.go, planning doc, Appendix B) |
+| Files modified                   | 2 (system.go, constructor.go)                              |
+| Lines added                      | ~292 (system/) + Appendix B                                |
+| Tests added                      | 2 (both pass with `-race`)                                 |
+| All system tests pass (-race)    | ✅                                                         |
+| Build clean                      | ✅                                                         |
+| Verify gate run                  | ❌ (third time)                                            |
+| api-stability golden regenerated | ❌ (second time)                                           |
+| Canonical example updated        | ❌                                                         |
+| Pushed to remote                 | ✅ both repos                                              |
