@@ -26,7 +26,7 @@ func setupScorecardCommand(cli *cmdguard.CLI[AppConfig]) error {
 	cmd, err := cmdguard.NewCommand(
 		"scorecard",
 		scorecardFlags{},
-		func(ctx context.Context, cfg *AppConfig, flags scorecardFlags) error {
+		func(_ context.Context, cfg *AppConfig, flags scorecardFlags) error {
 			actx, err := analyzer.BuildContext(cfg.Path)
 			if err != nil {
 				return fmt.Errorf("load packages: %w", err)

@@ -170,8 +170,8 @@ const (
 // PresetDefinitions, eliminating the split-brain drift that occurred when init
 // used hardcoded JSON strings and the runtime used a separate Go map.
 type PresetDefinition struct {
-	Features ConfigFeatures `json:"features,omitempty"`
-	Rules    RulesConfig    `json:"rules,omitempty"`
+	Features ConfigFeatures `json:"features,omitzero"`
+	Rules    RulesConfig    `json:"rules,omitzero"`
 	// MinSeverity sets the lowest severity shown (e.g. "warning" hides info).
 	// Empty means use the default ("info").
 	MinSeverity string `json:"min-severity,omitempty"` //nolint:tagliatelle // CLI config key

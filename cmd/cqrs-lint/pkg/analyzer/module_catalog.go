@@ -22,6 +22,8 @@ const (
 
 // categoryPriority orders categories for recommendation sorting. Lower number
 // = higher priority. Missing categories default to 99 (lowest priority).
+//
+//nolint:gochecknoglobals // read-only priority lookup table
 var categoryPriority = map[ModuleCategory]int{
 	CategorySecurity:      1,
 	CategoryReliability:   2,

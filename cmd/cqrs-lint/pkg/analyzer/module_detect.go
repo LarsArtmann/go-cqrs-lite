@@ -24,6 +24,8 @@ const (
 // String returns a human-readable status label for table rendering.
 func (s UsageStatus) String() string {
 	switch s {
+	case UsageAbsent:
+		return "missing"
 	case UsageImported:
 		return "used"
 	case UsageActive:

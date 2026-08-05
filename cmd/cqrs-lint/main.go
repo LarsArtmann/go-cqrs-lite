@@ -45,7 +45,7 @@ type AppConfig struct {
 	Exclude        string `default:""      flag:"exclude"         help:"Exclude paths (comma-separated)"`
 	Color          string `default:"auto"  flag:"color"           help:"Colored output: auto,always,never"`
 	Verbose        bool   `default:"false" flag:"verbose"         help:"Verbose output"`
-	GroupBy        string `default:""      flag:"group-by"        help:"Group findings by: none, module, aggregate"                                   json:"group-by,omitempty"`
+	GroupBy        string `default:""      flag:"group-by"        help:"Group findings by: none, module, aggregate"                                   json:"group-by,omitempty"` //nolint:tagalign,tagliatelle
 	Quiet          bool   `default:"false" flag:"quiet"           help:"Suppress non-finding output"                                        short:"q"`
 	FPSuspects     bool   `default:"false" flag:"fp-suspects"     help:"Show only low-confidence findings (likely false positives)"`
 	ShowSuppressed bool   `default:"false" flag:"show-suppressed" help:"Show suppressed findings with their suppression reason"`
@@ -58,7 +58,7 @@ type AppConfig struct {
 	Features analyzer.ConfigFeatures `json:"features,omitempty"` //nolint:modernize // config compatibility
 	// Preset is a named set of feature-flag defaults (sugar over Features).
 	// Explicit Features flags always override preset values.
-	Preset analyzer.ConfigPreset `json:"preset,omitempty"   default:""`
+	Preset analyzer.ConfigPreset `default:"" json:"preset,omitempty"`
 	// Rules carries rule-specific overrides (e.g. external-API struct prefixes
 	// for D002). See analyzer.RulesConfig docs for each field.
 	Rules analyzer.RulesConfig `json:"rules,omitempty"` //nolint:modernize // config compatibility

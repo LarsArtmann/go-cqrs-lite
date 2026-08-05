@@ -7,6 +7,8 @@ import (
 )
 
 // ScorecardSummary is the headline math for the scorecard.
+//
+//nolint:tagliatelle // snake_case JSON for CLI tool consumers
 type ScorecardSummary struct {
 	UsedCount       int    `json:"used_count"`
 	RelevantTotal   int    `json:"relevant_total"`
@@ -27,6 +29,8 @@ type ScorecardResult struct {
 }
 
 // ScorecardModule is one row in the scorecard output.
+//
+//nolint:tagliatelle // snake_case JSON for CLI tool consumers
 type ScorecardModule struct {
 	Key         string `json:"key"`
 	DisplayName string `json:"display_name"`
