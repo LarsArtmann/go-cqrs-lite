@@ -539,7 +539,6 @@ github.com/go-latex/latex v0.0.0-20210823091927-c0d11ff05a81/go.mod h1:SX0U8uGpx
 github.com/go-logr/logr v1.3.0/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-logr/logr v1.4.1/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-logr/logr v1.4.2/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
-github.com/go-logr/logr v1.4.3/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-pdf/fpdf v0.5.0/go.mod h1:HzcnA+A23uwogo0tp9yU+l3V+KXhiESpt1PMayhOh5M=
 github.com/go-pdf/fpdf v0.6.0/go.mod h1:HzcnA+A23uwogo0tp9yU+l3V+KXhiESpt1PMayhOh5M=
 github.com/go-playground/assert/v2 v2.0.1/go.mod h1:VDjEfimB/XKnb+ZQfWdccd7VUvScMdVu0Titje2rxJ4=
@@ -744,6 +743,7 @@ github.com/larsartmann/go-atomic-write v0.4.0 h1:4WVKiOhKz0K3Hq6+h7bmTLujkJDPf7g
 github.com/larsartmann/go-atomic-write v0.4.0/go.mod h1:pkmHWPaCXUdJstjggiHCQufE1vquDCfwYsQfHPywxNI=
 github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4 v4.1.0/go.mod h1:br2nxuwBLugcV1w47bOLjX3ei/4TFXVjfJL5r6uaRB0=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.1.1/go.mod h1:4V33qjwL3R72tvRGPRM7AlBWMDHeB4JjA5wMG7uBZqU=
+github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.0.0-20260731174855-00ddf243d19f/go.mod h1:uvBIwEfMrARv0bekKcySaaV/CdAd9FzAkhHyVNoiES4=
 github.com/larsartmann/go-output/d2 v0.35.0/go.mod h1:1Q9Y3wv1J1nGtEumeyOx1DB3ciyhIyBOEI5VRFDIEaY=
 github.com/larsartmann/go-output/daghtml v0.35.0/go.mod h1:PMlfYzKRSnRkohhr1RNh8LsbebNE61JKjDx3Vd1uYGM=
 github.com/larsartmann/go-output/delimited v0.35.0/go.mod h1:5JboehslW8N68CVEYNsx9eIKT++Lb3kmacKSKypihkE=
@@ -754,7 +754,6 @@ github.com/larsartmann/go-output/plantuml v0.35.0/go.mod h1:1FzGyKiSV/rCxicQlQD8
 github.com/larsartmann/go-output/serialization v0.35.0/go.mod h1:JXgIbAGg43i+PlR5uI+kEqbkq/8jUOd+EuGqOL6xfqg=
 github.com/larsartmann/go-output/table v0.35.0/go.mod h1:1m8WRiLKUTX2HkrdD+FQsX7qFdKIYnlwECRe+1fO6WE=
 github.com/larsartmann/go-output/tree v0.35.0/go.mod h1:9uYXXrmMeImVyHPGadE53EmVVtArPM2AsNypbVMDo7g=
-github.com/larsartmann/go-retry v0.1.0/go.mod h1:Lbi4UAbiRgM4BqfRtMFPW8umNF4qnIApNLw0RRoTqVg=
 github.com/larsartmann/go-sse v0.2.0/go.mod h1:qFY1CWP8caGmjKwKG4JqNn5tfFRqU5yQGx3xUQ1tGj4=
 github.com/larsartmann/go-sse v0.2.1/go.mod h1:jzjpWqwufPRLht+qk15EHwHG65mhZDdTV1VIUk5pQ2Y=
 github.com/leodido/go-urn v1.2.0/go.mod h1:+8+nEpDfqqsY+g338gtMEUOtuK+4dEMhiQEgxpxOKII=
@@ -823,7 +822,6 @@ github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFR
 github.com/rogpeppe/go-internal v1.6.1/go.mod h1:xXDCJY+GAPziupqXw64V24skbSoqbTEfhy4qGm1nDQc=
 github.com/rogpeppe/go-internal v1.10.0/go.mod h1:UQnix2H7Ngw/k4C5ijL5+65zddjncjaFoBhdsK/akog=
 github.com/rogpeppe/go-internal v1.12.0/go.mod h1:E+RYuTGaKKdloAfM02xzb0FW3Paa99yedzYV+kq4uf4=
-github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/rs/cors v1.11.0/go.mod h1:XyqrcTp5zjWr1wsJ8PIRZssZ8b/WMcMf71DJnit4EMU=
 github.com/russross/blackfriday v1.6.0/go.mod h1:ti0ldHuxg49ri4ksnFxlkCfN+hvslNlmVHqNRXXJNAY=
 github.com/ruudk/golang-pdf417 v0.0.0-20181029194003-1af4ab5afa58/go.mod h1:6lfFZQK844Gfx8o5WFuvpxWRwnSoipWe/p622j1v06w=
@@ -1440,7 +1438,6 @@ golang.org/x/text v0.25.0/go.mod h1:WEdwpYrmk1qmdHvhkSTNPm3app7v4rsT8F2UD6+VHIA=
 golang.org/x/text v0.29.0/go.mod h1:7MhJOA9CD2qZyOKYazxdYMF85OwPdEr9jTtBpO7ydH4=
 golang.org/x/text v0.32.0/go.mod h1:o/rUWzghvpD5TXrTIBuJU77MTaN0ljMWE47kxGJQ7jY=
 golang.org/x/text v0.36.0/go.mod h1:NIdBknypM8iqVmPiuco0Dh6P5Jcdk8lJL0CUebqK164=
-golang.org/x/text v0.37.0/go.mod h1:a5sjxXGs9hsn/AJVwuElvCAo9v8QYLzvavO5z2PiM38=
 golang.org/x/text v0.38.0/go.mod h1:YXZt3QhHUKYT53r2lLKFIVi6Ao1jdzrTR/KQ09qyxF4=
 golang.org/x/time v0.0.0-20181108054448-85acf8d2951c/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
 golang.org/x/time v0.0.0-20190308202827-9d24e82272b4/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
