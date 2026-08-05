@@ -156,11 +156,20 @@ func NewD005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
+// readGoModCQRSVersion reads the go-cqrs-lite version from go.mod.
+//
+// In multi-module repos (go-cqrs-lite itself is one), a consumer's go.mod may
+// list both direct imports (command/v4, query/v4, id/v4) and transitive ones
+// (dispatcher/v4, event/v4, etc. marked `// indirect`). We prefer the DIRECT
+// import version — the `// indirect` marker reflects import topology, not a
+// version mismatch. If only indirect entries exist, we fall back to those.
 func readGoModCQRSVersion(path string) string {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return ""
 	}
+
+	var indirectVersion string
 
 	lines := strings.SplitSeq(string(data), "\n")
 	for line := range lines {
@@ -172,15 +181,31 @@ func readGoModCQRSVersion(path string) string {
 			continue
 		}
 
+		isIndirect := strings.Contains(line, "// indirect")
+
+		// Strip trailing comments before field-splitting so the last field
+		// is the version, not "indirect".
+		if idx := strings.Index(line, "//"); idx >= 0 {
+			line = line[:idx]
+		}
+
 		parts := strings.Fields(line)
 		if len(parts) < 2 {
 			continue
 		}
 
-		return parts[len(parts)-1]
+		version := parts[len(parts)-1]
+
+		if !isIndirect {
+			return version
+		}
+
+		if indirectVersion == "" {
+			indirectVersion = version
+		}
 	}
 
-	return ""
+	return indirectVersion
 }
 
 func extractCQRSVersion(content, modVersion string) string {

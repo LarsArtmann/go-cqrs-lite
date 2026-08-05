@@ -110,3 +110,49 @@ func TestC031_NoFindingOnEmptyContext(t *testing.T) {
 	findings := ruletest.RunDetector(t, correctness.NewC031Detector(ctx))
 	ruletest.AssertRule(t, findings, "C031", 0)
 }
+
+func TestC031_NoFindingWhenReturnNilWithError(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"handler.go": `package main
+
+import "context"
+
+func setup() {
+	query.RegisterTyped(qdisp, "user.get", func(ctx context.Context, q *GetUser) (any, error) {
+		sim, err := service.Get(ctx, q.ID)
+		if err != nil {
+			return nil, fmt.Errorf("get %s: %w", q.ID, err)
+		}
+		return sim, nil
+	})
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC031Detector(ctx))
+	ruletest.AssertRule(t, findings, "C031", 0)
+}
+
+func TestC031_FiresWhenBothResultsNil(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"handler.go": `package main
+
+import "context"
+
+func setup() {
+	query.RegisterTyped(qdisp, "user.get", func(ctx context.Context, q *GetUser) (any, error) {
+		_, err := service.Get(ctx, q.ID)
+		if err != nil {
+			return nil, nil
+		}
+		return nil, nil
+	})
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC031Detector(ctx))
+	ruletest.AssertRule(t, findings, "C031", 1)
+}

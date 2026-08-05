@@ -415,6 +415,48 @@ func serve() {
 	}
 }
 
+func TestDetectFeatures_GinImportDetectsServer(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/gin-gonic/gin"
+
+func setup() {
+	engine := gin.New()
+	_ = engine
+}
+`,
+	})
+
+	fp := DetectFeatures(ctx)
+	if !fp.HasServer {
+		t.Error("gin-gonic/gin import should detect HasServer=true")
+	}
+}
+
+func TestDetectFeatures_HttpServerListenAndServe(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "net/http"
+
+func serve() {
+	srv := &http.Server{Addr: ":8080", Handler: nil}
+	_ = srv.ListenAndServe()
+}
+`,
+	})
+
+	fp := DetectFeatures(ctx)
+	if !fp.HasServer {
+		t.Error("srv.ListenAndServe() method call should detect HasServer=true")
+	}
+}
+
 func TestDetectFeatures_Tracing(t *testing.T) {
 	t.Parallel()
 

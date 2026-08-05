@@ -92,6 +92,7 @@ func detectFeatureSignals(
 	hasTLS := false
 	hasShutdown := false
 	hasHealthRoute := false
+	hasHTTPFramework := false
 
 	// Pass 1: import-based detection (store, tracing, snapshot presence).
 	for _, pkg := range pkgs {
@@ -199,6 +200,10 @@ func detectFeatureSignals(
 				strings.Contains(path, "cqrs-htmx") {
 				fp.HasTransport = true
 			}
+
+			if isHTTPFrameworkImport(path) {
+				hasHTTPFramework = true
+			}
 		}
 	}
 
@@ -230,9 +235,13 @@ func detectFeatureSignals(
 			method := sel.Sel.Name
 
 			// Server detection: http.ListenAndServe, http.ListenAndServeTLS,
-			// http.Server.Serve, grpc.NewServer.
+			// http.Server.Serve, grpc.NewServer, gin engine.Run.
 			if method == "ListenAndServe" || method == "ListenAndServeTLS" ||
 				method == "Serve" {
+				fp.HasServer = true
+			}
+			// Gin/Echo/Fiber engine.Run() starts an HTTP listener.
+			if method == "Run" && hasHTTPFramework {
 				fp.HasServer = true
 			}
 			if method == "Listen" || method == "NewListener" {
@@ -323,6 +332,13 @@ func detectFeatureSignals(
 
 			return true
 		})
+	}
+
+	// HTTP framework imports (Gin/Echo/Fiber/Chi) are strong server signals —
+	// a project importing these is serving HTTP even without an explicit
+	// ListenAndServe call (the framework may start the server internally).
+	if hasHTTPFramework {
+		fp.HasServer = true
 	}
 
 	// Resolve ServerLocal: HasServer without ANY production signals (TLS,
@@ -463,5 +479,24 @@ func detectSoftDeleteRegistry(registry *CQRSRegistry) bool {
 		}
 	}
 
+	return false
+}
+
+// httpFrameworkImports lists Go HTTP framework module paths whose presence in
+// go.mod / imports is a strong server signal. A project importing Gin/Echo/
+// Fiber/Chi is serving HTTP.
+var httpFrameworkImports = []string{
+	"gin-gonic/gin",
+	"labstack/echo",
+	"gofiber/fiber",
+	"go-chi/chi",
+}
+
+func isHTTPFrameworkImport(path string) bool {
+	for _, fw := range httpFrameworkImports {
+		if strings.Contains(path, fw) {
+			return true
+		}
+	}
 	return false
 }

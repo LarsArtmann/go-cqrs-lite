@@ -303,3 +303,135 @@ func TestRenderScorecard_MarkdownDispatch(t *testing.T) {
 		t.Error("'md' should produce identical output to 'markdown'")
 	}
 }
+
+func TestRenderSARIF_Valid(t *testing.T) {
+	t.Parallel()
+
+	result := makeTestScorecard()
+	out, err := renderScorecardSARIF(result)
+	if err != nil {
+		t.Fatalf("renderScorecardSARIF error: %v", err)
+	}
+
+	var parsed map[string]any
+	if err := json.Unmarshal([]byte(out), &parsed); err != nil {
+		t.Fatalf("invalid SARIF JSON: %v\n%s", err, out)
+	}
+
+	if parsed["version"] != "2.1.0" {
+		t.Errorf("expected SARIF version 2.1.0, got %v", parsed["version"])
+	}
+}
+
+func TestRenderSARIF_HasSummary(t *testing.T) {
+	t.Parallel()
+
+	result := makeTestScorecard()
+	out, err := renderScorecardSARIF(result)
+	if err != nil {
+		t.Fatalf("renderScorecardSARIF error: %v", err)
+	}
+
+	var parsed sarifReport
+	if err := json.Unmarshal([]byte(out), &parsed); err != nil {
+		t.Fatalf("invalid SARIF JSON: %v", err)
+	}
+
+	if len(parsed.Runs) != 1 {
+		t.Fatalf("expected 1 run, got %d", len(parsed.Runs))
+	}
+
+	props := parsed.Runs[0].Properties
+	if props == nil {
+		t.Fatal("expected run.properties to be non-nil")
+	}
+
+	if props["coveragePercent"] != float64(50) {
+		t.Errorf("expected coveragePercent 50, got %v", props["coveragePercent"])
+	}
+	if props["grade"] != "Fair" {
+		t.Errorf("expected grade Fair, got %v", props["grade"])
+	}
+	if props["usedCount"] != float64(5) {
+		t.Errorf("expected usedCount 5, got %v", props["usedCount"])
+	}
+	if props["relevantTotal"] != float64(10) {
+		t.Errorf("expected relevantTotal 10, got %v", props["relevantTotal"])
+	}
+}
+
+func TestRenderSARIF_MissingModulesAsResults(t *testing.T) {
+	t.Parallel()
+
+	result := makeTestScorecard()
+	out, err := renderScorecardSARIF(result)
+	if err != nil {
+		t.Fatalf("renderScorecardSARIF error: %v", err)
+	}
+
+	var parsed sarifReport
+	if err := json.Unmarshal([]byte(out), &parsed); err != nil {
+		t.Fatalf("invalid SARIF JSON: %v", err)
+	}
+
+	if len(parsed.Runs[0].Results) != 2 {
+		t.Fatalf("expected 2 results (missing modules), got %d", len(parsed.Runs[0].Results))
+	}
+
+	first := parsed.Runs[0].Results[0]
+	if first.RuleID != "scorecard/missing-module" {
+		t.Errorf("expected ruleId scorecard/missing-module, got %s", first.RuleID)
+	}
+	if first.Level != "info" {
+		t.Errorf("expected level info, got %s", first.Level)
+	}
+	if !strings.Contains(first.Message.Text, "Event Signing") {
+		t.Errorf("expected first result to mention 'Event Signing', got %s", first.Message.Text)
+	}
+	if len(first.Locations) != 1 || first.Locations[0].PhysicalLocation.ArtifactLocation.URI != "go.mod" {
+		t.Errorf("expected location go.mod, got %+v", first.Locations)
+	}
+}
+
+func TestRenderSARIF_NoMissingEmptyResults(t *testing.T) {
+	t.Parallel()
+
+	result := ScorecardResult{
+		Summary: ScorecardSummary{
+			UsedCount:       10,
+			RelevantTotal:   10,
+			CoveragePercent: 100,
+			Grade:           "Excellent",
+		},
+		Used: []ScorecardModule{
+			{Key: "otel", DisplayName: "OpenTelemetry", Category: "Observability", Status: "used"},
+		},
+	}
+	out, err := renderScorecardSARIF(result)
+	if err != nil {
+		t.Fatalf("renderScorecardSARIF error: %v", err)
+	}
+
+	var parsed sarifReport
+	if err := json.Unmarshal([]byte(out), &parsed); err != nil {
+		t.Fatalf("invalid SARIF JSON: %v", err)
+	}
+
+	if len(parsed.Runs[0].Results) != 0 {
+		t.Errorf("expected 0 results when nothing missing, got %d", len(parsed.Runs[0].Results))
+	}
+}
+
+func TestRenderScorecard_SARIFDispatch(t *testing.T) {
+	t.Parallel()
+
+	result := makeTestScorecard()
+
+	sarifOut, err := renderScorecard(result, "sarif", output.ColorModeNever)
+	if err != nil {
+		t.Fatalf("sarif render error: %v", err)
+	}
+	if !strings.HasPrefix(sarifOut, "{") {
+		t.Error("sarif format should start with '{'")
+	}
+}

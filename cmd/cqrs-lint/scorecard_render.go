@@ -21,6 +21,8 @@ func renderScorecard(
 		return renderScorecardJSON(result)
 	case "markdown", "md":
 		return renderScorecardMarkdown(result), nil
+	case "sarif":
+		return renderScorecardSARIF(result)
 	default:
 		return renderScorecardText(result, colorMode), nil
 	}
@@ -189,4 +191,122 @@ func renderScorecardMarkdown(result ScorecardResult) string {
 	}
 
 	return b.String()
+}
+
+// renderScorecardSARIF emits the scorecard as a SARIF 2.1.0 report for CI
+// integration (GitHub Code Scanning, Azure DevOps). Missing modules appear as
+// info-level results; the adoption summary lives in run.properties so CI
+// scripts can extract coverage metrics without parsing human-readable output.
+func renderScorecardSARIF(result ScorecardResult) (string, error) {
+	report := sarifReport{
+		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+		Version: "2.1.0",
+		Runs: []sarifRun{{
+			Tool: sarifTool{
+				Driver: sarifDriver{
+					Name:           "cqrs-lint-scorecard",
+					Version:        version,
+					InformationURI: "https://github.com/larsartmann/go-cqrs-lite/tree/main/cmd/cqrs-lint",
+					Rules: []sarifRule{{
+						ID:               "scorecard/missing-module",
+						Name:             "MissingModule",
+						ShortDescription: sarifMessage{Text: "Relevant go-cqrs-lite module not adopted"},
+						FullDescription:  sarifMessage{Text: "This module is relevant to the project's feature profile but is not imported."},
+						DefaultConfig:    sarifConfig{Level: "info"},
+					}},
+				},
+			},
+			Properties: map[string]any{
+				"coveragePercent": result.Summary.CoveragePercent,
+				"grade":           result.Summary.Grade,
+				"usedCount":       result.Summary.UsedCount,
+				"relevantTotal":   result.Summary.RelevantTotal,
+				"irrelevantCount": result.Summary.IrrelevantCount,
+			},
+		}},
+	}
+
+	for _, m := range result.Missing {
+		msg := fmt.Sprintf("Missing module: %s (%s)", m.DisplayName, m.Category)
+		if m.Suggestion != "" {
+			msg += " — " + m.Suggestion
+		}
+
+		report.Runs[0].Results = append(report.Runs[0].Results, sarifResult{
+			RuleID: "scorecard/missing-module",
+			Level:  "info",
+			Message: sarifMessage{Text: msg},
+			Locations: []sarifLocation{{
+				PhysicalLocation: sarifPhysicalLocation{
+					ArtifactLocation: sarifArtifactLocation{URI: "go.mod"},
+				},
+			}},
+		})
+	}
+
+	data, err := json.Marshal(report)
+	if err != nil {
+		return "", fmt.Errorf("marshal scorecard SARIF: %w", err)
+	}
+	return string(data) + "\n", nil
+}
+
+// SARIF 2.1.0 structural types for scorecard output.
+
+type sarifMessage struct {
+	Text string `json:"text"`
+}
+
+type sarifConfig struct {
+	Level string `json:"level"`
+}
+
+type sarifRule struct {
+	ID               string       `json:"id"`
+	Name             string       `json:"name"`
+	ShortDescription sarifMessage `json:"shortDescription"`
+	FullDescription  sarifMessage `json:"fullDescription"`
+	DefaultConfig    sarifConfig  `json:"defaultConfiguration"` //nolint:tagliatelle // SARIF spec key
+}
+
+type sarifDriver struct {
+	Name           string      `json:"name"`
+	Version        string      `json:"version"`
+	InformationURI string      `json:"informationUri"` //nolint:tagliatelle // SARIF spec key
+	Rules          []sarifRule `json:"rules,omitempty"`
+}
+
+type sarifTool struct {
+	Driver sarifDriver `json:"driver"`
+}
+
+type sarifArtifactLocation struct {
+	URI string `json:"uri"`
+}
+
+type sarifPhysicalLocation struct {
+	ArtifactLocation sarifArtifactLocation `json:"artifactLocation"`
+}
+
+type sarifLocation struct {
+	PhysicalLocation sarifPhysicalLocation `json:"physicalLocation"`
+}
+
+type sarifResult struct {
+	RuleID    string          `json:"ruleId"`
+	Level     string          `json:"level"`
+	Message   sarifMessage    `json:"message"`
+	Locations []sarifLocation `json:"locations,omitempty"`
+}
+
+type sarifRun struct {
+	Tool       sarifTool      `json:"tool"`
+	Properties map[string]any `json:"properties,omitempty"`
+	Results    []sarifResult  `json:"results,omitempty"`
+}
+
+type sarifReport struct {
+	Schema  string     `json:"$schema"`
+	Version string     `json:"version"`
+	Runs    []sarifRun `json:"runs"`
 }

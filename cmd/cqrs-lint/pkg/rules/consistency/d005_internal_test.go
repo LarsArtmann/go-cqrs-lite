@@ -1,6 +1,10 @@
 package consistency
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"testing"
+)
 
 func TestParseVersionParts_TrailingPunctuation(t *testing.T) {
 	t.Parallel()
@@ -47,5 +51,81 @@ func TestIsVersionCompatible_TrailingDot(t *testing.T) {
 
 	if isVersionCompatible("v4.2.0", "v4.3.0") {
 		t.Error("isVersionCompatible should reject different versions")
+	}
+}
+
+func TestReadGoModCQRSVersion_PrefersDirectOverIndirect(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	goMod := `module example.com/app
+
+go 1.26
+
+require (
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0 // indirect
+)
+`
+	path := filepath.Join(dir, "go.mod")
+	if err := os.WriteFile(path, []byte(goMod), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	got := readGoModCQRSVersion(path)
+	if got != "v4.2.0" {
+		t.Fatalf("readGoModCQRSVersion with mixed direct/indirect = %q, want %q", got, "v4.2.0")
+	}
+}
+
+func TestReadGoModCQRSVersion_FallsBackToIndirect(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	goMod := `module example.com/app
+
+go 1.26
+
+require (
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.1.0 // indirect
+)
+`
+	path := filepath.Join(dir, "go.mod")
+	if err := os.WriteFile(path, []byte(goMod), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	got := readGoModCQRSVersion(path)
+	if got != "v4.1.0" {
+		t.Fatalf("readGoModCQRSVersion indirect-only = %q, want %q", got, "v4.1.0")
+	}
+}
+
+func TestReadGoModCQRSVersion_OldBugReturnedIndirect(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	// Regression: the old code took parts[len(parts)-1] which was "indirect"
+	// when the line had a trailing comment.
+	goMod := `module example.com/app
+
+go 1.26
+
+require (
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.2.0 // indirect
+)
+`
+	path := filepath.Join(dir, "go.mod")
+	if err := os.WriteFile(path, []byte(goMod), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	got := readGoModCQRSVersion(path)
+	if got == "indirect" {
+		t.Fatal("readGoModCQRSVersion returned 'indirect' — the old bug is back")
+	}
+	if got != "v4.2.0" {
+		t.Fatalf("readGoModCQRSVersion = %q, want %q", got, "v4.2.0")
 	}
 }
