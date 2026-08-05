@@ -132,8 +132,13 @@ func isErrNotNilCheck(expr ast.Expr) bool {
 	return false
 }
 
-// isSwallowingReturn reports whether stmt is `return nil` or bare `return`
-// inside an error-check block — the error is swallowed.
+// isSwallowingReturn reports whether stmt is `return nil`, `return nil, nil`,
+// or bare `return` inside an error-check block — the error is swallowed.
+//
+// For multi-value returns like `return nil, err` (the canonical (any, error)
+// handler pattern), the error IS propagated via the second value, so this
+// returns false. Only returns where ALL values are nil (or bare returns)
+// indicate a swallowed error.
 func isSwallowingReturn(stmt ast.Stmt) bool {
 	ret, ok := stmt.(*ast.ReturnStmt)
 	if !ok {
@@ -145,11 +150,15 @@ func isSwallowingReturn(stmt ast.Stmt) bool {
 	}
 
 	for _, result := range ret.Results {
-		id, ok := result.(*ast.Ident)
-		if ok && id.Name == "nil" {
-			return true
+		if !isNilLiteral(result) {
+			return false
 		}
 	}
 
-	return false
+	return true
+}
+
+func isNilLiteral(expr ast.Expr) bool {
+	id, ok := expr.(*ast.Ident)
+	return ok && id.Name == "nil"
 }
