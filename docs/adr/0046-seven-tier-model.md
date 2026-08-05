@@ -243,6 +243,7 @@ flowchart TB
 ```
 
 > **Key insights:**
+>
 > - **`codec/` is the true hub** — 44 of 68 modules depend on it (more than `id/`)
 > - **CQRS separation is clean** — `command/` and `query/` have zero `event/`
 >   production imports (dotted arrows = no dependency). Shared types live in
@@ -283,6 +284,7 @@ The bash script parses `go.mod` directly, which is authoritative.
 ### 2. Intra-module package rules (`go-arch-lint`)
 
 `nix run .#check-arch` runs `scripts/check-arch.sh`, which:
+
 1. Runs `check-module-layers.sh` (above)
 2. Runs `go-arch-lint check` per-module for modules with `.go-arch-lint.yml`
 
@@ -329,4 +331,7 @@ Collapsing them would hide the real dependency distances.
 Rejected: Would place `catalog/` and `otel/` in Tier 0 alongside `id/` and
 `codec/`, which is misleading. A documentation generator is not a primitive,
 even if it has zero deps. Conceptual role must be able to raise the tier.
+
+```
+
 ```

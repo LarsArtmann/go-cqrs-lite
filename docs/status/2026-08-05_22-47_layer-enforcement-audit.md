@@ -27,18 +27,19 @@ actual enforcement gate — had massive drift from the documented tier model.
 
 ### 2. ADR-0046 + FOUR-TIER-MODEL.md Overhaul
 
-| Task | Detail |
-|------|--------|
-| Module count updated | 55→68 everywhere |
-| codec/ hub stats updated | 38/48→44/68 |
-| All 68 modules mapped to tiers | FOUR-TIER-MODEL.md now lists every module |
-| Structural-vs-conceptual tiering principle | Documented with examples (otel, catalog, idempotency) |
-| Mermaid diagram added | ADR-0046 now has a full `flowchart TB` diagram with all 68 modules |
-| Stale references fixed | 10 files updated (README, CONTRIBUTING, AGENTS, ADR-0003, etc.) |
+| Task                                       | Detail                                                             |
+| ------------------------------------------ | ------------------------------------------------------------------ |
+| Module count updated                       | 55→68 everywhere                                                   |
+| codec/ hub stats updated                   | 38/48→44/68                                                        |
+| All 68 modules mapped to tiers             | FOUR-TIER-MODEL.md now lists every module                          |
+| Structural-vs-conceptual tiering principle | Documented with examples (otel, catalog, idempotency)              |
+| Mermaid diagram added                      | ADR-0046 now has a full `flowchart TB` diagram with all 68 modules |
+| Stale references fixed                     | 10 files updated (README, CONTRIBUTING, AGENTS, ADR-0003, etc.)    |
 
 ### 3. `command/ → event/` Dependency Investigation
 
 **The claim was already false.** Verified by reading source:
+
 - `command/` production code: **zero** `event.` references
 - `command/` direct go.mod deps: `codec/`, `dispatcher/`, `id/`, `metadata/` — all Tier 0-1
 - The `metadata/` extraction (ADR-0031) broke the compile dependency
@@ -46,26 +47,27 @@ actual enforcement gate — had massive drift from the documented tier model.
 
 ### 4. `check-module-layers.sh` Comprehensive Fix
 
-| Issue Found | Fix Applied |
-|-------------|-------------|
-| `listing/` at Layer 5 (infra) — wrong | Moved to **Layer 3** (aggregation), matches actual deps |
-| `retry/` budget=0 but has 1 prod dep | Budget → **1** (go-retry re-export is its purpose) |
-| 14 modules missing from LAYER map | All added with correct layers |
-| 13 modules missing from DEP_BUDGET | All added with budgets matching actual dep counts |
-| `system/` missing entirely | Added Layer 6 + budget 13 |
-| `scheduling/sqlstore/` missing | Added Layer 5 + budget 7 |
-| `metaengine/irohengine/` (+loopback, +quic) missing | Added Layer 5 + budgets |
-| All 5 `cmd/*` modules missing | Added Layer 7 + budgets |
-| All 3 `example/*` modules missing | Added Layer 7 + budgets |
-| `event/v4/eventtest/` missing | Added Layer 7 + budget 5 |
-| `testutil/` deliberately omitted | Added Layer 5 + exception entries for test-dep leaks |
-| **No coverage guard existed** | **Added self-enforcing check** — fails if any go.mod lacks LAYER or DEP_BUDGET |
+| Issue Found                                         | Fix Applied                                                                    |
+| --------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `listing/` at Layer 5 (infra) — wrong               | Moved to **Layer 3** (aggregation), matches actual deps                        |
+| `retry/` budget=0 but has 1 prod dep                | Budget → **1** (go-retry re-export is its purpose)                             |
+| 14 modules missing from LAYER map                   | All added with correct layers                                                  |
+| 13 modules missing from DEP_BUDGET                  | All added with budgets matching actual dep counts                              |
+| `system/` missing entirely                          | Added Layer 6 + budget 13                                                      |
+| `scheduling/sqlstore/` missing                      | Added Layer 5 + budget 7                                                       |
+| `metaengine/irohengine/` (+loopback, +quic) missing | Added Layer 5 + budgets                                                        |
+| All 5 `cmd/*` modules missing                       | Added Layer 7 + budgets                                                        |
+| All 3 `example/*` modules missing                   | Added Layer 7 + budgets                                                        |
+| `event/v4/eventtest/` missing                       | Added Layer 7 + budget 5                                                       |
+| `testutil/` deliberately omitted                    | Added Layer 5 + exception entries for test-dep leaks                           |
+| **No coverage guard existed**                       | **Added self-enforcing check** — fails if any go.mod lacks LAYER or DEP_BUDGET |
 
 **Final state:** 68/68 modules covered, `bash scripts/check-module-layers.sh` passes clean.
 
 ### 5. ADR-0046 Enforcement Section
 
 Added a new `## Enforcement` section documenting all three mechanisms:
+
 1. `check-module-layers.sh` — cross-module DAG + dep budgets (bash, go.mod parsing)
 2. `go-arch-lint` — intra-module package rules (6 per-module configs)
 3. `depguard` — external import allow-list (golangci-lint)
@@ -73,6 +75,7 @@ Added a new `## Enforcement` section documenting all three mechanisms:
 ### 6. go-arch-lint Evaluation
 
 Researched go-arch-lint capabilities and limitations:
+
 - **Cannot do cross-module checking** in a `go.work` monorepo (treats `/v4` imports as vendor)
 - **Already installed** in the Nix devShell and **already has 6 per-module configs**
 - The workspace-level `.go-arch-lint.yml` is documentation-only (explains its own limitation)
@@ -82,23 +85,23 @@ Researched go-arch-lint capabilities and limitations:
 
 ## b) PARTIALLY DONE
 
-| # | Task | What's done | What's missing |
-|---|------|-------------|----------------|
-| 1 | Mermaid diagram in ADR-0046 | Full `flowchart TB` with all 68 modules, dependency arrows, CQRS separation callout | Not verified in a Mermaid renderer — syntax might have minor issues |
-| 2 | Stale reference cleanup | Fixed 10 authoritative docs | ~10 historical references remain in CHANGELOG/status reports (deliberately left as point-in-time) |
-| 3 | `listing/` tier correction | Fixed in bash script (Layer 3) | Not yet verified whether `storage/` depending on `listing/` (the old exception) still needs the exception or if the layer fix resolved it naturally |
+| #   | Task                        | What's done                                                                         | What's missing                                                                                                                                      |
+| --- | --------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Mermaid diagram in ADR-0046 | Full `flowchart TB` with all 68 modules, dependency arrows, CQRS separation callout | Not verified in a Mermaid renderer — syntax might have minor issues                                                                                 |
+| 2   | Stale reference cleanup     | Fixed 10 authoritative docs                                                         | ~10 historical references remain in CHANGELOG/status reports (deliberately left as point-in-time)                                                   |
+| 3   | `listing/` tier correction  | Fixed in bash script (Layer 3)                                                      | Not yet verified whether `storage/` depending on `listing/` (the old exception) still needs the exception or if the layer fix resolved it naturally |
 
 ---
 
 ## c) NOT STARTED
 
-| # | Task | Why not |
-|---|------|---------|
-| 1 | Running `nix run .#verify` full gate | Takes 3-4 minutes; only ran `check-module-layers.sh` directly |
-| 2 | Running `nix run .#check-arch` (includes go-arch-lint) | Didn't run after bash script changes |
-| 3 | Expanding go-arch-lint to more modules | Only 6 of 68 modules have `.go-arch-lint.yml` configs — expanding would catch intra-module violations |
-| 4 | Verifying the Mermaid diagram renders | No Mermaid renderer available in CLI |
-| 5 | Running `cmd/doc-check` | Edited multiple markdown files; doc-checker not run |
+| #   | Task                                                   | Why not                                                                                               |
+| --- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| 1   | Running `nix run .#verify` full gate                   | Takes 3-4 minutes; only ran `check-module-layers.sh` directly                                         |
+| 2   | Running `nix run .#check-arch` (includes go-arch-lint) | Didn't run after bash script changes                                                                  |
+| 3   | Expanding go-arch-lint to more modules                 | Only 6 of 68 modules have `.go-arch-lint.yml` configs — expanding would catch intra-module violations |
+| 4   | Verifying the Mermaid diagram renders                  | No Mermaid renderer available in CLI                                                                  |
+| 5   | Running `cmd/doc-check`                                | Edited multiple markdown files; doc-checker not run                                                   |
 
 ---
 
@@ -259,6 +262,7 @@ This catches more violations than the merged tier. But it means "Layer N" in
 the script ≠ "Tier N" in the ADR for N≥4.
 
 **Options:**
+
 - A) Keep the split (more precise, but two numbering systems)
 - B) Merge to match ADR (simpler, but loses the 4a/4b distinction)
 - C) Rename bash layers to "sub-tiers" (e.g., 4a, 4b) — formal but verbose
@@ -268,6 +272,7 @@ the script ≠ "Tier N" in the ADR for N≥4.
 The bash script works, passes clean, and now has a coverage guard. But it's
 330 lines of bash with two hardcoded maps that duplicate information available
 in go.mod files. A Go program could:
+
 - Read go.mod files directly
 - Compute tiers from dependencies (structural tiering)
 - Validate against a YAML config for conceptual overrides
