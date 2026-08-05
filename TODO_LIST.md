@@ -56,10 +56,11 @@ and is **never** duplicated here.
 
 - [ ] **koanf YAML config** — `yaml.v3` parsing added but `koanf` integration
       (G2 "deployer decides") is unmet. Env var overrides are basic.
-- [ ] **Pebble/DuckDB/Postgres StreamLogBackend AtomicAppender + RunInTx** —
-      DuckDB + Postgres have `StreamAppendExpected` but NOT `Transactional`
-      (`RunInTx`). AtomicAppender is a compile-time assertion; Transactional is
-      a separate interface.
+- [ ] **Pebble AtomicAppender + DuckDB/PG Transactional** — Pebble lacks
+      `StreamAppendExpected` (AtomicAppender). DuckDB + Postgres have
+      AtomicAppender but lack `Transactional` (`RunInTx`). Both are
+      compile-time assertions; Transactional enables cross-collection atomic
+      writes.
 - [ ] **Pebble restart safety test** — `seedSeqCounters()` implementation is
       complete but no direct restart test exists (only indirect E2E).
 - [ ] **Bus driver registry** — types exist, gochannel driver registered, but
