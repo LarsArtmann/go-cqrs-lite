@@ -4,8 +4,8 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/cmdguard/v4 v4.0.0
-	github.com/larsartmann/go-finding v0.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-finding/pipeline v0.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-finding v1.4.1
+	github.com/larsartmann/go-finding/pipeline v1.4.1
 	github.com/larsartmann/go-output v0.37.0
 	github.com/larsartmann/go-output/table v0.36.0
 	github.com/spf13/cobra v1.10.2
@@ -15,7 +15,7 @@ require (
 require (
 	charm.land/fang/v2 v2.0.1 // indirect
 	charm.land/lipgloss/v2 v2.0.5 // indirect
-	github.com/LarsArtmann/gogenfilter/v3 v3.3.2 // indirect
+	github.com/LarsArtmann/gogenfilter/v3 v3.4.0 // indirect
 	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
