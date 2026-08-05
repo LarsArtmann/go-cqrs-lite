@@ -42,8 +42,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `TypeDecoder > EventDecoder > PayloadDecoder > generic JSON`. Backward
   compatible.
 - **StreamReadFromVersion** — added to `StreamTemporalReader` interface; Memory
-  + SQLite implementations. Wired into EventAdapter `LoadFromVersion` (with
-  critical `+1` 0-indexed→1-indexed conversion).
+  - SQLite implementations. Wired into EventAdapter `LoadFromVersion` (with
+    critical `+1` 0-indexed→1-indexed conversion).
 - **Snapshot E2E integration test** — 3 tests (285 lines). Found and fixed
   Save key mismatch bug + missing codec wiring in `RegisterDecider`.
 - **Pebble restart safety** — `seedSeqCounters()` seeds 4 collection counters
@@ -92,7 +92,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`Store.LogPlan(logger)`** — human-readable plan logging for debugging.
 - **Typed projection decoders** — `EventWithID[P]`, `Register[E]`,
   `RegisterString[E]`, `NewTypeDecoder(regs...)`, `NewWithDecoder(name, store,
-  dec)`. Eliminates ~130 lines of consumer boilerplate per integration.
+dec)`. Eliminates ~130 lines of consumer boilerplate per integration.
 - **`Calibratable` interface exported** — `Calibration` struct + `CalibrationCosts`
   (includes `ReadCosts`). All external engines (duckdbengine, pebbleengine,
   pgengine) embed `Calibration` and implement `Calibratable`. `CalibrateEngine`
@@ -107,7 +107,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Scorecard SARIF output** — `cqrs-lint scorecard --format sarif` emits
   SARIF 2.1.0 with adoption metrics as `notifications`. 5 new tests.
 - **Markdown aggregate/module grouping** — `--group-by aggregate --format
-  markdown` and `--group-by module --format markdown`. 3 new tests.
+markdown` and `--group-by module --format markdown`. 3 new tests.
 - **KeyHolderAI feedback fixes (7 rules)**:
   - **C031** — false positive on `(any, error)` returns; now fires only when
     ALL results nil.
@@ -164,7 +164,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **M43: projectionhost PG crash-restart** — proves checkpoint recovery (host2
   processes only new events after crash). Via `testcontainers-go` + `nix run
-  .#integration-pg`.
+.#integration-pg`.
 - **M44: `scheduling/sqlstore`** — `SQLTimerStore[P]` with SQLite/PG/MySQL
   dialects. Idempotent `Schedule` via `ON CONFLICT`. 7 tests including
   durability/restart. 76.3% coverage.
