@@ -207,13 +207,19 @@ func renderScorecardSARIF(result ScorecardResult) (string, error) {
 					Name:           "cqrs-lint-scorecard",
 					Version:        version,
 					InformationURI: "https://github.com/larsartmann/go-cqrs-lite/tree/main/cmd/cqrs-lint",
-					Rules: []sarifRule{{
-						ID:               "scorecard/missing-module",
-						Name:             "MissingModule",
-						ShortDescription: sarifMessage{Text: "Relevant go-cqrs-lite module not adopted"},
-						FullDescription:  sarifMessage{Text: "This module is relevant to the project's feature profile but is not imported."},
-						DefaultConfig:    sarifConfig{Level: "info"},
-					}},
+					Rules: []sarifRule{
+						{
+							ID:   "scorecard/missing-module",
+							Name: "MissingModule",
+							ShortDescription: sarifMessage{
+								Text: "Relevant go-cqrs-lite module not adopted",
+							},
+							FullDescription: sarifMessage{
+								Text: "This module is relevant to the project's feature profile but is not imported.",
+							},
+							DefaultConfig: sarifConfig{Level: "info"},
+						},
+					},
 				},
 			},
 			Properties: map[string]any{
@@ -233,8 +239,8 @@ func renderScorecardSARIF(result ScorecardResult) (string, error) {
 		}
 
 		report.Runs[0].Results = append(report.Runs[0].Results, sarifResult{
-			RuleID: "scorecard/missing-module",
-			Level:  "info",
+			RuleID:  "scorecard/missing-module",
+			Level:   "info",
 			Message: sarifMessage{Text: msg},
 			Locations: []sarifLocation{{
 				PhysicalLocation: sarifPhysicalLocation{

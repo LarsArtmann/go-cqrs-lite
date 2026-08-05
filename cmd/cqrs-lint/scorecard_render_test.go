@@ -388,7 +388,8 @@ func TestRenderSARIF_MissingModulesAsResults(t *testing.T) {
 	if !strings.Contains(first.Message.Text, "Event Signing") {
 		t.Errorf("expected first result to mention 'Event Signing', got %s", first.Message.Text)
 	}
-	if len(first.Locations) != 1 || first.Locations[0].PhysicalLocation.ArtifactLocation.URI != "go.mod" {
+	if len(first.Locations) != 1 ||
+		first.Locations[0].PhysicalLocation.ArtifactLocation.URI != "go.mod" {
 		t.Errorf("expected location go.mod, got %+v", first.Locations)
 	}
 }
