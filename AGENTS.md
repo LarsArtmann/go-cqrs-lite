@@ -1187,13 +1187,22 @@ Tier 0 — Primitives: id/, dispatcher/, codec/, kv/, dedup/, retry/, flightreco
 Tier 1 — Core Domain: event/, command/, query/, scheduling/, metadata/
 Tier 2 — Domain Utilities: schema/, snapshot/, projection/, idempotency/, deriver/
 Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/
-Tier 4 — Infrastructure: storage/memory/, storage/, middleware/, signing/, encryption/, otel/, watermill/, transport/http/, transport/grpc/, storage/pebble/, storage/turso/, prometheus/, metaengine/projectionadapter/
-Tier 5 — Composition: stack/, stack/memory/, stack/sqlite/, stack/duckdb/, stack/pebble/, stack/postgres/, stack/mysql/, stack/turso/
-Tier 6 — Tooling & Examples: catalog/, integration/, stack/bench/, examples/, cmd/*
+Tier 4 — Infrastructure: storage/memory/, storage/, storage/pebble/, storage/turso/, signing/, encryption/, otel/,
+                     prometheus/, middleware/, transport/http/, transport/grpc/, watermill/, testutil/,
+                     metaengine/projectionadapter/, metaengine/pebbleengine/, metaengine/duckdbengine/,
+                     metaengine/pgengine/, metaengine/irohengine/, metaengine/irohengine/loopback/,
+                     metaengine/irohengine/quic/, idempotency/sqlstore/, idempotency/kvstore/,
+                     scheduling/sqlstore/
+Tier 5 — Composition: stack/, stack/memory/, stack/sqlite/, stack/duckdb/, stack/pebble/, stack/postgres/,
+                   stack/mysql/, stack/turso/, system/
+Tier 6 — Tooling & Examples: catalog/, integration/, benchkit/, stack/bench/, cmd/cqrs-gen/, cmd/cqrs-lint/,
+                            cmd/cqrs-bench/, cmd/api-stability/, cmd/doc-check/, example/taskmanager/,
+                            example/getting-started/, example/readme-quickstart/, event/v4/eventtest/
 ```
 
 > Note: the old 7-layer system (pre-ADR-0046) was inaccurate — kv/ depends on codec/, command/
-> depends on event/, and 40 of 58 modules depend on codec/. The four-tier model reflects reality.
+> depends on event/, and 44 of 68 modules depend on codec/. The seven-tier model reflects reality.
+> Full module-to-tier mapping: [`FOUR-TIER-MODEL.md`](docs/architecture-understanding/FOUR-TIER-MODEL.md) (68 modules across 7 tiers).
 >
 > **metaengine/ is THE STRATEGIC FUTURE of this project** (possibly a future dedicated project).
 > It is Tier 0 (Primitive), not Tier 3 (Aggregation) — intentional but surprising:
