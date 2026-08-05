@@ -48,44 +48,44 @@
 
 ## a) FULLY DONE (this session)
 
-| Item | Status | Evidence |
-| ---- | ------ | -------- |
-| Scorecard SARIF output | ✅ | `scorecard_render.go`, 5 tests, help text, README |
-| Markdown aggregate/module grouping | ✅ | `output.go:417-435`, 3 tests |
-| Scorecard format help text (text, json, markdown, sarif) | ✅ | `scorecard_command.go:20` |
-| CHANGELOG entries | ✅ | `CHANGELOG.md` [Unreleased] |
-| IMPROVEMENT_IDEAS.md item 195 updated | ✅ | markdown marked done |
-| Full suite build+vet+test+race | ✅ | all 16 packages green |
+| Item                                                     | Status | Evidence                                          |
+| -------------------------------------------------------- | ------ | ------------------------------------------------- |
+| Scorecard SARIF output                                   | ✅     | `scorecard_render.go`, 5 tests, help text, README |
+| Markdown aggregate/module grouping                       | ✅     | `output.go:417-435`, 3 tests                      |
+| Scorecard format help text (text, json, markdown, sarif) | ✅     | `scorecard_command.go:20`                         |
+| CHANGELOG entries                                        | ✅     | `CHANGELOG.md` [Unreleased]                       |
+| IMPROVEMENT_IDEAS.md item 195 updated                    | ✅     | markdown marked done                              |
+| Full suite build+vet+test+race                           | ✅     | all 16 packages green                             |
 
 ## b) PARTIALLY DONE
 
-| Item | What's done | What's missing |
-| ---- | ----------- | -------------- |
-| IMPROVEMENT_IDEAS.md item 195 | Markdown grouping shipped | SARIF `logicalLocations` grouping not done — the findings-level SARIF output (via `go-finding`) doesn't support grouping. Would require extending the `finding.Finding` SARIF renderer in `go-finding` to accept logicalLocations, or post-processing the SARIF JSON. |
-| Scorecard SARIF for CI pipelines | Format + data emitted | No GitHub Actions workflow example showing `cqrs-lint scorecard --format sarif` + `upload-sarif` action. The README has the lint-level SARIF example but not the scorecard one. |
+| Item                             | What's done               | What's missing                                                                                                                                                                                                                                                        |
+| -------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| IMPROVEMENT_IDEAS.md item 195    | Markdown grouping shipped | SARIF `logicalLocations` grouping not done — the findings-level SARIF output (via `go-finding`) doesn't support grouping. Would require extending the `finding.Finding` SARIF renderer in `go-finding` to accept logicalLocations, or post-processing the SARIF JSON. |
+| Scorecard SARIF for CI pipelines | Format + data emitted     | No GitHub Actions workflow example showing `cqrs-lint scorecard --format sarif` + `upload-sarif` action. The README has the lint-level SARIF example but not the scorecard one.                                                                                       |
 
 ## c) NOT STARTED (from paste backlog — confirmed not done)
 
-| Item | Notes |
-| ---- | ----- |
-| Publish cqrs-lint v4.4.0 | Blocked on user approval. Post-v4.3.0 work is unreleased. |
-| Run cqrs-lint against real consumer projects | Blocked on access to consumer repos. |
-| L1.15: CI self-lint job | `--self-lint` auto-detection works, but no GitHub Actions step gates it. |
-| L1.19: Feature adoption scorecard | `--scorecard` and `scorecard` subcommand exist. But L1.19 in the Pareto plan is listed as Open — needs verification if this is a different scope. |
-| L1.20: Grouped output by aggregate/domain | Text + markdown done. The Pareto item may have predated the text implementation. |
-| L1.23: Parallel rule safety + benchmark suite | Open. |
-| L1.30: Orphaned event types (extend E006 for adapters) | Open. |
-| L1.31: Orphaned commands detection | Open. |
-| L1.45: Shared mutable state in event handler (extend A015) | Open. |
-| L1.47-L1.51: New rule categories (DOC/OBS/RES/DI) | Ambitious, all open. |
-| F-series migration to per-module | Intentionally not done — F-series coaches the whole project. |
+| Item                                                       | Notes                                                                                                                                             |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Publish cqrs-lint v4.4.0                                   | Blocked on user approval. Post-v4.3.0 work is unreleased.                                                                                         |
+| Run cqrs-lint against real consumer projects               | Blocked on access to consumer repos.                                                                                                              |
+| L1.15: CI self-lint job                                    | `--self-lint` auto-detection works, but no GitHub Actions step gates it.                                                                          |
+| L1.19: Feature adoption scorecard                          | `--scorecard` and `scorecard` subcommand exist. But L1.19 in the Pareto plan is listed as Open — needs verification if this is a different scope. |
+| L1.20: Grouped output by aggregate/domain                  | Text + markdown done. The Pareto item may have predated the text implementation.                                                                  |
+| L1.23: Parallel rule safety + benchmark suite              | Open.                                                                                                                                             |
+| L1.30: Orphaned event types (extend E006 for adapters)     | Open.                                                                                                                                             |
+| L1.31: Orphaned commands detection                         | Open.                                                                                                                                             |
+| L1.45: Shared mutable state in event handler (extend A015) | Open.                                                                                                                                             |
+| L1.47-L1.51: New rule categories (DOC/OBS/RES/DI)          | Ambitious, all open.                                                                                                                              |
+| F-series migration to per-module                           | Intentionally not done — F-series coaches the whole project.                                                                                      |
 
 ## d) TOTALLY FUCKED UP
 
-| Item | Impact | Fix |
-| ---- | ------ | --- |
+| Item                                                    | Impact                                                                                                                                                           | Fix                                                                                         |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | **Pre-existing build error in `feature_detect.go:204`** | gopls reports `isHTTPFrameworkImport` undefined. The function exists at line 496. `go build` succeeds — this is a stale gopls LSP cache issue, not a real error. | `lsp_restart gopls` or ignore — the build is authoritative. **Not caused by this session.** |
-| **Nothing broken by this session** | All changes build, vet, and pass tests with `-race`. | N/A |
+| **Nothing broken by this session**                      | All changes build, vet, and pass tests with `-race`.                                                                                                             | N/A                                                                                         |
 
 ## e) WHAT WE SHOULD IMPROVE
 

@@ -137,14 +137,14 @@ func NewA018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return false
 					}
 
-						if sel.Sel.Name == "Dispatch" || sel.Sel.Name == "DispatchTyped" ||
-							sel.Sel.Name == "RegisterTyped" || sel.Sel.Name == "RegisterQuery" ||
-							sel.Sel.Name == "NewDispatcher" {
-							hasDispatch = true
-						}
+					if sel.Sel.Name == "Dispatch" || sel.Sel.Name == "DispatchTyped" ||
+						sel.Sel.Name == "RegisterTyped" || sel.Sel.Name == "RegisterQuery" ||
+						sel.Sel.Name == "NewDispatcher" {
+						hasDispatch = true
+					}
 
-						return true
-					})
+					return true
+				})
 			}
 
 			if hasSaveOrPublish || len(ctx.Registry.Folds) > 0 {

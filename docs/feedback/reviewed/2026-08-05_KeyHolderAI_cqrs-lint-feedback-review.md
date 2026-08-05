@@ -48,6 +48,7 @@ The linter correctly suggests this function. The consumer's confusion stems from
 **Root cause confirmed:** `readGoModCQRSVersion` took `parts[len(parts)-1]` from the first matching go.mod line. On `// indirect` lines, the last field was `"indirect"`, not the version. The finding message literally said `"go.mod has indirect"`.
 
 **Fix:** `pkg/rules/consistency/d003_d005.go` — `readGoModCQRSVersion` now:
+
 1. Strips `// ...` comments before field-splitting (so `"indirect"` is never the last field).
 2. Prefers direct imports (lines without `// indirect`) over indirect ones. In multi-module repos, direct imports (`command/v4`, `query/v4`) carry the authoritative version; indirect siblings (`dispatcher/v4`, `event/v4`) are transitive topology, not version signals.
 3. Falls back to indirect version if no direct import exists.
@@ -64,6 +65,7 @@ The linter correctly suggests this function. The consumer's confusion stems from
 **Root cause:** The detector already checked for `ListenAndServe` as a method name (which should catch `srv.ListenAndServe()`), but this wasn't sufficient for all consumers. HTTP framework imports (Gin, Echo, Fiber, Chi) were not recognized as server signals.
 
 **Fix:** `pkg/analyzer/feature_detect.go` — added:
+
 1. **HTTP framework import detection:** `isHTTPFrameworkImport()` checks for `gin-gonic/gin`, `labstack/echo`, `gofiber/fiber`, `go-chi/chi`. Any of these imports sets `hasHTTPFramework=true`, which resolves `HasServer=true`. `net/http` is intentionally excluded (too broad — HTTP clients import it too).
 2. **Gin `Run` method detection:** `method == "Run" && hasHTTPFramework` sets `HasServer=true`. This catches Gin's `engine.Run(":8080")` pattern.
 3. Both Pass 1 (import-based) and Pass 1b (AST-based) now check framework imports.
@@ -118,13 +120,13 @@ The linter correctly suggests this function. The consumer's confusion stems from
 
 ## Summary
 
-| # | Issue | Status | Files Changed |
-|---|-------|--------|---------------|
-| 1 | C031 false positive on `(any, error)` returns | Fixed | `c031.go`, `c031_test.go` |
-| 2 | F007/A016 "imaginary API" | Not a bug | None — function exists |
-| 3 | D005 indirect-marker false positive | Fixed | `d003_d005.go`, `d005_internal_test.go` |
-| 4 | `server: false` misses HTTP frameworks | Fixed | `feature_detect.go`, `feature_profile_test.go` |
-| 5 | S006 self-contradicts on local-only | Fixed | `s006.go` |
-| 6 | E009 doesn't recognize cqrs-htmx | Already handled | `e008_e011.go` (suggestion text only) |
-| 7 | A018 conflates no-ES with dead import | Fixed | `a015_a019.go` |
-| 8 | B004 fires when constructors exist | Fixed | `b004_b008.go` |
+| #   | Issue                                         | Status          | Files Changed                                  |
+| --- | --------------------------------------------- | --------------- | ---------------------------------------------- |
+| 1   | C031 false positive on `(any, error)` returns | Fixed           | `c031.go`, `c031_test.go`                      |
+| 2   | F007/A016 "imaginary API"                     | Not a bug       | None — function exists                         |
+| 3   | D005 indirect-marker false positive           | Fixed           | `d003_d005.go`, `d005_internal_test.go`        |
+| 4   | `server: false` misses HTTP frameworks        | Fixed           | `feature_detect.go`, `feature_profile_test.go` |
+| 5   | S006 self-contradicts on local-only           | Fixed           | `s006.go`                                      |
+| 6   | E009 doesn't recognize cqrs-htmx              | Already handled | `e008_e011.go` (suggestion text only)          |
+| 7   | A018 conflates no-ES with dead import         | Fixed           | `a015_a019.go`                                 |
+| 8   | B004 fires when constructors exist            | Fixed           | `b004_b008.go`                                 |
