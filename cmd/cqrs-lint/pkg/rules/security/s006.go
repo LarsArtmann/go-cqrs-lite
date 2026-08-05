@@ -120,6 +120,13 @@ func NewS006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 
 				if !ctx.ProfileForFile(m.filename).HasServer {
+					// Suppress WEAK-tier findings for local-only projects: generic
+					// monetary lexemes (amount, price, balance) on CLI tools and
+					// background workers generate noise without security value.
+					if m.tier == tierWeak {
+						continue
+					}
+
 					severity = finding.SeverityInfo
 					if confidence > finding.ConfidenceLow {
 						confidence = finding.ConfidenceLow

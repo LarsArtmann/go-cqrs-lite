@@ -252,9 +252,14 @@ func outputFindings(ctx context.Context, findings []finding.Finding, cfg *AppCon
 		}
 
 	case "markdown":
-		err := finding.FormatMarkdown(os.Stdout, findings)
-		if err != nil {
-			return err
+		groupMode := resolveGroupMode(cfg)
+		if groupMode == "aggregate" || groupMode == "module" {
+			printMarkdownGrouped(os.Stdout, findings, groupMode)
+		} else {
+			err := finding.FormatMarkdown(os.Stdout, findings)
+			if err != nil {
+				return err
+			}
 		}
 
 	default:
@@ -405,5 +410,28 @@ func printFindingsByAggregate(w io.Writer, findings []finding.Finding, cm output
 
 		_, _ = fmt.Fprintln(w, header)
 		formatFindingsText(w, g.findings, cm)
+	}
+}
+
+// printMarkdownGrouped renders findings as markdown with group headings.
+// Each group becomes a "## GroupName (N findings)" section, with the
+// findings rendered via finding.FormatMarkdown within that section.
+// Supports both "aggregate" and "module" grouping modes.
+func printMarkdownGrouped(w io.Writer, findings []finding.Finding, groupMode string) {
+	var groups []findingGroup
+
+	switch groupMode {
+	case "aggregate":
+		groups = groupFindingsByAggregate(findings)
+	case "module":
+		groups = groupFindingsByModule(findings)
+	default:
+		groups = []findingGroup{{name: "Findings", findings: findings}}
+	}
+
+	for _, g := range groups {
+		fmt.Fprintf(w, "## %s (%d)\n\n", g.name, len(g.findings))
+		_ = finding.FormatMarkdown(w, g.findings)
+		fmt.Fprintln(w)
 	}
 }

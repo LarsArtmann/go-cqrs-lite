@@ -315,3 +315,105 @@ func TestPrintFindingsByAggregate_UntaggedFindingsGoToUncategorized(t *testing.T
 		t.Errorf("expected Uncategorized group header, got: %s", output)
 	}
 }
+
+func TestPrintMarkdownGrouped_AggregateMode(t *testing.T) {
+	t.Parallel()
+
+	findings := []finding.Finding{
+		{
+			Rule:     "C001",
+			ToolName: "cqrs-lint",
+			Message:  "user issue",
+			Severity: finding.SeverityError,
+			Position: finding.Position{File: finding.FilePath("user.go"), Line: 1, Column: 1},
+			Metadata: map[string]string{"aggregate": "User"},
+		},
+		{
+			Rule:     "C002",
+			ToolName: "cqrs-lint",
+			Message:  "order issue",
+			Severity: finding.SeverityWarning,
+			Position: finding.Position{File: finding.FilePath("order.go"), Line: 2, Column: 3},
+			Metadata: map[string]string{"aggregate": "Order"},
+		},
+		{
+			Rule:     "C003",
+			ToolName: "cqrs-lint",
+			Message:  "another user issue",
+			Severity: finding.SeverityWarning,
+			Position: finding.Position{File: finding.FilePath("user2.go"), Line: 5, Column: 1},
+			Metadata: map[string]string{"aggregate": "User"},
+		},
+	}
+
+	var buf bytes.Buffer
+	printMarkdownGrouped(&buf, findings, "aggregate")
+
+	out := buf.String()
+	// User group should appear first (2 findings > 1 finding).
+	userIdx := strings.Index(out, "## User (2)")
+	orderIdx := strings.Index(out, "## Order (1)")
+	if userIdx < 0 {
+		t.Errorf("expected '## User (2)' header in markdown output, got:\n%s", out)
+	}
+	if orderIdx < 0 {
+		t.Errorf("expected '## Order (1)' header in markdown output, got:\n%s", out)
+	}
+	if userIdx > orderIdx && userIdx >= 0 && orderIdx >= 0 {
+		t.Error("User group (more findings) should appear before Order group")
+	}
+}
+
+func TestPrintMarkdownGrouped_ModuleMode(t *testing.T) {
+	t.Parallel()
+
+	findings := []finding.Finding{
+		{
+			Rule:     "C001",
+			ToolName: "cqrs-lint",
+			Message:  "issue in pkg/a",
+			Severity: finding.SeverityError,
+			Position: finding.Position{File: finding.FilePath("pkg/a/file.go"), Line: 1, Column: 1},
+		},
+		{
+			Rule:     "C002",
+			ToolName: "cqrs-lint",
+			Message:  "issue in pkg/b",
+			Severity: finding.SeverityWarning,
+			Position: finding.Position{File: finding.FilePath("pkg/b/file.go"), Line: 2, Column: 3},
+		},
+	}
+
+	var buf bytes.Buffer
+	printMarkdownGrouped(&buf, findings, "module")
+
+	out := buf.String()
+	if !strings.Contains(out, "## pkg/a (1)") {
+		t.Errorf("expected '## pkg/a (1)' header, got:\n%s", out)
+	}
+	if !strings.Contains(out, "## pkg/b (1)") {
+		t.Errorf("expected '## pkg/b (1)' header, got:\n%s", out)
+	}
+}
+
+func TestPrintMarkdownGrouped_DefaultMode(t *testing.T) {
+	t.Parallel()
+
+	findings := []finding.Finding{
+		{
+			Rule:     "C001",
+			ToolName: "cqrs-lint",
+			Message:  "test",
+			Severity: finding.SeverityError,
+			Position: finding.Position{File: finding.FilePath("main.go"), Line: 1, Column: 1},
+		},
+	}
+
+	var buf bytes.Buffer
+	printMarkdownGrouped(&buf, findings, "none")
+
+	out := buf.String()
+	if !strings.Contains(out, "## Findings (1)") {
+		t.Errorf("expected '## Findings (1)' header for default mode, got:\n%s", out)
+	}
+}

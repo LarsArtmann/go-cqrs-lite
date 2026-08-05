@@ -117,8 +117,8 @@ func NewE009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"E009",
 					"Module has command and query dispatchers but no HTTP/gRPC transport layer — "+
 						"commands and queries can only be dispatched programmatically",
-					"Add transport/http (SSE event delivery, HTTP handlers) or transport/grpc "+
-						"to expose the CQRS API to external clients",
+					"Add transport/http (SSE event delivery, HTTP handlers), transport/grpc, "+
+						"or cqrs-htmx to expose the CQRS API to external clients",
 					state.firstPos,
 					finding.SeverityInfo,
 					finding.ConfidenceLow,
