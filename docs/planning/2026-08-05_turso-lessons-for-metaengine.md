@@ -15,9 +15,9 @@
 
 Turso's article describes a database architecture where one execution core (a bytecode VM called VDBE) serves multiple query-language frontends (SQLite SQL, Postgres SQL). The headline claim — "the LLVM of databases" — is seductive but **inverts** the metaengine's architecture.
 
-The metaengine is the **mirror image** of Turso: where Turso has *many query languages → one storage engine*, the metaengine has *one event log → many storage engines*. Both use an intermediate representation in the middle, but the direction of multiplicity is opposite.
+The metaengine is the **mirror image** of Turso: where Turso has _many query languages → one storage engine_, the metaengine has _one event log → many storage engines_. Both use an intermediate representation in the middle, but the direction of multiplicity is opposite.
 
-The single highest-value insight: **Turso's headline feature — live, auto-updating materialized views — is exactly what event sourcing + the metaengine already deliver, but smarter.** The metaengine doesn't just auto-update views; its planner *decides whether to materialize at all* based on cost. This is a strict superset of Turso's capability and should be the metaengine's positioning north star.
+The single highest-value insight: **Turso's headline feature — live, auto-updating materialized views — is exactly what event sourcing + the metaengine already deliver, but smarter.** The metaengine doesn't just auto-update views; its planner _decides whether to materialize at all_ based on cost. This is a strict superset of Turso's capability and should be the metaengine's positioning north star.
 
 The single most dangerous trap: **don't build a bytecode VM.** Turso's VDBE is a massive runtime execution engine. The metaengine is a deployment-time planner that delegates execution to existing SQL engines. Conflating these layers would be a category error.
 
@@ -61,14 +61,14 @@ Explicitly NOT aiming for 100% Postgres compatibility. "Compatible enough at the
 
 ### The Inverse LLVM
 
-| Dimension          | Turso ("LLVM of databases")              | metaengine (what we are)                    |
-| ------------------ | ----------------------------------------- | ------------------------------------------- |
-| **Direction**      | N query languages → 1 storage engine      | 1 event log → N storage engines             |
-| **IR**             | VDBE bytecode (runtime execution)         | ADT classification (deployment-time planning) |
-| **Multiplicity**   | Many frontends, one backend               | One frontend, many backends                 |
-| **When**           | Runtime (query compilation)               | Deployment-time (plan once, execute forever) |
-| **What it owns**   | Storage, execution, B-trees, MVCC         | Planning, cost estimation, engine selection |
-| **What it delegates** | Nothing (it IS the storage engine)     | Everything (SQL engines do the actual work) |
+| Dimension             | Turso ("LLVM of databases")          | metaengine (what we are)                      |
+| --------------------- | ------------------------------------ | --------------------------------------------- |
+| **Direction**         | N query languages → 1 storage engine | 1 event log → N storage engines               |
+| **IR**                | VDBE bytecode (runtime execution)    | ADT classification (deployment-time planning) |
+| **Multiplicity**      | Many frontends, one backend          | One frontend, many backends                   |
+| **When**              | Runtime (query compilation)          | Deployment-time (plan once, execute forever)  |
+| **What it owns**      | Storage, execution, B-trees, MVCC    | Planning, cost estimation, engine selection   |
+| **What it delegates** | Nothing (it IS the storage engine)   | Everything (SQL engines do the actual work)   |
 
 This is the crucial distinction. Turso builds the engine. The metaengine picks the engine.
 
@@ -76,13 +76,13 @@ This is the crucial distinction. Turso builds the engine. The metaengine picks t
 
 Both systems use an intermediate representation between "what the user declares" and "how it executes":
 
-| Turso                          | metaengine                                    |
-| ------------------------------ | --------------------------------------------- |
-| SQL text (frontend)            | Fold return types (frontend)                  |
-| Common AST                     | ADT classification (Map, Set, Counter, ...)   |
-| VDBE bytecode (IR)             | ADT × Engine × Layout cost matrix (IR)        |
-| VDBE execution (one core)      | Engine backend dispatch (Memory/SQLite/DuckDB/...) |
-| Runtime query optimization     | Deployment-time plan + SQL engine's own optimizer |
+| Turso                      | metaengine                                         |
+| -------------------------- | -------------------------------------------------- |
+| SQL text (frontend)        | Fold return types (frontend)                       |
+| Common AST                 | ADT classification (Map, Set, Counter, ...)        |
+| VDBE bytecode (IR)         | ADT × Engine × Layout cost matrix (IR)             |
+| VDBE execution (one core)  | Engine backend dispatch (Memory/SQLite/DuckDB/...) |
+| Runtime query optimization | Deployment-time plan + SQL engine's own optimizer  |
 
 The metaengine's ADT classification is its "bytecode" — but it's a **compile-time IR** that selects which backend interface to use, not a **runtime IR** that executes operations. The metaengine generates SQL DDL (LayoutPlan) and delegates to the SQL engine's own runtime optimizer for actual query execution.
 
@@ -116,6 +116,7 @@ Turso's VDBE is documented as a first-class architectural concept. The metaengin
 The DataFusion lessons doc started this framing (mapping `LogicalPlan` ↔ `Plan + LayoutPlan`). The Turso parallel adds another angle: ADTs are the **planning IR** that makes multi-engine routing possible. Without the ADT abstraction, the metaengine would need N×M adapters (N query patterns × M engines). With it, the problem decomposes to N + M (N pattern→ADT classifications + M ADT→engine implementations).
 
 **Action:** Add an "Architecture: The ADT IR" section to the meta-engine-design.md that explicitly frames:
+
 - Fold return types → ADT classification (the "parse" step)
 - ADT → Engine backend dispatch (the "compile" step)
 - Cost matrix as the "optimizer"
@@ -128,6 +129,7 @@ Turso's reliability story: DST, Antithesis, Oracle testing, fuzzing, formal meth
 The metaengine already has the right instinct: the Memory engine is the reference implementation. Every other engine should produce identical results for the same operations. But `RunMatrix` is scenario-based, not property-based.
 
 **Action:** Add property-based cross-engine testing using `pgregory.net/rapid`:
+
 - For each ADT, generate random operation sequences
 - Apply to Memory engine (the Oracle)
 - Apply to SQLite/Pebble/DuckDB/Postgres engines
@@ -173,6 +175,7 @@ Not every engine needs to implement every ADT optimally. The "degraded" classifi
 The VDBE is Turso's core engineering investment — years of work by a funded team. It's a runtime execution engine that interprets database operations.
 
 The metaengine does NOT need this. It delegates execution to SQL engines that already have their own runtime optimizers:
+
 - SQLite has its own VDBE
 - DuckDB has vectorized columnar execution
 - Postgres has its executor
@@ -186,6 +189,7 @@ Adding a bytecode layer to the metaengine would duplicate work that SQL engines 
 Turso IS a storage engine: B-trees, pages, MVCC, WAL, compaction. This is the hardest part of database engineering.
 
 The metaengine is a PLANNER that routes to existing storage engines. It should NEVER implement:
+
 - B-trees or page management
 - MVCC or transaction isolation
 - WAL or crash recovery
@@ -204,6 +208,7 @@ The `transport/http` and `transport/grpc` modules exist for CQRS command/query d
 Turso runs in browsers via WASM. The metaengine is a Go library — it runs wherever Go runs (server, CLI, embedded devices with Go support).
 
 Browser/WASM support would require:
+
 - Compiling Go + a storage engine (modernc.org/sqlite) to WASM
 - A completely different deployment story
 - A different project entirely
@@ -215,6 +220,7 @@ This is not the metaengine's problem to solve. If a consumer wants browser-local
 The "LLVM of databases" metaphor works for Turso because they have ONE execution engine with MANY frontends. The metaengine has ONE event log with MANY engines. These are inverse architectures.
 
 Calling the metaengine "the LLVM of event-sourced storage" would be misleading. The metaengine is better described as:
+
 - **"The storage optimizer for event-sourced systems"**
 - **"The cost-based query router for CQRS read models"**
 - **"The planner that decides where each projection lives"**
@@ -233,12 +239,12 @@ The "degraded" classification is the honest answer: "this engine CAN serve this 
 
 ## Part 5: Concrete Action Items
 
-| # | Action                                                                                          | Priority | Effort  |
-| --- | ----------------------------------------------------------------------------------------------- | -------- | ------- |
-| 1   | Rewrite the metaengine positioning to lead with "cost-based auto-updating materialized views"  | High     | Low (docs) |
+| #   | Action                                                                                          | Priority | Effort     |
+| --- | ----------------------------------------------------------------------------------------------- | -------- | ---------- |
+| 1   | Rewrite the metaengine positioning to lead with "cost-based auto-updating materialized views"   | High     | Low (docs) |
 | 2   | Add "The ADT IR" architecture section to meta-engine-design.md                                  | Medium   | Low (docs) |
-| 3   | Add property-based cross-engine Oracle testing (rapid) to adttest                               | Medium   | Medium  |
-| 4   | Quote Turso's "inside, databases are not that different" in assumptions-and-query-planning.md   | Low      | Trivial |
+| 3   | Add property-based cross-engine Oracle testing (rapid) to adttest                               | Medium   | Medium     |
+| 4   | Quote Turso's "inside, databases are not that different" in assumptions-and-query-planning.md   | Low      | Trivial    |
 | 5   | Frame deployment-time planning as an advantage in project-definition.md                         | Medium   | Low (docs) |
 | 6   | Document Pareto engine coverage as an explicit design principle                                 | Low      | Low (docs) |
 | 7   | Add an "Anti-Patterns" section to design docs: no bytecode VM, no storage engine, no wire proto | Medium   | Low (docs) |
@@ -265,16 +271,16 @@ This is why the metaengine is "THE STRATEGIC FUTURE" of this project: it's not j
 
 ## Appendix: Turso Feature → Metaengine Mapping
 
-| Turso Feature                    | Metaengine Equivalent                              | Status              |
-| -------------------------------- | -------------------------------------------------- | ------------------- |
-| VDBE bytecode VM                 | ADT classification + cost matrix                   | Exists (different layer) |
+| Turso Feature                      | Metaengine Equivalent                            | Status                       |
+| ---------------------------------- | ------------------------------------------------ | ---------------------------- |
+| VDBE bytecode VM                   | ADT classification + cost matrix                 | Exists (different layer)     |
 | Pluggable frontends (SQL dialects) | Fold return type → ADT inference                 | Exists (different direction) |
-| Live materialized views          | Projections + materialize-vs-replay planner rule   | Exists (superset)   |
-| Embedded everywhere              | Memory + SQLite engines (in-process)               | Partial (no browser/WASM) |
-| MVCC concurrent writes           | Delegated to SQL engines                           | N/A (not our layer) |
-| Rich type system                 | Go generics + branded IDs                          | Exists (different mechanism) |
-| DST / Antithesis testing         | adttest.RunMatrix + rapid property tests           | Partial             |
-| Oracle testing                   | Memory engine as reference + cross-engine parity   | Partial             |
-| Pareto compatibility             | Degraded ADT classification                        | Exists              |
-| Wire protocol (Postgres)         | N/A — library, not server                          | N/A                 |
-| Extension system (WASM)          | N/A — Go plugin / interface segregation            | N/A                 |
+| Live materialized views            | Projections + materialize-vs-replay planner rule | Exists (superset)            |
+| Embedded everywhere                | Memory + SQLite engines (in-process)             | Partial (no browser/WASM)    |
+| MVCC concurrent writes             | Delegated to SQL engines                         | N/A (not our layer)          |
+| Rich type system                   | Go generics + branded IDs                        | Exists (different mechanism) |
+| DST / Antithesis testing           | adttest.RunMatrix + rapid property tests         | Partial                      |
+| Oracle testing                     | Memory engine as reference + cross-engine parity | Partial                      |
+| Pareto compatibility               | Degraded ADT classification                      | Exists                       |
+| Wire protocol (Postgres)           | N/A — library, not server                        | N/A                          |
+| Extension system (WASM)            | N/A — Go plugin / interface segregation          | N/A                          |
