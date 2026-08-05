@@ -8,6 +8,169 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### System/ Pareto execution — P0 wiring fixes, snapshot E2E, decoder wiring
+
+- **Driver registry wired into constructor** — `createEngine()` replaced with
+  `createEngineFromDriver()`. SQLite driver registered in `init()` (opens
+  `*sql.DB` from DSN, calls `metaengine.NewSQLiteEngine(db)`). SQLite is now
+  reachable through `system.New()` — full CQRS roundtrip works end-to-end.
+- **Serialization auto-detection** — `NewEventAdapter` detects non-Memory
+  engines and passes `WithSerialization()` automatically. SQL-persisted events
+  reconstruct typed payloads via `serializedEvent` JSON envelope.
+- **simpleBus handler independence** — each handler now called independently
+  (previously chained into a single sequential chain where one error skipped
+  the rest). Standard `event.Bus` semantics.
+- **MultiBus wired into `New()`** — fan-out to multiple publishers (D9) works
+  through the constructor. `Publisher()` / `Publishers()` accessors.
+- **SnapshotBackend wired into `New()` + lifecycle** — `SnapshotAdapter` wraps
+  `metaengine.SnapshotBackend`. `WithSnapshotStore` option on `RegisterDecider`
+  with automatic codec + strategy wiring.
+- **Introspection real health checks** — `Snapshot()` now returns live handler
+  counts and real health status (was hardcoded `"ok"` / `0`).
+- **Scream store wired** — `CheckSafety(ctx, deployment)` called on startup;
+  `ErrUnsafeChange` returned on SCREAM-tier violations.
+- **Config loader** — YAML parsing implemented (`yaml.v3`); gochannel bus
+  driver registered; nested env-var overrides.
+- **System.Verify/Plan/Explain methods** — cross-instance consistency check,
+  combined plan, human-readable explanation (design §8.3).
+- **SQLite-through-System integration test** — full CQRS roundtrip: construct
+  with `Driver: "sqlite"`, dispatch command, verify event persisted.
+- **Projection E2E test** — dispatch command → `host.Start(ctx)` → verify
+  projection store updated.
+- **Projection decoder wiring** — `ProjectionTypeDecoder` and
+  `ProjectionEventDecoder` fields on `DomainConfig`. Priority chain:
+  `TypeDecoder > EventDecoder > PayloadDecoder > generic JSON`. Backward
+  compatible.
+- **StreamReadFromVersion** — added to `StreamTemporalReader` interface; Memory
+  + SQLite implementations. Wired into EventAdapter `LoadFromVersion` (with
+  critical `+1` 0-indexed→1-indexed conversion).
+- **Snapshot E2E integration test** — 3 tests (285 lines). Found and fixed
+  Save key mismatch bug + missing codec wiring in `RegisterDecider`.
+- **Pebble restart safety** — `seedSeqCounters()` seeds 4 collection counters
+  on engine construction. **BREAKING**: `NewPebbleEngineFromDB` returns
+  `(metaengine.Engine, error)`.
+- **Pebble StreamLogBackend** — `metaengine/pebbleengine/stream_log.go` (319
+  lines). Key-prefix scan, seq-based journal.
+- **DuckDB StreamLogBackend** — `metaengine/duckdbengine/stream_log.go` (123
+  lines). CGo-isolated.
+- **Postgres StreamLogBackend** — `metaengine/pgengine/stream_log.go` (131
+  lines). JSONB persistence.
+- **DuckDB + Postgres AtomicAppender** — both implement
+  `StreamAppendExpected` for optimistic concurrency under concurrent writes.
+- **Stream codec consolidation** — `EncodeStreamValue` / `DecodeStreamValue`
+  in `metaengine/stream_codec.go`. DuckDB + Postgres updated.
+- **api-stability** — `system` added to modules list. Golden regenerated.
+
+#### Irohengine: loopback transport (real TCP, no CGo)
+
+- **`metaengine/irohengine/loopback`** — new module implementing
+  `irohengine.Transport` over **real TCP connections** with length-prefix
+  framing. NO CGo required. Middle tier of the transport testing pyramid:
+  catches serialization/framing bugs that InProcessNetwork cannot. 9
+  convergence tests pass with `-race`.
+- **Latency measurement overhaul** — `LatencyCollector` with rolling 512-sample
+  window (mean/P50/P95/P99/max). `Profile()` returns measured values (P99 for
+  replication lag, 2×P50 for network RTT). Zero before traffic.
+- **CBOR encoding** — both loopback and QUIC transports switched from
+  `encoding/json` to `fxamacker/cbor/v2`. Fixed `time.Time` truncation and
+  `map[any]any` decode issues.
+- **SSE Watcher race fix** — root cause: `Watcher.Close()` closed channels
+  under `w.mu` while `notify()` sent under `h.mu`. Fix: `notify()` now holds
+  `h.mu` for entire iteration including sends. New `closeEntries()` method.
+- **Op-level dedup** — `dedupSeen` set (10K bound) on QuicTransport prevents
+  double-apply on redelivery for `SetAdd`/`CounterIncrement` (non-idempotent
+  ops).
+- **Exported stats helpers** — `SortDurations`, `PercentileIdx` shared from
+  irohengine parent; DRY'd `computeStats`/`percentile` across loopback + quic.
+
+#### Metaengine: consumer DX helpers + CalibrateEngine export
+
+- **`NewSQLiteEngineFromDSN(dsn)`** — one-call engine construction from DSN.
+  Opens `*sql.DB`, creates SQLite engine.
+- **`PlanFromSQLite(dsn, queries...)`** — one-call Plan using a SQLite engine
+  created from DSN.
+- **`Store.LogPlan(logger)`** — human-readable plan logging for debugging.
+- **Typed projection decoders** — `EventWithID[P]`, `Register[E]`,
+  `RegisterString[E]`, `NewTypeDecoder(regs...)`, `NewWithDecoder(name, store,
+  dec)`. Eliminates ~130 lines of consumer boilerplate per integration.
+- **`Calibratable` interface exported** — `Calibration` struct + `CalibrationCosts`
+  (includes `ReadCosts`). All external engines (duckdbengine, pebbleengine,
+  pgengine) embed `Calibration` and implement `Calibratable`. `CalibrateEngine`
+  no longer silently does nothing for them.
+- **DuckDB LayoutPlanner follow-ups** — `ExplainableScan` interface +
+  `ExplainScanQuery`. Centralized planned-table helpers (`QuoteIdent`,
+  `ExtractFields`, `JSONFieldName`, `PlansColumnCompatible`). Layout
+  benchmarks. `adttest.RunLayoutMatrix` + `RunLayoutConflictTest`.
+
+#### cqrs-lint: SARIF scorecard, KeyHolderAI feedback fixes, go-humanize
+
+- **Scorecard SARIF output** — `cqrs-lint scorecard --format sarif` emits
+  SARIF 2.1.0 with adoption metrics as `notifications`. 5 new tests.
+- **Markdown aggregate/module grouping** — `--group-by aggregate --format
+  markdown` and `--group-by module --format markdown`. 3 new tests.
+- **KeyHolderAI feedback fixes (7 rules)**:
+  - **C031** — false positive on `(any, error)` returns; now fires only when
+    ALL results nil.
+  - **D005** — indirect-marker fix; strips `//` comments, prefers direct
+    over indirect in `readGoModCQRSVersion`.
+  - **S006** — WEAK-tier findings suppressed when `!HasServer`.
+  - **A018** — now checks for dispatch activity (not just dead import);
+    confidence High→Medium.
+  - **B004** — now checks for existing constructors; confidence High→Medium.
+  - **E009** — suggestion text updated with `cqrs-htmx` transport.
+  - **Server detection** — added HTTP framework import detection
+    (Gin/Echo/Fiber/Chi).
+- **go-humanize adoption** — `benchkit/report_format.go` uses
+  `humanize.IBytes` / `humanize.SIWithDigits` instead of hand-rolled
+  formatters. `metaengine/plan_types.go` uses `humanize.Commaf`.
+  `go-humanize-linter` reports 0 findings.
+
+#### Dedup passes (68 → 66 clone groups) + lint debt cleanup
+
+- **8 production-code extractions** — `lintutil.BaseFileName`,
+  `executeSliceResult[R]` (metaengine 3 wrappers), `newPrefixIter` (pebbleengine
+  5 sites), `writeSectionHeader` (explain.go 8 headers), `loadFindingLines`
+  (suppression), `loadFiltered` (system), `setupMemoryMetaEngineStore`
+  (benchkit), `renderKeyTable` (explain.go).
+- **Pebble seq seeding consolidation** — deleted `seedStreamSeqs()`, replaced
+  with generic `seedCollectionSeqs("sl", ...)`.
+- **SelectorIdent helper** — `lintutil.SelectorIdent(sel)` for d007 + c037.
+- **46 pre-existing lint issues cleared** — 31 errcheck, 15 other across 12
+  files.
+- **api-stability golden regenerated** — +2 exports (`PercentileIdx`,
+  `SortDurations`).
+
+#### Code quality: encryption, metadata immutability, TTL tests
+
+- **Encryption double-clone removed** — `crypto_helpers.go:66` redundant
+  `.Clone()` removed (`Metadata()` already returns a clone).
+- **command.Metadata immutability** — pointer-receiver `EnsureCustom()`
+  replaced with value-receiver `WithCustom()`. Removed `//nolint:recvcheck`.
+- **query.Metadata immutability** — same pattern applied to `query/query.go`.
+- **Flaky kvstore TTL tests** — `race_on_test.go`/`race_off_test.go` with
+  `ttlTestParams()` helper. Verified `-race -count=3` (123s, all green).
+
+#### Layer enforcement + seven-tier model
+
+- **`check-module-layers.sh` comprehensive fix** — 68/68 modules covered.
+  Added self-enforcing coverage guard (fails if any `go.mod` lacks LAYER/
+  DEP_BUDGET entries). `listing/` moved Layer 5→3, 14 missing modules added,
+  `system/` added (Layer 6, budget 13), all `metaengine/irohengine/*` added.
+- **ADR-0046 seven-tier model** — module count updated 55→68 everywhere. All
+  68 modules mapped to 7 tiers. Mermaid `flowchart TB` added. Enforcement
+  section (3 mechanisms: bash DAG, go-arch-lint, depguard).
+
+#### Integration test infrastructure: M43 + M44 + M14
+
+- **M43: projectionhost PG crash-restart** — proves checkpoint recovery (host2
+  processes only new events after crash). Via `testcontainers-go` + `nix run
+  .#integration-pg`.
+- **M44: `scheduling/sqlstore`** — `SQLTimerStore[P]` with SQLite/PG/MySQL
+  dialects. Idempotent `Schedule` via `ON CONFLICT`. 7 tests including
+  durability/restart. 76.3% coverage.
+- **M14: nspawn MySQL container test** — systemd-nspawn variant (~15s vs
+  ~131s for QEMU). Composite scripts prefer nspawn with QEMU fallback.
+
 #### system/ package: operator-configured CQRS topology (first pass)
 
 - **`system.System` type** — a new module implementing the operator-configured,

@@ -4,11 +4,11 @@
 
 ---
 
-**v4.2.0 tagged** (2026-07-27) — 53 modules tagged and pushed (68 total in
-`go.work`). Significant post-v4.2.0 work is unreleased (flight recorder,
-metaengine Tier 4 + persistence enum + AtomicAppender, benchkit evidence
-metrics, backend tradeoff framework, MySQL/MariaDB support, system/ operator
-topology first pass, Iroh QUIC FFI transport). See CHANGELOG `[Unreleased]`.
+**metaengine v4.4.0 tagged** (2026-08-04) — 69 modules in `go.work`.
+Significant post-v4.4.0 work is unreleased (system/ Pareto P0/P1 fixes, loopback
+transport, consumer DX helpers, CalibrateEngine export, dedup passes, layer
+enforcement, SSE race fix, KeyHolderAI feedback, scorecard SARIF). See
+CHANGELOG `[Unreleased]`.
 
 ---
 
@@ -16,7 +16,7 @@ topology first pass, Iroh QUIC FFI transport). See CHANGELOG `[Unreleased]`.
 
 | Version      | Date       | Highlights                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Unreleased] | —          | Flight recorder (ADR-0089), metaengine Tier 4 (Vector/Search/Spatial ADTs, DuckDB+Postgres engines, rule pipeline, materialize-vs-replay, StorageLayout, SerializablePlan, VersionedStorage, data model refactor, AtomicAppender + StreamLogBackend), replication model (ADR-0093, DDIA Ch5 foundation), Universal ADT Phase 3 (ADR-0094, 10/10 ADTs on all engines), WatchTyped, boundary key validation, CalibrateEngine fix, ReadCosts (per-read-pattern costs), persistence enum (ADR-0098), benchkit evidence-grade metrics (ADR-0090), backend tradeoff framework (DurabilityTier, Capabilities), MySQL/MariaDB support (ADR-0080), Pebble sort index (1,233x speedup), cqrs-lint 179→186 rules + scorecard markdown + group-by aggregate + C038-C040 + per-module detection + E006 fold-aware + JSONC loader + explain command, go-sse consumption (ADR-0097), Nix-based integration test infrastructure (ADR-0095, ephemeral PG + NixOS VMs + nspawn MySQL), Iroh bridge evaluation (ADR-0096) + Level 2 prototype + real QUIC FFI transport, system/ operator-configured topology (first pass — wiring incomplete), verify gate repair |
+| [Unreleased] | —          | System/ Pareto P0/P1 fixes (driver registry wired, SQLite working, MultiBus/snapshot/scream wired, introspection real, decoder wiring, 5-engine StreamLogBackend, snapshot E2E), loopback transport (real TCP, no CGo), latency measurement overhaul, CBOR encoding, SSE race fix, consumer DX helpers (NewSQLiteEngineFromDSN/PlanFromSQLite/typed decoders), CalibrateEngine export, DuckDB LayoutPlanner follow-ups, dedup passes (68→66 clone groups, 46 lint fixes), layer enforcement (check-module-layers.sh self-enforcing, seven-tier model), KeyHolderAI feedback fixes (7 rules), scorecard SARIF output, go-humanize adoption, code quality (encryption double-clone, metadata immutability, kvstore TTL fix), M43/M44/M14 integration tests, Flight recorder (ADR-0089), metaengine Tier 4, replication model (ADR-0093), Universal ADT Phase 3 (ADR-0094), persistence enum (ADR-0098), ReadCosts, MySQL/MariaDB (ADR-0080), Pebble sort index, cqrs-lint 179→186 rules + scorecard + group-by + C038-C040 + per-module + JSONC + explain, go-sse consumption (ADR-0097), Nix integration tests (ADR-0095), Iroh bridge (ADR-0096) + QUIC FFI transport |
 | v4.2.0       | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | v4.1.0       | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | v4.0.4       | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -118,8 +118,8 @@ expectedVersion, entries)` — atomic optimistic concurrency under a single
   Memory + SQLite implementations. Foundation for the `system/` package
 
 **Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** Postgres GIN
-indexes, CalibrateEngine for external engines, serialize ReadCosts into
-SerializablePlan, DuckDB LayoutPlanner follow-ups.
+indexes, serialize ReadCosts into SerializablePlan, tag metaengine v4.5.0,
+fix DuckDB/PG go.mod version drift, sse.go file-size split.
 
 **Remaining (long-term, ROADMAP):**
 
@@ -278,9 +278,13 @@ backing (0 benchmarks exist for these engines).
   engine (batch insert, pushdown scan, vectorized aggregation, full scan).
 - ✅ ReadCosts — per-read-pattern cost model added to `EngineProfile`. Exposes
   the 4000× gap between DuckDB point lookups and aggregations.
-- [ ] Export `Calibratable` for external engines — pebbleengine/duckdbengine/
-      pgengine silently discard CalibrateEngine.
-- [ ] Regression baseline + CI integration — calibration benchmarks should run
+- ✅ **Export `Calibratable` for external engines** — `Calibration` struct +
+      `CalibrationCosts` (includes `ReadCosts`). All external engines embed
+      `Calibration` and implement `Calibratable`.
+- ✅ **Consumer DX helpers** — `NewSQLiteEngineFromDSN`, `PlanFromSQLite`,
+      `Store.LogPlan`, typed projection decoders (`EventWithID[P]`, `Register`,
+      `NewTypeDecoder`, `NewWithDecoder`). ~130 lines of boilerplate eliminated.
+- [ ] **Regression baseline + CI integration** — calibration benchmarks should run
       in CI and fail if constants drift >3×.
 
 ### 9. Deferred Debt (ADR-committed)
@@ -316,7 +320,18 @@ first `ReplicationLeaderless` engine.
   required). Every `Publish` opens a QUIC BiStream, serializes the `WriteOp`, and
   sends it to all connected peers. RTT measured from QUIC's own ACK timing via
   `conn.Rtt()`. Demo executable with real latency measurements.
+- ✅ **Loopback transport shipped** — `metaengine/irohengine/loopback/` implements
+  `Transport` over **real TCP connections** with length-prefix framing. NO CGo
+  required. Middle tier of the transport testing pyramid: catches
+  serialization/framing bugs that InProcessNetwork cannot. 9 convergence tests.
+- ✅ **Latency measurement** — `LatencyCollector` with rolling 512-sample window
+  (P50/P95/P99/max). `Profile()` returns measured values (P99 for lag, 2×P50
+  for RTT).
+- ✅ **CBOR encoding** — both transports switched from JSON to `fxamacker/cbor`.
+  Fixed `time.Time` truncation and `map[any]any` decode issues.
 - [ ] Evaluate `iroh-go` C binding stability (third-party binding for Iroh Rust)
+- [ ] Tag loopback + quic modules
+- [ ] WriteOp.ID dedup ring on loopback path (quic has it)
 
 ### 11. Metaengine Persistence + System Redesign
 
@@ -336,18 +351,20 @@ composition root. Features: driver registry (database/sql model), operator
 YAML+env config, N-instance composition (source-of-truth + projection layers),
 scream store (tiered deployment enforcement), cache tier, HTTP admin.
 
-🧪 **First pass implemented** (`system/v4` module — 14 files, 2925 lines, 15
-tests). DomainConfig/DeploymentConfig separation, Op[State] routing, driver
-registry, EventAdapter/CommandAdapter/QueryAdapter, simpleBus + MultiBus,
-CachedEventStore, SnapshotBackend, scream store types, introspection API —
-all shipped. **⚠️ Critical wiring gaps:** constructor bypasses the driver
-registry (Memory-only), SQLite unreachable through System, MultiBus/
-SnapshotBackend/scream store not wired into `New()`, introspection returns
-hardcoded values. 10 open design questions remain (§10 of the design doc).
-Full audit:
-[design-vs-reality](docs/status/2026-08-04_22-32_metaengine-redesign-audit-design-vs-reality.md).
-Pareto plan:
-[execution breakdown](docs/planning/2026-08-04_22-34_metaengine-system-pareto-execution-plan.md).
+🧪 **First pass + Pareto P0/P1 fixes shipped** (`system/v4` module).
+DomainConfig/DeploymentConfig separation, Op[State] routing, driver registry
+(wired — SQLite works through `New()`), EventAdapter/CommandAdapter/QueryAdapter,
+simpleBus + MultiBus (both wired into `New()`), CachedEventStore, SnapshotBackend
+(wired with codec + strategy), scream store (wired into `New()`), introspection
+API (real health checks), YAML config parsing, System.Verify/Plan/Explain,
+projection decoder wiring (`ProjectionTypeDecoder`/`ProjectionEventDecoder`).
+All 5 engines implement StreamLogBackend (Memory, SQLite, Pebble, DuckDB,
+Postgres). DuckDB + Postgres have AtomicAppender.
+
+**⚠️ Remaining gaps:** Three files exceed the 350-line CI limit (constructor.go
+382, system.go 364, adapter_event.go 357). Scream store has 2 of ~12 rules.
+CommandAdapter/QueryAdapter serialization for SQL engines unstarted. Example
+migration not done. See [TODO_LIST.md](TODO_LIST.md) → System Package.
 
 ---
 
