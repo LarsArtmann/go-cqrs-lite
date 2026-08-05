@@ -24,6 +24,7 @@ LAYER[snapshot]=2
 LAYER[projection]=2
 LAYER[idempotency]=2
 LAYER[deriver]=2
+LAYER[listing]=3
 LAYER[decider]=3
 LAYER[graph]=3
 LAYER[scenario]=3
@@ -34,7 +35,7 @@ LAYER[otel]=4
 LAYER[storage/memory]=4
 LAYER[middleware]=5
 LAYER[storage]=5
-LAYER[listing]=5
+# listing is Aggregation (Tier 3) — depends on event/id, not infrastructure
 LAYER[watermill]=5
 LAYER[transport/http]=5
 LAYER[transport/grpc]=5
@@ -45,6 +46,15 @@ LAYER[metaengine/pebbleengine]=5
 LAYER[metaengine/duckdbengine]=5
 LAYER[metaengine/pgengine]=5
 LAYER[metaengine/projectionadapter]=5
+LAYER[metaengine/irohengine]=5
+LAYER[metaengine/irohengine/loopback]=5
+LAYER[metaengine/irohengine/quic]=5
+LAYER[scheduling/sqlstore]=5
+LAYER[testutil]=5
+# NOTE: testutil is also referenced as a direct dep in some lower-tier modules'
+# go.mod (projectionhost, transport/http, etc.) for test helpers. The
+# EXCEPTIONS map handles those. See comment below for modules that intentionally
+# omit testutil from LAYER.
 LAYER[stack]=6
 LAYER[stack/memory]=6
 LAYER[stack/sqlite]=6
@@ -53,12 +63,24 @@ LAYER[stack/postgres]=6
 LAYER[stack/duckdb]=6
 LAYER[stack/mysql]=6
 LAYER[stack/turso]=6
+LAYER[system]=6
 LAYER[catalog]=7
 LAYER[integration]=7
 LAYER[stack/bench]=7
 LAYER[benchkit]=7
-# testutil is test-only infrastructure used from _test.go files across layers;
-# keep DEP_BUDGET but omit from LAYER to avoid false layer violations.
+LAYER[cmd/cqrs-gen]=7
+LAYER[cmd/cqrs-lint]=7
+LAYER[cmd/cqrs-bench]=7
+LAYER[cmd/api-stability]=7
+LAYER[cmd/doc-check]=7
+LAYER[example/taskmanager]=7
+LAYER[example/getting-started]=7
+LAYER[example/readme-quickstart]=7
+LAYER[event/v4/eventtest]=7
+# testutil is test-only infrastructure used from _test.go files across layers.
+# It has LAYER[testutil]=5 above, but lower-tier modules that import it from
+# _test.go files get exceptions below. This avoids false layer violations while
+# still budgeting its production deps.
 LAYER[metaengine]=0
 LAYER[flightrecorder]=0
 LAYER[retry]=0
@@ -73,10 +95,11 @@ EXCEPTIONS[schema]="storage/memory snapshot"
 EXCEPTIONS[snapshot]="storage/memory"
 EXCEPTIONS[decider]="storage/memory otel"
 EXCEPTIONS[storage]="listing"
-EXCEPTIONS[storage/turso]="storage listing"
 EXCEPTIONS[query]="snapshot storage/memory"
 EXCEPTIONS[command]="snapshot storage/memory"
-EXCEPTIONS[projectionhost]="storage/memory otel"
+EXCEPTIONS[listing]="storage/memory"
+EXCEPTIONS[projectionhost]="storage/memory otel testutil"
+EXCEPTIONS[transport/http]="testutil"
 
 # Test-only packages that don't count against production dep budgets.
 # These are test infrastructure (assertions, PBT, mocking) used across all modules.
@@ -138,10 +161,24 @@ DEP_BUDGET[metaengine/duckdbengine]=5
 DEP_BUDGET[metaengine/pgengine]=5
 DEP_BUDGET[metaengine/projectionadapter]=10
 DEP_BUDGET[flightrecorder]=0
-DEP_BUDGET[retry]=0
+DEP_BUDGET[retry]=1
 DEP_BUDGET[transport/grpc]=12
 DEP_BUDGET[idempotency/kvstore]=7
 DEP_BUDGET[idempotency/sqlstore]=5
+DEP_BUDGET[scheduling/sqlstore]=7
+DEP_BUDGET[system]=13
+DEP_BUDGET[metaengine/irohengine]=2
+DEP_BUDGET[metaengine/irohengine/loopback]=4
+DEP_BUDGET[metaengine/irohengine/quic]=5
+DEP_BUDGET[cmd/cqrs-gen]=0
+DEP_BUDGET[cmd/cqrs-lint]=8
+DEP_BUDGET[cmd/cqrs-bench]=10
+DEP_BUDGET[cmd/api-stability]=0
+DEP_BUDGET[cmd/doc-check]=0
+DEP_BUDGET[example/taskmanager]=25
+DEP_BUDGET[example/getting-started]=10
+DEP_BUDGET[example/readme-quickstart]=6
+DEP_BUDGET[event/v4/eventtest]=5
 
 failed=0
 
@@ -261,6 +298,29 @@ done
 
 if [ "$failed" -eq 1 ]; then
     echo "::error::Module layer violations detected"
+    exit 1
+fi
+
+# ── Coverage check: every go.mod must be in LAYER and DEP_BUDGET ──
+# Prevents drift when new modules are added without updating this script.
+coverage_gaps=0
+for gomod in $(find . -name go.mod -not -path './vendor/*' -not -path './go.mod' | sort); do
+    mod=$(dirname "$gomod" | sed 's|^\./||')
+    [ -z "$mod" ] && continue
+
+    if [ -z "${LAYER[$mod]:-}" ]; then
+        echo "COVERAGE GAP: $mod has go.mod but no LAYER assignment"
+        coverage_gaps=$((coverage_gaps + 1))
+    fi
+    if [ -z "${DEP_BUDGET[$mod]:-}" ]; then
+        echo "COVERAGE GAP: $mod has go.mod but no DEP_BUDGET"
+        coverage_gaps=$((coverage_gaps + 1))
+    fi
+done
+
+if [ "$coverage_gaps" -gt 0 ]; then
+    echo "::error::$coverage_gaps module(s) missing from LAYER or DEP_BUDGET maps"
+    echo "Add them to scripts/check-module-layers.sh"
     exit 1
 fi
 

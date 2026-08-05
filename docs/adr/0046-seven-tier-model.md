@@ -253,16 +253,47 @@ flowchart TB
 See [`FOUR-TIER-MODEL.md`](../architecture-understanding/FOUR-TIER-MODEL.md) for
 the complete module-to-tier mapping with every module listed.
 
-## Consequences
+## Enforcement
 
-- `nix run .#check-layers` validates against the real tiers
-- `nix run .#check-layers` enforces per-module production dependency budgets
-  (test-only packages like gomega, ginkgo, rapid are excluded from the count)
-- v4 extraction work is complete: `id/`, `metadata/`, `retry/`, `idempotency/`
-  are standalone modules; `kv/` has `context.Context`; `storage/` is split into
-  focused sub-packages (`eventstore/`, `readmodel/`, `sql/`, `relational/`,
-  `view/`, `migrations/`)
-- The old "Layer N" references in docs are superseded by the seven-tier model
+Three complementary mechanisms enforce the tier model at different granularities:
+
+### 1. Cross-module layer DAG + dependency budgets (`check-module-layers.sh`)
+
+`nix run .#check-layers` runs `scripts/check-module-layers.sh`, which parses
+every `go.mod` directly and enforces:
+
+- **Layer ordering**: each module may only depend on modules at its layer or
+  lower. The script uses 8 layers (0–7) that map to the 7 conceptual tiers:
+  Tier 4 is split into 4a (leaf infra: signing, encryption, otel, memory) and
+  4b (composite infra: storage, middleware, transport). This finer granularity
+  catches violations the merged tier would miss.
+- **Dependency budgets**: each module has a max direct production dep count.
+  Test-only deps (gomega, ginkgo, rapid, and auto-detected test-only imports)
+  are excluded.
+- **Coverage check**: every `go.mod` in the repo must have both a `LAYER` and
+  `DEP_BUDGET` entry. Missing entries fail the check — prevents drift when new
+  modules are added.
+
+**Why not go-arch-lint for cross-module?** go-arch-lint operates on Go import
+paths within a single module. In a `go.work` monorepo with `/v4` import suffixes,
+it cannot resolve cross-module dependencies — it treats them as vendor packages.
+The bash script parses `go.mod` directly, which is authoritative.
+
+### 2. Intra-module package rules (`go-arch-lint`)
+
+`nix run .#check-arch` runs `scripts/check-arch.sh`, which:
+1. Runs `check-module-layers.sh` (above)
+2. Runs `go-arch-lint check` per-module for modules with `.go-arch-lint.yml`
+
+Per-module configs exist for: `event/`, `command/`, `kv/`, `storage/`,
+`middleware/`, `catalog/`. These enforce intra-module package dependencies
+(e.g., `storage/sql/` may not import `storage/eventstore/`).
+
+### 3. External import allow-list (`depguard`)
+
+`.golangci.yml` contains a depguard configuration with a global allow-list of
+~90 external packages. `nix run .#lint` (golangci-lint) enforces this. New
+external dependencies must be added to the list or lint fails.
 
 ## Notable Tier-0 Exceptions
 
