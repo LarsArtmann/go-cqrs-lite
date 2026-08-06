@@ -15,6 +15,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/mysql/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/pebble/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
@@ -89,6 +90,7 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 
 	case "sqlite", "sq", "sqlite-cgo", "sq3":
 		driverName := "sqlite"
+
 		if backend == "sqlite-cgo" || backend == "sq3" {
 			if !sqliteCgoAvailable {
 				fatalf(
@@ -172,6 +174,17 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 			return postgres.New(dsn, opts...)
 		}, "", nil
 
+	case "mysql", "maria", "mariadb":
+		if dsn == "" {
+			fatalf(
+				"mysql backend requires --dsn (e.g. user:password@tcp(localhost:3306)/bench?parseTime=true)",
+			)
+		}
+
+		return func() (*stack.Bundle, error) {
+			return mysql.New(dsn)
+		}, "", nil
+
 	case "turso":
 		dbDir := dir
 		if dbDir == "" {
@@ -201,7 +214,7 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 
 	default:
 		fatalf(
-			"unknown backend: %s (use memory, sqlite, sqlite-cgo, pebble, postgres, duckdb, or turso)",
+			"unknown backend: %s (use memory, sqlite, sqlite-cgo, pebble, postgres, mysql, duckdb, or turso)",
 			backend,
 		)
 

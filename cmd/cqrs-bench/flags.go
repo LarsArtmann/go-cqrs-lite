@@ -13,8 +13,8 @@ import (
 // BenchFlags holds the shared benchmark flags wired onto every cqrs-bench
 // subcommand (run, compare, sweep).
 type BenchFlags struct {
-	Backend      string            `default:"memory" flag:"backend"       help:"Backend: memory, sqlite, sqlite-cgo, pebble, postgres, duckdb, turso"`
-	DSN          string            `default:""       flag:"dsn"           help:"Database connection string (sqlite, postgres, duckdb)"`
+	Backend      string            `default:"memory" flag:"backend"       help:"Backend: memory, sqlite, sqlite-cgo, pebble, postgres, mysql, duckdb, turso"`
+	DSN          string            `default:""       flag:"dsn"           help:"Database connection string (sqlite, postgres, mysql, duckdb)"`
 	Dir          string            `default:""       flag:"dir"           help:"Database directory (pebble, duckdb)"`
 	Profile      string            `default:"dev"    flag:"profile"       help:"Workload profile"`
 	Codec        string            `default:"json"   flag:"codec"         help:"Payload codec: json, cbor"`

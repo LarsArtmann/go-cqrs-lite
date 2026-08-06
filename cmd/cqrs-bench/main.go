@@ -37,6 +37,7 @@ Backends:
   sqlite-cgo SQLite database (CGo mattn driver — 3-5x faster, requires gcc)
   pebble     PebbleDB LSM-tree store
   postgres   PostgreSQL database (requires --dsn)
+  mysql      MySQL/MariaDB database (requires --dsn)
   turso      Turso embedded database (libSQL/SQLite fork)
 
 Profiles:
