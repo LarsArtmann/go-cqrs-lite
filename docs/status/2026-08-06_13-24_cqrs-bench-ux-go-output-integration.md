@@ -86,6 +86,7 @@ Nothing. All changes build, vet, and pass tests.
 ## Up to 50 Things We Should Get Done Next
 
 ### Rendering & Format (1-10)
+
 1. Export formatting helpers from benchkit (`roundDuration`, `formatBytes`, etc.) to eliminate duplication in render.go
 2. Add unit tests for `buildComparisonTable`, `buildSweepTable`, `buildRunSummaryTable`
 3. Add color-coded best/worst highlighting in comparison tables (green best, red worst)
@@ -98,6 +99,7 @@ Nothing. All changes build, vet, and pass tests.
 10. Add ANSI color legend footer when using `--format table` with color
 
 ### CLI UX (11-20)
+
 11. Add `--quiet` flag (suppress progress, result only)
 12. Add `--baseline <file>` for regression comparison against saved JSON
 13. Add `cqrs-bench list profiles` / `list backends` subcommand
@@ -110,6 +112,7 @@ Nothing. All changes build, vet, and pass tests.
 20. Add `cqrs-bench version --verbose` with go-output, benchkit, go versions
 
 ### NOM TUI Integration (21-28)
+
 21. Prototype go-output NOM TUI for `run` command (real-time progress visualization)
 22. Map benchkit phases to NOM activities (write phase, read phase, etc.)
 23. Show dependency tree (write → projection → query as a DAG)
@@ -120,6 +123,7 @@ Nothing. All changes build, vet, and pass tests.
 28. Integrate with go-output `tui/` Bubble Tea program for full TUI mode
 
 ### Progress & Reporting (29-35)
+
 29. Add `--progress-format` flag (text/json/nom) to control progress output independently of result format
 30. Add progress percentage to each phase (not just "started/done")
 31. Add ETA based on profile event count and observed throughput
@@ -129,6 +133,7 @@ Nothing. All changes build, vet, and pass tests.
 35. Add a `--report` flag that generates a standalone HTML report with charts
 
 ### Testing & Quality (36-42)
+
 36. Add golden-file tests for each format (text, table, csv, tsv, markdown)
 37. Add test for `resolveFormat` auto-detect logic (TTY vs pipe)
 38. Add test for `comparisonWinnerSummary` with edge cases (all failed, single backend, ties)
@@ -138,12 +143,14 @@ Nothing. All changes build, vet, and pass tests.
 42. Add benchkit test for the progress noise reduction (verify "started" is gone)
 
 ### Documentation (43-46)
+
 43. Update `cmd/cqrs-bench/README.md` with new format options and examples
 44. Update `AGENTS.md` Quick Reference test command if needed
 45. Add a "Format Guide" section to cqrs-bench README showing when to use each format
 46. Document the go-output integration architecture in render.go header comment
 
 ### go-output Ecosystem (47-50)
+
 47. Add go-output to the `go.work` workspace for local development across both repos
 48. Consider a shared `formatting` module between benchkit and go-output for duration/bytes formatting
 49. Explore go-output `StreamingHTMLRenderer` for large benchmark results

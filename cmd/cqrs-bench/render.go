@@ -268,13 +268,19 @@ func buildSweepTable(results []benchkit.SweepResult) *output.Table {
 	for _, sr := range results {
 		r := sr.Result
 		if r == nil {
-			t.AddRow(append([]string{fmt.Sprintf("%d", sr.Value), "FAILED: no result"}, empty[1:]...))
+			t.AddRow(
+				append([]string{fmt.Sprintf("%d", sr.Value), "FAILED: no result"}, empty[1:]...),
+			)
 
 			continue
 		}
 
 		if r.Error != "" {
-			t.AddRow(append([]string{fmt.Sprintf("%d", sr.Value), "FAILED: " + truncateMsg(r.Error, 30)}, empty[2:]...))
+			t.AddRow(
+				append(
+					[]string{fmt.Sprintf("%d", sr.Value), "FAILED: " + truncateMsg(r.Error, 30)},
+					empty[2:]...),
+			)
 
 			continue
 		}
@@ -305,7 +311,11 @@ func renderRunResult(w io.Writer, format string, config benchkit.Config, result 
 		}
 
 		if result.IntegrityErrors > 0 {
-			fmt.Fprintf(w, "\n⚠ CORRUPTION: %d integrity errors detected!\n", result.IntegrityErrors)
+			fmt.Fprintf(
+				w,
+				"\n⚠ CORRUPTION: %d integrity errors detected!\n",
+				result.IntegrityErrors,
+			)
 		}
 	case formatJSON:
 		if err := benchkit.WriteJSON(w, result); err != nil {
@@ -366,7 +376,9 @@ func buildRunSummaryTable(r *benchkit.Result) *output.Table {
 	}
 
 	if r.WriteThroughput > 0 {
-		t.AddRow([]string{"Write Throughput", fmt.Sprintf("%s events/s", fmtFloat(r.WriteThroughput))})
+		t.AddRow(
+			[]string{"Write Throughput", fmt.Sprintf("%s events/s", fmtFloat(r.WriteThroughput))},
+		)
 	}
 
 	if r.LoadLatency.Count > 0 {
@@ -393,7 +405,12 @@ func buildRunSummaryTable(r *benchkit.Result) *output.Table {
 	}
 
 	if r.RepeatCount > 1 {
-		t.AddRow([]string{"Repeat", fmt.Sprintf("median of %d (CoV %.1f%%)", r.RepeatCount, r.RepeatCoV*100)})
+		t.AddRow(
+			[]string{
+				"Repeat",
+				fmt.Sprintf("median of %d (CoV %.1f%%)", r.RepeatCount, r.RepeatCoV*100),
+			},
+		)
 	}
 
 	if r.IntegrityErrors > 0 {
