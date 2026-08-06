@@ -789,32 +789,35 @@ active, _ := reader.Scan(ctx,
 item, found, _ := reader.Get(ctx, "item-123")
 ```
 
-### Bridging Stream IDs to Map Keys (eventWithID Wrapper)
+### Bridging Stream IDs to Map Keys (TypeDecoder + EventWithID)
 
 Map fold handlers need the entity ID as the key, but the event payload doesn't
-contain it — it lives in the event's StreamID. Use `EventDecoder` to wrap the
-typed payload with the stream ID:
+contain it — it lives in the event's StreamID. Use `projectionadapter.NewTypeDecoder`
+with `Register` to map event types to typed payloads wrapped in `EventWithID`:
 
 ```go
-type eventWithID[P any] struct {
-    ID      string
-    Payload P
-}
+import "github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 
-func myDecoder(evt event.Event) (any, error) {
-    id := evt.StreamID().String()
-    switch evt.Type() {
-    case "created":
-        var p createdPayload
-        _ = json.Unmarshal(evt.Payload(), &p)
-        return eventWithID[createdPayload]{ID: id, Payload: p}, nil
-    default:
-        return nil, fmt.Errorf("no fold for %q", evt.Type())
-    }
-}
+// Register each event type → payload type. Register wraps the payload in
+// EventWithID[P], giving fold handlers access to both ID and typed payload.
+decoder := projectionadapter.NewTypeDecoder(
+    projectionadapter.Register("created", CreatedPayload{}),
+    projectionadapter.Register("updated", UpdatedPayload{}),
+)
 
-adapter := projectionadapter.New("items", store, nil,
-    projectionadapter.WithEventDecoder(myDecoder))
+// NewWithDecoder wires the TypeDecoder into the adapter — no manual
+// EventDecoder function needed.
+adapter := projectionadapter.NewWithDecoder("items", store, decoder)
+
+// Fold handlers receive EventWithID[P]:
+//   metaengine.OnTyped("created",
+//       projectionadapter.EventWithID[CreatedPayload]{},
+//       func(e projectionadapter.EventWithID[CreatedPayload]) (string, ItemView) {
+//           return e.ID, ItemView{ID: e.ID, Name: e.Payload.Name}
+//       })
+
+// One-liner for projection host wiring:
+//   projectionadapter.RegisterWithHost(host, "items", store, decoder)
 ```
 
 ### Multi-Engine Distribution (Counter to Memory, Map to SQLite)
