@@ -12,14 +12,15 @@
 
 Ran the complete `go test -bench=.` suite across the entire repo in 4 parallel groups. **301 PASS, 1 FAIL (fixed).**
 
-| Group | Modules | Benchmarks | Wall Time | Result |
-|-------|---------|------------|-----------|--------|
-| Core Domain | event, command, query, decider, dispatcher, id, codec, dedup, schema, snapshot, catalog, metadata | 118 | ~312s | ALL PASS |
-| Infrastructure | storage/memory, pebble, bbolt, view, storage, signing, encryption, middleware, transport/http, watermill, listing | 83 | ~143s | 1 FAIL (fixed) |
-| Metaengine | core, pebbleengine, duckdbengine, pgengine, projectionadapter | 55 | ~313s | ALL PASS |
-| Stack/Integration/Tooling | stack/bench, integration, benchkit, cqrs-bench, cqrs-lint | 46 | ~82s | ALL PASS |
+| Group                     | Modules                                                                                                           | Benchmarks | Wall Time | Result         |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------- | --------- | -------------- |
+| Core Domain               | event, command, query, decider, dispatcher, id, codec, dedup, schema, snapshot, catalog, metadata                 | 118        | ~312s     | ALL PASS       |
+| Infrastructure            | storage/memory, pebble, bbolt, view, storage, signing, encryption, middleware, transport/http, watermill, listing | 83         | ~143s     | 1 FAIL (fixed) |
+| Metaengine                | core, pebbleengine, duckdbengine, pgengine, projectionadapter                                                     | 55         | ~313s     | ALL PASS       |
+| Stack/Integration/Tooling | stack/bench, integration, benchkit, cqrs-bench, cqrs-lint                                                         | 46         | ~82s      | ALL PASS       |
 
 **Headline numbers from the full run:**
+
 - **Throughput king:** Memory event bus at **35.5M events/sec**
 - **Zero-allocation champion:** `PayloadReadOnly` at **0.78ns/op, 0 allocs**
 - **Fastest codec:** `RawCodec` at **17ns encode / 28ns decode** (vs JSON 280/376ns, CBOR 210/404ns)
@@ -30,12 +31,12 @@ Ran the complete `go test -bench=.` suite across the entire repo in 4 parallel g
 
 Ran all 4 embedded backends head-to-head:
 
-| Backend | Raw Sink | Write | Cold Read P50 | DB Size | Write Amp |
-|---------|----------|-------|---------------|---------|-----------|
-| memory | **2.2M ev/s** | 139k ev/s | 630ns | — | — |
-| pebble | 122k ev/s | 64k ev/s | 20us | 2.0 MiB | 16x |
-| bbolt | 41k ev/s | 36k ev/s | 20us | 8.0 MiB | 66x |
-| sqlite | 22k ev/s | 17k ev/s | 33us | 5.4 MiB | 45x |
+| Backend | Raw Sink      | Write     | Cold Read P50 | DB Size | Write Amp |
+| ------- | ------------- | --------- | ------------- | ------- | --------- |
+| memory  | **2.2M ev/s** | 139k ev/s | 630ns         | —       | —         |
+| pebble  | 122k ev/s     | 64k ev/s  | 20us          | 2.0 MiB | 16x       |
+| bbolt   | 41k ev/s      | 36k ev/s  | 20us          | 8.0 MiB | 66x       |
+| sqlite  | 22k ev/s      | 17k ev/s  | 33us          | 5.4 MiB | 45x       |
 
 ### 3. Fixed BenchmarkPebbleStore_Save100
 
@@ -55,19 +56,21 @@ Ran all 4 embedded backends head-to-head:
 
 **Files changed (4 files):**
 
-| File | Change |
-|------|--------|
-| `benchkit/result.go:278` | Added `Resident uint64` to `ResourceStats` struct with doc comment |
-| `benchkit/runner_concurrent.go:19-28` | Force double GC, measure settled heap, compute resident delta |
-| `benchkit/report.go:336` | Text report: `RAM: X resident (post-GC data footprint)` replaces misleading `Delta: X` |
-| `benchkit/report_comparison.go` | Comparison text table + Markdown: new `RAM` column between `CoV%` and `Heap` |
-| `cmd/cqrs-bench/render.go` | Styled table/CSV/TSV/markdown: new `RAM` column + `RAM Resident` row in single-run summary |
+| File                                  | Change                                                                                     |
+| ------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `benchkit/result.go:278`              | Added `Resident uint64` to `ResourceStats` struct with doc comment                         |
+| `benchkit/runner_concurrent.go:19-28` | Force double GC, measure settled heap, compute resident delta                              |
+| `benchkit/report.go:336`              | Text report: `RAM: X resident (post-GC data footprint)` replaces misleading `Delta: X`     |
+| `benchkit/report_comparison.go`       | Comparison text table + Markdown: new `RAM` column between `CoV%` and `Heap`               |
+| `cmd/cqrs-bench/render.go`            | Styled table/CSV/TSV/markdown: new `RAM` column + `RAM Resident` row in single-run summary |
 
 **Results at dev profile (500 events):**
+
 - memory: **896 KiB resident** (data lives in Go heap)
 - sqlite/pebble/bbolt: **0 B resident** (data flushed to disk, GC reclaimed Go objects)
 
 **Results at small profile (10K events):**
+
 - memory: **20 MiB resident** (linear scaling with event count)
 - pebble: **44 KiB resident** (minimal Go heap — just LSM caches)
 - sqlite/bbolt: **0 B resident** (pure disk)
@@ -75,6 +78,7 @@ Ran all 4 embedded backends head-to-head:
 ### 5. Daemon Already Committed Our Work
 
 The auto-commit daemon committed both fixes within minutes:
+
 - `64cc6b715` — Pebble benchmark fix
 - `afb41634a` — Resident memory metric (benchkit + render + report)
 
@@ -93,6 +97,7 @@ Everything we touched is either fully done and committed, or was already done in
 ## c) NOT STARTED
 
 ### Out of scope (daemon's domain — metaengine v2 refactor)
+
 - Metaengine Phase 2: Record type extraction (daemon actively working — commits `a4e8a9d9b`, `6efdaeabd`)
 - Metaengine Phase 3: graphadapter module (daemon added — commit `09c4b7fe8`)
 - badgerengine module (daemon added — commit `df23a4b58`)
@@ -101,6 +106,7 @@ Everything we touched is either fully done and committed, or was already done in
 - `nix fmt` on final state
 
 ### Not started from this session's observations
+
 - See section (e) for the full improvement list
 
 ---
@@ -179,6 +185,7 @@ The daemon's commit `03733594a refactor(bench): thread context through factory c
 ## f) Up to 50 Things We Should Get Done Next
 
 ### Benchmark Suite Improvements (1-15)
+
 1. Add "Total Cost" column (Resident + Disk) to comparison tables
 2. Add `--profile custom` flag for user-specified workload parameters
 3. Add `-count=N` flag to cqrs-bench for repeat/CoV analysis
@@ -196,6 +203,7 @@ The daemon's commit `03733594a refactor(bench): thread context through factory c
 15. Wire `comparisonWinnerSummary` to all output formats
 
 ### Resident Memory Metric Polish (16-20)
+
 16. Document that disk backends showing 0 B resident is expected behavior
 17. Suppress or remove the now-redundant `Memory.Delta` field
 18. Verify Markdown comparison output renders correctly with the new column
@@ -203,6 +211,7 @@ The daemon's commit `03733594a refactor(bench): thread context through factory c
 20. Add resident memory to benchkit test assertions (verify it's non-zero for memory backend)
 
 ### Verify Gate & Daemon Coordination (21-25)
+
 21. Run `nix run .#verify` once daemon stabilizes
 22. Regenerate api-stability golden for new daemon modules (badgerengine, graphadapter, record)
 23. Add new daemon modules to api-stability modules list if not already there
@@ -210,6 +219,7 @@ The daemon's commit `03733594a refactor(bench): thread context through factory c
 25. Check if the daemon's Record API changes affect benchmark factory correctness
 
 ### Pebble Benchmark Specifics (26-30)
+
 26. Add a Save+Load round-trip benchmark (not just Save-only or Load-only)
 27. Add benchmarks with realistic 256B+ payloads (current uses nil)
 28. Add a benchmark for Pebble checkpoint/snapshot operations
@@ -217,6 +227,7 @@ The daemon's commit `03733594a refactor(bench): thread context through factory c
 30. Add concurrent read benchmarks for Pebble (currently only concurrent for memory)
 
 ### cqrs-bench CLI Features (31-35)
+
 31. Add `--codec cbor` to compare mode (currently JSON-only in compare)
 32. Add CSV/TSV export for comparison results
 33. Add `--quiet` flag to suppress per-phase progress lines in compare mode
@@ -224,6 +235,7 @@ The daemon's commit `03733594a refactor(bench): thread context through factory c
 35. Add `cqrs-bench version --verbose` showing build info, Go version, CGo status
 
 ### Benchmark Coverage Gaps (36-40)
+
 36. Add benchmarks for signing + encryption middleware overhead (signing has benchmarks, but not cross-backend)
 37. Add benchmarks for projection host throughput (events/sec through projection pipeline)
 38. Add benchmarks for scheduling/timer store operations
@@ -231,6 +243,7 @@ The daemon's commit `03733594a refactor(bench): thread context through factory c
 40. Add benchmarks for relational projection (multi-table upsert throughput)
 
 ### Metaengine Benchmarks (41-45)
+
 41. Add Iroh transport benchmarks (InProcess vs Loopback vs QUIC throughput)
 42. Add cross-engine comparison benchmarks (same ADT, different engines, side-by-side)
 43. Add metaengine persistence benchmarks (volatile vs persistent, startup cost)
@@ -238,6 +251,7 @@ The daemon's commit `03733594a refactor(bench): thread context through factory c
 45. Add DuckDB columnar vs SQLite row-store comparison at scale (100K+ rows)
 
 ### Documentation & Observability (46-50)
+
 46. Document the benchmark methodology (warmup, GC impact, CoV thresholds) in a BENCHMARKING.md
 47. Add a benchmark regression dashboard (track key metrics over commits)
 48. Document the backend selection decision matrix (when to use pebble vs sqlite vs bbolt)

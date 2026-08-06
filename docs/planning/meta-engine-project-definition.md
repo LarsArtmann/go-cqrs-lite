@@ -16,6 +16,7 @@
 > (ADR-0112, ADR-0116). See ADRs 0111–0117 for the full v2 architecture.
 >
 > **CURRENT ARCHITECTURE (implemented, verified 2026-08-06):**
+>
 > - `record/` module: shared `Record` + `CommonMetadata` types (zero deps).
 > - `event.AsRecord(evt) record.Record`: adapter that bridges the ES pipeline
 >   into Record-aware folds. Maps Type, Payload, StreamID, Version, metadata.

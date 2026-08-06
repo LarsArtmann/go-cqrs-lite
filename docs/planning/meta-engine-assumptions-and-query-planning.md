@@ -13,6 +13,7 @@
 > valid; the key change is that the planner now has full type information.
 >
 > **CURRENT ARCHITECTURE (implemented, verified 2026-08-06):**
+>
 > - Folds receive typed `record.Record` values via `OnRecord()` and
 >   `store.ApplyRecord()` — the `any`-blob era is over.
 > - `AutoInsert`/`AutoUpdate` auto-generate folds from event struct shapes and

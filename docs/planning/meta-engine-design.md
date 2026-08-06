@@ -19,6 +19,7 @@
 > (ADR-0115) leaves the core with only `memory_engine`.
 >
 > **CURRENT ARCHITECTURE (implemented, verified 2026-08-06):**
+>
 > - The `record/` module (ADR-0111) is the structural foundation: `Record` +
 >   `CommonMetadata` carry Type, Payload, StreamID, StreamType, Version, and
 >   metadata (CorrelationID, CausationID, ActorID, timestamps, SchemaVersion).

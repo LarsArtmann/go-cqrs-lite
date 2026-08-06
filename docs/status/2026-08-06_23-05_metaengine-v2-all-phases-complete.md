@@ -9,28 +9,31 @@ All 8 phases of the metaengine v2 architecture overhaul (`docs/planning/2026-08-
 
 ## Phase Completion
 
-| Phase | Status | Key Deliverables |
-| ----- | ------ | ---------------- |
-| 0: ADR Polish | DONE (prior session) | 5 ADR tasks |
-| 1: SQLite Extraction + Test Fixes | DONE | 14 broken tests restored, sqliteengine module, replace directives |
-| 2: Record Type Extraction | DONE | `record/` module with StreamRef, CommonMetadata, Record struct |
-| 3: GraphBackend Adapter | DONE | `metaengine/graphadapter/` module wrapping graph.MemoryDriver |
-| 4: ES-Native Folds | DONE | `OnRecord`/`OnRecordTyped` constructors, `ApplyRecord` dispatch, RecordAwareFold interface |
-| 5: Tombstone Deprecation | DONE | All tombstone API marked `// Deprecated`, migration guide written |
-| 6: New Engines | DONE | Badger engine (full impl + adttest parity), Dgraph ADR (design complete, impl deferred) |
-| 7: Auto-Projection | DONE | `AutoInsert`, `AutoDelete`, `AutoUpdate`, `AutoCRUD` — reflection-based fold inference |
-| Final Verification | DONE | Build + vet + tests + api-stability all green |
+| Phase                             | Status               | Key Deliverables                                                                           |
+| --------------------------------- | -------------------- | ------------------------------------------------------------------------------------------ |
+| 0: ADR Polish                     | DONE (prior session) | 5 ADR tasks                                                                                |
+| 1: SQLite Extraction + Test Fixes | DONE                 | 14 broken tests restored, sqliteengine module, replace directives                          |
+| 2: Record Type Extraction         | DONE                 | `record/` module with StreamRef, CommonMetadata, Record struct                             |
+| 3: GraphBackend Adapter           | DONE                 | `metaengine/graphadapter/` module wrapping graph.MemoryDriver                              |
+| 4: ES-Native Folds                | DONE                 | `OnRecord`/`OnRecordTyped` constructors, `ApplyRecord` dispatch, RecordAwareFold interface |
+| 5: Tombstone Deprecation          | DONE                 | All tombstone API marked `// Deprecated`, migration guide written                          |
+| 6: New Engines                    | DONE                 | Badger engine (full impl + adttest parity), Dgraph ADR (design complete, impl deferred)    |
+| 7: Auto-Projection                | DONE                 | `AutoInsert`, `AutoDelete`, `AutoUpdate`, `AutoCRUD` — reflection-based fold inference     |
+| Final Verification                | DONE                 | Build + vet + tests + api-stability all green                                              |
 
 ## Files Changed This Session
 
 ### Phase 4 Polish
+
 - `metaengine/fold.go` — Added doc comment on `On()` pointing to `OnRecord`
 
 ### Phase 5 — Tombstone Deprecation
+
 - `event/tombstone.go` — Added `// Deprecated:` directives to `TombstoneStatus`, `TombstoneMark`, `MetadataKeyTombstone`, `MetadataKeyRebirth`, `DetectTombstone`, `MarkTombstone`, `MarkRebirth` (all referencing ADR-0114 + migration guide)
 - `docs/migration/tombstone-to-domain-events.md` (NEW) — Full migration guide with before/after examples, API mapping table, listing/ and stack.Materialize migration paths, v4→v5 timeline
 
 ### Phase 6 — Badger Engine (New Module)
+
 - `metaengine/badgerengine/go.mod` (NEW) — Module with dgraph-io/badger/v4 dep, replace directives for metaengine + record + sqliteengine
 - `metaengine/badgerengine/engine.go` (NEW) — Engine core: NewBadgerEngine/NewBadgerEngineFromDB, Profile (badger LSM cost model), all key encoding helpers, seq counter seeding for restart safety
 - `metaengine/badgerengine/map_backends.go` (NEW) — MapBackend, MapUpdater (mutex-guarded read-modify-write), ScanBackend (prefix scan + Go sort + keyset pagination)
@@ -42,10 +45,12 @@ All 8 phases of the metaengine v2 architecture overhaul (`docs/planning/2026-08-
 - `cmd/api-stability/main.go` — Added `"metaengine/badgerengine"` to modules list
 
 ### Phase 7 — Auto-Projection
+
 - `metaengine/auto_fold.go` (NEW) — `AutoInsert[E,R]`, `AutoDelete[E]`, `AutoUpdate[E,R]`, `AutoCRUD[C,U,D,R]` constructors. Reflection-based field matching by name + type assignability. Pre-computed field mappings for hot-path efficiency.
 - `metaengine/auto_fold_test.go` (NEW) — 5 tests: insert, delete, update (partial merge — zero-valued fields skipped), full CRUD lifecycle, partial field mapping
 
 ### Infrastructure
+
 - `docs/api_surface.txt` — Regenerated (3703 exports)
 - `go.work` — badgerengine already present
 

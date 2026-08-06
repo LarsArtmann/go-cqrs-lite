@@ -333,7 +333,11 @@ func printMetaEngineSection(w io.Writer, r *Result) {
 func printResourcesSection(w io.Writer, r *Result) {
 	fmt.Fprintln(w, "Resources:")
 	fmt.Fprintf(w, "  Heap:  %s peak\n", formatBytes(r.Memory.After))
-	fmt.Fprintf(w, "  RAM:   %s resident (post-GC data footprint)\n", formatBytes(r.Memory.Resident))
+	fmt.Fprintf(
+		w,
+		"  RAM:   %s resident (post-GC data footprint)\n",
+		formatBytes(r.Memory.Resident),
+	)
 	fmt.Fprintf(w, "  CPU:   %s\n", formatCPUDuration(r.CPU.Delta))
 
 	if r.GCCount > 0 {

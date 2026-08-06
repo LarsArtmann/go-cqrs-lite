@@ -1,6 +1,7 @@
 package metaengine
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -11,7 +12,7 @@ import (
 // autoInsertByType is the non-generic core of AutoInsert. It builds an insert
 // fold from reflect.Type values, enabling convention-based inference (ADR-0116).
 func autoInsertByType(eventType, resultType reflect.Type, keyField string) Fold {
-	var sample any = reflect.Zero(eventType).Interface()
+	sample := reflect.Zero(eventType).Interface()
 
 	keyIdx, err := findField(eventType, keyField)
 	if err != nil {
@@ -52,7 +53,7 @@ func autoInsertByType(eventType, resultType reflect.Type, keyField string) Fold 
 
 // autoUpdateByType is the non-generic core of AutoUpdate.
 func autoUpdateByType(eventType, resultType reflect.Type, keyField string) Fold {
-	var sample any = reflect.Zero(eventType).Interface()
+	sample := reflect.Zero(eventType).Interface()
 
 	keyIdx, err := findField(eventType, keyField)
 	if err != nil {
@@ -102,7 +103,7 @@ func autoUpdateByType(eventType, resultType reflect.Type, keyField string) Fold 
 
 // autoDeleteByType is the non-generic core of AutoDelete.
 func autoDeleteByType(eventType reflect.Type, keyField string) Fold {
-	var sample any = reflect.Zero(eventType).Interface()
+	sample := reflect.Zero(eventType).Interface()
 
 	keyIdx, err := findField(eventType, keyField)
 	if err != nil {
@@ -185,9 +186,7 @@ func AutoCRUDByConvention[R any](keyField string, samples ...any) ([]Fold, error
 	}
 
 	if createdType == nil {
-		return nil, fmt.Errorf(
-			"AutoCRUDByConvention: no *Created sample provided (at least one is required)",
-		)
+		return nil, errors.New("AutoCRUDByConvention: no *Created sample provided (at least one is required)")
 	}
 
 	var folds []Fold

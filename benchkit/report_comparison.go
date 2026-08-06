@@ -155,7 +155,7 @@ func printComparisonRow(w io.Writer, name string, r *Result) {
 		formatBytes(r.Memory.Resident),
 		formatBytes(r.Memory.After),
 		formatBytes(uint64(r.Disk.DatabaseBytes)),
-)
+	)
 }
 
 // WriteComparisonJSON serializes all results as a JSON object.

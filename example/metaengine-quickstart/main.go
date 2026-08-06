@@ -88,12 +88,15 @@ func main() {
 		switch eventType {
 		case "TaskCreated":
 			var e TaskCreated
+
 			return e, json.Unmarshal(payload, &e)
 		case "TaskUpdated":
 			var e TaskUpdated
+
 			return e, json.Unmarshal(payload, &e)
 		case "TaskDeleted":
 			var e TaskDeleted
+
 			return e, json.Unmarshal(payload, &e)
 		default:
 			return nil, fmt.Errorf("unknown event type: %s", eventType)
@@ -107,7 +110,10 @@ func main() {
 	correlationID := id.NewCorrelationID()
 
 	// Create
-	createPayload, _ := json.Marshal(TaskCreated{ID: "task-1", Title: "Build metaengine app", Status: "open"})
+	createPayload, _ := json.Marshal(
+		TaskCreated{ID: "task-1", Title: "Build metaengine app", Status: "open"},
+	)
+
 	createEvt, _ := event.NewEvent("TaskCreated", streamID, "Task", event.Version(1), createPayload,
 		event.WithCorrelationID(correlationID),
 	)
@@ -116,7 +122,10 @@ func main() {
 	}
 
 	// Update
-	updatePayload, _ := json.Marshal(TaskUpdated{ID: "task-1", Title: "Build metaengine app", Status: "in_progress"})
+	updatePayload, _ := json.Marshal(
+		TaskUpdated{ID: "task-1", Title: "Build metaengine app", Status: "in_progress"},
+	)
+
 	updateEvt, _ := event.NewEvent("TaskUpdated", streamID, "Task", event.Version(2), updatePayload,
 		event.WithCorrelationID(correlationID),
 	)
@@ -137,6 +146,7 @@ func main() {
 
 	// 6. Delete
 	deletePayload, _ := json.Marshal(TaskDeleted{ID: "task-1"})
+
 	deleteEvt, _ := event.NewEvent("TaskDeleted", streamID, "Task", event.Version(3), deletePayload)
 	if err := adapter.Handle(ctx, deleteEvt); err != nil {
 		log.Fatalf("Handle delete: %v", err)

@@ -139,9 +139,9 @@ func TestIntegration_AutoCRUD_FullLifecycle_ThroughAdapter(t *testing.T) {
 	}
 
 	type docView struct {
-		ID      string
-		Name    string
-		Value   int64
+		ID       string
+		Name     string
+		Value    int64
 		StreamID string
 		Version  int64
 	}

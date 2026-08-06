@@ -21,13 +21,28 @@ var recordFieldGetters = map[string]struct {
 	getter func(rec record.Record) any
 	typ    reflect.Type
 }{
-	"StreamID":      {func(r record.Record) any { return string(r.StreamID) }, reflect.TypeFor[string]()},
-	"StreamType":    {func(r record.Record) any { return r.StreamType }, reflect.TypeFor[string]()},
-	"Version":       {func(r record.Record) any { return r.Version }, reflect.TypeFor[int64]()},
-	"CorrelationID": {func(r record.Record) any { return r.MetaData.CorrelationID }, reflect.TypeFor[string]()},
-	"CausationID":   {func(r record.Record) any { return r.MetaData.CausationID }, reflect.TypeFor[string]()},
-	"ActorID":       {func(r record.Record) any { return r.MetaData.ActorID }, reflect.TypeFor[string]()},
-	"SchemaVersion": {func(r record.Record) any { return r.MetaData.SchemaVersion }, reflect.TypeFor[int]()},
+	"StreamID": {
+		func(r record.Record) any { return string(r.StreamID) },
+		reflect.TypeFor[string](),
+	},
+	"StreamType": {func(r record.Record) any { return r.StreamType }, reflect.TypeFor[string]()},
+	"Version":    {func(r record.Record) any { return r.Version }, reflect.TypeFor[int64]()},
+	"CorrelationID": {
+		func(r record.Record) any { return r.MetaData.CorrelationID },
+		reflect.TypeFor[string](),
+	},
+	"CausationID": {
+		func(r record.Record) any { return r.MetaData.CausationID },
+		reflect.TypeFor[string](),
+	},
+	"ActorID": {
+		func(r record.Record) any { return r.MetaData.ActorID },
+		reflect.TypeFor[string](),
+	},
+	"SchemaVersion": {
+		func(r record.Record) any { return r.MetaData.SchemaVersion },
+		reflect.TypeFor[int](),
+	},
 }
 
 // computeRecordStamps finds result struct fields that match Record metadata
