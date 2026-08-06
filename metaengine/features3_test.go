@@ -256,6 +256,7 @@ func TestPropertyFoldInsert_HoldsInvariants(t *testing.T) {
 
 // --- P5.5: Verify FilterIn in EXPLAIN output ---
 
+func TestExplain_FilterIn(t *testing.T) {
 	t.Skip("requires SQLite engine — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
