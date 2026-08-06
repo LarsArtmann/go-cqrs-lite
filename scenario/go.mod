@@ -11,6 +11,7 @@ require (
 
 require (
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
+	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect

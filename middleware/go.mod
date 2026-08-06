@@ -20,7 +20,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.45.0
 	go.opentelemetry.io/otel/sdk/metric v1.45.0
 	go.opentelemetry.io/otel/trace v1.45.0
-	modernc.org/sqlite v1.55.0
+	modernc.org/sqlite v1.56.0
 )
 
 require (
@@ -37,7 +37,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
-	github.com/rogpeppe/go-internal v1.15.0 // indirect
+	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/tidwall/gjson v1.19.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
@@ -45,7 +45,7 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.45.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260729162451-8efbd57d26e0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260803160001-6ac0973c030d // indirect
 	google.golang.org/grpc v1.83.0 // indirect
 )
 
@@ -57,7 +57,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20260604005048-7023385849c0 // indirect
+	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/retry/v4 v4.2.0
 	github.com/mattn/go-isatty v0.0.24 // indirect
@@ -72,9 +72,9 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
 	golang.org/x/tools v0.48.0 // indirect
-	modernc.org/libc v1.74.4 // indirect
+	modernc.org/libc v1.75.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
-	modernc.org/memory v1.11.0 // indirect
+	modernc.org/memory v1.12.0 // indirect
 )
 
 // Workspace-local replace. flightrecorder is not yet tagged.
