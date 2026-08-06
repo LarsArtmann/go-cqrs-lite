@@ -326,6 +326,8 @@ func TestTransaction_CommitRollback(t *testing.T) {
 	}
 }
 
+
+func _skipped_sqlite_test_0(t *testing.T) {
 	t.Skip("requires SQLite engine — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
@@ -378,6 +380,8 @@ func TestTransaction_CommitRollback(t *testing.T) {
 	}
 }
 
+
+func _skipped_sqlite_test_1(t *testing.T) {
 	t.Skip("requires SQLite engine — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
