@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"path/filepath"
 
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
@@ -16,7 +17,7 @@ import (
 // build tag: the rest of cqrs-bench stays pure-Go.
 //
 // An empty dsn uses an in-memory database; a file path persists to disk.
-func duckdbFactory(dsn, dir string) (benchkit.Factory, string, func()) {
+func duckdbFactory(_ context.Context, dsn, dir string) (benchkit.Factory, string, func()) {
 	diskPath := dir
 
 	if dsn == "" {
