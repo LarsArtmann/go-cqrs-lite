@@ -27,21 +27,21 @@ MapBackend, CounterBackend, ScanBackend, PushdownScan, and LayoutPlanner.
 
 ## Cost Profile
 
-| ADT     | Complexity | Notes                                          |
-| ------- | ---------- | ---------------------------------------------- |
-| Map     | O(log N)   | B-tree point lookup via primary key            |
-| Counter | O(N)       | Native GROUP BY aggregation                    |
-| Scan    | O(N)       | Sequential scan with filter/sort pushdown      |
+| ADT     | Complexity | Notes                                     |
+| ------- | ---------- | ----------------------------------------- |
+| Map     | O(log N)   | B-tree point lookup via primary key       |
+| Counter | O(N)       | Native GROUP BY aggregation               |
+| Scan    | O(N)       | Sequential scan with filter/sort pushdown |
 
 Calibrated from benchmark measurements (see `calibration_bench_test.go`).
 
 ## API
 
-| Symbol              | Description                                           |
-| ------------------- | ----------------------------------------------------- |
-| `New(dsn)`          | Creates engine from Postgres DSN. Opens its own pool. |
-| `NewFromDB(db)`     | Wraps an existing `*sql.DB` (caller owns lifecycle).  |
-| `Profile()`         | Returns `EngineProfile` with Postgres cost model.     |
+| Symbol          | Description                                           |
+| --------------- | ----------------------------------------------------- |
+| `New(dsn)`      | Creates engine from Postgres DSN. Opens its own pool. |
+| `NewFromDB(db)` | Wraps an existing `*sql.DB` (caller owns lifecycle).  |
+| `Profile()`     | Returns `EngineProfile` with Postgres cost model.     |
 
 ## Design
 

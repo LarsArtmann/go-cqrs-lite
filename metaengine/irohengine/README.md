@@ -10,13 +10,13 @@ go get github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4
 
 ## CRDT-Safe Operations
 
-| Operation       | CRDT Type         | Convergence guarantee                    |
-| --------------- | ----------------- | ---------------------------------------- |
-| `MapSet`        | LWW (last-writer-wins) | Highest timestamp wins              |
-| `SetAdd`        | OR-Set (add-wins) | Union of all adds                        |
-| `CounterIncrement` | PN-Counter     | Sum of all increments/decrements         |
-| `MultiAdd`      | OR-Set per key    | Union of all adds per multimap key      |
-| `LogAppend`     | Append-only log   | Union of all appended entries            |
+| Operation          | CRDT Type              | Convergence guarantee              |
+| ------------------ | ---------------------- | ---------------------------------- |
+| `MapSet`           | LWW (last-writer-wins) | Highest timestamp wins             |
+| `SetAdd`           | OR-Set (add-wins)      | Union of all adds                  |
+| `CounterIncrement` | PN-Counter             | Sum of all increments/decrements   |
+| `MultiAdd`         | OR-Set per key         | Union of all adds per multimap key |
+| `LogAppend`        | Append-only log        | Union of all appended entries      |
 
 Non-CRDT operations (`MapUpdate`, `MapDelete`, `SetRemove`) stay local — they
 do NOT replicate. This matches the CALM theorem constraint.
@@ -48,11 +48,11 @@ engine.MapSet(ctx, "users", "alice", map[string]any{"name": "Alice"})
 
 ## Three-Tier Transport Testing Pyramid
 
-| Tier | Transport              | CGo | What It Catches                                           |
-| ---- | ---------------------- | --- | --------------------------------------------------------- |
-| 0    | `InProcessNetwork`     | No  | CRDT merge logic, subscriber dispatch, ordering           |
-| 1    | `loopback.LoopbackTransport` | No | Serialization bugs, TCP framing, connection lifecycle |
-| 2    | `quic.QuicTransport`   | Yes | NAT traversal, QUIC ACK timing, connection migration      |
+| Tier | Transport                    | CGo | What It Catches                                       |
+| ---- | ---------------------------- | --- | ----------------------------------------------------- |
+| 0    | `InProcessNetwork`           | No  | CRDT merge logic, subscriber dispatch, ordering       |
+| 1    | `loopback.LoopbackTransport` | No  | Serialization bugs, TCP framing, connection lifecycle |
+| 2    | `quic.QuicTransport`         | Yes | NAT traversal, QUIC ACK timing, connection migration  |
 
 Tier 0 is in this module. Tiers 1 and 2 are separate submodules:
 
@@ -61,20 +61,20 @@ Tier 0 is in this module. Tiers 1 and 2 are separate submodules:
 
 ## API
 
-| Symbol                       | Description                                              |
-| ---------------------------- | -------------------------------------------------------- |
-| `Replicated(local, opts...)` | Wraps a local engine with CRDT replication.              |
-| `NewInProcessNetwork(opts)`  | Creates a goroutine-based transport network (fastest).   |
-| `WithTransport(t)`           | Sets the transport (default: InProcessNetwork).          |
-| `WithAuthor(author)`         | Sets the node author ID for LWW tie-breaking.            |
-| `WithNamespace(ns)`          | Isolate replication state between applications.          |
+| Symbol                       | Description                                            |
+| ---------------------------- | ------------------------------------------------------ |
+| `Replicated(local, opts...)` | Wraps a local engine with CRDT replication.            |
+| `NewInProcessNetwork(opts)`  | Creates a goroutine-based transport network (fastest). |
+| `WithTransport(t)`           | Sets the transport (default: InProcessNetwork).        |
+| `WithAuthor(author)`         | Sets the node author ID for LWW tie-breaking.          |
+| `WithNamespace(ns)`          | Isolate replication state between applications.        |
 
 ### In-Process Network Options
 
-| Option                      | Description                                  |
-| --------------------------- | -------------------------------------------- |
-| `WithNetworkDelay(max)`     | Simulate random network latency.             |
-| `WithNetworkDropRate(rate)` | Simulate packet loss (0.0–1.0).              |
+| Option                      | Description                      |
+| --------------------------- | -------------------------------- |
+| `WithNetworkDelay(max)`     | Simulate random network latency. |
+| `WithNetworkDropRate(rate)` | Simulate packet loss (0.0–1.0).  |
 
 ## Design
 

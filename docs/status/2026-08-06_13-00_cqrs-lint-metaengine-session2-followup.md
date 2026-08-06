@@ -104,24 +104,29 @@ Nothing — all started tasks were completed.
 These items were explicitly deferred as `[LATER]` in the execution plan because they are new features requiring design discussion or have lower priority:
 
 ### New metaengine adoption rules (P1)
+
 - F023: manual in-memory filtering (for-loop + if on query results) without `metaengine.FilterOnField` pushdown
 - F024: manual pagination (LIMIT/OFFSET simulation in Go) without metaengine cursor-encoded pagination
 - F025: manual count/aggregation (`len(slice)`, for-loop sum) without metaengine Counter ADT
 
 ### Existing rule improvements (P2-P3)
+
 - F021: detect fold-per-event-type instead of total fold count (the real write-amp signal)
 - F018/F020: detect mixed FilterOn/FilterOnField and SortOn/SortOnField usage patterns
 
 ### Scorecard & doctor UX (P3)
+
 - Doctor command: metaengine section showing detected engines, ADTs, query count
 - Scorecard: DuckDB OLAP-specific recommendation
 - Scorecard: metaengine engine backend detection
 
 ### Integration & validation (P3)
+
 - Run cqrs-lint on `example/taskmanager` to verify no false positives
 - Integration test: full cqrs-lint run with metaengine project → verify scorecard shows metaengine as "used"
 
 ### Advanced metaengine rules (P4-P6)
+
 - C-series: `metaengine.Query` without type parameter (panics at runtime)
 - P-series: `metaengine.MapUpdate` fold on a replicated engine (CRDT conflict)
 - E-series: metaengine Store created but never Closed (resource leak)
@@ -280,14 +285,14 @@ Meta-tests: PASS (187 detectors, catalog/register drift check, README count)
 
 ## Files changed this session (9 files across 4 daemon commits)
 
-| File | Change | Commit |
-|------|--------|--------|
-| `f022_test.go` (NEW) | 7 F022 test cases (156 lines) | `e61c6bf3` |
-| `feature_profile.go` | Removed F015 from local-cli preset, added `IsSQL()` + `AllStoreKinds()` | `e61c6bf3` |
-| `feature_profile_test.go` | Added F015/F022 to library preset assertions | `e61c6bf3` |
-| `explain.go` | Store values derived from constants via `init()` | `e61c6bf3` |
-| `f022.go` | `hasSQLStore()` refactored to use `Store.IsSQL()` | `e61c6bf3` |
-| `f020_f021.go` | F021 threshold 5→3, message updated | `3823c94e` |
-| `f018_f021_test.go` | New `TestF021_ThreeFoldsFiresAtNewThreshold` | `3823c94e` |
-| `README.md` | Preset table: local-cli F015 removed, library F015/F022 added | `c7a95908` |
-| (daemon batched) | Various go.mod/README bumps | `e61c6bf3`, `3823c94e` |
+| File                      | Change                                                                  | Commit                 |
+| ------------------------- | ----------------------------------------------------------------------- | ---------------------- |
+| `f022_test.go` (NEW)      | 7 F022 test cases (156 lines)                                           | `e61c6bf3`             |
+| `feature_profile.go`      | Removed F015 from local-cli preset, added `IsSQL()` + `AllStoreKinds()` | `e61c6bf3`             |
+| `feature_profile_test.go` | Added F015/F022 to library preset assertions                            | `e61c6bf3`             |
+| `explain.go`              | Store values derived from constants via `init()`                        | `e61c6bf3`             |
+| `f022.go`                 | `hasSQLStore()` refactored to use `Store.IsSQL()`                       | `e61c6bf3`             |
+| `f020_f021.go`            | F021 threshold 5→3, message updated                                     | `3823c94e`             |
+| `f018_f021_test.go`       | New `TestF021_ThreeFoldsFiresAtNewThreshold`                            | `3823c94e`             |
+| `README.md`               | Preset table: local-cli F015 removed, library F015/F022 added           | `c7a95908`             |
+| (daemon batched)          | Various go.mod/README bumps                                             | `e61c6bf3`, `3823c94e` |

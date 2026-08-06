@@ -34,19 +34,19 @@ MapBackend, CounterBackend, ScanBackend, PushdownScan, and LayoutPlanner.
 
 ## Cost Profile
 
-| ADT     | Complexity | Notes                                           |
-| ------- | ---------- | ----------------------------------------------- |
-| Map     | O(1)       | Point lookup via primary key                    |
-| Counter | O(1)       | Vectorized GROUP BY — faster than SQLite O(N)   |
-| Scan    | O(N)       | Columnar scan with filter/sort pushdown         |
+| ADT     | Complexity | Notes                                         |
+| ------- | ---------- | --------------------------------------------- |
+| Map     | O(1)       | Point lookup via primary key                  |
+| Counter | O(1)       | Vectorized GROUP BY — faster than SQLite O(N) |
+| Scan    | O(N)       | Columnar scan with filter/sort pushdown       |
 
 ## API
 
-| Symbol              | Description                                          |
-| ------------------- | ---------------------------------------------------- |
-| `New(dsn)`          | Creates engine from DSN. Empty = in-memory.         |
-| `NewFromDB(db)`     | Wraps an existing `*sql.DB` (caller owns lifecycle). |
-| `Profile()`         | Returns `EngineProfile` with DuckDB cost model.     |
+| Symbol          | Description                                          |
+| --------------- | ---------------------------------------------------- |
+| `New(dsn)`      | Creates engine from DSN. Empty = in-memory.          |
+| `NewFromDB(db)` | Wraps an existing `*sql.DB` (caller owns lifecycle). |
+| `Profile()`     | Returns `EngineProfile` with DuckDB cost model.      |
 
 ## Design
 

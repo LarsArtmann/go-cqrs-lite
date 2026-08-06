@@ -22,13 +22,13 @@ engine, err := pebbleengine.NewPebbleEngine("")
 
 ## Cost Profile
 
-| ADT          | Complexity      | Notes                                            |
-| ------------ | --------------- | ------------------------------------------------ |
-| Map/Set      | O(1)            | LSM point read — faster than SQLite B-tree       |
-| Counter      | O(1) incr, O(N) get | Increment is atomic; CounterGet is prefix scan |
-| Multimap     | O(1) add, O(N) get | Prefix scan for retrieval                      |
-| Log          | O(1) append, O(N) tail | Prefix scan for tail reads                 |
-| Graph        | O(N^d)          | BFS via prefix scan (degraded, no indexes)       |
+| ADT      | Complexity             | Notes                                          |
+| -------- | ---------------------- | ---------------------------------------------- |
+| Map/Set  | O(1)                   | LSM point read — faster than SQLite B-tree     |
+| Counter  | O(1) incr, O(N) get    | Increment is atomic; CounterGet is prefix scan |
+| Multimap | O(1) add, O(N) get     | Prefix scan for retrieval                      |
+| Log      | O(1) append, O(N) tail | Prefix scan for tail reads                     |
+| Graph    | O(N^d)                 | BFS via prefix scan (degraded, no indexes)     |
 
 ## Backends
 
@@ -40,11 +40,11 @@ and filtered scans — eliminates the JSON decode tax on hot paths.
 
 ## API
 
-| Symbol                       | Description                                          |
-| ---------------------------- | ---------------------------------------------------- |
-| `NewPebbleEngine(dir)`       | Creates engine. Empty dir = in-memory (`vfs.NewMem`). |
-| `NewPebbleEngineFromDB(db)`  | Wraps an existing `*pebble.DB` (caller owns lifecycle). |
-| `Profile()`                  | Returns `EngineProfile` with Pebble cost model.     |
+| Symbol                      | Description                                             |
+| --------------------------- | ------------------------------------------------------- |
+| `NewPebbleEngine(dir)`      | Creates engine. Empty dir = in-memory (`vfs.NewMem`).   |
+| `NewPebbleEngineFromDB(db)` | Wraps an existing `*pebble.DB` (caller owns lifecycle). |
+| `Profile()`                 | Returns `EngineProfile` with Pebble cost model.         |
 
 ## Design
 

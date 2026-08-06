@@ -58,49 +58,49 @@ sys.Dispatch(ctx, cmd)
 
 ### Constructor
 
-| Symbol                         | Description                                              |
-| ------------------------------ | -------------------------------------------------------- |
-| `New(ctx, domain, deployment)` | Creates a `*System` from domain + deployment configs.    |
-| `System.Start(ctx)`            | Starts projection workers and bus listeners.             |
-| `System.Close()`               | Graceful shutdown of all infrastructure.                 |
+| Symbol                         | Description                                           |
+| ------------------------------ | ----------------------------------------------------- |
+| `New(ctx, domain, deployment)` | Creates a `*System` from domain + deployment configs. |
+| `System.Start(ctx)`            | Starts projection workers and bus listeners.          |
+| `System.Close()`               | Graceful shutdown of all infrastructure.              |
 
 ### Domain Registration
 
-| Symbol                              | Description                                         |
-| ----------------------------------- | --------------------------------------------------- |
-| `RegisterDecider[State](sys, ...)`  | Register an aggregate decider with snapshot support.|
-| `RegisterCommand[Cmd, State](sys, ...)` | Bind a command type to a decider.               |
-| `RegisterQuery[Q, R](sys, ...)`     | Register a typed query handler.                     |
-| `DispatchQuery[Q, R](ctx, sys, q)`  | Dispatch a typed query.                             |
+| Symbol                                  | Description                                          |
+| --------------------------------------- | ---------------------------------------------------- |
+| `RegisterDecider[State](sys, ...)`      | Register an aggregate decider with snapshot support. |
+| `RegisterCommand[Cmd, State](sys, ...)` | Bind a command type to a decider.                    |
+| `RegisterQuery[Q, R](sys, ...)`         | Register a typed query handler.                      |
+| `DispatchQuery[Q, R](ctx, sys, q)`      | Dispatch a typed query.                              |
 
 ### Driver Registry
 
-| Symbol                    | Description                                              |
-| ------------------------- | -------------------------------------------------------- |
-| `RegisterDriver(name, f)` | Register a storage engine factory (like `database/sql`). |
-| `RegisterBusDriver(name, f)` | Register a bus driver factory.                       |
-| `RegisteredDrivers()`     | List registered engine driver names.                    |
-| `RegisteredBusDrivers()`  | List registered bus driver names.                       |
+| Symbol                       | Description                                              |
+| ---------------------------- | -------------------------------------------------------- |
+| `RegisterDriver(name, f)`    | Register a storage engine factory (like `database/sql`). |
+| `RegisterBusDriver(name, f)` | Register a bus driver factory.                           |
+| `RegisteredDrivers()`        | List registered engine driver names.                     |
+| `RegisteredBusDrivers()`     | List registered bus driver names.                        |
 
 Built-in drivers: `memory`, `sqlite`.
 
 ### Introspection
 
-| Symbol                          | Description                                          |
-| ------------------------------- | ---------------------------------------------------- |
-| `System.Snapshot(ctx)`          | Returns a `Topology` snapshot of all instances.      |
-| `System.Health(ctx)`            | Aggregate health status string.                      |
-| `System.Explain(ctx)`           | Human-readable explanation of the deployment.        |
-| `System.ProjectionPlan()`       | Serializable plan for projection engines.            |
-| `System.ProjectionExplain()`    | Human-readable projection plan explanation.          |
-| `System.VerifyProjections(ctx)` | Verify projection stores match source-of-truth.      |
+| Symbol                          | Description                                     |
+| ------------------------------- | ----------------------------------------------- |
+| `System.Snapshot(ctx)`          | Returns a `Topology` snapshot of all instances. |
+| `System.Health(ctx)`            | Aggregate health status string.                 |
+| `System.Explain(ctx)`           | Human-readable explanation of the deployment.   |
+| `System.ProjectionPlan()`       | Serializable plan for projection engines.       |
+| `System.ProjectionExplain()`    | Human-readable projection plan explanation.     |
+| `System.VerifyProjections(ctx)` | Verify projection stores match source-of-truth. |
 
 ### Safety Checks
 
-| Symbol                    | Description                                               |
-| ------------------------- | --------------------------------------------------------- |
-| `CheckSafety(ctx, deploy)`| Pre-construction safety report (WARN/ERROR per rule).     |
-| `System.ScreamReport()`   | Post-construction safety report.                          |
+| Symbol                     | Description                                           |
+| -------------------------- | ----------------------------------------------------- |
+| `CheckSafety(ctx, deploy)` | Pre-construction safety report (WARN/ERROR per rule). |
+| `System.ScreamReport()`    | Post-construction safety report.                      |
 
 ## Design
 
