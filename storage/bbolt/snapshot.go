@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -41,7 +42,7 @@ func (s *SnapshotStore) Save(_ context.Context, snap snapshot.Snapshot) error {
 		existing := bucket.Get(key)
 		if existing != nil {
 			var prev serializableSnapshot
-			if err := unmarshalCBOROrJSON(cloneBytes(existing), &prev,
+			if err := unmarshalCBOROrJSON(slices.Clone(existing), &prev,
 				"bbolt.snapshot_existing",
 				"unmarshal existing snapshot"); err != nil {
 				return err
@@ -105,7 +106,7 @@ func (s *SnapshotStore) loadSnapshot(
 		}
 
 		var ss serializableSnapshot
-		if err := unmarshalCBOROrJSON(cloneBytes(val), &ss,
+		if err := unmarshalCBOROrJSON(slices.Clone(val), &ss,
 			"bbolt.deserialize_snapshot", "unmarshal snapshot"); err != nil {
 			return err
 		}
@@ -118,7 +119,7 @@ func (s *SnapshotStore) loadSnapshot(
 			StreamType: id.StreamType(ss.StreamType),
 			StreamID:   ss.StreamID,
 			Version:    event.Version(ss.Version),
-			State:      cloneBytes(ss.State),
+			State:      slices.Clone(ss.State),
 			CreatedAt:  time.Unix(0, ss.CreatedAt).UTC(),
 		}
 

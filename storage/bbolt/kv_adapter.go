@@ -3,6 +3,7 @@ package bbolt
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sync/atomic"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -52,7 +53,7 @@ func (a *KVAdapter) Get(_ context.Context, key []byte) ([]byte, error) {
 			return kv.ErrNotFound
 		}
 
-		result = cloneBytes(val)
+		result = slices.Clone(val)
 		return nil
 	})
 
