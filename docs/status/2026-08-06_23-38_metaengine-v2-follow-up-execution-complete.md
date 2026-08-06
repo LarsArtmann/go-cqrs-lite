@@ -10,107 +10,107 @@
 
 ### Phase A: Wire `record/` Into the Real Pipeline (CRITICAL PATH — DONE)
 
-| Task | File | Status |
-|------|------|--------|
-| A1: Add `record/v4` to `event/go.mod` | `event/go.mod` | DONE |
-| A2: `event.AsRecord(evt) record.Record` adapter | `event/asrecord.go` (77 lines) | DONE |
-| A3: Tests for all field mappings | `event/asrecord_test.go` (197 lines, 4 tests) | DONE |
-| A4: Add `record/v4` to `projectionadapter/go.mod` | `metaengine/projectionadapter/go.mod` | DONE |
-| A5: `Handle()` calls `ApplyRecord()` not `Apply()` | `metaengine/projectionadapter/adapter.go:129` | DONE |
-| A6: Record-aware adapter tests | `metaengine/projectionadapter/adapter_record_test.go` (201 lines, 2 tests) | DONE |
-| A7: Build + test verification | 16/16 tests pass | DONE |
+| Task                                               | File                                                                       | Status |
+| -------------------------------------------------- | -------------------------------------------------------------------------- | ------ |
+| A1: Add `record/v4` to `event/go.mod`              | `event/go.mod`                                                             | DONE   |
+| A2: `event.AsRecord(evt) record.Record` adapter    | `event/asrecord.go` (77 lines)                                             | DONE   |
+| A3: Tests for all field mappings                   | `event/asrecord_test.go` (197 lines, 4 tests)                              | DONE   |
+| A4: Add `record/v4` to `projectionadapter/go.mod`  | `metaengine/projectionadapter/go.mod`                                      | DONE   |
+| A5: `Handle()` calls `ApplyRecord()` not `Apply()` | `metaengine/projectionadapter/adapter.go:129`                              | DONE   |
+| A6: Record-aware adapter tests                     | `metaengine/projectionadapter/adapter_record_test.go` (201 lines, 2 tests) | DONE   |
+| A7: Build + test verification                      | 16/16 tests pass                                                           | DONE   |
 
 **Impact:** The entire ES-native Record-aware fold pipeline is now LIVE. `OnRecord` folds receive real StreamID, Version, and metadata through `projectionadapter.Handle()`. Previously this was dead code.
 
 ### Phase B: Auto-Fold Record Awareness (DONE)
 
-| Task | File | Status |
-|------|------|--------|
-| B1: `AutoInsert` sets `recordSetter` + stamps metadata | `metaengine/auto_fold.go` | DONE |
-| B2: `AutoUpdate` sets `recordSetter` + stamps metadata | `metaengine/auto_fold.go` | DONE |
-| B3: Record-aware auto-fold tests | `metaengine/auto_fold_record_test.go` (249 lines, 3 tests) | DONE |
-| B4: Verification | 8/8 auto-fold tests pass | DONE |
+| Task                                                   | File                                                       | Status |
+| ------------------------------------------------------ | ---------------------------------------------------------- | ------ |
+| B1: `AutoInsert` sets `recordSetter` + stamps metadata | `metaengine/auto_fold.go`                                  | DONE   |
+| B2: `AutoUpdate` sets `recordSetter` + stamps metadata | `metaengine/auto_fold.go`                                  | DONE   |
+| B3: Record-aware auto-fold tests                       | `metaengine/auto_fold_record_test.go` (249 lines, 3 tests) | DONE   |
+| B4: Verification                                       | 8/8 auto-fold tests pass                                   | DONE   |
 
 **New file:** `metaengine/record_stamp.go` (84 lines) — `computeRecordStamps` finds result fields matching Record metadata names (StreamID, Version, CorrelationID, etc.), `applyRecordStamps` always overwrites (Record context is per-event, not persistent state).
 
 ### Phase C: Documentation (DONE)
 
-| Task | File | Status |
-|------|------|--------|
-| C1-C2: AGENTS.md modules list + tree | `AGENTS.md` — added `record/`, `sqliteengine/`, `badgerengine/`, `graphadapter/` | DONE |
-| C3: New engines in modules list | Same | DONE |
-| C4: project-definition.md v2 section | `docs/planning/meta-engine-project-definition.md` | DONE |
-| C5: design.md v2 section | `docs/planning/meta-engine-design.md` | DONE |
-| C6: assumptions.md v2 section | `docs/planning/meta-engine-assumptions-and-query-planning.md` | DONE |
-| C7: doc-check verification | **NOT RUN** — skipped | PARTIAL |
+| Task                                 | File                                                                             | Status  |
+| ------------------------------------ | -------------------------------------------------------------------------------- | ------- |
+| C1-C2: AGENTS.md modules list + tree | `AGENTS.md` — added `record/`, `sqliteengine/`, `badgerengine/`, `graphadapter/` | DONE    |
+| C3: New engines in modules list      | Same                                                                             | DONE    |
+| C4: project-definition.md v2 section | `docs/planning/meta-engine-project-definition.md`                                | DONE    |
+| C5: design.md v2 section             | `docs/planning/meta-engine-design.md`                                            | DONE    |
+| C6: assumptions.md v2 section        | `docs/planning/meta-engine-assumptions-and-query-planning.md`                    | DONE    |
+| C7: doc-check verification           | **NOT RUN** — skipped                                                            | PARTIAL |
 
 ### Phase D: Integration Tests (DONE)
 
-| Task | File | Status |
-|------|------|--------|
-| D1: End-to-end pipeline test | `metaengine/projectionadapter/integration_test.go` (243 lines) | DONE |
-| D2: OnRecord fold through adapter | `adapter_record_test.go` TestAdapter_OnRecordFold_ReceivesRealMetadata | DONE |
-| D3: AutoInsert through adapter | integration_test.go TestIntegration_AutoInsert_ThroughAdapter | DONE |
-| D4: Full suite verification | 18/18 projectionadapter tests pass | DONE |
+| Task                              | File                                                                   | Status |
+| --------------------------------- | ---------------------------------------------------------------------- | ------ |
+| D1: End-to-end pipeline test      | `metaengine/projectionadapter/integration_test.go` (243 lines)         | DONE   |
+| D2: OnRecord fold through adapter | `adapter_record_test.go` TestAdapter_OnRecordFold_ReceivesRealMetadata | DONE   |
+| D3: AutoInsert through adapter    | integration_test.go TestIntegration_AutoInsert_ThroughAdapter          | DONE   |
+| D4: Full suite verification       | 18/18 projectionadapter tests pass                                     | DONE   |
 
 ### Phase E: API Stability + Module Registration (DONE)
 
-| Task | Status |
-|------|--------|
-| E1: `record/` in api-stability modules list | Already present |
-| E2: Golden regenerated | 3705 exports, `AsRecord` + `AutoCRUDByConvention` verified |
-| E3: `TestEveryGoModDirIsInModulesList` | PASSES (added `example/metaengine-quickstart` to exclusions) |
+| Task                                        | Status                                                       |
+| ------------------------------------------- | ------------------------------------------------------------ |
+| E1: `record/` in api-stability modules list | Already present                                              |
+| E2: Golden regenerated                      | 3705 exports, `AsRecord` + `AutoCRUDByConvention` verified   |
+| E3: `TestEveryGoModDirIsInModulesList`      | PASSES (added `example/metaengine-quickstart` to exclusions) |
 
 ### Phase F: Badger Calibration (DONE)
 
-| Task | Status |
-|------|--------|
-| F1: Calibration bench file | `metaengine/badgerengine/calibration_bench_test.go` (83 lines, 3 benchmarks) |
-| F2: Benchmarks run (3x median) | MapSet=4300ns, MapGet=1200ns, CounterIncrement=5800ns |
-| F3: Constants updated | `BadgerNsPerOp=4300`, `BadgerNsPerRead=1200`, `BadgerNsPerWrite=4300` |
-| F4: ADR-0118 updated | Full benchmark table with Pebble comparison |
+| Task                           | Status                                                                       |
+| ------------------------------ | ---------------------------------------------------------------------------- |
+| F1: Calibration bench file     | `metaengine/badgerengine/calibration_bench_test.go` (83 lines, 3 benchmarks) |
+| F2: Benchmarks run (3x median) | MapSet=4300ns, MapGet=1200ns, CounterIncrement=5800ns                        |
+| F3: Constants updated          | `BadgerNsPerOp=4300`, `BadgerNsPerRead=1200`, `BadgerNsPerWrite=4300`        |
+| F4: ADR-0118 updated           | Full benchmark table with Pebble comparison                                  |
 
 ### Phase G: Naming-Convention Inference (DONE)
 
-| Task | File | Status |
-|------|------|--------|
-| G1: `AutoCRUDByConvention[R]()` | `metaengine/auto_naming.go` (206 lines) | DONE |
-| G2: Tests | `metaengine/auto_naming_test.go` (225 lines, 5 tests) | DONE |
-| G3: Verification | All 5 tests pass | DONE |
+| Task                            | File                                                  | Status |
+| ------------------------------- | ----------------------------------------------------- | ------ |
+| G1: `AutoCRUDByConvention[R]()` | `metaengine/auto_naming.go` (206 lines)               | DONE   |
+| G2: Tests                       | `metaengine/auto_naming_test.go` (225 lines, 5 tests) | DONE   |
+| G3: Verification                | All 5 tests pass                                      | DONE   |
 
 ### Phase H: Example App (DONE)
 
-| Task | File | Status |
-|------|------|--------|
-| H1: Module skeleton | `example/metaengine-quickstart/go.mod` | DONE |
-| H2: Working main.go | `example/metaengine-quickstart/main.go` (149 lines) | DONE |
-| H3: go.work + api-stability | Both updated | DONE |
-| H4: Build + run verification | Builds, runs, output verified | DONE |
+| Task                         | File                                                | Status |
+| ---------------------------- | --------------------------------------------------- | ------ |
+| H1: Module skeleton          | `example/metaengine-quickstart/go.mod`              | DONE   |
+| H2: Working main.go          | `example/metaengine-quickstart/main.go` (149 lines) | DONE   |
+| H3: go.work + api-stability  | Both updated                                        | DONE   |
+| H4: Build + run verification | Builds, runs, output verified                       | DONE   |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| Item | What's Done | What's Missing |
-|------|-------------|----------------|
-| C7: doc-check verification | Docs updated | `cmd/doc-check` never run on updated files |
-| `nix run .#verify` gate | Targeted tests pass | **Full verify gate NEVER RUN this session** |
-| AGENTS.md test command | Modules added to list | **Test command pattern NOT updated** — `./record/...` not in the `go test` command |
-| `event/go.mod` | `record/v4` added as dependency | **`record/v4` has NO git tag** — consumers outside workspace can't resolve `v4.0.0` |
+| Item                       | What's Done                     | What's Missing                                                                      |
+| -------------------------- | ------------------------------- | ----------------------------------------------------------------------------------- |
+| C7: doc-check verification | Docs updated                    | `cmd/doc-check` never run on updated files                                          |
+| `nix run .#verify` gate    | Targeted tests pass             | **Full verify gate NEVER RUN this session**                                         |
+| AGENTS.md test command     | Modules added to list           | **Test command pattern NOT updated** — `./record/...` not in the `go test` command  |
+| `event/go.mod`             | `record/v4` added as dependency | **`record/v4` has NO git tag** — consumers outside workspace can't resolve `v4.0.0` |
 
 ---
 
 ## c) NOT STARTED
 
-| Item | From Plan | Notes |
-|------|-----------|-------|
-| I1: Dgraph engine implementation | Phase I (deferred) | Needs running cluster — correctly deferred |
-| I2: Tombstone v5 removal | Phase I (deferred) | Correctly deferred to v5 |
-| I3: `record.FromCommand()` adapter | Phase I (10min task) | Was feasible this session — skipped |
-| `nix run .#lint` | Not in plan | **Should have been run** |
-| `nix run .#build` (Nix build, not `go build`) | Not in plan | **Should have been run** |
-| `nix fmt` on whole repo | Not in plan | Only ran `gofmt`/`goimports` on new files |
-| `nix run .#check-layers` (dep budget) | Not in plan | Adding `record/v4` to event/ might affect budget |
+| Item                                          | From Plan            | Notes                                            |
+| --------------------------------------------- | -------------------- | ------------------------------------------------ |
+| I1: Dgraph engine implementation              | Phase I (deferred)   | Needs running cluster — correctly deferred       |
+| I2: Tombstone v5 removal                      | Phase I (deferred)   | Correctly deferred to v5                         |
+| I3: `record.FromCommand()` adapter            | Phase I (10min task) | Was feasible this session — skipped              |
+| `nix run .#lint`                              | Not in plan          | **Should have been run**                         |
+| `nix run .#build` (Nix build, not `go build`) | Not in plan          | **Should have been run**                         |
+| `nix fmt` on whole repo                       | Not in plan          | Only ran `gofmt`/`goimports` on new files        |
+| `nix run .#check-layers` (dep budget)         | Not in plan          | Adding `record/v4` to event/ might affect budget |
 
 ---
 
@@ -150,12 +150,14 @@ I claimed "all green" based on targeted `go test` runs, not the full `nix run .#
 ## f) Up to 50 Things to Get Done Next
 
 ### Critical (blocks external consumers)
+
 1. **Tag `record/v4.0.0`** — `git tag -a record/v4.0.0 -m "..."` so consumers can resolve the dependency
 2. **Run `nix run .#verify`** — Full gate: build + vet + test + race + lint + doc-check + doc-assertions
 3. **Run `nix run .#lint`** — Verify no new lint findings (especially depguard for `record/v4` import)
 4. **Run `nix run .#check-layers`** — Verify `event/` dependency budget still within limits after adding `record/v4`
 
 ### High Priority (quality)
+
 5. **Run `cmd/doc-check`** on updated AGENTS.md + design docs — `cd cmd/doc-check && GOWORK=off go run . ../../AGENTS.md ../../docs/planning/meta-engine-*.md`
 6. **Update AGENTS.md Test command** — Add `./record/...` to the `go test` command in the Quick Reference table
 7. **Refactor `auto_naming.go`** — Make `AutoInsert[E,R]` delegate to `autoInsertByType(reflect.TypeOf(sample), reflect.TypeFor[R](), keyField)` to eliminate duplication
@@ -164,6 +166,7 @@ I claimed "all green" based on targeted `go test` runs, not the full `nix run .#
 10. **Add `record/` to the Test row** in AGENTS.md Quick Reference table
 
 ### Medium Priority (polish)
+
 11. **Add `go.sum` verification** — Run `go mod verify` on event/ and projectionadapter/ after the new dependency
 12. **Tag `metaengine/projectionadapter/v4`** if not already tagged — it now depends on `record/v4`
 13. **Consider `ApplyRecord` perf** — Does building a `record.Record` on every `Handle()` call add measurable overhead? Benchmark `Handle()` before/after.
@@ -176,6 +179,7 @@ I claimed "all green" based on targeted `go test` runs, not the full `nix run .#
 20. **Add race-detector run** — `go test -race -tags "goexperiment.jsonv2" ./metaengine/... ./event/...`
 
 ### Low Priority (nice-to-have)
+
 21. **Dgraph engine implementation** (I1 — deferred, needs infra)
 22. **Tombstone v5 removal** (I2 — deferred to v5)
 23. **Add `WithEventDecoder` example to the quickstart** — Currently uses `PayloadDecoder`; the recommended `EventDecoder` path is not demonstrated

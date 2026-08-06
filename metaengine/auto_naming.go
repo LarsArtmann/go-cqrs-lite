@@ -186,7 +186,9 @@ func AutoCRUDByConvention[R any](keyField string, samples ...any) ([]Fold, error
 	}
 
 	if createdType == nil {
-		return nil, errors.New("AutoCRUDByConvention: no *Created sample provided (at least one is required)")
+		return nil, errors.New(
+			"AutoCRUDByConvention: no *Created sample provided (at least one is required)",
+		)
 	}
 
 	var folds []Fold
