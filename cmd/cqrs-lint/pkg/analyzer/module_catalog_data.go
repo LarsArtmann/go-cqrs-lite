@@ -68,6 +68,12 @@ func buildDefaultCatalog() []ModuleEntry {
 			Suggestion:  "Pebble LSM backend for high-throughput write workloads",
 		},
 		{
+			Key: "stack/bbolt", DisplayName: "Bolt Stack", Category: CategoryPersistence,
+			ImportHints: []string{"go-cqrs-lite/stack/bbolt"},
+			Description: "Bolt (bbolt) B+tree stack preset for single-writer deployments",
+			Suggestion:  "Bolt B+tree backend for single-writer embedded deployments",
+		},
+		{
 			Key: "stack/turso", DisplayName: "Turso Stack", Category: CategoryPersistence,
 			ImportHints: []string{"go-cqrs-lite/stack/turso"},
 			Description: "Turso distributed SQLite stack preset",

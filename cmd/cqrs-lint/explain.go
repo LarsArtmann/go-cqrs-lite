@@ -242,72 +242,81 @@ type featureKey struct {
 	typ         string
 	validValues []string
 	description string
+	// derive, when non-nil, supplies valid values from the corresponding
+	// All*Kind() enumerator. Attaching the derivation here (rather than a
+	// separate string-keyed map) makes the coupling structural: renaming
+	// key in one place carries its derivation along.
+	derive func() []string
 }
 
 //
 //nolint:gochecknoglobals // read-only documentation table
 var featureKeys = []featureKey{
 	{
-		"store",
-		"string",
-		// Derived from analyzer.AllStoreKinds() in init() to prevent split-brain.
-		nil,
-		"Persistence backend the consumer wires up",
+		key:         "store",
+		typ:         "string",
+		description: "Persistence backend the consumer wires up",
+		derive:      deriveStrings(analyzer.AllStoreKinds),
 	},
 	{
-		"command-flow", "string",
-		// Derived from analyzer.AllCommandFlowKinds() in init().
-		nil,
-		"Command-dispatch pattern (read-only = no dispatcher)",
+		key:         "command-flow",
+		typ:         "string",
+		description: "Command-dispatch pattern (read-only = no dispatcher)",
+		derive:      deriveStrings(analyzer.AllCommandFlowKinds),
 	},
 	{
-		"server", "bool",
-		[]string{"true", "false"},
-		"Network listener (HTTP or gRPC) is present",
+		key:         "server",
+		typ:         "bool",
+		validValues: []string{"true", "false"},
+		description: "Network listener (HTTP or gRPC) is present",
 	},
 	{
-		"soft-delete", "bool",
-		[]string{"true", "false"},
-		"Domain emits tombstone-like events",
+		key:         "soft-delete",
+		typ:         "bool",
+		validValues: []string{"true", "false"},
+		description: "Domain emits tombstone-like events",
 	},
 	{
-		"tracing", "string",
-		// Derived from analyzer.AllTracingKinds() in init().
-		nil,
-		"OpenTelemetry tracing middleware is wired",
+		key:         "tracing",
+		typ:         "string",
+		description: "OpenTelemetry tracing middleware is wired",
+		derive:      deriveStrings(analyzer.AllTracingKinds),
 	},
 	{
-		"snapshot", "string",
-		// Derived from analyzer.AllSnapshotKinds() in init().
-		nil,
-		"Snapshot store or strategy is configured",
+		key:         "snapshot",
+		typ:         "string",
+		description: "Snapshot store or strategy is configured",
+		derive:      deriveStrings(analyzer.AllSnapshotKinds),
 	},
 	{
-		"domain", "string",
-		// Derived from analyzer.AllDomainKinds() in init().
-		nil,
-		"Business domain (escalates security/money rules for financial)",
+		key:         "domain",
+		typ:         "string",
+		description: "Business domain (escalates security/money rules for financial)",
+		derive:      deriveStrings(analyzer.AllDomainKinds),
 	},
 	{
-		"transport", "bool",
-		[]string{"true", "false"},
-		"CQRS transport layer (http/grpc) is wired",
+		key:         "transport",
+		typ:         "bool",
+		validValues: []string{"true", "false"},
+		description: "CQRS transport layer (http/grpc) is wired",
 	},
 	{
-		"server-local", "bool",
-		[]string{"true", "false"},
-		"Server without production signals (CLI with embedded dashboard)",
+		key:         "server-local",
+		typ:         "bool",
+		validValues: []string{"true", "false"},
+		description: "Server without production signals (CLI with embedded dashboard)",
 	},
 	{
-		"async-bus", "bool",
-		[]string{"true", "false"},
-		"Distributed event bus (Watermill-backed) is wired",
+		key:         "async-bus",
+		typ:         "bool",
+		validValues: []string{"true", "false"},
+		description: "Distributed event bus (Watermill-backed) is wired",
 	},
 }
 
 // deriveStrings wraps a Kind enumerator (e.g. analyzer.AllStoreKinds) into a
-// func() []string suitable for the kindDerivations map. The generic constraint
-// [T ~string] matches all named string types (StoreKind, TracingKind, etc.).
+// func() []string suitable for the featureKey.derive field. The generic
+// constraint [T ~string] matches all named string types (StoreKind, TracingKind, etc.).
 func deriveStrings[T ~string](fn func() []T) func() []string {
 	return func() []string {
 		kinds := fn()
@@ -319,25 +328,13 @@ func deriveStrings[T ~string](fn func() []T) func() []string {
 	}
 }
 
-// kindDerivations maps a feature key to a function returning its valid
-// values from the corresponding All*Kind() enumerator. Adding a new Kind
-// constant and its All*Kind() entry is sufficient — this table routes the
-// derivation.
-var kindDerivations = map[string]func() []string{
-	"store":        deriveStrings(analyzer.AllStoreKinds),
-	"command-flow": deriveStrings(analyzer.AllCommandFlowKinds),
-	"tracing":      deriveStrings(analyzer.AllTracingKinds),
-	"snapshot":     deriveStrings(analyzer.AllSnapshotKinds),
-	"domain":       deriveStrings(analyzer.AllDomainKinds),
-}
-
 func init() {
-	// Derive feature valid values from Kind constants to eliminate the
-	// split-brain risk of maintaining hand-written copies alongside the
-	// Kind const blocks in the analyzer package.
-	for i, fk := range featureKeys {
-		if derive, ok := kindDerivations[fk.key]; ok {
-			featureKeys[i].validValues = derive()
+	// Derive feature valid values from the derive field (which calls the
+	// All*Kind() enumerators) to eliminate the split-brain risk of maintaining
+	// hand-written copies alongside the Kind const blocks in the analyzer package.
+	for i := range featureKeys {
+		if featureKeys[i].derive != nil {
+			featureKeys[i].validValues = featureKeys[i].derive()
 		}
 	}
 }

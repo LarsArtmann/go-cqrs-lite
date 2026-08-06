@@ -1,4 +1,4 @@
-package metaengine
+package sqliteengine
 
 import (
 	"fmt"

@@ -57,16 +57,41 @@ const (
 	StoreMemory   StoreKind = "memory"
 	StoreTurso    StoreKind = "turso"
 	StoreDuckDB   StoreKind = "duckdb"
+	StoreBolt     StoreKind = "bolt"
 	StoreCustom   StoreKind = "custom"
 	StoreNone     StoreKind = "none"
 )
 
 // IsSQL reports whether this store kind is SQL-backed (capable of
 // ORDER BY / WHERE pushdown). Used by adoption rules (F022) to gate
-// pushdown-relevant suggestions.
+// pushdown-relevant suggestions. KV stores (Pebble, Bolt, Memory) are not
+// SQL-backed — they cannot push down filters/sorts to the storage layer.
 func (s StoreKind) IsSQL() bool {
 	switch s {
 	case StoreSQLite, StorePostgres, StoreMySQL, StoreDuckDB, StoreCustom:
+		return true
+	default:
+		return false
+	}
+}
+
+// IsEmbedded reports whether this store runs in-process (no separate server).
+// Embedded stores (SQLite, Pebble, Bolt, Memory, DuckDB) share the application
+// process. Distributed stores (Postgres, MySQL, Turso) run as a separate server.
+func (s StoreKind) IsEmbedded() bool {
+	switch s {
+	case StoreSQLite, StorePebble, StoreBolt, StoreMemory, StoreDuckDB:
+		return true
+	default:
+		return false
+	}
+}
+
+// IsDistributed reports whether this store runs as a separate server process,
+// enabling multi-instance deployment. Distributed stores require network I/O.
+func (s StoreKind) IsDistributed() bool {
+	switch s {
+	case StorePostgres, StoreMySQL, StoreTurso:
 		return true
 	default:
 		return false
@@ -79,7 +104,7 @@ func (s StoreKind) IsSQL() bool {
 func AllStoreKinds() []StoreKind {
 	return []StoreKind{
 		StoreSQLite, StorePostgres, StoreMySQL, StorePebble,
-		StoreMemory, StoreTurso, StoreDuckDB, StoreCustom, StoreNone,
+		StoreMemory, StoreTurso, StoreDuckDB, StoreBolt, StoreCustom, StoreNone,
 	}
 }
 

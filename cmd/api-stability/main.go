@@ -58,6 +58,7 @@ var modules = []string{
 	"metaengine/irohengine/loopback",
 	"metaengine/irohengine/quic",
 	"metaengine/projectionadapter",
+	"metaengine/sqliteengine",
 	// Layer 4
 	"storage/memory",
 	"signing",
