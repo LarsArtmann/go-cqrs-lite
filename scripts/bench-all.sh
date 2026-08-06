@@ -9,6 +9,8 @@
 #   scripts/bench-all.sh              # run all benchmarks
 #   scripts/bench-all.sh --quick      # skip slow modules (duckdb, integration)
 #   scripts/bench-all.sh --module event  # run a single module
+#   scripts/bench-all.sh --count 3    # run each benchmark 3 times (CoV analysis)
+#   scripts/bench-all.sh --benchtime 5x  # set benchtime per benchmark
 #
 # Environment:
 #   GOEXPERIMENT=jsonv2   (required — set automatically)
@@ -30,14 +32,23 @@ export GOFLAGS="-tags=goexperiment.jsonv2"
 TIMEOUT="${BENCH_TIMEOUT:-20m}"
 QUICK=false
 MODULE_FILTER=""
+BENCH_COUNT=1
+BENCH_TIME=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --quick) QUICK=true; shift ;;
         --module) MODULE_FILTER="$2"; shift 2 ;;
+        --count) BENCH_COUNT="$2"; shift 2 ;;
+        --benchtime) BENCH_TIME="$2"; shift 2 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
+
+BENCH_TIME_FLAG=""
+if [[ -n "$BENCH_TIME" ]]; then
+    BENCH_TIME_FLAG="-benchtime=$BENCH_TIME"
+fi
 
 # Modules that have benchmark files (auto-discovered).
 # We search for func Benchmark in _test.go files.
@@ -48,8 +59,23 @@ mapfile -t MODULES < <(
     | sort -u
 )
 
-# Slow modules skipped in --quick mode
-SLOW_MODULES="./metaengine/duckdbengine/... ./metaengine/pgengine/... ./integration/... ./stack/bench/..."
+# Slow modules skipped in --quick mode (exact paths, no glob fragility)
+SLOW_MODULES=(
+    "metaengine/duckdbengine"
+    "metaengine/pgengine"
+    "integration"
+    "stack/bench"
+)
+
+is_slow_module() {
+    local target="$1"
+    for slow in "${SLOW_MODULES[@]}"; do
+        if [[ "$target" == "$slow" || "$target" == "$slow"/* ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
 
 echo "============================================"
 echo "  bench-all.sh — Full Benchmark Suite"
@@ -80,14 +106,7 @@ for mod in "${MODULES[@]}"; do
 
     # Quick mode: skip slow modules
     if $QUICK; then
-        skip=false
-        for slow in $SLOW_MODULES; do
-            if [[ "$mod" == *$(echo "$slow" | sed 's|/\.\.\.||')* ]]; then
-                skip=true
-                break
-            fi
-        done
-        if $skip; then
+        if is_slow_module "$mod_name"; then
             echo "  SKIP   $mod_name (slow module, --quick)"
             ((TOTAL_SKIPPED++)) || true
             continue
@@ -106,22 +125,24 @@ for mod in "${MODULES[@]}"; do
         -tags "goexperiment.jsonv2" \
         -run='^$' \
         -bench=. \
+        $BENCH_TIME_FLAG \
         -benchmem \
-        -count=1 \
+        -count="$BENCH_COUNT" \
         -timeout "$TIMEOUT" \
-        "./${mod_name}/..." 2>&1) || true
+        "./${mod_name}/..." 2>&1) && exit_code=0 || exit_code=$?
 
-    # Check for failures
-    if echo "$output" | grep -qE '(FAIL|panic:)'; then
-        echo "  FAIL   $mod_name ($bench_count benchmarks)"
-        echo "$output" | grep -E '(FAIL|panic:|--- FAIL)' | head -5 | sed 's/^/         /'
+    # Use exit code for FAIL detection (not grep — grep false-positives on benchmark names)
+    if [[ $exit_code -ne 0 ]]; then
+        echo "  FAIL   $mod_name ($bench_count benchmarks, exit=$exit_code)"
+        echo "$output" | grep -E '(FAIL|panic:|--- FAIL|Error)' | head -5 | sed 's/^/         /'
         ((TOTAL_FAILED++)) || true
         FAILED_MODULES+=("$mod_name")
     elif echo "$output" | grep -qE '(--- SKIP|no benchmarks|no Go files)'; then
         echo "  SKIP   $mod_name (skipped/no-output)"
         ((TOTAL_SKIPPED++)) || true
     elif echo "$output" | grep -qE '^ok'; then
-        duration=$(echo "$output" | grep '^ok' | sed 's/.*\t//' || echo "?")
+        # Use last ok line for duration (handles multi-package modules)
+        duration=$(echo "$output" | grep '^ok' | tail -1 | awk '{print $NF}' || echo "?")
         echo "  PASS   $mod_name ($bench_count benchmarks, $duration)"
         ((TOTAL_PASSED++)) || true
     else

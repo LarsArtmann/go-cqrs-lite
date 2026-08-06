@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 )
 
 // BenchmarkBenchkitSuite_SQLiteCGo runs the full benchkit suite against SQLite
@@ -32,6 +33,7 @@ func BenchmarkBenchkitSuite_SQLiteCGo(b *testing.B) {
 	}, func() (*stack.Bundle, error) {
 		return sqlite.New(
 			filepath.Join(dir, "bench.db"),
+			sqlite.WithPragmas(sqlopt.WithOptimizations()),
 			sqlite.WithDriverName("sqlite3"),
 		)
 	})

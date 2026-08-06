@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/pebble/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 )
 
 // BenchmarkBenchkitSuite_Memory runs the full benchkit suite against the
@@ -25,6 +26,8 @@ func BenchmarkBenchkitSuite_Memory(b *testing.B) {
 }
 
 // BenchmarkBenchkitSuite_SQLite runs the full benchkit suite against SQLite.
+// Uses optimized pragmas (64 MB cache, mmap, temp in memory) to match the
+// cqrs-bench CLI configuration — so test and CLI numbers are directly comparable.
 func BenchmarkBenchkitSuite_SQLite(b *testing.B) {
 	dir := b.TempDir()
 
@@ -34,7 +37,10 @@ func BenchmarkBenchkitSuite_SQLite(b *testing.B) {
 		Backend:     "sqlite",
 		DiskPath:    dir,
 	}, func() (*stack.Bundle, error) {
-		return sqlite.New(filepath.Join(dir, "bench.db"))
+		return sqlite.New(
+			filepath.Join(dir, "bench.db"),
+			sqlite.WithPragmas(sqlopt.WithOptimizations()),
+		)
 	})
 }
 
