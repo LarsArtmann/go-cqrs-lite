@@ -9,7 +9,7 @@
 
 ### a) FULLY DONE
 
-1. **Fixed `--payload-sizes` consuming next flag as value** — `factory.go:parsePayloadSizes` now calls `looksLikeFlag()` before parsing. When pflag blindly feeds `--profile` as the value of `--payload-sizes`, the user gets a clear, actionable error: *"value "--profile" looks like a flag name, not a size list — use --flag=VALUE syntax (e.g. --payload-sizes=64,256,4096) or place the flag last in the command line"*. No more confusing `strconv.Atoi` error. Correctly distinguishes `--profile` (flag) from `-1` (negative number).
+1. **Fixed `--payload-sizes` consuming next flag as value** — `factory.go:parsePayloadSizes` now calls `looksLikeFlag()` before parsing. When pflag blindly feeds `--profile` as the value of `--payload-sizes`, the user gets a clear, actionable error: _"value "--profile" looks like a flag name, not a size list — use --flag=VALUE syntax (e.g. --payload-sizes=64,256,4096) or place the flag last in the command line"_. No more confusing `strconv.Atoi` error. Correctly distinguishes `--profile` (flag) from `-1` (negative number).
 
 2. **Exported formatting helpers from benchkit** — `benchkit/report_format.go` now exports `FormatDuration`, `FormatBytes`, `FormatFloat`, `FormatInt`. These are the canonical implementations; `render.go`'s duplicated `roundDur`, `fmtBytes`, `fmtFloat`, `fmtInt` are eliminated. The wrappers (`fmtDur`, `fmtBytes`, etc.) remain as thin one-line pass-throughs to keep call sites short. `go-humanize` demoted from direct to `// indirect` dependency in `cmd/cqrs-bench/go.mod` (still transitive via benchkit).
 
