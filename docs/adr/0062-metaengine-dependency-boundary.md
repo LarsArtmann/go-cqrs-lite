@@ -132,6 +132,16 @@ the planner better at its job. Modules are split when:
 - New engine modules (badgerengine, dgraphengine) follow the same deployment
   isolation pattern as pebbleengine, pgengine, etc.
 
+### Related ADRs (supersede or build on this decision)
+
+- **ADR-0111** — Record type extraction (the dependency the core now gains)
+- **ADR-0112** — ES-native metaengine (planner reasons over typed Records)
+- **ADR-0113** — Delete GraphBackend (unblocks graph unification)
+- **ADR-0114** — Tombstones as domain events (removes mutable metadata)
+- **ADR-0115** — SQLite engine extraction (core keeps only memory_engine)
+- **ADR-0116** — Layered auto-projection (planner generates folds from types)
+- **ADR-0117** — Command lifecycle as event streams (no IntentStatus)
+
 ### What Stays the Same
 
 - The `projectionadapter/` subpackage pattern for heavy external deps

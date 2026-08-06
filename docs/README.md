@@ -140,7 +140,8 @@ The authoritative module index with README links lives in the **[project README]
 | [0097](adr/0097-sse-three-repo-finding-and-go-sse-consumption.md) | SSE three-repo finding and go-sse consumption plan      | Accepted                 |
 | [0098](adr/0098-metaengine-persistence-enum.md)                   | Metaengine persistence enum (DDIA Ch1 reliability axis) | Accepted                 |
 | [0099](adr/0099-backend-selection-hybrid.md)                      | Backend selection: hybrid registry + config             | Accepted                 |
-| [0100](adr/0100-readcosts-per-operation-cost-model.md)            | Per-read-pattern cost model (ReadCosts)                 | Accepted                 |
+| [0099a](adr/0099a-readcosts-per-operation-cost-model.md)         | Per-read-pattern cost model (ReadCosts)                 | Accepted                 |
+| [0100](adr/0100-redesign-scope-parallel.md)                      | Redesign scope: parallel (new alongside old)            | Accepted                 |
 | [0101](adr/0101-backend-abstraction-n-instance.md)                | Backend abstraction: N-instance metaengine              | Accepted                 |
 | [0102](adr/0102-admin-interface-introspection-only.md)            | Admin web interface: introspection API only             | Accepted                 |
 | [0103](adr/0103-scream-store-tiered.md)                           | Scream store: tiered enforcement                        | Accepted                 |

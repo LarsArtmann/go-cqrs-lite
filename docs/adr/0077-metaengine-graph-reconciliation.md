@@ -127,3 +127,9 @@ Schema validation, ReadableDriver with Query/Traverse/ShortestPath) becomes the
 standard for all graph operations in the system.
 
 See ADR-0113 for the full implementation plan.
+
+### Related ADRs
+
+- **ADR-0062** (addendum) — removed the zero-dep boundary that was the real blocker
+- **ADR-0111** — Record type (graph folds will receive typed Records)
+- **ADR-0113** — Delete GraphBackend (implementation plan for this decision)

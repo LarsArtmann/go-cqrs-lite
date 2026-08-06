@@ -1,4 +1,4 @@
-# ADR-0099: Per-Read-Pattern Cost Model (ReadCosts)
+# ADR-0099a: Per-Read-Pattern Cost Model (ReadCosts)
 
 ## Status
 
