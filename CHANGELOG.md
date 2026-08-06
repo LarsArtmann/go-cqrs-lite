@@ -8,6 +8,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### SUPERB execution plan session 1 — file splits, SerializableReadCosts, module releases
+
+- **SerializableReadCosts in plan JSON** — per-read-pattern cost model
+  (`NsPerPointLookup`, `NsPerFilteredScan`, `NsPerAggregate`, `NsPerScan`)
+  now serialized into `SerializableQuery.ReadCosts`. Enables plan diffing
+  between deploys to show active calibrated costs. ADR-0100 documents the
+  design.
+- **6 file splits under 350-line CI limit** — `system/constructor.go`
+  (382→246, extracted `register.go`), `system/system.go` (364→196, extracted
+  `config_types.go`), `system/adapter_event.go` (357→299, extracted
+  `adapter_event_serial.go`), `cmd/cqrs-lint/pkg/analyzer/feature_detect.go`
+  (502→208, extracted `feature_detect_helpers.go`), `metaengine/sse.go`
+  (369→263, extracted `sse_loop.go`), `cmd/cqrs-lint/output.go` (437→196,
+  extracted `output_grouping.go`).
+- **ADR-0100** — per-read-pattern cost model for SerializableReadCosts.
+- **CONTRIBUTING.md cqrs-lint section** — JSONC config loader, `explain`
+  subcommand, `scorecard` feature, `--group-by` flag, SARIF output formats.
+- **Recipes.md metaengine DX update** — replaced manual `eventWithID` /
+  `taskEventDecoder` pattern with `NewTypeDecoder` + `Register` + `PlanFromSQLite`.
+- **example/taskmanager/metaengine.go DX rewrite** — 372→193 lines. Removed
+  manual `eventWithID` struct, `taskEventDecoder`, `onTyped` helper. Replaced
+  with `projectionadapter.EventWithID`, `NewTypeDecoder`+`Register`,
+  `PlanFromSQLite`, `LogPlan`.
+- **Module releases tagged and pushed**:
+  - `cmd/cqrs-lint/v4.4.0` — version bump, file splits
+  - `metaengine/v4.5.0` — SerializableReadCosts, sse.go split
+  - `system/v4.0.0` — file splits (constructor, system, adapter_event)
+  - `stack/mysql/v4.0.0` — source stable, first tag
+  - `metaengine/irohengine/loopback/v4.0.0` — first tag
+  - `metaengine/irohengine/quic/v4.0.0` — first tag
+
+### Added
+
 #### System/ Pareto execution — P0 wiring fixes, snapshot E2E, decoder wiring
 
 - **Driver registry wired into constructor** — `createEngine()` replaced with

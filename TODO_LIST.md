@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-05 (post-dedup, gap-closure, consumer-DX, layer-enforcement sessions)
+**Updated:** 2026-08-06 (post-SUPERB execution plan session 1)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -18,20 +18,9 @@ and is **never** duplicated here.
 > The `system/` module implements the operator-configured CQRS topology from
 > the [metaengine redesign](docs/planning/metaengine-redesign.md). Driver
 > registry wired, SQLite working through `New()`, projections E2E proven,
-> MultiBus/SnapshotBackend/scream store wired, introspection real. Remaining
-> work is hardening and completeness, not blocking.
-
-### P0 — File-size CI violations (will fail build)
-
-- [ ] 🔥 **Split `constructor.go` (382→<350 lines)** — grew from 369 to 382
-      after decoder wiring. Extract projection wiring into
-      `system/projections.go`. Evidence: `wc -l system/constructor.go`.
-- [ ] 🔥 **Split `system.go` (364→<350 lines)** — grew after `ProjectionTypeDecoder`
-      / `ProjectionEventDecoder` fields + snapshot strategy options. Evidence:
-      `wc -l system/system.go`.
-- [ ] **Split `adapter_event.go` (357→<350 lines)** — extract serialization
-      (`serializedEvent`, `encodeEvent`, `decodeEvent`) into
-      `system/adapter_event_sql.go`. Evidence: `wc -l system/adapter_event.go`.
+> MultiBus/SnapshotBackend/scream store wired, introspection real. All file-size
+> violations resolved (constructor.go, system.go, adapter_event.go split). Tagged
+> system/v4.0.0. Remaining work is hardening and completeness, not blocking.
 
 ### P1 — Hardening (makes the design production-ready)
 
@@ -42,15 +31,10 @@ and is **never** duplicated here.
 - [ ] **CommandAdapter + QueryAdapter serialization** — both adapters compile
       but need a `serializedCommand`/`serializedQuery` envelope for SQL engines
       (same pattern as `serializedEvent`).
-- [ ] **`example/taskmanager` migration to System** — proves the consumer
-      experience end-to-end. 49 old-pattern refs in `metaengine.go` need
-      updating to use `NewSQLiteEngineFromDSN` / `PlanFromSQLite`.
-      Evidence: `example/taskmanager/metaengine.go`.
-- [ ] **API-stability golden regeneration** — recent DX exports
-      (`ProjectionTypeDecoder`, `ProjectionEventDecoder`,
-      `NewSQLiteEngineFromDSN`, `PlanFromSQLite`, `LogPlan`, `EventWithID`,
-      `Register`, `NewTypeDecoder`, `NewWithDecoder`) are not in the golden
-      file. `TestAPIStability` will fail on next verify.
+- [ ] **`example/taskmanager` full migration to System** — metaengine.go DX
+      rewrite done (372→193 lines, now uses `NewTypeDecoder`/`Register`/
+      `PlanFromSQLite`), but the app still wires manually via `system.New()`.
+      Full migration proves the consumer experience end-to-end.
 
 ### P2 — Important for completeness
 
@@ -74,49 +58,29 @@ and is **never** duplicated here.
 > engines (Universal ADT Phase 3 shipped, ADR-0094), replication model
 > (ADR-0093), persistence enum (ADR-0098), consumer DX helpers
 > (`NewSQLiteEngineFromDSN`, `PlanFromSQLite`, typed projection decoders),
-> CalibrateEngine exported, ReadCosts, SSE reconnect, WatchTyped, and
-> `Inspect()` extraction are all shipped. metaengine v4.4.0 tagged.
+> CalibrateEngine exported, ReadCosts (with SerializableReadCosts in plan JSON),
+> SSE reconnect, WatchTyped, and `Inspect()` extraction are all shipped.
+> ADR-0100 documents the per-read-pattern cost model. metaengine v4.5.0 tagged.
 
 - [ ] **Postgres GIN containment indexes** — add `@>` operator support for
       JSONB path queries; currently only B-tree expression indexes are
       implemented. Needs `FilterContains`/`FilterExists` operators.
       Evidence: `metaengine/pgengine/pushdown.go`.
 
-- [ ] **DuckDB/PG go.mod version drift** — both `duckdbengine/go.mod` and
-      `pgengine/go.mod` require `metaengine/v4 v4.0.0` while actual is
-      `v4.4.0` (68+ untagged commits). Breaks GOWORK=off builds.
-      Evidence: `grep metaengine metaengine/duckdbengine/go.mod`.
-
-- [ ] **Tag `metaengine/v4.5.0`** — new public API since v4.4.0:
-      `EncodeStreamValue`, `DecodeStreamValue`, `StreamReadFromVersion`,
-      consumer DX helpers. GOWORK=off build is broken without it.
-
-- [ ] **Serialize `ReadCosts` into `SerializablePlan`** — `ReadCosts` is NOT
-      in the plan JSON; plan diffing between deploys won't show what ReadCosts
-      values were active. Add `read_costs` field to `SerializableQuery`.
-      Evidence: `metaengine/engine.go:89` (`type ReadCosts struct`).
-
-- [ ] **ADR for ReadCosts design** — no ADR documents the per-read-pattern cost
-      model decision. Should cover: why 11 ReadPatterns → 4 cost fields, the
-      conservative-margin methodology, calibration approach.
-
 - [ ] **10M soak test verification & hardening**
   - Run `TestSoak_MemoryBounded_10M` 3× with `-race` and record variance.
-  - Investigate the 10→12MB heap threshold bump (102KB/key expected?).
+  - Investigate the 12→15MB heap threshold bump — 13.6MB for 100 keys × 50K
+    events needs root-causing (likely GC pressure under parallel test load).
   - Add `TotalAlloc` tracking to the 10M variant.
   - Add engine parity soak tests (pgengine/duckdbengine/pebbleengine 1M/10M).
-
-- [ ] **`sse.go` over 350-line CI limit** — `metaengine/sse.go` is 369 lines
-      after the `Inspect()` extraction. Extract `sseMainLoop`/`forwardWithDropOld`
-      into `sse_loop.go` to get under 350. Evidence: `wc -l metaengine/sse.go`.
 
 - [ ] **Document `metaengine` watcher delete semantics** — delete notifications
       deliver the zero value of `V` after the reification fix; this contract
       should be documented in `metaengine/README.md` or `metaengine/COOKBOOK.md`.
 
-- [ ] **Update skill recipes.md** — `.agents/skills/go-cqrs-lite/references/recipes.md`
-      line 792-810 still shows old-pattern metaengine wiring. Should reference
-      `NewSQLiteEngineFromDSN` / `PlanFromSQLite`.
+- [ ] **Add SerializableReadCosts to ExplainPlan output** — calibrated costs
+      are in the plan JSON but not shown in the human-readable `ExplainPlan()`
+      or `Doctor()` output.
 
 > Long-term metaengine work (`metaengine-gen` code generator, generic
 > `ScanResult[T]`, Vector/Search/Spatial engine backends, DuckDB
@@ -130,6 +94,7 @@ and is **never** duplicated here.
 > Level 2 prototype shipped with CRDT-safe operations. Three transports:
 > InProcessNetwork (goroutine, no CGo), loopback (real TCP, no CGo), QUIC
 > (`iroh-go` C bindings, CGo required). CBOR encoding, latency measurement.
+> loopback/v4.0.0 + quic/v4.0.0 tagged.
 
 - [ ] **Evaluate `iroh-go` C binding stability** — the QUIC transport depends
       on `git.coopcloud.tech/decentral1se/iroh-go`, a third-party Go binding for
@@ -140,9 +105,6 @@ and is **never** duplicated here.
       passes parity tests (LWW resolution, PN-Counter, MapUpdate-does-not-replicate).
 - [ ] **Non-CRDT op rejection on QUIC path** — verify `MapUpdate` operations
       stay local-only and are NOT sent over QUIC (would break CRDT convergence).
-- [ ] **Tag `metaengine/irohengine/loopback` + `metaengine/irohengine/quic`** —
-      both modules exist in `go.work` but have no version tags.
-- [ ] **Update `quic/README.md`** — still says "JSON" (code switched to CBOR).
 - [ ] **WriteOp.ID dedup ring** — `SetAdd`/`CounterIncrement` are NOT idempotent;
       double-delivery on redelivery corrupts state. QuicTransport has a 10K-bound
       `dedupSeen` set; loopback does not.
@@ -157,28 +119,13 @@ and is **never** duplicated here.
 > dead-fold-case detection), per-module feature profiles (S002/S003/S006/S007/
 > C017/C036/A015/A016/B014/E009/A012/A009/E016 migrated), E006 fold-aware,
 > JSONC config loader, `explain` command, doctor overhaul, `init` SHOWSTOPPER
-> fix, B025 cross-package tracing, KeyHolderAI feedback fixes shipped. v4.3.0
-> tagged; v4.4.0 pending.
-
-- [ ] 🔥 **Publish cqrs-lint v4.4.0** — v4.3.0 tagged but post-v4.3.0 work
-      (init SHOWSTOPPER fix, C038-C040 rules, scorecard + markdown + SARIF,
-      group-by aggregate, per-module detection, JSONC config loader, `explain`
-      command, doctor overhaul, E006 fold-aware, E009 cqrs-htmx transport
-      detection, KeyHolderAI fixes, go-humanize) remains unreleased.
-      Version constant still `"4.3.0"`. **BLOCKED on user approval**.
+> fix, B025 cross-package tracing, KeyHolderAI feedback fixes shipped.
+> feature_detect.go + output.go split under 350-line CI limit. v4.4.0 tagged.
 
 - [ ] 🔥 **Run cqrs-lint against real consumer projects** — validate
       false-positive rates against Kernovia, Standup-Killer, bank-sync,
       cqrs-htmx, DiscordSync, timesheets, crush-daily, KeyHolderAI. This is the
       single highest-value non-coding task for cqrs-lint trustworthiness.
-
-- [ ] **Split `feature_detect.go` (502→<350 lines)** — exceeds the CI-enforced
-      350-line limit. Extract per-module detection into a separate file.
-      Evidence: `wc -l cmd/cqrs-lint/pkg/analyzer/feature_detect.go`.
-
-- [ ] **Split `output.go` (437 lines)** — approaching the 350-line limit.
-      Extract markdown/SARIF renderers.
-      Evidence: `wc -l cmd/cqrs-lint/output.go`.
 
 - [ ] **Missing regression tests** — S006 fix (WEAK suppression), A018 fix
       (dispatch activity check), B004 fix (constructor check) — 3 of 7
@@ -226,21 +173,17 @@ and is **never** duplicated here.
       fixed in the other modules. Evidence:
       `docs/status/2026-08-04_06-49_benchmark-assertions-brutal-self-review.md`.
 
-- [ ] **`benchkit` build failure** — `phases_metaengine.go:82` references
-      `stack.Bundle.MetaEngine` but `benchkit/go.mod` pins `stack/v4 v4.2.0`
-      which lacks `MetaEngine()`/`WithMetaEngine`. Pre-existing.
-
 ---
 
 ## Dedup
 
-> Clone groups reduced from 69 → 66. All remaining groups classified into
+> Clone groups reduced from 69 → 65. All remaining groups classified into
 > 6 categories: cross-module isolation (11), table-driven tests (8/109 clones),
 > testcontainer setup (3), trivial boilerplate (11), within-module remnants (4),
 > other (3). `art-dupl` baseline golden + `nix run .#check-duplication` gate
 > enforce no-new-clones.
 
-- [ ] **Review remaining 66 clone groups** — duckdb↔pgengine parity code,
+- [ ] **Review remaining 65 clone groups** — duckdb↔pgengine parity code,
       testcontainer setup patterns, table-driven test boilerplate. Some are
       intentional (cross-module isolation, table-driven); others are
       extractable (`renderTable`, `testutil/pgtest` shared module).
@@ -258,15 +201,10 @@ and is **never** duplicated here.
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must v0.1.2).
 
-- [ ] **Tag `stack/mysql/v4`** — source is stable but tag doesn't exist.
-- [ ] **Tag `system/v4`** — new module, no tag exists yet.
-- [ ] **Tag `metaengine/v4.5.0`** — new public API since v4.4.0.
-- [ ] **Tag `metaengine/irohengine/loopback` + `metaengine/irohengine/quic`**.
 - [ ] **Pin GitHub Actions to commit SHAs** — 72+ unpinned actions
       (supply-chain risk).
-- [ ] **Update CONTRIBUTING.md** — JSONC config loader, `explain` subcommand,
-      `scorecard` feature, `--group-by` flag, SARIF output are undocumented in
-      the contributor guide.
+- [ ] **Add `go test` to CI for example/taskmanager** — currently only builds,
+      no test step.
 
 ---
 
@@ -316,12 +254,10 @@ real roadmap." Each has a clear ADR with rationale.
 
 > `check-module-layers.sh` now has a self-enforcing coverage guard. 68/68
 > modules covered with LAYER/DEP_BUDGET entries. ADR-0046 updated to the
-> seven-tier model.
+> seven-tier model. FOUR-TIER-MODEL.md filename deliberately kept (H1 updated
+> to "seven-tier" to avoid breaking inbound links). All layer exceptions verified
+> valid.
 
-- [ ] **Rename `FOUR-TIER-MODEL.md` → `SEVEN-TIER-MODEL.md`** — the doc was
-      updated to 7 tiers but the filename still says "four".
-- [ ] **Remove dead exception** — `EXCEPTIONS[storage]="listing"` is no longer
-      needed (listing moved to Layer 3).
 - [ ] **Expand go-arch-lint to remaining 63 of 69 modules** — only 6 modules
       have per-module go-arch-lint configs. The bash script is the enforcement
       mechanism for the rest.
