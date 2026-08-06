@@ -22,7 +22,6 @@ require (
 	github.com/larsartmann/go-sse v0.4.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	modernc.org/libc v1.75.0 // indirect
 )
 
 replace (

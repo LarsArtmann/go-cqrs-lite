@@ -8,14 +8,14 @@ Dgraph is a distributed graph database with native graph traversal and
 full-text search. This engine makes **GraphBackend** and **SearchBackend**
 first-class citizens — no degradation, no emulation.
 
-| ADT | Complexity | Degraded? | Notes |
-|-----|-----------|-----------|-------|
-| Map | O(logN) | No | @index(exact) point lookup |
-| Counter | O(1) | No | Atomic read-modify-write |
-| Graph | O(degree^depth) | **No** | **Dgraph's native strength** |
-| Set | O(logN) | No | @index(exact) membership |
-| SortedMap | O(N) | Yes | Scan + Go-side sort |
-| Search | O(logN) | **No** | **@index(term) full-text** |
+| ADT       | Complexity      | Degraded? | Notes                        |
+| --------- | --------------- | --------- | ---------------------------- |
+| Map       | O(logN)         | No        | @index(exact) point lookup   |
+| Counter   | O(1)            | No        | Atomic read-modify-write     |
+| Graph     | O(degree^depth) | **No**    | **Dgraph's native strength** |
+| Set       | O(logN)         | No        | @index(exact) membership     |
+| SortedMap | O(N)            | Yes       | Scan + Go-side sort          |
+| Search    | O(logN)         | **No**    | **@index(term) full-text**   |
 
 ## Implemented Backends
 

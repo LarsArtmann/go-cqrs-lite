@@ -16,18 +16,22 @@ import (
 // search via anyofterms(). The term index tokenizes text on word boundaries,
 // enabling case-insensitive matching.
 
-func (e *dgraphEngine) SearchInsert(ctx context.Context, col string, doc metaengine.IndexedText) error {
+func (e *dgraphEngine) SearchInsert(
+	ctx context.Context,
+	col string,
+	doc metaengine.IndexedText,
+) error {
 	req := &api.Request{CommitNow: true}
 	req.Query = fmt.Sprintf(`{
 		doc as var(func: eq(cqrs.search_collection, %s)) @filter(eq(cqrs.search_id, %s))
 	}`, dqlString(col), dqlString(doc.ID))
 
 	createJSON, _ := json.Marshal(map[string]any{
-		"uid":                   "_:new",
+		"uid":                    "_:new",
 		"cqrs.search_collection": col,
-		"cqrs.search_id":        doc.ID,
-		"cqrs.search_content":   doc.Content,
-		"dgraph.type":           []string{"SearchDoc"},
+		"cqrs.search_id":         doc.ID,
+		"cqrs.search_content":    doc.Content,
+		"dgraph.type":            []string{"SearchDoc"},
 	})
 
 	updateJSON, _ := json.Marshal(map[string]any{

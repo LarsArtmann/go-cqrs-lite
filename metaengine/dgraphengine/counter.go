@@ -54,7 +54,7 @@ func (e *dgraphEngine) counterIncrementOne(
 
 	var result struct {
 		Counter []struct {
-			UID             string `json:"uid"`
+			UID              string `json:"uid"`
 			CqrsCounterValue int64  `json:"cqrs.counter_value"`
 		} `json:"counter"`
 	}

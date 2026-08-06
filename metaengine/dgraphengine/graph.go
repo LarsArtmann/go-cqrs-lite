@@ -17,7 +17,11 @@ import (
 // bidirectional traversal. GraphAddEdge adds both directions (matching the
 // memory engine's symmetric adjacency semantics).
 
-func (e *dgraphEngine) GraphAddEdge(ctx context.Context, collection string, edge metaengine.Edge) error {
+func (e *dgraphEngine) GraphAddEdge(
+	ctx context.Context,
+	collection string,
+	edge metaengine.Edge,
+) error {
 	fromStr := fmt.Sprint(edge.From)
 	toStr := fmt.Sprint(edge.To)
 

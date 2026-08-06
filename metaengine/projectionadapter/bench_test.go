@@ -26,9 +26,12 @@ type benchQuery struct{}
 func BenchmarkHandle_ApplyRecord(b *testing.B) {
 	q := metaengine.Query[benchQuery, benchItemRecord](
 		"bench-items",
-		metaengine.OnRecord(benchItemRecord{}, func(rec record.Record, e benchItemRecord) (string, benchItemRecord) {
-			return e.ID, e
-		}),
+		metaengine.OnRecord(
+			benchItemRecord{},
+			func(rec record.Record, e benchItemRecord) (string, benchItemRecord) {
+				return e.ID, e
+			},
+		),
 	)
 
 	store, err := metaengine.Plan(

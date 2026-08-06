@@ -19,10 +19,10 @@ func (e *dgraphEngine) SetAdd(ctx context.Context, col string, key any) error {
 	}`, dqlString(col), dqlString(keyStr))
 
 	createJSON, _ := json.Marshal(map[string]any{
-		"uid":               "_:new",
+		"uid":                 "_:new",
 		"cqrs.set_collection": col,
-		"cqrs.set_key":      keyStr,
-		"dgraph.type":       []string{"MetaSetEntry"},
+		"cqrs.set_key":        keyStr,
+		"dgraph.type":         []string{"MetaSetEntry"},
 	})
 
 	req.Mutations = []*api.Mutation{

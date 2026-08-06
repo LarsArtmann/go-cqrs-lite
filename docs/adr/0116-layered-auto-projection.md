@@ -109,11 +109,11 @@ consumer to provide an explicit fold for that query.
 `AutoCRUDByConvention[R]` scans sample event types for suffixes to infer fold
 type:
 
-| Suffix     | Fold Type | Example           |
-| ---------- | --------- | ----------------- |
-| `*Created` | Insert    | `UserCreated{}`   |
-| `*Updated` | Update    | `UserUpdated{}`   |
-| `*Deleted` | Delete    | `UserDeleted{}`   |
+| Suffix     | Fold Type | Example         |
+| ---------- | --------- | --------------- |
+| `*Created` | Insert    | `UserCreated{}` |
+| `*Updated` | Update    | `UserUpdated{}` |
+| `*Deleted` | Delete    | `UserDeleted{}` |
 
 **Important:** The convention matches Go struct names, not event type strings.
 This means `"TaskCreated"` (the struct name) works, but `"task.created"` (the
@@ -122,6 +122,7 @@ uses dot-separated event types. The convention-based approach trades
 event-type-string flexibility for zero-config CRUD setup.
 
 **Error cases:**
+
 - No `*Created` sample provided → error (insert is the minimum requirement)
 - Multiple samples with the same suffix → error (ambiguous)
 - Sample with unrecognized suffix → error (must be Created/Updated/Deleted)

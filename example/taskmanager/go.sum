@@ -76,6 +76,7 @@ github.com/jackc/pgx/v5 v5.10.0/go.mod h1:mal1tBGAFfLHvZzaYh77YS/eC6IX9OWbRV1QII
 github.com/jackc/puddle/v2 v2.2.2 h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=
 github.com/jackc/puddle/v2 v2.2.2/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
 github.com/klauspost/compress v1.19.2 h1:hMRETovs/pu/dVWN7zIT1PGG8t509MwT6bO7XSi26R8=
+github.com/klauspost/compress v1.19.2/go.mod h1:cwPg85FWrGar70rWktvGQj8/hthj3wpl0PGDogxkrSQ=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
@@ -108,8 +109,8 @@ github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 h1:zdDVNIVABTPII8G2Gj6n9R
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0/go.mod h1:nMOU7fUkKn92n973yl8ZrQGasqSTCPjcbszMA1TfeTg=
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.2.0 h1:axPWRQdaw2WVO1pGCmW55dw+wnBs/OC0fuyvpDJCa9Y=
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.2.0/go.mod h1:rglhgqAPPYG5wnGkxHeM7ZbGzXGruvwUp7AGyat7Iw4=
-github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0-20260806214138-8d8ddbef777b h1:8Uh8d7KenMld5f4kIRqM2iWG8rsXBtoS2Cx8/24H4Ys=
-github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0-20260806214138-8d8ddbef777b/go.mod h1:tJhwzIKk7KUDBs83rIYnLjIVfxXM+NNSIOOo8iqkwY4=
+github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0-20260806220157-29a3171ad1a9 h1:VHy1BO6jM389ZpkpMlJnwHw9Ejg0a4bIJWoNwhYvSQo=
+github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0-20260806220157-29a3171ad1a9/go.mod h1:tJhwzIKk7KUDBs83rIYnLjIVfxXM+NNSIOOo8iqkwY4=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.5.0 h1:cRyiMhYQ/yTozVAk2w9L/P5jAntgU3KYdkBXvolW/As=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.5.0/go.mod h1:YMMTZs2PzhPrNpzfVc1rG1TgH3GVQFavwSZmj78Zkn0=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.2.0 h1:2iJYBu+8VCjO5lIDzL0j9BXw1tERR+pp1eh0JNhQVno=
@@ -207,6 +208,7 @@ github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55/go.mod h1:Om
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/rogpeppe/go-internal v1.16.0 h1:O9DK+vNMDVGLr2BeZqmpLeMjiMNkuXfcqntWbZV6S5g=
+github.com/rogpeppe/go-internal v1.16.0/go.mod h1:DrUVZyrJU+txYW5/1kwtXQSMFio52ZOxX7yM1VHvnxs=
 github.com/sergi/go-diff v1.4.0 h1:n/SP9D5ad1fORl+llWyN+D6qoUETXNZARKjyY2/KVCw=
 github.com/sergi/go-diff v1.4.0/go.mod h1:A0bzQcvG0E7Rwjx0REVgAGH58e96+X0MeOfepqsbeW4=
 github.com/shirou/gopsutil/v4 v4.26.5 h1:RPcBXkpz7kOj9PqGFQOlBPZHsyaPvPVQc098y9RmCNM=
