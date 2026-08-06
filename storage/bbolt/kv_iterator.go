@@ -1,6 +1,7 @@
 package bbolt
 
 import (
+	"bytes"
 	"context"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -38,7 +39,7 @@ func (it *bboltIterator) Next() bool {
 		return false
 	}
 
-	if len(it.prefix) > 0 && !hasPrefix(it.k, it.prefix) {
+	if len(it.prefix) > 0 && !bytes.HasPrefix(it.k, it.prefix) {
 		it.finished = true
 		return false
 	}

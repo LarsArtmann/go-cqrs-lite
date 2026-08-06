@@ -76,8 +76,11 @@ func (s *EventStore) LoadFromVersion(
 		return nil
 	})
 
-	return events, wrapBucketErr(err, "bbolt.load_from_version", "load events from version")
-} returns events up to and including maxVersion.
+	return events, wrapBucketErr(err, "bbolt.load_from_version",
+		"load events from version")
+}
+
+// LoadToVersion returns events up to and including maxVersion.
 func (s *EventStore) LoadToVersion(
 	_ context.Context,
 	ref id.StreamRef,
@@ -115,7 +118,16 @@ func (s *EventStore) LoadToVersion(
 	if err != nil {
 		return nil, wrapBucketErr(err, "bbolt.load_to_version",
 			"load events to version")
-	} returns events where OccurredAt <= maxTime.
+	}
+
+	if len(events) == 0 {
+		return nil, event.ErrStreamNotFound
+	}
+
+	return events, nil
+}
+
+// LoadToTimestamp returns events where OccurredAt <= maxTime.
 func (s *EventStore) LoadToTimestamp(
 	_ context.Context,
 	ref id.StreamRef,

@@ -99,6 +99,7 @@ func (s *CheckpointStore) Load(
 	})
 
 	return result, wrapBucketErr(err, "bbolt.checkpoint_load", "load checkpoint")
+}
 
 func (s *CheckpointStore) Close() error { return nil }
 

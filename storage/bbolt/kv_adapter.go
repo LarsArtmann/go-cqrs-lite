@@ -1,6 +1,7 @@
 package bbolt
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"slices"
@@ -148,7 +149,7 @@ func (a *KVAdapter) NewIterator(_ context.Context, prefix []byte) (kv.Iterator, 
 
 	iter := &bboltIterator{tx: tx, cursor: cursor, prefix: prefix, k: k, v: v, started: false}
 
-	if k == nil || (len(prefix) > 0 && !hasPrefix(k, prefix)) {
+	if k == nil || (len(prefix) > 0 && !bytes.HasPrefix(k, prefix)) {
 		iter.finished = true
 	}
 
