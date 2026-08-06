@@ -26,11 +26,22 @@ type Backend struct {
 // Open creates a new Backend by opening a bbolt database at the given path.
 // The Backend owns the *bbolt.DB — Close will close it.
 func Open(path string, logger *slog.Logger) (*Backend, error) {
+	return OpenWith(path, &bolt.Options{Timeout: 5 * time.Second}, logger)
+}
+
+// OpenWith creates a new Backend with custom bbolt.Options.
+// Use this for fine-grained control over sync behavior, timeout, etc.
+// The Backend owns the *bbolt.DB — Close will close it.
+func OpenWith(path string, opts *bolt.Options, logger *slog.Logger) (*Backend, error) {
 	if logger == nil {
 		logger = slog.New(slog.NewTextHandler(os.Stderr, nil))
 	}
 
-	db, err := bolt.Open(path, 0o600, &bolt.Options{Timeout: 5 * time.Second})
+	if opts == nil {
+		opts = &bolt.Options{Timeout: 5 * time.Second}
+	}
+
+	db, err := bolt.Open(path, 0o600, opts)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "bbolt.open_backend",
 			"open bbolt database at "+path)

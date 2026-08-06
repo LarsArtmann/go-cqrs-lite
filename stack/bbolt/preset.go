@@ -12,8 +12,10 @@ package bbolt
 import (
 	"log/slog"
 	"math"
+	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	bolt "go.etcd.io/bbolt"
 
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	cqrsbbolt "github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4"
@@ -24,16 +26,27 @@ import (
 type Option func(*config)
 
 type config struct {
-	logger *slog.Logger
+	logger     *slog.Logger
+	durability stack.DurabilityTier
 }
 
 func defaultConfig() config {
-	return config{logger: slog.Default()}
+	return config{
+		logger:     slog.Default(),
+		durability: stack.DurabilityStrict,
+	}
 }
 
 // WithLogger sets the slog.Logger used by bbolt stores.
 func WithLogger(logger *slog.Logger) Option {
 	return func(c *config) { c.logger = logger }
+}
+
+// WithDurability sets the durability tier.
+// DurabilityRelaxed enables NoSync (skips fsync — data loss possible on crash).
+// DurabilityNormal and DurabilityStrict use bbolt's default sync-on-commit.
+func WithDurability(tier stack.DurabilityTier) Option {
+	return func(c *config) { c.durability = tier }
 }
 
 // New opens a bbolt database at path and returns a fully-wired Bundle.
@@ -55,7 +68,13 @@ func New(path string, opts ...Option) (*stack.Bundle, error) {
 		opt(&cfg)
 	}
 
-	backend, err := cqrsbbolt.Open(path, cfg.logger)
+	boltOpts := &bolt.Options{Timeout: 5 * time.Second}
+	if cfg.durability == stack.DurabilityRelaxed {
+		boltOpts.NoSync = true
+		boltOpts.NoFreelistSync = true
+	}
+
+	backend, err := cqrsbbolt.OpenWith(path, boltOpts, cfg.logger)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "bbolt_preset.open_backend",
 			"open bbolt backend")
@@ -73,13 +92,15 @@ func New(path string, opts ...Option) (*stack.Bundle, error) {
 
 			return safeInt64(size)
 		}),
-		stack.WithDurability(stack.DurabilityStrict),
+		stack.WithDurability(cfg.durability),
 		stack.WithCapabilities(stack.Capabilities{
 			Backend:    "bbolt",
 			Persistent: true,
 			Embedded:   true,
 			DurabilityRange: []stack.DurabilityTier{
 				stack.DurabilityStrict,
+				stack.DurabilityNormal,
+				stack.DurabilityRelaxed,
 			},
 		}),
 	)
