@@ -39,7 +39,7 @@ func (r *runner) versionedReadPhase(ctx context.Context) error {
 
 	for i := range sampleCount {
 		if ctx.Err() != nil {
-			break
+			break //nolint:nilerr // ctx done; return partial results
 		}
 
 		ref := r.refs[i]

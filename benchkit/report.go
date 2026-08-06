@@ -208,6 +208,10 @@ func PrintReport(w io.Writer, r *Result) {
 		fmt.Fprintf(w, "\n⚠ CORRUPTION: %d integrity errors detected!\n", r.IntegrityErrors)
 	}
 
+	printSkippedAndWarnings(w, r)
+}
+
+func printSkippedAndWarnings(w io.Writer, r *Result) {
 	if len(r.SkippedPhases) > 0 {
 		fmt.Fprintln(w, "\nSkipped Phases:")
 
