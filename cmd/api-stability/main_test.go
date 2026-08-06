@@ -87,7 +87,8 @@ func TestAPISurfaceCheck(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	cmd := exec.CommandContext(ctx, "go", "run", ".")
+	cmd := exec.CommandContext(ctx, "go", "run", "-tags", jsonV2Tags, ".")
+	cmd.Env = jsonV2Env()
 	cmd.Dir = "."
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -114,7 +115,8 @@ func TestAPISurfaceUpdateIdempotent(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	cmd := exec.CommandContext(ctx, "go", "run", ".", "--update")
+	cmd := exec.CommandContext(ctx, "go", "run", "-tags", jsonV2Tags, ".", "--update")
+	cmd.Env = jsonV2Env()
 	cmd.Dir = "."
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("update run failed: %s\n%s", err, out)
