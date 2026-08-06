@@ -91,8 +91,8 @@ type CommonMetadata struct {
 
 This is a foundational type change. The migration is phased:
 
-1. **Phase 1:** Define `Record` and `CommonMetadata` in a new shared module
-   (or expand `metadata/`). Both `event/` and `command/` embed it.
+1. **Phase 1:** Define `Record` and `CommonMetadata` in a new `record/` module
+   (Tier 0 primitive). Both `event/` and `command/` depend on it.
 2. **Phase 2:** metaengine depends on this module. Fold handlers receive `Record`
    instead of `any`.
 3. **Phase 3:** Remove duplicate metadata types from `event/` and `command/`.

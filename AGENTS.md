@@ -439,6 +439,31 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 // SQLite foreign keys (opt-in referential integrity)
 //   _ = storage.SQLiteEnableForeignKeys(ctx, db)  // PRAGMA foreign_keys=ON
 
+// bbolt single-DB full stack — Backend facade (B+tree, pure Go, single-writer)
+//   backend, _ := bbolt.Open("myapp.db", logger)
+//   defer backend.Close() // closes DB AND all stores
+//   eventStore := backend.EventStore()
+//   snapStore  := backend.SnapshotStore()
+//   cpStore    := backend.CheckpointStore()
+//   kvStore    := backend.ReadModels()    // kv.Store
+//   cmdStore   := backend.CommandStore()  // command.Store
+//   qStore     := backend.QueryStore()    // query.QueryStore
+//   // All stores share db via disjoint buckets (cqrs_events, cqrs_snapshots, etc.)
+//   // Single-writer model: Save's version check + write are atomic in one tx.
+//   // No per-stream locking needed (unlike Pebble's 256-shard pool).
+//
+//   // OpenWith for custom bbolt.Options (NoSync, timeout, etc.):
+//   backend, _ := bbolt.OpenWith("myapp.db", &bbolt.Options{
+//       Timeout: 10 * time.Second,
+//       NoSync:  false, // default: sync every commit
+//   }, logger)
+//
+//   // Stack preset (one-call):
+//   bundle, _ := bolt.New("myapp.db",
+//       bolt.WithDurability(stack.DurabilityNormal))
+//   // DurabilityRelaxed → NoSync=true + NoFreelistSync=true (data loss on crash)
+//   // DurabilityStrict/Normal → default sync-on-commit
+
 // HKDF key derivation (multi-tenant encryption)
 //   key, _ := encryption.DeriveKey(masterKey, "tenant:acme", 32)  // HKDF-SHA256
 //   enc, _ := encryption.NewXChaCha20Poly1305(key)
