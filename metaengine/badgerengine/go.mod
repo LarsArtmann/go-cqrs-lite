@@ -20,6 +20,11 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/flatbuffers v25.12.19+incompatible // indirect
 	github.com/klauspost/compress v1.19.2 // indirect
+	github.com/larsartmann/go-branded-id v0.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0-00010101000000-000000000000 // indirect
+	github.com/larsartmann/go-error-family v0.10.0 // indirect
+	github.com/larsartmann/go-sse v0.4.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.45.0 // indirect
 	go.opentelemetry.io/otel/metric v1.45.0 // indirect
