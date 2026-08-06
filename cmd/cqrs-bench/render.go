@@ -112,7 +112,7 @@ func buildComparisonTable(results map[string]*benchkit.Result) *output.Table {
 		}
 
 		if r.Error != "" {
-			t.AddRow(append([]string{name, "FAILED: " + truncateMsg(r.Error, 30)}, empty[2:]...))
+			t.AddRow(append([]string{name, "FAILED: " + truncateMsg(r.Error, 30)}, empty[1:]...))
 
 			continue
 		}
@@ -316,7 +316,7 @@ func buildSweepTable(results []benchkit.SweepResult) *output.Table {
 			t.AddRow(
 				append(
 					[]string{strconv.Itoa(sr.Value), "FAILED: " + truncateMsg(r.Error, 30)},
-					empty[2:]...),
+					empty[1:]...),
 			)
 
 			continue

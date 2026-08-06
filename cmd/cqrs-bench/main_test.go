@@ -310,3 +310,61 @@ func TestCLI_Repeat(t *testing.T) {
 		t.Errorf("expected 'median of 3 runs' in output:\n%s", output)
 	}
 }
+
+func TestCLI_PayloadSizesFlagConsumed(t *testing.T) {
+	t.Parallel()
+
+	bin := buildBinary(t)
+
+	// pflag blindly consumes the next token as a string flag's value.
+	// "--payload-sizes --profile stress" should detect the flag-like value
+	// and return a clear, actionable error instead of a confusing strconv error.
+	out, err := exec.Command(
+		bin, "compare", "--payload-sizes", "--profile", "stress",
+	).CombinedOutput()
+
+	if err == nil {
+		t.Fatal("expected non-zero exit when --payload-sizes consumes a flag name")
+	}
+
+	output := string(out)
+	if !strings.Contains(output, "looks like a flag name") {
+		t.Errorf("error should explain the flag-like value issue:\n%s", output)
+	}
+
+	if strings.Contains(output, "strconv.Atoi") {
+		t.Errorf("error should not leak raw strconv error:\n%s", output)
+	}
+}
+
+func TestCLI_Quiet(t *testing.T) {
+	t.Parallel()
+
+	bin := buildBinary(t)
+
+	cmd := exec.Command(
+		bin, "run",
+		"--backend", "memory",
+		"--profile", "dev",
+		"--quiet",
+		"--format", "json",
+		"--payload-size", "64",
+	)
+
+	var stderr strings.Builder
+	cmd.Stderr = &stderr
+
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("run --quiet failed: %v\nstderr: %s", err, stderr.String())
+	}
+
+	if stderr.Len() > 0 {
+		t.Errorf("--quiet should suppress all stderr output, got %d bytes:\n%s",
+			stderr.Len(), stderr.String())
+	}
+
+	if !strings.Contains(string(out), `"backend"`) {
+		t.Error("--quiet should still produce JSON result on stdout")
+	}
+}
