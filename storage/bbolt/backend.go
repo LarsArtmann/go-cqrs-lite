@@ -21,6 +21,8 @@ type Backend struct {
 	snapshot   *SnapshotStore
 	checkpoint *CheckpointStore
 	readModels kv.Store
+	commands   *CommandStore
+	queries    *QueryStore
 }
 
 // Open creates a new Backend by opening a bbolt database at the given path.
@@ -81,12 +83,24 @@ func newBackend(database *bolt.DB, logger *slog.Logger) (*Backend, error) {
 		return nil, err
 	}
 
+	cmds, err := NewCommandStore(database, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	queries, err := NewQueryStore(database, logger)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Backend{
 		db:         database,
 		events:     events,
 		snapshot:   snap,
 		checkpoint: checkpt,
 		readModels: readMods,
+		commands:   cmds,
+		queries:    queries,
 	}, nil
 }
 
@@ -94,6 +108,8 @@ func (b *Backend) EventStore() *EventStore           { return b.events }
 func (b *Backend) SnapshotStore() *SnapshotStore     { return b.snapshot }
 func (b *Backend) CheckpointStore() *CheckpointStore { return b.checkpoint }
 func (b *Backend) ReadModels() kv.Store              { return b.readModels }
+func (b *Backend) CommandStore() *CommandStore       { return b.commands }
+func (b *Backend) QueryStore() *QueryStore           { return b.queries }
 func (b *Backend) DB() *bolt.DB                      { return b.db }
 
 // Close closes the underlying *bbolt.DB.
