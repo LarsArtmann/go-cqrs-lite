@@ -746,6 +746,7 @@ event/const TombstoneActive
 event/const TombstoneTombstoned
 event/const TombstoneUndetermined
 event/const Transient
+event/func AsRecord
 event/func CheckVersionConflict
 event/func CommandCausalityEnricher
 event/func CommandCausalityFromContext
