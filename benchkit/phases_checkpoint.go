@@ -33,13 +33,13 @@ func (r *runner) checkpointPhase(ctx context.Context) error {
 		}
 
 		projName := "bench-checkpoint"
-		cp := event.Checkpoint{
+		checkpoint := event.Checkpoint{
 			EventID:     id.NewEventID(),
 			ProcessedAt: time.Now(),
 		}
 
 		start := time.Now()
-		err := cpStore.Save(ctx, projName, cp)
+		err := cpStore.Save(ctx, projName, checkpoint)
 
 		saveColl.Record(time.Since(start))
 
