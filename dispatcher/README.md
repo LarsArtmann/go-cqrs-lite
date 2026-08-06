@@ -18,7 +18,7 @@ Both command and query dispatching need the same machinery: register handlers by
 // command.Dispatcher embeds Dispatcher[Handler, Command]
 d := command.NewDispatcher()
 d.Register("user.create", handler)
-d.Use(middleware.Logging())
+d.Use(middleware.CommandLogging(slog.Default()))
 d.Dispatch(ctx, cmd)
 
 // query.Dispatcher embeds Dispatcher[Handler, Query]

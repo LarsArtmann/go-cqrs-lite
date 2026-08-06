@@ -51,44 +51,6 @@ page, err := listing.NewListBuilder(reader).
     List(ctx)
 ```
 
-### SQL (production)
-
-```go
-import (
-    "database/sql"
-    "github.com/larsartmann/go-cqrs-lite/listing"
-)
-
-// Create projection (creates table if not exists)
-proj, err := listing.NewAggregateProjection(db, "cqrs_")
-
-// Register with projection runner
-runner.Register(proj)
-
-// Query the projection table
-reader := listing.NewSQLAggregateReader(db, "cqrs_")
-page, err := listing.NewListBuilder(reader).
-    OfType("User").
-    PageSize(20).
-    List(ctx)
-```
-
-### Table Schema
-
-`NewAggregateProjection` auto-creates the table:
-
-```sql
-CREATE TABLE IF NOT EXISTS {prefix}listing_aggregates (
-    aggregate_type   TEXT NOT NULL,
-    aggregate_id     TEXT NOT NULL,
-    version          INT  NOT NULL,
-    event_count      INT  NOT NULL DEFAULT 0,
-    last_event_at    TIMESTAMP NOT NULL,
-    tombstone_status INT  NOT NULL DEFAULT 0,
-    PRIMARY KEY (aggregate_type, aggregate_id)
-);
-```
-
 ## Tombstone Middleware
 
 Auto-mark tombstone and rebirth events on publish:
