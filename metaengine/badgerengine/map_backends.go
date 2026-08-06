@@ -127,7 +127,6 @@ func (e *badgerEngine) MapScan(
 	limit int,
 ) (metaengine.ScanResult, error) {
 	prefix := collectionPrefix(col)
-	upperBound := nextKey(prefix)
 
 	var pairs []kvPair
 

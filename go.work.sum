@@ -902,6 +902,7 @@ go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.53.0/go.mod h1:
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.54.0/go.mod h1:L7UH0GbB0p47T4Rri3uHjbpCFYrVrwc1I25QhNPiGK8=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.58.0/go.mod h1:umTcuxiv1n/s/S6/c2AT/g2CQ7u5C59sHDNmfSwgz7Q=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.59.0/go.mod h1:FRmFuRJfag1IZ2dPkHnEoSFVgTVPUd2qf5Vi69hLb8I=
+go.opentelemetry.io/contrib/zpages v0.66.0/go.mod h1:3yOWHV71U0ph6YaITmXyDV/owY3N4BRaG5iBgAZxo1E=
 go.opentelemetry.io/otel v1.21.0/go.mod h1:QZzNPQPm1zLX4gZK4cMi+71eaorMSGT3A4znnUvNNEo=
 go.opentelemetry.io/otel v1.22.0/go.mod h1:eoV4iAi3Ea8LkAEI9+GFT44O6T/D0GWAVFyZVCC6pMI=
 go.opentelemetry.io/otel v1.23.0/go.mod h1:YCycw9ZeKhcJFrb34iVSkyT0iczq/zYDtZYFufObyB0=
@@ -1965,7 +1966,6 @@ modernc.org/cc/v3 v3.37.0/go.mod h1:vtL+3mdHx/wcj3iEGz84rQa8vEqR6XM84v5Lcvfph20=
 modernc.org/cc/v3 v3.38.1/go.mod h1:vtL+3mdHx/wcj3iEGz84rQa8vEqR6XM84v5Lcvfph20=
 modernc.org/cc/v3 v3.40.0/go.mod h1:/bTg4dnWkSXowUO6ssQKnOV0yMVxDYNIsIrzqTFDGH0=
 modernc.org/cc/v3 v3.41.0/go.mod h1:Ni4zjJYJ04CDOhG7dn640WGfwBzfE0ecX8TyMB0Fv0Y=
-modernc.org/cc/v4 v4.29.2/go.mod h1:OnovgIhbbMXMu1aISnJ0wvVD1KnW+cAUJkIrAWh+kVI=
 modernc.org/ccgo/v3 v3.0.0-20220904174949-82d86e1b6d56/go.mod h1:YSXjPL62P2AMSxBphRHPn7IkzhVHqkvOnRKAKh+W6ZI=
 modernc.org/ccgo/v3 v3.0.0-20220910160915-348f15de615a/go.mod h1:8p47QxPkdugex9J4n9P2tLZ9bK01yngIVp00g4nomW0=
 modernc.org/ccgo/v3 v3.16.13-0.20221017192402-261537637ce8/go.mod h1:fUB3Vn0nVPReA+7IG7yZDfjv1TMWjhQP8gCxrFAtL5g=

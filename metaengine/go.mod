@@ -4,8 +4,8 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0-20260806181052-51c4904b092a
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0
 	github.com/larsartmann/go-sse v0.4.0
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1

@@ -233,9 +233,9 @@ func (e *badgerEngine) JournalReadFrom(
 // extractJournalValue parses a journal entry "streamID\x00value" and returns
 // the decoded value part.
 func extractJournalValue(raw []byte) any {
-	idx := bytes.Index(raw, []byte(sep))
-	if idx >= 0 {
-		return decodeJSON(raw[idx+1:])
+	_, after, ok := bytes.Cut(raw, []byte(sep))
+	if ok {
+		return decodeJSON(after)
 	}
 
 	return decodeJSON(raw)

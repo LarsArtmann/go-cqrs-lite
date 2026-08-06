@@ -1,7 +1,7 @@
 package record_test
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"testing"
 	"time"
 
@@ -55,13 +55,13 @@ func TestRecord_JSONRoundTrip(t *testing.T) {
 		},
 	}
 
-	data, err := json.Marshal(original) //nolint:musttag
-	if err != nil {                     // Record's JSON shape is intentionally untagged (ADR-0111)
+	data, err := json.Marshal(original)
+	if err != nil { // Record's JSON shape is intentionally untagged (ADR-0111)
 		t.Fatalf("Marshal: %v", err)
 	}
 
 	var decoded record.Record
-	//nolint:musttag // Record's JSON shape is intentionally untagged (ADR-0111)
+
 	if err := json.Unmarshal(data, &decoded); err != nil {
 		t.Fatalf("Unmarshal: %v", err)
 	}

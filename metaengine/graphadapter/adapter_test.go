@@ -56,7 +56,7 @@ func TestAdapter_ImplementsInterfaces(t *testing.T) {
 	var eng metaengine.Engine = graphadapter.New()
 	defer eng.Close()
 
-	var gb metaengine.GraphBackend = eng.(metaengine.GraphBackend)
+	gb := eng.(metaengine.GraphBackend)
 	if gb == nil {
 		t.Fatal("Adapter does not implement GraphBackend")
 	}

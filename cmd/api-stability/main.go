@@ -62,6 +62,7 @@ var modules = []string{
 	"metaengine/projectionadapter",
 	"metaengine/graphadapter",
 	"metaengine/sqliteengine",
+	"metaengine/badgerengine",
 	// Layer 4
 	"storage/memory",
 	"signing",
