@@ -12,6 +12,8 @@ import (
 // and SQLite engine agree on MapSet/MapGet/MapDelete results for arbitrary
 // sequences of operations with JSON-compatible values.
 func TestProperty_MapSetGetParity_MemoryVsSQLite(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	rapid.Check(t, func(rt *rapid.T) {

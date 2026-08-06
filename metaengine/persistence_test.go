@@ -87,6 +87,8 @@ func TestMemoryEngine_ProfileIsVolatile(t *testing.T) {
 }
 
 func TestSQLiteEngineProfile_IsPersistent(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	p := metaengine.SQLiteEngineProfile()

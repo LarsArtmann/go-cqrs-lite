@@ -69,6 +69,8 @@ func TestHealthCheck_AllEnginesHealthy(t *testing.T) {
 }
 
 func TestHealthCheck_SQLiteEngine(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	store := newSQLiteTestStore(t)
@@ -492,6 +494,8 @@ func TestVerify_DetectsDrift(t *testing.T) {
 // --- SQLite Watcher test ---
 
 func TestSQLiteWatcher_ReceivesValue(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	store := newSQLiteTestStore(t)
@@ -522,6 +526,9 @@ func TestSQLiteWatcher_ReceivesValue(t *testing.T) {
 // --- SQLite ReadCoalescer test ---
 
 func TestSQLiteCoalescer_ConcurrentReadsCoalesced(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	store := newSQLiteTestStore(t)
@@ -799,6 +806,8 @@ func TestPrefetchCache_EndToEndPagination(t *testing.T) {
 }
 
 func TestPrefetchCache_SQLiteEndToEnd(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	store := newSQLiteTestStore(t)

@@ -84,6 +84,7 @@ func TestSnapshotBackend_Memory(t *testing.T) {
 }
 
 func TestSnapshotBackend_SQLite(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	ctx := context.Background()

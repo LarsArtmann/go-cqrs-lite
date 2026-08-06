@@ -209,6 +209,8 @@ func mustSQLiteEngine(t *testing.T) metaengine.Engine {
 // type (int) on SQLite engine. Verifies the reify path handles primitive
 // types, not just structs.
 func TestNonStructFoldUpdateSQLite(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	type evt struct {

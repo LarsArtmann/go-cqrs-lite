@@ -425,6 +425,9 @@ func TestSSE_ReplayLimit(t *testing.T) {
 // to the typed V via JSON round-trip. This test catches regressions in the
 // reifyWatcherValue fallback path under SSE replay.
 func TestSSE_ReconnectWithSQLite(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	store := newSQLiteTestStore(t)
 	defer store.Close()
 
@@ -858,6 +861,9 @@ func TestPrefetchCache_ConcurrentAccess(t *testing.T) {
 // --- SQLite engine SSE replay test ---
 
 func TestSSE_LastEventID_Reconnect_SQLite(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
 		t.Fatal(err)

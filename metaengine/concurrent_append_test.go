@@ -72,6 +72,8 @@ func TestConcurrentAppend_Memory(t *testing.T) {
 
 // TestConcurrentAppend_SQLite verifies optimistic concurrency on SQLite.
 func TestConcurrentAppend_SQLite(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	db, err := sql.Open("sqlite", ":memory:")

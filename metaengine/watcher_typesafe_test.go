@@ -134,6 +134,8 @@ func TestWatcherWithSeq_ReceivesDeleteNotification(t *testing.T) {
 // + replay journal correctly records values. The pre-fix replayShim.recordValue
 // used value.(V) which could silently fail and return seq=0.
 func TestSQLiteWatcher_ReceivesValue_WithReplay(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	store := newSQLiteTestStore(t)
@@ -180,6 +182,8 @@ func TestSQLiteWatcher_ReceivesValue_WithReplay(t *testing.T) {
 // TestSQLiteWatcher_ReceivesDeleteNotification verifies that delete
 // notifications work with the SQLite engine too.
 func TestSQLiteWatcher_ReceivesDeleteNotification(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	db, err := sql.Open("sqlite", ":memory:")

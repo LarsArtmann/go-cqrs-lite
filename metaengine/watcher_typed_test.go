@@ -43,6 +43,7 @@ func TestWatchTyped_MemoryEngine(t *testing.T) {
 // works with the SQLite engine, where values arrive as map[string]any and are
 // reified to V via JSON round-trip (the reify fallback path).
 func TestWatchTyped_SQLiteEngine(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	store := newSQLiteTestStore(t)

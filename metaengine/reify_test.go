@@ -41,6 +41,7 @@ func newSQLiteEngineForStd(t *testing.T) (metaengine.Engine, *sql.DB) {
 }
 
 func TestExecuteTyped_SQLite_UnexportedFieldsLost(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 	ctx := context.Background()
 	eng, db := newSQLiteEngineForStd(t)
@@ -108,6 +109,7 @@ func ExampleNewSQLiteEngine() {
 }
 
 func BenchmarkExecuteTyped_SQLite_Reify(b *testing.B) {
+	b.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	ctx := context.Background()
 	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
 	if err != nil {
