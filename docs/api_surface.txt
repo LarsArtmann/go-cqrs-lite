@@ -2,6 +2,10 @@ benchkit/const SchemaVersion
 benchkit/func BatchSizeSweep
 benchkit/func Compare
 benchkit/func ExpectedJSONFields
+benchkit/func FormatBytes
+benchkit/func FormatDuration
+benchkit/func FormatFloat
+benchkit/func FormatInt
 benchkit/func GOMAXPROCSSweep
 benchkit/func NewGenerator
 benchkit/func NewLatencyCollector

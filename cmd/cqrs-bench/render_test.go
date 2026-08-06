@@ -93,9 +93,9 @@ func TestLooksLikeFlag(t *testing.T) {
 		{"--profile", true},
 		{"--backends", true},
 		{"-p", true},
-		{"-1", false},  // negative number
+		{"-1", false},   // negative number
 		{"-1.5", false}, // negative float
-		{"-", false},   // just a dash
+		{"-", false},    // just a dash
 	}
 
 	for _, tt := range tests {
@@ -127,9 +127,9 @@ func sampleResult(backend string) *benchkit.Result {
 			Count: 10,
 			P50:   800 * time.Nanosecond,
 		},
-		GCMaxPause:    2 * time.Millisecond,
-		TailRatio:     10.0,
-		AllocsPerOp:   200,
+		GCMaxPause:      2 * time.Millisecond,
+		TailRatio:       10.0,
+		AllocsPerOp:     200,
 		WriteThroughput: 50000,
 		Memory: benchkit.ResourceStats{
 			After: 2 * 1024 * 1024,
@@ -145,10 +145,10 @@ func TestBuildComparisonTable(t *testing.T) {
 	t.Parallel()
 
 	results := map[string]*benchkit.Result{
-		"memory":  sampleResult("memory"),
-		"sqlite":  sampleResult("sqlite"),
-		"failed":  {Backend: "failed", Error: "disk full"},
-		"nilled":  nil,
+		"memory": sampleResult("memory"),
+		"sqlite": sampleResult("sqlite"),
+		"failed": {Backend: "failed", Error: "disk full"},
+		"nilled": nil,
 	}
 
 	table := buildComparisonTable(results)
