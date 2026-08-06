@@ -323,6 +323,12 @@ func renderRunResult(w io.Writer, format string, config benchkit.Config, result 
 		if err := delimited.WriteCSV(w, data); err != nil {
 			fatalf("render CSV: %v", err)
 		}
+	case formatTSV:
+		data := buildRunSummaryTable(result)
+
+		if err := delimited.WriteTSV(w, data); err != nil {
+			fatalf("render TSV: %v", err)
+		}
 	default:
 		benchkit.PrintReport(w, result)
 	}
@@ -417,6 +423,12 @@ func renderSoakResult(w io.Writer, format string, result *benchkit.SoakResult) {
 
 		if err := delimited.WriteCSV(w, data); err != nil {
 			fatalf("render CSV: %v", err)
+		}
+	case formatTSV:
+		data := buildSoakTable(result)
+
+		if err := delimited.WriteTSV(w, data); err != nil {
+			fatalf("render TSV: %v", err)
 		}
 	default:
 		benchkit.PrintSoakReport(w, result)
