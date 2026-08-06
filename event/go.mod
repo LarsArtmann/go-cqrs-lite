@@ -8,6 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
