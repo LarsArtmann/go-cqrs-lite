@@ -231,7 +231,7 @@ func printFindingsByAggregate(w io.Writer, findings []finding.Finding, cm output
 // printMarkdownGrouped renders findings as markdown with group headings.
 // Each group becomes a "## GroupName (N findings)" section, with the
 // findings rendered via finding.FormatMarkdown within that section.
-// Supports both "aggregate" and "module" grouping modes
+// Supports both "aggregate" and "module" grouping modes.
 func printMarkdownGrouped(w io.Writer, findings []finding.Finding, groupMode string) {
 	var groups []findingGroup
 

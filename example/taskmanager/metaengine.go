@@ -97,6 +97,7 @@ func setupMetaEngine(
 			projectionadapter.EventWithID[TaskAssignedPayload]{},
 			func(e projectionadapter.EventWithID[TaskAssignedPayload], prev TaskView) TaskView {
 				prev.AssigneeID = e.Payload.AssigneeID
+
 				return prev
 			},
 		),
@@ -105,6 +106,7 @@ func setupMetaEngine(
 			projectionadapter.EventWithID[TaskStartedPayload]{},
 			func(_ projectionadapter.EventWithID[TaskStartedPayload], prev TaskView) TaskView {
 				prev.Status = StatusActive
+
 				return prev
 			},
 		),
@@ -113,6 +115,7 @@ func setupMetaEngine(
 			projectionadapter.EventWithID[TaskCompletedPayload]{},
 			func(_ projectionadapter.EventWithID[TaskCompletedPayload], prev TaskView) TaskView {
 				prev.Status = StatusCompleted
+
 				return prev
 			},
 		),
@@ -121,6 +124,7 @@ func setupMetaEngine(
 			projectionadapter.EventWithID[TaskArchivedPayload]{},
 			func(_ projectionadapter.EventWithID[TaskArchivedPayload], prev TaskView) TaskView {
 				prev.Status = StatusArchived
+
 				return prev
 			},
 		),
@@ -129,6 +133,7 @@ func setupMetaEngine(
 			projectionadapter.EventWithID[TaskTitleUpdatedPayload]{},
 			func(e projectionadapter.EventWithID[TaskTitleUpdatedPayload], prev TaskView) TaskView {
 				prev.Title = e.Payload.Title
+
 				return prev
 			},
 		),
@@ -137,6 +142,7 @@ func setupMetaEngine(
 			projectionadapter.EventWithID[TaskPriorityChangedPayload]{},
 			func(e projectionadapter.EventWithID[TaskPriorityChangedPayload], prev TaskView) TaskView {
 				prev.Priority = e.Payload.Priority
+
 				return prev
 			},
 		),
@@ -149,6 +155,7 @@ func setupMetaEngine(
 				} else {
 					prev.DueDate = ""
 				}
+
 				return prev
 			},
 		),
@@ -157,6 +164,7 @@ func setupMetaEngine(
 			projectionadapter.EventWithID[TaskBlockedByPayload]{},
 			func(e projectionadapter.EventWithID[TaskBlockedByPayload], prev TaskView) TaskView {
 				prev.BlockedBy = append(prev.BlockedBy, e.Payload.DependencyID)
+
 				return prev
 			},
 		),
@@ -165,6 +173,7 @@ func setupMetaEngine(
 			projectionadapter.EventWithID[TaskUnblockedPayload]{},
 			func(e projectionadapter.EventWithID[TaskUnblockedPayload], prev TaskView) TaskView {
 				prev.BlockedBy = removeString(prev.BlockedBy, e.Payload.DependencyID)
+
 				return prev
 			},
 		),
@@ -209,6 +218,7 @@ func setupMetaEngine(
 func (s *Server) handleGetTaskStats(w http.ResponseWriter, r *http.Request) {
 	if s.MetaEngine == nil {
 		writeError(w, http.StatusServiceUnavailable, "metaengine not configured")
+
 		return
 	}
 
@@ -217,6 +227,7 @@ func (s *Server) handleGetTaskStats(w http.ResponseWriter, r *http.Request) {
 	)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "metaengine query: "+err.Error())
+
 		return
 	}
 
