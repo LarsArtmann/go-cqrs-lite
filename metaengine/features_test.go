@@ -118,7 +118,7 @@ func TestCollections(t *testing.T) {
 	}
 }
 
-	t.Skip("requires SQLite engine — moved to sqliteengine module after ADR-0115")
+	t.Skip("requires SQLite engine — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	db, _ := sql.Open("sqlite", ":memory:")
