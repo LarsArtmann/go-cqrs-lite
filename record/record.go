@@ -94,11 +94,12 @@ func NewStreamRef(streamType, entityID string) StreamRef {
 
 // Split returns the stream type and entity ID components of the StreamRef.
 // Returns ("", "") if the format is invalid.
-func (s StreamRef) Split() (streamType string, entityID string) {
-	for i := 0; i < len(s); i++ {
+func (s StreamRef) Split() (string, string) {
+	for i := range len(s) {
 		if s[i] == '/' {
 			return string(s[:i]), string(s[i+1:])
 		}
 	}
+
 	return "", ""
 }

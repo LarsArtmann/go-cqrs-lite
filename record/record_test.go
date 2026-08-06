@@ -55,13 +55,13 @@ func TestRecord_JSONRoundTrip(t *testing.T) {
 		},
 	}
 
-	data, err := json.Marshal(original)
+	data, err := json.Marshal(original) //nolint:musttag // Record's JSON shape is intentionally untagged (ADR-0111)
 	if err != nil {
 		t.Fatalf("Marshal: %v", err)
 	}
 
 	var decoded record.Record
-	if err := json.Unmarshal(data, &decoded); err != nil {
+	if err := json.Unmarshal(data, &decoded); err != nil { //nolint:musttag // Record's JSON shape is intentionally untagged (ADR-0111)
 		t.Fatalf("Unmarshal: %v", err)
 	}
 
@@ -111,6 +111,7 @@ func TestRecord_EmbeddingWorks(t *testing.T) {
 
 	type EventRecord struct {
 		record.Record
+
 		Encoding string
 	}
 
