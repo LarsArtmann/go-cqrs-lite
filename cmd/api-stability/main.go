@@ -110,7 +110,7 @@ func main() {
 	cli, err := cmdguard.NewCLI(
 		"api-stability",
 		"API surface stability checker for go-cqrs-lite",
-		AppConfig{Config: cmdguard.Config{}},
+		AppConfig{Config: cmdguard.Config{}, Update: false},
 		cmdguard.WithCLILong(
 			"api-stability verifies the exported API surface of every go-cqrs-lite module against a golden file.",
 		),
@@ -198,7 +198,9 @@ func writeGoldenFile(goldenPath string, exports []string) error {
 		return fmt.Errorf("write: %w", err)
 	}
 
-	fmt.Fprintf(os.Stdout, "Updated %s (%d exports)\n", cleanPath, len(exports))
+	if _, err := fmt.Fprintf(os.Stdout, "Updated %s (%d exports)\n", cleanPath, len(exports)); err != nil {
+		return fmt.Errorf("write status: %w", err)
+	}
 
 	return nil
 }
@@ -223,14 +225,16 @@ func verifyGoldenFile(goldenPath string, exports []string) error {
 		}
 	}
 
-	fmt.Fprintf(os.Stdout, "API surface OK: %d exports verified\n", len(exports))
+	if _, err := fmt.Fprintf(os.Stdout, "API surface OK: %d exports verified\n", len(exports)); err != nil {
+		return fmt.Errorf("write status: %w", err)
+	}
 
 	return nil
 }
 
 func handleReadError(goldenPath string, err error) error {
 	if os.IsNotExist(err) {
-		return fmt.Errorf("golden file %s does not exist; run with --update to create", goldenPath)
+		return fmt.Errorf("%w: %s; run with --update to create", errGoldenMissing, goldenPath)
 	}
 
 	return fmt.Errorf("read: %w", err)
@@ -253,7 +257,7 @@ func reportMismatch(expected, exports []string) error {
 		fmt.Fprintf(os.Stderr, "NEW exports:\n  %s\n", strings.Join(added, "\n  "))
 	}
 
-	return fmt.Errorf("API surface mismatch: %d expected, %d actual", len(expected), len(exports))
+	return fmt.Errorf("%w: %d expected, %d actual", errExportMismatch, len(expected), len(exports))
 }
 
 func diff(expected, actual []string) ([]string, []string) {

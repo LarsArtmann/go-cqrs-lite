@@ -237,6 +237,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"metaengine/projectionadapter":   "sub-package (covered by metaengine)",
 		"metaengine/sqliteengine":        "sub-engine (covered by metaengine)",
 		"projection":                     "interface-only module (consumers use projectionhost)",
+		"record":                         "shared record primitive (Tier 0, consumed by event/command/metaengine)",
 		"scheduling/sqlstore":            "sub-package (covered by scheduling)",
 		"stack":                          "root stack types (consumers import stack/<backend> presets)",
 		"stack/bench":                    "benchmarking utility",
