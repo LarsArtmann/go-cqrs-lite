@@ -715,5 +715,14 @@ func apiRules() []RuleInfo {
 			Description: "id.Parse[T](x.String()) — pointless branded-ID roundtrip that discards the typed value and re-runs validation",
 			AutoFix:     false,
 		},
+		{
+			ID:          "A034",
+			Name:        "metaengine-execute-untyped",
+			Category:    "api",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "metaengine.Execute returns an untyped result (any) — requires a runtime type assertion that can panic",
+			AutoFix:     false,
+		},
 	}
 }

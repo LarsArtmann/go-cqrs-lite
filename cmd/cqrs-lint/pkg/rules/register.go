@@ -84,6 +84,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		api.NewA030Detector(ctx),
 		api.NewA032Detector(ctx),
 		api.NewA033Detector(ctx),
+		api.NewA034Detector(ctx),
 		// Boilerplate
 		boilerplate.NewB001Detector(ctx),
 		boilerplate.NewB002Detector(ctx),
@@ -236,6 +237,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 			adoption.NewF023Detector(ctx),
 			adoption.NewF024Detector(ctx),
 			adoption.NewF025Detector(ctx),
+			adoption.NewF026Detector(ctx),
 		)
 	}
 

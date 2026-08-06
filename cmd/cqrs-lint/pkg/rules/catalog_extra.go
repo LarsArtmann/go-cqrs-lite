@@ -1113,5 +1113,14 @@ func adoptionRules() []RuleInfo {
 			Description: "Manual count/aggregation (for-range + count++/sum +=) with a SQL store but no metaengine — full collection scanned for every count",
 			AutoFix:     false,
 		},
+		{
+			ID:          "F026",
+			Name:        "no-metaengine-prefetch",
+			Category:    "adoption",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "metaengine.NewReader used but WithPrefetch never called — every Scan/Get hits the underlying store individually",
+			AutoFix:     false,
+		},
 	}
 }
