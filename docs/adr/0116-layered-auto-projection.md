@@ -104,6 +104,28 @@ The planner uses Go reflection (or code generation via cqrs-gen) to inspect:
 When the inference is ambiguous, the planner emits a diagnostic asking the
 consumer to provide an explicit fold for that query.
 
+### Naming Convention (AutoCRUDByConvention)
+
+`AutoCRUDByConvention[R]` scans sample event types for suffixes to infer fold
+type:
+
+| Suffix     | Fold Type | Example           |
+| ---------- | --------- | ----------------- |
+| `*Created` | Insert    | `UserCreated{}`   |
+| `*Updated` | Update    | `UserUpdated{}`   |
+| `*Deleted` | Delete    | `UserDeleted{}`   |
+
+**Important:** The convention matches Go struct names, not event type strings.
+This means `"TaskCreated"` (the struct name) works, but `"task.created"` (the
+event type string) does not. This differs from the rest of go-cqrs-lite, which
+uses dot-separated event types. The convention-based approach trades
+event-type-string flexibility for zero-config CRUD setup.
+
+**Error cases:**
+- No `*Created` sample provided → error (insert is the minimum requirement)
+- Multiple samples with the same suffix → error (ambiguous)
+- Sample with unrecognized suffix → error (must be Created/Updated/Deleted)
+
 ## Alternatives Considered
 
 ### A. Auto-route only (current metaengine)
