@@ -602,3 +602,9 @@ SCORE=$(cqrs-lint --health-score --path ./...)
 # .git/hooks/pre-commit
 cqrs-lint --fast --path ./... || exit 1
 ```
+
+## Related Modules
+
+- [**cqrs-gen**](../cqrs-gen/README.md) — Code generator for typed handler registration
+- [**doc-check**](../doc-check/README.md) — Documentation verifier (complementary CI tool)
+- [**api-stability**](../api-stability/README.md) — API surface checker (golden file comparison)
