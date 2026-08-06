@@ -191,6 +191,7 @@ func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
 		SkipQuery:    flags.SkipQuery,
 		SkipSnapshot: flags.SkipSnapshot,
 		SkipMixed:    flags.SkipMixed,
+		Strict:       flags.Strict,
 		Backend:      flags.Backend,
 		DiskPath:     diskPath,
 	}

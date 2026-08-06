@@ -554,7 +554,7 @@
 
             src = mkCqrsLintSource pkgs;
 
-            vendorHash = lib.fakeHash;
+            vendorHash = "sha256-PhTChg6Jz360p6geM2+XmYGQ5EWB3aP3X/ZTuNIJEjY=";
             proxyVendor = true;
 
             subPackages = [ "." ];
@@ -576,6 +576,8 @@
             # build tag is set internally by the toolchain from GOEXPERIMENT.
             preBuild = ''
               export GOEXPERIMENT=jsonv2
+              export HOME=$TMPDIR
+              go mod tidy
             '';
 
             doCheck = false;

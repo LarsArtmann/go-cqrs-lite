@@ -31,6 +31,7 @@ type BenchFlags struct {
 	Progress     cmdguard.Duration `default:"5s"     flag:"progress"      help:"Progress update interval to stderr (0 disables)"`
 	Quiet        bool              `default:"false"  flag:"quiet"         help:"Suppress all progress output (stderr). Result only. Implies --progress=0"`
 	Repeat       int               `default:"0"      flag:"repeat"        help:"Run N times, report median (reduces ~20% variance)"`
+	Strict       bool              `default:"false"  flag:"strict"        help:"Fail if any phase is skipped (missing bundle component or config flag). For CI gates."`
 }
 
 // RunFlags extends BenchFlags with run-specific flags.
@@ -49,7 +50,7 @@ type RunFlags struct {
 type CompareFlags struct {
 	BenchFlags
 
-	Backends string `default:"memory,sqlite,bbolt,pebble" flag:"backends" help:"Comma-separated backend list (memory,sqlite,sqlite-cgo,bbolt,pebble)"`
+	Backends string `default:"memory,sqlite,pebble" flag:"backends" help:"Comma-separated backend list (memory,sqlite,sqlite-cgo,bbolt,pebble)"`
 }
 
 // SweepFlags extends BenchFlags with sweep-specific flags.
