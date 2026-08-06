@@ -10,6 +10,14 @@ import (
 	"testing"
 )
 
+// jsonV2Env returns an environment with GOEXPERIMENT=jsonv2 set, needed because
+// cmdguard uses encoding/json/v2 behind a build tag.
+func jsonV2Env() []string {
+	return append(os.Environ(), "GOEXPERIMENT=jsonv2")
+}
+
+const jsonV2Tags = "goexperiment.jsonv2"
+
 // TestEveryGoModDirIsInModulesList asserts that every directory containing a
 // go.mod (except examples, integration, the root workspace, and this tool's own
 // module) appears in the modules slice. This catches the class of omission

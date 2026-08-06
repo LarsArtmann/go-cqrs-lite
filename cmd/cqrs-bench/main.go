@@ -46,8 +46,7 @@ func main() {
 	}
 }
 
-func printUsage() {
-	fmt.Fprintln(os.Stderr, `cqrs-bench — go-cqrs-lite benchmarking tool
+func printUsage() {	fmt.Fprintln(os.Stderr, `cqrs-bench — go-cqrs-lite benchmarking tool
 
 Usage:
   cqrs-bench run      --backend <name> [--dsn <dsn>] --profile <name> [flags]
@@ -94,6 +93,13 @@ Examples:
 }
 
 // ── run subcommand ──
+
+func applyProgress(config *benchkit.Config, interval time.Duration) {
+	if interval > 0 {
+		config.ProgressWriter = os.Stderr
+		config.ProgressInterval = interval
+	}
+}
 
 func runCmd(args []string) {
 	fs, bf := newBenchFlagSet("run")
@@ -165,6 +171,7 @@ func runCmd(args []string) {
 		Backend:      *bf.backend,
 		DiskPath:     diskPath,
 	}
+	applyProgress(&config, *bf.progress)
 
 	if sizes, err := parsePayloadSizes(*bf.payloadSizes); err != nil {
 		fatalf("invalid --payload-sizes: %v", err)

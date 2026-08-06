@@ -56,6 +56,7 @@ const (
 	StorePebble   StoreKind = "pebble"
 	StoreMemory   StoreKind = "memory"
 	StoreTurso    StoreKind = "turso"
+	StoreDuckDB   StoreKind = "duckdb"
 	StoreCustom   StoreKind = "custom"
 	StoreNone     StoreKind = "none"
 )

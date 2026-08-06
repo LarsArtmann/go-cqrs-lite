@@ -249,7 +249,7 @@ type featureKey struct {
 var featureKeys = []featureKey{
 	{
 		"store", "string",
-		[]string{"sqlite", "postgres", "mysql", "pebble", "memory", "turso", "custom", "none"},
+		[]string{"sqlite", "postgres", "mysql", "pebble", "memory", "turso", "duckdb", "custom", "none"},
 		"Persistence backend the consumer wires up",
 	},
 	{

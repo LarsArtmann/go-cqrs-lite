@@ -585,8 +585,8 @@ func TestRun_InvalidType(t *testing.T) {
 	t.Parallel()
 
 	code := run("invalid", "out.go", "", []string{"."})
-	if code != 1 {
-		t.Errorf("expected exit 1 for invalid type, got %d", code)
+	if code == nil {
+		t.Error("expected error for invalid type, got nil")
 	}
 }
 
@@ -602,8 +602,8 @@ type PlainStruct struct{}`
 	}
 
 	code := run("command", "out.go", "", []string{tmp})
-	if code != 0 {
-		t.Errorf("expected exit 0 for no markers, got %d", code)
+	if code != nil {
+		t.Errorf("expected nil error for no markers, got %v", code)
 	}
 }
 
@@ -619,8 +619,8 @@ type CreateUserCmd struct{}`
 
 	outputFile := filepath.Join(tmp, "handlers_gen.go")
 	code := run("command", outputFile, "", []string{tmp})
-	if code != 0 {
-		t.Fatalf("expected exit 0, got %d", code)
+	if code != nil {
+		t.Fatalf("expected nil error, got %v", code)
 	}
 
 	generated, err := os.ReadFile(outputFile)
@@ -644,8 +644,8 @@ type GetUserQuery struct{}`
 
 	outputFile := filepath.Join(tmp, "queries_gen.go")
 	code := run("query", outputFile, "handlers", []string{tmp})
-	if code != 0 {
-		t.Fatalf("expected exit 0, got %d", code)
+	if code != nil {
+		t.Fatalf("expected nil error, got %v", code)
 	}
 
 	generated, err := os.ReadFile(outputFile)
@@ -671,8 +671,8 @@ type CreateUserCmd struct{}`
 	writeTempGoFile(t, tmp, "commands.go", content)
 
 	code := run("command", "/nonexistent/dir/handlers_gen.go", "", []string{tmp})
-	if code != 1 {
-		t.Errorf("expected exit 1 for write error, got %d", code)
+	if code == nil {
+		t.Error("expected error for write error, got nil")
 	}
 }
 
@@ -688,8 +688,8 @@ type CreateItemCmd struct{}`
 
 	outputFile := filepath.Join(tmp, "gen.go")
 	code := run("command", outputFile, "", []string{tmp})
-	if code != 0 {
-		t.Errorf("expected exit 0, got %d", code)
+	if code != nil {
+		t.Fatalf("expected nil error, got %v", code)
 	}
 
 	generated, err := os.ReadFile(outputFile)
@@ -747,8 +747,8 @@ func TestRun_SuccessfulEvent(t *testing.T) {
 
 	outputFile := filepath.Join(tmp, "gen.go")
 	code := run("event", outputFile, "", []string{tmp})
-	if code != 0 {
-		t.Errorf("expected exit 0, got %d", code)
+	if code != nil {
+		t.Errorf("expected nil error, got %v", code)
 	}
 
 	generated, err := os.ReadFile(outputFile)

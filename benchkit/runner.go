@@ -33,6 +33,7 @@ type runner struct {
 	sampler          *resourceSampler
 	startCPU         uint64
 	baselineMemStats runtime.MemStats
+	progress         *progressReporter
 }
 
 func newRunner(config Config, factory Factory) *runner {
@@ -90,6 +91,15 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 
 	defer r.teardown()
 
+	r.progress = newProgressReporter(
+		r.config.ProgressWriter,
+		r.config.ProgressInterval,
+		r.config.Backend,
+		r.countActivePhases(),
+	)
+	r.progress.start()
+	defer r.progress.stop()
+
 	r.startCPU = cpuTime()
 	runtime.ReadMemStats(&r.baselineMemStats)
 
@@ -133,12 +143,51 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 // runCtx is the (possibly deadline-limited) context for measured phases.
 // parentCtx is the unbounded context for the recovery phase.
 func (r *runner) runPhases(runCtx, parentCtx context.Context) error {
-	steps := []struct {
-		skip  bool
-		code  string
-		msg   string
-		phase func(context.Context) error
-	}{
+	steps := r.phaseSteps()
+
+	phaseNum := 0
+
+	for _, s := range steps {
+		if s.skip {
+			continue
+		}
+
+		phaseNum++
+
+		r.progress.beginPhase(phaseNum, s.msg)
+
+		phaseStart := time.Now()
+		err := s.phase(runCtx)
+		r.progress.endPhase(s.msg, time.Since(phaseStart))
+
+		if err != nil {
+			return errorfamily.WrapTransient(err, s.code, s.msg)
+		}
+	}
+
+	r.durabilityPhase()
+
+	if r.config.Recovery {
+		if err := r.recoveryPhase(parentCtx); err != nil {
+			return errorfamily.WrapTransient(err, "benchkit.recovery_phase", "recovery phase")
+		}
+	}
+
+	return nil
+}
+
+type phaseStep struct {
+	skip  bool
+	code  string
+	msg   string
+	phase func(context.Context) error
+}
+
+// phaseSteps returns the ordered list of benchmark phases with their skip
+// flags resolved from the current config. Extracted from runPhases so
+// countActivePhases can share the same definitions.
+func (r *runner) phaseSteps() []phaseStep {
+	return []phaseStep{
 		{r.config.ReplayOnly, "benchkit.write_phase", "write phase", r.writePhase},
 		{r.config.SkipReads, "benchkit.read_phase", "read phase", r.readPhase},
 		{
@@ -183,26 +232,18 @@ func (r *runner) runPhases(runCtx, parentCtx context.Context) error {
 			r.rawSinkPhase,
 		},
 	}
+}
 
-	for _, s := range steps {
-		if s.skip {
-			continue
-		}
+func (r *runner) countActivePhases() int {
+	count := 0
 
-		if err := s.phase(runCtx); err != nil {
-			return errorfamily.WrapTransient(err, s.code, s.msg)
-		}
-	}
-
-	r.durabilityPhase()
-
-	if r.config.Recovery {
-		if err := r.recoveryPhase(parentCtx); err != nil {
-			return errorfamily.WrapTransient(err, "benchkit.recovery_phase", "recovery phase")
+	for _, s := range r.phaseSteps() {
+		if !s.skip {
+			count++
 		}
 	}
 
-	return nil
+	return count
 }
 
 func (r *runner) setup(ctx context.Context) error {

@@ -20,7 +20,7 @@
 package main
 
 import (
-	"flag"
+	"context"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -31,6 +31,9 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+
+	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
+	"github.com/spf13/cobra"
 )
 
 const (
@@ -39,72 +42,80 @@ const (
 	genTypeEvent   = "event"
 )
 
-//nolint:gochecknoglobals // CLI flags
-var (
-	genType = flag.String(
-		"type",
-		genTypeCommand,
-		"handler type to generate: command, query, or event",
-	)
-	outputFile = flag.String("output", "handlers_gen.go", "output file path")
-	pkgName    = flag.String(
-		"pkg",
-		"",
-		"package name for generated file (defaults to the scanned source package)",
-	)
-)
+type AppConfig struct {
+	cmdguard.Config
 
-func main() {
-	flag.Parse()
-	os.Exit(run(*genType, *outputFile, *pkgName, flag.Args()))
+	Type   string `default:"command"        flag:"type"   help:"handler type to generate: command, query, or event"`
+	Output string `default:"handlers_gen.go" flag:"output" help:"output file path"`
+	Pkg    string `default:""               flag:"pkg"     help:"package name for generated file (defaults to the scanned source package)"`
 }
 
-func run(handlerType, outputFile, pkg string, paths []string) int {
-	if handlerType != genTypeCommand && handlerType != genTypeQuery && handlerType != genTypeEvent {
-		fmt.Fprintf(
-			os.Stderr,
-			"invalid type %q: must be 'command', 'query', or 'event'\n",
-			handlerType,
-		)
-		return 1
+func main() {
+	cli, err := cmdguard.NewCLI(
+		"cqrs-gen",
+		"Generate typed handler registration code from cqrs annotations",
+		AppConfig{},
+		cmdguard.WithCLILong(
+			"cqrs-gen generates typed handler registration code from Go structs marked with cqrs annotations.\n\n"+
+				"Marker comments in source code:\n"+
+				"  //cqrs:command CreateUser\n"+
+				"  //cqrs:query GetUser\n"+
+				"  //cqrs:event UserCreated",
+		),
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating CLI: %v\n", err)
+		os.Exit(1)
 	}
 
-	if len(paths) == 0 {
-		paths = []string{"."}
+	rootCmd := cli.RootCommand()
+	rootCmd.Use = "cqrs-gen [-type=command] [-output=handlers_gen.go] [paths...]"
+	rootCmd.RunE = func(_ *cobra.Command, args []string) error {
+		cfg := cli.Config()
+
+		paths := args
+		if len(paths) == 0 {
+			paths = []string{"."}
+		}
+
+		return run(cfg.Type, cfg.Output, cfg.Pkg, paths)
+	}
+
+	cli.ExecuteAndExit(context.Background())
+}
+
+func run(handlerType, outputFile, pkg string, paths []string) error {
+	if handlerType != genTypeCommand && handlerType != genTypeQuery && handlerType != genTypeEvent {
+		return fmt.Errorf("invalid type %q: must be 'command', 'query', or 'event'", handlerType)
 	}
 
 	entries, err := scan(paths, handlerType)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "scan: %v\n", err)
-		return 1
+		return fmt.Errorf("scan: %w", err)
 	}
 
 	if len(entries) == 0 {
 		fmt.Fprintln(os.Stderr, "no cqrs markers found")
-		return 0
+		return nil
 	}
 
 	entries = dedupEntries(os.Stderr, entries)
 
 	if pkg == "" {
-		// The source package name is always a valid Go identifier; a directory
-		// or file path is not (e.g. "handlers_gen.go" or "src").
 		pkg = entries[0].PackageName
 	}
 
 	code, err := generate(pkg, handlerType, entries)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "generate: %v\n", err)
-		return 1
+		return fmt.Errorf("generate: %w", err)
 	}
 
 	if err := os.WriteFile(outputFile, []byte(code), 0o644); err != nil {
-		fmt.Fprintf(os.Stderr, "write: %v\n", err)
-		return 1
+		return fmt.Errorf("write: %w", err)
 	}
 
 	fmt.Printf("generated %d handlers → %s\n", len(entries), outputFile)
-	return 0
+	return nil
 }
 
 // Entry represents a single discovered cqrs marker.

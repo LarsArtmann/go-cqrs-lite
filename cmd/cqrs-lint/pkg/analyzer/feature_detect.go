@@ -178,6 +178,8 @@ func detectImports(
 		fp.Store = StoreMemory
 	} else if strings.Contains(path, "go-cqrs-lite/stack/turso") {
 		fp.Store = StoreTurso
+	} else if strings.Contains(path, "go-cqrs-lite/stack/duckdb") {
+		fp.Store = StoreDuckDB
 	} else if strings.Contains(path, "go-cqrs-lite/storage/") &&
 		fp.Store == StoreUnknown {
 		fp.Store = StoreCustom
