@@ -1,0 +1,181 @@
+package bbolt
+
+import (
+	"context"
+	"time"
+
+	bolt "go.etcd.io/bbolt"
+	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+)
+
+// Load implements event.Store.Load — returns all events for a stream.
+func (s *EventStore) Load(
+	_ context.Context,
+	ref id.StreamRef,
+) ([]event.Event, error) {
+	var events []event.Event
+
+	err := s.db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(bucketEvents))
+		if bucket == nil {
+			return nil
+		}
+
+		prefix := streamPrefix(ref)
+		c := bucket.Cursor()
+
+		for k, v := c.Seek(prefix); k != nil && hasPrefix(k, prefix); k, v = c.Next() {
+			evt, err := deserializeEvent(v)
+			if err != nil {
+				return errorfamily.WrapCorruption(err, "bbolt.load_corrupt",
+					"corrupt event at key "+string(k))
+			}
+
+			events = append(events, evt)
+		}
+
+		return nil
+	})
+
+	return events, err
+}
+
+// LoadFromVersion returns events with version strictly greater than version.
+func (s *EventStore) LoadFromVersion(
+	_ context.Context,
+	ref id.StreamRef,
+	version event.Version,
+) ([]event.Event, error) {
+	lower := eventKey(ref, version+1)
+	prefix := streamPrefix(ref)
+
+	var events []event.Event
+
+	err := s.db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(bucketEvents))
+		if bucket == nil {
+			return nil
+		}
+
+		c := bucket.Cursor()
+
+		for k, v := c.Seek(lower); k != nil && hasPrefix(k, prefix); k, v = c.Next() {
+			evt, err := deserializeEvent(v)
+			if err != nil {
+				return errorfamily.WrapCorruption(err, "bbolt.load_from_version_corrupt",
+					"corrupt event at key "+string(k))
+			}
+
+			events = append(events, evt)
+		}
+
+		return nil
+	})
+
+	return events, err
+}
+
+// LoadToVersion returns events up to and including maxVersion.
+func (s *EventStore) LoadToVersion(
+	_ context.Context,
+	ref id.StreamRef,
+	maxVersion event.Version,
+) ([]event.Event, error) {
+	upper := eventKey(ref, maxVersion+1)
+	prefix := streamPrefix(ref)
+
+	var events []event.Event
+
+	err := s.db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(bucketEvents))
+		if bucket == nil {
+			return nil
+		}
+
+		c := bucket.Cursor()
+
+		for k, v := c.Seek(prefix); k != nil && hasPrefix(k, prefix); k, v = c.Next() {
+			if string(k) >= string(upper) {
+				break
+			}
+
+			evt, err := deserializeEvent(v)
+			if err != nil {
+				return errorfamily.WrapCorruption(err, "bbolt.load_to_version_corrupt",
+					"corrupt event at key "+string(k))
+			}
+
+			events = append(events, evt)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(events) == 0 {
+		return nil, event.ErrStreamNotFound
+	}
+
+	return events, nil
+}
+
+// LoadToTimestamp returns events where OccurredAt <= maxTime.
+func (s *EventStore) LoadToTimestamp(
+	_ context.Context,
+	ref id.StreamRef,
+	maxTime time.Time,
+) ([]event.Event, error) {
+	prefix := streamPrefix(ref)
+
+	var events []event.Event
+
+	err := s.db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(bucketEvents))
+		if bucket == nil {
+			return nil
+		}
+
+		c := bucket.Cursor()
+
+		for k, v := c.Seek(prefix); k != nil && hasPrefix(k, prefix); k, v = c.Next() {
+			evt, err := deserializeEvent(v)
+			if err != nil {
+				return errorfamily.WrapCorruption(err, "bbolt.load_to_ts_corrupt",
+					"corrupt event at key "+string(k))
+			}
+
+			if evt.OccurredAt().After(maxTime) {
+				break
+			}
+
+			events = append(events, evt)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(events) == 0 {
+		return nil, event.ErrStreamNotFound
+	}
+
+	return events, nil
+}
+
+// hasPrefix reports whether key starts with prefix.
+func hasPrefix(key, prefix []byte) bool {
+	if len(key) < len(prefix) {
+		return false
+	}
+
+	return string(key[:len(prefix)]) == string(prefix)
+}

@@ -65,6 +65,7 @@ use (
 	./stack/turso
 	./storage
 	./storage/memory
+	./storage/bbolt
 	./storage/pebble
 	./storage/turso
 	./system
