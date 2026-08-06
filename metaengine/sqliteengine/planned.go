@@ -4,10 +4,8 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"context"
 	"database/sql"
-	"encoding/json/v2"
 	"errors"
 	"fmt"
-	"reflect"
 	"strings"
 )
 
@@ -15,11 +13,11 @@ import (
 // for the given collections. Collections without a plan fall back to the
 // standard meta_map table.
 //
-// As of ADR-0073 update, Plan() auto-applies layouts for queries using
+// As of ADR-0073 update, metaengine.Plan() auto-applies layouts for queries using
 // FilterOnField/SortOnField — manual NewPlannedSQLiteEngine is only needed
-// when you want explicit control over the LayoutPlan (e.g., custom column types
-// via BuildLayoutPlanFromType[R]).
-func NewPlannedSQLiteEngine(database *sql.DB, plans []LayoutPlan) (Engine, error) {
+// when you want explicit control over the metaengine.LayoutPlan (e.g., custom column types
+// via metaengine.BuildLayoutPlanFromType[R]).
+func NewPlannedSQLiteEngine(database *sql.DB, plans []metaengine.LayoutPlan) (metaengine.Engine, error) {
 	eng, err := NewSQLiteEngine(database)
 	if err != nil {
 		return nil, err
@@ -36,26 +34,26 @@ func NewPlannedSQLiteEngine(database *sql.DB, plans []LayoutPlan) (Engine, error
 	return sqlEng, nil
 }
 
-// ApplyLayout implements LayoutPlanner. It auto-generates a LayoutPlan from
+// ApplyLayout implements metaengine.LayoutPlanner. It auto-generates a metaengine.LayoutPlan from
 // the declared filter/sort field names and registers it on this engine. Called
-// automatically by Plan() for queries that use FilterOnField/SortOnField.
+// automatically by metaengine.Plan() for queries that use FilterOnField/SortOnField.
 func (e *sqliteEngine) ApplyLayout(collection string, filterFields, sortFields []string) error {
 	if e.plans == nil {
-		e.plans = make(map[string]LayoutPlan)
+		e.plans = make(map[string]metaengine.LayoutPlan)
 	}
 
 	if existing, exists := e.plans[collection]; exists {
 		// Idempotent: same column set → no-op. Different columns → conflict.
-		newPlan := BuildLayoutPlan(collection, filterFields, sortFields)
-		if !PlansColumnCompatible(existing, newPlan) {
+		newPlan := metaengine.BuildLayoutPlan(collection, filterFields, sortFields)
+		if !metaengine.PlansColumnCompatible(existing, newPlan) {
 			return fmt.Errorf("%w: collection %q already has columns %v, requested %v",
-				ErrLayoutConflict, collection, existing.ColumnNames(), newPlan.ColumnNames())
+				metaengine.ErrLayoutConflict, collection, existing.ColumnNames(), newPlan.ColumnNames())
 		}
 
 		return nil // already planned with same columns
 	}
 
-	plan := BuildLayoutPlan(collection, filterFields, sortFields)
+	plan := metaengine.BuildLayoutPlan(collection, filterFields, sortFields)
 
 	if err := e.registerLayout(plan); err != nil {
 		return fmt.Errorf("apply layout %q: %w", collection, err)
@@ -66,13 +64,13 @@ func (e *sqliteEngine) ApplyLayout(collection string, filterFields, sortFields [
 
 
 // registerLayout creates the planned table + indexes and stores the plan.
-func (e *sqliteEngine) registerLayout(plan LayoutPlan) error {
+func (e *sqliteEngine) registerLayout(plan metaengine.LayoutPlan) error {
 	if _, err := e.db.ExecContext(context.Background(), plan.DDL()); err != nil {
 		return err //nolint:wrapcheck // passthrough
 	}
 
 	if e.plans == nil {
-		e.plans = make(map[string]LayoutPlan)
+		e.plans = make(map[string]metaengine.LayoutPlan)
 	}
 
 	e.plans[plan.Collection] = plan
@@ -80,11 +78,11 @@ func (e *sqliteEngine) registerLayout(plan LayoutPlan) error {
 	return nil
 }
 
-// --- Planned table helpers (used when a collection has a LayoutPlan) ---
+// --- Planned table helpers (used when a collection has a metaengine.LayoutPlan) ---
 
 func (e *sqliteEngine) mapSetPlanned(
 	ctx context.Context,
-	plan LayoutPlan,
+	plan metaengine.LayoutPlan,
 	key any,
 	value any,
 ) error {
@@ -100,20 +98,20 @@ type execContext interface {
 func execPlannedSet(
 	ctx context.Context,
 	exec execContext,
-	plan LayoutPlan,
+	plan metaengine.LayoutPlan,
 	key any,
 	value any,
 ) error {
 	valueJSON := encodeValue(value)
-	extracted := ExtractFields(value, plan.Columns)
+	extracted := metaengine.ExtractFields(value, plan.Columns)
 
 	quotedColNames := make([]string, 0, 2+len(plan.Columns))
-	quotedColNames = append(quotedColNames, QuoteIdent("key"), QuoteIdent("value"))
+	quotedColNames = append(quotedColNames, metaengine.QuoteIdent("key"), metaengine.QuoteIdent("value"))
 	args := make([]any, 0, 2+len(plan.Columns))
 	args = append(args, encodeKey(key), valueJSON)
 
 	for _, c := range plan.Columns {
-		quotedColNames = append(quotedColNames, QuoteIdent(c.Name))
+		quotedColNames = append(quotedColNames, metaengine.QuoteIdent(c.Name))
 		args = append(args, extracted[c.Name])
 	}
 
@@ -122,7 +120,7 @@ func execPlannedSet(
 
 	query := fmt.Sprintf(
 		"INSERT OR REPLACE INTO %s (%s) VALUES %s",
-		QuoteIdent(plan.Table), strings.Join(quotedColNames, ", "), placeholder,
+		metaengine.QuoteIdent(plan.Table), strings.Join(quotedColNames, ", "), placeholder,
 	)
 
 	_, err := exec.ExecContext(ctx, query, args...)
@@ -132,13 +130,13 @@ func execPlannedSet(
 
 func (e *sqliteEngine) mapGetPlanned(
 	ctx context.Context,
-	plan LayoutPlan,
+	plan metaengine.LayoutPlan,
 	key any,
 ) (any, bool, error) {
 	var valStr string
 
 	err := e.xd().QueryRowContext(ctx,
-		fmt.Sprintf("SELECT value FROM %s WHERE key = ?", QuoteIdent(plan.Table)),
+		fmt.Sprintf("SELECT value FROM %s WHERE key = ?", metaengine.QuoteIdent(plan.Table)),
 		encodeKey(key)).Scan(&valStr)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -156,7 +154,7 @@ func (e *sqliteEngine) mapGetPlanned(
 // planned table (with extracted columns) instead of meta_map.
 func (e *sqliteEngine) mapUpdatePlanned(
 	ctx context.Context,
-	plan LayoutPlan,
+	plan metaengine.LayoutPlan,
 	key any,
 	update func(prev any) any,
 ) error {
@@ -167,7 +165,7 @@ func (e *sqliteEngine) mapUpdatePlanned(
 		var valStr string
 
 		err := xd.QueryRowContext(ctx,
-			fmt.Sprintf("SELECT value FROM %s WHERE key = ?", QuoteIdent(plan.Table)),
+			fmt.Sprintf("SELECT value FROM %s WHERE key = ?", metaengine.QuoteIdent(plan.Table)),
 			encodeKey(key)).Scan(&valStr)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return err //nolint:wrapcheck // passthrough
@@ -188,7 +186,7 @@ func (e *sqliteEngine) mapUpdatePlanned(
 		func(ctx context.Context, tx *sql.Tx) (any, error) {
 			var valStr string
 			if err := tx.QueryRowContext(ctx,
-				fmt.Sprintf("SELECT value FROM %s WHERE key = ?", QuoteIdent(plan.Table)),
+				fmt.Sprintf("SELECT value FROM %s WHERE key = ?", metaengine.QuoteIdent(plan.Table)),
 				encodeKey(key)).Scan(&valStr); err != nil {
 				return nil, err //nolint:wrapcheck // ErrNoRows handled by caller
 			}
@@ -235,17 +233,17 @@ func runTxReadModifyWrite(
 
 func (e *sqliteEngine) pushdownMapScanPlanned(
 	ctx context.Context,
-	plan LayoutPlan,
-	filters []FilterSpec,
-	sort *SortSpec,
+	plan metaengine.LayoutPlan,
+	filters []metaengine.FilterSpec,
+	sort *metaengine.SortSpec,
 	cursor any,
 	limit int,
-) (ScanResult, error) {
+) (metaengine.ScanResult, error) {
 	query, args := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
 
 	rows, err := scanJSONValues(ctx, e.xd(), query, args...)
 	if err != nil {
-		return ScanResult{}, err
+		return metaengine.ScanResult{}, err
 	}
 
 	hasMore := limit > 0 && len(rows) > limit
@@ -253,7 +251,7 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 		rows = rows[:limit]
 	}
 
-	return ScanResult{Items: rows, HasMore: hasMore}, nil
+	return metaengine.ScanResult{Items: rows, HasMore: hasMore}, nil
 }
 
 

@@ -9,6 +9,7 @@ import (
 	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 )
 
 // metaEngineSQLiteWorkload runs the same Map ADT workload as
@@ -35,7 +36,7 @@ func (r *runner) metaEngineSQLiteWorkload(ctx context.Context) error {
 	db.SetMaxOpenConns(1) // SQLite serializes writes
 	defer db.Close()
 
-	eng, err := metaengine.NewSQLiteEngine(db) //nolint:contextcheck // no ctx param
+	eng, err := sqliteengine.NewSQLiteEngine(db) //nolint:contextcheck // no ctx param
 	if err != nil {
 		return fmt.Errorf("metaengine sqlite: create engine: %w", err)
 	}

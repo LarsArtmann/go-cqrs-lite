@@ -15,7 +15,7 @@ import (
 	"sync/atomic"
 )
 
-// sqliteEngine implements all ADT backends backed by a SQL database.
+// sqliteEngine implements all metaengine.ADT backends backed by a SQL database.
 // It is the first persistent engine for the metaengine, enabling data
 // to survive process restarts.
 type sqliteEngine struct {
@@ -24,10 +24,10 @@ type sqliteEngine struct {
 	cache   *stmtCache
 	// seq counters for multimap and log (SQLite AUTOINCREMENT handles log).
 	multiSeq sync.Map // collection→*multiSeqCounter
-	plans    map[string]LayoutPlan
+	plans    map[string]metaengine.LayoutPlan
 	txMu     sync.Mutex
 	activeTx atomic.Pointer[txExecutor]
-	cal      Calibration
+	cal      metaengine.Calibration
 }
 
 // sqliteQuerySet holds pre-built SQL strings for each operation.
@@ -124,7 +124,7 @@ func defaultSQLiteQueries() sqliteQuerySet {
 
 // NewSQLiteEngine creates a SQLite-backed metaengine engine. The caller owns
 // the *sql.DB. Tables are created automatically if they don't exist.
-func NewSQLiteEngine(database *sql.DB) (Engine, error) {
+func NewSQLiteEngine(database *sql.DB) (metaengine.Engine, error) {
 	eng := &sqliteEngine{
 		db:      database,
 		queries: defaultSQLiteQueries(),
@@ -142,13 +142,13 @@ func NewSQLiteEngine(database *sql.DB) (Engine, error) {
 	return eng, nil
 }
 
-// SetCalibration implements Calibratable for runtime cost calibration.
-func (e *sqliteEngine) SetCalibration(costs CalibrationCosts) {
+// SetCalibration implements metaengine.Calibratable for runtime cost calibration.
+func (e *sqliteEngine) SetCalibration(costs metaengine.CalibrationCosts) {
 	e.cal.SetCalibration(costs)
 }
 
-func (e *sqliteEngine) Profile() EngineProfile {
-	p := SQLiteEngineProfile()
+func (e *sqliteEngine) Profile() metaengine.EngineProfile {
+	p := metaengine.SQLiteEngineProfile()
 	e.cal.ApplyCalibration(&p)
 
 	return p
@@ -197,7 +197,7 @@ func encodeJSON(v any) string {
 	return string(b)
 }
 
-// --- MapBackend ---
+// --- metaengine.MapBackend ---
 
 func (e *sqliteEngine) MapSet(ctx context.Context, col string, key any, value any) error {
 	if plan, ok := e.plans[col]; ok {
@@ -231,7 +231,7 @@ func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 func (e *sqliteEngine) MapDelete(ctx context.Context, col string, key any) error {
 	if plan, ok := e.plans[col]; ok {
 		_, err := e.xd().ExecContext(ctx,
-			fmt.Sprintf("DELETE FROM %s WHERE key = ?", QuoteIdent(plan.Table)),
+			fmt.Sprintf("DELETE FROM %s WHERE key = ?", metaengine.QuoteIdent(plan.Table)),
 			encodeKey(key))
 
 		return err //nolint:wrapcheck // passthrough
@@ -242,7 +242,7 @@ func (e *sqliteEngine) MapDelete(ctx context.Context, col string, key any) error
 	return err
 }
 
-// --- MapUpdater ---
+// --- metaengine.MapUpdater ---
 
 func (e *sqliteEngine) MapUpdate(
 	ctx context.Context,
@@ -299,7 +299,7 @@ func (e *sqliteEngine) MapUpdate(
 	)
 }
 
-// --- ScanBackend ---
+// --- metaengine.ScanBackend ---
 
 func (e *sqliteEngine) MapScan(
 	ctx context.Context,
@@ -308,7 +308,7 @@ func (e *sqliteEngine) MapScan(
 	sortFunc func(a, b any) int,
 	cursor any,
 	limit int,
-) (ScanResult, error) {
+) (metaengine.ScanResult, error) {
 	// Planned collections store rows in a dedicated table; MapScan (the
 	// closure-based fallback) must read from it, not meta_map.
 	var rows *sql.Rows
@@ -316,13 +316,13 @@ func (e *sqliteEngine) MapScan(
 	var err error
 
 	if plan, ok := e.plans[col]; ok {
-		rows, err = e.xd().QueryContext(ctx, "SELECT value FROM "+QuoteIdent(plan.Table))
+		rows, err = e.xd().QueryContext(ctx, "SELECT value FROM "+metaengine.QuoteIdent(plan.Table))
 	} else {
 		rows, err = e.xd().QueryContext(ctx, `SELECT value FROM meta_map WHERE collection = ?`, col)
 	}
 
 	if err != nil {
-		return ScanResult{}, err //nolint:wrapcheck // passthrough
+		return metaengine.ScanResult{}, err //nolint:wrapcheck // passthrough
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -338,7 +338,7 @@ func (e *sqliteEngine) MapScan(
 		var valStr string
 
 		if err := rows.Scan(&valStr); err != nil {
-			return ScanResult{}, err //nolint:wrapcheck // passthrough
+			return metaengine.ScanResult{}, err //nolint:wrapcheck // passthrough
 		}
 
 		val := decodeJSONValue(valStr)
@@ -351,7 +351,7 @@ func (e *sqliteEngine) MapScan(
 	}
 
 	if err := rows.Err(); err != nil {
-		return ScanResult{}, err //nolint:wrapcheck // passthrough
+		return metaengine.ScanResult{}, err //nolint:wrapcheck // passthrough
 	}
 
 	sort.Slice(pairs, func(i, j int) bool {
@@ -388,10 +388,10 @@ func (e *sqliteEngine) MapScan(
 		results[i] = p.value
 	}
 
-	return ScanResult{Items: results, HasMore: hasMore}, nil
+	return metaengine.ScanResult{Items: results, HasMore: hasMore}, nil
 }
 
-// --- PushdownScan ---
+// --- metaengine.PushdownScan ---
 
 // PushdownMapScan pushes WHERE/ORDER BY/LIMIT into SQL using json_extract(),
 // avoiding the full-table scan that MapScan performs. Filters become
@@ -401,11 +401,11 @@ func (e *sqliteEngine) MapScan(
 func (e *sqliteEngine) PushdownMapScan(
 	ctx context.Context,
 	col string,
-	filters []FilterSpec,
-	sort *SortSpec,
+	filters []metaengine.FilterSpec,
+	sort *metaengine.SortSpec,
 	cursor any,
 	limit int,
-) (ScanResult, error) {
+) (metaengine.ScanResult, error) {
 	if plan, ok := e.plans[col]; ok {
 		return e.pushdownMapScanPlanned(ctx, plan, filters, sort, cursor, limit)
 	}
@@ -461,7 +461,7 @@ func (e *sqliteEngine) PushdownMapScan(
 
 	rows, err := scanJSONValues(ctx, e.xd(), b.String(), args...)
 	if err != nil {
-		return ScanResult{}, err
+		return metaengine.ScanResult{}, err
 	}
 
 	hasMore := limit > 0 && len(rows) > limit
@@ -469,7 +469,7 @@ func (e *sqliteEngine) PushdownMapScan(
 		rows = rows[:limit]
 	}
 
-	return ScanResult{Items: rows, HasMore: hasMore}, nil
+	return metaengine.ScanResult{Items: rows, HasMore: hasMore}, nil
 }
 
 // jsonPath converts a field name to a JSON path for json_extract.
@@ -481,7 +481,7 @@ func jsonPath(field string) string {
 	return "$." + escaped
 }
 
-// --- StreamingScan ---
+// --- metaengine.StreamingScan ---
 
 // StreamScan returns an iterator over collection rows, applying filter and sort
 // pushdown. Planned collections use indexed column references; standard ones use
@@ -490,8 +490,8 @@ func jsonPath(field string) string {
 func (e *sqliteEngine) StreamScan(
 	ctx context.Context,
 	col string,
-	filters []FilterSpec,
-	sort *SortSpec,
+	filters []metaengine.FilterSpec,
+	sort *metaengine.SortSpec,
 ) iter.Seq2[any, error] {
 	return func(yield func(any, error) bool) {
 		query, args := e.buildStreamQuery(col, filters, sort)
@@ -529,13 +529,13 @@ func (e *sqliteEngine) StreamScan(
 // column references for planned collections and json_extract for standard ones.
 func (e *sqliteEngine) buildStreamQuery(
 	col string,
-	filters []FilterSpec,
-	sort *SortSpec,
+	filters []metaengine.FilterSpec,
+	sort *metaengine.SortSpec,
 ) (string, []any) {
 	var b strings.Builder
 
 	if plan, ok := e.plans[col]; ok {
-		fmt.Fprintf(&b, "SELECT value FROM %s", QuoteIdent(plan.Table))
+		fmt.Fprintf(&b, "SELECT value FROM %s", metaengine.QuoteIdent(plan.Table))
 
 		args := make([]any, 0, len(filters))
 
@@ -546,12 +546,12 @@ func (e *sqliteEngine) buildStreamQuery(
 				b.WriteString(" AND ")
 			}
 
-			fmt.Fprintf(&b, "%s %s ?", QuoteIdent(f.Column), string(f.Op))
+			fmt.Fprintf(&b, "%s %s ?", metaengine.QuoteIdent(f.Column), string(f.Op))
 			args = append(args, f.Value)
 		}
 
 		if sort != nil {
-			fmt.Fprintf(&b, " ORDER BY %s", QuoteIdent(sort.Column))
+			fmt.Fprintf(&b, " ORDER BY %s", metaengine.QuoteIdent(sort.Column))
 
 			if sort.Desc {
 				b.WriteString(" DESC")
@@ -595,18 +595,18 @@ func (e *sqliteEngine) buildStreamQuery(
 
 // Compile-time assertions.
 var (
-	_ Engine          = (*sqliteEngine)(nil)
-	_ MapBackend      = (*sqliteEngine)(nil)
-	_ MapUpdater      = (*sqliteEngine)(nil)
-	_ ScanBackend     = (*sqliteEngine)(nil)
-	_ PushdownScan    = (*sqliteEngine)(nil)
-	_ StreamingScan   = (*sqliteEngine)(nil)
-	_ LayoutPlanner   = (*sqliteEngine)(nil)
-	_ RawValueReader  = (*sqliteEngine)(nil)
-	_ RawScanReader   = (*sqliteEngine)(nil)
-	_ SetBackend      = (*sqliteEngine)(nil)
-	_ CounterBackend  = (*sqliteEngine)(nil)
-	_ GraphBackend    = (*sqliteEngine)(nil)
-	_ MultimapBackend = (*sqliteEngine)(nil)
-	_ LogBackend      = (*sqliteEngine)(nil)
+	_ metaengine.Engine          = (*sqliteEngine)(nil)
+	_ metaengine.MapBackend      = (*sqliteEngine)(nil)
+	_ metaengine.MapUpdater      = (*sqliteEngine)(nil)
+	_ metaengine.ScanBackend     = (*sqliteEngine)(nil)
+	_ metaengine.PushdownScan    = (*sqliteEngine)(nil)
+	_ metaengine.StreamingScan   = (*sqliteEngine)(nil)
+	_ metaengine.LayoutPlanner   = (*sqliteEngine)(nil)
+	_ metaengine.RawValueReader  = (*sqliteEngine)(nil)
+	_ metaengine.RawScanReader   = (*sqliteEngine)(nil)
+	_ metaengine.SetBackend      = (*sqliteEngine)(nil)
+	_ metaengine.CounterBackend  = (*sqliteEngine)(nil)
+	_ metaengine.GraphBackend    = (*sqliteEngine)(nil)
+	_ metaengine.MultimapBackend = (*sqliteEngine)(nil)
+	_ metaengine.LogBackend      = (*sqliteEngine)(nil)
 )

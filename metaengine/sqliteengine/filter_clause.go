@@ -8,13 +8,13 @@ import (
 
 // appendStandardFilter writes a single filter clause for the standard
 // (non-planned) path using json_extract. It handles both binary ops (=, <, etc.)
-// and the special FilterIn operator which generates IN (?, ?, ...).
+// and the special metaengine.FilterIn operator which generates IN (?, ?, ...).
 //
 // The caller is responsible for the leading " AND " or " WHERE ".
-func appendStandardFilter(b *strings.Builder, args *[]any, f FilterSpec) {
+func appendStandardFilter(b *strings.Builder, args *[]any, f metaengine.FilterSpec) {
 	path := jsonPath(f.Column)
 
-	if f.Op == FilterIn {
+	if f.Op == metaengine.FilterIn {
 		values, ok := f.Value.([]any)
 		if !ok || len(values) == 0 {
 			return
@@ -39,12 +39,12 @@ func appendStandardFilter(b *strings.Builder, args *[]any, f FilterSpec) {
 }
 
 // appendPlannedFilter writes a single filter clause for the planned-table path
-// using direct column references. It handles both binary ops and FilterIn.
+// using direct column references. It handles both binary ops and metaengine.FilterIn.
 //
 // The caller passes a pointer to started so the first clause gets " WHERE "
 // and subsequent ones get " AND ".
-func appendPlannedFilter(b *strings.Builder, args *[]any, f FilterSpec, started *bool) {
-	if f.Op == FilterIn {
+func appendPlannedFilter(b *strings.Builder, args *[]any, f metaengine.FilterSpec, started *bool) {
+	if f.Op == metaengine.FilterIn {
 		values, ok := f.Value.([]any)
 		if !ok || len(values) == 0 {
 			return
@@ -65,7 +65,7 @@ func appendPlannedFilter(b *strings.Builder, args *[]any, f FilterSpec, started 
 			*args = append(*args, v)
 		}
 
-		fmt.Fprintf(b, "%s IN (%s)", QuoteIdent(f.Column), strings.Join(placeholders, ","))
+		fmt.Fprintf(b, "%s IN (%s)", metaengine.QuoteIdent(f.Column), strings.Join(placeholders, ","))
 	} else {
 		if !*started {
 			b.WriteString(" WHERE ")
@@ -75,7 +75,7 @@ func appendPlannedFilter(b *strings.Builder, args *[]any, f FilterSpec, started 
 			b.WriteString(" AND ")
 		}
 
-		fmt.Fprintf(b, "%s %s ?", QuoteIdent(f.Column), string(f.Op))
+		fmt.Fprintf(b, "%s %s ?", metaengine.QuoteIdent(f.Column), string(f.Op))
 		*args = append(*args, f.Value)
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-// SnapshotBackend implementation for the SQLite engine.
+// metaengine.SnapshotBackend implementation for the SQLite engine.
 // Snapshots are stored in the meta_snapshot table with a composite primary
 // key (collection, stream_id). One snapshot per stream — saves overwrite.
 
@@ -46,7 +46,7 @@ func (e *sqliteEngine) SnapshotLoad(
 	).Scan(&data, &version)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, 0, ErrNotFound
+		return nil, 0, metaengine.ErrNotFound
 	}
 
 	if err != nil {
@@ -72,7 +72,7 @@ func (e *sqliteEngine) SnapshotLoadAtVersion(
 	).Scan(&data, &version)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, 0, ErrNotFound
+		return nil, 0, metaengine.ErrNotFound
 	}
 
 	if err != nil {
@@ -103,4 +103,4 @@ func (e *sqliteEngine) SnapshotDelete(
 }
 
 // Compile-time assertion.
-var _ SnapshotBackend = (*sqliteEngine)(nil)
+var _ metaengine.SnapshotBackend = (*sqliteEngine)(nil)

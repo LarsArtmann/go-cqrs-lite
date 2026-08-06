@@ -7,7 +7,7 @@ import (
 	"errors"
 )
 
-// --- StreamLogBackend ---
+// --- metaengine.StreamLogBackend ---
 
 func (e *sqliteEngine) StreamAppend(ctx context.Context, col, sid string, values []any) error {
 	for _, v := range values {
@@ -75,7 +75,7 @@ func (e *sqliteEngine) StreamAppendExpected(
 		}
 
 		if current != expectedVersion {
-			return ErrVersionConflict
+			return metaengine.ErrVersionConflict
 		}
 
 		for _, v := range values {
@@ -90,7 +90,7 @@ func (e *sqliteEngine) StreamAppendExpected(
 }
 
 // StreamReadAsOfVersion returns all values for a stream up to maxVersion.
-// This implements the StreamTemporalReader optional interface.
+// This implements the metaengine.StreamTemporalReader optional interface.
 func (e *sqliteEngine) StreamReadAsOfVersion(
 	ctx context.Context,
 	col, sid string,
@@ -110,7 +110,7 @@ func (e *sqliteEngine) StreamReadAsOfVersion(
 }
 
 // StreamReadFromVersion returns all values for a stream starting at minVersion.
-// This implements the StreamTemporalReader optional interface.
+// This implements the metaengine.StreamTemporalReader optional interface.
 // Uses OFFSET because seq is global (not per-stream), so we skip the first
 // (minVersion - 1) entries within this stream's ordered result set.
 func (e *sqliteEngine) StreamReadFromVersion(
@@ -176,8 +176,8 @@ func (e *sqliteEngine) scanStreamValues(
 
 // Compile-time assertions for sqliteEngine.
 var (
-	_ StreamLogBackend     = (*sqliteEngine)(nil)
-	_ AtomicAppender       = (*sqliteEngine)(nil)
-	_ StreamTemporalReader = (*sqliteEngine)(nil)
-	_ SnapshotBackend      = (*sqliteEngine)(nil)
+	_ metaengine.StreamLogBackend     = (*sqliteEngine)(nil)
+	_ metaengine.AtomicAppender       = (*sqliteEngine)(nil)
+	_ metaengine.StreamTemporalReader = (*sqliteEngine)(nil)
+	_ metaengine.SnapshotBackend      = (*sqliteEngine)(nil)
 )

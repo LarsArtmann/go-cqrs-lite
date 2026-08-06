@@ -8,6 +8,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 )
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -187,7 +188,7 @@ func setupMetaEngine(
 		metaengine.Volume(estimatedTaskVolume),
 	)
 
-	store, meDB, err := metaengine.PlanFromSQLite(dsn, taskCounts, taskViews)
+	store, meDB, err := sqliteengine.PlanFromSQLite(dsn, taskCounts, taskViews)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("metaengine: plan: %w", err)
 	}

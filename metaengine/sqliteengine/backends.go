@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 )
 
-// --- SetBackend ---
+// --- metaengine.SetBackend ---
 
 func (e *sqliteEngine) SetAdd(ctx context.Context, col string, key any) error {
 	_, err := e.xc().exec(ctx, e.queries.setAdd, col, encodeKey(key))
@@ -35,9 +35,9 @@ func (e *sqliteEngine) SetContains(ctx context.Context, col string, key any) (bo
 	return true, nil
 }
 
-// --- CounterBackend ---
+// --- metaengine.CounterBackend ---
 
-func (e *sqliteEngine) CounterIncrement(ctx context.Context, col string, deltas Delta) error {
+func (e *sqliteEngine) CounterIncrement(ctx context.Context, col string, deltas metaengine.Delta) error {
 	// When inside an outer transaction, reuse its executor.
 	if e.txExec() != nil {
 		xc := e.xc()
@@ -112,7 +112,7 @@ func decodeJSONValue(valStr string) any {
 	return val
 }
 
-// --- MultimapBackend ---
+// --- metaengine.MultimapBackend ---
 
 func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value any) error {
 	seq, err := e.nextMultiSeq(ctx, col)
@@ -174,7 +174,7 @@ func (e *sqliteEngine) nextMultiSeq(ctx context.Context, col string) (int64, err
 	return c.counter.Add(1), nil
 }
 
-// --- LogBackend ---
+// --- metaengine.LogBackend ---
 
 func (e *sqliteEngine) LogAppend(ctx context.Context, col string, value any) error {
 	_, err := e.xc().exec(ctx, e.queries.logAppend, col, encodeValue(value))
@@ -198,9 +198,9 @@ func (e *sqliteEngine) LogTail(ctx context.Context, col string, limit int) ([]an
 	return fwd, nil
 }
 
-// --- GraphBackend ---
+// --- metaengine.GraphBackend ---
 
-func (e *sqliteEngine) GraphAddEdge(ctx context.Context, col string, edge Edge) error {
+func (e *sqliteEngine) GraphAddEdge(ctx context.Context, col string, edge metaengine.Edge) error {
 	from := encodeKey(edge.From)
 	to := encodeKey(edge.To)
 

@@ -9,6 +9,7 @@ import (
 	_ "modernc.org/sqlite" // SQLite driver registered with database/sql
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 )
 
 // DriverFactory creates a metaengine.Engine from an EngineConfig.
@@ -139,7 +140,7 @@ func init() {
 				}
 			}
 
-			return metaengine.NewSQLiteEngine(db) //nolint:contextcheck // takes *sql.DB
+			return sqliteengine.NewSQLiteEngine(db) //nolint:contextcheck // takes *sql.DB
 		},
 	)
 

@@ -233,6 +233,9 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 			adoption.NewF020Detector(ctx),
 			adoption.NewF021Detector(ctx),
 			adoption.NewF022Detector(ctx),
+			adoption.NewF023Detector(ctx),
+			adoption.NewF024Detector(ctx),
+			adoption.NewF025Detector(ctx),
 		)
 	}
 
