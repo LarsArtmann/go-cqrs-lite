@@ -1,4 +1,6 @@
-# cqrs-lint
+# cqrs-lint — Domain-Aware Linter for go-cqrs-lite
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4)
 
 A domain-aware linter for [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) consumers.
 
@@ -117,12 +119,12 @@ Each preset pins feature flags AND disables rules that are known false-positives
 for that project type. Explicit `features` flags always override preset values;
 explicit `rules.disable` entries are added on top (union).
 
-| Preset       | Features                                                                    | Rule defaults                                  | Severity floor |
-| ------------ | --------------------------------------------------------------------------- | ---------------------------------------------- | -------------- |
-| `local-cli`  | `server: false`, `tracing: off`                                             | F004, F009, F013, F015, F017                   | `warning`      |
-| `production` | `server: true`, `tracing: on`                                               | (none)                                         | (default)      |
-| `library`    | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F002, F006, F010, F011, S002, S003 | (default)      |
-| `read-only`  | `command-flow: read-only`                                                   | (none)                                         | (default)      |
+| Preset       | Features                                                                    | Rule defaults                                              | Severity floor |
+| ------------ | --------------------------------------------------------------------------- | ---------------------------------------------------------- | -------------- |
+| `local-cli`  | `server: false`, `tracing: off`                                             | F004, F009, F013, F017                                     | `warning`      |
+| `production` | `server: true`, `tracing: on`                                               | (none)                                                     | (default)      |
+| `library`    | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F002, F006, F010, F011, F015, F022, S002, S003 | (default)      |
+| `read-only`  | `command-flow: read-only`                                                   | (none)                                                     | (default)      |
 
 cqrs-lint warns on unknown preset names (typos) and unknown disabled rule IDs,
 so misconfigurations surface immediately instead of silently doing nothing.

@@ -54,15 +54,10 @@ func NewF022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // hasSQLStore reports whether the project's detected store is SQL-backed
-// (capable of ORDER BY / WHERE pushdown).
+// (capable of ORDER BY / WHERE pushdown). Delegates to StoreKind.IsSQL
+// so store-type classification lives in one place.
 func hasSQLStore(ctx *analyzer.AnalysisContext) bool {
-	switch ctx.FeatureProfile.Store {
-	case analyzer.StoreSQLite, analyzer.StorePostgres, analyzer.StoreMySQL,
-		analyzer.StoreDuckDB, analyzer.StoreCustom:
-		return true
-	default:
-		return false
-	}
+	return ctx.FeatureProfile.Store.IsSQL()
 }
 
 // manualSortPatterns are the function calls that indicate in-memory sorting.

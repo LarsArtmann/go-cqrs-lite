@@ -27,15 +27,15 @@
 
 ## Modules
 
-The authoritative module index with README links lives in the **[project README](../README.md)** (59 modules). Each module also has a `doc.go` rendered on [pkg.go.dev](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4).
+The authoritative module index with README links lives in the **[project README](../README.md)** (68 modules). Each module also has a `doc.go` rendered on [pkg.go.dev](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4).
 
 ## Examples
 
-| Example        | Demonstrates                                                         | README                                                |
-| -------------- | -------------------------------------------------------------------- | ----------------------------------------------------- |
-| **todo**       | Full app: HTTP API, decider, projections, queries, Pebble storage    | [example/todo](../example/todo/README.md)             |
-| **user**       | Advanced: signing, middleware chains, catalog gen, tombstone/rebirth | [example/user](../example/user/README.md)             |
-| **encryption** | Bus-level + store-level encryption, key rotation                     | [example/encryption](../example/encryption/README.md) |
+| Example               | Demonstrates                                                                            | README                                                              |
+| --------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **taskmanager**       | Flagship: full HTTP service, event sourcing, projections, signing, OTel, tombstone, SSE | [example/taskmanager](../example/taskmanager/README.md)             |
+| **getting-started**   | Minimal 80-line tour: event sourcing + projection + materialized view                   | [example/getting-started](../example/getting-started/README.md)     |
+| **readme-quickstart** | Absolute minimum: command handler + decider, no projections or bus                      | [example/readme-quickstart](../example/readme-quickstart/README.md) |
 
 ## Architecture Decision Records (ADR)
 

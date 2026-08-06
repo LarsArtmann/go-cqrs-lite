@@ -5,7 +5,7 @@
 
 **CQRS and Event Sourcing for Go — without the framework tax.**
 
-A composable library of 58 independent modules. Import exactly what you need: nothing is forced on you — no transport, no broker, no database driver. Wire your own stack, or grab a zero-config preset.
+A composable library of 68 independent modules. Import exactly what you need: nothing is forced on you — no transport, no broker, no database driver. Wire your own stack, or grab a zero-config preset.
 
 > Using this library with an AI assistant? [`SKILL.md`](SKILL.md) is the single-source guide — module decision matrix, copy-paste recipes, and conventions.
 
@@ -127,7 +127,7 @@ Most Go CQRS libraries are **frameworks** — they own your transport, your brok
 
 ## Key modules
 
-Every module is independently importable and has its own `go.mod`. Here are the most important ones — see [AGENTS.md](AGENTS.md) for the full 58-module catalog.
+Every module is independently importable and has its own `go.mod`. Here are the most important ones — see [AGENTS.md](AGENTS.md) for the full 68-module catalog.
 
 | Module             | Purpose                                                               |
 | ------------------ | --------------------------------------------------------------------- |

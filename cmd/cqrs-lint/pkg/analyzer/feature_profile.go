@@ -61,6 +61,28 @@ const (
 	StoreNone     StoreKind = "none"
 )
 
+// IsSQL reports whether this store kind is SQL-backed (capable of
+// ORDER BY / WHERE pushdown). Used by adoption rules (F022) to gate
+// pushdown-relevant suggestions.
+func (s StoreKind) IsSQL() bool {
+	switch s {
+	case StoreSQLite, StorePostgres, StoreMySQL, StoreDuckDB, StoreCustom:
+		return true
+	default:
+		return false
+	}
+}
+
+// AllStoreKinds returns every defined StoreKind value, sorted alphabetically.
+// Used by the explain command to derive valid config values programmatically
+// instead of maintaining a hand-written copy.
+func AllStoreKinds() []StoreKind {
+	return []StoreKind{
+		StoreSQLite, StorePostgres, StoreMySQL, StorePebble,
+		StoreMemory, StoreTurso, StoreDuckDB, StoreCustom, StoreNone,
+	}
+}
+
 // CommandFlowKind classifies the command-dispatch pattern.
 type CommandFlowKind string
 
@@ -195,7 +217,7 @@ var PresetDefinitions = map[ConfigPreset]PresetDefinition{
 			Tracing: new(TracingOff),
 		},
 		Rules: RulesConfig{
-			Disable: []string{"F004", "F009", "F013", "F015", "F017"},
+			Disable: []string{"F004", "F009", "F013", "F017"},
 		},
 		MinSeverity: "warning",
 	},

@@ -1,9 +1,15 @@
-# irohengine/quic
+# irohengine/quic — Real QUIC Transport
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/quic/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/quic/v4)
 
 Real QUIC transport for the Irohengine CRDT replication layer.
 
 > **Requires CGo** and the Rust toolchain (via `iroh-go`). Linux-only.
 > For in-process testing without CGo, use `irohengine.InProcessNetwork`.
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/quic/v4
+```
 
 ## What This Is
 
@@ -126,3 +132,9 @@ locally and do NOT replicate. This matches the CALM theorem constraint.
 | `WithRelay()`        | Star-topology relay mode (forward ops to all peers).       |
 | `WithALPN(bytes)`    | Custom ALPN protocol. All nodes must match.                |
 | `WithBindAddr(addr)` | Override bind address.                                     |
+
+## Related Modules
+
+- [**irohengine**](../README.md) — The `Transport` interface and `Replicated` wrapper
+- [**irohengine/loopback**](../loopback/README.md) — TCP loopback transport (no CGo)
+- [**metaengine**](../../README.md) — The core planner (zero-dep, no transport)

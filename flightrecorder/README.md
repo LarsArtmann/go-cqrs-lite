@@ -111,6 +111,7 @@ go tool trace snapshot.trace
 - **Zero dependencies** — stdlib only (`runtime/trace`, `sync`, `time`, `context`, `io`, `os`)
 - **Once-semantics** — by default, only the first snapshot succeeds (prevents races when multiple goroutines detect a problem simultaneously). Call `Reset()` for multiple captures.
 - **Async capture** — the middleware snapshots in a goroutine to avoid blocking the request path
+
 ## Related Modules
 
 - [**middleware**](../middleware/README.md) — `CommandFlightRecorder`, `EventFlightRecorder`, `QueryFlightRecorder` middleware

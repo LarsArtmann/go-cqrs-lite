@@ -77,3 +77,9 @@ database engine. No application-level locking is needed.
 
 - `NewSQLiteStore(ctx, db)` — creates table, uses `?` placeholders
 - `NewPostgresStore(ctx, db)` — creates table, uses `$N` placeholders
+
+## Related Modules
+
+- [**idempotency**](../README.md) — `Store` interface, `MemoryStore`, `ErrDuplicate`
+- [**middleware**](../../middleware/README.md) — `CommandIdempotency`, `EventIdempotency`, `QueryIdempotency`
+- [**command**](../../command/README.md) — `Command.ID()` / `WithCommandID` provide the stable command identity

@@ -1,9 +1,15 @@
-# irohengine/loopback
+# irohengine/loopback — TCP Loopback Transport
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/loopback/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/loopback/v4)
 
 TCP-based transport for the Irohengine CRDT replication layer.
 
 > **No CGo required.** Pure Go standard library (`net` package).
 > The middle tier of the transport testing pyramid.
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/loopback/v4
+```
 
 ## What This Is
 
@@ -118,3 +124,9 @@ t.Close()    // closes all connections and the listener
 
 // Implements irohengine.Transport and irohengine.LatencyProvider.
 ```
+
+## Related Modules
+
+- [**irohengine**](../README.md) — The `Transport` interface and `Replicated` wrapper
+- [**irohengine/quic**](../quic/README.md) — Real QUIC transport (CGo, full NAT traversal)
+- [**metaengine**](../../README.md) — The core planner (zero-dep, no transport)

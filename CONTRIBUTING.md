@@ -308,8 +308,8 @@ go run main.go -update` to regenerate the golden in the same change.
 
 The metaengine soak tests verify memory bounding for high-volume event streams.
 
-| Variable | Effect |
-|----------|--------|
+| Variable          | Effect                                                                                                                                                                                                      |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `SOAK_SKIP_10M=1` | Skips `TestSoak_MemoryBounded_10M` (~5s/25s-race). Use in CI or when the full verify gate is already running heavy parallel tests. The 50K-event `TestSoak_MemoryBounded` always runs as the smoke variant. |
 
 The soak test uses a double `runtime.GC()` before measuring heap — this ensures

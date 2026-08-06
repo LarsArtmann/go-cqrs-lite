@@ -66,3 +66,9 @@ using both see no conflicts. The caller owns the `*sql.DB`; `Close` is a no-op.
 - `NewSQLiteStore[P](ctx, db)` — `?` placeholders, RFC3339 text timestamps
 - `NewPostgresStore[P](ctx, db)` — `$N` placeholders, native `TIMESTAMP WITH TIME ZONE`
 - `NewMySQLStore[P](ctx, db)` — `?` placeholders, `DATETIME(3)`, `ON DUPLICATE KEY UPDATE`
+
+## Related Modules
+
+- [**scheduling**](../README.md) — `TimerStore[P]` interface and `Scheduler`
+- [**storage**](../../storage/README.md) — Embedded migrations include a compatible `timers` table
+- [**command**](../../command/README.md) — Timer payloads are typically commands dispatched on fire

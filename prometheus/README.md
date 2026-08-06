@@ -61,14 +61,14 @@ registered on the meter provider are collected and exposed.
 
 ## API
 
-| Symbol                         | Description                                                        |
-| ------------------------------ | ------------------------------------------------------------------ |
-| `Setup(opts...)`               | Creates a `Provider` with a Prometheus-backed `MeterProvider`.     |
-| `WithRegistry(r)`             | Use a custom Prometheus registry (default: global default).        |
-| `WithViews(views...)`          | Apply OTel views (e.g., `cqrsotel.NewCQRSViews()`).                |
-| `Provider.Handler()`           | Returns the `http.Handler` for the `/metrics` endpoint.            |
-| `Provider.AsMeterProvider()`   | Returns the underlying OTel `MeterProvider` for `otel.Set*`.       |
-| `Provider.Shutdown(ctx)`       | Flushes and shuts down the provider.                               |
+| Symbol                       | Description                                                    |
+| ---------------------------- | -------------------------------------------------------------- |
+| `Setup(opts...)`             | Creates a `Provider` with a Prometheus-backed `MeterProvider`. |
+| `WithRegistry(r)`            | Use a custom Prometheus registry (default: global default).    |
+| `WithViews(views...)`        | Apply OTel views (e.g., `cqrsotel.NewCQRSViews()`).            |
+| `Provider.Handler()`         | Returns the `http.Handler` for the `/metrics` endpoint.        |
+| `Provider.AsMeterProvider()` | Returns the underlying OTel `MeterProvider` for `otel.Set*`.   |
+| `Provider.Shutdown(ctx)`     | Flushes and shuts down the provider.                           |
 
 ## Related Modules
 

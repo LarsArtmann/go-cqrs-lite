@@ -250,17 +250,8 @@ var featureKeys = []featureKey{
 	{
 		"store",
 		"string",
-		[]string{
-			"sqlite",
-			"postgres",
-			"mysql",
-			"pebble",
-			"memory",
-			"turso",
-			"duckdb",
-			"custom",
-			"none",
-		},
+		// Derived from analyzer.AllStoreKinds() in init() to prevent split-brain.
+		nil,
 		"Persistence backend the consumer wires up",
 	},
 	{
@@ -308,6 +299,23 @@ var featureKeys = []featureKey{
 		[]string{"true", "false"},
 		"Distributed event bus (Watermill-backed) is wired",
 	},
+}
+
+func init() {
+	// Derive store valid values from StoreKind constants to eliminate the
+	// split-brain risk of maintaining a hand-written copy alongside the
+	// StoreKind const block.
+	for i, fk := range featureKeys {
+		if fk.key == "store" {
+			kinds := analyzer.AllStoreKinds()
+			values := make([]string, len(kinds))
+			for j, k := range kinds {
+				values[j] = string(k)
+			}
+			featureKeys[i].validValues = values
+			break
+		}
+	}
 }
 
 func renderFeatures(b *strings.Builder) {

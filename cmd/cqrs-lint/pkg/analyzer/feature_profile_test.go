@@ -223,6 +223,7 @@ func TestPresetLibrary_DisablesAdoptionAndSecurityFalsePositives(t *testing.T) {
 	wantDisabled := []string{
 		"E003", "E016", // domain-package mixing
 		"F002", "F006", "F010", "F011", // adoption coaching (consumer's job)
+		"F015", "F022", // metaengine coaching (consumer's deployment choice)
 		"S002", "S003", // security middleware (consumer wires it)
 	}
 	for _, rule := range wantDisabled {
