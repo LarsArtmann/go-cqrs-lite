@@ -62,11 +62,11 @@ func BenchmarkPebbleStore_Save100(b *testing.B) {
 
 	b.ResetTimer()
 
-	for i := range b.N {
+	for range b.N {
 		ref := id.NewStreamRef("Bench", id.NewStreamID())
 		events := makeBenchEvents(b, 100, ref)
 
-		err := store.Save(ctx, ref, events, event.Version(i*100))
+		err := store.Save(ctx, ref, events, event.Version(0))
 		if err != nil {
 			b.Fatalf("Save: %v", err)
 		}
