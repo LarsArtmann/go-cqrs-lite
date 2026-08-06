@@ -1,8 +1,14 @@
 # turso/indexing — Auto-Smart Index Management
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/storage/turso/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing)
+
 Production-grade auto-smart indexing for Turso CQRS event-sourcing
 workloads. Detects full table scans, recommends indexes, and applies
 CQRS-optimized defaults in one call.
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/storage/turso/v4
+```
 
 ## Quick Start
 
