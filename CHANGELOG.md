@@ -683,6 +683,19 @@ ProjectionDecoder` field for typed event decoders.
 
 ### Fixed
 
+- **DuckDB/PG go.mod drift** — both `metaengine/duckdbengine/go.mod` and
+  `pgengine/go.mod` required `metaengine/v4 v4.0.0` while the actual version
+  is `v4.5.0`. Fixed to `v4.5.0`. Breaks `GOWORK=off` builds for consumers.
+- **Quic README encoding mismatch** — `quic/README.md` said "JSON" but the
+  code switched to CBOR. Fixed to "CBOR".
+- **CI YAML file-size gate alignment** — `.github/workflows/ci.yml` was missing
+  `*.pb.go` and `*.gen.go` exclusions that `flake.nix` already had. Added
+  matching exclusions to prevent false CI failures on generated files.
+- **Coverage drift** — updated `scripts/check-coverage.sh` EXPECTED map with
+  current numbers (metaengine 78.7%, query 80.5%, command 89.2%).
+- **Dedup baseline** — regenerated `.art-dupl-baseline.json` (69→65 clone groups
+  after extraction pass).
+
 - **`cqrs-lint init` SHOWSTOPPER** — the default preset generated
   `"exclude": []` (JSON array) but the `Exclude` config field is a `string`.
   Every new user's `.cqrs-lint.json` failed to load. Fixed: `"exclude": ""`.

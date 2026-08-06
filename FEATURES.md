@@ -292,6 +292,7 @@ developer never declares "I need a Map" or "I need a Counter."
 | Consumer DX helpers          | `NewSQLiteEngineFromDSN(dsn)`, `PlanFromSQLite(dsn, queries...)`, `Store.LogPlan(logger)`. Eliminates ~130 lines of boilerplate per integration                                                            | 🧪     |
 | Typed projection decoders    | `EventWithID[P]`, `Register[E]`, `RegisterString[E]`, `NewTypeDecoder(regs...)`, `NewWithDecoder(name, store, dec)` in `projectionadapter`                                                                 | 🧪     |
 | ReadCosts                    | `EngineProfile.ReadCosts` — per-read-pattern cost fields (point-lookup, scan, aggregation). Exposes the 4000× gap between DuckDB point lookups and aggregations                                            | 🧪     |
+| SerializableReadCosts        | `SerializableQuery.ReadCosts` — calibrated costs serialized into plan JSON. Enables plan diffing between deploys to show active cost values (ADR-0100)                                                     | 🧪     |
 | Store.Inspect/InspectJSON    | Collection introspection (key count, engine, ADT) extracted to `metaengine/inspect.go`                                                                                                                     | 🧪     |
 
 **Coverage:** 76.3% (verified `go test -cover ./...` 2026-08-02). 174 BDD specs + 150 cross-engine
@@ -307,11 +308,12 @@ VersionedStorage temporal queries, Fold sealed interface refactor, 5-engine
 cross-engine parity, Vector/Search/Spatial ADTs, pgengine + duckdbengine,
 replication model (ADR-0093), Universal ADT Phase 3 (ADR-0094), WatchTyped,
 boundary key validation, CalibrateEngine fix, ReadCosts (per-read-pattern
-costs), go-sse consumption (ADR-0097), DuckDB+PG calibration benchmarks,
+costs) + SerializableReadCosts in plan JSON (ADR-0100), go-sse consumption
+(ADR-0097), DuckDB+PG calibration benchmarks,
 benchmark correctness assertions.
 
-Remaining: Postgres GIN indexes, CalibrateEngine for external engines,
-serialize ReadCosts into SerializablePlan. See
+Remaining: Postgres GIN indexes, SerializableReadCosts in ExplainPlan output.
+See
 [TODO_LIST.md](TODO_LIST.md).
 
 ---
