@@ -65,7 +65,7 @@ func TestOnRecord_LegacyApplyStillWorks(t *testing.T) {
 	q := metaengine.Query[query, result](
 		"onrecord_legacy",
 		metaengine.On(evt{}, func(e evt) (string, result) {
-			return e.ID, result{ID: e.ID}
+			return e.ID, result(e)
 		}),
 	)
 
@@ -83,9 +83,9 @@ func TestOnRecord_LegacyApplyStillWorks(t *testing.T) {
 	}
 
 	rec := record.Record{
-		Type:    "evt",
+		Type:     "evt",
 		StreamID: record.NewStreamRef("User", "user-1"),
-		Version: 2,
+		Version:  2,
 	}
 	if err := store.ApplyRecord(ctx, rec, evt{ID: "record-1"}); err != nil {
 		t.Fatalf("ApplyRecord: %v", err)
@@ -114,9 +114,9 @@ func TestOnRecord_Count(t *testing.T) {
 
 	ctx := context.Background()
 	rec := record.Record{
-		Type:    "evt",
+		Type:     "evt",
 		StreamID: record.NewStreamRef("User", "u1"),
-		Version: 1,
+		Version:  1,
 	}
 	if err := store.ApplyRecord(ctx, rec, evt{Status: "open"}); err != nil {
 		t.Fatalf("ApplyRecord: %v", err)

@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	graphadapter "github.com/larsartmann/go-cqrs-lite/metaengine/graphadapter/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 func TestAdapter_Profile(t *testing.T) {

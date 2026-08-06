@@ -159,7 +159,7 @@ func makeSQLiteFactory(
 
 	*diskPath = dbDir
 
-	return func() (*stack.Bundle, error) {
+	return func() (*stack.Bundle, error) { //nolint:contextcheck // stack.New does not accept a context
 		opts := []sqlite.Option{
 			// Enable production optimizations (64 MB cache, mmap, temp in
 			// memory) so benchmarks reflect realistic deployment config,
@@ -225,7 +225,7 @@ func makePebbleFactory(
 }
 
 func makePostgresFactory(
-	_ context.Context, dsn string, tier stack.DurabilityTier, tierSet bool,
+	ctx context.Context, dsn string, tier stack.DurabilityTier, tierSet bool,
 ) (benchkit.Factory, string, func()) {
 	if dsn == "" {
 		fatalf(
@@ -233,7 +233,9 @@ func makePostgresFactory(
 		)
 	}
 
-	return func() (*stack.Bundle, error) {
+	_ = ctx // factory closure is invoked by benchkit.Run with a fresh context
+
+	return func() (*stack.Bundle, error) { //nolint:contextcheck // stack.New does not accept a context
 		opts := []postgres.Option{}
 		if tierSet {
 			opts = append(opts, postgres.WithDurability(tier))
@@ -243,20 +245,22 @@ func makePostgresFactory(
 	}, "", nil
 }
 
-func makeMySQLFactory(_ context.Context, dsn string) (benchkit.Factory, string, func()) {
+func makeMySQLFactory(ctx context.Context, dsn string) (benchkit.Factory, string, func()) {
 	if dsn == "" {
 		fatalf(
 			"mysql backend requires --dsn (e.g. user:password@tcp(localhost:3306)/bench?parseTime=true)",
 		)
 	}
 
-	return func() (*stack.Bundle, error) {
+	_ = ctx
+
+	return func() (*stack.Bundle, error) { //nolint:contextcheck // stack.New does not accept a context
 		return mysql.New(dsn)
 	}, "", nil
 }
 
 func makeTursoFactory(
-	_ context.Context,
+	ctx context.Context,
 	dir string, tier stack.DurabilityTier, tierSet bool,
 	diskPath *string, cleanup *func(),
 ) (benchkit.Factory, string, func()) {
@@ -269,7 +273,9 @@ func makeTursoFactory(
 	*diskPath = dbDir
 	dbPath := filepath.Join(dbDir, "bench.db")
 
-	return func() (*stack.Bundle, error) {
+	_ = ctx
+
+	return func() (*stack.Bundle, error) { //nolint:contextcheck // stack.New does not accept a context
 		opts := []turso.Option{}
 		if tierSet {
 			opts = append(opts, turso.WithDurability(tier))

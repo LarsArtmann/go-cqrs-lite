@@ -16,7 +16,7 @@ import (
 // (the legacy path), a minimal Record is synthesized — metadata fields are
 // zero-valued.
 type RecordAwareFold interface {
-	SetCurrentRecord(record.Record)
+	SetCurrentRecord(r record.Record)
 }
 
 // OnRecord creates a Record-aware fold. The handler receives both the decoded
@@ -58,7 +58,7 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 	}
 
 	recordType := handlerType.In(0)
-	if recordType != reflect.TypeOf(record.Record{}) {
+	if recordType != reflect.TypeFor[record.Record]() {
 		panic(fmt.Sprintf(
 			"metaengine.OnRecord(%s): first param must be record.Record, got %v",
 			eventType, recordType,
@@ -121,7 +121,7 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 
 	case numIn == 2 && numOut == 1:
 		outType := handlerType.Out(0)
-		if outType == reflect.TypeOf(Delta{}) {
+		if outType == reflect.TypeFor[Delta]() {
 			invoke := func(event any) Delta {
 				return callWithRecord(event)[0].Interface().(Delta)
 			}
@@ -133,7 +133,7 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			f.recordSetter = func(r record.Record) { recHolder.rec = r }
 			return f
 		}
-		if outType == reflect.TypeOf(Edge{}) {
+		if outType == reflect.TypeFor[Edge]() {
 			invoke := func(event any) Edge {
 				return callWithRecord(event)[0].Interface().(Edge)
 			}

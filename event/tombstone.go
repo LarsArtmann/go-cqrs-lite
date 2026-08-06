@@ -8,6 +8,10 @@ import (
 )
 
 // TombstoneStatus represents the soft-delete state of a stream.
+//
+// Deprecated: Tombstones violate event-stream immutability (ADR-0114).
+// Express deletion as a domain event (e.g. "user.deleted") and handle it in
+// your fold function instead. See docs/migration/tombstone-to-domain-events.md.
 type TombstoneStatus int
 
 const (
@@ -47,15 +51,21 @@ func (s TombstoneStatus) IsKnown() bool { return s != TombstoneUndetermined }
 // When present with value "true" on an event, that event's stream
 // is considered tombstoned. The tombstone status is determined by the
 // LAST event in the stream.
+//
+// Deprecated: Use domain events for deletion semantics (ADR-0114).
 const MetadataKeyTombstone MetadataKey = "tombstone"
 
 // MetadataKeyRebirth marks an event as undoing a tombstone.
+//
+// Deprecated: Use domain events for restore semantics (ADR-0114).
 const MetadataKeyRebirth MetadataKey = "rebirth"
 
 // TombstoneMark is the typed representation of a tombstone or rebirth mark
 // on an individual event (ADR-0031). It replaces the stringly-typed
 // Custom[MetadataKeyTombstone] = "true" pattern while keeping the Custom
 // map entries for v2 backward compatibility.
+//
+// Deprecated: Use domain events for deletion/restore (ADR-0114).
 type TombstoneMark struct {
 	// Status is TombstoneTombstoned for a tombstone event, or
 	// TombstoneActive for a rebirth event.
@@ -68,6 +78,11 @@ type TombstoneMark struct {
 // Returns Undetermined if the stream is empty or no tombstone/rebirth metadata is found.
 //
 // Rebirth takes precedence (newest event wins).
+//
+// Deprecated: Tombstones violate event-stream immutability (ADR-0114).
+// Inspect event types directly instead — e.g. check whether the last event
+// is a deletion event like "user.deleted". See
+// docs/migration/tombstone-to-domain-events.md for migration patterns.
 func DetectTombstone(events []Event) TombstoneStatus {
 	if len(events) == 0 {
 		return TombstoneUndetermined
@@ -98,6 +113,10 @@ func DetectTombstone(events []Event) TombstoneStatus {
 
 // MarkTombstone copies an event and sets the tombstone metadata key.
 // Returns a new event; the original is unmodified.
+//
+// Deprecated: Tombstones violate event-stream immutability (ADR-0114).
+// Emit a dedicated deletion event (e.g. "user.deleted") instead of
+// mutating metadata. See docs/migration/tombstone-to-domain-events.md.
 func MarkTombstone(evt Event) (*ImmutableEvent, error) {
 	return copyWithTombstoneMark(
 		evt,
@@ -109,6 +128,10 @@ func MarkTombstone(evt Event) (*ImmutableEvent, error) {
 
 // MarkRebirth copies an event and sets the rebirth metadata key.
 // Returns a new event; the original is unmodified.
+//
+// Deprecated: Tombstones violate event-stream immutability (ADR-0114).
+// Emit a dedicated restore event (e.g. "user.restored") instead of
+// mutating metadata. See docs/migration/tombstone-to-domain-events.md.
 func MarkRebirth(evt Event) (*ImmutableEvent, error) {
 	return copyWithTombstoneMark(
 		evt,

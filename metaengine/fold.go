@@ -49,11 +49,11 @@ type Fold interface {
 
 // insertFold: func(E) (K, V) → MapSet(collection, K, V).
 type insertFold struct {
-	eventType   string
-	sample      any
-	keyType     reflect.Type
-	valueType   reflect.Type
-	invoke      func(event any) (key, val any)
+	eventType    string
+	sample       any
+	keyType      reflect.Type
+	valueType    reflect.Type
+	invoke       func(event any) (key, val any)
 	recordSetter func(record.Record) // set by OnRecord; nil for plain On
 }
 
@@ -106,9 +106,9 @@ func (f *removeFold) Kind() FoldKind    { return FoldRemove }
 
 // countFold: func(E) Delta → CounterIncrement.
 type countFold struct {
-	eventType   string
-	sample      any
-	invoke      func(event any) Delta
+	eventType    string
+	sample       any
+	invoke       func(event any) Delta
 	recordSetter func(record.Record) // set by OnRecord; nil for plain On
 }
 
@@ -126,9 +126,9 @@ func (f *countFold) SetCurrentRecord(r record.Record) {
 
 // edgeFold: func(E) Edge → GraphAddEdge.
 type edgeFold struct {
-	eventType   string
-	sample      any
-	invoke      func(event any) Edge
+	eventType    string
+	sample       any
+	invoke       func(event any) Edge
 	recordSetter func(record.Record) // set by OnRecord; nil for plain On
 }
 
@@ -139,10 +139,10 @@ func (f *edgeFold) Kind() FoldKind    { return FoldEdge }
 
 // setFold: func(E) K → SetAdd.
 type setFold struct {
-	eventType   string
-	sample      any
-	keyType     reflect.Type
-	invoke      func(event any) any
+	eventType    string
+	sample       any
+	keyType      reflect.Type
+	invoke       func(event any) any
 	recordSetter func(record.Record) // set by OnRecord; nil for plain On
 }
 
