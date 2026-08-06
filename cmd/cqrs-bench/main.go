@@ -145,13 +145,13 @@ func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
 	soak := flags.Soak.Duration()
 
 	config := benchkit.Config{
-		Profile:      profile,
-		PayloadSize:  flags.PayloadSize,
-		Codec:        codec,
-		Warmup:       flags.Warmup,
-		Repeat:       flags.Repeat,
-		Recovery:     flags.Recovery,
-		ReplayOnly:   flags.Replay,
+		Profile:        profile,
+		PayloadSize:    flags.PayloadSize,
+		Codec:          codec,
+		Warmup:         flags.Warmup,
+		Repeat:         flags.Repeat,
+		Recovery:       flags.Recovery,
+		ReplayOnly:     flags.Replay,
 		SkipBatchWrite: flags.SkipBatchWrite,
 		SkipRawSink:    flags.SkipRawSink,
 		SkipJourney:    flags.SkipJourney,
@@ -226,10 +226,10 @@ func compareHandler(ctx context.Context, _ *AppConfig, flags *CompareFlags) erro
 	}
 
 	config := benchkit.Config{
-		Profile:      profile,
-		PayloadSize:  flags.PayloadSize,
-		Codec:        codec,
-		Repeat:       flags.Repeat,
+		Profile:        profile,
+		PayloadSize:    flags.PayloadSize,
+		Codec:          codec,
+		Repeat:         flags.Repeat,
 		SkipBatchWrite: flags.SkipBatchWrite,
 		SkipRawSink:    flags.SkipRawSink,
 		SkipJourney:    flags.SkipJourney,
@@ -274,16 +274,16 @@ func sweepHandler(ctx context.Context, _ *AppConfig, flags *SweepFlags) error {
 	}
 
 	config := benchkit.Config{
-		Profile:      profile,
-		PayloadSize:  flags.PayloadSize,
-		Codec:        codec,
+		Profile:        profile,
+		PayloadSize:    flags.PayloadSize,
+		Codec:          codec,
 		SkipBatchWrite: flags.SkipBatchWrite,
 		SkipRawSink:    flags.SkipRawSink,
 		SkipJourney:    flags.SkipJourney,
 		SkipQuery:      flags.SkipQuery,
 		SkipSnapshot:   flags.SkipSnapshot,
-		Backend:      flags.Backend,
-		DiskPath:     diskPath,
+		Backend:        flags.Backend,
+		DiskPath:       diskPath,
 	}
 
 	runCtx, cancel := context.WithTimeout(ctx, 30*time.Minute)

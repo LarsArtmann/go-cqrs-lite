@@ -41,6 +41,7 @@ use (
 	./metaengine/pebbleengine
 	./metaengine/pgengine
 	./metaengine/projectionadapter
+	./metaengine/sqliteengine
 	./middleware
 	./otel
 	./projection

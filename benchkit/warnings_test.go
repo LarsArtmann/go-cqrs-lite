@@ -190,6 +190,7 @@ func (m *minimalEventStore) LoadToTimestamp(_ context.Context, _ id.StreamRef, _
 func newMinimalEventStore() event.Store {
 	return &minimalEventStore{}
 }
+
 // TestStrictMode_PassesWhenNothingSkipped verifies strict mode succeeds when
 // all phases run (using SkipMetaEngine to avoid the nil-MetaEngine skip, plus
 // all other skip flags false).

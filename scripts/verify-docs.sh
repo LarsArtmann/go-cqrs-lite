@@ -61,7 +61,7 @@ fi
 # ── ADR index completeness ──────────────────────────────────────────────────
 echo "=== ADR index completeness ==="
 adr_files=$(find docs/adr -maxdepth 1 -name '00*.md' ! -name 'README.md' | wc -l)
-adr_indexed=$(grep -cE '^\| \[00[0-9]+\]' docs/README.md || true)
+adr_indexed=$(grep -cE '^\| \[00[0-9]+[a-z]?\]' docs/README.md || true)
 if [ "$adr_files" -ne "$adr_indexed" ]; then
   echo "FAIL: $adr_files ADR files exist but only $adr_indexed are indexed in docs/README.md"
   errors=$((errors + 1))
