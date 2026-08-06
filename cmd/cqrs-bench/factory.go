@@ -20,6 +20,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/turso/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 )
 
 // compareWithDiskPaths runs the benchmark against each backend, setting

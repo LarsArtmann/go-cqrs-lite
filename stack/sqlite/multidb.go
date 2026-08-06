@@ -15,9 +15,11 @@ import (
 // openSecondaryDB opens and configures a secondary SQLite database (for events,
 // queries, or views when multi-DB mode is enabled via WithEventDB etc.).
 func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {
-	dsn = storage.EnsureSQLiteDSNBusyTimeout(dsn, sqliteBusyTimeoutMs)
+	if cfg.driverName == "sqlite" {
+		dsn = storage.EnsureSQLiteDSNBusyTimeout(dsn, sqliteBusyTimeoutMs)
+	}
 
-	sqlDB, err := sql.Open("sqlite", dsn)
+	sqlDB, err := sql.Open(cfg.driverName, dsn)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "sqlite.open",
 			fmt.Sprintf("open %q", dsn))

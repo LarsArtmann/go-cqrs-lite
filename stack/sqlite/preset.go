@@ -24,6 +24,7 @@ type config struct {
 	sqlopt.DSNConfig
 	sqlopt.PragmaConfig
 
+	driverName     string
 	durability     stack.DurabilityTier
 	cacheSizeBytes int64
 	busyTimeout    time.Duration
@@ -43,6 +44,7 @@ func defaultConfig() config {
 			QueryDSN:    "",
 			ViewDSN:     "",
 		},
+		driverName:     "sqlite",
 		durability:     stack.DurabilityNormal,
 		cacheSizeBytes: 0,
 		busyTimeout:    0,
@@ -59,6 +61,20 @@ func defaultConfig() config {
 //	b, _ := sqlite.New(dsn, sqlite.WithCacheSize(128*1024*1024)) // 128 MB
 func WithCacheSize(bytes int64) Option {
 	return func(c *config) { c.cacheSizeBytes = bytes }
+}
+
+// WithDriverName overrides the database/sql driver name used to open the
+// connection. The default is "sqlite" (modernc.org/sqlite — pure-Go, no CGo).
+// Set to "sqlite3" to use the CGo-based mattn/go-sqlite3 driver, which is
+// 3-5x faster but requires CGO_ENABLED=1 and a C compiler.
+//
+// The mattn driver must be imported separately (blank import) by the calling
+// module — stack/sqlite does not depend on it. This option only controls which
+// registered driver name is passed to sql.Open.
+//
+//	b, _ := sqlite.New(dsn, sqlite.WithDriverName("sqlite3"))
+func WithDriverName(name string) Option {
+	return func(c *config) { c.driverName = name }
 }
 
 // WithBusyTimeout sets the SQLite busy_timeout duration. When a connection
@@ -170,7 +186,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 			stack.DurabilityRelaxed,
 		},
 		OLAP:        false,
-		CGoRequired: false,
+		CGoRequired: cfg.driverName != "sqlite",
 		Embedded:    true,
 		SyncEnabled: false,
 	}))
@@ -210,8 +226,12 @@ func openBackend(
 ) (*sql.DB, *storage.SQLBackend, error) {
 	return sqlopt.OpenPrimaryBackend( //nolint:wrapcheck // OpenPrimaryBackend wraps all errors
 		func() (*sql.DB, error) {
-			return sqlopt.OpenDBOrErr("sqlite",
-				storage.EnsureSQLiteDSNBusyTimeout(dsn, resolveBusyTimeoutMs(cfg)),
+			actualDSN := dsn
+			if cfg.driverName == "sqlite" {
+				actualDSN = storage.EnsureSQLiteDSNBusyTimeout(dsn, resolveBusyTimeoutMs(cfg))
+			}
+
+			return sqlopt.OpenDBOrErr(cfg.driverName, actualDSN,
 				"sqlite_preset.open_primary")
 		},
 		func(ctx context.Context, sqlDB *sql.DB) error {
