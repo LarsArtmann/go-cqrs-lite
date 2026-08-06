@@ -223,8 +223,15 @@ func (s *Store) ExplainPlan() string {
 
 		if s.plan != nil {
 			for _, qa := range s.plan.Queries {
-				if qa.QueryName == name && qa.Cost.Volume > 0 {
-					fmt.Fprintf(&b, " est=%.3fms", qa.Cost.EstimatedLatencyMs)
+				if qa.QueryName == name {
+					if qa.Cost.Volume > 0 {
+						fmt.Fprintf(&b, " est=%.3fms", qa.Cost.EstimatedLatencyMs)
+					}
+
+					if rc := q.QueryEngine().Profile().ReadCosts; rc.NsPerPointLookup > 0 ||
+						rc.NsPerFilteredScan > 0 || rc.NsPerAggregate > 0 || rc.NsPerScan > 0 {
+						fmt.Fprintf(&b, " read=%.0fns", q.QueryEngine().Profile().NsForRead(qa.ReadPattern))
+					}
 				}
 			}
 		}

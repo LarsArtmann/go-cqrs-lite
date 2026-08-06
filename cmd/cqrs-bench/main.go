@@ -81,7 +81,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	runCmd, err := cmdguard.NewCommand("run", &RunFlags{},
+	runCmd, err := cmdguard.NewCommand[AppConfig, *RunFlags]("run", &RunFlags{},
 		runHandler,
 		cmdguard.WithShort("Run a benchmark against a single backend"),
 	)
@@ -90,7 +90,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	compareCmd, err := cmdguard.NewCommand("compare", &CompareFlags{},
+	compareCmd, err := cmdguard.NewCommand[AppConfig, *CompareFlags]("compare", &CompareFlags{},
 		compareHandler,
 		cmdguard.WithShort("Compare benchmarks across multiple backends"),
 	)
@@ -99,7 +99,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	sweepCmd, err := cmdguard.NewCommand("sweep", &SweepFlags{},
+	sweepCmd, err := cmdguard.NewCommand[AppConfig, *SweepFlags]("sweep", &SweepFlags{},
 		sweepHandler,
 		cmdguard.WithShort("Sweep a parameter across benchmark runs"),
 	)

@@ -358,6 +358,12 @@ catalog/var ErrEmptyChannelID
 catalog/var ErrEmptyDomainID
 catalog/var ErrEmptyMessageID
 catalog/var ErrEmptyServiceID
+cmd/cqrs-bench/struct AppConfig
+cmd/cqrs-bench/struct BenchFlags
+cmd/cqrs-bench/struct CompareFlags
+cmd/cqrs-bench/struct RunFlags
+cmd/cqrs-bench/struct SweepFlags
+cmd/cqrs-gen/struct AppConfig
 cmd/cqrs-gen/struct Entry
 cmd/cqrs-lint/func ComputeHealthScore
 cmd/cqrs-lint/func ComputeHealthScoreWithCap
@@ -370,6 +376,7 @@ cmd/cqrs-lint/struct JSONCLoader
 cmd/cqrs-lint/struct ScorecardModule
 cmd/cqrs-lint/struct ScorecardResult
 cmd/cqrs-lint/struct ScorecardSummary
+cmd/doc-check/struct AppConfig
 codec/const COSEAlgAES256GCM
 codec/const COSEAlgChaCha20Poly1305
 codec/const COSEAlgEd25519

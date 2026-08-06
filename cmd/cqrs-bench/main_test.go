@@ -59,8 +59,8 @@ func TestCLI_Help(t *testing.T) {
 	}
 
 	output := string(out)
-	if !strings.Contains(output, "Usage:") {
-		t.Error("help output missing 'Usage:'")
+	if !strings.Contains(strings.ToLower(output), "usage") {
+		t.Error("help output missing 'usage' section")
 	}
 
 	if !strings.Contains(output, "run") {

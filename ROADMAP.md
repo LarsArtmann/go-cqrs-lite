@@ -4,11 +4,12 @@
 
 ---
 
-**metaengine v4.4.0 tagged** (2026-08-04) — 69 modules in `go.work`.
-Significant post-v4.4.0 work is unreleased (system/ Pareto P0/P1 fixes, loopback
-transport, consumer DX helpers, CalibrateEngine export, dedup passes, layer
-enforcement, SSE race fix, KeyHolderAI feedback, scorecard SARIF). See
-CHANGELOG `[Unreleased]`.
+**metaengine v4.5.0 tagged** (2026-08-06) — 69 modules in `go.work`.
+SerializableReadCosts in plan JSON (ADR-0100), consumer DX helpers,
+6 file splits under CI limit, F015 store-aware fix, go-output daemon break
+fixed. Module releases: cmd/cqrs-lint/v4.4.0, metaengine/v4.5.0, system/v4.0.0,
+stack/mysql/v4.0.0, loopback/v4.0.0, quic/v4.0.0.
+See CHANGELOG `[Unreleased]`.
 
 ---
 
