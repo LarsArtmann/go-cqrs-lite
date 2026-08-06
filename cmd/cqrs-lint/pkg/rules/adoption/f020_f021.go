@@ -62,12 +62,12 @@ func NewF021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			// Detect multiple OnTyped/On calls — each fold is a write.
-			// If there are 5+ fold declarations without a Batch wrapper,
+			// If there are 3+ fold declarations without a Batch wrapper,
 			// warn about write amplification.
 			foldCount := countCalls(ctx, "metaengine", "OnTyped") +
 				countCalls(ctx, "metaengine", "On")
 
-			if foldCount < 5 {
+			if foldCount < 3 {
 				return nil, nil
 			}
 
@@ -90,7 +90,7 @@ func NewF021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				"Consider batching related folds into a single handler, "+
 					"or using WithLatencyBudget to let the planner coalesce writes. "+
 					"Each fold maps to a separate engine operation (MapSet, CounterIncrement, etc.); "+
-					"5+ folds per query suggest the projection model may be over-decomposed.",
+					"3+ folds per query suggest the projection model may be over-decomposed.",
 				pos, finding.ConfidenceLow,
 			), nil
 		},

@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/cockroachdb/pebble v1.1.5
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.0.0
 	github.com/onsi/gomega v1.42.1
 )
 

@@ -201,3 +201,27 @@ func f(e any) (any, any) { return nil, nil }
 	findings := ruletest.RunDetector(t, adoption.NewF021Detector(ctx))
 	ruletest.AssertRule(t, findings, "F021", 0)
 }
+
+func TestF021_ThreeFoldsFiresAtNewThreshold(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+
+func _() {
+	_ = metaengine.Query[any, any]("q",
+		metaengine.OnTyped("e1", nil, f),
+		metaengine.OnTyped("e2", nil, f),
+		metaengine.OnTyped("e3", nil, f),
+	)
+}
+
+func f(e any) (any, any) { return nil, nil }
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF021Detector(ctx))
+	ruletest.AssertRule(t, findings, "F021", 1)
+}
