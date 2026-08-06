@@ -346,6 +346,14 @@ linters:
           - forbidigo
           - exhaustruct
           - wrapcheck
+      # Tombstone APIs (event.MarkTombstone, event.TombstoneStatus, etc.) are
+      # deprecated in favor of domain events (ADR-0114). Migration is in progress
+      # across storage/, listing/, watermill/, stack/sqlite/ — exclude SA1019
+      # for these modules until the migration is complete.
+      - path: (storage|listing|watermill|stack/sqlite)/.*\.go$
+        linters:
+          - staticcheck
+        text: "SA1019: (event\\.MarkTombstone|event\\.TombstoneStatus|event\\.TombstoneMark|event\\.DetectTombstone|event\\.MarkRebirth|event\\.MetadataKeyTombstone|event\\.MetadataKeyRebirth) is deprecated"
       - path: metaengine/irohengine/(quic/)?demo/
         linters:
           - forbidigo
