@@ -1020,7 +1020,7 @@ func adoptionRules() []RuleInfo {
 			Category:    "adoption",
 			Severity:    "info",
 			Confidence:  "low",
-			Description: "Complex query patterns but no metaengine cost-based planner",
+			Description: "3+ query registrations but no metaengine cost-based planner — SQL pushdown and layout optimization unavailable",
 			AutoFix:     false,
 		},
 		{

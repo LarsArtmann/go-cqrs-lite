@@ -46,7 +46,8 @@ func main() {
 	}
 }
 
-func printUsage() {	fmt.Fprintln(os.Stderr, `cqrs-bench — go-cqrs-lite benchmarking tool
+func printUsage() {
+	fmt.Fprintln(os.Stderr, `cqrs-bench — go-cqrs-lite benchmarking tool
 
 Usage:
   cqrs-bench run      --backend <name> [--dsn <dsn>] --profile <name> [flags]

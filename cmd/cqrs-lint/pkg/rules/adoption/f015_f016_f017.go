@@ -9,31 +9,18 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
 
-// F015 detects projects with many query types that do not use the metaengine
-// module. The metaengine provides a cost-based storage planner for complex
-// query patterns. Low priority — metaengine is early stage.
+// F015 detects projects with multiple query types that do not use the
+// metaengine module. The metaengine provides a cost-based storage planner
+// with universal ADT support, SQL pushdown (FilterOnField/SortOnField),
+// and layout planning. It works with all backends — including SQLite via
+// PlanFromSQLite / NewSQLiteEngineFromDSN.
 //
 //nolint:ireturn // factory returns public interface
 func NewF015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F015-no-metaengine",
 		func(_ context.Context) ([]finding.Finding, error) {
-			// Only relevant for server projects — CLI tools with a few queries
-			// don't benefit from cost-based storage planning.
-			if !ctx.FeatureProfile.HasServer {
-				return nil, nil
-			}
-
-			// Metaengine is overkill for embedded/local stores — the query
-			// planner shines for distributed/complex query patterns, not
-			// single-file SQLite, in-process memory, or local LSM.
-			if ctx.FeatureProfile.Store == analyzer.StoreSQLite ||
-				ctx.FeatureProfile.Store == analyzer.StoreMemory ||
-				ctx.FeatureProfile.Store == analyzer.StorePebble {
-				return nil, nil
-			}
-
-			if importsPath(ctx, "go-cqrs-lite/metaengine") {
+			if usesMetaengine(ctx) {
 				return nil, nil
 			}
 
@@ -42,7 +29,7 @@ func NewF015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			queryCount += countCalls(ctx, "query", "RegisterTyped")
 			queryCount += countCalls(ctx, "query", "Register")
 
-			if queryCount < 5 {
+			if queryCount < 3 {
 				return nil, nil
 			}
 
@@ -56,10 +43,11 @@ func NewF015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				"F015",
 				"Project has "+itoa(queryCount)+
 					" query registrations but metaengine is not used — "+
-					"complex query patterns may benefit from cost-based planning",
-				"Import the metaengine module for a cost-based storage planner "+
-					"with FilterOnField/SortOnField pushdown, layout planning, "+
-					"and streaming reads. Early stage — evaluate for fit.",
+					"cost-based planning, SQL pushdown, and layout optimization are unavailable",
+				"Import the metaengine module and use metaengine.Query[Q,R]() to declare "+
+					"queries with FilterOnField/SortOnField pushdown. For SQLite: "+
+					"metaengine.PlanFromSQLite(dsn, queries...) is a one-call setup. "+
+					"The planner auto-selects the cheapest engine per query (Memory vs SQLite vs DuckDB).",
 				pos, finding.ConfidenceLow,
 			), nil
 		},

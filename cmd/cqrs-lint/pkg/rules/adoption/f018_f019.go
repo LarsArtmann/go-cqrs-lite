@@ -18,7 +18,7 @@ func NewF018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F018-metaengine-filteron-pushdown",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !importsPath(ctx, "go-cqrs-lite/metaengine") {
+			if !usesMetaengine(ctx) {
 				return nil, nil
 			}
 
@@ -56,7 +56,7 @@ func NewF019Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F019-metaengine-missing-volume-hint",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !importsPath(ctx, "go-cqrs-lite/metaengine") {
+			if !usesMetaengine(ctx) {
 				return nil, nil
 			}
 

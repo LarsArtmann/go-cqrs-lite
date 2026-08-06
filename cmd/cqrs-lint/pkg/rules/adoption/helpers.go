@@ -35,6 +35,15 @@ func importsPath(ctx *analyzer.AnalysisContext, suffix string) bool {
 	return false
 }
 
+// usesMetaengine reports whether the project imports the metaengine core
+// package or any of its sub-packages (engine backends, projection adapter,
+// ADT test harness). Uses strings.Contains so "go-cqrs-lite/metaengine"
+// matches both the root and sub-packages like
+// "go-cqrs-lite/metaengine/pebbleengine".
+func usesMetaengine(ctx *analyzer.AnalysisContext) bool {
+	return importsPath(ctx, "go-cqrs-lite/metaengine")
+}
+
 // projectHasCall reports whether any non-test file calls pkgName.funcName.
 func projectHasCall(ctx *analyzer.AnalysisContext, pkgName, funcName string) bool {
 	return projectHasCallAny(ctx, pkgName, funcName)

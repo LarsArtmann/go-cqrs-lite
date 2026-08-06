@@ -19,11 +19,16 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
+	"github.com/spf13/cobra"
 )
 
 const repoImportPrefix = "github.com/larsartmann/go-cqrs-lite/"
@@ -35,8 +40,36 @@ type ref struct {
 	line   int
 }
 
+type AppConfig struct {
+	cmdguard.Config
+}
+
 func main() {
-	files := os.Args[1:]
+	cli, err := cmdguard.NewCLI(
+		"doc-check",
+		"Verify Go import paths and qualified symbols in documentation files",
+		AppConfig{},
+		cmdguard.WithCLILong(
+			"doc-check scans markdown files for Go code blocks, extracts import paths and "+
+				"qualified references (e.g. storage.NewSQLiteViewStore), and verifies they exist in the codebase.\n\n"+
+				"Defaults to SKILL.md, AGENTS.md, and .agents/skills/*/references/*.md if no files are given.",
+		),
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating CLI: %v\n", err)
+		os.Exit(1)
+	}
+
+	rootCmd := cli.RootCommand()
+	rootCmd.Use = "doc-check [files...]"
+	rootCmd.RunE = func(_ *cobra.Command, args []string) error {
+		return run(args)
+	}
+
+	cli.ExecuteAndExit(context.Background())
+}
+
+func run(files []string) error {
 	if len(files) == 0 {
 		// Auto-discover from the repo root so the tool works regardless of CWD
 		// (cmd/doc-check is its own module, so it's often run from inside cmd/doc-check/).
@@ -64,11 +97,7 @@ func main() {
 	for _, file := range files {
 		refs, imports, err := scanMarkdown(file)
 		if err != nil {
-			log.Fatalf(
-				"error reading %s: %v",
-				file,
-				err,
-			)
+			return fmt.Errorf("error reading %s: %w", file, err)
 		}
 
 		allRefs = append(allRefs, refs...)
@@ -94,7 +123,7 @@ func main() {
 	}
 
 	if broken > 0 {
-		log.Fatalf("%d broken reference(s) found.", broken)
+		return fmt.Errorf("%d broken reference(s) found", broken)
 	}
 
 	if len(allRefs) == 0 {
@@ -103,13 +132,15 @@ func main() {
 				"Documents were NOT verified. Add a verification code block or pass files with Go samples.",
 		)
 
-		return
+		return nil
 	}
 
 	log.Printf( //nolint:lll
 		"✓ All %d references valid across %d package(s).",
 		len(allRefs), len(exportIndex),
 	)
+
+	return nil
 }
 
 // findRepoRoot walks up from the working directory to the nearest directory

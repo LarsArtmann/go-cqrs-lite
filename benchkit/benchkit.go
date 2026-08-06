@@ -185,7 +185,7 @@ type Config struct {
 	// long-running benchmarks (stress, large profiles) to get real-time
 	// visibility into which phase is running and how long it has taken.
 	// Typically os.Stderr. Zero ProgressInterval defaults to 5s.
-	ProgressWriter   io.Writer      `json:"-"`
+	ProgressWriter   io.Writer `json:"-"`
 	ProgressInterval time.Duration
 }
 

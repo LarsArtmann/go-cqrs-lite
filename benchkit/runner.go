@@ -97,7 +97,7 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 		r.config.Backend,
 		r.countActivePhases(),
 	)
-	r.progress.start()
+	r.progress.startHeartbeat()
 	defer r.progress.stop()
 
 	r.startCPU = cpuTime()

@@ -71,8 +71,8 @@ func registerBenchFlags(fs *flag.FlagSet) benchFlags {
 		),
 		skipQuery:    fs.Bool("skip-query", false, "Skip typed query dispatch phase"),
 		skipSnapshot: fs.Bool("skip-snapshot", false, "Skip snapshot/cache hit-rate phase"),
-		skipMixed:  fs.Bool("skip-mixed", false, "Skip concurrent read-during-write phase"),
-		progress:  fs.Duration("progress", 5*time.Second,
+		skipMixed:    fs.Bool("skip-mixed", false, "Skip concurrent read-during-write phase"),
+		progress: fs.Duration("progress", 5*time.Second,
 			"Progress update interval to stderr (0 disables)"),
 		durability: fs.String(
 			"durability",

@@ -18,7 +18,7 @@ func NewF020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F020-metaengine-sorton-pushdown",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !importsPath(ctx, "go-cqrs-lite/metaengine") {
+			if !usesMetaengine(ctx) {
 				return nil, nil
 			}
 
@@ -57,7 +57,7 @@ func NewF021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F021-metaengine-write-amplification",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !importsPath(ctx, "go-cqrs-lite/metaengine") {
+			if !usesMetaengine(ctx) {
 				return nil, nil
 			}
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -24,6 +25,7 @@ import (
 // compareWithDiskPaths runs the benchmark against each backend, setting
 // per-backend DiskPath so disk metrics are populated in comparison tables.
 // This mirrors benchkit.Compare but injects the correct DiskPath per backend.
+// Backends are iterated in sorted order for deterministic progress output.
 func compareWithDiskPaths(
 	ctx context.Context,
 	config benchkit.Config,
@@ -32,10 +34,22 @@ func compareWithDiskPaths(
 ) map[string]*benchkit.Result {
 	results := make(map[string]*benchkit.Result, len(factories))
 
-	for name, factory := range factories {
+	names := make([]string, 0, len(factories))
+	for name := range factories {
+		names = append(names, name)
+	}
+
+	sort.Strings(names)
+
+	for i, name := range names {
+		factory := factories[name]
 		cfg := config
 		cfg.Backend = name
 		cfg.DiskPath = diskPaths[name]
+
+		if cfg.ProgressWriter != nil {
+			fmt.Fprintf(cfg.ProgressWriter, "\n[%d/%d] backend: %s\n", i+1, len(names), name)
+		}
 
 		result, err := benchkit.Run(ctx, cfg, factory)
 		if err != nil {
