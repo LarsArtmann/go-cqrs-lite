@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
@@ -58,7 +59,7 @@ func TestMakeFactory_MemoryWithDurability(t *testing.T) {
 	// This test verifies valid input doesn't crash and returns a working
 	// factory closure. Memory doesn't apply durability (it's in-memory), so
 	// we only verify the bundle is created successfully.
-	factory, _, cleanup := makeFactory("memory", "", "", "strict")
+	factory, _, cleanup := makeFactory(context.Background(), "memory", "", "", "strict")
 	if cleanup != nil {
 		defer cleanup()
 	}
@@ -78,7 +79,7 @@ func TestMakeFactory_MemoryWithDurability(t *testing.T) {
 func TestMakeFactory_TursoBackend(t *testing.T) {
 	t.Parallel()
 
-	factory, _, cleanup := makeFactory("turso", "", "", "")
+	factory, _, cleanup := makeFactory(context.Background(), "turso", "", "", "")
 	if cleanup == nil {
 		t.Fatal("turso factory should have cleanup for temp dir")
 	}

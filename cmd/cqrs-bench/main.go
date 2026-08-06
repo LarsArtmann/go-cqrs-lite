@@ -137,7 +137,7 @@ func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
 
 	profile, codec := loadProfileAndCodec(flags.Profile, flags.Codec)
 
-	factory, diskPath, cleanup := makeFactory(flags.Backend, flags.DSN, flags.Dir, flags.Durability)
+	factory, diskPath, cleanup := makeFactory(ctx, flags.Backend, flags.DSN, flags.Dir, flags.Durability)
 	if cleanup != nil {
 		defer cleanup()
 	}
@@ -216,7 +216,7 @@ func compareHandler(ctx context.Context, _ *AppConfig, flags *CompareFlags) erro
 	for _, name := range names {
 		name = strings.TrimSpace(name)
 
-		factory, diskPath, cleanup := makeFactory(name, "", "", flags.Durability)
+		factory, diskPath, cleanup := makeFactory(ctx, name, "", "", flags.Durability)
 		factories[name] = factory
 		diskPaths[name] = diskPath
 
@@ -268,7 +268,7 @@ func sweepHandler(ctx context.Context, _ *AppConfig, flags *SweepFlags) error {
 		fatalf("provide at least 2 values to sweep, got %d", len(values))
 	}
 
-	factory, diskPath, cleanup := makeFactory(flags.Backend, flags.DSN, flags.Dir, flags.Durability)
+	factory, diskPath, cleanup := makeFactory(ctx, flags.Backend, flags.DSN, flags.Dir, flags.Durability)
 	if cleanup != nil {
 		defer cleanup()
 	}

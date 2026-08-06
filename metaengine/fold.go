@@ -263,6 +263,9 @@ func Remove[V any]() removeSignal {
 //
 // Use OnTyped when the event type string must differ from the Go type name
 // (e.g. binding to a CQRS event.Type() string like "user.created").
+//
+// For folds that need Record context (StreamID, Version, metadata), see
+// OnRecord — it passes record.Record as the first handler parameter.
 func On[E any](sample E, handler any) Fold {
 	return onFold(EventTypeName(sample), sample, handler)
 }
