@@ -31,10 +31,10 @@ Replace the fake 7-layer system with an honest **seven-tier model** (0–6):
 
 | Tier | Name               | Rule                                 | Modules |
 | ---- | ------------------ | ------------------------------------ | ------- |
-| 0    | Primitives         | No internal deps (or same-tier only) | 8       |
+| 0    | Primitives         | No `go-cqrs-lite` deps              | 7       |
 | 1    | Core Domain        | Depends on Tier 0                    | 5       |
 | 2    | Domain Utilities   | Depends on Tier 0–1                  | 5       |
-| 3    | Aggregation        | Depends on Tier 0–2                  | 5       |
+| 3    | Aggregation        | Depends on Tier 0–2                  | 6       |
 | 4    | Infrastructure     | Depends on Tier 0–3                  | 23      |
 | 5    | Composition        | Depends on Tier 0–4                  | 9       |
 | 6    | Tooling & Examples | Depends on all                       | 13      |
@@ -54,8 +54,9 @@ Tier assignment uses two inputs:
    (infrastructure). `catalog/` has zero deps but is Tier 6 (tooling).
    `idempotency/` has zero deps but is Tier 2 (domain utility).
 
-Same-tier dependencies are allowed (e.g. `kv/` → `codec/`, both Tier 0;
-`metaengine/` → `dedup/`, both Tier 0) as long as there is no cycle.
+Same-tier dependencies are allowed (e.g. `kv/` → `codec/`, both Tier 0) as
+long as there is no cycle. Cross-tier dependencies point downward (higher
+tier → lower tier); e.g. `metaengine/` (Tier 3) → `dedup/` (Tier 0).
 
 ### Tier Diagram
 
@@ -140,13 +141,14 @@ flowchart TB
   end
 
   %% ── Tier 3 ──
-  subgraph T3["Tier 3 — Aggregation (5)"]
+  subgraph T3["Tier 3 — Aggregation (6)"]
     direction LR
     decider["decider/"]
     graph["graph/"]
     scenario["scenario/"]
     projectionhost["projectionhost/"]
     listing["listing/"]
+    metaengine["metaengine/"]
   end
 
   %% ── Tier 2 ──
@@ -170,7 +172,7 @@ flowchart TB
   end
 
   %% ── Tier 0 ──
-  subgraph T0["Tier 0 — Primitives (8)"]
+  subgraph T0["Tier 0 — Primitives (7)"]
     direction LR
     id["id/"]
     codec["codec/ ❗44/68 depend on this"]
@@ -179,12 +181,10 @@ flowchart TB
     dispatcher["dispatcher/"]
     retry["retry/"]
     flightrec["flightrecorder/"]
-    metaengine["metaengine/"]
   end
 
   %% ── Same-tier deps (Tier 0) ──
   kv --> codec
-  metaengine --> dedup
 
   %% ── Representative cross-tier deps ──
   %% Tier 1 → Tier 0
@@ -202,12 +202,13 @@ flowchart TB
   projection --> event
   deriver --> command
 
-  %% Tier 3 → Tier 2/1
+  %% Tier 3 → Tier 2/1/0
   decider --> event
   decider --> snapshot
   graph --> projection
   projectionhost --> projection
   projectionhost --> schema
+  metaengine --> dedup
 
   %% Tier 4 → Tier 3/2/1
   storage --> event
@@ -249,7 +250,8 @@ flowchart TB
 >   `metadata/` (ADR-0031).
 > - **⚡ = zero-dep modules** tiered by conceptual role, not dependency structure:
 >   `otel/` (Tier 4), `idempotency/` (Tier 2), `catalog/` (Tier 6)
-> - **Same-tier deps are allowed** — `kv/` → `codec/`, `metaengine/` → `dedup/`
+> - **Same-tier deps are allowed** — e.g. `kv/` → `codec/` (both Tier 0).
+>   `metaengine/` → `dedup/` is now a cross-tier dep (Tier 3 → Tier 0).
 
 See [`FOUR-TIER-MODEL.md`](../architecture-understanding/FOUR-TIER-MODEL.md) for
 the complete module-to-tier mapping with every module listed.
