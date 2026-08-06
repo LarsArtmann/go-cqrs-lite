@@ -299,11 +299,9 @@ external dependencies must be added to the list or lint fails.
 
 ## Notable Tier-0 Exceptions
 
-- **`metaengine/` is Tier 0 by design** (ADR-0062). The core planner has zero
-  internal deps (stdlib + `database/sql` + `dedup/` only). The bridge to the
-  CQRS event-sourcing world lives in `metaengine/projectionadapter/` (Tier 4).
-  Conceptually it aggregates events into projections, but tiering is
-  dependency-based.
+- **`metaengine/` was Tier 0** by the original ADR-0062 (zero internal deps).
+  **Superseded:** metaengine now depends on the Record type (ADR-0111) and is
+  reclassified as Tier 3 (Aggregation). See the addendum below.
 - **`idempotency/` is Tier 2 conceptually** despite zero internal deps. It
   re-exports `github.com/larsartmann/go-idempotency` — the types (Store,
   MemoryStore, ErrDuplicate) are domain utilities, not primitives.

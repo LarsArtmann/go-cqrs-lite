@@ -16,8 +16,9 @@ is a production-grade LSM: O(1) point reads via the memtable + bloom filter,
 clearly faster than SQLite on point lookups.
 
 Because Pebble is a heavyweight dependency, the engine lives in a **separate
-module** (`metaengine/pebbleengine`) so the zero-dependency core stays clean
-(ADR-0062).
+module** (`metaengine/pebbleengine`). Originally justified by the zero-dependency
+boundary (ADR-0062); now justified by **deployment isolation** — consumers who
+don't need Pebble don't pull its transitive deps (ADR-0062 addendum).
 
 ## Decision
 

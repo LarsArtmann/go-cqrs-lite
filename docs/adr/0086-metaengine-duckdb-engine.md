@@ -3,7 +3,7 @@
 **Date:** 2026-08-01
 **Status:** Accepted
 **Supersedes:** N/A
-**Related:** [ADR-0085](0085-metaengine-new-adts.md) (new ADTs), [ADR-0062](0062-metaengine-dependency-boundary.md) (dependency boundary), [ADR-0084](0084-metaengine-layered-architecture.md) (layered architecture)
+**Related:** [ADR-0085](0085-metaengine-new-adts.md) (new ADTs), [ADR-0062](0062-metaengine-dependency-boundary.md) (deployment isolation — see addendum), [ADR-0084](0084-metaengine-layered-architecture.md) (layered architecture)
 
 ## Context
 

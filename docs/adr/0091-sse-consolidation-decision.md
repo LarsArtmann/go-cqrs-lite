@@ -80,7 +80,10 @@ not be merged.**
 - Adding a third SSE use case (e.g., projection-level SSE for a specific
   read-model store) should follow the pattern: implement it in the module
   that owns the data source, not in a shared "SSE utility" package.
-- The `metaengine` module's zero-dependency boundary is preserved.
+- The `metaengine` module's zero-dependency boundary was a factor at the time;
+  note that this boundary has since been superseded (ADR-0062 addendum,
+  2026-08-06). The SSE coexistence decision itself is unaffected — two SSE
+  implementations in different modules remains the correct pattern.
 - Consumers who want both read-model push and event push import both
   `metaengine` and `transport/http` — no conflict, no duplication.
 
