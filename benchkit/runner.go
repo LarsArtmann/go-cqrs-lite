@@ -2,6 +2,7 @@ package benchkit
 
 import (
 	"context"
+	"fmt"
 	"runtime"
 	"time"
 
@@ -150,6 +151,7 @@ func (r *runner) runPhases(runCtx, parentCtx context.Context) error {
 
 	for _, s := range steps {
 		if s.skip {
+			r.recordSkip(s.msg, "skipped by config flag")
 			continue
 		}
 
@@ -174,7 +176,25 @@ func (r *runner) runPhases(runCtx, parentCtx context.Context) error {
 		}
 	}
 
+	if r.config.Strict && len(r.result.SkippedPhases) > 0 {
+		return fmt.Errorf("%w: %d phase(s) skipped: %v",
+			ErrStrictSkip, len(r.result.SkippedPhases), r.result.SkippedPhases)
+	}
+
 	return nil
+}
+
+// recordSkip marks a phase as skipped with a human-readable reason.
+// Both SkippedPhases and Warnings are populated.
+func (r *runner) recordSkip(phaseName, reason string) {
+	r.result.SkippedPhases = append(r.result.SkippedPhases, phaseName)
+	r.result.Warnings = append(r.result.Warnings,
+		fmt.Sprintf("%s skipped: %s", phaseName, reason))
+}
+
+// warn records an advisory warning without marking a phase as fully skipped.
+func (r *runner) warn(msg string) {
+	r.result.Warnings = append(r.result.Warnings, msg)
 }
 
 type phaseStep struct {

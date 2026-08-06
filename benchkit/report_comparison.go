@@ -61,6 +61,32 @@ func PrintComparison(w io.Writer, results map[string]*Result) {
 		}
 	}
 
+	hasWarnings := false
+
+	for _, name := range names {
+		if r := results[name]; r != nil && len(r.Warnings) > 0 {
+			hasWarnings = true
+
+			break
+		}
+	}
+
+	if hasWarnings {
+		fmt.Fprintln(w)
+		fmt.Fprintln(w, "Phase Coverage / Warnings:")
+
+		for _, name := range names {
+			r := results[name]
+			if r == nil || len(r.Warnings) == 0 {
+				continue
+			}
+
+			for _, msg := range r.Warnings {
+				fmt.Fprintf(w, "  ⚠ %s: %s\n", name, msg)
+			}
+		}
+	}
+
 	fmt.Fprintln(w)
 }
 
@@ -175,5 +201,16 @@ func PrintMarkdown(w io.Writer, results map[string]*Result) {
 			formatBytes(uint64(r.Disk.DatabaseBytes)),
 			integrity,
 		)
+	}
+
+	for _, name := range names {
+		r := results[name]
+		if r == nil || len(r.Warnings) == 0 {
+			continue
+		}
+
+		for _, msg := range r.Warnings {
+			fmt.Fprintf(w, "\n> ⚠ **%s**: %s", name, msg)
+		}
 	}
 }

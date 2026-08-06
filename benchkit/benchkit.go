@@ -172,6 +172,14 @@ type Config struct {
 	// if neither is available.
 	ReplayOnly bool
 
+	// Strict causes the benchmark to fail when any phase is skipped, whether
+	// by a config skip flag or because the bundle lacked a required component
+	// (e.g. no MetaEngine, no SnapshotStore). Without Strict, skips are
+	// silently allowed and recorded in Result.Warnings/SkippedPhases. With
+	// Strict, the run returns ErrSkippedPhases so CI gates catch missing
+	// coverage immediately.
+	Strict bool
+
 	// Repeat runs the benchmark N times and reports the median result with
 	// min/max throughput spread. Zero or 1 means single run (default).
 	// Useful because single-run throughput has ~20-25% variance on the

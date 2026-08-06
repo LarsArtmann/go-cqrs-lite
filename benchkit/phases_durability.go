@@ -24,6 +24,8 @@ func (r *runner) durabilityPhase() {
 
 	if r.config.DiskPath != "" {
 		r.result.Disk.DatabaseBytes = measureDirSize(r.config.DiskPath)
+	} else {
+		r.warn("durability phase: disk size not measured (no DiskSizer and no DiskPath set)")
 	}
 }
 
@@ -70,6 +72,7 @@ func (r *runner) recoveryPhase(parent context.Context) error {
 	}
 
 	if recovered == nil || recovered.EventSource == nil {
+		r.warn("recovery phase: skipped (reopened bundle has no EventSource)")
 		if recovered != nil {
 			//cqrs-lint:ignore(C015,C023) cleanup before error return
 			_ = recovered.Close()

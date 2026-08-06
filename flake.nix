@@ -133,6 +133,8 @@
               "plantuml"
               "serialization"
               "table"
+              "testhelpers"
+              "testhelpers/graphtest"
               "tree"
             ];
           };
@@ -552,7 +554,7 @@
 
             src = mkCqrsLintSource pkgs;
 
-            vendorHash = "sha256-NSQsmWvPls42AzFmyusWB/COVVaHLxB52afIX+tZ/+A=";
+            vendorHash = lib.fakeHash;
             proxyVendor = true;
 
             subPackages = [ "." ];

@@ -40,4 +40,11 @@ var (
 		"benchkit.warmup_failed",
 		"warmup phase failed",
 	)
+
+	// ErrStrictSkip is returned when Config.Strict is true and one or more
+	// phases were skipped (either by config flags or missing bundle components).
+	ErrStrictSkip = errorfamily.NewRejection(
+		"benchkit.strict_skip",
+		"strict mode: one or more phases were skipped",
+	)
 )

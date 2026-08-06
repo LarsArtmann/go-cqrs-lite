@@ -29,11 +29,13 @@ func (r *runner) mixedWorkloadPhase(ctx context.Context) error {
 	}
 
 	if r.bundle.EventSink == nil || r.bundle.EventSource == nil {
+		r.recordSkip("mixed workload phase", "bundle missing EventSink or EventSource")
 		return nil
 	}
 
 	// Need existing streams to read from (written by writePhase).
 	if len(r.refs) == 0 {
+		r.warn("mixed workload phase: skipped (no streams written by prior phases)")
 		return nil
 	}
 

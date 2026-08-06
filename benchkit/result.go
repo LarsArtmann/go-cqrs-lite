@@ -220,6 +220,16 @@ type Result struct {
 	MetaEngineSQLiteScanLatency      LatencyStats `json:"metaEngineSQLiteScanLatency"`
 	MetaEngineSQLitePointReadLatency LatencyStats `json:"metaEngineSQLitePointReadLatency"`
 
+	// SkippedPhases lists phase names that were skipped, either because a Config
+	// skip flag was set (SkipReads, SkipMetaEngine, etc.) or because the bundle
+	// lacked a required component (e.g. no SnapshotStore). Every skip is also
+	// recorded as a Warning with a human-readable reason.
+	SkippedPhases []string `json:"skippedPhases,omitempty"`
+
+	// Warnings holds advisory messages about phases that were skipped, partially
+	// run, or otherwise degraded. Never empty when SkippedPhases is non-empty.
+	Warnings []string `json:"warnings,omitempty"`
+
 	// Error captures a non-fatal error that prevented a phase from completing
 	// (e.g. backend doesn't support SeekableJournal). The run still succeeds;
 	// the affected metrics are zero-valued.

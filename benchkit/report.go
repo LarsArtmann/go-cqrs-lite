@@ -199,6 +199,20 @@ func PrintReport(w io.Writer, r *Result) {
 	if r.IntegrityErrors > 0 {
 		fmt.Fprintf(w, "\n⚠ CORRUPTION: %d integrity errors detected!\n", r.IntegrityErrors)
 	}
+
+	if len(r.SkippedPhases) > 0 {
+		fmt.Fprintln(w, "\nSkipped Phases:")
+		for _, phase := range r.SkippedPhases {
+			fmt.Fprintf(w, "  ⚠ %s\n", phase)
+		}
+	}
+
+	if len(r.Warnings) > 0 {
+		fmt.Fprintln(w, "\nWarnings:")
+		for _, msg := range r.Warnings {
+			fmt.Fprintf(w, "  ⚠ %s\n", msg)
+		}
+	}
 }
 
 func printMetaEngineSection(w io.Writer, r *Result) {

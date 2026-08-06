@@ -23,6 +23,8 @@ func (r *runner) projectionPhase(ctx context.Context) error {
 	}
 
 	if r.bundle.SeekableJournal == nil || r.bundle.CheckpointStore == nil {
+		r.recordSkip("projection phase",
+			"bundle missing SeekableJournal or CheckpointStore")
 		return nil
 	}
 
