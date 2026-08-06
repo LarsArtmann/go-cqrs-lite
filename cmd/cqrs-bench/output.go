@@ -10,20 +10,7 @@ import (
 
 func writeResult(format, output string, config benchkit.Config, result *benchkit.Result) {
 	withOutput(output, func(w *os.File) {
-		switch format {
-		case "json":
-			if err := benchkit.WriteJSON(w, result); err != nil {
-				fatalf("write JSON: %v", err)
-			}
-		case "benchstat":
-			benchkit.WriteBenchstat(w, result)
-		case "manifest":
-			if err := benchkit.WriteManifest(w, config, result); err != nil {
-				fatalf("write manifest: %v", err)
-			}
-		default:
-			benchkit.PrintReport(w, result)
-		}
+		renderRunResult(w, resolveFormat(format), config, result)
 	})
 }
 
@@ -32,42 +19,19 @@ func writeComparison(
 	results map[string]*benchkit.Result,
 ) {
 	withOutput(output, func(w *os.File) {
-		switch format {
-		case "json":
-			if err := benchkit.WriteComparisonJSON(w, results); err != nil {
-				fatalf("write JSON: %v", err)
-			}
-		case "markdown":
-			benchkit.PrintMarkdown(w, results)
-		default:
-			benchkit.PrintComparison(w, results)
-		}
+		renderComparison(w, resolveFormat(format), results)
 	})
 }
 
 func writeSweep(format, output string, results []benchkit.SweepResult) {
 	withOutput(output, func(w *os.File) {
-		switch format {
-		case "json":
-			if err := benchkit.WriteSweepJSON(w, results); err != nil {
-				fatalf("write JSON: %v", err)
-			}
-		default:
-			benchkit.PrintSweep(w, results)
-		}
+		renderSweep(w, resolveFormat(format), results)
 	})
 }
 
 func writeSoakResult(format, output string, result *benchkit.SoakResult) {
 	withOutput(output, func(w *os.File) {
-		switch format {
-		case "json":
-			if err := benchkit.WriteSoakJSON(w, result); err != nil {
-				fatalf("write JSON: %v", err)
-			}
-		default:
-			benchkit.PrintSoakReport(w, result)
-		}
+		renderSoakResult(w, resolveFormat(format), result)
 	})
 }
 

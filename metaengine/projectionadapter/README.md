@@ -75,7 +75,7 @@ queries that listen for that event type.
   that bridges them.
 - **Event types auto-derived**: `New()` calls `store.EventTypes()` to discover
   which event types the planned queries listen to. No manual registration needed.
-- **ADR-0062**: See [`docs/adr/0062-projection-adapter.md`](../../docs/adr/0062-projection-adapter.md)
+- **ADR-0062**: See [`docs/adr/0062-metaengine-dependency-boundary.md`](../../docs/adr/0062-metaengine-dependency-boundary.md)
   for the design rationale.
 
 ## Related Modules

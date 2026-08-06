@@ -76,7 +76,9 @@ func (p *progressReporter) beat() {
 	fmt.Fprintf(p.w, "  %s | %d/%d %s | %s elapsed\n", p.backend, num, p.total, phase, elapsed)
 }
 
-// beginPhase records the current phase and prints a start line.
+// beginPhase records the current phase and starts the timer.
+// The completion line is printed by endPhase — emitting both "started" and
+// "done" doubles the progress noise (2 lines per phase) without adding value.
 func (p *progressReporter) beginPhase(num int, phase string) {
 	if p == nil {
 		return
@@ -87,10 +89,6 @@ func (p *progressReporter) beginPhase(num int, phase string) {
 	p.phase = phase
 	p.start = time.Now()
 	p.mu.Unlock()
-
-	if p.w != nil {
-		fmt.Fprintf(p.w, "  %s | %d/%d %s | started\n", p.backend, num, p.total, phase)
-	}
 }
 
 // endPhase prints a completion line for the phase that just finished.
