@@ -77,3 +77,10 @@ queries that listen for that event type.
   which event types the planned queries listen to. No manual registration needed.
 - **ADR-0062**: See [`docs/adr/0062-projection-adapter.md`](../../docs/adr/0062-projection-adapter.md)
   for the design rationale.
+
+## Related Modules
+
+- [**metaengine**](../README.md) — The Store being wrapped
+- [**projection**](../../projection/README.md) — The `Projection` interface implemented
+- [**projectionhost**](../../projectionhost/README.md) — The managed host that runs projections
+- [**event**](../../event/README.md) — Event types consumed by the decoder
