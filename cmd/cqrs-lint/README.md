@@ -251,6 +251,7 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 | A030 | incomplete-snapshot-config                  | Error    | WithSnapshotStrategy without WithSnapshotStore — ErrIncompleteSnapshotConfig        |
 | A032 | string-id-instead-of-branded                | Warning  | Struct field named *ID with type string/int — use id.Of[T] branded ID               |
 | A033 | branded-id-string-roundtrip                 | Warning  | id.Parse[T](<x.String()>) — pointless branded-ID roundtrip, discards typed value    |
+| A034 | metaengine-execute-untyped                  | Warning  | metaengine.Execute returns any — use ExecuteTyped[Q,R] for compile-time type safety |
 
 ## Boilerplate Rules
 
@@ -376,6 +377,7 @@ Adoption rules (F-series) are advisory: they suggest modules and patterns that i
 | F023 | manual-filter-no-pushdown         | Info     | Manual in-memory filtering (for-range + if + append) with a SQL store but no metaengine                              |
 | F024 | manual-pagination-no-pushdown     | Info     | Manual pagination (slice[offset:offset+limit]) with a SQL store but no metaengine                                    |
 | F025 | manual-count-no-counter-adt       | Info     | Manual count/aggregation (for-range + count++/sum +=) with a SQL store but no metaengine — full collection scanned   |
+| F026 | no-metaengine-prefetch            | Info     | metaengine.NewReader used but WithPrefetch never called — every Scan/Get hits the underlying store individually       |
 
 ## CLI
 
