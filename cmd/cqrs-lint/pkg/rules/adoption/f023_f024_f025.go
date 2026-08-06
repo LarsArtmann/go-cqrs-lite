@@ -128,7 +128,7 @@ func NewF025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"metaengine.On(Event{}, func(e Event) metaengine.Delta{ "+
 					"return metaengine.Delta{e.Status: +1} })) and read via "+
 					"metaengine.ExecuteTyped[Q, map[string]int64](ctx, store, input).",
-				pos, finding.ConfidenceLow,
+				pos, finding.ConfidenceMedium,
 			), nil
 		},
 	)

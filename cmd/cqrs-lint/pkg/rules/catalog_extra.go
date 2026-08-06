@@ -1109,7 +1109,7 @@ func adoptionRules() []RuleInfo {
 			Name:        "manual-count-no-counter-adt",
 			Category:    "adoption",
 			Severity:    "info",
-			Confidence:  "low",
+			Confidence:  "medium",
 			Description: "Manual count/aggregation (for-range + count++/sum +=) with a SQL store but no metaengine — full collection scanned for every count",
 			AutoFix:     false,
 		},

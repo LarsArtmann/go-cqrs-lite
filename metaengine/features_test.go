@@ -162,6 +162,7 @@ func _skipped_sqlite_0(t *testing.T) {
 }
 
 func TestExplain(t *testing.T) {
+	t.Skip("requires SQLite EXPLAIN — see sqliteengine module")
 	t.Parallel()
 
 	db, _ := sql.Open("sqlite", ":memory:")

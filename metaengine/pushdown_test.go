@@ -24,13 +24,7 @@ var _ = Describe("PushdownScan", func() {
 
 	BeforeEach(func() {
 		ctx = context.Background()
-		var err error
-		db, err = sql.Open("sqlite", ":memory:")
-		Expect(err).NotTo(HaveOccurred())
-
-		eng, err := metaengine.NewMemoryEngine(), nil
-		Expect(err).NotTo(HaveOccurred())
-
+		eng, db = newSQLiteEngine()
 		engClose = func() {
 			_ = eng.Close()
 			_ = db.Close()

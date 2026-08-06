@@ -27,10 +27,7 @@ var _ = Describe("Regression: LogBackend restart safety", func() {
 		ctx := context.Background()
 
 		// Phase 1: append 3 ordered values.
-		db1, err := sql.Open("sqlite", dbPath)
-		Expect(err).NotTo(HaveOccurred())
-		eng1, err := metaengine.NewMemoryEngine(), nil
-		Expect(err).NotTo(HaveOccurred())
+		eng1, db1 := newSQLiteEngineForPath(dbPath)
 		lb1 := eng1.(metaengine.LogBackend)
 		for _, v := range []string{"one", "two", "three"} {
 			Expect(lb1.LogAppend(ctx, "audit", v)).To(Succeed())
@@ -39,11 +36,8 @@ var _ = Describe("Regression: LogBackend restart safety", func() {
 		Expect(db1.Close()).To(Succeed())
 
 		// Phase 2: reopen, append a 4th, and tail — all 4 must survive in order.
-		db2, err := sql.Open("sqlite", dbPath)
-		Expect(err).NotTo(HaveOccurred())
+		eng2, db2 := newSQLiteEngineForPath(dbPath)
 		DeferCleanup(func() { _ = db2.Close() })
-		eng2, err := metaengine.NewMemoryEngine(), nil
-		Expect(err).NotTo(HaveOccurred())
 		lb2 := eng2.(metaengine.LogBackend)
 		Expect(lb2.LogAppend(ctx, "audit", "four")).To(Succeed())
 
@@ -100,10 +94,7 @@ var _ = Describe("Regression: GraphBackend restart safety", func() {
 		ctx := context.Background()
 
 		// Phase 1: build a small graph user→[t1, t2].
-		db1, err := sql.Open("sqlite", dbPath)
-		Expect(err).NotTo(HaveOccurred())
-		eng1, err := metaengine.NewMemoryEngine(), nil
-		Expect(err).NotTo(HaveOccurred())
+		eng1, db1 := newSQLiteEngineForPath(dbPath)
 		gb1 := eng1.(metaengine.GraphBackend)
 		for _, to := range []string{"t1", "t2"} {
 			Expect(
@@ -114,11 +105,8 @@ var _ = Describe("Regression: GraphBackend restart safety", func() {
 		Expect(db1.Close()).To(Succeed())
 
 		// Phase 2: reopen, add one more edge, and verify all three neighbors.
-		db2, err := sql.Open("sqlite", dbPath)
-		Expect(err).NotTo(HaveOccurred())
+		eng2, db2 := newSQLiteEngineForPath(dbPath)
 		DeferCleanup(func() { _ = db2.Close() })
-		eng2, err := metaengine.NewMemoryEngine(), nil
-		Expect(err).NotTo(HaveOccurred())
 		gb2 := eng2.(metaengine.GraphBackend)
 		Expect(
 			gb2.GraphAddEdge(ctx, "assign", metaengine.Edge{From: "alice", To: "t3"}),

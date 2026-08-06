@@ -65,6 +65,7 @@ func TestErrNotFound_ExecuteTyped(t *testing.T) {
 // --- P0-4: ErrLayoutConflict ---
 
 func TestErrLayoutConflict(t *testing.T) {
+	t.Skip("requires SQLite LayoutPlanner — see sqliteengine module")
 	t.Parallel()
 
 	db, _ := sql.Open("sqlite", ":memory:")
@@ -271,6 +272,7 @@ func TestSchemaEnforcement_DetectsTypeMismatch(t *testing.T) {
 // --- P1-7: Transaction API (real behavior test) ---
 
 func TestTransaction_CommitRollback(t *testing.T) {
+	t.Skip("requires SQLite Transactional — see sqliteengine module")
 	t.Parallel()
 
 	db, _ := sql.Open("sqlite", ":memory:")

@@ -22,7 +22,7 @@ func NewF026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F026-no-metaengine-prefetch",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !usesMetaengine(ctx) {
+			if !usesMetaengine(ctx) && !ctx.FeatureProfile.HasMetaengine {
 				return nil, nil
 			}
 
@@ -74,7 +74,7 @@ func firstNewReaderPos(ctx *analyzer.AnalysisContext) (token.Position, bool) {
 				return true
 			}
 
-			sel, ok := call.Fun.(*ast.SelectorExpr)
+			sel, ok := analyzer.SelectorFromExpr(call.Fun)
 			if !ok {
 				return true
 			}

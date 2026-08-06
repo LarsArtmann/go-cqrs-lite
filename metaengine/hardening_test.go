@@ -72,10 +72,7 @@ var _ = Describe("SQLite engine hardening", func() {
 			ctx := context.Background()
 
 			// Phase 1: persist 3 values, then close.
-			db1, err := sql.Open("sqlite", dbPath)
-			Expect(err).NotTo(HaveOccurred())
-			eng1, err := metaengine.NewMemoryEngine(), nil
-			Expect(err).NotTo(HaveOccurred())
+			eng1, db1 := newSQLiteEngineForPath(dbPath)
 			mb1 := eng1.(metaengine.MultimapBackend)
 			for _, v := range []string{"a", "b", "c"} {
 				Expect(mb1.MultiAdd(ctx, "restart-mm", "k", v)).To(Succeed())
@@ -87,11 +84,8 @@ var _ = Describe("SQLite engine hardening", func() {
 			// a zeroed in-memory seq counter would reuse seq 0,1 and collide on
 			// the (collection,key,seq) primary key. The sync.Once MAX(seq) seed
 			// must keep the sequence monotonic across process restarts.
-			db2, err := sql.Open("sqlite", dbPath)
-			Expect(err).NotTo(HaveOccurred())
+			eng2, db2 := newSQLiteEngineForPath(dbPath)
 			DeferCleanup(func() { _ = db2.Close() })
-			eng2, err := metaengine.NewMemoryEngine(), nil
-			Expect(err).NotTo(HaveOccurred())
 			mb2 := eng2.(metaengine.MultimapBackend)
 			for _, v := range []string{"d", "e"} {
 				Expect(mb2.MultiAdd(ctx, "restart-mm", "k", v)).To(Succeed())
@@ -105,13 +99,11 @@ var _ = Describe("SQLite engine hardening", func() {
 
 	Describe("Cross-engine reification", func() {
 		It("reifies a SQLite map[string]any into a typed struct result", func() {
-			db, err := sql.Open("sqlite", "file::memory:?cache=shared")
-			Expect(err).NotTo(HaveOccurred())
-			db.SetMaxOpenConns(1)
-			DeferCleanup(func() { _ = db.Close() })
-
-			eng, err := metaengine.NewMemoryEngine(), nil
-			Expect(err).NotTo(HaveOccurred())
+			eng, db := newSQLiteEngine()
+			DeferCleanup(func() {
+				_ = eng.Close()
+				_ = db.Close()
+			})
 
 			store, err := metaengine.Plan([]metaengine.Engine{eng}, findTaskQuery())
 			Expect(err).NotTo(HaveOccurred())
