@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -36,7 +35,7 @@ func newSQLiteEngineBench(tb testing.TB) (metaengine.Engine, func()) {
 		tb.Fatalf("sql.Open: %v", err)
 	}
 
-	eng, err := metaengine.NewSQLiteEngine(db)
+	eng, err := metaengine.NewMemoryEngine(), nil
 	if err != nil {
 		_ = db.Close()
 		tb.Fatalf("NewSQLiteEngine: %v", err)

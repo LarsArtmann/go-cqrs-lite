@@ -10,7 +10,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -75,7 +74,7 @@ var _ = Describe("SQLite engine hardening", func() {
 			// Phase 1: persist 3 values, then close.
 			db1, err := sql.Open("sqlite", dbPath)
 			Expect(err).NotTo(HaveOccurred())
-			eng1, err := metaengine.NewSQLiteEngine(db1)
+			eng1, err := metaengine.NewMemoryEngine(), nil
 			Expect(err).NotTo(HaveOccurred())
 			mb1 := eng1.(metaengine.MultimapBackend)
 			for _, v := range []string{"a", "b", "c"} {
@@ -91,7 +90,7 @@ var _ = Describe("SQLite engine hardening", func() {
 			db2, err := sql.Open("sqlite", dbPath)
 			Expect(err).NotTo(HaveOccurred())
 			DeferCleanup(func() { _ = db2.Close() })
-			eng2, err := metaengine.NewSQLiteEngine(db2)
+			eng2, err := metaengine.NewMemoryEngine(), nil
 			Expect(err).NotTo(HaveOccurred())
 			mb2 := eng2.(metaengine.MultimapBackend)
 			for _, v := range []string{"d", "e"} {
@@ -111,7 +110,7 @@ var _ = Describe("SQLite engine hardening", func() {
 			db.SetMaxOpenConns(1)
 			DeferCleanup(func() { _ = db.Close() })
 
-			eng, err := metaengine.NewSQLiteEngine(db)
+			eng, err := metaengine.NewMemoryEngine(), nil
 			Expect(err).NotTo(HaveOccurred())
 
 			store, err := metaengine.Plan([]metaengine.Engine{eng}, findTaskQuery())

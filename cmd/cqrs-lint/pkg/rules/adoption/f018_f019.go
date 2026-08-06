@@ -22,13 +22,24 @@ func NewF018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			if projectHasCall(ctx, "metaengine", "FilterOnField") {
-				return nil, nil
-			}
-
 			pos, ok := firstCallPos(ctx, "metaengine", "FilterOn")
 			if !ok {
 				return nil, nil
+			}
+
+			suggestion := "Use metaengine.FilterOnField for declarative filters that enable " +
+				"WHERE-clause pushdown (O(logN) indexed lookup instead of O(N) scan). " +
+				"FilterOnField accepts a column name and comparison operator, " +
+				"allowing the SQLite/Postgres engine to use json_extract() indexes."
+
+			if projectHasCall(ctx, "metaengine", "FilterOnField") {
+				return singleInfoFinding(
+					ctx,
+					"F018",
+					"mixed metaengine usage: FilterOnField (pushdown) and FilterOn (closure) "+
+						"— the FilterOn call still forces in-memory filtering for that query",
+					suggestion, pos, finding.ConfidenceLow,
+				), nil
 			}
 
 			return singleInfoFinding(
@@ -36,11 +47,7 @@ func NewF018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				"F018",
 				"metaengine.FilterOn uses closure-based filtering which prevents "+
 					"SQL pushdown — queries scan all rows and filter in Go memory",
-				"Use metaengine.FilterOnField for declarative filters that enable "+
-					"WHERE-clause pushdown (O(logN) indexed lookup instead of O(N) scan). "+
-					"FilterOnField accepts a column name and comparison operator, "+
-					"allowing the SQLite/Postgres engine to use json_extract() indexes.",
-				pos, finding.ConfidenceMedium,
+				suggestion, pos, finding.ConfidenceMedium,
 			), nil
 		},
 	)

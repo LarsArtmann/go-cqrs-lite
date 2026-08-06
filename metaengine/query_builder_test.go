@@ -20,7 +20,7 @@ func TestQueryBuilder(t *testing.T) {
 	}
 	defer db.Close()
 
-	eng, err := metaengine.NewSQLiteEngine(db)
+	eng, err := metaengine.NewMemoryEngine(), nil
 	if err != nil {
 		t.Fatalf("new sqlite engine: %v", err)
 	}

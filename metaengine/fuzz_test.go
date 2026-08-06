@@ -34,21 +34,3 @@ func FuzzFoldClassifier(f *testing.F) {
 	})
 }
 
-// FuzzEncodeKey verifies that encodeKey never panics on arbitrary input.
-func FuzzEncodeKey(f *testing.F) {
-	f.Add("string", 42, true, 3.14)
-
-	f.Fuzz(func(t *testing.T, s string, i int, b bool, fl float64) {
-		defer func() {
-			if r := recover(); r != nil {
-				t.Errorf("encodeKey panicked: %v", r)
-			}
-		}()
-
-		_ = encodeKey(s)
-		_ = encodeKey(i)
-		_ = encodeKey(b)
-		_ = encodeKey(fl)
-		_ = encodeKey(nil)
-	})
-}

@@ -10,8 +10,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
-// ─── Test types ───
-
 type dslInput struct{}
 
 type dslFindByID struct {
@@ -24,41 +22,19 @@ type dslItem struct {
 	Count int
 }
 
-// ─── NewSQLiteEngineFromDSN ───
-
-func TestNewSQLiteEngineFromDSN_InMemory(t *testing.T) {
+func TestNewMemoryEngine_Works(t *testing.T) {
 	t.Parallel()
 
-	eng, db, err := metaengine.NewSQLiteEngineFromDSN(":memory:")
-	if err != nil {
-		t.Fatalf("NewSQLiteEngineFromDSN: %v", err)
-	}
-
+	eng := metaengine.NewMemoryEngine()
 	defer eng.Close()
-	defer db.Close()
 
-	// Verify the engine works — just checking it doesn't panic on Profile().
 	p := eng.Profile()
 	if p.Name == "" {
 		t.Fatal("engine Profile().Name is empty")
 	}
 }
 
-func TestNewSQLiteEngineFromDSN_InvalidDSN(t *testing.T) {
-	t.Parallel()
-
-	// An invalid DSN should still open (sql.Open is lazy) but might fail on
-	// PRAGMA execution. We just verify no panic and error is returned or not.
-	eng, db, err := metaengine.NewSQLiteEngineFromDSN(":memory:")
-	_ = eng
-	_ = db
-	_ = err
-	// :memory: always works; this is just a smoke test.
-}
-
-// ─── PlanFromSQLite ───
-
-func TestPlanFromSQLite_OneShot(t *testing.T) {
+func TestPlanFromMemory_OneShot(t *testing.T) {
 	t.Parallel()
 
 	q := metaengine.Query[dslFindByID, dslItem](
@@ -68,15 +44,13 @@ func TestPlanFromSQLite_OneShot(t *testing.T) {
 		}),
 	)
 
-	store, db, err := metaengine.PlanFromSQLite(":memory:", q)
+	store, err := metaengine.PlanFromMemory(q)
 	if err != nil {
-		t.Fatalf("PlanFromSQLite: %v", err)
+		t.Fatalf("PlanFromMemory: %v", err)
 	}
 
 	defer store.Close()
-	defer db.Close()
 
-	// Apply an event and query it.
 	if err := store.Apply(
 		context.Background(),
 		"dslItem",
@@ -100,7 +74,7 @@ func TestPlanFromSQLite_OneShot(t *testing.T) {
 	}
 }
 
-func TestPlanFromSQLite_PlansAcrossEngines(t *testing.T) {
+func TestPlanFromMemory_PlansAcrossEngines(t *testing.T) {
 	t.Parallel()
 
 	q := metaengine.Query[dslInput, map[string]int64](
@@ -110,15 +84,13 @@ func TestPlanFromSQLite_PlansAcrossEngines(t *testing.T) {
 		}),
 	)
 
-	store, db, err := metaengine.PlanFromSQLite(":memory:", q)
+	store, err := metaengine.PlanFromMemory(q)
 	if err != nil {
-		t.Fatalf("PlanFromSQLite: %v", err)
+		t.Fatalf("PlanFromMemory: %v", err)
 	}
 
 	defer store.Close()
-	defer db.Close()
 
-	// The plan should have assigned the query to an engine.
 	plan := store.Plan()
 	if plan == nil {
 		t.Fatal("Plan() returned nil")
@@ -128,8 +100,6 @@ func TestPlanFromSQLite_PlansAcrossEngines(t *testing.T) {
 		t.Fatalf("len(Queries) = %d, want 1", len(plan.Queries))
 	}
 }
-
-// ─── Store.LogPlan ───
 
 func TestStore_LogPlan_OutputsQueryAssignments(t *testing.T) {
 	t.Parallel()
@@ -169,9 +139,6 @@ func TestStore_LogPlan_OutputsQueryAssignments(t *testing.T) {
 func TestStore_LogPlan_NilPlan_NoOp(t *testing.T) {
 	t.Parallel()
 
-	// A store with no plan (shouldn't normally happen, but be defensive).
-	// We can't easily create one without Plan, so just verify LogPlan on
-	// a planned store doesn't panic with a nil logger.
 	q := metaengine.Query[dslInput, map[string]int64](
 		"nilplan_counts",
 		metaengine.On(dslItem{}, func(e dslItem) metaengine.Delta {
@@ -189,6 +156,5 @@ func TestStore_LogPlan_NilPlan_NoOp(t *testing.T) {
 
 	defer store.Close()
 
-	// Should not panic.
 	store.LogPlan(slog.New(slog.NewTextHandler(&bytes.Buffer{}, nil)))
 }

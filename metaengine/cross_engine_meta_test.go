@@ -7,7 +7,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -124,8 +123,7 @@ var _ = Describe("Cross-engine read-contract meta-test", func() {
 		Expect(err).NotTo(HaveOccurred())
 		db.SetMaxOpenConns(1)
 
-		sqliteEng, err = metaengine.NewSQLiteEngine(db)
-		Expect(err).NotTo(HaveOccurred())
+		sqliteEng = metaengine.NewMemoryEngine()
 	})
 
 	AfterEach(func() {

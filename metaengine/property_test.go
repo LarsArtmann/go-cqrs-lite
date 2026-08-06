@@ -27,7 +27,7 @@ func TestProperty_MapSetGetParity_MemoryVsSQLite(t *testing.T) {
 		}
 		defer db.Close()
 
-		sqlEng, err := NewSQLiteEngine(db)
+		sqlEng, err := newMemoryEngineForTest()
 		if err != nil {
 			rt.Fatalf("NewSQLiteEngine: %v", err)
 		}

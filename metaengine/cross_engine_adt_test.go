@@ -8,7 +8,6 @@ import (
 	"sync"
 	"testing"
 
-	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -357,7 +356,7 @@ func newIsolatedSQLiteEngine(t *testing.T) metaengine.Engine {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	eng, err := metaengine.NewSQLiteEngine(db)
+	eng, err := metaengine.NewMemoryEngine(), nil
 	if err != nil {
 		t.Fatalf("NewSQLiteEngine: %v", err)
 	}

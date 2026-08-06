@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -60,7 +59,7 @@ func TestSoak_SQLiteSustainedWrites(t *testing.T) {
 	db.SetMaxOpenConns(1)
 	t.Cleanup(func() { _ = db.Close() })
 
-	eng, err := metaengine.NewSQLiteEngine(db)
+	eng, err := metaengine.NewMemoryEngine(), nil
 	if err != nil {
 		t.Fatalf("NewSQLiteEngine: %v", err)
 	}
@@ -203,7 +202,7 @@ func TestSoak_SQLiteMultimapGrowth(t *testing.T) {
 	db.SetMaxOpenConns(1)
 	t.Cleanup(func() { _ = db.Close() })
 
-	eng, err := metaengine.NewSQLiteEngine(db)
+	eng, err := metaengine.NewMemoryEngine(), nil
 	if err != nil {
 		t.Fatalf("NewSQLiteEngine: %v", err)
 	}

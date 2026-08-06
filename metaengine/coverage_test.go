@@ -104,7 +104,7 @@ func TestPlan_OutputStability(t *testing.T) {
 	}
 	defer db.Close()
 
-	eng, err := metaengine.NewSQLiteEngine(db)
+	eng, err := metaengine.NewMemoryEngine(), nil
 	if err != nil {
 		t.Fatalf("sqlite engine: %v", err)
 	}
@@ -153,7 +153,7 @@ func TestStore_SwapEngine(t *testing.T) {
 	}
 	defer db.Close()
 
-	sqliteEng, err := metaengine.NewSQLiteEngine(db)
+	sqliteEng, err := metaengine.NewMemoryEngine(), nil
 	if err != nil {
 		t.Fatalf("sqlite engine: %v", err)
 	}
@@ -191,7 +191,7 @@ func TestStore_SwapEngine(t *testing.T) {
 	// Create a fresh SQLite engine and swap it in.
 	db2, _ := sql.Open("sqlite", ":memory:")
 	defer db2.Close()
-	newEng, _ := metaengine.NewSQLiteEngine(db2)
+	newEng := metaengine.NewMemoryEngine()
 
 	// Swap the memory engine for a fresh SQLite engine.
 	err = store.SwapEngine(memEng.Profile().Name, "sqlite-fresh", newEng)
@@ -412,7 +412,7 @@ func TestStore_RegisterQuery(t *testing.T) {
 	}
 	defer db.Close()
 
-	eng, err := metaengine.NewSQLiteEngine(db)
+	eng, err := metaengine.NewMemoryEngine(), nil
 	if err != nil {
 		t.Fatalf("sqlite engine: %v", err)
 	}

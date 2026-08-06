@@ -8,14 +8,20 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
-// NewSQLiteEngineFromDSN is the one-call SQLite setup: opens the database,
-// applies PRAGMAs (WAL, busy_timeout), serializes writes (MaxOpenConns(1)),
-// and creates the metaengine tables. Returns the engine + the *sql.DB handle
-// (caller owns the DB; engine Close is a no-op).
-func NewSQLiteEngineFromDSN(dsn string) (metaengine.Engine, *sql.DB, error) {
+// NewFromDSN creates a SQLite-backed engine from a DSN string, applying
+// production PRAGMAs (WAL mode + busy_timeout), setting MaxOpenConns(1) for
+// SQLite safety, and creating the engine tables — all in one call.
+//
+//	eng, db, err := sqliteengine.NewFromDSN("app.db")
+//	defer db.Close()
+//	defer eng.Close()
+//
+// For in-memory databases, pass ":memory:". The caller owns the *sql.DB;
+// closing the engine does NOT close the database.
+func NewFromDSN(dsn string) (metaengine.Engine, *sql.DB, error) {
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
-		return nil, nil, fmt.Errorf("sqliteengine: open %q: %w", dsn, err)
+		return nil, nil, fmt.Errorf("sqliteengine: open sqlite %q: %w", dsn, err)
 	}
 
 	db.SetMaxOpenConns(1)
@@ -41,12 +47,15 @@ func NewSQLiteEngineFromDSN(dsn string) (metaengine.Engine, *sql.DB, error) {
 	return eng, db, nil
 }
 
-// PlanFromSQLite is the one-shot convenience for the most common setup:
-// create a Memory engine + a SQLite engine, plan queries against both, and
-// return the store + database handle. The planner picks the cheapest engine
-// per query (Memory for hot counters, SQLite for persistent reads).
-func PlanFromSQLite(dsn string, args ...any) (*metaengine.Store, *sql.DB, error) {
-	sqliteEng, db, err := NewSQLiteEngineFromDSN(dsn)
+// PlanFromDSN is the one-shot convenience for the most common setup: create a
+// Memory engine + a SQLite engine, plan queries against both, and return the
+// store + database handle.
+//
+//	store, db, err := sqliteengine.PlanFromDSN("app.db", statsQuery, historyQuery)
+//	defer store.Close()
+//	defer db.Close()
+func PlanFromDSN(dsn string, args ...any) (*metaengine.Store, *sql.DB, error) {
+	sqliteEng, db, err := NewFromDSN(dsn)
 	if err != nil {
 		return nil, nil, err
 	}

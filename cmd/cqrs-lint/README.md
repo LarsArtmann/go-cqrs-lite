@@ -123,7 +123,7 @@ explicit `rules.disable` entries are added on top (union).
 | ------------ | --------------------------------------------------------------------------- | ---------------------------------------------------------- | -------------- |
 | `local-cli`  | `server: false`, `tracing: off`                                             | F004, F009, F013, F017                                     | `warning`      |
 | `production` | `server: true`, `tracing: on`                                               | (none)                                                     | (default)      |
-| `library`    | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F002, F006, F010, F011, F015, F022, S002, S003 | (default)      |
+| `library`    | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F002, F006, F010, F011, F015, F022, F023, F024, F025, S002, S003 | (default)      |
 | `read-only`  | `command-flow: read-only`                                                   | (none)                                                     | (default)      |
 
 cqrs-lint warns on unknown preset names (typos) and unknown disabled rule IDs,
@@ -184,7 +184,7 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 
 ## Rule Count
 
-**187 rules** across 10 categories: correctness (40), API misuse (31), boilerplate (28), consistency (16), architecture (17), security (10), performance (9), version (6), testing (8), adoption (22).
+**190 rules** across 10 categories: correctness (40), API misuse (31), boilerplate (28), consistency (16), architecture (17), security (10), performance (9), version (6), testing (8), adoption (25).
 
 ## Correctness Rules (bugs)
 

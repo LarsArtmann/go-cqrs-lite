@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite"
 )
 
 // --- P0-1: IN filter silent-drop fix ---
@@ -20,7 +19,7 @@ func TestINFilter_PushdownPath(t *testing.T) {
 	db, _ := sql.Open("sqlite", ":memory:")
 	defer db.Close()
 
-	eng, _ := NewSQLiteEngine(db)
+	eng := NewMemoryEngine()
 	store, err := Plan([]Engine{eng}, testTaskQuery())
 	if err != nil {
 		t.Fatal(err)
@@ -71,7 +70,7 @@ func TestErrLayoutConflict(t *testing.T) {
 	db, _ := sql.Open("sqlite", ":memory:")
 	defer db.Close()
 
-	eng, _ := NewSQLiteEngine(db)
+	eng := NewMemoryEngine()
 	lp := eng.(LayoutPlanner)
 	_ = lp.ApplyLayout("test_col", []string{"a", "b"}, []string{"c"})
 	err := lp.ApplyLayout("test_col", []string{"x", "y"}, []string{"z"})
@@ -94,7 +93,7 @@ func TestCountPushdown(t *testing.T) {
 	db, _ := sql.Open("sqlite", ":memory:")
 	defer db.Close()
 
-	eng, _ := NewSQLiteEngine(db)
+	eng := NewMemoryEngine()
 	store, err := Plan([]Engine{eng}, testTaskQuery())
 	if err != nil {
 		t.Fatal(err)
@@ -277,7 +276,7 @@ func TestTransaction_CommitRollback(t *testing.T) {
 	db, _ := sql.Open("sqlite", ":memory:")
 	defer db.Close()
 
-	eng, _ := NewSQLiteEngine(db)
+	eng := NewMemoryEngine()
 	ctx := context.Background()
 
 	// Verify Transactional interface
@@ -333,7 +332,7 @@ func TestTransaction_StoreInTransaction(t *testing.T) {
 	db, _ := sql.Open("sqlite", ":memory:")
 	defer db.Close()
 
-	eng, _ := NewSQLiteEngine(db)
+	eng := NewMemoryEngine()
 	store, err := Plan([]Engine{eng}, testTaskQuery())
 	if err != nil {
 		t.Fatal(err)
@@ -385,7 +384,7 @@ func TestTransaction_MapUpdateInTx(t *testing.T) {
 	db, _ := sql.Open("sqlite", ":memory:")
 	defer db.Close()
 
-	eng, _ := NewSQLiteEngine(db)
+	eng := NewMemoryEngine()
 	ctx := context.Background()
 
 	mb := eng.(MapBackend)

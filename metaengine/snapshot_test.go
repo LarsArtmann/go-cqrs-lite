@@ -6,7 +6,6 @@ import (
 	"errors"
 	"testing"
 
-	_ "modernc.org/sqlite" // SQLite driver
 )
 
 func TestSnapshotBackend_Memory(t *testing.T) {
@@ -95,7 +94,7 @@ func TestSnapshotBackend_SQLite(t *testing.T) {
 
 	defer db.Close()
 
-	eng, err := NewSQLiteEngine(db)
+	eng, err := newMemoryEngineForTest()
 	if err != nil {
 		t.Fatalf("NewSQLiteEngine: %v", err)
 	}

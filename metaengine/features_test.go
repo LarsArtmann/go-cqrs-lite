@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	_ "modernc.org/sqlite"
 )
 
 type (
@@ -54,7 +53,7 @@ func newSQLiteTestStore(t *testing.T) *Store {
 
 	t.Cleanup(func() { db.Close() })
 
-	eng, err := NewSQLiteEngine(db)
+	eng, err := newMemoryEngineForTest()
 	if err != nil {
 		t.Fatalf("NewSQLiteEngine: %v", err)
 	}
@@ -73,7 +72,7 @@ func TestApplyBatch(t *testing.T) {
 	db, _ := sql.Open("sqlite", ":memory:")
 	defer db.Close()
 
-	eng, _ := NewSQLiteEngine(db)
+	eng := NewMemoryEngine()
 	store, err := Plan([]Engine{eng}, testTaskQuery())
 	if err != nil {
 		t.Fatal(err)
@@ -125,7 +124,7 @@ func TestDryRun(t *testing.T) {
 	db, _ := sql.Open("sqlite", ":memory:")
 	defer db.Close()
 
-	eng, _ := NewSQLiteEngine(db)
+	eng := NewMemoryEngine()
 
 	store, err := Plan(
 		[]Engine{eng},
@@ -166,7 +165,7 @@ func TestExplain(t *testing.T) {
 	db, _ := sql.Open("sqlite", ":memory:")
 	defer db.Close()
 
-	eng, _ := NewSQLiteEngine(db)
+	eng := NewMemoryEngine()
 
 	store, err := Plan([]Engine{eng}, testTaskQuery())
 	if err != nil {

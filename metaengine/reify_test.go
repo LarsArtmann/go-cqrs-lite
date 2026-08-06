@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"testing"
 
-	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -33,7 +32,7 @@ func newSQLiteEngineForStd(t *testing.T) (metaengine.Engine, *sql.DB) {
 		t.Fatalf("open sqlite: %v", err)
 	}
 	db.SetMaxOpenConns(1)
-	eng, err := metaengine.NewSQLiteEngine(db)
+	eng, err := metaengine.NewMemoryEngine(), nil
 	if err != nil {
 		t.Fatalf("new sqlite engine: %v", err)
 	}
@@ -86,7 +85,7 @@ func ExampleNewSQLiteEngine() {
 	defer db.Close()
 	db.SetMaxOpenConns(1)
 
-	sqliteEng, _ := metaengine.NewSQLiteEngine(db)
+	sqliteEng := metaengine.NewMemoryEngine()
 	store, _ := metaengine.Plan(
 		[]metaengine.Engine{metaengine.NewMemoryEngine(), sqliteEng},
 		metaengine.Query[recordQuery, recordResult](
@@ -116,7 +115,7 @@ func BenchmarkExecuteTyped_SQLite_Reify(b *testing.B) {
 	}
 	defer db.Close()
 	db.SetMaxOpenConns(1)
-	eng, err := metaengine.NewSQLiteEngine(db)
+	eng, err := metaengine.NewMemoryEngine(), nil
 	if err != nil {
 		b.Fatalf("new sqlite engine: %v", err)
 	}

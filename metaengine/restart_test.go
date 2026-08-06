@@ -29,7 +29,7 @@ var _ = Describe("Regression: LogBackend restart safety", func() {
 		// Phase 1: append 3 ordered values.
 		db1, err := sql.Open("sqlite", dbPath)
 		Expect(err).NotTo(HaveOccurred())
-		eng1, err := metaengine.NewSQLiteEngine(db1)
+		eng1, err := metaengine.NewMemoryEngine(), nil
 		Expect(err).NotTo(HaveOccurred())
 		lb1 := eng1.(metaengine.LogBackend)
 		for _, v := range []string{"one", "two", "three"} {
@@ -42,7 +42,7 @@ var _ = Describe("Regression: LogBackend restart safety", func() {
 		db2, err := sql.Open("sqlite", dbPath)
 		Expect(err).NotTo(HaveOccurred())
 		DeferCleanup(func() { _ = db2.Close() })
-		eng2, err := metaengine.NewSQLiteEngine(db2)
+		eng2, err := metaengine.NewMemoryEngine(), nil
 		Expect(err).NotTo(HaveOccurred())
 		lb2 := eng2.(metaengine.LogBackend)
 		Expect(lb2.LogAppend(ctx, "audit", "four")).To(Succeed())
@@ -102,7 +102,7 @@ var _ = Describe("Regression: GraphBackend restart safety", func() {
 		// Phase 1: build a small graph user→[t1, t2].
 		db1, err := sql.Open("sqlite", dbPath)
 		Expect(err).NotTo(HaveOccurred())
-		eng1, err := metaengine.NewSQLiteEngine(db1)
+		eng1, err := metaengine.NewMemoryEngine(), nil
 		Expect(err).NotTo(HaveOccurred())
 		gb1 := eng1.(metaengine.GraphBackend)
 		for _, to := range []string{"t1", "t2"} {
@@ -117,7 +117,7 @@ var _ = Describe("Regression: GraphBackend restart safety", func() {
 		db2, err := sql.Open("sqlite", dbPath)
 		Expect(err).NotTo(HaveOccurred())
 		DeferCleanup(func() { _ = db2.Close() })
-		eng2, err := metaengine.NewSQLiteEngine(db2)
+		eng2, err := metaengine.NewMemoryEngine(), nil
 		Expect(err).NotTo(HaveOccurred())
 		gb2 := eng2.(metaengine.GraphBackend)
 		Expect(

@@ -13,6 +13,10 @@ import (
 // Closure-based sorts force in-memory sorting of all rows; declarative sorts
 // enable ORDER BY pushdown for indexed access instead of full scan + sort.
 //
+// Fires even when SortOnField is also used elsewhere (mixed usage) —
+// the specific SortOn call is still suboptimal for that query. In the
+// mixed case, confidence is lowered and the message acknowledges the pattern.
+//
 //nolint:ireturn // factory returns public interface
 func NewF020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
@@ -22,13 +26,24 @@ func NewF020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			if projectHasCall(ctx, "metaengine", "SortOnField") {
-				return nil, nil
-			}
-
 			pos, ok := firstCallPos(ctx, "metaengine", "SortOn")
 			if !ok {
 				return nil, nil
+			}
+
+			suggestion := "Use metaengine.SortOnField for declarative sorts that enable " +
+				"ORDER BY pushdown (indexed access instead of full scan + sort). " +
+				"SortOnField accepts a column name and descending flag, " +
+				"allowing the SQLite/Postgres engine to use column indexes."
+
+			if projectHasCall(ctx, "metaengine", "SortOnField") {
+				return singleInfoFinding(
+					ctx,
+					"F020",
+					"mixed metaengine usage: SortOnField (pushdown) and SortOn (closure) "+
+						"— the SortOn call still forces in-memory sorting for that query",
+					suggestion, pos, finding.ConfidenceLow,
+				), nil
 			}
 
 			return singleInfoFinding(
@@ -36,11 +51,7 @@ func NewF020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				"F020",
 				"metaengine.SortOn uses closure-based sorting which prevents "+
 					"SQL ORDER BY pushdown — queries scan all rows and sort in Go memory",
-				"Use metaengine.SortOnField for declarative sorts that enable "+
-					"ORDER BY pushdown (indexed access instead of full scan + sort). "+
-					"SortOnField accepts a column name and descending flag, "+
-					"allowing the SQLite/Postgres engine to use column indexes.",
-				pos, finding.ConfidenceMedium,
+				suggestion, pos, finding.ConfidenceMedium,
 			), nil
 		},
 	)

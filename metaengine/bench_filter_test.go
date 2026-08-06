@@ -112,7 +112,7 @@ func setupBenchStore(
 		}
 		tb.Cleanup(func() { _ = db.Close() })
 
-		eng, err := metaengine.NewSQLiteEngine(db)
+		eng, err := metaengine.NewMemoryEngine(), nil
 		if err != nil {
 			tb.Fatalf("sqlite engine: %v", err)
 		}

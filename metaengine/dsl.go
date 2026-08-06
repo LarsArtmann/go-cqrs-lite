@@ -4,6 +4,15 @@ import (
 	"log/slog"
 )
 
+// PlanFromMemory is the one-shot convenience for in-memory testing:
+// create a Memory engine and plan queries against it.
+//
+//	store, err := metaengine.PlanFromMemory(statsQuery, historyQuery)
+//	defer store.Close()
+func PlanFromMemory(args ...any) (*Store, error) {
+	return Plan([]Engine{NewMemoryEngine()}, args...)
+}
+
 // LogPlan logs the planner's decisions and diagnostics via slog. Call it
 // once after Plan or PlanFromSQLite, at startup, so the optimizer's choices
 // are visible in production logs:

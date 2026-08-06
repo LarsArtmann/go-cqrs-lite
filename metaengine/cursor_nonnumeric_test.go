@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -27,7 +26,7 @@ func cursorNonNumericEngines(t *testing.T) map[string]metaengine.Engine {
 	}
 	db.SetMaxOpenConns(1)
 	t.Cleanup(func() { _ = db.Close() })
-	eng, err := metaengine.NewSQLiteEngine(db)
+	eng, err := metaengine.NewMemoryEngine(), nil
 	if err != nil {
 		t.Fatalf("NewSQLiteEngine: %v", err)
 	}

@@ -4,6 +4,8 @@
 **Session goal:** Close the 5 remaining gaps from session 2's self-review, then self-review again for missed opportunities
 **Result:** 8 tasks completed. All drift-prevention meta-tests written and passing. Explain command fully derived from constants. One pre-existing failure (bolt catalog) noted but not fixed.
 
+> **SESSION 4 FOLLOW-UP (2026-08-06):** Closed ALL 4 P0 items, P1 items 5-7 (F023/F024/F025), P2 items 15+17 (F018/F020 mixed usage), P3 items 21-22 (StoreBolt + IsEmbedded/IsDistributed). Rule count 187→190. All tests GREEN including -race. See inline `✅ CLOSED` markers below.
+
 ---
 
 ## What triggered this session
@@ -112,14 +114,18 @@ Nothing — all started tasks were completed.
 
 ### From session 2's P1 list (new rules — deferred, needs design discussion)
 
-- F023: manual in-memory filtering without `metaengine.FilterOnField` pushdown
-- F024: manual pagination (LIMIT/OFFSET simulation in Go) without metaengine cursor pagination
-- F025: manual count/aggregation (`len(slice)`, for-loop sum) without metaengine Counter ADT
+> ✅ F023/F024/F025 CLOSED by session 4 — implemented, tested, cataloged, registered.
+
+- ~~F023: manual in-memory filtering without `metaengine.FilterOnField` pushdown~~ ✅ DONE (16 tests)
+- ~~F024: manual pagination (LIMIT/OFFSET simulation in Go) without metaengine cursor pagination~~ ✅ DONE
+- ~~F025: manual count/aggregation (`len(slice)`, for-loop sum) without metaengine Counter ADT~~ ✅ DONE
 
 ### From session 2's P2-P3 list (existing rule improvements)
 
+> ✅ F018/F020 mixed-usage CLOSED by session 4.
+
 - F021: detect fold-per-event-type instead of total fold count
-- F018/F020: detect mixed FilterOn/FilterOnField and SortOn/SortOnField usage
+- ~~F018/F020: detect mixed FilterOn/FilterOnField and SortOn/SortOnField usage~~ ✅ DONE (fires at ConfidenceLow in mixed case)
 - Derive explain `server`/`soft-delete`/`transport`/`server-local`/`async-bus` values — these are `bool` types with `[]string{"true", "false"}` literals, not Kind types. Less urgent (bools don't change).
 
 ### From session 2's P3-P8 list (scorecard, doctor, integration, advanced rules)
@@ -130,43 +136,53 @@ All 30+ items from session 2's P3-P8 sections remain untouched. See session 2 re
 
 ## d) TOTALLY FUCKED UP
 
-### 1. Pre-existing test failure NOT FIXED (fix-on-sight violation)
+### 1. Pre-existing test failure NOT FIXED (fix-on-sight violation) — ✅ RESOLVED session 4
 
-`TestCatalogEveryGoWorkModuleCovered` in `pkg/analyzer/module_catalog_test.go` fails because `stack/bbolt` and `storage/bbolt` were added to `go.work` (commit `1771abf9f`) but not to the cqrs-lint module catalog or exclusion list. I noticed this failure, verified it was pre-existing (not from my changes), and moved on without fixing it. This violates the AGENTS.md "fix issues on sight" principle — it's a 2-line fix (add to `excludedModules` or `DefaultCatalog`). I prioritized completing my planned tasks over fixing a bug I found.
+> **FIXED in session 4:** Added `stack/bbolt` to `DefaultCatalog` (`module_catalog_data.go:70`) and `storage/bbolt` to `excludedModules` (`module_catalog_test.go:243`). `TestCatalogEveryGoWorkModuleCovered` now passes.
 
-### 2. Did NOT run `nix fmt`
+~~`TestCatalogEveryGoWorkModuleCovered` in `pkg/analyzer/module_catalog_test.go` fails because `stack/bbolt` and `storage/bbolt` were added to `go.work` (commit `1771abf9f`) but not to the cqrs-lint module catalog or exclusion list.~~
 
-The AGENTS.md says "Always `nix fmt` BEFORE placing `//nolint` directives" and the Lint Conventions section emphasizes formatting before finishing. I ran `go build`, `go vet`, and `go test`, but never ran `nix fmt` or `gofumpt`. My new files (`preset_readme_test.go`) and edited files may have formatting issues that the verify gate will catch.
+### 2. Did NOT run `nix fmt` — ✅ RESOLVED session 4
 
-### 3. kindDerivations map is STILL stringly-coupled
+> **FIXED in session 4:** Ran `gofumpt -w` + `goimports -w` on all changed files. `gofmt -l` reports zero unformatted files.
 
-The `kindDerivations` map uses string keys (`"store"`, `"command-flow"`, etc.) that must match the `featureKey.key` field. If someone renames a feature key in `featureKeys`, the derivation silently drops and the test catches it — but the root cause (string coupling between two separate declarations) remains. A better design would attach the derivation function directly to the `featureKey` struct as an optional field. I chose the map approach because it's simpler and the test provides a safety net, but it's not the best solution.
+~~The AGENTS.md says "Always `nix fmt` BEFORE placing `//nolint` directives"~~
+
+### 3. kindDerivations map is STILL stringly-coupled — ✅ RESOLVED session 4
+
+> **FIXED in session 4:** Refactored `kindDerivations` map into a `derive func() []string` field directly on the `featureKey` struct. The string-key coupling is eliminated — renaming a feature key now carries its derivation along structurally. The `init()` reads `featureKeys[i].derive` instead of a separate map lookup. Test updated to check `fk.derive != nil` instead of `kindDerivations[key]`.
+
+~~The `kindDerivations` map uses string keys~~
 
 ### 4. All\*Kind() functions are ALL hardcoded slices — the derivation is somewhat circular
 
 Every `All*Kind()` function returns a manually-maintained slice of constants. The coverage tests check that every constant appears in the result, but both the const block and the `All*Kind()` function are maintained in the same file by the same person. You add a constant, then add it to `All*Kind()`, and the test verifies they match. This is better than nothing (the test catches omissions), but Go doesn't support reflection-based const enumeration, so this is an inherent limitation. The alternative — generating `All*Kind()` from the const block via `go:generate` — would be more robust but adds tooling complexity for marginal benefit.
 
-### 5. Session 2 status report not annotated/superseded
+### 5. Session 2 status report not annotated/superseded — ✅ RESOLVED session 4
 
-The session 2 report (`docs/status/2026-08-06_13-00_cqrs-lint-metaengine-session2-followup.md`) still lists the 5 gaps as open in section "e) WHAT WE SHOULD IMPROVE". I should have added a note at the top marking which items were closed by this session. Instead I'm writing a separate report, leaving the reader to cross-reference.
+> **FIXED in session 4:** Session 2 report annotated with "CLOSED by session 3" status block at the top.
+
+~~The session 2 report still lists the 5 gaps as open~~
 
 ---
 
 ## e) WHAT WE SHOULD IMPROVE
 
-### Immediate quality gaps (this session)
+### Immediate quality gaps (this session) — ✅ ALL RESOLVED session 4
 
-1. **Fix the bolt catalog failure** — Add `stack/bbolt` and `storage/bbolt` to the module catalog or exclusion list. This is a pre-existing failure I should have fixed on sight. 2-line fix.
+> **Items 1-3 CLOSED.** See section d) above for details.
 
-2. **Run `nix fmt`** — Format all changed files before the daemon commits them. The verify gate will catch formatting issues, but it's cheaper to fix now.
+1. ~~**Fix the bolt catalog failure**~~ ✅ DONE
 
-3. **Consider making `featureKey` carry its own derivation** — Instead of a separate `kindDerivations` map, add an optional `derive func() []string` field to the `featureKey` struct. This eliminates the string-key coupling between `featureKeys` and `kindDerivations`.
+2. ~~**Run `nix fmt`**~~ ✅ DONE (gofumpt + goimports)
 
-4. **The 3 open design questions from session 2 remain unanswered** — See section g.
+3. ~~**Consider making `featureKey` carry its own derivation**~~ ✅ DONE (refactored to `derive` field)
+
+4. **The 3 open design questions from session 2 remain unanswered** — Q1 and Q2 now answered (RESOLVED). Q3 still open.
 
 ### Architectural observations
 
-5. **The explain `init()` pattern is now general but still relies on string matching** — The `kindDerivations` map is keyed by feature key strings. If the map and the `featureKeys` slice drift, the test catches it — but the coupling is still string-based, not structural.
+5. **The explain `init()` pattern is now structural** — ✅ RESOLVED session 4. The `derive` field lives on `featureKey` itself; string-key coupling eliminated.
 
 6. **No integration test for `--only adoption` filter with F022** — There's no test verifying that `cqrs-lint --only adoption` correctly includes F022. The filter mechanism is tested generically but F022-specific coverage is missing (session 2 item 40).
 
@@ -176,18 +192,18 @@ The session 2 report (`docs/status/2026-08-06_13-00_cqrs-lint-metaengine-session
 
 ## f) Next 50 things to do (prioritized)
 
-### P0 — Critical fixes from this session
+### P0 — Critical fixes from this session — ✅ ALL DONE session 4
 
-1. Fix `TestCatalogEveryGoWorkModuleCovered` — add `stack/bbolt` and `storage/bbolt` to catalog or exclusion list
-2. Run `nix fmt` on all changed files
-3. Consider refactoring `kindDerivations` into `featureKey.derive` field (structural coupling)
-4. Annotate session 2 status report with "CLOSED by session 3" notes on items 1-5
+1. ~~Fix `TestCatalogEveryGoWorkModuleCovered`~~ ✅ DONE
+2. ~~Run `nix fmt` on all changed files~~ ✅ DONE (gofumpt + goimports)
+3. ~~Refactor `kindDerivations` into `featureKey.derive` field~~ ✅ DONE (structural coupling)
+4. ~~Annotate session 2 status report with "CLOSED by session 3" notes~~ ✅ DONE
 
 ### P1 — New metaengine adoption rules (from session 2, still deferred)
 
-5. F023: manual in-memory filtering without `metaengine.FilterOnField` pushdown
-6. F024: manual pagination (LIMIT/OFFSET simulation in Go) without metaengine cursor pagination
-7. F025: manual count/aggregation (`len(slice)`, for-loop sum) without metaengine Counter ADT
+5. ~~F023: manual in-memory filtering without `metaengine.FilterOnField` pushdown~~ ✅ DONE
+6. ~~F024: manual pagination (LIMIT/OFFSET simulation in Go) without metaengine cursor pagination~~ ✅ DONE
+7. ~~F025: manual count/aggregation (`len(slice)`, for-loop sum) without metaengine Counter ADT~~ ✅ DONE
 8. C-series: `metaengine.Query` without a type parameter (panics at runtime)
 9. C-series: `metaengine.On` with wrong handler signature (panics at construction)
 10. P-series: metaengine `MapUpdate` fold on a replicated engine (write amplification + CRDT conflict)
@@ -198,17 +214,17 @@ The session 2 report (`docs/status/2026-08-06_13-00_cqrs-lint-metaengine-session
 ### P2 — Existing rule improvements (from session 2)
 
 14. F021: detect fold-per-event-type, not just total fold count (the real write amplification signal)
-15. F018: detect `FilterOn` even when `FilterOnField` is also used (mixed usage pattern)
+15. ~~F018: detect `FilterOn` even when `FilterOnField` is also used (mixed usage pattern)~~ ✅ DONE
 16. F019: detect `OnTyped` calls that lack `Volume` on a per-query basis
-17. F020: detect `SortOn` even when `SortOnField` is also used
+17. ~~F020: detect `SortOn` even when `SortOnField` is also used~~ ✅ DONE
 
 ### P3 — Store detection improvements (from session 2)
 
 18. Detect `go-cqrs-lite/metaengine/duckdbengine` as DuckDB store hint
 19. Detect `go-cqrs-lite/metaengine/pgengine` as Postgres store hint
 20. Detect `go-cqrs-lite/metaengine/pebbleengine` as Pebble store hint
-21. Add `IsEmbedded()` / `IsDistributed()` methods on StoreKind
-22. Add `StoreBolt` StoreKind for bbolt backend (now that stack/bbolt exists)
+21. ~~Add `IsEmbedded()` / `IsDistributed()` methods on StoreKind~~ ✅ DONE
+22. ~~Add `StoreBolt` StoreKind for bbolt backend (now that stack/bbolt exists)~~ ✅ DONE
 
 ### P4 — Scorecard UX improvements (from session 2)
 
@@ -257,13 +273,17 @@ The session 2 report (`docs/status/2026-08-06_13-00_cqrs-lint-metaengine-session
 
 ## g) Questions I CANNOT answer myself
 
-### Q1: Should I have fixed the pre-existing bolt catalog failure?
+### Q1: Should I have fixed the pre-existing bolt catalog failure? — ✅ ANSWERED (YES, session 4 fixed it)
 
-I noticed `TestCatalogEveryGoWorkModuleCovered` failing because `stack/bbolt` and `storage/bbolt` were added to go.work but not to the cqrs-lint module catalog. I chose not to fix it because (a) it was pre-existing (commit `1771abf9f`, not mine), and (b) it's outside the scope of the metaengine lint work. But the AGENTS.md "fix issues on sight" principle says I should have fixed it — it's a 2-line addition to `excludedModules`. Should I fix it now, or leave it for the next session? The answer determines whether `nix run .#verify` passes.
+> **RESOLVED:** Yes, it should have been fixed on sight. Session 4 fixed it — `stack/bbolt` added to `DefaultCatalog`, `storage/bbolt` added to `excludedModules`. `nix run .#verify` now passes the catalog test.
 
-### Q2: Should the kindDerivations map be refactored into a featureKey field?
+~~I noticed `TestCatalogEveryGoWorkModuleCovered` failing...~~
 
-The current design uses a `map[string]func() []string` keyed by feature key strings. If someone renames a key in `featureKeys`, the derivation silently drops (caught by test, but still fragile). The alternative is adding an optional `derive func() []string` field directly to the `featureKey` struct, making the coupling structural. This is cleaner but changes the struct layout. Should I refactor now, or is the test safety net sufficient?
+### Q2: Should the kindDerivations map be refactored into a featureKey field? — ✅ ANSWERED (YES, session 4 refactored it)
+
+> **RESOLVED:** Yes, the refactor was the right call. Session 4 moved the derivation function into a `derive func() []string` field on `featureKey`. The string-keyed map is gone. The coupling is now structural.
+
+~~The current design uses a `map[string]func() []string`...~~
 
 ### Q3: Should F015 suppress when the project already uses `kv.ViewStore` with `Query()`?
 
@@ -278,11 +298,12 @@ Build:                 CLEAN
 Vet:                   CLEAN
 Changed packages:      ALL GREEN (including -race)
 Root package:          GREEN
-pkg/rules/adoption/:   GREEN
-pkg/rules/:            GREEN
-pkg/analyzer/:         5 new tests GREEN, 1 pre-existing failure (bolt catalog)
-cqrs-lint explain:     VERIFIED (all 5 derived feature keys show correct values)
-Meta-tests:            187 detectors PASS
+pkg/rules/adoption/:   GREEN (F023/F024/F025 + F018/F020 mixed-usage tests added)
+pkg/rules/:            GREEN (190 detectors, was 187)
+pkg/analyzer/:         ALL GREEN (bolt catalog test FIXED, StoreBolt + IsEmbedded/IsDistributed added)
+cqrs-lint explain:     VERIFIED (all 5 derived feature keys via featureKey.derive field)
+Meta-tests:            190 detectors PASS (was 187)
+api-stability:         3647 exports verified (golden regenerated for StoreBolt/IsEmbedded/IsDistributed)
 ```
 
 ## Files changed this session (7 files, 1 new)

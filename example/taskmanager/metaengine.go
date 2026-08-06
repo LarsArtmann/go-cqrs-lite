@@ -188,7 +188,7 @@ func setupMetaEngine(
 		metaengine.Volume(estimatedTaskVolume),
 	)
 
-	store, meDB, err := sqliteengine.PlanFromSQLite(dsn, taskCounts, taskViews)
+	store, meDB, err := sqliteengine.PlanFromDSN(dsn, taskCounts, taskViews)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("metaengine: plan: %w", err)
 	}

@@ -8,7 +8,6 @@ import (
 	"sync/atomic"
 	"testing"
 
-	_ "modernc.org/sqlite"
 )
 
 // TestConcurrentAppend_Memory verifies that AtomicAppender prevents
@@ -82,7 +81,7 @@ func TestConcurrentAppend_SQLite(t *testing.T) {
 
 	defer db.Close()
 
-	eng, err := NewSQLiteEngine(db)
+	eng, err := newMemoryEngineForTest()
 	if err != nil {
 		t.Fatalf("NewSQLiteEngine: %v", err)
 	}

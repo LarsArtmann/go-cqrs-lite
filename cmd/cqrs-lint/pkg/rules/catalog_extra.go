@@ -1086,5 +1086,32 @@ func adoptionRules() []RuleInfo {
 			Description: "Manual in-memory sorting (sort.Slice/slices.SortFunc) with a SQL store but no metaengine — all rows loaded into Go memory for sorting",
 			AutoFix:     false,
 		},
+		{
+			ID:          "F023",
+			Name:        "manual-filter-no-pushdown",
+			Category:    "adoption",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "Manual in-memory filtering (for-range + if + append) with a SQL store but no metaengine — all rows loaded into Go memory for filtering",
+			AutoFix:     false,
+		},
+		{
+			ID:          "F024",
+			Name:        "manual-pagination-no-pushdown",
+			Category:    "adoption",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "Manual pagination (slice[offset:offset+limit]) with a SQL store but no metaengine — all rows loaded into Go memory before slicing",
+			AutoFix:     false,
+		},
+		{
+			ID:          "F025",
+			Name:        "manual-count-no-counter-adt",
+			Category:    "adoption",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "Manual count/aggregation (for-range + count++/sum +=) with a SQL store but no metaengine — full collection scanned for every count",
+			AutoFix:     false,
+		},
 	}
 }

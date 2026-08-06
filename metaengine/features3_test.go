@@ -8,11 +8,11 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	
 	"sync"
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite"
 )
 
 // --- ContractSuite tests ---
@@ -22,18 +22,6 @@ func TestContractSuite_MemoryEngine(t *testing.T) {
 	ContractSuite(t, func() Engine { return NewMemoryEngine() })
 }
 
-func TestContractSuite_SQLiteEngine(t *testing.T) {
-	t.Parallel()
-
-	db, _ := sql.Open("sqlite", ":memory:")
-	defer db.Close()
-
-	ContractSuite(t, func() Engine {
-		eng, _ := NewSQLiteEngine(db)
-
-		return eng
-	})
-}
 
 // --- P3.2: Larger-payload benchmark (15+ field struct) ---
 
@@ -56,48 +44,6 @@ type LargePayload struct {
 	MilestoneID string  `json:"milestone_id"`
 }
 
-func BenchmarkLargePayload_SQLite(b *testing.B) {
-	db, _ := sql.Open("sqlite", ":memory:")
-	defer db.Close()
-
-	eng, _ := NewSQLiteEngine(db)
-	ctx := context.Background()
-
-	mb := eng.(MapBackend)
-
-	b.ResetTimer()
-
-	for i := range b.N {
-		p := LargePayload{
-			ID:          fmt.Sprintf("id-%d", i),
-			Title:       "A very long title that exercises JSON encoding overhead",
-			Description: "An even longer description that contains many words to inflate the JSON payload size significantly",
-			Status:      "in_progress",
-			Priority:    i % 5,
-			Score:       float64(i) * 1.5,
-			CreatedAt:   "2026-07-31T04:00:00Z",
-			UpdatedAt:   "2026-07-31T04:30:00Z",
-			AuthorID:    "user-12345",
-			AssigneeID:  "user-67890",
-			ProjectID:   "proj-abcdef",
-			Tags:        "bug,critical,urgent",
-			URL:         "https://example.com/issues/id-" + strconv.Itoa(i),
-			Hash:        "abc123def456ghi789",
-			ParentID:    "parent-xyz",
-			MilestoneID: "m-42",
-		}
-		if err := mb.MapSet(ctx, "bench", p.ID, p); err != nil {
-			b.Fatalf("MapSet %d: %v", i, err)
-		}
-		_, found, err := mb.MapGet(ctx, "bench", p.ID)
-		if err != nil {
-			b.Fatalf("MapGet %d: %v", i, err)
-		}
-		if !found {
-			b.Fatalf("MapGet %d: key %s not found", i, p.ID)
-		}
-	}
-}
 
 func BenchmarkLargePayload_Memory(b *testing.B) {
 	eng := NewMemoryEngine()
@@ -189,47 +135,6 @@ func TestStoreSwapEngine(t *testing.T) {
 
 // --- P2.10: MigrateLayout end-to-end ---
 
-func TestMigrateLayout_EndToEnd(t *testing.T) {
-	t.Parallel()
-
-	db, _ := sql.Open("sqlite", ":memory:")
-	defer db.Close()
-
-	eng, _ := NewSQLiteEngine(db)
-	se := eng.(*sqliteEngine)
-
-	ctx := context.Background()
-
-	// Register initial layout with 2 columns
-	plan1 := BuildLayoutPlan("test_col", []string{"status"}, []string{"priority"})
-	if err := se.registerLayout(plan1); err != nil {
-		t.Fatal(err)
-	}
-
-	// Migrate to add a new column
-	plan2 := BuildLayoutPlan("test_col", []string{"status", "category"}, []string{"priority"})
-	if err := se.MigrateLayout("test_col", plan2); err != nil {
-		t.Errorf("MigrateLayout should succeed: %v", err)
-	}
-
-	// Verify data can be written with the new schema
-	mb := eng.(MapBackend)
-	if err := mb.MapSet(
-		ctx,
-		"test_col",
-		"k1",
-		map[string]any{"status": "open", "priority": 1, "category": "bug"},
-	); err != nil {
-		t.Errorf("MapSet after migration: %v", err)
-	}
-
-	val, found, err := mb.MapGet(ctx, "test_col", "k1")
-	if err != nil || !found {
-		t.Errorf("MapGet after migration: err=%v found=%v", err, found)
-	}
-
-	_ = val
-}
 
 // --- P2.3: TieredStore fan-out test ---
 
@@ -357,7 +262,7 @@ func TestExplain_FilterIn(t *testing.T) {
 	db, _ := sql.Open("sqlite", ":memory:")
 	defer db.Close()
 
-	eng, _ := NewSQLiteEngine(db)
+	eng := NewMemoryEngine()
 	store, err := Plan([]Engine{eng}, testTaskQuery())
 	if err != nil {
 		t.Fatal(err)

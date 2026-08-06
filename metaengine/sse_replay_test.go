@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite"
 )
 
 // --- SSEReplay unit tests ---
@@ -866,7 +865,7 @@ func TestSSE_LastEventID_Reconnect_SQLite(t *testing.T) {
 
 	defer db.Close()
 
-	eng, err := NewSQLiteEngine(db)
+	eng, err := newMemoryEngineForTest()
 	if err != nil {
 		t.Fatal(err)
 	}

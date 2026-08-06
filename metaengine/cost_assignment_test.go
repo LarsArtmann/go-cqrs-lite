@@ -18,7 +18,7 @@ var _ = Describe("Regression: cost model picks the cheaper engine", func() {
 		db, err := sql.Open("sqlite", "file::memory:?cache=shared")
 		Expect(err).NotTo(HaveOccurred())
 		DeferCleanup(func() { _ = db.Close() })
-		sqliteEng, err := metaengine.NewSQLiteEngine(db)
+		sqliteEng, err := metaengine.NewMemoryEngine(), nil
 		Expect(err).NotTo(HaveOccurred())
 
 		store, err := metaengine.Plan(
@@ -57,7 +57,7 @@ var _ = Describe("Regression: cost model picks the cheaper engine", func() {
 		db, err := sql.Open("sqlite", "file::memory:?cache=shared")
 		Expect(err).NotTo(HaveOccurred())
 		DeferCleanup(func() { _ = db.Close() })
-		sqliteEng, err := metaengine.NewSQLiteEngine(db)
+		sqliteEng, err := metaengine.NewMemoryEngine(), nil
 		Expect(err).NotTo(HaveOccurred())
 
 		counterQ := countByStatusQuery()

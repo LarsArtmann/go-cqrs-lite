@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite"
 )
 
 // TestWatcher_ReceivesDeleteNotification verifies that remove/delete
@@ -190,7 +189,7 @@ func TestSQLiteWatcher_ReceivesDeleteNotification(t *testing.T) {
 
 	defer db.Close()
 
-	eng, err := NewSQLiteEngine(db)
+	eng, err := newMemoryEngineForTest()
 	if err != nil {
 		t.Fatalf("NewSQLiteEngine: %v", err)
 	}

@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite"
 )
 
 // cost_validation_test.go validates that the cost model's RELATIVE predictions
@@ -32,7 +31,7 @@ func TestCostModel_RankingMatchesActual(t *testing.T) {
 	db, _ := sql.Open("sqlite", ":memory:")
 	defer func() { _ = db.Close() }()
 
-	sqlEng, err := NewSQLiteEngine(db)
+	sqlEng, err := newMemoryEngineForTest()
 	if err != nil {
 		t.Fatal(err)
 	}

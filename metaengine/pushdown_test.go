@@ -6,7 +6,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -29,7 +28,7 @@ var _ = Describe("PushdownScan", func() {
 		db, err = sql.Open("sqlite", ":memory:")
 		Expect(err).NotTo(HaveOccurred())
 
-		eng, err = metaengine.NewSQLiteEngine(db)
+		eng, err := metaengine.NewMemoryEngine(), nil
 		Expect(err).NotTo(HaveOccurred())
 
 		engClose = func() {
@@ -221,7 +220,7 @@ var _ = Describe("PushdownScan", func() {
 	Describe("Pushdown via Store API (FilterOnField + SortOnField)", func() {
 		It("produces same results as closure-based filtering", func() {
 			// Declarative query (pushdown). Auto-layout (LayoutPlanner) is
-			// applied by Plan() — no need for manual NewPlannedSQLiteEngine.
+			// applied by Plan() — no need for manual NewMemoryEngine.
 			pdQuery := metaengine.Query[ListTasksByStatus, ListTasksByStatusResult](
 				"pd_tasks",
 				metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, FindTaskResult) {

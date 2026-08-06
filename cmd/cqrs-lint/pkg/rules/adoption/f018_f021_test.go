@@ -66,6 +66,29 @@ func _() {
 	ruletest.AssertRule(t, findings, "F018", 0)
 }
 
+func TestF018_MixedUsageFiresAtLowConfidence(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+
+func _() {
+	_ = metaengine.Query[any, any]("q1",
+		metaengine.FilterOnField("status", metaengine.FilterEq, "open"),
+	)
+	_ = metaengine.Query[any, any]("q2",
+		metaengine.FilterOn(func(v any) bool { return true }),
+	)
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF018Detector(ctx))
+	ruletest.AssertRule(t, findings, "F018", 1)
+}
+
 // --- F019: Missing Volume hint ---
 
 func TestF019_MissingVolumeFires(t *testing.T) {
@@ -149,6 +172,29 @@ func _() {
 
 	findings := ruletest.RunDetector(t, adoption.NewF020Detector(ctx))
 	ruletest.AssertRule(t, findings, "F020", 0)
+}
+
+func TestF020_MixedUsageFiresAtLowConfidence(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+
+func _() {
+	_ = metaengine.Query[any, any]("q1",
+		metaengine.SortOnField("created_at", false),
+	)
+	_ = metaengine.Query[any, any]("q2",
+		metaengine.SortOn(func(a, b any) bool { return true }),
+	)
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF020Detector(ctx))
+	ruletest.AssertRule(t, findings, "F020", 1)
 }
 
 // --- F021: Write amplification (5+ folds) ---

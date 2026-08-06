@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"testing"
 
-	_ "modernc.org/sqlite"
 )
 
 // BenchmarkCalibration_MapSet measures the per-op cost of MapSet on the
@@ -60,7 +59,7 @@ func BenchmarkCalibration_SQLiteSet(b *testing.B) {
 	}
 	defer func() { _ = db.Close() }()
 
-	eng, err := NewSQLiteEngine(db)
+	eng, err := newMemoryEngineForTest()
 	if err != nil {
 		b.Fatalf("NewSQLiteEngine: %v", err)
 	}
@@ -90,7 +89,7 @@ func BenchmarkCalibration_SQLiteGet(b *testing.B) {
 	}
 	defer func() { _ = db.Close() }()
 
-	eng, err := NewSQLiteEngine(db)
+	eng, err := newMemoryEngineForTest()
 	if err != nil {
 		b.Fatalf("NewSQLiteEngine: %v", err)
 	}

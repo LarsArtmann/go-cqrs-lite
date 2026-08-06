@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"testing"
 
-	_ "modernc.org/sqlite"
 )
 
 func TestStreamReadAsOfVersion_Memory(t *testing.T) {
@@ -64,7 +63,7 @@ func TestStreamReadAsOfVersion_SQLite(t *testing.T) {
 
 	defer db.Close()
 
-	eng, err := NewSQLiteEngine(db)
+	eng, err := newMemoryEngineForTest()
 	if err != nil {
 		t.Fatalf("NewSQLiteEngine: %v", err)
 	}

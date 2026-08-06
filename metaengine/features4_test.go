@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite"
 )
 
 // --- Stats tests ---
@@ -977,7 +976,7 @@ func TestExportImport_CrossEngine(t *testing.T) {
 
 	defer db.Close()
 
-	sqlEng, err := NewSQLiteEngine(db)
+	sqlEng, err := newMemoryEngineForTest()
 	if err != nil {
 		t.Fatalf("NewSQLiteEngine: %v", err)
 	}
