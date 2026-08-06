@@ -223,6 +223,12 @@ func scanASTCalls(
 				}
 			}
 
+			// Metaengine pushdown detection: FilterOnField / SortOnField calls
+			// indicate declarative pushdown adoption.
+			if method == "FilterOnField" || method == "SortOnField" {
+				fp.MetaenginePushdown = true
+			}
+
 			// ServerLocal signals: detect production server indicators so
 			// we can classify embedded-dashboards (ListenAndServe without
 			// TLS/Shutdown/health) as ServerLocal.

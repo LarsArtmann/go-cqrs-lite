@@ -209,4 +209,60 @@ func detectImports(
 		strings.Contains(path, "cqrs-htmx") {
 		fp.HasTransport = true
 	}
+
+	// Metaengine detection (P3: engine imports also serve as store hints).
+	if strings.Contains(path, "go-cqrs-lite/metaengine") {
+		fp.HasMetaengine = true
+
+		engine := metaengineEngineFromImport(path)
+		if engine != "" && !containsString(fp.MetaengineEngines, engine) {
+			fp.MetaengineEngines = append(fp.MetaengineEngines, engine)
+		}
+
+		// Engine subpackages imply a store backend.
+		if fp.Store == StoreUnknown || fp.Store == StoreNone {
+			switch engine {
+			case "sqlite":
+				fp.Store = StoreSQLite
+			case "pebble":
+				fp.Store = StorePebble
+			case "duckdb":
+				fp.Store = StoreDuckDB
+			case "postgres":
+				fp.Store = StorePostgres
+			}
+		}
+	}
+}
+
+// metaengineEngineFromImport maps an import path to a short engine name.
+// Returns "" for the core metaengine module (no specific engine).
+func metaengineEngineFromImport(path string) string {
+	switch {
+	case strings.Contains(path, "metaengine/pebbleengine"):
+		return "pebble"
+	case strings.Contains(path, "metaengine/duckdbengine"):
+		return "duckdb"
+	case strings.Contains(path, "metaengine/pgengine"):
+		return "postgres"
+	case strings.Contains(path, "metaengine/sqliteengine"):
+		return "sqlite"
+	case strings.Contains(path, "metaengine/irohengine"):
+		return "iroh"
+	case strings.Contains(path, "metaengine") && !strings.Contains(path, "metaengine/"):
+		return "memory"
+	default:
+		return ""
+	}
+}
+
+// containsString reports whether s contains v. Avoids pulling in slices for
+// a tiny helper used only in feature detection.
+func containsString(s []string, v string) bool {
+	for _, x := range s {
+		if x == v {
+			return true
+		}
+	}
+	return false
 }

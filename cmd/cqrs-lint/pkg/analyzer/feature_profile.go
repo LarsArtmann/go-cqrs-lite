@@ -43,6 +43,16 @@ type FeatureProfile struct {
 	// This classifies CLI tools with embedded dashboards correctly, suppressing
 	// server-only rules (health checks, Prometheus, transport suggestions).
 	ServerLocal bool
+	// HasMetaengine is true when the project imports the metaengine module.
+	// Adoption rules (F022-F025) use this to gate pushdown suggestions.
+	HasMetaengine bool
+	// MetaengineEngines lists the engine backends wired by the project
+	// (e.g. "sqlite", "pebble", "duckdb", "postgres", "memory").
+	// Detected from imports of metaengine/<engine>engine subpackages.
+	MetaengineEngines []string
+	// MetaenginePushdown is true when the project uses FilterOnField or
+	// SortOnField — indicating it has adopted declarative pushdown.
+	MetaenginePushdown bool
 }
 
 // StoreKind enumerates the persistence backends go-cqrs-lite supports.
@@ -189,6 +199,11 @@ func (fp FeatureProfile) String() string {
 	_, _ = fmt.Fprintf(&b, "transport:     %t\n", fp.HasTransport)
 	_, _ = fmt.Fprintf(&b, "server-local:  %t\n", fp.ServerLocal)
 	_, _ = fmt.Fprintf(&b, "async-bus:     %t\n", fp.HasAsyncBus)
+	_, _ = fmt.Fprintf(&b, "metaengine:    %t\n", fp.HasMetaengine)
+	if len(fp.MetaengineEngines) > 0 {
+		_, _ = fmt.Fprintf(&b, "  engines:     %s\n", strings.Join(fp.MetaengineEngines, ", "))
+	}
+	_, _ = fmt.Fprintf(&b, "  pushdown:    %t\n", fp.MetaenginePushdown)
 	return b.String()
 }
 
