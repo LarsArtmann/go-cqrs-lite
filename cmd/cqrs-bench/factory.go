@@ -72,7 +72,9 @@ func compareWithDiskPaths(
 	return results
 }
 
-func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string, func()) {
+func makeFactory(
+	ctx context.Context, backend, dsn, dir, durability string,
+) (benchkit.Factory, string, func()) {
 	var (
 		diskPath string
 		cleanup  func()
@@ -87,145 +89,28 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 
 	switch backend {
 	case "memory", "mem":
-		return func() (*stack.Bundle, error) { return memory.New() }, "", nil
+		return makeMemoryFactory(ctx)
 
 	case "sqlite", "sq", "sqlite-cgo", "sq3":
-		driverName := "sqlite"
-
-		if backend == "sqlite-cgo" || backend == "sq3" {
-			if !sqliteCgoAvailable {
-				fatalf(
-					"sqlite-cgo backend requires CGo (mattn/go-sqlite3) — rebuild with CGO_ENABLED=1",
-				)
-
-				return nil, "", nil // unreachable
-			}
-
-			driverName = "sqlite3"
-		}
-
-		dbDir := dir
-		if dbDir == "" {
-			dbDir = mkTempDir()
-			cleanup = func() { _ = os.RemoveAll(dbDir) }
-		}
-
-		dbPath := filepath.Join(dbDir, "bench.db")
-		if dsn == "" {
-			dsn = dbPath
-		}
-
-		diskPath = dbDir
-
-		return func() (*stack.Bundle, error) {
-			opts := []sqlite.Option{
-				// Enable production optimizations (64 MB cache, mmap, temp in
-				// memory) so benchmarks reflect realistic deployment config,
-				// not SQLite's conservative 2 MB default cache.
-				sqlite.WithPragmas(sqlopt.WithOptimizations()),
-			}
-
-			if driverName != "sqlite" {
-				opts = append(opts, sqlite.WithDriverName(driverName))
-			}
-
-			if tierSet {
-				opts = append(opts, sqlite.WithDurability(tier))
-			}
-
-			return sqlite.New(dsn, opts...)
-		}, diskPath, cleanup
+		return makeSQLiteFactory(ctx, backend, dsn, dir, tier, tierSet, &diskPath, &cleanup)
 
 	case "bbolt", "bolt":
-		boltDir := dir
-		if boltDir == "" {
-			boltDir = mkTempDir()
-			cleanup = func() { _ = os.RemoveAll(boltDir) }
-		}
-
-		diskPath = boltDir
-		dbPath := filepath.Join(boltDir, "bench.db")
-
-		return func() (*stack.Bundle, error) {
-			return bbolt.New(dbPath)
-		}, diskPath, cleanup
+		return makeBBoltFactory(ctx, dir, &diskPath, &cleanup)
 
 	case "pebble", "peb":
-		pebDir := dir
-		if pebDir == "" {
-			pebDir = mkTempDir()
-			cleanup = func() { _ = os.RemoveAll(pebDir) }
-		}
-
-		diskPath = pebDir
-
-		return func() (*stack.Bundle, error) {
-			opts := []pebble.Option{}
-			if tierSet {
-				opts = append(opts, pebble.WithDurability(tier))
-			}
-
-			b, err := pebble.New(pebDir, opts...)
-			if err != nil {
-				return nil, err
-			}
-
-			return b.Bundle, nil
-		}, diskPath, cleanup
+		return makePebbleFactory(ctx, dir, tier, tierSet, &diskPath, &cleanup)
 
 	case "postgres", "pg":
-		if dsn == "" {
-			fatalf(
-				"postgres backend requires --dsn (e.g. postgres://user:pass@localhost:5432/bench?sslmode=disable)",
-			)
-		}
-
-		return func() (*stack.Bundle, error) {
-			opts := []postgres.Option{}
-			if tierSet {
-				opts = append(opts, postgres.WithDurability(tier))
-			}
-
-			return postgres.New(dsn, opts...)
-		}, "", nil
+		return makePostgresFactory(ctx, dsn, tier, tierSet)
 
 	case "mysql", "maria", "mariadb":
-		if dsn == "" {
-			fatalf(
-				"mysql backend requires --dsn (e.g. user:password@tcp(localhost:3306)/bench?parseTime=true)",
-			)
-		}
-
-		return func() (*stack.Bundle, error) {
-			return mysql.New(dsn)
-		}, "", nil
+		return makeMySQLFactory(ctx, dsn)
 
 	case "turso":
-		dbDir := dir
-		if dbDir == "" {
-			dbDir = mkTempDir()
-			cleanup = func() { _ = os.RemoveAll(dbDir) }
-		}
-
-		diskPath = dbDir
-		dbPath := filepath.Join(dbDir, "bench.db")
-
-		return func() (*stack.Bundle, error) {
-			opts := []turso.Option{}
-			if tierSet {
-				opts = append(opts, turso.WithDurability(tier))
-			}
-
-			b, err := turso.New(dbPath, opts...)
-			if err != nil {
-				return nil, err
-			}
-
-			return b.Bundle, nil
-		}, diskPath, cleanup
+		return makeTursoFactory(ctx, dir, tier, tierSet, &diskPath, &cleanup)
 
 	case "duckdb", "duck":
-		return duckdbFactory(dsn, dir)
+		return duckdbFactory(ctx, dsn, dir)
 
 	default:
 		fatalf(
@@ -235,6 +120,168 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 
 		return nil, "", nil // unreachable
 	}
+}
+
+func makeMemoryFactory(_ context.Context) (benchkit.Factory, string, func()) {
+	return func() (*stack.Bundle, error) { return memory.New() }, "", nil
+}
+
+func makeSQLiteFactory(
+	_ context.Context,
+	backend, dsn, dir string,
+	tier stack.DurabilityTier, tierSet bool,
+	diskPath *string, cleanup *func(),
+) (benchkit.Factory, string, func()) {
+	driverName := "sqlite"
+
+	if backend == "sqlite-cgo" || backend == "sq3" {
+		if !sqliteCgoAvailable {
+			fatalf(
+				"sqlite-cgo backend requires CGo (mattn/go-sqlite3) — rebuild with CGO_ENABLED=1",
+			)
+
+			return nil, "", nil // unreachable
+		}
+
+		driverName = "sqlite3"
+	}
+
+	dbDir := dir
+	if dbDir == "" {
+		dbDir = mkTempDir()
+		*cleanup = func() { _ = os.RemoveAll(dbDir) }
+	}
+
+	dbPath := filepath.Join(dbDir, "bench.db")
+	if dsn == "" {
+		dsn = dbPath
+	}
+
+	*diskPath = dbDir
+
+	return func() (*stack.Bundle, error) {
+		opts := []sqlite.Option{
+			// Enable production optimizations (64 MB cache, mmap, temp in
+			// memory) so benchmarks reflect realistic deployment config,
+			// not SQLite's conservative 2 MB default cache.
+			sqlite.WithPragmas(sqlopt.WithOptimizations()),
+		}
+
+		if driverName != "sqlite" {
+			opts = append(opts, sqlite.WithDriverName(driverName))
+		}
+
+		if tierSet {
+			opts = append(opts, sqlite.WithDurability(tier))
+		}
+
+		return sqlite.New(dsn, opts...)
+	}, *diskPath, *cleanup
+}
+
+func makeBBoltFactory(
+	_ context.Context, dir string, diskPath *string, cleanup *func(),
+) (benchkit.Factory, string, func()) {
+	boltDir := dir
+	if boltDir == "" {
+		boltDir = mkTempDir()
+		*cleanup = func() { _ = os.RemoveAll(boltDir) }
+	}
+
+	*diskPath = boltDir
+	dbPath := filepath.Join(boltDir, "bench.db")
+
+	return func() (*stack.Bundle, error) {
+		return bbolt.New(dbPath)
+	}, *diskPath, *cleanup
+}
+
+func makePebbleFactory(
+	_ context.Context,
+	dir string, tier stack.DurabilityTier, tierSet bool,
+	diskPath *string, cleanup *func(),
+) (benchkit.Factory, string, func()) {
+	pebDir := dir
+	if pebDir == "" {
+		pebDir = mkTempDir()
+		*cleanup = func() { _ = os.RemoveAll(pebDir) }
+	}
+
+	*diskPath = pebDir
+
+	return func() (*stack.Bundle, error) {
+		opts := []pebble.Option{}
+		if tierSet {
+			opts = append(opts, pebble.WithDurability(tier))
+		}
+
+		b, err := pebble.New(pebDir, opts...)
+		if err != nil {
+			return nil, err
+		}
+
+		return b.Bundle, nil
+	}, *diskPath, *cleanup
+}
+
+func makePostgresFactory(
+	_ context.Context, dsn string, tier stack.DurabilityTier, tierSet bool,
+) (benchkit.Factory, string, func()) {
+	if dsn == "" {
+		fatalf(
+			"postgres backend requires --dsn (e.g. postgres://user:pass@localhost:5432/bench?sslmode=disable)",
+		)
+	}
+
+	return func() (*stack.Bundle, error) {
+		opts := []postgres.Option{}
+		if tierSet {
+			opts = append(opts, postgres.WithDurability(tier))
+		}
+
+		return postgres.New(dsn, opts...)
+	}, "", nil
+}
+
+func makeMySQLFactory(_ context.Context, dsn string) (benchkit.Factory, string, func()) {
+	if dsn == "" {
+		fatalf(
+			"mysql backend requires --dsn (e.g. user:password@tcp(localhost:3306)/bench?parseTime=true)",
+		)
+	}
+
+	return func() (*stack.Bundle, error) {
+		return mysql.New(dsn)
+	}, "", nil
+}
+
+func makeTursoFactory(
+	_ context.Context,
+	dir string, tier stack.DurabilityTier, tierSet bool,
+	diskPath *string, cleanup *func(),
+) (benchkit.Factory, string, func()) {
+	dbDir := dir
+	if dbDir == "" {
+		dbDir = mkTempDir()
+		*cleanup = func() { _ = os.RemoveAll(dbDir) }
+	}
+
+	*diskPath = dbDir
+	dbPath := filepath.Join(dbDir, "bench.db")
+
+	return func() (*stack.Bundle, error) {
+		opts := []turso.Option{}
+		if tierSet {
+			opts = append(opts, turso.WithDurability(tier))
+		}
+
+		b, err := turso.New(dbPath, opts...)
+		if err != nil {
+			return nil, err
+		}
+
+		return b.Bundle, nil
+	}, *diskPath, *cleanup
 }
 
 func parseDurability(s string) (stack.DurabilityTier, bool, error) {

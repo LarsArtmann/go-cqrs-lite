@@ -122,7 +122,7 @@ func TestOnRecord_Count(t *testing.T) {
 		t.Fatalf("ApplyRecord: %v", err)
 	}
 
-	result, err := metaengine.ExecuteTyped[query, map[string]int64]](
+	result, err := metaengine.ExecuteTyped[query, map[string]int64](
 		ctx, store, query{},
 	)
 	if err != nil {

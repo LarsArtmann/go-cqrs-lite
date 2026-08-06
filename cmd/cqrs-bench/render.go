@@ -581,12 +581,12 @@ func fmtCoVDash(c float64) string {
 	return fmt.Sprintf("%.1f%%", c*100)
 }
 
-func truncateMsg(s string, max int) string {
-	if len(s) <= max {
+func truncateMsg(s string, maxLen int) string {
+	if len(s) <= maxLen {
 		return s
 	}
 
-	return s[:max-3] + "..."
+	return s[:maxLen-3] + "..."
 }
 
 func titleCase(s string) string {
