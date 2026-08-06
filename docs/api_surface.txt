@@ -2756,6 +2756,7 @@ stack/sqlite/func SQLViewModel
 stack/sqlite/func WithBusyTimeout
 stack/sqlite/func WithCacheSize
 stack/sqlite/func WithDSN
+stack/sqlite/func WithDriverName
 stack/sqlite/func WithDurability
 stack/sqlite/func WithPragmas
 stack/sqlite/func WithStack
