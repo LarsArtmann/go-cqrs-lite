@@ -25,15 +25,25 @@ type SerializablePlan struct {
 
 // SerializableQuery is the serializable form of a QueryAssignment.
 type SerializableQuery struct {
-	Name             string      `json:"name"`
-	ADT              ADT         `json:"adt"`
-	Engine           string      `json:"engine"`
-	Complexity       string      `json:"complexity"`
-	LatencyMs        float64     `json:"latency_ms"`
-	Persistence      Persistence `json:"persistence,omitempty"`
-	Replication      Replication `json:"replication,omitempty"`
-	ReplicationLagMs int64       `json:"replication_lag_ms,omitempty"`
-	NetworkRTTMs     int64       `json:"network_rtt_ms,omitempty"`
+	Name             string                  `json:"name"`
+	ADT              ADT                     `json:"adt"`
+	Engine           string                  `json:"engine"`
+	Complexity       string                  `json:"complexity"`
+	LatencyMs        float64                 `json:"latency_ms"`
+	ReadCosts        *SerializableReadCosts  `json:"read_costs,omitempty"`
+	Persistence      Persistence             `json:"persistence,omitempty"`
+	Replication      Replication             `json:"replication,omitempty"`
+	ReplicationLagMs int64                   `json:"replication_lag_ms,omitempty"`
+	NetworkRTTMs     int64                   `json:"network_rtt_ms,omitempty"`
+}
+
+// SerializableReadCosts is the serializable form of engine ReadCosts.
+// Captures per-read-pattern calibrated costs for plan diff/pin.
+type SerializableReadCosts struct {
+	NsPerPointLookup  float64 `json:"ns_per_point_lookup,omitempty"`
+	NsPerFilteredScan float64 `json:"ns_per_filtered_scan,omitempty"`
+	NsPerAggregate    float64 `json:"ns_per_aggregate,omitempty"`
+	NsPerScan         float64 `json:"ns_per_scan,omitempty"`
 }
 
 // SerializableRule is the serializable form of a RuleTraceEntry.
@@ -81,6 +91,18 @@ func Serialize(result *PlanResult, engines []Engine) *SerializablePlan {
 			sq.Replication = profile.Replication
 			sq.ReplicationLagMs = profile.EffectiveReplicationLag().Milliseconds()
 			sq.NetworkRTTMs = profile.EffectiveNetworkRTT().Milliseconds()
+
+			if profile.ReadCosts.NsPerPointLookup > 0 ||
+				profile.ReadCosts.NsPerFilteredScan > 0 ||
+				profile.ReadCosts.NsPerAggregate > 0 ||
+				profile.ReadCosts.NsPerScan > 0 {
+				sq.ReadCosts = &SerializableReadCosts{
+					NsPerPointLookup:  profile.ReadCosts.NsPerPointLookup,
+					NsPerFilteredScan: profile.ReadCosts.NsPerFilteredScan,
+					NsPerAggregate:    profile.ReadCosts.NsPerAggregate,
+					NsPerScan:         profile.ReadCosts.NsPerScan,
+				}
+			}
 		}
 
 		sp.Queries = append(sp.Queries, sq)

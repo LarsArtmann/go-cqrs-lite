@@ -2068,6 +2068,7 @@ metaengine/struct SeqValue
 metaengine/struct SerializableLayout
 metaengine/struct SerializablePlan
 metaengine/struct SerializableQuery
+metaengine/struct SerializableReadCosts
 metaengine/struct SerializableRule
 metaengine/struct Skip
 metaengine/struct SortColumn
