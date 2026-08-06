@@ -3,8 +3,6 @@ package metaengine
 import (
 	"fmt"
 	"reflect"
-
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // fieldMapping pairs a source field index (in the event struct) with a
@@ -80,47 +78,7 @@ func matchFields(srcType, dstType reflect.Type) []fieldMapping {
 // Field matching: all exported fields in E whose names match exported fields in R
 // with assignable types are copied. Fields in R not present in E are left zero-valued.
 func AutoInsert[E any, R any](keyField string) Fold {
-	var sample E
-
-	eventType := reflect.TypeOf(sample)
-	resultType := reflect.TypeFor[R]()
-
-	keyIdx, err := findField(eventType, keyField)
-	if err != nil {
-		panic(fmt.Sprintf("AutoInsert: %s (event %s)", err, eventType.Name()))
-	}
-
-	keyType := eventType.Field(keyIdx).Type
-	mappings := matchFields(eventType, resultType)
-	stamps := computeRecordStamps(resultType, mappings)
-
-	recHolder := &struct{ rec record.Record }{}
-
-	invoke := func(event any) (key, val any) {
-		eVal := reflect.ValueOf(event)
-		k := eVal.Field(keyIdx).Interface()
-
-		var result R
-		resultVal := reflect.ValueOf(&result).Elem()
-
-		for _, m := range mappings {
-			resultVal.Field(m.dstIdx).Set(eVal.Field(m.srcIdx))
-		}
-
-		applyRecordStamps(resultVal, stamps, recHolder.rec)
-
-		return k, result
-	}
-
-	f := &insertFold{
-		eventType: EventTypeName(sample),
-		sample:    sample,
-		keyType:   keyType,
-		valueType: resultType,
-		invoke:    invoke,
-	}
-	f.recordSetter = func(r record.Record) { recHolder.rec = r }
-	return f
+	return autoInsertByType(reflect.TypeFor[E](), reflect.TypeFor[R](), keyField)
 }
 
 // AutoDelete creates a delete fold that removes the entry by extracting the key
@@ -134,22 +92,7 @@ func AutoInsert[E any, R any](keyField string) Fold {
 //
 // This generates a removeFold with a keyExtractor that reads the ID field.
 func AutoDelete[E any](keyField string) Fold {
-	var sample E
-
-	eventType := reflect.TypeOf(sample)
-
-	keyIdx, err := findField(eventType, keyField)
-	if err != nil {
-		panic(fmt.Sprintf("AutoDelete: %s (event %s)", err, eventType.Name()))
-	}
-
-	return &removeFold{
-		eventType: EventTypeName(sample),
-		sample:    sample,
-		keyExtractor: func(event any) any {
-			return reflect.ValueOf(event).Field(keyIdx).Interface()
-		},
-	}
+	return autoDeleteByType(reflect.TypeFor[E](), keyField)
 }
 
 // AutoUpdate creates an update fold that merges non-zero event fields into the
@@ -172,55 +115,7 @@ func AutoDelete[E any](keyField string) Fold {
 //	    return prev
 //	})
 func AutoUpdate[E any, R any](keyField string) Fold {
-	var sample E
-
-	eventType := reflect.TypeOf(sample)
-	resultType := reflect.TypeFor[R]()
-
-	keyIdx, err := findField(eventType, keyField)
-	if err != nil {
-		panic(fmt.Sprintf("AutoUpdate: %s (event %s)", err, eventType.Name()))
-	}
-
-	mappings := matchFields(eventType, resultType)
-	stamps := computeRecordStamps(resultType, mappings)
-
-	recHolder := &struct{ rec record.Record }{}
-
-	invoke := func(event, prev any) any {
-		eVal := reflect.ValueOf(event)
-
-		var result R
-		if prev != nil {
-			if p, ok := prev.(R); ok {
-				result = p
-			}
-		}
-		resultVal := reflect.ValueOf(&result).Elem()
-
-		for _, m := range mappings {
-			srcVal := eVal.Field(m.srcIdx)
-			if !srcVal.IsZero() {
-				resultVal.Field(m.dstIdx).Set(srcVal)
-			}
-		}
-
-		applyRecordStamps(resultVal, stamps, recHolder.rec)
-
-		return result
-	}
-
-	f := &updateFold{
-		eventType: EventTypeName(sample),
-		sample:    sample,
-		valueType: resultType,
-		invoke:    invoke,
-		keyExtractor: func(event any) any {
-			return reflect.ValueOf(event).Field(keyIdx).Interface()
-		},
-	}
-	f.recordSetter = func(r record.Record) { recHolder.rec = r }
-	return f
+	return autoUpdateByType(reflect.TypeFor[E](), reflect.TypeFor[R](), keyField)
 }
 
 // AutoCRUD generates insert, update, and delete folds for a standard CRUD

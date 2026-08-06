@@ -156,8 +156,8 @@ func TestBuildComparisonTable(t *testing.T) {
 		t.Fatal("expected non-nil table")
 	}
 
-	if len(table.Headers) != 13 {
-		t.Errorf("expected 13 headers, got %d", len(table.Headers))
+	if len(table.Headers) != 14 {
+		t.Errorf("expected 14 headers, got %d", len(table.Headers))
 	}
 
 	if table.Headers[0] != "Backend" {

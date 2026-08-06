@@ -222,6 +222,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"dispatcher":                     "internal infrastructure (generic dispatcher used by command/query)",
 		"event/v4/eventtest":             "test helper sub-package",
 		"example/getting-started":        "example project",
+		"example/metaengine-quickstart":  "example project",
 		"example/readme-quickstart":      "example project",
 		"example/taskmanager":            "example project",
 		"idempotency/kvstore":            "sub-package (covered by idempotency)",

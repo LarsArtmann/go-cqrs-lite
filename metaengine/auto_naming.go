@@ -128,6 +128,12 @@ func autoDeleteByType(eventType reflect.Type, keyField string) Fold {
 //   - "*Updated" suffix → update fold (e.g. UserUpdated)
 //   - "*Deleted" suffix → delete fold (e.g. UserDeleted)
 //
+// Naming convention note: AutoCRUDByConvention matches Go struct names, NOT
+// dot-separated event type strings. This means the sample type must be named
+// "TaskCreated" (not "task.created"). This differs from the rest of
+// go-cqrs-lite, which uses dot-separated event types. The convention-based
+// approach trades event-type-string flexibility for zero-config CRUD setup.
+//
 // Example:
 //
 //	folds, err := metaengine.AutoCRUDByConvention[UserView]("ID",

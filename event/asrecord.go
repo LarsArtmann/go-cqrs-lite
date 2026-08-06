@@ -21,12 +21,21 @@ import (
 //   - StreamType       ← evt.StreamType()
 //   - Version          ← evt.Version()
 //   - CorrelationID    ← evt.Metadata().Tracing.CorrelationID
-//   - CausationID      ← typed Causation.CommandID if set, else Tracing.CausationID
+//   - CausationID      ← see precedence rule below
 //   - ActorID          ← evt.Metadata().Tracing.UserID (the "who")
 //   - ClientCreatedAt  ← evt.OccurredAt() (best available creation timestamp)
 //   - ServerReceivedAt ← zero (unknown at the event layer; set by the store)
 //   - ServerStoredAt   ← zero (unknown at the event layer; set by the store)
 //   - SchemaVersion    ← evt.SchemaVersion()
+//
+// CausationID precedence: the Record's CausationID is resolved with the
+// following priority:
+//  1. If evt.Metadata().Causation is non-nil and Causation.CommandID is
+//     non-zero, the typed command ID wins. This is the strongest signal —
+//     it means the event was produced by a specific command whose ID is known.
+//  2. Otherwise, Tracing.CausationID is used. This is the generic tracing-level
+//     causation chain, set by middleware.
+//  3. If both are zero, CausationID is empty.
 //
 // A nil Event returns a zero-valued Record.
 func AsRecord(evt Event) record.Record {
