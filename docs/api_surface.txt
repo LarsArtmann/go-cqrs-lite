@@ -1492,6 +1492,10 @@ metaengine/func AllFilterOps
 metaengine/func AllFoldKinds
 metaengine/func AllReadPatterns
 metaengine/func AllStorageLayouts
+metaengine/func AutoCRUD
+metaengine/func AutoDelete
+metaengine/func AutoInsert
+metaengine/func AutoUpdate
 metaengine/func BuildColumnarLayoutPlan
 metaengine/func BuildLayoutPlan
 metaengine/func BuildLayoutPlanFromType

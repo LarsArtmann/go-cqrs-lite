@@ -48,7 +48,7 @@ func matchFields(srcType, dstType reflect.Type) []fieldMapping {
 				continue
 			}
 
-			if srcField.Name == dstField.Name && srcField.TypeAssignable(dstField.Type) {
+			if srcField.Name == dstField.Name && srcField.Type.AssignableTo(dstField.Type) {
 				mappings = append(mappings, fieldMapping{srcIdx: i, dstIdx: j})
 
 				break
