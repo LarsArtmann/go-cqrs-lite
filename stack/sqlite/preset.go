@@ -18,7 +18,12 @@ import (
 // Option configures the SQLite preset.
 type Option func(*config)
 
-const bytesPerKiB = 1024
+const (
+	bytesPerKiB = 1024
+
+	// driverNameSQLite is the default modernc.org/sqlite driver name (pure-Go, no CGo).
+	driverNameSQLite = "sqlite"
+)
 
 type config struct {
 	sqlopt.DSNConfig
@@ -44,7 +49,7 @@ func defaultConfig() config {
 			QueryDSN:    "",
 			ViewDSN:     "",
 		},
-		driverName:     "sqlite",
+		driverName:     driverNameSQLite,
 		durability:     stack.DurabilityNormal,
 		cacheSizeBytes: 0,
 		busyTimeout:    0,
@@ -160,7 +165,7 @@ func New(dsn string, opts ...Option) (*stack.Bundle, error) {
 func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	stackOpts, backend, sqlDB, _, err := sqlopt.InitStack(
 		dsn,
-		"sqlite",
+		driverNameSQLite,
 		cfg.EventDSN,
 		cfg.QueryDSN,
 		func(d string) (*sql.DB, *storage.SQLBackend, error) { return openBackend(d, cfg) },
@@ -177,7 +182,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	// Record the durability tier on the Bundle for introspection.
 	stackOpts = append(stackOpts, stack.WithDurability(cfg.durability))
 	stackOpts = append(stackOpts, stack.WithCapabilities(stack.Capabilities{
-		Backend:     "sqlite",
+		Backend:     driverNameSQLite,
 		Persistent:  true,
 		Distributed: false,
 		DurabilityRange: []stack.DurabilityTier{
@@ -186,7 +191,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 			stack.DurabilityRelaxed,
 		},
 		OLAP:        false,
-		CGoRequired: cfg.driverName != "sqlite",
+		CGoRequired: cfg.driverName != driverNameSQLite,
 		Embedded:    true,
 		SyncEnabled: false,
 	}))
@@ -194,7 +199,7 @@ func newBundle(dsn string, cfg config) (*stack.Bundle, error) {
 	// Extra consumer-provided stack.Options (e.g. stack.WithMetaEngine).
 	stackOpts = append(stackOpts, cfg.extraStackOpts...)
 
-	bundle, err := sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, "sqlite", cfg.ViewDSN,
+	bundle, err := sqlopt.FinalizeBundle(stackOpts, backend, sqlDB, driverNameSQLite, cfg.ViewDSN,
 		func(dsn string) (*sql.DB, error) { return openSecondaryDB(dsn, cfg) },
 		storage.NewSQLiteBackend)
 	if err != nil {
@@ -227,7 +232,7 @@ func openBackend(
 	return sqlopt.OpenPrimaryBackend( //nolint:wrapcheck // OpenPrimaryBackend wraps all errors
 		func() (*sql.DB, error) {
 			actualDSN := dsn
-			if cfg.driverName == "sqlite" {
+			if cfg.driverName == driverNameSQLite {
 				actualDSN = storage.EnsureSQLiteDSNBusyTimeout(dsn, resolveBusyTimeoutMs(cfg))
 			}
 
