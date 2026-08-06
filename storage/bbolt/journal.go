@@ -36,7 +36,7 @@ func (s *EventStore) ReadAll(_ context.Context) ([]event.Event, error) {
 		return nil
 	})
 
-	return events, err
+	return events, wrapBucketErr(err, "bbolt.journal_read_all", "read all events")
 }
 
 // ReadFrom retrieves events ordered by OccurredAt, starting after afterEventID.
@@ -89,5 +89,5 @@ func (s *EventStore) ReadFrom(
 		return nil
 	})
 
-	return events, err
+	return events, wrapBucketErr(err, "bbolt.journal_read_from", "read events from position")
 }

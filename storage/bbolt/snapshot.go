@@ -126,8 +126,7 @@ func (s *SnapshotStore) loadSnapshot(
 		return nil
 	})
 
-	return result, err
-}
+	return result, wrapBucketErr(err, "bbolt.snapshot_load", "load snapshot")
 
 func (s *SnapshotStore) Delete(_ context.Context, ref id.StreamRef) error {
 	key := snapshotKey(ref.Type, ref.ID)

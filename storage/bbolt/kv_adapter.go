@@ -57,7 +57,7 @@ func (a *KVAdapter) Get(_ context.Context, key []byte) ([]byte, error) {
 		return nil
 	})
 
-	return result, err
+	return result, wrapBucketErr(err, "bbolt.kv_get", "get key")
 }
 
 func (a *KVAdapter) Has(_ context.Context, key []byte) (bool, error) {
@@ -77,7 +77,7 @@ func (a *KVAdapter) Has(_ context.Context, key []byte) (bool, error) {
 		return nil
 	})
 
-	return found, err
+	return found, wrapBucketErr(err, "bbolt.kv_has", "check key existence")
 }
 
 func (a *KVAdapter) Set(_ context.Context, key, value []byte) error {
@@ -184,5 +184,5 @@ func (a *KVAdapter) SetIfAbsent(_ context.Context, key, value []byte) (bool, err
 		return bucket.Put(key, value)
 	})
 
-	return inserted, err
+	return inserted, wrapBucketErr(err, "bbolt.kv_set_if_absent", "set key if absent")
 }
