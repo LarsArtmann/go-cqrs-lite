@@ -44,9 +44,9 @@ func unmarshalQuery(data []byte) (*query.PersistedQuery, error) {
 	q, err := query.NewPersistedQuery(
 		query.Type(sq.Type),
 		sq.Payload,
-		query.WithReceivedAt(time.Unix(0, sq.ReceivedAt).UTC()),
-		query.WithRequestID(sq.ID),
-		query.WithMetadata(sq.Metadata),
+		query.WithQueryReceivedAt(time.Unix(0, sq.ReceivedAt).UTC()),
+		query.WithQueryID(sq.ID),
+		query.WithQueryMetadata(sq.Metadata),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("reconstruct query: %w", err)

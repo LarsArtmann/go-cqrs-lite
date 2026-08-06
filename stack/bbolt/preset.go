@@ -85,6 +85,8 @@ func New(path string, opts ...Option) (*stack.Bundle, error) {
 		stack.WithSnapshotStore(backend.SnapshotStore()),
 		stack.WithCheckpointStore(backend.CheckpointStore()),
 		stack.WithReadModels(backend.ReadModels()),
+		stack.WithCommandStore(backend.CommandStore()),
+		stack.WithQueryStore(backend.QueryStore()),
 		stack.WithBus(cqrswatermill.NewEventBus()),
 		stack.WithCloser(backend),
 		stack.WithDiskSize(func() int64 {

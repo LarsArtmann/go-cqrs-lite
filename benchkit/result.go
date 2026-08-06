@@ -67,6 +67,18 @@ type Result struct {
 	ProjectionLag    time.Duration `json:"projectionLag"`
 	ProjectionEvents int64         `json:"projectionEvents"`
 
+	// Checkpoint metrics — Save/Load latency for projection checkpoint stores.
+	// Critical for projection recovery: a slow checkpoint store stalls the
+	// projection host during replay. Zero-valued when no CheckpointStore.
+	CheckpointSaveLatency LatencyStats `json:"checkpointSaveLatency"`
+	CheckpointLoadLatency LatencyStats `json:"checkpointLoadLatency"`
+
+	// Batch write metrics — AppendBatch throughput for multi-event writes.
+	// BatchWriteLatency measures per-batch time; BatchWriteThroughput is
+	// events/sec. Zero-valued when EventSink lacks AppendBatch or ReplayOnly.
+	BatchWriteLatency    LatencyStats `json:"batchWriteLatency"`
+	BatchWriteThroughput float64      `json:"batchWriteThroughput,omitempty"`
+
 	// Journey metrics — end-to-end publish→projection→query latency (M14).
 	// JourneyLatency times the full round trip per event: Save → projection.Handle
 	// (materialize) → typed query returns the updated value. The three component

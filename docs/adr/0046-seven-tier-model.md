@@ -5,9 +5,8 @@
 > the conceptual grouping (primitives → core → infrastructure → composition),
 > but the numbered tier table has always listed seven.
 
-**Status:** Accepted
-**Date:** 2026-07-09
-**Updated:** 2026-08-05 (module count, tier assignments, structural-vs-conceptual note)
+**Status:** **Amended** (see addendum below)
+**Date:** 2026-07-09 (original), 2026-08-06 (amendment)
 
 ## Context
 
@@ -334,4 +333,41 @@ even if it has zero deps. Conceptual role must be able to raise the tier.
 
 ```
 
-```
+---
+
+## Addendum 2026-08-06: Metaengine Reclassified
+
+**metaengine/ moves from Tier 0 to Tier 3 (Aggregation).**
+
+### What Changed
+
+The original tier model placed metaengine in Tier 0 because it had zero internal
+deps. This was structurally correct but conceptually wrong, and the structural
+correctness is now superseded by ADR-0062's addendum (the zero-dep boundary is
+removed — metaengine depends on the `Record` type from ADR-0111).
+
+The metaengine is conceptually an **aggregation** layer: it takes Records
+(events + commands) and aggregates them into query-optimized projections. This
+is the same conceptual tier as `decider/` (aggregates events into state),
+`projectionhost/` (aggregates events into read models), and `graph/` (aggregates
+events into graph data).
+
+### New Tier Assignment
+
+| Module | Old Tier | New Tier | Reason |
+|--------|----------|----------|--------|
+| `metaengine/` | 0 | 3 | Depends on Record type (ADR-0111). Conceptually aggregates records into projections. Same tier as decider/, projectionhost/, graph/. |
+
+The engine submodules (`pebbleengine/`, `duckdbengine/`, `pgengine/`,
+`irohengine/`, future `badgerengine/`, `dgraphengine/`) remain Tier 4
+(Infrastructure) — they provide storage backends, not domain logic.
+
+`metaengine/adttest/` remains Tier 4 (test infrastructure, consumed by engine
+modules).
+
+### Impact on Tier Counts
+
+| Tier | Old count | New count | Change |
+|------|-----------|-----------|--------|
+| 0    | 8         | 7         | -1 (metaengine leaves) |
+| 3    | 5         | 6         | +1 (metaengine joins) |

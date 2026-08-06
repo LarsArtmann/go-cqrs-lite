@@ -2,8 +2,8 @@
 
 |             |                                                                                                   |
 | ----------- | ------------------------------------------------------------------------------------------------- |
-| **Status**  | Accepted                                                                                          |
-| **Date**    | 2026-07-31                                                                                        |
+| **Status**  | **Amended** (see addendum below)                               |
+| **Date**    | 2026-07-31 (original), 2026-08-06 (amendment)                 |
 | **Context** | The metaengine ships a `GraphBackend` (in-memory BFS) that overlaps the dedicated `graph/` module |
 
 ## Context
@@ -87,3 +87,43 @@ be done when the first real graph-query-through-planner use case appears.
   intended direction.
 - Consumers choosing between the two: use `graph/` for projections, use
   `metaengine/` only if you want the planner to manage graph queries.
+
+---
+
+## Addendum 2026-08-06: graph/ API Wins — Delete GraphBackend
+
+**The original decision is superseded. graph/ becomes the single graph
+abstraction. GraphBackend is deleted.**
+
+### What Was Wrong
+
+The original decision kept both systems separate based on two arguments:
+
+1. "GraphBackend is a planner ADT" — but a graph ADT doesn't need its own
+   storage backend interface. The planner can route graph-shaped folds to any
+   engine that implements `graph.GraphDriver`. The ADT classification stays;
+   the storage interface changes.
+
+2. "Importing graph/ violates the zero-dependency boundary" — this was the real
+   blocker, and it is now superseded (ADR-0062 addendum). The zero-dep boundary
+   was an artificial constraint that kneecapped the planner.
+
+### New Decision: graph/ API Wins
+
+`graph.GraphDriver` implements `metaengine.Engine`. The planner routes
+`ADTGraph` queries to GraphDriver-backed engines. The simple `Edge{From, To}`
+fold return type auto-upgrades to `MergeEdge` calls internally.
+
+- **Delete** `metaengine.GraphBackend` interface (2 methods: AddEdge, Neighbors)
+- **Delete** graph implementations in memory_engine, sqlite_engine, pebbleengine
+- **Keep** `ADTGraph` in the planner's ADT vocabulary
+- **graph.GraphDriver** becomes a metaengine Engine (via adapter or directly)
+- **graph.MemoryDriver** becomes the default in-memory graph engine
+- **New engines** (Dgraph) implement GraphDriver, not GraphBackend
+- **Schema validation** from graph/ applies to all planner-routed graph queries
+
+The richer API (MergeNode/MergeEdge with properties, typed NodeRef/EdgeRef,
+Schema validation, ReadableDriver with Query/Traverse/ShortestPath) becomes the
+standard for all graph operations in the system.
+
+See ADR-0113 for the full implementation plan.

@@ -2,8 +2,8 @@
 
 | Field      | Value                                                 |
 | ---------- | ----------------------------------------------------- |
-| Status     | Accepted                                              |
-| Date       | 2026-07-25                                            |
+| Status     | **Amended** (see addendum below)                      |
+| Date       | 2026-07-25 (original), 2026-08-06 (amendment)         |
 | Deciders   | Lars Artmann                                          |
 | Related    | ADR-0061 (SQLite engine), ADR-0046 (seven-tier model) |
 | Supersedes | —                                                     |
@@ -79,3 +79,63 @@ directives sidesteps this entirely until metaengine gets its first stable tag.
   module's `go.mod` and is consistent with how untagged workspace modules work.
 - **Neutral:** `Store.EventTypes() []string` is now part of the public API. This
   is a generally useful accessor that any integration adapter can use.
+
+---
+
+## Addendum 2026-08-06: Zero-Dependency Boundary Is Wrong
+
+**The zero-dependency principle for metaengine core is superseded.**
+
+### What Was Wrong
+
+The original decision assumed the metaengine is a **generic storage planner**
+that should not understand event sourcing. This was a fundamental
+misunderstanding of the metaengine's purpose. The metaengine is — and should
+always have been — **the Event Sourcing projection planner**: the system that
+takes Commands, Events, and Queries as input and automatically decides what
+materialized views to build, where to store them, and whether to materialize or
+replay.
+
+The zero-dependency boundary:
+1. **Kneecapped the planner** — it sees events as `any` blobs, unable to reason
+   about event types, causality, tombstones, or command-to-event relationships.
+2. **Blocked graph unification** — ADR-0077 kept GraphBackend and graph/
+   separate solely because importing graph/ would violate the zero-dep boundary.
+3. **Required an adapter layer with translation loss** — projectionadapter/
+   exists only to bridge the artificial gap between the planner and event types.
+4. **Did not match reality** — pgengine already connects to a server (Postgres),
+   proving the "embedded-library model" was never a real constraint.
+
+### New Principle: No Artificial Boundary
+
+Modules are split by **deployment concern** (CGo isolation, heavy external
+dependencies like database drivers), not by an arbitrary purity rule. The
+metaengine core depends on the shared `Record` type (ADR-0111) and can depend on
+any module whose types it needs to reason about during planning.
+
+**The new dependency rule:** a module's dependencies are justified if they make
+the planner better at its job. Modules are split when:
+- An external dependency requires CGo (DuckDB)
+- A dependency adds significant binary weight (Pebble, Badger)
+- A dependency requires a running server (Postgres, Dgraph)
+- Isolation improves consumer choice (consumers who don't need Dgraph don't
+  import the dgraphengine module)
+
+### What Changes
+
+- metaengine core gains a dependency on the `Record` type (ADR-0111)
+- SQLite engine moves to `metaengine/sqliteengine/` (ADR-0115) — the only
+  reason it was in core was `database/sql`, which is stdlib but conceptually
+  belongs with the engine implementations
+- `metaengine/projectionadapter/` is simplified or absorbed — the core no
+  longer needs an adapter to understand events
+- New engine modules (badgerengine, dgraphengine) follow the same deployment
+  isolation pattern as pebbleengine, pgengine, etc.
+
+### What Stays the Same
+
+- The `projectionadapter/` subpackage pattern for heavy external deps
+  (`event/`, `projection/`, `projectionhost/`) remains valid for modules that
+  genuinely need isolation
+- The cost-based planner, ADT classification, and Engine interface are unchanged
+- Cross-engine parity testing via `adttest/` is unchanged
