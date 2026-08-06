@@ -170,7 +170,9 @@ func buildDefaultCatalog() []ModuleEntry {
 			Suggestion:  "Stream listing and tombstone detection",
 		},
 		{
-			Key: "metaengine", DisplayName: "Metaengine", Category: CategoryProjections,
+			Key:         "metaengine",
+			DisplayName: "Metaengine",
+			Category:    CategoryProjections,
 			ImportHints: []string{"go-cqrs-lite/metaengine"},
 			Description: "Cost-based planner: SQL pushdown (FilterOnField/SortOnField), 10 ADTs, layout planning, multi-engine (Memory/SQLite/DuckDB/Pebble/Postgres)",
 			Suggestion:  "Cost-based storage planner with FilterOnField/SortOnField SQL pushdown, layout planning, and streaming reads",

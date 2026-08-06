@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0
@@ -32,6 +32,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-sse v0.4.0 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect

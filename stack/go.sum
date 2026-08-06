@@ -105,8 +105,8 @@ github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 h1:XkQ74ekrRjPVjB778ilh4CQ
 github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0/go.mod h1:Whn5hyo0u+rbYEzTV9aD7EEpP8+RpT5sC3zQRA1LCF8=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 h1:zdDVNIVABTPII8G2Gj6n9RYkTVdyrtGpZoFjJI1/13Y=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0/go.mod h1:nMOU7fUkKn92n973yl8ZrQGasqSTCPjcbszMA1TfeTg=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.4.0 h1:A349SjLoe5k7KA8TIHwCscYxSc7mvwOK0IkeuHiXeu4=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.4.0/go.mod h1:t7kNhrAHtnOktGJ3njYLTrgWxyw6vAgZm4F31jcDwBo=
+github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.5.0 h1:cRyiMhYQ/yTozVAk2w9L/P5jAntgU3KYdkBXvolW/As=
+github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.5.0/go.mod h1:YMMTZs2PzhPrNpzfVc1rG1TgH3GVQFavwSZmj78Zkn0=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0 h1:ZrONXutxbKyiEt5eT1PlCUdBjbdaP3trJXdVsd7Hxdw=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0/go.mod h1:Bt2zpoINQJFYwue5G/rEUDZC2cJYkVTreRg0D7jcJ94=
 github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0 h1:RH1ZdexXHCI8L5dkNxfPN0KsEevt0VASodQ97UgHuzA=
@@ -129,6 +129,8 @@ github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0 h1:HO5CLEaiQRGE85s9/xkcD
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0/go.mod h1:bnImW3oduybJYjcgu98guF2GBuarTS/IaXOYoRsTIJ0=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
+github.com/larsartmann/go-sse v0.4.0 h1:cHeOMbVGcIqeetic8bdZIITo4xsPSpWiPhtvQTxNd+4=
+github.com/larsartmann/go-sse v0.4.0/go.mod h1:B9mLj83rwtrnbqSqBcRuMV8vnOvAaPlJtH+9U/fMeRQ=
 github.com/lithammer/shortuuid/v3 v3.0.7 h1:trX0KTHy4Pbwo/6ia8fscyHoGA+mf1jWbPJVuvyJQQ8=
 github.com/lithammer/shortuuid/v3 v3.0.7/go.mod h1:vMk8ke37EmiewwolSO1NLW8vP4ZaKlRuDIi8tWWmAts=
 github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 h1:6E+4a0GO5zZEnZ81pIr0yLvtUWk2if982qA3F3QD6H4=

@@ -106,7 +106,9 @@ func main() {
 		"api-stability",
 		"API surface stability checker for go-cqrs-lite",
 		AppConfig{},
-		cmdguard.WithCLILong("api-stability verifies the exported API surface of every go-cqrs-lite module against a golden file."),
+		cmdguard.WithCLILong(
+			"api-stability verifies the exported API surface of every go-cqrs-lite module against a golden file.",
+		),
 	)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating CLI: %v\n", err)
@@ -145,7 +147,12 @@ func collectAllModuleExports(modules []string, projectRoot string) ([]string, er
 		modPath := filepath.Join(projectRoot, mod)
 
 		if _, err := os.Stat(modPath); err != nil {
-			return nil, fmt.Errorf("module %q not found at %s: %w — add it to the modules list or remove the stale entry", mod, modPath, err)
+			return nil, fmt.Errorf(
+				"module %q not found at %s: %w — add it to the modules list or remove the stale entry",
+				mod,
+				modPath,
+				err,
+			)
 		}
 
 		exps, err := collectExports(modPath)

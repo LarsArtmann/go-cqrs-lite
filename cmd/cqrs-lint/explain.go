@@ -248,8 +248,19 @@ type featureKey struct {
 //nolint:gochecknoglobals // read-only documentation table
 var featureKeys = []featureKey{
 	{
-		"store", "string",
-		[]string{"sqlite", "postgres", "mysql", "pebble", "memory", "turso", "duckdb", "custom", "none"},
+		"store",
+		"string",
+		[]string{
+			"sqlite",
+			"postgres",
+			"mysql",
+			"pebble",
+			"memory",
+			"turso",
+			"duckdb",
+			"custom",
+			"none",
+		},
 		"Persistence backend the consumer wires up",
 	},
 	{

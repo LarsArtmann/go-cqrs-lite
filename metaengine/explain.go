@@ -230,7 +230,11 @@ func (s *Store) ExplainPlan() string {
 
 					if rc := q.QueryEngine().Profile().ReadCosts; rc.NsPerPointLookup > 0 ||
 						rc.NsPerFilteredScan > 0 || rc.NsPerAggregate > 0 || rc.NsPerScan > 0 {
-						fmt.Fprintf(&b, " read=%.0fns", q.QueryEngine().Profile().NsForRead(qa.ReadPattern))
+						fmt.Fprintf(
+							&b,
+							" read=%.0fns",
+							q.QueryEngine().Profile().NsForRead(qa.ReadPattern),
+						)
 					}
 				}
 			}

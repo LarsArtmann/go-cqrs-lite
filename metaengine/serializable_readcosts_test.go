@@ -77,7 +77,11 @@ func TestSerializableReadCosts_RoundTrip(t *testing.T) {
 	}
 
 	if *dq.ReadCosts != want {
-		t.Errorf("ReadCosts mismatch after round-trip:\n  got:  %+v\n  want: %+v", *dq.ReadCosts, want)
+		t.Errorf(
+			"ReadCosts mismatch after round-trip:\n  got:  %+v\n  want: %+v",
+			*dq.ReadCosts,
+			want,
+		)
 	}
 }
 
@@ -112,7 +116,10 @@ func TestSerializableReadCosts_NilWhenUncalibrated(t *testing.T) {
 	}
 
 	if sp.Queries[0].ReadCosts != nil {
-		t.Errorf("expected ReadCosts to be nil for uncalibrated engine, got %+v", sp.Queries[0].ReadCosts)
+		t.Errorf(
+			"expected ReadCosts to be nil for uncalibrated engine, got %+v",
+			sp.Queries[0].ReadCosts,
+		)
 	}
 
 	data, err := sp.MarshalJSON()

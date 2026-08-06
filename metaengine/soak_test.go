@@ -315,6 +315,7 @@ func TestSoak_MemoryBounded(t *testing.T) {
 	}
 
 	runtime.GC()
+	runtime.GC() // second pass lets the scavenger return freed spans to OS
 	runtime.ReadMemStats(&after)
 
 	totalAllocDelta := int64(after.TotalAlloc) - int64(before.TotalAlloc)

@@ -304,6 +304,18 @@ go-output v0.33.0 incident that broke cqrs-lint for 3+ sessions).
 **When you add/remove an exported symbol:** run `cd cmd/api-stability && GOWORK=off
 go run main.go -update` to regenerate the golden in the same change.
 
+### Soak Test Environment Variables
+
+The metaengine soak tests verify memory bounding for high-volume event streams.
+
+| Variable | Effect |
+|----------|--------|
+| `SOAK_SKIP_10M=1` | Skips `TestSoak_MemoryBounded_10M` (~5s/25s-race). Use in CI or when the full verify gate is already running heavy parallel tests. The 50K-event `TestSoak_MemoryBounded` always runs as the smoke variant. |
+
+The soak test uses a double `runtime.GC()` before measuring heap — this ensures
+the Go scavenger returns freed spans to the OS, giving accurate retained-heap
+readings instead of fragmentation noise.
+
 ## cqrs-lint — Domain-Aware Linter
 
 The linter (`cmd/cqrs-lint`) enforces go-cqrs-lite best practices with 186 rules

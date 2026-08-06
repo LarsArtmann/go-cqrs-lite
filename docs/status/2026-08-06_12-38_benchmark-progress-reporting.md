@@ -123,12 +123,14 @@ User ran `./cqrs-bench compare --profile stress --format benchstat` and asked wh
 ## F) Next 50 Things to Get Done
 
 ### Fix the build (P0)
+
 1. Fix cmdguard pointer/value mismatch in `cmd/cqrs-bench/main.go` (3 handler signatures)
 2. Verify `cmd/cqrs-lint/` changes from daemon compile
 3. Run `go build -tags "goexperiment.jsonv2" ./...` to confirm full build
 4. Run `go test -tags "goexperiment.jsonv2" ./cmd/cqrs-bench/... -count=1`
 
 ### Progress feature hardening (P1)
+
 5. Write `progress_test.go` — test heartbeat interval, phase transitions, nil-safety
 6. Wire `applyProgress` into `sweepCmd`
 7. Add `--progress` to `printUsage` examples and flag list
@@ -138,11 +140,13 @@ User ran `./cqrs-bench compare --profile stress --format benchstat` and asked wh
 11. Test progress with `--format json --output file.json` (clean stdout/file)
 
 ### API stability (P1)
+
 12. Fix `cmd/api-stability` to pass `goexperiment.jsonv2` build tag
 13. Regen api-stability golden for benchkit Config change
 14. Verify `TestEveryGoModDirIsInModulesList` still passes
 
 ### Progress richness (P2)
+
 15. Add events-processed counter to heartbeat (thread callback through `runConcurrent`)
 16. Add throughput (events/s) to heartbeat output
 17. Add phase ETA based on events processed / rate
@@ -154,6 +158,7 @@ User ran `./cqrs-bench compare --profile stress --format benchstat` and asked wh
 23. Add progress to durability phase
 
 ### CLI polish (P2)
+
 24. Review cmdguard migration — is it actually better than stdlib flag?
 25. Add `--quiet` flag (suppresses progress even when stderr is a TTY)
 26. Add `--verbose` flag (enables per-event logging in phases)
@@ -161,34 +166,40 @@ User ran `./cqrs-bench compare --profile stress --format benchstat` and asked wh
 28. Add progress format option (text/json/none)
 
 ### Daemon defense (P2)
+
 29. Add `.git/hooks/post-commit` that runs `go build ./...` and reverts on failure
 30. Document daemon break pattern in AGENTS.md more prominently
 31. Add CI check that validates HEAD always builds
 
 ### Soak mode (P3)
+
 32. Unify soak progress with the new progressReporter
 33. Add soak-specific metrics to heartbeat (iterations, leak trend)
 34. Make soak `ReportInterval` default respect `--progress` flag
 
 ### Library API (P3)
+
 35. Document `ProgressWriter` / `ProgressInterval` in Config godoc
 36. Add `WithProgress(writer, interval)` option helper
 37. Expose `ProgressReporter` as a configurable interface (custom formatters)
 38. Add progress callback channel for programmatic consumers
 
 ### Testing (P3)
+
 39. Benchmark test for progress reporter overhead (should be negligible)
 40. Race test: concurrent beginPhase + beat + endPhase
 41. Test: progress with cancelled context (heartbeat stops cleanly)
 42. Test: progress with error mid-phase (endPhase still fires)
 
 ### Documentation (P3)
+
 43. Update AGENTS.md with `--progress` flag in Quick Reference
 44. Update SKILL.md if benchkit CLI is documented there
 45. Add progress output example to cqrs-bench README
 46. Document the progress output format (stderr, not stdout)
 
 ### Metaengine / Other (P4)
+
 47. Verify metaengine phase gets progress (it's in phaseSteps)
 48. Verify raw sink phase gets progress (heavy: pre-builds all events)
 49. Consider progress for `benchkit.Compare` (library-level, not just CLI)

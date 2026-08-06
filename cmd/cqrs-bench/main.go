@@ -314,7 +314,10 @@ func sweepHandler(ctx context.Context, _ *AppConfig, flags *SweepFlags) error {
 	case "gomaxprocs", "gomax":
 		results = benchkit.GOMAXPROCSSweep(runCtx, config, factory, values)
 	default:
-		fatalf("unknown parameter: %s (use workers, batchSize, streamLength, gomaxprocs)", flags.Param)
+		fatalf(
+			"unknown parameter: %s (use workers, batchSize, streamLength, gomaxprocs)",
+			flags.Param,
+		)
 	}
 
 	writeSweep(flags.Format, flags.Output, results)
