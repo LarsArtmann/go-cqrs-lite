@@ -99,6 +99,78 @@ adapter := projectionadapter.NewWithDecoder("users", store, dec)
 host.Register(adapter)
 ```
 
+## Record-Aware Folds
+
+Record-aware folds give fold handlers access to the full event context
+(StreamID, Version, CorrelationID, ActorID) via [record.Record]. This enables
+auto-stamping metadata fields into result types without manual boilerplate.
+
+### OnRecord — explicit Record access
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/record/v4"
+
+type itemView struct {
+    ID       string
+    StreamID string
+    Version  int64
+}
+
+findItem := metaengine.Query[FindItem, itemView]("items",
+    metaengine.OnRecord(itemCreated{}, func(rec record.Record, e itemCreated) (string, itemView) {
+        return e.ID, itemView{
+            ID:       e.ID,
+            StreamID: rec.StreamID.String(),
+            Version:  rec.Version,
+        }
+    }),
+)
+```
+
+### AutoInsert/AutoUpdate — automatic Record stamping
+
+AutoInsert and AutoUpdate automatically stamp Record metadata fields (StreamID,
+Version, CorrelationID, ActorID, SchemaVersion) into matching result struct
+fields. If the result type has a field named `StreamID`, it gets stamped from
+`rec.StreamID.String()` — no manual code needed.
+
+```go
+type taskView struct {
+    ID       string
+    Title    string
+    StreamID string  // auto-stamped from rec.StreamID
+    Version  int64   // auto-stamped from rec.Version
+}
+
+// AutoInsert stamps StreamID and Version automatically
+q := metaengine.Query[TaskQuery, taskView]("tasks",
+    metaengine.AutoInsert[taskCreated, taskView]("ID"),
+)
+```
+
+### AutoCRUDByConvention — zero-config CRUD
+
+Infers insert/update/delete folds from event type names via Created/Updated/
+Deleted suffix matching. No type parameters needed.
+
+```go
+folds, err := metaengine.AutoCRUDByConvention[taskView]("ID",
+    TaskCreated{}, TaskUpdated{}, TaskDeleted{})
+```
+
+### Bridge from event-sourcing pipeline
+
+The `event.AsRecord()` adapter converts `event.Event` into `record.Record`.
+The `projectionadapter` calls this automatically — consumers don't need to call
+it manually. For custom pipelines:
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+rec := event.AsRecord(evt)
+store.ApplyRecord(ctx, rec, decoded)
+```
+
 ## The Fold Return Type IS the ADT
 
 The developer never declares "I need a Map" or "I need a Counter."

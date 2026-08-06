@@ -105,14 +105,18 @@ func TestProjectionHost_RecordAwareLifecycle(t *testing.T) {
 		t.Fatalf("store.Execute: %v", err)
 	}
 
-	items, ok := result.(map[string]recordItem)
+	scanResult, ok := result.(metaengine.ScanResult)
 	if !ok {
-		t.Fatalf("expected map[string]recordItem, got %T", result)
+		t.Fatalf("expected ScanResult, got %T", result)
 	}
 
-	item, exists := items["item-1"]
-	if !exists {
-		t.Fatal("item-1 not found in store")
+	if len(scanResult.Items) == 0 {
+		t.Fatal("no items in store")
+	}
+
+	item, ok := scanResult.Items[0].(recordItem)
+	if !ok {
+		t.Fatalf("expected recordItem, got %T", scanResult.Items[0])
 	}
 
 	if item.StreamID == "" {

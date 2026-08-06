@@ -36,6 +36,7 @@ use (
 	./metadata
 	./metaengine
 	./metaengine/badgerengine
+	./metaengine/dgraphengine
 	./metaengine/duckdbengine
 	./metaengine/graphadapter
 	./metaengine/irohengine
