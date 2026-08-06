@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -28,6 +29,7 @@ var modules = []string{
 	"dedup",
 	"retry",
 	"flightrecorder",
+	"record",
 	// Layer 1
 	"event",
 	"event/v4/eventtest",
@@ -108,7 +110,7 @@ func main() {
 	cli, err := cmdguard.NewCLI(
 		"api-stability",
 		"API surface stability checker for go-cqrs-lite",
-		AppConfig{},
+		AppConfig{Config: cmdguard.Config{}},
 		cmdguard.WithCLILong(
 			"api-stability verifies the exported API surface of every go-cqrs-lite module against a golden file.",
 		),
@@ -173,6 +175,11 @@ func collectAllModuleExports(modules []string, projectRoot string) ([]string, er
 	return exports, nil
 }
 
+var (
+	errExportMismatch = errors.New("API export mismatch")
+	errGoldenMissing  = errors.New("API golden file missing")
+)
+
 const (
 	goldenDirPerms  = 0o750
 	goldenFilePerms = 0o600
@@ -212,7 +219,7 @@ func verifyGoldenFile(goldenPath string, exports []string) error {
 
 	for i, exp := range expected {
 		if exports[i] != exp {
-			return fmt.Errorf("export %d: expected %q, got %q", i, exp, exports[i])
+			return fmt.Errorf("%w: export %d: expected %q, got %q", errExportMismatch, i, exp, exports[i])
 		}
 	}
 

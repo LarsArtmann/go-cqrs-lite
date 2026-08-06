@@ -2480,6 +2480,12 @@ query/var ErrHandlerNotFound
 query/var ErrQueryNotFound
 query/var ErrStoreClosed
 query/var ErrTypeAssertion
+record/func NewStreamRef
+record/method Split
+record/method String
+record/struct CommonMetadata
+record/struct Record
+record/type StreamRef
 retry/func Backoff
 retry/func ComputeDelay
 retry/func DefaultConfig

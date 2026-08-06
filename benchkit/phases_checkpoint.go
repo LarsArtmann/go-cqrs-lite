@@ -28,8 +28,8 @@ func (r *runner) checkpointPhase(ctx context.Context) error {
 	loadColl := NewLatencyCollector(0)
 
 	for range sampleCount {
-		if ctx.Err() != nil {
-			break
+		if err := ctx.Err(); err != nil {
+			return err
 		}
 
 		projName := "bench-checkpoint"

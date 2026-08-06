@@ -39,8 +39,8 @@ func (r *runner) versionedReadPhase(ctx context.Context) error {
 	tsColl := NewLatencyCollector(0)
 
 	for i := range sampleCount {
-		if ctx.Err() != nil {
-			break
+		if err := ctx.Err(); err != nil {
+			return err
 		}
 
 		ref := r.refs[i]
