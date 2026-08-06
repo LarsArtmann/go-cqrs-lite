@@ -2,7 +2,6 @@ package metaengine_test
 
 import (
 	"context"
-	"database/sql"
 	"os"
 	"path/filepath"
 	"sync"

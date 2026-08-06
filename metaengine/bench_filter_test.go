@@ -2,7 +2,6 @@ package metaengine_test
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"testing"
 
@@ -106,17 +105,8 @@ func setupBenchStore(
 	var engines []metaengine.Engine
 
 	if useSQLite {
-		db, err := sql.Open("sqlite", ":memory:")
-		if err != nil {
-			tb.Fatalf("open sqlite: %v", err)
-		}
+		eng, db := newSQLiteEngine()
 		tb.Cleanup(func() { _ = db.Close() })
-
-		eng, err := metaengine.NewMemoryEngine(), nil
-		if err != nil {
-			tb.Fatalf("sqlite engine: %v", err)
-		}
-
 		engines = []metaengine.Engine{metaengine.NewMemoryEngine(), eng}
 	} else {
 		engines = []metaengine.Engine{metaengine.NewMemoryEngine()}

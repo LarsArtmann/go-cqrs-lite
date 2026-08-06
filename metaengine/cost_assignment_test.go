@@ -1,8 +1,6 @@
 package metaengine_test
 
 import (
-	"database/sql"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -15,11 +13,8 @@ var _ = Describe("Regression: cost model picks the cheaper engine", func() {
 		// O(logN), but memory's NsPerOp (500) is ~14x cheaper than SQLite
 		// (7000). The planner must therefore prefer memory. This guards the
 		// cost model's core promise: pick the obviously-right engine.
-		db, err := sql.Open("sqlite", "file::memory:?cache=shared")
-		Expect(err).NotTo(HaveOccurred())
+		sqliteEng, db := newSQLiteEngine()
 		DeferCleanup(func() { _ = db.Close() })
-		sqliteEng, err := metaengine.NewMemoryEngine(), nil
-		Expect(err).NotTo(HaveOccurred())
 
 		store, err := metaengine.Plan(
 			[]metaengine.Engine{metaengine.NewMemoryEngine(), sqliteEng},
@@ -54,11 +49,8 @@ var _ = Describe("Regression: cost model picks the cheaper engine", func() {
 		// A Map query with FilterOnField (SQLite pushdown: O(logN) vs Memory
 		// closure scan O(N)) should go to SQLite. This proves the planner
 		// distributes work, not just picks one engine for everything.
-		db, err := sql.Open("sqlite", "file::memory:?cache=shared")
-		Expect(err).NotTo(HaveOccurred())
+		sqliteEng, db := newSQLiteEngine()
 		DeferCleanup(func() { _ = db.Close() })
-		sqliteEng, err := metaengine.NewMemoryEngine(), nil
-		Expect(err).NotTo(HaveOccurred())
 
 		counterQ := countByStatusQuery()
 
