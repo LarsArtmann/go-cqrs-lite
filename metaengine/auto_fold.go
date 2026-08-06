@@ -3,6 +3,8 @@ package metaengine
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // fieldMapping pairs a source field index (in the event struct) with a
@@ -90,6 +92,9 @@ func AutoInsert[E any, R any](keyField string) Fold {
 
 	keyType := eventType.Field(keyIdx).Type
 	mappings := matchFields(eventType, resultType)
+	stamps := computeRecordStamps(resultType, mappings)
+
+	recHolder := &struct{ rec record.Record }{}
 
 	invoke := func(event any) (key, val any) {
 		eVal := reflect.ValueOf(event)
@@ -102,16 +107,20 @@ func AutoInsert[E any, R any](keyField string) Fold {
 			resultVal.Field(m.dstIdx).Set(eVal.Field(m.srcIdx))
 		}
 
+		applyRecordStamps(resultVal, stamps, recHolder.rec)
+
 		return k, result
 	}
 
-	return &insertFold{
+	f := &insertFold{
 		eventType: EventTypeName(sample),
 		sample:    sample,
 		keyType:   keyType,
 		valueType: resultType,
 		invoke:    invoke,
 	}
+	f.recordSetter = func(r record.Record) { recHolder.rec = r }
+	return f
 }
 
 // AutoDelete creates a delete fold that removes the entry by extracting the key
@@ -174,6 +183,9 @@ func AutoUpdate[E any, R any](keyField string) Fold {
 	}
 
 	mappings := matchFields(eventType, resultType)
+	stamps := computeRecordStamps(resultType, mappings)
+
+	recHolder := &struct{ rec record.Record }{}
 
 	invoke := func(event, prev any) any {
 		eVal := reflect.ValueOf(event)
@@ -193,10 +205,12 @@ func AutoUpdate[E any, R any](keyField string) Fold {
 			}
 		}
 
+		applyRecordStamps(resultVal, stamps, recHolder.rec)
+
 		return result
 	}
 
-	return &updateFold{
+	f := &updateFold{
 		eventType: EventTypeName(sample),
 		sample:    sample,
 		valueType: resultType,
@@ -205,6 +219,8 @@ func AutoUpdate[E any, R any](keyField string) Fold {
 			return reflect.ValueOf(event).Field(keyIdx).Interface()
 		},
 	}
+	f.recordSetter = func(r record.Record) { recHolder.rec = r }
+	return f
 }
 
 // AutoCRUD generates insert, update, and delete folds for a standard CRUD

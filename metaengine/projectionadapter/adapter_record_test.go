@@ -24,6 +24,10 @@ func TestAdapter_OnRecordFold_ReceivesRealMetadata(t *testing.T) {
 		Name string
 	}
 
+	type itemQuery struct {
+		ID string
+	}
+
 	type itemView struct {
 		ID       string
 		Name     string
@@ -36,7 +40,7 @@ func TestAdapter_OnRecordFold_ReceivesRealMetadata(t *testing.T) {
 	// capturedRec stores the Record the fold received for later assertion.
 	var capturedRec record.Record
 
-	q := metaengine.Query[struct{}, itemView](
+	q := metaengine.Query[itemQuery, itemView](
 		"item-by-record",
 		metaengine.OnRecord(itemEvent{}, func(rec record.Record, e itemEvent) (string, itemView) {
 			capturedRec = rec
@@ -124,8 +128,8 @@ func TestAdapter_OnRecordFold_ReceivesRealMetadata(t *testing.T) {
 	}
 
 	// Verify the query result reflects the record context.
-	result, err := metaengine.ExecuteTyped[struct{}, itemView](
-		context.Background(), store, struct{}{},
+	result, err := metaengine.ExecuteTyped[itemQuery, itemView](
+		context.Background(), store, itemQuery{ID: "it-1"},
 	)
 	if err != nil {
 		t.Fatalf("ExecuteTyped: %v", err)
