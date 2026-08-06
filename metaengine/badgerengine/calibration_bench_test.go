@@ -2,6 +2,7 @@ package badgerengine_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4"
@@ -73,7 +74,8 @@ func BenchmarkCalibration_BadgerCounterIncrement(b *testing.B) {
 	var i int
 
 	for b.Loop() {
-		if err := cb.CounterIncrement(ctx, "bench", i%100, 1); err != nil {
+		key := fmt.Sprintf("k%d", i%100)
+		if err := cb.CounterIncrement(ctx, "bench", metaengine.Delta{key: 1}); err != nil {
 			b.Fatalf("CounterIncrement %d: %v", i, err)
 		}
 		i++

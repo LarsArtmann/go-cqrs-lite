@@ -32,16 +32,19 @@ import (
 const sep = "\x00"
 
 // BadgerNsPerOp is the estimated per-operation cost for the Badger engine.
-// Badger's LSM-tree architecture provides comparable point-read performance
-// to Pebble. This value will be calibrated with benchmarks once the engine
-// is stable.
-const BadgerNsPerOp = 2000.0
+// Badger's LSM-tree architecture provides fast point reads but higher write
+// costs due to LSM compaction overhead. Calibrated via BenchmarkCalibration_BadgerSet
+// (2026-08-06: ~4300 ns/op median).
+const BadgerNsPerOp = 4300.0
 
-// BadgerNsPerRead is the estimated per-READ-operation cost.
-const BadgerNsPerRead = 1300.0
+// BadgerNsPerRead is the measured per-READ-operation cost.
+// Calibrated via BenchmarkCalibration_BadgerGet (2026-08-06: ~1200 ns/op median).
+const BadgerNsPerRead = 1200.0
 
-// BadgerNsPerWrite is the estimated per-WRITE-operation cost.
-const BadgerNsPerWrite = 2500.0
+// BadgerNsPerWrite is the measured per-WRITE-operation cost.
+// Calibrated via BenchmarkCalibration_BadgerSet (2026-08-06: ~4300 ns/op median).
+// Counter operations are even higher (~5800 ns/op) due to read-modify-write.
+const BadgerNsPerWrite = 4300.0
 
 type badgerEngine struct {
 	db          *badger.DB

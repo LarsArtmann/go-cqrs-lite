@@ -42,10 +42,24 @@ LayoutPlanner, RawValueReader, RawScanReader.
 
 ## Cost Profile
 
-Badger's LSM-tree architecture provides comparable point-read performance to Pebble. The
-initial cost estimates (`BadgerNsPerOp = 2000`, `BadgerNsPerRead = 1300`, `BadgerNsPerWrite = 2500`)
-mirror Pebble's calibrated values. These should be re-measured with `BenchmarkCalibration` once
-the engine stabilizes.
+Badger's LSM-tree architecture provides fast point reads but higher write costs
+than Pebble due to LSM compaction overhead. Calibrated 2026-08-06 on AMD Ryzen
+AI MAX+ 395 (3-run median):
+
+| Operation         | Badger (ns/op) | Pebble (ns/op) | Ratio |
+| ----------------- | -------------- | -------------- | ----- |
+| MapSet (write)    | ~4300          | ~2500          | 1.7x  |
+| MapGet (read)     | ~1200          | ~1300          | 0.9x  |
+| CounterIncrement  | ~5800          | ~2000          | 2.9x  |
+
+**Key finding:** Badger reads are slightly faster than Pebble (comparable LSM
+point lookups), but writes are significantly more expensive. CounterIncrement
+is especially costly due to Badger's transaction overhead on read-modify-write.
+
+Calibrated constants in `engine.go`:
+- `BadgerNsPerOp = 4300.0` (measured from MapSet)
+- `BadgerNsPerRead = 1200.0` (measured from MapGet)
+- `BadgerNsPerWrite = 4300.0` (measured from MapSet)
 
 ## Persistence
 
