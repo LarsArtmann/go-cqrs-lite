@@ -80,9 +80,11 @@ func (s StoreKind) IsSQL() bool {
 	switch s {
 	case StoreSQLite, StorePostgres, StoreMySQL, StoreDuckDB, StoreCustom:
 		return true
-	default:
+	case StoreUnknown, StorePebble, StoreMemory, StoreTurso, StoreBolt, StoreNone:
 		return false
 	}
+
+	return false
 }
 
 // IsEmbedded reports whether this store runs in-process (no separate server).
@@ -92,9 +94,11 @@ func (s StoreKind) IsEmbedded() bool {
 	switch s {
 	case StoreSQLite, StorePebble, StoreBolt, StoreMemory, StoreDuckDB:
 		return true
-	default:
+	case StoreUnknown, StorePostgres, StoreMySQL, StoreTurso, StoreCustom, StoreNone:
 		return false
 	}
+
+	return false
 }
 
 // IsDistributed reports whether this store runs as a separate server process,
@@ -103,9 +107,11 @@ func (s StoreKind) IsDistributed() bool {
 	switch s {
 	case StorePostgres, StoreMySQL, StoreTurso:
 		return true
-	default:
+	case StoreUnknown, StoreSQLite, StorePebble, StoreMemory, StoreDuckDB, StoreBolt, StoreCustom, StoreNone:
 		return false
 	}
+
+	return false
 }
 
 // AllStoreKinds returns every defined StoreKind value, sorted alphabetically.

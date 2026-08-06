@@ -8,6 +8,8 @@ import (
 	"slices"
 	"sync"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 type Store struct {
@@ -248,6 +250,60 @@ func (s *Store) ApplyBatch(ctx context.Context, events []EventInput) error {
 	for _, evt := range events {
 		if err := s.Apply(ctx, evt.Type, evt.Payload); err != nil {
 			return fmt.Errorf("batch apply event %q: %w", evt.Type, err)
+		}
+	}
+
+	return nil
+}
+
+// ApplyRecord processes a decoded payload with full Record context (ADR-0112).
+// Record-aware folds (created via OnRecord) receive the full Record — StreamID,
+// Version, MetaData — alongside the payload. Non-Record-aware folds (created via
+// On) receive only the payload, as usual.
+//
+// The decodedPayload is the already-decoded Go struct (e.g. UserCreated{...}),
+// not raw bytes. The Record carries metadata context; the payload carries the
+// domain data.
+func (s *Store) ApplyRecord(
+	ctx context.Context,
+	rec record.Record,
+	decodedPayload any,
+) error {
+	return s.applyWithRecord(ctx, rec.Type, rec, decodedPayload)
+}
+
+// applyWithRecord dispatches a payload through all matching folds, setting the
+// Record context on RecordAwareFold implementations before invoke.
+func (s *Store) applyWithRecord(
+	ctx context.Context,
+	eventType string,
+	rec record.Record,
+	payload any,
+) error {
+	s.meter.IncWrite()
+
+	if s.eventLog != nil {
+		s.eventLog.Record(eventType, payload)
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
+		q := s.queries[name]
+
+		foldIdx, ok := q.QueryFoldByEvent()[eventType]
+		if !ok {
+			continue
+		}
+
+		fold := q.QueryFolds()[foldIdx]
+		if ra, ok := fold.(RecordAwareFold); ok {
+			ra.SetCurrentRecord(rec)
+		}
+
+		if err := s.applyFold(ctx, q, fold, payload); err != nil {
+			return fmt.Errorf("query %q fold for %s: %w", q.QueryName(), eventType, err)
 		}
 	}
 

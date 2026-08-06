@@ -60,6 +60,7 @@ var modules = []string{
 	"metaengine/irohengine/loopback",
 	"metaengine/irohengine/quic",
 	"metaengine/projectionadapter",
+	"metaengine/graphadapter",
 	"metaengine/sqliteengine",
 	// Layer 4
 	"storage/memory",
@@ -110,7 +111,8 @@ func main() {
 	cli, err := cmdguard.NewCLI(
 		"api-stability",
 		"API surface stability checker for go-cqrs-lite",
-		AppConfig{Config: cmdguard.Config{}, Update: false},
+		AppConfig{Config: cmdguard.Config{ //nolint:exhaustruct // defaults acceptable for this one-shot CLI
+		}, Update:                         false},
 		cmdguard.WithCLILong(
 			"api-stability verifies the exported API surface of every go-cqrs-lite module against a golden file.",
 		),

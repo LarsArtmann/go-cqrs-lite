@@ -68,7 +68,9 @@ func NewA009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			case analyzer.StoreUnknown,
 				analyzer.StoreMemory,
 				analyzer.StoreTurso,
-				analyzer.StoreNone:
+				analyzer.StoreNone,
+				analyzer.StoreDuckDB,
+				analyzer.StoreBolt:
 				// Keep generic suggestion for these cases.
 			}
 

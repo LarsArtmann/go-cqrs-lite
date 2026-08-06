@@ -168,7 +168,7 @@ func hasTraversalPatterns(ctx *analyzer.AnalysisContext) (token.Position, bool) 
 
 // manualSortPatterns are the function calls that indicate in-memory sorting.
 // Used by F022 to detect sort.Slice/slices.SortFunc without metaengine pushdown.
-var manualSortPatterns = []struct {
+var manualSortPatterns = []struct { //nolint:gochecknoglobals // static lookup table for in-memory sort detection
 	pkg  string
 	name string
 }{

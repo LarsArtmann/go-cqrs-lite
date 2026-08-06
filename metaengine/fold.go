@@ -3,6 +3,8 @@ package metaengine
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // FoldKind classifies what a fold function does to the projection.
@@ -47,17 +49,25 @@ type Fold interface {
 
 // insertFold: func(E) (K, V) → MapSet(collection, K, V).
 type insertFold struct {
-	eventType string
-	sample    any
-	keyType   reflect.Type
-	valueType reflect.Type
-	invoke    func(event any) (key, val any)
+	eventType   string
+	sample      any
+	keyType     reflect.Type
+	valueType   reflect.Type
+	invoke      func(event any) (key, val any)
+	recordSetter func(record.Record) // set by OnRecord; nil for plain On
 }
 
 func (f *insertFold) fold()             {}
 func (f *insertFold) EventType() string { return f.eventType }
 func (f *insertFold) EventSample() any  { return f.sample }
 func (f *insertFold) Kind() FoldKind    { return FoldInsert }
+
+// SetCurrentRecord implements RecordAwareFold.
+func (f *insertFold) SetCurrentRecord(r record.Record) {
+	if f.recordSetter != nil {
+		f.recordSetter(r)
+	}
+}
 
 // updateFold: func(E, prev V) V → MapUpdate.
 type updateFold struct {
@@ -66,12 +76,20 @@ type updateFold struct {
 	valueType    reflect.Type
 	invoke       func(event, prev any) any
 	keyExtractor func(event any) any
+	recordSetter func(record.Record) // set by OnRecord; nil for plain On
 }
 
 func (f *updateFold) fold()             {}
 func (f *updateFold) EventType() string { return f.eventType }
 func (f *updateFold) EventSample() any  { return f.sample }
 func (f *updateFold) Kind() FoldKind    { return FoldUpdate }
+
+// SetCurrentRecord implements RecordAwareFold.
+func (f *updateFold) SetCurrentRecord(r record.Record) {
+	if f.recordSetter != nil {
+		f.recordSetter(r)
+	}
+}
 
 // removeFold: key extraction from event → MapDelete.
 type removeFold struct {
@@ -88,9 +106,10 @@ func (f *removeFold) Kind() FoldKind    { return FoldRemove }
 
 // countFold: func(E) Delta → CounterIncrement.
 type countFold struct {
-	eventType string
-	sample    any
-	invoke    func(event any) Delta
+	eventType   string
+	sample      any
+	invoke      func(event any) Delta
+	recordSetter func(record.Record) // set by OnRecord; nil for plain On
 }
 
 func (f *countFold) fold()             {}
@@ -98,11 +117,19 @@ func (f *countFold) EventType() string { return f.eventType }
 func (f *countFold) EventSample() any  { return f.sample }
 func (f *countFold) Kind() FoldKind    { return FoldCount }
 
+// SetCurrentRecord implements RecordAwareFold.
+func (f *countFold) SetCurrentRecord(r record.Record) {
+	if f.recordSetter != nil {
+		f.recordSetter(r)
+	}
+}
+
 // edgeFold: func(E) Edge → GraphAddEdge.
 type edgeFold struct {
-	eventType string
-	sample    any
-	invoke    func(event any) Edge
+	eventType   string
+	sample      any
+	invoke      func(event any) Edge
+	recordSetter func(record.Record) // set by OnRecord; nil for plain On
 }
 
 func (f *edgeFold) fold()             {}
@@ -112,16 +139,24 @@ func (f *edgeFold) Kind() FoldKind    { return FoldEdge }
 
 // setFold: func(E) K → SetAdd.
 type setFold struct {
-	eventType string
-	sample    any
-	keyType   reflect.Type
-	invoke    func(event any) any
+	eventType   string
+	sample      any
+	keyType     reflect.Type
+	invoke      func(event any) any
+	recordSetter func(record.Record) // set by OnRecord; nil for plain On
 }
 
 func (f *setFold) fold()             {}
 func (f *setFold) EventType() string { return f.eventType }
 func (f *setFold) EventSample() any  { return f.sample }
 func (f *setFold) Kind() FoldKind    { return FoldSet }
+
+// SetCurrentRecord implements RecordAwareFold.
+func (f *setFold) SetCurrentRecord(r record.Record) {
+	if f.recordSetter != nil {
+		f.recordSetter(r)
+	}
+}
 
 // multiInsertFold: func(E) MultiEntry → MultiAdd.
 type multiInsertFold struct {

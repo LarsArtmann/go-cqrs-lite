@@ -334,7 +334,7 @@ func deriveStrings[T ~string](fn func() []T) func() []string {
 	}
 }
 
-func init() {
+func init() { //nolint:gochecknoinits // derive valid values from featureKey.derive enumerators; runs once at package load
 	// Derive feature valid values from the derive field (which calls the
 	// All*Kind() enumerators) to eliminate the split-brain risk of maintaining
 	// hand-written copies alongside the Kind const blocks in the analyzer package.

@@ -1502,6 +1502,8 @@ metaengine/func NewSSEReplay
 metaengine/func NewTieredStore
 metaengine/func NewWatcher
 metaengine/func On
+metaengine/func OnRecord
+metaengine/func OnRecordTyped
 metaengine/func OnTyped
 metaengine/func ParseCursor
 metaengine/func PassesFilterSpecs
@@ -1557,6 +1559,14 @@ metaengine/func WithTTL
 metaengine/func WithTracing
 metaengine/func WithWorkloadStats
 metaengine/func WithWriteAmplificationBudget
+metaengine/graphadapter/func New
+metaengine/graphadapter/func NewWithDriver
+metaengine/graphadapter/method Close
+metaengine/graphadapter/method Driver
+metaengine/graphadapter/method GraphAddEdge
+metaengine/graphadapter/method GraphNeighbors
+metaengine/graphadapter/method Profile
+metaengine/graphadapter/struct Adapter
 metaengine/interface AggregateReader
 metaengine/interface AtomicAppender
 metaengine/interface Calibratable
@@ -1578,6 +1588,7 @@ metaengine/interface PlanRule
 metaengine/interface PushdownScan
 metaengine/interface RawScanReader
 metaengine/interface RawValueReader
+metaengine/interface RecordAwareFold
 metaengine/interface ScanBackend
 metaengine/interface SearchBackend
 metaengine/interface SetBackend
@@ -1699,6 +1710,7 @@ metaengine/method ApplyBatch
 metaengine/method ApplyCalibration
 metaengine/method ApplyEncoded
 metaengine/method ApplyIdempotent
+metaengine/method ApplyRecord
 metaengine/method Avg
 metaengine/method Check
 metaengine/method CheckAndRecord
@@ -1865,6 +1877,10 @@ metaengine/method SetAdd
 metaengine/method SetCalibration
 metaengine/method SetCalibration
 metaengine/method SetContains
+metaengine/method SetCurrentRecord
+metaengine/method SetCurrentRecord
+metaengine/method SetCurrentRecord
+metaengine/method SetCurrentRecord
 metaengine/method SnapshotDelete
 metaengine/method SnapshotLoad
 metaengine/method SnapshotLoadAtVersion

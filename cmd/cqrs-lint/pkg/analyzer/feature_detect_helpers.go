@@ -106,7 +106,7 @@ func detectSoftDeleteRegistry(registry *CQRSRegistry) bool {
 // httpFrameworkImports lists Go HTTP framework module paths whose presence in
 // go.mod / imports is a strong server signal. A project importing Gin/Echo/
 // Fiber/Chi is serving HTTP.
-var httpFrameworkImports = []string{
+var httpFrameworkImports = []string{ //nolint:gochecknoglobals // static lookup table for HTTP framework detection
 	"gin-gonic/gin",
 	"labstack/echo",
 	"gofiber/fiber",

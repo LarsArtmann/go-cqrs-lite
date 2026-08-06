@@ -178,6 +178,7 @@
             "metadata"
             "projection"
             "projectionhost"
+            "record"
             "scenario"
             "scheduling"
             "scheduling/sqlstore"

@@ -245,8 +245,10 @@ func printMarkdownGrouped(w io.Writer, findings []finding.Finding, groupMode str
 	}
 
 	for _, g := range groups {
-		fmt.Fprintf(w, "## %s (%d)\n\n", g.name, len(g.findings))
+		if _, err := fmt.Fprintf(w, "## %s (%d)\n\n", g.name, len(g.findings)); err != nil {
+			return
+		}
 		_ = finding.FormatMarkdown(w, g.findings)
-		fmt.Fprintln(w)
+		_, _ = fmt.Fprintln(w)
 	}
 }
