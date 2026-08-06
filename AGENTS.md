@@ -56,14 +56,15 @@ go-cqrs-lite/
 │   └── idtest/          # Parse*(tb, s) test helpers — tb.Fatalf on error, no panics
 ├── metadata/            # Tracing, CustomData[K] (extracted from event/ — shared metadata types for command/query/event)
 ├── metaengine/          # Cost-based storage planner — THE STRATEGIC FUTURE of this project (possibly a future dedicated project)
-│                        # Core: Engine, Store, Plan, 7 ADTs, cost model, SQLite engine. Zero production deps in core.
+│                        # Core: Engine, Store, Plan, 7 ADTs, cost model, memory_engine. SQLite engine moving to sqliteengine/ (ADR-0115).
+│                        # v2 vision (ADRs 0111-0117): ES-native planner depends on Record type, auto-generates projections from event struct shapes.
 │                        # ⚠️ CANONICAL DESIGN DOCS (read before working on metaengine):
 │                        #   [project-definition](docs/planning/meta-engine-project-definition.md),
 │                        #   [design/vision](docs/planning/meta-engine-design.md),
 │                        #   [assumptions & query-planning](docs/planning/meta-engine-assumptions-and-query-planning.md)
 │                        # SQLite engine: tx-atomic MapUpdate, restart-safe multimap seq, ExecuteTyped reifies map[string]any→struct.
 │                        # Caller owns the *sql.DB (engine Close is a no-op).
-│                        # ADRs: [0061](docs/adr/0061-metaengine-sqlite-engine.md), [0062](docs/adr/0062-metaengine-dependency-boundary.md), [0063](docs/adr/0063-metaengine-pushdown.md), [0073](docs/adr/0073-metaengine-layout-planning.md), [0093](docs/adr/0093-metaengine-replication-model.md), [0094](docs/adr/0094-metaengine-universal-adt-support.md), [0096](docs/adr/0096-iroh-distributed-engine-bridge-evaluation.md)
+│                        # ADRs: [0061](docs/adr/0061-metaengine-sqlite-engine.md), [0062](docs/adr/0062-metaengine-dependency-boundary.md) (amended), [0063](docs/adr/0063-metaengine-pushdown.md), [0073](docs/adr/0073-metaengine-layout-planning.md), [0093](docs/adr/0093-metaengine-replication-model.md), [0094](docs/adr/0094-metaengine-universal-adt-support.md), [0096](docs/adr/0096-iroh-distributed-engine-bridge-evaluation.md), [0111-0117](docs/adr/0111-record-type-extraction.md) (v2 architecture)
 │                        # **Query pushdown** (Phase 1): FilterOnField/SortOnField → SQLite json_extract() WHERE/ORDER BY pushdown
 │                        # **Layout planning** (Phase 3): LayoutPlan generates DDL from declared query patterns (indexed columns, 10x faster)
 │                        # **Streaming reads** (Phase 5): StreamScan(ctx) iter.Seq2 for OOM-safe lazy iteration

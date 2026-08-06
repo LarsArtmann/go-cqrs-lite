@@ -232,7 +232,7 @@ func (r *runner) phaseSteps() []phaseStep {
 	return []phaseStep{
 		{r.config.ReplayOnly, "benchkit.write_phase", "write phase", r.writePhase},
 		{
-			r.config.ReplayOnly,
+			r.config.ReplayOnly || r.config.SkipBatchWrite,
 			"benchkit.batch_write_phase",
 			"batch write phase",
 			r.batchWritePhase,

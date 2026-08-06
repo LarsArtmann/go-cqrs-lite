@@ -8,6 +8,16 @@
 > operator YAML config, plugin registry, auto-denormalization. See the
 > [README](../../metaengine/README.md) for what actually ships.
 
+> **ADDENDUM 2026-08-06 (v2 vision):** The v2 architecture (ADRs 0111–0117)
+> evolves this design in three ways: (1) the planner reasons over typed
+> `Record` values (ADR-0111/0112), not `any` blobs — enabling auto-projection
+> from event struct shapes (ADR-0116); (2) `graph.GraphDriver` implements
+> `metaengine.Engine` directly, replacing `GraphBackend` (ADR-0113); (3)
+> tombstones become domain events, not mutable metadata (ADR-0114). The
+> zero-dependency boundary (ADR-0062) is superseded — modules split by
+> deployment concern, not purity. SQLite extraction to `sqliteengine/`
+> (ADR-0115) leaves the core with only `memory_engine`.
+
 > **The vision:** Given event-sourced data + declared query patterns, automatically distribute
 > projections across whatever combination of engines the operator provides — optimizing each
 > query pattern to its ideal physical data structure within real hardware constraints.

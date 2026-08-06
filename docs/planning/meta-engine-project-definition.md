@@ -7,6 +7,14 @@
 > current architecture. The module is fully functional — see the
 > [README](../../metaengine/README.md) for the shipped API.
 
+> **ADDENDUM 2026-08-06 (v2 vision):** The metaengine is now classified as a
+> **Tier 3 Aggregation** module (ADR-0046 addendum), not a Tier 0 primitive.
+> The zero-dependency boundary (ADR-0062) is superseded — the planner depends
+> on the shared `Record` type (ADR-0111) and reasons over typed Commands +
+> Events + Queries. The vision of "knowing ONLY the Commands + Events + Queries
+> and their relations, build superb Projections" is now the design goal
+> (ADR-0112, ADR-0116). See ADRs 0111–0117 for the full v2 architecture.
+
 > **The meta-engine is a new project.** It is not a module within go-cqrs-lite. It is a
 > standalone research-grade system for making event-sourced data query-optimal across any
 > combination of storage engines.

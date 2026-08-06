@@ -23,6 +23,7 @@ type BenchFlags struct {
 	PayloadSize  int               `default:"256"    flag:"payload-size"  help:"Payload size in bytes per event"`
 	PayloadSizes string            `default:""       flag:"payload-sizes" help:"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size"`
 	Durability   string            `default:""       flag:"durability"    help:"Durability tier: strict, normal, relaxed (default: normal)"`
+	SkipBatchWrite bool             `default:"false"  flag:"skip-batch-write" help:"Skip AppendBatch throughput phase (extra events inflate journal count)"`
 	SkipRawSink  bool              `default:"false"  flag:"skip-raw-sink" help:"Skip raw prebuilt-event sink phase"`
 	SkipJourney  bool              `default:"false"  flag:"skip-journey"  help:"Skip end-to-end publish→projection→query journey phase"`
 	SkipQuery    bool              `default:"false"  flag:"skip-query"    help:"Skip typed query dispatch phase"`

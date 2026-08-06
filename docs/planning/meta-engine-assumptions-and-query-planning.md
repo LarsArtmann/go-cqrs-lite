@@ -5,6 +5,13 @@
 > chooses — WITHOUT doing stupid things like denormalizing every filter combination when a SQL
 > index would suffice?
 
+> **ADDENDUM 2026-08-06 (v2 vision):** The v2 architecture (ADRs 0111–0117)
+> refines the data model: folds receive typed `Record` values (ADR-0111/0112),
+> not `any` blobs. This lets the planner inspect event struct shapes and
+> auto-generate 80% of folds (ADR-0116 — layered auto-projection). The
+> cost model, ADT classification, and Engine interface described below remain
+> valid; the key change is that the planner now has full type information.
+
 **Status:** Design (2026-07-23)
 **Prerequisite reading:** [meta-engine-design.md](meta-engine-design.md) (the vision)
 

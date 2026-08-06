@@ -1292,7 +1292,8 @@ func TestRun_Postgres_Recovery(t *testing.T) {
 		PayloadSize:  64,
 		Backend:      "postgres",
 		Recovery:     true,
-		SkipSnapshot: true, // snapshot populate writes extra events to existing streams
+		SkipSnapshot:   true, // snapshot populate writes extra events to existing streams
+		SkipBatchWrite: true, // batch-write phase inflates journal event count
 	}, func() (*stack.Bundle, error) {
 		return postgres.New(dsn)
 	})
@@ -1424,7 +1425,8 @@ func TestRun_Recovery_SQLite(t *testing.T) {
 		Backend:      "sqlite",
 		DiskPath:     dir,
 		Recovery:     true,
-		SkipSnapshot: true, // snapshot populate writes extra events to existing streams
+		SkipSnapshot:   true, // snapshot populate writes extra events to existing streams
+		SkipBatchWrite: true, // batch-write phase inflates journal event count
 	}, func() (*stack.Bundle, error) {
 		return sqlite.New(dbPath)
 	})
@@ -1466,7 +1468,8 @@ func TestRun_Recovery_Pebble(t *testing.T) {
 		Backend:      "pebble",
 		DiskPath:     dir,
 		Recovery:     true,
-		SkipSnapshot: true, // snapshot populate writes extra events to existing streams
+		SkipSnapshot:   true, // snapshot populate writes extra events to existing streams
+		SkipBatchWrite: true, // batch-write phase inflates journal event count
 	}, func() (*stack.Bundle, error) {
 		b, err := pebble.New(dir)
 		if err != nil {
@@ -1503,10 +1506,11 @@ func TestRun_ReplayOnly_SQLite(t *testing.T) {
 		PayloadSize:  64,
 		Backend:      "sqlite",
 		DiskPath:     dir,
-		SkipRawSink:  true,
-		SkipJourney:  true,
-		SkipMixed:    true,
-		SkipSnapshot: true,
+		SkipRawSink:    true,
+		SkipJourney:   true,
+		SkipMixed:     true,
+		SkipSnapshot:  true,
+		SkipBatchWrite: true,
 	}, func() (*stack.Bundle, error) {
 		return sqlite.New(dbPath)
 	})

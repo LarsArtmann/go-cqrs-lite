@@ -140,6 +140,12 @@ type Config struct {
 	// when the bundle has no metaengine (MetaEngine() returns nil).
 	SkipMetaEngine bool
 
+	// SkipBatchWrite skips the AppendBatch throughput phase. The batch-write
+	// phase writes extra events to the store via EventSink.AppendBatch, which
+	// inflates the journal event count. Tests that assert exact event counts
+	// (replay, recovery) should set this to true.
+	SkipBatchWrite bool
+
 	// SkipRawSink skips the raw prebuilt-event sink phase that isolates
 	// EventSink.Save throughput from event generation/encoding overhead.
 	// When false (default), the runner pre-builds all events, then times
