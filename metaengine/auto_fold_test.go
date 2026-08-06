@@ -58,7 +58,11 @@ func TestAutoInsert(t *testing.T) {
 		t.Fatalf("Apply: %v", err)
 	}
 
-	got, err := metaengine.ExecuteTyped[getAutoUser, autoUserView](ctx, store, getAutoUser{ID: "u1"})
+	got, err := metaengine.ExecuteTyped[getAutoUser, autoUserView](
+		ctx,
+		store,
+		getAutoUser{ID: "u1"},
+	)
 	if err != nil {
 		t.Fatalf("ExecuteTyped: %v", err)
 	}
@@ -136,7 +140,11 @@ func TestAutoUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, err := metaengine.ExecuteTyped[getAutoUser, autoUserView](ctx, store, getAutoUser{ID: "u1"})
+	got, err := metaengine.ExecuteTyped[getAutoUser, autoUserView](
+		ctx,
+		store,
+		getAutoUser{ID: "u1"},
+	)
 	if err != nil {
 		t.Fatalf("ExecuteTyped: %v", err)
 	}
@@ -153,7 +161,9 @@ func TestAutoUpdate(t *testing.T) {
 func TestAutoCRUD_FullLifecycle(t *testing.T) {
 	t.Parallel()
 
-	folds := metaengine.AutoCRUD[autoUserCreated, autoUserUpdated, autoUserDeleted, autoUserView]("ID")
+	folds := metaengine.AutoCRUD[autoUserCreated, autoUserUpdated, autoUserDeleted, autoUserView](
+		"ID",
+	)
 
 	foldArgs := make([]any, len(folds))
 	for i, f := range folds {
@@ -178,7 +188,11 @@ func TestAutoCRUD_FullLifecycle(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, err := metaengine.ExecuteTyped[getAutoUser, autoUserView](ctx, store, getAutoUser{ID: "u1"})
+	got, err := metaengine.ExecuteTyped[getAutoUser, autoUserView](
+		ctx,
+		store,
+		getAutoUser{ID: "u1"},
+	)
 	if err != nil {
 		t.Fatalf("after create: %v", err)
 	}
