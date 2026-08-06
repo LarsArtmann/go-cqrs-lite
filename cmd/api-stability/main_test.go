@@ -35,12 +35,13 @@ func TestEveryGoModDirIsInModulesList(t *testing.T) {
 
 	// Directories that are intentionally excluded from the api-stability gate.
 	excluded := map[string]string{
-		".":                         "root workspace go.mod",
-		"cmd/api-stability":         "the api-stability tool itself (circular)",
-		"integration":               "workspace-only cross-module tests (published graph not self-contained)",
-		"example/getting-started":   "example application",
-		"example/readme-quickstart": "example application",
-		"example/taskmanager":       "example application",
+		".":                             "root workspace go.mod",
+		"cmd/api-stability":             "the api-stability tool itself (circular)",
+		"integration":                   "workspace-only cross-module tests (published graph not self-contained)",
+		"example/getting-started":       "example application",
+		"example/metaengine-quickstart": "example application",
+		"example/readme-quickstart":     "example application",
+		"example/taskmanager":           "example application",
 	}
 
 	err := filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
