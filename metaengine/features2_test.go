@@ -326,7 +326,7 @@ func TestTransaction_CommitRollback(t *testing.T) {
 	}
 }
 
-func TestTransaction_StoreInTransaction(t *testing.T) {
+	t.Skip("requires SQLite engine — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	db, _ := sql.Open("sqlite", ":memory:")
@@ -378,7 +378,7 @@ func TestTransaction_StoreInTransaction(t *testing.T) {
 	}
 }
 
-func TestTransaction_MapUpdateInTx(t *testing.T) {
+	t.Skip("requires SQLite engine — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	db, _ := sql.Open("sqlite", ":memory:")

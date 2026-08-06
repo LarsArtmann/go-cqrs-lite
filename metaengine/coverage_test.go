@@ -348,7 +348,7 @@ func TestTypedReader_Count(t *testing.T) {
 
 // ─── O3: ExplainPlan ───
 
-func TestStore_ExplainPlan(t *testing.T) {
+	t.Skip("requires SQLite engine — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	store, _ := setupBenchStore(t, 10, true)
