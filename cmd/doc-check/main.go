@@ -20,6 +20,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -32,6 +33,8 @@ import (
 )
 
 const repoImportPrefix = "github.com/larsartmann/go-cqrs-lite/"
+
+var errBrokenReferences = errors.New("broken documentation reference(s)")
 
 type ref struct {
 	pkg    string
@@ -48,7 +51,7 @@ func main() {
 	cli, err := cmdguard.NewCLI(
 		"doc-check",
 		"Verify Go import paths and qualified symbols in documentation files",
-		AppConfig{},
+		AppConfig{Config: cmdguard.Config{}}, //nolint:exhaustruct // defaults are fine for this one-shot CLI
 		cmdguard.WithCLILong(
 			"doc-check scans markdown files for Go code blocks, extracts import paths and "+
 				"qualified references (e.g. storage.NewSQLiteViewStore), and verifies they exist in the codebase.\n\n"+
@@ -123,7 +126,7 @@ func run(files []string) error {
 	}
 
 	if broken > 0 {
-		return fmt.Errorf("%d broken reference(s) found", broken)
+		return fmt.Errorf("%w: %d broken reference(s) found", errBrokenReferences, broken)
 	}
 
 	if len(allRefs) == 0 {

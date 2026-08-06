@@ -22,7 +22,7 @@ func duckdbFactory(_ context.Context, dsn, dir string) (benchkit.Factory, string
 
 	if dsn == "" {
 		// In-memory: no disk footprint.
-		return func() (*stack.Bundle, error) { return duckdb.New("") }, diskPath, nil //nolint:contextcheck // stack.New does not accept a context
+		return func() (*stack.Bundle, error) { return duckdb.New("") }, diskPath, nil
 	}
 
 	if diskPath == "" {
