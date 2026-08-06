@@ -1,6 +1,7 @@
 package bbolt
 
 import (
+	"bytes"
 	"context"
 	"time"
 
@@ -27,7 +28,7 @@ func (s *EventStore) Load(
 		prefix := streamPrefix(ref)
 		c := bucket.Cursor()
 
-		for k, v := c.Seek(prefix); k != nil && hasPrefix(k, prefix); k, v = c.Next() {
+		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
 			evt, err := deserializeEvent(v)
 			if err != nil {
 				return errorfamily.WrapCorruption(err, "bbolt.load_corrupt",
@@ -62,7 +63,7 @@ func (s *EventStore) LoadFromVersion(
 
 		c := bucket.Cursor()
 
-		for k, v := c.Seek(lower); k != nil && hasPrefix(k, prefix); k, v = c.Next() {
+		for k, v := c.Seek(lower); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
 			evt, err := deserializeEvent(v)
 			if err != nil {
 				return errorfamily.WrapCorruption(err, "bbolt.load_from_version_corrupt",
@@ -97,7 +98,7 @@ func (s *EventStore) LoadToVersion(
 
 		c := bucket.Cursor()
 
-		for k, v := c.Seek(prefix); k != nil && hasPrefix(k, prefix); k, v = c.Next() {
+		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
 			if string(k) >= string(upper) {
 				break
 			}
@@ -142,7 +143,7 @@ func (s *EventStore) LoadToTimestamp(
 
 		c := bucket.Cursor()
 
-		for k, v := c.Seek(prefix); k != nil && hasPrefix(k, prefix); k, v = c.Next() {
+		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
 			evt, err := deserializeEvent(v)
 			if err != nil {
 				return errorfamily.WrapCorruption(err, "bbolt.load_to_ts_corrupt",
@@ -167,13 +168,4 @@ func (s *EventStore) LoadToTimestamp(
 	}
 
 	return events, nil
-}
-
-// hasPrefix reports whether key starts with prefix.
-func hasPrefix(key, prefix []byte) bool {
-	if len(key) < len(prefix) {
-		return false
-	}
-
-	return string(key[:len(prefix)]) == string(prefix)
 }

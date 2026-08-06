@@ -113,6 +113,7 @@ func (r *runner) readModelPhase(ctx context.Context) error {
 
 	if r.bundle.ReadModels == nil {
 		r.recordSkip("read model phase", "bundle has no ReadModels (kv.Store)")
+
 		return nil
 	}
 

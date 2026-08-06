@@ -202,6 +202,7 @@ func PrintReport(w io.Writer, r *Result) {
 
 	if len(r.SkippedPhases) > 0 {
 		fmt.Fprintln(w, "\nSkipped Phases:")
+
 		for _, phase := range r.SkippedPhases {
 			fmt.Fprintf(w, "  ⚠ %s\n", phase)
 		}
@@ -209,6 +210,7 @@ func PrintReport(w io.Writer, r *Result) {
 
 	if len(r.Warnings) > 0 {
 		fmt.Fprintln(w, "\nWarnings:")
+
 		for _, msg := range r.Warnings {
 			fmt.Fprintf(w, "  ⚠ %s\n", msg)
 		}

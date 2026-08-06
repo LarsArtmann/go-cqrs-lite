@@ -29,56 +29,7 @@ type AppConfig struct {
 	cmdguard.Config
 }
 
-const longDesc = `cqrs-bench — go-cqrs-lite benchmarking tool
-
-Backends:
-  memory     In-memory store (no persistence)
-  sqlite     SQLite database (pure-Go modernc driver, optimized pragmas)
-  sqlite-cgo SQLite database (CGo mattn driver — 3-5x faster, requires gcc)
-  pebble     PebbleDB LSM-tree store
-  bbolt      bbolt B+tree store (pure Go, single-writer, etcd-backed)
-  postgres   PostgreSQL database (requires --dsn)
-  mysql      MySQL/MariaDB database (requires --dsn)
-  turso      Turso embedded database (libSQL/SQLite fork)
-
-Profiles:
-  dev         100 streams x 5 events     (500 events, 1 goroutine)
-  small       1K streams x 10 events     (10K events, 4 goroutines)
-  medium      10K streams x 50 events    (500K events, 16 goroutines)
-  large       100K streams x 100 events  (10M events, 32 goroutines)
-  stress      10K streams x 500 events   (5M events, 64 goroutines)
-  write-heavy 10K streams x 100 events   (1M events, 32 goroutines, 90% writes)
-  read-heavy  10K streams x 100 events   (1M events, 32 goroutines, 80% reads)
-  analytical  10K streams x 10 events    (100K events, 16 goroutines, 90% reads, 5x journal scans)
-
-Codecs:
-  json    JSON encoding (default)
-  cbor    CBOR encoding (compact binary)
-
-Formats:
-  auto       Auto-detect: styled table in terminal, plain text when piped (default)
-  table      Styled terminal table with borders and color (via go-output)
-  text       Human-readable plain text report
-  json       Machine-readable JSON
-  csv        CSV export (spreadsheet-friendly)
-  tsv        TSV export (tab-separated)
-  markdown   Markdown comparison table
-  benchstat  benchstat-compatible lines (pipe to benchstat)
-  manifest   Config + environment + result as JSON
-
-Examples:
-  cqrs-bench run --backend sqlite --dsn ":memory:" --profile dev
-  cqrs-bench run --backend memory --profile dev --format table
-  cqrs-bench run --backend pebble --dir /tmp/bench --profile small --codec cbor
-  cqrs-bench run --backend memory --profile small --repeat 5
-  cqrs-bench run --backend memory --profile dev --soak 5m
-  cqrs-bench run --backend sqlite --dsn ":memory:" --profile dev --skip-snapshot
-  cqrs-bench run --backend memory --profile small --format csv --output results.csv
-  cqrs-bench compare --profile small --format table
-  cqrs-bench compare --profile small --format markdown
-  cqrs-bench compare --profile small --format csv
-  cqrs-bench sweep --param workers --values 1,2,4,8 --backend memory --profile dev
-  cqrs-bench sweep --param batchSize --values 1,5,10 --backend sqlite --profile small`
+const longDesc = "cqrs-bench — go-cqrs-lite benchmarking tool\n\nBackends:\n  memory     In-memory store (no persistence)\n  sqlite     SQLite database (pure-Go modernc driver, optimized pragmas)\n  sqlite-cgo SQLite database (CGo mattn driver — 3-5x faster, requires gcc)\n  pebble     PebbleDB LSM-tree store\n  bbolt      B+tree store (pure Go, single-writer, etcd-backed)\n  postgres   PostgreSQL database (requires --dsn)\n  mysql      MySQL/MariaDB database (requires --dsn)\n  turso      Turso embedded database (libSQL/SQLite fork)\n\nProfiles:\n  dev         100 streams x 5 events     (500 events, 1 goroutine)\n  small       1K streams x 10 events     (10K events, 4 goroutines)\n  medium      10K streams x 50 events    (500K events, 16 goroutines)\n  large       100K streams x 100 events  (10M events, 32 goroutines)\n  stress      10K streams x 500 events   (5M events, 64 goroutines)\n  write-heavy 10K streams x 100 events   (1M events, 32 goroutines, 90% writes)\n  read-heavy  10K streams x 100 events   (1M events, 32 goroutines, 80% reads)\n  analytical  10K streams x 10 events    (100K events, 16 goroutines, 90% reads, 5x journal scans)\n\nCodecs:\n  json    JSON encoding (default)\n  cbor    CBOR encoding (compact binary)\n\nFormats:\n  auto       Auto-detect: styled table in terminal, plain text when piped (default)\n  table      Styled terminal table with borders and color (via go-output)\n  text       Human-readable plain text report\n  json       Machine-readable JSON\n  csv        CSV export (spreadsheet-friendly)\n  tsv        TSV export (tab-separated)\n  markdown   Markdown comparison table\n  benchstat  benchstat-compatible lines (pipe to benchstat)\n  manifest   Config + environment + result as JSON\n\nExamples:\n  cqrs-bench run --backend sqlite --dsn \":memory:\" --profile dev\n  cqrs-bench run --backend memory --profile dev --format table\n  cqrs-bench run --backend pebble --dir /tmp/bench --profile small --codec cbor\n  cqrs-bench run --backend memory --profile small --repeat 5\n  cqrs-bench run --backend memory --profile dev --soak 5m\n  cqrs-bench run --backend sqlite --dsn \":memory:\" --profile dev --skip-snapshot\n  cqrs-bench run --backend memory --profile small --format csv --output results.csv\n  cqrs-bench compare --profile small --format table\n  cqrs-bench compare --profile small --format markdown\n  cqrs-bench compare --profile small --format csv\n  cqrs-bench sweep --param workers --values 1,2,4,8 --backend memory --profile dev\n  cqrs-bench sweep --param batchSize --values 1,5,10 --backend sqlite --profile small"
 
 func main() {
 	cli, err := cmdguard.NewCLI[AppConfig](

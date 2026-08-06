@@ -42,6 +42,7 @@ func TestSkippedPhases_MetaEngineMissing(t *testing.T) {
 	for _, w := range result.Warnings {
 		if strings.Contains(w, "metaengine") {
 			found = true
+
 			break
 		}
 	}
@@ -63,10 +64,10 @@ func TestSkippedPhases_ConfigFlags(t *testing.T) {
 	}
 
 	result, err := Run(ctx, Config{
-		Profile:      ProfileDev,
-		PayloadSize:  64,
-		Backend:      "memory",
-		SkipReads:    true,
+		Profile:        ProfileDev,
+		PayloadSize:    64,
+		Backend:        "memory",
+		SkipReads:      true,
 		SkipMetaEngine: true,
 	}, factory)
 	if err != nil {

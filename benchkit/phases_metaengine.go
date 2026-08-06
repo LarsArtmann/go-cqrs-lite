@@ -81,6 +81,7 @@ func (r *runner) metaEnginePhase(ctx context.Context) error {
 
 	if r.bundle.MetaEngine() == nil {
 		r.recordSkip("metaengine phase", "bundle has no MetaEngine")
+
 		return nil
 	}
 

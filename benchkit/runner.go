@@ -152,6 +152,7 @@ func (r *runner) runPhases(runCtx, parentCtx context.Context) error {
 	for _, s := range steps {
 		if s.skip {
 			r.recordSkip(s.msg, "skipped by config flag")
+
 			continue
 		}
 

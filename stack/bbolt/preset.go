@@ -70,6 +70,7 @@ func New(path string, opts ...Option) (*stack.Bundle, error) {
 		stack.WithCloser(backend),
 		stack.WithDiskSize(func() int64 {
 			size, _ := backend.DiskUsage()
+
 			return safeInt64(size)
 		}),
 		stack.WithDurability(stack.DurabilityStrict),
@@ -84,6 +85,7 @@ func New(path string, opts ...Option) (*stack.Bundle, error) {
 	)
 	if err != nil {
 		_ = backend.Close()
+
 		return nil, errorfamily.WrapInfrastructure(err, "bbolt_preset.wire_bundle",
 			"wire bbolt bundle")
 	}

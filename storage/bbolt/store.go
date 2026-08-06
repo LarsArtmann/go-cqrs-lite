@@ -23,12 +23,9 @@ type EventStore struct {
 	storeBase
 }
 
-// StoreOption configures an EventStore.
-type StoreOption func(*EventStore)
-
 // NewStore wraps an existing *bbolt.DB into an EventStore.
 // Returns ErrNilDatabase if db is nil.
-func NewStore(database *bolt.DB, logger *slog.Logger, _ ...StoreOption) (*EventStore, error) {
+func NewStore(database *bolt.DB, logger *slog.Logger) (*EventStore, error) {
 	if database == nil {
 		return nil, ErrNilDatabase
 	}
@@ -37,7 +34,7 @@ func NewStore(database *bolt.DB, logger *slog.Logger, _ ...StoreOption) (*EventS
 }
 
 // eventKey builds the in-bucket key for an event.
-// Pattern: {streamType}:{streamID}:{010d_version}
+// Pattern: {streamType}:{streamID}:{010d_version}.
 func eventKey(ref id.StreamRef, version event.Version) []byte {
 	return fmt.Appendf(nil, "%s:%s:%010d", ref.Type, ref.ID, version.Int())
 }
@@ -54,7 +51,7 @@ func streamUpperBound(ref id.StreamRef) []byte {
 }
 
 // journalKey builds the globally-ordered key for the journal index.
-// Pattern: {020d_unixnano}:{eventID}
+// Pattern: {020d_unixnano}:{eventID}.
 func journalKey(evt event.Event) []byte {
 	return fmt.Appendf(nil, "%020d:%s", evt.OccurredAt().UnixNano(), evt.ID().String())
 }

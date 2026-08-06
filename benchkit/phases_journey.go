@@ -41,6 +41,7 @@ func (r *runner) journeyPhase(ctx context.Context) error {
 
 	if r.bundle.EventSink == nil || r.bundle.ReadModels == nil {
 		r.recordSkip("journey phase", "bundle missing EventSink or ReadModels")
+
 		return nil
 	}
 

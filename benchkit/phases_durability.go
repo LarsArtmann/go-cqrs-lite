@@ -73,6 +73,7 @@ func (r *runner) recoveryPhase(parent context.Context) error {
 
 	if recovered == nil || recovered.EventSource == nil {
 		r.warn("recovery phase: skipped (reopened bundle has no EventSource)")
+
 		if recovered != nil {
 			//cqrs-lint:ignore(C015,C023) cleanup before error return
 			_ = recovered.Close()

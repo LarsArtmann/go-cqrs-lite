@@ -30,6 +30,7 @@ func (r *runner) rawSinkPhase(ctx context.Context) error {
 
 	if r.bundle.EventSink == nil {
 		r.recordSkip("raw sink phase", "bundle has no EventSink")
+
 		return nil
 	}
 
@@ -170,6 +171,7 @@ const maxIntegritySamples = 20
 func (r *runner) verifyIntegrity(ctx context.Context) {
 	if r.bundle.EventSource == nil || len(r.refs) == 0 {
 		r.warn("integrity check skipped: no EventSource or no streams written")
+
 		return
 	}
 

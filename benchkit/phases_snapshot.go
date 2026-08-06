@@ -33,6 +33,7 @@ func (r *runner) snapshotPhase(ctx context.Context) error {
 	store, ok := r.bundle.EventStore()
 	if !ok {
 		r.recordSkip("snapshot phase", "bundle has no EventStore (event.Store interface)")
+
 		return nil
 	}
 
@@ -70,6 +71,7 @@ func (r *runner) populateSnapshots(
 ) error {
 	if r.bundle.SnapshotStore == nil {
 		r.warn("snapshot phase: snapshot save/load skipped (no SnapshotStore)")
+
 		return nil
 	}
 
