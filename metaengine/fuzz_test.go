@@ -33,4 +33,3 @@ func FuzzFoldClassifier(f *testing.F) {
 		_ = errNoKeyField
 	})
 }
-

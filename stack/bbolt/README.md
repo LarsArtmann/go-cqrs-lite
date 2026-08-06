@@ -34,14 +34,14 @@ bundle, _ := bolt.New("myapp.db",
 
 ## Capabilities
 
-| Capability | Value |
-|-----------|-------|
-| Persistent | yes |
-| Embedded | yes |
-| Distributed | no |
-| OLAP | no |
-| CGoRequired | no |
-| SyncEnabled | n/a |
+| Capability  | Value |
+| ----------- | ----- |
+| Persistent  | yes   |
+| Embedded    | yes   |
+| Distributed | no    |
+| OLAP        | no    |
+| CGoRequired | no    |
+| SyncEnabled | n/a   |
 
 ## When to Choose bbolt
 

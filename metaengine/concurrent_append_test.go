@@ -7,7 +7,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
-
 )
 
 // TestConcurrentAppend_Memory verifies that AtomicAppender prevents

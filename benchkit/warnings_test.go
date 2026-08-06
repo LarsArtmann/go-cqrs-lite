@@ -163,7 +163,12 @@ func TestSkippedPhases_MinimalBundle(t *testing.T) {
 
 type minimalEventStore struct{}
 
-func (m *minimalEventStore) Save(_ context.Context, _ id.StreamRef, _ []event.Event, _ event.Version) error {
+func (m *minimalEventStore) Save(
+	_ context.Context,
+	_ id.StreamRef,
+	_ []event.Event,
+	_ event.Version,
+) error {
 	return nil
 }
 
@@ -175,15 +180,27 @@ func (m *minimalEventStore) Load(_ context.Context, _ id.StreamRef) ([]event.Eve
 	return nil, nil
 }
 
-func (m *minimalEventStore) LoadFromVersion(_ context.Context, _ id.StreamRef, _ event.Version) ([]event.Event, error) {
+func (m *minimalEventStore) LoadFromVersion(
+	_ context.Context,
+	_ id.StreamRef,
+	_ event.Version,
+) ([]event.Event, error) {
 	return nil, nil
 }
 
-func (m *minimalEventStore) LoadToVersion(_ context.Context, _ id.StreamRef, _ event.Version) ([]event.Event, error) {
+func (m *minimalEventStore) LoadToVersion(
+	_ context.Context,
+	_ id.StreamRef,
+	_ event.Version,
+) ([]event.Event, error) {
 	return nil, nil
 }
 
-func (m *minimalEventStore) LoadToTimestamp(_ context.Context, _ id.StreamRef, _ time.Time) ([]event.Event, error) {
+func (m *minimalEventStore) LoadToTimestamp(
+	_ context.Context,
+	_ id.StreamRef,
+	_ time.Time,
+) ([]event.Event, error) {
 	return nil, nil
 }
 

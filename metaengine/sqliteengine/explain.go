@@ -23,7 +23,12 @@ func (e *sqliteEngine) ExplainScanQuery(
 	return explainStandard(col, filters, opts.Sort, opts.Limit)
 }
 
-func explainStandard(col string, filters []metaengine.FilterSpec, sort *metaengine.SortSpec, limit int) (string, []any) {
+func explainStandard(
+	col string,
+	filters []metaengine.FilterSpec,
+	sort *metaengine.SortSpec,
+	limit int,
+) (string, []any) {
 	var b strings.Builder
 
 	args := []any{col}

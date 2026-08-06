@@ -10,7 +10,6 @@ import (
 	"sync"
 	"testing"
 	"time"
-
 )
 
 // --- SSEReplay unit tests ---

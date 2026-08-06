@@ -7,6 +7,7 @@
 ## a) FULLY DONE ✓
 
 ### Benchkit Warning/Strict Test System
+
 - **TestSkippedPhases_MinimalBundle** — Fixed incorrect test expectation ("snapshot phase" was NOT supposed to be in SkippedPhases; the snapshot phase runs whenever EventStore exists). Added clear comment explaining WHY it's excluded.
 - **TestSkippedPhases_MetaEngineMissing** — Passes. Verifies metaengine skip is recorded.
 - **TestSkippedPhases_ConfigFlags** — Passes. Verifies config-level skip flags populate SkippedPhases.
@@ -14,6 +15,7 @@
 - **TestStrictMode_ConfigSkipAlsoFails** — Passes. Verifies config-initiated skips also fail strict mode.
 
 ### SkipBatchWrite Flag (New)
+
 - Added `SkipBatchWrite` to `benchkit.Config` struct with documentation.
 - Wired into `phaseSteps()` gating: `r.config.ReplayOnly || r.config.SkipBatchWrite`.
 - Added `--skip-batch-write` CLI flag to `cmd/cqrs-bench/flags.go` BenchFlags.
@@ -22,24 +24,30 @@
 - All 4 tests PASS.
 
 ### bbolt Contract Tests
+
 - 6 eventtest contract tests in `storage/bbolt/contract_test.go` — ALL PASS.
 - Covers: SaveAndLoad, ConcurrencyConflict, AppendBatch, LoadFromVersion, MetadataRoundtrip, InterfaceCompliance.
 
 ### Full Benchkit Test Suite
+
 - Full suite passes: `go test ./benchkit/... -count=1 -race -short -timeout 300s` — GREEN.
 - Full cqrs-bench suite passes: `go test ./cmd/cqrs-bench/... -count=1 -race` — GREEN.
 
 ### ADR Index Regex Fix
+
 - `scripts/verify-docs.sh` — Fixed regex from `^\| \[00[0-9]+\]` to `^\| \[00[0-9]+[a-z]?\]` to support letter-suffixed ADR files like `0099a-readcosts-per-operation-cost-model.md`.
 - ADR count: 98 files = 98 indexed (was 98 vs 97).
 
 ### Module Registration Gaps
+
 - Added `metaengine/sqliteengine` to `cmd/api-stability/main.go` modules list.
 - Added `metaengine/sqliteengine` to `cmd/cqrs-lint/pkg/analyzer/module_catalog_test.go` exclusion list.
 - Both `TestEveryGoModDirIsInModulesList` and `TestCatalogEveryGoWorkModuleCovered` pass.
 
 ### Metaengine Extraction Fallback Fixes
+
 The auto-commit daemon extracted `sqliteengine` into its own module mid-session, breaking 3 production callers and 6+ test files. Fixed:
+
 - Created `metaengine/sqliteengine/dsl.go` with `NewFromDSN` and `PlanFromDSN` DX helpers.
 - Updated `benchkit/phases_metaengine_sqlite.go` — imports `sqliteengine`, calls `sqliteengine.NewSQLiteEngine`.
 - Updated `system/driver_registry.go` — imports `sqliteengine`, calls `sqliteengine.NewSQLiteEngine`.
@@ -50,6 +58,7 @@ The auto-commit daemon extracted `sqliteengine` into its own module mid-session,
 - Created `metaengine/sqlite_helpers_test.go` — `newSQLiteEngine()` helper with `_ "modernc.org/sqlite"` driver import.
 
 ### Build + Vet
+
 - `nix run .#build` — GREEN.
 - `go vet` — GREEN for all modules including metaengine.
 
@@ -58,27 +67,31 @@ The auto-commit daemon extracted `sqliteengine` into its own module mid-session,
 ## b) PARTIALLY DONE ⚠️
 
 ### `nix run .#verify` (Full CI Gate)
+
 **5 attempts made.** Each attempt got further before a new daemon commit broke something:
 
-| Attempt | Result | Cause |
-|---------|--------|-------|
-| 1 | FAIL | ADR index regex (0099a not matched) |
-| 2 | FAIL | api-stability + cqrs-lint module registration gaps |
-| 3 | FAIL | metaengine sqliteengine extraction broke build |
-| 4 | FAIL | metaengine test compilation errors (daemon mid-refactor) |
-| 5 | FAIL | metaengine test runtime errors (SQLite driver not imported, Memory engine doesn't implement PushdownScan) |
+| Attempt | Result | Cause                                                                                                     |
+| ------- | ------ | --------------------------------------------------------------------------------------------------------- |
+| 1       | FAIL   | ADR index regex (0099a not matched)                                                                       |
+| 2       | FAIL   | api-stability + cqrs-lint module registration gaps                                                        |
+| 3       | FAIL   | metaengine sqliteengine extraction broke build                                                            |
+| 4       | FAIL   | metaengine test compilation errors (daemon mid-refactor)                                                  |
+| 5       | FAIL   | metaengine test runtime errors (SQLite driver not imported, Memory engine doesn't implement PushdownScan) |
 
 **What passes in attempt 5:**
+
 - All documentation assertions (ADR, CHANGELOG, license, module count, error family)
 - Build + Vet
-- ALL non-metaengine test modules (event, command, query, decider, id, dispatcher, schema, snapshot, codec, dedup, deriver, graph, metadata, projection, projectionhost, scenario, scheduling, storage/*, catalog/*, middleware, integration, transport/*, prometheus, signing, encryption, kv, idempotency, listing, otel, testutil, stack/*, benchkit, cmd/*, retry, flightrecorder, system)
+- ALL non-metaengine test modules (event, command, query, decider, id, dispatcher, schema, snapshot, codec, dedup, deriver, graph, metadata, projection, projectionhost, scenario, scheduling, storage/_, catalog/_, middleware, integration, transport/_, prometheus, signing, encryption, kv, idempotency, listing, otel, testutil, stack/_, benchkit, cmd/*, retry, flightrecorder, system)
 
 **What fails in attempt 5:**
+
 - 19 metaengine Ginkgo specs — all `sql: unknown driver "sqlite"` or Memory engine not implementing PushdownScan
 - ~10 metaengine Go tests — same SQLite driver + Memory-vs-SQLite mismatch
 - These are ALL caused by the daemon replacing SQLite engine references with Memory engine in tests that REQUIRE SQLite
 
 ### Metaengine Test Suite
+
 - Compilation: GREEN (vet passes).
 - Runtime: 19 Ginkgo failures + ~10 Go test failures.
 - Root cause: Daemon replaced SQLite-specific test setup with Memory engine, but:
@@ -100,6 +113,7 @@ The auto-commit daemon extracted `sqliteengine` into its own module mid-session,
 ## d) TOTALLY FUCKED UP 💥
 
 ### The Auto-Commit Daemon Race Condition
+
 This session was a **running battle with the auto-commit daemon**, which was simultaneously refactoring `metaengine` (extracting `sqliteengine` into its own module) while I was trying to get the verify gate green. Specifically:
 
 1. **I fixed a file → daemon deleted it.** My `sqlite_helpers_test.go` was created, verified to fix the vet, then the daemon deleted it. I had to recreate it.
@@ -110,7 +124,9 @@ This session was a **running battle with the auto-commit daemon**, which was sim
 **Lesson:** The auto-commit daemon can break the build at any time. The verify gate is only authoritative if no daemon commits land during the run. Future sessions should check `git log` immediately before AND after running `nix run .#verify`.
 
 ### The Metaengine Test Migration is Incomplete
+
 The daemon extracted SQLite-specific code into `sqliteengine/` but left ~30 test files in the parent `metaengine/` package that reference SQLite types, interfaces, and behaviors. These tests need to either:
+
 - Move to `sqliteengine/` package (if they test SQLite-specific behavior), OR
 - Use the `newSQLiteEngine()` helper from `sqlite_helpers_test.go` (if they're cross-engine tests), OR
 - Be rewritten to use Memory engine only (if the behavior is engine-agnostic)
@@ -134,6 +150,7 @@ The daemon attempted option 3 but got it wrong — Memory engine doesn't impleme
 ## f) Up to 50 Things We Should Get Done Next
 
 ### Critical (blocking verify gate)
+
 1. **Move SQLite-specific Ginkgo specs to `sqliteengine/` package** — PushdownScan specs, hardening specs, restart specs that require SQLite.
 2. **Fix `metaengine/pushdown_test.go` BeforeEach** — Uses `sql.Open("sqlite")` without driver import; should use `sqliteengine.NewSQLiteEngine`.
 3. **Fix `metaengine/hardening_test.go`** — Requires SQLite engine, not Memory; use `newSQLiteEngine()` helper.
@@ -153,6 +170,7 @@ The daemon attempted option 3 but got it wrong — Memory engine doesn't impleme
 17. **Add `_ "modernc.org/sqlite"` import to ALL metaengine test files** that call `sql.Open("sqlite", ...)`.
 
 ### High Priority
+
 18. **Run `nix fmt` on all changed files** — Ensure formatting is clean.
 19. **Regenerate api-stability golden** — Export count may have shifted from daemon's extraction.
 20. **Run full verify gate GREEN** — This is the final quality gate.
@@ -163,6 +181,7 @@ The daemon attempted option 3 but got it wrong — Memory engine doesn't impleme
 25. **Tag `metaengine/sqliteengine/v4`** — The module is untagged, causing `go mod tidy` failures in GOWORK=off mode.
 
 ### Medium Priority
+
 26. **Document the bbolt backend in `SKILL.md`** references — Add to the module routing table.
 27. **Add bbolt to the `cqrs-bench` compare default backend list** — Currently `memory,sqlite,pebble`.
 28. **Write a benchkit test that exercises the batch-write phase** — Currently no test verifies BatchWriteLatency is populated.
@@ -174,6 +193,7 @@ The daemon attempted option 3 but got it wrong — Memory engine doesn't impleme
 34. **Document bbolt's single-writer limitation** — In README and benchkit output.
 
 ### Lower Priority
+
 35. **Consider adding `SkipCheckpoint` flag** — Symmetry with `SkipBatchWrite`; checkpoint phase also adds overhead.
 36. **Add `PhaseNames()` to the benchkit Result** — Machine-readable phase list in output.
 37. **Add per-phase timing to Result** — How long each phase took (not just latency stats).
@@ -187,6 +207,7 @@ The daemon attempted option 3 but got it wrong — Memory engine doesn't impleme
 45. **Document bbolt's bucket layout in AGENTS.md** — 8 buckets, key structure.
 
 ### Cleanup
+
 46. **Remove the `metaengine/contains_test.go` file if daemon re-added `contains` to helpers** — Avoid duplicate declarations.
 47. **Clean up `metaengine/layout_bench_test.go`** — Currently a 5-line stub; move benchmarks to sqliteengine.
 48. **Verify `metaengine/calibration_bench_test.go`** — SQLite calibration benchmarks should move to sqliteengine.
@@ -198,13 +219,17 @@ The daemon attempted option 3 but got it wrong — Memory engine doesn't impleme
 ## g) Questions I CANNOT Answer Myself
 
 ### 1. Should I complete the metaengine test migration (moving SQLite tests to sqliteengine/)?
+
 The daemon started this extraction but left it broken. I fixed the compilation errors and downstream callers, but ~19 Ginkgo specs + ~10 Go tests fail at runtime because they need SQLite but got Memory engine. Should I:
+
 - (a) Move all SQLite-dependent tests to `sqliteengine/` package, OR
 - (b) Keep them in `metaengine/` but fix them to use `newSQLiteEngine()` helper, OR
 - (c) Leave this for the daemon to finish (it seems to be actively working on it)?
 
 ### 2. Should I disable/pause the auto-commit daemon for the rest of this session?
+
 The daemon's concurrent metaengine refactoring caused 5 failed verify attempts and made it impossible to reach a stable GREEN state. Every fix I applied was potentially overwritten or broken by a new daemon commit within minutes.
 
 ### 3. Is the `metaengine/sqliteengine` module extraction something you directed the daemon to do, or is it autonomous?
+
 If autonomous, it may continue making breaking changes. If directed, I need to know the target end state so I can fix forward instead of chasing a moving target.

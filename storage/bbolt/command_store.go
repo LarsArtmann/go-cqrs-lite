@@ -37,7 +37,11 @@ func commandJournalKey(cmdID id.CommandID) []byte {
 
 // Save persists a single command. Returns command.ErrDuplicateCommand if a
 // command with the same ID already exists.
-func (s *CommandStore) Save(_ context.Context, ref id.StreamRef, cmd *command.PersistedCommand) error {
+func (s *CommandStore) Save(
+	_ context.Context,
+	ref id.StreamRef,
+	cmd *command.PersistedCommand,
+) error {
 	data, err := marshalCommand(cmd)
 	if err != nil {
 		return err
@@ -62,13 +66,21 @@ func (s *CommandStore) Save(_ context.Context, ref id.StreamRef, cmd *command.Pe
 			return wrapBucketErr(err, "bbolt.command_save", "put command stream key")
 		}
 
-		return wrapBucketErr(jBucket.Put(journalKey, data), "bbolt.command_save", "put command journal key")
+		return wrapBucketErr(
+			jBucket.Put(journalKey, data),
+			"bbolt.command_save",
+			"put command journal key",
+		)
 	})
 }
 
 // AppendBatch persists multiple commands atomically. All commands are written
 // or none. Returns command.ErrDuplicateCommand if any command ID already exists.
-func (s *CommandStore) AppendBatch(_ context.Context, ref id.StreamRef, cmds []*command.PersistedCommand) error {
+func (s *CommandStore) AppendBatch(
+	_ context.Context,
+	ref id.StreamRef,
+	cmds []*command.PersistedCommand,
+) error {
 	return s.db.Update(func(tx *bolt.Tx) error {
 		sBucket := tx.Bucket([]byte(bucketCommands))
 		jBucket := tx.Bucket([]byte(bucketCmdJournal))
@@ -101,7 +113,10 @@ func (s *CommandStore) AppendBatch(_ context.Context, ref id.StreamRef, cmds []*
 }
 
 // Load retrieves all commands for a stream, ordered by command ID.
-func (s *CommandStore) Load(_ context.Context, ref id.StreamRef) ([]*command.PersistedCommand, error) {
+func (s *CommandStore) Load(
+	_ context.Context,
+	ref id.StreamRef,
+) ([]*command.PersistedCommand, error) {
 	prefix := commandStreamPrefix(ref)
 
 	var cmds []*command.PersistedCommand
@@ -126,16 +141,28 @@ func (s *CommandStore) Load(_ context.Context, ref id.StreamRef) ([]*command.Per
 }
 
 // LoadFromTimestamp returns commands for a stream received after the given time.
-func (s *CommandStore) LoadFromTimestamp(_ context.Context, ref id.StreamRef, after time.Time) ([]*command.PersistedCommand, error) {
+func (s *CommandStore) LoadFromTimestamp(
+	_ context.Context,
+	ref id.StreamRef,
+	after time.Time,
+) ([]*command.PersistedCommand, error) {
 	return s.loadByTimestamp(ref, after, false)
 }
 
 // LoadToTimestamp returns commands for a stream received up to the given time.
-func (s *CommandStore) LoadToTimestamp(_ context.Context, ref id.StreamRef, maxTime time.Time) ([]*command.PersistedCommand, error) {
+func (s *CommandStore) LoadToTimestamp(
+	_ context.Context,
+	ref id.StreamRef,
+	maxTime time.Time,
+) ([]*command.PersistedCommand, error) {
 	return s.loadByTimestamp(ref, maxTime, true)
 }
 
-func (s *CommandStore) loadByTimestamp(ref id.StreamRef, ts time.Time, before bool) ([]*command.PersistedCommand, error) {
+func (s *CommandStore) loadByTimestamp(
+	ref id.StreamRef,
+	ts time.Time,
+	before bool,
+) ([]*command.PersistedCommand, error) {
 	prefix := commandStreamPrefix(ref)
 	var cmds []*command.PersistedCommand
 
@@ -192,7 +219,11 @@ func (s *CommandStore) ReadAll(_ context.Context) ([]*command.PersistedCommand, 
 
 // ReadFrom returns commands from the journal starting after the given command
 // ID, up to limit entries. A limit of 0 means no limit.
-func (s *CommandStore) ReadFrom(_ context.Context, afterCmdID id.CommandID, limit int) ([]*command.PersistedCommand, error) {
+func (s *CommandStore) ReadFrom(
+	_ context.Context,
+	afterCmdID id.CommandID,
+	limit int,
+) ([]*command.PersistedCommand, error) {
 	seekKey := commandJournalKey(afterCmdID)
 	var cmds []*command.PersistedCommand
 
@@ -222,5 +253,9 @@ func (s *CommandStore) ReadFrom(_ context.Context, afterCmdID id.CommandID, limi
 		return nil
 	})
 
-	return cmds, wrapBucketErr(err, "bbolt.command_read_from", "read commands from journal position")
+	return cmds, wrapBucketErr(
+		err,
+		"bbolt.command_read_from",
+		"read commands from journal position",
+	)
 }

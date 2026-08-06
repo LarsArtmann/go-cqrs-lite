@@ -10,24 +10,24 @@ This session began with a question about the metaengine's graph support, evolved
 
 ### Amended ADRs (4 files edited in-place)
 
-| ADR | File | What was done |
-|-----|------|---------------|
-| 0062 | `0062-metaengine-dependency-boundary.md` | Status → Amended. Added addendum: zero-dep boundary superseded, new rule = modules split by deployment concern |
-| 0077 | `0077-metaengine-graph-reconciliation.md` | Status → Amended. Added addendum: graph/ API wins, GraphBackend deleted, GraphDriver implements Engine |
-| 0046 | `0046-seven-tier-model.md` | Status → Amended. Added addendum: metaengine reclassified Tier 0 → Tier 3. Updated notable exceptions section |
-| 0074, 0086, 0091 | `0074-pebble-engine.md`, `0086-metaengine-duckdb-engine.md`, `0091-sse-consolidation-decision.md` | Updated dep-boundary references from "zero-dependency core stays clean" to "deployment isolation" |
+| ADR              | File                                                                                              | What was done                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 0062             | `0062-metaengine-dependency-boundary.md`                                                          | Status → Amended. Added addendum: zero-dep boundary superseded, new rule = modules split by deployment concern |
+| 0077             | `0077-metaengine-graph-reconciliation.md`                                                         | Status → Amended. Added addendum: graph/ API wins, GraphBackend deleted, GraphDriver implements Engine         |
+| 0046             | `0046-seven-tier-model.md`                                                                        | Status → Amended. Added addendum: metaengine reclassified Tier 0 → Tier 3. Updated notable exceptions section  |
+| 0074, 0086, 0091 | `0074-pebble-engine.md`, `0086-metaengine-duckdb-engine.md`, `0091-sse-consolidation-decision.md` | Updated dep-boundary references from "zero-dependency core stays clean" to "deployment isolation"              |
 
 ### New ADRs Written (7 files created)
 
-| ADR | File | Decision |
-|-----|------|---------|
-| 0111 | `0111-record-type-extraction.md` | Extract `Record` type with `MetaData CommonMetadata` field. Shared base for Command + Event. Three timestamps: ClientCreatedAt, ServerReceivedAt, ServerStoredAt. Command adds nothing to Record. |
-| 0112 | `0112-es-native-metaengine.md` | ES-native metaengine: planner depends on Record type, understands typed records, not `any` blobs |
-| 0113 | `0113-delete-graphbackend.md` | Delete GraphBackend. graph.GraphDriver implements metaengine.Engine. Simple Edge folds auto-upgrade to MergeEdge |
-| 0114 | `0114-tombstone-as-domain-event.md` | Tombstones are domain events (UserDeleted), not mutable metadata. Event stream is pure immutable |
-| 0115 | `0115-sqlite-engine-extraction.md` | Move SQLite engine from metaengine core to metaengine/sqliteengine/ |
-| 0116 | `0116-layered-auto-projection.md` | Layered auto-projection: 80% auto-generated from type inspection, 100% auto-routed |
-| 0117 | `0117-command-lifecycle-as-events.md` | Command lifecycle (DLQ, retries) via event streams. No IntentStatus field. Dead-letter queues are projections |
+| ADR  | File                                  | Decision                                                                                                                                                                                          |
+| ---- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0111 | `0111-record-type-extraction.md`      | Extract `Record` type with `MetaData CommonMetadata` field. Shared base for Command + Event. Three timestamps: ClientCreatedAt, ServerReceivedAt, ServerStoredAt. Command adds nothing to Record. |
+| 0112 | `0112-es-native-metaengine.md`        | ES-native metaengine: planner depends on Record type, understands typed records, not `any` blobs                                                                                                  |
+| 0113 | `0113-delete-graphbackend.md`         | Delete GraphBackend. graph.GraphDriver implements metaengine.Engine. Simple Edge folds auto-upgrade to MergeEdge                                                                                  |
+| 0114 | `0114-tombstone-as-domain-event.md`   | Tombstones are domain events (UserDeleted), not mutable metadata. Event stream is pure immutable                                                                                                  |
+| 0115 | `0115-sqlite-engine-extraction.md`    | Move SQLite engine from metaengine core to metaengine/sqliteengine/                                                                                                                               |
+| 0116 | `0116-layered-auto-projection.md`     | Layered auto-projection: 80% auto-generated from type inspection, 100% auto-routed                                                                                                                |
+| 0117 | `0117-command-lifecycle-as-events.md` | Command lifecycle (DLQ, retries) via event streams. No IntentStatus field. Dead-letter queues are projections                                                                                     |
 
 ### AGENTS.md Updated
 
@@ -233,6 +233,7 @@ No code was changed, so nothing is broken. The ADRs are documentation-only.
 ### 1. Where should Record/CommonMetadata live?
 
 ADR-0111 says "new shared module or expand metadata/" but this is a real architectural decision I cannot make. Options:
+
 - **Expand `metadata/`**: already exists, event/ and command/ already depend on it. But metadata/ currently holds Tracing + CustomData — adding Record changes its scope.
 - **New `record/` module**: clean start, but adds a module to the workspace and requires event/, command/, metaengine/ to all depend on it.
 - **Put it in `event/`**: rejected by the user ("event/ IS the base hard no!").
@@ -242,6 +243,7 @@ The choice affects the dependency graph and tier assignments. I need your call.
 ### 2. What is CausationID for a Command?
 
 You asked this during the session and it was never fully resolved. For Events, CausationID = the Command that produced it. For Commands:
+
 - Is it the HTTP request ID that triggered the command?
 - Is it the Actor ID of the user who initiated it?
 - Is it a parent Command ID (for saga-derived commands)?
@@ -253,6 +255,7 @@ This affects the CommonMetadata shape in ADR-0111.
 ### 3. Should the ADR amendments also update the design docs?
 
 The metaengine has canonical design docs that the ADRs reference:
+
 - `docs/planning/meta-engine-project-definition.md`
 - `docs/planning/meta-engine-design.md`
 - `docs/planning/meta-engine-assumptions-and-query-planning.md`

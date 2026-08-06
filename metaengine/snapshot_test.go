@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"testing"
-
 )
 
 func TestSnapshotBackend_Memory(t *testing.T) {

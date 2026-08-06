@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"testing"
-
 )
 
 func TestStreamReadAsOfVersion_Memory(t *testing.T) {

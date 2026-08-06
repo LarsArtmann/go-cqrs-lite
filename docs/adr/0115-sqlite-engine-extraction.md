@@ -11,6 +11,7 @@ The SQLite engine (`sqliteEngine`) currently lives in the metaengine core module
 (a stdlib dependency, but conceptually an engine implementation detail).
 
 Every other engine is in a separate module:
+
 - `metaengine/pebbleengine/` (cockroachdb/pebble)
 - `metaengine/duckdbengine/` (duckdb-go, CGo)
 - `metaengine/pgengine/` (pgx)

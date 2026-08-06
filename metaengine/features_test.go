@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"strings"
 	"testing"
-
 )
 
 type (
@@ -117,7 +116,6 @@ func TestCollections(t *testing.T) {
 		t.Errorf("expected ADT Map, got %s", collections[0].ADT)
 	}
 }
-
 
 func _skipped_sqlite_0(t *testing.T) {
 	t.Skip("requires SQLite engine — moved to sqliteengine module after ADR-0115")

@@ -48,7 +48,10 @@ func (s *QueryStore) SaveQuery(_ context.Context, q *query.PersistedQuery) error
 }
 
 // LoadQueries returns all queries received after the given time.
-func (s *QueryStore) LoadQueries(_ context.Context, after time.Time) ([]*query.PersistedQuery, error) {
+func (s *QueryStore) LoadQueries(
+	_ context.Context,
+	after time.Time,
+) ([]*query.PersistedQuery, error) {
 	var queries []*query.PersistedQuery
 
 	err := s.db.View(func(tx *bolt.Tx) error {
@@ -96,7 +99,11 @@ func (s *QueryStore) ReadAllQueries(_ context.Context) ([]*query.PersistedQuery,
 
 // ReadQueriesFrom returns queries starting after the given request ID,
 // up to limit entries. A limit of 0 means no limit.
-func (s *QueryStore) ReadQueriesFrom(_ context.Context, afterReqID id.RequestID, limit int) ([]*query.PersistedQuery, error) {
+func (s *QueryStore) ReadQueriesFrom(
+	_ context.Context,
+	afterReqID id.RequestID,
+	limit int,
+) ([]*query.PersistedQuery, error) {
 	seekKey := queryKey(afterReqID)
 	var queries []*query.PersistedQuery
 

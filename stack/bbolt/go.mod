@@ -4,9 +4,10 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0-20260806125330-508e2817469c
+	github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0-20260806181052-51c4904b092a
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
+	go.etcd.io/bbolt v1.5.0
 )
 
 require (
@@ -20,17 +21,17 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -41,7 +42,6 @@ require (
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	go.etcd.io/bbolt v1.5.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.45.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.45.0 // indirect

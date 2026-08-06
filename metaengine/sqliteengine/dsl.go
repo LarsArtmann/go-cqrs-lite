@@ -60,7 +60,9 @@ func PlanFromDSN(dsn string, args ...any) (*metaengine.Store, *sql.DB, error) {
 		return nil, nil, err
 	}
 
-	store, err := metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine(), sqliteEng}, args...)
+	store, err := metaengine.Plan(
+		[]metaengine.Engine{metaengine.NewMemoryEngine(), sqliteEng},
+		args...)
 	if err != nil {
 		_ = db.Close()
 

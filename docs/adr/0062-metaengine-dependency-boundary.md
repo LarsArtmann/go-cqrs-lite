@@ -97,6 +97,7 @@ materialized views to build, where to store them, and whether to materialize or
 replay.
 
 The zero-dependency boundary:
+
 1. **Kneecapped the planner** — it sees events as `any` blobs, unable to reason
    about event types, causality, tombstones, or command-to-event relationships.
 2. **Blocked graph unification** — ADR-0077 kept GraphBackend and graph/
@@ -115,6 +116,7 @@ any module whose types it needs to reason about during planning.
 
 **The new dependency rule:** a module's dependencies are justified if they make
 the planner better at its job. Modules are split when:
+
 - An external dependency requires CGo (DuckDB)
 - A dependency adds significant binary weight (Pebble, Badger)
 - A dependency requires a running server (Postgres, Dgraph)

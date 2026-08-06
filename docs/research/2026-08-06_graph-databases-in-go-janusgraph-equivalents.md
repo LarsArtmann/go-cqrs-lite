@@ -26,32 +26,32 @@
 
 ### Go-native options
 
-| Project | Distributed | Pluggable backends | Query language | Status |
-|---|---|---|---|---|
-| **Dgraph** (21.8k stars) | Yes (Raft, sharded) | No (own engine) | GraphQL + DQL (no Gremlin/Cypher) | Active, production |
-| **Cayley** (15.1k stars) | No (standalone) | Yes (LevelDB/Bolt/Postgres/Mongo) | Gizmo (Gremlin-*inspired*) | **Maintenance** (dev stalled ~2021) |
-| **NornicDB** (838 stars) | Yes (cluster, MVCC) | No (built-in) | Cypher via Neo4j Bolt protocol | Active, early |
-| **GoraphDB** (98 stars) | Partial (Raft repl.) | No (bbolt embedded) | Cypher | Active, very early |
-| **EliasDB** (1k stars) | Experimental | No | EQL/GraphQL | **Abandoned** (2022) |
-| **go-graph** (11 stars) | Yes (sharded) | No | API only | **Abandoned** (academic) |
+| Project                  | Distributed          | Pluggable backends                | Query language                    | Status                              |
+| ------------------------ | -------------------- | --------------------------------- | --------------------------------- | ----------------------------------- |
+| **Dgraph** (21.8k stars) | Yes (Raft, sharded)  | No (own engine)                   | GraphQL + DQL (no Gremlin/Cypher) | Active, production                  |
+| **Cayley** (15.1k stars) | No (standalone)      | Yes (LevelDB/Bolt/Postgres/Mongo) | Gizmo (Gremlin-_inspired_)        | **Maintenance** (dev stalled ~2021) |
+| **NornicDB** (838 stars) | Yes (cluster, MVCC)  | No (built-in)                     | Cypher via Neo4j Bolt protocol    | Active, early                       |
+| **GoraphDB** (98 stars)  | Partial (Raft repl.) | No (bbolt embedded)               | Cypher                            | Active, very early                  |
+| **EliasDB** (1k stars)   | Experimental         | No                                | EQL/GraphQL                       | **Abandoned** (2022)                |
+| **go-graph** (11 stars)  | Yes (sharded)        | No                                | API only                          | **Abandoned** (academic)            |
 
 ### Full JanusGraph comparison (including non-Go)
 
-| Database | Language | Distributed | Pluggable Backends | Gremlin/TinkerPop | Cypher | Status |
-|---|---|---|---|---|---|---|
-| **JanusGraph** | Java | Yes | Yes | Yes (native) | No | Active |
-| **Dgraph** | **Go** | Yes | No | No | No | Active |
-| **Cayley** | **Go** | No | Yes | ~ (Gizmo inspired) | No | Maintenance |
-| **NornicDB** | **Go** | Yes | No | No | Yes | Active |
-| **GoraphDB** | **Go** | ~ (Raft repl.) | No | No | Yes | Active (early) |
-| **EliasDB** | **Go** | ~ (experimental) | No | No | No | Abandoned |
-| **go-graph** | **Go** | Yes | No | No | No | Abandoned |
-| **Apache HugeGraph** | Java | Yes | Yes | Yes | Yes | Active |
-| **Neo4j** | Java | ~ (Enterprise) | No | ~ (plugin) | Yes | Active |
-| **ArangoDB** | C++ | Yes | No | No | No | Active |
-| **Memgraph** | C/C++ | No (in-memory) | No | No | Yes | Active |
-| **Apache AGE** | C (PG ext.) | ~ (via PG) | No | No | Yes | Active |
-| **NebulaGraph** | C++ | Yes | No | No | ~ (nGQL) | Active |
+| Database             | Language    | Distributed      | Pluggable Backends | Gremlin/TinkerPop  | Cypher   | Status         |
+| -------------------- | ----------- | ---------------- | ------------------ | ------------------ | -------- | -------------- |
+| **JanusGraph**       | Java        | Yes              | Yes                | Yes (native)       | No       | Active         |
+| **Dgraph**           | **Go**      | Yes              | No                 | No                 | No       | Active         |
+| **Cayley**           | **Go**      | No               | Yes                | ~ (Gizmo inspired) | No       | Maintenance    |
+| **NornicDB**         | **Go**      | Yes              | No                 | No                 | Yes      | Active         |
+| **GoraphDB**         | **Go**      | ~ (Raft repl.)   | No                 | No                 | Yes      | Active (early) |
+| **EliasDB**          | **Go**      | ~ (experimental) | No                 | No                 | No       | Abandoned      |
+| **go-graph**         | **Go**      | Yes              | No                 | No                 | No       | Abandoned      |
+| **Apache HugeGraph** | Java        | Yes              | Yes                | Yes                | Yes      | Active         |
+| **Neo4j**            | Java        | ~ (Enterprise)   | No                 | ~ (plugin)         | Yes      | Active         |
+| **ArangoDB**         | C++         | Yes              | No                 | No                 | No       | Active         |
+| **Memgraph**         | C/C++       | No (in-memory)   | No                 | No                 | Yes      | Active         |
+| **Apache AGE**       | C (PG ext.) | ~ (via PG)       | No                 | No                 | Yes      | Active         |
+| **NebulaGraph**      | C++         | Yes              | No                 | No                 | ~ (nGQL) | Active         |
 
 ---
 
@@ -59,85 +59,85 @@
 
 ### Dgraph (21.8k stars)
 
-| Attribute | Details |
-|---|---|
-| **Language** | Go |
-| **Architecture** | Distributed, horizontally scalable, sharded, Raft-based consistent replication |
-| **Query Language** | GraphQL + DQL (Dgraph Query Language) |
-| **TinkerPop/Gremlin/Cypher** | No |
-| **Storage Backends** | Built-in (own storage engine, Badger-derived). Not pluggable. |
-| **Status** | Active, v25, production-ready, used by Fortune 500 companies |
-| **License** | Apache 2.0 |
-| **GitHub** | https://github.com/dgraph-io/dgraph |
+| Attribute                    | Details                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| **Language**                 | Go                                                                             |
+| **Architecture**             | Distributed, horizontally scalable, sharded, Raft-based consistent replication |
+| **Query Language**           | GraphQL + DQL (Dgraph Query Language)                                          |
+| **TinkerPop/Gremlin/Cypher** | No                                                                             |
+| **Storage Backends**         | Built-in (own storage engine, Badger-derived). Not pluggable.                  |
+| **Status**                   | Active, v25, production-ready, used by Fortune 500 companies                   |
+| **License**                  | Apache 2.0                                                                     |
+| **GitHub**                   | https://github.com/dgraph-io/dgraph                                            |
 
 Distributed ACID transactions, linearizable reads, native full-text search, and geo search. Does not support Gremlin/TinkerPop. The strongest production-grade Go-native distributed database, but own query language and non-pluggable storage.
 
 ### Cayley (15.1k stars)
 
-| Attribute | Details |
-|---|---|
-| **Language** | Go |
-| **Architecture** | Embedded + standalone server (not distributed) |
-| **Query Language** | Gizmo (Gremlin-*inspired*), GraphQL, MQL |
-| **Storage Backends** | Pluggable: LevelDB, Bolt, PostgreSQL, MongoDB, CockroachDB, and others |
-| **Status** | Maintenance mode / low activity. Last commit July 2024 (dependency updates only); substantive development stopped ~2021-2022 |
-| **License** | Apache 2.0 |
-| **GitHub** | https://github.com/cayleygraph/cayley |
+| Attribute            | Details                                                                                                                      |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Language**         | Go                                                                                                                           |
+| **Architecture**     | Embedded + standalone server (not distributed)                                                                               |
+| **Query Language**   | Gizmo (Gremlin-_inspired_), GraphQL, MQL                                                                                     |
+| **Storage Backends** | Pluggable: LevelDB, Bolt, PostgreSQL, MongoDB, CockroachDB, and others                                                       |
+| **Status**           | Maintenance mode / low activity. Last commit July 2024 (dependency updates only); substantive development stopped ~2021-2022 |
+| **License**          | Apache 2.0                                                                                                                   |
+| **GitHub**           | https://github.com/cayleygraph/cayley                                                                                        |
 
 Closest Go-native analog to JanusGraph's pluggable storage architecture. Not distributed. Gremlin support is via an inspired language (Gizmo), not native Apache TinkerPop. See [deep dive below](#deep-dive-cayley).
 
 ### NornicDB (838 stars)
 
-| Attribute | Details |
-|---|---|
-| **Language** | Go |
-| **Architecture** | Distributed: clustering, sharding, MVCC |
-| **Query Language** | Cypher via Bolt (Neo4j-compatible), GraphQL, REST, gRPC |
+| Attribute            | Details                                                              |
+| -------------------- | -------------------------------------------------------------------- |
+| **Language**         | Go                                                                   |
+| **Architecture**     | Distributed: clustering, sharding, MVCC                              |
+| **Query Language**   | Cypher via Bolt (Neo4j-compatible), GraphQL, REST, gRPC              |
 | **Storage Backends** | Built-in. Not pluggable. Qdrant-compatible gRPC for vector workflows |
-| **Status** | Active, v1.2.2, 1,491 commits, rapidly evolving |
-| **License** | MIT |
-| **GitHub** | https://github.com/orneryd/NornicDB |
+| **Status**           | Active, v1.2.2, 1,491 commits, rapidly evolving                      |
+| **License**          | MIT                                                                  |
+| **GitHub**           | https://github.com/orneryd/NornicDB                                  |
 
 Graph + vector database designed for AI/GraphRAG workloads. Neo4j-compatible via the Bolt protocol and Cypher, meaning existing Neo4j drivers work with zero changes. Supports temporal/historical reads, memory decay, and GPU acceleration. Claims 12-52x faster than Neo4j on LDBC benchmarks. See [deep dive below](#deep-dive-nornicdb).
 
 ### GoraphDB (98 stars)
 
-| Attribute | Details |
-|---|---|
-| **Language** | Go |
-| **Architecture** | Embedded: single binary, zero dependencies |
+| Attribute          | Details                                                           |
+| ------------------ | ----------------------------------------------------------------- |
+| **Language**       | Go                                                                |
+| **Architecture**   | Embedded: single binary, zero dependencies                        |
 | **Query Language** | Cypher (full read/write: MATCH, CREATE, MERGE, SET, DELETE, etc.) |
-| **Storage** | bbolt (B+tree), memory-mapped, MVCC snapshot isolation |
-| **Status** | Active, 92 commits, new/early-stage project |
-| **Replication** | Raft-based single-leader replication with WAL log shipping |
-| **GitHub** | https://github.com/mstrYoda/goraphdb |
+| **Storage**        | bbolt (B+tree), memory-mapped, MVCC snapshot isolation            |
+| **Status**         | Active, 92 commits, new/early-stage project                       |
+| **Replication**    | Raft-based single-leader replication with WAL log shipping        |
+| **GitHub**         | https://github.com/mstrYoda/goraphdb                              |
 
 High-performance embedded graph database with Cypher support, ACID transactions, built-in graph algorithms, hash-based sharding, and Prometheus metrics. 50 GB+ scale claimed. Not distributed as a primary design goal. See [deep dive below](#deep-dive-goraphdb).
 
 ### EliasDB (1k stars)
 
-| Attribute | Details |
-|---|---|
-| **Language** | Go |
-| **Architecture** | Embedded + standalone (experimental clustering) |
-| **Query Language** | EQL (SQL-like), GraphQL |
-| **Storage** | Custom key-value store with transactions |
-| **Status** | Abandoned. Last commit August 2022; DBDB.io marks it as "Abandoned" |
-| **License** | MPL-2.0 |
-| **GitHub** | https://github.com/krotik/eliasdb |
+| Attribute          | Details                                                             |
+| ------------------ | ------------------------------------------------------------------- |
+| **Language**       | Go                                                                  |
+| **Architecture**   | Embedded + standalone (experimental clustering)                     |
+| **Query Language** | EQL (SQL-like), GraphQL                                             |
+| **Storage**        | Custom key-value store with transactions                            |
+| **Status**         | Abandoned. Last commit August 2022; DBDB.io marks it as "Abandoned" |
+| **License**        | MPL-2.0                                                             |
+| **GitHub**         | https://github.com/krotik/eliasdb                                   |
 
 Lightweight, dependency-free graph database with REST API, full-text phrase search, and a built-in scripting language (ECAL).
 
 ### go-graph (11 stars)
 
-| Attribute | Details |
-|---|---|
-| **Language** | Go |
-| **Architecture** | Distributed: fault-tolerant, sharded, eventually consistent |
-| **Query Language** | None (API-based) |
-| **Status** | Abandoned. Academic/research project |
-| **License** | Apache 2.0 |
-| **GitHub** | https://github.com/ashriths/go-graph |
+| Attribute          | Details                                                     |
+| ------------------ | ----------------------------------------------------------- |
+| **Language**       | Go                                                          |
+| **Architecture**   | Distributed: fault-tolerant, sharded, eventually consistent |
+| **Query Language** | None (API-based)                                            |
+| **Status**         | Abandoned. Academic/research project                        |
+| **License**        | Apache 2.0                                                  |
+| **GitHub**         | https://github.com/ashriths/go-graph                        |
 
 A distributed, fault-tolerant graph database conceptually similar to JanusGraph in ambition, but an academic project that was never completed to production quality.
 
@@ -158,22 +158,22 @@ Cayley is an open-source graph database for **Linked Data**, written in **Go**. 
 
 ### At a Glance
 
-| | Cayley |
-|---|---|
-| Maturity | Abandoned (last release v0.7.7, October 2019) |
-| Data model | RDF quads (S-P-O-Label) |
-| Query language | Gizmo (Gremlin-*inspired*, JS VM) |
-| Distribution | None (delegate to backend) |
-| Storage | Pluggable: Bolt, LevelDB, Postgres, Mongo, CockroachDB, etc. |
-| License | Apache 2.0 |
-| Best for | Museum-quality reference design |
+|                | Cayley                                                       |
+| -------------- | ------------------------------------------------------------ |
+| Maturity       | Abandoned (last release v0.7.7, October 2019)                |
+| Data model     | RDF quads (S-P-O-Label)                                      |
+| Query language | Gizmo (Gremlin-_inspired_, JS VM)                            |
+| Distribution   | None (delegate to backend)                                   |
+| Storage        | Pluggable: Bolt, LevelDB, Postgres, Mongo, CockroachDB, etc. |
+| License        | Apache 2.0                                                   |
+| Best for       | Museum-quality reference design                              |
 
 Notable headline facts (verified July-August 2026):
 
 - **License:** Apache 2.0 (permissive, no commercial edition, no strings)
 - **~15.1k GitHub stars** -- the most-starred graph database repo, but this reflects 2014-2016 enthusiasm, not current health
 - **Last tagged release: v0.7.7 (October 2019)** -- over six years ago
-- **Status:** Classified as **"Abandoned"** by DBDB.io. The repo is *not* archived; the last commit was July 6, 2024, and there is occasional activity, but no release cadence.
+- **Status:** Classified as **"Abandoned"** by DBDB.io. The repo is _not_ archived; the last commit was July 6, 2024, and there is occasional activity, but no release cadence.
 
 ### Architecture (genuinely elegant)
 
@@ -236,21 +236,21 @@ This is one of Cayley's most interesting design features. Backends are registere
 
 #### Supported backends
 
-| Backend | Type | `store.backend` value | Notes |
-|---|---|---|---|
-| **MemStore** | In-memory | `memstore` (default) | Maps + trees; loses data on exit. Best for datasets fitting in RAM. |
-| **BTree (in-mem KV)** | In-memory KV | `btree` | Used mainly to verify KV-backend functionality. |
-| **LevelDB** | Embedded KV | `leveldb` | Persistent on-disk LSM-tree store. Tunable write buffer + block cache. |
-| **BoltDB** | Embedded KV | `bolt` | Single-file B+tree. Recommended for large/persistent datasets. Faster avg query times than LevelDB for large stores. |
-| **PostgreSQL** | Relational (SQL) | `postgres` | Requires PG 9.5+. Tunable fill factor, connection pooling. |
-| **CockroachDB** | Relational (SQL) | `cockroach` | Distributed SQL -- runs the SQL backend over a CockroachDB cluster. |
-| **MySQL / MariaDB** | Relational (SQL) | `mysql` | |
-| **SQLite** | Relational (SQL) | `sqlite` | |
-| **MongoDB** | NoSQL | `mongo` | Graph data + indices stored in Mongo collections. |
-| **Elasticsearch** | NoSQL | `elastic` | |
-| **CouchDB** | NoSQL | `couch` | |
-| **PouchDB** | NoSQL | `pouch` | Requires building with GopherJS (browser/JS target). |
-| **GAE Datastore** | NoSQL | (appengine) | Google App Engine Datastore. |
+| Backend               | Type             | `store.backend` value | Notes                                                                                                                |
+| --------------------- | ---------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **MemStore**          | In-memory        | `memstore` (default)  | Maps + trees; loses data on exit. Best for datasets fitting in RAM.                                                  |
+| **BTree (in-mem KV)** | In-memory KV     | `btree`               | Used mainly to verify KV-backend functionality.                                                                      |
+| **LevelDB**           | Embedded KV      | `leveldb`             | Persistent on-disk LSM-tree store. Tunable write buffer + block cache.                                               |
+| **BoltDB**            | Embedded KV      | `bolt`                | Single-file B+tree. Recommended for large/persistent datasets. Faster avg query times than LevelDB for large stores. |
+| **PostgreSQL**        | Relational (SQL) | `postgres`            | Requires PG 9.5+. Tunable fill factor, connection pooling.                                                           |
+| **CockroachDB**       | Relational (SQL) | `cockroach`           | Distributed SQL -- runs the SQL backend over a CockroachDB cluster.                                                  |
+| **MySQL / MariaDB**   | Relational (SQL) | `mysql`               |                                                                                                                      |
+| **SQLite**            | Relational (SQL) | `sqlite`              |                                                                                                                      |
+| **MongoDB**           | NoSQL            | `mongo`               | Graph data + indices stored in Mongo collections.                                                                    |
+| **Elasticsearch**     | NoSQL            | `elastic`             |                                                                                                                      |
+| **CouchDB**           | NoSQL            | `couch`               |                                                                                                                      |
+| **PouchDB**           | NoSQL            | `pouch`               | Requires building with GopherJS (browser/JS target).                                                                 |
+| **GAE Datastore**     | NoSQL            | (appengine)           | Google App Engine Datastore.                                                                                         |
 
 #### How the abstraction works
 
@@ -265,7 +265,7 @@ There are really **two implementation strategies** the backends fall into:
 - **KV backends** maintain configurable quad indexes. The defaults are:
   - `{Subject, Predicate}` -- optimizes **forward** traversals (outgoing edges)
   - `{Object, Predicate, Subject}` -- optimizes **reverse** traversals (incoming edges) and mitigates **super-node** problems (high-fan-out literal values)
-- **MemStore** uses a `QuadDirectionIndex` maintaining trees for *every* direction (S, P, O, L), allowing fast lookup by any component.
+- **MemStore** uses a `QuadDirectionIndex` maintaining trees for _every_ direction (S, P, O, L), allowing fast lookup by any component.
 
 #### Enabling a backend as a Go library
 
@@ -287,7 +287,7 @@ store, _ := cayley.NewGraph("bolt", path, nil)
 **Gizmo is Cayley's primary query language and is explicitly "inspired by [Gremlin](https://tinkerpop.apache.org/gremlin.html)."** The relationship is important to understand precisely:
 
 - **Gremlin** is Apache TinkerPop's graph traversal language. It's a fluent, method-chaining API (`g.V().out('knows').has('age', gt(30))`) that runs on the JVM and compiles traversals to a "TraversalSource."
-- **Gizmo** borrows Gremlin's *concepts and ergonomics* -- `V()`, `out()`, `in()`, `has()`, path composition, morphisms (reusable sub-paths), tags -- but **reimplements them on a JavaScript runtime** (the `goja` Go-JS engine) rather than running TinkerPop. It is **Gremlin-shaped but not Gremlin-compatible**; you cannot point a TinkerPop Gremlin console at Cayley, and Gremlin queries won't run unmodified.
+- **Gizmo** borrows Gremlin's _concepts and ergonomics_ -- `V()`, `out()`, `in()`, `has()`, path composition, morphisms (reusable sub-paths), tags -- but **reimplements them on a JavaScript runtime** (the `goja` Go-JS engine) rather than running TinkerPop. It is **Gremlin-shaped but not Gremlin-compatible**; you cannot point a TinkerPop Gremlin console at Cayley, and Gremlin queries won't run unmodified.
 
 #### How a Gizmo query executes
 
@@ -301,17 +301,17 @@ The `graph` object (alias `g`) is the entry point. `g.V(...)` starts a query; `g
 
 #### Core API surface
 
-| Category | Methods | Purpose |
-|---|---|---|
-| Start | `g.V()`, `g.Vertex()`, `g.M()`, `g.Morphism()` | Begin a path |
-| Traversal | `.out()`, `.in()`, `.both()` | Follow edges (fwd/rev/both) |
-| Filtering | `.is()`, `.has()`, `.hasR()`, `.filter(regex(...))` | Constrain paths |
-| Set ops | `.and()`/`.intersect()`, `.or()`/`.union()`, `.except()`/`.difference()` | Combine paths |
-| Tagging | `.tag()`/`.as()`, `.back()`, `.save()`, `.saveR()` | Mark & recall positions |
-| Finalization | `.all()`, `.count()`, `.getLimit(n)`, `.toArray()`, `.forEach(cb)` | Execute & return |
-| Navigation | `.outPredicates()`, `.inPredicates()`, `.labels()` | Inspect schema |
-| Subgraph | `.labelContext()`, `.followRecursive()` | Restrict/recursively traverse |
-| Programmatic | `g.emit(obj)` | Push arbitrary JSON into results |
+| Category     | Methods                                                                  | Purpose                          |
+| ------------ | ------------------------------------------------------------------------ | -------------------------------- |
+| Start        | `g.V()`, `g.Vertex()`, `g.M()`, `g.Morphism()`                           | Begin a path                     |
+| Traversal    | `.out()`, `.in()`, `.both()`                                             | Follow edges (fwd/rev/both)      |
+| Filtering    | `.is()`, `.has()`, `.hasR()`, `.filter(regex(...))`                      | Constrain paths                  |
+| Set ops      | `.and()`/`.intersect()`, `.or()`/`.union()`, `.except()`/`.difference()` | Combine paths                    |
+| Tagging      | `.tag()`/`.as()`, `.back()`, `.save()`, `.saveR()`                       | Mark & recall positions          |
+| Finalization | `.all()`, `.count()`, `.getLimit(n)`, `.toArray()`, `.forEach(cb)`       | Execute & return                 |
+| Navigation   | `.outPredicates()`, `.inPredicates()`, `.labels()`                       | Inspect schema                   |
+| Subgraph     | `.labelContext()`, `.followRecursive()`                                  | Restrict/recursively traverse    |
+| Programmatic | `g.emit(obj)`                                                            | Push arbitrary JSON into results |
 
 #### Code examples (querying)
 
@@ -324,45 +324,33 @@ g.V().getLimit(5);
 **Find by property (movie graph):**
 
 ```js
-g.V()
-  .has("<name>", "Humphrey Bogart")
-  .all();
+g.V().has("<name>", "Humphrey Bogart").all();
 ```
 
 **Multi-hop: actors in a film:**
 
 ```js
 g.V()
-  .has("<name>", "Casablanca")
-  .out("</film/film/starring>")
-  .out("</film/performance/actor>")
-  .out("<name>")
-  .all();
+	.has("<name>", "Casablanca")
+	.out("</film/film/starring>")
+	.out("</film/performance/actor>")
+	.out("<name>")
+	.all();
 ```
 
 **Morphisms (reusable path patterns) -- the Gremlin-`as()`/`select()` analogue:**
 
 ```js
-var filmToActor = g
-  .Morphism()
-  .out("</film/film/starring>")
-  .out("</film/performance/actor>");
+var filmToActor = g.Morphism().out("</film/film/starring>").out("</film/performance/actor>");
 
-g.V()
-  .has("<name>", "Casablanca")
-  .follow(filmToActor)
-  .out("<name>")
-  .all();
+g.V().has("<name>", "Casablanca").follow(filmToActor).out("<name>").all();
 ```
 
 **Friend-of-friend (social graph):**
 
 ```js
 var friendOfFriend = g.Morphism().out("<follows>").out("<follows>");
-g.V("<charlie>")
-  .follow(friendOfFriend)
-  .has("<status>", "cool_person")
-  .all();
+g.V("<charlie>").follow(friendOfFriend).has("<status>", "cool_person").all();
 ```
 
 **Recursive traversal (whole reachable network):**
@@ -383,10 +371,7 @@ cFollows.intersect(dFollows).all();
 **Subgraph context (traverse only a specific labeled graph):**
 
 ```js
-g.V("<dani>")
-  .labelContext("<smart_graph>")
-  .out("<status>")
-  .all();
+g.V("<dani>").labelContext("<smart_graph>").out("<status>").all();
 ```
 
 #### Data modeling
@@ -400,7 +385,7 @@ Cayley has no fixed schema -- data is **quads**, typically loaded from **N-Quads
 <bob>   <follows> <fred> .
 ```
 
-There *is* an optional **Schema System** (`schema/` package) that lets you map Go structs to quads for typed read/write from Go code, and an **Inference Engine** (`inference/`) for RDFS-style subclass/subproperty reasoning -- both are advanced features layered on top of the quad model.
+There _is_ an optional **Schema System** (`schema/` package) that lets you map Go structs to quads for typed read/write from Go code, and an **Inference Engine** (`inference/`) for RDFS-style subclass/subproperty reasoning -- both are advanced features layered on top of the quad model.
 
 #### Go library usage (the "embedded" mode)
 
@@ -441,9 +426,9 @@ This is **Cayley's weakest area and a major reason it lost ground.** The honest 
 
 - Cayley is fundamentally a **single-node/embedded** database. There is **no built-in distributed consensus, no Raft, no sharding, no replication manager** in the engine itself.
 - The configuration docs reference a `replication_options` object and "Per-Replication Options," but this is vestigial/stub-level -- it does not constitute a working HA story.
-- The **closest thing to horizontal scaling** is the architectural escape hatch: if you use the **NoSQL backends (MongoDB, CouchDB, Elasticsearch)** or the **distributed SQL backends (CockroachDB)**, then *the underlying store* provides its own replication/clustering, and multiple Cayley instances can connect to it. The docs describe this explicitly:
+- The **closest thing to horizontal scaling** is the architectural escape hatch: if you use the **NoSQL backends (MongoDB, CouchDB, Elasticsearch)** or the **distributed SQL backends (CockroachDB)**, then _the underlying store_ provides its own replication/clustering, and multiple Cayley instances can connect to it. The docs describe this explicitly:
 
-  > *"NoSQL backends: Slower, as it incurs network traffic, but multiple Cayley instances can disappear and reconnect at will, across a potentially horizontally-scaled store."*
+  > _"NoSQL backends: Slower, as it incurs network traffic, but multiple Cayley instances can disappear and reconnect at will, across a potentially horizontally-scaled store."_
 
   CockroachDB similarly gives you a distributed SQL cluster that Cayley sits on top of.
 
@@ -455,7 +440,7 @@ This is **Cayley's weakest area and a major reason it lost ground.** The honest 
 
 Cayley's own benchmark claim (from the README, measured on 2014 hardware):
 
-> *"On 2014 consumer hardware and an average disk, 134m quads in LevelDB is no problem and a multi-hop intersection query -- films starring X and Y -- takes ~150ms."*
+> _"On 2014 consumer hardware and an average disk, 134m quads in LevelDB is no problem and a multi-hop intersection query -- films starring X and Y -- takes ~150ms."_
 
 Practical characteristics:
 
@@ -481,11 +466,11 @@ Several converging factors:
 
 4. **The market moved on without it.** The graph-database space consolidated around property graphs (Cypher/Gremlin), distributed stores (JanusGraph over Cassandra), and most recently GraphRAG (graph + vectors). Cayley's RDF-quad + custom-query-language niche shrank.
 
-5. **It missed the two biggest waves:** (a) distributed/cloud-native graph databases, and (b) vector similarity / AI retrieval. As the ArcadeDB 2026 comparison bluntly puts it: *"Cayley predates the entire embedding era and has no answer for semantic retrieval,"* and its 15k stars *"reflect 2015 enthusiasm rather than 2026 maintenance."*
+5. **It missed the two biggest waves:** (a) distributed/cloud-native graph databases, and (b) vector similarity / AI retrieval. As the ArcadeDB 2026 comparison bluntly puts it: _"Cayley predates the entire embedding era and has no answer for semantic retrieval,"_ and its 15k stars _"reflect 2015 enthusiasm rather than 2026 maintenance."_
 
 ### Who Used It in Production
 
-- The README claims Cayley is *"well tested and used by various companies for their production workloads,"* but **does not name them**.
+- The README claims Cayley is _"well tested and used by various companies for their production workloads,"_ but **does not name them**.
 - Third-party aggregator **TheirStack.com lists 48 companies** as using Cayley -- though such lists are inferred from job postings/tech stacks and are of mixed reliability.
 - It has **no publicly named marquee production user** (no equivalent to, say, Cisco/Adobe on Neo4j). The clearest signal is that adoption was **read-heavy knowledge-graph / linked-data** use cases: semantic data, ontology exploration, recommendation prototypes, and Freebase/Knowledge-Graph-style applications.
 - It retains cultural footprint via the star count and the Cayley CookBook (community tutorials for using it as a Go library).
@@ -499,7 +484,7 @@ The 2026 expert consensus is unambiguous:
 - **No release in ~7 years.** Bug fixes, security patches, and dependency updates do not arrive on any reliable schedule.
 - **No clustering/HA of its own** -- a real problem for load-bearing infrastructure.
 - **No vector search / no AI integration** -- disqualifying for modern knowledge-graph / GraphRAG workloads.
-- The ArcadeDB comparison's verdict: *"We would not start a new knowledge graph on Cayley in 2026... its star count keeps it near the top of search results, and readers deserve to know that the number reflects 2015 enthusiasm rather than 2026 maintenance."*
+- The ArcadeDB comparison's verdict: _"We would not start a new knowledge graph on Cayley in 2026... its star count keeps it near the top of search results, and readers deserve to know that the number reflects 2015 enthusiasm rather than 2026 maintenance."_
 
 #### Viable for very narrow cases
 
@@ -524,15 +509,15 @@ GoraphDB (repo: `github.com/mstrYoda/goraphdb`) is an embeddable, single-binary 
 
 ### At a Glance
 
-| | GoraphDB |
-|---|---|
-| Maturity | Early (98 stars, 92 commits, 1 author) |
-| Data model | Property graph |
+|                | GoraphDB                                      |
+| -------------- | --------------------------------------------- |
+| Maturity       | Early (98 stars, 92 commits, 1 author)        |
+| Data model     | Property graph                                |
 | Query language | Cypher **subset** (hand-written lexer/parser) |
-| Distribution | Raft election + async WAL (non-quorum) |
-| Storage | bbolt (B+tree, mmap) |
-| License | MIT |
-| Best for | Embedded single-node Go apps |
+| Distribution   | Raft election + async WAL (non-quorum)        |
+| Storage        | bbolt (B+tree, mmap)                          |
+| License        | MIT                                           |
+| Best for       | Embedded single-node Go apps                  |
 
 ### Architecture
 
@@ -554,20 +539,20 @@ Storage Layer  (bbolt B+tree, mmap files, MVCC, MessagePack, CRC32, labels index
 
 **Key architectural file map:**
 
-| File | Responsibility |
-|---|---|
-| `graphdb.go` | Core `DB` struct, `Open`/`Close`, top-level CRUD, shard orchestration |
-| `tx.go` | `Tx` -- multi-statement read-write transactions |
-| `snapshot.go` | `Snapshot` -- pinned MVCC read views |
-| `shard.go` | Hash partitioning (`DefaultShardKey`, `PropertyShardKey`) |
-| `storage.go` | bbolt bucket setup and low-level accessors |
-| `wal.go` / `wal_entry.go` | Segmented write-ahead log |
-| `applier.go` | Deterministic/idempotent WAL replay on followers |
-| `replication/{server,client,election,cluster,router}.go` | gRPC log shipping, hashicorp/raft election, write forwarding |
-| `cypher_{lexer,parser,ast,exec,cache,optional,write}.go` | The Cypher engine pipeline |
-| `governor.go` | Query resource limits + panic recovery |
-| `metrics.go` | Atomic counters + Prometheus text exposition |
-| `bloom.go` / `node_cache.go` / `compaction.go` | Bloom filter, byte-budgeted LRU, GC |
+| File                                                     | Responsibility                                                        |
+| -------------------------------------------------------- | --------------------------------------------------------------------- |
+| `graphdb.go`                                             | Core `DB` struct, `Open`/`Close`, top-level CRUD, shard orchestration |
+| `tx.go`                                                  | `Tx` -- multi-statement read-write transactions                       |
+| `snapshot.go`                                            | `Snapshot` -- pinned MVCC read views                                  |
+| `shard.go`                                               | Hash partitioning (`DefaultShardKey`, `PropertyShardKey`)             |
+| `storage.go`                                             | bbolt bucket setup and low-level accessors                            |
+| `wal.go` / `wal_entry.go`                                | Segmented write-ahead log                                             |
+| `applier.go`                                             | Deterministic/idempotent WAL replay on followers                      |
+| `replication/{server,client,election,cluster,router}.go` | gRPC log shipping, hashicorp/raft election, write forwarding          |
+| `cypher_{lexer,parser,ast,exec,cache,optional,write}.go` | The Cypher engine pipeline                                            |
+| `governor.go`                                            | Query resource limits + panic recovery                                |
+| `metrics.go`                                             | Atomic counters + Prometheus text exposition                          |
+| `bloom.go` / `node_cache.go` / `compaction.go`           | Bloom filter, byte-budgeted LRU, GC                                   |
 
 ### Cypher Implementation & Supported Clauses
 
@@ -624,25 +609,25 @@ res, _ := db.Cypher(ctx,
   `MERGE (n:Person {name: "Eve"}) ON CREATE SET n.role = "admin" RETURN n`)
 ```
 
-> **Honest caveat on scope:** This is a *subset* of Cypher. The README explicitly says "read-only subset" (though write clauses were later added). Notable gaps vs. full Cypher/Neo4j: no `UNION`, no `WITH` subquery chaining, no aggregation functions like `count()`/`collect()` documented, no list comprehensions, no APOC, no full-text/index-backed range scans for `WHERE` on numerics (range indexes are explicitly a roadmap item), no `CALL` for procedures, and no GQL. So the engine is competent for simple pattern matching but not a drop-in Cypher replacement.
+> **Honest caveat on scope:** This is a _subset_ of Cypher. The README explicitly says "read-only subset" (though write clauses were later added). Notable gaps vs. full Cypher/Neo4j: no `UNION`, no `WITH` subquery chaining, no aggregation functions like `count()`/`collect()` documented, no list comprehensions, no APOC, no full-text/index-backed range scans for `WHERE` on numerics (range indexes are explicitly a roadmap item), no `CALL` for procedures, and no GQL. So the engine is competent for simple pattern matching but not a drop-in Cypher replacement.
 
 ### bbolt Storage Internals
 
 GoraphDB stores all graph data in bbolt B+tree buckets:
 
-| Bucket | Key | Value |
-|---|---|---|
-| `nodes` | `uint64 nodeID` | MessagePack props + CRC32 |
-| `edges` | `uint64 edgeID` | Binary edge (from, to, label, props) + CRC32 |
-| `adj_out` | `nodeID \| edgeID` | `targetID \| label` (outgoing adjacency list) |
-| `adj_in` | `nodeID \| edgeID` | `sourceID \| label` (incoming adjacency list) |
-| `idx_prop` | `"prop:value" \| nodeID` | (secondary property index) |
-| `idx_edge_type` | `"label" \| edgeID` | (edge-type index) |
-| `node_labels` | `uint64 nodeID` | MessagePack `[]string` |
-| `idx_node_label` | `"label" \| nodeID` | (label->node index) |
-| `idx_unique` | `"label\0property\0value"` | `uint64 nodeID` (unique constraint) |
-| `unique_meta` | `"label\0property"` | (unique constraint metadata) |
-| `meta` | `"node_counter"` / `"edge_counter"` | `uint64` (ID allocation) |
+| Bucket           | Key                                 | Value                                         |
+| ---------------- | ----------------------------------- | --------------------------------------------- |
+| `nodes`          | `uint64 nodeID`                     | MessagePack props + CRC32                     |
+| `edges`          | `uint64 edgeID`                     | Binary edge (from, to, label, props) + CRC32  |
+| `adj_out`        | `nodeID \| edgeID`                  | `targetID \| label` (outgoing adjacency list) |
+| `adj_in`         | `nodeID \| edgeID`                  | `sourceID \| label` (incoming adjacency list) |
+| `idx_prop`       | `"prop:value" \| nodeID`            | (secondary property index)                    |
+| `idx_edge_type`  | `"label" \| edgeID`                 | (edge-type index)                             |
+| `node_labels`    | `uint64 nodeID`                     | MessagePack `[]string`                        |
+| `idx_node_label` | `"label" \| nodeID`                 | (label->node index)                           |
+| `idx_unique`     | `"label\0property\0value"`          | `uint64 nodeID` (unique constraint)           |
+| `unique_meta`    | `"label\0property"`                 | (unique constraint metadata)                  |
+| `meta`           | `"node_counter"` / `"edge_counter"` | `uint64` (ID allocation)                      |
 
 **Encoding & integrity:**
 
@@ -690,14 +675,14 @@ Replication is **single-leader with WAL log shipping**. A subtle but important d
 
 **Components:**
 
-| Component | File(s) | Role |
-|---|---|---|
-| WAL | `wal.go`, `wal_entry.go` | Append-only segmented log of committed mutations; 64 MB segments; CRC32; msgpack; monotonic LSN; supports live tailing |
-| Applier | `applier.go` | Replays WAL entries on followers -- **deterministic** (uses leader's IDs), **idempotent** (skips duplicate LSNs), sequential |
-| Log Shipping | `replication/server.go`, `replication/client.go` | gRPC server-streaming RPC (`StreamWAL`); auto-reconnect with exponential backoff |
-| Leader Election | `replication/election.go` | `hashicorp/raft` for automatic leader election/failover |
-| Cluster Manager | `replication/cluster.go` | Orchestrates election, gRPC server/client, role changes, peer discovery |
-| Query Router | `replication/router.go` | Reads -> local; writes -> forwarded to leader over HTTP |
+| Component       | File(s)                                          | Role                                                                                                                         |
+| --------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| WAL             | `wal.go`, `wal_entry.go`                         | Append-only segmented log of committed mutations; 64 MB segments; CRC32; msgpack; monotonic LSN; supports live tailing       |
+| Applier         | `applier.go`                                     | Replays WAL entries on followers -- **deterministic** (uses leader's IDs), **idempotent** (skips duplicate LSNs), sequential |
+| Log Shipping    | `replication/server.go`, `replication/client.go` | gRPC server-streaming RPC (`StreamWAL`); auto-reconnect with exponential backoff                                             |
+| Leader Election | `replication/election.go`                        | `hashicorp/raft` for automatic leader election/failover                                                                      |
+| Cluster Manager | `replication/cluster.go`                         | Orchestrates election, gRPC server/client, role changes, peer discovery                                                      |
+| Query Router    | `replication/router.go`                          | Reads -> local; writes -> forwarded to leader over HTTP                                                                      |
 
 **WAL frame format:**
 
@@ -725,16 +710,16 @@ Replication is **single-leader with WAL log shipping**. A subtle but important d
 
 ### Graph Algorithms Included
 
-| Algorithm | API |
-|---|---|
-| BFS | `BFS(...)`, `BFSCollect(...)`, `BFSFiltered(...)` |
-| DFS | `DFSCollect(...)`, `DFSFiltered(...)` |
-| Shortest path (unweighted) | `ShortestPath(from, to)`, `ShortestPathLabeled` |
-| Shortest path (weighted) | `ShortestPathWeighted(from, to, "weight", defaultWt)` -- Dijkstra |
-| All paths (up to maxDepth) | `AllPaths(from, to, 5)` |
-| Connectivity | `HasPath(from, to)` |
-| Connected components | `ConnectedComponents()` |
-| Topological sort | `TopologicalSort()` -- Kahn's algorithm, errors on cycles |
+| Algorithm                  | API                                                               |
+| -------------------------- | ----------------------------------------------------------------- |
+| BFS                        | `BFS(...)`, `BFSCollect(...)`, `BFSFiltered(...)`                 |
+| DFS                        | `DFSCollect(...)`, `DFSFiltered(...)`                             |
+| Shortest path (unweighted) | `ShortestPath(from, to)`, `ShortestPathLabeled`                   |
+| Shortest path (weighted)   | `ShortestPathWeighted(from, to, "weight", defaultWt)` -- Dijkstra |
+| All paths (up to maxDepth) | `AllPaths(from, to, 5)`                                           |
+| Connectivity               | `HasPath(from, to)`                                               |
+| Connected components       | `ConnectedComponents()`                                           |
+| Topological sort           | `TopologicalSort()` -- Kahn's algorithm, errors on cycles         |
 
 Traversals support visitor callbacks with early-exit, `maxDepth`, direction control (`Outgoing`/`Incoming`/`Both`), and edge/node filter predicates. There are **no advanced analytics** (PageRank, community detection, centrality, triangle counting) -- scope is limited to classic graph traversal/pathfinding.
 
@@ -743,7 +728,7 @@ Traversals support visitor callbacks with early-exit, `maxDepth`, direction cont
 Transactions are exposed via `Begin`/`Commit`/`Rollback` (`tx.go`):
 
 - **Atomicity (single-shard):** A `Tx` opens one bbolt write transaction per shard (lazily, on first touch). In single-shard mode this is truly atomic -- one bbolt write tx commits or rolls back as a unit.
-- **Atomicity (multi-shard):** Each shard commits **independently**. The code comment is explicit: *"In multi-shard mode each shard commits independently -- full distributed 2PC is a future enhancement."* So multi-shard transactions are **not atomic** across shards today. `Commit()` loops and commits each shard tx, returning the first error (which can leave a partial commit).
+- **Atomicity (multi-shard):** Each shard commits **independently**. The code comment is explicit: _"In multi-shard mode each shard commits independently -- full distributed 2PC is a future enhancement."_ So multi-shard transactions are **not atomic** across shards today. `Commit()` loops and commits each shard tx, returning the first error (which can leave a partial commit).
 - **Read-your-writes (isolation within tx):** If a shard write tx is open, `GetNode` reads from that uncommitted tx, so writes are visible within the same transaction before commit.
 - **Isolation across txs:** Snapshot isolation via bbolt MVCC (reads are lock-free). Only one writer per shard at a time (bbolt constraint) -- effectively serial writes.
 - **Durability:** bbolt fsync on commit (unless `NoSync: true`). WAL group commit batches fsyncs in replicated mode.
@@ -797,15 +782,15 @@ The "50 GB+ ready" claim rests on:
 
 **Benchmark figures cited** (Apple M-series, README):
 
-| Operation | Throughput |
-|---|---|
-| AddNodeBatch (100K nodes) | ~120 ms |
-| CreateIndex (100K nodes) | ~180 ms |
-| FindByProperty (indexed) | < 1 ms |
-| Cypher property filter (indexed, 100K) | < 1 ms |
-| Cypher 1-hop traversal (indexed) | < 1 ms |
-| Cypher ORDER BY + LIMIT 10 (100K) | ~60 ms |
-| 1000x repeated Cypher (cached) | ~200 ms |
+| Operation                              | Throughput |
+| -------------------------------------- | ---------- |
+| AddNodeBatch (100K nodes)              | ~120 ms    |
+| CreateIndex (100K nodes)               | ~180 ms    |
+| FindByProperty (indexed)               | < 1 ms     |
+| Cypher property filter (indexed, 100K) | < 1 ms     |
+| Cypher 1-hop traversal (indexed)       | < 1 ms     |
+| Cypher ORDER BY + LIMIT 10 (100K)      | ~60 ms     |
+| 1000x repeated Cypher (cached)         | ~200 ms    |
 
 > **Scrutiny:** The 50 GB claim is **plausible in principle** (bbolt/mmap can grow that large), but the published benchmarks are all at **100K nodes** -- orders of magnitude below 50 GB. There are no published load-test results at multi-GB scale, no sustained-throughput numbers, and no third-party benchmarks. Treat "50 GB+" as an architectural ceiling, not a validated production figure.
 
@@ -853,15 +838,15 @@ NornicDB is an open-source, Go-native graph database that combines property grap
 
 ### At a Glance
 
-| | NornicDB |
-|---|---|
-| Maturity | Active (838 stars, 1,491 commits, v1.2.2) |
-| Data model | Property graph + vectors |
-| Query language | Cypher (Neo4j Bolt-protocol compatible) |
-| Distribution | Hot Standby / Raft / Multi-Region |
-| Storage | BadgerDB (LSM) |
-| License | MIT (+ defensive patent grant) |
-| Best for | AI/GraphRAG workloads |
+|                | NornicDB                                  |
+| -------------- | ----------------------------------------- |
+| Maturity       | Active (838 stars, 1,491 commits, v1.2.2) |
+| Data model     | Property graph + vectors                  |
+| Query language | Cypher (Neo4j Bolt-protocol compatible)   |
+| Distribution   | Hot Standby / Raft / Multi-Region         |
+| Storage        | BadgerDB (LSM)                            |
+| License        | MIT (+ defensive patent grant)            |
+| Best for       | AI/GraphRAG workloads                     |
 
 ### Architecture
 
@@ -881,21 +866,21 @@ Replication      -> Hot Standby / Raft Consensus / Multi-Region
 
 **Key package structure:**
 
-| Package | Responsibility |
-|---------|---------------|
-| `pkg/nornicdb` | Main DB API |
-| `pkg/storage` | BadgerDB + WAL + MVCC |
-| `pkg/search` | Vector (HNSW) + BM25 + Hybrid RRF |
-| `pkg/cypher` | Query parser + executor + vector procedures |
-| `pkg/bolt` | Neo4j Bolt protocol server |
-| `pkg/server` | HTTP server |
-| `pkg/embed` | Embedding service + cache + worker |
-| `pkg/gpu` | GPU backends (metal/cuda/opencl/vulkan) |
-| `pkg/index` | HNSW vector index |
-| `pkg/mcp` | MCP server (6 LLM tools) |
-| `pkg/knowledgepolicy` | Decay/promotion scoring engine |
-| `pkg/replication` | HA / Raft / Multi-Region |
-| `pkg/qdrantgrpc` | Qdrant-compatible gRPC bridge |
+| Package               | Responsibility                              |
+| --------------------- | ------------------------------------------- |
+| `pkg/nornicdb`        | Main DB API                                 |
+| `pkg/storage`         | BadgerDB + WAL + MVCC                       |
+| `pkg/search`          | Vector (HNSW) + BM25 + Hybrid RRF           |
+| `pkg/cypher`          | Query parser + executor + vector procedures |
+| `pkg/bolt`            | Neo4j Bolt protocol server                  |
+| `pkg/server`          | HTTP server                                 |
+| `pkg/embed`           | Embedding service + cache + worker          |
+| `pkg/gpu`             | GPU backends (metal/cuda/opencl/vulkan)     |
+| `pkg/index`           | HNSW vector index                           |
+| `pkg/mcp`             | MCP server (6 LLM tools)                    |
+| `pkg/knowledgepolicy` | Decay/promotion scoring engine              |
+| `pkg/replication`     | HA / Raft / Multi-Region                    |
+| `pkg/qdrantgrpc`      | Qdrant-compatible gRPC bridge               |
 
 ### Cypher/Bolt Protocol Compatibility
 
@@ -911,14 +896,14 @@ with driver.session() as session:
 
 **Two parser modes** (`NORNICDB_PARSER` env var):
 
-| Feature | `nornic` (default) | `antlr` |
-|---------|-------------------|---------|
-| Approach | String-based validation (regex/indexOf) -> direct execution | ANTLR lexer/parser -> full parse tree |
-| Throughput | 3,000-4,200 ops/sec | 0.8-2,100 ops/sec |
-| Worst case delta | Baseline | **4,753x slower** on some queries |
-| Error messages | Basic | Detailed (line/column) |
-| Validation | Lenient | Strict OpenCypher grammar |
-| Best for | **Production** | Development/debugging |
+| Feature          | `nornic` (default)                                          | `antlr`                               |
+| ---------------- | ----------------------------------------------------------- | ------------------------------------- |
+| Approach         | String-based validation (regex/indexOf) -> direct execution | ANTLR lexer/parser -> full parse tree |
+| Throughput       | 3,000-4,200 ops/sec                                         | 0.8-2,100 ops/sec                     |
+| Worst case delta | Baseline                                                    | **4,753x slower** on some queries     |
+| Error messages   | Basic                                                       | Detailed (line/column)                |
+| Validation       | Lenient                                                     | Strict OpenCypher grammar             |
+| Best for         | **Production**                                              | Development/debugging                 |
 
 The `nornic` parser uses shape-specialized streaming executors for common traversal/aggregation patterns (the "hot-path fast paths"), retaining a general Cypher execution path for coverage.
 
@@ -951,12 +936,12 @@ These are intentionally separate so managed embeddings and client vectors never 
 
 **Vector search strategy selection** (runtime adaptive):
 
-| Strategy | When Used |
-|----------|-----------|
-| K-means clustered search | When clustering is enabled and clustered |
-| GPU brute-force (exact) | When GPU enabled, dataset within threshold |
-| CPU brute-force (exact) | Opt-in via `NORNICDB_VECTOR_CPU_BRUTE_MAX_N` |
-| HNSW (ANN) | Default for CPU-only datasets |
+| Strategy                 | When Used                                    |
+| ------------------------ | -------------------------------------------- |
+| K-means clustered search | When clustering is enabled and clustered     |
+| GPU brute-force (exact)  | When GPU enabled, dataset within threshold   |
+| CPU brute-force (exact)  | Opt-in via `NORNICDB_VECTOR_CPU_BRUTE_MAX_N` |
+| HNSW (ANN)               | Default for CPU-only datasets                |
 
 **Hybrid search** uses Reciprocal Rank Fusion (RRF) combining vector similarity + BM25 full-text:
 
@@ -983,12 +968,12 @@ MATCH (node)-[:TRANSLATES_TO]->(t) RETURN ...
 
 NornicDB implements **three replication modes**, all marked as complete with chaos testing:
 
-| Mode | Nodes | Consistency | Use Case |
-|------|-------|-------------|----------|
-| Standalone | 1 | N/A | Dev, testing, small workloads |
-| Hot Standby | 2 | Eventual | Simple HA, fast failover |
-| Raft Cluster | 3-5 | Strong (linearizable) | Production HA |
-| Multi-Region | 6+ | Configurable | Global distribution, DR |
+| Mode         | Nodes | Consistency           | Use Case                      |
+| ------------ | ----- | --------------------- | ----------------------------- |
+| Standalone   | 1     | N/A                   | Dev, testing, small workloads |
+| Hot Standby  | 2     | Eventual              | Simple HA, fast failover      |
+| Raft Cluster | 3-5   | Strong (linearizable) | Production HA                 |
+| Multi-Region | 6+    | Configurable          | Global distribution, DR       |
 
 **Hot Standby:** Primary accepts writes and streams WAL to standby. Sync modes: `async` (ack immediately, risk of data loss) or `quorum` (wait for standby apply, strongest). Auto-failover when heartbeats stop for `FAILOVER_TIMEOUT`. Standby is read-only; no automatic write forwarding.
 
@@ -1084,12 +1069,12 @@ NornicDB implements a **policy-driven memory retention system** based on the Ebb
 
 **Four object kinds in the catalog:**
 
-| Kind | Has Target? | What It Does |
-|------|-------------|-------------|
-| Decay bundle (`CREATE DECAY PROFILE ... OPTIONS {}`) | No | Names a parameter set |
-| Decay binding (`CREATE DECAY PROFILE ... FOR (...) APPLY {}`) | Yes | Activates decay scoring for matched entities |
-| Promotion profile (`CREATE PROMOTION PROFILE ... OPTIONS {}`) | No | Names multiplier/floor/cap set |
-| Promotion policy (`CREATE PROMOTION POLICY ... FOR (...) APPLY {}`) | Yes | Tracks access and/or applies promotion profiles |
+| Kind                                                                | Has Target? | What It Does                                    |
+| ------------------------------------------------------------------- | ----------- | ----------------------------------------------- |
+| Decay bundle (`CREATE DECAY PROFILE ... OPTIONS {}`)                | No          | Names a parameter set                           |
+| Decay binding (`CREATE DECAY PROFILE ... FOR (...) APPLY {}`)       | Yes         | Activates decay scoring for matched entities    |
+| Promotion profile (`CREATE PROMOTION PROFILE ... OPTIONS {}`)       | No          | Names multiplier/floor/cap set                  |
+| Promotion policy (`CREATE PROMOTION POLICY ... FOR (...) APPLY {}`) | Yes         | Tracks access and/or applies promotion profiles |
 
 **Decay functions:**
 
@@ -1123,12 +1108,12 @@ RETURN n ORDER BY decayScore(n) DESC
 
 Multi-backend GPU support for vector operations:
 
-| Backend | Platform | Performance | Notes |
-|---------|----------|-------------|-------|
-| Metal | Apple Silicon | Excellent | Native M1/M2/M3 |
-| CUDA | NVIDIA | Highest | Requires toolkit |
-| OpenCL | Cross-platform | Good | Best compatibility |
-| Vulkan | Cross-platform | Good | Future-proof |
+| Backend | Platform       | Performance | Notes              |
+| ------- | -------------- | ----------- | ------------------ |
+| Metal   | Apple Silicon  | Excellent   | Native M1/M2/M3    |
+| CUDA    | NVIDIA         | Highest     | Requires toolkit   |
+| OpenCL  | Cross-platform | Good        | Best compatibility |
+| Vulkan  | Cross-platform | Good        | Future-proof       |
 
 **Automatic CPU fallback** when GPU is unavailable.
 
@@ -1146,32 +1131,32 @@ Multi-backend GPU support for vector operations:
 
 #### LDBC Social Network Benchmark (M3 Max, 64GB)
 
-| Query Type | NornicDB | Neo4j | Speedup |
-|-----------|----------|-------|---------|
-| Message content lookup | 6,389 ops/sec | 518 ops/sec | **12x** |
+| Query Type                | NornicDB      | Neo4j       | Speedup |
+| ------------------------- | ------------- | ----------- | ------- |
+| Message content lookup    | 6,389 ops/sec | 518 ops/sec | **12x** |
 | Recent messages (friends) | 2,769 ops/sec | 108 ops/sec | **25x** |
-| Avg friends per city | 4,713 ops/sec | 91 ops/sec | **52x** |
-| Tag co-occurrence | 2,076 ops/sec | 65 ops/sec | **32x** |
+| Avg friends per city      | 4,713 ops/sec | 91 ops/sec  | **52x** |
+| Tag co-occurrence         | 2,076 ops/sec | 65 ops/sec  | **32x** |
 
 #### Northwind Benchmark (48 nodes, 56 relationships)
 
-| Metric | NornicDB (Metal) | Neo4j | Speedup |
-|--------|-----------------|-------|---------|
-| Best query speed | 4,919 ops/sec | 2,020 ops/sec | 2.4x |
-| Write operations | 4,920 ops/sec | 1,489 ops/sec | 3.3x |
-| Index lookups | 4,010 ops/sec | 2,020 ops/sec | 2.0x |
-| Consistency (RME) | +/-0.8-1.8% | +/-1.4-3.8% | -- |
+| Metric            | NornicDB (Metal) | Neo4j         | Speedup |
+| ----------------- | ---------------- | ------------- | ------- |
+| Best query speed  | 4,919 ops/sec    | 2,020 ops/sec | 2.4x    |
+| Write operations  | 4,920 ops/sec    | 1,489 ops/sec | 3.3x    |
+| Index lookups     | 4,010 ops/sec    | 2,020 ops/sec | 2.0x    |
+| Consistency (RME) | +/-0.8-1.8%      | +/-1.4-3.8%   | --      |
 
 **Where Neo4j is competitive:** Full table scans, SUM with GROUP BY (mature aggregation optimizer), and very large graphs (>1M nodes).
 
 #### Hybrid Retrieval Benchmarks (67,280 nodes, 40,921 edges, 67,298 embeddings)
 
-| Workload | Transport | Throughput | Mean | P50 | P95 | P99 |
-|----------|-----------|-----------|------|-----|-----|-----|
-| Vector only | HTTP | 19,342 req/s | 511us | 470us | 750us | 869us |
-| Vector only | Bolt | 22,309 req/s | 444us | 428us | 629us | 814us |
-| Vector + 1 hop | HTTP | 11,523 req/s | 859us | 699us | 1.54ms | 3.46ms |
-| Vector + 1 hop | Bolt | 13,291 req/s | 747us | 637us | 1.29ms | 3.24ms |
+| Workload       | Transport | Throughput   | Mean  | P50   | P95    | P99    |
+| -------------- | --------- | ------------ | ----- | ----- | ------ | ------ |
+| Vector only    | HTTP      | 19,342 req/s | 511us | 470us | 750us  | 869us  |
+| Vector only    | Bolt      | 22,309 req/s | 444us | 428us | 629us  | 814us  |
+| Vector + 1 hop | HTTP      | 11,523 req/s | 859us | 699us | 1.54ms | 3.46ms |
+| Vector + 1 hop | Bolt      | 13,291 req/s | 747us | 637us | 1.29ms | 3.24ms |
 
 Bolt transport is described as "nearly zero allocation." Multi-hop traversal (depths 1-6) stays at P50 < 541us locally via Bolt.
 
@@ -1194,14 +1179,14 @@ Bolt transport is described as "nearly zero allocation." Multi-hop traversal (de
 
 ### API Surface
 
-| Protocol | Port | Status | Notes |
-|----------|------|--------|-------|
-| **Bolt** | 7687 | Yes | Neo4j-compatible Cypher queries |
-| **HTTP/REST** | 7474 | Yes | Auto-commit transactions, `/db/nornic/tx/commit`, `/nornicdb/search`, `/health` |
-| **GraphQL** | 7474 | Yes | `POST /graphql` with `search(query, options)` |
-| **Qdrant gRPC** | 6334 | Yes | `Points.Search`, `Points.Query`, `Scroll`, `Count`, `Upsert` |
-| **Nornic gRPC** | -- | Yes | `NornicSearch/SearchText` (additive native gRPC) |
-| **MCP** | 7474/mcp | Yes | JSON-RPC, 6 LLM tools: `store`, `recall`, `discover`, `link`, `task`, `tasks` |
+| Protocol        | Port     | Status | Notes                                                                           |
+| --------------- | -------- | ------ | ------------------------------------------------------------------------------- |
+| **Bolt**        | 7687     | Yes    | Neo4j-compatible Cypher queries                                                 |
+| **HTTP/REST**   | 7474     | Yes    | Auto-commit transactions, `/db/nornic/tx/commit`, `/nornicdb/search`, `/health` |
+| **GraphQL**     | 7474     | Yes    | `POST /graphql` with `search(query, options)`                                   |
+| **Qdrant gRPC** | 6334     | Yes    | `Points.Search`, `Points.Query`, `Scroll`, `Count`, `Upsert`                    |
+| **Nornic gRPC** | --       | Yes    | `NornicSearch/SearchText` (additive native gRPC)                                |
+| **MCP**         | 7474/mcp | Yes    | JSON-RPC, 6 LLM tools: `store`, `recall`, `discover`, `link`, `task`, `tasks`   |
 
 **Qdrant gRPC mapping:**
 
@@ -1247,45 +1232,45 @@ Production-capable for **AI-native workloads** (agent memory, GraphRAG, semantic
 
 ### JanusGraph (the reference point)
 
-| Attribute | Details |
-|---|---|
-| **Language** | Java |
-| **Architecture** | Distributed -- layered on top of distributed storage systems |
-| **Query Language** | Gremlin (Apache TinkerPop -- native integration) |
+| Attribute            | Details                                                                                                                         |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **Language**         | Java                                                                                                                            |
+| **Architecture**     | Distributed -- layered on top of distributed storage systems                                                                    |
+| **Query Language**   | Gremlin (Apache TinkerPop -- native integration)                                                                                |
 | **Storage Backends** | **Pluggable**: Cassandra, HBase, Google Cloud Bigtable, BerkeleyDB Java, ScyllaDB; 3rd-party: Aerospike, DynamoDB, FoundationDB |
-| **Search Backends** | **Pluggable**: Elasticsearch, Solr, Lucene |
-| **Analytics** | Apache Spark (OLAP) |
-| **Status** | Active -- Linux Foundation project |
-| **License** | Apache 2.0 |
+| **Search Backends**  | **Pluggable**: Elasticsearch, Solr, Lucene                                                                                      |
+| **Analytics**        | Apache Spark (OLAP)                                                                                                             |
+| **Status**           | Active -- Linux Foundation project                                                                                              |
+| **License**          | Apache 2.0                                                                                                                      |
 
 ### Apache HugeGraph -- closest JanusGraph alternative
 
-| Attribute | Details |
-|---|---|
-| **Language** | Java |
-| **Architecture** | Distributed -- horizontal scaling, distributed storage |
-| **Query Language** | Gremlin + Cypher |
-| **Storage Backends** | Pluggable backend storage engines |
-| **Status** | Active -- First Apache Foundation Top-Level Graph Project |
-| **License** | Apache 2.0 |
+| Attribute            | Details                                                   |
+| -------------------- | --------------------------------------------------------- |
+| **Language**         | Java                                                      |
+| **Architecture**     | Distributed -- horizontal scaling, distributed storage    |
+| **Query Language**   | Gremlin + Cypher                                          |
+| **Storage Backends** | Pluggable backend storage engines                         |
+| **Status**           | Active -- First Apache Foundation Top-Level Graph Project |
+| **License**          | Apache 2.0                                                |
 
 Distributed, pluggable storage backends, TinkerPop/Gremlin + Cypher support, OLTP + OLAP, Spark/Flink integration. The most comparable to JanusGraph.
 
 ### Other notable non-Go options
 
-| Database | Language | Architecture | Query Language | Notes |
-|---|---|---|---|---|
-| **Neo4j** | Java | Single-server (clustered in Enterprise) | Cypher (native) | Most widely deployed graph DB |
-| **ArangoDB** | C++ | Distributed cluster | AQL | Multi-model, has official Go driver |
-| **Memgraph** | C/C++ | Single-server, in-memory | openCypher | Sub-millisecond multi-hop traversals |
-| **Apache AGE** | C (PG ext.) | Embedded in PostgreSQL | openCypher | PostgreSQL extension |
-| **NebulaGraph** | C++ | Distributed, Raft | nGQL (openCypher-compatible) | Trillions of edges, Go client exists |
+| Database        | Language    | Architecture                            | Query Language               | Notes                                |
+| --------------- | ----------- | --------------------------------------- | ---------------------------- | ------------------------------------ |
+| **Neo4j**       | Java        | Single-server (clustered in Enterprise) | Cypher (native)              | Most widely deployed graph DB        |
+| **ArangoDB**    | C++         | Distributed cluster                     | AQL                          | Multi-model, has official Go driver  |
+| **Memgraph**    | C/C++       | Single-server, in-memory                | openCypher                   | Sub-millisecond multi-hop traversals |
+| **Apache AGE**  | C (PG ext.) | Embedded in PostgreSQL                  | openCypher                   | PostgreSQL extension                 |
+| **NebulaGraph** | C++         | Distributed, Raft                       | nGQL (openCypher-compatible) | Trillions of edges, Go client exists |
 
 ---
 
 ## Relevance to go-cqrs-lite
 
-The `graph/` module in go-cqrs-lite is a **projection tier sink** (`GraphProjection` over an in-memory or openCypher driver), not a graph *database*. It provides:
+The `graph/` module in go-cqrs-lite is a **projection tier sink** (`GraphProjection` over an in-memory or openCypher driver), not a graph _database_. It provides:
 
 - `GraphSink` / `GraphDriver` / `GraphProjection` interfaces
 - `MemoryDriver` (in-process, Go-native)
@@ -1304,11 +1289,11 @@ Not a Go-rewrite of JanusGraph, which doesn't exist.
 
 ## Recommendation Matrix
 
-| If you need... | Choose |
-|---|---|
-| Study elegant pluggable-backend architecture | **Cayley** (read the source, don't deploy it) |
-| Embedded single-node graph in a Go binary, low stakes | **GoraphDB** (prototype only) |
-| GraphRAG / AI agent memory with Neo4j driver compat | **NornicDB** (the only credible option here) |
-| Distributed graph at scale with Gremlin | **None of these Go options** -- use JanusGraph or HugeGraph (Java) or NebulaGraph (C++, Go client) |
+| If you need...                                        | Choose                                                                                             |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Study elegant pluggable-backend architecture          | **Cayley** (read the source, don't deploy it)                                                      |
+| Embedded single-node graph in a Go binary, low stakes | **GoraphDB** (prototype only)                                                                      |
+| GraphRAG / AI agent memory with Neo4j driver compat   | **NornicDB** (the only credible option here)                                                       |
+| Distributed graph at scale with Gremlin               | **None of these Go options** -- use JanusGraph or HugeGraph (Java) or NebulaGraph (C++, Go client) |
 
-**Bottom line:** No Go-native equivalent to JanusGraph exists. JanusGraph's defining features -- distributed + pluggable storage backends + native TinkerPop/Gremlin -- are not reproduced by any single Go project. NornicDB is the strongest *Go-native* option if your use case leans AI/GraphRAG rather than Gremlin analytics.
+**Bottom line:** No Go-native equivalent to JanusGraph exists. JanusGraph's defining features -- distributed + pluggable storage backends + native TinkerPop/Gremlin -- are not reproduced by any single Go project. NornicDB is the strongest _Go-native_ option if your use case leans AI/GraphRAG rather than Gremlin analytics.

@@ -26,4 +26,3 @@ type AggregateReader interface {
 		filters []FilterSpec,
 	) (float64, error)
 }
-

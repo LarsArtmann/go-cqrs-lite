@@ -15,14 +15,14 @@ The single-writer model means writes are fully serialized. This eliminates the n
 
 ## Stores
 
-| Store | Bucket | Interface |
-|-------|--------|-----------|
-| EventStore | `cqrs_events` + `cqrs_journal` | `event.Store`, `event.SeekableJournal` |
-| SnapshotStore | `cqrs_snapshots` | `snapshot.Store` |
-| CheckpointStore | `cqrs_checkpoints` | `event.CheckpointStore` |
-| KVAdapter | `cqrs_kv` | `kv.Store` |
-| CommandStore | `cqrs_commands` + `cqrs_cmd_journal` | `command.Store`, `command.SeekableCommandJournal` |
-| QueryStore | `cqrs_queries` | `query.QueryStore`, `query.SeekableQueryJournal` |
+| Store           | Bucket                               | Interface                                         |
+| --------------- | ------------------------------------ | ------------------------------------------------- |
+| EventStore      | `cqrs_events` + `cqrs_journal`       | `event.Store`, `event.SeekableJournal`            |
+| SnapshotStore   | `cqrs_snapshots`                     | `snapshot.Store`                                  |
+| CheckpointStore | `cqrs_checkpoints`                   | `event.CheckpointStore`                           |
+| KVAdapter       | `cqrs_kv`                            | `kv.Store`                                        |
+| CommandStore    | `cqrs_commands` + `cqrs_cmd_journal` | `command.Store`, `command.SeekableCommandJournal` |
+| QueryStore      | `cqrs_queries`                       | `query.QueryStore`, `query.SeekableQueryJournal`  |
 
 ## Usage
 

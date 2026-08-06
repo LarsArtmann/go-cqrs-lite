@@ -1,7 +1,6 @@
 package sqliteengine
 
 import (
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"context"
 	"database/sql"
 	"encoding/json/v2"
@@ -10,6 +9,8 @@ import (
 	"slices"
 	"sync"
 	"sync/atomic"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // --- metaengine.SetBackend ---
@@ -37,7 +38,11 @@ func (e *sqliteEngine) SetContains(ctx context.Context, col string, key any) (bo
 
 // --- metaengine.CounterBackend ---
 
-func (e *sqliteEngine) CounterIncrement(ctx context.Context, col string, deltas metaengine.Delta) error {
+func (e *sqliteEngine) CounterIncrement(
+	ctx context.Context,
+	col string,
+	deltas metaengine.Delta,
+) error {
 	// When inside an outer transaction, reuse its executor.
 	if e.txExec() != nil {
 		xc := e.xc()

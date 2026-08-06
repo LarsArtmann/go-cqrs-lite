@@ -1,7 +1,6 @@
 package sqliteengine
 
 import (
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"context"
 	"database/sql"
 	"encoding/json/v2"
@@ -13,6 +12,8 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // sqliteEngine implements all metaengine.ADT backends backed by a SQL database.

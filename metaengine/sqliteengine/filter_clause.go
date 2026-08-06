@@ -1,9 +1,10 @@
 package sqliteengine
 
 import (
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"fmt"
 	"strings"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // appendStandardFilter writes a single filter clause for the standard
@@ -65,7 +66,12 @@ func appendPlannedFilter(b *strings.Builder, args *[]any, f metaengine.FilterSpe
 			*args = append(*args, v)
 		}
 
-		fmt.Fprintf(b, "%s IN (%s)", metaengine.QuoteIdent(f.Column), strings.Join(placeholders, ","))
+		fmt.Fprintf(
+			b,
+			"%s IN (%s)",
+			metaengine.QuoteIdent(f.Column),
+			strings.Join(placeholders, ","),
+		)
 	} else {
 		if !*started {
 			b.WriteString(" WHERE ")

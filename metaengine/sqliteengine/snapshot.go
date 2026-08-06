@@ -1,11 +1,12 @@
 package sqliteengine
 
 import (
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // metaengine.SnapshotBackend implementation for the SQLite engine.

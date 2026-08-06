@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
 )
 
 // --- P0-1: IN filter silent-drop fix ---
@@ -328,7 +327,6 @@ func TestTransaction_CommitRollback(t *testing.T) {
 	}
 }
 
-
 func _skipped_sqlite_test_0(t *testing.T) {
 	t.Skip("requires SQLite engine — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
@@ -381,7 +379,6 @@ func _skipped_sqlite_test_0(t *testing.T) {
 		t.Errorf("t3 should NOT exist after rollback: %v", err)
 	}
 }
-
 
 func _skipped_sqlite_test_1(t *testing.T) {
 	t.Skip("requires SQLite engine — moved to sqliteengine module after ADR-0115")

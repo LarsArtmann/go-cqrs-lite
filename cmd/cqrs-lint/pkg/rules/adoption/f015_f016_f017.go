@@ -47,7 +47,7 @@ func NewF015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"and layout optimization are unavailable",
 				"Import the metaengine module and use metaengine.Query[Q,R]() to declare "+
 					"queries with FilterOnField/SortOnField pushdown. For SQLite: "+
-					"sqliteengine.PlanFromDSN(dsn, queries...) is a one-call setup. " +
+					"sqliteengine.PlanFromDSN(dsn, queries...) is a one-call setup. "+
 					"The planner auto-selects the cheapest engine per query (Memory vs SQLite vs DuckDB).",
 				pos, finding.ConfidenceLow,
 			), nil

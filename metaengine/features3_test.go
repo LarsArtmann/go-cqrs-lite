@@ -8,11 +8,9 @@ import (
 	"net"
 	"net/http"
 	"strconv"
-	
 	"sync"
 	"testing"
 	"time"
-
 )
 
 // --- ContractSuite tests ---
@@ -21,7 +19,6 @@ func TestContractSuite_MemoryEngine(t *testing.T) {
 	t.Parallel()
 	ContractSuite(t, func() Engine { return NewMemoryEngine() })
 }
-
 
 // --- P3.2: Larger-payload benchmark (15+ field struct) ---
 
@@ -43,7 +40,6 @@ type LargePayload struct {
 	ParentID    string  `json:"parent_id"`
 	MilestoneID string  `json:"milestone_id"`
 }
-
 
 func BenchmarkLargePayload_Memory(b *testing.B) {
 	eng := NewMemoryEngine()
@@ -134,7 +130,6 @@ func TestStoreSwapEngine(t *testing.T) {
 }
 
 // --- P2.10: MigrateLayout end-to-end ---
-
 
 // --- P2.3: TieredStore fan-out test ---
 

@@ -343,7 +343,9 @@ func listPhasesHandler(_ context.Context, _ *AppConfig, _ *ListPhasesFlags) erro
 	fmt.Println()
 	fmt.Println("Phases are skipped when:")
 	fmt.Println("  - A config flag disables them (--skip-*, --replay)")
-	fmt.Println("  - The bundle lacks a required component (no EventSink, no CheckpointStore, etc.)")
+	fmt.Println(
+		"  - The bundle lacks a required component (no EventSink, no CheckpointStore, etc.)",
+	)
 	fmt.Println("  - --strict fails the run if ANY phase is skipped")
 
 	return nil

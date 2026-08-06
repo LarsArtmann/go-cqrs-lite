@@ -2,8 +2,8 @@
 
 |             |                                                                                                   |
 | ----------- | ------------------------------------------------------------------------------------------------- |
-| **Status**  | **Amended** (see addendum below)                               |
-| **Date**    | 2026-07-31 (original), 2026-08-06 (amendment)                 |
+| **Status**  | **Amended** (see addendum below)                                                                  |
+| **Date**    | 2026-07-31 (original), 2026-08-06 (amendment)                                                     |
 | **Context** | The metaengine ships a `GraphBackend` (in-memory BFS) that overlaps the dedicated `graph/` module |
 
 ## Context

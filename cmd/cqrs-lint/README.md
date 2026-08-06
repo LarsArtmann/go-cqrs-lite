@@ -119,12 +119,12 @@ Each preset pins feature flags AND disables rules that are known false-positives
 for that project type. Explicit `features` flags always override preset values;
 explicit `rules.disable` entries are added on top (union).
 
-| Preset       | Features                                                                    | Rule defaults                                              | Severity floor |
-| ------------ | --------------------------------------------------------------------------- | ---------------------------------------------------------- | -------------- |
-| `local-cli`  | `server: false`, `tracing: off`                                             | F004, F009, F013, F017                                     | `warning`      |
-| `production` | `server: true`, `tracing: on`                                               | (none)                                                     | (default)      |
+| Preset       | Features                                                                    | Rule defaults                                                                      | Severity floor |
+| ------------ | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | -------------- |
+| `local-cli`  | `server: false`, `tracing: off`                                             | F004, F009, F013, F017                                                             | `warning`      |
+| `production` | `server: true`, `tracing: on`                                               | (none)                                                                             | (default)      |
 | `library`    | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F002, F006, F010, F011, F015, F022, F023, F024, F025, F026, S002, S003 | (default)      |
-| `read-only`  | `command-flow: read-only`                                                   | (none)                                                     | (default)      |
+| `read-only`  | `command-flow: read-only`                                                   | (none)                                                                             | (default)      |
 
 cqrs-lint warns on unknown preset names (typos) and unknown disabled rule IDs,
 so misconfigurations surface immediately instead of silently doing nothing.
@@ -350,34 +350,34 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 
 Adoption rules (F-series) are advisory: they suggest modules and patterns that improve the project but don't indicate bugs. Use `--adoption` to show them separately from the health score.
 
-| ID   | Rule                              | Severity | Description                                                                                                          |
-| ---- | --------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------- |
-| F001 | no-tombstone-softdelete           | Info     | Delete operations without event.MarkTombstone — consider tombstone soft-delete for audit trail                       |
-| F002 | no-catalog-documentation          | Info     | 3+ event types but no catalog.NewBuilder — event documentation not generated                                         |
-| F003 | no-otel-tracing                   | Info     | Server-mode project with no OpenTelemetry tracing                                                                    |
-| F004 | no-prometheus-metrics             | Info     | Server-mode project with no Prometheus metrics                                                                       |
-| F005 | no-schema-upcasters               | Info     | Evolving event schemas but no schema.NewUpcaster — version migrations not handled                                    |
-| F006 | no-encryption-for-sensitive-data  | Info     | Event payload with PII fields but no encryption module — sensitive data in plaintext                                 |
-| F007 | no-idempotency-middleware         | Info     | Command dispatcher without idempotency middleware — duplicate commands under at-least-once delivery                  |
-| F008 | no-cbor-codec                     | Info     | Event-heavy project using JSON codec — CBOR is ~35% smaller                                                          |
-| F009 | no-scheduling-module              | Info     | Time-based patterns (timers, deadlines) but no scheduling module — hand-rolled timers are fragile                    |
-| F010 | no-graph-projections              | Info     | Graph-traversal patterns but no graph module — recursive SQL CTEs are slow for deep traversals                       |
-| F011 | no-relational-projections         | Info     | Multi-statement SQL projections without storage.RelationalProjection — manual writes lack atomicity                  |
-| F012 | no-deriver-module                 | Info     | Saga-like SubscribeAll + command dispatch but no deriver module                                                      |
-| F013 | no-transport-module               | Info     | Manual HTTP handlers for dispatch but no transport module                                                            |
-| F014 | no-kv-cache                       | Info     | kv.NewTypedStore without kv.NewCache — read model hits backing store on every read                                   |
-| F015 | no-metaengine                     | Info     | 3+ query registrations but no metaengine cost-based planner — SQL pushdown and layout optimization unavailable       |
-| F016 | no-listing-module                 | Info     | Many aggregate types but no listing module — stream status tracking unavailable                                      |
-| F017 | no-dedup-module                   | Info     | Bus subscriptions without dedup module — duplicate event delivery not handled at stream boundaries                   |
-| F018 | metaengine-filteron-pushdown      | Info     | metaengine.FilterOn (closure-based) prevents SQL pushdown — use FilterOnField for WHERE-clause pushdown              |
-| F019 | metaengine-missing-volume-hint    | Info     | metaengine queries lack Volume hint — cost-based planner cannot optimize engine selection                            |
-| F020 | metaengine-sorton-pushdown        | Info     | metaengine.SortOn (closure-based) prevents SQL ORDER BY pushdown — use SortOnField for indexed sort                  |
-| F021 | metaengine-write-amplification    | Info     | metaengine query has many fold declarations — high write amplification may degrade ingest throughput                 |
-| F022 | manual-sort-no-pushdown           | Info     | Manual in-memory sorting with a SQL store but no metaengine — all rows loaded into Go memory for sorting             |
-| F023 | manual-filter-no-pushdown         | Info     | Manual in-memory filtering (for-range + if + append) with a SQL store but no metaengine                              |
-| F024 | manual-pagination-no-pushdown     | Info     | Manual pagination (slice[offset:offset+limit]) with a SQL store but no metaengine                                    |
-| F025 | manual-count-no-counter-adt       | Info     | Manual count/aggregation (for-range + count++/sum +=) with a SQL store but no metaengine — full collection scanned   |
-| F026 | no-metaengine-prefetch            | Info     | metaengine.NewReader used but WithPrefetch never called — every Scan/Get hits the underlying store individually       |
+| ID   | Rule                             | Severity | Description                                                                                                        |
+| ---- | -------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
+| F001 | no-tombstone-softdelete          | Info     | Delete operations without event.MarkTombstone — consider tombstone soft-delete for audit trail                     |
+| F002 | no-catalog-documentation         | Info     | 3+ event types but no catalog.NewBuilder — event documentation not generated                                       |
+| F003 | no-otel-tracing                  | Info     | Server-mode project with no OpenTelemetry tracing                                                                  |
+| F004 | no-prometheus-metrics            | Info     | Server-mode project with no Prometheus metrics                                                                     |
+| F005 | no-schema-upcasters              | Info     | Evolving event schemas but no schema.NewUpcaster — version migrations not handled                                  |
+| F006 | no-encryption-for-sensitive-data | Info     | Event payload with PII fields but no encryption module — sensitive data in plaintext                               |
+| F007 | no-idempotency-middleware        | Info     | Command dispatcher without idempotency middleware — duplicate commands under at-least-once delivery                |
+| F008 | no-cbor-codec                    | Info     | Event-heavy project using JSON codec — CBOR is ~35% smaller                                                        |
+| F009 | no-scheduling-module             | Info     | Time-based patterns (timers, deadlines) but no scheduling module — hand-rolled timers are fragile                  |
+| F010 | no-graph-projections             | Info     | Graph-traversal patterns but no graph module — recursive SQL CTEs are slow for deep traversals                     |
+| F011 | no-relational-projections        | Info     | Multi-statement SQL projections without storage.RelationalProjection — manual writes lack atomicity                |
+| F012 | no-deriver-module                | Info     | Saga-like SubscribeAll + command dispatch but no deriver module                                                    |
+| F013 | no-transport-module              | Info     | Manual HTTP handlers for dispatch but no transport module                                                          |
+| F014 | no-kv-cache                      | Info     | kv.NewTypedStore without kv.NewCache — read model hits backing store on every read                                 |
+| F015 | no-metaengine                    | Info     | 3+ query registrations but no metaengine cost-based planner — SQL pushdown and layout optimization unavailable     |
+| F016 | no-listing-module                | Info     | Many aggregate types but no listing module — stream status tracking unavailable                                    |
+| F017 | no-dedup-module                  | Info     | Bus subscriptions without dedup module — duplicate event delivery not handled at stream boundaries                 |
+| F018 | metaengine-filteron-pushdown     | Info     | metaengine.FilterOn (closure-based) prevents SQL pushdown — use FilterOnField for WHERE-clause pushdown            |
+| F019 | metaengine-missing-volume-hint   | Info     | metaengine queries lack Volume hint — cost-based planner cannot optimize engine selection                          |
+| F020 | metaengine-sorton-pushdown       | Info     | metaengine.SortOn (closure-based) prevents SQL ORDER BY pushdown — use SortOnField for indexed sort                |
+| F021 | metaengine-write-amplification   | Info     | metaengine query has many fold declarations — high write amplification may degrade ingest throughput               |
+| F022 | manual-sort-no-pushdown          | Info     | Manual in-memory sorting with a SQL store but no metaengine — all rows loaded into Go memory for sorting           |
+| F023 | manual-filter-no-pushdown        | Info     | Manual in-memory filtering (for-range + if + append) with a SQL store but no metaengine                            |
+| F024 | manual-pagination-no-pushdown    | Info     | Manual pagination (slice[offset:offset+limit]) with a SQL store but no metaengine                                  |
+| F025 | manual-count-no-counter-adt      | Info     | Manual count/aggregation (for-range + count++/sum +=) with a SQL store but no metaengine — full collection scanned |
+| F026 | no-metaengine-prefetch           | Info     | metaengine.NewReader used but WithPrefetch never called — every Scan/Get hits the underlying store individually    |
 
 ## CLI
 

@@ -326,10 +326,20 @@ var PresetDefinitions = map[ConfigPreset]PresetDefinition{
 			// Note: F009 and S007 already self-skip under Server=false, so they
 			// are not listed here to avoid redundant disables.
 			Disable: []string{
-				"E003", "E016", // architecture: domain-package mixing
-				"F002", "F006", "F010", "F011", // adoption coaching (consumer's job)
-				"F015", "F022", "F023", "F024", "F025", "F026", // metaengine coaching (consumer's deployment choice)
-				"S002", "S003", // security middleware (consumer wires it)
+				"E003",
+				"E016", // architecture: domain-package mixing
+				"F002",
+				"F006",
+				"F010",
+				"F011", // adoption coaching (consumer's job)
+				"F015",
+				"F022",
+				"F023",
+				"F024",
+				"F025",
+				"F026", // metaengine coaching (consumer's deployment choice)
+				"S002",
+				"S003", // security middleware (consumer wires it)
 			},
 		},
 	},

@@ -53,7 +53,11 @@ func NewA034Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					if !lintutil.QualifierResolvesTo(gf.AST, ident.Name, "go-cqrs-lite/metaengine") {
+					if !lintutil.QualifierResolvesTo(
+						gf.AST,
+						ident.Name,
+						"go-cqrs-lite/metaengine",
+					) {
 						return true
 					}
 

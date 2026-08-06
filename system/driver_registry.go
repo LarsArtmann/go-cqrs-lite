@@ -8,8 +8,8 @@ import (
 
 	_ "modernc.org/sqlite" // SQLite driver registered with database/sql
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // DriverFactory creates a metaengine.Engine from an EngineConfig.

@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"testing"
 	"time"
-
 )
 
 // TestWatcher_ReceivesDeleteNotification verifies that remove/delete

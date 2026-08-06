@@ -8,7 +8,6 @@ import (
 	"sync"
 	"testing"
 
-
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 

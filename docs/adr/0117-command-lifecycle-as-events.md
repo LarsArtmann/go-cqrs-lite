@@ -44,12 +44,12 @@ Stream: CommandLifecycle/cmd-123
 
 ### Projections Over Lifecycle Streams
 
-| Projection | Source | ADT | Query |
-|-----------|--------|-----|-------|
-| Dead-letter queue | `command.dead-lettered` events | Set | "Which commands are dead-lettered?" |
-| Retry count | `command.retried` events | Counter | "How many retries has cmd-123 had?" |
-| Failed commands | `command.failed` events | Log | "Show recent failures" |
-| Processing time | `command.received` + `command.completed` | N/A | "Average processing latency" |
+| Projection        | Source                                   | ADT     | Query                               |
+| ----------------- | ---------------------------------------- | ------- | ----------------------------------- |
+| Dead-letter queue | `command.dead-lettered` events           | Set     | "Which commands are dead-lettered?" |
+| Retry count       | `command.retried` events                 | Counter | "How many retries has cmd-123 had?" |
+| Failed commands   | `command.failed` events                  | Log     | "Show recent failures"              |
+| Processing time   | `command.received` + `command.completed` | N/A     | "Average processing latency"        |
 
 The planner auto-routes these projections (ADR-0116): Set for DLQ membership,
 Counter for retry counts, Log for failure history. The consumer declares the
@@ -59,6 +59,7 @@ query; the planner builds the projection.
 
 Commands and Events have **identical Record shape** (ADR-0111). The only
 difference is conceptual:
+
 - Command = intent (pre-decision, may be rejected by the decider)
 - Event = fact (post-decision, immutable truth)
 
@@ -69,6 +70,7 @@ type like `"User"`).
 
 Because commands and events are both Records, the planner can replay them
 together. This enables:
+
 - **"What-if" time-travel** — replay with different decisions
 - **Command audit** — "what commands were sent to this aggregate?"
 - **Idempotency tracking** — "has this command been processed?" (check for

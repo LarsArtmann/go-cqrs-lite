@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"testing"
 
-
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 

@@ -79,7 +79,13 @@ func (e *sqliteEngine) aggregatePlanned(
 	if fn == metaengine.AggregateCount {
 		fmt.Fprintf(&b, "SELECT COUNT(*) FROM %s", metaengine.QuoteIdent(plan.Table))
 	} else {
-		fmt.Fprintf(&b, "SELECT %s(%s) FROM %s", fn, metaengine.QuoteIdent(column), metaengine.QuoteIdent(plan.Table))
+		fmt.Fprintf(
+			&b,
+			"SELECT %s(%s) FROM %s",
+			fn,
+			metaengine.QuoteIdent(column),
+			metaengine.QuoteIdent(plan.Table),
+		)
 	}
 
 	whereStarted := false

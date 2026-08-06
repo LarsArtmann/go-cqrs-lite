@@ -36,6 +36,7 @@ P4/P5 documentation/UX, P6 feature flags, and P7 integration validation.
    unwraps `IndexExpr`/`IndexListExpr` wrappers.
 
 **Skipped P1 items (require type checking or flow analysis, not available in AST-based linter):**
+
 - Query without type parameter (runtime panic) — requires type inference analysis
 - On with wrong handler signature — requires function type checking
 - MapUpdate on replicated engine — requires detecting engine topology from config
@@ -47,6 +48,7 @@ P4/P5 documentation/UX, P6 feature flags, and P7 integration validation.
    (for-range + count++/sum +=) is very distinctive and the detection is reliable.
 
 **Skipped P2 items:**
+
 - F021 fold-per-event-type — requires tracking which On/OnTyped calls belong to which Query
 - F019 per-query Volume hint — same complexity as F021 improvement
 
@@ -76,23 +78,25 @@ P4/P5 documentation/UX, P6 feature flags, and P7 integration validation.
 
 ### Rule count: 190 → 192
 
-| Category   | Before | After |
-|------------|--------|-------|
-| API misuse | 31     | 32    |
-| Adoption   | 25     | 26    |
-| **Total**  | **190**| **192**|
+| Category   | Before  | After   |
+| ---------- | ------- | ------- |
+| API misuse | 31      | 32      |
+| Adoption   | 25      | 26      |
+| **Total**  | **190** | **192** |
 
 ---
 
 ## Files Changed
 
 ### New files (4)
+
 - `cmd/cqrs-lint/pkg/rules/adoption/f026.go` — F026 detector (NewReader without WithPrefetch)
 - `cmd/cqrs-lint/pkg/rules/adoption/f026_test.go` — 3 tests for F026
 - `cmd/cqrs-lint/pkg/rules/adoption/manual_patterns.go` — extracted AST helpers (from file split)
 - `cmd/cqrs-lint/pkg/rules/api/a034.go` — A034 detector (Execute untyped)
 
 ### Modified files (11)
+
 - `cmd/cqrs-lint/pkg/rules/adoption/f023_f024_f025.go` — trimmed to 246 lines, F025→Medium
 - `cmd/cqrs-lint/pkg/rules/api/a034_test.go` — 3 tests for A034 (NEW)
 - `cmd/cqrs-lint/pkg/analyzer/feature_profile.go` — HasMetaengine, MetaengineEngines, MetaenginePushdown + String()
@@ -106,6 +110,7 @@ P4/P5 documentation/UX, P6 feature flags, and P7 integration validation.
 - `cmd/cqrs-lint/README.md` — 192 rules, adoption table, A034 entry, F026 entry
 
 ### Pre-existing fixes (from daemon's broken commits)
+
 - `metaengine/features3_test.go` — fixed orphaned test body (TestExplain_FilterIn)
 - `metaengine/coverage_test.go` — fixed orphaned test body (TestStore_ExplainPlan)
 - `docs/api_surface.txt` — regenerated (3647 exports)
@@ -126,17 +131,17 @@ P4/P5 documentation/UX, P6 feature flags, and P7 integration validation.
 
 ## Items Not Done (With Rationale)
 
-| Item | Why skipped |
-|------|-------------|
-| P1.5 Query without type param | Requires type inference analysis (not available in AST-only linter) |
-| P1.6 On wrong handler signature | Requires function type checking |
-| P1.7 MapUpdate on replicated engine | Requires detecting engine topology from runtime config |
-| P1.8 Store never Closed | Requires variable lifecycle flow analysis |
-| P2.11 F021 fold-per-event | Requires tracking On/OnTyped → Query association |
-| P2.12 F019 per-query Volume | Same complexity as P2.11 |
-| P6.28 metaengine-adts flag | ADT classification requires understanding metaengine's type system |
-| P7.31 DiscordSync test | External project, not in this repo |
-| P4.17-21 Scorecard improvements | Lower priority than P0/P1/P3/P6 |
+| Item                                | Why skipped                                                         |
+| ----------------------------------- | ------------------------------------------------------------------- |
+| P1.5 Query without type param       | Requires type inference analysis (not available in AST-only linter) |
+| P1.6 On wrong handler signature     | Requires function type checking                                     |
+| P1.7 MapUpdate on replicated engine | Requires detecting engine topology from runtime config              |
+| P1.8 Store never Closed             | Requires variable lifecycle flow analysis                           |
+| P2.11 F021 fold-per-event           | Requires tracking On/OnTyped → Query association                    |
+| P2.12 F019 per-query Volume         | Same complexity as P2.11                                            |
+| P6.28 metaengine-adts flag          | ADT classification requires understanding metaengine's type system  |
+| P7.31 DiscordSync test              | External project, not in this repo                                  |
+| P4.17-21 Scorecard improvements     | Lower priority than P0/P1/P3/P6                                     |
 
 ---
 

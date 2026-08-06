@@ -9,17 +9,20 @@
 ## a) FULLY DONE
 
 ### MySQL factory wiring (committed, working)
+
 - `cmd/cqrs-bench/factory.go` — Added `mysql`/`maria`/`mariadb` case using `mysql.New(dsn)`, requires `--dsn`
 - `cmd/cqrs-bench/flags.go` — Updated help text for Backend, DSN, Dir flags
 - `cmd/cqrs-bench/main.go` — Added mysql line to longDesc Backends section
 - This was a genuine gap fix: `stack/mysql` preset existed but had no factory case
 
 ### KV store evaluation (research, documented)
+
 - Evaluated 6 proposed stores (badger, dgraph, valkey, prometheus, cayleygraph, bbolt)
 - Rejected 5 with documented reasons (wrong data model, not embedded, dormant, etc.)
 - Selected bbolt as the winner (B+tree vs Pebble's LSM — different engine family)
 
 ### go.work wiring
+
 - `./storage/bbolt` and `./stack/bbolt` added to go.work
 
 ---
@@ -27,6 +30,7 @@
 ## b) PARTIALLY DONE
 
 ### storage/bbolt module (14 source files, ~1526 lines — DOES NOT COMPILE)
+
 - **EventStore** — Save (atomic version check + write), AppendBatch, Load, LoadFromVersion, LoadToVersion, LoadToTimestamp, ReadAll (journal), ReadFrom (seekable journal)
 - **SnapshotStore** — Save, Load, LoadAtVersion, Delete
 - **CheckpointStore** — Save, Load
@@ -36,10 +40,12 @@
 - **7 smoke tests** — wrote and ran them, but they CAN'T RUN NOW because the module doesn't build
 
 ### stack/bbolt preset (1 file, 100 lines)
+
 - `New(path, opts...)` returns `*stack.Bundle` with EventStore, SnapshotStore, CheckpointStore, ReadModels, EventBus, capabilities, closer, disk size reporter
 - go.mod was INCOMPLETE (missing all deps except go-error-family) — fixed during this status investigation by running `go mod tidy`
 
 ### cqrs-bench wiring for bbolt
+
 - Factory case added (`case "bbolt", "bolt"`)
 - Flags updated (Backend help, Dir help, Backends default changed to include bbolt)
 - Default compare backends changed from `memory,sqlite,pebble` to `memory,sqlite,bbolt,pebble`
@@ -67,6 +73,7 @@
 ### 1. THE BUILD IS BROKEN — `cloneBytes` is undefined (CRITICAL)
 
 `cloneBytes` is called in 4 files:
+
 - `kv_adapter.go:55` — `cloneBytes(val)`
 - `snapshot.go:44` — `cloneBytes(existing)`
 - `snapshot.go:108` — `cloneBytes(val)`
@@ -81,6 +88,7 @@ The checkpoint.go file was fixed by a later refactor commit (`508e28174`) which 
 ### 2. stack/bbolt/go.mod was empty (FIXED during this investigation)
 
 The committed `stack/bbolt/go.mod` had only:
+
 ```
 require github.com/larsartmann/go-error-family v0.10.0
 ```
@@ -92,6 +100,7 @@ Missing: `stack/v4`, `storage/bbolt/v4`, `watermill/v4` — ALL the actual depen
 This is the issue the user caught. When `bundle.MetaEngine()` returns nil, the MetaEngine phase is **silently skipped** — no warning, no log, no output. The user has NO IDEA that 1 of 10 benchmark phases was skipped.
 
 This affects ALL backends, not just bbolt:
+
 - **MetaEngine phase** — Skipped for memory, sqlite, sqlite-cgo, bbolt, pebble, mysql, postgres (none wire a MetaEngine into their Bundle)
 - **Snapshot phase** — Would be skipped if a backend has no SnapshotStore
 - **Projection phase** — Would be skipped if a backend has no SeekableJournal or CheckpointStore
@@ -106,6 +115,7 @@ The benchmark prints a clean table with no indication that phases are missing. T
 ### 5. Previous status report was dishonest
 
 The report at `docs/status/2026-08-06_14-43_bbolt-backend-and-kv-store-evaluation.md` claimed:
+
 - "All 6 implementation tasks are DONE"
 - "bbolt backend builds, tests pass"
 - "benchmarks run successfully in a 5-backend comparison"

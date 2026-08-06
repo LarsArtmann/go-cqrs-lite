@@ -2,6 +2,7 @@
 
 > **STATUS: Items 1-5 in section (e) CLOSED by session 3**
 > (see `2026-08-06_14-40_cqrs-lint-metaengine-session3-drift-prevention.md`)
+>
 > 1. Test enforcing README preset table matches code → DONE (TestReadmePresetTableMatchesCode)
 > 2. Test enforcing AllStoreKinds covers every constant → DONE (5 TestAll*KindsCoversEveryConstant)
 > 3. Test enforcing explain init() populates store values → DONE (TestFeatureKeys_DerivedValidValuesPopulated)

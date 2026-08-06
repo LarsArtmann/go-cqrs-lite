@@ -140,6 +140,7 @@ I updated the rule count headline (187→190) and the preset table, but there is
 ### 5. F024 heuristic has a significant blind spot
 
 The pagination detection only fires when slice indices reference pagination-like variable names (`offset`, `limit`, `start`, `end`, `page`, `size`, `skip`, `take`, `from`). It misses:
+
 - `items[lo:hi]` where lo/hi are computed from non-standard names
 - `items[:n]` (bare cap without offset)
 - `copy(dst, src[:limit])` patterns
@@ -269,6 +270,7 @@ I ran `gofumpt` + `goimports` directly (scoped formatting). The AGENTS.md lint c
 ### Q1: Should F025 detect `len(slice)` as a count anti-pattern?
 
 `len(results)` after loading all rows from a store IS the anti-pattern P1-7 describes. But `len()` is idiomatic Go — flagging every `len()` call would false-positive catastrophically. Without data flow analysis (tracking that `results` came from a store query vs. a local computation), we can't distinguish. Should I:
+
 - (a) Accept the limitation and only detect `for-range + count++` patterns?
 - (b) Attempt a narrow heuristic (e.g., `len()` called on a variable that was assigned from a `store.Query` or `kv.GetAll` call)?
 - (c) Skip this until the linter has data flow capabilities?
@@ -276,6 +278,7 @@ I ran `gofumpt` + `goimports` directly (scoped formatting). The AGENTS.md lint c
 ### Q2: Should `f023_f024_f025.go` be split into 3 files, or should the helpers move out?
 
 The file is 375 lines (CI limit is 350). Two options:
+
 - (a) Split into `f023.go` (detector + `firstManualFilterPos` + `filterAppendInBlock` + `containsAppendCall`), `f024.go` (detector + `firstManualPaginationPos` + `sliceHasPaginationVar`), `f025.go` (detector + `firstManualAggregationPos` + `hasAggregationStmt`). Shared helper `loopBody` duplicated or extracted.
 - (b) Keep the 3 detectors in one file but move ALL helpers (`loopBody`, `filterAppendInBlock`, `containsAppendCall`, `hasAggregationStmt`, `sliceHasPaginationVar`, `paginationVarNames`) to `patterns.go` or `manual_patterns.go`.
 
@@ -301,21 +304,21 @@ nix run .#verify:              NOT RUN ← this is the gap
 
 ## Files changed this session (16 files, 2 new)
 
-| File                                          | Change                                                                                          |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `pkg/analyzer/feature_profile.go`             | Added `StoreBolt`, `IsEmbedded()`, `IsDistributed()`, library preset F023-F025                  |
-| `pkg/analyzer/feature_detect.go`              | Added `stack/bbolt` → `StoreBolt` detection                                                      |
-| `pkg/analyzer/feature_profile_test.go`        | Added `StoreBolt` to coverage test constants                                                    |
-| `pkg/analyzer/module_catalog_data.go`         | Added `stack/bbolt` catalog entry                                                               |
-| `pkg/analyzer/module_catalog_test.go`         | Added `storage/bbolt` to exclusion list, updated catalog counts (32→33, 38→39)                 |
-| `explain.go`                                  | Refactored `kindDerivations` map → `featureKey.derive` field (structural coupling)             |
-| `explain_test.go`                             | Updated test to check `fk.derive != nil` instead of `kindDerivations[key]`                     |
-| `pkg/rules/adoption/f023_f024_f025.go` (NEW)  | 3 detectors + helpers (375 lines — exceeds 350 limit)                                           |
+| File                                              | Change                                                                                      |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `pkg/analyzer/feature_profile.go`                 | Added `StoreBolt`, `IsEmbedded()`, `IsDistributed()`, library preset F023-F025              |
+| `pkg/analyzer/feature_detect.go`                  | Added `stack/bbolt` → `StoreBolt` detection                                                 |
+| `pkg/analyzer/feature_profile_test.go`            | Added `StoreBolt` to coverage test constants                                                |
+| `pkg/analyzer/module_catalog_data.go`             | Added `stack/bbolt` catalog entry                                                           |
+| `pkg/analyzer/module_catalog_test.go`             | Added `storage/bbolt` to exclusion list, updated catalog counts (32→33, 38→39)              |
+| `explain.go`                                      | Refactored `kindDerivations` map → `featureKey.derive` field (structural coupling)          |
+| `explain_test.go`                                 | Updated test to check `fk.derive != nil` instead of `kindDerivations[key]`                  |
+| `pkg/rules/adoption/f023_f024_f025.go` (NEW)      | 3 detectors + helpers (375 lines — exceeds 350 limit)                                       |
 | `pkg/rules/adoption/f023_f024_f025_test.go` (NEW) | 16 tests for F023/F024/F025                                                                 |
-| `pkg/rules/adoption/f018_f019.go`             | F018: mixed-usage detection (fires at ConfidenceLow when FilterOnField also used)              |
-| `pkg/rules/adoption/f020_f021.go`             | F020: mixed-usage detection (fires at ConfidenceLow when SortOnField also used)                |
-| `pkg/rules/adoption/f018_f021_test.go`        | Added `TestF018_MixedUsageFiresAtLowConfidence` + `TestF020_MixedUsageFiresAtLowConfidence`    |
-| `pkg/rules/register.go`                       | Registered F023/F024/F025 detectors                                                             |
-| `pkg/rules/catalog_extra.go`                  | Added F023/F024/F025 catalog entries                                                            |
-| `pkg/rules/meta_test.go`                      | Updated detector count 187→190                                                                  |
-| `README.md`                                   | Rule count 187→190, adoption 22→25, preset table includes F023/F024/F025                        |
+| `pkg/rules/adoption/f018_f019.go`                 | F018: mixed-usage detection (fires at ConfidenceLow when FilterOnField also used)           |
+| `pkg/rules/adoption/f020_f021.go`                 | F020: mixed-usage detection (fires at ConfidenceLow when SortOnField also used)             |
+| `pkg/rules/adoption/f018_f021_test.go`            | Added `TestF018_MixedUsageFiresAtLowConfidence` + `TestF020_MixedUsageFiresAtLowConfidence` |
+| `pkg/rules/register.go`                           | Registered F023/F024/F025 detectors                                                         |
+| `pkg/rules/catalog_extra.go`                      | Added F023/F024/F025 catalog entries                                                        |
+| `pkg/rules/meta_test.go`                          | Updated detector count 187→190                                                              |
+| `README.md`                                       | Rule count 187→190, adoption 22→25, preset table includes F023/F024/F025                    |

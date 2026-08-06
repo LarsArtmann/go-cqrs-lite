@@ -78,14 +78,14 @@ type CommonMetadata struct {
 
 ### What This Replaces
 
-| Current | New |
-|---------|-----|
-| `event.Event` (= `*ImmutableEvent`) | `Record` with `StreamType: "Event"` |
-| `event.Metadata` (Tracing + CustomData + Tombstone) | `CommonMetadata` (no Tombstone — see ADR-0114) |
-| `command.BasicCommand` | `Record` with `StreamType: "Command"` |
-| `command.Metadata` | `CommonMetadata` |
-| `metadata.Tracing` (CorrelationID, CausationID) | Folded into `CommonMetadata` |
-| `metadata.CustomData[K]` | Stays as-is (generic side-channel metadata, orthogonal) |
+| Current                                             | New                                                     |
+| --------------------------------------------------- | ------------------------------------------------------- |
+| `event.Event` (= `*ImmutableEvent`)                 | `Record` with `StreamType: "Event"`                     |
+| `event.Metadata` (Tracing + CustomData + Tombstone) | `CommonMetadata` (no Tombstone — see ADR-0114)          |
+| `command.BasicCommand`                              | `Record` with `StreamType: "Command"`                   |
+| `command.Metadata`                                  | `CommonMetadata`                                        |
+| `metadata.Tracing` (CorrelationID, CausationID)     | Folded into `CommonMetadata`                            |
+| `metadata.CustomData[K]`                            | Stays as-is (generic side-channel metadata, orthogonal) |
 
 ### Migration Path
 

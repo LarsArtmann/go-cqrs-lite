@@ -13,7 +13,6 @@ import (
 	"sync"
 	"testing"
 	"time"
-
 )
 
 // --- Stats tests ---

@@ -91,11 +91,13 @@
 ## c) WHAT REMAINS (for next session)
 
 ### Must do before release:
+
 1. **Run `nix run .#verify`** — The full CI gate. Takes 3-4 minutes. Must pass before any release claim.
 2. **Format all new files** — `nix fmt` should catch everything, but verify no formatting issues in the new test files.
 3. **Regenerate api-stability golden AGAIN** — The warning test additions and `PhaseNames()` export may have shifted the export count since the last regen.
 
 ### Should do:
+
 4. **Tag `storage/bbolt/v4.0.0` and `stack/bbolt/v4.0.0`** — Neither module is tagged. Consumers cannot resolve them outside the workspace.
 5. **Verify modules resolve with `GOWORK=off`** — Run `go build` from each module directory standalone.
 6. **Write a final status report** consolidating all sessions of bbolt work.
@@ -105,15 +107,19 @@
 ## d) TOTALLY FUCKED UP (and fixed)
 
 ### 1. Variable name collision in stack/bbolt
+
 When adding `WithDurability`, I created a local `opts := &bolt.Options{...}` variable that shadowed the function parameter `opts ...Option`. Go caught it at compile time. Fixed by renaming to `boltOpts`.
 
 ### 2. Function comment consumed by PhaseNames insertion
+
 When inserting `PhaseNames()` before `type phaseStep struct`, the `type` keyword was consumed, leaving a bare struct body. Go caught it at compile time. Fixed by restoring `type phaseStep struct {`.
 
 ### 3. Duplicate Values field in SweepFlags
+
 When adding `ListPhasesFlags`, the old `Values` field from SweepFlags was left orphaned after the new type declaration. Go caught it at compile time. Fixed by removing the orphaned field.
 
 ### 4. `newTestBackend` redeclared
+
 The contract test file defined `newTestBackend` which already existed in `store_test.go`. Go caught it at compile time. Fixed by removing the duplicate definition and reusing the existing helper.
 
 **Lesson:** All four were caught by `go build` immediately. The build-first-then-proceed discipline worked perfectly — no broken code was committed.
@@ -122,18 +128,18 @@ The contract test file defined `newTestBackend` which already existed in `store_
 
 ## e) BUILD AND TEST STATUS
 
-| Check | Status |
-|-------|--------|
-| `go build ./storage/bbolt/... ./stack/bbolt/...` | ✅ PASS |
-| `go build ./benchkit/... ./cmd/cqrs-bench/...` | ✅ PASS |
-| `go test ./storage/bbolt/... -race` | ✅ PASS (13 tests: 7 smoke + 6 contract) |
-| `go test ./benchkit/... -race -run "TestSkipped\|TestStrict"` | ✅ PASS (5 tests) |
-| `nix run .#check-layers` | ✅ PASS |
-| `nix run .#check-duplication` | ✅ PASS |
-| `nix run .#lint` (bbolt/benchkit scope) | ✅ PASS |
-| File line counts (max 350) | ✅ PASS |
-| api-stability golden + meta-test | ✅ PASS |
-| `nix run .#verify` | ❌ NOT RUN |
+| Check                                                         | Status                                   |
+| ------------------------------------------------------------- | ---------------------------------------- |
+| `go build ./storage/bbolt/... ./stack/bbolt/...`              | ✅ PASS                                  |
+| `go build ./benchkit/... ./cmd/cqrs-bench/...`                | ✅ PASS                                  |
+| `go test ./storage/bbolt/... -race`                           | ✅ PASS (13 tests: 7 smoke + 6 contract) |
+| `go test ./benchkit/... -race -run "TestSkipped\|TestStrict"` | ✅ PASS (5 tests)                        |
+| `nix run .#check-layers`                                      | ✅ PASS                                  |
+| `nix run .#check-duplication`                                 | ✅ PASS                                  |
+| `nix run .#lint` (bbolt/benchkit scope)                       | ✅ PASS                                  |
+| File line counts (max 350)                                    | ✅ PASS                                  |
+| api-stability golden + meta-test                              | ✅ PASS                                  |
+| `nix run .#verify`                                            | ❌ NOT RUN                               |
 
 ---
 
@@ -146,6 +152,7 @@ The contract test file defined `newTestBackend` which already existed in `store_
 ## g) FILES CREATED/MODIFIED THIS SESSION
 
 ### New files (8):
+
 - `storage/bbolt/command_store.go` (226 lines)
 - `storage/bbolt/command_serialization.go` (63 lines)
 - `storage/bbolt/query_store.go` (134 lines)
@@ -157,6 +164,7 @@ The contract test file defined `newTestBackend` which already existed in `store_
 - `benchkit/phases_batch.go` (73 lines)
 
 ### Modified files (14):
+
 - `storage/bbolt/backend.go` — OpenWith, CommandStore/QueryStore accessors
 - `storage/bbolt/base.go` — 3 new bucket constants
 - `storage/bbolt/go.mod` — command/v4, query/v4, eventtest deps

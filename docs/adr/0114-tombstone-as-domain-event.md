@@ -42,12 +42,12 @@ On(UserDeleted{}, func(r Record) Skip {
 
 ### What This Replaces
 
-| Current | New |
-|---------|-----|
+| Current                                                          | New                                                           |
+| ---------------------------------------------------------------- | ------------------------------------------------------------- |
 | `event.DetectTombstone(events)` → Active/Tombstoned/Undetermined | Fold handler checks event types (UserDeleted, OrderCancelled) |
-| `event.MarkTombstone(evt)` → mutates metadata | Not needed — deletion events are immutable records |
-| `event.TombstoneStatus` metadata field | Does not exist |
-| Tombstone filtering in store reads | Projection concern — fold handlers handle it |
+| `event.MarkTombstone(evt)` → mutates metadata                    | Not needed — deletion events are immutable records            |
+| `event.TombstoneStatus` metadata field                           | Does not exist                                                |
+| Tombstone filtering in store reads                               | Projection concern — fold handlers handle it                  |
 
 ### Design Principles
 
