@@ -106,7 +106,9 @@ Five presets cover every deployment shape:
 | `stack/memory`   | Tests and local dev — everything in RAM           |
 | `stack/sqlite`   | Embedded single-file persistence                  |
 | `stack/pebble`   | High-throughput embedded KV (PebbleDB + CBOR)     |
-| `stack/postgres` | Distributed, with `LISTEN/NOTIFY` event bus       |
+| `stack/duckdb`   | Embedded columnar OLAP (analytical workloads)     |
+| `stack/postgres` | Distributed, with connection pooling + timeouts   |
+| `stack/mysql`    | MySQL/MariaDB with pure-Go driver                 |
 | `stack/turso`    | Embedded Turso Database with optional remote sync |
 
 See [`example/getting-started/`](example/getting-started/) for a minimal 80-line tour of the core loop (event sourcing + projection + materialized view), and [`example/taskmanager/`](example/taskmanager/) for a complete HTTP service (CQRS/ES, projections, signing, SSE, snapshots).

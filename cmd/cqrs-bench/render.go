@@ -150,7 +150,38 @@ func comparisonWinnerSummary(results map[string]*benchkit.Result) string {
 
 	var bests []metricBest
 
-	findMin := func(label string, get func(r *benchkit.Result) (val float64, ok bool), format func(float64) string) {
+	findMinDur := func(label string, get func(r *benchkit.Result) (time.Duration, bool)) {
+		var (
+			winner string
+			minVal time.Duration
+		)
+
+		found := false
+
+		for _, name := range names {
+			r := results[name]
+			if r == nil || r.Error != "" {
+				continue
+			}
+
+			v, ok := get(r)
+			if !ok || v <= 0 {
+				continue
+			}
+
+			if !found || v < minVal {
+				minVal = v
+				winner = name
+				found = true
+			}
+		}
+
+		if found {
+			bests = append(bests, metricBest{label, winner, fmtDur(minVal)})
+		}
+	}
+
+	findMinNum := func(label string, get func(r *benchkit.Result) (float64, bool), format func(float64) string) {
 		var (
 			winner string
 			minVal float64
@@ -181,25 +212,25 @@ func comparisonWinnerSummary(results map[string]*benchkit.Result) string {
 		}
 	}
 
-	findMin("writes", func(r *benchkit.Result) (float64, bool) {
-		return float64(r.WriteLatency.P50), r.WriteLatency.P50 > 0
-	}, func(v float64) string { return fmtDur(time.Duration(v)) })
+	findMinDur("writes", func(r *benchkit.Result) (time.Duration, bool) {
+		return r.WriteLatency.P50, r.WriteLatency.P50 > 0
+	})
 
-	findMin("reads", func(r *benchkit.Result) (float64, bool) {
-		return float64(r.LoadLatency.P50), r.LoadLatency.P50 > 0
-	}, func(v float64) string { return fmtDur(time.Duration(v)) })
+	findMinDur("reads", func(r *benchkit.Result) (time.Duration, bool) {
+		return r.LoadLatency.P50, r.LoadLatency.P50 > 0
+	})
 
-	findMin("allocs", func(r *benchkit.Result) (float64, bool) {
+	findMinNum("allocs", func(r *benchkit.Result) (float64, bool) {
 		return r.AllocsPerOp, r.AllocsPerOp > 0
 	}, func(v float64) string { return fmt.Sprintf("%.0f", v) })
 
-	findMin("heap", func(r *benchkit.Result) (float64, bool) {
+	findMinNum("heap", func(r *benchkit.Result) (float64, bool) {
 		return float64(r.Memory.After), r.Memory.After > 0
 	}, func(v float64) string { return fmtBytes(uint64(v)) })
 
-	findMin("GC pause", func(r *benchkit.Result) (float64, bool) {
-		return float64(r.GCMaxPause), r.GCMaxPause > 0
-	}, func(v float64) string { return fmtDur(time.Duration(v)) })
+	findMinDur("GC pause", func(r *benchkit.Result) (time.Duration, bool) {
+		return r.GCMaxPause, r.GCMaxPause > 0
+	})
 
 	if len(bests) == 0 {
 		return ""

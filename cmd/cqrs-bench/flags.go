@@ -29,6 +29,7 @@ type BenchFlags struct {
 	SkipSnapshot bool              `default:"false"  flag:"skip-snapshot" help:"Skip snapshot/cache hit-rate phase"`
 	SkipMixed    bool              `default:"false"  flag:"skip-mixed"    help:"Skip concurrent read-during-write phase"`
 	Progress     cmdguard.Duration `default:"5s"     flag:"progress"      help:"Progress update interval to stderr (0 disables)"`
+	Quiet        bool              `default:"false"  flag:"quiet"         help:"Suppress all progress output (stderr). Result only. Implies --progress=0"`
 	Repeat       int               `default:"0"      flag:"repeat"        help:"Run N times, report median (reduces ~20% variance)"`
 }
 
@@ -72,8 +73,12 @@ func loadProfileAndCodec(profileName, codecName string) (benchkit.Profile, codec
 }
 
 // applyProgress sets the progress writer and interval on the benchmark config
-// when the interval is non-zero.
-func applyProgress(config *benchkit.Config, interval time.Duration) {
+// when the interval is non-zero. --quiet overrides to suppress all progress.
+func applyProgress(config *benchkit.Config, interval time.Duration, quiet bool) {
+	if quiet {
+		return
+	}
+
 	if interval > 0 {
 		config.ProgressWriter = os.Stderr
 		config.ProgressInterval = interval

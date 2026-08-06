@@ -14,6 +14,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"runtime/pprof"
 	"strings"
@@ -190,7 +191,7 @@ func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
 		Backend:      flags.Backend,
 		DiskPath:     diskPath,
 	}
-	applyProgress(&config, flags.Progress.Duration())
+	applyProgress(&config, flags.Progress.Duration(), flags.Quiet)
 
 	if sizes, err := parsePayloadSizes(flags.PayloadSizes); err != nil {
 		fatalf("invalid --payload-sizes: %v", err)
@@ -202,10 +203,15 @@ func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
 	defer cancel()
 
 	if soak > 0 {
+		var soakProgressWriter io.Writer = os.Stderr
+		if flags.Quiet {
+			soakProgressWriter = nil
+		}
+
 		soakResult, err := benchkit.RunSoak(runCtx, benchkit.SoakConfig{
 			Duration:       soak,
 			ReportInterval: 10 * time.Second,
-			ProgressWriter: os.Stderr,
+			ProgressWriter: soakProgressWriter,
 			Config:         config,
 		}, factory)
 		if err != nil {
@@ -258,7 +264,7 @@ func compareHandler(ctx context.Context, _ *AppConfig, flags *CompareFlags) erro
 		SkipQuery:    flags.SkipQuery,
 		SkipSnapshot: flags.SkipSnapshot,
 	}
-	applyProgress(&config, flags.Progress.Duration())
+	applyProgress(&config, flags.Progress.Duration(), flags.Quiet)
 
 	if sizes, err := parsePayloadSizes(flags.PayloadSizes); err != nil {
 		fatalf("invalid --payload-sizes: %v", err)
