@@ -1,6 +1,12 @@
-# projectionhost/v4
+# projectionhost — Managed Projection Host
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/projectionhost/v4.svg)](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/projectionhost/v4)
 
 Managed lifecycle for projection workers — the "last loop every consumer rewrites."
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/projectionhost/v4
+```
 
 ## What It Does
 
@@ -84,3 +90,12 @@ The Host reads directly from `event.SeekableJournal` — it does NOT depend on
 Watermill or any message bus. This keeps it a pure library component. For live
 streaming (push-based event delivery), use the `watermill/CatchUpSubscriber`
 alongside the Host.
+
+## Related Modules
+
+- [**event**](../event/README.md) — `SeekableJournal` that the Host reads from
+- [**projection**](../projection/README.md) — `Projection` interface that workers run
+- [**watermill**](../watermill/README.md) — `CatchUpSubscriber` for live push delivery alongside the Host
+- [**dedup**](../dedup/README.md) — Ring buffer for replay-to-live dedup in the Host
+- [**kv**](../kv/README.md) — Typical read-model backend for materialized projections
+- [**stack**](../stack/README.md) — `Materialize[V,K]` projection builder used with the Host

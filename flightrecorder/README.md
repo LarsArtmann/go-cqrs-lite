@@ -1,8 +1,18 @@
-# flightrecorder
+# flightrecorder — Execution Trace Flight Recorder
 
-> Wraps Go 1.25's `runtime/trace.FlightRecorder` with composable triggers for CQRS/ES systems.
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/flightrecorder/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/flightrecorder/v4)
+
+Wraps Go 1.25's `runtime/trace.FlightRecorder` with composable triggers for CQRS/ES systems.
 
 A flight recorder buffers the last few seconds of execution trace in memory. When a problem is detected (slow operation, error, panic), the program snapshots exactly the problematic window for offline analysis with `go tool trace`.
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/flightrecorder/v4
+```
+
+## Why?
+
+Production bugs are fleeting — a slow query happens once, then disappears by the time you attach a profiler. A flight recorder keeps a rolling buffer of the last few seconds of execution trace in memory, so when something goes wrong you capture **exactly** the window where it happened — not a cold-start reproduction. This module provides the zero-dependency recorder plus composable trigger functions and CQRS middleware that snapshots automatically on slow/error operations.
 
 ## Quick Start
 
@@ -101,4 +111,9 @@ go tool trace snapshot.trace
 - **Zero dependencies** — stdlib only (`runtime/trace`, `sync`, `time`, `context`, `io`, `os`)
 - **Once-semantics** — by default, only the first snapshot succeeds (prevents races when multiple goroutines detect a problem simultaneously). Call `Reset()` for multiple captures.
 - **Async capture** — the middleware snapshots in a goroutine to avoid blocking the request path
-- **Process-global** — Go's `runtime/trace` allows only ONE active flight recorder per process. `Start()` returns `ErrAlreadyEnabled` if another is already running.
+## Related Modules
+
+- [**middleware**](../middleware/README.md) — `CommandFlightRecorder`, `EventFlightRecorder`, `QueryFlightRecorder` middleware
+- [**decider**](../decider/README.md) — `WithFlightRecorder` option for repository-level capture
+- [**projectionhost**](../projectionhost/README.md) — `WithFlightRecorder` for terminal worker failures
+- [**stack**](../stack/README.md) — `WithFlightRecorder` for bundle lifecycle management

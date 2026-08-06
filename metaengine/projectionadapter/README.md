@@ -1,8 +1,14 @@
-# metaengine/projectionadapter
+# metaengine/projectionadapter — Projection Bridge
 
-> Wraps a [`metaengine.Store`](../README.md) as a [`projection.Projection`](../../projection/README.md),
-> so cost-planned stores can be registered with [`projectionhost.Host`](../../projectionhost/README.md)
-> and process events through the standard projection lifecycle (checkpoint, retry, DLQ).
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4)
+
+Wraps a [`metaengine.Store`](../README.md) as a [`projection.Projection`](../../projection/README.md),
+so cost-planned stores can be registered with [`projectionhost.Host`](../../projectionhost/README.md)
+and process events through the standard projection lifecycle (checkpoint, retry, DLQ).
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4
+```
 
 ## When to Use
 

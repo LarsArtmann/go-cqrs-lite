@@ -1,5 +1,9 @@
 # Status: Session Round 3 — system/ Decoder Wiring + nsfw-classifier Plan Update
 
+> **Resolution:** ✅ Shipped — `ProjectionTypeDecoder`/`ProjectionEventDecoder` fields
+> wired into `system.DomainConfig`. File splits shipped (constructor.go, system.go,
+> adapter_event.go). `system/v4.0.0` tagged. See CHANGELOG `[Unreleased]`.
+
 > **Date:** 2026-08-05 23:50
 > **Session goal:** Wire TypeDecoder + EventDecoder into `system/`, update the nsfw-classifier plan to recommend `system/` as the composition root.
 > **Outcome:** Shipped. 3 files in `system/` changed (+292 lines), 2 new tests pass with `-race`, nsfw-classifier plan Appendix B written, both repos pushed. But the same corners are still cut.

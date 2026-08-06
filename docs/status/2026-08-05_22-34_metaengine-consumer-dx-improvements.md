@@ -1,5 +1,10 @@
 # Status: Metaengine Consumer DX Improvements
 
+> **Resolution:** ✅ Shipped — `NewSQLiteEngineFromDSN`, `PlanFromSQLite`, `LogPlan`,
+> `EventWithID[P]`, `Register[E]`, `NewTypeDecoder`, `NewWithDecoder` all exported.
+> `metaengine/v4.5.0` tagged. Example/taskmanager rewritten to use them. See
+> CHANGELOG `[Unreleased]`.
+
 > **Date:** 2026-08-05 22:34
 > **Session goal:** Make the metaengine (and the API layer above it) superbly easy for end consumers.
 > **Outcome:** Three DX helpers shipped + tested in metaengine core, three DX helpers shipped + tested in projectionadapter. 130 lines of consumer boilerplate eliminated. But significant gaps remain.

@@ -1,8 +1,14 @@
-# metaengine
+# metaengine — Cost-Based Storage Planner
 
-> Cost-based storage planner for event-sourced data.
-> Derives projections, indexes, and engine assignments from two primitives:
-> **Events** (mutations) and **Queries** (read intent).
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/metaengine/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/metaengine/v4)
+
+Cost-based storage planner for event-sourced data.
+Derives projections, indexes, and engine assignments from two primitives:
+**Events** (mutations) and **Queries** (read intent).
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/metaengine/v4
+```
 
 ## Three Roles
 
@@ -596,3 +602,13 @@ The planner validates at `Plan()` time to catch typos early.
 
 `PlanResult` carries `Version` and `ComputedAt` for drift detection without
 a full re-plan.
+
+## Related Modules
+
+- [**metaengine/pebbleengine**](pebbleengine/README.md) — Pebble-backed engine (LSM point reads)
+- [**metaengine/duckdbengine**](duckdbengine/README.md) — DuckDB-backed engine (columnar OLAP, CGo)
+- [**metaengine/pgengine**](pgengine/README.md) — Postgres-backed engine (JSONB + B-tree)
+- [**metaengine/irohengine**](irohengine/README.md) — Iroh CRDT replication wrapper
+- [**metaengine/projectionadapter**](projectionadapter/README.md) — Wraps Store as `projection.Projection`
+- [**event**](../event/README.md) — Event types consumed by fold functions
+- [**stack**](../stack/README.md) — `WithMetaEngine` bundle integration

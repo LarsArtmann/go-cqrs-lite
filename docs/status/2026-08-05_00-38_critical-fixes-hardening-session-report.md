@@ -1,5 +1,9 @@
 # Critical Fixes & Hardening — Session Status Report
 
+> **Resolution:** ✅ Shipped — All 13 tasks implemented. StreamLogBackend (5 engines),
+> AtomicAppender (DuckDB+PG), snapshot E2E, Pebble restart safety, System.Verify/Plan/
+> Explain all shipped. See CHANGELOG `[Unreleased]`.
+
 > **Date:** 2026-08-05 00:38
 > **Session goal:** Execute all 13 tasks from `docs/planning/2026-08-04_23-56_critical-fixes-and-hardening.md`
 > **Outcome:** 13/13 tasks implemented. All builds + tests pass. 5 commits auto-committed. Several gaps remain.

@@ -45,9 +45,9 @@ const (
 type AppConfig struct {
 	cmdguard.Config
 
-	Type   string `default:"command"        flag:"type"   help:"handler type to generate: command, query, or event"`
+	Type   string `default:"command"         flag:"type"   help:"handler type to generate: command, query, or event"`
 	Output string `default:"handlers_gen.go" flag:"output" help:"output file path"`
-	Pkg    string `default:""               flag:"pkg"     help:"package name for generated file (defaults to the scanned source package)"`
+	Pkg    string `default:""                flag:"pkg"    help:"package name for generated file (defaults to the scanned source package)"`
 }
 
 func main() {

@@ -1,5 +1,9 @@
 # Status Report: KeyHolderAI cqrs-lint Feedback Round 1
 
+> **Resolution:** ✅ Shipped — All 7 rule fixes applied (C031, D005, S006, A018,
+> B004, E009, server detection). SARIF scorecard output, markdown grouping,
+> go-humanize adoption all shipped. `cmd/cqrs-lint/v4.4.0` tagged. See CHANGELOG.
+
 **Date:** 2026-08-05 19:17
 **Session scope:** Review and act on `docs/feedback/new/2026-08-05_KeyHolderAI_cqrs-lint-feedback.md`
 **Working tree:** Clean (all changes committed by auto-commit daemon)

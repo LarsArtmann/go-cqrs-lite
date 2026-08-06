@@ -13,28 +13,29 @@ import (
 // BenchFlags holds the shared benchmark flags wired onto every cqrs-bench
 // subcommand (run, compare, sweep).
 type BenchFlags struct {
-	Backend      string            `default:"memory" flag:"backend"        help:"Backend: memory, sqlite, pebble, postgres, duckdb, turso"`
-	DSN          string            `default:""       flag:"dsn"            help:"Database connection string (sqlite, postgres, duckdb)"`
-	Dir          string            `default:""       flag:"dir"            help:"Database directory (pebble, duckdb)"`
-	Profile      string            `default:"dev"    flag:"profile"         help:"Workload profile"`
-	Codec        string            `default:"json"   flag:"codec"           help:"Payload codec: json, cbor"`
-	Format       string            `default:"text"   flag:"format"          help:"Output format: text, json, benchstat, manifest"`
-	Output       string            `default:""       flag:"output"          help:"Output file (default: stdout)"`
-	PayloadSize  int               `default:"256"    flag:"payload-size"    help:"Payload size in bytes per event"`
-	PayloadSizes string            `default:""       flag:"payload-sizes"   help:"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size"`
-	Durability   string            `default:""       flag:"durability"      help:"Durability tier: strict, normal, relaxed (default: normal)"`
-	SkipRawSink  bool              `default:"false"  flag:"skip-raw-sink"   help:"Skip raw prebuilt-event sink phase"`
-	SkipJourney  bool              `default:"false"  flag:"skip-journey"    help:"Skip end-to-end publish→projection→query journey phase"`
-	SkipQuery    bool              `default:"false"  flag:"skip-query"      help:"Skip typed query dispatch phase"`
-	SkipSnapshot bool              `default:"false"  flag:"skip-snapshot"   help:"Skip snapshot/cache hit-rate phase"`
-	SkipMixed    bool              `default:"false"  flag:"skip-mixed"      help:"Skip concurrent read-during-write phase"`
-	Progress     cmdguard.Duration `default:"5s"     flag:"progress"        help:"Progress update interval to stderr (0 disables)"`
-	Repeat       int               `default:"0"      flag:"repeat"          help:"Run N times, report median (reduces ~20% variance)"`
+	Backend      string            `default:"memory" flag:"backend"       help:"Backend: memory, sqlite, pebble, postgres, duckdb, turso"`
+	DSN          string            `default:""       flag:"dsn"           help:"Database connection string (sqlite, postgres, duckdb)"`
+	Dir          string            `default:""       flag:"dir"           help:"Database directory (pebble, duckdb)"`
+	Profile      string            `default:"dev"    flag:"profile"       help:"Workload profile"`
+	Codec        string            `default:"json"   flag:"codec"         help:"Payload codec: json, cbor"`
+	Format       string            `default:"text"   flag:"format"        help:"Output format: text, json, benchstat, manifest"`
+	Output       string            `default:""       flag:"output"        help:"Output file (default: stdout)"`
+	PayloadSize  int               `default:"256"    flag:"payload-size"  help:"Payload size in bytes per event"`
+	PayloadSizes string            `default:""       flag:"payload-sizes" help:"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size"`
+	Durability   string            `default:""       flag:"durability"    help:"Durability tier: strict, normal, relaxed (default: normal)"`
+	SkipRawSink  bool              `default:"false"  flag:"skip-raw-sink" help:"Skip raw prebuilt-event sink phase"`
+	SkipJourney  bool              `default:"false"  flag:"skip-journey"  help:"Skip end-to-end publish→projection→query journey phase"`
+	SkipQuery    bool              `default:"false"  flag:"skip-query"    help:"Skip typed query dispatch phase"`
+	SkipSnapshot bool              `default:"false"  flag:"skip-snapshot" help:"Skip snapshot/cache hit-rate phase"`
+	SkipMixed    bool              `default:"false"  flag:"skip-mixed"    help:"Skip concurrent read-during-write phase"`
+	Progress     cmdguard.Duration `default:"5s"     flag:"progress"      help:"Progress update interval to stderr (0 disables)"`
+	Repeat       int               `default:"0"      flag:"repeat"        help:"Run N times, report median (reduces ~20% variance)"`
 }
 
 // RunFlags extends BenchFlags with run-specific flags.
 type RunFlags struct {
 	BenchFlags
+
 	Warmup     int               `default:"0"     flag:"warmup"     help:"Number of warmup operations"`
 	Recovery   bool              `default:"false" flag:"recovery"   help:"Enable crash-recovery phase (close, reopen, reload)"`
 	Replay     bool              `default:"false" flag:"replay"     help:"Replay existing store (skip writes, discover streams from journal)"`
@@ -46,12 +47,14 @@ type RunFlags struct {
 // CompareFlags extends BenchFlags with compare-specific flags.
 type CompareFlags struct {
 	BenchFlags
+
 	Backends string `default:"memory,sqlite,pebble" flag:"backends" help:"Comma-separated backend list (memory,sqlite,pebble)"`
 }
 
 // SweepFlags extends BenchFlags with sweep-specific flags.
 type SweepFlags struct {
 	BenchFlags
+
 	Param  string `default:"workers" flag:"param"  help:"Parameter to sweep: workers, batchSize, streamLength, gomaxprocs"`
 	Values string `default:"1,2,4"   flag:"values" help:"Comma-separated sweep values (e.g. 1,2,4,8)"`
 }

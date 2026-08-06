@@ -1,6 +1,12 @@
-# stack/duckdb
+# stack/duckdb — DuckDB Stack Preset
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4)
 
 DuckDB-backed preset for [go-cqrs-lite](../../README.md) — an embedded analytical (OLAP) SQL engine.
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4
+```
 
 ## When to Use
 
@@ -77,3 +83,10 @@ store, _ := duckdb.SQLViewModel[OrderView, OrderID](bundle, mapper)
 ```
 
 DuckDB's columnar engine makes these view tables especially powerful for analytical SQL queries directly on the materialized data.
+
+## Related Modules
+
+- [**stack**](../README.md) — The `Bundle` type
+- [**stack/sqlite**](../sqlite/README.md) — SQLite alternative for OLTP workloads
+- [**stack/postgres**](../postgres/README.md) — PostgreSQL alternative for distributed deployments
+- [**storage**](../../storage/README.md) — SQL event store, command store, view store

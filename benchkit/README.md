@@ -1,12 +1,18 @@
-# benchkit
+# benchkit — Factory-Driven Benchmarking Suite
 
-> Factory-driven benchmarking suite for go-cqrs-lite Bundle presets — the
-> performance equivalent of `stack/contracttest`.
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/benchkit/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/benchkit/v4)
+
+Factory-driven benchmarking suite for go-cqrs-lite Bundle presets — the
+performance equivalent of `stack/contracttest`.
 
 A deployer provides a `Factory` (a function returning a fresh
 `*stack.Bundle`), and benchkit runs realistic write, read, read-model, and
 projection workloads while collecting latency percentiles, throughput,
 memory deltas, and storage footprint.
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/benchkit/v4
+```
 
 ## Quick start
 
@@ -271,3 +277,9 @@ The `SoakResult` reports drift metrics across iterations:
 
 Use a small profile (`ProfileDev`) for fast iterations and more data points.
 Progress is written to stderr; the final result goes to stdout.
+
+## Related Modules
+
+- [**stack**](../stack/README.md) — `Bundle` presets that factories produce
+- [**cmd/cqrs-bench**](../cmd/cqrs-bench/README.md) — CLI tool built on benchkit
+- [**stack/bench**](../stack/bench/README.md) — Bundle overhead benchmarks

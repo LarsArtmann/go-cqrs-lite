@@ -461,6 +461,24 @@ text := d2.NewExporter().Export(catalog)
 
 ## Branded ID Types
 
+The catalog module provides typed IDs for catalog entries, preventing accidental
+mixing of identifier types at compile time:
+
+```go
+type ServiceID string     // catalog.ServiceID
+type DomainID string      // catalog.DomainID
+type MessageID string     // catalog.MessageID
+type ChannelID string     // catalog.ChannelID
+type DataStoreID string   // catalog.DataStoreID
+type FlowID string        // catalog.FlowID
+type TeamID string        // catalog.TeamID
+type UserID string        // catalog.UserID
+type EntityID string      // catalog.EntityID
+type DataProductID string // catalog.DataProductID
+type AgentID string       // catalog.AgentID
+type CustomDocID string   // catalog.CustomDocID
+```
+
 ## docserver — HTTP Handlers
 
 Serve auto-generated API documentation from a `*catalog.Catalog` via stdlib `net/http`:
@@ -506,23 +524,6 @@ cat := b.Build()
 ```
 
 Access the underlying `catalog.Builder` via `b.InnerBuilder()` for multi-service catalogs.
-
-The catalog module provides typed IDs for catalog entries:
-
-```go
-type ServiceID string     // catalog.ServiceID
-type DomainID string      // catalog.DomainID
-type MessageID string     // catalog.MessageID
-type ChannelID string     // catalog.ChannelID
-type DataStoreID string   // catalog.DataStoreID
-type FlowID string        // catalog.FlowID
-type TeamID string        // catalog.TeamID
-type UserID string        // catalog.UserID
-type EntityID string      // catalog.EntityID
-type DataProductID string // catalog.DataProductID
-type AgentID string       // catalog.AgentID
-type CustomDocID string   // catalog.CustomDocID
-```
 
 ## Dependencies
 

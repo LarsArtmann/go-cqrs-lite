@@ -1,5 +1,9 @@
 # Status: Layer Enforcement Audit + check-module-layers.sh Overhaul
 
+> **Resolution:** ✅ Shipped — 68/68 modules covered, self-enforcing guard in
+> `check-module-layers.sh`, seven-tier model (ADR-0046). All exceptions verified
+> valid. See CHANGELOG `[Unreleased]`.
+
 **Date:** 2026-08-05 22:47
 **Session scope:** SSE architecture review → ADR-0046 modernization → `command/ → event/` dependency investigation → tier enforcement tooling audit and fix
 **Previous status report:** [`2026-08-05_22-27_seven-tier-model-doc-update.md`](2026-08-05_22-27_seven-tier-model-doc-update.md)
