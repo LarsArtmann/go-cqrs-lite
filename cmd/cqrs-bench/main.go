@@ -19,40 +19,16 @@ import (
 	"strings"
 	"time"
 
+	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
+
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 )
 
-func main() {
-	if len(os.Args) < 2 {
-		printUsage()
-		os.Exit(1)
-	}
-
-	switch os.Args[1] {
-	case "run":
-		runCmd(os.Args[2:])
-	case "compare":
-		compareCmd(os.Args[2:])
-	case "sweep":
-		sweepCmd(os.Args[2:])
-	case "version", "--version", "-v":
-		fmt.Println("cqrs-bench version " + version())
-	case "help", "-h", "--help":
-		printUsage()
-	default:
-		fmt.Fprintf(os.Stderr, "unknown subcommand: %s\n\n", os.Args[1])
-		printUsage()
-		os.Exit(1)
-	}
+type AppConfig struct {
+	cmdguard.Config
 }
 
-func printUsage() {
-	fmt.Fprintln(os.Stderr, `cqrs-bench — go-cqrs-lite benchmarking tool
-
-Usage:
-  cqrs-bench run      --backend <name> [--dsn <dsn>] --profile <name> [flags]
-  cqrs-bench compare  --profile <name> [--backends mem,sq,peb] [flags]
-  cqrs-bench sweep    --param <name> --values 1,2,4 --backend <name> [flags]
+const longDesc = `cqrs-bench — go-cqrs-lite benchmarking tool
 
 Backends:
   memory    In-memory store (no persistence)
@@ -90,39 +66,71 @@ Examples:
   cqrs-bench run --backend memory --profile dev --soak 5m
   cqrs-bench run --backend sqlite --dsn ":memory:" --profile dev --skip-snapshot
   cqrs-bench sweep --param workers --values 1,2,4,8 --backend memory --profile dev
-  cqrs-bench sweep --param batchSize --values 1,5,10 --backend sqlite --profile small`)
+  cqrs-bench sweep --param batchSize --values 1,5,10 --backend sqlite --profile small`
+
+func main() {
+	cli, err := cmdguard.NewCLI[AppConfig](
+		"cqrs-bench",
+		"go-cqrs-lite benchmarking tool",
+		AppConfig{},
+		cmdguard.WithCLIVersion(version()),
+		cmdguard.WithCLILong(longDesc),
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating CLI: %v\n", err)
+		os.Exit(1)
+	}
+
+	runCmd, err := cmdguard.NewCommand("run", &RunFlags{},
+		runHandler,
+		cmdguard.WithShort("Run a benchmark against a single backend"),
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating run command: %v\n", err)
+		os.Exit(1)
+	}
+
+	compareCmd, err := cmdguard.NewCommand("compare", &CompareFlags{},
+		compareHandler,
+		cmdguard.WithShort("Compare benchmarks across multiple backends"),
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating compare command: %v\n", err)
+		os.Exit(1)
+	}
+
+	sweepCmd, err := cmdguard.NewCommand("sweep", &SweepFlags{},
+		sweepHandler,
+		cmdguard.WithShort("Sweep a parameter across benchmark runs"),
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating sweep command: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := cmdguard.AddCommand(cli, runCmd); err != nil {
+		fmt.Fprintf(os.Stderr, "Error adding run command: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := cmdguard.AddCommand(cli, compareCmd); err != nil {
+		fmt.Fprintf(os.Stderr, "Error adding compare command: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := cmdguard.AddCommand(cli, sweepCmd); err != nil {
+		fmt.Fprintf(os.Stderr, "Error adding sweep command: %v\n", err)
+		os.Exit(1)
+	}
+
+	cli.ExecuteAndExit(context.Background())
 }
 
 // ── run subcommand ──
 
-func applyProgress(config *benchkit.Config, interval time.Duration) {
-	if interval > 0 {
-		config.ProgressWriter = os.Stderr
-		config.ProgressInterval = interval
-	}
-}
-
-func runCmd(args []string) {
-	fs, bf := newBenchFlagSet("run")
-
-	warmup := fs.Int("warmup", 0, "Number of warmup operations")
-	recovery := fs.Bool("recovery", false, "Enable crash-recovery phase (close, reopen, reload)")
-	replay := fs.Bool(
-		"replay",
-		false,
-		"Replay existing store (skip writes, discover streams from journal)",
-	)
-	cpuprofile := fs.String("cpuprofile", "", "Write CPU profile to file")
-	memprofile := fs.String("memprofile", "", "Write heap profile to file")
-	soak := fs.Duration(
-		"soak",
-		0,
-		"Run in soak mode for the given duration (e.g. 5m, 1h). Repeats the workload and reports leak/degradation trends",
-	)
-	_ = fs.Parse(args)
-
-	if *cpuprofile != "" {
-		f, err := os.Create(*cpuprofile)
+func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
+	if flags.CPUProfile != "" {
+		f, err := os.Create(flags.CPUProfile)
 		if err != nil {
 			fatalf("create cpu profile: %v", err)
 		}
@@ -136,9 +144,9 @@ func runCmd(args []string) {
 		defer pprof.StopCPUProfile()
 	}
 
-	if *memprofile != "" {
+	if flags.MemProfile != "" {
 		defer func() {
-			f, err := os.Create(*memprofile)
+			f, err := os.Create(flags.MemProfile)
 			if err != nil {
 				fatalf("create mem profile: %v", err)
 			}
@@ -149,43 +157,45 @@ func runCmd(args []string) {
 		}()
 	}
 
-	profile, codec := loadProfileAndCodec(*bf.profileName, *bf.codecName)
+	profile, codec := loadProfileAndCodec(flags.Profile, flags.Codec)
 
-	factory, diskPath, cleanup := makeFactory(*bf.backend, *bf.dsn, *bf.dir, *bf.durability)
+	factory, diskPath, cleanup := makeFactory(flags.Backend, flags.DSN, flags.Dir, flags.Durability)
 	if cleanup != nil {
 		defer cleanup()
 	}
 
+	soak := flags.Soak.Duration()
+
 	config := benchkit.Config{
 		Profile:      profile,
-		PayloadSize:  *bf.payloadSize,
+		PayloadSize:  flags.PayloadSize,
 		Codec:        codec,
-		Warmup:       *warmup,
-		Repeat:       *bf.repeat,
-		Recovery:     *recovery,
-		ReplayOnly:   *replay,
-		SkipRawSink:  *bf.skipRawSink,
-		SkipJourney:  *bf.skipJourney,
-		SkipQuery:    *bf.skipQuery,
-		SkipSnapshot: *bf.skipSnapshot,
-		SkipMixed:    *bf.skipMixed,
-		Backend:      *bf.backend,
+		Warmup:       flags.Warmup,
+		Repeat:       flags.Repeat,
+		Recovery:     flags.Recovery,
+		ReplayOnly:   flags.Replay,
+		SkipRawSink:  flags.SkipRawSink,
+		SkipJourney:  flags.SkipJourney,
+		SkipQuery:    flags.SkipQuery,
+		SkipSnapshot: flags.SkipSnapshot,
+		SkipMixed:    flags.SkipMixed,
+		Backend:      flags.Backend,
 		DiskPath:     diskPath,
 	}
-	applyProgress(&config, *bf.progress)
+	applyProgress(&config, flags.Progress.Duration())
 
-	if sizes, err := parsePayloadSizes(*bf.payloadSizes); err != nil {
+	if sizes, err := parsePayloadSizes(flags.PayloadSizes); err != nil {
 		fatalf("invalid --payload-sizes: %v", err)
 	} else if len(sizes) > 0 {
 		config.PayloadSizes = sizes
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), max(30*time.Minute, *soak*2))
+	runCtx, cancel := context.WithTimeout(ctx, max(30*time.Minute, soak*2))
 	defer cancel()
 
-	if *soak > 0 {
-		soakResult, err := benchkit.RunSoak(ctx, benchkit.SoakConfig{
-			Duration:       *soak,
+	if soak > 0 {
+		soakResult, err := benchkit.RunSoak(runCtx, benchkit.SoakConfig{
+			Duration:       soak,
 			ReportInterval: 10 * time.Second,
 			ProgressWriter: os.Stderr,
 			Config:         config,
@@ -194,38 +204,34 @@ func runCmd(args []string) {
 			fatalf("soak test failed: %v", err)
 		}
 
-		writeSoakResult(*bf.format, *bf.output, soakResult)
+		writeSoakResult(flags.Format, flags.Output, soakResult)
 
-		return
+		return nil
 	}
 
-	result, err := benchkit.Run(ctx, config, factory)
+	result, err := benchkit.Run(runCtx, config, factory)
 	if err != nil {
 		fatalf("benchmark failed: %v", err)
 	}
 
-	writeResult(*bf.format, *bf.output, config, result)
+	writeResult(flags.Format, flags.Output, config, result)
+
+	return nil
 }
 
 // ── compare subcommand ──
 
-func compareCmd(args []string) {
-	fs, bf := newBenchFlagSet("compare")
+func compareHandler(ctx context.Context, _ *AppConfig, flags *CompareFlags) error {
+	profile, codec := loadProfileAndCodec(flags.Profile, flags.Codec)
 
-	backendList := fs.String("backends", "memory,sqlite,pebble",
-		"Comma-separated backend list (memory,sqlite,pebble)")
-	_ = fs.Parse(args)
-
-	profile, codec := loadProfileAndCodec(*bf.profileName, *bf.codecName)
-
-	names := strings.Split(*backendList, ",")
+	names := strings.Split(flags.Backends, ",")
 	factories := make(map[string]benchkit.Factory, len(names))
 	diskPaths := make(map[string]string, len(names))
 
 	for _, name := range names {
 		name = strings.TrimSpace(name)
 
-		factory, diskPath, cleanup := makeFactory(name, "", "", *bf.durability)
+		factory, diskPath, cleanup := makeFactory(name, "", "", flags.Durability)
 		factories[name] = factory
 		diskPaths[name] = diskPath
 
@@ -236,46 +242,38 @@ func compareCmd(args []string) {
 
 	config := benchkit.Config{
 		Profile:      profile,
-		PayloadSize:  *bf.payloadSize,
+		PayloadSize:  flags.PayloadSize,
 		Codec:        codec,
-		Repeat:       *bf.repeat,
-		SkipRawSink:  *bf.skipRawSink,
-		SkipJourney:  *bf.skipJourney,
-		SkipQuery:    *bf.skipQuery,
-		SkipSnapshot: *bf.skipSnapshot,
+		Repeat:       flags.Repeat,
+		SkipRawSink:  flags.SkipRawSink,
+		SkipJourney:  flags.SkipJourney,
+		SkipQuery:    flags.SkipQuery,
+		SkipSnapshot: flags.SkipSnapshot,
 	}
-	applyProgress(&config, *bf.progress)
+	applyProgress(&config, flags.Progress.Duration())
 
-	if sizes, err := parsePayloadSizes(*bf.payloadSizes); err != nil {
+	if sizes, err := parsePayloadSizes(flags.PayloadSizes); err != nil {
 		fatalf("invalid --payload-sizes: %v", err)
 	} else if len(sizes) > 0 {
 		config.PayloadSizes = sizes
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+	runCtx, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
-	results := compareWithDiskPaths(ctx, config, factories, diskPaths)
+	results := compareWithDiskPaths(runCtx, config, factories, diskPaths)
 
-	writeComparison(*bf.format, *bf.output, results)
+	writeComparison(flags.Format, flags.Output, results)
+
+	return nil
 }
 
 // ── sweep subcommand ──
 
-func sweepCmd(args []string) {
-	fs, bf := newBenchFlagSet("sweep")
+func sweepHandler(ctx context.Context, _ *AppConfig, flags *SweepFlags) error {
+	profile, codec := loadProfileAndCodec(flags.Profile, flags.Codec)
 
-	param := fs.String(
-		"param",
-		"workers",
-		"Parameter to sweep: workers, batchSize, streamLength, gomaxprocs",
-	)
-	valuesStr := fs.String("values", "1,2,4", "Comma-separated sweep values (e.g. 1,2,4,8)")
-	_ = fs.Parse(args)
-
-	profile, codec := loadProfileAndCodec(*bf.profileName, *bf.codecName)
-
-	values, err := parsePayloadSizes(*valuesStr)
+	values, err := parsePayloadSizes(flags.Values)
 	if err != nil {
 		fatalf("invalid --values: %v", err)
 	}
@@ -284,40 +282,42 @@ func sweepCmd(args []string) {
 		fatalf("provide at least 2 values to sweep, got %d", len(values))
 	}
 
-	factory, diskPath, cleanup := makeFactory(*bf.backend, *bf.dsn, *bf.dir, *bf.durability)
+	factory, diskPath, cleanup := makeFactory(flags.Backend, flags.DSN, flags.Dir, flags.Durability)
 	if cleanup != nil {
 		defer cleanup()
 	}
 
 	config := benchkit.Config{
 		Profile:      profile,
-		PayloadSize:  *bf.payloadSize,
+		PayloadSize:  flags.PayloadSize,
 		Codec:        codec,
-		SkipRawSink:  *bf.skipRawSink,
-		SkipJourney:  *bf.skipJourney,
-		SkipQuery:    *bf.skipQuery,
-		SkipSnapshot: *bf.skipSnapshot,
-		Backend:      *bf.backend,
+		SkipRawSink:  flags.SkipRawSink,
+		SkipJourney:  flags.SkipJourney,
+		SkipQuery:    flags.SkipQuery,
+		SkipSnapshot: flags.SkipSnapshot,
+		Backend:      flags.Backend,
 		DiskPath:     diskPath,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+	runCtx, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
 	var results []benchkit.SweepResult
 
-	switch *param {
+	switch flags.Param {
 	case "workers":
-		results = benchkit.WorkerSweep(ctx, config, factory, values)
+		results = benchkit.WorkerSweep(runCtx, config, factory, values)
 	case "batchSize", "batch-size", "batch":
-		results = benchkit.BatchSizeSweep(ctx, config, factory, values)
+		results = benchkit.BatchSizeSweep(runCtx, config, factory, values)
 	case "streamLength", "stream-length", "stream":
-		results = benchkit.StreamLengthSweep(ctx, config, factory, values)
+		results = benchkit.StreamLengthSweep(runCtx, config, factory, values)
 	case "gomaxprocs", "gomax":
-		results = benchkit.GOMAXPROCSSweep(ctx, config, factory, values)
+		results = benchkit.GOMAXPROCSSweep(runCtx, config, factory, values)
 	default:
-		fatalf("unknown parameter: %s (use workers, batchSize, streamLength, gomaxprocs)", *param)
+		fatalf("unknown parameter: %s (use workers, batchSize, streamLength, gomaxprocs)", flags.Param)
 	}
 
-	writeSweep(*bf.format, *bf.output, results)
+	writeSweep(flags.Format, flags.Output, results)
+
+	return nil
 }

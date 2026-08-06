@@ -203,7 +203,7 @@ func _() {
 	ruletest.AssertRule(t, findings, "F015", 1)
 }
 
-func TestF015_NoFindingForSQLiteStore(t *testing.T) {
+func TestF015_FiresForSQLiteStore(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
@@ -222,10 +222,10 @@ func _() {
 	ctx.FeatureProfile.Store = analyzer.StoreSQLite
 
 	findings := ruletest.RunDetector(t, adoption.NewF015Detector(ctx))
-	ruletest.AssertRule(t, findings, "F015", 0)
+	ruletest.AssertRule(t, findings, "F015", 1)
 }
 
-func TestF015_NoFindingForMemoryStore(t *testing.T) {
+func TestF015_FiresForDuckDBStore(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
@@ -235,22 +235,21 @@ func _() {
 	query.RegisterTyped(d, t1, h1)
 	query.RegisterTyped(d, t2, h2)
 	query.RegisterTyped(d, t3, h3)
-	query.RegisterTyped(d, t4, h4)
-	query.RegisterTyped(d, t5, h5)
 }`,
 	})
-	ctx.FeatureProfile.HasServer = true
-	ctx.FeatureProfile.Store = analyzer.StoreMemory
+	ctx.FeatureProfile.Store = analyzer.StoreDuckDB
 
 	findings := ruletest.RunDetector(t, adoption.NewF015Detector(ctx))
-	ruletest.AssertRule(t, findings, "F015", 0)
+	ruletest.AssertRule(t, findings, "F015", 1)
 }
 
-func TestF015_NoFindingForPebbleStore(t *testing.T) {
+func TestF015_NoFindingWithMetaengineImport(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/metaengine"
 
 func _() {
 	query.RegisterTyped(d, t1, h1)
@@ -260,8 +259,6 @@ func _() {
 	query.RegisterTyped(d, t5, h5)
 }`,
 	})
-	ctx.FeatureProfile.HasServer = true
-	ctx.FeatureProfile.Store = analyzer.StorePebble
 
 	findings := ruletest.RunDetector(t, adoption.NewF015Detector(ctx))
 	ruletest.AssertRule(t, findings, "F015", 0)

@@ -1077,5 +1077,14 @@ func adoptionRules() []RuleInfo {
 			Description: "metaengine query has many fold declarations — high write amplification may degrade ingest throughput",
 			AutoFix:     false,
 		},
+		{
+			ID:          "F022",
+			Name:        "manual-sort-no-pushdown",
+			Category:    "adoption",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "Manual in-memory sorting (sort.Slice/slices.SortFunc) with a SQL store but no metaengine — all rows loaded into Go memory for sorting",
+			AutoFix:     false,
+		},
 	}
 }

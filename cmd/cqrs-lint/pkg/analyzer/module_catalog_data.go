@@ -172,8 +172,8 @@ func buildDefaultCatalog() []ModuleEntry {
 		{
 			Key: "metaengine", DisplayName: "Metaengine", Category: CategoryProjections,
 			ImportHints: []string{"go-cqrs-lite/metaengine"},
-			Description: "Cost-based storage planner with universal ADT support",
-			Suggestion:  "Cost-based storage planner for query-optimized projections",
+			Description: "Cost-based planner: SQL pushdown (FilterOnField/SortOnField), 10 ADTs, layout planning, multi-engine (Memory/SQLite/DuckDB/Pebble/Postgres)",
+			Suggestion:  "Cost-based storage planner with FilterOnField/SortOnField SQL pushdown, layout planning, and streaming reads",
 		},
 
 		// ── Messaging ──────────────────────────────────────────────────

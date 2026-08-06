@@ -1,86 +1,59 @@
 package main
 
 import (
-	"flag"
+	"os"
 	"time"
+
+	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 )
 
-// benchFlags holds the pointer values for the flags shared across every
-// `cqrs-bench` subcommand. Populate with registerBenchFlags, then deref at
-// the call site.
-type benchFlags struct {
-	backend      *string
-	dsn          *string
-	dir          *string
-	profileName  *string
-	codecName    *string
-	format       *string
-	output       *string
-	payloadSize  *int
-	payloadSizes *string
-	durability   *string
-	skipRawSink  *bool
-	skipJourney  *bool
-	skipQuery    *bool
-	skipSnapshot *bool
-	skipMixed    *bool
-	progress     *time.Duration
-	repeat       *int
+// BenchFlags holds the shared benchmark flags wired onto every cqrs-bench
+// subcommand (run, compare, sweep).
+type BenchFlags struct {
+	Backend      string            `default:"memory" flag:"backend"        help:"Backend: memory, sqlite, pebble, postgres, duckdb, turso"`
+	DSN          string            `default:""       flag:"dsn"            help:"Database connection string (sqlite, postgres, duckdb)"`
+	Dir          string            `default:""       flag:"dir"            help:"Database directory (pebble, duckdb)"`
+	Profile      string            `default:"dev"    flag:"profile"         help:"Workload profile"`
+	Codec        string            `default:"json"   flag:"codec"           help:"Payload codec: json, cbor"`
+	Format       string            `default:"text"   flag:"format"          help:"Output format: text, json, benchstat, manifest"`
+	Output       string            `default:""       flag:"output"          help:"Output file (default: stdout)"`
+	PayloadSize  int               `default:"256"    flag:"payload-size"    help:"Payload size in bytes per event"`
+	PayloadSizes string            `default:""       flag:"payload-sizes"   help:"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size"`
+	Durability   string            `default:""       flag:"durability"      help:"Durability tier: strict, normal, relaxed (default: normal)"`
+	SkipRawSink  bool              `default:"false"  flag:"skip-raw-sink"   help:"Skip raw prebuilt-event sink phase"`
+	SkipJourney  bool              `default:"false"  flag:"skip-journey"    help:"Skip end-to-end publish→projection→query journey phase"`
+	SkipQuery    bool              `default:"false"  flag:"skip-query"      help:"Skip typed query dispatch phase"`
+	SkipSnapshot bool              `default:"false"  flag:"skip-snapshot"   help:"Skip snapshot/cache hit-rate phase"`
+	SkipMixed    bool              `default:"false"  flag:"skip-mixed"      help:"Skip concurrent read-during-write phase"`
+	Progress     cmdguard.Duration `default:"5s"     flag:"progress"        help:"Progress update interval to stderr (0 disables)"`
+	Repeat       int               `default:"0"      flag:"repeat"          help:"Run N times, report median (reduces ~20% variance)"`
 }
 
-// registerBenchFlags wires the flags every subcommand exposes (backend, dsn,
-// dir, profile, codec, format, output, payload size/sizes, skip-* flags,
-// repeat) onto the given FlagSet and returns their pointers. Centralising the
-// declarations here keeps the three subcommands in lockstep when a new flag
-// is added.
-// newBenchFlagSet creates a flag set for the given subcommand name and
-// registers the shared bench flags on it. Used by run, compare, and sweep.
-func newBenchFlagSet(name string) (*flag.FlagSet, benchFlags) {
-	fs := flag.NewFlagSet(name, flag.ExitOnError)
-
-	return fs, registerBenchFlags(fs)
+// RunFlags extends BenchFlags with run-specific flags.
+type RunFlags struct {
+	BenchFlags
+	Warmup     int               `default:"0"     flag:"warmup"     help:"Number of warmup operations"`
+	Recovery   bool              `default:"false" flag:"recovery"   help:"Enable crash-recovery phase (close, reopen, reload)"`
+	Replay     bool              `default:"false" flag:"replay"     help:"Replay existing store (skip writes, discover streams from journal)"`
+	CPUProfile string            `default:""      flag:"cpuprofile" help:"Write CPU profile to file"`
+	MemProfile string            `default:""      flag:"memprofile" help:"Write heap profile to file"`
+	Soak       cmdguard.Duration `default:"0"     flag:"soak"       help:"Run in soak mode for the given duration (e.g. 5m, 1h). Repeats the workload and reports leak/degradation trends"`
 }
 
-func registerBenchFlags(fs *flag.FlagSet) benchFlags {
-	return benchFlags{
-		backend: fs.String(
-			"backend",
-			"memory",
-			"Backend: memory, sqlite, pebble, postgres, duckdb, turso",
-		),
-		dsn:         fs.String("dsn", "", "Database connection string (sqlite, postgres, duckdb)"),
-		dir:         fs.String("dir", "", "Database directory (pebble, duckdb)"),
-		profileName: fs.String("profile", "dev", "Workload profile"),
-		codecName:   fs.String("codec", "json", "Payload codec: json, cbor"),
-		format:      fs.String("format", "text", "Output format: text, json, benchstat, manifest"),
-		output:      fs.String("output", "", "Output file (default: stdout)"),
-		payloadSize: fs.Int("payload-size", 256, "Payload size in bytes per event"),
-		payloadSizes: fs.String(
-			"payload-sizes",
-			"",
-			"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size",
-		),
-		skipRawSink: fs.Bool("skip-raw-sink", false, "Skip raw prebuilt-event sink phase"),
-		skipJourney: fs.Bool(
-			"skip-journey",
-			false,
-			"Skip end-to-end publish→projection→query journey phase",
-		),
-		skipQuery:    fs.Bool("skip-query", false, "Skip typed query dispatch phase"),
-		skipSnapshot: fs.Bool("skip-snapshot", false, "Skip snapshot/cache hit-rate phase"),
-		skipMixed:    fs.Bool("skip-mixed", false, "Skip concurrent read-during-write phase"),
-		progress: fs.Duration("progress", 5*time.Second,
-			"Progress update interval to stderr (0 disables)"),
-		durability: fs.String(
-			"durability",
-			"",
-			"Durability tier: strict, normal, relaxed (default: normal)",
-		),
-		repeat: fs.Int("repeat", 0, "Run N times, report median (reduces ~20% variance)"),
-	}
+// CompareFlags extends BenchFlags with compare-specific flags.
+type CompareFlags struct {
+	BenchFlags
+	Backends string `default:"memory,sqlite,pebble" flag:"backends" help:"Comma-separated backend list (memory,sqlite,pebble)"`
+}
+
+// SweepFlags extends BenchFlags with sweep-specific flags.
+type SweepFlags struct {
+	BenchFlags
+	Param  string `default:"workers" flag:"param"  help:"Parameter to sweep: workers, batchSize, streamLength, gomaxprocs"`
+	Values string `default:"1,2,4"   flag:"values" help:"Comma-separated sweep values (e.g. 1,2,4,8)"`
 }
 
 // loadProfileAndCodec resolves the workload profile and payload codec from
@@ -93,4 +66,13 @@ func loadProfileAndCodec(profileName, codecName string) (benchkit.Profile, codec
 	}
 
 	return profile, parseCodec(codecName)
+}
+
+// applyProgress sets the progress writer and interval on the benchmark config
+// when the interval is non-zero.
+func applyProgress(config *benchkit.Config, interval time.Duration) {
+	if interval > 0 {
+		config.ProgressWriter = os.Stderr
+		config.ProgressInterval = interval
+	}
 }
