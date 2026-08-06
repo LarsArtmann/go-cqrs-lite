@@ -23,6 +23,7 @@ func (r *runner) versionedReadPhase(ctx context.Context) error {
 	if r.bundle.EventSource == nil || len(r.refs) == 0 {
 		r.recordSkip("versioned read phase",
 			"bundle has no EventSource or no streams written")
+
 		return nil
 	}
 
@@ -39,28 +40,34 @@ func (r *runner) versionedReadPhase(ctx context.Context) error {
 
 	for i := range sampleCount {
 		if ctx.Err() != nil {
-			break //nolint:nilerr // ctx done; return partial results
+			break
 		}
 
 		ref := r.refs[i]
 
 		start := time.Now()
 		_, err := source.LoadFromVersion(ctx, ref, halfVersion)
+
 		fromColl.Record(time.Since(start))
+
 		if err != nil {
 			return err
 		}
 
 		start = time.Now()
 		_, err = source.LoadToVersion(ctx, ref, halfVersion)
+
 		toColl.Record(time.Since(start))
+
 		if err != nil {
 			return err
 		}
 
 		start = time.Now()
 		_, err = source.LoadToTimestamp(ctx, ref, now)
+
 		tsColl.Record(time.Since(start))
+
 		if err != nil {
 			return err
 		}

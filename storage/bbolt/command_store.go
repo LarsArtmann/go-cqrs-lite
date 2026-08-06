@@ -7,9 +7,10 @@ import (
 	"log/slog"
 	"time"
 
+	bolt "go.etcd.io/bbolt"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	bolt "go.etcd.io/bbolt"
 )
 
 // CommandStore persists commands in a bbolt database. It implements
@@ -24,11 +25,11 @@ func NewCommandStore(db *bolt.DB, logger *slog.Logger) (*CommandStore, error) {
 }
 
 func commandStreamKey(ref id.StreamRef, cmdID id.CommandID) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", ref.Type, ref.ID, cmdID))
+	return fmt.Appendf(nil, "%s/%s/%s", ref.Type, ref.ID, cmdID)
 }
 
 func commandStreamPrefix(ref id.StreamRef) []byte {
-	return []byte(fmt.Sprintf("%s/%s/", ref.Type, ref.ID))
+	return fmt.Appendf(nil, "%s/%s/", ref.Type, ref.ID)
 }
 
 func commandJournalKey(cmdID id.CommandID) []byte {

@@ -7,9 +7,10 @@ import (
 	"log/slog"
 	"time"
 
+	bolt "go.etcd.io/bbolt"
+
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
-	bolt "go.etcd.io/bbolt"
 )
 
 // QueryStore persists queries in a bbolt database. It implements

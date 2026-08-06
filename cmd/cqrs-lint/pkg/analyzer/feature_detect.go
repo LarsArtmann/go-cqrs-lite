@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	"slices"
 	"strings"
 
 	"golang.org/x/tools/go/packages"
@@ -215,7 +216,7 @@ func detectImports(
 		fp.HasMetaengine = true
 
 		engine := metaengineEngineFromImport(path)
-		if engine != "" && !containsString(fp.MetaengineEngines, engine) {
+		if engine != "" && !slices.Contains(fp.MetaengineEngines, engine) {
 			fp.MetaengineEngines = append(fp.MetaengineEngines, engine)
 		}
 
@@ -254,15 +255,4 @@ func metaengineEngineFromImport(path string) string {
 	default:
 		return ""
 	}
-}
-
-// containsString reports whether s contains v. Avoids pulling in slices for
-// a tiny helper used only in feature detection.
-func containsString(s []string, v string) bool {
-	for _, x := range s {
-		if x == v {
-			return true
-		}
-	}
-	return false
 }

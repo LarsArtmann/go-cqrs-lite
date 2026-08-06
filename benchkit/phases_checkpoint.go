@@ -19,6 +19,7 @@ func (r *runner) checkpointPhase(ctx context.Context) error {
 	cpStore := r.bundle.CheckpointStore
 	if cpStore == nil {
 		r.recordSkip("checkpoint phase", "bundle has no CheckpointStore")
+
 		return nil
 	}
 
@@ -28,7 +29,7 @@ func (r *runner) checkpointPhase(ctx context.Context) error {
 
 	for range sampleCount {
 		if ctx.Err() != nil {
-			break //nolint:nilerr // ctx done; return partial results
+			break
 		}
 
 		projName := "bench-checkpoint"
@@ -39,14 +40,18 @@ func (r *runner) checkpointPhase(ctx context.Context) error {
 
 		start := time.Now()
 		err := cpStore.Save(ctx, projName, cp)
+
 		saveColl.Record(time.Since(start))
+
 		if err != nil {
 			return err
 		}
 
 		start = time.Now()
 		_, err = cpStore.Load(ctx, projName)
+
 		loadColl.Record(time.Since(start))
+
 		if err != nil {
 			return err
 		}

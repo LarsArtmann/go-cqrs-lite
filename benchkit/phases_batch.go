@@ -20,6 +20,7 @@ func (r *runner) batchWritePhase(ctx context.Context) error {
 
 	if r.bundle.EventSink == nil {
 		r.recordSkip("batch write phase", "bundle has no EventSink")
+
 		return nil
 	}
 
@@ -29,6 +30,7 @@ func (r *runner) batchWritePhase(ctx context.Context) error {
 	batchSize := min(profile.EventsPerStream, maxBatchSize)
 	if batchSize < 2 {
 		r.warn("batch write phase: skipped (profile has < 2 events per stream)")
+
 		return nil
 	}
 
@@ -39,7 +41,7 @@ func (r *runner) batchWritePhase(ctx context.Context) error {
 
 	for range sampleCount {
 		if ctx.Err() != nil {
-			break //nolint:nilerr // ctx done; return partial results
+			break
 		}
 
 		aggID := id.NewStreamID()
@@ -61,7 +63,9 @@ func (r *runner) batchWritePhase(ctx context.Context) error {
 
 		start := time.Now()
 		err := sink.AppendBatch(ctx, ref, events)
+
 		coll.Record(time.Since(start))
+
 		if err != nil {
 			return err
 		}
