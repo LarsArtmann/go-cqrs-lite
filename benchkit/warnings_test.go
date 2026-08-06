@@ -110,6 +110,80 @@ func TestStrictMode_FailsOnSkip(t *testing.T) {
 	}
 }
 
+// TestSkippedPhases_MinimalBundle verifies that nil-guard warnings fire when
+// a bundle lacks required components (no SnapshotStore, no CheckpointStore,
+// no ReadModels, no SeekableJournal). A minimal EventStore-only bundle should
+// record skips for projection, checkpoint, snapshot, query, journey, and
+// read-model phases.
+func TestSkippedPhases_MinimalBundle(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	factory := func() (*stack.Bundle, error) {
+		return stack.New(
+			stack.WithEventStore(newMinimalEventStore()),
+		)
+	}
+
+	result, err := Run(ctx, Config{
+		Profile:        ProfileDev,
+		PayloadSize:    64,
+		Backend:        "minimal",
+		SkipMetaEngine: true,
+	}, factory)
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+
+	expectedSkips := []string{
+		"read model phase",
+		"projection phase",
+		"checkpoint phase",
+		"snapshot phase",
+		"query phase",
+		"journey phase",
+	}
+
+	for _, expected := range expectedSkips {
+		found := slices.Contains(result.SkippedPhases, expected)
+		if !found {
+			t.Errorf("expected SkippedPhases to contain %q, got: %v",
+				expected, result.SkippedPhases)
+		}
+	}
+}
+
+type minimalEventStore struct{}
+
+func (m *minimalEventStore) Save(_ context.Context, _ id.StreamRef, _ []event.Event, _ event.Version) error {
+	return nil
+}
+
+func (m *minimalEventStore) AppendBatch(_ context.Context, _ id.StreamRef, _ []event.Event) error {
+	return nil
+}
+
+func (m *minimalEventStore) Load(_ context.Context, _ id.StreamRef) ([]event.Event, error) {
+	return nil, nil
+}
+
+func (m *minimalEventStore) LoadFromVersion(_ context.Context, _ id.StreamRef, _ event.Version) ([]event.Event, error) {
+	return nil, nil
+}
+
+func (m *minimalEventStore) LoadToVersion(_ context.Context, _ id.StreamRef, _ event.Version) ([]event.Event, error) {
+	return nil, nil
+}
+
+func (m *minimalEventStore) LoadToTimestamp(_ context.Context, _ id.StreamRef, _ time.Time) ([]event.Event, error) {
+	return nil, nil
+}
+
+func newMinimalEventStore() event.Store {
+	return &minimalEventStore{}
+}
 // TestStrictMode_PassesWhenNothingSkipped verifies strict mode succeeds when
 // all phases run (using SkipMetaEngine to avoid the nil-MetaEngine skip, plus
 // all other skip flags false).
@@ -141,4 +215,79 @@ func TestStrictMode_ConfigSkipAlsoFails(t *testing.T) {
 	if !errors.Is(err, ErrStrictSkip) {
 		t.Errorf("expected ErrStrictSkip, got: %v", err)
 	}
+}
+
+// TestSkippedPhases_MinimalBundle verifies that nil-guard warnings fire when
+// a bundle lacks required components (no SnapshotStore, no CheckpointStore,
+// no ReadModels, no SeekableJournal). A minimal EventStore-only bundle should
+// record skips for projection, checkpoint, snapshot, query, journey, and
+// read-model phases.
+func TestSkippedPhases_MinimalBundle(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	factory := func() (*stack.Bundle, error) {
+		return stack.New(
+			stack.WithEventStore(newMinimalEventStore()),
+		)
+	}
+
+	result, err := Run(ctx, Config{
+		Profile:        ProfileDev,
+		PayloadSize:    64,
+		Backend:        "minimal",
+		SkipMetaEngine: true,
+	}, factory)
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+
+	expectedSkips := []string{
+		"read model phase",
+		"projection phase",
+		"checkpoint phase",
+		"snapshot phase",
+		"query phase",
+		"journey phase",
+	}
+
+	for _, expected := range expectedSkips {
+		found := slices.Contains(result.SkippedPhases, expected)
+		if !found {
+			t.Errorf("expected SkippedPhases to contain %q, got: %v",
+				expected, result.SkippedPhases)
+		}
+	}
+}
+
+type minimalEventStore struct{}
+
+func (m *minimalEventStore) Save(_ context.Context, _ id.StreamRef, _ []event.Event, _ event.Version) error {
+	return nil
+}
+
+func (m *minimalEventStore) AppendBatch(_ context.Context, _ id.StreamRef, _ []event.Event) error {
+	return nil
+}
+
+func (m *minimalEventStore) Load(_ context.Context, _ id.StreamRef) ([]event.Event, error) {
+	return nil, nil
+}
+
+func (m *minimalEventStore) LoadFromVersion(_ context.Context, _ id.StreamRef, _ event.Version) ([]event.Event, error) {
+	return nil, nil
+}
+
+func (m *minimalEventStore) LoadToVersion(_ context.Context, _ id.StreamRef, _ event.Version) ([]event.Event, error) {
+	return nil, nil
+}
+
+func (m *minimalEventStore) LoadToTimestamp(_ context.Context, _ id.StreamRef, _ time.Time) ([]event.Event, error) {
+	return nil, nil
+}
+
+func newMinimalEventStore() event.Store {
+	return &minimalEventStore{}
 }
