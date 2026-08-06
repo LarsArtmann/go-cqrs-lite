@@ -17,6 +17,7 @@ All current graph backends are single-node. For large-scale graph workloads (soc
 recommendation engines, fraud detection), a distributed graph database is needed.
 
 Dgraph is an open-source distributed graph database with:
+
 - GraphQL/DQL query language
 - Horizontal scalability (sharding by predicate)
 - gRPC + HTTP APIs
@@ -57,10 +58,12 @@ consumer → metaengine.Store → dgraphengine.Engine → dgo client → Dgraph 
 
 The implementation requires a running Dgraph cluster for integration testing. The module
 will be created when:
+
 - A consumer requests it, OR
 - CI infrastructure with Dgraph is available
 
 The module structure would follow the `pgengine` pattern:
+
 ```
 metaengine/dgraphengine/
 ├── go.mod          # dgraph-io/dgo/v240 dep
@@ -71,14 +74,17 @@ metaengine/dgraphengine/
 ## Alternatives Considered
 
 ### Neo4j
+
 Neo4j is the market leader for graph databases but has no official Go driver. Community drivers
 exist but lack long-term support. A Neo4j engine could be added later via the Bolt protocol.
 
 ### Apache AGE (Postgres extension)
+
 Apache AGE adds Cypher support to Postgres. The existing `pgengine` could be extended to use
 AGE for graph queries, avoiding a separate module. This is the most pragmatic long-term option.
 
 ### RedisGraph
+
 In-memory graph module for Redis. Good for latency-sensitive workloads but data does not
 persist by default.
 

@@ -12,6 +12,7 @@ Pebble (`cockroachdb/pebble`). While Pebble is excellent, having a second pure-G
 gives consumers a choice and avoids monoculture dependency risk.
 
 Badger (`dgraph-io/badger/v4`) is a widely-used pure-Go LSM-tree key-value store with:
+
 - Single-file deployment (pure Go, no CGo)
 - Built-in compression (ZSTD)
 - GC-based value log for efficient handling of large values
@@ -22,19 +23,19 @@ Badger (`dgraph-io/badger/v4`) is a widely-used pure-Go LSM-tree key-value store
 Create `metaengine/badgerengine/` as a separate Go module following the pebbleengine pattern.
 It implements the same set of backend interfaces:
 
-| Backend             | Implementation Notes                                       |
-| ------------------- | --------------------------------------------------------- |
-| MapBackend          | O(1) point read via LSM                                    |
-| MapUpdater          | Mutex-guarded read-modify-write (same as Pebble)          |
-| ScanBackend         | O(N) prefix scan + Go sort (degraded, no secondary indexes)|
-| SetBackend          | O(1) point read                                            |
-| CounterBackend      | O(1) increment, O(N) CounterGet (prefix scan)             |
-| GraphBackend        | O(N^d) BFS via prefix scan                                 |
-| MultimapBackend     | Sequence-keyed entries, prefix scan on read                |
-| LogBackend          | Sequence-keyed entries                                     |
-| StreamLogBackend    | Per-stream + global journal dual-write                     |
-| AtomicAppender      | Mutex-guarded version check + append                       |
-| StreamingScan       | Lazy iterator over prefix range                            |
+| Backend          | Implementation Notes                                        |
+| ---------------- | ----------------------------------------------------------- |
+| MapBackend       | O(1) point read via LSM                                     |
+| MapUpdater       | Mutex-guarded read-modify-write (same as Pebble)            |
+| ScanBackend      | O(N) prefix scan + Go sort (degraded, no secondary indexes) |
+| SetBackend       | O(1) point read                                             |
+| CounterBackend   | O(1) increment, O(N) CounterGet (prefix scan)               |
+| GraphBackend     | O(N^d) BFS via prefix scan                                  |
+| MultimapBackend  | Sequence-keyed entries, prefix scan on read                 |
+| LogBackend       | Sequence-keyed entries                                      |
+| StreamLogBackend | Per-stream + global journal dual-write                      |
+| AtomicAppender   | Mutex-guarded version check + append                        |
+| StreamingScan    | Lazy iterator over prefix range                             |
 
 Not implemented (matching Pebble): VectorBackend, SearchBackend, SpatialBackend, PushdownScan,
 LayoutPlanner, RawValueReader, RawScanReader.
@@ -57,11 +58,13 @@ to prevent key collisions, matching the Pebble engine's restart-safety guarantee
 ## Alternatives Considered
 
 ### Bbolt engine
+
 Bbolt is a B-tree (not LSM) pure-Go KV store. It offers different tradeoffs (better for
 read-heavy workloads, worse for write-heavy). The `storage/bbolt/` module already exists for
 event storage. A metaengine Bbolt adapter could be added later if demand exists.
 
 ### Embedded Postgres
+
 Rejected — too heavy for an embedded use case. The `pgengine` module already covers Postgres
 for server deployments.
 

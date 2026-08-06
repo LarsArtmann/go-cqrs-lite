@@ -88,11 +88,12 @@ func AutoInsert[E any, R any](keyField string) Fold {
 		panic(fmt.Sprintf("AutoInsert: %s (event %s)", err, eventType.Name()))
 	}
 
+	keyType := eventType.Field(keyIdx).Type
 	mappings := matchFields(eventType, resultType)
 
-	handler := func(e E) (any, R) {
-		eVal := reflect.ValueOf(e)
-		key := eVal.Field(keyIdx).Interface()
+	invoke := func(event any) (key, val any) {
+		eVal := reflect.ValueOf(event)
+		k := eVal.Field(keyIdx).Interface()
 
 		var result R
 		resultVal := reflect.ValueOf(&result).Elem()
@@ -101,10 +102,16 @@ func AutoInsert[E any, R any](keyField string) Fold {
 			resultVal.Field(m.dstIdx).Set(eVal.Field(m.srcIdx))
 		}
 
-		return key, result
+		return k, result
 	}
 
-	return On(sample, handler)
+	return &insertFold{
+		eventType: EventTypeName(sample),
+		sample:    sample,
+		keyType:   keyType,
+		valueType: resultType,
+		invoke:    invoke,
+	}
 }
 
 // AutoDelete creates a delete fold that removes the entry by extracting the key
@@ -161,28 +168,43 @@ func AutoUpdate[E any, R any](keyField string) Fold {
 	eventType := reflect.TypeOf(sample)
 	resultType := reflect.TypeFor[R]()
 
-	_, err := findField(eventType, keyField)
+	keyIdx, err := findField(eventType, keyField)
 	if err != nil {
 		panic(fmt.Sprintf("AutoUpdate: %s (event %s)", err, eventType.Name()))
 	}
 
 	mappings := matchFields(eventType, resultType)
 
-	handler := func(e E, prev R) R {
-		eVal := reflect.ValueOf(e)
-		prevVal := reflect.ValueOf(&prev).Elem()
+	invoke := func(event, prev any) any {
+		eVal := reflect.ValueOf(event)
+
+		var result R
+		if prev != nil {
+			if p, ok := prev.(R); ok {
+				result = p
+			}
+		}
+		resultVal := reflect.ValueOf(&result).Elem()
 
 		for _, m := range mappings {
 			srcVal := eVal.Field(m.srcIdx)
 			if !srcVal.IsZero() {
-				prevVal.Field(m.dstIdx).Set(srcVal)
+				resultVal.Field(m.dstIdx).Set(srcVal)
 			}
 		}
 
-		return prev
+		return result
 	}
 
-	return On(sample, handler)
+	return &updateFold{
+		eventType: EventTypeName(sample),
+		sample:    sample,
+		valueType: resultType,
+		invoke:    invoke,
+		keyExtractor: func(event any) any {
+			return reflect.ValueOf(event).Field(keyIdx).Interface()
+		},
+	}
 }
 
 // AutoCRUD generates insert, update, and delete folds for a standard CRUD
