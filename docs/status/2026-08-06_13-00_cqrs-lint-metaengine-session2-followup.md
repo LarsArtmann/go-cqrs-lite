@@ -1,5 +1,13 @@
 # Status Report: cqrs-lint Metaengine Improvement — Session 2
 
+> **STATUS: Items 1-5 in section (e) CLOSED by session 3**
+> (see `2026-08-06_14-40_cqrs-lint-metaengine-session3-drift-prevention.md`)
+> 1. Test enforcing README preset table matches code → DONE (TestReadmePresetTableMatchesCode)
+> 2. Test enforcing AllStoreKinds covers every constant → DONE (5 TestAll*KindsCoversEveryConstant)
+> 3. Test enforcing explain init() populates store values → DONE (TestFeatureKeys_DerivedValidValuesPopulated)
+> 4. manualSortPatterns in f022.go → DONE (moved to patterns.go)
+> 5. Explain derives all 5 string-typed keys from constants → DONE (kindDerivations, later refactored to featureKey.derive field)
+
 **Date:** 2026-08-06 13:00
 **Session goal:** Close all known gaps from the session 1 status report, then self-review for missed opportunities
 **Result:** 12 tasks completed across 3 tiers (critical gaps, structural improvements, consistency). All tests green including -race. Auto-commit daemon picked up all changes.

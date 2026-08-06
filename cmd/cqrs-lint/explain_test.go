@@ -58,19 +58,21 @@ func TestRenderExplain_ContainsJSONCInfo(t *testing.T) {
 
 // TestFeatureKeys_DerivedValidValuesPopulated guards the init() that derives
 // store/command-flow/tracing/snapshot/domain valid values from Kind constants.
-// If a featureKey entry is accidentally renamed or the derivation map key
-// drifts, the entry's validValues stays nil and the explain output goes blank.
-// This test catches that: every entry whose validValues is nil at init time
-// must appear in kindDerivations, and after init every feature key must have
-// non-empty validValues.
+// Each derived featureKey carries a non-nil derive field (a closure over the
+// All*Kind() enumerator). After init, every feature key must have non-empty
+// validValues — a nil derive or a broken enumerator would leave it blank.
 func TestFeatureKeys_DerivedValidValuesPopulated(t *testing.T) {
 	t.Parallel()
 
-	// Every string-typed feature key should derive from constants.
+	// Every string-typed feature key should have a derive closure.
 	derivedKeys := []string{"store", "command-flow", "tracing", "snapshot", "domain"}
 	for _, key := range derivedKeys {
-		if _, ok := kindDerivations[key]; !ok {
-			t.Errorf("feature key %q is missing from kindDerivations map", key)
+		fk := findFeatureKey(key)
+		if fk == nil {
+			t.Fatalf("feature key %q not found", key)
+		}
+		if fk.derive == nil {
+			t.Errorf("feature key %q is missing its derive closure", key)
 		}
 	}
 

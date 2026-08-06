@@ -1,4 +1,4 @@
-package metaengine_test
+package sqliteengine_test
 
 import (
 	"context"

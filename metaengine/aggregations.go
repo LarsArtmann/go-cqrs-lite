@@ -1,5 +1,7 @@
 package metaengine
 
+import "context"
+
 // AggregateFn is a SQL aggregate function name.
 type AggregateFn string
 

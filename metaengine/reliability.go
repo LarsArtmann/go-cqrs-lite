@@ -2,7 +2,6 @@ package metaengine
 
 import (
 	"context"
-	"fmt"
 	"hash/fnv"
 	"sync"
 	"time"
@@ -162,43 +161,6 @@ func WithReadCoalescer(store *Store, rc *ReadCoalescer) {
 type LayoutVersion struct {
 	Version int
 	Columns []string // columns at this version
-}
-
-// MigrateLayout checks if a planned table needs schema migration (new columns
-// added since the last plan). On SQLite, this performs ALTER TABLE ADD COLUMN
-// for each new column. Returns nil if no migration is needed.
-func (e *sqliteEngine) MigrateLayout(collection string, newPlan LayoutPlan) error {
-	existing, ok := e.plans[collection]
-	if !ok {
-		return nil // no existing plan, nothing to migrate
-	}
-
-	if PlansColumnCompatible(existing, newPlan) {
-		return nil // compatible, no migration needed
-	}
-
-	// Find new columns
-	existingCols := make(map[string]bool, len(existing.Columns))
-	for _, c := range existing.Columns {
-		existingCols[c.Name] = true
-	}
-
-	ctx := context.Background()
-
-	for _, newCol := range newPlan.Columns {
-		if !existingCols[newCol.Name] {
-			ddl := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s",
-				QuoteIdent(newPlan.Table), QuoteIdent(newCol.Name), newCol.Type)
-			if _, err := e.db.ExecContext(ctx, ddl); err != nil {
-				return err //nolint:wrapcheck
-			}
-		}
-	}
-
-	// Update the stored plan
-	e.plans[collection] = newPlan
-
-	return nil
 }
 
 // --- Checksums ---
