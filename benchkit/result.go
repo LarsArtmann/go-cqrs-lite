@@ -51,6 +51,14 @@ type Result struct {
 	ReadAllTime     time.Duration `json:"readAllTime"`
 	ReadFromTime    time.Duration `json:"readFromTime"`
 
+	// Versioned read metrics (point-in-time recovery performance)
+	// LoadFromVersionLatency measures loading events after a specific version.
+	// LoadToVersionLatency measures loading events up to a specific version.
+	// LoadToTimestampLatency measures loading events up to a timestamp.
+	LoadFromVersionLatency LatencyStats `json:"loadFromVersionLatency"`
+	LoadToVersionLatency   LatencyStats `json:"loadToVersionLatency"`
+	LoadToTimestampLatency LatencyStats `json:"loadToTimestampLatency"`
+
 	// Read model metrics (raw kv.Store Set/Get)
 	ReadModelGet LatencyStats `json:"readModelGet"`
 	ReadModelSet LatencyStats `json:"readModelSet"`

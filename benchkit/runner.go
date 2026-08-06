@@ -213,6 +213,12 @@ func (r *runner) phaseSteps() []phaseStep {
 		{r.config.ReplayOnly, "benchkit.write_phase", "write phase", r.writePhase},
 		{r.config.SkipReads, "benchkit.read_phase", "read phase", r.readPhase},
 		{
+			r.config.SkipReads,
+			"benchkit.versioned_read_phase",
+			"versioned read phase",
+			r.versionedReadPhase,
+		},
+		{
 			r.config.SkipReadModels,
 			"benchkit.read_model_phase",
 			"read model phase",

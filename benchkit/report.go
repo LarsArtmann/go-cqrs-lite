@@ -131,6 +131,14 @@ func PrintReport(w io.Writer, r *Result) {
 
 	fmt.Fprintln(w)
 
+	if r.LoadFromVersionLatency.Count > 0 {
+		fmt.Fprintln(w, "Versioned Reads:")
+		printLatencyLine(w, "  LoadFromVersion:", r.LoadFromVersionLatency)
+		printLatencyLine(w, "  LoadToVersion:", r.LoadToVersionLatency)
+		printLatencyLine(w, "  LoadToTimestamp:", r.LoadToTimestampLatency)
+		fmt.Fprintln(w)
+	}
+
 	if r.ReadModelSet.Count > 0 {
 		fmt.Fprintln(w, "Read Model:")
 		printLatencyLine(w, "  Set:", r.ReadModelSet)
