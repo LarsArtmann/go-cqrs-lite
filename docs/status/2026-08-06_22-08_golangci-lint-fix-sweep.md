@@ -10,14 +10,14 @@ User asked for a single, focused task: **run `golangci-lint run --fix ./...` in 
 
 Full output saved to `/tmp/lint-full.log`. Workspace-root run already returned `0 issues` because heavy exclusions in `.golangci.yml` skip 377 raw issues per module. Per-module `GOWORK=off` runs surfaced **35 actionable lint findings** across **6 modules**:
 
-| Module              | Issues | Linters                                                                                                              |
-|---------------------|--------|----------------------------------------------------------------------------------------------------------------------|
-| `stack/sqlite`      | 2      | goconst (×2)                                                                                                          |
-| `benchkit`          | 4      | cyclop, nilerr (×2), varnamelen                                                                                       |
-| `cmd/api-stability` | 6      | err113 (×3), errcheck (×2), exhaustruct                                                                               |
-| `cmd/cqrs-lint`     | 10     | errcheck (×2), exhaustive (×4), gochecknoglobals (×3), gochecknoinits                                                |
-| `cmd/cqrs-bench`    | 6      | contextcheck (×3), depguard, gocognit, predeclared                                                                   |
-| `cmd/doc-check`     | 2      | err113, exhaustruct                                                                                                   |
+| Module              | Issues | Linters                                                               |
+| ------------------- | ------ | --------------------------------------------------------------------- |
+| `stack/sqlite`      | 2      | goconst (×2)                                                          |
+| `benchkit`          | 4      | cyclop, nilerr (×2), varnamelen                                       |
+| `cmd/api-stability` | 6      | err113 (×3), errcheck (×2), exhaustruct                               |
+| `cmd/cqrs-lint`     | 10     | errcheck (×2), exhaustive (×4), gochecknoglobals (×3), gochecknoinits |
+| `cmd/cqrs-bench`    | 6      | contextcheck (×3), depguard, gocognit, predeclared                    |
+| `cmd/doc-check`     | 2      | err113, exhaustruct                                                   |
 
 All other 59 modules in `testModules` are already clean (`0 issues`).
 
@@ -63,23 +63,27 @@ The remaining 3 lint findings in `benchkit` (`phases_checkpoint.go:63`, `phases_
 ## c) NOT STARTED
 
 ### 1. `cmd/api-stability` — 6 issues
+
 - `err113` × 3: dynamic `fmt.Errorf` in `main.go:215, 226, 249` (expected/got, golden missing, mismatch count). Need to convert to sentinel + `fmt.Errorf("...: %w", sentinel, details)` or extracted static error vars.
 - `errcheck` × 2: unchecked `fmt.Fprintf` returns at `main.go:194, 219` (the "Updated" and "API surface OK" log lines).
 - `exhaustruct` × 1: `AppConfig{}` literal at `main.go:111` missing `Config` and `Update` fields.
 
 ### 2. `cmd/cqrs-lint` — 10 issues
+
 - `errcheck` × 2: unchecked `fmt.Fprintf`/`Fprintln` in `output_grouping.go:248, 250` (the markdown formatter `## group (N)` line and blank line).
 - `exhaustive` × 4: missing switch cases in `feature_profile.go:80, 92, 103` and `pkg/rules/api/a009_a013.go:57` for `StoreKind` enum (added new `StoreDuckDB`, `StoreBolt`, `StorePostgres`, `StoreMySQL`, `StoreCustom` values since original switch was written).
 - `gochecknoglobals` × 3: `httpFrameworkImports`, `paginationVarNames`, `manualSortPatterns` declared as package-level vars in `feature_detect_helpers.go:109`, `manual_patterns.go:100`, `patterns.go:171`.
 - `gochecknoinits` × 1: `explain.go:337` `func init()` populating a registry.
 
 ### 3. `cmd/cqrs-bench` — 6 issues
+
 - `contextcheck` × 3: `makeFactory` doesn't propagate `context.Context` to `OpenPrimaryBackend` at `main.go:140, 219, 271`.
 - `depguard` × 1: `factory_sqlite_cgo.go:12` imports `github.com/mattn/go-sqlite3` (not in allow list — only `modernc.org/sqlite` is).
 - `gocognit` × 1: `factory.go:75` `makeFactory` cognitive complexity = 43 (max 35).
 - `predeclared` × 1: `render.go:584` parameter named `max` (Go predeclared identifier).
 
 ### 4. `cmd/doc-check` — 2 issues
+
 - `err113` × 1: dynamic `fmt.Errorf("%d broken reference(s) found", broken)` at `main.go:126`.
 - `exhaustruct` × 1: `AppConfig{}` at `main.go:51` missing `Config` field.
 

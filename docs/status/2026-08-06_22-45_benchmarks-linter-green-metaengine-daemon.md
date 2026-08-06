@@ -9,6 +9,7 @@ Record type, graphadapter) is the daemon's domain per the execution plan at
 ## FULLY DONE
 
 ### Benchmarks (my scope)
+
 - **benchkit** — all tests pass (warnings, strict, recovery, replay, soak). `SkipBatchWrite`
   flag added and tested. `PrintReport` decomposition by daemon verified clean.
 - **cmd/cqrs-bench** — all tests pass. bbolt backend fully wired (`factory.go`, `flags.go`,
@@ -18,6 +19,7 @@ Record type, graphadapter) is the daemon's domain per the execution plan at
 - **stack/bbolt** — builds clean, no test files (as expected for a preset).
 
 ### Linter (my scope)
+
 - **cqrs-lint** — all tests pass (16/16 packages).
 - **README rule count** — updated from 190→192 for daemon's A034 + F026 rules.
 - **README preset table** — added F026 to `library` preset row.
@@ -27,6 +29,7 @@ Record type, graphadapter) is the daemon's domain per the execution plan at
   helpers resolve, confidence/severity appropriate.
 
 ### Infrastructure fixes (blocking verify)
+
 - **flake.nix** — added `record` to `testModules`.
 - **gci formatting** — fixed via `golangci-lint fmt` in metaengine + system modules.
 - **Unused imports** — removed `database/sql` from `bench_filter_test.go` and
@@ -54,15 +57,15 @@ Record type, graphadapter) is the daemon's domain per the execution plan at
 Every verify run (~3-4 min) is a race against the daemon. The daemon commits
 breaking changes mid-run:
 
-| Attempt | What failed | Cause |
-|---------|-------------|-------|
-| 1 | gci formatting | Daemon extracted sqliteengine without formatting imports |
-| 2 | api-stability golden | Daemon added record module, golden stale |
-| 3 | check-modules | record not in testModules |
-| 4 | fold.go syntax error | Daemon left stray `}` mid-edit |
-| 5 | record_fold_test.go syntax | Daemon left extra `]` mid-edit |
-| 6 | lint (modernize, staticcheck) | Daemon's Record code not linted |
-| 7 | verify-docs build check | Daemon mid-edit on cqrs-bench factory |
+| Attempt | What failed                   | Cause                                                    |
+| ------- | ----------------------------- | -------------------------------------------------------- |
+| 1       | gci formatting                | Daemon extracted sqliteengine without formatting imports |
+| 2       | api-stability golden          | Daemon added record module, golden stale                 |
+| 3       | check-modules                 | record not in testModules                                |
+| 4       | fold.go syntax error          | Daemon left stray `}` mid-edit                           |
+| 5       | record_fold_test.go syntax    | Daemon left extra `]` mid-edit                           |
+| 6       | lint (modernize, staticcheck) | Daemon's Record code not linted                          |
+| 7       | verify-docs build check       | Daemon mid-edit on cqrs-bench factory                    |
 
 **Root cause:** The daemon runs a refactoring loop without verifying `go build` between
 commits. Each commit is a snapshot of incomplete work. The verify gate requires a clean

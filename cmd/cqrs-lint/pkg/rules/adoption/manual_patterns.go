@@ -98,7 +98,15 @@ func hasAggregationStmt(body *ast.BlockStmt) bool {
 
 // paginationVarNames are identifier names that signal manual pagination.
 var paginationVarNames = []string{ //nolint:gochecknoglobals // static lookup table for pagination identifier detection
-	"offset", "limit", "start", "end", "page", "size", "skip", "take", "from",
+	"offset",
+	"limit",
+	"start",
+	"end",
+	"page",
+	"size",
+	"skip",
+	"take",
+	"from",
 }
 
 // sliceHasPaginationVar reports whether an index expression references a

@@ -34,14 +34,15 @@ use (
 	./listing
 	./metadata
 	./metaengine
+	./metaengine/badgerengine
 	./metaengine/duckdbengine
+	./metaengine/graphadapter
 	./metaengine/irohengine
 	./metaengine/irohengine/loopback
 	./metaengine/irohengine/quic
 	./metaengine/pebbleengine
 	./metaengine/pgengine
 	./metaengine/projectionadapter
-	./metaengine/graphadapter
 	./metaengine/sqliteengine
 	./middleware
 	./otel

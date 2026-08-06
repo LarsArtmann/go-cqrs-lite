@@ -2,7 +2,11 @@
 
 package main
 
-import "github.com/larsartmann/go-cqrs-lite/benchkit/v4"
+import (
+	"context"
+
+	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
+)
 
 // duckdbFactory is the CGo-disabled stub. DuckDB requires CGo (it statically
 // links a C++ engine), so without CGo the backend cannot be used.

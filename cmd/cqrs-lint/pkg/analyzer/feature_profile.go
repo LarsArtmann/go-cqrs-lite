@@ -107,7 +107,14 @@ func (s StoreKind) IsDistributed() bool {
 	switch s {
 	case StorePostgres, StoreMySQL, StoreTurso:
 		return true
-	case StoreUnknown, StoreSQLite, StorePebble, StoreMemory, StoreDuckDB, StoreBolt, StoreCustom, StoreNone:
+	case StoreUnknown,
+		StoreSQLite,
+		StorePebble,
+		StoreMemory,
+		StoreDuckDB,
+		StoreBolt,
+		StoreCustom,
+		StoreNone:
 		return false
 	}
 

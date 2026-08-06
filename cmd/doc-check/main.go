@@ -51,7 +51,9 @@ func main() {
 	cli, err := cmdguard.NewCLI(
 		"doc-check",
 		"Verify Go import paths and qualified symbols in documentation files",
-		AppConfig{Config: cmdguard.Config{}}, //nolint:exhaustruct // defaults are fine for this one-shot CLI
+		AppConfig{
+			Config: cmdguard.Config{},
+		}, //nolint:exhaustruct // defaults are fine for this one-shot CLI
 		cmdguard.WithCLILong(
 			"doc-check scans markdown files for Go code blocks, extracts import paths and "+
 				"qualified references (e.g. storage.NewSQLiteViewStore), and verifies they exist in the codebase.\n\n"+

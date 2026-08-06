@@ -55,13 +55,14 @@ func TestRecord_JSONRoundTrip(t *testing.T) {
 		},
 	}
 
-	data, err := json.Marshal(original) //nolint:musttag // Record's JSON shape is intentionally untagged (ADR-0111)
-	if err != nil {
+	data, err := json.Marshal(original) //nolint:musttag
+	if err != nil {                     // Record's JSON shape is intentionally untagged (ADR-0111)
 		t.Fatalf("Marshal: %v", err)
 	}
 
 	var decoded record.Record
-	if err := json.Unmarshal(data, &decoded); err != nil { //nolint:musttag // Record's JSON shape is intentionally untagged (ADR-0111)
+	//nolint:musttag // Record's JSON shape is intentionally untagged (ADR-0111)
+	if err := json.Unmarshal(data, &decoded); err != nil {
 		t.Fatalf("Unmarshal: %v", err)
 	}
 
@@ -81,13 +82,25 @@ func TestRecord_JSONRoundTrip(t *testing.T) {
 		t.Errorf("Version = %d, want %d", decoded.Version, original.Version)
 	}
 	if decoded.MetaData.CorrelationID != original.MetaData.CorrelationID {
-		t.Errorf("CorrelationID = %q, want %q", decoded.MetaData.CorrelationID, original.MetaData.CorrelationID)
+		t.Errorf(
+			"CorrelationID = %q, want %q",
+			decoded.MetaData.CorrelationID,
+			original.MetaData.CorrelationID,
+		)
 	}
 	if decoded.MetaData.SchemaVersion != original.MetaData.SchemaVersion {
-		t.Errorf("SchemaVersion = %d, want %d", decoded.MetaData.SchemaVersion, original.MetaData.SchemaVersion)
+		t.Errorf(
+			"SchemaVersion = %d, want %d",
+			decoded.MetaData.SchemaVersion,
+			original.MetaData.SchemaVersion,
+		)
 	}
 	if !decoded.MetaData.ClientCreatedAt.Equal(original.MetaData.ClientCreatedAt) {
-		t.Errorf("ClientCreatedAt = %v, want %v", decoded.MetaData.ClientCreatedAt, original.MetaData.ClientCreatedAt)
+		t.Errorf(
+			"ClientCreatedAt = %v, want %v",
+			decoded.MetaData.ClientCreatedAt,
+			original.MetaData.ClientCreatedAt,
+		)
 	}
 }
 

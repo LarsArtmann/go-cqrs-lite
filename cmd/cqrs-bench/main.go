@@ -137,7 +137,13 @@ func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
 
 	profile, codec := loadProfileAndCodec(flags.Profile, flags.Codec)
 
-	factory, diskPath, cleanup := makeFactory(ctx, flags.Backend, flags.DSN, flags.Dir, flags.Durability)
+	factory, diskPath, cleanup := makeFactory(
+		ctx,
+		flags.Backend,
+		flags.DSN,
+		flags.Dir,
+		flags.Durability,
+	)
 	if cleanup != nil {
 		defer cleanup()
 	}
@@ -268,7 +274,13 @@ func sweepHandler(ctx context.Context, _ *AppConfig, flags *SweepFlags) error {
 		fatalf("provide at least 2 values to sweep, got %d", len(values))
 	}
 
-	factory, diskPath, cleanup := makeFactory(ctx, flags.Backend, flags.DSN, flags.Dir, flags.Durability)
+	factory, diskPath, cleanup := makeFactory(
+		ctx,
+		flags.Backend,
+		flags.DSN,
+		flags.Dir,
+		flags.Durability,
+	)
 	if cleanup != nil {
 		defer cleanup()
 	}

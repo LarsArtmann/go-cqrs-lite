@@ -71,7 +71,12 @@ func (a *Adapter) GraphAddEdge(_ context.Context, collection string, edge metaen
 }
 
 // GraphNeighbors traverses the graph from the given node, returning neighbor IDs.
-func (a *Adapter) GraphNeighbors(_ context.Context, collection string, node any, depth int) ([]any, error) {
+func (a *Adapter) GraphNeighbors(
+	_ context.Context,
+	collection string,
+	node any,
+	depth int,
+) ([]any, error) {
 	nodeRef := graph.NodeRef{Label: "entity", KeyProp: "id", KeyValue: fmt.Sprint(node)}
 	nodes := a.driver.Traverse(nodeRef, collection, depth)
 

@@ -15,6 +15,7 @@ All ADR amendments, design doc banners, and AGENTS.md updates. No changes this s
 ### Phase 1: SQLite Extraction (FIXED THIS SESSION — BUILD GREEN)
 
 **What was broken when this session started:**
+
 - 14 test failures in core metaengine — SQLite-specific tests had been corrupted by regex-based batch sed/python operations from the prior session
 - The `NewMemoryEngine(), nil` pattern (a 2-value assignment to a 1-value return) was sprinkled across ~11 test files where `NewSQLiteEngine(db)` had been blindly replaced
 - `pushdown_test.go`, `hardening_test.go`, `restart_test.go` all used memory engine where SQLite was required (PushdownScan, Transactional, LayoutPlanner, persistence)
@@ -22,6 +23,7 @@ All ADR amendments, design doc banners, and AGENTS.md updates. No changes this s
 - sqliteengine test files (`engine_test.go`, `stream_log_test.go`) didn't compile — referenced `metaengine.NewSQLiteEngine` (moved to sqliteengine), bare `StreamLogBackend`/`AtomicAppender`/`ErrVersionConflict` (needed `metaengine.` prefix), and undefined test fixtures (`TaskCreated`, `FindTask`, `findTaskQuery`)
 
 **What was fixed:**
+
 1. `pushdown_test.go` — Restored `newSQLiteEngine()` call in BeforeEach (was using memory engine, which doesn't implement PushdownScan)
 2. `hardening_test.go` — Restored SQLite engine for Multimap restart safety test and Cross-engine reification test. Removed unused `database/sql` import.
 3. `restart_test.go` — Restored SQLite engine for LogBackend and GraphBackend restart safety tests. Removed unused `database/sql` import. Added `newSQLiteEngineForPath()` helper.
@@ -34,14 +36,10 @@ All ADR amendments, design doc banners, and AGENTS.md updates. No changes this s
 10. `sqliteengine/fixtures_test.go` — NEW file with test fixtures (`TaskCreated`, `FindTask`, `FindTaskResult`, `findTaskQuery()`) needed by engine_test.go
 11. `metaengine/sqlite_helpers_test.go` — Added `newSQLiteEngineForPath(path)` helper for file-based SQLite restart tests
 
-**Infrastructure fixes:**
-12. Added `replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ./sqliteengine` to `metaengine/go.mod` (critical for standalone `GOWORK=off` builds)
-13. Added `replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../record` to `metaengine/go.mod`
-14. Updated cqrs-lint adoption rule docs (`f015_f016_f017.go`, `f022.go`, `f023_f024_f025.go`) — `metaengine.PlanFromSQLite` → `sqliteengine.PlanFromDSN`
-15. Updated `system/driver_registry.go` comment — `metaengine.NewSQLiteEngine` → `sqliteengine.NewSQLiteEngine`
-16. Regenerated api-stability golden file (3653 exports)
+**Infrastructure fixes:** 12. Added `replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ./sqliteengine` to `metaengine/go.mod` (critical for standalone `GOWORK=off` builds) 13. Added `replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../record` to `metaengine/go.mod` 14. Updated cqrs-lint adoption rule docs (`f015_f016_f017.go`, `f022.go`, `f023_f024_f025.go`) — `metaengine.PlanFromSQLite` → `sqliteengine.PlanFromDSN` 15. Updated `system/driver_registry.go` comment — `metaengine.NewSQLiteEngine` → `sqliteengine.NewSQLiteEngine` 16. Regenerated api-stability golden file (3653 exports)
 
 **Verification:**
+
 - `go build -tags "goexperiment.jsonv2" ./...` — GREEN
 - `go vet -tags "goexperiment.jsonv2" ./...` — GREEN
 - `go test -tags "goexperiment.jsonv2" -count=1 ./metaengine/...` — GREEN (all tests pass)
@@ -84,6 +82,7 @@ Created `metaengine/graphadapter/` module per ADR-0113:
 ### Phase 4: ES-Native Metaengine — Record-Typed Folds (~80% done, COMPILE ERROR)
 
 **What was accomplished:**
+
 1. Added `record/v4` dependency to `metaengine/go.mod` (with replace directive)
 2. Created `metaengine/record_fold.go`:
    - `RecordAwareFold` interface (optional, `SetCurrentRecord(record.Record)`)
@@ -100,11 +99,13 @@ Created `metaengine/graphadapter/` module per ADR-0113:
    - Added `record/v4` import
 
 **What is BROKEN right now:**
+
 - `metaengine/record_fold_test.go` has a syntax error at line 125: `map[string]int64]]` (double bracket). This was auto-fixed but vet was interrupted before confirming.
 - The `go vet` and `go test` commands were interrupted by the user's STOP instruction.
 - The `ExecuteTyped` generic call may need adjustment for the map return type.
 
 **What still needs to be done for Phase 4:**
+
 - Fix the compile error in `record_fold_test.go`
 - Run `go vet` + `go test` until green
 - Add deprecation comments to `On()` (not removing — additive approach per ADR-0112)
@@ -128,6 +129,7 @@ Created `metaengine/graphadapter/` module per ADR-0113:
 The prior session's fuckups (regex-based Go source corruption) were the primary work of this session. All 14 broken tests were restored to working order. No new damage was introduced.
 
 ### Minor issues to note:
+
 1. **7 blanked test files remain as stubs** — `json_tax_bench_test.go`, `layout_bench_test.go`, `calibration_bench_test.go`, `cost_validation_test.go`, `pushdown_verification_test.go`, `soak_test.go`, `planner_bench_test.go` in core metaengine. These were blanked by the prior session and should eventually have their SQLite-specific test content reconstructed in sqliteengine. They are not breaking anything — just lost coverage.
 2. **GraphBackend NOT fully deleted** — ADR-0113 says to delete GraphBackend from metaengine. This session only created the graphadapter as an alternative path. The old GraphBackend interface and its implementations in memory/sqlite/pebble engines are still present. Full deletion was deferred because it touches the planner dispatch (`store.go`, `execute.go`), the contract suite (`advanced.go`), and multiple test files — a cascading change that needs careful staging.
 3. **record_fold_test.go compile error** — Left unfixed when the session was halted.
@@ -157,6 +159,7 @@ The prior session's fuckups (regex-based Go source corruption) were the primary 
 ## f) Up to 50 Next Items
 
 ### Fix Phase 4 compile error (PRIORITY 1)
+
 1. Fix `record_fold_test.go:125` syntax error (`map[string]int64]]` → `map[string]int64]`)
 2. Run `go vet -tags "goexperiment.jsonv2" ./metaengine/` until clean
 3. Run `go test -tags "goexperiment.jsonv2" -count=1 ./metaengine/` until green
@@ -164,6 +167,7 @@ The prior session's fuckups (regex-based Go source corruption) were the primary 
 5. Regenerate api-stability golden (new exports: OnRecord, OnRecordTyped, ApplyRecord, RecordAwareFold)
 
 ### Complete Phase 3 (GraphBackend deletion)
+
 6. Remove `GraphBackend` interface from `metaengine/engine.go`
 7. Remove compile-time assertion `_ GraphBackend = (*memoryEngine)(nil)`
 8. Remove `GraphAddEdge`/`GraphNeighbors` from `metaengine/memory_backends.go`
@@ -179,6 +183,7 @@ The prior session's fuckups (regex-based Go source corruption) were the primary 
 18. Run full test suite after GraphBackend removal
 
 ### Phase 5: Tombstone Removal (HIGHEST RISK)
+
 19. Audit all `DetectTombstone`/`MarkTombstone`/`TombstoneStatus` usage across repo
 20. Audit `Tombstone` field in `event.Metadata` usage
 21. Read `listing/` module tombstone detection code
@@ -193,18 +198,21 @@ The prior session's fuckups (regex-based Go source corruption) were the primary 
 30. Run full build + test
 
 ### Phase 6: New Engines
+
 31. Write ADR for Badger engine (pure-Go LSM)
 32. Implement Badger engine module (`metaengine/badgerengine/`)
 33. Write ADR for Dgraph engine (gRPC graph DB)
 34. Implement Dgraph engine module (`metaengine/dgraphengine/`)
 
 ### Phase 7: Auto-Projection
+
 35. Design reflection-based fold inference from struct types
 36. Implement type inspection engine
 37. Implement auto-fold generation
 38. Integrate materialize-vs-replay cost analysis with auto-projection
 
 ### Polish & Verification
+
 39. Reconstruct 7 blanked test files in sqliteengine from git history
 40. Run `nix fmt` on all changed files
 41. Update AGENTS.md modules row with record/, graphadapter/

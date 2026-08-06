@@ -53,7 +53,8 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 	if handlerType.NumIn() < 2 {
 		panic(fmt.Sprintf(
 			"metaengine.OnRecord(%s): handler must have at least 2 params (record.Record, E), got %d",
-			eventType, handlerType.NumIn(),
+			eventType,
+			handlerType.NumIn(),
 		))
 	}
 

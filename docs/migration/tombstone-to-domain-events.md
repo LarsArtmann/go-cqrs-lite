@@ -54,15 +54,15 @@ mat := stack.Materialize[TaskView, TaskID]{
 
 ## API Mapping
 
-| Old (Tombstone)                                      | New (Domain Events)                                            |
-| ---------------------------------------------------- | ------------------------------------------------------------- |
-| `event.MarkTombstone(evt)`                           | Emit `"entity.deleted"` event directly                        |
-| `event.MarkRebirth(evt)`                             | Emit `"entity.restored"` event directly                       |
-| `event.DetectTombstone(events)`                      | Check last event type: `events[len-1].Type() == "entity.deleted"` |
-| `event.TombstoneStatus` + `IsTombstoned()`           | Custom logic based on event types                             |
-| `listing.TombstonePolicy` (Exclude/Include/Only)     | Filter in your projection handler                             |
-| `stack.Materialize.OnTombstone` / `OnRebirth`        | Handle deletion events in `OnUpdate` or a custom fold         |
-| `kv.TombstoneQuerier` / `QueryByTombstone`           | Add a `Deleted bool` column to your view struct               |
+| Old (Tombstone)                                  | New (Domain Events)                                               |
+| ------------------------------------------------ | ----------------------------------------------------------------- |
+| `event.MarkTombstone(evt)`                       | Emit `"entity.deleted"` event directly                            |
+| `event.MarkRebirth(evt)`                         | Emit `"entity.restored"` event directly                           |
+| `event.DetectTombstone(events)`                  | Check last event type: `events[len-1].Type() == "entity.deleted"` |
+| `event.TombstoneStatus` + `IsTombstoned()`       | Custom logic based on event types                                 |
+| `listing.TombstonePolicy` (Exclude/Include/Only) | Filter in your projection handler                                 |
+| `stack.Materialize.OnTombstone` / `OnRebirth`    | Handle deletion events in `OnUpdate` or a custom fold             |
+| `kv.TombstoneQuerier` / `QueryByTombstone`       | Add a `Deleted bool` column to your view struct                   |
 
 ## listing/ Module
 
