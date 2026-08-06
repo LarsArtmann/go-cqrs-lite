@@ -80,3 +80,62 @@ func (a *EventAdapter) decodeEvent(s string) (event.Event, error) {
 
 	return evt, nil
 }
+
+// ─── encode/decode helpers ───
+
+func (a *EventAdapter) eventsToAny(events []event.Event) []any {
+	if !a.serialize {
+		result := make([]any, len(events))
+		for i, evt := range events {
+			result[i] = evt
+		}
+
+		return result
+	}
+
+	result := make([]any, len(events))
+	for i, evt := range events {
+		result[i] = a.encodeEvent(evt)
+	}
+
+	return result
+}
+
+func (a *EventAdapter) anyToEvents(values []any) ([]event.Event, error) {
+	result := make([]event.Event, 0, len(values))
+	for _, val := range values {
+		evt, err := a.decodeValue(val)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, evt)
+	}
+
+	return result, nil
+}
+
+func (a *EventAdapter) decodeValue(val any) (event.Event, error) {
+	// Direct pointer (Memory engine).
+	if evt, ok := val.(event.Event); ok {
+		return evt, nil
+	}
+
+	// Serialized string (SQLite/Pebble engine, raw string passthrough).
+	if s, ok := val.(string); ok {
+		return a.decodeEvent(s)
+	}
+
+	// Decoded JSON map (SQLite engine auto-decodes JSON strings on read).
+	// Re-marshal to JSON and decode as a serializedEvent envelope.
+	if m, ok := val.(map[string]any); ok {
+		data, err := json.Marshal(m)
+		if err != nil {
+			return nil, fmt.Errorf("event adapter: re-marshal decoded value: %w", err)
+		}
+
+		return a.decodeEvent(string(data))
+	}
+
+	return nil, fmt.Errorf("%w: %T", ErrUnsupportedValueType, val)
+}
