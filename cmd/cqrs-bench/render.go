@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
-
 	"github.com/larsartmann/go-output"
 	"github.com/larsartmann/go-output/delimited"
 	"github.com/larsartmann/go-output/markdown"
@@ -64,6 +64,7 @@ func renderComparison(w io.Writer, format string, results map[string]*benchkit.R
 		}
 	case formatMarkdown:
 		data := buildComparisonTable(results)
+
 		rendered, err := markdown.Render(data, markdown.WithColorMode(output.ColorModeNever))
 		if err != nil {
 			fatalf("render markdown: %v", err)
@@ -96,6 +97,7 @@ func buildComparisonTable(results map[string]*benchkit.Result) *output.Table {
 	}
 
 	t := output.NewTable(headers)
+
 	empty := make([]string, len(headers)-1)
 	for i := range empty {
 		empty[i] = "-"
@@ -150,8 +152,11 @@ func comparisonWinnerSummary(results map[string]*benchkit.Result) string {
 	var bests []metricBest
 
 	findMin := func(label string, get func(r *benchkit.Result) (val float64, ok bool), format func(float64) string) {
-		var winner string
-		var minVal float64
+		var (
+			winner string
+			minVal float64
+		)
+
 		found := false
 
 		for _, name := range names {
@@ -224,6 +229,7 @@ func renderSweep(w io.Writer, format string, results []benchkit.SweepResult) {
 		}
 	case formatMarkdown:
 		data := buildSweepTable(results)
+
 		rendered, err := markdown.Render(data, markdown.WithColorMode(output.ColorModeNever))
 		if err != nil {
 			fatalf("render markdown: %v", err)
@@ -260,6 +266,7 @@ func buildSweepTable(results []benchkit.SweepResult) *output.Table {
 	}
 
 	t := output.NewTable(headers)
+
 	empty := make([]string, len(headers)-1)
 	for i := range empty {
 		empty[i] = "-"
@@ -269,7 +276,7 @@ func buildSweepTable(results []benchkit.SweepResult) *output.Table {
 		r := sr.Result
 		if r == nil {
 			t.AddRow(
-				append([]string{fmt.Sprintf("%d", sr.Value), "FAILED: no result"}, empty[1:]...),
+				append([]string{strconv.Itoa(sr.Value), "FAILED: no result"}, empty[1:]...),
 			)
 
 			continue
@@ -278,7 +285,7 @@ func buildSweepTable(results []benchkit.SweepResult) *output.Table {
 		if r.Error != "" {
 			t.AddRow(
 				append(
-					[]string{fmt.Sprintf("%d", sr.Value), "FAILED: " + truncateMsg(r.Error, 30)},
+					[]string{strconv.Itoa(sr.Value), "FAILED: " + truncateMsg(r.Error, 30)},
 					empty[2:]...),
 			)
 
@@ -286,7 +293,7 @@ func buildSweepTable(results []benchkit.SweepResult) *output.Table {
 		}
 
 		t.AddRow([]string{
-			fmt.Sprintf("%d", sr.Value),
+			strconv.Itoa(sr.Value),
 			fmtDur(r.WriteLatency.P50),
 			fmtDur(r.WriteLatency.P99),
 			fmtDur(r.LoadLatency.P50),
@@ -368,7 +375,7 @@ func buildRunSummaryTable(r *benchkit.Result) *output.Table {
 	}
 
 	t.AddRow([]string{"Duration", fmtDur(r.Duration)})
-	t.AddRow([]string{"Workers", fmt.Sprintf("%d", r.Workers)})
+	t.AddRow([]string{"Workers", strconv.Itoa(r.Workers)})
 
 	if r.WriteLatency.Count > 0 {
 		t.AddRow([]string{"Write P50", fmtDur(r.WriteLatency.P50)})
@@ -377,7 +384,7 @@ func buildRunSummaryTable(r *benchkit.Result) *output.Table {
 
 	if r.WriteThroughput > 0 {
 		t.AddRow(
-			[]string{"Write Throughput", fmt.Sprintf("%s events/s", fmtFloat(r.WriteThroughput))},
+			[]string{"Write Throughput", fmtFloat(r.WriteThroughput) + " events/s"},
 		)
 	}
 
@@ -414,7 +421,7 @@ func buildRunSummaryTable(r *benchkit.Result) *output.Table {
 	}
 
 	if r.IntegrityErrors > 0 {
-		t.AddRow([]string{"Integrity Errors", fmt.Sprintf("%d", r.IntegrityErrors)})
+		t.AddRow([]string{"Integrity Errors", strconv.Itoa(r.IntegrityErrors)})
 	}
 
 	return t
@@ -458,8 +465,8 @@ func buildSoakTable(r *benchkit.SoakResult) *output.Table {
 
 	for _, s := range r.Samples {
 		t.AddRow([]string{
-			fmt.Sprintf("%d", s.Iteration+1),
-			fmt.Sprintf("%s/s", fmtFloat(s.Throughput)),
+			strconv.Itoa(s.Iteration + 1),
+			fmtFloat(s.Throughput) + "/s",
 			fmtBytes(s.HeapBytes),
 			fmtDur(s.WriteP50),
 			fmtDur(s.WriteP99),

@@ -92,9 +92,9 @@ cat := builder.Build()
 
 ```go
 builder.ConfigureService("user-svc",
-    catalog.Badges(catalog.Badge{Label: "owner", Color: "blue"}),
-    catalog.Repository("https://github.com/org/user-svc"),
-    catalog.Owners("team-backend"),
+    catalog.ServiceBadges(catalog.Badge{Label: "owner", Color: "blue"}),
+    catalog.ServiceRepository("go", "https://github.com/org/user-svc"),
+    catalog.ServiceOwners("team-backend"),
 )
 ```
 

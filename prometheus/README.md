@@ -45,8 +45,10 @@ func main() {
 ## With Custom Registry
 
 ```go
-reg := prometheus.NewRegistry()
-provider, err := prometheus.Setup(prometheus.WithRegistry(reg))
+import clientprom "github.com/prometheus/client_golang/prometheus"
+
+reg := clientprom.NewRegistry()
+provider, err := cqrsprometheus.Setup(cqrsprometheus.WithRegistry(reg))
 ```
 
 ## How It Works
