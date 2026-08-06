@@ -68,8 +68,8 @@ func (e *dgraphEngine) GraphAddEdge(
 	}`, dqlString(collection), dqlString(fromStr), dqlString(collection), dqlString(toStr))
 
 	req2.Mutations = []*api.Mutation{
-		{SetNquads: []byte(fmt.Sprintf("uid(from_node) <%s> uid(to_node) .", pred))},
-		{SetNquads: []byte(fmt.Sprintf("uid(to_node) <%s> uid(from_node) .", pred))},
+		{SetNquads: fmt.Appendf(nil, "uid(from_node) <%s> uid(to_node) .", pred)},
+		{SetNquads: fmt.Appendf(nil, "uid(to_node) <%s> uid(from_node) .", pred)},
 	}
 
 	if _, err := e.client.NewTxn().Do(ctx, req2); err != nil {
@@ -117,7 +117,7 @@ func (e *dgraphEngine) GraphNeighbors(
 		Root []map[string]any `json:"root"`
 	}
 
-	if err := json.Unmarshal(resp.Json, &root); err != nil {
+	if err := json.Unmarshal(resp.GetJson(), &root); err != nil {
 		return nil, fmt.Errorf("dgraphengine.GraphNeighbors: unmarshal: %w", err)
 	}
 

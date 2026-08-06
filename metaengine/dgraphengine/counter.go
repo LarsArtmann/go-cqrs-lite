@@ -59,7 +59,7 @@ func (e *dgraphEngine) counterIncrementOne(
 		} `json:"counter"`
 	}
 
-	if err := json.Unmarshal(resp.Json, &result); err != nil {
+	if err := json.Unmarshal(resp.GetJson(), &result); err != nil {
 		return fmt.Errorf("dgraphengine.CounterIncrement: unmarshal: %w", err)
 	}
 
@@ -110,7 +110,7 @@ func (e *dgraphEngine) CounterGet(ctx context.Context, col string) (map[string]i
 		} `json:"counter"`
 	}
 
-	if err := json.Unmarshal(resp.Json, &result); err != nil {
+	if err := json.Unmarshal(resp.GetJson(), &result); err != nil {
 		return nil, fmt.Errorf("dgraphengine.CounterGet: unmarshal: %w", err)
 	}
 

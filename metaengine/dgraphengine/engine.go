@@ -221,7 +221,7 @@ func (e *dgraphEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 		} `json:"entry"`
 	}
 
-	if err := json.Unmarshal(resp.Json, &result); err != nil {
+	if err := json.Unmarshal(resp.GetJson(), &result); err != nil {
 		return nil, false, fmt.Errorf("dgraphengine.MapGet: unmarshal: %w", err)
 	}
 
@@ -331,7 +331,7 @@ func (e *dgraphEngine) ensureEdgeSchema(ctx context.Context, collection string) 
 		return nil
 	}
 
-	schema := fmt.Sprintf("%s: [uid] @reverse .", pred)
+	schema := pred + ": [uid] @reverse ."
 	if err := e.client.Alter(ctx, &api.Operation{Schema: schema}); err != nil {
 		return fmt.Errorf("dgraphengine.ensureEdgeSchema: %w", err)
 	}

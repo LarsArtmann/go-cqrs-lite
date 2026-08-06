@@ -56,7 +56,7 @@ func (e *dgraphEngine) SetContains(ctx context.Context, col string, key any) (bo
 		} `json:"entry"`
 	}
 
-	if err := json.Unmarshal(resp.Json, &result); err != nil {
+	if err := json.Unmarshal(resp.GetJson(), &result); err != nil {
 		return false, fmt.Errorf("dgraphengine.SetContains: unmarshal: %w", err)
 	}
 

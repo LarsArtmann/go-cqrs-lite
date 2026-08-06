@@ -78,7 +78,7 @@ func (e *dgraphEngine) SearchQuery(
 		} `json:"docs"`
 	}
 
-	if err := json.Unmarshal(resp.Json, &result); err != nil {
+	if err := json.Unmarshal(resp.GetJson(), &result); err != nil {
 		return nil, fmt.Errorf("dgraphengine.SearchQuery: unmarshal: %w", err)
 	}
 

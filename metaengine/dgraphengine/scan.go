@@ -39,7 +39,7 @@ func (e *dgraphEngine) MapScan(
 		} `json:"entry"`
 	}
 
-	if err := json.Unmarshal(resp.Json, &result); err != nil {
+	if err := json.Unmarshal(resp.GetJson(), &result); err != nil {
 		return metaengine.ScanResult{}, fmt.Errorf("dgraphengine.MapScan: unmarshal: %w", err)
 	}
 
