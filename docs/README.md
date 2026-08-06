@@ -140,17 +140,17 @@ The authoritative module index with README links lives in the **[project README]
 | [0097](adr/0097-sse-three-repo-finding-and-go-sse-consumption.md) | SSE three-repo finding and go-sse consumption plan      | Accepted                 |
 | [0098](adr/0098-metaengine-persistence-enum.md)                   | Metaengine persistence enum (DDIA Ch1 reliability axis) | Accepted                 |
 | [0099](adr/0099-backend-selection-hybrid.md)                      | Backend selection: hybrid registry + config             | Accepted                 |
-| [0100](adr/0100-readcosts-per-operation-cost-model.md)            | Per-read-pattern cost model (ReadCosts)                  | Accepted                 |
-| [0101](adr/0101-backend-abstraction-n-instance.md)               | Backend abstraction: N-instance metaengine               | Accepted                 |
-| [0102](adr/0102-admin-interface-introspection-only.md)           | Admin web interface: introspection API only              | Accepted                 |
-| [0103](adr/0103-scream-store-tiered.md)                          | Scream store: tiered enforcement                         | Accepted                 |
-| [0104](adr/0104-system-scope-layered-full.md)                    | System scope: layered-full (owns all infrastructure)     | Accepted                 |
-| [0105](adr/0105-config-format-koanf.md)                          | Config format: Go struct + YAML + env via koanf          | Accepted                 |
-| [0106](adr/0106-migration-path-gradual.md)                       | Migration path: gradual (new system/ module)             | Accepted                 |
-| [0107](adr/0107-bus-multi-bus.md)                                | Bus: operator-configured, multi-bus support              | Accepted                 |
-| [0108](adr/0108-decider-routing-declarative.md)                  | Decider routing: declarative command→event→stream        | Accepted                 |
-| [0109](adr/0109-config-separation.md)                            | Config separation: DomainConfig + DeploymentConfig       | Accepted                 |
-| [0110](adr/0110-snapshot-storage-backend.md)                     | Snapshot storage: new SnapshotBackend interface          | Accepted                 |
+| [0100](adr/0100-readcosts-per-operation-cost-model.md)            | Per-read-pattern cost model (ReadCosts)                 | Accepted                 |
+| [0101](adr/0101-backend-abstraction-n-instance.md)                | Backend abstraction: N-instance metaengine              | Accepted                 |
+| [0102](adr/0102-admin-interface-introspection-only.md)            | Admin web interface: introspection API only             | Accepted                 |
+| [0103](adr/0103-scream-store-tiered.md)                           | Scream store: tiered enforcement                        | Accepted                 |
+| [0104](adr/0104-system-scope-layered-full.md)                     | System scope: layered-full (owns all infrastructure)    | Accepted                 |
+| [0105](adr/0105-config-format-koanf.md)                           | Config format: Go struct + YAML + env via koanf         | Accepted                 |
+| [0106](adr/0106-migration-path-gradual.md)                        | Migration path: gradual (new system/ module)            | Accepted                 |
+| [0107](adr/0107-bus-multi-bus.md)                                 | Bus: operator-configured, multi-bus support             | Accepted                 |
+| [0108](adr/0108-decider-routing-declarative.md)                   | Decider routing: declarative command→event→stream       | Accepted                 |
+| [0109](adr/0109-config-separation.md)                             | Config separation: DomainConfig + DeploymentConfig      | Accepted                 |
+| [0110](adr/0110-snapshot-storage-backend.md)                      | Snapshot storage: new SnapshotBackend interface         | Accepted                 |
 
 ## API Reference
 

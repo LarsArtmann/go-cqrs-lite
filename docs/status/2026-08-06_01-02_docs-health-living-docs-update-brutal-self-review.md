@@ -169,8 +169,8 @@ cannot tell what's done without cross-referencing.
 
 I presented my work as "all cross-file checks pass" without running the actual
 verify gate. This is the **stale GREEN anti-pattern** documented as "worse than
-no claim" in AGENTS.md. I verified *internal consistency* (counts match, links
-resolve, no contradictions) but did not verify *external correctness* (do the
+no claim" in AGENTS.md. I verified _internal consistency_ (counts match, links
+resolve, no contradictions) but did not verify _external correctness_ (do the
 Go import paths still resolve? do the api-surface golden entries match?).
 
 ### No git commit
@@ -224,7 +224,7 @@ work if they switch branches.
 
 8. **Coverage % line in FEATURES.md** — hardcoded date reference ("verified
    2026-08-02"). Should either be dynamic or state "see `nix run
-   .#check-coverage`."
+.#check-coverage`."
 
 ### Quality improvements
 
@@ -249,7 +249,7 @@ work if they switch branches.
 1. 🔥 **Run `nix run .#verify`** — doc-check + api-stability will likely fail
    (stale golden). Fix the failures.
 2. 🔥 **Regenerate api-stability golden** — `cd cmd/api-stability && GOWORK=off
-   go run main.go -update`. At least 20+ new exports are missing.
+go run main.go -update`. At least 20+ new exports are missing.
 3. 🔥 **Run `cmd/doc-check`** on edited FEATURES.md, ROADMAP.md, CHANGELOG.md,
    TODO_LIST.md — validate every Go import path + qualified symbol.
 4. **ANNOTATE the 14 Aug 5 reports** — at minimum, resolve every numbered item
@@ -273,7 +273,7 @@ work if they switch branches.
 11. **Tag `metaengine/v4.5.0`** — new public API since v4.4.0 (DX helpers, stream
     codec, StreamReadFromVersion).
 12. **Fix DuckDB/PG go.mod version drift** — both require `metaengine/v4
-    v4.0.0`, actual is v4.4.0. Breaks GOWORK=off builds.
+v4.0.0`, actual is v4.4.0. Breaks GOWORK=off builds.
 13. **Split 3 system/ files over 350 lines** — constructor.go (382), system.go
     (364), adapter_event.go (357). CI-enforced limit.
 14. **Split `feature_detect.go` (502 lines)** — cqrs-lint CI limit.

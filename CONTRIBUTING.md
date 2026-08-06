@@ -331,13 +331,13 @@ per-rule config overrides:
 
 ```jsonc
 {
-  // Preset: local-cli | production | library | read-only
-  "preset": "production",
-  // Disable specific rules by ID
-  "disabled": ["c008"],
-  // Per-rule config
-  "c008-ignore-fields": ["ID", "CreatedAt"],
-  "c008-ignore-structs": ["TestEvent"]
+	// Preset: local-cli | production | library | read-only
+	"preset": "production",
+	// Disable specific rules by ID
+	"disabled": ["c008"],
+	// Per-rule config
+	"c008-ignore-fields": ["ID", "CreatedAt"],
+	"c008-ignore-structs": ["TestEvent"],
 }
 ```
 

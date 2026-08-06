@@ -12,11 +12,13 @@ costs (e.g., Memory engine: ~100ns for everything).
 
 However, columnar engines like DuckDB have **4000x cost variation** across read
 patterns:
+
 - Point lookup (random access): ~4000 ns/row
 - Filtered scan (columnar WHERE): ~1 ns/row
 - Aggregate (vectorized GROUP BY): ~0.5 ns/row
 
 A single `NsPerRead` value forces the planner to either:
+
 1. Overestimate scan costs (using the point-lookup rate) → wrongly rejects columnar engines
 2. Underestimate point-lookup costs (using the scan rate) → wrongly selects columnar engines for O(1) work
 
