@@ -6,12 +6,14 @@ require (
 	github.com/larsartmann/cmdguard/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.0.0-20260806160506-f6bcfb0bcb06
 	github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.0.0-20260731174855-00ddf243d19f
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/turso/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/stack/mysql/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260806063227-a19b9d370eaa
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-output v0.35.0
