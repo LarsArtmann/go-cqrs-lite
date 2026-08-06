@@ -126,7 +126,7 @@ func (a *Adapter) Handle(ctx context.Context, evt event.Event) error {
 		return fmt.Errorf("projectionadapter: decode payload for %s: %w", eventType, err)
 	}
 
-	if err := a.store.Apply(ctx, eventType, decoded); err != nil {
+	if err := a.store.ApplyRecord(ctx, event.AsRecord(evt), decoded); err != nil {
 		return fmt.Errorf("projectionadapter: apply %s: %w", eventType, err)
 	}
 

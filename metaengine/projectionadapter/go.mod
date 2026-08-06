@@ -8,6 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0
 )
 
 require (
@@ -49,4 +50,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../
 	github.com/larsartmann/go-cqrs-lite/projection/v4 => ../../projection
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 => ../../projectionhost
+	github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record
 )

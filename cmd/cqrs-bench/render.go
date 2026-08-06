@@ -92,7 +92,7 @@ func buildComparisonTable(results map[string]*benchkit.Result) *output.Table {
 	headers := []string{
 		"Backend", "Write P50", "Write P99", "Load P50", "Load P99",
 		"Cold P50", "GC Max Pause", "Tail Ratio", "Allocs/Op",
-		"Write Amp", "CoV %", "Heap", "Disk",
+		"Write Amp", "CoV %", "RAM", "Heap", "Disk",
 	}
 
 	t := output.NewTable(headers)
@@ -129,6 +129,7 @@ func buildComparisonTable(results map[string]*benchkit.Result) *output.Table {
 			fmtAllocDash(r.AllocsPerOp),
 			fmtRatioDash(r.Disk.WriteAmplification),
 			fmtCoVDash(r.RepeatCoV),
+			fmtBytes(r.Memory.Resident),
 			fmtBytes(r.Memory.After),
 			fmtBytes(uint64(r.Disk.DatabaseBytes)),
 		})
@@ -435,6 +436,7 @@ func buildRunSummaryTable(r *benchkit.Result) *output.Table {
 		t.AddRow([]string{"Allocs/Op", fmt.Sprintf("%.0f", r.AllocsPerOp)})
 	}
 
+	t.AddRow([]string{"RAM Resident", fmtBytes(r.Memory.Resident)})
 	t.AddRow([]string{"Heap Peak", fmtBytes(r.Memory.After)})
 
 	if r.Disk.DatabaseBytes > 0 {

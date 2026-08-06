@@ -15,10 +15,10 @@ func PrintComparison(w io.Writer, results map[string]*Result) {
 
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Backend Comparison")
-	fmt.Fprintln(w, strings.Repeat("=", 130))
+	fmt.Fprintln(w, strings.Repeat("=", 140))
 
 	header := fmt.Sprintf(
-		"%-10s %10s %10s %10s %10s %10s %10s %6s %8s %8s %8s %10s %10s",
+		"%-10s %10s %10s %10s %10s %10s %10s %6s %8s %8s %8s %10s %10s %10s",
 		"Backend",
 		"WriteP50",
 		"WriteP99",
@@ -30,6 +30,7 @@ func PrintComparison(w io.Writer, results map[string]*Result) {
 		"A/op",
 		"WrtAmp",
 		"CoV%",
+		"RAM",
 		"Heap",
 		"Disk",
 	)
@@ -139,7 +140,7 @@ func printComparisonRow(w io.Writer, name string, r *Result) {
 	}
 
 	fmt.Fprintf(
-		w, "%-10s %10s %10s %10s %10s %10s %10s %6s %8s %8s %8s %10s %10s\n",
+		w, "%-10s %10s %10s %10s %10s %10s %10s %6s %8s %8s %8s %10s %10s %10s\n",
 		name,
 		roundDuration(r.WriteLatency.P50),
 		roundDuration(r.WriteLatency.P99),
@@ -151,9 +152,10 @@ func printComparisonRow(w io.Writer, name string, r *Result) {
 		allocStr,
 		wrtAmpStr,
 		covStr,
+		formatBytes(r.Memory.Resident),
 		formatBytes(r.Memory.After),
 		formatBytes(uint64(r.Disk.DatabaseBytes)),
-	)
+)
 }
 
 // WriteComparisonJSON serializes all results as a JSON object.
@@ -167,11 +169,11 @@ func PrintMarkdown(w io.Writer, results map[string]*Result) {
 
 	fmt.Fprintln(
 		w,
-		"| Backend | Write P50 | Write P99 | Load P50 | Load P99 | Cold P50 | GC Max | Write Amp | CoV | Heap | Disk | Integrity |",
+		"| Backend | Write P50 | Write P99 | Load P50 | Load P99 | Cold P50 | GC Max | Write Amp | CoV | RAM | Heap | Disk | Integrity |",
 	)
 	fmt.Fprintln(
 		w,
-		"|---------|----------:|----------:|---------:|---------:|---------:|-------:|----------:|----:|-----:|-----:|:---------:|",
+		"|---------|----------:|----------:|---------:|---------:|---------:|-------:|----------:|----:|----:|-----:|-----:|:---------:|",
 	)
 
 	for _, name := range names {
@@ -203,7 +205,7 @@ func PrintMarkdown(w io.Writer, results map[string]*Result) {
 		}
 
 		fmt.Fprintf(
-			w, "| %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |\n",
+			w, "| %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |\n",
 			name,
 			roundDuration(r.WriteLatency.P50),
 			roundDuration(r.WriteLatency.P99),
@@ -213,6 +215,7 @@ func PrintMarkdown(w io.Writer, results map[string]*Result) {
 			gcMax,
 			wrtAmp,
 			cov,
+			formatBytes(r.Memory.Resident),
 			formatBytes(r.Memory.After),
 			formatBytes(uint64(r.Disk.DatabaseBytes)),
 			integrity,

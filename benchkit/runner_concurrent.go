@@ -16,6 +16,19 @@ func (r *runner) finalizeResult(peakMem uint64, baseline memSnapshot) {
 		r.result.Memory.Delta = peakMem - baseline.heapAlloc
 	}
 
+	// Resident heap: force GC to flush write-phase temporaries, then measure
+	// the settled heap. The delta from baseline is the actual RAM footprint
+	// of the stored data — the metric for capacity planning.
+	runtime.GC()
+	runtime.GC()
+
+	var residentStats runtime.MemStats
+	runtime.ReadMemStats(&residentStats)
+
+	if residentStats.HeapAlloc >= baseline.heapAlloc {
+		r.result.Memory.Resident = residentStats.HeapAlloc - baseline.heapAlloc
+	}
+
 	endCPU := cpuTime()
 
 	r.result.CPU = ResourceStats{

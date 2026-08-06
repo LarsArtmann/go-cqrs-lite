@@ -273,6 +273,13 @@ type ResourceStats struct {
 	Before uint64 `json:"before"`
 	After  uint64 `json:"after"`
 	Delta  uint64 `json:"delta"`
+
+	// Resident is the stable heap footprint attributable to the stored data,
+	// measured after forcing GC. Unlike Delta (which captures peak write-phase
+	// allocations), Resident reflects the actual RAM cost of keeping the data
+	// in memory after the dust settles. This is the metric for capacity planning:
+	// "1M events in the memory backend costs X MiB of RAM."
+	Resident uint64 `json:"resident,omitempty"`
 }
 
 // DiskStats holds storage footprint data.
