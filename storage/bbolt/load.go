@@ -113,7 +113,6 @@ func (s *EventStore) LoadToVersion(
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +158,6 @@ func (s *EventStore) LoadToTimestamp(
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}

@@ -3,9 +3,8 @@ package bbolt
 import (
 	"context"
 	"log/slog"
-	"time"
-
 	"slices"
+	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 	bolt "go.etcd.io/bbolt"

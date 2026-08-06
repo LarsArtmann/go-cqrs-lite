@@ -25,11 +25,13 @@ module it was modeled after.
 ## a) FULLY DONE
 
 ### MySQL factory gap fix
+
 - [x] `cmd/cqrs-bench/factory.go` — added `mysql`/`maria`/`mariadb` case. Uses `mysql.New(dsn)`.
 - [x] Updated help text, flag descriptions, and error messages to include mysql.
 - [x] Build passes (CGO_ENABLED=0 and =1).
 
 ### KV store evaluation matrix (research)
+
 - [x] **bbolt** — IMPLEMENTED (see below). Pure Go B+tree, embedded, active (v1.5.0 Jun 2026).
 - [x] **badger** — Evaluated and SKIPPED. LSM + value log (WiscKey), active (v4.9.6). Redundant
       with Pebble (both LSM family). Would not test a different engine characteristic.
@@ -44,6 +46,7 @@ module it was modeled after.
       backend, not the engine.
 
 ### bbolt storage module (`storage/bbolt/`) — functional core
+
 - [x] `doc.go` — package documentation
 - [x] `errors.go` — sentinel errors (ErrNilDatabase, ErrVersionMismatch, etc.)
 - [x] `base.go` — storeBase struct, bucket names, createBuckets
@@ -61,10 +64,12 @@ module it was modeled after.
 - [x] `store_test.go` — 7 smoke tests (all pass with -race): SaveLoad, VersionConflict, JournalReadAll, Checkpoint, Snapshot, KVAdapter
 
 ### bbolt stack preset (`stack/bbolt/`)
+
 - [x] `preset.go` — New(path) returns fully-wired stack.Bundle with EventStore, SnapshotStore,
       CheckpointStore, ReadModels, EventBus, capabilities, closer.
 
 ### cqrs-bench wiring
+
 - [x] `factory.go` — `bbolt`/`bolt` case added (temp dir, disk path tracking)
 - [x] `flags.go` — Backend help updated, Backends default changed to `memory,sqlite,bbolt,pebble`,
       Dir help updated to include bbolt.
@@ -72,6 +77,7 @@ module it was modeled after.
 - [x] Error message updated to list all backends.
 
 ### Verification
+
 - [x] Full workspace builds: `go build ./...` (CGO_ENABLED=0 AND =1)
 - [x] bbolt tests pass: 7/7 with `-race` (1.019s)
 - [x] cqrs-bench tests pass: `go test ./cmd/cqrs-bench/...` (6.398s)
@@ -80,13 +86,13 @@ module it was modeled after.
 
 ### Benchmark results (small profile, 10K events, 5 backends)
 
-| Backend     | Write P50 | Load P50 | Write Amp | Heap   | Disk   |
-|-------------|-----------|----------|-----------|--------|--------|
-| memory      | 620ns     | 660ns    | -         | 27 MiB | 0 B    |
-| pebble      | 16.9µs    | 103.2µs  | 10.2x     | 54 MiB | 25 MiB |
-| **bbolt**   | **41µs**  | **94.6µs** | **32.8x** | **18 MiB** | **80 MiB** |
-| sqlite-cgo  | 243µs     | 351µs    | 11.3x     | 55 MiB | 28 MiB |
-| sqlite      | 410µs     | 429µs    | 11.3x     | 53 MiB | 28 MiB |
+| Backend    | Write P50 | Load P50   | Write Amp | Heap       | Disk       |
+| ---------- | --------- | ---------- | --------- | ---------- | ---------- |
+| memory     | 620ns     | 660ns      | -         | 27 MiB     | 0 B        |
+| pebble     | 16.9µs    | 103.2µs    | 10.2x     | 54 MiB     | 25 MiB     |
+| **bbolt**  | **41µs**  | **94.6µs** | **32.8x** | **18 MiB** | **80 MiB** |
+| sqlite-cgo | 243µs     | 351µs      | 11.3x     | 55 MiB     | 28 MiB     |
+| sqlite     | 410µs     | 429µs      | 11.3x     | 53 MiB     | 28 MiB     |
 
 Key finding: bbolt wins on loads (B+tree point reads) but loses on writes (single-writer
 serialization + full page rewrites). The B+tree vs LSM tradeoff is now empirically visible.
@@ -96,6 +102,7 @@ serialization + full page rewrites). The B+tree vs LSM tradeoff is now empirical
 ## b) PARTIALLY DONE
 
 ### bbolt module completeness vs Pebble reference
+
 The bbolt module was modeled after storage/pebble but is **missing several interfaces and
 features** that Pebble implements. It implements the minimum viable event store but is NOT
 at feature parity:
@@ -117,11 +124,13 @@ at feature parity:
       as a distinct method (the preset just registers `stack.WithCloser(backend)`).
 
 ### OTel spans created but NOT used
+
 - [ ] `otel.go` defines `startStreamSpan`, `startReadSpan`, `startProjectionSpan` — but NONE
       of the store methods (Save, Load, ReadAll, etc.) actually call them. The span helpers
       are dead code. Pebble instruments every method; bbolt instruments none.
 
 ### Tests are smoke tests only
+
 - [ ] 7 basic round-trip tests. NO contract test suite run (Pebble uses `eventtest.TestStore*`
       helpers — bbolt does not import or run these).
 - [ ] No test for `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`.
@@ -135,6 +144,7 @@ at feature parity:
 - [ ] No golden/snapshot test.
 
 ### go.mod files need proper versioning
+
 - [ ] `storage/bbolt/go.mod` — depends on `github.com/larsartmann/go-cqrs-lite/event/v4@v4.2.0`
       etc. but the module itself is NOT tagged. Consumers cannot `go get` it.
 - [ ] `stack/bbolt/go.mod` — same. Cannot resolve `storage/bbolt/v4` outside workspace mode.
@@ -146,6 +156,7 @@ at feature parity:
 ## c) NOT STARTED
 
 ### Documentation
+
 - [ ] No README.md in `storage/bbolt/` or `stack/bbolt/` (all other storage/stack modules have one)
 - [ ] AGENTS.md not updated — module list does not include `storage/bbolt` or `stack/bbolt`
 - [ ] Monorepo structure tree in AGENTS.md not updated
@@ -154,6 +165,7 @@ at feature parity:
 - [ ] No doc-check verification (Go import paths in any new markdown)
 
 ### CI/gate
+
 - [ ] `nix run .#verify` NOT run (takes 3-4 min — the "stale GREEN" anti-pattern from AGENTS.md)
 - [ ] `nix run .#lint` NOT run — bbolt code has not been linted
 - [ ] `nix fmt` NOT run — code may not be gofumpt-formatted
@@ -162,6 +174,7 @@ at feature parity:
 - [ ] `nix run .#check-coverage` NOT run
 
 ### cqrs-bench default compare
+
 - [ ] Default compare backends changed to `memory,sqlite,bbolt,pebble` but NOT tested with
       `turso` (which works offline and could be included).
 
@@ -170,10 +183,12 @@ at feature parity:
 ## d) TOTALLY FUCKED UP
 
 ### OTel dead code
+
 The `otel.go` file defines 3 span helper functions (`startStreamSpan`, `startReadSpan`,
 `startProjectionSpan`) and a `tracer()` function. **NONE of them are called anywhere.** The
 `store.go` Save method has `_ context.Context` (underscore — context is discarded). Every
 Load/ReadAll/ReadFrom method also discards context. This means:
+
 1. OTel tracing is completely non-functional for bbolt
 2. The span helpers are dead code that will be flagged by linters
 3. Context cancellation is ignored — a long-running bbolt transaction cannot be cancelled
@@ -182,11 +197,13 @@ This is the biggest quality gap. Pebble instruments every single method with spa
 code copies the span helper file but never wires it in.
 
 ### Unused StoreOption type
+
 `store.go` defines `type StoreOption func(*EventStore)` and `NewStore` accepts `_ ...StoreOption`,
 but there are NO StoreOption functions defined and the variadic is ignored. This is API surface
 that lies about configurability.
 
 ### Error wrapping inconsistency
+
 - `store.go` Save wraps errors with `errorfamily.WrapConflict` and `errorfamily.WrapCorruption`
   inside the `db.Update` callback — correct.
 - But `db.Update` itself returns the callback error directly. If bbolt fails to begin/commit
@@ -196,14 +213,17 @@ that lies about configurability.
   `WrapInfrastructure`.
 
 ### `hasPrefix` reimplements `bytes.HasPrefix`
+
 `load.go` defines a custom `hasPrefix(key, prefix []byte) bool` function that does exactly what
 `bytes.HasPrefix` does. Should use stdlib.
 
 ### `bytesLastIndex` was reimplemented then removed
+
 Initially wrote a custom `bytesLastIndex` function, then noticed it was just `bytes.LastIndexByte`
 and removed it. The initial mistake indicates not checking stdlib first.
 
 ### Compare default backends change is a breaking default
+
 Changed `CompareFlags.Backends` default from `memory,sqlite,pebble` to `memory,sqlite,bbolt,pebble`.
 This means anyone running `cqrs-bench compare` without `--backends` now gets bbolt too. This
 could surprise users who have CI parsing the output. Should have been opt-in first.
@@ -213,6 +233,7 @@ could surprise users who have CI parsing the output. Should have been opt-in fir
 ## e) WHAT WE SHOULD IMPROVE
 
 ### Architecture
+
 1. **Run the contract test suite** — `eventtest.TestStore*` helpers exist specifically for this.
    bbolt should run the same contract suite as Pebble, SQLite, Memory, Turso. This would catch
    edge cases the 7 smoke tests miss.
@@ -227,6 +248,7 @@ could surprise users who have CI parsing the output. Should have been opt-in fir
    `bolt.Options` but the preset hardcodes `DurabilityStrict`.
 
 ### Code quality
+
 6. **Use `bytes.HasPrefix` instead of custom `hasPrefix`** — stdlib.
 7. **Wrap all `db.Update`/`db.View` return errors** with `errorfamily.WrapInfrastructure`.
 8. **Remove unused `StoreOption` type** or add actual options.
@@ -234,6 +256,7 @@ could surprise users who have CI parsing the output. Should have been opt-in fir
 10. **Run `nix run .#lint`** — likely has findings (unused code, error wrapping, etc.)
 
 ### Testing
+
 11. **Add contract tests** — import `eventtest` and run the full suite.
 12. **Add KV contract tests** — `kv/viewstoretest` has a contract suite for kv.Store.
 13. **Add concurrency tests** — multiple goroutines writing different streams to verify
@@ -242,6 +265,7 @@ could surprise users who have CI parsing the output. Should have been opt-in fir
     the same suite against every preset.
 
 ### Benchmarking
+
 15. **Add bbolt to `stack/bench/`** — the bench module has benchmark suites for each preset.
 16. **Profile the write path** — bbolt's 41µs write P50 is 2.4x slower than Pebble. Is it
     the fsync? The B+tree page split? The single-writer lock contention?
@@ -254,6 +278,7 @@ could surprise users who have CI parsing the output. Should have been opt-in fir
 ## f) Up to 50 Things to Do Next
 
 ### Critical (blocks correctness or CI)
+
 1. Add `storage/bbolt` and `stack/bbolt` to `cmd/api-stability/main.go` modules list
 2. Regenerate `docs/api_surface.txt` with bbolt exports
 3. Run `nix fmt` on all new files
@@ -266,6 +291,7 @@ could surprise users who have CI parsing the output. Should have been opt-in fir
 10. Tag both new modules (`storage/bbolt/v4.x.y`, `stack/bbolt/v4.x.y`)
 
 ### High priority (feature parity)
+
 11. Add CommandStore to bbolt Backend
 12. Add QueryStore to bbolt Backend
 13. Wire CommandStore + QueryStore in stack/bbolt preset
@@ -284,6 +310,7 @@ could surprise users who have CI parsing the output. Should have been opt-in fir
 26. Add concurrency test (parallel stream writes)
 
 ### Medium priority (polish + DX)
+
 27. Write README.md for `storage/bbolt/`
 28. Write README.md for `stack/bbolt/`
 29. Update AGENTS.md module list with both new modules
@@ -298,6 +325,7 @@ could surprise users who have CI parsing the output. Should have been opt-in fir
 38. Add `bbolt` to `cqrs-lint doctor` feature profile detection
 
 ### Lower priority (nice to have)
+
 39. Add bbolt to `stack/bench/` benchmark suite
 40. Profile write path (fsync vs B+tree vs lock contention)
 41. Benchmark with `NoSync` to isolate fsync cost
@@ -305,17 +333,18 @@ could surprise users who have CI parsing the output. Should have been opt-in fir
 43. Consider bbolt `Batch()` API (coalesces concurrent writes) vs `Update()` (serialized)
 44. Add BadgerDB as a second KV store (LSM + value log) — now Pebble + bbolt + Badger
     would cover 3 engine families
-46. Consider adding `minio/minio` (S3-compatible object store) for cold event archives
-47. Document the B+tree vs LSM tradeoff in a benchmark README
-48. Add a `--engines` flag to cqrs-bench that groups backends by engine family
-49. Consider Iroh as a CRDT-native store (already have irohengine in metaengine)
-50. Update the SKILL.md routing table to mention bbolt as an option
+45. Consider adding `minio/minio` (S3-compatible object store) for cold event archives
+46. Document the B+tree vs LSM tradeoff in a benchmark README
+47. Add a `--engines` flag to cqrs-bench that groups backends by engine family
+48. Consider Iroh as a CRDT-native store (already have irohengine in metaengine)
+49. Update the SKILL.md routing table to mention bbolt as an option
 
 ---
 
 ## g) Questions I Cannot Answer Myself
 
 ### 1. Should bbolt be a first-class module (full feature parity with Pebble) or a benchmark-only curiosity?
+
 The bbolt implementation is currently a "minimum viable event store" — enough to benchmark but
 missing CommandStore, QueryStore, streaming iterators, and contract tests. Pebble took months
 to reach its current state. Should I invest in full parity, or is bbolt's value primarily as a
@@ -323,12 +352,14 @@ B+tree comparison point in benchmarks? If the former, it needs contract tests, s
 the full store set. If the latter, the current state may be sufficient.
 
 ### 2. Should we add BadgerDB despite the LSM redundancy with Pebble?
+
 Badger uses a WiscKey architecture (LSM tree + separate value log) that is architecturally
 distinct from Pebble's conventional LSM. It could test the "value log separation" hypothesis
 (keys in LSM, values on disk). But it's still fundamentally LSM-family. Is that enough
 differentiation to justify another ~1700 lines of code?
 
 ### 3. Should the default `compare` backends list be reverted to exclude bbolt?
+
 I changed the default from `memory,sqlite,pebble` to `memory,sqlite,bbolt,pebble`. This makes
 bbolt appear in every default comparison, which could break CI pipelines that parse the output
 table (new row, different column widths). Should I revert to opt-in (`--backends memory,sqlite,bbolt,pebble`)
