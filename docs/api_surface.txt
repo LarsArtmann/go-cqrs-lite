@@ -1494,6 +1494,7 @@ metaengine/func AllFoldKinds
 metaengine/func AllReadPatterns
 metaengine/func AllStorageLayouts
 metaengine/func AutoCRUD
+metaengine/func AutoCRUDByConvention
 metaengine/func AutoDelete
 metaengine/func AutoInsert
 metaengine/func AutoUpdate

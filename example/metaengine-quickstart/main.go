@@ -86,13 +86,13 @@ func main() {
 	// 3. Wire the projection adapter — this bridges event.Event → record.Record.
 	decoder := func(eventType string, payload []byte) (any, error) {
 		switch eventType {
-		case "taskCreated":
+		case "TaskCreated":
 			var e TaskCreated
 			return e, json.Unmarshal(payload, &e)
-		case "taskUpdated":
+		case "TaskUpdated":
 			var e TaskUpdated
 			return e, json.Unmarshal(payload, &e)
-		case "taskDeleted":
+		case "TaskDeleted":
 			var e TaskDeleted
 			return e, json.Unmarshal(payload, &e)
 		default:
@@ -108,7 +108,7 @@ func main() {
 
 	// Create
 	createPayload, _ := json.Marshal(TaskCreated{ID: "task-1", Title: "Build metaengine app", Status: "open"})
-	createEvt, _ := event.NewEvent("taskCreated", streamID, "Task", event.Version(1), createPayload,
+	createEvt, _ := event.NewEvent("TaskCreated", streamID, "Task", event.Version(1), createPayload,
 		event.WithCorrelationID(correlationID),
 	)
 	if err := adapter.Handle(ctx, createEvt); err != nil {
@@ -117,7 +117,7 @@ func main() {
 
 	// Update
 	updatePayload, _ := json.Marshal(TaskUpdated{ID: "task-1", Title: "Build metaengine app", Status: "in_progress"})
-	updateEvt, _ := event.NewEvent("taskUpdated", streamID, "Task", event.Version(2), updatePayload,
+	updateEvt, _ := event.NewEvent("TaskUpdated", streamID, "Task", event.Version(2), updatePayload,
 		event.WithCorrelationID(correlationID),
 	)
 	if err := adapter.Handle(ctx, updateEvt); err != nil {
@@ -137,11 +137,13 @@ func main() {
 
 	// 6. Delete
 	deletePayload, _ := json.Marshal(TaskDeleted{ID: "task-1"})
-	deleteEvt, _ := event.NewEvent("taskDeleted", streamID, "Task", event.Version(3), deletePayload)
+	deleteEvt, _ := event.NewEvent("TaskDeleted", streamID, "Task", event.Version(3), deletePayload)
 	if err := adapter.Handle(ctx, deleteEvt); err != nil {
 		log.Fatalf("Handle delete: %v", err)
 	}
 
 	_, err = metaengine.ExecuteTyped[TaskQuery, TaskView](ctx, store, TaskQuery{ID: "task-1"})
-	fmt.Printf("\nAfter delete: %v (expected not-found error)\n", err)
+	if err != nil {
+		fmt.Printf("\nAfter delete: %v (expected not-found error)\n", err)
+	}
 }
