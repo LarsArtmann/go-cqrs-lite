@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	_ "modernc.org/sqlite"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 func TestStreamLogBackend_SQLiteRoundtrip(t *testing.T) {
@@ -25,7 +27,7 @@ func TestStreamLogBackend_SQLiteRoundtrip(t *testing.T) {
 	}
 	defer eng.Close()
 
-	be, ok := eng.(StreamLogBackend)
+	be, ok := eng.(metaengine.StreamLogBackend)
 	if !ok {
 		t.Fatal("sqliteEngine does not implement StreamLogBackend")
 	}
@@ -89,7 +91,7 @@ func TestStreamLogBackend_SQLiteAtomicAppender(t *testing.T) {
 	}
 	defer eng.Close()
 
-	ap, ok := eng.(AtomicAppender)
+	ap, ok := eng.(metaengine.AtomicAppender)
 	if !ok {
 		t.Fatal("sqliteEngine does not implement AtomicAppender")
 	}
@@ -106,7 +108,7 @@ func TestStreamLogBackend_SQLiteAtomicAppender(t *testing.T) {
 
 	// Append with wrong expected version (should conflict).
 	err = ap.StreamAppendExpected(ctx, "events", "stream-1", 0, []any{"d"})
-	if !errors.Is(err, ErrVersionConflict) {
+	if !errors.Is(err, metaengine.ErrVersionConflict) {
 		t.Fatalf("expected ErrVersionConflict, got %v", err)
 	}
 
