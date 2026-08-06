@@ -60,18 +60,6 @@ func hasSQLStore(ctx *analyzer.AnalysisContext) bool {
 	return ctx.FeatureProfile.Store.IsSQL()
 }
 
-// manualSortPatterns are the function calls that indicate in-memory sorting.
-var manualSortPatterns = []struct {
-	pkg  string
-	name string
-}{
-	{"sort", "Slice"},
-	{"sort", "SliceStable"},
-	{"slices", "SortFunc"},
-	{"slices", "SortStableFunc"},
-	{"slices", "Sort"},
-}
-
 // firstManualSortPos returns the position of the first manual sort call
 // (sort.Slice, sort.SliceStable, slices.SortFunc, slices.SortStableFunc,
 // slices.Sort) in any non-test file.

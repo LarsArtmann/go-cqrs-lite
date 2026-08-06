@@ -36,6 +36,7 @@ Backends:
   sqlite     SQLite database (pure-Go modernc driver, optimized pragmas)
   sqlite-cgo SQLite database (CGo mattn driver — 3-5x faster, requires gcc)
   pebble     PebbleDB LSM-tree store
+  bbolt      bbolt B+tree store (pure Go, single-writer, etcd-backed)
   postgres   PostgreSQL database (requires --dsn)
   mysql      MySQL/MariaDB database (requires --dsn)
   turso      Turso embedded database (libSQL/SQLite fork)

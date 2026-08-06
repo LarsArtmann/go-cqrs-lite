@@ -55,6 +55,7 @@ use (
 	./signing
 	./snapshot
 	./stack
+	./stack/bbolt
 	./stack/bench
 	./stack/duckdb
 	./stack/memory
@@ -64,8 +65,8 @@ use (
 	./stack/sqlite
 	./stack/turso
 	./storage
-	./storage/memory
 	./storage/bbolt
+	./storage/memory
 	./storage/pebble
 	./storage/turso
 	./system

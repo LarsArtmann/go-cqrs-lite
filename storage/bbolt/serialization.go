@@ -94,14 +94,14 @@ func deserializeEvent(data []byte) (event.Event, error) {
 }
 
 type serializableEvent struct {
-	ID            id.EventID      `json:"id"`
-	Type          string          `json:"type"`
-	StreamID      id.StreamID     `json:"aggregate_id"`
-	StreamType    string          `json:"aggregate_type"`
-	Version       int             `json:"version"`
-	SchemaVersion int             `json:"schema_version,omitempty"`
-	Payload       []byte          `json:"payload"`
-	OccurredAt    int64           `json:"occurred_at"`
-	Metadata      event.Metadata  `json:"metadata"`
-	Encoding      string          `json:"encoding,omitempty"`
+	ID            id.EventID     `json:"id"`
+	Type          string         `json:"type"`
+	StreamID      id.StreamID    `json:"aggregate_id"`
+	StreamType    string         `json:"aggregate_type"`
+	Version       int            `json:"version"`
+	SchemaVersion int            `json:"schema_version,omitempty"`
+	Payload       []byte         `json:"payload"`
+	OccurredAt    int64          `json:"occurred_at"`
+	Metadata      event.Metadata `json:"metadata"`
+	Encoding      string         `json:"encoding,omitempty"`
 }

@@ -13,9 +13,9 @@ import (
 // BenchFlags holds the shared benchmark flags wired onto every cqrs-bench
 // subcommand (run, compare, sweep).
 type BenchFlags struct {
-	Backend      string            `default:"memory" flag:"backend"       help:"Backend: memory, sqlite, sqlite-cgo, pebble, postgres, mysql, duckdb, turso"`
+	Backend      string            `default:"memory" flag:"backend"       help:"Backend: memory, sqlite, sqlite-cgo, bbolt, pebble, postgres, mysql, duckdb, turso"`
 	DSN          string            `default:""       flag:"dsn"           help:"Database connection string (sqlite, postgres, mysql, duckdb)"`
-	Dir          string            `default:""       flag:"dir"           help:"Database directory (pebble, duckdb)"`
+	Dir          string            `default:""       flag:"dir"           help:"Database directory (bbolt, pebble, duckdb)"`
 	Profile      string            `default:"dev"    flag:"profile"       help:"Workload profile"`
 	Codec        string            `default:"json"   flag:"codec"         help:"Payload codec: json, cbor"`
 	Format       string            `default:"auto"   flag:"format"        help:"Output format: auto, table, text, json, csv, tsv, markdown, benchstat, manifest (auto picks table in terminal, text when piped)"`
@@ -49,7 +49,7 @@ type RunFlags struct {
 type CompareFlags struct {
 	BenchFlags
 
-	Backends string `default:"memory,sqlite,pebble" flag:"backends" help:"Comma-separated backend list (memory,sqlite,sqlite-cgo,pebble)"`
+	Backends string `default:"memory,sqlite,bbolt,pebble" flag:"backends" help:"Comma-separated backend list (memory,sqlite,sqlite-cgo,bbolt,pebble)"`
 }
 
 // SweepFlags extends BenchFlags with sweep-specific flags.

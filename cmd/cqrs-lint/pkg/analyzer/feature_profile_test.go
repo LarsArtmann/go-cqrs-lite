@@ -864,3 +864,129 @@ func TestValidPresetNames_ContainsAllFourPresets(t *testing.T) {
 		}
 	}
 }
+
+// --- AllXxxKinds coverage meta-tests ---
+// These tests prevent drift: if a new constant is added to a Kind const block
+// but the corresponding All*Kinds() function isn't updated, the explain
+// command will silently miss the new value. Each test hardcodes every known
+// constant (same source as the const block) and asserts each non-Unknown
+// constant appears in the All*Kinds() result.
+
+func TestAllStoreKindsCoversEveryConstant(t *testing.T) {
+	t.Parallel()
+
+	allConstants := []StoreKind{
+		StoreUnknown, StoreSQLite, StorePostgres, StoreMySQL,
+		StorePebble, StoreMemory, StoreTurso, StoreDuckDB,
+		StoreCustom, StoreNone,
+	}
+
+	got := AllStoreKinds()
+	gotSet := make(map[StoreKind]bool, len(got))
+	for _, k := range got {
+		gotSet[k] = true
+	}
+
+	for _, c := range allConstants {
+		if c == StoreUnknown {
+			continue
+		}
+		if !gotSet[c] {
+			t.Errorf("StoreKind constant %q is missing from AllStoreKinds()", c)
+		}
+	}
+
+	for _, k := range got {
+		if k == StoreUnknown {
+			t.Error("AllStoreKinds() should not include StoreUnknown")
+		}
+	}
+}
+
+func TestAllCommandFlowKindsCoversEveryConstant(t *testing.T) {
+	t.Parallel()
+
+	allConstants := []CommandFlowKind{
+		CommandFlowUnknown, CommandFlowReadOnly, CommandFlowSync, CommandFlowCommands,
+	}
+
+	got := AllCommandFlowKinds()
+	gotSet := make(map[CommandFlowKind]bool, len(got))
+	for _, k := range got {
+		gotSet[k] = true
+	}
+
+	for _, c := range allConstants {
+		if c == CommandFlowUnknown {
+			continue
+		}
+		if !gotSet[c] {
+			t.Errorf("CommandFlowKind constant %q is missing from AllCommandFlowKinds()", c)
+		}
+	}
+}
+
+func TestAllTracingKindsCoversEveryConstant(t *testing.T) {
+	t.Parallel()
+
+	allConstants := []TracingKind{TracingUnknown, TracingOff, TracingOn}
+
+	got := AllTracingKinds()
+	gotSet := make(map[TracingKind]bool, len(got))
+	for _, k := range got {
+		gotSet[k] = true
+	}
+
+	for _, c := range allConstants {
+		if c == TracingUnknown {
+			continue
+		}
+		if !gotSet[c] {
+			t.Errorf("TracingKind constant %q is missing from AllTracingKinds()", c)
+		}
+	}
+}
+
+func TestAllSnapshotKindsCoversEveryConstant(t *testing.T) {
+	t.Parallel()
+
+	allConstants := []SnapshotKind{SnapshotUnknown, SnapshotOff, SnapshotOn}
+
+	got := AllSnapshotKinds()
+	gotSet := make(map[SnapshotKind]bool, len(got))
+	for _, k := range got {
+		gotSet[k] = true
+	}
+
+	for _, c := range allConstants {
+		if c == SnapshotUnknown {
+			continue
+		}
+		if !gotSet[c] {
+			t.Errorf("SnapshotKind constant %q is missing from AllSnapshotKinds()", c)
+		}
+	}
+}
+
+func TestAllDomainKindsCoversEveryConstant(t *testing.T) {
+	t.Parallel()
+
+	allConstants := []DomainKind{
+		DomainUnknown, DomainFinancial, DomainInternal, DomainSecurity,
+	}
+
+	got := AllDomainKinds()
+	gotSet := make(map[DomainKind]bool, len(got))
+	for _, k := range got {
+		gotSet[k] = true
+	}
+
+	for _, c := range allConstants {
+		if c == DomainUnknown {
+			continue
+		}
+		if !gotSet[c] {
+			t.Errorf("DomainKind constant %q is missing from AllDomainKinds()", c)
+		}
+	}
+}

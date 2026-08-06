@@ -93,6 +93,32 @@ const (
 	CommandFlowCommands CommandFlowKind = "commands"  // Dispatch() calls present
 )
 
+// AllCommandFlowKinds returns every defined CommandFlowKind value, sorted
+// alphabetically. Excludes the Unknown sentinel.
+func AllCommandFlowKinds() []CommandFlowKind {
+	return []CommandFlowKind{
+		CommandFlowReadOnly, CommandFlowSync, CommandFlowCommands,
+	}
+}
+
+// AllTracingKinds returns every defined TracingKind value, sorted
+// alphabetically. Excludes the Unknown sentinel.
+func AllTracingKinds() []TracingKind {
+	return []TracingKind{TracingOff, TracingOn}
+}
+
+// AllSnapshotKinds returns every defined SnapshotKind value, sorted
+// alphabetically. Excludes the Unknown sentinel.
+func AllSnapshotKinds() []SnapshotKind {
+	return []SnapshotKind{SnapshotOff, SnapshotOn}
+}
+
+// AllDomainKinds returns every defined DomainKind value, sorted
+// alphabetically. Excludes the Unknown sentinel.
+func AllDomainKinds() []DomainKind {
+	return []DomainKind{DomainFinancial, DomainInternal, DomainSecurity}
+}
+
 // DomainKind classifies the business domain of a consumer project.
 // Financial domains get stricter severity on security and money rules.
 // The domain is auto-detected from event/command type names but can be

@@ -5,8 +5,10 @@ import (
 	"log/slog"
 	"time"
 
-	bolt "go.etcd.io/bbolt"
+	"slices"
+
 	errorfamily "github.com/larsartmann/go-error-family"
+	bolt "go.etcd.io/bbolt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -83,7 +85,7 @@ func (s *CheckpointStore) Load(
 		}
 
 		var sc serializableCheckpoint
-		if err := unmarshalCBOROrJSON(cloneBytes(val), &sc,
+		if err := unmarshalCBOROrJSON(slices.Clone(val), &sc,
 			"bbolt.deserialize_checkpoint",
 			"deserialize checkpoint for "+projectionName); err != nil {
 			return err
@@ -105,12 +107,6 @@ func (s *CheckpointStore) Close() error { return nil }
 type serializableCheckpoint struct {
 	EventID     id.EventID `json:"event_id"`
 	ProcessedAt int64      `json:"processed_at"`
-}
-
-func cloneBytes(b []byte) []byte {
-	out := make([]byte, len(b))
-	copy(out, b)
-	return out
 }
 
 func wrapBucketErr(err error, code, msg string) error {

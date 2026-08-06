@@ -43,7 +43,8 @@ func NewF015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				"F015",
 				"Project has "+itoa(queryCount)+
 					" query registrations but metaengine is not used — "+
-					"cost-based planning, SQL pushdown, and layout optimization are unavailable",
+					"cost-based planning, FilterOnField/SortOnField SQL pushdown, "+
+					"and layout optimization are unavailable",
 				"Import the metaengine module and use metaengine.Query[Q,R]() to declare "+
 					"queries with FilterOnField/SortOnField pushdown. For SQLite: "+
 					"metaengine.PlanFromSQLite(dsn, queries...) is a one-call setup. "+

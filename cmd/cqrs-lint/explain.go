@@ -256,7 +256,8 @@ var featureKeys = []featureKey{
 	},
 	{
 		"command-flow", "string",
-		[]string{"read-only", "sync", "commands"},
+		// Derived from analyzer.AllCommandFlowKinds() in init().
+		nil,
 		"Command-dispatch pattern (read-only = no dispatcher)",
 	},
 	{
@@ -271,17 +272,20 @@ var featureKeys = []featureKey{
 	},
 	{
 		"tracing", "string",
-		[]string{"on", "off"},
+		// Derived from analyzer.AllTracingKinds() in init().
+		nil,
 		"OpenTelemetry tracing middleware is wired",
 	},
 	{
 		"snapshot", "string",
-		[]string{"on", "off"},
+		// Derived from analyzer.AllSnapshotKinds() in init().
+		nil,
 		"Snapshot store or strategy is configured",
 	},
 	{
 		"domain", "string",
-		[]string{"financial", "internal", "security"},
+		// Derived from analyzer.AllDomainKinds() in init().
+		nil,
 		"Business domain (escalates security/money rules for financial)",
 	},
 	{
@@ -301,19 +305,39 @@ var featureKeys = []featureKey{
 	},
 }
 
+// deriveStrings wraps a Kind enumerator (e.g. analyzer.AllStoreKinds) into a
+// func() []string suitable for the kindDerivations map. The generic constraint
+// [T ~string] matches all named string types (StoreKind, TracingKind, etc.).
+func deriveStrings[T ~string](fn func() []T) func() []string {
+	return func() []string {
+		kinds := fn()
+		values := make([]string, len(kinds))
+		for i, k := range kinds {
+			values[i] = string(k)
+		}
+		return values
+	}
+}
+
+// kindDerivations maps a feature key to a function returning its valid
+// values from the corresponding All*Kind() enumerator. Adding a new Kind
+// constant and its All*Kind() entry is sufficient — this table routes the
+// derivation.
+var kindDerivations = map[string]func() []string{
+	"store":        deriveStrings(analyzer.AllStoreKinds),
+	"command-flow": deriveStrings(analyzer.AllCommandFlowKinds),
+	"tracing":      deriveStrings(analyzer.AllTracingKinds),
+	"snapshot":     deriveStrings(analyzer.AllSnapshotKinds),
+	"domain":       deriveStrings(analyzer.AllDomainKinds),
+}
+
 func init() {
-	// Derive store valid values from StoreKind constants to eliminate the
-	// split-brain risk of maintaining a hand-written copy alongside the
-	// StoreKind const block.
+	// Derive feature valid values from Kind constants to eliminate the
+	// split-brain risk of maintaining hand-written copies alongside the
+	// Kind const blocks in the analyzer package.
 	for i, fk := range featureKeys {
-		if fk.key == "store" {
-			kinds := analyzer.AllStoreKinds()
-			values := make([]string, len(kinds))
-			for j, k := range kinds {
-				values[j] = string(k)
-			}
-			featureKeys[i].validValues = values
-			break
+		if derive, ok := kindDerivations[fk.key]; ok {
+			featureKeys[i].validValues = derive()
 		}
 	}
 }

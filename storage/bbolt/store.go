@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"strconv"
 
-	bolt "go.etcd.io/bbolt"
 	errorfamily "github.com/larsartmann/go-error-family"
+	bolt "go.etcd.io/bbolt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -226,8 +226,8 @@ func validateEventOwnership(evt event.Event, ref id.StreamRef) error {
 
 // Ensure EventStore implements event.Store, Journal, and SeekableJournal.
 var (
-	_ event.Store          = (*EventStore)(nil)
-	_ event.Journal        = (*EventStore)(nil)
+	_ event.Store           = (*EventStore)(nil)
+	_ event.Journal         = (*EventStore)(nil)
 	_ event.SeekableJournal = (*EventStore)(nil)
 )
 

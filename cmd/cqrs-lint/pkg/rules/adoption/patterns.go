@@ -166,6 +166,19 @@ func hasTraversalPatterns(ctx *analyzer.AnalysisContext) (token.Position, bool) 
 	return token.Position{}, false
 }
 
+// manualSortPatterns are the function calls that indicate in-memory sorting.
+// Used by F022 to detect sort.Slice/slices.SortFunc without metaengine pushdown.
+var manualSortPatterns = []struct {
+	pkg  string
+	name string
+}{
+	{"sort", "Slice"},
+	{"sort", "SliceStable"},
+	{"slices", "SortFunc"},
+	{"slices", "SortStableFunc"},
+	{"slices", "Sort"},
+}
+
 // webFrameworkImportPaths are the import path prefixes of popular Go web
 // frameworks whose presence signals manual HTTP handler registration.
 var webFrameworkImportPaths = []string{ //nolint:gochecknoglobals // static lookup table

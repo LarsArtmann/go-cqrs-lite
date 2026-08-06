@@ -83,6 +83,7 @@ Nothing. All changes build (both CGo and non-CGo), tests pass, and the benchmark
 ## Up to 50 Things We Should Get Done Next
 
 ### Correctness & Testing (1-10)
+
 1. Verify mattn/go-sqlite3 error classification works with `storage/sql/duplicate.go` — run a duplicate-key insert test with CGo enabled
 2. Add unit test for `WithDriverName` option — verify driver name threads through to `sql.Open`
 3. Add integration test for `sqlite-cgo` backend — full event round-trip (Save → Load → verify payload)
@@ -95,6 +96,7 @@ Nothing. All changes build (both CGo and non-CGo), tests pass, and the benchmark
 10. Verify `Capabilities.Backend` reports the correct driver name, not always `"sqlite"`
 
 ### Performance & Benchmarking (11-20)
+
 11. Run `medium` or `large` profile comparison to see if the CGo advantage scales beyond `small`
 12. Benchmark with `--codec cbor` to see if encoding is a bottleneck for sqlite-cgo
 13. Benchmark `read-heavy` profile with sqlite-cgo to compare read path
@@ -107,6 +109,7 @@ Nothing. All changes build (both CGo and non-CGo), tests pass, and the benchmark
 20. Compare modernc sqlite with optimizations vs without — quantify the pragma impact
 
 ### Documentation (21-25)
+
 21. Update `cmd/cqrs-bench/README.md` with sqlite-cgo backend description and examples
 22. Update `AGENTS.md` module table — add `sqlite-cgo` to the bench backends
 23. Add a "Driver Selection Guide" section to cqrs-bench README (when to use sqlite vs sqlite-cgo vs pebble)
@@ -114,6 +117,7 @@ Nothing. All changes build (both CGo and non-CGo), tests pass, and the benchmark
 25. Update `docs/api_surface.txt` after any further API changes
 
 ### Architecture (26-30)
+
 26. Consider making `WithDriverName` validate that the driver is actually registered (sql.Open succeeds but fails on first query if driver missing)
 27. Consider a `WithMattnDriver()` convenience option that sets driver name + registers the driver
 28. Consider extracting DSN parameter helpers into a `storage/sql/dsn.go` per-driver module
@@ -121,6 +125,7 @@ Nothing. All changes build (both CGo and non-CGo), tests pass, and the benchmark
 30. Consider adding `sqlite-cgo` to the `compare` command's auto-detect logic (include if CGo available)
 
 ### CI & Integration (31-35)
+
 31. Add a CI job variant that runs benchmarks with `CGO_ENABLED=1` to exercise the sqlite-cgo path
 32. Ensure `go mod tidy` in CI runs with both `CGO_ENABLED=0` and `CGO_ENABLED=1` to keep dep classification correct
 33. Verify the api-stability `TestEveryGoModDirIsInModulesList` still passes
@@ -128,6 +133,7 @@ Nothing. All changes build (both CGo and non-CGo), tests pass, and the benchmark
 35. Add `mattn/go-sqlite3` to the dependency budget check (`nix run .#check-layers`)
 
 ### Lower Priority (36-50)
+
 36. Explore `sqlite3_preupdate_hook` (mattn supports it, modernc does not) for change data capture
 37. Explore mattn's `_txlock=immediate` DSN param for write-heavy workloads
 38. Consider WAL mode + shared cache for mattn (`?cache=shared`) to enable read concurrency with pool > 1

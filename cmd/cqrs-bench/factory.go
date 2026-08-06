@@ -14,6 +14,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/mysql/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/pebble/v4"
@@ -135,6 +136,20 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 			return sqlite.New(dsn, opts...)
 		}, diskPath, cleanup
 
+	case "bbolt", "bolt":
+		boltDir := dir
+		if boltDir == "" {
+			boltDir = mkTempDir()
+			cleanup = func() { _ = os.RemoveAll(boltDir) }
+		}
+
+		diskPath = boltDir
+		dbPath := filepath.Join(boltDir, "bench.db")
+
+		return func() (*stack.Bundle, error) {
+			return bbolt.New(dbPath)
+		}, diskPath, cleanup
+
 	case "pebble", "peb":
 		pebDir := dir
 		if pebDir == "" {
@@ -214,7 +229,7 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 
 	default:
 		fatalf(
-			"unknown backend: %s (use memory, sqlite, sqlite-cgo, pebble, postgres, mysql, duckdb, or turso)",
+			"unknown backend: %s (use memory, sqlite, sqlite-cgo, bbolt, pebble, postgres, mysql, duckdb, or turso)",
 			backend,
 		)
 
