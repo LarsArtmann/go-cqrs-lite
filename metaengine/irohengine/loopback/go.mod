@@ -4,8 +4,8 @@ go 1.26.5
 
 require (
 	github.com/fxamacker/cbor/v2 v2.9.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.0.0-00010101000000-000000000000
 	github.com/onsi/gomega v1.42.1
 )
 
