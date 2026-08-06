@@ -18,17 +18,6 @@ if err != nil { log.Fatal(err) }
 defer bundle.Close()
 ```
 
-### Distributed Event Bus (cross-process pub/sub)
-
-```go
-listener, _ := postgres.NewPgxListenerFromDSN(ctx, dsn)
-bundle, err := postgres.New(dsn,
-    postgres.WithDistributedBus(listener),
-)
-```
-
-With `WithDistributedBus`, the event bus uses Postgres `LISTEN/NOTIFY` for cross-process event delivery. Without it, the bus is GoChannel (single-process only).
-
 ### Multi-Database Topology
 
 ```go

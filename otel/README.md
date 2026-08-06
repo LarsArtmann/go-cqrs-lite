@@ -90,7 +90,7 @@ otelProvider, _ := cqrsotel.Setup(
 defer otelProvider.Shutdown(ctx)
 
 // 2. Prometheus metrics bridge (serves /metrics)
-promProvider, _ := prometheus.Setup(prometheus.WithService("orders", "1.0.0"))
+promProvider, _ := prometheus.Setup(prometheus.WithViews(cqrsotel.NewCQRSViews()...))
 defer promProvider.Shutdown(ctx)
 
 // 3. Bundle uses the Prometheus-backed meter for CQRS metrics

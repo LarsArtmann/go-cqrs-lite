@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dustin/go-humanize"
 	"github.com/larsartmann/go-output"
 	"github.com/larsartmann/go-output/delimited"
 	"github.com/larsartmann/go-output/markdown"
@@ -507,34 +506,17 @@ func sortedResultKeys(m map[string]*benchkit.Result) []string {
 	return keys
 }
 
-func fmtDur(d time.Duration) string {
-	return roundDur(d).String()
-}
+// fmtDur wraps benchkit.FormatDuration so render.go callers stay short.
+func fmtDur(d time.Duration) string { return benchkit.FormatDuration(d) }
 
-func roundDur(d time.Duration) time.Duration {
-	switch {
-	case d < time.Microsecond:
-		return d.Round(time.Nanosecond)
-	case d < time.Millisecond:
-		return d.Round(100 * time.Nanosecond)
-	case d < time.Second:
-		return d.Round(time.Microsecond)
-	default:
-		return d.Round(time.Millisecond)
-	}
-}
+// fmtBytes wraps benchkit.FormatBytes.
+func fmtBytes(b uint64) string { return benchkit.FormatBytes(b) }
 
-func fmtBytes(b uint64) string {
-	return humanize.IBytes(b)
-}
+// fmtFloat wraps benchkit.FormatFloat.
+func fmtFloat(f float64) string { return benchkit.FormatFloat(f) }
 
-func fmtFloat(f float64) string {
-	return strings.TrimSpace(humanize.SIWithDigits(f, 1, ""))
-}
-
-func fmtInt(n int) string {
-	return humanize.Comma(int64(n))
-}
+// fmtInt wraps benchkit.FormatInt.
+func fmtInt(n int) string { return benchkit.FormatInt(n) }
 
 func fmtGCDash(d time.Duration) string {
 	if d == 0 {

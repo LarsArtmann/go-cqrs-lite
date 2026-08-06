@@ -19,10 +19,9 @@ storage.ConfigureSQLitePool(db)
 storage.SQLiteInitSchema(ctx, db)
 
 store, _ := storage.NewSQLiteEventStore(db)
-bus := memory.NewMemoryBus()
 
-// Use with decider
-repo, _ := decider.NewRepository[UserState](store, bus, myDecider)
+// Use with decider (nil bus = pure event sourcing; use cqrswatermill.NewEventBus() for pub/sub)
+repo, _ := decider.NewRepository[UserState](store, nil, myDecider)
 ```
 
 ## Quick Start: PostgreSQL

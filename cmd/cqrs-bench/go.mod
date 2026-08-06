@@ -3,7 +3,6 @@ module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-bench
 go 1.26.5
 
 require (
-	github.com/dustin/go-humanize v1.0.1
 	github.com/larsartmann/cmdguard/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
@@ -54,6 +53,7 @@ require (
 	github.com/duckdb/duckdb-go-bindings/lib/linux-arm64 v0.10505.0 // indirect
 	github.com/duckdb/duckdb-go-bindings/lib/windows-amd64 v0.10505.0 // indirect
 	github.com/duckdb/duckdb-go/v2 v2.10505.0 // indirect
+	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.10.2 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/getsentry/sentry-go v0.48.0 // indirect
