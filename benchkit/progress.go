@@ -43,7 +43,7 @@ func newProgressReporter(
 
 // start launches the heartbeat goroutine. Safe to call on a nil receiver or
 // when no writer is configured — both are no-ops.
-func (p *progressReporter) start() {
+func (p *progressReporter) startHeartbeat() {
 	if p == nil || p.w == nil {
 		return
 	}

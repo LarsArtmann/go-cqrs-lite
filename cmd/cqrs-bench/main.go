@@ -243,6 +243,7 @@ func compareCmd(args []string) {
 		SkipQuery:    *bf.skipQuery,
 		SkipSnapshot: *bf.skipSnapshot,
 	}
+	applyProgress(&config, *bf.progress)
 
 	if sizes, err := parsePayloadSizes(*bf.payloadSizes); err != nil {
 		fatalf("invalid --payload-sizes: %v", err)
