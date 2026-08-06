@@ -304,6 +304,56 @@ go-output v0.33.0 incident that broke cqrs-lint for 3+ sessions).
 **When you add/remove an exported symbol:** run `cd cmd/api-stability && GOWORK=off
 go run main.go -update` to regenerate the golden in the same change.
 
+## cqrs-lint — Domain-Aware Linter
+
+The linter (`cmd/cqrs-lint`) enforces go-cqrs-lite best practices with 186 rules
+across 10 categories. It auto-detects which modules a consumer uses and adapts
+context-dependent rules accordingly.
+
+```bash
+# Self-lint (library mode — skips consumer-coaching rules)
+nix run .#lint
+
+# Consumer linting (run from a consumer project)
+cqrs-lint ./...
+cqrs-lint --scorecard ./...        # module-adoption scorecard
+cqrs-lint --health-score ./...     # 0-100 health score with breakdown
+cqrs-lint rules                    # list all rules
+cqrs-lint explain c008             # interactive rule/preset docs
+cqrs-lint doctor                   # detected feature profile
+cqrs-lint init                     # generate .cqrs-lint.json config
+```
+
+### Config File (`.cqrs-lint.json`)
+
+JSONC format (comments allowed). Supports presets, disabled rules, and
+per-rule config overrides:
+
+```jsonc
+{
+  // Preset: local-cli | production | library | read-only
+  "preset": "production",
+  // Disable specific rules by ID
+  "disabled": ["c008"],
+  // Per-rule config
+  "c008-ignore-fields": ["ID", "CreatedAt"],
+  "c008-ignore-structs": ["TestEvent"]
+}
+```
+
+### Output Formats
+
+- **Text** (default): colored, grouped by module or aggregate via `--group-by`
+- **JSON**: `--format json` — machine-readable for CI integrations
+- **SARIF**: `--format sarif` — GitHub Security tab integration
+- **Markdown**: `--format markdown` — PR comments
+
+### Grouping
+
+`--group-by none|module|aggregate` controls how findings are organized.
+Module groups by go.mod directory; aggregate groups by domain entity (derived
+from event type prefixes + decider state types).
+
 ## Golden File Tests
 
 Several modules use golden file tests to detect output format regressions:

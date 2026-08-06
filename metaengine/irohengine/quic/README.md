@@ -14,7 +14,7 @@ between separate OS processes.
 
 Every operation goes through real network I/O:
 
-- Serialization (JSON) over real QUIC BiStreams
+- Serialization (CBOR) over real QUIC BiStreams
 - Real UDP packets between processes
 - Real RTT measurement from QUIC's ACK timing (`conn.Rtt()`)
 - Real NAT traversal (relay servers, STUN, etc.)
@@ -100,7 +100,7 @@ Iroh Endpoint A            Iroh Endpoint B
          Real Network
 ```
 
-WriteOps are serialized as JSON and sent over QUIC BiStreams. Each op opens a
+WriteOps are serialized as CBOR and sent over QUIC BiStreams. Each op opens a
 new bidirectional stream, sends the data, and reads an empty ack back. The
 receiver deserializes and dispatches to all registered subscribers.
 
