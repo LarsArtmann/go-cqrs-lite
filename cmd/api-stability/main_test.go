@@ -83,7 +83,7 @@ func TestAPISurfaceCheck(t *testing.T) {
 	goldenPath := filepath.Join(projectRoot, "docs", "api_surface.txt")
 
 	if _, err := os.Stat(goldenPath); os.IsNotExist(err) {
-		t.Skip("golden file does not exist; run with -update first")
+		t.Skip("golden file does not exist; run with --update first")
 	}
 
 	ctx := context.Background()
@@ -105,7 +105,7 @@ func TestAPISurfaceUpdateIdempotent(t *testing.T) {
 	goldenPath := filepath.Join(projectRoot, "docs", "api_surface.txt")
 
 	if _, err := os.Stat(goldenPath); os.IsNotExist(err) {
-		t.Skip("golden file does not exist; run with -update first")
+		t.Skip("golden file does not exist; run with --update first")
 	}
 
 	original, err := os.ReadFile(goldenPath)
@@ -114,7 +114,7 @@ func TestAPISurfaceUpdateIdempotent(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	cmd := exec.CommandContext(ctx, "go", "run", ".", "-update")
+	cmd := exec.CommandContext(ctx, "go", "run", ".", "--update")
 	cmd.Dir = "."
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("update run failed: %s\n%s", err, out)

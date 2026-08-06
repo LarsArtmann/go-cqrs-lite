@@ -3,6 +3,7 @@ package benchkit
 import (
 	"encoding/json/v2"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
@@ -177,6 +178,15 @@ type Config struct {
 	// memory backend. When Repeat > 1, Result.RepeatCount/Min/Max/Samples
 	// are populated on the median result.
 	Repeat int
+
+	// ProgressWriter, when non-nil, receives debounced progress updates
+	// during benchmark execution. Phase transitions are always reported;
+	// in-phase heartbeat updates fire every ProgressInterval. Use this for
+	// long-running benchmarks (stress, large profiles) to get real-time
+	// visibility into which phase is running and how long it has taken.
+	// Typically os.Stderr. Zero ProgressInterval defaults to 5s.
+	ProgressWriter   io.Writer      `json:"-"`
+	ProgressInterval time.Duration
 }
 
 // validate checks that the Config has required fields set.

@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
+	"github.com/spf13/cobra"
 )
 
 // modules is the canonical list of library/SDK modules whose exported API
@@ -91,33 +95,57 @@ var modules = []string{
 	"cmd/doc-check",
 }
 
-func main() {
-	projectRoot := filepath.Join(".", "..", "..")
-	goldenPath := filepath.Join(projectRoot, "docs", "api_surface.txt")
+type AppConfig struct {
+	cmdguard.Config
 
-	exports := collectAllModuleExports(modules, projectRoot)
-
-	sort.Strings(exports)
-
-	if len(os.Args) > 1 && os.Args[1] == "-update" {
-		writeGoldenFile(goldenPath, exports)
-
-		return
-	}
-
-	verifyGoldenFile(goldenPath, exports)
+	Update bool `default:"false" flag:"update" help:"Update the golden file instead of verifying"`
 }
 
-func collectAllModuleExports(modules []string, projectRoot string) []string {
+func main() {
+	cli, err := cmdguard.NewCLI(
+		"api-stability",
+		"API surface stability checker for go-cqrs-lite",
+		AppConfig{},
+		cmdguard.WithCLILong("api-stability verifies the exported API surface of every go-cqrs-lite module against a golden file."),
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating CLI: %v\n", err)
+		os.Exit(1)
+	}
+
+	rootCmd := cli.RootCommand()
+	rootCmd.Use = "api-stability [--update]"
+	rootCmd.RunE = func(_ *cobra.Command, _ []string) error {
+		cfg := cli.Config()
+
+		projectRoot := filepath.Join(".", "..", "..")
+		goldenPath := filepath.Join(projectRoot, "docs", "api_surface.txt")
+
+		exports, err := collectAllModuleExports(modules, projectRoot)
+		if err != nil {
+			return err
+		}
+
+		sort.Strings(exports)
+
+		if cfg.Update {
+			return writeGoldenFile(goldenPath, exports)
+		}
+
+		return verifyGoldenFile(goldenPath, exports)
+	}
+
+	cli.ExecuteAndExit(context.Background())
+}
+
+func collectAllModuleExports(modules []string, projectRoot string) ([]string, error) {
 	var exports []string
 
 	for _, mod := range modules {
 		modPath := filepath.Join(projectRoot, mod)
 
 		if _, err := os.Stat(modPath); err != nil {
-			fmt.Fprintf(os.Stderr, "FATAL: module %q not found at %s: %v\n", mod, modPath, err)
-			fmt.Fprintf(os.Stderr, "Add it to the modules list or remove the stale entry.\n")
-			os.Exit(1)
+			return nil, fmt.Errorf("module %q not found at %s: %w — add it to the modules list or remove the stale entry", mod, modPath, err)
 		}
 
 		exps, err := collectExports(modPath)
@@ -132,7 +160,7 @@ func collectAllModuleExports(modules []string, projectRoot string) []string {
 		}
 	}
 
-	return exports
+	return exports, nil
 }
 
 const (
@@ -140,65 +168,58 @@ const (
 	goldenFilePerms = 0o600
 )
 
-func writeGoldenFile(goldenPath string, exports []string) {
+func writeGoldenFile(goldenPath string, exports []string) error {
 	cleanPath := filepath.Clean(goldenPath)
 
 	err := os.MkdirAll(filepath.Dir(cleanPath), goldenDirPerms)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "mkdir: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("mkdir: %w", err)
 	}
 
 	err = os.WriteFile(cleanPath, []byte(strings.Join(exports, "\n")+"\n"), goldenFilePerms)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "write: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("write: %w", err)
 	}
 
-	_, _ = fmt.Fprintf(os.Stdout, "Updated %s (%d exports)\n", cleanPath, len(exports))
+	fmt.Fprintf(os.Stdout, "Updated %s (%d exports)\n", cleanPath, len(exports))
 
-	os.Exit(0)
+	return nil
 }
 
-func verifyGoldenFile(goldenPath string, exports []string) {
+func verifyGoldenFile(goldenPath string, exports []string) error {
 	cleanPath := filepath.Clean(goldenPath)
 
 	data, err := os.ReadFile(cleanPath)
 	if err != nil {
-		handleReadError(cleanPath, err)
+		return handleReadError(cleanPath, err)
 	}
 
 	expected := strings.Split(strings.TrimSpace(string(data)), "\n")
 
 	if len(exports) != len(expected) {
-		reportMismatch(expected, exports)
+		return reportMismatch(expected, exports)
 	}
 
 	for i, exp := range expected {
 		if exports[i] != exp {
-			fmt.Fprintf(os.Stderr, "export %d: expected %q, got %q\n", i, exp, exports[i])
-			os.Exit(1)
+			return fmt.Errorf("export %d: expected %q, got %q", i, exp, exports[i])
 		}
 	}
 
-	_, _ = fmt.Fprintf(os.Stdout, "API surface OK: %d exports verified\n", len(exports))
+	fmt.Fprintf(os.Stdout, "API surface OK: %d exports verified\n", len(exports))
+
+	return nil
 }
 
-func handleReadError(goldenPath string, err error) {
+func handleReadError(goldenPath string, err error) error {
 	if os.IsNotExist(err) {
-		fmt.Fprintf(
-			os.Stderr,
-			"golden file %s does not exist; run with -update to create\n",
-			goldenPath,
-		)
-		os.Exit(1)
+		return fmt.Errorf("golden file %s does not exist; run with --update to create", goldenPath)
 	}
 
-	fmt.Fprintf(os.Stderr, "read: %v\n", err)
-	os.Exit(1)
+	return fmt.Errorf("read: %w", err)
 }
 
-func reportMismatch(expected, exports []string) {
+func reportMismatch(expected, exports []string) error {
 	missing, added := diff(expected, exports)
 	fmt.Fprintf(
 		os.Stderr,
@@ -215,7 +236,7 @@ func reportMismatch(expected, exports []string) {
 		fmt.Fprintf(os.Stderr, "NEW exports:\n  %s\n", strings.Join(added, "\n  "))
 	}
 
-	os.Exit(1)
+	return fmt.Errorf("API surface mismatch: %d expected, %d actual", len(expected), len(exports))
 }
 
 func diff(expected, actual []string) ([]string, []string) {

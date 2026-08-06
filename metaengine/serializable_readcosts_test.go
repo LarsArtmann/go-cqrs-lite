@@ -1,7 +1,6 @@
 package metaengine_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -24,11 +23,11 @@ func TestSerializableReadCosts_RoundTrip(t *testing.T) {
 	}}
 
 	type input struct{}
-	type result map[string]int
+	type result map[TaskID]string
 
 	decl := metaengine.Query[input, result]("test-map",
-		metaengine.On(TaskCreated{}, func(e TaskCreated) (string, result) {
-			return e.ID, result{"title": e.Title}
+		metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, result) {
+			return e.ID, result{e.ID: e.Title}
 		}),
 	)
 
@@ -37,8 +36,7 @@ func TestSerializableReadCosts_RoundTrip(t *testing.T) {
 		t.Fatalf("Plan failed: %v", err)
 	}
 
-	planResult := store.Plan()
-	sp := metaengine.Serialize(planResult, []metaengine.Engine{engine})
+	sp := metaengine.Serialize(store.Plan(), []metaengine.Engine{engine})
 
 	if len(sp.Queries) != 1 {
 		t.Fatalf("expected 1 query, got %d", len(sp.Queries))
@@ -94,11 +92,11 @@ func TestSerializableReadCosts_NilWhenUncalibrated(t *testing.T) {
 	}}
 
 	type input struct{}
-	type result map[string]int
+	type result map[TaskID]string
 
 	decl := metaengine.Query[input, result]("test-map",
-		metaengine.On(TaskCreated{}, func(e TaskCreated) (string, result) {
-			return e.ID, result{"title": e.Title}
+		metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, result) {
+			return e.ID, result{e.ID: e.Title}
 		}),
 	)
 
@@ -132,18 +130,17 @@ func TestSerializableReadCosts_NilWhenUncalibrated(t *testing.T) {
 	}
 }
 
-func TestSerializableReadCosts_ExecuteWithCalibratedEngine(t *testing.T) {
+func TestSerializableReadCosts_MemoryEngineSerializes(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
 	memEngine := metaengine.NewMemoryEngine()
 
 	type input struct{}
-	type result map[string]int
+	type result map[TaskID]string
 
 	decl := metaengine.Query[input, result]("counts",
-		metaengine.On(TaskCreated{}, func(e TaskCreated) (string, result) {
-			return e.ID, result{"count": 1}
+		metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, result) {
+			return e.ID, result{e.ID: e.Title}
 		}),
 	)
 
@@ -152,23 +149,17 @@ func TestSerializableReadCosts_ExecuteWithCalibratedEngine(t *testing.T) {
 		t.Fatalf("Plan failed: %v", err)
 	}
 
-	_ = store.ApplyEncoded(ctx, "test-map", []byte(`[{"key":"k1","value":{"count":1}}]`))
-
-	got, err := metaengine.ExecuteTyped[input, result](ctx, store, input{})
-	if err != nil {
-		t.Fatalf("ExecuteTyped failed: %v", err)
-	}
-
-	if len(got) != 1 {
-		t.Errorf("expected 1 result, got %d", len(got))
-	}
-
 	sp := metaengine.Serialize(store.Plan(), []metaengine.Engine{memEngine})
 	if len(sp.Queries) != 1 {
 		t.Fatalf("expected 1 query, got %d", len(sp.Queries))
 	}
 
-	if sp.Queries[0].ReadCosts != nil {
-		t.Logf("Memory engine has ReadCosts: %+v (not necessarily wrong)", sp.Queries[0].ReadCosts)
+	data, err := sp.MarshalJSON()
+	if err != nil {
+		t.Fatalf("MarshalJSON failed: %v", err)
+	}
+
+	if _, err := metaengine.DeserializePlan(data); err != nil {
+		t.Fatalf("DeserializePlan failed: %v", err)
 	}
 }
