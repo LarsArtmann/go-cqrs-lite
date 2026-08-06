@@ -113,7 +113,7 @@ func TestStreamLogBackend_SQLiteAtomicAppender(t *testing.T) {
 	}
 
 	// Verify final state.
-	be := eng.(StreamLogBackend)
+	be := eng.(metaengine.StreamLogBackend)
 	read, _ := be.StreamRead(ctx, "events", "stream-1")
 	if len(read) != 3 {
 		t.Fatalf("expected 3 values, got %d", len(read))
@@ -130,7 +130,7 @@ func TestStreamLogBackend_SQLiteMultipleStreams(t *testing.T) {
 	eng, _ := NewSQLiteEngine(db)
 	defer eng.Close()
 
-	be := eng.(StreamLogBackend)
+	be := eng.(metaengine.StreamLogBackend)
 
 	// Append to two streams.
 	_ = be.StreamAppend(ctx, "events", "stream-A", []any{"a1", "a2"})

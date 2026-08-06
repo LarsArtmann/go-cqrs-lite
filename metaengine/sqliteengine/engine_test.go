@@ -9,6 +9,7 @@ import (
 	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 )
 
 func newSQLiteEngine() (metaengine.Engine, *sql.DB) {
@@ -16,7 +17,7 @@ func newSQLiteEngine() (metaengine.Engine, *sql.DB) {
 	Expect(err).NotTo(HaveOccurred())
 	db.SetMaxOpenConns(1)
 
-	eng, err := metaengine.NewSQLiteEngine(db)
+	eng, err := sqliteengine.NewSQLiteEngine(db)
 	Expect(err).NotTo(HaveOccurred())
 
 	return eng, db

@@ -46,7 +46,7 @@ func NewF022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"Declare queries with metaengine.Query[Q,R](name, folds..., "+
 					"metaengine.SortOnField[R](\"column\", true)) and the planner "+
 					"pushes sort to the SQL engine with indexed access. "+
-					"For SQLite: metaengine.PlanFromSQLite(dsn, queries...) is a one-call setup.",
+					"For SQLite: sqliteengine.PlanFromDSN(dsn, queries...) is a one-call setup.",
 				pos, finding.ConfidenceMedium,
 			), nil
 		},

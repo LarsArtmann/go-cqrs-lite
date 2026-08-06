@@ -45,7 +45,7 @@ func NewF023Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"Declare queries with metaengine.Query[Q,R](name, folds..., "+
 					"metaengine.FilterOnField[R](\"column\", metaengine.FilterEq, value)) "+
 					"and the planner pushes the filter to the SQL engine. "+
-					"For SQLite: metaengine.PlanFromSQLite(dsn, queries...) is a one-call setup.",
+					"For SQLite: sqliteengine.PlanFromDSN(dsn, queries...) is a one-call setup.",
 				pos, finding.ConfidenceLow,
 			), nil
 		},

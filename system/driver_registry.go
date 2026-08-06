@@ -39,7 +39,7 @@ var (
 //	    system.RegisterDriver("sqlite", func(ctx context.Context, cfg system.EngineConfig) (metaengine.Engine, error) {
 //	        db, err := sql.Open("sqlite", cfg.DSN)
 //	        if err != nil { return nil, err }
-//	        return metaengine.NewSQLiteEngine(db)
+//	        return sqliteengine.NewSQLiteEngine(db)
 //	    })
 //	}
 func RegisterDriver(name string, factory DriverFactory) {
