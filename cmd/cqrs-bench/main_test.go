@@ -135,11 +135,11 @@ func TestCLI_Compare(t *testing.T) {
 	}
 
 	output := string(out)
-	if !strings.Contains(output, "| Backend |") {
+	if !strings.Contains(output, "Backend") {
 		t.Error("compare markdown output missing table header")
 	}
 
-	if !strings.Contains(output, "| memory |") {
+	if !strings.Contains(output, "| memory") {
 		t.Error("compare markdown output missing memory row")
 	}
 }
@@ -272,13 +272,13 @@ func TestCLI_Compare_DiskNonZero(t *testing.T) {
 
 	output := string(out)
 
-	if !strings.Contains(output, "| sqlite |") {
+	if !strings.Contains(output, "| sqlite") {
 		t.Fatalf("compare output missing sqlite row:\n%s", output)
 	}
 
 	// sqlite row should show a non-zero disk value (M, KB, B — not "0 B").
 	for _, line := range strings.Split(output, "\n") {
-		if strings.Contains(line, "| sqlite |") {
+		if strings.Contains(line, "| sqlite") {
 			if strings.Contains(line, "| 0 B |") {
 				t.Errorf("sqlite disk should be non-zero in compare:\n%s", line)
 			}

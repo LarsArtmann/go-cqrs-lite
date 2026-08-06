@@ -64,10 +64,13 @@ func renderComparison(w io.Writer, format string, results map[string]*benchkit.R
 		}
 	case formatMarkdown:
 		data := buildComparisonTable(results)
-
-		if err := markdown.Write(w, data, markdown.WithColorMode(output.ColorModeNever)); err != nil {
+		rendered, err := markdown.Render(data, markdown.WithColorMode(output.ColorModeNever))
+		if err != nil {
 			fatalf("render markdown: %v", err)
 		}
+
+		rendered = strings.TrimPrefix(rendered, "|")
+		fmt.Fprint(w, rendered)
 	case formatCSV:
 		data := buildComparisonTable(results)
 
@@ -221,10 +224,13 @@ func renderSweep(w io.Writer, format string, results []benchkit.SweepResult) {
 		}
 	case formatMarkdown:
 		data := buildSweepTable(results)
-
-		if err := markdown.Write(w, data, markdown.WithColorMode(output.ColorModeNever)); err != nil {
+		rendered, err := markdown.Render(data, markdown.WithColorMode(output.ColorModeNever))
+		if err != nil {
 			fatalf("render markdown: %v", err)
 		}
+
+		rendered = strings.TrimPrefix(rendered, "|")
+		fmt.Fprint(w, rendered)
 	case formatCSV:
 		data := buildSweepTable(results)
 
