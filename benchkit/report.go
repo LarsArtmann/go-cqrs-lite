@@ -49,9 +49,46 @@ func PrintReport(w io.Writer, r *Result) {
 		return
 	}
 
+	printHeader(w, r)
+	printWorkload(w, r)
+	printEnv(w, r)
+	printRepeat(w, r)
+	printReadPerformance(w, r)
+	printVersionedReads(w, r)
+	printReadModel(w, r)
+	printProjection(w, r)
+	printCheckpoint(w, r)
+	printBatchWrite(w, r)
+	printMixedWorkload(w, r)
+	printJourney(w, r)
+	printQueryDispatch(w, r)
+	printSnapshotCache(w, r)
+
+	if r.MetaEngineApplyLatency.Count > 0 {
+		printMetaEngineSection(w, r)
+	}
+
+	if r.RecoveryTime > 0 {
+		fmt.Fprintf(w, "Recovery: %s (%s events recovered)\n\n",
+			roundDuration(r.RecoveryTime), formatInt(r.RecoveredEvents))
+	}
+
+	printResourcesSection(w, r)
+
+	if r.IntegrityErrors > 0 {
+		fmt.Fprintf(w, "\n⚠ CORRUPTION: %d integrity errors detected!\n", r.IntegrityErrors)
+	}
+
+	printSkippedAndWarnings(w, r)
+}
+
+func printHeader(w io.Writer, r *Result) {
 	fmt.Fprintf(w, "Benchmark: %s | profile=%s | codec=%s\n",
 		r.Backend, r.Profile, r.Codec)
 	fmt.Fprintln(w, strings.Repeat("=", 60))
+}
+
+func printWorkload(w io.Writer, r *Result) {
 	fmt.Fprintf(w, "Workload: %s streams x %d events = %s events\n",
 		formatInt(r.Streams), r.EventsPerStream, formatInt(r.TotalEvents))
 
@@ -67,34 +104,44 @@ func PrintReport(w io.Writer, r *Result) {
 	}
 
 	fmt.Fprintf(w, "Duration: %s\n\n", roundDuration(r.Duration))
+}
 
-	if r.Environment.GoVersion != "" {
-		cpuInfo := fmt.Sprintf("CPU=%d", r.Environment.NumCPU)
-		if r.Environment.CPUModel != "" {
-			cpuInfo = r.Environment.CPUModel
-		}
-
-		fmt.Fprintf(w, "Env: %s | %s/%s | %s GOMAXPROCS=%d workers=%d\n\n",
-			r.Environment.GoVersion, r.Environment.GOOS, r.Environment.GOARCH,
-			cpuInfo, r.Environment.GOMAXPROCS, r.Workers)
+func printEnv(w io.Writer, r *Result) {
+	if r.Environment.GoVersion == "" {
+		return
 	}
 
-	if r.RepeatCount > 1 {
-		reliability := "RELIABLE"
-		if !r.RepeatIsReliable {
-			reliability = "NOISY — increase Repeat for trustworthy comparison"
-		}
-
-		fmt.Fprintf(
-			w,
-			"Repeat:  median of %d runs | CoV=%.1f%% | %s\n",
-			r.RepeatCount, r.RepeatCoV*100, reliability,
-		)
-		fmt.Fprintf(w, "         min: %s/s, max: %s/s, stddev: %s/s\n\n",
-			formatFloat(r.RepeatMin), formatFloat(r.RepeatMax),
-			formatFloat(r.RepeatStdDev))
+	cpuInfo := fmt.Sprintf("CPU=%d", r.Environment.NumCPU)
+	if r.Environment.CPUModel != "" {
+		cpuInfo = r.Environment.CPUModel
 	}
 
+	fmt.Fprintf(w, "Env: %s | %s/%s | %s GOMAXPROCS=%d workers=%d\n\n",
+		r.Environment.GoVersion, r.Environment.GOOS, r.Environment.GOARCH,
+		cpuInfo, r.Environment.GOMAXPROCS, r.Workers)
+}
+
+func printRepeat(w io.Writer, r *Result) {
+	if r.RepeatCount <= 1 {
+		return
+	}
+
+	reliability := "RELIABLE"
+	if !r.RepeatIsReliable {
+		reliability = "NOISY — increase Repeat for trustworthy comparison"
+	}
+
+	fmt.Fprintf(
+		w,
+		"Repeat:  median of %d runs | CoV=%.1f%% | %s\n",
+		r.RepeatCount, r.RepeatCoV*100, reliability,
+	)
+	fmt.Fprintf(w, "         min: %s/s, max: %s/s, stddev: %s/s\n\n",
+		formatFloat(r.RepeatMin), formatFloat(r.RepeatMax),
+		formatFloat(r.RepeatStdDev))
+}
+
+func printReadPerformance(w io.Writer, r *Result) {
 	printLatencySection(
 		w,
 		"Raw Sink (prebuilt events, Save only):",
@@ -130,98 +177,115 @@ func PrintReport(w io.Writer, r *Result) {
 	}
 
 	fmt.Fprintln(w)
+}
 
-	if r.LoadFromVersionLatency.Count > 0 {
-		fmt.Fprintln(w, "Versioned Reads:")
-		printLatencyLine(w, "  LoadFromVersion:", r.LoadFromVersionLatency)
-		printLatencyLine(w, "  LoadToVersion:", r.LoadToVersionLatency)
-		printLatencyLine(w, "  LoadToTimestamp:", r.LoadToTimestampLatency)
-		fmt.Fprintln(w)
+func printVersionedReads(w io.Writer, r *Result) {
+	if r.LoadFromVersionLatency.Count == 0 {
+		return
 	}
 
-	if r.ReadModelSet.Count > 0 {
-		fmt.Fprintln(w, "Read Model:")
-		printLatencyLine(w, "  Set:", r.ReadModelSet)
-		printLatencyLine(w, "  Get:", r.ReadModelGet)
-		fmt.Fprintln(w)
+	fmt.Fprintln(w, "Versioned Reads:")
+	printLatencyLine(w, "  LoadFromVersion:", r.LoadFromVersionLatency)
+	printLatencyLine(w, "  LoadToVersion:", r.LoadToVersionLatency)
+	printLatencyLine(w, "  LoadToTimestamp:", r.LoadToTimestampLatency)
+	fmt.Fprintln(w)
+}
+
+func printReadModel(w io.Writer, r *Result) {
+	if r.ReadModelSet.Count == 0 {
+		return
 	}
 
+	fmt.Fprintln(w, "Read Model:")
+	printLatencyLine(w, "  Set:", r.ReadModelSet)
+	printLatencyLine(w, "  Get:", r.ReadModelGet)
+	fmt.Fprintln(w)
+}
+
+func printProjection(w io.Writer, r *Result) {
 	if r.ProjectionEvents > 0 {
 		fmt.Fprintf(w, "Projection: %s events, lag=%s\n\n",
 			formatInt(int(r.ProjectionEvents)), roundDuration(r.ProjectionLag))
 	}
+}
 
-	if r.CheckpointSaveLatency.Count > 0 {
-		fmt.Fprintln(w, "Checkpoint:")
-		printLatencyLine(w, "  Save:", r.CheckpointSaveLatency)
-		printLatencyLine(w, "  Load:", r.CheckpointLoadLatency)
-		fmt.Fprintln(w)
+func printCheckpoint(w io.Writer, r *Result) {
+	if r.CheckpointSaveLatency.Count == 0 {
+		return
 	}
 
-	if r.BatchWriteLatency.Count > 0 {
-		fmt.Fprintln(w, "Batch Write (AppendBatch):")
-		printLatencyLine(w, "  Per-batch:", r.BatchWriteLatency)
-		fmt.Fprintf(w, "  Throughput: %s events/s\n\n", formatFloat(r.BatchWriteThroughput))
+	fmt.Fprintln(w, "Checkpoint:")
+	printLatencyLine(w, "  Save:", r.CheckpointSaveLatency)
+	printLatencyLine(w, "  Load:", r.CheckpointLoadLatency)
+	fmt.Fprintln(w)
+}
+
+func printBatchWrite(w io.Writer, r *Result) {
+	if r.BatchWriteLatency.Count == 0 {
+		return
 	}
 
-	if r.MixedWorkload.WriteOps > 0 || r.MixedWorkload.ReadOps > 0 {
-		fmt.Fprintln(w, "Mixed Workload (concurrent reads + writes):")
-		printLatencyLine(w, "  Write (under read load):", r.MixedWorkload.WriteLatency)
-		printLatencyLine(w, "  Read (under write load):", r.MixedWorkload.ReadLatency)
-		fmt.Fprintf(w, "  Writers=%d Readers=%d | writes=%s reads=%s",
-			r.MixedWorkload.Writers, r.MixedWorkload.Readers,
-			formatInt(int(r.MixedWorkload.WriteOps)), formatInt(int(r.MixedWorkload.ReadOps)))
+	fmt.Fprintln(w, "Batch Write (AppendBatch):")
+	printLatencyLine(w, "  Per-batch:", r.BatchWriteLatency)
+	fmt.Fprintf(w, "  Throughput: %s events/s\n\n", formatFloat(r.BatchWriteThroughput))
+}
 
-		if r.MixedWorkload.WriteErrors > 0 || r.MixedWorkload.ReadErrors > 0 {
-			fmt.Fprintf(w, " | errors: write=%d read=%d",
-				r.MixedWorkload.WriteErrors, r.MixedWorkload.ReadErrors)
-		}
-
-		fmt.Fprintln(w)
-		fmt.Fprintln(w)
+func printMixedWorkload(w io.Writer, r *Result) {
+	if r.MixedWorkload.WriteOps == 0 && r.MixedWorkload.ReadOps == 0 {
+		return
 	}
 
-	if r.JourneySamples > 0 {
-		fmt.Fprintln(w, "Journey (publish→projection→query):")
-		printLatencyLine(w, "  Round trip:", r.JourneyLatency)
-		printLatencyLine(w, "  Projection:", r.JourneyProjectionLatency)
-		printLatencyLine(w, "  Query leg:", r.JourneyQueryLatency)
-		fmt.Fprintln(w)
+	fmt.Fprintln(w, "Mixed Workload (concurrent reads + writes):")
+	printLatencyLine(w, "  Write (under read load):", r.MixedWorkload.WriteLatency)
+	printLatencyLine(w, "  Read (under write load):", r.MixedWorkload.ReadLatency)
+	fmt.Fprintf(w, "  Writers=%d Readers=%d | writes=%s reads=%s",
+		r.MixedWorkload.Writers, r.MixedWorkload.Readers,
+		formatInt(int(r.MixedWorkload.WriteOps)), formatInt(int(r.MixedWorkload.ReadOps)))
+
+	if r.MixedWorkload.WriteErrors > 0 || r.MixedWorkload.ReadErrors > 0 {
+		fmt.Fprintf(w, " | errors: write=%d read=%d",
+			r.MixedWorkload.WriteErrors, r.MixedWorkload.ReadErrors)
 	}
 
-	if r.QueryHitLatency.Count > 0 {
-		fmt.Fprintln(w, "Query Dispatch:")
-		printLatencyLine(w, "  Hit:", r.QueryHitLatency)
-		printLatencyLine(w, "  Miss:", r.QueryMissLatency)
-		printLatencyLine(w, "  Paginated:", r.QueryPaginatedLatency)
-		fmt.Fprintln(w)
+	fmt.Fprintln(w)
+	fmt.Fprintln(w)
+}
+
+func printJourney(w io.Writer, r *Result) {
+	if r.JourneySamples == 0 {
+		return
 	}
 
-	if r.SnapshotColdLatency.Count > 0 {
-		fmt.Fprintln(w, "Snapshot / Cache:")
-		printLatencyLine(w, "  Cold replay:", r.SnapshotColdLatency)
-		printLatencyLine(w, "  Snapshot load:", r.SnapshotLoadLatency)
-		printLatencyLine(w, "  Cache miss:", r.CacheMissLatency)
-		printLatencyLine(w, "  Cache hit:", r.CacheHitLatency)
-		fmt.Fprintln(w)
+	fmt.Fprintln(w, "Journey (publish→projection→query):")
+	printLatencyLine(w, "  Round trip:", r.JourneyLatency)
+	printLatencyLine(w, "  Projection:", r.JourneyProjectionLatency)
+	printLatencyLine(w, "  Query leg:", r.JourneyQueryLatency)
+	fmt.Fprintln(w)
+}
+
+func printQueryDispatch(w io.Writer, r *Result) {
+	if r.QueryHitLatency.Count == 0 {
+		return
 	}
 
-	if r.MetaEngineApplyLatency.Count > 0 {
-		printMetaEngineSection(w, r)
+	fmt.Fprintln(w, "Query Dispatch:")
+	printLatencyLine(w, "  Hit:", r.QueryHitLatency)
+	printLatencyLine(w, "  Miss:", r.QueryMissLatency)
+	printLatencyLine(w, "  Paginated:", r.QueryPaginatedLatency)
+	fmt.Fprintln(w)
+}
+
+func printSnapshotCache(w io.Writer, r *Result) {
+	if r.SnapshotColdLatency.Count == 0 {
+		return
 	}
 
-	if r.RecoveryTime > 0 {
-		fmt.Fprintf(w, "Recovery: %s (%s events recovered)\n\n",
-			roundDuration(r.RecoveryTime), formatInt(r.RecoveredEvents))
-	}
-
-	printResourcesSection(w, r)
-
-	if r.IntegrityErrors > 0 {
-		fmt.Fprintf(w, "\n⚠ CORRUPTION: %d integrity errors detected!\n", r.IntegrityErrors)
-	}
-
-	printSkippedAndWarnings(w, r)
+	fmt.Fprintln(w, "Snapshot / Cache:")
+	printLatencyLine(w, "  Cold replay:", r.SnapshotColdLatency)
+	printLatencyLine(w, "  Snapshot load:", r.SnapshotLoadLatency)
+	printLatencyLine(w, "  Cache miss:", r.CacheMissLatency)
+	printLatencyLine(w, "  Cache hit:", r.CacheHitLatency)
+	fmt.Fprintln(w)
 }
 
 func printSkippedAndWarnings(w io.Writer, r *Result) {
