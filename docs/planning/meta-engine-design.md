@@ -17,6 +17,22 @@
 > zero-dependency boundary (ADR-0062) is superseded — modules split by
 > deployment concern, not purity. SQLite extraction to `sqliteengine/`
 > (ADR-0115) leaves the core with only `memory_engine`.
+>
+> **CURRENT ARCHITECTURE (implemented, verified 2026-08-06):**
+> - The `record/` module (ADR-0111) is the structural foundation: `Record` +
+>   `CommonMetadata` carry Type, Payload, StreamID, StreamType, Version, and
+>   metadata (CorrelationID, CausationID, ActorID, timestamps, SchemaVersion).
+> - `event.AsRecord(evt)` adapter: non-breaking bridge from `event.Event` to
+>   `record.Record`. Maps all fields including metadata tracing → CommonMetadata.
+> - `metaengine.OnRecord()`: Record-aware fold constructor. The fold receives
+>   `record.Record` as its first parameter, giving handlers full event context.
+> - `store.ApplyRecord()`: dispatch path used by `projectionadapter.Handle()`.
+>   Sets Record context on `RecordAwareFold` implementations before invocation.
+> - `AutoInsert`/`AutoUpdate`: reflection-based auto-folds that automatically
+>   stamp Record metadata fields (StreamID, Version, CorrelationID, etc.) into
+>   result struct fields by name matching — zero boilerplate CRUD projections.
+> - `projectionadapter.Handle()` calls `ApplyRecord()`, not `Apply()` — the
+>   entire ES pipeline delivers real Record metadata to all folds.
 
 > **The vision:** Given event-sourced data + declared query patterns, automatically distribute
 > projections across whatever combination of engines the operator provides — optimizing each

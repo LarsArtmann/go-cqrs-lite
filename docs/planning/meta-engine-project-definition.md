@@ -14,6 +14,19 @@
 > Events + Queries. The vision of "knowing ONLY the Commands + Events + Queries
 > and their relations, build superb Projections" is now the design goal
 > (ADR-0112, ADR-0116). See ADRs 0111–0117 for the full v2 architecture.
+>
+> **CURRENT ARCHITECTURE (implemented, verified 2026-08-06):**
+> - `record/` module: shared `Record` + `CommonMetadata` types (zero deps).
+> - `event.AsRecord(evt) record.Record`: adapter that bridges the ES pipeline
+>   into Record-aware folds. Maps Type, Payload, StreamID, Version, metadata.
+> - `metaengine.OnRecord()`: Record-aware fold constructor. Folds receive full
+>   Record context (StreamID, Version, CorrelationID, etc.).
+> - `store.ApplyRecord()`: dispatch path that sets Record context on
+>   RecordAwareFold implementations before invocation.
+> - `projectionadapter.Handle()`: calls `ApplyRecord()` — the ES pipeline now
+>   delivers real Record metadata to all folds.
+> - `AutoInsert`/`AutoUpdate`: auto-generated folds that stamp Record metadata
+>   (StreamID, Version, CorrelationID) into result fields automatically.
 
 > **The meta-engine is a new project.** It is not a module within go-cqrs-lite. It is a
 > standalone research-grade system for making event-sourced data query-optimal across any

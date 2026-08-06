@@ -11,6 +11,15 @@
 > auto-generate 80% of folds (ADR-0116 — layered auto-projection). The
 > cost model, ADT classification, and Engine interface described below remain
 > valid; the key change is that the planner now has full type information.
+>
+> **CURRENT ARCHITECTURE (implemented, verified 2026-08-06):**
+> - Folds receive typed `record.Record` values via `OnRecord()` and
+>   `store.ApplyRecord()` — the `any`-blob era is over.
+> - `AutoInsert`/`AutoUpdate` auto-generate folds from event struct shapes and
+>   stamp Record metadata (StreamID, Version, CorrelationID) into result fields.
+> - The `projectionadapter` bridges `event.Event` → `record.Record` via
+>   `event.AsRecord()`, delivering real metadata to all folds through the
+>   standard projection lifecycle.
 
 **Status:** Design (2026-07-23)
 **Prerequisite reading:** [meta-engine-design.md](meta-engine-design.md) (the vision)

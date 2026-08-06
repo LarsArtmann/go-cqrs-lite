@@ -68,19 +68,17 @@ func computeRecordStamps(
 	return stamps
 }
 
-// applyRecordStamps sets Record metadata fields on a result struct value,
-// skipping fields that are already non-zero (event mappings take precedence).
+// applyRecordStamps sets Record metadata fields on a result struct value.
+// Record metadata is ALWAYS overwritten — it represents the current event's
+// context (stream ID, version, correlation), not persistent entity state.
+// Conflicts with event-mapped fields are prevented at construction time by
+// computeRecordStamps, which excludes already-covered destination fields.
 func applyRecordStamps(
 	resultVal reflect.Value,
 	stamps []recordStamp,
 	rec record.Record,
 ) {
 	for _, s := range stamps {
-		dst := resultVal.Field(s.dstIdx)
-		if !dst.IsZero() {
-			continue
-		}
-
-		dst.Set(reflect.ValueOf(s.getter(rec)))
+		resultVal.Field(s.dstIdx).Set(reflect.ValueOf(s.getter(rec)))
 	}
 }
