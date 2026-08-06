@@ -198,6 +198,26 @@ func (r *runner) warn(msg string) {
 	r.result.Warnings = append(r.result.Warnings, msg)
 }
 
+// PhaseNames returns the canonical names of all benchmark phases in execution
+// order. Useful for CLI --list-phases and documentation.
+func PhaseNames() []string {
+	return []string{
+		"write",
+		"batch-write",
+		"read",
+		"versioned-read",
+		"read-model",
+		"projection",
+		"checkpoint",
+		"mixed-workload",
+		"journey",
+		"query",
+		"snapshot",
+		"metaengine",
+	}
+}
+
+// phaseStep holds one benchmark phase entry with its skip flag and handler.
 type phaseStep struct {
 	skip  bool
 	code  string

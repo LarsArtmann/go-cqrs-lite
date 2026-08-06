@@ -58,8 +58,11 @@ type SweepFlags struct {
 	BenchFlags
 
 	Param  string `default:"workers" flag:"param"  help:"Parameter to sweep: workers, batchSize, streamLength, gomaxprocs"`
-	Values string `default:"1,2,4"   flag:"values" help:"Comma-separated sweep values (e.g. 1,2,4,8)"`
+	Values string `default:""        flag:"values" help:"Comma-separated values for the parameter (e.g. 1,2,4,8)"`
 }
+
+// ListPhasesFlags holds the (empty) flags for the list-phases subcommand.
+type ListPhasesFlags struct{}
 
 // loadProfileAndCodec resolves the workload profile and payload codec from
 // their flag values, calling fatalf on an unknown profile name. Used by every
