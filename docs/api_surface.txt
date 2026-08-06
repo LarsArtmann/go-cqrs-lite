@@ -459,6 +459,7 @@ codec/var ErrEncodeRawType
 codec/var ErrInvalidCOSEEncrypt0
 codec/var ErrInvalidCOSESign1
 codec/var ErrUnknownEncoding
+command/func AsRecord
 command/func New
 command/func NewAggregateRef
 command/func NewDispatcher

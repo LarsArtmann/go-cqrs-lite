@@ -477,7 +477,7 @@ q := metaengine.Query[FindTaskInput, FindTaskResult]("find-task",
 store, _ := metaengine.Plan(
     []metaengine.Engine{
         metaengine.NewMemoryEngine(),
-        // sqliteEngine, // metaengine.NewSQLiteEngine(db)
+        // sqliteEngine, // sqliteengine.NewSQLiteEngine(db)
     },
     q,
     metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, FindTaskResult) {
