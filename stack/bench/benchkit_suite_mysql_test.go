@@ -16,9 +16,11 @@ import (
 //	    go test -bench=BenchmarkBenchkitSuite_MySQL -benchtime=1x ./stack/bench/
 //
 // Example with Docker:
+//
 //	docker run --rm -p 3306:3306 -e MYSQL_ROOT_PASSWORD=pass -d mariadb:11
 //
 // Or with Nix:
+//
 //	nix run .#integration-mysql-nspawn
 func BenchmarkBenchkitSuite_MySQL(b *testing.B) {
 	dsn := os.Getenv("MYSQL_BENCH_DSN")

@@ -16,9 +16,11 @@ import (
 //	    go test -bench=BenchmarkBenchkitSuite_Postgres -benchtime=1x ./stack/bench/
 //
 // Example with Docker:
+//
 //	docker run --rm -p 5432:5432 -e POSTGRES_PASSWORD=pass -e POSTGRES_DB=bench -d postgres:16-alpine
 //
 // Or with Nix:
+//
 //	nix run .#integration-pg
 func BenchmarkBenchkitSuite_Postgres(b *testing.B) {
 	dsn := os.Getenv("POSTGRES_BENCH_DSN")

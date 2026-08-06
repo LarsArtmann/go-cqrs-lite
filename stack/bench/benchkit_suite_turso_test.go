@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
-	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	turso "github.com/larsartmann/go-cqrs-lite/stack/turso/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
 
 // BenchmarkBenchkitSuite_Turso runs the full benchkit suite against Turso
