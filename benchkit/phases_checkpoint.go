@@ -26,7 +26,7 @@ func (r *runner) checkpointPhase(ctx context.Context) error {
 	saveColl := NewLatencyCollector(0)
 	loadColl := NewLatencyCollector(0)
 
-	for i := range sampleCount {
+	for range sampleCount {
 		if ctx.Err() != nil {
 			break //nolint:nilerr // ctx done; return partial results
 		}

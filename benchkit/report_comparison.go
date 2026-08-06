@@ -73,7 +73,23 @@ func PrintComparison(w io.Writer, results map[string]*Result) {
 
 	if hasWarnings {
 		fmt.Fprintln(w)
-		fmt.Fprintln(w, "Phase Coverage / Warnings:")
+		fmt.Fprintln(w, "Phase Coverage:")
+
+		for _, name := range names {
+			r := results[name]
+			if r == nil {
+				continue
+			}
+
+			skipped := len(r.SkippedPhases)
+			if skipped > 0 {
+				fmt.Fprintf(w, "  ⚠ %s: %d phase(s) skipped (%s)\n",
+					name, skipped, strings.Join(r.SkippedPhases, ", "))
+			}
+		}
+
+		fmt.Fprintln(w)
+		fmt.Fprintln(w, "Warnings:")
 
 		for _, name := range names {
 			r := results[name]

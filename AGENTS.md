@@ -1184,10 +1184,10 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 **Module Graph** (seven-tier model, see [ADR-0046](docs/adr/0046-seven-tier-model.md) and [FOUR-TIER-MODEL.md](docs/architecture-understanding/FOUR-TIER-MODEL.md)):
 
 ```
-Tier 0 — Primitives: id/, dispatcher/, codec/, kv/, dedup/, retry/, flightrecorder/, metaengine/
+Tier 0 — Primitives: id/, dispatcher/, codec/, kv/, dedup/, retry/, flightrecorder/
 Tier 1 — Core Domain: event/, command/, query/, scheduling/, metadata/
 Tier 2 — Domain Utilities: schema/, snapshot/, projection/, idempotency/, deriver/
-Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/
+Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/, metaengine/
 Tier 4 — Infrastructure: storage/memory/, storage/, storage/pebble/, storage/turso/, signing/, encryption/, otel/,
                      prometheus/, middleware/, transport/http/, transport/grpc/, watermill/, testutil/,
                      metaengine/projectionadapter/, metaengine/pebbleengine/, metaengine/duckdbengine/,
@@ -1206,13 +1206,22 @@ Tier 6 — Tooling & Examples: catalog/, integration/, benchkit/, stack/bench/, 
 > Full module-to-tier mapping: [`FOUR-TIER-MODEL.md`](docs/architecture-understanding/FOUR-TIER-MODEL.md) (68 modules across 7 tiers).
 >
 > **metaengine/ is THE STRATEGIC FUTURE of this project** (possibly a future dedicated project).
-> It is Tier 0 (Primitive), not Tier 3 (Aggregation) — intentional but surprising:
-> the core planner has ZERO internal deps (stdlib + `database/sql` only), so by ADR-0046's
-> dependency rule it is a leaf primitive. Conceptually it aggregates events into query
-> projections, but tiering is dependency-based, not conceptual. The bridge to the rest of
-> the system lives in `metaengine/projectionadapter/` (Tier 4), which depends on
-> event/projection/projectionhost. The SQLite engine's tx-atomic MapUpdate, restart-safe
-> multimap seq-seed, and cross-engine reify are documented in ADR-0066/0067/0068.
+> It is Tier 3 (Aggregation) — it takes Records (events + commands) and aggregates them
+> into query-optimized projections. Originally Tier 0 (zero deps), reclassified by
+> [ADR-0046 addendum](docs/adr/0046-seven-tier-model.md) and
+> [ADR-0062 addendum](docs/adr/0062-metaengine-dependency-boundary.md) when the
+> zero-dependency boundary was superseded. The metaengine is ES-native
+> ([ADR-0112](docs/adr/0112-es-native-metaengine.md)): it depends on the shared
+> `Record` type ([ADR-0111](docs/adr/0111-record-type-extraction.md)) and understands
+> typed records, not opaque `any` blobs. Tombstones are domain events
+> ([ADR-0114](docs/adr/0114-tombstone-as-domain-event.md)), not mutable metadata.
+> GraphBackend is deleted; `graph.GraphDriver` implements `metaengine.Engine`
+> ([ADR-0113](docs/adr/0113-delete-graphbackend.md)). SQLite engine moves to
+> `metaengine/sqliteengine/` ([ADR-0115](docs/adr/0115-sqlite-engine-extraction.md)).
+> Auto-projection is layered ([ADR-0116](docs/adr/0116-layered-auto-projection.md)):
+> 80% auto-generated from type inspection, 100% auto-routed. Command lifecycle
+> (DLQ, retries) is event streams, not status fields
+> ([ADR-0117](docs/adr/0117-command-lifecycle-as-events.md)).
 > ⚠️ **CANONICAL DESIGN DOCS** — read these before working on metaengine:
 > [project-definition](docs/planning/meta-engine-project-definition.md),
 > [design/vision](docs/planning/meta-engine-design.md),

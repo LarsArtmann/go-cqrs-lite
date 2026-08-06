@@ -151,6 +151,19 @@ func PrintReport(w io.Writer, r *Result) {
 			formatInt(int(r.ProjectionEvents)), roundDuration(r.ProjectionLag))
 	}
 
+	if r.CheckpointSaveLatency.Count > 0 {
+		fmt.Fprintln(w, "Checkpoint:")
+		printLatencyLine(w, "  Save:", r.CheckpointSaveLatency)
+		printLatencyLine(w, "  Load:", r.CheckpointLoadLatency)
+		fmt.Fprintln(w)
+	}
+
+	if r.BatchWriteLatency.Count > 0 {
+		fmt.Fprintln(w, "Batch Write (AppendBatch):")
+		printLatencyLine(w, "  Per-batch:", r.BatchWriteLatency)
+		fmt.Fprintf(w, "  Throughput: %s events/s\n\n", formatFloat(r.BatchWriteThroughput))
+	}
+
 	if r.MixedWorkload.WriteOps > 0 || r.MixedWorkload.ReadOps > 0 {
 		fmt.Fprintln(w, "Mixed Workload (concurrent reads + writes):")
 		printLatencyLine(w, "  Write (under read load):", r.MixedWorkload.WriteLatency)

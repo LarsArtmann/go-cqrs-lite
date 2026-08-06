@@ -9,11 +9,11 @@ import (
 )
 
 type serializableQuery struct {
-	ID         id.RequestID    `json:"id"`
-	Type       string          `json:"type"`
-	ReceivedAt int64           `json:"received_at"`
-	Payload    []byte          `json:"payload"`
-	Metadata   query.Metadata  `json:"metadata"`
+	ID         id.RequestID   `json:"id"`
+	Type       string         `json:"type"`
+	ReceivedAt int64          `json:"received_at"`
+	Payload    []byte         `json:"payload"`
+	Metadata   query.Metadata `json:"metadata"`
 }
 
 func marshalQuery(q *query.PersistedQuery) ([]byte, error) {

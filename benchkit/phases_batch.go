@@ -32,28 +32,28 @@ func (r *runner) batchWritePhase(ctx context.Context) error {
 		return nil
 	}
 
-	sampleCount := min(len(r.refs), maxBatchSamples)
+	sampleCount := min(maxBatchSamples, 20)
 	coll := NewLatencyCollector(0)
 	totalEvents := 0
 	startAll := time.Now()
 
-	for i := range sampleCount {
+	for range sampleCount {
 		if ctx.Err() != nil {
 			break //nolint:nilerr // ctx done; return partial results
 		}
 
-		ref := id.NewStreamRef(fmt.Sprintf("BatchEntity-%d", i),
-			id.NewStreamID())
+		aggID := id.NewStreamID()
+		ref := id.NewStreamRef(benchStreamType, aggID)
 
 		events := make([]event.Event, 0, batchSize)
 		for j := range batchSize {
-			evt, err := event.NewEvent(
-				fmt.Sprintf("batch.event.%d", j),
-				ref.ID, ref.Type, event.Version(j+1),
-				generatePayload(profile.PayloadBytes),
+			evt, err := event.New(
+				benchEventType, aggID, benchStreamType,
+				event.Version(j+1), r.gen.Payload(),
+				event.WithCodec(r.codec),
 			)
 			if err != nil {
-				return err
+				return fmt.Errorf("create batch event: %w", err)
 			}
 
 			events = append(events, evt)
@@ -80,6 +80,6 @@ func (r *runner) batchWritePhase(ctx context.Context) error {
 }
 
 const (
-	maxBatchSize   = 50
+	maxBatchSize    = 50
 	maxBatchSamples = 20
 )

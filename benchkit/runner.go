@@ -211,6 +211,12 @@ type phaseStep struct {
 func (r *runner) phaseSteps() []phaseStep {
 	return []phaseStep{
 		{r.config.ReplayOnly, "benchkit.write_phase", "write phase", r.writePhase},
+		{
+			r.config.ReplayOnly,
+			"benchkit.batch_write_phase",
+			"batch write phase",
+			r.batchWritePhase,
+		},
 		{r.config.SkipReads, "benchkit.read_phase", "read phase", r.readPhase},
 		{
 			r.config.SkipReads,
@@ -229,6 +235,12 @@ func (r *runner) phaseSteps() []phaseStep {
 			"benchkit.projection_phase",
 			"projection phase",
 			r.projectionPhase,
+		},
+		{
+			r.config.SkipProjections,
+			"benchkit.checkpoint_phase",
+			"checkpoint phase",
+			r.checkpointPhase,
 		},
 		{
 			r.config.SkipMixed || r.config.ReplayOnly, "benchkit.mixed_workload",
