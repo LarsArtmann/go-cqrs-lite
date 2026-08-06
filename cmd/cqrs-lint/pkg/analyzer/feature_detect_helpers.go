@@ -136,7 +136,11 @@ type astCallSignals struct {
 // scanASTCalls inspects AST call expressions for server detection, command-flow
 // signals, snapshot usage, tracing wiring, store-backend refinement, and
 // ServerLocal signals. Also scans for health endpoint string literals.
-func scanASTCalls(gofiles []*GoFile, fp *FeatureProfile, hasOTelImport, hasHTTPFramework bool) astCallSignals {
+func scanASTCalls(
+	gofiles []*GoFile,
+	fp *FeatureProfile,
+	hasOTelImport, hasHTTPFramework bool,
+) astCallSignals {
 	var sig astCallSignals
 
 	for _, gf := range gofiles {

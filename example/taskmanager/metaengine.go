@@ -46,28 +46,42 @@ func setupMetaEngine(
 ) (*metaengine.Store, *projectionadapter.Adapter, *sql.DB, error) {
 	taskCounts := metaengine.Query[taskCountsInput, map[string]int64](
 		"task_counts_by_status",
-		metaengine.OnTyped(string(evtTaskCreated), projectionadapter.EventWithID[TaskCreatedPayload]{},
+		metaengine.OnTyped(
+			string(evtTaskCreated),
+			projectionadapter.EventWithID[TaskCreatedPayload]{},
 			func(_ projectionadapter.EventWithID[TaskCreatedPayload]) metaengine.Delta {
 				return metaengine.Delta{string(StatusPending): 1}
-			}),
-		metaengine.OnTyped(string(evtTaskStarted), projectionadapter.EventWithID[TaskStartedPayload]{},
+			},
+		),
+		metaengine.OnTyped(
+			string(evtTaskStarted),
+			projectionadapter.EventWithID[TaskStartedPayload]{},
 			func(_ projectionadapter.EventWithID[TaskStartedPayload]) metaengine.Delta {
 				return metaengine.Delta{string(StatusActive): 1, string(StatusPending): -1}
-			}),
-		metaengine.OnTyped(string(evtTaskCompleted), projectionadapter.EventWithID[TaskCompletedPayload]{},
+			},
+		),
+		metaengine.OnTyped(
+			string(evtTaskCompleted),
+			projectionadapter.EventWithID[TaskCompletedPayload]{},
 			func(_ projectionadapter.EventWithID[TaskCompletedPayload]) metaengine.Delta {
 				return metaengine.Delta{string(StatusCompleted): 1, string(StatusActive): -1}
-			}),
-		metaengine.OnTyped(string(evtTaskArchived), projectionadapter.EventWithID[TaskArchivedPayload]{},
+			},
+		),
+		metaengine.OnTyped(
+			string(evtTaskArchived),
+			projectionadapter.EventWithID[TaskArchivedPayload]{},
 			func(_ projectionadapter.EventWithID[TaskArchivedPayload]) metaengine.Delta {
 				return metaengine.Delta{string(StatusArchived): 1, string(StatusCompleted): -1}
-			}),
+			},
+		),
 		metaengine.Volume(estimatedTaskVolume),
 	)
 
 	taskViews := metaengine.Query[listTasksInput, TaskView](
 		"task_views",
-		metaengine.OnTyped(string(evtTaskCreated), projectionadapter.EventWithID[TaskCreatedPayload]{},
+		metaengine.OnTyped(
+			string(evtTaskCreated),
+			projectionadapter.EventWithID[TaskCreatedPayload]{},
 			func(e projectionadapter.EventWithID[TaskCreatedPayload]) (string, TaskView) {
 				return e.ID, TaskView{
 					ID:          e.ID,
@@ -76,38 +90,59 @@ func setupMetaEngine(
 					Priority:    e.Payload.Priority,
 					Status:      StatusPending,
 				}
-			}),
-		metaengine.OnTyped(string(evtTaskAssigned), projectionadapter.EventWithID[TaskAssignedPayload]{},
+			},
+		),
+		metaengine.OnTyped(
+			string(evtTaskAssigned),
+			projectionadapter.EventWithID[TaskAssignedPayload]{},
 			func(e projectionadapter.EventWithID[TaskAssignedPayload], prev TaskView) TaskView {
 				prev.AssigneeID = e.Payload.AssigneeID
 				return prev
-			}),
-		metaengine.OnTyped(string(evtTaskStarted), projectionadapter.EventWithID[TaskStartedPayload]{},
+			},
+		),
+		metaengine.OnTyped(
+			string(evtTaskStarted),
+			projectionadapter.EventWithID[TaskStartedPayload]{},
 			func(_ projectionadapter.EventWithID[TaskStartedPayload], prev TaskView) TaskView {
 				prev.Status = StatusActive
 				return prev
-			}),
-		metaengine.OnTyped(string(evtTaskCompleted), projectionadapter.EventWithID[TaskCompletedPayload]{},
+			},
+		),
+		metaengine.OnTyped(
+			string(evtTaskCompleted),
+			projectionadapter.EventWithID[TaskCompletedPayload]{},
 			func(_ projectionadapter.EventWithID[TaskCompletedPayload], prev TaskView) TaskView {
 				prev.Status = StatusCompleted
 				return prev
-			}),
-		metaengine.OnTyped(string(evtTaskArchived), projectionadapter.EventWithID[TaskArchivedPayload]{},
+			},
+		),
+		metaengine.OnTyped(
+			string(evtTaskArchived),
+			projectionadapter.EventWithID[TaskArchivedPayload]{},
 			func(_ projectionadapter.EventWithID[TaskArchivedPayload], prev TaskView) TaskView {
 				prev.Status = StatusArchived
 				return prev
-			}),
-		metaengine.OnTyped(string(evtTaskTitleUpdated), projectionadapter.EventWithID[TaskTitleUpdatedPayload]{},
+			},
+		),
+		metaengine.OnTyped(
+			string(evtTaskTitleUpdated),
+			projectionadapter.EventWithID[TaskTitleUpdatedPayload]{},
 			func(e projectionadapter.EventWithID[TaskTitleUpdatedPayload], prev TaskView) TaskView {
 				prev.Title = e.Payload.Title
 				return prev
-			}),
-		metaengine.OnTyped(string(evtTaskPriorityChanged), projectionadapter.EventWithID[TaskPriorityChangedPayload]{},
+			},
+		),
+		metaengine.OnTyped(
+			string(evtTaskPriorityChanged),
+			projectionadapter.EventWithID[TaskPriorityChangedPayload]{},
 			func(e projectionadapter.EventWithID[TaskPriorityChangedPayload], prev TaskView) TaskView {
 				prev.Priority = e.Payload.Priority
 				return prev
-			}),
-		metaengine.OnTyped(string(evtTaskDueDateSet), projectionadapter.EventWithID[TaskDueDateSetPayload]{},
+			},
+		),
+		metaengine.OnTyped(
+			string(evtTaskDueDateSet),
+			projectionadapter.EventWithID[TaskDueDateSetPayload]{},
 			func(e projectionadapter.EventWithID[TaskDueDateSetPayload], prev TaskView) TaskView {
 				if e.Payload.DueDate != nil {
 					prev.DueDate = e.Payload.DueDate.Format("2006-01-02T15:04:05Z")
@@ -115,19 +150,29 @@ func setupMetaEngine(
 					prev.DueDate = ""
 				}
 				return prev
-			}),
-		metaengine.OnTyped(string(evtTaskBlockedBy), projectionadapter.EventWithID[TaskBlockedByPayload]{},
+			},
+		),
+		metaengine.OnTyped(
+			string(evtTaskBlockedBy),
+			projectionadapter.EventWithID[TaskBlockedByPayload]{},
 			func(e projectionadapter.EventWithID[TaskBlockedByPayload], prev TaskView) TaskView {
 				prev.BlockedBy = append(prev.BlockedBy, e.Payload.DependencyID)
 				return prev
-			}),
-		metaengine.OnTyped(string(evtTaskUnblocked), projectionadapter.EventWithID[TaskUnblockedPayload]{},
+			},
+		),
+		metaengine.OnTyped(
+			string(evtTaskUnblocked),
+			projectionadapter.EventWithID[TaskUnblockedPayload]{},
 			func(e projectionadapter.EventWithID[TaskUnblockedPayload], prev TaskView) TaskView {
 				prev.BlockedBy = removeString(prev.BlockedBy, e.Payload.DependencyID)
 				return prev
-			}),
-		metaengine.OnTyped(string(evtTaskDeleted), projectionadapter.EventWithID[TaskDeletedPayload]{},
-			metaengine.Remove[TaskView]()),
+			},
+		),
+		metaengine.OnTyped(
+			string(evtTaskDeleted),
+			projectionadapter.EventWithID[TaskDeletedPayload]{},
+			metaengine.Remove[TaskView](),
+		),
 		metaengine.FilterOnField[TaskView]("status", metaengine.FilterEq),
 		metaengine.SortOnField[TaskView]("priority", true),
 		metaengine.Volume(estimatedTaskVolume),

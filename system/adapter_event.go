@@ -295,5 +295,3 @@ func (a *EventAdapter) lookupSeq(ctx context.Context, eventID id.EventID) int64 
 
 	return 0
 }
-
-

@@ -25,16 +25,16 @@ type SerializablePlan struct {
 
 // SerializableQuery is the serializable form of a QueryAssignment.
 type SerializableQuery struct {
-	Name             string                  `json:"name"`
-	ADT              ADT                     `json:"adt"`
-	Engine           string                  `json:"engine"`
-	Complexity       string                  `json:"complexity"`
-	LatencyMs        float64                 `json:"latency_ms"`
-	ReadCosts        *SerializableReadCosts  `json:"read_costs,omitempty"`
-	Persistence      Persistence             `json:"persistence,omitempty"`
-	Replication      Replication             `json:"replication,omitempty"`
-	ReplicationLagMs int64                   `json:"replication_lag_ms,omitempty"`
-	NetworkRTTMs     int64                   `json:"network_rtt_ms,omitempty"`
+	Name             string                 `json:"name"`
+	ADT              ADT                    `json:"adt"`
+	Engine           string                 `json:"engine"`
+	Complexity       string                 `json:"complexity"`
+	LatencyMs        float64                `json:"latency_ms"`
+	ReadCosts        *SerializableReadCosts `json:"read_costs,omitempty"`
+	Persistence      Persistence            `json:"persistence,omitempty"`
+	Replication      Replication            `json:"replication,omitempty"`
+	ReplicationLagMs int64                  `json:"replication_lag_ms,omitempty"`
+	NetworkRTTMs     int64                  `json:"network_rtt_ms,omitempty"`
 }
 
 // SerializableReadCosts is the serializable form of engine ReadCosts.
