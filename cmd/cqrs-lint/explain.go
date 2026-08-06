@@ -312,6 +312,12 @@ var featureKeys = []featureKey{
 		validValues: []string{"true", "false"},
 		description: "Distributed event bus (Watermill-backed) is wired",
 	},
+	{
+		key:         "metaengine",
+		typ:         "bool",
+		validValues: []string{"true", "false"},
+		description: "Metaengine cost-based planner is imported (auto-detected from imports)",
+	},
 }
 
 // deriveStrings wraps a Kind enumerator (e.g. analyzer.AllStoreKinds) into a
