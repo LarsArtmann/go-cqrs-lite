@@ -87,7 +87,20 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 	case "memory", "mem":
 		return func() (*stack.Bundle, error) { return memory.New() }, "", nil
 
-	case "sqlite", "sq":
+	case "sqlite", "sq", "sqlite-cgo", "sq3":
+		driverName := "sqlite"
+		if backend == "sqlite-cgo" || backend == "sq3" {
+			if !sqliteCgoAvailable {
+				fatalf(
+					"sqlite-cgo backend requires CGo (mattn/go-sqlite3) — rebuild with CGO_ENABLED=1",
+				)
+
+				return nil, "", nil // unreachable
+			}
+
+			driverName = "sqlite3"
+		}
+
 		dbDir := dir
 		if dbDir == "" {
 			dbDir = mkTempDir()
@@ -102,7 +115,17 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 		diskPath = dbDir
 
 		return func() (*stack.Bundle, error) {
-			opts := []sqlite.Option{}
+			opts := []sqlite.Option{
+				// Enable production optimizations (64 MB cache, mmap, temp in
+				// memory) so benchmarks reflect realistic deployment config,
+				// not SQLite's conservative 2 MB default cache.
+				sqlite.WithPragmas(sqlopt.WithOptimizations()),
+			}
+
+			if driverName != "sqlite" {
+				opts = append(opts, sqlite.WithDriverName(driverName))
+			}
+
 			if tierSet {
 				opts = append(opts, sqlite.WithDurability(tier))
 			}
@@ -178,7 +201,7 @@ func makeFactory(backend, dsn, dir, durability string) (benchkit.Factory, string
 
 	default:
 		fatalf(
-			"unknown backend: %s (use memory, sqlite, pebble, postgres, duckdb, or turso)",
+			"unknown backend: %s (use memory, sqlite, sqlite-cgo, pebble, postgres, duckdb, or turso)",
 			backend,
 		)
 

@@ -32,11 +32,12 @@ type AppConfig struct {
 const longDesc = `cqrs-bench — go-cqrs-lite benchmarking tool
 
 Backends:
-  memory    In-memory store (no persistence)
-  sqlite    SQLite database (pure-Go, no CGo)
-  pebble    PebbleDB LSM-tree store
-  postgres  PostgreSQL database (requires --dsn)
-  turso     Turso embedded database (libSQL/SQLite fork)
+  memory     In-memory store (no persistence)
+  sqlite     SQLite database (pure-Go modernc driver, optimized pragmas)
+  sqlite-cgo SQLite database (CGo mattn driver — 3-5x faster, requires gcc)
+  pebble     PebbleDB LSM-tree store
+  postgres   PostgreSQL database (requires --dsn)
+  turso      Turso embedded database (libSQL/SQLite fork)
 
 Profiles:
   dev         100 streams x 5 events     (500 events, 1 goroutine)
