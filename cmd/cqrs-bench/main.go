@@ -52,19 +52,27 @@ Codecs:
   cbor    CBOR encoding (compact binary)
 
 Formats:
-  text       Human-readable report (default)
+  auto       Auto-detect: styled table in terminal, plain text when piped (default)
+  table      Styled terminal table with borders and color (via go-output)
+  text       Human-readable plain text report
   json       Machine-readable JSON
+  csv        CSV export (spreadsheet-friendly)
+  tsv        TSV export (tab-separated)
   markdown   Markdown comparison table
   benchstat  benchstat-compatible lines (pipe to benchstat)
   manifest   Config + environment + result as JSON
 
 Examples:
   cqrs-bench run --backend sqlite --dsn ":memory:" --profile dev
-  cqrs-bench compare --profile small --format markdown
+  cqrs-bench run --backend memory --profile dev --format table
   cqrs-bench run --backend pebble --dir /tmp/bench --profile small --codec cbor
   cqrs-bench run --backend memory --profile small --repeat 5
   cqrs-bench run --backend memory --profile dev --soak 5m
   cqrs-bench run --backend sqlite --dsn ":memory:" --profile dev --skip-snapshot
+  cqrs-bench run --backend memory --profile small --format csv --output results.csv
+  cqrs-bench compare --profile small --format table
+  cqrs-bench compare --profile small --format markdown
+  cqrs-bench compare --profile small --format csv
   cqrs-bench sweep --param workers --values 1,2,4,8 --backend memory --profile dev
   cqrs-bench sweep --param batchSize --values 1,5,10 --backend sqlite --profile small`
 

@@ -3,6 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-bench
 go 1.26.5
 
 require (
+	github.com/dustin/go-humanize v1.0.1
 	github.com/larsartmann/cmdguard/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
@@ -14,6 +15,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/turso/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260806063227-a19b9d370eaa
 	github.com/larsartmann/go-error-family v0.10.0
+	github.com/larsartmann/go-output v0.35.0
+	github.com/larsartmann/go-output/delimited v0.35.0
+	github.com/larsartmann/go-output/markdown v0.35.0
+	github.com/larsartmann/go-output/table v0.35.0
 )
 
 require (
@@ -49,7 +54,6 @@ require (
 	github.com/duckdb/duckdb-go-bindings/lib/linux-arm64 v0.10505.0 // indirect
 	github.com/duckdb/duckdb-go-bindings/lib/windows-amd64 v0.10505.0 // indirect
 	github.com/duckdb/duckdb-go/v2 v2.10505.0 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.10.2 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/getsentry/sentry-go v0.48.0 // indirect
@@ -104,17 +108,13 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
-	github.com/larsartmann/go-output v0.35.0 // indirect
 	github.com/larsartmann/go-output/d2 v0.35.0 // indirect
 	github.com/larsartmann/go-output/daghtml v0.35.0 // indirect
-	github.com/larsartmann/go-output/delimited v0.35.0 // indirect
 	github.com/larsartmann/go-output/escape v0.35.0 // indirect
 	github.com/larsartmann/go-output/graph v0.35.0 // indirect
-	github.com/larsartmann/go-output/markdown v0.35.0 // indirect
 	github.com/larsartmann/go-output/markup v0.35.0 // indirect
 	github.com/larsartmann/go-output/plantuml v0.35.0 // indirect
 	github.com/larsartmann/go-output/serialization v0.35.0 // indirect
-	github.com/larsartmann/go-output/table v0.35.0 // indirect
 	github.com/larsartmann/go-output/tree v0.35.0 // indirect
 	github.com/larsartmann/samber-do-auditlog v0.8.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect

@@ -18,7 +18,7 @@ type BenchFlags struct {
 	Dir          string            `default:""       flag:"dir"           help:"Database directory (pebble, duckdb)"`
 	Profile      string            `default:"dev"    flag:"profile"       help:"Workload profile"`
 	Codec        string            `default:"json"   flag:"codec"         help:"Payload codec: json, cbor"`
-	Format       string            `default:"text"   flag:"format"        help:"Output format: text, json, benchstat, manifest"`
+	Format       string            `default:"auto"   flag:"format"        help:"Output format: auto, table, text, json, csv, tsv, markdown, benchstat, manifest (auto picks table in terminal, text when piped)"`
 	Output       string            `default:""       flag:"output"        help:"Output file (default: stdout)"`
 	PayloadSize  int               `default:"256"    flag:"payload-size"  help:"Payload size in bytes per event"`
 	PayloadSizes string            `default:""       flag:"payload-sizes" help:"Comma-separated payload sizes for a MIXED workload (e.g. 64,256,4096). Overrides --payload-size"`
