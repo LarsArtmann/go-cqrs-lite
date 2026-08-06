@@ -12,8 +12,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
-// benchItem is a minimal struct for benchmarking the adapter pipeline.
-type benchItem struct {
+// benchItemRecord is a minimal struct for benchmarking the Record-aware pipeline.
+type benchItemRecord struct {
 	ID   string
 	Name string
 }
@@ -24,9 +24,9 @@ type benchQuery struct{}
 // (the current implementation that converts events to Record before applying).
 // This establishes a baseline for future optimization work.
 func BenchmarkHandle_ApplyRecord(b *testing.B) {
-	q := metaengine.Query[benchQuery, benchItem](
+	q := metaengine.Query[benchQuery, benchItemRecord](
 		"bench-items",
-		metaengine.OnRecord(benchItem{}, func(rec record.Record, e benchItem) (string, benchItem) {
+		metaengine.OnRecord(benchItemRecord{}, func(rec record.Record, e benchItemRecord) (string, benchItemRecord) {
 			return e.ID, e
 		}),
 	)
@@ -40,16 +40,16 @@ func BenchmarkHandle_ApplyRecord(b *testing.B) {
 	}
 
 	decoder := func(eventType string, payload []byte) (any, error) {
-		var e benchItem
+		var e benchItemRecord
 		return e, json.Unmarshal(payload, &e)
 	}
 
 	adapter := projectionadapter.New("bench-items", store, decoder)
 
 	streamID := id.NewStreamID()
-	payload, _ := json.Marshal(benchItem{ID: "bench-1", Name: "test"})
+	payload, _ := json.Marshal(benchItemRecord{ID: "bench-1", Name: "test"})
 	evt, err := event.NewEvent(
-		"benchItem", streamID, "Item", event.Version(1),
+		"benchItemRecord", streamID, "Item", event.Version(1),
 		payload,
 	)
 	if err != nil {

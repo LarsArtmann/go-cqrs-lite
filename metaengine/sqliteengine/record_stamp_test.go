@@ -8,8 +8,8 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
@@ -64,7 +64,7 @@ func TestSQLite_RecordStamping(t *testing.T) {
 
 	rec := record.Record{
 		Type:       "itemCreated",
-		Payload:     []byte(`{"ID":"item-1","Name":"test"}`),
+		Payload:    []byte(`{"ID":"item-1","Name":"test"}`),
 		StreamID:   record.NewStreamRef("Item", "stream-abc"),
 		StreamType: "Item",
 		Version:    3,
