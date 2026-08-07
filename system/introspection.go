@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
 
 // Topology describes the entire wired deployment as a graph.
@@ -144,6 +145,43 @@ func (s *System) Health(ctx context.Context) string {
 	}
 
 	return strings.Join(parts, " ")
+}
+
+// HealthCheck verifies that all infrastructure resources are reachable and
+// healthy. It checks:
+//   - The system is not stopped.
+//   - All engines that implement [metaengine.HealthChecker] respond to pings.
+//   - No projection worker is in a failed state.
+//
+// Returns nil if all resources are healthy. Returns the first error otherwise.
+// Use this for Kubernetes liveness/readiness probes.
+func (s *System) HealthCheck(ctx context.Context) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.stopped {
+		return ErrSystemStopped
+	}
+
+	// Check all engines that implement HealthChecker.
+	for _, eng := range s.engines {
+		if hc, ok := eng.(metaengine.HealthChecker); ok {
+			if err := hc.HealthCheck(ctx); err != nil {
+				return fmt.Errorf("system: engine %s health check: %w", eng.Profile().Name, err)
+			}
+		}
+	}
+
+	// Check projection host for failed workers.
+	if s.projHost != nil {
+		for _, w := range s.projHost.Status() {
+			if w.Status == projectionhost.WorkerFailed {
+				return fmt.Errorf("system: projection %q failed: %s", w.Name, w.LastError)
+			}
+		}
+	}
+
+	return nil
 }
 
 // Explain returns a human-readable topology description.

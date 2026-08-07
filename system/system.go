@@ -194,3 +194,23 @@ func (s *System) Close() error {
 
 	return firstErr
 }
+
+// GracefulClose shuts down the system with a context-bounded timeout. It calls
+// [Close] in a goroutine and returns when Close finishes or the context is
+// cancelled, whichever comes first. If the context expires, resources may still
+// be closing in the background.
+//
+// Use this instead of [Close] when you need a shutdown deadline (e.g., a
+// Kubernetes SIGTERM grace period).
+func (s *System) GracefulClose(ctx context.Context) error {
+	done := make(chan error, 1)
+
+	go func() { done <- s.Close() }()
+
+	select {
+	case err := <-done:
+		return err
+	case <-ctx.Done():
+		return fmt.Errorf("system: graceful close: %w", ctx.Err())
+	}
+}

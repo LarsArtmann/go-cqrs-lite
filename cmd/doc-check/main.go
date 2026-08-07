@@ -76,6 +76,28 @@ func main() {
 	cli.ExecuteAndExit(context.Background())
 }
 
+// fileArgs is a cobra.PositionalArgs validator that accepts zero or more
+// markdown file paths. Zero args triggers auto-discovery. Each provided arg
+// must be an existing file with a .md extension.
+func fileArgs(_ *cobra.Command, args []string) error {
+	for _, arg := range args {
+		info, err := os.Stat(arg)
+		if err != nil {
+			return fmt.Errorf("argument %q: %w", arg, err)
+		}
+
+		if info.IsDir() {
+			return fmt.Errorf("argument %q is a directory, not a file", arg)
+		}
+
+		if !strings.HasSuffix(arg, ".md") {
+			return fmt.Errorf("argument %q is not a markdown file (.md)", arg)
+		}
+	}
+
+	return nil
+}
+
 func run(files []string) error {
 	if len(files) == 0 {
 		// Auto-discover from the repo root so the tool works regardless of CWD
