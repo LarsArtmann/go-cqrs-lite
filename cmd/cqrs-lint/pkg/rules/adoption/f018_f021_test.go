@@ -271,3 +271,63 @@ func f(e any) (any, any) { return nil, nil }
 	findings := ruletest.RunDetector(t, adoption.NewF021Detector(ctx))
 	ruletest.AssertRule(t, findings, "F021", 1)
 }
+
+// TestF021_PerQueryPrecision verifies that folds spread across multiple
+// queries do NOT trigger a finding. Two queries with 2 folds each (4 total)
+// is fine — each query is well-scoped. The old global-count approach would
+// false-positive here (4 >= 3); the per-query analysis correctly stays silent.
+func TestF021_PerQueryPrecision(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+
+func _() {
+	_ = metaengine.Query[any, any]("q1",
+		metaengine.OnTyped("e1", nil, f),
+		metaengine.OnTyped("e2", nil, f),
+	)
+	_ = metaengine.Query[any, any]("q2",
+		metaengine.OnTyped("e3", nil, f),
+		metaengine.OnTyped("e4", nil, f),
+	)
+}
+
+func f(e any) (any, any) { return nil, nil }
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF021Detector(ctx))
+	ruletest.AssertRule(t, findings, "F021", 0)
+}
+
+// TestF021_MultipleQueriesOneAmplified verifies that when one query has 3+
+// folds and another has fewer, only the amplified query triggers a finding.
+func TestF021_MultipleQueriesOneAmplified(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+
+func _() {
+	_ = metaengine.Query[any, any]("ok",
+		metaengine.OnTyped("e1", nil, f),
+	)
+	_ = metaengine.Query[any, any]("amplified",
+		metaengine.OnTyped("e2", nil, f),
+		metaengine.OnTyped("e3", nil, f),
+		metaengine.OnTyped("e4", nil, f),
+	)
+}
+
+func f(e any) (any, any) { return nil, nil }
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF021Detector(ctx))
+	ruletest.AssertRule(t, findings, "F021", 1)
+}
