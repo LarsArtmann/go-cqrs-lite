@@ -2,6 +2,7 @@ package system
 
 import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
@@ -58,6 +59,13 @@ type DomainConfig struct {
 	// logger, restart policy, etc.). These are applied when the System creates
 	// the projection host. If nil, defaults are used.
 	ProjectionHostOptions []projectionhost.HostOption
+
+	// CheckpointStore provides persistent checkpoint storage for the projection
+	// host. If nil, an in-memory store is used (checkpoints are lost on
+	// restart, forcing full projection replays). Set this to a persistent
+	// store (e.g., SQLCheckpointStore) for production deployments where
+	// projections must resume from their last position after a restart.
+	CheckpointStore event.CheckpointStore
 }
 
 // DeploymentConfig carries operator-facing concerns: engines, buses,

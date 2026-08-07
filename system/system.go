@@ -214,3 +214,18 @@ func (s *System) GracefulClose(ctx context.Context) error {
 		return fmt.Errorf("system: graceful close: %w", ctx.Err())
 	}
 }
+
+// ResetProjection resets a projection's checkpoint and read-model state so it
+// replays from the beginning on the next Start. The projection host must be
+// stopped before calling this method (projectionhost.Host.Reset returns an
+// error if the host is running).
+//
+// The projection must implement [projectionhost.Resettable] for its read-model
+// state to be cleared. The checkpoint is always reset regardless.
+func (s *System) ResetProjection(ctx context.Context, name string) error {
+	if s.projHost == nil {
+		return ErrNoProjectionHost
+	}
+
+	return s.projHost.Reset(ctx, name)
+}

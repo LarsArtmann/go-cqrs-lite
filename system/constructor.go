@@ -203,7 +203,13 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 			hostOpts = append(hostOpts, projectionhost.WithSubscriber(bus))
 		}
 
-		host, err := projectionhost.New(journal, &memoryCheckpointStore{}, hostOpts...)
+		// Use the consumer-provided checkpoint store, or fall back to in-memory.
+		cpStore := domain.CheckpointStore
+		if cpStore == nil {
+			cpStore = &memoryCheckpointStore{}
+		}
+
+		host, err := projectionhost.New(journal, cpStore, hostOpts...)
 		if err != nil {
 			return nil, fmt.Errorf("system: create projection host: %w", err)
 		}

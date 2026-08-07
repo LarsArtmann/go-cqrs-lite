@@ -142,6 +142,9 @@ func main() {
 | `New(ctx, domain, deployment)` | Creates a `*System` from domain + deployment configs. |
 | `System.Start(ctx)`            | Starts projection workers and bus listeners.          |
 | `System.Close()`               | Graceful shutdown of all infrastructure.              |
+| `System.GracefulClose(ctx)`    | Context-bounded `Close()` for shutdown deadlines.    |
+| `System.HealthCheck(ctx)`      | Returns `nil` if all resources are healthy.           |
+| `System.ResetProjection(ctx, name)` | Resets a projection checkpoint for replay.      |
 
 ### Domain Registration
 
@@ -172,6 +175,7 @@ an error at construction time (no silent fallback).
 | ------------------------------- | ----------------------------------------------- |
 | `System.Snapshot(ctx)`          | Returns a `Topology` snapshot of all instances. |
 | `System.Health(ctx)`            | Aggregate health status string.                 |
+| `System.HealthCheck(ctx)`       | Error if any resource is unhealthy.             |
 | `System.Explain(ctx)`           | Human-readable explanation of the deployment.   |
 | `System.ProjectionPlan()`       | Serializable plan for projection engines.       |
 | `System.ProjectionExplain()`    | Human-readable projection plan explanation.     |
