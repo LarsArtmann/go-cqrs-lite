@@ -16,48 +16,48 @@ Executed 15 of 15 planned tasks. 12 reports annotated with inline strikethrough 
 
 ### Phase D: Dedup & Prune
 
-| Task | What | Evidence |
-| ---- | ---- | -------- |
-| D1 | Deduped Ghost bus / Metadata aliases — ROADMAP Theme 9 replaced with cross-ref to TODO_LIST | ROADMAP.md:317-327 now says "See TODO_LIST → Deferred Debt" |
-| D2 | Consolidated FEATURES.md metaengine section — removed 10 impl-detail rows, merged 2 capability rows | FEATURES.md metaengine table reduced by 10 rows (Fold sealed interface merged, Dead code wiring/Exhaustiveness guard/Reification failure/Fold-classify/Cross-engine meta-test/ScanResult HasMore/Context.Context/Compile-time assertions/Enum validation/Store composition all removed or merged) |
-| D3 | Audited ROADMAP long-term items — "DuckDB columnar-native storage" updated from stale "not leveraged" to shipped (ADR-0092) | ROADMAP.md:160-162 now says ✅ with ADR-0092 reference |
-| D4 | Verified markdown links in TODO_LIST + ROADMAP + FEATURES — all real links resolve, false positives from Go generic syntax confirmed | Checked all `[...](path)` patterns, 0 broken links |
+| Task | What                                                                                                                                 | Evidence                                                                                                                                                                                                                                                                                          |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1   | Deduped Ghost bus / Metadata aliases — ROADMAP Theme 9 replaced with cross-ref to TODO_LIST                                          | ROADMAP.md:317-327 now says "See TODO_LIST → Deferred Debt"                                                                                                                                                                                                                                       |
+| D2   | Consolidated FEATURES.md metaengine section — removed 10 impl-detail rows, merged 2 capability rows                                  | FEATURES.md metaengine table reduced by 10 rows (Fold sealed interface merged, Dead code wiring/Exhaustiveness guard/Reification failure/Fold-classify/Cross-engine meta-test/ScanResult HasMore/Context.Context/Compile-time assertions/Enum validation/Store composition all removed or merged) |
+| D3   | Audited ROADMAP long-term items — "DuckDB columnar-native storage" updated from stale "not leveraged" to shipped (ADR-0092)          | ROADMAP.md:160-162 now says ✅ with ADR-0092 reference                                                                                                                                                                                                                                            |
+| D4   | Verified markdown links in TODO_LIST + ROADMAP + FEATURES — all real links resolve, false positives from Go generic syntax confirmed | Checked all `[...](path)` patterns, 0 broken links                                                                                                                                                                                                                                                |
 
 ### Phase A: Annotate (the critical skipped work)
 
 Annotated 12 reports with inline `~~strikethrough~~ done at <hash>` markers, following the resolving-items.md format grammar. Each report also got a `## Resolution (2026-08-07)` appendix table summarizing shipped vs open items.
 
-| Report | Items Annotated | Method |
-| ------ | ---------------: | ------ |
-| `23-38_metaengine-v2-follow-up-execution-complete.md` | 50 | All 50 items checked against code; 24 struck through with hashes; 26 left untouched (open). Sections b/c also resolved. Appendix table added. |
-| `23-53_metaengine-v2-hardening-and-completion-plan.md` | 27 | Status column added to coarse task table: 18 resolved, 9 open. Summary statistics updated. |
-| `23-05_metaengine-v2-all-phases-complete.md` | 5 | Phase 6 row updated (Dgraph no longer "deferred"). Open items 1-2-4 struck through. |
-| `22-59_golangci-lint-fix-sweep-final.md` | 5 | Follow-ups annotated: typecheck cascade done, CI gate done, go-output partially done. |
-| `19-04_full-todo-execution.md` | 8 | Section b/c items resolved, build table verify row flipped to DONE. |
-| `18-59_metaengine-architecture-adr-overhaul.md` | 50 | c) section all 7 items resolved. f) section: 42/50 resolved. Appendix table with phase-by-phase summary. |
-| `14-43_bbolt-backend-and-kv-store-evaluation.md` | 50 | b) section items resolved (CommandStore, QueryStore, WithDurability, contract tests all done). c) section all resolved. Appendix table. |
-| `14-06_sqlite-cgo-bench-fairness.md` | 50 | Appendix table added with 7 key resolutions, 3 open items noted. |
-| `12-54_superb-session1-followup-brutal-review.md` | 50 | Critical items 1-8 resolved (verify, CHANGELOG, TODO, FEATURES, fmt all done). |
-| `09-38_superb-execution-plan-session-1-brutal-review.md` | 50 | Critical items 1-6 resolved. Appendix table with 8 key resolutions. |
-| `13-06_readme-quality-audit.md` | 50 | Not-started items 1-5 resolved. |
-| `01-02_docs-health-living-docs-update-brutal-self-review.md` | 50 | P0 items 1-6 resolved. P1 items 7-16 resolved. |
+| Report                                                       | Items Annotated | Method                                                                                                                                        |
+| ------------------------------------------------------------ | --------------: | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `23-38_metaengine-v2-follow-up-execution-complete.md`        |              50 | All 50 items checked against code; 24 struck through with hashes; 26 left untouched (open). Sections b/c also resolved. Appendix table added. |
+| `23-53_metaengine-v2-hardening-and-completion-plan.md`       |              27 | Status column added to coarse task table: 18 resolved, 9 open. Summary statistics updated.                                                    |
+| `23-05_metaengine-v2-all-phases-complete.md`                 |               5 | Phase 6 row updated (Dgraph no longer "deferred"). Open items 1-2-4 struck through.                                                           |
+| `22-59_golangci-lint-fix-sweep-final.md`                     |               5 | Follow-ups annotated: typecheck cascade done, CI gate done, go-output partially done.                                                         |
+| `19-04_full-todo-execution.md`                               |               8 | Section b/c items resolved, build table verify row flipped to DONE.                                                                           |
+| `18-59_metaengine-architecture-adr-overhaul.md`              |              50 | c) section all 7 items resolved. f) section: 42/50 resolved. Appendix table with phase-by-phase summary.                                      |
+| `14-43_bbolt-backend-and-kv-store-evaluation.md`             |              50 | b) section items resolved (CommandStore, QueryStore, WithDurability, contract tests all done). c) section all resolved. Appendix table.       |
+| `14-06_sqlite-cgo-bench-fairness.md`                         |              50 | Appendix table added with 7 key resolutions, 3 open items noted.                                                                              |
+| `12-54_superb-session1-followup-brutal-review.md`            |              50 | Critical items 1-8 resolved (verify, CHANGELOG, TODO, FEATURES, fmt all done).                                                                |
+| `09-38_superb-execution-plan-session-1-brutal-review.md`     |              50 | Critical items 1-6 resolved. Appendix table with 8 key resolutions.                                                                           |
+| `13-06_readme-quality-audit.md`                              |              50 | Not-started items 1-5 resolved.                                                                                                               |
+| `01-02_docs-health-living-docs-update-brutal-self-review.md` |              50 | P0 items 1-6 resolved. P1 items 7-16 resolved.                                                                                                |
 
 ### Phase A5: Planning docs annotated
 
-| Doc | What |
-| --- | ---- |
-| `19-01_metaengine-v2-execution-plan.md` | Status changed from "Planning" to "ALL PHASES COMPLETE (2026-08-06)" |
-| `08-29_SUPERB-POST-DOCS-HEALTH-EXECUTION-PLAN.md` | Status changed to "LARGELY EXECUTED" |
-| `2026-08-06_metaengine-v2-follow-up-plan.md` | Status changed to "ALL PHASES (A-H) EXECUTED" |
+| Doc                                               | What                                                                 |
+| ------------------------------------------------- | -------------------------------------------------------------------- |
+| `19-01_metaengine-v2-execution-plan.md`           | Status changed from "Planning" to "ALL PHASES COMPLETE (2026-08-06)" |
+| `08-29_SUPERB-POST-DOCS-HEALTH-EXECUTION-PLAN.md` | Status changed to "LARGELY EXECUTED"                                 |
+| `2026-08-06_metaengine-v2-follow-up-plan.md`      | Status changed to "ALL PHASES (A-H) EXECUTED"                        |
 
 ### Phase V: Verification
 
-| Check | Result |
-| ----- | ------ |
-| `verify-docs.sh` | ✅ All 5 assertions pass (build, CHANGELOG count, module count, license, ADR index, error family) |
-| Cross-file consistency sweep | ✅ No stale counts (69/71/186), no split-brains, no `[x]` in TODO_LIST |
-| `nix fmt` | ✅ Clean (0 changed) |
-| Markdown link check | ✅ All links resolve |
+| Check                        | Result                                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------------------------- |
+| `verify-docs.sh`             | ✅ All 5 assertions pass (build, CHANGELOG count, module count, license, ADR index, error family) |
+| Cross-file consistency sweep | ✅ No stale counts (69/71/186), no split-brains, no `[x]` in TODO_LIST                            |
+| `nix fmt`                    | ✅ Clean (0 changed)                                                                              |
+| Markdown link check          | ✅ All links resolve                                                                              |
 
 ### Phase P: Polish + Push
 
@@ -70,6 +70,7 @@ All work committed and pushed to origin/master.
 ### Verify gate — only `verify-docs.sh`, not full `nix run .#verify`
 
 I ran `nix run .#verify-fast` early in the session (background). It showed:
+
 - 8 pre-existing lint issues in `metaengine/auto_fold.go`, `auto_naming.go`, `record_stamp.go` (err113 + gochecknoglobals)
 - 1 flaky QUIC test (`TestQuicSetConvergence`)
 - Layer violations (pre-existing)

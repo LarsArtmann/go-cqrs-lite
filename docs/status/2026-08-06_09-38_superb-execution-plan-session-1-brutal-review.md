@@ -330,13 +330,13 @@ for ROADMAP's "raw ideas" bucket. Where should they live?
 
 Annotated during docs-health ANNOTATE pass. Of the 50 items in section f), **8 critical items resolved**, key medium/low items partially addressed. The "annotation was theater" failure (section d.7) is being corrected by this very docs-health session — 12 reports annotated with inline strikethroughs. Key resolutions:
 
-| Items | Status | Evidence |
-| ----- | ------ | -------- |
-| §f.1 | Done | Tags pushed to origin |
-| §f.2-4 | Done | CHANGELOG, TODO_LIST, FEATURES all updated in subsequent sessions |
-| §f.5-6 | Done | `nix fmt` + verify gate run multiple times |
-| §f.9 | Done | 12 reports annotated in this docs-health session |
-| §f.42 | Done | ROADMAP updated with SerializableReadCosts, system/, tags |
-| §f.46 | Done | SKILL.md modules.md documents PlanFromSQLite + TypeDecoder |
-| §f.27-28 | Open | Ghost bus + Metadata aliases — TODO_LIST (Deferred Debt) |
-| §f.50 | Done | 12 reports annotated with inline markers (this session) |
+| Items    | Status | Evidence                                                          |
+| -------- | ------ | ----------------------------------------------------------------- |
+| §f.1     | Done   | Tags pushed to origin                                             |
+| §f.2-4   | Done   | CHANGELOG, TODO_LIST, FEATURES all updated in subsequent sessions |
+| §f.5-6   | Done   | `nix fmt` + verify gate run multiple times                        |
+| §f.9     | Done   | 12 reports annotated in this docs-health session                  |
+| §f.42    | Done   | ROADMAP updated with SerializableReadCosts, system/, tags         |
+| §f.46    | Done   | SKILL.md modules.md documents PlanFromSQLite + TypeDecoder        |
+| §f.27-28 | Open   | Ghost bus + Metadata aliases — TODO_LIST (Deferred Debt)          |
+| §f.50    | Done   | 12 reports annotated with inline markers (this session)           |

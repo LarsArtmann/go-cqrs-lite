@@ -42,7 +42,11 @@ func BenchmarkEventStorm_Concurrent(b *testing.B) {
 						start := eventsPerWorker * workerID
 						end := start + eventsPerWorker
 						for i := start; i < end; i++ {
-							if err := store.Apply(ctx, events[i].typeName, events[i].payload); err != nil {
+							if err := store.Apply(
+								ctx,
+								events[i].typeName,
+								events[i].payload,
+							); err != nil {
 								failCount.Add(1)
 								return
 							}
@@ -60,7 +64,10 @@ func BenchmarkEventStorm_Concurrent(b *testing.B) {
 				b.StartTimer()
 			}
 
-			b.ReportMetric(float64(concurrency*eventsPerWorker)*float64(b.N)/b.Elapsed().Seconds(), "events/sec")
+			b.ReportMetric(
+				float64(concurrency*eventsPerWorker)*float64(b.N)/b.Elapsed().Seconds(),
+				"events/sec",
+			)
 		})
 	}
 }

@@ -79,7 +79,11 @@ func BenchmarkContention_Persistent_SameStream(b *testing.B) {
 										b.Error(err)
 										return
 									}
-									if err := store.AppendBatch(ctx, ref, []event.Event{evt}); err != nil {
+									if err := store.AppendBatch(
+										ctx,
+										ref,
+										[]event.Event{evt},
+									); err != nil {
 										b.Error(err)
 										return
 									}

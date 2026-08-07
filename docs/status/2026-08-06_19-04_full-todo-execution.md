@@ -128,18 +128,18 @@ The contract test file defined `newTestBackend` which already existed in `store_
 
 ## e) BUILD AND TEST STATUS
 
-| Check                                                         | Status                                   |
-| ------------------------------------------------------------- | ---------------------------------------- |
-| `go build ./storage/bbolt/... ./stack/bbolt/...`              | ✅ PASS                                  |
-| `go build ./benchkit/... ./cmd/cqrs-bench/...`                | ✅ PASS                                  |
-| `go test ./storage/bbolt/... -race`                           | ✅ PASS (13 tests: 7 smoke + 6 contract) |
-| `go test ./benchkit/... -race -run "TestSkipped\|TestStrict"` | ✅ PASS (5 tests)                        |
-| `nix run .#check-layers`                                      | ✅ PASS                                  |
-| `nix run .#check-duplication`                                 | ✅ PASS                                  |
-| `nix run .#lint` (bbolt/benchkit scope)                       | ✅ PASS                                  |
-| File line counts (max 350)                                    | ✅ PASS                                  |
-| api-stability golden + meta-test                              | ✅ PASS                                  |
-| `nix run .#verify`                                            | ✅ DONE (doc assertions GREEN, QUIC flaky)                                 |
+| Check                                                         | Status                                     |
+| ------------------------------------------------------------- | ------------------------------------------ |
+| `go build ./storage/bbolt/... ./stack/bbolt/...`              | ✅ PASS                                    |
+| `go build ./benchkit/... ./cmd/cqrs-bench/...`                | ✅ PASS                                    |
+| `go test ./storage/bbolt/... -race`                           | ✅ PASS (13 tests: 7 smoke + 6 contract)   |
+| `go test ./benchkit/... -race -run "TestSkipped\|TestStrict"` | ✅ PASS (5 tests)                          |
+| `nix run .#check-layers`                                      | ✅ PASS                                    |
+| `nix run .#check-duplication`                                 | ✅ PASS                                    |
+| `nix run .#lint` (bbolt/benchkit scope)                       | ✅ PASS                                    |
+| File line counts (max 350)                                    | ✅ PASS                                    |
+| api-stability golden + meta-test                              | ✅ PASS                                    |
+| `nix run .#verify`                                            | ✅ DONE (doc assertions GREEN, QUIC flaky) |
 
 ---
 

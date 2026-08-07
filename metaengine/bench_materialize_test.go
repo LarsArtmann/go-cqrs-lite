@@ -88,26 +88,38 @@ func TestPromise_MaterializeVsReplay_PredictionAccuracy(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		stats     metaengine.WorkloadStats
-		wantMat   bool
-		wantDiag  string
+		name     string
+		stats    metaengine.WorkloadStats
+		wantMat  bool
+		wantDiag string
 	}{
 		{
-			name:     "read-heavy-short-streams",
-			stats:    metaengine.WorkloadStats{WriteRatePerSec: 10, ReadRatePerSec: 1000, AvgStreamLength: 50},
+			name: "read-heavy-short-streams",
+			stats: metaengine.WorkloadStats{
+				WriteRatePerSec: 10,
+				ReadRatePerSec:  1000,
+				AvgStreamLength: 50,
+			},
 			wantMat:  true,
 			wantDiag: "materialize recommended",
 		},
 		{
-			name:     "write-heavy-long-streams",
-			stats:    metaengine.WorkloadStats{WriteRatePerSec: 1000, ReadRatePerSec: 1, AvgStreamLength: 100},
+			name: "write-heavy-long-streams",
+			stats: metaengine.WorkloadStats{
+				WriteRatePerSec: 1000,
+				ReadRatePerSec:  1,
+				AvgStreamLength: 100,
+			},
 			wantMat:  false,
 			wantDiag: "replay may be cheaper",
 		},
 		{
-			name:     "balanced-moderate",
-			stats:    metaengine.WorkloadStats{WriteRatePerSec: 50, ReadRatePerSec: 50, AvgStreamLength: 10},
+			name: "balanced-moderate",
+			stats: metaengine.WorkloadStats{
+				WriteRatePerSec: 50,
+				ReadRatePerSec:  50,
+				AvgStreamLength: 10,
+			},
 			wantMat:  true, // replay=500, materialize=55 → materialize
 			wantDiag: "materialize recommended",
 		},
@@ -145,7 +157,11 @@ func TestPromise_MaterializeVsReplay_PredictionAccuracy(t *testing.T) {
 				}
 			}
 			if !found {
-				t.Errorf("expected diagnostic containing %q, got: %v", tt.wantDiag, store.Plan().Diagnostics)
+				t.Errorf(
+					"expected diagnostic containing %q, got: %v",
+					tt.wantDiag,
+					store.Plan().Diagnostics,
+				)
 			}
 		})
 	}

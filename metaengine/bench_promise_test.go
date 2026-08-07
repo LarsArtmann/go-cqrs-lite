@@ -23,30 +23,30 @@ type (
 
 // Event types.
 type OrderCreated struct {
-	ID         OrderID
-	CustomerID CustomerID
-	Status     string
+	ID          OrderID
+	CustomerID  CustomerID
+	Status      string
 	AmountCents int64
 	ProductID   string
 	CreatedAt   time.Time
 }
 
 type ItemAdded struct {
-	OrderID   OrderID
-	ProductID string
+	OrderID    OrderID
+	ProductID  string
 	PriceCents int64
 	At         time.Time
 }
 
 type OrderShipped struct {
-	ID        OrderID
-	Tracking  string
-	At        time.Time
+	ID       OrderID
+	Tracking string
+	At       time.Time
 }
 
 type OrderCancelled struct {
-	ID   OrderID
-	At   time.Time
+	ID OrderID
+	At time.Time
 }
 
 type OrderPaid struct {
@@ -225,7 +225,7 @@ func generatePromiseEvents(n int) []promiseEvent {
 			events = append(events, promiseEvent{
 				"OrderCreated", OrderCreated{
 					ID: orderID, CustomerID: customerID, Status: status,
-					AmountCents: int64(1000 + (i % 10) * 500),
+					AmountCents: int64(1000 + (i%10)*500),
 					ProductID:   fmt.Sprintf("prod-%04d", i%200),
 					CreatedAt:   base.Add(time.Duration(i) * time.Millisecond),
 				},
@@ -235,7 +235,7 @@ func generatePromiseEvents(n int) []promiseEvent {
 				"ItemAdded", ItemAdded{
 					OrderID:    OrderID(fmt.Sprintf("ord-%06d", i%100)),
 					ProductID:  fmt.Sprintf("prod-%04d", i%200),
-					PriceCents: int64(500 + (i % 5) * 200),
+					PriceCents: int64(500 + (i%5)*200),
 					At:         base.Add(time.Duration(i) * time.Millisecond),
 				},
 			})
@@ -258,7 +258,7 @@ func generatePromiseEvents(n int) []promiseEvent {
 			events = append(events, promiseEvent{
 				"OrderPaid", OrderPaid{
 					ID:          OrderID(fmt.Sprintf("ord-%06d", i%100)),
-					AmountCents: int64(1000 + (i % 10) * 500),
+					AmountCents: int64(1000 + (i%10)*500),
 					At:          base.Add(time.Duration(i) * time.Millisecond),
 				},
 			})
@@ -357,10 +357,20 @@ func TestPromise_DomainModel(t *testing.T) {
 		ID: "ord-002", CustomerID: "cus-001", Status: "pending",
 		AmountCents: 3000, ProductID: "prod-002", CreatedAt: time.Now(),
 	})
-	mustApply(t, ctx, store, "OrderPaid", OrderPaid{ID: "ord-001", AmountCents: 5000, At: time.Now()})
+	mustApply(
+		t,
+		ctx,
+		store,
+		"OrderPaid",
+		OrderPaid{ID: "ord-001", AmountCents: 5000, At: time.Now()},
+	)
 
 	// Query 1: find_order (Map point lookup).
-	order, err := metaengine.ExecuteTyped[FindOrderInput, OrderView](ctx, store, FindOrderInput{ID: "ord-001"})
+	order, err := metaengine.ExecuteTyped[FindOrderInput, OrderView](
+		ctx,
+		store,
+		FindOrderInput{ID: "ord-001"},
+	)
 	if err != nil {
 		t.Fatalf("find_order: %v", err)
 	}
@@ -369,7 +379,11 @@ func TestPromise_DomainModel(t *testing.T) {
 	}
 
 	// Query 3: count_by_status (Counter aggregate).
-	counts, err := metaengine.ExecuteTyped[CountOrdersByStatusInput, map[string]int64](ctx, store, CountOrdersByStatusInput{})
+	counts, err := metaengine.ExecuteTyped[CountOrdersByStatusInput, map[string]int64](
+		ctx,
+		store,
+		CountOrdersByStatusInput{},
+	)
 	if err != nil {
 		t.Fatalf("count_by_status: %v", err)
 	}
@@ -378,7 +392,11 @@ func TestPromise_DomainModel(t *testing.T) {
 	}
 
 	// Query 4: orders_by_customer (Multimap).
-	orders, err := metaengine.ExecuteTyped[OrdersByCustomerInput, []OrderID](ctx, store, OrdersByCustomerInput{Customer: "cus-001"})
+	orders, err := metaengine.ExecuteTyped[OrdersByCustomerInput, []OrderID](
+		ctx,
+		store,
+		OrdersByCustomerInput{Customer: "cus-001"},
+	)
 	if err != nil {
 		t.Fatalf("orders_by_customer: %v", err)
 	}
@@ -387,7 +405,11 @@ func TestPromise_DomainModel(t *testing.T) {
 	}
 
 	// Query 5: recent_orders (Log tail).
-	recent, err := metaengine.ExecuteTyped[RecentOrdersInput, []OrderID](ctx, store, RecentOrdersInput{Limit: 10})
+	recent, err := metaengine.ExecuteTyped[RecentOrdersInput, []OrderID](
+		ctx,
+		store,
+		RecentOrdersInput{Limit: 10},
+	)
 	if err != nil {
 		t.Fatalf("recent_orders: %v", err)
 	}
@@ -396,7 +418,11 @@ func TestPromise_DomainModel(t *testing.T) {
 	}
 
 	// Query 6: total_revenue (Counter sum).
-	revenue, err := metaengine.ExecuteTyped[TotalRevenueInput, map[string]int64](ctx, store, TotalRevenueInput{})
+	revenue, err := metaengine.ExecuteTyped[TotalRevenueInput, map[string]int64](
+		ctx,
+		store,
+		TotalRevenueInput{},
+	)
 	if err != nil {
 		t.Fatalf("total_revenue: %v", err)
 	}
@@ -405,7 +431,13 @@ func TestPromise_DomainModel(t *testing.T) {
 	}
 }
 
-func mustApply(t *testing.T, ctx context.Context, store *metaengine.Store, eventType string, payload any) {
+func mustApply(
+	t *testing.T,
+	ctx context.Context,
+	store *metaengine.Store,
+	eventType string,
+	payload any,
+) {
 	t.Helper()
 	if err := store.Apply(ctx, eventType, payload); err != nil {
 		t.Fatalf("Apply %s: %v", eventType, err)

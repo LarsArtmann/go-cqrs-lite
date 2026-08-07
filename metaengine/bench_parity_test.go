@@ -49,11 +49,19 @@ func TestPromise_CrossEngine_ParityAtScale(t *testing.T) {
 	customerID := CustomerID("cus-000")
 
 	// 1. find_order (Map point lookup).
-	memOrder, err := metaengine.ExecuteTyped[FindOrderInput, OrderView](ctx, memStore, FindOrderInput{ID: orderID})
+	memOrder, err := metaengine.ExecuteTyped[FindOrderInput, OrderView](
+		ctx,
+		memStore,
+		FindOrderInput{ID: orderID},
+	)
 	if err != nil {
 		t.Fatalf("memory find_order: %v", err)
 	}
-	sqlOrder, err := metaengine.ExecuteTyped[FindOrderInput, OrderView](ctx, sqlStore, FindOrderInput{ID: orderID})
+	sqlOrder, err := metaengine.ExecuteTyped[FindOrderInput, OrderView](
+		ctx,
+		sqlStore,
+		FindOrderInput{ID: orderID},
+	)
 	if err != nil {
 		t.Fatalf("sqlite find_order: %v", err)
 	}
@@ -62,11 +70,19 @@ func TestPromise_CrossEngine_ParityAtScale(t *testing.T) {
 	}
 
 	// 2. count_by_status (Counter aggregate).
-	memCounts, err := metaengine.ExecuteTyped[CountOrdersByStatusInput, map[string]int64](ctx, memStore, CountOrdersByStatusInput{})
+	memCounts, err := metaengine.ExecuteTyped[CountOrdersByStatusInput, map[string]int64](
+		ctx,
+		memStore,
+		CountOrdersByStatusInput{},
+	)
 	if err != nil {
 		t.Fatalf("memory count_by_status: %v", err)
 	}
-	sqlCounts, err := metaengine.ExecuteTyped[CountOrdersByStatusInput, map[string]int64](ctx, sqlStore, CountOrdersByStatusInput{})
+	sqlCounts, err := metaengine.ExecuteTyped[CountOrdersByStatusInput, map[string]int64](
+		ctx,
+		sqlStore,
+		CountOrdersByStatusInput{},
+	)
 	if err != nil {
 		t.Fatalf("sqlite count_by_status: %v", err)
 	}
@@ -78,24 +94,44 @@ func TestPromise_CrossEngine_ParityAtScale(t *testing.T) {
 	}
 
 	// 3. orders_by_customer (Multimap lookup).
-	memOrders, err := metaengine.ExecuteTyped[OrdersByCustomerInput, []OrderID](ctx, memStore, OrdersByCustomerInput{Customer: customerID})
+	memOrders, err := metaengine.ExecuteTyped[OrdersByCustomerInput, []OrderID](
+		ctx,
+		memStore,
+		OrdersByCustomerInput{Customer: customerID},
+	)
 	if err != nil {
 		t.Fatalf("memory orders_by_customer: %v", err)
 	}
-	sqlOrders, err := metaengine.ExecuteTyped[OrdersByCustomerInput, []OrderID](ctx, sqlStore, OrdersByCustomerInput{Customer: customerID})
+	sqlOrders, err := metaengine.ExecuteTyped[OrdersByCustomerInput, []OrderID](
+		ctx,
+		sqlStore,
+		OrdersByCustomerInput{Customer: customerID},
+	)
 	if err != nil {
 		t.Fatalf("sqlite orders_by_customer: %v", err)
 	}
 	if len(memOrders) != len(sqlOrders) {
-		t.Errorf("orders_by_customer length divergence: memory=%d sqlite=%d", len(memOrders), len(sqlOrders))
+		t.Errorf(
+			"orders_by_customer length divergence: memory=%d sqlite=%d",
+			len(memOrders),
+			len(sqlOrders),
+		)
 	}
 
 	// 4. total_revenue (Counter sum).
-	memRev, err := metaengine.ExecuteTyped[TotalRevenueInput, map[string]int64](ctx, memStore, TotalRevenueInput{})
+	memRev, err := metaengine.ExecuteTyped[TotalRevenueInput, map[string]int64](
+		ctx,
+		memStore,
+		TotalRevenueInput{},
+	)
 	if err != nil {
 		t.Fatalf("memory total_revenue: %v", err)
 	}
-	sqlRev, err := metaengine.ExecuteTyped[TotalRevenueInput, map[string]int64](ctx, sqlStore, TotalRevenueInput{})
+	sqlRev, err := metaengine.ExecuteTyped[TotalRevenueInput, map[string]int64](
+		ctx,
+		sqlStore,
+		TotalRevenueInput{},
+	)
 	if err != nil {
 		t.Fatalf("sqlite total_revenue: %v", err)
 	}

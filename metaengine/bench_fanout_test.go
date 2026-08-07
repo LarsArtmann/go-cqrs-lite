@@ -55,7 +55,12 @@ func BenchmarkWriteAmplification_Scaling(b *testing.B) {
 		1: {findOrderQuery()},
 		2: {findOrderQuery(), countOrdersByStatusQuery()},
 		3: {findOrderQuery(), countOrdersByStatusQuery(), ordersByCustomerQuery()},
-		4: {findOrderQuery(), countOrdersByStatusQuery(), ordersByCustomerQuery(), recentOrdersQuery()},
+		4: {
+			findOrderQuery(),
+			countOrdersByStatusQuery(),
+			ordersByCustomerQuery(),
+			recentOrdersQuery(),
+		},
 		5: {
 			findOrderQuery(), countOrdersByStatusQuery(), ordersByCustomerQuery(),
 			recentOrdersQuery(), listOrdersByStatusQuery(),

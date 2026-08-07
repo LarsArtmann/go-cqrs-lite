@@ -79,13 +79,13 @@ func allPipelineBackends() []pipelineBackend {
 // ─── Pipeline Setup Helper ───
 
 type pipelineSetup struct {
-	bundle      *stack.Bundle
-	orderRM     *kv.TypedStore[OrderView, id.StreamID]
-	taskRM      *kv.TypedStore[TaskView, id.StreamID]
-	userRM      *kv.TypedStore[UserView, id.StreamID]
-	project     func(context.Context, event.Event) error
-	store       event.Store
-	ctx         context.Context
+	bundle  *stack.Bundle
+	orderRM *kv.TypedStore[OrderView, id.StreamID]
+	taskRM  *kv.TypedStore[TaskView, id.StreamID]
+	userRM  *kv.TypedStore[UserView, id.StreamID]
+	project func(context.Context, event.Event) error
+	store   event.Store
+	ctx     context.Context
 }
 
 func newPipelineSetup(b testing.TB, backend pipelineBackend) *pipelineSetup {
@@ -304,27 +304,36 @@ func BenchmarkFullPipeline_Backends(b *testing.B) {
 func BenchmarkFullPipeline_MiddlewareStacks(b *testing.B) {
 	// Baseline: no middleware.
 	b.Run("no-middleware", func(b *testing.B) {
-		runPipelineWithOverhead(b, func(evt event.Event, ref id.StreamRef, ps *pipelineSetup) error {
-			return ps.saveAndProject(evt, ref)
-		})
+		runPipelineWithOverhead(
+			b,
+			func(evt event.Event, ref id.StreamRef, ps *pipelineSetup) error {
+				return ps.saveAndProject(evt, ref)
+			},
+		)
 	})
 
 	// Simulated middleware overhead: measure the cost of wrapping each event
 	// through a chain of functions (representing logging, recovery, etc.).
 	b.Run("5-chain-simulation", func(b *testing.B) {
-		runPipelineWithOverhead(b, func(evt event.Event, ref id.StreamRef, ps *pipelineSetup) error {
-			// Simulate 5 middleware layers wrapping the save+project call.
-			chain := func(e event.Event) error { return ps.saveAndProject(e, ref) }
-			for range 5 {
-				inner := chain
-				chain = func(e event.Event) error { return inner(e) }
-			}
-			return chain(evt)
-		})
+		runPipelineWithOverhead(
+			b,
+			func(evt event.Event, ref id.StreamRef, ps *pipelineSetup) error {
+				// Simulate 5 middleware layers wrapping the save+project call.
+				chain := func(e event.Event) error { return ps.saveAndProject(e, ref) }
+				for range 5 {
+					inner := chain
+					chain = func(e event.Event) error { return inner(e) }
+				}
+				return chain(evt)
+			},
+		)
 	})
 }
 
-func runPipelineWithOverhead(b *testing.B, run func(event.Event, id.StreamRef, *pipelineSetup) error) {
+func runPipelineWithOverhead(
+	b *testing.B,
+	run func(event.Event, id.StreamRef, *pipelineSetup) error,
+) {
 	b.Helper()
 	ps := newPipelineSetup(b, memoryBackend())
 

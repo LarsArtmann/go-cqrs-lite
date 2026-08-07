@@ -31,7 +31,12 @@ func BenchmarkMultiQuery_EnginePoolComparison(b *testing.B) {
 			// Log routing decisions.
 			plan := store.Plan()
 			for _, q := range plan.Queries {
-				b.Logf("  %s → engine=%s cost=%.4fms", q.QueryName, q.EngineName, q.Cost.EstimatedLatencyMs)
+				b.Logf(
+					"  %s → engine=%s cost=%.4fms",
+					q.QueryName,
+					q.EngineName,
+					q.Cost.EstimatedLatencyMs,
+				)
 			}
 
 			n := 1_000

@@ -268,12 +268,12 @@ These likely describe the zero-dependency architecture and the generic planner v
 
 Annotated during the docs-health ANNOTATE pass. All "NOT STARTED" implementation items from section c) were shipped in subsequent sessions (Phases 1-7 of the v2 execution plan, `2026-08-06_19-01_metaengine-v2-execution-plan.md`). Of the 50 items in section f), **42 are resolved**, 8 remain open (command lifecycle ADR-0117 implementation, ADR-0046 Mermaid diagram fix, ADR-0100 numbering conflict, reverse-reference sweep, Command CausationID semantics, doc-check). Key resolutions:
 
-| §  | Item | Status |
-| -- | ---- | ------ |
-| f.1-13 | Phase 0 ADR polish (items 1-13) | Mostly done (ADRs 0118/0119 written, AGENTS.md updated, module list updated); ADR-0046 Mermaid diagram still stale; ADR-0100 numbering conflict open |
-| f.14-24 | Phase 1 Record Type Extraction | Done — `record/` module shipped with Record, CommonMetadata, StreamRef |
-| f.25-29 | Phase 2 Tombstone Removal | Partially done — deprecated in v4, removal deferred to v5 |
-| f.30-37 | Phase 3 ES-Native Metaengine | Done — OnRecord/ApplyRecord shipped |
-| f.38-44 | Phase 4 GraphBackend Deletion | Done — GraphBackend deleted, graphadapter shipped |
-| f.45-50 | Phase 5 SQLite Extraction | Done — sqliteengine shipped |
-| Phase 6 | New engines + auto-projection | Done — badgerengine, dgraphengine, auto-folds all shipped |
+| §       | Item                            | Status                                                                                                                                               |
+| ------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| f.1-13  | Phase 0 ADR polish (items 1-13) | Mostly done (ADRs 0118/0119 written, AGENTS.md updated, module list updated); ADR-0046 Mermaid diagram still stale; ADR-0100 numbering conflict open |
+| f.14-24 | Phase 1 Record Type Extraction  | Done — `record/` module shipped with Record, CommonMetadata, StreamRef                                                                               |
+| f.25-29 | Phase 2 Tombstone Removal       | Partially done — deprecated in v4, removal deferred to v5                                                                                            |
+| f.30-37 | Phase 3 ES-Native Metaengine    | Done — OnRecord/ApplyRecord shipped                                                                                                                  |
+| f.38-44 | Phase 4 GraphBackend Deletion   | Done — GraphBackend deleted, graphadapter shipped                                                                                                    |
+| f.45-50 | Phase 5 SQLite Extraction       | Done — sqliteengine shipped                                                                                                                          |
+| Phase 6 | New engines + auto-projection   | Done — badgerengine, dgraphengine, auto-folds all shipped                                                                                            |

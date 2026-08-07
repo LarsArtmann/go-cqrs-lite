@@ -68,7 +68,11 @@ func foldOrder(state OrderState, evt event.Event) (OrderState, error) {
 	return state, nil
 }
 
-func orderProjection(ctx context.Context, evt event.Event, store *kv.TypedStore[OrderView, id.StreamID]) error {
+func orderProjection(
+	ctx context.Context,
+	evt event.Event,
+	store *kv.TypedStore[OrderView, id.StreamID],
+) error {
 	switch evt.Type() {
 	case "order.created":
 		p, err := event.DecodePayloadAuto[OrderCreatedEvt](evt)
@@ -140,7 +144,11 @@ func foldTask(state TaskState, evt event.Event) (TaskState, error) {
 	return state, nil
 }
 
-func taskProjection(ctx context.Context, evt event.Event, store *kv.TypedStore[TaskView, id.StreamID]) error {
+func taskProjection(
+	ctx context.Context,
+	evt event.Event,
+	store *kv.TypedStore[TaskView, id.StreamID],
+) error {
 	switch evt.Type() {
 	case "task.created":
 		p, err := event.DecodePayloadAuto[TaskCreatedEvt](evt)
@@ -204,7 +212,11 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 	return state, nil
 }
 
-func userProjection(ctx context.Context, evt event.Event, store *kv.TypedStore[UserView, id.StreamID]) error {
+func userProjection(
+	ctx context.Context,
+	evt event.Event,
+	store *kv.TypedStore[UserView, id.StreamID],
+) error {
 	switch evt.Type() {
 	case "user.registered":
 		p, err := event.DecodePayloadAuto[UserRegisteredEvt](evt)

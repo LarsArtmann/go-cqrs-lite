@@ -108,20 +108,20 @@ features** that Pebble implements. It implements the minimum viable event store 
 at feature parity:
 
 - ~~**No CommandStore** — Pebble has CommandStore (Save, Load, CommandJournal, SeekableCommandJournal).
-      bbolt Backend has no CommandStore() accessor. The stack preset does not wire one.~~ done — `command_store.go` shipped
+  bbolt Backend has no CommandStore() accessor. The stack preset does not wire one.~~ done — `command_store.go` shipped
 - ~~**No QueryStore** — Pebble has QueryStore (SaveQuery, LoadQueries, QueryJournal, SeekableQueryJournal).
-      bbolt Backend has no QueryStore() accessor.~~ done — `query_store.go` shipped
+  bbolt Backend has no QueryStore() accessor.~~ done — `query_store.go` shipped
 - **No streaming iterators** — Pebble implements `event.StreamingSource` + `event.StreamingJournal`
-      (LoadStream, LoadStreamFromVersion, ReadStream, ReadStreamFrom). bbolt does NOT implement
-      these. The stack.Bundle will have nil StreamingSource/StreamingJournal fields.
+  (LoadStream, LoadStreamFromVersion, ReadStream, ReadStreamFrom). bbolt does NOT implement
+  these. The stack.Bundle will have nil StreamingSource/StreamingJournal fields.
 - [ ] **No BackwardsSource** — Pebble does not implement this either, so parity is maintained.
 - ~~**No `WithDurability` option** — bbolt always uses `DurabilityStrict` (fsync per write).
-      There is no `WithDurability(stack.DurabilityRelaxed)` equivalent (bbolt has no `NoSync`
-      option exposed — `bolt.Options` has a `NoSync` field but we don't expose it).~~ done — `WithDurability` + `OpenWith` shipped
+  There is no `WithDurability(stack.DurabilityRelaxed)` equivalent (bbolt has no `NoSync`
+  option exposed — `bolt.Options` has a `NoSync` field but we don't expose it).~~ done — `WithDurability` + `OpenWith` shipped
 - **No `WithAsyncWrites` option** — Pebble has `WithAsyncWrites()` StoreOption. bbolt has
-      a `StoreOption` type but it's unused (the variadic param is `_ ...StoreOption`).
+  a `StoreOption` type but it's unused (the variadic param is `_ ...StoreOption`).
 - **No `GracefulClose` on Backend** — implemented but NOT wired through the stack preset
-      as a distinct method (the preset just registers `stack.WithCloser(backend)`).
+  as a distinct method (the preset just registers `stack.WithCloser(backend)`).
 
 ### OTel spans created but NOT used
 
@@ -371,14 +371,14 @@ until bbolt reaches feature parity and gets tagged?
 
 Annotated during docs-health ANNOTATE pass. The bbolt module was brought to near-full parity with Pebble in subsequent sessions. Of the 50 items in section f), **20 are resolved**. Key resolutions:
 
-| Items | Status | Evidence |
-| ----- | ------ | -------- |
-| §f.1-2 | Done | api-stability modules list + golden regenerated |
-| §f.3-5 | Done | `nix fmt`, `nix run .#lint`, `nix run .#verify` all run |
-| §f.10 | Partial | `stack/bbolt/v4.0.0` tagged; `storage/bbolt` still untagged (TODO_LIST) |
-| §f.11-13 | Done | CommandStore + QueryStore + stack wiring shipped |
-| §f.16 | Done | eventtest contract suite (`contract_test.go`, 6 tests) |
-| §f.27-28 | Done | READMEs for both modules |
-| §f.29-32 | Done | AGENTS.md updated (module list, tree, count, tier model) |
-| §f.34 | Done | `WithDurability` + `OpenWith` shipped |
-| §f.44 | Done | Badger engine shipped as `metaengine/badgerengine/` (despite initial evaluation skip — LSM redundancy was acceptable for benchmark coverage) |
+| Items    | Status  | Evidence                                                                                                                                     |
+| -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| §f.1-2   | Done    | api-stability modules list + golden regenerated                                                                                              |
+| §f.3-5   | Done    | `nix fmt`, `nix run .#lint`, `nix run .#verify` all run                                                                                      |
+| §f.10    | Partial | `stack/bbolt/v4.0.0` tagged; `storage/bbolt` still untagged (TODO_LIST)                                                                      |
+| §f.11-13 | Done    | CommandStore + QueryStore + stack wiring shipped                                                                                             |
+| §f.16    | Done    | eventtest contract suite (`contract_test.go`, 6 tests)                                                                                       |
+| §f.27-28 | Done    | READMEs for both modules                                                                                                                     |
+| §f.29-32 | Done    | AGENTS.md updated (module list, tree, count, tier model)                                                                                     |
+| §f.34    | Done    | `WithDurability` + `OpenWith` shipped                                                                                                        |
+| §f.44    | Done    | Badger engine shipped as `metaengine/badgerengine/` (despite initial evaluation skip — LSM redundancy was acceptable for benchmark coverage) |
