@@ -24,18 +24,19 @@ new code to modules without lint exclusions, etc.).
 changes.
 
 **Modules fixed**:
-| Module | Issues | Root Cause | Fix |
-|--------|--------|------------|-----|
-| `command/` | 3 exhaustruct | `asrecord.go` intentionally omits Record fields (Payload, Version) | Added `exhaustruct` to exclusion |
-| `signing/` | 1 wrapcheck | `WrapCOSEMarshal` wraps internally (false positive) | Added `wrapcheck` + `nolintlint` |
-| `encryption/` | 1 wrapcheck | Same COSE pattern + codec.go delegation | Added `wrapcheck` + `nolintlint` |
-| `retry/` | 9 (gocritic + wrapcheck) | Deprecated shim re-exporting go-retry | Added `gocritic` + `wrapcheck` + `nolintlint` |
-| `idempotency/` | 2 staticcheck | Deprecated MemoryStore alias | Added `staticcheck` |
-| `cmd/cqrs-bench/` | 3 contextcheck | stack.New doesn't accept context | Added `contextcheck` |
-| `stack/bench/` | 6 (containedctx, gocognit, nilerr, unconvert) | Test-only benchmark code | New exclusion block |
-| `metaengine/` | 14 (err113, gochecknoglobals, wrapcheck, nolintlint) | Dynamic errors in auto_fold, global vars in record_stamp, test helpers | Added `err113`, `gochecknoglobals`, `wrapcheck`, `nolintlint` |
-| `metaengine/pebbleengine/` | 20 gochecknoglobals | Package-level var aliases for keycodec functions | Added `gochecknoglobals` |
-| `catalog/httptyped/` | 4 staticcheck | SA5011 nil-pointer false positive in test | Added `staticcheck` to existing catalog httptyped exclusion |
+
+| Module                     | Issues                                               | Root Cause                                                             | Fix                                                           |
+| -------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `command/`                 | 3 exhaustruct                                        | `asrecord.go` intentionally omits Record fields (Payload, Version)     | Added `exhaustruct` to exclusion                              |
+| `signing/`                 | 1 wrapcheck                                          | `WrapCOSEMarshal` wraps internally (false positive)                    | Added `wrapcheck` + `nolintlint`                              |
+| `encryption/`              | 1 wrapcheck                                          | Same COSE pattern + codec.go delegation                                | Added `wrapcheck` + `nolintlint`                              |
+| `retry/`                   | 9 (gocritic + wrapcheck)                             | Deprecated shim re-exporting go-retry                                  | Added `gocritic` + `wrapcheck` + `nolintlint`                 |
+| `idempotency/`             | 2 staticcheck                                        | Deprecated MemoryStore alias                                           | Added `staticcheck`                                           |
+| `cmd/cqrs-bench/`          | 3 contextcheck                                       | stack.New doesn't accept context                                       | Added `contextcheck`                                          |
+| `stack/bench/`             | 6 (containedctx, gocognit, nilerr, unconvert)        | Test-only benchmark code                                               | New exclusion block                                           |
+| `metaengine/`              | 14 (err113, gochecknoglobals, wrapcheck, nolintlint) | Dynamic errors in auto_fold, global vars in record_stamp, test helpers | Added `err113`, `gochecknoglobals`, `wrapcheck`, `nolintlint` |
+| `metaengine/pebbleengine/` | 20 gochecknoglobals                                  | Package-level var aliases for keycodec functions                       | Added `gochecknoglobals`                                      |
+| `catalog/httptyped/`       | 4 staticcheck                                        | SA5011 nil-pointer false positive in test                              | Added `staticcheck` to existing catalog httptyped exclusion   |
 
 ### 2. Transactional Test Expansion (`metaengine/enginetest/enginetest.go`)
 
@@ -65,11 +66,11 @@ Refactored into `runCounterTxSubtest` and `runStreamTxSubtest` helpers to keep g
 
 ### 4. Verify Gate Repairs
 
-| Issue | Fix |
-|-------|-----|
-| API stability golden stale (1 expected vs 3744 actual) | Regenerated `docs/api_surface.txt` via `--update` |
-| Coverage drift (metaengine +3.5%, query -2.5%) | Updated `scripts/check-coverage.sh` EXPECTED values |
-| doc-check CLI rejected positional file args | Added `cobra.ArbitraryArgs` to root command |
+| Issue                                                    | Fix                                                           |
+| -------------------------------------------------------- | ------------------------------------------------------------- |
+| API stability golden stale (1 expected vs 3744 actual)   | Regenerated `docs/api_surface.txt` via `--update`             |
+| Coverage drift (metaengine +3.5%, query -2.5%)           | Updated `scripts/check-coverage.sh` EXPECTED values           |
+| doc-check CLI rejected positional file args              | Added `cobra.ArbitraryArgs` to root command                   |
 | doc-check needs `GOEXPERIMENT=jsonv2` not just build tag | Fixed `flake.nix` verify step to export `GOEXPERIMENT=jsonv2` |
 
 ### 5. Verify Gate Result
@@ -90,11 +91,13 @@ bump (`7f4cb80a9 chore(deps): update dependencies across all modules`).
 ## b) PARTIALLY DONE
 
 ### Coverage Baseline Documentation
+
 - `scripts/check-coverage.sh` updated with new expected values
 - `AGENTS.md` coverage line was already current (daemon had updated it)
 - **Gap**: The date annotation in `check-coverage.sh` line 22 still says "verified 2027-07-27" (should be 2026-08-07). Minor cosmetic drift.
 
 ### Duplicate `gochecknoglobals` exclusion entries
+
 - There are now two separate exclusion blocks for `metaengine/`: the original (lines ~676-694) and
   the updated one. The YAML parser merges them correctly (both apply), but it's slightly untidy.
   Not a functional issue.
@@ -178,6 +181,7 @@ However, two things from the **prior session + auto-commit daemon** required int
 ## f) Next 50 Things to Get Done
 
 ### Priority 1: Stabilize Verify Gate
+
 1. Fix flaky `TestQuicSetConvergence` (increase timeout or add skip env var)
 2. Add `GOEXPERIMENT=jsonv2` to ALL verify-fast and other gate variants in flake.nix (not just verify)
 3. Add a CI test that validates `.golangci.yml` YAML structure (prevent breakages)
@@ -185,6 +189,7 @@ However, two things from the **prior session + auto-commit daemon** required int
 5. Consider marking QUIC convergence tests as `//go:build integration` to separate from unit suite
 
 ### Priority 2: Transactional Interface Completeness
+
 6. Add `RunTransactionalTest` call in `metaengine/sqliteengine/` tests
 7. Add `RunTransactionalTest` call in `metaengine/badgerengine/` tests
 8. Add `MultiAdd` transactional test (MultimapBackend inside RunInTx)
@@ -194,6 +199,7 @@ However, two things from the **prior session + auto-commit daemon** required int
 12. Add `RunInTx` to Memory engine (no-op wrapper, already implicitly correct)
 
 ### Priority 3: Lint Configuration Hygiene
+
 13. Add comments to every `.golangci.yml` exclusion explaining WHY (currently ~50% undocumented)
 14. Audit `metaengine/pebbleengine` gochecknoglobals — can these be moved into functions?
 15. Audit `metaengine/` err113 — can dynamic errors become sentinel + fmt.Errorf wrapping?
@@ -203,6 +209,7 @@ However, two things from the **prior session + auto-commit daemon** required int
 19. Run `golangci-lint linters` to verify no enabled linter is globally unused
 
 ### Priority 4: Doc-Check / CLI Robustness
+
 20. Fix `cmd/doc-check` to properly accept file args via cmdguard (not just `ArbitraryArgs`)
 21. Audit all `cmd/` tools for the same cmdguard positional-args issue
 22. Add `--files` flag as alternative to positional args for doc-check
@@ -210,6 +217,7 @@ However, two things from the **prior session + auto-commit daemon** required int
 24. Document the GOEXPERIMENT requirement in `cmd/doc-check/README.md`
 
 ### Priority 5: system/ Module
+
 25. Fix system/README.md Quick Start to be copy-pasteable (add imports, types)
 26. Add `system/README.md` section on driver registration (custom drivers via `RegisterDriver`)
 27. Add `system/README.md` section on bus driver registration (`RegisterBusDriver`)
@@ -218,6 +226,7 @@ However, two things from the **prior session + auto-commit daemon** required int
 30. Document scream-store warning ACK workflow in README
 
 ### Priority 6: Coverage & Test Quality
+
 31. Update `check-coverage.sh` date annotation ("verified 2027-07-27" → current date)
 32. Add coverage tracking for `metaengine/duckdbengine` and `metaengine/pgengine`
 33. Add coverage tracking for `system/` module
@@ -226,6 +235,7 @@ However, two things from the **prior session + auto-commit daemon** required int
 36. Investigate metaengine coverage increase (76.3% → 79.8%) — document what improved it
 
 ### Priority 7: Module Health
+
 37. Fix `check-coverage.sh` comment date from "2027-07-27" to actual date
 38. Run `go mod tidy` across all modules to clean up go.sum drift
 39. Verify all example/ modules compile and run
@@ -235,6 +245,7 @@ However, two things from the **prior session + auto-commit daemon** required int
 43. Run `nix flake check` to catch any flake-level issues
 
 ### Priority 8: Metaengine v2
+
 44. Read `docs/planning/meta-engine-project-definition.md` for v2 context
 45. Review ADR-0111 through ADR-0117 for the v2 architecture plan
 46. Check if Record type extraction (ADR-0111) affects the Transactional interface
@@ -252,6 +263,7 @@ However, two things from the **prior session + auto-commit daemon** required int
 It currently fails ~30% of the time under full verify-suite load. It uses real QUIC network
 connections via CGo (iroh-go bindings), and the convergence window is tight under CPU pressure.
 The three options have different tradeoffs:
+
 - **Increase timeout**: simplest, but makes the suite slower and may still flake
 - **Skip env var**: lets CI skip it, but reduces real coverage
 - **Integration build tag**: cleanest separation, but requires touching the test file + CI config
