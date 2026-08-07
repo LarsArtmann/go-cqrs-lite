@@ -109,7 +109,7 @@ func PrintComparison(w io.Writer, results map[string]*Result) {
 
 func printComparisonRow(w io.Writer, name string, r *Result) {
 	if r.Error != "" {
-		fmt.Fprintf(w, "%-10s %s\n", name, "FAILED: "+truncate(r.Error, 60))
+		fmt.Fprintf(w, "%-10s %s\n", name, "FAILED: "+Truncate(r.Error, 60))
 
 		return
 	}

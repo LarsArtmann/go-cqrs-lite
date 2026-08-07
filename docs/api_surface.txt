@@ -24,6 +24,8 @@ benchkit/func RunSuite
 benchkit/func ScalingSweep
 benchkit/func SortedSweepResults
 benchkit/func StreamLengthSweep
+benchkit/func TitleCase
+benchkit/func Truncate
 benchkit/func VerifyJSONFields
 benchkit/func WorkerSweep
 benchkit/func WriteBenchstat
@@ -2044,10 +2046,13 @@ metaengine/pgengine/const PG_NsPerOp
 metaengine/pgengine/const PG_NsPerRead
 metaengine/pgengine/func New
 metaengine/pgengine/func NewFromDB
+metaengine/pgengine/method Aggregate
 metaengine/pgengine/method ApplyLayout
 metaengine/pgengine/method Close
 metaengine/pgengine/method CounterGet
 metaengine/pgengine/method CounterIncrement
+metaengine/pgengine/method DistinctValues
+metaengine/pgengine/method GroupedAggregate
 metaengine/pgengine/method HealthCheck
 metaengine/pgengine/method JournalReadAll
 metaengine/pgengine/method JournalReadFrom
@@ -2055,6 +2060,8 @@ metaengine/pgengine/method MapDelete
 metaengine/pgengine/method MapGet
 metaengine/pgengine/method MapScan
 metaengine/pgengine/method MapSet
+metaengine/pgengine/method MultiAggregate
+metaengine/pgengine/method MultiGroupedAggregate
 metaengine/pgengine/method Profile
 metaengine/pgengine/method PushdownMapScan
 metaengine/pgengine/method RunInTx
@@ -2092,10 +2099,12 @@ metaengine/sqliteengine/method ApplyLayout
 metaengine/sqliteengine/method Close
 metaengine/sqliteengine/method CounterGet
 metaengine/sqliteengine/method CounterIncrement
+metaengine/sqliteengine/method DistinctValues
 metaengine/sqliteengine/method ExplainScanQuery
 metaengine/sqliteengine/method GetRawValue
 metaengine/sqliteengine/method GraphAddEdge
 metaengine/sqliteengine/method GraphNeighbors
+metaengine/sqliteengine/method GroupedAggregate
 metaengine/sqliteengine/method HealthCheck
 metaengine/sqliteengine/method JournalReadAll
 metaengine/sqliteengine/method JournalReadFrom
@@ -2107,7 +2116,9 @@ metaengine/sqliteengine/method MapScan
 metaengine/sqliteengine/method MapSet
 metaengine/sqliteengine/method MapUpdate
 metaengine/sqliteengine/method MultiAdd
+metaengine/sqliteengine/method MultiAggregate
 metaengine/sqliteengine/method MultiGet
+metaengine/sqliteengine/method MultiGroupedAggregate
 metaengine/sqliteengine/method Profile
 metaengine/sqliteengine/method PushdownMapScan
 metaengine/sqliteengine/method RunInTx

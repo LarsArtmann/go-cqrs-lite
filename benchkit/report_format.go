@@ -72,7 +72,10 @@ func sortedKeys(m map[string]*Result) []string {
 	return slices.Sorted(maps.Keys(m))
 }
 
-func truncate(s string, maxLen int) string {
+// Truncate returns s truncated to maxLen characters, appending "..." if
+// truncation occurs. Exported so sibling packages (cmd/cqrs-bench) can reuse
+// it without re-implementing the same idiom.
+func Truncate(s string, maxLen int) string {
 	if len(s) <= maxLen {
 		return s
 	}

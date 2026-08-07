@@ -296,6 +296,10 @@ linters:
   exclusions:
     generated: lax
     rules:
+      # ── Test files ──────────────────────────────────────────────
+      # Test code prioritises clarity of intent over strict style
+      # enforcement. These linters produce noise in test suites without
+      # catching real defects.
       - path: _test\.go$
         linters:
           - err113
@@ -325,6 +329,34 @@ linters:
           - noctx
           - forcetypeassert
           - tagliatelle
+      # Additional test relaxations: test files may exceed complexity
+      # thresholds and use package-level helpers/globals.
+      - path: _test\.go
+        linters:
+          - exhaustruct
+          - testpackage
+          - gochecknoglobals
+          - funlen
+          - cyclop
+          - goconst
+      # 'unused' false-positives in test helpers exercised conditionally
+      # (build tags, sub-tests).
+      - path: _test\.go
+        text: unused
+        linters:
+          - unused
+
+      # ── ireturn: idiomatic interface returns ─────────────────────
+      # This library exports interfaces as its primary API (event.Store,
+      # kv.Store, projection.Projection, etc.). Factory functions return
+      # these interfaces by design — ireturn's "don't return interfaces"
+      # rule conflicts with the library's composition philosophy.
+      - path: (kv|otel|stack|decider|schema|snapshot|codec|graph|projectionhost|catalog|middleware|transport)/
+        linters:
+          - ireturn
+
+      # ── Internal test helpers ────────────────────────────────────
+      # Test fixture files and cattest use relaxed style rules.
       - path: internal/cattest/
         linters:
           - thelper
@@ -332,40 +364,58 @@ linters:
           - gosec
           - err113
           - goconst
+      - path: testhelpers/fake.*\.go$
+        linters:
+          - exhaustruct
+      # testhelpers/ — nlreturn is noisy for short test assertions.
+      - path: testhelpers/
+        linters:
+          - nlreturn
+
+      # ── Generated / schema-heavy files ───────────────────────────
+      # upcaster.go has a parameter that mirrors the interface signature.
       - path: upcaster\.go$
         linters:
           - unparam
+      # Schema definition files use partial struct initialization by design.
       - path: schema.*\.go$
         linters:
           - exhaustruct
+      # codec/cbor.go has package-level codec registration globals.
+      - path: codec/cbor.*\.go$
+        linters:
+          - gochecknoglobals
+
+      # ── Integration tests ────────────────────────────────────────
+      # Cross-module integration tests exceed cognitive complexity
+      # thresholds because they exercise full pipelines end-to-end.
       - path: integration/
         linters:
           - staticcheck
           - gocognit
+
+      # ── Examples ─────────────────────────────────────────────────
+      # Example code prioritises readability over production strictness.
       - path: example/
         linters:
           - forbidigo
           - exhaustruct
           - wrapcheck
-      # Tombstone APIs (event.MarkTombstone, event.TombstoneStatus, etc.) are
-      # deprecated in favor of domain events (ADR-0114). Migration is in progress
-      # across storage/, listing/, watermill/, stack/sqlite/ — exclude SA1019
-      # for these modules until the migration is complete.
+
+      # ── Tombstone deprecation (ADR-0114) ─────────────────────────
+      # Tombstone APIs (event.MarkTombstone, event.TombstoneStatus, etc.)
+      # are deprecated in favour of domain events. Migration is in progress
+      # across storage/, listing/, watermill/, stack/sqlite/ — suppress
+      # SA1019 until the migration completes.
       - path: (storage|listing|watermill|stack/sqlite)/.*\.go$
         linters:
           - staticcheck
         text: "SA1019: (event\\.MarkTombstone|event\\.TombstoneStatus|event\\.TombstoneMark|event\\.DetectTombstone|event\\.MarkRebirth|event\\.MetadataKeyTombstone|event\\.MetadataKeyRebirth) is deprecated"
-      - path: metaengine/irohengine/(quic/)?demo/
-        linters:
-          - forbidigo
-          - errcheck
-          - gocritic
-          - revive
-          - unused
-      - path: metaengine/irohengine/demo/
-        linters:
-          - forbidigo
-          - errcheck
+
+      # ── system/ deployer composition root ────────────────────────
+      # The system/ module wires infrastructure via reflection and dynamic
+      # dispatch (driver registry, auto-wired projections). Many style
+      # linters are too strict for this intentional complexity.
       - path: system/
         linters:
           - exhaustruct
@@ -388,6 +438,35 @@ linters:
           - gocyclo
           - cyclop
           - maintidx
+
+      # ── metaengine/ cost-based planner ───────────────────────────
+      # The metaengine has inherent complexity (cost models, ADT
+      # classification, layout planning). It uses interface returns,
+      # type assertions, and numeric constants essential to its design.
+      - path: metaengine/
+        linters:
+          - cyclop
+          - exhaustruct
+          - forcetypeassert
+          - gocognit
+          - ireturn
+          - mnd
+          - gosec
+          - goconst
+          - exhaustive
+          - varnamelen
+          - wsl_v5
+          - nonamedreturns
+          - nlreturn
+          - tagliatelle
+          - funlen
+          - nestif
+          - err113
+          - gochecknoglobals
+          - wrapcheck
+          - nolintlint
+      # Iroh engine: CGo bridge with external dependency (iroh-go).
+      # Relaxed style for FFI boundary code.
       - path: metaengine/irohengine/
         linters:
           - exhaustruct
@@ -396,18 +475,93 @@ linters:
           - gochecknoglobals
           - predeclared
           - gocritic
-      - path: testhelpers/fake.*\.go$
+      # Iroh demos: standalone example programs, not production code.
+      - path: metaengine/irohengine/(quic/)?demo/
         linters:
-          - exhaustruct
-      - path: projection/
+          - forbidigo
+          - errcheck
+          - gocritic
+          - revive
+          - unused
+      - path: metaengine/irohengine/demo/
         linters:
-          - exhaustruct
-          - tagliatelle
-          - nlreturn
-      - path: projection/runner\.go$
+          - forbidigo
+          - errcheck
+      # DuckDB engine: CGo + external driver, relaxed for FFI code.
+      - path: metaengine/duckdbengine/
         linters:
           - wrapcheck
-          - err113
+          - varnamelen
+          - wsl_v5
+      # Postgres engine: external driver (pgx).
+      - path: metaengine/pgengine/
+        linters:
+          - wrapcheck
+          - varnamelen
+          - wsl_v5
+      # Pebble engine: external LSM driver, performance-oriented code.
+      - path: metaengine/pebbleengine/
+        linters:
+          - wrapcheck
+          - makezero
+          - modernize
+          - prealloc
+          - varnamelen
+          - gosec
+          - gochecknoglobals
+
+      # ── storage/ SQL store layer ─────────────────────────────────
+      # Complex dialect handling and driver interop. sqlpkg.CloseRows is
+      # the project-wide rows.Close helper; sqlclosecheck cannot see through
+      # the indirection.
+      - path: storage/
+        linters:
+          - dupl
+          - exhaustruct
+          - gosec
+          - mnd
+          - nestif
+          - nilnil
+          - tagliatelle
+          - varnamelen
+          - wrapcheck
+          - nlreturn
+          - wsl_v5
+          - contextcheck
+          - ireturn
+          - sqlclosecheck
+
+      # ── Turso external driver ────────────────────────────────────
+      # External driver (tursogo), experimental indexing advisor.
+      - path: turso/indexing/
+        linters:
+          - exhaustruct
+          - goconst
+          - exhaustive
+          - errcheck
+          - errorlint
+          - nlreturn
+          - wsl_v5
+          - modernize
+          - perfsprint
+          - predeclared
+          - nolintlint
+          - wrapcheck
+          - varnamelen
+      - path: turso/indexing\.go$
+        linters:
+          - wsl_v5
+      - path: turso/.*_test\.go$
+        linters:
+          - rowserrcheck
+          - sqlclosecheck
+          - unqueryvet
+          - staticcheck
+          - varnamelen
+
+      # ── catalog/ schema exporters ────────────────────────────────
+      # Boilerplate-heavy code with repetitive struct initialization
+      # across multiple output formats (AsyncAPI, D2, OpenAPI, etc.).
       - path: catalog/eventcatalog/
         linters:
           - dupl
@@ -435,14 +589,33 @@ linters:
       - path: catalog/registry_helpers.go$
         linters:
           - varnamelen
-      - path: testhelpers/
-        linters:
-          - nlreturn
       - path: catalog/.*_test.go$
         linters:
           - usestdlibvars
           - nolintlint
           - varnamelen
+
+      # ── projection/ ──────────────────────────────────────────────
+      # Interface-heavy projection API; runner has error wrapping patterns.
+      - path: projection/
+        linters:
+          - exhaustruct
+          - tagliatelle
+          - nlreturn
+          - ireturn
+      - path: projection/runner\.go$
+        linters:
+          - wrapcheck
+          - err113
+
+      # ── encryption/ ──────────────────────────────────────────────
+      # Cryptographic primitives use low-level operations and interface
+      # returns that trigger style linters.
+      - path: encryption/
+        linters:
+          - ireturn
+          - wrapcheck
+          - nolintlint
       - path: encryption/.*_test.go$
         linters:
           - contextcheck
@@ -450,36 +623,51 @@ linters:
       - path: encryption/store.go$
         linters:
           - wrapcheck
-      - path: storage/
-        linters:
-          - dupl
-          - exhaustruct
-          - gosec
-          - mnd
-          - nestif
-          - nilnil
-          - tagliatelle
-          - varnamelen
-          - wrapcheck
-          - nlreturn
-          - wsl_v5
-          - contextcheck
-          - ireturn
-          # sqlpkg.CloseRows is the project-wide rows.Close helper; sqlclosecheck cannot see through it.
-          - sqlclosecheck
       - path: encryption/(aesgcm|xchacha20|envelope)\.go$
         linters:
           - nlreturn
           - dupword
           - forcetypeassert
           - wsl_v5
-      - path: codec/cbor.*\.go$
+
+      # ── signing/ ─────────────────────────────────────────────────
+      # Signing uses interface returns and low-level crypto operations.
+      - path: signing/
         linters:
-          - gochecknoglobals
-      - path: kv/viewstoretest/
+          - ireturn
+          - wrapcheck
+          - nolintlint
+
+      # ── watermill/ external broker adapter ───────────────────────
+      # ThreeDotsLabs/watermill adapter: serialization/deserialization
+      # with complex error paths and interface returns.
+      - path: watermill/
         linters:
-          - gocognit
+          - wsl_v5
+          - wrapcheck
+          - err113
+          - nestif
+          - mnd
+          - exhaustruct
+          - dupl
           - errcheck
+          - perfsprint
+          - nolintlint
+          - ireturn
+
+      # ── transport/ ───────────────────────────────────────────────
+      # SSE broker uses interface returns; event delivery has error paths.
+      - path: transport/http/sse
+        linters:
+          - exhaustruct
+          - wrapcheck
+      - path: transport/http/sse_event\.go$
+        linters:
+          - err113
+
+      # ── stack/ bundle presets ────────────────────────────────────
+      # Bundle presets wire infrastructure; accessors and materialize use
+      # interface returns and nested error handling.
       - path: stack/materialize\.go$
         linters:
           - wrapcheck
@@ -489,6 +677,27 @@ linters:
           - errcheck
           - goconst
           - varnamelen
+      - path: stack/accessors\.go$
+        linters:
+          - err113
+          - exhaustruct
+          - wrapcheck
+      - path: stack/(turso|pebble)/preset\.go$
+        linters:
+          - exhaustruct
+          - err113
+          - contextcheck
+          - wrapcheck
+      # Benchmark suite: performance measurement code.
+      - path: stack/bench/
+        linters:
+          - containedctx
+          - gocognit
+          - nilerr
+          - unconvert
+
+      # ── benchkit/ benchmark factory suite ────────────────────────
+      # Measurement code with globals and interface returns.
       - path: benchkit/
         linters:
           - errcheck
@@ -501,81 +710,10 @@ linters:
           - nonamedreturns
           - tagliatelle
           - wrapcheck
-      - path: stack/bench/
-        linters:
-          - containedctx
-          - gocognit
-          - nilerr
-          - unconvert
-      - path: cmd/cqrs-bench/
-        linters:
-          - errcheck
-          - exhaustruct
-          - forbidigo
-          - goconst
-          - gosec
-          - ireturn
-          - mnd
-          - noctx
-          - wrapcheck
-          - goconst
-          - varnamelen
-          - err113
-          - nolintlint
-          - contextcheck
-      - path: stack/accessors\.go$
-        linters:
-          - err113
-          - exhaustruct
-          - wrapcheck
-      - path: stack/(turso|pebble)/preset\.go$
-        linters:
-          - exhaustruct
-          - err113
-          - contextcheck
-          - wrapcheck
-      - path: transport/http/sse
-        linters:
-          - exhaustruct
-          - wrapcheck
-      - path: transport/http/sse_event\.go$
-        linters:
-          - err113
-      - path: turso/indexing/
-        linters:
-          - exhaustruct
-          - goconst
-          - exhaustive
-          - errcheck
-          - errorlint
-          - nlreturn
-          - wsl_v5
-          - modernize
-          - perfsprint
-          - predeclared
-          - nolintlint
-          - wrapcheck
-          - varnamelen
-      - path: turso/indexing\.go$
-        linters:
-          - wsl_v5
-      - path: turso/.*_test\.go$
-        linters:
-          - rowserrcheck
-          - sqlclosecheck
-          - unqueryvet
-          - staticcheck
-          - varnamelen
-      - path: saga/
-        linters:
-          - nlreturn
-          - exhaustruct
-          - err113
-          - mnd
-          - dupl
-          - wrapcheck
-          - wsl_v5
-          - embeddedstructfieldcheck
+
+      # ── cmd/ CLI tools ───────────────────────────────────────────
+      # Code generation, linting, benchmarking CLIs. These use globals
+      # (registration), complex dispatch, and cobra CLI patterns.
       - path: cmd/cqrs-gen/
         linters:
           - dupl
@@ -610,148 +748,72 @@ linters:
           - gocyclo
           - cyclop
           - maintidx
-      - path: watermill/
+      - path: cmd/cqrs-bench/
         linters:
-          - wsl_v5
-          - wrapcheck
-          - err113
-          - nestif
-          - mnd
-          - exhaustruct
-          - dupl
           - errcheck
-          - perfsprint
+          - exhaustruct
+          - forbidigo
+          - goconst
+          - gosec
+          - ireturn
+          - mnd
+          - noctx
+          - wrapcheck
+          - varnamelen
+          - err113
           - nolintlint
-      - path: testhelpers/
+          - contextcheck
+      - path: cmd/doc-check/
+        linters:
+          - gosec
+
+      # ── saga/ (experimental) ─────────────────────────────────────
+      # Saga orchestration is experimental; relaxed until stabilized.
+      - path: saga/
         linters:
           - nlreturn
-      - path: kv/
-        linters:
-          - ireturn
-      - path: otel/
-        linters:
-          - ireturn
-      - path: stack/
-        linters:
-          - ireturn
-      - path: watermill/
-        linters:
-          - ireturn
-      - path: encryption/
-        linters:
-          - ireturn
+          - exhaustruct
+          - err113
+          - mnd
+          - dupl
           - wrapcheck
-          - nolintlint
-      - path: retry/
-        linters:
-          - gocritic
-          - wrapcheck
-          - nolintlint
+          - wsl_v5
+          - embeddedstructfieldcheck
+
+      # ── Module-specific small exclusions ─────────────────────────
+      # idempotency/ — re-export module, staticcheck noise on aliases.
       - path: idempotency/
         linters:
           - staticcheck
+      # kv/viewstoretest/ — shared contract test suite; complex setup.
+      - path: kv/viewstoretest/
+        linters:
+          - gocognit
+          - errcheck
+      # command/ — functional options trigger exhaustruct/nolintlint noise.
       - path: command/
         linters:
           - wrapcheck
           - exhaustruct
           - nolintlint
+      # query/ — functional options trigger wrapcheck noise.
       - path: query/
         linters:
           - wrapcheck
-      - path: decider/
+      # retry/ — thin re-export wrapper around go-retry.
+      - path: retry/
         linters:
-          - ireturn
-      - path: schema/
-        linters:
-          - ireturn
-      - path: snapshot/
-        linters:
-          - ireturn
-      - path: codec/
-        linters:
-          - ireturn
-      - path: graph/
-        linters:
-          - ireturn
-      - path: projection/
-        linters:
-          - ireturn
-      - path: projectionhost/
-        linters:
-          - ireturn
-      - path: catalog/
-        linters:
-          - ireturn
-      - path: middleware/
-        linters:
-          - ireturn
-      - path: transport/
-        linters:
-          - ireturn
-      - path: signing/
-        linters:
-          - ireturn
+          - gocritic
           - wrapcheck
           - nolintlint
+      # sync/ — experimental sync primitives.
       - path: sync/
         linters:
           - modernize
-      - path: metaengine/
-        linters:
-          - cyclop
-          - exhaustruct
-          - forcetypeassert
-          - gocognit
-          - ireturn
-          - mnd
-          - gosec
-          - goconst
-          - exhaustive
-          - varnamelen
-          - wsl_v5
-          - nonamedreturns
-          - nlreturn
-          - tagliatelle
-          - funlen
-          - nestif
-          - err113
-          - gochecknoglobals
-          - wrapcheck
-          - nolintlint
-      - path: metaengine/duckdbengine/
-        linters:
-          - wrapcheck
-          - varnamelen
-          - wsl_v5
-      - path: metaengine/pgengine/
-        linters:
-          - wrapcheck
-          - varnamelen
-          - wsl_v5
-      - path: metaengine/pebbleengine/
-        linters:
-          - wrapcheck
-          - makezero
-          - modernize
-          - prealloc
-          - varnamelen
-          - gosec
-          - gochecknoglobals
-      - path: cmd/doc-check/
-        linters:
-          - gosec
-      - path: _test\.go
-        linters:
-          - exhaustruct
-          - testpackage
-          - gochecknoglobals
-          - funlen
-          - cyclop
-          - goconst
-      - path: _test\.go
-        text: unused
-        linters:
-          - unused
+    # ── Globally excluded paths ────────────────────────────────────
+    # event/ and event/v4/eventtest/ have their own lint config (per-module
+    # GOWORK=off builds). storage/view/ is generated from the view template.
+    # Generated and protobuf files are excluded by convention.
     paths:
       - \.gen\.go$
       - \.pb\.go$

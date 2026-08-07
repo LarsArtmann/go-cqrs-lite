@@ -113,7 +113,7 @@ func buildComparisonTable(results map[string]*benchkit.Result) *output.Table {
 		}
 
 		if r.Error != "" {
-			t.AddRow(append([]string{name, "FAILED: " + truncateMsg(r.Error, 30)}, empty[1:]...))
+			t.AddRow(append([]string{name, "FAILED: " + benchkit.Truncate(r.Error, 30)}, empty[1:]...))
 
 			continue
 		}
@@ -291,7 +291,7 @@ func buildSweepTable(results []benchkit.SweepResult) *output.Table {
 		return output.NewTable(nil)
 	}
 
-	param := titleCase(results[0].Parameter)
+	param := benchkit.TitleCase(results[0].Parameter)
 	headers := []string{
 		param, "Write P50", "Write P99", "Load P50",
 		"GC Max Pause", "Allocs/Op", "Write Amp", "Heap",
@@ -317,7 +317,7 @@ func buildSweepTable(results []benchkit.SweepResult) *output.Table {
 		if r.Error != "" {
 			t.AddRow(
 				append(
-					[]string{strconv.Itoa(sr.Value), "FAILED: " + truncateMsg(r.Error, 30)},
+					[]string{strconv.Itoa(sr.Value), "FAILED: " + benchkit.Truncate(r.Error, 30)},
 					empty[1:]...),
 			)
 
@@ -389,7 +389,7 @@ func renderRunResult(w io.Writer, format string, config benchkit.Config, result 
 func buildRunSummaryTable(r *benchkit.Result) *output.Table {
 	if r.Error != "" {
 		t := output.NewTable([]string{"Status", "Message"})
-		t.AddRow([]string{"FAILED", truncateMsg(r.Error, 60)})
+		t.AddRow([]string{"FAILED", benchkit.Truncate(r.Error, 60)})
 
 		return t
 	}
@@ -577,18 +577,4 @@ func fmtCoVDash(c float64) string {
 	return fmt.Sprintf("%.1f%%", c*100)
 }
 
-func truncateMsg(s string, maxLen int) string {
-	if len(s) <= maxLen {
-		return s
-	}
 
-	return s[:maxLen-3] + "..."
-}
-
-func titleCase(s string) string {
-	if s == "" {
-		return s
-	}
-
-	return strings.ToUpper(s[:1]) + s[1:]
-}

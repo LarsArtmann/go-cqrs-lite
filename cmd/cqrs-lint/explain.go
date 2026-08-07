@@ -60,37 +60,62 @@ func writeSectionHeader(b *strings.Builder, title string) {
 	b.WriteString("\n")
 }
 
-// renderKeyTable writes a 4-column aligned table: three padded columns plus
-// an unpadded description column. Column widths are auto-computed from the
-// header and row content. Terminated by a blank line. Shared by
-// renderTopLevelKeys and renderFeatures.
-func renderKeyTable(b *strings.Builder, headers [4]string, rows [][4]string) {
-	w0, w1, w2 := len(headers[0]), len(headers[1]), len(headers[2])
+// renderTable writes an aligned table with box-drawing separators.
+// All columns except the last are left-padded to auto-computed widths.
+// The last column is unpadded. Terminated by a blank line.
+func renderTable(b *strings.Builder, headers []string, rows [][]string) {
+	widths := columnWidths(headers, rows)
 
-	for _, r := range rows {
-		if len(r[0]) > w0 {
-			w0 = len(r[0])
-		}
-		if len(r[1]) > w1 {
-			w1 = len(r[1])
-		}
-		if len(r[2]) > w2 {
-			w2 = len(r[2])
-		}
-	}
-
-	fmt.Fprintf(b, "  %-*s  %-*s  %-*s  %s\n",
-		w0, headers[0], w1, headers[1], w2, headers[2], headers[3])
-	fmt.Fprintf(b, "  %s  %s  %s  %s\n",
-		strings.Repeat("─", w0), strings.Repeat("─", w1),
-		strings.Repeat("─", w2), strings.Repeat("─", len(headers[3])))
-
-	for _, r := range rows {
-		fmt.Fprintf(b, "  %-*s  %-*s  %-*s  %s\n",
-			w0, r[0], w1, r[1], w2, r[2], r[3])
+	writeTableRow(b, widths, headers)
+	writeTableSeparator(b, widths)
+	for _, row := range rows {
+		writeTableRow(b, widths, row)
 	}
 
 	b.WriteString("\n\n")
+}
+
+// columnWidths computes the max width for each column except the last from
+// the header and row content. The last column width is the header length only.
+func columnWidths(headers []string, rows [][]string) []int {
+	widths := make([]int, len(headers))
+	for i, h := range headers {
+		widths[i] = len(h)
+	}
+	for _, row := range rows {
+		for i := 0; i+1 < len(headers) && i < len(row); i++ {
+			if len(row[i]) > widths[i] {
+				widths[i] = len(row[i])
+			}
+		}
+	}
+	return widths
+}
+
+// writeTableRow writes one row of an aligned table. All columns except the
+// last are left-padded to widths[i].
+func writeTableRow(b *strings.Builder, widths []int, cells []string) {
+	b.WriteString("  ")
+	for i, cell := range cells {
+		if i > 0 {
+			b.WriteString("  ")
+		}
+		if i+1 < len(widths) {
+			fmt.Fprintf(b, "%-*s", widths[i], cell)
+		} else {
+			b.WriteString(cell)
+		}
+	}
+	b.WriteString("\n")
+}
+
+// writeTableSeparator writes a dashed separator row matching column widths.
+func writeTableSeparator(b *strings.Builder, widths []int) {
+	sep := make([]string, len(widths))
+	for i := range widths {
+		sep[i] = strings.Repeat("─", widths[i])
+	}
+	writeTableRow(b, widths, sep)
 }
 
 func renderConfigFileSection(b *strings.Builder) {
@@ -154,12 +179,12 @@ var topLevelKeys = []topLevelKey{
 func renderTopLevelKeys(b *strings.Builder) {
 	writeSectionHeader(b, "TOP-LEVEL KEYS")
 
-	rows := make([][4]string, len(topLevelKeys))
+	rows := make([][]string, len(topLevelKeys))
 	for i, k := range topLevelKeys {
-		rows[i] = [4]string{k.key, k.typ, k.def, k.description}
+		rows[i] = []string{k.key, k.typ, k.def, k.description}
 	}
 
-	renderKeyTable(b, [4]string{"Key", "Type", "Default", "Description"}, rows)
+	renderTable(b, []string{"Key", "Type", "Default", "Description"}, rows)
 }
 
 func renderPresets(b *strings.Builder) {
@@ -352,12 +377,12 @@ func renderFeatures(b *strings.Builder) {
 	b.WriteString("  ones you want to pin; unset flags use auto-detection.\n")
 	b.WriteString("\n")
 
-	rows := make([][4]string, len(featureKeys))
+	rows := make([][]string, len(featureKeys))
 	for i, f := range featureKeys {
-		rows[i] = [4]string{f.key, f.typ, strings.Join(f.validValues, ", "), f.description}
+		rows[i] = []string{f.key, f.typ, strings.Join(f.validValues, ", "), f.description}
 	}
 
-	renderKeyTable(b, [4]string{"Key", "Type", "Valid Values", "Description"}, rows)
+	renderTable(b, []string{"Key", "Type", "Valid Values", "Description"}, rows)
 }
 
 // ruleConfigKey describes one rules.* config key.
@@ -397,35 +422,20 @@ var ruleConfigKeys = []ruleConfigKey{
 func renderRulesConfig(b *strings.Builder) {
 	writeSectionHeader(b, "RULES")
 
-	keyWidth := len("Key")
-	typeWidth := len("Type")
-
-	for _, r := range ruleConfigKeys {
-		if len(r.key) > keyWidth {
-			keyWidth = len(r.key)
-		}
-		if len(r.typ) > typeWidth {
-			typeWidth = len(r.typ)
-		}
+	headers := []string{"Key", "Type", "Description"}
+	rows := make([][]string, len(ruleConfigKeys))
+	for i, r := range ruleConfigKeys {
+		rows[i] = []string{r.key, r.typ, r.description}
 	}
+	widths := columnWidths(headers, rows)
 
-	fmt.Fprintf(b, "  %-*s  %-*s  %s\n",
-		keyWidth, "Key",
-		typeWidth, "Type",
-		"Description")
-	fmt.Fprintf(b, "  %s  %s  %s\n",
-		strings.Repeat("─", keyWidth),
-		strings.Repeat("─", typeWidth),
-		strings.Repeat("─", 60))
+	writeTableRow(b, widths, headers)
+	writeTableSeparator(b, widths)
 
+	exampleIndent := strings.Repeat(" ", widths[0]+widths[1]+6)
 	for _, r := range ruleConfigKeys {
-		fmt.Fprintf(b, "  %-*s  %-*s  %s\n",
-			keyWidth, r.key,
-			typeWidth, r.typ,
-			r.description)
-		fmt.Fprintf(b, "  %sExample: %s\n",
-			strings.Repeat(" ", keyWidth+typeWidth+6),
-			r.example)
+		writeTableRow(b, widths, []string{r.key, r.typ, r.description})
+		fmt.Fprintf(b, "  %sExample: %s\n", exampleIndent, r.example)
 	}
 
 	b.WriteString("\n\n")

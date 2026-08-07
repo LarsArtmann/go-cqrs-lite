@@ -128,7 +128,7 @@ func PrintSweep(w io.Writer, results []SweepResult) {
 
 	param := results[0].Parameter
 
-	fmt.Fprintf(w, "\n%s Sweep\n", titleCase(param))
+	fmt.Fprintf(w, "\n%s Sweep\n", TitleCase(param))
 	fmt.Fprintln(w, strings.Repeat("=", 100))
 
 	header := fmt.Sprintf(
@@ -147,7 +147,7 @@ func PrintSweep(w io.Writer, results []SweepResult) {
 		}
 
 		if r.Error != "" {
-			fmt.Fprintf(w, "%-10d %s\n", sweepResult.Value, "FAILED: "+truncate(r.Error, 50))
+			fmt.Fprintf(w, "%-10d %s\n", sweepResult.Value, "FAILED: "+Truncate(r.Error, 50))
 
 			continue
 		}
@@ -205,7 +205,10 @@ func SortedSweepResults(results []SweepResult) []SweepResult {
 	return sorted
 }
 
-func titleCase(s string) string {
+// TitleCase returns s with its first character uppercased.
+// Exported so sibling packages (cmd/cqrs-bench) can reuse it without
+// re-implementing the same 3-line idiom.
+func TitleCase(s string) string {
 	if s == "" {
 		return s
 	}

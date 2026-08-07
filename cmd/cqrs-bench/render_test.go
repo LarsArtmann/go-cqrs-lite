@@ -450,12 +450,12 @@ func TestResolveFormat(t *testing.T) {
 func TestTruncateMsg(t *testing.T) {
 	t.Parallel()
 
-	if got := truncateMsg("short", 10); got != "short" {
-		t.Errorf("truncateMsg(short, 10) = %q, want 'short'", got)
+	if got := benchkit.Truncate("short", 10); got != "short" {
+		t.Errorf("Truncate(short, 10) = %q, want 'short'", got)
 	}
 
-	if got := truncateMsg("this is a long message", 10); got != "this is..." {
-		t.Errorf("truncateMsg(long, 10) = %q, want 'this is...'", got)
+	if got := benchkit.Truncate("this is a long message", 10); got != "this is..." {
+		t.Errorf("Truncate(long, 10) = %q, want 'this is...'", got)
 	}
 }
 
@@ -471,8 +471,8 @@ func TestTitleCase(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		if got := titleCase(tt.input); got != tt.want {
-			t.Errorf("titleCase(%q) = %q, want %q", tt.input, got, tt.want)
+		if got := benchkit.TitleCase(tt.input); got != tt.want {
+			t.Errorf("TitleCase(%q) = %q, want %q", tt.input, got, tt.want)
 		}
 	}
 }
