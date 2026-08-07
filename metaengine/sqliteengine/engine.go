@@ -163,6 +163,12 @@ func (e *sqliteEngine) Close() error {
 	return nil
 }
 
+// HealthCheck pings the underlying database to verify connectivity.
+// Implements [metaengine.HealthChecker] for Kubernetes-style liveness probes.
+func (e *sqliteEngine) HealthCheck(ctx context.Context) error {
+	return e.db.PingContext(ctx)
+}
+
 func encodeKey(key any) string {
 	switch k := key.(type) {
 	case string:
