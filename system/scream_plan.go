@@ -84,23 +84,31 @@ func CheckPlanSafety(
 func classifyPlanDiff(diff *metaengine.PlanDiffResult, report *ScreamReport) {
 	for _, name := range diff.QueriesRemoved {
 		report.Diagnostics = append(report.Diagnostics, ScreamDiagnostic{
-			Tier:   TierScream,
-			Rule:   fmt.Sprintf("plan:query-removed:%s", name),
-			Detail: fmt.Sprintf("projection query %q was removed — existing data is orphaned and cannot be replayed", name),
+			Tier: TierScream,
+			Rule: "plan:query-removed:" + name,
+			Detail: fmt.Sprintf(
+				"projection query %q was removed — existing data is orphaned and cannot be replayed",
+				name,
+			),
 		})
 	}
 
 	for _, change := range diff.QueriesChanged {
 		if change.OldADT != change.NewADT {
 			report.Diagnostics = append(report.Diagnostics, ScreamDiagnostic{
-				Tier:   TierScream,
-				Rule:   fmt.Sprintf("plan:adt-changed:%s", change.Name),
-				Detail: fmt.Sprintf("projection query %q changed ADT from %q to %q — incompatible data model", change.Name, change.OldADT, change.NewADT),
+				Tier: TierScream,
+				Rule: "plan:adt-changed:" + change.Name,
+				Detail: fmt.Sprintf(
+					"projection query %q changed ADT from %q to %q — incompatible data model",
+					change.Name,
+					change.OldADT,
+					change.NewADT,
+				),
 			})
 		} else if change.OldEngine != change.NewEngine {
 			report.Diagnostics = append(report.Diagnostics, ScreamDiagnostic{
 				Tier:   TierWarnOverride,
-				Rule:   fmt.Sprintf("plan:engine-changed:%s", change.Name),
+				Rule:   "plan:engine-changed:" + change.Name,
 				Detail: fmt.Sprintf("projection query %q moved from engine %q to %q — data may need backfill", change.Name, change.OldEngine, change.NewEngine),
 			})
 		}
@@ -109,7 +117,7 @@ func classifyPlanDiff(diff *metaengine.PlanDiffResult, report *ScreamReport) {
 	for _, name := range diff.QueriesAdded {
 		report.Diagnostics = append(report.Diagnostics, ScreamDiagnostic{
 			Tier:   TierAdvisory,
-			Rule:   fmt.Sprintf("plan:query-added:%s", name),
+			Rule:   "plan:query-added:" + name,
 			Detail: fmt.Sprintf("new projection query %q added — will backfill from the event log on startup", name),
 		})
 	}
@@ -117,7 +125,7 @@ func classifyPlanDiff(diff *metaengine.PlanDiffResult, report *ScreamReport) {
 	for _, table := range diff.LayoutsRemoved {
 		report.Diagnostics = append(report.Diagnostics, ScreamDiagnostic{
 			Tier:   TierWarnOverride,
-			Rule:   fmt.Sprintf("plan:layout-removed:%s", table),
+			Rule:   "plan:layout-removed:" + table,
 			Detail: fmt.Sprintf("layout/table %q was removed — existing data in this table may be orphaned", table),
 		})
 	}
@@ -125,23 +133,26 @@ func classifyPlanDiff(diff *metaengine.PlanDiffResult, report *ScreamReport) {
 	for _, table := range diff.LayoutsAdded {
 		report.Diagnostics = append(report.Diagnostics, ScreamDiagnostic{
 			Tier:   TierAdvisory,
-			Rule:   fmt.Sprintf("plan:layout-added:%s", table),
+			Rule:   "plan:layout-added:" + table,
 			Detail: fmt.Sprintf("new layout/table %q added — will be created on startup", table),
 		})
 	}
 
 	for _, eng := range diff.EnginesRemoved {
 		report.Diagnostics = append(report.Diagnostics, ScreamDiagnostic{
-			Tier:   TierWarnOverride,
-			Rule:   fmt.Sprintf("plan:engine-removed:%s", eng),
-			Detail: fmt.Sprintf("engine %q was removed from the projection pool — queries previously assigned to it may have moved", eng),
+			Tier: TierWarnOverride,
+			Rule: "plan:engine-removed:" + eng,
+			Detail: fmt.Sprintf(
+				"engine %q was removed from the projection pool — queries previously assigned to it may have moved",
+				eng,
+			),
 		})
 	}
 
 	for _, eng := range diff.EnginesAdded {
 		report.Diagnostics = append(report.Diagnostics, ScreamDiagnostic{
 			Tier:   TierAdvisory,
-			Rule:   fmt.Sprintf("plan:engine-added:%s", eng),
+			Rule:   "plan:engine-added:" + eng,
 			Detail: fmt.Sprintf("engine %q was added to the projection pool — planner may reassign queries", eng),
 		})
 	}
