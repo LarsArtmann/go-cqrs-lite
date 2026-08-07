@@ -46,6 +46,24 @@ func renderScorecardText(result ScorecardResult, colorMode output.ColorMode) str
 	}
 	b.WriteString("\n")
 
+	// Metaengine section.
+	if result.Metaengine != nil {
+		b.WriteString("METAENGINE\n")
+		fmt.Fprintf(&b, "  Detected: yes\n")
+		if len(result.Metaengine.Engines) > 0 {
+			fmt.Fprintf(&b, "  Engines:  %s\n", strings.Join(result.Metaengine.Engines, ", "))
+		}
+		if result.Metaengine.PushdownAdopted {
+			b.WriteString("  Pushdown: adopted (FilterOnField/SortOnField)\n")
+		} else {
+			b.WriteString("  Pushdown: not adopted\n")
+		}
+		if result.Metaengine.Suggestion != "" {
+			fmt.Fprintf(&b, "  → %s\n", result.Metaengine.Suggestion)
+		}
+		b.WriteString("\n")
+	}
+
 	// Used modules table.
 	if len(result.Used) > 0 {
 		b.WriteString("USED\n")
@@ -161,6 +179,23 @@ func renderScorecardMarkdown(result ScorecardResult) string {
 	if result.Summary.IrrelevantCount > 0 {
 		fmt.Fprintf(&b, "\n_%d modules excluded as irrelevant for this profile._\n",
 			result.Summary.IrrelevantCount)
+	}
+
+	if result.Metaengine != nil {
+		b.WriteString("\n### Metaengine\n\n")
+		fmt.Fprintf(&b, "- **Detected:** yes\n")
+		if len(result.Metaengine.Engines) > 0 {
+			fmt.Fprintf(&b, "- **Engines:** %s\n",
+				strings.Join(result.Metaengine.Engines, ", "))
+		}
+		if result.Metaengine.PushdownAdopted {
+			b.WriteString("- **Pushdown:** adopted (FilterOnField/SortOnField)\n")
+		} else {
+			b.WriteString("- **Pushdown:** not adopted\n")
+		}
+		if result.Metaengine.Suggestion != "" {
+			fmt.Fprintf(&b, "\n_💡 %s_\n", result.Metaengine.Suggestion)
+		}
 	}
 
 	renderMarkdownTable := func(title string, modules []ScorecardModule) {

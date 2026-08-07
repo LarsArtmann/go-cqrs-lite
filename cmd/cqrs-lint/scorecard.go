@@ -21,11 +21,23 @@ type ScorecardSummary struct {
 // catalog into Used / Missing / Irrelevant based on the detected usage and
 // the project's feature profile.
 type ScorecardResult struct {
-	Summary         ScorecardSummary  `json:"summary"`
-	Used            []ScorecardModule `json:"used"`
-	Missing         []ScorecardModule `json:"missing"`
-	Irrelevant      []ScorecardModule `json:"irrelevant,omitempty"`
-	Recommendations []string          `json:"recommendations,omitempty"`
+	Summary         ScorecardSummary     `json:"summary"`
+	Used            []ScorecardModule    `json:"used"`
+	Missing         []ScorecardModule    `json:"missing"`
+	Irrelevant      []ScorecardModule    `json:"irrelevant,omitempty"`
+	Recommendations []string             `json:"recommendations,omitempty"`
+	Metaengine      *ScorecardMetaengine `json:"metaengine,omitempty"`
+}
+
+// ScorecardMetaengine holds detected metaengine usage details — which engines
+// are imported and whether SQL pushdown (FilterOnField/SortOnField) is adopted.
+//
+//nolint:tagliatelle // snake_case JSON for CLI tool consumers
+type ScorecardMetaengine struct {
+	Detected        bool     `json:"detected"`
+	Engines         []string `json:"engines,omitempty"`
+	PushdownAdopted bool     `json:"pushdown_adopted"`
+	Suggestion      string   `json:"suggestion,omitempty"`
 }
 
 // ScorecardModule is one row in the scorecard output.
@@ -108,6 +120,20 @@ func ComputeScorecard(
 
 	// Generate up to 3 recommendations from the Missing list.
 	result.Recommendations = generateRecommendations(result.Missing, 3)
+
+	// Metaengine detection section.
+	if fp.HasMetaengine {
+		me := &ScorecardMetaengine{
+			Detected:        true,
+			Engines:         fp.MetaengineEngines,
+			PushdownAdopted: fp.MetaenginePushdown,
+		}
+		if !fp.MetaenginePushdown {
+			me.Suggestion = "Adopt FilterOnField/SortOnField for SQL filter/sort " +
+				"pushdown (50x faster at scale vs in-memory scan)"
+		}
+		result.Metaengine = me
+	}
 
 	return result
 }
