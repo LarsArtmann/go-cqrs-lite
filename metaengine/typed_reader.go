@@ -686,7 +686,14 @@ func (r *TypedReader[V]) groupedAggregatePushdown(
 	eng, ok := r.store.collectionEngine(r.collection)
 	if ok {
 		if gr, ok := eng.(GroupedAggregateReader); ok {
-			return gr.GroupedAggregate(ctx, r.collection, fn, column, groupBy, filters) //nolint:wrapcheck
+			return gr.GroupedAggregate(
+				ctx,
+				r.collection,
+				fn,
+				column,
+				groupBy,
+				filters,
+			) //nolint:wrapcheck
 		}
 	}
 
@@ -790,7 +797,13 @@ func (r *TypedReader[V]) MultiGroupedAggregate(
 	eng, ok := r.store.collectionEngine(r.collection)
 	if ok {
 		if mgr, ok := eng.(MultiGroupedAggregateReader); ok {
-			return mgr.MultiGroupedAggregate(ctx, r.collection, specs, groupBy, filters) //nolint:wrapcheck
+			return mgr.MultiGroupedAggregate(
+				ctx,
+				r.collection,
+				specs,
+				groupBy,
+				filters,
+			) //nolint:wrapcheck
 		}
 	}
 

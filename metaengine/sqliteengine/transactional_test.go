@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"testing"
 
+	_ "modernc.org/sqlite"
+
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
-	_ "modernc.org/sqlite"
 )
 
 func TestSQLiteEngine_Transactional(t *testing.T) {

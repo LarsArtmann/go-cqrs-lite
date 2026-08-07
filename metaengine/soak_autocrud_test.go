@@ -77,9 +77,9 @@ func TestSoak_AutoCRUDByConvention(t *testing.T) {
 	ctx := context.Background()
 
 	const (
-		numKeys      = 500
+		numKeys       = 500
 		updatesPerKey = 90
-		numEvents    = numKeys + numKeys*updatesPerKey + numKeys/5 + numKeys/10
+		numEvents     = numKeys + numKeys*updatesPerKey + numKeys/5 + numKeys/10
 	)
 
 	keys := make([]string, numKeys)
@@ -140,7 +140,7 @@ func TestSoak_AutoCRUDByConvention(t *testing.T) {
 		if idx%2 == 0 {
 			if err := store.Apply(ctx, "taskCreated", taskCreated{
 				ID:     k,
-				Title:  fmt.Sprintf("Recreated %s", k),
+				Title:  "Recreated " + k,
 				Status: "open",
 			}); err != nil {
 				t.Fatalf("Apply recreate %s: %v", k, err)
@@ -209,7 +209,12 @@ func TestSoak_AutoCRUDByConvention(t *testing.T) {
 
 	t.Logf(
 		"auto-crud soak: %d events, %d keys (%d deleted, %d recreated), %d bytes heap growth (%.1f MB), %d errors",
-		eventCount, numKeys, len(deletedKeys), len(recreatedKeys),
-		totalGrowth, float64(totalGrowth)/1024/1024, checkErrors,
+		eventCount,
+		numKeys,
+		len(deletedKeys),
+		len(recreatedKeys),
+		totalGrowth,
+		float64(totalGrowth)/1024/1024,
+		checkErrors,
 	)
 }

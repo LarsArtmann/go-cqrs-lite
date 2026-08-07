@@ -3,7 +3,9 @@ package duckdbengine
 import (
 	"context"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
+	"math/big"
 	"strings"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -25,8 +27,10 @@ import (
 // ---------------------------------------------------------------------------
 
 // aggExpr builds the SQL expression for an aggregate function applied to a
-// column. On the standard path, it uses json_extract; on the planned path,
-// it uses direct column references. COUNT(*) ignores column.
+// column. On the standard path, it casts json_extract output to DOUBLE (DuckDB
+// aggregate functions don't accept JSON type directly). On the planned path,
+// columns already have proper SQL types so no cast is needed. COUNT(*) ignores
+// column.
 func aggExpr(fn metaengine.AggregateFn, column string, plan metaengine.LayoutPlan) string {
 	if fn == metaengine.AggregateCount {
 		return "COUNT(*)"
@@ -36,7 +40,7 @@ func aggExpr(fn metaengine.AggregateFn, column string, plan metaengine.LayoutPla
 		return fmt.Sprintf("%s(%s)", fn, metaengine.QuoteIdent(column))
 	}
 
-	return fmt.Sprintf("%s(json_extract(value, '%s'))", fn, jsonPath(column))
+	return fmt.Sprintf("%s(CAST(json_extract(value, '%s') AS DOUBLE))", fn, jsonPath(column))
 }
 
 // groupExpr builds the SQL expression for the GROUP BY column.
@@ -88,14 +92,25 @@ func appendDuckDBFilter(
 			*argIdx++
 		}
 
-		fmt.Fprintf(b, " AND %s IN (%s)", columnExpr(f.Column, plan), strings.Join(placeholders, ", "))
+		fmt.Fprintf(
+			b,
+			" AND %s IN (%s)",
+			columnExpr(f.Column, plan),
+			strings.Join(placeholders, ", "),
+		)
 	} else {
 		if plan.Table != "" {
 			fmt.Fprintf(b, " AND %s %s $%d", columnExpr(f.Column, plan), string(f.Op), *argIdx)
 			*args = append(*args, f.Value)
 		} else {
 			jb, _ := json.Marshal(f.Value)
-			fmt.Fprintf(b, " AND %s %s $%d::json", columnExpr(f.Column, plan), string(f.Op), *argIdx)
+			fmt.Fprintf(
+				b,
+				" AND %s %s $%d::json",
+				columnExpr(f.Column, plan),
+				string(f.Op),
+				*argIdx,
+			)
 			*args = append(*args, string(jb))
 		}
 
@@ -106,10 +121,10 @@ func appendDuckDBFilter(
 // fromClause returns the FROM clause + initial WHERE collection filter.
 func fromClause(col string, plan metaengine.LayoutPlan) string {
 	if plan.Table != "" {
-		return fmt.Sprintf("FROM %s", metaengine.QuoteIdent(plan.Table))
+		return "FROM " + metaengine.QuoteIdent(plan.Table)
 	}
 
-	return fmt.Sprintf("FROM meta_map WHERE collection = $1")
+	return "FROM meta_map WHERE collection = $1"
 }
 
 // initialArgIndex returns the starting arg index ($N). Standard path uses $1
@@ -162,7 +177,12 @@ func (e *duckdbEngine) aggregateStandard(
 	args := initialArgs(col, metaengine.LayoutPlan{})
 	argIdx := initialArgIndex(metaengine.LayoutPlan{})
 
-	fmt.Fprintf(&b, "SELECT %s %s", aggExpr(fn, column, metaengine.LayoutPlan{}), fromClause(col, metaengine.LayoutPlan{}))
+	fmt.Fprintf(
+		&b,
+		"SELECT %s %s",
+		aggExpr(fn, column, metaengine.LayoutPlan{}),
+		fromClause(col, metaengine.LayoutPlan{}),
+	)
 
 	for _, f := range filters {
 		appendDuckDBFilter(&b, &args, &argIdx, f, metaengine.LayoutPlan{})
@@ -217,7 +237,8 @@ func (e *duckdbEngine) scanScalar(
 }
 
 // decodeFloat converts a DuckDB scalar scan value to float64. DuckDB returns
-// float64 for SUM/AVG, int64 for COUNT, and may return nil for empty sets.
+// float64 for SUM/AVG over DOUBLE columns, HUGEINT (mapped to *big.Int by the
+// driver) for SUM over INTEGER columns, int64 for COUNT, and nil for empty sets.
 func decodeFloat(raw any) (float64, error) {
 	if raw == nil {
 		return 0, nil
@@ -232,6 +253,9 @@ func decodeFloat(raw any) (float64, error) {
 		return float64(v), nil
 	case int:
 		return float64(v), nil
+	case *big.Int:
+		f, _ := v.Float64()
+		return f, nil
 	case []byte:
 		var f float64
 		if err := json.Unmarshal(v, &f); err != nil {
@@ -374,7 +398,7 @@ func (e *duckdbEngine) MultiAggregate(
 	filters []metaengine.FilterSpec,
 ) (map[string]float64, error) {
 	if len(specs) == 0 {
-		return nil, fmt.Errorf("duckdbengine.MultiAggregate: no specs provided")
+		return nil, errors.New("duckdbengine.MultiAggregate: no specs provided")
 	}
 
 	if plan, ok := e.plans[col]; ok {
@@ -398,7 +422,11 @@ func (e *duckdbEngine) multiAggregateStandard(
 
 	selectCols := make([]string, len(specs))
 	for i, s := range specs {
-		selectCols[i] = fmt.Sprintf("%s AS %s", aggExpr(s.Fn, s.Column, plan), metaengine.QuoteIdent(s.AliasOr()))
+		selectCols[i] = fmt.Sprintf(
+			"%s AS %s",
+			aggExpr(s.Fn, s.Column, plan),
+			metaengine.QuoteIdent(s.AliasOr()),
+		)
 	}
 
 	fmt.Fprintf(&b, "SELECT %s %s", strings.Join(selectCols, ", "), fromClause(col, plan))
@@ -423,10 +451,19 @@ func (e *duckdbEngine) multiAggregatePlanned(
 
 	selectCols := make([]string, len(specs))
 	for i, s := range specs {
-		selectCols[i] = fmt.Sprintf("%s AS %s", aggExpr(s.Fn, s.Column, plan), metaengine.QuoteIdent(s.AliasOr()))
+		selectCols[i] = fmt.Sprintf(
+			"%s AS %s",
+			aggExpr(s.Fn, s.Column, plan),
+			metaengine.QuoteIdent(s.AliasOr()),
+		)
 	}
 
-	fmt.Fprintf(&b, "SELECT %s %s", strings.Join(selectCols, ", "), fromClause(plan.Collection, plan))
+	fmt.Fprintf(
+		&b,
+		"SELECT %s %s",
+		strings.Join(selectCols, ", "),
+		fromClause(plan.Collection, plan),
+	)
 
 	whereStarted := false
 
@@ -484,7 +521,7 @@ func (e *duckdbEngine) MultiGroupedAggregate(
 	filters []metaengine.FilterSpec,
 ) ([]metaengine.GroupedAggregateRow, error) {
 	if len(specs) == 0 {
-		return nil, fmt.Errorf("duckdbengine.MultiGroupedAggregate: no specs provided")
+		return nil, errors.New("duckdbengine.MultiGroupedAggregate: no specs provided")
 	}
 
 	if plan, ok := e.plans[col]; ok {
@@ -509,9 +546,16 @@ func (e *duckdbEngine) multiGroupedAggregateStandard(
 
 	gExpr := groupExpr(groupBy, plan)
 
-	selectCols := []string{fmt.Sprintf("%s AS group_key", gExpr)}
+	selectCols := []string{gExpr + " AS group_key"}
 	for _, s := range specs {
-		selectCols = append(selectCols, fmt.Sprintf("%s AS %s", aggExpr(s.Fn, s.Column, plan), metaengine.QuoteIdent(s.AliasOr())))
+		selectCols = append(
+			selectCols,
+			fmt.Sprintf(
+				"%s AS %s",
+				aggExpr(s.Fn, s.Column, plan),
+				metaengine.QuoteIdent(s.AliasOr()),
+			),
+		)
 	}
 
 	fmt.Fprintf(&b, "SELECT %s %s", strings.Join(selectCols, ", "), fromClause(col, plan))
@@ -539,12 +583,24 @@ func (e *duckdbEngine) multiGroupedAggregatePlanned(
 
 	gExpr := groupExpr(groupBy, plan)
 
-	selectCols := []string{fmt.Sprintf("%s AS group_key", gExpr)}
+	selectCols := []string{gExpr + " AS group_key"}
 	for _, s := range specs {
-		selectCols = append(selectCols, fmt.Sprintf("%s AS %s", aggExpr(s.Fn, s.Column, plan), metaengine.QuoteIdent(s.AliasOr())))
+		selectCols = append(
+			selectCols,
+			fmt.Sprintf(
+				"%s AS %s",
+				aggExpr(s.Fn, s.Column, plan),
+				metaengine.QuoteIdent(s.AliasOr()),
+			),
+		)
 	}
 
-	fmt.Fprintf(&b, "SELECT %s %s", strings.Join(selectCols, ", "), fromClause(plan.Collection, plan))
+	fmt.Fprintf(
+		&b,
+		"SELECT %s %s",
+		strings.Join(selectCols, ", "),
+		fromClause(plan.Collection, plan),
+	)
 
 	whereStarted := false
 
@@ -596,7 +652,11 @@ func (e *duckdbEngine) scanMultiGrouped(
 		for i, s := range specs {
 			val, err := decodeFloat(raws[i])
 			if err != nil {
-				return nil, fmt.Errorf("duckdbengine.MultiGroupedAggregate alias %q: %w", s.AliasOr(), err)
+				return nil, fmt.Errorf(
+					"duckdbengine.MultiGroupedAggregate alias %q: %w",
+					s.AliasOr(),
+					err,
+				)
 			}
 
 			values[s.AliasOr()] = val
@@ -661,7 +721,12 @@ func (e *duckdbEngine) distinctPlanned(
 	args := initialArgs(plan.Collection, plan)
 	argIdx := initialArgIndex(plan)
 
-	fmt.Fprintf(&b, "SELECT DISTINCT %s AS dv %s", columnExpr(column, plan), fromClause(plan.Collection, plan))
+	fmt.Fprintf(
+		&b,
+		"SELECT DISTINCT %s AS dv %s",
+		columnExpr(column, plan),
+		fromClause(plan.Collection, plan),
+	)
 
 	whereStarted := false
 
