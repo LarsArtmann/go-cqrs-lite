@@ -251,15 +251,10 @@ func checkSuppressionInFile(cache *lineCache, f finding.Finding) bool {
 		return false
 	}
 
-	lines := fl.lines
-	rawLines := fl.rawLines
-	ruleID := fl.ruleID
-	line := fl.line
-
 	// Check the finding's own line.
-	if line >= 1 && line <= len(lines) && !rawLines[line-1] {
-		suppressedRules := ParseSuppressions(lines[line-1])
-		if _, ok := suppressedRules[ruleID]; ok {
+	if fl.line >= 1 && fl.line <= len(fl.lines) && !fl.rawLines[fl.line-1] {
+		suppressedRules := ParseSuppressions(fl.lines[fl.line-1])
+		if _, ok := suppressedRules[fl.ruleID]; ok {
 			return true
 		}
 	}
@@ -268,17 +263,17 @@ func checkSuppressionInFile(cache *lineCache, f finding.Finding) bool {
 	// meaningful content — the suppression intent is clearly directed at
 	// the next declaration. Without this skip, a blank line between a
 	// suppression comment and the finding silently breaks suppression.
-	for checkLine := line - 1; checkLine >= 1; checkLine-- {
-		if rawLines[checkLine-1] {
+	for checkLine := fl.line - 1; checkLine >= 1; checkLine-- {
+		if fl.rawLines[checkLine-1] {
 			continue // line is inside a multi-line raw string
 		}
-		text := strings.TrimSpace(lines[checkLine-1])
+		text := strings.TrimSpace(fl.lines[checkLine-1])
 		if text == "" {
 			continue
 		}
 
-		suppressedRules := ParseSuppressions(lines[checkLine-1])
-		if _, ok := suppressedRules[ruleID]; ok {
+		suppressedRules := ParseSuppressions(fl.lines[checkLine-1])
+		if _, ok := suppressedRules[fl.ruleID]; ok {
 			return true
 		}
 
@@ -310,23 +305,18 @@ func checkBlockSuppressionInFile(cache *lineCache, f finding.Finding) bool {
 		return false
 	}
 
-	lines := fl.lines
-	rawLines := fl.rawLines
-	ruleID := fl.ruleID
-	line := fl.line
-
-	if line < 1 || line > len(lines) {
+	if fl.line < 1 || fl.line > len(fl.lines) {
 		return false
 	}
 
 	// Scan backward from the finding's line to find the nearest block start
 	// or end. If we find a start first, we're inside a block. If we find an
 	// end first (or run out of lines), we're not.
-	for i := line; i >= 1; i-- {
-		if rawLines[i-1] {
+	for i := fl.line; i >= 1; i-- {
+		if fl.rawLines[i-1] {
 			continue // line is inside a multi-line raw string
 		}
-		text := strings.TrimSpace(lines[i-1])
+		text := strings.TrimSpace(fl.lines[i-1])
 		// Normalize: accept "//cqrs-lint:ignore-start" and "// cqrs-lint:ignore-start"
 		text = normalizeCommentPrefix(text)
 
@@ -340,7 +330,7 @@ func checkBlockSuppressionInFile(cache *lineCache, f finding.Finding) bool {
 				return true // suppresses all rules
 			}
 
-			_, ok := suppressedRules[ruleID]
+			_, ok := suppressedRules[fl.ruleID]
 			return ok
 		}
 	}

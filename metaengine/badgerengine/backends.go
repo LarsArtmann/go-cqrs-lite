@@ -133,35 +133,7 @@ func (e *badgerEngine) GraphNeighbors(
 	node any,
 	depth int,
 ) ([]any, error) {
-	nodeStr := encodeKeyStr(node)
-	visited := map[string]bool{nodeStr: true}
-	frontier := []string{nodeStr}
-
-	var result []string
-
-	for d := 0; d < depth && len(frontier) > 0; d++ {
-		var next []string
-
-		for _, n := range frontier {
-			neighbors := e.scanGraphNeighbors(col, n)
-			for _, nb := range neighbors {
-				if !visited[nb] {
-					visited[nb] = true
-					result = append(result, nb)
-					next = append(next, nb)
-				}
-			}
-		}
-
-		frontier = next
-	}
-
-	decoded := make([]any, len(result))
-	for i, r := range result {
-		decoded[i] = decodeJSON([]byte(r))
-	}
-
-	return decoded, nil
+	return keycodec.BFSNeighbors(e.scanGraphNeighbors, col, node, depth), nil
 }
 
 func (e *badgerEngine) scanGraphNeighbors(col, node string) []string {

@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"io"
-	"sort"
+	"maps"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -529,14 +530,7 @@ func printSoakSummary(w io.Writer, r *benchkit.SoakResult) {
 // ── formatting helpers ──
 
 func sortedResultKeys(m map[string]*benchkit.Result) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-
-	return keys
+	return slices.Sorted(maps.Keys(m))
 }
 
 // fmtDur wraps benchkit.FormatDuration so render.go callers stay short.

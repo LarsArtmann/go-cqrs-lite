@@ -1,7 +1,8 @@
 package benchkit
 
 import (
-	"sort"
+	"maps"
+	"slices"
 	"strings"
 	"time"
 
@@ -68,14 +69,7 @@ func formatCPUDuration(ns uint64) string {
 }
 
 func sortedKeys(m map[string]*Result) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-
-	return keys
+	return slices.Sorted(maps.Keys(m))
 }
 
 func truncate(s string, maxLen int) string {

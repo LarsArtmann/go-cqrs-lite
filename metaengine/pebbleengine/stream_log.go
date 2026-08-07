@@ -21,27 +21,6 @@ import (
 // The global journal stores (streamID + "\x00" + value) so JournalReadAll
 // can reconstruct cross-stream ordering.
 
-func streamKey(col, sid string, seq int64) []byte {
-	return fmt.Appendf(nil, "sl%s%s%s%s%s%020d", sep, col, sep, sid, sep, seq)
-}
-
-func streamPrefix(col, sid string) []byte {
-	return []byte("sl" + sep + col + sep + sid + sep)
-}
-
-func journalKey(col string, gseq int64) []byte {
-	return fmt.Appendf(nil, "jl%s%s%s%020d", sep, col, sep, gseq)
-}
-
-func journalPrefix(col string) []byte {
-	return []byte("jl" + sep + col + sep)
-}
-
-// streamSeqKey builds the sync.Map key for per-stream sequence counters.
-func streamSeqKey(col, sid string) string {
-	return col + sep + sid
-}
-
 // nextStreamSeq returns the next sequence number for a stream.
 func (e *pebbleEngine) nextStreamSeq(col, sid string) int64 {
 	k := streamSeqKey(col, sid)
