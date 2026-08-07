@@ -32,10 +32,15 @@ domain := system.DomainConfig{
 
 // Operator: declare infrastructure
 deployment := system.DeploymentConfig{
-    Engines: []system.EngineConfig{
-        {Name: "primary", Driver: "memory", Role: system.RoleSourceOfTruth},
+    Engines: map[string]system.EngineConfig{
+        "primary": {Driver: "sqlite", DSN: "file:events.db"},
     },
-    Bus: system.BusConfig{Driver: "memory"},
+    Buses: map[string]system.BusConfig{
+        "local": {Driver: "gochannel"},
+    },
+    Instances: []system.InstanceConfig{
+        {Role: system.RoleSourceOfTruth, Engine: "primary"},
+    },
 }
 
 // System wires everything
@@ -84,6 +89,9 @@ sys.Dispatch(ctx, cmd)
 
 Built-in drivers: `memory`, `sqlite`.
 
+Built-in bus drivers: `gochannel` (in-process). Unknown driver names return
+an error at construction time (no silent fallback).
+
 ### Introspection
 
 | Symbol                          | Description                                     |
@@ -101,6 +109,48 @@ Built-in drivers: `memory`, `sqlite`.
 | -------------------------- | ----------------------------------------------------- |
 | `CheckSafety(ctx, deploy)` | Pre-construction safety report (WARN/ERROR per rule). |
 | `System.ScreamReport()`    | Post-construction safety report.                      |
+
+## Configuration
+
+`LoadConfig(path)` loads a `DeploymentConfig` from YAML with env var overrides.
+Env vars use the `CQRS_` prefix with double-underscore (`__`) as the nested
+separator (koanf convention). Env overrides win over YAML.
+
+### YAML
+
+```yaml
+engines:
+  primary:
+    driver: sqlite
+    dsn: file:events.db
+    pragmas: [journal_mode=wal, foreign_keys=on]
+buses:
+  local:
+    driver: gochannel
+    mode: sync
+instances:
+  - role: source-of-truth
+    engine: primary
+    durability: normal
+  - role: projections
+    engine: primary
+acknowledge_warnings:
+  - "volatile-source-of-truth:source-of-truth"
+```
+
+### Structured Env Vars
+
+```bash
+# Nested keys use __ as separator
+CQRS_ENGINES__PRIMARY__DRIVER=sqlite
+CQRS_ENGINES__PRIMARY__DSN=file:events.db
+CQRS_BUSES__LOCAL__DRIVER=gochannel
+CQRS_INSTANCES__0__DURABILITY=strict
+
+# Legacy shorthand (creates a "primary" engine if none exists)
+CQRS_DEFAULT_DRIVER=sqlite
+CQRS_DEFAULT_DSN=file:events.db
+```
 
 ## Design
 

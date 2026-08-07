@@ -522,6 +522,7 @@ linters:
           - varnamelen
           - err113
           - nolintlint
+          - contextcheck
       - path: stack/accessors\.go$
         linters:
           - err113
@@ -640,14 +641,20 @@ linters:
         linters:
           - ireturn
           - wrapcheck
+          - nolintlint
       - path: retry/
         linters:
           - gocritic
           - wrapcheck
+          - nolintlint
+      - path: idempotency/
+        linters:
+          - staticcheck
       - path: command/
         linters:
           - wrapcheck
           - exhaustruct
+          - nolintlint
       - path: query/
         linters:
           - wrapcheck
@@ -685,6 +692,7 @@ linters:
         linters:
           - ireturn
           - wrapcheck
+          - nolintlint
       - path: sync/
         linters:
           - modernize
@@ -709,6 +717,7 @@ linters:
           - err113
           - gochecknoglobals
           - wrapcheck
+          - nolintlint
       - path: metaengine/duckdbengine/
         linters:
           - wrapcheck
