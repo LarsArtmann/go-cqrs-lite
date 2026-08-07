@@ -254,7 +254,7 @@ func makeMySQLFactory(ctx context.Context, dsn string) (benchkit.Factory, string
 
 	_ = ctx
 
-	return func() (*stack.Bundle, error) { //nolint:contextcheck // stack.New does not accept a context
+	return func() (*stack.Bundle, error) {
 		return mysql.New(dsn)
 	}, "", nil
 }

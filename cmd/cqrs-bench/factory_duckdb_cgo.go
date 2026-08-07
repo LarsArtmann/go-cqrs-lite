@@ -29,5 +29,5 @@ func duckdbFactory(_ context.Context, dsn, dir string) (benchkit.Factory, string
 		diskPath = filepath.Dir(dsn)
 	}
 
-	return func() (*stack.Bundle, error) { return duckdb.New(dsn) }, diskPath, nil //nolint:contextcheck // stack.New does not accept a context
+	return func() (*stack.Bundle, error) { return duckdb.New(dsn) }, diskPath, nil
 }

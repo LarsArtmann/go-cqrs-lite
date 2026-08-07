@@ -743,6 +743,7 @@ github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4 v4.1.0/go.mod h1:br2n
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.1.1/go.mod h1:4V33qjwL3R72tvRGPRM7AlBWMDHeB4JjA5wMG7uBZqU=
 github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.0.0-20260806160506-f6bcfb0bcb06/go.mod h1:9YKoAEHR0vW9RGpcYdBuGCGdx+xknagtYoQyjQt8smU=
 github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.0.0/go.mod h1:s3Ons8o1vy4eCGLoVqekeMDS0fi9in/vw4in5vr+d+A=
+github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0/go.mod h1:Grw+lD5ad9MdFY1NAVzOIyTv2liM/sSayKu9NDejlAo=
 github.com/larsartmann/go-sse v0.2.0/go.mod h1:qFY1CWP8caGmjKwKG4JqNn5tfFRqU5yQGx3xUQ1tGj4=
 github.com/larsartmann/go-sse v0.2.1/go.mod h1:jzjpWqwufPRLht+qk15EHwHG65mhZDdTV1VIUk5pQ2Y=
 github.com/leodido/go-urn v1.2.0/go.mod h1:+8+nEpDfqqsY+g338gtMEUOtuK+4dEMhiQEgxpxOKII=

@@ -462,7 +462,10 @@ func TestRenderSARIF_MetaengineProperties(t *testing.T) {
 		t.Errorf("expected metaengineDetected true, got %v", props["metaengineDetected"])
 	}
 	if props["metaenginePushdownAdopted"] != true {
-		t.Errorf("expected metaenginePushdownAdopted true, got %v", props["metaenginePushdownAdopted"])
+		t.Errorf(
+			"expected metaenginePushdownAdopted true, got %v",
+			props["metaenginePushdownAdopted"],
+		)
 	}
 	engines, ok := props["metaengineEngines"].([]any)
 	if !ok {

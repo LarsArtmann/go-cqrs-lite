@@ -54,7 +54,12 @@ func (a *QueryAdapter) SaveQuery(ctx context.Context, q *query.PersistedQuery) e
 	// Use the query's request ID as the stream key for per-query isolation.
 	sid := q.ID().String()
 
-	return a.backend.StreamAppend(ctx, a.collection, sid, a.queriesToAny([]*query.PersistedQuery{q}))
+	return a.backend.StreamAppend(
+		ctx,
+		a.collection,
+		sid,
+		a.queriesToAny([]*query.PersistedQuery{q}),
+	)
 }
 
 func (a *QueryAdapter) LoadQueries(

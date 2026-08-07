@@ -119,17 +119,23 @@ func classifyPlanDiff(diff *metaengine.PlanDiffResult, report *ScreamReport) {
 
 	for _, name := range diff.QueriesAdded {
 		report.Diagnostics = append(report.Diagnostics, ScreamDiagnostic{
-			Tier:   TierAdvisory,
-			Rule:   "plan:query-added:" + name,
-			Detail: fmt.Sprintf("new projection query %q added — will backfill from the event log on startup", name),
+			Tier: TierAdvisory,
+			Rule: "plan:query-added:" + name,
+			Detail: fmt.Sprintf(
+				"new projection query %q added — will backfill from the event log on startup",
+				name,
+			),
 		})
 	}
 
 	for _, table := range diff.LayoutsRemoved {
 		report.Diagnostics = append(report.Diagnostics, ScreamDiagnostic{
-			Tier:   TierWarnOverride,
-			Rule:   "plan:layout-removed:" + table,
-			Detail: fmt.Sprintf("layout/table %q was removed — existing data in this table may be orphaned", table),
+			Tier: TierWarnOverride,
+			Rule: "plan:layout-removed:" + table,
+			Detail: fmt.Sprintf(
+				"layout/table %q was removed — existing data in this table may be orphaned",
+				table,
+			),
 		})
 	}
 
@@ -154,9 +160,12 @@ func classifyPlanDiff(diff *metaengine.PlanDiffResult, report *ScreamReport) {
 
 	for _, eng := range diff.EnginesAdded {
 		report.Diagnostics = append(report.Diagnostics, ScreamDiagnostic{
-			Tier:   TierAdvisory,
-			Rule:   "plan:engine-added:" + eng,
-			Detail: fmt.Sprintf("engine %q was added to the projection pool — planner may reassign queries", eng),
+			Tier: TierAdvisory,
+			Rule: "plan:engine-added:" + eng,
+			Detail: fmt.Sprintf(
+				"engine %q was added to the projection pool — planner may reassign queries",
+				eng,
+			),
 		})
 	}
 }

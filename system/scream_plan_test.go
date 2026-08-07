@@ -236,8 +236,18 @@ func TestCheckPlanSafety_QueryAdded_ADVISORY(t *testing.T) {
 
 	// Add a new query.
 	current := testPlan(
-		metaengine.SerializableQuery{Name: "counts", ADT: metaengine.ADTCounter, Engine: "memory", Complexity: o1},
-		metaengine.SerializableQuery{Name: "items", ADT: metaengine.ADTMap, Engine: "memory", Complexity: o1},
+		metaengine.SerializableQuery{
+			Name:       "counts",
+			ADT:        metaengine.ADTCounter,
+			Engine:     "memory",
+			Complexity: o1,
+		},
+		metaengine.SerializableQuery{
+			Name:       "items",
+			ADT:        metaengine.ADTMap,
+			Engine:     "memory",
+			Complexity: o1,
+		},
 	)
 
 	report, err := system.CheckPlanSafety(context.Background(), current, manifestPath)

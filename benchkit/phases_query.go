@@ -20,7 +20,12 @@ const maxQueryDispatches = 500
 //
 // Requires ReadModels (kv.Store); gracefully skips otherwise.
 func (r *runner) queryPhase(ctx context.Context) error {
-	if r.skipPhase(ctx, "query phase", "bundle has no ReadModels (kv.Store)", r.bundle.ReadModels != nil) {
+	if r.skipPhase(
+		ctx,
+		"query phase",
+		"bundle has no ReadModels (kv.Store)",
+		r.bundle.ReadModels != nil,
+	) {
 		return nil
 	}
 

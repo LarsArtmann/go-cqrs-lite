@@ -43,15 +43,18 @@ func TestSoak_RecordAwarePipeline(t *testing.T) {
 
 	q := metaengine.Query[lookup, itemState](
 		"soak-record-items",
-		metaengine.OnRecord(createdEvent{}, func(rec record.Record, e createdEvent) (string, itemState) {
-			return e.ID, itemState{
-				ID:       e.ID,
-				Name:     e.Name,
-				StreamID: rec.StreamID.String(),
-				Version:  rec.Version,
-				Value:    e.Value,
-			}
-		}),
+		metaengine.OnRecord(
+			createdEvent{},
+			func(rec record.Record, e createdEvent) (string, itemState) {
+				return e.ID, itemState{
+					ID:       e.ID,
+					Name:     e.Name,
+					StreamID: rec.StreamID.String(),
+					Version:  rec.Version,
+					Value:    e.Value,
+				}
+			},
+		),
 	)
 
 	eng := metaengine.NewMemoryEngine()
@@ -117,8 +120,13 @@ func TestSoak_RecordAwarePipeline(t *testing.T) {
 	}
 
 	if totalGrowth > maxGrowth {
-		t.Errorf("heap grew %d bytes after %d ApplyRecord calls with %d keys (max %d) — possible leak",
-			totalGrowth, numEvents, numKeys, maxGrowth)
+		t.Errorf(
+			"heap grew %d bytes after %d ApplyRecord calls with %d keys (max %d) — possible leak",
+			totalGrowth,
+			numEvents,
+			numKeys,
+			maxGrowth,
+		)
 	}
 
 	var checked, metadataErrors int
@@ -168,6 +176,12 @@ func TestSoak_RecordAwarePipeline(t *testing.T) {
 			metadataErrors-5, checked)
 	}
 
-	t.Logf("record-aware soak: %d events, %d keys, %d bytes heap growth (%.1f MB), %d metadata errors",
-		numEvents, numKeys, totalGrowth, float64(totalGrowth)/1024/1024, metadataErrors)
+	t.Logf(
+		"record-aware soak: %d events, %d keys, %d bytes heap growth (%.1f MB), %d metadata errors",
+		numEvents,
+		numKeys,
+		totalGrowth,
+		float64(totalGrowth)/1024/1024,
+		metadataErrors,
+	)
 }

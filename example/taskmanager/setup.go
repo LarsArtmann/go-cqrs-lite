@@ -11,6 +11,9 @@ import (
 	"syscall"
 	"time"
 
+	gomust "github.com/larsartmann/go-must"
+	otel "go.opentelemetry.io/otel"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
@@ -22,10 +25,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 	cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
-
-	gomust "github.com/larsartmann/go-must"
-
-	otel "go.opentelemetry.io/otel"
 )
 
 const (
@@ -111,9 +110,9 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 				system.WithSnapshotStrategy(snapStrategy)))
 			registerCommands(sys)
 		},
-		Projections:            projections,
-		ProjectionTypeDecoder:  typeDecoder,
-		Middleware:             commandMW,
+		Projections:           projections,
+		ProjectionTypeDecoder: typeDecoder,
+		Middleware:            commandMW,
 		ProjectionHostOptions: []projectionhost.HostOption{
 			projectionhost.WithBatchSize(projectionBatchSize),
 			projectionhost.WithDeadLetterStore(dlq, deadLetterMaxRetries),

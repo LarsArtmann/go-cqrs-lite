@@ -71,6 +71,7 @@ func SignCOSE1(evt event.Event, signer COSESigner, opts ...COSESignOption) ([]by
 	}
 
 	coseBytes, err := codec.MarshalCOSESign1(msg)
+
 	return codec.WrapCOSEMarshal(coseBytes, err, "signing", "COSE_Sign1")
 }
 
