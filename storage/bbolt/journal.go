@@ -12,7 +12,10 @@ import (
 
 // ReadAll retrieves all events across all streams, ordered by OccurredAt.
 // Implements event.Journal by scanning the journal bucket.
-func (s *EventStore) ReadAll(_ context.Context) ([]event.Event, error) {
+func (s *EventStore) ReadAll(ctx context.Context) ([]event.Event, error) {
+	span := startReadSpan(ctx, "bbolt.journal.read_all")
+	defer span.End()
+
 	var events []event.Event
 
 	err := s.db.View(func(tx *bolt.Tx) error {
@@ -36,16 +39,20 @@ func (s *EventStore) ReadAll(_ context.Context) ([]event.Event, error) {
 		return nil
 	})
 
-	return events, wrapBucketErr(err, "bbolt.journal_read_all", "read all events")
+	return finalizeScan(span, events, err, "bbolt.journal_read_all",
+		"read all events", "event.count")
 }
 
 // ReadFrom retrieves events ordered by OccurredAt, starting after afterEventID.
 // Implements event.SeekableJournal for projection catch-up.
 func (s *EventStore) ReadFrom(
-	_ context.Context,
+	ctx context.Context,
 	afterEventID id.EventID,
 	limit int,
 ) ([]event.Event, error) {
+	span := startLimitSpan(ctx, "bbolt.journal.read_from", limit)
+	defer span.End()
+
 	var events []event.Event
 
 	skipTarget := ""
@@ -89,5 +96,6 @@ func (s *EventStore) ReadFrom(
 		return nil
 	})
 
-	return events, wrapBucketErr(err, "bbolt.journal_read_from", "read events from position")
+	return finalizeScan(span, events, err, "bbolt.journal_read_from",
+		"read events from position", "event.count")
 }

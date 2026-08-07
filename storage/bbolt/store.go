@@ -73,7 +73,7 @@ func (s *EventStore) Save(
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
-	if len(events) == 0 {
+	if len(events) == 0 { //art-dupl:accept cross-module empty-events early return — separate go.mod
 		return nil
 	}
 
