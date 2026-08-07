@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS snapshots (
+    aggregate_type  TEXT NOT NULL,
+    aggregate_id    TEXT NOT NULL,
+    version         INTEGER NOT NULL,
+    state           BLOB NOT NULL,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (aggregate_type, aggregate_id)
+);
