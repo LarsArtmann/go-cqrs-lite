@@ -23,40 +23,114 @@ infrastructure choices.
 ## Quick Start
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/system/v4"
+package main
 
-// Consumer: declare domain
-domain := system.DomainConfig{
-    StreamTypes: []string{"User"},
+import (
+	"context"
+	"encoding/json/v2"
+	"errors"
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/decider/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
+)
+
+// ── Domain types ──
+
+type TaskCreated struct {
+	Title string
+	At    time.Time
 }
 
-// Operator: declare infrastructure
-deployment := system.DeploymentConfig{
-    Engines: map[string]system.EngineConfig{
-        "primary": {Driver: "sqlite", DSN: "file:events.db"},
-    },
-    Buses: map[string]system.BusConfig{
-        "local": {Driver: "gochannel"},
-    },
-    Instances: []system.InstanceConfig{
-        {Role: system.RoleSourceOfTruth, Engine: "primary"},
-    },
+type TaskState struct {
+	Title  string
+	Status string
+	Exists bool
 }
 
-// System wires everything
-sys, err := system.New(ctx, domain, deployment)
-if err != nil { log.Fatal(err) }
-defer sys.Close()
+func applyTask(state TaskState, evt event.Event) (TaskState, error) {
+	switch evt.Type() {
+	case "task.created":
+		var p TaskCreated
+		_ = json.Unmarshal(evt.Payload(), &p)
+		state.Title = p.Title
+		state.Status = "pending"
+		state.Exists = true
+	}
+	return state, nil
+}
 
-// Register domain logic
-system.RegisterDecider[UserState](sys, "User", decider)
-system.RegisterCommand[CreateUser, UserState](sys, "user.create", decideFunc)
+func main() {
+	ctx := context.Background()
 
-// Start projections and bus
-sys.Start(ctx)
+	// Consumer: declare domain logic
+	domain := system.DomainConfig{
+		Commands: func(sys *system.System) {
+			system.RegisterDecider(sys, "Task", decider.Decider[TaskState]{
+				Initial: TaskState{},
+				Apply:   applyTask,
+			})
 
-// Dispatch
-sys.Dispatch(ctx, cmd)
+			system.RegisterCommand[*command.BasicCommand, TaskState](sys, "task.create",
+				func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
+					return system.Execute(ctx, cmd.StreamID(), "Task",
+						func(state TaskState, ver event.Version) ([]event.Event, error) {
+							if state.Exists {
+								return nil, errors.New("task already exists")
+							}
+							evt, err := event.New("task.created", cmd.StreamID(), "Task", ver+1,
+								TaskCreated{Title: "my first task", At: time.Now()})
+							if err != nil {
+								return nil, err
+							}
+							return []event.Event{evt}, nil
+						})
+				})
+		},
+	}
+
+	// Operator: declare infrastructure
+	deployment := system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{
+			"primary": {Driver: "memory"},
+		},
+		Instances: []system.InstanceConfig{
+			{Role: system.RoleSourceOfTruth, Engine: "primary"},
+		},
+	}
+
+	// System wires everything
+	sys, err := system.New(ctx, domain, deployment)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer sys.Close()
+
+	// Start projections (if configured)
+	if err := sys.Start(ctx); err != nil {
+		log.Fatal(err)
+	}
+
+	// Dispatch a command
+	taskID := id.NewStreamID()
+	createCmd, _ := command.New("task.create", taskID)
+	if err := sys.CommandDispatcher().Dispatch(ctx, createCmd); err != nil {
+		log.Fatal(err)
+	}
+
+	// Verify events were persisted
+	ref := id.NewStreamRef("Task", taskID)
+	events, err := sys.EventStore().Load(ctx, ref)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("created task with %d event(s)\n", len(events))
+}
 ```
 
 ## API
