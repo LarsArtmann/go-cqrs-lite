@@ -213,7 +213,7 @@ and is **never** duplicated here.
 ## Dedup
 
 > Clone groups reduced 69 → 65. `art-dupl` baseline golden + `nix run
-> .#check-duplication` gate enforce no-new-clones.
+.#check-duplication` gate enforce no-new-clones.
 
 - [ ] **Review remaining 65 clone groups** — duckdb↔pgengine parity code,
       testcontainer setup patterns, table-driven test boilerplate. Some are

@@ -11,14 +11,14 @@
 
 ### 1. Six New Stack-Level Benchmarks Created and Verified
 
-| Benchmark | File | Server? | Ran? |
-|-----------|------|:---:|:---:|
-| `BenchmarkBenchkitSuite_Bolt` | `benchkit_suite_bbolt_test.go` | No | ✅ PASS |
-| `BenchmarkBenchkitSuite_Turso` | `benchkit_suite_turso_test.go` | No | ✅ PASS |
-| `BenchmarkBenchkitSuite_SQLiteCGo` | `benchkit_suite_sqlite_cgo_test.go` | No | ✅ PASS |
-| `BenchmarkBenchkitSuite_MySQL` | `benchkit_suite_mysql_test.go` | Yes | ✅ Skips cleanly |
-| `BenchmarkBenchkitSuite_Postgres` | `benchkit_suite_postgres_test.go` | Yes | ✅ Skips cleanly |
-| CGo driver registration | `sqlite_cgo_driver_test.go` | — | ✅ Build-verified |
+| Benchmark                          | File                                | Server? |       Ran?        |
+| ---------------------------------- | ----------------------------------- | :-----: | :---------------: |
+| `BenchmarkBenchkitSuite_Bolt`      | `benchkit_suite_bbolt_test.go`      |   No    |      ✅ PASS      |
+| `BenchmarkBenchkitSuite_Turso`     | `benchkit_suite_turso_test.go`      |   No    |      ✅ PASS      |
+| `BenchmarkBenchkitSuite_SQLiteCGo` | `benchkit_suite_sqlite_cgo_test.go` |   No    |      ✅ PASS      |
+| `BenchmarkBenchkitSuite_MySQL`     | `benchkit_suite_mysql_test.go`      |   Yes   | ✅ Skips cleanly  |
+| `BenchmarkBenchkitSuite_Postgres`  | `benchkit_suite_postgres_test.go`   |   Yes   | ✅ Skips cleanly  |
+| CGo driver registration            | `sqlite_cgo_driver_test.go`         |    —    | ✅ Build-verified |
 
 All 7 embedded benchmarks (Memory, SQLite pure-Go, SQLite CGo, Pebble, BBolt, Turso, DuckDB) ran successfully with `-benchtime=1x`. Both server-backed benchmarks (MySQL, Postgres) skip with actionable error messages.
 
@@ -38,19 +38,19 @@ Plan at `docs/planning/2026-08-06_23-59_comprehensive-benchmark-coverage.md` wit
 
 First run (`-benchtime=1x`):
 
-| Metric | Pure-Go | CGo | CGo Advantage |
-|--------|---------|-----|---------------|
-| Raw sink ev/s | 21,031 | 29,928 | +42% |
-| Write P50 (ns) | 39,009 | 32,629 | +16% |
-| Write P99 (ns) | 194,074 | 139,296 | +28% |
+| Metric         | Pure-Go | CGo     | CGo Advantage |
+| -------------- | ------- | ------- | ------------- |
+| Raw sink ev/s  | 21,031  | 29,928  | +42%          |
+| Write P50 (ns) | 39,009  | 32,629  | +16%          |
+| Write P99 (ns) | 194,074 | 139,296 | +28%          |
 
 Re-run with `-benchtime=3x` (more reliable):
 
-| Metric | Pure-Go | CGo | CGo Advantage |
-|--------|---------|-----|---------------|
-| Raw sink ev/s | 10,191 | 14,342 | +41% |
-| Write P50 (ns) | 75,139 | 55,179 | +27% |
-| Write P99 (ns) | 1,001,642 | 262,748 | +74% |
+| Metric         | Pure-Go   | CGo     | CGo Advantage |
+| -------------- | --------- | ------- | ------------- |
+| Raw sink ev/s  | 10,191    | 14,342  | +41%          |
+| Write P50 (ns) | 75,139    | 55,179  | +27%          |
+| Write P99 (ns) | 1,001,642 | 262,748 | +74%          |
 
 **The advantage holds under both runs.** CGo is consistently 27-74% faster.
 
@@ -76,6 +76,7 @@ The script WORKS (correctly categorizes PASS/FAIL/SKIP) but has these bugs:
 ### 3. MySQL/Postgres Benchmarks — Never Run Against Real Servers
 
 The benchmarks skip cleanly, but they have **never been run against actual MySQL or Postgres servers**. There could be:
+
 - SQL dialect incompatibilities
 - Connection pool issues
 - Schema migration failures
@@ -87,17 +88,17 @@ The user has `nix run .#integration-pg` and `nix run .#integration-mysql-nspawn`
 
 ## c) NOT STARTED
 
-| Item | Impact |
-|------|--------|
-| Run bench-all.sh in FULL mode (not --quick) | HIGH — 8 modules were skipped |
-| Start PG server + run Postgres benchmark | HIGH — never validated against real DB |
-| Start MySQL server + run MySQL benchmark | HIGH — never validated against real DB |
-| `nix fmt` on new files | MEDIUM — unformatted code in repo |
-| Run benchmarks with `-count=3` for CoV analysis | MEDIUM — no reliability metrics |
-| Run benchmarks with `-race` | MEDIUM — no race detection on new code |
-| Storage-level BBolt benchmark | LOW — stack-level exists, storage-level is bonus |
-| Verify api-stability golden | LOW — daemon may have broken it |
-| Profile DuckDB 8.6s/iter benchmark | LOW — pre-existing, not our scope |
+| Item                                            | Impact                                           |
+| ----------------------------------------------- | ------------------------------------------------ |
+| Run bench-all.sh in FULL mode (not --quick)     | HIGH — 8 modules were skipped                    |
+| Start PG server + run Postgres benchmark        | HIGH — never validated against real DB           |
+| Start MySQL server + run MySQL benchmark        | HIGH — never validated against real DB           |
+| `nix fmt` on new files                          | MEDIUM — unformatted code in repo                |
+| Run benchmarks with `-count=3` for CoV analysis | MEDIUM — no reliability metrics                  |
+| Run benchmarks with `-race`                     | MEDIUM — no race detection on new code           |
+| Storage-level BBolt benchmark                   | LOW — stack-level exists, storage-level is bonus |
+| Verify api-stability golden                     | LOW — daemon may have broken it                  |
+| Profile DuckDB 8.6s/iter benchmark              | LOW — pre-existing, not our scope                |
 
 ---
 
@@ -136,12 +137,14 @@ The initial version used `local skip=false` inside a `for` loop at the top-level
 ## e) WHAT WE SHOULD IMPROVE
 
 ### Benchmark Quality
+
 1. **Apply pragma parity:** Both SQLite benchmarks (pure-Go AND CGo) must use the same pragma settings. Either both optimized or both default. Fix the import path and add `sqlopt.WithOptimizations()` to both.
 2. **Run with `-benchtime=5x -count=3` minimum** for any published numbers. Single-iteration numbers are noise.
 3. **Add CoV column to comparison tables:** benchkit already supports `Repeat` + CoV — use it.
 4. **Validate against real servers:** Run MySQL and Postgres benchmarks against actual servers before claiming they work.
 
 ### Script Quality
+
 5. **Fix duration parsing:** `tail -1` on the `ok` line.
 6. **Use exit codes, not grep:** `go test` returns non-zero on failure — use `$?` directly.
 7. **Fix slow module matching:** Use exact path comparison, not glob-after-sed.
@@ -150,11 +153,13 @@ The initial version used `local skip=false` inside a `for` loop at the top-level
 10. **Add `--benchtime=Nx` flag:** Configurable iteration count.
 
 ### Coverage Quality
+
 11. **Run full suite (no --quick):** At least once, to get a true baseline.
 12. **Add storage-level BBolt benchmarks:** The storage layer has zero BBolt tests.
 13. **Run under `-race`:** New benchmark code could have data races.
 
 ### Process Quality
+
 14. **Never report 1x numbers as authoritative.** Always caveat or re-run.
 15. **Tag untagged modules** before depending on them via pseudo-version.
 16. **Run `nix fmt` before committing.**
@@ -165,73 +170,73 @@ The initial version used `local skip=false` inside a `for` loop at the top-level
 
 ### CRITICAL (Do First)
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | Fix SQLite pragma parity — add `sqlopt.WithOptimizations()` to BOTH benchmarks | CRITICAL | 10min |
-| 2 | Re-run SQLite CGo comparison with `-benchtime=5x -count=3` | CRITICAL | 15min |
-| 3 | Start PG via `nix run .#integration-pg` + run Postgres benchmark | CRITICAL | 15min |
-| 4 | Start MySQL via `nix run .#integration-mysql-nspawn` + run MySQL benchmark | CRITICAL | 20min |
-| 5 | Run bench-all.sh in FULL mode (no --quick) | HIGH | 20min |
-| 6 | Tag `stack/bbolt/v4.0.0` — it's untagged, blocking external consumers | HIGH | 5min |
-| 7 | Fix bench-all.sh duration display + FAIL detection | HIGH | 10min |
+| #   | Task                                                                           | Impact   | Effort |
+| --- | ------------------------------------------------------------------------------ | -------- | ------ |
+| 1   | Fix SQLite pragma parity — add `sqlopt.WithOptimizations()` to BOTH benchmarks | CRITICAL | 10min  |
+| 2   | Re-run SQLite CGo comparison with `-benchtime=5x -count=3`                     | CRITICAL | 15min  |
+| 3   | Start PG via `nix run .#integration-pg` + run Postgres benchmark               | CRITICAL | 15min  |
+| 4   | Start MySQL via `nix run .#integration-mysql-nspawn` + run MySQL benchmark     | CRITICAL | 20min  |
+| 5   | Run bench-all.sh in FULL mode (no --quick)                                     | HIGH     | 20min  |
+| 6   | Tag `stack/bbolt/v4.0.0` — it's untagged, blocking external consumers          | HIGH     | 5min   |
+| 7   | Fix bench-all.sh duration display + FAIL detection                             | HIGH     | 10min  |
 
 ### HIGH
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 8 | Run `nix fmt` on all new files | HIGH | 2min |
-| 9 | Run benchmarks with `-race` | HIGH | 15min |
-| 10 | Add JSON output mode to bench-all.sh | HIGH | 20min |
-| 11 | Fix pre-existing Turso indexing benchmark failure | HIGH | 30min |
-| 12 | Verify api-stability golden | HIGH | 5min |
-| 13 | Verify mermaid graph renders | MEDIUM | 5min |
-| 14 | Add `--count=N` and `--benchtime=Nx` flags to bench-all.sh | MEDIUM | 10min |
-| 15 | Add storage-level BBolt benchmarks | MEDIUM | 15min |
-| 16 | Create a `nix run .#bench` target for bench-all.sh | MEDIUM | 10min |
-| 17 | Store benchmark results as JSON artifacts | MEDIUM | 15min |
-| 18 | Compare test benchmark results against CLI results | MEDIUM | 15min |
+| #   | Task                                                       | Impact | Effort |
+| --- | ---------------------------------------------------------- | ------ | ------ |
+| 8   | Run `nix fmt` on all new files                             | HIGH   | 2min   |
+| 9   | Run benchmarks with `-race`                                | HIGH   | 15min  |
+| 10  | Add JSON output mode to bench-all.sh                       | HIGH   | 20min  |
+| 11  | Fix pre-existing Turso indexing benchmark failure          | HIGH   | 30min  |
+| 12  | Verify api-stability golden                                | HIGH   | 5min   |
+| 13  | Verify mermaid graph renders                               | MEDIUM | 5min   |
+| 14  | Add `--count=N` and `--benchtime=Nx` flags to bench-all.sh | MEDIUM | 10min  |
+| 15  | Add storage-level BBolt benchmarks                         | MEDIUM | 15min  |
+| 16  | Create a `nix run .#bench` target for bench-all.sh         | MEDIUM | 10min  |
+| 17  | Store benchmark results as JSON artifacts                  | MEDIUM | 15min  |
+| 18  | Compare test benchmark results against CLI results         | MEDIUM | 15min  |
 
 ### MEDIUM
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 19 | Add benchmark regression detection (compare to baseline) | MEDIUM | 30min |
-| 20 | Add `-count=3` CoV analysis to status report tables | MEDIUM | 15min |
-| 21 | Add concurrent writer benchmark per backend | MEDIUM | 30min |
-| 22 | Add read-heavy (90/10) workload benchmark per backend | MEDIUM | 30min |
-| 23 | Add large payload benchmark (1KB, 10KB, 100KB) | MEDIUM | 30min |
-| 24 | Add CBOR vs JSON codec benchmark per backend | MEDIUM | 20min |
-| 25 | Profile DuckDB 8.6s/iter benchmark (why so slow?) | MEDIUM | 30min |
-| 26 | Add Soak test per backend (leak detection) | MEDIUM | 45min |
-| 27 | Run benchmarks with `GOMAXPROCS=1` (single-core baseline) | MEDIUM | 10min |
-| 28 | Document expected performance characteristics per backend | MEDIUM | 30min |
-| 29 | Add benchmark for view store queries (WHERE, ORDER BY, LIMIT) | MEDIUM | 20min |
-| 30 | Add benchmark for relational projection (multi-table) | MEDIUM | 30min |
-| 31 | Add benchmark for graph projection (node/edge merge) | MEDIUM | 30min |
-| 32 | Add benchmark for snapshot save/load per backend | MEDIUM | 20min |
-| 33 | Add network latency benchmark (localhost vs remote PG/MySQL) | MEDIUM | 30min |
-| 34 | Add multi-DB SQLite preset benchmark | MEDIUM | 15min |
-| 35 | Add benchmark for full CQRS journey (cmd→event→projection→query) | MEDIUM | 30min |
+| #   | Task                                                             | Impact | Effort |
+| --- | ---------------------------------------------------------------- | ------ | ------ |
+| 19  | Add benchmark regression detection (compare to baseline)         | MEDIUM | 30min  |
+| 20  | Add `-count=3` CoV analysis to status report tables              | MEDIUM | 15min  |
+| 21  | Add concurrent writer benchmark per backend                      | MEDIUM | 30min  |
+| 22  | Add read-heavy (90/10) workload benchmark per backend            | MEDIUM | 30min  |
+| 23  | Add large payload benchmark (1KB, 10KB, 100KB)                   | MEDIUM | 30min  |
+| 24  | Add CBOR vs JSON codec benchmark per backend                     | MEDIUM | 20min  |
+| 25  | Profile DuckDB 8.6s/iter benchmark (why so slow?)                | MEDIUM | 30min  |
+| 26  | Add Soak test per backend (leak detection)                       | MEDIUM | 45min  |
+| 27  | Run benchmarks with `GOMAXPROCS=1` (single-core baseline)        | MEDIUM | 10min  |
+| 28  | Document expected performance characteristics per backend        | MEDIUM | 30min  |
+| 29  | Add benchmark for view store queries (WHERE, ORDER BY, LIMIT)    | MEDIUM | 20min  |
+| 30  | Add benchmark for relational projection (multi-table)            | MEDIUM | 30min  |
+| 31  | Add benchmark for graph projection (node/edge merge)             | MEDIUM | 30min  |
+| 32  | Add benchmark for snapshot save/load per backend                 | MEDIUM | 20min  |
+| 33  | Add network latency benchmark (localhost vs remote PG/MySQL)     | MEDIUM | 30min  |
+| 34  | Add multi-DB SQLite preset benchmark                             | MEDIUM | 15min  |
+| 35  | Add benchmark for full CQRS journey (cmd→event→projection→query) | MEDIUM | 30min  |
 
 ### LOW (Nice to Have)
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 36 | Add benchmark for transport layer (HTTP SSE, gRPC) | LOW | 30min |
-| 37 | Add benchmark for catalog/schema generation | LOW | 15min |
-| 38 | Add benchmark for encryption/signing overhead | LOW | 20min |
-| 39 | Add benchmark for idempotency middleware overhead | LOW | 15min |
-| 40 | Add benchmark for OTel tracing overhead | LOW | 15min |
-| 41 | Add benchmark for watermill bridge throughput | LOW | 20min |
-| 42 | Add disk I/O benchmark (HDD vs SSD vs NVMe) | LOW | 30min |
-| 43 | Add performance budget per backend (max acceptable latency) | LOW | 15min |
-| 44 | Add benchmark for metaengine cross-engine comparison | LOW | 30min |
-| 45 | Create CI workflow for benchmark regression gate | LOW | 45min |
-| 46 | Add `--format=markdown` output to bench-all.sh | LOW | 15min |
-| 47 | Add benchmark trend dashboard (HTML) | LOW | 60min |
-| 48 | Add DuckDB storage-level benchmarks (currently only metaengine + stack) | LOW | 20min |
-| 49 | Add benchmark for projection throughput per backend | LOW | 20min |
-| 50 | Add `bench-all.sh` to AGENTS.md documentation | LOW | 5min |
+| #   | Task                                                                    | Impact | Effort |
+| --- | ----------------------------------------------------------------------- | ------ | ------ |
+| 36  | Add benchmark for transport layer (HTTP SSE, gRPC)                      | LOW    | 30min  |
+| 37  | Add benchmark for catalog/schema generation                             | LOW    | 15min  |
+| 38  | Add benchmark for encryption/signing overhead                           | LOW    | 20min  |
+| 39  | Add benchmark for idempotency middleware overhead                       | LOW    | 15min  |
+| 40  | Add benchmark for OTel tracing overhead                                 | LOW    | 15min  |
+| 41  | Add benchmark for watermill bridge throughput                           | LOW    | 20min  |
+| 42  | Add disk I/O benchmark (HDD vs SSD vs NVMe)                             | LOW    | 30min  |
+| 43  | Add performance budget per backend (max acceptable latency)             | LOW    | 15min  |
+| 44  | Add benchmark for metaengine cross-engine comparison                    | LOW    | 30min  |
+| 45  | Create CI workflow for benchmark regression gate                        | LOW    | 45min  |
+| 46  | Add `--format=markdown` output to bench-all.sh                          | LOW    | 15min  |
+| 47  | Add benchmark trend dashboard (HTML)                                    | LOW    | 60min  |
+| 48  | Add DuckDB storage-level benchmarks (currently only metaengine + stack) | LOW    | 20min  |
+| 49  | Add benchmark for projection throughput per backend                     | LOW    | 20min  |
+| 50  | Add `bench-all.sh` to AGENTS.md documentation                           | LOW    | 5min   |
 
 ---
 
@@ -240,6 +245,7 @@ The initial version used `local skip=false` inside a `for` loop at the top-level
 ### Q1: Should the benchmark suite run in CI?
 
 bench-all.sh takes ~10min (quick) or ~20min (full). Adding this to every CI run would double CI time. Options:
+
 - **A:** Add to CI as a separate job (runs nightly, not per-PR)
 - **B:** Add to CI per-PR in `--quick` mode (~10min overhead)
 - **C:** CI only (no nightly), manual runs otherwise
@@ -254,6 +260,7 @@ This is a workflow/tradeoff decision I can't make for you.
 ### Q3: Should benchmarks use optimized SQLite pragmas by default?
 
 The `cqrs-bench` CLI applies `sqlopt.WithOptimizations()` (64MB cache, mmap, temp-in-memory). The test benchmarks in `stack/bench/` don't. This means:
+
 - Test numbers understate real-world performance by 2-3x
 - Test and CLI numbers aren't directly comparable
 - But test numbers are "worst case" (default SQLite config)

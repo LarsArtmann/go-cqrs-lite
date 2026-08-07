@@ -125,12 +125,14 @@
 ## f) Up to 50 Things We Should Get Done Next
 
 ### Critical (must do)
+
 1. **Test against a real Dgraph instance** — Spin up Dgraph locally or via Docker and run the full test suite. Fix all runtime bugs.
 2. **Replace `dqlString` with parameterized queries** — Security: eliminate DQL injection surface.
 3. **Update `.golangci.yml` depguard allow list** — Add `github.com/dgraph-io/dgo/v240`.
 4. **Add `DropAll` / cleanup method** — Test reproducibility.
 
 ### High priority
+
 5. **Implement `StreamLogBackend` + `AtomicAppender`** — Parity with pgengine/badgerengine.
 6. **Implement `PushdownScan`** — Move SortedMap from degraded to native.
 7. **Implement `MultimapBackend`** — Easy via Dgraph uid edges.
@@ -142,6 +144,7 @@
 13. **Add testcontainer support** (`testcontainer_test.go` or Nix VM test).
 
 ### Medium priority
+
 14. **Write ADR** — Why Dgraph, ADT coverage, tradeoffs.
 15. **Update CHANGELOG.md**.
 16. **Connection string constructor** (`NewFromConnStr`).
@@ -161,6 +164,7 @@
 30. **Add concurrent access tests** — Dgraph is a server; concurrent reads/writes should work.
 
 ### Lower priority
+
 31. **Implement `MapUpdater` (MapUpdate)** — Fold function over existing value.
 32. **Add `StreamTemporalReader`** — Version-based reads (Dgraph has no native temporal queries).
 33. **VectorBackend** — Brute-force (Dgraph has no native vector search).

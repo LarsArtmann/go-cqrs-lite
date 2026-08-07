@@ -20,72 +20,72 @@ However — the full `nix run .#verify` was NOT re-run after the api-stability g
 
 ### Phase V — Verification Gate
 
-| Task | Status | Detail |
-|------|--------|--------|
-| V1: Ran `nix run .#verify` | DONE | Full gate executed. 2 test failures found. |
-| V2a: Fixed `TestCatalogEveryGoWorkModuleCovered` | DONE | Added `example/metaengine-quickstart` to cqrs-lint excludedModules |
-| V2b: Fixed `TestBuildComparisonTable` | DONE | Updated stale header count assertion 13→14 (column was added without updating test) |
-| V2e: Re-verify | DONE | Targeted re-runs all GREEN |
-| V3: check-layers | NOT RUN | `nix run .#check-layers` was never executed — the plan called for it but it was skipped |
-| V4: Race detector | DONE | `-race` GREEN on metaengine, event, record, projectionadapter (5 modules) |
+| Task                                             | Status  | Detail                                                                                  |
+| ------------------------------------------------ | ------- | --------------------------------------------------------------------------------------- |
+| V1: Ran `nix run .#verify`                       | DONE    | Full gate executed. 2 test failures found.                                              |
+| V2a: Fixed `TestCatalogEveryGoWorkModuleCovered` | DONE    | Added `example/metaengine-quickstart` to cqrs-lint excludedModules                      |
+| V2b: Fixed `TestBuildComparisonTable`            | DONE    | Updated stale header count assertion 13→14 (column was added without updating test)     |
+| V2e: Re-verify                                   | DONE    | Targeted re-runs all GREEN                                                              |
+| V3: check-layers                                 | NOT RUN | `nix run .#check-layers` was never executed — the plan called for it but it was skipped |
+| V4: Race detector                                | DONE    | `-race` GREEN on metaengine, event, record, projectionadapter (5 modules)               |
 
 ### Phase C — Code Quality
 
-| Task | Status | Detail |
-|------|--------|--------|
-| C1: Refactor auto_fold.go dedup | DONE | `AutoInsert[E,R]`, `AutoUpdate[E,R]`, `AutoDelete[E]` now delegate to `autoInsertByType`/`autoUpdateByType`/`autoDeleteByType`. Eliminated ~130 lines of duplicated reflection logic. File went from 247→142 lines. All 14 auto-fold tests pass. |
-| C2: command.AsRecord adapter | DONE | `command/asrecord.go` (70 lines) + `command/asrecord_test.go` (3 tests: nil, basic mapping, zero metadata). Maps Command Type, StreamID, CorrelationID, CausationID, ActorID to `record.Record`. Commands have no Payload/Version/StreamType/SchemaVersion (left zero). Added `record/v4` dependency to `command/go.mod`. |
-| C3: AutoCRUDByConvention godoc | DONE | Expanded godoc explains Go struct name matching (`"TaskCreated"` not `"task.created"`), notes this differs from rest of go-cqrs-lite |
-| C4: AsRecord CausationID precedence godoc | DONE | Expanded godoc documents 3-level precedence: typed Causation.CommandID > Tracing.CausationID > empty |
+| Task                                      | Status | Detail                                                                                                                                                                                                                                                                                                                    |
+| ----------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1: Refactor auto_fold.go dedup           | DONE   | `AutoInsert[E,R]`, `AutoUpdate[E,R]`, `AutoDelete[E]` now delegate to `autoInsertByType`/`autoUpdateByType`/`autoDeleteByType`. Eliminated ~130 lines of duplicated reflection logic. File went from 247→142 lines. All 14 auto-fold tests pass.                                                                          |
+| C2: command.AsRecord adapter              | DONE   | `command/asrecord.go` (70 lines) + `command/asrecord_test.go` (3 tests: nil, basic mapping, zero metadata). Maps Command Type, StreamID, CorrelationID, CausationID, ActorID to `record.Record`. Commands have no Payload/Version/StreamType/SchemaVersion (left zero). Added `record/v4` dependency to `command/go.mod`. |
+| C3: AutoCRUDByConvention godoc            | DONE   | Expanded godoc explains Go struct name matching (`"TaskCreated"` not `"task.created"`), notes this differs from rest of go-cqrs-lite                                                                                                                                                                                      |
+| C4: AsRecord CausationID precedence godoc | DONE   | Expanded godoc documents 3-level precedence: typed Causation.CommandID > Tracing.CausationID > empty                                                                                                                                                                                                                      |
 
 ### Phase D — Documentation Fixes
 
-| Task | Status | Detail |
-|------|--------|--------|
-| D1b: Fix AGENTS.md test command | DONE | Added `./record/...`, `./metaengine/sqliteengine/...`, `./metaengine/badgerengine/...`, `./metaengine/graphadapter/...` to the test command row |
-| D2: Run doc-check | DONE | 1335 references valid. Fixed broken reference: `metaengine.NewSQLiteEngine` → `sqliteengine.NewSQLiteEngine` in recipes.md |
-| D3: Mark follow-up plan DONE | NOT DONE | Did not update `docs/planning/2026-08-06_metaengine-v2-follow-up-plan.md` with "STATUS: DONE" |
+| Task                            | Status   | Detail                                                                                                                                          |
+| ------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1b: Fix AGENTS.md test command | DONE     | Added `./record/...`, `./metaengine/sqliteengine/...`, `./metaengine/badgerengine/...`, `./metaengine/graphadapter/...` to the test command row |
+| D2: Run doc-check               | DONE     | 1335 references valid. Fixed broken reference: `metaengine.NewSQLiteEngine` → `sqliteengine.NewSQLiteEngine` in recipes.md                      |
+| D3: Mark follow-up plan DONE    | NOT DONE | Did not update `docs/planning/2026-08-06_metaengine-v2-follow-up-plan.md` with "STATUS: DONE"                                                   |
 
 ### Phase T — Tagging
 
-| Tag | Status | Detail |
-|-----|--------|--------|
-| `record/v4.0.0` | DONE | Annotated tag on HEAD |
-| `event/v4.3.0` | DONE | Annotated tag on HEAD |
-| `command/v4.3.0` | DONE | Annotated tag on HEAD (new AsRecord export) |
-| `metaengine/v4.6.0` | DONE | Annotated tag on HEAD |
-| `metaengine/projectionadapter/v4.3.0` | DONE | Annotated tag on HEAD |
-| `metaengine/badgerengine/v4.0.0` | DONE | First tag for this module (calibrated constants) |
+| Tag                                   | Status | Detail                                           |
+| ------------------------------------- | ------ | ------------------------------------------------ |
+| `record/v4.0.0`                       | DONE   | Annotated tag on HEAD                            |
+| `event/v4.3.0`                        | DONE   | Annotated tag on HEAD                            |
+| `command/v4.3.0`                      | DONE   | Annotated tag on HEAD (new AsRecord export)      |
+| `metaengine/v4.6.0`                   | DONE   | Annotated tag on HEAD                            |
+| `metaengine/projectionadapter/v4.3.0` | DONE   | Annotated tag on HEAD                            |
+| `metaengine/badgerengine/v4.0.0`      | DONE   | First tag for this module (calibrated constants) |
 
 **Risk:** Tags were created on HEAD before auto-commit daemon committed the final test/api-stability fixes. The tagged commit may not contain the latest test code. Tags should be verified against the commit they point to.
 
 ### Phase H — Hardening Tests
 
-| Task | Status | Detail |
-|------|--------|--------|
-| H1: ProjectionHost lifecycle test | DONE | `TestProjectionHost_RecordAwareLifecycle` — verifies StreamID, Version, CorrelationID flow through Host.Start → journal → adapter.Handle → ApplyRecord → OnRecord fold. `TestProjectionHost_CheckpointAdvances` — checkpoint EventID non-zero after processing. |
-| H2: Benchmark ApplyRecord | DONE | `BenchmarkHandle_ApplyRecord` (OnRecord path) + `BenchmarkHandle_AutoInsert` (auto-stamp path). Baseline established, no regression comparison done. |
-| H3: SQLite integration test | DONE | `TestSQLite_RecordStamping` in `metaengine/sqliteengine/record_stamp_test.go`. Proves Record stamping works through SQLite engine (JSONValue roundtrip). StreamID stamped as `"Item/stream-abc"` (full StreamRef), not bare `"stream-abc"`. |
+| Task                              | Status | Detail                                                                                                                                                                                                                                                          |
+| --------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| H1: ProjectionHost lifecycle test | DONE   | `TestProjectionHost_RecordAwareLifecycle` — verifies StreamID, Version, CorrelationID flow through Host.Start → journal → adapter.Handle → ApplyRecord → OnRecord fold. `TestProjectionHost_CheckpointAdvances` — checkpoint EventID non-zero after processing. |
+| H2: Benchmark ApplyRecord         | DONE   | `BenchmarkHandle_ApplyRecord` (OnRecord path) + `BenchmarkHandle_AutoInsert` (auto-stamp path). Baseline established, no regression comparison done.                                                                                                            |
+| H3: SQLite integration test       | DONE   | `TestSQLite_RecordStamping` in `metaengine/sqliteengine/record_stamp_test.go`. Proves Record stamping works through SQLite engine (JSONValue roundtrip). StreamID stamped as `"Item/stream-abc"` (full StreamRef), not bare `"stream-abc"`.                     |
 
 ### Phase P — Polish
 
-| Task | Status | Detail |
-|------|--------|--------|
-| P1: metaengine/README.md | DONE | Added "Record-Aware Folds" section: OnRecord, AutoInsert/AutoUpdate stamping, AutoCRUDByConvention, event.AsRecord bridge |
-| P2: SKILL.md modules.md | DONE | Added Record-aware pipeline exports to metaengine row: OnRecord, AutoInsert/AutoUpdate/AutoDelete, AutoCRUDByConvention, ApplyRecord, event.AsRecord |
-| P3: ADR-0116 convention section | DONE | Added "Naming Convention" subsection with suffix table, Go-struct-name requirement, error cases |
-| P4: Quickstart EventDecoder example | NOT DONE | Did not update `example/metaengine-quickstart/main.go` with a second WithEventDecoder section |
+| Task                                | Status   | Detail                                                                                                                                               |
+| ----------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P1: metaengine/README.md            | DONE     | Added "Record-Aware Folds" section: OnRecord, AutoInsert/AutoUpdate stamping, AutoCRUDByConvention, event.AsRecord bridge                            |
+| P2: SKILL.md modules.md             | DONE     | Added Record-aware pipeline exports to metaengine row: OnRecord, AutoInsert/AutoUpdate/AutoDelete, AutoCRUDByConvention, ApplyRecord, event.AsRecord |
+| P3: ADR-0116 convention section     | DONE     | Added "Naming Convention" subsection with suffix table, Go-struct-name requirement, error cases                                                      |
+| P4: Quickstart EventDecoder example | NOT DONE | Did not update `example/metaengine-quickstart/main.go` with a second WithEventDecoder section                                                        |
 
 ### Phase F — Final
 
-| Task | Status | Detail |
-|------|--------|--------|
-| F1: Vulncheck | NOT RUN | `nix run .#vulncheck` was never executed |
-| F2: nix fmt | PARTIAL | Ran `gofmt -w` on session-touched files only. Full `nix fmt` on whole repo not run. |
-| F3: Soak test | NOT DONE | Did not write the 100K-event soak test (dep: H1) |
+| Task                     | Status   | Detail                                                                              |
+| ------------------------ | -------- | ----------------------------------------------------------------------------------- |
+| F1: Vulncheck            | NOT RUN  | `nix run .#vulncheck` was never executed                                            |
+| F2: nix fmt              | PARTIAL  | Ran `gofmt -w` on session-touched files only. Full `nix fmt` on whole repo not run. |
+| F3: Soak test            | NOT DONE | Did not write the 100K-event soak test (dep: H1)                                    |
 | F4: OTel span attributes | NOT DONE | Did not add rec.StreamID/Version/Type span attributes to projectionadapter.Handle() |
-| F5: API-stability regen | DONE | Golden regenerated: 3725 exports (was 3706). Includes dgraphengine exports. |
-| F5: Full verify re-run | NOT DONE | After api-stability golden regen, full `nix run .#verify` was NOT re-run |
+| F5: API-stability regen  | DONE     | Golden regenerated: 3725 exports (was 3706). Includes dgraphengine exports.         |
+| F5: Full verify re-run   | NOT DONE | After api-stability golden regen, full `nix run .#verify` was NOT re-run            |
 
 ---
 
@@ -227,6 +227,7 @@ However — the full `nix run .#verify` was NOT re-run after the api-stability g
 ### Question 1: Should the git tags be deleted and recreated?
 
 The 6 tags (`record/v4.0.0`, `event/v4.3.0`, `command/v4.3.0`, `metaengine/v4.6.0`, `metaengine/projectionadapter/v4.3.0`, `metaengine/badgerengine/v4.0.0`) were created on HEAD before the auto-commit daemon committed the final test/api-stability fixes. The tagged commits may not contain the latest code. Should I:
+
 - **(a)** Delete all 6 tags and recreate them on the final committed HEAD?
 - **(b)** Leave them — the exported API surface is the same regardless of which commit the tag points to?
 - **(c)** Wait for the daemon to commit, then fast-forward the tags?
@@ -236,6 +237,7 @@ This matters because external consumers will `go get` these tags and the code th
 ### Question 2: Should `AutoCRUDByConvention` match by Go struct name or event type string?
 
 Currently it matches Go struct names (`"TaskCreated"` not `"task.created"`). The rest of go-cqrs-lite uses dot-separated event type strings. The godoc now documents this difference, but the question is whether to:
+
 - **(a)** Keep it as-is (struct name matching) — documented, tested, works
 - **(b)** Add a `ByEventType` variant that matches dot-separated strings
 - **(c)** Change the convention to match event type strings (breaking the current API)
@@ -245,11 +247,13 @@ This affects the convention contract and all consumers using `AutoCRUDByConventi
 ### Question 3: Should `event.AsRecord()` be the permanent bridge or transitional?
 
 The original plan (Phase 2c/2d from the prior session) called for embedding `record.Record` into `event.Event`. The adapter approach (`event.AsRecord()`) is non-breaking but:
+
 - Adds a conversion on every `Handle()` call (memory allocation per event)
 - Requires manual wiring in `projectionadapter.Handle()`
 - Duplicates the `brandedString` helper across packages
 
 Should we:
+
 - **(a)** Keep the adapter permanently — it's clean and non-breaking
 - **(b)** Plan the embedding migration for v5 — accept the breaking change
 - **(c)** Add the embedding NOW alongside the adapter (dual-path)
