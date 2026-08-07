@@ -1491,18 +1491,23 @@ metaengine/duckdbengine/const DuckDBNsPerOp
 metaengine/duckdbengine/const DuckDBNsPerRead
 metaengine/duckdbengine/func New
 metaengine/duckdbengine/func NewFromDB
+metaengine/duckdbengine/method Aggregate
 metaengine/duckdbengine/method ApplyLayout
 metaengine/duckdbengine/method ApplyLayoutPlan
 metaengine/duckdbengine/method Close
 metaengine/duckdbengine/method CounterGet
 metaengine/duckdbengine/method CounterIncrement
+metaengine/duckdbengine/method DistinctValues
 metaengine/duckdbengine/method ExplainScanQuery
+metaengine/duckdbengine/method GroupedAggregate
 metaengine/duckdbengine/method JournalReadAll
 metaengine/duckdbengine/method JournalReadFrom
 metaengine/duckdbengine/method MapDelete
 metaengine/duckdbengine/method MapGet
 metaengine/duckdbengine/method MapScan
 metaengine/duckdbengine/method MapSet
+metaengine/duckdbengine/method MultiAggregate
+metaengine/duckdbengine/method MultiGroupedAggregate
 metaengine/duckdbengine/method Profile
 metaengine/duckdbengine/method PushdownMapScan
 metaengine/duckdbengine/method RunInTx
@@ -1632,10 +1637,12 @@ metaengine/interface AtomicAppender
 metaengine/interface Calibratable
 metaengine/interface Closer
 metaengine/interface CounterBackend
+metaengine/interface DistinctReader
 metaengine/interface Engine
 metaengine/interface ExplainableScan
 metaengine/interface Fold
 metaengine/interface GraphBackend
+metaengine/interface GroupedAggregateReader
 metaengine/interface HealthChecker
 metaengine/interface LayoutPlanApplier
 metaengine/interface LayoutPlanner
@@ -1643,6 +1650,8 @@ metaengine/interface LogBackend
 metaengine/interface MapBackend
 metaengine/interface MapUpdater
 metaengine/interface MetricsRecorder
+metaengine/interface MultiAggregateReader
+metaengine/interface MultiGroupedAggregateReader
 metaengine/interface MultimapBackend
 metaengine/interface PlanRule
 metaengine/interface PushdownScan
@@ -1754,6 +1763,7 @@ metaengine/irohengine/var ErrScanBackendNotImplemented
 metaengine/irohengine/var ErrSearchBackendNotImplemented
 metaengine/irohengine/var ErrSpatialBackendNotImplemented
 metaengine/irohengine/var ErrVectorBackendNotImplemented
+metaengine/method AliasOr
 metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
@@ -1835,6 +1845,11 @@ metaengine/method GetBatch
 metaengine/method GraphAddEdge
 metaengine/method GraphNeighbors
 metaengine/method GroupBy
+metaengine/method GroupedAvg
+metaengine/method GroupedCount
+metaengine/method GroupedMax
+metaengine/method GroupedMin
+metaengine/method GroupedSum
 metaengine/method HasErrors
 metaengine/method HasWarnings
 metaengine/method HealthCheck
@@ -1886,7 +1901,9 @@ metaengine/method Max
 metaengine/method Milliseconds
 metaengine/method Min
 metaengine/method MultiAdd
+metaengine/method MultiAggregate
 metaengine/method MultiGet
+metaengine/method MultiGroupedAggregate
 metaengine/method Name
 metaengine/method Name
 metaengine/method Name
@@ -2075,6 +2092,7 @@ metaengine/sqliteengine/method ExplainScanQuery
 metaengine/sqliteengine/method GetRawValue
 metaengine/sqliteengine/method GraphAddEdge
 metaengine/sqliteengine/method GraphNeighbors
+metaengine/sqliteengine/method HealthCheck
 metaengine/sqliteengine/method JournalReadAll
 metaengine/sqliteengine/method JournalReadFrom
 metaengine/sqliteengine/method LogAppend
@@ -2104,6 +2122,7 @@ metaengine/sqliteengine/method StreamReadAsOfVersion
 metaengine/sqliteengine/method StreamReadFromVersion
 metaengine/sqliteengine/method StreamScan
 metaengine/sqliteengine/method StreamVersion
+metaengine/struct AggregateSpec
 metaengine/struct Append
 metaengine/struct ApplyError
 metaengine/struct AsOfSignal
@@ -2123,6 +2142,7 @@ metaengine/struct EventInput
 metaengine/struct EventLog
 metaengine/struct ExplainOptions
 metaengine/struct FilterSpec
+metaengine/struct GroupedAggregateRow
 metaengine/struct Hooks
 metaengine/struct InSpec
 metaengine/struct IndexedText
@@ -3439,6 +3459,7 @@ storage/var SnapshotSchema
 system/const DurabilityNormal
 system/const DurabilityRelaxed
 system/const DurabilityStrict
+system/const ProjectionHostResource
 system/const RoleCommands
 system/const RoleEvents
 system/const RoleProjections
@@ -3472,6 +3493,7 @@ system/func WithCommandSerialization
 system/func WithQuerySerialization
 system/func WithSerialization
 system/func WithSnapshotStrategy
+system/interface Drainer
 system/method AddPublisher
 system/method AppendBatch
 system/method AppendBatch
@@ -3522,6 +3544,7 @@ system/method ReadFrom
 system/method ReadFrom
 system/method ReadFrom
 system/method ReadQueriesFrom
+system/method RegisterDrainer
 system/method ResetProjection
 system/method Save
 system/method Save
@@ -3560,6 +3583,7 @@ system/struct ProjectionHostInfo
 system/struct QueryAdapter
 system/struct ScreamDiagnostic
 system/struct ScreamReport
+system/struct ShutdownDependency
 system/struct SnapshotAdapter
 system/struct System
 system/struct Topology
