@@ -37,7 +37,6 @@ require (
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -54,7 +53,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/retry/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-must v0.1.2
 	github.com/mattn/go-isatty v0.0.24 // indirect
