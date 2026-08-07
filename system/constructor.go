@@ -201,6 +201,28 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		sys.projHost = host
 	}
 
+	// Plan-drift detection: if a manifest path is configured, compare the
+	// current projection plan against the pinned manifest from the previous
+	// startup. SCREAM-tier violations block startup; WARN-tier diagnostics
+	// are surfaced to the caller.
+	if deployment.ManifestPath != "" {
+		currentPlan := sys.ProjectionPlan()
+
+		planReport, err := CheckPlanSafety(ctx, currentPlan, deployment.ManifestPath)
+		if err != nil {
+			return nil, fmt.Errorf("system: plan safety check: %w", err)
+		}
+
+		if planReport.HasErrors() {
+			detail := "unknown"
+			if len(planReport.Diagnostics) > 0 {
+				detail = planReport.Diagnostics[0].Detail
+			}
+
+			return nil, fmt.Errorf("%w: %s", ErrUnsafeChange, detail)
+		}
+	}
+
 	// Wire MultiBus if the source-of-truth instance has multiple Publish targets (D9).
 	bus, err := buildEventBus(deployment)
 	if err != nil {

@@ -74,6 +74,14 @@ type DeploymentConfig struct {
 	// AcknowledgeWarnings lists scream-store warnings the operator has ACKed.
 	// Format: "rule:target" (e.g., "durability-downgrade:events").
 	AcknowledgeWarnings []string `koanf:"acknowledge_warnings"`
+
+	// ManifestPath is the file path for the pinned projection-plan manifest.
+	// When set, the scream store loads the previous SerializablePlan from this
+	// file on startup, diffs it against the current plan, and blocks (SCREAM)
+	// or warns on unsafe changes. After a successful startup, the current plan
+	// is saved to this path for the next restart.
+	// Leave empty to disable plan-drift detection.
+	ManifestPath string `koanf:"manifest_path"`
 }
 
 // EngineConfig declares a named storage engine.

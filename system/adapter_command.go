@@ -10,15 +10,37 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// CommandAdapterOption tunes a CommandAdapter at construction time.
+type CommandAdapterOption func(*CommandAdapter)
+
+// WithCommandSerialization enables command serialization for persistent
+// engines (SQLite, Pebble). When enabled, commands are encoded to JSON
+// envelope strings on write and decoded on read. For the Memory engine,
+// this option should NOT be set — commands are stored as direct pointers.
+func WithCommandSerialization() CommandAdapterOption {
+	return func(a *CommandAdapter) { a.serialize = true }
+}
+
 // CommandAdapter wraps a [metaengine.StreamLogBackend] as a [command.Store].
 type CommandAdapter struct {
 	backend    metaengine.StreamLogBackend
 	collection string
+	serialize  bool
 }
 
 // NewCommandAdapter creates a command.Store backed by a StreamLogBackend.
-func NewCommandAdapter(backend metaengine.StreamLogBackend, collection string) *CommandAdapter {
-	return &CommandAdapter{backend: backend, collection: collection}
+func NewCommandAdapter(
+	backend metaengine.StreamLogBackend,
+	collection string,
+	opts ...CommandAdapterOption,
+) *CommandAdapter {
+	a := &CommandAdapter{backend: backend, collection: collection}
+
+	for _, opt := range opts {
+		opt(a)
+	}
+
+	return a
 }
 
 var (
@@ -31,7 +53,7 @@ func (a *CommandAdapter) Save(
 	ref command.StreamRef,
 	cmd *command.PersistedCommand,
 ) error {
-	return a.backend.StreamAppend(ctx, a.collection, ref.StreamKey(), []any{cmd})
+	return a.backend.StreamAppend(ctx, a.collection, ref.StreamKey(), a.commandsToAny([]*command.PersistedCommand{cmd}))
 }
 
 func (a *CommandAdapter) AppendBatch(
@@ -39,12 +61,7 @@ func (a *CommandAdapter) AppendBatch(
 	ref command.StreamRef,
 	cmds []*command.PersistedCommand,
 ) error {
-	values := make([]any, len(cmds))
-	for i, c := range cmds {
-		values[i] = c
-	}
-
-	return a.backend.StreamAppend(ctx, a.collection, ref.StreamKey(), values)
+	return a.backend.StreamAppend(ctx, a.collection, ref.StreamKey(), a.commandsToAny(cmds))
 }
 
 func (a *CommandAdapter) Load(
@@ -55,7 +72,7 @@ func (a *CommandAdapter) Load(
 		return nil, fmt.Errorf("command adapter: load: %w", err)
 	}
 
-	return anyToCommands(values), nil
+	return a.anyToCommands(values)
 }
 
 func (a *CommandAdapter) LoadFromTimestamp(
@@ -100,7 +117,7 @@ func (a *CommandAdapter) ReadAll(ctx context.Context) ([]*command.PersistedComma
 		return nil, fmt.Errorf("command adapter: read all: %w", err)
 	}
 
-	return anyToCommands(values), nil
+	return a.anyToCommands(values)
 }
 
 func (a *CommandAdapter) ReadFrom(
@@ -116,9 +133,13 @@ func (a *CommandAdapter) ReadFrom(
 			return nil, fmt.Errorf("command adapter: read from: %w", err)
 		}
 
-		for i, val := range all {
-			cmd, ok := val.(*command.PersistedCommand)
-			if ok && cmd.ID() == afterCommandID {
+		cmds, err := a.anyToCommands(all)
+		if err != nil {
+			return nil, fmt.Errorf("command adapter: read from: %w", err)
+		}
+
+		for i, cmd := range cmds {
+			if cmd.ID() == afterCommandID {
 				afterSeq = int64(i + 1)
 
 				break
@@ -131,19 +152,5 @@ func (a *CommandAdapter) ReadFrom(
 		return nil, fmt.Errorf("command adapter: read from: %w", err)
 	}
 
-	return anyToCommands(values), nil
-}
-
-func anyToCommands(values []any) []*command.PersistedCommand {
-	result := make([]*command.PersistedCommand, 0, len(values))
-	for _, val := range values {
-		cmd, ok := val.(*command.PersistedCommand)
-		if !ok {
-			continue
-		}
-
-		result = append(result, cmd)
-	}
-
-	return result
+	return a.anyToCommands(values)
 }

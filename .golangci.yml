@@ -190,6 +190,7 @@ linters:
             - github.com/charmbracelet
             - github.com/samber/do
             - github.com/samber/go-type-to-string
+            - github.com/knadh/koanf
             - github.com/larsartmann/go-output
             - github.com/LarsArtmann/gogenfilter
             - github.com/a-h/templ
@@ -208,6 +209,7 @@ linters:
             - golang.org/x/mod
             - golang.org/x/term
             - golang.org/x/text
+            - github.com/knadh/koanf
             - golang.org/x/sys
     exhaustruct:
       exclude:

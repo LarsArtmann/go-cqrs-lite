@@ -53,8 +53,8 @@ func buildEventBus(deployment DeploymentConfig) (event.Bus, error) {
 		eb, ok := bus.(event.Bus)
 		if !ok {
 			return nil, fmt.Errorf(
-				"system: bus driver %q returned %T which does not implement event.Bus",
-				busCfg.Driver, bus,
+				"system: bus driver %q returned %T: %w",
+				busCfg.Driver, bus, ErrBusDriverNotEventBus,
 			)
 		}
 

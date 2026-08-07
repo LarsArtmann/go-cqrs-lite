@@ -244,3 +244,106 @@ func main() { fmt.Println("hello") }
 		t.Error("empty project should have recommendations")
 	}
 }
+
+// TestScorecard_E2E_MetaengineDetected verifies that a project importing the
+// metaengine module with pushdown usage triggers the METAENGINE section in
+// the scorecard.
+func TestScorecard_E2E_MetaengineDetected(t *testing.T) {
+	t.Parallel()
+
+	src := map[string]string{
+		"main.go": `package main
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/decider/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
+
+func main() {
+	_ = metaengine.FilterOnField[any]("status", metaengine.FilterEq)
+}
+`,
+	}
+
+	actx := analyzer.BuildContextFromSource(t, src)
+
+	if !actx.FeatureProfile.HasMetaengine {
+		t.Fatal("expected HasMetaengine to be true")
+	}
+	if !actx.FeatureProfile.MetaenginePushdown {
+		t.Fatal("expected MetaenginePushdown to be true")
+	}
+
+	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, analyzer.DefaultCatalog)
+
+	result := ComputeScorecard(
+		analyzer.DefaultCatalog, usage,
+		actx.FeatureProfile, analyzer.PresetNone,
+	)
+
+	if result.Metaengine == nil {
+		t.Fatal("expected Metaengine section to be non-nil")
+	}
+	if !result.Metaengine.Detected {
+		t.Error("expected Metaengine.Detected to be true")
+	}
+	if !result.Metaengine.PushdownAdopted {
+		t.Error("expected Metaengine.PushdownAdopted to be true")
+	}
+
+	textOut := renderScorecardText(result, output.ColorModeNever)
+	if !strings.Contains(textOut, "METAENGINE") {
+		t.Error("text output should contain METAENGINE section")
+	}
+	if !strings.Contains(textOut, "Pushdown: adopted") {
+		t.Error("text output should show 'Pushdown: adopted'")
+	}
+}
+
+// TestScorecard_E2E_MetaengineWithoutPushdown verifies that metaengine
+// detection without pushdown generates a suggestion.
+func TestScorecard_E2E_MetaengineWithoutPushdown(t *testing.T) {
+	t.Parallel()
+
+	src := map[string]string{
+		"main.go": `package main
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/decider/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
+
+func main() {
+	_ = metaengine.NewMemoryEngine()
+}
+`,
+	}
+
+	actx := analyzer.BuildContextFromSource(t, src)
+
+	if !actx.FeatureProfile.HasMetaengine {
+		t.Fatal("expected HasMetaengine to be true")
+	}
+	if actx.FeatureProfile.MetaenginePushdown {
+		t.Fatal("expected MetaenginePushdown to be false")
+	}
+
+	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, analyzer.DefaultCatalog)
+
+	result := ComputeScorecard(
+		analyzer.DefaultCatalog, usage,
+		actx.FeatureProfile, analyzer.PresetNone,
+	)
+
+	if result.Metaengine == nil {
+		t.Fatal("expected Metaengine section to be non-nil")
+	}
+	if result.Metaengine.PushdownAdopted {
+		t.Error("expected PushdownAdopted to be false")
+	}
+	if result.Metaengine.Suggestion == "" {
+		t.Error("expected non-empty suggestion when pushdown not adopted")
+	}
+}

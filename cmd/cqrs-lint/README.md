@@ -372,7 +372,7 @@ Adoption rules (F-series) are advisory: they suggest modules and patterns that i
 | F018 | metaengine-filteron-pushdown     | Info     | metaengine.FilterOn (closure-based) prevents SQL pushdown — use FilterOnField for WHERE-clause pushdown            |
 | F019 | metaengine-missing-volume-hint   | Info     | metaengine queries lack Volume hint — cost-based planner cannot optimize engine selection                          |
 | F020 | metaengine-sorton-pushdown       | Info     | metaengine.SortOn (closure-based) prevents SQL ORDER BY pushdown — use SortOnField for indexed sort                |
-| F021 | metaengine-write-amplification   | Info     | metaengine query has many fold declarations — high write amplification may degrade ingest throughput               |
+| F021 | metaengine-write-amplification   | Info     | single metaengine.Query has 3+ fold args (per-query, not global) — high write amplification may degrade ingest     |
 | F022 | manual-sort-no-pushdown          | Info     | Manual in-memory sorting with a SQL store but no metaengine — all rows loaded into Go memory for sorting           |
 | F023 | manual-filter-no-pushdown        | Info     | Manual in-memory filtering (for-range + if + append) with a SQL store but no metaengine                            |
 | F024 | manual-pagination-no-pushdown    | Info     | Manual pagination (slice[offset:offset+limit]) with a SQL store but no metaengine                                  |

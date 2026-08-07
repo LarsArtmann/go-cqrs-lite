@@ -6,6 +6,7 @@ import "errors"
 // for specific failure conditions.
 var (
 	ErrAlreadyStarted         = errors.New("system: already started")
+	ErrBusDriverNotEventBus   = errors.New("system: bus driver does not implement event.Bus")
 	ErrCacheCapacityInvalid   = errors.New("system: cache capacity must be positive")
 	ErrCommandTypeMismatch    = errors.New("system: command type mismatch")
 	ErrDeciderTypeMismatch    = errors.New("system: decider type mismatch")

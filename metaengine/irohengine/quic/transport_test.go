@@ -54,7 +54,7 @@ func eventuallyGet(
 // single convergence test. Setup cleanup is wired via t.Cleanup.
 type quicCluster struct {
 	G     gomega.Gomega
-	Ctx   context.Context
+	Ctx   context.Context //nolint:containedctx // test helper
 	NodeA metaengine.Engine
 	NodeB metaengine.Engine
 	TA    *quic.QuicTransport
