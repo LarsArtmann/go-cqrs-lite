@@ -26,14 +26,8 @@ const maxSnapshotStreams = 50
 // Requires event.Store (bundle.EventStore()); gracefully skips otherwise.
 // Snapshot load is skipped when the bundle has no SnapshotStore.
 func (r *runner) snapshotPhase(ctx context.Context) error {
-	if ctx.Err() != nil {
-		return nil //nolint:nilerr // ctx done; graceful skip
-	}
-
 	store, ok := r.bundle.EventStore()
-	if !ok {
-		r.recordSkip("snapshot phase", "bundle has no EventStore (event.Store interface)")
-
+	if r.skipPhase(ctx, "snapshot phase", "bundle has no EventStore (event.Store interface)", ok) {
 		return nil
 	}
 

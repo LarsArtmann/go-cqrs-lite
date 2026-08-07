@@ -24,13 +24,7 @@ import (
 // the write phase). Tests that assert journal contents or replay event counts
 // should set Config.SkipRawSink = true.
 func (r *runner) rawSinkPhase(ctx context.Context) error {
-	if ctx.Err() != nil {
-		return nil //nolint:nilerr // ctx done; graceful skip
-	}
-
-	if r.bundle.EventSink == nil {
-		r.recordSkip("raw sink phase", "bundle has no EventSink")
-
+	if r.skipPhase(ctx, "raw sink phase", "bundle has no EventSink", r.bundle.EventSink != nil) {
 		return nil
 	}
 

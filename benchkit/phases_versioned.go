@@ -16,14 +16,9 @@ import (
 //
 // Requires EventSource. Gracefully skips when absent or when no streams exist.
 func (r *runner) versionedReadPhase(ctx context.Context) error {
-	if ctx.Err() != nil {
-		return nil //nolint:nilerr // ctx done; graceful skip
-	}
-
-	if r.bundle.EventSource == nil || len(r.refs) == 0 {
-		r.recordSkip("versioned read phase",
-			"bundle has no EventSource or no streams written")
-
+	if r.skipPhase(ctx, "versioned read phase",
+		"bundle has no EventSource or no streams written",
+		r.bundle.EventSource != nil && len(r.refs) > 0) {
 		return nil
 	}
 

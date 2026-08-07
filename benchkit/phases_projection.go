@@ -18,14 +18,9 @@ import (
 // measures lag and throughput. Skipped when SeekableJournal or
 // CheckpointStore is absent.
 func (r *runner) projectionPhase(ctx context.Context) error {
-	if ctx.Err() != nil {
-		return nil // duration expired; partial results are valid
-	}
-
-	if r.bundle.SeekableJournal == nil || r.bundle.CheckpointStore == nil {
-		r.recordSkip("projection phase",
-			"bundle missing SeekableJournal or CheckpointStore")
-
+	if r.skipPhase(ctx, "projection phase",
+		"bundle missing SeekableJournal or CheckpointStore",
+		r.bundle.SeekableJournal != nil && r.bundle.CheckpointStore != nil) {
 		return nil
 	}
 

@@ -201,19 +201,6 @@ func exprReferencesJSONCodec(expr ast.Expr) bool {
 	return false
 }
 
-// typeName extracts the bare type name from an AST expression, unwrapping
-// package qualifiers (e.g. models.UserState → UserState).
-func typeName(expr ast.Expr) string {
-	switch e := expr.(type) {
-	case *ast.Ident:
-		return e.Name
-	case *ast.SelectorExpr:
-		return e.Sel.Name
-	}
-
-	return ""
-}
-
 // extractStateTypeFromCall tries to determine the state type name from a
 // decider.NewRepository or decider.NewTypedRepository call.
 // It first checks explicit type parameters, then falls back to the decider
@@ -241,10 +228,10 @@ func extractStateTypeFromCall(call *ast.CallExpr) string {
 func extractStateType(expr ast.Expr) string {
 	switch f := expr.(type) {
 	case *ast.IndexExpr: // NewRepository[State]
-		return typeName(f.Index)
+		return analyzer.ExprIdentName(f.Index)
 	case *ast.IndexListExpr: // NewTypedRepository[State, Cmd]
 		if len(f.Indices) > 0 {
-			return typeName(f.Indices[0])
+			return analyzer.ExprIdentName(f.Indices[0])
 		}
 	}
 

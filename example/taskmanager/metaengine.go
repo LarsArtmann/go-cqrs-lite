@@ -1,13 +1,9 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
-	"log/slog"
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
-	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -15,7 +11,7 @@ import (
 // Metaengine — the cost-based query planner.
 //
 // This is the STRATEGIC FUTURE of go-cqrs-lite. Instead of the O(N)
-// Materialize.List + Go-side filter in handleListTasks, metaengine maintains:
+// Materialize.List + Go-side filter, metaengine maintains:
 //
 //   - task_counts_by_status: a Counter ADT tracking counts by lifecycle status
 //     (O(1) aggregate read).
@@ -23,9 +19,8 @@ import (
 //     for Status enabling SQLite json_extract pushdown (O(logN) filtered scan
 //     instead of O(N) Go-side filter).
 //
-// The planner inspects the declared fold return types, infers the ADT
-// (Counter vs Map), evaluates available engines (Memory + SQLite), and assigns
-// each query to the cheapest engine that supports its operations.
+// These declarations are passed to system.DomainConfig.Projections — the
+// System handles engine creation, planning, and projection host wiring.
 // ──────────────────────────────────────────────────────────────────────────
 
 // taskCountsInput is the query input for the aggregate counter read.
@@ -38,13 +33,10 @@ type listTasksInput struct {
 
 const estimatedTaskVolume = 10_000
 
-// setupMetaEngine builds a metaengine Store with two queries using the
-// modern DX helpers (PlanFromSQLite + TypeDecoder). It returns the store,
-// a projection adapter for the projection host, and the *sql.DB for lifecycle.
-func setupMetaEngine(
-	logger *slog.Logger,
-	dsn string,
-) (*metaengine.Store, *projectionadapter.Adapter, *sql.DB, error) {
+// buildProjections returns the metaengine query declarations and the typed
+// event decoder. These are passed to system.DomainConfig for the System to
+// plan, create the projection store, and wire the projection adapter.
+func buildProjections() ([]any, *projectionadapter.TypeDecoder) {
 	taskCounts := metaengine.Query[taskCountsInput, map[string]int64](
 		"task_counts_by_status",
 		metaengine.OnTyped(
@@ -188,13 +180,6 @@ func setupMetaEngine(
 		metaengine.Volume(estimatedTaskVolume),
 	)
 
-	store, meDB, err := sqliteengine.PlanFromDSN(dsn, taskCounts, taskViews)
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("metaengine: plan: %w", err)
-	}
-
-	store.LogPlan(logger)
-
 	decoder := projectionadapter.NewTypeDecoder(
 		projectionadapter.Register(evtTaskCreated, TaskCreatedPayload{}),
 		projectionadapter.Register(evtTaskAssigned, TaskAssignedPayload{}),
@@ -209,9 +194,7 @@ func setupMetaEngine(
 		projectionadapter.Register(evtTaskDeleted, TaskDeletedPayload{}),
 	)
 
-	adapter := projectionadapter.NewWithDecoder("metaengine-tasks", store, decoder)
-
-	return store, adapter, meDB, nil
+	return []any{taskCounts, taskViews}, decoder
 }
 
 // handleGetTaskStats serves GET /api/stats — returns task counts by status

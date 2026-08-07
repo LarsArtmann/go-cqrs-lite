@@ -209,7 +209,6 @@ linters:
             - golang.org/x/mod
             - golang.org/x/term
             - golang.org/x/text
-            - github.com/knadh/koanf
             - golang.org/x/sys
     exhaustruct:
       exclude:

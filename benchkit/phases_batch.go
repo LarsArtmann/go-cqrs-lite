@@ -14,13 +14,7 @@ import (
 // Save calls — backends may batch-fsync, amortize transaction overhead, or
 // use copy-on-write optimizations that only apply to multi-event transactions.
 func (r *runner) batchWritePhase(ctx context.Context) error {
-	if ctx.Err() != nil {
-		return nil //nolint:nilerr // ctx done; graceful skip
-	}
-
-	if r.bundle.EventSink == nil {
-		r.recordSkip("batch write phase", "bundle has no EventSink")
-
+	if r.skipPhase(ctx, "batch write phase", "bundle has no EventSink", r.bundle.EventSink != nil) {
 		return nil
 	}
 

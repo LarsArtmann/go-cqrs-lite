@@ -24,13 +24,8 @@ import (
 // Writers run to completion (Streams * EventsPerStream / BatchSize operations);
 // readers run continuously until writers finish, then stop.
 func (r *runner) mixedWorkloadPhase(ctx context.Context) error {
-	if ctx.Err() != nil {
-		return nil
-	}
-
-	if r.bundle.EventSink == nil || r.bundle.EventSource == nil {
-		r.recordSkip("mixed workload phase", "bundle missing EventSink or EventSource")
-
+	if r.skipPhase(ctx, "mixed workload phase", "bundle missing EventSink or EventSource",
+		r.bundle.EventSink != nil && r.bundle.EventSource != nil) {
 		return nil
 	}
 

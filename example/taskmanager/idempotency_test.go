@@ -50,7 +50,7 @@ func TestIdempotencyDemo(t *testing.T) {
 		t.Fatalf("second dispatch of same command: want ErrDuplicate, got %v", err)
 	}
 
-	events, err := srv.Bundle.EventSource.Load(
+	events, err := srv.Sys.EventStore().Load(
 		ctx,
 		id.NewStreamRef(id.StreamType("Task"), taskID),
 	)

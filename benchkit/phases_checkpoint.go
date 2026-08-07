@@ -12,14 +12,8 @@ import (
 // Projection hosts checkpoint after every batch of events — a slow
 // CheckpointStore directly increases projection lag during replay.
 func (r *runner) checkpointPhase(ctx context.Context) error {
-	if ctx.Err() != nil {
-		return nil //nolint:nilerr // ctx done; graceful skip
-	}
-
 	cpStore := r.bundle.CheckpointStore
-	if cpStore == nil {
-		r.recordSkip("checkpoint phase", "bundle has no CheckpointStore")
-
+	if r.skipPhase(ctx, "checkpoint phase", "bundle has no CheckpointStore", cpStore != nil) {
 		return nil
 	}
 

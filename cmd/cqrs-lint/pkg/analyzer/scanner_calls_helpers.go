@@ -24,16 +24,17 @@ func recordTypeConstArg(ctx *AnalysisContext, call *ast.CallExpr, argIndex int) 
 		return
 	}
 
-	name := constNameFromExpr(call.Args[argIndex])
+	name := ExprIdentName(call.Args[argIndex])
 	if name != "" {
 		ctx.Registry.registeredTypeConsts = append(ctx.Registry.registeredTypeConsts, name)
 	}
 }
 
-// constNameFromExpr extracts a bare constant identifier name from an argument
-// expression. Returns "" for expressions that are not simple constant references
-// (composite literals, closures, constructor calls, string literals).
-func constNameFromExpr(expr ast.Expr) string {
+// ExprIdentName extracts the bare identifier name from an AST expression,
+// unwrapping package qualifiers (e.g. models.UserState → UserState,
+// projection.GetVisitQueryType → GetVisitQueryType). Returns "" for
+// expressions that are not simple identifier references.
+func ExprIdentName(expr ast.Expr) string {
 	switch e := expr.(type) {
 	case *ast.Ident:
 		// Bare constant: GetVisitQueryType

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -13,19 +12,20 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
-	"github.com/larsartmann/go-cqrs-lite/decider/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/signing/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
-	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
-	"github.com/larsartmann/go-cqrs-lite/stack/v4"
-	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
 	cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
+
+	gomust "github.com/larsartmann/go-must"
+
+	otel "go.opentelemetry.io/otel"
 )
 
 const (
@@ -37,15 +37,14 @@ const (
 	projectionSettleMs   = 100
 )
 
-// Server is the composition root — all wired components live here.
+// Server holds the System and HTTP lifecycle. Infrastructure (event store,
+// snapshot store, projection host, bus, dispatchers) is owned by the System.
 type Server struct {
-	Bundle       *stack.Bundle
-	Repo         *decider.Repository[TaskState]
+	Sys          *system.System
 	CmdDisp      *command.Dispatcher
-	Mat          *stack.Materialize[TaskView, TaskID]
-	ProjHost     *projectionhost.Host
 	MetaEngine   *metaengine.Store
 	TaskReader   *metaengine.TypedReader[TaskView]
+	ProjHost     *projectionhost.Host
 	Logger       *slog.Logger
 	otelProvider *cqrsotel.Provider
 	signer       signing.SignerVerifier
@@ -64,169 +63,131 @@ func DefaultConfig() Config {
 	return Config{DatabasePath: ":memory:", HTTPAddr: ":8080"}
 }
 
-// NewServer wires all components and returns a ready-to-start Server.
-//
-// The deployer picks infrastructure (one line: sqlite.New). The consumer
-// code (domain.go, events.go, decider.go, projection.go) is identical
-// regardless of database choice.
+// NewServer wires all components via system.New and returns a ready-to-start Server.
 func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	if logger == nil {
 		logger = slog.New(slog.NewTextHandler(os.Stderr, nil))
 	}
 
-	// ── Metaengine: cost-based query planner ──
-	// Counter ADT for O(1) status counts + Map ADT for filtered task views.
-	// Built BEFORE the bundle so it can be registered for lifecycle management
-	// via stack.WithMetaEngine (passed through sqlite.WithStack). The SQLite
-	// engine opens a separate connection to the same DSN (separate tables:
-	// meta_map, meta_counter, etc.).
-	meStore, meAdapter, meDB, err := setupMetaEngine(logger, cfg.DatabasePath)
-	if err != nil {
-		return nil, fmt.Errorf("setup: metaengine: %w", err)
-	}
-
-	bundle, err := sqlite.New(
-		cfg.DatabasePath,
-		sqlite.WithPragmas(sqlopt.WithOptimizations()),
-		sqlite.WithStack(
-			stack.WithMetaEngine(meStore),
-			stack.WithCloser(meDB),
-		),
+	// ── OTel setup (before system.New so middleware can be in DomainConfig) ──
+	provider, err := cqrsotel.Setup(
+		cqrsotel.WithService("taskmanager", "1.0.0", "dev"),
 	)
 	if err != nil {
-		//cqrs-lint:ignore(C023) library code or intentional pattern
-		_ = meDB.Close()
-		_ = meStore.Close()
-
-		return nil, fmt.Errorf("setup: sqlite bundle: %w", err)
+		return nil, fmt.Errorf("setup: otel: %w", err)
 	}
 
-	// SQLite's connection pool can create separate databases for :memory:.
-	// Restricting to a single connection ensures schema visibility.
-	if db, ok := bundle.Database().(*sql.DB); ok {
-		db.SetMaxOpenConns(1)
+	tracer := otel.GetTracerProvider().Tracer("taskmanager")
+	meter := otel.GetMeterProvider().Meter("taskmanager")
+
+	otelBundle, err := middleware.NewOTelBundle(tracer, meter)
+	if err != nil {
+		return nil, fmt.Errorf("setup: otel bundle: %w", err)
 	}
 
-	// ── Repository with snapshot strategy (every 10 events) ──────────
-	// Snapshots accelerate aggregate loading by folding from the last
-	// snapshot instead of the full event history.
+	// ── Build domain config ──────────────────────────────────────────────
+	projections, typeDecoder := buildProjections()
+
 	snapStrategy, err := snapshot.EveryNEvents(snapshotInterval)
 	if err != nil {
-		//cqrs-lint:ignore(C023) library code or intentional pattern
-		_ = bundle.Close()
-
 		return nil, fmt.Errorf("setup: snapshot strategy: %w", err)
 	}
 
-	repo, err := stack.Repository(
-		bundle, TaskDecider,
-		decider.WithSnapshotStore[TaskState](bundle.SnapshotStore),
-		decider.WithSnapshotStrategy[TaskState](snapStrategy),
-		decider.WithCodec[TaskState](bundle.DefaultCodec()),
-	)
-	if err != nil {
-		//cqrs-lint:ignore(C023) library code or intentional pattern
-		_ = bundle.Close()
-
-		return nil, fmt.Errorf("setup: repository: %w", err)
-	}
-
-	mat, err := stack.NewMaterialize[TaskView, TaskID](bundle, bundle.DefaultCodec(), taskViewKey)
-	if err != nil {
-		//cqrs-lint:ignore(C023) library code or intentional pattern
-		_ = bundle.Close()
-
-		return nil, fmt.Errorf("setup: materialize: %w", err)
-	}
-
-	configureProjection(mat)
-
-	// ── ProjectionHost: managed projection runner with DLQ + crash-restart ──
-	// Replaces the raw CatchUpSubscriber loop. The host reads from the
-	// journal (replay), then tails live events via the subscriber. Poison
-	// messages are captured in the dead-letter store after 3 failures.
-	//cqrs-lint:ignore(C017) library code or intentional pattern
 	dlq := projectionhost.NewMemoryDeadLetterStore()
 
-	projHost, err := projectionhost.New(
-		bundle.SeekableJournal,
-		bundle.CheckpointStore,
-		projectionhost.WithBatchSize(projectionBatchSize),
-		projectionhost.WithDeadLetterStore(dlq, deadLetterMaxRetries),
-		projectionhost.WithMaxRestarts(-1),
-		projectionhost.WithLogger(logger),
-		projectionhost.WithSubscriber(bundle.Subscriber),
-	)
+	const idempotencyTTL = 10 * time.Minute
+
+	commandMW := []command.Middleware{
+		middleware.CommandRecovery(),
+		middleware.CommandLogging(logger),
+		middleware.CommandRetry(middleware.DefaultRetryConfig()),
+		middleware.CommandIdempotency(idempotency.NewMemoryStore(0), idempotencyTTL, nil),
+	}
+	commandMW = append(commandMW, otelBundle.Command()...)
+
+	domain := system.DomainConfig{
+		Commands: func(sys *system.System) {
+			gomust.Check(system.RegisterDecider(sys, string(streamType), TaskDecider,
+				system.WithSnapshotStrategy(snapStrategy)))
+			registerCommands(sys)
+		},
+		Projections:            projections,
+		ProjectionTypeDecoder:  typeDecoder,
+		Middleware:             commandMW,
+		ProjectionHostOptions: []projectionhost.HostOption{
+			projectionhost.WithBatchSize(projectionBatchSize),
+			projectionhost.WithDeadLetterStore(dlq, deadLetterMaxRetries),
+			projectionhost.WithMaxRestarts(-1),
+			projectionhost.WithLogger(logger),
+		},
+	}
+
+	// ── Build deployment config ──────────────────────────────────────────
+	deployment := system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{
+			"primary": {
+				Driver:  "sqlite",
+				DSN:     cfg.DatabasePath,
+				Pragmas: []string{"journal_mode=wal"},
+			},
+		},
+		Instances: []system.InstanceConfig{
+			{Role: system.RoleSourceOfTruth, Engine: "primary"},
+			{Role: system.RoleProjections, Engine: "primary"},
+		},
+	}
+
+	// ── Create the System ────────────────────────────────────────────────
+	ctx := context.Background()
+
+	sys, err := system.New(ctx, domain, deployment)
 	if err != nil {
-		//cqrs-lint:ignore(C023) library code or intentional pattern
-		_ = bundle.Close()
-
-		return nil, fmt.Errorf("setup: projection host: %w", err)
-	}
-
-	if err := projHost.Register(mat); err != nil {
-		//cqrs-lint:ignore(C023) library code or intentional pattern
-		_ = bundle.Close()
-
-		return nil, fmt.Errorf("setup: register projection: %w", err)
-	}
-
-	// ── Metaengine adapter registered with projection host ──
-	if err := projHost.Register(meAdapter); err != nil {
-		//cqrs-lint:ignore(C023) library code or intentional pattern
-		_ = bundle.Close()
-
-		return nil, fmt.Errorf("setup: register metaengine projection: %w", err)
+		return nil, fmt.Errorf("setup: system.New: %w", err)
 	}
 
 	srv := &Server{
-		Bundle:     bundle,
-		Repo:       repo,
-		CmdDisp:    command.NewDispatcher(),
-		Mat:        mat,
-		ProjHost:   projHost,
-		MetaEngine: bundle.MetaEngine(),
-		TaskReader: metaengine.NewReader[TaskView](bundle.MetaEngine(), "task_views"),
-		Logger:     logger,
+		Sys:          sys,
+		CmdDisp:      sys.CommandDispatcher(),
+		MetaEngine:   sys.MetaEngine(),
+		ProjHost:     sys.ProjectionHost(),
+		Logger:       logger,
+		otelProvider: provider,
 	}
 
-	if err := setupFeatures(srv); err != nil {
-		//cqrs-lint:ignore(C023) library code or intentional pattern
-		_ = srv.Bundle.Close()
-
-		return nil, fmt.Errorf("setup: features: %w", err)
+	if sys.MetaEngine() != nil {
+		srv.TaskReader = metaengine.NewReader[TaskView](sys.MetaEngine(), "task_views")
 	}
 
-	registerHandlers(srv)
+	// ── Event bus signing (HMAC-SHA256 tamper detection) ─────────────────
+	srv.signer = newDemoSigner()
 
-	// Deriver: auto-assign new tasks to default team lead (event→command reaction)
-	if err := projHost.Register(newDeriverProjection(srv.CmdDisp, logger)); err != nil {
-		//cqrs-lint:ignore(C023) library code or intentional pattern
-		_ = srv.Bundle.Close()
+	if err := sys.Bus().UsePublish(signing.SignMiddleware(srv.signer)); err != nil {
+		return nil, fmt.Errorf("setup: sign middleware: %w", err)
+	}
 
+	if err := sys.Bus().Use(signing.VerifyMiddleware(srv.signer)); err != nil {
+		return nil, fmt.Errorf("setup: verify middleware: %w", err)
+	}
+
+	// ── Deriver: auto-assign new tasks (event→command reaction) ──────────
+	if err := sys.ProjectionHost().Register(
+		newDeriverProjection(sys.CommandDispatcher(), logger),
+	); err != nil {
 		return nil, fmt.Errorf("setup: register deriver: %w", err)
 	}
 
-	// ── SSE broker: real-time event streaming over HTTP ──────────────
-	// Clients connect to GET /events to receive a live stream of domain
-	// events as Server-Sent Events.
-	if bus, ok := bundle.Publisher.(event.Bus); ok {
-		broker, brokerErr := cqrshttp.NewSSEBroker(bus)
-		if brokerErr != nil {
-			return nil, fmt.Errorf("setup: SSE broker: %w", brokerErr)
-		}
-
-		srv.sseBroker = broker
+	// ── SSE broker: real-time event streaming over HTTP ──────────────────
+	broker, err := cqrshttp.NewSSEBroker(sys.Bus())
+	if err != nil {
+		return nil, fmt.Errorf("setup: SSE broker: %w", err)
 	}
+
+	srv.sseBroker = broker
 
 	return srv, nil
 }
 
-// Start launches the ProjectionHost (replay + live tailing with DLQ) in a
-// background goroutine. Processing errors are logged via the configured logger
-// rather than returned, because ProjHost.Start blocks until shutdown.
-//
-// Call StartHTTP separately for the HTTP API (not needed in tests).
+// Start launches the ProjectionHost in a background goroutine.
 func (s *Server) Start(ctx context.Context) {
 	go func() {
 		if err := s.ProjHost.Start(ctx); err != nil {
@@ -236,8 +197,6 @@ func (s *Server) Start(ctx context.Context) {
 }
 
 // StartHTTP launches the HTTP API server in a background goroutine.
-// Listener errors (other than graceful shutdown) are logged via the
-// configured logger. Call after Start.
 func (s *Server) StartHTTP(addr string) {
 	s.httpServer = &http.Server{
 		Addr:              addr,
@@ -275,17 +234,18 @@ func (s *Server) Stop() error {
 		_ = s.otelProvider.Shutdown(ctx)
 	}
 
-	return s.Bundle.Close()
+	return s.Sys.Close()
 }
 
 // SeedDemo creates a sample task so the API has data on first run.
 func (s *Server) SeedDemo(ctx context.Context) {
 	taskID := id.NewStreamID()
 
-	if err := s.Repo.Execute(
-		ctx, taskID, streamType,
-		Create(CreateTask{ID: taskID, Title: "Try the API!", Priority: PriorityHigh}),
-	); err != nil {
+	if err := s.CmdDisp.Dispatch(ctx, CreateTaskCmd{
+		BasicCommand: gomust.Must(command.New(cmdCreateTask, taskID)),
+		Title:        "Try the API!",
+		Priority:     PriorityHigh,
+	}); err != nil {
 		s.Logger.Warn("seed: create demo task", "error", err)
 
 		return
@@ -293,10 +253,8 @@ func (s *Server) SeedDemo(ctx context.Context) {
 
 	s.Logger.Info(
 		"seeded demo task",
-		"id",
-		taskID,
-		"url",
-		"http://localhost:8080/api/tasks/"+taskID.String(),
+		"id", taskID,
+		"url", "http://localhost:8080/api/tasks/"+taskID.String(),
 	)
 }
 
@@ -315,6 +273,7 @@ func Run() error {
 	if err != nil {
 		return err
 	}
+
 	defer func() { _ = srv.Stop() }()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -323,11 +282,9 @@ func Run() error {
 	srv.Start(ctx)
 	srv.StartHTTP(":8080")
 
-	// Give projection a moment to replay, then seed
 	time.Sleep(projectionSettleMs * time.Millisecond)
 	srv.SeedDemo(ctx)
 
-	// Wait for shutdown signal
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 	sig := <-sigCh

@@ -71,9 +71,13 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 	})
 
 	// ── Verify via read model ─────────────────────────────────────────
-	view, err := srv.Mat.View(ctx, taskID)
+	view, found, err := srv.TaskReader.Get(ctx, taskID.String())
 	if err != nil {
 		t.Fatalf("view task: %v", err)
+	}
+
+	if !found {
+		t.Fatal("task not found in read model")
 	}
 
 	if view.Title != "Integration Test" {
@@ -101,7 +105,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 
 	// Verify the event store persisted correct tombstone metadata.
 	ref := id.NewStreamRef(streamType, taskID)
-	allEvents, err := srv.Bundle.EventSource.Load(ctx, ref)
+	allEvents, err := srv.Sys.EventStore().Load(ctx, ref)
 	if err != nil {
 		t.Fatalf("load events: %v", err)
 	}
@@ -392,8 +396,8 @@ func waitForView(t *testing.T, srv *Server, taskID id.StreamID, matches func(*Ta
 	deadline := time.Now().Add(5 * time.Second)
 
 	for time.Now().Before(deadline) {
-		view, err := srv.Mat.View(context.Background(), taskID)
-		if err == nil && view != nil && matches(view) {
+		view, found, err := srv.TaskReader.Get(context.Background(), taskID.String())
+		if err == nil && found && matches(&view) {
 			return
 		}
 

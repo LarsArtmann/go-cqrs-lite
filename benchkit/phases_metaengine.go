@@ -75,13 +75,7 @@ func meBenchCounterQuery() metaengine.QueryDecl[meBenchCounterInput, map[string]
 // Skipped automatically when Config.SkipMetaEngine is true or the bundle has
 // no metaengine registered (bundle.MetaEngine() returns nil).
 func (r *runner) metaEnginePhase(ctx context.Context) error {
-	if ctx.Err() != nil {
-		return nil //nolint:nilerr // cancelled context means skip phase, not fail
-	}
-
-	if r.bundle.MetaEngine() == nil {
-		r.recordSkip("metaengine phase", "bundle has no MetaEngine")
-
+	if r.skipPhase(ctx, "metaengine phase", "bundle has no MetaEngine", r.bundle.MetaEngine() != nil) {
 		return nil
 	}
 

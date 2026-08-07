@@ -107,13 +107,7 @@ func (r *runner) runJournalScans(ctx context.Context) {
 
 // readModelPhase benchmarks raw kv.Store Set and Get operations.
 func (r *runner) readModelPhase(ctx context.Context) error {
-	if ctx.Err() != nil {
-		return nil //nolint:nilerr // ctx done; graceful skip
-	}
-
-	if r.bundle.ReadModels == nil {
-		r.recordSkip("read model phase", "bundle has no ReadModels (kv.Store)")
-
+	if r.skipPhase(ctx, "read model phase", "bundle has no ReadModels (kv.Store)", r.bundle.ReadModels != nil) {
 		return nil
 	}
 

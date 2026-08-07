@@ -193,6 +193,24 @@ func (r *runner) recordSkip(phaseName, reason string) {
 		fmt.Sprintf("%s skipped: %s", phaseName, reason))
 }
 
+// skipPhase returns true when a benchmark phase should be skipped: either
+// because the context is cancelled (graceful exit) or because the bundle is
+// missing a required component (recorded as a skip in results). Centralises
+// the guard preamble shared by every phase method.
+func (r *runner) skipPhase(ctx context.Context, phase, reason string, ready bool) bool {
+	if ctx.Err() != nil {
+		return true // ctx done; graceful skip
+	}
+
+	if !ready {
+		r.recordSkip(phase, reason)
+
+		return true
+	}
+
+	return false
+}
+
 // warn records an advisory warning without marking a phase as fully skipped.
 func (r *runner) warn(msg string) {
 	r.result.Warnings = append(r.result.Warnings, msg)
