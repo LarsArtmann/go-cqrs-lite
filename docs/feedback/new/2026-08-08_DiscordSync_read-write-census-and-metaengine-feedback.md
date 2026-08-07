@@ -341,3 +341,60 @@ This report is based on:
 - ADRs: ADR-004, ADR-012, ADR-022, ADR-031, ADR-042, ADR-043, ADR-054
 
 No estimates or hand-waving — every claim is backed by a file:line reference in the source code.
+
+---
+
+## Appendix: Maintainer Research & Response (2026-08-08)
+
+### A1. Source-Code Verification of Feedback Claims
+
+Every technical claim in this report was independently verified against the go-cqrs-lite source code. **All claims are factually accurate.**
+
+| Claim | Verdict | Evidence |
+|-------|---------|----------|
+| 5 sink API gaps all absent | **CONFIRMED** | `storage/relational/sink.go:46-146` — 9 methods exist; none of the 5 proposed ones |
+| `Increment` deliberately doesn't clamp to zero | **CONFIRMED** | `sink.go:84-89` — doc explicitly states negative counters surface data-loss bugs |
+| `WithoutViewAutoMigrate()` exists but hidden | **CONFIRMED** | `storage/view/options.go:52` |
+| `AutoMapper[V](table)` exists but not default | **CONFIRMED** | `storage/view/auto.go:51` — generates ViewMapper from `view:"col_name"` struct tags |
+| `ViewMapper` requires manual Columns/Extract | **PARTIALLY CORRECT** | `store.go:50` supports manual Columns, but `AutoMapper` makes it optional, not mandatory |
+| Metaengine is single-collection, no JOINs | **CONFIRMED** | `metaengine/planner.go:72-74`: "Each query gets its own independent projection" |
+| ADTSearch exists but NOT wired to SQLite FTS5 | **CONFIRMED** | Only Memory (`memory_engine.go:288`) + Dgraph (`dgraphengine/engine.go:352`) implement `SearchBackend`. SQLite has zero FTS5 code. |
+| DuckDB engine lacks aggregation pushdown | **CONFIRMED (stronger than claimed)** | DuckDB does NOT implement `AggregateReader`. `CounterGet` (`duckdbengine/engine.go:312-335`) loads all rows into a Go map. The "vectorized GROUP BY" exists only as raw SQL in a test (`layout_planner_cgo_test.go:657`), never through the API. |
+
+### A2. Three Findings the Original Report Missed
+
+1. **`SetExpr` already exists** (`sink.go:148-156`) — `UpsertExpr` already takes `[]SetExpr{Column, Expr, Args}`. An `UpdateExpr` would reuse this type directly. Lowest-effort gap of all five.
+
+2. **`InsertSelect` is explicitly documented as an intended `Tx()` use case** — the `Tx()` doc comment (`sink.go:131-144`) lists `INSERT INTO ... SELECT` as an escape hatch scenario. This isn't a "gap" so much as "working as designed."
+
+3. **Latent ADT inconsistency (unrelated to this feedback)** — `ADTStreamLog` is defined (`metaengine/types.go:12`) but NOT included in `AllADTs()` (`metaengine/enum_validation.go:10-15`), so `ADTStreamLog.Valid()` returns `false`.
+
+### A3. Maintainer Decisions
+
+After reviewing the feedback and verification results, the following direction was set:
+
+#### Write-Side Sink Gaps: **REJECTED — Not implementing**
+
+The 5 proposed sink methods (`IncrementClamped`, `MultiIncrement`, `UpdateExpr`, `QueryRow`, `InsertSelect`) are ORM-level API additions. go-cqrs-lite is **not an ORM**. The `Tx()` escape hatch (`sink.go:131-144`) already exists and is documented for exactly these irreducible cases. The 8 irreducible sites in DiscordSync are the intended use case for `Tx()`. The 42 replaceable sites are consumer-side cleanup, not a library API problem.
+
+The library's philosophy on `Increment` non-clamping (`sink.go:84-89`: "a counter going below zero signals inconsistent events") remains the correct default. Adding `IncrementClamped` would undermine this principle for a convenience that `Tx()` already provides.
+
+#### Metaengine: **Primary focus — two tracks**
+
+1. **DuckDB real aggregation pushdown** (approved) — Implement `AggregateReader` on the DuckDB engine so `CounterGet`, GROUP BY, SUM, AVG actually push down to columnar SQL instead of loading rows into Go maps. The DuckDB engine today is marketing, not implementation — `CounterGet` loads all rows into Go and accumulates in-process. Making the columnar analytical story real is the highest-leverage metaengine work.
+
+2. **Cross-projection JOIN**: **DEFERRED** to a separate research track / ADR. Metaengine stays single-collection for now. The tension between "metaengine as projection materializer" vs "metaengine as relational query optimizer" is a fundamental identity question that needs its own design work, not a reactive feature addition.
+
+#### DX/Documentation: **Three trivial wins (docs-only, zero risk)**
+
+1. `WithoutViewAutoMigrate` — one-line doc addition so consumers stop source-diving
+2. `AutoMapper` — make it the documented default path in the view store README; manual `ViewMapper` as the escape hatch
+3. `Increment` non-clamping philosophy — surface the rationale in README, not just source comments
+
+The `Tx()` code-smell doc suggestion was **rejected** as preachy — the existing `Tx()` doc already covers the intent adequately.
+
+### A4. Key Insight: Where the Energy Goes
+
+DiscordSync's feedback focused heavily on low-level SQL API gaps (5 sink methods, 50 raw SQL sites). This is understandable from a consumer perspective but **misses the strategic layer**. The real value of go-cqrs-lite is not being a better SQL builder — it's the metaengine making the materialize-vs-replay, pushdown-vs-scan, and engine-selection tradeoffs into **deployment-time decisions** instead of coding-time commitments.
+
+The DuckDB aggregation pushdown is the first step toward making that vision real. The cross-projection question is the strategic frontier — but it needs design rigor, not a rushed feature.
