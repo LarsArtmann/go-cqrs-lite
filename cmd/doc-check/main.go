@@ -68,6 +68,7 @@ func main() {
 
 	rootCmd := cli.RootCommand()
 	rootCmd.Use = "doc-check [files...]"
+	rootCmd.Args = cobra.ArbitraryArgs
 	rootCmd.RunE = func(_ *cobra.Command, args []string) error {
 		return run(args)
 	}

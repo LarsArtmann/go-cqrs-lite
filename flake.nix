@@ -951,7 +951,7 @@
                   echo "=== Check Duplication ===" && nix run .#check-duplication && \
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
-                  echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md) && \
+                  echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run -tags "goexperiment.jsonv2" . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md) && \
                   echo "✅ All verification checks passed"
                 '';
 
