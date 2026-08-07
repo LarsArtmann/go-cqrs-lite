@@ -335,10 +335,12 @@ deciders/projections. `example/taskmanager` migrated to `system.New()`.
 SnapshotBackend/scream store wired, introspection real, Verify/Plan/Explain
 methods, projection decoder wiring, koanf YAML config, DuckDB/PG Transactional,
 bus driver registry, scream store plan-drift detection, CommandAdapter/
-QueryAdapter SQL serialization, example/taskmanager migration. **P2 hardening
-shipped**: HealthCheck, GracefulClose, ResetProjection, configurable checkpoint
-store, README Quick Start fix, doc-check arg validation. See
-[CHANGELOG.md](CHANGELOG.md) → System package P2 hardening.
+QueryAdapter SQL serialization, example/taskmanager migration. **P2 hardening +
+P2 test depth + P3 code quality shipped**: HealthCheck, GracefulClose (with
+Drainer phase), ResetProjection, configurable checkpoint store, errors.Join in
+Close, WithShutdownDependency, SQLite engine HealthCheck, README Quick Start
+fix, doc-check arg validation. See [CHANGELOG.md](CHANGELOG.md) → System
+package P2 test depth + P3 code quality.
 
 | Feature                         | Detail                                                                                                                                                                                                                                        | Status |
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -362,9 +364,11 @@ store, README Quick Start fix, doc-check arg validation. See
 | StreamLogBackend (5 engines)    | Memory + SQLite + Pebble + DuckDB + Postgres. All implement `StreamLogBackend`. DuckDB + Postgres + Memory have `AtomicAppender`                                                                                                              | 🧪     |
 | StreamTemporalReader            | `StreamReadFromVersion` / `StreamReadAsOfVersion` on Memory + SQLite. Wired into EventAdapter                                                                                                                                                 | 🧪     |
 | System.Verify/Plan/Explain      | Cross-instance consistency check, combined plan, human-readable explanation                                                                                                                                                                   | 🧪     |
-| Lifecycle                       | `Close()`, `GracefulClose(ctx)` (context-bounded), `ResetProjection(ctx, name)`, `Start(ctx)`                                                                                                                                                   | 🧪     |
+| Lifecycle                       | `Close()` (joins all errors via `errors.Join`), `GracefulClose(ctx)` (drains via `Drainer`s, then context-bounded Close), `ResetProjection(ctx, name)`, `Start(ctx)`                                                                                   | 🧪     |
 | Configurable checkpoint store   | `DomainConfig.CheckpointStore` field. Falls back to in-memory when nil. Enables persistent checkpoints (e.g., `SQLCheckpointStore`) for projection resume after restart                                                                 | 🧪     |
-| Test suite                      | 27+ tests: query dispatch, driver registry, snapshot isolation + E2E, multi-decider, concurrent dispatch (20 goroutines, race detector), bus pub/sub, MultiBus, Op accessors, atomic conflict, journal, projection E2E, plan-drift, adapter serialization, HealthCheck (healthy + stopped), GracefulClose (normal + context-expired), ResetProjection (no-host), custom checkpoint store. All pass with `-race` | ✅     |
+| Drainer interface               | `Drainer` interface + `RegisterDrainer(d)`. `GracefulClose` drains via registered Drainers before Close, matching `stack.Bundle` two-phase shutdown                                                                                             | 🧪     |
+| Shutdown dependencies           | `DomainConfig.ShutdownDependencies` + `ShutdownDependency` type. `orderedEngines()` topological sort (Kahn's algorithm, cycle fallback). `ProjectionHostResource` constant for dep edges                                                       | 🧪     |
+| Test suite                      | 33+ tests: query dispatch, driver registry, snapshot isolation + E2E, multi-decider, concurrent dispatch (20 goroutines, race detector), bus pub/sub, MultiBus, Op accessors, atomic conflict, journal, projection E2E, plan-drift, adapter serialization, HealthCheck (healthy + stopped + failed projection + unhealthy engine + SQLite ping), GracefulClose (normal + context-expired + slow shutdown), ResetProjection (no-host + positive), custom checkpoint store (deepened), shutdown dependencies. All pass with `-race` | ✅     |
 
 ---
 

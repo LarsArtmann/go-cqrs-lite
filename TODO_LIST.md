@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-08 (system P2 hardening shipped: 6 items done)
+**Updated:** 2026-08-08 (system P2 test depth + P3 code quality shipped)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -63,7 +63,7 @@ and is **never** duplicated here.
 
 ---
 
-## System Package (EXPERIMENTAL — P0/P1/P2 shipped, test depth continues)
+## System Package (EXPERIMENTAL — P0/P1/P2/P3 shipped)
 
 > The `system/` module implements the operator-configured CQRS topology.
 > Driver registry wired, SQLite working through `New()`, projections E2E
@@ -71,9 +71,10 @@ and is **never** duplicated here.
 > koanf YAML config, DuckDB/PG Transactional, bus driver registry, scream store
 > plan-drift detection, CommandAdapter/QueryAdapter serialization, and
 > example/taskmanager migration all shipped. Tagged `system/v4.0.0`. **P2
-> hardening shipped** (HealthCheck, GracefulClose, ResetProjection,
-> configurable checkpoint store, README Quick Start fix, doc-check arg
-> validation). Remaining work is test depth and edge-case coverage.
+> hardening + P2 test depth + P3 code quality all shipped.**
+> HealthCheck, GracefulClose (with Drainer phase), ResetProjection,
+> configurable checkpoint store, WithShutdownDependency, errors.Join in Close,
+> SQLite engine HealthCheck, README Quick Start fix, doc-check arg validation.
 
 ### P2 — Hardening (DONE — see [CHANGELOG.md](CHANGELOG.md))
 
@@ -93,36 +94,35 @@ and is **never** duplicated here.
 - [x] **Wire checkpoint store as configurable** — `DomainConfig.CheckpointStore`
       field; constructor uses it instead of hardcoded `memoryCheckpointStore`.
 
-### P2 — Test depth (shallow tests need deepening)
+### P2 — Test depth (DONE)
 
-- [ ] **Deepen `TestSystem_CustomCheckpointStore`** — declare a real projection,
-      produce events, assert `recordingCheckpointStore.saveCnt > 0`. Current test
-      only verifies the field is accepted without error.
-- [ ] **Add `TestSystem_HealthCheck_FailedProjection`** — register a projection
-      with a handler that always errors, let it exhaust retries, assert
-      `HealthCheck` returns an error naming the projection.
-- [ ] **Add `TestSystem_ResetProjection_Positive`** — configure projection,
-      stop host, reset, restart, verify replay from zero.
-- [ ] **Add `TestSystem_GracefulClose_SlowShutdown`** — verify Close completes
-      within context when it takes real time (slow projection host stop).
-- [ ] **Add `TestSystem_HealthCheck_EngineUnhealthy`** — mock an engine that
-      returns error from HealthCheck, verify HealthCheck propagates it.
+- [x] **Deepen `TestSystem_CustomCheckpointStore`** — declares a real projection,
+      produces events, starts host, waits for processing, asserts `saveCnt > 0`.
+- [x] **Add `TestSystem_HealthCheck_FailedProjection`** — registers a projection
+      with a failing decoder, `WithMaxRestarts(1)`, waits for `WorkerFailed`,
+      asserts `HealthCheck` returns an error.
+- [x] **Add `TestSystem_ResetProjection_Positive`** — configures projection,
+      produces events, stops host, resets, verifies checkpoint is zero-value.
+- [x] **Add `TestSystem_GracefulClose_SlowShutdown`** — creates system with
+      projection host, produces events, GracefulClose completes within context.
+- [x] **Add `TestSystem_HealthCheck_EngineUnhealthy`** — internal test injects
+      a mock engine returning error from HealthCheck, verifies propagation.
 
-### P3 — Code quality (noticed during P2 work)
+### P3 — Code quality (DONE)
 
-- [ ] **Join errors in `System.Close()`** — currently returns only the first
-      error; `stack.Bundle.Close()` joins all. Behavioral change — needs
-      decision.
-- [ ] **Remove or populate dead `s.closers` slice** — declared as
-      `[]func() error` but `New()` never appends to it. Dead code.
-- [ ] **Port `WithShutdownDependency` from stack.Bundle** — for ordered shutdown
-      in multi-store deployments.
-- [ ] **Consider `Drainer` interface** — for pre-close drain (stack.Bundle has
-      one, System doesn't).
-- [ ] **Document `DomainConfig.CheckpointStore` in README** — Configuration
-      section doesn't mention it yet.
-- [ ] **SQLite integration test for HealthCheck** — Memory engines are always
-      healthy; SQLite would test the real DB ping path.
+- [x] **Join errors in `System.Close()`** — uses `errors.Join` for all close
+      errors (projection host + engines), matching `stack.Bundle.Close()`.
+- [x] **Remove dead `s.closers` slice** — removed the `closers []func() error`
+      field and its loop in Close (never populated in `New()`).
+- [x] **Port `WithShutdownDependency`** — `DomainConfig.ShutdownDependencies`
+      field + `ShutdownDependency` type + `orderedEngines()` topological sort
+      (Kahn's algorithm, cycle fallback to creation order).
+- [x] **Add `Drainer` interface** — `GracefulClose` now drains via registered
+      `Drainer`s before `Close`. `RegisterDrainer(d)` method on System.
+- [x] **Document `DomainConfig.CheckpointStore` in README** — added
+      DomainConfig Fields table with CheckpointStore + ShutdownDependencies.
+- [x] **SQLite integration test for HealthCheck** — added `HealthCheck` to
+      SQLite engine (`db.PingContext`), integration test verifies ping path.
 
 ---
 

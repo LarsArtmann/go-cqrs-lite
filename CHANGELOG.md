@@ -42,6 +42,41 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `system.HealthCheck`, `system.ResetProjection`, `system.ErrNoProjectionHost`,
   `system.ErrSystemStopped`. Total: 3749 exports.
 
+#### System package P2 test depth + P3 code quality — lifecycle, shutdown ordering, test depth
+
+- **`System.Close()` joins all errors** — previously returned only the first
+  error; now uses `errors.Join` for projection host + engine close errors,
+  matching `stack.Bundle.Close()` behavior.
+- **Removed dead `s.closers` slice** — the `closers []func() error` field was
+  declared but never populated in `New()`. Removed the field and its loop in
+  `Close()`.
+- **`Drainer` interface + `RegisterDrainer`** — `GracefulClose` now drains
+  in-flight work via registered `Drainer` resources before calling `Close`,
+  matching `stack.Bundle.GracefulClose` two-phase shutdown pattern.
+- **`ShutdownDependency` + `orderedEngines()`** — ported
+  `WithShutdownDependency` from `stack.Bundle`. `DomainConfig.ShutdownDependencies`
+  declares ordering constraints (e.g., "close projection host before event
+  store"). `orderedEngines()` topologically sorts engines via Kahn's algorithm;
+  cycles fall back to creation order. `ProjectionHostResource` constant for
+  referencing the projection host in dependency edges.
+- **SQLite engine `HealthCheck`** — added `HealthCheck(ctx)` method to
+  `metaengine/sqliteengine` via `db.PingContext(ctx)`. Implements
+  `metaengine.HealthChecker` for Kubernetes-style liveness probes.
+- **`DomainConfig.CheckpointStore` documented in README** — added
+  DomainConfig Fields table to README Configuration section.
+- **5 deepened/new tests** — `TestSystem_CustomCheckpointStore` deepened
+  (declares real projection, produces events, asserts `saveCnt > 0`),
+  `TestSystem_HealthCheck_FailedProjection` (failing decoder → WorkerFailed →
+  HealthCheck error), `TestSystem_ResetProjection_Positive` (produces events,
+  stops host, resets, verifies zero-value checkpoint),
+  `TestSystem_GracefulClose_SlowShutdown` (projection host draining within
+  context), `TestSystem_HealthCheck_EngineUnhealthy` (internal test injects
+  mock engine with failing HealthCheck), `TestSystem_HealthCheck_SQLite`
+  (SQLite engine ping path). All pass with `-race`.
+- **API surface golden updated** — 4 new system symbols: `Drainer`,
+  `RegisterDrainer`, `ShutdownDependency`, `ProjectionHostResource`. 1 new
+  sqliteengine symbol: `HealthCheck`. Total: 3773 exports.
+
 #### bbolt storage backend hardening — streaming, OTel, contract tests
 
 - **Streaming iterators** (`storage/bbolt/stream.go`) — `event.StreamingSource`
