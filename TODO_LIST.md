@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-06 (post metaengine v2 completion)
+**Updated:** 2026-08-07 (post publishability hardening, verify gate GREEN)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -15,60 +15,57 @@ and is **never** duplicated here.
 
 ## Metaengine v2 (Record-aware ES-native architecture)
 
-> Metaengine v2 is **feature-complete**: `record/` module, 9 engines (Memory,
-> SQLite, Pebble, DuckDB, Postgres, Badger, Dgraph, GraphAdapter, Iroh),
-> `OnRecord`/`ApplyRecord` Record-aware folds, `AutoInsert`/`AutoCRUD`/
-> `AutoCRUDByConvention` auto-projection, tombstone deprecation. ADRs
-> 0111-0119 written. Remaining work is hardening, completeness, and
-> publishability.
+> Metaengine v2 is **feature-complete and publishable**: `record/` module, 9
+> engines (Memory, SQLite, Pebble, DuckDB, Postgres, Badger, Dgraph,
+> GraphAdapter, Iroh), `OnRecord`/`ApplyRecord` Record-aware folds,
+> `AutoInsert`/`AutoCRUD`/`AutoCRUDByConvention` auto-projection, tombstone
+> deprecation. ADRs 0111-0119 written. Verify gate GREEN (all 17 steps pass).
+> Tags pushed: sqliteengine, graphadapter, dgraphengine, storage/bbolt,
+> idempotency. Remaining work is completeness and edge-case coverage.
 
 ### Publishability (blocks external consumers)
 
-- [ ] **Tag untagged modules** — `metaengine/sqliteengine/v4`,
-      `metaengine/graphadapter/v4`, `metaengine/dgraphengine/v4`,
-      `storage/bbolt/v4` are implemented and in `go.work` but have **no git
-      tags**. External consumers running `go mod tidy` (GOWORK=off) get
-      `unknown revision`. Evidence: `git tag -l 'metaengine/sqliteengine/*'`
-      returns empty.
-- [ ] **Run `nix run .#verify`** — the full gate (build+vet+test+race+lint+
-      doc-check) was never confirmed GREEN across the v2 sessions. Targeted
-      tests pass; the full gate is the only source of truth.
-- [ ] **Run `nix run .#check-layers`** — verify dependency budgets after
-      adding `record/v4` to `event/`, `command/`, `metaengine/` modules.
-
-### Code quality
-
-- [ ] **`auto_naming.go` dedup refactor** — `autoInsertByType`,
-      `autoUpdateByType`, `autoDeleteByType` duplicate logic from the generic
-      `AutoInsert[E,R]`/`AutoUpdate[E,R]`/`AutoDelete[E]`. Refactor the generic
-      versions to delegate to the `ByType` core. Evidence:
-      `metaengine/auto_naming.go:14`, `metaengine/auto_fold.go:80`.
-- [ ] **`record.FromCommand()` adapter** — mirrors `event.AsRecord()`.
-      Completes the Record vision for both events AND commands. Evidence:
-      `event/asrecord.go:41` (event side done; command side missing).
-- [ ] **AutoCRUDByConvention naming convention documentation** — the function
-      matches Go struct names (`"TaskCreated"`) not dot-separated event types
-      (`"task.created"`). This differs from the rest of go-cqrs-lite and must
-      be documented in the godoc. Evidence: `metaengine/auto_naming.go:145`.
+- [ ] **Tag `metaengine/bench/v4.0.0`** — module exists in `go.work` but has no
+      git tag. External consumers cannot import it.
+- [ ] **Tag `metaengine/pebbleengine/v4.0.0`** — module exists in `go.work` but
+      has no git tag. External consumers cannot import it.
+- [ ] **Tag drifted modules for GOWORK=off CI** — `retry/v4`, `middleware/v4`,
+      `benchkit/v4`, `stack/*` have API changes since their last tag. Per-module
+      CI (GOWORK=off) fails because it resolves to stale versions.
 
 ### Test coverage
 
-- [ ] **Projectionhost lifecycle test** — Record-aware folds through the
-      full `projectionhost.Host.Start/Stop/checkpoint` lifecycle (current
-      integration tests call `Handle()` directly).
-- [ ] **SQLite engine integration test** — Record-aware pipeline through
-      `metaengine/sqliteengine`, not just Memory engine.
-- [ ] **Soak test** — 100K events through the Record-aware pipeline, verify
-      no memory leaks.
+- [ ] **Record-aware integration test through SQLite engine** — Record-aware
+      pipeline through `metaengine/sqliteengine`, not just Memory engine.
+- [ ] **Record-aware integration test through Pebble engine** — same as above
+      for `metaengine/pebbleengine`.
+- [ ] **Soak test with `AutoCRUDByConvention`** — existing soak tests use
+      manual folds; verify the auto-projection path under sustained load.
 - [ ] **Benchmark `ApplyRecord` overhead** — measure `Handle()` before/after
       the `ApplyRecord` switch.
+- [ ] **Add `RunTransactionalTest` to sqliteengine/badgerengine tests** —
+      DuckDB + PG have it; SQLite + Badger do not.
+- [ ] **Add concurrent `RunInTx` test** — two goroutines, verify isolation.
+- [ ] **Add `MultiAdd` + `LogAppend` transactional tests** —
+      `RunTransactionalTest` exercises MapBackend + CounterBackend + StreamLog
+      inside `RunInTx`; Multimap and Log backends are untested in transactions.
 
-### Documentation
+### Code quality
 
-- [ ] **`metaengine/README.md`** — document `OnRecord`, `AutoCRUDByConvention`,
-      Record stamping, `AsRecord`. Current README predates v2.
-- [ ] **AGENTS.md test command** — add `./record/...` to the `go test` command
-      in the Quick Reference table (currently missing the new module).
+- [ ] **`record.FromCommand()` adapter** — mirrors `event.AsRecord()`.
+      Completes the Record vision for both events AND commands. Evidence:
+      `event/asrecord.go:41` (event side done; command side missing).
+
+### Module health
+
+- [ ] **Add `metaengine/keycodec`, `metaengine/enginetest`,
+      `testutil/pgtestcontainer` to api-stability modules list** —
+      `TestEveryGoModDirIsInModulesList` will fail without these.
+- [ ] **Add same 3 modules to AGENTS.md module list** — currently missing from
+      the Quick Reference table and Monorepo Structure tree.
+- [ ] **Fix 16 COVERAGE GAPs in `check-module-layers.sh`** — newer modules
+      (badgerengine, dgraphengine, graphadapter, sqliteengine, metaengine/bench,
+      testutil/pgtestcontainer, record) missing from LAYER/DEP_BUDGET maps.
 
 > Long-term metaengine work (`metaengine-gen` code generator, Vector/Search/
 > Spatial engine backends, generic `ScanResult[T]`, operator-driven engine
@@ -76,55 +73,49 @@ and is **never** duplicated here.
 
 ---
 
-## System Package (EXPERIMENTAL — first pass + Pareto P0/P1 fixes shipped)
+## System Package (EXPERIMENTAL — P0/P1 fixes shipped, hardening continues)
 
 > The `system/` module implements the operator-configured CQRS topology.
 > Driver registry wired, SQLite working through `New()`, projections E2E
 > proven, MultiBus/SnapshotBackend/scream store wired, introspection real.
-> Tagged `system/v4.0.0`. Remaining work is hardening and completeness.
+> koanf YAML config, DuckDB/PG Transactional, bus driver registry, scream store
+> plan-drift detection, CommandAdapter/QueryAdapter serialization, and
+> example/taskmanager migration all shipped. Tagged `system/v4.0.0`. Remaining
+> work is documentation, edge-case tests, and completeness.
 
-### P1 — Hardening (makes the design production-ready)
+### P2 — Hardening (makes the design production-ready)
 
-- [ ] **Scream store: PlanDiff / PlanFingerprint / Manifest** — the scream
-      store's value proposition is detecting unsafe runtime changes by diffing
-      the current `SerializablePlan` against a pinned manifest. Without these,
-      it's a config validator, not a scream store.
-- [ ] **CommandAdapter + QueryAdapter serialization** — both adapters compile
-      but need a `serializedCommand`/`serializedQuery` envelope for SQL engines
-      (same pattern as `serializedEvent`).
-- [ ] **`example/taskmanager` full migration to System** — metaengine.go DX
-      rewrite done (372→193 lines), but the app still wires manually via
-      `system.New()`. Full migration proves the consumer experience end-to-end.
-
-### P2 — Important for completeness
-
-- [x] **koanf YAML config** — koanf integration done: YAML + structured env
-      merge (`CQRS_ENGINES__PRIMARY__DRIVER=sqlite`), eliminated YAML intermediate
-      structs, backward-compatible legacy env vars. (ADR-0105)
-- [x] **DuckDB/PG Transactional** — DuckDB + Postgres implement
-      `Transactional` (`RunInTx`) with tx routing via `conn()`/`activeTx`.
-      Compile-time assertions added. `RunTransactionalTest` in enginetest.
-- [x] **Bus driver registry** — registry functional: gochannel special-case
-      removed, unknown drivers error (not silent fallback). Fixed latent
-      `RLock`/`Unlock` bug in `lookupBusDriver`.
+- [ ] **`system/README.md` Quick Start doesn't compile** — missing imports,
+      types. Needs to be copy-pasteable as a standalone program.
+- [ ] **Fix `cmd/doc-check` cmdguard arg-parsing** — `cobra.ArbitraryArgs` is a
+      band-aid; doc-check should properly accept file args via cmdguard.
+- [ ] **Add `system.HealthCheck(ctx)` method** — delegates to registered
+      resources that implement `stack.HealthChecker`.
+- [ ] **Add `system.GracefulClose(ctx)`** — bounded `Close()` with timeout.
+- [ ] **Add `system.ResetProjection(name)`** — delegates to
+      `projectionhost.Host.Reset()`.
+- [ ] **Wire checkpoint store as configurable** — currently hardcoded to
+      `memoryCheckpointStore`; needs `WithCheckpointStore` option.
 
 ---
 
 ## bbolt Storage Backend
 
 > Full storage backend shipped: EventStore, SnapshotStore, CheckpointStore,
-> KVAdapter, CommandStore, QueryStore, Backend facade. Durability tiers via
-> `stack/bbolt`. `storage/bbolt` is **untagged**.
+> KVAdapter, CommandStore, QueryStore, Backend facade. Streaming iterators
+> (`StreamingSource`/`StreamingJournal`), OTel span instrumentation, contract
+> test suite (16 tests), durability tiers via `stack/bbolt`.
+> `storage/bbolt/v4.0.0` tagged and pushed.
 
-- [ ] **Tag `storage/bbolt/v4.0.0`** — implemented, in `go.work`, but no git
-      tag. External consumers cannot import it.
-- [ ] **Contract test suite** — `contract_test.go` exists but covers only
-      smoke tests. Needs full `eventtest.TestStore*` contract coverage
-      (LoadFromVersion/LoadToVersion/ReadFrom/AppendBatch/concurrency).
-- [ ] **Streaming iterators** — `event.StreamingSource` (LoadStream/ReadStream)
-      and `event.StreamingJournal` (streaming ReadAll/ReadFrom) not implemented.
-- [ ] **OTel spans wired** — context parameters are discarded (`_ context.Context`)
-      in `ReadAll`/`ReadFrom`. Tracing spans are dead code.
+- [ ] **Add CommandStore contract tests** — Save/AppendBatch/Load/ReadAll/
+      ReadFrom/duplicate detection.
+- [ ] **Add QueryStore contract tests** — SaveQuery/LoadQueries/ReadAll/
+      ReadFrom/duplicate detection.
+- [ ] **Add same-stream concurrency contention test** — 10 goroutines racing
+      for same stream (verify optimistic concurrency).
+- [ ] **Add bbolt to `stack/bench/`** — zero benchmarks exist for bbolt.
+- [ ] **Consider `WithBatchSize` option for `AppendBatch`** — currently
+      appends one event per tx.
 
 ---
 
@@ -146,6 +137,10 @@ and is **never** duplicated here.
 - [ ] **WriteOp.ID dedup ring** — `SetAdd`/`CounterIncrement` are NOT idempotent;
       double-delivery on redelivery corrupts state. QuicTransport has a 10K-bound
       `dedupSeen` set; loopback does not.
+- [ ] **Fix `TestQuicSetConvergence` flakiness** — pre-existing, network-dependent.
+      Consider `//go:build integration` tag or relaxed timing bounds.
+- [ ] **Fix `TestLoad_ConcurrentLoadsCoalescedBySingleflight` flake** —
+      pre-existing race-condition test that flakes under parallel load.
 
 ---
 
@@ -153,13 +148,23 @@ and is **never** duplicated here.
 
 > 192 rules across 10 categories. Config presets, `--adoption`/`--scorecard`/
 > `--group-by` flags, SARIF + Markdown output, self-lint mode, block-level
-> suppression, metaengine-aware detection (F018-F026), drift-prevention
-> meta-tests. v4.4.0 tagged.
+> suppression, metaengine-aware detection (F018-F026), scorecard metaengine
+> section, cross-format consistency tests. v4.4.0 tagged. Self-lint clean
+> (0 CRITICAL, 0 ERROR, 0 load errors, 0 stale suppressions).
 
 - [ ] 🔥 **Run cqrs-lint against real consumer projects** — validate
       false-positive rates against Kernovia, Standup-Killer, bank-sync,
       cqrs-htmx, DiscordSync, timesheets, crush-daily, KeyHolderAI. This is the
       single highest-value non-coding task for cqrs-lint trustworthiness.
+
+- [ ] **Fix remaining false positives** — C001 (read-only bbolt transactions),
+      D012 (CLI tools should be excluded), C008 (non-monetary floats).
+
+- [ ] **Triage remaining ~199 self-lint WARNING/INFO findings** — D007 (8
+      `event.NewEvent` → `event.New`), D014 (15 missing json tags), C034 (8
+      `go func()` without ctx), C033 (~15 bare `return err`), C023 (~10
+      unchecked `Close()`), P012/P013 (~6 SQLite without WAL/busy_timeout),
+      A032 (~8 string/int fields instead of branded ID).
 
 - [ ] **Missing regression tests** — S006 fix (WEAK suppression), A018 fix
       (dispatch activity check), B004 fix (constructor check) — 3 of 7
@@ -207,23 +212,25 @@ and is **never** duplicated here.
 - [ ] **Benchmark audit for 10 skipped modules** — benchmark assertion sweep
       covered 18 files but skipped: codec, command, dispatcher, query,
       middleware, snapshot, listing, watermill, transport/http, storage/view.
-      Evidence:
-      `docs/status/2026-08-04_06-49_benchmark-assertions-brutal-self-review.md`.
+
+- [ ] **Fix `.golangci.yml` exclusion sprawl** — ~30 blocks, ~50% undocumented.
+      Add comments explaining WHY for every exclusion. Consider per-module
+      config split.
 
 ---
 
 ## Dedup
 
-> Clone groups reduced 69 → 65. `art-dupl` baseline golden + `nix run
-.#check-duplication` gate enforce no-new-clones.
+> Clone groups driven to **0 at threshold 3** (was 65). All thresholds (7, 4,
+> 3) reduced to 0 through shared helper extraction. `.art-dupl-baseline.json`
+> baseline: 0 groups. `nix run .#check-duplication` gate enforces no-new-clones.
 
-- [ ] **Review remaining 65 clone groups** — duckdb↔pgengine parity code,
-      testcontainer setup patterns, table-driven test boilerplate. Some are
-      intentional (cross-module isolation, table-driven); others are
-      extractable (`renderTable`, `testutil/pgtest` shared module).
-- [ ] **`renderTable` extraction** — `cmd/cqrs-lint/explain.go` still has
-      repeated table-rendering patterns (partially extracted to
-      `renderKeyTable` but not fully DRY'd).
+- [ ] **Investigate threshold-2 clone groups** — 92 remaining at t=2. Some are
+      intentional (cross-module isolation, table-driven); others may be
+      extractable (`capitalizeFirst`, `truncateString`, `isCBORData`,
+      `recordErr`, `startStreamSpan` patterns).
+- [ ] **Extract `renderTable(b, headers, rows)` helper** — `cmd/cqrs-lint/explain.go`
+      still has repeated table-rendering patterns.
 - [ ] **`deferClose(closer)` helper** — metaengine engines have repeated
       `if c := eng.Close(); c != nil ...` patterns across 7 engines.
 
@@ -239,6 +246,10 @@ and is **never** duplicated here.
       (supply-chain risk).
 - [ ] **Add `go test` to CI for example/taskmanager** — currently only builds,
       no test step.
+- [ ] **Add self-lint to CI** — `cqrs-lint --self-lint` works but no GitHub
+      Actions step gates it.
+- [ ] **Add `--fail-on-stale-suppressions` CI gate** — prevents stale
+      `//cqrs-lint:ignore` directives from accumulating.
 
 ---
 
@@ -269,13 +280,16 @@ and is **never** duplicated here.
 
 ## Layer Enforcement
 
-> `check-module-layers.sh` has a self-enforcing coverage guard. 77/77 modules
-> covered. ADR-0046 updated to the seven-tier model.
+> `check-module-layers.sh` has a self-enforcing coverage guard. 79 go.mod
+> files, 77+ modules in `go.work`. ADR-0046 updated to the seven-tier model.
 
 - [ ] **Rename `FOUR-TIER-MODEL.md` → `SEVEN-TIER-MODEL.md`** — filename lies
       about content (H1 says "seven-tier" but filename says "four-tier").
 - [ ] **Remove dead `EXCEPTIONS[storage]="listing"`** — listing moved to
       Layer 3, the exception is no longer needed.
+- [ ] **Fix 16 COVERAGE GAPs** — newer modules (badgerengine, dgraphengine,
+      graphadapter, sqliteengine, metaengine/bench, testutil/pgtestcontainer,
+      record, example/metaengine-quickstart) missing from LAYER/DEP_BUDGET maps.
 - [ ] **Expand go-arch-lint to remaining modules** — only 6 modules have
       per-module go-arch-lint configs. The bash script is the enforcement
       mechanism for the rest.
@@ -297,7 +311,8 @@ real roadmap." Each has a clear ADR with rationale.
       functional `WithCustom`, but not yet fully standalone types).
 
 > `retry/` → `go-retry` and `idempotency/` → `go-idempotency` extraction is
-> DONE — both repos pushed with annotated tags. See CHANGELOG.
+> DONE — both repos pushed with annotated tags. `retry/` is now DEPRECATED
+> (re-export shim, consumers should import `go-retry` directly).
 
 ---
 
