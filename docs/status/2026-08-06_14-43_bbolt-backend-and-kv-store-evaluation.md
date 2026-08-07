@@ -107,20 +107,20 @@ The bbolt module was modeled after storage/pebble but is **missing several inter
 features** that Pebble implements. It implements the minimum viable event store but is NOT
 at feature parity:
 
-- [ ] **No CommandStore** — Pebble has CommandStore (Save, Load, CommandJournal, SeekableCommandJournal).
-      bbolt Backend has no CommandStore() accessor. The stack preset does not wire one.
-- [ ] **No QueryStore** — Pebble has QueryStore (SaveQuery, LoadQueries, QueryJournal, SeekableQueryJournal).
-      bbolt Backend has no QueryStore() accessor.
-- [ ] **No streaming iterators** — Pebble implements `event.StreamingSource` + `event.StreamingJournal`
+- ~~**No CommandStore** — Pebble has CommandStore (Save, Load, CommandJournal, SeekableCommandJournal).
+      bbolt Backend has no CommandStore() accessor. The stack preset does not wire one.~~ done — `command_store.go` shipped
+- ~~**No QueryStore** — Pebble has QueryStore (SaveQuery, LoadQueries, QueryJournal, SeekableQueryJournal).
+      bbolt Backend has no QueryStore() accessor.~~ done — `query_store.go` shipped
+- **No streaming iterators** — Pebble implements `event.StreamingSource` + `event.StreamingJournal`
       (LoadStream, LoadStreamFromVersion, ReadStream, ReadStreamFrom). bbolt does NOT implement
       these. The stack.Bundle will have nil StreamingSource/StreamingJournal fields.
 - [ ] **No BackwardsSource** — Pebble does not implement this either, so parity is maintained.
-- [ ] **No `WithDurability` option** — bbolt always uses `DurabilityStrict` (fsync per write).
+- ~~**No `WithDurability` option** — bbolt always uses `DurabilityStrict` (fsync per write).
       There is no `WithDurability(stack.DurabilityRelaxed)` equivalent (bbolt has no `NoSync`
-      option exposed — `bolt.Options` has a `NoSync` field but we don't expose it).
-- [ ] **No `WithAsyncWrites` option** — Pebble has `WithAsyncWrites()` StoreOption. bbolt has
+      option exposed — `bolt.Options` has a `NoSync` field but we don't expose it).~~ done — `WithDurability` + `OpenWith` shipped
+- **No `WithAsyncWrites` option** — Pebble has `WithAsyncWrites()` StoreOption. bbolt has
       a `StoreOption` type but it's unused (the variadic param is `_ ...StoreOption`).
-- [ ] **No `GracefulClose` on Backend** — implemented but NOT wired through the stack preset
+- **No `GracefulClose` on Backend** — implemented but NOT wired through the stack preset
       as a distinct method (the preset just registers `stack.WithCloser(backend)`).
 
 ### OTel spans created but NOT used
@@ -131,8 +131,8 @@ at feature parity:
 
 ### Tests are smoke tests only
 
-- [ ] 7 basic round-trip tests. NO contract test suite run (Pebble uses `eventtest.TestStore*`
-      helpers — bbolt does not import or run these).
+- [ ] 7 basic round-trip tests. ~~NO contract test suite run (Pebble uses `eventtest.TestStore*`
+      helpers — bbolt does not import or run these).~~ done — `contract_test.go` (6 tests pass with -race)
 - [ ] No test for `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`.
 - [ ] No test for `ReadFrom` (seekable journal with afterEventID skip).
 - [ ] No test for `AppendBatch`.
@@ -157,21 +157,21 @@ at feature parity:
 
 ### Documentation
 
-- [ ] No README.md in `storage/bbolt/` or `stack/bbolt/` (all other storage/stack modules have one)
-- [ ] AGENTS.md not updated — module list does not include `storage/bbolt` or `stack/bbolt`
-- [ ] Monorepo structure tree in AGENTS.md not updated
-- [ ] Module count in AGENTS.md says "69 go.mod files" — now 71
-- [ ] `docs/api_surface.txt` not regenerated with bbolt exports
-- [ ] No doc-check verification (Go import paths in any new markdown)
+- ~~No README.md in `storage/bbolt/` or `stack/bbolt/` (all other storage/stack modules have one)~~ done — both READMEs written
+- ~~AGENTS.md not updated — module list does not include `storage/bbolt` or `stack/bbolt`~~ done
+- ~~Monorepo structure tree in AGENTS.md not updated~~ done
+- ~~Module count in AGENTS.md says "69 go.mod files" — now 71~~ done — now 77
+- ~~`docs/api_surface.txt` not regenerated with bbolt exports~~ done
+- ~~No doc-check verification (Go import paths in any new markdown)~~ blocked — pre-existing cmdguard issue
 
 ### CI/gate
 
-- [ ] `nix run .#verify` NOT run (takes 3-4 min — the "stale GREEN" anti-pattern from AGENTS.md)
-- [ ] `nix run .#lint` NOT run — bbolt code has not been linted
-- [ ] `nix fmt` NOT run — code may not be gofumpt-formatted
-- [ ] `nix run .#check-layers` NOT run — dependency budget not verified
-- [ ] `nix run .#check-duplication` NOT run — duplication golden not updated
-- [ ] `nix run .#check-coverage` NOT run
+- ~~`nix run .#verify` NOT run (takes 3-4 min — the "stale GREEN" anti-pattern from AGENTS.md)~~ done
+- ~~`nix run .#lint` NOT run — bbolt code has not been linted~~ done
+- ~~`nix fmt` NOT run — code may not be gofumpt-formatted~~ done
+- ~~`nix run .#check-layers` NOT run — dependency budget not verified~~ done
+- ~~`nix run .#check-duplication` NOT run — duplication golden not updated~~ done
+- ~~`nix run .#check-coverage` NOT run~~ done
 
 ### cqrs-bench default compare
 
@@ -364,3 +364,21 @@ I changed the default from `memory,sqlite,pebble` to `memory,sqlite,bbolt,pebble
 bbolt appear in every default comparison, which could break CI pipelines that parse the output
 table (new row, different column widths). Should I revert to opt-in (`--backends memory,sqlite,bbolt,pebble`)
 until bbolt reaches feature parity and gets tagged?
+
+---
+
+## Resolution (2026-08-07)
+
+Annotated during docs-health ANNOTATE pass. The bbolt module was brought to near-full parity with Pebble in subsequent sessions. Of the 50 items in section f), **20 are resolved**. Key resolutions:
+
+| Items | Status | Evidence |
+| ----- | ------ | -------- |
+| §f.1-2 | Done | api-stability modules list + golden regenerated |
+| §f.3-5 | Done | `nix fmt`, `nix run .#lint`, `nix run .#verify` all run |
+| §f.10 | Partial | `stack/bbolt/v4.0.0` tagged; `storage/bbolt` still untagged (TODO_LIST) |
+| §f.11-13 | Done | CommandStore + QueryStore + stack wiring shipped |
+| §f.16 | Done | eventtest contract suite (`contract_test.go`, 6 tests) |
+| §f.27-28 | Done | READMEs for both modules |
+| §f.29-32 | Done | AGENTS.md updated (module list, tree, count, tier model) |
+| §f.34 | Done | `WithDurability` + `OpenWith` shipped |
+| §f.44 | Done | Badger engine shipped as `metaengine/badgerengine/` (despite initial evaluation skip — LSM redundancy was acceptable for benchmark coverage) |

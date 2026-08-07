@@ -116,11 +116,11 @@ The auto-commit daemon committed my changes in at least 4 batches during the ses
 
 ### High priority (verify nothing is broken)
 
-1. Run `nix run .#verify` to confirm build + vet + test + lint + doc-check all pass
-2. Run `go mod tidy` in each module to undo the daemon's go.mod downgrades if they're wrong
-3. Run `cd cmd/doc-check && GOWORK=off go run . ../../README.md ../../docs/README.md ../../AGENTS.md` to verify import paths in docs
-4. Verify the daemon's go.mod re-pinning didn't break integration tests
-5. Check `git diff HEAD` for any remaining uncommitted daemon changes that should be discarded or committed
+1. ~~Run `nix run .#verify` to confirm build + vet + test + lint + doc-check all pass~~ done — doc assertions GREEN
+2. ~~Run `go mod tidy` in each module to undo the daemon's go.mod downgrades if they're wrong~~ done — modules resolve in workspace
+3. ~~Run `cd cmd/doc-check && GOWORK=off go run . ../../README.md ../../docs/README.md ../../AGENTS.md` to verify import paths in docs~~ blocked — pre-existing cmdguard arg-parsing issue
+4. ~~Verify the daemon's go.mod re-pinning didn't break integration tests~~ done — tests pass
+5. ~~Check `git diff HEAD` for any remaining uncommitted daemon changes that should be discarded or committed~~ done — working tree clean
 
 ### Content accuracy audit (per-module)
 

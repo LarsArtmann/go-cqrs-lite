@@ -159,3 +159,21 @@ Nothing. All changes build (both CGo and non-CGo), tests pass, and the benchmark
 2. **Should the `compare` command auto-include `sqlite-cgo` when CGo is available?** Currently the default is `memory,sqlite,pebble`. Auto-including `sqlite-cgo` when `sqliteCgoAvailable == true` would give users the full picture automatically, but adds ~30s to every compare run (sqlite-cgo is slower than memory/pebble but faster than sqlite).
 
 3. **Is the mattn error classification gap blocking enough to fix before tagging?** The structural interface `sqliteCodeError` expects `Code() int`, but mattn returns `ExtendedSQLiteErrorCode`. Duplicate-key detection has a string fallback (`"UNIQUE constraint failed"`), so it should work in practice. But the typed classification path silently fails. Should we fix this now or defer to a follow-up?
+
+---
+
+## Resolution (2026-08-07)
+
+Annotated during docs-health ANNOTATE pass. Key resolutions of the 50 follow-up items:
+
+| Items | Status | Evidence |
+| ----- | ------ | -------- |
+| §f.5 | Done | `nix run .#verify` run in docs-health session |
+| §f.6 | Done | CGO_ENABLED=1 verified |
+| §f.22 | Done | AGENTS.md updated with bench backends |
+| §f.25 | Done | api_surface.txt regenerated (3725 exports) |
+| §f.33 | Done | `TestEveryGoModDirIsInModulesList` passes |
+| §f.35 | Done | `mattn/go-sqlite3` in depguard allow list + check-layers |
+| §f.34 | Blocked | doc-check has pre-existing cmdguard arg-parsing issue |
+| §f.1-4 | Open | mattn error classification + CGo path tests — TODO_LIST |
+| §f.87-95 | Open | Deeper benchmark comparisons — TODO_LIST |
