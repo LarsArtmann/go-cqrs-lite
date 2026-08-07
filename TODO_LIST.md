@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-08 (system P2 test depth + P3 code quality shipped)
+**Updated:** 2026-08-08 (bbolt test coverage shipped — 13 new tests, contention benchmark)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -131,18 +131,37 @@ and is **never** duplicated here.
 > Full storage backend shipped: EventStore, SnapshotStore, CheckpointStore,
 > KVAdapter, CommandStore, QueryStore, Backend facade. Streaming iterators
 > (`StreamingSource`/`StreamingJournal`), OTel span instrumentation, contract
-> test suite (16 tests), durability tiers via `stack/bbolt`.
-> `storage/bbolt/v4.0.0` tagged and pushed.
+> test suite (29 tests), durability tiers via `stack/bbolt`.
+> `storage/bbolt/v4.0.0` tagged and pushed. CommandStore/QueryStore contract
+> tests, same-stream contention test, and contention benchmark all shipped
+> (42 total tests, race-clean). See
+> [status report](docs/status/2026-08-08_01-17_bbolt-test-and-benchmark-coverage.md).
 
-- [ ] **Add CommandStore contract tests** — Save/AppendBatch/Load/ReadAll/
-      ReadFrom/duplicate detection.
-- [ ] **Add QueryStore contract tests** — SaveQuery/LoadQueries/ReadAll/
-      ReadFrom/duplicate detection.
-- [ ] **Add same-stream concurrency contention test** — 10 goroutines racing
-      for same stream (verify optimistic concurrency).
-- [ ] **Add bbolt to `stack/bench/`** — zero benchmarks exist for bbolt.
-- [ ] **Consider `WithBatchSize` option for `AppendBatch`** — currently
-      appends one event per tx.
+### DONE this session
+
+- [x] **CommandStore contract tests** — 8 tests: Save/Load, DuplicateDetection,
+      AppendBatch, AppendBatchDuplicate, LoadEmptyStream, ReadAll, ReadFrom
+      (pagination), LoadFromTimestamp.
+- [x] **QueryStore contract tests** — 4 tests: SaveAndLoadQueries, DuplicateDetection,
+      ReadAllQueries, ReadQueriesFrom (pagination).
+- [x] **Same-stream concurrency contention test** — `TestContract_SameStreamContention`:
+      10 goroutines race same stream with `expectedVersion=0`, exactly 1 wins.
+- [x] **Add bbolt to `stack/bench/` contention benchmark** — added to
+      `BenchmarkContention_Persistent_SameStream` alongside sqlite/pebble.
+- [x] **`WithBatchSize` for `AppendBatch`** — dismissed: code already writes all
+      events in a single atomic bbolt tx. Splitting into sub-batches would break
+      atomicity.
+
+### Remaining
+
+- [ ] **Add `stack/bbolt/contract_test.go`** — every other stack preset (memory,
+      sqlite, pebble, postgres, mysql, turso) has one. bbolt is the only one missing.
+- [ ] **Add bbolt to `durability_tiers_test.go`** in stack/bench — test all 3
+      durability levels via `stack/bbolt`.
+- [ ] **Extract `commandtest`/`querytest` shared packages** — pebble and bbolt
+      command/query store tests are ~90% identical. Mirror the `eventtest` pattern.
+- [ ] **Modernize `for` loops in `contract_test.go`** — 4 instances of
+      `for i := 0; i < N; i++` → `for range N` (pre-existing gopls hints).
 
 ---
 
