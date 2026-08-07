@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260807202735-49970971b30b
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.1-0.20260807202735-49970971b30b
-	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
 )
@@ -84,6 +84,8 @@ require (
 	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
+	github.com/testcontainers/testcontainers-go v0.44.0 // indirect
+	github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0 // indirect
 	github.com/tklauser/go-sysconf v0.4.0 // indirect
 	github.com/tklauser/numcpus v0.12.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

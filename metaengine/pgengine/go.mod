@@ -5,7 +5,7 @@ go 1.26.5
 require (
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0
 )
 
 require (
@@ -66,8 +66,6 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0 // indirect
 	go.opentelemetry.io/otel v1.45.0 // indirect
 	go.opentelemetry.io/otel/metric v1.45.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.45.0 // indirect
-	go.opentelemetry.io/otel/sdk/metric v1.45.0 // indirect
 	go.opentelemetry.io/otel/trace v1.45.0 // indirect
 	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
