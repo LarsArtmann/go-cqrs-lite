@@ -3,8 +3,8 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/bench/v4
 go 1.26.5
 
 require (
-	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.0.0-00010101000000-000000000000
-	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
 	modernc.org/sqlite v1.56.0
