@@ -178,7 +178,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 			return nil, ErrSeekableJournalMissing
 		}
 
-		host, err := projectionhost.New(journal, &memoryCheckpointStore{})
+		host, err := projectionhost.New(journal, &memoryCheckpointStore{}, domain.ProjectionHostOptions...)
 		if err != nil {
 			return nil, fmt.Errorf("system: create projection host: %w", err)
 		}

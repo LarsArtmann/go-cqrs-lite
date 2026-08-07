@@ -3,6 +3,7 @@ package system
 import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
 
 // ─── Config types (D11: DomainConfig + DeploymentConfig separation) ───
@@ -52,6 +53,11 @@ type DomainConfig struct {
 
 	// Middleware is command-level domain middleware (validation, authz, etc.).
 	Middleware []command.Middleware
+
+	// ProjectionHostOptions configures the projection host (batch size, DLQ,
+	// logger, restart policy, etc.). These are applied when the System creates
+	// the projection host. If nil, defaults are used.
+	ProjectionHostOptions []projectionhost.HostOption
 }
 
 // DeploymentConfig carries operator-facing concerns: engines, buses,
