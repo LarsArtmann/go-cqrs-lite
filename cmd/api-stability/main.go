@@ -53,6 +53,7 @@ var modules = []string{
 	"scheduling/sqlstore",
 	"metadata",
 	"metaengine",
+	"metaengine/bench",
 	"metaengine/pebbleengine",
 	"metaengine/duckdbengine",
 	"metaengine/pgengine",

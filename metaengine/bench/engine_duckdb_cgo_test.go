@@ -10,7 +10,8 @@ import (
 )
 
 // newDuckDBEngine creates an in-memory DuckDB engine for benchmarking.
-// Skips the test if DuckDB (CGo) is not available.
+// Skips the test if DuckDB (CGo) is not available. The caller closes the
+// store (which closes the engine).
 func newDuckDBEngine(tb testing.TB) metaengine.Engine {
 	tb.Helper()
 
@@ -18,8 +19,6 @@ func newDuckDBEngine(tb testing.TB) metaengine.Engine {
 	if err != nil {
 		tb.Skipf("DuckDB not available: %v", err)
 	}
-
-	tb.Cleanup(func() { _ = eng.Close() })
 
 	return eng
 }

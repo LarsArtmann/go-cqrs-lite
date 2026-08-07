@@ -8,7 +8,8 @@ import (
 )
 
 // newPebbleEngine creates an in-memory Pebble engine for benchmarking.
-// Pebble is pure Go (no CGo required).
+// Pebble is pure Go (no CGo required). The caller is responsible for closing
+// the store (which closes the engine) — Pebble panics on double-close.
 func newPebbleEngine(tb testing.TB) metaengine.Engine {
 	tb.Helper()
 
@@ -16,8 +17,6 @@ func newPebbleEngine(tb testing.TB) metaengine.Engine {
 	if err != nil {
 		tb.Fatalf("PebbleEngine: %v", err)
 	}
-
-	tb.Cleanup(func() { _ = eng.Close() })
 
 	return eng
 }
