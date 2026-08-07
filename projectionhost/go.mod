@@ -102,10 +102,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/testcontainers/testcontainers-go v0.43.0
-	github.com/testcontainers/testcontainers-go/modules/postgres v0.43.0
 )
 
 replace github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 => ../flightrecorder
