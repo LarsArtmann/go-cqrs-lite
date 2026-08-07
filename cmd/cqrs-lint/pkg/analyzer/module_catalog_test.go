@@ -233,6 +233,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"metaengine/irohengine/quic":     "sub-engine transport (covered by metaengine/irohengine)",
 		"metaengine/adttest":             "test helper sub-package",
 		"metaengine/badgerengine":        "sub-engine (covered by metaengine)",
+		"metaengine/bench":               "benchmarking utility (covered by metaengine)",
 		"metaengine/dgraphengine":        "sub-engine (covered by metaengine)",
 		"metaengine/duckdbengine":        "sub-engine (covered by metaengine)",
 		"metaengine/graphadapter":        "sub-package (covered by metaengine + graph)",
@@ -251,6 +252,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"storage/turso":                  "low-level Turso connector (covered by stack/turso)",
 		"system":                         "system-level utilities (not a domain module)",
 		"testutil":                       "test utility package",
+		"testutil/pgtestcontainer":       "test utility sub-package (covered by testutil)",
 	}
 
 	// Also exclude external workspace entries (../go-* paths).
