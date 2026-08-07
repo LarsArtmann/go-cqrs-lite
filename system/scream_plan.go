@@ -107,9 +107,12 @@ func classifyPlanDiff(diff *metaengine.PlanDiffResult, report *ScreamReport) {
 			})
 		} else if change.OldEngine != change.NewEngine {
 			report.Diagnostics = append(report.Diagnostics, ScreamDiagnostic{
-				Tier:   TierWarnOverride,
-				Rule:   "plan:engine-changed:" + change.Name,
-				Detail: fmt.Sprintf("projection query %q moved from engine %q to %q — data may need backfill", change.Name, change.OldEngine, change.NewEngine),
+				Tier: TierWarnOverride,
+				Rule: "plan:engine-changed:" + change.Name,
+				Detail: fmt.Sprintf(
+					"projection query %q moved from engine %q to %q — data may need backfill",
+					change.Name, change.OldEngine, change.NewEngine,
+				),
 			})
 		}
 	}
