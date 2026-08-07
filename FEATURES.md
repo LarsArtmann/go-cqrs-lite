@@ -424,6 +424,13 @@ pattern: same workload, any backend, structured metrics report.
 | Soak test drift         | `SoakResult.GCMaxPauseDriftPct`, `AllocGrowthPct` — memory boundedness over sustained load                     | 🧪     |
 | Metaengine benchmark    | Memory + SQLite engines. Counter + Map ADTs. Correctness assertions prevent empty-store silent failure         | 🧪     |
 | Mixed workload          | `BenchmarkMixedWorkload_ReadsDuringWrites` — concurrent read/write contention profiling                        | 🧪     |
+| Resident memory         | `Memory.Resident` — post-GC heap footprint (actual retained memory)                                            | 🧪     |
+| Progress reporting      | `--progress` flag with heartbeat goroutine (elapsed time per phase)                                             | 🧪     |
+| Strict mode             | `--strict` flag + `ErrStrictSkip` sentinel — CI gate for skipped phases                                         | 🧪     |
+| Versioned read phase    | `LoadFromVersion`/`LoadToVersion`/`LoadToTimestamp` benchmarks                                                  | 🧪     |
+| Checkpoint phase        | Checkpoint latency benchmark phase                                                                              | 🧪     |
+| Batch write phase       | `SkipBatchWrite` flag + batch write benchmark                                                                   | 🧪     |
+| Phase listing           | `--list-phases` subcommand + `PhaseNames()` export                                                              | 🧪     |
 
 **Coverage:** 88 benchkit + 12 CLI test functions (`-race`). Includes raw sink phase,
 scaling sweeps, benchstat output, suite manifest, schema verification, environment
@@ -445,12 +452,16 @@ and [evidence metrics ADR](docs/adr/0090-benchkit-evidence-metrics.md).
 | `compare` | Compare multiple backends side-by-side                                     | 🔧     |
 | `sweep`   | Scaling sweep: vary workers, batch size, stream length, or GOMAXPROCS      | 🔧     |
 | Profiles  | `--profile {dev\|small\|medium\|large\|stress\|writeheavy\|readheavy}`     | 🔧     |
-| Output    | `--format {text\|json\|markdown\|benchstat\|manifest}`                     | 🔧     |
+| Output    | `--format {text\|json\|markdown\|csv\|tsv\|table\|auto}` — auto is TTY-aware  | 🔧     |
 | Codec     | `--codec {json\|cbor}`                                                     | 🔧     |
 | Payload   | `--payload-size N` or `--payload-sizes 64,256,4096` (mixed)                | 🔧     |
 | Warmup    | `--warmup N`                                                               | 🔧     |
 | Repeat    | `--repeat N` — median of N runs with min/max spread (sorted by throughput) | 🔧     |
 | Raw sink  | `--skip-raw-sink` — skip prebuilt-event Save-only phase                    | 🔧     |
+| Strict    | `--strict` — CI gate: fails on skipped phases                              | 🔧     |
+| Progress  | `--progress` — real-time heartbeat (elapsed time per phase)                | 🔧     |
+| List      | `--list-phases` — list all benchmark phase names                           | 🔧     |
+| Quiet     | `--quiet` — suppress detailed output, show summary only                    | 🔧     |
 | Profiling | `--cpuprofile file` and `--memprofile file` — pprof output                 | 🔧     |
 | Version   | `--version` via `runtime/debug.ReadBuildInfo()`                            | 🔧     |
 
@@ -1220,7 +1231,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | F-series adoption coaching | 21 rules (F001–F021) that proactively coach consumers toward unused features | ✅ |
 | T-series testing quality | 8 rules (T001–T008) detecting missing test helpers, parallel coverage gaps, snapshot store misuse | ✅ |
 | E-series architecture | 17 rules (E001–E017) detecting consumer design issues (preset bypass, missing HTTP, signing disabled, etc.) | ✅ |
-| 186 total rules | Correctness (40), API (31), boilerplate (28), adoption (21), architecture (17), consistency (16), performance (9), security (10), testing (8), version (6) | ✅ |
+| 192 total rules | Correctness, API misuse, boilerplate, adoption, architecture, consistency, performance, security, testing, version. Metaengine-aware detection (F018-F026) | ✅ |
 | A033 branded-ID roundtrip | Flags code that converts branded `id.Of[T]` to `string` and back (breaks type safety) | ✅ |
 | C037 codec mismatch | Detects codec mismatches across all typed stores: snapshot, command, query, kv (CBOR events + JSON snapshots = deserialization failure) | ✅ |
 | C038 event-type mismatch | Detects near-miss event type strings in `switch evt.Type()` blocks (Levenshtein distance) | ✅ |
@@ -1355,7 +1366,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `flightrecorder`                 | `…/flightrecorder/v4`                 | 🧪 Experimental (Go 1.25 runtime/trace capture. Zero-dep. ADR-0089)                                                                                                            |
 | `benchkit`                       | `…/benchkit/v4`                       | 🧪 Experimental (functional, 88 tests, `--repeat N` available)                                                                                                                 |
 | `cmd/cqrs-bench`                 | `…/cmd/cqrs-bench`                    | 🔧 Tool                                                                                                                                                                        |
-| `cmd/cqrs-lint`                  | `…/cmd/cqrs-lint`                     | 🔧 Tool (186-rule domain-aware linter: correctness 40, API 31, boilerplate 28, adoption 21, architecture 17, consistency 16, performance 9, security 10, testing 8, version 6) |
+| `cmd/cqrs-lint`                  | `…/cmd/cqrs-lint`                     | 🔧 Tool (192-rule domain-aware linter: correctness, API misuse, boilerplate, adoption, architecture, consistency, performance, security, testing, version)                     |
 
 ---
 
@@ -1363,7 +1374,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                                                                                                                                                                 |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Lint posture           | `nix run .#lint` passes with 0 issues across all modules. `nix run .#verify` is GREEN: build + vet + test + race + lint + api-stability (3530 exports, with `TestEveryGoModDirIsInModulesList` meta-test) + doc-check. |
+| Lint posture           | `nix run .#lint` passes across all modules. `nix run .#verify` runs build + vet + test + race + lint + api-stability + doc-check.                                                                                       |
 | Race-free              | `go test -race` passes across all modules                                                                                                                                                                              |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                                                                                                                                         |
 | Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI                                                                                                                     |

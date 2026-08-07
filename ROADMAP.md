@@ -17,7 +17,7 @@ See CHANGELOG `[Unreleased]`.
 
 | Version      | Date       | Highlights                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | ------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Unreleased] | —          | System/ Pareto P0/P1 fixes (driver registry wired, SQLite working, MultiBus/snapshot/scream wired, introspection real, decoder wiring, 5-engine StreamLogBackend, snapshot E2E), loopback transport (real TCP, no CGo), latency measurement overhaul, CBOR encoding, SSE race fix, consumer DX helpers (NewSQLiteEngineFromDSN/PlanFromSQLite/typed decoders), CalibrateEngine export, DuckDB LayoutPlanner follow-ups, dedup passes (68→66 clone groups, 46 lint fixes), layer enforcement (check-module-layers.sh self-enforcing, seven-tier model), KeyHolderAI feedback fixes (7 rules), scorecard SARIF output, go-humanize adoption, code quality (encryption double-clone, metadata immutability, kvstore TTL fix), M43/M44/M14 integration tests, Flight recorder (ADR-0089), metaengine Tier 4, replication model (ADR-0093), Universal ADT Phase 3 (ADR-0094), persistence enum (ADR-0098), ReadCosts, MySQL/MariaDB (ADR-0080), Pebble sort index, cqrs-lint 179→186 rules + scorecard + group-by + C038-C040 + per-module + JSONC + explain, go-sse consumption (ADR-0097), Nix integration tests (ADR-0095), Iroh bridge (ADR-0096) + QUIC FFI transport |
+| [Unreleased] | —          | **Metaengine v2** (ADRs 0111-0119): `record/` module, Record-aware folds (`OnRecord`/`ApplyRecord`), auto-projection (`AutoInsert`/`AutoCRUD`/`AutoCRUDByConvention`), sqliteengine/graphadapter/badgerengine/dgraphengine extraction, tombstone deprecation, `event.AsRecord()`, Record stamping. **bbolt storage backend** (full store stack + `stack/bbolt` preset). **SQLite CGo driver** support (`WithDriverName`). **cqrs-lint 186→192 rules** (F018-F026 metaengine-aware detection). **cqrs-bench/benchkit**: resident memory, strict mode, progress reporting, versioned read/checkpoint/batch phases, 4-backend comparison. **golangci-lint sweep** (58 findings). **cmdguard migration** (4 CLIs). Dedup passes (69→65 clone groups). System/ Pareto P0/P1 fixes, loopback transport, consumer DX helpers, ReadCosts/SerializableReadCosts, replication model (ADR-0093), Universal ADT Phase 3 (ADR-0094), persistence enum (ADR-0098), Pebble sort index, go-sse consumption (ADR-0097), Nix integration tests (ADR-0095), Iroh bridge (ADR-0096) + QUIC FFI transport |
 | v4.2.0       | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | v4.1.0       | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | v4.0.4       | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
@@ -119,8 +119,35 @@ expectedVersion, entries)` — atomic optimistic concurrency under a single
   Memory + SQLite implementations. Foundation for the `system/` package
 
 **Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** Postgres GIN
-indexes, serialize ReadCosts into SerializablePlan, tag metaengine v4.5.0,
-fix DuckDB/PG go.mod version drift, sse.go file-size split.
+indexes, tag untagged modules (sqliteengine/graphadapter/dgraphengine/bbolt),
+`record.FromCommand()` adapter, `auto_naming.go` dedup refactor, AGENTS.md test
+command update.
+
+**Metaengine v2 (ADRs 0111-0119) — ES-native architecture shipped:**
+
+- ✅ **`record/` module** — shared `Record` + `CommonMetadata` + `StreamRef`
+  (zero deps). The canonical type the ES-native metaengine folds over
+  (ADR-0111)
+- ✅ **SQLite engine extraction** — `metaengine/sqliteengine/` removes
+  `modernc.org/sqlite` from core deps (ADR-0115)
+- ✅ **GraphAdapter** — `metaengine/graphadapter/` wraps `graph.MemoryDriver`
+  as `metaengine.Engine`, replacing the deleted in-engine GraphBackend
+  (ADR-0113)
+- ✅ **Badger engine** — `metaengine/badgerengine/` full impl, mirrors
+  pebbleengine. Calibrated from benchmarks. ADR-0118
+- ✅ **Dgraph engine** — `metaengine/dgraphengine/` distributed graph backend
+  via `dgo` gRPC + DQL. ADR-0119
+- ✅ **Record-aware folds** — `OnRecord`/`OnRecordTyped` + `ApplyRecord` +
+  `RecordAwareFold`. Folds receive StreamID, Version, metadata (ADR-0112)
+- ✅ **`event.AsRecord()`** — bridges ES pipeline to `record.Record`.
+  `projectionadapter.Handle()` calls `ApplyRecord()`
+- ✅ **Auto-projection** (ADR-0116 Layer 1) — `AutoInsert`/`AutoUpdate`/
+  `AutoDelete`/`AutoCRUD` reflection-based field-mapping inference. Zero
+  per-event reflection cost. `AutoCRUDByConvention` suffix-based naming
+- ✅ **Record stamping** — `AutoInsert`/`AutoUpdate` auto-stamp Record metadata
+  into matching result fields (`record_stamp.go`)
+- ✅ **Tombstone deprecation** — all tombstone API `// Deprecated:`, migration
+  guide written. Functional in v4, removal in v5 (ADR-0114)
 
 **Remaining (long-term, ROADMAP):**
 
@@ -134,17 +161,12 @@ fix DuckDB/PG go.mod version drift, sse.go file-size split.
   Currently only expression indexes (B-tree on JSONB paths).
 - **`metaengine-gen` code generator** — `cmd/metaengine-gen` for typed Store
   methods from query declarations. Go AST parsing + template generation.
-- **Operator-driven engine selection (close the "deployer decides" gap)** —
-  today the _consumer_ opens the `*sql.DB`, sets pragmas, constructs
-  `metaengine.NewSQLiteEngine`, and hardcodes the engine list passed to `Plan`
-  (see `example/taskmanager/setup.go` + `metaengine.go`: ~140-line
-  `taskEventDecoder`, per-event `eventWithID[P]` wrappers, `onTyped` helper).
-  The design vision (`meta-engine-design.md` §6) is the opposite: the _operator_
-  provides engines (config/registry), the consumer declares query patterns only.
-  Target: a `stack.WithMetaEngineFromBundle` (or engine-registry) path where the
-  bundle supplies available engines and the consumer never touches a `*sql.DB`.
-  Pairs with the deferred auto event-decoder (fold handlers keyed by CQRS event
-  type string, removing the parallel decoder switch).
+- **Operator-driven engine selection (partially shipped via `system/`)** —
+  the `system/` package implements the operator-configured topology with a
+  driver registry (database/sql model). Auto event-decoders (`NewTypeDecoder`+
+  `Register`, `AutoCRUDByConvention`) eliminate the per-event decoder switch.
+  Remaining: koanf YAML config, bus driver registry for NATS/Redis,
+  CommandAdapter/QueryAdapter SQL serialization.
 
 ### 2. Benchkit → Evidence-Grade
 
@@ -175,12 +197,12 @@ Evidence-grade metrics added (2026-08-01, ADR-0090).
 
 ### 3. cqrs-lint → Trustworthy
 
-The linter grew from 65 to **186 rules** across 10 categories. Quality has been
+The linter grew from 65 to **192 rules** across 10 categories. Quality has been
 hardened through multiple brutal review passes and 7 consumer feedback rounds.
 
-- ✅ **186 rules shipped** across correctness (40), API (31), boilerplate (28),
-  adoption (21), architecture (17), consistency (16), security (10), performance
-  (9), testing (8), version (6)
+- ✅ **192 rules shipped** across correctness, API misuse, boilerplate, adoption,
+  architecture, consistency, security, performance, testing, version.
+  Metaengine-aware detection (F018-F026).
 - ✅ **Feature profile system** — auto-detects consumer module usage and adapts
   context-dependent rules. TLS-aware server detection, ServerLocal heuristic.
   Per-module detection infrastructure (`ProfileForFile`) — C017, S002, S003,
