@@ -1,0 +1,26 @@
+[
+  {
+    "id": "01HK1540X0841Y0A6BSX1VKR95",
+    "type": "User",
+    "version": 10,
+    "event_count": 10,
+    "last_event_at": "2026-06-01T12:00:00Z",
+    "status": "active"
+  },
+  {
+    "id": "01HK1540X0841Y0A6BSX1VKR95",
+    "type": "Order",
+    "version": 5,
+    "event_count": 5,
+    "last_event_at": "2026-05-15T08:30:00Z",
+    "status": "tombstoned"
+  },
+  {
+    "id": "01HK1540X0841Y0A6BSX1VKR95",
+    "type": "Cart",
+    "version": 0,
+    "event_count": 0,
+    "last_event_at": "0001-01-01T00:00:00Z",
+    "status": "undetermined"
+  }
+]

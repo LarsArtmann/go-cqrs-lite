@@ -95,6 +95,7 @@ var modules = []string{
 	"stack/bench",
 	// Tooling + catalog
 	"testutil",
+	"testutil/pgtestcontainer",
 	"catalog",
 	"benchkit",
 	"system",
