@@ -121,6 +121,7 @@ func (a *KVAdapter) Batch(_ context.Context) (kv.Batch, error) {
 	return &bboltBatch{db: a.db}, nil
 }
 
+//cqrs-lint:ignore(C001) read-only tx (Begin(false)); iterator closes via Rollback in Close()
 func (a *KVAdapter) NewIterator(_ context.Context, prefix []byte) (kv.Iterator, error) {
 	if err := a.checkClosed(); err != nil {
 		return nil, err

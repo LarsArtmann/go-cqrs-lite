@@ -281,7 +281,10 @@ func TestBackoff_RespectsMaxDelay(t *testing.T) {
 		Multiplier:   10.0,
 	}
 
-	delay := retry.Backoff(cfg, 5) // attempt 5 would be 100ms * 10^4 = huge
+	delay, err := retry.Backoff(cfg, 5) // attempt 5 would be 100ms * 10^4 = huge
+	if err != nil {
+		t.Fatalf("Backoff failed: %v", err)
+	}
 
 	if delay > 400*time.Millisecond { // max delay + 50% jitter = 300ms max
 		t.Fatalf("expected delay <= 400ms (capped), got %v", delay)

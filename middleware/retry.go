@@ -138,5 +138,9 @@ func retry(
 }
 
 func backoff(config RetryConfig, attempt int) time.Duration {
-	return retrypkg.ComputeDelay(config.InitialDelay, config.MaxDelay, config.Multiplier, attempt)
+	delay, err := retrypkg.ComputeDelay(config.InitialDelay, config.MaxDelay, config.Multiplier, attempt)
+	if err != nil {
+		return config.InitialDelay
+	}
+	return delay
 }
