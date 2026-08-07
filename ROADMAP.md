@@ -331,18 +331,13 @@ backing (0 benchmarks exist for these engines).
 - [ ] **Regression baseline + CI integration** — calibration benchmarks should run
       in CI and fail if constants drift >3×.
 
-### 9. Deferred Debt (ADR-committed)
+### 9. Deferred Debt (ADR-committed) — RESOLVED
 
-Two items explicitly committed to in the 2026-08-03 ADR review as "the next
-real roadmap" — each with a clear ADR and rationale:
+Both items explicitly committed to in the 2026-08-03 ADR review are now DONE:
 
-- **Ghost bus removal** (ADR-0028)
-- **Metadata aliases completion** (ADR-0031)
-
-See [TODO_LIST → Deferred Debt](TODO_LIST.md#deferred-debt-adr-committed) for
-the full rationale, blast-radius notes, and next steps. The actionable detail
-lives in TODO_LIST (where actionable work belongs); this entry is a strategic
-pointer only, to avoid split-brain between the two docs.
+- ✅ **Ghost bus removal** (ADR-0028) — all three ghost bus files deleted
+- ✅ **Metadata aliases completion** (ADR-0031) — both `command.Metadata` and
+  `query.Metadata` are standalone structs
 
 ### 10. Iroh Distributed Engine (ADR-0096)
 
