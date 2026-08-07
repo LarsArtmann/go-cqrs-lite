@@ -256,8 +256,7 @@ and is **never** duplicated here.
 
 ## Dedup
 
-> Clone groups driven to **0 at threshold 3** (was 65). All thresholds (7, 4,
-> 3) reduced to 0 through shared helper extraction. `.art-dupl-baseline.json`
+> Clone groups driven to **0 at threshold 3** (was 65). All thresholds (7, 4, 3) reduced to 0 through shared helper extraction. `.art-dupl-baseline.json`
 > baseline: 0 groups. `nix run .#check-duplication` gate enforces no-new-clones.
 
 - [ ] **Investigate threshold-2 clone groups** — 92 remaining at t=2. Some are

@@ -9,38 +9,45 @@
 ## A) FULLY DONE
 
 ### 1. system/README.md Quick Start — FIXED
+
 - **Before:** Used non-existent API (`DomainConfig.StreamTypes`, `sys.Dispatch(ctx, cmd)`).
 - **After:** Complete `package main` program with real API (`DomainConfig.Commands`, `RegisterDecider`, `RegisterCommand`, `CommandDispatcher().Dispatch`). Imports all needed packages. Verified compiles + runs as a test.
 - **Files:** `system/README.md`
 - **Verification:** Test `TestQuickStartCompiles` passed (temp test file, then removed).
 
 ### 2. cmd/doc-check arg-parsing — FIXED
+
 - **Before:** `cobra.ArbitraryArgs` accepted anything with no validation.
 - **After:** Custom `fileArgs` validator rejects non-existent files, directories, non-`.md` extensions. Zero args still triggers auto-discovery.
 - **Files:** `cmd/doc-check/main.go`
 - **Verification:** Tested 3 cases: zero args (auto-discover, 1335 refs valid), valid file arg, invalid file (rejected with clear error).
 
 ### 3. System.HealthCheck(ctx) — ADDED
+
 - **What:** Returns `nil` if healthy, first error otherwise. Checks: stopped state, engines implementing `metaengine.HealthChecker`, projection host `WorkerFailed` status.
 - **Files:** `system/introspection.go` (method), `system/errors.go` (`ErrSystemStopped`)
 - **Tests:** `TestSystem_HealthCheck_Healthy`, `TestSystem_HealthCheck_Stopped` (both pass with -race).
 
 ### 4. System.GracefulClose(ctx) — ADDED
+
 - **What:** Runs `Close()` in goroutine racing against `ctx.Done()`. Matches `stack.Bundle.GracefulClose` pattern (minus Drainer phase, which System doesn't have).
 - **Files:** `system/system.go`
 - **Tests:** `TestSystem_GracefulClose`, `TestSystem_GracefulClose_ContextExpired` (both pass with -race).
 
 ### 5. System.ResetProjection(ctx, name) — ADDED
+
 - **What:** Delegates to `projectionhost.Host.Reset()`. Returns `ErrNoProjectionHost` if no host configured.
 - **Files:** `system/system.go` (method), `system/errors.go` (`ErrNoProjectionHost`)
 - **Tests:** `TestSystem_ResetProjection_NoHost` (passes with -race).
 
 ### 6. Configurable Checkpoint Store — WIRED
+
 - **What:** Added `CheckpointStore event.CheckpointStore` field to `DomainConfig`. Constructor uses it instead of hardcoded `&memoryCheckpointStore{}`. Falls back to in-memory when nil.
 - **Files:** `system/config_types.go` (field + `event` import), `system/constructor.go` (selection logic)
 - **Tests:** `TestSystem_CustomCheckpointStore` (passes, but see B-section for gap).
 
 ### Supporting work
+
 - Updated `system/README.md` API tables (Constructor + Introspection sections).
 - Regenerated `docs/api_surface.txt` golden (5 new symbols: `GracefulClose`, `HealthCheck`, `ResetProjection`, `ErrNoProjectionHost`, `ErrSystemStopped`).
 - `go vet` clean on both `system/` and `cmd/doc-check/`.
@@ -51,22 +58,28 @@
 ## B) PARTIALLY DONE
 
 ### 1. TestSystem_CustomCheckpointStore — shallow assertion
+
 The test verifies that `DomainConfig.CheckpointStore` is accepted without error, but it does NOT verify the custom store is actually **used** by the projection host. No projections are declared in the test config, so `projHost` is nil and the checkpoint store is never exercised. A proper test would declare a projection, start the system, dispatch a command (producing an event), and assert `recordingCheckpointStore.saveCnt > 0`.
 
 ### 2. HealthCheck — no test for failed projection worker
+
 `TestSystem_HealthCheck_Healthy` and `_Stopped` cover the happy path and the stopped path. There is no test that puts a projection worker into `WorkerFailed` state and verifies `HealthCheck` returns an error mentioning the projection name. This is the most valuable assertion of the feature and it's missing.
 
 ### 3. ResetProjection — no positive-path test
+
 Only `TestSystem_ResetProjection_NoHost` exists. There is no test that:
+
 - Configures a projection
 - Starts + stops the host
 - Calls `ResetProjection`
 - Verifies the checkpoint was cleared and replay occurs on restart
 
 ### 4. GracefulClose — no test with real slow shutdown
+
 The context-expired test uses an already-cancelled context, which triggers the `ctx.Done()` path immediately. There is no test that verifies `GracefulClose` completes successfully when `Close()` takes real time (e.g., with a slow projection host stop).
 
 ### 5. README API table — CheckpointStore not documented
+
 The `DomainConfig.CheckpointStore` field is new but the README's Configuration / Design section doesn't mention it. The API table under "Constructor" could also note `DomainConfig.CheckpointStore` as a configuration option.
 
 ---
@@ -74,6 +87,7 @@ The `DomainConfig.CheckpointStore` field is new but the README's Configuration /
 ## C) NOT STARTED
 
 ### From the original P2 list — all 6 items shipped
+
 The `paste_1.txt` contained exactly 6 P2 items. All 6 are implemented and tested (at varying depth — see section B).
 
 ### Broader system/ hardening not in scope but noticed
@@ -121,6 +135,7 @@ Nothing. All changes compile, tests pass, no regressions detected.
 ## F) UP TO 50 THINGS TO GET DONE NEXT
 
 ### Tests for this session's work (P0)
+
 1. Deepen `TestSystem_CustomCheckpointStore` — declare projection, produce events, assert `saveCnt > 0`
 2. Add `TestSystem_HealthCheck_FailedProjection` — poison a projection, assert HealthCheck returns error
 3. Add `TestSystem_ResetProjection_Positive` — configure projection, stop, reset, restart, verify replay
@@ -128,6 +143,7 @@ Nothing. All changes compile, tests pass, no regressions detected.
 5. Add `TestSystem_HealthCheck_EngineUnhealthy` — mock an engine that returns error from HealthCheck
 
 ### system/ robustness (P1)
+
 6. Join errors in `System.Close()` instead of returning only the first
 7. Remove or populate the dead `s.closers` slice
 8. Port `WithShutdownDependency` from stack.Bundle for ordered shutdown
@@ -135,6 +151,7 @@ Nothing. All changes compile, tests pass, no regressions detected.
 10. Make `System.Health(ctx)` delegate to `HealthCheck(ctx)` internally
 
 ### system/ documentation (P2)
+
 11. Add "Projection Checkpoints" subsection to README Configuration section
 12. Document `DomainConfig.CheckpointStore` in README
 13. Add `GracefulClose`, `HealthCheck`, `ResetProjection` to the README Design section
@@ -142,6 +159,7 @@ Nothing. All changes compile, tests pass, no regressions detected.
 15. Update AGENTS.md system/ module description to mention health/graceful-close/reset
 
 ### system/ integration (P2)
+
 16. SQLite integration test for `HealthCheck` (real DB ping)
 17. SQLite integration test for `ResetProjection` (persistent checkpoint store)
 18. SQLite integration test for `GracefulClose` (slow SQLite close + context)
@@ -149,12 +167,14 @@ Nothing. All changes compile, tests pass, no regressions detected.
 20. End-to-end test: system with SQLite, projection, custom checkpoint store, restart, verify projection resumes
 
 ### cmd/doc-check (P3)
+
 21. Add unit tests for `fileArgs` validator (non-existent file, directory, non-md, valid md, zero args)
 22. Add test for the auto-discover path when no args are given
 23. Consider adding `--strict` flag that treats warnings as errors
 24. Consider adding `--exclude` flag to skip specific files
 
 ### Broader system/ features (P3)
+
 25. Add `System.LagDuration()` delegating to `projectionhost.Host.LagDuration()`
 26. Add `System.LagPerProjection()` delegating to `projectionhost.Host.LagPerProjection()`
 27. Add `System.Status()` delegating to `projectionhost.Host.Status()`
@@ -163,6 +183,7 @@ Nothing. All changes compile, tests pass, no regressions detected.
 30. Add `System.DeadLetterCount()` for DLQ monitoring
 
 ### Code quality (P3)
+
 31. Rename `ErrSystemStopped` to `ErrSystemNotRunning` for clarity
 32. Consider `ErrNoProjectionHost` → `ErrProjectionHostNotConfigured` for consistency with `ErrSeekableJournalMissing`
 33. Add `//nolint:lll` comments where needed for long error wrapping lines
@@ -170,11 +191,13 @@ Nothing. All changes compile, tests pass, no regressions detected.
 35. Run `nix run .#check-duplication` to verify no new duplication was introduced
 
 ### API surface (P3)
+
 36. Consider adding `WithCheckpointStore` as a functional option on `New()` for ergonomic parity with `stack.WithCheckpointStore`
 37. Consider adding `WithHealthCheck` option for custom health check functions
 38. Consider adding `WithGracefulCloseTimeout` option for default timeout when `ctx` has no deadline
 
 ### Release (P3)
+
 39. Tag `system/v4.1.0` with the new methods (minor version bump for new API)
 40. Update `CHANGELOG.md` with the P2 hardening entries
 41. Update `FEATURES.md` system/ section to mark health-check/graceful-close as DONE
@@ -182,6 +205,7 @@ Nothing. All changes compile, tests pass, no regressions detected.
 43. Run `nix run .#verify` as the final gate before tagging
 
 ### Cross-module (P4)
+
 44. Consider a shared `health.Checker` interface across stack/ and system/ for consumer-side abstraction
 45. Consider a shared `graceful.Closer` interface across stack/ and system/
 46. Add `system` to the `cmd/cqrs-lint` module catalog for adoption scoring
@@ -195,10 +219,13 @@ Nothing. All changes compile, tests pass, no regressions detected.
 ## G) QUESTIONS I CANNOT ANSWER MYSELF
 
 ### 1. Should `System.Close()` join all errors or return only the first?
+
 The current implementation returns only the first error (inherited from the original code). `stack.Bundle.Close()` joins all errors. Changing this is technically a behavioral change — callers doing `if err := sys.Close(); err != nil { ... }` would see different error values. Should I align with `stack.Bundle` (join all) or preserve the current first-error behavior?
 
 ### 2. Should `DomainConfig.CheckpointStore` be a functional option instead of a struct field?
+
 `stack.Bundle` uses `stack.WithCheckpointStore()` as a functional option. `DomainConfig` uses direct struct fields (no options). I chose the struct-field pattern for consistency with `DomainConfig`, but consumers coming from `stack` may expect `system.WithCheckpointStore()`. Should I add a functional option wrapper too?
 
 ### 3. Should the dead `s.closers` slice be populated or removed?
+
 `System.closers` is declared as `[]func() error` but `New()` never appends to it. It's dead code. Should I wire it (e.g., add SQLite engine close functions, bus close functions) or remove it? Wiring it would make `Close()` properly close resources that currently rely on engine `Close()`. Removing it simplifies the struct. I can't tell if this was intentional (engines handle their own close) or a forgotten TODO.

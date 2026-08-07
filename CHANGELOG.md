@@ -28,7 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   (e.g., `SQLCheckpointStore`). Falls back to `memoryCheckpointStore` when nil.
 - **`system/README.md` Quick Start fixed** — replaced non-compiling snippet
   (used `DomainConfig.StreamTypes`, `sys.Dispatch`) with complete `package
-  main` program using real API (`DomainConfig.Commands`, `RegisterDecider`,
+main` program using real API (`DomainConfig.Commands`, `RegisterDecider`,
   `RegisterCommand`, `CommandDispatcher().Dispatch`). Verified compiles + runs.
 - **`cmd/doc-check` arg-parsing fixed** — `cobra.ArbitraryArgs` replaced with
   custom `fileArgs` validator that rejects non-existent files, directories,
@@ -86,15 +86,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   assertions.
 - **OTel span instrumentation** (`storage/bbolt/otel.go`) — `context.Context`
   replaces all `_ context.Context` placeholders. Span creation + error recording
-  + count attributes across ALL public methods (EventStore 12, SnapshotStore 4,
-  CheckpointStore 2, CommandStore 7, QueryStore 4).
+  - count attributes across ALL public methods (EventStore 12, SnapshotStore 4,
+    CheckpointStore 2, CommandStore 7, QueryStore 4).
 - **Contract test suite expanded** — 6→16 tests (26 total with streaming).
 - **`storage/bbolt/v4.0.0` tagged and pushed** — first release.
 
 #### System package P1 hardening — scream store, serialization, koanf, transactional
 
 - **Scream store plan-drift detection** — `CheckPlanSafety(ctx, plan,
-  manifestPath)` loads a pinned `metaengine.Manifest`, diffs against the current
+manifestPath)` loads a pinned `metaengine.Manifest`, diffs against the current
   `SerializablePlan`, classifies changes (SCREAM/WARN+OVERRIDE/ADVISORY). First
   deployment saves manifest; tamper detection. 8 tests.
 - **CommandAdapter + QueryAdapter SQL serialization** — JSON envelopes

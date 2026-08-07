@@ -20,16 +20,16 @@ left behind. This session addressed every item.
 
 8 tests, all passing (`-race` clean):
 
-| Test | What it covers |
-|---|---|
-| `TestCommandStore_SaveAndLoad` | Save single command → Load → verify ID + Type |
-| `TestCommandStore_DuplicateDetection` | Save same command twice → `ErrDuplicateCommand` |
-| `TestCommandStore_AppendBatch` | Batch of 3 commands → atomic write → Load returns all 3 |
-| `TestCommandStore_AppendBatchDuplicate` | Batch succeeds, then re-append one → `ErrDuplicateCommand` |
-| `TestCommandStore_LoadEmptyStream` | Load from nonexistent stream → empty slice, no error |
-| `TestCommandStore_ReadAll` | Cross-stream journal: 2 commands across 2 streams → 2 results |
-| `TestCommandStore_ReadFrom` | Position-based pagination: zero-ID start, after-cursor + limit |
-| `TestCommandStore_LoadFromTimestamp` | Timestamp filtering: before/midpoint cutoffs |
+| Test                                    | What it covers                                                 |
+| --------------------------------------- | -------------------------------------------------------------- |
+| `TestCommandStore_SaveAndLoad`          | Save single command → Load → verify ID + Type                  |
+| `TestCommandStore_DuplicateDetection`   | Save same command twice → `ErrDuplicateCommand`                |
+| `TestCommandStore_AppendBatch`          | Batch of 3 commands → atomic write → Load returns all 3        |
+| `TestCommandStore_AppendBatchDuplicate` | Batch succeeds, then re-append one → `ErrDuplicateCommand`     |
+| `TestCommandStore_LoadEmptyStream`      | Load from nonexistent stream → empty slice, no error           |
+| `TestCommandStore_ReadAll`              | Cross-stream journal: 2 commands across 2 streams → 2 results  |
+| `TestCommandStore_ReadFrom`             | Position-based pagination: zero-ID start, after-cursor + limit |
+| `TestCommandStore_LoadFromTimestamp`    | Timestamp filtering: before/midpoint cutoffs                   |
 
 Mirrors `storage/pebble/command_store_test.go` structure but adapted for bbolt's
 `newTestBackend(t)` setup pattern.
@@ -38,12 +38,12 @@ Mirrors `storage/pebble/command_store_test.go` structure but adapted for bbolt's
 
 4 tests, all passing (`-race` clean):
 
-| Test | What it covers |
-|---|---|
-| `TestQueryStore_SaveAndLoadQueries` | Save 2 queries → LoadQueries with before/mid filters |
-| `TestQueryStore_DuplicateDetection` | Save same query twice → `ErrDuplicateQuery` |
-| `TestQueryStore_ReadAllQueries` | Journal read: 3 queries across time |
-| `TestQueryStore_ReadQueriesFrom` | Position-based pagination: zero-ID start, after-cursor + limit |
+| Test                                | What it covers                                                 |
+| ----------------------------------- | -------------------------------------------------------------- |
+| `TestQueryStore_SaveAndLoadQueries` | Save 2 queries → LoadQueries with before/mid filters           |
+| `TestQueryStore_DuplicateDetection` | Save same query twice → `ErrDuplicateQuery`                    |
+| `TestQueryStore_ReadAllQueries`     | Journal read: 3 queries across time                            |
+| `TestQueryStore_ReadQueriesFrom`    | Position-based pagination: zero-ID start, after-cursor + limit |
 
 ### 3. Same-stream concurrency contention test — `contract_test.go` (MODIFIED)
 
@@ -288,12 +288,12 @@ Nothing broke. No regressions.
 
 ## Test Count Summary
 
-| Category | Before | After | Delta |
-|---|---|---|---|
-| bbolt CommandStore tests | 0 | 8 | +8 |
-| bbolt QueryStore tests | 0 | 4 | +4 |
-| bbolt event contention tests | 1 (different streams) | 2 (+same stream) | +1 |
-| bbolt total tests | 29 | 42 | +13 |
-| stack/bench bbolt benchmarks | 1 (benchkit suite) | 2 (+contention) | +1 |
+| Category                     | Before                | After            | Delta |
+| ---------------------------- | --------------------- | ---------------- | ----- |
+| bbolt CommandStore tests     | 0                     | 8                | +8    |
+| bbolt QueryStore tests       | 0                     | 4                | +4    |
+| bbolt event contention tests | 1 (different streams) | 2 (+same stream) | +1    |
+| bbolt total tests            | 29                    | 42               | +13   |
+| stack/bench bbolt benchmarks | 1 (benchkit suite)    | 2 (+contention)  | +1    |
 
 All 42 tests pass with `-race -count=1 -tags "goexperiment.jsonv2"`.

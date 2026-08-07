@@ -22,28 +22,28 @@ On the read side, DiscordSync has ~121 query methods, ~54 of which need JOIN/GRO
 
 DiscordSync imports and heavily uses the following modules. This is not surface-level — these are the load-bearing dependencies:
 
-| Module | Usage Depth |
-|--------|-------------|
-| `event/v4` | Event creation, bus, store, journal, middleware, codec, decode — all core types |
-| `id/v4` | Stream IDs, refs, event IDs — full |
-| `command/v4` | 7 typed commands, dispatcher, audit store — full |
-| `middleware/v4` | Recovery, retry, logging, tracing, OTel metrics — full middleware stack |
-| `storage/v4` | SQLEventStore, checkpoint/command stores, schema init — full |
-| `storage/v4/sql` | SQLiteDialect for projections — full |
-| `storage/v4/relational` | 24 RelationalProjections, RelationalSchema, ProjectionSink — the projection framework IS the library |
-| `storage/v4/view` | SQLViewStore for bans + audit_log (pilot) — minimal but intentional |
-| `kv/v4` | ViewQuery DSL for keyset pagination — same pilot scope |
-| `projection/v4` | Projection interface, NewProjection — full |
-| `projectionhost/v4` | Host lifecycle, DLQ, replay, reset, metrics — full |
-| `watermill/v4` | In-process EventBus — full |
-| `signing/v4` | HMAC-SHA256 event signing — full |
-| `encryption/v4` | XChaCha20-Poly1305 at-rest encryption — full |
-| `idempotency/v4` | Source dedup via SQLite store — full |
-| `schema/v4` | Versioned journal with upcasters — full |
-| `codec/v4` | CBOR default codec — full |
-| `otel/v4` + `prometheus/v4` | Tracing + metrics bridge — full |
-| `catalog/v4` | OpenAPI/AsyncAPI/D2 generation — full |
-| `storage/turso/v4` | Turso backend, indexing, quota detection — full |
+| Module                      | Usage Depth                                                                                          |
+| --------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `event/v4`                  | Event creation, bus, store, journal, middleware, codec, decode — all core types                      |
+| `id/v4`                     | Stream IDs, refs, event IDs — full                                                                   |
+| `command/v4`                | 7 typed commands, dispatcher, audit store — full                                                     |
+| `middleware/v4`             | Recovery, retry, logging, tracing, OTel metrics — full middleware stack                              |
+| `storage/v4`                | SQLEventStore, checkpoint/command stores, schema init — full                                         |
+| `storage/v4/sql`            | SQLiteDialect for projections — full                                                                 |
+| `storage/v4/relational`     | 24 RelationalProjections, RelationalSchema, ProjectionSink — the projection framework IS the library |
+| `storage/v4/view`           | SQLViewStore for bans + audit_log (pilot) — minimal but intentional                                  |
+| `kv/v4`                     | ViewQuery DSL for keyset pagination — same pilot scope                                               |
+| `projection/v4`             | Projection interface, NewProjection — full                                                           |
+| `projectionhost/v4`         | Host lifecycle, DLQ, replay, reset, metrics — full                                                   |
+| `watermill/v4`              | In-process EventBus — full                                                                           |
+| `signing/v4`                | HMAC-SHA256 event signing — full                                                                     |
+| `encryption/v4`             | XChaCha20-Poly1305 at-rest encryption — full                                                         |
+| `idempotency/v4`            | Source dedup via SQLite store — full                                                                 |
+| `schema/v4`                 | Versioned journal with upcasters — full                                                              |
+| `codec/v4`                  | CBOR default codec — full                                                                            |
+| `otel/v4` + `prometheus/v4` | Tracing + metrics bridge — full                                                                      |
+| `catalog/v4`                | OpenAPI/AsyncAPI/D2 generation — full                                                                |
+| `storage/turso/v4`          | Turso backend, indexing, quota detection — full                                                      |
 
 ### 1b. Correct architectural rejections (decider/stack/system)
 
@@ -71,30 +71,30 @@ EventCapture does NOT reimplement go-cqrs-lite. It orchestrates library primitiv
 
 The `relational.ProjectionSink` interface provides structured methods that generate parameterized SQL:
 
-| Method | SQL generated |
-|--------|---------------|
-| `Upsert(ctx, table, Row, conflictCols...)` | `INSERT ... ON CONFLICT(pk) DO UPDATE SET col=excluded.col` |
-| `Ensure(ctx, table, Row)` | `INSERT OR IGNORE` |
-| `Update(ctx, table, set, match)` | `UPDATE table SET ... WHERE match` |
-| `DeleteWhere(ctx, table, match)` | `DELETE FROM table WHERE match` |
-| `QueryOne(ctx, table, column, match)` | `SELECT col FROM table WHERE match LIMIT 1` |
+| Method                                          | SQL generated                                                           |
+| ----------------------------------------------- | ----------------------------------------------------------------------- |
+| `Upsert(ctx, table, Row, conflictCols...)`      | `INSERT ... ON CONFLICT(pk) DO UPDATE SET col=excluded.col`             |
+| `Ensure(ctx, table, Row)`                       | `INSERT OR IGNORE`                                                      |
+| `Update(ctx, table, set, match)`                | `UPDATE table SET ... WHERE match`                                      |
+| `DeleteWhere(ctx, table, match)`                | `DELETE FROM table WHERE match`                                         |
+| `QueryOne(ctx, table, column, match)`           | `SELECT col FROM table WHERE match LIMIT 1`                             |
 | `Increment(ctx, table, key, counterCol, delta)` | `INSERT ... ON CONFLICT DO UPDATE SET col=COALESCE(col,0)+excluded.col` |
-| `UpsertCols` | Partial upsert (update only declared columns on conflict) |
-| `UpsertExpr` | Upsert with raw SQL expressions in the SET clause |
+| `UpsertCols`                                    | Partial upsert (update only declared columns on conflict)               |
+| `UpsertExpr`                                    | Upsert with raw SQL expressions in the SET clause                       |
 
 **9 of 15 projection files use these methods exclusively** — zero raw SQL. These prove the pattern works when projections are simple.
 
 **But 6 files bypass the sink entirely** via `sink.Tx()` to get a raw `*sql.Tx`, then write 50 hand-written SQL statements:
 
-| Projection | `sink.Tx()` calls | Raw SQL sites | Replaceable | Irreducible |
-|-----------|:---:|:---:|:---:|:---:|
-| Messages (messages.go, messages_bulk.go, embed_media.go, users.go) | 1 | 22 | 20 | **2** |
-| Members (members.go, members_relational.go) | 2 | 4 | 3 | **1** |
-| Metadata (metadata_relational.go) | 10 | 10 | 8 | **2** |
-| Stats rollup (stats_rollup_relational.go) | 3 | 4 | 4 | **0** |
-| Activity rollup (activity_rollup_relational.go) | 1 | 6 | 5 | **1** |
-| Attachment stats (attachment_stats_rollup_relational.go) | 1 | 4 | 2 | **2** |
-| **Total** | **18** | **50** | **42** | **8** |
+| Projection                                                         | `sink.Tx()` calls | Raw SQL sites | Replaceable | Irreducible |
+| ------------------------------------------------------------------ | :---------------: | :-----------: | :---------: | :---------: |
+| Messages (messages.go, messages_bulk.go, embed_media.go, users.go) |         1         |      22       |     20      |    **2**    |
+| Members (members.go, members_relational.go)                        |         2         |       4       |      3      |    **1**    |
+| Metadata (metadata_relational.go)                                  |        10         |      10       |      8      |    **2**    |
+| Stats rollup (stats_rollup_relational.go)                          |         3         |       4       |      4      |    **0**    |
+| Activity rollup (activity_rollup_relational.go)                    |         1         |       6       |      5      |    **1**    |
+| Attachment stats (attachment_stats_rollup_relational.go)           |         1         |       4       |      2      |    **2**    |
+| **Total**                                                          |      **18**       |    **50**     |   **42**    |    **8**    |
 
 ### 2b. The 42 replaceable sites (consumer-side fixable)
 
@@ -206,14 +206,14 @@ Two counters incremented atomically in one statement. `Increment` handles only o
 
 DiscordSync has ~121 SELECT query methods. Complete census:
 
-| Tier | SQL shape | Count | View store? | Metaengine? |
-|------|-----------|-------|-------------|-------------|
-| T1 | Simple single-table WHERE/ORDER/LIMIT | ~45 | ✅ | ✅ |
-| T2 | LIKE/range/IN/cursor pagination | ~10 | ✅ | ✅ |
-| T3 | Multi-table JOIN | ~8 | ❌ no JOINs | ❌ no JOINs |
-| T4 | GROUP BY/aggregation (COUNT/SUM/AVG) | ~30 | ❌ | ⚠️ Go-side only |
-| T5 | Date functions/FTS5/PRAGMA/json_extract | ~16 | ❌ | ❌ |
-| T6 | Already view store (bans/audit_log pilot) | 2 | ✅ | — |
+| Tier | SQL shape                                 | Count | View store? | Metaengine?     |
+| ---- | ----------------------------------------- | ----- | ----------- | --------------- |
+| T1   | Simple single-table WHERE/ORDER/LIMIT     | ~45   | ✅          | ✅              |
+| T2   | LIKE/range/IN/cursor pagination           | ~10   | ✅          | ✅              |
+| T3   | Multi-table JOIN                          | ~8    | ❌ no JOINs | ❌ no JOINs     |
+| T4   | GROUP BY/aggregation (COUNT/SUM/AVG)      | ~30   | ❌          | ⚠️ Go-side only |
+| T5   | Date functions/FTS5/PRAGMA/json_extract   | ~16   | ❌          | ❌              |
+| T6   | Already view store (bans/audit_log pilot) | 2     | ✅          | —               |
 
 **~54 queries (T3+T4+T5) are impossible** in the current view store AND in metaengine. Both are single-collection by design.
 
@@ -246,6 +246,7 @@ DiscordSync's read patterns are **relational-shaped** (JOINs, aggregations, FTS5
 ### 3e. Why bans/audit_log are the only view store pilots
 
 These were the first tables built after the view store's keyset pagination feature landed. They were chosen because:
+
 - **Newly built** — no existing raw SQL to risk migrating
 - **Simple** — single-table, filter-by-guild, order-by-time
 - **Modest column counts** (6 and 12) — good pilot candidates
@@ -261,6 +262,7 @@ The pilot proved the pattern works. It also proved that migrating existing raw-S
 The 5 gaps in Part 2c prevent full sink adoption in DiscordSync's projections. Filling them would allow converting 8 more sites, bringing the bypass count from 50 to 0 (after consumer-side fixes for the other 42). These are small, focused additions to an existing, well-designed interface.
 
 Proposed priority:
+
 1. `IncrementClamped` — 2 sites, prevents negative counters (data integrity)
 2. `MultiIncrement` — 2 sites, enables atomic multi-counter stats
 3. `UpdateExpr` — 2 sites, enables mixed arithmetic+data UPDATE
@@ -293,17 +295,17 @@ Currently, `ViewMapper` requires manual `Columns []ViewColumn[V]` with `Extract`
 
 ## Part 5: Honest Scorecard
 
-| Area | Grade | Notes |
-|------|-------|-------|
-| Event store adoption | A+ | Full use of SQLEventStore, journal, signing, encryption, idempotency |
-| Projection framework adoption | B+ | 9/15 files use sink methods exclusively; 6 bypass via Tx() (fixable) |
-| View store adoption | C- | 2 of ~40 tables (pilot only, not expanded — justified for now) |
-| Bus/projection host adoption | A+ | Full DLQ, replay, checkpoint, metrics integration |
-| Command/query dispatch | A | Full dispatcher with audit trail, typed commands |
-| Catalog/documentation | A+ | OpenAPI/AsyncAPI/D2 generation, llms.txt |
-| Decider/stack/system rejection | A+ | Architecturally correct, documented 4× |
-| Metaengine adoption | F | Not adopted — but the read patterns are genuinely hard to express |
-| Sink API completeness | B | 5 gaps prevent 100% sink adoption (all small, all fixable) |
+| Area                           | Grade | Notes                                                                |
+| ------------------------------ | ----- | -------------------------------------------------------------------- |
+| Event store adoption           | A+    | Full use of SQLEventStore, journal, signing, encryption, idempotency |
+| Projection framework adoption  | B+    | 9/15 files use sink methods exclusively; 6 bypass via Tx() (fixable) |
+| View store adoption            | C-    | 2 of ~40 tables (pilot only, not expanded — justified for now)       |
+| Bus/projection host adoption   | A+    | Full DLQ, replay, checkpoint, metrics integration                    |
+| Command/query dispatch         | A     | Full dispatcher with audit trail, typed commands                     |
+| Catalog/documentation          | A+    | OpenAPI/AsyncAPI/D2 generation, llms.txt                             |
+| Decider/stack/system rejection | A+    | Architecturally correct, documented 4×                               |
+| Metaengine adoption            | F     | Not adopted — but the read patterns are genuinely hard to express    |
+| Sink API completeness          | B     | 5 gaps prevent 100% sink adoption (all small, all fixable)           |
 
 ### Overall adoption score: B+
 
@@ -313,24 +315,25 @@ Deep, load-bearing adoption with one real friction area (write-side Tx() bypass)
 
 ## Part 6: Recommended Next Steps (for go-cqrs-lite)
 
-| # | Action | Impact | Effort | Priority |
-|---|--------|--------|--------|----------|
-| 1 | Implement `IncrementClamped` on ProjectionSink | Eliminates 2 irreducible Tx() sites | Low (10 LOC) | P0 |
-| 2 | Implement `MultiIncrement` on ProjectionSink | Eliminates 2 irreducible Tx() sites | Low (15 LOC) | P0 |
-| 3 | Implement `UpdateExpr` on ProjectionSink | Eliminates 2 irreducible Tx() sites | Low (20 LOC) | P1 |
-| 4 | Implement `QueryRow` (multi-column) on ProjectionSink | Eliminates 1 irreducible Tx() site | Low (10 LOC) | P1 |
-| 5 | Implement `InsertSelect` on ProjectionSink | Eliminates 1 irreducible Tx() site | Low (15 LOC) | P2 |
-| 6 | Document `WithoutViewAutoMigrate` | Lowers barrier to view store adoption | Trivial | P1 |
-| 7 | Document `sink.Tx()` as code smell with guidance | Prevents future bypass | Trivial | P2 |
-| 8 | Design metaengine cross-projection JOIN story | Unlocks metaengine for relational apps | High | Strategic |
-| 9 | Add DuckDB analytical tier to metaengine | Handles GROUP BY/aggregation natively | High | Strategic |
-| 10 | Write `relational → metaengine` migration guide | Enables incremental metaengine adoption | Medium | P2 |
+| #   | Action                                                | Impact                                  | Effort       | Priority  |
+| --- | ----------------------------------------------------- | --------------------------------------- | ------------ | --------- |
+| 1   | Implement `IncrementClamped` on ProjectionSink        | Eliminates 2 irreducible Tx() sites     | Low (10 LOC) | P0        |
+| 2   | Implement `MultiIncrement` on ProjectionSink          | Eliminates 2 irreducible Tx() sites     | Low (15 LOC) | P0        |
+| 3   | Implement `UpdateExpr` on ProjectionSink              | Eliminates 2 irreducible Tx() sites     | Low (20 LOC) | P1        |
+| 4   | Implement `QueryRow` (multi-column) on ProjectionSink | Eliminates 1 irreducible Tx() site      | Low (10 LOC) | P1        |
+| 5   | Implement `InsertSelect` on ProjectionSink            | Eliminates 1 irreducible Tx() site      | Low (15 LOC) | P2        |
+| 6   | Document `WithoutViewAutoMigrate`                     | Lowers barrier to view store adoption   | Trivial      | P1        |
+| 7   | Document `sink.Tx()` as code smell with guidance      | Prevents future bypass                  | Trivial      | P2        |
+| 8   | Design metaengine cross-projection JOIN story         | Unlocks metaengine for relational apps  | High         | Strategic |
+| 9   | Add DuckDB analytical tier to metaengine              | Handles GROUP BY/aggregation natively   | High         | Strategic |
+| 10  | Write `relational → metaengine` migration guide       | Enables incremental metaengine adoption | Medium       | P2        |
 
 ---
 
 ## Appendix: Methodology
 
 This report is based on:
+
 - Complete census of all ~121 SELECT query methods in `internal/db/` (read every .go file)
 - Complete census of all 50 raw SQL sites in 6 projection files using `sink.Tx()` (read every projection file)
 - Full read of all public types/methods in `metaengine/` (all .go files)
@@ -350,16 +353,16 @@ No estimates or hand-waving — every claim is backed by a file:line reference i
 
 Every technical claim in this report was independently verified against the go-cqrs-lite source code. **All claims are factually accurate.**
 
-| Claim | Verdict | Evidence |
-|-------|---------|----------|
-| 5 sink API gaps all absent | **CONFIRMED** | `storage/relational/sink.go:46-146` — 9 methods exist; none of the 5 proposed ones |
-| `Increment` deliberately doesn't clamp to zero | **CONFIRMED** | `sink.go:84-89` — doc explicitly states negative counters surface data-loss bugs |
-| `WithoutViewAutoMigrate()` exists but hidden | **CONFIRMED** | `storage/view/options.go:52` |
-| `AutoMapper[V](table)` exists but not default | **CONFIRMED** | `storage/view/auto.go:51` — generates ViewMapper from `view:"col_name"` struct tags |
-| `ViewMapper` requires manual Columns/Extract | **PARTIALLY CORRECT** | `store.go:50` supports manual Columns, but `AutoMapper` makes it optional, not mandatory |
-| Metaengine is single-collection, no JOINs | **CONFIRMED** | `metaengine/planner.go:72-74`: "Each query gets its own independent projection" |
-| ADTSearch exists but NOT wired to SQLite FTS5 | **CONFIRMED** | Only Memory (`memory_engine.go:288`) + Dgraph (`dgraphengine/engine.go:352`) implement `SearchBackend`. SQLite has zero FTS5 code. |
-| DuckDB engine lacks aggregation pushdown | **CONFIRMED (stronger than claimed)** | DuckDB does NOT implement `AggregateReader`. `CounterGet` (`duckdbengine/engine.go:312-335`) loads all rows into a Go map. The "vectorized GROUP BY" exists only as raw SQL in a test (`layout_planner_cgo_test.go:657`), never through the API. |
+| Claim                                          | Verdict                               | Evidence                                                                                                                                                                                                                                         |
+| ---------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 5 sink API gaps all absent                     | **CONFIRMED**                         | `storage/relational/sink.go:46-146` — 9 methods exist; none of the 5 proposed ones                                                                                                                                                               |
+| `Increment` deliberately doesn't clamp to zero | **CONFIRMED**                         | `sink.go:84-89` — doc explicitly states negative counters surface data-loss bugs                                                                                                                                                                 |
+| `WithoutViewAutoMigrate()` exists but hidden   | **CONFIRMED**                         | `storage/view/options.go:52`                                                                                                                                                                                                                     |
+| `AutoMapper[V](table)` exists but not default  | **CONFIRMED**                         | `storage/view/auto.go:51` — generates ViewMapper from `view:"col_name"` struct tags                                                                                                                                                              |
+| `ViewMapper` requires manual Columns/Extract   | **PARTIALLY CORRECT**                 | `store.go:50` supports manual Columns, but `AutoMapper` makes it optional, not mandatory                                                                                                                                                         |
+| Metaengine is single-collection, no JOINs      | **CONFIRMED**                         | `metaengine/planner.go:72-74`: "Each query gets its own independent projection"                                                                                                                                                                  |
+| ADTSearch exists but NOT wired to SQLite FTS5  | **CONFIRMED**                         | Only Memory (`memory_engine.go:288`) + Dgraph (`dgraphengine/engine.go:352`) implement `SearchBackend`. SQLite has zero FTS5 code.                                                                                                               |
+| DuckDB engine lacks aggregation pushdown       | **CONFIRMED (stronger than claimed)** | DuckDB does NOT implement `AggregateReader`. `CounterGet` (`duckdbengine/engine.go:312-335`) loads all rows into a Go map. The "vectorized GROUP BY" exists only as raw SQL in a test (`layout_planner_cgo_test.go:657`), never through the API. |
 
 ### A2. Three Findings the Original Report Missed
 
