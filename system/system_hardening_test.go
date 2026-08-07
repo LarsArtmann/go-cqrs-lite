@@ -617,14 +617,10 @@ func TestSystem_ResetProjection_RestartAndReplay(t *testing.T) {
 	}
 
 	// Verify the projection has data before reset.
-	result, err := sys1.MetaEngine().Execute(FindTask{ID: "hardening-task"})
+	view, err := metaengine.ExecuteTyped[FindTask, TaskView](
+		ctx, sys1.MetaEngine(), FindTask{ID: "hardening-task"})
 	if err != nil {
-		t.Fatalf("Execute before reset: %v", err)
-	}
-
-	view, ok := result.(TaskView)
-	if !ok {
-		t.Fatalf("expected TaskView, got %T", result)
+		t.Fatalf("ExecuteTyped before reset: %v", err)
 	}
 
 	if view.Title != "hardening-task" {
@@ -672,14 +668,10 @@ func TestSystem_ResetProjection_RestartAndReplay(t *testing.T) {
 	}
 
 	// Verify the replayed projection has the same data.
-	result2, err := sys2.MetaEngine().Execute(FindTask{ID: "hardening-task"})
+	view2, err := metaengine.ExecuteTyped[FindTask, TaskView](
+		ctx, sys2.MetaEngine(), FindTask{ID: "hardening-task"})
 	if err != nil {
-		t.Fatalf("Execute after replay: %v", err)
-	}
-
-	view2, ok := result2.(TaskView)
-	if !ok {
-		t.Fatalf("expected TaskView after replay, got %T", result2)
+		t.Fatalf("ExecuteTyped after replay: %v", err)
 	}
 
 	if view2.Title != "hardening-task" {
