@@ -347,6 +347,57 @@ func TestContract_LoadEmptyStream(t *testing.T) {
 	}
 }
 
+func TestContract_SameStreamContention(t *testing.T) {
+	t.Parallel()
+
+	backend := newTestBackend(t)
+	store := backend.EventStore()
+	ctx := context.Background()
+	cfg := eventtest.IssueStoreConfig()
+
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef(cfg.AggType, aggID)
+
+	const goroutines = 10
+
+	// Pre-create events to avoid t.Fatalf inside goroutines.
+	evts := make([]event.Event, goroutines)
+	for i := range goroutines {
+		evts[i] = cfg.NewTestEvent(t, aggID, event.Version(1))
+	}
+
+	var successes atomic.Int64
+	var wg sync.WaitGroup
+	wg.Add(goroutines)
+
+	for i := range goroutines {
+		go func() {
+			defer wg.Done()
+
+			if err := store.Save(ctx, ref, []event.Event{evts[i]}, 0); err != nil {
+				return // version conflict — expected for losers
+			}
+
+			successes.Add(1)
+		}()
+	}
+
+	wg.Wait()
+
+	if got := successes.Load(); got != 1 {
+		t.Fatalf("expected exactly 1 successful save, got %d", got)
+	}
+
+	loaded, err := store.Load(ctx, ref)
+	if err != nil {
+		t.Fatalf("Load after contention: %v", err)
+	}
+
+	if len(loaded) != 1 {
+		t.Fatalf("expected 1 event after contention, got %d", len(loaded))
+	}
+}
+
 func makeNEvents(
 	t *testing.T,
 	cfg eventtest.StoreTestConfig,

@@ -142,9 +142,10 @@ func main() {
 | `New(ctx, domain, deployment)` | Creates a `*System` from domain + deployment configs. |
 | `System.Start(ctx)`            | Starts projection workers and bus listeners.          |
 | `System.Close()`               | Graceful shutdown of all infrastructure.              |
-| `System.GracefulClose(ctx)`    | Context-bounded `Close()` for shutdown deadlines.    |
+| `System.GracefulClose(ctx)`    | Drains via [Drainer]s, then context-bounded `Close()`.|
 | `System.HealthCheck(ctx)`      | Returns `nil` if all resources are healthy.           |
 | `System.ResetProjection(ctx, name)` | Resets a projection checkpoint for replay.      |
+| `System.RegisterDrainer(d)`    | Register a pre-close drainer for `GracefulClose`.     |
 
 ### Domain Registration
 
@@ -193,6 +194,21 @@ an error at construction time (no silent fallback).
 `LoadConfig(path)` loads a `DeploymentConfig` from YAML with env var overrides.
 Env vars use the `CQRS_` prefix with double-underscore (`__`) as the nested
 separator (koanf convention). Env overrides win over YAML.
+
+### DomainConfig Fields
+
+| Field                        | Description                                                          |
+| ---------------------------- | ------------------------------------------------------------------- |
+| `Commands`                   | Function that registers typed command handlers on the System.        |
+| `Queries`                    | Function that registers typed query handlers on the System.          |
+| `Projections`                | Metaengine query declarations for auto-wired projections.            |
+| `ProjectionDecoder`          | Decodes event payloads for projection fold handlers.                 |
+| `ProjectionTypeDecoder`      | Recommended: typed event decoder with stream ID access.              |
+| `ProjectionEventDecoder`     | Full event context decoder for projection fold handlers.             |
+| `Middleware`                 | Command-level domain middleware (validation, authz, etc.).           |
+| `ProjectionHostOptions`      | Projection host options (batch size, DLQ, restart policy, etc.).     |
+| `CheckpointStore`            | Persistent checkpoint store. If nil, in-memory (lost on restart).    |
+| `ShutdownDependencies`       | Ordering constraints for `Close()` (e.g., close projections first).  |
 
 ### YAML
 

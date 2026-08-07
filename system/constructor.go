@@ -49,6 +49,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 		engineCache[name] = eng
 		sys.engines = append(sys.engines, eng)
+		sys.engineNames = append(sys.engineNames, name)
 	}
 
 	// Find the source-of-truth instance and wire the adapters.
@@ -157,6 +158,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	if sys.eventStore == nil {
 		eng := metaengine.NewMemoryEngine()
 		sys.engines = append(sys.engines, eng)
+		sys.engineNames = append(sys.engineNames, "default")
 		sys.eventStore = NewEventAdapter(eng.(metaengine.StreamLogBackend), "events")
 	}
 
@@ -164,6 +166,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	if sys.projStore == nil && len(domain.Projections) > 0 {
 		eng := metaengine.NewMemoryEngine()
 		sys.engines = append(sys.engines, eng)
+		sys.engineNames = append(sys.engineNames, "projections")
 
 		args := make([]any, len(domain.Projections))
 		copy(args, domain.Projections)
@@ -264,6 +267,14 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 			return nil, fmt.Errorf("%w: %s", ErrUnsafeChange, detail)
 		}
+	}
+
+	// Wire shutdown dependencies from domain config.
+	for _, dep := range domain.ShutdownDependencies {
+		sys.shutdownDeps = append(sys.shutdownDeps, shutdownEdge{
+			before: dep.Before,
+			after:  dep.After,
+		})
 	}
 
 	// Register domain middleware.

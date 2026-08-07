@@ -9,6 +9,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	stackbbolt "github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
@@ -21,7 +22,7 @@ import (
 // BenchmarkContention_Persistent_SameStream measures write serialization on
 // SQLite when multiple goroutines append to the SAME stream.
 func BenchmarkContention_Persistent_SameStream(b *testing.B) {
-	for _, backend := range []string{"sqlite", "pebble"} {
+	for _, backend := range []string{"sqlite", "pebble", "bbolt"} {
 		b.Run(backend, func(b *testing.B) {
 			for _, concurrency := range []int{1, 4, 8} {
 				b.Run(fmt.Sprintf("workers=%d", concurrency), func(b *testing.B) {
@@ -45,6 +46,14 @@ func BenchmarkContention_Persistent_SameStream(b *testing.B) {
 						bl, cl := pb.create(b)
 						bundle = bl
 						cleanup = cl
+					case "bbolt":
+						dir := b.TempDir()
+						bl, err := stackbbolt.New(dir + "/contention.db")
+						if err != nil {
+							b.Fatal(err)
+						}
+						bundle = bl
+						cleanup = func() { _ = bl.Close() }
 					default:
 						b.Skipf("unknown backend: %s", backend)
 					}

@@ -132,3 +132,16 @@ func TestPostgresEngine_Transactional(t *testing.T) {
 
 	enginetest.RunTransactionalTest(t, eng)
 }
+
+func TestPostgresEngine_ConcurrentTx(t *testing.T) {
+	t.Parallel()
+
+	eng, err := pgengine.New(pgDSN(t))
+	if err != nil {
+		t.Skipf("Postgres not available: %v", err)
+	}
+
+	defer eng.Close()
+
+	enginetest.RunConcurrentTxTest(t, eng)
+}

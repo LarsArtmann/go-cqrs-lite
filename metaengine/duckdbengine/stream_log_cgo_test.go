@@ -47,3 +47,16 @@ func TestStreamLogBackend_DuckDBTransactional(t *testing.T) {
 
 	enginetest.RunTransactionalTest(t, eng)
 }
+
+func TestStreamLogBackend_DuckDBConcurrentTx(t *testing.T) {
+	t.Parallel()
+
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Fatalf("duckdbengine.New: %v", err)
+	}
+
+	defer func() { _ = eng.Close() }()
+
+	enginetest.RunConcurrentTxTest(t, eng)
+}

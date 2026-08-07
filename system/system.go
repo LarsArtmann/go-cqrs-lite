@@ -248,6 +248,15 @@ func (s *System) UseCommandMiddleware(mw ...command.Middleware) {
 	}
 }
 
+// RegisterDrainer registers a [Drainer] that will be called by [GracefulClose]
+// before [Close]. Use this to ensure in-flight work (e.g., event subscribers,
+// HTTP handlers) completes before infrastructure connections are dropped.
+func (s *System) RegisterDrainer(d Drainer) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.drainers = append(s.drainers, d)
+}
+
 // EventStore returns the event store backed by the source-of-truth instance.
 func (s *System) EventStore() event.Store {
 	return s.eventStore
