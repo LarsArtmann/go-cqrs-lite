@@ -143,34 +143,34 @@ func codecFromTypedStore(call *ast.CallExpr) (storeDesc, codecName string, ok bo
 		return "", "", false
 	}
 
-	pkg, ok := lintutil.SelectorIdent(sel)
+	pkgName, selName, ok := lintutil.SelectorPkgName(sel)
 	if !ok {
 		return "", "", false
 	}
 
 	switch {
-	case pkg.Name == "snapshot" && sel.Sel.Name == "NewTypedStore":
+	case pkgName == "snapshot" && selName == "NewTypedStore":
 		if len(call.Args) < 2 {
 			return "", "", false
 		}
 		name, ok := codecTypeName(call.Args[1])
 		return "Snapshot store", name, ok
 
-	case pkg.Name == "command" && sel.Sel.Name == "NewTypedCommandStore":
+	case pkgName == "command" && selName == "NewTypedCommandStore":
 		if len(call.Args) < 2 {
 			return "", "", false
 		}
 		name, ok := codecTypeName(call.Args[1])
 		return "Command store", name, ok
 
-	case pkg.Name == "query" && sel.Sel.Name == "NewTypedQueryStore":
+	case pkgName == "query" && selName == "NewTypedQueryStore":
 		if len(call.Args) < 2 {
 			return "", "", false
 		}
 		name, ok := codecTypeName(call.Args[1])
 		return "Query store", name, ok
 
-	case pkg.Name == "kv" && sel.Sel.Name == "WithTypedCodec":
+	case pkgName == "kv" && selName == "WithTypedCodec":
 		if len(call.Args) == 0 {
 			return "", "", false
 		}

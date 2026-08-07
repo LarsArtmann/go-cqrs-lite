@@ -34,3 +34,16 @@ func TestStreamLogBackend_DuckDBAtomicAppender(t *testing.T) {
 
 	enginetest.RunAtomicAppenderTest(t, eng)
 }
+
+func TestStreamLogBackend_DuckDBTransactional(t *testing.T) {
+	t.Parallel()
+
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Fatalf("duckdbengine.New: %v", err)
+	}
+
+	defer func() { _ = eng.Close() }()
+
+	enginetest.RunTransactionalTest(t, eng)
+}

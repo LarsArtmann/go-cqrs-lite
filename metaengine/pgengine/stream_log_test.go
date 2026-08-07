@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
 
 func TestPostgresEngine_StreamLogRoundtrip(t *testing.T) {
@@ -117,4 +118,17 @@ func TestPostgresEngine_StreamLogAtomicAppender(t *testing.T) {
 	if ver != 3 {
 		t.Fatalf("expected version 3, got %d", ver)
 	}
+}
+
+func TestPostgresEngine_Transactional(t *testing.T) {
+	t.Parallel()
+
+	eng, err := pgengine.New(pgDSN(t))
+	if err != nil {
+		t.Skipf("Postgres not available: %v", err)
+	}
+
+	defer eng.Close()
+
+	enginetest.RunTransactionalTest(t, eng)
 }

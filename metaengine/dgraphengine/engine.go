@@ -239,7 +239,7 @@ func (e *dgraphEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 }
 
 func (e *dgraphEngine) MapDelete(ctx context.Context, col string, key any) error {
-	keyStr := fmt.Sprint(key)
+	keyStr := fmt.Sprint(key) //art-dupl:accept dgraph key formatting idiom
 
 	req := &api.Request{CommitNow: true}
 	req.Query = fmt.Sprintf(`{

@@ -403,3 +403,80 @@ func engineName(eng metaengine.Engine) string {
 
 	return t.Name()
 }
+
+// RunTransactionalTest exercises the standard Transactional (RunInTx) contract:
+//  1. A successful transaction commits all writes
+//  2. A failed transaction rolls back all writes
+//  3. Writes inside a transaction are visible to reads within the same tx
+//
+// The engine must already implement Transactional and MapBackend. The caller
+// is responsible for closing the engine.
+func RunTransactionalTest(t *testing.T, eng metaengine.Engine) {
+	t.Helper()
+
+	tx, ok := eng.(metaengine.Transactional)
+	if !ok {
+		t.Fatalf("engine %T does not implement Transactional", eng)
+	}
+
+	mb, ok := eng.(metaengine.MapBackend)
+	if !ok {
+		t.Fatalf("engine %T does not implement MapBackend", eng)
+	}
+
+	ctx := context.Background()
+	col := "tx_test_" + engineName(eng)
+
+	// 1. Successful transaction commits.
+	err := tx.RunInTx(ctx, func(ctx context.Context) error {
+		return mb.MapSet(ctx, col, "committed", "v1")
+	})
+	if err != nil {
+		t.Fatalf("RunInTx commit path: %v", err)
+	}
+
+	val, found, err := mb.MapGet(ctx, col, "committed")
+	if err != nil {
+		t.Fatalf("MapGet after commit: %v", err)
+	}
+
+	if !found {
+		t.Fatalf("expected key to exist after commit")
+	}
+
+	_ = val // value is JSON-decoded; just checking existence
+
+	// 2. Failed transaction rolls back.
+	sentinel := errors.New("rollback sentinel")
+
+	err = tx.RunInTx(ctx, func(ctx context.Context) error {
+		if e := mb.MapSet(ctx, col, "rolled-back", "v2"); e != nil {
+			return e
+		}
+
+		// Read inside tx sees the write (for real-transaction engines).
+		_, insideFound, insideErr := mb.MapGet(ctx, col, "rolled-back")
+		if insideErr != nil {
+			return insideErr
+		}
+
+		if !insideFound {
+			t.Fatalf("expected write to be visible inside transaction")
+		}
+
+		return sentinel
+	})
+	if !errors.Is(err, sentinel) {
+		t.Fatalf("expected sentinel error from RunInTx, got %v", err)
+	}
+
+	// 3. Verify rollback: the key should NOT exist outside the tx.
+	_, found, err = mb.MapGet(ctx, col, "rolled-back")
+	if err != nil {
+		t.Fatalf("MapGet after rollback: %v", err)
+	}
+
+	if found {
+		t.Fatalf("expected key to NOT exist after rollback")
+	}
+}
