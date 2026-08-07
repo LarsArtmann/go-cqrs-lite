@@ -159,70 +159,26 @@ func (e *pebbleEngine) Close() error {
 	return e.db.Close()
 }
 
-// Key encoding helpers — see keycodec package for the actual definitions.
-// The local wrappers here preserve the engine's internal call sites.
+// Key encoding helpers — package-level aliases to keycodec functions. The
+// local `sep` reference is kept for inline concatenation in seedSeqCounters.
 
-func mapKey(col, key string) []byte {
-	return keycodec.MapKey(col, key)
-}
-
-func setKey(col, key string) []byte {
-	return keycodec.SetKey(col, key)
-}
-
-func counterKey(col, ckey string) []byte {
-	return keycodec.CounterKey(col, ckey)
-}
-
-func multimapKey(col, key string, seq int64) []byte {
-	return keycodec.MultimapKey(col, key, seq)
-}
-
-func multimapPrefix(col, key string) []byte {
-	return keycodec.MultimapPrefix(col, key)
-}
-
-func logKey(col string, seq int64) []byte {
-	return keycodec.LogKey(col, seq)
-}
-
-func logPrefix(col string) []byte {
-	return keycodec.LogPrefix(col)
-}
-
-func graphEdgeKey(col, from, to string) []byte {
-	return keycodec.GraphEdgeKey(col, from, to)
-}
-
-func graphPrefixForward(col, node string) []byte {
-	return keycodec.GraphPrefixForward(col, node)
-}
-
-func collectionPrefix(col string) []byte {
-	return keycodec.CollectionPrefix(col)
-}
-
-// encodeJSON marshals v to a JSON string, falling back to fmt.Sprintf.
-func encodeJSON(v any) []byte {
-	return keycodec.EncodeJSON(v)
-}
-
-func decodeJSON(data []byte) any {
-	return keycodec.DecodeJSON(data)
-}
-
-func encodeKeyStr(key any) string {
-	return keycodec.EncodeKeyStr(key)
-}
-
-// encodeCounterValue encodes an int64 as 8 bytes big-endian.
-func encodeCounterValue(v int64) []byte {
-	return keycodec.EncodeCounterValue(v)
-}
-
-func decodeCounterValue(data []byte) int64 {
-	return keycodec.DecodeCounterValue(data)
-}
+var (
+	mapKey             = keycodec.MapKey
+	setKey             = keycodec.SetKey
+	counterKey         = keycodec.CounterKey
+	multimapKey        = keycodec.MultimapKey
+	multimapPrefix     = keycodec.MultimapPrefix
+	logKey             = keycodec.LogKey
+	logPrefix          = keycodec.LogPrefix
+	graphEdgeKey       = keycodec.GraphEdgeKey
+	graphPrefixForward = keycodec.GraphPrefixForward
+	collectionPrefix   = keycodec.CollectionPrefix
+	encodeJSON         = keycodec.EncodeJSON
+	decodeJSON         = keycodec.DecodeJSON
+	encodeKeyStr       = keycodec.EncodeKeyStr
+	encodeCounterValue = keycodec.EncodeCounterValue
+	decodeCounterValue = keycodec.DecodeCounterValue
+)
 
 // Compile-time assertions.
 var (

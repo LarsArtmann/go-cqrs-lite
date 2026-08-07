@@ -143,73 +143,27 @@ func (e *badgerEngine) Close() error {
 	return e.db.Close()
 }
 
-// Key encoding helpers — package keycodec is the single source of truth for
-// key shapes shared with pebbleengine. The local `sep` reference is kept for
-// inline concatenation in seedSeqCounters.
+// Key encoding helpers — package-level aliases to keycodec functions. The
+// local `sep` reference is kept for inline concatenation in seedSeqCounters.
 
-func mapKey(col, key string) []byte {
-	return keycodec.MapKey(col, key)
-}
-
-func setKey(col, key string) []byte {
-	return keycodec.SetKey(col, key)
-}
-
-func counterKey(col, ckey string) []byte {
-	return keycodec.CounterKey(col, ckey)
-}
-
-func counterPrefix(col string) []byte {
-	return keycodec.CounterPrefix(col)
-}
-
-func multimapKey(col, key string, seq int64) []byte {
-	return keycodec.MultimapKey(col, key, seq)
-}
-
-func multimapPrefix(col, key string) []byte {
-	return keycodec.MultimapPrefix(col, key)
-}
-
-func logKey(col string, seq int64) []byte {
-	return keycodec.LogKey(col, seq)
-}
-
-func logPrefix(col string) []byte {
-	return keycodec.LogPrefix(col)
-}
-
-func graphEdgeKey(col, from, to string) []byte {
-	return keycodec.GraphEdgeKey(col, from, to)
-}
-
-func graphPrefixForward(col, node string) []byte {
-	return keycodec.GraphPrefixForward(col, node)
-}
-
-func collectionPrefix(col string) []byte {
-	return keycodec.CollectionPrefix(col)
-}
-
-func encodeJSON(v any) []byte {
-	return keycodec.EncodeJSON(v)
-}
-
-func decodeJSON(data []byte) any {
-	return keycodec.DecodeJSON(data)
-}
-
-func encodeKeyStr(key any) string {
-	return keycodec.EncodeKeyStr(key)
-}
-
-func encodeCounterValue(v int64) []byte {
-	return keycodec.EncodeCounterValue(v)
-}
-
-func decodeCounterValue(data []byte) int64 {
-	return keycodec.DecodeCounterValue(data)
-}
+var (
+	mapKey               = keycodec.MapKey
+	setKey               = keycodec.SetKey
+	counterKey           = keycodec.CounterKey
+	counterPrefix        = keycodec.CounterPrefix
+	multimapKey          = keycodec.MultimapKey
+	multimapPrefix       = keycodec.MultimapPrefix
+	logKey               = keycodec.LogKey
+	logPrefix            = keycodec.LogPrefix
+	graphEdgeKey         = keycodec.GraphEdgeKey
+	graphPrefixForward   = keycodec.GraphPrefixForward
+	collectionPrefix     = keycodec.CollectionPrefix
+	encodeJSON           = keycodec.EncodeJSON
+	decodeJSON           = keycodec.DecodeJSON
+	encodeKeyStr         = keycodec.EncodeKeyStr
+	encodeCounterValue   = keycodec.EncodeCounterValue
+	decodeCounterValue   = keycodec.DecodeCounterValue
+)
 
 // nextKey returns the lexicographically next key after prefix (for upper bound).
 func nextKey(prefix []byte) []byte {
