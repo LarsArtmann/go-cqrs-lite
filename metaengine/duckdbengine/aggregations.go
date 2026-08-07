@@ -99,8 +99,15 @@ func appendDuckDBFilter(
 			strings.Join(placeholders, ", "),
 		)
 	} else {
+		isNumericOp := f.Op == metaengine.FilterLt || f.Op == metaengine.FilterLe ||
+			f.Op == metaengine.FilterGt || f.Op == metaengine.FilterGe
+
 		if plan.Table != "" {
 			fmt.Fprintf(b, " AND %s %s $%d", columnExpr(f.Column, plan), string(f.Op), *argIdx)
+			*args = append(*args, f.Value)
+		} else if isNumericOp {
+			fmt.Fprintf(b, " AND CAST(%s AS DOUBLE) %s $%d",
+				columnExpr(f.Column, plan), string(f.Op), *argIdx)
 			*args = append(*args, f.Value)
 		} else {
 			jb, _ := json.Marshal(f.Value)

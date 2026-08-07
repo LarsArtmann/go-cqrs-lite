@@ -426,8 +426,8 @@ func TestSystem_ResetProjection_Positive(t *testing.T) {
 
 	// The last saved checkpoint for "projections" should be the zero value (cleared).
 	lastCp := cpStore.saved["projections"]
-	if lastCp.EventID != "" {
-		t.Fatalf("expected zero-value checkpoint after reset, got EventID=%q", lastCp.EventID)
+	if !lastCp.IsZero() {
+		t.Fatalf("expected zero-value checkpoint after reset, got %v", lastCp)
 	}
 }
 
