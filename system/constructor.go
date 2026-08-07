@@ -75,9 +75,11 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 			// Auto-detect serialization: Memory stores pointers directly; all
 			// other engines need JSON envelope serialization.
+			serialize := false
 			var adapterOpts []EventAdapterOption
 			if engCfg, hasCfg := deployment.Engines[engineName]; hasCfg &&
 				engCfg.Driver != "memory" {
+				serialize = true
 				adapterOpts = append(adapterOpts, WithSerialization())
 			}
 
@@ -89,12 +91,22 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 			}
 
 			// Wire command and query audit stores from the same backend.
+			var cmdOpts []CommandAdapterOption
+			if serialize {
+				cmdOpts = append(cmdOpts, WithCommandSerialization())
+			}
+
 			if inst.Role == RoleSourceOfTruth || inst.Role == RoleCommands {
-				sys.cmdStore = NewCommandAdapter(backend, "commands")
+				sys.cmdStore = NewCommandAdapter(backend, "commands", cmdOpts...)
+			}
+
+			var qryOpts []QueryAdapterOption
+			if serialize {
+				qryOpts = append(qryOpts, WithQuerySerialization())
 			}
 
 			if inst.Role == RoleSourceOfTruth || inst.Role == RoleQueries {
-				sys.queryStore = NewQueryAdapter(backend, "queries")
+				sys.queryStore = NewQueryAdapter(backend, "queries", qryOpts...)
 			}
 
 			// Wire cache tier if configured.

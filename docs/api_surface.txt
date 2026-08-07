@@ -3447,6 +3447,7 @@ system/const RoleSourceOfTruth
 system/const TierAdvisory
 system/const TierScream
 system/const TierWarnOverride
+system/func CheckPlanSafety
 system/func CheckSafety
 system/func DispatchQuery
 system/func Execute
@@ -3466,6 +3467,8 @@ system/func RegisterDriver
 system/func RegisterQuery
 system/func RegisteredBusDrivers
 system/func RegisteredDrivers
+system/func WithCommandSerialization
+system/func WithQuerySerialization
 system/func WithSerialization
 system/func WithSnapshotStrategy
 system/method AddPublisher
@@ -3557,14 +3560,17 @@ system/struct SnapshotAdapter
 system/struct System
 system/struct Topology
 system/type BusDriverFactory
+system/type CommandAdapterOption
 system/type DriverFactory
 system/type DurabilityTier
 system/type EventAdapterOption
 system/type InstanceRole
+system/type QueryAdapterOption
 system/type RegisterDeciderOption
 system/type ScreamTier
 system/type SnapshotBackend
 system/var ErrAlreadyStarted
+system/var ErrBusDriverNotEventBus
 system/var ErrCacheCapacityInvalid
 system/var ErrCommandTypeMismatch
 system/var ErrDeciderTypeMismatch
