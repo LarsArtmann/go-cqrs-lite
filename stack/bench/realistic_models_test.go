@@ -1,8 +1,6 @@
 package bench
 
 import (
-	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -49,8 +47,8 @@ type OrderView struct {
 func foldOrder(state OrderState, evt event.Event) (OrderState, error) {
 	switch evt.Type() {
 	case "order.created":
-		var p OrderCreatedEvt
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+		p, err := event.DecodePayloadAuto[OrderCreatedEvt](evt)
+		if err != nil {
 			return state, err
 		}
 		state.ID = p.ID
@@ -59,8 +57,8 @@ func foldOrder(state OrderState, evt event.Event) (OrderState, error) {
 		state.Items = 1
 		state.Customer = p.Customer
 	case "order.item_added":
-		var p OrderItemAddedEvt
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+		p, err := event.DecodePayloadAuto[OrderItemAddedEvt](evt)
+		if err != nil {
 			return state, err
 		}
 		state.Total += p.Price
@@ -72,16 +70,16 @@ func foldOrder(state OrderState, evt event.Event) (OrderState, error) {
 func orderProjection(ctx context.Context, evt event.Event, store *kv.TypedStore[OrderView, id.StreamID]) error {
 	switch evt.Type() {
 	case "order.created":
-		var p OrderCreatedEvt
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+		p, err := event.DecodePayloadAuto[OrderCreatedEvt](evt)
+		if err != nil {
 			return err
 		}
 		return store.Set(ctx, evt.StreamID(), &OrderView{
 			ID: p.ID, Customer: p.Customer, Status: "pending", Total: p.Amount, Items: 1,
 		})
 	case "order.item_added":
-		var p OrderItemAddedEvt
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+		p, err := event.DecodePayloadAuto[OrderItemAddedEvt](evt)
+		if err != nil {
 			return err
 		}
 		existing, err := store.Get(ctx, evt.StreamID())
@@ -126,8 +124,8 @@ type TaskView struct {
 func foldTask(state TaskState, evt event.Event) (TaskState, error) {
 	switch evt.Type() {
 	case "task.created":
-		var p TaskCreatedEvt
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+		p, err := event.DecodePayloadAuto[TaskCreatedEvt](evt)
+		if err != nil {
 			return state, err
 		}
 		state.ID = p.ID
@@ -144,8 +142,8 @@ func foldTask(state TaskState, evt event.Event) (TaskState, error) {
 func taskProjection(ctx context.Context, evt event.Event, store *kv.TypedStore[TaskView, id.StreamID]) error {
 	switch evt.Type() {
 	case "task.created":
-		var p TaskCreatedEvt
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+		p, err := event.DecodePayloadAuto[TaskCreatedEvt](evt)
+		if err != nil {
 			return err
 		}
 		return store.Set(ctx, evt.StreamID(), &TaskView{
@@ -191,8 +189,8 @@ type UserView struct {
 func foldUser(state UserState, evt event.Event) (UserState, error) {
 	switch evt.Type() {
 	case "user.registered":
-		var p UserRegisteredEvt
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+		p, err := event.DecodePayloadAuto[UserRegisteredEvt](evt)
+		if err != nil {
 			return state, err
 		}
 		state.ID = p.ID
@@ -208,8 +206,8 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 func userProjection(ctx context.Context, evt event.Event, store *kv.TypedStore[UserView, id.StreamID]) error {
 	switch evt.Type() {
 	case "user.registered":
-		var p UserRegisteredEvt
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+		p, err := event.DecodePayloadAuto[UserRegisteredEvt](evt)
+		if err != nil {
 			return err
 		}
 		return store.Set(ctx, evt.StreamID(), &UserView{
