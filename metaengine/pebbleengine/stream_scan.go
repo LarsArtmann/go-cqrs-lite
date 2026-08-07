@@ -38,7 +38,7 @@ func (e *pebbleEngine) StreamScan(
 			return
 		}
 
-		defer func() { _ = dbIter.Close() }()
+		defer metaengine.DeferClose(dbIter)
 
 		// Unsorted path: stream directly, no materialization.
 		if sort == nil {

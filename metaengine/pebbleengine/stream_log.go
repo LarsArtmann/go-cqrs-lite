@@ -39,7 +39,7 @@ func (e *pebbleEngine) StreamAppend(_ context.Context, col, sid string, values [
 	defer e.mu.Unlock()
 
 	batch := e.db.NewBatch()
-	defer func() { _ = batch.Close() }()
+	defer metaengine.DeferClose(batch)
 
 	for _, v := range values {
 		seq := e.nextStreamSeq(col, sid)
@@ -65,7 +65,7 @@ func (e *pebbleEngine) StreamRead(_ context.Context, col, sid string) ([]any, er
 		return nil, fmt.Errorf("pebbleengine.StreamRead: %w", err)
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer metaengine.DeferClose(iter)
 
 	var result []any
 
@@ -99,7 +99,7 @@ func (e *pebbleEngine) JournalReadAll(_ context.Context, col string) ([]any, err
 		return nil, fmt.Errorf("pebbleengine.JournalReadAll: %w", err)
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer metaengine.DeferClose(iter)
 
 	var result []any
 
@@ -145,7 +145,7 @@ func (e *pebbleEngine) JournalReadFrom(
 		return nil, fmt.Errorf("pebbleengine.JournalReadFrom: %w", err)
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer metaengine.DeferClose(iter)
 
 	var result []any
 	count := 0
@@ -198,7 +198,7 @@ func (e *pebbleEngine) StreamAppendExpected(
 	}
 
 	batch := e.db.NewBatch()
-	defer func() { _ = batch.Close() }()
+	defer metaengine.DeferClose(batch)
 
 	for _, v := range values {
 		seq := e.nextStreamSeq(col, sid)
@@ -224,7 +224,7 @@ func (e *pebbleEngine) countStreamEntries(col, sid string) (int64, error) {
 		return 0, err
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer metaengine.DeferClose(iter)
 
 	var count int64
 	for iter.First(); iter.Valid(); iter.Next() {

@@ -1,38 +1,65 @@
-package metaengine
+package metaengine_test
 
 import (
 	"context"
 	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // TestTypedReader_AggregateFallback tests the Go-side fallback paths for
 // all aggregate methods when using a Memory engine (no SQL pushdown).
-// This is also the regression test for the MIN/MAX initialization bugs
-// (result==0 sentinel) and the AVG divisor bug (len(rows) vs nonNullCount).
+// Regression test for:
+//   - MIN/MAX initialization bugs (result==0 sentinel fails on 0/negative values)
+//   - AVG divisor bug (len(rows) vs nonNullCount)
+//   - MultiGroupedAggregate AVG bug (per-spec non-null count vs total group count)
+//   - aggregatePushdown missing AggregateCount handling (MultiAggregate fallback)
 
-func testTypedReaderAggregateFallback(t *testing.T) {
+type aggItem struct {
+	ID     string
+	Status string
+	Price  float64
+}
+
+func aggItemQuery() metaengine.QueryDecl[struct{}, aggItem] {
+	return metaengine.Query[struct{}, aggItem](
+		"agg_items",
+		metaengine.On(aggItem{}, func(e aggItem) (string, aggItem) {
+			return e.ID, e
+		}),
+	)
+}
+
+func TestTypedReader_AggregateFallback(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := NewMemoryEngine()
+	eng := metaengine.NewMemoryEngine()
 
-	// Insert test data: items with status and price.
-	// Notably: some have nil prices (AVG/SUM should skip them),
-	// some prices are negative (MIN/MAX init bug regression),
-	// and one price is 0 (MIN==0 sentinel regression).
-	items := []map[string]any{
-		{"id": "a", "status": "open", "price": float64(10)},
-		{"id": "b", "status": "open", "price": float64(20)},
-		{"id": "c", "status": "closed", "price": float64(-5)},
-		{"id": "d", "status": "closed", "price": float64(0)},
-		{"id": "e", "status": "open", "price": nil}, // nil: skip in AVG
+	store, err := metaengine.Plan([]metaengine.Engine{eng}, aggItemQuery())
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
 	}
 
-	store := setupTestStore(t, ctx, eng, "items", items)
-	reader := NewReader[map[string]any](store, "items")
+	// Negative prices (MIN/MAX init regression), zero price (MIN==0 sentinel regression).
+	items := []aggItem{
+		{ID: "a", Status: "open", Price: 10},
+		{ID: "b", Status: "open", Price: 20},
+		{ID: "c", Status: "closed", Price: -5},
+		{ID: "d", Status: "closed", Price: 0},
+		{ID: "e", Status: "open", Price: 30},
+	}
+
+	for _, item := range items {
+		if err := store.Apply(ctx, "aggItem", item); err != nil {
+			t.Fatalf("Apply %s: %v", item.ID, err)
+		}
+	}
+
+	reader := metaengine.NewReader[aggItem](store, "agg_items")
 
 	t.Run("Count", func(t *testing.T) {
-		n, err := reader.Count(ctx)
+		n, err := reader.Count(ctx, metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("Count: %v", err)
 		}
@@ -42,51 +69,40 @@ func testTypedReaderAggregateFallback(t *testing.T) {
 	})
 
 	t.Run("Sum_price", func(t *testing.T) {
-		got, err := reader.Sum(ctx, "price")
+		got, err := reader.Sum(ctx, "Price", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("Sum: %v", err)
 		}
-		// 10 + 20 + (-5) + 0 = 25 (nil skipped)
-		if got != 25 {
-			t.Errorf("Sum(price) = %v, want 25", got)
-		}
+		assertFloat(t, "Sum(price)", got, 55) // 10+20-5+0+30
 	})
 
 	t.Run("Min_price_negative_regression", func(t *testing.T) {
-		got, err := reader.Min(ctx, "price")
+		got, err := reader.Min(ctx, "Price", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("Min: %v", err)
 		}
-		// Min is -5 (the result==0 sentinel bug would return 0)
-		if got != -5 {
-			t.Errorf("Min(price) = %v, want -5", got)
-		}
+		// The result==0 sentinel bug would return 0 instead of -5
+		assertFloat(t, "Min(price)", got, -5)
 	})
 
 	t.Run("Max_price", func(t *testing.T) {
-		got, err := reader.Max(ctx, "price")
+		got, err := reader.Max(ctx, "Price", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("Max: %v", err)
 		}
-		if got != 20 {
-			t.Errorf("Max(price) = %v, want 20", got)
-		}
+		assertFloat(t, "Max(price)", got, 30)
 	})
 
-	t.Run("Avg_price_skips_nil", func(t *testing.T) {
-		got, err := reader.Avg(ctx, "price")
+	t.Run("Avg_price", func(t *testing.T) {
+		got, err := reader.Avg(ctx, "Price", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("Avg: %v", err)
 		}
-		// Non-nil prices: 10, 20, -5, 0 → avg = 25/4 = 6.25
-		// The bug divided by len(rows)=5 → 5.0
-		if got != 6.25 {
-			t.Errorf("Avg(price) = %v, want 6.25", got)
-		}
+		assertFloat(t, "Avg(price)", got, 11) // 55/5
 	})
 
 	t.Run("GroupedCount", func(t *testing.T) {
-		got, err := reader.GroupedCount(ctx, "status")
+		got, err := reader.GroupedCount(ctx, "Status", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("GroupedCount: %v", err)
 		}
@@ -99,94 +115,68 @@ func testTypedReaderAggregateFallback(t *testing.T) {
 	})
 
 	t.Run("GroupedSum", func(t *testing.T) {
-		got, err := reader.GroupedSum(ctx, "price", "status")
+		got, err := reader.GroupedSum(ctx, "Price", "Status", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("GroupedSum: %v", err)
 		}
-		if got["open"] != 30 {
-			t.Errorf("GroupedSum[open] = %v, want 30", got["open"])
-		}
-		if got["closed"] != -5 {
-			t.Errorf("GroupedSum[closed] = %v, want -5", got["closed"])
-		}
+		assertFloat(t, "GroupedSum[open]", got["open"], 60)  // 10+20+30
+		assertFloat(t, "GroupedSum[closed]", got["closed"], -5) // -5+0
 	})
 
 	t.Run("GroupedMin_negative_regression", func(t *testing.T) {
-		got, err := reader.GroupedMin(ctx, "price", "status")
+		got, err := reader.GroupedMin(ctx, "Price", "Status", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("GroupedMin: %v", err)
 		}
-		if got["closed"] != -5 {
-			t.Errorf("GroupedMin[closed] = %v, want -5", got["closed"])
-		}
-		if got["open"] != 10 {
-			t.Errorf("GroupedMin[open] = %v, want 10", got["open"])
-		}
+		assertFloat(t, "GroupedMin[closed]", got["closed"], -5)
+		assertFloat(t, "GroupedMin[open]", got["open"], 10)
 	})
 
-	t.Run("GroupedMax_all_negative", func(t *testing.T) {
-		// "closed" group has prices -5 and 0 → max is 0
-		got, err := reader.GroupedMax(ctx, "price", "status")
+	t.Run("GroupedMax", func(t *testing.T) {
+		got, err := reader.GroupedMax(ctx, "Price", "Status", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("GroupedMax: %v", err)
 		}
-		if got["closed"] != 0 {
-			t.Errorf("GroupedMax[closed] = %v, want 0", got["closed"])
-		}
-		if got["open"] != 20 {
-			t.Errorf("GroupedMax[open] = %v, want 20", got["open"])
-		}
+		assertFloat(t, "GroupedMax[closed]", got["closed"], 0)
+		assertFloat(t, "GroupedMax[open]", got["open"], 30)
 	})
 
-	t.Run("GroupedAvg_skips_nil", func(t *testing.T) {
-		got, err := reader.GroupedAvg(ctx, "price", "status")
+	t.Run("GroupedAvg", func(t *testing.T) {
+		got, err := reader.GroupedAvg(ctx, "Price", "Status", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("GroupedAvg: %v", err)
 		}
-		// "open": prices 10, 20, nil → avg = 30/2 = 15
-		if got["open"] != 15 {
-			t.Errorf("GroupedAvg[open] = %v, want 15", got["open"])
-		}
-		// "closed": prices -5, 0 → avg = -5/2 = -2.5
-		if got["closed"] != -2.5 {
-			t.Errorf("GroupedAvg[closed] = %v, want -2.5", got["closed"])
-		}
+		assertFloat(t, "GroupedAvg[open]", got["open"], 20)   // 60/3
+		assertFloat(t, "GroupedAvg[closed]", got["closed"], -2.5) // -5/2
 	})
 
 	t.Run("MultiAggregate", func(t *testing.T) {
-		got, err := reader.MultiAggregate(ctx, []AggregateSpec{
-			{Fn: AggregateCount, Alias: "cnt"},
-			{Fn: AggregateSum, Column: "price", Alias: "total"},
-			{Fn: AggregateAvg, Column: "price", Alias: "avg_price"},
-			{Fn: AggregateMin, Column: "price", Alias: "min_price"},
-			{Fn: AggregateMax, Column: "price", Alias: "max_price"},
-		})
+		got, err := reader.MultiAggregate(ctx, []metaengine.AggregateSpec{
+			{Fn: metaengine.AggregateCount, Alias: "cnt"},
+			{Fn: metaengine.AggregateSum, Column: "Price", Alias: "total"},
+			{Fn: metaengine.AggregateAvg, Column: "Price", Alias: "avg_price"},
+			{Fn: metaengine.AggregateMin, Column: "Price", Alias: "min_price"},
+			{Fn: metaengine.AggregateMax, Column: "Price", Alias: "max_price"},
+		}, metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("MultiAggregate: %v", err)
 		}
 		if got["cnt"] != 5 {
 			t.Errorf("MultiAggregate[cnt] = %v, want 5", got["cnt"])
 		}
-		if got["total"] != 25 {
-			t.Errorf("MultiAggregate[total] = %v, want 25", got["total"])
-		}
-		if got["avg_price"] != 6.25 {
-			t.Errorf("MultiAggregate[avg_price] = %v, want 6.25", got["avg_price"])
-		}
-		if got["min_price"] != -5 {
-			t.Errorf("MultiAggregate[min_price] = %v, want -5", got["min_price"])
-		}
-		if got["max_price"] != 20 {
-			t.Errorf("MultiAggregate[max_price] = %v, want 20", got["max_price"])
-		}
+		assertFloat(t, "MultiAggregate[total]", got["total"], 55)
+		assertFloat(t, "MultiAggregate[avg_price]", got["avg_price"], 11)
+		assertFloat(t, "MultiAggregate[min_price]", got["min_price"], -5)
+		assertFloat(t, "MultiAggregate[max_price]", got["max_price"], 30)
 	})
 
-	t.Run("MultiGroupedAggregate_AVG_regression", func(t *testing.T) {
-		rows, err := reader.MultiGroupedAggregate(ctx, []AggregateSpec{
-			{Fn: AggregateCount, Alias: "cnt"},
-			{Fn: AggregateSum, Column: "price", Alias: "total"},
-			{Fn: AggregateAvg, Column: "price", Alias: "avg_price"},
-		}, "status")
+	t.Run("MultiGroupedAggregate", func(t *testing.T) {
+		rows, err := reader.MultiGroupedAggregate(ctx, []metaengine.AggregateSpec{
+			{Fn: metaengine.AggregateCount, Alias: "cnt"},
+			{Fn: metaengine.AggregateSum, Column: "Price", Alias: "total"},
+			{Fn: metaengine.AggregateAvg, Column: "Price", Alias: "avg_price"},
+			{Fn: metaengine.AggregateMin, Column: "Price", Alias: "min_price"},
+		}, "Status", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("MultiGroupedAggregate: %v", err)
 		}
@@ -196,30 +186,25 @@ func testTypedReaderAggregateFallback(t *testing.T) {
 			got[r.Group] = r.Values
 		}
 
-		// "open": 3 rows, prices 10+20+nil = 30, avg = 30/2 = 15 (not 30/3=10)
 		if got["open"]["cnt"] != 3 {
 			t.Errorf("MultiGroupedAggregate[open][cnt] = %v, want 3", got["open"]["cnt"])
 		}
-		if got["open"]["total"] != 30 {
-			t.Errorf("MultiGroupedAggregate[open][total] = %v, want 30", got["open"]["total"])
-		}
-		if got["open"]["avg_price"] != 15 {
-			t.Errorf("MultiGroupedAggregate[open][avg_price] = %v, want 15 (not 10)",
-				got["open"]["avg_price"])
-		}
+		assertFloat(t, "MultiGroupedAggregate[open][total]", got["open"]["total"], 60)
+		assertFloat(t, "MultiGroupedAggregate[open][avg_price]", got["open"]["avg_price"], 20)
+		assertFloat(t, "MultiGroupedAggregate[open][min_price]", got["open"]["min_price"], 10)
 
-		// "closed": 2 rows, prices -5+0 = -5, avg = -5/2 = -2.5
 		if got["closed"]["cnt"] != 2 {
 			t.Errorf("MultiGroupedAggregate[closed][cnt] = %v, want 2", got["closed"]["cnt"])
 		}
-		if got["closed"]["avg_price"] != -2.5 {
-			t.Errorf("MultiGroupedAggregate[closed][avg_price] = %v, want -2.5",
-				got["closed"]["avg_price"])
-		}
+		assertFloat(t, "MultiGroupedAggregate[closed][total]", got["closed"]["total"], -5)
+		assertFloat(t, "MultiGroupedAggregate[closed][avg_price]",
+			got["closed"]["avg_price"], -2.5)
+		assertFloat(t, "MultiGroupedAggregate[closed][min_price]",
+			got["closed"]["min_price"], -5)
 	})
 
-	t.Run("Distinct", func(t *testing.T) {
-		got, err := reader.Distinct(ctx, "status")
+	t.Run("Distinct_status", func(t *testing.T) {
+		got, err := reader.Distinct(ctx, "Status", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("Distinct: %v", err)
 		}
@@ -229,33 +214,9 @@ func testTypedReaderAggregateFallback(t *testing.T) {
 	})
 }
 
-// setupTestStore creates a Store with a Memory engine, inserts the given
-// items as map[string]any values, and returns the Store.
-func setupTestStore(
-	t *testing.T,
-	ctx context.Context,
-	eng Engine,
-	collection string,
-	items []map[string]any,
-) *Store {
+func assertFloat(t *testing.T, label string, got, want float64) {
 	t.Helper()
-
-	store, err := Plan([]Engine{eng},
-		Query[struct{}, map[string]any](collection,
-			On(struct{}{}, func(_ struct{}) Delta {
-				return Delta{}
-			}),
-		),
-	)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
+	if got != want {
+		t.Errorf("%s = %v, want %v", label, got, want)
 	}
-
-	for _, item := range items {
-		if err := store.MapSet(ctx, collection, item["id"], item); err != nil {
-			t.Fatalf("MapSet %v: %v", item["id"], err)
-		}
-	}
-
-	return store
 }

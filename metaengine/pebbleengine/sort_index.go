@@ -62,7 +62,7 @@ func (e *pebbleEngine) scanWithSortIndex(
 		return nil, err
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer metaengine.DeferClose(iter)
 
 	targetCount := 0
 	if limit > 0 {

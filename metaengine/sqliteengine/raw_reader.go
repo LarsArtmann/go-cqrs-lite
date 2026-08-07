@@ -207,7 +207,7 @@ func scanSingleColumn(
 		return nil, err //nolint:wrapcheck // passthrough
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	var result []any
 
@@ -230,7 +230,7 @@ func scanRawRows(ctx context.Context, db dbExec, query string, args ...any) ([][
 		return nil, err //nolint:wrapcheck // passthrough
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	var result [][]byte
 

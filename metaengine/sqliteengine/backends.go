@@ -77,7 +77,7 @@ func (e *sqliteEngine) CounterGet(ctx context.Context, col string) (map[string]i
 		return nil, err //nolint:wrapcheck // passthrough
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	result := make(map[string]int64)
 
@@ -265,7 +265,7 @@ func (e *sqliteEngine) scanNeighborKeys(
 		return nil, err //nolint:wrapcheck // passthrough
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	var keys []string
 

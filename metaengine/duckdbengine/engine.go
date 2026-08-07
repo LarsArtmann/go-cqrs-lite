@@ -325,7 +325,7 @@ func (e *duckdbEngine) CounterGet(ctx context.Context, col string) (map[string]i
 		return nil, fmt.Errorf("duckdbengine.CounterGet: %w", err)
 	}
 	//art-dupl:accept cross-module SQL engine pattern — separate go.mod
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	result := make(map[string]int64)
 

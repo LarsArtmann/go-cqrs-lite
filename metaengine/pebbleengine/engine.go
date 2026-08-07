@@ -231,7 +231,7 @@ func (e *pebbleEngine) MapSet(_ context.Context, col string, key, value any) err
 
 	if hasLayout {
 		batch := e.db.NewBatch()
-		defer func() { _ = batch.Close() }()
+		defer metaengine.DeferClose(batch)
 
 		// Delete old index entries if the key already exists.
 		if oldVal, closer, err := e.db.Get(mapKey(col, keyStr)); err == nil {
@@ -273,7 +273,7 @@ func (e *pebbleEngine) MapDelete(_ context.Context, col string, key any) error {
 
 	if hasLayout {
 		batch := e.db.NewBatch()
-		defer func() { _ = batch.Close() }()
+		defer metaengine.DeferClose(batch)
 
 		if oldVal, closer, err := e.db.Get(mapKey(col, keyStr)); err == nil {
 			e.deleteIndexEntries(batch, col, keyStr, oldVal, plan)
@@ -336,7 +336,7 @@ func (e *pebbleEngine) MapUpdate(
 		keyStr := encodeKeyStr(key)
 		batch := e.db.NewBatch()
 
-		defer func() { _ = batch.Close() }()
+		defer metaengine.DeferClose(batch)
 
 		e.deleteIndexEntries(batch, col, keyStr, oldValJSON, plan)
 
@@ -376,7 +376,7 @@ func (e *pebbleEngine) MapScan(
 		return metaengine.ScanResult{}, err
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer metaengine.DeferClose(iter)
 
 	var pairs []kvPair
 
@@ -428,7 +428,7 @@ func (e *pebbleEngine) SetContains(_ context.Context, col string, key any) (bool
 		return false, err
 	}
 
-	defer func() { _ = closer.Close() }()
+	defer metaengine.DeferClose(closer)
 
 	return true, nil
 }
@@ -475,7 +475,7 @@ func (e *pebbleEngine) CounterGet(_ context.Context, col string) (map[string]int
 		return nil, err
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer metaengine.DeferClose(iter)
 
 	result := make(map[string]int64)
 
@@ -529,7 +529,7 @@ func (e *pebbleEngine) scanGraphNeighbors(col, node string) []string {
 		return nil
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer metaengine.DeferClose(iter)
 
 	var neighbors []string
 
@@ -572,7 +572,7 @@ func (e *pebbleEngine) iterJSON(
 		return err
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer metaengine.DeferClose(iter)
 
 	for iter.First(); iter.Valid(); iter.Next() {
 		yield(decodeJSON(iter.Value()))
@@ -635,7 +635,7 @@ func (e *pebbleEngine) LogTail(_ context.Context, col string, limit int) ([]any,
 		return nil, err
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer metaengine.DeferClose(iter)
 
 	var entries []any
 

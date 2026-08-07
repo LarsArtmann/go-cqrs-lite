@@ -366,7 +366,7 @@ func (e *duckdbEngine) scanGrouped(
 		return nil, fmt.Errorf("duckdbengine.GroupedAggregate: %w", err)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	result := make(map[string]float64)
 
@@ -636,7 +636,7 @@ func (e *duckdbEngine) scanMultiGrouped(
 		return nil, fmt.Errorf("duckdbengine.MultiGroupedAggregate: %w", err)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	var result []metaengine.GroupedAggregateRow
 
@@ -759,7 +759,7 @@ func (e *duckdbEngine) scanDistinct(
 		return nil, fmt.Errorf("duckdbengine.DistinctValues: %w", err)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	var result []any
 

@@ -141,7 +141,7 @@ func (e *pgEngine) GroupedAggregate(
 		return nil, fmt.Errorf("pgengine.GroupedAggregate: %w", err)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	result := make(map[string]float64)
 
@@ -264,7 +264,7 @@ func (e *pgEngine) MultiGroupedAggregate(
 		return nil, fmt.Errorf("pgengine.MultiGroupedAggregate: %w", err)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	var result []metaengine.GroupedAggregateRow
 
@@ -330,7 +330,7 @@ func (e *pgEngine) DistinctValues(
 		return nil, fmt.Errorf("pgengine.DistinctValues: %w", err)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	var result []any
 

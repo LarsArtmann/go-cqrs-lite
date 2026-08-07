@@ -100,7 +100,7 @@ func (e *sqliteEngine) scanGroupedSQLite(
 		return nil, fmt.Errorf("sqliteengine.GroupedAggregate: %w", err)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	result := make(map[string]float64)
 
@@ -330,7 +330,7 @@ func (e *sqliteEngine) scanMultiGroupedSQLite(
 		return nil, fmt.Errorf("sqliteengine.MultiGroupedAggregate: %w", err)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	var result []metaengine.GroupedAggregateRow
 
@@ -439,7 +439,7 @@ func (e *sqliteEngine) scanDistinctSQLite(
 		return nil, fmt.Errorf("sqliteengine.DistinctValues: %w", err)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	var result []any
 

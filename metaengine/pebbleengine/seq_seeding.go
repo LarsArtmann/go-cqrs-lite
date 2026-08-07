@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // seedSeqCounters scans existing keys and seeds all in-memory sequence counters
@@ -42,7 +44,7 @@ func (e *pebbleEngine) seedCollectionSeqs(tag string, target *sync.Map) error {
 		return err
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer metaengine.DeferClose(iter)
 
 	tagLen := len(tag + sep)
 
@@ -68,7 +70,7 @@ func (e *pebbleEngine) seedMultimapSeqs() error {
 		return err
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer metaengine.DeferClose(iter)
 
 	tagLen := len(tag + sep)
 

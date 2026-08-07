@@ -269,7 +269,7 @@ func (e *pebbleEngine) scanWithIndex(
 		return nil, err
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer metaengine.DeferClose(iter)
 
 	var results [][]byte
 

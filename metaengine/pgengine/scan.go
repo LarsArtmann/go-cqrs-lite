@@ -31,7 +31,7 @@ func (e *pgEngine) MapScan(
 		return metaengine.ScanResult{}, fmt.Errorf("pgengine.MapScan: %w", err)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	type kv struct {
 		key   string

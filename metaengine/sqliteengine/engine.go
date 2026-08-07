@@ -332,7 +332,7 @@ func (e *sqliteEngine) MapScan(
 		return metaengine.ScanResult{}, err //nolint:wrapcheck // passthrough
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	type kv struct {
 		key   string
@@ -510,7 +510,7 @@ func (e *sqliteEngine) StreamScan(
 			return
 		}
 
-		defer func() { _ = rows.Close() }()
+		defer metaengine.DeferClose(rows)
 
 		for rows.Next() {
 			var valStr string

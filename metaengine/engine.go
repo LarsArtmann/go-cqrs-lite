@@ -525,6 +525,13 @@ type Closer interface {
 	Close() error
 }
 
+// DeferClose calls c.Close(), discarding the error. Intended for use in defer
+// statements where the close error is not actionable (rows, iterators, batches
+// in defer scope). Replaces the verbose `defer func() { _ = x.Close() }()` idiom.
+func DeferClose(c Closer) {
+	_ = c.Close()
+}
+
 // Engine is a storage backend with a cost profile.
 type Engine interface {
 	Profile() EngineProfile

@@ -122,7 +122,7 @@ func scanDuckDBJSONValues(
 		return nil, fmt.Errorf("duckdbengine scan: %w", err)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 	//art-dupl:accept cross-module SQL engine pattern — separate go.mod
 
 	var result []any

@@ -31,7 +31,7 @@ func (e *pebbleEngine) ScanCount(
 		return 0, err
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer metaengine.DeferClose(iter)
 
 	var count int64
 

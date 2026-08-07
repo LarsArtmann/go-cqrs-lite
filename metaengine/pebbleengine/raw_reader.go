@@ -30,7 +30,7 @@ func (e *pebbleEngine) getPebbleRaw(col string, key any) ([]byte, bool, error) {
 		return nil, false, err
 	}
 
-	defer func() { _ = closer.Close() }() // pebble closer, error is always nil
+	defer metaengine.DeferClose(closer) // pebble closer, error is always nil
 
 	return append([]byte(nil), val...), true, nil
 }
@@ -87,7 +87,7 @@ func (e *pebbleEngine) ScanRawValues(
 		return metaengine.RawScanResult{}, err
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer metaengine.DeferClose(iter)
 
 	var pairs []kvPair
 

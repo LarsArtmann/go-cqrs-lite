@@ -152,7 +152,7 @@ func scanPGJSONValues(ctx context.Context, db dbExec, query string, args ...any)
 		return nil, fmt.Errorf("pgengine scan: %w", err)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 	//art-dupl:accept cross-module SQL engine pattern — separate go.mod
 
 	var result []any
