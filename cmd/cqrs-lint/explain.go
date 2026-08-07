@@ -94,6 +94,7 @@ func renderKeyTable(b *strings.Builder, headers [4]string, rows [][4]string) {
 }
 
 func renderConfigFileSection(b *strings.Builder) {
+	//art-dupl:accept documentation section — content literals, not logic duplication
 	writeSectionHeader(b, "CONFIG FILE")
 	b.WriteString("  Location:  .cqrs-lint.json (in the directory where you run cqrs-lint)\n")
 	b.WriteString("  Format:    JSON with Comments (JSONC)\n")
@@ -465,6 +466,7 @@ func renderResolutionOrder(b *strings.Builder) {
 }
 
 func renderSuppressionSyntax(b *strings.Builder) {
+	//art-dupl:accept documentation section — content literals, not logic duplication
 	writeSectionHeader(b, "SUPPRESSION SYNTAX")
 	b.WriteString("  Inline (single rule):\n")
 	b.WriteString("    //cqrs-lint:ignore(C007) reason text\n")

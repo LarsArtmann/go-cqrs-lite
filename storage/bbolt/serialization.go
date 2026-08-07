@@ -28,6 +28,7 @@ func isCBOR(data []byte) bool {
 }
 
 func unmarshalCBOROrJSON(data []byte, target any, code, msg string) error {
+	//art-dupl:accept intentional cross-module duplicate — separate go.mod
 	var err error
 
 	if isCBOR(data) {

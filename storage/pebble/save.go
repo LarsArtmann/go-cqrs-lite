@@ -71,6 +71,7 @@ func (a *EventStore) countEvents(ref id.StreamRef) (int, error) {
 const versionDigits = 10
 
 func parseVersionFromKey(key []byte) (int, error) {
+	//art-dupl:accept intentional cross-module duplicate — separate go.mod
 	str := string(key)
 
 	lastColon := len(str) - (versionDigits + 1)

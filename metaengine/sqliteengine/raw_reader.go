@@ -133,6 +133,7 @@ func buildPlannedSelectQuery(
 	limit int,
 ) (string, []any) {
 	var b strings.Builder
+	//art-dupl:accept cross-module SQL builder pattern — separate go.mod
 
 	args := []any{}
 

@@ -263,6 +263,7 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 		return metaengine.ScanResult{}, err
 	}
 
+	//art-dupl:accept cross-module SQL engine pattern — separate go.mod
 	hasMore := limit > 0 && len(rows) > limit
 	if hasMore {
 		rows = rows[:limit]

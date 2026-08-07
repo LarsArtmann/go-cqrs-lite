@@ -40,6 +40,7 @@ func unmarshalCBOR(data []byte, v any) error {
 // is kept for backward compatibility with envelopes written before the CBOR
 // migration.
 func unmarshalCBOROrJSON(data []byte, target any, code, msg string) error {
+	//art-dupl:accept intentional cross-module duplicate — separate go.mod
 	var err error
 	if isCBOR(data) {
 		err = unmarshalCBOR(data, target)

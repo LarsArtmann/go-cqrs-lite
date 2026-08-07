@@ -324,6 +324,7 @@ func (e *pgEngine) CounterGet(ctx context.Context, col string) (map[string]int64
 	if err != nil {
 		return nil, fmt.Errorf("pgengine.CounterGet: %w", err)
 	}
+	//art-dupl:accept cross-module SQL engine pattern — separate go.mod
 	defer func() { _ = rows.Close() }()
 
 	result := make(map[string]int64)

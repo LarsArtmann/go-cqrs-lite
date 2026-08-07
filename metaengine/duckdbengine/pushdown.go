@@ -124,6 +124,7 @@ func scanDuckDBJSONValues(
 	}
 
 	defer func() { _ = rows.Close() }()
+	//art-dupl:accept cross-module SQL engine pattern — separate go.mod
 
 	var result []any
 

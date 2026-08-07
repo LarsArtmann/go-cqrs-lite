@@ -191,6 +191,7 @@ func (s *EventStore) currentVersion(tx *bolt.Tx, ref id.StreamRef) (int, error) 
 }
 
 func parseVersionFromKey(key []byte) (int, error) {
+	//art-dupl:accept intentional cross-module duplicate — separate go.mod
 	str := string(key)
 	lastColon := len(str) - (versionDigits + 1)
 	if lastColon < 0 || str[lastColon] != ':' {

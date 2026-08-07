@@ -15,6 +15,7 @@ package stack
 // before this type existed. Consumers who need strict durability on
 // write-critical paths (financial ledgers, medical records) opt in explicitly
 // with [WithDurability] or the preset-specific [WithDurability] adapter.
+//art-dupl:accept intentional cross-module duplicate — separate go.mod, values MUST match
 type DurabilityTier string
 
 const (

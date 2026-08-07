@@ -154,6 +154,7 @@ func scanPGJSONValues(ctx context.Context, db *sql.DB, query string, args ...any
 	}
 
 	defer func() { _ = rows.Close() }()
+	//art-dupl:accept cross-module SQL engine pattern — separate go.mod
 
 	var result []any
 
