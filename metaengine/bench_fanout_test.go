@@ -114,10 +114,10 @@ func BenchmarkWriteAmplification_BudgetEnforcement(b *testing.B) {
 
 		for range b.N {
 			b.StopTimer()
+			args := append(allPromiseQueries(), metaengine.WithWriteAmplificationBudget(3))
 			store, err := metaengine.Plan(
 				[]metaengine.Engine{metaengine.NewMemoryEngine()},
-				allPromiseQueries(),
-				metaengine.WithWriteAmplificationBudget(3),
+				args...,
 			)
 			if err != nil {
 				b.Fatal(err)
@@ -144,10 +144,10 @@ func BenchmarkWriteAmplification_BudgetEnforcement(b *testing.B) {
 
 		for range b.N {
 			b.StopTimer()
+			args := append(allPromiseQueries(), metaengine.WithWriteAmplificationBudget(100))
 			store, err := metaengine.Plan(
 				[]metaengine.Engine{metaengine.NewMemoryEngine()},
-				allPromiseQueries(),
-				metaengine.WithWriteAmplificationBudget(100),
+				args...,
 			)
 			if err != nil {
 				b.Fatal(err)
