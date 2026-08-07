@@ -136,6 +136,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Cross-module benchmarks** — 6 new files across 6 modules (projectionhost,
   transport/grpc, transport/http, decider, scheduling, middleware).
 
+#### Daemon-completed deferred debt
+
+- **`command.AsRecord()` adapter** — mirrors `event.AsRecord()`, bridging
+  command-driven pipelines into the metaengine's Record-aware folds
+  (`command/asrecord.go:34`).
+- **Ghost bus removal** (ADR-0028) — deleted `storage/memory/bus.go`,
+  `storage/memory/command_bus.go`, `storage/pg_bus.go`. All ghost bus files
+  removed.
+- **Metadata aliases completion** (ADR-0031) — `command.Metadata` and
+  `query.Metadata` are now standalone structs with their own `Clone()`/
+  `Merge()`/`WithCustom()` methods (not type aliases).
+- **Benchmark audit for 10 skipped modules** — all 10 now have benchmark test
+  files: codec, command, dispatcher, query, middleware, snapshot, listing,
+  watermill, transport/http, storage/view.
+- **`go test` in CI for example/taskmanager** — per-module CI job tests all
+  discovered modules including example/taskmanager.
+- **Record-aware integration test through SQLite engine** —
+  `TestSQLite_RecordStamping` uses `AutoInsert` + `store.ApplyRecord` through
+  the SQLite engine.
+- **Benchmark `ApplyRecord` overhead** — `BenchmarkHandle_ApplyRecord` +
+  `BenchmarkHandle_AutoInsert` for before/after comparison.
+- **iroh-go C binding evaluation** — ADR-0096 evaluation complete: short-term
+  sidecar process, long-term CGo FFI when `iroh-docs` reaches C FFI.
+- **WriteOp.ID dedup ring on loopback** — both transports now have bounded
+  dedup sets (10K entries).
+
 #### Metaengine v2 — Record-aware ES-native architecture (ADRs 0111-0119)
 
 The metaengine is now **event-sourcing-native**: it understands typed Records
