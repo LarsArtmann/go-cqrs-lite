@@ -737,7 +737,7 @@
 
             check-api-stability = mkApp "check-api-stability" goModules ''
               echo "==> API surface check (with -race)"
-              (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go test -race -count=1 ./...)
+              (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go test -tags "goexperiment.jsonv2" -race -count=1 ./...)
             '';
 
             # check-duplication: CI gate that fails if new code clones are
