@@ -155,6 +155,7 @@ func (s *System) orderedEngines() []metaengine.Engine {
 
 	for _, edge := range s.shutdownDeps {
 		beforeIdx, beforeOK := nameToIdx[edge.before]
+
 		afterIdx, afterOK := nameToIdx[edge.after]
 		if !beforeOK || !afterOK || beforeIdx == afterIdx {
 			continue
@@ -174,11 +175,14 @@ func (s *System) orderedEngines() []metaengine.Engine {
 
 	result := make([]metaengine.Engine, 0, len(s.engines))
 	processed := 0
+
 	for len(queue) > 0 {
 		idx := queue[0]
 		queue = queue[1:]
+
 		result = append(result, s.engines[idx])
 		processed++
+
 		for _, next := range after[idx] {
 			inDegree[next]--
 			if inDegree[next] == 0 {
@@ -190,6 +194,7 @@ func (s *System) orderedEngines() []metaengine.Engine {
 	// If there's a cycle, append remaining engines in creation order.
 	if processed < len(s.engines) {
 		appended := make(map[int]bool, len(result))
+
 		for i := range s.engines {
 			if inDegree[i] > 0 {
 				result = append(result, s.engines[i])
@@ -254,6 +259,7 @@ func (s *System) UseCommandMiddleware(mw ...command.Middleware) {
 func (s *System) RegisterDrainer(d Drainer) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	s.drainers = append(s.drainers, d)
 }
 

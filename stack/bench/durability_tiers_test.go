@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
@@ -115,6 +116,55 @@ func BenchmarkDurabilityTiers_BatchWrite(b *testing.B) {
 			}
 
 			b.ReportMetric(float64(b.N*batchSize)/b.Elapsed().Seconds(), "events/sec")
+		})
+	}
+}
+
+// BenchmarkDurabilityTiers_Bbolt measures the fsync cost tradeoff across bbolt
+// durability tiers. Strict/Normal = sync-on-commit, Relaxed = NoSync.
+func BenchmarkDurabilityTiers_Bbolt(b *testing.B) {
+	for _, tier := range []stack.DurabilityTier{
+		stack.DurabilityStrict,
+		stack.DurabilityNormal,
+		stack.DurabilityRelaxed,
+	} {
+		b.Run(string(tier), func(b *testing.B) {
+			dir := b.TempDir()
+			bundle, err := bbolt.New(
+				dir+"/durability.db",
+				bbolt.WithDurability(tier),
+			)
+			if err != nil {
+				b.Fatal(err)
+			}
+			defer func() { _ = bundle.Close() }()
+
+			store, ok := bundle.EventStore()
+			if !ok {
+				b.Fatal("no event store")
+			}
+
+			ctx := context.Background()
+
+			b.ResetTimer()
+
+			for b.Loop() {
+				streamID := id.NewStreamID()
+				ref := id.NewStreamRef("Bench", streamID)
+
+				evt, err := event.NewEvent(
+					"bench.event", streamID, "Bench", event.Version(1),
+					[]byte(`{"data":"test"}`),
+				)
+				if err != nil {
+					b.Fatal(err)
+				}
+				if err := store.AppendBatch(ctx, ref, []event.Event{evt}); err != nil {
+					b.Fatal(err)
+				}
+			}
+
+			b.ReportMetric(float64(b.N)/b.Elapsed().Seconds(), "events/sec")
 		})
 	}
 }

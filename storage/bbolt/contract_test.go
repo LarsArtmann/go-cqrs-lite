@@ -130,7 +130,7 @@ func TestContract_LoadToTimestamp(t *testing.T) {
 	baseTime := time.Now().Add(-3 * time.Hour)
 
 	evts := make([]event.Event, 3)
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		evt := cfg.NewTestEvent(t, aggID, event.Version(i+1),
 			event.WithOccurredAt(baseTime.Add(time.Duration(i)*time.Hour)),
 		)
@@ -163,7 +163,7 @@ func TestContract_ReadAllAcrossStreams(t *testing.T) {
 	ctx := context.Background()
 	cfg := eventtest.IssueStoreConfig()
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		aggID, evt := newStreamEvent(t, cfg)
 		ref := id.NewStreamRef(cfg.AggType, aggID)
 
@@ -199,7 +199,7 @@ func TestContract_ReadFromWithLimit(t *testing.T) {
 	ctx := context.Background()
 	cfg := eventtest.IssueStoreConfig()
 
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		aggID, evt := newStreamEvent(t, cfg)
 		ref := id.NewStreamRef(cfg.AggType, aggID)
 
@@ -244,7 +244,7 @@ func TestContract_ReadFromZeroID(t *testing.T) {
 	ctx := context.Background()
 	cfg := eventtest.IssueStoreConfig()
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		aggID, evt := newStreamEvent(t, cfg)
 		ref := id.NewStreamRef(cfg.AggType, aggID)
 
