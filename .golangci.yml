@@ -422,6 +422,7 @@ linters:
           - nlreturn
           - nolintlint
           - wrapcheck
+          - staticcheck
       - path: catalog/(message_config|registry_build)\.go$
         linters:
           - exhaustruct
@@ -500,6 +501,12 @@ linters:
           - nonamedreturns
           - tagliatelle
           - wrapcheck
+      - path: stack/bench/
+        linters:
+          - containedctx
+          - gocognit
+          - nilerr
+          - unconvert
       - path: cmd/cqrs-bench/
         linters:
           - errcheck
@@ -514,6 +521,7 @@ linters:
           - goconst
           - varnamelen
           - err113
+          - nolintlint
       - path: stack/accessors\.go$
         linters:
           - err113
@@ -631,9 +639,15 @@ linters:
       - path: encryption/
         linters:
           - ireturn
+          - wrapcheck
+      - path: retry/
+        linters:
+          - gocritic
+          - wrapcheck
       - path: command/
         linters:
           - wrapcheck
+          - exhaustruct
       - path: query/
         linters:
           - wrapcheck
@@ -670,6 +684,7 @@ linters:
       - path: signing/
         linters:
           - ireturn
+          - wrapcheck
       - path: sync/
         linters:
           - modernize
@@ -691,6 +706,9 @@ linters:
           - tagliatelle
           - funlen
           - nestif
+          - err113
+          - gochecknoglobals
+          - wrapcheck
       - path: metaengine/duckdbengine/
         linters:
           - wrapcheck
@@ -709,6 +727,7 @@ linters:
           - prealloc
           - varnamelen
           - gosec
+          - gochecknoglobals
       - path: cmd/doc-check/
         linters:
           - gosec
