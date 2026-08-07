@@ -497,3 +497,130 @@ func TestRenderSARIF_NoMetaengineProperties(t *testing.T) {
 		t.Error("should not have metaengineDetected when Metaengine is nil")
 	}
 }
+
+func TestScorecard_CrossFormat_MetaengineConsistency(t *testing.T) {
+	t.Parallel()
+
+	result := makeTestScorecard()
+	result.Metaengine = &ScorecardMetaengine{
+		Detected:        true,
+		Engines:         []string{"sqlite", "pebble"},
+		PushdownAdopted: true,
+		Suggestion:      "add FilterOnField for query pushdown",
+	}
+
+	formats := []struct {
+		name   string
+		format string
+	}{
+		{"text", "text"},
+		{"json", "json"},
+		{"markdown", "markdown"},
+		{"sarif", "sarif"},
+	}
+
+	rendered := make(map[string]string, len(formats))
+
+	for _, f := range formats {
+		out, err := renderScorecard(result, f.format, output.ColorModeNever)
+		if err != nil {
+			t.Fatalf("%s render error: %v", f.name, err)
+		}
+
+		rendered[f.name] = out
+	}
+
+	t.Run("text_contains_metaengine", func(t *testing.T) {
+		t.Parallel()
+
+		s := rendered["text"]
+		for _, want := range []string{"METAENGINE", "Detected: yes", "Pushdown: adopted", "sqlite", "pebble"} {
+			if !strings.Contains(s, want) {
+				t.Errorf("text output missing %q", want)
+			}
+		}
+	})
+
+	t.Run("json_contains_metaengine", func(t *testing.T) {
+		t.Parallel()
+
+		var parsed ScorecardResult
+
+		if err := json.Unmarshal([]byte(rendered["json"]), &parsed); err != nil {
+			t.Fatalf("invalid JSON: %v", err)
+		}
+
+		if parsed.Metaengine == nil {
+			t.Fatal("expected non-nil metaengine in JSON")
+		}
+
+		if !parsed.Metaengine.Detected {
+			t.Error("expected metaengine.detected true")
+		}
+
+		if !parsed.Metaengine.PushdownAdopted {
+			t.Error("expected metaengine.pushdown_adopted true")
+		}
+
+		if len(parsed.Metaengine.Engines) != 2 {
+			t.Fatalf("expected 2 engines, got %d", len(parsed.Metaengine.Engines))
+		}
+	})
+
+	t.Run("markdown_contains_metaengine", func(t *testing.T) {
+		t.Parallel()
+
+		s := rendered["markdown"]
+		for _, want := range []string{"Metaengine", "**Detected:** yes", "**Pushdown:** adopted", "sqlite", "pebble"} {
+			if !strings.Contains(s, want) {
+				t.Errorf("markdown output missing %q", want)
+			}
+		}
+	})
+
+	t.Run("sarif_contains_metaengine", func(t *testing.T) {
+		t.Parallel()
+
+		var parsed sarifReport
+
+		if err := json.Unmarshal([]byte(rendered["sarif"]), &parsed); err != nil {
+			t.Fatalf("invalid SARIF JSON: %v", err)
+		}
+
+		props := parsed.Runs[0].Properties
+		if props["metaengineDetected"] != true {
+			t.Errorf("expected metaengineDetected true, got %v", props["metaengineDetected"])
+		}
+
+		if props["metaenginePushdownAdopted"] != true {
+			t.Errorf("expected metaenginePushdownAdopted true, got %v", props["metaenginePushdownAdopted"])
+		}
+
+		engines, ok := props["metaengineEngines"].([]any)
+		if !ok {
+			t.Fatalf("expected metaengineEngines to be a slice, got %T", props["metaengineEngines"])
+		}
+
+		if len(engines) != 2 {
+			t.Fatalf("expected 2 engines, got %d", len(engines))
+		}
+	})
+}
+
+func TestScorecard_CrossFormat_NoMetaengineConsistency(t *testing.T) {
+	t.Parallel()
+
+	result := makeTestScorecard()
+	// Metaengine is nil.
+
+	for _, format := range []string{"text", "json", "markdown", "sarif"} {
+		out, err := renderScorecard(result, format, output.ColorModeNever)
+		if err != nil {
+			t.Fatalf("%s render error: %v", format, err)
+		}
+
+		if strings.Contains(strings.ToLower(out), "metaengine") {
+			t.Errorf("%s output should not mention metaengine when nil", format)
+		}
+	}
+}
