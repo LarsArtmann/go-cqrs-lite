@@ -414,6 +414,8 @@ func engineName(eng metaengine.Engine) string {
 // The engine must implement Transactional and MapBackend. CounterBackend and
 // StreamLogBackend are tested opportunistically when present. The caller is
 // responsible for closing the engine.
+//
+//nolint:gocyclo // sequential assertions across 3 optional backends
 func RunTransactionalTest(t *testing.T, eng metaengine.Engine) {
 	t.Helper()
 
