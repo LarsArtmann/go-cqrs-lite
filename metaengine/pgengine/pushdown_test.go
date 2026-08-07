@@ -41,9 +41,10 @@ func seedProducts(t *testing.T, eng metaengine.Engine, col string) {
 	}
 }
 
-// newPostgresPushdown returns the engine + PushdownScan for the calling test.
-// The engine is closed automatically via t.Cleanup.
-func newPostgresPushdown(t *testing.T) (metaengine.Engine, metaengine.PushdownScan) {
+// newPostgresPushdown returns the engine for the calling test. The engine is
+// closed automatically via t.Cleanup. The pushdown test helper does the
+// PushdownScan type assertion.
+func newPostgresPushdown(t *testing.T) metaengine.Engine {
 	t.Helper()
 
 	eng, err := pgengine.New(pgDSN(t))
@@ -52,18 +53,13 @@ func newPostgresPushdown(t *testing.T) (metaengine.Engine, metaengine.PushdownSc
 	}
 	t.Cleanup(func() { _ = eng.Close() })
 
-	ps, ok := eng.(metaengine.PushdownScan)
-	if !ok {
-		t.Fatal("engine does not implement PushdownScan")
-	}
-
-	return eng, ps
+	return eng
 }
 
 func TestPostgresEngine_PushdownFilter(t *testing.T) {
 	t.Parallel()
 
-	eng, ps := newPostgresPushdown(t)
+	eng := newPostgresPushdown(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_filter", seedProducts,
 		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
@@ -84,7 +80,7 @@ func TestPostgresEngine_PushdownFilter(t *testing.T) {
 func TestPostgresEngine_PushdownSort(t *testing.T) {
 	t.Parallel()
 
-	eng, ps := newPostgresPushdown(t)
+	eng := newPostgresPushdown(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_sort", seedProducts,
 		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
@@ -109,7 +105,7 @@ func TestPostgresEngine_PushdownSort(t *testing.T) {
 func TestPostgresEngine_PushdownFilterSortLimit(t *testing.T) {
 	t.Parallel()
 
-	eng, ps := newPostgresPushdown(t)
+	eng := newPostgresPushdown(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_fsl", seedProducts,
 		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
@@ -136,7 +132,7 @@ func TestPostgresEngine_PushdownFilterSortLimit(t *testing.T) {
 func TestPostgresEngine_PushdownCursor(t *testing.T) {
 	t.Parallel()
 
-	eng, ps := newPostgresPushdown(t)
+	eng := newPostgresPushdown(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_cursor", seedProducts,
 		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
@@ -163,7 +159,7 @@ func TestPostgresEngine_PushdownCursor(t *testing.T) {
 func TestPostgresEngine_PushdownFilterIn(t *testing.T) {
 	t.Parallel()
 
-	eng, ps := newPostgresPushdown(t)
+	eng := newPostgresPushdown(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_in", seedProducts,
 		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
