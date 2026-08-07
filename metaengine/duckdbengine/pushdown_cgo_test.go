@@ -8,6 +8,7 @@ import (
 
 	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
 
 func seedDuckDBProducts(t *testing.T, eng metaengine.Engine, col string) metaengine.MapBackend {
@@ -43,168 +44,137 @@ func seedDuckDBProducts(t *testing.T, eng metaengine.Engine, col string) metaeng
 	return mb
 }
 
-func TestDuckDBEngine_PushdownFilter(t *testing.T) {
-	t.Parallel()
+// newDuckDBPushdown returns the engine + PushdownScan for the calling test.
+// The engine is closed automatically via t.Cleanup.
+func newDuckDBPushdown(t *testing.T) (metaengine.Engine, metaengine.PushdownScan) {
+	t.Helper()
 
 	eng, err := duckdbengine.New("")
 	if err != nil {
 		t.Skipf("DuckDB not available: %v", err)
 	}
-
-	defer eng.Close()
-
-	ctx := context.Background()
-	seedDuckDBProducts(t, eng, "push_filter")
+	t.Cleanup(func() { _ = eng.Close() })
 
 	ps, ok := eng.(metaengine.PushdownScan)
 	if !ok {
 		t.Fatal("engine does not implement PushdownScan")
 	}
 
-	results, err := ps.PushdownMapScan(ctx, "push_filter",
-		[]metaengine.FilterSpec{{Column: "Category", Op: metaengine.FilterEq, Value: "fruit"}},
-		nil, nil, 0)
-	if err != nil {
-		t.Fatal(err)
-	}
+	return eng, ps
+}
 
-	if len(results.Items) != 2 {
-		t.Fatalf("filter fruit: expected 2, got %d", len(results.Items))
-	}
+func TestDuckDBEngine_PushdownFilter(t *testing.T) {
+	t.Parallel()
+
+	eng, ps := newDuckDBPushdown(t)
+
+	enginetest.RunPushdownTest(t, eng, "push_filter", seedDuckDBProducts,
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
+			results, err := ps.PushdownMapScan(ctx, "push_filter",
+				[]metaengine.FilterSpec{{Column: "Category", Op: metaengine.FilterEq, Value: "fruit"}},
+				nil, nil, 0)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if len(results.Items) != 2 {
+				t.Fatalf("filter fruit: expected 2, got %d", len(results.Items))
+			}
+		})
 }
 
 func TestDuckDBEngine_PushdownSort(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
+	eng, ps := newDuckDBPushdown(t)
 
-	defer eng.Close()
+	enginetest.RunPushdownTest(t, eng, "push_sort", seedDuckDBProducts,
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
+			results, err := ps.PushdownMapScan(ctx, "push_sort", nil,
+				&metaengine.SortSpec{Column: "Price", Desc: true}, nil, 3)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	ctx := context.Background()
-	seedDuckDBProducts(t, eng, "push_sort")
+			if len(results.Items) != 3 {
+				t.Fatalf("sort desc limit 3: expected 3, got %d", len(results.Items))
+			}
 
-	ps, ok := eng.(metaengine.PushdownScan)
-	if !ok {
-		t.Fatal("engine does not implement PushdownScan")
-	}
-
-	results, err := ps.PushdownMapScan(ctx, "push_sort", nil,
-		&metaengine.SortSpec{Column: "Price", Desc: true}, nil, 3)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(results.Items) != 3 {
-		t.Fatalf("sort desc limit 3: expected 3, got %d", len(results.Items))
-	}
-
-	first := results.Items[0].(map[string]any)
-	if first["Name"] != "donut" {
-		t.Errorf("desc: first = %v, want donut (price 2.00)", first["Name"])
-	}
+			first := results.Items[0].(map[string]any)
+			if first["Name"] != "donut" {
+				t.Errorf("desc: first = %v, want donut (price 2.00)", first["Name"])
+			}
+		})
 }
 
 func TestDuckDBEngine_PushdownFilterSortLimit(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
+	eng, ps := newDuckDBPushdown(t)
 
-	defer eng.Close()
+	enginetest.RunPushdownTest(t, eng, "push_fsl", seedDuckDBProducts,
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
+			results, err := ps.PushdownMapScan(ctx, "push_fsl",
+				[]metaengine.FilterSpec{{Column: "Category", Op: metaengine.FilterEq, Value: "veg"}},
+				&metaengine.SortSpec{Column: "Price", Desc: false}, nil, 2)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	ctx := context.Background()
-	seedDuckDBProducts(t, eng, "push_fsl")
+			if len(results.Items) != 2 {
+				t.Fatalf("filter+sort+limit: expected 2, got %d", len(results.Items))
+			}
 
-	ps, ok := eng.(metaengine.PushdownScan)
-	if !ok {
-		t.Fatal("engine does not implement PushdownScan")
-	}
-
-	results, err := ps.PushdownMapScan(ctx, "push_fsl",
-		[]metaengine.FilterSpec{{Column: "Category", Op: metaengine.FilterEq, Value: "veg"}},
-		&metaengine.SortSpec{Column: "Price", Desc: false}, nil, 2)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(results.Items) != 2 {
-		t.Fatalf("filter+sort+limit: expected 2, got %d", len(results.Items))
-	}
-
-	first := results.Items[0].(map[string]any)
-	if first["Name"] != "carrot" {
-		t.Errorf("asc: first = %v, want carrot (price 0.99)", first["Name"])
-	}
+			first := results.Items[0].(map[string]any)
+			if first["Name"] != "carrot" {
+				t.Errorf("asc: first = %v, want carrot (price 0.99)", first["Name"])
+			}
+		})
 }
 
 func TestDuckDBEngine_PushdownCursor(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
+	eng, ps := newDuckDBPushdown(t)
 
-	defer eng.Close()
+	enginetest.RunPushdownTest(t, eng, "push_cursor", seedDuckDBProducts,
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
+			results, err := ps.PushdownMapScan(ctx, "push_cursor", nil,
+				&metaengine.SortSpec{Column: "Price", Desc: true}, 2.0, 2)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	ctx := context.Background()
-	seedDuckDBProducts(t, eng, "push_cursor")
+			if len(results.Items) != 2 {
+				t.Fatalf("cursor pagination: expected 2, got %d", len(results.Items))
+			}
 
-	ps, ok := eng.(metaengine.PushdownScan)
-	if !ok {
-		t.Fatal("engine does not implement PushdownScan")
-	}
-
-	results, err := ps.PushdownMapScan(ctx, "push_cursor", nil,
-		&metaengine.SortSpec{Column: "Price", Desc: true}, 2.0, 2)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(results.Items) != 2 {
-		t.Fatalf("cursor pagination: expected 2, got %d", len(results.Items))
-	}
-
-	first := results.Items[0].(map[string]any)
-	if first["Name"] != "apple" {
-		t.Errorf("cursor: first = %v, want apple (price 1.50)", first["Name"])
-	}
+			first := results.Items[0].(map[string]any)
+			if first["Name"] != "apple" {
+				t.Errorf("cursor: first = %v, want apple (price 1.50)", first["Name"])
+			}
+		})
 }
 
 func TestDuckDBEngine_PushdownFilterIn(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
+	eng, ps := newDuckDBPushdown(t)
 
-	defer eng.Close()
+	enginetest.RunPushdownTest(t, eng, "push_in", seedDuckDBProducts,
+		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
+			results, err := ps.PushdownMapScan(ctx, "push_in",
+				[]metaengine.FilterSpec{{
+					Column: "Category", Op: metaengine.FilterIn,
+					Value: []any{"fruit", "snack"},
+				}},
+				nil, nil, 0)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	ctx := context.Background()
-	seedDuckDBProducts(t, eng, "push_in")
-
-	ps, ok := eng.(metaengine.PushdownScan)
-	if !ok {
-		t.Fatal("engine does not implement PushdownScan")
-	}
-
-	results, err := ps.PushdownMapScan(ctx, "push_in",
-		[]metaengine.FilterSpec{{
-			Column: "Category", Op: metaengine.FilterIn,
-			Value: []any{"fruit", "snack"},
-		}},
-		nil, nil, 0)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(results.Items) != 3 {
-		t.Fatalf("filter IN: expected 3, got %d", len(results.Items))
-	}
+			if len(results.Items) != 3 {
+				t.Fatalf("filter IN: expected 3, got %d", len(results.Items))
+			}
+		})
 }

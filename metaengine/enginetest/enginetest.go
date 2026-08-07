@@ -42,6 +42,29 @@ func ScanBackendProducts() []ScanBackendItem {
 	}
 }
 
+// RunPushdownTest exercises a single PushdownScan scenario. The setup
+// (engine creation, skip on missing engine, seeding the fixture collection,
+// type-asserting PushdownScan) is shared across all five scenarios in each
+// engine's pushdown test file (filter, sort, filter+sort+limit, cursor, IN).
+func RunPushdownTest(
+	t *testing.T,
+	eng metaengine.Engine,
+	collection string,
+	seedFixture func(t *testing.T, eng metaengine.Engine, col string),
+	run func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan),
+) {
+	t.Helper()
+
+	seedFixture(t, eng, collection)
+
+	ps, ok := eng.(metaengine.PushdownScan)
+	if !ok {
+		t.Fatal("engine does not implement PushdownScan")
+	}
+
+	run(t, context.Background(), ps)
+}
+
 // RunScanBackendTest exercises the standard ScanBackend.MapScan contract:
 //  1. unfiltered scan returns all 5 items
 //  2. filter by category=fruit returns 2 items
