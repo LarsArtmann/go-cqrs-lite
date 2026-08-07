@@ -3,13 +3,17 @@ package system
 import (
 	"fmt"
 	"os"
+	"strings"
 
-	"gopkg.in/yaml.v3"
+	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/env"
+	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/v2"
 )
 
 // LoadConfig loads a DeploymentConfig from a YAML file and env var overrides.
 //
-// The YAML structure mirrors DeploymentConfig:
+// The YAML structure mirrors DeploymentConfig (koanf struct tags):
 //
 //	engines:
 //	  primary:
@@ -29,117 +33,85 @@ import (
 //	acknowledge_warnings:
 //	  - "volatile-source-of-truth:source-of-truth"
 //
-// Env var overrides use the CQRS_ prefix:
+// Env var overrides use the CQRS_ prefix with double-underscore as the
+// map/nested separator. koanf merges env on top of YAML (env wins):
 //
-//	CQRS_DEFAULT_DRIVER=sqlite
-//	CQRS_DEFAULT_DSN=file:events.db
+//	CQRS_ENGINES__PRIMARY__DRIVER=sqlite       → engines.primary.driver
+//	CQRS_ENGINES__PRIMARY__DSN=file:events.db  → engines.primary.dsn
+//	CQRS_BUSES__LOCAL__DRIVER=gochannel        → buses.local.driver
+//	CQRS_INSTANCES__0__DURABILITY=strict       → instances[0].durability
+//
+// For backward compatibility, CQRS_DEFAULT_DRIVER and CQRS_DEFAULT_DSN
+// create a "primary" engine if one does not already exist.
 func LoadConfig(path string) (DeploymentConfig, error) {
-	cfg := DeploymentConfig{
-		Engines:   make(map[string]EngineConfig),
-		Buses:     make(map[string]BusConfig),
-		Instances: []InstanceConfig{},
-	}
+	k := koanf.New(".")
 
+	// 1. Load YAML file if a path is provided.
 	if path != "" {
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return cfg, fmt.Errorf("system: read config %q: %w", path, err)
-		}
-
-		if err := parseYAML(data, &cfg); err != nil {
-			return cfg, fmt.Errorf("system: parse config %q: %w", path, err)
+		if err := k.Load(file.Provider(path), yaml.Parser()); err != nil {
+			return DeploymentConfig{}, fmt.Errorf("system: load config %q: %w", path, err)
 		}
 	}
 
-	applyEnvOverrides(&cfg)
+	// 2. Load env overrides with CQRS_ prefix. Double-underscore maps to
+	// the koanf delimiter ("."), enabling structured nested overrides:
+	// CQRS_ENGINES__PRIMARY__DRIVER=sqlite → engines.primary.driver
+	if err := k.Load(env.Provider("CQRS_", ".", func(key string) string {
+		stripped := strings.TrimPrefix(key, "CQRS_")
+		return strings.ReplaceAll(strings.ToLower(stripped), "__", ".")
+	}), nil); err != nil {
+		return DeploymentConfig{}, fmt.Errorf("system: load env overrides: %w", err)
+	}
+
+	// 3. Unmarshal into DeploymentConfig using koanf struct tags.
+	var cfg DeploymentConfig
+	if err := k.UnmarshalWithConf("", &cfg, koanf.UnmarshalConf{
+		Tag: "koanf",
+	}); err != nil {
+		return DeploymentConfig{}, fmt.Errorf("system: unmarshal config: %w", err)
+	}
+
+	// 4. Initialize nil maps/slices (koanf may leave them nil).
+	if cfg.Engines == nil {
+		cfg.Engines = make(map[string]EngineConfig)
+	}
+
+	if cfg.Buses == nil {
+		cfg.Buses = make(map[string]BusConfig)
+	}
+
+	if cfg.Instances == nil {
+		cfg.Instances = []InstanceConfig{}
+	}
+
+	// 5. Default durability for instances.
+	for i := range cfg.Instances {
+		if cfg.Instances[i].Durability == "" {
+			cfg.Instances[i].Durability = DurabilityNormal
+		}
+	}
+
+	// 6. Apply legacy env var overrides for backward compatibility.
+	applyLegacyEnvOverrides(&cfg)
 
 	return cfg, nil
 }
 
-// yamlConfig is the YAML representation of DeploymentConfig.
-type yamlConfig struct {
-	Engines   map[string]yamlEngine `yaml:"engines"`
-	Buses     map[string]yamlBus    `yaml:"buses"`
-	Instances []yamlInstance        `yaml:"instances"`
-	AckWarns  []string              `yaml:"acknowledge_warnings"`
-}
-
-type yamlEngine struct {
-	Driver  string   `yaml:"driver"`
-	DSN     string   `yaml:"dsn"`
-	Pragmas []string `yaml:"pragmas"`
-}
-
-type yamlBus struct {
-	Driver string `yaml:"driver"`
-	URL    string `yaml:"url"`
-	Mode   string `yaml:"mode"`
-}
-
-type yamlInstance struct {
-	Role       string   `yaml:"role"`
-	Engine     string   `yaml:"engine"`
-	Engines    []string `yaml:"engines"`
-	Durability string   `yaml:"durability"`
-	Publish    []string `yaml:"publish"`
-	Subscribe  []string `yaml:"subscribe"`
-}
-
-func parseYAML(data []byte, cfg *DeploymentConfig) error {
-	if len(data) == 0 {
-		return nil
+// applyLegacyEnvOverrides handles the old CQRS_DEFAULT_DRIVER/CQRS_DEFAULT_DSN
+// env vars for backward compatibility. New deployments should use structured
+// env vars: CQRS_ENGINES__PRIMARY__DRIVER, CQRS_ENGINES__PRIMARY__DSN.
+func applyLegacyEnvOverrides(cfg *DeploymentConfig) {
+	driver := os.Getenv("CQRS_DEFAULT_DRIVER")
+	if driver == "" {
+		return
 	}
 
-	var yc yamlConfig
-	if err := yaml.Unmarshal(data, &yc); err != nil {
-		return fmt.Errorf("yaml unmarshal: %w", err)
+	if _, ok := cfg.Engines["primary"]; ok {
+		return // structured env or YAML already set this
 	}
 
-	for name, eng := range yc.Engines {
-		cfg.Engines[name] = EngineConfig{
-			Driver:  eng.Driver,
-			DSN:     eng.DSN,
-			Pragmas: eng.Pragmas,
-		}
-	}
-
-	for name, bus := range yc.Buses {
-		cfg.Buses[name] = BusConfig{
-			Driver: bus.Driver,
-			URL:    bus.URL,
-			Mode:   bus.Mode,
-		}
-	}
-
-	for _, inst := range yc.Instances {
-		ic := InstanceConfig{
-			Role:       InstanceRole(inst.Role),
-			Engine:     inst.Engine,
-			Engines:    inst.Engines,
-			Durability: DurabilityTier(inst.Durability),
-			Publish:    inst.Publish,
-			Subscribe:  inst.Subscribe,
-		}
-
-		if ic.Durability == "" {
-			ic.Durability = DurabilityNormal
-		}
-
-		cfg.Instances = append(cfg.Instances, ic)
-	}
-
-	cfg.AcknowledgeWarnings = append(cfg.AcknowledgeWarnings, yc.AckWarns...)
-
-	return nil
-}
-
-func applyEnvOverrides(cfg *DeploymentConfig) {
-	if driver := os.Getenv("CQRS_DEFAULT_DRIVER"); driver != "" {
-		if _, ok := cfg.Engines["primary"]; !ok {
-			cfg.Engines["primary"] = EngineConfig{
-				Driver: driver,
-				DSN:    os.Getenv("CQRS_DEFAULT_DSN"),
-			}
-		}
+	cfg.Engines["primary"] = EngineConfig{
+		Driver: driver,
+		DSN:    os.Getenv("CQRS_DEFAULT_DSN"),
 	}
 }

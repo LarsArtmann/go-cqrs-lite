@@ -9,6 +9,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // bboltEventIterator lazily yields events from a long-lived bbolt read
@@ -176,44 +177,79 @@ func (s *EventStore) newStreamEventIterator(
 
 // LoadStream is the streaming equivalent of Load — all events for one stream.
 func (s *EventStore) LoadStream(
-	_ context.Context,
+	ctx context.Context,
 	ref id.StreamRef,
 ) (event.EventIterator, error) {
+	_, span := startStreamSpan(ctx, "bbolt.event.load_stream", ref)
+	defer span.End()
+
 	prefix := streamPrefix(ref)
 	upper := streamUpperBound(ref)
-	return s.newStreamEventIterator(prefix, nil, upper)
+
+	iter, err := s.newStreamEventIterator(prefix, nil, upper)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return iter, err
 }
 
 // LoadStreamFromVersion is the streaming equivalent of LoadFromVersion.
 func (s *EventStore) LoadStreamFromVersion(
-	_ context.Context,
+	ctx context.Context,
 	ref id.StreamRef,
 	version event.Version,
 ) (event.EventIterator, error) {
+	_, span := startStreamSpan(ctx, "bbolt.event.load_stream_from_version", ref,
+		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, version.Int()))
+	defer span.End()
+
 	lower := eventKey(ref, version+1)
 	prefix := streamPrefix(ref)
 	upper := streamUpperBound(ref)
-	return s.newStreamEventIterator(prefix, lower, upper)
+
+	iter, err := s.newStreamEventIterator(prefix, lower, upper)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return iter, err
 }
 
 // ReadStream is the streaming equivalent of ReadAll — all events globally.
-func (s *EventStore) ReadStream(_ context.Context) (event.EventIterator, error) {
-	return s.newJournalIterator("", 0)
+func (s *EventStore) ReadStream(ctx context.Context) (event.EventIterator, error) {
+	span := startReadSpan(ctx, "bbolt.journal.read_stream")
+	defer span.End()
+
+	iter, err := s.newJournalIterator("", 0)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return iter, err
 }
 
 // ReadStreamFrom is the streaming equivalent of ReadFrom — events after a
 // given event ID, optionally limited.
 func (s *EventStore) ReadStreamFrom(
-	_ context.Context,
+	ctx context.Context,
 	afterEventID id.EventID,
 	limit int,
 ) (event.EventIterator, error) {
+	span := startLimitSpan(ctx, "bbolt.journal.read_stream_from", limit)
+	defer span.End()
+
 	skipID := ""
 	if !afterEventID.IsZero() {
 		skipID = afterEventID.String()
 	}
 
-	return s.newJournalIterator(skipID, limit)
+	iter, err := s.newJournalIterator(skipID, limit)
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return iter, err
 }
 
 var (

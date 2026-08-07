@@ -113,3 +113,66 @@ func TestLoadConfig_EnvOverride(t *testing.T) {
 		t.Fatalf("expected file:env.db from env, got %s", cfg.Engines["primary"].DSN)
 	}
 }
+
+func TestLoadConfig_StructuredEnvOverride(t *testing.T) {
+	t.Setenv("CQRS_ENGINES__PRIMARY__DRIVER", "sqlite")
+	t.Setenv("CQRS_ENGINES__PRIMARY__DSN", "file:structured.db")
+	t.Setenv("CQRS_ENGINES__CACHE__DRIVER", "memory")
+	t.Setenv("CQRS_BUSES__LOCAL__DRIVER", "gochannel")
+	t.Setenv("CQRS_BUSES__LOCAL__MODE", "async")
+
+	cfg, err := system.LoadConfig("")
+	if err != nil {
+		t.Fatalf("LoadConfig: %v", err)
+	}
+
+	if cfg.Engines["primary"].Driver != "sqlite" {
+		t.Fatalf("expected sqlite from structured env, got %s", cfg.Engines["primary"].Driver)
+	}
+
+	if cfg.Engines["primary"].DSN != "file:structured.db" {
+		t.Fatalf("expected file:structured.db from structured env, got %s", cfg.Engines["primary"].DSN)
+	}
+
+	if cfg.Engines["cache"].Driver != "memory" {
+		t.Fatalf("expected memory for cache engine, got %s", cfg.Engines["cache"].Driver)
+	}
+
+	if cfg.Buses["local"].Driver != "gochannel" {
+		t.Fatalf("expected gochannel bus, got %s", cfg.Buses["local"].Driver)
+	}
+
+	if cfg.Buses["local"].Mode != "async" {
+		t.Fatalf("expected async mode, got %s", cfg.Buses["local"].Mode)
+	}
+}
+
+func TestLoadConfig_EnvOverridesYAML(t *testing.T) {
+	yml := `
+engines:
+  primary:
+    driver: memory
+    dsn: ""
+`
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	if err := os.WriteFile(path, []byte(yml), 0o600); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+
+	// Structured env overrides YAML.
+	t.Setenv("CQRS_ENGINES__PRIMARY__DRIVER", "sqlite")
+	t.Setenv("CQRS_ENGINES__PRIMARY__DSN", "file:override.db")
+
+	cfg, err := system.LoadConfig(path)
+	if err != nil {
+		t.Fatalf("LoadConfig: %v", err)
+	}
+
+	if cfg.Engines["primary"].Driver != "sqlite" {
+		t.Fatalf("expected sqlite from env override, got %s", cfg.Engines["primary"].Driver)
+	}
+
+	if cfg.Engines["primary"].DSN != "file:override.db" {
+		t.Fatalf("expected file:override.db from env override, got %s", cfg.Engines["primary"].DSN)
+	}
+}

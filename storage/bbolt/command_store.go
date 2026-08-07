@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // CommandStore persists commands in a bbolt database. It implements
@@ -39,20 +40,23 @@ func commandJournalKey(cmdID id.CommandID) []byte {
 // Save persists a single command. Returns command.ErrDuplicateCommand if a
 // command with the same ID already exists.
 func (s *CommandStore) Save(
-	_ context.Context,
+	ctx context.Context,
 	ref id.StreamRef,
 	cmd *command.PersistedCommand,
 ) error {
+	_, span := startStreamSpan(ctx, "bbolt.command.save", ref)
+	defer span.End()
+
 	data, err := marshalCommand(cmd)
 	if err != nil {
-		return err
+		return recordErr(span, err)
 	}
 
 	cmdID := cmd.ID()
 	streamKey := commandStreamKey(ref, cmdID)
 	journalKey := commandJournalKey(cmdID)
 
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return recordErr(span, s.db.Update(func(tx *bolt.Tx) error {
 		jBucket := tx.Bucket([]byte(bucketCmdJournal))
 		if jBucket.Get(journalKey) != nil {
 			return command.ErrDuplicateCommand
@@ -72,17 +76,21 @@ func (s *CommandStore) Save(
 			"bbolt.command_save",
 			"put command journal key",
 		)
-	})
+	}))
 }
 
 // AppendBatch persists multiple commands atomically. All commands are written
 // or none. Returns command.ErrDuplicateCommand if any command ID already exists.
 func (s *CommandStore) AppendBatch(
-	_ context.Context,
+	ctx context.Context,
 	ref id.StreamRef,
 	cmds []*command.PersistedCommand,
 ) error {
-	return s.db.Update(func(tx *bolt.Tx) error {
+	_, span := startStreamSpan(ctx, "bbolt.command.append_batch", ref,
+		cqrsotel.AttrInt("command.count", len(cmds)))
+	defer span.End()
+
+	return recordErr(span, s.db.Update(func(tx *bolt.Tx) error {
 		sBucket := tx.Bucket([]byte(bucketCommands))
 		jBucket := tx.Bucket([]byte(bucketCmdJournal))
 
@@ -110,14 +118,17 @@ func (s *CommandStore) AppendBatch(
 		}
 
 		return nil
-	})
+	}))
 }
 
 // Load retrieves all commands for a stream, ordered by command ID.
 func (s *CommandStore) Load(
-	_ context.Context,
+	ctx context.Context,
 	ref id.StreamRef,
 ) ([]*command.PersistedCommand, error) {
+	_, span := startStreamSpan(ctx, "bbolt.command.load", ref)
+	defer span.End()
+
 	prefix := commandStreamPrefix(ref)
 
 	var cmds []*command.PersistedCommand
@@ -137,29 +148,40 @@ func (s *CommandStore) Load(
 
 		return nil
 	})
+	if err != nil {
+		return nil, recordErr(span, wrapBucketErr(err, "bbolt.command_load", "load commands for stream"))
+	}
 
-	return cmds, wrapBucketErr(err, "bbolt.command_load", "load commands for stream")
+	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
+	return cmds, nil
 }
 
 // LoadFromTimestamp returns commands for a stream received after the given time.
 func (s *CommandStore) LoadFromTimestamp(
-	_ context.Context,
+	ctx context.Context,
 	ref id.StreamRef,
 	after time.Time,
 ) ([]*command.PersistedCommand, error) {
-	return s.loadByTimestamp(ref, after, false)
+	_, span := startStreamSpan(ctx, "bbolt.command.load_from_timestamp", ref)
+	defer span.End()
+
+	return s.loadByTimestamp(span, ref, after, false)
 }
 
 // LoadToTimestamp returns commands for a stream received up to the given time.
 func (s *CommandStore) LoadToTimestamp(
-	_ context.Context,
+	ctx context.Context,
 	ref id.StreamRef,
 	maxTime time.Time,
 ) ([]*command.PersistedCommand, error) {
-	return s.loadByTimestamp(ref, maxTime, true)
+	_, span := startStreamSpan(ctx, "bbolt.command.load_to_timestamp", ref)
+	defer span.End()
+
+	return s.loadByTimestamp(span, ref, maxTime, true)
 }
 
 func (s *CommandStore) loadByTimestamp(
+	span cqrsotel.Span,
 	ref id.StreamRef,
 	ts time.Time,
 	before bool,
@@ -192,12 +214,19 @@ func (s *CommandStore) loadByTimestamp(
 
 		return nil
 	})
+	if err != nil {
+		return nil, recordErr(span, wrapBucketErr(err, "bbolt.command_load_ts", "load commands by timestamp"))
+	}
 
-	return cmds, wrapBucketErr(err, "bbolt.command_load_ts", "load commands by timestamp")
+	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
+	return cmds, nil
 }
 
 // ReadAll returns all commands across all streams, ordered by command ID.
-func (s *CommandStore) ReadAll(_ context.Context) ([]*command.PersistedCommand, error) {
+func (s *CommandStore) ReadAll(ctx context.Context) ([]*command.PersistedCommand, error) {
+	span := startReadSpan(ctx, "bbolt.command.read_all")
+	defer span.End()
+
 	var cmds []*command.PersistedCommand
 
 	err := s.db.View(func(tx *bolt.Tx) error {
@@ -214,17 +243,24 @@ func (s *CommandStore) ReadAll(_ context.Context) ([]*command.PersistedCommand, 
 			return nil
 		})
 	})
+	if err != nil {
+		return nil, recordErr(span, wrapBucketErr(err, "bbolt.command_read_all", "read all commands from journal"))
+	}
 
-	return cmds, wrapBucketErr(err, "bbolt.command_read_all", "read all commands from journal")
+	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
+	return cmds, nil
 }
 
 // ReadFrom returns commands from the journal starting after the given command
 // ID, up to limit entries. A limit of 0 means no limit.
 func (s *CommandStore) ReadFrom(
-	_ context.Context,
+	ctx context.Context,
 	afterCmdID id.CommandID,
 	limit int,
 ) ([]*command.PersistedCommand, error) {
+	span := startLimitSpan(ctx, "bbolt.command.read_from", limit)
+	defer span.End()
+
 	seekKey := commandJournalKey(afterCmdID)
 	var cmds []*command.PersistedCommand
 
@@ -253,10 +289,10 @@ func (s *CommandStore) ReadFrom(
 
 		return nil
 	})
+	if err != nil {
+		return nil, recordErr(span, wrapBucketErr(err, "bbolt.command_read_from", "read commands from journal position"))
+	}
 
-	return cmds, wrapBucketErr(
-		err,
-		"bbolt.command_read_from",
-		"read commands from journal position",
-	)
+	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
+	return cmds, nil
 }

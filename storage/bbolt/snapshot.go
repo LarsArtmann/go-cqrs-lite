@@ -12,6 +12,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
 
@@ -29,10 +30,14 @@ func NewSnapshotStore(database *bolt.DB, logger *slog.Logger) (*SnapshotStore, e
 }
 
 // cqrs-lint:ignore(A023) library code or intentional pattern
-func (s *SnapshotStore) Save(_ context.Context, snap snapshot.Snapshot) error {
+func (s *SnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) error {
+	_, span := startStreamSpan(ctx, "bbolt.snapshot.save",
+		id.NewStreamRef(snap.StreamType, snap.StreamID))
+	defer span.End()
+
 	key := snapshotKey(snap.StreamType, snap.StreamID)
 
-	return s.db.Update(func(tx *bolt.Tx) error {
+	err := s.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketSnapshots))
 		if bucket == nil {
 			return errorfamily.NewInfrastructure("bbolt.bucket_missing",
@@ -65,27 +70,40 @@ func (s *SnapshotStore) Save(_ context.Context, snap snapshot.Snapshot) error {
 				"serialize snapshot for "+string(snap.StreamType))
 		}
 
-		return wrapBucketErr(bucket.Put(key, data),
-			"bbolt.write_snapshot", "write snapshot")
-	})
+			return wrapBucketErr(bucket.Put(key, data),
+				"bbolt.write_snapshot", "write snapshot")
+		})
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return err
 }
 
 func (s *SnapshotStore) Load(
-	_ context.Context,
+	ctx context.Context,
 	ref id.StreamRef,
 ) (*snapshot.Snapshot, error) {
-	return s.loadSnapshot(ref, 0, false)
+	_, span := startStreamSpan(ctx, "bbolt.snapshot.load", ref)
+	defer span.End()
+
+	return s.loadSnapshot(span, ref, 0, false)
 }
 
 func (s *SnapshotStore) LoadAtVersion(
-	_ context.Context,
+	ctx context.Context,
 	ref id.StreamRef,
 	version event.Version,
 ) (*snapshot.Snapshot, error) {
-	return s.loadSnapshot(ref, version, true)
+	_, span := startStreamSpan(ctx, "bbolt.snapshot.load_at_version", ref,
+		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, version.Int()))
+	defer span.End()
+
+	return s.loadSnapshot(span, ref, version, true)
 }
 
 func (s *SnapshotStore) loadSnapshot(
+	span cqrsotel.Span,
 	ref id.StreamRef,
 	maxVersion event.Version,
 	enforceMax bool,
@@ -129,10 +147,13 @@ func (s *SnapshotStore) loadSnapshot(
 	return result, wrapBucketErr(err, "bbolt.snapshot_load", "load snapshot")
 }
 
-func (s *SnapshotStore) Delete(_ context.Context, ref id.StreamRef) error {
+func (s *SnapshotStore) Delete(ctx context.Context, ref id.StreamRef) error {
+	_, span := startStreamSpan(ctx, "bbolt.snapshot.delete", ref)
+	defer span.End()
+
 	key := snapshotKey(ref.Type, ref.ID)
 
-	return s.db.Update(func(tx *bolt.Tx) error {
+	err := s.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketSnapshots))
 		if bucket == nil {
 			return nil
@@ -141,6 +162,11 @@ func (s *SnapshotStore) Delete(_ context.Context, ref id.StreamRef) error {
 		return wrapBucketErr(bucket.Delete(key),
 			"bbolt.delete_snapshot", "delete snapshot")
 	})
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return err
 }
 
 func (s *SnapshotStore) Close() error { return nil }

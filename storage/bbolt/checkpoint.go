@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // CheckpointStore implements event.CheckpointStore backed by bbolt.
@@ -28,7 +29,7 @@ func NewCheckpointStore(database *bolt.DB, logger *slog.Logger) (*CheckpointStor
 }
 
 func (s *CheckpointStore) Save(
-	_ context.Context,
+	ctx context.Context,
 	projectionName string,
 	checkpoint event.Checkpoint,
 ) error {
@@ -36,6 +37,9 @@ func (s *CheckpointStore) Save(
 		return errorfamily.NewRejection("bbolt.empty_projection_name",
 			"projection name must not be empty")
 	}
+
+	_, span := startProjectionSpan(ctx, "bbolt.checkpoint.save", projectionName)
+	defer span.End()
 
 	data, err := marshalCBOR(serializableCheckpoint{
 		EventID:     checkpoint.EventID,
@@ -46,7 +50,7 @@ func (s *CheckpointStore) Save(
 			"serialize checkpoint for projection "+projectionName)
 	}
 
-	return s.db.Update(func(tx *bolt.Tx) error {
+	return recordErr(span, s.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketCheckpoints))
 		if bucket == nil {
 			return errorfamily.NewInfrastructure("bbolt.bucket_missing",
@@ -55,11 +59,11 @@ func (s *CheckpointStore) Save(
 
 		return wrapBucketErr(bucket.Put([]byte(projectionName), data),
 			"bbolt.write_checkpoint", "write checkpoint for "+projectionName)
-	})
+	}))
 }
 
 func (s *CheckpointStore) Load(
-	_ context.Context,
+	ctx context.Context,
 	projectionName string,
 ) (event.Checkpoint, error) {
 	if projectionName == "" {
@@ -67,6 +71,9 @@ func (s *CheckpointStore) Load(
 			errorfamily.NewRejection("bbolt.empty_projection_name",
 				"projection name must not be empty")
 	}
+
+	_, span := startProjectionSpan(ctx, "bbolt.checkpoint.load", projectionName)
+	defer span.End()
 
 	var result event.Checkpoint
 
@@ -98,7 +105,7 @@ func (s *CheckpointStore) Load(
 		return nil
 	})
 
-	return result, wrapBucketErr(err, "bbolt.checkpoint_load", "load checkpoint")
+	return result, recordErr(span, wrapBucketErr(err, "bbolt.checkpoint_load", "load checkpoint"))
 }
 
 func (s *CheckpointStore) Close() error { return nil }
@@ -114,4 +121,12 @@ func wrapBucketErr(err error, code, msg string) error {
 	}
 
 	return errorfamily.WrapInfrastructure(err, code, msg)
+}
+
+func recordErr(span cqrsotel.Span, err error) error {
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return err
 }

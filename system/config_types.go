@@ -60,75 +60,75 @@ type DomainConfig struct {
 type DeploymentConfig struct {
 	// Engines maps named engine declarations. Each engine has a driver name
 	// (e.g., "sqlite", "memory") and a DSN. Instances reference engines by name.
-	Engines map[string]EngineConfig
+	Engines map[string]EngineConfig `koanf:"engines"`
 
 	// Buses maps named bus declarations. Each bus has a driver name
 	// (e.g., "gochannel", "nats") and configuration.
-	Buses map[string]BusConfig
+	Buses map[string]BusConfig `koanf:"buses"`
 
 	// Instances describes how collections are grouped into metaengine.Store
 	// instances. Each instance has a role, an engine reference, and optional
 	// bus/cache configuration.
-	Instances []InstanceConfig
+	Instances []InstanceConfig `koanf:"instances"`
 
 	// AcknowledgeWarnings lists scream-store warnings the operator has ACKed.
 	// Format: "rule:target" (e.g., "durability-downgrade:events").
-	AcknowledgeWarnings []string
+	AcknowledgeWarnings []string `koanf:"acknowledge_warnings"`
 }
 
 // EngineConfig declares a named storage engine.
 type EngineConfig struct {
-	Driver  string   // "sqlite", "memory", "pebble", "duckdb", "postgres"
-	DSN     string   // connection string (empty for memory)
-	Pragmas []string // SQLite pragmas (e.g., "wal", "foreign_keys")
+	Driver  string   `koanf:"driver"`  // "sqlite", "memory", "pebble", "duckdb", "postgres"
+	DSN     string   `koanf:"dsn"`     // connection string (empty for memory)
+	Pragmas []string `koanf:"pragmas"` // SQLite pragmas (e.g., "wal", "foreign_keys")
 }
 
 // BusConfig declares a named message bus.
 type BusConfig struct {
-	Driver string // "gochannel", "nats", "redis"
-	URL    string // broker URL (empty for gochannel)
-	Mode   string // "sync" (block on publish) or "async" (fire-and-forget)
+	Driver string `koanf:"driver"` // "gochannel", "nats", "redis"
+	URL    string `koanf:"url"`    // broker URL (empty for gochannel)
+	Mode   string `koanf:"mode"`   // "sync" (block on publish) or "async" (fire-and-forget)
 }
 
 // CacheConfig declares an optional read-through cache tier for an instance.
 type CacheConfig struct {
-	Engine   string // named engine to use as cache (e.g., "hot-cache")
-	Capacity int    // max entries (otter W-TinyLFU handles eviction)
+	Engine   string `koanf:"engine"`   // named engine to use as cache (e.g., "hot-cache")
+	Capacity int    `koanf:"capacity"` // max entries (otter W-TinyLFU handles eviction)
 }
 
 // InstanceConfig describes one metaengine.Store instance.
 type InstanceConfig struct {
 	// Role classifies this instance: RoleEvents, RoleCommands, RoleQueries,
 	// RoleSnapshots, RoleProjections, or RoleSourceOfTruth (combined).
-	Role InstanceRole
+	Role InstanceRole `koanf:"role"`
 
 	// Collections lists the collection names this instance serves.
 	// For RoleEvents, this is typically ["events"]. For RoleSourceOfTruth,
 	// it may be ["events", "commands", "queries", "snapshots", "checkpoints"].
-	Collections []string
+	Collections []string `koanf:"collections"`
 
 	// Engine is the named engine for a single-engine instance.
 	// Mutually exclusive with Engines.
-	Engine string
+	Engine string `koanf:"engine"`
 
 	// Engines lists named engines for a mixed-pool instance (projection layer).
 	// The metaengine planner routes freely within the pool.
 	// Mutually exclusive with Engine.
-	Engines []string
+	Engines []string `koanf:"engines"`
 
 	// Durability is the persistence tier for this instance.
-	Durability DurabilityTier
+	Durability DurabilityTier `koanf:"durability"`
 
 	// Publish lists bus names that events from this instance are published to.
 	// Events fan-out to all listed buses (D9: multi-bus support).
-	Publish []string
+	Publish []string `koanf:"publish"`
 
 	// Subscribe lists bus names that projections on this instance consume from.
 	// The projectionhost uses CatchUpSubscriber for each subscribed bus.
-	Subscribe []string
+	Subscribe []string `koanf:"subscribe"`
 
 	// Cache configures an optional read-through cache tier.
-	Cache *CacheConfig
+	Cache *CacheConfig `koanf:"cache"`
 }
 
 // InstanceRole classifies a metaengine.Store instance by its function.
