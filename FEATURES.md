@@ -295,7 +295,7 @@ developer never declares "I need a Map" or "I need a Counter."
 | Record stamping              | `AutoInsert`/`AutoUpdate` auto-stamp Record metadata (StreamID, Version, CorrelationID) into matching result fields (`record_stamp.go`)                                                                      | 🧪     |
 | Tombstone deprecation        | All tombstone API carries `// Deprecated:` → migration guide. Functional in v4, removal in v5 (ADR-0114)                                                                                                     | 🧪     |
 
-**Coverage:** 78.7% (verified `go test -cover ./...` 2026-08-06). 174 BDD specs + 150 cross-engine
+**Coverage:** 79.8% (verified `go test -tags "goexperiment.jsonv2" -cover` 2026-08-07). 174 BDD specs + 150 cross-engine
 meta specs + 12 ADT harness self-tests. The metaengine went through 20+ hardening
 sessions (2026-07-30 to 2026-08-06): transaction API fix, SQL injection fix,
 hooks-on-error, ReadCoalescer wiring, Watcher with per-key filtering,
@@ -314,9 +314,9 @@ costs) + SerializableReadCosts in plan JSON (ADR-0100), go-sse consumption
 sqliteengine/graphadapter/badgerengine/dgraphengine extraction, `OnRecord`/`ApplyRecord`,
 `AutoInsert`/`AutoCRUD`/`AutoCRUDByConvention`, tombstone deprecation.
 
-Remaining: Postgres GIN indexes, `record.FromCommand()` adapter,
-`auto_naming.go` dedup refactor. See
-[TODO_LIST.md](TODO_LIST.md).
+Remaining: Tag `metaengine/bench/v4.0.0` + `metaengine/pebbleengine/v4.0.0`,
+`record.FromCommand()` adapter, Record-aware integration tests through SQLite +
+Pebble engines. See [TODO_LIST.md](TODO_LIST.md).
 
 ---
 
@@ -328,14 +328,17 @@ Operator-configured CQRS topology from the
 [metaengine redesign](docs/planning/metaengine-redesign.md). Replaces manual
 `stack.Bundle` wiring with a `New(ctx, deployment, domains...)` composition root
 where the operator provides engines/config and the consumer provides domain
-deciders/projections.
+deciders/projections. `example/taskmanager` migrated to `system.New()`.
 
-**Pareto P0/P1 fixes shipped**: driver registry wired (SQLite works through
+**P0/P1 fixes shipped**: driver registry wired (SQLite works through
 `New()`), serialization auto-detected, handler independence fixed, MultiBus/
-SnapshotBackend/scream store wired, introspection real, config YAML parsing,
-Verify/Plan/Explain methods, projection decoder wiring. **Remaining gaps**:
-CommandAdapter/QueryAdapter serialization for SQL, example migration, koanf
-YAML config. See [TODO_LIST.md](TODO_LIST.md) → System Package section.
+SnapshotBackend/scream store wired, introspection real, Verify/Plan/Explain
+methods, projection decoder wiring, koanf YAML config, DuckDB/PG Transactional,
+bus driver registry, scream store plan-drift detection, CommandAdapter/
+QueryAdapter SQL serialization, example/taskmanager migration. **Remaining
+gaps**: system/README Quick Start doesn't compile, configurable checkpoint
+store, HealthCheck/GracefulClose methods. See [TODO_LIST.md](TODO_LIST.md) →
+System Package section.
 
 | Feature                         | Detail                                                                                                                                                                                                                                        | Status |
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -344,22 +347,22 @@ YAML config. See [TODO_LIST.md](TODO_LIST.md) → System Package section.
 | Op[State] declarative routing   | `{StreamID, StreamType, Decide}` with `Execute()`, `StreamID()`, `StreamType()` accessors (D10)                                                                                                                                               | 🧪     |
 | Driver registry                 | `RegisterDriver(name, factory)`, `RegisteredDrivers()`, `createEngineFromDriver()` — database/sql model (D1). Memory + SQLite registered. Wired into `New()`                                                                                  | 🧪     |
 | EventAdapter                    | Wraps `StreamLogBackend` as `event.Store`/`event.SeekableJournal`. AtomicAppender fast path, seq cache for O(1) ReadFrom, `WithSerialization()` auto-detected for SQL engines                                                                 | 🧪     |
-| CommandAdapter                  | Full `command.Store` + `command.SeekableCommandJournal`. ⚠️ No SQL serialization envelope yet                                                                                                                                                 | 🧪     |
-| QueryAdapter                    | Full `query.QueryStore` + `query.SeekableQueryJournal`. ⚠️ No SQL serialization envelope yet                                                                                                                                                  | 🧪     |
+| CommandAdapter                  | Full `command.Store` + `command.SeekableCommandJournal`. SQL serialization via `serializedCommand` JSON envelope (auto-detected for non-memory drivers)                                                                                       | 🧪     |
+| QueryAdapter                    | Full `query.QueryStore` + `query.SeekableQueryJournal`. SQL serialization via `serializedQuery` JSON envelope (auto-detected for non-memory drivers)                                                                                          | 🧪     |
 | Event bus (simpleBus)           | `event.Bus` impl: Publisher + Subscriber + middleware chains. Synchronous dispatch. Handler independence (each handler called independently)                                                                                                  | 🧪     |
 | MultiBus                        | Fan-out `Publish` to N publishers with first-error semantics. Wired into `New()` via `WithMultiBus()`                                                                                                                                         | 🧪     |
 | CachedEventStore                | Otter v2 W-TinyLFU read-through cache tier. `CacheStats` via O(1) `EstimatedSize()`                                                                                                                                                           | 🧪     |
 | SnapshotBackend                 | Interface + `memorySnapshotBackend` + `SnapshotAdapter`. Wired into `New()` with codec + strategy via `WithSnapshotStore`                                                                                                                     | 🧪     |
-| Scream store                    | `ScreamTier`, `ScreamDiagnostic`, `ScreamReport`, `ErrUnsafeChange`. `CheckSafety()` called on startup. 2 rules: `volatile-source-of-truth`, `durability-downgrade`. ⚠️ Missing PlanDiff/Manifest                                             | 🧪     |
+| Scream store                    | `ScreamTier`, `ScreamDiagnostic`, `ScreamReport`, `ErrUnsafeChange`. `CheckSafety()` on startup + `CheckPlanSafety()` plan-drift detection (SCREAM/WARN/ADVISORY tiers, manifest pinning, tamper detection)                                  | 🧪     |
 | Introspection                   | `Snapshot(ctx)`, `Health(ctx)`, `Explain(ctx)`. Returns real handler counts and health status                                                                                                                                                 | 🧪     |
 | Instance roles                  | `RoleSourceOfTruth`, `RoleEvents`, `RoleCommands`, `RoleQueries`, `RoleProjections`                                                                                                                                                           | 🧪     |
 | Durability tiers                | `DurabilityStrict`, `DurabilityNormal`, `DurabilityRelaxed` (same vocabulary as stack presets)                                                                                                                                                | 🧪     |
-| Config loader                   | `LoadConfig(path)` + env vars + YAML parsing (`yaml.v3`). gochannel bus driver registered                                                                                                                                                     | 🧪     |
+| Config loader                   | `LoadConfig(path)` via `koanf/v2` (file.Provider + env.Provider). Structured env vars (`CQRS_ENGINES__PRIMARY__DRIVER=sqlite`). YAML + env merge. Backward-compatible legacy env vars. Bus driver registry (gochannel registered, unknown drivers error) | 🧪     |
 | Projection wiring               | Constructor creates `projectionadapter.Adapter` + registers on `projectionhost.Host`. E2E proven (dispatch → host.Start → projection updated). `ProjectionTypeDecoder` / `ProjectionEventDecoder` for typed decoders                          | 🧪     |
 | StreamLogBackend (5 engines)    | Memory + SQLite + Pebble + DuckDB + Postgres. All implement `StreamLogBackend`. DuckDB + Postgres + Memory have `AtomicAppender`                                                                                                              | 🧪     |
 | StreamTemporalReader            | `StreamReadFromVersion` / `StreamReadAsOfVersion` on Memory + SQLite. Wired into EventAdapter                                                                                                                                                 | 🧪     |
 | System.Verify/Plan/Explain      | Cross-instance consistency check, combined plan, human-readable explanation                                                                                                                                                                   | 🧪     |
-| Test suite                      | 21+ tests: query dispatch, driver registry, snapshot isolation + E2E, multi-decider, concurrent dispatch (20 goroutines, race detector), bus pub/sub, MultiBus, Op accessors, atomic conflict, journal, projection E2E. All pass with `-race` | ✅     |
+| Test suite                      | 21+ tests: query dispatch, driver registry, snapshot isolation + E2E, multi-decider, concurrent dispatch (20 goroutines, race detector), bus pub/sub, MultiBus, Op accessors, atomic conflict, journal, projection E2E, plan-drift, adapter serialization. All pass with `-race` | ✅     |
 
 ---
 
@@ -994,6 +997,9 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Backend facade         | `Open(path, logger)` / `OpenWith(path, opts, logger)` — closes DB + all stores             | ✅     |
 | Shared DB              | All stores share one `*bbolt.DB` via disjoint buckets (`cqrs_events`, `cqrs_snapshots`, …) | ✅     |
 | Durability tiers       | `WithDurability` (Strict/Normal/Relaxed) via `stack/bbolt` preset                          | ✅     |
+| Streaming iterators    | `event.StreamingSource` (LoadStream, LoadStreamFromVersion) + `event.StreamingJournal` (ReadStream, ReadStreamFrom). Long-lived read tx, lazy Next, prefix/upper-bound filtering | ✅     |
+| OTel spans             | Full span instrumentation across all public methods (EventStore 12, SnapshotStore 4, CheckpointStore 2, CommandStore 7, QueryStore 4) via `otel.go` | ✅     |
+| Contract test suite    | 16 tests + 8 streaming tests (eventtest contract coverage)                                 | ✅     |
 
 ### Turso Database Connector
 

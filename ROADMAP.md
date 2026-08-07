@@ -175,8 +175,8 @@ add keycodec/enginetest/pgtestcontainer to api-stability modules list.
   the `system/` package implements the operator-configured topology with a
   driver registry (database/sql model). Auto event-decoders (`NewTypeDecoder`+
   `Register`, `AutoCRUDByConvention`) eliminate the per-event decoder switch.
-  Remaining: koanf YAML config, bus driver registry for NATS/Redis,
-  CommandAdapter/QueryAdapter SQL serialization.
+  Remaining: NATS/Redis bus driver registration, system/README Quick Start
+  compilation, configurable checkpoint store.
 
 ### 2. Benchkit → Evidence-Grade
 
@@ -374,6 +374,7 @@ first `ReplicationLeaderless` engine.
 - [ ] Evaluate `iroh-go` C binding stability (third-party binding for Iroh Rust)
 - ✅ **Tag loopback + quic modules** — `loopback/v4.0.0` + `quic/v4.0.0` tagged
 - [ ] WriteOp.ID dedup ring on loopback path (quic has it)
+- [ ] Fix `TestQuicSetConvergence` flakiness (pre-existing, network-dependent)
 
 ### 11. Metaengine Persistence + System Redesign
 
