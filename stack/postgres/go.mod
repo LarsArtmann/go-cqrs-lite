@@ -8,10 +8,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260807040613-506318f53165
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.1-0.20260807040613-506318f53165
+	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/testcontainers/testcontainers-go v0.43.0
-	github.com/testcontainers/testcontainers-go/modules/postgres v0.43.0
 )
 
 require (
@@ -103,3 +102,5 @@ require (
 	golang.org/x/text v0.40.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 => ../../testutil/pgtestcontainer
