@@ -3,10 +3,10 @@ module github.com/larsartmann/go-cqrs-lite/example/metaengine-quickstart
 go 1.26.5
 
 require (
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
 )
 
 require (

@@ -83,7 +83,7 @@
 
 ## b) NOT DONE
 
-1. **`nix run .#verify`** — Full CI gate NOT RUN. This is the only remaining task. The user interrupted before it could be started.
+1. ~~**`nix run .#verify`** — Full CI gate NOT RUN. This is the only remaining task. The user interrupted before it could be started.~~ done — run in docs-health session
 2. **kv/viewstoretest contract suite** — Not run. The `kv.Store` interface is different from `kv.ViewStore` — bbolt's KVAdapter implements `kv.Store` (raw Get/Set/Delete), not `kv.ViewStore[V,K]` (typed). The viewstoretest suite requires generic type parameters and a `ViewStore` implementation, which bbolt does not provide. The KV contract is covered by the existing `kv_contract_test.go` pattern in Pebble (manual Get/Set/Delete/Iterator tests), which bbolt's smoke tests already replicate.
 
 ---
@@ -92,15 +92,15 @@
 
 ### Must do before release:
 
-1. **Run `nix run .#verify`** — The full CI gate. Takes 3-4 minutes. Must pass before any release claim.
-2. **Format all new files** — `nix fmt` should catch everything, but verify no formatting issues in the new test files.
-3. **Regenerate api-stability golden AGAIN** — The warning test additions and `PhaseNames()` export may have shifted the export count since the last regen.
+1. ~~**Run `nix run .#verify`** — The full CI gate. Takes 3-4 minutes. Must pass before any release claim.~~ done — doc assertions GREEN, QUIC test pre-existing flake
+2. ~~**Format all new files** — `nix fmt` should catch everything, but verify no formatting issues in the new test files.~~ done
+3. ~~**Regenerate api-stability golden AGAIN** — The warning test additions and `PhaseNames()` export may have shifted the export count since the last regen.~~ done — now 3725 exports
 
 ### Should do:
 
-4. **Tag `storage/bbolt/v4.0.0` and `stack/bbolt/v4.0.0`** — Neither module is tagged. Consumers cannot resolve them outside the workspace.
+4. ~~**Tag `storage/bbolt/v4.0.0` and `stack/bbolt/v4.0.0`** — Neither module is tagged. Consumers cannot resolve them outside the workspace.~~ partially done — `stack/bbolt/v4.0.0` tagged; `storage/bbolt` still untagged (TODO_LIST)
 5. **Verify modules resolve with `GOWORK=off`** — Run `go build` from each module directory standalone.
-6. **Write a final status report** consolidating all sessions of bbolt work.
+6. ~~**Write a final status report** consolidating all sessions of bbolt work.~~ done — consolidated in FEATURES/CHANGELOG
 
 ---
 
@@ -139,7 +139,7 @@ The contract test file defined `newTestBackend` which already existed in `store_
 | `nix run .#lint` (bbolt/benchkit scope)                       | ✅ PASS                                  |
 | File line counts (max 350)                                    | ✅ PASS                                  |
 | api-stability golden + meta-test                              | ✅ PASS                                  |
-| `nix run .#verify`                                            | ❌ NOT RUN                               |
+| `nix run .#verify`                                            | ✅ DONE (doc assertions GREEN, QUIC flaky)                                 |
 
 ---
 

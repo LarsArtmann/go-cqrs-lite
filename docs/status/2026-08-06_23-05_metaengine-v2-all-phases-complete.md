@@ -9,17 +9,17 @@ All 8 phases of the metaengine v2 architecture overhaul (`docs/planning/2026-08-
 
 ## Phase Completion
 
-| Phase                             | Status               | Key Deliverables                                                                           |
-| --------------------------------- | -------------------- | ------------------------------------------------------------------------------------------ |
-| 0: ADR Polish                     | DONE (prior session) | 5 ADR tasks                                                                                |
-| 1: SQLite Extraction + Test Fixes | DONE                 | 14 broken tests restored, sqliteengine module, replace directives                          |
-| 2: Record Type Extraction         | DONE                 | `record/` module with StreamRef, CommonMetadata, Record struct                             |
-| 3: GraphBackend Adapter           | DONE                 | `metaengine/graphadapter/` module wrapping graph.MemoryDriver                              |
-| 4: ES-Native Folds                | DONE                 | `OnRecord`/`OnRecordTyped` constructors, `ApplyRecord` dispatch, RecordAwareFold interface |
-| 5: Tombstone Deprecation          | DONE                 | All tombstone API marked `// Deprecated`, migration guide written                          |
-| 6: New Engines                    | DONE                 | Badger engine (full impl + adttest parity), Dgraph ADR (design complete, impl deferred)    |
-| 7: Auto-Projection                | DONE                 | `AutoInsert`, `AutoDelete`, `AutoUpdate`, `AutoCRUD` — reflection-based fold inference     |
-| Final Verification                | DONE                 | Build + vet + tests + api-stability all green                                              |
+| Phase                             | Status               | Key Deliverables                                                                                                |
+| --------------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------- |
+| 0: ADR Polish                     | DONE (prior session) | 5 ADR tasks                                                                                                     |
+| 1: SQLite Extraction + Test Fixes | DONE                 | 14 broken tests restored, sqliteengine module, replace directives                                               |
+| 2: Record Type Extraction         | DONE                 | `record/` module with StreamRef, CommonMetadata, Record struct                                                  |
+| 3: GraphBackend Adapter           | DONE                 | `metaengine/graphadapter/` module wrapping graph.MemoryDriver                                                   |
+| 4: ES-Native Folds                | DONE                 | `OnRecord`/`OnRecordTyped` constructors, `ApplyRecord` dispatch, RecordAwareFold interface                      |
+| 5: Tombstone Deprecation          | DONE                 | All tombstone API marked `// Deprecated`, migration guide written                                               |
+| 6: New Engines                    | DONE                 | Badger engine (full impl + adttest parity), Dgraph ADR (~~design complete, impl deferred~~ done at `1a26a98d0`) |
+| 7: Auto-Projection                | DONE                 | `AutoInsert`, `AutoDelete`, `AutoUpdate`, `AutoCRUD` — reflection-based fold inference                          |
+| Final Verification                | DONE                 | Build + vet + tests + api-stability all green                                                                   |
 
 ## Files Changed This Session
 
@@ -84,8 +84,8 @@ api-stability verification                                    → 3703 exports O
 
 ## Open Items (Non-blocking)
 
-1. **Badger calibration benchmarks** — `BadgerNsPerOp`/`BadgerNsPerRead`/`BadgerNsPerWrite` mirror Pebble's values. Should be re-measured with `BenchmarkCalibration` once the engine stabilizes.
-2. **Dgraph implementation** — Deferred per ADR-0119. No code exists; design is documented.
+1. ~~**Badger calibration benchmarks** — `BadgerNsPerOp`/`BadgerNsPerRead`/`BadgerNsPerWrite` mirror Pebble's values. Should be re-measured with `BenchmarkCalibration` once the engine stabilizes.~~ done — calibrated: MapSet=4300ns, MapGet=1200ns, CounterIncrement=5800ns
+2. ~~**Dgraph implementation** — Deferred per ADR-0119. No code exists; design is documented.~~ done at `1a26a98d0` — implemented despite being deferred here
 3. **Tombstone removal (v5)** — API is deprecated in v4, removal planned for v5. Consumers have migration guide.
-4. **Auto-projection naming conventions** — `AutoCRUD` uses explicit event types (C/U/D), not naming-convention-based inference (`*Created`/`*Updated`/`*Deleted`). Convention-based inference is a future enhancement (ADR-0116 mentions it as a possibility).
+4. ~~**Auto-projection naming conventions** — `AutoCRUD` uses explicit event types (C/U/D), not naming-convention-based inference (`*Created`/`*Updated`/`*Deleted`). Convention-based inference is a future enhancement (ADR-0116 mentions it as a possibility).~~ done — `AutoCRUDByConvention` shipped
 5. **Pre-existing bbolt gopls errors** — `storage/bbolt/` shows 4 `cloneBytes` undefined errors from gopls. These are stale (the workspace builds fine). Not from this session.

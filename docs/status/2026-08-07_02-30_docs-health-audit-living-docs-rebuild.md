@@ -150,7 +150,7 @@ I added ~30 new rows to FEATURES.md without pruning anything. The file was alrea
 20. **Annotate `docs/status/2026-08-06_12-54_superb-session1-followup-brutal-review.md`** — has quality items.
 21. **Annotate `docs/status/2026-08-06_09-38_superb-execution-plan-session-1-brutal-review.md`** — has T-series items.
 22. **Annotate `docs/status/2026-08-06_01-02_docs-health-living-docs-update-brutal-self-review.md`** — prior docs-health run, items may be resolved.
-23. _*Annotate ALL 2026-08-05_* reports_* (19 files) — same pattern.
+23. _\*Annotate ALL 2026-08-05_* reports_* (19 files) — same pattern.
 24. **Annotate the planning docs** (`docs/planning/2026-08-06_*`) — mark phases as DONE.
 
 ### Low Priority (polish)

@@ -10,7 +10,7 @@ replace (
 
 require (
 	github.com/dgraph-io/badger/v4 v4.9.6
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
 	github.com/onsi/gomega v1.42.1
 )
 

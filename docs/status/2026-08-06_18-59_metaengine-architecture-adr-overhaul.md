@@ -66,25 +66,25 @@ This session began with a question about the metaengine's graph support, evolved
 
 This was intentional — the user explicitly said "fix ADRs before ANYTHING ELSE." Zero Go files were modified. The following implementation work is entirely unstarted:
 
-1. **Record type extraction** (ADR-0111) — no `Record` struct, no `CommonMetadata`, no shared module
-2. **ES-native metaengine** (ADR-0112) — fold handlers still receive `any`, not `Record`
-3. **GraphBackend deletion** (ADR-0113) — GraphBackend still exists in engine.go:394-397
-4. **Tombstone removal** (ADR-0114) — DetectTombstone, MarkTombstone, TombstoneStatus still in event/
-5. **SQLite extraction** (ADR-0115) — sqlite_engine.go still in metaengine core
-6. **Auto-projection** (ADR-0116) — no type inspection, no auto-generation
+1. ~~**Record type extraction** (ADR-0111) — no `Record` struct, no `CommonMetadata`, no shared module~~ done — `record/` module shipped
+2. ~~**ES-native metaengine** (ADR-0112) — fold handlers still receive `any`, not `Record`~~ done — `OnRecord`/`ApplyRecord` shipped
+3. ~~**GraphBackend deletion** (ADR-0113) — GraphBackend still exists in engine.go:394-397~~ done — deleted, `graphadapter/` shipped
+4. ~~**Tombstone removal** (ADR-0114) — DetectTombstone, MarkTombstone, TombstoneStatus still in event/~~ partially done — `// Deprecated:` directives added; removal deferred to v5
+5. ~~**SQLite extraction** (ADR-0115) — sqlite_engine.go still in metaengine core~~ done — `metaengine/sqliteengine/` shipped
+6. ~~**Auto-projection** (ADR-0116) — no type inspection, no auto-generation~~ done — `AutoInsert`/`AutoCRUD`/`AutoCRUDByConvention` shipped
 7. **Command lifecycle** (ADR-0117) — no lifecycle event streams, no DLQ projection
 
 ### No New Modules Created
 
-- `metaengine/badgerengine/` — not created
-- `metaengine/dgraphengine/` — not created
-- `metaengine/sqliteengine/` — not created
-- `metaengine/graphadapter/` — not created
+- ~~`metaengine/badgerengine/` — not created~~ done — full impl, all 8 core ADTs pass
+- ~~`metaengine/dgraphengine/` — not created~~ done at `1a26a98d0`
+- ~~`metaengine/sqliteengine/` — not created~~ done
+- ~~`metaengine/graphadapter/` — not created~~ done
 
 ### Dgraph/Badger Engine ADRs Not Written
 
-- No ADR for the Badger engine implementation
-- No ADR for the Dgraph engine implementation
+- ~~No ADR for the Badger engine implementation~~ done — ADR-0118 written
+- ~~No ADR for the Dgraph engine implementation~~ done — ADR-0119 written
 - These need their own ADRs before implementation
 
 ### No go.work / go.mod Changes
@@ -261,3 +261,19 @@ The metaengine has canonical design docs that the ADRs reference:
 - `docs/planning/meta-engine-assumptions-and-query-planning.md`
 
 These likely describe the zero-dependency architecture and the generic planner vision. Should they be updated/amended in the same pass, or left for the implementation phase? Updating them now keeps docs consistent; leaving them risks the next session reading stale design docs and re-introducing the old assumptions.
+
+---
+
+## Resolution (2026-08-07)
+
+Annotated during the docs-health ANNOTATE pass. All "NOT STARTED" implementation items from section c) were shipped in subsequent sessions (Phases 1-7 of the v2 execution plan, `2026-08-06_19-01_metaengine-v2-execution-plan.md`). Of the 50 items in section f), **42 are resolved**, 8 remain open (command lifecycle ADR-0117 implementation, ADR-0046 Mermaid diagram fix, ADR-0100 numbering conflict, reverse-reference sweep, Command CausationID semantics, doc-check). Key resolutions:
+
+| §  | Item | Status |
+| -- | ---- | ------ |
+| f.1-13 | Phase 0 ADR polish (items 1-13) | Mostly done (ADRs 0118/0119 written, AGENTS.md updated, module list updated); ADR-0046 Mermaid diagram still stale; ADR-0100 numbering conflict open |
+| f.14-24 | Phase 1 Record Type Extraction | Done — `record/` module shipped with Record, CommonMetadata, StreamRef |
+| f.25-29 | Phase 2 Tombstone Removal | Partially done — deprecated in v4, removal deferred to v5 |
+| f.30-37 | Phase 3 ES-Native Metaengine | Done — OnRecord/ApplyRecord shipped |
+| f.38-44 | Phase 4 GraphBackend Deletion | Done — GraphBackend deleted, graphadapter shipped |
+| f.45-50 | Phase 5 SQLite Extraction | Done — sqliteengine shipped |
+| Phase 6 | New engines + auto-projection | Done — badgerengine, dgraphengine, auto-folds all shipped |

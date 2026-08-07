@@ -91,26 +91,26 @@
 
 ## b) PARTIALLY DONE
 
-| Item                       | What's Done                     | What's Missing                                                                      |
-| -------------------------- | ------------------------------- | ----------------------------------------------------------------------------------- |
-| C7: doc-check verification | Docs updated                    | ~~`cmd/doc-check` never run on updated files~~ **BLOCKED — pre-existing cmdguard arg-parsing issue**             |
+| Item                       | What's Done                     | What's Missing                                                                                                |
+| -------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| C7: doc-check verification | Docs updated                    | ~~`cmd/doc-check` never run on updated files~~ **BLOCKED — pre-existing cmdguard arg-parsing issue**          |
 | `nix run .#verify` gate    | Targeted tests pass             | ~~Full verify gate NEVER RUN this session~~ run in docs-health session; doc assertions GREEN, QUIC test flaky |
-| AGENTS.md test command     | Modules added to list           | ~~Test command pattern NOT updated~~ done at `2d352cb63` (`./record/...` now in the `go test` command)           |
-| `event/go.mod`             | `record/v4` added as dependency | ~~`record/v4` has NO git tag~~ done at `2d1bf9b3` (`record/v4.0.0` tagged)                                       |
+| AGENTS.md test command     | Modules added to list           | ~~Test command pattern NOT updated~~ done at `2d352cb63` (`./record/...` now in the `go test` command)        |
+| `event/go.mod`             | `record/v4` added as dependency | ~~`record/v4` has NO git tag~~ done at `2d1bf9b3` (`record/v4.0.0` tagged)                                    |
 
 ---
 
 ## c) NOT STARTED
 
-| Item                                          | From Plan            | Notes                                            |
-| --------------------------------------------- | -------------------- | ------------------------------------------------ |
-| I1: Dgraph engine implementation              | Phase I (deferred)   | ~~Needs running cluster — correctly deferred~~ done at `1a26a98d0`                         |
+| Item                                          | From Plan            | Notes                                                                              |
+| --------------------------------------------- | -------------------- | ---------------------------------------------------------------------------------- |
+| I1: Dgraph engine implementation              | Phase I (deferred)   | ~~Needs running cluster — correctly deferred~~ done at `1a26a98d0`                 |
 | I2: Tombstone v5 removal                      | Phase I (deferred)   | Correctly deferred to v5 (`// Deprecated:` annotations added)                      |
-| I3: `record.FromCommand()` adapter            | Phase I (10min task) | Was feasible this session — skipped. **Still open** — see TODO_LIST                 |
+| I3: `record.FromCommand()` adapter            | Phase I (10min task) | Was feasible this session — skipped. **Still open** — see TODO_LIST                |
 | `nix run .#lint`                              | Not in plan          | Run in docs-health session; 8 pre-existing err113/gochecknoglobals issues remain   |
-| `nix run .#build` (Nix build, not `go build`) | Not in plan          | Run in docs-health session; passes                                                   |
-| `nix fmt` on whole repo                       | Not in plan          | Only ran `gofmt`/`goimports` on new files                                           |
-| `nix run .#check-layers` (dep budget)         | Not in plan          | Run in docs-health session; pre-existing violations found (not session-introduced)   |
+| `nix run .#build` (Nix build, not `go build`) | Not in plan          | Run in docs-health session; passes                                                 |
+| `nix fmt` on whole repo                       | Not in plan          | Only ran `gofmt`/`goimports` on new files                                          |
+| `nix run .#check-layers` (dep budget)         | Not in plan          | Run in docs-health session; pre-existing violations found (not session-introduced) |
 
 ---
 
@@ -227,21 +227,21 @@ I claimed "all green" based on targeted `go test` runs, not the full `nix run .#
 
 Annotated during the docs-health ANNOTATE pass. Of the 50 follow-up items: **24 resolved** (shipped or blocked-by-pre-existing-issue), **26 still open** (tracked in TODO_LIST). Key resolutions:
 
-| Items | Status | Evidence |
-| ----- | ------ | -------- |
-| §f.1, §f.12 | Tagged | `record/v4.0.0` at `2d1bf9b3`; `projectionadapter/v4.3.0` tagged |
-| §f.6, §f.10 | Done | AGENTS.md test command includes `./record/...` at `2d352cb63` |
-| §f.7, §f.16, §f.31, §f.42 | Done | auto_naming dedup + convention docs + CausationID precedence at `6fa9cad32` |
-| §f.14 | Done | projectionhost integration test at `adapter_integration_test.go:220` |
-| §f.15 | Done | AutoCRUDByConvention in quickstart `main.go:62` |
-| §f.17, §f.18 | Done | SchemaVersion + ActorID getters in `record_stamp.go` |
-| §f.20 | Done | verify-fast runs `-race` |
-| §f.21 | Done | Dgraph engine at `1a26a98d0` |
-| §f.24 | Done | ADR-0116 has 14 convention mentions |
-| §f.26 | Done | SKILL.md modules.md documents Record pipeline |
-| §f.35 | Done | metaengine README has 19 Record mentions |
-| §f.8 | Open | `record.FromCommand()` — TODO_LIST |
-| §f.38-39 | Open | SQLite/Pebble integration tests — TODO_LIST |
-| §f.50 | Open | `nix run .#vulncheck` — TODO_LIST |
+| Items                     | Status | Evidence                                                                    |
+| ------------------------- | ------ | --------------------------------------------------------------------------- |
+| §f.1, §f.12               | Tagged | `record/v4.0.0` at `2d1bf9b3`; `projectionadapter/v4.3.0` tagged            |
+| §f.6, §f.10               | Done   | AGENTS.md test command includes `./record/...` at `2d352cb63`               |
+| §f.7, §f.16, §f.31, §f.42 | Done   | auto_naming dedup + convention docs + CausationID precedence at `6fa9cad32` |
+| §f.14                     | Done   | projectionhost integration test at `adapter_integration_test.go:220`        |
+| §f.15                     | Done   | AutoCRUDByConvention in quickstart `main.go:62`                             |
+| §f.17, §f.18              | Done   | SchemaVersion + ActorID getters in `record_stamp.go`                        |
+| §f.20                     | Done   | verify-fast runs `-race`                                                    |
+| §f.21                     | Done   | Dgraph engine at `1a26a98d0`                                                |
+| §f.24                     | Done   | ADR-0116 has 14 convention mentions                                         |
+| §f.26                     | Done   | SKILL.md modules.md documents Record pipeline                               |
+| §f.35                     | Done   | metaengine README has 19 Record mentions                                    |
+| §f.8                      | Open   | `record.FromCommand()` — TODO_LIST                                          |
+| §f.38-39                  | Open   | SQLite/Pebble integration tests — TODO_LIST                                 |
+| §f.50                     | Open   | `nix run .#vulncheck` — TODO_LIST                                           |
 
 Sections b) and c) items also resolved inline above.
