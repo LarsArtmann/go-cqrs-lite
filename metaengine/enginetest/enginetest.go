@@ -13,7 +13,9 @@ package enginetest
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
+	"sync"
 	"testing"
 	"time"
 
@@ -494,6 +496,16 @@ func RunTransactionalTest(t *testing.T, eng metaengine.Engine) {
 	if sb, ok := eng.(metaengine.StreamLogBackend); ok {
 		runStreamTxSubtest(t, tx, sb, ctx, col+"_stream", sentinel)
 	}
+
+	// 6. MultiAdd inside RunInTx (if engine implements MultimapBackend).
+	if mm, ok := eng.(metaengine.MultimapBackend); ok {
+		runMultimapTxSubtest(t, tx, mm, ctx, col+"_multimap", sentinel)
+	}
+
+	// 7. LogAppend inside RunInTx (if engine implements LogBackend).
+	if lb, ok := eng.(metaengine.LogBackend); ok {
+		runLogTxSubtest(t, tx, lb, ctx, col+"_log", sentinel)
+	}
 }
 
 func runCounterTxSubtest(
@@ -596,5 +608,169 @@ func runStreamTxSubtest(
 
 	if len(values) != 2 {
 		t.Fatalf("expected 2 values after rollback, got %d", len(values))
+	}
+}
+
+func runMultimapTxSubtest(
+	t *testing.T, tx metaengine.Transactional, mm metaengine.MultimapBackend,
+	ctx context.Context, col string, sentinel error,
+) {
+	t.Helper()
+
+	// Commit path: MultiAdd inside RunInTx, verify outside.
+	if e := tx.RunInTx(ctx, func(ctx context.Context) error {
+		return mm.MultiAdd(ctx, col, "k1", "v1")
+	}); e != nil {
+		t.Fatalf("MultiAdd in tx (commit): %v", e)
+	}
+
+	values, e := mm.MultiGet(ctx, col, "k1")
+	if e != nil {
+		t.Fatalf("MultiGet after commit: %v", e)
+	}
+
+	if len(values) != 1 {
+		t.Fatalf("expected 1 value after commit, got %d", len(values))
+	}
+
+	// Rollback path: add a second value, return sentinel, verify it didn't persist.
+	err := tx.RunInTx(ctx, func(ctx context.Context) error {
+		if e := mm.MultiAdd(ctx, col, "k1", "v2"); e != nil {
+			return e
+		}
+
+		inside, e := mm.MultiGet(ctx, col, "k1")
+		if e != nil {
+			return e
+		}
+
+		if len(inside) != 2 {
+			t.Errorf("expected 2 values inside tx, got %d", len(inside))
+		}
+
+		return sentinel
+	})
+	if !errors.Is(err, sentinel) {
+		t.Fatalf("expected sentinel from multimap rollback, got %v", err)
+	}
+
+	values, e = mm.MultiGet(ctx, col, "k1")
+	if e != nil {
+		t.Fatalf("MultiGet after rollback: %v", e)
+	}
+
+	if len(values) != 1 {
+		t.Fatalf("expected 1 value after rollback, got %d", len(values))
+	}
+}
+
+func runLogTxSubtest(
+	t *testing.T, tx metaengine.Transactional, lb metaengine.LogBackend,
+	ctx context.Context, col string, sentinel error,
+) {
+	t.Helper()
+
+	// Commit path: LogAppend inside RunInTx, verify outside.
+	if e := tx.RunInTx(ctx, func(ctx context.Context) error {
+		return lb.LogAppend(ctx, col, "entry-1")
+	}); e != nil {
+		t.Fatalf("LogAppend in tx (commit): %v", e)
+	}
+
+	tail, e := lb.LogTail(ctx, col, 10)
+	if e != nil {
+		t.Fatalf("LogTail after commit: %v", e)
+	}
+
+	if len(tail) != 1 {
+		t.Fatalf("expected 1 entry after commit, got %d", len(tail))
+	}
+
+	// Rollback path: append a second entry, return sentinel, verify it didn't persist.
+	err := tx.RunInTx(ctx, func(ctx context.Context) error {
+		if e := lb.LogAppend(ctx, col, "entry-2"); e != nil {
+			return e
+		}
+
+		inside, e := lb.LogTail(ctx, col, 10)
+		if e != nil {
+			return e
+		}
+
+		if len(inside) != 2 {
+			t.Errorf("expected 2 entries inside tx, got %d", len(inside))
+		}
+
+		return sentinel
+	})
+	if !errors.Is(err, sentinel) {
+		t.Fatalf("expected sentinel from log rollback, got %v", err)
+	}
+
+	tail, e = lb.LogTail(ctx, col, 10)
+	if e != nil {
+		t.Fatalf("LogTail after rollback: %v", e)
+	}
+
+	if len(tail) != 1 {
+		t.Fatalf("expected 1 entry after rollback, got %d", len(tail))
+	}
+}
+
+// RunConcurrentTxTest verifies that concurrent RunInTx calls do not deadlock
+// and that all committed writes are visible. Two goroutines each write a
+// distinct key inside separate transactions; both must complete successfully.
+//
+// The engine must implement Transactional and MapBackend.
+func RunConcurrentTxTest(t *testing.T, eng metaengine.Engine) {
+	t.Helper()
+
+	tx, ok := eng.(metaengine.Transactional)
+	if !ok {
+		t.Fatalf("engine %T does not implement Transactional", eng)
+	}
+
+	mb, ok := eng.(metaengine.MapBackend)
+	if !ok {
+		t.Fatalf("engine %T does not implement MapBackend", eng)
+	}
+
+	ctx := context.Background()
+	col := "concurrent_tx_" + engineName(eng)
+
+	var wg sync.WaitGroup
+
+	errs := make([]error, 2)
+
+	for i := range 2 {
+		wg.Add(1)
+
+		go func(idx int) {
+			defer wg.Done()
+			key := fmt.Sprintf("key-%d", idx)
+			errs[idx] = tx.RunInTx(ctx, func(ctx context.Context) error {
+				return mb.MapSet(ctx, col, key, fmt.Sprintf("val-%d", idx))
+			})
+		}(i)
+	}
+
+	wg.Wait()
+
+	for i, err := range errs {
+		if err != nil {
+			t.Fatalf("goroutine %d RunInTx: %v", i, err)
+		}
+	}
+
+	for i := range 2 {
+		key := fmt.Sprintf("key-%d", i)
+		_, found, err := mb.MapGet(ctx, col, key)
+		if err != nil {
+			t.Fatalf("MapGet %s: %v", key, err)
+		}
+
+		if !found {
+			t.Fatalf("key %s not found after concurrent transactions", key)
+		}
 	}
 }

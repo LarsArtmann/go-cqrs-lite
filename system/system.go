@@ -13,6 +13,7 @@ package system
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -93,15 +94,111 @@ type System struct {
 	// Projection-layer metaengine store.
 	projStore *metaengine.Store
 
-	// Engines and closers for lifecycle management.
-	engines []metaengine.Engine
-	closers []func() error
+	// Engines and engine names for lifecycle management.
+	engines     []metaengine.Engine
+	engineNames []string // parallel to engines; empty if unnamed
+
+	// shutdownDeps declares ordering constraints for Close(). Each edge says
+	// "before must close before after". Resources not in any edge keep their
+	// creation order. Ported from [stack.Bundle].
+	shutdownDeps []shutdownEdge
+
+	// drainers are called by GracefulClose before Close to drain in-flight work.
+	drainers []Drainer
 
 	// handlerCount tracks registered command handlers for introspection.
 	cmdHandlerCount int
 
 	started bool
 	stopped bool
+}
+
+// Drainer stops accepting new work and finishes in-flight work, bounded by ctx.
+// Implemented by resources that need to drain before connections close (e.g.,
+// event subscribers, projection runners). Drain is called by [GracefulClose]
+// BEFORE [Close], so in-flight handlers complete before their underlying
+// connections are dropped.
+type Drainer interface {
+	Drain(ctx context.Context) error
+}
+
+// shutdownEdge declares that Before must close before After during Close().
+// Resource names are engine names from DeploymentConfig.Engines or the
+// constant ProjectionHostResource.
+type shutdownEdge struct {
+	before, after string
+}
+
+// ProjectionHostResource is the resource name for the projection host in
+// shutdown dependency declarations.
+const ProjectionHostResource = "projection-host"
+
+// orderedEngines returns engines sorted by shutdown dependencies. Engines not
+// in any dependency edge keep their creation order. Cycles fall back to
+// creation order for the affected engines.
+func (s *System) orderedEngines() []metaengine.Engine {
+	if len(s.shutdownDeps) == 0 || len(s.engineNames) == 0 {
+		return s.engines
+	}
+
+	// Build a set of unique engine indices by name.
+	nameToIdx := make(map[string]int, len(s.engineNames))
+	for i, name := range s.engineNames {
+		if _, exists := nameToIdx[name]; !exists {
+			nameToIdx[name] = i
+		}
+	}
+
+	// Build adjacency list from dependency edges.
+	after := make([][]int, len(s.engines))
+	inDegree := make([]int, len(s.engines))
+
+	for _, edge := range s.shutdownDeps {
+		beforeIdx, beforeOK := nameToIdx[edge.before]
+		afterIdx, afterOK := nameToIdx[edge.after]
+		if !beforeOK || !afterOK || beforeIdx == afterIdx {
+			continue
+		}
+
+		after[beforeIdx] = append(after[beforeIdx], afterIdx)
+		inDegree[afterIdx]++
+	}
+
+	// Kahn's algorithm for topological sort.
+	queue := make([]int, 0, len(s.engines))
+	for i := range s.engines {
+		if inDegree[i] == 0 {
+			queue = append(queue, i)
+		}
+	}
+
+	result := make([]metaengine.Engine, 0, len(s.engines))
+	processed := 0
+	for len(queue) > 0 {
+		idx := queue[0]
+		queue = queue[1:]
+		result = append(result, s.engines[idx])
+		processed++
+		for _, next := range after[idx] {
+			inDegree[next]--
+			if inDegree[next] == 0 {
+				queue = append(queue, next)
+			}
+		}
+	}
+
+	// If there's a cycle, append remaining engines in creation order.
+	if processed < len(s.engines) {
+		appended := make(map[int]bool, len(result))
+		for i := range s.engines {
+			if inDegree[i] > 0 {
+				result = append(result, s.engines[i])
+				appended[i] = true
+			}
+		}
+	}
+
+	return result
 }
 
 // MetaEngine returns the projection-layer metaengine store, or nil if no
@@ -164,6 +261,8 @@ func (s *System) SnapshotStore() snapshot.SnapshotStore {
 }
 
 // Close shuts down all owned infrastructure: projection host, engines, stores.
+// All close errors are joined and returned (not just the first), matching
+// [stack.Bundle.Close] behavior.
 func (s *System) Close() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -174,35 +273,40 @@ func (s *System) Close() error {
 
 	s.stopped = true
 
-	var firstErr error
+	var errs []error
 
 	if s.projHost != nil {
-		if err := s.projHost.Stop(); err != nil && firstErr == nil {
-			firstErr = fmt.Errorf("system: stop projection host: %w", err)
+		if err := s.projHost.Stop(); err != nil {
+			errs = append(errs, fmt.Errorf("system: stop projection host: %w", err))
 		}
 	}
 
-	for _, closer := range s.closers {
-		if err := closer(); err != nil && firstErr == nil {
-			firstErr = err
+	for _, eng := range s.orderedEngines() {
+		if err := eng.Close(); err != nil {
+			errs = append(errs, err)
 		}
 	}
 
-	for _, eng := range s.engines {
-		_ = eng.Close()
-	}
-
-	return firstErr
+	return errors.Join(errs...)
 }
 
-// GracefulClose shuts down the system with a context-bounded timeout. It calls
-// [Close] in a goroutine and returns when Close finishes or the context is
-// cancelled, whichever comes first. If the context expires, resources may still
-// be closing in the background.
+// GracefulClose drains in-flight work via any registered [Drainer] resources,
+// then calls [Close] with a context-bounded timeout. It returns when Close
+// finishes or the context is cancelled, whichever comes first. If the context
+// expires during draining, Close is still attempted; if it expires during
+// Close, resources may still be closing in the background.
 //
 // Use this instead of [Close] when you need a shutdown deadline (e.g., a
 // Kubernetes SIGTERM grace period).
 func (s *System) GracefulClose(ctx context.Context) error {
+	// Phase 1: drain in-flight work.
+	for _, d := range s.drainers {
+		if err := d.Drain(ctx); err != nil {
+			return fmt.Errorf("system: graceful drain: %w", err)
+		}
+	}
+
+	// Phase 2: close with context race.
 	done := make(chan error, 1)
 
 	go func() { done <- s.Close() }()
