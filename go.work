@@ -78,6 +78,7 @@ use (
 	./storage/turso
 	./system
 	./testutil
+	./testutil/pgtestcontainer
 	./transport/grpc
 	./transport/http
 	./watermill
