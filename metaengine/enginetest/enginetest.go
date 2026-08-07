@@ -408,9 +408,12 @@ func engineName(eng metaengine.Engine) string {
 //  1. A successful transaction commits all writes
 //  2. A failed transaction rolls back all writes
 //  3. Writes inside a transaction are visible to reads within the same tx
+//  4. CounterIncrement is atomic inside RunInTx (if CounterBackend is implemented)
+//  5. StreamAppend is atomic inside RunInTx (if StreamLogBackend is implemented)
 //
-// The engine must already implement Transactional and MapBackend. The caller
-// is responsible for closing the engine.
+// The engine must implement Transactional and MapBackend. CounterBackend and
+// StreamLogBackend are tested opportunistically when present. The caller is
+// responsible for closing the engine.
 func RunTransactionalTest(t *testing.T, eng metaengine.Engine) {
 	t.Helper()
 
@@ -478,5 +481,112 @@ func RunTransactionalTest(t *testing.T, eng metaengine.Engine) {
 
 	if found {
 		t.Fatalf("expected key to NOT exist after rollback")
+	}
+
+	// 4. CounterIncrement inside RunInTx (if engine implements CounterBackend).
+	if cb, ok := eng.(metaengine.CounterBackend); ok {
+		counterCol := col + "_counter"
+
+		// Commit path: increment by 5, verify outside tx.
+		if e := tx.RunInTx(ctx, func(ctx context.Context) error {
+			return cb.CounterIncrement(ctx, counterCol, metaengine.Delta{"views": 5})
+		}); e != nil {
+			t.Fatalf("CounterIncrement in tx (commit): %v", e)
+		}
+
+		counts, e := cb.CounterGet(ctx, counterCol)
+		if e != nil {
+			t.Fatalf("CounterGet after commit: %v", e)
+		}
+
+		if counts["views"] != 5 {
+			t.Fatalf("expected views=5 after committed increment, got %d", counts["views"])
+		}
+
+		// Rollback path: increment by 3, return error, verify original value.
+		err = tx.RunInTx(ctx, func(ctx context.Context) error {
+			if e := cb.CounterIncrement(ctx, counterCol, metaengine.Delta{"views": 3}); e != nil {
+				return e
+			}
+
+			// Read inside tx sees the increment.
+			inside, e := cb.CounterGet(ctx, counterCol)
+			if e != nil {
+				return e
+			}
+
+			if inside["views"] != 8 {
+				t.Errorf("expected views=8 inside tx, got %d", inside["views"])
+			}
+
+			return sentinel
+		})
+		if !errors.Is(err, sentinel) {
+			t.Fatalf("expected sentinel from counter rollback, got %v", err)
+		}
+
+		// After rollback, views should still be 5.
+		counts, e = cb.CounterGet(ctx, counterCol)
+		if e != nil {
+			t.Fatalf("CounterGet after rollback: %v", e)
+		}
+
+		if counts["views"] != 5 {
+			t.Fatalf("expected views=5 after rollback, got %d", counts["views"])
+		}
+	}
+
+	// 5. StreamAppend inside RunInTx (if engine implements StreamLogBackend).
+	if sb, ok := eng.(metaengine.StreamLogBackend); ok {
+		streamCol := col + "_stream"
+		streamID := "s1"
+
+		// Commit path: append two values, verify outside tx.
+		if e := tx.RunInTx(ctx, func(ctx context.Context) error {
+			return sb.StreamAppend(ctx, streamCol, streamID, []any{"a", "b"})
+		}); e != nil {
+			t.Fatalf("StreamAppend in tx (commit): %v", e)
+		}
+
+		values, e := sb.StreamRead(ctx, streamCol, streamID)
+		if e != nil {
+			t.Fatalf("StreamRead after commit: %v", e)
+		}
+
+		if len(values) != 2 {
+			t.Fatalf("expected 2 values after commit, got %d", len(values))
+		}
+
+		// Rollback path: append one more, return error, verify count unchanged.
+		err = tx.RunInTx(ctx, func(ctx context.Context) error {
+			if e := sb.StreamAppend(ctx, streamCol, streamID, []any{"c"}); e != nil {
+				return e
+			}
+
+			// Read inside tx sees 3 values.
+			inside, e := sb.StreamRead(ctx, streamCol, streamID)
+			if e != nil {
+				return e
+			}
+
+			if len(inside) != 3 {
+				t.Errorf("expected 3 values inside tx, got %d", len(inside))
+			}
+
+			return sentinel
+		})
+		if !errors.Is(err, sentinel) {
+			t.Fatalf("expected sentinel from stream rollback, got %v", err)
+		}
+
+		// After rollback, count should still be 2.
+		values, e = sb.StreamRead(ctx, streamCol, streamID)
+		if e != nil {
+			t.Fatalf("StreamRead after rollback: %v", e)
+		}
+
+		if len(values) != 2 {
+			t.Fatalf("expected 2 values after rollback, got %d", len(values))
+		}
 	}
 }
