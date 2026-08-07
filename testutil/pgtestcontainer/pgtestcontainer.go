@@ -101,31 +101,31 @@ func TestMain(m *testing.M) {
 
 // DSN returns a Postgres DSN for the calling test. When using testcontainers,
 // each test gets its own fresh database for isolation.
-func DSN(t *testing.T) string {
-	t.Helper()
+func DSN(tb testing.TB) string {
+	tb.Helper()
 
 	if containerDSN == "" {
-		t.Skip("postgres not available: set DATABASE_URL/POSTGRES_TEST_DSN or run with Docker")
+		tb.Skip("postgres not available: set DATABASE_URL/POSTGRES_TEST_DSN or run with Docker")
 	}
 
 	if os.Getenv("DATABASE_URL") != "" || os.Getenv("POSTGRES_TEST_DSN") != "" {
 		return containerDSN
 	}
 
-	name := t.Name()
+	name := tb.Name()
 	if dsn, ok := dbCache.Load(name); ok {
 		return dsn.(string)
 	}
 
 	dbName := fmt.Sprintf("test_%d", atomic.AddInt64(&dbCounter, 1))
 	if _, err := adminDB.Exec(fmt.Sprintf(`CREATE DATABASE "%s"`, dbName)); err != nil {
-		t.Fatalf("create test database %s: %v", dbName, err)
+		tb.Fatalf("create test database %s: %v", dbName, err)
 	}
 
 	dsn := replaceDBInDSN(containerDSN, dbName)
 	dbCache.Store(name, dsn)
 
-	t.Cleanup(func() {
+	tb.Cleanup(func() {
 		dbCache.Delete(name)
 		_, _ = adminDB.Exec(fmt.Sprintf(`DROP DATABASE "%s" WITH (FORCE)`, dbName))
 	})
