@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-08 (code-verified audit: 9 stale items marked done)
+**Updated:** 2026-08-08 (system P2 hardening shipped: 6 items done)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -63,29 +63,66 @@ and is **never** duplicated here.
 
 ---
 
-## System Package (EXPERIMENTAL — P0/P1 fixes shipped, hardening continues)
+## System Package (EXPERIMENTAL — P0/P1/P2 shipped, test depth continues)
 
 > The `system/` module implements the operator-configured CQRS topology.
 > Driver registry wired, SQLite working through `New()`, projections E2E
 > proven, MultiBus/SnapshotBackend/scream store wired, introspection real.
 > koanf YAML config, DuckDB/PG Transactional, bus driver registry, scream store
 > plan-drift detection, CommandAdapter/QueryAdapter serialization, and
-> example/taskmanager migration all shipped. Tagged `system/v4.0.0`. Remaining
-> work is documentation, edge-case tests, and completeness.
+> example/taskmanager migration all shipped. Tagged `system/v4.0.0`. **P2
+> hardening shipped** (HealthCheck, GracefulClose, ResetProjection,
+> configurable checkpoint store, README Quick Start fix, doc-check arg
+> validation). Remaining work is test depth and edge-case coverage.
 
-### P2 — Hardening (makes the design production-ready)
+### P2 — Hardening (DONE — see [CHANGELOG.md](CHANGELOG.md))
 
-- [ ] **`system/README.md` Quick Start doesn't compile** — missing imports,
-      types. Needs to be copy-pasteable as a standalone program.
-- [ ] **Fix `cmd/doc-check` cmdguard arg-parsing** — `cobra.ArbitraryArgs` is a
-      band-aid; doc-check should properly accept file args via cmdguard.
-- [ ] **Add `system.HealthCheck(ctx)` method** — delegates to registered
-      resources that implement `stack.HealthChecker`.
-- [ ] **Add `system.GracefulClose(ctx)`** — bounded `Close()` with timeout.
-- [ ] **Add `system.ResetProjection(name)`** — delegates to
-      `projectionhost.Host.Reset()`.
-- [ ] **Wire checkpoint store as configurable** — currently hardcoded to
-      `memoryCheckpointStore`; needs `WithCheckpointStore` option.
+- [x] **`system/README.md` Quick Start doesn't compile** — replaced with
+      complete `package main` program using real API. Verified compiles + runs.
+- [x] **Fix `cmd/doc-check` cmdguard arg-parsing** — `cobra.ArbitraryArgs`
+      replaced with custom `fileArgs` validator (rejects non-existent files,
+      directories, non-`.md` extensions).
+- [x] **Add `system.HealthCheck(ctx)` method** — checks stopped state, pings
+      engines implementing `metaengine.HealthChecker`, inspects projection host
+      for `WorkerFailed` workers.
+- [x] **Add `system.GracefulClose(ctx)`** — runs `Close()` in goroutine racing
+      against `ctx.Done()`.
+- [x] **Add `system.ResetProjection(ctx, name)`** — delegates to
+      `projectionhost.Host.Reset()`. Returns `ErrNoProjectionHost` if not
+      configured.
+- [x] **Wire checkpoint store as configurable** — `DomainConfig.CheckpointStore`
+      field; constructor uses it instead of hardcoded `memoryCheckpointStore`.
+
+### P2 — Test depth (shallow tests need deepening)
+
+- [ ] **Deepen `TestSystem_CustomCheckpointStore`** — declare a real projection,
+      produce events, assert `recordingCheckpointStore.saveCnt > 0`. Current test
+      only verifies the field is accepted without error.
+- [ ] **Add `TestSystem_HealthCheck_FailedProjection`** — register a projection
+      with a handler that always errors, let it exhaust retries, assert
+      `HealthCheck` returns an error naming the projection.
+- [ ] **Add `TestSystem_ResetProjection_Positive`** — configure projection,
+      stop host, reset, restart, verify replay from zero.
+- [ ] **Add `TestSystem_GracefulClose_SlowShutdown`** — verify Close completes
+      within context when it takes real time (slow projection host stop).
+- [ ] **Add `TestSystem_HealthCheck_EngineUnhealthy`** — mock an engine that
+      returns error from HealthCheck, verify HealthCheck propagates it.
+
+### P3 — Code quality (noticed during P2 work)
+
+- [ ] **Join errors in `System.Close()`** — currently returns only the first
+      error; `stack.Bundle.Close()` joins all. Behavioral change — needs
+      decision.
+- [ ] **Remove or populate dead `s.closers` slice** — declared as
+      `[]func() error` but `New()` never appends to it. Dead code.
+- [ ] **Port `WithShutdownDependency` from stack.Bundle** — for ordered shutdown
+      in multi-store deployments.
+- [ ] **Consider `Drainer` interface** — for pre-close drain (stack.Bundle has
+      one, System doesn't).
+- [ ] **Document `DomainConfig.CheckpointStore` in README** — Configuration
+      section doesn't mention it yet.
+- [ ] **SQLite integration test for HealthCheck** — Memory engines are always
+      healthy; SQLite would test the real DB ping path.
 
 ---
 

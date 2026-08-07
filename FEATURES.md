@@ -335,10 +335,10 @@ deciders/projections. `example/taskmanager` migrated to `system.New()`.
 SnapshotBackend/scream store wired, introspection real, Verify/Plan/Explain
 methods, projection decoder wiring, koanf YAML config, DuckDB/PG Transactional,
 bus driver registry, scream store plan-drift detection, CommandAdapter/
-QueryAdapter SQL serialization, example/taskmanager migration. **Remaining
-gaps**: system/README Quick Start doesn't compile, configurable checkpoint
-store, HealthCheck/GracefulClose methods. See [TODO_LIST.md](TODO_LIST.md) →
-System Package section.
+QueryAdapter SQL serialization, example/taskmanager migration. **P2 hardening
+shipped**: HealthCheck, GracefulClose, ResetProjection, configurable checkpoint
+store, README Quick Start fix, doc-check arg validation. See
+[CHANGELOG.md](CHANGELOG.md) → System package P2 hardening.
 
 | Feature                         | Detail                                                                                                                                                                                                                                        | Status |
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -354,7 +354,7 @@ System Package section.
 | CachedEventStore                | Otter v2 W-TinyLFU read-through cache tier. `CacheStats` via O(1) `EstimatedSize()`                                                                                                                                                           | 🧪     |
 | SnapshotBackend                 | Interface + `memorySnapshotBackend` + `SnapshotAdapter`. Wired into `New()` with codec + strategy via `WithSnapshotStore`                                                                                                                     | 🧪     |
 | Scream store                    | `ScreamTier`, `ScreamDiagnostic`, `ScreamReport`, `ErrUnsafeChange`. `CheckSafety()` on startup + `CheckPlanSafety()` plan-drift detection (SCREAM/WARN/ADVISORY tiers, manifest pinning, tamper detection)                                  | 🧪     |
-| Introspection                   | `Snapshot(ctx)`, `Health(ctx)`, `Explain(ctx)`. Returns real handler counts and health status                                                                                                                                                 | 🧪     |
+| Introspection                   | `Snapshot(ctx)`, `Health(ctx)`, `HealthCheck(ctx)`, `Explain(ctx)`. Returns real handler counts and health status                                                                                                                                                 | 🧪     |
 | Instance roles                  | `RoleSourceOfTruth`, `RoleEvents`, `RoleCommands`, `RoleQueries`, `RoleProjections`                                                                                                                                                           | 🧪     |
 | Durability tiers                | `DurabilityStrict`, `DurabilityNormal`, `DurabilityRelaxed` (same vocabulary as stack presets)                                                                                                                                                | 🧪     |
 | Config loader                   | `LoadConfig(path)` via `koanf/v2` (file.Provider + env.Provider). Structured env vars (`CQRS_ENGINES__PRIMARY__DRIVER=sqlite`). YAML + env merge. Backward-compatible legacy env vars. Bus driver registry (gochannel registered, unknown drivers error) | 🧪     |
@@ -362,7 +362,9 @@ System Package section.
 | StreamLogBackend (5 engines)    | Memory + SQLite + Pebble + DuckDB + Postgres. All implement `StreamLogBackend`. DuckDB + Postgres + Memory have `AtomicAppender`                                                                                                              | 🧪     |
 | StreamTemporalReader            | `StreamReadFromVersion` / `StreamReadAsOfVersion` on Memory + SQLite. Wired into EventAdapter                                                                                                                                                 | 🧪     |
 | System.Verify/Plan/Explain      | Cross-instance consistency check, combined plan, human-readable explanation                                                                                                                                                                   | 🧪     |
-| Test suite                      | 21+ tests: query dispatch, driver registry, snapshot isolation + E2E, multi-decider, concurrent dispatch (20 goroutines, race detector), bus pub/sub, MultiBus, Op accessors, atomic conflict, journal, projection E2E, plan-drift, adapter serialization. All pass with `-race` | ✅     |
+| Lifecycle                       | `Close()`, `GracefulClose(ctx)` (context-bounded), `ResetProjection(ctx, name)`, `Start(ctx)`                                                                                                                                                   | 🧪     |
+| Configurable checkpoint store   | `DomainConfig.CheckpointStore` field. Falls back to in-memory when nil. Enables persistent checkpoints (e.g., `SQLCheckpointStore`) for projection resume after restart                                                                 | 🧪     |
+| Test suite                      | 27+ tests: query dispatch, driver registry, snapshot isolation + E2E, multi-decider, concurrent dispatch (20 goroutines, race detector), bus pub/sub, MultiBus, Op accessors, atomic conflict, journal, projection E2E, plan-drift, adapter serialization, HealthCheck (healthy + stopped), GracefulClose (normal + context-expired), ResetProjection (no-host), custom checkpoint store. All pass with `-race` | ✅     |
 
 ---
 

@@ -8,6 +8,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### System package P2 hardening — health, graceful shutdown, reset, checkpoint store
+
+- **`System.HealthCheck(ctx)`** — returns `nil` if all resources are healthy,
+  first error otherwise. Checks: system not stopped, engines implementing
+  `metaengine.HealthChecker` respond to pings, no projection worker in
+  `WorkerFailed` state. Suitable for Kubernetes liveness/readiness probes.
+- **`System.GracefulClose(ctx)`** — runs `Close()` in a goroutine racing
+  against `ctx.Done()`. Returns the `Close` error if shutdown completes in
+  time, or a wrapped `ctx.Err()` if the deadline expires. Matches
+  `stack.Bundle.GracefulClose` pattern.
+- **`System.ResetProjection(ctx, name)`** — delegates to
+  `projectionhost.Host.Reset()`. Returns `ErrNoProjectionHost` if no projection
+  host is configured. Resets checkpoint + read-model state for replay from
+  zero.
+- **`DomainConfig.CheckpointStore`** — configurable `event.CheckpointStore`
+  field. When set, the projection host uses it instead of the hardcoded
+  in-memory store. Enables persistent checkpoints that survive restarts
+  (e.g., `SQLCheckpointStore`). Falls back to `memoryCheckpointStore` when nil.
+- **`system/README.md` Quick Start fixed** — replaced non-compiling snippet
+  (used `DomainConfig.StreamTypes`, `sys.Dispatch`) with complete `package
+  main` program using real API (`DomainConfig.Commands`, `RegisterDecider`,
+  `RegisterCommand`, `CommandDispatcher().Dispatch`). Verified compiles + runs.
+- **`cmd/doc-check` arg-parsing fixed** — `cobra.ArbitraryArgs` replaced with
+  custom `fileArgs` validator that rejects non-existent files, directories,
+  and non-`.md` extensions. Zero args still triggers auto-discovery.
+- **New sentinel errors** — `ErrSystemStopped`, `ErrNoProjectionHost`.
+- **6 new tests** — `TestSystem_HealthCheck_Healthy`, `_Stopped`,
+  `TestSystem_GracefulClose`, `_ContextExpired`,
+  `TestSystem_ResetProjection_NoHost`, `TestSystem_CustomCheckpointStore`.
+  All pass with `-race`.
+- **API surface golden updated** — 5 new symbols: `system.GracefulClose`,
+  `system.HealthCheck`, `system.ResetProjection`, `system.ErrNoProjectionHost`,
+  `system.ErrSystemStopped`. Total: 3749 exports.
+
 #### bbolt storage backend hardening — streaming, OTel, contract tests
 
 - **Streaming iterators** (`storage/bbolt/stream.go`) — `event.StreamingSource`
