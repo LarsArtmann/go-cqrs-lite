@@ -3485,9 +3485,11 @@ system/method CommandDispatcher
 system/method Delete
 system/method EventStore
 system/method Explain
+system/method GracefulClose
 system/method HasErrors
 system/method HasWarnings
 system/method Health
+system/method HealthCheck
 system/method Load
 system/method Load
 system/method Load
@@ -3520,6 +3522,7 @@ system/method ReadFrom
 system/method ReadFrom
 system/method ReadFrom
 system/method ReadQueriesFrom
+system/method ResetProjection
 system/method Save
 system/method Save
 system/method Save
@@ -3578,10 +3581,12 @@ system/var ErrDeciderTypeMismatch
 system/var ErrEventStoreMissing
 system/var ErrJournalMissing
 system/var ErrNoDecider
+system/var ErrNoProjectionHost
 system/var ErrNotStreamLogBackend
 system/var ErrQueryResultMismatch
 system/var ErrQueryTypeMismatch
 system/var ErrSeekableJournalMissing
+system/var ErrSystemStopped
 system/var ErrUnknownBusDriver
 system/var ErrUnknownDriver
 system/var ErrUnknownEngine
