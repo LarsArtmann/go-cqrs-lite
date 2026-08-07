@@ -32,6 +32,21 @@ import (
 // preventing collisions between collection names and keys.
 const Sep = "\x00"
 
+// MapKey returns the full key for a (collection, key) pair in the MapBackend.
+func MapKey(col, key string) []byte {
+	return []byte("m" + Sep + col + Sep + key)
+}
+
+// SetKey returns the full key for a (collection, key) pair in the SetBackend.
+func SetKey(col, key string) []byte {
+	return []byte("s" + Sep + col + Sep + key)
+}
+
+// CounterKey returns the full key for a (collection, ckey) pair in the CounterBackend.
+func CounterKey(col, ckey string) []byte {
+	return []byte("c" + Sep + col + Sep + ckey)
+}
+
 // CollectionPrefix returns the prefix for Map-prefix scans in the given collection.
 func CollectionPrefix(col string) []byte {
 	return []byte("m" + Sep + col + Sep)

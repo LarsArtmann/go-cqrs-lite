@@ -12,8 +12,6 @@ package pebbleengine
 
 import (
 	"context"
-	"encoding/binary"
-	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"strings"
@@ -24,6 +22,7 @@ import (
 	"github.com/cockroachdb/pebble/vfs"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
 
 // sep is the key separator. Null byte sorts before all printable characters,
@@ -160,85 +159,69 @@ func (e *pebbleEngine) Close() error {
 	return e.db.Close()
 }
 
-// --- Key encoding helpers ---
+// Key encoding helpers — see keycodec package for the actual definitions.
+// The local wrappers here preserve the engine's internal call sites.
 
 func mapKey(col, key string) []byte {
-	return []byte("m" + sep + col + sep + key)
+	return keycodec.MapKey(col, key)
 }
 
 func setKey(col, key string) []byte {
-	return []byte("s" + sep + col + sep + key)
+	return keycodec.SetKey(col, key)
 }
 
 func counterKey(col, ckey string) []byte {
-	return []byte("c" + sep + col + sep + ckey)
+	return keycodec.CounterKey(col, ckey)
 }
 
 func multimapKey(col, key string, seq int64) []byte {
-	return fmt.Appendf(nil, "mm%s%s%s%s%s%020d", sep, col, sep, key, sep, seq)
+	return keycodec.MultimapKey(col, key, seq)
 }
 
 func multimapPrefix(col, key string) []byte {
-	return []byte("mm" + sep + col + sep + key + sep)
+	return keycodec.MultimapPrefix(col, key)
 }
 
 func logKey(col string, seq int64) []byte {
-	return fmt.Appendf(nil, "l%s%s%s%020d", sep, col, sep, seq)
+	return keycodec.LogKey(col, seq)
 }
 
 func logPrefix(col string) []byte {
-	return []byte("l" + sep + col + sep)
+	return keycodec.LogPrefix(col)
 }
 
 func graphEdgeKey(col, from, to string) []byte {
-	return []byte("g" + sep + col + sep + from + sep + to)
+	return keycodec.GraphEdgeKey(col, from, to)
 }
 
 func graphPrefixForward(col, node string) []byte {
-	return []byte("g" + sep + col + sep + node + sep)
+	return keycodec.GraphPrefixForward(col, node)
 }
 
 func collectionPrefix(col string) []byte {
-	return []byte("m" + sep + col + sep)
+	return keycodec.CollectionPrefix(col)
 }
 
 // encodeJSON marshals v to a JSON string, falling back to fmt.Sprintf.
 func encodeJSON(v any) []byte {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return []byte(fmt.Sprintf("%v", v))
-	}
-
-	return b
+	return keycodec.EncodeJSON(v)
 }
 
 func decodeJSON(data []byte) any {
-	var val any
-	if err := json.Unmarshal(data, &val); err != nil {
-		return string(data)
-	}
-
-	return val
+	return keycodec.DecodeJSON(data)
 }
 
 func encodeKeyStr(key any) string {
-	return string(encodeJSON(key))
+	return keycodec.EncodeKeyStr(key)
 }
 
 // encodeCounterValue encodes an int64 as 8 bytes big-endian.
 func encodeCounterValue(v int64) []byte {
-	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, uint64(v))
-
-	return b
+	return keycodec.EncodeCounterValue(v)
 }
 
 func decodeCounterValue(data []byte) int64 {
-	if len(data) < 8 {
-		return 0
-	}
-
-	return int64(binary.BigEndian.Uint64(data))
+	return keycodec.DecodeCounterValue(data)
 }
 
 // Compile-time assertions.
