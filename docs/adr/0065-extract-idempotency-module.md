@@ -2,7 +2,7 @@
 
 | Field      | Value                                                                                 |
 | ---------- | ------------------------------------------------------------------------------------- |
-| Status     | Proposed                                                                              |
+| Status     | Accepted (partially executed — see Addendum)           |
 | Date       | 2026-07-25                                                                            |
 | Deciders   | Lars Artmann                                                                          |
 | Related    | ADR-0046 (seven-tier model), ADR-0064 (retry extraction), ROADMAP (module extraction) |

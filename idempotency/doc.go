@@ -19,6 +19,9 @@
 //	if errors.Is(err, idempotency.ErrDuplicate) {
 //	    return err // already processed — drop the retry
 //	}
+//	if errors.Is(err, idempotency.ErrInvalidTTL) {
+//	    return err // programmer error: ttl must be positive
+//	}
 //	if err != nil {
 //	    return err // store failure — do not process
 //	}
@@ -31,4 +34,16 @@
 //
 // The canonical implementation lives in [github.com/larsartmann/go-idempotency];
 // this package re-exports it for backward compatibility (ADR-0065).
+//
+// # Subpackages
+//
+// The idempotency module also provides two backend implementations that live
+// in go-cqrs-lite (not in go-idempotency, which is interface-only by design):
+//
+//   - idempotency/kvstore — KV-backed Store (uses go-cqrs-lite/kv)
+//   - idempotency/sqlstore — SQL-backed Store (SQLite, Postgres, MySQL)
+//
+// These subpackages depend on the idempotency/v4 package for the Store
+// interface and error sentinels, and will never move to go-idempotency
+// (it intentionally does not ship backends).
 package idempotency
