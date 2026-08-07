@@ -294,10 +294,21 @@ developer never declares "I need a Map" or "I need a Counter."
 | ReadCosts                    | `EngineProfile.ReadCosts` — per-read-pattern cost fields (point-lookup, scan, aggregation). Exposes the 4000× gap between DuckDB point lookups and aggregations                                            | 🧪     |
 | SerializableReadCosts        | `SerializableQuery.ReadCosts` — calibrated costs serialized into plan JSON. Enables plan diffing between deploys to show active cost values (ADR-0100)                                                     | 🧪     |
 | Store.Inspect/InspectJSON    | Collection introspection (key count, engine, ADT) extracted to `metaengine/inspect.go`                                                                                                                     | 🧪     |
+| `record/` module             | Shared `Record` + `CommonMetadata` + `StreamRef` types (zero deps). The canonical type the ES-native metaengine folds over (ADR-0111)                                                                       | 🧪     |
+| `sqliteengine/` extraction   | SQLite engine extracted to `metaengine/sqliteengine/` — core no longer depends on `modernc.org/sqlite` (ADR-0115)                                                                                           | 🧪     |
+| `graphadapter/`              | Wraps `graph.MemoryDriver` as `metaengine.Engine`, replacing the deleted in-engine GraphBackend (ADR-0113)                                                                                                  | 🧪     |
+| `badgerengine/`              | Badger LSM engine (full impl, mirrors pebbleengine). All 8 core ADTs pass `adttest.RunMatrix`. Calibrated: MapSet=4300ns, MapGet=1200ns (ADR-0118)                                                          | 🧪     |
+| `dgraphengine/`              | Dgraph distributed graph backend via `dgo` gRPC + DQL. Graph-only EngineProfile. ADR-0119                                                                                                                   | 🧪     |
+| Record-aware folds           | `OnRecord`/`OnRecordTyped` constructors + `ApplyRecord()` dispatch + `RecordAwareFold` interface. Folds receive StreamID, Version, metadata (ADR-0112)                                                     | 🧪     |
+| `event.AsRecord()`           | Bridges the ES pipeline to `record.Record`. `projectionadapter.Handle()` calls `ApplyRecord()`                                                                                                              | 🧪     |
+| Auto-projection              | `AutoInsert[E,R]`, `AutoUpdate[E,R]`, `AutoDelete[E]`, `AutoCRUD[C,U,D,R]` — reflection-based field-mapping inference. Zero per-event reflection cost (ADR-0116 Layer 1)                                   | 🧪     |
+| AutoCRUDByConvention         | Suffix-based naming inference (`*Created`/`*Updated`/`*Deleted`) routes event types without explicit strings                                                                                               | 🧪     |
+| Record stamping              | `AutoInsert`/`AutoUpdate` auto-stamp Record metadata (StreamID, Version, CorrelationID) into matching result fields (`record_stamp.go`)                                                                    | 🧪     |
+| Tombstone deprecation        | All tombstone API carries `// Deprecated:` → migration guide. Functional in v4, removal in v5 (ADR-0114)                                                                                                    | 🧪     |
 
-**Coverage:** 76.3% (verified `go test -cover ./...` 2026-08-02). 174 BDD specs + 150 cross-engine
-meta specs + 12 ADT harness self-tests. The metaengine went through 15+ hardening
-sessions (2026-07-30 to 2026-08-03): transaction API fix, SQL injection fix,
+**Coverage:** 78.7% (verified `go test -cover ./...` 2026-08-06). 174 BDD specs + 150 cross-engine
+meta specs + 12 ADT harness self-tests. The metaengine went through 20+ hardening
+sessions (2026-07-30 to 2026-08-06): transaction API fix, SQL injection fix,
 hooks-on-error, ReadCoalescer wiring, Watcher with per-key filtering,
 PrefetchCache with cursor-encoded auto-population, SSE adapter with
 Last-Event-ID reconnection, ContractSuite expanded to all 10 ADTs, Pebble
@@ -309,11 +320,13 @@ cross-engine parity, Vector/Search/Spatial ADTs, pgengine + duckdbengine,
 replication model (ADR-0093), Universal ADT Phase 3 (ADR-0094), WatchTyped,
 boundary key validation, CalibrateEngine fix, ReadCosts (per-read-pattern
 costs) + SerializableReadCosts in plan JSON (ADR-0100), go-sse consumption
-(ADR-0097), DuckDB+PG calibration benchmarks,
-benchmark correctness assertions.
+(ADR-0097), DuckDB+PG calibration benchmarks, benchmark correctness assertions,
+**Record-aware ES-native architecture v2** (ADRs 0111-0119): `record/` module,
+sqliteengine/graphadapter/badgerengine/dgraphengine extraction, `OnRecord`/`ApplyRecord`,
+`AutoInsert`/`AutoCRUD`/`AutoCRUDByConvention`, tombstone deprecation.
 
-Remaining: Postgres GIN indexes, SerializableReadCosts in ExplainPlan output.
-See
+Remaining: Postgres GIN indexes, `record.FromCommand()` adapter,
+`auto_naming.go` dedup refactor. See
 [TODO_LIST.md](TODO_LIST.md).
 
 ---
@@ -961,6 +974,27 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | CheckpointStore        | `NewCheckpointStore(db, logger)` — CBOR envelope, returns zero checkpoint if missing   | ✅     |
 | Shared DB              | Event + Snapshot + Checkpoint stores share one `*pebble.DB` via disjoint key prefixes  | ✅     |
 
+### bbolt Storage Backend
+
+> `import "github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4"`
+
+| Feature                | Detail                                                                                       | Status |
+| ---------------------- | -------------------------------------------------------------------------------------------- | ------ |
+| EventStore             | `NewStore(db, logger)` implements `event.Store` + `Journal` + `SeekableJournal` (B+tree)    | ✅     |
+| CBOR envelope          | Events serialized as CBOR                                                                     | ✅     |
+| Optimistic concurrency | `Save` checks version before commit (single-writer, atomic in one tx)                        | ✅     |
+| AppendBatch            | Appends without concurrency check                                                            | ✅     |
+| Full load API          | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`                                | ✅     |
+| Journal / Seekable     | `ReadAll()` + `ReadFrom(afterEventID, limit)`                                                | ✅     |
+| SnapshotStore          | `NewSnapshotStore` — ignores older versions on Save                                          | ✅     |
+| CheckpointStore        | `NewCheckpointStore` — returns zero checkpoint if missing                                    | ✅     |
+| KVAdapter              | `kv.Store` adapter via `cqrs_kv` bucket                                                      | ✅     |
+| CommandStore           | `CommandStore` + `CommandJournal` (audit trail)                                              | ✅     |
+| QueryStore             | `QueryStore` + `QueryJournal` (audit trail)                                                  | ✅     |
+| Backend facade         | `Open(path, logger)` / `OpenWith(path, opts, logger)` — closes DB + all stores              | ✅     |
+| Shared DB              | All stores share one `*bbolt.DB` via disjoint buckets (`cqrs_events`, `cqrs_snapshots`, …)  | ✅     |
+| Durability tiers       | `WithDurability` (Strict/Normal/Relaxed) via `stack/bbolt` preset                           | ✅     |
+
 ### Turso Database Connector
 
 > `import "github.com/larsartmann/go-cqrs-lite/storage/turso/v4"`
@@ -1240,7 +1274,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 ## Module Maturity Matrix
 
-> 69 independently importable modules in `go.work` (69 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
+> 77 independently importable modules in `go.work` (77 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
 
 | Module                           | Import Path                           | Maturity                                                                                                                                                                       |
 | -------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -1269,6 +1303,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `listing`                        | `…/listing/v4`                        | ✅ Production                                                                                                                                                                  |
 | `otel`                           | `…/otel/v4`                           | ✅ Production                                                                                                                                                                  |
 | `storage/pebble`                 | `…/storage/pebble/v4`                 | ✅ Production                                                                                                                                                                  |
+| `storage/bbolt`                  | `…/storage/bbolt/v4`                  | ✅ Production (B+tree, single-writer, full store stack. Durability tiers)                                                                                                      |
 | `storage/turso`                  | `…/storage/turso/v4`                  | ✅ Production                                                                                                                                                                  |
 | `transport/http`                 | `…/transport/http/v4`                 | ✅ Production                                                                                                                                                                  |
 | `transport/grpc`                 | `…/transport/grpc/v4`                 | ✅ Production                                                                                                                                                                  |
@@ -1286,6 +1321,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `stack/duckdb`                   | `…/stack/duckdb/v4`                   | ✅ Production (analytical OLAP, CGo required — ADR-0071)                                                                                                                       |
 | `stack/mysql`                    | `…/stack/mysql/v4`                    | ⚠️ Partial (testcontainer privilege fix fragile; MySQL 8.0 contract tests pass, MariaDB untested)                                                                              |
 | `stack/bench`                    | `…/stack/bench/v4`                    | 🧪 Benchmarks                                                                                                                                                                  |
+| `stack/bbolt`                    | `…/stack/bbolt/v4`                    | ✅ Production (bbolt Bundle preset: durability tiers, kv store accessor)                                                                                                       |
 | `deriver`                        | `…/deriver/v4`                        | ✅ Production                                                                                                                                                                  |
 | `graph`                          | `…/graph/v4`                          | ✅ Production                                                                                                                                                                  |
 | `idempotency`                    | `…/idempotency/v4`                    | ✅ Production (alias shim — re-exports `go-idempotency`, ADR-0065)                                                                                                             |
@@ -1299,8 +1335,14 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `example/taskmanager`            | `…/example/taskmanager`               | 💡 Demo                                                                                                                                                                        |
 | `example/getting-started`        | `…/example/getting-started`           | 💡 Demo                                                                                                                                                                        |
 | `example/readme-quickstart`      | `…/example/readme-quickstart`         | 💡 Demo                                                                                                                                                                        |
-| `metaengine`                     | `…/metaengine/v4`                     | 🧪 Experimental (5 engines, 10 ADTs, rule pipeline, materialize-vs-replay, StorageLayout, SerializablePlan)                                                                    |
-| `metaengine/projectionadapter`   | `…/metaengine/projectionadapter/v4`   | 🧪 Experimental (projection.Projection adapter for projectionhost)                                                                                                             |
+| `example/metaengine-quickstart`  | `…/example/metaengine-quickstart`     | 💡 Demo (Record-aware auto-projection pipeline)                                                                                                                                |
+| `metaengine`                     | `…/metaengine/v4`                     | 🧪 Experimental (7 engines, 10 ADTs, Record-aware folds, auto-projection, rule pipeline, materialize-vs-replay, StorageLayout, SerializablePlan)                              |
+| `metaengine/projectionadapter`   | `…/metaengine/projectionadapter/v4`   | 🧪 Experimental (Record-aware projection.Projection adapter for projectionhost — calls ApplyRecord)                                                                            |
+| `metaengine/sqliteengine`        | `…/metaengine/sqliteengine/v4`        | 🧪 Experimental (SQLite engine extracted from core — ADR-0115. Unpublished, untagged)                                                                                          |
+| `metaengine/graphadapter`        | `…/metaengine/graphadapter/v4`        | 🧪 Experimental (wraps graph.MemoryDriver as Engine — ADR-0113. Unpublished, untagged)                                                                                         |
+| `metaengine/badgerengine`        | `…/metaengine/badgerengine/v4`        | 🧪 Experimental (Badger LSM engine: MapBackend, ScanBackend, Calibratable. ADR-0118)                                                                                           |
+| `metaengine/dgraphengine`        | `…/metaengine/dgraphengine/v4`        | 🧪 Experimental (Dgraph distributed graph backend via dgo + DQL. ADR-0119. Unpublished, untagged)                                                                              |
+| `record`                         | `…/record/v4`                         | 🧪 Experimental (shared Record + CommonMetadata + StreamRef — zero deps. ADR-0111)                                                                                             |
 | `metaengine/pebbleengine`        | `…/metaengine/pebbleengine/v4`        | 🧪 Experimental (Pebble LSM engine: MapBackend, ScanBackend, LayoutPlanner, sort index)                                                                                        |
 | `metaengine/duckdbengine`        | `…/metaengine/duckdbengine/v4`        | 🧪 Experimental (DuckDB columnar engine: MapBackend, CounterBackend, PushdownScan. CGo)                                                                                        |
 | `metaengine/pgengine`            | `…/metaengine/pgengine/v4`            | 🧪 Experimental (Postgres engine: MapBackend, CounterBackend, ScanBackend, PushdownScan, LayoutPlanner. Pure Go)                                                               |

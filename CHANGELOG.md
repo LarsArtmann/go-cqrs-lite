@@ -8,6 +8,139 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### Metaengine v2 — Record-aware ES-native architecture (ADRs 0111-0119)
+
+The metaengine is now **event-sourcing-native**: it understands typed Records
+(events + commands), not opaque `any` blobs. Tombstones are domain events
+(ADR-0114), not mutable metadata. GraphBackend is replaced by a
+`graph.GraphDriver`-backed Engine adapter (ADR-0113). Auto-projection is
+layered (ADR-0116): 80% auto-generated from type inspection.
+
+- **`record/` module** (zero deps) — shared `Record` + `CommonMetadata` +
+  `StreamRef` types extracted from event/command internals (ADR-0111). The
+  canonical type the ES-native metaengine folds over.
+- **`metaengine/sqliteengine/`** — SQLite engine extracted from core
+  `metaengine/` into its own module (ADR-0115). Core `metaengine/v4` no longer
+  depends on `modernc.org/sqlite`; the engine is imported only by consumers
+  that need it. All 18 SQLite engine files moved.
+- **`metaengine/graphadapter/`** — wraps `graph.MemoryDriver` as a
+  `metaengine.Engine` (ADR-0113). Replaces the deleted in-engine GraphBackend.
+- **`metaengine/badgerengine/`** — Badger LSM engine (full implementation,
+  mirrors pebbleengine). All 8 core ADTs pass `adttest.RunMatrix`. MapBackend,
+  MapUpdater, ScanBackend, SetBackend, CounterBackend, GraphBackend,
+  MultimapBackend, LogBackend, StreamLogBackend, AtomicAppender,
+  StreamingScan, Calibratable. Calibrated from benchmarks (MapSet=4300ns,
+  MapGet=1200ns). ADR-0118.
+- **`metaengine/dgraphengine/`** — Dgraph distributed graph backend. gRPC
+  client via `dgo`, DQL query mapping, graph-only EngineProfile. ADR-0119.
+  Full ADT parity test (`adt_matrix_test.go`) + benchmark.
+- **`OnRecord` / `OnRecordTyped` folds** — Record-aware fold constructors.
+  `ApplyRecord()` dispatches `record.Record` to `RecordAwareFold`-implementing
+  folds, giving handlers full StreamID, Version, and metadata context. The
+  old `Apply()` / `On()` path still works (backward compatible).
+- **`event.AsRecord(evt)` adapter** — bridges the ES pipeline to
+  `record.Record`. `projectionadapter.Handle()` now calls `ApplyRecord()`.
+- **Auto-projection (reflection-based, ADR-0116 Layer 1)** — `AutoInsert[E,R]`,
+  `AutoUpdate[E,R]`, `AutoDelete[E]`, `AutoCRUD[C,U,D,R]` infer field mappings
+  from struct shapes at construction time (zero per-event reflection cost).
+  `AutoInsert`/`AutoUpdate` automatically stamp Record metadata (StreamID,
+  Version, CorrelationID, etc.) into matching result fields (`record_stamp.go`).
+- **`AutoCRUDByConvention[R]`** — suffix-based naming inference
+  (`*Created`/`*Updated`/`*Deleted`) routes event types to insert/update/delete
+  folds without explicit event-type strings.
+- **Tombstone deprecation** — all tombstone API (`DetectTombstone`,
+  `MarkTombstone`, `TombstoneStatus`, `MarkRebirth`, etc.) carries
+  `// Deprecated:` directives pointing to the migration guide
+  (`docs/migration/tombstone-to-domain-events.md`). Code stays functional in
+  v4; removal planned for v5 (ADR-0114).
+- **New ADRs**: 0111 (Record type extraction), 0112 (ES-native metaengine),
+  0113 (delete GraphBackend), 0114 (tombstone as domain event), 0115 (SQLite
+  engine extraction), 0116 (layered auto-projection), 0117 (command lifecycle
+  as events), 0118 (Badger engine), 0119 (Dgraph engine). 5 prior ADRs amended
+  (0046, 0062, 0077, 0074, 0086/0091).
+- **`example/metaengine-quickstart`** — new example app demonstrating the
+  Record-aware auto-projection pipeline (149 lines).
+- **Module tags**: `record/v4.0.0`, `event/v4.3.0` (`AsRecord`),
+  `metaengine/v4.6.0` (auto-projection, record stamping),
+  `metaengine/projectionadapter/v4.3.0` (ApplyRecord),
+  `metaengine/badgerengine/v4.0.0`, `stack/bbolt/v4.0.0`.
+
+#### bbolt storage backend (feature parity with Pebble)
+
+- **`storage/bbolt/`** — full storage backend: EventStore, SnapshotStore,
+  CheckpointStore, KVAdapter, CommandStore + CommandJournal, QueryStore +
+  QueryJournal, Backend facade. CBOR envelope. Single-DB shared via disjoint
+  key prefixes. `WithDurability` (Strict/Normal/Relaxed). `Open` + `OpenWith`
+  (custom `bbolt.Options`). 18 files.
+- **`stack/bbolt/`** — full `stack.Bundle` preset. Durability tiers, kv store
+  accessor.
+- **READMEs** for both `storage/bbolt/` and `stack/bbolt/`.
+
+#### SQLite CGo driver support
+
+- **`WithDriverName` option** (`stack/sqlite`) — allows using the CGo-based
+  `mattn/go-sqlite3` driver instead of the pure-Go `modernc.org/sqlite`. Set
+  to `"sqlite3"` to opt into CGo. SQLite optimizations (cache_size,
+  temp_store, mmap_size) enabled by default.
+
+#### cqrs-lint — 186 → 192 rules (metaengine-aware detection)
+
+- **F018/F020** — mixed-usage detection (fires when pushdown is partially
+  used).
+- **F022** — manual sort without metaengine pushdown.
+- **F023/F024/F025** — manual filtering/pagination/aggregation without
+  metaengine pushdown.
+- **F026** — `NewReader` without `WithPrefetch`.
+- **A034** — `metaengine.Execute()` untyped return → suggests `ExecuteTyped`.
+- **StoreBolt** StoreKind + `IsEmbedded()`/`IsDistributed()` accessors.
+- **FeatureProfile** gains `HasMetaengine`, `MetaengineEngines`,
+  `MetaenginePushdown` fields. Store detection for engine sub-packages
+  (duckdbengine, pgengine, pebbleengine, sqliteengine, irohengine).
+- **`featureKey.derive` field** — eliminates the stringly-coupled
+  `kindDerivations` map. Explain command fully derived from constants.
+- **Drift-prevention meta-tests**: `TestAll*KindsCoversEveryConstant`,
+  `TestFeatureKeys_DerivedValidValuesPopulated`, `TestReadmePresetTableMatchesCode`.
+
+#### cqrs-bench / benchkit — evidence-grade benchmarking
+
+- **Real-time progress reporting** — `progress.go`, `--progress` flag,
+  heartbeat goroutine (elapsed time per phase).
+- **Resident memory metric** — `Memory.Resident` (post-GC heap footprint),
+  rendered in text/markdown/table/CSV.
+- **Strict mode** — `--strict` flag + `ErrStrictSkip` sentinel for CI gates.
+- **Versioned read phase** — `LoadFromVersion`/`LoadToVersion`/`LoadToTimestamp`.
+- **Checkpoint latency phase** + **batch write phase**.
+- **`--list-phases` subcommand** + `PhaseNames()` export.
+- **Phase coverage matrix** in comparison output. `SkipBatchWrite` flag.
+- **4-backend comparison** — memory/pebble/bbolt/sqlite head-to-head.
+- **go-output integration** — styled terminal tables, `--format auto`
+  (TTY-aware), CSV/TSV/table/markdown across all subcommands, winner-summary.
+- **`makeFactory` refactor** — split 162-line function into 7 per-backend
+  helpers. `PrintReport` extracted 13 helpers (cyclop fix).
+
+#### golangci-lint sweep — 58 findings fixed across 11 modules
+
+- `stack/sqlite` goconst, `benchkit` cyclop/nilerr/varnamelen,
+  `cmd/api-stability` err113/errcheck/exhaustruct,
+  `cmd/cqrs-lint` exhaustive/gochecknoglobals,
+  `cmd/cqrs-bench` contextcheck/depguard/gocognit/predeclared,
+  `cmd/doc-check` err113/exhaustruct.
+- SA1019 tombstone-deprecation global exclusion rule added (deprecated API
+  still functional in v4).
+
+#### Deduplication passes — clone groups 69 → 65
+
+- 13 production-code extractions across two passes (BaseFileName,
+  executeSliceResult, newPrefixIter, writeSectionHeader, loadFindingLines,
+  loadFiltered, setupMemoryMetaEngineStore, seedCollectionSeqs,
+  SortDurations/PercentileIdx, renderKeyTable, loadVersioned, SelectorIdent).
+- 46 pre-existing lint issues fixed (31 errcheck, 15 other).
+
+#### cmdguard migration — all 4 dev CLIs
+
+- `api-stability`, `cqrs-gen`, `doc-check`, `cqrs-bench` migrated to
+  `cmdguard/v4` (replaces raw `flag` + manual `os.Exit`).
+
 #### SUPERB execution plan session 1 — file splits, SerializableReadCosts, module releases
 
 - **SerializableReadCosts in plan JSON** — per-read-pattern cost model
