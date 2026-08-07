@@ -436,3 +436,61 @@ func TestRenderScorecard_SARIFDispatch(t *testing.T) {
 		t.Error("sarif format should start with '{'")
 	}
 }
+
+func TestRenderSARIF_MetaengineProperties(t *testing.T) {
+	t.Parallel()
+
+	result := makeTestScorecard()
+	result.Metaengine = &ScorecardMetaengine{
+		Detected:        true,
+		Engines:         []string{"sqlite", "pebble"},
+		PushdownAdopted: true,
+	}
+
+	out, err := renderScorecardSARIF(result)
+	if err != nil {
+		t.Fatalf("renderScorecardSARIF error: %v", err)
+	}
+
+	var parsed sarifReport
+	if err := json.Unmarshal([]byte(out), &parsed); err != nil {
+		t.Fatalf("invalid SARIF JSON: %v", err)
+	}
+
+	props := parsed.Runs[0].Properties
+	if props["metaengineDetected"] != true {
+		t.Errorf("expected metaengineDetected true, got %v", props["metaengineDetected"])
+	}
+	if props["metaenginePushdownAdopted"] != true {
+		t.Errorf("expected metaenginePushdownAdopted true, got %v", props["metaenginePushdownAdopted"])
+	}
+	engines, ok := props["metaengineEngines"].([]any)
+	if !ok {
+		t.Fatalf("expected metaengineEngines to be a slice, got %T", props["metaengineEngines"])
+	}
+	if len(engines) != 2 {
+		t.Fatalf("expected 2 engines, got %d", len(engines))
+	}
+}
+
+func TestRenderSARIF_NoMetaengineProperties(t *testing.T) {
+	t.Parallel()
+
+	result := makeTestScorecard()
+	// Metaengine is nil — SARIF properties should NOT contain metaengine keys.
+
+	out, err := renderScorecardSARIF(result)
+	if err != nil {
+		t.Fatalf("renderScorecardSARIF error: %v", err)
+	}
+
+	var parsed sarifReport
+	if err := json.Unmarshal([]byte(out), &parsed); err != nil {
+		t.Fatalf("invalid SARIF JSON: %v", err)
+	}
+
+	props := parsed.Runs[0].Properties
+	if _, exists := props["metaengineDetected"]; exists {
+		t.Error("should not have metaengineDetected when Metaengine is nil")
+	}
+}
