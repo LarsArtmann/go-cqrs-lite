@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-08 (metaengine v2 test coverage + 14 module tags created)
+**Updated:** 2026-08-08 (bbolt test suite consolidation: contract test, durability bench, commandtest/querytest extraction)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -169,16 +169,41 @@ and is **never** duplicated here.
       events in a single atomic bbolt tx. Splitting into sub-batches would break
       atomicity.
 
+### DONE this session (test suite consolidation)
+
+- [x] **Add `stack/bbolt/contract_test.go`** — mirrors the pebble pattern:
+      `contracttest.RunSuite(t, factory)`. All 5 subtests pass.
+- [x] **Add bbolt to `durability_tiers_test.go`** in stack/bench —
+      `BenchmarkDurabilityTiers_Bbolt` tests all 3 tiers (Strict/Normal/Relaxed).
+- [x] **Extract `commandtest`/`querytest` shared packages** —
+      `command/commandtest/store_suite.go` (RunStoreSuite + 6 subtests),
+      `query/querytest/store_suite.go` (RunStoreSuite + 4 subtests). Pebble +
+      bbolt consumer tests refactored to thin wrappers (892 → 136 lines).
+- [x] **Modernize `for` loops in `storage/bbolt/contract_test.go`** — 4 instances
+      of `for i := 0; i < N; i++` → `for i := range N` (gopls rangeint hints
+      cleared).
+
 ### Remaining
 
-- [ ] **Add `stack/bbolt/contract_test.go`** — every other stack preset (memory,
-      sqlite, pebble, postgres, mysql, turso) has one. bbolt is the only one missing.
-- [ ] **Add bbolt to `durability_tiers_test.go`** in stack/bench — test all 3
-      durability levels via `stack/bbolt`.
-- [ ] **Extract `commandtest`/`querytest` shared packages** — pebble and bbolt
-      command/query store tests are ~90% identical. Mirror the `eventtest` pattern.
-- [ ] **Modernize `for` loops in `contract_test.go`** — 4 instances of
-      `for i := 0; i < N; i++` → `for range N` (pre-existing gopls hints).
+- [ ] **Refactor `storage/memory/` command/query store tests** — 316+248 lines
+      with the same ~90% duplication pattern. Now that `commandtest`/`querytest`
+      shared suites exist, memory backend should adopt them too.
+- [ ] **Add `command/commandtest` to AGENTS.md module list** — missing from the
+      Quick Reference Modules row (lists `query/querytest` but not
+      `command/commandtest`).
+- [ ] **Add `command/commandtest` to `cmd/api-stability/main.go` modules list** —
+      `query/querytest` is tracked; `command/commandtest` is not. The
+      `TestEveryGoModDirIsInModulesList` gate will catch this once it's a
+      separate package path.
+- [ ] **Add `doc.go` to `command/commandtest/`** — `query/querytest` has one;
+      `commandtest` puts the package doc in `store_suite.go` header instead.
+      Consistency issue.
+- [ ] **Add self-test to `commandtest`** — run the suite against
+      `storage/memory.MemoryCommandStore` to validate the suite itself (mirrors
+      how `eventtest` is tested). Currently `[no test files]`.
+- [ ] **Remove unused `time` import in `durability_tiers_test.go`** — line 123
+      `var _ = time.Second` suppresses an import that is genuinely unused.
+      Pre-existing, not from this session.
 
 ---
 
