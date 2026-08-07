@@ -8,11 +8,18 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
 )
 
-func TestP012_LiteralDSNWithoutWAL_Flagged(t *testing.T) {
+func TestP012(t *testing.T) {
 	t.Parallel()
 
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+	tests := []struct {
+		name      string
+		sources   map[string]string
+		wantCount int
+	}{
+		{
+			"LiteralDSNWithoutWAL_Flagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -21,16 +28,13 @@ func setup() {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP012Detector(ctx))
-	ruletest.AssertRule(t, findings, "P012", 1)
-}
-
-func TestP012_LiteralDSNWithWAL_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			1,
+		},
+		{
+			"LiteralDSNWithWAL_NotFlagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -39,16 +43,13 @@ func setup() {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP012Detector(ctx))
-	ruletest.AssertRule(t, findings, "P012", 0)
-}
-
-func TestP012_ConstConcatDSNWithWAL_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			0,
+		},
+		{
+			"ConstConcatDSNWithWAL_NotFlagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -60,16 +61,13 @@ func openDB(path string) {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP012Detector(ctx))
-	ruletest.AssertRule(t, findings, "P012", 0)
-}
-
-func TestP012_PostOpenPragma_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			0,
+		},
+		{
+			"PostOpenPragma_NotFlagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -79,16 +77,13 @@ func setup() {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP012Detector(ctx))
-	ruletest.AssertRule(t, findings, "P012", 0)
-}
-
-func TestP012_LibraryWrapperCall_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			0,
+		},
+		{
+			"LibraryWrapperCall_NotFlagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -98,16 +93,13 @@ func setup() {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP012Detector(ctx))
-	ruletest.AssertRule(t, findings, "P012", 0)
-}
-
-func TestP012_OpaqueDSN_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			0,
+		},
+		{
+			"OpaqueDSN_NotFlagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -120,22 +112,29 @@ func setup() {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP012Detector(ctx))
-	ruletest.AssertRule(t, findings, "P012", 0)
-}
-
-func TestP012_NonSQLite_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"main.go": `package main
+			},
+			0,
+		},
+		{
+			"NonSQLite_NotFlagged",
+			map[string]string{
+				"main.go": `package main
 
 func main() {
 	println("hello")
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP012Detector(ctx))
-	ruletest.AssertRule(t, findings, "P012", 0)
+			},
+			0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := analyzer.BuildContextFromSource(t, tt.sources)
+			findings := ruletest.RunDetector(t, performance.NewP012Detector(ctx))
+			ruletest.AssertRule(t, findings, "P012", tt.wantCount)
+		})
+	}
 }

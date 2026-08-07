@@ -5,20 +5,27 @@ import (
 	"testing"
 )
 
-func TestStripJSONComments_LineComments(t *testing.T) {
-	t.Parallel()
+func mustStripAndParse(t *testing.T, input string) map[string]any {
+	t.Helper()
 
-	input := []byte(`{
-  // This is a line comment
-  "preset": "production",
-  "min-severity": "warning" // trailing comment
-}`)
-	stripped := stripJSONComments(input)
+	stripped := stripJSONComments([]byte(input))
 
 	var m map[string]any
 	if err := json.Unmarshal(stripped, &m); err != nil {
 		t.Fatalf("stripped result is not valid JSON: %v\n%s", err, stripped)
 	}
+
+	return m
+}
+
+func TestStripJSONComments_LineComments(t *testing.T) {
+	t.Parallel()
+
+	m := mustStripAndParse(t, `{
+  // This is a line comment
+  "preset": "production",
+  "min-severity": "warning" // trailing comment
+}`)
 
 	if m["preset"] != "production" {
 		t.Errorf("preset = %v, want production", m["preset"])
@@ -31,7 +38,7 @@ func TestStripJSONComments_LineComments(t *testing.T) {
 func TestStripJSONComments_BlockComments(t *testing.T) {
 	t.Parallel()
 
-	input := []byte(`{
+	m := mustStripAndParse(t, `{
   /* Block comment
      spanning multiple lines */
   "preset": "library",
@@ -40,12 +47,6 @@ func TestStripJSONComments_BlockComments(t *testing.T) {
     "disable": ["D002"]
   }
 }`)
-	stripped := stripJSONComments(input)
-
-	var m map[string]any
-	if err := json.Unmarshal(stripped, &m); err != nil {
-		t.Fatalf("stripped result is not valid JSON: %v\n%s", err, stripped)
-	}
 
 	if m["preset"] != "library" {
 		t.Errorf("preset = %v, want library", m["preset"])
@@ -55,17 +56,11 @@ func TestStripJSONComments_BlockComments(t *testing.T) {
 func TestStripJSONComments_UrlsInStrings(t *testing.T) {
 	t.Parallel()
 
-	input := []byte(`{
+	m := mustStripAndParse(t, `{
   // Comment before
   "url": "https://example.com/path",
   "path2": "http://other.com"
 }`)
-	stripped := stripJSONComments(input)
-
-	var m map[string]any
-	if err := json.Unmarshal(stripped, &m); err != nil {
-		t.Fatalf("stripped result is not valid JSON: %v\n%s", err, stripped)
-	}
 
 	if m["url"] != "https://example.com/path" {
 		t.Errorf("url = %v, want https://example.com/path", m["url"])
@@ -78,16 +73,10 @@ func TestStripJSONComments_UrlsInStrings(t *testing.T) {
 func TestStripJSONComments_SlashInsideString(t *testing.T) {
 	t.Parallel()
 
-	input := []byte(`{
+	m := mustStripAndParse(t, `{
   "regex": "a/b/c",
   "comment": "//not-a-comment"
 }`)
-	stripped := stripJSONComments(input)
-
-	var m map[string]any
-	if err := json.Unmarshal(stripped, &m); err != nil {
-		t.Fatalf("stripped result is not valid JSON: %v\n%s", err, stripped)
-	}
 
 	if m["regex"] != "a/b/c" {
 		t.Errorf("regex = %v, want a/b/c", m["regex"])
@@ -100,13 +89,7 @@ func TestStripJSONComments_SlashInsideString(t *testing.T) {
 func TestStripJSONComments_NoComments(t *testing.T) {
 	t.Parallel()
 
-	input := []byte(`{"preset":"production","min-severity":"warning"}`)
-	stripped := stripJSONComments(input)
-
-	var m map[string]any
-	if err := json.Unmarshal(stripped, &m); err != nil {
-		t.Fatalf("stripped result is not valid JSON: %v\n%s", err, stripped)
-	}
+	m := mustStripAndParse(t, `{"preset":"production","min-severity":"warning"}`)
 
 	if m["preset"] != "production" {
 		t.Errorf("preset = %v, want production", m["preset"])
@@ -116,16 +99,10 @@ func TestStripJSONComments_NoComments(t *testing.T) {
 func TestStripJSONComments_EscapedQuotes(t *testing.T) {
 	t.Parallel()
 
-	input := []byte(`{
+	m := mustStripAndParse(t, `{
   // Comment
   "text": "He said \"hello //world\""
 }`)
-	stripped := stripJSONComments(input)
-
-	var m map[string]any
-	if err := json.Unmarshal(stripped, &m); err != nil {
-		t.Fatalf("stripped result is not valid JSON: %v\n%s", err, stripped)
-	}
 
 	if m["text"] != "He said \"hello //world\"" {
 		t.Errorf("text = %v, want He said \"hello //world\"", m["text"])
@@ -135,16 +112,11 @@ func TestStripJSONComments_EscapedQuotes(t *testing.T) {
 func TestStripJSONComments_TrailingCommaObject(t *testing.T) {
 	t.Parallel()
 
-	input := []byte(`{
+	m := mustStripAndParse(t, `{
   "preset": "production",
   "min-severity": "warning",
 }`)
-	stripped := stripJSONComments(input)
 
-	var m map[string]any
-	if err := json.Unmarshal(stripped, &m); err != nil {
-		t.Fatalf("stripped result is not valid JSON: %v\n%s", err, stripped)
-	}
 	if m["preset"] != "production" {
 		t.Errorf("preset = %v, want production", m["preset"])
 	}
@@ -153,17 +125,12 @@ func TestStripJSONComments_TrailingCommaObject(t *testing.T) {
 func TestStripJSONComments_TrailingCommaArray(t *testing.T) {
 	t.Parallel()
 
-	input := []byte(`{
+	m := mustStripAndParse(t, `{
   "rules": {
     "disable": ["D002", "C007",]
   }
 }`)
-	stripped := stripJSONComments(input)
 
-	var m map[string]any
-	if err := json.Unmarshal(stripped, &m); err != nil {
-		t.Fatalf("stripped result is not valid JSON: %v\n%s", err, stripped)
-	}
 	rules, ok := m["rules"].(map[string]any)
 	if !ok {
 		t.Fatal("rules key missing or wrong type")
@@ -180,7 +147,7 @@ func TestStripJSONComments_TrailingCommaArray(t *testing.T) {
 func TestStripJSONComments_TrailingCommaNested(t *testing.T) {
 	t.Parallel()
 
-	input := []byte(`{
+	m := mustStripAndParse(t, `{
   "preset": "production",
   "rules": {
     "disable": ["D002"],
@@ -189,12 +156,7 @@ func TestStripJSONComments_TrailingCommaNested(t *testing.T) {
     "info-cap": 50,
   },
 }`)
-	stripped := stripJSONComments(input)
 
-	var m map[string]any
-	if err := json.Unmarshal(stripped, &m); err != nil {
-		t.Fatalf("stripped result is not valid JSON: %v\n%s", err, stripped)
-	}
 	if m["preset"] != "production" {
 		t.Errorf("preset = %v, want production", m["preset"])
 	}

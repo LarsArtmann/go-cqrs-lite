@@ -23,6 +23,7 @@ import (
 )
 
 // Dialect selects SQL syntax for table creation and placeholders.
+//art-dupl:accept intentional cross-module duplicate — separate go.mod, values MUST match
 type Dialect int
 
 const (

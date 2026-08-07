@@ -18,6 +18,7 @@ import (
 // To clean obsolete snapshots:  UPDATE_SNAPS=clean go test ./...
 func AssertGolden(t *testing.T, path string, got []byte, update bool) {
 	t.Helper()
+	//art-dupl:accept per-module golden helper — duplicated across modules with separate go.mod
 
 	opts := []func(*snaps.Config){
 		snaps.Dir(filepath.Dir(path)),
@@ -30,5 +31,4 @@ func AssertGolden(t *testing.T, path string, got []byte, update bool) {
 
 	snaps.WithConfig(opts...).
 		MatchSnapshot(t, string(got))
-	//art-dupl:accept per-module golden helper
 }

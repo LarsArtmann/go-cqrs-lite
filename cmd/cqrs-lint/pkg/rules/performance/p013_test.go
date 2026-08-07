@@ -8,11 +8,18 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
 )
 
-func TestP013_LiteralDSNWithoutBusyTimeout_Flagged(t *testing.T) {
+func TestP013(t *testing.T) {
 	t.Parallel()
 
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+	tests := []struct {
+		name      string
+		sources   map[string]string
+		wantCount int
+	}{
+		{
+			"LiteralDSNWithoutBusyTimeout_Flagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -21,16 +28,13 @@ func setup() {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP013Detector(ctx))
-	ruletest.AssertRule(t, findings, "P013", 1)
-}
-
-func TestP013_LiteralDSNWithBusyTimeoutModernc_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			1,
+		},
+		{
+			"LiteralDSNWithBusyTimeoutModernc_NotFlagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -39,16 +43,13 @@ func setup() {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP013Detector(ctx))
-	ruletest.AssertRule(t, findings, "P013", 0)
-}
-
-func TestP013_LiteralDSNWithBusyTimeoutMattn_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			0,
+		},
+		{
+			"LiteralDSNWithBusyTimeoutMattn_NotFlagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -57,18 +58,13 @@ func setup() {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP013Detector(ctx))
-	ruletest.AssertRule(t, findings, "P013", 0)
-}
-
-func TestP013_ConstConcatDSNWithBusyTimeout_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	// This is the DiscordSync pattern: DSN is built by concatenating a path
-	// variable with a package-level const that contains busy_timeout.
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			0,
+		},
+		{
+			"ConstConcatDSNWithBusyTimeout_NotFlagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -80,16 +76,13 @@ func openDB(path string) {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP013Detector(ctx))
-	ruletest.AssertRule(t, findings, "P013", 0)
-}
-
-func TestP013_ConstConcatDSNWithoutBusyTimeout_Flagged(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			0,
+		},
+		{
+			"ConstConcatDSNWithoutBusyTimeout_Flagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -101,17 +94,13 @@ func openDB(path string) {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP013Detector(ctx))
-	ruletest.AssertRule(t, findings, "P013", 1)
-}
-
-func TestP013_MultiLineConstConcatenation_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	// Tests the exact DiscordSync pattern: multi-line const concatenation.
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			1,
+		},
+		{
+			"MultiLineConstConcatenation_NotFlagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -125,16 +114,13 @@ func openSQLite(path string) {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP013Detector(ctx))
-	ruletest.AssertRule(t, findings, "P013", 0)
-}
-
-func TestP013_PostOpenPragma_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			0,
+		},
+		{
+			"PostOpenPragma_NotFlagged",
+			map[string]string{
+				"db.go": `package main
 
 import (
 	"context"
@@ -147,16 +133,13 @@ func setup() {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP013Detector(ctx))
-	ruletest.AssertRule(t, findings, "P013", 0)
-}
-
-func TestP013_PostOpenPragmaExecContext_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			0,
+		},
+		{
+			"PostOpenPragmaExecContext_NotFlagged",
+			map[string]string{
+				"db.go": `package main
 
 import (
 	"context"
@@ -169,16 +152,13 @@ func setup(ctx context.Context) {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP013Detector(ctx))
-	ruletest.AssertRule(t, findings, "P013", 0)
-}
-
-func TestP013_LibraryWrapperCall_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			0,
+		},
+		{
+			"LibraryWrapperCall_NotFlagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -188,18 +168,13 @@ func setup() {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP013Detector(ctx))
-	ruletest.AssertRule(t, findings, "P013", 0)
-}
-
-func TestP013_OpaqueDSN_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	// DSN returned from a function call — we can't statically inspect it.
-	// Suppress to avoid false positives.
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			0,
+		},
+		{
+			"OpaqueDSN_NotFlagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -212,31 +187,25 @@ func setup() {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP013Detector(ctx))
-	ruletest.AssertRule(t, findings, "P013", 0)
-}
-
-func TestP013_NonSQLite_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"main.go": `package main
+			},
+			0,
+		},
+		{
+			"NonSQLite_NotFlagged",
+			map[string]string{
+				"main.go": `package main
 
 func main() {
 	println("hello")
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP013Detector(ctx))
-	ruletest.AssertRule(t, findings, "P013", 0)
-}
-
-func TestP013_PostgresOpen_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			0,
+		},
+		{
+			"PostgresOpen_NotFlagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -245,17 +214,13 @@ func setup() {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP013Detector(ctx))
-	ruletest.AssertRule(t, findings, "P013", 0)
-}
-
-func TestP013_InlineConcatWithBusyTimeout_NotFlagged(t *testing.T) {
-	t.Parallel()
-
-	// DSN built inline via concatenation at the call site.
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			0,
+		},
+		{
+			"InlineConcatWithBusyTimeout_NotFlagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -264,16 +229,13 @@ func setup(path string) {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP013Detector(ctx))
-	ruletest.AssertRule(t, findings, "P013", 0)
-}
-
-func TestP013_InlineConcatWithoutBusyTimeout_Flagged(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"db.go": `package main
+			},
+			0,
+		},
+		{
+			"InlineConcatWithoutBusyTimeout_Flagged",
+			map[string]string{
+				"db.go": `package main
 
 import "database/sql"
 
@@ -282,7 +244,17 @@ func setup(path string) {
 	_ = db
 }
 `,
-	})
-	findings := ruletest.RunDetector(t, performance.NewP013Detector(ctx))
-	ruletest.AssertRule(t, findings, "P013", 1)
+			},
+			1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := analyzer.BuildContextFromSource(t, tt.sources)
+			findings := ruletest.RunDetector(t, performance.NewP013Detector(ctx))
+			ruletest.AssertRule(t, findings, "P013", tt.wantCount)
+		})
+	}
 }

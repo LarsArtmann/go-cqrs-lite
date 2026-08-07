@@ -113,6 +113,7 @@ func BuildTestCatalogWithOps() *catalog.Catalog {
 
 func AssertGolden(t *testing.T, goldenPath string, got []byte, update bool, _ string) {
 	t.Helper()
+	//art-dupl:accept per-module golden helper — duplicated across modules with separate go.mod
 
 	opts := []func(*snaps.Config){
 		snaps.Dir(filepath.Dir(goldenPath)),
@@ -125,7 +126,6 @@ func AssertGolden(t *testing.T, goldenPath string, got []byte, update bool, _ st
 
 	snaps.WithConfig(opts...).
 		MatchSnapshot(t, string(got))
-	//art-dupl:accept per-module golden helper
 }
 
 func GoldenDir() string {

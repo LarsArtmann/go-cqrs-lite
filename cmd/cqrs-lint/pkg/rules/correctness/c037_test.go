@@ -8,11 +8,18 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/ruletest"
 )
 
-func TestC037_CodecMismatch(t *testing.T) {
+func TestC037(t *testing.T) {
 	t.Parallel()
 
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"repo.go": `package main
+	tests := []struct {
+		name      string
+		sources   map[string]string
+		wantCount int
+	}{
+		{
+			"CodecMismatch",
+			map[string]string{
+				"repo.go": `package main
 
 import "github.com/larsartmann/go-cqrs-lite/decider/v4"
 
@@ -22,25 +29,20 @@ func newRepo(store Store, bus Bus) *decider.Repository[State] {
 	return repo
 }
 `,
-		"snap.go": `package main
+				"snap.go": `package main
 
 func newSnap(store Store) {
 	snap, _ := snapshot.NewTypedStore[State, string](store, codec.CBORCodec{})
 	_ = snap
 }
 `,
-	})
-
-	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
-	ruletest.AssertRule(t, findings, "C037", 1)
-}
-
-func TestC037_GenericWithCodecMismatch(t *testing.T) {
-	t.Parallel()
-
-	// decider.WithCodec[State](...) explicit type arg variant.
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"all.go": `package main
+			},
+			1,
+		},
+		{
+			"GenericWithCodecMismatch",
+			map[string]string{
+				"all.go": `package main
 
 func setup(store Store, bus Bus) {
 	_, _ = decider.NewRepository(store, bus, decider.Decider[State]{},
@@ -48,17 +50,13 @@ func setup(store Store, bus Bus) {
 	_, _ = snapshot.NewTypedStore[State, string](store, codec.CBORCodec{})
 }
 `,
-	})
-
-	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
-	ruletest.AssertRule(t, findings, "C037", 1)
-}
-
-func TestC037_SameCodecNoFinding(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"all.go": `package main
+			},
+			1,
+		},
+		{
+			"SameCodecNoFinding",
+			map[string]string{
+				"all.go": `package main
 
 func setup(store Store, bus Bus) {
 	_, _ = decider.NewRepository(store, bus, decider.Decider[State]{},
@@ -66,35 +64,25 @@ func setup(store Store, bus Bus) {
 	_, _ = snapshot.NewTypedStore[State, string](store, codec.CBORCodec{})
 }
 `,
-	})
-
-	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
-	ruletest.AssertRule(t, findings, "C037", 0)
-}
-
-func TestC037_NoRepoCodecNoFinding(t *testing.T) {
-	t.Parallel()
-
-	// Snapshot store without any repository codec — cannot determine mismatch.
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"all.go": `package main
+			},
+			0,
+		},
+		{
+			"NoRepoCodecNoFinding",
+			map[string]string{
+				"all.go": `package main
 
 func setup(store Store) {
 	_, _ = snapshot.NewTypedStore[State, string](store, codec.CBORCodec{})
 }
 `,
-	})
-
-	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
-	ruletest.AssertRule(t, findings, "C037", 0)
-}
-
-func TestC037_NonSnapshotNewTypedStoreNoFinding(t *testing.T) {
-	t.Parallel()
-
-	// A different package's NewTypedStore should not be confused with snapshot.
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"all.go": `package main
+			},
+			0,
+		},
+		{
+			"NonSnapshotNewTypedStoreNoFinding",
+			map[string]string{
+				"all.go": `package main
 
 func setup(store Store, bus Bus) {
 	_, _ = decider.NewRepository(store, bus, decider.Decider[State]{},
@@ -103,17 +91,13 @@ func setup(store Store, bus Bus) {
 	_, _ = otherpkg.NewTypedStore(store, codec.CBORCodec{})
 }
 `,
-	})
-
-	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
-	ruletest.AssertRule(t, findings, "C037", 0)
-}
-
-func TestC037_CommandStoreCodecMismatch(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"all.go": `package main
+			},
+			0,
+		},
+		{
+			"CommandStoreCodecMismatch",
+			map[string]string{
+				"all.go": `package main
 
 func setup(store Store, bus Bus) {
 	_, _ = decider.NewRepository(store, bus, decider.Decider[State]{},
@@ -121,17 +105,13 @@ func setup(store Store, bus Bus) {
 	_, _ = command.NewTypedCommandStore[Cmd](store, codec.CBORCodec{})
 }
 `,
-	})
-
-	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
-	ruletest.AssertRule(t, findings, "C037", 1)
-}
-
-func TestC037_QueryStoreCodecMismatch(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"all.go": `package main
+			},
+			1,
+		},
+		{
+			"QueryStoreCodecMismatch",
+			map[string]string{
+				"all.go": `package main
 
 func setup(store Store, bus Bus) {
 	_, _ = decider.NewRepository(store, bus, decider.Decider[State]{},
@@ -139,17 +119,13 @@ func setup(store Store, bus Bus) {
 	_, _ = query.NewTypedQueryStore[Q](store, codec.CBORCodec{})
 }
 `,
-	})
-
-	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
-	ruletest.AssertRule(t, findings, "C037", 1)
-}
-
-func TestC037_KVStoreCodecMismatch(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"all.go": `package main
+			},
+			1,
+		},
+		{
+			"KVStoreCodecMismatch",
+			map[string]string{
+				"all.go": `package main
 
 func setup(backend Store, bus Bus) {
 	_, _ = decider.NewRepository(store, bus, decider.Decider[State]{},
@@ -157,17 +133,13 @@ func setup(backend Store, bus Bus) {
 	_ = kv.NewTypedStore[View, string](backend, kv.WithTypedCodec[View, string](codec.CBORCodec{}))
 }
 `,
-	})
-
-	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
-	ruletest.AssertRule(t, findings, "C037", 1)
-}
-
-func TestC037_AllStoresSameCodecNoFinding(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"all.go": `package main
+			},
+			1,
+		},
+		{
+			"AllStoresSameCodecNoFinding",
+			map[string]string{
+				"all.go": `package main
 
 func setup(store Store, bus Bus) {
 	_, _ = decider.NewRepository(store, bus, decider.Decider[State]{},
@@ -178,17 +150,13 @@ func setup(store Store, bus Bus) {
 	_ = kv.NewTypedStore[View, string](store, kv.WithTypedCodec[View, string](codec.CBORCodec{}))
 }
 `,
-	})
-
-	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
-	ruletest.AssertRule(t, findings, "C037", 0)
-}
-
-func TestC037_MultipleMismatches(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"all.go": `package main
+			},
+			0,
+		},
+		{
+			"MultipleMismatches",
+			map[string]string{
+				"all.go": `package main
 
 func setup(store Store, bus Bus) {
 	_, _ = decider.NewRepository(store, bus, decider.Decider[State]{},
@@ -197,8 +165,17 @@ func setup(store Store, bus Bus) {
 	_, _ = command.NewTypedCommandStore[Cmd](store, codec.CBORCodec{})
 }
 `,
-	})
+			},
+			2,
+		},
+	}
 
-	findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
-	ruletest.AssertRule(t, findings, "C037", 2)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := analyzer.BuildContextFromSource(t, tt.sources)
+			findings := ruletest.RunDetector(t, correctness.NewC037Detector(ctx))
+			ruletest.AssertRule(t, findings, "C037", tt.wantCount)
+		})
+	}
 }
