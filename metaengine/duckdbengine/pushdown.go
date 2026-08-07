@@ -4,7 +4,6 @@ package duckdbengine
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json/v2"
 	"fmt"
 	"strings"

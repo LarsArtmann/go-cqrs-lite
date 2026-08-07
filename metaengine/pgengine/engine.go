@@ -40,6 +40,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // register the pgx database/sql driver
 
@@ -64,6 +65,7 @@ const PG_NsPerRead = 5000.0
 type pgEngine struct {
 	db             *sql.DB
 	mu             sync.Mutex
+	activeTx       atomic.Pointer[sql.Tx] // non-nil inside RunInTx
 	done           bool
 	layoutMu       sync.Mutex
 	appliedLayouts map[string]bool
@@ -224,7 +226,7 @@ func (e *pgEngine) MapSet(ctx context.Context, col string, key any, value any) e
 		return fmt.Errorf("pgengine.MapSet: marshal: %w", err)
 	}
 
-	_, err = e.db.ExecContext(
+	_, err = e.conn().ExecContext(
 		ctx,
 		`INSERT INTO meta_map (collection, key, value)
 		 VALUES ($1, $2, $3::jsonb)
@@ -241,7 +243,7 @@ func (e *pgEngine) MapSet(ctx context.Context, col string, key any, value any) e
 func (e *pgEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
 	var raw []byte
 
-	err := e.db.QueryRowContext(
+	err := e.conn().QueryRowContext(
 		ctx,
 		`SELECT value::text FROM meta_map WHERE collection = $1 AND key = $2`,
 		col, fmt.Sprint(key),
@@ -263,7 +265,7 @@ func (e *pgEngine) MapGet(ctx context.Context, col string, key any) (any, bool, 
 }
 
 func (e *pgEngine) MapDelete(ctx context.Context, col string, key any) error {
-	_, err := e.db.ExecContext(
+	_, err := e.conn().ExecContext(
 		ctx,
 		`DELETE FROM meta_map WHERE collection = $1 AND key = $2`,
 		col, fmt.Sprint(key),
@@ -308,7 +310,7 @@ func (e *pgEngine) CounterIncrement(
 		strings.Join(placeholders, ", "),
 	)
 
-	if _, err := e.db.ExecContext(ctx, query, args...); err != nil {
+	if _, err := e.conn().ExecContext(ctx, query, args...); err != nil {
 		return fmt.Errorf("pgengine.CounterIncrement: %w", err)
 	}
 
@@ -316,7 +318,7 @@ func (e *pgEngine) CounterIncrement(
 }
 
 func (e *pgEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
-	rows, err := e.db.QueryContext(
+	rows, err := e.conn().QueryContext(
 		ctx,
 		`SELECT key, value FROM meta_counter WHERE collection = $1`,
 		col,
@@ -358,4 +360,5 @@ var (
 	_ metaengine.LayoutPlanner    = (*pgEngine)(nil)
 	_ metaengine.StreamLogBackend = (*pgEngine)(nil)
 	_ metaengine.AtomicAppender   = (*pgEngine)(nil)
+	_ metaengine.Transactional    = (*pgEngine)(nil)
 )

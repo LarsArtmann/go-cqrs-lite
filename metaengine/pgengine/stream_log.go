@@ -12,33 +12,26 @@ import (
 // --- StreamLogBackend implementation ---
 
 func (e *pgEngine) StreamAppend(ctx context.Context, col, sid string, values []any) error {
-	tx, err := e.db.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("pgengine.StreamAppend begin tx: %w", err)
-	}
-
-	defer func() { _ = tx.Rollback() }()
-
-	for _, v := range values {
-		encoded := metaengine.EncodeStreamValue(v)
-		if _, err := tx.ExecContext(
-			ctx,
-			`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
-			col, sid, encoded,
-		); err != nil {
-			return fmt.Errorf("pgengine.StreamAppend: %w", err)
+	return e.inTx(ctx, func(conn dbExec) error {
+		for _, v := range values {
+			encoded := metaengine.EncodeStreamValue(v)
+			if _, err := conn.ExecContext(
+				ctx,
+				`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
+				col, sid, encoded,
+			); err != nil {
+				return fmt.Errorf("pgengine.StreamAppend: %w", err)
+			}
 		}
-	}
 
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("pgengine.StreamAppend commit: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 // StreamAppendExpected appends values atomically if the stream version matches.
-// Uses a transaction for true atomic version-check-then-append.
+// Uses a transaction for true atomic version-check-then-append. When called
+// inside RunInTx, participates in the outer transaction instead of starting
+// a nested one.
 // Returns metaengine.ErrVersionConflict if the current version does not match.
 func (e *pgEngine) StreamAppendExpected(
 	ctx context.Context,
@@ -46,44 +39,35 @@ func (e *pgEngine) StreamAppendExpected(
 	expectedVersion int64,
 	values []any,
 ) error {
-	tx, err := e.db.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("pgengine.StreamAppendExpected begin tx: %w", err)
-	}
+	return e.inTx(ctx, func(conn dbExec) error {
+		var current int64
 
-	defer func() { _ = tx.Rollback() }()
-
-	var current int64
-
-	err = tx.QueryRowContext(
-		ctx,
-		`SELECT COUNT(*) FROM meta_stream_log WHERE collection = $1 AND stream_id = $2`,
-		col, sid,
-	).Scan(&current)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("pgengine.StreamAppendExpected version: %w", err)
-	}
-
-	if current != expectedVersion {
-		return metaengine.ErrVersionConflict
-	}
-
-	for _, v := range values {
-		encoded := metaengine.EncodeStreamValue(v)
-		if _, err := tx.ExecContext(
+		err := conn.QueryRowContext(
 			ctx,
-			`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
-			col, sid, encoded,
-		); err != nil {
-			return fmt.Errorf("pgengine.StreamAppendExpected insert: %w", err)
+			`SELECT COUNT(*) FROM meta_stream_log WHERE collection = $1 AND stream_id = $2`,
+			col, sid,
+		).Scan(&current)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("pgengine.StreamAppendExpected version: %w", err)
 		}
-	}
 
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("pgengine.StreamAppendExpected commit: %w", err)
-	}
+		if current != expectedVersion {
+			return metaengine.ErrVersionConflict
+		}
 
-	return nil
+		for _, v := range values {
+			encoded := metaengine.EncodeStreamValue(v)
+			if _, err := conn.ExecContext(
+				ctx,
+				`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
+				col, sid, encoded,
+			); err != nil {
+				return fmt.Errorf("pgengine.StreamAppendExpected insert: %w", err)
+			}
+		}
+
+		return nil
+	})
 }
 
 func (e *pgEngine) StreamRead(ctx context.Context, col, sid string) ([]any, error) {
@@ -95,7 +79,7 @@ func (e *pgEngine) StreamRead(ctx context.Context, col, sid string) ([]any, erro
 func (e *pgEngine) StreamVersion(ctx context.Context, col, sid string) (int64, error) {
 	var count int64
 
-	err := e.db.QueryRowContext(
+	err := e.conn().QueryRowContext(
 		ctx,
 		`SELECT COUNT(*) FROM meta_stream_log WHERE collection = $1 AND stream_id = $2`,
 		col, sid,
@@ -143,7 +127,7 @@ func (e *pgEngine) scanStreamValues(
 	query string,
 	args ...any,
 ) ([]any, error) {
-	rows, err := e.db.QueryContext(ctx, query, args...)
+	rows, err := e.conn().QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("pgengine.scanStreamValues: %w", err)
 	}

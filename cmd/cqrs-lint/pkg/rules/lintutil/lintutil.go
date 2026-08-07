@@ -130,6 +130,18 @@ func SelectorIdent(sel *ast.SelectorExpr) (*ast.Ident, bool) {
 	return ident, ok
 }
 
+// SelectorPkgName extracts the package name and method/field name from a
+// selector expression (e.g. event.New → ("event", "New")). Returns ok=false
+// when the selector's receiver is not an identifier. Shared by d007, c037.
+func SelectorPkgName(sel *ast.SelectorExpr) (pkg, name string, ok bool) {
+	ident, ok := SelectorIdent(sel)
+	if !ok {
+		return "", "", false
+	}
+
+	return ident.Name, sel.Sel.Name, true
+}
+
 // ExprCallSelector extracts the selector from an expression that is a function
 // call: expr → *ast.CallExpr → analyzer.SelectorFromExpr(call.Fun). Returns
 // (nil, false) when expr is not a call or its target is not a selector.

@@ -81,7 +81,7 @@ func (e *pgEngine) PushdownMapScan(
 		fmt.Fprintf(&b, ` LIMIT %d`, limit+1)
 	}
 
-	rows, err := scanPGJSONValues(ctx, e.db, b.String(), args...)
+	rows, err := scanPGJSONValues(ctx, e.conn(), b.String(), args...)
 	if err != nil {
 		return metaengine.ScanResult{}, err
 	}
@@ -136,7 +136,7 @@ func (e *pgEngine) ApplyLayout(collection string, filterFields, sortFields []str
 			idxName, escaped, escapeSQLString(collection),
 		)
 
-		if _, err := e.db.ExecContext(context.Background(), ddl); err != nil {
+		if _, err := e.conn().ExecContext(context.Background(), ddl); err != nil {
 			return fmt.Errorf("pgengine.ApplyLayout: create index %s: %w", idxName, err)
 		}
 	}
@@ -147,7 +147,7 @@ func (e *pgEngine) ApplyLayout(collection string, filterFields, sortFields []str
 }
 
 // scanPGJSONValues executes the query and decodes each row's JSONB value.
-func scanPGJSONValues(ctx context.Context, db *sql.DB, query string, args ...any) ([]any, error) {
+func scanPGJSONValues(ctx context.Context, db dbExec, query string, args ...any) ([]any, error) {
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("pgengine scan: %w", err)

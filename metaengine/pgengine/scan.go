@@ -22,7 +22,7 @@ func (e *pgEngine) MapScan(
 	cursor any,
 	limit int,
 ) (metaengine.ScanResult, error) {
-	rows, err := e.db.QueryContext(
+	rows, err := e.conn().QueryContext(
 		ctx,
 		`SELECT key, value::text FROM meta_map WHERE collection = $1`,
 		collection,

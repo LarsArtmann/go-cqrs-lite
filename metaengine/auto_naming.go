@@ -9,15 +9,25 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
+// autoReflectSetup computes the common reflection setup shared by
+// autoInsertByType and autoUpdateByType: a sample value and the key field index.
+func autoReflectSetup(eventType reflect.Type, keyField, autoName string) (sample any, keyIdx int) {
+	sample = reflect.Zero(eventType).Interface()
+
+	var err error
+
+	keyIdx, err = findField(eventType, keyField)
+	if err != nil {
+		panic(fmt.Sprintf("%s: %s (event %s)", autoName, err, eventType.Name()))
+	}
+
+	return sample, keyIdx
+}
+
 // autoInsertByType is the non-generic core of AutoInsert. It builds an insert
 // fold from reflect.Type values, enabling convention-based inference (ADR-0116).
 func autoInsertByType(eventType, resultType reflect.Type, keyField string) Fold {
-	sample := reflect.Zero(eventType).Interface()
-
-	keyIdx, err := findField(eventType, keyField)
-	if err != nil {
-		panic(fmt.Sprintf("AutoInsert: %s (event %s)", err, eventType.Name()))
-	}
+	sample, keyIdx := autoReflectSetup(eventType, keyField, "AutoInsert")
 
 	keyType := eventType.Field(keyIdx).Type
 	mappings := matchFields(eventType, resultType)
@@ -53,12 +63,7 @@ func autoInsertByType(eventType, resultType reflect.Type, keyField string) Fold 
 
 // autoUpdateByType is the non-generic core of AutoUpdate.
 func autoUpdateByType(eventType, resultType reflect.Type, keyField string) Fold {
-	sample := reflect.Zero(eventType).Interface()
-
-	keyIdx, err := findField(eventType, keyField)
-	if err != nil {
-		panic(fmt.Sprintf("AutoUpdate: %s (event %s)", err, eventType.Name()))
-	}
+	sample, keyIdx := autoReflectSetup(eventType, keyField, "AutoUpdate")
 
 	mappings := matchFields(eventType, resultType)
 	stamps := computeRecordStamps(resultType, mappings)

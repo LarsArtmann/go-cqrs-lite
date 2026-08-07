@@ -104,19 +104,6 @@ func scanJSONValues(ctx context.Context, db dbExec, query string, args ...any) (
 	return scanSingleColumn(ctx, db, query, metaengine.DecodeStreamValue, args...)
 }
 
-// metaengine.DecodeStreamValue unmarshals a JSON string into an any. If the string is not
-// valid JSON, it returns the raw string. Used by scanJSONValues and MapScan
-// where Go-side filter/sort functions need decoded values.
-func metaengine.DecodeStreamValue(valStr string) any {
-	var val any
-
-	if jErr := json.Unmarshal([]byte(valStr), &val); jErr != nil {
-		return valStr
-	}
-
-	return val
-}
-
 // --- metaengine.MultimapBackend ---
 
 func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value any) error {

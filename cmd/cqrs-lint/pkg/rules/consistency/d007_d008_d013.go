@@ -268,12 +268,7 @@ func selectorPkgAndName(expr ast.Expr) (pkg, name string, ok bool) {
 		return "", "", false
 	}
 
-	ident, ok := lintutil.SelectorIdent(sel)
-	if !ok {
-		return "", "", false
-	}
-
-	return ident.Name, sel.Sel.Name, true
+	return lintutil.SelectorPkgName(sel)
 }
 
 // isEventPkg checks whether a qualifier (e.g. the "event" in event.New) refers
