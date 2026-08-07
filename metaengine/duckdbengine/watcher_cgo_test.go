@@ -8,6 +8,7 @@ import (
 	"time"
 
 	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -103,56 +104,34 @@ func TestDuckDBWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 	}
 	defer eng.Close()
 
-	q := metaengine.Query[watcherTask, watcherTask](
-		"duckdb_replay_tasks",
-		metaengine.OnTyped(
-			"task_created",
-			watcherTask{},
-			func(e watcherTask) (watcherTaskID, watcherTask) {
-				return e.ID, e
+	enginetest.RunWatcherReplayTest[watcherTask](
+		t, eng,
+		enginetest.WatcherReplaySetup[watcherTask]{
+			Collection: "duckdb_replay_tasks",
+			Build: func(t *testing.T, eng metaengine.Engine) (metaengine.Store, *metaengine.Watcher[watcherTask]) {
+				q := metaengine.Query[watcherTask, watcherTask](
+					"duckdb_replay_tasks",
+					metaengine.OnTyped(
+						"task_created",
+						watcherTask{},
+						func(e watcherTask) (watcherTaskID, watcherTask) {
+							return e.ID, e
+						},
+					),
+				)
+				store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
+				if err != nil {
+					t.Fatalf("Plan: %v", err)
+				}
+				watcher := metaengine.NewWatcher[watcherTask](store, "duckdb_replay_tasks")
+				return store, watcher
 			},
-		),
-	)
-
-	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	watcher := metaengine.NewWatcher[watcherTask](store, "duckdb_replay_tasks")
-	replay := watcher.WithReplay(100)
-	defer watcher.Close()
-
-	seqCh := watcher.WatchWithSeq(ctx, nil)
-
-	if err := store.Apply(
-		ctx,
-		"task_created",
+			Apply: func(ctx context.Context, store metaengine.Store, payload watcherTask) error {
+				return store.Apply(ctx, "task_created", payload)
+			},
+		},
 		watcherTask{ID: watcherTaskID("drt-1"), Title: "DuckDB Replay"},
-	); err != nil {
-		t.Fatalf("apply create: %v", err)
-	}
-
-	select {
-	case sv := <-seqCh:
-		if sv.Value.ID != watcherTaskID("drt-1") {
-			t.Errorf("expected 'drt-1', got %s", sv.Value.ID)
-		}
-		if sv.Seq == 0 {
-			t.Fatal("expected non-zero seq — replayShim.recordValue silently failed (pre-fix bug)")
-		}
-	case <-time.After(2 * time.Second):
-		t.Fatal("timeout waiting for DuckDB watcher seq notification")
-	}
-
-	entries := replay.Replay(0)
-	if len(entries) != 1 {
-		t.Fatalf("expected 1 replay entry, got %d", len(entries))
-	}
-	if entries[0].Value.ID != watcherTaskID("drt-1") {
-		t.Errorf("replay entry: expected 'drt-1', got %s", entries[0].Value.ID)
-	}
+		"drt-1",
+		2*time.Second,
+	)
 }
