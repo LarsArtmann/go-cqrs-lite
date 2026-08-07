@@ -85,23 +85,12 @@ func (e *pebbleEngine) StreamRead(_ context.Context, col, sid string) ([]any, er
 }
 
 func (e *pebbleEngine) StreamVersion(_ context.Context, col, sid string) (int64, error) {
-	iter, err := e.newPrefixIter(streamPrefix(col, sid))
+	n, err := e.countStreamEntries(col, sid)
 	if err != nil {
 		return 0, fmt.Errorf("pebbleengine.StreamVersion: %w", err)
 	}
 
-	defer func() { _ = iter.Close() }()
-
-	var count int64
-	for iter.First(); iter.Valid(); iter.Next() {
-		count++
-	}
-
-	if err := iter.Error(); err != nil {
-		return 0, fmt.Errorf("pebbleengine.StreamVersion iter: %w", err)
-	}
-
-	return count, nil
+	return n, nil
 }
 
 func (e *pebbleEngine) JournalReadAll(_ context.Context, col string) ([]any, error) {

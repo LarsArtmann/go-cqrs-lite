@@ -12,12 +12,14 @@ import (
 // --- StreamLogBackend implementation ---
 
 func (e *duckdbEngine) StreamAppend(ctx context.Context, col, sid string, values []any) error {
-	e.mu.Lock()
-	defer e.mu.Unlock()
+	if e.activeTx.Load() == nil {
+		e.mu.Lock()
+		defer e.mu.Unlock()
+	}
 
 	for _, v := range values {
 		encoded := metaengine.EncodeStreamValue(v)
-		if _, err := e.db.ExecContext(
+		if _, err := e.conn().ExecContext(
 			ctx,
 			`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
 			col, sid, encoded,
@@ -38,12 +40,14 @@ func (e *duckdbEngine) StreamAppendExpected(
 	expectedVersion int64,
 	values []any,
 ) error {
-	e.mu.Lock()
-	defer e.mu.Unlock()
+	if e.activeTx.Load() == nil {
+		e.mu.Lock()
+		defer e.mu.Unlock()
+	}
 
 	var current int64
 
-	err := e.db.QueryRowContext(
+	err := e.conn().QueryRowContext(
 		ctx,
 		`SELECT COUNT(*) FROM meta_stream_log WHERE collection = $1 AND stream_id = $2`,
 		col, sid,
@@ -58,7 +62,7 @@ func (e *duckdbEngine) StreamAppendExpected(
 
 	for _, v := range values {
 		encoded := metaengine.EncodeStreamValue(v)
-		if _, err := e.db.ExecContext(
+		if _, err := e.conn().ExecContext(
 			ctx,
 			`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
 			col, sid, encoded,
@@ -79,7 +83,7 @@ func (e *duckdbEngine) StreamRead(ctx context.Context, col, sid string) ([]any, 
 func (e *duckdbEngine) StreamVersion(ctx context.Context, col, sid string) (int64, error) {
 	var count int64
 
-	err := e.db.QueryRowContext(
+	err := e.conn().QueryRowContext(
 		ctx,
 		`SELECT COUNT(*) FROM meta_stream_log WHERE collection = $1 AND stream_id = $2`,
 		col, sid,
@@ -127,7 +131,7 @@ func (e *duckdbEngine) scanStreamValues(
 	query string,
 	args ...any,
 ) ([]any, error) {
-	rows, err := e.db.QueryContext(ctx, query, args...)
+	rows, err := e.conn().QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("duckdbengine.scanStreamValues: %w", err)
 	}

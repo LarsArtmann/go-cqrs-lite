@@ -101,13 +101,13 @@ func (e *sqliteEngine) CounterGet(ctx context.Context, col string) (map[string]i
 // fall back to their raw string form. Used by PushdownMapScan, MultiGet, and
 // LogTail — all paths where direct callers expect decoded values.
 func scanJSONValues(ctx context.Context, db dbExec, query string, args ...any) ([]any, error) {
-	return scanSingleColumn(ctx, db, query, decodeJSONValue, args...)
+	return scanSingleColumn(ctx, db, query, metaengine.DecodeStreamValue, args...)
 }
 
-// decodeJSONValue unmarshals a JSON string into an any. If the string is not
+// metaengine.DecodeStreamValue unmarshals a JSON string into an any. If the string is not
 // valid JSON, it returns the raw string. Used by scanJSONValues and MapScan
 // where Go-side filter/sort functions need decoded values.
-func decodeJSONValue(valStr string) any {
+func metaengine.DecodeStreamValue(valStr string) any {
 	var val any
 
 	if jErr := json.Unmarshal([]byte(valStr), &val); jErr != nil {

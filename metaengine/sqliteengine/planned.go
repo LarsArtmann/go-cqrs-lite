@@ -158,7 +158,7 @@ func (e *sqliteEngine) mapGetPlanned(
 		return nil, false, err //nolint:wrapcheck // passthrough
 	}
 
-	return decodeJSONValue(valStr), true, nil
+	return metaengine.DecodeStreamValue(valStr), true, nil
 }
 
 // mapUpdatePlanned performs an atomic read-modify-write on a planned table.
@@ -185,7 +185,7 @@ func (e *sqliteEngine) mapUpdatePlanned(
 
 		var prev any
 		if err == nil {
-			prev = decodeJSONValue(valStr)
+			prev = metaengine.DecodeStreamValue(valStr)
 		}
 
 		newVal := update(prev)
@@ -208,7 +208,7 @@ func (e *sqliteEngine) mapUpdatePlanned(
 				return nil, err //nolint:wrapcheck // ErrNoRows handled by caller
 			}
 
-			return decodeJSONValue(valStr), nil
+			return metaengine.DecodeStreamValue(valStr), nil
 		},
 		func(ctx context.Context, tx *sql.Tx, newVal any) error {
 			return execPlannedSet(ctx, tx, plan, key, newVal)

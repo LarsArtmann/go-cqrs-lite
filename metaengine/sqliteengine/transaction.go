@@ -129,7 +129,7 @@ func readModifyWriteCached(
 	var prev any
 
 	if err == nil {
-		prev = decodeJSONValue(valStr)
+		prev = metaengine.DecodeStreamValue(valStr)
 	}
 
 	newVal := update(prev)

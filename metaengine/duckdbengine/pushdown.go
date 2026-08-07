@@ -91,7 +91,7 @@ func (e *duckdbEngine) PushdownMapScan(
 		fmt.Fprintf(&b, ` LIMIT %d`, limit+1)
 	}
 
-	rows, err := scanDuckDBJSONValues(ctx, e.db, b.String(), args...)
+	rows, err := scanDuckDBJSONValues(ctx, e.conn(), b.String(), args...)
 	if err != nil {
 		return metaengine.ScanResult{}, err
 	}
@@ -114,7 +114,7 @@ func jsonPath(field string) string {
 // scanDuckDBJSONValues executes the query and decodes each row's JSON value.
 func scanDuckDBJSONValues(
 	ctx context.Context,
-	db *sql.DB,
+	db dbExec,
 	query string,
 	args ...any,
 ) ([]any, error) {

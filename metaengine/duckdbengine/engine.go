@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -45,7 +46,8 @@ type duckdbEngine struct {
 	db          *sql.DB
 	persistence metaengine.Persistence
 	mu          sync.Mutex
-	took        bool // closed flag
+	activeTx    atomic.Pointer[sql.Tx] // non-nil inside RunInTx
+	took        bool                    // closed flag
 	plans       map[string]metaengine.LayoutPlan
 	layoutMu    sync.Mutex
 	cal         metaengine.Calibration
@@ -217,7 +219,7 @@ func (e *duckdbEngine) MapSet(ctx context.Context, col string, key any, value an
 		return fmt.Errorf("duckdbengine.MapSet: marshal value: %w", err)
 	}
 
-	_, err = e.db.ExecContext(
+	_, err = e.conn().ExecContext(
 		ctx,
 		`INSERT INTO meta_map (collection, key, value)
 		 VALUES ($1, $2, $3)
@@ -238,7 +240,7 @@ func (e *duckdbEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 
 	var raw string
 
-	err := e.db.QueryRowContext(
+	err := e.conn().QueryRowContext(
 		ctx,
 		`SELECT value FROM meta_map WHERE collection = $1 AND key = $2`,
 		col, fmt.Sprint(key),
@@ -264,7 +266,7 @@ func (e *duckdbEngine) MapDelete(ctx context.Context, col string, key any) error
 		return e.mapDeletePlanned(ctx, plan, key)
 	}
 
-	_, err := e.db.ExecContext(
+	_, err := e.conn().ExecContext(
 		ctx,
 		`DELETE FROM meta_map WHERE collection = $1 AND key = $2`,
 		col, fmt.Sprint(key),
@@ -292,7 +294,7 @@ func (e *duckdbEngine) CounterIncrement(
 	// in the same way as Postgres. Each upsert is still fast due to
 	// DuckDB's vectorized execution engine.
 	for key, delta := range deltas {
-		_, err := e.db.ExecContext(
+		_, err := e.conn().ExecContext(
 			ctx,
 			`INSERT INTO meta_counter (collection, key, value)
 			 VALUES ($1, $2, $3)
@@ -308,7 +310,7 @@ func (e *duckdbEngine) CounterIncrement(
 }
 
 func (e *duckdbEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
-	rows, err := e.db.QueryContext(
+	rows, err := e.conn().QueryContext(
 		ctx,
 		`SELECT key, value FROM meta_counter WHERE collection = $1`,
 		col,
@@ -351,4 +353,5 @@ var (
 	_ metaengine.LayoutPlanApplier = (*duckdbEngine)(nil)
 	_ metaengine.StreamLogBackend  = (*duckdbEngine)(nil)
 	_ metaengine.AtomicAppender    = (*duckdbEngine)(nil)
+	_ metaengine.Transactional     = (*duckdbEngine)(nil)
 )

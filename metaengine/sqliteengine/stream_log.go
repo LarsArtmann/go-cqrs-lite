@@ -165,7 +165,7 @@ func (e *sqliteEngine) scanStreamValues(
 			return nil, err //nolint:wrapcheck // passthrough
 		}
 
-		result = append(result, decodeJSONValue(valStr))
+		result = append(result, metaengine.DecodeStreamValue(valStr))
 	}
 
 	if result == nil {

@@ -226,7 +226,7 @@ func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 		return nil, false, err //nolint:wrapcheck // passthrough
 	}
 
-	return decodeJSONValue(valStr), true, nil
+	return metaengine.DecodeStreamValue(valStr), true, nil
 }
 
 func (e *sqliteEngine) MapDelete(ctx context.Context, col string, key any) error {
@@ -284,7 +284,7 @@ func (e *sqliteEngine) MapUpdate(
 				return nil, err //nolint:wrapcheck // ErrNoRows handled by caller
 			}
 
-			return decodeJSONValue(valStr), nil
+			return metaengine.DecodeStreamValue(valStr), nil
 		},
 		func(ctx context.Context, tx *sql.Tx, newVal any) error {
 			_, err := tx.ExecContext(
@@ -342,7 +342,7 @@ func (e *sqliteEngine) MapScan(
 			return metaengine.ScanResult{}, err //nolint:wrapcheck // passthrough
 		}
 
-		val := decodeJSONValue(valStr)
+		val := metaengine.DecodeStreamValue(valStr)
 
 		if filterFn != nil && !filterFn(val) {
 			continue
@@ -515,7 +515,7 @@ func (e *sqliteEngine) StreamScan(
 				return
 			}
 
-			if !yield(decodeJSONValue(valStr), nil) {
+			if !yield(metaengine.DecodeStreamValue(valStr), nil) {
 				return
 			}
 		}
