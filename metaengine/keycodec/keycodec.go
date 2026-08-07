@@ -122,6 +122,70 @@ func EncodeKeyStr(key any) string {
 	return string(EncodeJSON(key))
 }
 
+// StreamKey returns the per-stream entry key for the StreamLogBackend.
+// seq is zero-padded to 20 digits so lexicographic byte order matches numeric order.
+func StreamKey(col, sid string, seq int64) []byte {
+	return fmt.Appendf(nil, "sl%s%s%s%s%s%020d", Sep, col, Sep, sid, Sep, seq)
+}
+
+// StreamPrefix returns the scan prefix for all entries of a single stream.
+func StreamPrefix(col, sid string) []byte {
+	return []byte("sl" + Sep + col + Sep + sid + Sep)
+}
+
+// JournalKey returns the global journal index key for the StreamLogBackend.
+func JournalKey(col string, gseq int64) []byte {
+	return fmt.Appendf(nil, "jl%s%s%s%020d", Sep, col, Sep, gseq)
+}
+
+// JournalPrefix returns the scan prefix for the global journal of a collection.
+func JournalPrefix(col string) []byte {
+	return []byte("jl" + Sep + col + Sep)
+}
+
+// StreamSeqKey builds the in-memory map key for per-stream sequence counters.
+func StreamSeqKey(col, sid string) string {
+	return col + Sep + sid
+}
+
+// BFSNeighbors performs a breadth-first traversal starting from node, calling
+// scanFn to discover neighbors at each level. Returns decoded JSON values for
+// all visited nodes (excluding the start node). depth < 0 means unlimited.
+//
+// This is shared between Badger and Pebble engines whose only difference is
+// the iterator implementation inside scanFn.
+func BFSNeighbors(scanFn func(col, node string) []string, col string, node any, depth int) []any {
+	nodeStr := EncodeKeyStr(node)
+	visited := map[string]bool{nodeStr: true}
+	frontier := []string{nodeStr}
+
+	var result []string
+
+	for d := 0; d < depth && len(frontier) > 0; d++ {
+		var next []string
+
+		for _, n := range frontier {
+			neighbors := scanFn(col, n)
+			for _, nb := range neighbors {
+				if !visited[nb] {
+					visited[nb] = true
+					result = append(result, nb)
+					next = append(next, nb)
+				}
+			}
+		}
+
+		frontier = next
+	}
+
+	decoded := make([]any, len(result))
+	for i, r := range result {
+		decoded[i] = DecodeJSON([]byte(r))
+	}
+
+	return decoded
+}
+
 // EncodeCounterValue encodes an int64 as 8 bytes big-endian.
 func EncodeCounterValue(v int64) []byte {
 	b := make([]byte, 8)

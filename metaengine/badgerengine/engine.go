@@ -158,6 +158,11 @@ var (
 	graphEdgeKey         = keycodec.GraphEdgeKey
 	graphPrefixForward   = keycodec.GraphPrefixForward
 	collectionPrefix     = keycodec.CollectionPrefix
+	streamKey            = keycodec.StreamKey
+	streamPrefix         = keycodec.StreamPrefix
+	journalKey           = keycodec.JournalKey
+	journalPrefix        = keycodec.JournalPrefix
+	streamSeqMapKey      = keycodec.StreamSeqKey
 	encodeJSON           = keycodec.EncodeJSON
 	decodeJSON           = keycodec.DecodeJSON
 	encodeKeyStr         = keycodec.EncodeKeyStr
