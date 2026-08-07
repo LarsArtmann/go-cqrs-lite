@@ -30,7 +30,7 @@ func (e *pebbleEngine) getPebbleRaw(col string, key any) ([]byte, bool, error) {
 		return nil, false, err
 	}
 
-	defer func() { _ = closer.Close() }() //cqrs-lint:ignore(C015) pebble closer, error is always nil
+	defer func() { _ = closer.Close() }() // pebble closer, error is always nil
 
 	return append([]byte(nil), val...), true, nil
 }

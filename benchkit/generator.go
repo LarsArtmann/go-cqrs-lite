@@ -14,7 +14,6 @@ import (
 // It mimics a realistic e-commerce order event with typed fields.
 // The Padding field ensures the encoded payload matches the target byte size
 // as closely as possible (within a few bytes for any codec).
-// cqrs-lint:ignore(C008) library code or intentional pattern
 type BenchPayload struct {
 	ID       string            `cbor:"1,keyasint"           json:"id"`
 	Name     string            `cbor:"2,keyasint"           json:"name"`

@@ -125,7 +125,6 @@ func (s *EventStore) Save(
 }
 
 // AppendBatch implements event.Store.AppendBatch (no version check).
-// cqrs-lint:ignore(A021) library code or intentional pattern
 func (s *EventStore) AppendBatch(
 	_ context.Context,
 	ref id.StreamRef,
