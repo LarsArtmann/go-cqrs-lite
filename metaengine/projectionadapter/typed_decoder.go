@@ -1,7 +1,6 @@
 package projectionadapter
 
 import (
-	"encoding/json/v2"
 	"errors"
 	"fmt"
 
@@ -44,7 +43,7 @@ type EventRegistration struct {
 // payload Go type. The event type is an event.Type (a string typedef).
 // Go infers the payload type from the sample argument.
 //
-// The payload is decoded via encoding/json/v2 and wrapped in EventWithID,
+// The payload is decoded via event.DecodePayloadAuto and wrapped in EventWithID,
 // giving fold handlers access to both the entity ID and the typed payload.
 //
 //	projectionadapter.Register(evtTaskCreated, TaskCreatedPayload{})
@@ -57,7 +56,9 @@ func Register[E any](eventType event.Type, _ E) EventRegistration {
 			var p E
 
 			if len(evt.Payload()) > 0 {
-				if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+				var err error
+				p, err = event.DecodePayloadAuto[E](evt)
+				if err != nil {
 					return nil, fmt.Errorf("projectionadapter: decode %s: %w", t, err)
 				}
 			}
@@ -76,7 +77,9 @@ func RegisterString[E any](eventType string, _ E) EventRegistration {
 			var p E
 
 			if len(evt.Payload()) > 0 {
-				if err := json.Unmarshal(evt.Payload(), &p); err != nil {
+				var err error
+				p, err = event.DecodePayloadAuto[E](evt)
+				if err != nil {
 					return nil, fmt.Errorf("projectionadapter: decode %s: %w", eventType, err)
 				}
 			}
