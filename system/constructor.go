@@ -48,8 +48,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		}
 
 		engineCache[name] = eng
-		sys.engines = append(sys.engines, eng)
-		sys.engineNames = append(sys.engineNames, name)
+		sys.engines = append(sys.engines, namedEngine{engine: eng, name: name})
 	}
 
 	// Find the source-of-truth instance and wire the adapters.
@@ -157,16 +156,14 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	// If no source-of-truth instance, create a default Memory engine.
 	if sys.eventStore == nil {
 		eng := metaengine.NewMemoryEngine()
-		sys.engines = append(sys.engines, eng)
-		sys.engineNames = append(sys.engineNames, "default")
+		sys.engines = append(sys.engines, namedEngine{engine: eng, name: "default"})
 		sys.eventStore = NewEventAdapter(eng.(metaengine.StreamLogBackend), "events")
 	}
 
 	// If no projection store, create one from Memory if projections are declared.
 	if sys.projStore == nil && len(domain.Projections) > 0 {
 		eng := metaengine.NewMemoryEngine()
-		sys.engines = append(sys.engines, eng)
-		sys.engineNames = append(sys.engineNames, "projections")
+		sys.engines = append(sys.engines, namedEngine{engine: eng, name: "projections"})
 
 		args := make([]any, len(domain.Projections))
 		copy(args, domain.Projections)

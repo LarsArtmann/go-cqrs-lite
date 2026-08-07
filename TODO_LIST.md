@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-08 (bbolt test coverage shipped — 13 new tests, contention benchmark)
+**Updated:** 2026-08-08 (metaengine v2 test coverage + 14 module tags created)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -19,43 +19,60 @@ and is **never** duplicated here.
 > engines (Memory, SQLite, Pebble, DuckDB, Postgres, Badger, Dgraph,
 > GraphAdapter, Iroh), `OnRecord`/`ApplyRecord` Record-aware folds,
 > `AutoInsert`/`AutoCRUD`/`AutoCRUDByConvention` auto-projection, tombstone
-> deprecation. ADRs 0111-0119 written. Verify gate GREEN (all 17 steps pass).
-> Tags pushed: sqliteengine, graphadapter, dgraphengine, storage/bbolt,
-> idempotency. Remaining work is completeness and edge-case coverage.
+> deprecation. ADRs 0111-0119 written. Tags created: sqliteengine,
+> graphadapter, dgraphengine, storage/bbolt, idempotency, pebbleengine,
+> metaengine/bench + 11 drifted-module bumps (retry, middleware, benchkit,
+> stack/*). Remaining work is release hygiene and edge-case coverage.
+>
+> **WARNING:** 14 tags created this session are LOCAL ONLY (not pushed). Verify
+> gate NOT confirmed GREEN after changes. See
+> [status report](docs/status/2026-08-08_01-34_metaengine-v2-publishability-and-test-coverage.md).
 
-### Publishability (blocks external consumers)
+### Release hygiene (blocks consumer trust)
 
-- [ ] **Tag `metaengine/bench/v4.0.0`** — module exists in `go.work` but has no
-      git tag. External consumers cannot import it.
-- [ ] **Tag `metaengine/pebbleengine/v4.0.0`** — module exists in `go.work` but
-      has no git tag. External consumers cannot import it.
-- [ ] **Tag drifted modules for GOWORK=off CI** — `retry/v4`, `middleware/v4`,
-      `benchkit/v4`, `stack/*` have API changes since their last tag. Per-module
-      CI (GOWORK=off) fails because it resolves to stale versions.
+- [ ] 🔥 **Push 14 new tags to remote** — `git push origin --tags` or selective.
+      Tags: `metaengine/pebbleengine/v4.0.0`, `metaengine/bench/v4.0.0`,
+      `retry/v4.3.0`, `middleware/v4.3.0`, `benchkit/v4.3.0`, `stack/v4.3.0`,
+      `stack/{memory,sqlite,turso,pebble,postgres}/v4.3.0`,
+      `stack/{duckdb,bbolt,mysql}/v4.1.0`.
+- [ ] 🔥 **Update CHANGELOG.md for all 14 new tags** — `TestTagContentMatchesChangelog`
+      will fail without entries for each version section.
+- [ ] 🔥 **Run `nix run .#verify` to completion** — verify gate was killed twice
+      this session without confirming GREEN. 10 pre-existing lint findings in
+      `system/` (wsl_v5, goconst, err113, prealloc) need fixing.
+- [ ] **Run `nix run .#vulncheck`** — verify all tagged modules build under
+      GOWORK=off (per-module consumer resolution).
 
-### Test coverage
+### Test coverage (gaps remaining)
 
-- [ ] **Record-aware integration test through Pebble engine** — Record-aware
-      pipeline through `metaengine/pebbleengine` (SQLite engine test exists).
-- [ ] **Soak test with `AutoCRUDByConvention`** — existing soak tests use
-      manual folds; verify the auto-projection path under sustained load.
-- [ ] **Add `RunTransactionalTest` to sqliteengine/badgerengine tests** —
-      DuckDB + PG have it; SQLite + Badger do not.
-- [ ] **Add concurrent `RunInTx` test** — two goroutines, verify isolation.
-- [ ] **Add `MultiAdd` + `LogAppend` transactional tests** —
-      `RunTransactionalTest` exercises MapBackend + CounterBackend + StreamLog
-      inside `RunInTx`; Multimap and Log backends are untested in transactions.
+- [ ] **Run new concurrent tests under `-race`** — `RunConcurrentTxTest` was
+      tested without the race detector. The whole point of concurrent tests is
+      catching data races. Run 3x with `-count=3 -race`.
+- [ ] **Record-aware integration test through DuckDB engine** — Pebble + SQLite
+      done. DuckDB (CGo path) not yet.
+- [ ] **Record-aware integration test through PG engine** — Pebble + SQLite
+      done. PG not yet.
+- [ ] **`RunTransactionalTest` on Memory engine (baseline)** — no engine module
+      calls RunTransactionalTest against the Memory engine for baseline parity.
+- [ ] **Soak test with `AutoCRUDByConvention` through Pebble/DuckDB** — current
+      soak uses Memory engine only. Verify LSM/OLAP backends under sustained load.
 
-### Module health
+> **Done this session:** Record-aware Pebble test, AutoCRUDByConvention soak
+> (45K events, 0.1MB heap growth), RunTransactionalTest on SQLite, concurrent
+> RunInTx test (enginetest + SQLite/DuckDB/PG), MultiAdd + LogAppend
+> transactional subtests. badgerengine does NOT implement Transactional (no
+> RunInTx method), so it is correctly excluded.
 
-- [ ] **Add `metaengine/keycodec`, `metaengine/enginetest`,
-      `testutil/pgtestcontainer` to api-stability modules list** —
-      `TestEveryGoModDirIsInModulesList` will fail without these.
-- [ ] **Add same 3 modules to AGENTS.md module list** — currently missing from
-      the Quick Reference table and Monorepo Structure tree.
-- [ ] **Fix 16 COVERAGE GAPs in `check-module-layers.sh`** — newer modules
-      (badgerengine, dgraphengine, graphadapter, sqliteengine, metaengine/bench,
-      testutil/pgtestcontainer, record) missing from LAYER/DEP_BUDGET maps.
+### Module health (DONE this session)
+
+- [x] **Add `metaengine/keycodec`, `metaengine/enginetest`,
+      `testutil/pgtestcontainer`, `example/metaengine-quickstart` to AGENTS.md** —
+      added to Quick Reference table, Test command, and Monorepo Structure tree.
+      (api-stability `TestEveryGoModDirIsInModulesList` was already passing —
+      keycodec/enginetest are packages within metaengine, not separate go.mod
+      modules.)
+- [x] **Fix COVERAGE GAPs in `check-module-layers.sh`** — script passes clean.
+      No gaps remain (verified by running the script directly).
 
 > Long-term metaengine work (`metaengine-gen` code generator, Vector/Search/
 > Spatial engine backends, generic `ScanResult[T]`, operator-driven engine
@@ -319,9 +336,8 @@ and is **never** duplicated here.
       about content (H1 says "seven-tier" but filename says "four-tier").
 - [ ] **Remove dead `EXCEPTIONS[storage]="listing"`** — listing moved to
       Layer 3, the exception is no longer needed.
-- [ ] **Fix 16 COVERAGE GAPs** — newer modules (badgerengine, dgraphengine,
-      graphadapter, sqliteengine, metaengine/bench, testutil/pgtestcontainer,
-      record, example/metaengine-quickstart) missing from LAYER/DEP_BUDGET maps.
+- [x] **Fix 16 COVERAGE GAPs** — `check-module-layers.sh` passes clean. All
+      newer modules are now in LAYER/DEP_BUDGET maps. (Verified 2026-08-08.)
 - [ ] **Expand go-arch-lint to remaining modules** — only 6 modules have
       per-module go-arch-lint configs. The bash script is the enforcement
       mechanism for the rest.

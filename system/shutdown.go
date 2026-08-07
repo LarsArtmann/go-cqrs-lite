@@ -27,15 +27,15 @@ type shutdownEdge struct {
 // in any dependency edge keep their creation order. Cycles fall back to
 // creation order for the affected engines.
 func (s *System) orderedEngines() []metaengine.Engine {
-	if len(s.shutdownDeps) == 0 || len(s.engineNames) == 0 {
-		return s.engines
+	if len(s.shutdownDeps) == 0 || len(s.engines) == 0 {
+		return s.engineSlice()
 	}
 
 	// Build a set of unique engine indices by name.
-	nameToIdx := make(map[string]int, len(s.engineNames))
-	for i, name := range s.engineNames {
-		if _, exists := nameToIdx[name]; !exists {
-			nameToIdx[name] = i
+	nameToIdx := make(map[string]int, len(s.engines))
+	for i, ne := range s.engines {
+		if _, exists := nameToIdx[ne.name]; !exists {
+			nameToIdx[ne.name] = i
 		}
 	}
 
@@ -69,7 +69,7 @@ func (s *System) orderedEngines() []metaengine.Engine {
 		idx := queue[0]
 		queue = queue[1:]
 
-		result = append(result, s.engines[idx])
+		result = append(result, s.engines[idx].engine)
 		processed++
 
 		for _, next := range after[idx] {
@@ -85,7 +85,7 @@ func (s *System) orderedEngines() []metaengine.Engine {
 	if processed < len(s.engines) {
 		for i := range s.engines {
 			if inDegree[i] > 0 {
-				result = append(result, s.engines[i])
+				result = append(result, s.engines[i].engine)
 			}
 		}
 	}

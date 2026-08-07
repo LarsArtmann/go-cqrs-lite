@@ -499,3 +499,191 @@ func TestSystem_HealthCheck_SQLite(t *testing.T) {
 		t.Fatalf("HealthCheck on SQLite system: %v", err)
 	}
 }
+
+// mockDrainer records whether Drain was called and whether it ran before Close.
+type mockDrainer struct {
+	drained   bool
+	drainTime time.Time
+	drainErr  error
+}
+
+func (d *mockDrainer) Drain(_ context.Context) error {
+	d.drained = true
+	d.drainTime = time.Now()
+
+	return d.drainErr
+}
+
+func TestSystem_RegisterDrainer_CalledBeforeClose(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	sys, err := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{"primary": {Driver: "memory"}},
+		Instances: []system.InstanceConfig{
+			{Role: system.RoleSourceOfTruth, Engine: "primary"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("system.New: %v", err)
+	}
+
+	drainer := &mockDrainer{}
+	sys.RegisterDrainer(drainer)
+
+	gCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	if err := sys.GracefulClose(gCtx); err != nil {
+		t.Fatalf("GracefulClose: %v", err)
+	}
+
+	if !drainer.drained {
+		t.Fatal("expected Drain to be called by GracefulClose")
+	}
+}
+
+func TestSystem_RegisterDrainer_ErrorPropagation(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	sys, err := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{"primary": {Driver: "memory"}},
+		Instances: []system.InstanceConfig{
+			{Role: system.RoleSourceOfTruth, Engine: "primary"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("system.New: %v", err)
+	}
+
+	drainErr := errors.New("drain failed")
+	sys.RegisterDrainer(&mockDrainer{drainErr: drainErr})
+
+	gCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	err = sys.GracefulClose(gCtx)
+	if err == nil {
+		t.Fatal("expected GracefulClose to return drain error")
+	}
+
+	if !errors.Is(err, drainErr) {
+		t.Fatalf("expected error to wrap drainErr, got: %v", err)
+	}
+}
+
+func TestSystem_ResetProjection_RestartAndReplay(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	cpStore := &recordingCheckpointStore{}
+	dsn := "file:" + t.Name() + "?mode=memory&cache=shared"
+
+	deployment := system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{
+			"primary": {Driver: "sqlite", DSN: dsn, Pragmas: []string{"journal_mode=wal"}},
+		},
+		Instances: []system.InstanceConfig{
+			{Role: system.RoleSourceOfTruth, Engine: "primary"},
+			{Role: system.RoleProjections, Engine: "primary"},
+		},
+	}
+
+	// Phase 1: produce an event, process it, then stop and reset.
+	sys1, err := system.New(ctx, taskDomainConfig(taskProjectionQuery("replay_test"), cpStore),
+		deployment)
+	if err != nil {
+		t.Fatalf("system.New (phase 1): %v", err)
+	}
+
+	if err := sys1.CommandDispatcher().
+		Dispatch(ctx, newCmd("task.create", id.NewStreamID())); err != nil {
+		t.Fatalf("dispatch create: %v", err)
+	}
+
+	if err := sys1.Start(ctx); err != nil {
+		t.Fatalf("system.Start (phase 1): %v", err)
+	}
+
+	if !waitForProjectionProcessed(t, sys1, 1) {
+		for _, s := range sys1.ProjectionHost().Status() {
+			t.Fatalf("projection %q: processed=%d errors=%d", s.Name, s.Processed, s.Errors)
+		}
+	}
+
+	// Verify the projection has data before reset.
+	result, err := sys1.MetaEngine().Execute(FindTask{ID: "hardening-task"})
+	if err != nil {
+		t.Fatalf("Execute before reset: %v", err)
+	}
+
+	view, ok := result.(TaskView)
+	if !ok {
+		t.Fatalf("expected TaskView, got %T", result)
+	}
+
+	if view.Title != "hardening-task" {
+		t.Fatalf("expected task %q before reset, got %q", "hardening-task", view.Title)
+	}
+
+	// Stop, reset, close. The SQLite DB persists in-memory via shared cache.
+	if err := sys1.ProjectionHost().Stop(); err != nil {
+		t.Fatalf("stop projection host: %v", err)
+	}
+
+	if err := sys1.ResetProjection(ctx, "projections"); err != nil {
+		t.Fatalf("ResetProjection: %v", err)
+	}
+
+	// Checkpoint should be zero-value after reset.
+	lastCp := cpStore.saved["projections"]
+	if !lastCp.IsZero() {
+		t.Fatalf("expected zero-value checkpoint after reset, got %v", lastCp)
+	}
+
+	if err := sys1.Close(); err != nil {
+		t.Fatalf("Close (phase 1): %v", err)
+	}
+
+	// Phase 2: new system with same SQLite DSN (events persist) and fresh
+	// checkpoint store (no checkpoint = replay from zero).
+	sys2, err := system.New(ctx, taskDomainConfig(taskProjectionQuery("replay_test"), nil),
+		deployment)
+	if err != nil {
+		t.Fatalf("system.New (phase 2): %v", err)
+	}
+	defer sys2.Close()
+
+	if err := sys2.Start(ctx); err != nil {
+		t.Fatalf("system.Start (phase 2): %v", err)
+	}
+
+	// Wait for the projection to replay from the journal.
+	if !waitForProjectionProcessed(t, sys2, 1) {
+		for _, s := range sys2.ProjectionHost().Status() {
+			t.Fatalf("projection %q after replay: processed=%d errors=%d",
+				s.Name, s.Processed, s.Errors)
+		}
+	}
+
+	// Verify the replayed projection has the same data.
+	result2, err := sys2.MetaEngine().Execute(FindTask{ID: "hardening-task"})
+	if err != nil {
+		t.Fatalf("Execute after replay: %v", err)
+	}
+
+	view2, ok := result2.(TaskView)
+	if !ok {
+		t.Fatalf("expected TaskView after replay, got %T", result2)
+	}
+
+	if view2.Title != "hardening-task" {
+		t.Fatalf("expected replayed projection to have task %q, got %q",
+			"hardening-task", view2.Title)
+	}
+}

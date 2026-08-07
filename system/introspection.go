@@ -164,7 +164,8 @@ func (s *System) HealthCheck(ctx context.Context) error {
 	}
 
 	// Check all engines that implement HealthChecker.
-	for _, eng := range s.engines {
+	for _, ne := range s.engines {
+		eng := ne.engine
 		if hc, ok := eng.(metaengine.HealthChecker); ok {
 			if err := hc.HealthCheck(ctx); err != nil {
 				return fmt.Errorf("system: engine %s health check: %w", eng.Profile().Name, err)
@@ -223,7 +224,7 @@ func (s *System) ProjectionPlan() *metaengine.SerializablePlan {
 		return nil
 	}
 
-	return metaengine.Serialize(result, s.engines)
+	return metaengine.Serialize(result, s.engineSlice())
 }
 
 // VerifyProjections checks the consistency of the projection layer plan
@@ -233,7 +234,7 @@ func (s *System) VerifyProjections(ctx context.Context) error {
 		return nil
 	}
 
-	return s.projStore.Verify(ctx, s.engines)
+	return s.projStore.Verify(ctx, s.engineSlice())
 }
 
 // ProjectionExplain returns a human-readable plan explanation for the
