@@ -264,3 +264,126 @@ func TestScoreGrade(t *testing.T) {
 		}
 	}
 }
+
+func TestComputeScorecard_MetaengineSection_DetectedWithPushdown(t *testing.T) {
+	t.Parallel()
+
+	usage := make(map[analyzer.ModuleKey]analyzer.ModuleUsage)
+	for _, e := range analyzer.DefaultCatalog.Scored() {
+		usage[e.Key] = analyzer.ModuleUsage{Key: e.Key, Status: analyzer.UsageAbsent}
+	}
+
+	fp := analyzer.FeatureProfile{
+		HasMetaengine:      true,
+		MetaengineEngines:  []string{"sqlite", "memory"},
+		MetaenginePushdown: true,
+	}
+
+	result := ComputeScorecard(analyzer.DefaultCatalog, usage, fp, analyzer.PresetNone)
+
+	if result.Metaengine == nil {
+		t.Fatal("expected Metaengine section, got nil")
+	}
+	if !result.Metaengine.Detected {
+		t.Error("expected Detected=true")
+	}
+	if len(result.Metaengine.Engines) != 2 {
+		t.Errorf("expected 2 engines, got %d", len(result.Metaengine.Engines))
+	}
+	if !result.Metaengine.PushdownAdopted {
+		t.Error("expected PushdownAdopted=true")
+	}
+	if result.Metaengine.Suggestion != "" {
+		t.Errorf("expected empty suggestion when pushdown adopted, got %q",
+			result.Metaengine.Suggestion)
+	}
+
+	text := renderScorecardText(result, output.ColorModeNever)
+	if !strings.Contains(text, "METAENGINE") {
+		t.Error("expected METAENGINE section in text output")
+	}
+	if !strings.Contains(text, "Pushdown: adopted") {
+		t.Error("expected 'Pushdown: adopted' in text output")
+	}
+}
+
+func TestComputeScorecard_MetaengineSection_DetectedWithoutPushdown(t *testing.T) {
+	t.Parallel()
+
+	usage := make(map[analyzer.ModuleKey]analyzer.ModuleUsage)
+	for _, e := range analyzer.DefaultCatalog.Scored() {
+		usage[e.Key] = analyzer.ModuleUsage{Key: e.Key, Status: analyzer.UsageAbsent}
+	}
+
+	fp := analyzer.FeatureProfile{
+		HasMetaengine:     true,
+		MetaengineEngines: []string{"sqlite"},
+	}
+
+	result := ComputeScorecard(analyzer.DefaultCatalog, usage, fp, analyzer.PresetNone)
+
+	if result.Metaengine == nil {
+		t.Fatal("expected Metaengine section, got nil")
+	}
+	if result.Metaengine.PushdownAdopted {
+		t.Error("expected PushdownAdopted=false")
+	}
+	if result.Metaengine.Suggestion == "" {
+		t.Error("expected non-empty suggestion when pushdown not adopted")
+	}
+
+	text := renderScorecardText(result, output.ColorModeNever)
+	if !strings.Contains(text, "Pushdown: not adopted") {
+		t.Error("expected 'Pushdown: not adopted' in text output")
+	}
+}
+
+func TestComputeScorecard_MetaengineSection_NotDetected(t *testing.T) {
+	t.Parallel()
+
+	usage := make(map[analyzer.ModuleKey]analyzer.ModuleUsage)
+	for _, e := range analyzer.DefaultCatalog.Scored() {
+		usage[e.Key] = analyzer.ModuleUsage{Key: e.Key, Status: analyzer.UsageAbsent}
+	}
+
+	result := ComputeScorecard(
+		analyzer.DefaultCatalog, usage,
+		analyzer.FeatureProfile{}, analyzer.PresetNone,
+	)
+
+	if result.Metaengine != nil {
+		t.Error("expected nil Metaengine section when not detected")
+	}
+
+	text := renderScorecardText(result, output.ColorModeNever)
+	if strings.Contains(text, "METAENGINE") {
+		t.Error("did not expect METAENGINE section in text output")
+	}
+}
+
+func TestComputeScorecard_MetaengineSection_MarkdownRendering(t *testing.T) {
+	t.Parallel()
+
+	usage := make(map[analyzer.ModuleKey]analyzer.ModuleUsage)
+	for _, e := range analyzer.DefaultCatalog.Scored() {
+		usage[e.Key] = analyzer.ModuleUsage{Key: e.Key, Status: analyzer.UsageAbsent}
+	}
+
+	fp := analyzer.FeatureProfile{
+		HasMetaengine:     true,
+		MetaengineEngines: []string{"pebble"},
+	}
+
+	result := ComputeScorecard(analyzer.DefaultCatalog, usage, fp, analyzer.PresetNone)
+
+	md := renderScorecardMarkdown(result)
+	if !strings.Contains(md, "### Metaengine") {
+		t.Error("expected '### Metaengine' section in markdown output")
+	}
+	if !strings.Contains(md, "**Engines:** pebble") {
+		t.Error("expected engine list in markdown output")
+	}
+	if !strings.Contains(md, "**Pushdown:** not adopted") {
+		t.Error("expected pushdown status in markdown output")
+	}
+}

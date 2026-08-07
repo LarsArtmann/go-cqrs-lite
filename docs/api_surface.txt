@@ -380,6 +380,7 @@ cmd/cqrs-lint/struct AppConfig
 cmd/cqrs-lint/struct HealthConfig
 cmd/cqrs-lint/struct HealthScore
 cmd/cqrs-lint/struct JSONCLoader
+cmd/cqrs-lint/struct ScorecardMetaengine
 cmd/cqrs-lint/struct ScorecardModule
 cmd/cqrs-lint/struct ScorecardResult
 cmd/cqrs-lint/struct ScorecardSummary
@@ -3589,6 +3590,8 @@ testutil/method ReadFrom
 testutil/method Records
 testutil/method WithAttrs
 testutil/method WithGroup
+testutil/pgtestcontainer/func DSN
+testutil/pgtestcontainer/func TestMain
 testutil/struct CapturingSlogHandler
 testutil/struct DelayedJournal
 transport/grpc/func NewCommandClient
