@@ -8,6 +8,134 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### bbolt storage backend hardening — streaming, OTel, contract tests
+
+- **Streaming iterators** (`storage/bbolt/stream.go`) — `event.StreamingSource`
+  (LoadStream, LoadStreamFromVersion) and `event.StreamingJournal` (ReadStream,
+  ReadStreamFrom). Long-lived read transaction, lazy `Next()`, prefix/upper-bound
+  filtering, skip-until, limit, idempotent Close. 8 streaming tests + interface
+  assertions.
+- **OTel span instrumentation** (`storage/bbolt/otel.go`) — `context.Context`
+  replaces all `_ context.Context` placeholders. Span creation + error recording
+  + count attributes across ALL public methods (EventStore 12, SnapshotStore 4,
+  CheckpointStore 2, CommandStore 7, QueryStore 4).
+- **Contract test suite expanded** — 6→16 tests (26 total with streaming).
+- **`storage/bbolt/v4.0.0` tagged and pushed** — first release.
+
+#### System package P1 hardening — scream store, serialization, koanf, transactional
+
+- **Scream store plan-drift detection** — `CheckPlanSafety(ctx, plan,
+  manifestPath)` loads a pinned `metaengine.Manifest`, diffs against the current
+  `SerializablePlan`, classifies changes (SCREAM/WARN+OVERRIDE/ADVISORY). First
+  deployment saves manifest; tamper detection. 8 tests.
+- **CommandAdapter + QueryAdapter SQL serialization** — JSON envelopes
+  (`serializedCommand`/`serializedQuery`) for SQL engines. `encodeCommand`/
+  `decodeCommand`/`commandsToAny`/`anyToCommands`. `WithCommandSerialization()`/
+  `WithQuerySerialization()` options. Auto-detects for non-memory drivers. 5
+  adapter tests.
+- **koanf YAML config** (ADR-0105) — config loader rewritten with `koanf/v2`
+  (file.Provider + env.Provider). Eliminated 4 duplicated intermediate structs.
+  Structured env var overrides (`CQRS_ENGINES__PRIMARY__DRIVER=sqlite`).
+  Backward-compatible legacy env vars.
+- **DuckDB/PG Transactional** — both engines implement `Transactional`
+  (`RunInTx`) with tx routing via `conn()`/`activeTx`. All 28 SQL call sites
+  routed. Compile-time assertions. `RunTransactionalTest` in enginetest.
+- **Bus driver registry** — registry functional: gochannel special-case removed,
+  unknown drivers error (not silent fallback). Fixed latent `RLock`/`Unlock`
+  mismatch bug in `lookupBusDriver` (would have caused fatal panic).
+- **example/taskmanager migration** — rewired from `sqlite.New()` + `stack.Bundle`
+  to `system.New()` with `DomainConfig` + `DeploymentConfig`. Removed ~220 lines
+  of manual wiring. 10 command handlers converted to `system.RegisterCommand` +
+  `system.Execute()`. Removed legacy `Materialize` code. Signing via
+  `sys.Bus().UsePublish/Use`.
+- **System constructor fix** — bus created BEFORE projection host (enables
+  auto-wire subscriber). SQLite driver sets `SetMaxOpenConns(1)` for `:memory:`.
+  `ProjectionHostOptions` added to `DomainConfig`.
+
+#### Metaengine v2 publishability — tags, verify gate GREEN, dedup refactor
+
+- **Tags pushed** — `metaengine/sqliteengine/v4.0.0`,
+  `metaengine/graphadapter/v4.0.0`, `metaengine/dgraphengine/v4.0.0`,
+  `storage/bbolt/v4.0.0`, `idempotency/v4.3.0`. All verified on remote.
+- **Verify gate GREEN** — all 17 verify steps pass (build, vet, test, race, lint,
+  layers, duplication, coverage, api-stability, doc-check). Only pre-existing
+  QUIC convergence flake remains.
+- **Lint gate: 58→0** — 58 lint issues across 9 modules resolved to 0 across all
+  65 modules. Per-module exclusions added for command/, signing/, encryption/,
+  retry/, idempotency/, cmd/cqrs-bench/, stack/bench/, metaengine/,
+  metaengine/pebbleengine/, catalog/httptyped/.
+- **auto_naming.go dedup refactor** — `AutoInsert[E,R]`/`AutoUpdate[E,R]`/
+  `AutoDelete[E]` generic folds now delegate to `autoInsertByType`/
+  `autoUpdateByType` non-generic core. Eliminates duplicated logic.
+- **Record-aware soak test** — `TestSoak_RecordAwarePipeline` (100K events,
+  memory leak + Record metadata verification).
+- **flake.nix build-tag fixes** — `goexperiment.jsonv2` added to API stability
+  and doc-check GOWORK=off commands (were silently breaking CI gates).
+- **Transactional test expansion** — `RunTransactionalTest` now exercises
+  `CounterIncrement` and `StreamAppend` inside `RunInTx` (commit + rollback +
+  in-tx visibility paths). Refactored into helpers.
+- **idempotency API drift fix** — `ErrInvalidTTL` re-exported in shim.
+  `go-idempotency` bumped to v0.1.2. TTL validation exists in all three
+  implementations (MemoryStore, kvstore, sqlstore).
+
+#### Deduplication — clone groups driven to 0 at all thresholds
+
+- **art-dupl thresholds 7, 4, 3 all driven to 0** — from 65 clone groups (Aug 5)
+  to 0 groups at threshold 3. Baseline golden updated.
+- **Shared test helper modules created**:
+  - `testutil/pgtestcontainer` — shared PG test container setup (eliminates 3
+    testcontainer clone groups)
+  - `metaengine/keycodec` — shared key encoding helpers for LSM engines
+    (eliminates 5 pebbleengine clone groups)
+  - `metaengine/enginetest` — shared engine backend test helpers:
+    `RunScanBackendTest`, `RunWatcherReplayTest`, `RunPushdownTest`,
+    `RunStreamLogBackendTest`, `RunAtomicAppenderTest` (eliminates 4 cross-engine
+    clone groups)
+- **benchkit `skipPhase()` helper** — collapsed 11 copies of ctx-check +
+  nil-check + recordSkip boilerplate into one call (~88→~33 lines).
+- **codec `WrapCOSEMarshal()`** — shared COSE marshal error-wrapping helper,
+  eliminates duplication in encryption + signing.
+- **cqrs-lint `ExprIdentName()`** — exported from analyzer, removed duplicate
+  `typeName()`. `isInDefer()` consolidated from `hasDeferAncestorC021()`.
+
+#### cqrs-lint hardening — F021, scorecard metaengine, SARIF, self-lint
+
+- **F021 rewrite** — per-query fold analysis (inspects each `metaengine.Query`
+  call individually, 3+ folds per query triggers finding). Was global fold count.
+- **Scorecard metaengine section** — `ScorecardMetaengine` struct rendered in
+  text/markdown/JSON/SARIF. Shows detected engines, pushdown adoption,
+  recommendations.
+- **SARIF metaengine properties** — `metaengineDetected`/`metaengineEngines`/
+  `metaenginePushdownAdopted` in `run.properties`.
+- **Self-lint cleanup** — 15 stale `//cqrs-lint:ignore` suppressions removed.
+  C005 bug fix: `projectionadapter/typed_decoder.go` replaced `json.Unmarshal`
+  with `event.DecodePayloadAuto[T]` (CBOR-encoded events would have failed
+  silently). Self-lint: 0 CRITICAL, 0 ERROR, 0 load errors.
+- **Cross-format consistency tests** — `TestScorecard_CrossFormat_*` verifies
+  metaengine info appears consistently across text, JSON, markdown, SARIF.
+- **Scorecard E2E metaengine tests** — `TestScorecard_E2E_MetaengineDetected`,
+  `TestScorecard_E2E_MetaengineWithoutPushdown`.
+
+#### retry/ module deprecation
+
+- `middleware/` migrated to import `go-retry` directly (removed `retry/v4` shim
+  dependency).
+- `retry/` module deprecated: `doc.go` rewritten with DEPRECATED banner, all 8
+  exported symbols annotated `// Deprecated:`, README rewritten with migration
+  guide, go.mod bumped to go-retry v0.2.0.
+
+#### Metaengine benchmark module + M4.2 DuckDB columnar benchmark
+
+- **`metaengine/bench/` module created** — cross-engine benchmark module with
+  replace directives for 4 local engines. 10 bench files migrated from
+  `metaengine/`. M4.2 DuckDB columnar extraction benchmark (3-way comparison:
+  Columnar 184ms < Pushdown 265ms < Memory 377ms at 100K rows). CGo-disabled
+  path verified.
+- **Full-pipeline benchmarks** — 7 new files in `stack/bench/` (realistic models,
+  full pipeline, contention, durability tiers, codec pipeline, batch size sweep).
+- **Cross-module benchmarks** — 6 new files across 6 modules (projectionhost,
+  transport/grpc, transport/http, decider, scheduling, middleware).
+
 #### Metaengine v2 — Record-aware ES-native architecture (ADRs 0111-0119)
 
 The metaengine is now **event-sourcing-native**: it understands typed Records

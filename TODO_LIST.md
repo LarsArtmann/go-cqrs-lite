@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-07 (post publishability hardening, verify gate GREEN)
+**Updated:** 2026-08-08 (code-verified audit: 9 stale items marked done)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -35,14 +35,16 @@ and is **never** duplicated here.
 
 ### Test coverage
 
-- [ ] **Record-aware integration test through SQLite engine** — Record-aware
-      pipeline through `metaengine/sqliteengine`, not just Memory engine.
+- [x] **Record-aware integration test through SQLite engine** —
+      `metaengine/sqliteengine/record_stamp_test.go:20` (`TestSQLite_RecordStamping`
+      uses `AutoInsert` + `store.ApplyRecord` through the SQLite engine).
 - [ ] **Record-aware integration test through Pebble engine** — same as above
       for `metaengine/pebbleengine`.
 - [ ] **Soak test with `AutoCRUDByConvention`** — existing soak tests use
       manual folds; verify the auto-projection path under sustained load.
-- [ ] **Benchmark `ApplyRecord` overhead** — measure `Handle()` before/after
-      the `ApplyRecord` switch.
+- [x] **Benchmark `ApplyRecord` overhead** —
+      `metaengine/projectionadapter/bench_test.go:26` (`BenchmarkHandle_ApplyRecord`
+      + `BenchmarkHandle_AutoInsert` for before/after comparison).
 - [ ] **Add `RunTransactionalTest` to sqliteengine/badgerengine tests** —
       DuckDB + PG have it; SQLite + Badger do not.
 - [ ] **Add concurrent `RunInTx` test** — two goroutines, verify isolation.
@@ -52,9 +54,10 @@ and is **never** duplicated here.
 
 ### Code quality
 
-- [ ] **`record.FromCommand()` adapter** — mirrors `event.AsRecord()`.
-      Completes the Record vision for both events AND commands. Evidence:
-      `event/asrecord.go:41` (event side done; command side missing).
+- [x] **`record.FromCommand()` adapter** — implemented as `command.AsRecord()`
+      at `command/asrecord.go:34`, mirroring `event.AsRecord()` at
+      `event/asrecord.go:41`. The adapter lives in the `command` package (not
+      `record/`) following the same pattern as the event side.
 
 ### Module health
 
@@ -125,18 +128,19 @@ and is **never** duplicated here.
 > InProcessNetwork (goroutine, no CGo), loopback (real TCP, no CGo), QUIC
 > (`iroh-go` C bindings, CGo required). loopback/v4.0.0 + quic/v4.0.0 tagged.
 
-- [ ] **Evaluate `iroh-go` C binding stability** — the QUIC transport depends
-      on a third-party Go binding for Iroh (Rust). Assess upstream maintenance,
-      API stability, and whether to vendor/fork. Evidence:
-      `metaengine/irohengine/quic/transport.go:14`.
+- [x] **Evaluate `iroh-go` C binding stability** — evaluated in
+      [ADR-0096](docs/adr/0096-iroh-distributed-engine-bridge-evaluation.md)
+      and [design doc](docs/planning/meta-engine-eventual-consistency-and-iroh.md).
+      Decision: short-term sidecar process, long-term CGo FFI when `iroh-docs`
+      reaches C FFI. Community `iroh-go` binding used for networking layer only.
 - [ ] **QUIC transport integration with `adttest.RunMatrix`** — the in-process
       mock + loopback pass the full matrix; verify the QUIC transport also
       passes parity tests (LWW resolution, PN-Counter, MapUpdate-does-not-replicate).
 - [ ] **Non-CRDT op rejection on QUIC path** — verify `MapUpdate` operations
       stay local-only and are NOT sent over QUIC (would break CRDT convergence).
-- [ ] **WriteOp.ID dedup ring** — `SetAdd`/`CounterIncrement` are NOT idempotent;
-      double-delivery on redelivery corrupts state. QuicTransport has a 10K-bound
-      `dedupSeen` set; loopback does not.
+- [x] **WriteOp.ID dedup ring** — both transports now have bounded dedup sets:
+      QUIC (`metaengine/irohengine/quic/stream.go:100`) and loopback
+      (`metaengine/irohengine/loopback/conn.go:86`). Both reset at 10K entries.
 - [ ] **Fix `TestQuicSetConvergence` flakiness** — pre-existing, network-dependent.
       Consider `//go:build integration` tag or relaxed timing bounds.
 - [ ] **Fix `TestLoad_ConcurrentLoadsCoalescedBySingleflight` flake** —
@@ -172,9 +176,9 @@ and is **never** duplicated here.
 
 - [ ] **Migrate global detectors to per-module evaluation** —
       `ProfileForFile` infrastructure exists. 13+ detectors migrated. Remaining:
-      ~20 detectors still use `ctx.FeatureProfile` directly. F-series rules are
-      intentionally project-level. High false-positive risk for multi-module
-      workspaces.
+      8 detector files still use `ctx.FeatureProfile` directly (6 in `adoption/`,
+      1 in `api/`). F-series rules are intentionally project-level. High
+      false-positive risk for multi-module workspaces.
 
 - [ ] **Scorecard SARIF `logicalLocations`** — SARIF output represents adoption
       metrics as `notifications` (not `results`). The `logicalLocations` half
@@ -209,9 +213,9 @@ and is **never** duplicated here.
 - [ ] **Stale `metadata/README.md`** — still documents `EnsureCustom` (removed
       from command/query). Needs update to `WithCustom`.
 
-- [ ] **Benchmark audit for 10 skipped modules** — benchmark assertion sweep
-      covered 18 files but skipped: codec, command, dispatcher, query,
-      middleware, snapshot, listing, watermill, transport/http, storage/view.
+- [x] **Benchmark audit for 10 skipped modules** — all 10 now have benchmark
+      test files: codec, command, dispatcher, query, middleware, snapshot,
+      listing, watermill, transport/http, storage/view.
 
 - [ ] **Fix `.golangci.yml` exclusion sprawl** — ~30 blocks, ~50% undocumented.
       Add comments explaining WHY for every exclusion. Consider per-module
@@ -244,8 +248,9 @@ and is **never** duplicated here.
 
 - [ ] **Pin GitHub Actions to commit SHAs** — 72+ unpinned actions
       (supply-chain risk).
-- [ ] **Add `go test` to CI for example/taskmanager** — currently only builds,
-      no test step.
+- [x] **Add `go test` to CI for example/taskmanager** — the `per-module-test`
+      CI job (ci.yml:150-168) tests all discovered modules including
+      example/taskmanager via `GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1 -race`.
 - [ ] **Add self-lint to CI** — `cqrs-lint --self-lint` works but no GitHub
       Actions step gates it.
 - [ ] **Add `--fail-on-stale-suppressions` CI gate** — prevents stale
@@ -303,12 +308,13 @@ and is **never** duplicated here.
 Two items explicitly committed to in the 2026-08-03 ADR review as "the next
 real roadmap." Each has a clear ADR with rationale.
 
-- [ ] **Ghost bus removal** (ADR-0028) — delete `memory/bus.go`,
-      `memory/command_bus.go`, `storage/pg_bus.go`. Largest blast radius — audit
-      ALL consumer repos first.
-- [ ] **Metadata aliases completion** (ADR-0031) — `command.Metadata` /
-      `query.Metadata` → standalone structs (currently repointed aliases with
-      functional `WithCustom`, but not yet fully standalone types).
+- [x] **Ghost bus removal** (ADR-0028) — all three ghost bus files deleted:
+      `storage/memory/bus.go`, `storage/memory/command_bus.go`,
+      `storage/pg_bus.go` no longer exist.
+- [x] **Metadata aliases completion** (ADR-0031) — both `command.Metadata`
+      (`command/metadata.go:23`) and `query.Metadata` (`query/query.go:48`)
+      are standalone structs with their own `Clone()`/`Merge()`/`WithCustom()`
+      methods. Doc comments confirm: "It is a standalone struct (not a type alias)".
 
 > `retry/` → `go-retry` and `idempotency/` → `go-idempotency` extraction is
 > DONE — both repos pushed with annotated tags. `retry/` is now DEPRECATED

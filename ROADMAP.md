@@ -4,14 +4,20 @@
 
 ---
 
-**metaengine v4.6.0 tagged** (2026-08-06) — 77 modules in `go.work`.
-Metaengine v2 shipped (ADRs 0111-0119): `record/` module, Record-aware folds,
-auto-projection, sqliteengine/badgerengine/dgraphengine/graphadapter, tombstone
-deprecation. bbolt storage backend, SQLite CGo driver, cqrs-lint 192 rules.
+**metaengine v4.6.0 tagged** (2026-08-06) — 79 `go.mod` files, 77+ modules in
+`go.work`. Metaengine v2 shipped (ADRs 0111-0119): `record/` module, Record-aware
+folds, auto-projection, sqliteengine/badgerengine/dgraphengine/graphadapter,
+tombstone deprecation. bbolt storage backend (streaming + OTel + contract tests),
+SQLite CGo driver, cqrs-lint 192 rules. System/ P1 hardening: scream store
+plan-drift, CommandAdapter/QueryAdapter serialization, koanf YAML config,
+DuckDB/PG Transactional, bus driver registry, example/taskmanager migration.
+Dedup driven to 0 at all thresholds. Verify gate GREEN (all 17 steps).
 Module releases: record/v4.0.0, event/v4.3.0, metaengine/v4.6.0,
 metaengine/projectionadapter/v4.3.0, metaengine/badgerengine/v4.0.0,
+metaengine/sqliteengine/v4.0.0, metaengine/graphadapter/v4.0.0,
+metaengine/dgraphengine/v4.0.0, storage/bbolt/v4.0.0,
 stack/bbolt/v4.0.0, cmd/cqrs-lint/v4.4.0, system/v4.0.0, stack/mysql/v4.0.0,
-loopback/v4.0.0, quic/v4.0.0.
+loopback/v4.0.0, quic/v4.0.0, idempotency/v4.3.0.
 See CHANGELOG `[Unreleased]`.
 
 ---
@@ -20,7 +26,7 @@ See CHANGELOG `[Unreleased]`.
 
 | Version      | Date       | Highlights                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | ------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [Unreleased] | —          | **Metaengine v2** (ADRs 0111-0119): `record/` module, Record-aware folds (`OnRecord`/`ApplyRecord`), auto-projection (`AutoInsert`/`AutoCRUD`/`AutoCRUDByConvention`), sqliteengine/graphadapter/badgerengine/dgraphengine extraction, tombstone deprecation, `event.AsRecord()`, Record stamping. **bbolt storage backend** (full store stack + `stack/bbolt` preset). **SQLite CGo driver** support (`WithDriverName`). **cqrs-lint 186→192 rules** (F018-F026 metaengine-aware detection). **cqrs-bench/benchkit**: resident memory, strict mode, progress reporting, versioned read/checkpoint/batch phases, 4-backend comparison. **golangci-lint sweep** (58 findings). **cmdguard migration** (4 CLIs). Dedup passes (69→65 clone groups). System/ Pareto P0/P1 fixes, loopback transport, consumer DX helpers, ReadCosts/SerializableReadCosts, replication model (ADR-0093), Universal ADT Phase 3 (ADR-0094), persistence enum (ADR-0098), Pebble sort index, go-sse consumption (ADR-0097), Nix integration tests (ADR-0095), Iroh bridge (ADR-0096) + QUIC FFI transport |
+| [Unreleased] | —          | **Metaengine v2** (ADRs 0111-0119): `record/` module, Record-aware folds (`OnRecord`/`ApplyRecord`), auto-projection (`AutoInsert`/`AutoCRUD`/`AutoCRUDByConvention`), sqliteengine/graphadapter/badgerengine/dgraphengine extraction, tombstone deprecation, `event.AsRecord()`, Record stamping. **bbolt storage backend** (full store stack + streaming + OTel + `stack/bbolt` preset). **SQLite CGo driver** support (`WithDriverName`). **cqrs-lint 186→192 rules** (F018-F026 metaengine-aware detection, F021 per-query precision, scorecard metaengine section, SARIF metaengine properties, cross-format consistency tests, self-lint cleanup). **cqrs-bench/benchkit**: resident memory, strict mode, progress reporting, versioned read/checkpoint/batch phases, 4-backend comparison. **System/ P1 hardening**: scream store plan-drift detection, CommandAdapter/QueryAdapter serialization, koanf YAML config, DuckDB/PG Transactional, bus driver registry, example/taskmanager migration. **Dedup driven to 0** at all thresholds (shared: keycodec, enginetest, pgtestcontainer). **retry/ deprecated** (re-export shim). **Verify gate GREEN** (all 17 steps). **Lint gate 58→0**. golangci-lint sweep (58 findings), cmdguard migration (4 CLIs), consumer DX helpers, ReadCosts/SerializableReadCosts, replication model (ADR-0093), Universal ADT Phase 3 (ADR-0094), persistence enum (ADR-0098), Pebble sort index, go-sse consumption (ADR-0097), Nix integration tests (ADR-0095), Iroh bridge (ADR-0096) + QUIC FFI transport |
 | v4.2.0       | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | v4.1.0       | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | v4.0.4       | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -121,10 +127,12 @@ expectedVersion, entries)` — atomic optimistic concurrency under a single
 - ✅ **StreamLogBackend** — 5-method interface for stream-keyed event journals.
   Memory + SQLite implementations. Foundation for the `system/` package
 
-**Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** Postgres GIN
-indexes, tag untagged modules (sqliteengine/graphadapter/dgraphengine/bbolt),
-`record.FromCommand()` adapter, `auto_naming.go` dedup refactor, AGENTS.md test
-command update.
+**Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** Tag
+`metaengine/bench/v4.0.0` and `metaengine/pebbleengine/v4.0.0` (both untagged),
+tag drifted modules for GOWORK=off CI, `record.FromCommand()` adapter,
+Record-aware integration tests through SQLite + Pebble engines,
+`RunTransactionalTest` for sqliteengine/badgerengine,
+add keycodec/enginetest/pgtestcontainer to api-stability modules list.
 
 **Metaengine v2 (ADRs 0111-0119) — ES-native architecture shipped:**
 
@@ -229,6 +237,12 @@ hardened through multiple brutal review passes and 7 consumer feedback rounds.
   Drove signal-to-noise from ~25% to ~90%+.
 - ✅ **v4.4.0 tagged + pushed** — scorecard, SARIF, markdown grouping, server
   detection improvements, KeyHolderAI feedback fixes.
+- ✅ **F021 rewrite** — per-query fold analysis (3+ folds per query, not global)
+- ✅ **Scorecard metaengine section** — `ScorecardMetaengine` in text/JSON/
+  markdown/SARIF. Cross-format consistency tests. E2E metaengine tests.
+- ✅ **Self-lint cleanup** — 15 stale suppressions removed, C005 CBOR decode
+  bug fix, 0 CRITICAL/0 ERROR/0 load errors
+- ✅ **Lint gate 58→0** — all 65 modules clean
 - **Run against real consumers** — validate false-positive rates against live
   projects. See [TODO_LIST.md](TODO_LIST.md).
 
@@ -310,6 +324,10 @@ backing (0 benchmarks exist for these engines).
 - ✅ **Consumer DX helpers** — `NewSQLiteEngineFromDSN`, `PlanFromSQLite`,
   `Store.LogPlan`, typed projection decoders (`EventWithID[P]`, `Register`,
   `NewTypeDecoder`, `NewWithDecoder`). ~130 lines of boilerplate eliminated.
+- ✅ **Metaengine benchmark module** — `metaengine/bench/` with cross-engine
+  benchmarks. M4.2 DuckDB columnar extraction benchmark (3-way comparison).
+- ✅ **Full-pipeline benchmarks** — 7 new files in `stack/bench/` + 6 cross-module
+  benchmark files (projectionhost, transport, decider, scheduling, middleware).
 - [ ] **Regression baseline + CI integration** — calibration benchmarks should run
       in CI and fail if constants drift >3×.
 
@@ -385,9 +403,10 @@ projection decoder wiring (`ProjectionTypeDecoder`/`ProjectionEventDecoder`).
 All 5 engines implement StreamLogBackend (Memory, SQLite, Pebble, DuckDB,
 Postgres). DuckDB + Postgres have AtomicAppender.
 
-**⚠️ Remaining gaps:** Scream store has 2 of ~12 rules (missing PlanDiff/
-PlanFingerprint/Manifest). CommandAdapter/QueryAdapter serialization for SQL
-engines unstarted. Example migration not done. koanf YAML config unstarted.
+**⚠️ Remaining gaps:** Scream store has plan-drift detection (CheckPlanSafety
+shipped) but still missing some PlanDiff rules. CommandAdapter/QueryAdapter
+serialization shipped (JSON envelopes). example/taskmanager migrated to
+`system.New()`. koanf YAML config shipped. Bus driver registry shipped.
 See [TODO_LIST.md](TODO_LIST.md) → System Package.
 
 ---
