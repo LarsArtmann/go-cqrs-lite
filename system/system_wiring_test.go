@@ -223,3 +223,41 @@ func TestSystem_RegisteredDriversIncludesMemoryAndSQLite(t *testing.T) {
 		t.Fatal("sqlite driver not registered")
 	}
 }
+
+func TestBusDriverRegistry_GochannelRegistered(t *testing.T) {
+	t.Parallel()
+
+	drivers := system.RegisteredBusDrivers()
+
+	found := false
+
+	for _, d := range drivers {
+		if d == "gochannel" {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("gochannel bus driver not registered")
+	}
+}
+
+func TestBusDriverRegistry_UnknownDriverErrors(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	_, err := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{"primary": {Driver: "memory"}},
+		Buses: map[string]system.BusConfig{
+			"ext": {Driver: "nats"},
+		},
+		Instances: []system.InstanceConfig{{
+			Role:   system.RoleSourceOfTruth,
+			Engine: "primary",
+		}},
+	})
+	if err == nil {
+		t.Fatal("expected error for unknown bus driver, got nil")
+	}
+}

@@ -28,7 +28,7 @@ func (e *pgEngine) PushdownMapScan(
 	cursor any,
 	limit int,
 ) (metaengine.ScanResult, error) {
-	var b strings.Builder
+	var b strings.Builder //art-dupl:accept cross-module SQL builder pattern — separate go.mod
 	args := []any{collection}
 
 	b.WriteString(`SELECT value::text FROM meta_map WHERE collection = $1`)

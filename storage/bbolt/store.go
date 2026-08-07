@@ -12,6 +12,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // EventStore implements event.Store using an embedded bbolt database.
@@ -67,7 +68,7 @@ func journalKeyEventID(key []byte) string {
 // Save implements event.Store.Save. Version checking and event writing happen
 // in a single atomic bbolt write transaction — no per-stream lock needed.
 func (s *EventStore) Save(
-	_ context.Context,
+	ctx context.Context,
 	ref id.StreamRef,
 	events []event.Event,
 	expectedVersion event.Version,
@@ -76,7 +77,12 @@ func (s *EventStore) Save(
 		return nil
 	}
 
-	return s.db.Update(func(tx *bolt.Tx) error {
+	_, span := startStreamSpan(ctx, "bbolt.event.save", ref,
+		cqrsotel.AttrInt("event.count", len(events)),
+		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, expectedVersion.Int()))
+	defer span.End()
+
+	err := s.db.Update(func(tx *bolt.Tx) error {
 		currentVersion, err := s.currentVersion(tx, ref)
 		if err != nil {
 			return err
@@ -122,11 +128,16 @@ func (s *EventStore) Save(
 
 		return nil
 	})
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return err
 }
 
 // AppendBatch implements event.Store.AppendBatch (no version check).
 func (s *EventStore) AppendBatch(
-	_ context.Context,
+	ctx context.Context,
 	ref id.StreamRef,
 	events []event.Event,
 ) error {
@@ -134,7 +145,11 @@ func (s *EventStore) AppendBatch(
 		return nil
 	}
 
-	return s.db.Update(func(tx *bolt.Tx) error {
+	_, span := startStreamSpan(ctx, "bbolt.event.append_batch", ref,
+		cqrsotel.AttrInt("event.count", len(events)))
+	defer span.End()
+
+	err := s.db.Update(func(tx *bolt.Tx) error {
 		eventsBucket := tx.Bucket([]byte(bucketEvents))
 		journalBucket := tx.Bucket([]byte(bucketJournal))
 
@@ -160,6 +175,11 @@ func (s *EventStore) AppendBatch(
 
 		return nil
 	})
+	if err != nil {
+		cqrsotel.RecordError(span, err)
+	}
+
+	return err
 }
 
 // Close is a no-op; the underlying *bbolt.DB is owned by the caller or Backend.
@@ -208,7 +228,7 @@ func parseVersionFromKey(key []byte) (int, error) {
 }
 
 func validateEventOwnership(evt event.Event, ref id.StreamRef) error {
-	if evt.StreamType() != ref.Type {
+	if evt.StreamType() != ref.Type { //art-dupl:accept cross-module event validation — separate go.mod
 		return errorfamily.WrapConflict(ErrStreamTypeMismatch, "bbolt.stream_type_mismatch",
 			fmt.Sprintf("expected %s, got %s", ref.Type, evt.StreamType()))
 	}

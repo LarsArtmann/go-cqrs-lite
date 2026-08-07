@@ -62,7 +62,7 @@ func TestContract_InterfaceCompliance(t *testing.T) {
 }
 
 func TestContract_LoadToVersion(t *testing.T) {
-	t.Parallel()
+	t.Parallel() //art-dupl:accept standard test setup
 
 	backend := newTestBackend(t)
 	store := backend.EventStore()

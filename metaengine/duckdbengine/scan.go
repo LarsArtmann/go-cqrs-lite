@@ -27,7 +27,7 @@ func (e *duckdbEngine) MapScan(
 		`SELECT key, value FROM meta_map WHERE collection = $1`,
 		collection,
 	)
-	if err != nil {
+	if err != nil { //art-dupl:accept cross-module SQL scan error handling — separate go.mod
 		return metaengine.ScanResult{}, fmt.Errorf("duckdbengine.MapScan: %w", err)
 	}
 

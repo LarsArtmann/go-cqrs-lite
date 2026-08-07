@@ -147,7 +147,7 @@ func (e *badgerEngine) Close() error {
 // local `sep` reference is kept for inline concatenation in seedSeqCounters.
 
 var (
-	mapKey               = keycodec.MapKey
+	mapKey               = keycodec.MapKey          //art-dupl:accept keycodec alias across engine modules
 	setKey               = keycodec.SetKey
 	counterKey           = keycodec.CounterKey
 	counterPrefix        = keycodec.CounterPrefix

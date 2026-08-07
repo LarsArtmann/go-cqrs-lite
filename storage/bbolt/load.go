@@ -10,13 +10,17 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // Load implements event.Store.Load — returns all events for a stream.
 func (s *EventStore) Load(
-	_ context.Context,
+	ctx context.Context,
 	ref id.StreamRef,
 ) ([]event.Event, error) {
+	_, span := startStreamSpan(ctx, "bbolt.event.load", ref)
+	defer span.End()
+
 	var events []event.Event
 
 	err := s.db.View(func(tx *bolt.Tx) error {
@@ -41,15 +45,19 @@ func (s *EventStore) Load(
 		return nil
 	})
 
-	return events, wrapBucketErr(err, "bbolt.load", "load events")
+	return finalizeScan(span, events, err, "bbolt.load", "load events", "event.count")
 }
 
 // LoadFromVersion returns events with version strictly greater than version.
 func (s *EventStore) LoadFromVersion(
-	_ context.Context,
+	ctx context.Context,
 	ref id.StreamRef,
 	version event.Version,
 ) ([]event.Event, error) {
+	_, span := startStreamSpan(ctx, "bbolt.event.load_from_version", ref,
+		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, version.Int()))
+	defer span.End()
+
 	lower := eventKey(ref, version+1) //art-dupl:accept same-file load boundary computation
 	prefix := streamPrefix(ref)
 
@@ -76,16 +84,20 @@ func (s *EventStore) LoadFromVersion(
 		return nil
 	})
 
-	return events, wrapBucketErr(err, "bbolt.load_from_version",
-		"load events from version")
+	return finalizeScan(span, events, err, "bbolt.load_from_version",
+		"load events from version", "event.count")
 }
 
 // LoadToVersion returns events up to and including maxVersion.
 func (s *EventStore) LoadToVersion(
-	_ context.Context,
+	ctx context.Context,
 	ref id.StreamRef,
 	maxVersion event.Version,
 ) ([]event.Event, error) {
+	_, span := startStreamSpan(ctx, "bbolt.event.load_to_version", ref,
+		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, maxVersion.Int()))
+	defer span.End()
+
 	upper := eventKey(ref, maxVersion+1)
 	prefix := streamPrefix(ref)
 
@@ -116,7 +128,7 @@ func (s *EventStore) LoadToVersion(
 		return nil
 	})
 	if err != nil {
-		return nil, wrapBucketErr(err, "bbolt.load_to_version",
+		return nil, reportScanErr(span, err, "bbolt.load_to_version",
 			"load events to version")
 	}
 
@@ -124,15 +136,19 @@ func (s *EventStore) LoadToVersion(
 		return nil, event.ErrStreamNotFound
 	}
 
+	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
 	return events, nil
 }
 
 // LoadToTimestamp returns events where OccurredAt <= maxTime.
 func (s *EventStore) LoadToTimestamp(
-	_ context.Context,
+	ctx context.Context,
 	ref id.StreamRef,
 	maxTime time.Time,
 ) ([]event.Event, error) {
+	_, span := startStreamSpan(ctx, "bbolt.event.load_to_timestamp", ref)
+	defer span.End()
+
 	prefix := streamPrefix(ref)
 
 	var events []event.Event
@@ -162,7 +178,7 @@ func (s *EventStore) LoadToTimestamp(
 		return nil
 	})
 	if err != nil {
-		return nil, wrapBucketErr(err, "bbolt.load_to_timestamp",
+		return nil, reportScanErr(span, err, "bbolt.load_to_timestamp",
 			"load events to timestamp")
 	}
 
@@ -170,5 +186,6 @@ func (s *EventStore) LoadToTimestamp(
 		return nil, event.ErrStreamNotFound
 	}
 
+	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
 	return events, nil
 }

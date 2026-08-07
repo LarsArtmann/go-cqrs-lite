@@ -202,7 +202,7 @@ func (e *dgraphEngine) MapSet(ctx context.Context, col string, key any, value an
 }
 
 func (e *dgraphEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
-	keyStr := fmt.Sprint(key)
+	keyStr := fmt.Sprint(key) //art-dupl:accept dgraph key formatting idiom
 
 	q := fmt.Sprintf(`{
 		entry(func: eq(cqrs.map_collection, %s)) @filter(eq(cqrs.map_key, %s)) {

@@ -34,7 +34,7 @@ func (e *duckdbEngine) PushdownMapScan(
 		return e.pushdownMapScanPlanned(ctx, plan, filters, sort, cursor, limit)
 	}
 
-	var b strings.Builder
+	var b strings.Builder //art-dupl:accept cross-module SQL builder pattern — separate go.mod
 	args := []any{collection}
 
 	b.WriteString(`SELECT value FROM meta_map WHERE collection = $1`)

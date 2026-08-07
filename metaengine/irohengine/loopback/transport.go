@@ -247,7 +247,7 @@ func (t *LoopbackTransport) LatencySnapshot() irohengine.LatencySnapshot {
 	samples := append([]time.Duration(nil), t.latencyMs...)
 	t.latencyMu.Unlock()
 
-	if len(samples) == 0 {
+	if len(samples) == 0 { //art-dupl:accept empty-samples guard idiom
 		return irohengine.LatencySnapshot{}
 	}
 

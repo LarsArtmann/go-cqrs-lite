@@ -49,7 +49,7 @@ func (e *duckdbEngine) RunInTx(ctx context.Context, fn func(context.Context) err
 
 	e.activeTx.Store(nil)
 
-	if fnErr != nil {
+	if fnErr != nil { //art-dupl:accept cross-module tx error handling — separate go.mod
 		_ = tx.Rollback()
 
 		return fnErr

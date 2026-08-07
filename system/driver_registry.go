@@ -76,7 +76,7 @@ func lookupDriver(name string) (DriverFactory, error) {
 // lookupBusDriver finds a registered bus driver by name.
 func lookupBusDriver(name string) (BusDriverFactory, error) {
 	busDriverMu.RLock()
-	defer busDriverMu.Unlock()
+	defer busDriverMu.RUnlock()
 
 	factory, ok := busDrivers[name]
 	if !ok {

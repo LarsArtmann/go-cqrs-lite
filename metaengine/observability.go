@@ -108,7 +108,7 @@ func WithMetrics(store *Store, rec MetricsRecorder) {
 // event → fold → ADT → engine → complexity mapping. Returns a string
 // suitable for piping to `d2` or any Graphviz renderer.
 func (p PlanResult) DotGraph() string {
-	var b strings.Builder
+	var b strings.Builder //art-dupl:accept report builder header
 
 	b.WriteString("digraph metaengine_plan {\n")
 	b.WriteString("  rankdir=LR;\n")

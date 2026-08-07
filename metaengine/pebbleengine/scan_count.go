@@ -27,7 +27,7 @@ func (e *pebbleEngine) ScanCount(
 	filters []metaengine.FilterSpec,
 ) (int64, error) {
 	iter, err := e.newPrefixIter(collectionPrefix(col))
-	if err != nil {
+	if err != nil { //art-dupl:accept same-module pebble iterator error guard
 		return 0, err
 	}
 
