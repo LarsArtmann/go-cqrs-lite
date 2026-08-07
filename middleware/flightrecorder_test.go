@@ -40,6 +40,31 @@ func (sb *safeBuffer) Len() int {
 // allows only ONE active flight recorder per process.
 var frRecorderMu sync.Mutex
 
+// newFRTestRecorder creates a fresh flight recorder wired to a safeBuffer,
+// registers it with the per-process serializing mutex, registers Stop() with
+// t.Cleanup, and waits long enough for the recorder to start. The returned
+// buf captures any snapshot written by the recorder.
+func newFRTestRecorder(t *testing.T) (*safeBuffer, *flightrecorder.Recorder) {
+	t.Helper()
+
+	frRecorderMu.Lock()
+	t.Cleanup(frRecorderMu.Unlock)
+
+	var buf safeBuffer
+
+	r, _ := flightrecorder.New(
+		flightrecorder.WithMinAge(50*time.Millisecond),
+		flightrecorder.WithMaxBytes(1<<20),
+		flightrecorder.WithWriter(&buf),
+	)
+	r.Start()
+	t.Cleanup(r.Stop)
+
+	time.Sleep(100 * time.Millisecond)
+
+	return &buf, r
+}
+
 func TestFlightRecorder_NilRecorder(t *testing.T) {
 	called := false
 
@@ -62,20 +87,7 @@ func TestFlightRecorder_NilRecorder(t *testing.T) {
 }
 
 func TestFlightRecorder_NilTrigger(t *testing.T) {
-	frRecorderMu.Lock()
-	defer frRecorderMu.Unlock()
-
-	var buf safeBuffer
-
-	r, _ := flightrecorder.New(
-		flightrecorder.WithMinAge(50*time.Millisecond),
-		flightrecorder.WithMaxBytes(1<<20),
-		flightrecorder.WithWriter(&buf),
-	)
-	r.Start()
-	t.Cleanup(r.Stop)
-
-	time.Sleep(100 * time.Millisecond)
+	buf, r := newFRTestRecorder(t)
 
 	mw := NewFlightRecorder(CommandAdapter, r, nil)
 	handler := mw(NoopCommandHandler())
@@ -90,20 +102,7 @@ func TestFlightRecorder_NilTrigger(t *testing.T) {
 }
 
 func TestCommandFlightRecorder_LatencyTrigger(t *testing.T) {
-	frRecorderMu.Lock()
-	defer frRecorderMu.Unlock()
-
-	var buf safeBuffer
-
-	r, _ := flightrecorder.New(
-		flightrecorder.WithMinAge(50*time.Millisecond),
-		flightrecorder.WithMaxBytes(1<<20),
-		flightrecorder.WithWriter(&buf),
-	)
-	r.Start()
-	t.Cleanup(r.Stop)
-
-	time.Sleep(100 * time.Millisecond)
+	buf, r := newFRTestRecorder(t)
 
 	mw := CommandFlightRecorder(r,
 		flightrecorder.OnLatency(10*time.Millisecond))
@@ -127,20 +126,7 @@ func TestCommandFlightRecorder_LatencyTrigger(t *testing.T) {
 }
 
 func TestCommandFlightRecorder_FastOperationNoSnapshot(t *testing.T) {
-	frRecorderMu.Lock()
-	defer frRecorderMu.Unlock()
-
-	var buf safeBuffer
-
-	r, _ := flightrecorder.New(
-		flightrecorder.WithMinAge(50*time.Millisecond),
-		flightrecorder.WithMaxBytes(1<<20),
-		flightrecorder.WithWriter(&buf),
-	)
-	r.Start()
-	t.Cleanup(r.Stop)
-
-	time.Sleep(100 * time.Millisecond)
+	buf, r := newFRTestRecorder(t)
 
 	mw := CommandFlightRecorder(r,
 		flightrecorder.OnLatency(100*time.Millisecond))
@@ -157,20 +143,7 @@ func TestCommandFlightRecorder_FastOperationNoSnapshot(t *testing.T) {
 }
 
 func TestCommandFlightRecorder_ErrorTrigger(t *testing.T) {
-	frRecorderMu.Lock()
-	defer frRecorderMu.Unlock()
-
-	var buf safeBuffer
-
-	r, _ := flightrecorder.New(
-		flightrecorder.WithMinAge(50*time.Millisecond),
-		flightrecorder.WithMaxBytes(1<<20),
-		flightrecorder.WithWriter(&buf),
-	)
-	r.Start()
-	t.Cleanup(r.Stop)
-
-	time.Sleep(100 * time.Millisecond)
+	buf, r := newFRTestRecorder(t)
 
 	mw := CommandFlightRecorder(r,
 		flightrecorder.OnError())
@@ -210,20 +183,7 @@ func TestCommandFlightRecorder_PreservesError(t *testing.T) {
 }
 
 func TestEventFlightRecorder_ErrorTrigger(t *testing.T) {
-	frRecorderMu.Lock()
-	defer frRecorderMu.Unlock()
-
-	var buf safeBuffer
-
-	r, _ := flightrecorder.New(
-		flightrecorder.WithMinAge(50*time.Millisecond),
-		flightrecorder.WithMaxBytes(1<<20),
-		flightrecorder.WithWriter(&buf),
-	)
-	r.Start()
-	t.Cleanup(r.Stop)
-
-	time.Sleep(100 * time.Millisecond)
+	buf, r := newFRTestRecorder(t)
 
 	evt, err := eventtest.NewTestEvent()
 	if err != nil {
@@ -247,20 +207,7 @@ func TestEventFlightRecorder_ErrorTrigger(t *testing.T) {
 }
 
 func TestQueryFlightRecorder_LatencyTrigger(t *testing.T) {
-	frRecorderMu.Lock()
-	defer frRecorderMu.Unlock()
-
-	var buf safeBuffer
-
-	r, _ := flightrecorder.New(
-		flightrecorder.WithMinAge(50*time.Millisecond),
-		flightrecorder.WithMaxBytes(1<<20),
-		flightrecorder.WithWriter(&buf),
-	)
-	r.Start()
-	t.Cleanup(r.Stop)
-
-	time.Sleep(100 * time.Millisecond)
+	buf, r := newFRTestRecorder(t)
 
 	mw := QueryFlightRecorder(r,
 		flightrecorder.OnLatency(10*time.Millisecond))
@@ -284,20 +231,7 @@ func TestQueryFlightRecorder_LatencyTrigger(t *testing.T) {
 }
 
 func TestFlightRecorder_SnapshotOnce(t *testing.T) {
-	frRecorderMu.Lock()
-	defer frRecorderMu.Unlock()
-
-	var buf safeBuffer
-
-	r, _ := flightrecorder.New(
-		flightrecorder.WithMinAge(50*time.Millisecond),
-		flightrecorder.WithMaxBytes(1<<20),
-		flightrecorder.WithWriter(&buf),
-	)
-	r.Start()
-	t.Cleanup(r.Stop)
-
-	time.Sleep(100 * time.Millisecond)
+	buf, r := newFRTestRecorder(t)
 
 	mw := CommandFlightRecorder(r,
 		flightrecorder.OnAlways())
