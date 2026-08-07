@@ -69,21 +69,20 @@ type DomainConfig struct {
 
 	// ShutdownDependencies declares ordering constraints for System.Close().
 	// Each edge says "Before must close before After". Resource names are
-	// engine names from DeploymentConfig.Engines or the constant
-	// [ProjectionHostResource]. Resources not in any edge close in creation
-	// order (projection host first, then engines). Cycles fall back to
-	// creation order.
+	// engine names from DeploymentConfig.Engines. Resources not in any edge
+	// close in creation order (projection host first, then engines). Cycles
+	// fall back to creation order.
 	//
-	// Example: ensure the event store outlives the projection host:
+	// Example: ensure the event store outlives the projection engine:
 	//   ShutdownDependencies: []system.ShutdownDependency{
-	//       {Before: "projection-host", After: "primary"},
+	//       {Before: "projections", After: "primary"},
 	//   }
 	ShutdownDependencies []ShutdownDependency
 }
 
 // ShutdownDependency declares that Before must close before After during
-// System.Close(). Resource names are engine names from DeploymentConfig.Engines
-// or the constant [ProjectionHostResource].
+// System.Close(). Resource names are engine names from DeploymentConfig.Engines.
+// The projection host always closes first and cannot participate in edges.
 type ShutdownDependency struct {
 	Before string // close this resource first
 	After  string // close this resource after

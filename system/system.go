@@ -58,6 +58,25 @@ func (o Op[State]) StreamType() id.StreamType { return o.streamType }
 
 // ─── System type ───
 
+// namedEngine pairs a metaengine Engine with its deployment-config name.
+// Storing them together eliminates the fragile parallel-slice pattern where
+// appending to one without the other causes silent misalignment.
+type namedEngine struct {
+	engine metaengine.Engine
+	name   string
+}
+
+// engineSlice returns a flat slice of just the engines (without names).
+// Used by HealthCheck, Explain, Serialize, and Verify which need []Engine.
+func (s *System) engineSlice() []metaengine.Engine {
+	result := make([]metaengine.Engine, len(s.engines))
+	for i, ne := range s.engines {
+		result[i] = ne.engine
+	}
+
+	return result
+}
+
 // System is the composition root that owns ALL infrastructure wiring (D6).
 // It is constructed via [New] with a [DomainConfig] and a [DeploymentConfig].
 //
@@ -94,9 +113,9 @@ type System struct {
 	// Projection-layer metaengine store.
 	projStore *metaengine.Store
 
-	// Engines and engine names for lifecycle management.
-	engines     []metaengine.Engine
-	engineNames []string // parallel to engines; empty if unnamed
+	// Engines for lifecycle management. Each entry pairs the engine with its
+	// deployment-config name so shutdown ordering can reference engines by name.
+	engines []namedEngine
 
 	// shutdownDeps declares ordering constraints for Close(). Each edge says
 	// "before must close before after". Resources not in any edge keep their
@@ -113,98 +132,7 @@ type System struct {
 	stopped bool
 }
 
-// Drainer stops accepting new work and finishes in-flight work, bounded by ctx.
-// Implemented by resources that need to drain before connections close (e.g.,
-// event subscribers, projection runners). Drain is called by [GracefulClose]
-// BEFORE [Close], so in-flight handlers complete before their underlying
-// connections are dropped.
-type Drainer interface {
-	Drain(ctx context.Context) error
-}
 
-// shutdownEdge declares that Before must close before After during Close().
-// Resource names are engine names from DeploymentConfig.Engines or the
-// constant ProjectionHostResource.
-type shutdownEdge struct {
-	before, after string
-}
-
-// ProjectionHostResource is the resource name for the projection host in
-// shutdown dependency declarations.
-const ProjectionHostResource = "projection-host"
-
-// orderedEngines returns engines sorted by shutdown dependencies. Engines not
-// in any dependency edge keep their creation order. Cycles fall back to
-// creation order for the affected engines.
-func (s *System) orderedEngines() []metaengine.Engine {
-	if len(s.shutdownDeps) == 0 || len(s.engineNames) == 0 {
-		return s.engines
-	}
-
-	// Build a set of unique engine indices by name.
-	nameToIdx := make(map[string]int, len(s.engineNames))
-	for i, name := range s.engineNames {
-		if _, exists := nameToIdx[name]; !exists {
-			nameToIdx[name] = i
-		}
-	}
-
-	// Build adjacency list from dependency edges.
-	after := make([][]int, len(s.engines))
-	inDegree := make([]int, len(s.engines))
-
-	for _, edge := range s.shutdownDeps {
-		beforeIdx, beforeOK := nameToIdx[edge.before]
-
-		afterIdx, afterOK := nameToIdx[edge.after]
-		if !beforeOK || !afterOK || beforeIdx == afterIdx {
-			continue
-		}
-
-		after[beforeIdx] = append(after[beforeIdx], afterIdx)
-		inDegree[afterIdx]++
-	}
-
-	// Kahn's algorithm for topological sort.
-	queue := make([]int, 0, len(s.engines))
-	for i := range s.engines {
-		if inDegree[i] == 0 {
-			queue = append(queue, i)
-		}
-	}
-
-	result := make([]metaengine.Engine, 0, len(s.engines))
-	processed := 0
-
-	for len(queue) > 0 {
-		idx := queue[0]
-		queue = queue[1:]
-
-		result = append(result, s.engines[idx])
-		processed++
-
-		for _, next := range after[idx] {
-			inDegree[next]--
-			if inDegree[next] == 0 {
-				queue = append(queue, next)
-			}
-		}
-	}
-
-	// If there's a cycle, append remaining engines in creation order.
-	if processed < len(s.engines) {
-		appended := make(map[int]bool, len(result))
-
-		for i := range s.engines {
-			if inDegree[i] > 0 {
-				result = append(result, s.engines[i])
-				appended[i] = true
-			}
-		}
-	}
-
-	return result
-}
 
 // MetaEngine returns the projection-layer metaengine store, or nil if no
 // projection instance is configured. Consumers use this for typed queries
@@ -251,16 +179,6 @@ func (s *System) UseCommandMiddleware(mw ...command.Middleware) {
 	for _, m := range mw {
 		s.cmdDisp.Use(m)
 	}
-}
-
-// RegisterDrainer registers a [Drainer] that will be called by [GracefulClose]
-// before [Close]. Use this to ensure in-flight work (e.g., event subscribers,
-// HTTP handlers) completes before infrastructure connections are dropped.
-func (s *System) RegisterDrainer(d Drainer) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	s.drainers = append(s.drainers, d)
 }
 
 // EventStore returns the event store backed by the source-of-truth instance.
