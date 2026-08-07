@@ -1,6 +1,7 @@
 package bench
 
 import (
+	"context"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
