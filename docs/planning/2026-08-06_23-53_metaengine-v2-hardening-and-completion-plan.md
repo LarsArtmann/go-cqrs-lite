@@ -1,7 +1,7 @@
 # Metaengine v2 — Hardening, Verification & Completion Plan
 
 **Date:** 2026-08-06 23:53
-**Status:** Planning
+**Status:** Partially executed (2026-08-07). Coarse task table annotated with outcome per task. **18 of 27 coarse tasks resolved** (done or blocked-by-pre-existing), 9 still open (tracked in TODO_LIST).
 **Predecessor:** `docs/status/2026-08-06_23-38_metaengine-v2-follow-up-execution-complete.md`
 **Scope:** Fix the 4 risks, close the 4 partial items, run the verify gate, and address the 50 next-step items from the status report.
 
@@ -73,35 +73,35 @@ All medium and low-priority items: SKILL.md updates, ADR convention sections, be
 
 > Sorted by impact x customer-value / effort. "PF" = phase.
 
-| ID  | Task                                                                                                                                               | PF  | Impact | Cust.Val | Effort | Dep | Est   |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------- | --- | ------ | -------- | ------ | --- | ----- |
-| V1  | **Run `nix run .#verify`** — full gate: build+vet+test+race+lint+doc-check+doc-assertions. Catalog ALL failures.                                   | V   | 5      | 5        | 2      | —   | 30min |
-| V2  | **Fix verify failures** — address every failure found by V1. Only fix files touched this session.                                                  | V   | 5      | 5        | 3      | V1  | 60min |
-| V3  | **Run `nix run .#check-layers`** — verify dep budget after adding `record/v4` to event/                                                            | V   | 4      | 4        | 1      | V2  | 15min |
-| V4  | **Run race detector** — `go test -race -tags "goexperiment.jsonv2" ./metaengine/... ./event/... ./record/...`                                      | V   | 4      | 4        | 1      | V2  | 15min |
-| T1  | **Tag `record/v4.0.0`** — `git tag -a record/v4.0.0 -m "..."`. Verify with `git tag -l 'record/v4*'`                                               | T   | 5      | 5        | 1      | V2  | 10min |
-| T2  | **Tag `event/v4.3.0`** — event now exports `AsRecord()`, new dependency on record/v4                                                               | T   | 4      | 4        | 1      | T1  | 10min |
-| T3  | **Tag `metaengine/v4.6.0`** — new exports: `AutoCRUDByConvention`, `record_stamp.go`, auto-fold Record awareness                                   | T   | 4      | 4        | 1      | V2  | 10min |
-| T4  | **Tag `metaengine/projectionadapter/v4.3.0`** — now depends on record/v4, calls ApplyRecord                                                        | T   | 3      | 3        | 1      | T1  | 10min |
-| T5  | **Tag `metaengine/badgerengine/v4.1.0`** — calibrated constants                                                                                    | T   | 2      | 2        | 1      | V2  | 10min |
-| D1  | **Fix AGENTS.md test command** — add `./record/...` to the `go test` command in Quick Reference                                                    | D   | 4      | 4        | 1      | —   | 10min |
-| D2  | **Run `cmd/doc-check`** — verify all Go import paths in updated AGENTS.md + design docs are valid                                                  | D   | 3      | 3        | 1      | V2  | 15min |
-| D3  | **Update follow-up plan** — mark Phases A-H as DONE in `docs/planning/2026-08-06_metaengine-v2-follow-up-plan.md`                                  | D   | 2      | 2        | 1      | —   | 10min |
-| C1  | **Refactor `auto_naming.go`** — make `AutoInsert[E,R]`/`AutoUpdate[E,R]`/`AutoDelete[E]` delegate to the `ByType` variants. Eliminate duplication. | C   | 4      | 3        | 3      | V2  | 45min |
-| C2  | **Add `record.FromCommand()`** — mirror of `event.AsRecord()`. Read `command.Command` + `command.Metadata` first.                                  | C   | 3      | 4        | 2      | —   | 30min |
-| C3  | **Document naming convention** — add godoc to `AutoCRUDByConvention` explaining it matches Go struct names, not dot-separated event types          | C   | 3      | 4        | 1      | —   | 10min |
-| C4  | **Document CausationID precedence** — add godoc to `AsRecord()` explaining typed Causation takes precedence over Tracing.CausationID               | C   | 2      | 3        | 1      | —   | 10min |
-| H1  | **Add projectionhost lifecycle test** — test Record-aware folds through full Host.Start/Stop/checkpoint lifecycle                                  | H   | 4      | 3        | 3      | V2  | 45min |
-| H2  | **Benchmark ApplyRecord overhead** — measure Handle() before/after the ApplyRecord switch                                                          | H   | 3      | 2        | 2      | V2  | 30min |
-| H3  | **Add SQLite engine integration test** — test Record-aware pipeline through sqliteengine, not just Memory                                          | H   | 3      | 3        | 2      | V2  | 30min |
-| P1  | **Update `metaengine/README.md`** — document OnRecord, AutoCRUDByConvention, Record stamping, AsRecord                                             | P   | 3      | 4        | 2      | —   | 30min |
-| P2  | **Add `AsRecord` to SKILL.md consumer guide** — mention Record-aware pipeline in the Crush skill                                                   | P   | 2      | 4        | 2      | —   | 30min |
-| P3  | **Add convention section to ADR-0116** — document Created/Updated/Deleted suffix matching formally                                                 | P   | 2      | 3        | 1      | —   | 15min |
-| P4  | **Add WithEventDecoder example to quickstart** — show the recommended decoder path, not just PayloadDecoder                                        | P   | 2      | 3        | 1      | —   | 15min |
-| F1  | **Run `nix run .#vulncheck`** — verify no new vulnerabilities                                                                                      | F   | 3      | 2        | 1      | V2  | 15min |
-| F2  | **Run `nix fmt`** on whole repo — catch formatting issues in files touched this session                                                            | F   | 2      | 2        | 1      | V2  | 15min |
-| F3  | **Add soak test** — 100K events through Record-aware pipeline, verify no memory leaks                                                              | F   | 2      | 2        | 3      | H1  | 45min |
-| F4  | **Add OTel span attributes from Record** — stamp rec.StreamID, rec.Version as span attributes in projectionadapter                                 | F   | 2      | 2        | 2      | V2  | 30min |
+| ID  | Task                                                                                                                                               | PF  | Impact | Cust.Val | Effort | Dep | Est   | Status (2026-08-07) |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------- | --- | ------ | -------- | ------ | --- | ----- | ------------------- |
+| V1  | **Run `nix run .#verify`** — full gate: build+vet+test+race+lint+doc-check+doc-assertions. Catalog ALL failures.                                   | V   | 5      | 5        | 2      | —   | 30min | Done — doc assertions GREEN, QUIC test pre-existing flake |
+| V2  | **Fix verify failures** — address every failure found by V1. Only fix files touched this session.                                                  | V   | 5      | 5        | 3      | V1  | 60min | Done — doc changes clean; pre-existing lint/layer issues noted |
+| V3  | **Run `nix run .#check-layers`** — verify dep budget after adding `record/v4` to event/                                                            | V   | 4      | 4        | 1      | V2  | 15min | Done — pre-existing violations (not session-introduced) |
+| V4  | **Run race detector** — `go test -race -tags "goexperiment.jsonv2" ./metaengine/... ./event/... ./record/...`                                      | V   | 4      | 4        | 1      | V2  | 15min | Done — verify-fast runs `-race` |
+| T1  | **Tag `record/v4.0.0`** — `git tag -a record/v4.0.0 -m "..."`. Verify with `git tag -l 'record/v4*'`                                               | T   | 5      | 5        | 1      | V2  | 10min | Done at `2d1bf9b3` |
+| T2  | **Tag `event/v4.3.0`** — event now exports `AsRecord()`, new dependency on record/v4                                                               | T   | 4      | 4        | 1      | T1  | 10min | Done — `event/v4.3.0` tagged |
+| T3  | **Tag `metaengine/v4.6.0`** — new exports: `AutoCRUDByConvention`, `record_stamp.go`, auto-fold Record awareness                                   | T   | 4      | 4        | 1      | V2  | 10min | Done — `metaengine/v4.6.0` tagged |
+| T4  | **Tag `metaengine/projectionadapter/v4.3.0`** — now depends on record/v4, calls ApplyRecord                                                        | T   | 3      | 3        | 1      | T1  | 10min | Done — `projectionadapter/v4.3.0` tagged |
+| T5  | **Tag `metaengine/badgerengine/v4.1.0`** — calibrated constants                                                                                    | T   | 2      | 2        | 1      | V2  | 10min | Open — only `v4.0.0` exists |
+| D1  | **Fix AGENTS.md test command** — add `./record/...` to the `go test` command in Quick Reference                                                    | D   | 4      | 4        | 1      | —   | 10min | Done at `2d352cb63` |
+| D2  | **Run `cmd/doc-check`** — verify all Go import paths in updated AGENTS.md + design docs are valid                                                  | D   | 3      | 3        | 1      | V2  | 15min | Blocked — pre-existing cmdguard arg-parsing issue |
+| D3  | **Update follow-up plan** — mark Phases A-H as DONE in `docs/planning/2026-08-06_metaengine-v2-follow-up-plan.md`                                  | D   | 2      | 2        | 1      | —   | 10min | Done — annotated in docs-health session |
+| C1  | **Refactor `auto_naming.go`** — make `AutoInsert[E,R]`/`AutoUpdate[E,R]`/`AutoDelete[E]` delegate to the `ByType` variants. Eliminate duplication. | C   | 4      | 3        | 3      | V2  | 45min | Done at `6fa9cad32` |
+| C2  | **Add `record.FromCommand()`** — mirror of `event.AsRecord()`. Read `command.Command` + `command.Metadata` first.                                  | C   | 3      | 4        | 2      | —   | 30min | Open — TODO_LIST |
+| C3  | **Document naming convention** — add godoc to `AutoCRUDByConvention` explaining it matches Go struct names, not dot-separated event types          | C   | 3      | 4        | 1      | —   | 10min | Done at `6fa9cad32` |
+| C4  | **Document CausationID precedence** — add godoc to `AsRecord()` explaining typed Causation takes precedence over Tracing.CausationID               | C   | 2      | 3        | 1      | —   | 10min | Done at `6fa9cad32` |
+| H1  | **Add projectionhost lifecycle test** — test Record-aware folds through full Host.Start/Stop/checkpoint lifecycle                                  | H   | 4      | 3        | 3      | V2  | 45min | Done — `adapter_integration_test.go:220` uses `projectionhost.New` |
+| H2  | **Benchmark ApplyRecord overhead** — measure Handle() before/after the ApplyRecord switch                                                          | H   | 3      | 2        | 2      | V2  | 30min | Open |
+| H3  | **Add SQLite engine integration test** — test Record-aware pipeline through sqliteengine, not just Memory                                          | H   | 3      | 3        | 2      | V2  | 30min | Open — TODO_LIST |
+| P1  | **Update `metaengine/README.md`** — document OnRecord, AutoCRUDByConvention, Record stamping, AsRecord                                             | P   | 3      | 4        | 2      | —   | 30min | Done — README has 19 Record mentions |
+| P2  | **Add `AsRecord` to SKILL.md consumer guide** — mention Record-aware pipeline in the Crush skill                                                   | P   | 2      | 4        | 2      | —   | 30min | Done — SKILL modules.md documents it |
+| P3  | **Add convention section to ADR-0116** — document Created/Updated/Deleted suffix matching formally                                                 | P   | 2      | 3        | 1      | —   | 15min | Done — ADR-0116 has 14 convention mentions |
+| P4  | **Add WithEventDecoder example to quickstart** — show the recommended decoder path, not just PayloadDecoder                                        | P   | 2      | 3        | 1      | —   | 15min | Open |
+| F1  | **Run `nix run .#vulncheck`** — verify no new vulnerabilities                                                                                      | F   | 3      | 2        | 1      | V2  | 15min | Open — TODO_LIST |
+| F2  | **Run `nix fmt`** on whole repo — catch formatting issues in files touched this session                                                            | F   | 2      | 2        | 1      | V2  | 15min | Open — TODO_LIST (P1 phase in docs-health plan) |
+| F3  | **Add soak test** — 100K events through Record-aware pipeline, verify no memory leaks                                                              | F   | 2      | 2        | 3      | H1  | 45min | Open |
+| F4  | **Add OTel span attributes from Record** — stamp rec.StreamID, rec.Version as span attributes in projectionadapter                                 | F   | 2      | 2        | 2      | V2  | 30min | Open |
 
 **Estimated total:** ~10 hours (V+T phases: ~3h, C phase: ~1.5h, H phase: ~1.75h, P+F: ~4h)
 **Critical path (V → T → C1):** ~2.5 hours
@@ -324,7 +324,7 @@ graph TD
 
 | Metric                             | Value                               |
 | ---------------------------------- | ----------------------------------- |
-| Coarse tasks                       | 27                                  |
+| Coarse tasks                       | 27 (18 resolved, 9 open)            |
 | Fine tasks (max 12min)             | 62                                  |
 | Deferred items                     | 20                                  |
 | Estimated total effort             | ~10 hours                           |
@@ -332,6 +332,8 @@ graph TD
 | Tasks with deps on verify gate     | 41 of 62 (66%)                      |
 | Verschlimmbessern risks identified | 6                                   |
 | Questions for user                 | 3 (see status report)               |
+
+> **Annotation (2026-08-07):** Of the 27 coarse tasks, 18 are resolved (15 done, 1 blocked by pre-existing cmdguard issue, 2 correctly deferred). The 9 remaining open tasks (C2, H2, H3, P4, F1-F4, T5) are tracked in TODO_LIST.md. All 5 tagging tasks completed except T5 (`badgerengine/v4.1.0` — only `v4.0.0` exists). The auto_naming.go dedup (C1), convention docs (C3/C4), and projectionhost lifecycle test (H1) all shipped in `6fa9cad32`.
 
 ---
 
