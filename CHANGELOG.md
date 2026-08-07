@@ -55,16 +55,17 @@ main` program using real API (`DomainConfig.Commands`, `RegisterDecider`,
   matching `stack.Bundle.GracefulClose` two-phase shutdown pattern.
 - **`ShutdownDependency` + `orderedEngines()`** — ported
   `WithShutdownDependency` from `stack.Bundle`. `DomainConfig.ShutdownDependencies`
-  declares ordering constraints (e.g., "close projection host before event
+  declares ordering constraints (e.g., "close projection engine after event
   store"). `orderedEngines()` topologically sorts engines via Kahn's algorithm;
-  cycles fall back to creation order. `ProjectionHostResource` constant for
-  referencing the projection host in dependency edges.
-- **SQLite engine `HealthCheck`** — added `HealthCheck(ctx)` method to
-  `metaengine/sqliteengine` via `db.PingContext(ctx)`. Implements
-  `metaengine.HealthChecker` for Kubernetes-style liveness probes.
+  cycles fall back to creation order. The projection host always closes first
+  and cannot participate in dependency edges.
+- **HealthCheck on all external-state engines** — added `HealthCheck(ctx)` to
+  SQLite (`db.PingContext`), DuckDB (`db.PingContext`), Postgres
+  (`db.PingContext`), and Pebble (lightweight point-read of non-existent key).
+  All four engines now implement `metaengine.HealthChecker`.
 - **`DomainConfig.CheckpointStore` documented in README** — added
   DomainConfig Fields table to README Configuration section.
-- **5 deepened/new tests** — `TestSystem_CustomCheckpointStore` deepened
+- **7 deepened/new tests** — `TestSystem_CustomCheckpointStore` deepened
   (declares real projection, produces events, asserts `saveCnt > 0`),
   `TestSystem_HealthCheck_FailedProjection` (failing decoder → WorkerFailed →
   HealthCheck error), `TestSystem_ResetProjection_Positive` (produces events,
@@ -72,10 +73,19 @@ main` program using real API (`DomainConfig.Commands`, `RegisterDecider`,
   `TestSystem_GracefulClose_SlowShutdown` (projection host draining within
   context), `TestSystem_HealthCheck_EngineUnhealthy` (internal test injects
   mock engine with failing HealthCheck), `TestSystem_HealthCheck_SQLite`
-  (SQLite engine ping path). All pass with `-race`.
-- **API surface golden updated** — 4 new system symbols: `Drainer`,
-  `RegisterDrainer`, `ShutdownDependency`, `ProjectionHostResource`. 1 new
-  sqliteengine symbol: `HealthCheck`. Total: 3773 exports.
+  (SQLite engine ping path), `TestOrderedEngines_BasicOrdering` +
+  `TestOrderedEngines_CycleFallback` + `TestOrderedEngines_NoDeps` +
+  `TestOrderedEngines_UnknownNames` (topological sort),
+  `TestSystem_Close_ErrorJoining` (multiple failing engines joined),
+  `TestSystem_Close_OrderMatchesOrderedEngines` (close order verified),
+  `TestSystem_RegisterDrainer_CalledBeforeClose` +
+  `TestSystem_RegisterDrainer_ErrorPropagation` (drainer lifecycle),
+  `TestSystem_ResetProjection_RestartAndReplay` (SQLite persistence,
+  stop-reset-new-system-replay). All pass with `-race`.
+- **API surface golden updated** — 3 new system symbols: `Drainer`,
+  `RegisterDrainer`, `ShutdownDependency`. 4 new engine symbols: `HealthCheck`
+  (sqlite, duckdb, pg, pebble). `ProjectionHostResource` removed (was a lie —
+  orderedEngines silently ignored it). Total exports updated.
 
 #### bbolt storage backend hardening — streaming, OTel, contract tests
 

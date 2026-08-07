@@ -208,7 +208,7 @@ separator (koanf convention). Env overrides win over YAML.
 | `Middleware`             | Command-level domain middleware (validation, authz, etc.).          |
 | `ProjectionHostOptions`  | Projection host options (batch size, DLQ, restart policy, etc.).    |
 | `CheckpointStore`        | Persistent checkpoint store. If nil, in-memory (lost on restart).   |
-| `ShutdownDependencies`   | Ordering constraints for `Close()` (e.g., close projections first). |
+| `ShutdownDependencies`   | Ordering constraints for `Close()` (engine names only; projection host always closes first). |
 
 ### YAML
 

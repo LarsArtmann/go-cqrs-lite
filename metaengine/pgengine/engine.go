@@ -218,6 +218,12 @@ func (e *pgEngine) Close() error {
 	return nil
 }
 
+// HealthCheck pings the underlying database to verify connectivity.
+// Implements [metaengine.HealthChecker] for Kubernetes-style liveness probes.
+func (e *pgEngine) HealthCheck(ctx context.Context) error {
+	return e.db.PingContext(ctx)
+}
+
 // --- MapBackend ---
 
 func (e *pgEngine) MapSet(ctx context.Context, col string, key any, value any) error {

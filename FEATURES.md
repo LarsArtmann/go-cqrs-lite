@@ -338,7 +338,8 @@ bus driver registry, scream store plan-drift detection, CommandAdapter/
 QueryAdapter SQL serialization, example/taskmanager migration. **P2 hardening +
 P2 test depth + P3 code quality shipped**: HealthCheck, GracefulClose (with
 Drainer phase), ResetProjection, configurable checkpoint store, errors.Join in
-Close, WithShutdownDependency, SQLite engine HealthCheck, README Quick Start
+Close, WithShutdownDependency, HealthCheck on all external-state engines (SQLite,
+DuckDB, Postgres, Pebble), README Quick Start
 fix, doc-check arg validation. See [CHANGELOG.md](CHANGELOG.md) → System
 package P2 test depth + P3 code quality.
 

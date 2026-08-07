@@ -502,28 +502,40 @@ func (r *TypedReader[V]) aggregatePushdown(
 		return 0, err
 	}
 
+	if fn == AggregateCount {
+		return float64(len(rows)), nil
+	}
+
 	var result float64
+
+	var firstSet bool
+
+	var nonNullCount int
 
 	for _, row := range rows {
 		val := extractValueByName(row, column)
 		if n, ok := toFloat64(val); ok {
+			nonNullCount++
+
 			switch fn {
 			case AggregateSum, AggregateAvg:
 				result += n
 			case AggregateMin:
-				if result == 0 || n < result {
+				if !firstSet || n < result {
 					result = n
+					firstSet = true
 				}
 			case AggregateMax:
-				if n > result {
+				if !firstSet || n > result {
 					result = n
+					firstSet = true
 				}
 			}
 		}
 	}
 
-	if fn == AggregateAvg && len(rows) > 0 {
-		return result / float64(len(rows)), nil
+	if fn == AggregateAvg && nonNullCount > 0 {
+		return result / float64(nonNullCount), nil
 	}
 
 	return result, nil
@@ -722,7 +734,7 @@ func (r *TypedReader[V]) groupedAggregatePushdown(
 			}
 		case AggregateMax:
 			if n, ok := toFloat64(extractValueByName(row, column)); ok {
-				if n > result[key] {
+				if existing, exists := result[key]; !exists || n > existing {
 					result[key] = n
 				}
 			}
@@ -813,8 +825,9 @@ func (r *TypedReader[V]) MultiGroupedAggregate(
 	}
 
 	type groupAccum struct {
-		count int
-		vals  map[string]float64
+		count         int
+		vals          map[string]float64
+		nonNullCounts map[string]int
 	}
 
 	groups := make(map[string]*groupAccum)
@@ -824,7 +837,10 @@ func (r *TypedReader[V]) MultiGroupedAggregate(
 
 		acc, exists := groups[key]
 		if !exists {
-			acc = &groupAccum{vals: make(map[string]float64, len(specs))}
+			acc = &groupAccum{
+				vals:          make(map[string]float64, len(specs)),
+				nonNullCounts: make(map[string]int, len(specs)),
+			}
 			groups[key] = acc
 		}
 
@@ -839,6 +855,9 @@ func (r *TypedReader[V]) MultiGroupedAggregate(
 			case AggregateSum, AggregateAvg:
 				if n, ok := toFloat64(extractValueByName(row, s.Column)); ok {
 					acc.vals[alias] += n
+					if s.Fn == AggregateAvg {
+						acc.nonNullCounts[alias]++
+					}
 				}
 			case AggregateMin:
 				if n, ok := toFloat64(extractValueByName(row, s.Column)); ok {
@@ -848,7 +867,7 @@ func (r *TypedReader[V]) MultiGroupedAggregate(
 				}
 			case AggregateMax:
 				if n, ok := toFloat64(extractValueByName(row, s.Column)); ok {
-					if n > acc.vals[alias] {
+					if existing, ok := acc.vals[alias]; !ok || n > existing {
 						acc.vals[alias] = n
 					}
 				}
@@ -861,11 +880,11 @@ func (r *TypedReader[V]) MultiGroupedAggregate(
 		values := make(map[string]float64, len(specs))
 		for _, s := range specs {
 			alias := s.AliasOr()
-			if s.Fn == AggregateAvg && acc.count > 0 {
-				if s.Fn == AggregateAvg {
-					values[alias] = acc.vals[alias] / float64(acc.count)
-					continue
+			if s.Fn == AggregateAvg {
+				if c := acc.nonNullCounts[alias]; c > 0 {
+					values[alias] = acc.vals[alias] / float64(c)
 				}
+				continue
 			}
 			values[alias] = acc.vals[alias]
 		}

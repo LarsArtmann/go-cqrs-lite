@@ -159,6 +159,25 @@ func (e *pebbleEngine) Close() error {
 	return e.db.Close()
 }
 
+// HealthCheck verifies the underlying Pebble DB is responsive by attempting a
+// point read of a non-existent key. A healthy DB returns pebble.ErrNotFound;
+// any other error (e.g., "database closed") indicates a problem.
+// Implements [metaengine.HealthChecker] for Kubernetes-style liveness probes.
+func (e *pebbleEngine) HealthCheck(_ context.Context) error {
+	_, closer, err := e.db.Get([]byte("__health_check__"))
+	if err != nil {
+		if errors.Is(err, pebble.ErrNotFound) {
+			return nil
+		}
+
+		return err
+	}
+
+	_ = closer.Close()
+
+	return nil
+}
+
 // Key encoding helpers — package-level aliases to keycodec functions. The
 // local `sep` reference is kept for inline concatenation in seedSeqCounters.
 

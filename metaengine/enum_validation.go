@@ -9,7 +9,7 @@ import "slices"
 // AllADTs returns every registered ADT value.
 func AllADTs() []ADT {
 	return []ADT{
-		ADTMap, ADTSet, ADTCounter, ADTGraph, ADTLog,
+		ADTMap, ADTSet, ADTCounter, ADTGraph, ADTLog, ADTStreamLog,
 		ADTSortedMap, ADTMultimap, ADTVector, ADTSearch, ADTSpatial,
 	}
 }
