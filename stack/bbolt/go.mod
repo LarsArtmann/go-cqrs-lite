@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0-20260807035337-1869dfefe4cc
+	github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0-20260807040613-506318f53165
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
 	go.etcd.io/bbolt v1.5.0

@@ -74,7 +74,7 @@
 2. **Split-brain DRY violation** — `benchItemResult`, `benchListInput`, `benchFilterQuery`, `seedBenchStore`, `setupBenchStore` now exist in BOTH:
    - `metaengine/bench_fixtures_test.go` (package `metaengine_test`)
    - `metaengine/bench/bench_filter_test.go` (package `bench_test`)
-   
+
    These are in different packages so no compile conflict, but the logic is duplicated and will drift. The correct fix is either: (a) extract a shared test helper module, or (b) have coverage_test.go use its own minimal fixtures that don't overlap with the bench domain.
 
 3. **The 10-bug checklist was itself incomplete** — I identified 10 bugs in the prior plan but missed that `coverage_test.go` depends on bench fixtures. The 10-bug list was supposed to be comprehensive but wasn't. A `grep -r "setupBenchStore\|benchItemResult" metaengine/*_test.go` before planning would have caught this.
@@ -104,43 +104,51 @@
 ## f) Up to 50 Things We Should Get Done Next
 
 ### Critical (blocks CI / correctness)
+
 1. **Split `bench_promise_test.go`** (522 lines) into `fixtures_test.go` (types/queries/generator/helpers) + `bench_promise_test.go` (benchmarks only). CI 350-line limit will fail.
 2. **Smoke-test ALL 23 untested benchmarks** at `-benchtime=1x`. One command: `go test -bench=. -benchtime=1x -timeout 10m`.
 3. **Run `bash scripts/bench-matrix.sh --quick`** to verify the edited script works.
 4. **Run `nix run .#verify`** — the full gate (build/vet/test/lint/race/coverage/doc-check).
 
 ### DRY / Architecture
+
 5. **Consolidate bench fixtures** — Extract shared test types (`benchItemResult`, `benchFilterQuery`, etc.) into a shared test helper or have coverage_test.go use its own types.
 6. **Write ADR-0121** — Document the metaengine/bench module boundary decision (Tier 0 core → Tier 6 bench module, following stack/bench precedent).
 7. **Add `metaengine/bench` to AGENTS.md Test command** — The `./metaengine/...` glob covers it, but explicit listing is clearer.
 
 ### M4.2 Benchmark Improvements
+
 8. **Add `-quick` variant for M4.2** — 100K-row DuckDB benchmark takes 6+ minutes. Add a CI-friendly variant that caps at 10K rows.
 9. **Add sort benchmark to M4.2** — Currently only tests filtered scan. Add a filtered+sorted variant to show columnar advantage on ORDER BY.
 10. **Add aggregation benchmark** — DuckDB excels at GROUP BY. Add a SUM/COUNT aggregation benchmark comparing columnar vs pushdown vs Memory.
 11. **Cross-engine 4-way parity test** — Combine Memory + SQLite + DuckDB + Pebble into a single parity test (currently only pairwise).
 
 ### Engine Pool Extensions
+
 12. **Add Pebble to engine-pool comparison** — `promiseEnginePools()` currently only has memory-only and memory+sqlite. Add memory+pebble and memory+duckdb.
 13. **Add 4-engine pool** — Memory + SQLite + DuckDB + Pebble with the planner routing each query to the optimal engine.
 14. **Benchmark cross-engine routing overhead** — Measure how much time the planner spends routing vs executing when 4 engines are in the pool.
 
 ### Layout/Planner Benchmarks
+
 15. **Add DuckDB to layout planning benchmark** — `BenchmarkLayoutPlanning_MemoryVsSQLite` currently only tests Memory vs SQLite. Add DuckDB columnar layout.
 16. **Add SQLite layout planning benchmark** — SQLite has LayoutPlanner too (expression indexes). Compare with DuckDB ART indexes.
 17. **Benchmark planner with WithColumnarLayout** — The planner should call ApplyLayoutPlan during Plan(). Measure Plan() time with vs without columnar layout option.
 
 ### Read-Side Benchmarks
+
 18. **Add DuckDB to read-mix benchmark** — `BenchmarkMultiQuery_ReadMix` currently only tests Memory. Add DuckDB for the filtered queries.
 19. **Add concurrent read benchmark with DuckDB** — Measure DuckDB under concurrent read load (single-writer, multi-reader).
 20. **Benchmark point-lookup comparison** — Memory vs SQLite vs DuckDB vs Pebble for MapGet at various scales.
 
 ### Write-Side Benchmarks
+
 21. **Benchmark DuckDB write throughput** — How fast can DuckDB ingest events? Compare with SQLite and Memory.
 22. **Benchmark Pebble write throughput** — LSM should excel at writes. Compare with SQLite.
 23. **Benchmark write amplification with columnar** — Does WithColumnarLayout increase write cost (more columns to write)?
 
 ### Infrastructure
+
 24. **Tag `metaengine/bench/v4.0.0`** — Currently untagged. Required for `GOWORK=off` consumers (api-stability, vulncheck).
 25. **Tag `metaengine/sqliteengine/v4.0.0`** — Still untagged after all this time. Every consumer uses local replace.
 26. **Tag `metaengine/pebbleengine/v4.0.0`** — Same.
@@ -149,6 +157,7 @@
 29. **Add metaengine/bench to `.golangci.yml` depguard allow list** if needed.
 
 ### Testing Quality
+
 30. **Add table-driven test for WithColumnarLayout** — Test with different field types (string, int, float64, bool, time.Time) to verify reflection-derived types.
 31. **Add edge case: empty result set** — What happens when a columnar scan returns 0 rows?
 32. **Add edge case: single-row table** — Minimum viable DuckDB columnar scan.
@@ -156,23 +165,27 @@
 34. **Add race-detector run for parity tests** — `go test -race` on the DuckDB/Pebble parity tests.
 
 ### Documentation
+
 35. **Add metaengine/bench to SKILL.md module table** — The AI consumer skill doesn't know about this module.
 36. **Document M4.2 results in docs/benchmarks/** — A markdown report with the 3-way comparison table and interpretation.
 37. **Update FOUR-TIER-MODEL.md** — Add metaengine/bench to the tier listing (currently missing).
 38. **Add metaengine/bench to docs/api_surface.txt** verification in CI.
 
 ### Performance
+
 39. **Profile the 100K DuckDB columnar scan** — Where is the 184ms spent? Use `go test -cpuprofile`.
 40. **Benchmark DuckDB memory allocation** — `go test -benchmem` on the columnar scan to see allocs/op.
 41. **Compare DuckDB in-memory vs file-backed** — Does persistent DuckDB change the columnar advantage?
 42. **Benchmark with realistic payload sizes** — Current benchColumnarItem has 5 small fields. Test with larger payloads (embedded structs, slices).
 
 ### Operational
+
 43. **Add bench result baseline** — Pin M4.2 results as a regression baseline in CI.
 44. **Add bench result comparison** — `benchstat` comparison between Memory/SQLite/DuckDB/Pebble.
 45. **Create a benchmark dashboard** — HTML report showing all engine comparisons (like the architecture-review skill produces).
 
 ### Cleanup
+
 46. **Remove the empty commit `ff72ce8ba`** — Auto-commit daemon produced an empty commit message. Should be squashed or amended.
 47. **Verify go.work.sum has metaengine/bench** — If missing, regenerate.
 48. **Run `go mod tidy -e` in metaengine/** — Suppress the nested eventtest warnings.
@@ -195,11 +208,11 @@
 
 3-way comparison at 100K rows, filtered scan (Status = "active"), sorted by Amount DESC:
 
-| Engine | 1K rows | 10K rows | 100K rows | Mechanism |
-|---|---|---|---|---|
-| **DuckDB Columnar** | 2.2ms | 19.2ms | **184ms** | Native typed columns (DOUBLE, INTEGER, VARCHAR), vectorized scan |
-| **DuckDB Pushdown** | 2.2ms | 18.0ms | **265ms** | json_extract on meta_map JSON blob, SQL WHERE/ORDER BY |
-| **Memory** | 1.5ms | 27.7ms | **377ms** | O(N) Go-side closure filter + sort |
+| Engine              | 1K rows | 10K rows | 100K rows | Mechanism                                                        |
+| ------------------- | ------- | -------- | --------- | ---------------------------------------------------------------- |
+| **DuckDB Columnar** | 2.2ms   | 19.2ms   | **184ms** | Native typed columns (DOUBLE, INTEGER, VARCHAR), vectorized scan |
+| **DuckDB Pushdown** | 2.2ms   | 18.0ms   | **265ms** | json_extract on meta_map JSON blob, SQL WHERE/ORDER BY           |
+| **Memory**          | 1.5ms   | 27.7ms   | **377ms** | O(N) Go-side closure filter + sort                               |
 
 **Key finding:** Columnar is **2.0x faster** than Memory at 100K rows. The advantage grows with scale — at 1K rows Memory is actually faster (1.5ms vs 2.2ms) because there's no JSON decode overhead for small datasets. DuckDB's columnar advantage only materializes past ~5K rows where the vectorized scan amortizes the layout planning cost.
 
