@@ -4,11 +4,14 @@
 
 ---
 
-**metaengine v4.5.0 tagged** (2026-08-06) — 69 modules in `go.work`.
-SerializableReadCosts in plan JSON (ADR-0100), consumer DX helpers,
-6 file splits under CI limit, F015 store-aware fix, go-output daemon break
-fixed. Module releases: cmd/cqrs-lint/v4.4.0, metaengine/v4.5.0, system/v4.0.0,
-stack/mysql/v4.0.0, loopback/v4.0.0, quic/v4.0.0.
+**metaengine v4.6.0 tagged** (2026-08-06) — 77 modules in `go.work`.
+Metaengine v2 shipped (ADRs 0111-0119): `record/` module, Record-aware folds,
+auto-projection, sqliteengine/badgerengine/dgraphengine/graphadapter, tombstone
+deprecation. bbolt storage backend, SQLite CGo driver, cqrs-lint 192 rules.
+Module releases: record/v4.0.0, event/v4.3.0, metaengine/v4.6.0,
+metaengine/projectionadapter/v4.3.0, metaengine/badgerengine/v4.0.0,
+stack/bbolt/v4.0.0, cmd/cqrs-lint/v4.4.0, system/v4.0.0, stack/mysql/v4.0.0,
+loopback/v4.0.0, quic/v4.0.0.
 See CHANGELOG `[Unreleased]`.
 
 ---
@@ -225,8 +228,8 @@ hardened through multiple brutal review passes and 7 consumer feedback rounds.
 - ✅ **Consumer feedback received** — 7 consumer reviews (crush-daily,
   Standup-Killer, bank-sync, cqrs-htmx, browser-history, timesheets, DiscordSync).
   Drove signal-to-noise from ~25% to ~90%+.
-- **Publish v4.4.0** — all fixes in source but version constant still "4.3.0".
-  See [TODO_LIST.md](TODO_LIST.md).
+- ✅ **v4.4.0 tagged + pushed** — scorecard, SARIF, markdown grouping, server
+  detection improvements, KeyHolderAI feedback fixes.
 - **Run against real consumers** — validate false-positive rates against live
   projects. See [TODO_LIST.md](TODO_LIST.md).
 
@@ -351,7 +354,7 @@ first `ReplicationLeaderless` engine.
 - ✅ **CBOR encoding** — both transports switched from JSON to `fxamacker/cbor`.
   Fixed `time.Time` truncation and `map[any]any` decode issues.
 - [ ] Evaluate `iroh-go` C binding stability (third-party binding for Iroh Rust)
-- [ ] Tag loopback + quic modules
+- ✅ **Tag loopback + quic modules** — `loopback/v4.0.0` + `quic/v4.0.0` tagged
 - [ ] WriteOp.ID dedup ring on loopback path (quic has it)
 
 ### 11. Metaengine Persistence + System Redesign
@@ -382,10 +385,10 @@ projection decoder wiring (`ProjectionTypeDecoder`/`ProjectionEventDecoder`).
 All 5 engines implement StreamLogBackend (Memory, SQLite, Pebble, DuckDB,
 Postgres). DuckDB + Postgres have AtomicAppender.
 
-**⚠️ Remaining gaps:** Three files exceed the 350-line CI limit (constructor.go
-382, system.go 364, adapter_event.go 357). Scream store has 2 of ~12 rules.
-CommandAdapter/QueryAdapter serialization for SQL engines unstarted. Example
-migration not done. See [TODO_LIST.md](TODO_LIST.md) → System Package.
+**⚠️ Remaining gaps:** Scream store has 2 of ~12 rules (missing PlanDiff/
+PlanFingerprint/Manifest). CommandAdapter/QueryAdapter serialization for SQL
+engines unstarted. Example migration not done. koanf YAML config unstarted.
+See [TODO_LIST.md](TODO_LIST.md) → System Package.
 
 ---
 
