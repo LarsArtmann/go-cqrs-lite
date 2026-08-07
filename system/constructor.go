@@ -171,6 +171,16 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		sys.projStore = store
 	}
 
+	// Wire the event bus and publisher BEFORE the projection host so the
+	// host can use the bus as a live subscriber.
+	bus, err := buildEventBus(deployment)
+	if err != nil {
+		return nil, err
+	}
+
+	sys.bus = bus
+	sys.pubBus = buildPublisher(deployment, sys.bus)
+
 	// Wire projection host if we have projections and an event journal.
 	if sys.projStore != nil {
 		journal, ok := sys.eventStore.(event.SeekableJournal)
@@ -178,7 +188,17 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 			return nil, ErrSeekableJournalMissing
 		}
 
-		host, err := projectionhost.New(journal, &memoryCheckpointStore{}, domain.ProjectionHostOptions...)
+		// Auto-wire the system bus as the subscriber for live event delivery
+		// after the initial journal drain. Append to consumer-provided options.
+		hostOpts := append(
+			make([]projectionhost.HostOption, 0, len(domain.ProjectionHostOptions)+1),
+			domain.ProjectionHostOptions...,
+		)
+		if bus, ok := sys.bus.(event.Subscriber); ok {
+			hostOpts = append(hostOpts, projectionhost.WithSubscriber(bus))
+		}
+
+		host, err := projectionhost.New(journal, &memoryCheckpointStore{}, hostOpts...)
 		if err != nil {
 			return nil, fmt.Errorf("system: create projection host: %w", err)
 		}
@@ -234,15 +254,6 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 			return nil, fmt.Errorf("%w: %s", ErrUnsafeChange, detail)
 		}
 	}
-
-	// Wire MultiBus if the source-of-truth instance has multiple Publish targets (D9).
-	bus, err := buildEventBus(deployment)
-	if err != nil {
-		return nil, err
-	}
-
-	sys.bus = bus
-	sys.pubBus = buildPublisher(deployment, sys.bus)
 
 	// Register domain middleware.
 	sys.UseCommandMiddleware(domain.Middleware...)

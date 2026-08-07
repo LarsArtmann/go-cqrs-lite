@@ -46,10 +46,15 @@ LAYER[storage/turso]=5
 LAYER[metaengine/pebbleengine]=5
 LAYER[metaengine/duckdbengine]=5
 LAYER[metaengine/pgengine]=5
+LAYER[metaengine/badgerengine]=5
+LAYER[metaengine/dgraphengine]=5
+LAYER[metaengine/graphadapter]=5
+LAYER[metaengine/sqliteengine]=5
 LAYER[metaengine/projectionadapter]=5
 LAYER[metaengine/irohengine]=5
 LAYER[metaengine/irohengine/loopback]=5
 LAYER[metaengine/irohengine/quic]=5
+LAYER[record]=0
 LAYER[scheduling/sqlstore]=5
 LAYER[testutil]=5
 # NOTE: testutil is also referenced as a direct dep in some lower-tier modules'
@@ -69,6 +74,7 @@ LAYER[system]=6
 LAYER[catalog]=7
 LAYER[integration]=7
 LAYER[stack/bench]=7
+LAYER[metaengine/bench]=7
 LAYER[benchkit]=7
 LAYER[cmd/cqrs-gen]=7
 LAYER[cmd/cqrs-lint]=7
@@ -78,7 +84,9 @@ LAYER[cmd/doc-check]=7
 LAYER[example/taskmanager]=7
 LAYER[example/getting-started]=7
 LAYER[example/readme-quickstart]=7
+LAYER[example/metaengine-quickstart]=7
 LAYER[event/v4/eventtest]=7
+LAYER[testutil/pgtestcontainer]=5
 # testutil is test-only infrastructure used from _test.go files across layers.
 # It has LAYER[testutil]=5 above, but lower-tier modules that import it from
 # _test.go files get exceptions below. This avoids false layer violations while
@@ -163,6 +171,10 @@ DEP_BUDGET[metaengine]=5
 DEP_BUDGET[metaengine/pebbleengine]=5
 DEP_BUDGET[metaengine/duckdbengine]=5
 DEP_BUDGET[metaengine/pgengine]=5
+DEP_BUDGET[metaengine/badgerengine]=2
+DEP_BUDGET[metaengine/dgraphengine]=3
+DEP_BUDGET[metaengine/graphadapter]=2
+DEP_BUDGET[metaengine/sqliteengine]=3
 DEP_BUDGET[metaengine/projectionadapter]=10
 DEP_BUDGET[flightrecorder]=0
 DEP_BUDGET[retry]=1
@@ -182,7 +194,11 @@ DEP_BUDGET[cmd/doc-check]=2
 DEP_BUDGET[example/taskmanager]=25
 DEP_BUDGET[example/getting-started]=10
 DEP_BUDGET[example/readme-quickstart]=6
+DEP_BUDGET[example/metaengine-quickstart]=4
 DEP_BUDGET[event/v4/eventtest]=5
+DEP_BUDGET[record]=0
+DEP_BUDGET[testutil/pgtestcontainer]=3
+DEP_BUDGET[metaengine/bench]=5
 
 failed=0
 

@@ -79,7 +79,7 @@ func scanMutexDecode(
 			return true
 		}
 
-		inDefer := hasDeferAncestorC021(ancestors)
+		inDefer := isInDefer(ancestors)
 
 		switch {
 		case isLockCall(call) && !inDefer:
@@ -94,16 +94,6 @@ func scanMutexDecode(
 	})
 
 	return findings
-}
-
-func hasDeferAncestorC021(ancestors []ast.Node) bool {
-	for _, a := range ancestors {
-		if _, ok := a.(*ast.DeferStmt); ok {
-			return true
-		}
-	}
-
-	return false
 }
 
 func isLockCall(call *ast.CallExpr) bool {

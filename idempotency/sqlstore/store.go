@@ -169,17 +169,26 @@ func (s *Store) Seen(ctx context.Context, key string) (bool, error) {
 	return true, nil
 }
 
+// expiryFromTTL validates ttl and computes the absolute expiry timestamp in
+// nanoseconds. Shared by Record and CheckAndRecord.
+func expiryFromTTL(ttl time.Duration) (int64, error) {
+	if ttl <= 0 {
+		return 0, idempotency.ErrInvalidTTL
+	}
+
+	return time.Now().Add(ttl).UnixNano(), nil
+}
+
 // Record marks the key as seen with the given TTL. If the key is already
 // recorded and not expired, it is a no-op (the existing expiry is not extended).
 // An expired key is reclaimed lazily by a subsequent Seen or Sweep call; until
 // then Record on an expired-but-present row is also a no-op (INSERT ... ON
 // CONFLICT DO NOTHING), so the stale expiry is NOT refreshed.
 func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error {
-	if ttl <= 0 {
-		return idempotency.ErrInvalidTTL
+	expiry, err := expiryFromTTL(ttl)
+	if err != nil {
+		return err
 	}
-
-	expiry := time.Now().Add(ttl).UnixNano()
 
 	_, err := s.db.ExecContext(ctx, s.q.record, key, expiry)
 	if err != nil {
@@ -200,11 +209,11 @@ func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error
 // within the same statement, so concurrent callers are serialized at the row
 // level by the database engine.
 func (s *Store) CheckAndRecord(ctx context.Context, key string, ttl time.Duration) error {
-	if ttl <= 0 {
-		return idempotency.ErrInvalidTTL
+	newExpiry, err := expiryFromTTL(ttl)
+	if err != nil {
+		return err
 	}
 
-	newExpiry := time.Now().Add(ttl).UnixNano()
 	now := time.Now().UnixNano()
 
 	result, err := s.db.ExecContext(ctx, s.q.checkAndRecord, key, newExpiry, now)

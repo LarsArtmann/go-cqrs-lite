@@ -41,6 +41,16 @@ func New(backend KVBackend) *Store {
 	return &Store{backend: backend}
 }
 
+// expiryFromTTL validates ttl and computes the absolute expiry timestamp in
+// nanoseconds. Shared by Record and CheckAndRecord.
+func expiryFromTTL(ttl time.Duration) (int64, error) {
+	if ttl <= 0 {
+		return 0, idempotency.ErrInvalidTTL
+	}
+
+	return time.Now().Add(ttl).UnixNano(), nil
+}
+
 func (s *Store) Seen(ctx context.Context, key string) (bool, error) {
 	val, err := s.backend.Get(ctx, []byte(key))
 	if err != nil {
@@ -75,11 +85,10 @@ func (s *Store) Seen(ctx context.Context, key string) (bool, error) {
 }
 
 func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error {
-	if ttl <= 0 {
-		return idempotency.ErrInvalidTTL
+	expiry, err := expiryFromTTL(ttl)
+	if err != nil {
+		return err
 	}
-
-	expiry := time.Now().Add(ttl).UnixNano()
 
 	if _, err := s.backend.SetIfAbsent(
 		ctx,
@@ -93,11 +102,11 @@ func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error
 }
 
 func (s *Store) CheckAndRecord(ctx context.Context, key string, ttl time.Duration) error {
-	if ttl <= 0 {
-		return idempotency.ErrInvalidTTL
+	expiry, err := expiryFromTTL(ttl)
+	if err != nil {
+		return err
 	}
 
-	expiry := time.Now().Add(ttl).UnixNano()
 	val := []byte(strconv.FormatInt(expiry, 10))
 
 	inserted, err := s.backend.SetIfAbsent(ctx, []byte(key), val)
