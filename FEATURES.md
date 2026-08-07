@@ -345,8 +345,8 @@ deciders/projections.
 `New()`), serialization auto-detected, handler independence fixed, MultiBus/
 SnapshotBackend/scream store wired, introspection real, config YAML parsing,
 Verify/Plan/Explain methods, projection decoder wiring. **Remaining gaps**:
-three files exceed 350-line CI limit, CommandAdapter/QueryAdapter serialization
-for SQL, example migration. See [TODO_LIST.md](TODO_LIST.md) → System section.
+CommandAdapter/QueryAdapter serialization for SQL, example migration, koanf
+YAML config. See [TODO_LIST.md](TODO_LIST.md) → System Package section.
 
 | Feature                         | Detail                                                                                                                                                                                                                                        | Status |
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
