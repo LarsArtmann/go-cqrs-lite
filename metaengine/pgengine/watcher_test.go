@@ -6,6 +6,7 @@ import (
 	"time"
 
 	pgengine "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -103,56 +104,34 @@ func TestPostgresWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 	}
 	defer eng.Close()
 
-	q := metaengine.Query[watcherTask, watcherTask](
-		"pg_replay_tasks",
-		metaengine.OnTyped(
-			"task_created",
-			watcherTask{},
-			func(e watcherTask) (watcherTaskID, watcherTask) {
-				return e.ID, e
+	enginetest.RunWatcherReplayTest[watcherTask](
+		t, eng,
+		enginetest.WatcherReplaySetup[watcherTask]{
+			Collection: "pg_replay_tasks",
+			Build: func(t *testing.T, eng metaengine.Engine) (*metaengine.Store, *metaengine.Watcher[watcherTask]) {
+				q := metaengine.Query[watcherTask, watcherTask](
+					"pg_replay_tasks",
+					metaengine.OnTyped(
+						"task_created",
+						watcherTask{},
+						func(e watcherTask) (watcherTaskID, watcherTask) {
+							return e.ID, e
+						},
+					),
+				)
+				store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
+				if err != nil {
+					t.Fatalf("Plan: %v", err)
+				}
+				watcher := metaengine.NewWatcher[watcherTask](store, "pg_replay_tasks")
+				return store, watcher
 			},
-		),
-	)
-
-	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	watcher := metaengine.NewWatcher[watcherTask](store, "pg_replay_tasks")
-	replay := watcher.WithReplay(100)
-	defer watcher.Close()
-
-	seqCh := watcher.WatchWithSeq(ctx, nil)
-
-	if err := store.Apply(
-		ctx,
-		"task_created",
+			Apply: func(ctx context.Context, store *metaengine.Store, payload watcherTask) error {
+				return store.Apply(ctx, "task_created", payload)
+			},
+		},
 		watcherTask{ID: watcherTaskID("prt-1"), Title: "Postgres Replay"},
-	); err != nil {
-		t.Fatalf("apply create: %v", err)
-	}
-
-	select {
-	case sv := <-seqCh:
-		if sv.Value.ID != watcherTaskID("prt-1") {
-			t.Errorf("expected 'prt-1', got %s", sv.Value.ID)
-		}
-		if sv.Seq == 0 {
-			t.Fatal("expected non-zero seq — replayShim.recordValue silently failed (pre-fix bug)")
-		}
-	case <-time.After(5 * time.Second):
-		t.Fatal("timeout waiting for Postgres watcher seq notification")
-	}
-
-	entries := replay.Replay(0)
-	if len(entries) != 1 {
-		t.Fatalf("expected 1 replay entry, got %d", len(entries))
-	}
-	if entries[0].Value.ID != watcherTaskID("prt-1") {
-		t.Errorf("replay entry: expected 'prt-1', got %s", entries[0].Value.ID)
-	}
+		"prt-1",
+		5*time.Second,
+	)
 }

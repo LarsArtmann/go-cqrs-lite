@@ -108,7 +108,7 @@ func TestDuckDBWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 		t, eng,
 		enginetest.WatcherReplaySetup[watcherTask]{
 			Collection: "duckdb_replay_tasks",
-			Build: func(t *testing.T, eng metaengine.Engine) (metaengine.Store, *metaengine.Watcher[watcherTask]) {
+			Build: func(t *testing.T, eng metaengine.Engine) (*metaengine.Store, *metaengine.Watcher[watcherTask]) {
 				q := metaengine.Query[watcherTask, watcherTask](
 					"duckdb_replay_tasks",
 					metaengine.OnTyped(
@@ -126,7 +126,7 @@ func TestDuckDBWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 				watcher := metaengine.NewWatcher[watcherTask](store, "duckdb_replay_tasks")
 				return store, watcher
 			},
-			Apply: func(ctx context.Context, store metaengine.Store, payload watcherTask) error {
+			Apply: func(ctx context.Context, store *metaengine.Store, payload watcherTask) error {
 				return store.Apply(ctx, "task_created", payload)
 			},
 		},

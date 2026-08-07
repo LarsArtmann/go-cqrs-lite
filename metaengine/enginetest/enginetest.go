@@ -153,9 +153,9 @@ type WatcherReplaySetup[V any] struct {
 	Collection string
 	// Build returns the planned store and a watcher over the planner's
 	// collection. The store is held for the lifetime of the test.
-	Build func(t *testing.T, eng metaengine.Engine) (metaengine.Store, *metaengine.Watcher[V])
+	Build func(t *testing.T, eng metaengine.Engine) (*metaengine.Store, *metaengine.Watcher[V])
 	// Apply is the engine-specific apply call (e.g. store.Apply(ctx, type, payload)).
-	Apply func(ctx context.Context, store metaengine.Store, payload V) error
+	Apply func(ctx context.Context, store *metaengine.Store, payload V) error
 }
 
 // RunWatcherReplayTest exercises the standard Watcher + Replay contract:
