@@ -51,12 +51,11 @@ func (t Tracing) Merge(other Tracing) Tracing {
 	return result
 }
 
-// CustomData is the shared base for command.Metadata and query.Metadata
-// (ADR-0031). It carries tracing identifiers and a custom key-value map,
-// providing the Clone, Merge, and EnsureCustom operations so each module does
-// not duplicate the logic. Each module keeps its own Metadata type (which
-// embeds CustomData with its own MetadataKey) — the types stay separate but
-// the behaviour is shared.
+// CustomData is a reusable base for metadata types that carry tracing
+// identifiers and a custom key-value map (ADR-0031). command.Metadata and
+// query.Metadata were originally aliases for CustomData but are now
+// standalone structs that embed metadata.Tracing directly; CustomData
+// remains for external consumers who want the same pattern.
 type CustomData[K ~string] struct {
 	Tracing
 
@@ -80,7 +79,27 @@ func (d CustomData[K]) Merge(other CustomData[K]) CustomData[K] {
 	}
 }
 
+// WithCustom returns a copy of d with the given key-value pair added to
+// Custom. The original CustomData is not modified.
+func (d CustomData[K]) WithCustom(key K, value string) CustomData[K] {
+	custom := maps.Clone(d.Custom)
+	if custom == nil {
+		custom = make(map[K]string)
+	}
+
+	custom[key] = value
+
+	return CustomData[K]{
+		Tracing: d.Tracing,
+		Custom:  custom,
+	}
+}
+
 // EnsureCustom lazily initializes the Custom map if nil.
+//
+// Deprecated: Use WithCustom, which returns a new value without mutating
+// the receiver. EnsureCustom mutates in place via a pointer receiver,
+// breaking the immutability contract that Clone and Merge establish.
 func (d *CustomData[K]) EnsureCustom() {
 	if d.Custom == nil {
 		d.Custom = make(map[K]string)

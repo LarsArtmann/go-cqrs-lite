@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-08 (bbolt test suite consolidation: contract test, durability bench, commandtest/querytest extraction)
+**Updated:** 2026-08-08 (14 metaengine-v2 tags confirmed pushed to remote)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -24,15 +24,15 @@ and is **never** duplicated here.
 > metaengine/bench + 11 drifted-module bumps (retry, middleware, benchkit,
 > stack/*). Remaining work is release hygiene and edge-case coverage.
 >
-> **WARNING:** 14 tags created this session are LOCAL ONLY (not pushed). Verify
-> gate NOT confirmed GREEN after changes. See
+> **WARNING:** Verify gate NOT confirmed GREEN after the tagging changes. See
 > [status report](docs/status/2026-08-08_01-34_metaengine-v2-publishability-and-test-coverage.md).
 
 ### Release hygiene (blocks consumer trust)
 
-- [ ] 🔥 **Push 14 new tags to remote** — `git push origin --tags` or selective.
-      Tags: `metaengine/pebbleengine/v4.0.0`, `metaengine/bench/v4.0.0`,
-      `retry/v4.3.0`, `middleware/v4.3.0`, `benchkit/v4.3.0`, `stack/v4.3.0`,
+- [x] 🔥 **Push 14 new tags to remote** — all 14 confirmed on `origin`
+      (verified via `git ls-remote --tags origin`): `metaengine/pebbleengine/v4.0.0`,
+      `metaengine/bench/v4.0.0`, `retry/v4.3.0`, `middleware/v4.3.0`,
+      `benchkit/v4.3.0`, `stack/v4.3.0`,
       `stack/{memory,sqlite,turso,pebble,postgres}/v4.3.0`,
       `stack/{duckdb,bbolt,mysql}/v4.1.0`.
 - [ ] 🔥 **Update CHANGELOG.md for all 14 new tags** — `TestTagContentMatchesChangelog`
@@ -133,13 +133,25 @@ and is **never** duplicated here.
       field and its loop in Close (never populated in `New()`).
 - [x] **Port `WithShutdownDependency`** — `DomainConfig.ShutdownDependencies`
       field + `ShutdownDependency` type + `orderedEngines()` topological sort
-      (Kahn's algorithm, cycle fallback to creation order).
+      (Kahn's algorithm, cycle fallback to creation order). Projection host
+      always closes first (removed `ProjectionHostResource` — it was a lie).
 - [x] **Add `Drainer` interface** — `GracefulClose` now drains via registered
       `Drainer`s before `Close`. `RegisterDrainer(d)` method on System.
 - [x] **Document `DomainConfig.CheckpointStore` in README** — added
       DomainConfig Fields table with CheckpointStore + ShutdownDependencies.
-- [x] **SQLite integration test for HealthCheck** — added `HealthCheck` to
-      SQLite engine (`db.PingContext`), integration test verifies ping path.
+- [x] **HealthCheck on all external-state engines** — SQLite (`db.PingContext`),
+      DuckDB (`db.PingContext`), Postgres (`db.PingContext`), Pebble (lightweight
+      point-read). All implement `metaengine.HealthChecker`.
+- [x] **Extract shutdown logic to `shutdown.go`** — `Drainer`, `shutdownEdge`,
+      `orderedEngines`, `RegisterDrainer` extracted from `system.go` (was at
+      350-line CI limit). `namedEngine` struct replaces parallel slices.
+- [x] **Tests for shutdown ordering + drainer + close joining** —
+      `TestOrderedEngines_NoDeps`, `TestOrderedEngines_BasicOrdering`,
+      `TestOrderedEngines_CycleFallback`, `TestOrderedEngines_UnknownNames`,
+      `TestSystem_Close_ErrorJoining`, `TestSystem_Close_OrderMatchesOrderedEngines`,
+      `TestSystem_RegisterDrainer_CalledBeforeClose`,
+      `TestSystem_RegisterDrainer_ErrorPropagation`,
+      `TestSystem_ResetProjection_RestartAndReplay` (SQLite persistence).
 
 ---
 

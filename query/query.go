@@ -107,6 +107,15 @@ func WithRequestID(v id.RequestID) Option {
 	return func(q *BasicQuery) { q.metadata.RequestID = v }
 }
 
+// WithCustomMetadata sets a custom metadata key-value pair on the query.
+// Multiple calls accumulate. Used by transport adapters to carry wire-level
+// metadata (e.g. gRPC payload, correlation context).
+func WithCustomMetadata(key, value string) Option {
+	return func(q *BasicQuery) {
+		q.metadata = q.metadata.WithCustom(MetadataKey(key), value)
+	}
+}
+
 // BasicQuery provides a default implementation.
 // cqrs-lint:ignore(E007) library code or intentional pattern
 type BasicQuery struct {

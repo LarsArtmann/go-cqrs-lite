@@ -36,7 +36,7 @@ When embedded anonymously in a struct, `encoding/json` promotes these fields to 
 
 ### CustomData[K]
 
-The generic base for `command.Metadata` and `query.Metadata`. Embeds `Tracing` and adds a typed Custom map:
+A reusable base for metadata types that carry tracing identifiers and a typed custom map. `command.Metadata` and `query.Metadata` were originally aliases for `CustomData` but are now standalone structs that embed `metadata.Tracing` directly. `CustomData[K]` remains available for external consumers who want the same pattern.
 
 ```go
 type CustomData[K ~string] struct {
@@ -47,11 +47,12 @@ type CustomData[K ~string] struct {
 
 The type parameter `K` is a named string type (the module's own `MetadataKey`), so each module's custom keys are type-safe and cannot be accidentally mixed.
 
-| Method                         | Description                                       |
-| ------------------------------ | ------------------------------------------------- |
-| `CustomData[K].Clone()`        | Returns a copy with a cloned Custom map.          |
-| `CustomData[K].Merge(o)`       | Overlays tracing and custom entries from `other`. |
-| `CustomData[K].EnsureCustom()` | Lazily initializes the Custom map if nil.         |
+| Method                          | Description                                          |
+| ------------------------------- | ---------------------------------------------------- |
+| `CustomData[K].Clone()`         | Returns a copy with a cloned Custom map.             |
+| `CustomData[K].Merge(o)`        | Overlays tracing and custom entries from `other`.    |
+| `CustomData[K].WithCustom(k,v)` | Returns a copy with `k` set to `v` (non-mutating).   |
+| `CustomData[K].EnsureCustom()`  | **Deprecated.** Use `WithCustom` instead.            |
 
 ### MergeCustomMaps[K]
 
@@ -64,9 +65,17 @@ import "github.com/larsartmann/go-cqrs-lite/metadata/v4"
 
 type MyKey string
 
+// Embed CustomData for the full Clone/Merge/WithCustom API:
 type MyMetadata struct {
     metadata.CustomData[MyKey]
     // additional module-specific fields...
+}
+
+// Or embed Tracing directly and own your own Custom map
+// (the approach command/ and query/ take):
+type MyStandaloneMetadata struct {
+    metadata.Tracing
+    Custom map[MyKey]string `json:"custom,omitempty"`
 }
 ```
 
@@ -77,6 +86,6 @@ type MyMetadata struct {
 
 ## Related Modules
 
-- [**event**](../event/README.md) — `event.Metadata` embeds `Tracing` and adds event-specific fields
-- [**command**](../command/README.md) — `command.Metadata` is `CustomData[command.MetadataKey]`
-- [**query**](../query/README.md) — `query.Metadata` is `CustomData[query.MetadataKey]`
+- [**event**](../event/README.md) — `event.Metadata` embeds `Tracing` and adds event-specific fields (Source, Tombstone, Causation)
+- [**command**](../command/README.md) — `command.Metadata` is a standalone struct with `Tracing` + `Custom` (not a `CustomData` alias)
+- [**query**](../query/README.md) — `query.Metadata` is a standalone struct with `Tracing` + `Custom` (not a `CustomData` alias)`

@@ -272,6 +272,76 @@ func TestCustomData_EnsureCustom(t *testing.T) {
 	})
 }
 
+// TestCustomData_WithCustom covers the functional (non-mutating) custom setter.
+func TestCustomData_WithCustom(t *testing.T) {
+	t.Parallel()
+
+	type key = testKey
+
+	t.Run("returns new value with key set", func(t *testing.T) {
+		t.Parallel()
+		d := CustomData[key]{}
+
+		updated := d.WithCustom("role", "admin")
+
+		if updated.Custom["role"] != "admin" {
+			t.Errorf("Custom[role] = %q, want %q", updated.Custom["role"], "admin")
+		}
+	})
+
+	t.Run("original is not modified", func(t *testing.T) {
+		t.Parallel()
+		d := CustomData[key]{Custom: map[key]string{"existing": "val"}}
+
+		_ = d.WithCustom("new", "val2")
+
+		if _, ok := d.Custom["new"]; ok {
+			t.Error("original should not have the new key")
+		}
+
+		if len(d.Custom) != 1 {
+			t.Errorf("original Custom should have 1 entry, got %d", len(d.Custom))
+		}
+	})
+
+	t.Run("nil map is initialized lazily", func(t *testing.T) {
+		t.Parallel()
+		d := CustomData[key]{}
+
+		updated := d.WithCustom("k", "v")
+
+		if updated.Custom == nil {
+			t.Fatal("Custom should be non-nil")
+		}
+	})
+
+	t.Run("existing entries are preserved", func(t *testing.T) {
+		t.Parallel()
+		d := CustomData[key]{Custom: map[key]string{"a": "1", "b": "2"}}
+
+		updated := d.WithCustom("c", "3")
+
+		if updated.Custom["a"] != "1" || updated.Custom["b"] != "2" {
+			t.Error("existing entries should survive")
+		}
+	})
+
+	t.Run("overrides existing key", func(t *testing.T) {
+		t.Parallel()
+		d := CustomData[key]{Custom: map[key]string{"k": "old"}}
+
+		updated := d.WithCustom("k", "new")
+
+		if updated.Custom["k"] != "new" {
+			t.Errorf("Custom[k] = %q, want %q", updated.Custom["k"], "new")
+		}
+
+		if d.Custom["k"] != "old" {
+			t.Error("original should keep old value")
+		}
+	})
+}
+
 // TestMergeCustomMaps covers the standalone merge helper.
 func TestMergeCustomMaps(t *testing.T) {
 	t.Parallel()

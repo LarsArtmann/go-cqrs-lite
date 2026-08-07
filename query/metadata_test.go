@@ -55,3 +55,44 @@ func TestQuery_MetadataKeyIsLocal(t *testing.T) {
 		t.Errorf("Custom write/read failed: got %q", md.Custom["source"])
 	}
 }
+
+func TestQuery_WithCustomMetadata(t *testing.T) {
+	t.Parallel()
+
+	t.Run("single custom entry", func(t *testing.T) {
+		t.Parallel()
+
+		q, err := query.New("test.query",
+			query.WithCustomMetadata("tenant", "acme"),
+		)
+		if err != nil {
+			t.Fatalf("New: %v", err)
+		}
+
+		md := q.Metadata()
+		if md.Custom["tenant"] != "acme" {
+			t.Errorf("Custom[tenant] = %q, want %q", md.Custom["tenant"], "acme")
+		}
+	})
+
+	t.Run("multiple calls accumulate", func(t *testing.T) {
+		t.Parallel()
+
+		q, err := query.New("test.query",
+			query.WithCustomMetadata("tenant", "acme"),
+			query.WithCustomMetadata("region", "us-east-1"),
+		)
+		if err != nil {
+			t.Fatalf("New: %v", err)
+		}
+
+		md := q.Metadata()
+		if md.Custom["tenant"] != "acme" {
+			t.Errorf("Custom[tenant] = %q, want %q", md.Custom["tenant"], "acme")
+		}
+
+		if md.Custom["region"] != "us-east-1" {
+			t.Errorf("Custom[region] = %q, want %q", md.Custom["region"], "us-east-1")
+		}
+	})
+}
