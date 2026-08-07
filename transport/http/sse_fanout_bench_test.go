@@ -99,6 +99,7 @@ func formatClientCount(n int) string {
 	if n == 1 {
 		return "clients=1"
 	}
+
 	return formatInt("clients=", n)
 }
 
@@ -106,6 +107,7 @@ func formatInt(prefix string, n int) string {
 	if n >= 1000 {
 		return prefix + formatThousand(n)
 	}
+
 	return prefix + itoa(n)
 }
 
@@ -115,6 +117,7 @@ func formatThousand(n int) string {
 	if rest == 0 {
 		return itoa(k) + "k"
 	}
+
 	return itoa(k) + "k" + itoa(rest)
 }
 
@@ -129,5 +132,6 @@ func itoa(n int) string {
 		buf[pos] = byte('0' + n%10)
 		n /= 10
 	}
+
 	return string(buf[pos:])
 }

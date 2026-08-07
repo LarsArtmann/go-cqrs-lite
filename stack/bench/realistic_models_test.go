@@ -65,6 +65,7 @@ func foldOrder(state OrderState, evt event.Event) (OrderState, error) {
 		state.Total += p.Price
 		state.Items++
 	}
+
 	return state, nil
 }
 
@@ -79,6 +80,7 @@ func orderProjection(
 		if err != nil {
 			return err
 		}
+
 		return store.Set(ctx, evt.StreamID(), &OrderView{
 			ID: p.ID, Customer: p.Customer, Status: "pending", Total: p.Amount, Items: 1,
 		})
@@ -93,8 +95,10 @@ func orderProjection(
 		}
 		existing.Total += p.Price
 		existing.Items++
+
 		return store.Set(ctx, evt.StreamID(), existing)
 	}
+
 	return nil
 }
 
@@ -141,6 +145,7 @@ func foldTask(state TaskState, evt event.Event) (TaskState, error) {
 		state.Status = "completed"
 		state.Done = true
 	}
+
 	return state, nil
 }
 
@@ -155,6 +160,7 @@ func taskProjection(
 		if err != nil {
 			return err
 		}
+
 		return store.Set(ctx, evt.StreamID(), &TaskView{
 			ID: p.ID, Title: p.Title, Assignee: p.Owner, Status: p.Status,
 		})
@@ -164,8 +170,10 @@ func taskProjection(
 			return nil
 		}
 		existing.Status = "completed"
+
 		return store.Set(ctx, evt.StreamID(), existing)
 	}
+
 	return nil
 }
 
@@ -209,6 +217,7 @@ func foldUser(state UserState, evt event.Event) (UserState, error) {
 	case "user.activated":
 		state.Active = true
 	}
+
 	return state, nil
 }
 
@@ -223,6 +232,7 @@ func userProjection(
 		if err != nil {
 			return err
 		}
+
 		return store.Set(ctx, evt.StreamID(), &UserView{
 			ID: p.ID, Email: p.Email, Name: p.Name, Active: false,
 		})
@@ -232,8 +242,10 @@ func userProjection(
 			return nil
 		}
 		existing.Active = true
+
 		return store.Set(ctx, evt.StreamID(), existing)
 	}
+
 	return nil
 }
 
@@ -263,6 +275,7 @@ func newMultiDomainProjection(
 		case "user.registered", "user.activated":
 			return userProjection(ctx, evt, userStore)
 		}
+
 		return nil
 	}
 }

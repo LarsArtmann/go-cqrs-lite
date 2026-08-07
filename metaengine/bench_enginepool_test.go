@@ -129,5 +129,5 @@ func TestPromise_EngineRoutingDecisions(t *testing.T) {
 	})
 }
 
-// suppress unused import warning for fmt when only running read benchmark
+// suppress unused import warning for fmt when only running read benchmark.
 var _ = fmt.Sprintf

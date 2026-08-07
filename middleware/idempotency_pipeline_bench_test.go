@@ -91,5 +91,5 @@ func BenchmarkIdempotency_DuplicateDetection(b *testing.B) {
 	b.ReportMetric(float64(b.N)/b.Elapsed().Seconds(), "dedupes/sec")
 }
 
-// suppress unused import
+// suppress unused import.
 var _ = event.Version(0)

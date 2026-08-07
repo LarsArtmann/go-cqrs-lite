@@ -179,6 +179,7 @@ func BenchmarkProjectionHost_MultiProjection(b *testing.B) {
 			for _, p := range projs {
 				if p.count.Load() < int64(n) {
 					allDone = false
+
 					break
 				}
 			}
@@ -204,5 +205,5 @@ func BenchmarkProjectionHost_MultiProjection(b *testing.B) {
 	b.ReportMetric(float64(n*3)*float64(b.N)/b.Elapsed().Seconds(), "total-projections/sec")
 }
 
-// suppress unused import
+// suppress unused import.
 var _ = atomic.Int64{}

@@ -77,6 +77,7 @@ func BenchmarkContention_Persistent_SameStream(b *testing.B) {
 									)
 									if err != nil {
 										b.Error(err)
+
 										return
 									}
 									if err := store.AppendBatch(
@@ -85,6 +86,7 @@ func BenchmarkContention_Persistent_SameStream(b *testing.B) {
 										[]event.Event{evt},
 									); err != nil {
 										b.Error(err)
+
 										return
 									}
 								}

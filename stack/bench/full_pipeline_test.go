@@ -36,6 +36,7 @@ func memoryBackend() pipelineBackend {
 			if err != nil {
 				b.Fatal(err)
 			}
+
 			return bundle, func() { _ = bundle.Close() }
 		},
 	}
@@ -53,6 +54,7 @@ func sqliteBackend() pipelineBackend {
 			if err != nil {
 				b.Fatal(err)
 			}
+
 			return bundle, func() { _ = bundle.Close() }
 		},
 	}
@@ -67,6 +69,7 @@ func pebbleBackend() pipelineBackend {
 			if err != nil {
 				b.Fatal(err)
 			}
+
 			return p.Bundle, func() { _ = p.Close() }
 		},
 	}
@@ -123,6 +126,7 @@ func (p *pipelineSetup) saveAndProject(evt event.Event, ref id.StreamRef) error 
 	if err := p.store.AppendBatch(p.ctx, ref, []event.Event{evt}); err != nil {
 		return err
 	}
+
 	return p.project(p.ctx, evt)
 }
 
@@ -238,14 +242,17 @@ func BenchmarkFullPipeline_Concurrent(b *testing.B) {
 					)
 					if err != nil {
 						b.Error(err)
+
 						return
 					}
 					if err := ps.saveAndProject(evt, ref); err != nil {
 						b.Error(err)
+
 						return
 					}
 					if _, err := ps.orderRM.Get(ctx, streamID); err != nil {
 						b.Error(err)
+
 						return
 					}
 				}
@@ -324,6 +331,7 @@ func BenchmarkFullPipeline_MiddlewareStacks(b *testing.B) {
 					inner := chain
 					chain = func(e event.Event) error { return inner(e) }
 				}
+
 				return chain(evt)
 			},
 		)
@@ -433,10 +441,12 @@ func BenchmarkFullPipeline_Concurrency(b *testing.B) {
 							)
 							if err != nil {
 								b.Error(err)
+
 								return
 							}
 							if err := ps.saveAndProject(evt, ref); err != nil {
 								b.Error(err)
+
 								return
 							}
 						}
@@ -450,5 +460,5 @@ func BenchmarkFullPipeline_Concurrency(b *testing.B) {
 	}
 }
 
-// suppress unused import warning
+// suppress unused import warning.
 var _ = stackmemory.New

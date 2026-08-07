@@ -119,5 +119,5 @@ func BenchmarkDurabilityTiers_BatchWrite(b *testing.B) {
 	}
 }
 
-// suppress unused import
+// suppress unused import.
 var _ = time.Second

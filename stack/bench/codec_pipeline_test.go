@@ -157,5 +157,5 @@ func BenchmarkCodecPipeline_PayloadSizes(b *testing.B) {
 	}
 }
 
-// suppress unused import warning
+// suppress unused import warning.
 var _ = stack.New

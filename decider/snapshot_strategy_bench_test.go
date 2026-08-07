@@ -22,6 +22,7 @@ type benchSnapState struct {
 
 func foldBenchSnap(state benchSnapState, evt event.Event) (benchSnapState, error) {
 	state.Count++
+
 	return state, nil
 }
 
@@ -97,6 +98,7 @@ func BenchmarkSnapshotStrategy_Comparison(b *testing.B) {
 						if err != nil {
 							return nil, err
 						}
+
 						return []event.Event{evt}, nil
 					})
 			}
@@ -111,8 +113,9 @@ func mustEveryN(n int) snapshot.SnapshotStrategy {
 	if err != nil {
 		panic(err)
 	}
+
 	return s
 }
 
-// suppress unused import
+// suppress unused import.
 var _ = fmt.Sprintf
