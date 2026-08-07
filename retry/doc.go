@@ -1,12 +1,16 @@
-// Package retry provides a dependency-free retry loop with exponential
-// backoff and jitter. It is the zero-CQRS, zero-OTel core so that consumers
-// who only need retry logic (CLI tools, batch processors, simple services)
-// can import it without pulling in CQRS message types or OpenTelemetry SDK.
+// Package retry is DEPRECATED. Import github.com/larsartmann/go-retry directly.
 //
-// The canonical implementation lives in [github.com/larsartmann/go-retry];
-// this package re-exports it for backward compatibility (ADR-0064).
+// This module was a re-export alias for go-retry (ADR-0064). It is no longer
+// maintained and will not receive updates. The sole internal consumer
+// (middleware/) has been migrated to import go-retry directly.
 //
-// For the CQRS-wrapped version (MessageAdapter, OTel spans, dead-letter
-// entries with StreamID), use
-// [github.com/larsartmann/go-cqrs-lite/middleware/v4].
+// To migrate, change your import from:
+//
+//	import "github.com/larsartmann/go-cqrs-lite/retry/v4"
+//
+// to:
+//
+//	import "github.com/larsartmann/go-retry"
+//
+// All types, functions, and sentinels are identical (type aliases).
 package retry
