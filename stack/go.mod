@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
-	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260807040613-506318f53165
+	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260807202735-49970971b30b
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0

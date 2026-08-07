@@ -18,10 +18,10 @@ Created `TestSoak_RecordAwarePipeline` — 100K events through the `ApplyRecord`
 
 Ran `nix run .#verify` three times across the session:
 
-| Run | Result | Notes |
-|-----|--------|-------|
-| 1st | FAIL | API stability golden stale (3737 vs 3739 exports — 2 new `system/` symbols), decider singleflight flake |
-| 2nd | FAIL | System build broke mid-run from daemon's incremental commits (transient), irohengine latency flake |
+| Run | Result              | Notes                                                                                                   |
+| --- | ------------------- | ------------------------------------------------------------------------------------------------------- |
+| 1st | FAIL                | API stability golden stale (3737 vs 3739 exports — 2 new `system/` symbols), decider singleflight flake |
+| 2nd | FAIL                | System build broke mid-run from daemon's incremental commits (transient), irohengine latency flake      |
 | 3rd | PASS (all but QUIC) | All 90+ modules GREEN. Only `TestQuicSetConvergence` failed — pre-existing network-dependent QUIC flake |
 
 **API stability golden regenerated** (`docs/api_surface.txt`): 3737 → 3743 exports after adding the new `system/` symbols (`CheckPlanSafety`, `WithCommandSerialization`, `WithQuerySerialization`, `CommandAdapterOption`, `QueryAdapterOption`, `ErrBusDriverNotEventBus`).
@@ -31,6 +31,7 @@ Ran `nix run .#verify` three times across the session:
 **Root cause:** 8 modules added to `go.work` in prior sessions but never added to the layer/budget maps in `scripts/check-module-layers.sh`.
 
 **Added to LAYER map:**
+
 - `record` → Layer 0 (primitive, zero deps)
 - `metaengine/sqliteengine` → Layer 5 (infrastructure)
 - `metaengine/graphadapter` → Layer 5
@@ -43,6 +44,7 @@ Ran `nix run .#verify` three times across the session:
 **Added to DEP_BUDGET map** with appropriate budgets for each module.
 
 **Added 2 layer-violation exceptions:**
+
 - `projectionhost` → `testutil/pgtestcontainer` (test-only dep, layer 5)
 - `metaengine` → `metaengine/sqliteengine` (backward-compat re-export, layer 5)
 
@@ -50,13 +52,13 @@ Ran `nix run .#verify` three times across the session:
 
 **14 issues found in prior-session `system/` code:**
 
-| Issue | Count | Fix |
-|-------|-------|-----|
-| `perfsprint` (fmt.Sprintf → concatenation) | 8 | `scream_plan.go` — replaced string concat in diagnostic rules |
-| `wsl_v5` (missing whitespace) | 3 | `constructor.go` — added blank lines around var/if/append |
-| `golines` (line > 120 chars) | 1 | `scream_plan.go` — broke long `fmt.Sprintf` into multiline |
-| `gci` (import formatting) | 1 | `scream_plan.go` — `goimports -w` |
-| `funlen` (117 > 100 statements) | 1 | `constructor.go` — added `//nolint:funlen` with justification (composition root, inherently linear wiring) |
+| Issue                                      | Count | Fix                                                                                                        |
+| ------------------------------------------ | ----- | ---------------------------------------------------------------------------------------------------------- |
+| `perfsprint` (fmt.Sprintf → concatenation) | 8     | `scream_plan.go` — replaced string concat in diagnostic rules                                              |
+| `wsl_v5` (missing whitespace)              | 3     | `constructor.go` — added blank lines around var/if/append                                                  |
+| `golines` (line > 120 chars)               | 1     | `scream_plan.go` — broke long `fmt.Sprintf` into multiline                                                 |
+| `gci` (import formatting)                  | 1     | `scream_plan.go` — `goimports -w`                                                                          |
+| `funlen` (117 > 100 statements)            | 1     | `constructor.go` — added `//nolint:funlen` with justification (composition root, inherently linear wiring) |
 
 All fixes verified: `golangci-lint` reports 0 issues on `system/`, full lint gate GREEN.
 
@@ -64,11 +66,11 @@ All fixes verified: `golangci-lint` reports 0 issues on `system/`, full lint gat
 
 Created annotated tags (`git tag -a`) on current HEAD:
 
-| Module | Tag | Description |
-|--------|-----|-------------|
-| `metaengine/sqliteengine` | `v4.0.0` | Extracted SQLite engine (ADR-0115) |
+| Module                    | Tag      | Description                                  |
+| ------------------------- | -------- | -------------------------------------------- |
+| `metaengine/sqliteengine` | `v4.0.0` | Extracted SQLite engine (ADR-0115)           |
 | `metaengine/graphadapter` | `v4.0.0` | Graph driver as metaengine Engine (ADR-0113) |
-| `metaengine/dgraphengine` | `v4.0.0` | Distributed graph DB engine |
+| `metaengine/dgraphengine` | `v4.0.0` | Distributed graph DB engine                  |
 
 Verified all are annotated (`git cat-file -t` → `tag`). `storage/bbolt/v4.0.0` was already tagged earlier this session (21:45).
 
@@ -78,16 +80,16 @@ Verified all are annotated (`git cat-file -t` → `tag`). `storage/bbolt/v4.0.0`
 
 The paste's report was **mostly stale** — 7 of 11 items were already completed in prior sessions:
 
-| Item | Status | Evidence |
-|------|--------|----------|
-| `auto_naming.go` dedup refactor | DONE | Generics (`AutoInsert[E,R]`) already delegate to `autoInsertByType` core — no duplication |
-| `record.FromCommand()` adapter | DONE | Exists as `command.AsRecord()` (`command/asrecord.go:34`) — mirrors `event.AsRecord()` |
-| AutoCRUDByConvention naming docs | DONE | Documented at `auto_naming.go:136-140` with "Naming convention note" paragraph |
-| AGENTS.md test command includes `./record/...` | DONE | Present in Quick Reference table |
-| SQLite engine integration test | DONE | `metaengine/sqliteengine/record_stamp_test.go` — Record stamping through SQLite engine |
-| Projectionhost lifecycle test | DONE | `metaengine/projectionadapter/projectionhost_record_test.go` — full Host.Start/Stop/checkpoint lifecycle |
-| Benchmark ApplyRecord overhead | DONE | `metaengine/projectionadapter/bench_test.go` — `BenchmarkHandle_ApplyRecord` + `BenchmarkHandle_AutoInsert` |
-| metaengine/README.md v2 docs | DONE | Documents `OnRecord`, `AutoCRUDByConvention`, `AsRecord`, Record stamping |
+| Item                                           | Status | Evidence                                                                                                    |
+| ---------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------- |
+| `auto_naming.go` dedup refactor                | DONE   | Generics (`AutoInsert[E,R]`) already delegate to `autoInsertByType` core — no duplication                   |
+| `record.FromCommand()` adapter                 | DONE   | Exists as `command.AsRecord()` (`command/asrecord.go:34`) — mirrors `event.AsRecord()`                      |
+| AutoCRUDByConvention naming docs               | DONE   | Documented at `auto_naming.go:136-140` with "Naming convention note" paragraph                              |
+| AGENTS.md test command includes `./record/...` | DONE   | Present in Quick Reference table                                                                            |
+| SQLite engine integration test                 | DONE   | `metaengine/sqliteengine/record_stamp_test.go` — Record stamping through SQLite engine                      |
+| Projectionhost lifecycle test                  | DONE   | `metaengine/projectionadapter/projectionhost_record_test.go` — full Host.Start/Stop/checkpoint lifecycle    |
+| Benchmark ApplyRecord overhead                 | DONE   | `metaengine/projectionadapter/bench_test.go` — `BenchmarkHandle_ApplyRecord` + `BenchmarkHandle_AutoInsert` |
+| metaengine/README.md v2 docs                   | DONE   | Documents `OnRecord`, `AutoCRUDByConvention`, `AsRecord`, Record stamping                                   |
 
 ---
 

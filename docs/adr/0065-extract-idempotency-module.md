@@ -2,7 +2,7 @@
 
 | Field      | Value                                                                                 |
 | ---------- | ------------------------------------------------------------------------------------- |
-| Status     | Accepted (partially executed — see Addendum)           |
+| Status     | Accepted (partially executed — see Addendum)                                          |
 | Date       | 2026-07-25                                                                            |
 | Deciders   | Lars Artmann                                                                          |
 | Related    | ADR-0046 (seven-tier model), ADR-0064 (retry extraction), ROADMAP (module extraction) |
@@ -289,13 +289,13 @@ track it. Fixed by:
 
 ### Comparison with retry/ (ADR-0064)
 
-| Aspect | retry/ | idempotency/ |
-|--------|--------|-------------|
-| Core shim | Pure re-export (8 symbols) | Pure re-export (5 symbols) |
-| Subpackages | None | kvstore/ + sqlstore/ (real implementations) |
-| Can deprecate? | Yes — done | No — subpackages are permanent go-cqrs-lite code |
-| API drift | Yes (Backoff return type) | Yes (ErrInvalidTTL missing) |
-| Consumers | 1 (middleware) | 18 files across 6 modules |
+| Aspect         | retry/                     | idempotency/                                     |
+| -------------- | -------------------------- | ------------------------------------------------ |
+| Core shim      | Pure re-export (8 symbols) | Pure re-export (5 symbols)                       |
+| Subpackages    | None                       | kvstore/ + sqlstore/ (real implementations)      |
+| Can deprecate? | Yes — done                 | No — subpackages are permanent go-cqrs-lite code |
+| API drift      | Yes (Backoff return type)  | Yes (ErrInvalidTTL missing)                      |
+| Consumers      | 1 (middleware)             | 18 files across 6 modules                        |
 
 `retry/` was deprecated because it was pure overhead — no subpackages, one
 consumer, and the shim silently broke. `idempotency/` cannot be deprecated

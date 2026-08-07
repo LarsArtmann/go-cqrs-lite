@@ -10,26 +10,26 @@
 
 ### Extractions Completed (5 clone groups eliminated)
 
-| # | What | Files | Impact | Verification |
-|---|------|-------|--------|-------------|
-| 1 | **benchkit `skipPhase()` helper** — Collapsed 11 copies of the ctx-check + nil-check + recordSkip boilerplate across all phase methods into one `runner.skipPhase(ctx, phase, reason, ready)` call | `benchkit/runner.go` + 11 phase files | HIGH — 11 sites × 8 lines each = ~88 lines of boilerplate replaced with ~3 lines each | Build PASS, check-duplication PASS |
-| 2 | **cqrs-lint `ExprIdentName()`** — Exported `analyzer.ExprIdentName()`, removed duplicate `typeName()` from performance/helpers.go | `cmd/cqrs-lint/pkg/analyzer/scanner_calls_helpers.go`, `cmd/cqrs-lint/pkg/rules/performance/helpers.go` | MEDIUM — cross-package dedup within same module | Build PASS, cqrs-lint tests PASS |
-| 3 | **cqrs-lint `isInDefer()`** — Removed `hasDeferAncestorC021()` duplicate in c021.go, consolidated to shared `isInDefer()` from c015.go | `cmd/cqrs-lint/pkg/rules/correctness/c021.go` | MEDIUM — same-package duplicate elimination | Build PASS, correctness tests PASS |
-| 4 | **idempotency `expiryFromTTL()`** — Extracted per-module TTL validation helper in kvstore + sqlstore (4 copies → 2 helpers) | `idempotency/kvstore/store.go`, `idempotency/sqlstore/store.go` | MEDIUM — 4 identical if-ttl-<=-0 blocks | Build PASS (workspace), kvstore tests PASS, sqlstore tests PASS |
-| 5 | **codec `WrapCOSEMarshal()`** — Added shared helper to codec module, eliminated COSE marshal error-wrapping duplication in encryption + signing | `codec/base64_json.go`, `encryption/cose.go`, `signing/cose_sign1.go` | MEDIUM — cross-module dedup via shared dep | Build PASS, codec/encryption/signing tests PASS |
+| #   | What                                                                                                                                                                                               | Files                                                                                                   | Impact                                                                                | Verification                                                    |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| 1   | **benchkit `skipPhase()` helper** — Collapsed 11 copies of the ctx-check + nil-check + recordSkip boilerplate across all phase methods into one `runner.skipPhase(ctx, phase, reason, ready)` call | `benchkit/runner.go` + 11 phase files                                                                   | HIGH — 11 sites × 8 lines each = ~88 lines of boilerplate replaced with ~3 lines each | Build PASS, check-duplication PASS                              |
+| 2   | **cqrs-lint `ExprIdentName()`** — Exported `analyzer.ExprIdentName()`, removed duplicate `typeName()` from performance/helpers.go                                                                  | `cmd/cqrs-lint/pkg/analyzer/scanner_calls_helpers.go`, `cmd/cqrs-lint/pkg/rules/performance/helpers.go` | MEDIUM — cross-package dedup within same module                                       | Build PASS, cqrs-lint tests PASS                                |
+| 3   | **cqrs-lint `isInDefer()`** — Removed `hasDeferAncestorC021()` duplicate in c021.go, consolidated to shared `isInDefer()` from c015.go                                                             | `cmd/cqrs-lint/pkg/rules/correctness/c021.go`                                                           | MEDIUM — same-package duplicate elimination                                           | Build PASS, correctness tests PASS                              |
+| 4   | **idempotency `expiryFromTTL()`** — Extracted per-module TTL validation helper in kvstore + sqlstore (4 copies → 2 helpers)                                                                        | `idempotency/kvstore/store.go`, `idempotency/sqlstore/store.go`                                         | MEDIUM — 4 identical if-ttl-<=-0 blocks                                               | Build PASS (workspace), kvstore tests PASS, sqlstore tests PASS |
+| 5   | **codec `WrapCOSEMarshal()`** — Added shared helper to codec module, eliminated COSE marshal error-wrapping duplication in encryption + signing                                                    | `codec/base64_json.go`, `encryption/cose.go`, `signing/cose_sign1.go`                                   | MEDIUM — cross-module dedup via shared dep                                            | Build PASS, codec/encryption/signing tests PASS                 |
 
 ### Acceptance Decisions (documented rationale)
 
-| Clone | Decision | Rationale |
-|-------|----------|-----------|
-| wrapInfraOrOK (4 storage modules) | ACCEPT | Per-module pattern per ADR-0069; separate go.mod modules can't share |
-| sqliteengine QueryContext (3 files) | ACCEPT | Standard Go SQL boilerplate; callback abstraction would be MORE complex than 5-line pattern |
-| storage open helpers (2 files) | ACCEPT | Only 2 occurrences, different drivers/messages |
-| stack preset init/finalize (3 modules) | ACCEPT | Separate go.mod modules, each has different engine names |
-| multidb secondary backend (5 modules) | ACCEPT | Separate go.mod modules, each has different backend type |
-| ULID/capitalize/format helpers (3+ modules) | ACCEPT | 3-line logic, cross-module extraction adds more code than it saves |
-| ErrNoRows patterns (duckdb/pg) | ACCEPT | 5-line patterns with different function names |
-| Test boilerplate (t.Parallel, ctx) | ACCEPT | Idiomatic Go test setup, 74+ files |
+| Clone                                       | Decision | Rationale                                                                                   |
+| ------------------------------------------- | -------- | ------------------------------------------------------------------------------------------- |
+| wrapInfraOrOK (4 storage modules)           | ACCEPT   | Per-module pattern per ADR-0069; separate go.mod modules can't share                        |
+| sqliteengine QueryContext (3 files)         | ACCEPT   | Standard Go SQL boilerplate; callback abstraction would be MORE complex than 5-line pattern |
+| storage open helpers (2 files)              | ACCEPT   | Only 2 occurrences, different drivers/messages                                              |
+| stack preset init/finalize (3 modules)      | ACCEPT   | Separate go.mod modules, each has different engine names                                    |
+| multidb secondary backend (5 modules)       | ACCEPT   | Separate go.mod modules, each has different backend type                                    |
+| ULID/capitalize/format helpers (3+ modules) | ACCEPT   | 3-line logic, cross-module extraction adds more code than it saves                          |
+| ErrNoRows patterns (duckdb/pg)              | ACCEPT   | 5-line patterns with different function names                                               |
+| Test boilerplate (t.Parallel, ctx)          | ACCEPT   | Idiomatic Go test setup, 74+ files                                                          |
 
 ### Gate Verification
 
@@ -43,9 +43,11 @@
 ## b) PARTIALLY DONE
 
 ### benchkit tests NOT run for the skipPhase refactor
+
 The benchkit test suite fails to run due to a **pre-existing** tag issue (see section d). Build passes, but the actual skip-phase tests (`TestRun_SkipReads`, `TestJourneyPhase_SkippedWithoutReadModels`, `TestMetaEnginePhase_NoMetaEngine`, etc.) were not verified to pass with the refactored `skipPhase()` helper. The logic is behavior-preserving (same conditions, same return values), but unverified by tests in this session.
 
 ### api-stability golden partially updated
+
 Added `codec/func WrapCOSEMarshal` to `docs/api_surface.txt` manually. The `cmd/api-stability` tool itself fails to run due to a build constraint issue with `encoding/json/v2` under GOWORK=off in the nix environment (pre-existing).
 
 ---
@@ -102,12 +104,14 @@ The auto-commit daemon committed my deduplication changes interleaved with unrel
 ## f) Next 50 Things to Get Done
 
 ### Critical (blocking)
+
 1. Push `idempotency/v4.3.0` tag to remote (or fix go.mod requirements)
 2. Run `nix run .#verify` full gate
 3. Run benchkit test suite once tag issue is fixed — verify skipPhase refactor
 4. Run `nix run .#check-coverage` — verify no coverage regression
 
 ### Dedup follow-ups
+
 5. Extract `capitalizeFirst(s string) string` into a shared textutil or strings helper (3 modules: benchkit/sweep.go, cmd/cqrs-bench/render.go, cmd/cqrs-lint/aggregate.go)
 6. Investigate whether the `if v.IsZero() { return "" } return v.String()` ULID pattern can go into `id/` package (command/asrecord.go, event/asrecord.go, storage/pebble/otel.go)
 7. Extract `truncateString(s string, maxLen int) string` — 3+ copies across cqrs-lint (c10e9108353bd22b shows it)
@@ -116,6 +120,7 @@ The auto-commit daemon committed my deduplication changes interleaved with unrel
 10. Extract `startStreamSpan` / `startReadSpan` / `startLimitSpan` patterns (bbolt + pebble OTel)
 
 ### Testing
+
 11. Add unit test for `skipPhase()` to verify ctx-cancelled path returns true without calling recordSkip
 12. Add unit test for `skipPhase()` to verify ready=false path records skip
 13. Add unit test for `codec.WrapCOSEMarshal()` nil-error path returns data unchanged
@@ -124,12 +129,14 @@ The auto-commit daemon committed my deduplication changes interleaved with unrel
 16. Add regression test that prevents the c021 `hasDeferAncestorC021` from being reintroduced
 
 ### Documentation
+
 17. Update AGENTS.md "Dedup helper patterns" with `skipPhase()`, `expiryFromTTL()`, `WrapCOSEMarshal()`
 18. Document the benchkit `skipPhase` pattern in the benchkit README
 19. Add ADR for the codec.WrapCOSEMarshal helper decision
 20. Update AGENTS.md with the idempotency/v4.3.0 tag-push requirement
 
 ### Quality gates
+
 21. Run `nix fmt` on the entire repo
 22. Run `nix run .#lint` to check for new lint issues
 23. Verify `cmd/doc-check` passes for any docs referencing new functions
@@ -137,6 +144,7 @@ The auto-commit daemon committed my deduplication changes interleaved with unrel
 25. Run the layer-checker: `nix run .#check-layers` — verify no new cross-module deps added
 
 ### Architectural
+
 26. Consider whether benchkit phases could use a phase-registration pattern (table-driven instead of switch)
 27. Consider whether the per-module `wrapInfraOrOK` helpers could be generated or go:generate'd
 28. Investigate if `recordSkip` + `skipPhase` can be unified with a `phaseOption` functional-options pattern
@@ -144,6 +152,7 @@ The auto-commit daemon committed my deduplication changes interleaved with unrel
 30. Evaluate if the bbolt/pebble OTel span patterns can share a `storage/otel` helper module
 
 ### Broader codebase health
+
 31. Fix the pre-existing benchkit MetaEngine build error under GOWORK=off (stack/v4 v4.2.0 lacks MetaEngine())
 32. Audit all go.mod version requirements for unpublished tags
 33. Check if the auto-commit daemon introduced any build-breaking changes in the interleaved commits
@@ -156,6 +165,7 @@ The auto-commit daemon committed my deduplication changes interleaved with unrel
 40. Verify example/taskmanager still builds after the daemon's migration changes
 
 ### Duplication debt
+
 41. The 92 remaining clone groups at t=2 include many 1-line conditional clones — consider raising the default threshold for actionable review to t=3
 42. The art-dupl JSON output lacks `priority`/`category` at the group level — these are per-file attributes. Consider improving the JSON schema.
 43. The baseline at t=3 has 45 groups but doesn't capture the 5 groups I eliminated (they were t=2). Consider baselining at t=2 for finer granularity.

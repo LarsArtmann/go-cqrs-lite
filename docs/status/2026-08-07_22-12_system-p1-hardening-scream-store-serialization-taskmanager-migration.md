@@ -43,7 +43,7 @@ All tests pass with `-race` across 3 consecutive runs (system + taskmanager).
 
 - **`example/taskmanager/setup.go`**: Rewired from `sqlite.New()` + `stack.Bundle` to `system.New()` with `DomainConfig` (commands, projections, middleware, projection host options) + `DeploymentConfig` (SQLite engine, instances). Removed ~220 lines of manual wiring (bundle, repository, materialize, projection host, subscriber). Signing now applied via `sys.Bus().UsePublish/Use`.
 - **`example/taskmanager/handlers.go`**: Converted 10 command handlers from `command.RegisterTyped` + `s.Repo.Execute` to `system.RegisterCommand[Cmd, State]` + `system.Execute()` returning `Op[State]`.
-- **`example/taskmanager/metaengine.go`**: Extracted `buildProjections()` function returning `([]any, *projectionadapter.TypeDecoder)` for `DomainConfig.Projections`. Removed `setupMetaEngine()` boilerplate (PlanFromDSN, LogPlan, adapter construction). File went from 251 → ~230 lines but the *wiring* is now 2 lines instead of 40+.
+- **`example/taskmanager/metaengine.go`**: Extracted `buildProjections()` function returning `([]any, *projectionadapter.TypeDecoder)` for `DomainConfig.Projections`. Removed `setupMetaEngine()` boilerplate (PlanFromDSN, LogPlan, adapter construction). File went from 251 → ~230 lines but the _wiring_ is now 2 lines instead of 40+.
 - **`example/taskmanager/projection.go`**: Removed legacy `Materialize` code entirely (`configureProjection`, `taskViewKey`, `errViewMissingForUpdate`). `TaskView` now served exclusively by metaengine Map ADT.
 - **`example/taskmanager/features.go`**: Reduced to just `newDemoSigner()` helper. Signing middleware installation moved to `setup.go`.
 - **`example/taskmanager/integration_test.go`**: Updated `waitForView` to use `TaskReader.Get` instead of `Mat.View`. Added `waitForViewRemoved` helper for delete test (metaengine `Remove` vs tombstone flag). Updated event store access from `srv.Bundle.EventSource` to `srv.Sys.EventStore()`.
@@ -119,6 +119,7 @@ system.RegisterCommand[CreateTaskCmd, TaskState](sys, cmdCreateTask,
 ```
 
 The `_ context.Context` parameter is discarded. This means:
+
 - Request-level timeouts/cancellation do NOT propagate into the decider's Load/Save
 - Distributed tracing spans are broken (the span context is in the request context)
 - The middleware chain's context (with correlation IDs) is lost
@@ -157,12 +158,14 @@ The `ProjectionHostOptions` is a field on `DomainConfig`, but the constructor al
 ## f) Up to 50 Things to Get Done Next
 
 ### Immediate (blocks correctness)
+
 1. Fix context propagation in `handlers.go` — pass `ctx` not `context.Background()` to `system.Execute`
 2. Run `go mod tidy` in `example/taskmanager/` to remove dead deps
 3. Run `nix run .#verify` full gate
 4. Regenerate API-surface golden (`cmd/api-stability`)
 
 ### System module hardening
+
 5. Add ACK support to `CheckPlanSafety` for WARN-tier plan-drift diagnostics
 6. Guard against double `WithSubscriber` in constructor (check if already set)
 7. Add SQLite-backed integration test for CommandAdapter serialization (real SQL roundtrip)
@@ -176,6 +179,7 @@ The `ProjectionHostOptions` is a field on `DomainConfig`, but the constructor al
 15. Add `System.SaveManifest(path)` method for manual manifest management
 
 ### Taskmanager follow-up
+
 16. Remove `codec_init.go` if no longer needed
 17. Verify `go.mod` no longer depends on `stack/sqlite`, `stack`, `watermill`
 18. Remove the `sseBroker` if the system bus doesn't support the Watermill-specific SSE broker pattern
@@ -186,6 +190,7 @@ The `ProjectionHostOptions` is a field on `DomainConfig`, but the constructor al
 23. Tag `example/taskmanager` with a new version
 
 ### System module features
+
 24. Add `System.ResetProjection(name)` — expose projectionhost.Reset through the system
 25. Add `System.LagPerProjection()` — expose projection lag through the system
 26. Add `System.HealthCheck(ctx)` — delegate to registered engines
@@ -197,6 +202,7 @@ The `ProjectionHostOptions` is a field on `DomainConfig`, but the constructor al
 32. Add `System.SnapshotStore()` accessor (already exists but not wired for all engines)
 
 ### Scream store enhancements
+
 33. Add `CheckPlanSafety` CLI subcommand (`cqrs-doctor plan-diff --manifest path`)
 34. Add plan-drift metrics (OpenTelemetry counters for SCREAM/WARN/ADVISORY)
 35. Support manifest versioning (keep N previous manifests)
@@ -204,6 +210,7 @@ The `ProjectionHostOptions` is a field on `DomainConfig`, but the constructor al
 37. Add manifest schema migration (Version field already exists but unused)
 
 ### Documentation
+
 38. Update `AGENTS.md` system module section
 39. Update `TODO_LIST.md` — mark P1 done, add P2 items
 40. Write an ADR for the scream store design
@@ -213,6 +220,7 @@ The `ProjectionHostOptions` is a field on `DomainConfig`, but the constructor al
 44. Add a "Migrating from stack.Bundle to System" guide
 
 ### Broader quality
+
 45. Run `nix run .#lint` — check for new lint issues in system/ and taskmanager/
 46. Run `nix run .#check-duplication` — verify new code doesn't introduce clones
 47. Run `nix run .#check-coverage` — verify coverage didn't drop
@@ -240,12 +248,12 @@ The old setup had TWO read models: (1) `stack.Materialize[TaskView, TaskID]` (KV
 
 ## Test Results Summary
 
-| Suite | Command | Result |
-|-------|---------|--------|
-| system/ (all tests) | `go test -tags "goexperiment.jsonv2" ./system/... -count=1` | ✅ PASS (0.06s) |
-| system/ (race) | `go test -tags "goexperiment.jsonv2" -race ./system/... -count=1` | ✅ PASS (1.1s) |
-| taskmanager/ (all tests) | `go test -tags "goexperiment.jsonv2" ./example/taskmanager/... -count=1` | ✅ PASS (0.09s) |
-| taskmanager/ (race ×3) | `go test -tags "goexperiment.jsonv2" -race ./example/taskmanager/... -count=1` | ✅ PASS ×3 (1.2-1.5s each) |
+| Suite                    | Command                                                                        | Result                     |
+| ------------------------ | ------------------------------------------------------------------------------ | -------------------------- |
+| system/ (all tests)      | `go test -tags "goexperiment.jsonv2" ./system/... -count=1`                    | ✅ PASS (0.06s)            |
+| system/ (race)           | `go test -tags "goexperiment.jsonv2" -race ./system/... -count=1`              | ✅ PASS (1.1s)             |
+| taskmanager/ (all tests) | `go test -tags "goexperiment.jsonv2" ./example/taskmanager/... -count=1`       | ✅ PASS (0.09s)            |
+| taskmanager/ (race ×3)   | `go test -tags "goexperiment.jsonv2" -race ./example/taskmanager/... -count=1` | ✅ PASS ×3 (1.2-1.5s each) |
 
 **Not run**: `nix run .#verify`, `nix run .#lint`, `nix run .#check-coverage`, `nix run .#check-duplication`
 
@@ -254,12 +262,14 @@ The old setup had TWO read models: (1) `stack.Materialize[TaskView, TaskID]` (KV
 ## Files Changed
 
 ### New files (4)
+
 - `system/scream_plan.go` — Plan-drift detection using metaengine.Manifest/PlanDiff
 - `system/scream_plan_test.go` — Tests for plan safety + command/query serialization
 - `system/adapter_command_serial.go` — CommandAdapter JSON envelope serialization
 - `system/adapter_query_serial.go` — QueryAdapter JSON envelope serialization
 
 ### Modified files (8)
+
 - `system/config_types.go` — Added `ManifestPath`, `ProjectionHostOptions`
 - `system/constructor.go` — Bus-before-host reorder, auto-subscriber wiring, serialization auto-detect, plan safety integration
 - `system/driver_registry.go` — SQLite `SetMaxOpenConns(1)`

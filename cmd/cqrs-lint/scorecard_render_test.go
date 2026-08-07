@@ -593,7 +593,10 @@ func TestScorecard_CrossFormat_MetaengineConsistency(t *testing.T) {
 		}
 
 		if props["metaenginePushdownAdopted"] != true {
-			t.Errorf("expected metaenginePushdownAdopted true, got %v", props["metaenginePushdownAdopted"])
+			t.Errorf(
+				"expected metaenginePushdownAdopted true, got %v",
+				props["metaenginePushdownAdopted"],
+			)
 		}
 
 		engines, ok := props["metaengineEngines"].([]any)

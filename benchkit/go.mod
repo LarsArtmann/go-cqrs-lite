@@ -10,8 +10,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0-20260807005003-94cfdab723e6
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0
@@ -134,7 +134,7 @@ require (
 	golang.org/x/text v0.40.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.75.0 // indirect
+	modernc.org/libc v1.75.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 )

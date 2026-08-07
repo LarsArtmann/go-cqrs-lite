@@ -13,8 +13,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0-20260807005003-94cfdab723e6
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0
@@ -26,11 +26,11 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/fsnotify/fsnotify v1.9.0 // indirect
+	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/knadh/koanf/maps v0.1.2 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
@@ -63,7 +63,7 @@ require (
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.75.0 // indirect
+	modernc.org/libc v1.75.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 )

@@ -58,13 +58,13 @@ Three updates to reflect the deprecation:
 
 The auto-commit daemon made 4 commits during this session:
 
-| Commit | Description | My change? |
-|--------|-------------|------------|
-| `3215f29c9` | `chore(deps): bump go-retry to v0.2.0 and refresh golden test fixtures` | Partial — it bumped go-retry and also regenerated unrelated golden files |
+| Commit      | Description                                                                          | My change?                                                                         |
+| ----------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| `3215f29c9` | `chore(deps): bump go-retry to v0.2.0 and refresh golden test fixtures`              | Partial — it bumped go-retry and also regenerated unrelated golden files           |
 | `19957ce33` | `feat(cqrs-lint, middleware): add metaengine detection and migrate retry dependency` | Partial — it combined my retry migration with its own metaengine scorecard feature |
-| `7309b14fc` | `chore(retry): deprecate retry module in favor of standalone go-retry` | Yes — my deprecation changes |
-| `697e34a51` | `docs: deprecate retry re-export shim in favor of direct go-retry imports` | Yes — my AGENTS.md and README.md changes |
-| `f158050d2` | `test(scorecard): add comprehensive tests for Metaengine scorecard section` | No — daemon's own metaengine scorecard tests |
+| `7309b14fc` | `chore(retry): deprecate retry module in favor of standalone go-retry`               | Yes — my deprecation changes                                                       |
+| `697e34a51` | `docs: deprecate retry re-export shim in favor of direct go-retry imports`           | Yes — my AGENTS.md and README.md changes                                           |
+| `f158050d2` | `test(scorecard): add comprehensive tests for Metaengine scorecard section`          | No — daemon's own metaengine scorecard tests                                       |
 
 **Note:** The daemon also committed changes I did NOT make: golden test fixtures in `listing/`, `schema/`, `signing/`, `snapshot/`, `storage/`, `watermill/` (35 files total in the diff). These appear to be golden file regenerations from the daemon's own test runs or dependency bumps.
 
@@ -81,15 +81,19 @@ All planned work for the deprecation was completed.
 ## c) NOT STARTED
 
 ### Full Test Suite
+
 Only `retry/` and `middleware/` tests were run. The full test suite (`go test` with the complete module list from AGENTS.md) was not run. The `go build -tags "goexperiment.jsonv2" ./...` passes, but build success does not guarantee test success across all 102 modules.
 
 ### `nix fmt`
+
 Not run. The AGENTS.md says to always run `nix fmt` before committing. The auto-commit daemon committed without formatting.
 
 ### Nix Vendor Hash Fix
+
 The `nix build .#cqrs-lint` still fails with a vendor hash mismatch (pre-existing). Not investigated or fixed.
 
 ### ADR-0064 Update
+
 ADR-0064 still has status "Proposed" and describes the retry/ module as a backward-compat re-export. It should be updated to reflect that the module is now deprecated and the sole internal consumer has migrated to direct imports.
 
 ---
@@ -219,16 +223,16 @@ The `../go-retry` repo has `v0.2.0` tagged locally. CI runs with `GOWORK=off`, w
 
 ## Summary
 
-| Category | Count |
-|----------|-------|
-| Modules migrated | 1 (middleware → direct go-retry import) |
-| Modules deprecated | 1 (retry/) |
-| Files changed by me | 7 (retry/doc.go, retry/alias.go, retry/README.md, retry/go.mod, retry/go.sum, middleware/retry.go, middleware/go.mod, middleware/go.sum, AGENTS.md, docs/api_surface.txt) |
-| Files changed by auto-commit daemon | ~28 (golden fixtures, scorecard code) |
-| Commits (auto-commit daemon) | 5 |
-| Tests run | retry/ + middleware/ only |
-| Full test suite | NOT run |
-| `nix fmt` | NOT run |
-| `nix run .#verify` | NOT run |
-| Build | PASS (`go build -tags "goexperiment.jsonv2" ./...`) |
-| cqrs-lint self-lint | 0 CRITICAL, 1 ERROR (pre-existing example), 0 stale suppressions |
+| Category                            | Count                                                                                                                                                                     |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Modules migrated                    | 1 (middleware → direct go-retry import)                                                                                                                                   |
+| Modules deprecated                  | 1 (retry/)                                                                                                                                                                |
+| Files changed by me                 | 7 (retry/doc.go, retry/alias.go, retry/README.md, retry/go.mod, retry/go.sum, middleware/retry.go, middleware/go.mod, middleware/go.sum, AGENTS.md, docs/api_surface.txt) |
+| Files changed by auto-commit daemon | ~28 (golden fixtures, scorecard code)                                                                                                                                     |
+| Commits (auto-commit daemon)        | 5                                                                                                                                                                         |
+| Tests run                           | retry/ + middleware/ only                                                                                                                                                 |
+| Full test suite                     | NOT run                                                                                                                                                                   |
+| `nix fmt`                           | NOT run                                                                                                                                                                   |
+| `nix run .#verify`                  | NOT run                                                                                                                                                                   |
+| Build                               | PASS (`go build -tags "goexperiment.jsonv2" ./...`)                                                                                                                       |
+| cqrs-lint self-lint                 | 0 CRITICAL, 1 ERROR (pre-existing example), 0 stale suppressions                                                                                                          |
