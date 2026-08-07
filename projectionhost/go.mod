@@ -109,3 +109,5 @@ require (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 => ../flightrecorder
+
+replace github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 => ../testutil/pgtestcontainer
