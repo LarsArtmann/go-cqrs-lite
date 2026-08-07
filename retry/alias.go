@@ -32,12 +32,12 @@ func Do(ctx context.Context, config Config, fn AttemptFunc) error {
 }
 
 // Backoff computes the delay before the next attempt.
-func Backoff(config Config, attempt int) time.Duration {
+func Backoff(config Config, attempt int) (time.Duration, error) {
 	return goretry.Backoff(config, attempt)
 }
 
 // ComputeDelay calculates the delay for a given attempt.
-func ComputeDelay(initial, maxDelay time.Duration, multiplier float64, attempt int) time.Duration {
+func ComputeDelay(initial, maxDelay time.Duration, multiplier float64, attempt int) (time.Duration, error) {
 	return goretry.ComputeDelay(initial, maxDelay, multiplier, attempt)
 }
 
