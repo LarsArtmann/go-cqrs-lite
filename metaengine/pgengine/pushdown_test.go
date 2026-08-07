@@ -9,9 +9,8 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
-// seedProducts writes 5 items into the given collection and returns the
-// MapBackend for further operations.
-func seedProducts(t *testing.T, eng metaengine.Engine, col string) metaengine.MapBackend {
+// seedProducts writes 5 items into the given collection.
+func seedProducts(t *testing.T, eng metaengine.Engine, col string) {
 	t.Helper()
 
 	ctx := context.Background()
@@ -40,8 +39,6 @@ func seedProducts(t *testing.T, eng metaengine.Engine, col string) metaengine.Ma
 			t.Fatal(err)
 		}
 	}
-
-	return mb
 }
 
 // newPostgresPushdown returns the engine + PushdownScan for the calling test.

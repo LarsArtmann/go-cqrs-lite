@@ -12,6 +12,7 @@ package enginetest
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"testing"
 	"time"
@@ -63,6 +64,109 @@ func RunPushdownTest(
 	}
 
 	run(t, context.Background(), ps)
+}
+
+// RunStreamLogBackendTest exercises the standard StreamLogBackend contract:
+//  1. StreamAppend to two streams — s1 (3 items) and s2 (1 item)
+//  2. StreamRead returns the 3 items for s1
+//  3. StreamVersion returns 3 for s1
+//  4. JournalReadAll returns 4 total entries
+//  5. JournalReadFrom(2, 0) returns 2 entries
+//
+// The engine must already implement StreamLogBackend. The caller is responsible
+// for closing the engine (typically via t.Cleanup).
+func RunStreamLogBackendTest(t *testing.T, eng metaengine.Engine) {
+	t.Helper()
+
+	slb, ok := eng.(metaengine.StreamLogBackend)
+	if !ok {
+		t.Fatalf("engine %T does not implement StreamLogBackend", eng)
+	}
+
+	ctx := context.Background()
+
+	// Append to two streams.
+	if err := slb.StreamAppend(ctx, "events", "s1", []any{"e1", "e2", "e3"}); err != nil {
+		t.Fatalf("StreamAppend s1: %v", err)
+	}
+
+	if err := slb.StreamAppend(ctx, "events", "s2", []any{"e4"}); err != nil {
+		t.Fatalf("StreamAppend s2: %v", err)
+	}
+
+	// Verify StreamRead.
+	values, err := slb.StreamRead(ctx, "events", "s1")
+	if err != nil {
+		t.Fatalf("StreamRead s1: %v", err)
+	}
+
+	if len(values) != 3 {
+		t.Fatalf("expected 3 values, got %d", len(values))
+	}
+
+	// Verify StreamVersion.
+	ver, err := slb.StreamVersion(ctx, "events", "s1")
+	if err != nil {
+		t.Fatalf("StreamVersion s1: %v", err)
+	}
+
+	if ver != 3 {
+		t.Fatalf("expected version 3, got %d", ver)
+	}
+
+	// Verify JournalReadAll.
+	journal, err := slb.JournalReadAll(ctx, "events")
+	if err != nil {
+		t.Fatalf("JournalReadAll: %v", err)
+	}
+
+	if len(journal) != 4 {
+		t.Fatalf("expected 4 journal entries, got %d", len(journal))
+	}
+
+	// Verify JournalReadFrom.
+	from2, err := slb.JournalReadFrom(ctx, "events", 2, 0)
+	if err != nil {
+		t.Fatalf("JournalReadFrom: %v", err)
+	}
+
+	if len(from2) != 2 {
+		t.Fatalf("expected 2 entries after seq 2, got %d", len(from2))
+	}
+}
+
+// RunAtomicAppenderTest exercises the standard AtomicAppender contract:
+//  1. Append at version 0 → succeeds
+//  2. Append at version 2 → succeeds
+//  3. Append at version 0 (stale) → fails with ErrVersionConflict
+//
+// The engine must already implement AtomicAppender. The caller is responsible
+// for closing the engine.
+func RunAtomicAppenderTest(t *testing.T, eng metaengine.Engine) {
+	t.Helper()
+
+	ap, ok := eng.(metaengine.AtomicAppender)
+	if !ok {
+		t.Fatalf("engine %T does not implement AtomicAppender", eng)
+	}
+
+	ctx := context.Background()
+
+	// Append at version 0 → succeeds.
+	if err := ap.StreamAppendExpected(ctx, "events", "s1", 0, []any{"a", "b"}); err != nil {
+		t.Fatalf("StreamAppendExpected v0: %v", err)
+	}
+
+	// Append at version 2 → succeeds.
+	if err := ap.StreamAppendExpected(ctx, "events", "s1", 2, []any{"c"}); err != nil {
+		t.Fatalf("StreamAppendExpected v2: %v", err)
+	}
+
+	// Append at version 0 (stale) → fails with ErrVersionConflict.
+	err := ap.StreamAppendExpected(ctx, "events", "s1", 0, []any{"d"})
+	if !errors.Is(err, metaengine.ErrVersionConflict) {
+		t.Fatalf("expected ErrVersionConflict, got %v", err)
+	}
 }
 
 // RunScanBackendTest exercises the standard ScanBackend.MapScan contract:

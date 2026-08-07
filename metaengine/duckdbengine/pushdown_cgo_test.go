@@ -11,7 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
 
-func seedDuckDBProducts(t *testing.T, eng metaengine.Engine, col string) metaengine.MapBackend {
+func seedDuckDBProducts(t *testing.T, eng metaengine.Engine, col string) {
 	t.Helper()
 
 	ctx := context.Background()
@@ -40,8 +40,6 @@ func seedDuckDBProducts(t *testing.T, eng metaengine.Engine, col string) metaeng
 			t.Fatal(err)
 		}
 	}
-
-	return mb
 }
 
 // newDuckDBPushdown returns the engine + PushdownScan for the calling test.
