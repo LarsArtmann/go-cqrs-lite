@@ -62,6 +62,7 @@ mapfile -t MODULES < <(
 
 # Slow modules skipped in --quick mode (exact paths, no glob fragility)
 SLOW_MODULES=(
+    "metaengine/bench"
     "metaengine/duckdbengine"
     "metaengine/pgengine"
     "integration"

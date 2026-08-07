@@ -98,10 +98,10 @@ echo ""
 echo "--- Metaengine Promise Benchmarks ---"
 GOEXPERIMENT=jsonv2 CGO_ENABLED=1 go test -tags "$TAGS" \
 	-run='^$' \
-	-bench='BenchmarkMultiQuery_EventFanOut|BenchmarkMultiQuery_ReadMix|BenchmarkPlanner_PlanLatency' \
+	-bench='BenchmarkMultiQuery_EventFanOut|BenchmarkMultiQuery_ReadMix|BenchmarkPlanner_PlanLatency|BenchmarkColumnarScan_DuckDB|BenchmarkPushdownScan_DuckDB' \
 	-benchtime="$BENCHTIME" -count="$COUNT" -benchmem \
 	-timeout 30m \
-	./metaengine/... 2>&1 | tee "${OUTPUT:+/tmp/matrix_metaengine.txt}"
+	./metaengine/bench/... 2>&1 | tee "${OUTPUT:+/tmp/matrix_metaengine.txt}"
 
 if [[ -n "$OUTPUT" ]]; then
 	# Combine all results into a single output file.
