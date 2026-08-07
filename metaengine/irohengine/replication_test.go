@@ -18,19 +18,7 @@ func TestMapUpdateDoesNotReplicate(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctx := context.Background()
 
-	net := irohengine.NewNetwork()
-	nodeA := irohengine.Replicated(
-		metaengine.NewMemoryEngine(),
-		irohengine.WithAuthor("node-a"),
-		irohengine.WithTransport(net.Join("a")),
-	)
-	nodeB := irohengine.Replicated(
-		metaengine.NewMemoryEngine(),
-		irohengine.WithAuthor("node-b"),
-		irohengine.WithTransport(net.Join("b")),
-	)
-	defer nodeA.Close()
-	defer nodeB.Close()
+	nodeA, nodeB := newTwoNodeCluster(t)
 
 	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "counters", "c1", 0)).To(gomega.Succeed())
 
