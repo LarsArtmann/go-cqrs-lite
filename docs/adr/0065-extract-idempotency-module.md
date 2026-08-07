@@ -250,3 +250,55 @@ go-cqrs-lite (monorepo)
 
 3. **When to execute?** This ADR is the design step (M15). Execution requires
    creating the new repo, which is a manual step outside this codebase.
+
+## Addendum (2026-08-07): Partial Execution and Revised Scope
+
+The extraction was **partially executed**: only the core (`Store` interface,
+`MemoryStore`, `ErrDuplicate`, `ErrInvalidTTL`) was extracted to
+`github.com/larsartmann/go-idempotency`. The `kvstore/` and `sqlstore/`
+subpackages **remain in go-cqrs-lite permanently**.
+
+### Why the subpackages did not move
+
+`go-idempotency` was refactored to an **interface-only SDK** (its `doc.go`
+explicitly states: "It intentionally does NOT provide production backends.
+There will be no Redis store, SQL store, or any other concrete backend added
+to this module."). This design decision means:
+
+- `kvstore/` stays in go-cqrs-lite because it depends on `go-cqrs-lite/kv/v4`
+  for the `kv.Reader`, `kv.Writer`, and `kv.ConditionalWriter` interfaces.
+- `sqlstore/` stays in go-cqrs-lite as a go-cqrs-native SQL backend.
+
+Both subpackages import `idempotency/v4` (the re-export shim) for the `Store`
+interface and `ErrDuplicate`/`ErrInvalidTTL` sentinels. Since these are type
+aliases to `go-idempotency`, the subpackages satisfy the same `Store`
+interface transparently.
+
+### API drift fix (this session)
+
+The shim in `alias.go` was missing `ErrInvalidTTL` — added in
+`go-idempotency` v0.1.2 but not re-exported. This is the same class of bug
+that broke `retry/` (ADR-0064): upstream changed its API and the shim didn't
+track it. Fixed by:
+
+1. Bumping `go-idempotency` dep from v0.1.1 to v0.1.2
+2. Adding `ErrInvalidTTL` re-export to `alias.go`
+3. Adding TTL validation to `kvstore/` and `sqlstore/` implementations
+   (return `ErrInvalidTTL` for `ttl <= 0`, matching `MemoryStore` behavior)
+4. Tagging `idempotency/v4.3.0`
+
+### Comparison with retry/ (ADR-0064)
+
+| Aspect | retry/ | idempotency/ |
+|--------|--------|-------------|
+| Core shim | Pure re-export (8 symbols) | Pure re-export (5 symbols) |
+| Subpackages | None | kvstore/ + sqlstore/ (real implementations) |
+| Can deprecate? | Yes — done | No — subpackages are permanent go-cqrs-lite code |
+| API drift | Yes (Backoff return type) | Yes (ErrInvalidTTL missing) |
+| Consumers | 1 (middleware) | 18 files across 6 modules |
+
+`retry/` was deprecated because it was pure overhead — no subpackages, one
+consumer, and the shim silently broke. `idempotency/` cannot be deprecated
+because its subpackages are real implementations that depend on go-cqrs-lite's
+`kv/v4` module and provide SQL/KV backends that `go-idempotency` deliberately
+does not ship.
