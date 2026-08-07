@@ -510,8 +510,24 @@ func TestDuckDB_Aggregate_Planned(t *testing.T) {
 		t.Fatal("engine does not implement LayoutPlanApplier")
 	}
 
-	if err := lp.ApplyLayout(col, []string{"category", "price"}, []string{"price"}); err != nil {
-		t.Fatalf("ApplyLayout: %v", err)
+	// Use ApplyLayoutPlan with explicit column types — inferColumnType maps
+	// "price" to INTEGER (truncates decimals), so we construct a plan with
+	// DOUBLE for price.
+	plan := metaengine.LayoutPlan{
+		Collection: col,
+		Table:      "meta_planned_" + col,
+		Columns: []metaengine.PlannedColumn{
+			{Name: "category", Type: "VARCHAR"},
+			{Name: "price", Type: "DOUBLE"},
+			{Name: "quantity", Type: "INTEGER"},
+		},
+		Indexes: []metaengine.PlannedIndex{
+			{Name: "idx_category", Columns: []string{"category"}},
+		},
+	}
+
+	if err := lp.ApplyLayoutPlan(plan); err != nil {
+		t.Fatalf("ApplyLayoutPlan: %v", err)
 	}
 
 	seedProducts(t, eng, col)
