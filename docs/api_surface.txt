@@ -428,6 +428,7 @@ codec/func UnmarshalCOSEEncrypt0
 codec/func UnmarshalCOSEProtectedHeader
 codec/func UnmarshalCOSESign1
 codec/func UnwrapDecode
+codec/func WrapCOSEMarshal
 codec/func WrapEncode
 codec/interface BufferEncoder
 codec/interface Codec

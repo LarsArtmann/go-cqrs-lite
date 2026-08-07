@@ -194,7 +194,7 @@ func TestCheckPlanSafety_EngineChanged_WARN(t *testing.T) {
 	current := &metaengine.SerializablePlan{
 		Engines: []string{"memory", "sqlite"},
 		Queries: []metaengine.SerializableQuery{
-		{Name: "counts", ADT: metaengine.ADTCounter, Engine: "sqlite", Complexity: o1},
+			{Name: "counts", ADT: metaengine.ADTCounter, Engine: "sqlite", Complexity: o1},
 		},
 	}
 

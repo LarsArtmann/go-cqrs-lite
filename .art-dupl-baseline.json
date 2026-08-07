@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "threshold": 3,
-  "recordedAt": "2026-08-07T19:38:07.729791256Z",
+  "recordedAt": "2026-08-07T20:14:04.429031518Z",
   "entries": [
     {
       "hash": "042a25ea73339942",
@@ -219,6 +219,14 @@
       "tokens": 10
     },
     {
+      "hash": "88847485609f587f",
+      "files": [
+        "metaengine/fold.go",
+        "metaengine/enginetest/enginetest.go"
+      ],
+      "tokens": 6
+    },
+    {
       "hash": "9091985b22737058",
       "files": [
         "stack/contracttest/multidb.go",
@@ -279,6 +287,22 @@
       "tokens": 15
     },
     {
+      "hash": "be000f4453570138",
+      "files": [
+        "storage/bbolt/command_store.go",
+        "storage/bbolt/query_store.go"
+      ],
+      "tokens": 6
+    },
+    {
+      "hash": "c1fdda8116b918d3",
+      "files": [
+        "storage/bbolt/query_store.go",
+        "storage/bbolt/command_store.go"
+      ],
+      "tokens": 6
+    },
+    {
       "hash": "d11d8613ef0d8e99",
       "files": [
         "system/bus.go",
@@ -295,12 +319,28 @@
       "tokens": 6
     },
     {
+      "hash": "d4867149b2d9061a",
+      "files": [
+        "system/adapter_command_serial.go",
+        "system/adapter_event_serial.go"
+      ],
+      "tokens": 6
+    },
+    {
       "hash": "d4d7d9b5ae34c3a3",
       "files": [
         "system/bus.go",
         "command/memory_bus.go"
       ],
       "tokens": 8
+    },
+    {
+      "hash": "d9737a92e692f9fa",
+      "files": [
+        "idempotency/sqlstore/store.go",
+        "idempotency/kvstore/store.go"
+      ],
+      "tokens": 6
     },
     {
       "hash": "e8f7b5d3f4958925",
