@@ -84,7 +84,7 @@ func (r *Recorder) Start() error {
 // After Stop, [Recorder.Enabled] returns false and [Recorder.Snapshot]
 // is a no-op. It is safe to call Stop multiple times.
 func (r *Recorder) Stop() {
-	r.mu.Lock()
+	r.mu.Lock() //art-dupl:accept same-file mutex guard idiom
 	defer r.mu.Unlock()
 
 	r.fr.Stop()

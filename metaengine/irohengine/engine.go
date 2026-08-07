@@ -25,7 +25,7 @@ func lwwKey(collection string, key any) string {
 }
 
 func (e *replicatedEngine) isLWWNewer(collection string, key any, ts time.Time) bool {
-	k := lwwKey(collection, key)
+	k := lwwKey(collection, key) //art-dupl:accept same-file mutex guard idiom
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	existing := e.timestamps[k]

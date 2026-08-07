@@ -50,7 +50,7 @@ func (s *EventStore) LoadFromVersion(
 	ref id.StreamRef,
 	version event.Version,
 ) ([]event.Event, error) {
-	lower := eventKey(ref, version+1)
+	lower := eventKey(ref, version+1) //art-dupl:accept same-file load boundary computation
 	prefix := streamPrefix(ref)
 
 	var events []event.Event

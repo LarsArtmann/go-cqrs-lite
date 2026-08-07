@@ -202,7 +202,12 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	}
 
 	// Wire MultiBus if the source-of-truth instance has multiple Publish targets (D9).
-	sys.bus = buildEventBus(deployment)
+	bus, err := buildEventBus(deployment)
+	if err != nil {
+		return nil, err
+	}
+
+	sys.bus = bus
 	sys.pubBus = buildPublisher(deployment, sys.bus)
 
 	// Register domain middleware.

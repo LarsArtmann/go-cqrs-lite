@@ -2,6 +2,7 @@ package system
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"sync"
 
@@ -32,29 +33,35 @@ func newSimpleBus() *simpleBus {
 // buildEventBus creates the event bus based on the deployment config.
 // If the deployment configures a bus with a known driver, the driver factory
 // is used. Otherwise a single simpleBus is created (D9).
-func buildEventBus(deployment DeploymentConfig) event.Bus {
-	// If a bus is explicitly configured, try the driver registry.
+func buildEventBus(deployment DeploymentConfig) (event.Bus, error) {
+	// If a bus is explicitly configured, use the driver registry.
 	for _, busCfg := range deployment.Buses {
-		if busCfg.Driver == "" || busCfg.Driver == "gochannel" {
+		if busCfg.Driver == "" {
 			continue
 		}
 
 		factory, err := lookupBusDriver(busCfg.Driver)
 		if err != nil {
-			continue // unknown driver, fall through to simpleBus
+			return nil, fmt.Errorf("system: bus driver %q: %w", busCfg.Driver, err)
 		}
 
 		bus, err := factory(busCfg)
 		if err != nil {
-			continue // factory error, fall through to simpleBus
+			return nil, fmt.Errorf("system: bus driver %q create: %w", busCfg.Driver, err)
 		}
 
-		if eb, ok := bus.(event.Bus); ok {
-			return eb
+		eb, ok := bus.(event.Bus)
+		if !ok {
+			return nil, fmt.Errorf(
+				"system: bus driver %q returned %T which does not implement event.Bus",
+				busCfg.Driver, bus,
+			)
 		}
+
+		return eb, nil
 	}
 
-	return newSimpleBus()
+	return newSimpleBus(), nil
 }
 
 // buildPublisher creates the publisher for the decider repository.
@@ -79,11 +86,10 @@ func buildPublisher(deployment DeploymentConfig, localBus event.Bus) event.Publi
 	return localBus
 }
 
-// Compile-time assertions.
 var (
 	_ event.Publisher = (*simpleBus)(nil)
 	_ event.Bus       = (*simpleBus)(nil)
-)
+) // buildEventBus is tested via TestBuildEventBus_* in system_wiring_test.go
 
 func (b *simpleBus) Publish(ctx context.Context, events ...event.Event) error {
 	// Apply publish middleware chain.

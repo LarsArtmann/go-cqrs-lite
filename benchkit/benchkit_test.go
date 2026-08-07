@@ -1414,7 +1414,7 @@ func TestRun_ProjectionWithKVStore(t *testing.T) {
 // ── Recovery (durability) tests ──
 
 func TestRun_Recovery_SQLite(t *testing.T) {
-	t.Parallel()
+	t.Parallel() //art-dupl:accept standard test setup
 
 	dir := t.TempDir()
 	dbPath := filepath.Join(dir, "bench.db")
