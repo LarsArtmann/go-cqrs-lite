@@ -42,7 +42,11 @@ func Backoff(config Config, attempt int) (time.Duration, error) {
 
 // ComputeDelay calculates the delay for a given attempt.
 // Deprecated: use github.com/larsartmann/go-retry.ComputeDelay.
-func ComputeDelay(initial, maxDelay time.Duration, multiplier float64, attempt int) (time.Duration, error) {
+func ComputeDelay(
+	initial, maxDelay time.Duration,
+	multiplier float64,
+	attempt int,
+) (time.Duration, error) {
 	return goretry.ComputeDelay(initial, maxDelay, multiplier, attempt)
 }
 

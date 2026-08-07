@@ -350,7 +350,7 @@ func idsEqual(v any, expectedID string) bool {
 // exported ID field.
 func idOf(v any) string {
 	rv := reflect.ValueOf(v)
-	for rv.Kind() == reflect.Ptr {
+	for rv.Kind() == reflect.Pointer {
 		if rv.IsNil() {
 			return ""
 		}
@@ -397,7 +397,7 @@ func engineName(eng metaengine.Engine) string {
 	}
 
 	t := reflect.TypeOf(eng)
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 

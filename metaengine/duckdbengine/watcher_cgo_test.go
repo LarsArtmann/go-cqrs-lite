@@ -8,8 +8,8 @@ import (
 	"time"
 
 	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
 
 // watcherTaskID is a distinct key type so Remove[V]() can identify the key

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
 
 func seedDuckDBProducts(t *testing.T, eng metaengine.Engine, col string) {
@@ -64,9 +64,16 @@ func TestDuckDBEngine_PushdownFilter(t *testing.T) {
 
 	enginetest.RunPushdownTest(t, eng, "push_filter", seedDuckDBProducts,
 		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
-			results, err := ps.PushdownMapScan(ctx, "push_filter",
-				[]metaengine.FilterSpec{{Column: "Category", Op: metaengine.FilterEq, Value: "fruit"}},
-				nil, nil, 0)
+			results, err := ps.PushdownMapScan(
+				ctx,
+				"push_filter",
+				[]metaengine.FilterSpec{
+					{Column: "Category", Op: metaengine.FilterEq, Value: "fruit"},
+				},
+				nil,
+				nil,
+				0,
+			)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -108,9 +115,16 @@ func TestDuckDBEngine_PushdownFilterSortLimit(t *testing.T) {
 
 	enginetest.RunPushdownTest(t, eng, "push_fsl", seedDuckDBProducts,
 		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
-			results, err := ps.PushdownMapScan(ctx, "push_fsl",
-				[]metaengine.FilterSpec{{Column: "Category", Op: metaengine.FilterEq, Value: "veg"}},
-				&metaengine.SortSpec{Column: "Price", Desc: false}, nil, 2)
+			results, err := ps.PushdownMapScan(
+				ctx,
+				"push_fsl",
+				[]metaengine.FilterSpec{
+					{Column: "Category", Op: metaengine.FilterEq, Value: "veg"},
+				},
+				&metaengine.SortSpec{Column: "Price", Desc: false},
+				nil,
+				2,
+			)
 			if err != nil {
 				t.Fatal(err)
 			}

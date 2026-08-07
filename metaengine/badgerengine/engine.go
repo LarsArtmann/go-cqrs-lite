@@ -147,27 +147,27 @@ func (e *badgerEngine) Close() error {
 // local `sep` reference is kept for inline concatenation in seedSeqCounters.
 
 var (
-	mapKey               = keycodec.MapKey          //art-dupl:accept keycodec alias across engine modules
-	setKey               = keycodec.SetKey
-	counterKey           = keycodec.CounterKey
-	counterPrefix        = keycodec.CounterPrefix
-	multimapKey          = keycodec.MultimapKey
-	multimapPrefix       = keycodec.MultimapPrefix
-	logKey               = keycodec.LogKey
-	logPrefix            = keycodec.LogPrefix
-	graphEdgeKey         = keycodec.GraphEdgeKey
-	graphPrefixForward   = keycodec.GraphPrefixForward
-	collectionPrefix     = keycodec.CollectionPrefix
-	streamKey            = keycodec.StreamKey
-	streamPrefix         = keycodec.StreamPrefix
-	journalKey           = keycodec.JournalKey
-	journalPrefix        = keycodec.JournalPrefix
-	streamSeqMapKey      = keycodec.StreamSeqKey
-	encodeJSON           = keycodec.EncodeJSON
-	decodeJSON           = keycodec.DecodeJSON
-	encodeKeyStr         = keycodec.EncodeKeyStr
-	encodeCounterValue   = keycodec.EncodeCounterValue
-	decodeCounterValue   = keycodec.DecodeCounterValue
+	mapKey             = keycodec.MapKey //art-dupl:accept keycodec alias across engine modules
+	setKey             = keycodec.SetKey
+	counterKey         = keycodec.CounterKey
+	counterPrefix      = keycodec.CounterPrefix
+	multimapKey        = keycodec.MultimapKey
+	multimapPrefix     = keycodec.MultimapPrefix
+	logKey             = keycodec.LogKey
+	logPrefix          = keycodec.LogPrefix
+	graphEdgeKey       = keycodec.GraphEdgeKey
+	graphPrefixForward = keycodec.GraphPrefixForward
+	collectionPrefix   = keycodec.CollectionPrefix
+	streamKey          = keycodec.StreamKey
+	streamPrefix       = keycodec.StreamPrefix
+	journalKey         = keycodec.JournalKey
+	journalPrefix      = keycodec.JournalPrefix
+	streamSeqMapKey    = keycodec.StreamSeqKey
+	encodeJSON         = keycodec.EncodeJSON
+	decodeJSON         = keycodec.DecodeJSON
+	encodeKeyStr       = keycodec.EncodeKeyStr
+	encodeCounterValue = keycodec.EncodeCounterValue
+	decodeCounterValue = keycodec.DecodeCounterValue
 )
 
 // nextKey returns the lexicographically next key after prefix (for upper bound).

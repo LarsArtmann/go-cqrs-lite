@@ -2,6 +2,7 @@ package bbolt
 
 import (
 	"context"
+	"errors"
 	"io"
 	"testing"
 
@@ -34,7 +35,7 @@ func TestStreaming_LoadStream(t *testing.T) {
 	var loaded []event.Event
 	for {
 		evt, err := iter.Next()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -76,7 +77,7 @@ func TestStreaming_LoadStreamFromVersion(t *testing.T) {
 	var loaded []event.Event
 	for {
 		evt, err := iter.Next()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -110,7 +111,7 @@ func TestStreaming_LoadStreamEmpty(t *testing.T) {
 	defer iter.Close()
 
 	_, err = iter.Next()
-	if err != io.EOF {
+	if !errors.Is(err, io.EOF) {
 		t.Fatalf("expected io.EOF on empty stream, got %v", err)
 	}
 }
@@ -141,7 +142,7 @@ func TestStreaming_ReadStream(t *testing.T) {
 	count := 0
 	for {
 		_, err := iter.Next()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -186,7 +187,7 @@ func TestStreaming_ReadStreamFromWithSkip(t *testing.T) {
 	count := 0
 	for {
 		_, err := iter.Next()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -226,7 +227,7 @@ func TestStreaming_ReadStreamFromWithLimit(t *testing.T) {
 	count := 0
 	for {
 		_, err := iter.Next()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -265,7 +266,7 @@ func TestStreaming_CloseThenNext(t *testing.T) {
 	}
 
 	_, err = iter.Next()
-	if err != io.EOF {
+	if !errors.Is(err, io.EOF) {
 		t.Fatalf("expected io.EOF after Close, got %v", err)
 	}
 }

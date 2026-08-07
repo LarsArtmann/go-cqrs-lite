@@ -23,7 +23,7 @@ import (
 )
 
 // Dialect selects SQL syntax for table creation and placeholders.
-//art-dupl:accept intentional cross-module duplicate — separate go.mod, values MUST match
+// art-dupl:accept intentional cross-module duplicate — separate go.mod, values MUST match
 type Dialect int
 
 const (
@@ -175,6 +175,10 @@ func (s *Store) Seen(ctx context.Context, key string) (bool, error) {
 // then Record on an expired-but-present row is also a no-op (INSERT ... ON
 // CONFLICT DO NOTHING), so the stale expiry is NOT refreshed.
 func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error {
+	if ttl <= 0 {
+		return idempotency.ErrInvalidTTL
+	}
+
 	expiry := time.Now().Add(ttl).UnixNano()
 
 	_, err := s.db.ExecContext(ctx, s.q.record, key, expiry)
@@ -196,6 +200,10 @@ func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error
 // within the same statement, so concurrent callers are serialized at the row
 // level by the database engine.
 func (s *Store) CheckAndRecord(ctx context.Context, key string, ttl time.Duration) error {
+	if ttl <= 0 {
+		return idempotency.ErrInvalidTTL
+	}
+
 	newExpiry := time.Now().Add(ttl).UnixNano()
 	now := time.Now().UnixNano()
 

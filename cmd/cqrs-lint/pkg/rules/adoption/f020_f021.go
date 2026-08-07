@@ -134,7 +134,9 @@ type queryFoldCount struct {
 // On/OnTyped fold arguments directly nested in each call. Returns one
 // entry per Query call plus the total count of On/OnTyped calls seen
 // anywhere in non-test files.
-func findQueriesWithFolds(ctx *analyzer.AnalysisContext) (queries []queryFoldCount, totalFolds int) {
+func findQueriesWithFolds(
+	ctx *analyzer.AnalysisContext,
+) (queries []queryFoldCount, totalFolds int) {
 	for _, gf := range ctx.GoFiles {
 		if gf.IsTest {
 			continue

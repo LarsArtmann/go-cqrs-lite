@@ -149,7 +149,10 @@ func (s *CommandStore) Load(
 		return nil
 	})
 	if err != nil {
-		return nil, recordErr(span, wrapBucketErr(err, "bbolt.command_load", "load commands for stream"))
+		return nil, recordErr(
+			span,
+			wrapBucketErr(err, "bbolt.command_load", "load commands for stream"),
+		)
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
@@ -215,7 +218,10 @@ func (s *CommandStore) loadByTimestamp(
 		return nil
 	})
 	if err != nil {
-		return nil, recordErr(span, wrapBucketErr(err, "bbolt.command_load_ts", "load commands by timestamp"))
+		return nil, recordErr(
+			span,
+			wrapBucketErr(err, "bbolt.command_load_ts", "load commands by timestamp"),
+		)
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
@@ -244,7 +250,10 @@ func (s *CommandStore) ReadAll(ctx context.Context) ([]*command.PersistedCommand
 		})
 	})
 	if err != nil {
-		return nil, recordErr(span, wrapBucketErr(err, "bbolt.command_read_all", "read all commands from journal"))
+		return nil, recordErr(
+			span,
+			wrapBucketErr(err, "bbolt.command_read_all", "read all commands from journal"),
+		)
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
@@ -290,7 +299,10 @@ func (s *CommandStore) ReadFrom(
 		return nil
 	})
 	if err != nil {
-		return nil, recordErr(span, wrapBucketErr(err, "bbolt.command_read_from", "read commands from journal position"))
+		return nil, recordErr(
+			span,
+			wrapBucketErr(err, "bbolt.command_read_from", "read commands from journal position"),
+		)
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))

@@ -75,6 +75,10 @@ func (s *Store) Seen(ctx context.Context, key string) (bool, error) {
 }
 
 func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error {
+	if ttl <= 0 {
+		return idempotency.ErrInvalidTTL
+	}
+
 	expiry := time.Now().Add(ttl).UnixNano()
 
 	if _, err := s.backend.SetIfAbsent(
@@ -89,6 +93,10 @@ func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error
 }
 
 func (s *Store) CheckAndRecord(ctx context.Context, key string, ttl time.Duration) error {
+	if ttl <= 0 {
+		return idempotency.ErrInvalidTTL
+	}
+
 	expiry := time.Now().Add(ttl).UnixNano()
 	val := []byte(strconv.FormatInt(expiry, 10))
 

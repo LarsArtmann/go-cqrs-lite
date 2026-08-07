@@ -233,6 +233,21 @@ func renderScorecardMarkdown(result ScorecardResult) string {
 // info-level results; the adoption summary lives in run.properties so CI
 // scripts can extract coverage metrics without parsing human-readable output.
 func renderScorecardSARIF(result ScorecardResult) (string, error) {
+	props := map[string]any{
+		"coveragePercent": result.Summary.CoveragePercent,
+		"grade":           result.Summary.Grade,
+		"usedCount":       result.Summary.UsedCount,
+		"relevantTotal":   result.Summary.RelevantTotal,
+		"irrelevantCount": result.Summary.IrrelevantCount,
+	}
+	if result.Metaengine != nil {
+		props["metaengineDetected"] = result.Metaengine.Detected
+		if len(result.Metaengine.Engines) > 0 {
+			props["metaengineEngines"] = result.Metaengine.Engines
+		}
+		props["metaenginePushdownAdopted"] = result.Metaengine.PushdownAdopted
+	}
+
 	report := sarifReport{
 		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
 		Version: "2.1.0",
@@ -257,13 +272,7 @@ func renderScorecardSARIF(result ScorecardResult) (string, error) {
 					},
 				},
 			},
-			Properties: map[string]any{
-				"coveragePercent": result.Summary.CoveragePercent,
-				"grade":           result.Summary.Grade,
-				"usedCount":       result.Summary.UsedCount,
-				"relevantTotal":   result.Summary.RelevantTotal,
-				"irrelevantCount": result.Summary.IrrelevantCount,
-			},
+			Properties: props,
 		}},
 	}
 

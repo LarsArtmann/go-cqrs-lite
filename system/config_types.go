@@ -157,7 +157,7 @@ const (
 
 // DurabilityTier controls the persistence guarantees of an instance.
 // Intentional duplicate: see stack/durability.go. Values MUST match.
-//art-dupl:accept intentional cross-module duplicate — separate go.mod, values MUST match
+// art-dupl:accept intentional cross-module duplicate — separate go.mod, values MUST match
 type DurabilityTier string
 
 const (

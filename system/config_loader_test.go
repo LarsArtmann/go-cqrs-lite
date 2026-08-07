@@ -131,7 +131,10 @@ func TestLoadConfig_StructuredEnvOverride(t *testing.T) {
 	}
 
 	if cfg.Engines["primary"].DSN != "file:structured.db" {
-		t.Fatalf("expected file:structured.db from structured env, got %s", cfg.Engines["primary"].DSN)
+		t.Fatalf(
+			"expected file:structured.db from structured env, got %s",
+			cfg.Engines["primary"].DSN,
+		)
 	}
 
 	if cfg.Engines["cache"].Driver != "memory" {

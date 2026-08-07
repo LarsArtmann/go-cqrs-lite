@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	pgengine "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
 
 // seedProducts writes 5 items into the given collection.
@@ -64,9 +64,16 @@ func TestPostgresEngine_PushdownFilter(t *testing.T) {
 	enginetest.RunPushdownTest(t, eng, "push_filter", seedProducts,
 		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
 			// Filter: Category = "fruit" → apple, banana.
-			results, err := ps.PushdownMapScan(ctx, "push_filter",
-				[]metaengine.FilterSpec{{Column: "Category", Op: metaengine.FilterEq, Value: "fruit"}},
-				nil, nil, 0)
+			results, err := ps.PushdownMapScan(
+				ctx,
+				"push_filter",
+				[]metaengine.FilterSpec{
+					{Column: "Category", Op: metaengine.FilterEq, Value: "fruit"},
+				},
+				nil,
+				nil,
+				0,
+			)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -111,9 +118,16 @@ func TestPostgresEngine_PushdownFilterSortLimit(t *testing.T) {
 		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
 			// Filter: Category = "veg", Sort: Price asc, limit 2.
 			// veg items: carrot(0.99), eggplant(1.25). Sorted asc: carrot, eggplant.
-			results, err := ps.PushdownMapScan(ctx, "push_fsl",
-				[]metaengine.FilterSpec{{Column: "Category", Op: metaengine.FilterEq, Value: "veg"}},
-				&metaengine.SortSpec{Column: "Price", Desc: false}, nil, 2)
+			results, err := ps.PushdownMapScan(
+				ctx,
+				"push_fsl",
+				[]metaengine.FilterSpec{
+					{Column: "Category", Op: metaengine.FilterEq, Value: "veg"},
+				},
+				&metaengine.SortSpec{Column: "Price", Desc: false},
+				nil,
+				2,
+			)
 			if err != nil {
 				t.Fatal(err)
 			}

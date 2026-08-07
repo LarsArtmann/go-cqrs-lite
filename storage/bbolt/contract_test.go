@@ -371,4 +371,3 @@ func newStreamEvent(
 	evt := cfg.NewTestEvent(t, aggID, 1)
 	return aggID, evt
 }
-

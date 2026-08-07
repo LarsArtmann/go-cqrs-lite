@@ -10,6 +10,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
@@ -30,10 +31,13 @@ func queryKey(requestID id.RequestID) []byte {
 
 // SaveQuery persists a single query. Returns query.ErrDuplicateQuery if a
 // query with the same request ID already exists.
-func (s *QueryStore) SaveQuery(_ context.Context, q *query.PersistedQuery) error {
+func (s *QueryStore) SaveQuery(ctx context.Context, q *query.PersistedQuery) error {
+	span := startReadSpan(ctx, "bbolt.query.save")
+	defer span.End()
+
 	key := queryKey(q.ID())
 
-	return wrapBucketErr(s.db.Update(func(tx *bolt.Tx) error {
+	return recordErr(span, wrapBucketErr(s.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketQueries))
 		if bucket.Get(key) != nil {
 			return query.ErrDuplicateQuery
@@ -45,14 +49,17 @@ func (s *QueryStore) SaveQuery(_ context.Context, q *query.PersistedQuery) error
 		}
 
 		return bucket.Put(key, data)
-	}), "bbolt.query_save", "save query")
+	}), "bbolt.query_save", "save query"))
 }
 
 // LoadQueries returns all queries received after the given time.
 func (s *QueryStore) LoadQueries(
-	_ context.Context,
+	ctx context.Context,
 	after time.Time,
 ) ([]*query.PersistedQuery, error) {
+	span := startReadSpan(ctx, "bbolt.query.load")
+	defer span.End()
+
 	var queries []*query.PersistedQuery
 
 	err := s.db.View(func(tx *bolt.Tx) error {
@@ -72,12 +79,22 @@ func (s *QueryStore) LoadQueries(
 
 		return nil
 	})
+	if err != nil {
+		return nil, recordErr(
+			span,
+			wrapBucketErr(err, "bbolt.query_load", "load queries after timestamp"),
+		)
+	}
 
-	return queries, wrapBucketErr(err, "bbolt.query_load", "load queries after timestamp")
+	span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
+	return queries, nil
 }
 
 // ReadAllQueries returns all queries ordered by request ID.
-func (s *QueryStore) ReadAllQueries(_ context.Context) ([]*query.PersistedQuery, error) {
+func (s *QueryStore) ReadAllQueries(ctx context.Context) ([]*query.PersistedQuery, error) {
+	span := startReadSpan(ctx, "bbolt.query.read_all")
+	defer span.End()
+
 	var queries []*query.PersistedQuery
 
 	err := s.db.View(func(tx *bolt.Tx) error {
@@ -94,17 +111,24 @@ func (s *QueryStore) ReadAllQueries(_ context.Context) ([]*query.PersistedQuery,
 			return nil
 		})
 	})
+	if err != nil {
+		return nil, recordErr(span, wrapBucketErr(err, "bbolt.query_read_all", "read all queries"))
+	}
 
-	return queries, wrapBucketErr(err, "bbolt.query_read_all", "read all queries")
+	span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
+	return queries, nil
 }
 
 // ReadQueriesFrom returns queries starting after the given request ID,
 // up to limit entries. A limit of 0 means no limit.
 func (s *QueryStore) ReadQueriesFrom(
-	_ context.Context,
+	ctx context.Context,
 	afterReqID id.RequestID,
 	limit int,
 ) ([]*query.PersistedQuery, error) {
+	span := startLimitSpan(ctx, "bbolt.query.read_from", limit)
+	defer span.End()
+
 	seekKey := queryKey(afterReqID)
 	var queries []*query.PersistedQuery
 
@@ -132,8 +156,15 @@ func (s *QueryStore) ReadQueriesFrom(
 
 		return nil
 	})
+	if err != nil {
+		return nil, recordErr(
+			span,
+			wrapBucketErr(err, "bbolt.query_read_from", "read queries from position"),
+		)
+	}
 
-	return queries, wrapBucketErr(err, "bbolt.query_read_from", "read queries from position")
+	span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
+	return queries, nil
 }
 
 // Close is a no-op — the *bbolt.DB is owned by the Backend.

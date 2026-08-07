@@ -40,7 +40,7 @@ import (
 var (
 	containerDSN string
 	adminDB      *sql.DB
-	dbCounter    int64
+	dbCounter    atomic.Int64
 	dbCache      sync.Map
 )
 
@@ -82,6 +82,7 @@ func TestMain(m *testing.M) {
 	dsn, err := ctr.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {
 		_ = testcontainers.TerminateContainer(ctr)
+
 		os.Exit(m.Run())
 	}
 
@@ -117,7 +118,7 @@ func DSN(tb testing.TB) string {
 		return dsn.(string)
 	}
 
-	dbName := fmt.Sprintf("test_%d", atomic.AddInt64(&dbCounter, 1))
+	dbName := fmt.Sprintf("test_%d", dbCounter.Add(1))
 	if _, err := adminDB.Exec(fmt.Sprintf(`CREATE DATABASE "%s"`, dbName)); err != nil {
 		tb.Fatalf("create test database %s: %v", dbName, err)
 	}
@@ -127,6 +128,7 @@ func DSN(tb testing.TB) string {
 
 	tb.Cleanup(func() {
 		dbCache.Delete(name)
+
 		_, _ = adminDB.Exec(fmt.Sprintf(`DROP DATABASE "%s" WITH (FORCE)`, dbName))
 	})
 

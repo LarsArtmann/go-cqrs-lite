@@ -4,6 +4,6 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/go-idempotency v0.1.1
+	github.com/larsartmann/go-idempotency v0.1.2
 	pgregory.net/rapid v1.3.0
 )

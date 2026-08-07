@@ -98,13 +98,15 @@ and is **never** duplicated here.
 
 ### P2 — Important for completeness
 
-- [ ] **koanf YAML config** — `yaml.v3` parsing added but `koanf` integration
-      (G2 "deployer decides") is unmet. Env var overrides are basic.
-- [ ] **DuckDB/PG Transactional** — DuckDB + Postgres have AtomicAppender but
-      lack `Transactional` (`RunInTx`) for cross-collection atomic writes.
-      Compile-time assertion.
-- [ ] **Bus driver registry** — types exist, gochannel driver registered, but
-      `BusConfig{Driver: "nats"}` / `{Driver: "redis"}` do nothing.
+- [x] **koanf YAML config** — koanf integration done: YAML + structured env
+      merge (`CQRS_ENGINES__PRIMARY__DRIVER=sqlite`), eliminated YAML intermediate
+      structs, backward-compatible legacy env vars. (ADR-0105)
+- [x] **DuckDB/PG Transactional** — DuckDB + Postgres implement
+      `Transactional` (`RunInTx`) with tx routing via `conn()`/`activeTx`.
+      Compile-time assertions added. `RunTransactionalTest` in enginetest.
+- [x] **Bus driver registry** — registry functional: gochannel special-case
+      removed, unknown drivers error (not silent fallback). Fixed latent
+      `RLock`/`Unlock` bug in `lookupBusDriver`.
 
 ---
 

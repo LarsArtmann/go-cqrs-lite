@@ -70,9 +70,9 @@ func (s *SnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) error 
 				"serialize snapshot for "+string(snap.StreamType))
 		}
 
-			return wrapBucketErr(bucket.Put(key, data),
-				"bbolt.write_snapshot", "write snapshot")
-		})
+		return wrapBucketErr(bucket.Put(key, data),
+			"bbolt.write_snapshot", "write snapshot")
+	})
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 	}

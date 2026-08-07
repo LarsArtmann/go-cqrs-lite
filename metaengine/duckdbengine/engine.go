@@ -47,7 +47,7 @@ type duckdbEngine struct {
 	persistence metaengine.Persistence
 	mu          sync.Mutex
 	activeTx    atomic.Pointer[sql.Tx] // non-nil inside RunInTx
-	took        bool                    // closed flag
+	took        bool                   // closed flag
 	plans       map[string]metaengine.LayoutPlan
 	layoutMu    sync.Mutex
 	cal         metaengine.Calibration
