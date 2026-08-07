@@ -188,15 +188,7 @@ func EncryptCOSE0(plaintext []byte, enc COSEEncrypter, opts ...COSEEncryptOption
 	}
 
 	coseBytes, err := codec.MarshalCOSEEncrypt0(msg)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"encryption.cose_marshal",
-			"marshal COSE_Encrypt0",
-		)
-	}
-
-	return coseBytes, nil
+	return codec.WrapCOSEMarshal(coseBytes, err, "encryption", "COSE_Encrypt0")
 }
 
 // DecryptCOSE0 decrypts a COSE_Encrypt0 message.

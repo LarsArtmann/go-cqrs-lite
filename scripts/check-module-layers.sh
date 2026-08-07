@@ -108,8 +108,9 @@ EXCEPTIONS[storage]="listing"
 EXCEPTIONS[query]="snapshot storage/memory"
 EXCEPTIONS[command]="snapshot storage/memory"
 EXCEPTIONS[listing]="storage/memory"
-EXCEPTIONS[projectionhost]="storage/memory otel testutil"
+EXCEPTIONS[projectionhost]="storage/memory otel testutil testutil/pgtestcontainer"
 EXCEPTIONS[transport/http]="testutil"
+EXCEPTIONS[metaengine]="metaengine/sqliteengine"
 
 # Test-only packages that don't count against production dep budgets.
 # These are test infrastructure (assertions, PBT, mocking) used across all modules.

@@ -71,15 +71,7 @@ func SignCOSE1(evt event.Event, signer COSESigner, opts ...COSESignOption) ([]by
 	}
 
 	coseBytes, err := codec.MarshalCOSESign1(msg)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"signing.cose_marshal",
-			"marshal COSE_Sign1",
-		)
-	}
-
-	return coseBytes, nil
+	return codec.WrapCOSEMarshal(coseBytes, err, "signing", "COSE_Sign1")
 }
 
 // VerifyCOSE1 verifies a COSE_Sign1 message against the event.

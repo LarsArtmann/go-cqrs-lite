@@ -98,10 +98,8 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 		t.Fatalf("delete task: %v", err)
 	}
 
-	// Verify the projection reflects the tombstone (not just the event store).
-	waitForView(t, srv, taskID, func(v *TaskView) bool {
-		return v.IsTombstoned()
-	})
+	// Verify the projection reflects the deletion (metaengine removes the entry).
+	waitForViewRemoved(t, srv, taskID)
 
 	// Verify the event store persisted correct tombstone metadata.
 	ref := id.NewStreamRef(streamType, taskID)
@@ -405,4 +403,21 @@ func waitForView(t *testing.T, srv *Server, taskID id.StreamID, matches func(*Ta
 	}
 
 	t.Fatalf("timed out waiting for view %s", taskID)
+}
+
+func waitForViewRemoved(t *testing.T, srv *Server, taskID id.StreamID) {
+	t.Helper()
+
+	deadline := time.Now().Add(5 * time.Second)
+
+	for time.Now().Before(deadline) {
+		_, found, _ := srv.TaskReader.Get(context.Background(), taskID.String())
+		if !found {
+			return
+		}
+
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	t.Fatalf("timed out waiting for view to be removed %s", taskID)
 }

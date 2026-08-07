@@ -190,7 +190,7 @@ func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error
 		return err
 	}
 
-	_, err := s.db.ExecContext(ctx, s.q.record, key, expiry)
+	_, err = s.db.ExecContext(ctx, s.q.record, key, expiry)
 	if err != nil {
 		return errorfamily.Wrapf(
 			err, errorfamily.Transient, "idempotency.sql.record", "key %q", key,

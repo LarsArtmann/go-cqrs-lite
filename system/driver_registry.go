@@ -131,6 +131,10 @@ func init() {
 				return nil, fmt.Errorf("system: open sqlite %q: %w", dsn, err)
 			}
 
+			// SQLite with :memory: creates a separate database per connection.
+			// Restrict to a single connection so all operations see the same data.
+			db.SetMaxOpenConns(1)
+
 			// Apply pragmas if specified.
 			for _, pragma := range cfg.Pragmas {
 				if _, err := db.ExecContext(ctx, "PRAGMA "+pragma); err != nil {

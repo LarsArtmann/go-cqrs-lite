@@ -88,3 +88,16 @@ func AssignBase64JSON(data []byte, module, noun string, target *[]byte) error {
 
 	return nil
 }
+
+// WrapCOSEMarshal wraps a COSE marshal result with infrastructure error
+// handling. Used by encryption (COSE_Encrypt0) and signing (COSE_Sign1) to
+// centralise the if-err-wrap pattern with a consistent error code format
+// ("<module>.cose_marshal") and message ("marshal <noun>").
+func WrapCOSEMarshal(data []byte, err error, module, noun string) ([]byte, error) {
+	if err != nil {
+		return nil, errorfamily.WrapInfrastructure(err,
+			module+".cose_marshal", "marshal "+noun)
+	}
+
+	return data, nil
+}
