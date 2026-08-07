@@ -21,6 +21,11 @@ require (
 )
 
 require (
+	github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0-20260806213546-b16fbd9b0b19 // indirect
+	go.etcd.io/bbolt v1.5.0 // indirect
+)
+
+require (
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.2 // indirect
@@ -64,7 +69,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect

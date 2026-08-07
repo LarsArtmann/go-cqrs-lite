@@ -1229,7 +1229,8 @@ Tier 4 — Infrastructure: storage/memory/, storage/, storage/pebble/, storage/b
                      scheduling/sqlstore/
 Tier 5 — Composition: stack/, stack/memory/, stack/sqlite/, stack/duckdb/, stack/pebble/, stack/bbolt/, stack/postgres/,
                    stack/mysql/, stack/turso/, system/
-Tier 6 — Tooling & Examples: catalog/, integration/, benchkit/, stack/bench/, cmd/cqrs-gen/, cmd/cqrs-lint/,
+Tier 6 — Tooling & Examples: catalog/, integration/, benchkit/, stack/bench/, metaengine/bench/,
+                           cmd/cqrs-gen/, cmd/cqrs-lint/,
                             cmd/cqrs-bench/, cmd/api-stability/, cmd/doc-check/, example/taskmanager/,
                             example/getting-started/, example/readme-quickstart/, event/v4/eventtest/
 ```
