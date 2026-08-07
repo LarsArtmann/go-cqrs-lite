@@ -62,3 +62,55 @@ func BenchmarkBenchkitSuite_Pebble(b *testing.B) {
 		return bundle.Bundle, nil
 	})
 }
+
+// ─── ProfileSmall (10K events) variants for more realistic numbers ───
+
+// BenchmarkBenchkitSuite_Memory_Small runs the suite with ProfileSmall (10K
+// events) against memory — more realistic than the 500-event ProfileDev.
+func BenchmarkBenchkitSuite_Memory_Small(b *testing.B) {
+	benchkit.RunSuite(b, benchkit.Config{
+		Profile:     benchkit.ProfileSmall,
+		PayloadSize: 128,
+		Backend:     "memory",
+	}, func() (*stack.Bundle, error) {
+		return memory.New()
+	})
+}
+
+// BenchmarkBenchkitSuite_SQLite_Small runs the suite with ProfileSmall (10K
+// events) against SQLite with optimized pragmas.
+func BenchmarkBenchkitSuite_SQLite_Small(b *testing.B) {
+	dir := b.TempDir()
+
+	benchkit.RunSuite(b, benchkit.Config{
+		Profile:     benchkit.ProfileSmall,
+		PayloadSize: 128,
+		Backend:     "sqlite",
+		DiskPath:    dir,
+	}, func() (*stack.Bundle, error) {
+		return sqlite.New(
+			filepath.Join(dir, "bench.db"),
+			sqlite.WithPragmas(sqlopt.WithOptimizations()),
+		)
+	})
+}
+
+// BenchmarkBenchkitSuite_Pebble_Small runs the suite with ProfileSmall (10K
+// events) against Pebble.
+func BenchmarkBenchkitSuite_Pebble_Small(b *testing.B) {
+	dir := b.TempDir()
+
+	benchkit.RunSuite(b, benchkit.Config{
+		Profile:     benchkit.ProfileSmall,
+		PayloadSize: 128,
+		Backend:     "pebble",
+		DiskPath:    dir,
+	}, func() (*stack.Bundle, error) {
+		bundle, err := pebble.New(dir)
+		if err != nil {
+			return nil, err
+		}
+
+		return bundle.Bundle, nil
+	})
+}

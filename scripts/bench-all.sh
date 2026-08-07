@@ -41,6 +41,7 @@ while [[ $# -gt 0 ]]; do
         --module) MODULE_FILTER="$2"; shift 2 ;;
         --count) BENCH_COUNT="$2"; shift 2 ;;
         --benchtime) BENCH_TIME="$2"; shift 2 ;;
+        --matrix) exec "$SCRIPT_DIR/bench-matrix.sh" "${@:2}" ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
