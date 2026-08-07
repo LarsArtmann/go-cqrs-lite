@@ -235,7 +235,7 @@ func makePostgresFactory(
 
 	_ = ctx // factory closure is invoked by benchkit.Run with a fresh context
 
-	return func() (*stack.Bundle, error) { //nolint:contextcheck // stack.New does not accept a context
+	return func() (*stack.Bundle, error) {
 		opts := []postgres.Option{}
 		if tierSet {
 			opts = append(opts, postgres.WithDurability(tier))
