@@ -1690,6 +1690,7 @@ metaengine/interface Tracer
 metaengine/interface Transactional
 metaengine/interface VectorBackend
 metaengine/interface VersionedStorage
+metaengine/irohengine/const FrameHeaderSize
 metaengine/irohengine/const OpCounterInc
 metaengine/irohengine/const OpLogAppend
 metaengine/irohengine/const OpMapDelete
@@ -1700,6 +1701,7 @@ metaengine/irohengine/func NewInProcessNetwork
 metaengine/irohengine/func NewNetwork
 metaengine/irohengine/func PercentileIdx
 metaengine/irohengine/func Replicated
+metaengine/irohengine/func RunConvergenceSuite
 metaengine/irohengine/func SortDurations
 metaengine/irohengine/func WithAuthor
 metaengine/irohengine/func WithClock
@@ -1765,6 +1767,7 @@ metaengine/irohengine/quic/method LatencySnapshot
 metaengine/irohengine/quic/method NodeID
 metaengine/irohengine/quic/method PeerCount
 metaengine/irohengine/quic/method Publish
+metaengine/irohengine/quic/method StreamsOpenedForPeer
 metaengine/irohengine/quic/method Subscribe
 metaengine/irohengine/quic/method Ticket
 metaengine/irohengine/quic/struct QuicTransport
@@ -1775,9 +1778,11 @@ metaengine/irohengine/struct LatencyCollector
 metaengine/irohengine/struct LatencySnapshot
 metaengine/irohengine/struct LatencyStats
 metaengine/irohengine/struct WriteOp
+metaengine/irohengine/type ClusterFactory
 metaengine/irohengine/type InProcessNetworkOption
 metaengine/irohengine/type OpKind
 metaengine/irohengine/type Option
+metaengine/irohengine/var ErrFrameTooLarge
 metaengine/irohengine/var ErrMapUpdaterNotImplemented
 metaengine/irohengine/var ErrScanBackendNotImplemented
 metaengine/irohengine/var ErrSearchBackendNotImplemented
