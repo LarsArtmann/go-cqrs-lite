@@ -486,6 +486,44 @@ type Wallet struct {
 	}
 }
 
+// C008 must NOT flag fields that match observability/performance metric
+// patterns (latency, throughput, ratio, percentage, duration, seconds).
+// Regression test for the DiscordSync round-2 feedback (26 suppressed fields).
+func TestC008_NoFindingForNonMonetaryMetrics(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"metrics.go": `package main
+
+type Metrics struct {
+	AverageLatency  float64
+	RequestPerSec   float64
+	ErrorRatio      float64
+	SuccessPercent  float64
+	P95Duration     float64
+	TotalSeconds    float64
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	ruletest.AssertRule(t, findings, "C008", 0)
+}
+
+// "rate" was removed from weakMoneyFields — ErrorRate, ProcessingRate, etc.
+// are observability metrics, not monetary fields.
+func TestC008_NoFindingForRateFields(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"obs.go": `package main
+
+type RateTracker struct {
+	ErrorRate      float64
+	ProcessingRate float64
+	RequestRate    float64
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	ruletest.AssertRule(t, findings, "C008", 0)
+}
+
 // --- C002: Broken Command ID ---
 
 func TestC002_DetectsZeroCommandID(t *testing.T) {

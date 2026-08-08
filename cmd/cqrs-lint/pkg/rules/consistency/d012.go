@@ -34,6 +34,13 @@ func NewD012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
+				// CLI entry points (main package) are presentation layers where
+				// fmt.Print* is the intended output mechanism, not a logging
+				// anti-pattern.
+				if gf.AST != nil && gf.AST.Name != nil && gf.AST.Name.Name == "main" {
+					continue
+				}
+
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
 					fn, ok := n.(*ast.FuncDecl)
 					if !ok || fn.Body == nil {

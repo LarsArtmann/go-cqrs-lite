@@ -28,8 +28,14 @@ var strongMoneyFields = []string{"amount", "price", "cost", "balance", "fee"}
 // weakMoneyFields are generic (value, total) — only flag when the enclosing
 // struct/package name also looks monetary.
 //
+// "rate" was removed: it matched far more metric/observability fields
+// (ErrorRate, ProcessingRate, RequestRate, …) than monetary ones
+// (InterestRate, ExchangeRate). If a project genuinely has interest-rate
+// fields, the struct/package corroboration via strongMoneyFields or
+// moneyKeywords will still flag those structs.
+//
 //nolint:gochecknoglobals // read-only keyword list
-var weakMoneyFields = []string{"value", "total", "charge", "payment", "salary", "rate"}
+var weakMoneyFields = []string{"value", "total", "charge", "payment", "salary"}
 
 // moneyKeywords is the unified set of monetary terms used for struct-name,
 // package-path, and embedded-type corroboration. Previously duplicated across
@@ -41,6 +47,20 @@ var moneyKeywords = []string{
 	"account", "billing", "transaction", "money", "cart",
 	"purchase", "refund", "tax", "wallet", "subscription",
 	"charge", "fee", "salary", "payroll", "fund", "deposit",
+}
+
+// nonMonetaryFieldPatterns suppresses money-field matches for field names
+// that unambiguously describe observability/performance metrics. A field like
+// AverageLatency or RequestRatio is not money even if a substring happens to
+// match a weak keyword. Checked before strong/weak matching so it suppresses
+// false positives from both lists.
+//
+//nolint:gochecknoglobals // read-only keyword list
+var nonMonetaryFieldPatterns = []string{
+	"latency", "throughput", "bandwidth", "persec", "perrsecond",
+	"ratio", "percentage", "percent", "duration",
+	"seconds", "milliseconds", "microseconds", "nanoseconds",
+	"qps", "rps", "fps",
 }
 
 //nolint:ireturn // factory returns public interface
@@ -160,6 +180,12 @@ func scanMoneyFields(
 			// Comparison is case-insensitive: the field name is lowercased,
 			// and so are the config entries.
 			if matchesAny(lowerName, lowerStrings(ctx.RulesConfig.IgnoreFloatFields)) {
+				continue
+			}
+
+			// Suppress matches for observability/performance metric fields
+			// (latency, throughput, ratio, …) that are never monetary.
+			if matchesAny(lowerName, nonMonetaryFieldPatterns) {
 				continue
 			}
 

@@ -12,7 +12,7 @@ func TestD012_DetectsFmtPrintlnInHandler(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"handler.go": `package main
+		"handler.go": `package myapp
 
 import "context"
 
@@ -30,7 +30,7 @@ func TestD012_DetectsLogFatalInHandler(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"handler.go": `package main
+		"handler.go": `package myapp
 
 import "context"
 
@@ -48,7 +48,7 @@ func TestD012_NoFindingForSlogInHandler(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"handler.go": `package main
+		"handler.go": `package myapp
 
 import "context"
 
@@ -70,6 +70,26 @@ func TestD012_NoFindingForPrintOutsideHandler(t *testing.T) {
 
 func main() {
 	fmt.Println("starting")
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, consistency.NewD012Detector(ctx))
+	ruletest.AssertRule(t, findings, "D012", 0)
+}
+
+// CLI tools (main package) use fmt.Print* as their output mechanism — not a
+// logging anti-pattern. Even handler-like functions in main should be exempt.
+func TestD012_NoFindingForMainPackageHandler(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "context"
+
+func runCommand(ctx context.Context) error {
+	fmt.Println("result:", 42)
+	return nil
 }
 `,
 	})
