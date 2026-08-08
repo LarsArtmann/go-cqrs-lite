@@ -15,7 +15,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0
@@ -36,7 +36,7 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
-	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260808102531-55cd247546d5 // indirect
+	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
