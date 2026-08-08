@@ -3,7 +3,6 @@ package bench
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -168,6 +167,3 @@ func BenchmarkDurabilityTiers_Bbolt(b *testing.B) {
 		})
 	}
 }
-
-// suppress unused import.
-var _ = time.Second

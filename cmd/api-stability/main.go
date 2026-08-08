@@ -34,6 +34,7 @@ var modules = []string{
 	"event",
 	"event/v4/eventtest",
 	"command",
+	"command/commandtest",
 	"query",
 	"query/querytest",
 	"idempotency",
