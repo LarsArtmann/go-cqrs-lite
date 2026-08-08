@@ -12,38 +12,26 @@ and is **never** duplicated here.
 
 ---
 
-## Correctness Bugs
-
-- [x] **Add length-mismatch guard to `DecodeFloatResults`** — ✓ Aug 2026 (M2)
-- [x] **Fix `context.Background()` in taskmanager handlers** — ✓ Aug 2026 (M2)
-- [x] **Route DuckDB `plans` map reads through `lookupPlan()`** — ✓ Aug 2026 (M2)
-- [x] **Fix `mustSQLiteEngine` zombie test helper** — ✓ Aug 2026 (M2)
-- [x] **Delete `_skipped_sqlite_test_*` zombie functions** — ✓ Aug 2026 (M2)
-- [x] **Fix `querytest.RunStoreSuite` / `querytest.StoreSuite` undefined** —
-      ✓ Aug 2026. Root cause: `query/v4 v4.2.0` tag predates `store_suite.go`.
-      `GOWORK=off` (CI per-module) couldn't see the symbols. Fix: added
-      `replace query/v4 => ../../query` to storage/memory, storage/pebble,
-      storage/bbolt go.mod (same pattern as decider→flightrecorder).
-      _(Effort: M)_
-- [x] **Fix `b029.go` / `b030.go` / `b031.go` compiler errors** — ✓ Aug 2026 (M12)
-
----
-
 ## cqrs-lint
 
 - [ ] 🔥 **Run cqrs-lint against real consumer projects** — validate
       false-positive rates against 8 identified repos (Kernovia,
       Standup-Killer, bank-sync, cqrs-htmx, DiscordSync, timesheets,
-      crush-daily, KeyHolderAI). The linter has 192 rules but zero real-world
+      crush-daily, KeyHolderAI). The linter has 202 rules but zero real-world
       false-positive data.
       _(Effort: L)_
-- [x] **Build type-checking test helper** — ✓ Aug 2026 (M11)
-      `BuildContextWithTypes` implemented in `analyzer/test_helpers.go`.
-- [x] **Self-lint CI: tighten severity gate** — ✓ Aug 2026 (M5)
-- [x] **10 genuinely-missing rules** — ✓ Aug 2026 (M12-M14).
-      B029-B031, D018-D019, F027-F029, C041-C042 all implemented,
-      tested, registered, and cataloged. Total now 202 rules.
-- [x] **Tag cqrs-lint v4.6.0** — ✓ Aug 2026 (M14). Tagged with 202 rules.
+- [ ] **Improve B029-B031 `isBusName` heuristic** — require `.Use()`/`.Publish()`
+      calls, not just suffix match on variable names.
+      _(Effort: S)_
+- [ ] **Improve D018 `collectEventNewTypes`** — use type info for precise
+      `event.NewEvent` detection (currently matches any `NewEvent`).
+      _(Effort: S)_
+- [ ] **Raise C041 confidence to Medium (0.5)** — Save ignoring
+      `expectedVersion` is a real bug, not low-confidence.
+      _(Effort: S)_
+- [ ] **Add integration test: lint `example/taskmanager`** — verify expected
+      findings end-to-end through the full rule pipeline.
+      _(Effort: M)_
 
 ---
 
@@ -55,28 +43,6 @@ and is **never** duplicated here.
 > (Dgraph 25.x explicit null-predicate deletion), regression test added.
 > See `docs/status/2026-08-08_22-03_dgraph-integration-testing-and-performance.md`.
 
-- [x] 🔥 **Fix Dgraph calibration constants** — ✓ Aug 2026. Updated to
-      measured values: `DG_NsPerOp=2,500,000ns`, `DG_NsPerRead=600,000ns`,
-      `DG_NsPerWrite=2,500,000ns`. ReadCosts updated: point lookup 350µs,
-      filtered scan 900µs, aggregate 950µs, scan 450µs.
-      _(Effort: S)_
-- [x] **Add Graph and Search benchmarks** — ✓ Aug 2026. Five benchmarks added:
-      `GraphAddEdge` (2.8ms), `GraphNeighbors_Depth1` (420µs),
-      `GraphNeighbors_Depth3` (963µs @recurse killer feature),
-      `SearchInsert` (2.5ms), `SearchQuery` (882µs anyofterms over 500 docs).
-      Results in `dgraphengine/README.md` performance table.
-      _(Effort: S)_
-- [x] **Fix CounterIncrement batching** — ✓ Aug 2026. Rewrote to batch
-      N-key deltas into 1 read + 1 RAFT commit (was N sequential commits).
-      3.3x faster: 2.4ms → 721µs per op. CounterGet remains O(N) by
-      interface design (returns all keys). Added `sanitizeKey` for blank-node
-      label safety.
-      _(Effort: M)_
-- [x] **Add adversarial DQL injection test** — ✓ Aug 2026.
-      `TestAdversarialDQLInjection` in `injection_adversarial_test.go`:
-      10 attack vectors (`} {} {`, full DQL queries, SQL injection, filter
-      injection) tested across Map, Search, and Counter backends. All pass.
-      _(Effort: S)_
 - [ ] **Add Dgraph to `test-all-backends.sh`** — currently lists SQLite,
       Pebble, bbolt, DuckDB, PG, MySQL. Add Dgraph (needs `pkgs.dgraph`
       in flake app `runtimeInputs`).
@@ -84,57 +50,51 @@ and is **never** duplicated here.
 - [ ] **Add Dgraph VM test** (`nix/vm/dgraph.nix`) — NixOS VM test for CI
       reproducibility, matching postgres-vm/mysql-vm/duckdb-vm pattern.
       _(Effort: M)_
-- [x] **Implement MultimapBackend for Dgraph** — ✓ Aug 2026. One node per
-      (key, value) pair with `@index(exact)`. Passes `adttest.RunMatrix`
-      at full parity with Memory engine.
-      _(Effort: M)_
-- [x] **Implement LogBackend for Dgraph** — ✓ Aug 2026. Append-only nodes
-      ordered by nanosecond timestamp (`@index(int)` + `orderdesc`). LogTail
-      returns chronological order. Passes `adttest.RunMatrix` at full parity.
-      _(Effort: M)_
 - [ ] **Add per-test data cleanup** — no `DropAll` or per-test cleanup exists.
       Stale data accumulates on persistent Dgraph instances.
       _(Effort: S)_
 - [ ] **Tag `dgraphengine/v4.0.2`** — security fix (DQL injection) + MapDelete
-      bugfix warrant a patch release.
+      bugfix + Multimap/Log backends + calibration warrant a patch release.
+      _(Effort: S)_
+- [ ] **Implement SnapshotBackend for Dgraph** — versioned predicates or
+      snapshot namespace for `system.Bundle` integration.
+      _(Effort: L)_
+- [ ] **Implement StreamLogBackend for Dgraph** — stream-keyed log ops for
+      `system.Bundle` integration.
+      _(Effort: L)_
+- [ ] **Implement Vector/Spatial backends for Dgraph** — currently Memory-only
+      (brute-force). Dgraph has native vector + geo support.
+      _(Effort: L)_
+- [ ] **Add Dgraph retry logic** for transient `"Please retry again"` errors.
+      _(Effort: S)_
+- [ ] **Add Dgraph connection pool tuning** — gRPC `MaxCallRecvMsgSize` for
+      large result sets.
       _(Effort: S)_
 
 ---
 
 ## Irohengine / Replicated Engine
 
-- [x] **Add `WithClock` option to `replicatedEngine`** — ✓ Aug 2026 (M18)
-- [x] **Add connection pooling to QuicTransport** — ✓ Aug 2026. Implemented
-      `WithStreamPooling()` option: persistent BiStreams with length-prefix framing
-      replace one-stream-per-op. ~30% latency reduction measured (91K vs 129K ns/op).
-      Backward compatible (disabled by default). Tests: `TestQuicPooled_*`.
-      _(Effort: M)_
-      _(Source: `docs/status/2026-08-08_02-50_irohengine-quic-parity-and-flake-fixes.md`)_
-- [x] **Add MapDelete LWW convergence test** — ✓ Aug 2026 (M4). Hardened with
-      injectable `WithClock` (deterministic timestamps, no `time.Sleep`).
-- [x] **Add graceful shutdown test** — ✓ Aug 2026 (M4). Expanded with 50
-      concurrent in-flight ops verified before Close, plus post-close safety check.
 - [ ] **Add runtime protocol-mismatch detection for QUIC stream pooling** — a
       pooled sender connected to a non-pooled receiver silently hangs (receiver
       calls `ReadToEnd` waiting for `Finish()` that never comes). Detect via a
       magic byte in the first frame and return a clear error.
       _(Effort: S)_
-      _(Source: `docs/status/2026-08-08_21-45_irohengine-clock-pooling-test-hardening.md`)_
 - [ ] **Add stream-reuse counter to `peerConn`** — increment each time
       `sendOpPooled` opens a new BiStream. Tests can assert that N ops over a
       pooled connection used only 1 stream (proving reuse, not just correctness).
       _(Effort: S)_
-      _(Source: `docs/status/2026-08-08_21-45_irohengine-clock-pooling-test-hardening.md`)_
 - [ ] **Extract shared framing constants** — `frameHeaderSize`, `errFrameTooLarge`
       are duplicated between `quic/frame.go` and `loopback/frame.go`. Move to
       `irohengine/framing.go` (protocol constants only; I/O stays per-transport).
       _(Effort: S)_
-      _(Source: `docs/status/2026-08-08_21-45_irohengine-clock-pooling-test-hardening.md`)_
 - [ ] **Port injectable-clock pattern to QUIC LWW tests** — `TestQuicLWWResolution`
       still relies on replication-time-gap for timestamp ordering. Could use
       `WithClock` for determinism (same pattern as the in-process tests).
       _(Effort: S)_
-      _(Source: `docs/status/2026-08-08_21-45_irohengine-clock-pooling-test-hardening.md`)_
+- [ ] **Extract `RunConvergenceSuite(t, factory)`** — shared test harness for
+      all 3 transports (~200 lines dedup between in-process, loopback, QUIC).
+      _(Effort: M)_
 
 ---
 
@@ -144,17 +104,14 @@ and is **never** duplicated here.
       would give each module ownership of its own exclusions. The monolithic
       config is documented but sprawls across 30+ blocks.
       _(Effort: L)_
-- [ ] **Add per-entry rationale comments to EXCEPTIONS** — the remaining 7
-      entries in `scripts/check-module-layers.sh` have only a generic header
-      comment. Each entry should explain WHY the exception is legitimate.
-      _(Effort: S)_
-      _(Source: `docs/status/2026-08-08_21-29_deferClose-exceptions-cleanup-session.md`)_
-- [ ] **Add `TestExceptionsAreMinimal` meta-test** — automate dead-exception
-      detection: remove EXCEPTIONS entries where `dep_layer <= mod_layer`
-      (same/lower-layer deps don't trigger violations). Prevents the
-      `schema→snapshot` and `transport/http→testutil` class of stale entries.
-      _(Effort: S)_
-      _(Source: `docs/status/2026-08-08_21-29_deferClose-exceptions-cleanup-session.md`)_
+- [ ] **Consolidate `deferClose` helper** — 3 copies across test packages
+      (storage/pebble, storage/bbolt, metaengine). Consider shared
+      `storage/internal/closeutil` package.
+      _(Effort: M)_
+- [ ] **Audit `.golangci.yml` exclusion blocks** — `system/` (20 linters
+      disabled), `cmd/cqrs-lint/` (13), `metaengine/` (15) have the broadest
+      exclusions. Narrow where safe.
+      _(Effort: M)_
 
 ---
 
@@ -164,41 +121,9 @@ and is **never** duplicated here.
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must
   v0.1.2).
-- [x] **Pin GitHub Actions to commit SHAs** — ✓ Aug 2026 (M15)
-- [x] **Add `--fail-on-stale-suppressions` CI gate** — ✓ Aug 2026 (M5)
-- [x] **Add CI check for API-version drift** — ✓ Aug 2026 (M16).
-      `scripts/check-tag-existence.sh` added.
-- [x] **Add calibration benchmark regression baseline** — ✓ Aug 2026 (M22).
-      `metaengine/calibration-baseline.md` created.
-- [x] **Add `duckdb-vm` and `turso-vm` to CI `nixos-vm-tests` job** — ✓ Aug 2026 (M5)
-
----
-
-## Integration Test Infrastructure
-
-- [ ] **macOS verification of ephemeral PG** — `scripts/ephemeral-pg.sh` claims
-      cross-platform but was never tested on Darwin. (M34)
-      _(Effort: M)_
-- [ ] **Write actual Redis/NATS integration tests** — `ephemeral-redis.sh` and
-      `ephemeral-nats.sh` exist but no tests use them. Watermill Redis Streams
-      and NATS JetStream roundtrips untested.
-      _(Effort: M)_
-      _(Source: `docs/status/2026-08-08_10-18_m35-m48-integration-test-infrastructure.md`)_
-- [x] **Add bbolt backup/restore test** — Pebble has `backup_lifecycle_test.go`;
-      bbolt now has equivalent coverage (events + snapshots + checkpoints +
-      incremental backups).
-      _(Effort: S)_ ✓ Aug 2026
-
----
-
-## Layer Enforcement
-
-- [x] **Delete stale FOUR-TIER-MODEL.d2/.svg artifacts** — ✓ Aug 2026 (M3)
-- [x] **Add intra-module architecture config for `cmd/cqrs-lint`** — ✓ Aug 2026
-      Added `.go-arch-lint.yml` with 5-layer model covering all 18 packages:
-      L0 leaves (analyzer/fix/ruletest/suppression) → L1 lintutil → L2 rule
-      categories → L3 rules root → L4 main. Enforced via `scripts/check-arch.sh`.
-      _(Source: `docs/status/2026-08-08_22-03_intra-module-arch-config-cqrs-lint.md`)_
+- [BLOCKED] **Push all unpushed tags to origin** — multiple annotated tags
+  exist locally but are not on `origin`. Blocks `nix run .#vulncheck` and
+  `check-tag-existence.sh`. Requires user approval.
 - [ ] 🔥 **Wire `#check-arch` into the verify gate and CI** — the nix app
       exists (`flake.nix:759`) but is orphaned. All 7 per-module go-arch-lint
       configs are local-only enforcement. Replace `#check-layers` with
@@ -210,13 +135,49 @@ and is **never** duplicated here.
       only works locally because the tool is in system PATH
       (`/run/current-system/sw/bin/`). Will fail in CI and `nix develop` shells.
       _(Effort: S)_
-      _(Source: `docs/status/2026-08-08_22-03_intra-module-arch-config-cqrs-lint.md`)_
+- [ ] **Tag `query/v4.3.0`** — `querytest` symbols (`RunStoreSuite`,
+      `StoreSuite`) are only visible via replace directives in storage/memory,
+      storage/pebble, storage/bbolt. A proper tag eliminates the workarounds.
+      Then strip the replace directives.
+      _(Effort: S)_
+- [ ] **Tag `flightrecorder/v4.0.0`** — currently pseudo-version. Zero-dep
+      module, API stable.
+      _(Effort: S)_
+- [ ] **Tag `event/v4.4.0` push** — tag exists locally but may not be on
+      origin. Blocks `nix run .#vulncheck`.
+      _(Effort: S)_
+
+---
+
+## Integration Test Infrastructure
+
+- [ ] **macOS verification of ephemeral PG** — `scripts/ephemeral-pg.sh` claims
+      cross-platform but was never tested on Darwin.
+      _(Effort: M)_
+- [ ] **Write actual Redis/NATS integration tests** — `ephemeral-redis.sh` and
+      `ephemeral-nats.sh` exist but no Go tests use them. Watermill Redis
+      Streams and NATS JetStream roundtrips untested.
+      _(Effort: M)_
+- [ ] **Write actual Dgraph integration tests in Go** — ephemeral-dgraph script
+      exists; ADT tests run but no system-level integration test.
+      _(Effort: M)_
+
+---
+
+## Layer Enforcement / Architecture
+
 - [ ] **Add `.go-arch-lint.yml` for `metaengine/`** — 16+ production files
       (planner.go, engine.go, dsl.go, etc.) with complex internal structure
       and no intra-module enforcement.
       _(Effort: M)_
 - [ ] **Add `.go-arch-lint.yml` for `stack/`** — 11 production files, composition
       layer with clear internal dependencies, no enforcement.
+      _(Effort: S)_
+- [ ] **Add `.go-arch-lint.yml` for `decider/`** — core domain module, no
+      intra-module enforcement.
+      _(Effort: S)_
+- [ ] **Add `.go-arch-lint.yml` for `projectionhost/`** — lifecycle module
+      with complex internal structure.
       _(Effort: S)_
 - [ ] **Add meta-test: every `.go-arch-lint.yml` is parseable and components
       match real packages** — no test today asserts configs are valid or that
@@ -234,6 +195,59 @@ and is **never** duplicated here.
 
 ---
 
+## System Package
+
+- [ ] **Add system lifecycle edge-case tests** — `TestSystem_Close_Idempotent`,
+      `TestSystem_GracefulClose_Idempotent`, `TestSystem_Start_ProjectionHostError`,
+      `TestSystem_RegisterCloser_AfterClose`, `TestSystem_HealthCheckDetailed_WithFailedProjection`.
+      _(Effort: M)_
+- [ ] **Add DuckDB source-of-truth integration test** (CGo) — currently only
+      SQLite, Memory, Pebble have integration tests.
+      _(Effort: M)_
+- [ ] **Add Postgres source-of-truth integration test** — needs testcontainer.
+      _(Effort: M)_
+- [ ] **Add NATS/Redis bus driver registration** — `system/` has simpleBus +
+      MultiBus but no NATS/Redis driver registration.
+      _(Effort: L)_
+- [ ] **Add ShutdownDependency integration test** with real engines.
+      _(Effort: M)_
+
+---
+
+## Metaengine Coverage Gaps
+
+- [ ] **Cross-engine parity test for all 5 aggregate interfaces** — like
+      `adttest.RunMatrix` but for aggregate pushdown (AggregateReader/
+      GroupedAggregateReader/MultiAggregateReader/MultiGroupedAggregateReader/
+      ExplainableAggregate).
+      _(Effort: M)_
+- [ ] **Run full DuckDB test suite under `-race`** — only race regression test
+      run so far; full suite (~5 min) never verified.
+      _(Effort: S)_
+- [ ] **Add aggregate tests with NULL values + large datasets (10K+ rows)**.
+      _(Effort: S)_
+- [ ] **Add SQLite engine Doctor test** (real engine, not fake).
+      _(Effort: S)_
+- [ ] **Run calibration benchmarks against baseline** — verify
+      `calibration-baseline.md` accuracy; add CI regression check.
+      _(Effort: M)_
+
+---
+
+## Documentation
+
+- [ ] **Add ADR for ApplyLayoutPlan post-construction registration pattern**.
+      _(Effort: S)_
+- [ ] **Add ADR for WithClock pattern** (injectable time for CRDT testing).
+      _(Effort: S)_
+- [ ] **Document GitHub Actions SHA pinning policy** in CONTRIBUTING.md.
+      _(Effort: S)_
+- [ ] **Write cqrs-lint v4.6.0 release notes** (202 rules, 10 new rules,
+      resilience/observability/correctness categories).
+      _(Effort: S)_
+
+---
+
 ## Declined / Rejected (do not re-litigate)
 
 > Full rationale in the linked ADRs/reviews.
@@ -244,3 +258,5 @@ and is **never** duplicated here.
   `RelationalProjection` (junction tables). See ADR-0033.
 - **OR conditions / query builder in ViewStore** — `RawWhere` covers the 5% case.
 - **Redis adapter** — the author is not a fan of Redis. See ROADMAP Non-Goals.
+- **Rewrite `check-module-layers.sh` as Go NOW** — deferred. The script is stable
+  (348 lines). Revisit when complexity grows significantly.
