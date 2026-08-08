@@ -30,7 +30,7 @@ func TestStreaming_LoadStream(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadStream: %v", err)
 	}
-	defer iter.Close()
+	defer deferClose(iter)
 
 	var loaded []event.Event
 	for {
@@ -72,7 +72,7 @@ func TestStreaming_LoadStreamFromVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadStreamFromVersion: %v", err)
 	}
-	defer iter.Close()
+	defer deferClose(iter)
 
 	var loaded []event.Event
 	for {
@@ -108,7 +108,7 @@ func TestStreaming_LoadStreamEmpty(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadStream: %v", err)
 	}
-	defer iter.Close()
+	defer deferClose(iter)
 
 	_, err = iter.Next()
 	if !errors.Is(err, io.EOF) {
@@ -137,7 +137,7 @@ func TestStreaming_ReadStream(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ReadStream: %v", err)
 	}
-	defer iter.Close()
+	defer deferClose(iter)
 
 	count := 0
 	for {
@@ -182,7 +182,7 @@ func TestStreaming_ReadStreamFromWithSkip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ReadStreamFrom: %v", err)
 	}
-	defer iter.Close()
+	defer deferClose(iter)
 
 	count := 0
 	for {
@@ -222,7 +222,7 @@ func TestStreaming_ReadStreamFromWithLimit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ReadStreamFrom: %v", err)
 	}
-	defer iter.Close()
+	defer deferClose(iter)
 
 	count := 0
 	for {

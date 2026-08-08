@@ -30,7 +30,7 @@ func FuzzSnapshotStore_Roundtrip(f *testing.F) {
 			t.Fatalf("pebble.Open: %v", err)
 		}
 
-		defer func() { _ = database.Close() }()
+		defer deferClose(database)
 
 		snapStore, err := cqrspebble.NewSnapshotStore(database, slog.Default())
 		if err != nil {
@@ -78,7 +78,7 @@ func FuzzCheckpointStore_Roundtrip(f *testing.F) {
 			t.Fatalf("pebble.Open: %v", err)
 		}
 
-		defer func() { _ = database.Close() }()
+		defer deferClose(database)
 
 		cpStore, err := cqrspebble.NewCheckpointStore(database, slog.Default())
 		if err != nil {

@@ -179,7 +179,7 @@ func testContractIterator(t *testing.T, makeStore func(t *testing.T) kv.Store) {
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}
-	defer func() { _ = iter.Close() }()
+	defer deferClose(iter)
 
 	var got []string
 	for iter.Next() {
@@ -220,7 +220,7 @@ func testContractIteratorPrefix(t *testing.T, makeStore func(t *testing.T) kv.St
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}
-	defer func() { _ = iter.Close() }()
+	defer deferClose(iter)
 
 	var got []string
 	for iter.Next() {

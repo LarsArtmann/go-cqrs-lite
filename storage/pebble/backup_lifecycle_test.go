@@ -25,7 +25,7 @@ func TestBackupRestore_FullLifecycle(t *testing.T) {
 		t.Fatalf("Open source: %v", err)
 	}
 
-	defer func() { _ = source.Close() }()
+	defer deferClose(source)
 
 	eventStore := source.EventStore()
 	snapStore := source.SnapshotStore()
@@ -101,7 +101,7 @@ func TestBackupRestore_FullLifecycle(t *testing.T) {
 		t.Fatalf("Open restored: %v", err)
 	}
 
-	defer func() { _ = restored.Close() }()
+	defer deferClose(restored)
 
 	// Events: stream A should have only evtA1 (pre-backup), not evtA2.
 	loadedA, err := restored.EventStore().Load(ctx, refA)
@@ -175,7 +175,7 @@ func TestBackupRestore_IncrementalCheckpoints(t *testing.T) {
 		t.Fatalf("Open: %v", err)
 	}
 
-	defer func() { _ = source.Close() }()
+	defer deferClose(source)
 
 	store := source.EventStore()
 	streamID := id.NewStreamID()
@@ -207,7 +207,7 @@ func TestBackupRestore_IncrementalCheckpoints(t *testing.T) {
 		t.Fatalf("Open backup1: %v", err)
 	}
 
-	defer func() { _ = r1.Close() }()
+	defer deferClose(r1)
 
 	loaded1, _ := r1.EventStore().Load(ctx, ref)
 	if len(loaded1) != 1 {
@@ -220,7 +220,7 @@ func TestBackupRestore_IncrementalCheckpoints(t *testing.T) {
 		t.Fatalf("Open backup2: %v", err)
 	}
 
-	defer func() { _ = r2.Close() }()
+	defer deferClose(r2)
 
 	loaded2, _ := r2.EventStore().Load(ctx, ref)
 	if len(loaded2) != 2 {

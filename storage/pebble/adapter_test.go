@@ -177,7 +177,7 @@ func TestKVIterator_AllKeys(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}
-	defer func() { _ = iter.Close() }()
+	defer deferClose(iter)
 
 	var got []string
 
@@ -225,7 +225,7 @@ func TestKVIterator_PrefixFilter(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}
-	defer func() { _ = iter.Close() }()
+	defer deferClose(iter)
 
 	var got []string
 
@@ -263,7 +263,7 @@ func TestKVIterator_ValuesAreSafe(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}
-	defer func() { _ = iter.Close() }()
+	defer deferClose(iter)
 
 	if !iter.Next() {
 		t.Fatal("iter.Next = false")
@@ -429,7 +429,7 @@ func TestKVAdapter_CloseBorrowedDB(t *testing.T) {
 	if err != nil {
 		t.Fatalf("pebble.Open: %v", err)
 	}
-	defer func() { _ = database.Close() }()
+	defer deferClose(database)
 
 	store, err := NewKVStore(database, WithBorrowedDB())
 	if err != nil {
@@ -703,7 +703,7 @@ func TestKVIterator_ManyKeys(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewIterator: %v", err)
 	}
-	defer func() { _ = iter.Close() }()
+	defer deferClose(iter)
 
 	count := 0
 

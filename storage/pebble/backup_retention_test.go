@@ -21,7 +21,7 @@ func TestBackend_Checkpoint(t *testing.T) {
 		t.Fatalf("Open: %v", err)
 	}
 
-	defer func() { _ = backend.Close() }()
+	defer deferClose(backend)
 
 	store := backend.EventStore()
 
@@ -57,7 +57,7 @@ func TestBackend_Checkpoint(t *testing.T) {
 		t.Fatalf("Open checkpoint: %v", err)
 	}
 
-	defer func() { _ = restored.Close() }()
+	defer deferClose(restored)
 
 	loaded, err := restored.EventStore().Load(context.Background(),
 		id.NewStreamRef("User", streamID))
@@ -80,7 +80,7 @@ func TestBackend_NewSnapshot_ConsistentReads(t *testing.T) {
 		t.Fatalf("Open: %v", err)
 	}
 
-	defer func() { _ = backend.Close() }()
+	defer deferClose(backend)
 
 	store := backend.EventStore()
 
@@ -98,7 +98,7 @@ func TestBackend_NewSnapshot_ConsistentReads(t *testing.T) {
 
 	snap := backend.NewSnapshot()
 
-	defer func() { _ = snap.Close() }()
+	defer deferClose(snap)
 
 	evt2, _ := event.NewEvent("UserUpdated", streamID, "User", 2, []byte(`{}`))
 	if err := store.Save(context.Background(), id.NewStreamRef("User", streamID),
@@ -121,7 +121,7 @@ func TestBackend_NewSnapshot_ConsistentReads(t *testing.T) {
 		t.Fatalf("snap.NewIter: %v", err)
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer deferClose(iter)
 
 	count := 0
 
