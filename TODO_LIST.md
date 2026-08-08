@@ -61,9 +61,11 @@ and is **never** duplicated here.
       will route queries to Dgraph that should go to Memory/SQLite.
       Either update to measured values or implement `Calibratable.Benchmark()`.
       _(Effort: S)_
-- [ ] 🔥 **Add Graph and Search benchmarks** — only Map/Counter/Set are
-      benchmarked (Dgraph's weaknesses). Graph traversal and full-text search
-      are Dgraph's killer features but have zero benchmark coverage.
+- [x] **Add Graph and Search benchmarks** — ✓ Aug 2026. Five benchmarks added:
+      `GraphAddEdge` (2.8ms), `GraphNeighbors_Depth1` (420µs),
+      `GraphNeighbors_Depth3` (963µs @recurse killer feature),
+      `SearchInsert` (2.5ms), `SearchQuery` (882µs anyofterms over 500 docs).
+      Results in `dgraphengine/README.md` performance table.
       _(Effort: S)_
 - [ ] **Fix CounterGet O(N) scan** — returns ALL counters in a collection
       via client-side aggregation (3.4ms, 365KB, 1,143 allocs for 1000

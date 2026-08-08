@@ -58,18 +58,29 @@ store, err := metaengine.Plan([]metaengine.Engine{eng},
 Pure Go (no CGo): uses the [dgo v240](https://github.com/dgraph-io/dgo)
 gRPC client.
 
-## Performance (benchmark against Dgraph 25.4.0, single-node, localhost)
+## Performance (benchmark against Dgraph 25.4.0, single-node, localhost, `-benchtime=3s`)
 
-| Operation         | Latency   | Allocs   | Notes                              |
-| ----------------- | --------- | -------- | ---------------------------------- |
-| MapSet            | 2.7 ms    | 194      | gRPC + RAFT consensus commit       |
-| MapGet            | 344 us    | 146      | read-only txn, no RAFT             |
-| CounterIncrement  | 2.4 ms    | 288      | upsert with conditional mutation   |
-| CounterGet         | 3.4 ms    | 1,143    | returns all counters in collection |
-| SetAdd            | 2.1 ms    | 179      | upsert with @index(exact)          |
+| Operation                 | Latency   | Allocs   | Notes                                    |
+| ------------------------- | --------- | -------- | ---------------------------------------- |
+| MapSet                    | 2.7 ms    | 194      | gRPC + RAFT consensus commit             |
+| MapGet                    | 344 us    | 146      | read-only txn, no RAFT                   |
+| CounterIncrement          | 2.4 ms    | 288      | upsert with conditional mutation         |
+| CounterGet                | 3.4 ms    | 1,143    | returns all counters in collection       |
+| SetAdd                    | 2.1 ms    | 179      | upsert with @index(exact)                |
+| GraphAddEdge              | 2.8 ms    | 360      | 2-step upsert: nodes + bidirectional     |
+| GraphNeighbors (depth 1)  | 420 us    | 193      | direct adjacency, read-only txn          |
+| GraphNeighbors (depth 3)  | 963 us    | 463      | @recurse multi-hop (killer feature)      |
+| SearchInsert              | 2.5 ms    | 192      | upsert into @index(term) full-text index |
+| SearchQuery               | 882 us    | 157      | anyofterms() over 500-doc corpus         |
 
-Writes are dominated by RAFT consensus (leader proposes, followers ack).
-Reads bypass RAFT via `NewReadOnlyTxn()`, so they are 7-10x faster.
+Writes are dominated by RAFT consensus (leader proposes, followers ack):
+MapSet, GraphAddEdge, and SearchInsert all land at 2.1-2.8 ms.
+Reads bypass RAFT via `NewReadOnlyTxn()`, so they are 3-7x faster:
+MapGet (344 us), GraphNeighbors depth-1 (420 us), SearchQuery (882 us).
+
+Depth-3 graph traversal (@recurse) at 963 us is Dgraph's killer feature —
+the same query in SQL would require recursive CTEs. The 100-node graph
+with 300 edges reaches 39+ nodes at depth 3.
 
 ## Testing
 

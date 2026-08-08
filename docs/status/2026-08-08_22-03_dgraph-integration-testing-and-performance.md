@@ -164,9 +164,13 @@ The health endpoint poll runs for 60 iterations × 0.5s = 30 seconds max. On a s
 
 `graph.go:GraphNeighbors` uses `fmt.Sprintf` to build the `pred` variable from `sanitizePredicate()`. While `sanitizePredicate()` only allows `[a-zA-Z0-9_.]`, this is a defense-in-depth concern. A linter can't distinguish safe from unsafe `fmt.Sprintf` usage.
 
-### 8. No benchmarks for Graph or Search operations
+### 8. Graph and Search benchmarks ADDED (resolved 2026-08-08)
 
-Only Map, Counter, and Set benchmarks exist (`bench_test.go`). Graph traversal and full-text search are Dgraph's killer features, but there are no benchmarks measuring their performance. This is the most important data to have for consumers deciding whether to use Dgraph.
+~~Only Map, Counter, and Set benchmarks exist~~. Five new benchmarks added to
+`bench_test.go`: `GraphAddEdge` (2.8ms), `GraphNeighbors_Depth1` (420us),
+`GraphNeighbors_Depth3` (963us), `SearchInsert` (2.5ms), `SearchQuery` (882us).
+Graph depth-3 @recurse traversal and Search anyofterms() over 500-doc corpus
+both measured. Results in `dgraphengine/README.md` performance table.
 
 ---
 
@@ -175,8 +179,8 @@ Only Map, Counter, and Set benchmarks exist (`bench_test.go`). Graph traversal a
 ### High priority (P0)
 
 1. **Update Dgraph calibration constants** — `DG_NsPerOp` and `DG_NsPerRead` are 100-270x too low. Set to real values: ~2,700,000 ns/op write, ~350,000 ns/op read. Or implement `Calibratable.Benchmark()` to auto-calibrate.
-2. **Add Graph benchmark** — `BenchmarkDgraph_GraphNeighbors` measuring depth-1 and depth-3 traversal. This is Dgraph's reason to exist.
-3. **Add Search benchmark** — `BenchmarkDgraph_SearchQuery` measuring full-text search latency.
+2. ~~**Add Graph benchmark**~~ — DONE (2026-08-08): `BenchmarkDgraph_GraphNeighbors_Depth1` (420us) + `_Depth3` (963us) + `GraphAddEdge` (2.8ms).
+3. ~~**Add Search benchmark**~~ — DONE (2026-08-08): `BenchmarkDgraph_SearchInsert` (2.5ms) + `SearchQuery` (882us).
 4. **Fix CounterGet** — either use Dgraph aggregation (`sum(val(count))`) or document the O(N) scan cost clearly.
 5. **Add Dgraph to `test-all-backends.sh`** — consumers should be able to test all backends including Dgraph in one command.
 
