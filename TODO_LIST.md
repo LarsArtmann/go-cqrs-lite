@@ -113,6 +113,58 @@ and is **never** duplicated here.
 
 ## Code Quality / Dedup
 
+> Dedup session 2026-08-09: 11→3 clone groups at threshold 4. 8 fixed, 3
+> accepted. 5 test helpers + 2 production helpers extracted. Verify gate
+> NOT run (individual module tests only). See
+> `docs/status/2026-08-09_01-02_dedup-threshold-4-cleanup.md`.
+
+- [ ] 🔥 **Run `nix run .#verify`** — the dedup session changed ~25 files
+      across 6 modules but only ran individual `go test`/`go vet`. Lint,
+      doc-check, race detection, and cross-module integration were NOT
+      verified.
+      _(Effort: S — just run it and fix failures)_
+- [ ] **Eliminate `newDuckDBPushdown` dead wrapper** — collapsed to a 1-line
+      `return mustNewDuckEngine(t)` but left 5 callers pointing at it.
+      Replace all callers with `mustNewDuckEngine` directly, delete function.
+      _(Effort: S)_
+- [ ] **Extract `DistinctValues` row-scan into shared SQL helper** — 23-line
+      loop duplicated between `duckdbengine/aggregations.go` and
+      `sqliteengine/aggregations_grouped.go`. `storage/sql/` exists for this
+      purpose but both engine modules are Tier 4 (importing it inverts the
+      dependency). Consider a new `metaengine/sqlutil/` (Tier 0/1) instead.
+      _(Effort: M)_
+- [ ] **Fix non-deferred `eng.Close()` in healthcheck tests** — both
+      `pgengine/healthcheck_test.go:34` and
+      `duckdbengine/healthcheck_cgo_test.go:36` call bare `eng.Close()`
+      (not deferred) — leaks the engine on test failure.
+      _(Effort: S)_
+- [ ] **Refactor remaining engine-setup boilerplate** — 4 sites in
+      `duckdbengine/stream_log_cgo_test.go` use `t.Fatalf` + `DeferClose`
+      instead of the skip+defer pattern; 1 site each in
+      `pgengine/healthcheck_test.go` and `duckdbengine/healthcheck_cgo_test.go`
+      have non-deferred Close. Could add a `mustNewDuckEngineOrFatal`
+      variant or standardize on skip+cleanup.
+      _(Effort: S)_
+- [ ] **Extract bbolt/pebble backup lifecycle test suite** — the 2 largest
+      remaining clone groups (73 + 46 lines) are near-identical test files
+      in `storage/bbolt/backup_lifecycle_test.go` and
+      `storage/pebble/backup_lifecycle_test.go`. A shared `backuptest`
+      module would eliminate both, but requires a new test-only Go module
+      that both backends depend on.
+      _(Effort: M)_
+- [ ] **Rename `helper_test.go` → `helper_cgo_test.go`** in duckdbengine for
+      naming consistency with sibling `_cgo_test.go` files.
+      _(Effort: S)_
+- [ ] **Update AGENTS.md "Dedup helper patterns" section** — document the
+      5 new test helpers (`mustNewPgEngine`, `mustNewDuckEngine`,
+      `setupSeededAggTest`, `assertTxCommitSetup`, `saveOneCommand`) and
+      the `stdQueryInit` / `drainAll` production helpers.
+      _(Effort: S)_
+- [ ] **Scan remaining engine modules for setup boilerplate** —
+      `metaengine/badgerengine/`, `metaengine/pebbleengine/`,
+      `metaengine/dgraphengine/` likely have the same `New(...) + err +
+      skip + defer Close` pattern that was fixed in pgengine/duckdbengine.
+      _(Effort: M)_
 - [ ] **Consolidate `deferClose` helper** — 3 copies across test packages
       (storage/pebble, storage/bbolt, metaengine). Consider shared
       `storage/internal/closeutil` package.
