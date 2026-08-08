@@ -196,7 +196,7 @@ func waitForLogTail(
 	for time.Now().Before(deadline) {
 		entries, err := node.(metaengine.LogBackend).LogTail(
 			context.Background(), collection, len(expected))
-		if err == nil && reflect.DeepEqual(entries, expected) {
+		if err == nil && sameLogTail(entries, expected) {
 			return
 		}
 		time.Sleep(pollInterval)
@@ -248,19 +248,15 @@ func sameSetAny(actual []any, expected []string) bool {
 	return true
 }
 
-// sameSet checks that two string slices contain the same elements regardless
-// of order (set equality).
-func sameSet(a, b []string) bool {
-	if len(a) != len(b) {
+// sameLogTail checks that an []any slice (from LogTail) matches the expected
+// []string in ORDER — logs are append-only, so order is meaningful.
+func sameLogTail(actual []any, expected []string) bool {
+	if len(actual) != len(expected) {
 		return false
 	}
-	seen := make(map[string]int, len(a))
-	for _, v := range a {
-		seen[v]++
-	}
-	for _, v := range b {
-		seen[v]--
-		if seen[v] < 0 {
+	for i, v := range actual {
+		s, ok := v.(string)
+		if !ok || s != expected[i] {
 			return false
 		}
 	}
