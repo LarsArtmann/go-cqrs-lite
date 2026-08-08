@@ -114,11 +114,10 @@ func (s *System) RegisterDrainer(d Drainer) {
 	s.drainers = append(s.drainers, d)
 }
 
-// Drain calls all registered [Drainer]s to stop accepting new work and
-// finish in-flight work, bounded by ctx. Unlike [System.GracefulClose],
-// Drain does NOT close resources — use this for rolling deploys where the
-// process stays alive but should reject new requests.
-func (s *System) Drain(ctx context.Context) error {
+// drainAll snapshots the drainer list under the read lock, then calls Drain
+// on each one. Returns the first error without wrapping so callers can apply
+// their own context.
+func (s *System) drainAll(ctx context.Context) error {
 	s.mu.RLock()
 	drainers := make([]Drainer, len(s.drainers))
 	copy(drainers, s.drainers)
@@ -126,8 +125,20 @@ func (s *System) Drain(ctx context.Context) error {
 
 	for _, d := range drainers {
 		if err := d.Drain(ctx); err != nil {
-			return fmt.Errorf("system: drain: %w", err)
+			return err
 		}
+	}
+
+	return nil
+}
+
+// Drain calls all registered [Drainer]s to stop accepting new work and
+// finish in-flight work, bounded by ctx. Unlike [System.GracefulClose],
+// Drain does NOT close resources — use this for rolling deploys where the
+// process stays alive but should reject new requests.
+func (s *System) Drain(ctx context.Context) error {
+	if err := s.drainAll(ctx); err != nil {
+		return fmt.Errorf("system: drain: %w", err)
 	}
 
 	return nil

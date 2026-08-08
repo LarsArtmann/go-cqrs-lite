@@ -6,14 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-## [v4.7.0] — 2026-08-08
-
-Coordinated release of 78 modules: metaengine v2 architecture (ADRs 0111–0117),
-cqrs-lint expanded to 202 rules, dgraphengine (Dgraph-backed storage engine),
-bbolt backend, system/ deployer-based composition root, aggregate pushdown,
-QUIC stream pooling, ephemeral-dgraph, and 3 new tags (query/v4.3.0,
-dgraphengine/v4.0.2, flightrecorder/v4.0.0).
-
 ### Added — QUIC stream pooling, layer enforcement, Dgraph infra — 2026-08-08
 
 - **QUIC stream pooling** (`WithStreamPooling()` option): persistent BiStreams

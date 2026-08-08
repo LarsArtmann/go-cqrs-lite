@@ -266,17 +266,9 @@ func (s *System) Close() error {
 // Use this instead of [Close] when you need a shutdown deadline (e.g., a
 // Kubernetes SIGTERM grace period).
 func (s *System) GracefulClose(ctx context.Context) error {
-	// Phase 1: drain in-flight work. Snapshot drainers under lock to avoid
-	// a data race if RegisterDrainer is called concurrently.
-	s.mu.RLock()
-	drainers := make([]Drainer, len(s.drainers))
-	copy(drainers, s.drainers)
-	s.mu.RUnlock()
-
-	for _, d := range drainers {
-		if err := d.Drain(ctx); err != nil {
-			return fmt.Errorf("system: graceful drain: %w", err)
-		}
+	// Phase 1: drain in-flight work.
+	if err := s.drainAll(ctx); err != nil {
+		return fmt.Errorf("system: graceful drain: %w", err)
 	}
 
 	// Phase 2: close with context race.
