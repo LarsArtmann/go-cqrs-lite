@@ -113,7 +113,7 @@ func (a *EventStore) scanJournalWithSkip(
 			"create iterator")
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer deferClose(iter)
 
 	skipping := targetID != ""
 	found := false

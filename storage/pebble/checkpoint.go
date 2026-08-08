@@ -143,7 +143,7 @@ func (s *CheckpointStore) Load(
 				"read checkpoint for projection "+projectionName)
 	}
 
-	defer func() { _ = closer.Close() }()
+	defer deferClose(closer)
 
 	buf := make([]byte, len(val))
 	copy(buf, val)

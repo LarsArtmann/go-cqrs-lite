@@ -82,7 +82,7 @@ func (s *QueryStore) scanQueries(
 			"create query iterator")
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer deferClose(iter)
 
 	skipping := skipUntilID != ""
 

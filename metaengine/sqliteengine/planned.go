@@ -86,6 +86,35 @@ func (e *sqliteEngine) registerLayout(plan metaengine.LayoutPlan) error {
 	return nil
 }
 
+// ApplyLayoutPlan implements metaengine.LayoutPlanApplier. It registers a
+// full LayoutPlan on the engine post-construction, enabling runtime layout
+// registration without recreating the engine. Mirrors DuckDB's ApplyLayoutPlan.
+func (e *sqliteEngine) ApplyLayoutPlan(plan metaengine.LayoutPlan) error {
+	if e.plans == nil {
+		e.plans = make(map[string]metaengine.LayoutPlan)
+	}
+
+	if existing, exists := e.plans[plan.Collection]; exists {
+		if !metaengine.PlansColumnCompatible(existing, plan) {
+			return fmt.Errorf(
+				"%w: collection %q already has columns %v, requested %v",
+				metaengine.ErrLayoutConflict,
+				plan.Collection,
+				existing.ColumnNames(),
+				plan.ColumnNames(),
+			)
+		}
+
+		return nil
+	}
+
+	if err := e.registerLayout(plan); err != nil {
+		return fmt.Errorf("sqliteengine.ApplyLayoutPlan: create table %s: %w", plan.Table, err)
+	}
+
+	return nil
+}
+
 // --- Planned table helpers (used when a collection has a metaengine.LayoutPlan) ---
 
 func (e *sqliteEngine) mapSetPlanned(
