@@ -14,12 +14,9 @@ and is **never** duplicated here.
 
 ## cqrs-lint
 
-- [ ] 🔥 **Run cqrs-lint against real consumer projects** — validate
-      false-positive rates against 8 identified repos (Kernovia,
-      Standup-Killer, bank-sync, cqrs-htmx, DiscordSync, timesheets,
-      crush-daily, KeyHolderAI). The linter has 202 rules but zero real-world
-      false-positive data.
-      _(Effort: L — moved to ROADMAP Theme 3)_
+> See [ROADMAP.md](ROADMAP.md) → Raw Ideas for long-term L-effort items
+> (cqrs-lint consumer validation, per-module golangci split).
+
 - [ ] **Improve B029-B031 `isBusName` heuristic** — require `.Use()`/`.Publish()`
       calls, not just suffix match on variable names.
       _(Effort: S)_

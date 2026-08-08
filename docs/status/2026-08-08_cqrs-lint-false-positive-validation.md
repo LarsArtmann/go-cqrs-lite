@@ -185,13 +185,17 @@ These findings represent the linter at its best — real bugs and anti-patterns 
 
 ## Actionable Recommendations
 
-### Priority 1: Fix the 5 critical-severity false positives (C002 on transport adapters)
+### ~~Priority 1: Fix the 5 critical-severity false positives (C002 on transport adapters)~~
+
+**Status: OPEN.** C002 still fires on transport adapter commands without checking `.toDomain()` or `Dispatch()` call sites.
 
 **Impact:** These block CI pipelines on incorrect findings. Users will lose trust immediately.
 
 **Fix:** Before firing C002, check if the command type is ever passed to `dispatcher.Dispatch()`, `bus.Publish()`, or `command.Dispatcher.Dispatch()`. If the type only appears in `.toDomain()` conversion calls, skip it.
 
-### Priority 2: Fix E005/E007 registration tracing (12 FPs)
+### ~~Priority 2: Fix E005/E007 registration tracing (12 FPs)~~
+
+**Status: PARTIALLY DONE.** E007 confidence lowered to Low. 12+ registration pattern tests added (closure, method values, type assertions). Gap: wrapper-function tracing not implemented.
 
 **Impact:** 100% false-positive rate on these rules makes them noise.
 
@@ -200,25 +204,33 @@ These findings represent the linter at its best — real bugs and anti-patterns 
 - Skip types that don't implement the full `query.Query` interface (no `Type()` method) — DTOs with only `form` tags are not query types.
 - Lower confidence to 0.25 for all E005/E007 findings (can't prove non-registration, only absence of evidence).
 
-### Priority 3: Fix type-blind matching (A005, C027, S010)
+### ~~Priority 3: Fix type-blind matching (A005, C027, S010)~~
+
+**Status: A005 DONE** (broadcast vs persistence classification). **C027 OPEN** (still fires on non-event-bus Subscribe methods). **S010 OPEN** (fires on SignMiddleware presence without checking bus.Use()).
 
 **Impact:** The linter fires event-bus rules on non-event-bus types.
 
 **Fix:** Resolve the receiver type before applying bus-related rules. If the receiver is `*ErrorBus`, `*sse.Broadcaster`, or any non-`event.Bus` type, skip the rule. For S010, verify the middleware is actually passed to `bus.Use()` before claiming it's active.
 
-### Priority 4: Skip empty doc.go files
+### ~~Priority 4: Skip empty doc.go files~~
+
+**Status: LIKELY STRUCTURALLY AVOIDED.** E014/F005 are project-level rules (check project-wide imports), so empty-doc.go FPs may already be impossible. Not explicitly fixed.
 
 **Impact:** 2 FPs on 2-line package stubs. Low count but high annoyance.
 
 **Fix:** Skip files with ≤ 3 non-comment, non-blank lines for structural rules (E014, F005).
 
-### Priority 5: Fix D005 version string extraction
+### ~~Priority 5: Fix D005 version string extraction~~
+
+**Status: PARTIALLY DONE.** `looksLikeVersionToken` now requires `^v\d+\.\d+`, skips markdown headings/migration arrows. 5 regression tests added. Gap: no explicit code-block/require-directive skip.
 
 **Impact:** 4 FPs from misparsing documentation.
 
 **Fix:** Only match version references in prose text (e.g., "uses go-cqrs-lite v4.2.0"), not in import paths, code blocks, or require directive examples. Use word-boundary matching with explicit version patterns (`v\d+\.\d+\.\d+` as standalone text, not as part of a path).
 
-### Priority 6: Calibrate confidence for context-dependent rules
+### ~~Priority 6: Calibrate confidence for context-dependent rules~~
+
+**Status: PARTIALLY DONE.** D005→Low, E007→Low, E003→Low, A005→Medium lowered. C002 still High, C027/S010 still Medium. No systematic 0.5 cap policy.
 
 **Impact:** 28 FPs have confidence ≥ 0.5, making `--fp-suspects` ineffective.
 

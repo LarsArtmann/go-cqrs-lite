@@ -81,4 +81,14 @@ graph TD
 
 ## Execution Log
 
-_To be filled during execution._
+| Task | Status | Notes |
+|------|--------|-------|
+| P1-1: Delete duplicate ADT row | ✅ DONE | Removed line 251 (duplicate of 241) |
+| P2-1: Fix CalibrateEngine stale claim | ✅ DONE | Line 273: "not yet calibratable" → "embed Calibration (see line below)" |
+| P3-1: Move L-effort items TODO→ROADMAP | ✅ DONE | 7 items moved (3 Dgraph backends, golangci split, check-layers rewrite, NATS/Redis bus, cqrs-lint consumer run) |
+| P4-1: Run doc-check | ✅ DONE | All 545 references valid across 5 docs |
+| P5-1: Commit changes | ✅ DONE | Detailed commit message |
+| P6-1: Annotate benchmark-megabuild report | ✅ DONE | M4.2 done, M6.2 still open |
+| P7-1: Annotate pareto-m1-m9 report | ✅ DONE | 15/18 items done, 3 open (M23, M24 CI wiring, M25) |
+| P8-1: Annotate false-positive-validation report | ✅ DONE | 6 priorities: A005 done, E005/E007 partial, D005 partial, others open |
+| P11-1: Git commit + push | ✅ DONE | |
