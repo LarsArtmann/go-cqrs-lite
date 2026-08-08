@@ -111,6 +111,6 @@ func (e *pgEngine) ExplainAggregateQuery(
 
 // Compile-time assertions.
 var (
-	_ metaengine.ExplainableScan       = (*pgEngine)(nil)
+	_ metaengine.ExplainableScan      = (*pgEngine)(nil)
 	_ metaengine.ExplainableAggregate = (*pgEngine)(nil)
 )

@@ -20,6 +20,7 @@ import (
 
 // pgAggExpr builds the SQL aggregate expression for Postgres JSONB.
 // COUNT(*) ignores column. Other functions cast the JSONB value to float8.
+// art-dupl:accept cross-module SQL builder pattern — separate go.mod
 func pgAggExpr(fn metaengine.AggregateFn, column string) string {
 	if fn == metaengine.AggregateCount {
 		return "COUNT(*)"
@@ -29,6 +30,11 @@ func pgAggExpr(fn metaengine.AggregateFn, column string) string {
 }
 
 // appendPGFilter adds one filter clause inline (same pattern as PushdownMapScan).
+// Filter type-coercion: Postgres uses value->'field' (JSONB operator) which
+// preserves native JSON types; numeric comparisons use $N::jsonb parameters.
+// This differs from DuckDB (CAST AS DOUBLE on json_extract) and SQLite
+// (native types from json_extract, no CAST needed).
+// art-dupl:accept cross-module SQL builder pattern — separate go.mod
 func appendPGFilter(b *strings.Builder, args *[]any, f metaengine.FilterSpec) {
 	if f.Op == metaengine.FilterIn {
 		values, ok := f.Value.([]any)

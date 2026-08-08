@@ -12,6 +12,12 @@ import (
 // and the special metaengine.FilterIn operator which generates IN (?, ?, ...).
 //
 // The caller is responsible for the leading " AND " or " WHERE ".
+//
+// Filter type-coercion: SQLite json_extract returns native types (INTEGER, REAL,
+// TEXT), so numeric comparisons work without explicit CAST. This differs from
+// DuckDB (CAST AS DOUBLE) and Postgres (::float8) — see the equivalent filter
+// builders in those packages for their coercion strategies.
+// art-dupl:accept cross-module SQL builder pattern — separate go.mod
 func appendStandardFilter(b *strings.Builder, args *[]any, f metaengine.FilterSpec) {
 	path := jsonPath(f.Column)
 

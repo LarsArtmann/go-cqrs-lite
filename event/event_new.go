@@ -12,10 +12,15 @@ import (
 
 // New creates a new event with a typed payload.
 //
-// If payload is []byte or json.RawMessage, it is used directly and the encoding
-// defaults to [codec.EncodingJSON]. For all other types, the payload is marshaled
-// using the codec provided via [WithCodec] (falling back to [DefaultCodec], which
-// defaults to [codec.CBORCodec]), and the encoding is auto-stamped from the codec.
+// If payload is []byte or json.RawMessage, it is used directly (no marshaling).
+// For all other types, the payload is marshaled using the codec provided via
+// [WithCodec] (falling back to [DefaultCodec], which defaults to
+// [codec.CBORCodec]).
+//
+// The encoding is auto-stamped from the codec used — unless [WithEncoding] is
+// provided, in which case the explicit encoding takes precedence. This is
+// essential when reconstructing events from a wire format or storage where the
+// payload bytes and encoding are already known (e.g. the Watermill bridge).
 //
 // Returns an error if payload is nil.
 func New(

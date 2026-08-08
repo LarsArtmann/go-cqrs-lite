@@ -19,8 +19,8 @@ import (
 // only exercise the Memory engine (no pushdown).
 
 type pushItem struct {
-	ID     string `json:"id"`
-	Status string `json:"status"`
+	ID     string  `json:"id"`
+	Status string  `json:"status"`
 	Price  float64 `json:"price"`
 }
 

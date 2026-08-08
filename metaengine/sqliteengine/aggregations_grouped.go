@@ -14,6 +14,7 @@ import (
 // These mirror the DuckDB engine's implementations but use SQLite placeholder
 // syntax (?) and rely on SQLite's json_extract returning native types (no
 // CAST AS DOUBLE needed).
+//art-dupl:accept cross-module SQL builder pattern — separate go.mod
 
 // ---------------------------------------------------------------------------
 // GroupedAggregateReader (GROUP BY + single aggregate)

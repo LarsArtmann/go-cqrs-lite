@@ -31,6 +31,12 @@ import (
 // aggregate functions don't accept JSON type directly). On the planned path,
 // columns already have proper SQL types so no cast is needed. COUNT(*) ignores
 // column.
+//
+// Filter type-coercion: DuckDB requires CAST(json_extract(...) AS DOUBLE) for
+// numeric comparison and aggregation — JSON type is not implicitly convertible.
+// This differs from SQLite (native types, no CAST) and Postgres (::float8 cast
+// on JSONB value->'field').
+// art-dupl:accept cross-module SQL builder pattern — separate go.mod
 func aggExpr(fn metaengine.AggregateFn, column string, plan metaengine.LayoutPlan) string {
 	if fn == metaengine.AggregateCount {
 		return "COUNT(*)"
