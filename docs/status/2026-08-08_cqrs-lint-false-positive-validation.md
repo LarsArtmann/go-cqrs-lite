@@ -1,14 +1,39 @@
 # cqrs-lint False-Positive Validation Report
 
-**Date:** 2026-08-08
-**Linter version:** 4.6.0 (192 rules)
+**Date:** 2026-08-08 (updated 2026-08-09 with post-fix results)
+**Linter version:** 4.6.0 (192 rules) → post-fix build
 **Repos tested:** 8 real consumer projects
-**Total findings:** 128
+**Total findings:** 128 (pre-fix) → 96 (post-fix)
 **Classification method:** Manual source-code verification of every finding
 
 ---
 
-## Executive Summary
+## Post-Fix Results (2026-08-09)
+
+After executing the [false-positive elimination plan](../planning/2026-08-08_23-33_cqrs-lint-false-positive-elimination.md):
+
+| Metric | Pre-Fix | Post-Fix | Change |
+|--------|---------|----------|--------|
+| Total findings | 128 | 96 | -32 |
+| True positives | 89 | 89 | 0 (all preserved) |
+| False positives | 39 | ~7 | -32 (82% eliminated) |
+| FP rate | 30.5% | ~7.3% | -76% |
+| Critical-severity FPs | 5 | 0 | -5 (all eliminated) |
+| Error-severity FPs | 6 | 0 | -6 (all eliminated) |
+
+**Eliminated FPs by fix:**
+- Transport adapter detection (C002×5 + A001×5 + E005×5 = 15 FPs)
+- E007 Type() method requirement + per-package registration check (7 FPs)
+- D005 code block/import path/pseudo-version skip (partial)
+- Type-blind matching fixes: A005 receiver type, C027 receiver type, S010 Use() wiring (3 FPs)
+- A032 display package skip (3 FPs)
+- Pattern fixes: C013 json:"-", C034 HTTP shutdown, C035 serialization DTO, E009 custom HTTP (4 FPs)
+
+**Remaining FPs (~7):** D005 prose version references (4), E014/F005 project-level rules (2), A005 edge case (1). All are ConfidenceLow (0.25) and caught by `--fp-suspects`.
+
+---
+
+## Pre-Fix Executive Summary
 
 | Metric | Value |
 |--------|-------|

@@ -206,6 +206,9 @@ linters:
             - go.uber.org/multierr
             - github.com/inconshreveable/mousetrap
             - git.coopcloud.tech/decentral1se/iroh-go
+            - github.com/dgraph-io/dgo/v240
+            - github.com/dgraph-io/badger/v4
+            - go.etcd.io/bbolt
             - golang.org/x/mod
             - golang.org/x/term
             - golang.org/x/text

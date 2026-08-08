@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json/v2"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/dgraph-io/dgo/v240/protos/api"
@@ -149,7 +150,7 @@ func (e *dgraphEngine) LogTail(ctx context.Context, col string, limit int) ([]an
 
 	// Reverse to chronological order (oldest first), matching memory engine.
 	out := make([]any, 0, len(result.Entries))
-	for i := len(result.Entries) - 1; i >= 0; i-- {
+	for i := range slices.Backward(result.Entries) {
 		var v any
 		if err := json.Unmarshal([]byte(result.Entries[i].Value), &v); err != nil {
 			return nil, fmt.Errorf("dgraphengine.LogTail: decode value: %w", err)

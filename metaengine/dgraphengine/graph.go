@@ -63,8 +63,8 @@ func (e *dgraphEngine) GraphAddEdge(
 
 	// Step 2: Add bidirectional edges (matches memory engine semantics).
 	req2 := &api.Request{CommitNow: true}
-	req2.Query = req.Query
-	req2.Vars = req.Vars
+	req2.Query = req.GetQuery()
+	req2.Vars = req.GetVars()
 
 	req2.Mutations = []*api.Mutation{
 		{SetNquads: fmt.Appendf(nil, "uid(from_node) <%s> uid(to_node) .", pred)},

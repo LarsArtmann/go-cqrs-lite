@@ -251,6 +251,16 @@ func extractCQRSVersion(content, modVersion string) string {
 				continue
 			}
 
+			// Skip Go pseudo-versions (e.g. v4.2.1-0.20260808200723-546259830b28)
+			if strings.Contains(field, "-0.") {
+				continue
+			}
+
+			// Skip inline code fragments (backtick-wrapped)
+			if strings.Contains(field, "`") {
+				continue
+			}
+
 			versions = append(versions, field)
 		}
 	}

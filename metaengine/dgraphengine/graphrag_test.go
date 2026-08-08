@@ -205,6 +205,7 @@ func TestGraphRAG_DifferentQueries(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.query, func(t *testing.T) {
+			t.Parallel()
 			results, err := sb.SearchQuery(ctx, searchCol, tt.query, 10)
 			if err != nil {
 				t.Fatalf("SearchQuery %q: %v", tt.query, err)

@@ -16,8 +16,7 @@ import (
 //     parameterized QueryWithVars).
 //
 // This prevents re-introduction of the DQL injection vulnerability fixed in
-// the 2026-08-08 security fix. See:
-// docs/status/2026-08-08_21-33_metaengine-v2-gap-closure-dql-injection-fix.md
+// the 2026-08-08 security fix (see docs/status/2026-08-08_21-33_metaengine-v2-gap-closure-dql-injection-fix.md).
 func TestNoDQLInjectionPatterns(t *testing.T) {
 	t.Parallel()
 

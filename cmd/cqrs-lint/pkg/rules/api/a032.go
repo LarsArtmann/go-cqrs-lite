@@ -157,9 +157,12 @@ func structHasFormTag(st *ast.StructType) bool {
 func isDisplayPackage(path string) bool {
 	lower := strings.ToLower(path)
 
-	return strings.Contains(lower, "/ui/") ||
+	return strings.Contains(lower, "dashboard") ||
+		strings.Contains(lower, "/ui/") ||
+		strings.Contains(lower, "/views/") ||
 		strings.Contains(lower, "/view/") ||
 		strings.Contains(lower, "/display/") ||
-		strings.Contains(lower, "/dashboard/") ||
-		strings.Contains(lower, "/dto/")
+		strings.Contains(lower, "/dto/") ||
+		strings.Contains(lower, "/frontend/") ||
+		strings.Contains(lower, "/webui/")
 }
