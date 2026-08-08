@@ -45,6 +45,7 @@ func (s *System) orderedEngines() []metaengine.Engine {
 
 	for _, edge := range s.shutdownDeps {
 		beforeIdx, beforeOK := nameToIdx[edge.before]
+
 		afterIdx, afterOK := nameToIdx[edge.after]
 		if !beforeOK || !afterOK || beforeIdx == afterIdx {
 			continue

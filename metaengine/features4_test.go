@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -76,6 +77,80 @@ func TestHealthCheck_SQLiteEngine(t *testing.T) {
 
 	if err := store.HealthCheck(context.Background()); err != nil {
 		t.Errorf("HealthCheck should return nil for SQLite engine, got: %v", err)
+	}
+}
+
+// healthCheckEngine is a test Engine that implements HealthChecker.
+type healthCheckEngine struct {
+	profile EngineProfile
+	err     error
+}
+
+func (e *healthCheckEngine) Profile() EngineProfile { return e.profile }
+func (e *healthCheckEngine) Close() error                      { return nil }
+func (e *healthCheckEngine) HealthCheck(_ context.Context) error {
+	return e.err
+}
+
+func newHealthCheckEngine(name string, err error) *healthCheckEngine {
+	return &healthCheckEngine{
+		profile: EngineProfile{
+			Name: name,
+			Supports: map[ADT]Complexity{
+				ADTMap: ComplexityO1,
+			},
+		},
+		err: err,
+	}
+}
+
+func TestHealthCheck_DelegatesToAllEngines(t *testing.T) {
+	t.Parallel()
+
+	healthy := newHealthCheckEngine("healthy", nil)
+	unhealthy := newHealthCheckEngine("unhealthy", errors.New("engine down"))
+
+	store, err := Plan([]Engine{healthy, unhealthy}, testTaskQuery())
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	err = store.HealthCheck(context.Background())
+	if err == nil {
+		t.Fatal("expected HealthCheck to catch unhealthy second engine")
+	}
+
+	if !strings.Contains(err.Error(), "unhealthy") {
+		t.Fatalf("expected error to name the unhealthy engine, got: %v", err)
+	}
+}
+
+// plainEngine is a minimal Engine that does NOT implement HealthChecker.
+// Used to verify Store.HealthCheck silently skips non-implementing engines.
+type plainEngine struct {
+	profile EngineProfile
+}
+
+func (e *plainEngine) Profile() EngineProfile { return e.profile }
+func (e *plainEngine) Close() error            { return nil }
+
+func TestHealthCheck_NonImplementingEnginesSkipped(t *testing.T) {
+	t.Parallel()
+
+	plain := &plainEngine{profile: EngineProfile{
+		Name: "plain-no-hc",
+		Supports: map[ADT]Complexity{
+			ADTMap: ComplexityO1,
+		},
+	}}
+
+	store, err := Plan([]Engine{plain}, testTaskQuery())
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	if err := store.HealthCheck(context.Background()); err != nil {
+		t.Errorf("HealthCheck should skip non-HealthChecker engines, got: %v", err)
 	}
 }
 

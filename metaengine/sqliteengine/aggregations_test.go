@@ -3,6 +3,7 @@ package sqliteengine_test
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"testing"
 
 	_ "modernc.org/sqlite"
@@ -283,4 +284,78 @@ func assertAggFloat(t *testing.T, label string, got, want float64) {
 	if got != want {
 		t.Errorf("%s = %v, want %v", label, got, want)
 	}
+}
+
+func TestSQLite_ExplainAggregateQuery(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	eng, cleanup := newAggSQLiteEngine(t)
+	defer cleanup()
+
+	seedAggData(t, ctx, eng)
+
+	ea := eng.(metaengine.ExplainableAggregate)
+
+	t.Run("scalar", func(t *testing.T) {
+		sql, args := ea.ExplainAggregateQuery(ctx, "items", metaengine.ExplainAggregateOptions{
+			Fn:     metaengine.AggregateSum,
+			Column: "price",
+		})
+		if !strings.Contains(sql, "SUM(json_extract") {
+			t.Errorf("expected SUM(json_extract in SQL, got: %s", sql)
+		}
+		if len(args) != 1 || args[0] != "items" {
+			t.Errorf("expected args=[items], got: %v", args)
+		}
+	})
+
+	t.Run("grouped", func(t *testing.T) {
+		sql, _ := ea.ExplainAggregateQuery(ctx, "items", metaengine.ExplainAggregateOptions{
+			Fn:      metaengine.AggregateCount,
+			GroupBy: "status",
+		})
+		if !strings.Contains(sql, "GROUP BY") {
+			t.Errorf("expected GROUP BY in SQL, got: %s", sql)
+		}
+		if !strings.Contains(sql, "group_key") {
+			t.Errorf("expected group_key in SQL, got: %s", sql)
+		}
+	})
+
+	t.Run("multi", func(t *testing.T) {
+		sql, _ := ea.ExplainAggregateQuery(ctx, "items", metaengine.ExplainAggregateOptions{
+			Specs: []metaengine.AggregateSpec{
+				{Fn: metaengine.AggregateCount, Alias: "cnt"},
+				{Fn: metaengine.AggregateSum, Column: "price", Alias: "total"},
+			},
+		})
+		if !strings.Contains(sql, "COUNT(*)") || !strings.Contains(sql, "SUM(json_extract") {
+			t.Errorf("expected COUNT(*) and SUM in SQL, got: %s", sql)
+		}
+	})
+
+	t.Run("distinct", func(t *testing.T) {
+		sql, _ := ea.ExplainAggregateQuery(ctx, "items", metaengine.ExplainAggregateOptions{
+			Distinct: "status",
+		})
+		if !strings.Contains(sql, "SELECT DISTINCT") {
+			t.Errorf("expected SELECT DISTINCT in SQL, got: %s", sql)
+		}
+	})
+
+	t.Run("with_filter", func(t *testing.T) {
+		sql, args := ea.ExplainAggregateQuery(ctx, "items", metaengine.ExplainAggregateOptions{
+			Fn: metaengine.AggregateCount,
+			Filters: []metaengine.FilterSpec{
+				{Column: "status", Op: metaengine.FilterEq, Value: "open"},
+			},
+		})
+		if !strings.Contains(sql, "json_extract") || !strings.Contains(sql, "= ?") {
+			t.Errorf("expected filter in SQL, got: %s", sql)
+		}
+		if len(args) != 2 {
+			t.Errorf("expected 2 args (collection + filter), got %d: %v", len(args), args)
+		}
+	})
 }

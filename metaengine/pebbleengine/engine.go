@@ -161,9 +161,16 @@ func (e *pebbleEngine) Close() error {
 
 // HealthCheck verifies the underlying Pebble DB is responsive by attempting a
 // point read of a non-existent key. A healthy DB returns pebble.ErrNotFound;
-// any other error (e.g., "database closed") indicates a problem.
+// any other error (e.g., "database closed") indicates a problem. Pebble panics
+// on use-after-close, so we recover and return as an error.
 // Implements [metaengine.HealthChecker] for Kubernetes-style liveness probes.
-func (e *pebbleEngine) HealthCheck(_ context.Context) error {
+func (e *pebbleEngine) HealthCheck(_ context.Context) (retErr error) {
+	defer func() {
+		if r := recover(); r != nil {
+			retErr = fmt.Errorf("pebble health check: %v", r)
+		}
+	}()
+
 	_, closer, err := e.db.Get([]byte("__health_check__"))
 	if err != nil {
 		if errors.Is(err, pebble.ErrNotFound) {

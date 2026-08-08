@@ -92,6 +92,7 @@ func testSaveAndLoadQueries(t *testing.T, store StoreSuite) {
 
 	// Load after q1's timestamp → only q2
 	mid := firstQuery.ReceivedAt()
+
 	filtered, err := store.LoadQueries(ctx, mid)
 	if err != nil {
 		t.Fatalf("LoadQueries filtered: %v", err)

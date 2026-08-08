@@ -144,6 +144,15 @@ func (e *dgraphEngine) SetCalibration(costs metaengine.CalibrationCosts) {
 	e.cal.SetCalibration(costs)
 }
 
+// HealthCheck verifies the Dgraph gRPC connection is responsive by executing
+// a trivial query. A healthy connection returns without error; a disconnected
+// or unhealthy cluster returns an error.
+// Implements [metaengine.HealthChecker] for Kubernetes-style liveness probes.
+func (e *dgraphEngine) HealthCheck(ctx context.Context) error {
+	_, err := e.client.NewTxn().Query(ctx, `{ health(func: uid(0x1)) { uid } }`)
+	return err
+}
+
 // Close closes the underlying Dgraph client. Safe to call multiple times.
 func (e *dgraphEngine) Close() error {
 	e.mu.Lock()

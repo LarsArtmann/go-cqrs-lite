@@ -254,6 +254,7 @@ func testLoadFromTimestamp(t *testing.T, store StoreSuite) {
 	}
 
 	midpoint := time.Now()
+
 	time.Sleep(2 * time.Millisecond)
 
 	cmd2 := MustCreateCommand(t, "user.update", ref)

@@ -1501,6 +1501,7 @@ metaengine/duckdbengine/method Close
 metaengine/duckdbengine/method CounterGet
 metaengine/duckdbengine/method CounterIncrement
 metaengine/duckdbengine/method DistinctValues
+metaengine/duckdbengine/method ExplainAggregateQuery
 metaengine/duckdbengine/method ExplainScanQuery
 metaengine/duckdbengine/method GroupedAggregate
 metaengine/duckdbengine/method HealthCheck
@@ -1644,6 +1645,7 @@ metaengine/interface Closer
 metaengine/interface CounterBackend
 metaengine/interface DistinctReader
 metaengine/interface Engine
+metaengine/interface ExplainableAggregate
 metaengine/interface ExplainableScan
 metaengine/interface Fold
 metaengine/interface GraphBackend
@@ -1841,6 +1843,7 @@ metaengine/method ExecuteAsOf
 metaengine/method ExecuteCtx
 metaengine/method Exists
 metaengine/method Explain
+metaengine/method ExplainAggregate
 metaengine/method ExplainPlan
 metaengine/method Export
 metaengine/method Get
@@ -2101,6 +2104,7 @@ metaengine/sqliteengine/method Close
 metaengine/sqliteengine/method CounterGet
 metaengine/sqliteengine/method CounterIncrement
 metaengine/sqliteengine/method DistinctValues
+metaengine/sqliteengine/method ExplainAggregateQuery
 metaengine/sqliteengine/method ExplainScanQuery
 metaengine/sqliteengine/method GetRawValue
 metaengine/sqliteengine/method GraphAddEdge
@@ -2156,6 +2160,7 @@ metaengine/struct Embedding
 metaengine/struct EngineProfile
 metaengine/struct EventInput
 metaengine/struct EventLog
+metaengine/struct ExplainAggregateOptions
 metaengine/struct ExplainOptions
 metaengine/struct FilterSpec
 metaengine/struct GroupedAggregateRow

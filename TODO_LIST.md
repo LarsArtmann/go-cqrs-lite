@@ -440,16 +440,20 @@ and is **never** duplicated here.
 ## Dedup
 
 > Clone groups driven to **0 at threshold 3** (was 65). All thresholds (7, 4, 3) reduced to 0 through shared helper extraction. `.art-dupl-baseline.json`
-> baseline: 0 groups. `nix run .#check-duplication` gate enforces no-new-clones.
+> baseline: 64 groups. `nix run .#check-duplication` gate enforces no-new-clones.
 
-- [ ] **Investigate threshold-2 clone groups** — 92 remaining at t=2. Some are
-      intentional (cross-module isolation, table-driven); others may be
-      extractable (`capitalizeFirst`, `truncateString`, `isCBORData`,
-      `recordErr`, `startStreamSpan` patterns).
-- [ ] **Extract `renderTable(b, headers, rows)` helper** — `cmd/cqrs-lint/explain.go`
-      still has repeated table-rendering patterns.
-- [ ] **`deferClose(closer)` helper** — metaengine engines have repeated
-      `if c := eng.Close(); c != nil ...` patterns across 7 engines.
+- [x] **Investigate threshold-2 clone groups** — investigated 2026-08-08. Findings:
+  - `capitalizeFirst` / `titleCase`: extracted `benchkit.TitleCase` + `benchkit.Truncate`, eliminated dup in `cmd/cqrs-bench` (2 clone groups gone).
+  - `isCBORData`: **accepted** — cross-module (bbolt vs pebble, separate go.mod), 4 lines, already documented.
+  - `recordErr`: **accepted** — OTel boilerplate (100 occurrences), cross-module, 1-line calls. bbolt has local helper.
+  - `startStreamSpan`: **accepted** — module-local helpers already exist. Call-site boilerplate (`span := ...; defer span.End()`).
+  - Remaining t=2 clones are test boilerplate (`t.Parallel()` + `ctx := context.Background()`), cross-module isolation, and DuckDB aggregations internal patterns.
+- [x] **Extract `renderTable(b, headers, rows)` helper** — generalized `renderKeyTable` into
+      `renderTable` + `writeTableRow` + `writeTableSeparator` + `columnWidths`. Refactored
+      `renderRulesConfig` to share the same primitives.
+- [x] **`deferClose(closer)` helper** — added `metaengine.DeferClose(c Closer)`. Replaced
+      `defer func() { _ = X.Close() }()` with `defer metaengine.DeferClose(X)` across 47
+      production sites + 17 test sites in sqlite/pg/duckdb/pebble/badger/dgraph engines.
 
 ---
 

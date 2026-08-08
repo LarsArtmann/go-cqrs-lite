@@ -135,6 +135,16 @@ func (e *badgerEngine) SetCalibration(costs metaengine.CalibrationCosts) {
 	e.cal.SetCalibration(costs)
 }
 
+// HealthCheck verifies the underlying Badger DB is responsive by opening a
+// read-only transaction. A healthy DB completes the view without error; a
+// closed or corrupted DB returns an error.
+// Implements [metaengine.HealthChecker] for Kubernetes-style liveness probes.
+func (e *badgerEngine) HealthCheck(_ context.Context) error {
+	return e.db.View(func(txn *badger.Txn) error {
+		return nil
+	})
+}
+
 func (e *badgerEngine) Close() error {
 	if !e.ownsDB {
 		return nil

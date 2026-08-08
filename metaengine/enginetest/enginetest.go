@@ -774,3 +774,79 @@ func RunConcurrentTxTest(t *testing.T, eng metaengine.Engine) {
 		}
 	}
 }
+
+// RunTransactionalBaselineTest exercises the Transactional interface for
+// engines whose RunInTx is a pass-through with NO rollback semantics (e.g. the
+// Memory engine). It verifies the commit path and error propagation, then
+// explicitly documents that writes persist even when the callback returns an
+// error (no rollback).
+//
+// Engines with real transaction semantics should use RunTransactionalTest
+// instead, which additionally verifies rollback.
+func RunTransactionalBaselineTest(t *testing.T, eng metaengine.Engine) {
+	t.Helper()
+
+	tx, ok := eng.(metaengine.Transactional)
+	if !ok {
+		t.Fatalf("engine %T does not implement Transactional", eng)
+	}
+
+	mb, ok := eng.(metaengine.MapBackend)
+	if !ok {
+		t.Fatalf("engine %T does not implement MapBackend", eng)
+	}
+
+	ctx := context.Background()
+	col := "tx_baseline_" + engineName(eng)
+
+	// 1. Successful transaction commits.
+	err := tx.RunInTx(ctx, func(ctx context.Context) error {
+		return mb.MapSet(ctx, col, "committed", "v1")
+	})
+	if err != nil {
+		t.Fatalf("RunInTx commit path: %v", err)
+	}
+
+	_, found, err := mb.MapGet(ctx, col, "committed")
+	if err != nil {
+		t.Fatalf("MapGet after commit: %v", err)
+	}
+
+	if !found {
+		t.Fatalf("expected key to exist after commit")
+	}
+
+	// 2. Error propagation: RunInTx returns the callback's error.
+	sentinel := errors.New("baseline sentinel")
+
+	err = tx.RunInTx(ctx, func(ctx context.Context) error {
+		return sentinel
+	})
+	if !errors.Is(err, sentinel) {
+		t.Fatalf("expected sentinel error from RunInTx, got %v", err)
+	}
+
+	// 3. No rollback: writes persist even when the callback returns an error.
+	//    This is the defining limitation of pass-through engines (Memory).
+	err = tx.RunInTx(ctx, func(ctx context.Context) error {
+		if e := mb.MapSet(ctx, col, "no-rollback", "v2"); e != nil {
+			return e
+		}
+
+		return sentinel
+	})
+	if !errors.Is(err, sentinel) {
+		t.Fatalf("expected sentinel error, got %v", err)
+	}
+
+	_, found, err = mb.MapGet(ctx, col, "no-rollback")
+	if err != nil {
+		t.Fatalf("MapGet no-rollback: %v", err)
+	}
+
+	if !found {
+		t.Fatalf(
+			"key 'no-rollback' should persist (pass-through engine has no rollback)",
+		)
+	}
+}
