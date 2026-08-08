@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — QUIC stream pooling, layer enforcement, Dgraph infra — 2026-08-08
+
+- **QUIC stream pooling** (`WithStreamPooling()` option): persistent BiStreams
+  with length-prefix framing replace one-stream-per-op. ~30% latency reduction
+  measured (91K vs 129K ns/op). Backward compatible (disabled by default).
+  Tests: `TestQuicPooled_*`.
+- **`nix run .#ephemeral-dgraph`**: spins up Dgraph Zero + Alpha from nixpkgs
+  (no Docker/VM). All 10 Dgraph ADT tests pass against a live instance.
+- **`TestExceptionsAreMinimal` meta-test**: automates dead-exception detection
+  in `scripts/check-module-layers.sh` — flags EXCEPTIONS entries where
+  `dep_layer <= mod_layer` (same/lower-layer deps don't trigger violations).
+- **Per-entry rationale comments on EXCEPTIONS**: all 8 entries in
+  `check-module-layers.sh` now document WHY each cross-layer dependency is
+  legitimate (test-only imports, VersionedStore integration, etc.).
+- **`.go-arch-lint.yml` for `cmd/cqrs-lint`**: 5-layer intra-module model
+  covering all 18 packages (L0 leaves → L1 lintutil → L2 rule categories →
+  L3 rules root → L4 main). Enforced via `scripts/check-arch.sh`.
+- **Indirect-only dead exception detection**: refined the EXCEPTIONS audit to
+  distinguish test-only imports from production imports.
+
 ### Added — dgraphengine MultimapBackend + LogBackend + calibration + security — 2026-08-08
 
 - **MultimapBackend**: `MultiAdd`/`MultiGet` via one Dgraph node per (key, value)

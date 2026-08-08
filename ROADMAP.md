@@ -4,7 +4,7 @@
 
 ---
 
-**metaengine v4.6.0 tagged** (2026-08-06) — 79 `go.mod` files, 77+ modules in
+**metaengine v4.6.0 tagged** (2026-08-06) — 79 `go.mod` files, 78 modules in
 `go.work`. Metaengine v2 shipped (ADRs 0111-0119): `record/` module, Record-aware
 folds, auto-projection, sqliteengine/badgerengine/dgraphengine/graphadapter,
 tombstone deprecation. bbolt storage backend (streaming + OTel + contract tests),
@@ -219,9 +219,10 @@ Evidence-grade metrics added (2026-08-01, ADR-0090).
 The linter grew from 65 to **202 rules** across 10 categories. Quality has been
 hardened through multiple brutal review passes and 7 consumer feedback rounds.
 
-- ✅ **192 rules shipped** across correctness, API misuse, boilerplate, adoption,
+- ✅ **202 rules shipped** across correctness, API misuse, boilerplate, adoption,
   architecture, consistency, security, performance, testing, version.
-  Metaengine-aware detection (F018-F026).
+  Metaengine-aware detection (F018-F026). Resilience rules (B029-B031).
+  Observability rules (F027-F029). Optimistic concurrency rules (C041-C042).
 - ✅ **Feature profile system** — auto-detects consumer module usage and adapts
   context-dependent rules. TLS-aware server detection, ServerLocal heuristic.
   Per-module detection infrastructure (`ProfileForFile`) — C017, S002, S003,
