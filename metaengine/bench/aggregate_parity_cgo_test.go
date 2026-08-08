@@ -387,7 +387,6 @@ func TestAggregateParity_PlannedTable_DuckDB_vs_SQLite(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	engines := newAggEngines(t)
 
 	plan := metaengine.LayoutPlan{
 		Collection: "items",
@@ -401,15 +400,28 @@ func TestAggregateParity_PlannedTable_DuckDB_vs_SQLite(t *testing.T) {
 		},
 	}
 
-	for _, fx := range engines {
-		lp, ok := fx.eng.(metaengine.LayoutPlanApplier)
-		if !ok {
-			t.Fatalf("%s engine does not implement LayoutPlanApplier", fx.name)
-		}
+	// SQLite: planned via constructor (NewPlannedSQLiteEngine).
+	sqliteEng, db := newPlannedSQLiteEngine(t, []metaengine.LayoutPlan{plan})
 
+	// DuckDB: planned via ApplyLayoutPlan (LayoutPlanApplier).
+	duckEng := newDuckDBEngine(t)
+	if lp, ok := duckEng.(metaengine.LayoutPlanApplier); ok {
 		if err := lp.ApplyLayoutPlan(plan); err != nil {
-			t.Fatalf("%s ApplyLayoutPlan: %v", fx.name, err)
+			t.Fatalf("DuckDB ApplyLayoutPlan: %v", err)
 		}
+	} else {
+		t.Fatal("DuckDB engine does not implement LayoutPlanApplier")
+	}
+
+	t.Cleanup(func() {
+		_ = sqliteEng.Close()
+		_ = db.Close()
+		_ = duckEng.Close()
+	})
+
+	engines := []aggEngineFixture{
+		{name: "sqlite", eng: sqliteEng},
+		{name: "duckdb", eng: duckEng},
 	}
 
 	for _, fx := range engines {
