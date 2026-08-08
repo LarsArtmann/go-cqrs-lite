@@ -159,11 +159,10 @@ and is **never** duplicated here.
 ## Layer Enforcement
 
 - [x] **Delete stale FOUR-TIER-MODEL.d2/.svg artifacts** — ✓ Aug 2026 (M3)
-- [ ] **Add intra-module architecture config for `cmd/cqrs-lint`** — 16
-      production sub-packages (`pkg/analyzer`, `pkg/rules`, etc.) with no
-      intra-module architecture enforcement. Only `storage/` and `catalog/`
-      have meaningful multi-package configs today.
-      _(Effort: M)_
+- [x] **Add intra-module architecture config for `cmd/cqrs-lint`** — ✓ Aug 2026
+      Added `.go-arch-lint.yml` with 5-layer model covering all 18 packages:
+      L0 leaves (analyzer/fix/ruletest/suppression) → L1 lintutil → L2 rule
+      categories → L3 rules root → L4 main. Enforced via `scripts/check-arch.sh`.
 - [ ] **Consider rewriting `check-module-layers.sh` as `cmd/check-layers`** —
       348 lines of bash. A Go program would add testability but the script is
       stable and only runs in CI. Defer until significantly more complex.

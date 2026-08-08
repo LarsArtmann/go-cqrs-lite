@@ -1,0 +1,132 @@
+# go-arch-lint configuration for cmd/cqrs-lint (intra-module rules)
+#
+# Run via: scripts/check-arch.sh (from the cmd/cqrs-lint/ directory)
+# Enforces package-level dependency rules WITHIN the cmd/cqrs-lint module.
+# Cross-module rules are enforced by scripts/check-module-layers.sh.
+#
+# Layer model (higher layers may depend on lower layers only):
+#   Layer 0: analyzer, fix, ruletest, suppression    (leaf packages, no internal deps)
+#   Layer 1: lintutil                                 (shared rule helpers → analyzer)
+#   Layer 2: rule categories                          (→ analyzer, lintutil)
+#   Layer 3: rules root                               (→ analyzer + all rule categories)
+#   Layer 4: core (main)                              (→ analyzer, fix, rules, suppression)
+
+version: 3
+
+allow:
+  depOnAnyVendor: true
+
+excludeFiles:
+  - "^.*_test\\.go$"
+  - "^.*testdata/.*$"
+
+components:
+  core: { in: . }
+  analyzer: { in: pkg/analyzer }
+  fix: { in: pkg/fix }
+  ruletest: { in: pkg/ruletest }
+  suppression: { in: pkg/suppression }
+  rules: { in: pkg/rules }
+  lintutil: { in: pkg/rules/lintutil }
+  adoption: { in: pkg/rules/adoption }
+  api: { in: pkg/rules/api }
+  architecture: { in: pkg/rules/architecture }
+  boilerplate: { in: pkg/rules/boilerplate }
+  consistency: { in: pkg/rules/consistency }
+  correctness: { in: pkg/rules/correctness }
+  performance: { in: pkg/rules/performance }
+  resilience: { in: pkg/rules/resilience }
+  security: { in: pkg/rules/security }
+  testrules: { in: pkg/rules/testrules }
+  version: { in: pkg/rules/version }
+
+deps:
+  # Layer 0 — leaf packages (no internal dependencies)
+  analyzer:
+    anyProjectDeps: false
+    anyVendorDeps: true
+  fix:
+    anyProjectDeps: false
+    anyVendorDeps: true
+  ruletest:
+    anyProjectDeps: false
+    anyVendorDeps: true
+  suppression:
+    anyProjectDeps: false
+    anyVendorDeps: true
+
+  # Layer 1 — shared rule helpers
+  lintutil:
+    mayDependOn:
+      - analyzer
+
+  # Layer 2 — rule category packages
+  adoption:
+    mayDependOn:
+      - analyzer
+      - lintutil
+  api:
+    mayDependOn:
+      - analyzer
+      - lintutil
+  architecture:
+    mayDependOn:
+      - analyzer
+      - lintutil
+  boilerplate:
+    mayDependOn:
+      - analyzer
+      - lintutil
+  consistency:
+    mayDependOn:
+      - analyzer
+      - lintutil
+  correctness:
+    mayDependOn:
+      - analyzer
+      - lintutil
+  performance:
+    mayDependOn:
+      - analyzer
+      - lintutil
+  resilience:
+    mayDependOn:
+      - analyzer
+      - lintutil
+  security:
+    mayDependOn:
+      - analyzer
+      - lintutil
+  testrules:
+    mayDependOn:
+      - analyzer
+      - lintutil
+  version:
+    mayDependOn:
+      - analyzer
+      - lintutil
+
+  # Layer 3 — rules root (registers all detectors)
+  rules:
+    mayDependOn:
+      - analyzer
+      - lintutil
+      - adoption
+      - api
+      - architecture
+      - boilerplate
+      - consistency
+      - correctness
+      - performance
+      - resilience
+      - security
+      - testrules
+      - version
+
+  # Layer 4 — main package (composition root)
+  core:
+    mayDependOn:
+      - analyzer
+      - fix
+      - rules
+      - suppression
