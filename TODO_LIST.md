@@ -1,7 +1,7 @@
 # TODO List
 
-**Updated:** 2026-08-08 (event/v4.4.0 bump across 44 go.mod files,
-storage tag drift fix, release-hygiene stale-item cleanup)
+**Updated:** 2026-08-08 (layer enforcement cleanup: FOUR-TIER→SEVEN-TIER rename,
+dead exception removed, split-brain on metaengine tier discovered)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -252,7 +252,42 @@ and is **never** duplicated here.
 > files, 78 modules in `go.work`. Model doc renamed to `SEVEN-TIER-MODEL.md`
 > with accurate counts (78 modules). Dead `EXCEPTIONS[storage]="listing"`
 > removed (storage L5 → listing L3 is a downward dep, no violation).
+> ⚠️ **Split-brain discovered: metaengine tier** — see first item below.
+>
+> _(Source: `docs/status/2026-08-08_08-23_layer-enforcement-cleanup-status.md`)_
 
+### 🔥 Split-brain fixes (introduced this session)
+
+- [ ] 🔥 **Decide metaengine tier: 0 or 3? Reconcile ALL references.** The
+      enforcement script says `LAYER[metaengine]=0` (Tier 0). ADR-0046
+      amendment (lines 305–350) reclassifies it to Tier 3 because it depends
+      on `record/` (ADR-0111). The script was never updated. This session
+      changed AGENTS.md + ADR-0046 line 254 to say Tier 0, but left ADR-0046
+      lines 59, 151 (mermaid), and 305–350 saying Tier 3 — making the
+      inconsistency worse. Fix: pick one tier, update script + ADR + all docs.
+- [ ] 🔥 **Fix "44 of 78" → "48 of 78"** in `SEVEN-TIER-MODEL.md` (line ~253).
+      The codec dependency count was updated from 68→78 (denominator) but not
+      44→48 (numerator). Verified: `grep -rl 'go-cqrs-lite/codec' --include='go.mod'
+      . | grep -v codec/ | wc -l` = 48.
+- [ ] **Fix stale module counts in ADR-0046** — 3 locations still say "68
+      modules" / "69 go.mod files" / "44 of 68": lines 18, 42, 247. Should be
+      78 / 79 / 48 of 78.
+- [ ] **Update ADR-0046 tier count table** (lines 32–40) — all per-tier counts
+      are stale: Tier 0 says 7 (should be 9), Tier 4 says 23 (should be 27),
+      Tier 6 says 13 (should be 15), etc.
+- [ ] **Update ADR-0046 mermaid diagram** — missing 10+ modules (`record/`,
+      `storage/bbolt/`, `metaengine/sqliteengine/`, `metaengine/badgerengine/`,
+      `metaengine/dgraphengine/`, `metaengine/graphadapter/`, etc.). Subgraph
+      labels have wrong counts.
+- [ ] **Run `nix fmt`** on all files changed this session.
+- [ ] **Run full `check-arch.sh`** (both layers, not just Layer 1).
+
+### Backlog
+
+- [ ] **Audit remaining 10 EXCEPTIONS entries for dead rules** — only
+      `EXCEPTIONS[storage]` was checked and removed. The other 10 entries
+      (event, schema, snapshot, decider, query, command, listing,
+      projectionhost, transport/http, metaengine) were not verified.
 - [ ] **Add go-arch-lint config for `cmd/cqrs-lint`** — it has 16 production
       sub-packages (pkg/analyzer, pkg/rules, etc.) but no intra-module
       architecture config. The other 72 modules are single-package or have

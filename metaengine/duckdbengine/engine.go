@@ -215,11 +215,18 @@ func (e *duckdbEngine) HealthCheck(ctx context.Context) error {
 
 // --- MapBackend ---
 
-func (e *duckdbEngine) MapSet(ctx context.Context, col string, key any, value any) error {
+// lookupPlan returns the layout plan for a collection under a read lock.
+func (e *duckdbEngine) lookupPlan(collection string) (metaengine.LayoutPlan, bool) {
 	e.layoutMu.RLock()
-	plan, hasPlan := e.plans[col]
-	e.layoutMu.RUnlock()
-	if hasPlan {
+	defer e.layoutMu.RUnlock()
+
+	plan, ok := e.plans[collection]
+
+	return plan, ok
+}
+
+func (e *duckdbEngine) MapSet(ctx context.Context, col string, key any, value any) error {
+	if plan, ok := e.lookupPlan(col); ok {
 		return e.mapSetPlanned(ctx, plan, key, value)
 	}
 
@@ -243,10 +250,7 @@ func (e *duckdbEngine) MapSet(ctx context.Context, col string, key any, value an
 }
 
 func (e *duckdbEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
-	e.layoutMu.RLock()
-	plan, hasPlan := e.plans[col]
-	e.layoutMu.RUnlock()
-	if hasPlan {
+	if plan, ok := e.lookupPlan(col); ok {
 		return e.mapGetPlanned(ctx, plan, key)
 	}
 
@@ -274,10 +278,7 @@ func (e *duckdbEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 }
 
 func (e *duckdbEngine) MapDelete(ctx context.Context, col string, key any) error {
-	e.layoutMu.RLock()
-	plan, hasPlan := e.plans[col]
-	e.layoutMu.RUnlock()
-	if hasPlan {
+	if plan, ok := e.lookupPlan(col); ok {
 		return e.mapDeletePlanned(ctx, plan, key)
 	}
 
