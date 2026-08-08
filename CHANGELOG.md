@@ -8,6 +8,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### cqrs-lint false-positive fixes, type-awareness, and regression tests
+
+- **C008 word-boundary fix** — weak money fields (`total`, `value`, `charge`,
+  `payment`, `salary`) now use exact match (`slices.Contains`) instead of
+  substring matching (`strings.Contains`). Fields like `TotalDays`, `TotalCount`,
+  `TotalUsers` no longer match `total` and fire as false-positive money fields.
+  Strong fields (`amount`, `price`, `cost`, `balance`, `fee`) keep substring
+  matching. Two regression tests added: `TestC008_NoFindingForTotalDaysWordBoundary`
+  (6 fields, 0 findings) and `TestC008_ExactWeakFieldInMonetaryStruct` (exact
+  `Total` in `Wallet` struct still fires).
+  _(Committed as `e40082c8c`.)_
+- **C023 type-awareness for void-return lifecycle methods** — added
+  `callReturnsError(gf, call)` that checks `TypesInfo.Types[call]` to verify the
+  call expression returns a type implementing `error`. Prevents false positives
+  on methods like dgo client's `Close()` that return void. Graceful degradation:
+  when `TypesInfo` is unavailable (empty maps in test contexts via
+  `BuildContextFromSource`), returns `true` to preserve backward-compatible
+  AST-only behavior.
+  _(File: `cmd/cqrs-lint/pkg/rules/correctness/c023.go`)_
+- **C001 BeginTx read-only generalization** — `isReadOnlyBegin()` now detects
+  `database/sql`'s `db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})` pattern in
+  addition to bbolt's `db.Begin(false)`. `findBeginTxVar()` applies the read-only
+  check to both `Begin` and `BeginTx`. New `hasReadOnlyTrue()` helper handles
+  `&TxOptions{...}` and `TxOptions{...}` (address-of or direct composite literal).
+  Regression test `TestC001_ReadOnlyBeginTx_NoFinding` added.
+  _(File: `cmd/cqrs-lint/pkg/rules/correctness/tx_helpers.go`)_
+- **D007 auto-fix end-to-end test** — `TestCQRSFixProvider_D007_AutoFixTransformation`
+  constructs a D007 finding exactly as the detector emits it
+  (`FixStrategyDirect`, `BeforeCode: "event.NewEvent("`, `AfterCode: "event.New("`),
+  runs the fix provider against a realistic 7-line Go file, and asserts both
+  that `event.New(` appears and `event.NewEvent(` is gone from the result.
+  _(File: `cmd/cqrs-lint/pkg/fix/provider_test.go`)_
+- **SARIF logicalLocations dedicated test** —
+  `TestRenderSARIF_LogicalLocationsPopulated` verifies: `run.logicalLocations[]`
+  populated with 4 entries (2 used + 2 missing modules), every entry has
+  `kind: "module"`, all expected modules appear by `fullyQualifiedName`, and
+  result-to-logicalLocation index references are valid and consistent.
+  _(File: `cmd/cqrs-lint/scorecard_render_test.go`)_
+
 #### System integration tests — real-engine lifecycle verification
 
 - **`TestIntegration_SQLiteSource_MemoryProjection_HealthCheck`** — two-engine

@@ -1,8 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-08 (session 4: system integration tests shipped — SQLite+Memory
-multi-engine, Pebble source-of-truth, Watermill GracefulClose drainer; all 3
-prior-session blocking items verified resolved; coverage 73.2%)
+
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -232,34 +230,9 @@ and is **never** duplicated here.
 
 ## cqrs-lint
 
-> 192 rules across 10 categories. v4.4.0 tagged. Self-lint clean (0 CRITICAL,
-> 0 ERROR). C001/D012/C008 false-positive fixes shipped. SARIF logicalLocations,
-> A034 per-module migration, cross-format consistency tests all shipped.
 
-- [ ] 🔥 **Run cqrs-lint against real consumer projects** — validate
-      false-positive rates against Kernovia, Standup-Killer, bank-sync,
-      cqrs-htmx, DiscordSync, timesheets, crush-daily, KeyHolderAI. This is the
-      single highest-value non-coding task for cqrs-lint trustworthiness.
-- [ ] 🔥 **C023 false positive on void-return `Close()`** — `dgo` client's
-      `Close()` returns void but C023 flags it. Needs type-awareness: check call
-      expression returns an error before flagging. Requires `TypesInfo`.
-- [ ] **C008 word-boundary matching** — `TotalDays` matches `total`; add
-      word-boundary regex to prevent substring false positives.
-- [ ] **D007 auto-fix test** — `--fix` path (replaces `event.NewEvent` →
-      `event.New`) is untested.
-- [ ] **Generalize C001 `Begin(false)` check** — currently bbolt-specific; other
-      DBs may use different read-only patterns.
-- [ ] **Dedicated SARIF logicalLocations test** — verify array is populated,
-      index mapping is correct, `kind` is `"module"`.
-- [ ] **~80 C033 bare `return err` findings** — across `metaengine/*engine/`
-      and `benchkit/`. All INFO-level. Needs bulk-fix vs suppress decision.
-- [ ] **~15 D014 missing json tags** findings.
-- [ ] **~8 C034 `go func()` without context** findings.
-- [ ] **~6 P012/P013 SQLite without WAL/busy_timeout** findings.
-- [ ] **~8 A032 string/int fields instead of branded ID** findings.
-- [ ] **Deferred P-series rules** — `metaengine.Query` without type parameter,
-      `MapUpdate` on replicated engine, Store never Closed, `metaengine.On`
-      wrong handler signature. Each needs advanced type inference.
+
+
 - [ ] **~14 remaining Pareto backlog items** — see the
       [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
 - [ ] **Tag cqrs-lint v4.5.0** — with all false-positive fixes + regression
