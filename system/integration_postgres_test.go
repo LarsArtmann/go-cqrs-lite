@@ -21,7 +21,7 @@ func init() {
 	system.RegisterDriver(
 		"postgres",
 		func(_ context.Context, cfg system.EngineConfig) (metaengine.Engine, error) {
-			return pgengine.New(cfg.DSN)
+			return pgengine.New(cfg.DSN) //nolint:contextcheck // constructor doesn't take ctx
 		},
 	)
 }

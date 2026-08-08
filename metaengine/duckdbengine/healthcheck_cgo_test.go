@@ -13,11 +13,7 @@ import (
 func TestDuckDBHealthCheck_Healthy(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDuckEngine(t)
 
 	hc, ok := eng.(metaengine.HealthChecker)
 	if !ok {

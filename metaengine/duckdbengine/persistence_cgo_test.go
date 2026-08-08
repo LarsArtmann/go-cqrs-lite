@@ -13,11 +13,7 @@ import (
 func TestDuckDBPersistence_InMemoryIsVolatile(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDuckEngine(t)
 
 	if !eng.Profile().IsVolatile() {
 		t.Error("in-memory DuckDB engine (dsn=\"\") should be volatile")

@@ -15,11 +15,7 @@ import (
 func TestDuckDBEngine_ApplyLayout(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDuckEngine(t)
 
 	lp, ok := eng.(metaengine.LayoutPlanner)
 	if !ok {
@@ -63,11 +59,7 @@ func TestDuckDBEngine_ApplyLayout(t *testing.T) {
 func TestDuckDBEngine_ApplyLayoutConflict(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDuckEngine(t)
 
 	lp, ok := eng.(metaengine.LayoutPlanner)
 	if !ok {
@@ -79,7 +71,7 @@ func TestDuckDBEngine_ApplyLayoutConflict(t *testing.T) {
 	}
 
 	// Different columns on same collection → ErrLayoutConflict.
-	err = lp.ApplyLayout("conflict", []string{"Name"}, nil)
+	err := lp.ApplyLayout("conflict", []string{"Name"}, nil)
 	if err == nil {
 		t.Fatal("expected ErrLayoutConflict, got nil")
 	}
@@ -88,11 +80,7 @@ func TestDuckDBEngine_ApplyLayoutConflict(t *testing.T) {
 func TestDuckDBEngine_LayoutMapSetGet(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDuckEngine(t)
 
 	ctx := context.Background()
 
@@ -142,11 +130,7 @@ func TestDuckDBEngine_LayoutMapSetGet(t *testing.T) {
 func TestDuckDBEngine_LayoutMapDelete(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDuckEngine(t)
 
 	ctx := context.Background()
 
@@ -186,11 +170,7 @@ func TestDuckDBEngine_LayoutMapDelete(t *testing.T) {
 func TestDuckDBEngine_LayoutPushdownFilterSortLimit(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDuckEngine(t)
 
 	ctx := context.Background()
 
@@ -247,11 +227,7 @@ func TestDuckDBEngine_LayoutPushdownFilterSortLimit(t *testing.T) {
 func TestDuckDBEngine_LayoutPushdownCursor(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDuckEngine(t)
 
 	ctx := context.Background()
 
@@ -311,11 +287,7 @@ func TestDuckDBEngine_LayoutPushdownCursor(t *testing.T) {
 func TestDuckDBEngine_LayoutPushdownFilterIn(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDuckEngine(t)
 
 	ctx := context.Background()
 
@@ -369,11 +341,7 @@ func TestDuckDBEngine_LayoutPushdownFilterIn(t *testing.T) {
 func TestDuckDBEngine_LayoutMetaenginePlan(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDuckEngine(t)
 
 	// Verify that Plan auto-calls ApplyLayout when the engine implements
 	// LayoutPlanner and the query uses FilterOnField/SortOnField.

@@ -6,7 +6,6 @@ import (
 	"context"
 	"testing"
 
-	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
@@ -48,11 +47,7 @@ func seedDuckDBProducts(t *testing.T, eng metaengine.Engine, col string) {
 func newDuckDBPushdown(t *testing.T) metaengine.Engine {
 	t.Helper()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
-	t.Cleanup(func() { _ = eng.Close() })
+	eng := mustNewDuckEngine(t)
 
 	return eng
 }

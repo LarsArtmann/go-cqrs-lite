@@ -7,7 +7,6 @@ import (
 	"sync"
 	"testing"
 
-	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -23,11 +22,7 @@ import (
 // ExplainAggregateQuery and MapSet simultaneously, proving the RWMutex
 // eliminates the race. Run with: go test -race -run TestDuckDB_RaceRegression.
 func TestDuckDB_RaceRegression_LayoutPlanConcurrentAccess(t *testing.T) {
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDuckEngine(t)
 
 	ctx := context.Background()
 	lp, ok := eng.(metaengine.LayoutPlanApplier)

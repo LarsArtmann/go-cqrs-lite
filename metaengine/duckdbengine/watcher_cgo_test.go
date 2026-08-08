@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
@@ -30,11 +29,7 @@ type watcherTask struct {
 func TestDuckDBWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDuckEngine(t)
 
 	q := metaengine.Query[watcherTask, watcherTask](
 		"duckdb_watcher_tasks",
@@ -98,11 +93,7 @@ func TestDuckDBWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 func TestDuckDBWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 	t.Parallel()
 
-	eng, err := duckdbengine.New("")
-	if err != nil {
-		t.Skipf("DuckDB not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDuckEngine(t)
 
 	enginetest.RunWatcherReplayTest[watcherTask](
 		t, eng,

@@ -22,7 +22,7 @@ func init() {
 	system.RegisterDriver(
 		"duckdb",
 		func(_ context.Context, cfg system.EngineConfig) (metaengine.Engine, error) {
-			return duckdbengine.New(cfg.DSN)
+			return duckdbengine.New(cfg.DSN) //nolint:contextcheck // constructor doesn't take ctx
 		},
 	)
 }
