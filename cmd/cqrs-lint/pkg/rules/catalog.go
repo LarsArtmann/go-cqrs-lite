@@ -431,6 +431,24 @@ func correctnessRules() []RuleInfo {
 			Description: "Fold switch case handles an event type that is never emitted via event.New — dead code or a typo in the fold case string",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C041",
+			Name:        "save-ignores-expected-version",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Custom Save method does not reference expectedVersion — optimistic concurrency control not enforced",
+			AutoFix:     false,
+		},
+		{
+			ID:          "C042",
+			Name:        "save-with-zero-version",
+			Category:    "correctness",
+			Severity:    "info",
+			Confidence:  "low",
+			Description: "Save called with expectedVersion=0 — optimistic concurrency bypassed for this write",
+			AutoFix:     false,
+		},
 	}
 }
 

@@ -46,6 +46,21 @@ and is **never** duplicated here.
       functions with stale `sql.Open` code. Delete.
       _(Effort: S)_
       _(Source: `docs/status/2026-08-07_22-24_metaengine-v2-publishability-hardening.md`)_
+- [ ] 🔥 **Fix `querytest.RunStoreSuite` / `querytest.StoreSuite` undefined** —
+      `storage/pebble/query_store_test.go:36` and
+      `storage/bbolt/query_store_test.go:12` reference symbols that don't exist
+      in `query/querytest`. ALL tests in both storage backend modules fail to
+      build. May be in-progress refactor or accidental deletion.
+      _(Effort: M)_
+      _(Source: `docs/status/2026-08-08_21-29_deferClose-exceptions-cleanup-session.md`)_
+- [ ] 🔥 **Fix `b029.go` / `b030.go` / `b031.go` compiler errors** —
+      `cmd/cqrs-lint/pkg/rules/resilience/b029.go:91-96` uses `finding.Finding`
+      fields that don't exist (`RuleID`, `Title`, `Summary`) and assigns a
+      string to `Confidence` (now a typed value). Entire resilience package
+      fails to compile, breaking `cqrs-lint`. May be in-progress struct
+      migration.
+      _(Effort: S)_
+      _(Source: `docs/status/2026-08-08_21-29_deferClose-exceptions-cleanup-session.md`)_
 
 ---
 
@@ -98,28 +113,31 @@ and is **never** duplicated here.
 
 - [ ] **Dgraph engine: test against real Dgraph** — all `t.Skipf("Dgraph not
 available")` paths were taken. DQL queries, JSON mappings, upsert
-      conditions completely unverified. Also: DQL injection risk (manual string
-      interpolation via `dqlString()` — should use `QueryWithVars`), missing
+      conditions completely unverified. DQL injection risk FIXED (all 14 query
+      sites migrated from `dqlString()`+`fmt.Sprintf` to `QueryWithVars` with
+      `$variable` placeholders — `dqlString()` deleted). Missing
       MultimapBackend/LogBackend/SnapshotBackend.
       _(Effort: L)_
       _(Source: `docs/status/2026-08-07_00-41_dgraph-metaengine-implementation.md`)_
-- [ ] **Fix stale pebbleengine README** — claims GraphBackend support but
-      pebbleengine does not implement it (removed during GraphBackend cleanup).
-      `metaengine/pebbleengine/README.md:35`.
+- [x] **Fix stale pebbleengine README** — DONE. README was already correct
+      (6 backends, no GraphBackend). Fixed stale GraphBackend claim in
+      `AGENTS.md:84` (pebbleengine module description).
       _(Effort: S)_
-- [ ] **Soak test for record-aware pipeline** — 100K events through
-      `event.AsRecord()` → `projectionadapter.Handle()`. Verify memory growth
-      stays bounded. No data exists beyond correctness assertions.
+- [x] **Soak test for record-aware pipeline** — DONE. Test exists at
+      `metaengine/projectionadapter/soak_test.go` (`TestSoak_RecordPipeline_100K`):
+      100K events through `event.AsRecord()` → `adapter.Handle()` → `ApplyRecord()`.
+      Memory: 0.8 MB heap growth, 951 bytes/event alloc. Correctness verified.
+      Env skip: `SOAK_SKIP_RECORD=1`.
       _(Effort: M)_
-      _(Source: `docs/status/2026-08-07_00-42_metaengine-v2-hardening-execution-status.md`)_
-- [ ] **OTel span attributes from Record** — add `rec.StreamID`, `rec.Version`,
-      `rec.Type` to `projectionadapter.Handle()` spans for traceability.
+- [x] **OTel span attributes from Record** — DONE. `projectionadapter.Handle()`
+      already stamped `event_type`, `stream_id`, `version`. Added
+      `stream_type` attribute for full Record traceability.
       _(Effort: S)_
-- [ ] **Add `LayoutPlanApplier` support to SQLite engine** — SQLite only
-      supports plans at construction time (`NewPlannedSQLiteEngine`); DuckDB
-      supports post-construction registration (`ApplyLayoutPlan`).
+- [x] **Add `LayoutPlanApplier` support to SQLite engine** — DONE.
+      `sqliteengine.ApplyLayoutPlan` already existed (`planned.go:92`).
+      Added compile-time assertion `_ metaengine.LayoutPlanApplier = (*sqliteEngine)(nil)`.
       _(Effort: M)_
-      _(Source: `docs/status/2026-08-08_09-27_metaengine-v2-coverage-gaps-and-aggregate-followup.md`)_
+      _(Source: `docs/status/2026-08-08_09-27_metaengine-v2-coverage-gaps-and-aggregate-followup.md`)
 
 ---
 
@@ -148,28 +166,17 @@ available")` paths were taken. DQL queries, JSON mappings, upsert
       would give each module ownership of its own exclusions. The monolithic
       config is documented but sprawls across 30+ blocks.
       _(Effort: L)_
-- [ ] **Extend `deferClose` to pebble production code** — 12
-      `defer func() { _ = x.Close() }()` sites remain in `adapter.go`,
-      `checkpoint.go`, `command_read.go`, `command_store.go`, `helpers.go`,
-      `iteration.go`, `journal.go`, `query_read.go`, `save.go`. Requires
-      promoting the helper to production code or creating shared
-      `storage/internal/closeutil`.
-      _(Effort: M)_
-- [ ] **Deduplicate `deferClose` helper** — duplicated 3x across
-      `storage/pebble/defer_close_test.go`, `defer_close_ext_test.go`,
-      `storage/bbolt/defer_close_test.go`. Consolidate or accept the per-module
-      idiom.
+- [ ] **Add per-entry rationale comments to EXCEPTIONS** — the remaining 7
+      entries in `scripts/check-module-layers.sh` have only a generic header
+      comment. Each entry should explain WHY the exception is legitimate.
       _(Effort: S)_
-- [ ] **Update `event/event_metadata_test.go:82` doc comment** — calls
-      `event.EnsureCustom(&m)` but doc comment was not updated to match the
-      backward-compat intent pattern used in `event/customdata_test.go`.
+      _(Source: `docs/status/2026-08-08_21-29_deferClose-exceptions-cleanup-session.md`)_
+- [ ] **Add `TestExceptionsAreMinimal` meta-test** — automate dead-exception
+      detection: remove EXCEPTIONS entries where `dep_layer <= mod_layer`
+      (same/lower-layer deps don't trigger violations). Prevents the
+      `schema→snapshot` and `transport/http→testutil` class of stale entries.
       _(Effort: S)_
-- [ ] **Audit remaining `EXCEPTIONS` entries** — only
-      `EXCEPTIONS[storage]` was checked and removed. The other ~10 entries
-      (event, schema, snapshot, decider, query, command, listing,
-      projectionhost, transport/http, metaengine) were not verified for dead
-      rules. See `scripts/check-module-layers.sh`.
-      _(Effort: M)_
+      _(Source: `docs/status/2026-08-08_21-29_deferClose-exceptions-cleanup-session.md`)_
 
 ---
 

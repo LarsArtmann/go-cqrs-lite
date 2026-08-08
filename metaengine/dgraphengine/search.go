@@ -22,9 +22,10 @@ func (e *dgraphEngine) SearchInsert(
 	doc metaengine.IndexedText,
 ) error {
 	req := &api.Request{CommitNow: true}
-	req.Query = fmt.Sprintf(`{
-		doc as var(func: eq(cqrs.search_collection, %s)) @filter(eq(cqrs.search_id, %s))
-	}`, dqlString(col), dqlString(doc.ID))
+	req.Query = `query doc($col: string, $id: string) {
+		doc as var(func: eq(cqrs.search_collection, $col)) @filter(eq(cqrs.search_id, $id))
+	}`
+	req.Vars = map[string]string{"$col": col, "$id": doc.ID}
 
 	createJSON, _ := json.Marshal(map[string]any{
 		"uid":                    "_:new",
@@ -61,13 +62,13 @@ func (e *dgraphEngine) SearchQuery(
 		firstClause = fmt.Sprintf(", first: %d", limit)
 	}
 
-	q := fmt.Sprintf(`{
-		docs(func: anyofterms(cqrs.search_content, %s)%s) @filter(eq(cqrs.search_collection, %s)) {
+	q := fmt.Sprintf(`query docs($col: string, $query: string) {
+		docs(func: anyofterms(cqrs.search_content, $query)%s) @filter(eq(cqrs.search_collection, $col)) {
 			cqrs.search_id
 		}
-	}`, dqlString(query), firstClause, dqlString(collection))
+	}`, firstClause)
 
-	resp, err := e.client.NewReadOnlyTxn().Query(ctx, q)
+	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, q, map[string]string{"$col": collection, "$query": query})
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.SearchQuery: %w", err)
 	}

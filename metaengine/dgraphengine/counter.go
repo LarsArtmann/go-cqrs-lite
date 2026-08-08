@@ -40,14 +40,14 @@ func (e *dgraphEngine) counterIncrementOne(
 	txn := e.client.NewTxn()
 	defer func() { _ = txn.Discard(ctx) }()
 
-	q := fmt.Sprintf(`{
-		counter(func: eq(cqrs.counter_collection, %s)) @filter(eq(cqrs.counter_key, %s)) {
+	q := `query counter($col: string, $key: string) {
+		counter(func: eq(cqrs.counter_collection, $col)) @filter(eq(cqrs.counter_key, $key)) {
 			uid
 			cqrs.counter_value
 		}
-	}`, dqlString(col), dqlString(key))
+	}`
 
-	resp, err := txn.Query(ctx, q)
+	resp, err := txn.QueryWithVars(ctx, q, map[string]string{"$col": col, "$key": key})
 	if err != nil {
 		return fmt.Errorf("dgraphengine.CounterIncrement: query: %w", err)
 	}
@@ -91,14 +91,14 @@ func (e *dgraphEngine) counterIncrementOne(
 }
 
 func (e *dgraphEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
-	q := fmt.Sprintf(`{
-		counter(func: eq(cqrs.counter_collection, %s)) {
+	q := `query counter($col: string) {
+		counter(func: eq(cqrs.counter_collection, $col)) {
 			cqrs.counter_key
 			cqrs.counter_value
 		}
-	}`, dqlString(col))
+	}`
 
-	resp, err := e.client.NewReadOnlyTxn().Query(ctx, q)
+	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, q, map[string]string{"$col": col})
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.CounterGet: %w", err)
 	}

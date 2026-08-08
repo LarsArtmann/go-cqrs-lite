@@ -15,6 +15,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/consistency"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/correctness"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/performance"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/resilience"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/security"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/testrules"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/version"
@@ -148,6 +149,8 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		consistency.NewD015Detector(ctx),
 		consistency.NewD016Detector(ctx),
 		consistency.NewD017Detector(ctx),
+		consistency.NewD018Detector(ctx),
+		consistency.NewD019Detector(ctx),
 		// Architecture (E001-E007 always apply — structural issues are real for any code)
 		architecture.NewE001Detector(ctx),
 		architecture.NewE002Detector(ctx),
@@ -181,6 +184,8 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		correctness.NewC038Detector(ctx),
 		correctness.NewC039Detector(ctx),
 		correctness.NewC040Detector(ctx),
+		correctness.NewC041Detector(ctx),
+		correctness.NewC042Detector(ctx),
 		// Testing
 		testrules.NewT001Detector(ctx),
 		testrules.NewT002Detector(ctx),
@@ -238,6 +243,14 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 			adoption.NewF024Detector(ctx),
 			adoption.NewF025Detector(ctx),
 			adoption.NewF026Detector(ctx),
+			// Resilience (consumer-coaching)
+			resilience.NewB029Detector(ctx),
+			resilience.NewB030Detector(ctx),
+			resilience.NewB031Detector(ctx),
+			// Observability adoption
+			adoption.NewF027Detector(ctx),
+			adoption.NewF028Detector(ctx),
+			adoption.NewF029Detector(ctx),
 		)
 	}
 

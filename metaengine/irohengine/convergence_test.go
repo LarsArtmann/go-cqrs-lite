@@ -59,11 +59,17 @@ func TestLWWResolution(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctx := context.Background()
 
-	nodeA, nodeB := newTwoNodeCluster(t)
+	clock := newManualClock(time.Unix(1_000_000, 0))
+	nodeA, nodeB := newTwoNodeClusterWithClock(t, clock)
 
 	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "users", "u1", "Alice-old")).
 		To(gomega.Succeed())
-	time.Sleep(10 * time.Millisecond)
+
+	// Deterministic timestamp advance — no time.Sleep needed.
+	// Both nodes share the same clock, so node B's write gets a strictly
+	// later timestamp, guaranteeing LWW resolution.
+	clock.Advance(time.Second)
+
 	g.Expect(nodeB.(metaengine.MapBackend).MapSet(ctx, "users", "u1", "Bob-new")).
 		To(gomega.Succeed())
 
@@ -159,19 +165,21 @@ func TestMapDeleteLWWConvergence(t *testing.T) {
 	g := gomega.NewWithT(t)
 	ctx := context.Background()
 
-	nodeA, nodeB := newTwoNodeCluster(t)
+	clock := newManualClock(time.Unix(1_000_000, 0))
+	nodeA, nodeB := newTwoNodeClusterWithClock(t, clock)
 
 	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "users", "u1", "Alice")).
 		To(gomega.Succeed())
-	time.Sleep(20 * time.Millisecond)
 
 	valB, found, err := nodeB.(metaengine.MapBackend).MapGet(ctx, "users", "u1")
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(found).To(gomega.BeTrue())
 	g.Expect(valB).To(gomega.Equal("Alice"))
 
+	// Deterministic: delete gets a strictly later timestamp than the set,
+	// so the delete wins LWW on node A — no time.Sleep needed.
+	clock.Advance(time.Second)
 	g.Expect(nodeB.(metaengine.MapBackend).MapDelete(ctx, "users", "u1")).To(gomega.Succeed())
-	time.Sleep(20 * time.Millisecond)
 
 	_, foundA, err := nodeA.(metaengine.MapBackend).MapGet(ctx, "users", "u1")
 	g.Expect(err).NotTo(gomega.HaveOccurred())

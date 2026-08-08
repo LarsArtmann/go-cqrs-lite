@@ -33,10 +33,11 @@ func (e *dgraphEngine) GraphAddEdge(
 
 	// Step 1: Upsert both nodes (create if they don't exist).
 	req := &api.Request{CommitNow: true}
-	req.Query = fmt.Sprintf(`{
-		from_node as var(func: eq(cqrs.node_collection, %s)) @filter(eq(cqrs.node_id, %s))
-		to_node as var(func: eq(cqrs.node_collection, %s)) @filter(eq(cqrs.node_id, %s))
-	}`, dqlString(collection), dqlString(fromStr), dqlString(collection), dqlString(toStr))
+	req.Query = `query nodes($col: string, $from: string, $to: string) {
+		from_node as var(func: eq(cqrs.node_collection, $col)) @filter(eq(cqrs.node_id, $from))
+		to_node as var(func: eq(cqrs.node_collection, $col)) @filter(eq(cqrs.node_id, $to))
+	}`
+	req.Vars = map[string]string{"$col": collection, "$from": fromStr, "$to": toStr}
 
 	fromJSON, _ := json.Marshal(map[string]any{
 		"uid":                  "_:from_new",
@@ -62,10 +63,8 @@ func (e *dgraphEngine) GraphAddEdge(
 
 	// Step 2: Add bidirectional edges (matches memory engine semantics).
 	req2 := &api.Request{CommitNow: true}
-	req2.Query = fmt.Sprintf(`{
-		from_node as var(func: eq(cqrs.node_collection, %s)) @filter(eq(cqrs.node_id, %s))
-		to_node as var(func: eq(cqrs.node_collection, %s)) @filter(eq(cqrs.node_id, %s))
-	}`, dqlString(collection), dqlString(fromStr), dqlString(collection), dqlString(toStr))
+	req2.Query = req.Query
+	req2.Vars = req.Vars
 
 	req2.Mutations = []*api.Mutation{
 		{SetNquads: fmt.Appendf(nil, "uid(from_node) <%s> uid(to_node) .", pred)},
@@ -94,21 +93,21 @@ func (e *dgraphEngine) GraphNeighbors(
 
 	var query string
 	if depth == 1 {
-		query = fmt.Sprintf(`{
-			root(func: eq(cqrs.node_collection, %s)) @filter(eq(cqrs.node_id, %s)) {
+		query = fmt.Sprintf(`query root($col: string, $node: string) {
+			root(func: eq(cqrs.node_collection, $col)) @filter(eq(cqrs.node_id, $node)) {
 				%s { cqrs.node_id }
 			}
-		}`, dqlString(collection), dqlString(nodeStr), pred)
+		}`, pred)
 	} else {
-		query = fmt.Sprintf(`{
-			root(func: eq(cqrs.node_collection, %s)) @filter(eq(cqrs.node_id, %s)) @recurse(depth: %d, loop: false) {
+		query = fmt.Sprintf(`query root($col: string, $node: string) {
+			root(func: eq(cqrs.node_collection, $col)) @filter(eq(cqrs.node_id, $node)) @recurse(depth: %d, loop: false) {
 				cqrs.node_id
 				%s
 			}
-		}`, dqlString(collection), dqlString(nodeStr), depth, pred)
+		}`, depth, pred)
 	}
 
-	resp, err := e.client.NewReadOnlyTxn().Query(ctx, query)
+	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, query, map[string]string{"$col": collection, "$node": nodeStr})
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.GraphNeighbors: %w", err)
 	}

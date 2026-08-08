@@ -181,9 +181,10 @@ func (e *dgraphEngine) MapSet(ctx context.Context, col string, key any, value an
 	valueStr := string(data)
 
 	req := &api.Request{CommitNow: true}
-	req.Query = fmt.Sprintf(`{
-		entry as var(func: eq(cqrs.map_collection, %s)) @filter(eq(cqrs.map_key, %s))
-	}`, dqlString(col), dqlString(keyStr))
+	req.Query = `query entry($col: string, $key: string) {
+		entry as var(func: eq(cqrs.map_collection, $col)) @filter(eq(cqrs.map_key, $key))
+	}`
+	req.Vars = map[string]string{"$col": col, "$key": keyStr}
 
 	createJSON, _ := json.Marshal(map[string]any{
 		"uid":                 "_:new",
@@ -213,13 +214,13 @@ func (e *dgraphEngine) MapSet(ctx context.Context, col string, key any, value an
 func (e *dgraphEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
 	keyStr := fmt.Sprint(key) //art-dupl:accept dgraph key formatting idiom
 
-	q := fmt.Sprintf(`{
-		entry(func: eq(cqrs.map_collection, %s)) @filter(eq(cqrs.map_key, %s)) {
+	q := `query entry($col: string, $key: string) {
+		entry(func: eq(cqrs.map_collection, $col)) @filter(eq(cqrs.map_key, $key)) {
 			cqrs.map_value
 		}
-	}`, dqlString(col), dqlString(keyStr))
+	}`
 
-	resp, err := e.client.NewReadOnlyTxn().Query(ctx, q)
+	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, q, map[string]string{"$col": col, "$key": keyStr})
 	if err != nil {
 		return nil, false, fmt.Errorf("dgraphengine.MapGet: %w", err)
 	}
@@ -251,9 +252,10 @@ func (e *dgraphEngine) MapDelete(ctx context.Context, col string, key any) error
 	keyStr := fmt.Sprint(key) //art-dupl:accept dgraph key formatting idiom
 
 	req := &api.Request{CommitNow: true}
-	req.Query = fmt.Sprintf(`{
-		entry as var(func: eq(cqrs.map_collection, %s)) @filter(eq(cqrs.map_key, %s))
-	}`, dqlString(col), dqlString(keyStr))
+	req.Query = `query entry($col: string, $key: string) {
+		entry as var(func: eq(cqrs.map_collection, $col)) @filter(eq(cqrs.map_key, $key))
+	}`
+	req.Vars = map[string]string{"$col": col, "$key": keyStr}
 
 	deleteJSON, _ := json.Marshal(map[string]any{
 		"uid": "uid(entry)",
@@ -271,33 +273,6 @@ func (e *dgraphEngine) MapDelete(ctx context.Context, col string, key any) error
 }
 
 // --- Helpers ---
-
-// dqlString escapes a Go string into a DQL string literal (double-quoted).
-func dqlString(s string) string {
-	var b strings.Builder
-	b.WriteByte('"')
-
-	for _, r := range s {
-		switch r {
-		case '"':
-			b.WriteString(`\"`)
-		case '\\':
-			b.WriteString(`\\`)
-		case '\n':
-			b.WriteString(`\n`)
-		case '\r':
-			b.WriteString(`\r`)
-		case '\t':
-			b.WriteString(`\t`)
-		default:
-			b.WriteRune(r)
-		}
-	}
-
-	b.WriteByte('"')
-
-	return b.String()
-}
 
 // sanitizePredicate builds a safe Dgraph predicate name from components.
 func sanitizePredicate(parts ...string) string {
