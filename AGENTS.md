@@ -144,7 +144,7 @@ go-cqrs-lite/
 ├── cmd/doc-check/       # Doc checker: verifies Go import paths + qualified symbols in markdown files
 ├── benchkit/            # Factory-driven benchmarking suite: Run/Compare, latency percentiles, throughput, memory (mirrors contracttest pattern)
 ├── integration/         # Cross-module tests (command, event, query, signing, encryption)
-├── system/              # Deployer-driven composition root: DomainConfig (consumer) + DeploymentConfig (operator). Driver registry (database/sql model), SQLite + Memory engines, auto-wired projections, scream store safety checks, MultiBus fan-out, introspection. Replaces stack.Bundle with deployer-picks-infrastructure model (D6, D9, D11)
+├── system/              # Deployer-driven composition root: DomainConfig (consumer) + DeploymentConfig (operator). Driver registry (database/sql model), SQLite + Memory engines, auto-wired projections, scream store safety checks, MultiBus fan-out, introspection. Lifecycle: Close (error-joined), GracefulClose (drain+close, ctx-bounded), Drain (standalone, rolling deploys), RegisterCloser (external io.Closer), RegisterDrainer. Introspection: Snapshot, Health, HealthCheck, HealthCheckDetailed ([]EngineHealth), Explain (engine names + count), EngineNames, ShutdownOrder, LagPerProjection, LagDuration, WorkerStatus. All 6 engines (SQLite, Pebble, Badger, DuckDB, Postgres, Dgraph) implement HealthChecker. Replaces stack.Bundle with deployer-picks-infrastructure model (D6, D9, D11)
 ├── example/taskmanager/    # Flagship full HTTP service: event sourcing, CQRS, projections, middleware, OTel, signing
 ├── example/getting-started/ # Minimal 80-line example showing the core pipeline
 ├── example/readme-quickstart/ # README-driven quickstart example

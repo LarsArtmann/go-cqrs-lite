@@ -47,7 +47,7 @@ func (e *sqliteEngine) groupedAggregateStandard(
 	args := []any{col}
 
 	grpExpr := fmt.Sprintf("json_extract(value, '%s')", jsonPath(groupBy))
-	aggPart := groupedAggExprSQLite(fn, column, false)
+	aggPart := aggExprSQLite(fn, column, false)
 
 	fmt.Fprintf(&b, `SELECT %s AS group_key, %s AS agg_val FROM meta_map WHERE collection = ?`,
 		grpExpr, aggPart)
@@ -74,7 +74,7 @@ func (e *sqliteEngine) groupedAggregatePlanned(
 	args := []any{}
 
 	grpExpr := metaengine.QuoteIdent(groupBy)
-	aggPart := groupedAggExprSQLite(fn, column, true)
+	aggPart := aggExprSQLite(fn, column, true)
 
 	fmt.Fprintf(&b, "SELECT %s AS group_key, %s AS agg_val FROM %s",
 		grpExpr, aggPart, metaengine.QuoteIdent(plan.Table))
@@ -479,11 +479,6 @@ func aggExprSQLite(fn metaengine.AggregateFn, column string, planned bool) strin
 	}
 
 	return fmt.Sprintf("%s(json_extract(value, '%s'))", fn, jsonPath(column))
-}
-
-// groupedAggExprSQLite builds the aggregate expression for grouped queries.
-func groupedAggExprSQLite(fn metaengine.AggregateFn, column string, planned bool) string {
-	return aggExprSQLite(fn, column, planned)
 }
 
 // sqliteDecodeFloat converts a SQLite scan value to float64. SQLite returns

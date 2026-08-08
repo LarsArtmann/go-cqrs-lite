@@ -455,6 +455,56 @@ type CreateOrder struct {
 	ruletest.AssertRule(t, findings, "B004", 1)
 }
 
+// B004 skips commands with fewer than 3 fields — the boilerplate saving is
+// negligible for small types. Regression test for the field-count check.
+func TestB004_NoFindingForFewFields(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"cmd.go": `package main
+
+type SimpleCmd struct {
+	*BasicCommand
+	Name string
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB004Detector(ctx))
+	ruletest.AssertRule(t, findings, "B004", 0)
+}
+
+// B004 skips commands that already have a hand-written constructor (New<Type>
+// or New<Type>Command). Generated constructors would lack custom validation.
+// Regression test for the constructor-name check.
+func TestB004_SuppressedByExistingConstructor(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"cmd.go": `package main
+
+type CreateOrder struct {
+	*BasicCommand
+	CustomerID string
+	ProductID  string
+	Quantity   int
+	Price      float64
+	Address    string
+}
+
+func NewCreateOrder(customerID, productID string, qty int, price float64, addr string) *CreateOrder {
+	if qty <= 0 {
+		panic("quantity must be positive")
+	}
+	return &CreateOrder{
+		CustomerID: customerID,
+		ProductID:  productID,
+		Quantity:   qty,
+		Price:      price,
+		Address:    addr,
+	}
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB004Detector(ctx))
+	ruletest.AssertRule(t, findings, "B004", 0)
+}
+
 // --- B005: Fold switch boilerplate ---
 
 func TestB005_NoFindingWithoutFolds(t *testing.T) {

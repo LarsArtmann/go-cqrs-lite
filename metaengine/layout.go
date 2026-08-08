@@ -148,23 +148,24 @@ func sanitize(s string) string {
 }
 
 // inferColumnType guesses a SQL column type from a field name.
-// inferColumnType guesses a SQL column type from a field name.
 // This is intentionally conservative — TEXT works for all JSON types.
 // Prefer BuildLayoutPlanFromType for reflection-based inference from the result
 // type's Go fields, which is accurate instead of name-heuristic.
 func inferColumnType(field string) string {
 	field = strings.ToLower(field)
 
-	// Common numeric field names.
 	switch {
+	case strings.Contains(field, "price"),
+		strings.Contains(field, "amount"),
+		strings.Contains(field, "rate"),
+		strings.Contains(field, "cost"):
+		return "REAL"
 	case strings.Contains(field, "priority"),
 		strings.Contains(field, "count"),
 		strings.Contains(field, "age"),
 		strings.Contains(field, "level"),
 		strings.Contains(field, "score"),
-		strings.Contains(field, "num"),
-		strings.Contains(field, "amount"),
-		strings.Contains(field, "price"):
+		strings.Contains(field, "num"):
 		return "INTEGER"
 	default:
 		return "TEXT"

@@ -825,7 +825,6 @@ func (r *TypedReader[V]) MultiGroupedAggregate(
 	}
 
 	type groupAccum struct {
-		count         int
 		vals          map[string]float64
 		nonNullCounts map[string]int
 	}
@@ -843,8 +842,6 @@ func (r *TypedReader[V]) MultiGroupedAggregate(
 			}
 			groups[key] = acc
 		}
-
-		acc.count++
 
 		for _, s := range specs {
 			alias := s.AliasOr()

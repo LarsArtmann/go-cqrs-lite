@@ -400,3 +400,43 @@ type EmployeePayroll struct {
 			localFindings[0].Severity)
 	}
 }
+
+// WEAK-tier financial findings must be completely suppressed for local-only
+// projects (no HTTP/gRPC server). Generic monetary lexemes (amount, price,
+// balance) on CLI tools and background workers generate noise without security
+// value. Regression test for the S006 WEAK-suppression fix.
+func TestS006_WeakTierSuppressedForLocalOnlyProject(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"order.go": `package main
+
+type OrderTotal struct {
+	Amount  float64 ` + "`json:\"amount\"`" + `
+	Balance float64 ` + "`json:\"balance\"`" + `
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = false
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 0)
+}
+
+// WEAK-tier financial findings fire for server projects (HasServer=true).
+// Guards against the local-only suppression being too aggressive.
+func TestS006_WeakTierFiresForServerProject(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"order.go": `package main
+
+type OrderTotal struct {
+	Amount  float64 ` + "`json:\"amount\"`" + `
+	Balance float64 ` + "`json:\"balance\"`" + `
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := ruletest.RunDetector(t, security.NewS006Detector(ctx))
+	ruletest.AssertRule(t, findings, "S006", 1)
+}

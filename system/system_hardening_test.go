@@ -575,6 +575,12 @@ func TestSystem_RegisterDrainer_ErrorPropagation(t *testing.T) {
 	}
 }
 
+// TestSystem_ResetProjection_RestartAndReplay verifies that a projection can be
+// reset and replayed from scratch after a restart. It uses SQLite's
+// shared-cache in-memory DSN pattern (file:<name>?mode=memory&cache=shared)
+// so that two System instances (phase 1: produce, phase 2: replay) share the
+// same in-memory database. The shared cache ensures data written by sys1 is
+// visible to sys2 without touching disk.
 func TestSystem_ResetProjection_RestartAndReplay(t *testing.T) {
 	t.Parallel()
 

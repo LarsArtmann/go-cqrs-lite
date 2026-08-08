@@ -143,9 +143,11 @@ func main() {
 | `System.Start(ctx)`                 | Starts projection workers and bus listeners.           |
 | `System.Close()`                    | Graceful shutdown of all infrastructure.               |
 | `System.GracefulClose(ctx)`         | Drains via [Drainer]s, then context-bounded `Close()`. |
+| `System.Drain(ctx)`                 | Drain in-flight work without closing (rolling deploys). |
 | `System.HealthCheck(ctx)`           | Returns `nil` if all resources are healthy.            |
 | `System.ResetProjection(ctx, name)` | Resets a projection checkpoint for replay.             |
 | `System.RegisterDrainer(d)`         | Register a pre-close drainer for `GracefulClose`.      |
+| `System.RegisterCloser(name, c)`    | Register an external `io.Closer` for lifecycle mgmt.   |
 
 ### Domain Registration
 
@@ -177,7 +179,13 @@ an error at construction time (no silent fallback).
 | `System.Snapshot(ctx)`          | Returns a `Topology` snapshot of all instances. |
 | `System.Health(ctx)`            | Aggregate health status string.                 |
 | `System.HealthCheck(ctx)`       | Error if any resource is unhealthy.             |
+| `System.HealthCheckDetailed(ctx)` | Per-engine health status ([]EngineHealth).     |
 | `System.Explain(ctx)`           | Human-readable explanation of the deployment.   |
+| `System.EngineNames()`          | Engine names in creation order (diagnostics).   |
+| `System.ShutdownOrder()`        | Resolved close order as engine names.           |
+| `System.LagPerProjection()`     | Per-projection lag map (delegates to host).     |
+| `System.LagDuration()`          | Max lag across all workers.                     |
+| `System.WorkerStatus()`         | Projection worker states.                       |
 | `System.ProjectionPlan()`       | Serializable plan for projection engines.       |
 | `System.ProjectionExplain()`    | Human-readable projection plan explanation.     |
 | `System.VerifyProjections(ctx)` | Verify projection stores match source-of-truth. |
@@ -188,6 +196,50 @@ an error at construction time (no silent fallback).
 | -------------------------- | ----------------------------------------------------- |
 | `CheckSafety(ctx, deploy)` | Pre-construction safety report (WARN/ERROR per rule). |
 | `System.ScreamReport()`    | Post-construction safety report.                      |
+
+## Examples
+
+### Shutdown Dependencies
+
+Declare close-time ordering so projections drain before the event store closes:
+
+```go
+domain := system.DomainConfig{
+    ShutdownDependencies: []system.ShutdownDependency{
+        {Before: "eventstore", After: "projectionhost"},
+    },
+}
+```
+
+### Drainer (Rolling Deploy)
+
+Register a drainer to reject new requests during a rolling deploy, then close:
+
+```go
+type httpDrainer struct{ server *http.Server }
+
+func (d *httpDrainer) Drain(ctx context.Context) error {
+    return d.server.Shutdown(ctx) // stop accepting, finish in-flight
+}
+
+sys.RegisterDrainer(&httpDrainer{server: srv})
+
+// SIGTERM handler:
+ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+defer cancel()
+if err := sys.GracefulClose(ctx); err != nil {
+    log.Printf("graceful close: %v", err)
+}
+```
+
+### External Closer
+
+Register a non-engine resource (connection pool, file handle) for lifecycle management:
+
+```go
+sys.RegisterCloser("redis-pool", redisClient)
+defer sys.Close() // closes engines first, then redis-pool
+```
 
 ## Configuration
 

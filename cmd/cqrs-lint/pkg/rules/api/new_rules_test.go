@@ -294,6 +294,61 @@ func TestA018_FiresOnNoEventSourcing(t *testing.T) {
 	ruletest.AssertRule(t, findings, "A018", 1)
 }
 
+// A018 suppresses when Save is called — the project IS doing event sourcing.
+func TestA018_SuppressedBySaveCall(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"app.go": `package main
+
+func setup() {
+	store.Save(ctx, ref, events)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, api.NewA018Detector(ctx))
+	ruletest.AssertRule(t, findings, "A018", 0)
+}
+
+// A018 suppresses when Publish is called — the project IS doing event sourcing.
+func TestA018_SuppressedByPublishCall(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"app.go": `package main
+
+func setup() {
+	bus.Publish(ctx, evt)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, api.NewA018Detector(ctx))
+	ruletest.AssertRule(t, findings, "A018", 0)
+}
+
+// A018 suppresses when Dispatch is used — the project uses CQRS (without ES),
+// so the import is NOT dead. A025 covers the "consider adding event sourcing"
+// coaching case separately.
+func TestA018_SuppressedByDispatchCall(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"app.go": `package main
+
+func setup() {
+	query.DispatchTyped(ctx, disp, q)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, api.NewA018Detector(ctx))
+	ruletest.AssertRule(t, findings, "A018", 0)
+}
+
+// A018 suppresses when folds exist in the registry — fold registration
+// implies event sourcing activity even without a visible Save call.
+func TestA018_SuppressedByFolds(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	ctx.Registry.Folds = append(ctx.Registry.Folds, analyzer.FoldInfo{FuncName: "foldUser"})
+	findings := ruletest.RunDetector(t, api.NewA018Detector(ctx))
+	ruletest.AssertRule(t, findings, "A018", 0)
+}
+
 func TestA019_NoCrashOnEmptyContext(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main`,
