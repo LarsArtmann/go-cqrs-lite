@@ -505,6 +505,22 @@ type User struct {
 	ruletest.AssertRule(t, findings, "E007", 0)
 }
 
+// E007 must NOT fire on structs ending in "Query" that lack a Type() method.
+// These are form-binding DTOs or filter objects, not real CQRS query types.
+
+func TestE007_NoFindingForQueryWithoutTypeMethod(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"dto.go": `package main
+
+type ListPluginsQuery struct {
+	Filter string ` + "`" + `form:"filter"` + "`" + `
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE007Detector(ctx))
+	ruletest.AssertRule(t, findings, "E007", 0)
+}
+
 // --- E007: Query registered via closure-based RegisterTyped is NOT flagged
 
 func TestE007_NoFindingWhenRegisteredViaClosure(t *testing.T) {
