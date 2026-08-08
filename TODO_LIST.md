@@ -241,6 +241,38 @@ and is **never** duplicated here.
 - [x] ~~**Tag cqrs-lint v4.5.0**~~ — DONE. C008 word-boundary fix, C023
       type-awareness, C001 BeginTx read-only, D007 auto-fix test, SARIF test.
       Version constant bumped to 4.5.0. Version test passes.
+- [x] ~~**CI self-lint gate (L1.15)**~~ — DONE. `cqrs-lint-self-lint` job in
+      ci.yml runs `cqrs-lint . --strict-load` on its own source. Self-lint
+      auto-detected via `IsLibrarySelfLint()`.
+- [x] ~~**Parallel detector safety test (L1.23)**~~ — DONE.
+      `parallel_safety_test.go` runs all 192 detectors concurrently under
+      `-race` against a shared `AnalysisContext`.
+- [ ] **Self-lint CI: tighten severity gate** — current job passes on warnings;
+      the linter's own `init.go:69` has a C025 warning (fmt.Errorf without %w).
+      Either suppress it inline or add `--min-severity warning` to the CI step.
+- [ ] **Genuinely-missing individual rules** — identified during DOC/OBS/RES/DI
+      category evaluation (2026-08-08). 80-90% of proposed patterns already
+      covered by scattered rules. These 10 are genuinely absent:
+  - [ ] **RES: Missing retry middleware** — B008 detects manual retry, but no
+        rule flags a bus/dispatcher that lacks retry entirely.
+  - [ ] **RES: Circuit breaker absence** — zero circuit-breaker detection in
+        the entire linter.
+  - [ ] **RES: Missing DLQ config** — no rule detects projectionhost without
+        dead-letter handling.
+  - [ ] **DOC: Stale catalog entries** — reverse of E004: catalog has event
+        types that no longer exist in code.
+  - [ ] **DOC: AsyncAPI/OpenAPI freshness** — F002 checks `catalog.NewBuilder`
+        usage but doesn't verify generated docs are current.
+  - [ ] **OBS: Missing OTel SDK init** — F003/B014 detect missing OTel *usage*,
+        but not missing SDK initialization (import + call ≠ proper setup).
+  - [ ] **OBS: Missing slog.SetDefault** — no rule detects projects with no
+        structured logging setup.
+  - [ ] **OBS: Missing span creation around handlers** — no rule checks for
+        tracer.Start / span.Start around handler invocations.
+  - [ ] **DI: Optimistic concurrency / expected-version check** — no rule
+        detects Repository.Save / store.Append without version precondition.
+  - [ ] **DI: Missing append-stream version precondition** — no rule validates
+        version checking at the store level.
 
 ---
 
@@ -312,8 +344,6 @@ and is **never** duplicated here.
 
 - [ ] **Pin GitHub Actions to commit SHAs** — 72+ unpinned actions
       (supply-chain risk).
-- [x] ~~**Add self-lint to CI**~~ — DONE. `cqrs-lint-self-lint` job added to
-      ci.yml: runs `cqrs-lint . --strict-load` on its own source.
 - [ ] **Add `--fail-on-stale-suppressions` CI gate** — prevents stale
       `//cqrs-lint:ignore` directives from accumulating.
 - [ ] **Add CI check for API-version drift** — verify every exported symbol
