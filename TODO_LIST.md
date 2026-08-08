@@ -194,6 +194,35 @@ and is **never** duplicated here.
       Added `.go-arch-lint.yml` with 5-layer model covering all 18 packages:
       L0 leaves (analyzer/fix/ruletest/suppression) → L1 lintutil → L2 rule
       categories → L3 rules root → L4 main. Enforced via `scripts/check-arch.sh`.
+      _(Source: `docs/status/2026-08-08_22-03_intra-module-arch-config-cqrs-lint.md`)_
+- [ ] 🔥 **Wire `#check-arch` into the verify gate and CI** — the nix app
+      exists (`flake.nix:759`) but is orphaned. All 7 per-module go-arch-lint
+      configs are local-only enforcement. Replace `#check-layers` with
+      `#check-arch` in verify + verify-fast (strict superset — calls Layer 1
+      internally). Also update CI `module-layers` job.
+      _(Effort: S)_
+- [ ] 🔥 **Add go-arch-lint as a nix dependency in `#check-arch`** — the app
+      at `flake.nix:759` lists `[goPkg pkgs.bash]` but not go-arch-lint. It
+      only works locally because the tool is in system PATH
+      (`/run/current-system/sw/bin/`). Will fail in CI and `nix develop` shells.
+      _(Effort: S)_
+      _(Source: `docs/status/2026-08-08_22-03_intra-module-arch-config-cqrs-lint.md`)_
+- [ ] **Add `.go-arch-lint.yml` for `metaengine/`** — 16+ production files
+      (planner.go, engine.go, dsl.go, etc.) with complex internal structure
+      and no intra-module enforcement.
+      _(Effort: M)_
+- [ ] **Add `.go-arch-lint.yml` for `stack/`** — 11 production files, composition
+      layer with clear internal dependencies, no enforcement.
+      _(Effort: S)_
+- [ ] **Add meta-test: every `.go-arch-lint.yml` is parseable and components
+      match real packages** — no test today asserts configs are valid or that
+      declared components resolve to actual Go packages. Prevents stale configs
+      after package renames/deletes.
+      _(Effort: S)_
+- [ ] **Add meta-test: every module with 3+ production packages has a
+      `.go-arch-lint.yml`** — prevents the intra-module enforcement gap from
+      recurring as new modules are added.
+      _(Effort: S)_
 - [ ] **Consider rewriting `check-module-layers.sh` as `cmd/check-layers`** —
       348 lines of bash. A Go program would add testability but the script is
       stable and only runs in CI. Defer until significantly more complex.
