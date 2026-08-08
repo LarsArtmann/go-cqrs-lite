@@ -35,7 +35,7 @@ func BenchmarkLayoutPlanning_MemoryVsSQLite(b *testing.B) {
 		// SQLite engine: json_extract pushdown for WHERE + ORDER BY.
 		b.Run(fmt.Sprintf("SQLite_n%d", n), func(b *testing.B) {
 			eng, db := newSQLiteEngine()
-			defer func() { _ = db.Close() }()
+			defer metaengine.DeferClose(db)
 
 			store := planPromiseStore(b, []metaengine.Engine{metaengine.NewMemoryEngine(), eng})
 			defer store.Close()

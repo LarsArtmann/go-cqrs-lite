@@ -18,7 +18,7 @@ func TestProfile(t *testing.T) {
 	if err != nil {
 		t.Skipf("Dgraph not available: %v", err)
 	}
-	defer func() { _ = eng.Close() }()
+	defer metaengine.DeferClose(eng)
 
 	profile := eng.Profile()
 
@@ -74,7 +74,7 @@ func TestMapBackend(t *testing.T) {
 	if err != nil {
 		t.Skipf("Dgraph not available: %v", err)
 	}
-	defer func() { _ = eng.Close() }()
+	defer metaengine.DeferClose(eng)
 
 	ctx := context.Background()
 	mb := eng.(metaengine.MapBackend)
@@ -135,7 +135,7 @@ func TestGraphBackend(t *testing.T) {
 	if err != nil {
 		t.Skipf("Dgraph not available: %v", err)
 	}
-	defer func() { _ = eng.Close() }()
+	defer metaengine.DeferClose(eng)
 
 	ctx := context.Background()
 	gb := eng.(metaengine.GraphBackend)

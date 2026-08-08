@@ -659,7 +659,7 @@ func TestDuckDBEngine_ColumnarAggregation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("aggregation query: %v", err)
 	}
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	results := make(map[string]struct {
 		count       int

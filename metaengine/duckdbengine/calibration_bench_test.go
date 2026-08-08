@@ -93,7 +93,7 @@ func BenchmarkCalibration_DuckDB_BatchInsert(b *testing.B) {
 	const batchSize = 1000
 
 	db := openDuckDBForBench(b)
-	defer func() { _ = db.Close() }()
+	defer metaengine.DeferClose(db)
 
 	ctx := context.Background()
 
@@ -188,7 +188,7 @@ func BenchmarkCalibration_DuckDB_PushdownScan(b *testing.B) {
 // The "ns/row" metric calibrates the per-read constant for analytical reads.
 func BenchmarkCalibration_DuckDB_AggregateSum(b *testing.B) {
 	db := openDuckDBForBench(b)
-	defer func() { _ = db.Close() }()
+	defer metaengine.DeferClose(db)
 
 	ctx := context.Background()
 

@@ -16,7 +16,7 @@ func TestConcurrentAppend_Memory(t *testing.T) {
 	t.Parallel()
 
 	eng := NewMemoryEngine()
-	defer func() { _ = eng.Close() }()
+	defer DeferClose(eng)
 
 	ap, ok := eng.(AtomicAppender)
 	if !ok {
@@ -87,7 +87,7 @@ func TestConcurrentAppend_SQLite(t *testing.T) {
 		t.Fatalf("NewSQLiteEngine: %v", err)
 	}
 
-	defer func() { _ = eng.Close() }()
+	defer DeferClose(eng)
 
 	ap, ok := eng.(AtomicAppender)
 	if !ok {

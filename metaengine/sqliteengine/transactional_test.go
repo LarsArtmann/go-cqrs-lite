@@ -6,6 +6,7 @@ import (
 
 	_ "modernc.org/sqlite"
 
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
@@ -26,7 +27,7 @@ func TestSQLiteEngine_Transactional(t *testing.T) {
 		t.Fatalf("NewSQLiteEngine: %v", err)
 	}
 
-	defer func() { _ = eng.Close() }()
+	defer metaengine.DeferClose(eng)
 
 	enginetest.RunTransactionalTest(t, eng)
 }
@@ -47,7 +48,7 @@ func TestSQLiteEngine_ConcurrentTx(t *testing.T) {
 		t.Fatalf("NewSQLiteEngine: %v", err)
 	}
 
-	defer func() { _ = eng.Close() }()
+	defer metaengine.DeferClose(eng)
 
 	enginetest.RunConcurrentTxTest(t, eng)
 }

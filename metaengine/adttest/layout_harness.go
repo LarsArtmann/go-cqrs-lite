@@ -63,7 +63,7 @@ func RunLayoutMatrix(t *testing.T, factories []Factory) {
 					t.Parallel()
 
 					eng := factory.Create(t)
-					defer func() { _ = eng.Close() }()
+					defer metaengine.DeferClose(eng)
 
 					// Skip if the engine doesn't implement LayoutPlanner.
 					lp, ok := eng.(metaengine.LayoutPlanner)
@@ -174,7 +174,7 @@ func RunLayoutConflictTest(t *testing.T, factories []Factory) {
 			t.Parallel()
 
 			eng := factory.Create(t)
-			defer func() { _ = eng.Close() }()
+			defer metaengine.DeferClose(eng)
 
 			lp, ok := eng.(metaengine.LayoutPlanner)
 			if !ok {

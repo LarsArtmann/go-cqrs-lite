@@ -91,7 +91,7 @@ func RunMatrix(t *testing.T, factories []Factory) {
 					t.Parallel()
 
 					eng := factory.Create(t)
-					defer func() { _ = eng.Close() }()
+					defer metaengine.DeferClose(eng)
 
 					// Auto-skip if the engine doesn't implement the required backend.
 					if iface, ok := backendInterfaces[scenario.Requires]; ok {

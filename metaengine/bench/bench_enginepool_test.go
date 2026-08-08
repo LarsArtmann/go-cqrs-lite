@@ -112,7 +112,7 @@ func TestPromise_EngineRoutingDecisions(t *testing.T) {
 	t.Run("memory+sqlite distributes queries", func(t *testing.T) {
 		t.Parallel()
 		eng, db := newSQLiteEngine()
-		defer func() { _ = db.Close() }()
+		defer metaengine.DeferClose(db)
 
 		store := planPromiseStore(t, []metaengine.Engine{metaengine.NewMemoryEngine(), eng})
 		defer store.Close()

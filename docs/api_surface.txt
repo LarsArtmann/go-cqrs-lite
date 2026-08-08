@@ -1539,6 +1539,7 @@ metaengine/func Checksum
 metaengine/func CompareValues
 metaengine/func ContractSuite
 metaengine/func DecodeStreamValue
+metaengine/func DeferClose
 metaengine/func DeserializePlan
 metaengine/func EncodeStreamValue
 metaengine/func EvalFilterOp

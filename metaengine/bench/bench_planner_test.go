@@ -71,7 +71,7 @@ func TestPromise_CostModelAccuracy(t *testing.T) {
 	t.Parallel()
 
 	eng, db := newSQLiteEngine()
-	defer func() { _ = db.Close() }()
+	defer metaengine.DeferClose(db)
 
 	store, err := metaengine.Plan(
 		[]metaengine.Engine{metaengine.NewMemoryEngine(), eng},

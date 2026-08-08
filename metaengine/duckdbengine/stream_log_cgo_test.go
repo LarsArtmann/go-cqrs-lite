@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
 
@@ -17,7 +18,7 @@ func TestStreamLogBackend_DuckDBRoundtrip(t *testing.T) {
 		t.Fatalf("duckdbengine.New: %v", err)
 	}
 
-	defer func() { _ = eng.Close() }()
+	defer metaengine.DeferClose(eng)
 
 	enginetest.RunStreamLogBackendTest(t, eng)
 }
@@ -30,7 +31,7 @@ func TestStreamLogBackend_DuckDBAtomicAppender(t *testing.T) {
 		t.Fatalf("duckdbengine.New: %v", err)
 	}
 
-	defer func() { _ = eng.Close() }()
+	defer metaengine.DeferClose(eng)
 
 	enginetest.RunAtomicAppenderTest(t, eng)
 }
@@ -43,7 +44,7 @@ func TestStreamLogBackend_DuckDBTransactional(t *testing.T) {
 		t.Fatalf("duckdbengine.New: %v", err)
 	}
 
-	defer func() { _ = eng.Close() }()
+	defer metaengine.DeferClose(eng)
 
 	enginetest.RunTransactionalTest(t, eng)
 }
@@ -56,7 +57,7 @@ func TestStreamLogBackend_DuckDBConcurrentTx(t *testing.T) {
 		t.Fatalf("duckdbengine.New: %v", err)
 	}
 
-	defer func() { _ = eng.Close() }()
+	defer metaengine.DeferClose(eng)
 
 	enginetest.RunConcurrentTxTest(t, eng)
 }

@@ -35,7 +35,7 @@ func TestPromise_CrossEngine_ParityAtScale(t *testing.T) {
 
 	// Run against memory+sqlite.
 	eng, db := newSQLiteEngine()
-	defer func() { _ = db.Close() }()
+	defer metaengine.DeferClose(db)
 	sqlStore := planPromiseStore(t, []metaengine.Engine{metaengine.NewMemoryEngine(), eng})
 	defer sqlStore.Close()
 	for _, e := range events {

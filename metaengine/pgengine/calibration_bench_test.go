@@ -159,7 +159,7 @@ func BenchmarkCalibration_Postgres_BatchInsert(b *testing.B) {
 	const batchSize = 1000
 
 	db := openPGForBench(b)
-	defer func() { _ = db.Close() }()
+	defer metaengine.DeferClose(db)
 
 	ctx := context.Background()
 
@@ -252,7 +252,7 @@ func BenchmarkCalibration_Postgres_PushdownScan(b *testing.B) {
 // the per-read cost.
 func BenchmarkCalibration_Postgres_AggregateSum(b *testing.B) {
 	db := openPGForBench(b)
-	defer func() { _ = db.Close() }()
+	defer metaengine.DeferClose(db)
 
 	ctx := context.Background()
 

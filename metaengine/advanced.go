@@ -141,7 +141,7 @@ func ContractSuite(t interface {
 		t.Fatal("ContractSuite: factory returned nil engine")
 	}
 
-	defer func() { _ = eng.Close() }()
+	defer DeferClose(eng)
 
 	profile := eng.Profile()
 	if profile.Name == "" {
