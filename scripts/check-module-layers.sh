@@ -123,14 +123,16 @@ EXCEPTIONS[schema]="storage/memory"
 # otel PRODUCTION (tracing in decider.go, load.go, otel.go, wait_for_version.go)
 EXCEPTIONS[decider]="storage/memory otel"
 
-# query (L1) — snapshot indirect-only (not directly imported, kept as
-# documentation of the transitive event→snapshot edge); storage/memory
-# test-only (typed store tests)
-EXCEPTIONS[query]="snapshot storage/memory"
+# query (L1) — storage/memory test-only (typed store tests).
+# NOTE: snapshot appears as // indirect in query/go.mod (transitive via
+# event) but the awk filter on line 318 skips indirect deps, so it never
+# reaches this exception map. Do NOT add snapshot here — it would silently
+# suppress a real violation if snapshot is ever promoted to direct.
+EXCEPTIONS[query]="storage/memory"
 
-# command (L1) — snapshot indirect-only (not directly imported, kept as
-# documentation); storage/memory test-only (store suite + typed store tests)
-EXCEPTIONS[command]="snapshot storage/memory"
+# command (L1) — storage/memory test-only (store suite + typed store tests).
+# Same indirect-snapshot note as query above.
+EXCEPTIONS[command]="storage/memory"
 
 # listing (L3) — test-only: middleware/BDD/example/benchmark tests
 EXCEPTIONS[listing]="storage/memory"

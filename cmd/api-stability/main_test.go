@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -240,12 +241,18 @@ func TestTagContentMatchesChangelog(t *testing.T) {
 
 // TestExceptionsAreMinimal verifies that every EXCEPTIONS entry in
 // scripts/check-module-layers.sh is actually necessary. An exception is dead
-// when the dependency's layer is <= the module's layer (same-layer or
-// lower-layer deps don't trigger violations). Dead exceptions accumulate when
-// modules are moved between tiers or when dependencies are removed.
+// in two cases:
 //
-// This prevents the schema->snapshot and transport/http->testutil class of
-// stale entries that were manually caught in the 2026-08-08 audit.
+//  1. Layer-incompatible: dep_layer <= mod_layer (same/lower-layer deps don't
+//     trigger violations).
+//  2. Indirect-only: the dep is marked "// indirect" in the module's go.mod.
+//     The script's awk filter skips lines containing "//", so the dep never
+//     reaches the exception lookup. An indirect-only exception is dead weight
+//     AND a trap: if the dep is promoted to direct later, the exception would
+//     silently suppress a real layer violation.
+//
+// This prevents the schema->snapshot, transport/http->testutil, and
+// query/command->snapshot class of stale entries.
 func TestExceptionsAreMinimal(t *testing.T) {
 	t.Parallel()
 
@@ -280,6 +287,7 @@ func TestExceptionsAreMinimal(t *testing.T) {
 	type exception struct {
 		module string
 		dep    string
+		reason string
 	}
 	var dead []exception
 	for line := range strings.SplitSeq(script, "\n") {
@@ -305,16 +313,60 @@ func TestExceptionsAreMinimal(t *testing.T) {
 
 				continue
 			}
+
+			// Case 1: dep_layer <= mod_layer — no violation possible.
 			if depLayer <= modLayer {
-				dead = append(dead, exception{module: module, dep: dep})
+				dead = append(dead, exception{
+					module: module,
+					dep:    dep,
+					reason: fmt.Sprintf(
+						"dep_layer %d <= mod_layer %d — no violation is triggered",
+						depLayer, modLayer),
+				})
+				continue
+			}
+
+			// Case 2: dep is indirect-only in module's go.mod — the script's
+			// awk filter (line 318: !/\/\//) skips it, so the exception never
+			// fires. This is a sleeping trap: if promoted to direct, the
+			// exception silently suppresses a real violation.
+			gomodPath := filepath.Join(projectRoot, module, "go.mod")
+			gomodBytes, err := os.ReadFile(gomodPath)
+			if err != nil {
+				t.Errorf("EXCEPTIONS[%s] references module with unreadable go.mod: %v", module, err)
+				continue
+			}
+			// Build the import-path prefix for this dep and check if it only
+			// appears with // indirect.
+			depImportPath := "github.com/larsartmann/go-cqrs-lite/" + dep
+			lines := strings.SplitSeq(string(gomodBytes), "\n")
+			directFound := false
+			for gomodLine := range lines {
+				if !strings.Contains(gomodLine, depImportPath) {
+					continue
+				}
+				if !strings.Contains(gomodLine, "// indirect") {
+					directFound = true
+					break
+				}
+			}
+			if !directFound {
+				dead = append(dead, exception{
+					module: module,
+					dep:    dep,
+					reason: fmt.Sprintf(
+						"%q is indirect-only in %s/go.mod — the awk filter "+
+							"(line 318) skips // lines so this exception never "+
+							"fires; it would silently suppress a real violation "+
+							"if the dep is promoted to direct",
+						dep, module),
+				})
 			}
 		}
 	}
 
 	for _, d := range dead {
-		t.Errorf("EXCEPTIONS[%s] lists %q (layer %d) but %s is layer %d — "+
-			"dep_layer <= mod_layer means no violation is triggered; "+
-			"remove this stale exception entry",
-			d.module, d.dep, layers[d.dep], d.module, layers[d.module])
+		t.Errorf("EXCEPTIONS[%s] lists %q — %s; remove this stale exception entry",
+			d.module, d.dep, d.reason)
 	}
 }
