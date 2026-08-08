@@ -106,6 +106,23 @@ func TestAPISurfaceCheck(t *testing.T) {
 	t.Logf("%s", out)
 }
 
+// TestToolCompiles is an always-run guard that builds the api-stability tool
+// itself. Unlike TestAPISurfaceCheck (which is skipped when the golden is
+// missing), this test runs unconditionally and catches compile breakage, e.g.
+// a deleted helper function referenced by main.go, before it silently breaks
+// every downstream API-surface verification.
+func TestToolCompiles(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	cmd := exec.CommandContext(ctx, "go", "build", "-tags", jsonV2Tags, ".")
+	cmd.Env = jsonV2Env()
+	cmd.Dir = "."
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("api-stability tool does not compile:\n%s", out)
+	}
+}
+
 func TestAPISurfaceUpdateIdempotent(t *testing.T) {
 	// Serial: writes the golden file. Must not overlap with TestAPISurfaceCheck
 	// which reads the golden file concurrently.
