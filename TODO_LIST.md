@@ -16,9 +16,37 @@ and is **never** duplicated here.
 
 > See [ROADMAP.md](ROADMAP.md) → Raw Ideas for long-term L-effort items
 > (cqrs-lint consumer validation, per-module golangci split).
+>
+> FP elimination session (2026-08-08 → 2026-08-09): 32 FPs eliminated across
+> 15 rules (128→96 findings on 8 consumer repos, 0 TPs lost, 0 critical/error
+> FPs). v4.3.0 released. See
+> `docs/status/2026-08-09_00-19_cqrs-lint-fp-elimination-execution.md`.
 
+- [ ] 🔥 **Write regression unit tests for FP fixes** — 13 of 15 rule fixes
+      lack dedicated tests (only C002 + E007 have them). Each test uses
+      `BuildContextFromSource` + `ruletest.RunDetector` + `AssertRule`:
+      A005 (non-event-bus receiver), C027 (non-event-bus receiver),
+      S010 (requires Use() wiring), A032 (form-tag structs + display packages),
+      C013 (json:"-" skip), C034 (HTTP shutdown pattern), C035 (serialization DTO),
+      E009 (custom HTTP), D005 (code blocks + import paths), E007 (package
+      has registration).
+      _(Effort: M)_
+- [ ] 🔥 **Replace `PackagesWithRegistration` with precise per-type tracing** —
+      the current E007 fix suppresses ALL findings in a package that has ANY
+      `RegisterTyped`/`RegisterQuery` call. Over-suppresses: if a package
+      registers 9 of 10 queries, the 10th won't be flagged. Replace with
+      per-type registration tracing (trace through generic wrapper functions
+      like crush-daily's `register[Q]()`).
+      _(Effort: M)_
+- [ ] **Reclassify misclassified FPs in validation report** — at least 9 of the
+      original 39 "FPs" were actually TPs: D005 x4 (genuinely stale docs),
+      A005 x1 (DualWriteBus.SubscribeAll is real), A032 x5 (PluginID on domain
+      commands). Update `docs/status/2026-08-08_cqrs-lint-false-positive-validation.md`.
+      _(Effort: S)_
 - [ ] **Improve B029-B031 `isBusName` heuristic** — require `.Use()`/`.Publish()`
-      calls, not just suffix match on variable names.
+      calls, not just suffix match on variable names. The `Use()`/`UsePublish()`
+      argument-checking pattern was proven for S010/C027/A005 in the FP
+      elimination session — port it to B029-B031.
       _(Effort: S)_
 - [ ] **Improve D018 `collectEventNewTypes`** — use type info for precise
       `event.NewEvent` detection (currently matches any `NewEvent`).
