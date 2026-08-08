@@ -183,9 +183,13 @@ func TestQuicSetConvergence(t *testing.T) {
 func TestQuicLWWResolution(t *testing.T) {
 	c := newQuicCluster(t)
 
+	// NodeA writes first. Wait for replication to NodeB before the second
+	// write. This guarantees wall-clock ordering (T2 > T1) without an
+	// arbitrary sleep: both nodes share the same system clock, and the
+	// replication round-trip consumes real time.
 	c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "users", "u1", "Alice-old")).
 		To(gomega.Succeed())
-	time.Sleep(100 * time.Millisecond)
+	eventuallyGet(c.G, c.NodeB, "users", "u1", "Alice-old", 5*time.Second)
 
 	c.G.Expect(c.NodeB.(metaengine.MapBackend).MapSet(c.Ctx, "users", "u1", "Bob-new")).
 		To(gomega.Succeed())
