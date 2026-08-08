@@ -2,6 +2,7 @@ package metaengine_test
 
 import (
 	"encoding/json"
+	"math"
 	"math/big"
 	"strings"
 	"testing"
@@ -101,14 +102,7 @@ func TestDecodeFloat_BigInt_LargeValue(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	expected := float64(0)
-	for i := 0; i < 200; i++ {
-		expected *= 2
-		if i == 0 {
-			expected = 1
-		}
-	}
-
+	expected := math.Ldexp(1.0, 200) // 2^200 as exact float64
 	if got != expected {
 		t.Errorf("DecodeFloat(2^200) = %v, want %v", got, expected)
 	}

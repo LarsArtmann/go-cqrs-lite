@@ -2,6 +2,7 @@ package pgengine_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	pgengine "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
@@ -229,7 +230,28 @@ func TestPostgres_DistinctValues(t *testing.T) {
 		t.Fatalf("DistinctValues: %v", err)
 	}
 	if len(vals) != 2 {
-		t.Errorf("expected 2 distinct values, got %d: %v", len(vals), vals)
+		t.Fatalf("expected 2 distinct values, got %d: %v", len(vals), vals)
+	}
+
+	want := map[string]bool{"open": false, "closed": false}
+	for _, v := range vals {
+		s, ok := v.(string)
+		if !ok {
+			t.Errorf("distinct value %v is %T, not string", v, v)
+			continue
+		}
+
+		if _, exists := want[s]; !exists {
+			t.Errorf("unexpected distinct value %q", s)
+		} else {
+			want[s] = true
+		}
+	}
+
+	for val, found := range want {
+		if !found {
+			t.Errorf("expected distinct value %q not returned", val)
+		}
 	}
 }
 
@@ -270,11 +292,23 @@ func TestPostgres_ExplainAggregateQuery(t *testing.T) {
 		t.Fatal("engine does not implement ExplainableAggregate")
 	}
 
-	sqlStr, _ := ea.ExplainAggregateQuery(ctx, "items", metaengine.ExplainAggregateOptions{
+	sqlStr, args := ea.ExplainAggregateQuery(ctx, "items", metaengine.ExplainAggregateOptions{
 		Fn:     metaengine.AggregateSum,
 		Column: "price",
 	})
 	if sqlStr == "" {
 		t.Error("expected non-empty SQL from ExplainAggregateQuery")
+	}
+
+	if !strings.Contains(sqlStr, "SUM") {
+		t.Errorf("expected SUM keyword in SQL, got: %s", sqlStr)
+	}
+
+	if !strings.Contains(sqlStr, "$1") {
+		t.Errorf("expected $1 placeholder in SQL, got: %s", sqlStr)
+	}
+
+	if len(args) < 1 || args[0] != "items" {
+		t.Errorf("expected first arg to be collection name %q, got: %v", "items", args)
 	}
 }
