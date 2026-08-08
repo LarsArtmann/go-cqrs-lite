@@ -225,22 +225,16 @@ and is **never** duplicated here.
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must
   v0.1.2).
-- [ ] 🔥 **Wire `#check-arch` into the verify gate and CI** — the nix app
-      exists (`flake.nix:759`) but is orphaned. All 7 per-module go-arch-lint
-      configs are local-only enforcement. Replace `#check-layers` with
-      `#check-arch` in verify + verify-fast (strict superset — calls Layer 1
-      internally). Also update CI `module-layers` job.
-      _(Effort: S)_
-- [ ] 🔥 **Add go-arch-lint as a nix dependency in `#check-arch`** — the app
-      at `flake.nix:759` lists `[goPkg pkgs.bash]` but not go-arch-lint. It
-      only works locally because the tool is in system PATH
-      (`/run/current-system/sw/bin/`). Will fail in CI and `nix develop` shells.
-      _(Effort: S)_
-- [ ] **Document CHANGELOG release process** — `TestTagContentMatchesChangelog`
-      in `cmd/api-stability/main_test.go:224` enforces ≥1 module tag per
-      CHANGELOG version. This is non-obvious. Add a `docs/RELEASE.md` or
-      CONTRIBUTING.md section explaining the `scripts/tag-release.sh` workflow.
-      _(Effort: S)_
+- [x] **Wire `#check-arch` into the verify gate and CI** — replaced
+      `#check-layers` with `#check-arch` in verify, verify-fast, ci app,
+      and `.github/workflows/ci.yml`. `check-arch` is a strict superset
+      (calls Layer 1 internally + Layer 2 go-arch-lint per-module).
+- [x] **Add go-arch-lint as a nix dependency in `#check-arch`** — added
+      `pkgs.go-arch-lint` (v1.17.0 from nixpkgs) + `findutils` + `gnugrep`
+      to the app's runtimeInputs. No longer depends on system PATH.
+- [x] **Document CHANGELOG release process** — added `tag-release.sh`
+      workflow, CHANGELOG-to-tag constraint explanation, and two-layer
+      architecture model docs to CONTRIBUTING.md.
 
 ---
 

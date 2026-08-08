@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed — check-arch wired into verify gate, go-arch-lint as nix dep, release docs — 2026-08-09
+
+- **`#check-arch` replaces `#check-layers` in the verify gate**: verify,
+  verify-fast, and the `ci` nix app now run the full two-layer architecture
+  check (Layer 1 cross-module tiers + Layer 2 per-module go-arch-lint) instead
+  of Layer 1 only. CI workflow updated accordingly. `#check-layers` remains as
+  a standalone fast-subset app.
+- **go-arch-lint added as a nix dependency**: the `#check-arch` app now
+  includes `pkgs.go-arch-lint` (v1.17.0) in its runtimeInputs. Previously
+  relied on system PATH (`/run/current-system/sw/bin/`), which would fail in
+  CI and clean `nix develop` shells.
+- **CONTRIBUTING.md release docs expanded**: documented `scripts/tag-release.sh`
+  workflow (strip replace directives, annotated tags, dry-run), the
+  CHANGELOG-to-tag constraint enforced by `TestTagContentMatchesChangelog`, and
+  the two-layer architecture model.
+
 ### Added — QUIC stream pooling, layer enforcement, Dgraph infra — 2026-08-08
 
 - **QUIC stream pooling** (`WithStreamPooling()` option): persistent BiStreams
