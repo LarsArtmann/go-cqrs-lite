@@ -819,7 +819,7 @@ func RunTransactionalBaselineTest(t *testing.T, eng metaengine.Engine) {
 	// 2. Error propagation: RunInTx returns the callback's error.
 	sentinel := errors.New("baseline sentinel")
 
-	err = tx.RunInTx(ctx, func(ctx context.Context) error {
+	err = tx.RunInTx(ctx, func(_ context.Context) error {
 		return sentinel
 	})
 	if !errors.Is(err, sentinel) {

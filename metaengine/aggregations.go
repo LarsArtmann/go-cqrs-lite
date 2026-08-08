@@ -37,7 +37,7 @@ type AggregateSpec struct {
 	Alias  string
 }
 
-// Alias returns the result map key for this spec, applying the default
+// AliasOr returns the result map key for this spec, applying the default
 // naming convention when Alias is empty.
 func (s AggregateSpec) AliasOr() string {
 	if s.Alias != "" {

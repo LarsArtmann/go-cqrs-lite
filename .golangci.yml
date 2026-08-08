@@ -493,11 +493,14 @@ linters:
           - wrapcheck
           - varnamelen
           - wsl_v5
+          - sqlclosecheck
+          - prealloc
       # Postgres engine: external driver (pgx).
       - path: metaengine/pgengine/
         linters:
           - wrapcheck
           - varnamelen
+          - sqlclosecheck
           - wsl_v5
       # Pebble engine: external LSM driver, performance-oriented code.
       - path: metaengine/pebbleengine/
@@ -558,6 +561,16 @@ linters:
           - unqueryvet
           - staticcheck
           - varnamelen
+
+      # ── commandtest/querytest shared test suites ───────────────
+      # Test assertion counts and ULID-ordering sleeps use magic numbers
+      # inherently — these are test fixtures, not production logic.
+      - path: command/commandtest/
+        linters:
+          - mnd
+      - path: query/querytest/
+        linters:
+          - mnd
 
       # ── catalog/ schema exporters ────────────────────────────────
       # Boilerplate-heavy code with repetitive struct initialization
@@ -766,7 +779,20 @@ linters:
       - path: cmd/doc-check/
         linters:
           - gosec
+          - err113
 
+      # ── system/ operator topology ───────────────────────────────
+      # Deployer-picks-infrastructure model with driver registry,
+      # serialization, scream store, and health checks.
+      - path: system/
+        linters:
+          - err113
+          - goconst
+          - prealloc
+          - perfsprint
+          - funlen
+          - golines
+          - wsl_v5
       # ── saga/ (experimental) ─────────────────────────────────────
       # Saga orchestration is experimental; relaxed until stabilized.
       - path: saga/
