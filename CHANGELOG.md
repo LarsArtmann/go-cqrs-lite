@@ -8,6 +8,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### Module release batch — 2026-08-08
+
+11 annotated tags created (push pending):
+
+- **`storage/v4.6.0`** — Adds `SQLiteSetSynchronous` (PRAGMA override for
+  durability tiers), Postgres durability helpers (`EnsurePostgresSynchronousCommit`,
+  `EnsurePostgresStatementTimeout`, `PostgresSetSynchronousCommit`),
+  `MySQLInitSchema`. Unblocks `stack/sqlopt` durability wiring under GOWORK=off.
+- **`command/v4.4.0`** — Adds `commandtest` subpackage (`NewCmd` test helper),
+  command bus pub/sub (`Publisher`, `Subscriber`, `Bus`, `PublishMiddleware`),
+  `PersistedCommand`, `CommandJournal`/`SeekableCommandJournal` interfaces.
+- **`storage/memory/v4.3.0`** — Fixes `limit=0` returning all results instead
+  of empty slice. Fixes duplicate detection in append batch.
+- **6 engine modules at v4.0.1** (`sqliteengine`, `duckdbengine`, `pgengine`,
+  `pebbleengine`, `badgerengine`, `dgraphengine`) — Add `HealthCheck` method
+  for `system.Bundle` health-check integration. DuckDB + PG also gain aggregate
+  pushdown capabilities and `ExplainAggregate` support.
+- **`system/v4.1.0`** — Lifecycle methods (`GracefulClose`, `Drain`,
+  `RegisterCloser`, `RegisterDrainer`), introspection (`Snapshot`, `Health`,
+  `HealthCheck`, `HealthCheckDetailed`, `Explain`, `EngineNames`,
+  `ShutdownOrder`, `LagPerProjection`, `WorkerStatus`), pebbleengine +
+  watermill integration, koanf config, OTel instrumentation.
+- **`cmd/cqrs-lint/v4.5.0`** — C008 word-boundary fix, C023 type-awareness
+  for void-return lifecycle methods, C001 BeginTx read-only generalization,
+  D007 auto-fix test, SARIF logicalLocations test.
+
 #### cqrs-lint false-positive fixes, type-awareness, and regression tests
 
 - **C008 word-boundary fix** — weak money fields (`total`, `value`, `charge`,
@@ -1882,13 +1908,46 @@ Coordinated release of 9 modules: `stack`, `stack/sqlite`, `stack/memory`,
 
 ### Added
 
-- Stack presets gain durability tiers, health checks, multi-DB support,
-  and lifecycle management (`GracefulClose`, `HealthCheck`).
-- `benchkit` adds `Calibratable` interface for per-engine cost calibration.
-- `middleware` adds OTel bundle, circuit breaker (failsafe-go), flight
-  recorder integration, and typed metrics recorder.
+#### Stack presets — durability, health, multi-DB, lifecycle
+
+- **Durability tiers** (`stack/durability.go:19-54`): `type DurabilityTier string`
+  with three constants — `DurabilityStrict` (fsync per commit),
+  `DurabilityNormal` (safe against app crash), `DurabilityRelaxed` (data loss
+  possible on crash). Wired via `WithDurability(tier) Option`
+  (`stack/durability.go:68`) and introspected via `Bundle.Durability()`
+  (`stack/durability.go:76`). SQLite maps to `synchronous=FULL/NORMAL/OFF`;
+  Pebble maps to `DisableWAL`; Postgres maps to `synchronous_commit`. Default
+  is `DurabilityNormal` for every preset.
+- **Health checks** (`stack/health.go:14-28`): `HealthChecker` interface
+  (`HealthCheck(ctx) error`); `Bundle.HealthCheck()` pings the DB and calls
+  `HealthCheck` on every registered closer that implements the interface.
+  Enables Kubernetes liveness/readiness probes.
+- **Multi-DB support** (`stack/sqlopt/dsn_config.go:47-60`, ADR-0033):
+  `WithEventDB(dsn)`, `WithQueryDB(dsn)`, `WithViewDB(dsn)` — deployer
+  chooses database isolation (separate DBs for events, queries, read models).
+  Available on all SQL presets (SQLite, Postgres, MySQL, Turso).
+- **Lifecycle management** (`stack/bundle.go:213`, `stack/shutdown.go:14`):
+  `Bundle.GracefulClose(ctx)` drains with a context-bounded timeout;
+  `WithShutdownDependency(before, after)` declares close-time ordering via
+  topological sort (e.g., eventstore closes after projectionhost).
+- **Backend capabilities** (`stack/capabilities.go:11-55`):
+  `Capabilities` struct (`Persistent`, `Embedded`, `Distributed`, `OLAP`,
+  `CGoRequired`, `SyncEnabled`) — machine-checkable tradeoff matrix.
+  Introspected via `Bundle.Capabilities()`.
+
+#### Other modules
+
+- `benchkit` adds `Calibratable` interface (`benchkit/phases.go`) for
+  per-engine cost calibration via `Calibrate(engine, workload)`.
+- `middleware` adds `NewOTelBundle(tracer, meter)` (combined tracing+metrics),
+  circuit breaker via failsafe-go (`middleware/circuit_breaker.go`),
+  `CommandFlightRecorder`/`EventFlightRecorder`/`QueryFlightRecorder`
+  integration (`middleware/flight_recorder.go`), and
+  `NewOTelMetricsRecorder(meter)` for typed metrics.
 - `idempotency` extracted to standalone `go-idempotency` module
   (ADR-0065), with `kvstore` and `sqlstore` subpackages remaining local.
+  `idempotency.Store`, `MemoryStore`, `ErrDuplicate` are now re-export
+  aliases.
 
 ## [v4.1.0] — 2026-08-08
 
@@ -1896,10 +1955,23 @@ Initial or bump release of `stack/mysql`, `stack/bbolt`, `stack/duckdb`.
 
 ### Added
 
-- `stack/mysql`: pure-Go MySQL preset (`go-sql-driver/mysql`), no CGo.
-- `stack/bbolt`: B+tree preset with Backend facade, durability tiers.
-- `stack/duckdb`: DuckDB OLAP preset (CGo, `duckdb-go`), analytical query
-  optimization, columnar layout support.
+- **`stack/mysql`** (`stack/mysql/preset.go:54`): pure-Go MySQL preset via
+  `go-sql-driver/mysql` (no CGo). `New(dsn, opts...)` returns a configured
+  `*stack.Bundle`. Supports `WithDSN(sqlopt.WithEventDB(...))` for multi-DB,
+  `WithStack(opts...)` for bundle-level options (ADR-0080 dialect expansion).
+- **`stack/bbolt`** (`stack/bbolt/preset.go:65`): B+tree embedded preset via
+  `go.etcd.io/bbolt`. `New(path, opts...)` opens a single-DB Backend facade
+  (`storage/bbolt/backend.go:30`) with EventStore, SnapshotStore,
+  CheckpointStore, KVAdapter sharing disjoint buckets. `OpenWith(path, opts,
+  logger)` accepts custom `bolt.Options` (ADR-0029).
+  `WithDurability(DurabilityRelaxed)` maps to `NoSync=true,
+  NoFreelistSync=true`; default is `DurabilityStrict`.
+- **`stack/duckdb`** (`stack/duckdb/preset.go:97`, ADR-0071): DuckDB embedded
+  OLAP preset (CGo, statically links C++ engine). `New(dsn, opts...)`
+  supports `WithThreads(n)` for parallelism, `WithMemoryLimit("1GB")` for
+  memory budget. Columnar layout support via `WithColumnarLayout()` in the
+  metaengine layer (ADR-0092). CGo isolated in separate module — consumers
+  who don't import it never need a C compiler.
 
 ## [v4.0.0] — 2026-08-07
 
@@ -1907,18 +1979,32 @@ Initial tagged release of 7 new modules.
 
 ### Added
 
-- `metaengine/pebbleengine`: Pebble LSM-backed metaengine Engine (raw value
-  readers, all 8 core ADTs).
-- `metaengine/sqliteengine`: SQLite-backed metaengine Engine extracted from
-  core (ADR-0115), tx-atomic MapUpdate, layout planning.
-- `metaengine/dgraphengine`: Dgraph-backed distributed graph engine, all 8
-  core ADTs, pure Go via `dgo` gRPC client.
-- `metaengine/graphadapter`: wraps `graph.MemoryDriver` as metaengine Engine.
-- `metaengine/bench`: cross-engine benchmark module (Memory/SQLite/DuckDB/
-  Pebble parity tests, planner/layout/materialize benchmarks).
-- `storage/bbolt`: embedded bbolt KV store (EventStore, SnapshotStore,
-  CheckpointStore, KVAdapter, single-DB Backend facade).
-- `stack/bbolt`: stack preset for bbolt (DurabilityRelaxed/Normal/Strict).
+- **`metaengine/pebbleengine`** (`metaengine/pebbleengine/engine.go`): Pebble
+  LSM-backed metaengine Engine. `RawValueReader`/`RawScanReader` for
+  zero-decode point lookups. All 8 core ADTs (Map, Set, Counter, Graph,
+  Multimap, Log, Scan, Search). Separate module (cockroachdb/pebble dep).
+- **`metaengine/sqliteengine`** (`metaengine/sqliteengine/engine.go`,
+  ADR-0115): SQLite-backed metaengine Engine extracted from core.
+  tx-atomic `MapUpdate`, restart-safe multimap seq, `ExecuteTyped` reifies
+  `map[string]any` to struct. Full SQL pushdown + layout planning.
+- **`metaengine/dgraphengine`** (`metaengine/dgraphengine/engine.go`):
+  Dgraph-backed distributed graph engine. `GraphBackend` O(degree^depth)
+  traversal, `SetBackend`, `SearchBackend` (`@index(term)`). Pure Go via
+  `dgo` v240 gRPC client.
+- **`metaengine/graphadapter`** (`metaengine/graphadapter/adapter.go`):
+  Wraps `graph.MemoryDriver` as metaengine Engine for traversal-heavy read
+  models.
+- **`metaengine/bench`** (`metaengine/bench/`): Cross-engine benchmark
+  module — Memory/SQLite/DuckDB/Pebble parity tests, planner/layout/
+  materialize benchmarks. Imports ALL engines (separate module).
+- **`storage/bbolt`** (`storage/bbolt/backend.go:18-56`): Embedded bbolt KV
+  store. `Backend` facade with `Open(path, logger)`, `OpenWith(path, opts,
+  logger)`, `NewBackend(db, logger)`. EventStore, SnapshotStore,
+  CheckpointStore, KVAdapter share one `*bolt.DB` via disjoint buckets
+  (`cqrs_events`, `cqrs_snapshots`, etc.). Single-writer model (ADR-0029).
+- **`stack/bbolt`** (`stack/bbolt/preset.go:65`): Stack preset for bbolt.
+  `New(path, opts...)` returns configured `*stack.Bundle`.
+  `WithDurability(DurabilityRelaxed)` maps to `NoSync=true` (ADR-0029).
 
 ## [v4.2.0] — 2026-07-27
 
