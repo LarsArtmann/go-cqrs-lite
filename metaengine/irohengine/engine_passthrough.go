@@ -24,31 +24,6 @@ func (e *replicatedEngine) MapScan(
 	return metaengine.ScanResult{}, ErrScanBackendNotImplemented
 }
 
-// --- GraphBackend (local passthrough) ---
-
-func (e *replicatedEngine) GraphAddEdge(
-	ctx context.Context,
-	collection string,
-	edge metaengine.Edge,
-) error {
-	if gb, ok := e.local.(metaengine.GraphBackend); ok {
-		return gb.GraphAddEdge(ctx, collection, edge)
-	}
-	return ErrGraphBackendNotImplemented
-}
-
-func (e *replicatedEngine) GraphNeighbors(
-	ctx context.Context,
-	collection string,
-	node any,
-	depth int,
-) ([]any, error) {
-	if gb, ok := e.local.(metaengine.GraphBackend); ok {
-		return gb.GraphNeighbors(ctx, collection, node, depth)
-	}
-	return nil, ErrGraphBackendNotImplemented
-}
-
 // --- VectorBackend (local passthrough) ---
 
 func (e *replicatedEngine) VectorInsert(

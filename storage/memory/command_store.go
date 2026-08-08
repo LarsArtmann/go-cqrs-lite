@@ -211,7 +211,10 @@ func (s *MemoryCommandStore) ReadFrom(
 				startIdx = idx + 1
 			}
 
-			end := min(startIdx+limit, len(s.globalLog))
+			end := len(s.globalLog)
+			if limit > 0 {
+				end = min(startIdx+limit, len(s.globalLog))
+			}
 
 			if startIdx >= len(s.globalLog) {
 				return nil, nil

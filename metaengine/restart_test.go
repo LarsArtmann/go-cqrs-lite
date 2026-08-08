@@ -82,37 +82,3 @@ var _ = Describe("Regression: SetBackend concurrent idempotency", func() {
 		Expect(ok).To(BeTrue())
 	})
 })
-
-var _ = Describe("Regression: GraphBackend restart safety", func() {
-	It("preserves edges across a database reopen", func() {
-		dir, err := os.MkdirTemp("", "metaengine-graph-restart-*")
-		Expect(err).NotTo(HaveOccurred())
-		DeferCleanup(func() { _ = os.RemoveAll(dir) })
-
-		dbPath := filepath.Join(dir, "graph.db")
-		ctx := context.Background()
-
-		// Phase 1: build a small graph user→[t1, t2].
-		eng1, db1 := newSQLiteEngineForPath(dbPath)
-		gb1 := eng1.(metaengine.GraphBackend)
-		for _, to := range []string{"t1", "t2"} {
-			Expect(
-				gb1.GraphAddEdge(ctx, "assign", metaengine.Edge{From: "alice", To: to}),
-			).To(Succeed())
-		}
-		_ = eng1.Close()
-		Expect(db1.Close()).To(Succeed())
-
-		// Phase 2: reopen, add one more edge, and verify all three neighbors.
-		eng2, db2 := newSQLiteEngineForPath(dbPath)
-		DeferCleanup(func() { _ = db2.Close() })
-		gb2 := eng2.(metaengine.GraphBackend)
-		Expect(
-			gb2.GraphAddEdge(ctx, "assign", metaengine.Edge{From: "alice", To: "t3"}),
-		).To(Succeed())
-
-		neighbors, err := gb2.GraphNeighbors(ctx, "assign", "alice", 1)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(neighbors).To(ConsistOf("t1", "t2", "t3"))
-	})
-})

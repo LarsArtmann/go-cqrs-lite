@@ -4,7 +4,7 @@
 // Both engines store their data in a single byte-sorted keyspace using
 // length-prefixed records separated by a null byte. The helpers in this
 // package produce the standard key shapes used by the MapBackend, SetBackend,
-// CounterBackend, MultimapBackend, LogBackend, GraphBackend, and StreamLogBackend
+// CounterBackend, MultimapBackend, LogBackend, and StreamLogBackend
 // implementations.
 //
 // Key shapes (all share `sep = "\x00"` as collection separator):
@@ -13,10 +13,8 @@
 //	counterPrefix      : "c\x00<col>\x00"
 //	multimapPrefix     : "mm\x00<col>\x00<key>\x00"
 //	logPrefix          : "l\x00<col>\x00"
-//	graphPrefixForward : "g\x00<col>\x00<node>\x00"
 //	multimapKey        : "mm\x00<col>\x00<key>\x00<seq:%020d>"
 //	logKey             : "l\x00<col>\x00<seq:%020d>"
-//	graphEdgeKey       : "g\x00<col>\x00<from>\x00<to>"
 //
 // Both engines must stay in sync on these key shapes — they share the same
 // on-disk layout so that migration between engines is lossless.
@@ -68,12 +66,6 @@ func LogPrefix(col string) []byte {
 	return []byte("l" + Sep + col + Sep)
 }
 
-// GraphPrefixForward returns the prefix for forward-edge scans in the given
-// (collection, node) pair.
-func GraphPrefixForward(col, node string) []byte {
-	return []byte("g" + Sep + col + Sep + node + Sep)
-}
-
 // MultimapKey returns a full key for a (collection, key, seq) tuple used in
 // the Multimap and StreamLog backends. seq is zero-padded to 20 digits so
 // that lexicographic byte order matches numeric order.
@@ -86,12 +78,6 @@ func MultimapKey(col, key string, seq int64) []byte {
 // matches numeric order.
 func LogKey(col string, seq int64) []byte {
 	return fmt.Appendf(nil, "l%s%s%s%020d", Sep, col, Sep, seq)
-}
-
-// GraphEdgeKey returns a full key for a (collection, from, to) triple used
-// in the GraphBackend.
-func GraphEdgeKey(col, from, to string) []byte {
-	return []byte("g" + Sep + col + Sep + from + Sep + to)
 }
 
 // EncodeJSON marshals v to JSON, falling back to fmt.Sprintf("%v", v) on error.
@@ -146,44 +132,6 @@ func JournalPrefix(col string) []byte {
 // StreamSeqKey builds the in-memory map key for per-stream sequence counters.
 func StreamSeqKey(col, sid string) string {
 	return col + Sep + sid
-}
-
-// BFSNeighbors performs a breadth-first traversal starting from node, calling
-// scanFn to discover neighbors at each level. Returns decoded JSON values for
-// all visited nodes (excluding the start node). depth < 0 means unlimited.
-//
-// This is shared between Badger and Pebble engines whose only difference is
-// the iterator implementation inside scanFn.
-func BFSNeighbors(scanFn func(col, node string) []string, col string, node any, depth int) []any {
-	nodeStr := EncodeKeyStr(node)
-	visited := map[string]bool{nodeStr: true}
-	frontier := []string{nodeStr}
-
-	var result []string
-
-	for d := 0; d < depth && len(frontier) > 0; d++ {
-		var next []string
-
-		for _, n := range frontier {
-			neighbors := scanFn(col, n)
-			for _, nb := range neighbors {
-				if !visited[nb] {
-					visited[nb] = true
-					result = append(result, nb)
-					next = append(next, nb)
-				}
-			}
-		}
-
-		frontier = next
-	}
-
-	decoded := make([]any, len(result))
-	for i, r := range result {
-		decoded[i] = DecodeJSON([]byte(r))
-	}
-
-	return decoded
 }
 
 // EncodeCounterValue encodes an int64 as 8 bytes big-endian.

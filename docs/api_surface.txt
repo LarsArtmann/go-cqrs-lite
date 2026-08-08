@@ -463,6 +463,10 @@ codec/var ErrEncodeRawType
 codec/var ErrInvalidCOSEEncrypt0
 codec/var ErrInvalidCOSESign1
 codec/var ErrUnknownEncoding
+command/commandtest/func MustCreateCommand
+command/commandtest/func RunStoreSuite
+command/commandtest/interface StoreSuite
+command/commandtest/type StoreFactory
 command/func AsRecord
 command/func New
 command/func NewAggregateRef
@@ -925,6 +929,7 @@ event/method UnmarshalJSON
 event/method Version
 event/method WithCausationID
 event/method WithCorrelationID
+event/method WithCustom
 event/method WithOptions
 event/method WithPayload
 event/method WithUserID
@@ -1381,8 +1386,6 @@ metaengine/badgerengine/func NewBadgerEngineFromDB
 metaengine/badgerengine/method Close
 metaengine/badgerengine/method CounterGet
 metaengine/badgerengine/method CounterIncrement
-metaengine/badgerengine/method GraphAddEdge
-metaengine/badgerengine/method GraphNeighbors
 metaengine/badgerengine/method HealthCheck
 metaengine/badgerengine/method JournalReadAll
 metaengine/badgerengine/method JournalReadFrom
@@ -1717,8 +1720,6 @@ metaengine/irohengine/method ConvergenceStats
 metaengine/irohengine/method CounterGet
 metaengine/irohengine/method CounterIncrement
 metaengine/irohengine/method DeliveryStats
-metaengine/irohengine/method GraphAddEdge
-metaengine/irohengine/method GraphNeighbors
 metaengine/irohengine/method Join
 metaengine/irohengine/method LatencySnapshot
 metaengine/irohengine/method LogAppend
@@ -1766,7 +1767,6 @@ metaengine/irohengine/struct WriteOp
 metaengine/irohengine/type InProcessNetworkOption
 metaengine/irohengine/type OpKind
 metaengine/irohengine/type Option
-metaengine/irohengine/var ErrGraphBackendNotImplemented
 metaengine/irohengine/var ErrMapUpdaterNotImplemented
 metaengine/irohengine/var ErrScanBackendNotImplemented
 metaengine/irohengine/var ErrSearchBackendNotImplemented
@@ -2023,8 +2023,6 @@ metaengine/pebbleengine/method Close
 metaengine/pebbleengine/method CounterGet
 metaengine/pebbleengine/method CounterIncrement
 metaengine/pebbleengine/method GetRawValue
-metaengine/pebbleengine/method GraphAddEdge
-metaengine/pebbleengine/method GraphNeighbors
 metaengine/pebbleengine/method HealthCheck
 metaengine/pebbleengine/method JournalReadAll
 metaengine/pebbleengine/method JournalReadFrom
@@ -2111,8 +2109,6 @@ metaengine/sqliteengine/method DistinctValues
 metaengine/sqliteengine/method ExplainAggregateQuery
 metaengine/sqliteengine/method ExplainScanQuery
 metaengine/sqliteengine/method GetRawValue
-metaengine/sqliteengine/method GraphAddEdge
-metaengine/sqliteengine/method GraphNeighbors
 metaengine/sqliteengine/method GroupedAggregate
 metaengine/sqliteengine/method HealthCheck
 metaengine/sqliteengine/method JournalReadAll

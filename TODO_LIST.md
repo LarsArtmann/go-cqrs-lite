@@ -358,15 +358,21 @@ and is **never** duplicated here.
 > InProcessNetwork (goroutine, no CGo), loopback (real TCP, no CGo), QUIC
 > (`iroh-go` C bindings, CGo required). loopback/v4.0.0 + quic/v4.0.0 tagged.
 
-- [ ] **QUIC transport integration with `adttest.RunMatrix`** — the in-process
-      mock + loopback pass the full matrix; verify the QUIC transport also
-      passes parity tests (LWW resolution, PN-Counter, MapUpdate-does-not-replicate).
-- [ ] **Non-CRDT op rejection on QUIC path** — verify `MapUpdate` operations
-      stay local-only and are NOT sent over QUIC (would break CRDT convergence).
-- [ ] **Fix `TestQuicSetConvergence` flakiness** — pre-existing, network-dependent.
-      Consider `//go:build integration` tag or relaxed timing bounds.
-- [ ] **Fix `TestLoad_ConcurrentLoadsCoalescedBySingleflight` flake** —
-      pre-existing race-condition test that flakes under parallel load.
+- [x] **QUIC transport integration with `adttest.RunMatrix`** — `TestQuicADTMatrix`
+      runs the full 10-ADT matrix against a QUIC-backed replicated engine (StreamLog
+      auto-skipped, not CRDT-safe). Added `TestLoopbackADTMatrix` for the loopback tier.
+      Parity tests for LWW (`TestQuicLWWResolution`), PN-Counter (`TestQuicPNCounter`),
+      and MapUpdate-does-not-replicate (`TestQuicMapUpdateDoesNotReplicate`) all pass.
+- [x] **Non-CRDT op rejection on QUIC path** — `TestQuicMapUpdateDoesNotReplicate`
+      verifies `MapUpdate` operations stay local-only over the QUIC transport.
+      CBOR round-trip type handling (int→uint64) addressed with `BeEquivalentTo`.
+- [x] **Fix `TestQuicSetConvergence` flakiness** — both SetAdd elements ("go" + "cqrs")
+      now checked inside the same `Eventually` block (was: Eventually for first,
+      direct assertion for second). Also fixed `TestQuicPNCounter` (was `time.Sleep`,
+      now `Eventually` on both nodes).
+- [x] **Fix `TestLoad_ConcurrentLoadsCoalescedBySingleflight` flake** — increased
+      coalescing window from 50ms to 200ms, added `runtime.Gosched()` after barrier
+      release to yield immediately to waiting goroutines.
 
 ---
 

@@ -5,7 +5,6 @@
 //   - Map/Set point lookups: O(1) LSM point read (comparable to Pebble)
 //   - Counter: O(1) increment via read-modify-write, O(N) CounterGet (prefix scan)
 //   - SortedMap scan: O(N) prefix scan + Go sort (degraded — no secondary indexes)
-//   - Graph: O(N^d) BFS via prefix scan
 //
 // This module exists OUTSIDE the zero-dependency metaengine core (ADR-0062)
 // because it requires the dgraph-io/badger/v4 dependency.
@@ -15,7 +14,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
+
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -119,8 +118,7 @@ func (e *badgerEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTMap:       metaengine.ComplexityO1,
 			metaengine.ADTSet:       metaengine.ComplexityO1,
 			metaengine.ADTCounter:   metaengine.ComplexityON,
-			metaengine.ADTGraph:     metaengine.ComplexityON,
-			metaengine.ADTSortedMap: metaengine.ComplexityON,
+				metaengine.ADTSortedMap: metaengine.ComplexityON,
 			metaengine.ADTLog:       metaengine.ComplexityOLogN,
 			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
 		},
@@ -165,8 +163,6 @@ var (
 	multimapPrefix     = keycodec.MultimapPrefix
 	logKey             = keycodec.LogKey
 	logPrefix          = keycodec.LogPrefix
-	graphEdgeKey       = keycodec.GraphEdgeKey
-	graphPrefixForward = keycodec.GraphPrefixForward
 	collectionPrefix   = keycodec.CollectionPrefix
 	streamKey          = keycodec.StreamKey
 	streamPrefix       = keycodec.StreamPrefix
@@ -179,21 +175,6 @@ var (
 	encodeCounterValue = keycodec.EncodeCounterValue
 	decodeCounterValue = keycodec.DecodeCounterValue
 )
-
-// nextKey returns the lexicographically next key after prefix (for upper bound).
-func nextKey(prefix []byte) []byte {
-	result := make([]byte, len(prefix))
-	copy(result, prefix)
-
-	for _, v := range slices.Backward(result) {
-		v++
-		if v != 0 {
-			return result
-		}
-	}
-
-	return append(result, 0)
-}
 
 // seedSeqCounters scans existing keys to seed log/multimap/journal/stream seq
 // counters on restart, preventing key collisions.
@@ -241,7 +222,6 @@ var (
 	_ metaengine.ScanBackend      = (*badgerEngine)(nil)
 	_ metaengine.SetBackend       = (*badgerEngine)(nil)
 	_ metaengine.CounterBackend   = (*badgerEngine)(nil)
-	_ metaengine.GraphBackend     = (*badgerEngine)(nil)
 	_ metaengine.MultimapBackend  = (*badgerEngine)(nil)
 	_ metaengine.LogBackend       = (*badgerEngine)(nil)
 	_ metaengine.StreamLogBackend = (*badgerEngine)(nil)

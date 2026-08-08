@@ -6,7 +6,6 @@ import "errors"
 // These are returned by passthrough methods when the wrapped engine does not
 // implement the required backend interface.
 var (
-	ErrGraphBackendNotImplemented   = errors.New("local engine does not implement GraphBackend")
 	ErrMapUpdaterNotImplemented     = errors.New("local engine does not implement MapUpdater")
 	ErrScanBackendNotImplemented    = errors.New("local engine does not implement ScanBackend")
 	ErrSearchBackendNotImplemented  = errors.New("local engine does not implement SearchBackend")

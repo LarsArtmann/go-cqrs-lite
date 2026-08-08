@@ -289,7 +289,6 @@ var (
 	_ metaengine.ScanBackend     = (*replicatedEngine)(nil)
 	_ metaengine.SetBackend      = (*replicatedEngine)(nil)
 	_ metaengine.CounterBackend  = (*replicatedEngine)(nil)
-	_ metaengine.GraphBackend    = (*replicatedEngine)(nil)
 	_ metaengine.MultimapBackend = (*replicatedEngine)(nil)
 	_ metaengine.LogBackend      = (*replicatedEngine)(nil)
 	_ metaengine.VectorBackend   = (*replicatedEngine)(nil)

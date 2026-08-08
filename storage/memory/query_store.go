@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"slices"
 	"sync"
@@ -10,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // MemoryQueryStore is an in-memory implementation of query.QueryStore.
@@ -70,6 +72,14 @@ func withQueryReadLock[T any](
 
 func (s *MemoryQueryStore) SaveQuery(_ context.Context, q *query.PersistedQuery) error {
 	return s.withWriteLock("memory.save_query_failed", "memory query store save", func() error {
+		if _, exists := s.idIndex[q.ID()]; exists {
+			return errorfamily.WrapConflict(
+				query.ErrDuplicateQuery,
+				"memory.duplicate_query",
+				fmt.Sprintf("query with ID %s already exists", q.ID()),
+			)
+		}
+
 		s.idIndex[q.ID()] = len(s.queries)
 		s.queries = append(s.queries, q)
 
@@ -131,7 +141,10 @@ func (s *MemoryQueryStore) ReadQueriesFrom(
 				startIdx = idx + 1
 			}
 
-			end := min(startIdx+limit, len(s.queries))
+			end := len(s.queries)
+			if limit > 0 {
+				end = min(startIdx+limit, len(s.queries))
+			}
 
 			if startIdx >= len(s.queries) {
 				return nil, nil

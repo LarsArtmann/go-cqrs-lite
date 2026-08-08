@@ -9,7 +9,6 @@ import (
 	"github.com/dgraph-io/badger/v4"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
 
 // --- SetBackend ---
@@ -109,57 +108,6 @@ func (e *badgerEngine) CounterGet(_ context.Context, col string) (map[string]int
 	})
 
 	return result, err
-}
-
-// --- GraphBackend ---
-
-func (e *badgerEngine) GraphAddEdge(_ context.Context, col string, edge metaengine.Edge) error {
-	from := encodeKeyStr(edge.From)
-	to := encodeKeyStr(edge.To)
-
-	return e.db.Update(func(txn *badger.Txn) error {
-		// Store edge in both directions for efficient neighbor lookup.
-		if err := txn.Set(graphEdgeKey(col, from, to), []byte{}); err != nil {
-			return err
-		}
-
-		return txn.Set(graphEdgeKey(col, to, from), []byte{})
-	})
-}
-
-func (e *badgerEngine) GraphNeighbors(
-	_ context.Context,
-	col string,
-	node any,
-	depth int,
-) ([]any, error) {
-	return keycodec.BFSNeighbors(e.scanGraphNeighbors, col, node, depth), nil
-}
-
-func (e *badgerEngine) scanGraphNeighbors(col, node string) []string {
-	prefix := graphPrefixForward(col, node)
-
-	var neighbors []string
-
-	_ = e.db.View(func(txn *badger.Txn) error {
-		iter := txn.NewIterator(badger.IteratorOptions{Prefix: prefix})
-		defer iter.Close()
-
-		for iter.Rewind(); iter.Valid(); iter.Next() {
-			keyStr := string(iter.Item().Key())
-
-			parts := strings.SplitN(keyStr, sep, 4)
-			if len(parts) < 4 {
-				continue
-			}
-
-			neighbors = append(neighbors, parts[3])
-		}
-
-		return nil
-	})
-
-	return neighbors
 }
 
 // --- MultimapBackend ---
