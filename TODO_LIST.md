@@ -47,22 +47,51 @@ and is **never** duplicated here.
 
 ---
 
-## Metaengine v2 — Remaining Gaps
+## Metaengine v2 — Dgraph Engine
 
-> Metaengine v2 is feature-complete. All gaps closed (2026-08-08):
-> `dqlString()` deleted + 14 query sites migrated to `QueryWithVars`,
-> `nix run .#ephemeral-dgraph` added (Zero+Alpha from nixpkgs),
-> all 10 Dgraph tests pass against live instance (Map, Set, Counter,
-> Graph, Search, SortedMap, RecordStamping, Profile, MapBackend, GraphBackend),
-> MapDelete fixed for Dgraph 25.x explicit null-predicate deletion,
-> DQL injection regression test added, CHANGELOG entry written,
-> README GraphBackend references clarified, real benchmarks captured
-> (writes ~2-2.7ms/op, reads ~344us/op). See
-> `docs/status/2026-08-08_21-33_metaengine-v2-gap-closure-dql-injection-fix.md`.
->
-> Remaining (not blocking): `MultimapBackend`/`LogBackend`/`SnapshotBackend`
-> not yet implemented for Dgraph — these ADTs are lower priority since Dgraph's
-> strengths are Graph and Search, which are fully working.
+> Dgraph engine integration-tested against live Dgraph 25.4.0 (2026-08-08).
+> `nix run .#ephemeral-dgraph` spins up Zero+Alpha from nixpkgs. All 10 tests
+> pass with `-race`. DQL injection fixed (`QueryWithVars`), MapDelete fixed
+> (Dgraph 25.x explicit null-predicate deletion), regression test added.
+> See `docs/status/2026-08-08_22-03_dgraph-integration-testing-and-performance.md`.
+
+- [ ] 🔥 **Fix Dgraph calibration constants** — `DG_NsPerOp=10,000ns` and
+      `DG_NsPerRead=8,000ns` are 100-270x too low vs real benchmarks
+      (MapSet 2.7ms, MapGet 344µs, CounterIncrement 2.4ms). The planner
+      will route queries to Dgraph that should go to Memory/SQLite.
+      Either update to measured values or implement `Calibratable.Benchmark()`.
+      _(Effort: S)_
+- [ ] 🔥 **Add Graph and Search benchmarks** — only Map/Counter/Set are
+      benchmarked (Dgraph's weaknesses). Graph traversal and full-text search
+      are Dgraph's killer features but have zero benchmark coverage.
+      _(Effort: S)_
+- [ ] **Fix CounterGet O(N) scan** — returns ALL counters in a collection
+      via client-side aggregation (3.4ms, 365KB, 1,143 allocs for 1000
+      counters). Should use Dgraph server-side `sum(val(count))` aggregation.
+      _(Effort: M)_
+- [ ] **Add adversarial DQL injection test** — the regression test checks
+      source patterns, not runtime behavior. Send keys containing DQL syntax
+      (`func:`, `@filter`, `{ }`, quotes) and verify they're treated as
+      literals by `QueryWithVars`.
+      _(Effort: S)_
+- [ ] **Add Dgraph to `test-all-backends.sh`** — currently lists SQLite,
+      Pebble, bbolt, DuckDB, PG, MySQL. Add Dgraph (needs `pkgs.dgraph`
+      in flake app `runtimeInputs`).
+      _(Effort: S)_
+- [ ] **Add Dgraph VM test** (`nix/vm/dgraph.nix`) — NixOS VM test for CI
+      reproducibility, matching postgres-vm/mysql-vm/duckdb-vm pattern.
+      _(Effort: M)_
+- [ ] **Implement MultimapBackend for Dgraph** — model via repeated predicate
+      values or edge lists.
+      _(Effort: M)_
+- [ ] **Implement LogBackend for Dgraph** — append-only ordered nodes.
+      _(Effort: M)_
+- [ ] **Add per-test data cleanup** — no `DropAll` or per-test cleanup exists.
+      Stale data accumulates on persistent Dgraph instances.
+      _(Effort: S)_
+- [ ] **Tag `dgraphengine/v4.0.2`** — security fix (DQL injection) + MapDelete
+      bugfix warrant a patch release.
+      _(Effort: S)_
 
 ---
 
