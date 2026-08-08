@@ -20,18 +20,13 @@ and is **never** duplicated here.
 > to v4.4.0 in all 44 dependent go.mod files. Vulncheck: 76/77 modules clean;
 > `stack` fails on `storage.SQLiteSetSynchronous` drift (see below).
 
-- [ ] 🔥 **Tag `storage/v4.5.1` (or v4.6.0)** — `SQLiteSetSynchronous` was added
-      to `storage/sqlite_helpers.go:124` after `storage/v4.5.0` was tagged.
-      `stack/sqlopt/durability.go:40` calls it, but the published tag doesn't
-      have it. This blocks `nix run .#vulncheck` for the `stack` module under
-      GOWORK=off. Fix: `bash scripts/tag-release.sh storage v4.6.0 "..."` then
-      bump `storage/v4` in `stack/go.mod`.
-      _(Verified 2026-08-08: `git show storage/v4.5.0:storage/sqlite_helpers.go`
-      has 4 SQLite funcs, current HEAD has 5.)_
-- [ ] **Write detailed CHANGELOG entries for v4.0.0/v4.1.0/v4.3.0** — current
-      entries are vague ("Stack presets gain durability tiers"). Replace with
-      specific exported types/functions, file:line refs, ADR references.
-      _(Effort: M)_
+- [x] ~~**Tag `storage/v4.6.0`**~~ — DONE. `SQLiteSetSynchronous` + Postgres
+      durability helpers + `MySQLInitSchema`. Bumped `storage/v4` to v4.6.0 in
+      all 6 stack presets that import storage (stack, sqlite, turso, duckdb,
+      postgres, mysql).
+- [x] ~~**Write detailed CHANGELOG entries for v4.0.0/v4.1.0/v4.3.0**~~ — DONE.
+      Replaced vague entries with specific exported types, file:line refs, ADR
+      citations.
 
 - [x] ~~Fix `metaengine/explain.go` build break~~ — RESOLVED: daemon completed
       `aggregateCapabilities` in subsequent commits (`2936e8c19`, `4d4da45d5`,
@@ -192,20 +187,20 @@ and is **never** duplicated here.
 
 ### Release (when ready)
 
-- [ ] 🔥 **Tag `system/v4.1.0`** — lifecycle methods + introspection extensions.
-      Verify version monotonically increasing: `git tag -l 'system/v4*' | sort -V | tail -1`.
-      **Depends on:** engine tags below being tagged first (consumers resolving
-      `system/v4.1.0` will pull engine modules that must be at compatible versions).
-- [ ] **Tag `metaengine/sqliteengine/v4.0.1`** (new `HealthCheck`).
-- [ ] **Tag `metaengine/duckdbengine/v4.0.1`** (new `HealthCheck` + aggregates).
-- [ ] **Tag `metaengine/pgengine/v4.0.1`** (new `HealthCheck` + aggregates).
-- [ ] **Tag `metaengine/pebbleengine/v4.0.1`** (new `HealthCheck`).
-- [ ] **Tag `metaengine/badgerengine/v4.0.1`** (new `HealthCheck`).
-- [ ] **Tag `metaengine/dgraphengine/v4.0.1`** (new `HealthCheck`).
-- [ ] **Tag `command/v4.4.0`** — includes `commandtest` subpackage (blocks
-      GOWORK=off tests).
-- [ ] **Tag `storage/memory/v4.3.0`** — includes `limit=0` fix + duplicate
-      detection fix.
+- [x] ~~**Tag `system/v4.1.0`**~~ — DONE. Lifecycle + introspection. Tagged
+      after bumping require lines (engines v4.0.1, command v4.4.0).
+- [x] ~~**Tag `metaengine/sqliteengine/v4.0.1`**~~ — DONE.
+- [x] ~~**Tag `metaengine/duckdbengine/v4.0.1`**~~ — DONE.
+- [x] ~~**Tag `metaengine/pgengine/v4.0.1`**~~ — DONE.
+- [x] ~~**Tag `metaengine/pebbleengine/v4.0.1`**~~ — DONE.
+- [x] ~~**Tag `metaengine/badgerengine/v4.0.1`**~~ — DONE.
+- [x] ~~**Tag `metaengine/dgraphengine/v4.0.1`**~~ — DONE.
+- [x] ~~**Tag `command/v4.4.0`**~~ — DONE. commandtest subpackage + bus pub/sub.
+- [x] ~~**Tag `storage/memory/v4.3.0`**~~ — DONE. limit=0 fix + dup detection.
+
+> **All 11 tags created locally (push pending user approval).**
+> Tags: `storage/v4.6.0`, `command/v4.4.0`, `storage/memory/v4.3.0`,
+> 6 engine modules at v4.0.1, `system/v4.1.0`, `cmd/cqrs-lint/v4.5.0`.
 
 ### Documentation ✅
 
@@ -241,8 +236,9 @@ and is **never** duplicated here.
 
 - [ ] **~14 remaining Pareto backlog items** — see the
       [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
-- [ ] **Tag cqrs-lint v4.5.0** — with all false-positive fixes + regression
-      tests. Or wait for C023 fix + consumer validation.
+- [x] ~~**Tag cqrs-lint v4.5.0**~~ — DONE. C008 word-boundary fix, C023
+      type-awareness, C001 BeginTx read-only, D007 auto-fix test, SARIF test.
+      Version constant bumped to 4.5.0. Version test passes.
 
 ---
 
