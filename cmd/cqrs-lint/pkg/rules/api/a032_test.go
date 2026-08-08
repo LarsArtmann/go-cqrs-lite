@@ -52,6 +52,42 @@ type User struct {
 	ruletest.AssertRule(t, findings, "A032", 0)
 }
 
+func TestA032_SkipsFormTagStruct(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"types.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/id/v4"
+
+type CreateUserRequest struct {
+	UserID string ` + "`form:\"user_id\"`" + `
+	Name   string
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, api.NewA032Detector(ctx))
+	ruletest.AssertRule(t, findings, "A032", 0)
+}
+
+func TestA032_SkipsDisplayPackage(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"dashboard/types.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/id/v4"
+
+type UserWidget struct {
+	UserID string
+	Label  string
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, api.NewA032Detector(ctx))
+	ruletest.AssertRule(t, findings, "A032", 0)
+}
+
 func TestA032_NoFindingOnEmptyContext(t *testing.T) {
 	t.Parallel()
 

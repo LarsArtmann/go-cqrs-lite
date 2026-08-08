@@ -63,6 +63,27 @@ func setup() {
 	ruletest.AssertRule(t, findings, "C034", 0)
 }
 
+func TestC034_NoFindingWithShutdownPattern(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"server.go": `package main
+
+import "context"
+
+func runServer(ctx context.Context) {
+	go server.ListenAndServe()
+	select {
+	case <-ctx.Done():
+		server.Shutdown(ctx)
+	}
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC034Detector(ctx))
+	ruletest.AssertRule(t, findings, "C034", 0)
+}
+
 func TestC034_NoFindingOnEmptyContext(t *testing.T) {
 	t.Parallel()
 

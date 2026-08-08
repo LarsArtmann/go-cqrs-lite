@@ -4,14 +4,17 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 )
 
 // frameHeaderSize is the number of bytes used for the length prefix.
-// Shared with loopback's framing protocol for consistency.
-const frameHeaderSize = 4
+// Aliased from irohengine.FrameHeaderSize so all transports share one source of truth.
+const frameHeaderSize = irohengine.FrameHeaderSize
 
 // errFrameTooLarge is returned when a received frame exceeds maxOpSize.
-var errFrameTooLarge = errors.New("frame too large")
+// Aliased from irohengine.ErrFrameTooLarge so all transports share one sentinel.
+var errFrameTooLarge = irohengine.ErrFrameTooLarge
 
 // frameHeader encodes a payload length as a 4-byte big-endian header.
 func frameHeader(size int) []byte {

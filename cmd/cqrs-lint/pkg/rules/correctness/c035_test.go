@@ -56,6 +56,22 @@ type Config struct {
 	ruletest.AssertRule(t, findings, "C035", 0)
 }
 
+func TestC035_SkipsSerializationDTOWithoutSync(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"readmodel.go": `package main
+
+type UserView struct {
+	Name string            ` + "`json:\"name\"`" + `
+	Data map[string]string ` + "`json:\"data\"`" + `
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC035Detector(ctx))
+	ruletest.AssertRule(t, findings, "C035", 0)
+}
+
 func TestC035_NoMapField(t *testing.T) {
 	t.Parallel()
 

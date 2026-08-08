@@ -102,6 +102,39 @@ require (
 	}
 }
 
+func TestExtractCQRSVersion_SkipsCodeBlocks(t *testing.T) {
+	t.Parallel()
+
+	content := "This project uses go-cqrs-lite.\n" +
+		"```go\n" +
+		"import \"go-cqrs-lite/command/v4.2.0\"\n" +
+		"```\n"
+	got := extractCQRSVersion(content, "v4.3.0")
+	if got != "v4.3.0" {
+		t.Fatalf("extractCQRSVersion with code block = %q, want %q (code blocks must be skipped)", got, "v4.3.0")
+	}
+}
+
+func TestExtractCQRSVersion_SkipsImportPaths(t *testing.T) {
+	t.Parallel()
+
+	content := "go-cqrs-lite/command/v4.2.0 provides commands."
+	got := extractCQRSVersion(content, "v4.3.0")
+	if got != "v4.3.0" {
+		t.Fatalf("extractCQRSVersion with import path = %q, want %q (version preceded by / must be skipped)", got, "v4.3.0")
+	}
+}
+
+func TestExtractCQRSVersion_SkipsPseudoVersions(t *testing.T) {
+	t.Parallel()
+
+	content := "go-cqrs-lite v4.2.1-0.20260808200723-546259830b28 is used."
+	got := extractCQRSVersion(content, "v4.3.0")
+	if got != "v4.3.0" {
+		t.Fatalf("extractCQRSVersion with pseudo-version = %q, want %q (pseudo-versions must be skipped)", got, "v4.3.0")
+	}
+}
+
 func TestReadGoModCQRSVersion_OldBugReturnedIndirect(t *testing.T) {
 	t.Parallel()
 

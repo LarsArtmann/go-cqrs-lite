@@ -118,6 +118,25 @@ type UserCreatedEvent struct {
 	ruletest.AssertRule(t, findings, "C013", 0)
 }
 
+func TestC013_SkipsJSONDashTag(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package domain
+
+import "time"
+
+type UserCreatedEvent struct {
+	Name      string    ` + "`json:\"name\"`" + `
+	UpdatedAt time.Time ` + "`json:\"-\"`" + `
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, correctness.NewC013Detector(ctx))
+	ruletest.AssertRule(t, findings, "C013", 0)
+}
+
 // Ensure runDetector and assertRule are available in this test package.
 // They are defined in rules_test.go in the same package.
 
