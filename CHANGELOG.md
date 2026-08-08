@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — dgraphengine DQL injection + MapDelete — 2026-08-08
+
+- **Security**: All 14 DQL query sites in `metaengine/dgraphengine/` migrated
+  from the deleted `dqlString()` hand-rolled escaper + `fmt.Sprintf` to Dgraph's
+  native `QueryWithVars` with `$variable` placeholders. The old `dqlString()`
+  missed null bytes, unicode escapes, and control characters. Regression test
+  `TestNoDQLInjectionPatterns` prevents re-introduction.
+- **Bugfix**: `MapDelete` now uses explicit null-predicate deletion
+  (`cqrs.map_collection: null, cqrs.map_key: null, cqrs.map_value: null`).
+  Dgraph 25.x does NOT delete all predicates when `DeleteJson` contains only
+  `{"uid": "..."}` — explicit predicate deletion is required.
+- **Test**: `nix run .#ephemeral-dgraph` spins up Dgraph Zero + Alpha from
+  nixpkgs (no Docker/VM). All 10 Dgraph ADT tests pass against a live instance:
+  Map, Set, Counter, Graph, Search, SortedMap, RecordStamping, Profile,
+  MapBackend, GraphBackend.
+
 ### Added — Pareto Execution Plan (M1-M22) — 2026-08-08
 
 #### cqrs-lint: 10 new rules (192 → 202 total, v4.6.0)
