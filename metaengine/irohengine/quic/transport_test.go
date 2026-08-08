@@ -149,15 +149,18 @@ func TestQuicPNCounter(t *testing.T) {
 	c.G.Expect(c.NodeB.(metaengine.CounterBackend).CounterIncrement(c.Ctx, "visits",
 		metaengine.Delta{"total": 3})).To(gomega.Succeed())
 
-	time.Sleep(200 * time.Millisecond)
+	c.G.Eventually(func(g gomega.Gomega) {
+		counts, err := c.NodeA.(metaengine.CounterBackend).CounterGet(c.Ctx, "visits")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(counts["total"]).To(gomega.Equal(int64(8)),
+			"PN-counter should sum both increments")
+	}, 5*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
 
-	counts, err := c.NodeA.(metaengine.CounterBackend).CounterGet(c.Ctx, "visits")
-	c.G.Expect(err).NotTo(gomega.HaveOccurred())
-	c.G.Expect(counts["total"]).To(gomega.Equal(int64(8)), "PN-counter should sum both increments")
-
-	countsB, err := c.NodeB.(metaengine.CounterBackend).CounterGet(c.Ctx, "visits")
-	c.G.Expect(err).NotTo(gomega.HaveOccurred())
-	c.G.Expect(countsB["total"]).To(gomega.Equal(int64(8)))
+	c.G.Eventually(func(g gomega.Gomega) {
+		countsB, err := c.NodeB.(metaengine.CounterBackend).CounterGet(c.Ctx, "visits")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(countsB["total"]).To(gomega.Equal(int64(8)))
+	}, 5*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
 }
 
 func TestQuicSetConvergence(t *testing.T) {
@@ -167,14 +170,14 @@ func TestQuicSetConvergence(t *testing.T) {
 	c.G.Expect(c.NodeA.(metaengine.SetBackend).SetAdd(c.Ctx, "tags", "cqrs")).To(gomega.Succeed())
 
 	c.G.Eventually(func(g gomega.Gomega) {
-		contains, err := c.NodeB.(metaengine.SetBackend).SetContains(c.Ctx, "tags", "go")
+		sb := c.NodeB.(metaengine.SetBackend)
+		containsGo, err := sb.SetContains(c.Ctx, "tags", "go")
 		g.Expect(err).NotTo(gomega.HaveOccurred())
-		g.Expect(contains).To(gomega.BeTrue())
+		g.Expect(containsGo).To(gomega.BeTrue())
+		containsCqrs, err := sb.SetContains(c.Ctx, "tags", "cqrs")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(containsCqrs).To(gomega.BeTrue())
 	}, 15*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
-
-	contains, err := c.NodeB.(metaengine.SetBackend).SetContains(c.Ctx, "tags", "cqrs")
-	c.G.Expect(err).NotTo(gomega.HaveOccurred())
-	c.G.Expect(contains).To(gomega.BeTrue())
 }
 
 func TestQuicLWWResolution(t *testing.T) {

@@ -8,128 +8,19 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4/querytest"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
-func TestMemoryQueryStore(t *testing.T) {
+func TestMemoryQueryStore_Suite(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-	store := memory.NewMemoryQueryStore()
+	querytest.RunStoreSuite(t, func(t *testing.T) querytest.StoreSuite {
+		store := memory.NewMemoryQueryStore()
+		t.Cleanup(func() { _ = store.Close() })
 
-	t.Cleanup(func() { _ = store.Close() })
-
-	search, err := query.NewPersistedQuery("user.search", []byte(`{"q":"alice"}`))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err := query.NewPersistedQuery("user.count", []byte(`{}`))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = store.SaveQuery(ctx, search)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = store.SaveQuery(ctx, count)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	all, err := store.ReadAllQueries(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(all) != 2 {
-		t.Fatalf("expected 2 queries, got %d", len(all))
-	}
-
-	result, err := store.ReadQueriesFrom(ctx, search.ID(), 10)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(result) != 1 {
-		t.Fatalf("expected 1 query after first, got %d", len(result))
-	}
-
-	if result[0].Type() != "user.count" {
-		t.Fatalf("expected user.count, got %s", result[0].Type())
-	}
-}
-
-func TestMemoryQueryStore_LoadQueriesAfterTime(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	store := memory.NewMemoryQueryStore()
-	t.Cleanup(func() { _ = store.Close() })
-
-	t1 := time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC)
-	cutoff := time.Date(2025, 2, 1, 10, 0, 0, 0, time.UTC)
-
-	old, err := query.NewPersistedQuery("user.search", nil, query.WithQueryReceivedAt(t1))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	recent, err := query.NewPersistedQuery("user.count", nil, query.WithQueryReceivedAt(cutoff))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := store.SaveQuery(ctx, old); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := store.SaveQuery(ctx, recent); err != nil {
-		t.Fatal(err)
-	}
-
-	result, err := store.LoadQueries(ctx, time.Date(2025, 1, 15, 0, 0, 0, 0, time.UTC))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(result) != 1 {
-		t.Fatalf("expected 1 query after cutoff, got %d", len(result))
-	}
-
-	if result[0].Type() != "user.count" {
-		t.Errorf("expected user.count, got %s", result[0].Type())
-	}
-}
-
-func TestMemoryQueryStore_ReadQueriesFromZeroID(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	store := memory.NewMemoryQueryStore()
-	t.Cleanup(func() { _ = store.Close() })
-
-	for range 3 {
-		q, err := query.NewPersistedQuery("user.search", nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if err := store.SaveQuery(ctx, q); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	result, err := store.ReadQueriesFrom(ctx, id.RequestID{}, 2)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(result) != 2 {
-		t.Fatalf("expected 2 queries from start, got %d", len(result))
-	}
+		return store
+	})
 }
 
 func TestMemoryQueryStore_ReadQueriesFromNonExistentID(t *testing.T) {

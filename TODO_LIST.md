@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-08 (cqrs-lint backlog triage: false-positive fixes, regression tests, per-module migration, SARIF logicalLocations, self-lint cleanup)
+**Updated:** 2026-08-08 (event.EnsureCustom deprecation, metadata.CustomData soft-deprecation, pre-existing failure discovery)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -457,23 +457,58 @@ and is **never** duplicated here.
       scattered `ireturn`-only blocks into 1 regex group. Removed 4
       duplicate-path/duplicate-linter entries. ~70 rules → ~45 documented.
 
+### DONE 2026-08-08 (event.EnsureCustom + metadata.CustomData deprecation)
+
+> See [status report](docs/status/2026-08-08_02-29_deprecate-ensurecustom-customdata.md).
+
+- [x] **Deprecate `event.EnsureCustom()` free function** — added
+      `event.Metadata.WithCustom(key, value) Metadata` value-receiver
+      method. Migrated all 4 production call sites (`event.WithCustom`
+      option, `watermill/protocol.go`, `event/tombstone.go` inline init,
+      fuzz test). Marked `EnsureCustom` `// Deprecated:`. Signing/encryption
+      had ZERO direct coupling — the "defer to dedicated session" framing
+      overstated risk (was ~30 min mechanical migration).
+- [x] **Soft-deprecate `metadata.CustomData[K]`** — added `// Deprecated:`
+      doc directing consumers to standalone-struct pattern. Type kept for
+      major version (library-first rule). `event.Metadata` is now the third
+      standalone-struct example alongside `command.Metadata` and
+      `query.Metadata`.
+
 ### Open follow-up items
 
-- [ ] **Deprecate `event.EnsureCustom()` free function** — the event
-      package's mutable `EnsureCustom(&m)` + direct map write pattern
-      persists. Needs `event.Metadata.WithCustom` (value-receiver) + caller
-      migration (`event.WithCustom` option, `watermill/protocol.go`,
-      `event/tombstone.go`). Touches signing/encryption hot paths — defer
-      to a dedicated session.
-- [ ] **Consider deprecating `metadata.CustomData[K]` entirely** — zero
-      internal production consumers (command/query migrated to standalone
-      structs; only the v3-compat alias and tests remain). Decision needed:
-      keep for external consumers who may embed it, or deprecate and direct
-      them to `metadata.Tracing` + own Custom map.
+- [ ] **Add `// Deprecated:` to `event.CustomData` v3-compat alias** —
+      `event/v3_compat_aliases.go:31` re-exports `metadata.CustomData[K]`
+      but the alias does not carry the deprecation notice. Should mirror
+      the base type.
+- [ ] **Migrate remaining test callers off deprecated `EnsureCustom`** —
+      `event/customdata_test.go:177,190` and `metadata/metadata_test.go:252,267`
+      still call `CustomData[K].EnsureCustom()`. Migrate to `WithCustom` or
+      keep as backward-compat coverage (decision needed).
 - [ ] **Per-module `.golangci.yml` split** — the monolithic config is now
       fully documented, but golangci-lint v2 `config-dirs` would give each
       module ownership of its own exclusions. Evaluate tradeoff: single
       source of truth vs locality.
+
+---
+
+## Pre-Existing Failures (discovered 2026-08-08)
+
+> Found while verifying the `EnsureCustom` deprecation. Both confirmed
+> pre-existing via `git stash` — NOT caused by the deprecation work.
+
+- [ ] 🔥 **Fix `cmd/api-stability/main.go:172` — `collectExports` undefined** —
+      the api-stability tool itself does not compile. Blocks ALL api-surface
+      golden regeneration. A meta-test should ensure `cmd/api-stability`
+      compiles (catches this class of breakage).
+- [ ] **Regenerate api-stability golden** — after fixing the tool. The
+      golden is stale: missing `event.Metadata.WithCustom` (added this
+      session) and likely other symbols from intervening daemon commits.
+- [ ] 🔥 **Fix 4 pre-existing watermill CBOR test failures** —
+      `TestRoundTrip`, `TestMessageToEvent_DefaultsJSONWhenNoEncoding`,
+      `TestEventToMessage_PreservesEncoding/json`, `TestEventPublisher_RoundTripCBOR`.
+      Root cause: default codec changed to CBOR but watermill tests still
+      expect JSON defaults. Needs systematic sweep of watermill tests for
+      codec-default assumption drift.
 
 ---
 

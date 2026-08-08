@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/command/v4/commandtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
@@ -36,91 +37,15 @@ func testPersistedCommand(
 	return cmd
 }
 
-func TestMemoryCommandStore_SaveAndLoad(t *testing.T) {
+func TestMemoryCommandStore_Suite(t *testing.T) {
 	t.Parallel()
 
-	store := memory.NewMemoryCommandStore()
-	ctx := context.Background()
-	ref := validCommandRef(t)
+	commandtest.RunStoreSuite(t, func(t *testing.T) commandtest.StoreSuite {
+		store := memory.NewMemoryCommandStore()
+		t.Cleanup(func() { _ = store.Close() })
 
-	cmd1 := testPersistedCommand(t, "CreateUser", ref)
-	cmd2 := testPersistedCommand(t, "UpdateUser", ref)
-
-	err := store.Save(ctx, ref, cmd1)
-	if err != nil {
-		t.Fatalf("unexpected error on Save: %v", err)
-	}
-
-	err = store.Save(ctx, ref, cmd2)
-	if err != nil {
-		t.Fatalf("unexpected error on Save: %v", err)
-	}
-
-	loaded, err := store.Load(ctx, ref)
-	if err != nil {
-		t.Fatalf("unexpected error on Load: %v", err)
-	}
-
-	if len(loaded) != 2 {
-		t.Fatalf("expected 2 commands, got %d", len(loaded))
-	}
-
-	if loaded[0].ID() != cmd1.ID() {
-		t.Errorf("first command ID mismatch: got %v, want %v", loaded[0].ID(), cmd1.ID())
-	}
-
-	if loaded[1].ID() != cmd2.ID() {
-		t.Errorf("second command ID mismatch: got %v, want %v", loaded[1].ID(), cmd2.ID())
-	}
-}
-
-func TestMemoryCommandStore_DuplicateCommand(t *testing.T) {
-	t.Parallel()
-
-	store := memory.NewMemoryCommandStore()
-	ctx := context.Background()
-	ref := validCommandRef(t)
-
-	cmd := testPersistedCommand(t, "CreateUser", ref)
-
-	err := store.Save(ctx, ref, cmd)
-	if err != nil {
-		t.Fatalf("unexpected error on first Save: %v", err)
-	}
-
-	err = store.Save(ctx, ref, cmd)
-	if err == nil {
-		t.Fatal("expected error for duplicate command")
-	}
-
-	if !errors.Is(err, command.ErrDuplicateCommand) {
-		t.Errorf("expected ErrDuplicateCommand, got: %v", err)
-	}
-}
-
-func TestMemoryCommandStore_AppendBatch(t *testing.T) {
-	t.Parallel()
-
-	store := memory.NewMemoryCommandStore()
-	ctx := context.Background()
-	ref := validCommandRef(t)
-
-	cmd1 := testPersistedCommand(t, "CreateUser", ref)
-	cmd2 := testPersistedCommand(t, "UpdateUser", ref)
-
-	err := store.AppendBatch(ctx, ref, []*command.PersistedCommand{cmd1, cmd2})
-	if err != nil {
-		t.Fatalf("unexpected error on AppendBatch: %v", err)
-	}
-
-	loaded, err := store.Load(ctx, ref)
-	if err != nil {
-		t.Fatalf("unexpected error on Load: %v", err)
-	}
-
-	if len(loaded) != 2 {
-		t.Fatalf("expected 2 commands, got %d", len(loaded))
-	}
+		return store
+	})
 }
 
 func TestMemoryCommandStore_AppendBatch_DuplicateInBatch(t *testing.T) {
@@ -201,27 +126,6 @@ func checkCommandID(t *testing.T, got, want id.CommandID, desc string) {
 	if got != want {
 		t.Errorf("%s ID mismatch: got %v, want %v", desc, got, want)
 	}
-}
-
-func TestMemoryCommandStore_LoadFromTimestamp(t *testing.T) {
-	t.Parallel()
-
-	store := memory.NewMemoryCommandStore()
-	ctx := context.Background()
-	_, cmd2, cmd3, ref := setupTimestampCommands(t)
-
-	if err := store.AppendBatch(ctx, ref, []*command.PersistedCommand{cmd2, cmd3}); err != nil {
-		t.Fatalf("unexpected error on AppendBatch: %v", err)
-	}
-
-	loaded, err := store.LoadFromTimestamp(ctx, ref, time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC))
-	if err != nil {
-		t.Fatalf("unexpected error on LoadFromTimestamp: %v", err)
-	}
-
-	assertCommandCount(t, loaded, 2, "after 2025-01-10")
-	checkCommandID(t, loaded[0].ID(), cmd2.ID(), "first")
-	checkCommandID(t, loaded[1].ID(), cmd3.ID(), "second")
 }
 
 func TestMemoryCommandStore_LoadToTimestamp(t *testing.T) {

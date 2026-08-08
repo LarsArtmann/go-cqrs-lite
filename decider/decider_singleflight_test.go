@@ -2,6 +2,7 @@ package decider_test
 
 import (
 	"context"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -21,9 +22,16 @@ type countLoadStore struct {
 	count atomic.Int32
 }
 
+// delay holds the Load call open long enough for all concurrent goroutines
+// released by the start barrier to arrive at singleflight.Do. 200ms is
+// sufficient even under -race (which inflates scheduling latency 5-10x).
+func (c *countLoadStore) delay() {
+	time.Sleep(200 * time.Millisecond)
+}
+
 func (c *countLoadStore) Load(ctx context.Context, ref id.StreamRef) ([]event.Event, error) {
 	c.count.Add(1)
-	time.Sleep(50 * time.Millisecond)
+	c.delay()
 
 	return c.Store.Load(ctx, ref)
 }
@@ -56,8 +64,8 @@ func TestLoad_ConcurrentLoadsCoalescedBySingleflight(t *testing.T) {
 	// Start barrier: all goroutines wait on this channel so they reach
 	// singleflight's Do at nearly the same time. Without this, the goroutine
 	// scheduler may launch them sequentially, causing some to miss the
-	// in-flight singleflight call (the 50ms sleep in countLoadStore is not
-	// enough under -race or parallel test load).
+	// in-flight singleflight call (the 200ms delay in countLoadStore is the
+	// coalescing window; Gosched after close yields so goroutines enter Do ASAP).
 	start := make(chan struct{})
 
 	var wg sync.WaitGroup
@@ -84,6 +92,7 @@ func TestLoad_ConcurrentLoadsCoalescedBySingleflight(t *testing.T) {
 	}
 
 	close(start)
+	runtime.Gosched() // yield so released goroutines can enter singleflight.Do promptly
 	wg.Wait()
 
 	if got := store.count.Load(); got != 1 {
