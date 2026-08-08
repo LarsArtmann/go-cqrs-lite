@@ -8,6 +8,53 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### Aggregate pushdown consolidation — shared helpers, plan diff, PG tests, ADR
+
+- **`metaengine.DecodeFloat`** — shared scan-value-to-float64 normalizer
+  extracted from 3 duplicated copies (`decodeFloat` in DuckDB,
+  `sqliteDecodeFloat` in SQLite, `pgDecodeFloat` in Postgres). Handles nil,
+  float64, float32, int64, int, `*big.Int`, and JSON-encoded `[]byte`.
+- **`metaengine.DecodeFloatResults`** — shared MultiAggregate result builder
+  (takes raws + specs + errPrefix). Eliminates the identical
+  `result := make(map...)` loop duplicated across all 3 engines.
+- **`SerializableQuery.ReadPattern`** — new field in the plan serialization
+  struct. Populated from `QueryAssignment.ReadPattern` during `Serialize()`.
+  `QueryChange` now includes `OldReadPattern` + `NewReadPattern`, so `PlanDiff`
+  detects when a query's read pattern changes (e.g., point_lookup to aggregate).
+- **`Doctor()` aggregate pushdown section** — new `--- Aggregate Pushdown ---`
+  section in `Store.Doctor()` output. Uses `aggregateCapabilities` helper to
+  check all 5 aggregate interfaces per engine, printing e.g.
+  `users: pushdown: scalar, grouped, multi, multi-grouped, distinct`.
+- **PG functional aggregate tests** — 7 test functions in
+  `metaengine/pgengine/aggregations_test.go` covering all 5 aggregate interfaces
+  + empty collection + explain. Tests: `TestPostgres_Aggregate` (COUNT/SUM/MIN/
+  MAX/AVG + filtered), `TestPostgres_GroupedAggregate` (count + sum by status),
+  `TestPostgres_MultiAggregate` (count + sum + min + max in one pass),
+  `TestPostgres_MultiGroupedAggregate` (count + sum + avg per group),
+  `TestPostgres_DistinctValues`, `TestPostgres_Aggregate_EmptyCollection`,
+  `TestPostgres_ExplainAggregateQuery`. All pass via testcontainers.
+- **DuckDB race regression test** —
+  `TestDuckDB_RaceRegression_LayoutPlanConcurrentAccess` in
+  `metaengine/duckdbengine/race_regression_cgo_test.go`. 30 goroutines
+  (10 `ApplyLayoutPlan` writers + 10 `ExplainAggregateQuery` readers +
+  10 `MapSet` readers) x 50 iterations, verified under `-race`.
+- **DuckDB planned-path empty-collection test** —
+  `TestDuckDB_Aggregate_EmptyPlannedCollection` tests all 5 interfaces
+  (Aggregate, GroupedAggregate, MultiAggregate, MultiGroupedAggregate,
+  DistinctValues) on an empty planned table with native SQL columns.
+- **Cross-engine planned-table parity test** —
+  `TestAggregateParity_PlannedTable_DuckDB_vs_SQLite` in
+  `metaengine/bench/aggregate_parity_cgo_test.go`. Verifies DuckDB + SQLite
+  produce identical aggregate results on planned tables (Count, Sum, Min, Max,
+  Avg, GroupedCount, GroupedSum). Added `newPlannedSQLiteEngine` factory helper.
+- **ADR-0120** — Aggregate pushdown architecture. Documents the 5-interface
+  design, cross-engine parity strategy, `DecodeFloat` extraction, and the
+  rationale for engine-level aggregation over Go-side accumulation.
+- **`lookupPlan` shallow-copy documentation** — doc comment on the
+  `duckdbEngine.lookupPlan` helper explains that the returned `LayoutPlan` is a
+  struct copy but slice fields (Columns, Indexes) share the underlying array.
+  All callers are read-only today.
+
 #### CBOR encoding bugfix — event.New WithEncoding respect + Watermill fixes
 
 - **`event.New` WithEncoding fix** — `event.New()` was silently discarding
@@ -33,14 +80,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   4.4x faster than Go-side at 100K rows. MultiAggregate 2.1x faster.
 - **SQLite engine**: 4 aggregate interfaces (AggregateReader + GroupedAggregate +
   MultiAggregate + MultiGroupedAggregate) on both json_extract and planned-table
-  paths. 10 planned-table subtests + 5 empty-collection edge cases.
+  paths. 10 planned-table subtests + 5 empty-collection edge cases. Planned-table
+  aggregate path verified via cross-engine parity test.
 - **Postgres engine**: all 5 aggregate interfaces + `ExplainableAggregate` +
-  `ExplainableScan`. JSONB operator-based aggregation pushdown.
+  `ExplainableScan`. JSONB operator-based aggregation pushdown. 7 functional
+  tests via testcontainers (was compile-time assertions only).
 - **TypedReader consumer methods**: `GroupedCount`/`GroupedSum`/`GroupedMin`/
   `GroupedMax`/`GroupedAvg`, `MultiAggregate`, `MultiGroupedAggregate`.
   13 TypedReader pushdown integration subtests.
-- **Cross-engine parity harness**: DuckDB vs SQLite aggregate parity tests.
-  Filter-based cross-engine parity tests.
+- **Cross-engine parity harness**: DuckDB vs SQLite aggregate parity tests
+  (json_extract + planned-table paths). Filter-based cross-engine parity tests.
 - **Bug fixes found during development**: `MultiGroupedAggregate` AVG fallback
   bug (per-spec nonNullCounts), `aggregatePushdown` MIN/MAX/AVG fallback bugs
   (sentinel → firstSet flag), SQLite Aggregate NULL crash on empty collections,

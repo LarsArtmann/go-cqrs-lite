@@ -1,9 +1,13 @@
 # TODO List
 
-**Updated:** 2026-08-08 (system lifecycle hardening shipped: interface extraction,
-test split, 4 new tests, README lifecycle docs; integration tests added; all
-blocking items resolved — metaengine build fixed by daemon, api-stability/doc-check
-verified)
+**Updated:** 2026-08-08 (session 3: 12/12 metaengine v2 + aggregate pushdown TODOs
+completed — `DecodeFloat`/`DecodeFloatResults` extracted to core, `ReadPattern`
+added to `SerializableQuery`, aggregate diagnostics in `Doctor()`, PG functional
+aggregate tests (7 functions via testcontainers), DuckDB race regression test,
+DuckDB planned-path empty-collection test, cross-engine planned-table parity
+test, ADR-0120, `lookupPlan` shallow-copy docs, DuckDB `t.Parallel()` audit,
+coverage verified, QUIC `-parallel 4` verified; 3 follow-up items added for
+missing direct tests)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -19,7 +23,7 @@ and is **never** duplicated here.
 ## Release Hygiene
 
 > Verify gate is 17/17 GREEN. Lint gate is 0 issues. CHANGELOG has entries for
-> v4.0.0, v4.1.0, v4.3.0. API stability golden is 3807 exports. All 15 tags
+> v4.0.0, v4.1.0, v4.3.0. API stability golden is 3809 exports. All 15 tags
 > (`event/v4.4.0` + 14 module tags) are pushed to origin. `event/v4` is bumped
 > to v4.4.0 in all 44 dependent go.mod files. Vulncheck: 76/77 modules clean;
 > `stack` fails on `storage.SQLiteSetSynchronous` drift (see below).
@@ -75,7 +79,24 @@ and is **never** duplicated here.
 > coverage baselines verified within tolerance,
 > QUIC convergence verified under `-parallel 4` (3x pass).
 >
-> _(Source: `docs/status/2026-08-08_08-34_metaengine-v2-coverage-gaps-duckdb-race-fix.md`)_
+> _(Source: `docs/status/2026-08-08_09-27_metaengine-v2-coverage-gaps-and-aggregate-followup.md`)_
+
+### Session 3 follow-up — direct tests for shared helpers
+
+- [ ] **Write direct unit tests for `metaengine.DecodeFloat`** — all 7 type
+      branches (nil, float64, float32, int64, int, *big.Int, []byte) + unknown
+      type error case. Currently only exercised indirectly through 3 engines'
+      aggregate tests. _(Effort: S)_
+- [ ] **Write direct unit tests for `metaengine.DecodeFloatResults`** — empty
+      specs, nil raws, mismatched lengths, correct alias keying. _(Effort: S)_
+- [ ] **Add Doctor() test asserting aggregate-pushdown section** — current
+      Doctor tests only use Memory engine (no pushdown). Add a test with SQLite
+      or DuckDB engine asserting `--- Aggregate Pushdown ---` header appears with
+      expected capability list. _(Effort: S)_
+- [ ] **Strengthen PG aggregate test assertions** — `TestPostgres_ExplainAggregateQuery`
+      only checks non-empty SQL (should assert SUM keyword, `$1` placeholder).
+      `TestPostgres_DistinctValues` only checks count (should verify actual values
+      "open" and "closed"). _(Effort: S)_
 
 - [x] **Write DuckDB race regression test** —
       `TestDuckDB_RaceRegression_LayoutPlanConcurrentAccess` in
