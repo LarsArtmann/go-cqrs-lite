@@ -7,9 +7,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
-	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260808013035-d4f74e56ac58
+	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260808055352-5f047a7f7f3b
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
@@ -51,7 +51,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

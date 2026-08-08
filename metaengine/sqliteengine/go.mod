@@ -4,7 +4,6 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
 	modernc.org/sqlite v1.56.0
@@ -22,6 +21,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-sse v0.4.0 // indirect
 	github.com/maruel/natural v1.3.0 // indirect

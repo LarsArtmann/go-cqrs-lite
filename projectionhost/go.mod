@@ -67,7 +67,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20260805114148-88456608a4f6 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.7 // indirect
 	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
@@ -96,7 +95,7 @@ require (
 require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0

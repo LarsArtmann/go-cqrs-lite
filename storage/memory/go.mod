@@ -6,7 +6,7 @@ require (
 	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0
