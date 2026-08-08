@@ -106,3 +106,84 @@ func BuildContextFromTempFiles(
 
 	return ctx, func() {}
 }
+
+// BuildContextWithTypes creates an AnalysisContext with REAL type information.
+// It writes sources to temp files and runs go/packages.Load with NeedTypes |
+// NeedTypesInfo, producing fully populated TypesInfo maps. Use this instead of
+// BuildContextFromSource when testing type-aware rules (C023, F010, etc.)
+// that check gf.Pkg.TypesInfo.Types, .Defs, .Uses, .Selections.
+//
+// The returned cleanup function removes the temp directory.
+func BuildContextWithTypes(
+	t *testing.T,
+	goVersion string,
+	sources map[string]string,
+) (*AnalysisContext, func()) {
+	t.Helper()
+
+	dir := t.TempDir()
+
+	// Write a minimal go.mod so go/packages can resolve the module.
+	if goVersion == "" {
+		goVersion = "1.26"
+	}
+
+	modContent := "module test.example\n\ngo " + goVersion + "\n"
+	if err := os.WriteFile(dir+"/go.mod", []byte(modContent), 0o644); err != nil {
+		t.Fatalf("write go.mod: %v", err)
+	}
+
+	for filename, content := range sources {
+		fullPath := dir + "/" + filename
+		if err := os.WriteFile(fullPath, []byte(content), 0o644); err != nil {
+			t.Fatalf("write %s: %v", fullPath, err)
+		}
+	}
+
+	cfg := &packages.Config{
+		Mode: packages.NeedName | packages.NeedTypes | packages.NeedTypesInfo |
+			packages.NeedSyntax | packages.NeedFiles,
+		Dir:        dir,
+		BuildFlags: []string{"-tags=goexperiment.jsonv2"},
+	}
+
+	pkgs, err := packages.Load(cfg, "./...")
+	if err != nil {
+		t.Fatalf("packages.Load: %v", err)
+	}
+
+	fset := token.NewFileSet()
+	ctx := &AnalysisContext{
+		Fset:     fset,
+		Registry: NewCQRSRegistry(),
+	}
+
+	for _, pkg := range pkgs {
+		if len(pkg.Errors) > 0 {
+			t.Fatalf("package %s has errors: %v", pkg.PkgPath, pkg.Errors[0])
+		}
+
+		for _, file := range pkg.Syntax {
+			pos := fset.Position(file.Pos())
+			filename := pos.Filename
+
+			gf := &GoFile{
+				Path:   filename,
+				Pkg:    pkg,
+				AST:    file,
+				IsTest: strings.HasSuffix(filename, "_test.go"),
+			}
+
+			ctx.GoFiles = append(ctx.GoFiles, gf)
+			if !gf.IsTest {
+				scanFile(ctx, gf)
+			}
+		}
+	}
+
+	ctx.FeatureProfile = DetectFeatures(ctx)
+	ResolveRegisteredTypeConsts(ctx.Registry)
+	ResolveHandlerMethods(ctx)
+
+	return ctx, func() {}
+}
