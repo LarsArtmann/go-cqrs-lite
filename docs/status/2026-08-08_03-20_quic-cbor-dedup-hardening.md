@@ -11,19 +11,19 @@ Executed all 10 prioritized items from the prior session's follow-up list. Two p
 
 ### Files Changed
 
-| File | Change |
-|------|--------|
-| `metaengine/irohengine/quic/latency.go` | **P1**: Added `normalizeAny()` — post-CBOR-decode normalizer that coerces `uint64`→`int` and `int64`→`int` recursively through `any`-typed fields. Eliminates silent type drift on QUIC wire. |
-| `metaengine/irohengine/quic/transport.go` | **P2**: Replaced `dedupSeen map[string]struct{}` (reset at 10K → gap) with `dedup.Ring` (graceful eviction). **P5**: Added `slog.Warn` on `OpenBi()` failure (was silently returning). |
-| `metaengine/irohengine/quic/stream.go` | **P2**: `markSeen` rewritten to use `dedup.Ring.Has()` + `dedup.Ring.Add()` behind existing mutex. |
-| `metaengine/irohengine/quic/transport_test.go` | **P1**: Removed `BeEquivalentTo` workarounds — `Equal` now works (types preserved). **P6**: Added `TestQuicMultimapConvergence`. **P8**: rangeint fix. |
-| `metaengine/irohengine/quic/reconnect_test.go` | **P4**: `TestQuic3NodeRelayConvergence` + `TestQuicWriteAfterReconnect` — replaced `time.Sleep` with `waitForPeers` + `Eventually`. |
-| `metaengine/irohengine/quic/go.mod` | **P2**: `dedup/v4` promoted from indirect to direct dependency. |
-| `metaengine/irohengine/loopback/transport_test.go` | **P6**: Added `TestLoopbackMultimapConvergence`. |
-| `metaengine/irohengine/latency_test.go` | **P8**: 6× `for i := 0; i < N; i++` → `for i := range N`. |
-| `decider/decider_singleflight_test.go` | **P8**: 2× `wg.Add(1); go func(){ defer wg.Done(); ... }()` → `wg.Go(func() { ... })`. |
-| `metaengine/adttest/harness.go` | **P8**: Stale comments "10-ADT"→"11-ADT", "7-ADT"→"11-ADT". |
-| `AGENTS.md` | **P9**: Updated irohengine module tree (test counts, CBOR normalization, dedup Ring). Added CBOR type drift gotcha to lint conventions section. |
+| File                                               | Change                                                                                                                                                                                        |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `metaengine/irohengine/quic/latency.go`            | **P1**: Added `normalizeAny()` — post-CBOR-decode normalizer that coerces `uint64`→`int` and `int64`→`int` recursively through `any`-typed fields. Eliminates silent type drift on QUIC wire. |
+| `metaengine/irohengine/quic/transport.go`          | **P2**: Replaced `dedupSeen map[string]struct{}` (reset at 10K → gap) with `dedup.Ring` (graceful eviction). **P5**: Added `slog.Warn` on `OpenBi()` failure (was silently returning).        |
+| `metaengine/irohengine/quic/stream.go`             | **P2**: `markSeen` rewritten to use `dedup.Ring.Has()` + `dedup.Ring.Add()` behind existing mutex.                                                                                            |
+| `metaengine/irohengine/quic/transport_test.go`     | **P1**: Removed `BeEquivalentTo` workarounds — `Equal` now works (types preserved). **P6**: Added `TestQuicMultimapConvergence`. **P8**: rangeint fix.                                        |
+| `metaengine/irohengine/quic/reconnect_test.go`     | **P4**: `TestQuic3NodeRelayConvergence` + `TestQuicWriteAfterReconnect` — replaced `time.Sleep` with `waitForPeers` + `Eventually`.                                                           |
+| `metaengine/irohengine/quic/go.mod`                | **P2**: `dedup/v4` promoted from indirect to direct dependency.                                                                                                                               |
+| `metaengine/irohengine/loopback/transport_test.go` | **P6**: Added `TestLoopbackMultimapConvergence`.                                                                                                                                              |
+| `metaengine/irohengine/latency_test.go`            | **P8**: 6× `for i := 0; i < N; i++` → `for i := range N`.                                                                                                                                     |
+| `decider/decider_singleflight_test.go`             | **P8**: 2× `wg.Add(1); go func(){ defer wg.Done(); ... }()` → `wg.Go(func() { ... })`.                                                                                                        |
+| `metaengine/adttest/harness.go`                    | **P8**: Stale comments "10-ADT"→"11-ADT", "7-ADT"→"11-ADT".                                                                                                                                   |
+| `AGENTS.md`                                        | **P9**: Updated irohengine module tree (test counts, CBOR normalization, dedup Ring). Added CBOR type drift gotcha to lint conventions section.                                               |
 
 ---
 
@@ -52,10 +52,12 @@ Executed all 10 prioritized items from the prior session's follow-up list. Two p
 ### P4: Sleep-Based QUIC Test Hardening — MOSTLY DONE
 
 **Fixed:**
+
 - `TestQuic3NodeRelayConvergence`: replaced manual `deadline`+`time.Sleep(50ms)` polling loop + `time.Sleep(500ms)` settle with `waitForPeers(t, [...], 2)` + `waitForPeers(t, [...], 1)`.
 - `TestQuicWriteAfterReconnect`: replaced `time.Sleep(500ms)` (connect settle), `time.Sleep(500ms)` (write settle), `time.Sleep(1s)` (reconnect settle), `time.Sleep(2s)` (convergence wait) with `waitForPeers` calls. Final assertion uses `eventuallyGet` with 10s timeout.
 
 **NOT fixed (intentionally skipped):**
+
 - `TestQuicLWWResolution` still uses `time.Sleep(100ms)` between two writes to ensure timestamp ordering. This is semantically necessary for real LWW — the second write MUST have a later timestamp than the first. A deterministic timestamp injection would require changing the `replicatedEngine` API. The 100ms gap is stable.
 - `TestQuicMapUpdateDoesNotReplicate` uses `time.Sleep(500ms)` — this is a **negative** assertion (wait for replication that should NOT happen). There's no `Eventually` equivalent for "this must NOT change."
 
@@ -73,13 +75,13 @@ Added `TestQuicMultimapConvergence` and `TestLoopbackMultimapConvergence`. Both 
 
 ### P7: Matrix Across All Engines — VERIFIED
 
-| Engine | Result | Notes |
-|--------|--------|-------|
-| Pebble | ✅ PASS | 7 ADTs implemented, 4 skipped (Vector/Search/Spatial/Graph) |
-| Badger | ✅ PASS | 7 ADTs implemented, 4 skipped |
-| DuckDB | ✅ PASS | 4 ADTs (Map/SortedMap/Counter/StreamLog), 7 skipped |
-| Postgres | ✅ PASS | 4 ADTs (same as DuckDB), via testcontainers Docker |
-| Dgraph | ⏭️ SKIP | Dgraph not running locally (connection refused on :9080) |
+| Engine   | Result  | Notes                                                       |
+| -------- | ------- | ----------------------------------------------------------- |
+| Pebble   | ✅ PASS | 7 ADTs implemented, 4 skipped (Vector/Search/Spatial/Graph) |
+| Badger   | ✅ PASS | 7 ADTs implemented, 4 skipped                               |
+| DuckDB   | ✅ PASS | 4 ADTs (Map/SortedMap/Counter/StreamLog), 7 skipped         |
+| Postgres | ✅ PASS | 4 ADTs (same as DuckDB), via testcontainers Docker          |
+| Dgraph   | ⏭️ SKIP | Dgraph not running locally (connection refused on :9080)    |
 
 All engines pass the 11-scenario matrix. The stale comment fix ("7-ADT"→"11-ADT") ensures future readers aren't confused.
 
@@ -97,13 +99,13 @@ All engines pass the 11-scenario matrix. The stale comment fix ("7-ADT"→"11-AD
 
 ### P10: Flake Confidence — DONE
 
-| Module | Repetitions | Race | Result |
-|--------|-------------|------|--------|
-| decider (singleflight tests) | 20x | ✅ -race | PASS (5.1s) |
-| irohengine | 20x | ✅ -race | PASS (6.5s) |
-| loopback | 20x | ✅ -race | PASS (42.2s) |
-| QUIC (full suite) | 5x | no | PASS (5.1s) |
-| QUIC (full suite) | 1x | ✅ -race | PASS (2.1s) |
+| Module                       | Repetitions | Race     | Result       |
+| ---------------------------- | ----------- | -------- | ------------ |
+| decider (singleflight tests) | 20x         | ✅ -race | PASS (5.1s)  |
+| irohengine                   | 20x         | ✅ -race | PASS (6.5s)  |
+| loopback                     | 20x         | ✅ -race | PASS (42.2s) |
+| QUIC (full suite)            | 5x          | no       | PASS (5.1s)  |
+| QUIC (full suite)            | 1x          | ✅ -race | PASS (2.1s)  |
 
 Zero flakes across all runs.
 
@@ -116,6 +118,7 @@ Zero flakes across all runs.
 **What was done:** gofumpt + goimports on all 9 changed files. Per-module `go test` on decider, irohengine, loopback, quic. `go mod tidy -e` on QUIC module (confirmed consistent).
 
 **What was NOT done:**
+
 - `nix run .#lint` — never ran the linter (gosec, depguard, golangci-lint). The new `log/slog` import and `math` import may trigger depguard or import rules.
 - `nix run .#verify` or `nix run .#verify-fast` — never ran the full verify gate. This violates the "Stale GREEN" anti-pattern from AGENTS.md.
 - `nix fmt` — only ran gofumpt/goimports manually, not the project-wide treefmt.

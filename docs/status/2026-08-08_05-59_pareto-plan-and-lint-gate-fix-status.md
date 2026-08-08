@@ -28,21 +28,21 @@
 
 ### Verify gate: 13 of 17 steps GREEN
 
-| Step | Status |
-|------|--------|
-| Doc assertions | ✅ PASS |
-| Module coverage | ✅ PASS |
-| Build | ✅ PASS |
-| Vet | ✅ PASS |
-| Test (all 100+ modules) | ✅ PASS |
-| Race detector (all modules) | ✅ PASS |
-| Lint | ❌ **4 issues remain** |
-| Layers | (not checked this run) |
-| Duplication | (not checked this run) |
-| Coverage | (not checked this run) |
-| API stability | (not checked this run) |
-| Doc-check | (not checked this run) |
-| Doc-assertions | ✅ PASS |
+| Step                        | Status                 |
+| --------------------------- | ---------------------- |
+| Doc assertions              | ✅ PASS                |
+| Module coverage             | ✅ PASS                |
+| Build                       | ✅ PASS                |
+| Vet                         | ✅ PASS                |
+| Test (all 100+ modules)     | ✅ PASS                |
+| Race detector (all modules) | ✅ PASS                |
+| Lint                        | ❌ **4 issues remain** |
+| Layers                      | (not checked this run) |
+| Duplication                 | (not checked this run) |
+| Coverage                    | (not checked this run) |
+| API stability               | (not checked this run) |
+| Doc-check                   | (not checked this run) |
+| Doc-assertions              | ✅ PASS                |
 
 ### Lint gate: 49→4 issues
 
@@ -71,12 +71,12 @@ The auto-commit daemon committed all changes. Working tree is clean.
 
 ### Lint gate — 4 issues remain
 
-| # | File | Linter | Issue |
-|---|------|--------|-------|
-| 1 | `metaengine/typed_reader_aggregate_test.go:33` | tparallel | `TestTypedReader_AggregateFallback` subtests should call `t.Parallel()` |
-| 2 | `metaengine/duckdbengine/aggregations.go:135` | revive | unused parameter `col` in `fromClause` |
-| 3 | `metaengine/duckdbengine/aggregations_cgo_test.go:660` | tparallel | `TestDuckDB_ExplainAggregateQuery` subtests should call `t.Parallel()` |
-| 4 | `system/constructor.go:23` | nolintlint | `//nolint:funlen` directive is unused (funlen already excluded for system/) |
+| #   | File                                                   | Linter     | Issue                                                                       |
+| --- | ------------------------------------------------------ | ---------- | --------------------------------------------------------------------------- |
+| 1   | `metaengine/typed_reader_aggregate_test.go:33`         | tparallel  | `TestTypedReader_AggregateFallback` subtests should call `t.Parallel()`     |
+| 2   | `metaengine/duckdbengine/aggregations.go:135`          | revive     | unused parameter `col` in `fromClause`                                      |
+| 3   | `metaengine/duckdbengine/aggregations_cgo_test.go:660` | tparallel  | `TestDuckDB_ExplainAggregateQuery` subtests should call `t.Parallel()`      |
+| 4   | `system/constructor.go:23`                             | nolintlint | `//nolint:funlen` directive is unused (funlen already excluded for system/) |
 
 **These are 4 trivial fixes** — I was about to fix them when the session was interrupted for this status report. Each is under 5 minutes.
 
@@ -103,6 +103,7 @@ may have formatting issues.
 ### Everything in the Pareto plan (Phases 2-9)
 
 All 66 Level 1 tasks remain unstarted:
+
 - DeferClose extension to storage/{pebble,bbolt,eventstore}
 - Record-stamp tests for badger/dgraph/graphadapter
 - PG aggregate functional tests

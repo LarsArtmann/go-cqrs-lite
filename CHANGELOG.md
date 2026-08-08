@@ -64,7 +64,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`System.RegisterCloser(name, closer)`** — lets consumers register external
   resources for lifecycle management.
 - **HealthCheck on Badger + Dgraph engines** — Badger uses `db.View(func(txn)
-  error { return nil })` as lightweight probe; Dgraph uses gRPC connection check.
+error { return nil })` as lightweight probe; Dgraph uses gRPC connection check.
   All 6 metaengine engines now implement `metaengine.HealthChecker`.
 - **HealthCheck tests for all engines** — Pebble (healthy + closed DB), SQLite
   (closed DB error propagation), DuckDB (CGo), Postgres (testcontainers),
@@ -93,7 +93,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 #### Dedup helper extraction — DeferClose, renderTable, TitleCase/Truncate
 
 - **`metaengine.DeferClose(c Closer)`** — replaces `defer func() { _ = X.Close()
-  }()` boilerplate. 47 production sites + 17 test sites refactored across
+}()` boilerplate. 47 production sites + 17 test sites refactored across
   sqlite/pg/duckdb/pebble/badger/dgraph engines.
 - **`renderTable` + shared primitives** — generalized `renderKeyTable` into
   `renderTable` + `writeTableRow` + `writeTableSeparator` + `columnWidths` in

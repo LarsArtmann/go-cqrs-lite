@@ -88,7 +88,7 @@ and is **never** duplicated here.
 
 > P0/P1/P2/P3 + lifecycle hardening all shipped. HealthCheck on all 6 engines,
 > Drain/EngineNames/ShutdownOrder/HealthCheckDetailed/LagPerProjection/
-  LagDuration/WorkerStatus/RegisterCloser all shipped. Tagged `system/v4.0.0`.
+> LagDuration/WorkerStatus/RegisterCloser all shipped. Tagged `system/v4.0.0`.
 
 ### Lifecycle follow-up
 

@@ -12,6 +12,7 @@
 **File:** `metaengine/irohengine/quic/transport_test.go:183-199`
 
 **Before:**
+
 ```go
 c.NodeA.MapSet("users", "u1", "Alice-old")
 time.Sleep(100 * time.Millisecond)              // ← arbitrary, flaky
@@ -21,6 +22,7 @@ eventuallyGet(NodeB, "users", "u1", "Bob-new")
 ```
 
 **After:**
+
 ```go
 c.NodeA.MapSet("users", "u1", "Alice-old")
 eventuallyGet(NodeB, "users", "u1", "Alice-old") // ← wait for replication
@@ -33,11 +35,11 @@ eventuallyGet(NodeB, "users", "u1", "Bob-new")
 
 ### A2. Verification (per-module)
 
-| Check | Command | Result |
-|-------|---------|--------|
-| LWW test 3x plain | `go test -run TestQuicLWWResolution -count=3` | PASS |
-| LWW test 3x race | `go test -run TestQuicLWWResolution -count=3 -race` | PASS |
-| Full QUIC suite race | `go test -count=1 -race ./...` | PASS (1.971s) |
+| Check                | Command                                             | Result        |
+| -------------------- | --------------------------------------------------- | ------------- |
+| LWW test 3x plain    | `go test -run TestQuicLWWResolution -count=3`       | PASS          |
+| LWW test 3x race     | `go test -run TestQuicLWWResolution -count=3 -race` | PASS          |
+| Full QUIC suite race | `go test -count=1 -race ./...`                      | PASS (1.971s) |
 
 ---
 
@@ -61,11 +63,11 @@ Only the edit was applied. No `gofumpt`/`goimports` or `nix fmt` was run on the 
 
 After this fix, 2 `time.Sleep` calls remain in test code:
 
-| File | Line | Context | Status |
-|------|------|---------|--------|
-| `transport_test.go:32` | `time.Sleep(20ms)` | `waitForPeers` polling interval | **Acceptable** — polling loop interval, not test sequencing |
+| File                    | Line                | Context                                                | Status                                                                                                                        |
+| ----------------------- | ------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `transport_test.go:32`  | `time.Sleep(20ms)`  | `waitForPeers` polling interval                        | **Acceptable** — polling loop interval, not test sequencing                                                                   |
 | `transport_test.go:262` | `time.Sleep(500ms)` | `TestQuicMapUpdateDoesNotReplicate` negative assertion | **Intentionally left** — negative assertion (waiting for something that should NOT happen); no `Eventually` equivalent exists |
-| `bench_test.go:48` | `time.Sleep(20ms)` | Benchmark polling interval | **Acceptable** — polling loop interval |
+| `bench_test.go:48`      | `time.Sleep(20ms)`  | Benchmark polling interval                             | **Acceptable** — polling loop interval                                                                                        |
 
 ---
 
