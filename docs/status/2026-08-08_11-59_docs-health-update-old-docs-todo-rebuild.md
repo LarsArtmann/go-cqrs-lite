@@ -3,7 +3,8 @@
 > **Scope:** Full docs-health AUDIT pass triggered by user request to "View ALL
 > 2026-08-07* and 2026-08-08* and related files, then do the update-old-docs,
 > docs-health skills PROPERLY." This session executed HARVEST + BUILD + ANNOTATE
-> + VERIFY modes across all four living docs + 50+ historical reports.
+>
+> - VERIFY modes across all four living docs + 50+ historical reports.
 
 ---
 
@@ -55,6 +56,7 @@ bugfix, code quality cleanup, module release batch). No append-only violations.
 Added `## Resolution (2026-08-08)` sections to the 8 highest-value reports:
 
 **08-08 reports (5):**
+
 - `02-09_aggregate-pushdown-p0-p1-complete-self-critique.md` — 20 follow-up
   items resolved inline (15 of 20 done, 5 still open with exact status)
 - `01-34_metaengine-v2-publishability-and-test-coverage.md` — 50 items + 3
@@ -65,6 +67,7 @@ Added `## Resolution (2026-08-08)` sections to the 8 highest-value reports:
   cleanup items resolved, zombie tests flagged as still open
 
 **08-07 reports (3):**
+
 - `00-42_metaengine-v2-hardening-execution-status.md` — 50 items + 3 questions
   resolved
 - `02-30_docs-health-audit-living-docs-rebuild.md` — 3 questions resolved
@@ -241,7 +244,7 @@ Ranked by impact × effort (🔥 = Pareto top 20%):
     testing. (Effort: M)
 13. **Self-lint CI: tighten severity gate** — C025 warning passes silently.
     (Effort: S)
-14-23. **10 genuinely-missing rules** (RES/DOC/OBS/DI categories) — see
+    14-23. **10 genuinely-missing rules** (RES/DOC/OBS/DI categories) — see
     TODO_LIST for the full list. (Effort: M each)
 
 ### Metaengine

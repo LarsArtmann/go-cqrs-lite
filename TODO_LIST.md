@@ -97,7 +97,7 @@ and is **never** duplicated here.
 > created locally and pushed.
 
 - [ ] **Dgraph engine: test against real Dgraph** — all `t.Skipf("Dgraph not
-    available")` paths were taken. DQL queries, JSON mappings, upsert
+  available")` paths were taken. DQL queries, JSON mappings, upsert
       conditions completely unverified. Also: DQL injection risk (manual string
       interpolation via `dqlString()` — should use `QueryWithVars`), missing
       MultimapBackend/LogBackend/SnapshotBackend.
