@@ -61,7 +61,12 @@ func New(
 
 	enc := c.Encoding()
 	evt := buildEvent(eventType, streamID, streamType, version, data, opts)
-	evt.encoding = enc
+	// Respect an explicit WithEncoding option (e.g. when reconstructing events
+	// from storage or a wire format). Only stamp the codec's encoding when the
+	// caller did not specify one.
+	if evt.encoding == "" {
+		evt.encoding = enc
+	}
 
 	return evt, nil
 }

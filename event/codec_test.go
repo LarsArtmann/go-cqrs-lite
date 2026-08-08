@@ -481,6 +481,30 @@ func TestDefaultCodec_ExplicitWithCodecOverrides(t *testing.T) {
 	}
 }
 
+func TestNew_WithEncodingRespectedForRawBytes(t *testing.T) {
+	t.Parallel()
+
+	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
+
+	// When reconstructing events from a wire format (e.g. Watermill messages),
+	// callers pass []byte payloads with an explicit WithEncoding. The explicit
+	// encoding must take precedence over DefaultCodec — otherwise the event
+	// claims to be CBOR while the bytes are actually JSON.
+	evt, err := event.New(
+		"UserCreated", streamID, "User", 1,
+		[]byte(`{"name":"Alice"}`),
+		event.WithEncoding(codecpkg.EncodingJSON),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if evt.Encoding() != codecpkg.EncodingJSON {
+		t.Errorf("Encoding() = %q, want %q (WithEncoding must override DefaultCodec for raw bytes)",
+			evt.Encoding(), codecpkg.EncodingJSON)
+	}
+}
+
 func TestDecodePayloadAuto_JSONEvent(t *testing.T) {
 	t.Parallel()
 

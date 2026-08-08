@@ -131,9 +131,12 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	opts := []event.Option{event.WithSchemaVersion(event.SchemaVersion(schemaVersion))}
 
 	// Restore payload encoding so DecodePayloadAuto picks the correct codec.
-	// Defaults to JSON when absent (backward compatibility with old messages).
+	// Old messages that predate encoding markers carry JSON payloads, so the
+	// fallback must be JSON (not the event package's DefaultCodec, which is CBOR).
 	if enc := md.Get(metaPayloadEncoding); enc != "" {
 		opts = append(opts, event.WithEncoding(codec.Encoding(enc)))
+	} else {
+		opts = append(opts, event.WithEncoding(codec.EncodingJSON))
 	}
 
 	if eventOpts, err := parseOptionalFields(md); err != nil {
@@ -152,7 +155,7 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	opts = append(opts, event.WithMetadata(metadata))
 
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	evt, err := event.New(
+	evt, err := event.NewEvent(
 		eventType,
 		streamID,
 		streamType,
