@@ -210,8 +210,20 @@ func readGoModCQRSVersion(path string) string {
 
 func extractCQRSVersion(content, modVersion string) string {
 	versions := []string{}
+	inCodeBlock := false
 
 	for line := range strings.SplitSeq(content, "\n") {
+		trimmed := strings.TrimLeft(line, " \t")
+
+		if strings.HasPrefix(trimmed, "```") || strings.HasPrefix(trimmed, "~~~") {
+			inCodeBlock = !inCodeBlock
+			continue
+		}
+
+		if inCodeBlock {
+			continue
+		}
+
 		if !strings.Contains(strings.ToLower(line), "go-cqrs-lite") {
 			continue
 		}
@@ -219,7 +231,6 @@ func extractCQRSVersion(content, modVersion string) string {
 		// Skip markdown headings (ADR titles, section headers) — these contain
 		// historical version references like "ADR-0044: Migrate from v3 to v4"
 		// that describe past migrations, not current version claims.
-		trimmed := strings.TrimLeft(line, " \t")
 		if strings.HasPrefix(trimmed, "#") {
 			continue
 		}
@@ -232,6 +243,11 @@ func extractCQRSVersion(content, modVersion string) string {
 			// Skip migration arrows like "v2→v3" — these describe historical
 			// migrations, not current version claims.
 			if strings.Contains(field, "→") || strings.Contains(field, "->") {
+				continue
+			}
+
+			// Skip import paths: version preceded by / (e.g. cqrs-htmx/v4.2.0)
+			if idx := strings.Index(line, field); idx > 0 && line[idx-1] == '/' {
 				continue
 			}
 
