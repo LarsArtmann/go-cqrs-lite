@@ -66,6 +66,7 @@ func generateInitConfig(preset string) (string, error) {
 	}
 
 	if !analyzer.IsKnownPreset(analyzer.ConfigPreset(preset)) {
+		//cqrs-lint:ignore(C025) no underlying error to wrap — this is a new validation error
 		return "", fmt.Errorf( //nolint:err113 // preset name is dynamic
 			"unknown preset %q (available: %s)",
 			preset,

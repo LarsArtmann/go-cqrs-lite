@@ -205,7 +205,7 @@ jobs:
 
       - name: Run cqrs-lint on its own source (self-lint auto-detected)
         run: |
-          cd cmd/cqrs-lint && GOWORK=off go run -tags "goexperiment.jsonv2" . . --strict-load
+          cd cmd/cqrs-lint && GOWORK=off go run -tags "goexperiment.jsonv2" . . --strict-load --fail-on-stale-suppressions
 
     timeout-minutes: 15
   doc-stub-check:
@@ -618,7 +618,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        db: [postgres, mysql]
+        db: [postgres, mysql, duckdb, turso]
     steps:
       - uses: actions/checkout@v4
 

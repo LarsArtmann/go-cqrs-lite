@@ -97,6 +97,24 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		fmt.Print(renderHealthScore(hs, parseColorMode(cfg.Color)))
 	}
 
+	if cfg.FailOnStaleSuppressions {
+		goFilePaths := make([]string, 0, len(actx.GoFiles))
+		for _, gf := range actx.GoFiles {
+			goFilePaths = append(goFilePaths, gf.Path)
+		}
+		allFindings := collectFindings(result)
+		stale := suppression.DetectStaleSuppressions(goFilePaths, allFindings)
+		knownRuleIDs := make(map[string]bool, 200)
+		for _, r := range rules.AllRules() {
+			knownRuleIDs[r.ID] = true
+		}
+		unknown := suppression.DetectUnknownRuleSuppressions(goFilePaths, knownRuleIDs)
+		if len(stale) > 0 || len(unknown) > 0 {
+			//cqrs-lint:ignore(C025) no underlying error to wrap — this is a new validation error
+			return fmt.Errorf("%d stale or unknown suppression directive(s) found", len(stale)+len(unknown))
+		}
+	}
+
 	return shouldExitWithError(cfg, active)
 }
 

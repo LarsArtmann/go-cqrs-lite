@@ -50,6 +50,7 @@ type AppConfig struct {
 	FPSuspects     bool   `default:"false" flag:"fp-suspects"     help:"Show only low-confidence findings (likely false positives)"`
 	ShowSuppressed bool   `default:"false" flag:"show-suppressed" help:"Show suppressed findings with their suppression reason"`
 	StrictLoad     bool   `default:"false" flag:"strict-load"     help:"Exit non-zero if any packages failed to load (partial analysis)"`
+	FailOnStaleSuppressions bool `default:"false" flag:"fail-on-stale-suppressions" help:"Exit non-zero if any //cqrs-lint:ignore directives are stale (not suppressing anything)"`
 	Adoption       bool   `default:"false" flag:"adoption"        help:"Show F-series adoption coaching but exclude them from health score"`
 	Scorecard      bool   `default:"false" flag:"scorecard"       help:"Print module adoption scorecard (used/missing/coverage)"`
 

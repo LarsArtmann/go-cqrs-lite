@@ -153,3 +153,61 @@ func TestMultimapConvergence(t *testing.T) {
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(vals).To(gomega.ConsistOf("alice", "bob", "carol"))
 }
+
+func TestMapDeleteLWWConvergence(t *testing.T) {
+	t.Parallel()
+	g := gomega.NewWithT(t)
+	ctx := context.Background()
+
+	nodeA, nodeB := newTwoNodeCluster(t)
+
+	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "users", "u1", "Alice")).
+		To(gomega.Succeed())
+	time.Sleep(20 * time.Millisecond)
+
+	valB, found, err := nodeB.(metaengine.MapBackend).MapGet(ctx, "users", "u1")
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(found).To(gomega.BeTrue())
+	g.Expect(valB).To(gomega.Equal("Alice"))
+
+	g.Expect(nodeB.(metaengine.MapBackend).MapDelete(ctx, "users", "u1")).To(gomega.Succeed())
+	time.Sleep(20 * time.Millisecond)
+
+	_, foundA, err := nodeA.(metaengine.MapBackend).MapGet(ctx, "users", "u1")
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(foundA).To(gomega.BeFalse(), "node A should see deletion via LWW convergence")
+}
+
+func TestGracefulShutdown_InflightOps(t *testing.T) {
+	t.Parallel()
+	g := gomega.NewWithT(t)
+	ctx := context.Background()
+
+	net := irohengine.NewNetwork()
+	nodeA := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
+		irohengine.WithAuthor("node-a"),
+		irohengine.WithTransport(net.Join("a")),
+	)
+	nodeB := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
+		irohengine.WithAuthor("node-b"),
+		irohengine.WithTransport(net.Join("b")),
+	)
+
+	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "data", "k1", "v1")).To(gomega.Succeed())
+	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "data", "k2", "v2")).To(gomega.Succeed())
+	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "data", "k3", "v3")).To(gomega.Succeed())
+
+	g.Expect(nodeA.Close()).To(gomega.Succeed())
+	time.Sleep(20 * time.Millisecond)
+
+	for _, key := range []string{"k1", "k2", "k3"} {
+		val, found, err := nodeB.(metaengine.MapBackend).MapGet(ctx, "data", key)
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(found).To(gomega.BeTrue(), "node B should have received pre-close write for %s", key)
+		g.Expect(val).To(gomega.Equal("v"+key[1:]))
+	}
+
+	g.Expect(nodeB.Close()).To(gomega.Succeed())
+}
