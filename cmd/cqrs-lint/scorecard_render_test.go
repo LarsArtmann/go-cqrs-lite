@@ -394,6 +394,60 @@ func TestRenderSARIF_MissingModulesAsResults(t *testing.T) {
 	}
 }
 
+func TestRenderSARIF_LogicalLocationsPopulated(t *testing.T) {
+	t.Parallel()
+
+	result := makeTestScorecard()
+	out, err := renderScorecardSARIF(result)
+	if err != nil {
+		t.Fatalf("renderScorecardSARIF error: %v", err)
+	}
+
+	var parsed sarifReport
+	if err := json.Unmarshal([]byte(out), &parsed); err != nil {
+		t.Fatalf("invalid SARIF JSON: %v", err)
+	}
+
+	lls := parsed.Runs[0].LogicalLocations
+	// makeTestScorecard has 2 used + 2 missing = 4 modules.
+	if len(lls) != 4 {
+		t.Fatalf("expected 4 logicalLocations (2 used + 2 missing), got %d", len(lls))
+	}
+
+	// Every logicalLocation must have kind "module".
+	byFQN := make(map[string]sarifLogicalLocation, len(lls))
+	for _, ll := range lls {
+		if ll.Kind != "module" {
+			t.Errorf("logicalLocation %q has kind %q, want \"module\"", ll.FullyQualifiedName, ll.Kind)
+		}
+		byFQN[ll.FullyQualifiedName] = ll
+	}
+
+	// Verify all expected modules appear.
+	for _, key := range []string{"otel", "encryption", "signing", "scheduling"} {
+		if _, ok := byFQN[key]; !ok {
+			t.Errorf("expected logicalLocation with fullyQualifiedName %q", key)
+		}
+	}
+
+	// Verify index mapping: missing-module results must reference the correct
+	// logicalLocation index for their module.
+	for _, res := range parsed.Runs[0].Results {
+		if len(res.Locations) == 0 || len(res.Locations[0].LogicalLocations) == 0 {
+			t.Fatal("missing-module result has no logicalLocation reference")
+		}
+		idx := res.Locations[0].LogicalLocations[0].Index
+		if idx < 0 || idx >= len(lls) {
+			t.Fatalf("result logicalLocation index %d out of range [0, %d)", idx, len(lls))
+		}
+		referenced := lls[idx]
+		if !strings.Contains(res.Message.Text, referenced.Name) {
+			t.Errorf("result message %q does not reference module %q at index %d",
+				res.Message.Text, referenced.Name, idx)
+		}
+	}
+}
+
 func TestRenderSARIF_NoMissingEmptyResults(t *testing.T) {
 	t.Parallel()
 

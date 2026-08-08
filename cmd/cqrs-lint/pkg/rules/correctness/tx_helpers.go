@@ -43,9 +43,10 @@ func findBeginTxVar(fn *ast.FuncDecl) string {
 			return true
 		}
 
-		// bbolt Begin(false) = read-only tx — commit is neither needed nor
-		// possible. Skip so C001 does not flag read-only transaction helpers.
-		if sel.Sel.Name == "Begin" && isReadOnlyBegin(call) {
+		// Read-only transaction patterns: bbolt Begin(false) or
+		// database/sql BeginTx(ctx, &TxOptions{ReadOnly: true}).
+		// Skip so C001 does not flag read-only transaction helpers.
+		if (sel.Sel.Name == "Begin" || sel.Sel.Name == "BeginTx") && isReadOnlyBegin(call) {
 			return true
 		}
 
@@ -201,17 +202,59 @@ func analyzeTxUsage(fn *ast.FuncDecl, txVar string) txAnalysis {
 	return a
 }
 
-// isReadOnlyBegin reports whether the Begin call was passed false
-// (read-only mode), as in bbolt's db.Begin(false). Read-only
-// transactions cannot be committed and should not trigger C001.
+// isReadOnlyBegin reports whether the transaction Begin call requests a
+// read-only transaction. Detects two patterns:
+//   - bbolt: db.Begin(false) — boolean false as first arg
+//   - database/sql: db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+//
+// Read-only transactions cannot be committed and should not trigger C001.
 func isReadOnlyBegin(call *ast.CallExpr) bool {
-	if len(call.Args) == 0 {
+	// bbolt pattern: Begin(false)
+	if len(call.Args) > 0 {
+		if id, ok := call.Args[0].(*ast.Ident); ok && id.Name == "false" {
+			return true
+		}
+	}
+
+	// database/sql pattern: BeginTx(ctx, &TxOptions{ReadOnly: true})
+	for _, arg := range call.Args {
+		if hasReadOnlyTrue(arg) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// hasReadOnlyTrue reports whether expr is (or points to) a composite literal
+// with a ReadOnly: true field, e.g. &sql.TxOptions{ReadOnly: true}.
+func hasReadOnlyTrue(expr ast.Expr) bool {
+	if unary, ok := expr.(*ast.UnaryExpr); ok && unary.Op == token.AND {
+		expr = unary.X
+	}
+
+	lit, ok := expr.(*ast.CompositeLit)
+	if !ok {
 		return false
 	}
 
-	id, ok := call.Args[0].(*ast.Ident)
+	for _, elt := range lit.Elts {
+		kv, ok := elt.(*ast.KeyValueExpr)
+		if !ok {
+			continue
+		}
 
-	return ok && id.Name == "false"
+		key, ok := kv.Key.(*ast.Ident)
+		if !ok || key.Name != "ReadOnly" {
+			continue
+		}
+
+		if val, ok := kv.Value.(*ast.Ident); ok && val.Name == "true" {
+			return true
+		}
+	}
+
+	return false
 }
 
 // exprReferencesIdent reports whether expr is, or address-of, the named ident.

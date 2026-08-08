@@ -138,6 +138,51 @@ func TestCQRSFixProvider_PositionBasedMatching(t *testing.T) {
 	}
 }
 
+func TestCQRSFixProvider_D007_AutoFixTransformation(t *testing.T) {
+	provider := fix.NewCQRSFixProvider()
+
+	// Construct a D007 finding exactly as the detector emits it:
+	// FixStrategyDirect with BeforeCode/AfterCode for event.NewEvent → event.New.
+	f, err := finding.NewBuilder(
+		"D007", "cqrs-lint", "standardize on event.New",
+		finding.SeverityInfo, finding.Pos("test.go", 4, 1),
+	).
+		WithFixStrategy(finding.FixStrategyDirect).
+		WithBeforeCode("event.NewEvent(").
+		WithAfterCode("event.New(").
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !provider.CanHandle(f) {
+		t.Fatal("CanHandle() should return true for D007 finding")
+	}
+
+	content := []byte(`package main
+
+func create() {
+	evt := event.NewEvent("user.created", streamID, "User", 1, payload)
+	_ = evt
+}
+`)
+	edits, err := provider.Edits(content, f)
+	if err != nil {
+		t.Fatalf("Edits() error: %v", err)
+	}
+	if len(edits) != 1 {
+		t.Fatalf("Edits() returned %d edits, want 1", len(edits))
+	}
+
+	result := applyEdit(content, edits[0])
+	if !bytes.Contains(result, []byte("event.New(")) {
+		t.Errorf("Result should contain event.New(\ngot: %s", result)
+	}
+	if bytes.Contains(result, []byte("event.NewEvent(")) {
+		t.Errorf("Result should NOT contain event.NewEvent(\ngot: %s", result)
+	}
+}
+
 func applyEdit(content []byte, edit pipeline.FixEdit) []byte {
 	result := make([]byte, 0, len(content)-edit.Length+len(edit.Replacement))
 	result = append(result, content[:edit.Offset]...)

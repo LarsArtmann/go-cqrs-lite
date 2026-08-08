@@ -97,6 +97,41 @@ func newIterator(db bboltDB, prefix []byte) (*iterator, error) {
 	}
 }
 
+// Read-only BeginTx(ctx, &sql.TxOptions{ReadOnly: true}) must not trigger C001.
+// This is the database/sql pattern for read-only transactions, used by
+// database/sql, sqlx, Bun, and other SQL libraries.
+func TestC001_ReadOnlyBeginTx_NoFinding(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"query.go": `package main
+
+import (
+	"context"
+	"database/sql"
+)
+
+func readOnlyQuery(db *sql.DB, ctx context.Context) error {
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	if err != nil {
+		return err
+	}
+	_ = tx
+	return nil
+}
+`,
+	})
+	findings, err := correctness.NewC001Detector(ctx).Detect(context.Background())
+	if err != nil {
+		t.Fatalf("detect: %v", err)
+	}
+	if len(findings) != 0 {
+		t.Fatalf(
+			"expected 0 findings for read-only BeginTx, got %d: %v",
+			len(findings),
+			findings,
+		)
+	}
+}
+
 // tx stored in a composite-literal struct (e.g. &iter{tx: tx}) must be treated
 // as an escape — the struct owns the tx lifecycle, so C001 must not fire.
 func TestC001_CompositeLiteralEscape_NoFinding(t *testing.T) {

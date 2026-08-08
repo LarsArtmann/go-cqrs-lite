@@ -65,7 +65,10 @@ func scanLifecycleIgnores(
 
 		assign, ok := n.(*ast.AssignStmt)
 		if ok && isLifecycleIgnore(assign, methods) && !hasDeferAncestor(ancestors) {
-			emitC023(ctx, assign, &findings)
+			call := assign.Rhs[0].(*ast.CallExpr)
+			if callReturnsError(gf, call) {
+				emitC023(ctx, assign, &findings)
+			}
 		}
 
 		ancestors = append(ancestors, n)
@@ -111,6 +114,29 @@ func hasDeferAncestor(ancestors []ast.Node) bool {
 	}
 
 	return false
+}
+
+// callReturnsError reports whether the call expression returns an error type.
+// When TypesInfo is unavailable (empty maps in test contexts), returns true to
+// preserve backward-compatible behavior — the rule flags the call as before.
+// In production (packages.Load with NeedTypes), the check prevents false
+// positives on lifecycle methods that return non-error types (bool, struct).
+func callReturnsError(gf *analyzer.GoFile, call *ast.CallExpr) bool {
+	if gf.Pkg == nil || gf.Pkg.TypesInfo == nil || gf.Pkg.TypesInfo.Types == nil {
+		return true
+	}
+
+	tv, ok := gf.Pkg.TypesInfo.Types[call]
+	if !ok {
+		return true
+	}
+
+	errIface, ok := types.Universe.Lookup("error").Type().Underlying().(*types.Interface)
+	if !ok {
+		return true
+	}
+
+	return types.Implements(tv.Type, errIface)
 }
 
 func emitC023(ctx *analyzer.AnalysisContext, assign *ast.AssignStmt, findings *[]finding.Finding) {
