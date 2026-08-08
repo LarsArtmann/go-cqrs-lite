@@ -81,16 +81,24 @@ func (e *pgEngine) ExplainAggregateQuery(
 
 		cols := strings.Join(selectCols, ", ")
 		if opts.GroupBy != "" {
-			fmt.Fprintf(&b, `SELECT value->>'%s' AS group_key, %s FROM meta_map WHERE collection = $1`,
-				escapeJSONKey(opts.GroupBy), cols)
+			fmt.Fprintf(
+				&b,
+				`SELECT value->>'%s' AS group_key, %s FROM meta_map WHERE collection = $1`,
+				escapeJSONKey(opts.GroupBy),
+				cols,
+			)
 		} else {
 			fmt.Fprintf(&b, "SELECT %s FROM meta_map WHERE collection = $1", cols)
 		}
 	} else {
 		agg := pgAggExpr(opts.Fn, opts.Column)
 		if opts.GroupBy != "" {
-			fmt.Fprintf(&b, `SELECT value->>'%s' AS group_key, %s AS agg_val FROM meta_map WHERE collection = $1`,
-				escapeJSONKey(opts.GroupBy), agg)
+			fmt.Fprintf(
+				&b,
+				`SELECT value->>'%s' AS group_key, %s AS agg_val FROM meta_map WHERE collection = $1`,
+				escapeJSONKey(opts.GroupBy),
+				agg,
+			)
 		} else {
 			fmt.Fprintf(&b, "SELECT %s FROM meta_map WHERE collection = $1", agg)
 		}

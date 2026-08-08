@@ -49,6 +49,8 @@ github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0 h1:crv4LiYKOql624v
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0/go.mod h1:ftzLBt4BpjwVqSWoy9QJoztDJnxMYcsNDv3pDBg25GI=
 github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260807232531-c239c3b40a2a h1:Maa+BCmt9PP/qhP15HgrwUUGxbozCRTBkTUro/z/oBI=
 github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260807232531-c239c3b40a2a/go.mod h1:AuZLD6VfU2mPj7DENWMRag8kXzsf4+dHgM6fAbODszQ=
+github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260808010432-ee93fe18164e h1:0jscWgmyzIReRW7vnm0PSwuuwC+HlSYmSaeL4DaYX60=
+github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260808010432-ee93fe18164e/go.mod h1:AuZLD6VfU2mPj7DENWMRag8kXzsf4+dHgM6fAbODszQ=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0 h1:/sMxhws4RcEa1fZTZzI9/abXhYs5QBDDBeyrTbGXK9U=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0/go.mod h1:kcwycOA9+V6+pbGbjN3nVRlMPhOAx9ZV8EzDI1Z/R70=
 github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0 h1:/6jCquRNzVdEI8sP4CwNu2K7CbRaF79lYD7ntMgLEhw=

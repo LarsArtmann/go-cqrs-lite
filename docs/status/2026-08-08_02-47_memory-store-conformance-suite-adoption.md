@@ -8,43 +8,52 @@
 ## a) FULLY DONE
 
 ### 1. Removed dead `time` import in `stack/bench/durability_tiers_test.go`
+
 - **What:** Removed `"time"` import + `var _ = time.Second` hack (lines 6, 172-173). The `time` package was genuinely unused — the entire file is benchmarks using `context`, `event`, `id`, `stack` packages.
 - **Files:** `stack/bench/durability_tiers_test.go` (173→169 lines)
 
 ### 2. Added `doc.go` to `command/commandtest/`
+
 - **What:** Created `command/commandtest/doc.go` with the package doc comment (extracted verbatim from `store_suite.go` header). Removed the package-level doc from `store_suite.go` to avoid duplicate package comments. Mirrors `query/querytest/doc.go` structure.
 - **Files:** `command/commandtest/doc.go` (new, 11 lines), `command/commandtest/store_suite.go` (package doc removed from header)
 
 ### 3. Added `command/commandtest` to module tracking lists
+
 - **AGENTS.md:** Added `command/commandtest` to the Quick Reference Modules row (between `command` and `query`, matching the `query/querytest` pattern).
 - **`cmd/api-stability/main.go`:** Added `"command/commandtest"` to the `modules` slice (Layer 1 group, adjacent to `"query/querytest"`).
 - **Golden regenerated:** `docs/api_surface.txt` updated (3807→3811 exports: 4 new commandtest symbols tracked — `MustCreateCommand`, `RunStoreSuite`, `StoreSuite`, `StoreFactory`).
 - **Verified:** `TestEveryGoModDirIsInModulesList` passes, doc-check passes (545 references valid).
 
 ### 4. Refactored `storage/memory` command store tests — adopted `commandtest.RunStoreSuite`
+
 - **What:** Replaced 6 hand-written tests with a single `TestMemoryCommandStore_Suite` delegating to `commandtest.RunStoreSuite`. Kept 5 memory-specific tests not covered by the suite (batch-internal duplicate, Load_NotFound, LoadToTimestamp, Close lifecycle, MultipleStreams).
 - **Removed (now covered by suite):** `TestMemoryCommandStore_SaveAndLoad`, `TestMemoryCommandStore_DuplicateCommand`, `TestMemoryCommandStore_AppendBatch`, `TestMemoryCommandStore_LoadFromTimestamp`
 - **`command_journal_test.go`:** Removed `TestMemoryCommandStore_Journal` and `TestMemoryCommandStore_Journal_ReadFromZeroID` (both fully covered by suite's `ReadAll` + `ReadFrom` subtests). Kept 4 edge-case tests: EmptyStore, NonExistentID, ClosedStore, OrderingByReceivedAt.
 - **Line reduction:** command_store_test.go 317→220 lines, command_journal_test.go 236→146 lines. Total: 553→366 lines (34% reduction).
 
 ### 5. Refactored `storage/memory` query store tests — adopted `querytest.RunStoreSuite`
+
 - **What:** Replaced 3 hand-written tests with a single `TestMemoryQueryStore_Suite` delegating to `querytest.RunStoreSuite`. Kept 3 edge-case tests (NonExistentID, EmptyStore, ClosedStore).
 - **Removed (now covered by suite):** `TestMemoryQueryStore` (basic save/read/cursor), `TestMemoryQueryStore_LoadQueriesAfterTime`, `TestMemoryQueryStore_ReadQueriesFromZeroID`
 - **Line reduction:** query_store_test.go 248→139 lines (44% reduction).
 
 ### 6. Added self-test to `commandtest` package
+
 - **What:** Created `command/commandtest/store_suite_test.go` — runs `RunStoreSuite` against `memory.NewMemoryCommandStore()` to validate the suite itself (mirrors how `eventtest` is tested).
 - **Files:** `command/commandtest/store_suite_test.go` (new, 21 lines)
 
 ### 7. Fixed 2 real bugs discovered by the conformance suite
+
 The suite immediately caught divergences between `MemoryCommandStore`/`MemoryQueryStore` and every other backend (pebble, bbolt, SQL):
 
 **Bug 1: `limit=0` semantics divergence**
+
 - `MemoryCommandStore.ReadFrom` and `MemoryQueryStore.ReadQueriesFrom` treated `limit=0` as "return zero results" (via `min(startIdx+0, len(...))` → 0). All other backends treat `limit=0` as "no limit" (return everything). The suite's `ReadFrom` subtest calls `ReadFrom(ctx, zeroID, 0)` expecting all records.
 - **Fix:** Changed to `end := len(...)` when `limit > 0`, otherwise use `min(startIdx+limit, len(...))`.
 - **Files:** `storage/memory/command_store.go:214`, `storage/memory/query_store.go:134`
 
 **Bug 2: `MemoryQueryStore.SaveQuery` had no duplicate detection**
+
 - Unlike `MemoryCommandStore` (which checks `commandIDIndex`), `bbolt` (`query_store.go:43`), `pebble` (`query_store.go:92`), and SQL (`query_store_save.go:79`), `MemoryQueryStore.SaveQuery` silently accepted duplicate query IDs, overwriting the index entry. The suite's `DuplicateDetection` subtest expects `ErrDuplicateQuery`.
 - **Fix:** Added `idIndex` existence check + `errorfamily.WrapConflict(query.ErrDuplicateQuery, ...)` before append.
 - **Files:** `storage/memory/query_store.go:71-78`
@@ -86,12 +95,14 @@ Nothing. All changes compile, pass `-race` tests, and the api-stability golden i
 ## f) Up to 50 things we should get done next
 
 ### Critical / Blocking
+
 1. **Tag `command/v4.4.0`** — includes `commandtest` subpackage so `GOWORK=off` tests pass for storage/memory, storage/pebble, storage/bbolt
 2. **Fix `TestBundle_RunProjections_GraphProjection`** — CBOR/JSON decode mismatch in integration test (pre-existing failure)
 3. **Commit or discard `metaengine/graphadapter/adapter_test.go`** — 64 uncommitted lines from unknown source
 4. **Tag `storage/memory/v4.3.0`** — includes the `limit=0` fix + `SaveQuery` duplicate detection (breaking bug fixes)
 
 ### High Priority
+
 5. **Add `limit=0` test to `commandtest`/`querytest` suites** — The suite currently tests this implicitly via `ReadFrom(zeroID, 0)` but doesn't document the contract explicitly. Add a dedicated subtest: "ReadFrom with limit=0 returns all".
 6. **Audit `MemoryCommandStore.Load` for `ErrCommandNotFound` vs empty-slice behavior** — The suite doesn't test this (Load on a non-existent stream). Memory returns error; SQL might return empty slice. Check parity.
 7. **Adopt conformance suites in `storage/sql`** — The SQL command/query stores don't import `commandtest`/`querytest` yet. Same ~90% duplication pattern.
@@ -102,6 +113,7 @@ Nothing. All changes compile, pass `-race` tests, and the api-stability golden i
 12. **Run `nix run .#verify` gate** — This session ran targeted tests only. A full verify cycle confirms nothing else broke.
 
 ### Medium Priority
+
 13. **Add querytest self-test** — `command/commandtest` now has `store_suite_test.go` (self-test). `query/querytest` does NOT have one (it only tests `New()`, not `RunStoreSuite`). Add one for parity.
 14. **Consider a `commandtest.StoreSuiteExtended` interface** — For optional methods like `LoadToTimestamp`, `LoadToTimestamp`, `Close`. Backends that support them get extra subtests.
 15. **Document the `limit=0 = unlimited` contract** — In the `SeekableCommandJournal`/`SeekableQueryJournal` interface doc comments.
@@ -113,6 +125,7 @@ Nothing. All changes compile, pass `-race` tests, and the api-stability golden i
 21. **Check `kv/viewstoretest` for similar suite adoption gaps** — It's listed in AGENTS.md but might have the same unadopted pattern.
 
 ### Low Priority / Cleanup
+
 22. **Run `gofumpt -w` on changed files** — Ensure formatting is pristine before next verify gate.
 23. **Add `commandtest` to cqrs-lint module catalog** — The linter's `ModuleCatalog` tracks modules for scorecard/adoption features.
 24. **Check if `scenario` package can use `commandtest` store factories** — Reduce test setup boilerplate.

@@ -8,26 +8,26 @@
 
 ### P0 — Critical Fixes (4/4)
 
-| # | Item | Detail |
-|---|------|--------|
-| P0.1 | **MultiGroupedAggregate AVG fallback bug** | `groupAccum` now tracks `nonNullCounts map[string]int` per-spec. AVG divides by per-spec non-null count, not total group `acc.count`. Also fixed MAX 0-init bug (`!exists` check added). `metaengine/typed_reader.go:815-895` |
-| P0.2 | **API-surface golden regenerated** | 3 passes: initial (3781→3792 for SQLite+PG), final (3798 for ExplainableAggregate). `cmd/api-stability` passes clean. |
-| P0.3 | **ADTStreamLog missing from AllADTs()** | Added to slice at `metaengine/enum_validation.go:12`. `ADTStreamLog.Valid()` now returns true. |
+| #    | Item                                            | Detail                                                                                                                                                                                                                                                                                                                                                                                         |
+| ---- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P0.1 | **MultiGroupedAggregate AVG fallback bug**      | `groupAccum` now tracks `nonNullCounts map[string]int` per-spec. AVG divides by per-spec non-null count, not total group `acc.count`. Also fixed MAX 0-init bug (`!exists` check added). `metaengine/typed_reader.go:815-895`                                                                                                                                                                  |
+| P0.2 | **API-surface golden regenerated**              | 3 passes: initial (3781→3792 for SQLite+PG), final (3798 for ExplainableAggregate). `cmd/api-stability` passes clean.                                                                                                                                                                                                                                                                          |
+| P0.3 | **ADTStreamLog missing from AllADTs()**         | Added to slice at `metaengine/enum_validation.go:12`. `ADTStreamLog.Valid()` now returns true.                                                                                                                                                                                                                                                                                                 |
 | P0.4 | **aggregatePushdown MIN/MAX/AVG fallback bugs** | Replaced `result == 0` sentinel with `firstSet bool` flag. MIN now correctly returns negative values. MAX now correctly handles all-negative sets. AVG divides by `nonNullCount` (skips non-numeric fields) not `len(rows)`. Added `AggregateCount` handling (was missing — broke `MultiAggregate` fallback). Also fixed grouped MAX 0-init bug. `metaengine/typed_reader.go:499-540, 717-729` |
 
 ### P1 — Parity + Testing (11/11)
 
-| # | Item | Files | LOC |
-|---|------|-------|-----|
-| P1.5-8 | **SQLite engine: 4 aggregate interfaces** | `sqliteengine/aggregations_grouped.go` | 524 |
-| P1.9 | **Cross-engine parity harness (DuckDB vs SQLite)** | `bench/aggregate_parity_cgo_test.go` | 254 |
-| P1.10 | **TypedReader-level fallback tests** | `typed_reader_aggregate_test.go` (13 subtests) | 222 |
-| P1.11 | **GROUP BY pushdown benchmark** | `duckdbengine/aggregate_bench_cgo_test.go` | 194 |
-| P1.12 | **MultiAggregate single-pass vs N-calls benchmark** | same file | — |
-| P1.13 | **ExplainableAggregate interface + impl** | `aggregations.go` (interface), `explain.go` (TypedReader method), `duckdbengine/explain.go`, `sqliteengine/explain.go` | ~250 |
-| P1.14-15 | **Postgres engine: all 5 aggregate interfaces** | `pgengine/aggregations.go` | 371 |
-| — | **SQLite aggregate tests** | `sqliteengine/aggregations_test.go` | 361 |
-| — | **Fixed pre-existing broken import** in `sqliteengine/transactional_test.go` | missing `metaengine` import | 1 line |
+| #        | Item                                                                         | Files                                                                                                                  | LOC    |
+| -------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------ |
+| P1.5-8   | **SQLite engine: 4 aggregate interfaces**                                    | `sqliteengine/aggregations_grouped.go`                                                                                 | 524    |
+| P1.9     | **Cross-engine parity harness (DuckDB vs SQLite)**                           | `bench/aggregate_parity_cgo_test.go`                                                                                   | 254    |
+| P1.10    | **TypedReader-level fallback tests**                                         | `typed_reader_aggregate_test.go` (13 subtests)                                                                         | 222    |
+| P1.11    | **GROUP BY pushdown benchmark**                                              | `duckdbengine/aggregate_bench_cgo_test.go`                                                                             | 194    |
+| P1.12    | **MultiAggregate single-pass vs N-calls benchmark**                          | same file                                                                                                              | —      |
+| P1.13    | **ExplainableAggregate interface + impl**                                    | `aggregations.go` (interface), `explain.go` (TypedReader method), `duckdbengine/explain.go`, `sqliteengine/explain.go` | ~250   |
+| P1.14-15 | **Postgres engine: all 5 aggregate interfaces**                              | `pgengine/aggregations.go`                                                                                             | 371    |
+| —        | **SQLite aggregate tests**                                                   | `sqliteengine/aggregations_test.go`                                                                                    | 361    |
+| —        | **Fixed pre-existing broken import** in `sqliteengine/transactional_test.go` | missing `metaengine` import                                                                                            | 1 line |
 
 **Total new code**: ~1926 LOC across 6 new files + ~120 LOC modified in existing files.
 
@@ -47,18 +47,23 @@ Pushdown is 2.2x faster than Go-side at 10K rows. The gap widens dramatically at
 ## B. PARTIALLY DONE ⚠️
 
 ### 1. Postgres engine lacks ExplainableAggregate
+
 PG engine got all 5 aggregate interfaces but NOT `ExplainableAggregate`. DuckDB and SQLite both have it. This is an inconsistency.
 
 ### 2. Benchmarks only measured at 10K rows
+
 The 100K row variants exist in the benchmark code but were not run (test time constraints). The performance delta should be much larger at scale.
 
 ### 3. No planned-table path tests for SQLite aggregates
+
 SQLite aggregate tests only test the standard (json_extract) path. The planned-table path (direct column references on `meta_planned_*` tables) is implemented but untested.
 
 ### 4. No planned-table path tests for PG aggregates
+
 PG engine doesn't even have a `plans` map — its aggregate implementation is standard-path only. But it should support layout-planned tables for consistency with DuckDB/SQLite.
 
 ### 5. Parity test doesn't test with filters
+
 The cross-engine parity test verifies matching results with no filters. Filter behavior (especially comparison operators on JSON values) could differ between engines.
 
 ---
@@ -66,9 +71,11 @@ The cross-engine parity test verifies matching results with no filters. Filter b
 ## C. NOT STARTED ❌
 
 ### From the original P1 list
+
 - **Nothing remaining** — all 15 items from the pasted task list were completed.
 
 ### Discovered during this session but not actioned
+
 1. **PG engine has no `plans` map** — can't support planned-table aggregate path. Would need struct changes.
 2. **PG engine has no `ExplainableScan`** — can't show SQL for scan queries either. Only DuckDB and SQLite implement it.
 3. **`inferColumnType` maps "price" → INTEGER** — truncating decimals. This is a pre-existing bug in `metaengine/layout.go` discovered in the prior session but not fixed.
@@ -128,6 +135,7 @@ The cross-engine parity test verifies matching results with no filters. Filter b
 ## F. Up to 50 Things to Do Next
 
 ### High Priority (correctness + completeness)
+
 1. Add `ExplainableAggregate` to PG engine
 2. Run SQLite aggregate tests with `-race`
 3. Run full DuckDB aggregate test suite (all 12 tests + explain) with `-race`
@@ -140,6 +148,7 @@ The cross-engine parity test verifies matching results with no filters. Filter b
 10. Remove `groupedAggExprSQLite` dead alias function
 
 ### Medium Priority (architecture + cleanup)
+
 11. Remove vestigial `groupAccum.count` field
 12. Document filter type-coercion differences across engines (ADR or code comment)
 13. Consider shared `decodeFloat` utility across engine packages (or accept the duplication)
@@ -152,6 +161,7 @@ The cross-engine parity test verifies matching results with no filters. Filter b
 20. Run `nix fmt` on all new files to ensure formatting compliance
 
 ### Lower Priority (polish + future)
+
 21. Consider `ExplainableDistinct` or fold into `ExplainableAggregate` (currently folded — OK)
 22. Add `ExplainPlan` integration for aggregate queries in `Store.ExplainPlan()` output
 23. Add aggregate query costs to `Doctor()` diagnostics
@@ -188,7 +198,9 @@ The cross-engine parity test verifies matching results with no filters. Filter b
 ## G. Questions for the User
 
 ### Q1: Should the PG engine get a `plans` map for planned-table aggregate support?
+
 DuckDB and SQLite both have `plans map[string]LayoutPlan` on the engine struct. PG doesn't — its aggregate implementation is standard-path only (JSONB `value->'field'`). Adding planned-table support to PG would require:
+
 - Adding `plans` field to `pgEngine` struct
 - Adding `ApplyLayout` logic for PG (it has `LayoutPlanner` but no `plans` map to check)
 - Dual-path SQL generation in every aggregate method
@@ -196,10 +208,13 @@ DuckDB and SQLite both have `plans map[string]LayoutPlan` on the engine struct. 
 This is a meaningful architecture question because PG's JSONB with expression indexes may make the planned-table path unnecessary (expression indexes achieve the same performance without dedicated tables).
 
 ### Q2: Should we run the full `nix run .#verify` gate now?
+
 The verify gate (build + vet + test + race + lint + doc-check + doc-assertions) takes 3-4 minutes. All individual module builds and tests pass, but the full gate hasn't been run this session. Given the auto-commit daemon is active and interleaving changes, a verify run would confirm the committed state is clean.
 
 ### Q3: Should the three `decodeFloat` functions (DuckDB/SQLite/PG) be consolidated?
+
 Each engine package has its own `decodeFloat`/`sqliteDecodeFloat`/`pgDecodeFloat` with nearly identical type-switch logic. The differences are: DuckDB handles `*big.Int` (HUGEINT), SQLite and PG don't. Options:
+
 - **Accept duplication** (current state, `//art-dupl:accept` pattern)
 - **Push to `enginetest` package** (shared test/decode utility)
 - **Add to core `metaengine`** (but that adds `math/big` dep to core for one function)

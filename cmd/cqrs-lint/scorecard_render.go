@@ -363,8 +363,8 @@ type sarifPhysicalLocation struct {
 }
 
 type sarifLocation struct {
-	PhysicalLocation  sarifPhysicalLocation      `json:"physicalLocation"`
-	LogicalLocations  []sarifLogicalLocationRef  `json:"logicalLocations,omitempty"`
+	PhysicalLocation sarifPhysicalLocation     `json:"physicalLocation"`
+	LogicalLocations []sarifLogicalLocationRef `json:"logicalLocations,omitempty"`
 }
 
 type sarifResult struct {
@@ -375,10 +375,10 @@ type sarifResult struct {
 }
 
 type sarifRun struct {
-	Tool             sarifTool                `json:"tool"`
-	Properties       map[string]any           `json:"properties,omitempty"`
-	LogicalLocations []sarifLogicalLocation   `json:"logicalLocations,omitempty"`
-	Results          []sarifResult            `json:"results,omitempty"`
+	Tool             sarifTool              `json:"tool"`
+	Properties       map[string]any         `json:"properties,omitempty"`
+	LogicalLocations []sarifLogicalLocation `json:"logicalLocations,omitempty"`
+	Results          []sarifResult          `json:"results,omitempty"`
 }
 
 // sarifLogicalLocation describes a logical component of the analyzed codebase

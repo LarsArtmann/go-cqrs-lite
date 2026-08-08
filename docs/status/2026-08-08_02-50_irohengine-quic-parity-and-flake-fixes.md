@@ -11,13 +11,13 @@ Resolved all 4 open Irohengine TODO items + fixed the decider singleflight flake
 
 ### Files Changed
 
-| File | Change |
-|------|--------|
-| `decider/decider_singleflight_test.go` | Fixed singleflight coalescing flake: 50ms→200ms window, added `runtime.Gosched()` after barrier release |
-| `metaengine/irohengine/quic/transport_test.go` | Fixed `TestQuicSetConvergence` + `TestQuicPNCounter` flakiness; added `TestQuicMapUpdateDoesNotReplicate` |
-| `metaengine/irohengine/quic/adt_matrix_test.go` | **NEW** — `TestQuicADTMatrix`: full 10-ADT `adttest.RunMatrix` against QUIC transport |
-| `metaengine/irohengine/loopback/adt_matrix_test.go` | **NEW** — `TestLoopbackADTMatrix`: full matrix against loopback transport |
-| `TODO_LIST.md` | Marked all 4 Irohengine items `[x]` with implementation details |
+| File                                                | Change                                                                                                    |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `decider/decider_singleflight_test.go`              | Fixed singleflight coalescing flake: 50ms→200ms window, added `runtime.Gosched()` after barrier release   |
+| `metaengine/irohengine/quic/transport_test.go`      | Fixed `TestQuicSetConvergence` + `TestQuicPNCounter` flakiness; added `TestQuicMapUpdateDoesNotReplicate` |
+| `metaengine/irohengine/quic/adt_matrix_test.go`     | **NEW** — `TestQuicADTMatrix`: full 10-ADT `adttest.RunMatrix` against QUIC transport                     |
+| `metaengine/irohengine/loopback/adt_matrix_test.go` | **NEW** — `TestLoopbackADTMatrix`: full matrix against loopback transport                                 |
+| `TODO_LIST.md`                                      | Marked all 4 Irohengine items `[x]` with implementation details                                           |
 
 ---
 
@@ -28,6 +28,7 @@ Resolved all 4 open Irohengine TODO items + fixed the decider singleflight flake
 **Root cause:** The coalescing window (50ms sleep in `countLoadStore.Load`) was too short. Under `-race` (5-10x scheduling inflation) or high parallel test load, goroutines released by the `close(start)` barrier didn't all arrive at `singleflight.Do` before the first one completed. Some goroutines would miss the in-flight call and trigger separate `store.Load` calls, failing the `count == 1` assertion.
 
 **Fix:**
+
 - Extracted `delay()` method, increased from 50ms to 200ms (sufficient even under `-race`)
 - Added `runtime.Gosched()` after `close(start)` to immediately yield the main goroutine, giving the waiting goroutines CPU time to enter `singleflight.Do` promptly
 - Updated the comment explaining the rationale
@@ -47,6 +48,7 @@ Resolved all 4 open Irohengine TODO items + fixed the decider singleflight flake
 **What was added:** `TestQuicMapUpdateDoesNotReplicate` — the QUIC equivalent of the in-process `TestMapUpdateDoesNotReplicate`.
 
 **Key challenge:** CBOR round-trip over QUIC converts `int(0)` to `uint64(0)`. The test handles this via:
+
 - The `MapUpdate` callback's type switch handles both `int` and `uint64`
 - `BeEquivalentTo` instead of `Equal` for value comparisons (type-agnostic)
 - `Eventually` for the local assertion (MapUpdate is synchronous, but the pattern is consistent)
@@ -189,6 +191,7 @@ Nothing. All changes compile, all tests pass across 4 modules (decider, irohengi
 ### 1. Should the CBOR int→uint64 type drift be fixed in the codec, or documented as expected behavior?
 
 The QUIC transport uses `fxamacker/cbor/v2` with `TimeUnixDynamic` encoding and `DefaultMapType: map[string]any`. When a consumer does `MapSet(ctx, "counters", "c1", 0)` (Go `int`), the remote node receives `uint64(0)`. This is a CBOR spec behavior (integers are encoded as unsigned when ≥0), but it means `val.(int)` type assertions fail on the receiver. Should I:
+
 - (a) Fix the decoder to coerce back to `int` (breaking CBOR spec semantics but matching Go expectations)?
 - (b) Document it and tell consumers to use type-assertion-safe patterns (`BeEquivalentTo`, switch statements)?
 - (c) Something else?
@@ -198,6 +201,7 @@ I cannot determine this without knowing whether any consumers depend on the curr
 ### 2. Should the loopback/QUIC matrix tests connect real peers (2-node convergence), or is single-node wrapper-parity sufficient?
 
 The current `TestLoopbackADTMatrix` and `TestQuicADTMatrix` create isolated engines with no peers — they prove the wrapper doesn't corrupt semantics but don't test cross-node CRDT convergence under matrix scenarios. A 2-node variant would require a `Factory` that can create connected pairs, which `adttest.RunMatrix` doesn't support (it creates one engine per factory). Should I:
+
 - (a) Extend `adttest.Factory` with an optional `CreatePair` for convergence testing?
 - (b) Write separate 2-node convergence matrix tests outside `RunMatrix`?
 - (c) Accept the current single-node matrix + the existing per-ADT convergence tests as sufficient coverage?
@@ -207,6 +211,7 @@ This is an architectural decision about the test harness design.
 ### 3. Is the 200ms singleflight coalescing window acceptable for CI performance, or should it be adaptive?
 
 The delay increased from 50ms to 200ms. With 3 singleflight tests each taking 200ms, that's 600ms added to the decider test suite. Under `-race`, the scheduler may still need more time. Options:
+
 - (a) Keep 200ms fixed (simple, slightly slow)
 - (b) Use `testutil.RaceEnabled` to pick 200ms under race, 100ms without (faster non-race CI)
 - (c) Use a `sync.WaitGroup` inside `countLoadStore` that waits for N concurrent Load calls before proceeding (deterministic, no sleep)

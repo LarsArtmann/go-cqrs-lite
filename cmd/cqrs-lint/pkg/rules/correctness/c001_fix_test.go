@@ -89,7 +89,11 @@ func newIterator(db bboltDB, prefix []byte) (*iterator, error) {
 		t.Fatalf("detect: %v", err)
 	}
 	if len(findings) != 0 {
-		t.Fatalf("expected 0 findings for read-only Begin(false), got %d: %v", len(findings), findings)
+		t.Fatalf(
+			"expected 0 findings for read-only Begin(false), got %d: %v",
+			len(findings),
+			findings,
+		)
 	}
 }
 
@@ -127,7 +131,11 @@ func newIterator(ctx context.Context, db *sql.DB) (*iterator, error) {
 		t.Fatalf("detect: %v", err)
 	}
 	if len(findings) != 0 {
-		t.Fatalf("expected 0 findings for composite-literal escape, got %d: %v", len(findings), findings)
+		t.Fatalf(
+			"expected 0 findings for composite-literal escape, got %d: %v",
+			len(findings),
+			findings,
+		)
 	}
 }
 

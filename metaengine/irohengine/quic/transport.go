@@ -86,11 +86,11 @@ func New(opts ...Option) (*QuicTransport, error) {
 	}
 
 	t := &QuicTransport{
-		endpoint:   ep,
-		alpn:       cfg.alpn,
-		cfg:        cfg,
-		conns:      make(map[string]*peerConn),
-		dedupRing:  dedup.NewRing(10000),
+		endpoint:  ep,
+		alpn:      cfg.alpn,
+		cfg:       cfg,
+		conns:     make(map[string]*peerConn),
+		dedupRing: dedup.NewRing(10000),
 	}
 
 	// Start accept loop

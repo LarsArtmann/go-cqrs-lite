@@ -71,6 +71,7 @@
 ### DuckDB soak performance: 82-98 seconds
 
 The DuckDB AutoCRUD soak takes 82s (without race) to 98s (with race). This is acceptable for a soak test but extremely slow compared to Pebble (0.27s) and Memory (0.03s). DuckDB's per-row JSON upsert path is not optimized for high-frequency small writes. This is a known characteristic of columnar OLAP engines, not a bug, but the soak will slow down CI. Consider:
+
 - Running DuckDB soak only in nightly CI, not per-PR
 - Or reducing the workload size for DuckDB specifically (500 keys × 90 updates = 45K events)
 
@@ -92,6 +93,7 @@ The initial implementation had a double-close bug: engine modules called both `d
 ## f) Up to 50 Things to Get Done Next
 
 #### High priority (test coverage gaps)
+
 1. Run `nix run .#verify` to confirm the full gate passes with all changes
 2. Regen API stability golden (`cd cmd/api-stability && GOWORK=off go run main.go -update`) for new exports
 3. Add record-stamp test for badgerengine (completes all-engine parity)
@@ -100,6 +102,7 @@ The initial implementation had a double-close bug: engine modules called both `d
 6. Consider adding `RunConcurrentTxTest` to badgerengine (if it implements Transactional)
 
 #### Medium priority (test infrastructure)
+
 7. Consolidate `race_on.go`/`race_off.go` into `testutil/` — single canonical copy
 8. Make `enginetest` its own Go module if external consumers need it
 9. Add a shared `RunRecordStampTest(t, eng)` helper in enginetest to eliminate the copy-pasted record-stamp test body across 4 engine modules
@@ -108,6 +111,7 @@ The initial implementation had a double-close bug: engine modules called both `d
 12. Add `-timeout` guard to DuckDB soak tests (they take 80-100s)
 
 #### Low priority (polish)
+
 13. Unify scan return types across engines (JSONValue vs map[string]any)
 14. Document that `RunAutoCRUDSoak` takes ownership of engine Close
 15. Add `// Caller owns engine Close.` doc comment to `RunTransactionalBaselineTest` (matching the existing `RunTransactionalTest` convention)
@@ -118,6 +122,7 @@ The initial implementation had a double-close bug: engine modules called both `d
 20. Add a CI matrix configuration for nightly vs per-PR soak tests
 
 #### Architecture / future
+
 21. Consider a `metaengine/testcontract` module that exports ALL parity tests (ADT matrix + tx + record + soak) as a single import
 22. Document the testing pyramid for metaengine engines (unit → ADT matrix → tx/record → soak → -race)
 23. Add a `Doctor()` check for test coverage parity across engines
@@ -131,6 +136,7 @@ The initial implementation had a double-close bug: engine modules called both `d
 ### Q1: Should the DuckDB AutoCRUD soak run in per-PR CI or nightly-only?
 
 It takes 82-98s. This is fine for nightly but painful for rapid iteration. Options:
+
 - Gate behind `testing.Short()` (already done via the shared helper) and run only in long CI
 - Reduce the workload (fewer keys or updates) for DuckDB specifically
 - Run only in nightly, not per-PR

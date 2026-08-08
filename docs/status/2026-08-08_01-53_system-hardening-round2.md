@@ -61,23 +61,23 @@
 
 ### Files Changed
 
-| File | Change |
-|------|--------|
-| `system/system.go` | Removed Drainer, shutdownEdge, ProjectionHostResource, orderedEngines, RegisterDrainer. Added `namedEngine` type + `engineSlice()` helper. Changed `engines`/`engineNames` fields to `engines []namedEngine`. |
-| `system/shutdown.go` | NEW. Contains Drainer, shutdownEdge, orderedEngines, RegisterDrainer. Uses `namedEngine` struct. |
-| `system/config_types.go` | Updated doc comments on ShutdownDependency + ShutdownDependencies field (removed ProjectionHostResource references). |
-| `system/constructor.go` | Updated 3 engine append sites to use `namedEngine{engine, name}`. |
-| `system/introspection.go` | Updated HealthCheck loop, Serialize, Verify to use `engineSlice()` / iterate `namedEngine`. |
-| `system/system_internal_test.go` | Updated mock injection to use `namedEngine`. Added 6 new internal tests (orderedEngines × 4, Close × 2). |
-| `system/system_hardening_test.go` | Added 3 new black-box tests (RegisterDrainer × 2, ResetProjection restart-and-replay). |
-| `metaengine/duckdbengine/engine.go` | Added `HealthCheck(ctx)` method. |
-| `metaengine/pgengine/engine.go` | Added `HealthCheck(ctx)` method. |
-| `metaengine/pebbleengine/engine.go` | Added `HealthCheck(ctx)` method. |
-| `system/README.md` | Updated ShutdownDependencies description. |
-| `CHANGELOG.md` | Updated System package section. |
-| `FEATURES.md` | Updated lifecycle row, shutdown deps row, test count. |
-| `TODO_LIST.md` | Updated P3 section with all new work. |
-| `docs/api_surface.txt` | Regenerated (3781 exports). |
+| File                                | Change                                                                                                                                                                                                        |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `system/system.go`                  | Removed Drainer, shutdownEdge, ProjectionHostResource, orderedEngines, RegisterDrainer. Added `namedEngine` type + `engineSlice()` helper. Changed `engines`/`engineNames` fields to `engines []namedEngine`. |
+| `system/shutdown.go`                | NEW. Contains Drainer, shutdownEdge, orderedEngines, RegisterDrainer. Uses `namedEngine` struct.                                                                                                              |
+| `system/config_types.go`            | Updated doc comments on ShutdownDependency + ShutdownDependencies field (removed ProjectionHostResource references).                                                                                          |
+| `system/constructor.go`             | Updated 3 engine append sites to use `namedEngine{engine, name}`.                                                                                                                                             |
+| `system/introspection.go`           | Updated HealthCheck loop, Serialize, Verify to use `engineSlice()` / iterate `namedEngine`.                                                                                                                   |
+| `system/system_internal_test.go`    | Updated mock injection to use `namedEngine`. Added 6 new internal tests (orderedEngines × 4, Close × 2).                                                                                                      |
+| `system/system_hardening_test.go`   | Added 3 new black-box tests (RegisterDrainer × 2, ResetProjection restart-and-replay).                                                                                                                        |
+| `metaengine/duckdbengine/engine.go` | Added `HealthCheck(ctx)` method.                                                                                                                                                                              |
+| `metaengine/pgengine/engine.go`     | Added `HealthCheck(ctx)` method.                                                                                                                                                                              |
+| `metaengine/pebbleengine/engine.go` | Added `HealthCheck(ctx)` method.                                                                                                                                                                              |
+| `system/README.md`                  | Updated ShutdownDependencies description.                                                                                                                                                                     |
+| `CHANGELOG.md`                      | Updated System package section.                                                                                                                                                                               |
+| `FEATURES.md`                       | Updated lifecycle row, shutdown deps row, test count.                                                                                                                                                         |
+| `TODO_LIST.md`                      | Updated P3 section with all new work.                                                                                                                                                                         |
+| `docs/api_surface.txt`              | Regenerated (3781 exports).                                                                                                                                                                                   |
 
 ---
 

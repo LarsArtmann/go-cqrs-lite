@@ -9,28 +9,29 @@
 
 ### ADR-0113 Phase 2: GraphBackend removed from 4 degraded engines
 
-| Engine | Files changed | What was removed |
-|--------|--------------|-----------------|
-| **sqliteengine** | engine.go, backends.go, engine_test.go | GraphBackend assertion, `GraphAddEdge`/`GraphNeighbors`/`scanNeighborKeys` methods, `meta_graph_edges` DDL + 2 indexes, `graphAddEdge` query string, graph test block, unused `encoding/json/v2` + `fmt` imports |
-| **pebbleengine** | engine.go, pebbleengine_test.go | GraphBackend assertion, `GraphAddEdge`/`GraphNeighbors`/`scanGraphNeighbors` methods, `graphEdgeKey`/`graphPrefixForward` keycodec aliases, `ADTGraph` from profile, `TestPebbleGraphNeighbors` test |
-| **badgerengine** | engine.go, backends.go | GraphBackend assertion, `GraphAddEdge`/`GraphNeighbors`/`scanGraphNeighbors` methods, `graphEdgeKey`/`graphPrefixForward` aliases, `ADTGraph` from profile, dead `nextKey` function (had `slices.Backward` copy-mutation bug), unused `slices` import, unused `keycodec` import from backends.go |
-| **irohengine** | engine.go, engine_passthrough.go, errors.go | GraphBackend assertion, `GraphAddEdge`/`GraphNeighbors` passthrough methods, `ErrGraphBackendNotImplemented` sentinel |
-| **metaengine core** | engine.go, restart_test.go | `ADTGraph: ComplexityON` from `SQLiteEngineProfile()`, `GraphBackend restart safety` regression test (tested SQLite graph persistence — obsolete) |
-| **keycodec** | keycodec.go | Dead code: `GraphEdgeKey`, `GraphPrefixForward`, `BFSNeighbors` (no remaining consumers), 3 doc comment references |
+| Engine              | Files changed                               | What was removed                                                                                                                                                                                                                                                                                 |
+| ------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **sqliteengine**    | engine.go, backends.go, engine_test.go      | GraphBackend assertion, `GraphAddEdge`/`GraphNeighbors`/`scanNeighborKeys` methods, `meta_graph_edges` DDL + 2 indexes, `graphAddEdge` query string, graph test block, unused `encoding/json/v2` + `fmt` imports                                                                                 |
+| **pebbleengine**    | engine.go, pebbleengine_test.go             | GraphBackend assertion, `GraphAddEdge`/`GraphNeighbors`/`scanGraphNeighbors` methods, `graphEdgeKey`/`graphPrefixForward` keycodec aliases, `ADTGraph` from profile, `TestPebbleGraphNeighbors` test                                                                                             |
+| **badgerengine**    | engine.go, backends.go                      | GraphBackend assertion, `GraphAddEdge`/`GraphNeighbors`/`scanGraphNeighbors` methods, `graphEdgeKey`/`graphPrefixForward` aliases, `ADTGraph` from profile, dead `nextKey` function (had `slices.Backward` copy-mutation bug), unused `slices` import, unused `keycodec` import from backends.go |
+| **irohengine**      | engine.go, engine_passthrough.go, errors.go | GraphBackend assertion, `GraphAddEdge`/`GraphNeighbors` passthrough methods, `ErrGraphBackendNotImplemented` sentinel                                                                                                                                                                            |
+| **metaengine core** | engine.go, restart_test.go                  | `ADTGraph: ComplexityON` from `SQLiteEngineProfile()`, `GraphBackend restart safety` regression test (tested SQLite graph persistence — obsolete)                                                                                                                                                |
+| **keycodec**        | keycodec.go                                 | Dead code: `GraphEdgeKey`, `GraphPrefixForward`, `BFSNeighbors` (no remaining consumers), 3 doc comment references                                                                                                                                                                               |
 
 **Net change:** -433 lines, +331 lines across 22 files.
 
 ### Engines that STILL implement GraphBackend (intentional)
 
-| Engine | Why |
-|--------|-----|
-| **memoryEngine** | Testing/baseline — simplest GraphBackend impl, used by adttest harness |
-| **dgraphEngine** | Native graph database — O(degree^depth) real traversal via DQL @reverse |
+| Engine                   | Why                                                                          |
+| ------------------------ | ---------------------------------------------------------------------------- |
+| **memoryEngine**         | Testing/baseline — simplest GraphBackend impl, used by adttest harness       |
+| **dgraphEngine**         | Native graph database — O(degree^depth) real traversal via DQL @reverse      |
 | **graphadapter.Adapter** | Canonical path: wraps `graph.MemoryDriver` as `metaengine.Engine` (ADR-0113) |
 
 ### Record-aware graphadapter integration test
 
 `TestAdapter_StoreIntegration_RecordAware` in `graphadapter/adapter_test.go`:
+
 - Proves the full ES-native pipeline: `Plan` → `ApplyRecord(Record)` → `Execute(Traversal)` → neighbors
 - Event type uses Go struct name (`"TaskAssigned"`), not dot-separated (`"task.assigned"`) — matches the naming convention documented in ADR-0116
 - Graph queries flow: Store → GraphBackend → graphadapter → graph.MemoryDriver → Traverse
@@ -45,50 +46,50 @@ Moved `record/v4` from indirect to direct dependency (test imports it directly).
 
 ### ADR-0113 overall: 80% complete
 
-| Phase | Status |
-|-------|--------|
-| 1. Create `metaengine/graphadapter/` | Done (prior session) |
-| 2. Remove GraphBackend from degraded engines | **Done this session** |
-| 3. Delete `GraphBackend` interface entirely | NOT done — interface still exists in `engine.go:394`, used by `store.go:543`, `execute.go:167`, `advanced.go:326`, `adttest/harness.go`, `memory_backends.go` |
-| 4. Update planner to route ADTGraph via adapter only | NOT done — planner still uses `GraphBackend` type assertion, not adapter-specific routing |
+| Phase                                                | Status                                                                                                                                                        |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Create `metaengine/graphadapter/`                 | Done (prior session)                                                                                                                                          |
+| 2. Remove GraphBackend from degraded engines         | **Done this session**                                                                                                                                         |
+| 3. Delete `GraphBackend` interface entirely          | NOT done — interface still exists in `engine.go:394`, used by `store.go:543`, `execute.go:167`, `advanced.go:326`, `adttest/harness.go`, `memory_backends.go` |
+| 4. Update planner to route ADTGraph via adapter only | NOT done — planner still uses `GraphBackend` type assertion, not adapter-specific routing                                                                     |
 
 **Why Phase 3-4 deferred:** The `GraphBackend` interface is the capability-detection pattern (same as `MapBackend`, `SetBackend`, etc.). Deleting the interface type requires rewriting the Store/Execute dispatch to use a different mechanism. This is low-value churn vs the current working state where only 3 engines implement it.
 
 ### ADR-0111 (Record Type Extraction): 60% complete
 
-| Phase | Status |
-|-------|--------|
-| 1. `record/` module | Done |
-| 2. Metaengine depends on record/ | Done |
+| Phase                                           | Status                                                  |
+| ----------------------------------------------- | ------------------------------------------------------- |
+| 1. `record/` module                             | Done                                                    |
+| 2. Metaengine depends on record/                | Done                                                    |
 | 3. Remove `event.Metadata` + `command.Metadata` | NOT done — both still exist, massive consumer migration |
-| 4. Remove tombstone from event metadata | NOT done (ADR-0114, deferred to v5) |
+| 4. Remove tombstone from event metadata         | NOT done (ADR-0114, deferred to v5)                     |
 
 ### ADR-0112 (ES-Native Metaengine): 70% complete
 
-| Feature | Status |
-|---------|--------|
-| Record-aware folds (`OnRecord`/`ApplyRecord`) | Done |
-| Auto-projection (`AutoInsert`/`AutoCRUD`/`AutoCRUDByConvention`) | Done |
-| Materialize-vs-replay | Done |
-| Command sourcing (folding over command history) | NOT started |
-| DLQ-as-projection (ADR-0117) | NOT started |
+| Feature                                                          | Status      |
+| ---------------------------------------------------------------- | ----------- |
+| Record-aware folds (`OnRecord`/`ApplyRecord`)                    | Done        |
+| Auto-projection (`AutoInsert`/`AutoCRUD`/`AutoCRUDByConvention`) | Done        |
+| Materialize-vs-replay                                            | Done        |
+| Command sourcing (folding over command history)                  | NOT started |
+| DLQ-as-projection (ADR-0117)                                     | NOT started |
 
 ---
 
 ## c) NOT STARTED
 
-| Item | ADR | Notes |
-|------|-----|-------|
-| Command lifecycle event streams | 0117 | Zero implementation. Needs lifecycle event types, projections, replay. |
-| Tombstone removal (deprecation only) | 0114 | `// Deprecated:` added, but `DetectTombstone`/`MarkTombstone` still in active use across `listing/`, `storage/`, `watermill/`, `example/` |
-| Duplicate metadata type removal | 0111 P3 | `event.Metadata` and `command.Metadata` still coexist with `record.CommonMetadata` |
-| GraphBackend interface deletion | 0113 P3-4 | Interface + dispatch still in core metaengine |
-| Layer 2-3 auto-projection | 0116 | Layer 1 done. Layer 2 (100% codegen) and Layer 3 (100% auto-route) not started |
-| metaengine-gen code generator | ROADMAP | Go AST + template typed Store methods from query declarations |
-| Vector/Search/Spatial backends | ROADMAP | DuckDB VSS, Postgres tsvector, PostGIS |
-| Operator YAML config | design doc | Engines wired in Go code, not config |
-| Structured query expression tree | design doc | `query.Or`/`query.And`/`query.Gt` composable tree not built |
-| Auto-denormalization | design doc | Cross-engine query avoidance planning not built |
+| Item                                 | ADR        | Notes                                                                                                                                     |
+| ------------------------------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Command lifecycle event streams      | 0117       | Zero implementation. Needs lifecycle event types, projections, replay.                                                                    |
+| Tombstone removal (deprecation only) | 0114       | `// Deprecated:` added, but `DetectTombstone`/`MarkTombstone` still in active use across `listing/`, `storage/`, `watermill/`, `example/` |
+| Duplicate metadata type removal      | 0111 P3    | `event.Metadata` and `command.Metadata` still coexist with `record.CommonMetadata`                                                        |
+| GraphBackend interface deletion      | 0113 P3-4  | Interface + dispatch still in core metaengine                                                                                             |
+| Layer 2-3 auto-projection            | 0116       | Layer 1 done. Layer 2 (100% codegen) and Layer 3 (100% auto-route) not started                                                            |
+| metaengine-gen code generator        | ROADMAP    | Go AST + template typed Store methods from query declarations                                                                             |
+| Vector/Search/Spatial backends       | ROADMAP    | DuckDB VSS, Postgres tsvector, PostGIS                                                                                                    |
+| Operator YAML config                 | design doc | Engines wired in Go code, not config                                                                                                      |
+| Structured query expression tree     | design doc | `query.Or`/`query.And`/`query.Gt` composable tree not built                                                                               |
+| Auto-denormalization                 | design doc | Cross-engine query avoidance planning not built                                                                                           |
 
 ---
 
@@ -107,10 +108,10 @@ This was likely hacked when the SQLite engine was extracted to `sqliteengine/` (
 
 ### 2. READMEs still advertise GraphBackend on engines that lost it (my oversight)
 
-| File | Issue |
-|------|-------|
-| `metaengine/pebbleengine/README.md:36` | Claims Pebble implements `GraphBackend` — no longer true |
-| `metaengine/README.md:531` | Lists `GraphBackend` as a general backend type without context that only Memory/Dgraph/GraphAdapter implement it |
+| File                                   | Issue                                                                                                            |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `metaengine/pebbleengine/README.md:36` | Claims Pebble implements `GraphBackend` — no longer true                                                         |
+| `metaengine/README.md:531`             | Lists `GraphBackend` as a general backend type without context that only Memory/Dgraph/GraphAdapter implement it |
 
 I removed the code but forgot to update documentation. Should have caught this.
 
@@ -121,6 +122,7 @@ Because `mustSQLiteEngine` returns Memory, this test creates two Memory engines 
 ### 4. No `go vet` or `nix run .#lint` run this session
 
 I ran `go build` and `go test` on affected modules but did NOT run:
+
 - `nix run .#lint` (golangci-lint with 192+ rules)
 - `nix run .#verify` (full gate: build + vet + test + race + lint + doc-check)
 - `nix run .#check-duplication` (art-dupl clone detection)

@@ -9,18 +9,21 @@
 ## a) FULLY DONE
 
 ### 1. `stack/bbolt/contract_test.go` — CREATED ✅
+
 - Mirrors the pebble pattern exactly: `contracttest.RunSuite(t, factory)`
 - `bbolt.New` returns `*stack.Bundle` directly (no `.Bundle` unwrap needed, unlike pebble/turso)
 - All 5 subtests pass: BundleFields, EventRoundtrip, CommandRoundtrip, ReadModelRoundtrip, CloseIdempotent
 - Verified: `go test -count=1 ./...` PASS
 
 ### 2. `stack/bench/durability_tiers_test.go` — bbolt benchmark ADDED ✅
+
 - `BenchmarkDurabilityTiers_Bbolt` tests all 3 tiers (Strict, Normal, Relaxed) via `bbolt.WithDurability`
 - Import `github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4` added
 - `stack/bbolt/v4` was already in `stack/bench/go.mod` (line 85, direct dep)
 - Smoke-tested with `-benchtime=1x`: Strict=6173, Normal=30470, Relaxed=38942 events/sec
 
 ### 3. Shared test packages extracted ✅
+
 - **`command/commandtest/store_suite.go`** (283 lines) — `RunStoreSuite`, `MustCreateCommand`, `StoreSuite` interface, `StoreFactory` type, 6 subtests (SaveAndLoad, DuplicateDetection, AppendBatch, ReadAll, ReadFrom, LoadFromTimestamp)
 - **`query/querytest/store_suite.go`** (191 lines) — `RunStoreSuite`, `MustCreateQuery`, `StoreSuite` interface, `StoreFactory` type, 4 subtests (SaveAndLoadQueries, DuplicateDetection, ReadAllQueries, ReadQueriesFrom)
 - Both are sub-packages within their parent module (no separate go.mod needed) — `commandtest` is `command/v4/commandtest`, `querytest` is `query/v4/querytest`
@@ -31,6 +34,7 @@
 - **Net: 892 lines → 136 lines** across the 4 consumer files
 
 ### 4. For-loop modernization in `storage/bbolt/contract_test.go` ✅
+
 - 4 instances of `for i := 0; i < N; i++` → `for i := range N`
 - All 4 gopls `rangeint` hints cleared
 - Tests pass
@@ -83,6 +87,7 @@ All changes compile, all tests pass (including `-race`), `go vet` is clean.
 ## f) Up to 50 things to get done next
 
 ### Test consolidation (direct continuation)
+
 1. Refactor `storage/memory/command_store_test.go` → use `commandtest.RunStoreSuite`
 2. Refactor `storage/memory/query_store_test.go` → use `querytest.RunStoreSuite`
 3. Check if `storage/` (SQL backend) has command/query store tests that could use the shared suites
@@ -93,6 +98,7 @@ All changes compile, all tests pass (including `-race`), `go vet` is clean.
 8. Add `LoadEmptyStream` test case to the shared suite (currently bbolt-specific)
 
 ### Formatting & verification
+
 9. Run `nix fmt` on all new/changed files
 10. Run `nix run .#lint` — check for lint issues in new files
 11. Run `nix run .#verify` or `nix run .#verify-fast` — full gate
@@ -100,6 +106,7 @@ All changes compile, all tests pass (including `-race`), `go vet` is clean.
 13. Run `nix run .#check-coverage` — verify coverage didn't regress
 
 ### Documentation
+
 14. Update AGENTS.md Quick Reference module list (add `command/commandtest`)
 15. Update TODO_LIST.md (mark the 4 items as done)
 16. Add `command/commandtest` to `cmd/api-stability/main.go` modules list
@@ -108,12 +115,14 @@ All changes compile, all tests pass (including `-race`), `go vet` is clean.
 19. Update the `stack/bench` README (if exists) to mention bbolt benchmark
 
 ### bbolt backend improvements
+
 20. Run `nix run .#integration-all` to verify bbolt stack in cross-module integration
 21. Check if `storage/bbolt` has a `go.sum` entry for `stack/bolt/v4` (shouldn't need it — stack depends on storage, not vice versa)
 22. Add bbolt to `stack/bench` parity tests (if any exist beyond durability tiers)
 23. Verify bbolt contract test runs in CI (`nixos-vm-tests` or GitHub Actions)
 
 ### Broader test infrastructure
+
 24. Check if `storage/turso/` command/query store tests exist and could use shared suites
 25. Create an `eventtest`-style package for snapshot store conformance tests (if duplication exists)
 26. Create an `eventtest`-style package for checkpoint store conformance tests
@@ -122,10 +131,12 @@ All changes compile, all tests pass (including `-race`), `go vet` is clean.
 29. Run `gopls` diagnostics workspace-wide to find remaining rangeint hints
 
 ### System package (uncommitted changes seen in git status)
+
 30. Investigate the uncommitted `system/` changes (constructor.go, introspection.go, shutdown.go, system_hardening_test.go, system_internal_test.go) — these appeared between sessions, not from this session's work
 31. Verify system package builds and tests pass with those changes
 
 ### Meta
+
 32. Tag `command/v4` with the new `commandtest` sub-package (after go.mod is stable)
 33. Tag `query/v4` with the updated `querytest` sub-package
 34. Tag `stack/bbolt/v4` with the contract test

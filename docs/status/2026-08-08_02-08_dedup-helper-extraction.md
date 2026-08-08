@@ -14,21 +14,21 @@ Ran `art-dupl --type-aware -t 2 --json` and categorized all 92 (now 121) clone g
 
 **Extracted (3 patterns):**
 
-| Pattern | Copies | Action |
-|---------|--------|--------|
-| `capitalizeFirst` / `titleCase` | 3 (benchkit, cmd/cqrs-bench, cmd/cqrs-lint) | Exported `benchkit.TitleCase`, removed dup in cmd/cqrs-bench |
-| `truncate` / `truncateMsg` | 2 (benchkit, cmd/cqrs-bench) | Exported `benchkit.Truncate`, removed dup in cmd/cqrs-bench |
-| `renderKeyTable` | 1 (but had inline duplicate in `renderRulesConfig`) | Generalized into `renderTable` + 3 shared primitives |
+| Pattern                         | Copies                                              | Action                                                       |
+| ------------------------------- | --------------------------------------------------- | ------------------------------------------------------------ |
+| `capitalizeFirst` / `titleCase` | 3 (benchkit, cmd/cqrs-bench, cmd/cqrs-lint)         | Exported `benchkit.TitleCase`, removed dup in cmd/cqrs-bench |
+| `truncate` / `truncateMsg`      | 2 (benchkit, cmd/cqrs-bench)                        | Exported `benchkit.Truncate`, removed dup in cmd/cqrs-bench  |
+| `renderKeyTable`                | 1 (but had inline duplicate in `renderRulesConfig`) | Generalized into `renderTable` + 3 shared primitives         |
 
 **Accepted as intentional (5 patterns, documented in TODO_LIST.md):**
 
-| Pattern | Why accepted |
-|---------|-------------|
-| `isCBORData` | Cross-module (bbolt vs pebble, separate go.mod), 4 lines each |
-| `recordErr` / `cqrsotel.RecordError` | OTel boilerplate, 100 occurrences, already has local helper in bbolt |
-| `startStreamSpan` | Module-local helpers already exist; call-site boilerplate |
-| `t.Parallel()` + `ctx := context.Background()` | Test boilerplate, idiomatic Go |
-| DuckDB aggregations internal patterns | Same-file structural patterns, not cross-module |
+| Pattern                                        | Why accepted                                                         |
+| ---------------------------------------------- | -------------------------------------------------------------------- |
+| `isCBORData`                                   | Cross-module (bbolt vs pebble, separate go.mod), 4 lines each        |
+| `recordErr` / `cqrsotel.RecordError`           | OTel boilerplate, 100 occurrences, already has local helper in bbolt |
+| `startStreamSpan`                              | Module-local helpers already exist; call-site boilerplate            |
+| `t.Parallel()` + `ctx := context.Background()` | Test boilerplate, idiomatic Go                                       |
+| DuckDB aggregations internal patterns          | Same-file structural patterns, not cross-module                      |
 
 ### 2. `renderTable` Extraction (cmd/cqrs-lint/explain.go)
 
@@ -70,6 +70,7 @@ The third copy of the capitalize pattern (`capitalizeFirst` in `cmd/cqrs-lint/ag
 ### DeferClose not applied to ALL modules
 
 Only metaengine engine submodules were updated. The pattern `defer func() { _ = X.Close() }()` still exists in:
+
 - `storage/pebble/` (many sites)
 - `storage/bbolt/` (many sites)
 - `storage/eventstore/` (some sites)

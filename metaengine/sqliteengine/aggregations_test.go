@@ -457,7 +457,14 @@ func TestSQLite_Aggregate_PlannedTable(t *testing.T) {
 	})
 
 	t.Run("GroupedSum", func(t *testing.T) {
-		got, err := gr.GroupedAggregate(ctx, "items_planned", metaengine.AggregateSum, "price", "status", nil)
+		got, err := gr.GroupedAggregate(
+			ctx,
+			"items_planned",
+			metaengine.AggregateSum,
+			"price",
+			"status",
+			nil,
+		)
 		if err != nil {
 			t.Fatalf("Planned GroupedSum: %v", err)
 		}

@@ -3,7 +3,6 @@ package sqliteengine
 import (
 	"context"
 	"database/sql"
-
 	"errors"
 	"slices"
 	"sync"
@@ -188,5 +187,3 @@ func (e *sqliteEngine) LogTail(ctx context.Context, col string, limit int) ([]an
 
 	return fwd, nil
 }
-
-

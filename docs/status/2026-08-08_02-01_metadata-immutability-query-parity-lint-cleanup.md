@@ -8,6 +8,7 @@
 ## A) FULLY DONE
 
 ### 1. `metadata.CustomData[K]` immutability sweep
+
 - **Added** `CustomData[K].WithCustom(key K, value string) CustomData[K]` — value-receiver, non-mutating, clones map before write. Matches the pattern `command.Metadata.WithCustom` and `query.Metadata.WithCustom` already established.
 - **Deprecated** `CustomData[K].EnsureCustom()` with `// Deprecated:` doc comment pointing to `WithCustom`. Kept for backward compat (api-stability golden tracks it).
 - **Updated** type doc comment to reflect that command/query are no longer aliases of CustomData.
@@ -15,11 +16,13 @@
 - **Files:** `metadata/metadata.go`, `metadata/metadata_test.go`
 
 ### 2. `query.WithCustomMetadata` added
+
 - **Added** `query.WithCustomMetadata(key, value string) Option` — byte-for-byte mirror of `command.WithCustomMetadata`. Delegates to `Metadata.WithCustom`.
 - **Added** 2 tests in `query/metadata_test.go`: single-entry, multiple-calls-accumulate.
 - **Files:** `query/query.go`, `query/metadata_test.go`
 
 ### 3. `metadata/README.md` updated
+
 - Fixed false claim that `command.Metadata` IS `CustomData[command.MetadataKey]` (it's a standalone struct now).
 - Fixed false claim that `query.Metadata` IS `CustomData[query.MetadataKey]`.
 - Added `WithCustom` to the methods table; marked `EnsureCustom` as deprecated.
@@ -29,6 +32,7 @@
 - **Files:** `metadata/README.md`
 
 ### 4. `.golangci.yml` exclusion sprawl fixed
+
 - **Documented every exclusion** with a `# ── Section ──` header and rationale comment (was ~2 documented out of ~30 blocks; now 100% documented).
 - **Consolidated** 12+ scattered `ireturn`-only blocks into 1 grouped regex block: `(kv|otel|stack|decider|schema|snapshot|codec|graph|projectionhost|catalog|middleware|transport)/` with shared rationale.
 - **Merged** 2 duplicate-path blocks: `projection/` appeared twice (once for `exhaustruct/tagliatelle/nlreturn`, once for `ireturn`). `watermill/` appeared twice (once for general exclusions, once for `ireturn`).
@@ -39,6 +43,7 @@
 - **Files:** `.golangci.yml`
 
 ### 5. API-stability golden regenerated
+
 - Added 3 new exported symbols: `metadata/method WithCustom`, `query/func WithCustomMetadata`, plus existing `query/method WithCustom` (was already there).
 - Verified: `API surface OK: 3785 exports verified`.
 - **Files:** `docs/api_surface.txt`
@@ -48,9 +53,11 @@
 ## B) PARTIALLY DONE
 
 ### Immutability sweep — only the `metadata` layer
-The sweep is complete for `metadata.CustomData[K]`, but the **event package's** `EnsureCustom` free function (`event/metadata.go:49`) uses the same mutable pattern. It's called by `event.WithCustom` (the option function), `watermill/protocol.go`, and a fuzz test. This is a separate type in a separate module — arguably out of scope for this task — but a *complete* immutability sweep would address it.
+
+The sweep is complete for `metadata.CustomData[K]`, but the **event package's** `EnsureCustom` free function (`event/metadata.go:49`) uses the same mutable pattern. It's called by `event.WithCustom` (the option function), `watermill/protocol.go`, and a fuzz test. This is a separate type in a separate module — arguably out of scope for this task — but a _complete_ immutability sweep would address it.
 
 ### `.golangci.yml` — documented but not split
+
 The task mentioned "Consider per-module config split." I documented and consolidated the monolithic config but did NOT split it into per-module files. That's a larger architectural decision (golangci-lint v2 supports `config-dirs`, but the project's `nix run .#lint` calls it once on the workspace root).
 
 ---
@@ -70,6 +77,7 @@ The task mentioned "Consider per-module config split." I documented and consolid
 Nothing destroyed, nothing reverted, nothing broken. But there is one **honest self-critique**:
 
 **I added a feature (`WithCustom`) to a type (`CustomData[K]`) that arguably should not exist.** The user asked "Should we even have it?!?!" The research showed:
+
 - Zero production types embed `CustomData[K]` anymore (command/query migrated to standalone structs).
 - The only production import is the deprecated v3-compat alias in `event/`.
 - All real consumers (command, query, event) have their own `Custom map[MetadataKey]string` field directly.
@@ -95,11 +103,13 @@ A more principled response would have been to **deprecate the entire `CustomData
 ## F) Up to 50 things to get done next
 
 ### Verification & process
+
 1. Run `nix run .#verify` to confirm full gate is green
 2. Run `nix run .#test` with `-race` on metadata + query + command modules
 3. Run `nix run .#check-coverage` to verify no coverage drift
 
 ### Documentation
+
 4. Update `TODO_LIST.md` — mark the 4 code-quality items as resolved
 5. Update `AGENTS.md` Key Patterns — add `query.WithCustomMetadata` example
 6. Update `AGENTS.md` Key Patterns — note `metadata.CustomData.WithCustom`
@@ -108,6 +118,7 @@ A more principled response would have been to **deprecate the entire `CustomData
 9. Check `FEATURES.md` — verify metadata section reflects current state
 
 ### Deeper immutability sweep
+
 10. Deprecate `event.EnsureCustom()` free function
 11. Add `event.Metadata.WithCustom(key MetadataKey, value string) Metadata` (value-receiver)
 12. Migrate `event.WithCustom` option to use `Metadata.WithCustom` instead of `EnsureCustom` + direct mutation
@@ -117,12 +128,14 @@ A more principled response would have been to **deprecate the entire `CustomData
 16. Consider adding `// Deprecated` to `event.EnsureCustom` once `Metadata.WithCustom` exists
 
 ### `metadata.CustomData[K]` future
+
 17. Decision: deprecate the entire `CustomData[K]` type? (No production consumers)
 18. If deprecating: add `// Deprecated` doc, plan removal timeline
 19. If keeping: consider whether `Clone/Merge/WithCustom` are sufficient or if `MergeCustomMaps` standalone function is enough for external consumers
 20. Check if any external repos import `metadata.CustomData` (can't verify from this repo)
 
 ### `.golangci.yml` hardening
+
 21. Add a meta-test that parses `.golangci.yml` and rejects duplicate path entries
 22. Add a CI check that every exclusion block has a `#` comment explaining WHY
 23. Evaluate per-module `.golangci.yml` config split (golangci-lint v2 `config-dirs`)
@@ -131,12 +144,14 @@ A more principled response would have been to **deprecate the entire `CustomData
 26. Verify the `saga/` module exclusion is still needed (saga was removed per ADR)
 
 ### Query module parity
+
 27. Add `query.WithCustomMetadata` usage to `transport/grpc/query_server.go` if it exists
 28. Add `query.WithCustomMetadata` usage to `watermill/query_protocol.go` if it exists
 29. Consider typed `query.MetadataKey` constants for common keys (like event has)
 30. Add `query.Metadata.WithCustom` immutability test (mirror `command/metadata_test.go:129`)
 
 ### Event metadata improvements
+
 31. Consider typed event.MetadataKey constants for all custom keys used by middleware
 32. Audit `encryption/event.go` — uses `event.WithCustom` with string keys, could use constants
 33. Audit `signing/event.go` — uses `event.WithCustom` with string keys, could use constants
@@ -144,6 +159,7 @@ A more principled response would have been to **deprecate the entire `CustomData
 35. Consider `event.Metadata.WithCustom` as the canonical write path for event middleware
 
 ### Test coverage
+
 36. Add test for `command.WithCustomMetadata` accumulation (currently only tested implicitly)
 37. Add test for `query.Metadata.IsZero()` when Custom is nil
 38. Add round-trip test: query → watermill serialize → deserialize → verify custom metadata
@@ -151,6 +167,7 @@ A more principled response would have been to **deprecate the entire `CustomData
 40. Add benchmark: `WithCustom` vs `EnsureCustom` + direct write (allocation comparison)
 
 ### Lint config cleanup
+
 41. Group `varnamelen` ignore-names into the linter settings rather than per-module exclusions
 42. Consider enabling `recvcheck` linter (currently enabled but check if it catches the EnsureCustom pointer-receiver issue)
 43. Remove `goexperiment.arenas` build tag (AGENTS.md says arena allocation was removed)
@@ -158,6 +175,7 @@ A more principled response would have been to **deprecate the entire `CustomData
 45. Consider `nolintlint` `require-explanation: true` to enforce documented `//nolint` directives
 
 ### Broader quality
+
 46. Audit all modules for pointer-receiver methods on types that also have value-receiver methods (mixed-receiver anti-pattern)
 47. Check if `metadata.Tracing.Merge` should also have a `WithCorrelationID` etc. functional pattern
 48. Consider whether `command.MetadataKey` and `query.MetadataKey` should share a common set of well-known keys
@@ -177,6 +195,7 @@ Research shows zero internal production consumers — only the v3-compat alias a
 ### 2. Per-module `.golangci.yml` split — is it worth the complexity?
 
 The monolithic config is now well-documented (~45 rules, all commented). golangci-lint v2 supports `config-dirs` for per-module configs, but:
+
 - `nix run .#lint` calls golangci-lint once on the workspace root
 - Per-module files would need to be discovered/loaded
 - The monolithic config gives a single-pane view of all exclusions
@@ -186,6 +205,7 @@ The monolithic config is now well-documented (~45 rules, all commented). golangc
 ### 3. Should the `event.EnsureCustom` mutable pattern be deprecated as part of this sweep?
 
 `event.EnsureCustom(&m)` is a free function used by `event.WithCustom` (the option), `watermill/protocol.go` (deserialization), and a fuzz test. Migrating it requires:
+
 - Adding `event.Metadata.WithCustom` (value-receiver)
 - Rewriting `event.WithCustom` option to use it
 - Rewriting watermill deserialization

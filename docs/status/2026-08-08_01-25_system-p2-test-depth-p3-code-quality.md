@@ -62,6 +62,7 @@ The `ProjectionHostResource` constant is declared and documented as usable in `S
 ### No test for `orderedEngines()` / `ShutdownDependencies`
 
 The shutdown dependency ordering was implemented but never tested. There is no test that:
+
 - Declares `ShutdownDependencies` in a `DomainConfig`
 - Verifies engines close in the declared order
 - Tests cycle fallback behavior
@@ -70,6 +71,7 @@ The shutdown dependency ordering was implemented but never tested. There is no t
 ### No test for `Drainer` / `RegisterDrainer`
 
 The `Drainer` interface and `RegisterDrainer` method were implemented but never tested. There is no test that:
+
 - Registers a `Drainer` and verifies it's called by `GracefulClose`
 - Verifies drain errors are propagated
 - Verifies drain happens before close
@@ -224,6 +226,7 @@ Nothing is fucked up. All code compiles, all tests pass with `-race`, the api-st
 ### 1. Should `ProjectionHostResource` participate in `orderedEngines()`, or should it be removed?
 
 The constant exists and is documented as usable in `ShutdownDependency` edges, but `orderedEngines()` only handles engines. The projection host is always closed first in `Close()` regardless of declared dependencies. Options:
+
 - **A:** Remove the constant. Document that projection host always closes first. Simpler, honest.
 - **B:** Restructure `Close()` to put the projection host into the topological sort alongside engines. More flexible, but adds complexity for an edge case (who wants the projection host to close AFTER an engine?).
 - **C:** Keep the constant, add a special case in `orderedEngines()` that checks for `ProjectionHostResource` and adjusts the close sequence. Hacky.

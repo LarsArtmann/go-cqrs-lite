@@ -23,6 +23,7 @@ Added `TestToolCompiles` in `cmd/api-stability/main_test.go:109-123`. Unlike `Te
 ### 4. Watermill CBOR test failures — ROOT CAUSE FIXED (4 tests)
 
 **Tests fixed:**
+
 - `TestRoundTrip` — payload arrived as CBOR-encoded `P{"name":"Alice"}` instead of `{"name":"Alice"}`
 - `TestMessageToEvent_DefaultsJSONWhenNoEncoding` — encoding was `"cbor"` instead of `"json"` for old messages
 - `TestEventToMessage_PreservesEncoding/json` — JSON sub-case got CBOR encoding

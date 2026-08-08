@@ -47,12 +47,12 @@ type CustomData[K ~string] struct {
 
 The type parameter `K` is a named string type (the module's own `MetadataKey`), so each module's custom keys are type-safe and cannot be accidentally mixed.
 
-| Method                          | Description                                          |
-| ------------------------------- | ---------------------------------------------------- |
-| `CustomData[K].Clone()`         | Returns a copy with a cloned Custom map.             |
-| `CustomData[K].Merge(o)`        | Overlays tracing and custom entries from `other`.    |
-| `CustomData[K].WithCustom(k,v)` | Returns a copy with `k` set to `v` (non-mutating).   |
-| `CustomData[K].EnsureCustom()`  | **Deprecated.** Use `WithCustom` instead.            |
+| Method                          | Description                                        |
+| ------------------------------- | -------------------------------------------------- |
+| `CustomData[K].Clone()`         | Returns a copy with a cloned Custom map.           |
+| `CustomData[K].Merge(o)`        | Overlays tracing and custom entries from `other`.  |
+| `CustomData[K].WithCustom(k,v)` | Returns a copy with `k` set to `v` (non-mutating). |
+| `CustomData[K].EnsureCustom()`  | **Deprecated.** Use `WithCustom` instead.          |
 
 ### MergeCustomMaps[K]
 

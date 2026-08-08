@@ -127,7 +127,7 @@ func (e *pebbleEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTMap:       metaengine.ComplexityO1, // LSM point read
 			metaengine.ADTSet:       metaengine.ComplexityO1,
 			metaengine.ADTCounter:   metaengine.ComplexityON, // CounterGet = prefix scan
-				metaengine.ADTSortedMap: metaengine.ComplexityON, // O(limit) with sort index, O(N) fallback
+			metaengine.ADTSortedMap: metaengine.ComplexityON, // O(limit) with sort index, O(N) fallback
 			metaengine.ADTLog:       metaengine.ComplexityOLogN,
 			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
 			metaengine.ADTVector:    metaengine.ComplexityON,

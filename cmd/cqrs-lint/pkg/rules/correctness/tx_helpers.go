@@ -121,8 +121,8 @@ type txAnalysis struct {
 	// (callback-helper pattern) or a composite-literal field (iterator
 	// pattern like &iter{tx: tx}). In both cases the callee/struct owns the
 	// commit lifecycle, so C001 must not flag the enclosing function.
-	escapes      bool
-	txUsed       bool // tx.<Method>() called where Method is not Commit/Rollback
+	escapes bool
+	txUsed  bool // tx.<Method>() called where Method is not Commit/Rollback
 }
 
 // analyzeTxUsage walks the function body once and collects every tx signal C001

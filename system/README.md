@@ -137,17 +137,17 @@ func main() {
 
 ### Constructor
 
-| Symbol                              | Description                                            |
-| ----------------------------------- | ------------------------------------------------------ |
-| `New(ctx, domain, deployment)`      | Creates a `*System` from domain + deployment configs.  |
-| `System.Start(ctx)`                 | Starts projection workers and bus listeners.           |
-| `System.Close()`                    | Graceful shutdown of all infrastructure.               |
-| `System.GracefulClose(ctx)`         | Drains via [Drainer]s, then context-bounded `Close()`. |
+| Symbol                              | Description                                             |
+| ----------------------------------- | ------------------------------------------------------- |
+| `New(ctx, domain, deployment)`      | Creates a `*System` from domain + deployment configs.   |
+| `System.Start(ctx)`                 | Starts projection workers and bus listeners.            |
+| `System.Close()`                    | Graceful shutdown of all infrastructure.                |
+| `System.GracefulClose(ctx)`         | Drains via [Drainer]s, then context-bounded `Close()`.  |
 | `System.Drain(ctx)`                 | Drain in-flight work without closing (rolling deploys). |
-| `System.HealthCheck(ctx)`           | Returns `nil` if all resources are healthy.            |
-| `System.ResetProjection(ctx, name)` | Resets a projection checkpoint for replay.             |
-| `System.RegisterDrainer(d)`         | Register a pre-close drainer for `GracefulClose`.      |
-| `System.RegisterCloser(name, c)`    | Register an external `io.Closer` for lifecycle mgmt.   |
+| `System.HealthCheck(ctx)`           | Returns `nil` if all resources are healthy.             |
+| `System.ResetProjection(ctx, name)` | Resets a projection checkpoint for replay.              |
+| `System.RegisterDrainer(d)`         | Register a pre-close drainer for `GracefulClose`.       |
+| `System.RegisterCloser(name, c)`    | Register an external `io.Closer` for lifecycle mgmt.    |
 
 ### Domain Registration
 
@@ -174,21 +174,21 @@ an error at construction time (no silent fallback).
 
 ### Introspection
 
-| Symbol                          | Description                                     |
-| ------------------------------- | ----------------------------------------------- |
-| `System.Snapshot(ctx)`          | Returns a `Topology` snapshot of all instances. |
-| `System.Health(ctx)`            | Aggregate health status string.                 |
-| `System.HealthCheck(ctx)`       | Error if any resource is unhealthy.             |
-| `System.HealthCheckDetailed(ctx)` | Per-engine health status ([]EngineHealth).     |
-| `System.Explain(ctx)`           | Human-readable explanation of the deployment.   |
-| `System.EngineNames()`          | Engine names in creation order (diagnostics).   |
-| `System.ShutdownOrder()`        | Resolved close order as engine names.           |
-| `System.LagPerProjection()`     | Per-projection lag map (delegates to host).     |
-| `System.LagDuration()`          | Max lag across all workers.                     |
-| `System.WorkerStatus()`         | Projection worker states.                       |
-| `System.ProjectionPlan()`       | Serializable plan for projection engines.       |
-| `System.ProjectionExplain()`    | Human-readable projection plan explanation.     |
-| `System.VerifyProjections(ctx)` | Verify projection stores match source-of-truth. |
+| Symbol                            | Description                                     |
+| --------------------------------- | ----------------------------------------------- |
+| `System.Snapshot(ctx)`            | Returns a `Topology` snapshot of all instances. |
+| `System.Health(ctx)`              | Aggregate health status string.                 |
+| `System.HealthCheck(ctx)`         | Error if any resource is unhealthy.             |
+| `System.HealthCheckDetailed(ctx)` | Per-engine health status ([]EngineHealth).      |
+| `System.Explain(ctx)`             | Human-readable explanation of the deployment.   |
+| `System.EngineNames()`            | Engine names in creation order (diagnostics).   |
+| `System.ShutdownOrder()`          | Resolved close order as engine names.           |
+| `System.LagPerProjection()`       | Per-projection lag map (delegates to host).     |
+| `System.LagDuration()`            | Max lag across all workers.                     |
+| `System.WorkerStatus()`           | Projection worker states.                       |
+| `System.ProjectionPlan()`         | Serializable plan for projection engines.       |
+| `System.ProjectionExplain()`      | Human-readable projection plan explanation.     |
+| `System.VerifyProjections(ctx)`   | Verify projection stores match source-of-truth. |
 
 ### Safety Checks
 
@@ -249,17 +249,17 @@ separator (koanf convention). Env overrides win over YAML.
 
 ### DomainConfig Fields
 
-| Field                    | Description                                                         |
-| ------------------------ | ------------------------------------------------------------------- |
-| `Commands`               | Function that registers typed command handlers on the System.       |
-| `Queries`                | Function that registers typed query handlers on the System.         |
-| `Projections`            | Metaengine query declarations for auto-wired projections.           |
-| `ProjectionDecoder`      | Decodes event payloads for projection fold handlers.                |
-| `ProjectionTypeDecoder`  | Recommended: typed event decoder with stream ID access.             |
-| `ProjectionEventDecoder` | Full event context decoder for projection fold handlers.            |
-| `Middleware`             | Command-level domain middleware (validation, authz, etc.).          |
-| `ProjectionHostOptions`  | Projection host options (batch size, DLQ, restart policy, etc.).    |
-| `CheckpointStore`        | Persistent checkpoint store. If nil, in-memory (lost on restart).   |
+| Field                    | Description                                                                                  |
+| ------------------------ | -------------------------------------------------------------------------------------------- |
+| `Commands`               | Function that registers typed command handlers on the System.                                |
+| `Queries`                | Function that registers typed query handlers on the System.                                  |
+| `Projections`            | Metaengine query declarations for auto-wired projections.                                    |
+| `ProjectionDecoder`      | Decodes event payloads for projection fold handlers.                                         |
+| `ProjectionTypeDecoder`  | Recommended: typed event decoder with stream ID access.                                      |
+| `ProjectionEventDecoder` | Full event context decoder for projection fold handlers.                                     |
+| `Middleware`             | Command-level domain middleware (validation, authz, etc.).                                   |
+| `ProjectionHostOptions`  | Projection host options (batch size, DLQ, restart policy, etc.).                             |
+| `CheckpointStore`        | Persistent checkpoint store. If nil, in-memory (lost on restart).                            |
 | `ShutdownDependencies`   | Ordering constraints for `Close()` (engine names only; projection host always closes first). |
 
 ### YAML

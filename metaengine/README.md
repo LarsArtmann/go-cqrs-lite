@@ -550,15 +550,15 @@ values directly).
 Engines that interact with external systems should implement `HealthChecker`
 so consumers can wire Kubernetes-style liveness/readiness probes:
 
-| Engine   | Implements `HealthChecker`? | Probe method                              |
-| -------- | --------------------------- | ----------------------------------------- |
-| Memory   | No                          | Always healthy (in-process)               |
-| SQLite   | Yes                         | `db.PingContext`                          |
-| Pebble   | Yes                         | Point read of non-existent key            |
-| Badger   | Yes                         | Read-only `db.View` transaction           |
-| DuckDB   | Yes (CGo)                   | `db.PingContext`                          |
-| Postgres | Yes                         | `db.PingContext`                          |
-| Dgraph   | Yes                         | Trivial DQL query via gRPC                |
+| Engine   | Implements `HealthChecker`? | Probe method                    |
+| -------- | --------------------------- | ------------------------------- |
+| Memory   | No                          | Always healthy (in-process)     |
+| SQLite   | Yes                         | `db.PingContext`                |
+| Pebble   | Yes                         | Point read of non-existent key  |
+| Badger   | Yes                         | Read-only `db.View` transaction |
+| DuckDB   | Yes (CGo)                   | `db.PingContext`                |
+| Postgres | Yes                         | `db.PingContext`                |
+| Dgraph   | Yes                         | Trivial DQL query via gRPC      |
 
 `Store.HealthCheck(ctx)` iterates all engines and returns the first error.
 Non-implementing engines are silently skipped (assumed healthy).

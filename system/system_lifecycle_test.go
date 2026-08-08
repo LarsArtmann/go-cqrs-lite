@@ -252,7 +252,10 @@ func TestSystem_RegisterCloser(t *testing.T) {
 
 	sys := &System{
 		engines: []namedEngine{
-			{engine: &closeOrderEngine{name: "engine-a", order: &engineClosed, mu: &mu}, name: "engine-a"},
+			{
+				engine: &closeOrderEngine{name: "engine-a", order: &engineClosed, mu: &mu},
+				name:   "engine-a",
+			},
 		},
 	}
 

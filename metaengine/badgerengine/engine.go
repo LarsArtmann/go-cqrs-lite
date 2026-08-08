@@ -14,7 +14,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -118,7 +117,7 @@ func (e *badgerEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTMap:       metaengine.ComplexityO1,
 			metaengine.ADTSet:       metaengine.ComplexityO1,
 			metaengine.ADTCounter:   metaengine.ComplexityON,
-				metaengine.ADTSortedMap: metaengine.ComplexityON,
+			metaengine.ADTSortedMap: metaengine.ComplexityON,
 			metaengine.ADTLog:       metaengine.ComplexityOLogN,
 			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
 		},

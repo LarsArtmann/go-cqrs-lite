@@ -12,19 +12,20 @@
 
 Every technical claim in the feedback doc was independently verified against source code. All claims are factually accurate.
 
-| Claim | Verdict | Evidence |
-|-------|---------|----------|
-| 5 sink API gaps absent | CONFIRMED | `storage/relational/sink.go:46-146` |
-| Increment non-clamping philosophy | CONFIRMED | `sink.go:84-89` |
-| WithoutViewAutoMigrate hidden | CONFIRMED | `storage/view/options.go:52` |
-| AutoMapper exists but not default | CONFIRMED | `storage/view/auto.go:51` |
-| Metaengine single-collection, no JOINs | CONFIRMED | `metaengine/planner.go:72-74` |
-| ADTSearch not wired to FTS5 | CONFIRMED | Only Memory + Dgraph implement SearchBackend |
-| DuckDB lacks aggregation pushdown | CONFIRMED (stronger) | No AggregateReader, CounterGet loads all rows into Go map |
+| Claim                                  | Verdict              | Evidence                                                  |
+| -------------------------------------- | -------------------- | --------------------------------------------------------- |
+| 5 sink API gaps absent                 | CONFIRMED            | `storage/relational/sink.go:46-146`                       |
+| Increment non-clamping philosophy      | CONFIRMED            | `sink.go:84-89`                                           |
+| WithoutViewAutoMigrate hidden          | CONFIRMED            | `storage/view/options.go:52`                              |
+| AutoMapper exists but not default      | CONFIRMED            | `storage/view/auto.go:51`                                 |
+| Metaengine single-collection, no JOINs | CONFIRMED            | `metaengine/planner.go:72-74`                             |
+| ADTSearch not wired to FTS5            | CONFIRMED            | Only Memory + Dgraph implement SearchBackend              |
+| DuckDB lacks aggregation pushdown      | CONFIRMED (stronger) | No AggregateReader, CounterGet loads all rows into Go map |
 
 ### 2. Feedback appendix written (100% complete)
 
 Appended maintainer research appendix (A1-A4) to the feedback doc with:
+
 - Source-code verification table
 - 3 findings the original report missed (SetExpr exists, InsertSelect is documented Tx() use case, ADTStreamLog not in AllADTs)
 - All maintainer decisions recorded
@@ -35,6 +36,7 @@ Appended maintainer research appendix (A1-A4) to the feedback doc with:
 **File:** `metaengine/aggregations.go`
 
 5 new interfaces defined:
+
 - `AggregateReader` (already existed)
 - `GroupedAggregateReader` — GROUP BY + single aggregate
 - `MultiAggregateReader` — multiple scalar aggregates in one SQL pass
@@ -48,6 +50,7 @@ Supporting types: `AggregateSpec`, `GroupedAggregateRow`.
 **File:** `metaengine/duckdbengine/aggregations.go` (new, ~480 LOC)
 
 Full implementation of all 5 aggregate interfaces:
+
 - Standard path: `CAST(json_extract(...) AS DOUBLE)` for numeric correctness
 - Planned-table path: direct column references for zone map pruning
 - Type-aware filters: comparison ops cast to DOUBLE; equality uses `::json`
@@ -61,6 +64,7 @@ Compile-time assertions added in `engine.go` for all 5 interfaces.
 **File:** `metaengine/typed_reader.go`
 
 New consumer-facing methods:
+
 - `GroupedCount`, `GroupedSum`, `GroupedMin`, `GroupedMax`, `GroupedAvg` — pushdown with Go-side fallback
 - `MultiAggregate` — multiple aggregates in one query
 - `MultiGroupedAggregate` — GROUP BY + multiple aggregates
@@ -72,6 +76,7 @@ New consumer-facing methods:
 **File:** `metaengine/duckdbengine/aggregations_cgo_test.go` (new, ~530 LOC)
 
 12 test cases covering:
+
 - Scalar aggregates: COUNT, SUM (with filters), MIN/MAX/AVG
 - Grouped aggregates: COUNT by category, SUM by category, with filters
 - Multi-aggregate: COUNT+SUM+MIN+MAX in one query
@@ -81,6 +86,7 @@ New consumer-facing methods:
 - Empty collection edge cases
 
 **Test results:**
+
 - DuckDB module: 12/12 PASS (0.082s)
 - DuckDB full suite: PASS (0.204s)
 - Core metaengine (race): PASS (64.3s)
@@ -97,13 +103,14 @@ The `aggregatePushdown` fallback path for `AggregateMin` uses `if result == 0 ||
 
 ### 2. Planned-table filter path — missing WHERE clause on standard-path filters
 
-In the `appendDuckDBFilter` function, when `plan.Table != ""` (planned path), filters are appended with ` AND ` prefix. But the `aggregatePlanned` and other `*Planned` methods correctly add a ` WHERE ` clause before the first filter using `whereStarted` flag. This works but is fragile — the `appendDuckDBFilter` always prepends ` AND `, relying on the caller to have already started WHERE. This is inconsistent: the standard path includes `WHERE collection = $1` in `fromClause`, so filters naturally append with `AND`. The planned path needs explicit WHERE management. Currently works but could break if refactored carelessly.
+In the `appendDuckDBFilter` function, when `plan.Table != ""` (planned path), filters are appended with `AND` prefix. But the `aggregatePlanned` and other `*Planned` methods correctly add a `WHERE` clause before the first filter using `whereStarted` flag. This works but is fragile — the `appendDuckDBFilter` always prepends `AND`, relying on the caller to have already started WHERE. This is inconsistent: the standard path includes `WHERE collection = $1` in `fromClause`, so filters naturally append with `AND`. The planned path needs explicit WHERE management. Currently works but could break if refactored carelessly.
 
 **Status:** Works correctly, but fragile design.
 
 ### 3. DX documentation improvements — mentioned but not implemented
 
 The feedback appendix mentioned 3 trivial doc improvements:
+
 1. Document `WithoutViewAutoMigrate`
 2. Make `AutoMapper` the documented default
 3. Surface Increment non-clamping philosophy in README
@@ -164,7 +171,7 @@ No regressions introduced. All existing tests pass (full DuckDB suite + core met
 
 ### One design smell worth calling out
 
-The `appendDuckDBFilter` function has a dual personality: on the planned path it uses ` AND ` prefix (relying on caller to start WHERE), on the standard path it also uses ` AND ` (relying on `fromClause` having started WHERE with `collection = $1`). The `whereStarted` flag in the planned-path callers is a manual mechanism that duplicates what the pushdown.go file's `writeWhereOrAnd` helper already solves. The two filter-building patterns (`writeWhereOrAnd` in `layout_planner.go` vs `appendDuckDBFilter` in `aggregations.go`) should be unified. Not a bug, but a consistency issue.
+The `appendDuckDBFilter` function has a dual personality: on the planned path it uses `AND` prefix (relying on caller to start WHERE), on the standard path it also uses `AND` (relying on `fromClause` having started WHERE with `collection = $1`). The `whereStarted` flag in the planned-path callers is a manual mechanism that duplicates what the pushdown.go file's `writeWhereOrAnd` helper already solves. The two filter-building patterns (`writeWhereOrAnd` in `layout_planner.go` vs `appendDuckDBFilter` in `aggregations.go`) should be unified. Not a bug, but a consistency issue.
 
 ---
 

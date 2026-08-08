@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 	_ "modernc.org/sqlite"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 func newSQLiteEngineForHC(t *testing.T) (metaengine.Engine, *sql.DB) {

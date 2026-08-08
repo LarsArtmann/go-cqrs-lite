@@ -54,8 +54,7 @@ and is **never** duplicated here.
       `TestPostgres_RecordStamping` in `pgengine/record_stamp_test.go`.
       Uses testcontainers pattern. Completes 5-engine record-stamp coverage.
 - [x] **`RunTransactionalTest` on Memory engine (baseline)** —
-      `RunTransactionalBaselineTest` added to enginetest (pass-through tx: commit
-      + error propagation, documents no-rollback limitation).
+      `RunTransactionalBaselineTest` added to enginetest (pass-through tx: commit + error propagation, documents no-rollback limitation).
       `TestMemory_TransactionalBaseline` in `metaengine/memory_transactional_test.go`.
 - [x] **Soak test with `AutoCRUDByConvention` through Pebble/DuckDB** —
       `enginetest.RunAutoCRUDSoak(t, eng)` extracted (220 lines → shared helper).
@@ -115,7 +114,7 @@ and is **never** duplicated here.
       `GraphPrefixForward` from `keycodec`. Engines now return `ErrUnsupportedGraphOps`
       for graph queries — consumers use `graphadapter` or `dgraphengine` instead.
 - [x] **Record-aware graphadapter integration test** — `TestAdapter_StoreIntegration_-
-      RecordAware` in `graphadapter/adapter_test.go`. Proves the full ES-native
+    RecordAware` in `graphadapter/adapter_test.go`. Proves the full ES-native
       pipeline: `Plan` → `ApplyRecord(Record)` → `Execute(Traversal)` → neighbors.
       Graph queries flow: Store → GraphBackend → graphadapter → graph.MemoryDriver.
 - [x] **Kept GraphBackend on Memory (testing), Dgraph (native graph DB),
@@ -218,7 +217,7 @@ and is **never** duplicated here.
 #### HealthCheck completeness (high priority)
 
 - [ ] 🔥 **Add `HealthCheck` to Badger engine** — `db.View(func(txn) error {
-    return nil })` as a lightweight read-only probe.
+  return nil })` as a lightweight read-only probe.
 - [ ] 🔥 **Add `HealthCheck` to Dgraph engine** — gRPC connection check via
       `dgo` client.
 - [ ] **Add test for Pebble `HealthCheck`** — in-memory vfs, healthy + closed
@@ -258,7 +257,7 @@ and is **never** duplicated here.
 - [ ] **Test `orderedEngines` with 5+ engines and multiple edges** — complex
       DAG topology.
 - [ ] **Test `orderedEngines` with self-loop edge** — `{before: "a", after:
-    "a"}` should be silently ignored.
+  "a"}` should be silently ignored.
 - [ ] **Test `orderedEngines` with duplicate edges** — should not double-count
       inDegree.
 - [ ] **Add dedup guard to `orderedEngines` cycle fallback** — currently
