@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -234,5 +235,84 @@ func TestTagContentMatchesChangelog(t *testing.T) {
 		t.Logf("WARNING: latest CHANGELOG version %s has only %d module tags "+
 			"(expected >= 10 for a coordinated release)",
 			latestChangelogVer, taggedVersions[latestChangelogVer])
+	}
+}
+
+// TestExceptionsAreMinimal verifies that every EXCEPTIONS entry in
+// scripts/check-module-layers.sh is actually necessary. An exception is dead
+// when the dependency's layer is <= the module's layer (same-layer or
+// lower-layer deps don't trigger violations). Dead exceptions accumulate when
+// modules are moved between tiers or when dependencies are removed.
+//
+// This prevents the schema->snapshot and transport/http->testutil class of
+// stale entries that were manually caught in the 2026-08-08 audit.
+func TestExceptionsAreMinimal(t *testing.T) {
+	t.Parallel()
+
+	projectRoot := filepath.Join(".", "..", "..")
+	scriptPath := filepath.Join(projectRoot, "scripts", "check-module-layers.sh")
+
+	scriptBytes, err := os.ReadFile(scriptPath)
+	if err != nil {
+		t.Fatalf("read layer check script: %v", err)
+	}
+	script := string(scriptBytes)
+
+	// Parse LAYER[<mod>]=<number> — skip comment lines.
+	layerRe := regexp.MustCompile(`^\s*LAYER\[([^\]]+)\]=(\d+)\s*$`)
+	layers := make(map[string]int)
+	for _, line := range strings.Split(script, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		if m := layerRe.FindStringSubmatch(line); m != nil {
+			n, _ := strconv.Atoi(m[2])
+			layers[m[1]] = n
+		}
+	}
+	if len(layers) == 0 {
+		t.Fatal("failed to parse any LAYER entries from check-module-layers.sh")
+	}
+
+	// Parse EXCEPTIONS[<mod>]="<dep1> <dep2> ..."
+	excRe := regexp.MustCompile(`^\s*EXCEPTIONS\[([^\]]+)\]="([^"]+)"`)
+	type exception struct {
+		module string
+		dep    string
+	}
+	var dead []exception
+	for _, line := range strings.Split(script, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		m := excRe.FindStringSubmatch(line)
+		if m == nil {
+			continue
+		}
+		module := m[1]
+		modLayer, ok := layers[module]
+		if !ok {
+			t.Errorf("EXCEPTIONS[%s] references module not in LAYER map", module)
+			continue
+		}
+		for _, dep := range strings.Fields(m[2]) {
+			depLayer, ok := layers[dep]
+			if !ok {
+				t.Errorf("EXCEPTIONS[%s] references dep %q not in LAYER map", module, dep)
+				continue
+			}
+			if depLayer <= modLayer {
+				dead = append(dead, exception{module: module, dep: dep})
+			}
+		}
+	}
+
+	for _, d := range dead {
+		t.Errorf("EXCEPTIONS[%s] lists %q (layer %d) but %s is layer %d — "+
+			"dep_layer <= mod_layer means no violation is triggered; "+
+			"remove this stale exception entry",
+			d.module, d.dep, layers[d.dep], d.module, layers[d.module])
 	}
 }

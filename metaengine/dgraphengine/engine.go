@@ -33,10 +33,22 @@ import (
 )
 
 // DG_NsPerOp models production Dgraph (RAFT consensus + gRPC round-trip).
-const DG_NsPerOp = 10000.0
+// Calibrated 2026-08-08 via benchmarks against Dgraph 25.4.0 single-node:
+// writes (MapSet, GraphAddEdge, SearchInsert) average ~2.5ms due to RAFT
+// consensus commit. Reads are cheaper (see DG_NsPerRead).
+const DG_NsPerOp = 2_500_000.0
 
-// DG_NsPerRead models production Dgraph (index lookup + gRPC response).
-const DG_NsPerRead = 8000.0
+// DG_NsPerRead models production Dgraph read-only transactions.
+// Calibrated 2026-08-08: NewReadOnlyTxn bypasses RAFT entirely.
+// Measured reads: MapGet 344µs, GraphNeighbors depth-1 420µs,
+// SearchQuery 882µs, GraphNeighbors depth-3 963µs. Average ~650µs.
+const DG_NsPerRead = 600_000.0
+
+// DG_NsPerWrite models production Dgraph write transactions.
+// Calibrated 2026-08-08: all writes go through RAFT consensus.
+// Measured writes: MapSet 2.7ms, CounterIncrement 2.4ms, SetAdd 2.1ms,
+// GraphAddEdge 2.8ms, SearchInsert 2.5ms. Average ~2.5ms.
+const DG_NsPerWrite = 2_500_000.0
 
 // dgraphEngine implements metaengine.Engine with Dgraph as the backend.
 type dgraphEngine struct {
@@ -106,13 +118,14 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 		Name:        "dgraph",
 		NsPerOp:     DG_NsPerOp,
 		NsPerRead:   DG_NsPerRead,
+		NsPerWrite:  DG_NsPerWrite,
 		Persistence: metaengine.PersistencePersistent,
 		Replication: metaengine.ReplicationSingleLeader,
 		ReadCosts: metaengine.ReadCosts{
-			NsPerPointLookup:  8_000,
-			NsPerFilteredScan: 1_000,
-			NsPerAggregate:    500,
-			NsPerScan:         2_000,
+			NsPerPointLookup:  350_000,  // MapGet ~344µs
+			NsPerFilteredScan: 900_000,  // SearchQuery anyofterms ~882µs
+			NsPerAggregate:    950_000,  // GraphNeighbors depth-3 ~963µs
+			NsPerScan:         450_000,  // GraphNeighbors depth-1 ~420µs
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityOLogN,

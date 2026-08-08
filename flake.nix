@@ -1098,8 +1098,8 @@
                   echo "=== Module Coverage ===" && nix run .#check-modules && \
                   echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \
                   echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} && \
-                  echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 && \
-                  echo "=== Race ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 && \
+                  echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 -timeout=5m && \
+                  echo "=== Race ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 -timeout=8m && \
                   echo "=== Lint ===" && nix run .#lint && \
                   echo "=== Check Layers ===" && nix run .#check-layers && \
                   echo "=== Check Duplication ===" && nix run .#check-duplication && \
@@ -1118,8 +1118,8 @@
                   ${pkgs.bash}/bin/bash scripts/verify-docs.sh && \
                   echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \
                   echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} && \
-                  echo "=== Test (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -count=1 && \
-                  echo "=== Race (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -race -count=1 && \
+                  echo "=== Test (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -count=1 -timeout=5m && \
+                  echo "=== Race (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -race -count=1 -timeout=8m && \
                   echo "=== Lint ===" && nix run .#lint && \
                   echo "=== Check Layers ===" && nix run .#check-layers && \
                   echo "=== Check Duplication ===" && nix run .#check-duplication && \

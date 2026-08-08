@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json/v2"
 	"fmt"
+	"strings"
 
 	"github.com/dgraph-io/dgo/v240/protos/api"
 
@@ -21,33 +22,32 @@ func (e *dgraphEngine) CounterIncrement(
 		return nil
 	}
 
-	for key, delta := range deltas {
-		if err := e.counterIncrementOne(ctx, col, key, delta); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return e.counterIncrementBatch(ctx, col, deltas)
 }
 
-// counterIncrementOne atomically increments a single counter key using a
-// read-modify-write within a single Dgraph transaction.
-func (e *dgraphEngine) counterIncrementOne(
+// counterIncrementBatch reads all matching counters in a single query, then
+// writes all updates in a single mutation. This reduces N-key deltas from N
+// sequential RAFT commits to 1 — a major improvement for multi-key Deltas.
+func (e *dgraphEngine) counterIncrementBatch(
 	ctx context.Context,
-	col, key string,
-	delta int64,
+	col string,
+	deltas metaengine.Delta,
 ) error {
 	txn := e.client.NewTxn()
 	defer func() { _ = txn.Discard(ctx) }()
 
-	q := `query counter($col: string, $key: string) {
-		counter(func: eq(cqrs.counter_collection, $col)) @filter(eq(cqrs.counter_key, $key)) {
+	// Query all counters in the collection (variable-safe, no DQL injection).
+	// For large collections with small deltas this over-reads, but the write
+	// batch (1 RAFT commit instead of N) is the dominant win.
+	q := `query counters($col: string) {
+		counter(func: eq(cqrs.counter_collection, $col)) {
 			uid
+			cqrs.counter_key
 			cqrs.counter_value
 		}
 	}`
 
-	resp, err := txn.QueryWithVars(ctx, q, map[string]string{"$col": col, "$key": key})
+	resp, err := txn.QueryWithVars(ctx, q, map[string]string{"$col": col})
 	if err != nil {
 		return fmt.Errorf("dgraphengine.CounterIncrement: query: %w", err)
 	}
@@ -55,6 +55,7 @@ func (e *dgraphEngine) counterIncrementOne(
 	var result struct {
 		Counter []struct {
 			UID              string `json:"uid"`
+			CqrsCounterKey   string `json:"cqrs.counter_key"`
 			CqrsCounterValue int64  `json:"cqrs.counter_value"`
 		} `json:"counter"`
 	}
@@ -63,22 +64,38 @@ func (e *dgraphEngine) counterIncrementOne(
 		return fmt.Errorf("dgraphengine.CounterIncrement: unmarshal: %w", err)
 	}
 
-	newValue := delta
-	node := map[string]any{
-		"cqrs.counter_collection": col,
-		"cqrs.counter_key":        key,
-		"cqrs.counter_value":      newValue,
-		"dgraph.type":             []string{"MetaCounterEntry"},
+	// Index existing counters by key for O(1) lookup.
+	existing := make(map[string]struct {
+		uid   string
+		value int64
+	}, len(result.Counter))
+	for _, c := range result.Counter {
+		existing[c.CqrsCounterKey] = struct {
+			uid   string
+			value int64
+		}{uid: c.UID, value: c.CqrsCounterValue}
 	}
 
-	if len(result.Counter) > 0 {
-		node["uid"] = result.Counter[0].UID
-		node["cqrs.counter_value"] = result.Counter[0].CqrsCounterValue + delta
-	} else {
-		node["uid"] = "_:new"
+	// Build all mutations in a single request — one RAFT commit for all deltas.
+	setJSON := make([]map[string]any, 0, len(deltas))
+	for key, delta := range deltas {
+		if ex, ok := existing[key]; ok {
+			setJSON = append(setJSON, map[string]any{
+				"uid":                ex.uid,
+				"cqrs.counter_value": ex.value + delta,
+			})
+		} else {
+			setJSON = append(setJSON, map[string]any{
+				"uid":                    "_:new_" + sanitizeKey(key),
+				"cqrs.counter_collection": col,
+				"cqrs.counter_key":       key,
+				"cqrs.counter_value":     delta,
+				"dgraph.type":            []string{"MetaCounterEntry"},
+			})
+		}
 	}
 
-	data, _ := json.Marshal(node)
+	data, _ := json.Marshal(setJSON)
 
 	if _, err := txn.Mutate(ctx, &api.Mutation{
 		SetJson:   data,
@@ -88,6 +105,22 @@ func (e *dgraphEngine) counterIncrementOne(
 	}
 
 	return nil
+}
+
+// sanitizeKey strips characters that are unsafe in Dgraph blank-node labels.
+// Blank node labels must match [a-zA-Z_][a-zA-Z0-9_]*.
+func sanitizeKey(s string) string {
+	var b strings.Builder
+	for _, r := range s {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
+			(r >= '0' && r <= '9') || r == '_' {
+			b.WriteRune(r)
+		} else {
+			b.WriteByte('_')
+		}
+	}
+
+	return b.String()
 }
 
 func (e *dgraphEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {

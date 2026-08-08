@@ -97,16 +97,51 @@ LAYER[retry]=0
 LAYER[idempotency/kvstore]=2
 LAYER[idempotency/sqlstore]=2
 
-# Some modules legitimately depend on test helpers (memory) or cross-cutting concerns (otel)
-# These are documented exceptions to the strict layer rules
+# EXCEPTIONS: each entry suppresses a layer violation that is architecturally
+# legitimate. The script cannot distinguish production imports from test-only
+# imports (both appear as direct requires in go.mod), so an exception is
+# needed whenever a higher-layer module is a direct dependency — even if the
+# import lives exclusively in _test.go files. Two categories:
+#
+#   (a) TEST-ONLY — the dep is imported exclusively from _test.go files.
+#       go mod tidy keeps it as a direct require; the exception prevents a
+#       false positive.
+#   (b) PRODUCTION CROSS-CUTTING — otel is imported from production .go files
+#       across all tiers. The layer model accepts this as an observability
+#       carve-out (otel is L4 but legitimately used by L1/L3 modules for
+#       tracing spans and metrics).
 declare -A EXCEPTIONS
+
+# event (L1) — all three test-only: schema (upcaster tests), snapshot
+# (errors-taxonomy test), storage/memory (stream/BDD/example tests)
 EXCEPTIONS[event]="schema snapshot storage/memory"
+
+# schema (L2) — test-only: VersionedStore integration + golden tests
 EXCEPTIONS[schema]="storage/memory"
+
+# decider (L3) — storage/memory test-only (bench/BDD/example tests);
+# otel PRODUCTION (tracing in decider.go, load.go, otel.go, wait_for_version.go)
 EXCEPTIONS[decider]="storage/memory otel"
+
+# query (L1) — snapshot indirect-only (not directly imported, kept as
+# documentation of the transitive event→snapshot edge); storage/memory
+# test-only (typed store tests)
 EXCEPTIONS[query]="snapshot storage/memory"
+
+# command (L1) — snapshot indirect-only (not directly imported, kept as
+# documentation); storage/memory test-only (store suite + typed store tests)
 EXCEPTIONS[command]="snapshot storage/memory"
+
+# listing (L3) — test-only: middleware/BDD/example/benchmark tests
 EXCEPTIONS[listing]="storage/memory"
+
+# projectionhost (L3) — storage/memory test-only (integration/stress tests);
+# otel PRODUCTION (tracing in worker.go, options.go, worker_drain.go);
+# testutil + testutil/pgtestcontainer test-only (host + PG container tests)
 EXCEPTIONS[projectionhost]="storage/memory otel testutil testutil/pgtestcontainer"
+
+# metaengine (L3) — metaengine/sqliteengine test-only (cross-engine ADT
+# matrix + concurrency-gap tests reference the real SQLite engine for parity)
 EXCEPTIONS[metaengine]="metaengine/sqliteengine"
 
 # Test-only packages that don't count against production dep budgets.

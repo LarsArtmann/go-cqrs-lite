@@ -23,6 +23,9 @@ func NewB031Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			if ctx.IsLibrarySelfLint() {
 				return nil, nil
 			}
+			if !ctx.FeatureProfile.HasServer {
+				return nil, nil
+			}
 
 			var findings []finding.Finding
 

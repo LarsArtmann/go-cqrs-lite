@@ -1477,6 +1477,7 @@ metaengine/const ReplicationSingleLeader
 metaengine/const SQLiteNsPerOp
 metaengine/dgraphengine/const DG_NsPerOp
 metaengine/dgraphengine/const DG_NsPerRead
+metaengine/dgraphengine/const DG_NsPerWrite
 metaengine/dgraphengine/func New
 metaengine/dgraphengine/func NewFromClient
 metaengine/dgraphengine/method Close

@@ -20,6 +20,7 @@ func main() {
 }
 `,
 	})
+	ctx.FeatureProfile.HasServer = true
 
 	findings := ruletest.RunDetector(t, resilience.NewB029Detector(ctx))
 	ruletest.AssertRule(t, findings, "B029", 1)
@@ -37,6 +38,7 @@ func main() {
 }
 `,
 	})
+	ctx.FeatureProfile.HasServer = true
 
 	findings := ruletest.RunDetector(t, resilience.NewB029Detector(ctx))
 	ruletest.AssertRule(t, findings, "B029", 0)
@@ -54,6 +56,7 @@ func main() {
 }
 `,
 	})
+	ctx.FeatureProfile.HasServer = true
 
 	findings := ruletest.RunDetector(t, resilience.NewB030Detector(ctx))
 	ruletest.AssertRule(t, findings, "B030", 1)
@@ -71,6 +74,7 @@ func main() {
 }
 `,
 	})
+	ctx.FeatureProfile.HasServer = true
 
 	findings := ruletest.RunDetector(t, resilience.NewB030Detector(ctx))
 	ruletest.AssertRule(t, findings, "B030", 0)
@@ -88,6 +92,7 @@ func main() {
 }
 `,
 	})
+	ctx.FeatureProfile.HasServer = true
 
 	findings := ruletest.RunDetector(t, resilience.NewB031Detector(ctx))
 	ruletest.AssertRule(t, findings, "B031", 1)
@@ -107,6 +112,7 @@ func main() {
 }
 `,
 	})
+	ctx.FeatureProfile.HasServer = true
 
 	findings := ruletest.RunDetector(t, resilience.NewB031Detector(ctx))
 	ruletest.AssertRule(t, findings, "B031", 0)

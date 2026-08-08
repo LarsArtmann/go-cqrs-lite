@@ -174,11 +174,24 @@ both measured. Results in `dgraphengine/README.md` performance table.
 
 ### 9. GraphRAG pipeline + mixed workload benchmarks (resolved 2026-08-08)
 
-Added `graphrag_test.go` (2 functional tests) and `mixed_bench_test.go` (4 benchmarks):
+Added `graphrag_test.go` (2 functional tests), `mixed_bench_test.go` (4 benchmarks),
+and `stress_test.go` (concurrent stress test).
 
 **GraphRAG tests** (`graphrag_test.go`):
 - `TestGraphRAG_SearchThenGraphTraverse`: 8-entity knowledge graph, search "golang" → 2 hits → depth-2 graph expansion → 6 context entities. Validates the full pipeline correctness.
 - `TestGraphRAG_DifferentQueries`: 5 microservices with dependencies, validates search→expand across different query terms.
+
+**Concurrent stress test** (`stress_test.go`):
+- `TestGraphRAG_ConcurrentStress`: 200 entities, ~600 edges, 16 goroutines, 320 GraphRAG pipeline queries.
+
+| Metric     | Normal    | -race     |
+| ---------- | --------- | --------- |
+| Throughput | 2,955 q/s | 1,460 q/s |
+| p50        | 5.3 ms    | 10.7 ms   |
+| p99        | 6.5 ms    | 13.1 ms   |
+
+Each "query" = SearchQuery (limit 5) + 5 x GraphNeighbors (depth 2) = 6 gRPC
+round-trips. Production-grade GraphRAG from a single Dgraph instance.
 
 **Mixed workload benchmarks** (`mixed_bench_test.go`):
 - `BenchmarkDgraph_GraphRAG_SearchThenExpand` (2.7ms): full GraphRAG pipeline — search + 5 depth-2 graph traversals.

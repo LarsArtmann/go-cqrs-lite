@@ -21,6 +21,9 @@ func NewB029Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			if ctx.IsLibrarySelfLint() {
 				return nil, nil
 			}
+			if !ctx.FeatureProfile.HasServer {
+				return nil, nil
+			}
 
 			buses := findBusVariables(ctx)
 

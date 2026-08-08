@@ -223,6 +223,8 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 | C038 | event-type-typo                           | Error    | Emitted event type string is a likely typo of a fold case label — event silently dropped during replay |
 | C039 | goroutine-leak-in-handler                 | Warning  | Unmanaged goroutine inside event/command handler — resource leak and ordering violation                |
 | C040 | dead-fold-case                            | Warning  | Fold switch case handles an event type that is never emitted via event.New — dead code or a typo       |
+| C041 | save-ignores-expectedversion               | Warning  | Store.Save called without checking expected version — optimistic concurrency violation                 |
+| C042 | save-with-literal-zero-version             | Warning  | Store.Save with literal 0 as expected version — bypasses concurrency check                            |
 
 ## API Misuse Rules
 
@@ -279,6 +281,9 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 | B026 | missing-catalog-registration    | Info     | 3+ event types but no catalog import — documentation generation unavailable    |
 | B027 | hardcoded-stream-type           | Info     | Hardcoded stream-type string literal — use a constant                          |
 | B028 | manual-goroutine-dispatch       | Info     | Manual goroutine dispatch instead of deriver.AsHandler — loses idempotency     |
+| B029 | missing-retry-middleware         | Info     | Bus/dispatcher without retry middleware — transient failures propagate to callers |
+| B030 | missing-circuit-breaker          | Info     | Bus/dispatcher without circuit breaker middleware — cascading failures not isolated |
+| B031 | missing-dead-letter-config       | Info     | projectionhost.New without WithDeadLetterStore — poison events cause terminal failure |
 
 ## Consistency Rules
 
@@ -291,6 +296,8 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 | D006 | missing-errorfamily          | Info     | errors.New or fmt.Errorf without %w bypasses the 6-family error taxonomy                                         |
 | D011 | nil-payload-event            | Warning  | Event created with nil payload — cannot be decoded, provides no audit trail                                      |
 | D012 | raw-print-in-handler         | Info     | Raw fmt/log print in CQRS handler — use structured logging (slog)                                                |
+| D018 | stale-catalog-entries        | Info     | Event types in code but not registered in catalog — documentation drift                                          |
+| D019 | stale-spec-freshness         | Info     | Spec/schema files older than the event types they describe — documentation may be outdated                        |
 
 ## Architecture Rules
 
@@ -378,6 +385,9 @@ Adoption rules (F-series) are advisory: they suggest modules and patterns that i
 | F024 | manual-pagination-no-pushdown    | Info     | Manual pagination (slice[offset:offset+limit]) with a SQL store but no metaengine                                  |
 | F025 | manual-count-no-counter-adt      | Info     | Manual count/aggregation (for-range + count++/sum +=) with a SQL store but no metaengine — full collection scanned |
 | F026 | no-metaengine-prefetch           | Info     | metaengine.NewReader used but WithPrefetch never called — every Scan/Get hits the underlying store individually    |
+| F027 | missing-otel-sdk-init            | Info     | Server-mode project with no cqrsotel.Setup call — traces are no-op                                                 |
+| F028 | missing-slog-setdefault          | Info     | Server-mode project using slog without slog.SetDefault — default logger has no structured output                   |
+| F029 | missing-span-creation            | Info     | OTel import but no span creation in handlers — distributed traces are empty                                        |
 
 ## CLI
 

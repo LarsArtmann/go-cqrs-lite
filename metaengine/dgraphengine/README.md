@@ -1,30 +1,134 @@
 # dgraphengine
 
-Dgraph-backed [metaengine](../) Engine for go-cqrs-lite.
+**The only metaengine that serves GraphRAG (Graph Retrieval-Augmented Generation) from a single instance.**
 
-## Why Dgraph?
+GraphRAG combines full-text search with knowledge-graph traversal in one pipeline:
+search for relevant entities by text, then expand context by traversing their
+relationships. Every other metaengine implements either GraphBackend **or**
+SearchBackend — forcing you to run two databases and glue them together.
+Dgraph implements both natively, at full parity, with zero degradation.
 
-Dgraph is a distributed graph database with native graph traversal and
-full-text search. This engine makes **GraphBackend** and **SearchBackend**
-first-class citizens — no degradation, no emulation.
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     GraphRAG Pipeline                        │
+│                                                              │
+│  SearchQuery("golang performance")                           │
+│      ↓  882 µs (anyofterms + @index(term))                  │
+│  [entity-42, entity-117, entity-3, ...]                      │
+│      ↓                                                        │
+│  GraphNeighbors("entity-42", depth=2)                        │
+│      ↓  420 µs per hop (@recurse, O(degree^depth))          │
+│  [entity-43, entity-44, entity-45, entity-46, ...]           │
+│      ↓                                                        │
+│  Context Window → LLM                                        │
+│                                                              │
+│  Single Dgraph instance. No vector DB. No glue code.         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## GraphRAG Performance (the headline numbers)
+
+**Concurrent stress test**: 200 entities, ~600 edges, 16 goroutines,
+320 GraphRAG pipeline queries (search + depth-2 graph expansion per hit).
+
+| Metric             | Normal    | With -race   |
+| ------------------ | --------- | ------------ |
+| Throughput         | 2,955 q/s | 1,460 q/s    |
+| Latency p50        | 5.3 ms    | 10.7 ms      |
+| Latency p99        | 6.5 ms    | 13.1 ms      |
+| Latency max        | 6.7 ms    | 13.5 ms      |
+
+Each "query" = SearchQuery (limit 5) + 5 x GraphNeighbors (depth 2).
+That's 6 gRPC round-trips per pipeline query, all completing in <7ms p99.
+
+**Single-pipeline latency**: 2.7 ms per GraphRAG query (search + 5 graph
+expansions). Full Triad (Map + Graph + Search reads): 1.0 ms.
+
+### Why not just use two engines?
+
+Without Dgraph, GraphRAG requires a polyglot stack:
+
+| What you need      | Polyglot approach            | Dgraph         |
+| ------------------ | ---------------------------- | -------------- |
+| Full-text search   | Elasticsearch / Meilisearch  | @index(term)   |
+| Graph traversal    | Neo4j / Memgraph             | @recurse edges |
+| KV projections     | Redis / PostgreSQL           | @index(exact)  |
+| **Engines to run** | **3 separate databases**     | **1**          |
+| **Glue code**      | **join search IDs → graph**  | **none**       |
+| **Consistency**    | **eventual (cross-DB)**      | **transactional** |
+
+Every additional database is a deployment, a failure mode, a consistency
+boundary, and a maintenance burden. Dgraph collapses the polyglot stack.
+
+### GraphRAG Code Example
+
+```go
+import dgraphengine "github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4"
+
+eng, _ := dgraphengine.New("localhost:9080")
+defer eng.Close()
+
+gb := eng.(metaengine.GraphBackend)
+sb := eng.(metaengine.SearchBackend)
+
+// 1. INDEX: insert entities with text + relationships.
+for _, e := range entities {
+    sb.SearchInsert(ctx, "docs", metaengine.IndexedText{ID: e.ID, Content: e.Desc})
+    gb.GraphAddEdge(ctx, "graph", metaengine.Edge{From: e.ID, To: e.RelatedID})
+}
+
+// 2. RETRIEVE: search for relevant entities.
+results, _ := sb.SearchQuery(ctx, "docs", "golang performance", 5)
+
+// 3. EXPAND: traverse graph neighborhood of each hit.
+context := make(map[string]bool)
+for _, r := range results {
+    context[r.ID] = true
+    neighbors, _ := gb.GraphNeighbors(ctx, "graph", r.ID, 2)
+    for _, n := range neighbors {
+        context[fmt.Sprint(n)] = true
+    }
+}
+// 4. ASSEMBLE: feed context window to your LLM.
+```
+
+Validated by:
+- `TestGraphRAG_SearchThenGraphTraverse` — correctness (8-entity graph)
+- `TestGraphRAG_DifferentQueries` — multi-query (5 microservices)
+- `TestGraphRAG_ConcurrentStress` — 320 concurrent queries, 16 goroutines
+- `BenchmarkDgraph_GraphRAG_SearchThenExpand` — 2.7ms per pipeline query
+
+---
+
+## ADT Support
 
 | ADT       | Complexity      | Degraded? | Notes                        |
 | --------- | --------------- | --------- | ---------------------------- |
+| **Graph**     | O(degree^depth) | **No**    | **Native — Dgraph's core strength** |
+| **Search**    | O(logN)         | **No**    | **@index(term) full-text**   |
 | Map       | O(logN)         | No        | @index(exact) point lookup   |
 | Counter   | O(1)            | No        | Atomic read-modify-write     |
-| Graph     | O(degree^depth) | **No**    | **Dgraph's native strength** |
 | Set       | O(logN)         | No        | @index(exact) membership     |
 | SortedMap | O(N)            | Yes       | Scan + Go-side sort          |
-| Search    | O(logN)         | **No**    | **@index(term) full-text**   |
 
 ## Implemented Backends
 
+- **`GraphBackend`** — native graph edges with @reverse, O(degree^depth) traversal
+- **`SearchBackend`** — full-text search via @index(term) + anyofterms()
 - `MapBackend` — key-value storage via Dgraph nodes with @index(exact)
 - `CounterBackend` — atomic counters via transactional read-modify-write
 - `ScanBackend` — filtered/sorted scans (Go-side filter/sort)
-- `GraphBackend` — **native graph edges with @reverse, O(degree^depth) traversal**
 - `SetBackend` — set membership via @index(exact)
-- `SearchBackend` — **full-text search via @index(term) + anyofterms()**
+
+## Profile
+
+- **Persistence**: Persistent (survives restarts)
+- **Replication**: Single-leader (RAFT consensus per group)
+- **NsPerOp**: 10,000 ns (gRPC + WAL fsync)
+- **NsPerRead**: 8,000 ns (gRPC + index lookup)
+
+Pure Go (no CGo): uses the [dgo v240](https://github.com/dgraph-io/dgo)
+gRPC client.
 
 ## Usage
 
@@ -48,17 +152,11 @@ store, err := metaengine.Plan([]metaengine.Engine{eng},
 )
 ```
 
-## Profile
+## Full Performance Table
 
-- **Persistence**: Persistent (survives restarts)
-- **Replication**: Single-leader (RAFT consensus per group)
-- **NsPerOp**: 10,000 ns (gRPC + WAL fsync)
-- **NsPerRead**: 8,000 ns (gRPC + index lookup)
+All benchmarks against Dgraph 25.4.0, single-node, localhost, `-benchtime=3s`.
 
-Pure Go (no CGo): uses the [dgo v240](https://github.com/dgraph-io/dgo)
-gRPC client.
-
-## Performance (benchmark against Dgraph 25.4.0, single-node, localhost, `-benchtime=3s`)
+### Single-ADT Operations
 
 | Operation                 | Latency   | Allocs   | Notes                                    |
 | ------------------------- | --------- | -------- | ---------------------------------------- |
@@ -73,102 +171,42 @@ gRPC client.
 | SearchInsert              | 2.5 ms    | 192      | upsert into @index(term) full-text index |
 | SearchQuery               | 882 us    | 157      | anyofterms() over 500-doc corpus         |
 
-Writes are dominated by RAFT consensus (leader proposes, followers ack):
-MapSet, GraphAddEdge, and SearchInsert all land at 2.1-2.8 ms.
-Reads bypass RAFT via `NewReadOnlyTxn()`, so they are 3-7x faster:
-MapGet (344 us), GraphNeighbors depth-1 (420 us), SearchQuery (882 us).
+### Mixed Workload Benchmarks
 
-Depth-3 graph traversal (@recurse) at 963 us is Dgraph's killer feature —
-the same query in SQL would require recursive CTEs. The 100-node graph
-with 300 edges reaches 39+ nodes at depth 3.
+| Workload                          | Latency   | Allocs | Pattern                                 |
+| --------------------------------- | --------- | ------ | --------------------------------------- |
+| **GraphRAG (search + expand)**    | **2.7 ms**| **1,098** | **search 5 docs + depth-2 graph per hit** |
+| Graph Write/Read Mix              | 4.8 ms    | 1,255  | 1 edge add + 3 neighbor queries (25/75) |
+| Map Read/Write Mix                | 671 us    | 152    | 80% MapGet + 20% MapSet                 |
+| Full Triad (Map + Graph + Search) | 1.0 ms    | 459    | 1 read from each backend per iteration  |
 
-### Mixed Workload Performance
-
-These benchmarks combine multiple backends per iteration — the patterns real
-consumers use. They answer: "Can one Dgraph instance serve a polyglot workload?"
-
-| Workload                       | Latency   | Allocs | Pattern                                    |
-| ------------------------------ | --------- | ------ | ------------------------------------------ |
-| GraphRAG (search + expand)     | 2.7 ms    | 1,098  | search 5 docs + depth-2 graph per hit      |
-| Graph Write/Read Mix           | 4.8 ms    | 1,255  | 1 edge add + 3 neighbor queries (25/75)    |
-| Map Read/Write Mix             | 671 us    | 152    | 80% MapGet + 20% MapSet (read-heavy)       |
-| Full Triad (Map + Graph + Search) | 1.0 ms | 459   | 1 read from each backend per iteration     |
-
-**GraphRAG pipeline** at 2.7 ms: full-text search (882 us) + 5 graph depth-2
-traversals (~360 us each) = the end-to-end retrieval latency an LLM agent
-experiences per query. No separate vector DB + graph DB needed.
-
-**Full Triad** at 1.0 ms: MapGet + SearchQuery + GraphNeighbors in one
-iteration — all reads bypass RAFT via `NewReadOnlyTxn()`. A single Dgraph
-instance serves all three ADT needs.
-
-## GraphRAG: The Killer Use Case
-
-GraphRAG (Graph Retrieval-Augmented Generation) is the pattern where Dgraph's
-dual GraphBackend + SearchBackend capability becomes a unique differentiator.
-No other metaengine implements both at full parity.
-
-**Pipeline:**
-
-1. **Index** — insert entities with text descriptions (SearchInsert) AND build
-   a knowledge graph connecting them (GraphAddEdge).
-2. **Retrieve** — search for entities matching a text query (SearchQuery).
-3. **Expand** — traverse the graph neighborhood of each hit (GraphNeighbors).
-4. **Assemble** — deduplicate into a context window for an LLM.
-
-```go
-eng, _ := dgraphengine.New("localhost:9080")
-gb := eng.(metaengine.GraphBackend)
-sb := eng.(metaengine.SearchBackend)
-
-// 1. Search for relevant entities.
-results, _ := sb.SearchQuery(ctx, "knowledge-base", "golang performance", 5)
-
-// 2. Expand each hit via 2-hop graph traversal.
-context := make(map[string]bool)
-for _, r := range results {
-    context[r.ID] = true
-    neighbors, _ := gb.GraphNeighbors(ctx, "entity-graph", r.ID, 2)
-    for _, n := range neighbors {
-        context[fmt.Sprint(n)] = true
-    }
-}
-// 3. Feed context to your LLM.
-```
-
-On Memory/SQLite/Pebble, you'd need two separate engines and glue code to
-join search results with graph relationships. Dgraph handles both natively.
-
-Validated by `TestGraphRAG_SearchThenGraphTraverse` and
-`TestGraphRAG_DifferentQueries` (see `graphrag_test.go`).
+Writes are dominated by RAFT consensus (2.1-2.8 ms).
+Reads bypass RAFT via `NewReadOnlyTxn()` (344 us - 963 us).
 
 ## Testing
 
 Tests require a running Dgraph instance. Set `DGRAPH_ADDR` (default:
 `localhost:9080`). Tests skip gracefully when Dgraph is unavailable.
 
-The recommended way to test is with the ephemeral Dgraph script:
-
 ```bash
 # Start ephemeral Dgraph (Zero + Alpha from nixpkgs, no Docker)
 nix run .#ephemeral-dgraph -- go test -tags "goexperiment.jsonv2" -v ./...
 
-# Or start manually:
-dgraph zero --my=localhost:5080 &
-dgraph alpha --zero=localhost:5080 &
-DGRAPH_ADDR=localhost:9080 go test -tags "goexperiment.jsonv2" ./...
+# Run just the GraphRAG stress test:
+nix run .#ephemeral-dgraph -- go test -tags "goexperiment.jsonv2" -v \
+    -run TestGraphRAG_ConcurrentStress -race ./...
 ```
 
-Cross-engine parity is verified via `adttest.RunMatrix` against the
-memory engine. All 6 implemented ADTs (Map, Set, Counter, Graph, Search,
-SortedMap) pass at full parity.
+### Test inventory
 
-**GraphRAG integration tests** (`graphrag_test.go`) validate the combined
-SearchBackend + GraphBackend pipeline — the pattern no other engine can serve
-in a single instance.
-
-**Mixed workload benchmarks** (`mixed_bench_test.go`) measure combined
-read/write and cross-ADT performance patterns.
+| File                  | Tests                                      | What it validates                       |
+| --------------------- | ------------------------------------------ | --------------------------------------- |
+| `graphrag_test.go`    | 2 GraphRAG functional tests                | Search + Graph pipeline correctness     |
+| `stress_test.go`      | Concurrent stress (16 goroutines, 320 q)   | Throughput, p50/p99, race-safety        |
+| `bench_test.go`       | 10 single-ADT benchmarks                   | Per-operation cost calibration          |
+| `mixed_bench_test.go` | 4 mixed-workload benchmarks                | Real-world combined-ADT performance     |
+| `adt_matrix_test.go`  | Cross-engine parity (6 ADTs vs Memory)     | No semantic drift from Memory engine    |
+| `injection_test.go`   | DQL injection source-code scan             | No string-interpolated DQL              |
 
 ### Dgraph 25.x delete behavior
 
