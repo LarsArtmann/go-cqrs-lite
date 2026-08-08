@@ -15,6 +15,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -63,6 +64,12 @@ func (o Op[State]) StreamType() id.StreamType { return o.streamType }
 // appending to one without the other causes silent misalignment.
 type namedEngine struct {
 	engine metaengine.Engine
+	name   string
+}
+
+// namedCloser pairs an external io.Closer with a name for diagnostics.
+type namedCloser struct {
+	closer io.Closer
 	name   string
 }
 
@@ -124,6 +131,10 @@ type System struct {
 
 	// drainers are called by GracefulClose before Close to drain in-flight work.
 	drainers []Drainer
+
+	// closers are external resources registered via RegisterCloser. They are
+	// closed after engines during Close(), in registration order.
+	closers []namedCloser
 
 	// handlerCount tracks registered command handlers for introspection.
 	cmdHandlerCount int
@@ -218,6 +229,13 @@ func (s *System) Close() error {
 		}
 	}
 
+	// Close external resources registered via RegisterCloser (after engines).
+	for _, nc := range s.closers {
+		if err := nc.closer.Close(); err != nil {
+			errs = append(errs, fmt.Errorf("system: close %s: %w", nc.name, err))
+		}
+	}
+
 	return errors.Join(errs...)
 }
 
@@ -230,8 +248,14 @@ func (s *System) Close() error {
 // Use this instead of [Close] when you need a shutdown deadline (e.g., a
 // Kubernetes SIGTERM grace period).
 func (s *System) GracefulClose(ctx context.Context) error {
-	// Phase 1: drain in-flight work.
-	for _, d := range s.drainers {
+	// Phase 1: drain in-flight work. Snapshot drainers under lock to avoid
+	// a data race if RegisterDrainer is called concurrently.
+	s.mu.RLock()
+	drainers := make([]Drainer, len(s.drainers))
+	copy(drainers, s.drainers)
+	s.mu.RUnlock()
+
+	for _, d := range drainers {
 		if err := d.Drain(ctx); err != nil {
 			return fmt.Errorf("system: graceful drain: %w", err)
 		}

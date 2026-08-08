@@ -2,19 +2,40 @@ package sqliteengine_test
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	. "github.com/onsi/gomega"
+	_ "modernc.org/sqlite"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 )
+
+func newSQLiteEngineForHC(t *testing.T) (metaengine.Engine, *sql.DB) {
+	t.Helper()
+
+	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
+	if err != nil {
+		t.Fatalf("sql.Open: %v", err)
+	}
+
+	db.SetMaxOpenConns(1)
+
+	eng, err := sqliteengine.NewSQLiteEngine(db)
+	if err != nil {
+		t.Fatalf("sqliteengine.NewSQLiteEngine: %v", err)
+	}
+
+	return eng, db
+}
 
 func TestSQLiteHealthCheck_Healthy(t *testing.T) {
 	t.Parallel()
 
 	g := NewGomegaWithT(t)
 
-	eng, db := newSQLiteEngine()
+	eng, db := newSQLiteEngineForHC(t)
 	defer func() {
 		_ = eng.Close()
 		_ = db.Close()
@@ -31,7 +52,7 @@ func TestSQLiteHealthCheck_ClosedDB(t *testing.T) {
 
 	g := NewGomegaWithT(t)
 
-	eng, db := newSQLiteEngine()
+	eng, db := newSQLiteEngineForHC(t)
 
 	_ = eng.Close()
 	_ = db.Close()
