@@ -276,21 +276,45 @@ func renderScorecardSARIF(result ScorecardResult) (string, error) {
 		}},
 	}
 
+	// Build logicalLocations from all scored modules (used + missing) so CI
+	// tools can reference modules by logical name without parsing physical
+	// paths. Each module gets an index; missing-module results reference
+	// their index for programmatic consumption.
+	moduleIndex := make(map[string]int)
+	var logicalLocations []sarifLogicalLocation
+	for _, m := range append(append([]ScorecardModule{}, result.Used...), result.Missing...) {
+		if _, exists := moduleIndex[m.Key]; exists {
+			continue
+		}
+		moduleIndex[m.Key] = len(logicalLocations)
+		logicalLocations = append(logicalLocations, sarifLogicalLocation{
+			Name:               m.DisplayName,
+			FullyQualifiedName: m.Key,
+			Kind:               "module",
+		})
+	}
+	report.Runs[0].LogicalLocations = logicalLocations
+
 	for _, m := range result.Missing {
 		msg := fmt.Sprintf("Missing module: %s (%s)", m.DisplayName, m.Category)
 		if m.Suggestion != "" {
 			msg += " — " + m.Suggestion
 		}
 
+		loc := sarifLocation{
+			PhysicalLocation: sarifPhysicalLocation{
+				ArtifactLocation: sarifArtifactLocation{URI: "go.mod"},
+			},
+		}
+		if idx, ok := moduleIndex[m.Key]; ok {
+			loc.LogicalLocations = []sarifLogicalLocationRef{{Index: idx}}
+		}
+
 		report.Runs[0].Results = append(report.Runs[0].Results, sarifResult{
-			RuleID:  "scorecard/missing-module",
-			Level:   "info",
-			Message: sarifMessage{Text: msg},
-			Locations: []sarifLocation{{
-				PhysicalLocation: sarifPhysicalLocation{
-					ArtifactLocation: sarifArtifactLocation{URI: "go.mod"},
-				},
-			}},
+			RuleID:    "scorecard/missing-module",
+			Level:     "info",
+			Message:   sarifMessage{Text: msg},
+			Locations: []sarifLocation{loc},
 		})
 	}
 
@@ -339,7 +363,8 @@ type sarifPhysicalLocation struct {
 }
 
 type sarifLocation struct {
-	PhysicalLocation sarifPhysicalLocation `json:"physicalLocation"`
+	PhysicalLocation  sarifPhysicalLocation      `json:"physicalLocation"`
+	LogicalLocations  []sarifLogicalLocationRef  `json:"logicalLocations,omitempty"`
 }
 
 type sarifResult struct {
@@ -350,9 +375,25 @@ type sarifResult struct {
 }
 
 type sarifRun struct {
-	Tool       sarifTool      `json:"tool"`
-	Properties map[string]any `json:"properties,omitempty"`
-	Results    []sarifResult  `json:"results,omitempty"`
+	Tool             sarifTool                `json:"tool"`
+	Properties       map[string]any           `json:"properties,omitempty"`
+	LogicalLocations []sarifLogicalLocation   `json:"logicalLocations,omitempty"`
+	Results          []sarifResult            `json:"results,omitempty"`
+}
+
+// sarifLogicalLocation describes a logical component of the analyzed codebase
+// (module, package, namespace). Stored at the run level in
+// run.logicalLocations[] and referenced by index from result locations.
+type sarifLogicalLocation struct {
+	Name               string `json:"name,omitempty"`
+	FullyQualifiedName string `json:"fullyQualifiedName,omitempty"`
+	Kind               string `json:"kind,omitempty"`
+}
+
+// sarifLogicalLocationRef references a run-level logicalLocation by its array
+// index.
+type sarifLogicalLocationRef struct {
+	Index int `json:"index"`
 }
 
 type sarifReport struct {

@@ -359,3 +359,239 @@ func TestSQLite_ExplainAggregateQuery(t *testing.T) {
 		}
 	})
 }
+
+func TestSQLite_Aggregate_PlannedTable(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	db, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	defer db.Close()
+
+	db.SetMaxOpenConns(1)
+
+	plan := metaengine.LayoutPlan{
+		Collection: "items_planned",
+		Table:      "meta_planned_items",
+		Columns: []metaengine.PlannedColumn{
+			{Name: "status", Type: "TEXT"},
+			{Name: "price", Type: "REAL"},
+			{Name: "category", Type: "TEXT"},
+		},
+	}
+
+	eng, err := sqliteengine.NewPlannedSQLiteEngine(db, []metaengine.LayoutPlan{plan})
+	if err != nil {
+		t.Fatalf("NewPlannedSQLiteEngine: %v", err)
+	}
+	defer eng.Close()
+
+	seedAggData(t, ctx, eng)
+	// Also seed planned collection by re-mapping to "items_planned"
+	mb := eng.(metaengine.MapBackend)
+	for _, item := range []struct {
+		id, status string
+		price      float64
+	}{
+		{"a", "open", 10},
+		{"b", "open", 20},
+		{"c", "closed", -5},
+		{"d", "closed", 0},
+		{"e", "open", 30},
+	} {
+		val := map[string]any{"id": item.id, "status": item.status, "price": item.price}
+		if err := mb.MapSet(ctx, "items_planned", item.id, val); err != nil {
+			t.Fatalf("MapSet planned %s: %v", item.id, err)
+		}
+	}
+
+	ar := eng.(metaengine.AggregateReader)
+	gr := eng.(metaengine.GroupedAggregateReader)
+	mr := eng.(metaengine.MultiAggregateReader)
+	mgr := eng.(metaengine.MultiGroupedAggregateReader)
+	dr := eng.(metaengine.DistinctReader)
+
+	t.Run("Count", func(t *testing.T) {
+		n, err := ar.Aggregate(ctx, "items_planned", metaengine.AggregateCount, "", nil)
+		if err != nil {
+			t.Fatalf("Planned Count: %v", err)
+		}
+		if n != 5 {
+			t.Errorf("Planned Count = %v, want 5", n)
+		}
+	})
+
+	t.Run("Sum_price", func(t *testing.T) {
+		got, err := ar.Aggregate(ctx, "items_planned", metaengine.AggregateSum, "price", nil)
+		if err != nil {
+			t.Fatalf("Planned Sum: %v", err)
+		}
+		assertAggFloat(t, "Planned Sum", got, 55)
+	})
+
+	t.Run("Min_negative", func(t *testing.T) {
+		got, err := ar.Aggregate(ctx, "items_planned", metaengine.AggregateMin, "price", nil)
+		if err != nil {
+			t.Fatalf("Planned Min: %v", err)
+		}
+		assertAggFloat(t, "Planned Min", got, -5)
+	})
+
+	t.Run("Max", func(t *testing.T) {
+		got, err := ar.Aggregate(ctx, "items_planned", metaengine.AggregateMax, "price", nil)
+		if err != nil {
+			t.Fatalf("Planned Max: %v", err)
+		}
+		assertAggFloat(t, "Planned Max", got, 30)
+	})
+
+	t.Run("Avg", func(t *testing.T) {
+		got, err := ar.Aggregate(ctx, "items_planned", metaengine.AggregateAvg, "price", nil)
+		if err != nil {
+			t.Fatalf("Planned Avg: %v", err)
+		}
+		assertAggFloat(t, "Planned Avg", got, 11)
+	})
+
+	t.Run("GroupedSum", func(t *testing.T) {
+		got, err := gr.GroupedAggregate(ctx, "items_planned", metaengine.AggregateSum, "price", "status", nil)
+		if err != nil {
+			t.Fatalf("Planned GroupedSum: %v", err)
+		}
+		assertAggFloat(t, "Planned GroupedSum[open]", got["open"], 60)
+		assertAggFloat(t, "Planned GroupedSum[closed]", got["closed"], -5)
+	})
+
+	t.Run("MultiAggregate", func(t *testing.T) {
+		got, err := mr.MultiAggregate(ctx, "items_planned", []metaengine.AggregateSpec{
+			{Fn: metaengine.AggregateCount, Alias: "cnt"},
+			{Fn: metaengine.AggregateSum, Column: "price", Alias: "total"},
+			{Fn: metaengine.AggregateMin, Column: "price", Alias: "min_price"},
+		}, nil)
+		if err != nil {
+			t.Fatalf("Planned MultiAggregate: %v", err)
+		}
+		if got["cnt"] != 5 {
+			t.Errorf("Planned cnt = %v, want 5", got["cnt"])
+		}
+		assertAggFloat(t, "Planned total", got["total"], 55)
+		assertAggFloat(t, "Planned min_price", got["min_price"], -5)
+	})
+
+	t.Run("MultiGroupedAggregate", func(t *testing.T) {
+		rows, err := mgr.MultiGroupedAggregate(ctx, "items_planned", []metaengine.AggregateSpec{
+			{Fn: metaengine.AggregateCount, Alias: "cnt"},
+			{Fn: metaengine.AggregateSum, Column: "price", Alias: "total"},
+		}, "status", nil)
+		if err != nil {
+			t.Fatalf("Planned MultiGroupedAggregate: %v", err)
+		}
+		got := make(map[string]map[string]float64, len(rows))
+		for _, r := range rows {
+			got[r.Group] = r.Values
+		}
+		if got["open"]["cnt"] != 3 {
+			t.Errorf("Planned open cnt = %v, want 3", got["open"]["cnt"])
+		}
+		assertAggFloat(t, "Planned open total", got["open"]["total"], 60)
+	})
+
+	t.Run("DistinctValues", func(t *testing.T) {
+		got, err := dr.DistinctValues(ctx, "items_planned", "status", nil)
+		if err != nil {
+			t.Fatalf("Planned DistinctValues: %v", err)
+		}
+		if len(got) != 2 {
+			t.Errorf("Planned DistinctValues returned %d, want 2", len(got))
+		}
+	})
+
+	t.Run("ExplainAggregateQuery_planned", func(t *testing.T) {
+		ea := eng.(metaengine.ExplainableAggregate)
+		sql, _ := ea.ExplainAggregateQuery(ctx, "items_planned", metaengine.ExplainAggregateOptions{
+			Fn:     metaengine.AggregateSum,
+			Column: "price",
+		})
+		// Planned path should use direct column refs, not json_extract
+		if strings.Contains(sql, "json_extract") {
+			t.Errorf("planned path should not use json_extract, got: %s", sql)
+		}
+		if !strings.Contains(sql, "SUM") {
+			t.Errorf("expected SUM in SQL, got: %s", sql)
+		}
+		if !strings.Contains(sql, "meta_planned_items") {
+			t.Errorf("expected planned table name in SQL, got: %s", sql)
+		}
+	})
+}
+
+func TestSQLite_Aggregate_EmptyCollection(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	eng, cleanup := newAggSQLiteEngine(t)
+	defer cleanup()
+
+	// Don't seed any data — test edge cases on empty collection
+
+	ar := eng.(metaengine.AggregateReader)
+	gr := eng.(metaengine.GroupedAggregateReader)
+	mr := eng.(metaengine.MultiAggregateReader)
+	dr := eng.(metaengine.DistinctReader)
+
+	t.Run("Count_empty", func(t *testing.T) {
+		n, err := ar.Aggregate(ctx, "empty", metaengine.AggregateCount, "", nil)
+		if err != nil {
+			t.Fatalf("Aggregate Count on empty: %v", err)
+		}
+		if n != 0 {
+			t.Errorf("Count on empty = %v, want 0", n)
+		}
+	})
+
+	t.Run("Sum_empty", func(t *testing.T) {
+		got, err := ar.Aggregate(ctx, "empty", metaengine.AggregateSum, "price", nil)
+		if err != nil {
+			t.Fatalf("Aggregate Sum on empty: %v", err)
+		}
+		if got != 0 {
+			t.Errorf("Sum on empty = %v, want 0", got)
+		}
+	})
+
+	t.Run("GroupedAggregate_empty", func(t *testing.T) {
+		got, err := gr.GroupedAggregate(ctx, "empty", metaengine.AggregateCount, "", "status", nil)
+		if err != nil {
+			t.Fatalf("GroupedAggregate on empty: %v", err)
+		}
+		if len(got) != 0 {
+			t.Errorf("GroupedAggregate on empty = %v entries, want 0", len(got))
+		}
+	})
+
+	t.Run("MultiAggregate_empty", func(t *testing.T) {
+		got, err := mr.MultiAggregate(ctx, "empty", []metaengine.AggregateSpec{
+			{Fn: metaengine.AggregateCount, Alias: "cnt"},
+			{Fn: metaengine.AggregateSum, Column: "price", Alias: "total"},
+		}, nil)
+		if err != nil {
+			t.Fatalf("MultiAggregate on empty: %v", err)
+		}
+		if got["cnt"] != 0 {
+			t.Errorf("MultiAggregate cnt on empty = %v, want 0", got["cnt"])
+		}
+	})
+
+	t.Run("DistinctValues_empty", func(t *testing.T) {
+		got, err := dr.DistinctValues(ctx, "empty", "status", nil)
+		if err != nil {
+			t.Fatalf("DistinctValues on empty: %v", err)
+		}
+		if len(got) != 0 {
+			t.Errorf("DistinctValues on empty = %d, want 0", len(got))
+		}
+	})
+}

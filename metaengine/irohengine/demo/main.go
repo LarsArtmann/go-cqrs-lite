@@ -43,7 +43,7 @@ func main() {
 	}
 	defer func() {
 		for _, n := range nodes {
-			n.engine.Close()
+			_ = n.engine.Close()
 		}
 	}()
 

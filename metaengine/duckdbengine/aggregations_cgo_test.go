@@ -4,6 +4,7 @@ package duckdbengine_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
@@ -652,4 +653,125 @@ func TestDuckDB_Aggregate_EmptyCollection(t *testing.T) {
 	if multi["count"] != 0 {
 		t.Errorf("Empty multi count: got %v, want 0", multi["count"])
 	}
+}
+
+// --- ExplainableAggregate ---
+
+func TestDuckDB_ExplainAggregateQuery(t *testing.T) {
+	t.Parallel()
+
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
+
+	const col = "products_explain"
+	seedProducts(t, eng, col)
+
+	ea, ok := eng.(metaengine.ExplainableAggregate)
+	if !ok {
+		t.Fatal("engine does not implement ExplainableAggregate")
+	}
+
+	ctx := context.Background()
+
+	t.Run("scalar", func(t *testing.T) {
+		sql, args := ea.ExplainAggregateQuery(ctx, col, metaengine.ExplainAggregateOptions{
+			Fn:     metaengine.AggregateSum,
+			Column: "price",
+		})
+		if !strings.Contains(sql, "SUM") {
+			t.Errorf("expected SUM in SQL, got: %s", sql)
+		}
+		if !strings.Contains(sql, "$1") {
+			t.Errorf("expected $1 placeholder, got: %s", sql)
+		}
+		if len(args) < 1 {
+			t.Errorf("expected at least 1 arg, got: %v", args)
+		}
+	})
+
+	t.Run("grouped", func(t *testing.T) {
+		sql, _ := ea.ExplainAggregateQuery(ctx, col, metaengine.ExplainAggregateOptions{
+			Fn:      metaengine.AggregateCount,
+			GroupBy: "category",
+		})
+		if !strings.Contains(sql, "GROUP BY") {
+			t.Errorf("expected GROUP BY in SQL, got: %s", sql)
+		}
+		if !strings.Contains(sql, "group_key") {
+			t.Errorf("expected group_key in SQL, got: %s", sql)
+		}
+	})
+
+	t.Run("multi", func(t *testing.T) {
+		sql, _ := ea.ExplainAggregateQuery(ctx, col, metaengine.ExplainAggregateOptions{
+			Specs: []metaengine.AggregateSpec{
+				{Fn: metaengine.AggregateCount, Alias: "cnt"},
+				{Fn: metaengine.AggregateSum, Column: "price", Alias: "total"},
+			},
+		})
+		if !strings.Contains(sql, "COUNT(*)") {
+			t.Errorf("expected COUNT(*) in SQL, got: %s", sql)
+		}
+		if !strings.Contains(sql, "SUM") {
+			t.Errorf("expected SUM in SQL, got: %s", sql)
+		}
+	})
+
+	t.Run("distinct", func(t *testing.T) {
+		sql, _ := ea.ExplainAggregateQuery(ctx, col, metaengine.ExplainAggregateOptions{
+			Distinct: "category",
+		})
+		if !strings.Contains(sql, "SELECT DISTINCT") {
+			t.Errorf("expected SELECT DISTINCT in SQL, got: %s", sql)
+		}
+	})
+
+	t.Run("with_filter", func(t *testing.T) {
+		sql, args := ea.ExplainAggregateQuery(ctx, col, metaengine.ExplainAggregateOptions{
+			Fn: metaengine.AggregateCount,
+			Filters: []metaengine.FilterSpec{
+				{Column: "category", Op: metaengine.FilterEq, Value: "food"},
+			},
+		})
+		if !strings.Contains(sql, "json_extract") || !strings.Contains(sql, "$") {
+			t.Errorf("expected json_extract filter in SQL, got: %s", sql)
+		}
+		if len(args) < 2 {
+			t.Errorf("expected at least 2 args, got %d: %v", len(args), args)
+		}
+	})
+
+	t.Run("planned_table", func(t *testing.T) {
+		const col2 = "products_planned_explain"
+		lp, ok := eng.(metaengine.LayoutPlanApplier)
+		if !ok {
+			t.Fatal("engine does not implement LayoutPlanApplier")
+		}
+
+		plan := metaengine.LayoutPlan{
+			Collection: col2,
+			Table:      "meta_planned_" + col2,
+			Columns: []metaengine.PlannedColumn{
+				{Name: "category", Type: "VARCHAR"},
+				{Name: "price", Type: "DOUBLE"},
+			},
+		}
+		if err := lp.ApplyLayoutPlan(plan); err != nil {
+			t.Fatalf("ApplyLayoutPlan: %v", err)
+		}
+
+		sql, _ := ea.ExplainAggregateQuery(ctx, col2, metaengine.ExplainAggregateOptions{
+			Fn:     metaengine.AggregateSum,
+			Column: "price",
+		})
+		if strings.Contains(sql, "json_extract") {
+			t.Errorf("planned path should not use json_extract, got: %s", sql)
+		}
+		if !strings.Contains(sql, "SUM") {
+			t.Errorf("expected SUM in planned SQL, got: %s", sql)
+		}
+	})
 }

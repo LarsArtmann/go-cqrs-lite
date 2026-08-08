@@ -152,7 +152,7 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	opts = append(opts, event.WithMetadata(metadata))
 
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	evt, err := event.NewEvent(
+	evt, err := event.New(
 		eventType,
 		streamID,
 		streamType,

@@ -87,7 +87,7 @@ type healthCheckEngine struct {
 }
 
 func (e *healthCheckEngine) Profile() EngineProfile { return e.profile }
-func (e *healthCheckEngine) Close() error                      { return nil }
+func (e *healthCheckEngine) Close() error           { return nil }
 func (e *healthCheckEngine) HealthCheck(_ context.Context) error {
 	return e.err
 }
@@ -132,7 +132,7 @@ type plainEngine struct {
 }
 
 func (e *plainEngine) Profile() EngineProfile { return e.profile }
-func (e *plainEngine) Close() error            { return nil }
+func (e *plainEngine) Close() error           { return nil }
 
 func TestHealthCheck_NonImplementingEnginesSkipped(t *testing.T) {
 	t.Parallel()

@@ -252,3 +252,128 @@ func TestAggregateParity_DuckDB_vs_SQLite(t *testing.T) {
 		}
 	})
 }
+
+// TestAggregateParity_WithFilters verifies that filtered aggregates produce
+// identical results across DuckDB and SQLite engines despite different filter
+// type-coercion strategies (DuckDB CAST AS DOUBLE, SQLite native types).
+func TestAggregateParity_WithFilters(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	engines := newAggEngines(t)
+
+	for _, fx := range engines {
+		seedParityAggData(t, ctx, fx.eng)
+	}
+
+	statusOpenFilter := []metaengine.FilterSpec{
+		{Column: "status", Op: metaengine.FilterEq, Value: "open"},
+	}
+
+	priceGteFilter := []metaengine.FilterSpec{
+		{Column: "price", Op: metaengine.FilterGe, Value: float64(10)},
+	}
+
+	runOnAll := func(t *testing.T, label string, fn func(metaengine.Engine) (float64, error)) {
+		t.Helper()
+
+		var first float64
+
+		var firstEng string
+
+		for i, fx := range engines {
+			got, err := fn(fx.eng)
+			if err != nil {
+				t.Fatalf("%s: %s engine error: %v", label, fx.name, err)
+			}
+
+			if i == 0 {
+				first = got
+				firstEng = fx.name
+			} else if got != first {
+				t.Errorf("%s: %s=%v, %s=%v", label, firstEng, first, fx.name, got)
+			}
+		}
+	}
+
+	// Scalar aggregates with status=open filter
+	runOnAll(t, "FilteredCount/open", func(e metaengine.Engine) (float64, error) {
+		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
+			metaengine.AggregateCount, "", statusOpenFilter)
+	})
+
+	runOnAll(t, "FilteredSum/open", func(e metaengine.Engine) (float64, error) {
+		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
+			metaengine.AggregateSum, "price", statusOpenFilter)
+	})
+
+	runOnAll(t, "FilteredMin/open", func(e metaengine.Engine) (float64, error) {
+		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
+			metaengine.AggregateMin, "price", statusOpenFilter)
+	})
+
+	runOnAll(t, "FilteredMax/open", func(e metaengine.Engine) (float64, error) {
+		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
+			metaengine.AggregateMax, "price", statusOpenFilter)
+	})
+
+	runOnAll(t, "FilteredAvg/open", func(e metaengine.Engine) (float64, error) {
+		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
+			metaengine.AggregateAvg, "price", statusOpenFilter)
+	})
+
+	// Numeric comparison filter: price >= 10
+	runOnAll(t, "FilteredCount/price_ge_10", func(e metaengine.Engine) (float64, error) {
+		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
+			metaengine.AggregateCount, "", priceGteFilter)
+	})
+
+	runOnAll(t, "FilteredSum/price_ge_10", func(e metaengine.Engine) (float64, error) {
+		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
+			metaengine.AggregateSum, "price", priceGteFilter)
+	})
+
+	// Grouped aggregate with filter
+	runOnAll(t, "FilteredGroupedCount/open", func(e metaengine.Engine) (float64, error) {
+		m, err := e.(metaengine.GroupedAggregateReader).GroupedAggregate(ctx, "items",
+			metaengine.AggregateCount, "", "status", statusOpenFilter)
+		if err != nil {
+			return 0, err
+		}
+
+		return m["open"], nil
+	})
+
+	// MultiAggregate with filter
+	runOnAll(t, "FilteredMulti/total_open", func(e metaengine.Engine) (float64, error) {
+		m, err := e.(metaengine.MultiAggregateReader).MultiAggregate(ctx, "items",
+			[]metaengine.AggregateSpec{
+				{Fn: metaengine.AggregateCount, Alias: "cnt"},
+				{Fn: metaengine.AggregateSum, Column: "price", Alias: "total"},
+			}, statusOpenFilter)
+		if err != nil {
+			return 0, err
+		}
+
+		return m["total"], nil
+	})
+
+	// DistinctValues with filter
+	t.Run("FilteredDistinct", func(t *testing.T) {
+		var prevCount int
+
+		for _, fx := range engines {
+			vals, err := fx.eng.(metaengine.DistinctReader).DistinctValues(
+				ctx, "items", "status", statusOpenFilter)
+			if err != nil {
+				t.Fatalf("%s: FilteredDistinctValues: %v", fx.name, err)
+			}
+
+			if prevCount == 0 {
+				prevCount = len(vals)
+			} else if prevCount != len(vals) {
+				t.Errorf("filtered distinct count mismatch: %d vs %d", prevCount, len(vals))
+			}
+		}
+	})
+}

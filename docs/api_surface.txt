@@ -1383,6 +1383,7 @@ metaengine/badgerengine/method CounterGet
 metaengine/badgerengine/method CounterIncrement
 metaengine/badgerengine/method GraphAddEdge
 metaengine/badgerengine/method GraphNeighbors
+metaengine/badgerengine/method HealthCheck
 metaengine/badgerengine/method JournalReadAll
 metaengine/badgerengine/method JournalReadFrom
 metaengine/badgerengine/method LogAppend
@@ -1480,6 +1481,7 @@ metaengine/dgraphengine/method CounterGet
 metaengine/dgraphengine/method CounterIncrement
 metaengine/dgraphengine/method GraphAddEdge
 metaengine/dgraphengine/method GraphNeighbors
+metaengine/dgraphengine/method HealthCheck
 metaengine/dgraphengine/method MapDelete
 metaengine/dgraphengine/method MapGet
 metaengine/dgraphengine/method MapScan
@@ -2056,6 +2058,8 @@ metaengine/pgengine/method Close
 metaengine/pgengine/method CounterGet
 metaengine/pgengine/method CounterIncrement
 metaengine/pgengine/method DistinctValues
+metaengine/pgengine/method ExplainAggregateQuery
+metaengine/pgengine/method ExplainScanQuery
 metaengine/pgengine/method GroupedAggregate
 metaengine/pgengine/method HealthCheck
 metaengine/pgengine/method JournalReadAll
@@ -3530,6 +3534,8 @@ system/method Close
 system/method Close
 system/method CommandDispatcher
 system/method Delete
+system/method Drain
+system/method EngineNames
 system/method EventStore
 system/method Explain
 system/method GracefulClose
@@ -3537,6 +3543,9 @@ system/method HasErrors
 system/method HasWarnings
 system/method Health
 system/method HealthCheck
+system/method HealthCheckDetailed
+system/method LagDuration
+system/method LagPerProjection
 system/method Load
 system/method Load
 system/method Load
@@ -3569,6 +3578,7 @@ system/method ReadFrom
 system/method ReadFrom
 system/method ReadFrom
 system/method ReadQueriesFrom
+system/method RegisterCloser
 system/method RegisterDrainer
 system/method ResetProjection
 system/method Save
@@ -3578,6 +3588,7 @@ system/method Save
 system/method Save
 system/method SaveQuery
 system/method ScreamReport
+system/method ShutdownOrder
 system/method Snapshot
 system/method SnapshotStore
 system/method Start
@@ -3589,6 +3600,7 @@ system/method Use
 system/method UseCommandMiddleware
 system/method UsePublish
 system/method VerifyProjections
+system/method WorkerStatus
 system/struct BusConfig
 system/struct BusTopology
 system/struct CacheConfig
@@ -3599,6 +3611,7 @@ system/struct DeploymentConfig
 system/struct DispatcherInfo
 system/struct DomainConfig
 system/struct EngineConfig
+system/struct EngineHealth
 system/struct EventAdapter
 system/struct InstanceConfig
 system/struct InstanceTopology

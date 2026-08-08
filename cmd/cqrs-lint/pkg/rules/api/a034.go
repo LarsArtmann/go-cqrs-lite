@@ -21,17 +21,20 @@ import (
 func NewA034Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"A034-metaengine-execute-untyped",
-		func(_ context.Context) ([]finding.Finding, error) {
-			if !ctx.FeatureProfile.HasMetaengine {
-				return nil, nil
-			}
+			func(_ context.Context) ([]finding.Finding, error) {
+				var findings []finding.Finding
 
-			var findings []finding.Finding
+				for _, gf := range ctx.GoFiles {
+					if gf.IsTest {
+						continue
+					}
 
-			for _, gf := range ctx.GoFiles {
-				if gf.IsTest {
-					continue
-				}
+					// Per-module check: only scan files in modules that
+					// actually use metaengine. In a multi-module workspace,
+					// the primary module may not be the one with metaengine.
+					if !ctx.ProfileForFile(gf.Path).HasMetaengine {
+						continue
+					}
 
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
 					call, ok := n.(*ast.CallExpr)

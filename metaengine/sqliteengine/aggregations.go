@@ -47,8 +47,6 @@ func (e *sqliteEngine) aggregateStandard(
 		appendStandardFilter(&b, &args, f)
 	}
 
-	var result float64
-
 	if fn == metaengine.AggregateCount {
 		var count int64
 		if err := e.xd().QueryRowContext(ctx, b.String(), args...).Scan(&count); err != nil {
@@ -58,11 +56,12 @@ func (e *sqliteEngine) aggregateStandard(
 		return float64(count), nil
 	}
 
-	if err := e.xd().QueryRowContext(ctx, b.String(), args...).Scan(&result); err != nil {
+	var raw any
+	if err := e.xd().QueryRowContext(ctx, b.String(), args...).Scan(&raw); err != nil {
 		return 0, fmt.Errorf("aggregate %s %s(%s): %w", col, fn, column, err)
 	}
 
-	return result, nil
+	return sqliteDecodeFloat(raw)
 }
 
 func (e *sqliteEngine) aggregatePlanned(
@@ -94,8 +93,6 @@ func (e *sqliteEngine) aggregatePlanned(
 		appendPlannedFilter(&b, &args, f, &whereStarted)
 	}
 
-	var result float64
-
 	if fn == metaengine.AggregateCount {
 		var count int64
 		if err := e.xd().QueryRowContext(ctx, b.String(), args...).Scan(&count); err != nil {
@@ -105,9 +102,10 @@ func (e *sqliteEngine) aggregatePlanned(
 		return float64(count), nil
 	}
 
-	if err := e.xd().QueryRowContext(ctx, b.String(), args...).Scan(&result); err != nil {
+	var raw any
+	if err := e.xd().QueryRowContext(ctx, b.String(), args...).Scan(&raw); err != nil {
 		return 0, fmt.Errorf("aggregate %s %s(%s): %w", plan.Collection, fn, column, err)
 	}
 
-	return result, nil
+	return sqliteDecodeFloat(raw)
 }
