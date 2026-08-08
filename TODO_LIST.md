@@ -78,10 +78,6 @@ and is **never** duplicated here.
 - [ ] **Add per-test data cleanup** — no `DropAll` or per-test cleanup exists.
       Stale data accumulates on persistent Dgraph instances.
       _(Effort: S)_
-- [ ] **Tag `dgraphengine/v4.0.2`** — security fix (DQL injection) + MapDelete
-      bugfix + Multimap/Log backends + calibration warrant a patch release.
-      _(Effort: S)_
-
 - [ ] **Add Dgraph retry logic** for transient `"Please retry again"` errors.
       _(Effort: S)_
 - [ ] **Add Dgraph connection pool tuning** — gRPC `MaxCallRecvMsgSize` for
@@ -125,6 +121,15 @@ and is **never** duplicated here.
       disabled), `cmd/cqrs-lint/` (13), `metaengine/` (15) have the broadest
       exclusions. Narrow where safe.
       _(Effort: M)_
+- [ ] 🔥 **Fix benchkit timing flakes** — `TestRun_SQLite_DurationAborts`,
+      `TestCompare_ThreeBackends`, `TestRun_CancelledContext` fail under
+      parallel test load with hardcoded 5s thresholds. Apply the
+      `testutil.RaceEnabled` relaxed-bound pattern or increase thresholds to
+      account for system load.
+      _(Effort: S)_
+- [ ] **Remove unused `newSQLiteEngineForPath`** in
+      `metaengine/bench/sqlite_factory_test.go:26` (gopls unusedfunc warning).
+      _(Effort: S)_
 
 ---
 
@@ -134,9 +139,6 @@ and is **never** duplicated here.
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must
   v0.1.2).
-- [BLOCKED] **Push all unpushed tags to origin** — multiple annotated tags
-  exist locally but are not on `origin`. Blocks `nix run .#vulncheck` and
-  `check-tag-existence.sh`. Requires user approval.
 - [ ] 🔥 **Wire `#check-arch` into the verify gate and CI** — the nix app
       exists (`flake.nix:759`) but is orphaned. All 7 per-module go-arch-lint
       configs are local-only enforcement. Replace `#check-layers` with
@@ -148,16 +150,10 @@ and is **never** duplicated here.
       only works locally because the tool is in system PATH
       (`/run/current-system/sw/bin/`). Will fail in CI and `nix develop` shells.
       _(Effort: S)_
-- [ ] **Tag `query/v4.3.0`** — `querytest` symbols (`RunStoreSuite`,
-      `StoreSuite`) are only visible via replace directives in storage/memory,
-      storage/pebble, storage/bbolt. A proper tag eliminates the workarounds.
-      Then strip the replace directives.
-      _(Effort: S)_
-- [ ] **Tag `flightrecorder/v4.0.0`** — currently pseudo-version. Zero-dep
-      module, API stable.
-      _(Effort: S)_
-- [ ] **Tag `event/v4.4.0` push** — tag exists locally but may not be on
-      origin. Blocks `nix run .#vulncheck`.
+- [ ] **Document CHANGELOG release process** — `TestTagContentMatchesChangelog`
+      in `cmd/api-stability/main_test.go:224` enforces ≥1 module tag per
+      CHANGELOG version. This is non-obvious. Add a `docs/RELEASE.md` or
+      CONTRIBUTING.md section explaining the `scripts/tag-release.sh` workflow.
       _(Effort: S)_
 
 ---
