@@ -565,7 +565,6 @@ func SQLiteEngineProfile() EngineProfile {
 			ADTMap:     ComplexityOLogN,
 			ADTSet:     ComplexityOLogN,
 			ADTCounter: ComplexityO1,
-			ADTGraph:   ComplexityON,
 			// ADTSortedMap: SQLite now supports PushdownMapScan with json_extract()
 			// WHERE/ORDER BY/LIMIT, giving O(logN + k) instead of O(NlogN).
 			// Without pushdown (closure-based FilterOn/SortOn), the fallback

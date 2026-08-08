@@ -138,31 +138,6 @@ func TestPebbleLog(t *testing.T) {
 	g.Expect(all).To(HaveLen(3))
 }
 
-func TestPebbleGraphNeighbors(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
-
-	ctx := context.Background()
-	gb := eng.(metaengine.GraphBackend)
-
-	g.Expect(gb.GraphAddEdge(ctx, "social", metaengine.Edge{From: "alice", To: "bob"})).
-		To(Succeed())
-	g.Expect(gb.GraphAddEdge(ctx, "social", metaengine.Edge{From: "bob", To: "carol"})).
-		To(Succeed())
-
-	neighbors, err := gb.GraphNeighbors(ctx, "social", "alice", 1)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(neighbors).To(ContainElement("bob"))
-
-	neighbors2, err := gb.GraphNeighbors(ctx, "social", "alice", 2)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(neighbors2).To(ContainElement("bob"))
-	g.Expect(neighbors2).To(ContainElement("carol"))
-}
-
 func TestPebbleMapUpdate(t *testing.T) {
 	g := NewGomegaWithT(t)
 

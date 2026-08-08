@@ -3,9 +3,8 @@ package sqliteengine
 import (
 	"context"
 	"database/sql"
-	"encoding/json/v2"
+
 	"errors"
-	"fmt"
 	"slices"
 	"sync"
 	"sync/atomic"
@@ -190,94 +189,4 @@ func (e *sqliteEngine) LogTail(ctx context.Context, col string, limit int) ([]an
 	return fwd, nil
 }
 
-// --- metaengine.GraphBackend ---
 
-func (e *sqliteEngine) GraphAddEdge(ctx context.Context, col string, edge metaengine.Edge) error {
-	from := encodeKey(edge.From)
-	to := encodeKey(edge.To)
-
-	_, err := e.xd().ExecContext(ctx, e.queries.graphAddEdge, col, from, to)
-
-	return err //nolint:wrapcheck // passthrough
-}
-
-func (e *sqliteEngine) GraphNeighbors(
-	ctx context.Context,
-	col string,
-	node any,
-	depth int,
-) ([]any, error) {
-	// Simple BFS in Go (avoids recursive CTE complexity across dialects).
-	visited := map[string]bool{encodeKey(node): true}
-	frontier := []any{node}
-	result := []any{}
-
-	for range depth {
-		if len(frontier) == 0 {
-			break
-		}
-
-		var next []any
-
-		for _, n := range frontier {
-			keys, err := e.scanNeighborKeys(ctx, col, encodeKey(n))
-			if err != nil {
-				return nil, fmt.Errorf("scan neighbor keys: %w", err)
-			}
-
-			for _, toKey := range keys {
-				if visited[toKey] {
-					continue
-				}
-
-				visited[toKey] = true
-
-				var neighbor any
-
-				if jErr := json.Unmarshal([]byte(toKey), &neighbor); jErr != nil {
-					neighbor = toKey
-				}
-
-				result = append(result, neighbor)
-				next = append(next, neighbor)
-			}
-		}
-
-		frontier = next
-	}
-
-	return result, nil
-}
-
-// scanNeighborKeys returns the raw to_node keys for a single from-node. Extracted
-// from GraphNeighbors so rows.Close is handled by defer (sqlclosecheck) rather
-// than manual close calls inside a loop.
-func (e *sqliteEngine) scanNeighborKeys(
-	ctx context.Context,
-	col, fromKey string,
-) ([]string, error) {
-	rows, err := e.xd().QueryContext(
-		ctx,
-		`SELECT to_node FROM meta_graph_edges WHERE collection = ? AND from_node = ?`,
-		col, fromKey,
-	)
-	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
-	}
-
-	defer metaengine.DeferClose(rows)
-
-	var keys []string
-
-	for rows.Next() {
-		var toKey string
-
-		if err := rows.Scan(&toKey); err != nil {
-			return nil, err //nolint:wrapcheck // passthrough
-		}
-
-		keys = append(keys, toKey)
-	}
-
-	return keys, rows.Err() //nolint:wrapcheck // passthrough
-}

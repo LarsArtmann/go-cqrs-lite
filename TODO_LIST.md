@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-08 (event.EnsureCustom deprecation, metadata.CustomData soft-deprecation, pre-existing failure discovery)
+**Updated:** 2026-08-08 (metaengine test coverage gaps closed, DuckDB/PG record-stamp + Pebble/DuckDB soak + concurrent -race verified)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -43,25 +43,56 @@ and is **never** duplicated here.
 - [ ] **Run `nix run .#vulncheck`** — verify all tagged modules build under
       GOWORK=off (per-module consumer resolution).
 
-### Test coverage (gaps remaining)
+### Test coverage (DONE — see [status report](docs/status/2026-08-08_02-30_metaengine-test-coverage-gaps-closed.md))
 
-- [ ] **Run new concurrent tests under `-race`** — `RunConcurrentTxTest` was
-      tested without the race detector. The whole point of concurrent tests is
-      catching data races. Run 3x with `-count=3 -race`.
-- [ ] **Record-aware integration test through DuckDB engine** — Pebble + SQLite
-      done. DuckDB (CGo path) not yet.
-- [ ] **Record-aware integration test through PG engine** — Pebble + SQLite
-      done. PG not yet.
-- [ ] **`RunTransactionalTest` on Memory engine (baseline)** — no engine module
-      calls RunTransactionalTest against the Memory engine for baseline parity.
-- [ ] **Soak test with `AutoCRUDByConvention` through Pebble/DuckDB** — current
-      soak uses Memory engine only. Verify LSM/OLAP backends under sustained load.
+- [x] **Run new concurrent tests under `-race`** — SQLite, DuckDB, PG all pass
+      `-count=3 -race` clean. 3 engines × 2 tests × 3 iterations = 18 green runs.
+- [x] **Record-aware integration test through DuckDB engine** —
+      `TestDuckDB_RecordStamping` in `duckdbengine/record_stamp_cgo_test.go`.
+      Handles `map[string]any` scan return (DuckDB returns maps, not JSONValue).
+- [x] **Record-aware integration test through PG engine** —
+      `TestPostgres_RecordStamping` in `pgengine/record_stamp_test.go`.
+      Uses testcontainers pattern. Completes 5-engine record-stamp coverage.
+- [x] **`RunTransactionalTest` on Memory engine (baseline)** —
+      `RunTransactionalBaselineTest` added to enginetest (pass-through tx: commit
+      + error propagation, documents no-rollback limitation).
+      `TestMemory_TransactionalBaseline` in `metaengine/memory_transactional_test.go`.
+- [x] **Soak test with `AutoCRUDByConvention` through Pebble/DuckDB** —
+      `enginetest.RunAutoCRUDSoak(t, eng)` extracted (220 lines → shared helper).
+      Pebble: 4.0MB heap, 0 errors. DuckDB: 0.1MB heap, 0 errors. Both `-race` clean.
+      Memory soak refactored to delegate to shared helper.
 
-> **Done this session:** Record-aware Pebble test, AutoCRUDByConvention soak
-> (45K events, 0.1MB heap growth), RunTransactionalTest on SQLite, concurrent
+> **Prior session work (carried over):** Record-aware Pebble + SQLite tests,
+> AutoCRUDByConvention Memory soak, RunTransactionalTest on SQLite, concurrent
 > RunInTx test (enginetest + SQLite/DuckDB/PG), MultiAdd + LogAppend
 > transactional subtests. badgerengine does NOT implement Transactional (no
 > RunInTx method), so it is correctly excluded.
+
+### Test coverage (follow-up items from this session)
+
+- [ ] **Regen API stability golden** — `RunTransactionalBaselineTest` and
+      `RunAutoCRUDSoak` are new exports in `enginetest`. Run
+      `cd cmd/api-stability && GOWORK=off go run main.go -update`.
+- [ ] **Run `nix run .#verify`** — verify gate not run this session. All tests
+      verified per-module via `go test` + `-race`.
+- [ ] **Add record-stamp test for badgerengine** — completes all-engine parity
+      (currently: Memory, SQLite, Pebble, DuckDB, PG have it; Badger, Dgraph,
+      GraphAdapter do not).
+- [ ] **Add AutoCRUD soak for sqliteengine + pgengine** — currently only
+      Memory/Pebble/DuckDB. SQLite and PG are the most-used SQL backends.
+- [ ] **Consolidate `race_on.go`/`race_off.go` into `testutil/`** — pattern is
+      now duplicated in 5 locations (benchkit, metaengine `_test`, transport/grpc
+      `_test`, enginetest, metaengine `soak_autocrud_test.go`). Single canonical
+      copy in testutil would eliminate the drift risk.
+- [ ] **Extract `RunRecordStampTest(t, eng)` helper in enginetest** — record-stamp
+      test body is copy-pasted across 4 engine modules (pebble, sqlite, duckdb, pg).
+      A shared helper would eliminate ~100 lines of duplication.
+- [ ] **DuckDB soak CI gating decision** — DuckDB soak takes 82-98s (vs Pebble
+      0.27s, Memory 0.03s). Consider `testing.Short()` skip or nightly-only tag
+      if it slows per-PR CI.
+- [ ] **Add `// Caller owns engine Close.` doc comment to
+      `RunTransactionalBaselineTest`** — matching the convention of
+      `RunTransactionalTest` and `RunAutoCRUDSoak`.
 
 ### Module health (DONE this session)
 

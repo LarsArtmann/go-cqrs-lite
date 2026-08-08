@@ -127,8 +127,7 @@ func (e *pebbleEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTMap:       metaengine.ComplexityO1, // LSM point read
 			metaengine.ADTSet:       metaengine.ComplexityO1,
 			metaengine.ADTCounter:   metaengine.ComplexityON, // CounterGet = prefix scan
-			metaengine.ADTGraph:     metaengine.ComplexityON, // BFS via prefix scan
-			metaengine.ADTSortedMap: metaengine.ComplexityON, // O(limit) with sort index, O(N) fallback
+				metaengine.ADTSortedMap: metaengine.ComplexityON, // O(limit) with sort index, O(N) fallback
 			metaengine.ADTLog:       metaengine.ComplexityOLogN,
 			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
 			metaengine.ADTVector:    metaengine.ComplexityON,
@@ -196,8 +195,6 @@ var (
 	multimapPrefix     = keycodec.MultimapPrefix
 	logKey             = keycodec.LogKey
 	logPrefix          = keycodec.LogPrefix
-	graphEdgeKey       = keycodec.GraphEdgeKey
-	graphPrefixForward = keycodec.GraphPrefixForward
 	collectionPrefix   = keycodec.CollectionPrefix
 	streamKey          = keycodec.StreamKey
 	streamPrefix       = keycodec.StreamPrefix
@@ -219,7 +216,6 @@ var (
 	_ metaengine.ScanBackend     = (*pebbleEngine)(nil)
 	_ metaengine.SetBackend      = (*pebbleEngine)(nil)
 	_ metaengine.CounterBackend  = (*pebbleEngine)(nil)
-	_ metaengine.GraphBackend    = (*pebbleEngine)(nil)
 	_ metaengine.MultimapBackend = (*pebbleEngine)(nil)
 	_ metaengine.LogBackend      = (*pebbleEngine)(nil)
 	_ metaengine.StreamingScan   = (*pebbleEngine)(nil)
@@ -499,60 +495,6 @@ func (e *pebbleEngine) CounterGet(_ context.Context, col string) (map[string]int
 	}
 
 	return result, iter.Error()
-}
-
-// --- GraphBackend ---
-
-func (e *pebbleEngine) GraphAddEdge(_ context.Context, col string, edge metaengine.Edge) error {
-	from := encodeKeyStr(edge.From)
-	to := encodeKeyStr(edge.To)
-
-	// Store edge in both directions for efficient neighbor lookup.
-	if err := e.db.Set(graphEdgeKey(col, from, to), nil, pebble.Sync); err != nil {
-		return err
-	}
-
-	return e.db.Set(graphEdgeKey(col, to, from), nil, pebble.Sync)
-}
-
-func (e *pebbleEngine) GraphNeighbors(
-	_ context.Context,
-	col string,
-	node any,
-	depth int,
-) ([]any, error) {
-	return keycodec.BFSNeighbors(e.scanGraphNeighbors, col, node, depth), nil
-}
-
-func (e *pebbleEngine) scanGraphNeighbors(col, node string) []string {
-	prefix := graphPrefixForward(col, node)
-	upperBound := nextKey(prefix)
-
-	iter, err := e.db.NewIter(&pebble.IterOptions{
-		LowerBound: prefix,
-		UpperBound: upperBound,
-	})
-	if err != nil {
-		return nil
-	}
-
-	defer metaengine.DeferClose(iter)
-
-	var neighbors []string
-
-	for iter.First(); iter.Valid(); iter.Next() {
-		// Key format: "g\x00{col}\x00{from}\x00{to}".
-		keyStr := string(iter.Key())
-
-		parts := strings.SplitN(keyStr, sep, 4)
-		if len(parts) < 4 {
-			continue
-		}
-
-		neighbors = append(neighbors, parts[3])
-	}
-
-	return neighbors
 }
 
 // --- MultimapBackend ---

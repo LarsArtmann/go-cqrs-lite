@@ -223,3 +223,48 @@ func TestQuicLogConvergence(t *testing.T) {
 		g.Expect(entries[1]).To(gomega.Equal("file-upload"))
 	}, 15*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
 }
+
+// TestQuicMapUpdateDoesNotReplicate proves that MapUpdate (atomic
+// read-modify-write) executes locally but does NOT cross node boundaries over
+// QUIC. This is the CALM theorem constraint: non-monotonic operations cannot
+// converge via CRDT. Mirrors the in-process TestMapUpdateDoesNotReplicate but
+// over the real QUIC transport.
+func TestQuicMapUpdateDoesNotReplicate(t *testing.T) {
+	c := newQuicCluster(t)
+
+	c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "counters", "c1", 0)).
+		To(gomega.Succeed())
+
+	// Wait for MapSet to replicate (CBOR round-trip may change int→uint64)
+	c.G.Eventually(func(g gomega.Gomega) {
+		_, ok, err := c.NodeB.(metaengine.MapBackend).MapGet(c.Ctx, "counters", "c1")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(ok).To(gomega.BeTrue())
+	}, 5*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
+
+	c.G.Expect(c.NodeA.(metaengine.MapUpdater).MapUpdate(c.Ctx, "counters", "c1",
+		func(prev any) any {
+			switch n := prev.(type) {
+			case int:
+				return n + 1
+			case uint64:
+				return n + 1
+			}
+			return 1
+		})).To(gomega.Succeed())
+
+	// Local MapUpdate applied (type-agnostic: CBOR may store as uint64)
+	c.G.Eventually(func(g gomega.Gomega) {
+		valA, _, err := c.NodeA.(metaengine.MapBackend).MapGet(c.Ctx, "counters", "c1")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(valA).To(gomega.BeEquivalentTo(1))
+	}, 5*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
+
+	time.Sleep(500 * time.Millisecond) // give replication time if it (incorrectly) happened
+
+	valB, okB, err := c.NodeB.(metaengine.MapBackend).MapGet(c.Ctx, "counters", "c1")
+	c.G.Expect(err).NotTo(gomega.HaveOccurred())
+	c.G.Expect(okB).To(gomega.BeTrue(), "MapSet replicated")
+	c.G.Expect(valB).To(gomega.BeEquivalentTo(0),
+		"MapUpdate must NOT replicate over QUIC (non-CRDT)")
+}

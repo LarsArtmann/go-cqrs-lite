@@ -50,8 +50,6 @@ type sqliteQuerySet struct {
 	// Log
 	logAppend string
 	logTail   string
-	// Graph
-	graphAddEdge string
 	// Stream Log
 	streamAppend    string
 	streamRead      string
@@ -85,11 +83,6 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		collection TEXT NOT NULL, value TEXT NOT NULL
 	);
-	CREATE TABLE IF NOT EXISTS meta_graph_edges (
-		collection TEXT NOT NULL, from_node TEXT NOT NULL, to_node TEXT NOT NULL
-	);
-	CREATE INDEX IF NOT EXISTS idx_graph_from ON meta_graph_edges(collection, from_node);
-	CREATE INDEX IF NOT EXISTS idx_graph_to ON meta_graph_edges(collection, to_node);
 	CREATE TABLE IF NOT EXISTS meta_stream_log (
 		seq INTEGER PRIMARY KEY AUTOINCREMENT,
 		collection TEXT NOT NULL,
@@ -113,7 +106,6 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		multiGet:         `SELECT value FROM meta_multimap WHERE collection = ? AND key = ? ORDER BY seq`,
 		logAppend:        `INSERT INTO meta_log (collection, value) VALUES (?, ?)`,
 		logTail:          `SELECT value FROM meta_log WHERE collection = ? ORDER BY id DESC LIMIT ?`,
-		graphAddEdge:     `INSERT INTO meta_graph_edges (collection, from_node, to_node) VALUES (?, ?, ?)`,
 		streamAppend:     `INSERT INTO meta_stream_log (collection, stream_id, value) VALUES (?, ?, ?)`,
 		streamRead:       `SELECT value FROM meta_stream_log WHERE collection = ? AND stream_id = ? ORDER BY seq`,
 		streamVersion:    `SELECT COUNT(*) FROM meta_stream_log WHERE collection = ? AND stream_id = ?`,
@@ -613,7 +605,6 @@ var (
 	_ metaengine.RawScanReader   = (*sqliteEngine)(nil)
 	_ metaengine.SetBackend      = (*sqliteEngine)(nil)
 	_ metaengine.CounterBackend  = (*sqliteEngine)(nil)
-	_ metaengine.GraphBackend    = (*sqliteEngine)(nil)
 	_ metaengine.MultimapBackend = (*sqliteEngine)(nil)
 	_ metaengine.LogBackend      = (*sqliteEngine)(nil)
 )

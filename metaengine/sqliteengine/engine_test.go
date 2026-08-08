@@ -189,28 +189,6 @@ var _ = Describe("SQLiteEngine", func() {
 		})
 	})
 
-	Describe("GraphBackend", func() {
-		It("finds neighbors via BFS", func() {
-			gb := eng.(metaengine.GraphBackend)
-			ctx := context.Background()
-
-			// Build: A → B → C, A → D
-			_ = gb.GraphAddEdge(ctx, "dep-graph", metaengine.Edge{From: "A", To: "B"})
-			_ = gb.GraphAddEdge(ctx, "dep-graph", metaengine.Edge{From: "B", To: "C"})
-			_ = gb.GraphAddEdge(ctx, "dep-graph", metaengine.Edge{From: "A", To: "D"})
-
-			// Depth 1: neighbors of A are B and D
-			n1, err := gb.GraphNeighbors(ctx, "dep-graph", "A", 1)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(n1).To(ConsistOf("B", "D"))
-
-			// Depth 2: neighbors of A are B, C, D
-			n2, err := gb.GraphNeighbors(ctx, "dep-graph", "A", 2)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(n2).To(ConsistOf("B", "C", "D"))
-		})
-	})
-
 	Describe("ScanBackend", func() {
 		It("scans with sorting and limit", func() {
 			sb := eng.(metaengine.ScanBackend)
