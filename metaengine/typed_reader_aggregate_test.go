@@ -30,8 +30,10 @@ func aggItemQuery() metaengine.QueryDecl[struct{}, aggItem] {
 	)
 }
 
-func TestTypedReader_AggregateFallback(t *testing.T) {
-	t.Parallel()
+// aggTestSetup seeds the memory engine with test data and returns a reader.
+// Shared across all aggregate fallback test groups.
+func aggTestSetup(t *testing.T) (context.Context, *metaengine.TypedReader[aggItem]) {
+	t.Helper()
 
 	ctx := context.Background()
 	eng := metaengine.NewMemoryEngine()
@@ -41,7 +43,6 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 		t.Fatalf("Plan: %v", err)
 	}
 
-	// Negative prices (MIN/MAX init regression), zero price (MIN==0 sentinel regression).
 	items := []aggItem{
 		{ID: "a", Status: "open", Price: 10},
 		{ID: "b", Status: "open", Price: 20},
@@ -58,12 +59,21 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 
 	reader := metaengine.NewReader[aggItem](store, "agg_items")
 
+	return ctx, reader
+}
+
+func TestTypedReader_AggregateFallback_Scalar(t *testing.T) {
+	t.Parallel()
+
+	ctx, reader := aggTestSetup(t)
+
 	t.Run("Count", func(t *testing.T) {
 		t.Parallel()
 		n, err := reader.Count(ctx, metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("Count: %v", err)
 		}
+
 		if n != 5 {
 			t.Errorf("Count = %d, want 5", n)
 		}
@@ -75,6 +85,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Sum: %v", err)
 		}
+
 		assertFloat(t, "Sum(price)", got, 55) // 10+20-5+0+30
 	})
 
@@ -84,7 +95,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Min: %v", err)
 		}
-		// The result==0 sentinel bug would return 0 instead of -5
+
 		assertFloat(t, "Min(price)", got, -5)
 	})
 
@@ -94,6 +105,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Max: %v", err)
 		}
+
 		assertFloat(t, "Max(price)", got, 30)
 	})
 
@@ -103,8 +115,27 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Avg: %v", err)
 		}
+
 		assertFloat(t, "Avg(price)", got, 11) // 55/5
 	})
+
+	t.Run("Distinct_status", func(t *testing.T) {
+		t.Parallel()
+		got, err := reader.Distinct(ctx, "Status", metaengine.WithLimit(0))
+		if err != nil {
+			t.Fatalf("Distinct: %v", err)
+		}
+
+		if len(got) != 2 {
+			t.Errorf("Distinct(status) returned %d values, want 2", len(got))
+		}
+	})
+}
+
+func TestTypedReader_AggregateFallback_Grouped(t *testing.T) {
+	t.Parallel()
+
+	ctx, reader := aggTestSetup(t)
 
 	t.Run("GroupedCount", func(t *testing.T) {
 		t.Parallel()
@@ -112,9 +143,11 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GroupedCount: %v", err)
 		}
+
 		if got["open"] != 3 {
 			t.Errorf("GroupedCount[open] = %v, want 3", got["open"])
 		}
+
 		if got["closed"] != 2 {
 			t.Errorf("GroupedCount[closed] = %v, want 2", got["closed"])
 		}
@@ -126,6 +159,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GroupedSum: %v", err)
 		}
+
 		assertFloat(t, "GroupedSum[open]", got["open"], 60)     // 10+20+30
 		assertFloat(t, "GroupedSum[closed]", got["closed"], -5) // -5+0
 	})
@@ -136,6 +170,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GroupedMin: %v", err)
 		}
+
 		assertFloat(t, "GroupedMin[closed]", got["closed"], -5)
 		assertFloat(t, "GroupedMin[open]", got["open"], 10)
 	})
@@ -146,6 +181,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GroupedMax: %v", err)
 		}
+
 		assertFloat(t, "GroupedMax[closed]", got["closed"], 0)
 		assertFloat(t, "GroupedMax[open]", got["open"], 30)
 	})
@@ -156,9 +192,16 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GroupedAvg: %v", err)
 		}
+
 		assertFloat(t, "GroupedAvg[open]", got["open"], 20)       // 60/3
 		assertFloat(t, "GroupedAvg[closed]", got["closed"], -2.5) // -5/2
 	})
+}
+
+func TestTypedReader_AggregateFallback_Multi(t *testing.T) {
+	t.Parallel()
+
+	ctx, reader := aggTestSetup(t)
 
 	t.Run("MultiAggregate", func(t *testing.T) {
 		t.Parallel()
@@ -172,9 +215,11 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 		if err != nil {
 			t.Fatalf("MultiAggregate: %v", err)
 		}
+
 		if got["cnt"] != 5 {
 			t.Errorf("MultiAggregate[cnt] = %v, want 5", got["cnt"])
 		}
+
 		assertFloat(t, "MultiAggregate[total]", got["total"], 55)
 		assertFloat(t, "MultiAggregate[avg_price]", got["avg_price"], 11)
 		assertFloat(t, "MultiAggregate[min_price]", got["min_price"], -5)
@@ -201,6 +246,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 		if got["open"]["cnt"] != 3 {
 			t.Errorf("MultiGroupedAggregate[open][cnt] = %v, want 3", got["open"]["cnt"])
 		}
+
 		assertFloat(t, "MultiGroupedAggregate[open][total]", got["open"]["total"], 60)
 		assertFloat(t, "MultiGroupedAggregate[open][avg_price]", got["open"]["avg_price"], 20)
 		assertFloat(t, "MultiGroupedAggregate[open][min_price]", got["open"]["min_price"], 10)
@@ -208,27 +254,18 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 		if got["closed"]["cnt"] != 2 {
 			t.Errorf("MultiGroupedAggregate[closed][cnt] = %v, want 2", got["closed"]["cnt"])
 		}
+
 		assertFloat(t, "MultiGroupedAggregate[closed][total]", got["closed"]["total"], -5)
 		assertFloat(t, "MultiGroupedAggregate[closed][avg_price]",
 			got["closed"]["avg_price"], -2.5)
 		assertFloat(t, "MultiGroupedAggregate[closed][min_price]",
 			got["closed"]["min_price"], -5)
 	})
-
-	t.Run("Distinct_status", func(t *testing.T) {
-		t.Parallel()
-		got, err := reader.Distinct(ctx, "Status", metaengine.WithLimit(0))
-		if err != nil {
-			t.Fatalf("Distinct: %v", err)
-		}
-		if len(got) != 2 {
-			t.Errorf("Distinct(status) returned %d values, want 2", len(got))
-		}
-	})
 }
 
 func assertFloat(t *testing.T, label string, got, want float64) {
 	t.Helper()
+
 	if got != want {
 		t.Errorf("%s = %v, want %v", label, got, want)
 	}

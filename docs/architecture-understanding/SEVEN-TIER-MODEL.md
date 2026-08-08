@@ -1,13 +1,8 @@
 # Seven-Tier Model — go-cqrs-lite
 
-> Replaces the fake "7-layer" system that claimed clean stratification but had
-> cross-layer dependencies leaking through go.mod files and test-only deps
-> inflating production dep counts. See [ADR-0046](../adr/0046-seven-tier-model.md)
+> Source of truth: [`scripts/check-module-layers.sh`](../../scripts/check-module-layers.sh)
+> enforces these rules at CI time. See [ADR-0046](../adr/0046-seven-tier-model.md)
 > for the decision record.
-
-> **Filename note:** Originally titled "Four-Tier Model." The name was a
-> misnomer — the model describes seven numbered tiers (0–6). Renamed for
-> accuracy. The filename is retained to avoid breaking existing links.
 
 ## The Seven Tiers
 
@@ -17,17 +12,26 @@ does it play?). A module with zero internal deps can still be Tier 4+ if its
 role is infrastructure or tooling — e.g. `otel/` (zero deps, Tier 4),
 `catalog/` (zero deps, Tier 6).
 
+> **Enforcement detail:** The check script uses 8 numeric layers (0–7) for
+> dependency ordering. Conceptual Tier 4 (Infrastructure) maps to script
+> Layers 4–5: Layer 4 modules (signing, encryption, otel, storage/memory) have
+> no deps on other infrastructure, while Layer 5 modules (middleware, storage,
+> transport, etc.) depend on Layer 4 modules. This split is invisible in the
+> conceptual model but enforced by the script. All other tiers map 1:1
+> (conceptual tier N = script layer N for tiers 0–3 and 5–6, where Tier 5 =
+> Layer 6 and Tier 6 = Layer 7).
+
 | Tier | Name               | Rule                                 | Modules |
 | ---- | ------------------ | ------------------------------------ | ------- |
-| 0    | Primitives         | No internal deps (or same-tier only) | 8       |
+| 0    | Primitives         | No internal deps (or same-tier only) | 9       |
 | 1    | Core Domain        | Depends on Tier 0                    | 5       |
-| 2    | Domain Utilities   | Depends on Tier 0–1                  | 5       |
+| 2    | Domain Utilities   | Depends on Tier 0–1                  | 7       |
 | 3    | Aggregation        | Depends on Tier 0–2                  | 5       |
-| 4    | Infrastructure     | Depends on Tier 0–3                  | 23      |
-| 5    | Composition        | Depends on Tier 0–4                  | 9       |
-| 6    | Tooling & Examples | Depends on all                       | 13      |
+| 4    | Infrastructure     | Depends on Tier 0–3                  | 27      |
+| 5    | Composition        | Depends on Tier 0–4                  | 10      |
+| 6    | Tooling & Examples | Depends on all                       | 15      |
 
-**Total: 68 modules** across 69 `go.mod` files (68 modules + 1 root workspace
+**Total: 78 modules** across 79 `go.mod` files (78 modules + 1 root workspace
 placeholder). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
 
 ---
@@ -40,17 +44,21 @@ These are foundational building blocks. Some depend on each other (e.g.
 | Module            | Purpose                                                           |
 | ----------------- | ----------------------------------------------------------------- |
 | `id/`             | Branded IDs: `id.Of[T]`, `AggregateID`, `StreamID`, etc.          |
+| `dispatcher/`     | Generic `Dispatcher[H, M]` with lifecycle mixin                   |
 | `codec/`          | Payload encoding: JSON, CBOR, Raw                                 |
 | `kv/`             | KV store: `Store`, `MemStore`, `TypedStore[T,K]`                  |
 | `dedup/`          | Bounded dedup ring buffer                                         |
-| `dispatcher/`     | Generic `Dispatcher[H, M]` with lifecycle mixin                   |
-| `retry/`          | Re-export of go-retry: `Do`, `Config`, `Backoff`                  |
-| `flightrecorder/` | Go 1.25 runtime/trace flight recorder wrapper                     |
+| `record/`         | Shared Record + CommonMetadata types (structural base for events + commands) |
 | `metaengine/`     | Cost-based storage planner (the strategic future of this project) |
+| `flightrecorder/` | Go 1.25 runtime/trace flight recorder wrapper                     |
+| `retry/`          | Re-export of go-retry: `Do`, `Config`, `Backoff` (DEPRECATED)     |
 
 > **`metaengine/` is Tier 0 by design** (ADR-0062). The core planner has zero
 > internal deps (stdlib + `database/sql` + `dedup/` only). The bridge to the
 > CQRS event-sourcing world lives in `metaengine/projectionadapter/` (Tier 4).
+
+> **`record/` is Tier 0** (ADR-0111). Zero deps. Structural base for both
+> events and commands. `event.AsRecord()` adapts the ES pipeline.
 
 ---
 
@@ -78,13 +86,15 @@ The core CQRS vocabulary: events, commands, queries, scheduling, metadata.
 
 Cross-cutting domain concerns that build on the core vocabulary.
 
-| Module         | Purpose                                                        |
-| -------------- | -------------------------------------------------------------- |
-| `schema/`      | Upcaster, VersionedStore, Validator with `RegisterType[T]()`   |
-| `snapshot/`    | Snapshot types + strategy (EveryNEvents, ReadPressure)         |
-| `projection/`  | Projection interface (consumer-side)                           |
-| `idempotency/` | Re-export of go-idempotency: Store, MemoryStore, ErrDuplicate  |
-| `deriver/`     | Event-to-command derivation: Deriver, Then, Filter, Idempotent |
+| Module                  | Purpose                                                        |
+| ----------------------- | -------------------------------------------------------------- |
+| `schema/`               | Upcaster, VersionedStore, Validator with `RegisterType[T]()`   |
+| `snapshot/`             | Snapshot types + strategy (EveryNEvents, ReadPressure)         |
+| `projection/`           | Projection interface (consumer-side)                           |
+| `idempotency/`          | Re-export of go-idempotency: Store, MemoryStore, ErrDuplicate  |
+| `deriver/`              | Event-to-command derivation: Deriver, Then, Filter, Idempotent |
+| `idempotency/kvstore/`  | KV-backed idempotency                                          |
+| `idempotency/sqlstore/` | SQL-backed idempotency (SQLite/Postgres)                       |
 
 ---
 
@@ -107,35 +117,39 @@ Higher-level domain patterns that combine multiple Tier 0–2 modules.
 Concrete implementations of the abstractions: storage backends, transport,
 middleware, observability, and security. The largest tier.
 
+> **Inner Infrastructure (script Layer 4)** — no deps on other infrastructure:
+
+| Module            | Purpose                                                                   |
+| ----------------- | ------------------------------------------------------------------------- |
+| `signing/`        | Event signing: HMAC-SHA256, Ed25519, multisig                             |
+| `encryption/`     | Payload encryption: XChaCha20-Poly1305, AES-256-GCM                       |
+| `otel/`           | Shared OTel helpers (zero internal deps, but conceptually infrastructure) |
+| `storage/memory/` | In-memory test impls (MemoryStore, etc.)                                  |
+
+> **Outer Infrastructure (script Layer 5)** — depends on inner infrastructure:
+
 ### Storage Backends
 
 | Module            | Purpose                                                                            |
 | ----------------- | ---------------------------------------------------------------------------------- |
-| `storage/memory/` | In-memory test impls (MemoryStore, etc.)                                           |
 | `storage/`        | SQL facade: EventStore, CommandStore, QueryStore, KV, relational, view, migrations |
 | `storage/pebble/` | PebbleDB: EventStore, KVAdapter, Backend facade                                    |
+| `storage/bbolt/`  | bbolt: EventStore, KVAdapter, Backend facade (B+tree, pure Go)                     |
 | `storage/turso/`  | Turso embedded database connector                                                  |
-
-### Security
-
-| Module        | Purpose                                             |
-| ------------- | --------------------------------------------------- |
-| `signing/`    | Event signing: HMAC-SHA256, Ed25519, multisig       |
-| `encryption/` | Payload encryption: XChaCha20-Poly1305, AES-256-GCM |
 
 ### Observability
 
-| Module        | Purpose                                                                   |
-| ------------- | ------------------------------------------------------------------------- |
-| `otel/`       | Shared OTel helpers (zero internal deps, but conceptually infrastructure) |
-| `prometheus/` | OTel-to-Prometheus metrics bridge                                         |
+| Module        | Purpose                             |
+| ------------- | ----------------------------------- |
+| `prometheus/` | OTel-to-Prometheus metrics bridge   |
 
 ### Cross-Cutting
 
-| Module        | Purpose                                                                           |
-| ------------- | --------------------------------------------------------------------------------- |
-| `middleware/` | Logging, Retry, Recovery, Validation, Idempotency, Metrics, OTel, Circuit Breaker |
-| `testutil/`   | Shared test helpers (NewCmd, etc.)                                                |
+| Module        | Purpose                                                                             |
+| ------------- | ----------------------------------------------------------------------------------- |
+| `middleware/` | Logging, Retry, Recovery, Validation, Idempotency, Metrics, OTel, Circuit Breaker   |
+| `testutil/`   | Shared test helpers (NewCmd, etc.)                                                  |
+| `testutil/pgtestcontainer/` | Postgres testcontainers helper for integration tests                    |
 
 ### Transport
 
@@ -158,17 +172,19 @@ middleware, observability, and security. The largest tier.
 | `metaengine/pebbleengine/`        | Pebble-backed engine (LSM point reads)              |
 | `metaengine/duckdbengine/`        | DuckDB-backed engine (columnar OLAP, CGo)           |
 | `metaengine/pgengine/`            | Postgres-backed engine (JSONB + B-tree)             |
+| `metaengine/sqliteengine/`        | SQLite-backed engine (extracted from core, ADR-0115)|
+| `metaengine/badgerengine/`        | Badger-backed engine (LSM point reads)              |
+| `metaengine/dgraphengine/`        | Dgraph-backed engine (distributed graph DB)         |
+| `metaengine/graphadapter/`        | Wraps graph.MemoryDriver as metaengine Engine       |
 | `metaengine/irohengine/`          | Iroh Level 2 replication wrapper (CRDT convergence) |
 | `metaengine/irohengine/loopback/` | Loopback transport (real TCP, no CGo)               |
 | `metaengine/irohengine/quic/`     | QUIC transport (real Iroh, CGo)                     |
 
 ### Sub-Store Implementations
 
-| Module                  | Purpose                                        |
-| ----------------------- | ---------------------------------------------- |
-| `idempotency/sqlstore/` | SQL-backed idempotency (SQLite/Postgres)       |
-| `idempotency/kvstore/`  | KV-backed idempotency                          |
-| `scheduling/sqlstore/`  | SQL-backed timer store (SQLite/Postgres/MySQL) |
+| Module                 | Purpose                                        |
+| ---------------------- | ---------------------------------------------- |
+| `scheduling/sqlstore/` | SQL-backed timer store (SQLite/Postgres/MySQL) |
 
 ---
 
@@ -181,9 +197,10 @@ One-call wiring that composes infrastructure into deployable bundles.
 | `stack/`          | Bundle abstraction + shared options (durability, codec, health)    |
 | `stack/memory/`   | Memory preset                                                      |
 | `stack/sqlite/`   | SQLite preset                                                      |
-| `stack/duckdb/`   | DuckDB preset (CGo, columnar OLAP)                                 |
 | `stack/pebble/`   | Pebble preset (LSM)                                                |
+| `stack/bbolt/`    | bbolt preset (B+tree, pure Go)                                     |
 | `stack/postgres/` | Postgres preset                                                    |
+| `stack/duckdb/`   | DuckDB preset (CGo, columnar OLAP)                                 |
 | `stack/mysql/`    | MySQL/MariaDB preset                                               |
 | `stack/turso/`    | Turso preset (embedded sync)                                       |
 | `system/`         | Deployer-driven composition root (DomainConfig + DeploymentConfig) |
@@ -194,21 +211,23 @@ One-call wiring that composes infrastructure into deployable bundles.
 
 Developer tools, code generators, linters, test harnesses, and usage demos.
 
-| Module                       | Purpose                                             |
-| ---------------------------- | --------------------------------------------------- |
-| `catalog/`                   | API documentation generator (AsyncAPI, D2, OpenAPI) |
-| `integration/`               | Cross-module integration tests                      |
-| `benchkit/`                  | Factory-driven benchmarking suite                   |
-| `stack/bench/`               | Stack-level benchmark presets                       |
-| `cmd/cqrs-gen/`              | Code generator: typed handler registration          |
-| `cmd/cqrs-lint/`             | Domain-aware linter (186 rules, 10 categories)      |
-| `cmd/cqrs-bench/`            | CLI: benchmark any backend with workload profiles   |
-| `cmd/api-stability/`         | API surface checker (golden file comparison)        |
-| `cmd/doc-check/`             | Doc link verifier (Go import paths in markdown)     |
-| `example/taskmanager/`       | Flagship full HTTP service example                  |
-| `example/getting-started/`   | Minimal 80-line example                             |
-| `example/readme-quickstart/` | README quickstart example                           |
-| `event/v4/eventtest/`        | Test helpers: FakeStore, FakeBus, golden assertions |
+| Module                          | Purpose                                             |
+| ------------------------------- | --------------------------------------------------- |
+| `catalog/`                      | API documentation generator (AsyncAPI, D2, OpenAPI) |
+| `integration/`                  | Cross-module integration tests                      |
+| `benchkit/`                     | Factory-driven benchmarking suite                   |
+| `stack/bench/`                  | Stack-level benchmark presets                       |
+| `metaengine/bench/`             | Cross-engine benchmark module                       |
+| `cmd/cqrs-gen/`                 | Code generator: typed handler registration          |
+| `cmd/cqrs-lint/`                | Domain-aware linter (192 rules, 10 categories)      |
+| `cmd/cqrs-bench/`               | CLI: benchmark any backend with workload profiles   |
+| `cmd/api-stability/`            | API surface checker (golden file comparison)        |
+| `cmd/doc-check/`                | Doc link verifier (Go import paths in markdown)     |
+| `example/taskmanager/`          | Flagship full HTTP service example                  |
+| `example/getting-started/`      | Minimal 80-line example                             |
+| `example/readme-quickstart/`    | README quickstart example                           |
+| `example/metaengine-quickstart/`| Metaengine quickstart example                       |
+| `event/v4/eventtest/`           | Test helpers: FakeStore, FakeBus, golden assertions |
 
 ---
 
@@ -245,7 +264,7 @@ lies:
    test deps (`eventtest`, `schema`, `snapshot`, `storage/memory`) that leaked
    into production dep counts. The `eventtest` extraction to a nested module
    (ADR-0045) reduced this, but Go modules still list test deps in `require`.
-3. **44 of 68 modules depend on `codec/`** — the true hub was invisible in the
+3. **44 of 78 modules depend on `codec/`** — the true hub was invisible in the
    old system. `codec/` is now correctly placed in Tier 0.
 4. **`command/` and `query/` pull `event/` as `// indirect` in go.mod** —
    via `storage/memory/` (test-only dep). Production code has zero `event/`

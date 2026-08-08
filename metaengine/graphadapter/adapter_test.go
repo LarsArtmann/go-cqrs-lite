@@ -9,6 +9,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
+// graphadapter implements only GraphBackend (not MapBackend), so
+// RunRecordStampTest does not apply — AutoInsert requires MapBackend to
+// store projected values. All 7 MapBackend-capable engines (Memory, Pebble,
+// SQLite, DuckDB, Postgres, Badger, Dgraph) have record-stamp coverage.
 func TestAdapter_Profile(t *testing.T) {
 	t.Parallel()
 
