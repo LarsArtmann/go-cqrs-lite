@@ -122,6 +122,13 @@ func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
+					// Require a Type() method — real CQRS query types implement
+					// query.Query's Type() method. DTOs whose name happens to end
+					// in "Query" (form-binding structs, filter objects) do not.
+					if !ctx.Registry.TypesWithTypeMethod[ts.Name.Name] {
+						return true
+					}
+
 					if ctx.Registry.IsCommandRegistered(ts.Name.Name) {
 						return true
 					}

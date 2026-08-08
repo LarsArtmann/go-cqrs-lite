@@ -255,3 +255,26 @@ func TestC002_NoCrashOnEmptyInput(t *testing.T) {
 	}
 	_ = findings
 }
+
+func TestC002_SkipsTransportAdapter(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"adapter.go": `package main
+
+type CommandID struct{ Value string }
+
+type PluginLoadCmd struct{}
+
+func (c PluginLoadCmd) ID() CommandID { return CommandID{} }
+func (c PluginLoadCmd) Type() string  { return "plugin.load" }
+func (c PluginLoadCmd) StreamID() string { return "" }
+
+func (c PluginLoadCmd) toDomain() (DomainCmd, error) {
+	return DomainCmd{}, nil
+}
+
+type DomainCmd struct{}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC002Detector(ctx))
+	ruletest.AssertRule(t, findings, "C002", 0)
+}

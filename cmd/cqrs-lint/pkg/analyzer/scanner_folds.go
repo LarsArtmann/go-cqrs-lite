@@ -70,6 +70,10 @@ func scanTypedMethod(ctx *AnalysisContext, _ *GoFile, fn *ast.FuncDecl, _ token.
 		return
 	}
 
+	if fn.Name != nil && fn.Name.Name == "Type" {
+		ctx.Registry.TypesWithTypeMethod[recvType] = true
+	}
+
 	cmd := ctx.Registry.CommandByName(recvType)
 	if cmd != nil {
 		cmd.ManualType = true

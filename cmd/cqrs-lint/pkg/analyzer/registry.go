@@ -48,6 +48,11 @@ type CQRSRegistry struct {
 	// post-pass by finding the method's FuncDecl and extracting the command/
 	// query type from its parameter list. See SEC consumer feedback.
 	pendingHandlerMethods map[string]bool
+
+	// TypesWithTypeMethod records struct type names that have a Type() method.
+	// Used by E007 to distinguish real CQRS query types (which implement
+	// query.Query's Type() method) from DTOs whose name happens to end in "Query".
+	TypesWithTypeMethod map[string]bool
 }
 
 // NewCQRSRegistry creates an empty registry.
@@ -60,6 +65,7 @@ func NewCQRSRegistry() *CQRSRegistry {
 		TypeConstValues:        make(map[string]string),
 		StrictApplyFolds:       make(map[string]bool),
 		pendingHandlerMethods:  make(map[string]bool),
+		TypesWithTypeMethod:    make(map[string]bool),
 	}
 }
 

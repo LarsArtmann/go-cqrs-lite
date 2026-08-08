@@ -459,9 +459,13 @@ func TestE007_DetectsUnregisteredQuery(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"queries.go": `package main
 
+type QueryType string
+
 type GetUserQuery struct {
 	ID string
 }
+
+func (q GetUserQuery) Type() QueryType { return "GetUserQuery" }
 `,
 	})
 	findings := ruletest.RunDetector(t, architecture.NewE007Detector(ctx))
@@ -567,9 +571,13 @@ func TestE007_FiresWhenTypeConstExistsButIsNeverRegistered(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"queries.go": `package main
 
+type QueryType string
+
 type GetUserQuery struct {
 	ID string
 }
+
+func (q GetUserQuery) Type() QueryType { return "GetUserQuery" }
 `,
 		"consts.go": `package main
 
