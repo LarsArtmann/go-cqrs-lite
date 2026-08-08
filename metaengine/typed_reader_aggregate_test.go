@@ -59,6 +59,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 	reader := metaengine.NewReader[aggItem](store, "agg_items")
 
 	t.Run("Count", func(t *testing.T) {
+		t.Parallel()
 		n, err := reader.Count(ctx, metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("Count: %v", err)
@@ -69,6 +70,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 	})
 
 	t.Run("Sum_price", func(t *testing.T) {
+		t.Parallel()
 		got, err := reader.Sum(ctx, "Price", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("Sum: %v", err)
@@ -77,6 +79,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 	})
 
 	t.Run("Min_price_negative_regression", func(t *testing.T) {
+		t.Parallel()
 		got, err := reader.Min(ctx, "Price", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("Min: %v", err)
@@ -86,6 +89,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 	})
 
 	t.Run("Max_price", func(t *testing.T) {
+		t.Parallel()
 		got, err := reader.Max(ctx, "Price", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("Max: %v", err)
@@ -94,6 +98,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 	})
 
 	t.Run("Avg_price", func(t *testing.T) {
+		t.Parallel()
 		got, err := reader.Avg(ctx, "Price", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("Avg: %v", err)
@@ -102,6 +107,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 	})
 
 	t.Run("GroupedCount", func(t *testing.T) {
+		t.Parallel()
 		got, err := reader.GroupedCount(ctx, "Status", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("GroupedCount: %v", err)
@@ -115,6 +121,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 	})
 
 	t.Run("GroupedSum", func(t *testing.T) {
+		t.Parallel()
 		got, err := reader.GroupedSum(ctx, "Price", "Status", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("GroupedSum: %v", err)
@@ -124,6 +131,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 	})
 
 	t.Run("GroupedMin_negative_regression", func(t *testing.T) {
+		t.Parallel()
 		got, err := reader.GroupedMin(ctx, "Price", "Status", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("GroupedMin: %v", err)
@@ -133,6 +141,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 	})
 
 	t.Run("GroupedMax", func(t *testing.T) {
+		t.Parallel()
 		got, err := reader.GroupedMax(ctx, "Price", "Status", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("GroupedMax: %v", err)
@@ -142,6 +151,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 	})
 
 	t.Run("GroupedAvg", func(t *testing.T) {
+		t.Parallel()
 		got, err := reader.GroupedAvg(ctx, "Price", "Status", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("GroupedAvg: %v", err)
@@ -151,6 +161,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 	})
 
 	t.Run("MultiAggregate", func(t *testing.T) {
+		t.Parallel()
 		got, err := reader.MultiAggregate(ctx, []metaengine.AggregateSpec{
 			{Fn: metaengine.AggregateCount, Alias: "cnt"},
 			{Fn: metaengine.AggregateSum, Column: "Price", Alias: "total"},
@@ -171,6 +182,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 	})
 
 	t.Run("MultiGroupedAggregate", func(t *testing.T) {
+		t.Parallel()
 		rows, err := reader.MultiGroupedAggregate(ctx, []metaengine.AggregateSpec{
 			{Fn: metaengine.AggregateCount, Alias: "cnt"},
 			{Fn: metaengine.AggregateSum, Column: "Price", Alias: "total"},
@@ -204,6 +216,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 	})
 
 	t.Run("Distinct_status", func(t *testing.T) {
+		t.Parallel()
 		got, err := reader.Distinct(ctx, "Status", metaengine.WithLimit(0))
 		if err != nil {
 			t.Fatalf("Distinct: %v", err)

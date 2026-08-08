@@ -664,7 +664,7 @@ func TestDuckDB_ExplainAggregateQuery(t *testing.T) {
 	if err != nil {
 		t.Skipf("DuckDB not available: %v", err)
 	}
-	defer eng.Close()
+	t.Cleanup(func() { eng.Close() })
 
 	const col = "products_explain"
 	seedProducts(t, eng, col)

@@ -338,6 +338,7 @@ linters:
           - gochecknoglobals
           - funlen
           - cyclop
+          - maintidx
           - goconst
       # 'unused' false-positives in test helpers exercised conditionally
       # (build tags, sub-tests).

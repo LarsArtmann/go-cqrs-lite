@@ -19,7 +19,6 @@ import (
 // After construction, the consumer registers commands, queries, and deciders
 // via the generic top-level functions (RegisterDecider, RegisterCommand,
 // RegisterQuery). Then call Start to begin projection processing.
-//
 func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) (*System, error) {
 	// Safety check: refuse to start if SCREAM-tier violations exist.
 	if report, err := CheckSafety(ctx, deployment); err != nil {
