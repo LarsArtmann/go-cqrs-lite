@@ -5,7 +5,6 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
-	"math/big"
 	"strings"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -246,40 +245,9 @@ func (e *duckdbEngine) scanScalar(
 		return 0, fmt.Errorf("duckdbengine.Aggregate %s %s(%s): %w", col, fn, column, err)
 	}
 
-	return decodeFloat(raw)
+	return metaengine.DecodeFloat(raw)
 }
 
-// decodeFloat converts a DuckDB scalar scan value to float64. DuckDB returns
-// float64 for SUM/AVG over DOUBLE columns, HUGEINT (mapped to *big.Int by the
-// driver) for SUM over INTEGER columns, int64 for COUNT, and nil for empty sets.
-func decodeFloat(raw any) (float64, error) {
-	if raw == nil {
-		return 0, nil
-	}
-
-	switch v := raw.(type) {
-	case float64:
-		return v, nil
-	case float32:
-		return float64(v), nil
-	case int64:
-		return float64(v), nil
-	case int:
-		return float64(v), nil
-	case *big.Int:
-		f, _ := v.Float64()
-		return f, nil
-	case []byte:
-		var f float64
-		if err := json.Unmarshal(v, &f); err != nil {
-			return 0, fmt.Errorf("duckdbengine decodeFloat: %w", err)
-		}
-
-		return f, nil
-	default:
-		return 0, fmt.Errorf("duckdbengine decodeFloat: unexpected type %T", raw)
-	}
-}
 
 // ---------------------------------------------------------------------------
 // GroupedAggregateReader (GROUP BY + single aggregate)
@@ -385,7 +353,7 @@ func (e *duckdbEngine) scanGrouped(
 			return nil, fmt.Errorf("duckdbengine.GroupedAggregate: scan: %w", err)
 		}
 
-		val, err := decodeFloat(raw)
+		val, err := metaengine.DecodeFloat(raw)
 		if err != nil {
 			return nil, err
 		}
@@ -511,7 +479,7 @@ func (e *duckdbEngine) scanMulti(
 
 	result := make(map[string]float64, len(specs))
 	for i, s := range specs {
-		val, err := decodeFloat(raws[i])
+		val, err := metaengine.DecodeFloat(raws[i])
 		if err != nil {
 			return nil, fmt.Errorf("duckdbengine.MultiAggregate alias %q: %w", s.AliasOr(), err)
 		}
@@ -663,7 +631,7 @@ func (e *duckdbEngine) scanMultiGrouped(
 
 		values := make(map[string]float64, len(specs))
 		for i, s := range specs {
-			val, err := decodeFloat(raws[i])
+			val, err := metaengine.DecodeFloat(raws[i])
 			if err != nil {
 				return nil, fmt.Errorf(
 					"duckdbengine.MultiGroupedAggregate alias %q: %w",

@@ -2,7 +2,6 @@ package sqliteengine
 
 import (
 	"context"
-	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"strings"
@@ -220,7 +219,7 @@ func (e *sqliteEngine) scanMultiSQLite(
 
 	result := make(map[string]float64, len(specs))
 	for i, s := range specs {
-		val, err := sqliteDecodeFloat(raws[i])
+		val, err := metaengine.DecodeFloat(raws[i])
 		if err != nil {
 			return nil, fmt.Errorf("sqliteengine.MultiAggregate alias %q: %w", s.AliasOr(), err)
 		}
@@ -352,7 +351,7 @@ func (e *sqliteEngine) scanMultiGroupedSQLite(
 
 		values := make(map[string]float64, len(specs))
 		for i, s := range specs {
-			val, err := sqliteDecodeFloat(raws[i])
+			val, err := metaengine.DecodeFloat(raws[i])
 			if err != nil {
 				return nil, fmt.Errorf("sqliteengine.MultiGroupedAggregate alias %q: %w",
 					s.AliasOr(), err)
@@ -482,34 +481,6 @@ func aggExprSQLite(fn metaengine.AggregateFn, column string, planned bool) strin
 	return fmt.Sprintf("%s(json_extract(value, '%s'))", fn, jsonPath(column))
 }
 
-// sqliteDecodeFloat converts a SQLite scan value to float64. SQLite returns
-// float64 for SUM/AVG, int64 for COUNT, and nil for empty sets.
-func sqliteDecodeFloat(raw any) (float64, error) {
-	if raw == nil {
-		return 0, nil
-	}
-
-	switch v := raw.(type) {
-	case float64:
-		return v, nil
-	case float32:
-		return float64(v), nil
-	case int64:
-		return float64(v), nil
-	case int:
-		return float64(v), nil
-	case []byte:
-		var f float64
-
-		if err := json.Unmarshal(v, &f); err != nil {
-			return 0, fmt.Errorf("sqliteengine sqliteDecodeFloat: %w", err)
-		}
-
-		return f, nil
-	default:
-		return 0, fmt.Errorf("sqliteengine sqliteDecodeFloat: unexpected type %T", raw)
-	}
-}
 
 // Compile-time assertions for the new interfaces.
 var (

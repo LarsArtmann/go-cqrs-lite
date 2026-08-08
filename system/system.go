@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"io"
 	"sync"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
@@ -82,6 +83,19 @@ func (s *System) engineSlice() []metaengine.Engine {
 	}
 
 	return result
+}
+
+// projectionHostLifecycle is the subset of projectionhost.Host methods that
+// System calls internally. Defining it as an interface enables test injection
+// of mock projection hosts (e.g., to simulate Stop failures). *projectionhost.Host
+// satisfies this interface at construction time.
+type projectionHostLifecycle interface {
+	Start(ctx context.Context) error
+	Stop() error
+	Status() []projectionhost.WorkerState
+	LagPerProjection() map[string]time.Duration
+	LagDuration() time.Duration
+	Reset(ctx context.Context, name string, opts ...projectionhost.ResetOption) error
 }
 
 // System is the composition root that owns ALL infrastructure wiring (D6).
