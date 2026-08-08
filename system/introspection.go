@@ -195,9 +195,11 @@ func (s *System) Explain(ctx context.Context) string {
 	b.WriteString("System Topology:\n")
 	fmt.Fprintf(&b, "  Drivers: %s\n", strings.Join(RegisteredDrivers(), ", "))
 	fmt.Fprintf(&b, "  Engines: %d\n", len(s.engines))
+
 	for _, ne := range s.engines {
 		fmt.Fprintf(&b, "    - %s\n", ne.name)
 	}
+
 	fmt.Fprintf(&b, "  Started: %v\n", s.started)
 
 	if s.projHost != nil {

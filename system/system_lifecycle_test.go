@@ -283,6 +283,7 @@ func TestSystem_RegisterCloser(t *testing.T) {
 
 type slowCloseEngine struct {
 	metaengine.Engine
+
 	delay time.Duration
 }
 

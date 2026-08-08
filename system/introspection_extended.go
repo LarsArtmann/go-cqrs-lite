@@ -37,6 +37,7 @@ func (s *System) ShutdownOrder() []string {
 	defer s.mu.RUnlock()
 
 	ordered := s.orderedEngines()
+
 	names := make([]string, len(ordered))
 	for i, eng := range ordered {
 		names[i] = eng.Profile().Name

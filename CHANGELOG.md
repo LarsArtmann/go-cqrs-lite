@@ -8,6 +8,176 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### CBOR encoding bugfix — event.New WithEncoding respect + Watermill fixes
+
+- **`event.New` WithEncoding fix** — `event.New()` was silently discarding
+  `WithEncoding` for `[]byte` payloads. Events created with `WithEncoding("raw")`
+  or `WithEncoding("cbor")` were stamped as the default codec instead.
+  Regression test `TestNew_WithEncodingRespectedForRawBytes` added.
+- **`MessageToEvent` default fix** — old Watermill messages without an encoding
+  stamp now default to JSON (not CBOR), preventing decode failures on legacy
+  messages during CBOR migration.
+- **4 Watermill CBOR test failures fixed** — `TestRoundTrip`,
+  `TestMessageToEvent_DefaultsJSONWhenNoEncoding`,
+  `TestEventToMessage_PreservesEncoding/json`, `TestEventPublisher_RoundTripCBOR`.
+- **`TestToolCompiles` meta-test** — compile guard in `cmd/api-stability` to
+  prevent the api-stability tool itself from breaking the CI gate.
+
+#### Aggregate pushdown — SQL COUNT/SUM/MIN/MAX/AVG via the engine
+
+- **5 aggregate interfaces** in metaengine core: `AggregateReader`,
+  `GroupedAggregateReader`, `MultiAggregateReader`,
+  `MultiGroupedAggregateReader`, `ExplainableAggregate`. Define COUNT/SUM/MIN/
+  MAX/AVG pushdown as engine-level SQL execution instead of Go-side accumulation.
+- **DuckDB engine**: all 5 interfaces implemented (~480 LOC). GROUP BY pushdown
+  4.4x faster than Go-side at 100K rows. MultiAggregate 2.1x faster.
+- **SQLite engine**: 4 aggregate interfaces (AggregateReader + GroupedAggregate +
+  MultiAggregate + MultiGroupedAggregate) on both json_extract and planned-table
+  paths. 10 planned-table subtests + 5 empty-collection edge cases.
+- **Postgres engine**: all 5 aggregate interfaces + `ExplainableAggregate` +
+  `ExplainableScan`. JSONB operator-based aggregation pushdown.
+- **TypedReader consumer methods**: `GroupedCount`/`GroupedSum`/`GroupedMin`/
+  `GroupedMax`/`GroupedAvg`, `MultiAggregate`, `MultiGroupedAggregate`.
+  13 TypedReader pushdown integration subtests.
+- **Cross-engine parity harness**: DuckDB vs SQLite aggregate parity tests.
+  Filter-based cross-engine parity tests.
+- **Bug fixes found during development**: `MultiGroupedAggregate` AVG fallback
+  bug (per-spec nonNullCounts), `aggregatePushdown` MIN/MAX/AVG fallback bugs
+  (sentinel → firstSet flag), SQLite Aggregate NULL crash on empty collections,
+  `inferColumnType` "price" → INTEGER bug (now REAL).
+- **`ADTStreamLog` fix** — was defined in `metaengine/types.go` but NOT in
+  `AllADTs()` (`enum_validation.go`), so `Valid()` returned false. Fixed.
+
+#### System lifecycle hardening — 8 new introspection methods + HealthCheck on all engines
+
+- **`System.Drain(ctx)`** — drains in-flight work via registered `Drainer`s
+  without closing the system. For rolling deploys.
+- **`System.EngineNames()`** — returns engine names for diagnostics.
+- **`System.ShutdownOrder()`** — returns resolved close order for debugging
+  shutdown hangs.
+- **`System.HealthCheckDetailed(ctx)`** — structured per-engine health results
+  (`[]EngineHealth{Name, Error}`). `HealthCheck()` stays first-error-only.
+- **`System.LagPerProjection()`** — exposes projection host lag per projection
+  via System.
+- **`System.LagDuration()`** — total lag (max across all workers).
+- **`System.WorkerStatus()`** — exposes projection host worker status.
+- **`System.RegisterCloser(name, closer)`** — lets consumers register external
+  resources for lifecycle management.
+- **HealthCheck on Badger + Dgraph engines** — Badger uses `db.View(func(txn)
+  error { return nil })` as lightweight probe; Dgraph uses gRPC connection check.
+  All 6 metaengine engines now implement `metaengine.HealthChecker`.
+- **HealthCheck tests for all engines** — Pebble (healthy + closed DB), SQLite
+  (closed DB error propagation), DuckDB (CGo), Postgres (testcontainers),
+  Badger (healthy + closed), Dgraph (healthy). `Store.HealthCheck` delegation
+  tests verify it delegates to all engines.
+- **GracefulClose data race fix** — `orderedEngines()` was called concurrently
+  with `Close()` mutation. Fixed with snapshot.
+- **Pebble HealthCheck panic-on-close fix** — `db.Get()` panics on closed DB;
+  now guarded with `defer recover()`.
+
+#### GraphBackend cleanup — removed from 4 degraded engines (-433 lines)
+
+- **GraphBackend removed** from SQLite, Pebble, Badger, and Iroh engines. These
+  engines had O(N) BFS scan fallbacks (not real graph databases). Engines now
+  return `ErrUnsupportedGraphOps` for graph queries — consumers use `graphadapter`
+  or `dgraphengine` instead.
+- **Dead code removed** — `keycodec.GraphEdgeKey`, `GraphPrefixForward`,
+  `BFSNeighbors` from keycodec. Dead `nextKey` function in badgerengine (had
+  `slices.Backward` copy-mutation bug).
+- **Record-aware graphadapter integration test** — proves the full ES-native
+  pipeline: `Plan` → `ApplyRecord(Record)` → `Execute(Traversal)` → neighbors.
+  Graph queries flow: Store → GraphBackend → graphadapter → graph.MemoryDriver.
+- **GraphBackend retained** on Memory (testing), Dgraph (native graph DB),
+  GraphAdapter (canonical graph path).
+
+#### Dedup helper extraction — DeferClose, renderTable, TitleCase/Truncate
+
+- **`metaengine.DeferClose(c Closer)`** — replaces `defer func() { _ = X.Close()
+  }()` boilerplate. 47 production sites + 17 test sites refactored across
+  sqlite/pg/duckdb/pebble/badger/dgraph engines.
+- **`renderTable` + shared primitives** — generalized `renderKeyTable` into
+  `renderTable` + `writeTableRow` + `writeTableSeparator` + `columnWidths` in
+  `cmd/cqrs-lint`.
+- **`benchkit.TitleCase` + `benchkit.Truncate`** — shared string utilities,
+  eliminated duplication in `cmd/cqrs-bench`.
+- **Threshold-3 dedup to zero** — art-dupl clone groups at threshold 3 reduced
+  to 0 (from 18 groups, 75 clones). 4 groups refactored, 17 groups accepted
+  with `//art-dupl:accept`.
+
+#### Metadata immutability + query parity — EnsureCustom deprecation
+
+- **`event.Metadata.WithCustom(key, value)`** — value-receiver method matching
+  the command/query pattern. `event.EnsureCustom()` free function deprecated
+  with `// Deprecated:` doc comment. All 4 production call sites migrated.
+- **`metadata.CustomData[K].WithCustom(key, value)`** — value-receiver method.
+  `EnsureCustom()` deprecated. `CustomData[K]` type soft-deprecated.
+- **`query.WithCustomMetadata(key, value)`** — mirrors
+  `command.WithCustomMetadata`. 2 tests added (single + accumulate).
+- **`metadata/README.md` updated** — fixed false "command.Metadata IS
+  CustomData" claims, added standalone-struct usage example, methods table
+  shows `WithCustom` + deprecation note.
+- **`.golangci.yml` exclusion cleanup** — every exclusion now has a `#` rationale
+  comment (was ~50% undocumented). Consolidated 12 scattered `ireturn`-only
+  blocks into 1 regex group. Removed 4 duplicate entries. ~70 → ~45 documented.
+
+#### Memory store conformance suite — shared test packages, bug fixes
+
+- **`command/commandtest/` package** — `RunStoreSuite(t, factory)` shared command
+  store test suite (283 lines). 6 subtests: Save/Load, DuplicateDetection,
+  AppendBatch, ReadAll, ReadFrom, LoadFromTimestamp.
+- **`query/querytest/` package** — `RunStoreSuite(t, factory)` shared query
+  store test suite (191 lines). 4 subtests.
+- **`storage/memory` refactored** — command store tests adopted
+  `commandtest.RunStoreSuite` (34% reduction), query store tests adopted
+  `querytest.RunStoreSuite` (44% reduction). Pebble + bbolt consumer tests
+  already refactored (892 → 136 lines).
+- **Bug fix: `limit=0` semantics** — `MemoryCommandStore.Load` and
+  `MemoryQueryStore.LoadQueries` treated `limit=0` as "return zero results"
+  instead of "return all" (the documented contract). Fixed.
+- **Bug fix: missing duplicate detection** — `MemoryQueryStore.SaveQuery` did
+  not reject duplicate query IDs. Fixed.
+- **`commandtest` self-test** — runs the suite against
+  `storage/memory.MemoryCommandStore` to validate the suite itself.
+
+#### Metaengine test coverage — concurrent tx, record-stamp, AutoCRUD soak
+
+- **Concurrent tx tests under `-race`** — SQLite, DuckDB, Postgres all pass
+  `-count=3 -race` clean. 3 engines × 2 tests × 3 iterations = 18 green runs.
+- **Record-aware integration tests** — DuckDB (`TestDuckDB_RecordStamping`),
+  Postgres (`TestPostgres_RecordStamping`). Completes 5-engine record-stamp
+  coverage.
+- **`RunTransactionalBaselineTest`** — new enginetest helper for Memory engine
+  (pass-through tx: commit + error propagation, documents no-rollback limitation).
+- **`RunAutoCRUDSoak`** — shared soak helper extracted (220 lines). Pebble: 4.0MB
+  heap, 0 errors. DuckDB: 0.1MB heap, 0 errors. Both `-race` clean.
+
+#### cqrs-lint backlog triage — false-positive fixes, SARIF, per-module migration
+
+- **C001 fix** — read-only bbolt `Begin(false)` + composite-literal escape no
+  longer flagged. 2 regression tests.
+- **D012 fix** — `main` package files excluded (CLI tools use `fmt.Print*`
+  intentionally). Regression test added.
+- **C008 fix** — removed `"rate"` from weak fields + added
+  `nonMonetaryFieldPatterns` denylist (latency, throughput, ratio, percentage,
+  duration, seconds, qps, rps, fps). 2 regression tests.
+- **SARIF `logicalLocations`** — `run.logicalLocations[]` populated from scored
+  modules, result-level index cross-references.
+- **A034 per-module migration** — `ctx.FeatureProfile.HasMetaengine` →
+  `ctx.ProfileForFile(gf.Path).HasMetaengine`.
+- **Self-lint triage** — 5 D007 instances fixed (`event.NewEvent` → `event.New`),
+  1 C023 instance fixed.
+
+#### Irohengine QUIC parity — ADT matrix, flake fixes, non-CRDT op rejection
+
+- **`TestQuicADTMatrix`** — full 10-ADT `adttest.RunMatrix` against QUIC-backed
+  replicated engine (StreamLog auto-skipped, not CRDT-safe).
+- **`TestLoopbackADTMatrix`** — matrix against loopback transport.
+- **`TestQuicMapUpdateDoesNotReplicate`** — verifies `MapUpdate` operations stay
+  local-only over the QUIC transport.
+- **Flake fixes** — `TestLoad_ConcurrentLoadsCoalescedBySingleflight` (50ms→200ms
+  coalescing window, `runtime.Gosched()`), `TestQuicSetConvergence` +
+  `TestQuicPNCounter` (unified `Eventually` blocks).
+
 #### System package P2 hardening — health, graceful shutdown, reset, checkpoint store
 
 - **`System.HealthCheck(ctx)`** — returns `nil` if all resources are healthy,
