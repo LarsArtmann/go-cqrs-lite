@@ -184,7 +184,7 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 
 ## Rule Count
 
-**192 rules** across 10 categories: correctness (40), API misuse (32), boilerplate (28), consistency (16), architecture (17), security (10), performance (9), version (6), testing (8), adoption (26).
+**202 rules** across 10 categories: correctness (42), API misuse (32), boilerplate (31), consistency (18), architecture (17), security (10), performance (9), version (6), testing (8), adoption (29).
 
 ## Correctness Rules (bugs)
 

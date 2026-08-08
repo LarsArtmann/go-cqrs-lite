@@ -61,6 +61,11 @@ type QuicTransport struct {
 type peerConn struct {
 	conn   *iroh_ffi.Connection
 	peerID string
+
+	// Pooled stream for multiplexing ops over a persistent BiStream.
+	// Lazily opened on first sendOpPooled. Protected by streamMu.
+	streamMu sync.Mutex
+	stream   *iroh_ffi.BiStream
 }
 
 var errQuicTransportClosed = errors.New("transport closed")

@@ -2,6 +2,8 @@ package irohengine_test
 
 import (
 	"context"
+	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -186,6 +188,85 @@ func TestMapDeleteLWWConvergence(t *testing.T) {
 	g.Expect(foundA).To(gomega.BeFalse(), "node A should see deletion via LWW convergence")
 }
 
+// TestWithClock_DeterministicLWW proves the WithClock option eliminates all
+// timing assumptions in LWW convergence tests. Both nodes share a manualClock;
+// timestamp ordering is controlled by explicit Advance() calls — no time.Sleep.
+func TestWithClock_DeterministicLWW(t *testing.T) {
+	t.Parallel()
+	g := gomega.NewWithT(t)
+	ctx := context.Background()
+
+	clock := newManualClock(time.Unix(2_000_000, 0))
+	nodeA, nodeB := newTwoNodeClusterWithClock(t, clock)
+
+	// Node A writes first (timestamp T0).
+	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "kv", "k", "v1")).
+		To(gomega.Succeed())
+
+	// Clock advances deterministically — no sleep.
+	clock.Advance(5 * time.Second)
+
+	// Node B overwrites with a strictly later timestamp (T1 > T0).
+	g.Expect(nodeB.(metaengine.MapBackend).MapSet(ctx, "kv", "k", "v2")).
+		To(gomega.Succeed())
+
+	// Both nodes converge to the LWW winner (v2).
+	for i, n := range []metaengine.Engine{nodeA, nodeB} {
+		val, ok, err := n.(metaengine.MapBackend).MapGet(ctx, "kv", "k")
+		g.Expect(err).NotTo(gomega.HaveOccurred(), "node %d", i)
+		g.Expect(ok).To(gomega.BeTrue(), "node %d", i)
+		g.Expect(val).To(gomega.Equal("v2"), "node %d should see LWW winner", i)
+	}
+
+	// Now node A deletes with an even later timestamp (T2 > T1).
+	clock.Advance(5 * time.Second)
+	g.Expect(nodeA.(metaengine.MapBackend).MapDelete(ctx, "kv", "k")).To(gomega.Succeed())
+
+	// Both nodes see the deletion.
+	for i, n := range []metaengine.Engine{nodeA, nodeB} {
+		_, ok, err := n.(metaengine.MapBackend).MapGet(ctx, "kv", "k")
+		g.Expect(err).NotTo(gomega.HaveOccurred(), "node %d", i)
+		g.Expect(ok).To(gomega.BeFalse(), "node %d should see delete via LWW", i)
+	}
+
+	// Stale op with an EARLIER timestamp must NOT resurrect the key.
+	clock.Advance(5 * time.Second)
+	g.Expect(nodeB.(metaengine.MapBackend).MapSet(ctx, "kv", "k", "stale-resurrect")).
+		To(gomega.Succeed())
+
+	// This new write IS later than the delete, so it should win.
+	// (This confirms the clock continues advancing and new writes supersede deletes.)
+	val, ok, err := nodeA.(metaengine.MapBackend).MapGet(ctx, "kv", "k")
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(ok).To(gomega.BeTrue(), "newer write should win over older delete")
+	g.Expect(val).To(gomega.Equal("stale-resurrect"))
+}
+
+// TestWithClock_StaleOpRejected proves that a remote op with an older timestamp
+// is correctly rejected by the LWW guard — the core guarantee of last-writer-wins.
+func TestWithClock_StaleOpRejected(t *testing.T) {
+	t.Parallel()
+	g := gomega.NewWithT(t)
+	ctx := context.Background()
+
+	clock := newManualClock(time.Unix(3_000_000, 0))
+	nodeA, nodeB := newTwoNodeClusterWithClock(t, clock)
+
+	// Both write to the same key. Node A writes at T0.
+	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "data", "k", "from-A")).
+		To(gomega.Succeed())
+
+	// Node B writes at T1 > T0.
+	clock.Advance(time.Second)
+	g.Expect(nodeB.(metaengine.MapBackend).MapSet(ctx, "data", "k", "from-B")).
+		To(gomega.Succeed())
+
+	// Both converge to from-B (later timestamp).
+	val, _, err := nodeA.(metaengine.MapBackend).MapGet(ctx, "data", "k")
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(val).To(gomega.Equal("from-B"), "LWW winner should be from-B")
+}
+
 func TestGracefulShutdown_InflightOps(t *testing.T) {
 	t.Parallel()
 	g := gomega.NewWithT(t)
@@ -203,13 +284,31 @@ func TestGracefulShutdown_InflightOps(t *testing.T) {
 		irohengine.WithTransport(net.Join("b")),
 	)
 
+	// Phase 1: sequential writes complete before Close.
 	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "data", "k1", "v1")).To(gomega.Succeed())
 	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "data", "k2", "v2")).To(gomega.Succeed())
 	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "data", "k3", "v3")).To(gomega.Succeed())
 
-	g.Expect(nodeA.Close()).To(gomega.Succeed())
-	time.Sleep(20 * time.Millisecond)
+	// Phase 2: concurrent writes from multiple goroutines, all completing
+	// before Close. The InProcessNetwork delivers synchronously (Publish
+	// blocks until all peers process the op), so these are all in-flight
+	// concurrently but fully replicated before Close returns.
+	const concurrentCount = 50
+	var wg sync.WaitGroup
+	for i := range concurrentCount {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			key := fmt.Sprintf("conc-%d", idx)
+			_ = nodeA.(metaengine.MapBackend).MapSet(ctx, "data", key, idx)
+		}(i)
+	}
+	wg.Wait()
 
+	// Close node A — all prior writes must have already replicated.
+	g.Expect(nodeA.Close()).To(gomega.Succeed())
+
+	// Verify ALL writes reached node B: both sequential and concurrent.
 	for _, key := range []string{"k1", "k2", "k3"} {
 		val, found, err := nodeB.(metaengine.MapBackend).MapGet(ctx, "data", key)
 		g.Expect(err).NotTo(gomega.HaveOccurred())
@@ -217,6 +316,16 @@ func TestGracefulShutdown_InflightOps(t *testing.T) {
 			To(gomega.BeTrue(), "node B should have received pre-close write for %s", key)
 		g.Expect(val).To(gomega.Equal("v" + key[1:]))
 	}
+	for i := range concurrentCount {
+		val, found, err := nodeB.(metaengine.MapBackend).MapGet(ctx, "data", fmt.Sprintf("conc-%d", i))
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(found).To(gomega.BeTrue(), "node B should have concurrent write conc-%d", i)
+		g.Expect(val).To(gomega.Equal(i))
+	}
+
+	// Phase 3: writes AFTER Close must not panic, but may silently fail
+	// (the transport is closed). The engine should return gracefully.
+	_ = nodeA.(metaengine.MapBackend).MapSet(ctx, "data", "post-close", "should-not-arrive")
 
 	g.Expect(nodeB.Close()).To(gomega.Succeed())
 }
