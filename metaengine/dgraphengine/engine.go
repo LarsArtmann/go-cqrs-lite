@@ -251,22 +251,41 @@ func (e *dgraphEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 func (e *dgraphEngine) MapDelete(ctx context.Context, col string, key any) error {
 	keyStr := fmt.Sprint(key) //art-dupl:accept dgraph key formatting idiom
 
-	req := &api.Request{CommitNow: true}
-	req.Query = `query entry($col: string, $key: string) {
-		entry as var(func: eq(cqrs.map_collection, $col)) @filter(eq(cqrs.map_key, $key))
+	q := `query entry($col: string, $key: string) {
+		entry(func: eq(cqrs.map_collection, $col)) @filter(eq(cqrs.map_key, $key)) {
+			uid
+		}
 	}`
-	req.Vars = map[string]string{"$col": col, "$key": keyStr}
 
-	deleteJSON, _ := json.Marshal(map[string]any{
-		"uid": "uid(entry)",
-	})
-
-	req.Mutations = []*api.Mutation{
-		{DeleteJson: deleteJSON},
+	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, q,
+		map[string]string{"$col": col, "$key": keyStr})
+	if err != nil {
+		return fmt.Errorf("dgraphengine.MapDelete: query: %w", err)
 	}
 
-	if _, err := e.client.NewTxn().Do(ctx, req); err != nil {
-		return fmt.Errorf("dgraphengine.MapDelete: %w", err)
+	var result struct {
+		Entry []struct {
+			UID string `json:"uid"`
+		} `json:"entry"`
+	}
+
+	if err := json.Unmarshal(resp.GetJson(), &result); err != nil {
+		return fmt.Errorf("dgraphengine.MapDelete: unmarshal: %w", err)
+	}
+
+	if len(result.Entry) == 0 {
+		return nil
+	}
+
+	deleteJSON, _ := json.Marshal(map[string]any{
+		"uid": result.Entry[0].UID,
+	})
+
+	if _, err := e.client.NewTxn().Mutate(ctx, &api.Mutation{
+		DeleteJson: deleteJSON,
+		CommitNow:  true,
+	}); err != nil {
+		return fmt.Errorf("dgraphengine.MapDelete: delete: %w", err)
 	}
 
 	return nil

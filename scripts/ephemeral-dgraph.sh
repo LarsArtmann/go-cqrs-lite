@@ -101,8 +101,33 @@ for i in $(seq 1 60); do
     sleep 0.5
 done
 
-# Extra settle time for Alpha to sync with Zero.
-sleep 2
+# Wait for Alpha to become fully ready (not just port open — Dgraph needs
+# to sync with Zero and load posting lists). Poll the HTTP health endpoint.
+ALPHA_HTTP=$((8080 + ALPHA_OFFSET))
+echo "==> Waiting for Alpha health endpoint (HTTP $ALPHA_HTTP)..."
+for i in $(seq 1 120); do
+    HEALTH=$(python3 -c "
+import urllib.request, sys
+try:
+    r = urllib.request.urlopen('http://127.0.0.1:$ALPHA_HTTP/health', timeout=2)
+    print(r.read().decode())
+except Exception as e:
+    print('ERR:' + str(e))
+" 2>/dev/null || echo "ERR:python")
+    if echo "$HEALTH" | grep -q '"healthy"'; then
+        echo "==> Alpha healthy"
+        break
+    fi
+    if [ "$i" -eq 120 ]; then
+        echo "ERROR: Alpha did not become healthy within 60s"
+        echo "--- alpha.log (last 30 lines) ---"
+        tail -30 "$DGRAPH_DIR/alpha.log" 2>/dev/null || true
+        echo "--- zero.log (last 30 lines) ---"
+        tail -30 "$DGRAPH_DIR/zero.log" 2>/dev/null || true
+        exit 1
+    fi
+    sleep 0.5
+done
 
 export DGRAPH_ADDR="localhost:$DGRAPH_ALPHA_GRPC"
 echo "==> DGRAPH_ADDR=$DGRAPH_ADDR"

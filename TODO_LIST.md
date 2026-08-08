@@ -19,13 +19,12 @@ and is **never** duplicated here.
 - [x] **Route DuckDB `plans` map reads through `lookupPlan()`** — ✓ Aug 2026 (M2)
 - [x] **Fix `mustSQLiteEngine` zombie test helper** — ✓ Aug 2026 (M2)
 - [x] **Delete `_skipped_sqlite_test_*` zombie functions** — ✓ Aug 2026 (M2)
-- [ ] 🔥 **Fix `querytest.RunStoreSuite` / `querytest.StoreSuite` undefined** —
-      `storage/pebble/query_store_test.go:36` and
-      `storage/bbolt/query_store_test.go:12` reference symbols that don't exist
-      in `query/querytest`. ALL tests in both storage backend modules fail to
-      build. May be in-progress refactor or accidental deletion.
+- [x] **Fix `querytest.RunStoreSuite` / `querytest.StoreSuite` undefined** —
+      ✓ Aug 2026. Root cause: `query/v4 v4.2.0` tag predates `store_suite.go`.
+      `GOWORK=off` (CI per-module) couldn't see the symbols. Fix: added
+      `replace query/v4 => ../../query` to storage/memory, storage/pebble,
+      storage/bbolt go.mod (same pattern as decider→flightrecorder).
       _(Effort: M)_
-      _(Source: `docs/status/2026-08-08_21-29_deferClose-exceptions-cleanup-session.md`)_
 - [x] **Fix `b029.go` / `b030.go` / `b031.go` compiler errors** — ✓ Aug 2026 (M12)
 
 ---
@@ -95,6 +94,27 @@ JSON mappings, upsert conditions completely unverified against a live
       injectable `WithClock` (deterministic timestamps, no `time.Sleep`).
 - [x] **Add graceful shutdown test** — ✓ Aug 2026 (M4). Expanded with 50
       concurrent in-flight ops verified before Close, plus post-close safety check.
+- [ ] **Add runtime protocol-mismatch detection for QUIC stream pooling** — a
+      pooled sender connected to a non-pooled receiver silently hangs (receiver
+      calls `ReadToEnd` waiting for `Finish()` that never comes). Detect via a
+      magic byte in the first frame and return a clear error.
+      _(Effort: S)_
+      _(Source: `docs/status/2026-08-08_21-45_irohengine-clock-pooling-test-hardening.md`)_
+- [ ] **Add stream-reuse counter to `peerConn`** — increment each time
+      `sendOpPooled` opens a new BiStream. Tests can assert that N ops over a
+      pooled connection used only 1 stream (proving reuse, not just correctness).
+      _(Effort: S)_
+      _(Source: `docs/status/2026-08-08_21-45_irohengine-clock-pooling-test-hardening.md`)_
+- [ ] **Extract shared framing constants** — `frameHeaderSize`, `errFrameTooLarge`
+      are duplicated between `quic/frame.go` and `loopback/frame.go`. Move to
+      `irohengine/framing.go` (protocol constants only; I/O stays per-transport).
+      _(Effort: S)_
+      _(Source: `docs/status/2026-08-08_21-45_irohengine-clock-pooling-test-hardening.md`)_
+- [ ] **Port injectable-clock pattern to QUIC LWW tests** — `TestQuicLWWResolution`
+      still relies on replication-time-gap for timestamp ordering. Could use
+      `WithClock` for determinism (same pattern as the in-process tests).
+      _(Effort: S)_
+      _(Source: `docs/status/2026-08-08_21-45_irohengine-clock-pooling-test-hardening.md`)_
 
 ---
 
