@@ -103,7 +103,9 @@ func collectGlobalMutables(ctx *analyzer.AnalysisContext) []globalCandidate {
 				if !strings.Contains(lower, "cache") &&
 					!strings.Contains(lower, "registry") &&
 					!strings.Contains(lower, "instance") {
-					continue
+					if !isMapTypedGlobal(vs) {
+						continue
+					}
 				}
 
 				pos := ctx.Fset.Position(vs.Pos())
@@ -163,6 +165,41 @@ func isGlobalWrittenAfterInit(ctx *analyzer.AnalysisContext, varName string) boo
 
 		if found {
 			return true
+		}
+	}
+
+	return false
+}
+
+// isMapTypedGlobal checks if a package-level var declaration has a map type,
+// either via explicit type annotation or inferred from the initializer
+// (map literal or make(map[...])). Map-typed globals are inherently mutable
+// and risky for concurrent handler access.
+func isMapTypedGlobal(vs *ast.ValueSpec) bool {
+	if vs.Type != nil {
+		if _, ok := vs.Type.(*ast.MapType); ok {
+			return true
+		}
+	}
+
+	if len(vs.Values) == 0 {
+		return false
+	}
+
+	return isMapExpr(vs.Values[0])
+}
+
+func isMapExpr(expr ast.Expr) bool {
+	switch v := expr.(type) {
+	case *ast.CompositeLit:
+		if v.Type != nil {
+			_, ok := v.Type.(*ast.MapType)
+			return ok
+		}
+	case *ast.CallExpr:
+		if fun, ok := v.Fun.(*ast.Ident); ok && fun.Name == "make" && len(v.Args) > 0 {
+			_, ok := v.Args[0].(*ast.MapType)
+			return ok
 		}
 	}
 

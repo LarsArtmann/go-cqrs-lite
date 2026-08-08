@@ -202,8 +202,8 @@ func TestA015_NoFindingForReadOnlyGlobal(t *testing.T) {
 		"state.go": `package main
 
 var providerRegistry = map[string]string{
-		"wise": "Wise API",
-		"demo": "Demo Bank",
+	"wise": "Wise API",
+	"demo": "Demo Bank",
 }
 
 func lookup(key string) string {
@@ -211,6 +211,59 @@ func lookup(key string) string {
 }
 `,
 	})
+	findings := ruletest.RunDetector(t, api.NewA015Detector(ctx))
+	ruletest.AssertRule(t, findings, "A015", 0)
+}
+
+// --- A015: Map-typed global without cache/registry/instance name (item 173) ---
+
+func TestA015_DetectsMapTypedGlobalWithoutKeywordName(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"handler.go": `package main
+
+var eventCounts = map[string]int{}
+
+func handleEvent(eventType string) {
+	eventCounts[eventType]++
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := ruletest.RunDetector(t, api.NewA015Detector(ctx))
+	ruletest.AssertRule(t, findings, "A015", 1)
+}
+
+func TestA015_DetectsMakeMapGlobalWithoutKeywordName(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"handler.go": `package main
+
+var seen = make(map[string]bool)
+
+func process(id string) {
+	seen[id] = true
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	findings := ruletest.RunDetector(t, api.NewA015Detector(ctx))
+	ruletest.AssertRule(t, findings, "A015", 1)
+}
+
+func TestA015_NoFindingForReadOnlyMapGlobalWithoutKeywordName(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"config.go": `package main
+
+var defaults = map[string]string{
+	"host": "localhost",
+	"port": "8080",
+}
+
+func get(key string) string {
+	return defaults[key]
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
 	findings := ruletest.RunDetector(t, api.NewA015Detector(ctx))
 	ruletest.AssertRule(t, findings, "A015", 0)
 }

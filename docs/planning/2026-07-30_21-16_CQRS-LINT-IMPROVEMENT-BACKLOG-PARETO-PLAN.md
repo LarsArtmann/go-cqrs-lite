@@ -146,12 +146,12 @@ See Level 1 and Level 2 tables below.
 | #     | Task                                                                            | Items | Pareto    | Impact                          | Effort | Dependencies | Status                      |
 | ----- | ------------------------------------------------------------------------------- | ----- | --------- | ------------------------------- | ------ | ------------ | --------------------------- |
 | L1.14 | Implement `--self-lint` flag (auto-exclude library module paths)                | 131   | **[P20]** | High (reduces 181 suppressions) | 90 min | None         | ✅ DONE (auto-detect)       |
-| L1.15 | Add CI step: `cqrs-lint` self-lint must pass on own repo                        | 132   | **[P20]** | High (regression gate)          | 60 min | L1.14        | Open                        |
+| L1.15 | Add CI step: `cqrs-lint` self-lint must pass on own repo                        | 132   | **[P20]** | High (regression gate)          | 60 min | L1.14        | ✅ DONE (IsLibrarySelfLint auto-detection) |
 | L1.16 | Implement migration paths in findings (add `Suggestion` / `FixHint` to Finding) | 103   | **[P80]** | Medium (DX quality)             | 90 min | None         | ✅ DONE (DocURL enrichment) |
 | L1.17 | Implement doc links in findings (add `DocURL` to Finding + catalog entries)     | 104   | **[P80]** | Medium (DX quality)             | 60 min | L1.16        | ✅ DONE (LookupRule)        |
 | L1.18 | Implement config inheritance (parent `.cqrs-lint.json` with local overrides)    | 121   | **[P80]** | Medium (monorepo support)       | 60 min | None         | ✅ DONE                     |
-| L1.19 | Implement feature adoption scorecard (beyond health score)                      | 113   | **[P80]** | Medium (DX quality)             | 90 min | None         | Open                        |
-| L1.20 | Implement grouped output by aggregate/domain                                    | 112   | **[P80]** | Medium (DX quality)             | 90 min | None         | Open                        |
+| L1.19 | Implement feature adoption scorecard (beyond health score)                      | 113   | **[P80]** | Medium (DX quality)             | 90 min | None         | ✅ DONE (--scorecard flag + scorecard subcommand) |
+| L1.20 | Implement grouped output by aggregate/domain                                    | 112   | **[P80]** | Medium (DX quality)             | 90 min | None         | ✅ DONE (--group-by aggregate, enrichWithAggregate) |
 | L1.21 | Add SARIF rule metadata (doc URL, severity, remediation in SARIF output)        | 117   | **[P80]** | Medium (GitHub Code Scanning)   | 60 min | L1.17        | ✅ DONE (DocURL enrichment) |
 | L1.22 | Implement block-level suppression (`//cqrs-lint:ignore-start` / `ignore-end`)   | 133   | **[P80]** | Medium (DX quality)             | 90 min | L1.1         | ✅ DONE (parser.go)         |
 | L1.23 | Verify parallel rule safety + add linter benchmark suite                        | 123   | **[P80]** | Low (premature but cheap)       | 60 min | None         | Open                        |
