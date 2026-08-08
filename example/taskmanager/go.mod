@@ -36,7 +36,7 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
-	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260808091655-e1d85255693c // indirect
+	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260808093847-5a488cc347b0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
@@ -77,7 +77,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.45.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
-	modernc.org/libc v1.75.1 // indirect
+	modernc.org/libc v1.75.2 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 	modernc.org/sqlite v1.56.0 // indirect

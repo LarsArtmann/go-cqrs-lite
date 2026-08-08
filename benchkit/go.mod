@@ -74,7 +74,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260808091655-e1d85255693c // indirect
+	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260808093847-5a488cc347b0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0 // indirect
@@ -135,7 +135,7 @@ require (
 	golang.org/x/text v0.40.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.75.1 // indirect
+	modernc.org/libc v1.75.2 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 )

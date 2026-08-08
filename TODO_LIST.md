@@ -82,7 +82,7 @@ and is **never** duplicated here.
   - [ ] OBS: Missing span creation around handlers.
   - [ ] DI: Optimistic concurrency / expected-version check on Save/Append.
   - [ ] DI: Missing append-stream version precondition at store level.
-      _(Source: `docs/status/2026-08-08_02-28_cqrs-lint-backlog-triage.md`)_
+        _(Source: `docs/status/2026-08-08_02-28_cqrs-lint-backlog-triage.md`)_
 - [ ] **Tag cqrs-lint v4.6.0** — after CI self-lint job + remaining
       false-positive fixes are shipped. Version constant must match latest tag.
       _(Effort: S)_
@@ -97,7 +97,7 @@ and is **never** duplicated here.
 > created locally and pushed.
 
 - [ ] **Dgraph engine: test against real Dgraph** — all `t.Skipf("Dgraph not
-      available")` paths were taken. DQL queries, JSON mappings, upsert
+    available")` paths were taken. DQL queries, JSON mappings, upsert
       conditions completely unverified. Also: DQL injection risk (manual string
       interpolation via `dqlString()` — should use `QueryWithVars`), missing
       MultimapBackend/LogBackend/SnapshotBackend.
@@ -176,9 +176,9 @@ and is **never** duplicated here.
 ## CI / Release / Infrastructure
 
 - [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod
-      replace directives are needed for dev; consumers resolving the published
-      modules depend on the real tagged versions (go-finding v1.4.1, go-must
-      v0.1.2).
+  replace directives are needed for dev; consumers resolving the published
+  modules depend on the real tagged versions (go-finding v1.4.1, go-must
+  v0.1.2).
 - [ ] **Pin GitHub Actions to commit SHAs** — 72+ unpinned actions use mutable
       `@vN` tags (supply-chain risk). `actions/checkout@v4`,
       `DeterminateSystems/nix-installer-action@v17`, etc.

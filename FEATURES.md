@@ -301,8 +301,9 @@ developer never declares "I need a Map" or "I need a Counter."
 | Tombstone deprecation         | All tombstone API carries `// Deprecated:` → migration guide. Functional in v4, removal in v5 (ADR-0114)                                                                                                                   | 🧪     |
 
 **Coverage:** ~80% (`go test -tags "goexperiment.jsonv2" -cover`). 174 BDD specs
-+ 150 cross-engine meta specs + 12 ADT harness self-tests. See
-[TODO_LIST.md](TODO_LIST.md) for remaining gaps.
+
+- 150 cross-engine meta specs + 12 ADT harness self-tests. See
+  [TODO_LIST.md](TODO_LIST.md) for remaining gaps.
 
 ---
 

@@ -282,6 +282,7 @@ The AGENTS.md warns about the "stale GREEN" anti-pattern. I verified code state 
 This audit identified TODO_LIST structural decay (69 completed `[x]` items). The TODO_LIST was **fully rebuilt** later the same day: all 69 completed items deleted, 24 genuinely open items retained, new items harvested from 08-07/08-08 status reports. See current `TODO_LIST.md`.
 
 The 3 discrepancies noted above:
+
 - ~~Dedup baseline count~~ resolved — `.art-dupl-baseline.json` is current
 - ~~go-arch-lint configs~~ resolved — repo uses `scripts/check-module-layers.sh` exclusively (zero `.go-arch-lint.yml` files)
 - ~~api_surface.txt modification~~ resolved — golden regenerated to 3807+ exports

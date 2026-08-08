@@ -226,12 +226,14 @@ Each engine package has its own `decodeFloat`/`sqliteDecodeFloat`/`pgDecodeFloat
 Most items resolved in subsequent sessions the same day. Inline summary:
 
 **Section B (self-critique):**
+
 - ~~B1: PG lacks ExplainableAggregate~~ done — `pgengine/explain.go:61` implements it
 - ~~B3: No planned-table SQLite aggregate tests~~ done — `sqliteengine/aggregations_test.go:377-533`
 - ~~B5: Parity test doesn't test with filters~~ done — `TestAggregateParity_WithFilters` added
 - B4: PG engine has no `plans` map — **still open** (architectural decision: JSONB expression indexes may make planned tables unnecessary)
 
 **Section C (discovered):**
+
 - ~~C2: PG lacks ExplainableScan~~ done — `pgengine/explain.go:12`
 - ~~C3: `inferColumnType` price→INTEGER~~ done — now returns `"REAL"` (`layout.go:158-162`)
 - ~~C4: DuckDB ExplainableAggregate tests~~ done — `TestDuckDB_ExplainAggregateQuery` (6+ subtests)
@@ -240,6 +242,7 @@ Most items resolved in subsequent sessions the same day. Inline summary:
 - C7: `assertFloat` is exported — **still open** (minor)
 
 **Section D+E (improvements):**
+
 - ~~E1/D3: Remove `groupedAggExprSQLite`~~ done — removed
 - ~~E18: Three `decodeFloat` functions~~ done — consolidated to `metaengine.DecodeFloat` (`scan.go:21`)
 - ~~E10: Benchmark pre-seed outside timer~~ done — `b.StopTimer()`/`b.StartTimer()` pattern
