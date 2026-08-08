@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/larsartmann/go-finding"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules"
 )
@@ -49,6 +50,58 @@ func TestIntegration_Taskmanager(t *testing.T) {
 	}
 
 	t.Logf("ran %d detectors, found %d total findings", len(detectors), totalFindings)
+}
+
+// TestIntegration_TaskmanagerExpectedFindings runs all rules against example/taskmanager
+// and verifies the end-to-end finding profile: no critical-severity findings, no
+// detector errors, and findings grouped by rule ID for stability tracking.
+func TestIntegration_TaskmanagerExpectedFindings(t *testing.T) {
+	t.Parallel()
+
+	projectRoot := findProjectRoot(t)
+	tmPath := filepath.Join(projectRoot, "example", "taskmanager")
+
+	actx, err := analyzer.BuildContext(tmPath)
+	if err != nil {
+		t.Fatalf("BuildContext(%s): %v", tmPath, err)
+	}
+
+	if len(actx.GoFiles) == 0 {
+		t.Skip("no Go files found in taskmanager example")
+	}
+
+	detectors := rules.RegisterAll(actx)
+
+	var allFindings []finding.Finding
+
+	byRule := make(map[string]int)
+
+	for _, det := range detectors {
+		findings, detErr := det.Detect(t.Context())
+		if detErr != nil {
+			t.Errorf("detector %s returned error: %v", det.Name(), detErr)
+			continue
+		}
+
+		for _, f := range findings {
+			allFindings = append(allFindings, f)
+			byRule[string(f.Rule)]++
+
+			if f.Severity == finding.SeverityCritical {
+				t.Errorf("unexpected Critical finding from %s: %s", f.Rule, f.Message)
+			}
+		}
+	}
+
+	if len(allFindings) == 0 {
+		t.Log("no findings — taskmanager may be very clean")
+	}
+
+	for rule, count := range byRule {
+		t.Logf("  %s: %d finding(s)", rule, count)
+	}
+
+	t.Logf("total: %d findings across %d rules", len(allFindings), len(byRule))
 }
 
 // TestIntegration_RegisterCritical verifies --fast mode detectors are a subset of all detectors.

@@ -79,7 +79,7 @@ func TestLWWResolution(t *testing.T) {
 	g.Expect(valB).To(gomega.Equal("Bob-new"))
 }
 
-func TestLWWResolution(t *testing.T) {
+func TestMapDeleteLWWConvergence(t *testing.T) {
 	t.Parallel()
 	g := gomega.NewWithT(t)
 	ctx := context.Background()

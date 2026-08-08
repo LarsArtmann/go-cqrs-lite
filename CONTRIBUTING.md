@@ -210,10 +210,9 @@ Examples:
 
 1. Run `nix run .#test` and `nix run .#lint` locally
 2. Ensure tests pass with `-race`
-3. Run `nix run .#check-layers` to verify module dependency rules
-4. Run `nix run .#check-arch` to verify architecture constraints
-5. Update docs if behavior changes
-6. Request review from maintainers
+3. Run `nix run .#check-arch` to verify architecture rules (cross-module tier/budget + intra-module packages)
+4. Update docs if behavior changes
+5. Request review from maintainers
 
 ## Session & Branch Discipline
 
@@ -233,11 +232,25 @@ Examples:
 
 ### Module Layer Validation
 
-The project enforces a layered module dependency graph via `scripts/check-module-layers.sh`:
+The project enforces a **two-layer architecture model** via `scripts/check-arch.sh`:
+
+| Layer | Scope | Tool |
+|-------|-------|------|
+| Layer 1 | Cross-module dependency tiers + budgets | `check-module-layers.sh` (go.mod parsing) |
+| Layer 2 | Intra-module package dependencies | `go-arch-lint` (per-module `.go-arch-lint.yml`) |
 
 ```bash
+# Full two-layer check (recommended — used in verify gate + CI)
+nix run .#check-arch
+
+# Layer 1 only (fast subset — cross-module tiers + budgets)
 nix run .#check-layers
 ```
+
+`check-arch` is a strict superset of `check-layers` — it runs Layer 1
+internally, then Layer 2 (go-arch-lint per-module). Seven modules have
+intra-module configs (`.go-arch-lint.yml`): `event`, `command`, `kv`,
+`middleware`, `storage`, `catalog`, and `cmd/cqrs-lint`.
 
 This validates that modules only depend on their allowed tier. The dependency model
 is the **Seven-Tier Model** ([ADR-0046](docs/adr/0046-seven-tier-model.md),
@@ -290,7 +303,8 @@ nix run .#verify-parallel
 # Individual quality gates (all wired into CI)
 nix run .#check-api-stability    # API surface golden check (no breaking changes)
 nix run .#check-duplication      # clone detection (art-dupl, threshold 3, semantic)
-nix run .#check-layers           # dependency-tier + budget enforcement
+nix run .#check-arch             # architecture rules: cross-module tiers + intra-module packages
+nix run .#check-layers           # Layer 1 only (fast subset of check-arch)
 nix run .#check-coverage         # coverage drift vs AGENTS.md claims
 
 # Recovery
@@ -422,30 +436,73 @@ Each module is independently versioned via git tags. Module paths with `/v4`
 suffix use semver (e.g., `event/v4.0.0`, `retry/v4.0.1`). Modules without a
 version suffix (e.g., `cmd/cqrs-lint`) use `v0.x.y` pre-v1 tags.
 
+#### Recommended: `scripts/tag-release.sh`
+
+The release script strips local `replace` directives from the module's
+`go.mod`, re-resolves requires via `go mod tidy`, verifies no pseudo-versions
+remain, creates an annotated tag on the stripped go.mod, then restores the
+original working tree. This ensures consumers downloading from the Go proxy
+never hit "unknown revision" or filesystem-path errors from dev-only replaces.
+
 ```bash
 # 1. Verify everything passes
 nix run .#build && nix run .#test && nix run .#lint
 
-# 2. Create annotated tag (NEVER lightweight tags)
-git tag -a "event/v4.0.1" -m "event/v4.0.1: Brief description of changes"
+# 2. Update CHANGELOG.md with a version section matching the tag version
+#    (e.g., "## [4.3.2] - 2026-08-09")
 
-# 3. Verify tag
-git cat-file -t "event/v4.0.1"  # should print "tag"
+# 3. Commit the CHANGELOG update
 
-# 4. Push tags (requires explicit approval)
+# 4. Tag the release (creates annotated tag, restores working tree after)
+./scripts/tag-release.sh event v4.0.1 "Fix event payload marshaling"
+
+# 5. Push tags (requires explicit approval)
 git push origin "event/v4.0.1"
 
-# 5. Verify Go proxy picks it up (after GitHub Actions CI passes)
+# 6. Verify Go proxy picks it up (after GitHub Actions CI passes)
 GOPROXY=proxy.golang.org go list -m "github.com/larsartmann/go-cqrs-lite/event/v4@v4.0.1"
 ```
+
+Preview a release safely with `--dry-run` (strips + verifies + prints what
+would be tagged, then restores the working tree without committing):
+
+```bash
+./scripts/tag-release.sh metaengine v4.0.0 "First release" --dry-run
+```
+
+#### Manual tagging (fallback)
+
+If `tag-release.sh` is unavailable, manual tags work but you must verify the
+go.mod has no local replace directives at the tagged commit:
+
+```bash
+git tag -a "event/v4.0.1" -m "event/v4.0.1: Brief description of changes"
+git cat-file -t "event/v4.0.1"  # should print "tag"
+```
+
+### CHANGELOG-to-tag constraint
+
+The meta-test `TestTagContentMatchesChangelog` (in
+`cmd/api-stability/main_test.go`) enforces that **every version section in
+CHANGELOG.md has at least one corresponding module git tag**. If you add a
+`## [4.3.2]` section to CHANGELOG.md but never tag any module at `v4.3.2`,
+the test fails with:
+
+> CHANGELOG has `## [4.3.2]` but zero git tags at that version — did you
+> forget to tag the release?
+
+This prevents advertising a release in the CHANGELOG without actually
+publishing the code. Always tag at least one module at the version you
+document in CHANGELOG.md.
 
 ### Critical rules
 
 - **NEVER commit code that doesn't compile.** Run `go build ./...` before every commit.
 - **NEVER push tags without running the full verification gate** (`nix run .#build && nix run .#test && nix run .#lint`).
 - **ALWAYS use annotated tags** (`git tag -a`), never lightweight tags.
-- **ALWAYS update CHANGELOG.md** with release notes before tagging.
+- **ALWAYS update CHANGELOG.md** with release notes before tagging — the version must match the tag.
 - **ALWAYS update `docs/api_surface.txt`** when adding new exported symbols (`cd cmd/api-stability && GOWORK=off go run . -update`).
+- **NEVER tag a module whose go.mod still has local replace directives** — use `tag-release.sh` which strips them automatically.
 
 ### Release CI
 
