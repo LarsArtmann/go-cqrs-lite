@@ -44,6 +44,24 @@ func main() {
 	ruletest.AssertRule(t, findings, "B029", 0)
 }
 
+func TestB029_NoFindingForNonCQRSBus(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	errorBus := newErrorBus()
+	errorBus.Notify(evt)
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+
+	findings := ruletest.RunDetector(t, resilience.NewB029Detector(ctx))
+	ruletest.AssertRule(t, findings, "B029", 0)
+}
+
 func TestB030_BusWithoutCircuitBreaker(t *testing.T) {
 	t.Parallel()
 

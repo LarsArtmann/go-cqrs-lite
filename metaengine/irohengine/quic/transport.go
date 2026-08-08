@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	iroh_ffi "git.coopcloud.tech/decentral1se/iroh-go"
@@ -66,6 +67,11 @@ type peerConn struct {
 	// Lazily opened on first sendOpPooled. Protected by streamMu.
 	streamMu sync.Mutex
 	stream   *iroh_ffi.BiStream
+
+	// streamsOpened counts how many BiStreams have been opened to this peer.
+	// In pooled mode, N ops should reuse 1 stream (count stays at 1).
+	// In non-pooled mode, N ops open N streams (count == N).
+	streamsOpened atomic.Int64
 }
 
 var errQuicTransportClosed = errors.New("transport closed")
@@ -134,6 +140,18 @@ func (t *QuicTransport) PeerCount() int {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 	return len(t.conns)
+}
+
+// StreamsOpenedForPeer returns the number of BiStreams opened to the given peer.
+// In pooled mode, N ops should reuse 1 stream (returns 1). In non-pooled mode,
+// N ops open N streams (returns N). Useful for tests asserting stream reuse.
+func (t *QuicTransport) StreamsOpenedForPeer(peerID string) int64 {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+	if pc, ok := t.conns[peerID]; ok {
+		return pc.streamsOpened.Load()
+	}
+	return 0
 }
 
 // Connect dials a remote endpoint using its ticket string and establishes

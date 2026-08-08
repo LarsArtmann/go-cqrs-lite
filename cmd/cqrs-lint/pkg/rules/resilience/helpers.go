@@ -46,6 +46,68 @@ func isBusName(name string) bool {
 		strings.HasSuffix(name, "disp")
 }
 
+// busMethodNames are CQRS bus/dispatcher methods that confirm a variable is
+// actually a CQRS transport, not just a variable whose name ends in "bus".
+var busMethodNames = map[string]bool{
+	"Use":           true,
+	"UsePublish":    true,
+	"Publish":       true,
+	"Subscribe":     true,
+	"SubscribeAll":  true,
+	"Handle":        true,
+	"Dispatch":      true,
+	"RegisterTyped": true,
+	"RegisterQuery": true,
+}
+
+// hasBusMethodCall reports whether varName has any CQRS bus method call
+// (Use, UsePublish, Publish, Subscribe, Handle, Dispatch, etc.) in non-test
+// files. This distinguishes actual CQRS buses from lookalike variables (e.g.
+// errorBus that only calls Notify).
+func hasBusMethodCall(ctx *analyzer.AnalysisContext, varName string) bool {
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		found := false
+
+		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			if found {
+				return false
+			}
+
+			call, ok := n.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+
+			sel, ok := call.Fun.(*ast.SelectorExpr)
+			if !ok {
+				return true
+			}
+
+			ident, ok := sel.X.(*ast.Ident)
+			if !ok || ident.Name != varName {
+				return true
+			}
+
+			if busMethodNames[sel.Sel.Name] {
+				found = true
+				return false
+			}
+
+			return true
+		})
+
+		if found {
+			return true
+		}
+	}
+
+	return false
+}
+
 // hasMiddlewareKeyword scans all non-test files for x.Use(...) or x.UsePublish(...)
 // calls where any argument or the method name contains keyword (case-insensitive).
 func hasMiddlewareKeyword(ctx *analyzer.AnalysisContext, varName, keyword string) bool {
@@ -132,6 +194,8 @@ func callContainsKeyword(expr ast.Expr, keyword string) bool {
 
 // findBusVariables returns a map of bus/dispatcher variable names to their
 // position, collected from assignment statements in non-test files.
+// Only variables that also have CQRS bus method calls (Use, Publish, etc.)
+// are included — this filters out lookalike names (errorBus.Notify).
 func findBusVariables(ctx *analyzer.AnalysisContext) map[string]token.Position {
 	buses := make(map[string]token.Position)
 
@@ -148,7 +212,7 @@ func findBusVariables(ctx *analyzer.AnalysisContext) map[string]token.Position {
 
 			for _, lhs := range assign.Lhs {
 				if ident, ok := lhs.(*ast.Ident); ok {
-					if isBusName(ident.Name) {
+					if isBusName(ident.Name) && hasBusMethodCall(ctx, ident.Name) {
 						buses[ident.Name] = ctx.Fset.Position(ident.Pos())
 					}
 				}

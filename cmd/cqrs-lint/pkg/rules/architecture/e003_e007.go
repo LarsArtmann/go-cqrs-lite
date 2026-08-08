@@ -133,10 +133,6 @@ func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					if ctx.Registry.PackagesWithRegistration[gf.Pkg.PkgPath] {
-						return true
-					}
-
 					pos := ctx.Fset.Position(ts.Pos())
 
 					f, err := finding.NewBuilder(

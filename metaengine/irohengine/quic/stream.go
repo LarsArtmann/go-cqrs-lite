@@ -3,6 +3,7 @@
 package quic
 
 import (
+	"log/slog"
 	"time"
 
 	iroh_ffi "git.coopcloud.tech/decentral1se/iroh-go"
@@ -61,10 +62,30 @@ func (t *QuicTransport) handleStream(
 	sourcePeerID string,
 	stream *iroh_ffi.BiStream,
 ) {
-	data, err := stream.Recv().ReadToEnd(maxOpSize)
+	// Peek at the first byte to detect protocol mismatch: a pooled sender
+	// writes a magic byte before any framing. If we see it here, the sender
+	// is pooled but we are not — return immediately instead of hanging in
+	// ReadToEnd waiting for a Finish() that never comes.
+	firstByte, err := stream.Recv().ReadExact(1)
 	if err != nil {
 		return
 	}
+
+	if firstByte[0] == pooledStreamMagic {
+		slog.Error("quic handleStream: protocol mismatch — pooled sender connected " +
+			"to non-pooled receiver; enable WithStreamPooling on both nodes")
+		_ = stream.Send().Finish() // unblock sender's ReadExact so it doesn't hang
+		return
+	}
+
+	// Non-pooled sender: read the rest of the op data and combine with first byte
+	rest, err := stream.Recv().ReadToEnd(maxOpSize)
+	if err != nil {
+		return
+	}
+	data := make([]byte, 0, 1+len(rest))
+	data = append(data, firstByte...)
+	data = append(data, rest...)
 
 	// Send empty ack so sender's ReadToEnd completes
 	_ = stream.Send().WriteAll([]byte{})

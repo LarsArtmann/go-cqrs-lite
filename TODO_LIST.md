@@ -63,25 +63,44 @@ and is **never** duplicated here.
 ## Metaengine v2 — Dgraph Engine
 
 > Dgraph engine integration-tested against live Dgraph 25.4.0 (2026-08-08).
-> `nix run .#ephemeral-dgraph` spins up Zero+Alpha from nixpkgs. All 10 tests
-> pass with `-race`. DQL injection fixed (`QueryWithVars`), MapDelete fixed
+> `nix run .#ephemeral-dgraph` spins up Zero+Alpha from nixpkgs. All 46 tests
+> pass (6.072s). DQL injection fixed (`QueryWithVars`), MapDelete fixed
 > (Dgraph 25.x explicit null-predicate deletion), regression test added.
-> See `docs/status/2026-08-08_22-03_dgraph-integration-testing-and-performance.md`.
+>
+> 2026-08-09 session: lint sweep (0 issues across 73 modules), 8 missing modules
+> added to `testModules`, depguard allowlist fixed, Dgraph added to
+> `test-all-backends.sh` Phase 4, per-test cleanup via `main_test.go` DropAll.
+> See `docs/status/2026-08-09_01-09_dgraph-lint-sweep-module-registration-full-verification.md`.
 
-- [ ] **Add Dgraph to `test-all-backends.sh`** — currently lists SQLite,
-      Pebble, bbolt, DuckDB, PG, MySQL. Add Dgraph (needs `pkgs.dgraph`
-      in flake app `runtimeInputs`).
-      _(Effort: S)_
 - [ ] **Add Dgraph VM test** (`nix/vm/dgraph.nix`) — NixOS VM test for CI
       reproducibility, matching postgres-vm/mysql-vm/duckdb-vm pattern.
       _(Effort: M)_
-- [ ] **Add per-test data cleanup** — no `DropAll` or per-test cleanup exists.
-      Stale data accumulates on persistent Dgraph instances.
-      _(Effort: S)_
 - [ ] **Add Dgraph retry logic** for transient `"Please retry again"` errors.
       _(Effort: S)_
 - [ ] **Add Dgraph connection pool tuning** — gRPC `MaxCallRecvMsgSize` for
       large result sets.
+      _(Effort: S)_
+- [ ] **Fix LogBackend same-nanosecond collision** — `time.Now().UnixNano()`
+      can collide under concurrency. Consider atomic counter per collection
+      or ULID.
+      _(Effort: S)_
+- [ ] **Fix CounterIncrement over-read** — queries ALL counters in collection
+      even for 1-2 key deltas. Query only delta keys instead.
+      _(Effort: M)_
+- [ ] **Write dedicated unit tests for MultimapBackend** — empty key,
+      limit=0, concurrent append ordering (currently only tested via
+      `adttest.RunMatrix`).
+      _(Effort: S)_
+- [ ] **Write dedicated unit tests for LogBackend** — same-nanosecond
+      collision, empty collection, limit > entries.
+      _(Effort: S)_
+- [ ] **Add StreamLogBackend to dgraphengine** — currently skips (8/11 ADTs).
+      _(Effort: M)_
+- [ ] **Run full `-race` suite on dgraphengine with fresh Dgraph** — non-race
+      run passed clean (46/46); clean `-race` run not yet re-attempted after
+      confirming transient failure was stale-process related.
+      _(Effort: S)_
+- [ ] **Tag `dgraphengine/v4.0.2`** after verifying full gate passes.
       _(Effort: S)_
 
 ---
@@ -173,6 +192,21 @@ and is **never** duplicated here.
       disabled), `cmd/cqrs-lint/` (13), `metaengine/` (15) have the broadest
       exclusions. Narrow where safe.
       _(Effort: M)_
+- [ ] 🔥 **Add meta-test enforcing `testModules == all go.mod dirs`** — 8
+      modules were silently missing from `flake.nix` `testModules`, meaning
+      they were never built, tested, or linted. Like
+      `TestEveryGoModDirIsInModulesList` in api-stability.
+      _(Effort: S)_
+- [ ] **Add CI check comparing `go.mod` requires vs depguard allow list** —
+      dependencies are only added to `.golangci.yml` after lint fails.
+      _(Effort: M)_
+- [ ] **Investigate `gci` vs `goimports` disagreement** — two test files
+      (`pgengine/testcontainer_test.go`, `duckdbengine/helper_test.go`) have
+      `gci` issues that `nix fmt` doesn't fix.
+      _(Effort: S)_
+- [ ] **Document `testModules` ↔ `lintModules` coupling in AGENTS.md** —
+      they share the same list; adding a module requires updating both.
+      _(Effort: S)_
 - [ ] 🔥 **Fix benchkit timing flakes** — `TestRun_SQLite_DurationAborts`,
       `TestCompare_ThreeBackends`, `TestRun_CancelledContext` fail under
       parallel test load with hardcoded 5s thresholds. Apply the
@@ -222,6 +256,10 @@ and is **never** duplicated here.
 - [ ] **Write actual Dgraph integration tests in Go** — ephemeral-dgraph script
       exists; ADT tests run but no system-level integration test.
       _(Effort: M)_
+- [ ] **Add stale-process detection (PID file) to `ephemeral-dgraph.sh`** —
+      orphaned Dgraph processes from prior sessions cause transient test
+      failures.
+      _(Effort: S)_
 
 ---
 

@@ -170,9 +170,8 @@ func collectEventNewTypes(ctx *analyzer.AnalysisContext) map[string]bool {
 			}
 
 			isNewEvent := pkg.Name == "event" && sel.Sel.Name == "NewEvent"
-			isNewEventAlt := sel.Sel.Name == "NewEvent"
 
-			if !isNewEvent && !isNewEventAlt {
+			if !isNewEvent {
 				return true
 			}
 

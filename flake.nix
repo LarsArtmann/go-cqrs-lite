@@ -764,7 +764,7 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-doc-stubs.sh"
             '';
 
-            check-arch = mkApp "check-arch" [ goPkg pkgs.bash ] ''
+            check-arch = mkApp "check-arch" [ goPkg pkgs.bash pkgs.go-arch-lint pkgs.findutils pkgs.gnugrep ] ''
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-arch.sh"
             '';
 

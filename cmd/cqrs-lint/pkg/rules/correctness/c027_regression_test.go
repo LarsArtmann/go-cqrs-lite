@@ -23,8 +23,8 @@ type ErrorBus struct{}
 func (*ErrorBus) Subscribe(eventType string, fn func(string)) {}
 
 func setup() {
-	ph := projectionhostPkg{}
-	_, _ = ph.New(nil, nil)
+	projectionhost := projectionhostPkg{}
+	_, _ = projectionhost.New(nil, nil)
 
 	errBus := &ErrorBus{}
 	errBus.Subscribe("user.created", func(s string) {})

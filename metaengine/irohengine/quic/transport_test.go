@@ -395,3 +395,78 @@ func TestQuicPooled_Bidirectional(t *testing.T) {
 		To(gomega.Succeed())
 	eventuallyGet(c.G, c.NodeA, "orders", "o2", "shipped", 10*time.Second)
 }
+
+// TestQuicPooled_StreamReuse verifies that multiple ops over a pooled connection
+// reuse the same persistent BiStream. The stream-reuse counter on peerConn should
+// show exactly 1 stream opened regardless of how many ops are sent.
+func TestQuicPooled_StreamReuse(t *testing.T) {
+	c := newQuicClusterPooled(t)
+
+	// Send 20 ops from A → B over the same pooled stream.
+	for i := range 20 {
+		key := fmt.Sprintf("reuse-%d", i)
+		val := fmt.Sprintf("val-%d", i)
+		c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "kv", key, val)).
+			To(gomega.Succeed())
+	}
+
+	// Wait for at least some ops to arrive so the stream has been opened.
+	eventuallyGet(c.G, c.NodeB, "kv", "reuse-0", "val-0", 10*time.Second)
+
+	// Assert stream reuse: 20 ops should have used only 1 BiStream.
+	streams := c.TA.StreamsOpenedForPeer(c.TB.NodeID())
+	c.G.Expect(streams).To(gomega.Equal(int64(1)),
+		"20 ops over pooled connection should reuse 1 stream, got %d", streams)
+}
+
+// TestQuicPooledToNonPooled_NoHang verifies that a pooled sender connected to a
+// non-pooled receiver does NOT silently hang. The receiver detects the magic byte
+// prefix and returns immediately instead of blocking in ReadToEnd waiting for a
+// Finish() that never comes.
+func TestQuicPooledToNonPooled_NoHang(t *testing.T) {
+	g := gomega.NewWithT(t)
+
+	// Pooled sender
+	tA, err := quic.New(quic.WithLocalOnly(), quic.WithStreamPooling())
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	t.Cleanup(func() { _ = tA.Close() })
+
+	// Non-pooled receiver
+	tB, err := quic.New(quic.WithLocalOnly())
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	t.Cleanup(func() { _ = tB.Close() })
+
+	nodeA := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
+		irohengine.WithAuthor("node-a"),
+		irohengine.WithTransport(tA),
+	)
+	nodeB := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
+		irohengine.WithAuthor("node-b"),
+		irohengine.WithTransport(tB),
+	)
+	t.Cleanup(func() { _ = nodeA.Close() })
+	t.Cleanup(func() { _ = nodeB.Close() })
+
+	ticketA, err := tA.Ticket()
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(tB.Connect(ticketA)).To(gomega.Succeed())
+	waitForPeers(t, []*quic.QuicTransport{tA, tB}, 1)
+
+	// Publish from pooled sender. This must not hang — the non-pooled receiver
+	// detects the protocol mismatch via the magic byte and returns immediately.
+	done := make(chan struct{})
+	go func() {
+		_ = nodeA.(metaengine.MapBackend).MapSet(context.Background(), "mismatch", "k", "v")
+		close(done)
+	}()
+	g.Eventually(done, 10*time.Second).Should(gomega.BeClosed(),
+		"pooled sender to non-pooled receiver must not hang")
+
+	// The op must NOT arrive at the non-pooled receiver (protocol mismatch detected).
+	time.Sleep(500 * time.Millisecond)
+	_, ok, _ := nodeB.(metaengine.MapBackend).MapGet(context.Background(), "mismatch", "k")
+	g.Expect(ok).To(gomega.BeFalse(),
+		"op should not arrive at non-pooled receiver after protocol mismatch")
+}

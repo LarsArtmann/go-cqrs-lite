@@ -9,6 +9,16 @@ import (
 	iroh_ffi "git.coopcloud.tech/decentral1se/iroh-go"
 )
 
+// pooledStreamMagic is written as the first byte when a pooled sender opens a
+// new BiStream. The receiver checks this byte to detect protocol mismatches:
+// a pooled sender connected to a non-pooled receiver (or vice versa) would
+// otherwise silently hang.
+//
+// 0x50 ('P') is CBOR major type 2 (byte string) — it can NEVER be the first
+// byte of a CBOR-encoded WriteOp struct, which always starts with major type 5
+// (0xA0-0xBF for map-encoded structs).
+const pooledStreamMagic byte = 0x50
+
 // sendOpPooled writes an encoded op to a persistent BiStream using length-prefix
 // framing, then reads a minimal ack. The persistent stream is opened lazily on
 // first use and reused for all subsequent ops to the same peer.
@@ -27,6 +37,14 @@ func (t *QuicTransport) sendOpPooled(pc *peerConn, data []byte) {
 			return
 		}
 		pc.stream = stream
+		pc.streamsOpened.Add(1)
+
+		// Write magic byte so the receiver can detect protocol mismatch
+		// (pooled sender to non-pooled receiver would otherwise silently hang).
+		if err := pc.stream.Send().WriteAll([]byte{pooledStreamMagic}); err != nil {
+			t.evictPooledStream(pc)
+			return
+		}
 	}
 
 	// Write frame: [4-byte length][payload]
@@ -84,6 +102,19 @@ func (t *QuicTransport) handlePooledStream(
 	sourcePeerID string,
 	stream *iroh_ffi.BiStream,
 ) {
+	// Read and verify the magic byte that identifies this as a pooled stream.
+	magic, err := stream.Recv().ReadExact(1)
+	if err != nil {
+		return
+	}
+	if magic[0] != pooledStreamMagic {
+		slog.Error("quic handlePooledStream: protocol mismatch — non-pooled sender " +
+			"connected to pooled receiver; the receiver has WithStreamPooling enabled " +
+			"but the sender does not")
+		_ = stream.Send().Finish() // unblock sender's ReadToEnd so it doesn't hang
+		return
+	}
+
 	for {
 		// Read frame header
 		header, err := stream.Recv().ReadExact(frameHeaderSize)
