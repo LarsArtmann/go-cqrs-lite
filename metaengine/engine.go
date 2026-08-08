@@ -533,6 +533,17 @@ func DeferClose(c Closer) {
 }
 
 // Engine is a storage backend with a cost profile.
+//
+// Concurrency safety varies by implementation:
+//   - Memory: safe for concurrent use (sync.RWMutex on all backends).
+//   - Pebble/Badger: safe (LSM handles concurrent access internally).
+//   - Postgres: safe (pgx connection pool serializes access).
+//   - DuckDB: safe for concurrent reads; layout-plan mutations are guarded by
+//     an internal RWMutex. Single-writer SQL model (RunInTx enforces exclusivity).
+//   - SQLite: single-writer model (MaxOpenConns(1)); safe for concurrent
+//     reads but writes serialize.
+//   - Dgraph: safe (gRPC client, server-side serialization).
+//   - GraphAdapter: inherits the underlying GraphDriver's safety guarantees.
 type Engine interface {
 	Profile() EngineProfile
 	Closer

@@ -1,8 +1,7 @@
 # TODO List
 
-**Updated:** 2026-08-08 (metaengine v2 release hygiene sweep: record-stamp helper,
-badgerengine parity, AutoCRUD soak sqlite+pg, race consolidation, DuckDB soak
-gating, coverage baseline refresh)
+**Updated:** 2026-08-08 (event/v4.4.0 bump across 44 go.mod files,
+storage tag drift fix, release-hygiene stale-item cleanup)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -15,32 +14,22 @@ and is **never** duplicated here.
 
 ---
 
-## Release Hygiene — BLOCKED on user approval
+## Release Hygiene
 
 > Verify gate is 17/17 GREEN. Lint gate is 0 issues. CHANGELOG has entries for
-> v4.0.0, v4.1.0, v4.3.0. API stability golden is 3807 exports.
-> **Blocker:** `event/v4.4.0` and 14 other tags need to be pushed to origin
-> before vulncheck can resolve modules under GOWORK=off.
+> v4.0.0, v4.1.0, v4.3.0. API stability golden is 3807 exports. All 15 tags
+> (`event/v4.4.0` + 14 module tags) are pushed to origin. `event/v4` is bumped
+> to v4.4.0 in all 44 dependent go.mod files. Vulncheck: 76/77 modules clean;
+> `stack` fails on `storage.SQLiteSetSynchronous` drift (see below).
 
-- [BLOCKED] 🔥 **Push `event/v4.4.0` to origin** — `event/metadata.go` gained
-  `WithCustom` after `event/v4.3.0` was tagged. 29 dependent modules require
-  v4.4.0 for GOWORK=off resolution. Tagged locally, needs
-  `git push origin event/v4.4.0`.
-  _(Source: `docs/status/2026-08-08_07-45_lint-cleanup-race-fix-verify-green.md`)_
-- [BLOCKED] 🔥 **Push all 14 new module tags to origin** — `stack/mysql/v4.1.0`,
-  `stack/postgres/v4.3.0`, `stack/bbolt/v4.1.0`, `stack/duckdb/v4.1.0`,
-  `stack/pebble/v4.3.0`, `stack/turso/v4.3.0`, `stack/memory/v4.3.0`,
-  `stack/sqlite/v4.3.0`, `stack/v4.3.0`, `benchkit/v4.3.0`,
-  `middleware/v4.3.0`, `retry/v4.3.0`, `metaengine/bench/v4.0.0`,
-  `metaengine/pebbleengine/v4.0.0`. All created by prior session, none pushed.
-- [ ] **Bump `event/v4` from v4.3.0 to v4.4.0 in 29 dependent go.mod files** —
-      after pushing `event/v4.4.0`, update all modules that import event/v4.
-      `go get github.com/larsartmann/go-cqrs-lite/event/v4@v4.4.0` in each.
-- [ ] **Re-run `nix run .#vulncheck` after event/v4.4.0 push** — currently
-      blocked: `watermill/protocol.go:277` calls `m.WithCustom()` which doesn't
-      exist at `event/v4.3.0`. Affected modules: watermill, middleware, signing,
-      encryption. 76/77 modules scan clean; watermill is the holdout.
-      _(Source: `docs/status/2026-08-08_07-45_metaengine-v2-release-hygiene.md`)_
+- [ ] 🔥 **Tag `storage/v4.5.1` (or v4.6.0)** — `SQLiteSetSynchronous` was added
+      to `storage/sqlite_helpers.go:124` after `storage/v4.5.0` was tagged.
+      `stack/sqlopt/durability.go:40` calls it, but the published tag doesn't
+      have it. This blocks `nix run .#vulncheck` for the `stack` module under
+      GOWORK=off. Fix: `bash scripts/tag-release.sh storage v4.6.0 "..."` then
+      bump `storage/v4` in `stack/go.mod`.
+      _(Verified 2026-08-08: `git show storage/v4.5.0:storage/sqlite_helpers.go`
+      has 4 SQLite funcs, current HEAD has 5.)_
 - [ ] **Write detailed CHANGELOG entries for v4.0.0/v4.1.0/v4.3.0** — current
       entries are vague ("Stack presets gain durability tiers"). Replace with
       specific exported types/functions, file:line refs, ADR references.
@@ -64,12 +53,6 @@ and is **never** duplicated here.
 >
 > _(Source: `docs/status/2026-08-08_07-45_metaengine-v2-release-hygiene.md`)_
 
-- [ ] 🔥 **Add mutex protection or document single-thread constraint on DuckDB
-      engine** — `duckdbengine/engine.go` `layoutPlans` map has no
-      synchronization. Discovered when parallel test subtests caused a data race
-      between `ExplainAggregateQuery` (read) and `ApplyLayoutPlan` (write).
-      Either add `sync.RWMutex` or document the single-thread constraint.
-      _(Source: `docs/status/2026-08-08_07-45_lint-cleanup-race-fix-verify-green.md`)_
 - [ ] **Split `TestTypedReader_AggregateFallback` into 3 smaller tests** —
       13 subtests give it maintidx=19 (below threshold). Split into Scalar,
       Grouped, Multi subtest groups. Then remove the `maintidx` exclusion from
@@ -93,9 +76,10 @@ and is **never** duplicated here.
       load but passes 3/3 in isolation. Increase timeout to 30s or add retry.
 - [ ] **Add AutoCRUD soak for badgerengine** — now Memory/Pebble/DuckDB/SQLite/PG
       have soak coverage; Badger is the remaining LSM gap.
-- [ ] **Document concurrency safety on Engine interface** — which engines are
-      safe for concurrent use (Memory: yes via RWMutex, Pebble: yes via internal
-      locking) vs single-threaded (DuckDB, SQLite — no mutex on layoutPlans).
+- [ ] **Document concurrency safety on Engine interface** — Memory uses
+      `sync.RWMutex` (safe), Pebble uses internal locking (safe), DuckDB has
+      `layoutMu sync.Mutex` on layoutPlans (fixed 2026-08-08), SQLite relies on
+      `MaxOpenConns(1)`. Document this matrix on the `Engine` interface doc.
 - [ ] **Add race-detector integration test for MemoryEngine concurrent access** —
       prove RWMutex works under -race with parallel goroutines.
 

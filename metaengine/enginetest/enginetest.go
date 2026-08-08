@@ -49,6 +49,8 @@ func ScanBackendProducts() []ScanBackendItem {
 // (engine creation, skip on missing engine, seeding the fixture collection,
 // type-asserting PushdownScan) is shared across all five scenarios in each
 // engine's pushdown test file (filter, sort, filter+sort+limit, cursor, IN).
+//
+// The caller is responsible for closing the engine.
 func RunPushdownTest(
 	t *testing.T,
 	eng metaengine.Engine,
@@ -296,6 +298,8 @@ type WatcherReplaySetup[V any] struct {
 // expectedID is the ID asserted on the live and replayed values. seqTimeout
 // is the duration to wait for the watcher's first notification (Postgres may
 // need a longer timeout than DuckDB).
+//
+// The caller is responsible for closing the engine.
 func RunWatcherReplayTest[V any](
 	t *testing.T,
 	eng metaengine.Engine,
@@ -722,6 +726,8 @@ func runLogTxSubtest(
 // distinct key inside separate transactions; both must complete successfully.
 //
 // The engine must implement Transactional and MapBackend.
+//
+// The caller is responsible for closing the engine.
 func RunConcurrentTxTest(t *testing.T, eng metaengine.Engine) {
 	t.Helper()
 

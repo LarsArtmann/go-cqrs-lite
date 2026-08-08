@@ -225,7 +225,7 @@ func TestQuicLogConvergence(t *testing.T) {
 		g.Expect(entries).To(gomega.HaveLen(2))
 		g.Expect(entries[0]).To(gomega.Equal("user-login"))
 		g.Expect(entries[1]).To(gomega.Equal("file-upload"))
-	}, 15*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
+	}, 30*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
 }
 
 // TestQuicMapUpdateDoesNotReplicate proves that MapUpdate (atomic
