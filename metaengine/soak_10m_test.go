@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
 
 // TestSoak_MemoryBounded_10M verifies that processing 10M events into a bounded
@@ -129,7 +130,7 @@ func TestSoak_MemoryBounded_10M(t *testing.T) {
 	// 1000 keys → ~100KB of map entries. Allow generous headroom for
 	// GC pressure, map overhead, and parallel test load.
 	maxGrowth := int64(15 * 1024 * 1024) // 15MB
-	if raceEnabled {
+	if enginetest.RaceEnabled {
 		maxGrowth *= 5 // 75MB under -race
 	}
 
@@ -144,7 +145,7 @@ func TestSoak_MemoryBounded_10M(t *testing.T) {
 		lastSeg := int64(samples[len(samples)-1].heapBytes) -
 			int64(samples[len(samples)-2].heapBytes)
 		maxLastSeg := int64(2 * 1024 * 1024) // 2MB
-		if raceEnabled {
+		if enginetest.RaceEnabled {
 			maxLastSeg *= 5 // 10MB under -race
 		}
 

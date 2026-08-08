@@ -1219,6 +1219,36 @@ ProjectionDecoder` field for typed event decoders.
 
 ### Fixed
 
+#### Verify gate GREEN — lint cleanup, DuckDB race fix, coverage baseline
+
+- **Lint gate: 0 issues** — fixed 3 remaining violations:
+  `metaengine/duckdbengine/aggregations.go:135` unused param `col` → `_`;
+  `system/constructor.go:23` stale `//nolint:funlen` removed (funlen already
+  excluded for `system/`); `metaengine/typed_reader_aggregate_test.go` 13
+  subtests parallelized (MemoryEngine is RWMutex-safe). Added `maintidx` to
+  test-file exclusion list.
+- **DuckDB test data race** — `TestDuckDB_ExplainAggregateQuery` subtests
+  caused concurrent map access on `duckdbEngine.layoutPlans` when parallelized
+  with `t.Parallel()`. `ExplainAggregateQuery` reads the map while
+  `ApplyLayoutPlan` writes it. Reverted to sequential subtests with
+  `defer eng.Close()`. Verified with `go test -race` (116s, PASS).
+- **Coverage baseline drift** — updated `scripts/check-coverage.sh` EXPECTED:
+  `query` 80.5% → 85.3%, `command` 88.3% → 89.7%, `event` 88.2% → 88.6%,
+  `metaengine` 79.8% → 81.0%, `codec` 70.2% → 69.2%, `storage/memory` 96.9% →
+  97.0%.
+- **Duplication baseline** — regenerated `.art-dupl-baseline.json` (64→67
+  clone groups; new clones are pre-existing test parallelization + system
+  RLock patterns).
+- **API stability golden** — regenerated `docs/api_surface.txt` to 3807
+  exports (was stale from prior session).
+- **CHANGELOG version sections** — added `## [v4.3.0]`, `## [v4.1.0]`,
+  `## [v4.0.0]` entries for 14 module tags created 2026-08-07/08.
+- **Verify gate** — all 17/17 steps GREEN: build, vet, test, race, lint,
+  check-layers, check-duplication, check-coverage, API stability (-race),
+  doc-check (1263 references, 43 packages).
+- **`event/v4.4.0` tagged** — `event/metadata.go` gained `WithCustom` after
+  `event/v4.3.0` tag; tagged `v4.4.0` locally (push pending user approval).
+
 - **DuckDB/PG go.mod drift** — both `metaengine/duckdbengine/go.mod` and
   `pgengine/go.mod` required `metaengine/v4 v4.0.0` while the actual version
   is `v4.5.0`. Fixed to `v4.5.0`. Breaks `GOWORK=off` builds for consumers.

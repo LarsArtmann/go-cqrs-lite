@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-08 (system lifecycle hardening, aggregate pushdown, GraphBackend cleanup, dedup helpers, metadata deprecation, CBOR bugfix)
+**Updated:** 2026-08-08 (lint gate GREEN, verify gate 17/17 GREEN, DuckDB race fixed, CHANGELOG tagged)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -13,27 +13,58 @@ and is **never** duplicated here.
 
 ---
 
-## Metaengine v2 — Release Hygiene
+## Release Hygiene — BLOCKED on user approval
 
-> Metaengine v2 is **feature-complete**: `record/` module, 9 engines, Record-aware
+> Verify gate is 17/17 GREEN. Lint gate is 0 issues. CHANGELOG has entries for
+> v4.0.0, v4.1.0, v4.3.0. API stability golden is 3807 exports.
+> **Blocker:** `event/v4.4.0` and 14 other tags need to be pushed to origin
+> before vulncheck can resolve modules under GOWORK=off.
+
+- [BLOCKED] 🔥 **Push `event/v4.4.0` to origin** — `event/metadata.go` gained
+      `WithCustom` after `event/v4.3.0` was tagged. 29 dependent modules require
+      v4.4.0 for GOWORK=off resolution. Tagged locally, needs
+      `git push origin event/v4.4.0`.
+      *(Source: `docs/status/2026-08-08_07-45_lint-cleanup-race-fix-verify-green.md`)*
+- [BLOCKED] 🔥 **Push all 14 new module tags to origin** — `stack/mysql/v4.1.0`,
+      `stack/postgres/v4.3.0`, `stack/bbolt/v4.1.0`, `stack/duckdb/v4.1.0`,
+      `stack/pebble/v4.3.0`, `stack/turso/v4.3.0`, `stack/memory/v4.3.0`,
+      `stack/sqlite/v4.3.0`, `stack/v4.3.0`, `benchkit/v4.3.0`,
+      `middleware/v4.3.0`, `retry/v4.3.0`, `metaengine/bench/v4.0.0`,
+      `metaengine/pebbleengine/v4.0.0`. All created by prior session, none pushed.
+- [ ] **Bump `event/v4` from v4.3.0 to v4.4.0 in 29 dependent go.mod files** —
+      after pushing `event/v4.4.0`, update all modules that import event/v4.
+      `go get github.com/larsartmann/go-cqrs-lite/event/v4@v4.4.0` in each.
+- [ ] **Re-run `nix run .#vulncheck` after event/v4.4.0 push** — currently
+      blocked: `watermill/protocol.go:277` calls `m.WithCustom()` which doesn't
+      exist at `event/v4.3.0`. 76/77 modules scan clean; watermill is the
+      holdout.
+- [ ] **Write detailed CHANGELOG entries for v4.0.0/v4.1.0/v4.3.0** — current
+      entries are vague ("Stack presets gain durability tiers"). Replace with
+      specific exported types/functions, file:line refs, ADR references.
+      *(Effort: M)*
+
+---
+
+## Metaengine v2 — Test Coverage Gaps
+
+> Metaengine v2 is feature-complete: `record/` module, 9 engines, Record-aware
 > folds, auto-projection, tombstone deprecation, GraphBackend cleanup, aggregate
-> pushdown. 14 tags created and pushed to `origin`. Remaining work is release
-> documentation and edge-case coverage.
+> pushdown. 14 tags created locally. Remaining work is edge-case coverage.
 
-- [ ] 🔥 **Update CHANGELOG.md for all 14 new tags** — `TestTagContentMatchesChangelog`
-      will fail without entries for each version section.
-- [ ] 🔥 **Run `nix run .#verify` to completion** — verify gate was killed multiple
-      times across sessions without confirming GREEN. Must confirm clean before
-      tagging or claiming release readiness.
-- [ ] **Run `nix run .#vulncheck`** — verify all tagged modules build under
-      GOWORK=off (per-module consumer resolution).
-- [ ] **Regen API stability golden** — `RunTransactionalBaselineTest`,
-      `RunAutoCRUDSoak`, `DeferClose`, aggregate interfaces, and system lifecycle
-      methods are new exports. Run
-      `cd cmd/api-stability && GOWORK=off go run main.go -update`.
-
-### Test coverage gaps
-
+- [ ] 🔥 **Add mutex protection or document single-thread constraint on DuckDB
+      engine** — `duckdbengine/engine.go` `layoutPlans` map has no
+      synchronization. Discovered when parallel test subtests caused a data race
+      between `ExplainAggregateQuery` (read) and `ApplyLayoutPlan` (write).
+      Either add `sync.RWMutex` or document the single-thread constraint.
+      *(Source: `docs/status/2026-08-08_07-45_lint-cleanup-race-fix-verify-green.md`)*
+- [ ] **Split `TestTypedReader_AggregateFallback` into 3 smaller tests** —
+      13 subtests give it maintidx=19 (below threshold). Split into Scalar,
+      Grouped, Multi subtest groups. Then remove the `maintidx` exclusion from
+      `.golangci.yml` test-file rules.
+- [ ] **Add `//nolint:tparallel` with justification to DuckDB tests sharing
+      engine state** — `TestDuckDB_ExplainAggregateQuery` and similar tests
+      share a mutable engine. Document WHY subtests can't be parallel instead
+      of fighting the linter.
 - [ ] **Add record-stamp test for badgerengine** — completes all-engine parity
       (currently: Memory, SQLite, Pebble, DuckDB, PG have it; Badger, Dgraph,
       GraphAdapter do not).
@@ -45,12 +76,14 @@ and is **never** duplicated here.
 - [ ] **Extract `RunRecordStampTest(t, eng)` helper in enginetest** — record-stamp
       test body is copy-pasted across 4 engine modules (pebble, sqlite, duckdb, pg).
       A shared helper eliminates ~100 lines of duplication.
-- [ ] **DuckDB soak CI gating decision** — DuckDB soak takes 82-98s (vs Pebble
+- [ ] **DuckDB soak CI gating decision** — DuckDB soak takes 82-116s (vs Pebble
       0.27s, Memory 0.03s). Consider `testing.Short()` skip or nightly-only tag
       if it slows per-PR CI.
-- [ ] **Add `// Caller owns engine Close.` doc comment to
-      `RunTransactionalBaselineTest`** — matching the convention of
-      `RunTransactionalTest` and `RunAutoCRUDSoak`.
+- [ ] **Document concurrency safety on Engine interface** — which engines are
+      safe for concurrent use (Memory: yes via RWMutex, Pebble: yes via internal
+      locking) vs single-threaded (DuckDB, SQLite — no mutex on layoutPlans).
+- [ ] **Add race-detector integration test for MemoryEngine concurrent access** —
+      prove RWMutex works under -race with parallel goroutines.
 
 ---
 
@@ -69,14 +102,10 @@ and is **never** duplicated here.
       instead of Go-side accumulation.
 - [ ] **Extract shared `DecodeFloat` into metaengine core** — eliminate 3-way
       duplication across DuckDB/SQLite/PG aggregate paths.
-- [ ] **Add `art-dupl:accept` to `duckdbengine/explain.go` and
-      `sqliteengine/explain.go`** — cross-module SQL builders accepted as
-      intentional.
 - [ ] **Add DuckDB planned-path empty-collection test** — currently only
       json_extract path tested for empty collections.
 - [ ] **Add cross-engine planned-table parity test** — verify DuckDB + SQLite
       planned-table results match.
-- [ ] **Update FEATURES.md** — aggregate pushdown capabilities (DONE this session).
 - [ ] **Add aggregate pushdown to `SerializablePlan`** — JSON serialize/diff/pin
       support for aggregate query plans.
 - [ ] **Add aggregate diagnostics to `Doctor()`** — show pushdown vs fallback
@@ -181,25 +210,19 @@ and is **never** duplicated here.
 - [ ] **Per-module `.golangci.yml` split** — the monolithic config is now
       fully documented, but golangci-lint v2 `config-dirs` would give each
       module ownership of its own exclusions.
+- [ ] **Review and tighten `.golangci.yml` exclusion blocks** — 30+ blocks
+      exist. Each should have a comment explaining why it can't be fixed in
+      code. Remove unjustified ones. The `maintidx` test-file exclusion
+      (added 2026-08-08) should be removed once TestTypedReader_AggregateFallback
+      is split.
 - [ ] **Extend `DeferClose` to `storage/pebble/`** (~10 sites) — currently only
       applied to metaengine engines.
 - [ ] **Extend `DeferClose` to `storage/bbolt/`** (~8 sites).
 - [ ] **Extend `DeferClose` to `storage/eventstore/`** (~5 sites).
-
----
-
-## Pre-Existing Failures
-
-> CBOR encoding bugfix shipped (2026-08-08): `event.New` WithEncoding fix +
-> Watermill CBOR test fixes. 81 modules test GREEN.
-
-- [ ] 🔥 **Fix `cmd/api-stability/main.go:172` — `collectExports` undefined** —
-      the api-stability tool itself does not compile. Blocks ALL api-surface
-      golden regeneration. A meta-test should ensure `cmd/api-stability`
-      compiles (catches this class of breakage).
-- [ ] **Regenerate api-stability golden** — after fixing the tool. The golden is
-      stale: missing `event.Metadata.WithCustom`, `DeferClose`, aggregate
-      interfaces, system lifecycle methods, and likely other symbols.
+- [ ] **Fix tag-release script cleanup** — `scripts/tag-release.sh` leaves
+      staged deletions of `race_on_test.go`, `race_off_test.go`, and
+      modifications to `AGENTS.md` + `soak_10m_test.go`. Script should restore
+      ALL working tree changes, not just go.mod.
 
 ---
 
@@ -215,6 +238,9 @@ and is **never** duplicated here.
       Actions step gates it.
 - [ ] **Add `--fail-on-stale-suppressions` CI gate** — prevents stale
       `//cqrs-lint:ignore` directives from accumulating.
+- [ ] **Add CI check for API-version drift** — verify every exported symbol
+      in a tagged module exists at that tag. Catches the `WithCustom`/
+      `event/v4.3.0` class of drift before vulncheck fails.
 
 ---
 
