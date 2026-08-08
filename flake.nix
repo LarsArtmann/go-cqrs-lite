@@ -605,6 +605,10 @@
             # nspawn variant — ~10x faster, requires uid-range system feature.
             # Run: nix build .#checks.x86_64-linux.mysql-nspawn -L
             mysql-nspawn = mysqlNspawnTest;
+            # DuckDB columnar engine health (embedded, no server needed).
+            duckdb-vm = duckdbTest;
+            # Turso libSQL server health (remote sync path).
+            turso-vm = tursoTest;
           };
 
           # No-op default package so `nix build .` (BuildFlow's full mode) succeeds.

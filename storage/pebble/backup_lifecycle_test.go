@@ -140,7 +140,11 @@ func TestBackupRestore_FullLifecycle(t *testing.T) {
 	}
 
 	if loadedCP.EventID != cpEventID {
-		t.Errorf("restored checkpoint EventID = %s, want %s (pre-backup)", loadedCP.EventID, cpEventID)
+		t.Errorf(
+			"restored checkpoint EventID = %s, want %s (pre-backup)",
+			loadedCP.EventID,
+			cpEventID,
+		)
 	}
 
 	// ── Phase 5: Restored backend is functional for new writes ──

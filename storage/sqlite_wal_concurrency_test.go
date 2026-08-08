@@ -68,9 +68,11 @@ func TestSQLiteWAL_ConcurrentReadWrite(t *testing.T) {
 
 			for i := range opsPerG {
 				key := fmt.Sprintf("key-%03d", w*opsPerG+i)
-				_, err := db.ExecContext(ctx,
+				_, err := db.ExecContext(
+					ctx,
 					"INSERT INTO kv (key, val) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET val = excluded.val",
-					key, i,
+					key,
+					i,
 				)
 				if err != nil {
 					atomic.AddInt64(&errorCount, 1)
@@ -200,8 +202,11 @@ func TestSQLiteWAL_SnapshotIsolation(t *testing.T) {
 	}
 
 	if snapshotRead != beforeWrite {
-		t.Errorf("snapshot isolation violated: read %d in snapshot, expected %d (WAL should isolate)",
-			snapshotRead, beforeWrite)
+		t.Errorf(
+			"snapshot isolation violated: read %d in snapshot, expected %d (WAL should isolate)",
+			snapshotRead,
+			beforeWrite,
+		)
 	}
 
 	// After committing the read tx, a new read should see the updated value.

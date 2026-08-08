@@ -41,17 +41,17 @@ placeholder). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
 These are foundational building blocks. Some depend on each other (e.g.
 `kv/` → `codec/`, `metaengine/` → `dedup/`) but never on higher tiers.
 
-| Module            | Purpose                                                           |
-| ----------------- | ----------------------------------------------------------------- |
-| `id/`             | Branded IDs: `id.Of[T]`, `AggregateID`, `StreamID`, etc.          |
-| `dispatcher/`     | Generic `Dispatcher[H, M]` with lifecycle mixin                   |
-| `codec/`          | Payload encoding: JSON, CBOR, Raw                                 |
-| `kv/`             | KV store: `Store`, `MemStore`, `TypedStore[T,K]`                  |
-| `dedup/`          | Bounded dedup ring buffer                                         |
+| Module            | Purpose                                                                      |
+| ----------------- | ---------------------------------------------------------------------------- |
+| `id/`             | Branded IDs: `id.Of[T]`, `AggregateID`, `StreamID`, etc.                     |
+| `dispatcher/`     | Generic `Dispatcher[H, M]` with lifecycle mixin                              |
+| `codec/`          | Payload encoding: JSON, CBOR, Raw                                            |
+| `kv/`             | KV store: `Store`, `MemStore`, `TypedStore[T,K]`                             |
+| `dedup/`          | Bounded dedup ring buffer                                                    |
 | `record/`         | Shared Record + CommonMetadata types (structural base for events + commands) |
-| `metaengine/`     | Cost-based storage planner (the strategic future of this project) |
-| `flightrecorder/` | Go 1.25 runtime/trace flight recorder wrapper                     |
-| `retry/`          | Re-export of go-retry: `Do`, `Config`, `Backoff` (DEPRECATED)     |
+| `metaengine/`     | Cost-based storage planner (the strategic future of this project)            |
+| `flightrecorder/` | Go 1.25 runtime/trace flight recorder wrapper                                |
+| `retry/`          | Re-export of go-retry: `Do`, `Config`, `Backoff` (DEPRECATED)                |
 
 > **`metaengine/` is Tier 0 by design** (ADR-0062). The core planner has zero
 > internal deps (stdlib + `database/sql` + `dedup/` only). The bridge to the
@@ -139,17 +139,17 @@ middleware, observability, and security. The largest tier.
 
 ### Observability
 
-| Module        | Purpose                             |
-| ------------- | ----------------------------------- |
-| `prometheus/` | OTel-to-Prometheus metrics bridge   |
+| Module        | Purpose                           |
+| ------------- | --------------------------------- |
+| `prometheus/` | OTel-to-Prometheus metrics bridge |
 
 ### Cross-Cutting
 
-| Module        | Purpose                                                                             |
-| ------------- | ----------------------------------------------------------------------------------- |
-| `middleware/` | Logging, Retry, Recovery, Validation, Idempotency, Metrics, OTel, Circuit Breaker   |
-| `testutil/`   | Shared test helpers (NewCmd, etc.)                                                  |
-| `testutil/pgtestcontainer/` | Postgres testcontainers helper for integration tests                    |
+| Module                      | Purpose                                                                           |
+| --------------------------- | --------------------------------------------------------------------------------- |
+| `middleware/`               | Logging, Retry, Recovery, Validation, Idempotency, Metrics, OTel, Circuit Breaker |
+| `testutil/`                 | Shared test helpers (NewCmd, etc.)                                                |
+| `testutil/pgtestcontainer/` | Postgres testcontainers helper for integration tests                              |
 
 ### Transport
 
@@ -166,19 +166,19 @@ middleware, observability, and security. The largest tier.
 
 ### Metaengine Infrastructure
 
-| Module                            | Purpose                                             |
-| --------------------------------- | --------------------------------------------------- |
-| `metaengine/projectionadapter/`   | Wraps metaengine Store as projection.Projection     |
-| `metaengine/pebbleengine/`        | Pebble-backed engine (LSM point reads)              |
-| `metaengine/duckdbengine/`        | DuckDB-backed engine (columnar OLAP, CGo)           |
-| `metaengine/pgengine/`            | Postgres-backed engine (JSONB + B-tree)             |
-| `metaengine/sqliteengine/`        | SQLite-backed engine (extracted from core, ADR-0115)|
-| `metaengine/badgerengine/`        | Badger-backed engine (LSM point reads)              |
-| `metaengine/dgraphengine/`        | Dgraph-backed engine (distributed graph DB)         |
-| `metaengine/graphadapter/`        | Wraps graph.MemoryDriver as metaengine Engine       |
-| `metaengine/irohengine/`          | Iroh Level 2 replication wrapper (CRDT convergence) |
-| `metaengine/irohengine/loopback/` | Loopback transport (real TCP, no CGo)               |
-| `metaengine/irohengine/quic/`     | QUIC transport (real Iroh, CGo)                     |
+| Module                            | Purpose                                              |
+| --------------------------------- | ---------------------------------------------------- |
+| `metaengine/projectionadapter/`   | Wraps metaengine Store as projection.Projection      |
+| `metaengine/pebbleengine/`        | Pebble-backed engine (LSM point reads)               |
+| `metaengine/duckdbengine/`        | DuckDB-backed engine (columnar OLAP, CGo)            |
+| `metaengine/pgengine/`            | Postgres-backed engine (JSONB + B-tree)              |
+| `metaengine/sqliteengine/`        | SQLite-backed engine (extracted from core, ADR-0115) |
+| `metaengine/badgerengine/`        | Badger-backed engine (LSM point reads)               |
+| `metaengine/dgraphengine/`        | Dgraph-backed engine (distributed graph DB)          |
+| `metaengine/graphadapter/`        | Wraps graph.MemoryDriver as metaengine Engine        |
+| `metaengine/irohengine/`          | Iroh Level 2 replication wrapper (CRDT convergence)  |
+| `metaengine/irohengine/loopback/` | Loopback transport (real TCP, no CGo)                |
+| `metaengine/irohengine/quic/`     | QUIC transport (real Iroh, CGo)                      |
 
 ### Sub-Store Implementations
 
@@ -211,23 +211,23 @@ One-call wiring that composes infrastructure into deployable bundles.
 
 Developer tools, code generators, linters, test harnesses, and usage demos.
 
-| Module                          | Purpose                                             |
-| ------------------------------- | --------------------------------------------------- |
-| `catalog/`                      | API documentation generator (AsyncAPI, D2, OpenAPI) |
-| `integration/`                  | Cross-module integration tests                      |
-| `benchkit/`                     | Factory-driven benchmarking suite                   |
-| `stack/bench/`                  | Stack-level benchmark presets                       |
-| `metaengine/bench/`             | Cross-engine benchmark module                       |
-| `cmd/cqrs-gen/`                 | Code generator: typed handler registration          |
-| `cmd/cqrs-lint/`                | Domain-aware linter (192 rules, 10 categories)      |
-| `cmd/cqrs-bench/`               | CLI: benchmark any backend with workload profiles   |
-| `cmd/api-stability/`            | API surface checker (golden file comparison)        |
-| `cmd/doc-check/`                | Doc link verifier (Go import paths in markdown)     |
-| `example/taskmanager/`          | Flagship full HTTP service example                  |
-| `example/getting-started/`      | Minimal 80-line example                             |
-| `example/readme-quickstart/`    | README quickstart example                           |
-| `example/metaengine-quickstart/`| Metaengine quickstart example                       |
-| `event/v4/eventtest/`           | Test helpers: FakeStore, FakeBus, golden assertions |
+| Module                           | Purpose                                             |
+| -------------------------------- | --------------------------------------------------- |
+| `catalog/`                       | API documentation generator (AsyncAPI, D2, OpenAPI) |
+| `integration/`                   | Cross-module integration tests                      |
+| `benchkit/`                      | Factory-driven benchmarking suite                   |
+| `stack/bench/`                   | Stack-level benchmark presets                       |
+| `metaengine/bench/`              | Cross-engine benchmark module                       |
+| `cmd/cqrs-gen/`                  | Code generator: typed handler registration          |
+| `cmd/cqrs-lint/`                 | Domain-aware linter (192 rules, 10 categories)      |
+| `cmd/cqrs-bench/`                | CLI: benchmark any backend with workload profiles   |
+| `cmd/api-stability/`             | API surface checker (golden file comparison)        |
+| `cmd/doc-check/`                 | Doc link verifier (Go import paths in markdown)     |
+| `example/taskmanager/`           | Flagship full HTTP service example                  |
+| `example/getting-started/`       | Minimal 80-line example                             |
+| `example/readme-quickstart/`     | README quickstart example                           |
+| `example/metaengine-quickstart/` | Metaengine quickstart example                       |
+| `event/v4/eventtest/`            | Test helpers: FakeStore, FakeBus, golden assertions |
 
 ---
 

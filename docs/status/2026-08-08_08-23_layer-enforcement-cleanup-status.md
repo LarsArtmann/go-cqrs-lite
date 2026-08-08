@@ -28,22 +28,23 @@
 
 This is the biggest issue. The ADR-0046 file has conflicting statements about metaengine:
 
-| Location | What it says | What I did |
-|----------|-------------|------------|
-| Line 59 | "metaengine/ (Tier 3) → dedup/ (Tier 0)" | **Left unchanged** — still says Tier 3 |
-| Line 151 (mermaid) | metaengine in Tier 3 subgraph | **Left unchanged** — still in Tier 3 |
-| Line 254 (my edit) | "metaengine → dedup is a same-tier dep (both Tier 0)" | **Changed to Tier 0** |
-| Lines 305-350 (amendment) | "metaengine moves from Tier 0 to Tier 3 (Aggregation)" | **Left unchanged** — still says Tier 3 |
-| `scripts/check-module-layers.sh:94` | `LAYER[metaengine]=0` | **Unchanged** — always was 0 |
-| `AGENTS.md` (my edit) | "Tier 0 (Primitives, structural)" | **Changed to Tier 0** |
+| Location                            | What it says                                           | What I did                             |
+| ----------------------------------- | ------------------------------------------------------ | -------------------------------------- |
+| Line 59                             | "metaengine/ (Tier 3) → dedup/ (Tier 0)"               | **Left unchanged** — still says Tier 3 |
+| Line 151 (mermaid)                  | metaengine in Tier 3 subgraph                          | **Left unchanged** — still in Tier 3   |
+| Line 254 (my edit)                  | "metaengine → dedup is a same-tier dep (both Tier 0)"  | **Changed to Tier 0**                  |
+| Lines 305-350 (amendment)           | "metaengine moves from Tier 0 to Tier 3 (Aggregation)" | **Left unchanged** — still says Tier 3 |
+| `scripts/check-module-layers.sh:94` | `LAYER[metaengine]=0`                                  | **Unchanged** — always was 0           |
+| `AGENTS.md` (my edit)               | "Tier 0 (Primitives, structural)"                      | **Changed to Tier 0**                  |
 
-**Root cause:** The ADR-0046 amendment (lines 305-350) says metaengine was *reclassified* from Tier 0 to Tier 3 because it now depends on the `Record` type. But the enforcement script was **never updated** — it still says `LAYER[metaengine]=0`. I noticed this contradiction, chose to match the script (Tier 0) in AGENTS.md, but did not reconcile the ADR body text or mermaid diagram. This created a worse split-brain than before.
+**Root cause:** The ADR-0046 amendment (lines 305-350) says metaengine was _reclassified_ from Tier 0 to Tier 3 because it now depends on the `Record` type. But the enforcement script was **never updated** — it still says `LAYER[metaengine]=0`. I noticed this contradiction, chose to match the script (Tier 0) in AGENTS.md, but did not reconcile the ADR body text or mermaid diagram. This created a worse split-brain than before.
 
 **The real question:** Is metaengine Tier 0 or Tier 3? The script says 0. The ADR amendment says 3. Both can't be right. This needs a decision — see questions below.
 
 ### ADR-0046 stale module counts (not updated)
 
 Three lines in ADR-0046 still say "68 modules" and "44 of 68":
+
 - Line 18: `44 of 68 modules depend on codec/`
 - Line 42: `Total: 68 modules across 69 go.mod files`
 - Line 247: `44 of 68 modules depend on it`
@@ -68,8 +69,9 @@ Actual count: **48 of 78 modules depend on codec/**. I updated the `SEVEN-TIER-M
 ### The metaengine tier split-brain
 
 By changing AGENTS.md to say "Tier 0" and ADR-0046 line 254 to say "same-tier dep (both Tier 0)" without updating ADR-0046 lines 59, 151, and 305-350 (which all say "Tier 3"), I created a **worse documentation inconsistency than existed before my changes**. A reader now sees:
+
 - ADR line 59: "Tier 3"
-- ADR line 254: "Tier 0"  
+- ADR line 254: "Tier 0"
 - ADR line 341: "moves from Tier 0 to Tier 3"
 - AGENTS.md: "Tier 0"
 - Script: `LAYER[metaengine]=0`
@@ -96,6 +98,7 @@ I updated "44 of 68" to "44 of 78" in the SEVEN-TIER-MODEL.md body without re-re
 ## f) Up to 50 things to do next
 
 ### Critical (split-brain fixes)
+
 1. **Decide metaengine tier: 0 or 3?** Then update ALL references (script, ADR-0046, AGENTS.md, SEVEN-TIER-MODEL.md).
 2. **Fix "44 of 78" → "48 of 78"** in SEVEN-TIER-MODEL.md (line ~253).
 3. **Update ADR-0046 line 18**: `44 of 68` → `48 of 78`.
@@ -108,6 +111,7 @@ I updated "44 of 68" to "44 of 78" in the SEVEN-TIER-MODEL.md body without re-re
 10. **Run full `check-arch.sh`** (both layers).
 
 ### Layer enforcement improvements
+
 11. **Add go-arch-lint config for `cmd/cqrs-lint`** — 16 production sub-packages, no intra-module architecture enforcement.
 12. **Consider adding go-arch-lint for `metaengine/`** — 16 production sub-packages (planner.go, engine.go, dsl.go, etc.). Potential for internal dep violations.
 13. **Consider adding go-arch-lint for `stack/`** — 11 production sub-packages.
@@ -115,6 +119,7 @@ I updated "44 of 68" to "44 of 78" in the SEVEN-TIER-MODEL.md body without re-re
 15. **Verify all EXCEPTIONS entries are still needed** by checking actual layer deltas.
 
 ### Documentation accuracy
+
 16. **Verify SEVEN-TIER-MODEL.md tier counts sum to 78** programmatically.
 17. **Cross-check every module in SEVEN-TIER-MODEL.md** against `find . -name go.mod` list.
 18. **Update the `.go-arch-lint.yml` workspace-level file** — may reference old layer names.
@@ -122,6 +127,7 @@ I updated "44 of 68" to "44 of 78" in the SEVEN-TIER-MODEL.md body without re-re
 20. **Update CHANGELOG.md** if the rename is significant enough to mention.
 
 ### Broader quality items (from the session context)
+
 21. **Tag `storage/v4.5.1` or v4.6.0** — `SQLiteSetSynchronous` drift blocks vulncheck for stack module.
 22. **Write detailed CHANGELOG entries for v4.0.0/v4.1.0/v4.3.0** — current entries are vague.
 23. **Execute Pareto plan Phase 2+** — 66 tasks across 6 phases.
@@ -136,7 +142,7 @@ I updated "44 of 68" to "44 of 78" in the SEVEN-TIER-MODEL.md body without re-re
 
 ### Q1: Is metaengine Tier 0 or Tier 3?
 
-The enforcement script says `LAYER[metaengine]=0` (Tier 0). But ADR-0046's amendment (lines 305-350) explicitly reclassifies it to Tier 3, stating "metaengine moves from Tier 0 to Tier 3 (Aggregation)" because it now depends on the `Record` type (ADR-0111). 
+The enforcement script says `LAYER[metaengine]=0` (Tier 0). But ADR-0046's amendment (lines 305-350) explicitly reclassifies it to Tier 3, stating "metaengine moves from Tier 0 to Tier 3 (Aggregation)" because it now depends on the `Record` type (ADR-0111).
 
 The script was never updated to match the ADR amendment. Which is authoritative? If Tier 3, I need to change `LAYER[metaengine]=3` in the script and update AGENTS.md back. If Tier 0, I need to revoke or amend the ADR-0046 Tier 3 reclassification.
 

@@ -50,7 +50,11 @@ func DecodeFloat(raw any) (float64, error) {
 // DecodeFloatResults decodes a slice of raw scan values into a result map
 // keyed by each spec's alias. It is the shared result-building step for
 // MultiAggregate implementations across DuckDB, SQLite, and Postgres.
-func DecodeFloatResults(raws []any, specs []AggregateSpec, errPrefix string) (map[string]float64, error) {
+func DecodeFloatResults(
+	raws []any,
+	specs []AggregateSpec,
+	errPrefix string,
+) (map[string]float64, error) {
 	result := make(map[string]float64, len(specs))
 	for i, s := range specs {
 		val, err := DecodeFloat(raws[i])

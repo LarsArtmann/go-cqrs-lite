@@ -201,13 +201,14 @@ an error at construction time (no silent fallback).
 
 The System provides three shutdown methods with different semantics:
 
-| Method | Drains in-flight? | Closes resources? | Context-bounded? | Use case |
-| --- | --- | --- | --- | --- |
-| `Close()` | No | Yes | No | Fast shutdown (`defer sys.Close()`) |
-| `GracefulClose(ctx)` | Yes (via Drainers) | Yes | Yes | Kubernetes SIGTERM, deadline-bounded |
-| `Drain(ctx)` | Yes (via Drainers) | No | Yes | Rolling deploy (process stays alive) |
+| Method               | Drains in-flight?  | Closes resources? | Context-bounded? | Use case                             |
+| -------------------- | ------------------ | ----------------- | ---------------- | ------------------------------------ |
+| `Close()`            | No                 | Yes               | No               | Fast shutdown (`defer sys.Close()`)  |
+| `GracefulClose(ctx)` | Yes (via Drainers) | Yes               | Yes              | Kubernetes SIGTERM, deadline-bounded |
+| `Drain(ctx)`         | Yes (via Drainers) | No                | Yes              | Rolling deploy (process stays alive) |
 
 **Shutdown order** within `Close()` (and `GracefulClose`):
+
 1. Projection host `Stop()` — workers drain and stop.
 2. Engines — in topological order respecting `ShutdownDependencies` (cycles
    fall back to creation order).

@@ -15,6 +15,7 @@
 **Fix:** Extracted `lookupPlan(collection string) (metaengine.LayoutPlan, bool)` helper that takes `RLock`/`RUnlock` internally. Changed `layoutMu` from `sync.Mutex` to `sync.RWMutex`. All 5 read paths now call `lookupPlan`. Write path (`ApplyLayoutPlan`) continues to use `Lock`/`Unlock`. Verified zero data races under `-race` across the full DuckDB test suite (105s runtime).
 
 **Files:**
+
 - `metaengine/duckdbengine/engine.go` — `sync.Mutex` → `sync.RWMutex`, extracted `lookupPlan`, refactored `MapSet`/`MapGet`/`MapDelete`
 - `metaengine/duckdbengine/explain.go` — refactored `explainScanQuery` and `ExplainAggregateQuery` to use `lookupPlan`
 
@@ -33,6 +34,7 @@ Added a 9-engine concurrency matrix doc comment to the `Engine` interface in `me
 ### 4. MemoryEngine Concurrent-Access Race Integration Tests
 
 Created `metaengine/concurrent_map_race_test.go` with 3 tests that prove the MemoryEngine's internal RWMutex works under `-race`:
+
 - `TestMemoryEngine_ConcurrentMapAccess` — 20 goroutines x 100 iterations of MapSet/MapGet/MapDelete
 - `TestMemoryEngine_ConcurrentCounterAccess` — 20 goroutines x 50 increments, asserts exact final count
 - `TestMemoryEngine_ConcurrentMixedBackends` — 10 goroutines across Map + Set + Counter simultaneously
@@ -42,6 +44,7 @@ All 3 pass under `-race` (verified independently, and as part of the verify gate
 ### 5. Enginetest Helper Doc Comments
 
 Added "The caller is responsible for closing the engine." doc comment to 3 enginetest helpers that were missing it:
+
 - `RunPushdownTest` (`enginetest.go:48`)
 - `RunWatcherReplayTest` (`enginetest.go:298`)
 - `RunConcurrentTxTest` (`enginetest.go:724`)
@@ -63,6 +66,7 @@ Created `metaengine/badgerengine/soak_autocrud_test.go` — runs `enginetest.Run
 ### 9. `TestTypedReader_AggregateFallback` Split
 
 Refactored `metaengine/typed_reader_aggregate_test.go` — split 13-subtest monolith (maintidx=19, below threshold) into 3 test functions:
+
 - `TestTypedReader_AggregateFallback_Scalar` (6 subtests: Count, Sum, Min, Max, Avg, Distinct)
 - `TestTypedReader_AggregateFallback_Grouped` (5 subtests: GroupedCount, GroupedSum, GroupedMin, GroupedMax, GroupedAvg)
 - `TestTypedReader_AggregateFallback_Multi` (2 subtests: MultiAggregate, MultiGroupedAggregate)
@@ -76,6 +80,7 @@ Added `//nolint:tparallel` with justification to `TestDuckDB_ExplainAggregateQue
 ### 11. Race-Consolidation Tradeoff Documented
 
 Updated `AGENTS.md` race-aware test thresholds section to document:
+
 - `enginetest.RaceEnabled` is the canonical metaengine copy (local `race_on_test.go`/`race_off_test.go` deleted)
 - 3 lean-budget modules (`benchkit`, `transport/grpc`, `idempotency/kvstore`) keep local copies because adding testutil/enginetest would exceed their dependency budget
 - This tradeoff is accepted and documented
@@ -101,9 +106,11 @@ Updated `AGENTS.md` race-aware test thresholds section to document:
 ## c) NOT STARTED (pre-existing items from handoff)
 
 ### N1. `event/v4.4.0` Tag — Pre-existing vulncheck blocker
+
 `Metadata.WithCustom` was added after `event/v4.3.0` tag. Breaks `watermill`, `middleware`, `signing`, `encryption` under `GOWORK=off`. Needs tag + dependency bumps. Not in this session's scope.
 
 ### N2. `idempotency/kvstore` missing `race_off_test.go`
+
 Research found only `race_on_test.go` — no `race_off_test.go` counterpart. This means under `!race` builds, `raceEnabled` is undefined. This is a pre-existing issue (possibly the file exists but the search missed it, or there's a different mechanism). Not investigated this session.
 
 ---
@@ -111,12 +118,15 @@ Research found only `race_on_test.go` — no `race_off_test.go` counterpart. Thi
 ## d) TOTALLY FUCKED UP (honest mistakes)
 
 ### F1. Initial DuckDB fix introduced duplication clones
+
 First attempt used inline `RLock`/`RUnlock` blocks in all 5 read paths. The art-dupl duplication gate caught 2 new clone groups (3+ lines of identical `RLock`/`plans[x]`/`RUnlock` pattern). Fixed by extracting `lookupPlan` helper. **Lesson: when adding synchronization to multiple call sites, extract the locked-read into a helper FIRST, don't inline.**
 
 ### F2. First multiedit attempt was ugly
+
 Initial edit created an intermediate `plan, hasPlan := e.plans[col]` followed by `_ = hasPlan` and then re-declaring — a hacky pattern that was immediately cleaned up with a second edit. Should have written the clean version directly.
 
 ### F3. Coverage baselines not refreshed
+
 Added 3 new concurrent tests + 2 new test files, but didn't regenerate coverage baselines in `scripts/check-coverage.sh`. The verify gate passed because coverage stayed within ±2.0% tolerance, but the baselines may be stale. The `EXPECTED` map should be refreshed after adding tests.
 
 ---
@@ -124,21 +134,27 @@ Added 3 new concurrent tests + 2 new test files, but didn't regenerate coverage 
 ## e) WHAT WE SHOULD IMPROVE
 
 ### I1. No targeted regression test for the DuckDB race
+
 The fix is verified by existing tests passing under `-race`, but a dedicated test that spawns goroutines doing `ApplyLayoutPlan` and `ExplainAggregateQuery` concurrently would be stronger proof and would catch future regressions.
 
 ### I2. `maintidx` exclusion still in `.golangci.yml`
+
 Now that the test is split, the blanket exclusion is unnecessary dead weight. Should be removed and verified.
 
 ### I3. `lookupPlan` returns a struct with slices
+
 `metaengine.LayoutPlan` likely contains slices (column names, etc.). `lookupPlan` returns a copy of the struct header, but the underlying slice arrays are shared. Callers currently only read the plan (safe), but if a future caller mutates the plan's slices after `lookupPlan` returns, that's a race. Should document this or deep-copy.
 
 ### I4. QUIC test timeout not tested under parallel pressure
+
 Tested 3x in isolation (0.03s each). The original failure was under parallel CI load. Should verify with `-parallel 4` or similar.
 
 ### I5. No coverage numbers captured for new tests
+
 The verify gate showed `metaengine 81.0%` (unchanged). Adding 3 concurrent-access tests + splitting the aggregate test likely shifted line/block coverage, but I didn't capture before/after numbers to verify the improvement.
 
 ### I6. `//nolint:tparallel` only on one function
+
 The original item mentioned "TestDuckDB_ExplainAggregateQuery and similar tests." Only annotated one function. Should audit all DuckDB test functions that create a shared engine without `t.Parallel()` at the top level.
 
 ---
@@ -146,6 +162,7 @@ The original item mentioned "TestDuckDB_ExplainAggregateQuery and similar tests.
 ## f) Up to 50 Things to Get Done Next
 
 ### Metaengine v2 Polish (P0-P1)
+
 1. **Remove `maintidx` from `.golangci.yml`** test-file exclusions (2 min)
 2. **Write DuckDB race regression test** — parallel `ApplyLayoutPlan` + `ExplainAggregateQuery` under `-race` (10 min)
 3. **Tag `event/v4.4.0`** + bump deps in watermill/middleware/signing/encryption (15 min)
@@ -156,6 +173,7 @@ The original item mentioned "TestDuckDB_ExplainAggregateQuery and similar tests.
 8. **Document `lookupPlan` shallow-copy semantics** on the helper or on `LayoutPlan` (2 min)
 
 ### Metaengine v2 — Remaining Coverage Gaps (P2)
+
 9. **Dgraph integration test in CI** — `DGRAPH_ADDR` service container for real Dgraph test coverage
 10. **Graphadapter GraphBackend integration test** — exercise traversal through the metaengine adapter
 11. **Postgres functional tests for all 5 aggregate interfaces** — testcontainers-based (TODO_LIST.md line ~95)
@@ -170,6 +188,7 @@ The original item mentioned "TestDuckDB_ExplainAggregateQuery and similar tests.
 20. **SerializablePlan JSON roundtrip test** — serialize/diff/pin across all engine types
 
 ### Architecture & Debt (P2-P3)
+
 21. **Extend `DeferClose` to `storage/pebble/`** (~10 sites)
 22. **Extend `DeferClose` to `storage/bbolt/`** (~8 sites)
 23. **Extend `DeferClose` to `storage/eventstore/`** (~5 sites)
@@ -182,6 +201,7 @@ The original item mentioned "TestDuckDB_ExplainAggregateQuery and similar tests.
 30. **Deduplicate engine constructor boilerplate** — `NewSQLiteEngineFromDSN` pattern for other engines
 
 ### Testing Infrastructure (P3)
+
 31. **Test flake monitoring** — track and fix intermittently failing tests
 32. **Add `-count=3` to CI for race-sensitive tests** — catch flakes before merge
 33. **Soak test matrix dashboard** — track heap growth trends across engines
@@ -192,6 +212,7 @@ The original item mentioned "TestDuckDB_ExplainAggregateQuery and similar tests.
 38. **Test coverage reporting** — upload coverage to codecov or similar
 
 ### Documentation (P3)
+
 39. **Update FEATURES.md** with v2 feature status
 40. **Write v2 migration guide** — for consumers upgrading from v1 patterns
 41. **Document concurrency guarantees per backend interface** (not just per engine)
@@ -204,6 +225,7 @@ The original item mentioned "TestDuckDB_ExplainAggregateQuery and similar tests.
 48. **Document tombstone-as-domain-event pattern** — ADR-0114 consumer guide
 
 ### Tooling & CI (P3)
+
 49. **Add `cqrs-lint` rule for missing engine Close** — detect unclosed engines in test code
 50. **Add `cqrs-lint` rule for missing record-stamp coverage** — flag engines without `RunRecordStampTest`
 
@@ -212,12 +234,15 @@ The original item mentioned "TestDuckDB_ExplainAggregateQuery and similar tests.
 ## g) Questions I Cannot Answer Myself
 
 ### Q1. Should the `maintidx` exclusion be removed from ALL test files, or just for the metaengine module?
+
 The exclusion at `.golangci.yml:341` is a blanket `_test\.go` exclusion. Removing it entirely might surface other tests with low maintainability scores across the repo. Should I scope it to just metaengine, or remove it globally and fix any new failures?
 
 ### Q2. Should I tag `event/v4.4.0` now, or wait for additional changes to batch into the release?
+
 The `Metadata.WithCustom` drift is a known vulncheck blocker. Tagging now unblocks `watermill`/`middleware`/`signing`/`encryption` under `GOWORK=off`. But if there are other event changes coming, it might be better to batch them.
 
 ### Q3. Should the DuckDB `lookupPlan` helper deep-copy the `LayoutPlan` struct?
+
 Currently it returns a shallow copy — struct header copied, but slice fields (column names, etc.) share the underlying array. All current callers only read the plan, so this is safe today. But should I add a `Clone()` or document the shallow-copy constraint for future callers?
 
 ---
@@ -244,11 +269,13 @@ Currently it returns a shallow copy — struct header copied, but slice fields (
 ## Files Changed This Session
 
 ### Created (4 files)
+
 - `metaengine/concurrent_map_race_test.go` — 3 MemoryEngine concurrent-access `-race` tests
 - `metaengine/dgraphengine/record_stamp_test.go` — record-stamp test (skip if no Dgraph)
 - `metaengine/badgerengine/soak_autocrud_test.go` — AutoCRUD soak test
 
 ### Modified (9 files)
+
 - `metaengine/duckdbengine/engine.go` — `Mutex`→`RWMutex`, `lookupPlan` helper, refactored 3 read paths
 - `metaengine/duckdbengine/explain.go` — refactored 2 read paths to use `lookupPlan`
 - `metaengine/duckdbengine/aggregations_cgo_test.go` — `//nolint:tparallel` annotation
@@ -261,4 +288,5 @@ Currently it returns a shallow copy — struct header copied, but slice fields (
 - `TODO_LIST.md` — all 10 items marked complete
 
 ### Deleted
+
 - None (race files were deleted in the prior session)

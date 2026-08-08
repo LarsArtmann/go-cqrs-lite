@@ -25,14 +25,14 @@ the planner and consumer API (TypedReader) type-assert at runtime.
 
 ### The Five Interfaces
 
-| Interface | SQL Pattern | Use Case |
-|---|---|---|
-| `AggregateReader` | `SELECT COUNT/SUM/MIN/MAX/AVG(...)` | Scalar aggregates |
-| `GroupedAggregateReader` | `SELECT group, AGG(...) ... GROUP BY group` | One aggregate per group |
-| `MultiAggregateReader` | `SELECT AGG1(...), AGG2(...), ...` | Multiple scalars in one pass |
+| Interface                     | SQL Pattern                                             | Use Case                      |
+| ----------------------------- | ------------------------------------------------------- | ----------------------------- |
+| `AggregateReader`             | `SELECT COUNT/SUM/MIN/MAX/AVG(...)`                     | Scalar aggregates             |
+| `GroupedAggregateReader`      | `SELECT group, AGG(...) ... GROUP BY group`             | One aggregate per group       |
+| `MultiAggregateReader`        | `SELECT AGG1(...), AGG2(...), ...`                      | Multiple scalars in one pass  |
 | `MultiGroupedAggregateReader` | `SELECT group, AGG1(...), AGG2(...) ... GROUP BY group` | Multiple aggregates per group |
-| `DistinctReader` | `SELECT DISTINCT column` | Unique value enumeration |
-| `ExplainableAggregate` | Returns SQL without executing | Debugging and plan inspection |
+| `DistinctReader`              | `SELECT DISTINCT column`                                | Unique value enumeration      |
+| `ExplainableAggregate`        | Returns SQL without executing                           | Debugging and plan inspection |
 
 All six interfaces are **optional** — the Memory engine implements none of them
 (Go-side accumulation is its only option). DuckDB implements all five readers

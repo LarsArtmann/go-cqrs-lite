@@ -348,8 +348,7 @@ and is **never** duplicated here.
 - [x] **ADR-0046 mermaid diagram updated** — added `record/`, `storage/bbolt/`,
       `metaengine/sqliteengine/`, `metaengine/badgerengine/`, `metaengine/dgraphengine/`,
       `metaengine/graphadapter/`, `testutil/pgtestcontainer/`, `stack/bbolt/`,
-      `metaengine/bench/`, `example/metaengine-quickstart/`. Moved `idempotency/kvstore/`
-      + `idempotency/sqlstore/` to Tier 2. All subgraph labels corrected.
+      `metaengine/bench/`, `example/metaengine-quickstart/`. Moved `idempotency/kvstore/` + `idempotency/sqlstore/` to Tier 2. All subgraph labels corrected.
 - [x] **`nix fmt`** run — 0 files changed (already formatted).
 - [x] **Full `check-arch.sh`** — both layers pass (Layer 1: 78 modules, Layer 2: 6 modules).
 
