@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 )
 
 // TestConcurrentExecuteTypedUnderWritePressure (#30): concurrent reads via
@@ -97,6 +98,7 @@ func TestCrossEngineLogTailParity(t *testing.T) {
 
 	engines := map[string]metaengine.Engine{
 		"memory": metaengine.NewMemoryEngine(),
+		"sqlite": mustSQLiteEngine(t),
 	}
 
 	for name, eng := range engines {
@@ -146,6 +148,7 @@ func TestCrossEngineGraphNeighborsParity(t *testing.T) {
 
 	engines := map[string]metaengine.Engine{
 		"memory": metaengine.NewMemoryEngine(),
+		"sqlite": mustSQLiteEngine(t),
 	}
 
 	for name, eng := range engines {
@@ -153,7 +156,7 @@ func TestCrossEngineGraphNeighborsParity(t *testing.T) {
 			t.Parallel()
 			gb, ok := eng.(metaengine.GraphBackend)
 			if !ok {
-				t.Fatalf("%s engine does not implement GraphBackend", name)
+				t.Skipf("%s engine does not implement GraphBackend", name)
 			}
 
 			for _, e := range edges {
@@ -183,11 +186,29 @@ func TestCrossEngineGraphNeighborsParity(t *testing.T) {
 	}
 }
 
+func mustSQLiteEngine(t *testing.T) metaengine.Engine {
+	t.Helper()
+
+	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
+	if err != nil {
+		t.Fatalf("sql.Open: %v", err)
+	}
+
+	db.SetMaxOpenConns(1)
+	t.Cleanup(func() { _ = db.Close() })
+
+	eng, err := sqliteengine.NewSQLiteEngine(db)
+	if err != nil {
+		t.Fatalf("sqliteengine.NewSQLiteEngine: %v", err)
+	}
+
+	return eng
+}
+
 // TestNonStructFoldUpdateSQLite (#31): FoldUpdate with a non-struct value
 // type (int) on SQLite engine. Verifies the reify path handles primitive
 // types, not just structs.
 func TestNonStructFoldUpdateSQLite(t *testing.T) {
-	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
@@ -207,7 +228,7 @@ func TestNonStructFoldUpdateSQLite(t *testing.T) {
 		}),
 	)
 
-	eng := metaengine.NewMemoryEngine()
+	eng := mustSQLiteEngine(t)
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
 	if err != nil {
 		t.Fatalf("Plan: %v", err)

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 )
 
 // Cross-engine parity tests for Counter and Set ADTs.
@@ -32,6 +33,7 @@ func TestCrossEngineCounterParity(t *testing.T) {
 
 	engines := map[string]metaengine.Engine{
 		"memory": metaengine.NewMemoryEngine(),
+		"sqlite": newIsolatedSQLiteEngine(t),
 	}
 
 	results := make(map[string]map[string]int64, len(engines))
@@ -84,6 +86,7 @@ func TestCrossEngineSetParity(t *testing.T) {
 
 	engines := map[string]metaengine.Engine{
 		"memory": metaengine.NewMemoryEngine(),
+		"sqlite": newIsolatedSQLiteEngine(t),
 	}
 
 	results := make(map[string]map[string]bool, len(engines))
@@ -353,7 +356,7 @@ func newIsolatedSQLiteEngine(t *testing.T) metaengine.Engine {
 
 	t.Cleanup(func() { _ = db.Close() })
 
-	eng, err := metaengine.NewMemoryEngine(), nil
+	eng, err := sqliteengine.NewSQLiteEngine(db)
 	if err != nil {
 		t.Fatalf("NewSQLiteEngine: %v", err)
 	}
