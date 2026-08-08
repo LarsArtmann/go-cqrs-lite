@@ -268,7 +268,7 @@ and is **never** duplicated here.
 > files, 78 modules in `go.work`. Model doc renamed to `SEVEN-TIER-MODEL.md`
 > with accurate counts (78 modules). Dead `EXCEPTIONS[storage]="listing"`
 > removed (storage L5 → listing L3 is a downward dep, no violation).
-> ⚠️ **Split-brain discovered: metaengine tier** — see first item below.
+> ✅ **Split-brain resolved: metaengine is Tier 3** — all references reconciled (2026-08-08).
 >
 > _(Source: `docs/status/2026-08-08_08-23_layer-enforcement-cleanup-status.md`)_
 
