@@ -172,6 +172,25 @@ The health endpoint poll runs for 60 iterations × 0.5s = 30 seconds max. On a s
 Graph depth-3 @recurse traversal and Search anyofterms() over 500-doc corpus
 both measured. Results in `dgraphengine/README.md` performance table.
 
+### 9. GraphRAG pipeline + mixed workload benchmarks (resolved 2026-08-08)
+
+Added `graphrag_test.go` (2 functional tests) and `mixed_bench_test.go` (4 benchmarks):
+
+**GraphRAG tests** (`graphrag_test.go`):
+- `TestGraphRAG_SearchThenGraphTraverse`: 8-entity knowledge graph, search "golang" → 2 hits → depth-2 graph expansion → 6 context entities. Validates the full pipeline correctness.
+- `TestGraphRAG_DifferentQueries`: 5 microservices with dependencies, validates search→expand across different query terms.
+
+**Mixed workload benchmarks** (`mixed_bench_test.go`):
+- `BenchmarkDgraph_GraphRAG_SearchThenExpand` (2.7ms): full GraphRAG pipeline — search + 5 depth-2 graph traversals.
+- `BenchmarkDgraph_GraphWriteReadMix` (4.8ms): 25% write + 75% read graph workload.
+- `BenchmarkDgraph_MapReadWriteMix` (671µs): 80% read + 20% write key-value workload.
+- `BenchmarkDgraph_FullTriad_MapGraphSearch` (1.0ms): MapGet + SearchQuery + GraphNeighbors per iteration.
+
+These are the first tests/benchmarks in the entire metaengine codebase that
+combine GraphBackend + SearchBackend on the same engine. Dgraph is the ONLY
+engine that implements both at full parity — GraphRAG is its unique value
+proposition validated with real numbers.
+
 ---
 
 ## f) Up to 50 things we should get done next
