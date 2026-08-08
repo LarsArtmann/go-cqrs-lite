@@ -1,7 +1,8 @@
 # TODO List
 
-**Updated:** 2026-08-08 (metaengine v2 coverage gaps completed, DuckDB data race
-fixed, MemoryEngine concurrent tests added, aggregate test split)
+**Updated:** 2026-08-08 (system lifecycle hardening shipped: interface extraction,
+test split, 4 new tests, README lifecycle docs; metaengine Doctor aggregate
+diagnostics broken by daemon incomplete commit)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -34,6 +35,19 @@ and is **never** duplicated here.
       entries are vague ("Stack presets gain durability tiers"). Replace with
       specific exported types/functions, file:line refs, ADR references.
       _(Effort: M)_
+
+- [ ] 🔥 **Fix `metaengine/explain.go` build break** — `aggregateCapabilities`
+      is referenced at line 274 (commit `b6fc8413b`) but its definition is in
+      an uncommitted working-tree change the daemon didn't finish. Blocks
+      `go build ./...` workspace-wide and `nix run .#verify`.
+      _(Source: `docs/status/2026-08-08_08-57_system-lifecycle-hardening.md`)_
+- [ ] 🔥 **Regenerate api-stability golden** — after structural changes to
+      `system/system.go` (interface extraction, field type change). Run:
+      `cd cmd/api-stability && GOWORK=off go run main.go -update`.
+- [ ] **Run doc-check on system README** — README edited with Go-qualified
+      symbols. Run: `cd cmd/doc-check && GOWORK=off go run . ../../system/README.md`.
+- [ ] **Run workspace-wide `go build -tags "goexperiment.jsonv2" ./...`** —
+      after all changes, not just per-module builds.
 
 ---
 
@@ -89,8 +103,8 @@ and is **never** duplicated here.
 - [ ] **Write ADR for aggregate pushdown architecture** — documents the 5-interface
       design, cross-engine parity strategy, and why aggregation goes to the engine
       instead of Go-side accumulation.
-- [ ] **Extract shared `DecodeFloat` into metaengine core** — eliminate 3-way
-      duplication across DuckDB/SQLite/PG aggregate paths.
+- [x] **Extract shared `DecodeFloat` into metaengine core** — done in commit
+      `a380e1ed1` (promoted to package-level `DecodeFloat`).
 - [ ] **Add DuckDB planned-path empty-collection test** — currently only
       json_extract path tested for empty collections.
 - [ ] **Add cross-engine planned-table parity test** — verify DuckDB + SQLite
@@ -98,31 +112,47 @@ and is **never** duplicated here.
 - [ ] **Add aggregate pushdown to `SerializablePlan`** — JSON serialize/diff/pin
       support for aggregate query plans.
 - [ ] **Add aggregate diagnostics to `Doctor()`** — show pushdown vs fallback
-      per collection.
+      per collection. ⚠️ **Daemon started this but left the build broken** —
+      `aggregateCapabilities` in `metaengine/explain.go` is uncommitted. Either
+      finish the implementation or revert the reference.
 
 ---
 
 ## System Package — Open Items
 
-> P0/P1/P2/P3 + lifecycle hardening all shipped. HealthCheck on all 6 engines,
-> Drain/EngineNames/ShutdownOrder/HealthCheckDetailed/LagPerProjection/
+> ✅ P0/P1/P2/P3 + lifecycle hardening ALL SHIPPED. HealthCheck on all 6
+> engines, Drain/EngineNames/ShutdownOrder/HealthCheckDetailed/LagPerProjection/
 > LagDuration/WorkerStatus/RegisterCloser all shipped. Tagged `system/v4.0.0`.
+>
+> **Lifecycle hardening completed (2026-08-08):** `projectionHostLifecycle`
+> interface extracted (enables mock projection host in tests). Test file split:
+> `system_lifecycle_test.go` (461 lines) → `lifecycle_test.go` (420) +
+> `lifecycle_drain_test.go` (219). 4 new tests: `Close_ProjectionHostError`,
+> `HealthCheckDetailed_MultipleEnginesMixed`, `Drain_Error`, `Drain_ContextExpired`.
+> README: Lifecycle section (Close vs GracefulClose vs Drain table) +
+> HealthCheckDetailed example. ShutdownDependency + Drainer examples already
+> existed in README.
+>
+> _(Source: `docs/status/2026-08-08_08-57_system-lifecycle-hardening.md`)_
 
-### Lifecycle follow-up
+### Lifecycle follow-up ✅
 
-- [ ] **Split `system_lifecycle_test.go`** — 457 lines, CI limit is 350. Split
-      into lifecycle_test.go + lifecycle_drain_test.go.
-- [ ] **Add `TestSystem_Close_ProjectionHostError`** — projection host Stop fails,
-      engine close still runs. Needs `ProjectionHostLifecycle` interface extraction.
-- [ ] **Add `TestSystem_HealthCheckDetailed_MultipleEnginesMixed`** — verify
-      per-engine health results with mixed healthy/unhealthy engines.
-- [ ] **Add `TestSystem_Drain_Error` / `TestSystem_Drain_ContextExpired`** —
-      error paths for standalone drain.
-- [ ] **Tag `system/v4.1.0`** — lifecycle methods + introspection extensions.
-      Verify version monotonically increasing: `git tag -l 'system/v4*' | sort -V | tail -1`.
+- [x] **Split `system_lifecycle_test.go`** — done: split into
+      `lifecycle_test.go` (420 lines) + `lifecycle_drain_test.go` (219 lines).
+- [x] **Add `TestSystem_Close_ProjectionHostError`** — done: projection host
+      Stop fails, engine close still runs. `projectionHostLifecycle` interface
+      extracted.
+- [x] **Add `TestSystem_HealthCheckDetailed_MultipleEnginesMixed`** — done:
+      verifies per-engine results with healthy + unhealthy + non-HC engines.
+- [x] **Add `TestSystem_Drain_Error` / `TestSystem_Drain_ContextExpired`** —
+      done: both error paths tested.
 
 ### Release (when ready)
 
+- [ ] 🔥 **Tag `system/v4.1.0`** — lifecycle methods + introspection extensions.
+      Verify version monotonically increasing: `git tag -l 'system/v4*' | sort -V | tail -1`.
+      **Depends on:** engine tags below being tagged first (consumers resolving
+      `system/v4.1.0` will pull engine modules that must be at compatible versions).
 - [ ] **Tag `metaengine/sqliteengine/v4.0.1`** (new `HealthCheck`).
 - [ ] **Tag `metaengine/duckdbengine/v4.0.1`** (new `HealthCheck` + aggregates).
 - [ ] **Tag `metaengine/pgengine/v4.0.1`** (new `HealthCheck` + aggregates).
@@ -134,12 +164,16 @@ and is **never** duplicated here.
 - [ ] **Tag `storage/memory/v4.3.0`** — includes `limit=0` fix + duplicate
       detection fix.
 
-### Documentation
+### Documentation ✅
 
-- [ ] **Add `ShutdownDependency` example to README Quick Start**.
-- [ ] **Add `Drainer` example to README**.
-- [ ] **Add `HealthCheckDetailed` example to README**.
-- [ ] **Add "Lifecycle" section to system README** — Close vs GracefulClose vs Drain.
+- [x] **Add `ShutdownDependency` example to README** — already existed at
+      `system/README.md:202-212`.
+- [x] **Add `Drainer` example to README** — already existed at
+      `system/README.md:214-233`.
+- [x] **Add `HealthCheckDetailed` example to README** — added in the Lifecycle
+      section with code example.
+- [x] **Add "Lifecycle" section to system README** — done: Close vs GracefulClose
+      vs Drain comparison table + shutdown order documentation.
 
 ### Integration (future)
 
