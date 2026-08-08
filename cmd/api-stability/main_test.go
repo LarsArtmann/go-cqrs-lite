@@ -295,12 +295,14 @@ func TestExceptionsAreMinimal(t *testing.T) {
 		modLayer, ok := layers[module]
 		if !ok {
 			t.Errorf("EXCEPTIONS[%s] references module not in LAYER map", module)
+
 			continue
 		}
 		for dep := range strings.FieldsSeq(m[2]) {
 			depLayer, ok := layers[dep]
 			if !ok {
 				t.Errorf("EXCEPTIONS[%s] references dep %q not in LAYER map", module, dep)
+
 				continue
 			}
 			if depLayer <= modLayer {

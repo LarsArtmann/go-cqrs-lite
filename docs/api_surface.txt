@@ -1486,10 +1486,14 @@ metaengine/dgraphengine/method CounterIncrement
 metaengine/dgraphengine/method GraphAddEdge
 metaengine/dgraphengine/method GraphNeighbors
 metaengine/dgraphengine/method HealthCheck
+metaengine/dgraphengine/method LogAppend
+metaengine/dgraphengine/method LogTail
 metaengine/dgraphengine/method MapDelete
 metaengine/dgraphengine/method MapGet
 metaengine/dgraphengine/method MapScan
 metaengine/dgraphengine/method MapSet
+metaengine/dgraphengine/method MultiAdd
+metaengine/dgraphengine/method MultiGet
 metaengine/dgraphengine/method Profile
 metaengine/dgraphengine/method SearchInsert
 metaengine/dgraphengine/method SearchQuery
