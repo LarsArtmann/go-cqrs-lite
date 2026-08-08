@@ -19,7 +19,7 @@
 > L1.29 (event-type typo), L1.32 (domain error classification), L1.33
 > (goroutine leak), and L1.35 (PII detection) are also done. **~8 items remain
 > open** — see [TODO_LIST.md](../../../TODO_LIST.md) for the current shortlist.
-> Top open: L1.5 (domain severity), L1.45 (shared mutable state),
+> Top open: L1.5 (domain severity),
 > L1.47–L1.51 (new categories DOC/OBS/RES/DI).
 
 ---
@@ -196,7 +196,7 @@ See Level 1 and Level 2 tables below.
 | L1.42 | Implement missing error wrapping detection                    | 171   | **[P80]** | Medium (debuggability) | 90 min | None         | ✅ DONE (C033) |
 | L1.43 | Extend B011: panic in all marshal helpers                     | 170   | **[P80]** | Low (crash prevention) | 45 min | None         | ✅ DONE        |
 | L1.44 | Implement race condition in read model (map without mutex)    | 172   | **[P80]** | Medium (data race)     | 60 min | None         | ✅ DONE (C035) |
-| L1.45 | Implement shared mutable state in event handler (extend A015) | 173   | **[P80]** | Low (overlaps A015)    | 45 min | None         | Open           |
+| L1.45 | Implement shared mutable state in event handler (extend A015) | 173   | **[P80]** | Low (overlaps A015)    | 45 min | None         | ✅ DONE (map-typed global detection + IncDecStmt) |
 | L1.46 | Implement goroutine without context cancellation              | 174   | **[P80]** | Medium (overlaps C030) | 60 min | None         | ✅ DONE (C034) |
 
 ### Phase 9: New Rule Categories (Ambitious)
