@@ -30,8 +30,10 @@ func buildGraphRAGCorpus(b *testing.B, sb metaengine.SearchBackend, gb metaengin
 	searchCol, graphCol string, numEntities int,
 ) {
 	ctx := context.Background()
-	topics := []string{"authentication", "database", "payment", "notification",
-		"cache", "queue", "gateway", "storage", "analytics", "monitoring"}
+	topics := []string{
+		"authentication", "database", "payment", "notification",
+		"cache", "queue", "gateway", "storage", "analytics", "monitoring",
+	}
 
 	for i := range numEntities {
 		topic := topics[i%len(topics)]
@@ -48,8 +50,14 @@ func buildGraphRAGCorpus(b *testing.B, sb metaengine.SearchBackend, gb metaengin
 	for i := range numEntities {
 		for _, offset := range []int{1, 2} {
 			neighbor := (i + offset) % numEntities
-			if err := gb.GraphAddEdge(ctx, graphCol,
-				metaengine.Edge{From: fmt.Sprintf("entity-%d", i), To: fmt.Sprintf("entity-%d", neighbor)}); err != nil {
+			if err := gb.GraphAddEdge(
+				ctx,
+				graphCol,
+				metaengine.Edge{
+					From: fmt.Sprintf("entity-%d", i),
+					To:   fmt.Sprintf("entity-%d", neighbor),
+				},
+			); err != nil {
 				b.Fatalf("GraphAddEdge %d→%d: %v", i, neighbor, err)
 			}
 		}
@@ -275,7 +283,12 @@ func BenchmarkDgraph_FullTriad_MapGraphSearch(b *testing.B) {
 		}
 
 		// Search query.
-		if _, err := sb.SearchQuery(ctx, triadCol+"-search", queries[i%len(queries)], 5); err != nil {
+		if _, err := sb.SearchQuery(
+			ctx,
+			triadCol+"-search",
+			queries[i%len(queries)],
+			5,
+		); err != nil {
 			b.Fatalf("SearchQuery %d: %v", i, err)
 		}
 

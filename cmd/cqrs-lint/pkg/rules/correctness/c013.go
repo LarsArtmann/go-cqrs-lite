@@ -86,7 +86,8 @@ func checkStructFields(
 	}
 
 	for _, field := range fields.List {
-		if isTimeType(field.Type) && !hasAllowPragma(ctx, gf.Path, field) {
+		if isTimeType(field.Type) && !hasAllowPragma(ctx, gf.Path, field) &&
+			!hasJSONDashTag(field) {
 			reportTimeField(ctx, gf, structName, field, findings)
 		}
 
@@ -205,7 +206,8 @@ func checkProjectionTimeFields(
 	}
 
 	for _, field := range fields.List {
-		if isTimeType(field.Type) && !hasAllowPragma(ctx, gf.Path, field) {
+		if isTimeType(field.Type) && !hasAllowPragma(ctx, gf.Path, field) &&
+			!hasJSONDashTag(field) {
 			pos := ctx.Fset.Position(field.Pos())
 			fieldName := getFieldNames(field)
 
@@ -302,4 +304,15 @@ func hasAllowPragma(ctx *analyzer.AnalysisContext, filePath string, field *ast.F
 	}
 
 	return false
+}
+
+// hasJSONDashTag reports whether the field has a `json:"-"` tag, meaning it is
+// explicitly excluded from serialization and should not be flagged for timezone
+// concerns.
+func hasJSONDashTag(field *ast.Field) bool {
+	if field.Tag == nil {
+		return false
+	}
+
+	return strings.Contains(field.Tag.Value, `json:"-"`)
 }

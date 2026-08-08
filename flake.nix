@@ -1083,7 +1083,7 @@
 
             # Cross-backend test suite: SQLite, Pebble, bbolt, DuckDB, PG, MySQL.
             test-all-backends =
-              mkApp "test-all-backends" [ goPkg pkgs.gcc pkgs.postgresql pkgs.redis pkgs.nats-server ]
+              mkApp "test-all-backends" [ goPkg pkgs.gcc pkgs.postgresql pkgs.redis pkgs.nats-server pkgs.dgraph ]
                 ''
                   export CGO_ENABLED=1
                   export GOEXPERIMENT=jsonv2

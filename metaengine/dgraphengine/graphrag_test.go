@@ -11,11 +11,11 @@ import (
 
 // TestGraphRAG_SearchThenGraphTraverse validates the core GraphRAG pipeline:
 //
-// 1. INDEX: insert entities with text descriptions (SearchInsert) AND build a
-//    knowledge graph connecting them (GraphAddEdge).
-// 2. RETRIEVE: search for entities by text query (SearchQuery).
-// 3. EXPAND: traverse the graph neighborhood of each hit (GraphNeighbors).
-// 4. ASSEMBLE: deduplicate into a context window.
+//  1. INDEX: insert entities with text descriptions (SearchInsert) AND build a
+//     knowledge graph connecting them (GraphAddEdge).
+//  2. RETRIEVE: search for entities by text query (SearchQuery).
+//  3. EXPAND: traverse the graph neighborhood of each hit (GraphNeighbors).
+//  4. ASSEMBLE: deduplicate into a context window.
 //
 // This is the use case that makes Dgraph uniquely valuable — it's the only
 // metaengine that implements BOTH GraphBackend AND SearchBackend at full
@@ -68,15 +68,15 @@ func TestGraphRAG_SearchThenGraphTraverse(t *testing.T) {
 
 	// Build relationships: who works with whom, who reports to whom.
 	edges := []metaengine.Edge{
-		{From: "alice", To: "bob"},       // alice works with bob (backend + db)
-		{From: "alice", To: "henry"},     // alice works with henry (shared golang)
-		{From: "bob", To: "carol"},       // bob works with carol (db + deployment)
-		{From: "carol", To: "dave"},      // carol deploys dave's frontend
-		{From: "eve", To: "alice"},       // eve secures alice's services
-		{From: "frank", To: "alice"},     // frank manages alice
-		{From: "frank", To: "bob"},       // frank manages bob
-		{From: "grace", To: "bob"},       // grace uses bob's database
-		{From: "henry", To: "dave"},      // henry tests dave's frontend
+		{From: "alice", To: "bob"},   // alice works with bob (backend + db)
+		{From: "alice", To: "henry"}, // alice works with henry (shared golang)
+		{From: "bob", To: "carol"},   // bob works with carol (db + deployment)
+		{From: "carol", To: "dave"},  // carol deploys dave's frontend
+		{From: "eve", To: "alice"},   // eve secures alice's services
+		{From: "frank", To: "alice"}, // frank manages alice
+		{From: "frank", To: "bob"},   // frank manages bob
+		{From: "grace", To: "bob"},   // grace uses bob's database
+		{From: "henry", To: "dave"},  // henry tests dave's frontend
 	}
 
 	for _, edge := range edges {

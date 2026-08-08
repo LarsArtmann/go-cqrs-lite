@@ -33,16 +33,16 @@ func TestAdversarialDQLInjection(t *testing.T) {
 	// Each attack vector is a DQL injection attempt that, if executed,
 	// would alter the query semantics or exfiltrate data.
 	attackVectors := []string{
-		`} {} {`,                                               // close current block, open new
+		`} {} {`, // close current block, open new
 		`func: eq(cqrs.map_key, "injected") { cqrs.map_value }`, // full DQL query injection
-		`" OR "1"="1`,                                           // SQL-style injection (should be harmless but test it)
-		`"); DROP COLLECTION; --`,                               // SQL DROP
-		`' OR ''='`,                                             // classic SQL injection
-		`{ uid }`,                                               // DQL uid exfiltration
-		`@filter(eq(cqrs.map_key, "stolen"))`,                   // DQL filter injection
-		`value } counter(func: all()) { uid }`,                  // cross-collection exfiltration
-		`"><script>alert(1)</script>`,                           // XSS (should be harmless to Dgraph but test)
-		`%24col+%3D+%22hacked%22`,                               // URL-encoded variable override
+		`" OR "1"="1`,                          // SQL-style injection (should be harmless but test it)
+		`"); DROP COLLECTION; --`,              // SQL DROP
+		`' OR ''='`,                            // classic SQL injection
+		`{ uid }`,                              // DQL uid exfiltration
+		`@filter(eq(cqrs.map_key, "stolen"))`,  // DQL filter injection
+		`value } counter(func: all()) { uid }`, // cross-collection exfiltration
+		`"><script>alert(1)</script>`,          // XSS (should be harmless to Dgraph but test)
+		`%24col+%3D+%22hacked%22`,              // URL-encoded variable override
 	}
 
 	t.Run("Map_keys_are_literals", func(t *testing.T) {
@@ -66,7 +66,12 @@ func TestAdversarialDQLInjection(t *testing.T) {
 
 			m, ok := got.(map[string]any)
 			if !ok {
-				t.Fatalf("Attack vector %d: expected map[string]any, got %T\nInput: %q", i, got, attack)
+				t.Fatalf(
+					"Attack vector %d: expected map[string]any, got %T\nInput: %q",
+					i,
+					got,
+					attack,
+				)
 			}
 
 			// The value must round-trip exactly — the attack string must be
@@ -127,8 +132,17 @@ func TestAdversarialDQLInjection(t *testing.T) {
 	t.Run("Counter_keys_are_literals", func(t *testing.T) {
 		const col = "injection-test-counter"
 		for i, attack := range attackVectors {
-			if err := cb.CounterIncrement(ctx, col, metaengine.Delta{attack: int64(i + 1)}); err != nil {
-				t.Fatalf("CounterIncrement with attack vector %d failed: %v\nInput: %q", i, err, attack)
+			if err := cb.CounterIncrement(
+				ctx,
+				col,
+				metaengine.Delta{attack: int64(i + 1)},
+			); err != nil {
+				t.Fatalf(
+					"CounterIncrement with attack vector %d failed: %v\nInput: %q",
+					i,
+					err,
+					attack,
+				)
 			}
 		}
 
@@ -141,7 +155,11 @@ func TestAdversarialDQLInjection(t *testing.T) {
 		for i, attack := range attackVectors {
 			val, ok := counts[attack]
 			if !ok {
-				t.Errorf("Attack vector %d: counter key %q not found in CounterGet results", i, attack)
+				t.Errorf(
+					"Attack vector %d: counter key %q not found in CounterGet results",
+					i,
+					attack,
+				)
 				continue
 			}
 

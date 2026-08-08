@@ -317,7 +317,11 @@ func TestGracefulShutdown_InflightOps(t *testing.T) {
 		g.Expect(val).To(gomega.Equal("v" + key[1:]))
 	}
 	for i := range concurrentCount {
-		val, found, err := nodeB.(metaengine.MapBackend).MapGet(ctx, "data", fmt.Sprintf("conc-%d", i))
+		val, found, err := nodeB.(metaengine.MapBackend).MapGet(
+			ctx,
+			"data",
+			fmt.Sprintf("conc-%d", i),
+		)
 		g.Expect(err).NotTo(gomega.HaveOccurred())
 		g.Expect(found).To(gomega.BeTrue(), "node B should have concurrent write conc-%d", i)
 		g.Expect(val).To(gomega.Equal(i))

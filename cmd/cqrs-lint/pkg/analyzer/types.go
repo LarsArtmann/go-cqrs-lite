@@ -20,16 +20,16 @@ type EventEmission struct {
 
 // CommandInfo describes a command type found in the analyzed code.
 type CommandInfo struct {
-	Name          string // struct type name
-	Package       string // import path
-	File          string // file path
-	Pos           token.Position
-	HasBasicCmd   bool     // embeds *command.BasicCommand
-	ManualID      bool     // has manual ID() method
-	ManualType    bool     // has manual Type() or StreamID() method
-	IDReturnsZero bool     // ID() returns zero-value composite literal
-	TransportAdapter bool  // has a toDomain()/ToDomain() conversion method — never dispatched directly
-	Fields        []string // field names
+	Name             string // struct type name
+	Package          string // import path
+	File             string // file path
+	Pos              token.Position
+	HasBasicCmd      bool     // embeds *command.BasicCommand
+	ManualID         bool     // has manual ID() method
+	ManualType       bool     // has manual Type() or StreamID() method
+	IDReturnsZero    bool     // ID() returns zero-value composite literal
+	TransportAdapter bool     // has a toDomain()/ToDomain() conversion method — never dispatched directly
+	Fields           []string // field names
 }
 
 // EventInfo describes an event type found in the analyzed code.

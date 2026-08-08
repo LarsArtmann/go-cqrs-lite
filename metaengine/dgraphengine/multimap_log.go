@@ -28,11 +28,11 @@ func (e *dgraphEngine) MultiAdd(
 	}
 
 	data, _ := json.Marshal(map[string]any{
-		"uid":                     "_:new",
+		"uid":                      "_:new",
 		"cqrs.multimap_collection": col,
-		"cqrs.multimap_key":       keyStr,
-		"cqrs.multimap_value":     string(valueJSON),
-		"dgraph.type":             []string{"MultimapEntry"},
+		"cqrs.multimap_key":        keyStr,
+		"cqrs.multimap_value":      string(valueJSON),
+		"dgraph.type":              []string{"MultimapEntry"},
 	})
 
 	if _, err := e.client.NewTxn().Mutate(ctx, &api.Mutation{
@@ -99,11 +99,11 @@ func (e *dgraphEngine) LogAppend(ctx context.Context, col string, value any) err
 	}
 
 	data, _ := json.Marshal(map[string]any{
-		"uid":                "_:new",
+		"uid":                 "_:new",
 		"cqrs.log_collection": col,
-		"cqrs.log_seq":       time.Now().UnixNano(),
-		"cqrs.log_value":     string(valueJSON),
-		"dgraph.type":        []string{"LogEntry"},
+		"cqrs.log_seq":        time.Now().UnixNano(),
+		"cqrs.log_value":      string(valueJSON),
+		"dgraph.type":         []string{"LogEntry"},
 	})
 
 	if _, err := e.client.NewTxn().Mutate(ctx, &api.Mutation{

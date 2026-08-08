@@ -15,10 +15,10 @@ import (
 // TestGraphRAG_ConcurrentStress hammers the GraphRAG pipeline from multiple
 // goroutines simultaneously to verify:
 //
-// 1. CORRECTNESS under concurrency — every query returns a non-empty context window.
-// 2. NO PANICS or data races (run with -race).
-// 3. THROUGHPUT — measures queries/sec, p50, p99 latency across 200 entities
-//    with ~600 edges, 16 concurrent goroutines.
+//  1. CORRECTNESS under concurrency — every query returns a non-empty context window.
+//  2. NO PANICS or data races (run with -race).
+//  3. THROUGHPUT — measures queries/sec, p50, p99 latency across 200 entities
+//     with ~600 edges, 16 concurrent goroutines.
 //
 // This is the test that proves a single Dgraph instance can serve as a
 // production GraphRAG backend under real concurrent load.
@@ -49,8 +49,10 @@ func TestGraphRAG_ConcurrentStress(t *testing.T) {
 	// 200 entities across 10 topic clusters, each with 3 graph edges.
 	// Creates a dense, realistic knowledge graph.
 	const numEntities = 200
-	topics := []string{"authentication", "database", "payment", "notification",
-		"cache", "queue", "gateway", "storage", "analytics", "monitoring"}
+	topics := []string{
+		"authentication", "database", "payment", "notification",
+		"cache", "queue", "gateway", "storage", "analytics", "monitoring",
+	}
 
 	t.Logf("Indexing %d entities with graph edges...", numEntities)
 
@@ -69,8 +71,14 @@ func TestGraphRAG_ConcurrentStress(t *testing.T) {
 	for i := range numEntities {
 		for j := 1; j <= 3; j++ {
 			neighbor := (i + j) % numEntities
-			if err := gb.GraphAddEdge(ctx, graphCol,
-				metaengine.Edge{From: fmt.Sprintf("entity-%d", i), To: fmt.Sprintf("entity-%d", neighbor)}); err != nil {
+			if err := gb.GraphAddEdge(
+				ctx,
+				graphCol,
+				metaengine.Edge{
+					From: fmt.Sprintf("entity-%d", i),
+					To:   fmt.Sprintf("entity-%d", neighbor),
+				},
+			); err != nil {
 				t.Fatalf("GraphAddEdge %d→%d: %v", i, neighbor, err)
 			}
 		}

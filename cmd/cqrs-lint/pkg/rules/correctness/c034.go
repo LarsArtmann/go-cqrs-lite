@@ -48,6 +48,10 @@ func NewC034Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							return true
 						}
 
+						if enclosingFuncHasShutdown(fn.Body) {
+							return true
+						}
+
 						pos := ctx.Fset.Position(goStmt.Pos())
 
 						f, err := finding.NewBuilder(
@@ -110,4 +114,37 @@ func goroutineHasCtxArg(goStmt *ast.GoStmt) bool {
 	}
 
 	return false
+}
+
+// enclosingFuncHasShutdown reports whether the function body contains
+// ctx.Done() or .Shutdown() calls, indicating standard graceful shutdown
+// patterns where goroutines without ctx are intentional (e.g. HTTP server
+// lifecycle: go server.ListenAndServe() + ctx.Done() + server.Shutdown()).
+func enclosingFuncHasShutdown(body *ast.BlockStmt) bool {
+	if body == nil {
+		return false
+	}
+
+	hasShutdown := false
+
+	ast.Inspect(body, func(n ast.Node) bool {
+		call, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+
+		sel, ok := call.Fun.(*ast.SelectorExpr)
+		if !ok {
+			return true
+		}
+
+		if sel.Sel.Name == "Done" || sel.Sel.Name == "Shutdown" {
+			hasShutdown = true
+			return false
+		}
+
+		return true
+	})
+
+	return hasShutdown
 }

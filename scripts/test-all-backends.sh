@@ -2,7 +2,7 @@
 # test-all-backends.sh — Run tests across ALL storage backends in one command.
 #
 # Covers: SQLite, Pebble, bbolt (embedded), DuckDB (CGo), PostgreSQL + MySQL
-# (external, via test-integration.sh auto-detection).
+# (external, via test-integration.sh auto-detection), Dgraph (graph DB).
 #
 # Usage:
 #   bash scripts/test-all-backends.sh                # all backends
@@ -55,6 +55,18 @@ run_module() {
     ) || return 1
 }
 
+run_dgraph() {
+    local timeout="${TEST_TIMEOUT:-300}"
+    echo ""
+    echo "--- metaengine/dgraphengine (timeout ${timeout}s) ---"
+    bash "$SCRIPT_DIR/ephemeral-dgraph.sh" \
+        bash -c "cd metaengine/dgraphengine && \
+            CGO_ENABLED=1 GOWORK=off \
+            timeout '$timeout' \
+            go test -tags 'goexperiment.jsonv2' ./... \
+            -count=1 2>&1" || return 1
+}
+
 echo "============================================"
 echo "  Cross-Backend Test Suite"
 echo "============================================"
@@ -81,6 +93,12 @@ if [ "$RUN_EXTERNAL" = true ]; then
     echo ""
     echo ">>> Phase 3: External backends (PostgreSQL, MySQL)"
     if ! bash "$SCRIPT_DIR/test-integration.sh"; then
+        OVERALL_FAILED=1
+    fi
+
+    echo ""
+    echo ">>> Phase 4: External graph backend (Dgraph)"
+    if ! run_dgraph; then
         OVERALL_FAILED=1
     fi
 fi

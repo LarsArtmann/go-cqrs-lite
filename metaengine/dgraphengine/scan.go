@@ -27,7 +27,8 @@ func (e *dgraphEngine) MapScan(
 		}
 	}`
 
-	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, q, map[string]string{"$col": collection})
+	resp, err := e.client.NewReadOnlyTxn().
+		QueryWithVars(ctx, q, map[string]string{"$col": collection})
 	if err != nil {
 		return metaengine.ScanResult{}, fmt.Errorf("dgraphengine.MapScan: %w", err)
 	}

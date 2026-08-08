@@ -65,10 +65,11 @@ func NewE009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			// import both command and query. This lets us evaluate
 			// transport per-module instead of workspace-wide.
 			type moduleState struct {
-				hasCommand bool
-				hasQuery   bool
-				firstPos   token.Position
-				hasPos     bool
+				hasCommand    bool
+				hasQuery      bool
+				hasCustomHTTP bool
+				firstPos      token.Position
+				hasPos        bool
 			}
 
 			modules := make(map[string]*moduleState)
@@ -92,6 +93,10 @@ func NewE009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					state.hasQuery = true
 				}
 
+				if fileImportsCustomHTTP(gf) {
+					state.hasCustomHTTP = true
+				}
+
 				if !state.hasPos && gf.AST.Package != token.NoPos {
 					state.firstPos = ctx.Fset.Position(gf.AST.Package)
 					state.hasPos = true
@@ -105,10 +110,11 @@ func NewE009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				// Evaluate transport per-module: a module with command+query
-				// but no transport should be flagged, even if another module
-				// in the workspace has transport.
 				if ctx.ProfileForFile(state.firstPos.Filename).HasTransport {
+					continue
+				}
+
+				if state.hasCustomHTTP {
 					continue
 				}
 

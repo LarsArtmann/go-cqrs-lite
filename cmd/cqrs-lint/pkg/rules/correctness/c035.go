@@ -60,6 +60,10 @@ func NewC035Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							continue
 						}
 
+						if !fileImportsSync(gf.AST) && structHasAllJSONTags(structType) {
+							continue
+						}
+
 						pos := ctx.Fset.Position(typeSpec.Pos())
 
 						names := make([]string, len(mapFields))
@@ -164,4 +168,46 @@ func hasMutexField(fields *ast.FieldList) bool {
 	}
 
 	return false
+}
+
+// fileImportsSync reports whether the file imports the sync package.
+func fileImportsSync(root ast.Node) bool {
+	hasSync := false
+
+	ast.Inspect(root, func(n ast.Node) bool {
+		imp, ok := n.(*ast.ImportSpec)
+		if !ok {
+			return true
+		}
+
+		path := strings.Trim(imp.Path.Value, `"`)
+		if path == "sync" {
+			hasSync = true
+			return false
+		}
+
+		return true
+	})
+
+	return hasSync
+}
+
+// structHasAllJSONTags reports whether every field in the struct has a json
+// tag, indicating it's a serialization DTO rather than a shared mutable.
+func structHasAllJSONTags(st *ast.StructType) bool {
+	if st.Fields == nil || len(st.Fields.List) == 0 {
+		return false
+	}
+
+	for _, field := range st.Fields.List {
+		if field.Tag == nil {
+			return false
+		}
+
+		if !strings.Contains(field.Tag.Value, "json:") {
+			return false
+		}
+	}
+
+	return true
 }

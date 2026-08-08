@@ -68,7 +68,8 @@ func (e *dgraphEngine) SearchQuery(
 		}
 	}`, firstClause)
 
-	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, q, map[string]string{"$col": collection, "$query": query})
+	resp, err := e.client.NewReadOnlyTxn().
+		QueryWithVars(ctx, q, map[string]string{"$col": collection, "$query": query})
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.SearchQuery: %w", err)
 	}

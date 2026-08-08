@@ -107,7 +107,8 @@ func (e *dgraphEngine) GraphNeighbors(
 		}`, depth, pred)
 	}
 
-	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, query, map[string]string{"$col": collection, "$node": nodeStr})
+	resp, err := e.client.NewReadOnlyTxn().
+		QueryWithVars(ctx, query, map[string]string{"$col": collection, "$node": nodeStr})
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.GraphNeighbors: %w", err)
 	}

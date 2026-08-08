@@ -302,8 +302,11 @@ func BenchmarkDgraph_SearchInsert(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		doc := metaengine.IndexedText{
-			ID:      fmt.Sprintf("doc-%d", i),
-			Content: fmt.Sprintf("document %d about golang performance graph database query optimization", i),
+			ID: fmt.Sprintf("doc-%d", i),
+			Content: fmt.Sprintf(
+				"document %d about golang performance graph database query optimization",
+				i,
+			),
 		}
 		if err := sb.SearchInsert(ctx, "bench-search-ins", doc); err != nil {
 			b.Fatalf("SearchInsert %d: %v", i, err)
@@ -329,8 +332,10 @@ func BenchmarkDgraph_SearchQuery(b *testing.B) {
 
 	ctx := context.Background()
 	const numDocs = 500
-	words := []string{"golang", "database", "graph", "performance", "query",
-		"optimization", "cqrs", "event", "sourcing", "projection"}
+	words := []string{
+		"golang", "database", "graph", "performance", "query",
+		"optimization", "cqrs", "event", "sourcing", "projection",
+	}
 
 	for i := range numDocs {
 		w1 := words[i%len(words)]

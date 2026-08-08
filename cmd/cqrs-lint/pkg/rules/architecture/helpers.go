@@ -47,6 +47,31 @@ func fileImportsPath(gf *analyzer.GoFile, suffix string) bool {
 	return false
 }
 
+// fileImportsCustomHTTP reports whether the file imports net/http or a common
+// third-party HTTP framework. Used by E009 to detect custom transport layers
+// that aren't go-cqrs-lite transport/http.
+func fileImportsCustomHTTP(gf *analyzer.GoFile) bool {
+	for _, imp := range gf.AST.Imports {
+		if imp == nil || imp.Path == nil {
+			continue
+		}
+
+		path := strings.Trim(imp.Path.Value, `"`)
+
+		if path == "net/http" ||
+			strings.Contains(path, "gin-gonic/gin") ||
+			strings.Contains(path, "labstack/echo") ||
+			strings.Contains(path, "go-chi/chi") ||
+			strings.Contains(path, "gorilla/mux") ||
+			strings.Contains(path, "gofiber/fiber") ||
+			strings.Contains(path, "/httprouter") {
+			return true
+		}
+	}
+
+	return false
+}
+
 // findKeyBoolLit reports whether any non-test file contains a composite literal
 // key-value pair where the key is keyName and the value is a boolean literal
 // matching wantBool. Used to detect config flags like Enabled: false or

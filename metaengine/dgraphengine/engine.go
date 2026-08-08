@@ -128,10 +128,10 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 		Persistence: metaengine.PersistencePersistent,
 		Replication: metaengine.ReplicationSingleLeader,
 		ReadCosts: metaengine.ReadCosts{
-			NsPerPointLookup:  350_000,  // MapGet ~344µs
-			NsPerFilteredScan: 900_000,  // SearchQuery anyofterms ~882µs
-			NsPerAggregate:    950_000,  // GraphNeighbors depth-3 ~963µs
-			NsPerScan:         450_000,  // GraphNeighbors depth-1 ~420µs
+			NsPerPointLookup:  350_000, // MapGet ~344µs
+			NsPerFilteredScan: 900_000, // SearchQuery anyofterms ~882µs
+			NsPerAggregate:    950_000, // GraphNeighbors depth-3 ~963µs
+			NsPerScan:         450_000, // GraphNeighbors depth-1 ~420µs
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityOLogN,
@@ -241,7 +241,8 @@ func (e *dgraphEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 		}
 	}`
 
-	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, q, map[string]string{"$col": col, "$key": keyStr})
+	resp, err := e.client.NewReadOnlyTxn().
+		QueryWithVars(ctx, q, map[string]string{"$col": col, "$key": keyStr})
 	if err != nil {
 		return nil, false, fmt.Errorf("dgraphengine.MapGet: %w", err)
 	}

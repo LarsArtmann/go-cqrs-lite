@@ -26,6 +26,11 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 
 	pos := ctx.Fset.Position(call.Pos())
 
+	if funcName == "RegisterTyped" || funcName == "RegisterQuery" ||
+		(funcName == "Register" && pkgName != "event") {
+		ctx.Registry.PackagesWithRegistration[gf.Pkg.PkgPath] = true
+	}
+
 	switch {
 	case funcName == "New" && pkgName == "event":
 		if len(call.Args) > 0 {

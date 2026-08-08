@@ -53,19 +53,26 @@ type CQRSRegistry struct {
 	// Used by E007 to distinguish real CQRS query types (which implement
 	// query.Query's Type() method) from DTOs whose name happens to end in "Query".
 	TypesWithTypeMethod map[string]bool
+
+	// PackagesWithRegistration tracks packages that contain RegisterTyped,
+	// RegisterQuery, or Register calls. E007 uses this to suppress queries in
+	// packages where registration happens via wrapper functions the scanner
+	// can't trace (e.g. generic register[Q]() helpers).
+	PackagesWithRegistration map[string]bool
 }
 
 // NewCQRSRegistry creates an empty registry.
 func NewCQRSRegistry() *CQRSRegistry {
 	return &CQRSRegistry{
-		EventTypesEmitted:      make(map[string]EventEmission),
-		EventTypesInCatalog:    make(map[string]bool),
-		CommandTypesRegistered: make(map[string]bool),
-		EventPayloadTypes:      make(map[string]bool),
-		TypeConstValues:        make(map[string]string),
-		StrictApplyFolds:       make(map[string]bool),
-		pendingHandlerMethods:  make(map[string]bool),
-		TypesWithTypeMethod:    make(map[string]bool),
+		EventTypesEmitted:        make(map[string]EventEmission),
+		EventTypesInCatalog:      make(map[string]bool),
+		CommandTypesRegistered:   make(map[string]bool),
+		EventPayloadTypes:        make(map[string]bool),
+		TypeConstValues:          make(map[string]string),
+		StrictApplyFolds:         make(map[string]bool),
+		pendingHandlerMethods:    make(map[string]bool),
+		TypesWithTypeMethod:      make(map[string]bool),
+		PackagesWithRegistration: make(map[string]bool),
 	}
 }
 

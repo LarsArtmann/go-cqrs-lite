@@ -86,11 +86,11 @@ func (e *dgraphEngine) counterIncrementBatch(
 			})
 		} else {
 			setJSON = append(setJSON, map[string]any{
-				"uid":                    "_:new_" + sanitizeKey(key),
+				"uid":                     "_:new_" + sanitizeKey(key),
 				"cqrs.counter_collection": col,
-				"cqrs.counter_key":       key,
-				"cqrs.counter_value":     delta,
-				"dgraph.type":            []string{"MetaCounterEntry"},
+				"cqrs.counter_key":        key,
+				"cqrs.counter_value":      delta,
+				"dgraph.type":             []string{"MetaCounterEntry"},
 			})
 		}
 	}

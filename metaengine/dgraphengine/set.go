@@ -46,7 +46,8 @@ func (e *dgraphEngine) SetContains(ctx context.Context, col string, key any) (bo
 		}
 	}`
 
-	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, q, map[string]string{"$col": col, "$key": keyStr})
+	resp, err := e.client.NewReadOnlyTxn().
+		QueryWithVars(ctx, q, map[string]string{"$col": col, "$key": keyStr})
 	if err != nil {
 		return false, fmt.Errorf("dgraphengine.SetContains: %w", err)
 	}
