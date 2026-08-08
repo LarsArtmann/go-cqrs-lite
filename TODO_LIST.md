@@ -43,45 +43,20 @@ and is **never** duplicated here.
 > folds, auto-projection, tombstone deprecation, GraphBackend cleanup, aggregate
 > pushdown. 14 tags created locally. Remaining work is edge-case coverage and
 > doc-comment polish.
->
-> **Completed this session:** `RunRecordStampTest` helper extracted (eliminated
-> ~100 lines duplication across 4 engine modules), badgerengine record-stamp
-> test added (6/8 engines now covered), AutoCRUD soak added for sqliteengine +
-> pgengine, `SOAK_SKIP_DUCKDB=1` CI gating, `enginetest.RaceEnabled` exported
-> (metaengine-internal race consolidation), `RunTransactionalBaselineTest`
-> doc comment added, coverage baseline refreshed.
+
+> **All items below completed (2026-08-08 session 2):**
+> DuckDB `layoutMu` data race fixed (Mutex→RWMutex, RLock on 5 read paths),
+> `TestTypedReader_AggregateFallback` split into 3 groups (Scalar/Grouped/Multi),
+> `//nolint:tparallel` added to `TestDuckDB_ExplainAggregateQuery`,
+> dgraphengine record-stamp test created (graphadapter documented as graph-only, no MapBackend),
+> race-consolidation tradeoff documented (3 lean modules keep local copies),
+> caller-closes-engine doc added to 3 enginetest helpers,
+> `TestQuicLogConvergence` timeout increased 15s→30s,
+> badgerengine AutoCRUD soak added,
+> Engine interface concurrency-safety matrix documented,
+> 3 MemoryEngine concurrent-access `-race` tests added.
 >
 > _(Source: `docs/status/2026-08-08_07-45_metaengine-v2-release-hygiene.md`)_
-
-- [ ] **Split `TestTypedReader_AggregateFallback` into 3 smaller tests** —
-      13 subtests give it maintidx=19 (below threshold). Split into Scalar,
-      Grouped, Multi subtest groups. Then remove the `maintidx` exclusion from
-      `.golangci.yml` test-file rules.
-- [ ] **Add `//nolint:tparallel` with justification to DuckDB tests sharing
-      engine state** — `TestDuckDB_ExplainAggregateQuery` and similar tests
-      share a mutable engine. Document WHY subtests can't be parallel instead
-      of fighting the linter.
-- [ ] **Add record-stamp tests for dgraphengine + graphadapter** — 6/8 engines
-      covered (Memory, Pebble, SQLite, DuckDB, PG, Badger). Dgraph and
-      GraphAdapter still lack `RunRecordStampTest` coverage.
-- [ ] 🔥 **Consolidate `race_on.go`/`race_off.go` in benchkit, transport/grpc,
-      idempotency/kvstore** — metaengine-internal duplication eliminated
-      (exported `enginetest.RaceEnabled`). 3 lean-budget modules still have
-      local copies. Either add testutil as a dependency or accept the tradeoff.
-- [ ] **Add "caller owns engine Close" doc comments to 4 enginetest helpers** —
-      `RunConcurrentTxTest`, `RunWatcherReplayTest`, `RunPushdownTest`, and
-      `RunRecordStampTest` are missing the convention that 5/9 siblings already
-      follow.
-- [ ] **Fix flaky `TestQuicLogConvergence`** — times out at 15s under parallel CI
-      load but passes 3/3 in isolation. Increase timeout to 30s or add retry.
-- [ ] **Add AutoCRUD soak for badgerengine** — now Memory/Pebble/DuckDB/SQLite/PG
-      have soak coverage; Badger is the remaining LSM gap.
-- [ ] **Document concurrency safety on Engine interface** — Memory uses
-      `sync.RWMutex` (safe), Pebble uses internal locking (safe), DuckDB has
-      `layoutMu sync.Mutex` on layoutPlans (fixed 2026-08-08), SQLite relies on
-      `MaxOpenConns(1)`. Document this matrix on the `Engine` interface doc.
-- [ ] **Add race-detector integration test for MemoryEngine concurrent access** —
-      prove RWMutex works under -race with parallel goroutines.
 
 ---
 
@@ -210,9 +185,10 @@ and is **never** duplicated here.
       module ownership of its own exclusions.
 - [ ] **Review and tighten `.golangci.yml` exclusion blocks** — 30+ blocks
       exist. Each should have a comment explaining why it can't be fixed in
-      code. Remove unjustified ones. The `maintidx` test-file exclusion
-      (added 2026-08-08) should be removed once TestTypedReader_AggregateFallback
-      is split.
+      code. Remove unjustified ones. The `maintidx` test-file exclusion is now
+      safe to remove — `TestTypedReader_AggregateFallback` was split into 3
+      smaller groups (Scalar/Grouped/Multi) on 2026-08-08. Verify with
+      `nix run .#lint` after removal.
 - [ ] **Extend `DeferClose` to `storage/pebble/`** (~10 sites) — currently only
       applied to metaengine engines.
 - [ ] **Extend `DeferClose` to `storage/bbolt/`** (~8 sites).
@@ -273,17 +249,21 @@ and is **never** duplicated here.
 ## Layer Enforcement
 
 > `check-module-layers.sh` has a self-enforcing coverage guard. 79 go.mod
-> files, 77+ modules in `go.work`. ADR-0046 updated to the seven-tier model.
+> files, 78 modules in `go.work`. Model doc renamed to `SEVEN-TIER-MODEL.md`
+> with accurate counts (78 modules). Dead `EXCEPTIONS[storage]="listing"`
+> removed (storage L5 → listing L3 is a downward dep, no violation).
 
-- [ ] **Rename `FOUR-TIER-MODEL.md` → `SEVEN-TIER-MODEL.md`** — filename lies
-      about content (H1 says "seven-tier" but filename says "four-tier").
-- [ ] **Remove dead `EXCEPTIONS[storage]="listing"`** — listing moved to
-      Layer 3, the exception is no longer needed.
-- [ ] **Expand go-arch-lint to remaining modules** — only 6 modules have
-      per-module go-arch-lint configs. The bash script is the enforcement
-      mechanism for the rest.
+- [ ] **Add go-arch-lint config for `cmd/cqrs-lint`** — it has 16 production
+      sub-packages (pkg/analyzer, pkg/rules, etc.) but no intra-module
+      architecture config. The other 72 modules are single-package or have
+      only test sub-packages — the bash script already covers cross-module
+      rules for all 78 modules. Only `storage/` and `catalog/` have
+      meaningful multi-package structure with existing configs.
 - [ ] **Consider rewriting `check-module-layers.sh` as `cmd/check-layers`** —
-      330 lines of bash. A Go program would be more maintainable and testable.
+      348 lines of bash with self-enforcing coverage guard. A Go program
+      would add testability but the script is stable (layer assignments
+      change rarely) and only runs in CI. Defer until the script grows
+      significantly more complex.
 
 ---
 

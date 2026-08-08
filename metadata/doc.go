@@ -3,7 +3,7 @@
 //
 // Before this package existed, [Tracing] and [CustomData] lived inside event/.
 // Every module that needed them (command/, query/) had to import event/,
-// creating a tight coupling that violated the four-tier module model
+// creating a tight coupling that violated the seven-tier module model
 // (ADR-0046). The metadata/ module breaks that dependency: command/ and query/
 // embed these types directly without pulling in the full event/ package.
 //
@@ -33,5 +33,5 @@
 // # References
 //
 //   - ADR-0031: Typed Metadata fields
-//   - ADR-0046: Four-tier module model
+//   - ADR-0046: Seven-tier module model
 package metadata

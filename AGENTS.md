@@ -1179,7 +1179,7 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
   - **MySQL VM test** (`nix build .#checks.x86_64-linux.mysql-vm`): same pattern for MariaDB. Required because MariaDB's `install-db` is broken on NixOS host (read-only Nix store plugin dir permissions).
   - **MySQL nspawn test** (`nix build .#checks.x86_64-linux.mysql-nspawn`): systemd-nspawn container variant of the MySQL VM test. ~10x faster (~15s vs ~131s) because nspawn shares the host kernel — no full QEMU boot. Uses `containers.machine` instead of `nodes.machine` in `runNixOSTest`. Requires `uid-range` system feature + `auto-allocate-uids` on the host. One-shot setup: `sudo bash scripts/enable-nspawn-support.sh`. For interactive integration tests: `sudo nix run .#integration-mysql-nspawn` (builds the driver without uid-range, then runs it with root). Falls back to QEMU automatically when nspawn is unavailable.
   - VM tests live in `nix/vm/postgres.nix` + `nix/vm/mysql.nix` and are wired as `checks` in flake.nix. The `nixos-vm-tests` CI job runs them.
-- **Race-aware test thresholds**: the `-race` detector inflates allocations and CPU 5-10x, so hardcoded timing/heap thresholds in tests flake under `-race`. Use the `testutil.RaceEnabled` build-tag constant (`testutil/race_on.go` + `race_off.go`) to pick a relaxed bound: `if testutil.RaceEnabled { hang = 30*time.Second }`. Modules with a lean dependency budget that cannot import testutil (e.g. `benchkit`, `transport/grpc`) copy the two-file idiom locally (`benchkit/race_on.go`/`race_off.go`, `transport/grpc/race_on_test.go`/`race_off_test.go`) — the latter uses `_test.go` suffix since the constant is test-package only. See the file headers for the rationale. Always run the affected test 3x with `-count=3 -race` after touching a threshold.
+- **Race-aware test thresholds**: the `-race` detector inflates allocations and CPU 5-10x, so hardcoded timing/heap thresholds in tests flake under `-race`. Use the `testutil.RaceEnabled` build-tag constant (`testutil/race_on.go` + `race_off.go`) to pick a relaxed bound: `if testutil.RaceEnabled { hang = 30*time.Second }`. For metaengine-internal modules, use `enginetest.RaceEnabled` (the canonical metaengine copy — metaengine deleted its local `race_on_test.go`/`race_off_test.go` in favor of the shared export). Three lean-budget modules (`benchkit`, `transport/grpc`, `idempotency/kvstore`) keep local copies (`benchkit/race_on.go`/`race_off.go`, `transport/grpc/race_on_test.go`/`race_off_test.go`, `idempotency/kvstore/race_on_test.go`) because adding testutil or enginetest as a dependency would exceed their dependency budget — this tradeoff is accepted and documented. Always run the affected test 3x with `-count=3 -race` after touching a threshold.
 - **Soak test env vars**: `SOAK_SKIP_10M=1` skips the 10M-event memory-bounded soak test (`TestSoak_MemoryBounded_10M`, ~5s/25s-race). `SOAK_SKIP_DUCKDB=1` skips the DuckDB AutoCRUD soak (`TestSoak_AutoCRUD_DuckDB`, ~80s/100s-race — CGo columnar engine is orders of magnitude slower than Memory/Pebble). Use in CI or when the full verify gate is already running heavy parallel tests. The 50K-event `TestSoak_MemoryBounded` always runs as the smoke variant. Both memory soak tests report `TotalAlloc` delta (allocs/event) alongside heap growth for allocation-rate diagnostics.
 
 ### Lint Conventions
@@ -1218,38 +1218,35 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 
 **Coverage** (verified 2026-08-08 via `go test -tags "goexperiment.jsonv2" -cover`, workspace mode): core modules (decider 96.1%, storage/memory 97.0%, schema 89.9%, command 89.7%, event 88.6%, id 86.4%); mid-tier (snapshot 91.9%, metaengine 81.0%, dispatcher 81.5%, query 85.3%); newer modules (kv 71.9%, codec 69.2%). Bundle layer (stack presets, cache) 0–87% — presets emphasise the shared contract suite + happy paths. stack/postgres tests now run locally via testcontainers (was 0% when skipping without POSTGRES_TEST_DSN). Coverage drift is checked by `scripts/check-coverage.sh` (run via `nix run .#check-coverage`). See `docs/status/` for latest.
 
-**Module Graph** (seven-tier model, see [ADR-0046](docs/adr/0046-seven-tier-model.md) and [FOUR-TIER-MODEL.md](docs/architecture-understanding/FOUR-TIER-MODEL.md)):
+**Module Graph** (seven-tier model, see [ADR-0046](docs/adr/0046-seven-tier-model.md) and [SEVEN-TIER-MODEL.md](docs/architecture-understanding/SEVEN-TIER-MODEL.md)):
 
 ```
-Tier 0 — Primitives: id/, dispatcher/, codec/, kv/, dedup/, retry/ (DEPRECATED — use go-retry), flightrecorder/
+Tier 0 — Primitives: id/, dispatcher/, codec/, kv/, dedup/, record/, metaengine/, flightrecorder/, retry/ (DEPRECATED — use go-retry)
 Tier 1 — Core Domain: event/, command/, query/, scheduling/, metadata/
-Tier 2 — Domain Utilities: schema/, snapshot/, projection/, idempotency/, deriver/
-Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/, metaengine/
+Tier 2 — Domain Utilities: schema/, snapshot/, projection/, idempotency/, deriver/, idempotency/kvstore/, idempotency/sqlstore/
+Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/
 Tier 4 — Infrastructure: storage/memory/, storage/, storage/pebble/, storage/bbolt/, storage/turso/, signing/, encryption/, otel/,
-                     prometheus/, middleware/, transport/http/, transport/grpc/, watermill/, testutil/,
+                     prometheus/, middleware/, transport/http/, transport/grpc/, watermill/, testutil/, testutil/pgtestcontainer/,
                      metaengine/projectionadapter/, metaengine/pebbleengine/, metaengine/duckdbengine/,
-                     metaengine/pgengine/, metaengine/irohengine/, metaengine/irohengine/loopback/,
-                     metaengine/irohengine/quic/, metaengine/badgerengine/, metaengine/dgraphengine/,
-                     idempotency/sqlstore/, idempotency/kvstore/,
-                     scheduling/sqlstore/
+                     metaengine/pgengine/, metaengine/sqliteengine/, metaengine/badgerengine/, metaengine/dgraphengine/,
+                     metaengine/graphadapter/, metaengine/irohengine/, metaengine/irohengine/loopback/,
+                     metaengine/irohengine/quic/, scheduling/sqlstore/
 Tier 5 — Composition: stack/, stack/memory/, stack/sqlite/, stack/duckdb/, stack/pebble/, stack/bbolt/, stack/postgres/,
                    stack/mysql/, stack/turso/, system/
 Tier 6 — Tooling & Examples: catalog/, integration/, benchkit/, stack/bench/, metaengine/bench/,
-                           cmd/cqrs-gen/, cmd/cqrs-lint/,
-                            cmd/cqrs-bench/, cmd/api-stability/, cmd/doc-check/, example/taskmanager/,
-                            example/getting-started/, example/readme-quickstart/, event/v4/eventtest/
+                           cmd/cqrs-gen/, cmd/cqrs-lint/, cmd/cqrs-bench/, cmd/api-stability/, cmd/doc-check/,
+                           example/taskmanager/, example/getting-started/, example/readme-quickstart/,
+                           example/metaengine-quickstart/, event/v4/eventtest/
 ```
 
 > Note: the old 7-layer system (pre-ADR-0046) was inaccurate — kv/ depends on codec/, command/
-> depends on event/, and 44 of 68 modules depend on codec/. The seven-tier model reflects reality.
-> Full module-to-tier mapping: [`FOUR-TIER-MODEL.md`](docs/architecture-understanding/FOUR-TIER-MODEL.md) (68 modules across 7 tiers).
+> depends on event/, and 44 of 78 modules depend on codec/. The seven-tier model reflects reality.
+> Full module-to-tier mapping: [`SEVEN-TIER-MODEL.md`](docs/architecture-understanding/SEVEN-TIER-MODEL.md) (78 modules across 7 tiers).
 >
 > **metaengine/ is THE STRATEGIC FUTURE of this project** (possibly a future dedicated project).
-> It is Tier 3 (Aggregation) — it takes Records (events + commands) and aggregates them
-> into query-optimized projections. Originally Tier 0 (zero deps), reclassified by
-> [ADR-0046 addendum](docs/adr/0046-seven-tier-model.md) and
-> [ADR-0062 addendum](docs/adr/0062-metaengine-dependency-boundary.md) when the
-> zero-dependency boundary was superseded. The metaengine is ES-native
+> It is Tier 0 (Primitives, structural) — the core planner depends only on
+> `dedup/` and `record/` (both Tier 0). Conceptually Aggregation; the bridge to
+> the CQRS event-sourcing world lives in `metaengine/projectionadapter/` (Tier 4). The metaengine is ES-native
 > ([ADR-0112](docs/adr/0112-es-native-metaengine.md)): it depends on the shared
 > `Record` type ([ADR-0111](docs/adr/0111-record-type-extraction.md)) and understands
 > typed records, not opaque `any` blobs. Tombstones are domain events

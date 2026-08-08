@@ -241,19 +241,19 @@ nix run .#check-layers
 
 This validates that modules only depend on their allowed tier. The dependency model
 is the **Seven-Tier Model** ([ADR-0046](docs/adr/0046-seven-tier-model.md),
-[full reference](docs/architecture-understanding/FOUR-TIER-MODEL.md)):
+[full reference](docs/architecture-understanding/SEVEN-TIER-MODEL.md)):
 
 ```
-Tier 0 — Primitives:    id/, dispatcher/, codec/, kv/, dedup/
+Tier 0 — Primitives:    id/, dispatcher/, codec/, kv/, dedup/, record/, metaengine/, flightrecorder/, retry/
 Tier 1 — Core Domain:   event/, command/, query/, scheduling/, metadata/
 Tier 2 — Utilities:     schema/, snapshot/, projection/, idempotency/, deriver/
 Tier 3 — Aggregation:   decider/, graph/, scenario/, projectionhost/, listing/
-Tier 4 — Infrastructure: storage/memory/, storage/, middleware/, signing/, encryption/,
-                          otel/, watermill/, transport/http/, transport/grpc/,
-                          storage/pebble/, storage/turso/, prometheus/
-Tier 5 — Composition:   stack/, stack/memory/, stack/sqlite/, stack/pebble/,
-                          stack/postgres/, stack/turso/
-Tier 6 — Tooling:       catalog/, integration/, stack/bench/, examples/, cmd/*
+Tier 4 — Infrastructure: storage/, storage/memory/, storage/pebble/, storage/bbolt/, signing/, encryption/,
+                          otel/, middleware/, watermill/, transport/*, prometheus/, testutil/,
+                          metaengine/* engines, scheduling/sqlstore/
+Tier 5 — Composition:   stack/, stack/memory/, stack/sqlite/, stack/pebble/, stack/bbolt/,
+                          stack/postgres/, stack/mysql/, stack/duckdb/, stack/turso/, system/
+Tier 6 — Tooling:       catalog/, integration/, benchkit/, cmd/*, example/*, event/v4/eventtest/
 ```
 
 Each tier may only import from its own tier or lower.

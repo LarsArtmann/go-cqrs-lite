@@ -251,9 +251,10 @@ flowchart TB
 > - **⚡ = zero-dep modules** tiered by conceptual role, not dependency structure:
 >   `otel/` (Tier 4), `idempotency/` (Tier 2), `catalog/` (Tier 6)
 > - **Same-tier deps are allowed** — e.g. `kv/` → `codec/` (both Tier 0).
->   `metaengine/` → `dedup/` is now a cross-tier dep (Tier 3 → Tier 0).
+>   `metaengine/` → `dedup/` is a same-tier dep (both Tier 0). Metaengine is
+>   structurally Tier 0 (core planner depends only on dedup/ and record/).
 
-See [`FOUR-TIER-MODEL.md`](../architecture-understanding/FOUR-TIER-MODEL.md) for
+See [`SEVEN-TIER-MODEL.md`](../architecture-understanding/SEVEN-TIER-MODEL.md) for
 the complete module-to-tier mapping with every module listed.
 
 ## Enforcement
