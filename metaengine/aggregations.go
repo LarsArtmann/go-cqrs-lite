@@ -110,3 +110,32 @@ type DistinctReader interface {
 		filters []FilterSpec,
 	) ([]any, error)
 }
+
+// ExplainAggregateOptions describes an aggregate query for SQL explanation
+// without execution. The engine builds the same SQL it would run, letting
+// consumers debug pushdown, verify index usage, and inspect query plans.
+//
+//   - Fn + Column: scalar aggregate (COUNT, SUM, MIN, MAX, AVG)
+//   - Fn + Column + GroupBy: grouped aggregate
+//   - Specs (len > 0): multi-aggregate (overrides Fn/Column)
+//   - Specs + GroupBy: multi-grouped aggregate
+//   - Distinct (non-empty): SELECT DISTINCT on the named column
+type ExplainAggregateOptions struct {
+	Fn       AggregateFn
+	Column   string
+	Specs    []AggregateSpec
+	GroupBy  string
+	Distinct string
+	Filters  []FilterSpec
+}
+
+// ExplainableAggregate is an optional capability for engines that can show
+// the SQL for aggregate queries without executing them. Paired with
+// TypedReader.ExplainAggregate for the consumer-facing API.
+type ExplainableAggregate interface {
+	ExplainAggregateQuery(
+		ctx context.Context,
+		collection string,
+		opts ExplainAggregateOptions,
+	) (sql string, args []any)
+}

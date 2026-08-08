@@ -119,7 +119,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GroupedSum: %v", err)
 		}
-		assertFloat(t, "GroupedSum[open]", got["open"], 60)  // 10+20+30
+		assertFloat(t, "GroupedSum[open]", got["open"], 60)     // 10+20+30
 		assertFloat(t, "GroupedSum[closed]", got["closed"], -5) // -5+0
 	})
 
@@ -146,7 +146,7 @@ func TestTypedReader_AggregateFallback(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GroupedAvg: %v", err)
 		}
-		assertFloat(t, "GroupedAvg[open]", got["open"], 20)   // 60/3
+		assertFloat(t, "GroupedAvg[open]", got["open"], 20)       // 60/3
 		assertFloat(t, "GroupedAvg[closed]", got["closed"], -2.5) // -5/2
 	})
 

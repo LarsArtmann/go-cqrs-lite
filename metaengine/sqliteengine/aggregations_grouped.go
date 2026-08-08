@@ -397,8 +397,11 @@ func (e *sqliteEngine) distinctStandard(
 
 	args := []any{col}
 
-	fmt.Fprintf(&b, `SELECT DISTINCT json_extract(value, '%s') AS dv FROM meta_map WHERE collection = ?`,
-		jsonPath(column))
+	fmt.Fprintf(
+		&b,
+		`SELECT DISTINCT json_extract(value, '%s') AS dv FROM meta_map WHERE collection = ?`,
+		jsonPath(column),
+	)
 
 	for _, f := range filters {
 		appendStandardFilter(&b, &args, f)
@@ -514,8 +517,8 @@ func sqliteDecodeFloat(raw any) (float64, error) {
 
 // Compile-time assertions for the new interfaces.
 var (
-	_ metaengine.GroupedAggregateReader       = (*sqliteEngine)(nil)
-	_ metaengine.MultiAggregateReader         = (*sqliteEngine)(nil)
-	_ metaengine.MultiGroupedAggregateReader  = (*sqliteEngine)(nil)
-	_ metaengine.DistinctReader               = (*sqliteEngine)(nil)
+	_ metaengine.GroupedAggregateReader      = (*sqliteEngine)(nil)
+	_ metaengine.MultiAggregateReader        = (*sqliteEngine)(nil)
+	_ metaengine.MultiGroupedAggregateReader = (*sqliteEngine)(nil)
+	_ metaengine.DistinctReader              = (*sqliteEngine)(nil)
 )

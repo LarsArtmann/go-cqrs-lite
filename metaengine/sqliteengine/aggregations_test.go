@@ -7,8 +7,8 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 func newAggSQLiteEngine(t *testing.T) (metaengine.Engine, func()) {
@@ -147,7 +147,14 @@ func TestSQLite_GroupedAggregate(t *testing.T) {
 	})
 
 	t.Run("GroupedSum", func(t *testing.T) {
-		got, err := gr.GroupedAggregate(ctx, "items", metaengine.AggregateSum, "price", "status", nil)
+		got, err := gr.GroupedAggregate(
+			ctx,
+			"items",
+			metaengine.AggregateSum,
+			"price",
+			"status",
+			nil,
+		)
 		if err != nil {
 			t.Fatalf("GroupedAggregate Sum: %v", err)
 		}
@@ -156,7 +163,14 @@ func TestSQLite_GroupedAggregate(t *testing.T) {
 	})
 
 	t.Run("GroupedMin", func(t *testing.T) {
-		got, err := gr.GroupedAggregate(ctx, "items", metaengine.AggregateMin, "price", "status", nil)
+		got, err := gr.GroupedAggregate(
+			ctx,
+			"items",
+			metaengine.AggregateMin,
+			"price",
+			"status",
+			nil,
+		)
 		if err != nil {
 			t.Fatalf("GroupedAggregate Min: %v", err)
 		}
@@ -165,7 +179,14 @@ func TestSQLite_GroupedAggregate(t *testing.T) {
 	})
 
 	t.Run("GroupedAvg", func(t *testing.T) {
-		got, err := gr.GroupedAggregate(ctx, "items", metaengine.AggregateAvg, "price", "status", nil)
+		got, err := gr.GroupedAggregate(
+			ctx,
+			"items",
+			metaengine.AggregateAvg,
+			"price",
+			"status",
+			nil,
+		)
 		if err != nil {
 			t.Fatalf("GroupedAggregate Avg: %v", err)
 		}

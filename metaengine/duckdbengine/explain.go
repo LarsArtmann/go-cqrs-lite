@@ -98,3 +98,80 @@ func explainStandardDuckDB(
 
 	return b.String(), args
 }
+
+// ExplainAggregateQuery implements metaengine.ExplainableAggregate. It returns
+// the SQL that the aggregate methods (Aggregate, GroupedAggregate,
+// MultiAggregate, MultiGroupedAggregate, DistinctValues) would execute,
+// without running the query. Which SQL is built depends on ExplainAggregateOptions:
+//   - Specs non-empty → multi/multi-grouped path
+//   - Distinct non-empty → SELECT DISTINCT path
+//   - GroupBy non-empty → GROUP BY path
+//   - Otherwise → scalar aggregate path
+func (e *duckdbEngine) ExplainAggregateQuery(
+	_ context.Context,
+	collection string,
+	opts metaengine.ExplainAggregateOptions,
+) (string, []any) {
+	plan, hasPlan := e.plans[collection]
+	if !hasPlan {
+		plan = metaengine.LayoutPlan{}
+	}
+
+	var b strings.Builder
+
+	args := initialArgs(collection, plan)
+	argIdx := initialArgIndex(plan)
+
+	// Determine SELECT clause.
+	if opts.Distinct != "" {
+		fmt.Fprintf(&b, "SELECT DISTINCT %s AS dv %s",
+			columnExpr(opts.Distinct, plan), fromClause(collection, plan))
+	} else if len(opts.Specs) > 0 {
+		selectCols := make([]string, len(opts.Specs))
+		for i, s := range opts.Specs {
+			selectCols[i] = fmt.Sprintf("%s AS %s",
+				aggExpr(s.Fn, s.Column, plan),
+				metaengine.QuoteIdent(s.AliasOr()))
+		}
+
+		if opts.GroupBy != "" {
+			fmt.Fprintf(&b, "SELECT %s, %s %s",
+				groupExpr(opts.GroupBy, plan)+" AS group_key",
+				strings.Join(selectCols, ", "),
+				fromClause(collection, plan))
+		} else {
+			fmt.Fprintf(&b, "SELECT %s %s",
+				strings.Join(selectCols, ", "), fromClause(collection, plan))
+		}
+	} else {
+		agg := aggExpr(opts.Fn, opts.Column, plan)
+		if opts.GroupBy != "" {
+			fmt.Fprintf(&b, "SELECT %s AS group_key, %s AS agg_val %s",
+				groupExpr(opts.GroupBy, plan), agg, fromClause(collection, plan))
+		} else {
+			fmt.Fprintf(&b, "SELECT %s %s", agg, fromClause(collection, plan))
+		}
+	}
+
+	// WHERE / AND filters.
+	whereStarted := false
+
+	for _, f := range opts.Filters {
+		if plan.Table != "" && !whereStarted {
+			b.WriteString(" WHERE ")
+			whereStarted = true
+		}
+
+		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
+	}
+
+	// GROUP BY.
+	if opts.GroupBy != "" {
+		b.WriteString(" GROUP BY group_key")
+	}
+
+	return b.String(), args
+}
+
+// Compile-time assertion.
+var _ metaengine.ExplainableAggregate = (*duckdbEngine)(nil)

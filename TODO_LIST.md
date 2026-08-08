@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-08 (system round 2 hardening: 19 items from status report)
+**Updated:** 2026-08-08 (metadata immutability sweep, query parity, README fix, lint config cleanup)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -164,7 +164,7 @@ and is **never** duplicated here.
 #### HealthCheck completeness (high priority)
 
 - [ ] 🔥 **Add `HealthCheck` to Badger engine** — `db.View(func(txn) error {
-      return nil })` as a lightweight read-only probe.
+    return nil })` as a lightweight read-only probe.
 - [ ] 🔥 **Add `HealthCheck` to Dgraph engine** — gRPC connection check via
       `dgo` client.
 - [ ] **Add test for Pebble `HealthCheck`** — in-memory vfs, healthy + closed
@@ -204,7 +204,7 @@ and is **never** duplicated here.
 - [ ] **Test `orderedEngines` with 5+ engines and multiple edges** — complex
       DAG topology.
 - [ ] **Test `orderedEngines` with self-loop edge** — `{before: "a", after:
-      "a"}` should be silently ignored.
+    "a"}` should be silently ignored.
 - [ ] **Test `orderedEngines` with duplicate edges** — should not double-count
       inDegree.
 - [ ] **Add dedup guard to `orderedEngines` cycle fallback** — currently
@@ -392,21 +392,48 @@ and is **never** duplicated here.
 
 ## Code Quality
 
-- [ ] **`metadata.CustomData[K]` immutability gap** — `command.Metadata` and
-      `query.Metadata` migrated to `WithCustom()` (functional), but
-      `metadata.CustomData[K]` still has pointer-receiver `EnsureCustom()`.
-      Decision needed: complete the immutability sweep or accept the exception.
+> **4 items resolved 2026-08-08** — metadata immutability sweep
+> (`CustomData.WithCustom` added, `EnsureCustom` deprecated), query parity
+> (`query.WithCustomMetadata` added), README updated (EnsureCustom →
+> WithCustom, fixed false alias claims), `.golangci.yml` exclusion sprawl
+> fixed (100% documented, 12 ireturn blocks → 1, duplicates removed). See
+> [status report](docs/status/2026-08-08_02-01_metadata-immutability-query-parity-lint-cleanup.md).
 
-- [ ] **`query.WithCustomMetadata` missing** — `command` has
-      `WithCustomMetadata(key, value string) Option` but `query` does not.
-      Asymmetry between the two modules.
+- [x] **`metadata.CustomData[K]` immutability gap** — added value-receiver
+      `WithCustom(key K, value string)` matching the command/query pattern.
+      `EnsureCustom()` deprecated with `// Deprecated:` doc comment. 5
+      immutability tests added.
 
-- [ ] **Stale `metadata/README.md`** — still documents `EnsureCustom` (removed
-      from command/query). Needs update to `WithCustom`.
+- [x] **`query.WithCustomMetadata` missing** — added
+      `query.WithCustomMetadata(key, value string) Option`, mirroring
+      `command.WithCustomMetadata`. 2 tests added (single + accumulate).
 
-- [ ] **Fix `.golangci.yml` exclusion sprawl** — ~30 blocks, ~50% undocumented.
-      Add comments explaining WHY for every exclusion. Consider per-module
-      config split.
+- [x] **Stale `metadata/README.md`** — updated: methods table shows
+      `WithCustom` + deprecation note, fixed false "command.Metadata IS
+      CustomData" claims, added standalone-struct usage example.
+
+- [x] **Fix `.golangci.yml` exclusion sprawl** — every exclusion now has a
+      `#` rationale comment (was ~50% undocumented). Consolidated 12
+      scattered `ireturn`-only blocks into 1 regex group. Removed 4
+      duplicate-path/duplicate-linter entries. ~70 rules → ~45 documented.
+
+### Open follow-up items
+
+- [ ] **Deprecate `event.EnsureCustom()` free function** — the event
+      package's mutable `EnsureCustom(&m)` + direct map write pattern
+      persists. Needs `event.Metadata.WithCustom` (value-receiver) + caller
+      migration (`event.WithCustom` option, `watermill/protocol.go`,
+      `event/tombstone.go`). Touches signing/encryption hot paths — defer
+      to a dedicated session.
+- [ ] **Consider deprecating `metadata.CustomData[K]` entirely** — zero
+      internal production consumers (command/query migrated to standalone
+      structs; only the v3-compat alias and tests remain). Decision needed:
+      keep for external consumers who may embed it, or deprecate and direct
+      them to `metadata.Tracing` + own Custom map.
+- [ ] **Per-module `.golangci.yml` split** — the monolithic config is now
+      fully documented, but golangci-lint v2 `config-dirs` would give each
+      module ownership of its own exclusions. Evaluate tradeoff: single
+      source of truth vs locality.
 
 ---
 

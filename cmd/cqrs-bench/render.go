@@ -113,7 +113,9 @@ func buildComparisonTable(results map[string]*benchkit.Result) *output.Table {
 		}
 
 		if r.Error != "" {
-			t.AddRow(append([]string{name, "FAILED: " + benchkit.Truncate(r.Error, 30)}, empty[1:]...))
+			t.AddRow(
+				append([]string{name, "FAILED: " + benchkit.Truncate(r.Error, 30)}, empty[1:]...),
+			)
 
 			continue
 		}
@@ -576,5 +578,3 @@ func fmtCoVDash(c float64) string {
 
 	return fmt.Sprintf("%.1f%%", c*100)
 }
-
-

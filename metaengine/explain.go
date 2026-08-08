@@ -73,6 +73,33 @@ func (r *TypedReader[V]) Explain(
 	return "-- EXPLAIN not supported by engine " + eng.Profile().Name, nil
 }
 
+// ExplainAggregate returns the SQL that would execute for an aggregate query,
+// without running it. The engine must implement ExplainableAggregate; otherwise
+// a fallback message is returned.
+//
+//	reader := metaengine.NewReader[V](store, "find_user")
+//	sql, args := reader.ExplainAggregate(ctx, metaengine.ExplainAggregateOptions{
+//	    Fn: metaengine.AggregateSum, Column: "price",
+//	    GroupBy: "status",
+//	    Filters: []metaengine.FilterSpec{{Column: "status", Op: metaengine.FilterEq, Value: "open"}},
+//	})
+//	fmt.Println(sql, args)
+func (r *TypedReader[V]) ExplainAggregate(
+	ctx context.Context,
+	opts ExplainAggregateOptions,
+) (string, []any) {
+	eng, ok := r.store.collectionEngine(r.collection)
+	if !ok {
+		return "-- no engine for collection " + r.collection, nil
+	}
+
+	if ea, ok := eng.(ExplainableAggregate); ok {
+		return ea.ExplainAggregateQuery(ctx, r.collection, opts)
+	}
+
+	return "-- EXPLAIN AGGREGATE not supported by engine " + eng.Profile().Name, nil
+}
+
 // ─── Store-level observability (O3 + O4) ───
 
 // ExplainPlan returns a human-readable explanation of the full query plan.

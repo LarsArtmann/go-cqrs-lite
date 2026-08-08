@@ -127,8 +127,12 @@ func (e *pgEngine) GroupedAggregate(
 
 	args := []any{col}
 
-	fmt.Fprintf(&b, `SELECT value->>'%s' AS group_key, %s AS agg_val FROM meta_map WHERE collection = $1`,
-		escapeJSONKey(groupBy), pgAggExpr(fn, column))
+	fmt.Fprintf(
+		&b,
+		`SELECT value->>'%s' AS group_key, %s AS agg_val FROM meta_map WHERE collection = $1`,
+		escapeJSONKey(groupBy),
+		pgAggExpr(fn, column),
+	)
 
 	for _, f := range filters {
 		appendPGFilter(&b, &args, f)

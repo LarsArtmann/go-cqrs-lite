@@ -132,8 +132,6 @@ type System struct {
 	stopped bool
 }
 
-
-
 // MetaEngine returns the projection-layer metaengine store, or nil if no
 // projection instance is configured. Consumers use this for typed queries
 // via [metaengine.ExecuteTyped] or [metaengine.NewReader].
