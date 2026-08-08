@@ -21,6 +21,8 @@ import (
 // occurred — the run should exit zero (e.g. no Go files, no CQRS imports).
 var errAbortClean = errors.New("nothing to lint")
 
+var errStaleSuppressions = errors.New("stale or unknown suppression directive(s) found")
+
 func run(ctx context.Context, cfg *AppConfig) error {
 	start := time.Now()
 
@@ -112,8 +114,8 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		if len(stale) > 0 || len(unknown) > 0 {
 			//cqrs-lint:ignore(C025) no underlying error to wrap — this is a new validation error
 			return fmt.Errorf(
-				"%d stale or unknown suppression directive(s) found",
-				len(stale)+len(unknown),
+				"%d %w",
+				len(stale)+len(unknown), errStaleSuppressions,
 			)
 		}
 	}

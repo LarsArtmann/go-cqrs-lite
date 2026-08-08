@@ -134,8 +134,8 @@ func NewC042Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceLow).
 						WithFixStrategy(finding.FixStrategySuggest).
-						WithSuggestion("Load the current stream version before Save to "+
-							"enable optimistic concurrency conflict detection. "+
+						WithSuggestion("Load the current stream version before Save to " +
+							"enable optimistic concurrency conflict detection. " +
 							"Passing 0 is only safe for new streams with no prior events.").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()

@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — dgraphengine MultimapBackend + LogBackend + calibration + security — 2026-08-08
+
+- **MultimapBackend**: `MultiAdd`/`MultiGet` via one Dgraph node per (key, value)
+  pair with `@index(exact)`. Passes `adttest.RunMatrix` at full parity with Memory.
+- **LogBackend**: `LogAppend`/`LogTail` via append-only nodes ordered by nanosecond
+  timestamp (`@index(int)` + `orderdesc`). LogTail returns chronological order.
+  Passes `adttest.RunMatrix` at full parity.
+- **Adversarial DQL injection test** (`TestAdversarialDQLInjection`): 10 attack
+  vectors tested across Map, Search, and Counter backends. All pass — confirms
+  `QueryWithVars` prevents DQL injection at runtime, not just source-code patterns.
+- **GraphRAG tests + mixed benchmarks**: `TestGraphRAG_SearchThenGraphTraverse`,
+  `TestGraphRAG_ConcurrentStress` (16 goroutines, 3,000+ q/s), and 4 mixed
+  workload benchmarks (GraphRAG pipeline, write/read mix, full triad).
+
+### Fixed — dgraphengine calibration + CounterIncrement batching — 2026-08-08
+
+- **Calibration constants corrected**: `DG_NsPerOp` 10,000→2,500,000ns,
+  `DG_NsPerRead` 8,000→600,000ns, added `DG_NsPerWrite=2,500,000ns`.
+  ReadCosts updated to measured values (point lookup 350µs, filtered scan 900µs,
+  aggregate 950µs, scan 450µs). The planner now routes queries correctly.
+- **CounterIncrement batched**: multi-key deltas now execute as 1 read + 1 RAFT
+  commit (was N sequential commits). 3.3x faster: 2.4ms → 721µs per op.
+
 ### Fixed — dgraphengine DQL injection + MapDelete — 2026-08-08
 
 - **Security**: All 14 DQL query sites in `metaengine/dgraphengine/` migrated

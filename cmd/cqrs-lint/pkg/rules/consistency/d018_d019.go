@@ -133,7 +133,7 @@ func NewD019Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 				Build()
 			if err != nil {
-				return nil, nil
+				return nil, err
 			}
 
 			return []finding.Finding{f}, nil

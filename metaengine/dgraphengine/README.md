@@ -102,30 +102,35 @@ Validated by:
 
 ## ADT Support
 
-| ADT       | Complexity      | Degraded? | Notes                        |
-| --------- | --------------- | --------- | ---------------------------- |
-| **Graph**     | O(degree^depth) | **No**    | **Native — Dgraph's core strength** |
-| **Search**    | O(logN)         | **No**    | **@index(term) full-text**   |
-| Map       | O(logN)         | No        | @index(exact) point lookup   |
-| Counter   | O(1)            | No        | Atomic read-modify-write     |
-| Set       | O(logN)         | No        | @index(exact) membership     |
-| SortedMap | O(N)            | Yes       | Scan + Go-side sort          |
+| ADT          | Complexity      | Degraded? | Notes                              |
+| ------------ | --------------- | --------- | ---------------------------------- |
+| **Graph**    | O(degree^depth) | **No**    | **Native — Dgraph's core strength** |
+| **Search**   | O(logN)         | **No**    | **@index(term) full-text**         |
+| Map          | O(logN)         | No        | @index(exact) point lookup         |
+| Counter      | O(1) incr       | No        | Batched multi-key increments       |
+| Set          | O(logN)         | No        | @index(exact) membership           |
+| Multimap     | O(logN)         | No        | One node per (key, value) pair     |
+| Log          | O(logN)         | No        | Append-only, timestamp-ordered     |
+| SortedMap    | O(N)            | Yes       | Scan + Go-side sort                |
 
 ## Implemented Backends
 
 - **`GraphBackend`** — native graph edges with @reverse, O(degree^depth) traversal
 - **`SearchBackend`** — full-text search via @index(term) + anyofterms()
 - `MapBackend` — key-value storage via Dgraph nodes with @index(exact)
-- `CounterBackend` — atomic counters via transactional read-modify-write
+- `CounterBackend` — batched multi-key increments, 1 RAFT commit per Delta
 - `ScanBackend` — filtered/sorted scans (Go-side filter/sort)
 - `SetBackend` — set membership via @index(exact)
+- `MultimapBackend` — one node per (key, value) pair with @index(exact)
+- `LogBackend` — append-only nodes ordered by nanosecond timestamp
 
 ## Profile
 
 - **Persistence**: Persistent (survives restarts)
 - **Replication**: Single-leader (RAFT consensus per group)
-- **NsPerOp**: 10,000 ns (gRPC + WAL fsync)
-- **NsPerRead**: 8,000 ns (gRPC + index lookup)
+- **NsPerOp**: 2,500,000 ns (2.5ms — gRPC + WAL fsync, calibrated)
+- **NsPerRead**: 600,000 ns (600µs — read-only txn, calibrated)
+- **NsPerWrite**: 2,500,000 ns (2.5ms — RAFT consensus, calibrated)
 
 Pure Go (no CGo): uses the [dgo v240](https://github.com/dgraph-io/dgo)
 gRPC client.

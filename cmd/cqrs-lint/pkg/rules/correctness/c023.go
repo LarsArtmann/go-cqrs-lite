@@ -65,8 +65,8 @@ func scanLifecycleIgnores(
 
 		assign, ok := n.(*ast.AssignStmt)
 		if ok && isLifecycleIgnore(assign, methods) && !hasDeferAncestor(ancestors) {
-			call := assign.Rhs[0].(*ast.CallExpr)
-			if callReturnsError(gf, call) {
+			call, callOK := assign.Rhs[0].(*ast.CallExpr)
+			if callOK && callReturnsError(gf, call) {
 				emitC023(ctx, assign, &findings)
 			}
 		}
