@@ -203,11 +203,12 @@ func (t *QuicTransport) Publish(_ context.Context, op irohengine.WriteOp) error 
 }
 
 // sendOp opens a bidirectional stream, writes the encoded op, finishes the
-// send side, then reads the empty ack. This is one-stream-per-op by design:
-// Iroh's QUIC BiStream does not support send-side reset after Finish(), so
-// streams cannot be pooled and reused. The overhead is one QUIC stream ID
-// allocation per op, which is cheap (stream IDs are monotonic integers).
-// True connection pooling would require FFI support for stream reset.
+// send side, then reads the empty ack. This is the default one-stream-per-op
+// mode — simple and robust, with one QUIC stream ID allocation per op.
+//
+// For high-throughput scenarios, enable WithStreamPooling() to use persistent
+// BiStreams with length-prefix framing (sendOpPooled), eliminating per-op
+// stream creation overhead.
 func (t *QuicTransport) sendOp(conn *iroh_ffi.Connection, data []byte) {
 	stream, err := conn.OpenBi()
 	if err != nil {
@@ -247,6 +248,16 @@ func (t *QuicTransport) Close() error {
 	conns := make([]*iroh_ffi.Connection, 0, len(t.conns))
 	for _, pc := range t.conns {
 		conns = append(conns, pc.conn)
+		// Clean up pooled streams
+		if t.cfg.poolStreams {
+			pc.streamMu.Lock()
+			if pc.stream != nil {
+				_ = pc.stream.Send().Finish()
+				pc.stream.Destroy()
+				pc.stream = nil
+			}
+			pc.streamMu.Unlock()
+		}
 	}
 	t.mu.Unlock()
 

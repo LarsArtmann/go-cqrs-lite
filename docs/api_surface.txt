@@ -1697,10 +1697,12 @@ metaengine/irohengine/func PercentileIdx
 metaengine/irohengine/func Replicated
 metaengine/irohengine/func SortDurations
 metaengine/irohengine/func WithAuthor
+metaengine/irohengine/func WithClock
 metaengine/irohengine/func WithNamespace
 metaengine/irohengine/func WithNetworkDelay
 metaengine/irohengine/func WithNetworkDropRate
 metaengine/irohengine/func WithTransport
+metaengine/irohengine/interface Clock
 metaengine/irohengine/interface LatencyProvider
 metaengine/irohengine/interface Transport
 metaengine/irohengine/loopback/func New
@@ -1733,6 +1735,7 @@ metaengine/irohengine/method MapSet
 metaengine/irohengine/method MapUpdate
 metaengine/irohengine/method MultiAdd
 metaengine/irohengine/method MultiGet
+metaengine/irohengine/method Now
 metaengine/irohengine/method Profile
 metaengine/irohengine/method Publish
 metaengine/irohengine/method SearchInsert
@@ -1750,6 +1753,7 @@ metaengine/irohengine/quic/func WithALPN
 metaengine/irohengine/quic/func WithBindAddr
 metaengine/irohengine/quic/func WithLocalOnly
 metaengine/irohengine/quic/func WithRelay
+metaengine/irohengine/quic/func WithStreamPooling
 metaengine/irohengine/quic/method Close
 metaengine/irohengine/quic/method Connect
 metaengine/irohengine/quic/method LatencySnapshot
@@ -2104,6 +2108,7 @@ metaengine/sqliteengine/func NewSQLiteEngine
 metaengine/sqliteengine/func PlanFromDSN
 metaengine/sqliteengine/method Aggregate
 metaengine/sqliteengine/method ApplyLayout
+metaengine/sqliteengine/method ApplyLayoutPlan
 metaengine/sqliteengine/method Close
 metaengine/sqliteengine/method CounterGet
 metaengine/sqliteengine/method CounterIncrement

@@ -14,38 +14,11 @@ and is **never** duplicated here.
 
 ## Correctness Bugs
 
-- [ ] 🔥 **Add length-mismatch guard to `DecodeFloatResults`** —
-      `metaengine/scan.go:53` indexes `raws[i]` inside a `for i, s := range specs`
-      loop with no bounds check. Will panic (`index out of range`) if
-      `len(raws) < len(specs)`. Add `if len(raws) < len(specs) { return nil, fmt.Errorf(...) }`.
-      _(Effort: S)_
-      _(Source: `docs/status/2026-08-08_10-36_metaengine-aggregate-test-coverage-fill.md`)_
-- [ ] 🔥 **Fix `context.Background()` in taskmanager handlers** —
-      `example/taskmanager/handlers.go` (10 handlers, lines 118–175): every
-      `RegisterCommand` handler discards the incoming `ctx` and calls
-      `system.Execute(context.Background(), ...)`. Request-level timeouts,
-      tracing spans, and correlation IDs are lost. Pass `ctx` instead.
-      _(Effort: S)_
-      _(Source: `docs/status/2026-08-07_22-12_system-p1-hardening-scream-store-serialization-taskmanager-migration.md`)_
-- [ ] **Route DuckDB `plans` map reads through `lookupPlan()`** —
-      `metaengine/duckdbengine/aggregations.go` (lines 173, 263, 384, 497, 655)
-      and `pushdown.go:33` read `e.plans[col]` directly, bypassing the
-      `layoutMu` RWMutex added to fix the race. Consolidate through the locked
-      `lookupPlan()` helper.
-      _(Effort: M)_
-      _(Source: `docs/status/2026-08-08_08-34_metaengine-v2-coverage-gaps-duckdb-race-fix.md`)_
-- [ ] **Delete `mustSQLiteEngine` zombie test** —
-      `metaengine/concurrent_gaps_test.go:188` opens a SQLite DB but returns
-      `NewMemoryEngine()` (gopls flags `impossible condition: nil != nil`). The
-      opened DB leaks. Tests using this helper test the memory engine, not
-      SQLite. Fix or delete.
-      _(Effort: S)_
-      _(Source: `docs/status/2026-08-08_02-50_es-native-graph-status-and-graphbackend-cleanup.md`)_
-- [ ] **Delete `_skipped_sqlite_test_*` zombie functions** —
-      `metaengine/features2_test.go:330,383`. Two underscore-prefixed dead
-      functions with stale `sql.Open` code. Delete.
-      _(Effort: S)_
-      _(Source: `docs/status/2026-08-07_22-24_metaengine-v2-publishability-hardening.md`)_
+- [x] **Add length-mismatch guard to `DecodeFloatResults`** — ✓ Aug 2026 (M2)
+- [x] **Fix `context.Background()` in taskmanager handlers** — ✓ Aug 2026 (M2)
+- [x] **Route DuckDB `plans` map reads through `lookupPlan()`** — ✓ Aug 2026 (M2)
+- [x] **Fix `mustSQLiteEngine` zombie test helper** — ✓ Aug 2026 (M2)
+- [x] **Delete `_skipped_sqlite_test_*` zombie functions** — ✓ Aug 2026 (M2)
 - [ ] 🔥 **Fix `querytest.RunStoreSuite` / `querytest.StoreSuite` undefined** —
       `storage/pebble/query_store_test.go:36` and
       `storage/bbolt/query_store_test.go:12` reference symbols that don't exist
@@ -53,14 +26,7 @@ and is **never** duplicated here.
       build. May be in-progress refactor or accidental deletion.
       _(Effort: M)_
       _(Source: `docs/status/2026-08-08_21-29_deferClose-exceptions-cleanup-session.md`)_
-- [ ] 🔥 **Fix `b029.go` / `b030.go` / `b031.go` compiler errors** —
-      `cmd/cqrs-lint/pkg/rules/resilience/b029.go:91-96` uses `finding.Finding`
-      fields that don't exist (`RuleID`, `Title`, `Summary`) and assigns a
-      string to `Confidence` (now a typed value). Entire resilience package
-      fails to compile, breaking `cqrs-lint`. May be in-progress struct
-      migration.
-      _(Effort: S)_
-      _(Source: `docs/status/2026-08-08_21-29_deferClose-exceptions-cleanup-session.md`)_
+- [x] **Fix `b029.go` / `b030.go` / `b031.go` compiler errors** — ✓ Aug 2026 (M12)
 
 ---
 
@@ -106,38 +72,35 @@ and is **never** duplicated here.
 
 ## Metaengine v2 — Remaining Gaps
 
-> Metaengine v2 is feature-complete: `record/` module, 9 engines, Record-aware
-> folds, auto-projection, tombstone deprecation, GraphBackend cleanup, aggregate
-> pushdown (5 interfaces on DuckDB/SQLite/PG). ADR-0120 written. All 14 tags
-> created locally and pushed.
+> Metaengine v2 is feature-complete. Prior gaps closed this session
+> (2026-08-08): DQL injection fix (`dqlString()` deleted, all 14 query sites
+> migrated to `QueryWithVars`), AGENTS.md GraphBackend reference fixed,
+> SQLite `LayoutPlanApplier` assertion added, OTel `stream_type` attribute
+> added, soak test verified passing. See
+> `docs/status/2026-08-08_21-33_metaengine-v2-gap-closure-dql-injection-fix.md`.
 
 - [ ] **Dgraph engine: test against real Dgraph** — all `t.Skipf("Dgraph not
-available")` paths were taken. DQL queries, JSON mappings, upsert
-      conditions completely unverified. DQL injection risk FIXED (all 14 query
-      sites migrated from `dqlString()`+`fmt.Sprintf` to `QueryWithVars` with
-      `$variable` placeholders — `dqlString()` deleted). Missing
-      MultimapBackend/LogBackend/SnapshotBackend.
+available")` paths were taken. DQL queries (now using `QueryWithVars`),
+JSON mappings, upsert conditions completely unverified against a live
+      instance. Missing `MultimapBackend`/`LogBackend`/`SnapshotBackend`.
       _(Effort: L)_
       _(Source: `docs/status/2026-08-07_00-41_dgraph-metaengine-implementation.md`)_
-- [x] **Fix stale pebbleengine README** — DONE. README was already correct
-      (6 backends, no GraphBackend). Fixed stale GraphBackend claim in
-      `AGENTS.md:84` (pebbleengine module description).
-      _(Effort: S)_
-- [x] **Soak test for record-aware pipeline** — DONE. Test exists at
-      `metaengine/projectionadapter/soak_test.go` (`TestSoak_RecordPipeline_100K`):
-      100K events through `event.AsRecord()` → `adapter.Handle()` → `ApplyRecord()`.
-      Memory: 0.8 MB heap growth, 951 bytes/event alloc. Correctness verified.
-      Env skip: `SOAK_SKIP_RECORD=1`.
+- [ ] **Add `nix run .#ephemeral-dgraph` flake target** — pattern exists for
+      PostgreSQL, Redis, NATS. Needed to unblock real Dgraph testing above.
+      Requires Dgraph Alpha + Zero (or standalone mode).
       _(Effort: M)_
-- [x] **OTel span attributes from Record** — DONE. `projectionadapter.Handle()`
-      already stamped `event_type`, `stream_id`, `version`. Added
-      `stream_type` attribute for full Record traceability.
+- [ ] **Add DQL injection regression test** — assert no `dqlString` or bare
+      `fmt.Sprintf` query construction exists in dgraphengine source. Prevents
+      re-introduction of the injection pattern.
       _(Effort: S)_
-- [x] **Add `LayoutPlanApplier` support to SQLite engine** — DONE.
-      `sqliteengine.ApplyLayoutPlan` already existed (`planned.go:92`).
-      Added compile-time assertion `_ metaengine.LayoutPlanApplier = (*sqliteEngine)(nil)`.
-      _(Effort: M)_
-      _(Source: `docs/status/2026-08-08_09-27_metaengine-v2-coverage-gaps-and-aggregate-followup.md`)
+- [ ] **Add CHANGELOG.md entry for DQL injection security fix** — all 14 DQL
+      query sites migrated from `dqlString()`+`fmt.Sprintf` to
+      `QueryWithVars` with `$variable` placeholders. `dqlString()` deleted.
+      _(Effort: S)_
+- [ ] **Audit `metaengine/README.md:531` for stale GraphBackend references** —
+      lists `GraphBackend` as a general backend type without clarifying which
+      engines implement it (only Memory, Dgraph, graphadapter).
+      _(Effort: S)_
 
 ---
 
@@ -219,9 +182,10 @@ available")` paths were taken. DQL queries, JSON mappings, upsert
       and NATS JetStream roundtrips untested.
       _(Effort: M)_
       _(Source: `docs/status/2026-08-08_10-18_m35-m48-integration-test-infrastructure.md`)_
-- [ ] **Add bbolt backup/restore test** — Pebble has `backup_lifecycle_test.go`;
-      bbolt should have equivalent coverage.
-      _(Effort: S)_
+- [x] **Add bbolt backup/restore test** — Pebble has `backup_lifecycle_test.go`;
+      bbolt now has equivalent coverage (events + snapshots + checkpoints +
+      incremental backups).
+      _(Effort: S)_ ✓ Aug 2026
 
 ---
 

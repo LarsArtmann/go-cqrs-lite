@@ -48,7 +48,11 @@ func (t *QuicTransport) handleConnection(conn *iroh_ffi.Connection, peerID strin
 		if err != nil {
 			return // connection closed
 		}
-		go t.handleStream(conn, peerID, stream)
+		if t.cfg.poolStreams {
+			go t.handlePooledStream(conn, peerID, stream)
+		} else {
+			go t.handleStream(conn, peerID, stream)
+		}
 	}
 }
 
@@ -116,17 +120,21 @@ func (t *QuicTransport) relayToOthers(sourcePeerID string, op irohengine.WriteOp
 	}
 
 	t.mu.RLock()
-	var targets []*iroh_ffi.Connection
+	var targets []*peerConn
 	for id, pc := range t.conns {
 		if id != sourcePeerID {
-			targets = append(targets, pc.conn)
+			targets = append(targets, pc)
 		}
 	}
 	t.mu.RUnlock()
 
-	for _, conn := range targets {
-		go func(c *iroh_ffi.Connection) {
-			t.sendOp(c, data)
-		}(conn)
+	for _, pc := range targets {
+		go func(pc *peerConn) {
+			if t.cfg.poolStreams {
+				t.sendOpPooled(pc, data)
+			} else {
+				t.sendOp(pc.conn, data)
+			}
+		}(pc)
 	}
 }

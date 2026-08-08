@@ -4,6 +4,7 @@ package quic_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -289,4 +290,108 @@ func TestQuicMultimapConvergence(t *testing.T) {
 		g.Expect(err).NotTo(gomega.HaveOccurred())
 		g.Expect(vals).To(gomega.ConsistOf("alice", "bob", "carol"))
 	}, 10*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
+}
+
+// --- Stream Pooling Tests ---
+
+// setupTwoNodeQuicPooled is like setupTwoNodeQuic but enables persistent
+// BiStream pooling (WithStreamPooling) on both transports. This exercises the
+// length-prefix framing protocol instead of the default one-stream-per-op mode.
+func setupTwoNodeQuicPooled(t *testing.T) (
+	nodeA, nodeB metaengine.Engine,
+	tA, tB *quic.QuicTransport,
+) {
+	t.Helper()
+	g := gomega.NewWithT(t)
+
+	tA, err := quic.New(quic.WithLocalOnly(), quic.WithStreamPooling())
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	tB, err = quic.New(quic.WithLocalOnly(), quic.WithStreamPooling())
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	nodeA = irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
+		irohengine.WithAuthor("node-a"),
+		irohengine.WithTransport(tA),
+	)
+	nodeB = irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
+		irohengine.WithAuthor("node-b"),
+		irohengine.WithTransport(tB),
+	)
+
+	ticketA, err := tA.Ticket()
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(tB.Connect(ticketA)).To(gomega.Succeed())
+
+	waitForPeers(t, []*quic.QuicTransport{tA, tB}, 1)
+	return nodeA, nodeB, tA, tB
+}
+
+func newQuicClusterPooled(t *testing.T) *quicCluster {
+	t.Helper()
+
+	nodeA, nodeB, tA, tB := setupTwoNodeQuicPooled(t)
+	t.Cleanup(func() { _ = nodeA.Close() })
+	t.Cleanup(func() { _ = nodeB.Close() })
+	t.Cleanup(func() { _ = tA.Close() })
+	t.Cleanup(func() { _ = tB.Close() })
+
+	return &quicCluster{
+		G:     gomega.NewWithT(t),
+		Ctx:   context.Background(),
+		NodeA: nodeA,
+		NodeB: nodeB,
+		TA:    tA,
+		TB:    tB,
+	}
+}
+
+// TestQuicPooled_MapConvergence verifies that persistent BiStream pooling
+// delivers ops correctly — the framing protocol doesn't corrupt data.
+func TestQuicPooled_MapConvergence(t *testing.T) {
+	c := newQuicClusterPooled(t)
+
+	c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "users", "u1",
+		map[string]any{"name": "Alice"})).To(gomega.Succeed())
+
+	eventuallyGet(c.G, c.NodeB, "users", "u1",
+		map[string]any{"name": "Alice"}, 10*time.Second)
+}
+
+// TestQuicPooled_MultipleOpsSameStream verifies that multiple sequential ops
+// are multiplexed over the same persistent BiStream without data corruption.
+// Each op must arrive intact — framing boundaries must be respected.
+func TestQuicPooled_MultipleOpsSameStream(t *testing.T) {
+	c := newQuicClusterPooled(t)
+
+	// Send 20 ops from A → B over the same pooled stream.
+	for i := range 20 {
+		key := fmt.Sprintf("key-%d", i)
+		val := fmt.Sprintf("val-%d", i)
+		c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "kv", key, val)).
+			To(gomega.Succeed())
+	}
+
+	// Verify all 20 arrived intact.
+	for i := range 20 {
+		key := fmt.Sprintf("key-%d", i)
+		expected := fmt.Sprintf("val-%d", i)
+		eventuallyGet(c.G, c.NodeB, "kv", key, expected, 10*time.Second)
+	}
+}
+
+// TestQuicPooled_Bidirectional verifies ops flow in both directions over
+// separate pooled streams (A→B and B→A each have their own persistent stream).
+func TestQuicPooled_Bidirectional(t *testing.T) {
+	c := newQuicClusterPooled(t)
+
+	c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "orders", "o1", "pending")).
+		To(gomega.Succeed())
+	eventuallyGet(c.G, c.NodeB, "orders", "o1", "pending", 10*time.Second)
+
+	c.G.Expect(c.NodeB.(metaengine.MapBackend).MapSet(c.Ctx, "orders", "o2", "shipped")).
+		To(gomega.Succeed())
+	eventuallyGet(c.G, c.NodeA, "orders", "o2", "shipped", 10*time.Second)
 }
