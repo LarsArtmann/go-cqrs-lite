@@ -1706,6 +1706,52 @@ ProjectionDecoder` field for typed event decoders.
   explaining delete-notification semantics and cross-engine value
   representation.
 
+## [v4.3.0] — 2026-08-08
+
+Coordinated release of 9 modules: `stack`, `stack/sqlite`, `stack/memory`,
+`stack/pebble`, `stack/turso`, `stack/postgres`, `benchkit`, `middleware`,
+`idempotency`. See [Unreleased] above for detailed changes.
+
+### Added
+
+- Stack presets gain durability tiers, health checks, multi-DB support,
+  and lifecycle management (`GracefulClose`, `HealthCheck`).
+- `benchkit` adds `Calibratable` interface for per-engine cost calibration.
+- `middleware` adds OTel bundle, circuit breaker (failsafe-go), flight
+  recorder integration, and typed metrics recorder.
+- `idempotency` extracted to standalone `go-idempotency` module
+  (ADR-0065), with `kvstore` and `sqlstore` subpackages remaining local.
+
+## [v4.1.0] — 2026-08-08
+
+Initial or bump release of `stack/mysql`, `stack/bbolt`, `stack/duckdb`.
+
+### Added
+
+- `stack/mysql`: pure-Go MySQL preset (`go-sql-driver/mysql`), no CGo.
+- `stack/bbolt`: B+tree preset with Backend facade, durability tiers.
+- `stack/duckdb`: DuckDB OLAP preset (CGo, `duckdb-go`), analytical query
+  optimization, columnar layout support.
+
+## [v4.0.0] — 2026-08-07
+
+Initial tagged release of 7 new modules.
+
+### Added
+
+- `metaengine/pebbleengine`: Pebble LSM-backed metaengine Engine (raw value
+  readers, all 8 core ADTs).
+- `metaengine/sqliteengine`: SQLite-backed metaengine Engine extracted from
+  core (ADR-0115), tx-atomic MapUpdate, layout planning.
+- `metaengine/dgraphengine`: Dgraph-backed distributed graph engine, all 8
+  core ADTs, pure Go via `dgo` gRPC client.
+- `metaengine/graphadapter`: wraps `graph.MemoryDriver` as metaengine Engine.
+- `metaengine/bench`: cross-engine benchmark module (Memory/SQLite/DuckDB/
+  Pebble parity tests, planner/layout/materialize benchmarks).
+- `storage/bbolt`: embedded bbolt KV store (EventStore, SnapshotStore,
+  CheckpointStore, KVAdapter, single-DB Backend facade).
+- `stack/bbolt`: stack preset for bbolt (DurabilityRelaxed/Normal/Strict).
+
 ## [v4.2.0] — 2026-07-27
 
 ### Added
