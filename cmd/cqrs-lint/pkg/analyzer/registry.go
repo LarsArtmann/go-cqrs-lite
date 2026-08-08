@@ -66,7 +66,6 @@ func NewCQRSRegistry() *CQRSRegistry {
 		StrictApplyFolds:         make(map[string]bool),
 		pendingHandlerMethods:    make(map[string]bool),
 		TypesWithTypeMethod:      make(map[string]bool),
-		PackagesWithRegistration: make(map[string]bool),
 	}
 }
 

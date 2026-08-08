@@ -138,3 +138,66 @@ func setup() {
 		)
 	}
 }
+
+// TestE009_CustomHTTPSuppressesFinding verifies that E009 does NOT fire when a
+// module with command+query also imports a third-party HTTP framework or net/http.
+// The fileImportsCustomHTTP helper detects gin, echo, chi, gorilla/mux, fiber,
+// httprouter, and net/http — each of these provides transport independently of
+// go-cqrs-lite's transport/http module.
+func TestE009_CustomHTTPSuppressesFinding(t *testing.T) {
+	t.Parallel()
+
+	frameworks := []struct {
+		name    string
+		imports string
+	}{
+		{"net/http", `"net/http"`},
+		{"gin", `"github.com/gin-gonic/gin"`},
+		{"echo", `"github.com/labstack/echo/v4"`},
+		{"chi", `"github.com/go-chi/chi/v5"`},
+		{"gorilla-mux", `"github.com/gorilla/mux"`},
+		{"fiber", `"github.com/gofiber/fiber/v2"`},
+		{"httprouter", `"github.com/julienschmidt/httprouter"`},
+	}
+
+	for _, fw := range frameworks {
+		t.Run(fw.name, func(t *testing.T) {
+			t.Parallel()
+
+			source := `package test
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/command"
+	"github.com/larsartmann/go-cqrs-lite/query"
+	` + fw.imports + `
+)
+
+func setup() {
+	_ = command.BasicCommand{}
+	_ = query.PaginatedResult[any]{}
+}`
+			ctx := analyzer.BuildContextFromSource(t, map[string]string{
+				"/repo/app/handler.go": source,
+			})
+
+			for i := range ctx.GoFiles {
+				ctx.GoFiles[i].ModuleDir = "/repo/app"
+			}
+
+			ctx.FeatureProfile = analyzer.FeatureProfile{HasTransport: false}
+
+			det := NewE009Detector(ctx)
+			findings, err := det.Detect(context.Background())
+			if err != nil {
+				t.Fatalf("E009 detect: %v", err)
+			}
+
+			if len(findings) != 0 {
+				t.Errorf("expected 0 findings with %s transport, got %d", fw.name, len(findings))
+				for _, f := range findings {
+					t.Logf("  unexpected: %s", f.Message)
+				}
+			}
+		})
+	}
+}

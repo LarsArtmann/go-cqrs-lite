@@ -34,21 +34,6 @@ func waitForPeers(t *testing.T, transports []*loopback.LoopbackTransport, expect
 	t.Fatalf("timeout waiting for %d peers on all transports", expected)
 }
 
-func eventuallyGet(
-	g gomega.Gomega,
-	node metaengine.Engine,
-	collection, key string,
-	expected any,
-	timeout time.Duration,
-) {
-	g.Eventually(func(g gomega.Gomega) {
-		val, ok, err := node.(metaengine.MapBackend).MapGet(context.Background(), collection, key)
-		g.Expect(err).NotTo(gomega.HaveOccurred())
-		g.Expect(ok).To(gomega.BeTrue())
-		g.Expect(val).To(gomega.Equal(expected))
-	}, timeout, 50*time.Millisecond).Should(gomega.Succeed())
-}
-
 func setupTwoNodeLoopback(
 	t *testing.T,
 ) (nodeA, nodeB metaengine.Engine, tA, tB *loopback.LoopbackTransport) {
@@ -83,70 +68,14 @@ func setupTwoNodeLoopback(
 	return nodeA, nodeB, tA, tB
 }
 
-func TestLoopbackMapConvergence(t *testing.T) {
+func TestLoopbackConvergenceSuite(t *testing.T) {
 	t.Parallel()
-	g := gomega.NewWithT(t)
-	ctx := context.Background()
-	nodeA, nodeB, _, _ := setupTwoNodeLoopback(t)
-
-	err := nodeA.(metaengine.MapBackend).MapSet(ctx, "coll", "key1", "value1")
-	g.Expect(err).NotTo(gomega.HaveOccurred())
-
-	eventuallyGet(g, nodeB, "coll", "key1", "value1", 5*time.Second)
-}
-
-func TestLoopbackBidirectionalConvergence(t *testing.T) {
-	t.Parallel()
-	g := gomega.NewWithT(t)
-	ctx := context.Background()
-	nodeA, nodeB, _, _ := setupTwoNodeLoopback(t)
-
-	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "coll", "a-key", "a-val")).
-		To(gomega.Succeed())
-	g.Expect(nodeB.(metaengine.MapBackend).MapSet(ctx, "coll", "b-key", "b-val")).
-		To(gomega.Succeed())
-
-	eventuallyGet(g, nodeA, "coll", "b-key", "b-val", 5*time.Second)
-	eventuallyGet(g, nodeB, "coll", "a-key", "a-val", 5*time.Second)
-}
-
-func TestLoopbackCounterConvergence(t *testing.T) {
-	t.Parallel()
-	g := gomega.NewWithT(t)
-	ctx := context.Background()
-	nodeA, nodeB, _, _ := setupTwoNodeLoopback(t)
-
-	cb := nodeA.(metaengine.CounterBackend)
-	g.Expect(cb.CounterIncrement(ctx, "counters", metaengine.Delta{"alice": 5})).
-		To(gomega.Succeed())
-
-	g.Eventually(func(g gomega.Gomega) {
-		cb2 := nodeB.(metaengine.CounterBackend)
-		counts, err := cb2.CounterGet(ctx, "counters")
-		g.Expect(err).NotTo(gomega.HaveOccurred())
-		g.Expect(counts["alice"]).To(gomega.Equal(int64(5)))
-	}, 5*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
-}
-
-func TestLoopbackSetConvergence(t *testing.T) {
-	t.Parallel()
-	g := gomega.NewWithT(t)
-	ctx := context.Background()
-	nodeA, nodeB, _, _ := setupTwoNodeLoopback(t)
-
-	sb := nodeA.(metaengine.SetBackend)
-	g.Expect(sb.SetAdd(ctx, "tags", "go")).To(gomega.Succeed())
-	g.Expect(sb.SetAdd(ctx, "tags", "crdt")).To(gomega.Succeed())
-
-	g.Eventually(func(g gomega.Gomega) {
-		sb2 := nodeB.(metaengine.SetBackend)
-		contains, err := sb2.SetContains(ctx, "tags", "go")
-		g.Expect(err).NotTo(gomega.HaveOccurred())
-		g.Expect(contains).To(gomega.BeTrue())
-		contains2, err := sb2.SetContains(ctx, "tags", "crdt")
-		g.Expect(err).NotTo(gomega.HaveOccurred())
-		g.Expect(contains2).To(gomega.BeTrue())
-	}, 5*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
+	irohengine.RunConvergenceSuite(t, func(t *testing.T) (metaengine.Engine, metaengine.Engine) {
+		nodeA, nodeB, _, _ := setupTwoNodeLoopback(t)
+		t.Cleanup(func() { _ = nodeA.Close() })
+		t.Cleanup(func() { _ = nodeB.Close() })
+		return nodeA, nodeB
+	})
 }
 
 func TestLoopbackLWWConvergence(t *testing.T) {
@@ -250,28 +179,4 @@ func TestLoopbackLatencyMeasurement(t *testing.T) {
 	_ = snap // just verify it doesn't panic
 }
 
-func TestLoopbackMultimapConvergence(t *testing.T) {
-	t.Parallel()
-	g := gomega.NewWithT(t)
-	ctx := context.Background()
-	nodeA, nodeB, _, _ := setupTwoNodeLoopback(t)
 
-	mmbA := nodeA.(metaengine.MultimapBackend)
-	mmbB := nodeB.(metaengine.MultimapBackend)
-
-	g.Expect(mmbA.MultiAdd(ctx, "members", "team-a", "alice")).To(gomega.Succeed())
-	g.Expect(mmbA.MultiAdd(ctx, "members", "team-a", "bob")).To(gomega.Succeed())
-	g.Expect(mmbB.MultiAdd(ctx, "members", "team-a", "carol")).To(gomega.Succeed())
-
-	g.Eventually(func(g gomega.Gomega) {
-		vals, err := mmbA.MultiGet(ctx, "members", "team-a")
-		g.Expect(err).NotTo(gomega.HaveOccurred())
-		g.Expect(vals).To(gomega.ConsistOf("alice", "bob", "carol"))
-	}, 5*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
-
-	g.Eventually(func(g gomega.Gomega) {
-		vals, err := mmbB.MultiGet(ctx, "members", "team-a")
-		g.Expect(err).NotTo(gomega.HaveOccurred())
-		g.Expect(vals).To(gomega.ConsistOf("alice", "bob", "carol"))
-	}, 5*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
-}

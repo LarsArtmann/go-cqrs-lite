@@ -1,7 +1,9 @@
 package rules_test
 
 import (
+	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 
@@ -52,9 +54,33 @@ func TestIntegration_Taskmanager(t *testing.T) {
 	t.Logf("ran %d detectors, found %d total findings", len(detectors), totalFindings)
 }
 
+// taskmanagerGoldenProfile is the expected finding profile for example/taskmanager.
+// It pins the rule→count map so that any change in finding behavior (new FP,
+// lost detection, count drift) is caught as a test failure.
+// Update with CQRS_LINT_UPDATE_GOLDEN=1 go test -run TestIntegration_TaskmanagerExpectedFindings ./pkg/rules/
+var taskmanagerGoldenProfile = map[string]int{
+	"A009": 1,
+	"A032": 3,
+	"B004": 1,
+	"B005": 1,
+	"B028": 1,
+	"C004": 1,
+	"C009": 2,
+	"C013": 1,
+	"C023": 3,
+	"C026": 2,
+	"D013": 1,
+	"E003": 1,
+	"E005": 10,
+	"E017": 1,
+	"S010": 1,
+	"V006": 1,
+}
+
 // TestIntegration_TaskmanagerExpectedFindings runs all rules against example/taskmanager
-// and verifies the end-to-end finding profile: no critical-severity findings, no
-// detector errors, and findings grouped by rule ID for stability tracking.
+// and verifies the end-to-end finding profile matches a golden snapshot.
+// Catches regressions: new false positives, lost detections, and count drift.
+// No critical-severity findings or detector errors are allowed.
 func TestIntegration_TaskmanagerExpectedFindings(t *testing.T) {
 	t.Parallel()
 
@@ -72,8 +98,6 @@ func TestIntegration_TaskmanagerExpectedFindings(t *testing.T) {
 
 	detectors := rules.RegisterAll(actx)
 
-	var allFindings []finding.Finding
-
 	byRule := make(map[string]int)
 
 	for _, det := range detectors {
@@ -84,7 +108,6 @@ func TestIntegration_TaskmanagerExpectedFindings(t *testing.T) {
 		}
 
 		for _, f := range findings {
-			allFindings = append(allFindings, f)
 			byRule[string(f.Rule)]++
 
 			if f.Severity == finding.SeverityCritical {
@@ -93,15 +116,48 @@ func TestIntegration_TaskmanagerExpectedFindings(t *testing.T) {
 		}
 	}
 
-	if len(allFindings) == 0 {
-		t.Log("no findings — taskmanager may be very clean")
+	if os.Getenv("CQRS_LINT_UPDATE_GOLDEN") == "1" {
+		rules := make([]string, 0, len(byRule))
+		for r := range byRule {
+			rules = append(rules, r)
+		}
+		sort.Strings(rules)
+
+		t.Log("paste this into taskmanagerGoldenProfile:")
+		for _, r := range rules {
+			t.Logf("\t%q: %d,", r, byRule[r])
+		}
+
+		return
 	}
 
+	// Check for rules that appeared or disappeared.
 	for rule, count := range byRule {
-		t.Logf("  %s: %d finding(s)", rule, count)
+		expected, ok := taskmanagerGoldenProfile[rule]
+		if !ok {
+			t.Errorf("NEW finding %q fired %d time(s) — not in golden profile. "+
+				"If this is an intentional change, update with CQRS_LINT_UPDATE_GOLDEN=1", rule, count)
+			continue
+		}
+		if count != expected {
+			t.Errorf("finding count drift for %q: got %d, golden expects %d — "+
+				"update with CQRS_LINT_UPDATE_GOLDEN=1", rule, count, expected)
+		}
 	}
 
-	t.Logf("total: %d findings across %d rules", len(allFindings), len(byRule))
+	for rule, expected := range taskmanagerGoldenProfile {
+		if _, ok := byRule[rule]; !ok {
+			t.Errorf("LOST finding %q was expected %d time(s) but did not fire — "+
+				"a rule may have regressed", rule, expected)
+		}
+	}
+
+	total := 0
+	for _, count := range byRule {
+		total += count
+	}
+
+	t.Logf("total: %d findings across %d rules", total, len(byRule))
 }
 
 // TestIntegration_RegisterCritical verifies --fast mode detectors are a subset of all detectors.
