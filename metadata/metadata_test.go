@@ -240,7 +240,8 @@ func TestCustomData_Merge(t *testing.T) {
 	})
 }
 
-// TestCustomData_EnsureCustom covers lazy map initialization.
+// TestCustomData_EnsureCustom covers the deprecated EnsureCustom method for
+// backward-compat coverage. It will not be removed until EnsureCustom is.
 func TestCustomData_EnsureCustom(t *testing.T) {
 	t.Parallel()
 

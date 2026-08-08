@@ -338,7 +338,6 @@ linters:
           - gochecknoglobals
           - funlen
           - cyclop
-          - maintidx
           - goconst
       # 'unused' false-positives in test helpers exercised conditionally
       # (build tags, sub-tests).
@@ -412,6 +411,14 @@ linters:
         linters:
           - staticcheck
         text: "SA1019: (event\\.MarkTombstone|event\\.TombstoneStatus|event\\.TombstoneMark|event\\.DetectTombstone|event\\.MarkRebirth|event\\.MetadataKeyTombstone|event\\.MetadataKeyRebirth) is deprecated"
+
+      # ── EnsureCustom backward-compat tests ──────────────────────
+      # EnsureCustom is deprecated (use WithCustom). Dedicated tests in
+      # event/ and metadata/ verify the deprecated API still works.
+      - path: (event|metadata)/.*_test\.go$
+        linters:
+          - staticcheck
+        text: "SA1019: .*EnsureCustom.*is deprecated"
 
       # ── system/ deployer composition root ────────────────────────
       # The system/ module wires infrastructure via reflection and dynamic
