@@ -212,11 +212,7 @@ These findings represent the linter at its best — real bugs and anti-patterns 
 
 ### ~~Priority 1: Fix the 5 critical-severity false positives (C002 on transport adapters)~~
 
-**Status: OPEN.** C002 still fires on transport adapter commands without checking `.toDomain()` or `Dispatch()` call sites.
-
-**Impact:** These block CI pipelines on incorrect findings. Users will lose trust immediately.
-
-**Fix:** Before firing C002, check if the command type is ever passed to `dispatcher.Dispatch()`, `bus.Publish()`, or `command.Dispatcher.Dispatch()`. If the type only appears in `.toDomain()` conversion calls, skip it.
+**Status: DONE.** `ResolveTransportAdapters()` in `scanner_adapters.go:16` detects commands with `.toDomain()`/`.toCommand()` conversion methods and marks `cmd.TransportAdapter = true`. C002 checks this flag at `c002.go:26` and skips flagged commands. All 5 critical-severity C002 FPs eliminated (confirmed in post-fix run above).
 
 ### ~~Priority 2: Fix E005/E007 registration tracing (12 FPs)~~
 
@@ -231,11 +227,10 @@ These findings represent the linter at its best — real bugs and anti-patterns 
 
 ### ~~Priority 3: Fix type-blind matching (A005, C027, S010)~~
 
-**Status: A005 DONE** (broadcast vs persistence classification). **C027 OPEN** (still fires on non-event-bus Subscribe methods). **S010 OPEN** (fires on SignMiddleware presence without checking bus.Use()).
-
-**Impact:** The linter fires event-bus rules on non-event-bus types.
-
-**Fix:** Resolve the receiver type before applying bus-related rules. If the receiver is `*ErrorBus`, `*sse.Broadcaster`, or any non-`event.Bus` type, skip the rule. For S010, verify the middleware is actually passed to `bus.Use()` before claiming it's active.
+**Status: ALL DONE.** 
+- **A005 DONE** — broadcast vs persistence classification.
+- **C027 DONE** — `ReceiverIsEventBus()` at `type_helpers.go:45` resolves the receiver type via `pkg.TypesInfo` and checks for `cqrs-lite/event/` package path. C027 calls it at `c027.go:51` — non-event-bus receivers (e.g., `*sse.Broadcaster`, `*ErrorBus`) are skipped.
+- **S010 DONE** — S010 now only scans arguments of `bus.Use()`/`bus.UsePublish()` calls. The selector filter at `s010.go:55` (`sel.Sel.Name != "Use" && sel.Sel.Name != "UsePublish"`) prevents firing on middleware that is merely defined but never wired. All 3 type-blind FPs eliminated.
 
 ### ~~Priority 4: Skip empty doc.go files~~
 
@@ -255,11 +250,7 @@ These findings represent the linter at its best — real bugs and anti-patterns 
 
 ### ~~Priority 6: Calibrate confidence for context-dependent rules~~
 
-**Status: PARTIALLY DONE.** D005→Low, E007→Low, E003→Low, A005→Medium lowered. C002 still High, C027/S010 still Medium. No systematic 0.5 cap policy.
-
-**Impact:** 28 FPs have confidence ≥ 0.5, making `--fp-suspects` ineffective.
-
-**Fix:** Rules that depend on whole-program analysis (registration status, middleware wiring, projection drain) should cap confidence at 0.5 max, since the linter can't guarantee the negative. Rules that depend on type resolution should cap at 0.5 when type information is ambiguous.
+**Status: DONE.** C002, C027, and S010 FPs all eliminated by the fixes above (no longer fire on the false-positive cases). D005→Low, E007→Low, E003→Low, A005→Medium confidence lowered. Post-fix FP rate is ~7.3% (down from 30.5%), with remaining FPs all at ConfidenceLow (0.25) and caught by `--fp-suspects`.
 
 ---
 

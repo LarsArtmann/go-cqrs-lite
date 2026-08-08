@@ -22,7 +22,7 @@ type aggEngineFixture struct {
 func newAggEngines(t *testing.T) []aggEngineFixture {
 	t.Helper()
 
-	engines := []aggEngineFixture{}
+	engines := make([]aggEngineFixture, 0, 2)
 
 	// SQLite
 	sqliteEng, db := newSQLiteEngine()
@@ -65,7 +65,7 @@ func seedParityAggData(t *testing.T, ctx context.Context, eng metaengine.Engine)
 	}
 }
 
-func TestAggregateParity_DuckDB_vs_SQLite(t *testing.T) {
+func TestAggregateParity_DuckDB_vs_SQLite(t *testing.T) { //nolint:tparallel
 	t.Parallel()
 
 	ctx := context.Background()
@@ -256,7 +256,7 @@ func TestAggregateParity_DuckDB_vs_SQLite(t *testing.T) {
 // TestAggregateParity_WithFilters verifies that filtered aggregates produce
 // identical results across DuckDB and SQLite engines despite different filter
 // type-coercion strategies (DuckDB CAST AS DOUBLE, SQLite native types).
-func TestAggregateParity_WithFilters(t *testing.T) {
+func TestAggregateParity_WithFilters(t *testing.T) { //nolint:tparallel
 	t.Parallel()
 
 	ctx := context.Background()

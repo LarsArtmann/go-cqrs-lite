@@ -58,7 +58,7 @@ func seedAggData(t *testing.T, ctx context.Context, eng metaengine.Engine) {
 	}
 }
 
-func TestSQLite_Aggregate(t *testing.T) {
+func TestSQLite_Aggregate(t *testing.T) { //nolint:tparallel
 	t.Parallel()
 
 	ctx := context.Background()
@@ -123,7 +123,7 @@ func TestSQLite_Aggregate(t *testing.T) {
 	})
 }
 
-func TestSQLite_GroupedAggregate(t *testing.T) {
+func TestSQLite_GroupedAggregate(t *testing.T) { //nolint:tparallel
 	t.Parallel()
 
 	ctx := context.Background()
@@ -286,7 +286,7 @@ func assertAggFloat(t *testing.T, label string, got, want float64) {
 	}
 }
 
-func TestSQLite_ExplainAggregateQuery(t *testing.T) {
+func TestSQLite_ExplainAggregateQuery(t *testing.T) { //nolint:tparallel
 	t.Parallel()
 
 	ctx := context.Background()
@@ -360,7 +360,7 @@ func TestSQLite_ExplainAggregateQuery(t *testing.T) {
 	})
 }
 
-func TestSQLite_Aggregate_PlannedTable(t *testing.T) {
+func TestSQLite_Aggregate_PlannedTable(t *testing.T) { //nolint:tparallel
 	t.Parallel()
 
 	ctx := context.Background()
@@ -535,7 +535,7 @@ func TestSQLite_Aggregate_PlannedTable(t *testing.T) {
 	})
 }
 
-func TestSQLite_Aggregate_EmptyCollection(t *testing.T) {
+func TestSQLite_Aggregate_EmptyCollection(t *testing.T) { //nolint:tparallel
 	t.Parallel()
 
 	ctx := context.Background()

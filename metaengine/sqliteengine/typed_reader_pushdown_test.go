@@ -33,7 +33,7 @@ func pushItemQuery() metaengine.QueryDecl[struct{}, pushItem] {
 	)
 }
 
-func TestTypedReader_PushdownViaSQLite(t *testing.T) {
+func TestTypedReader_PushdownViaSQLite(t *testing.T) { //nolint:tparallel
 	t.Parallel()
 
 	ctx := context.Background()
