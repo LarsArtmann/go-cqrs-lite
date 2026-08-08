@@ -56,7 +56,12 @@ func DecodeFloatResults(
 	errPrefix string,
 ) (map[string]float64, error) {
 	if len(raws) < len(specs) {
-		return nil, fmt.Errorf("%s: raw values (%d) fewer than specs (%d)", errPrefix, len(raws), len(specs))
+		return nil, fmt.Errorf(
+			"%s: raw values (%d) fewer than specs (%d)",
+			errPrefix,
+			len(raws),
+			len(specs),
+		)
 	}
 	result := make(map[string]float64, len(specs))
 	for i, s := range specs {

@@ -205,8 +205,9 @@ func TestGracefulShutdown_InflightOps(t *testing.T) {
 	for _, key := range []string{"k1", "k2", "k3"} {
 		val, found, err := nodeB.(metaengine.MapBackend).MapGet(ctx, "data", key)
 		g.Expect(err).NotTo(gomega.HaveOccurred())
-		g.Expect(found).To(gomega.BeTrue(), "node B should have received pre-close write for %s", key)
-		g.Expect(val).To(gomega.Equal("v"+key[1:]))
+		g.Expect(found).
+			To(gomega.BeTrue(), "node B should have received pre-close write for %s", key)
+		g.Expect(val).To(gomega.Equal("v" + key[1:]))
 	}
 
 	g.Expect(nodeB.Close()).To(gomega.Succeed())

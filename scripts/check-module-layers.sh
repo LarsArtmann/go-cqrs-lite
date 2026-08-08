@@ -102,7 +102,6 @@ LAYER[idempotency/sqlstore]=2
 declare -A EXCEPTIONS
 EXCEPTIONS[event]="schema snapshot storage/memory"
 EXCEPTIONS[schema]="storage/memory snapshot"
-EXCEPTIONS[snapshot]="storage/memory"
 EXCEPTIONS[decider]="storage/memory otel"
 EXCEPTIONS[query]="snapshot storage/memory"
 EXCEPTIONS[command]="snapshot storage/memory"

@@ -8,8 +8,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // Cross-engine parity tests for Counter and Set ADTs.

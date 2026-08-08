@@ -7,8 +7,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // TestConcurrentExecuteTypedUnderWritePressure (#30): concurrent reads via
