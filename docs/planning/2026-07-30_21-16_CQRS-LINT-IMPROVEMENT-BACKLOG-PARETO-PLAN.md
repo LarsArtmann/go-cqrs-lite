@@ -222,6 +222,29 @@ See Level 1 and Level 2 tables below.
 | L1.49 | Implement RES-series: retry, circuit breaker, DLQ, graceful shutdown     | 110   | **[P80]** | Ambitious (new category) | 100 min | L1.6, L1.7   |
 | L1.50 | Implement DI-series: optimistic concurrency, idempotency, tx consistency | 111   | **[P80]** | Ambitious (new category) | 100 min | None         |
 
+> **2026-08-08 evaluation:** All four categories evaluated against the existing
+> 192-rule catalog. **~80-90% of proposed patterns are already covered** by
+> scattered rules across existing categories (see coverage matrix below).
+> Remaining genuinely-missing rules are low-priority individual ideas, not
+> new categories. **Categories CLOSED as "evaluated, mostly covered."**
+>
+> **Already covered:** RES: E016 (health), E017 (graceful shutdown), P012/P013
+> (SQLite WAL/busy_timeout), B008 (manual retry), B024 (bus recovery), C023
+> (shutdown error). DOC: E004 (event-not-in-catalog), B026/F002 (catalog
+> registration), D005 (stale doc version), D014-D016 (payload conventions).
+> OBS: F003/F004 (OTel+Prometheus adoption), B014 (missing OTel middleware),
+> A022 (raw otel.Tracer), D003 (inconsistent logging), C016/C022/C032
+> (context propagation). DI: A016/F007 (missing idempotency), C026 (TTL
+> mismatch), C036/C037 (backend/codec mismatch), C001/C012/C024 (tx safety),
+> C006 (manual version arithmetic).
+>
+> **Genuinely missing (future individual ideas, NOT new categories):**
+> - RES: missing retry middleware (absent, not manual); circuit breaker; missing
+>   DLQ config on projectionhost.
+> - DOC: stale catalog entries (reverse of E004); doc generation freshness.
+> - OBS: missing OTel SDK init; missing slog.SetDefault; missing span creation.
+> - DI: optimistic concurrency / expected-version precondition.
+
 ### Phase 10: Stack Preset Awareness
 
 | #     | Task                                                                     | Items | Pareto    | Impact                           | Effort | Dependencies |
