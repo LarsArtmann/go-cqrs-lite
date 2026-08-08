@@ -23,6 +23,10 @@ func NewC002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
+				if cmd.TransportAdapter {
+					continue
+				}
+
 				f, err := finding.NewBuilder(
 					"C002", toolName,
 					fmt.Sprintf("Command %s ID() returns zero value — breaks idempotency and tracing", cmd.Name),

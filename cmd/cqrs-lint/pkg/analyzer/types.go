@@ -28,6 +28,7 @@ type CommandInfo struct {
 	ManualID      bool     // has manual ID() method
 	ManualType    bool     // has manual Type() or StreamID() method
 	IDReturnsZero bool     // ID() returns zero-value composite literal
+	TransportAdapter bool  // has a toDomain()/ToDomain() conversion method — never dispatched directly
 	Fields        []string // field names
 }
 

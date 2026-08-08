@@ -24,6 +24,10 @@ func NewA001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
+				if cmd.TransportAdapter {
+					continue
+				}
+
 				manualCount := 0
 				if cmd.ManualID {
 					manualCount++

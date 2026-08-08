@@ -156,6 +156,7 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 	filterEventPayloads(ctx)
 	ResolveRegisteredTypeConsts(ctx.Registry)
 	ResolveHandlerMethods(ctx)
+	ResolveTransportAdapters(ctx)
 
 	// Per-module feature detection. For a single-module project this produces
 	// one profile identical to the old merged detection. For a multi-module
