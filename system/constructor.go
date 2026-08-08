@@ -20,7 +20,6 @@ import (
 // via the generic top-level functions (RegisterDecider, RegisterCommand,
 // RegisterQuery). Then call Start to begin projection processing.
 //
-//nolint:funlen // System composition root — wiring is inherently linear.
 func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) (*System, error) {
 	// Safety check: refuse to start if SCREAM-tier violations exist.
 	if report, err := CheckSafety(ctx, deployment); err != nil {

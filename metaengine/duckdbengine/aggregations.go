@@ -132,7 +132,7 @@ func appendDuckDBFilter(
 }
 
 // fromClause returns the FROM clause + initial WHERE collection filter.
-func fromClause(col string, plan metaengine.LayoutPlan) string {
+func fromClause(_ string, plan metaengine.LayoutPlan) string {
 	if plan.Table != "" {
 		return "FROM " + metaengine.QuoteIdent(plan.Table)
 	}
