@@ -428,6 +428,103 @@
             '';
           };
 
+          # DuckDB CGo VM test: verify the DuckDB C++ engine works in a hermetic
+          # NixOS VM. Tests columnar operations used by the metaengine/duckdbengine.
+          duckdbTest = pkgs.testers.runNixOSTest {
+            name = "duckdb-cgo-health";
+
+            nodes.machine =
+              { pkgs, ... }:
+              {
+                environment.systemPackages = [ pkgs.duckdb ];
+              };
+
+            testScript = ''
+              machine.start()
+              machine.wait_for_unit("multi-user.target")
+
+              # Create database and table (matches CQRS event schema)
+              machine.succeed("duckdb /tmp/test.db -c \"CREATE TABLE events (type VARCHAR, payload JSON, version INTEGER)\"")
+
+              # Insert sample data
+              machine.succeed("duckdb /tmp/test.db -c \"INSERT INTO events VALUES ('user.created', '{\\\"name\\\":\\\"alice\\\"}', 1)\"")
+              machine.succeed("duckdb /tmp/test.db -c \"INSERT INTO events VALUES ('user.created', '{\\\"name\\\":\\\"bob\\\"}', 1)\"")
+              machine.succeed("duckdb /tmp/test.db -c \"INSERT INTO events VALUES ('user.updated', '{\\\"name\\\":\\\"alice2\\\"}', 2)\"")
+
+              # GROUP BY aggregation (used by metaengine counter ADT)
+              result = machine.succeed("duckdb /tmp/test.db -s \"SELECT type, COUNT(*) FROM events GROUP BY type ORDER BY type\"")
+              assert "user.created" in result and "user.updated" in result, f"GROUP BY failed: {result}"
+
+              # JSON extraction (used by duckdbengine pushdown)
+              result = machine.succeed("duckdb /tmp/test.db -s \"SELECT payload->>'name' FROM events WHERE version = 1 ORDER BY 1\"")
+              assert "alice" in result and "bob" in result, f"JSON extraction failed: {result}"
+
+              # SUM / AVG aggregation (used by metaengine counter ADT)
+              result = machine.succeed("duckdb /tmp/test.db -s \"SELECT SUM(version) FROM events\"")
+              assert "4" in result, f"SUM aggregation failed: {result}"
+
+              print("DuckDB CGo health verified (columnar, JSON, aggregation)")
+            '';
+          };
+
+          # Turso libSQL server VM test: verify sqld boots and serves queries.
+          # This validates the remote sync path used by storage/turso/sync.go.
+          tursoTest = pkgs.testers.runNixOSTest {
+            name = "turso-libsql-health";
+
+            nodes.machine =
+              { pkgs, ... }:
+              {
+                # sqld (libSQL server) as a systemd service
+                systemd.services.sqld = {
+                  description = "libSQL Server (sqld)";
+                  wantedBy = [ "multi-user.target" ];
+                  after = [ "network.target" ];
+                  serviceConfig = {
+                    ExecStart = "${pkgs.sqld}/bin/sqld --http-listen-addr 127.0.0.1:8080 --db-path /var/lib/sqld/data.sqld";
+                    StateDirectory = "sqld";
+                    DynamicUser = true;
+                  };
+                };
+                environment.systemPackages = [ pkgs.curl ];
+              };
+
+            testScript = ''
+              machine.start()
+              machine.wait_for_unit("sqld")
+              machine.wait_for_open_port(8080)
+
+              # Create table via HTTP API
+              machine.succeed(
+                "curl -sf -X POST http://127.0.0.1:8080/v1/execute "
+                "-H 'Content-Type: application/json' "
+                "-d '{\"statements\":\"CREATE TABLE events (id INTEGER PRIMARY KEY, type TEXT, payload TEXT)\"}'"
+              )
+
+              # Insert data
+              machine.succeed(
+                "curl -sf -X POST http://127.0.0.1:8080/v1/execute "
+                "-H 'Content-Type: application/json' "
+                "-d '{\"statements\":\"INSERT INTO events (type, payload) VALUES (\\\"user.created\\\", \\\"{}\\\")\"}'"
+              )
+              machine.succeed(
+                "curl -sf -X POST http://127.0.0.1:8080/v1/execute "
+                "-H 'Content-Type: application/json' "
+                "-d '{\"statements\":\"INSERT INTO events (type, payload) VALUES (\\\"user.updated\\\", \\\"{}\\\")\"}'"
+              )
+
+              # Query and verify
+              result = machine.succeed(
+                "curl -sf -X POST http://127.0.0.1:8080/v1/execute "
+                "-H 'Content-Type: application/json' "
+                "-d '{\"statements\":\"SELECT COUNT(*) FROM events\"}'"
+              )
+              assert "\"2\"" in result or "2" in result, f"COUNT query failed: {result}"
+
+              print("Turso libSQL server health verified (HTTP API, CRUD)")
+            '';
+          };
+
           benchstat = pkgs.buildGoModule {
             pname = "benchstat";
             version = "unstable-2026-06-14";

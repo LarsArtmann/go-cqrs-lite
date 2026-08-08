@@ -56,7 +56,7 @@ and is **never** duplicated here.
 > folds, auto-projection, tombstone deprecation, GraphBackend cleanup, aggregate
 > pushdown. 14 tags created locally.
 >
-> **Completed across 2 sessions (2026-08-08):** DuckDB `layoutMu` data race
+> **Completed across 3 sessions (2026-08-08):** DuckDB `layoutMu` data race
 > fixed (Mutex→RWMutex, extracted `lookupPlan` helper for 5 read paths),
 > `TestTypedReader_AggregateFallback` split into 3 groups (Scalar/Grouped/Multi),
 > `//nolint:tparallel` added to `TestDuckDB_ExplainAggregateQuery`,
@@ -68,24 +68,35 @@ and is **never** duplicated here.
 > Engine interface concurrency-safety matrix documented,
 > 3 MemoryEngine concurrent-access `-race` tests added.
 >
+> **Session 3 additions:** DuckDB race regression test
+> (`TestDuckDB_RaceRegression_LayoutPlanConcurrentAccess`),
+> `lookupPlan` shallow-copy semantics documented,
+> DuckDB `t.Parallel()` audit (all 54 tests consistent),
+> coverage baselines verified within tolerance,
+> QUIC convergence verified under `-parallel 4` (3x pass).
+>
 > _(Source: `docs/status/2026-08-08_08-34_metaengine-v2-coverage-gaps-duckdb-race-fix.md`)_
 
-- [ ] **Write DuckDB race regression test** — dedicated test spawning parallel
-      `ApplyLayoutPlan` + `ExplainAggregateQuery` goroutines under `-race`. The
-      fix is verified by existing tests, but a targeted regression test is
-      stronger proof. _(Effort: S)_
-- [ ] **Document `lookupPlan` shallow-copy semantics** — returns a struct copy
-      but slice fields (column names) share the underlying array. All callers
-      are read-only today; document the constraint or add deep-copy. _(Effort: S)_
-- [ ] **Audit all DuckDB tests for `t.Parallel()` consistency** — only
-      `TestDuckDB_ExplainAggregateQuery` has `//nolint:tparallel`. Other tests
-      sharing a mutable engine instance may need it too. _(Effort: S)_
-- [ ] **Refresh coverage baselines** in `scripts/check-coverage.sh` — 3 new
-      concurrent tests + aggregate test split + badger soak added; baselines
-      unchanged but within tolerance. _(Effort: S)_
-- [ ] **Test QUIC convergence under `-parallel 4`** — 30s timeout verified 3x
-      in isolation (0.03s each) but not under real CI parallel pressure.
+- [x] **Write DuckDB race regression test** —
+      `TestDuckDB_RaceRegression_LayoutPlanConcurrentAccess` in
+      `metaengine/duckdbengine/race_regression_cgo_test.go`.
+      30 goroutines (10 writers + 10 ExplainAggregate readers + 10 MapSet readers)
+      × 50 iterations, verified under `-race`. _(Effort: S)_
+- [x] **Document `lookupPlan` shallow-copy semantics** — doc comment on
+      `lookupPlan` in `metaengine/duckdbengine/engine.go` explains that slice
+      fields (Columns, Indexes) share the underlying array. All callers are
+      read-only today. _(Effort: S)_
+- [x] **Audit all DuckDB tests for `t.Parallel()` consistency** — all 54
+      test functions audited. Only `TestDuckDB_ExplainAggregateQuery` needs
+      `//nolint:tparallel` (subtests share mutable engine). Race regression
+      test deliberately serial (no subtests). No changes needed. _(Effort: S)_
+- [x] **Refresh coverage baselines** in `scripts/check-coverage.sh` —
+      `nix run .#check-coverage` passes. Metaengine shifted -0.2% (81.0% vs
+      80.8% actual), well within ±2.0% tolerance. No baseline updates needed.
       _(Effort: S)_
+- [x] **Test QUIC convergence under `-parallel 4`** — 3x pass under
+      `-parallel 4` with 30s timeout (0.03s each). Verified in
+      `metaengine/irohengine/quic`. _(Effort: S)_
 
 ---
 
@@ -96,24 +107,34 @@ and is **never** duplicated here.
 > TypedReader consumer methods (`GroupedCount`/`Sum`/`Min`/`Max`/`Avg`,
 > `MultiAggregate`) shipped.
 
-- [ ] 🔥 **Add PG functional tests for all 5 aggregate interfaces** — testcontainers,
-      zero tests currently. DuckDB + SQLite have full coverage; PG has compile-time
-      assertions only.
-- [ ] **Write ADR for aggregate pushdown architecture** — documents the 5-interface
-      design, cross-engine parity strategy, and why aggregation goes to the engine
-      instead of Go-side accumulation.
+- [x] 🔥 **Add PG functional tests for all 5 aggregate interfaces** —
+      7 test functions in `metaengine/pgengine/aggregations_test.go`: Count,
+      Sum/Min/Max/Avg, GroupedAggregate, MultiAggregate, MultiGroupedAggregate,
+      DistinctValues, EmptyCollection, ExplainAggregateQuery. All pass via
+      testcontainers. _(Effort: M)_
+- [x] **Write ADR for aggregate pushdown architecture** —
+      [ADR-0120](docs/adr/0120-aggregate-pushdown-architecture.md): documents the
+      5-interface design, cross-engine parity strategy, DecodeFloat extraction,
+      and why aggregation goes to the engine.
 - [x] **Extract shared `DecodeFloat` into metaengine core** — done in commit
       `a380e1ed1` (promoted to package-level `DecodeFloat`).
-- [ ] **Add DuckDB planned-path empty-collection test** — currently only
-      json_extract path tested for empty collections.
-- [ ] **Add cross-engine planned-table parity test** — verify DuckDB + SQLite
-      planned-table results match.
-- [ ] **Add aggregate pushdown to `SerializablePlan`** — JSON serialize/diff/pin
-      support for aggregate query plans.
-- [ ] **Add aggregate diagnostics to `Doctor()`** — show pushdown vs fallback
-      per collection. ⚠️ **Daemon started this but left the build broken** —
-      `aggregateCapabilities` in `metaengine/explain.go` is uncommitted. Either
-      finish the implementation or revert the reference.
+- [x] **Add DuckDB planned-path empty-collection test** —
+      `TestDuckDB_Aggregate_EmptyPlannedCollection` tests all 5 interfaces on
+      an empty planned table (COUNT, SUM, GroupedAggregate, MultiAggregate,
+      MultiGroupedAggregate, DistinctValues).
+- [x] **Add cross-engine planned-table parity test** —
+      `TestAggregateParity_PlannedTable_DuckDB_vs_SQLite` in
+      `metaengine/bench/aggregate_parity_cgo_test.go` verifies DuckDB + SQLite
+      produce identical results on planned tables (Count, Sum, Min, Max, Avg,
+      GroupedCount, GroupedSum).
+- [x] **Add aggregate pushdown to `SerializablePlan`** — `ReadPattern` field
+      added to `SerializableQuery`; `QueryChange` now detects read-pattern
+      changes in `PlanDiff`. `ReadPattern` populated from `QueryAssignment`
+      during serialization.
+- [x] **Add aggregate diagnostics to `Doctor()`** — new
+      `--- Aggregate Pushdown ---` section in `Doctor()` output shows
+      per-collection pushdown capabilities (scalar/grouped/multi/distinct) via
+      `aggregateCapabilities` helper.
 
 ---
 
@@ -174,12 +195,22 @@ and is **never** duplicated here.
 - [x] **Add "Lifecycle" section to system README** — done: Close vs GracefulClose
       vs Drain comparison table + shutdown order documentation.
 
-### Integration (future)
+### Integration ✅
 
-- [ ] **Integration test: SQLite source-of-truth + Memory projections + HealthCheck**
-      — end-to-end system with real engines.
-- [ ] **Integration test: Pebble source-of-truth + HealthCheck**.
-- [ ] **Integration test: GracefulClose with real Watermill router as Drainer**.
+- [x] **Integration test: SQLite source-of-truth + Memory projections + HealthCheck**
+      — `TestIntegration_SQLiteSource_MemoryProjection_HealthCheck`: two-engine
+      deployment, full CQRS roundtrip, projection catch-up, HealthCheck +
+      HealthCheckDetailed + EngineNames + GracefulClose.
+- [x] **Integration test: Pebble source-of-truth + HealthCheck** —
+      `TestIntegration_PebbleSource_HealthCheck`: Pebble driver registered via
+      `init()`, command dispatch, event persistence verification, HealthCheck +
+      HealthCheckDetailed + Close.
+- [x] **Integration test: GracefulClose with real Watermill router as Drainer** —
+      `TestIntegration_GracefulClose_WatermillDrainer`: real Watermill EventBus
+      wrapped as `system.Drainer`, event pub/sub verified, GracefulClose drains
+      before closing, post-close state verified.
+      _(File: `system/integration_lifecycle_test.go`, 366 lines, 3 tests, all pass
+      with `-race`.)_
 
 ---
 
