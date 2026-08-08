@@ -409,6 +409,9 @@ jobs:
       - name: Check version drift
         run: bash scripts/check-version-drift.sh
 
+      - name: Check tag existence
+        run: bash scripts/check-tag-existence.sh
+
     timeout-minutes: 15
   govulncheck:
     name: Vulnerability Check (govulncheck)

@@ -108,6 +108,9 @@ func TestSoak_RecordPipeline_100K(t *testing.T) {
 	}
 
 	if heapInUseDelta > 100*1024*1024 {
-		t.Errorf("heap growth %.1f MB exceeds 100 MB limit — possible memory leak", float64(heapInUseDelta)/1e6)
+		t.Errorf(
+			"heap growth %.1f MB exceeds 100 MB limit — possible memory leak",
+			float64(heapInUseDelta)/1e6,
+		)
 	}
 }

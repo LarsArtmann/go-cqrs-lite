@@ -16,13 +16,13 @@ The "stale GREEN" anti-pattern is now broken — this is a verified, current GRE
 
 ### M2: 5 Correctness Bugs Fixed ✅
 
-| Bug | Fix | Files |
-|-----|-----|-------|
-| `DecodeFloatResults` bounds guard | Added `len(raws) < len(specs)` guard | `metaengine/scan.go` |
-| `context.Background()` in taskmanager | Replaced 10× `context.Background()` with `ctx` | `example/taskmanager/handlers.go` |
-| DuckDB `plans` map lock bypass | Routed 6 reads through `lookupPlan()` | `duckdbengine/aggregations.go`, `pushdown.go` |
-| `mustSQLiteEngine` zombie | Fixed to return real SQLite engine via `sqliteengine.NewSQLiteEngine(db)` | `metaengine/concurrent_gaps_test.go`, `cross_engine_adt_test.go` |
-| `_skipped_sqlite_test_*` zombie functions | Deleted | `metaengine/features2_test.go` |
+| Bug                                       | Fix                                                                       | Files                                                            |
+| ----------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `DecodeFloatResults` bounds guard         | Added `len(raws) < len(specs)` guard                                      | `metaengine/scan.go`                                             |
+| `context.Background()` in taskmanager     | Replaced 10× `context.Background()` with `ctx`                            | `example/taskmanager/handlers.go`                                |
+| DuckDB `plans` map lock bypass            | Routed 6 reads through `lookupPlan()`                                     | `duckdbengine/aggregations.go`, `pushdown.go`                    |
+| `mustSQLiteEngine` zombie                 | Fixed to return real SQLite engine via `sqliteengine.NewSQLiteEngine(db)` | `metaengine/concurrent_gaps_test.go`, `cross_engine_adt_test.go` |
+| `_skipped_sqlite_test_*` zombie functions | Deleted                                                                   | `metaengine/features2_test.go`                                   |
 
 **Correction during execution:** Initially removed `"sqlite"` entries from test maps instead
 of fixing the helpers. User caught this — `cross_engine_adt_test.go` tests are CROSS-ENGINE
@@ -78,24 +78,24 @@ storage/memory. Removed. Other 9 entries verified valid.
 
 ## What's Left (M10–M25: The long tail)
 
-| ID | Task | Effort | Status |
-|----|------|--------|--------|
-| M10 | Run cqrs-lint against real consumer projects | L | Pending |
-| M11 | cqrs-lint type-checking test helper | M | Pending |
-| M12 | cqrs-lint RES rules batch (3 rules) | M | Pending |
-| M13 | cqrs-lint DOC+OBS rules batch (5 rules) | M | Pending |
-| M14 | cqrs-lint DI rules batch (3 rules) + tag | M | Pending |
-| M15 | Pin GitHub Actions to commit SHAs | M | Pending |
-| M16 | CI API-version drift check | M | Pending |
-| M17 | Soak test for record-aware pipeline | M | Pending |
-| M18 | Irohengine WithClock option | M | Pending |
-| M19 | Irohengine connection pooling | M | Pending |
-| M20 | Redis/NATS integration tests | M | Pending |
-| M21 | Dgraph real-instance testing | L | Pending |
-| M22 | Calibration benchmark regression baseline | M | Pending |
-| M23 | Per-module .golangci.yml split | L | Pending |
-| M24 | Intra-module arch config for cmd/cqrs-lint | M | Pending |
-| M25 | macOS verification of ephemeral PG | M | Pending |
+| ID  | Task                                         | Effort | Status  |
+| --- | -------------------------------------------- | ------ | ------- |
+| M10 | Run cqrs-lint against real consumer projects | L      | Pending |
+| M11 | cqrs-lint type-checking test helper          | M      | Pending |
+| M12 | cqrs-lint RES rules batch (3 rules)          | M      | Pending |
+| M13 | cqrs-lint DOC+OBS rules batch (5 rules)      | M      | Pending |
+| M14 | cqrs-lint DI rules batch (3 rules) + tag     | M      | Pending |
+| M15 | Pin GitHub Actions to commit SHAs            | M      | Pending |
+| M16 | CI API-version drift check                   | M      | Pending |
+| M17 | Soak test for record-aware pipeline          | M      | Pending |
+| M18 | Irohengine WithClock option                  | M      | Pending |
+| M19 | Irohengine connection pooling                | M      | Pending |
+| M20 | Redis/NATS integration tests                 | M      | Pending |
+| M21 | Dgraph real-instance testing                 | L      | Pending |
+| M22 | Calibration benchmark regression baseline    | M      | Pending |
+| M23 | Per-module .golangci.yml split               | L      | Pending |
+| M24 | Intra-module arch config for cmd/cqrs-lint   | M      | Pending |
+| M25 | macOS verification of ephemeral PG           | M      | Pending |
 
 ---
 
