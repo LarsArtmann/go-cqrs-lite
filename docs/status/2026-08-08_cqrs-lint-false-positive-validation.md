@@ -33,6 +33,29 @@ After executing the [false-positive elimination plan](../planning/2026-08-08_23-
 
 ---
 
+## Reclassification: Misclassified FPs (2026-08-09)
+
+During the post-fix review ([execution report](2026-08-09_00-19_cqrs-lint-fp-elimination-execution.md)), **at least 10 of the original 39 "FPs" were actually true positives (TPs)**:
+
+| Rule | Count | Original Classification | Correct Classification | Reason |
+|------|-------|------------------------|----------------------|--------|
+| D005 | 4 | FP (version misparse) | **TP** | Docs genuinely reference stale versions (e.g., v4.2.0 vs go.mod v4.3.0+). The linter was correct — the docs ARE stale. |
+| A005 | 1 | FP (type-blind on DualWriteBus) | **TP** | Kernovia `DualWriteBus` **embeds** `event.Bus`, so it IS an event bus. SubscribeAll on it is a real manual-projection candidate. |
+| A032 | 5 | FP (display DTO) | **TP** | Kernovia `PluginID string` on **domain command** types — these should use branded IDs. Mistakenly grouped with transport-adapter FPs in the same file. |
+
+**Corrected counts:**
+
+| Metric | Original Claim | Corrected |
+|--------|---------------|-----------|
+| Original TPs | 89 | **99** (+10 reclassified) |
+| Original FPs | 39 | **~29** (-10 reclassified) |
+| Original FP rate | 30.5% | **~22.7%** |
+| Post-fix remaining "FPs" | ~7 | **~3** (D005 x4 and A005 x1 are TPs, not FPs) |
+
+**Lesson:** The original manual FP classification was sloppy — findings were grouped by rule without verifying each individual case. D005 findings on prose version references were assumed to be import-path misparses without checking the actual doc content. A032 findings on PluginID were assumed to be display-DTO FPs because transport-adapter FPs existed in the same file.
+
+---
+
 ## Pre-Fix Executive Summary
 
 | Metric | Value |

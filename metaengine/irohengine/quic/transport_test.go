@@ -5,6 +5,7 @@ package quic_test
 import (
 	"context"
 	"fmt"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -14,6 +15,29 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
+
+// quicManualClock is a deterministic Clock for QUIC tests. It starts at a
+// fixed epoch and only advances when Advance is called — eliminating all
+// timing assumptions in LWW convergence tests. Mirrors the in-process
+// manualClock in irohengine/helpers_test.go.
+type quicManualClock struct {
+	now atomic.Int64 // unix-nanos
+}
+
+func newQuicManualClock(start time.Time) *quicManualClock {
+	c := &quicManualClock{}
+	c.now.Store(start.UnixNano())
+	return c
+}
+
+func (c *quicManualClock) Now() time.Time {
+	return time.Unix(0, c.now.Load())
+}
+
+// Advance moves the clock forward by d and returns the new time.
+func (c *quicManualClock) Advance(d time.Duration) time.Time {
+	return time.Unix(0, c.now.Add(int64(d)))
+}
 
 // waitForPeers polls until both transports see the expected peer count, or times out.
 func waitForPeers(t *testing.T, transports []*quic.QuicTransport, expected int) {
@@ -182,21 +206,58 @@ func TestQuicSetConvergence(t *testing.T) {
 }
 
 func TestQuicLWWResolution(t *testing.T) {
-	c := newQuicCluster(t)
+	// Deterministic LWW test using injectable clock — same pattern as the
+	// in-process TestLWWResolution. Both nodes share a quicManualClock, so
+	// timestamp ordering is controlled by explicit Advance() calls instead
+	// of relying on wall-clock time gaps.
+	clock := newQuicManualClock(time.Unix(1_000_000, 0))
 
-	// NodeA writes first. Wait for replication to NodeB before the second
-	// write. This guarantees wall-clock ordering (T2 > T1) without an
-	// arbitrary sleep: both nodes share the same system clock, and the
-	// replication round-trip consumes real time.
-	c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "users", "u1", "Alice-old")).
+	t.Helper()
+	g := gomega.NewWithT(t)
+
+	tA, err := quic.New(quic.WithLocalOnly())
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	tB, err := quic.New(quic.WithLocalOnly())
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	t.Cleanup(func() { _ = tA.Close() })
+	t.Cleanup(func() { _ = tB.Close() })
+
+	nodeA := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
+		irohengine.WithAuthor("node-a"),
+		irohengine.WithTransport(tA),
+		irohengine.WithClock(clock),
+	)
+	nodeB := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
+		irohengine.WithAuthor("node-b"),
+		irohengine.WithTransport(tB),
+		irohengine.WithClock(clock),
+	)
+	t.Cleanup(func() { _ = nodeA.Close() })
+	t.Cleanup(func() { _ = nodeB.Close() })
+
+	ticketA, err := tA.Ticket()
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(tB.Connect(ticketA)).To(gomega.Succeed())
+	waitForPeers(t, []*quic.QuicTransport{tA, tB}, 1)
+
+	ctx := context.Background()
+
+	// NodeA writes first (timestamp T0 from the shared clock).
+	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "users", "u1", "Alice-old")).
 		To(gomega.Succeed())
-	eventuallyGet(c.G, c.NodeB, "users", "u1", "Alice-old", 5*time.Second)
+	eventuallyGet(g, nodeB, "users", "u1", "Alice-old", 5*time.Second)
 
-	c.G.Expect(c.NodeB.(metaengine.MapBackend).MapSet(c.Ctx, "users", "u1", "Bob-new")).
+	// Deterministic timestamp advance — no time.Sleep needed.
+	// Node B's write gets a strictly later timestamp, guaranteeing LWW resolution.
+	clock.Advance(time.Second)
+
+	g.Expect(nodeB.(metaengine.MapBackend).MapSet(ctx, "users", "u1", "Bob-new")).
 		To(gomega.Succeed())
 
-	eventuallyGet(c.G, c.NodeA, "users", "u1", "Bob-new", 5*time.Second)
-	eventuallyGet(c.G, c.NodeB, "users", "u1", "Bob-new", 5*time.Second)
+	eventuallyGet(g, nodeA, "users", "u1", "Bob-new", 5*time.Second)
+	eventuallyGet(g, nodeB, "users", "u1", "Bob-new", 5*time.Second)
 }
 
 func TestQuicRTTMeasurement(t *testing.T) {

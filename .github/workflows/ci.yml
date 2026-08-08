@@ -58,8 +58,8 @@ jobs:
       - name: Duplication check
         run: nix run .#check-duplication
 
-      - name: Dependency layer check
-        run: nix run .#check-layers
+      - name: Architecture check (layers + intra-module)
+        run: nix run .#check-arch
 
       - name: Coverage drift check
         run: nix run .#check-coverage

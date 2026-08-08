@@ -918,7 +918,7 @@
                 echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths}
                 echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths}
                 echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1
-                echo "=== Check Layers ===" && bash "$PWD/scripts/check-module-layers.sh"
+                echo "=== Check Arch ===" && nix run .#check-arch
                 echo "=== API Stability ===" && (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go run -tags "goexperiment.jsonv2" .)
                 echo "=== transport/grpc ===" && (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test -tags "goexperiment.jsonv2" ./... -count=1)
                 echo "✅ All CI checks passed"
@@ -1109,7 +1109,7 @@
                   echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 -timeout=5m && \
                   echo "=== Race ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 -timeout=8m && \
                   echo "=== Lint ===" && nix run .#lint && \
-                  echo "=== Check Layers ===" && nix run .#check-layers && \
+                  echo "=== Check Arch ===" && nix run .#check-arch && \
                   echo "=== Check Duplication ===" && nix run .#check-duplication && \
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
@@ -1129,7 +1129,7 @@
                   echo "=== Test (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -count=1 -timeout=5m && \
                   echo "=== Race (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -race -count=1 -timeout=8m && \
                   echo "=== Lint ===" && nix run .#lint && \
-                  echo "=== Check Layers ===" && nix run .#check-layers && \
+                  echo "=== Check Arch ===" && nix run .#check-arch && \
                   echo "=== Check Duplication ===" && nix run .#check-duplication && \
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
