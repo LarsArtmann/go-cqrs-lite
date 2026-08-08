@@ -377,3 +377,109 @@ func TestAggregateParity_WithFilters(t *testing.T) {
 		}
 	})
 }
+
+// TestAggregateParity_PlannedTable_DuckDB_vs_SQLite verifies that DuckDB and
+// SQLite produce identical aggregate results when using planned tables
+// (column-extracted layout). The existing TestAggregateParity_DuckDB_vs_SQLite
+// tests the standard json_extract path; this test fills the gap for the
+// planned-path, which uses native SQL columns instead of json_extract.
+func TestAggregateParity_PlannedTable_DuckDB_vs_SQLite(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	engines := newAggEngines(t)
+
+	plan := metaengine.LayoutPlan{
+		Collection: "items",
+		Table:      "meta_planned_items",
+		Columns: []metaengine.PlannedColumn{
+			{Name: "status", Type: "TEXT"},
+			{Name: "price", Type: "DOUBLE"},
+		},
+		Indexes: []metaengine.PlannedIndex{
+			{Name: "idx_planned_status", Columns: []string{"status"}},
+		},
+	}
+
+	for _, fx := range engines {
+		lp, ok := fx.eng.(metaengine.LayoutPlanApplier)
+		if !ok {
+			t.Fatalf("%s engine does not implement LayoutPlanApplier", fx.name)
+		}
+
+		if err := lp.ApplyLayoutPlan(plan); err != nil {
+			t.Fatalf("%s ApplyLayoutPlan: %v", fx.name, err)
+		}
+	}
+
+	for _, fx := range engines {
+		seedParityAggData(t, ctx, fx.eng)
+	}
+
+	runOnAll := func(label string, fn func(metaengine.Engine) (float64, error)) {
+		t.Helper()
+
+		var first float64
+
+		var firstEng string
+
+		for i, fx := range engines {
+			got, err := fn(fx.eng)
+			if err != nil {
+				t.Fatalf("%s: %s engine error: %v", label, fx.name, err)
+			}
+
+			if i == 0 {
+				first = got
+				firstEng = fx.name
+			} else if got != first {
+				t.Errorf("%s: %s=%v, %s=%v", label, firstEng, first, fx.name, got)
+			}
+		}
+	}
+
+	runOnAll("PlannedCount", func(e metaengine.Engine) (float64, error) {
+		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
+			metaengine.AggregateCount, "", nil)
+	})
+
+	runOnAll("PlannedSum", func(e metaengine.Engine) (float64, error) {
+		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
+			metaengine.AggregateSum, "price", nil)
+	})
+
+	runOnAll("PlannedMin", func(e metaengine.Engine) (float64, error) {
+		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
+			metaengine.AggregateMin, "price", nil)
+	})
+
+	runOnAll("PlannedMax", func(e metaengine.Engine) (float64, error) {
+		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
+			metaengine.AggregateMax, "price", nil)
+	})
+
+	runOnAll("PlannedAvg", func(e metaengine.Engine) (float64, error) {
+		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
+			metaengine.AggregateAvg, "price", nil)
+	})
+
+	runOnAll("PlannedGroupedCount/open", func(e metaengine.Engine) (float64, error) {
+		m, err := e.(metaengine.GroupedAggregateReader).GroupedAggregate(ctx, "items",
+			metaengine.AggregateCount, "", "status", nil)
+		if err != nil {
+			return 0, err
+		}
+
+		return m["open"], nil
+	})
+
+	runOnAll("PlannedGroupedSum/closed", func(e metaengine.Engine) (float64, error) {
+		m, err := e.(metaengine.GroupedAggregateReader).GroupedAggregate(ctx, "items",
+			metaengine.AggregateSum, "price", "status", nil)
+		if err != nil {
+			return 0, err
+		}
+
+		return m["closed"], nil
+	})
+}
