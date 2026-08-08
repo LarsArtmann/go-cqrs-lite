@@ -46,3 +46,20 @@ func DecodeFloat(raw any) (float64, error) {
 		return 0, fmt.Errorf("metaengine DecodeFloat: unexpected type %T", raw)
 	}
 }
+
+// DecodeFloatResults decodes a slice of raw scan values into a result map
+// keyed by each spec's alias. It is the shared result-building step for
+// MultiAggregate implementations across DuckDB, SQLite, and Postgres.
+func DecodeFloatResults(raws []any, specs []AggregateSpec, errPrefix string) (map[string]float64, error) {
+	result := make(map[string]float64, len(specs))
+	for i, s := range specs {
+		val, err := DecodeFloat(raws[i])
+		if err != nil {
+			return nil, fmt.Errorf("%s alias %q: %w", errPrefix, s.AliasOr(), err)
+		}
+
+		result[s.AliasOr()] = val
+	}
+
+	return result, nil
+}

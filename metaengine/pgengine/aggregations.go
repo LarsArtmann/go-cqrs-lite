@@ -193,17 +193,7 @@ func (e *pgEngine) MultiAggregate(
 		return nil, fmt.Errorf("pgengine.MultiAggregate: %w", err)
 	}
 
-	result := make(map[string]float64, len(specs))
-	for i, s := range specs {
-		val, err := metaengine.DecodeFloat(raws[i])
-		if err != nil {
-			return nil, fmt.Errorf("pgengine.MultiAggregate alias %q: %w", s.AliasOr(), err)
-		}
-
-		result[s.AliasOr()] = val
-	}
-
-	return result, nil
+	return metaengine.DecodeFloatResults(raws, specs, "pgengine.MultiAggregate")
 }
 
 // ---------------------------------------------------------------------------

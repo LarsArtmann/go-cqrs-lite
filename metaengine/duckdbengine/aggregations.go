@@ -476,17 +476,7 @@ func (e *duckdbEngine) scanMulti(
 		return nil, fmt.Errorf("duckdbengine.MultiAggregate: %w", err)
 	}
 
-	result := make(map[string]float64, len(specs))
-	for i, s := range specs {
-		val, err := metaengine.DecodeFloat(raws[i])
-		if err != nil {
-			return nil, fmt.Errorf("duckdbengine.MultiAggregate alias %q: %w", s.AliasOr(), err)
-		}
-
-		result[s.AliasOr()] = val
-	}
-
-	return result, nil
+	return metaengine.DecodeFloatResults(raws, specs, "duckdbengine.MultiAggregate")
 }
 
 // ---------------------------------------------------------------------------

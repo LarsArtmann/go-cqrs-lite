@@ -1545,6 +1545,7 @@ metaengine/func Checksum
 metaengine/func CompareValues
 metaengine/func ContractSuite
 metaengine/func DecodeFloat
+metaengine/func DecodeFloatResults
 metaengine/func DecodeStreamValue
 metaengine/func DeferClose
 metaengine/func DeserializePlan
