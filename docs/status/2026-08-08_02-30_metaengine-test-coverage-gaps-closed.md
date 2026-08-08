@@ -150,3 +150,14 @@ Currently each engine module explicitly calls `RunTransactionalTest` or `RunTran
 ### Q3: Should badgerengine get a `RunInTx` implementation?
 
 badgerengine does NOT implement `Transactional`. It was correctly excluded from tx tests. But badger (the underlying LSM engine) supports transactions natively via `DB.NewTransaction()`. Should we add `RunInTx` to badgerengine, or is the current "no transactions" stance intentional? This affects whether the tx parity gap for badger is a bug or a design decision.
+
+---
+
+## Resolution (2026-08-08)
+
+- ~~Record-stamp test for badgerengine~~ done — `metaengine/badgerengine/record_stamp_test.go` created (07-45 report)
+- ~~Record-stamp test for dgraphengine~~ done — created (later session)
+- ~~Record-stamp test for graphadapter~~ done — created (later session)
+- AutoCRUD soak for sqliteengine/pgengine — **still open** (only Memory/Pebble/DuckDB have it)
+- `race_on.go`/`race_off.go` consolidation — **still open** (4+ modules still have local copies)
+- Q3 (badger tx) — **unresolved** (design decision deferred)

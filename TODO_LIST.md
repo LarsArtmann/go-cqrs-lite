@@ -190,6 +190,11 @@ and is **never** duplicated here.
       a tagged module exists at that tag. Catches the `WithCustom`/`event/v4.3.0`
       class of drift before vulncheck fails.
       _(Effort: M)_
+- [ ] **Add calibration benchmark regression baseline** — metaengine calibration
+      benchmarks should run in CI and fail if cost constants drift >3× from
+      baseline. Currently 0 of 43 benchmarks have CI regression tracking.
+      _(Effort: M)_
+      _(Source: `ROADMAP.md` Theme 8)_
 - [ ] **Add `duckdb-vm` and `turso-vm` to CI `nixos-vm-tests` job** — wired as
       flake checks but not in dedicated CI job.
       _(Effort: S)_

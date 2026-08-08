@@ -248,3 +248,17 @@ ADR-0114 says tombstones will be removed in "v5" but there's no v5 milestone or 
 ### 3. Should ADR-0117 (Command Lifecycle as Events) be prioritized for this quarter?
 
 ADR-0117 has zero implementation and zero TODO items. It proposes command lifecycle tracking via event streams (received, failed, retried, dead-lettered) with DLQ and retry-count as projections. This is a significant feature (new event types, new stream infrastructure, new projections). **Whether this is a priority depends on product direction — do consumers need command lifecycle tracking now, or is the current `projectionhost` DLQ sufficient?**
+
+---
+
+## Resolution (2026-08-08)
+
+- ~~GraphBackend removed from SQLite/Pebble/Badger/Iroh~~ done — -433 lines, `ErrUnsupportedGraphOps`
+- ~~Dead code removed (keycodec GraphEdgeKey, badger nextKey)~~ done
+- ~~Record-aware graphadapter integration test~~ done
+- `mustSQLiteEngine` zombie test — **still open** (`metaengine/concurrent_gaps_test.go:188`, returns Memory engine)
+- `_skipped_sqlite_test_*` zombie functions — **still open** (`metaengine/features2_test.go:330,383`)
+- pebbleengine README claims GraphBackend — **still open** (`metaengine/pebbleengine/README.md:35`)
+- `GraphBackend` interface still defined — **still open** (`metaengine/engine.go:394`, ADR-0113 phases 3-4)
+- Q1 (v5 tombstone timeline) — **unresolved** (deferred to v5, no v5 milestone)
+- Q2 (ADR-0117 priority) — **unresolved** (product direction question, now in ROADMAP)
