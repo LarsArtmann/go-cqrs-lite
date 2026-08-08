@@ -114,8 +114,8 @@ type ListTasksResult struct {
 
 func registerCommands(sys *system.System) {
 	gomust.Check(system.RegisterCommand[CreateTaskCmd, TaskState](sys, cmdCreateTask,
-		func(_ context.Context, cmd CreateTaskCmd) system.Op[TaskState] {
-			return system.Execute(context.Background(), cmd.StreamID(), streamType,
+		func(ctx context.Context, cmd CreateTaskCmd) system.Op[TaskState] {
+			return system.Execute(ctx, cmd.StreamID(), streamType,
 				Create(CreateTask{
 					ID: cmd.StreamID(), Title: cmd.Title,
 					Description: cmd.Description, Priority: cmd.Priority,
@@ -123,56 +123,56 @@ func registerCommands(sys *system.System) {
 		}))
 
 	gomust.Check(system.RegisterCommand[AssignTaskCmd, TaskState](sys, cmdAssignTask,
-		func(_ context.Context, cmd AssignTaskCmd) system.Op[TaskState] {
-			return system.Execute(context.Background(), cmd.StreamID(), streamType,
+		func(ctx context.Context, cmd AssignTaskCmd) system.Op[TaskState] {
+			return system.Execute(ctx, cmd.StreamID(), streamType,
 				Assign(AssignTask{ID: cmd.StreamID(), AssigneeID: cmd.AssigneeID}))
 		}))
 
 	gomust.Check(system.RegisterCommand[StartTaskCmd, TaskState](sys, cmdStartTask,
-		func(_ context.Context, cmd StartTaskCmd) system.Op[TaskState] {
-			return system.Execute(context.Background(), cmd.StreamID(), streamType,
+		func(ctx context.Context, cmd StartTaskCmd) system.Op[TaskState] {
+			return system.Execute(ctx, cmd.StreamID(), streamType,
 				Start(StartTask{ID: cmd.StreamID()}))
 		}))
 
 	gomust.Check(system.RegisterCommand[CompleteTaskCmd, TaskState](sys, cmdCompleteTask,
-		func(_ context.Context, cmd CompleteTaskCmd) system.Op[TaskState] {
-			return system.Execute(context.Background(), cmd.StreamID(), streamType,
+		func(ctx context.Context, cmd CompleteTaskCmd) system.Op[TaskState] {
+			return system.Execute(ctx, cmd.StreamID(), streamType,
 				Complete(CompleteTask{ID: cmd.StreamID()}))
 		}))
 
 	gomust.Check(system.RegisterCommand[ArchiveTaskCmd, TaskState](sys, cmdArchiveTask,
-		func(_ context.Context, cmd ArchiveTaskCmd) system.Op[TaskState] {
-			return system.Execute(context.Background(), cmd.StreamID(), streamType,
+		func(ctx context.Context, cmd ArchiveTaskCmd) system.Op[TaskState] {
+			return system.Execute(ctx, cmd.StreamID(), streamType,
 				Archive(ArchiveTask{ID: cmd.StreamID()}))
 		}))
 
 	gomust.Check(system.RegisterCommand[DeleteTaskCmd, TaskState](sys, cmdDeleteTask,
-		func(_ context.Context, cmd DeleteTaskCmd) system.Op[TaskState] {
-			return system.Execute(context.Background(), cmd.StreamID(), streamType,
+		func(ctx context.Context, cmd DeleteTaskCmd) system.Op[TaskState] {
+			return system.Execute(ctx, cmd.StreamID(), streamType,
 				Delete(DeleteTask{ID: cmd.StreamID()}))
 		}))
 
 	gomust.Check(system.RegisterCommand[UpdateTitleCmd, TaskState](sys, cmdUpdateTitle,
-		func(_ context.Context, cmd UpdateTitleCmd) system.Op[TaskState] {
-			return system.Execute(context.Background(), cmd.StreamID(), streamType,
+		func(ctx context.Context, cmd UpdateTitleCmd) system.Op[TaskState] {
+			return system.Execute(ctx, cmd.StreamID(), streamType,
 				UpdateTaskTitle(UpdateTitle{ID: cmd.StreamID(), Title: cmd.Title}))
 		}))
 
 	gomust.Check(system.RegisterCommand[ChangePriorityCmd, TaskState](sys, cmdChangePrio,
-		func(_ context.Context, cmd ChangePriorityCmd) system.Op[TaskState] {
-			return system.Execute(context.Background(), cmd.StreamID(), streamType,
+		func(ctx context.Context, cmd ChangePriorityCmd) system.Op[TaskState] {
+			return system.Execute(ctx, cmd.StreamID(), streamType,
 				ChangeTaskPriority(ChangePriority{ID: cmd.StreamID(), Priority: cmd.Priority}))
 		}))
 
 	gomust.Check(system.RegisterCommand[SetDueDateCmd, TaskState](sys, cmdSetDueDate,
-		func(_ context.Context, cmd SetDueDateCmd) system.Op[TaskState] {
-			return system.Execute(context.Background(), cmd.StreamID(), streamType,
+		func(ctx context.Context, cmd SetDueDateCmd) system.Op[TaskState] {
+			return system.Execute(ctx, cmd.StreamID(), streamType,
 				SetTaskDueDate(SetDueDate{ID: cmd.StreamID(), DueDate: cmd.DueDate}))
 		}))
 
 	gomust.Check(system.RegisterCommand[AddBlockerCmd, TaskState](sys, cmdAddBlocker,
-		func(_ context.Context, cmd AddBlockerCmd) system.Op[TaskState] {
-			return system.Execute(context.Background(), cmd.StreamID(), streamType,
+		func(ctx context.Context, cmd AddBlockerCmd) system.Op[TaskState] {
+			return system.Execute(ctx, cmd.StreamID(), streamType,
 				AddBlocker(BlockBy{ID: cmd.StreamID(), DependencyID: cmd.DependencyID}))
 		}))
 }

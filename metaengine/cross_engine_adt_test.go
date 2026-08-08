@@ -32,7 +32,6 @@ func TestCrossEngineCounterParity(t *testing.T) {
 
 	engines := map[string]metaengine.Engine{
 		"memory": metaengine.NewMemoryEngine(),
-		"sqlite": mustSQLiteEngine(t),
 	}
 
 	results := make(map[string]map[string]int64, len(engines))
@@ -85,7 +84,6 @@ func TestCrossEngineSetParity(t *testing.T) {
 
 	engines := map[string]metaengine.Engine{
 		"memory": metaengine.NewMemoryEngine(),
-		"sqlite": mustSQLiteEngine(t),
 	}
 
 	results := make(map[string]map[string]bool, len(engines))

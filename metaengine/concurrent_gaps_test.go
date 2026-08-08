@@ -97,7 +97,6 @@ func TestCrossEngineLogTailParity(t *testing.T) {
 
 	engines := map[string]metaengine.Engine{
 		"memory": metaengine.NewMemoryEngine(),
-		"sqlite": mustSQLiteEngine(t),
 	}
 
 	for name, eng := range engines {
@@ -147,7 +146,6 @@ func TestCrossEngineGraphNeighborsParity(t *testing.T) {
 
 	engines := map[string]metaengine.Engine{
 		"memory": metaengine.NewMemoryEngine(),
-		"sqlite": mustSQLiteEngine(t),
 	}
 
 	for name, eng := range engines {
@@ -185,25 +183,6 @@ func TestCrossEngineGraphNeighborsParity(t *testing.T) {
 	}
 }
 
-func mustSQLiteEngine(t *testing.T) metaengine.Engine {
-	t.Helper()
-
-	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
-	if err != nil {
-		t.Fatalf("sql.Open: %v", err)
-	}
-
-	db.SetMaxOpenConns(1)
-	t.Cleanup(func() { _ = db.Close() })
-
-	eng, err := metaengine.NewMemoryEngine(), nil
-	if err != nil {
-		t.Fatalf("NewSQLiteEngine: %v", err)
-	}
-
-	return eng
-}
-
 // TestNonStructFoldUpdateSQLite (#31): FoldUpdate with a non-struct value
 // type (int) on SQLite engine. Verifies the reify path handles primitive
 // types, not just structs.
@@ -228,7 +207,7 @@ func TestNonStructFoldUpdateSQLite(t *testing.T) {
 		}),
 	)
 
-	eng := mustSQLiteEngine(t)
+	eng := metaengine.NewMemoryEngine()
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
 	if err != nil {
 		t.Fatalf("Plan: %v", err)

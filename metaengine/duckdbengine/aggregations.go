@@ -170,7 +170,7 @@ func (e *duckdbEngine) Aggregate(
 	column string,
 	filters []metaengine.FilterSpec,
 ) (float64, error) {
-	if plan, ok := e.plans[col]; ok {
+	if plan, ok := e.lookupPlan(col); ok {
 		return e.aggregatePlanned(ctx, plan, fn, column, filters)
 	}
 
@@ -260,7 +260,7 @@ func (e *duckdbEngine) GroupedAggregate(
 	groupBy string,
 	filters []metaengine.FilterSpec,
 ) (map[string]float64, error) {
-	if plan, ok := e.plans[col]; ok {
+	if plan, ok := e.lookupPlan(col); ok {
 		return e.groupedAggregatePlanned(ctx, plan, fn, column, groupBy, filters)
 	}
 
@@ -381,7 +381,7 @@ func (e *duckdbEngine) MultiAggregate(
 		return nil, errors.New("duckdbengine.MultiAggregate: no specs provided")
 	}
 
-	if plan, ok := e.plans[col]; ok {
+	if plan, ok := e.lookupPlan(col); ok {
 		return e.multiAggregatePlanned(ctx, plan, specs, filters)
 	}
 
@@ -494,7 +494,7 @@ func (e *duckdbEngine) MultiGroupedAggregate(
 		return nil, errors.New("duckdbengine.MultiGroupedAggregate: no specs provided")
 	}
 
-	if plan, ok := e.plans[col]; ok {
+	if plan, ok := e.lookupPlan(col); ok {
 		return e.multiGroupedAggregatePlanned(ctx, plan, specs, groupBy, filters)
 	}
 
@@ -652,7 +652,7 @@ func (e *duckdbEngine) DistinctValues(
 	column string,
 	filters []metaengine.FilterSpec,
 ) ([]any, error) {
-	if plan, ok := e.plans[col]; ok {
+	if plan, ok := e.lookupPlan(col); ok {
 		return e.distinctPlanned(ctx, plan, column, filters)
 	}
 

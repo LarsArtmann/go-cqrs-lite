@@ -30,7 +30,7 @@ func (e *duckdbEngine) PushdownMapScan(
 	cursor any,
 	limit int,
 ) (metaengine.ScanResult, error) {
-	if plan, ok := e.plans[collection]; ok {
+	if plan, ok := e.lookupPlan(collection); ok {
 		return e.pushdownMapScanPlanned(ctx, plan, filters, sort, cursor, limit)
 	}
 
