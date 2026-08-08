@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "threshold": 3,
-  "recordedAt": "2026-08-08T20:40:36.271414133Z",
+  "recordedAt": "2026-08-08T23:00:37.993697105Z",
   "entries": [
     {
       "hash": "042a25ea73339942",
@@ -67,14 +67,6 @@
         "metaengine/pgengine/stream_log.go"
       ],
       "tokens": 8
-    },
-    {
-      "hash": "2002cc8dc3b0af28",
-      "files": [
-        "testutil/pgtestcontainer/pgtestcontainer.go",
-        "storage/pg_testcontainer_test.go"
-      ],
-      "tokens": 16
     },
     {
       "hash": "242c427a6e2df0ad",
@@ -195,18 +187,6 @@
       "tokens": 6
     },
     {
-      "hash": "5c9074bc8e47f644",
-      "files": [
-        "metaengine/sqliteengine/aggregations_test.go",
-        "metaengine/sqliteengine/aggregations_test.go",
-        "metaengine/sqliteengine/aggregations_test.go",
-        "metaengine/sqliteengine/aggregations_test.go",
-        "metaengine/sqliteengine/aggregations_test.go",
-        "metaengine/sqliteengine/aggregations_test.go"
-      ],
-      "tokens": 30
-    },
-    {
       "hash": "5c984ff129a82e2c",
       "files": [
         "metaengine/irohengine/transport.go",
@@ -239,22 +219,6 @@
       "tokens": 42
     },
     {
-      "hash": "70a9f85c603a5820",
-      "files": [
-        "metaengine/pgengine/engine_test.go",
-        "metaengine/pgengine/healthcheck_test.go",
-        "metaengine/pgengine/watcher_test.go",
-        "metaengine/pgengine/watcher_test.go",
-        "metaengine/pgengine/engine_test.go",
-        "metaengine/pgengine/persistence_test.go",
-        "metaengine/pgengine/stream_log_test.go",
-        "metaengine/pgengine/engine_test.go",
-        "metaengine/pgengine/stream_log_test.go",
-        "metaengine/pgengine/record_stamp_test.go"
-      ],
-      "tokens": 40
-    },
-    {
       "hash": "70bbb1cda72a1e15",
       "files": [
         "metaengine/memory_versioned.go",
@@ -266,10 +230,9 @@
       "hash": "723214000a979c8d",
       "files": [
         "command/commandtest/store_suite.go",
-        "command/commandtest/store_suite.go",
         "event/v4/eventtest/fake_store_test.go"
       ],
-      "tokens": 9
+      "tokens": 6
     },
     {
       "hash": "76d03c0c6ebbc805",
@@ -280,18 +243,12 @@
       "tokens": 6
     },
     {
-      "hash": "79c54e8589270421",
+      "hash": "7c71b69eec4f8ee8",
       "files": [
-        "metaengine/duckdbengine/watcher_cgo_test.go",
-        "metaengine/duckdbengine/engine_cgo_test.go",
-        "metaengine/duckdbengine/watcher_cgo_test.go",
-        "metaengine/duckdbengine/layout_planner_cgo_test.go",
-        "metaengine/duckdbengine/persistence_cgo_test.go",
-        "metaengine/duckdbengine/engine_cgo_test.go",
-        "metaengine/duckdbengine/healthcheck_cgo_test.go",
-        "metaengine/duckdbengine/engine_cgo_test.go"
+        "command/commandtest/store_suite.go",
+        "listing/in_memory_test.go"
       ],
-      "tokens": 32
+      "tokens": 6
     },
     {
       "hash": "814a6e1c2522c463",
@@ -334,12 +291,12 @@
       "tokens": 6
     },
     {
-      "hash": "906e0bdcd39d70f6",
+      "hash": "8df27f2b52c128cb",
       "files": [
-        "system/system.go",
-        "system/shutdown.go"
+        "metaengine/enginetest/enginetest.go",
+        "metaengine/enginetest/enginetest.go"
       ],
-      "tokens": 10
+      "tokens": 6
     },
     {
       "hash": "9091985b22737058",
@@ -438,13 +395,6 @@
       "files": [
         "command/commandtest/store_suite.go",
         "command/commandtest/store_suite.go",
-        "command/commandtest/store_suite.go"
-      ],
-      "tokens": 9
-    },
-    {
-      "hash": "d0aaeae1bd2ebcc1",
-      "files": [
         "command/commandtest/store_suite.go",
         "command/commandtest/store_suite.go"
       ],
@@ -483,14 +433,6 @@
       "tokens": 6
     },
     {
-      "hash": "d4cb21c85c0beec5",
-      "files": [
-        "metaengine/duckdbengine/aggregations.go",
-        "metaengine/duckdbengine/aggregations.go"
-      ],
-      "tokens": 6
-    },
-    {
       "hash": "d4d7d9b5ae34c3a3",
       "files": [
         "system/bus.go",
@@ -515,22 +457,6 @@
       "tokens": 6
     },
     {
-      "hash": "dcc47076ed48a41e",
-      "files": [
-        "metaengine/duckdbengine/aggregations.go",
-        "metaengine/duckdbengine/aggregations.go"
-      ],
-      "tokens": 8
-    },
-    {
-      "hash": "dddb5af8decbb20e",
-      "files": [
-        "metaengine/enginetest/enginetest.go",
-        "metaengine/enginetest/enginetest.go"
-      ],
-      "tokens": 18
-    },
-    {
       "hash": "e8f7b5d3f4958925",
       "files": [
         "watermill/event_bus.go",
@@ -538,17 +464,6 @@
         "metaengine/irohengine/quic/transport.go"
       ],
       "tokens": 9
-    },
-    {
-      "hash": "ed680263893342d0",
-      "files": [
-        "metaengine/duckdbengine/aggregations_cgo_test.go",
-        "metaengine/duckdbengine/aggregations_cgo_test.go",
-        "metaengine/duckdbengine/aggregations_cgo_test.go",
-        "metaengine/duckdbengine/aggregations_cgo_test.go",
-        "metaengine/duckdbengine/aggregations_cgo_test.go"
-      ],
-      "tokens": 35
     },
     {
       "hash": "f093cb2e5909b7ff",
