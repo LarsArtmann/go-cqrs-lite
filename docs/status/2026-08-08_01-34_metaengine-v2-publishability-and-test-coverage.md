@@ -194,3 +194,23 @@
 2. **The auto-commit daemon left uncommitted work in `system/`, `metaengine/duckdbengine/`, and `storage/bbolt/` — is this work complete?** — I committed it as "chore: sync" without verifying correctness. The `system/` module has 10 lint findings. Should I review and fix these, or are they from an active session that will handle them?
 
 3. **Should `metaengine/bench/v4.0.0` include `pebbleengine` as a direct dependency?** — The tag-release script stripped it because it's only in `_test.go` files. This means consumers who install `metaengine/bench` cannot run the Pebble benchmarks without separately installing `pebbleengine`. Is this the intended behavior, or should bench's go.mod explicitly require pebbleengine?
+
+---
+
+## Resolution (2026-08-08)
+
+Items 1–5 (immediate): 4 of 5 resolved. ~~#1 verify~~ done (07-45 report: GREEN). ~~#2 lint~~ done (0 issues). ~~#3 CHANGELOG~~ done (v4.0.0/v4.1.0/v4.3.0 entries written). ~~#4 TestTagContentMatchesChangelog~~ passing. #5 push tags — **11 different tags pushed** (11-17 report), original 14 status unclear.
+
+Items 6–9 (tag verify): #6 vulncheck — **still open** (event/v4.4.0 drift blocked it). #7–9 — **not done**.
+
+Items 10–17 (tests): 4 of 8 resolved (#10–12, #15). Remaining: #13 (badger tx), #14 (pebble tx), #16 (AutoInsert soak), #17 (property-based rollback).
+
+Items 18–24 (module health): **all 7 resolved** (verify gate run, 0 issues, coverage within tolerance, api-stability regenerated to 3807+ exports, doc-check 1263 refs).
+
+Items 25–29 (tag hygiene): #26 already existed (release-checklist.md from v4.2.0). #25, #27–29 — **not done**.
+
+Items 30–39 (metaengine completeness): #30–32 record-aware tests — **done** (pebble, sqlite, duckdb, pg, badger all have record_stamp_test.go). #33–39 — **not done**.
+
+Items 40–50 (architecture): mostly **not done**. These are polish/debt items.
+
+**g) Questions:** g1 (push tags) — 11 tags pushed in later session, original 14 status unclear. g2 (daemon work) — system lint findings fixed; "chore: sync" commits never fully audited. g3 (bench deps) — **unresolved** (no decision documented).

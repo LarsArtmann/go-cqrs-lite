@@ -218,3 +218,35 @@ Each engine package has its own `decodeFloat`/`sqliteDecodeFloat`/`pgDecodeFloat
 - **Accept duplication** (current state, `//art-dupl:accept` pattern)
 - **Push to `enginetest` package** (shared test/decode utility)
 - **Add to core `metaengine`** (but that adds `math/big` dep to core for one function)
+
+---
+
+## Resolution (2026-08-08)
+
+Most items resolved in subsequent sessions the same day. Inline summary:
+
+**Section B (self-critique):**
+- ~~B1: PG lacks ExplainableAggregate~~ done — `pgengine/explain.go:61` implements it
+- ~~B3: No planned-table SQLite aggregate tests~~ done — `sqliteengine/aggregations_test.go:377-533`
+- ~~B5: Parity test doesn't test with filters~~ done — `TestAggregateParity_WithFilters` added
+- B4: PG engine has no `plans` map — **still open** (architectural decision: JSONB expression indexes may make planned tables unnecessary)
+
+**Section C (discovered):**
+- ~~C2: PG lacks ExplainableScan~~ done — `pgengine/explain.go:12`
+- ~~C3: `inferColumnType` price→INTEGER~~ done — now returns `"REAL"` (`layout.go:158-162`)
+- ~~C4: DuckDB ExplainableAggregate tests~~ done — `TestDuckDB_ExplainAggregateQuery` (6+ subtests)
+- ~~C5: `groupAccum.count` vestigial~~ done — removed
+- ~~C6: No empty-collection SQLite test~~ done — `TestSQLite_Aggregate_EmptyCollection`
+- C7: `assertFloat` is exported — **still open** (minor)
+
+**Section D+E (improvements):**
+- ~~E1/D3: Remove `groupedAggExprSQLite`~~ done — removed
+- ~~E18: Three `decodeFloat` functions~~ done — consolidated to `metaengine.DecodeFloat` (`scan.go:21`)
+- ~~E10: Benchmark pre-seed outside timer~~ done — `b.StopTimer()`/`b.StartTimer()` pattern
+
+**Section F (20 next things):** 15 of 20 resolved (F1, F5-F11, F13, F15-F17, F19).
+Still open: F2/F3 (full `-race` runs), F4 (100K benchmark results recorded), F14 (PG plans map), F18 (file naming).
+
+**Q1:** PG `plans` map — **deferred** (JSONB expression indexes achieve same performance).
+**Q2:** `nix run .#verify` — **run later** (07-45 report: GREEN, 0 issues).
+**Q3:** `decodeFloat` consolidation — **done** (`metaengine.DecodeFloat` in `scan.go:21`).

@@ -160,12 +160,26 @@ map lock consistency, `DecodeFloatResults` bounds guard, stale README claims.
 - **Vector/Search/Spatial engine backends** — currently Memory-only (brute-force).
   DuckDB VSS extension (vector similarity), Postgres tsvector (full-text search),
   PostGIS (spatial). Each is a separate engine module with its own deps.
+- **ADR-0112: Command sourcing** — folding over command history (not just events).
+  Requires `CommandAwareFold` interface + command journal replay.
+- **ADR-0113 Phases 3–4: Delete `GraphBackend` interface entirely** — currently
+  still defined in `metaengine/engine.go:394`, used by `memoryEngine`. Planner
+  still uses type assertion. Full removal requires routing ADTGraph via adapter
+  only.
+- **ADR-0116 Layers 2–3** — Layer 2 (100% codegen from struct inspection),
+  Layer 3 (100% auto-route from declared queries). Currently Layer 1 (reflection)
+  is shipped.
+- **ADR-0117: Command Lifecycle as Event Streams** — DLQ, retries, status
+  tracking as event streams, not status fields. Zero implementation; needs
+  lifecycle event types, projections, replay design.
+- **`metaengine-gen` code generator** — `cmd/metaengine-gen` for typed Store
+  methods from query declarations. Go AST parsing + template generation.
+- **Structured query expression tree** — `query.Or`/`query.And`/`query.Gt`
+  composable tree (currently flat `Conditions` + `RawWhere` escape hatch).
 - ✅ **DuckDB columnar-native storage** (ADR-0092) — `WithColumnarLayout()`
   extracts all exported fields into native typed SQL columns (float64→DOUBLE,
   int→INTEGER). Vectorized GROUP BY/SUM/AVG on DuckDB.
 - **Postgres GIN containment Indexes** — `@>` operator for JSONB containment
-- **`metaengine-gen` code generator** — `cmd/metaengine-gen` for typed Store
-  methods from query declarations. Go AST parsing + template generation.
 - **Operator-driven engine selection (partially shipped via `system/`)** —
   the `system/` package implements the operator-configured topology with a
   driver registry (database/sql model). Auto event-decoders (`NewTypeDecoder`+
@@ -400,9 +414,8 @@ LagPerProjection/LagDuration/WorkerStatus/RegisterCloser shipped. Drainer
 interface + RegisterDrainer shipped. orderedEngines topological sort shipped.
 example/taskmanager migrated to `system.New()`.
 
-**Remaining:** Tag `system/v4.1.0` (lifecycle methods). Split lifecycle test
-file (>350 lines). Add integration tests (SQLite + Memory projections +
-HealthCheck end-to-end). See [TODO_LIST.md](TODO_LIST.md) → System Package.
+**Remaining:** NATS/Redis bus driver registration, Dgraph real-instance testing.
+See [TODO_LIST.md](TODO_LIST.md) → System Package.
 
 ---
 
