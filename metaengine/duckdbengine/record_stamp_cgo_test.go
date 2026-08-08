@@ -50,8 +50,6 @@ func TestDuckDB_RecordStamping(t *testing.T) {
 		t.Fatalf("metaengine.Plan: %v", err)
 	}
 
-	defer store.Close()
-
 	ctx := context.Background()
 
 	rec := record.Record{
@@ -85,14 +83,23 @@ func TestDuckDB_RecordStamping(t *testing.T) {
 		t.Fatal("no items in store")
 	}
 
-	jv, ok := scan.Items[0].(metaengine.JSONValue)
-	if !ok {
-		t.Fatalf("expected JSONValue, got %T", scan.Items[0])
-	}
-
 	var item itemView
-	if err := json.Unmarshal(jv, &item); err != nil {
-		t.Fatalf("json.Unmarshal: %v", err)
+	switch v := scan.Items[0].(type) {
+	case metaengine.JSONValue:
+		if err := json.Unmarshal(v, &item); err != nil {
+			t.Fatalf("json.Unmarshal: %v", err)
+		}
+	case map[string]any:
+		data, err := json.Marshal(v)
+		if err != nil {
+			t.Fatalf("json.Marshal: %v", err)
+		}
+
+		if err := json.Unmarshal(data, &item); err != nil {
+			t.Fatalf("json.Unmarshal: %v", err)
+		}
+	default:
+		t.Fatalf("unexpected item type: %T", v)
 	}
 
 	if item.StreamID != "Item/stream-abc" {

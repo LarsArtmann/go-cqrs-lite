@@ -135,7 +135,7 @@ func TestTypedReader_PushdownViaSQLite(t *testing.T) {
 	})
 
 	t.Run("GroupedCount", func(t *testing.T) {
-		got, err := reader.GroupedCount(ctx, "", "status")
+		got, err := reader.GroupedCount(ctx, "status")
 		if err != nil {
 			t.Fatalf("GroupedCount: %v", err)
 		}
