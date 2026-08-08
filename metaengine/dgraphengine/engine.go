@@ -107,6 +107,12 @@ func (e *dgraphEngine) init() error {
 		cqrs.search_collection: string @index(exact) .
 		cqrs.search_id: string @index(exact) @upsert .
 		cqrs.search_content: string @index(term) .
+		cqrs.multimap_collection: string @index(exact) .
+		cqrs.multimap_key: string @index(exact) .
+		cqrs.multimap_value: string .
+		cqrs.log_collection: string @index(exact) .
+		cqrs.log_seq: int @index(int) .
+		cqrs.log_value: string .
 	`
 
 	return e.client.Alter(context.Background(), &api.Operation{Schema: schema})
@@ -134,6 +140,8 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSet:       metaengine.ComplexityOLogN,
 			metaengine.ADTSortedMap: metaengine.ComplexityON,
 			metaengine.ADTSearch:    metaengine.ComplexityOLogN,
+			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
+			metaengine.ADTLog:       metaengine.ComplexityOLogN,
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
 			metaengine.ADTSortedMap: true,
@@ -343,12 +351,14 @@ func (e *dgraphEngine) ensureEdgeSchema(ctx context.Context, collection string) 
 
 // Compile-time assertions.
 var (
-	_ metaengine.Engine         = (*dgraphEngine)(nil)
-	_ metaengine.MapBackend     = (*dgraphEngine)(nil)
-	_ metaengine.CounterBackend = (*dgraphEngine)(nil)
-	_ metaengine.ScanBackend    = (*dgraphEngine)(nil)
-	_ metaengine.GraphBackend   = (*dgraphEngine)(nil)
-	_ metaengine.SetBackend     = (*dgraphEngine)(nil)
-	_ metaengine.SearchBackend  = (*dgraphEngine)(nil)
-	_ metaengine.Calibratable   = (*dgraphEngine)(nil)
+	_ metaengine.Engine          = (*dgraphEngine)(nil)
+	_ metaengine.MapBackend      = (*dgraphEngine)(nil)
+	_ metaengine.CounterBackend  = (*dgraphEngine)(nil)
+	_ metaengine.ScanBackend     = (*dgraphEngine)(nil)
+	_ metaengine.GraphBackend    = (*dgraphEngine)(nil)
+	_ metaengine.SetBackend      = (*dgraphEngine)(nil)
+	_ metaengine.SearchBackend   = (*dgraphEngine)(nil)
+	_ metaengine.MultimapBackend = (*dgraphEngine)(nil)
+	_ metaengine.LogBackend      = (*dgraphEngine)(nil)
+	_ metaengine.Calibratable    = (*dgraphEngine)(nil)
 )

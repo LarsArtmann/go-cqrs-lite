@@ -261,7 +261,7 @@ func TestExceptionsAreMinimal(t *testing.T) {
 	// Parse LAYER[<mod>]=<number> — skip comment lines.
 	layerRe := regexp.MustCompile(`^\s*LAYER\[([^\]]+)\]=(\d+)\s*$`)
 	layers := make(map[string]int)
-	for _, line := range strings.Split(script, "\n") {
+	for line := range strings.SplitSeq(script, "\n") {
 		trimmed := strings.TrimSpace(line)
 		if strings.HasPrefix(trimmed, "#") {
 			continue
@@ -282,7 +282,7 @@ func TestExceptionsAreMinimal(t *testing.T) {
 		dep    string
 	}
 	var dead []exception
-	for _, line := range strings.Split(script, "\n") {
+	for line := range strings.SplitSeq(script, "\n") {
 		trimmed := strings.TrimSpace(line)
 		if strings.HasPrefix(trimmed, "#") {
 			continue
@@ -297,7 +297,7 @@ func TestExceptionsAreMinimal(t *testing.T) {
 			t.Errorf("EXCEPTIONS[%s] references module not in LAYER map", module)
 			continue
 		}
-		for _, dep := range strings.Fields(m[2]) {
+		for dep := range strings.FieldsSeq(m[2]) {
 			depLayer, ok := layers[dep]
 			if !ok {
 				t.Errorf("EXCEPTIONS[%s] references dep %q not in LAYER map", module, dep)

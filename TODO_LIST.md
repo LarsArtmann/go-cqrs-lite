@@ -55,11 +55,10 @@ and is **never** duplicated here.
 > (Dgraph 25.x explicit null-predicate deletion), regression test added.
 > See `docs/status/2026-08-08_22-03_dgraph-integration-testing-and-performance.md`.
 
-- [ ] 🔥 **Fix Dgraph calibration constants** — `DG_NsPerOp=10,000ns` and
-      `DG_NsPerRead=8,000ns` are 100-270x too low vs real benchmarks
-      (MapSet 2.7ms, MapGet 344µs, CounterIncrement 2.4ms). The planner
-      will route queries to Dgraph that should go to Memory/SQLite.
-      Either update to measured values or implement `Calibratable.Benchmark()`.
+- [x] 🔥 **Fix Dgraph calibration constants** — ✓ Aug 2026. Updated to
+      measured values: `DG_NsPerOp=2,500,000ns`, `DG_NsPerRead=600,000ns`,
+      `DG_NsPerWrite=2,500,000ns`. ReadCosts updated: point lookup 350µs,
+      filtered scan 900µs, aggregate 950µs, scan 450µs.
       _(Effort: S)_
 - [x] **Add Graph and Search benchmarks** — ✓ Aug 2026. Five benchmarks added:
       `GraphAddEdge` (2.8ms), `GraphNeighbors_Depth1` (420µs),
@@ -67,14 +66,16 @@ and is **never** duplicated here.
       `SearchInsert` (2.5ms), `SearchQuery` (882µs anyofterms over 500 docs).
       Results in `dgraphengine/README.md` performance table.
       _(Effort: S)_
-- [ ] **Fix CounterGet O(N) scan** — returns ALL counters in a collection
-      via client-side aggregation (3.4ms, 365KB, 1,143 allocs for 1000
-      counters). Should use Dgraph server-side `sum(val(count))` aggregation.
+- [x] **Fix CounterIncrement batching** — ✓ Aug 2026. Rewrote to batch
+      N-key deltas into 1 read + 1 RAFT commit (was N sequential commits).
+      3.3x faster: 2.4ms → 721µs per op. CounterGet remains O(N) by
+      interface design (returns all keys). Added `sanitizeKey` for blank-node
+      label safety.
       _(Effort: M)_
-- [ ] **Add adversarial DQL injection test** — the regression test checks
-      source patterns, not runtime behavior. Send keys containing DQL syntax
-      (`func:`, `@filter`, `{ }`, quotes) and verify they're treated as
-      literals by `QueryWithVars`.
+- [x] **Add adversarial DQL injection test** — ✓ Aug 2026.
+      `TestAdversarialDQLInjection` in `injection_adversarial_test.go`:
+      10 attack vectors (`} {} {`, full DQL queries, SQL injection, filter
+      injection) tested across Map, Search, and Counter backends. All pass.
       _(Effort: S)_
 - [ ] **Add Dgraph to `test-all-backends.sh`** — currently lists SQLite,
       Pebble, bbolt, DuckDB, PG, MySQL. Add Dgraph (needs `pkgs.dgraph`
@@ -83,10 +84,13 @@ and is **never** duplicated here.
 - [ ] **Add Dgraph VM test** (`nix/vm/dgraph.nix`) — NixOS VM test for CI
       reproducibility, matching postgres-vm/mysql-vm/duckdb-vm pattern.
       _(Effort: M)_
-- [ ] **Implement MultimapBackend for Dgraph** — model via repeated predicate
-      values or edge lists.
+- [x] **Implement MultimapBackend for Dgraph** — ✓ Aug 2026. One node per
+      (key, value) pair with `@index(exact)`. Passes `adttest.RunMatrix`
+      at full parity with Memory engine.
       _(Effort: M)_
-- [ ] **Implement LogBackend for Dgraph** — append-only ordered nodes.
+- [x] **Implement LogBackend for Dgraph** — ✓ Aug 2026. Append-only nodes
+      ordered by nanosecond timestamp (`@index(int)` + `orderdesc`). LogTail
+      returns chronological order. Passes `adttest.RunMatrix` at full parity.
       _(Effort: M)_
 - [ ] **Add per-test data cleanup** — no `DropAll` or per-test cleanup exists.
       Stale data accumulates on persistent Dgraph instances.
