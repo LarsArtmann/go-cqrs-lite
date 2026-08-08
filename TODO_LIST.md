@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-08 (metadata immutability sweep, query parity, README fix, lint config cleanup)
+**Updated:** 2026-08-08 (cqrs-lint backlog triage: false-positive fixes, regression tests, per-module migration, SARIF logicalLocations, self-lint cleanup)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -346,47 +346,87 @@ and is **never** duplicated here.
 > suppression, metaengine-aware detection (F018-F026), scorecard metaengine
 > section, cross-format consistency tests. v4.4.0 tagged. Self-lint clean
 > (0 CRITICAL, 0 ERROR, 0 load errors, 0 stale suppressions).
+>
+> **Done 2026-08-08** (see [status report](docs/status/2026-08-08_02-28_cqrs-lint-backlog-triage.md)):
+> C001/D012/C008 false-positive fixes, S006/A018/B004 regression tests,
+> A034 per-module migration, SARIF logicalLocations, D007 self-lint fix
+> (5 instances), C023 self-lint fix (1 instance).
+
+### False-positive fixes (DONE)
+
+- [x] **C001** — read-only bbolt `Begin(false)` + composite-literal escape
+      (`&iter{tx: tx}`) no longer flagged. 2 regression tests added.
+- [x] **D012** — `main` package files excluded (CLI tools use `fmt.Print*`
+      intentionally). Regression test added.
+- [x] **C008** — removed `"rate"` from weak fields + added
+      `nonMonetaryFieldPatterns` denylist (latency, throughput, ratio,
+      percentage, duration, seconds, qps, rps, fps). 2 regression tests.
+- [x] **Removed stale `//cqrs-lint:ignore(C001)`** in `storage/bbolt/kv_adapter.go`
+      (no longer needed after fix).
+
+### Regression tests (DONE)
+
+- [x] **S006** — weak-tier suppression for local-only projects + fires for
+      server projects.
+- [x] **A018** — suppressed by Save/Publish/Dispatch calls + FoldInfo.
+- [x] **B004** — no finding for < 3 fields + suppressed by existing `New*`
+      constructor.
+
+### Per-module migration (PARTIALLY DONE)
+
+- [x] **A034 migrated** — `ctx.FeatureProfile.HasMetaengine` →
+      `ctx.ProfileForFile(gf.Path).HasMetaengine`.
+- [ ] **F015/F016/F017, F022, F026** — intentionally project-level (F-series
+      assess project-wide adoption). No migration needed unless they start
+      false-positiving in multi-module workspaces.
+
+### SARIF logicalLocations (DONE — test gap remains)
+
+- [x] **SARIF logicalLocations populated** — `run.logicalLocations[]` from
+      scored modules (used + missing), result-level index cross-references.
+- [ ] **Dedicated SARIF logicalLocations test** — verify array is populated,
+      index mapping is correct, `kind` is `"module"`.
+
+### Self-lint triage (PARTIALLY DONE)
+
+- [x] **D007** — 5 `event.NewEvent(` → `event.New(` instances fixed
+      (metaengine-quickstart, encryption, watermill).
+- [x] **C023** — 1 `engine.Close()` unchecked call fixed (irohengine demo).
+- [ ] 🔥 **C023 false positive on void-return `Close()`** — `dgo` client's
+      `Close()` returns void but C023 flags it. Needs type-awareness: check
+      call expression returns an error before flagging. Requires `TypesInfo`
+      (unavailable in `BuildContextFromSource` test helper).
+- [ ] **~80 C033 bare `return err` findings** — across `metaengine/*engine/`
+      and `benchkit/`. All INFO-level. Needs bulk-fix vs suppress decision.
+- [ ] **~15 D014 missing json tags** findings.
+- [ ] **~8 C034 `go func()` without context** findings.
+- [ ] **~6 P012/P013 SQLite without WAL/busy_timeout** findings.
+- [ ] **~8 A032 string/int fields instead of branded ID** findings.
+
+### Open work (NOT STARTED)
 
 - [ ] 🔥 **Run cqrs-lint against real consumer projects** — validate
       false-positive rates against Kernovia, Standup-Killer, bank-sync,
       cqrs-htmx, DiscordSync, timesheets, crush-daily, KeyHolderAI. This is the
       single highest-value non-coding task for cqrs-lint trustworthiness.
-
-- [ ] **Fix remaining false positives** — C001 (read-only bbolt transactions),
-      D012 (CLI tools should be excluded), C008 (non-monetary floats).
-
-- [ ] **Triage remaining ~199 self-lint WARNING/INFO findings** — D007 (8
-      `event.NewEvent` → `event.New`), D014 (15 missing json tags), C034 (8
-      `go func()` without ctx), C033 (~15 bare `return err`), C023 (~10
-      unchecked `Close()`), P012/P013 (~6 SQLite without WAL/busy_timeout),
-      A032 (~8 string/int fields instead of branded ID).
-
-- [ ] **Missing regression tests** — S006 fix (WEAK suppression), A018 fix
-      (dispatch activity check), B004 fix (constructor check) — 3 of 7
-      KeyHolderAI fixes have no regression tests.
-
-- [ ] **Migrate global detectors to per-module evaluation** —
-      `ProfileForFile` infrastructure exists. 13+ detectors migrated. Remaining:
-      8 detector files still use `ctx.FeatureProfile` directly (6 in `adoption/`,
-      1 in `api/`). F-series rules are intentionally project-level. High
-      false-positive risk for multi-module workspaces.
-
-- [ ] **Scorecard SARIF `logicalLocations`** — SARIF output represents adoption
-      metrics as `notifications` (not `results`). The `logicalLocations` half
-      is still pending.
-
+- [ ] **C008 word-boundary matching** — `TotalDays` matches `total`; add
+      word-boundary regex to prevent substring false positives.
+- [ ] **D007 auto-fix test** — `--fix` path (replaces `event.NewEvent` →
+      `event.New`) is untested.
+- [ ] **Generalize C001 `Begin(false)` check** — currently bbolt-specific;
+      other DBs may use different read-only patterns.
 - [ ] **Deferred P-series rules** — `metaengine.Query` without type parameter,
       `MapUpdate` on replicated engine, Store never Closed, `metaengine.On`
       wrong handler signature. Each needs advanced type inference.
-
 - [ ] **L1.5 domain severity calibration** — `DomainKind` enum +
       `applyDomainBias` shipped; still needs broader testing against
       financial/security projects.
-
 - [ ] **~14 remaining Pareto backlog items** — see the
       [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
       Highest impact: L1.30–L1.33 deep pattern detection, L1.47–L1.51 new rule
       categories (DOC/OBS/RES/DI).
+- [ ] **Tag cqrs-lint v4.5.0** — with all false-positive fixes + regression
+      tests from this session. Or wait for C023 fix + consumer validation.
 
 ---
 
