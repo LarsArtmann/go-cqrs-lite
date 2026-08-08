@@ -59,7 +59,7 @@ func NewB031Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					findings = append(findings, singleInfoFinding(
+					fs := singleInfoFinding(
 						ctx,
 						"B031",
 						"projectionhost.New() called without WithDeadLetterStore — "+
@@ -68,7 +68,8 @@ func NewB031Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							"to isolate poison events for manual inspection and replay",
 						pos,
 						finding.ConfidenceLow,
-					...)...)
+					)
+					findings = append(findings, fs...)
 
 					return true
 				})

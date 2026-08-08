@@ -31,7 +31,7 @@ func NewB029Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				findings = append(findings, singleInfoFinding(
+				fs := singleInfoFinding(
 					ctx,
 					"B029",
 					"Bus/dispatcher "+name+" has no retry middleware — "+
@@ -40,7 +40,8 @@ func NewB029Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						"automatic transient failure recovery",
 					pos,
 					finding.ConfidenceLow,
-				...)...)
+				)
+				findings = append(findings, fs...)
 			}
 
 			return findings, nil

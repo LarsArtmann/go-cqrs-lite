@@ -32,7 +32,7 @@ func NewB030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				findings = append(findings, singleInfoFinding(
+				fs := singleInfoFinding(
 					ctx,
 					"B030",
 					"Bus/dispatcher "+name+" has no circuit breaker middleware — "+
@@ -41,7 +41,8 @@ func NewB030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						"isolate downstream failures and prevent cascade",
 					pos,
 					finding.ConfidenceLow,
-				...)...)
+				)
+				findings = append(findings, fs...)
 			}
 
 			return findings, nil

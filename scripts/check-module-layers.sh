@@ -101,13 +101,12 @@ LAYER[idempotency/sqlstore]=2
 # These are documented exceptions to the strict layer rules
 declare -A EXCEPTIONS
 EXCEPTIONS[event]="schema snapshot storage/memory"
-EXCEPTIONS[schema]="storage/memory snapshot"
+EXCEPTIONS[schema]="storage/memory"
 EXCEPTIONS[decider]="storage/memory otel"
 EXCEPTIONS[query]="snapshot storage/memory"
 EXCEPTIONS[command]="snapshot storage/memory"
 EXCEPTIONS[listing]="storage/memory"
 EXCEPTIONS[projectionhost]="storage/memory otel testutil testutil/pgtestcontainer"
-EXCEPTIONS[transport/http]="testutil"
 EXCEPTIONS[metaengine]="metaengine/sqliteengine"
 
 # Test-only packages that don't count against production dep budgets.

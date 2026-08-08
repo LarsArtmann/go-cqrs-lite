@@ -116,6 +116,7 @@ func (a *Adapter) Handle(ctx context.Context, evt event.Event) error {
 		span.SetAttributes(
 			attribute.String("projectionadapter.event_type", eventType),
 			attribute.String("projectionadapter.stream_id", evt.StreamID().String()),
+			attribute.String("projectionadapter.stream_type", string(evt.StreamType())),
 			attribute.Int64("projectionadapter.version", int64(evt.Version())),
 		)
 	}

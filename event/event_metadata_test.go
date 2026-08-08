@@ -66,6 +66,9 @@ func TestEventOptions(t *testing.T) {
 	}
 }
 
+// TestNewMetadata covers zero-value construction and lazy Custom map
+// initialization. The deprecated event.EnsureCustom call exercises the
+// backward-compat lazy-init path; it will not be removed until EnsureCustom is.
 func TestNewMetadata(t *testing.T) {
 	t.Parallel()
 
