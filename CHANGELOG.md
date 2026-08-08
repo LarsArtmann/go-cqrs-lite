@@ -8,6 +8,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+#### System integration tests — real-engine lifecycle verification
+
+- **`TestIntegration_SQLiteSource_MemoryProjection_HealthCheck`** — two-engine
+  deployment (SQLite events + Memory projections): full CQRS roundtrip, projection
+  host catch-up, MetaEngine query verification, HealthCheck, HealthCheckDetailed
+  (both engines healthy), EngineNames (>=2), GracefulClose.
+- **`TestIntegration_PebbleSource_HealthCheck`** — Pebble driver registered via
+  `system.RegisterDriver("pebble", ...)` in test `init()`, command dispatch,
+  event persistence verified via `EventStore().Load()`, HealthCheck +
+  HealthCheckDetailed (finds `pebble-store` by name), Close.
+- **`TestIntegration_GracefulClose_WatermillDrainer`** — real Watermill `EventBus`
+  (GoChannel-backed) wrapped as `system.Drainer` via `eventBusDrainer` adapter,
+  event pub/sub with handler verification (`atomic.Bool`), `GracefulClose` drains
+  before closing, post-close bus state verified (Publish returns error).
+- **`eventBusDrainer` adapter pattern** — demonstrates the real-world wrapper
+  consumers write to integrate a Watermill EventBus with System's `GracefulClose`
+  lifecycle (`Drain(ctx)` calls `bus.Close()`).
+- **Pebble + Watermill deps added to system module** —
+  `metaengine/pebbleengine/v4` and `watermill/v4` are now direct deps of
+  `system/go.mod` (test-only imports). Pebble driver registration via
+  `init()` demonstrates the `database/sql`-style driver-registry model.
+- **All 3 tests pass with `-race`**. System package coverage: 73.2%.
+
 #### Aggregate pushdown consolidation — shared helpers, plan diff, PG tests, ADR
 
 - **`metaengine.DecodeFloat`** — shared scan-value-to-float64 normalizer

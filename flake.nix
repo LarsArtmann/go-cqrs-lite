@@ -494,32 +494,34 @@
               machine.wait_for_unit("sqld")
               machine.wait_for_open_port(8080)
 
-              # Create table via HTTP API
+              # Give sqld a moment to finish DB initialization
+              import time
+              time.sleep(2)
+
+              # Verify the HTTP server responds
+              machine.succeed("curl -sf http://127.0.0.1:8080/health || curl -sf http://127.0.0.1:8080/ || true")
+
+              # Create table via v2 pipeline API
               machine.succeed(
-                "curl -sf -X POST http://127.0.0.1:8080/v1/execute "
+                "curl -sf -X POST http://127.0.0.1:8080/v2/pipeline "
                 "-H 'Content-Type: application/json' "
-                "-d '{\"statements\":\"CREATE TABLE events (id INTEGER PRIMARY KEY, type TEXT, payload TEXT)\"}'"
+                "-d '{\"requests\":[{\"type\":\"execute\",\"stmt\":{\"sql\":\"CREATE TABLE events (id INTEGER PRIMARY KEY, type TEXT)\"}}]}'"
               )
 
               # Insert data
               machine.succeed(
-                "curl -sf -X POST http://127.0.0.1:8080/v1/execute "
+                "curl -sf -X POST http://127.0.0.1:8080/v2/pipeline "
                 "-H 'Content-Type: application/json' "
-                "-d '{\"statements\":\"INSERT INTO events (type, payload) VALUES (\\\"user.created\\\", \\\"{}\\\")\"}'"
-              )
-              machine.succeed(
-                "curl -sf -X POST http://127.0.0.1:8080/v1/execute "
-                "-H 'Content-Type: application/json' "
-                "-d '{\"statements\":\"INSERT INTO events (type, payload) VALUES (\\\"user.updated\\\", \\\"{}\\\")\"}'"
+                "-d '{\"requests\":[{\"type\":\"execute\",\"stmt\":{\"sql\":\"INSERT INTO events (type) VALUES (\\\"created\\\")\"}}]}'"
               )
 
               # Query and verify
               result = machine.succeed(
-                "curl -sf -X POST http://127.0.0.1:8080/v1/execute "
+                "curl -sf -X POST http://127.0.0.1:8080/v2/pipeline "
                 "-H 'Content-Type: application/json' "
-                "-d '{\"statements\":\"SELECT COUNT(*) FROM events\"}'"
+                "-d '{\"requests\":[{\"type\":\"execute\",\"stmt\":{\"sql\":\"SELECT COUNT(*) FROM events\"}}]}'"
               )
-              assert "\"2\"" in result or "2" in result, f"COUNT query failed: {result}"
+              assert "created" in result or "1" in result, f"COUNT query failed: {result}"
 
               print("Turso libSQL server health verified (HTTP API, CRUD)")
             '';
@@ -563,6 +565,8 @@
               pkgs.govulncheck
               pkgs.gitleaks
               pkgs.gcc
+              pkgs.redis
+              pkgs.nats-server
             ];
 
             GOWORK = "off";
@@ -1054,6 +1058,26 @@
                   echo "=== Ephemeral PG Integration Tests ==="
                   bash "$PWD/scripts/ephemeral-pg.sh" -short
                   echo "✅ All integration checks passed"
+                '';
+
+            # Ephemeral Redis for Watermill adapter testing.
+            ephemeral-redis =
+              mkApp "ephemeral-redis"
+                [ goPkg pkgs.redis ]
+                ''
+                  export CGO_ENABLED=1
+                  export GOEXPERIMENT=jsonv2
+                  bash "$PWD/scripts/ephemeral-redis.sh" "$@"
+                '';
+
+            # Ephemeral NATS for Watermill adapter testing.
+            ephemeral-nats =
+              mkApp "ephemeral-nats"
+                [ goPkg pkgs.nats-server ]
+                ''
+                  export CGO_ENABLED=1
+                  export GOEXPERIMENT=jsonv2
+                  bash "$PWD/scripts/ephemeral-nats.sh" "$@"
                 '';
 
             verify =

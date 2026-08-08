@@ -1,13 +1,8 @@
 # TODO List
 
-**Updated:** 2026-08-08 (session 3: 12/12 metaengine v2 + aggregate pushdown TODOs
-completed — `DecodeFloat`/`DecodeFloatResults` extracted to core, `ReadPattern`
-added to `SerializableQuery`, aggregate diagnostics in `Doctor()`, PG functional
-aggregate tests (7 functions via testcontainers), DuckDB race regression test,
-DuckDB planned-path empty-collection test, cross-engine planned-table parity
-test, ADR-0120, `lookupPlan` shallow-copy docs, DuckDB `t.Parallel()` audit,
-coverage verified, QUIC `-parallel 4` verified; 3 follow-up items added for
-missing direct tests)
+**Updated:** 2026-08-08 (session 4: system integration tests shipped — SQLite+Memory
+multi-engine, Pebble source-of-truth, Watermill GracefulClose drainer; all 3
+prior-session blocking items verified resolved; coverage 73.2%)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -44,7 +39,7 @@ and is **never** duplicated here.
 - [x] ~~Fix `metaengine/explain.go` build break~~ — RESOLVED: daemon completed
       `aggregateCapabilities` in subsequent commits (`2936e8c19`, `4d4da45d5`,
       `797d9ce45`). Workspace build passes.
-- [x] ~~Regenerate api-stability golden~~ — VERIFIED: 3808 exports match golden.
+- [x] ~~Regenerate api-stability golden~~ — VERIFIED: 3809 exports match golden.
       The `DecodeFloat` addition in `docs/api_surface.txt` is correct (daemon's
       commit `a380e1ed1`).
 - [x] ~~Run doc-check on system README~~ — PASSES: 47 references valid across
