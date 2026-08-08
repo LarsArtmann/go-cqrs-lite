@@ -372,3 +372,7 @@ and is **never** duplicated here.
 - **Redis adapter** — the author is not a fan of Redis. See ROADMAP Non-Goals.
 - **Rewrite `check-module-layers.sh` as Go NOW** — deferred. The script is stable
   (348 lines). Revisit when complexity grows significantly.
+- **Fix LogBackend same-nanosecond collision** — `time.Now().UnixNano()` could
+  theoretically collide under extreme concurrency (1-in-a-billion). The
+  performance cost of an atomic counter per collection is not worth the
+  theoretical correctness gain. Accepted tradeoff: a counter may be off by 1.
