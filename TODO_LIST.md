@@ -312,8 +312,8 @@ and is **never** duplicated here.
 
 - [ ] **Pin GitHub Actions to commit SHAs** — 72+ unpinned actions
       (supply-chain risk).
-- [ ] **Add self-lint to CI** — `cqrs-lint --self-lint` works but no GitHub
-      Actions step gates it.
+- [x] ~~**Add self-lint to CI**~~ — DONE. `cqrs-lint-self-lint` job added to
+      ci.yml: runs `cqrs-lint . --strict-load` on its own source.
 - [ ] **Add `--fail-on-stale-suppressions` CI gate** — prevents stale
       `//cqrs-lint:ignore` directives from accumulating.
 - [ ] **Add CI check for API-version drift** — verify every exported symbol
