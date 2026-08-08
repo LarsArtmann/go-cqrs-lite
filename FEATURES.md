@@ -231,7 +231,7 @@ developer never declares "I need a Map" or "I need a Counter."
 | VersionedStorage              | Temporal queries (`ExecuteAsOf`) on Memory engine. Version chains + binary search                                                                                                                                          | 🧪     |
 | Store                         | `Plan(engines, queries...)` returns `*Store` for Apply/Execute; `ApplyEncoded` for JSON payloads                                                                                                                           | 🧪     |
 | Collection results            | Reconstructs typed result collections by field shape from scan output. `ScanResult{Items []any; HasMore bool}` — explicit contract across all engines                                                                      | 🧪     |
-| Zero dependencies             | Core `metaengine/v4` has zero production deps; adapter module is separate                                                                                                                                                  | 🧪     |
+| Minimal dependencies          | Core `metaengine/v4` depends on `record/` (shared types, ADR-0111); adapter module is separate                                                                                                                             | 🧪     |
 | Projection adapter            | `metaengine/projectionadapter` implements `projection.Projection` for `projectionhost.Host` (ADR-0062)                                                                                                                     | 🧪     |
 | Cost calibration              | `EngineProfile.NsPerRead`/`NsPerWrite` — split read vs write cost (Memory=500ns, SQLite=7000ns)                                                                                                                            | 🧪     |
 | Store.EventTypes()            | Returns sorted unique event types from registered queries — enables adapter event routing                                                                                                                                  | 🧪     |
@@ -300,28 +300,9 @@ developer never declares "I need a Map" or "I need a Counter."
 | Record stamping               | `AutoInsert`/`AutoUpdate` auto-stamp Record metadata (StreamID, Version, CorrelationID) into matching result fields (`record_stamp.go`)                                                                                    | 🧪     |
 | Tombstone deprecation         | All tombstone API carries `// Deprecated:` → migration guide. Functional in v4, removal in v5 (ADR-0114)                                                                                                                   | 🧪     |
 
-**Coverage:** 79.8% (verified `go test -tags "goexperiment.jsonv2" -cover` 2026-08-07). 174 BDD specs + 150 cross-engine
-meta specs + 12 ADT harness self-tests. The metaengine went through 20+ hardening
-sessions (2026-07-30 to 2026-08-06): transaction API fix, SQL injection fix,
-hooks-on-error, ReadCoalescer wiring, Watcher with per-key filtering,
-PrefetchCache with cursor-encoded auto-population, SSE adapter with
-Last-Event-ID reconnection, ContractSuite expanded to all 10 ADTs, Pebble
-LayoutPlanner (108x speedup), Pebble sort index (1,233x speedup),
-RawValueReader/RawScanReader (single-pass decode), rule pipeline extraction,
-materialize-vs-replay cost model, StorageLayout + cost matrix, SerializablePlan,
-VersionedStorage temporal queries, Fold sealed interface refactor, 5-engine
-cross-engine parity, Vector/Search/Spatial ADTs, pgengine + duckdbengine,
-replication model (ADR-0093), Universal ADT Phase 3 (ADR-0094), WatchTyped,
-boundary key validation, CalibrateEngine fix, ReadCosts (per-read-pattern
-costs) + SerializableReadCosts in plan JSON (ADR-0100), go-sse consumption
-(ADR-0097), DuckDB+PG calibration benchmarks, benchmark correctness assertions,
-**`AutoInsert`/`AutoCRUD`/`AutoCRUDByConvention`**, tombstone deprecation,
-**GraphBackend cleanup** (removed from 4 degraded engines, -433 lines),
-**Aggregate pushdown** (5 interfaces on DuckDB/SQLite/PG, GROUP BY 4.4x speedup).
-
-Remaining: Update CHANGELOG for 14 new tags, regen api-stability golden,
-record-stamp tests for badgerengine/dgraphengine/graphadapter, AutoCRUD soak
-for sqliteengine+pgengine. See [TODO_LIST.md](TODO_LIST.md).
+**Coverage:** ~80% (`go test -tags "goexperiment.jsonv2" -cover`). 174 BDD specs
++ 150 cross-engine meta specs + 12 ADT harness self-tests. See
+[TODO_LIST.md](TODO_LIST.md) for remaining gaps.
 
 ---
 

@@ -126,11 +126,8 @@ expectedVersion, entries)` — atomic optimistic concurrency under a single
 - ✅ **StreamLogBackend** — 5-method interface for stream-keyed event journals.
   Memory + SQLite implementations. Foundation for the `system/` package
 
-**Remaining (short-term, see [TODO_LIST.md](TODO_LIST.md)):** Update CHANGELOG for
-14 new tags, run `nix run .#verify` to completion, regen api-stability golden
-(tool has compile error), record-stamp tests for badgerengine/dgraphengine/
-graphadapter, AutoCRUD soak for sqliteengine+pgengine, PG functional tests for
-aggregate interfaces (testcontainers).
+**Remaining (short-term):** See [TODO_LIST.md](TODO_LIST.md) — DuckDB `plans`
+map lock consistency, `DecodeFloatResults` bounds guard, stale README claims.
 
 **Metaengine v2 (ADRs 0111-0119) — ES-native architecture shipped:**
 
