@@ -117,6 +117,9 @@ func (e *dgraphEngine) LogAppend(ctx context.Context, col string, value any) err
 }
 
 func (e *dgraphEngine) LogTail(ctx context.Context, col string, limit int) ([]any, error) {
+	// DQL's `first:` is a query-syntax element, not a value, so it cannot be
+	// passed as a $variable in QueryWithVars. limit is an int — %d emits only
+	// digits, so this is injection-safe by construction.
 	firstClause := ""
 	if limit > 0 {
 		firstClause = fmt.Sprintf(", first: %d", limit)

@@ -42,25 +42,38 @@ func NewS010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					callStr := analyzer.ExprString(call.Fun)
 
-					if strings.Contains(callStr, "EncryptMiddleware") ||
-						strings.Contains(callStr, "encryption.New") {
-						if !busEncrypted && !busSigned {
-							triggerPos = ctx.Fset.Position(call.Pos())
-						}
-						busEncrypted = true
-					}
-
-					if strings.Contains(callStr, "SignMiddleware") ||
-						strings.Contains(callStr, "signing.New") {
-						if !busEncrypted && !busSigned {
-							triggerPos = ctx.Fset.Position(call.Pos())
-						}
-						busSigned = true
-					}
-
 					if strings.Contains(callStr, "NewSignedStore") ||
 						strings.Contains(callStr, "NewEncryptedStore") {
 						storeWrapped = true
+					}
+
+					sel, selOk := analyzer.SelectorFromExpr(call.Fun)
+					if !selOk {
+						return true
+					}
+
+					if sel.Sel.Name != "Use" && sel.Sel.Name != "UsePublish" {
+						return true
+					}
+
+					for _, arg := range call.Args {
+						argStr := analyzer.ExprString(arg)
+
+						if strings.Contains(argStr, "EncryptMiddleware") ||
+							strings.Contains(argStr, "encryption.New") {
+							if !busEncrypted && !busSigned {
+								triggerPos = ctx.Fset.Position(arg.Pos())
+							}
+							busEncrypted = true
+						}
+
+						if strings.Contains(argStr, "SignMiddleware") ||
+							strings.Contains(argStr, "signing.New") {
+							if !busEncrypted && !busSigned {
+								triggerPos = ctx.Fset.Position(arg.Pos())
+							}
+							busSigned = true
+						}
 					}
 
 					return true

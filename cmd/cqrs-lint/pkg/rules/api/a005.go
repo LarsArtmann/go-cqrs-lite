@@ -50,6 +50,10 @@ func NewA005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					if sel.Sel.Name == "SubscribeAll" {
+						if !analyzer.ReceiverIsEventBus(gf.Pkg, call) {
+							return true
+						}
+
 						hasSubscribeAll = true
 						subscribePos = ctx.Fset.Position(call.Pos())
 					}

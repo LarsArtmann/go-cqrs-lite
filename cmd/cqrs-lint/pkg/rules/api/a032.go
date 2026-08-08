@@ -45,6 +45,14 @@ func NewA032Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
+					if structHasFormTag(st) {
+						return true
+					}
+
+					if isDisplayPackage(gf.Path) {
+						return true
+					}
+
 					for _, field := range st.Fields.List {
 						if len(field.Names) == 0 {
 							continue
@@ -122,4 +130,36 @@ func fileImportsIDPackage(root ast.Node) bool {
 	})
 
 	return hasID
+}
+
+// structHasFormTag reports whether any field in the struct has a `form:` tag,
+// indicating it's an HTTP binding DTO rather than a domain type.
+func structHasFormTag(st *ast.StructType) bool {
+	if st.Fields == nil {
+		return false
+	}
+
+	for _, field := range st.Fields.List {
+		if field.Tag == nil {
+			continue
+		}
+
+		if strings.Contains(field.Tag.Value, "form:") {
+			return true
+		}
+	}
+
+	return false
+}
+
+// isDisplayPackage reports whether the file path suggests a display/view/DTO
+// package where branded IDs add no value.
+func isDisplayPackage(path string) bool {
+	lower := strings.ToLower(path)
+
+	return strings.Contains(lower, "/ui/") ||
+		strings.Contains(lower, "/view/") ||
+		strings.Contains(lower, "/display/") ||
+		strings.Contains(lower, "/dashboard/") ||
+		strings.Contains(lower, "/dto/")
 }

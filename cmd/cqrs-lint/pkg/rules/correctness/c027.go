@@ -48,6 +48,10 @@ func NewC027Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
+					if !analyzer.ReceiverIsEventBus(gf.Pkg, call) {
+						return true
+					}
+
 					pos := ctx.Fset.Position(call.Pos())
 
 					f, err := finding.NewBuilder(
