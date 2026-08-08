@@ -783,6 +783,8 @@ func RunConcurrentTxTest(t *testing.T, eng metaengine.Engine) {
 //
 // Engines with real transaction semantics should use RunTransactionalTest
 // instead, which additionally verifies rollback.
+//
+// The caller is responsible for closing the engine.
 func RunTransactionalBaselineTest(t *testing.T, eng metaengine.Engine) {
 	t.Helper()
 
