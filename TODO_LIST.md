@@ -105,6 +105,29 @@ and is **never** duplicated here.
 - [x] **Fix COVERAGE GAPs in `check-module-layers.sh`** — script passes clean.
       No gaps remain (verified by running the script directly).
 
+### ADR-0113: GraphBackend cleanup (DONE this session)
+
+- [x] 🔥 **Removed GraphBackend from degraded engines** — SQLite, Pebble, Badger,
+      and Iroh no longer implement `metaengine.GraphBackend`. These engines had
+      O(N) BFS scan fallbacks (not real graph databases). Removed: assertion lines,
+      graph method implementations, graph DDL/keycodec aliases, graph tests,
+      dead `nextKey` function in badgerengine, unused `BFSNeighbors`/`GraphEdgeKey`/
+      `GraphPrefixForward` from `keycodec`. Engines now return `ErrUnsupportedGraphOps`
+      for graph queries — consumers use `graphadapter` or `dgraphengine` instead.
+- [x] **Record-aware graphadapter integration test** — `TestAdapter_StoreIntegration_-
+      RecordAware` in `graphadapter/adapter_test.go`. Proves the full ES-native
+      pipeline: `Plan` → `ApplyRecord(Record)` → `Execute(Traversal)` → neighbors.
+      Graph queries flow: Store → GraphBackend → graphadapter → graph.MemoryDriver.
+- [x] **Kept GraphBackend on Memory (testing), Dgraph (native graph DB),
+      GraphAdapter (canonical graph path)** — these three are the only engines
+      that should support ADTGraph.
+
+> **Remaining ADR-0113 work:** The `GraphBackend` interface itself is still
+> exported (it's the capability-detection pattern, same as MapBackend/SetBackend).
+> Fully deleting the interface type would require a different dispatch mechanism
+> in Store/Execute — deferred as low-value churn. Dgraph engine still implements
+> GraphBackend directly (intentional — it's a native graph DB).
+
 > Long-term metaengine work (`metaengine-gen` code generator, Vector/Search/
 > Spatial engine backends, generic `ScanResult[T]`, operator-driven engine
 > selection) lives in [ROADMAP.md](ROADMAP.md).
