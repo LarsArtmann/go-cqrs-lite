@@ -43,6 +43,12 @@ func findBeginTxVar(fn *ast.FuncDecl) string {
 			return true
 		}
 
+		// bbolt Begin(false) = read-only tx — commit is neither needed nor
+		// possible. Skip so C001 does not flag read-only transaction helpers.
+		if sel.Sel.Name == "Begin" && isReadOnlyBegin(call) {
+			return true
+		}
+
 		if assignStmt := findContainingAssignStmt(fn, call); assignStmt != nil {
 			if len(assignStmt.Lhs) > 0 {
 				if id, ok := assignStmt.Lhs[0].(*ast.Ident); ok {
@@ -111,7 +117,11 @@ type txAnalysis struct {
 	commitCalled bool // tx.Commit() appears as a direct call
 	deferCommit  bool // defer tx.Commit() appears
 	returnsNil   bool // a bare `return nil` success path exists
-	escapesToArg bool // tx is passed as a call argument (callback-helper pattern)
+	// escapes is true when tx leaves the function via a call argument
+	// (callback-helper pattern) or a composite-literal field (iterator
+	// pattern like &iter{tx: tx}). In both cases the callee/struct owns the
+	// commit lifecycle, so C001 must not flag the enclosing function.
+	escapes      bool
 	txUsed       bool // tx.<Method>() called where Method is not Commit/Rollback
 }
 
@@ -156,7 +166,18 @@ func analyzeTxUsage(fn *ast.FuncDecl, txVar string) txAnalysis {
 			// tx passed as an argument to any call (callback-helper escape).
 			for _, arg := range node.Args {
 				if exprReferencesIdent(arg, txVar) {
-					a.escapesToArg = true
+					a.escapes = true
+				}
+			}
+
+		case *ast.CompositeLit:
+			// tx stored in a struct-literal field (e.g. &iter{tx: tx}) —
+			// the returned struct owns the tx lifecycle (commit/rollback).
+			for _, elt := range node.Elts {
+				if kv, ok := elt.(*ast.KeyValueExpr); ok {
+					if exprReferencesIdent(kv.Value, txVar) {
+						a.escapes = true
+					}
 				}
 			}
 
@@ -178,6 +199,19 @@ func analyzeTxUsage(fn *ast.FuncDecl, txVar string) txAnalysis {
 	})
 
 	return a
+}
+
+// isReadOnlyBegin reports whether the Begin call was passed false
+// (read-only mode), as in bbolt's db.Begin(false). Read-only
+// transactions cannot be committed and should not trigger C001.
+func isReadOnlyBegin(call *ast.CallExpr) bool {
+	if len(call.Args) == 0 {
+		return false
+	}
+
+	id, ok := call.Args[0].(*ast.Ident)
+
+	return ok && id.Name == "false"
 }
 
 // exprReferencesIdent reports whether expr is, or address-of, the named ident.

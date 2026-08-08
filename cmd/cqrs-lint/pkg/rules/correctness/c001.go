@@ -50,7 +50,7 @@ func NewC001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					// separate ast.Inspect walks.
 					tx := analyzeTxUsage(fn, txVar)
 
-					if tx.deferCommit || tx.commitCalled || tx.escapesToArg {
+					if tx.deferCommit || tx.commitCalled || tx.escapes {
 						continue
 					}
 

@@ -2,6 +2,8 @@ package system
 
 import (
 	"context"
+	"fmt"
+	"io"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -83,10 +85,14 @@ func (s *System) orderedEngines() []metaengine.Engine {
 
 	// If there's a cycle, append remaining engines in creation order.
 	// Cycle nodes always have inDegree > 0 (they were never dequeued).
+	// The seen set is a defensive guard: it prevents accidental duplicate
+	// appends if the cycle-detection logic is refactored.
 	if processed < len(s.engines) {
+		seen := make(map[int]bool, len(result))
 		for i := range s.engines {
-			if inDegree[i] > 0 {
+			if inDegree[i] > 0 && !seen[i] {
 				result = append(result, s.engines[i].engine)
+				seen[i] = true
 			}
 		}
 	}
@@ -106,4 +112,35 @@ func (s *System) RegisterDrainer(d Drainer) {
 	defer s.mu.Unlock()
 
 	s.drainers = append(s.drainers, d)
+}
+
+// Drain calls all registered [Drainer]s to stop accepting new work and
+// finish in-flight work, bounded by ctx. Unlike [System.GracefulClose],
+// Drain does NOT close resources — use this for rolling deploys where the
+// process stays alive but should reject new requests.
+func (s *System) Drain(ctx context.Context) error {
+	s.mu.RLock()
+	drainers := make([]Drainer, len(s.drainers))
+	copy(drainers, s.drainers)
+	s.mu.RUnlock()
+
+	for _, d := range drainers {
+		if err := d.Drain(ctx); err != nil {
+			return fmt.Errorf("system: drain: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// RegisterCloser registers an external resource (e.g., a custom connection
+// pool, file handle) for lifecycle management. The closer will be called
+// during [System.Close] AFTER all engines are closed, in registration order.
+// Use this when you have infrastructure that is not a metaengine.Engine but
+// still needs to be shut down with the System.
+func (s *System) RegisterCloser(name string, closer io.Closer) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.closers = append(s.closers, namedCloser{closer: closer, name: name})
 }

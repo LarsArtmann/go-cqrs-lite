@@ -95,7 +95,7 @@ func RunAutoCRUDSoak(t *testing.T, eng metaengine.Engine) {
 
 	// Phase 1: Create all keys.
 	for i := range keys {
-		if err := store.Apply(ctx, "taskCreated", soakTaskCreated{
+		if err := store.Apply(ctx, "soakTaskCreated", soakTaskCreated{
 			ID:     keys[i],
 			Title:  fmt.Sprintf("Task %d", i),
 			Status: "open",
@@ -109,7 +109,7 @@ func RunAutoCRUDSoak(t *testing.T, eng metaengine.Engine) {
 	// Phase 2: Update each key many times (sustained load).
 	for u := range updatesPerKey {
 		for k := range keys {
-			if err := store.Apply(ctx, "taskUpdated", soakTaskUpdated{
+			if err := store.Apply(ctx, "soakTaskUpdated", soakTaskUpdated{
 				ID:     keys[k],
 				Title:  fmt.Sprintf("Task %d v%d", k, u),
 				Status: "in-progress",
@@ -125,7 +125,7 @@ func RunAutoCRUDSoak(t *testing.T, eng metaengine.Engine) {
 	deletedKeys := make(map[string]bool)
 
 	for i := 0; i < numKeys; i += 5 {
-		if err := store.Apply(ctx, "taskDeleted", soakTaskDeleted{ID: keys[i]}); err != nil {
+		if err := store.Apply(ctx, "soakTaskDeleted", soakTaskDeleted{ID: keys[i]}); err != nil {
 			t.Fatalf("Apply delete %d: %v", i, err)
 		}
 
@@ -139,7 +139,7 @@ func RunAutoCRUDSoak(t *testing.T, eng metaengine.Engine) {
 
 	for k := range deletedKeys {
 		if idx%2 == 0 {
-			if err := store.Apply(ctx, "taskCreated", soakTaskCreated{
+			if err := store.Apply(ctx, "soakTaskCreated", soakTaskCreated{
 				ID:     k,
 				Title:  "Recreated " + k,
 				Status: "open",
