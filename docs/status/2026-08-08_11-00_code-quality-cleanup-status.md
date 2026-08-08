@@ -9,11 +9,13 @@
 ## a) FULLY DONE
 
 ### 1. Deprecated `event.CustomData` alias
+
 - **File:** `event/v3_compat_aliases.go:31`
 - **Change:** Added `// Deprecated: use metadata.CustomData[K]. Retained for v3 consumers...` doc comment
 - **Status:** Committed in `62830b61f`. Builds clean.
 
 ### 2. EnsureCustom test callers — kept as backward-compat coverage
+
 - **Files:** `event/customdata_test.go`, `metadata/metadata_test.go`, `.golangci.yml`
 - **Decision:** Tests are intentionally exercising the deprecated API. Migrating them to `WithCustom` would remove coverage of the deprecated path that real consumers still call. Instead:
   - Added scoped SA1019 exclusion in `.golangci.yml` for `(event|metadata)/.*_test\.go$` matching `EnsureCustom`
@@ -22,16 +24,19 @@
 - **Status:** Committed in `62830b61f`. Builds + tests pass.
 
 ### 3. Removed `maintidx` test-file exclusion from `.golangci.yml`
+
 - **File:** `.golangci.yml` (test-file exclusion block, ~line 341)
 - **Precondition verified:** `TestTypedReader_AggregateFallback` was split into `_Scalar`, `_Grouped`, `_Multi` on 2026-08-08 (confirmed in `metaengine/typed_reader_aggregate_test.go`)
 - **Verification:** Ran `golangci-lint --enable-only maintidx ./...` — zero violations across all test files
 - **Status:** Committed in `62830b61f`.
 
 ### 4. `.golangci.yml` exclusion block review
+
 - **Result:** All 30+ exclusion blocks already have explanatory comments. No unjustified blocks found. The only actionable removal was `maintidx` (done above).
 - **Per-module `.golangci.yml` split:** NOT started — this is a golangci-lint v2 `config-dirs` feature migration, out of scope for this session.
 
 ### 5. DeferClose — storage/pebble/ (test files)
+
 - **Files created:** `defer_close_test.go` (package `pebble`), `defer_close_ext_test.go` (package `pebble_test`)
 - **Sites replaced:** 22 `defer func() { _ = x.Close() }()` patterns across 7 test files:
   - `adapter_test.go` (5), `backup_lifecycle_test.go` (5), `backup_retention_test.go` (5)
@@ -39,14 +44,17 @@
 - **Status:** Committed in `d4f8d3fc0`. Tests pass.
 
 ### 6. DeferClose — storage/bbolt/ (test files)
+
 - **File created:** `defer_close_test.go` (package `bbolt`)
 - **Sites replaced:** 6 bare `defer iter.Close()` in `stream_test.go` (these silently discarded errors — worse than the verbose pattern)
 - **Status:** Committed in `d4f8d3fc0`. Tests pass.
 
 ### 7. DeferClose — storage/eventstore/
+
 - **Result:** Only 1 site: `t.Cleanup(func() { _ = db.Close() })` — already idiomatic. No change needed.
 
 ### 8. tag-release.sh cleanup fix
+
 - **File:** `scripts/tag-release.sh`
 - **Changes:**
   1. `restore_working_tree()` now restores ALL tracked files (`git restore --staged --worktree .`) instead of only go.mod/go.sum
@@ -61,6 +69,7 @@
 ## b) PARTIALLY DONE
 
 ### DeferClose — production code NOT touched
+
 - **Pebble production code has 12 `defer func() { _ = x.Close() }()` sites** across `adapter.go`, `checkpoint.go`, `command_read.go`, `command_store.go`, `helpers.go`, `iteration.go`, `journal.go`, `query_read.go`, `save.go`.
 - The TODO list scope was test files ("~10 sites"), but production code has more. The helper (`deferClose`) is test-only (`_test.go` files), so production sites can't use it without creating a non-test helper.
 - **Decision:** Left production code alone. Extending to production requires a design decision: promote the helper to a non-test file (or use `metaengine.DeferClose` which is already production-grade but adds a cross-module dependency).
@@ -108,6 +117,7 @@ Nothing. All changes build, vet, and test clean. No regressions introduced.
 ## f) Up to 50 things we should get done next
 
 ### High priority — debt paydown
+
 1. Create `storage/internal/closeutil` package with a shared `DeferClose` to eliminate the 3x helper duplication
 2. Extend `DeferClose` to pebble production code (12 sites in `adapter.go`, `checkpoint.go`, `command_store.go`, etc.)
 3. Add a non-test `deferClose` to `storage/bbolt/` production code (for future use)
@@ -116,6 +126,7 @@ Nothing. All changes build, vet, and test clean. No regressions introduced.
 6. Run `nix run .#verify` for full green verification
 
 ### Medium priority — `.golangci.yml` evolution
+
 7. Plan per-module `.golangci.yml` split using golangci-lint v2 `config-dirs`
 8. Audit `system/` exclusion block (20 linters disabled — the broadest in the repo)
 9. Audit `cmd/cqrs-lint/` exclusion block (13 linters disabled)
@@ -126,6 +137,7 @@ Nothing. All changes build, vet, and test clean. No regressions introduced.
 14. Document the `exhaustruct` exclusion pattern — it's the most commonly disabled linter across modules
 
 ### Medium priority — test infrastructure
+
 15. Standardize pebble test cleanup: pick one pattern (`deferClose` vs `t.Cleanup`) or document when to use each
 16. Standardize bbolt test cleanup: convert the 1 `t.Cleanup` to `deferClose` for consistency (or vice versa)
 17. Add a `testutil.DeferClose` to the shared `testutil/` package (if modules can import it within dep budget)
@@ -133,6 +145,7 @@ Nothing. All changes build, vet, and test clean. No regressions introduced.
 19. Consider a `lint:test-cleanup-style` rule in cqrs-lint to enforce one pattern
 
 ### Medium priority — tag-release.sh hardening
+
 20. Add a `--no-restore` flag to tag-release.sh for debugging (leave the temp commit visible)
 21. Add a trap on EXIT/INT to always call `restore_working_tree` (currently relies on explicit calls)
 22. Add integration test for tag-release.sh: create a temp repo, run --dry-run, verify clean tree
@@ -140,6 +153,7 @@ Nothing. All changes build, vet, and test clean. No regressions introduced.
 24. Consider `git stash` instead of `git restore` for preserving untracked files during release
 
 ### Lower priority — deprecation cleanup
+
 25. Search for all remaining v3-compat aliases in `event/v3_compat_aliases.go` and verify each has a `// Deprecated:` comment
 26. Audit all `// Deprecated:` annotations across the codebase for completeness
 27. Plan EnsureCustom removal timeline (v5? v6?) and document in an ADR
@@ -147,6 +161,7 @@ Nothing. All changes build, vet, and test clean. No regressions introduced.
 29. Search for `CustomData` usage in downstream repos (cqrs-htmx/usermgmt mentioned) and plan migration
 
 ### Lower priority — documentation
+
 30. Update `AGENTS.md` "Lint Conventions" section to mention the EnsureCustom SA1019 exclusion pattern
 31. Update `AGENTS.md` to document the `deferClose` helper convention for storage test files
 32. Add a "Test cleanup patterns" subsection to AGENTS.md testing section
@@ -154,6 +169,7 @@ Nothing. All changes build, vet, and test clean. No regressions introduced.
 34. Update the source status report (`docs/status/2026-08-08_07-45_metaengine-v2-release-hygiene.md`) to mark items as resolved
 
 ### Lower priority — broader quality
+
 35. Run `nix run .#check-duplication` after the deferClose changes (3 new clone groups from the duplicated helper)
 36. Run `nix run .#check-coverage` to verify no coverage drift
 37. Audit `saga/` exclusion block — experimental module, may have accumulated debt
@@ -178,6 +194,7 @@ Nothing. All changes build, vet, and test clean. No regressions introduced.
 ### Q1: DeferClose helper location — shared package vs local duplication?
 
 The `deferClose` helper is now duplicated in 3 `_test.go` files across 2 modules. The metaengine already has a production `DeferClose`. Options:
+
 - **A:** Create `storage/internal/closeutil/` with a shared `DeferClose` (requires each storage submodule to import it — may hit dep budget concerns)
 - **B:** Add a non-test `deferClose` to each storage module's production code (pebble already has `_ = closer.Close()` in production, so it's just formalizing)
 - **C:** Push `DeferClose` into `testutil/` (already imported by some test files, but not all storage test files can import it within dep budget)

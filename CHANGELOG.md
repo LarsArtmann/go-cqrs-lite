@@ -1995,9 +1995,9 @@ Initial or bump release of `stack/mysql`, `stack/bbolt`, `stack/duckdb`.
   `go.etcd.io/bbolt`. `New(path, opts...)` opens a single-DB Backend facade
   (`storage/bbolt/backend.go:30`) with EventStore, SnapshotStore,
   CheckpointStore, KVAdapter sharing disjoint buckets. `OpenWith(path, opts,
-  logger)` accepts custom `bolt.Options` (ADR-0029).
+logger)` accepts custom `bolt.Options` (ADR-0029).
   `WithDurability(DurabilityRelaxed)` maps to `NoSync=true,
-  NoFreelistSync=true`; default is `DurabilityStrict`.
+NoFreelistSync=true`; default is `DurabilityStrict`.
 - **`stack/duckdb`** (`stack/duckdb/preset.go:97`, ADR-0071): DuckDB embedded
   OLAP preset (CGo, statically links C++ engine). `New(dsn, opts...)`
   supports `WithThreads(n)` for parallelism, `WithMemoryLimit("1GB")` for
@@ -2031,7 +2031,7 @@ Initial tagged release of 7 new modules.
   materialize benchmarks. Imports ALL engines (separate module).
 - **`storage/bbolt`** (`storage/bbolt/backend.go:18-56`): Embedded bbolt KV
   store. `Backend` facade with `Open(path, logger)`, `OpenWith(path, opts,
-  logger)`, `NewBackend(db, logger)`. EventStore, SnapshotStore,
+logger)`, `NewBackend(db, logger)`. EventStore, SnapshotStore,
   CheckpointStore, KVAdapter share one `*bolt.DB` via disjoint buckets
   (`cqrs_events`, `cqrs_snapshots`, etc.). Single-writer model (ADR-0029).
 - **`stack/bbolt`** (`stack/bbolt/preset.go:65`): Stack preset for bbolt.

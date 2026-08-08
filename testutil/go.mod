@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/testutil/v4
 go 1.26.5
 
 require (
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	pgregory.net/rapid v1.3.0

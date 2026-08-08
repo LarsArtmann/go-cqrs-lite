@@ -136,10 +136,10 @@ See Level 1 and Level 2 tables below.
 
 ### Phase 2: High-Value Rules (The 4%)
 
-| #    | Task                                                                             | Items | Pareto   | Impact                              | Effort  | Dependencies | Status  |
-| ---- | -------------------------------------------------------------------------------- | ----- | -------- | ----------------------------------- | ------- | ------------ | ------- |
-| L1.3 | Implement error swallowing in command handlers (NEW rule C031)                   | 168   | **[P4]** | Critical (catches #1 handler bug)   | 90 min  | None         | ✅ DONE |
-| L1.4 | Implement error swallowing in projection handlers (extend C010 to SQL errors)    | 169   | **[P4]** | Critical (extends existing rule)    | 90 min  | L1.3         | ✅ DONE |
+| #    | Task                                                                             | Items | Pareto   | Impact                              | Effort  | Dependencies | Status                                 |
+| ---- | -------------------------------------------------------------------------------- | ----- | -------- | ----------------------------------- | ------- | ------------ | -------------------------------------- |
+| L1.3 | Implement error swallowing in command handlers (NEW rule C031)                   | 168   | **[P4]** | Critical (catches #1 handler bug)   | 90 min  | None         | ✅ DONE                                |
+| L1.4 | Implement error swallowing in projection handlers (extend C010 to SQL errors)    | 169   | **[P4]** | Critical (extends existing rule)    | 90 min  | L1.3         | ✅ DONE                                |
 | L1.5 | Implement domain-based severity calibration (add `DomainBias` to FeatureProfile) | 102   | **[P4]** | Strategic (makes all rules smarter) | 100 min | None         | ✅ DONE (DomainKind + applyDomainBias) |
 
 ### Phase 3: Production Safety Rules (The 20%)
@@ -157,18 +157,18 @@ See Level 1 and Level 2 tables below.
 
 ### Phase 4: Infrastructure & DX
 
-| #     | Task                                                                            | Items | Pareto    | Impact                          | Effort | Dependencies | Status                      |
-| ----- | ------------------------------------------------------------------------------- | ----- | --------- | ------------------------------- | ------ | ------------ | --------------------------- |
-| L1.14 | Implement `--self-lint` flag (auto-exclude library module paths)                | 131   | **[P20]** | High (reduces 181 suppressions) | 90 min | None         | ✅ DONE (auto-detect)       |
-| L1.15 | Add CI step: `cqrs-lint` self-lint must pass on own repo                        | 132   | **[P20]** | High (regression gate)          | 60 min | L1.14        | ✅ DONE (IsLibrarySelfLint auto-detection) |
-| L1.16 | Implement migration paths in findings (add `Suggestion` / `FixHint` to Finding) | 103   | **[P80]** | Medium (DX quality)             | 90 min | None         | ✅ DONE (DocURL enrichment) |
-| L1.17 | Implement doc links in findings (add `DocURL` to Finding + catalog entries)     | 104   | **[P80]** | Medium (DX quality)             | 60 min | L1.16        | ✅ DONE (LookupRule)        |
-| L1.18 | Implement config inheritance (parent `.cqrs-lint.json` with local overrides)    | 121   | **[P80]** | Medium (monorepo support)       | 60 min | None         | ✅ DONE                     |
-| L1.19 | Implement feature adoption scorecard (beyond health score)                      | 113   | **[P80]** | Medium (DX quality)             | 90 min | None         | ✅ DONE (--scorecard flag + scorecard subcommand) |
+| #     | Task                                                                            | Items | Pareto    | Impact                          | Effort | Dependencies | Status                                              |
+| ----- | ------------------------------------------------------------------------------- | ----- | --------- | ------------------------------- | ------ | ------------ | --------------------------------------------------- |
+| L1.14 | Implement `--self-lint` flag (auto-exclude library module paths)                | 131   | **[P20]** | High (reduces 181 suppressions) | 90 min | None         | ✅ DONE (auto-detect)                               |
+| L1.15 | Add CI step: `cqrs-lint` self-lint must pass on own repo                        | 132   | **[P20]** | High (regression gate)          | 60 min | L1.14        | ✅ DONE (IsLibrarySelfLint auto-detection)          |
+| L1.16 | Implement migration paths in findings (add `Suggestion` / `FixHint` to Finding) | 103   | **[P80]** | Medium (DX quality)             | 90 min | None         | ✅ DONE (DocURL enrichment)                         |
+| L1.17 | Implement doc links in findings (add `DocURL` to Finding + catalog entries)     | 104   | **[P80]** | Medium (DX quality)             | 60 min | L1.16        | ✅ DONE (LookupRule)                                |
+| L1.18 | Implement config inheritance (parent `.cqrs-lint.json` with local overrides)    | 121   | **[P80]** | Medium (monorepo support)       | 60 min | None         | ✅ DONE                                             |
+| L1.19 | Implement feature adoption scorecard (beyond health score)                      | 113   | **[P80]** | Medium (DX quality)             | 90 min | None         | ✅ DONE (--scorecard flag + scorecard subcommand)   |
 | L1.20 | Implement grouped output by aggregate/domain                                    | 112   | **[P80]** | Medium (DX quality)             | 90 min | None         | ✅ DONE (--group-by aggregate, enrichWithAggregate) |
-| L1.21 | Add SARIF rule metadata (doc URL, severity, remediation in SARIF output)        | 117   | **[P80]** | Medium (GitHub Code Scanning)   | 60 min | L1.17        | ✅ DONE (DocURL enrichment) |
-| L1.22 | Implement block-level suppression (`//cqrs-lint:ignore-start` / `ignore-end`)   | 133   | **[P80]** | Medium (DX quality)             | 90 min | L1.1         | ✅ DONE (parser.go)         |
-| L1.23 | Verify parallel rule safety + add linter benchmark suite                        | 123   | **[P80]** | Low (premature but cheap)       | 60 min | None         | Open                        |
+| L1.21 | Add SARIF rule metadata (doc URL, severity, remediation in SARIF output)        | 117   | **[P80]** | Medium (GitHub Code Scanning)   | 60 min | L1.17        | ✅ DONE (DocURL enrichment)                         |
+| L1.22 | Implement block-level suppression (`//cqrs-lint:ignore-start` / `ignore-end`)   | 133   | **[P80]** | Medium (DX quality)             | 90 min | L1.1         | ✅ DONE (parser.go)                                 |
+| L1.23 | Verify parallel rule safety + add linter benchmark suite                        | 123   | **[P80]** | Low (premature but cheap)       | 60 min | None         | Open                                                |
 
 ### Phase 5: Cross-Module & Integration Rules
 
@@ -182,13 +182,13 @@ See Level 1 and Level 2 tables below.
 
 ### Phase 6: Deep Pattern Detection
 
-| #     | Task                                                                | Items | Pareto    | Impact                     | Effort | Dependencies | Status         |
-| ----- | ------------------------------------------------------------------- | ----- | --------- | -------------------------- | ------ | ------------ | -------------- |
-| L1.29 | Implement event type string typo detection (cross-ref fold vs emit) | 135   | **[P80]** | Medium (silent event drop) | 90 min | None         | ✅ DONE (C038) |
+| #     | Task                                                                | Items | Pareto    | Impact                     | Effort | Dependencies | Status                   |
+| ----- | ------------------------------------------------------------------- | ----- | --------- | -------------------------- | ------ | ------------ | ------------------------ |
+| L1.29 | Implement event type string typo detection (cross-ref fold vs emit) | 135   | **[P80]** | Medium (silent event drop) | 90 min | None         | ✅ DONE (C038)           |
 | L1.30 | Implement orphaned event types detection (extend E006 for adapters) | 136   | **[P80]** | Low-medium                 | 90 min | None         | ✅ DONE (E006 fold-case) |
-| L1.31 | Implement orphaned commands detection (extend E005 for HTTP layer)  | 137   | **[P80]** | Low-medium                 | 60 min | None         | ✅ DONE (E005) |
-| L1.32 | Extend D006: stricter error family detection in domain files        | 138   | **[P80]** | Medium (consistency)       | 60 min | None         | ✅ DONE (D017) |
-| L1.33 | Implement goroutine leak in event handler detection                 | 141   | **[P80]** | Medium (resource leak)     | 60 min | None         | ✅ DONE (C039) |
+| L1.31 | Implement orphaned commands detection (extend E005 for HTTP layer)  | 137   | **[P80]** | Low-medium                 | 60 min | None         | ✅ DONE (E005)           |
+| L1.32 | Extend D006: stricter error family detection in domain files        | 138   | **[P80]** | Medium (consistency)       | 60 min | None         | ✅ DONE (D017)           |
+| L1.33 | Implement goroutine leak in event handler detection                 | 141   | **[P80]** | Medium (resource leak)     | 60 min | None         | ✅ DONE (C039)           |
 
 ### Phase 7: Domain & Data Model Rules
 
@@ -205,13 +205,13 @@ See Level 1 and Level 2 tables below.
 
 ### Phase 8: Error Handling & Concurrency Rules
 
-| #     | Task                                                          | Items | Pareto    | Impact                 | Effort | Dependencies | Status         |
-| ----- | ------------------------------------------------------------- | ----- | --------- | ---------------------- | ------ | ------------ | -------------- |
-| L1.42 | Implement missing error wrapping detection                    | 171   | **[P80]** | Medium (debuggability) | 90 min | None         | ✅ DONE (C033) |
-| L1.43 | Extend B011: panic in all marshal helpers                     | 170   | **[P80]** | Low (crash prevention) | 45 min | None         | ✅ DONE        |
-| L1.44 | Implement race condition in read model (map without mutex)    | 172   | **[P80]** | Medium (data race)     | 60 min | None         | ✅ DONE (C035) |
+| #     | Task                                                          | Items | Pareto    | Impact                 | Effort | Dependencies | Status                                            |
+| ----- | ------------------------------------------------------------- | ----- | --------- | ---------------------- | ------ | ------------ | ------------------------------------------------- |
+| L1.42 | Implement missing error wrapping detection                    | 171   | **[P80]** | Medium (debuggability) | 90 min | None         | ✅ DONE (C033)                                    |
+| L1.43 | Extend B011: panic in all marshal helpers                     | 170   | **[P80]** | Low (crash prevention) | 45 min | None         | ✅ DONE                                           |
+| L1.44 | Implement race condition in read model (map without mutex)    | 172   | **[P80]** | Medium (data race)     | 60 min | None         | ✅ DONE (C035)                                    |
 | L1.45 | Implement shared mutable state in event handler (extend A015) | 173   | **[P80]** | Low (overlaps A015)    | 45 min | None         | ✅ DONE (map-typed global detection + IncDecStmt) |
-| L1.46 | Implement goroutine without context cancellation              | 174   | **[P80]** | Medium (overlaps C030) | 60 min | None         | ✅ DONE (C034) |
+| L1.46 | Implement goroutine without context cancellation              | 174   | **[P80]** | Medium (overlaps C030) | 60 min | None         | ✅ DONE (C034)                                    |
 
 ### Phase 9: New Rule Categories (Ambitious)
 
@@ -239,6 +239,7 @@ See Level 1 and Level 2 tables below.
 > C006 (manual version arithmetic).
 >
 > **Genuinely missing (future individual ideas, NOT new categories):**
+>
 > - RES: missing retry middleware (absent, not manual); circuit breaker; missing
 >   DLQ config on projectionhost.
 > - DOC: stale catalog entries (reverse of E004); doc generation freshness.
@@ -498,17 +499,17 @@ graph TD
 > (point fixes sufficient). The linter has grown from 65 to **192 rules**. This
 > plan is CLOSED.
 
-| Metric                            | Value                                                                     |
-| --------------------------------- | ------------------------------------------------------------------------- |
-| Total open items (original)       | 75 → 3 remain open (2026-08-08)                                           |
-| Items pruned (won't implement)    | 25                                                                        |
-| Items implemented                 | 48                                                                        |
-| Items closed as won't-fix         | 2 (L1.45, L1.51)                                                          |
-| Level 1 tasks                     | 51 (49 done + 2 won't-fix + 3 deferred to new evaluation)                |
-| New rules created                 | ~30 (C031-C040, S010-S011, P011-P013, E016-E017, etc.)                   |
-| Existing rules extended           | ~10 (C008, C010, C013, C017, B008, B011, D006, E005, E006, A015)          |
-| Infrastructure features           | ~12 (self-lint, scorecard, group-by, domain bias, config inheritance, etc.) |
-| Final rule count                  | **192 rules across 10 categories**                                        |
+| Metric                         | Value                                                                       |
+| ------------------------------ | --------------------------------------------------------------------------- |
+| Total open items (original)    | 75 → 3 remain open (2026-08-08)                                             |
+| Items pruned (won't implement) | 25                                                                          |
+| Items implemented              | 48                                                                          |
+| Items closed as won't-fix      | 2 (L1.45, L1.51)                                                            |
+| Level 1 tasks                  | 51 (49 done + 2 won't-fix + 3 deferred to new evaluation)                   |
+| New rules created              | ~30 (C031-C040, S010-S011, P011-P013, E016-E017, etc.)                      |
+| Existing rules extended        | ~10 (C008, C010, C013, C017, B008, B011, D006, E005, E006, A015)            |
+| Infrastructure features        | ~12 (self-lint, scorecard, group-by, domain bias, config inheritance, etc.) |
+| Final rule count               | **192 rules across 10 categories**                                          |
 
 ---
 

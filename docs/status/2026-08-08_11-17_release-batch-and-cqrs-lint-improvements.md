@@ -12,19 +12,19 @@
 
 All 11 annotated tags verified as pushed to `origin`:
 
-| Module | Tag | Key Content |
-|--------|-----|-------------|
-| `storage` | v4.6.0 | `SQLiteSetSynchronous`, `EnsurePostgresSynchronousCommit`, `EnsurePostgresStatementTimeout`, `PostgresSetSynchronousCommit`, `MySQLInitSchema` |
-| `command` | v4.4.0 | `commandtest` subpackage (`NewCmd`), command bus pub/sub (`Publisher`, `Subscriber`, `Bus`, `PublishMiddleware`), `PersistedCommand`, `CommandJournal`/`SeekableCommandJournal` |
-| `storage/memory` | v4.3.0 | `limit=0` fix, duplicate detection fix in append batch |
-| `metaengine/sqliteengine` | v4.0.1 | `HealthCheck` method |
-| `metaengine/duckdbengine` | v4.0.1 | `HealthCheck` + aggregate pushdown capabilities |
-| `metaengine/pgengine` | v4.0.1 | `HealthCheck` + aggregate pushdown capabilities |
-| `metaengine/pebbleengine` | v4.0.1 | `HealthCheck` method |
-| `metaengine/badgerengine` | v4.0.1 | `HealthCheck` method |
-| `metaengine/dgraphengine` | v4.0.1 | `HealthCheck` method |
-| `system` | v4.1.0 | Lifecycle methods (`GracefulClose`, `Drain`, `RegisterCloser`, `RegisterDrainer`), introspection (`Snapshot`, `Health`, `HealthCheck`, `HealthCheckDetailed`, `Explain`, `EngineNames`, `ShutdownOrder`, `LagPerProjection`, `WorkerStatus`), pebbleengine + watermill integration |
-| `cmd/cqrs-lint` | v4.5.0 | C008 word-boundary fix, C023 type-awareness, C001 BeginTx read-only, D007 auto-fix test, SARIF logicalLocations test |
+| Module                    | Tag    | Key Content                                                                                                                                                                                                                                                                        |
+| ------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `storage`                 | v4.6.0 | `SQLiteSetSynchronous`, `EnsurePostgresSynchronousCommit`, `EnsurePostgresStatementTimeout`, `PostgresSetSynchronousCommit`, `MySQLInitSchema`                                                                                                                                     |
+| `command`                 | v4.4.0 | `commandtest` subpackage (`NewCmd`), command bus pub/sub (`Publisher`, `Subscriber`, `Bus`, `PublishMiddleware`), `PersistedCommand`, `CommandJournal`/`SeekableCommandJournal`                                                                                                    |
+| `storage/memory`          | v4.3.0 | `limit=0` fix, duplicate detection fix in append batch                                                                                                                                                                                                                             |
+| `metaengine/sqliteengine` | v4.0.1 | `HealthCheck` method                                                                                                                                                                                                                                                               |
+| `metaengine/duckdbengine` | v4.0.1 | `HealthCheck` + aggregate pushdown capabilities                                                                                                                                                                                                                                    |
+| `metaengine/pgengine`     | v4.0.1 | `HealthCheck` + aggregate pushdown capabilities                                                                                                                                                                                                                                    |
+| `metaengine/pebbleengine` | v4.0.1 | `HealthCheck` method                                                                                                                                                                                                                                                               |
+| `metaengine/badgerengine` | v4.0.1 | `HealthCheck` method                                                                                                                                                                                                                                                               |
+| `metaengine/dgraphengine` | v4.0.1 | `HealthCheck` method                                                                                                                                                                                                                                                               |
+| `system`                  | v4.1.0 | Lifecycle methods (`GracefulClose`, `Drain`, `RegisterCloser`, `RegisterDrainer`), introspection (`Snapshot`, `Health`, `HealthCheck`, `HealthCheckDetailed`, `Explain`, `EngineNames`, `ShutdownOrder`, `LagPerProjection`, `WorkerStatus`), pebbleengine + watermill integration |
+| `cmd/cqrs-lint`           | v4.5.0 | C008 word-boundary fix, C023 type-awareness, C001 BeginTx read-only, D007 auto-fix test, SARIF logicalLocations test                                                                                                                                                               |
 
 ### Dependency Bumps
 
@@ -71,6 +71,7 @@ All 11 annotated tags verified as pushed to `origin`:
 ### Tag Push Status
 
 All 11 tags ARE pushed to origin (verified via `git ls-remote --tags origin`). However, 9 commits remain unpushed on master:
+
 - `e1d852556` docs(pareto): mark L1.45 as done
 - `7c38fd07c` feat(cqrs-lint): extend A015 to detect map-typed globals
 - `90b009bb8` feat(cqrs-lint): narrow A015 global mutable detection
@@ -89,17 +90,17 @@ All 11 tags ARE pushed to origin (verified via `git ls-remote --tags origin`). H
 
 ### Remaining Pareto Backlog (~9 items)
 
-| Item | Description | Effort | Priority |
-|------|-------------|--------|----------|
-| L1.5 | Domain-based severity calibration (`DomainBias` in FeatureProfile) | 100 min | P4 (strategic) |
-| L1.23 | Parallel rule safety + linter benchmark suite | 60 min | P80 |
-| L1.30 | Orphaned event types detection (extend E006) | 90 min | P80 |
-| L1.31 | Orphaned commands detection (extend E005) | 60 min | P80 |
-| L1.47 | DOC-series: missing docs, stale catalog, undocumented events | 100 min | P80 (ambitious) |
-| L1.48 | OBS-series: tracing spans, metrics, structured logging | 100 min | P80 (ambitious) |
-| L1.49 | RES-series: retry, circuit breaker, DLQ, graceful shutdown | 100 min | P80 (ambitious) |
-| L1.50 | DI-series: optimistic concurrency, idempotency, tx consistency | 100 min | P80 (ambitious) |
-| L1.51 | Stack preset boundary awareness (skip rules when stack/* used) | 90 min | P80 |
+| Item  | Description                                                        | Effort  | Priority        |
+| ----- | ------------------------------------------------------------------ | ------- | --------------- |
+| L1.5  | Domain-based severity calibration (`DomainBias` in FeatureProfile) | 100 min | P4 (strategic)  |
+| L1.23 | Parallel rule safety + linter benchmark suite                      | 60 min  | P80             |
+| L1.30 | Orphaned event types detection (extend E006)                       | 90 min  | P80             |
+| L1.31 | Orphaned commands detection (extend E005)                          | 60 min  | P80             |
+| L1.47 | DOC-series: missing docs, stale catalog, undocumented events       | 100 min | P80 (ambitious) |
+| L1.48 | OBS-series: tracing spans, metrics, structured logging             | 100 min | P80 (ambitious) |
+| L1.49 | RES-series: retry, circuit breaker, DLQ, graceful shutdown         | 100 min | P80 (ambitious) |
+| L1.50 | DI-series: optimistic concurrency, idempotency, tx consistency     | 100 min | P80 (ambitious) |
+| L1.51 | Stack preset boundary awareness (skip rules when stack/* used)     | 90 min  | P80             |
 
 ### Vulncheck Gate
 
