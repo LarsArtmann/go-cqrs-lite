@@ -1,6 +1,8 @@
 # TODO List
 
-**Updated:** 2026-08-08 (lint gate GREEN, verify gate 17/17 GREEN, DuckDB race fixed, CHANGELOG tagged)
+**Updated:** 2026-08-08 (metaengine v2 release hygiene sweep: record-stamp helper,
+badgerengine parity, AutoCRUD soak sqlite+pg, race consolidation, DuckDB soak
+gating, coverage baseline refresh)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -21,27 +23,28 @@ and is **never** duplicated here.
 > before vulncheck can resolve modules under GOWORK=off.
 
 - [BLOCKED] 🔥 **Push `event/v4.4.0` to origin** — `event/metadata.go` gained
-      `WithCustom` after `event/v4.3.0` was tagged. 29 dependent modules require
-      v4.4.0 for GOWORK=off resolution. Tagged locally, needs
-      `git push origin event/v4.4.0`.
-      *(Source: `docs/status/2026-08-08_07-45_lint-cleanup-race-fix-verify-green.md`)*
+  `WithCustom` after `event/v4.3.0` was tagged. 29 dependent modules require
+  v4.4.0 for GOWORK=off resolution. Tagged locally, needs
+  `git push origin event/v4.4.0`.
+  _(Source: `docs/status/2026-08-08_07-45_lint-cleanup-race-fix-verify-green.md`)_
 - [BLOCKED] 🔥 **Push all 14 new module tags to origin** — `stack/mysql/v4.1.0`,
-      `stack/postgres/v4.3.0`, `stack/bbolt/v4.1.0`, `stack/duckdb/v4.1.0`,
-      `stack/pebble/v4.3.0`, `stack/turso/v4.3.0`, `stack/memory/v4.3.0`,
-      `stack/sqlite/v4.3.0`, `stack/v4.3.0`, `benchkit/v4.3.0`,
-      `middleware/v4.3.0`, `retry/v4.3.0`, `metaengine/bench/v4.0.0`,
-      `metaengine/pebbleengine/v4.0.0`. All created by prior session, none pushed.
+  `stack/postgres/v4.3.0`, `stack/bbolt/v4.1.0`, `stack/duckdb/v4.1.0`,
+  `stack/pebble/v4.3.0`, `stack/turso/v4.3.0`, `stack/memory/v4.3.0`,
+  `stack/sqlite/v4.3.0`, `stack/v4.3.0`, `benchkit/v4.3.0`,
+  `middleware/v4.3.0`, `retry/v4.3.0`, `metaengine/bench/v4.0.0`,
+  `metaengine/pebbleengine/v4.0.0`. All created by prior session, none pushed.
 - [ ] **Bump `event/v4` from v4.3.0 to v4.4.0 in 29 dependent go.mod files** —
       after pushing `event/v4.4.0`, update all modules that import event/v4.
       `go get github.com/larsartmann/go-cqrs-lite/event/v4@v4.4.0` in each.
 - [ ] **Re-run `nix run .#vulncheck` after event/v4.4.0 push** — currently
       blocked: `watermill/protocol.go:277` calls `m.WithCustom()` which doesn't
-      exist at `event/v4.3.0`. 76/77 modules scan clean; watermill is the
-      holdout.
+      exist at `event/v4.3.0`. Affected modules: watermill, middleware, signing,
+      encryption. 76/77 modules scan clean; watermill is the holdout.
+      _(Source: `docs/status/2026-08-08_07-45_metaengine-v2-release-hygiene.md`)_
 - [ ] **Write detailed CHANGELOG entries for v4.0.0/v4.1.0/v4.3.0** — current
       entries are vague ("Stack presets gain durability tiers"). Replace with
       specific exported types/functions, file:line refs, ADR references.
-      *(Effort: M)*
+      _(Effort: M)_
 
 ---
 
@@ -49,14 +52,24 @@ and is **never** duplicated here.
 
 > Metaengine v2 is feature-complete: `record/` module, 9 engines, Record-aware
 > folds, auto-projection, tombstone deprecation, GraphBackend cleanup, aggregate
-> pushdown. 14 tags created locally. Remaining work is edge-case coverage.
+> pushdown. 14 tags created locally. Remaining work is edge-case coverage and
+> doc-comment polish.
+>
+> **Completed this session:** `RunRecordStampTest` helper extracted (eliminated
+> ~100 lines duplication across 4 engine modules), badgerengine record-stamp
+> test added (6/8 engines now covered), AutoCRUD soak added for sqliteengine +
+> pgengine, `SOAK_SKIP_DUCKDB=1` CI gating, `enginetest.RaceEnabled` exported
+> (metaengine-internal race consolidation), `RunTransactionalBaselineTest`
+> doc comment added, coverage baseline refreshed.
+>
+> _(Source: `docs/status/2026-08-08_07-45_metaengine-v2-release-hygiene.md`)_
 
 - [ ] 🔥 **Add mutex protection or document single-thread constraint on DuckDB
       engine** — `duckdbengine/engine.go` `layoutPlans` map has no
       synchronization. Discovered when parallel test subtests caused a data race
       between `ExplainAggregateQuery` (read) and `ApplyLayoutPlan` (write).
       Either add `sync.RWMutex` or document the single-thread constraint.
-      *(Source: `docs/status/2026-08-08_07-45_lint-cleanup-race-fix-verify-green.md`)*
+      _(Source: `docs/status/2026-08-08_07-45_lint-cleanup-race-fix-verify-green.md`)_
 - [ ] **Split `TestTypedReader_AggregateFallback` into 3 smaller tests** —
       13 subtests give it maintidx=19 (below threshold). Split into Scalar,
       Grouped, Multi subtest groups. Then remove the `maintidx` exclusion from
@@ -65,20 +78,21 @@ and is **never** duplicated here.
       engine state** — `TestDuckDB_ExplainAggregateQuery` and similar tests
       share a mutable engine. Document WHY subtests can't be parallel instead
       of fighting the linter.
-- [ ] **Add record-stamp test for badgerengine** — completes all-engine parity
-      (currently: Memory, SQLite, Pebble, DuckDB, PG have it; Badger, Dgraph,
-      GraphAdapter do not).
-- [ ] **Add AutoCRUD soak for sqliteengine + pgengine** — currently only
-      Memory/Pebble/DuckDB. SQLite and PG are the most-used SQL backends.
-- [ ] **Consolidate `race_on.go`/`race_off.go` into `testutil/`** — pattern is
-      now duplicated in 5+ locations (benchkit, metaengine, transport/grpc,
-      enginetest, metaengine soak tests). Single canonical copy eliminates drift.
-- [ ] **Extract `RunRecordStampTest(t, eng)` helper in enginetest** — record-stamp
-      test body is copy-pasted across 4 engine modules (pebble, sqlite, duckdb, pg).
-      A shared helper eliminates ~100 lines of duplication.
-- [ ] **DuckDB soak CI gating decision** — DuckDB soak takes 82-116s (vs Pebble
-      0.27s, Memory 0.03s). Consider `testing.Short()` skip or nightly-only tag
-      if it slows per-PR CI.
+- [ ] **Add record-stamp tests for dgraphengine + graphadapter** — 6/8 engines
+      covered (Memory, Pebble, SQLite, DuckDB, PG, Badger). Dgraph and
+      GraphAdapter still lack `RunRecordStampTest` coverage.
+- [ ] 🔥 **Consolidate `race_on.go`/`race_off.go` in benchkit, transport/grpc,
+      idempotency/kvstore** — metaengine-internal duplication eliminated
+      (exported `enginetest.RaceEnabled`). 3 lean-budget modules still have
+      local copies. Either add testutil as a dependency or accept the tradeoff.
+- [ ] **Add "caller owns engine Close" doc comments to 4 enginetest helpers** —
+      `RunConcurrentTxTest`, `RunWatcherReplayTest`, `RunPushdownTest`, and
+      `RunRecordStampTest` are missing the convention that 5/9 siblings already
+      follow.
+- [ ] **Fix flaky `TestQuicLogConvergence`** — times out at 15s under parallel CI
+      load but passes 3/3 in isolation. Increase timeout to 30s or add retry.
+- [ ] **Add AutoCRUD soak for badgerengine** — now Memory/Pebble/DuckDB/SQLite/PG
+      have soak coverage; Badger is the remaining LSM gap.
 - [ ] **Document concurrency safety on Engine interface** — which engines are
       safe for concurrent use (Memory: yes via RWMutex, Pebble: yes via internal
       locking) vs single-threaded (DuckDB, SQLite — no mutex on layoutPlans).
@@ -222,7 +236,10 @@ and is **never** duplicated here.
 - [ ] **Fix tag-release script cleanup** — `scripts/tag-release.sh` leaves
       staged deletions of `race_on_test.go`, `race_off_test.go`, and
       modifications to `AGENTS.md` + `soak_10m_test.go`. Script should restore
-      ALL working tree changes, not just go.mod.
+      ALL working tree changes, not just go.mod. The auto-commit daemon can
+      also silently drop uncommitted edits during multi-step refactors —
+      commit immediately after each logical step to avoid this.
+      _(Source: `docs/status/2026-08-08_07-45_metaengine-v2-release-hygiene.md`)_
 
 ---
 
