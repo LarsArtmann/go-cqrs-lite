@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-finding"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules"
+	"github.com/larsartmann/go-finding"
 )
 
 // TestIntegration_Taskmanager runs all rules against the example/taskmanager project
@@ -117,14 +117,14 @@ func TestIntegration_TaskmanagerExpectedFindings(t *testing.T) {
 	}
 
 	if os.Getenv("CQRS_LINT_UPDATE_GOLDEN") == "1" {
-		rules := make([]string, 0, len(byRule))
+		ruleIDs := make([]string, 0, len(byRule))
 		for r := range byRule {
-			rules = append(rules, r)
+			ruleIDs = append(ruleIDs, r)
 		}
-		sort.Strings(rules)
+		sort.Strings(ruleIDs)
 
 		t.Log("paste this into taskmanagerGoldenProfile:")
-		for _, r := range rules {
+		for _, r := range ruleIDs {
 			t.Logf("\t%q: %d,", r, byRule[r])
 		}
 

@@ -107,24 +107,24 @@ and is **never** duplicated here.
 
 ## Irohengine / Replicated Engine
 
-- [ ] **Add runtime protocol-mismatch detection for QUIC stream pooling** — a
+- [x] **Add runtime protocol-mismatch detection for QUIC stream pooling** — a
       pooled sender connected to a non-pooled receiver silently hangs (receiver
       calls `ReadToEnd` waiting for `Finish()` that never comes). Detect via a
       magic byte in the first frame and return a clear error.
       _(Effort: S)_
-- [ ] **Add stream-reuse counter to `peerConn`** — increment each time
+- [x] **Add stream-reuse counter to `peerConn`** — increment each time
       `sendOpPooled` opens a new BiStream. Tests can assert that N ops over a
       pooled connection used only 1 stream (proving reuse, not just correctness).
       _(Effort: S)_
-- [ ] **Extract shared framing constants** — `frameHeaderSize`, `errFrameTooLarge`
+- [x] **Extract shared framing constants** — `frameHeaderSize`, `errFrameTooLarge`
       are duplicated between `quic/frame.go` and `loopback/frame.go`. Move to
       `irohengine/framing.go` (protocol constants only; I/O stays per-transport).
       _(Effort: S)_
-- [ ] **Port injectable-clock pattern to QUIC LWW tests** — `TestQuicLWWResolution`
+- [x] **Port injectable-clock pattern to QUIC LWW tests** — `TestQuicLWWResolution`
       still relies on replication-time-gap for timestamp ordering. Could use
       `WithClock` for determinism (same pattern as the in-process tests).
       _(Effort: S)_
-- [ ] **Extract `RunConvergenceSuite(t, factory)`** — shared test harness for
+- [x] **Extract `RunConvergenceSuite(t, factory)`** — shared test harness for
       all 3 transports (~200 lines dedup between in-process, loopback, QUIC).
       _(Effort: M)_
 

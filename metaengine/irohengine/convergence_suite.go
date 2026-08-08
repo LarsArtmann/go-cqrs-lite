@@ -113,8 +113,10 @@ func RunConvergenceSuite(t *testing.T, factory ClusterFactory) {
 
 // --- Polling helpers (work with both sync and async transports) ---
 
-const pollInterval = 50 * time.Millisecond
-const pollTimeout = 15 * time.Second
+const (
+	pollInterval = 50 * time.Millisecond
+	pollTimeout  = 15 * time.Second
+)
 
 func mustNoErr(t *testing.T, err error) {
 	t.Helper()

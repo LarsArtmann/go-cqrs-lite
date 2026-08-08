@@ -58,14 +58,14 @@ type CQRSRegistry struct {
 // NewCQRSRegistry creates an empty registry.
 func NewCQRSRegistry() *CQRSRegistry {
 	return &CQRSRegistry{
-		EventTypesEmitted:        make(map[string]EventEmission),
-		EventTypesInCatalog:      make(map[string]bool),
-		CommandTypesRegistered:   make(map[string]bool),
-		EventPayloadTypes:        make(map[string]bool),
-		TypeConstValues:          make(map[string]string),
-		StrictApplyFolds:         make(map[string]bool),
-		pendingHandlerMethods:    make(map[string]bool),
-		TypesWithTypeMethod:      make(map[string]bool),
+		EventTypesEmitted:      make(map[string]EventEmission),
+		EventTypesInCatalog:    make(map[string]bool),
+		CommandTypesRegistered: make(map[string]bool),
+		EventPayloadTypes:      make(map[string]bool),
+		TypeConstValues:        make(map[string]string),
+		StrictApplyFolds:       make(map[string]bool),
+		pendingHandlerMethods:  make(map[string]bool),
+		TypesWithTypeMethod:    make(map[string]bool),
 	}
 }
 

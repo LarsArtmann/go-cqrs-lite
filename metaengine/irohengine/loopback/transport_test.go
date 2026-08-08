@@ -178,5 +178,3 @@ func TestLoopbackLatencyMeasurement(t *testing.T) {
 	snap := tA.LatencySnapshot()
 	_ = snap // just verify it doesn't panic
 }
-
-

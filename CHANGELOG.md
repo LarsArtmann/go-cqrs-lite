@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — Irohengine transport hardening, convergence test suite — 2026-08-08
+
+- **Runtime protocol-mismatch detection for QUIC stream pooling**: a pooled
+  sender connected to a non-pooled receiver previously hung silently (receiver
+  waited for `Finish()` that never came). Now detects via a magic byte (`0x50`)
+  in the first frame and returns immediately. Test:
+  `TestQuicPooledToNonPooled_NoHang`.
+- **Stream-reuse counter on `peerConn`**: `QuicTransport.StreamsOpenedForPeer`
+  exposes how many BiStreams were opened per peer. Tests assert that N ops over
+  a pooled connection reuse exactly 1 stream (`TestQuicPooled_StreamReuse`).
+- **Shared framing constants** (`irohengine.FrameHeaderSize`,
+  `irohengine.ErrFrameTooLarge`): protocol constants extracted from duplicated
+  definitions in `quic/frame.go` and `loopback/frame.go`. I/O code stays
+  per-transport; only constants are shared.
+- **Injectable clock for QUIC LWW tests**: `TestQuicLWWResolution` now uses
+  `WithClock` with a `quicManualClock` for deterministic timestamp ordering,
+  eliminating all `time.Sleep` timing assumptions.
+- **`RunConvergenceSuite(t, factory)` shared test harness**: 6 CRDT convergence
+  scenarios (Map, Bidirectional, Counter, Set, Log, Multimap) parameterized by a
+  `ClusterFactory`. Eliminates ~200 lines of duplicated tests across in-process,
+  loopback, and QUIC transport test files. All 3 transports now call the single
+  suite.
+
 ### Changed — check-arch wired into verify gate, go-arch-lint as nix dep, release docs — 2026-08-09
 
 - **`#check-arch` replaces `#check-layers` in the verify gate**: verify,

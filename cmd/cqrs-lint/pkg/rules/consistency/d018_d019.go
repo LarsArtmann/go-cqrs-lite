@@ -143,6 +143,31 @@ func NewD019Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // --- helpers ---
 
+// fileEventQualifiers returns the set of local qualifiers in gf that reference
+// the go-cqrs-lite event package. Always includes "event" (the default package
+// name for non-aliased imports), plus any explicit import aliases (e.g.
+// `import ev "go-cqrs-lite/event/v4"` → "ev").
+func fileEventQualifiers(gf *analyzer.GoFile) map[string]bool {
+	quals := map[string]bool{"event": true}
+
+	for _, imp := range gf.AST.Imports {
+		if imp == nil || imp.Path == nil {
+			continue
+		}
+
+		path := strings.Trim(imp.Path.Value, `"`)
+		if !strings.Contains(path, "go-cqrs-lite/event") {
+			continue
+		}
+
+		if imp.Name != nil && imp.Name.Name != "" {
+			quals[imp.Name.Name] = true
+		}
+	}
+
+	return quals
+}
+
 // collectEventNewTypes returns a set of event type strings from event.NewEvent
 // and event.WithType calls in non-test files.
 func collectEventNewTypes(ctx *analyzer.AnalysisContext) map[string]bool {
@@ -152,6 +177,8 @@ func collectEventNewTypes(ctx *analyzer.AnalysisContext) map[string]bool {
 		if gf.IsTest {
 			continue
 		}
+
+		eventQualifiers := fileEventQualifiers(gf)
 
 		ast.Inspect(gf.AST, func(n ast.Node) bool {
 			call, ok := n.(*ast.CallExpr)
@@ -169,9 +196,7 @@ func collectEventNewTypes(ctx *analyzer.AnalysisContext) map[string]bool {
 				return true
 			}
 
-			isNewEvent := pkg.Name == "event" && sel.Sel.Name == "NewEvent"
-
-			if !isNewEvent {
+			if sel.Sel.Name != "NewEvent" || !eventQualifiers[pkg.Name] {
 				return true
 			}
 

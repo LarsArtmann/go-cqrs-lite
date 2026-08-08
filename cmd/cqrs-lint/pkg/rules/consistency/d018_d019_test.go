@@ -90,3 +90,25 @@ func _() {
 	findings := ruletest.RunDetector(t, consistency.NewD019Detector(ctx))
 	ruletest.AssertRule(t, findings, "D019", 0)
 }
+
+func TestD018_AliasedEventImport(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import ev "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+func _() {
+	ev.NewEvent("user.created", sid, st, v, p)
+}
+
+func _() {
+	catalog.NewBuilder("user.created", desc)
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, consistency.NewD018Detector(ctx))
+	ruletest.AssertRule(t, findings, "D018", 0)
+}
