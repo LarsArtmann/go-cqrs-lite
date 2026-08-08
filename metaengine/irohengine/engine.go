@@ -74,7 +74,7 @@ func (e *replicatedEngine) publish(ctx context.Context, op WriteOp) {
 		return
 	}
 	op.ID = nextOpID()
-	op.PublishedAt = time.Now()
+	op.PublishedAt = e.cfg.clock.Now()
 	_ = e.cfg.transport.Publish(ctx, op)
 }
 
@@ -133,7 +133,7 @@ func (e *replicatedEngine) MapSet(
 	key any,
 	value any,
 ) error {
-	now := time.Now()
+	now := e.cfg.clock.Now()
 	e.recordLWW(collection, key, now)
 	if err := e.local.(metaengine.MapBackend).MapSet(ctx, collection, key, value); err != nil {
 		return err
@@ -154,7 +154,7 @@ func (e *replicatedEngine) MapGet(
 }
 
 func (e *replicatedEngine) MapDelete(ctx context.Context, collection string, key any) error {
-	now := time.Now()
+	now := e.cfg.clock.Now()
 	e.recordLWW(collection, key, now)
 	if err := e.local.(metaengine.MapBackend).MapDelete(ctx, collection, key); err != nil {
 		return err
@@ -188,7 +188,7 @@ func (e *replicatedEngine) SetAdd(ctx context.Context, collection string, key an
 	}
 	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpSetAdd, Author: e.cfg.author,
-		Timestamp: time.Now(), Key: key,
+		Timestamp: e.cfg.clock.Now(), Key: key,
 	})
 	return nil
 }
@@ -217,7 +217,7 @@ func (e *replicatedEngine) CounterIncrement(
 	}
 	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpCounterInc, Author: e.cfg.author,
-		Timestamp: time.Now(), Delta: deltas,
+		Timestamp: e.cfg.clock.Now(), Delta: deltas,
 	})
 	return nil
 }
@@ -247,7 +247,7 @@ func (e *replicatedEngine) MultiAdd(
 	}
 	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpMultiAdd, Author: e.cfg.author,
-		Timestamp: time.Now(), Key: key, Value: value,
+		Timestamp: e.cfg.clock.Now(), Key: key, Value: value,
 	})
 	return nil
 }
@@ -268,7 +268,7 @@ func (e *replicatedEngine) LogAppend(ctx context.Context, collection string, val
 	}
 	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpLogAppend, Author: e.cfg.author,
-		Timestamp: time.Now(), Value: value,
+		Timestamp: e.cfg.clock.Now(), Value: value,
 	})
 	return nil
 }
