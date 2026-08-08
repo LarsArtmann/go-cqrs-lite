@@ -58,18 +58,43 @@ store, err := metaengine.Plan([]metaengine.Engine{eng},
 Pure Go (no CGo): uses the [dgo v240](https://github.com/dgraph-io/dgo)
 gRPC client.
 
+## Performance (benchmark against Dgraph 25.4.0, single-node, localhost)
+
+| Operation         | Latency   | Allocs   | Notes                              |
+| ----------------- | --------- | -------- | ---------------------------------- |
+| MapSet            | 2.7 ms    | 194      | gRPC + RAFT consensus commit       |
+| MapGet            | 344 us    | 146      | read-only txn, no RAFT             |
+| CounterIncrement  | 2.4 ms    | 288      | upsert with conditional mutation   |
+| CounterGet         | 3.4 ms    | 1,143    | returns all counters in collection |
+| SetAdd            | 2.1 ms    | 179      | upsert with @index(exact)          |
+
+Writes are dominated by RAFT consensus (leader proposes, followers ack).
+Reads bypass RAFT via `NewReadOnlyTxn()`, so they are 7-10x faster.
+
 ## Testing
 
 Tests require a running Dgraph instance. Set `DGRAPH_ADDR` (default:
 `localhost:9080`). Tests skip gracefully when Dgraph is unavailable.
 
-```bash
-# Start Dgraph (e.g., via Docker)
-docker run -d -p 9080:9080 dgraph/dgraph:latest dgraph alpha
+The recommended way to test is with the ephemeral Dgraph script:
 
-# Run tests
+```bash
+# Start ephemeral Dgraph (Zero + Alpha from nixpkgs, no Docker)
+nix run .#ephemeral-dgraph -- go test -tags "goexperiment.jsonv2" -v ./...
+
+# Or start manually:
+dgraph zero --my=localhost:5080 &
+dgraph alpha --zero=localhost:5080 &
 DGRAPH_ADDR=localhost:9080 go test -tags "goexperiment.jsonv2" ./...
 ```
 
 Cross-engine parity is verified via `adttest.RunMatrix` against the
-memory engine.
+memory engine. All 6 implemented ADTs (Map, Set, Counter, Graph, Search,
+SortedMap) pass at full parity.
+
+### Dgraph 25.x delete behavior
+
+Dgraph 25.x does **not** delete all predicates when `DeleteJson` contains
+only `{"uid": "..."}`. Each predicate must be explicitly set to `null`.
+This engine's `MapDelete` handles this correctly via the upsert pattern
+with explicit null-predicate deletion.

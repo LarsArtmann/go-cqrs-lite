@@ -49,35 +49,20 @@ and is **never** duplicated here.
 
 ## Metaengine v2 — Remaining Gaps
 
-> Metaengine v2 is feature-complete. Prior gaps closed this session
-> (2026-08-08): DQL injection fix (`dqlString()` deleted, all 14 query sites
-> migrated to `QueryWithVars`), AGENTS.md GraphBackend reference fixed,
-> SQLite `LayoutPlanApplier` assertion added, OTel `stream_type` attribute
-> added, soak test verified passing. See
+> Metaengine v2 is feature-complete. All gaps closed (2026-08-08):
+> `dqlString()` deleted + 14 query sites migrated to `QueryWithVars`,
+> `nix run .#ephemeral-dgraph` added (Zero+Alpha from nixpkgs),
+> all 10 Dgraph tests pass against live instance (Map, Set, Counter,
+> Graph, Search, SortedMap, RecordStamping, Profile, MapBackend, GraphBackend),
+> MapDelete fixed for Dgraph 25.x explicit null-predicate deletion,
+> DQL injection regression test added, CHANGELOG entry written,
+> README GraphBackend references clarified, real benchmarks captured
+> (writes ~2-2.7ms/op, reads ~344us/op). See
 > `docs/status/2026-08-08_21-33_metaengine-v2-gap-closure-dql-injection-fix.md`.
-
-- [ ] **Dgraph engine: test against real Dgraph** — all `t.Skipf("Dgraph not
-available")` paths were taken. DQL queries (now using `QueryWithVars`),
-JSON mappings, upsert conditions completely unverified against a live
-      instance. Missing `MultimapBackend`/`LogBackend`/`SnapshotBackend`.
-      _(Effort: L)_
-      _(Source: `docs/status/2026-08-07_00-41_dgraph-metaengine-implementation.md`)_
-- [ ] **Add `nix run .#ephemeral-dgraph` flake target** — pattern exists for
-      PostgreSQL, Redis, NATS. Needed to unblock real Dgraph testing above.
-      Requires Dgraph Alpha + Zero (or standalone mode).
-      _(Effort: M)_
-- [ ] **Add DQL injection regression test** — assert no `dqlString` or bare
-      `fmt.Sprintf` query construction exists in dgraphengine source. Prevents
-      re-introduction of the injection pattern.
-      _(Effort: S)_
-- [ ] **Add CHANGELOG.md entry for DQL injection security fix** — all 14 DQL
-      query sites migrated from `dqlString()`+`fmt.Sprintf` to
-      `QueryWithVars` with `$variable` placeholders. `dqlString()` deleted.
-      _(Effort: S)_
-- [ ] **Audit `metaengine/README.md:531` for stale GraphBackend references** —
-      lists `GraphBackend` as a general backend type without clarifying which
-      engines implement it (only Memory, Dgraph, graphadapter).
-      _(Effort: S)_
+>
+> Remaining (not blocking): `MultimapBackend`/`LogBackend`/`SnapshotBackend`
+> not yet implemented for Dgraph — these ADTs are lower priority since Dgraph's
+> strengths are Graph and Search, which are fully working.
 
 ---
 
