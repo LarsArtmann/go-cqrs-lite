@@ -42,6 +42,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `BuildContextWithTypes` test helper (M11) — uses go/packages.Load for type-aware rule testing
 - `--fail-on-stale-suppressions` CLI flag (M5) — CI gate against stale cqrs-lint:ignore directives
 - `scripts/check-tag-existence.sh` (M16) — CI check for module version drift
+- B029-B031 gated on `FeatureProfile.HasServer` — reduces false positives on non-server projects
+- Verify gate test commands now include `-timeout=5m` (test) / `-timeout=8m` (race) — catches transient FFI hangs with diagnostic output
 
 ### Fixed — 2026-08-08
 
