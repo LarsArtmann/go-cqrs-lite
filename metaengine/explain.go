@@ -265,5 +265,58 @@ func (s *Store) Doctor(ctx context.Context) string {
 		b.WriteString("  all persistent\n")
 	}
 
+	b.WriteString("\n--- Aggregate Pushdown ---\n")
+
+	aggAny := false
+	s.mu.RLock()
+	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
+		eng := s.queries[name].QueryEngine()
+		caps := aggregateCapabilities(eng)
+		if caps == "" {
+			continue
+		}
+
+		fmt.Fprintf(&b, "  %s: %s\n", name, caps)
+		aggAny = true
+	}
+	s.mu.RUnlock()
+
+	if !aggAny {
+		b.WriteString("  none\n")
+	}
+
 	return b.String()
+}
+
+// aggregateCapabilities returns a human-readable description of the aggregate
+// pushdown interfaces an engine implements. Returns "" if the engine has no
+// aggregate pushdown support.
+func aggregateCapabilities(eng Engine) string {
+	var caps []string
+
+	if _, ok := eng.(AggregateReader); ok {
+		caps = append(caps, "scalar")
+	}
+
+	if _, ok := eng.(GroupedAggregateReader); ok {
+		caps = append(caps, "grouped")
+	}
+
+	if _, ok := eng.(MultiAggregateReader); ok {
+		caps = append(caps, "multi")
+	}
+
+	if _, ok := eng.(MultiGroupedAggregateReader); ok {
+		caps = append(caps, "multi-grouped")
+	}
+
+	if _, ok := eng.(DistinctReader); ok {
+		caps = append(caps, "distinct")
+	}
+
+	if len(caps) == 0 {
+		return ""
+	}
+
+	return "pushdown: " + strings.Join(caps, ", ")
 }

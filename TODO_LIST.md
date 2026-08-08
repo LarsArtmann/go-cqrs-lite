@@ -257,7 +257,7 @@ and is **never** duplicated here.
       DuckDB simultaneously. (M46)
 - [ ] **Ephemeral Redis/NATS for future integration tests** — Watermill adapter
       testing with real brokers. (M47)
-- [ ] **`scripts/test-integration.sh` aggregator** — auto-detect best strategy
+- [x] **`scripts/test-integration.sh` aggregator** — auto-detect best strategy
       (ephemeral, VM, or testcontainers). (M48)
 
 ---
