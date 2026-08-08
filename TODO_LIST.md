@@ -206,17 +206,43 @@ and is **never** duplicated here.
 
 ## System Package
 
-- [ ] **Add system lifecycle edge-case tests** — `TestSystem_Close_Idempotent`,
-      `TestSystem_GracefulClose_Idempotent`, `TestSystem_Start_ProjectionHostError`,
-      `TestSystem_RegisterCloser_AfterClose`, `TestSystem_HealthCheckDetailed_WithFailedProjection`.
+> Lifecycle edge-case tests + DuckDB/Postgres/ShutdownDependency integration tests
+> completed 2026-08-09. See
+> `docs/status/2026-08-09_00-49_system-test-coverage-expansion.md`.
+
+- [ ] 🔥 **Run Postgres integration test against live PG** — test compiles and
+      skips without DSN, but has never been run against a real Postgres. Verify
+      via `nix run .#integration-pg -- go test -run TestIntegration_PostgresSource ./system/...`.
+      _(Effort: S)_
+- [ ] 🔥 **Fix ShutdownOrder naming gap** — `ShutdownOrder()` returns
+      `Profile().Name` (e.g., `"memory"`) but `ShutdownDependency.Before`/`After`
+      reference config keys (e.g., `"event-store"`). Either document the
+      discrepancy or change `ShutdownOrder()` to return config keys.
+      _(Effort: S for doc, M for code change)_
+- [ ] **Add per-test database isolation for Postgres integration test** —
+      parallel tests sharing one DSN will collide on table names. Wire in the
+      `pgtestcontainer` per-test-database pattern.
       _(Effort: M)_
-- [ ] **Add DuckDB source-of-truth integration test** (CGo) — currently only
-      SQLite, Memory, Pebble have integration tests.
+- [ ] **Add `TestSystem_GracefulClose_DrainError_NoClose`** — verify `Close()`
+      is NOT called when a drainer fails (resources may leak).
+      _(Effort: S)_
+- [ ] **Consolidate driver registration into a `TestMain`** — each integration
+      test file registers drivers in `init()` (pebble, duckdb, postgres). A
+      shared `TestMain` avoids silent last-wins conflicts on the global driver
+      map.
+      _(Effort: S)_
+- [ ] **Consider moving CGo DuckDB test to a sub-module** — `duckdbengine` adds
+      ~20 indirect deps to `system/go.mod` (Arrow, FlatBuffers, 6 platform
+      DuckDB binding packages). A `system/integration/` sub-module follows the
+      `testutil/pgtestcontainer` precedent and keeps the system module lean.
       _(Effort: M)_
-- [ ] **Add Postgres source-of-truth integration test** — needs testcontainer.
+- [ ] **Add Badger/bbolt source-of-truth integration tests** — DuckDB and
+      Postgres now covered; Badger and bbolt implement StreamLogBackend but
+      have no system-level integration test.
       _(Effort: M)_
-- [ ] **Add ShutdownDependency integration test** with real engines.
-      _(Effort: M)_
+- [ ] **Add concurrent Close/GracefulClose race tests** — concurrent `Close()`
+      calls from multiple goroutines, concurrent `RegisterCloser` + `Close`.
+      _(Effort: S)_
 
 ---
 

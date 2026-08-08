@@ -33,6 +33,19 @@ func newAggSQLiteEngine(t *testing.T) (metaengine.Engine, func()) {
 	}
 }
 
+// setupSeededAggTest creates an in-memory SQLite engine, seeds it with test
+// data via seedAggData, and returns the context + engine. Cleanup is automatic.
+func setupSeededAggTest(t *testing.T) (context.Context, metaengine.Engine) {
+	t.Helper()
+
+	ctx := context.Background()
+	eng, cleanup := newAggSQLiteEngine(t)
+	t.Cleanup(cleanup)
+	seedAggData(t, ctx, eng)
+
+	return ctx, eng
+}
+
 func seedAggData(t *testing.T, ctx context.Context, eng metaengine.Engine) {
 	t.Helper()
 
@@ -61,11 +74,7 @@ func seedAggData(t *testing.T, ctx context.Context, eng metaengine.Engine) {
 func TestSQLite_Aggregate(t *testing.T) { //nolint:tparallel
 	t.Parallel()
 
-	ctx := context.Background()
-	eng, cleanup := newAggSQLiteEngine(t)
-	defer cleanup()
-
-	seedAggData(t, ctx, eng)
+	ctx, eng := setupSeededAggTest(t)
 
 	ar := eng.(metaengine.AggregateReader)
 
@@ -126,11 +135,7 @@ func TestSQLite_Aggregate(t *testing.T) { //nolint:tparallel
 func TestSQLite_GroupedAggregate(t *testing.T) { //nolint:tparallel
 	t.Parallel()
 
-	ctx := context.Background()
-	eng, cleanup := newAggSQLiteEngine(t)
-	defer cleanup()
-
-	seedAggData(t, ctx, eng)
+	ctx, eng := setupSeededAggTest(t)
 
 	gr := eng.(metaengine.GroupedAggregateReader)
 
@@ -199,11 +204,7 @@ func TestSQLite_GroupedAggregate(t *testing.T) { //nolint:tparallel
 func TestSQLite_MultiAggregate(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-	eng, cleanup := newAggSQLiteEngine(t)
-	defer cleanup()
-
-	seedAggData(t, ctx, eng)
+	ctx, eng := setupSeededAggTest(t)
 
 	mr := eng.(metaengine.MultiAggregateReader)
 
@@ -228,11 +229,7 @@ func TestSQLite_MultiAggregate(t *testing.T) {
 func TestSQLite_MultiGroupedAggregate(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-	eng, cleanup := newAggSQLiteEngine(t)
-	defer cleanup()
-
-	seedAggData(t, ctx, eng)
+	ctx, eng := setupSeededAggTest(t)
 
 	mgr := eng.(metaengine.MultiGroupedAggregateReader)
 
@@ -261,11 +258,7 @@ func TestSQLite_MultiGroupedAggregate(t *testing.T) {
 func TestSQLite_DistinctValues(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-	eng, cleanup := newAggSQLiteEngine(t)
-	defer cleanup()
-
-	seedAggData(t, ctx, eng)
+	ctx, eng := setupSeededAggTest(t)
 
 	dr := eng.(metaengine.DistinctReader)
 
@@ -289,11 +282,7 @@ func assertAggFloat(t *testing.T, label string, got, want float64) {
 func TestSQLite_ExplainAggregateQuery(t *testing.T) { //nolint:tparallel
 	t.Parallel()
 
-	ctx := context.Background()
-	eng, cleanup := newAggSQLiteEngine(t)
-	defer cleanup()
-
-	seedAggData(t, ctx, eng)
+	ctx, eng := setupSeededAggTest(t)
 
 	ea := eng.(metaengine.ExplainableAggregate)
 
