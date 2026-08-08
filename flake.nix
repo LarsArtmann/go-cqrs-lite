@@ -1061,23 +1061,26 @@
                 '';
 
             # Ephemeral Redis for Watermill adapter testing.
-            ephemeral-redis =
-              mkApp "ephemeral-redis"
-                [ goPkg pkgs.redis ]
-                ''
-                  export CGO_ENABLED=1
-                  export GOEXPERIMENT=jsonv2
-                  bash "$PWD/scripts/ephemeral-redis.sh" "$@"
-                '';
+            ephemeral-redis = mkApp "ephemeral-redis" [ goPkg pkgs.redis ] ''
+              export CGO_ENABLED=1
+              export GOEXPERIMENT=jsonv2
+              bash "$PWD/scripts/ephemeral-redis.sh" "$@"
+            '';
 
             # Ephemeral NATS for Watermill adapter testing.
-            ephemeral-nats =
-              mkApp "ephemeral-nats"
-                [ goPkg pkgs.nats-server ]
+            ephemeral-nats = mkApp "ephemeral-nats" [ goPkg pkgs.nats-server ] ''
+              export CGO_ENABLED=1
+              export GOEXPERIMENT=jsonv2
+              bash "$PWD/scripts/ephemeral-nats.sh" "$@"
+            '';
+
+            # Cross-backend test suite: SQLite, Pebble, bbolt, DuckDB, PG, MySQL.
+            test-all-backends =
+              mkApp "test-all-backends" [ goPkg pkgs.gcc pkgs.postgresql pkgs.redis pkgs.nats-server ]
                 ''
                   export CGO_ENABLED=1
                   export GOEXPERIMENT=jsonv2
-                  bash "$PWD/scripts/ephemeral-nats.sh" "$@"
+                  bash "$PWD/scripts/test-all-backends.sh" "$@"
                 '';
 
             verify =
