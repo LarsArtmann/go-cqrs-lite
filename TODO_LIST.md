@@ -1,6 +1,6 @@
 # TODO List
 
-**Updated:** 2026-08-08 (14 metaengine-v2 tags confirmed pushed to remote)
+**Updated:** 2026-08-08 (system round 2 hardening: 19 items from status report)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -92,6 +92,12 @@ and is **never** duplicated here.
 > HealthCheck, GracefulClose (with Drainer phase), ResetProjection,
 > configurable checkpoint store, WithShutdownDependency, errors.Join in Close,
 > SQLite engine HealthCheck, README Quick Start fix, doc-check arg validation.
+> **Round 2 hardening shipped:** shutdown.go extraction (system.go 350→268),
+> `namedEngine` struct (parallel slices eliminated), `ProjectionHostResource`
+> removed (was a lie), HealthCheck on all 4 external-state engines (SQLite,
+> DuckDB, Postgres, Pebble), 10 new tests (orderedEngines, Close, Drainer,
+> ResetProjection restart-and-replay). See
+> [status report](docs/status/2026-08-08_01-53_system-hardening-round2.md).
 
 ### P2 — Hardening (DONE — see [CHANGELOG.md](CHANGELOG.md))
 
@@ -152,6 +158,102 @@ and is **never** duplicated here.
       `TestSystem_RegisterDrainer_CalledBeforeClose`,
       `TestSystem_RegisterDrainer_ErrorPropagation`,
       `TestSystem_ResetProjection_RestartAndReplay` (SQLite persistence).
+
+### Round 2 — Open follow-up items
+
+#### HealthCheck completeness (high priority)
+
+- [ ] 🔥 **Add `HealthCheck` to Badger engine** — `db.View(func(txn) error {
+      return nil })` as a lightweight read-only probe.
+- [ ] 🔥 **Add `HealthCheck` to Dgraph engine** — gRPC connection check via
+      `dgo` client.
+- [ ] **Add test for Pebble `HealthCheck`** — in-memory vfs, healthy + closed
+      DB (closed DB returns non-`ErrNotFound` error).
+- [ ] **Add test for SQLite `HealthCheck` on closed DB** — verify error
+      propagation.
+- [ ] **Add test for DuckDB `HealthCheck`** — CGo required.
+- [ ] **Add test for Postgres `HealthCheck`** — testcontainers or nix
+      ephemeral PG.
+- [ ] **Add `HealthChecker` to `Store.HealthCheck` test matrix** — verify it
+      delegates to all engines, not just the first.
+
+#### System module improvements (medium priority)
+
+- [ ] **Add `System.Drain(ctx)` standalone method** — expose drain without
+      Close (for rolling deploys).
+- [ ] **Add `System.EngineNames()` introspection** — returns engine names for
+      diagnostics (`Explain()` prints count but not names).
+- [ ] **Add `System.ShutdownOrder()` introspection** — returns resolved close
+      order for debugging shutdown hangs.
+- [ ] **Consider structured `HealthCheck` result** — `HealthCheckDetailed()`
+      returning `[]EngineHealth{Name, Error}` while `HealthCheck()` stays
+      first-error-only (non-breaking).
+- [ ] **Add `System.LagPerProjection()`** — expose projection host lag via
+      System.
+- [ ] **Add `System.LagDuration()`** — same.
+- [ ] **Add `System.WorkerStatus()`** — expose projection host worker status.
+- [ ] **Add `System.RegisterCloser(name, closer)`** — let consumers register
+      external resources for lifecycle management.
+- [ ] **Test `GracefulClose` with context expiring during drain phase** —
+      slow drainer + short context.
+- [ ] **Test `GracefulClose` with context expiring during close phase** —
+      slow engine + short context.
+
+#### Shutdown ordering (medium priority)
+
+- [ ] **Test `orderedEngines` with 5+ engines and multiple edges** — complex
+      DAG topology.
+- [ ] **Test `orderedEngines` with self-loop edge** — `{before: "a", after:
+      "a"}` should be silently ignored.
+- [ ] **Test `orderedEngines` with duplicate edges** — should not double-count
+      inDegree.
+- [ ] **Add dedup guard to `orderedEngines` cycle fallback** — currently
+      correct but fragile if refactored; explicit guard prevents accidental
+      breakage.
+
+#### Documentation (low priority)
+
+- [ ] **Update `AGENTS.md` system module section** — remove
+      `ProjectionHostResource` from Modules list, mention all 4 engine
+      HealthChecks.
+- [ ] **Add `ShutdownDependency` example to README Quick Start**.
+- [ ] **Add `Drainer` example to README**.
+- [ ] **Update `metaengine` README** — list which engines implement
+      `HealthChecker`.
+
+#### Testing polish (low priority)
+
+- [ ] **Split `system_internal_test.go` if it grows past ~250 lines** —
+      currently 7 tests + 3 mock types.
+- [ ] **Add `TestSystem_Close_NoEngines`** — Close on a system with zero
+      engines.
+- [ ] **Add `TestSystem_Close_ProjectionHostError`** — projection host Stop
+      fails, engine close still runs.
+- [ ] **Add `TestSystem_GracefulClose_NoDrainers`** — GracefulClose with zero
+      registered drainers (should just Close).
+- [ ] **Add `TestSystem_GracefulClose_MultipleDrainers`** — verify all
+      drainers called in order.
+- [ ] **Add comment to `TestSystem_ResetProjection_RestartAndReplay`** —
+      explain SQLite shared-cache DSN pattern.
+
+#### Release (when ready)
+
+- [ ] **Tag `metaengine/sqliteengine/v4.0.1`** (new `HealthCheck`).
+- [ ] **Tag `metaengine/duckdbengine/v4.0.1`** (new `HealthCheck`).
+- [ ] **Tag `metaengine/pgengine/v4.0.1`** (new `HealthCheck`).
+- [ ] **Tag `metaengine/pebbleengine/v4.0.1`** (new `HealthCheck`).
+- [ ] **Tag `system/v4.1.0`** (removed `ProjectionHostResource`,
+      `namedEngine` refactor, new tests).
+- [ ] **Verify all module versions are monotonically increasing before
+      tagging** — check `git tag -l '<module>/v4*' | sort -V | tail -1`.
+
+#### Integration (future)
+
+- [ ] **Integration test: SQLite source-of-truth + Memory projections +
+      HealthCheck** — end-to-end system with real engines.
+- [ ] **Integration test: Pebble source-of-truth + HealthCheck**.
+- [ ] **Integration test: GracefulClose with real Watermill router as
+      Drainer**.
 
 ---
 
