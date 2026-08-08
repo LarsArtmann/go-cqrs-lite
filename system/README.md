@@ -197,7 +197,41 @@ an error at construction time (no silent fallback).
 | `CheckSafety(ctx, deploy)` | Pre-construction safety report (WARN/ERROR per rule). |
 | `System.ScreamReport()`    | Post-construction safety report.                      |
 
-## Examples
+## Lifecycle
+
+The System provides three shutdown methods with different semantics:
+
+| Method | Drains in-flight? | Closes resources? | Context-bounded? | Use case |
+| --- | --- | --- | --- | --- |
+| `Close()` | No | Yes | No | Fast shutdown (`defer sys.Close()`) |
+| `GracefulClose(ctx)` | Yes (via Drainers) | Yes | Yes | Kubernetes SIGTERM, deadline-bounded |
+| `Drain(ctx)` | Yes (via Drainers) | No | Yes | Rolling deploy (process stays alive) |
+
+**Shutdown order** within `Close()` (and `GracefulClose`):
+1. Projection host `Stop()` — workers drain and stop.
+2. Engines — in topological order respecting `ShutdownDependencies` (cycles
+   fall back to creation order).
+3. External closers — in registration order (`RegisterCloser`).
+
+All errors are joined and returned (not just the first). This means a failing
+projection host does NOT prevent engine cleanup.
+
+### Health Check (Detailed)
+
+`HealthCheckDetailed` returns per-engine health status, including engines that
+are healthy (nil error) and projection workers in a failed state. Use this for
+dashboards; use `HealthCheck` (single error) for liveness probes.
+
+```go
+results := sys.HealthCheckDetailed(ctx)
+for _, r := range results {
+    if r.Error != nil {
+        log.Printf("engine %s: UNHEALTHY: %v", r.Name, r.Error)
+    } else {
+        log.Printf("engine %s: healthy", r.Name)
+    }
+}
+```
 
 ### Shutdown Dependencies
 
