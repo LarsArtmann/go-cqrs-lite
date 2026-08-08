@@ -248,33 +248,61 @@ and is **never** duplicated here.
 
 ## Code Quality
 
-- [ ] **Add `// Deprecated:` to `event.CustomData` v3-compat alias** —
-      `event/v3_compat_aliases.go:31` re-exports `metadata.CustomData[K]`
-      but the alias does not carry the deprecation notice.
-- [ ] **Migrate remaining test callers off deprecated `EnsureCustom`** —
-      `event/customdata_test.go:177,190` and `metadata/metadata_test.go:252,267`
-      still call `CustomData[K].EnsureCustom()`. Migrate to `WithCustom` or
-      keep as backward-compat coverage.
+> Most items resolved 2026-08-08. See
+> [`docs/status/2026-08-08_11-00_code-quality-cleanup-status.md`](docs/status/2026-08-08_11-00_code-quality-cleanup-status.md).
+>
+> **Completed:** `event.CustomData` deprecated alias added; EnsureCustom tests
+> kept as backward-compat coverage with SA1019 exclusion; `maintidx` test-file
+> exclusion removed (safe after AggregateFallback split); `.golangci.yml`
+> exclusion blocks reviewed (all commented, no unjustified blocks);
+> `deferClose` helper added to `storage/pebble/` (22 test sites) +
+> `storage/bbolt/` (6 test sites); `tag-release.sh` fixed to restore ALL
+> working tree changes via `original_head` pattern.
+
+- [x] ~~**Add `// Deprecated:` to `event.CustomData` v3-compat alias**~~ —
+      done: `event/v3_compat_aliases.go:31` now carries the deprecation notice.
+- [x] ~~**Migrate remaining test callers off deprecated `EnsureCustom`**~~ —
+      decision: kept as backward-compat coverage. Tests in
+      `event/customdata_test.go` + `metadata/metadata_test.go` document intent;
+      `.golangci.yml` SA1019 exclusion added for `(event|metadata)/.*_test\.go$`.
 - [ ] **Per-module `.golangci.yml` split** — the monolithic config is now
       fully documented, but golangci-lint v2 `config-dirs` would give each
       module ownership of its own exclusions.
-- [ ] **Review and tighten `.golangci.yml` exclusion blocks** — 30+ blocks
-      exist. Each should have a comment explaining why it can't be fixed in
-      code. Remove unjustified ones. The `maintidx` test-file exclusion is now
-      safe to remove — `TestTypedReader_AggregateFallback` was split into 3
-      smaller groups (Scalar/Grouped/Multi) on 2026-08-08. Verify with
-      `nix run .#lint` after removal.
-- [ ] **Extend `DeferClose` to `storage/pebble/`** (~10 sites) — currently only
-      applied to metaengine engines.
-- [ ] **Extend `DeferClose` to `storage/bbolt/`** (~8 sites).
-- [ ] **Extend `DeferClose` to `storage/eventstore/`** (~5 sites).
-- [ ] **Fix tag-release script cleanup** — `scripts/tag-release.sh` leaves
-      staged deletions of `race_on_test.go`, `race_off_test.go`, and
-      modifications to `AGENTS.md` + `soak_10m_test.go`. Script should restore
-      ALL working tree changes, not just go.mod. The auto-commit daemon can
-      also silently drop uncommitted edits during multi-step refactors —
-      commit immediately after each logical step to avoid this.
-      _(Source: `docs/status/2026-08-08_07-45_metaengine-v2-release-hygiene.md`)_
+- [x] ~~**Review and tighten `.golangci.yml` exclusion blocks**~~ — all 30+
+      blocks already have explanatory comments. `maintidx` test-file exclusion
+      removed (safe after `TestTypedReader_AggregateFallback` split). Verified
+      with `golangci-lint --enable-only maintidx ./...` (zero violations).
+- [x] ~~**Extend `DeferClose` to `storage/pebble/`**~~ — done: 22 test sites
+      converted across 7 files. Helpers in `defer_close_test.go` +
+      `defer_close_ext_test.go`. **Note:** 12 production sites remain (see
+      follow-up below).
+- [x] ~~**Extend `DeferClose` to `storage/bbolt/`**~~ — done: 6 bare
+      `defer iter.Close()` sites in `stream_test.go` converted (these were
+      silently discarding errors — worse than the verbose pattern).
+- [x] ~~**Extend `DeferClose` to `storage/eventstore/`**~~ — no-op: only 1
+      `t.Cleanup` site, already idiomatic.
+- [x] ~~**Fix tag-release script cleanup**~~ — done: `restore_working_tree()`
+      now restores ALL tracked files; `undo_temp_commit()` uses `original_head`
+      (saved before modifications) instead of fragile `HEAD~1`.
+
+### Code Quality — Follow-up
+
+- [ ] **Extend `deferClose` to pebble production code** — 12
+      `defer func() { _ = x.Close() }()` sites remain in `adapter.go`,
+      `checkpoint.go`, `command_read.go`, `command_store.go`, `helpers.go`,
+      `iteration.go`, `journal.go`, `query_read.go`, `save.go`. Requires a
+      non-test helper (promote to production code or create shared
+      `storage/internal/closeutil`).
+- [ ] **Deduplicate `deferClose` helper** — duplicated 3x across
+      `storage/pebble/defer_close_test.go`,
+      `storage/pebble/defer_close_ext_test.go`,
+      `storage/bbolt/defer_close_test.go`. Consolidate into one shared package
+      or accept the per-module idiom (like the `race_on.go`/`race_off.go`
+      pattern).
+- [ ] **Update `event/event_metadata_test.go:82` doc comment** — calls
+      `event.EnsureCustom(&m)` but doc comment was not updated to match the
+      backward-compat intent pattern used in `event/customdata_test.go` and
+      `metadata/metadata_test.go`.
 
 ---
 
