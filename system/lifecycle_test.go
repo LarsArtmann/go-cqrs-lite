@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
 
 // ── Shutdown ordering tests ──
@@ -123,114 +124,6 @@ func TestOrderedEngines_DuplicateEdges(t *testing.T) {
 	}
 }
 
-// ── GracefulClose tests ──
-
-// slowDrainer sleeps for the specified duration before completing.
-type slowDrainer struct {
-	delay time.Duration
-}
-
-func (d *slowDrainer) Drain(ctx context.Context) error {
-	select {
-	case <-time.After(d.delay):
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}
-
-func TestSystem_GracefulClose_DrainTimeout(t *testing.T) {
-	t.Parallel()
-
-	sys := &System{
-		drainers: []Drainer{&slowDrainer{delay: 200 * time.Millisecond}},
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
-	defer cancel()
-
-	err := sys.GracefulClose(ctx)
-	if err == nil {
-		t.Fatal("expected GracefulClose to fail with context deadline exceeded")
-	}
-
-	if !errors.Is(err, context.DeadlineExceeded) {
-		t.Fatalf("expected DeadlineExceeded, got: %v", err)
-	}
-}
-
-func TestSystem_GracefulClose_CloseTimeout(t *testing.T) {
-	t.Parallel()
-
-	// No drainers, but a slow engine close. Context expires during Close.
-	sys := &System{
-		engines: []namedEngine{
-			{engine: &slowCloseEngine{delay: 200 * time.Millisecond}, name: "slow"},
-		},
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
-	defer cancel()
-
-	err := sys.GracefulClose(ctx)
-	if err == nil {
-		t.Fatal("expected GracefulClose to fail with context deadline exceeded")
-	}
-
-	if !errors.Is(err, context.DeadlineExceeded) {
-		t.Fatalf("expected DeadlineExceeded, got: %v", err)
-	}
-}
-
-func TestSystem_GracefulClose_NoDrainers(t *testing.T) {
-	t.Parallel()
-
-	sys := &System{
-		engines: []namedEngine{
-			{engine: &failingEngine{name: "a", err: nil}, name: "a"},
-		},
-	}
-
-	err := sys.GracefulClose(context.Background())
-	if err != nil {
-		t.Fatalf("GracefulClose with no drainers should succeed: %v", err)
-	}
-}
-
-func TestSystem_GracefulClose_MultipleDrainers(t *testing.T) {
-	t.Parallel()
-
-	var mu sync.Mutex
-	order := []string{}
-
-	sys := &System{
-		drainers: []Drainer{
-			&recordingDrainer{name: "first", order: &order, mu: &mu},
-			&recordingDrainer{name: "second", order: &order, mu: &mu},
-			&recordingDrainer{name: "third", order: &order, mu: &mu},
-		},
-	}
-
-	err := sys.GracefulClose(context.Background())
-	if err != nil {
-		t.Fatalf("GracefulClose: %v", err)
-	}
-
-	mu.Lock()
-	defer mu.Unlock()
-
-	if len(order) != 3 {
-		t.Fatalf("expected 3 drainer calls, got %d", len(order))
-	}
-
-	expected := []string{"first", "second", "third"}
-	for i, want := range expected {
-		if order[i] != want {
-			t.Errorf("drainer %d: expected %s, got %s", i, want, order[i])
-		}
-	}
-}
-
 // ── Close edge cases ──
 
 func TestSystem_Close_NoEngines(t *testing.T) {
@@ -279,78 +172,39 @@ func TestSystem_RegisterCloser(t *testing.T) {
 	}
 }
 
-// ── Test helpers ──
-
-type slowCloseEngine struct {
-	metaengine.Engine
-
-	delay time.Duration
-}
-
-func (e *slowCloseEngine) Profile() metaengine.EngineProfile {
-	return metaengine.EngineProfile{Name: "slow"}
-}
-
-func (e *slowCloseEngine) Close() error {
-	time.Sleep(e.delay)
-	return nil
-}
-
-type recordingDrainer struct {
-	name  string
-	order *[]string
-	mu    *sync.Mutex
-}
-
-func (d *recordingDrainer) Drain(_ context.Context) error {
-	d.mu.Lock()
-	*d.order = append(*d.order, d.name)
-	d.mu.Unlock()
-	return nil
-}
-
-type recordingCloser struct {
-	name  string
-	names *[]string
-	mu    *sync.Mutex
-}
-
-func (c *recordingCloser) Close() error {
-	c.mu.Lock()
-	*c.names = append(*c.names, c.name)
-	c.mu.Unlock()
-	return nil
-}
-
-// ── Drain standalone test ──
-
-func TestSystem_Drain(t *testing.T) {
+func TestSystem_Close_ProjectionHostError(t *testing.T) {
 	t.Parallel()
 
+	stopErr := errors.New("projection host crashed")
+
 	var mu sync.Mutex
-	order := []string{}
+	engineClosed := []string{}
 
 	sys := &System{
-		drainers: []Drainer{
-			&recordingDrainer{name: "a", order: &order, mu: &mu},
-			&recordingDrainer{name: "b", order: &order, mu: &mu},
+		engines: []namedEngine{
+			{
+				engine: &closeOrderEngine{name: "engine-a", order: &engineClosed, mu: &mu},
+				name:   "engine-a",
+			},
 		},
+		projHost: &failingProjHost{stopErr: stopErr},
 	}
 
-	if err := sys.Drain(context.Background()); err != nil {
-		t.Fatalf("Drain: %v", err)
+	err := sys.Close()
+	if err == nil {
+		t.Fatal("expected Close to return error when projection host Stop fails")
 	}
 
+	if !errors.Is(err, stopErr) {
+		t.Fatalf("expected error to wrap projection host stop error, got: %v", err)
+	}
+
+	// Engine close must still run even when projection host Stop fails.
 	mu.Lock()
 	defer mu.Unlock()
 
-	if len(order) != 2 {
-		t.Fatalf("expected 2 drainer calls, got %d", len(order))
-	}
-
-	// System is not closed — Close should still work.
-	if err := sys.Close(); err != nil {
-		t.Fatalf("Close after Drain: %v", err)
+	if len(engineClosed) != 1 || engineClosed[0] != "engine-a" {
+		t.Fatalf("engine should still close after projection host error, got: %v", engineClosed)
 	}
 }
 
@@ -407,7 +261,7 @@ func TestSystem_ShutdownOrder(t *testing.T) {
 	}
 }
 
-// ── HealthCheckDetailed test ──
+// ── HealthCheckDetailed tests ──
 
 func TestSystem_HealthCheckDetailed(t *testing.T) {
 	t.Parallel()
@@ -458,4 +312,109 @@ func TestSystem_HealthCheckDetailed_AllHealthy(t *testing.T) {
 	if len(results) != 0 {
 		t.Fatalf("expected 0 results for non-HealthChecker engine, got %d", len(results))
 	}
+}
+
+func TestSystem_HealthCheckDetailed_MultipleEnginesMixed(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	sys := &System{
+		engines: []namedEngine{
+			{engine: &healthyEngine{profile: metaengine.EngineProfile{Name: "good"}}, name: "good"},
+			{
+				engine: &unhealthyEngine{profile: metaengine.EngineProfile{Name: "bad"}},
+				name:   "bad",
+			},
+			{engine: &closeOrderEngine{name: "no-hc"}, name: "no-hc"},
+		},
+	}
+
+	results := sys.HealthCheckDetailed(ctx)
+	if len(results) != 2 {
+		t.Fatalf("expected 2 results (healthy + unhealthy, skip non-HC), got %d", len(results))
+	}
+
+	byName := make(map[string]EngineHealth, len(results))
+	for _, r := range results {
+		byName[r.Name] = r
+	}
+
+	good, ok := byName["good"]
+	if !ok {
+		t.Fatal("expected result for healthy engine 'good'")
+	}
+
+	if good.Error != nil {
+		t.Errorf("expected nil error for healthy engine, got: %v", good.Error)
+	}
+
+	bad, ok := byName["bad"]
+	if !ok {
+		t.Fatal("expected result for unhealthy engine 'bad'")
+	}
+
+	if bad.Error == nil {
+		t.Error("expected error for unhealthy engine 'bad'")
+	}
+
+	// non-HealthChecker engine should be absent.
+	if _, ok := byName["no-hc"]; ok {
+		t.Error("non-HealthChecker engine should not appear in results")
+	}
+}
+
+// ── Test helpers ──
+
+type slowCloseEngine struct {
+	metaengine.Engine
+
+	delay time.Duration
+}
+
+func (e *slowCloseEngine) Profile() metaengine.EngineProfile {
+	return metaengine.EngineProfile{Name: "slow"}
+}
+
+func (e *slowCloseEngine) Close() error {
+	time.Sleep(e.delay)
+	return nil
+}
+
+type recordingCloser struct {
+	name  string
+	names *[]string
+	mu    *sync.Mutex
+}
+
+func (c *recordingCloser) Close() error {
+	c.mu.Lock()
+	*c.names = append(*c.names, c.name)
+	c.mu.Unlock()
+	return nil
+}
+
+// healthyEngine is a minimal Engine that implements HealthChecker and always
+// returns nil (healthy).
+type healthyEngine struct {
+	profile metaengine.EngineProfile
+}
+
+func (e *healthyEngine) Profile() metaengine.EngineProfile { return e.profile }
+func (e *healthyEngine) Close() error                      { return nil }
+func (e *healthyEngine) HealthCheck(_ context.Context) error { return nil }
+
+// failingProjHost is a mock projectionHostLifecycle whose Stop returns a
+// configurable error. All other methods are no-ops.
+type failingProjHost struct {
+	stopErr error
+}
+
+func (f *failingProjHost) Start(_ context.Context) error                  { return nil }
+func (f *failingProjHost) Stop() error                                    { return f.stopErr }
+func (f *failingProjHost) Status() []projectionhost.WorkerState           { return nil }
+func (f *failingProjHost) LagPerProjection() map[string]time.Duration     { return nil }
+func (f *failingProjHost) LagDuration() time.Duration                     { return 0 }
+func (f *failingProjHost) Reset(_ context.Context, _ string, _ ...projectionhost.ResetOption) error {
+	return nil
 }

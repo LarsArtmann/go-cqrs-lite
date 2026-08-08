@@ -59,33 +59,6 @@ func appendPGFilter(b *strings.Builder, args *[]any, f metaengine.FilterSpec) {
 	}
 }
 
-// pgDecodeFloat converts a Postgres scan value to float64.
-func pgDecodeFloat(raw any) (float64, error) {
-	if raw == nil {
-		return 0, nil
-	}
-
-	switch v := raw.(type) {
-	case float64:
-		return v, nil
-	case float32:
-		return float64(v), nil
-	case int64:
-		return float64(v), nil
-	case int:
-		return float64(v), nil
-	case []byte:
-		var f float64
-
-		if err := json.Unmarshal(v, &f); err != nil {
-			return 0, fmt.Errorf("pgengine pgDecodeFloat: %w", err)
-		}
-
-		return f, nil
-	default:
-		return 0, fmt.Errorf("pgengine pgDecodeFloat: unexpected type %T", raw)
-	}
-}
 
 // ---------------------------------------------------------------------------
 // AggregateReader (scalar aggregates: COUNT, SUM, MIN, MAX, AVG)
@@ -114,7 +87,7 @@ func (e *pgEngine) Aggregate(
 		return 0, fmt.Errorf("pgengine.Aggregate %s %s(%s): %w", col, fn, column, err)
 	}
 
-	return pgDecodeFloat(raw)
+	return metaengine.DecodeFloat(raw)
 }
 
 // ---------------------------------------------------------------------------
@@ -164,7 +137,7 @@ func (e *pgEngine) GroupedAggregate(
 			return nil, fmt.Errorf("pgengine.GroupedAggregate: scan: %w", err)
 		}
 
-		val, err := pgDecodeFloat(raw)
+		val, err := metaengine.DecodeFloat(raw)
 		if err != nil {
 			return nil, err
 		}
@@ -223,7 +196,7 @@ func (e *pgEngine) MultiAggregate(
 
 	result := make(map[string]float64, len(specs))
 	for i, s := range specs {
-		val, err := pgDecodeFloat(raws[i])
+		val, err := metaengine.DecodeFloat(raws[i])
 		if err != nil {
 			return nil, fmt.Errorf("pgengine.MultiAggregate alias %q: %w", s.AliasOr(), err)
 		}
@@ -295,7 +268,7 @@ func (e *pgEngine) MultiGroupedAggregate(
 
 		values := make(map[string]float64, len(specs))
 		for i, s := range specs {
-			val, err := pgDecodeFloat(raws[i])
+			val, err := metaengine.DecodeFloat(raws[i])
 			if err != nil {
 				return nil, fmt.Errorf("pgengine.MultiGroupedAggregate alias %q: %w",
 					s.AliasOr(), err)

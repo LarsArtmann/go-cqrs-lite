@@ -127,7 +127,7 @@ type System struct {
 
 	cmdDisp  *command.Dispatcher
 	qryDisp  *query.Dispatcher
-	projHost *projectionhost.Host
+	projHost projectionHostLifecycle
 	bus      event.Bus
 	pubBus   event.Publisher // publisher for decider repository (may be MultiBus)
 
@@ -183,7 +183,11 @@ func (s *System) Publisher() event.Publisher {
 
 // ProjectionHost returns the projection host, or nil if not configured.
 func (s *System) ProjectionHost() *projectionhost.Host {
-	return s.projHost
+	if h, ok := s.projHost.(*projectionhost.Host); ok {
+		return h
+	}
+
+	return nil
 }
 
 // Bus returns the event bus for pub/sub. Consumers use this to subscribe to

@@ -26,11 +26,13 @@ type PlanDiffResult struct {
 
 // QueryChange describes a query whose assignment changed between plans.
 type QueryChange struct {
-	Name      string
-	OldEngine string
-	NewEngine string
-	OldADT    ADT
-	NewADT    ADT
+	Name           string
+	OldEngine      string
+	NewEngine      string
+	OldADT         ADT
+	NewADT         ADT
+	OldReadPattern ReadPattern
+	NewReadPattern ReadPattern
 }
 
 // IsEmpty returns true if the diff has no changes.
@@ -66,13 +68,15 @@ func PlanDiff(prev, current *SerializablePlan) *PlanDiffResult {
 	for name, cq := range currQueries {
 		if pq, exists := prevQueries[name]; !exists {
 			diff.QueriesAdded = append(diff.QueriesAdded, name)
-		} else if pq.Engine != cq.Engine || pq.ADT != cq.ADT {
+		} else if pq.Engine != cq.Engine || pq.ADT != cq.ADT || pq.ReadPattern != cq.ReadPattern {
 			diff.QueriesChanged = append(diff.QueriesChanged, QueryChange{
-				Name:      name,
-				OldEngine: pq.Engine,
-				NewEngine: cq.Engine,
-				OldADT:    pq.ADT,
-				NewADT:    cq.ADT,
+				Name:           name,
+				OldEngine:      pq.Engine,
+				NewEngine:      cq.Engine,
+				OldADT:         pq.ADT,
+				NewADT:         cq.ADT,
+				OldReadPattern: pq.ReadPattern,
+				NewReadPattern: cq.ReadPattern,
 			})
 		}
 	}

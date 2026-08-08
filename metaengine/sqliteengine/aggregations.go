@@ -61,7 +61,7 @@ func (e *sqliteEngine) aggregateStandard(
 		return 0, fmt.Errorf("aggregate %s %s(%s): %w", col, fn, column, err)
 	}
 
-	return sqliteDecodeFloat(raw)
+	return metaengine.DecodeFloat(raw)
 }
 
 func (e *sqliteEngine) aggregatePlanned(
@@ -107,5 +107,5 @@ func (e *sqliteEngine) aggregatePlanned(
 		return 0, fmt.Errorf("aggregate %s %s(%s): %w", plan.Collection, fn, column, err)
 	}
 
-	return sqliteDecodeFloat(raw)
+	return metaengine.DecodeFloat(raw)
 }

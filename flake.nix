@@ -916,6 +916,25 @@
                   bash "$PWD/scripts/vm-mysql-nspawn.sh" "$@" || bash "$PWD/scripts/vm-mysql.sh" "$@" || echo "⚠️ MySQL tests had failures"
                 '';
 
+            # One-command integration test runner with auto-detection.
+            # Detects the best strategy for each database (ephemeral nixpkgs,
+            # systemd-nspawn, Docker testcontainers, or QEMU VM) and runs them.
+            # Usage: nix run .#test-integration
+            #        nix run .#test-integration -- --pg-only --list
+            #        nix run .#test-integration -- -- -run TestPostgresEventStore
+            test-integration =
+              mkApp "test-integration"
+                [
+                  goPkg
+                  pkgs.gcc
+                  pkgs.postgresql
+                ]
+                ''
+                  export CGO_ENABLED=1
+                  export GOEXPERIMENT=jsonv2
+                  bash "$PWD/scripts/test-integration.sh" "$@"
+                '';
+
             # Composite gate: VM checks + ephemeral PG integration tests
             verify-integration =
               mkApp "verify-integration"

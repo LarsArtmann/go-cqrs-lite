@@ -216,6 +216,12 @@ func (e *duckdbEngine) HealthCheck(ctx context.Context) error {
 // --- MapBackend ---
 
 // lookupPlan returns the layout plan for a collection under a read lock.
+//
+// The returned LayoutPlan is a struct copy, but slice fields (Columns, Indexes)
+// share the underlying array with the map entry. All current callers treat the
+// plan as read-only (passing it to SQL-building helpers that only read field
+// values). Do NOT mutate the returned plan's slice fields — if mutation is
+// needed, deep-copy the slices first.
 func (e *duckdbEngine) lookupPlan(collection string) (metaengine.LayoutPlan, bool) {
 	e.layoutMu.RLock()
 	defer e.layoutMu.RUnlock()
