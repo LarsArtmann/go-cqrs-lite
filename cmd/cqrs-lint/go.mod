@@ -5,7 +5,6 @@ go 1.26.5
 require (
 	github.com/larsartmann/cmdguard/v4 v4.0.0
 	github.com/larsartmann/go-finding v1.5.0
-	github.com/larsartmann/go-finding/pipeline v0.0.0-00010101000000-000000000000
 	github.com/larsartmann/go-output v0.36.0
 	github.com/larsartmann/go-output/table v0.36.0
 	github.com/spf13/cobra v1.10.2
@@ -15,9 +14,7 @@ require (
 require (
 	charm.land/fang/v2 v2.0.1 // indirect
 	charm.land/lipgloss/v2 v2.0.5 // indirect
-	github.com/LarsArtmann/gogenfilter/v3 v3.4.0 // indirect
 	github.com/a-h/templ v0.3.1020 // indirect
-	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260803092147-8b693049ce2a // indirect
@@ -31,10 +28,8 @@ require (
 	github.com/go-faster/errors v0.8.0 // indirect
 	github.com/go-faster/jx v1.2.0 // indirect
 	github.com/go-faster/yaml v0.4.6 // indirect
-	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/gofrs/flock v0.13.0 // indirect
-	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/knadh/koanf/maps v0.1.2 // indirect
 	github.com/knadh/koanf/parsers/json v1.0.1 // indirect
@@ -81,7 +76,3 @@ require (
 	golang.org/x/term v0.45.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
 )
-
-replace github.com/larsartmann/go-finding => /home/lars/projects/go-finding
-
-replace github.com/larsartmann/go-finding/pipeline => /home/lars/projects/go-finding/pipeline
