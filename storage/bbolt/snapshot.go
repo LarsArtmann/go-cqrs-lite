@@ -103,7 +103,7 @@ func (s *SnapshotStore) LoadAtVersion(
 }
 
 func (s *SnapshotStore) loadSnapshot(
-	span cqrsotel.Span,
+	_ cqrsotel.Span,
 	ref id.StreamRef,
 	maxVersion event.Version,
 	enforceMax bool,

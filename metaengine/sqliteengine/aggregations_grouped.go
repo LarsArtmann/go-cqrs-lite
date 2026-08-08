@@ -255,7 +255,8 @@ func (e *sqliteEngine) multiGroupedAggregateStandard(
 
 	grpExpr := fmt.Sprintf("json_extract(value, '%s')", jsonPath(groupBy))
 
-	selectCols := []string{grpExpr + " AS group_key"}
+	selectCols := make([]string, 0, 1+len(specs))
+	selectCols = append(selectCols, grpExpr+" AS group_key")
 	for _, s := range specs {
 		selectCols = append(selectCols, fmt.Sprintf("%s AS %s",
 			aggExprSQLite(s.Fn, s.Column, false),
@@ -287,7 +288,8 @@ func (e *sqliteEngine) multiGroupedAggregatePlanned(
 
 	grpExpr := metaengine.QuoteIdent(groupBy)
 
-	selectCols := []string{grpExpr + " AS group_key"}
+	selectCols := make([]string, 0, 1+len(specs))
+	selectCols = append(selectCols, grpExpr+" AS group_key")
 	for _, s := range specs {
 		selectCols = append(selectCols, fmt.Sprintf("%s AS %s",
 			aggExprSQLite(s.Fn, s.Column, true),

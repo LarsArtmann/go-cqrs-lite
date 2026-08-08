@@ -137,7 +137,7 @@ func (e *badgerEngine) SetCalibration(costs metaengine.CalibrationCosts) {
 // closed or corrupted DB returns an error.
 // Implements [metaengine.HealthChecker] for Kubernetes-style liveness probes.
 func (e *badgerEngine) HealthCheck(_ context.Context) error {
-	return e.db.View(func(txn *badger.Txn) error {
+	return e.db.View(func(_ *badger.Txn) error {
 		return nil
 	})
 }
@@ -200,7 +200,7 @@ func (e *badgerEngine) seedSeqCounters() error {
 			col := parts[1]
 
 			var seq int64
-			fmt.Sscanf(parts[2], "%020d", &seq)
+			_, _ = fmt.Sscanf(parts[2], "%020d", &seq)
 
 			actual, _ := e.logSeq.LoadOrStore(col, &atomic.Int64{})
 			existing := actual.(*atomic.Int64).Load()
