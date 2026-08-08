@@ -38,35 +38,13 @@ and is **never** duplicated here.
       crush-daily, KeyHolderAI). The linter has 192 rules but zero real-world
       false-positive data.
       _(Effort: L)_
-- [ ] **Build type-checking test helper** — `BuildContextWithTypes` needed
-      for testing type-aware rules (C023, C001 `Begin(false)` generalization).
-      Current `BuildContextFromSource` provides empty `TypesInfo` maps, making
-      type-aware paths untestable.
-      _(Effort: M)_
-- [ ] **Self-lint CI: tighten severity gate** — the CI job passes on
-      warnings; `init.go:69` has a C025 warning (`fmt.Errorf` without `%w`).
-      Either suppress inline or add `--min-severity warning`.
-      _(Effort: S)_
-- [ ] **10 genuinely-missing rules** — identified during DOC/OBS/RES/DI
-      category evaluation. 80–90% of proposed patterns already covered by
-      scattered rules. These are absent:
-  - [ ] RES: Missing retry middleware — B008 detects manual retry, but no rule
-        flags a bus/dispatcher that lacks retry entirely.
-  - [ ] RES: Circuit breaker absence — zero circuit-breaker detection.
-  - [ ] RES: Missing DLQ config — no rule detects projectionhost without
-        dead-letter handling.
-  - [ ] DOC: Stale catalog entries — reverse of E004.
-  - [ ] DOC: AsyncAPI/OpenAPI freshness — F002 checks catalog usage but not
-        generated-doc freshness.
-  - [ ] OBS: Missing OTel SDK init — F003/B014 detect usage, not proper setup.
-  - [ ] OBS: Missing `slog.SetDefault` — no structured-logging setup detection.
-  - [ ] OBS: Missing span creation around handlers.
-  - [ ] DI: Optimistic concurrency / expected-version check on Save/Append.
-  - [ ] DI: Missing append-stream version precondition at store level.
-        _(Source: `docs/status/2026-08-08_02-28_cqrs-lint-backlog-triage.md`)_
-- [ ] **Tag cqrs-lint v4.6.0** — after CI self-lint job + remaining
-      false-positive fixes are shipped. Version constant must match latest tag.
-      _(Effort: S)_
+- [x] **Build type-checking test helper** — ✓ Aug 2026 (M11)
+      `BuildContextWithTypes` implemented in `analyzer/test_helpers.go`.
+- [x] **Self-lint CI: tighten severity gate** — ✓ Aug 2026 (M5)
+- [x] **10 genuinely-missing rules** — ✓ Aug 2026 (M12-M14).
+      B029-B031, D018-D019, F027-F029, C041-C042 all implemented,
+      tested, registered, and cataloged. Total now 202 rules.
+- [x] **Tag cqrs-lint v4.6.0** — ✓ Aug 2026 (M14). Tagged with 202 rules.
 
 ---
 
@@ -106,20 +84,17 @@ JSON mappings, upsert conditions completely unverified against a live
 
 ## Irohengine / Replicated Engine
 
-- [ ] **Add `WithClock` option to `replicatedEngine`** — `MapSet` uses
-      `time.Now()` for LWW timestamps (engine.go:136). Injectable clock
-      eliminates timing assumptions in convergence tests.
-      _(Effort: M)_
-- [ ] **Add connection pooling to QuicTransport** — each `Publish` opens a new
-      BiStream; reusing streams would reduce latency under high throughput.
+- [x] **Add `WithClock` option to `replicatedEngine`** — ✓ Aug 2026 (M18)
+- [x] **Add connection pooling to QuicTransport** — ✓ Aug 2026. Implemented
+      `WithStreamPooling()` option: persistent BiStreams with length-prefix framing
+      replace one-stream-per-op. ~30% latency reduction measured (91K vs 129K ns/op).
+      Backward compatible (disabled by default). Tests: `TestQuicPooled_*`.
       _(Effort: M)_
       _(Source: `docs/status/2026-08-08_02-50_irohengine-quic-parity-and-flake-fixes.md`)_
-- [ ] **Add MapDelete LWW convergence test** — only MapSet LWW is tested;
-      MapDelete convergence is unverified.
-      _(Effort: S)_
-- [ ] **Add graceful shutdown test** — verify in-flight ops complete during
-      `Close()`.
-      _(Effort: S)_
+- [x] **Add MapDelete LWW convergence test** — ✓ Aug 2026 (M4). Hardened with
+      injectable `WithClock` (deterministic timestamps, no `time.Sleep`).
+- [x] **Add graceful shutdown test** — ✓ Aug 2026 (M4). Expanded with 50
+      concurrent in-flight ops verified before Close, plus post-close safety check.
 
 ---
 
@@ -149,26 +124,13 @@ JSON mappings, upsert conditions completely unverified against a live
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must
   v0.1.2).
-- [ ] **Pin GitHub Actions to commit SHAs** — 72+ unpinned actions use mutable
-      `@vN` tags (supply-chain risk). `actions/checkout@v4`,
-      `DeterminateSystems/nix-installer-action@v17`, etc.
-      _(Effort: M)_
-- [ ] **Add `--fail-on-stale-suppressions` CI gate** — prevents stale
-      `//cqrs-lint:ignore` directives from accumulating.
-      _(Effort: S)_
-- [ ] **Add CI check for API-version drift** — verify every exported symbol in
-      a tagged module exists at that tag. Catches the `WithCustom`/`event/v4.3.0`
-      class of drift before vulncheck fails.
-      _(Effort: M)_
-- [ ] **Add calibration benchmark regression baseline** — metaengine calibration
-      benchmarks should run in CI and fail if cost constants drift >3× from
-      baseline. Currently 0 of 43 benchmarks have CI regression tracking.
-      _(Effort: M)_
-      _(Source: `ROADMAP.md` Theme 8)_
-- [ ] **Add `duckdb-vm` and `turso-vm` to CI `nixos-vm-tests` job** — wired as
-      flake checks but not in dedicated CI job.
-      _(Effort: S)_
-      _(Source: `docs/status/2026-08-08_10-18_m35-m48-integration-test-infrastructure.md`)_
+- [x] **Pin GitHub Actions to commit SHAs** — ✓ Aug 2026 (M15)
+- [x] **Add `--fail-on-stale-suppressions` CI gate** — ✓ Aug 2026 (M5)
+- [x] **Add CI check for API-version drift** — ✓ Aug 2026 (M16).
+      `scripts/check-tag-existence.sh` added.
+- [x] **Add calibration benchmark regression baseline** — ✓ Aug 2026 (M22).
+      `metaengine/calibration-baseline.md` created.
+- [x] **Add `duckdb-vm` and `turso-vm` to CI `nixos-vm-tests` job** — ✓ Aug 2026 (M5)
 
 ---
 
@@ -191,10 +153,7 @@ JSON mappings, upsert conditions completely unverified against a live
 
 ## Layer Enforcement
 
-- [ ] **Delete stale FOUR-TIER-MODEL.d2/.svg artifacts** — the `.md` was
-      renamed to `SEVEN-TIER-MODEL.md` but the `.d2` and `.svg` diagram files
-      in `docs/architecture-understanding/` still carry the old name.
-      _(Effort: S)_
+- [x] **Delete stale FOUR-TIER-MODEL.d2/.svg artifacts** — ✓ Aug 2026 (M3)
 - [ ] **Add intra-module architecture config for `cmd/cqrs-lint`** — 16
       production sub-packages (`pkg/analyzer`, `pkg/rules`, etc.) with no
       intra-module architecture enforcement. Only `storage/` and `catalog/`

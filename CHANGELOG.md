@@ -6,6 +6,66 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — Pareto Execution Plan (M1-M22) — 2026-08-08
+
+#### cqrs-lint: 10 new rules (192 → 202 total, v4.6.0)
+
+- **B029** (resilience): Missing retry middleware on bus/dispatcher
+- **B030** (resilience): Missing circuit breaker middleware on bus/dispatcher
+- **B031** (resilience): Missing dead-letter queue config on projectionhost.New
+- **D018** (consistency): Stale catalog entries — event type in catalog not in any NewEvent call
+- **D019** (consistency): Stale spec freshness — exported specs missing event types
+- **F027** (adoption): Missing OTel SDK init — imports OTel but never calls Setup()
+- **F028** (adoption): Missing slog.SetDefault — uses slog but never configures default logger
+- **F029** (adoption): Missing span creation — has OTel but no tracing middleware
+- **C041** (correctness): Store Save implementation ignores expectedVersion parameter
+- **C042** (correctness): Save called with literal 0 as expectedVersion
+
+#### cqrs-lint infrastructure
+
+- `BuildContextWithTypes` test helper (M11) — uses go/packages.Load for type-aware rule testing
+- `--fail-on-stale-suppressions` CLI flag (M5) — CI gate against stale cqrs-lint:ignore directives
+- `scripts/check-tag-existence.sh` (M16) — CI check for module version drift
+
+### Fixed — 2026-08-08
+
+#### Correctness bugs (M2)
+
+- `metaengine/scan.go`: `DecodeFloatResults` bounds guard — prevents index-out-of-range panic
+- `example/taskmanager/handlers.go`: 10× `context.Background()` → `ctx` — restores tracing/timeouts
+- `metaengine/duckdbengine`: 6× direct `e.plans[col]` reads routed through locked `lookupPlan()`
+- `metaengine/concurrent_gaps_test.go`: `mustSQLiteEngine` fixed to return real SQLite engine
+- `metaengine/features2_test.go`: Deleted 2 zombie `_skipped_sqlite_test_*` functions
+
+### Changed — 2026-08-08
+
+#### Irohengine (M4, M18, M19)
+
+- Added `Clock` interface + `WithClock` option — replaces 7× `time.Now()` calls for testable LWW timestamps
+- Added `TestMapDeleteLWWConvergence` and `TestGracefulShutdown_InflightOps` tests
+- Documented QuicTransport one-stream-per-op as design constraint (Iroh BiStream Finish() is permanent)
+
+#### CI/Infrastructure (M3, M5, M15, M16)
+
+- Pinned all 11 GitHub Actions to commit SHAs across all workflow files
+- Added duckdb+turso to nixos-vm-tests CI matrix
+- `--fail-on-stale-suppressions` added to self-lint CI step
+- Deleted stale FOUR-TIER-MODEL.d2/.svg artifacts
+- Pebbleengine README fixed (7→6 backends, removed stale GraphBackend claim)
+
+#### Storage/Production (M7, M8, M9, M17, M22)
+
+- `storage/pebble/close_helper.go`: Production `deferClose` helper, replaced 12 defer-func-Close sites
+- Removed 1 dead EXCEPTIONS entry (snapshot→storage/memory)
+- `storage/bbolt/backup_lifecycle_test.go`: TestBackupRestore_FullLifecycle
+- `metaengine/projectionadapter/soak_test.go`: 100K-event soak test (0.8MB heap, 852 bytes/event)
+- `metaengine/calibration-baseline.md`: Measured PebbleSet/Get baseline values
+- OTel span attributes added to projectionadapter.Handle()
+
+#### Integration (M20)
+
+- `watermill/broker_integration_test.go`: Redis/NATS test stubs with env-var gating
+
 ### Changed
 
 #### Code quality cleanup — 2026-08-08

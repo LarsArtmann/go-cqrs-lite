@@ -179,23 +179,27 @@ func (t *QuicTransport) Publish(_ context.Context, op irohengine.WriteOp) error 
 	}
 
 	t.mu.RLock()
-	conns := make([]*iroh_ffi.Connection, 0, len(t.conns))
+	peers := make([]*peerConn, 0, len(t.conns))
 	for _, pc := range t.conns {
-		conns = append(conns, pc.conn)
+		peers = append(peers, pc)
 	}
 	t.mu.RUnlock()
 
-	if len(conns) == 0 {
+	if len(peers) == 0 {
 		return nil // no peers — local-only write
 	}
 
 	var wg sync.WaitGroup
-	for _, conn := range conns {
+	for _, pc := range peers {
 		wg.Add(1)
-		go func(c *iroh_ffi.Connection) {
+		go func(pc *peerConn) {
 			defer wg.Done()
-			t.sendOp(c, data)
-		}(conn)
+			if t.cfg.poolStreams {
+				t.sendOpPooled(pc, data)
+			} else {
+				t.sendOp(pc.conn, data)
+			}
+		}(pc)
 	}
 	wg.Wait()
 
