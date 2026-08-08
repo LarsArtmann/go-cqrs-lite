@@ -105,13 +105,13 @@ if [ $# -gt 0 ]; then
         TEST_PATTERN="${*#-run }"
         echo "==> Running integration tests matching: $TEST_PATTERN"
         go test -tags "integration goexperiment.jsonv2" \
-            ./storage/... ./stack/postgres/... ./metaengine/pgengine/... ./benchkit/... \
+            ./storage/... ./stack/postgres/... ./metaengine/pgengine/... ./projectionhost/... ./scheduling/sqlstore/... ./benchkit/... \
             -count=1 -v -run "$TEST_PATTERN"
     fi
 else
     echo "==> Running all PostgreSQL integration tests"
     FAILED=0
-    for mod in storage stack/postgres metaengine/pgengine benchkit; do
+    for mod in storage stack/postgres metaengine/pgengine projectionhost scheduling/sqlstore benchkit; do
         echo ""
         echo "--- $mod ---"
         (

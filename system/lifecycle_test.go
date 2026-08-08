@@ -400,8 +400,8 @@ type healthyEngine struct {
 	profile metaengine.EngineProfile
 }
 
-func (e *healthyEngine) Profile() metaengine.EngineProfile { return e.profile }
-func (e *healthyEngine) Close() error                      { return nil }
+func (e *healthyEngine) Profile() metaengine.EngineProfile   { return e.profile }
+func (e *healthyEngine) Close() error                        { return nil }
 func (e *healthyEngine) HealthCheck(_ context.Context) error { return nil }
 
 // failingProjHost is a mock projectionHostLifecycle whose Stop returns a
@@ -410,11 +410,16 @@ type failingProjHost struct {
 	stopErr error
 }
 
-func (f *failingProjHost) Start(_ context.Context) error                  { return nil }
-func (f *failingProjHost) Stop() error                                    { return f.stopErr }
-func (f *failingProjHost) Status() []projectionhost.WorkerState           { return nil }
-func (f *failingProjHost) LagPerProjection() map[string]time.Duration     { return nil }
-func (f *failingProjHost) LagDuration() time.Duration                     { return 0 }
-func (f *failingProjHost) Reset(_ context.Context, _ string, _ ...projectionhost.ResetOption) error {
+func (f *failingProjHost) Start(_ context.Context) error              { return nil }
+func (f *failingProjHost) Stop() error                                { return f.stopErr }
+func (f *failingProjHost) Status() []projectionhost.WorkerState       { return nil }
+func (f *failingProjHost) LagPerProjection() map[string]time.Duration { return nil }
+func (f *failingProjHost) LagDuration() time.Duration                 { return 0 }
+
+func (f *failingProjHost) Reset(
+	_ context.Context,
+	_ string,
+	_ ...projectionhost.ResetOption,
+) error {
 	return nil
 }

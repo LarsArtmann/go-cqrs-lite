@@ -719,7 +719,11 @@ func TestDuckDB_Aggregate_EmptyPlannedCollection(t *testing.T) {
 		t.Fatalf("Empty planned MultiAggregate: %v", err)
 	}
 	if multi["count"] != 0 || multi["total"] != 0 {
-		t.Errorf("Empty planned multi: got count=%v total=%v, want 0 0", multi["count"], multi["total"])
+		t.Errorf(
+			"Empty planned multi: got count=%v total=%v, want 0 0",
+			multi["count"],
+			multi["total"],
+		)
 	}
 
 	mgr := eng.(metaengine.MultiGroupedAggregateReader)

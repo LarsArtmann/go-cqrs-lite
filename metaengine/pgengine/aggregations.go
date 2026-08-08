@@ -59,7 +59,6 @@ func appendPGFilter(b *strings.Builder, args *[]any, f metaengine.FilterSpec) {
 	}
 }
 
-
 // ---------------------------------------------------------------------------
 // AggregateReader (scalar aggregates: COUNT, SUM, MIN, MAX, AVG)
 // ---------------------------------------------------------------------------

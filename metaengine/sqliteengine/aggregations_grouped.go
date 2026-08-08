@@ -481,7 +481,6 @@ func aggExprSQLite(fn metaengine.AggregateFn, column string, planned bool) strin
 	return fmt.Sprintf("%s(json_extract(value, '%s'))", fn, jsonPath(column))
 }
 
-
 // Compile-time assertions for the new interfaces.
 var (
 	_ metaengine.GroupedAggregateReader      = (*sqliteEngine)(nil)

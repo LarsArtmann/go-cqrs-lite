@@ -10,17 +10,33 @@
 #   nix run .#integration-pg -- go test ./storage/...  # arbitrary go command
 #
 # Environment:
-#   PG_PORT — override the port (default: auto-select free port)
+#   PG_PORT       — override the port (default: auto-select free port)
+#   PGDATA_CACHE  — cache dir for PG data (default: none; fresh mktemp each run).
+#                   When set, initdb runs only once; subsequent starts reuse the
+#                   existing cluster (~2s saved per run). Example:
+#                     export PGDATA_CACHE=/tmp/cqrs-pg-cache
 set -euo pipefail
 
-PGDATA=$(mktemp -d /tmp/cqrs-pg-XXXXXX)
 SOCKDIR=""
+CACHE_MODE=false
+
+# Use cache dir if provided and valid; otherwise fall back to fresh mktemp.
+if [ -n "${PGDATA_CACHE:-}" ]; then
+    PGDATA="$PGDATA_CACHE"
+    CACHE_MODE=true
+    mkdir -p "$PGDATA"
+else
+    PGDATA=$(mktemp -d /tmp/cqrs-pg-XXXXXX)
+fi
 
 cleanup() {
     if [ -f "$PGDATA/postmaster.pid" ]; then
         pg_ctl -D "$PGDATA" -m fast stop -w 2>/dev/null || true
     fi
-    rm -rf "$PGDATA" "$SOCKDIR"
+    if [ "$CACHE_MODE" = false ]; then
+        rm -rf "$PGDATA"
+    fi
+    rm -rf "$SOCKDIR"
     # Verify no orphan postgres processes
     if pgrep -u "$USER" -f "$PGDATA" >/dev/null 2>&1; then
         echo "WARNING: orphan postgres processes detected, killing"
@@ -40,8 +56,13 @@ if [ -z "${PG_PORT:-}" ]; then
         || echo "55432")
 fi
 
-echo "==> Initializing ephemeral PostgreSQL (port $PG_PORT, data $PGDATA)"
-initdb -D "$PGDATA" -A trust --no-locale --username=cqrs 2>&1 | tail -3
+# Initialize only if the data directory lacks PG_VERSION (cache miss or fresh run).
+if [ ! -f "$PGDATA/PG_VERSION" ]; then
+    echo "==> Initializing PostgreSQL data dir (port $PG_PORT, data $PGDATA)"
+    initdb -D "$PGDATA" -A trust --no-locale --username=cqrs 2>&1 | tail -3
+else
+    echo "==> Reusing cached PostgreSQL data dir ($PGDATA)"
+fi
 
 # NixOS puts /run/postgresql as the default socket dir, which requires root.
 # Override to a temp directory.
@@ -63,7 +84,7 @@ echo "==> PostgreSQL ready: $POSTGRES_TEST_DSN"
 # Determine what to run.
 # Per-module GOWORK=off is required because the multi-module workspace
 # doesn't resolve integration build tags correctly in workspace mode.
-PG_MODULES="storage stack/postgres metaengine/pgengine projectionhost scheduling/sqlstore"
+PG_MODULES="storage stack/postgres metaengine/pgengine projectionhost scheduling/sqlstore benchkit"
 
 if [ $# -gt 0 ] && [ "$1" = "go" ]; then
     shift

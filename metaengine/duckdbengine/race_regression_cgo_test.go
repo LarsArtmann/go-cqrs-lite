@@ -76,10 +76,14 @@ func TestDuckDB_RaceRegression_LayoutPlanConcurrentAccess(t *testing.T) {
 			defer wg.Done()
 
 			for range iterations {
-				_, _ = ea.ExplainAggregateQuery(ctx, "race_test", metaengine.ExplainAggregateOptions{
-					Fn:     metaengine.AggregateCount,
-					Column: "status",
-				})
+				_, _ = ea.ExplainAggregateQuery(
+					ctx,
+					"race_test",
+					metaengine.ExplainAggregateOptions{
+						Fn:     metaengine.AggregateCount,
+						Column: "status",
+					},
+				)
 			}
 		}()
 	}

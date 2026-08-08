@@ -29,7 +29,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
-PG_MODULES="storage stack/postgres metaengine/pgengine projectionhost scheduling/sqlstore"
+PG_MODULES="storage stack/postgres metaengine/pgengine projectionhost scheduling/sqlstore benchkit"
 MYSQL_MODULES="stack/mysql"
 
 # ─── Argument Parsing ─────────────────────────────────────────────────────────
@@ -37,6 +37,8 @@ MYSQL_MODULES="stack/mysql"
 STRATEGY="auto"
 RUN_PG=true
 RUN_MYSQL=true
+PG_ONLY_SET=false
+MYSQL_ONLY_SET=false
 LIST_ONLY=false
 EXTRA_ARGS=()
 
@@ -45,14 +47,16 @@ while [[ $# -gt 0 ]]; do
         --pg-only)
             RUN_PG=true
             RUN_MYSQL=false
+            PG_ONLY_SET=true
             shift
             ;;
         --mysql-only)
             RUN_PG=false
             RUN_MYSQL=true
+            MYSQL_ONLY_SET=true
             shift
             ;;
-        --strategy=auto|--strategy=testcontainers|--strategy=vm)
+        --strategy=auto|--strategy=ephemeral|--strategy=nspawn|--strategy=external|--strategy=testcontainers|--strategy=vm)
             STRATEGY="${1#*=}"
             shift
             ;;
@@ -102,8 +106,13 @@ has_kvm() {
 
 detect_pg_strategy() {
     if [ "$STRATEGY" != "auto" ]; then
-        echo "$STRATEGY"
-        return
+        case "$STRATEGY" in
+            external|ephemeral|testcontainers|vm)
+                echo "$STRATEGY"
+                return
+                ;;
+            # nspawn is MySQL-only; fall through to auto-detect for PG
+        esac
     fi
     if [ -n "${POSTGRES_TEST_DSN:-}${DATABASE_URL:-}" ]; then
         echo "external"
@@ -126,8 +135,13 @@ detect_pg_strategy() {
 
 detect_mysql_strategy() {
     if [ "$STRATEGY" != "auto" ]; then
-        echo "$STRATEGY"
-        return
+        case "$STRATEGY" in
+            external|nspawn|testcontainers|vm)
+                echo "$STRATEGY"
+                return
+                ;;
+            # ephemeral is PG-only; fall through to auto-detect for MySQL
+        esac
     fi
     if [ -n "${MYSQL_TEST_DSN:-}" ]; then
         echo "external"
@@ -333,8 +347,13 @@ if [ "$LIST_ONLY" = true ]; then
     exit 0
 fi
 
+if [ "$PG_ONLY_SET" = true ] && [ "$MYSQL_ONLY_SET" = true ]; then
+    echo "ERROR: --pg-only and --mysql-only are mutually exclusive."
+    exit 1
+fi
+
 if [ "$RUN_PG" = false ] && [ "$RUN_MYSQL" = false ]; then
-    echo "ERROR: Nothing to run (both --pg-only and --mysql-only would be needed, but both are off)"
+    echo "ERROR: Nothing to run (both databases disabled)."
     exit 1
 fi
 

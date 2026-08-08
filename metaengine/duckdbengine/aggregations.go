@@ -248,7 +248,6 @@ func (e *duckdbEngine) scanScalar(
 	return metaengine.DecodeFloat(raw)
 }
 
-
 // ---------------------------------------------------------------------------
 // GroupedAggregateReader (GROUP BY + single aggregate)
 // ---------------------------------------------------------------------------

@@ -130,7 +130,14 @@ func TestPostgres_GroupedAggregate(t *testing.T) {
 	assertPGAggFloat(t, "open count", grouped["open"], 3)
 	assertPGAggFloat(t, "closed count", grouped["closed"], 2)
 
-	groupedSum, err := gr.GroupedAggregate(ctx, "items", metaengine.AggregateSum, "price", "status", nil)
+	groupedSum, err := gr.GroupedAggregate(
+		ctx,
+		"items",
+		metaengine.AggregateSum,
+		"price",
+		"status",
+		nil,
+	)
 	if err != nil {
 		t.Fatalf("GroupedAggregate SUM: %v", err)
 	}

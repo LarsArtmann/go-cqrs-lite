@@ -36,7 +36,10 @@ func newSQLiteEngineForPath(path string) (metaengine.Engine, *sql.DB) {
 	return eng, db
 }
 
-func newPlannedSQLiteEngine(t *testing.T, plans []metaengine.LayoutPlan) (metaengine.Engine, *sql.DB) {
+func newPlannedSQLiteEngine(
+	t *testing.T,
+	plans []metaengine.LayoutPlan,
+) (metaengine.Engine, *sql.DB) {
 	t.Helper()
 	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {

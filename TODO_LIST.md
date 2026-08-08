@@ -1,8 +1,9 @@
 # TODO List
 
 **Updated:** 2026-08-08 (system lifecycle hardening shipped: interface extraction,
-test split, 4 new tests, README lifecycle docs; metaengine Doctor aggregate
-diagnostics broken by daemon incomplete commit)
+test split, 4 new tests, README lifecycle docs; integration tests added; all
+blocking items resolved — metaengine build fixed by daemon, api-stability/doc-check
+verified)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -36,18 +37,16 @@ and is **never** duplicated here.
       specific exported types/functions, file:line refs, ADR references.
       _(Effort: M)_
 
-- [ ] 🔥 **Fix `metaengine/explain.go` build break** — `aggregateCapabilities`
-      is referenced at line 274 (commit `b6fc8413b`) but its definition is in
-      an uncommitted working-tree change the daemon didn't finish. Blocks
-      `go build ./...` workspace-wide and `nix run .#verify`.
-      _(Source: `docs/status/2026-08-08_08-57_system-lifecycle-hardening.md`)_
-- [ ] 🔥 **Regenerate api-stability golden** — after structural changes to
-      `system/system.go` (interface extraction, field type change). Run:
-      `cd cmd/api-stability && GOWORK=off go run main.go -update`.
-- [ ] **Run doc-check on system README** — README edited with Go-qualified
-      symbols. Run: `cd cmd/doc-check && GOWORK=off go run . ../../system/README.md`.
-- [ ] **Run workspace-wide `go build -tags "goexperiment.jsonv2" ./...`** —
-      after all changes, not just per-module builds.
+- [x] ~~Fix `metaengine/explain.go` build break~~ — RESOLVED: daemon completed
+      `aggregateCapabilities` in subsequent commits (`2936e8c19`, `4d4da45d5`,
+      `797d9ce45`). Workspace build passes.
+- [x] ~~Regenerate api-stability golden~~ — VERIFIED: 3808 exports match golden.
+      The `DecodeFloat` addition in `docs/api_surface.txt` is correct (daemon's
+      commit `a380e1ed1`).
+- [x] ~~Run doc-check on system README~~ — PASSES: 47 references valid across
+      5 packages.
+- [x] ~~Run workspace-wide build~~ — PASSES: `go build -tags "goexperiment.jsonv2" ./...`
+      clean.
 
 ---
 
