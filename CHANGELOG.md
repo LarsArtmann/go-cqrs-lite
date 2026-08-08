@@ -117,6 +117,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   struct copy but slice fields (Columns, Indexes) share the underlying array.
   All callers are read-only today.
 
+#### Metaengine aggregate test coverage fill
+
+- **Direct `DecodeFloat` unit tests** — `metaengine/scan_test.go` (new): all 7
+  type branches (nil, float64, float32, int64, int, `*big.Int`, `[]byte`),
+  invalid JSON `[]byte` error, unknown-type error (string/bool/uint/map/slice/
+  chan), large `*big.Int` precision (2^200 via `math.Ldexp`), plus a
+  19-subtest table-driven variant. Previously only exercised indirectly through
+  3 SQL engines' aggregate tests.
+- **Direct `DecodeFloatResults` unit tests** — same file: empty specs, nil raws,
+  explicit alias keying, default `AliasOr()` keying (`count`, `SUM(price)`,
+  `MIN(price)`), mixed driver types in one call (int64 + `*big.Int` + `[]byte`
+  + float64), error propagation (verifies errPrefix + alias + cause in message),
+  invalid `[]byte` error path.
+- **Doctor() aggregate-pushdown section test** —
+  `metaengine/doctor_aggregate_test.go` (new): `fakeAggregateEngine`
+  implementing all 5 pushdown interfaces; asserts
+  `pushdown: scalar, grouped, multi, multi-grouped, distinct` appears for
+  capable engines and `none` for Memory engine. Fills the gap where all
+  existing Doctor tests used Memory (no pushdown).
+- **Strengthened PG aggregate test assertions** —
+  `metaengine/pgengine/aggregations_test.go`:
+  `TestPostgres_ExplainAggregateQuery` now asserts `SUM` keyword, `$1`
+  placeholder, and first arg is collection name (was: non-empty SQL only).
+  `TestPostgres_DistinctValues` now verifies actual values `"open"` and
+  `"closed"` are returned with correct types (was: count==2 only).
+  _(Source: `docs/status/2026-08-08_10-36_metaengine-aggregate-test-coverage-fill.md`)_
+
 #### CBOR encoding bugfix — event.New WithEncoding respect + Watermill fixes
 
 - **`event.New` WithEncoding fix** — `event.New()` was silently discarding

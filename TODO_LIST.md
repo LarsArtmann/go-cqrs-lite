@@ -76,20 +76,30 @@ and is **never** duplicated here.
 
 ### Session 3 follow-up — direct tests for shared helpers
 
-- [ ] **Write direct unit tests for `metaengine.DecodeFloat`** — all 7 type
+- [x] **Write direct unit tests for `metaengine.DecodeFloat`** — all 7 type
       branches (nil, float64, float32, int64, int, *big.Int, []byte) + unknown
-      type error case. Currently only exercised indirectly through 3 engines'
-      aggregate tests. _(Effort: S)_
-- [ ] **Write direct unit tests for `metaengine.DecodeFloatResults`** — empty
-      specs, nil raws, mismatched lengths, correct alias keying. _(Effort: S)_
-- [ ] **Add Doctor() test asserting aggregate-pushdown section** — current
-      Doctor tests only use Memory engine (no pushdown). Add a test with SQLite
-      or DuckDB engine asserting `--- Aggregate Pushdown ---` header appears with
-      expected capability list. _(Effort: S)_
-- [ ] **Strengthen PG aggregate test assertions** — `TestPostgres_ExplainAggregateQuery`
-      only checks non-empty SQL (should assert SUM keyword, `$1` placeholder).
-      `TestPostgres_DistinctValues` only checks count (should verify actual values
-      "open" and "closed"). _(Effort: S)_
+      type error case + invalid JSON []byte + large *big.Int (2^200).
+      `metaengine/scan_test.go`: 11 test functions + 19-subtest table-driven
+      variant. _(Effort: S)_
+      _(Done 2026-08-08.)_
+- [x] **Write direct unit tests for `metaengine.DecodeFloatResults`** — empty
+      specs, nil raws, explicit alias keying, default `AliasOr()` keying, mixed
+      driver types (int64 + *big.Int + []byte + float64), error propagation
+      (errPrefix + alias in message), invalid []byte error.
+      `metaengine/scan_test.go`: 9 test functions. _(Effort: S)_
+      _(Done 2026-08-08.)_
+- [x] **Add Doctor() test asserting aggregate-pushdown section** —
+      `metaengine/doctor_aggregate_test.go`: `fakeAggregateEngine` implementing
+      all 5 pushdown interfaces asserts
+      `pushdown: scalar, grouped, multi, multi-grouped, distinct` line appears.
+      Also tests Memory engine → `none`. _(Effort: S)_
+      _(Done 2026-08-08.)_
+- [x] **Strengthen PG aggregate test assertions** —
+      `TestPostgres_ExplainAggregateQuery` now asserts `SUM` keyword + `$1`
+      placeholder + first arg is collection name.
+      `TestPostgres_DistinctValues` now verifies actual values `"open"` and
+      `"closed"` (not just count==2). _(Effort: S)_
+      _(Done 2026-08-08.)_
 
 - [x] **Write DuckDB race regression test** —
       `TestDuckDB_RaceRegression_LayoutPlanConcurrentAccess` in
