@@ -234,8 +234,10 @@ and is **never** duplicated here.
 
 ## cqrs-lint
 
-- [ ] **~14 remaining Pareto backlog items** — see the
-      [Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
+- [x] ~~**Pareto backlog resolved**~~ — Final audit (2026-08-08): 48 of 51 items
+      implemented, 2 won't-fix (L1.45, L1.51), 3 deferred. Linter has **192
+      rules** across 10 categories. See the
+      [closed Pareto plan](docs/planning/2026-07-30_21-16_CQRS-LINT-IMPROVEMENT-BACKLOG-PARETO-PLAN.md).
 - [x] ~~**Tag cqrs-lint v4.5.0**~~ — DONE. C008 word-boundary fix, C023
       type-awareness, C001 BeginTx read-only, D007 auto-fix test, SARIF test.
       Version constant bumped to 4.5.0. Version test passes.

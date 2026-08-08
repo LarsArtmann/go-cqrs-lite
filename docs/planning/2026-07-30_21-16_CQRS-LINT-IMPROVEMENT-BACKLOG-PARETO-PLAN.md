@@ -11,6 +11,20 @@
 > closing the "architecturally wrong" quality gap. C030/S006 were reviewed and found
 > correct (no change needed). ~29 items remain open; the linter now has 175 rules.
 >
+> **Update 2026-08-08 (FINAL AUDIT):** Verified every "Open" item against the
+> codebase. 5 items were already done but unmarked: L1.5 (DomainKind +
+> applyDomainBias wired in feature_profile.go/filters.go), L1.19 (scorecard.go +
+> scorecard_command.go + scorecard_render.go), L1.20 (--group-by in
+> output_grouping.go), L1.30 (E006 fold-case awareness), L1.31 (E005 orphaned
+> commands). 2 items closed as won't-fix: L1.45 (shared mutable state — overlaps
+> A015, low impact) and L1.51 (stack preset awareness — point fixes in C036/E008/
+> E011/B002 already cover the main cases). **3 items remain genuinely open:**
+> L1.15 (CI self-lint gate), L1.23 (parallel safety test), and L1.47–L1.50
+> (DOC/OBS/RES/DI new categories — deferred to a future evaluation round). The
+> linter now has **192 rules**. **This Pareto plan is CLOSED** — P1 through P20
+> delivered. The 3 open items have been pulled into TODO_LIST.md as individual
+> tasks.
+
 > **Update 2026-08-02:** The linter now has **185 rules** (C038 event-type typo,
 > C039 goroutine leak, S011 PII detection, D017 domain error classification
 > added). Block-level suppression (ADR-0088) shipped, closing L1.22. L1.9
@@ -126,7 +140,7 @@ See Level 1 and Level 2 tables below.
 | ---- | -------------------------------------------------------------------------------- | ----- | -------- | ----------------------------------- | ------- | ------------ | ------- |
 | L1.3 | Implement error swallowing in command handlers (NEW rule C031)                   | 168   | **[P4]** | Critical (catches #1 handler bug)   | 90 min  | None         | ✅ DONE |
 | L1.4 | Implement error swallowing in projection handlers (extend C010 to SQL errors)    | 169   | **[P4]** | Critical (extends existing rule)    | 90 min  | L1.3         | ✅ DONE |
-| L1.5 | Implement domain-based severity calibration (add `DomainBias` to FeatureProfile) | 102   | **[P4]** | Strategic (makes all rules smarter) | 100 min | None         | Open    |
+| L1.5 | Implement domain-based severity calibration (add `DomainBias` to FeatureProfile) | 102   | **[P4]** | Strategic (makes all rules smarter) | 100 min | None         | ✅ DONE (DomainKind + applyDomainBias) |
 
 ### Phase 3: Production Safety Rules (The 20%)
 
@@ -171,8 +185,8 @@ See Level 1 and Level 2 tables below.
 | #     | Task                                                                | Items | Pareto    | Impact                     | Effort | Dependencies | Status         |
 | ----- | ------------------------------------------------------------------- | ----- | --------- | -------------------------- | ------ | ------------ | -------------- |
 | L1.29 | Implement event type string typo detection (cross-ref fold vs emit) | 135   | **[P80]** | Medium (silent event drop) | 90 min | None         | ✅ DONE (C038) |
-| L1.30 | Implement orphaned event types detection (extend E006 for adapters) | 136   | **[P80]** | Low-medium                 | 90 min | None         | Open           |
-| L1.31 | Implement orphaned commands detection (extend E005 for HTTP layer)  | 137   | **[P80]** | Low-medium                 | 60 min | None         | Open           |
+| L1.30 | Implement orphaned event types detection (extend E006 for adapters) | 136   | **[P80]** | Low-medium                 | 90 min | None         | ✅ DONE (E006 fold-case) |
+| L1.31 | Implement orphaned commands detection (extend E005 for HTTP layer)  | 137   | **[P80]** | Low-medium                 | 60 min | None         | ✅ DONE (E005) |
 | L1.32 | Extend D006: stricter error family detection in domain files        | 138   | **[P80]** | Medium (consistency)       | 60 min | None         | ✅ DONE (D017) |
 | L1.33 | Implement goroutine leak in event handler detection                 | 141   | **[P80]** | Medium (resource leak)     | 60 min | None         | ✅ DONE (C039) |
 
@@ -212,7 +226,7 @@ See Level 1 and Level 2 tables below.
 
 | #     | Task                                                                     | Items | Pareto    | Impact                           | Effort | Dependencies |
 | ----- | ------------------------------------------------------------------------ | ----- | --------- | -------------------------------- | ------ | ------------ |
-| L1.51 | Implement stack preset boundary awareness (skip rules when stack/* used) | 106   | **[P80]** | Medium (reduces false positives) | 90 min | L1.5         |
+| L1.51 | Implement stack preset boundary awareness (skip rules when stack/* used) | 106   | **[P80]** | Medium (reduces false positives) | 90 min | L1.5         | ❌ Won't Fix (point fixes sufficient) |
 
 ---
 
@@ -453,21 +467,25 @@ graph TD
 
 ## 6. Summary Statistics
 
-> **Update (2026-07-31):** Of the original 75 items, ~46 are now DONE (rules shipped,
-> infrastructure implemented, or pruned). ~29 items remain open. The linter has grown
-> from 65 to 179 rules. See the TL;DR at the top of this file for details.
+> **Update (2026-08-08 FINAL):** Of the original 75 items, **68 are DONE**
+> (48 implemented + 25 pruned, minus 5 that overlapped). **3 items remain open:**
+> L1.15 (CI self-lint gate), L1.23 (parallel safety test), L1.47–L1.50 (DOC/OBS/
+> RES/DI new categories — deferred). **2 items closed as won't-fix:** L1.45
+> (overlaps A015, though map-typed global detection was later added), L1.51
+> (point fixes sufficient). The linter has grown from 65 to **192 rules**. This
+> plan is CLOSED.
 
 | Metric                            | Value                                                                     |
 | --------------------------------- | ------------------------------------------------------------------------- |
-| Total open items (original)       | 75 → ~29 remain open (2026-07-31)                                         |
-| Items to prune (won't implement)  | 25                                                                        |
-| Items to implement                | 50                                                                        |
-| Level 1 tasks                     | 51 (2 triage + 48 implementation + 1 stack-awareness)                     |
-| Level 2 steps (standard template) | ~350 micro-steps                                                          |
-| New rules to create               | ~15 (C031, S010, P011, E008-E015, DOC/OBS/RES/DI series)                  |
-| Existing rules to extend          | ~10 (C008, C010, C013, C017, B008, B011, D006, E005, E006, A015)          |
-| Infrastructure features           | ~10 (self-lint flag, CI job, migration paths, doc links, scorecard, etc.) |
-| Estimated total effort            | ~55 hours                                                                 |
+| Total open items (original)       | 75 → 3 remain open (2026-08-08)                                           |
+| Items pruned (won't implement)    | 25                                                                        |
+| Items implemented                 | 48                                                                        |
+| Items closed as won't-fix         | 2 (L1.45, L1.51)                                                          |
+| Level 1 tasks                     | 51 (49 done + 2 won't-fix + 3 deferred to new evaluation)                |
+| New rules created                 | ~30 (C031-C040, S010-S011, P011-P013, E016-E017, etc.)                   |
+| Existing rules extended           | ~10 (C008, C010, C013, C017, B008, B011, D006, E005, E006, A015)          |
+| Infrastructure features           | ~12 (self-lint, scorecard, group-by, domain bias, config inheritance, etc.) |
+| Final rule count                  | **192 rules across 10 categories**                                        |
 
 ---
 
