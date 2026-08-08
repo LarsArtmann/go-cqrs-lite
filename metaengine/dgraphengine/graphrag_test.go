@@ -28,7 +28,7 @@ func TestGraphRAG_SearchThenGraphTraverse(t *testing.T) {
 	if err != nil {
 		t.Skipf("Dgraph not available: %v", err)
 	}
-	defer metaengine.DeferClose(eng)
+	t.Cleanup(func() { metaengine.DeferClose(eng) })
 
 	gb, ok := eng.(metaengine.GraphBackend)
 	if !ok {
@@ -155,7 +155,7 @@ func TestGraphRAG_DifferentQueries(t *testing.T) {
 	if err != nil {
 		t.Skipf("Dgraph not available: %v", err)
 	}
-	defer metaengine.DeferClose(eng)
+	t.Cleanup(func() { metaengine.DeferClose(eng) })
 
 	gb := eng.(metaengine.GraphBackend)
 	sb := eng.(metaengine.SearchBackend)

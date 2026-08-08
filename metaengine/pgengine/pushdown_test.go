@@ -46,14 +46,7 @@ func seedProducts(t *testing.T, eng metaengine.Engine, col string) {
 // PushdownScan type assertion.
 func newPostgresPushdown(t *testing.T) metaengine.Engine {
 	t.Helper()
-
-	eng, err := pgengine.New(pgDSN(t))
-	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
-	}
-	t.Cleanup(func() { _ = eng.Close() })
-
-	return eng
+	return mustNewPgEngine(t)
 }
 
 func TestPostgresEngine_PushdownFilter(t *testing.T) {

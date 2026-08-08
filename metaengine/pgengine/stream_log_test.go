@@ -13,11 +13,7 @@ import (
 func TestPostgresEngine_StreamLogRoundtrip(t *testing.T) {
 	t.Parallel()
 
-	eng, err := pgengine.New(pgDSN(t))
-	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewPgEngine(t)
 
 	ctx := context.Background()
 
@@ -79,11 +75,7 @@ func TestPostgresEngine_StreamLogRoundtrip(t *testing.T) {
 func TestPostgresEngine_StreamLogAtomicAppender(t *testing.T) {
 	t.Parallel()
 
-	eng, err := pgengine.New(pgDSN(t))
-	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewPgEngine(t)
 
 	ctx := context.Background()
 
@@ -103,7 +95,7 @@ func TestPostgresEngine_StreamLogAtomicAppender(t *testing.T) {
 	}
 
 	// Append at version 0 (stale) → fails with ErrVersionConflict.
-	err = ap.StreamAppendExpected(ctx, "events", "s1", 0, []any{"d"})
+	err := ap.StreamAppendExpected(ctx, "events", "s1", 0, []any{"d"})
 	if !errors.Is(err, metaengine.ErrVersionConflict) {
 		t.Fatalf("expected ErrVersionConflict, got %v", err)
 	}
@@ -123,12 +115,7 @@ func TestPostgresEngine_StreamLogAtomicAppender(t *testing.T) {
 func TestPostgresEngine_Transactional(t *testing.T) {
 	t.Parallel()
 
-	eng, err := pgengine.New(pgDSN(t))
-	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
-	}
-
-	defer eng.Close()
+	eng := mustNewPgEngine(t)
 
 	enginetest.RunTransactionalTest(t, eng)
 }
@@ -136,12 +123,7 @@ func TestPostgresEngine_Transactional(t *testing.T) {
 func TestPostgresEngine_ConcurrentTx(t *testing.T) {
 	t.Parallel()
 
-	eng, err := pgengine.New(pgDSN(t))
-	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
-	}
-
-	defer eng.Close()
+	eng := mustNewPgEngine(t)
 
 	enginetest.RunConcurrentTxTest(t, eng)
 }

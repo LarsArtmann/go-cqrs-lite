@@ -70,7 +70,7 @@ func (e *sqliteEngine) CounterIncrement(
 }
 
 func (e *sqliteEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
-	rows, err := e.xd().QueryContext(ctx, e.queries.counterGet, col)
+	rows, err := e.xd().QueryContext(ctx, e.queries.counterGet, col) //nolint:sqlclosecheck
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}

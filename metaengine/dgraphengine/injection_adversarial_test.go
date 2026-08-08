@@ -22,7 +22,7 @@ func TestAdversarialDQLInjection(t *testing.T) {
 	if err != nil {
 		t.Skipf("Dgraph not available: %v", err)
 	}
-	defer metaengine.DeferClose(eng)
+	t.Cleanup(func() { metaengine.DeferClose(eng) })
 
 	mb := eng.(metaengine.MapBackend)
 	sb := eng.(metaengine.SearchBackend)

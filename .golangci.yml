@@ -889,9 +889,3 @@ formatters:
 issues:
   max-issues-per-linter: 50
   max-same-issues: 10
-  exclude-rules:
-    # sqliteengine closes rows via metaengine.DeferClose(rows), which
-    # sqlclosecheck doesn't recognize as a Close call.
-    - path: metaengine/sqliteengine
-      linters:
-        - sqlclosecheck

@@ -12,12 +12,7 @@ import (
 func TestPostgresEngine_MapBackend(t *testing.T) {
 	t.Parallel()
 
-	eng, err := pgengine.New(pgDSN(t))
-	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
-	}
-
-	defer eng.Close()
+	eng := mustNewPgEngine(t)
 
 	ctx := context.Background()
 
@@ -57,12 +52,7 @@ func TestPostgresEngine_MapBackend(t *testing.T) {
 func TestPostgresEngine_MapDelete(t *testing.T) {
 	t.Parallel()
 
-	eng, err := pgengine.New(pgDSN(t))
-	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
-	}
-
-	defer eng.Close()
+	eng := mustNewPgEngine(t)
 
 	ctx := context.Background()
 
@@ -92,12 +82,7 @@ func TestPostgresEngine_MapDelete(t *testing.T) {
 func TestPostgresEngine_CounterBackend(t *testing.T) {
 	t.Parallel()
 
-	eng, err := pgengine.New(pgDSN(t))
-	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
-	}
-
-	defer eng.Close()
+	eng := mustNewPgEngine(t)
 
 	ctx := context.Background()
 
@@ -135,12 +120,7 @@ func TestPostgresEngine_CounterBackend(t *testing.T) {
 func TestPostgresEngine_Profile(t *testing.T) {
 	t.Parallel()
 
-	eng, err := pgengine.New(pgDSN(t))
-	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
-	}
-
-	defer eng.Close()
+	eng := mustNewPgEngine(t)
 
 	profile := eng.Profile()
 
@@ -170,12 +150,7 @@ func TestPostgresEngine_Profile(t *testing.T) {
 func TestPostgresEngine_MetaenginePlan(t *testing.T) {
 	t.Parallel()
 
-	eng, err := pgengine.New(pgDSN(t))
-	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
-	}
-
-	defer eng.Close()
+	eng := mustNewPgEngine(t)
 
 	type ItemCreated struct {
 		Category string
@@ -230,12 +205,7 @@ func TestPostgresEngine_MetaenginePlan(t *testing.T) {
 func TestPostgresEngine_ScanBackend(t *testing.T) {
 	t.Parallel()
 
-	eng, err := pgengine.New(pgDSN(t))
-	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
-	}
-
-	defer eng.Close()
+	eng := mustNewPgEngine(t)
 
 	enginetest.RunScanBackendTest(t, eng, "products")
 }

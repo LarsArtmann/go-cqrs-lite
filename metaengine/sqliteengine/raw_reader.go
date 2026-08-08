@@ -202,7 +202,7 @@ func scanSingleColumn(
 	decode func(valStr string) any,
 	args ...any,
 ) ([]any, error) {
-	rows, err := db.QueryContext(ctx, query, args...)
+	rows, err := db.QueryContext(ctx, query, args...) //nolint:sqlclosecheck
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
@@ -225,7 +225,7 @@ func scanSingleColumn(
 }
 
 func scanRawRows(ctx context.Context, db dbExec, query string, args ...any) ([][]byte, error) {
-	rows, err := db.QueryContext(ctx, query, args...)
+	rows, err := db.QueryContext(ctx, query, args...) //nolint:sqlclosecheck
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}

@@ -28,11 +28,7 @@ type watcherTask struct {
 func TestPostgresWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 	t.Parallel()
 
-	eng, err := pgengine.New(pgDSN(t))
-	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewPgEngine(t)
 
 	q := metaengine.Query[watcherTask, watcherTask](
 		"pg_watcher_tasks",
@@ -98,11 +94,7 @@ func TestPostgresWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 func TestPostgresWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 	t.Parallel()
 
-	eng, err := pgengine.New(pgDSN(t))
-	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewPgEngine(t)
 
 	enginetest.RunWatcherReplayTest[watcherTask](
 		t, eng,

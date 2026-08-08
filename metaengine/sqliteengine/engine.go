@@ -495,7 +495,7 @@ func (e *sqliteEngine) StreamScan(
 	return func(yield func(any, error) bool) {
 		query, args := e.buildStreamQuery(col, filters, sort)
 
-		rows, err := e.xd().QueryContext(ctx, query, args...)
+		rows, err := e.xd().QueryContext(ctx, query, args...) //nolint:sqlclosecheck
 		if err != nil {
 			yield(nil, err)
 

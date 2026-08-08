@@ -37,11 +37,11 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
-var ( //nolint:gochecknoglobals // test-framework caching globals
-	containerDSN string
-	adminDB      *sql.DB
-	dbCounter    atomic.Int64
-	dbCache      sync.Map
+var (
+	containerDSN string       //nolint:gochecknoglobals // test-framework cache
+	adminDB      *sql.DB      //nolint:gochecknoglobals // test-framework cache
+	dbCounter    atomic.Int64 //nolint:gochecknoglobals // test-framework cache
+	dbCache      sync.Map     //nolint:gochecknoglobals // test-framework cache
 )
 
 // TestMain starts a shared Postgres container for all integration tests in
@@ -119,6 +119,7 @@ func DSN(tb testing.TB) string {
 		if !ok {
 			tb.Fatalf("cached DSN has wrong type: %T", dsn)
 		}
+
 		return dsnStr
 	}
 

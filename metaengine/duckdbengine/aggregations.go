@@ -159,6 +159,16 @@ func initialArgs(col string, plan metaengine.LayoutPlan) []any {
 	return []any{col}
 }
 
+// stdQueryInit initialises the standard (no-layout) query builder state:
+// args, argIdx, and the zero-value plan. Used by every "standard" path
+// function that builds SQL against the json_extract schema.
+func stdQueryInit(
+	col string,
+) ([]any, int, metaengine.LayoutPlan) { //nolint:unparam // plan is always zero for the no-layout path
+	plan := metaengine.LayoutPlan{}
+	return initialArgs(col, plan), initialArgIndex(plan), plan
+}
+
 // ---------------------------------------------------------------------------
 // AggregateReader (scalar aggregates: COUNT, SUM, MIN, MAX, AVG)
 // ---------------------------------------------------------------------------
@@ -186,8 +196,7 @@ func (e *duckdbEngine) aggregateStandard(
 ) (float64, error) {
 	var b strings.Builder
 
-	args := initialArgs(col, metaengine.LayoutPlan{})
-	argIdx := initialArgIndex(metaengine.LayoutPlan{})
+	args, argIdx, _ := stdQueryInit(col)
 
 	fmt.Fprintf(
 		&b,
@@ -277,9 +286,7 @@ func (e *duckdbEngine) groupedAggregateStandard(
 ) (map[string]float64, error) {
 	var b strings.Builder
 
-	args := initialArgs(col, metaengine.LayoutPlan{})
-	argIdx := initialArgIndex(metaengine.LayoutPlan{})
-	plan := metaengine.LayoutPlan{}
+	args, argIdx, plan := stdQueryInit(col)
 
 	gExpr := groupExpr(groupBy, plan)
 
@@ -396,9 +403,7 @@ func (e *duckdbEngine) multiAggregateStandard(
 ) (map[string]float64, error) {
 	var b strings.Builder
 
-	args := initialArgs(col, metaengine.LayoutPlan{})
-	argIdx := initialArgIndex(metaengine.LayoutPlan{})
-	plan := metaengine.LayoutPlan{}
+	args, argIdx, plan := stdQueryInit(col)
 
 	selectCols := make([]string, len(specs))
 	for i, s := range specs {
@@ -510,9 +515,7 @@ func (e *duckdbEngine) multiGroupedAggregateStandard(
 ) ([]metaengine.GroupedAggregateRow, error) {
 	var b strings.Builder
 
-	args := initialArgs(col, metaengine.LayoutPlan{})
-	argIdx := initialArgIndex(metaengine.LayoutPlan{})
-	plan := metaengine.LayoutPlan{}
+	args, argIdx, plan := stdQueryInit(col)
 
 	gExpr := groupExpr(groupBy, plan)
 
@@ -667,9 +670,7 @@ func (e *duckdbEngine) distinctStandard(
 ) ([]any, error) {
 	var b strings.Builder
 
-	args := initialArgs(col, metaengine.LayoutPlan{})
-	argIdx := initialArgIndex(metaengine.LayoutPlan{})
-	plan := metaengine.LayoutPlan{}
+	args, argIdx, plan := stdQueryInit(col)
 
 	fmt.Fprintf(&b, "SELECT DISTINCT %s AS dv %s", columnExpr(column, plan), fromClause(col, plan))
 

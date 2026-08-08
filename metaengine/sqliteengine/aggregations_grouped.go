@@ -95,7 +95,7 @@ func (e *sqliteEngine) scanGroupedSQLite(
 	query string,
 	args []any,
 ) (map[string]float64, error) {
-	rows, err := e.xd().QueryContext(ctx, query, args...)
+	rows, err := e.xd().QueryContext(ctx, query, args...) //nolint:sqlclosecheck
 	if err != nil {
 		return nil, fmt.Errorf("sqliteengine.GroupedAggregate: %w", err)
 	}
@@ -317,7 +317,7 @@ func (e *sqliteEngine) scanMultiGroupedSQLite(
 	args []any,
 	specs []metaengine.AggregateSpec,
 ) ([]metaengine.GroupedAggregateRow, error) {
-	rows, err := e.xd().QueryContext(ctx, query, args...)
+	rows, err := e.xd().QueryContext(ctx, query, args...) //nolint:sqlclosecheck
 	if err != nil {
 		return nil, fmt.Errorf("sqliteengine.MultiGroupedAggregate: %w", err)
 	}
@@ -429,7 +429,7 @@ func (e *sqliteEngine) scanDistinctSQLite(
 	query string,
 	args []any,
 ) ([]any, error) {
-	rows, err := e.xd().QueryContext(ctx, query, args...)
+	rows, err := e.xd().QueryContext(ctx, query, args...) //nolint:sqlclosecheck
 	if err != nil {
 		return nil, fmt.Errorf("sqliteengine.DistinctValues: %w", err)
 	}

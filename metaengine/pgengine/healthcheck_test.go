@@ -11,11 +11,7 @@ import (
 func TestPostgresHealthCheck_Healthy(t *testing.T) {
 	t.Parallel()
 
-	eng, err := pgengine.New(pgDSN(t))
-	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewPgEngine(t)
 
 	hc, ok := eng.(metaengine.HealthChecker)
 	if !ok {

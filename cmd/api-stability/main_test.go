@@ -323,6 +323,7 @@ func TestExceptionsAreMinimal(t *testing.T) { //nolint:gocognit // comprehensive
 						"dep_layer %d <= mod_layer %d — no violation is triggered",
 						depLayer, modLayer),
 				})
+
 				continue
 			}
 
@@ -334,6 +335,7 @@ func TestExceptionsAreMinimal(t *testing.T) { //nolint:gocognit // comprehensive
 			gomodBytes, err := os.ReadFile(gomodPath)
 			if err != nil {
 				t.Errorf("EXCEPTIONS[%s] references module with unreadable go.mod: %v", module, err)
+
 				continue
 			}
 			// Build the import-path prefix for this dep and check if it only
@@ -347,6 +349,7 @@ func TestExceptionsAreMinimal(t *testing.T) { //nolint:gocognit // comprehensive
 				}
 				if !strings.Contains(gomodLine, "// indirect") {
 					directFound = true
+
 					break
 				}
 			}

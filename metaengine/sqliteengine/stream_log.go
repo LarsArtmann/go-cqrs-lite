@@ -150,7 +150,7 @@ func (e *sqliteEngine) scanStreamValues(
 	query string,
 	args ...any,
 ) ([]any, error) {
-	rows, err := e.xd().QueryContext(ctx, query, args...)
+	rows, err := e.xd().QueryContext(ctx, query, args...) //nolint:sqlclosecheck
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
