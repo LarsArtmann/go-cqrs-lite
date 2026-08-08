@@ -19,7 +19,7 @@ and is **never** duplicated here.
       Standup-Killer, bank-sync, cqrs-htmx, DiscordSync, timesheets,
       crush-daily, KeyHolderAI). The linter has 202 rules but zero real-world
       false-positive data.
-      _(Effort: L)_
+      _(Effort: L — moved to ROADMAP Theme 3)_
 - [ ] **Improve B029-B031 `isBusName` heuristic** — require `.Use()`/`.Publish()`
       calls, not just suffix match on variable names.
       _(Effort: S)_
@@ -56,15 +56,7 @@ and is **never** duplicated here.
 - [ ] **Tag `dgraphengine/v4.0.2`** — security fix (DQL injection) + MapDelete
       bugfix + Multimap/Log backends + calibration warrant a patch release.
       _(Effort: S)_
-- [ ] **Implement SnapshotBackend for Dgraph** — versioned predicates or
-      snapshot namespace for `system.Bundle` integration.
-      _(Effort: L)_
-- [ ] **Implement StreamLogBackend for Dgraph** — stream-keyed log ops for
-      `system.Bundle` integration.
-      _(Effort: L)_
-- [ ] **Implement Vector/Spatial backends for Dgraph** — currently Memory-only
-      (brute-force). Dgraph has native vector + geo support.
-      _(Effort: L)_
+
 - [ ] **Add Dgraph retry logic** for transient `"Please retry again"` errors.
       _(Effort: S)_
 - [ ] **Add Dgraph connection pool tuning** — gRPC `MaxCallRecvMsgSize` for
@@ -103,7 +95,7 @@ and is **never** duplicated here.
 - [ ] **Per-module `.golangci.yml` split** — golangci-lint v2 `config-dirs`
       would give each module ownership of its own exclusions. The monolithic
       config is documented but sprawls across 30+ blocks.
-      _(Effort: L)_
+      _(Effort: L — moved to ROADMAP Theme 3)_
 - [ ] **Consolidate `deferClose` helper** — 3 copies across test packages
       (storage/pebble, storage/bbolt, metaengine). Consider shared
       `storage/internal/closeutil` package.
@@ -191,7 +183,7 @@ and is **never** duplicated here.
 - [ ] **Consider rewriting `check-module-layers.sh` as `cmd/check-layers`** —
       348 lines of bash. A Go program would add testability but the script is
       stable and only runs in CI. Defer until significantly more complex.
-      _(Effort: L)_
+      _(Effort: L — moved to ROADMAP)_
 
 ---
 
@@ -208,7 +200,7 @@ and is **never** duplicated here.
       _(Effort: M)_
 - [ ] **Add NATS/Redis bus driver registration** — `system/` has simpleBus +
       MultiBus but no NATS/Redis driver registration.
-      _(Effort: L)_
+      _(Effort: L — moved to ROADMAP Theme 11)_
 - [ ] **Add ShutdownDependency integration test** with real engines.
       _(Effort: M)_
 

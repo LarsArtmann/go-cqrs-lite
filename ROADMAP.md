@@ -160,6 +160,11 @@ map lock consistency, `DecodeFloatResults` bounds guard, stale README claims.
 - **Vector/Search/Spatial engine backends** — currently Memory-only (brute-force).
   DuckDB VSS extension (vector similarity), Postgres tsvector (full-text search),
   PostGIS (spatial). Each is a separate engine module with its own deps.
+  Dgraph also has native vector + geo support (`DgraphVectorBackend`,
+  `DgraphSpatialBackend` — separate from the existing Memory brute-force path).
+- **Dgraph backend expansion** — `SnapshotBackend` (versioned predicates or
+  snapshot namespace), `StreamLogBackend` (stream-keyed log ops). Both needed
+  for full `system.Bundle` integration.
 - **ADR-0112: Command sourcing** — folding over command history (not just events).
   Requires `CommandAwareFold` interface + command journal replay.
 - **ADR-0113 Phases 3–4: Delete `GraphBackend` interface entirely** — currently
@@ -445,6 +450,14 @@ See [TODO_LIST.md](TODO_LIST.md) → System Package.
   for replicated engines (supports Iroh integration, ADR-0096).
 - `CalibrateScanEngine` — runtime calibration for scan/aggregation costs (not
   just point lookups; `CalibrateEngine` only measures `MapGet`).
+- Per-module `.golangci.yml` split — golangci-lint v2 `config-dirs` would give
+  each module ownership of its own exclusions. L effort, deferred until
+  monolithic config becomes a maintenance problem.
+- Rewrite `check-module-layers.sh` as `cmd/check-layers` — 348 lines of bash
+  → Go program with testability. Deferred: script is stable, only runs in CI.
+- Run cqrs-lint against real consumer repos (Kernovia, Standup-Killer,
+  bank-sync, cqrs-htmx, DiscordSync, timesheets, crush-daily, KeyHolderAI) —
+  validate false-positive rates. L effort, needs private repo access.
 
 > Items with design docs graduate to a Theme above, then to [TODO_LIST.md](TODO_LIST.md)
 > when actively worked.
