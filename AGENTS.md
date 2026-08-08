@@ -1221,10 +1221,10 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 **Module Graph** (seven-tier model, see [ADR-0046](docs/adr/0046-seven-tier-model.md) and [SEVEN-TIER-MODEL.md](docs/architecture-understanding/SEVEN-TIER-MODEL.md)):
 
 ```
-Tier 0 — Primitives: id/, dispatcher/, codec/, kv/, dedup/, record/, metaengine/, flightrecorder/, retry/ (DEPRECATED — use go-retry)
+Tier 0 — Primitives: id/, dispatcher/, codec/, kv/, dedup/, record/, flightrecorder/, retry/ (DEPRECATED — use go-retry)
 Tier 1 — Core Domain: event/, command/, query/, scheduling/, metadata/
 Tier 2 — Domain Utilities: schema/, snapshot/, projection/, idempotency/, deriver/, idempotency/kvstore/, idempotency/sqlstore/
-Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/
+Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/, metaengine/
 Tier 4 — Infrastructure: storage/memory/, storage/, storage/pebble/, storage/bbolt/, storage/turso/, signing/, encryption/, otel/,
                      prometheus/, middleware/, transport/http/, transport/grpc/, watermill/, testutil/, testutil/pgtestcontainer/,
                      metaengine/projectionadapter/, metaengine/pebbleengine/, metaengine/duckdbengine/,
@@ -1240,12 +1240,14 @@ Tier 6 — Tooling & Examples: catalog/, integration/, benchkit/, stack/bench/, 
 ```
 
 > Note: the old 7-layer system (pre-ADR-0046) was inaccurate — kv/ depends on codec/, command/
-> depends on event/, and 44 of 78 modules depend on codec/. The seven-tier model reflects reality.
+> depends on event/, and 48 of 78 modules depend on codec/. The seven-tier model reflects reality.
 > Full module-to-tier mapping: [`SEVEN-TIER-MODEL.md`](docs/architecture-understanding/SEVEN-TIER-MODEL.md) (78 modules across 7 tiers).
 >
 > **metaengine/ is THE STRATEGIC FUTURE of this project** (possibly a future dedicated project).
-> It is Tier 0 (Primitives, structural) — the core planner depends only on
-> `dedup/` and `record/` (both Tier 0). Conceptually Aggregation; the bridge to
+> It is Tier 3 (Aggregation) — conceptually aggregates Records into query-optimized
+> projections. Structurally, the core planner depends only on `dedup/` and `record/`
+> (both Tier 0), but its role places it in Tier 3 alongside `decider/`, `projectionhost/`,
+> and `graph/`. The bridge to
 > the CQRS event-sourcing world lives in `metaengine/projectionadapter/` (Tier 4). The metaengine is ES-native
 > ([ADR-0112](docs/adr/0112-es-native-metaengine.md)): it depends on the shared
 > `Record` type ([ADR-0111](docs/adr/0111-record-type-extraction.md)) and understands

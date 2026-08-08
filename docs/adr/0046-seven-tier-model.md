@@ -15,7 +15,7 @@ analysis revealed this system was fake:
 
 1. `kv/` claims Layer 0 but depends on `codec/` — not a true leaf
 2. `event/` claims Layer 1 but depends on Tier 2–4 modules via test deps that leak into go.mod
-3. 44 of 68 modules depend on `codec/` — the true hub was invisible in the old system
+3. 48 of 78 modules depend on `codec/` — the true hub was invisible in the old system
 4. `command/` and `query/` each pull `event/` into their go.mod as `// indirect`
    via `storage/memory/` (test-only dep). Production code has zero `event/`
    imports — the `metadata/` extraction (ADR-0031) broke the real compile
@@ -31,15 +31,15 @@ Replace the fake 7-layer system with an honest **seven-tier model** (0–6):
 
 | Tier | Name               | Rule                   | Modules |
 | ---- | ------------------ | ---------------------- | ------- |
-| 0    | Primitives         | No `go-cqrs-lite` deps | 7       |
+| 0    | Primitives         | No `go-cqrs-lite` deps | 8       |
 | 1    | Core Domain        | Depends on Tier 0      | 5       |
-| 2    | Domain Utilities   | Depends on Tier 0–1    | 5       |
+| 2    | Domain Utilities   | Depends on Tier 0–1    | 7       |
 | 3    | Aggregation        | Depends on Tier 0–2    | 6       |
-| 4    | Infrastructure     | Depends on Tier 0–3    | 23      |
-| 5    | Composition        | Depends on Tier 0–4    | 9       |
-| 6    | Tooling & Examples | Depends on all         | 13      |
+| 4    | Infrastructure     | Depends on Tier 0–3    | 27      |
+| 5    | Composition        | Depends on Tier 0–4    | 10      |
+| 6    | Tooling & Examples | Depends on all         | 15      |
 
-**Total: 68 modules** across 69 `go.mod` files (68 modules + 1 root workspace
+**Total: 78 modules** across 79 `go.mod` files (78 modules + 1 root workspace
 placeholder).
 
 ### Tier Assignment: Structural + Conceptual
@@ -65,7 +65,7 @@ tier → lower tier); e.g. `metaengine/` (Tier 3) → `dedup/` (Tier 0).
 flowchart TB
 
   %% ── Tier 6 ──
-  subgraph T6["Tier 6 — Tooling & Examples (13)"]
+  subgraph T6["Tier 6 — Tooling & Examples (15)"]
     direction LR
     catalog["catalog/"]
     integration["integration/"]
@@ -80,10 +80,12 @@ flowchart TB
     exGetting["example/getting-started/"]
     exReadme["example/readme-quickstart/"]
     eventtest["event/v4/eventtest/"]
+    meBench["metaengine/bench/"]
+    exMeQuick["example/metaengine-quickstart/"]
   end
 
   %% ── Tier 5 ──
-  subgraph T5["Tier 5 — Composition (9)"]
+  subgraph T5["Tier 5 — Composition (10)"]
     direction LR
     stack["stack/"]
     stackMem["stack/memory/"]
@@ -93,16 +95,18 @@ flowchart TB
     stackPg["stack/postgres/"]
     stackMysql["stack/mysql/"]
     stackTurso["stack/turso/"]
+    stackBbolt["stack/bbolt/"]
     system["system/"]
   end
 
   %% ── Tier 4 ──
-  subgraph T4["Tier 4 — Infrastructure (23)"]
+  subgraph T4["Tier 4 — Infrastructure (27)"]
     direction LR
     subgraph T4storage["Storage Backends"]
       stMem["storage/memory/"]
       storage["storage/"]
       stPebble["storage/pebble/"]
+      stBbolt["storage/bbolt/"]
       stTurso["storage/turso/"]
     end
     subgraph T4sec["Security"]
@@ -132,11 +136,14 @@ flowchart TB
       meIroh["metaengine/irohengine/"]
       meLoop["metaengine/irohengine/loopback/"]
       meQuic["metaengine/irohengine/quic/"]
+      meSqlite["metaengine/sqliteengine/"]
+      meBadger["metaengine/badgerengine/"]
+      meDgraph["metaengine/dgraphengine/"]
+      meGraph["metaengine/graphadapter/"]
     end
     subgraph T4sub["Sub-Stores"]
-      idemSql["idempotency/sqlstore/"]
-      idemKv["idempotency/kvstore/"]
       schedSql["scheduling/sqlstore/"]
+      pgTestUtil["testutil/pgtestcontainer/"]
     end
   end
 
@@ -152,13 +159,15 @@ flowchart TB
   end
 
   %% ── Tier 2 ──
-  subgraph T2["Tier 2 — Domain Utilities (5)"]
+  subgraph T2["Tier 2 — Domain Utilities (7)"]
     direction LR
     schema["schema/"]
     snapshot["snapshot/"]
     projection["projection/"]
     idempotency["idempotency/ ⚡0 deps"]
     deriver["deriver/"]
+    idemKv["idempotency/kvstore/"]
+    idemSql["idempotency/sqlstore/"]
   end
 
   %% ── Tier 1 ──
@@ -172,13 +181,14 @@ flowchart TB
   end
 
   %% ── Tier 0 ──
-  subgraph T0["Tier 0 — Primitives (7)"]
+  subgraph T0["Tier 0 — Primitives (8)"]
     direction LR
     id["id/"]
-    codec["codec/ ❗44/68 depend on this"]
+    codec["codec/ ❗48/78 depend on this"]
     kv["kv/"]
     dedup["dedup/"]
     dispatcher["dispatcher/"]
+    record["record/"]
     retry["retry/"]
     flightrec["flightrecorder/"]
   end
@@ -209,6 +219,7 @@ flowchart TB
   projectionhost --> projection
   projectionhost --> schema
   metaengine --> dedup
+  metaengine --> record
 
   %% Tier 4 → Tier 3/2/1
   storage --> event
@@ -244,15 +255,16 @@ flowchart TB
 
 > **Key insights:**
 >
-> - **`codec/` is the true hub** — 44 of 68 modules depend on it (more than `id/`)
+> - **`codec/` is the true hub** — 48 of 78 modules depend on it (more than `id/`)
 > - **CQRS separation is clean** — `command/` and `query/` have zero `event/`
 >   production imports (dotted arrows = no dependency). Shared types live in
 >   `metadata/` (ADR-0031).
 > - **⚡ = zero-dep modules** tiered by conceptual role, not dependency structure:
 >   `otel/` (Tier 4), `idempotency/` (Tier 2), `catalog/` (Tier 6)
 > - **Same-tier deps are allowed** — e.g. `kv/` → `codec/` (both Tier 0).
->   `metaengine/` → `dedup/` is a same-tier dep (both Tier 0). Metaengine is
->   structurally Tier 0 (core planner depends only on dedup/ and record/).
+>   `metaengine/` → `dedup/` is a downward dep (Tier 3 → Tier 0). Metaengine is
+>   conceptually Tier 3 (aggregates records into projections) though its deps are
+>   all Tier 0.
 
 See [`SEVEN-TIER-MODEL.md`](../architecture-understanding/SEVEN-TIER-MODEL.md) for
 the complete module-to-tier mapping with every module listed.
@@ -360,7 +372,8 @@ events into graph data).
 | `metaengine/` | 0 | 3 | Depends on Record type (ADR-0111). Conceptually aggregates records into projections. Same tier as decider/, projectionhost/, graph/. |
 
 The engine submodules (`pebbleengine/`, `duckdbengine/`, `pgengine/`,
-`irohengine/`, future `badgerengine/`, `dgraphengine/`) remain Tier 4
+`irohengine/`, `badgerengine/`, `dgraphengine/`, `sqliteengine/`,
+`graphadapter/`) remain Tier 4
 (Infrastructure) — they provide storage backends, not domain logic.
 
 `metaengine/adttest/` remains Tier 4 (test infrastructure, consumed by engine
@@ -368,8 +381,8 @@ modules).
 
 ### Impact on Tier Counts
 
-| Tier | Old count | New count | Change |
-|------|-----------|-----------|--------|
-| 0    | 8         | 7         | -1 (metaengine leaves) |
-| 3    | 5         | 6         | +1 (metaengine joins) |
+| Tier | Before amendment | After amendment | Change |
+|------|-----------------|-----------------|--------|
+| 0    | 9               | 8               | -1 (metaengine leaves) |
+| 3    | 5               | 6               | +1 (metaengine joins) |
 ```

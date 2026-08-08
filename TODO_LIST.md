@@ -1,7 +1,7 @@
 # TODO List
 
-**Updated:** 2026-08-08 (layer enforcement cleanup: FOUR-TIER→SEVEN-TIER rename,
-dead exception removed, split-brain on metaengine tier discovered)
+**Updated:** 2026-08-08 (metaengine v2 coverage gaps completed, DuckDB data race
+fixed, MemoryEngine concurrent tests added, aggregate test split)
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
 and is **never** duplicated here.
@@ -41,14 +41,13 @@ and is **never** duplicated here.
 
 > Metaengine v2 is feature-complete: `record/` module, 9 engines, Record-aware
 > folds, auto-projection, tombstone deprecation, GraphBackend cleanup, aggregate
-> pushdown. 14 tags created locally. Remaining work is edge-case coverage and
-> doc-comment polish.
-
-> **All items below completed (2026-08-08 session 2):**
-> DuckDB `layoutMu` data race fixed (Mutex→RWMutex, RLock on 5 read paths),
+> pushdown. 14 tags created locally.
+>
+> **Completed across 2 sessions (2026-08-08):** DuckDB `layoutMu` data race
+> fixed (Mutex→RWMutex, extracted `lookupPlan` helper for 5 read paths),
 > `TestTypedReader_AggregateFallback` split into 3 groups (Scalar/Grouped/Multi),
 > `//nolint:tparallel` added to `TestDuckDB_ExplainAggregateQuery`,
-> dgraphengine record-stamp test created (graphadapter documented as graph-only, no MapBackend),
+> dgraphengine record-stamp test created (graphadapter documented as graph-only),
 > race-consolidation tradeoff documented (3 lean modules keep local copies),
 > caller-closes-engine doc added to 3 enginetest helpers,
 > `TestQuicLogConvergence` timeout increased 15s→30s,
@@ -56,7 +55,24 @@ and is **never** duplicated here.
 > Engine interface concurrency-safety matrix documented,
 > 3 MemoryEngine concurrent-access `-race` tests added.
 >
-> _(Source: `docs/status/2026-08-08_07-45_metaengine-v2-release-hygiene.md`)_
+> _(Source: `docs/status/2026-08-08_08-34_metaengine-v2-coverage-gaps-duckdb-race-fix.md`)_
+
+- [ ] **Write DuckDB race regression test** — dedicated test spawning parallel
+      `ApplyLayoutPlan` + `ExplainAggregateQuery` goroutines under `-race`. The
+      fix is verified by existing tests, but a targeted regression test is
+      stronger proof. _(Effort: S)_
+- [ ] **Document `lookupPlan` shallow-copy semantics** — returns a struct copy
+      but slice fields (column names) share the underlying array. All callers
+      are read-only today; document the constraint or add deep-copy. _(Effort: S)_
+- [ ] **Audit all DuckDB tests for `t.Parallel()` consistency** — only
+      `TestDuckDB_ExplainAggregateQuery` has `//nolint:tparallel`. Other tests
+      sharing a mutable engine instance may need it too. _(Effort: S)_
+- [ ] **Refresh coverage baselines** in `scripts/check-coverage.sh` — 3 new
+      concurrent tests + aggregate test split + badger soak added; baselines
+      unchanged but within tolerance. _(Effort: S)_
+- [ ] **Test QUIC convergence under `-parallel 4`** — 30s timeout verified 3x
+      in isolation (0.03s each) but not under real CI parallel pressure.
+      _(Effort: S)_
 
 ---
 
@@ -256,31 +272,22 @@ and is **never** duplicated here.
 >
 > _(Source: `docs/status/2026-08-08_08-23_layer-enforcement-cleanup-status.md`)_
 
-### 🔥 Split-brain fixes (introduced this session)
+### ✅ Split-brain fixes (resolved 2026-08-08)
 
-- [ ] 🔥 **Decide metaengine tier: 0 or 3? Reconcile ALL references.** The
-      enforcement script says `LAYER[metaengine]=0` (Tier 0). ADR-0046
-      amendment (lines 305–350) reclassifies it to Tier 3 because it depends
-      on `record/` (ADR-0111). The script was never updated. This session
-      changed AGENTS.md + ADR-0046 line 254 to say Tier 0, but left ADR-0046
-      lines 59, 151 (mermaid), and 305–350 saying Tier 3 — making the
-      inconsistency worse. Fix: pick one tier, update script + ADR + all docs.
-- [ ] 🔥 **Fix "44 of 78" → "48 of 78"** in `SEVEN-TIER-MODEL.md` (line ~253).
-      The codec dependency count was updated from 68→78 (denominator) but not
-      44→48 (numerator). Verified: `grep -rl 'go-cqrs-lite/codec' --include='go.mod'
-      . | grep -v codec/ | wc -l` = 48.
-- [ ] **Fix stale module counts in ADR-0046** — 3 locations still say "68
-      modules" / "69 go.mod files" / "44 of 68": lines 18, 42, 247. Should be
-      78 / 79 / 48 of 78.
-- [ ] **Update ADR-0046 tier count table** (lines 32–40) — all per-tier counts
-      are stale: Tier 0 says 7 (should be 9), Tier 4 says 23 (should be 27),
-      Tier 6 says 13 (should be 15), etc.
-- [ ] **Update ADR-0046 mermaid diagram** — missing 10+ modules (`record/`,
-      `storage/bbolt/`, `metaengine/sqliteengine/`, `metaengine/badgerengine/`,
-      `metaengine/dgraphengine/`, `metaengine/graphadapter/`, etc.). Subgraph
-      labels have wrong counts.
-- [ ] **Run `nix fmt`** on all files changed this session.
-- [ ] **Run full `check-arch.sh`** (both layers, not just Layer 1).
+- [x] **Metaengine tier: Tier 3 (confirmed).** Script updated `LAYER[metaengine]=3`.
+      All references reconciled: AGENTS.md module graph + metaengine description,
+      ADR-0046 body (tier table, mermaid, key insights, amendment). `record/` is a
+      direct dep (verified in `metaengine/go.mod`), so Tier 3→0 downward dep passes.
+- [x] **"44 of 78" → "48 of 78"** fixed in `SEVEN-TIER-MODEL.md` + `AGENTS.md`.
+- [x] **ADR-0046 stale counts fixed** — all module counts updated: 68→78, 69→79,
+      44 of 68→48 of 78. Tier table: T0=8, T1=5, T2=7, T3=6, T4=27, T5=10, T6=15.
+- [x] **ADR-0046 mermaid diagram updated** — added `record/`, `storage/bbolt/`,
+      `metaengine/sqliteengine/`, `metaengine/badgerengine/`, `metaengine/dgraphengine/`,
+      `metaengine/graphadapter/`, `testutil/pgtestcontainer/`, `stack/bbolt/`,
+      `metaengine/bench/`, `example/metaengine-quickstart/`. Moved `idempotency/kvstore/`
+      + `idempotency/sqlstore/` to Tier 2. All subgraph labels corrected.
+- [x] **`nix fmt`** run — 0 files changed (already formatted).
+- [x] **Full `check-arch.sh`** — both layers pass (Layer 1: 78 modules, Layer 2: 6 modules).
 
 ### Backlog
 

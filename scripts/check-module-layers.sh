@@ -91,7 +91,7 @@ LAYER[testutil/pgtestcontainer]=5
 # It has LAYER[testutil]=5 above, but lower-tier modules that import it from
 # _test.go files get exceptions below. This avoids false layer violations while
 # still budgeting its production deps.
-LAYER[metaengine]=0
+LAYER[metaengine]=3
 LAYER[flightrecorder]=0
 LAYER[retry]=0
 LAYER[idempotency/kvstore]=2
