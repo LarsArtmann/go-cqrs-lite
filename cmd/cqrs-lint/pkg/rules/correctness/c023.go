@@ -3,6 +3,7 @@ package correctness
 import (
 	"context"
 	"go/ast"
+	"go/types"
 	"slices"
 
 	"github.com/larsartmann/go-finding"

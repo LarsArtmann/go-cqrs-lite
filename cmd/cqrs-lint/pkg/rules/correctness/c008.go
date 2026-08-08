@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
+	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -190,7 +191,11 @@ func scanMoneyFields(
 			}
 
 			strong := matchesAny(lowerName, strongMoneyFields)
-			weak := matchesAny(lowerName, weakMoneyFields)
+			// Weak fields use exact match (not substring) to prevent false
+			// positives like "TotalDays" matching "total". Weak terms are too
+			// generic for substring matching; a field must be named exactly
+			// "Total" or "Value" to trigger the weak path.
+			weak := slices.Contains(weakMoneyFields, lowerName)
 			if !strong && !weak {
 				continue
 			}

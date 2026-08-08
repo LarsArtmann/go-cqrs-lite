@@ -524,6 +524,41 @@ type RateTracker struct {
 	ruletest.AssertRule(t, findings, "C008", 0)
 }
 
+// Weak money fields use exact match, not substring. "TotalDays" must NOT
+// match "total" — it's a duration/count field, not a monetary field.
+// Regression test for the word-boundary false positive.
+func TestC008_NoFindingForTotalDaysWordBoundary(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"model.go": `package main
+
+type Report struct {
+	TotalDays    float64
+	TotalCount   float64
+	TotalUsers   float64
+	TotalEvents  float64
+	ChargeCount  float64
+	PaymentCount float64
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	ruletest.AssertRule(t, findings, "C008", 0)
+}
+
+// But a field named exactly "Total" in a monetary struct should still fire.
+func TestC008_ExactWeakFieldInMonetaryStruct(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"model.go": `package main
+
+type Wallet struct {
+	Total float64
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	ruletest.AssertRule(t, findings, "C008", 1)
+}
+
 // --- C002: Broken Command ID ---
 
 func TestC002_DetectsZeroCommandID(t *testing.T) {
