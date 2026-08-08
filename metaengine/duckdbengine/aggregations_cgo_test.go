@@ -658,13 +658,11 @@ func TestDuckDB_Aggregate_EmptyCollection(t *testing.T) {
 // --- ExplainableAggregate ---
 
 func TestDuckDB_ExplainAggregateQuery(t *testing.T) {
-	t.Parallel()
-
 	eng, err := duckdbengine.New("")
 	if err != nil {
 		t.Skipf("DuckDB not available: %v", err)
 	}
-	t.Cleanup(func() { eng.Close() })
+	defer eng.Close()
 
 	const col = "products_explain"
 	seedProducts(t, eng, col)
@@ -677,7 +675,6 @@ func TestDuckDB_ExplainAggregateQuery(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("scalar", func(t *testing.T) {
-		t.Parallel()
 		sql, args := ea.ExplainAggregateQuery(ctx, col, metaengine.ExplainAggregateOptions{
 			Fn:     metaengine.AggregateSum,
 			Column: "price",
@@ -694,7 +691,6 @@ func TestDuckDB_ExplainAggregateQuery(t *testing.T) {
 	})
 
 	t.Run("grouped", func(t *testing.T) {
-		t.Parallel()
 		sql, _ := ea.ExplainAggregateQuery(ctx, col, metaengine.ExplainAggregateOptions{
 			Fn:      metaengine.AggregateCount,
 			GroupBy: "category",
@@ -708,7 +704,6 @@ func TestDuckDB_ExplainAggregateQuery(t *testing.T) {
 	})
 
 	t.Run("multi", func(t *testing.T) {
-		t.Parallel()
 		sql, _ := ea.ExplainAggregateQuery(ctx, col, metaengine.ExplainAggregateOptions{
 			Specs: []metaengine.AggregateSpec{
 				{Fn: metaengine.AggregateCount, Alias: "cnt"},
@@ -724,7 +719,6 @@ func TestDuckDB_ExplainAggregateQuery(t *testing.T) {
 	})
 
 	t.Run("distinct", func(t *testing.T) {
-		t.Parallel()
 		sql, _ := ea.ExplainAggregateQuery(ctx, col, metaengine.ExplainAggregateOptions{
 			Distinct: "category",
 		})
@@ -734,7 +728,6 @@ func TestDuckDB_ExplainAggregateQuery(t *testing.T) {
 	})
 
 	t.Run("with_filter", func(t *testing.T) {
-		t.Parallel()
 		sql, args := ea.ExplainAggregateQuery(ctx, col, metaengine.ExplainAggregateOptions{
 			Fn: metaengine.AggregateCount,
 			Filters: []metaengine.FilterSpec{
@@ -750,7 +743,6 @@ func TestDuckDB_ExplainAggregateQuery(t *testing.T) {
 	})
 
 	t.Run("planned_table", func(t *testing.T) {
-		t.Parallel()
 		const col2 = "products_planned_explain"
 		lp, ok := eng.(metaengine.LayoutPlanApplier)
 		if !ok {
