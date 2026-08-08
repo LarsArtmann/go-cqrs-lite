@@ -38,7 +38,7 @@ func TestLatencyMeasuredFromRealTraffic(t *testing.T) {
 	g.Expect(p0.NetworkRTT).To(gomega.BeZero(), "rtt must be zero before any traffic")
 
 	// Generate traffic
-	for i := 0; i < 30; i++ {
+	for i := range 30 {
 		g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "k", i, i)).To(gomega.Succeed())
 	}
 
@@ -98,7 +98,7 @@ func TestLatencyScalesWithDelay(t *testing.T) {
 			defer nodeA.Close()
 			defer nodeB.Close()
 
-			for i := 0; i < 20; i++ {
+			for i := range 20 {
 				_ = nodeA.(metaengine.MapBackend).MapSet(ctx, "x", i, i)
 			}
 
@@ -133,7 +133,7 @@ func TestProfileReflectsRealRTT(t *testing.T) {
 	defer nodeA.Close()
 	defer nodeB.Close()
 
-	for i := 0; i < 50; i++ {
+	for i := range 50 {
 		_ = nodeA.(metaengine.MapBackend).MapSet(ctx, "rtt-test", i, i)
 	}
 
@@ -172,21 +172,21 @@ func TestConcurrentWritesAllConverge(t *testing.T) {
 	done := make(chan result, 90)
 	for ni, n := range nodes {
 		go func(ni int, n metaengine.Engine) {
-			for i := 0; i < 30; i++ {
+			for i := range 30 {
 				err := n.(metaengine.MapBackend).MapSet(ctx, "storm", ni*30+i, i)
 				done <- result{ni, err}
 			}
 		}(ni, n)
 	}
 
-	for i := 0; i < 90; i++ {
+	for i := range 90 {
 		r := <-done
 		g.Expect(r.err).NotTo(gomega.HaveOccurred())
 	}
 
 	// Verify all 90 keys present on all nodes
 	for ni, n := range nodes {
-		for k := 0; k < 90; k++ {
+		for k := range 90 {
 			_, ok, err := n.(metaengine.MapBackend).MapGet(ctx, "storm", k)
 			g.Expect(err).NotTo(gomega.HaveOccurred())
 			g.Expect(ok).To(gomega.BeTrue(), "node %d missing key %d", ni, k)

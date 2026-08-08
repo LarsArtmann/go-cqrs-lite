@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -198,6 +199,8 @@ func (t *QuicTransport) Publish(_ context.Context, op irohengine.WriteOp) error 
 func (t *QuicTransport) sendOp(conn *iroh_ffi.Connection, data []byte) {
 	stream, err := conn.OpenBi()
 	if err != nil {
+		slog.Warn("quic sendOp: OpenBi failed",
+			slog.String("peer", conn.RemoteId().String()), slog.Any("err", err))
 		return
 	}
 	_ = stream.Send().WriteAll(data)

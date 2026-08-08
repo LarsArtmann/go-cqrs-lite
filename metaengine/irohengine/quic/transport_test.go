@@ -197,7 +197,7 @@ func TestQuicLWWResolution(t *testing.T) {
 func TestQuicRTTMeasurement(t *testing.T) {
 	c := newQuicCluster(t)
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "kvs",
 			"key", "value")).To(gomega.Succeed())
 	}

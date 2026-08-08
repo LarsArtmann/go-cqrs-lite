@@ -61,18 +61,9 @@ func TestQuic3NodeRelayConvergence(t *testing.T) {
 
 	g.Expect(tB.Connect(ticket)).To(gomega.Succeed())
 
-	// Wait for all connections
-	deadline := time.Now().Add(10 * time.Second)
-	for time.Now().Before(deadline) {
-		if coord.PeerCount() >= 2 {
-			break
-		}
-		time.Sleep(50 * time.Millisecond)
-	}
-	g.Expect(coord.PeerCount()).To(gomega.BeNumerically(">=", 2),
-		"coordinator should have 2 peers")
-
-	time.Sleep(500 * time.Millisecond)
+	// Wait for all connections (both directions)
+	waitForPeers(t, []*quic.QuicTransport{coord}, 2)
+	waitForPeers(t, []*quic.QuicTransport{tA, tB}, 1)
 
 	// Coordinator writes
 	g.Expect(nodeCoord.(metaengine.MapBackend).MapSet(ctx, "test", "k1", "from-coord")).
@@ -105,12 +96,11 @@ func TestQuicWriteAfterReconnect(t *testing.T) {
 		irohengine.WithTransport(tA),
 	)
 	g.Expect(tA.Connect(ticket)).To(gomega.Succeed())
-	time.Sleep(500 * time.Millisecond)
+	waitForPeers(t, []*quic.QuicTransport{tA}, 1)
 
-	// Write before disconnect
+	// Write before disconnect (will be lost: coord has no subscriber yet)
 	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "persist", "k1", "before")).
 		To(gomega.Succeed())
-	time.Sleep(500 * time.Millisecond)
 
 	// Close node A
 	tA.Close()
@@ -139,15 +129,12 @@ func TestQuicWriteAfterReconnect(t *testing.T) {
 	defer nodeA2.Close()
 
 	g.Expect(tA2.Connect(ticket)).To(gomega.Succeed())
-	time.Sleep(1 * time.Second)
+	waitForPeers(t, []*quic.QuicTransport{tA2, coord}, 1)
 
 	// Write after reconnect
 	g.Expect(nodeA2.(metaengine.MapBackend).MapSet(ctx, "persist", "k3", "after-reconnect")).
 		To(gomega.Succeed())
 
-	// Wait for convergence
-	time.Sleep(2 * time.Second)
-
 	// Coordinator should see the new write
-	eventuallyGet(g, nodeCoord, "persist", "k3", "after-reconnect", 5*time.Second)
+	eventuallyGet(g, nodeCoord, "persist", "k3", "after-reconnect", 10*time.Second)
 }
