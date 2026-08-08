@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/go-sql-driver/mysql v1.10.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260804082122-2ad4dea99104
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0

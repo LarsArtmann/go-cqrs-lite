@@ -49,7 +49,7 @@ type duckdbEngine struct {
 	activeTx    atomic.Pointer[sql.Tx] // non-nil inside RunInTx
 	took        bool                   // closed flag
 	plans       map[string]metaengine.LayoutPlan
-	layoutMu    sync.Mutex
+	layoutMu    sync.RWMutex
 	cal         metaengine.Calibration
 }
 
@@ -216,7 +216,10 @@ func (e *duckdbEngine) HealthCheck(ctx context.Context) error {
 // --- MapBackend ---
 
 func (e *duckdbEngine) MapSet(ctx context.Context, col string, key any, value any) error {
-	if plan, ok := e.plans[col]; ok {
+	e.layoutMu.RLock()
+	plan, hasPlan := e.plans[col]
+	e.layoutMu.RUnlock()
+	if hasPlan {
 		return e.mapSetPlanned(ctx, plan, key, value)
 	}
 
@@ -240,7 +243,10 @@ func (e *duckdbEngine) MapSet(ctx context.Context, col string, key any, value an
 }
 
 func (e *duckdbEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
-	if plan, ok := e.plans[col]; ok {
+	e.layoutMu.RLock()
+	plan, hasPlan := e.plans[col]
+	e.layoutMu.RUnlock()
+	if hasPlan {
 		return e.mapGetPlanned(ctx, plan, key)
 	}
 
@@ -268,7 +274,10 @@ func (e *duckdbEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 }
 
 func (e *duckdbEngine) MapDelete(ctx context.Context, col string, key any) error {
-	if plan, ok := e.plans[col]; ok {
+	e.layoutMu.RLock()
+	plan, hasPlan := e.plans[col]
+	e.layoutMu.RUnlock()
+	if hasPlan {
 		return e.mapDeletePlanned(ctx, plan, key)
 	}
 

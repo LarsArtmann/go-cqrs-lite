@@ -23,7 +23,10 @@ func (e *duckdbEngine) ExplainScanQuery(
 	collection string,
 	opts metaengine.ExplainOptions,
 ) (string, []any) {
-	if plan, ok := e.plans[collection]; ok {
+	e.layoutMu.RLock()
+	plan, ok := e.plans[collection]
+	e.layoutMu.RUnlock()
+	if ok {
 		return buildPlannedSelectQuery(plan, opts.Filters, opts.Sort, opts.Cursor, opts.Limit)
 	}
 
@@ -112,7 +115,9 @@ func (e *duckdbEngine) ExplainAggregateQuery(
 	collection string,
 	opts metaengine.ExplainAggregateOptions,
 ) (string, []any) {
+	e.layoutMu.RLock()
 	plan, hasPlan := e.plans[collection]
+	e.layoutMu.RUnlock()
 	if !hasPlan {
 		plan = metaengine.LayoutPlan{}
 	}
