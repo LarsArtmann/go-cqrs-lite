@@ -149,10 +149,10 @@ func RunMatrix(t *testing.T, factories []Factory) {
 	}
 }
 
-// Scenarios returns the 10-ADT test matrix. Each scenario exercises one ADT
+// Scenarios returns the 11-ADT test matrix. Each scenario exercises one ADT
 // via its backend interface (not the Store/Execute path — that's covered by
 // the cross_engine_meta_test.go Ginkgo suite).
-func Scenarios() []Scenario { //nolint:maintidx // 7-ADT test matrix
+func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 	return []Scenario{
 		// --- Map ADT: MapSet + MapGet ---
 		{

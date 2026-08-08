@@ -249,3 +249,29 @@ func TestLoopbackLatencyMeasurement(t *testing.T) {
 	snap := tA.LatencySnapshot()
 	_ = snap // just verify it doesn't panic
 }
+
+func TestLoopbackMultimapConvergence(t *testing.T) {
+	t.Parallel()
+	g := gomega.NewWithT(t)
+	ctx := context.Background()
+	nodeA, nodeB, _, _ := setupTwoNodeLoopback(t)
+
+	mmbA := nodeA.(metaengine.MultimapBackend)
+	mmbB := nodeB.(metaengine.MultimapBackend)
+
+	g.Expect(mmbA.MultiAdd(ctx, "members", "team-a", "alice")).To(gomega.Succeed())
+	g.Expect(mmbA.MultiAdd(ctx, "members", "team-a", "bob")).To(gomega.Succeed())
+	g.Expect(mmbB.MultiAdd(ctx, "members", "team-a", "carol")).To(gomega.Succeed())
+
+	g.Eventually(func(g gomega.Gomega) {
+		vals, err := mmbA.MultiGet(ctx, "members", "team-a")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(vals).To(gomega.ConsistOf("alice", "bob", "carol"))
+	}, 5*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
+
+	g.Eventually(func(g gomega.Gomega) {
+		vals, err := mmbB.MultiGet(ctx, "members", "team-a")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(vals).To(gomega.ConsistOf("alice", "bob", "carol"))
+	}, 5*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
+}

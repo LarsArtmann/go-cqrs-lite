@@ -179,7 +179,7 @@ func TestConcurrentWritesAllConverge(t *testing.T) {
 		}(ni, n)
 	}
 
-	for i := range 90 {
+	for range 90 {
 		r := <-done
 		g.Expect(r.err).NotTo(gomega.HaveOccurred())
 	}

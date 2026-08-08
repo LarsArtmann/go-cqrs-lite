@@ -197,7 +197,7 @@ func TestQuicLWWResolution(t *testing.T) {
 func TestQuicRTTMeasurement(t *testing.T) {
 	c := newQuicCluster(t)
 
-	for i := range 10 {
+	for range 10 {
 		c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "kvs",
 			"key", "value")).To(gomega.Succeed())
 	}
@@ -262,4 +262,27 @@ func TestQuicMapUpdateDoesNotReplicate(t *testing.T) {
 	c.G.Expect(okB).To(gomega.BeTrue(), "MapSet replicated")
 	c.G.Expect(valB).To(gomega.Equal(0),
 		"MapUpdate must NOT replicate over QUIC (non-CRDT)")
+}
+
+func TestQuicMultimapConvergence(t *testing.T) {
+	c := newQuicCluster(t)
+
+	mmbA := c.NodeA.(metaengine.MultimapBackend)
+	mmbB := c.NodeB.(metaengine.MultimapBackend)
+
+	c.G.Expect(mmbA.MultiAdd(c.Ctx, "members", "team-a", "alice")).To(gomega.Succeed())
+	c.G.Expect(mmbA.MultiAdd(c.Ctx, "members", "team-a", "bob")).To(gomega.Succeed())
+	c.G.Expect(mmbB.MultiAdd(c.Ctx, "members", "team-a", "carol")).To(gomega.Succeed())
+
+	c.G.Eventually(func(g gomega.Gomega) {
+		vals, err := mmbA.MultiGet(c.Ctx, "members", "team-a")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(vals).To(gomega.ConsistOf("alice", "bob", "carol"))
+	}, 10*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
+
+	c.G.Eventually(func(g gomega.Gomega) {
+		vals, err := mmbB.MultiGet(c.Ctx, "members", "team-a")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(vals).To(gomega.ConsistOf("alice", "bob", "carol"))
+	}, 10*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
 }

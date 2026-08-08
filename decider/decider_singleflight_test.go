@@ -71,9 +71,7 @@ func TestLoad_ConcurrentLoadsCoalescedBySingleflight(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range numGoroutines {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			<-start
 
 			state, version, loadErr := repo.Load(context.Background(), streamID, "Counter")
@@ -88,7 +86,7 @@ func TestLoad_ConcurrentLoadsCoalescedBySingleflight(t *testing.T) {
 			if state.Value != 1 {
 				t.Errorf("state.Value = %d, want 1", state.Value)
 			}
-		}()
+		})
 	}
 
 	close(start)
@@ -178,17 +176,14 @@ func TestLoad_WithLoadCoalescingDisabled(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range numGoroutines {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			_, _, loadErr := repo.Load(context.Background(), streamID, "Counter")
 			if loadErr != nil {
 				t.Errorf("Load error: %v", loadErr)
 
 				return
 			}
-		}()
+		})
 	}
 	wg.Wait()
 
