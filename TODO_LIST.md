@@ -89,10 +89,6 @@ and is **never** duplicated here.
 
 ## Code Quality / Dedup
 
-- [ ] **Per-module `.golangci.yml` split** — golangci-lint v2 `config-dirs`
-      would give each module ownership of its own exclusions. The monolithic
-      config is documented but sprawls across 30+ blocks.
-      _(Effort: L — moved to ROADMAP Theme 3)_
 - [ ] **Consolidate `deferClose` helper** — 3 copies across test packages
       (storage/pebble, storage/bbolt, metaengine). Consider shared
       `storage/internal/closeutil` package.
@@ -177,10 +173,6 @@ and is **never** duplicated here.
       `.go-arch-lint.yml`** — prevents the intra-module enforcement gap from
       recurring as new modules are added.
       _(Effort: S)_
-- [ ] **Consider rewriting `check-module-layers.sh` as `cmd/check-layers`** —
-      348 lines of bash. A Go program would add testability but the script is
-      stable and only runs in CI. Defer until significantly more complex.
-      _(Effort: L — moved to ROADMAP)_
 
 ---
 
@@ -195,9 +187,6 @@ and is **never** duplicated here.
       _(Effort: M)_
 - [ ] **Add Postgres source-of-truth integration test** — needs testcontainer.
       _(Effort: M)_
-- [ ] **Add NATS/Redis bus driver registration** — `system/` has simpleBus +
-      MultiBus but no NATS/Redis driver registration.
-      _(Effort: L — moved to ROADMAP Theme 11)_
 - [ ] **Add ShutdownDependency integration test** with real engines.
       _(Effort: M)_
 
