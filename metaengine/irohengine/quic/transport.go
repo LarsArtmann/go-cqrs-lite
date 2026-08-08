@@ -10,7 +10,7 @@ import (
 	"time"
 
 	iroh_ffi "git.coopcloud.tech/decentral1se/iroh-go"
-
+	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 )
 
@@ -47,9 +47,10 @@ type QuicTransport struct {
 	rttSamples []time.Duration
 
 	// Op-level dedup (prevents double-application of non-idempotent ops
-	// like SetAdd/CounterIncrement under redelivery or relay echo)
+	// like SetAdd/CounterIncrement under redelivery or relay echo).
+	// Uses dedup.Ring for bounded memory with graceful eviction (no reset gap).
 	dedupMu   sync.Mutex
-	dedupSeen map[string]struct{}
+	dedupRing *dedup.Ring
 
 	acceptWG sync.WaitGroup
 }
@@ -84,11 +85,11 @@ func New(opts ...Option) (*QuicTransport, error) {
 	}
 
 	t := &QuicTransport{
-		endpoint:  ep,
-		alpn:      cfg.alpn,
-		cfg:       cfg,
-		conns:     make(map[string]*peerConn),
-		dedupSeen: make(map[string]struct{}),
+		endpoint:   ep,
+		alpn:       cfg.alpn,
+		cfg:        cfg,
+		conns:      make(map[string]*peerConn),
+		dedupRing:  dedup.NewRing(10000),
 	}
 
 	// Start accept loop

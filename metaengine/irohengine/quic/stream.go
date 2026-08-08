@@ -96,18 +96,15 @@ func (t *QuicTransport) handleStream(
 }
 
 // markSeen records opID as seen, returning false if it was already seen.
-// The seen-set is bounded; when it exceeds 10K entries it resets.
+// Uses dedup.Ring for bounded memory with graceful eviction of the oldest
+// entries, avoiding the reset-gap vulnerability of a fixed-size map.
 func (t *QuicTransport) markSeen(opID string) bool {
 	t.dedupMu.Lock()
 	defer t.dedupMu.Unlock()
-	if _, seen := t.dedupSeen[opID]; seen {
+	if t.dedupRing.Has(opID) {
 		return false
 	}
-	t.dedupSeen[opID] = struct{}{}
-	if len(t.dedupSeen) > 10000 {
-		t.dedupSeen = make(map[string]struct{})
-		t.dedupSeen[opID] = struct{}{}
-	}
+	t.dedupRing.Add(opID)
 	return true
 }
 

@@ -4,6 +4,7 @@ package quic
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"time"
 
@@ -69,7 +70,39 @@ func decodeOp(data []byte) (irohengine.WriteOp, error) {
 		return irohengine.WriteOp{}, fmt.Errorf("decode writeop: %w", err)
 	}
 
+	op.Key = normalizeAny(op.Key)
+	op.Value = normalizeAny(op.Value)
+
 	return op, nil
+}
+
+// normalizeAny converts CBOR-decoded integer types back to Go-native int.
+// CBOR encodes non-negative Go int values as unsigned integers (major type 0)
+// and decodes them into uint64 when the target is any. Negative integers
+// (major type 1) decode into int64. This normalizer restores Go int semantics
+// so consumers get back the same types they put in.
+func normalizeAny(v any) any {
+	switch x := v.(type) {
+	case uint64:
+		if x <= math.MaxInt64 {
+			return int(x)
+		}
+		return x
+	case int64:
+		return int(x)
+	case []any:
+		for i, elem := range x {
+			x[i] = normalizeAny(elem)
+		}
+		return x
+	case map[string]any:
+		for k, elem := range x {
+			x[k] = normalizeAny(elem)
+		}
+		return x
+	default:
+		return v
+	}
 }
 
 // opDecMode decodes CBOR maps into map[string]interface{} (matching JSON
