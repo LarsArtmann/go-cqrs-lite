@@ -56,6 +56,10 @@ func (t Tracing) Merge(other Tracing) Tracing {
 // query.Metadata were originally aliases for CustomData but are now
 // standalone structs that embed metadata.Tracing directly; CustomData
 // remains for external consumers who want the same pattern.
+//
+// Deprecated: Model metadata as a standalone struct embedding metadata.Tracing
+// directly instead of using CustomData. See command.Metadata and query.Metadata
+// for the preferred pattern. CustomData will not be removed this major version.
 type CustomData[K ~string] struct {
 	Tracing
 

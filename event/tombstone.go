@@ -155,12 +155,7 @@ func copyWithTombstoneMark(
 
 	safePayload := slices.Clone(rawPayload)
 
-	md := evt.Metadata()
-	if md.Custom == nil {
-		md.Custom = make(map[MetadataKey]string)
-	}
-
-	md.Custom[key] = "true"
+	md := evt.Metadata().WithCustom(key, "true")
 	md.Tombstone = &mark
 
 	deadline, hasDeadline := evt.Deadline()

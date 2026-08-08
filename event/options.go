@@ -99,8 +99,7 @@ const (
 // WithCustom sets a custom metadata field.
 func WithCustom(key MetadataKey, value string) Option {
 	return func(e *ImmutableEvent) {
-		EnsureCustom(&e.metadata)
-		e.metadata.Custom[key] = value
+		e.metadata = e.metadata.WithCustom(key, value)
 	}
 }
 

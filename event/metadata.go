@@ -18,7 +18,7 @@ type Metadata struct {
 }
 
 // NewMetadata creates a Metadata with zero-value fields.
-// The Custom map is lazily initialized on first write via EnsureCustom.
+// The Custom map is lazily initialized on first write via WithCustom.
 func NewMetadata() Metadata {
 	return Metadata{}
 }
@@ -44,8 +44,24 @@ func (m Metadata) Clone() Metadata {
 	return cp
 }
 
+// WithCustom returns a copy of m with the given key-value pair added to
+// Custom. The original Metadata is not modified.
+func (m Metadata) WithCustom(key MetadataKey, value string) Metadata {
+	cp := m
+	cp.Custom = maps.Clone(m.Custom)
+	if cp.Custom == nil {
+		cp.Custom = make(map[MetadataKey]string)
+	}
+	cp.Custom[key] = value
+	return cp
+}
+
 // EnsureCustom lazily initializes the Custom map if nil.
 // Call before writing to m.Custom from outside this package.
+//
+// Deprecated: Use Metadata.WithCustom, which returns a new value without
+// mutating the receiver. EnsureCustom mutates in place via a pointer,
+// breaking the immutability contract that Clone and Merge establish.
 func EnsureCustom(m *Metadata) {
 	if m.Custom == nil {
 		m.Custom = make(map[MetadataKey]string)
