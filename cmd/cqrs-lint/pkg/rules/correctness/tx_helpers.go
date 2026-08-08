@@ -3,6 +3,7 @@ package correctness
 import (
 	"go/ast"
 	"go/token"
+	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 )
@@ -217,13 +218,7 @@ func isReadOnlyBegin(call *ast.CallExpr) bool {
 	}
 
 	// database/sql pattern: BeginTx(ctx, &TxOptions{ReadOnly: true})
-	for _, arg := range call.Args {
-		if hasReadOnlyTrue(arg) {
-			return true
-		}
-	}
-
-	return false
+	return slices.ContainsFunc(call.Args, hasReadOnlyTrue)
 }
 
 // hasReadOnlyTrue reports whether expr is (or points to) a composite literal

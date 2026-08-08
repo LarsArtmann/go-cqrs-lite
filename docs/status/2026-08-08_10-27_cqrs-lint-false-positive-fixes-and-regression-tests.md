@@ -17,6 +17,7 @@
 **File:** `cmd/cqrs-lint/pkg/rules/correctness/c008.go:193`
 
 **Tests added:**
+
 - `TestC008_NoFindingForTotalDaysWordBoundary` — 6 fields (TotalDays, TotalCount, TotalUsers, TotalEvents, ChargeCount, PaymentCount) all must produce 0 findings
 - `TestC008_ExactWeakFieldInMonetaryStruct` — field named exactly `Total` in a `Wallet` struct must still fire
 
@@ -45,6 +46,7 @@
 **Problem:** The logicalLocations feature was implemented in the scorecard SARIF path (`scorecard_render.go`) but had no dedicated test. The existing `TestRenderSARIF_MissingModulesAsResults` checked results but not the logicalLocations array itself.
 
 **Fix:** Added `TestRenderSARIF_LogicalLocationsPopulated` that verifies:
+
 - `run.logicalLocations[]` is populated with 4 entries (2 used + 2 missing modules)
 - Every entry has `kind: "module"`
 - All expected modules appear by `fullyQualifiedName` (otel, encryption, signing, scheduling)
@@ -57,6 +59,7 @@
 **Problem:** `isReadOnlyBegin()` only detected bbolt's `db.Begin(false)` pattern (literal `false` as first arg). Other DBs use different read-only patterns, notably `database/sql`'s `db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})`.
 
 **Fix:**
+
 - Extended `findBeginTxVar()` to apply the read-only check to both `Begin` and `BeginTx` (previously only `Begin`)
 - Rewrote `isReadOnlyBegin()` to detect two patterns:
   1. bbolt: `Begin(false)` — boolean false as first arg (existing)
@@ -66,6 +69,7 @@
 **Files:** `cmd/cqrs-lint/pkg/rules/correctness/tx_helpers.go`
 
 **Tests added:**
+
 - `TestC001_ReadOnlyBeginTx_NoFinding` — realistic `database/sql` read-only query with `BeginTx(ctx, &sql.TxOptions{ReadOnly: true})`, asserts 0 findings
 - Existing `TestC001_ReadOnlyBeginFalse_NoFinding` still passes (backward compat)
 
@@ -76,6 +80,7 @@
 ### C023 Type-Awareness — test coverage gap
 
 The code fix is implemented and working (build passes, existing tests pass), but the new type-awareness path (`callReturnsError` returning `false` for void-return methods) has **no regression test** because `BuildContextFromSource` provides empty `TypesInfo` maps. A type-aware test would require either:
+
 - A new test helper that runs `go/types` type-checking on the test source, or
 - Using `packages.Load` with `NeedTypes | NeedTypesInfo` in test mode
 
@@ -85,17 +90,17 @@ This is a real gap but the fix is backward-compatible (degrades to old behavior 
 
 ## c) NOT STARTED (from the original backlog)
 
-| Item | Why Not Started |
-|---|---|
-| **Run cqrs-lint against real consumer projects** | External manual task — requires cloning Kernovia, Standup-Killer, bank-sync, etc. Cannot be automated in this session. |
-| **~80 C033 bare `return err` findings** | **STALE** — self-lint produces 0 findings. The backlog counts were from a prior session. Already clean. |
-| **~15 D014 missing json tags findings** | **STALE** — 0 findings in self-lint. Already clean. |
-| **~8 C034 `go func()` without context findings** | **STALE** — 0 findings. Already clean. |
-| **~6 P012/P013 SQLite without WAL/busy_timeout findings** | **STALE** — 0 findings. Already clean. |
-| **~8 A032 string/int fields instead of branded ID findings** | **STALE** — 0 findings. Already clean. |
-| **Deferred P-series rules** | Each needs advanced type inference beyond AST-only analysis. The metaengine rules (Query without type parameter, MapUpdate on replicated engine, Store never Closed, On wrong handler signature) require understanding metaengine types in depth. |
-| **Tag cqrs-lint v4.5.0** | Waiting for user decision on whether to tag now or after consumer validation. |
-| **~14 remaining Pareto backlog items** | See Pareto plan. Most are open items from the Phase 4-8 sections. |
+| Item                                                         | Why Not Started                                                                                                                                                                                                                                   |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Run cqrs-lint against real consumer projects**             | External manual task — requires cloning Kernovia, Standup-Killer, bank-sync, etc. Cannot be automated in this session.                                                                                                                            |
+| **~80 C033 bare `return err` findings**                      | **STALE** — self-lint produces 0 findings. The backlog counts were from a prior session. Already clean.                                                                                                                                           |
+| **~15 D014 missing json tags findings**                      | **STALE** — 0 findings in self-lint. Already clean.                                                                                                                                                                                               |
+| **~8 C034 `go func()` without context findings**             | **STALE** — 0 findings. Already clean.                                                                                                                                                                                                            |
+| **~6 P012/P013 SQLite without WAL/busy_timeout findings**    | **STALE** — 0 findings. Already clean.                                                                                                                                                                                                            |
+| **~8 A032 string/int fields instead of branded ID findings** | **STALE** — 0 findings. Already clean.                                                                                                                                                                                                            |
+| **Deferred P-series rules**                                  | Each needs advanced type inference beyond AST-only analysis. The metaengine rules (Query without type parameter, MapUpdate on replicated engine, Store never Closed, On wrong handler signature) require understanding metaengine types in depth. |
+| **Tag cqrs-lint v4.5.0**                                     | Waiting for user decision on whether to tag now or after consumer validation.                                                                                                                                                                     |
+| **~14 remaining Pareto backlog items**                       | See Pareto plan. Most are open items from the Phase 4-8 sections.                                                                                                                                                                                 |
 
 ---
 

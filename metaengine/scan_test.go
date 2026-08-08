@@ -1,7 +1,7 @@
 package metaengine_test
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"math"
 	"math/big"
 	"strings"
@@ -280,8 +280,8 @@ func TestDecodeFloatResults_DefaultAlias(t *testing.T) {
 
 	// Specs without explicit Alias — AliasOr() generates default names.
 	specs := []metaengine.AggregateSpec{
-		{Fn: metaengine.AggregateCount},                   // → "count"
-		{Fn: metaengine.AggregateSum, Column: "price"},    // → "SUM(price)"
+		{Fn: metaengine.AggregateCount},                // → "count"
+		{Fn: metaengine.AggregateSum, Column: "price"}, // → "SUM(price)"
 	}
 	raws := []any{int64(3), float64(42.0)}
 
@@ -306,7 +306,7 @@ func TestDecodeFloatResults_MixedTypes(t *testing.T) {
 	rawBytes, _ := json.Marshal(7.7)
 
 	specs := []metaengine.AggregateSpec{
-		{Fn: metaengine.AggregateCount, Alias: "a"},    // int64 from COUNT
+		{Fn: metaengine.AggregateCount, Alias: "a"},            // int64 from COUNT
 		{Fn: metaengine.AggregateSum, Column: "x", Alias: "b"}, // *big.Int from DuckDB
 		{Fn: metaengine.AggregateAvg, Column: "x", Alias: "c"}, // []byte encoding
 		{Fn: metaengine.AggregateMax, Column: "x", Alias: "d"}, // float64 from DOUBLE

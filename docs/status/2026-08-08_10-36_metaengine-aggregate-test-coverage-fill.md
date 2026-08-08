@@ -6,12 +6,12 @@
 
 ## a) FULLY DONE
 
-| # | Item | Files | Status |
-|---|------|-------|--------|
-| 1 | `DecodeFloat` direct unit tests | `metaengine/scan_test.go` (new, ~300 lines) | ✅ All 7 type branches + error cases + table-driven variant (19 subtests). Verified passing. |
-| 2 | `DecodeFloatResults` direct unit tests | `metaengine/scan_test.go` (same file) | ✅ Empty specs, nil raws, explicit alias keying, default `AliasOr()` keying, mixed driver types, error propagation (errPrefix + alias in message), invalid []byte error. 9 test functions. Verified passing. |
-| 3 | Doctor() aggregate-pushdown section test | `metaengine/doctor_aggregate_test.go` (new) | ✅ `fakeAggregateEngine` implementing all 5 interfaces; asserts `pushdown: scalar, grouped, multi, multi-grouped, distinct` line. Also tests Memory engine → `none`. Verified passing. |
-| 4 | Strengthen PG aggregate test assertions | `metaengine/pgengine/aggregations_test.go` (edited) | ✅ `ExplainAggregateQuery` now asserts `SUM` keyword + `$1` placeholder + first arg. `DistinctValues` now verifies actual values `"open"` + `"closed"`. Verified passing against real Postgres via testcontainers. |
+| #   | Item                                     | Files                                               | Status                                                                                                                                                                                                             |
+| --- | ---------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `DecodeFloat` direct unit tests          | `metaengine/scan_test.go` (new, ~300 lines)         | ✅ All 7 type branches + error cases + table-driven variant (19 subtests). Verified passing.                                                                                                                       |
+| 2   | `DecodeFloatResults` direct unit tests   | `metaengine/scan_test.go` (same file)               | ✅ Empty specs, nil raws, explicit alias keying, default `AliasOr()` keying, mixed driver types, error propagation (errPrefix + alias in message), invalid []byte error. 9 test functions. Verified passing.       |
+| 3   | Doctor() aggregate-pushdown section test | `metaengine/doctor_aggregate_test.go` (new)         | ✅ `fakeAggregateEngine` implementing all 5 interfaces; asserts `pushdown: scalar, grouped, multi, multi-grouped, distinct` line. Also tests Memory engine → `none`. Verified passing.                             |
+| 4   | Strengthen PG aggregate test assertions  | `metaengine/pgengine/aggregations_test.go` (edited) | ✅ `ExplainAggregateQuery` now asserts `SUM` keyword + `$1` placeholder + first arg. `DistinctValues` now verifies actual values `"open"` + `"closed"`. Verified passing against real Postgres via testcontainers. |
 
 **Test counts added:** ~40 new test functions/subtests across 3 files.
 **All passing** (`metaengine` core: `go test .` green; `pgengine`: testcontainers PG green).

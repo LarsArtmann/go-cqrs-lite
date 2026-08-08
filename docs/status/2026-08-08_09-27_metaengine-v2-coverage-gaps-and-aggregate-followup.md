@@ -100,7 +100,7 @@ Nothing from the assigned TODO list. All 12 items were addressed.
    - `25ff10791` — SQLite WAL concurrency tests (unrelated to metaengine)
    - `3b4d48207` — System pebbleengine + watermill integration (unrelated)
    - `ab6f01b8e` — flake.nix DuckDB/Turso VM health tests (unrelated)
-   These are mixed into the git history alongside my metaengine work, making `git bisect` harder.
+     These are mixed into the git history alongside my metaengine work, making `git bisect` harder.
 
 2. **Empty commit message on `797d9ce45`** — The daemon committed my ADR-0120 + parity test + sqlite factory with a completely empty commit message. This violates every git convention and makes history scanning harder.
 
@@ -234,20 +234,20 @@ The daemon committed 3 unrelated changes (SQLite WAL tests, system pebbleengine 
 
 ## Verification Summary
 
-| Gate | Status | Notes |
-|------|--------|-------|
-| Build (`go vet`) | GREEN | All modules compile with `goexperiment.jsonv2` |
-| DuckDB build (CGo) | GREEN | Compiles with `cgo` tag |
-| Tests (metaengine) | GREEN | 7.1s |
-| Tests (duckdbengine) | GREEN | 94.9s (all tests pass) |
-| Tests (sqliteengine) | GREEN | 0.7s |
-| Tests (pgengine) | GREEN | 15.5s (testcontainers) |
-| Tests (bench) | GREEN | 0.05s (aggregate parity) |
-| Race (duckdbengine) | GREEN | Regression test passes under `-race` |
-| Race (quic) | GREEN | 3x pass under `-parallel 4` |
-| Lint | GREEN | 0 issues on all touched modules |
-| Duplication | GREEN | 0 new clones (baseline 67) |
-| Coverage | GREEN | Within ±2.0% tolerance |
-| API stability | GREEN | 3809 exports verified |
-| Doc-check | GREEN | 1237 references valid |
-| Pre-existing: system typecheck | RED | `integration_lifecycle_test.go:214` — untracked file, not my change |
+| Gate                           | Status | Notes                                                               |
+| ------------------------------ | ------ | ------------------------------------------------------------------- |
+| Build (`go vet`)               | GREEN  | All modules compile with `goexperiment.jsonv2`                      |
+| DuckDB build (CGo)             | GREEN  | Compiles with `cgo` tag                                             |
+| Tests (metaengine)             | GREEN  | 7.1s                                                                |
+| Tests (duckdbengine)           | GREEN  | 94.9s (all tests pass)                                              |
+| Tests (sqliteengine)           | GREEN  | 0.7s                                                                |
+| Tests (pgengine)               | GREEN  | 15.5s (testcontainers)                                              |
+| Tests (bench)                  | GREEN  | 0.05s (aggregate parity)                                            |
+| Race (duckdbengine)            | GREEN  | Regression test passes under `-race`                                |
+| Race (quic)                    | GREEN  | 3x pass under `-parallel 4`                                         |
+| Lint                           | GREEN  | 0 issues on all touched modules                                     |
+| Duplication                    | GREEN  | 0 new clones (baseline 67)                                          |
+| Coverage                       | GREEN  | Within ±2.0% tolerance                                              |
+| API stability                  | GREEN  | 3809 exports verified                                               |
+| Doc-check                      | GREEN  | 1237 references valid                                               |
+| Pre-existing: system typecheck | RED    | `integration_lifecycle_test.go:214` — untracked file, not my change |

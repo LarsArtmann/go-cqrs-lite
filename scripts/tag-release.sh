@@ -94,28 +94,36 @@ fi
 # Two disjoint exit shapes:
 #   • before any temp commit is made  → HEAD still points at the original
 #     (pre-strip) commit, so `git restore --staged --worktree` from HEAD
-#     brings the working tree back to the untouched go.mod/go.sum.
+#     brings the entire working tree back to the untouched state.
 #   • after the temp commit is made    → HEAD points at the strip commit.
-#     `undo_temp_commit` first moves HEAD back with `reset --soft` (non-
-#     destructive: leaves the working tree alone), THEN restores from the
-#     now-original HEAD.
+#     `undo_temp_commit` first moves HEAD back to original_head with
+#     `reset --soft` (non-destructive: leaves the working tree alone), THEN
+#     restores all tracked files.
 #
 # `git restore` is used instead of the old `git checkout -- .`, which
 # restored the working tree from the INDEX — and after a `reset --soft` the
 # index still held the stripped go.mod, silently re-dirtying the tree. The
 # old script's "originals restored" message did not match reality.
+#
+# We restore ALL tracked files (not just go.mod/go.sum) because the auto-
+# commit daemon may have committed other files between the temp commit and
+# the reset, leaving staged deletions or modifications in the index.
+# Restoring only go.mod/go.sum left those behind.
+
+# Save the exact original HEAD before any modifications. Using HEAD~1 to
+# undo the temp commit is fragile: if the auto-commit daemon commits between
+# the temp commit and the reset, HEAD~1 points at the daemon's commit, not
+# the pre-strip commit.
+original_head="$(git rev-parse HEAD)"
 
 restore_working_tree() {
-  git restore --staged --worktree "$gomod" 2>/dev/null || true
-  if [ -f "${module}/go.sum" ]; then
-    git restore --staged --worktree "${module}/go.sum" 2>/dev/null || true
-  fi
+  git restore --staged --worktree . 2>/dev/null || true
 }
 
 undo_temp_commit() {
   # Move HEAD back to the pre-strip commit (original go.mod), then discard
-  # the staged strip changes in favour of that original.
-  git reset --soft HEAD~1 2>/dev/null || true
+  # all staged/working-tree changes in favour of that original.
+  git reset --soft "$original_head" 2>/dev/null || true
   restore_working_tree
 }
 

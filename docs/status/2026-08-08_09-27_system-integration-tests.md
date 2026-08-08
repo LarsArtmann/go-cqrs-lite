@@ -15,13 +15,13 @@ All work auto-committed by daemon in commit `3b4d48207`.
 
 The prior session (`docs/status/2026-08-08_08-57_system-lifecycle-hardening.md`) left 5 blocking items. This session verified each is resolved:
 
-| Item | Status | Detail |
-|------|--------|--------|
+| Item                                    | Status                      | Detail                                                                                                             |
+| --------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Fix `metaengine/explain.go` build break | **Already fixed by daemon** | Daemon completed `aggregateCapabilities` in commits `2936e8c19`, `4d4da45d5`, `797d9ce45`. Workspace build passes. |
-| Regenerate api-stability golden | **Already correct** | 3809 exports verified (was 3808 — daemon's `DecodeFloat` addition properly in golden). |
-| Run doc-check on system README | **PASSES** | 47 references valid across 5 packages. |
-| Run workspace-wide `go build` | **PASSES** | `go build -tags "goexperiment.jsonv2" ./...` clean. |
-| Run full verify gate | **Not run** | Did not run `nix run .#verify` — individual checks sufficient for this session's scope. |
+| Regenerate api-stability golden         | **Already correct**         | 3809 exports verified (was 3808 — daemon's `DecodeFloat` addition properly in golden).                             |
+| Run doc-check on system README          | **PASSES**                  | 47 references valid across 5 packages.                                                                             |
+| Run workspace-wide `go build`           | **PASSES**                  | `go build -tags "goexperiment.jsonv2" ./...` clean.                                                                |
+| Run full verify gate                    | **Not run**                 | Did not run `nix run .#verify` — individual checks sufficient for this session's scope.                            |
 
 ### 2. TODO_LIST.md cleanup
 
@@ -52,10 +52,10 @@ The prior session (`docs/status/2026-08-08_08-57_system-lifecycle-hardening.md`)
 
 ### 6. Dependencies added
 
-| Module | Version | Purpose |
-|--------|---------|---------|
-| `metaengine/pebbleengine/v4` | v4.0.0 | Pebble-backed metaengine Engine (LSM point reads) |
-| `watermill/v4` | v4.2.0 | Watermill EventBus (GoChannel pub/sub) |
+| Module                       | Version | Purpose                                           |
+| ---------------------------- | ------- | ------------------------------------------------- |
+| `metaengine/pebbleengine/v4` | v4.0.0  | Pebble-backed metaengine Engine (LSM point reads) |
+| `watermill/v4`               | v4.2.0  | Watermill EventBus (GoChannel pub/sub)            |
 
 Both are **test-only imports** (only used in `_test.go` files), but Go modules don't distinguish test-only direct deps from production deps in `go.mod`. The production code in `system/` does not import either module.
 
@@ -64,10 +64,12 @@ Both are **test-only imports** (only used in `_test.go` files), but Go modules d
 ## b) PARTIALLY DONE
 
 ### Test coverage
+
 - System package coverage: **73.2%** (up from 72.9% prior session). The 3 integration tests exercise real engine wiring paths (SQLite constructor, Memory projection layer, Pebble driver registration, Watermill EventBus lifecycle) that were previously untested. The delta is small because much of the integration path overlaps with existing unit tests.
 - The bulk of untested code remains in `constructor.go` (complex wiring branches), `scream_plan.go`, and edge-case error handling paths.
 
 ### `nix run .#verify`
+
 - Not run this session. Individual checks (build, test, race, api-stability, doc-check) all pass. The verify gate is the authoritative check but takes 3-4 minutes; skipped because no production code changed (only test files + go.mod).
 
 ---
@@ -75,6 +77,7 @@ Both are **test-only imports** (only used in `_test.go` files), but Go modules d
 ## c) NOT STARTED
 
 ### Release / Tagging
+
 These are release activities for the human:
 
 - [ ] Tag `system/v4.1.0` — lifecycle methods + introspection extensions + integration tests
@@ -88,9 +91,11 @@ These are release activities for the human:
 - [ ] Tag `storage/memory/v4.3.0` (limit=0 fix)
 
 ### Verify gate
+
 - [ ] Run `nix run .#verify` (build + vet + test + race + lint + doc-check + doc-assertions + coverage + duplication + layers)
 
 ### Additional integration test opportunities (not requested, but noticed)
+
 - [ ] DuckDB source-of-truth + HealthCheck (CGo required)
 - [ ] Postgres source-of-truth + HealthCheck (needs testcontainer)
 - [ ] Multi-engine shutdown ordering with `ShutdownDependency` + real engines
@@ -139,6 +144,7 @@ These are release activities for the human:
 ## f) Up to 50 things to get done next
 
 ### Immediate (verify gate)
+
 1. Run `nix run .#verify` to confirm full gate is green
 2. Run `nix run .#check-layers` — verify system's dependency budget wasn't exceeded by pebbleengine + watermill
 3. Run `nix run .#check-duplication` — verify no new code clones introduced
@@ -147,6 +153,7 @@ These are release activities for the human:
 6. Run `nix run .#check-file-size` — verify no production file exceeds 350 lines
 
 ### System package
+
 7. Refactor `goto caughtUp` into a `waitForProjection` helper function
 8. Add `TestSystem_Close_Idempotent` — double Close returns nil
 9. Add `TestSystem_GracefulClose_Idempotent` — double GracefulClose semantics
@@ -164,6 +171,7 @@ These are release activities for the human:
 21. Consider renaming tests from `TestIntegration_*` to `TestSystem_*` for consistency, or document the convention
 
 ### Dependency management
+
 22. Check if pebbleengine + watermill in system/go.mod triggers `check-layers` budget violation
 23. Consider moving Pebble/Watermill integration tests to `integration/` module to avoid dep inflation
 24. Alternatively, create `system/driver/pebble/` side-package for Pebble driver registration (database/sql model)
@@ -172,6 +180,7 @@ These are release activities for the human:
 27. Consider exporting `watermill.AsDrainer(bus)` helper for the Drainer adapter pattern
 
 ### Release / Tagging
+
 28. Tag `system/v4.1.0` (verify monotonic: `git tag -l 'system/v4*' | sort -V | tail -1`)
 29. Tag `metaengine/sqliteengine/v4.0.1`
 30. Tag `metaengine/duckdbengine/v4.0.1`
@@ -184,18 +193,21 @@ These are release activities for the human:
 37. Run `nix run .#vulncheck` after all tags to catch version-sequence breaks
 
 ### Metaengine (daemon's work to verify)
+
 38. Verify `metaengine/pebbleengine` builds standalone: `cd metaengine/pebbleengine && GOWORK=off go build ./...`
 39. Verify `metaengine/enginetest` module path issue — `go mod tidy -e` showed `metaengine/v4/enginetest` and `metaengine/v4/keycodec` not found at v4.6.0 tag. These are separate modules in go.work but the tagged version doesn't contain them. May need a new metaengine tag.
 40. Run metaengine tests after verifying the build
 41. Check if the `replace` directive in pebbleengine/go.mod (`replace metaengine/v4 => ../`) causes issues for consumers resolving from tagged versions
 
 ### Documentation
+
 42. Add lifecycle examples to SKILL.md if the Crush skill references system package
 43. Update AGENTS.md module description for system if needed (now has pebble + watermill integration tests)
 44. Consider adding a lifecycle cheat-sheet to `docs/architecture-understanding/`
 45. Document the driver-registry pattern (`RegisterDriver`) more prominently for consumers
 
 ### Testing infrastructure
+
 46. Consider a shared `enginetest.RunLifecycleMatrix` — cross-engine lifecycle parity (like `adttest.RunMatrix` for ADTs)
 47. Add a benchmark for `GracefulClose` with many drainers
 48. Add a benchmark for `orderedEngines` with a large DAG (100+ engines)

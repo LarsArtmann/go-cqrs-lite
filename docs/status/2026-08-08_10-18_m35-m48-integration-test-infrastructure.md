@@ -17,6 +17,7 @@
 5. **`integration-all` refactoring** — Left as-is (explicit known-good path). The `test-integration.sh` aggregator is the new recommended entry point; `integration-all` remains as a fallback with explicit strategy choices.
 
 **Verification:** All dry-run scenarios pass:
+
 - `bash scripts/test-integration.sh --list` ✓
 - `bash scripts/test-integration.sh --pg-only --strategy=ephemeral --list` ✓
 - `bash scripts/test-integration.sh --mysql-only --strategy=nspawn --list` ✓
@@ -109,15 +110,15 @@
 
 The script itself is fully functional, but 3 of the 8 embedded modules fail under `GOWORK=off` due to **pre-existing** issues:
 
-| Module | Status | Root Cause |
-|--------|--------|------------|
-| `storage` | ✓ Passes | — |
-| `stack/pebble` | ✓ Passes | — |
-| `stack/bbolt` | ✓ Passes | — |
-| `storage/pebble` | ✓ Passes (in workspace mode) | `commandtest` not in go.mod under GOWORK=off |
-| `storage/bbolt` | ✗ Fails | `encoding/json/jsontext` build constraints (pre-existing, Go experiment tag issue) |
-| `stack/sqlite` | ✗ Fails | `storage.SQLiteSetSynchronous` undefined in published tag (version drift) |
-| `stack/duckdb` | ✗ Fails | Missing go.sum entry for `flightrecorder/v4` (untagged pseudo-version) |
+| Module           | Status                       | Root Cause                                                                         |
+| ---------------- | ---------------------------- | ---------------------------------------------------------------------------------- |
+| `storage`        | ✓ Passes                     | —                                                                                  |
+| `stack/pebble`   | ✓ Passes                     | —                                                                                  |
+| `stack/bbolt`    | ✓ Passes                     | —                                                                                  |
+| `storage/pebble` | ✓ Passes (in workspace mode) | `commandtest` not in go.mod under GOWORK=off                                       |
+| `storage/bbolt`  | ✗ Fails                      | `encoding/json/jsontext` build constraints (pre-existing, Go experiment tag issue) |
+| `stack/sqlite`   | ✗ Fails                      | `storage.SQLiteSetSynchronous` undefined in published tag (version drift)          |
+| `stack/duckdb`   | ✗ Fails                      | Missing go.sum entry for `flightrecorder/v4` (untagged pseudo-version)             |
 
 These are NOT bugs I introduced — they're the well-documented module version drift problem (AGENTS.md documents this pattern). The script correctly reports failures and exits non-zero.
 
@@ -268,6 +269,7 @@ However, several issues warrant attention:
 ### 1. Should `integration-all` be refactored to delegate to `test-integration.sh`?
 
 `integration-all` currently hardcodes `ephemeral-pg.sh` + `vm-mysql-nspawn.sh`. It's explicit but duplicates the strategy logic that `test-integration.sh` now handles with auto-detection. Options:
+
 - **A)** Keep as-is (explicit known-good fallback)
 - **B)** Delegate to `test-integration.sh` (single source of truth)
 - **C)** Deprecate and remove `integration-all` entirely

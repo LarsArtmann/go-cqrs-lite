@@ -22,7 +22,12 @@ func (e *fakeAggregateEngine) Aggregate(
 }
 
 func (e *fakeAggregateEngine) GroupedAggregate(
-	_ context.Context, _ string, _ metaengine.AggregateFn, _ string, _ string, _ []metaengine.FilterSpec,
+	_ context.Context,
+	_ string,
+	_ metaengine.AggregateFn,
+	_ string,
+	_ string,
+	_ []metaengine.FilterSpec,
 ) (map[string]float64, error) {
 	return nil, nil
 }

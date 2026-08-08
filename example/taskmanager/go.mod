@@ -29,10 +29,10 @@ require (
 	github.com/bits-and-blooms/bitset v1.24.6 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/failsafe-go/failsafe-go v0.9.6 // indirect
-	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260808072728-ab6f01b8e017 // indirect
+	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260808084149-0bf407aa3970 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
-	github.com/larsartmann/go-retry v0.2.0 // indirect
+	github.com/larsartmann/go-retry v0.3.1 // indirect
 	github.com/larsartmann/go-sse v0.4.0 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect

@@ -418,7 +418,11 @@ func TestRenderSARIF_LogicalLocationsPopulated(t *testing.T) {
 	byFQN := make(map[string]sarifLogicalLocation, len(lls))
 	for _, ll := range lls {
 		if ll.Kind != "module" {
-			t.Errorf("logicalLocation %q has kind %q, want \"module\"", ll.FullyQualifiedName, ll.Kind)
+			t.Errorf(
+				"logicalLocation %q has kind %q, want \"module\"",
+				ll.FullyQualifiedName,
+				ll.Kind,
+			)
 		}
 		byFQN[ll.FullyQualifiedName] = ll
 	}

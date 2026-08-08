@@ -89,12 +89,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `users: pushdown: scalar, grouped, multi, multi-grouped, distinct`.
 - **PG functional aggregate tests** — 7 test functions in
   `metaengine/pgengine/aggregations_test.go` covering all 5 aggregate interfaces
-  + empty collection + explain. Tests: `TestPostgres_Aggregate` (COUNT/SUM/MIN/
-  MAX/AVG + filtered), `TestPostgres_GroupedAggregate` (count + sum by status),
-  `TestPostgres_MultiAggregate` (count + sum + min + max in one pass),
-  `TestPostgres_MultiGroupedAggregate` (count + sum + avg per group),
-  `TestPostgres_DistinctValues`, `TestPostgres_Aggregate_EmptyCollection`,
-  `TestPostgres_ExplainAggregateQuery`. All pass via testcontainers.
+  - empty collection + explain. Tests: `TestPostgres_Aggregate` (COUNT/SUM/MIN/
+    MAX/AVG + filtered), `TestPostgres_GroupedAggregate` (count + sum by status),
+    `TestPostgres_MultiAggregate` (count + sum + min + max in one pass),
+    `TestPostgres_MultiGroupedAggregate` (count + sum + avg per group),
+    `TestPostgres_DistinctValues`, `TestPostgres_Aggregate_EmptyCollection`,
+    `TestPostgres_ExplainAggregateQuery`. All pass via testcontainers.
 - **DuckDB race regression test** —
   `TestDuckDB_RaceRegression_LayoutPlanConcurrentAccess` in
   `metaengine/duckdbengine/race_regression_cgo_test.go`. 30 goroutines
@@ -128,8 +128,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Direct `DecodeFloatResults` unit tests** — same file: empty specs, nil raws,
   explicit alias keying, default `AliasOr()` keying (`count`, `SUM(price)`,
   `MIN(price)`), mixed driver types in one call (int64 + `*big.Int` + `[]byte`
-  + float64), error propagation (verifies errPrefix + alias + cause in message),
-  invalid `[]byte` error path.
+  - float64), error propagation (verifies errPrefix + alias + cause in message),
+    invalid `[]byte` error path.
 - **Doctor() aggregate-pushdown section test** —
   `metaengine/doctor_aggregate_test.go` (new): `fakeAggregateEngine`
   implementing all 5 pushdown interfaces; asserts

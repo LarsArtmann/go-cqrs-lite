@@ -1,7 +1,7 @@
 package metaengine
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"math/big"
 )
