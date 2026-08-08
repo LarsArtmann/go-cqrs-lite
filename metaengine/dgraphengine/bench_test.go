@@ -168,3 +168,194 @@ func BenchmarkDgraph_SetAdd(b *testing.B) {
 		}
 	}
 }
+
+// BenchmarkDgraph_GraphAddEdge measures the per-op cost of GraphAddEdge.
+// Each call is a 2-step upsert: (1) create/ensure both nodes exist,
+// (2) add bidirectional edges. Write-dominated by RAFT consensus.
+func BenchmarkDgraph_GraphAddEdge(b *testing.B) {
+	addr := dgraphAddr()
+
+	eng, err := dgraphengine.New(addr)
+	if err != nil {
+		b.Skipf("Dgraph not available: %v", err)
+	}
+	defer eng.Close()
+
+	gb, ok := eng.(metaengine.GraphBackend)
+	if !ok {
+		b.Fatal("dgraph engine does not implement GraphBackend")
+	}
+
+	ctx := context.Background()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		if err := gb.GraphAddEdge(ctx, "bench-graph-add",
+			metaengine.Edge{From: i, To: i + 1}); err != nil {
+			b.Fatalf("GraphAddEdge %d: %v", i, err)
+		}
+	}
+}
+
+// populateGraph builds a 100-node graph where each node connects to its next
+// 3 neighbors (mod N). This creates a dense ring with ~300 bidirectional edges.
+// At depth 3, most of the graph is reachable (3+9+27 = 39+ nodes).
+func populateGraph(b *testing.B, gb metaengine.GraphBackend, collection string, numNodes int) {
+	ctx := context.Background()
+
+	for i := range numNodes {
+		for j := 1; j <= 3; j++ {
+			neighbor := (i + j) % numNodes
+			if err := gb.GraphAddEdge(ctx, collection,
+				metaengine.Edge{From: i, To: neighbor}); err != nil {
+				b.Fatalf("pre-populate GraphAddEdge %d→%d: %v", i, neighbor, err)
+			}
+		}
+	}
+}
+
+// BenchmarkDgraph_GraphNeighbors_Depth1 measures depth-1 neighbor traversal
+// (direct adjacency). Read-only via NewReadOnlyTxn — bypasses RAFT.
+func BenchmarkDgraph_GraphNeighbors_Depth1(b *testing.B) {
+	addr := dgraphAddr()
+
+	eng, err := dgraphengine.New(addr)
+	if err != nil {
+		b.Skipf("Dgraph not available: %v", err)
+	}
+	defer eng.Close()
+
+	gb, ok := eng.(metaengine.GraphBackend)
+	if !ok {
+		b.Fatal("dgraph engine does not implement GraphBackend")
+	}
+
+	const numNodes = 100
+	populateGraph(b, gb, "bench-graph-d1", numNodes)
+
+	ctx := context.Background()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		node := i % numNodes
+		neighbors, err := gb.GraphNeighbors(ctx, "bench-graph-d1", node, 1)
+		if err != nil {
+			b.Fatalf("GraphNeighbors depth1 %d: %v", i, err)
+		}
+
+		if len(neighbors) == 0 {
+			b.Fatalf("GraphNeighbors depth1 %d: expected neighbors for node %d", i, node)
+		}
+	}
+}
+
+// BenchmarkDgraph_GraphNeighbors_Depth3 measures depth-3 multi-hop traversal
+// via Dgraph's native @recurse — the killer feature that SQL needs recursive
+// CTEs for. Read-only via NewReadOnlyTxn.
+func BenchmarkDgraph_GraphNeighbors_Depth3(b *testing.B) {
+	addr := dgraphAddr()
+
+	eng, err := dgraphengine.New(addr)
+	if err != nil {
+		b.Skipf("Dgraph not available: %v", err)
+	}
+	defer eng.Close()
+
+	gb, ok := eng.(metaengine.GraphBackend)
+	if !ok {
+		b.Fatal("dgraph engine does not implement GraphBackend")
+	}
+
+	const numNodes = 100
+	populateGraph(b, gb, "bench-graph-d3", numNodes)
+
+	ctx := context.Background()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		node := i % numNodes
+		if _, err := gb.GraphNeighbors(ctx, "bench-graph-d3", node, 3); err != nil {
+			b.Fatalf("GraphNeighbors depth3 %d: %v", i, err)
+		}
+	}
+}
+
+// BenchmarkDgraph_SearchInsert measures the per-op cost of SearchInsert.
+// Each insertion upserts a document into the @index(term) full-text index.
+// Write-dominated by RAFT consensus.
+func BenchmarkDgraph_SearchInsert(b *testing.B) {
+	addr := dgraphAddr()
+
+	eng, err := dgraphengine.New(addr)
+	if err != nil {
+		b.Skipf("Dgraph not available: %v", err)
+	}
+	defer eng.Close()
+
+	sb, ok := eng.(metaengine.SearchBackend)
+	if !ok {
+		b.Fatal("dgraph engine does not implement SearchBackend")
+	}
+
+	ctx := context.Background()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		doc := metaengine.IndexedText{
+			ID:      fmt.Sprintf("doc-%d", i),
+			Content: fmt.Sprintf("document %d about golang performance graph database query optimization", i),
+		}
+		if err := sb.SearchInsert(ctx, "bench-search-ins", doc); err != nil {
+			b.Fatalf("SearchInsert %d: %v", i, err)
+		}
+	}
+}
+
+// BenchmarkDgraph_SearchQuery measures anyofterms() query latency over a
+// 500-document corpus with varied vocabulary. Read-only via NewReadOnlyTxn.
+func BenchmarkDgraph_SearchQuery(b *testing.B) {
+	addr := dgraphAddr()
+
+	eng, err := dgraphengine.New(addr)
+	if err != nil {
+		b.Skipf("Dgraph not available: %v", err)
+	}
+	defer eng.Close()
+
+	sb, ok := eng.(metaengine.SearchBackend)
+	if !ok {
+		b.Fatal("dgraph engine does not implement SearchBackend")
+	}
+
+	ctx := context.Background()
+	const numDocs = 500
+	words := []string{"golang", "database", "graph", "performance", "query",
+		"optimization", "cqrs", "event", "sourcing", "projection"}
+
+	for i := range numDocs {
+		w1 := words[i%len(words)]
+		w2 := words[(i+3)%len(words)]
+		w3 := words[(i+7)%len(words)]
+		doc := metaengine.IndexedText{
+			ID:      fmt.Sprintf("doc-%d", i),
+			Content: fmt.Sprintf("%s %s %s document number %d", w1, w2, w3, i),
+		}
+		if err := sb.SearchInsert(ctx, "bench-search-q", doc); err != nil {
+			b.Fatalf("pre-populate SearchInsert %d: %v", i, err)
+		}
+	}
+
+	queries := []string{"golang", "performance", "graph", "database", "event"}
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		results, err := sb.SearchQuery(ctx, "bench-search-q", queries[i%len(queries)], 10)
+		if err != nil {
+			b.Fatalf("SearchQuery %d: %v", i, err)
+		}
+
+		if len(results) == 0 {
+			b.Fatalf("SearchQuery %d: expected results for %q", i, queries[i%len(queries)])
+		}
+	}
+}
