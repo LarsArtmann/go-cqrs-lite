@@ -29,8 +29,10 @@ func NewSnapshotStore(database *bolt.DB, logger *slog.Logger) (*SnapshotStore, e
 	return &SnapshotStore{storeBase: storeBase{db: database, logger: logger}}, nil
 }
 
+// Save persists a snapshot to the bbolt store.
+//
 // cqrs-lint:ignore(A023) library code or intentional pattern
-func (s *SnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) error {
+func (s *SnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) error { //nolint:godoclint
 	_, span := startStreamSpan(ctx, "bbolt.snapshot.save",
 		id.NewStreamRef(snap.StreamType, snap.StreamID))
 	defer span.End()

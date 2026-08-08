@@ -253,7 +253,7 @@ func TestTagContentMatchesChangelog(t *testing.T) {
 //
 // This prevents the schema->snapshot, transport/http->testutil, and
 // query/command->snapshot class of stale entries.
-func TestExceptionsAreMinimal(t *testing.T) {
+func TestExceptionsAreMinimal(t *testing.T) { //nolint:gocognit // comprehensive exception audit
 	t.Parallel()
 
 	projectRoot := filepath.Join(".", "..", "..")

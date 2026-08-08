@@ -37,7 +37,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
-var (
+var ( //nolint:gochecknoglobals // test-framework caching globals
 	containerDSN string
 	adminDB      *sql.DB
 	dbCounter    atomic.Int64
@@ -115,11 +115,17 @@ func DSN(tb testing.TB) string {
 
 	name := tb.Name()
 	if dsn, ok := dbCache.Load(name); ok {
-		return dsn.(string)
+		dsnStr, ok := dsn.(string)
+		if !ok {
+			tb.Fatalf("cached DSN has wrong type: %T", dsn)
+		}
+		return dsnStr
 	}
 
 	dbName := fmt.Sprintf("test_%d", dbCounter.Add(1))
-	if _, err := adminDB.Exec(fmt.Sprintf(`CREATE DATABASE "%s"`, dbName)); err != nil {
+	if _, err := adminDB.ExecContext(context.Background(),
+		fmt.Sprintf(`CREATE DATABASE "%s"`, dbName),
+	); err != nil {
 		tb.Fatalf("create test database %s: %v", dbName, err)
 	}
 
@@ -129,7 +135,8 @@ func DSN(tb testing.TB) string {
 	tb.Cleanup(func() {
 		dbCache.Delete(name)
 
-		_, _ = adminDB.Exec(fmt.Sprintf(`DROP DATABASE "%s" WITH (FORCE)`, dbName))
+		_, _ = adminDB.ExecContext(context.Background(),
+			fmt.Sprintf(`DROP DATABASE "%s" WITH (FORCE)`, dbName))
 	})
 
 	return dsn
