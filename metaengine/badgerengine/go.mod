@@ -2,12 +2,6 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4
 
 go 1.26.5
 
-replace (
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../sqliteengine
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../
-	github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record
-)
-
 require (
 	github.com/dgraph-io/badger/v4 v4.9.6
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
