@@ -335,18 +335,18 @@ Operator-configured CQRS topology from the
 where the operator provides engines/config and the consumer provides domain
 deciders/projections. `example/taskmanager` migrated to `system.New()`.
 
-**P0/P1 fixes shipped**: driver registry wired (SQLite works through
-`New()`), serialization auto-detected, handler independence fixed, MultiBus/
-SnapshotBackend/scream store wired, introspection real, Verify/Plan/Explain
-methods, projection decoder wiring, koanf YAML config, DuckDB/PG Transactional,
-bus driver registry, scream store plan-drift detection, CommandAdapter/
-QueryAdapter SQL serialization, example/taskmanager migration. **P2 hardening +
-P2 test depth + P3 code quality shipped**: HealthCheck, GracefulClose (with
-Drainer phase), ResetProjection, configurable checkpoint store, errors.Join in
-Close, WithShutdownDependency, HealthCheck on all external-state engines (SQLite,
-DuckDB, Postgres, Pebble), README Quick Start
-fix, doc-check arg validation. See [CHANGELOG.md](CHANGELOG.md) → System
-package P2 test depth + P3 code quality.
+**P0/P1/P2/P3 + lifecycle hardening shipped**: driver registry wired (SQLite works
+through `New()`), serialization auto-detected, handler independence fixed,
+MultiBus/SnapshotBackend/scream store wired, introspection real,
+Verify/Plan/Explain methods, projection decoder wiring, koanf YAML config,
+DuckDB/PG Transactional, bus driver registry, scream store plan-drift detection,
+CommandAdapter/QueryAdapter SQL serialization, example/taskmanager migration.
+HealthCheck on all 6 engines, GracefulClose (with Drainer phase),
+ResetProjection, configurable checkpoint store, errors.Join in Close,
+WithShutdownDependency, orderedEngines topological sort. 8 lifecycle methods:
+Drain/EngineNames/ShutdownOrder/HealthCheckDetailed/LagPerProjection/
+LagDuration/WorkerStatus/RegisterCloser. 60+ tests, all pass with `-race`.
+See [CHANGELOG.md](CHANGELOG.md) → System lifecycle hardening.
 
 | Feature                         | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Status |
 | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |

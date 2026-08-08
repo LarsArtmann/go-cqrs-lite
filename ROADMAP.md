@@ -173,8 +173,8 @@ aggregate interfaces (testcontainers).
   the `system/` package implements the operator-configured topology with a
   driver registry (database/sql model). Auto event-decoders (`NewTypeDecoder`+
   `Register`, `AutoCRUDByConvention`) eliminate the per-event decoder switch.
-  Remaining: NATS/Redis bus driver registration, system/README Quick Start
-  compilation, configurable checkpoint store.
+  HealthCheck, GracefulClose, Drain, configurable checkpoint store, README Quick
+  Start all shipped. Remaining: NATS/Redis bus driver registration.
 
 ### 2. Benchkit → Evidence-Grade
 
@@ -366,8 +366,9 @@ first `ReplicationLeaderless` engine.
   Fixed `time.Time` truncation and `map[any]any` decode issues.
 - [ ] Evaluate `iroh-go` C binding stability (third-party binding for Iroh Rust)
 - ✅ **Tag loopback + quic modules** — `loopback/v4.0.0` + `quic/v4.0.0` tagged
-- [ ] WriteOp.ID dedup ring on loopback path (quic has it)
-- [ ] Fix `TestQuicSetConvergence` flakiness (pre-existing, network-dependent)
+- ✅ **WriteOp.ID dedup ring** — both transports now have bounded dedup sets (10K entries)
+- ✅ **Fix `TestQuicSetConvergence` flakiness** — fixed 2026-08-08 (unified `Eventually` blocks)
+- ✅ **QUIC ADT matrix** — `TestQuicADTMatrix` runs full 10-ADT matrix against QUIC transport
 
 ### 11. Metaengine Persistence + System Redesign
 
