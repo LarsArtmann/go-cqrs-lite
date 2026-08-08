@@ -141,6 +141,20 @@ func isGlobalWrittenAfterInit(ctx *analyzer.AnalysisContext, varName string) boo
 
 			assign, ok := n.(*ast.AssignStmt)
 			if !ok {
+				// Also check IncDecStmt: globalVar[key]++
+				if incdec, ok := n.(*ast.IncDecStmt); ok {
+					if idx, ok := incdec.X.(*ast.IndexExpr); ok {
+						if ident, ok := idx.X.(*ast.Ident); ok && ident.Name == varName {
+							found = true
+							return false
+						}
+					}
+					// Direct increment: globalVar++
+					if id, ok := incdec.X.(*ast.Ident); ok && id.Name == varName {
+						found = true
+						return false
+					}
+				}
 				return true
 			}
 
