@@ -193,8 +193,8 @@ func TestTypedReader_PushdownViaSQLite(t *testing.T) {
 		assertPushFloat(t, "closed avg", got["closed"]["avg"], -2.5)
 	})
 
-	t.Run("DistinctValues", func(t *testing.T) {
-		got, err := reader.DistinctValues(ctx, "status")
+	t.Run("Distinct", func(t *testing.T) {
+		got, err := reader.Distinct(ctx, "status")
 		if err != nil {
 			t.Fatalf("DistinctValues: %v", err)
 		}
