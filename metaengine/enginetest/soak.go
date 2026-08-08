@@ -162,7 +162,7 @@ func RunAutoCRUDSoak(t *testing.T, eng metaengine.Engine) {
 	totalGrowth := int64(after.HeapAlloc) - int64(baseline.HeapAlloc)
 
 	maxGrowth := int64(15 * 1024 * 1024) // 15MB
-	if raceEnabled {
+	if RaceEnabled {
 		maxGrowth *= 5 // 75MB under -race
 	}
 

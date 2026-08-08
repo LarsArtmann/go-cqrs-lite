@@ -22,17 +22,17 @@ TOLERANCE=2.0
 # Module → documented coverage (verified 2027-07-27). Keep in sync with AGENTS.md.
 declare -A EXPECTED=(
     [decider]=96.1
-    [storage/memory]=96.9
+    [storage/memory]=97.0
     [snapshot]=91.9
     [schema]=89.9
-    [command]=88.3
-    [event]=88.2
+    [command]=89.7
+    [event]=88.6
     [id]=86.4
-    [metaengine]=79.8
-    [query]=80.5
+    [metaengine]=81.0
+    [query]=85.3
     [dispatcher]=81.5
     [kv]=71.9
-    [codec]=70.2
+    [codec]=69.2
 )
 
 # Modules are measured in workspace mode (go.work replacements) with the

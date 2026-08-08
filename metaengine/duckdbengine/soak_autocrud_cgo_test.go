@@ -3,6 +3,7 @@
 package duckdbengine_test
 
 import (
+	"os"
 	"testing"
 
 	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
@@ -14,7 +15,14 @@ import (
 // lifecycle correctness under sustained write load. DuckDB's columnar storage
 // and memory management differ from both Memory and Pebble — this test
 // catches OLAP-specific issues (e.g. unbounded append, MVCC bloat).
+//
+// Skips in -short mode. Skips when SOAK_SKIP_DUCKDB=1 (for CI that cannot
+// afford the ~80-100s runtime). Runtime: ~80s without -race, ~100s with -race.
 func TestSoak_AutoCRUD_DuckDB(t *testing.T) {
+	if os.Getenv("SOAK_SKIP_DUCKDB") == "1" {
+		t.Skip("DuckDB soak: skipped by SOAK_SKIP_DUCKDB=1")
+	}
+
 	t.Parallel()
 
 	eng, err := duckdbengine.New("")

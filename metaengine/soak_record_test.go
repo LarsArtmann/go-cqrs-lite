@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
@@ -115,7 +116,7 @@ func TestSoak_RecordAwarePipeline(t *testing.T) {
 	totalGrowth := int64(after.HeapAlloc) - int64(baseline.HeapAlloc)
 
 	maxGrowth := int64(10 * 1024 * 1024) // 10MB
-	if raceEnabled {
+	if enginetest.RaceEnabled {
 		maxGrowth *= 5 // 50MB under -race
 	}
 
