@@ -259,3 +259,17 @@ Should we:
 - **(c)** Add the embedding NOW alongside the adapter (dual-path)
 
 This affects the long-term architecture of the Record-aware pipeline.
+
+---
+
+## Resolution (2026-08-08)
+
+Items 1–4 (critical): Tags were recreated on correct commits. Verify gate run GREEN (07-45 report: build/vet/test/race/lint 0 issues). Vulncheck **still blocked** by unpushed event/v4.4.0 tag.
+
+Items 5–9 (code quality): `brandedString` duplication **still open**. check-duplication, check-layers, nix fmt all **run and passing**.
+
+Items 10–16 (testing): Soak test (100K events) — **still open**. Record stamping tests for all engines — **done** (07-45 report).
+
+Items 17–23 (documentation): Follow-up plan status not updated. SKILL.md/README updates — **partially done**.
+
+Q1 (recreate tags): Tags recreated. Q2 (AutoCRUDByConvention naming): **unresolved** — still matches Go struct names. Q3 (AsRecord bridge): **deferred to v5** (adapter stays for now).

@@ -337,8 +337,8 @@ backing (0 benchmarks exist for these engines).
   benchmarks. M4.2 DuckDB columnar extraction benchmark (3-way comparison).
 - ✅ **Full-pipeline benchmarks** — 7 new files in `stack/bench/` + 6 cross-module
   benchmark files (projectionhost, transport, decider, scheduling, middleware).
-- [ ] **Regression baseline + CI integration** — calibration benchmarks should run
-      in CI and fail if constants drift >3×.
+- **Regression baseline + CI integration** — calibration benchmarks should run
+  in CI and fail if constants drift >3×. See [TODO_LIST.md](TODO_LIST.md).
 
 ### 9. Deferred Debt (ADR-committed) — RESOLVED
 
@@ -375,7 +375,7 @@ first `ReplicationLeaderless` engine.
   for RTT).
 - ✅ **CBOR encoding** — both transports switched from JSON to `fxamacker/cbor`.
   Fixed `time.Time` truncation and `map[any]any` decode issues.
-- [ ] Evaluate `iroh-go` C binding stability (third-party binding for Iroh Rust)
+- **Evaluate `iroh-go` C binding stability** (third-party binding for Iroh Rust)
 - ✅ **Tag loopback + quic modules** — `loopback/v4.0.0` + `quic/v4.0.0` tagged
 - ✅ **WriteOp.ID dedup ring** — both transports now have bounded dedup sets (10K entries)
 - ✅ **Fix `TestQuicSetConvergence` flakiness** — fixed 2026-08-08 (unified `Eventually` blocks)

@@ -203,3 +203,13 @@ The verify-checklist says deferred items shouldn't be in both. These are ADR-com
 ### Question 3: Should FEATURES.md be split or aggressively pruned?
 
 At 175KB / 1750+ lines, FEATURES.md is far beyond any reasonable size for a "feature inventory." The metaengine section alone has 90+ rows. Options: (a) split into `FEATURES.md` (core) + `docs/metaengine-features.md` (experimental detail), (b) aggressively consolidate rows (remove implementation-detail rows like "Dead code wiring", "Exhaustiveness guard"), (c) leave as-is (it's a library, consumers need the detail). **Which direction do you want?**
+
+---
+
+## Resolution (2026-08-08)
+
+Q1 (how many to annotate): **12 reports annotated** in session 3 (03-53). Later sessions annotated 8 more. Many remain unannotated as historical artifacts — they describe completed work and adding markers adds little value.
+
+Q2 (Ghost bus/Metadata aliases in TODO or ROADMAP): **Resolved** — Ghost bus removed (ADR-0028), metadata aliases completed (ADR-0031). Both marked ✅ in ROADMAP Theme 9. No longer in TODO_LIST.
+
+Q3 (split FEATURES.md): **Deferred** — still at ~1413 lines. Metaengine section was partially consolidated (removed ~10 implementation-detail rows). Library context makes comprehensive inventory defensible.

@@ -246,3 +246,13 @@ The docs-health plan explicitly says SKIP/LEAVE-ALONE for these reports because 
 ### Q3: Should I run the full `nix run .#verify` now, or is `verify-docs.sh` sufficient for a doc-only session?
 
 This session only edited markdown files (12 status reports, 3 planning docs, ROADMAP, FEATURES). No Go source was touched by me. But the daemon committed go.mod/go.sum changes alongside my edits. Should I run the full 3-4 minute gate to verify the daemon's changes didn't break anything, or is the doc-only `verify-docs.sh` subset sufficient given I didn't touch any `.go` files?
+
+---
+
+## Resolution (2026-08-08)
+
+Q1 (fix metaengine lint issues): **Resolved** — lint gate is 0 issues across all 65 modules (08-08 sessions fixed err113 + gochecknoglobals findings).
+
+Q2 (annotate/archive/leave old reports): **Leave as historical artifacts** — the 08-08 sessions continued annotating key reports but accepted that old reports describing completed work don't need markers. The 08-08 docs-health run annotated 8 more reports.
+
+Q3 (run full verify): **Run later** — the 07-45 release hygiene report ran the full gate: GREEN (build/vet/test/race/lint 0 issues/layers/duplication/coverage all passing).
