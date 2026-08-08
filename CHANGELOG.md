@@ -6,6 +6,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+#### Code quality cleanup — 2026-08-08
+
+- **`event.CustomData` v3-compat alias now carries `// Deprecated:` notice**
+  — `event/v3_compat_aliases.go:31` re-exports `metadata.CustomData[K]` but
+  previously lacked the deprecation comment. Now consistent with the other
+  v3 aliases in the same file.
+  _(Committed as `62830b61f`.)_
+- **`maintidx` linter removed from test-file exclusion** — safe after
+  `TestTypedReader_AggregateFallback` was split into Scalar/Grouped/Multi
+  subtests (2026-08-08). Verified: `golangci-lint --enable-only maintidx ./...`
+  reports zero violations across the full workspace.
+  _(Committed as `62830b61f`.)_
+- **EnsureCustom tests documented as backward-compat coverage** —
+  `event/customdata_test.go` and `metadata/metadata_test.go` test functions
+  now carry doc comments explaining they intentionally exercise the deprecated
+  `EnsureCustom` API. Scoped SA1019 exclusion added to `.golangci.yml` for
+  `(event|metadata)/.*_test\.go$`.
+  _(Committed as `62830b61f`.)_
+- **`deferClose` helper added to storage test packages** — replaces 22 verbose
+  `defer func() { _ = x.Close() }()` sites in `storage/pebble/` (7 test files)
+  and 6 bare `defer iter.Close()` sites in `storage/bbolt/stream_test.go` (bare
+  defer silently discarded errors). Helpers live in `defer_close_test.go` /
+  `defer_close_ext_test.go` per test package.
+  _(Committed as `d4f8d3fc0`.)_
+- **`tag-release.sh` cleanup hardened** — `restore_working_tree()` now restores
+  ALL tracked files (not just go.mod/go.sum), and `undo_temp_commit()` uses a
+  saved `original_head` instead of fragile `HEAD~1` (breaks if the auto-commit
+  daemon commits between the temp commit and the reset).
+  _(Committed as `2f48b356e`.)_
+
 ### Added
 
 #### Module release batch — 2026-08-08
