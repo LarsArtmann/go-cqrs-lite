@@ -42,19 +42,23 @@ func (b *EventBus) rebuildHandlerChain() {
 	}
 
 	inner := event.Handler(func(ctx context.Context, evt event.Event) error {
+		// Call each handler independently so one handler's error does not
+		// prevent the others from executing. The first error is returned.
+		var firstErr error
+
 		for _, h := range allHandlers {
-			if err := h(ctx, evt); err != nil {
-				return err
+			if err := h(ctx, evt); err != nil && firstErr == nil {
+				firstErr = err
 			}
 		}
 
 		for _, h := range typeSnapshot[evt.Type()] {
-			if err := h(ctx, evt); err != nil {
-				return err
+			if err := h(ctx, evt); err != nil && firstErr == nil {
+				firstErr = err
 			}
 		}
 
-		return nil
+		return firstErr
 	})
 
 	for _, v := range slices.Backward(b.middleware) {

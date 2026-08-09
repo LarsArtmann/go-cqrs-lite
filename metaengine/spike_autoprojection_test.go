@@ -170,134 +170,15 @@ func TestSpike_EventTypeMismatch(t *testing.T) {
 	t.Log("   Solution: need a variant that accepts explicit event type strings")
 }
 
-// ── Test 4: Prototype solution — AutoCRUDByNamedEvents ──
-// A new function that pairs event type strings with sample structs.
-
-// eventSample pairs a wire event type string with a sample struct for reflection.
-type eventSample struct {
-	eventType string
-	sample    any
-}
-
-func namedEvent(eventType string, sample any) eventSample {
-	return eventSample{eventType: eventType, sample: sample}
-}
-
-// autoCRUDByNamedEvents is the prototype for the real exported function.
-// It generates folds where EventType() = the wire event type string,
-// NOT the Go struct name.
-func autoCRUDByNamedEvents[R any](keyField string, samples ...eventSample) ([]Fold, error) {
-	resultType := reflect.TypeFor[R]()
-
-	var created, updated, deleted *eventSample
-
-	for i := range samples {
-		s := samples[i]
-
-		t := reflect.TypeOf(s.sample)
-		if t.Kind() == reflect.Pointer {
-			t = t.Elem()
-		}
-
-		name := t.Name()
-
-		switch {
-		case isCRUDSuffix(name, "Created"):
-			if created != nil {
-				return nil, errors.New("multiple Created types")
-			}
-
-			created = &samples[i]
-		case isCRUDSuffix(name, "Updated"):
-			if updated != nil {
-				return nil, errors.New("multiple Updated types")
-			}
-
-			updated = &samples[i]
-		case isCRUDSuffix(name, "Deleted"):
-			if deleted != nil {
-				return nil, errors.New("multiple Deleted types")
-			}
-
-			deleted = &samples[i]
-		default:
-			return nil, errors.New("type " + name + " does not match *Created/*Updated/*Deleted")
-		}
-	}
-
-	if created == nil {
-		return nil, errors.New("no *Created sample provided")
-	}
-
-	var folds []Fold
-
-	// Insert fold with wire event type override
-	folds = append(folds, autoInsertByTypeWithEventName(
-		reflect.TypeOf(created.sample), resultType, keyField, created.eventType,
-	))
-
-	if updated != nil {
-		folds = append(folds, autoUpdateByTypeWithEventName(
-			reflect.TypeOf(updated.sample), resultType, keyField, updated.eventType,
-		))
-	}
-
-	if deleted != nil {
-		folds = append(folds, autoDeleteByTypeWithEventName(
-			reflect.TypeOf(deleted.sample), keyField, deleted.eventType,
-		))
-	}
-
-	return folds, nil
-}
-
-func isCRUDSuffix(name, suffix string) bool {
-	return len(name) > len(suffix) && name[len(name)-len(suffix):] == suffix
-}
-
-// autoInsertByTypeWithEventName is like autoInsertByType but overrides EventType.
-func autoInsertByTypeWithEventName(eventType, resultType reflect.Type, keyField, wireType string) Fold {
-	sample, keyIdx := autoReflectSetup(eventType, keyField, "AutoInsert")
-
-	_ = sample
-	_ = keyIdx
-
-	f := autoInsertByType(eventType, resultType, keyField)
-	// Override the eventType field on the insertFold
-	if insertF, ok := f.(*insertFold); ok {
-		insertF.eventType = wireType
-	}
-
-	return f
-}
-
-func autoUpdateByTypeWithEventName(eventType, resultType reflect.Type, keyField, wireType string) Fold {
-	f := autoUpdateByType(eventType, resultType, keyField)
-	if updateF, ok := f.(*updateFold); ok {
-		updateF.eventType = wireType
-	}
-
-	return f
-}
-
-func autoDeleteByTypeWithEventName(eventType reflect.Type, keyField, wireType string) Fold {
-	f := autoDeleteByType(eventType, keyField)
-	if removeF, ok := f.(*removeFold); ok {
-		removeF.eventType = wireType
-	}
-
-	return f
-}
-
-// ── Test 5: Validate the prototype solution with dot-separated event types ──
+// ── Test 5: Validate AutoCRUDByNamedEvents (the real exported function) ──
 
 func TestSpike_AutoCRUDByNamedEvents_Works(t *testing.T) {
 	ctx := context.Background()
 
-	folds, err := autoCRUDByNamedEvents[spikeTaskView]("ID",
-		namedEvent("task.created", spikeTaskCreated{}),
-		namedEvent("task.updated", spikeTaskUpdated{}),
-		namedEvent("task.deleted", spikeTaskDeleted{}),
+	folds, err := AutoCRUDByNamedEvents[spikeTaskView]("ID",
+		NamedEvent("task.created", spikeTaskCreated{}),
+		NamedEvent("task.updated", spikeTaskUpdated{}),
+		NamedEvent("task.deleted", spikeTaskDeleted{}),
 	)
 	if err != nil {
 		t.Fatal(err)

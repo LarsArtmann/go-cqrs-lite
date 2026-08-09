@@ -1274,6 +1274,29 @@ Tier 6 — Tooling & Examples: catalog/, integration/, benchkit/, stack/bench/, 
 > **Domain vocabulary:** [`docs/METAENGINE_DOMAIN_LANGUAGE.md`](docs/METAENGINE_DOMAIN_LANGUAGE.md)
 > (ADTs, fold DSL, cost model, 9 engines, key codec, projection adapter).
 
+> ### User's vision statement (the north star)
+>
+> This is the guiding intent for every metaengine decision. When design choices conflict, defer to this.
+>
+> ```text
+> "Developers declare ONLY Commands + Events + Queries and their relationships. We should be able to build
+> superb projections (materialized views) and developers never need to worry about anything else, while where
+> data lives is up to operators at DEPLOYMENT time."
+>
+> "If I only give you SQLite, metaengine should deal with all query projections via SQLite. If there are graph
+> queries, it should warn about them being slow. At the same time I should be able to ONLY provide a GraphDB,
+> even for event logs."
+>
+> "metaengine should be SMART enough to handle EVERYTHING so developers REALLY NEVER need to think about the
+> storage layer!"
+> ```
+>
+> **Decoded into three invariants every change must serve:**
+>
+> 1. **Developer declares, operator deploys** — The developer's surface area is Commands + Events + Queries + relationships ONLY. Storage selection is a deployment-time concern, never a code change.
+> 2. **Graceful degradation, never failure** — Given one engine, metaengine serves every query on it. Unsupported/unsuited query shapes (e.g. graph traversal on SQLite) emit advisory diagnostics (WARN: slow), not errors.
+> 3. **Zero storage-layer thinking** — A consumer who never reads a storage doc must still succeed. If a user must reach for a manual store, hand-rolled SQL, or a bespoke projection, that is a metaengine gap to close, not an acceptable workaround.
+
 > **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from bus.SubscribeAll + command dispatch. See `example/taskmanager/` for a real architecture.
 
 > **Historical details**: Session milestones, catalog architecture, and known issues in
