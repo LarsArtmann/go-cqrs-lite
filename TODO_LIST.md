@@ -32,18 +32,22 @@ and is **never** duplicated here.
 > view-store README + ADR-0122 + cqrs-lint v4.6.0 release notes documented.
 > See `docs/status/2026-08-09_07-25_pareto-execution-session-2-report.md`.
 
-- [ ] **Reclassify misclassified FPs in validation report** — at least 9 of the
-      original 39 "FPs" were actually TPs: D005 x4 (genuinely stale docs),
-      A005 x1 (DualWriteBus.SubscribeAll is real), A032 x5 (PluginID on domain
-      commands). Update `docs/status/2026-08-08_cqrs-lint-false-positive-validation.md`.
+- [ ] **Reclassify misclassified FPs in validation report** — ~~at least 9 of the~~
+      ~~original 39 "FPs" were actually TPs~~. **DONE 2026-08-09:** Corrected counts
+      propagated throughout the report (headline, post-fix table, per-rule table,
+      fp-suspects table, root cause sections). See
+      `docs/status/2026-08-08_cqrs-lint-false-positive-validation.md`.
       _(Effort: S)_
-- [ ] **Improve B029-B031 `isBusName` heuristic** — require `.Use()`/`.Publish()`
-      calls, not just suffix match on variable names. The `Use()`/`UsePublish()`
-      argument-checking pattern was proven for S010/C027/A005 in the FP
-      elimination session — port it to B029-B031.
+- [ ] **Improve B029-B031 `isBusName` heuristic** — ~~require `.Use()`/`.Publish()`~~
+      ~~calls~~. **DONE 2026-08-09:** Type-aware `receiverIsCQRSBus` added to
+      `hasBusMethodCall`. Resolves receiver type via `TypesInfo` — filters out
+      non-CQRS bus types with matching method names (same pattern as C027/A005).
+      `TestB029_TypeAwareSkipCustomBus` verifies the improvement.
       _(Effort: S)_
-- [ ] **Improve D018 `collectEventNewTypes`** — use type info for precise
-      `event.NewEvent` detection (currently matches any `NewEvent`).
+- [ ] **Improve D018 `collectEventNewTypes`** — ~~use type info for precise~~
+      ~~`event.NewEvent` detection~~. **DONE 2026-08-09:** `isEventPackageQualifier`
+      resolves the actual import path via `TypesInfo.Uses` — eliminates false
+      matches from non-go-cqrs-lite packages named "event".
       _(Effort: S)_
 
 ---
@@ -79,12 +83,10 @@ and is **never** duplicated here.
 > shared via `metaengine.DeferClose()` (47 prod + 17 test sites). AGENTS.md
 > dedup section + testModules coupling documented.
 
-- [ ] **Refactor remaining engine-setup boilerplate** — 4 sites in
-      `duckdbengine/stream_log_cgo_test.go` use `t.Fatalf` + `DeferClose`
-      instead of the skip+defer pattern; 1 site each in
-      `pgengine/healthcheck_test.go` and `duckdbengine/healthcheck_cgo_test.go`
-      have non-deferred Close. Could add a `mustNewDuckEngineOrFatal`
-      variant or standardize on skip+cleanup.
+- [ ] **Refactor remaining engine-setup boilerplate** — **DONE 2026-08-09:**
+      stream_log_cgo_test.go now uses `mustNewDuckEngine(t)` (4 sites). Healthcheck
+      ClosedDB tests use `newDuckEngineOrSkip(t)` / `newPgEngineOrSkip(t)` no-cleanup
+      helpers. Stale `//nolint:gci` directives removed.
       _(Effort: S)_
 - [ ] **Extract bbolt/pebble backup lifecycle test suite** — the 2 largest
       remaining clone groups (73 + 46 lines) are near-identical test files
@@ -105,9 +107,11 @@ and is **never** duplicated here.
 - [ ] **Add CI check comparing `go.mod` requires vs depguard allow list** —
       dependencies are only added to `.golangci.yml` after lint fails.
       _(Effort: M)_
-- [ ] **Investigate `gci` vs `goimports` disagreement** —
-      `pgengine/testcontainer_test.go` has `gci` issues that `nix fmt`
-      doesn't fix.
+- [ ] **Investigate `gci` vs `goimports` disagreement** — **RESOLVED
+      2026-08-09:** Root cause was treefmt goimports lacking `localPrefixes` while
+      gci has `prefix(github.com/larsartmann/go-cqrs-lite)`. Added `-local` flag to
+      treefmt goimports options in flake.nix. Stale `//nolint:gci` directives
+      removed from 2 files. `nix fmt` will align all files on next run.
       _(Effort: S)_
 
 ---
@@ -139,8 +143,9 @@ and is **never** duplicated here.
       exists; ADT tests run but no system-level integration test.
       _(Effort: M)_
 - [ ] **Add stale-process detection (PID file) to `ephemeral-dgraph.sh`** —
-      orphaned Dgraph processes from prior sessions cause transient test
-      failures.
+      **DONE 2026-08-09:** `reap_stale_dgraph()` checks `/tmp/cqrs-dgraph.pid` on
+      startup, kills orphaned Alpha processes, and cleans up stale temp dirs. PID
+      file written after Alpha becomes healthy, removed in cleanup trap.
       _(Effort: S)_
 
 ---
