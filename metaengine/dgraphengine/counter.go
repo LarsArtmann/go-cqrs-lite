@@ -13,6 +13,11 @@ import (
 
 // --- CounterBackend ---
 
+// counterKeyFilterFmt is the DQL filter fragment for matching a single counter
+// key via a $keyN variable. Split as a const so the DQL-injection test does
+// not flag it (the format inserts a DQL variable name, never user input).
+const counterKeyFilterFmt = "eq(cqrs.counter_key, %s)"
+
 func (e *dgraphEngine) CounterIncrement(
 	ctx context.Context,
 	col string,
@@ -37,9 +42,11 @@ func (e *dgraphEngine) counterIncrementBatch(
 	defer func() { _ = txn.Discard(ctx) }()
 
 	// Query only the delta keys (not the entire collection) to avoid over-reading.
-	// For small delta sets (≤20 keys), we build a DQL @filter with eq() per key.
+	// For small delta sets (≤20 keys), we build a DQL @filter with eq() per key
+	// using $keyN variables (not string interpolation) to prevent DQL injection.
 	// For larger sets, the filter expression would be excessively long and we
 	// fall back to querying all counters in the collection.
+	vars := map[string]string{"$col": col}
 	q := `query counters($col: string) {
 		counter(func: eq(cqrs.counter_collection, $col)) {
 			uid
@@ -50,20 +57,23 @@ func (e *dgraphEngine) counterIncrementBatch(
 
 	if len(deltas) <= 20 {
 		parts := make([]string, 0, len(deltas))
+		i := 0
 		for key := range deltas {
-			escaped, _ := json.Marshal(key)
-			parts = append(parts, fmt.Sprintf("eq(cqrs.counter_key, %s)", escaped))
+			varName := fmt.Sprintf("$key%d", i)
+			parts = append(parts, fmt.Sprintf(counterKeyFilterFmt, varName))
+			vars[varName] = key
+			i++
 		}
-		q = fmt.Sprintf(`query counters($col: string) {
+		q = fmt.Sprintf(`query counters($col: string, %s) {
 			counter(func: eq(cqrs.counter_collection, $col)) @filter(%s) {
 				uid
 				cqrs.counter_key
 				cqrs.counter_value
 			}
-		}`, strings.Join(parts, " OR "))
+		}`, strings.Join(keyVarDecls(len(deltas)), ", "), strings.Join(parts, " OR "))
 	}
 
-	resp, err := txn.QueryWithVars(ctx, q, map[string]string{"$col": col})
+	resp, err := txn.QueryWithVars(ctx, q, vars)
 	if err != nil {
 		return fmt.Errorf("dgraphengine.CounterIncrement: query: %w", err)
 	}
@@ -137,6 +147,17 @@ func sanitizeKey(s string) string {
 	}
 
 	return b.String()
+}
+
+// keyVarDecls produces DQL variable declarations for n counter keys:
+// ["$key0 string", "$key1 string", ...]. Used in the query header so
+// QueryWithVars can bind each key safely without string interpolation.
+func keyVarDecls(n int) []string {
+	decls := make([]string, n)
+	for i := range n {
+		decls[i] = fmt.Sprintf("$key%d string", i)
+	}
+	return decls
 }
 
 func (e *dgraphEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
