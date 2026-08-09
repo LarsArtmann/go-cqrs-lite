@@ -288,10 +288,6 @@ and is **never** duplicated here.
 
 ## Metaengine Coverage Gaps
 
-- [ ] **`record.FromCommand()` adapter** — mirror of `event.AsRecord()`, for
-      command lifecycle streams (ADR-0117). Reads `command.Command` +
-      `command.Metadata`. Prerequisite for command-lifecycle-as-events.
-      _(Effort: S)_
 - [ ] **ADR-0117 command lifecycle implementation** — DLQ as event streams,
       retries as event streams (no status fields). Design complete in ADR;
       no code yet.
