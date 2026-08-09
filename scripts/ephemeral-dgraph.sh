@@ -34,8 +34,30 @@ ZERO_OFFSET=$((DGRAPH_ZERO_GRPC - 5080))
 ALPHA_OFFSET=$((DGRAPH_ALPHA_GRPC - 9080))
 
 DGRAPH_DIR=$(mktemp -d /tmp/cqrs-dgraph-XXXXXX)
+PID_FILE="/tmp/cqrs-dgraph.pid"
 ZERO_PID=""
 ALPHA_PID=""
+
+# Detect and reap orphaned Dgraph processes from prior sessions.
+reap_stale_dgraph() {
+    if [ ! -f "$PID_FILE" ]; then
+        return
+    fi
+    local prev_dir prev_pid
+    prev_dir=""
+    prev_pid=""
+    while IFS=':' read -r prev_pid prev_dir; do
+        if [ -n "$prev_pid" ] && kill -0 "$prev_pid" 2>/dev/null; then
+            echo "==> Found orphaned Dgraph (PID $prev_pid, dir $prev_dir) — reaping"
+            kill "$prev_pid" 2>/dev/null || true
+            sleep 1
+            kill -9 "$prev_pid" 2>/dev/null || true
+            rm -rf "$prev_dir" 2>/dev/null || true
+        fi
+    done < "$PID_FILE"
+    rm -f "$PID_FILE"
+}
+reap_stale_dgraph
 
 cleanup() {
     if [ -n "$ALPHA_PID" ] && kill -0 "$ALPHA_PID" 2>/dev/null; then
@@ -47,6 +69,7 @@ cleanup() {
         wait "$ZERO_PID" 2>/dev/null || true
     fi
     rm -rf "$DGRAPH_DIR"
+    rm -f "$PID_FILE"
 }
 trap cleanup EXIT INT TERM
 
@@ -130,6 +153,7 @@ except Exception as e:
 done
 
 export DGRAPH_ADDR="localhost:$DGRAPH_ALPHA_GRPC"
+echo "$ALPHA_PID:$DGRAPH_DIR" > "$PID_FILE"
 echo "==> DGRAPH_ADDR=$DGRAPH_ADDR"
 echo "==> Logs in $DGRAPH_DIR"
 

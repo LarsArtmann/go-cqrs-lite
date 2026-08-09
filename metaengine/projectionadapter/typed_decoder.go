@@ -3,6 +3,7 @@ package projectionadapter
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
@@ -28,8 +29,9 @@ var ErrNoFoldForEventType = errors.New("projectionadapter: no fold registered fo
 // For Counter/Set queries that don't need the entity ID, use the payload
 // type directly (the fold handler can accept the raw payload).
 type EventWithID[P any] struct {
-	ID      string
-	Payload P
+	ID        string
+	Payload   P
+	OccurredAt time.Time
 }
 
 // EventRegistration is a single event-type-to-payload-type mapping, created
@@ -63,7 +65,11 @@ func Register[E any](eventType event.Type, _ E) EventRegistration {
 				}
 			}
 
-			return EventWithID[E]{ID: evt.StreamID().String(), Payload: p}, nil
+			return EventWithID[E]{
+				ID:         evt.StreamID().String(),
+				Payload:    p,
+				OccurredAt: evt.OccurredAt(),
+			}, nil
 		},
 	}
 }
@@ -84,7 +90,11 @@ func RegisterString[E any](eventType string, _ E) EventRegistration {
 				}
 			}
 
-			return EventWithID[E]{ID: evt.StreamID().String(), Payload: p}, nil
+			return EventWithID[E]{
+				ID:         evt.StreamID().String(),
+				Payload:    p,
+				OccurredAt: evt.OccurredAt(),
+			}, nil
 		},
 	}
 }

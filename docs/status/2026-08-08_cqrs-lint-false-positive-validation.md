@@ -4,6 +4,7 @@
 **Linter version:** 4.6.0 (192 rules) → post-fix build
 **Repos tested:** 8 real consumer projects
 **Total findings:** 128 (pre-fix) → 96 (post-fix)
+**Corrected FP classification:** 29 actual FPs (10 reclassified as TPs — see [Reclassification](#reclassification-misclassified-fps-2026-08-09))
 **Classification method:** Manual source-code verification of every finding
 
 ---
@@ -21,6 +22,11 @@ After executing the [false-positive elimination plan](../planning/2026-08-08_23-
 | Critical-severity FPs | 5       | 0        | -5 (all eliminated)  |
 | Error-severity FPs    | 6       | 0        | -6 (all eliminated)  |
 
+> **Corrected (see [Reclassification](#reclassification-misclassified-fps-2026-08-09)):**
+> Original TPs: **99** (not 89 — 10 misclassified FPs were actually TPs).
+> Original FPs: **~29** (not 39). Original FP rate: **~22.7%** (not 30.5%).
+> Post-fix remaining actual FPs: **~3** (not ~7 — D005 ×4 and A005 ×1 are TPs).
+
 **Eliminated FPs by fix:**
 
 - Transport adapter detection (C002×5 + A001×5 + E005×5 = 15 FPs)
@@ -30,7 +36,7 @@ After executing the [false-positive elimination plan](../planning/2026-08-08_23-
 - A032 display package skip (3 FPs)
 - Pattern fixes: C013 json:"-", C034 HTTP shutdown, C035 serialization DTO, E009 custom HTTP (4 FPs)
 
-**Remaining FPs (~7):** D005 prose version references (4), E014/F005 project-level rules (2), A005 edge case (1). All are ConfidenceLow (0.25) and caught by `--fp-suspects`.
+**Remaining FPs (~7 → corrected ~3):** D005 prose version references (4 — **reclassified as TPs**), E014/F005 project-level rules (2), A005 edge case (1 — **reclassified as TP**). All are ConfidenceLow (0.25) and caught by `--fp-suspects`.
 
 ---
 
@@ -121,9 +127,11 @@ The linter fires on syntactic patterns without semantic understanding:
 
 **Fix:** Skip files with ≤ 3 non-comment lines. For C002/A001, check if the command type is used in any `dispatcher.Dispatch()` or `bus.Publish()` call site before flagging.
 
-### 3. Type-Blind Matching (4 FPs — 10.3% of all FPs)
+### 3. Type-Blind Matching (4 → corrected 3 FPs — 10.3% of all FPs)
 
-**Rules affected:** A005 (2), C027 (1), S010 (1)
+> **Correction:** 1 of 2 A005 findings (DualWriteBus) was a TP — it embeds `event.Bus`. Corrected: 3 FPs (A005 ×1, C027 ×1, S010 ×1).
+
+**Rules affected:** A005 (2 → corrected 1), C027 (1), S010 (1)
 
 The linter pattern-matches on method names without resolving the receiver type:
 
@@ -133,9 +141,11 @@ The linter pattern-matches on method names without resolving the receiver type:
 
 **Fix:** Resolve the receiver type before matching. If `bus` is `*ErrorBus` or `*sse.Broadcaster`, don't apply `event.Bus` rules. For middleware, check if it's actually passed to `bus.Use()`.
 
-### 4. Version String Misparsed (4 FPs — 10.3% of all FPs)
+### 4. Version String Misparsed (4 → corrected 0 FPs — **all reclassified as TPs**)
 
-**Rule affected:** D005 (4)
+> **Correction:** All 4 D005 findings were genuine stale-version references. The docs really do reference outdated versions (e.g., v4.2.0 vs go.mod v4.3.0+). The linter was correct.
+
+**Rule affected:** D005 (4 → corrected 0 FPs)
 
 The linter extracts version strings from markdown documentation and compares them to go.mod, but misidentifies module paths as version references:
 
@@ -144,9 +154,11 @@ The linter extracts version strings from markdown documentation and compares the
 
 **Fix:** Only match explicit version references (e.g., "go-cqrs-lite v4.2.0" as prose), not import paths or require directive examples in code blocks.
 
-### 5. Display DTO Mistaken for Domain Type (3 FPs — 7.7% of all FPs)
+### 5. Display DTO Mistaken for Domain Type (3 → corrected 3 FPs, plus 5 TPs found in same rule)
 
-**Rule affected:** A032 (3)
+> **Correction:** 5 additional A032 findings on `PluginID string` in Kernovia **domain command** types were TPs (should use branded IDs) but were originally misclassified as FPs because transport-adapter FPs existed in the same file.
+
+**Rule affected:** A032 (3 actual FPs + 5 misclassified TPs = 8 total findings)
 
 The linter suggests branded IDs (`id.Of[T]`) for string fields in display/view-model structs:
 
@@ -159,23 +171,25 @@ The linter suggests branded IDs (`id.Of[T]`) for string fields in display/view-m
 
 ## False Positives by Rule (Sorted by FP Count)
 
-| Rule | Total | FP  | FP%  | FP Severity  | Root Cause                   |
-| ---- | ----- | --- | ---- | ------------ | ---------------------------- |
-| E007 | 7     | 7   | 100% | info         | Registration tracing         |
-| C002 | 10    | 5   | 50%  | **critical** | Pattern (transport adapters) |
-| E005 | 5     | 5   | 100% | warning      | Registration tracing         |
-| A001 | 10    | 5   | 50%  | error        | Pattern (transport adapters) |
-| D005 | 4     | 4   | 100% | warning      | Version misparse             |
-| A032 | 8     | 3   | 38%  | warning      | Display DTO                  |
-| A005 | 4     | 2   | 50%  | warning      | Type-blind                   |
-| C034 | 1     | 1   | 100% | warning      | Pattern (HTTP shutdown)      |
-| C035 | 1     | 1   | 100% | warning      | Pattern (per-request struct) |
-| S010 | 1     | 1   | 100% | error        | Type-blind                   |
-| C013 | 1     | 1   | 100% | info         | Pattern (json:"-" tag)       |
-| C027 | 1     | 1   | 100% | warning      | Type-blind                   |
-| E009 | 1     | 1   | 100% | info         | Pattern (own transport)      |
-| E014 | 2     | 1   | 50%  | info         | Pattern (empty doc.go)       |
-| F005 | 3     | 1   | 33%  | info         | Pattern (empty doc.go)       |
+| Rule | Total | FP (orig) | FP (corrected) | FP%  | FP Severity  | Root Cause                   |
+| ---- | ----- | --------- | -------------- | ---- | ------------ | ---------------------------- |
+| E007 | 7     | 7         | 7              | 100% | info         | Registration tracing         |
+| C002 | 10    | 5         | 5              | 50%  | **critical** | Pattern (transport adapters) |
+| E005 | 5     | 5         | 5              | 100% | warning      | Registration tracing         |
+| A001 | 10    | 5         | 5              | 50%  | error        | Pattern (transport adapters) |
+| D005 | 4     | 4         | **0**          | 0%   | warning      | ~~Version misparse~~ → TPs   |
+| A032 | 8     | 3         | 3 (+5 TPs)     | 38%  | warning      | Display DTO                  |
+| A005 | 4     | 2         | **1**          | 25%  | warning      | Type-blind                   |
+| C034 | 1     | 1         | 1              | 100% | warning      | Pattern (HTTP shutdown)      |
+| C035 | 1     | 1         | 1              | 100% | warning      | Pattern (per-request struct) |
+| S010 | 1     | 1         | 1              | 100% | error        | Type-blind                   |
+| C013 | 1     | 1         | 1              | 100% | info         | Pattern (json:"-" tag)       |
+| C027 | 1     | 1         | 1              | 100% | warning      | Type-blind                   |
+| E009 | 1     | 1         | 1              | 100% | info         | Pattern (own transport)      |
+| E014 | 2     | 1         | 1              | 50%  | info         | Pattern (empty doc.go)       |
+| F005 | 3     | 1         | 1              | 33%  | info         | Pattern (empty doc.go)       |
+
+**Corrected total FPs: ~29** (original 39 minus 10 reclassified as TPs: D005 ×4, A005 ×1, A032 ×5).
 
 ### Rules with 0% false positives (clean rules):
 
@@ -196,11 +210,11 @@ All other rules that fired had **zero false positives** — every finding was a 
 
 The linter's built-in `--fp-suspects` flag (shows only confidence ≤ 0.25) identifies 21 findings as "likely false positives." Comparison with manual classification:
 
-|       | Manual FP | fp-suspects caught | Missed |
-| ----- | --------- | ------------------ | ------ |
-| Total | 39        | 11                 | 28     |
+|       | Manual FP (orig) | Manual FP (corrected) | fp-suspects caught | Missed |
+| ----- | --------------- | --------------------- | ------------------ | ------ |
+| Total | 39              | ~29                   | 11                 | 18     |
 
-**fp-suspects catches 28% of actual false positives.** The 28 missed FPs all have confidence ≥ 0.5 — the linter is confident they're real. The most dangerous missed FPs:
+**fp-suspects catches 38% of actual false positives (corrected).** The 18 missed FPs all have confidence ≥ 0.5 — the linter is confident they're real. The most dangerous missed FPs:
 
 | Finding  | Severity | Confidence | Why dangerous                              |
 | -------- | -------- | ---------- | ------------------------------------------ |

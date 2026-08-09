@@ -62,6 +62,20 @@ func DotSeparated(s string) string {
 	return ToSeparated(s, '.')
 }
 
+// ToSpaced converts CamelCase to space-separated words, preserving original casing.
+// Acronyms are kept together: "GetURL" -> "Get URL", not "Get U R L".
+func ToSpaced(s string) string {
+	runes := []rune(s)
+	var result strings.Builder
+	for i, c := range runes {
+		if c >= 'A' && c <= 'Z' && shouldPrependSepBeforeUpper(runes, i) {
+			result.WriteRune(' ')
+		}
+		result.WriteRune(c)
+	}
+	return result.String()
+}
+
 // ToKebab converts CamelCase to kebab-case format.
 func ToKebab(s string) string {
 	return ToSeparated(s, '-')

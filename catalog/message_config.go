@@ -5,8 +5,8 @@ import (
 	"encoding/json/v2"
 	"reflect"
 	"strings"
-	"unicode"
 
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/caseutil"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/schema"
 )
 
@@ -272,19 +272,5 @@ func camelCaseToHuman(s string) string {
 		}
 	}
 
-	var result strings.Builder
-
-	for i, r := range s {
-		switch {
-		case i == 0:
-			result.WriteRune(unicode.ToUpper(r))
-		case unicode.IsUpper(r):
-			result.WriteRune(' ')
-			result.WriteRune(r)
-		default:
-			result.WriteRune(r)
-		}
-	}
-
-	return result.String()
+	return caseutil.ToSpaced(s)
 }
