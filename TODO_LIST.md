@@ -164,11 +164,6 @@ and is **never** duplicated here.
       retries as event streams (no status fields). Design complete in ADR;
       no code yet.
       _(Effort: L)_
-- [ ] **Cross-engine parity test for all 5 aggregate interfaces** — like
-      `adttest.RunMatrix` but for aggregate pushdown (AggregateReader/
-      GroupedAggregateReader/MultiAggregateReader/MultiGroupedAggregateReader/
-      ExplainableAggregate).
-      _(Effort: M)_
 - [ ] **Run calibration benchmarks against baseline** — verify
       `calibration-baseline.md` accuracy; add CI regression check.
       _(Effort: M)_
