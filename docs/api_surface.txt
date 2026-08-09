@@ -1566,6 +1566,7 @@ metaengine/func JSONFieldName
 metaengine/func LoadManifest
 metaengine/func MapUpdateTyped
 metaengine/func MaterializeCost
+metaengine/func MultiAggregateScan
 metaengine/func MustPlanFingerprint
 metaengine/func NewCostAccuracyReporter
 metaengine/func NewEventLog
@@ -1678,7 +1679,7 @@ metaengine/interface PushdownScan
 metaengine/interface RawScanReader
 metaengine/interface RawValueReader
 metaengine/interface RecordAwareFold
-metaengine/interface RowQuerier
+metaengine/interface SQLExec
 metaengine/interface ScanBackend
 metaengine/interface SearchBackend
 metaengine/interface SetBackend

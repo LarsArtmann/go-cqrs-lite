@@ -10,6 +10,8 @@ import (
 )
 
 // SQLite implementations of the grouped/multi/distinct aggregate interfaces.
+// art-dupl:accept cross-engine structural parallelism with
+// duckdbengine/aggregations.go — same algorithm, different SQL dialects.
 // These mirror the DuckDB engine's implementations but use SQLite placeholder
 // syntax (?) and rely on SQLite's json_extract returning native types (no
 // CAST AS DOUBLE needed).
@@ -207,17 +209,7 @@ func (e *sqliteEngine) scanMultiSQLite(
 	args []any,
 	specs []metaengine.AggregateSpec,
 ) (map[string]float64, error) {
-	raws := make([]any, len(specs))
-	ptrs := make([]any, len(specs))
-	for i := range raws {
-		ptrs[i] = &raws[i]
-	}
-
-	if err := e.xd().QueryRowContext(ctx, query, args...).Scan(ptrs...); err != nil {
-		return nil, fmt.Errorf("sqliteengine.MultiAggregate: %w", err)
-	}
-
-	return metaengine.DecodeFloatResults(raws, specs, "sqliteengine.MultiAggregate")
+	return metaengine.MultiAggregateScan(ctx, e.xd(), query, args, specs, "sqliteengine.MultiAggregate")
 }
 
 // ---------------------------------------------------------------------------

@@ -10,6 +10,9 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// art-dupl:accept cross-engine structural parallelism with
+// sqliteengine/aggregations_grouped.go — same algorithm, different SQL dialects.
+
 // DuckDB's vectorized columnar execution engine makes aggregate queries
 // (COUNT, SUM, AVG, MIN, MAX, GROUP BY, DISTINCT) its killer feature.
 // This file pushes all aggregate computations into DuckDB SQL — zero rows
@@ -470,18 +473,7 @@ func (e *duckdbEngine) scanMulti(
 	args []any,
 	specs []metaengine.AggregateSpec,
 ) (map[string]float64, error) {
-	raws := make([]any, len(specs))
-
-	ptrs := make([]any, len(specs))
-	for i := range raws {
-		ptrs[i] = &raws[i]
-	}
-
-	if err := e.conn().QueryRowContext(ctx, query, args...).Scan(ptrs...); err != nil {
-		return nil, fmt.Errorf("duckdbengine.MultiAggregate: %w", err)
-	}
-
-	return metaengine.DecodeFloatResults(raws, specs, "duckdbengine.MultiAggregate")
+	return metaengine.MultiAggregateScan(ctx, e.conn(), query, args, specs, "duckdbengine.MultiAggregate")
 }
 
 // ---------------------------------------------------------------------------

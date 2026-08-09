@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "threshold": 3,
-  "recordedAt": "2026-08-09T00:12:48.358255542Z",
+  "recordedAt": "2026-08-09T00:31:44.628522788Z",
   "entries": [
     {
       "hash": "042a25ea73339942",
@@ -263,14 +263,6 @@
       "files": [
         "metaengine/sqliteengine/aggregations_grouped.go",
         "metaengine/pgengine/aggregations.go"
-      ],
-      "tokens": 6
-    },
-    {
-      "hash": "856716ee4ebe6d60",
-      "files": [
-        "metaengine/sqliteengine/aggregations_grouped.go",
-        "metaengine/duckdbengine/aggregations.go"
       ],
       "tokens": 6
     },
