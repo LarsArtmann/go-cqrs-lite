@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
+	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
