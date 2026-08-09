@@ -426,6 +426,74 @@ See [TODO_LIST.md](TODO_LIST.md) → System Package.
 
 ---
 
+## v5 Unification — Declare Types, Not Storage
+
+> Decision: [ADR-0123](docs/adr/0123-v5-unification-single-composition-root.md).
+> Ordered tasks: [TODO_LIST.md](TODO_LIST.md) → v5 Unification.
+
+**The vision:** a developer declares only Commands, Events, and Query types
+(their relationships to each other). The system infers projections, storage
+layout, indexes, and engine routing automatically. Where data lives is an
+operator decision at deployment time. No developer ever thinks about the
+storage layer.
+
+**The problem it solves:** go-cqrs-lite currently has two unreconciled
+generations — `stack.Bundle` (8 backends, watermill, v1 projection tiers) and
+`system.System` (2 drivers, simpleBus, metaengine) — plus three manual
+read-model tiers (Materialize, RelationalProjection, GraphProjection) that
+overlap with metaengine. Consumers face two valid, overlapping stacks with no
+single blessed path. See
+`docs/architecture-understanding/2026-08-09_self-integration-review.md`.
+
+### Design Principles
+
+1. **Developer sees only domain types.** Events, Commands, Query inputs,
+   Query results. Nothing else. No ADT selection, no tier selection, no
+   storage decisions.
+2. **Auto-projection is the only API.** The planner inspects struct shapes and
+   synthesizes folds. Explicit folds are an override, not a parallel system.
+3. **Engines are universal.** Every engine implements every ADT. If an engine
+   can't do something natively, it degrades (recursive CTE for graph on SQLite,
+   brute-force for vectors on Memory). The planner warns honestly about cost.
+4. **Operator picks infrastructure.** Backend choice is a deployment concern.
+   The planner routes queries to the best available engine. Everything works
+   everywhere — the planner tells you when it's suboptimal.
+5. **One composition root.** `system.New()` with `DomainConfig` (closures) +
+   `DeploymentConfig` (YAML). No dual paths.
+
+### What Gets Deleted in v5
+
+| Deleted | Replaced by |
+|---|---|
+| `stack.Bundle` + all 8 presets | `system.System` with self-registering drivers |
+| `simpleBus` + `BusDriverFactory` | `watermill.EventBus` (already abstracts NATS/Redis/Kafka) |
+| `stack.Materialize` | Auto-projection |
+| `storage.RelationalProjection` | Multi-collection batch atomicity (engine internals) |
+| `storage.SQLViewStore` | sqliteengine/pgengine with layout planning |
+| `graph.GraphProjection` | Auto-projection + graphadapter |
+| `stack.RunProjections` | `projectionhost.Host` (the only runner) |
+| `metaengine.GraphBackend` | `graphadapter` (ADR-0113) |
+| payload-only `On` fold | `OnRecord` (Record-typed default) |
+| Duplicate metadata types | `record.CommonMetadata` (ADR-0111 P3-4) |
+
+### Phased Delivery
+
+```
+Phase 1: Record consolidation (type foundation)
+Phase 2: Dead code removal (GraphBackend, simpleBus → watermill)
+Phase 3: Self-registration infrastructure (registry → metaengine/)
+Phase 4: All 8 backends self-register
+Phase 5: Record-typed default folds
+Phase 6: Auto-projection (planner-time fold inference) ← the killer feature
+Phase 7: Universal engine coverage + batch atomicity + degradation rule
+Phase 8: Delete v1 tiers + stack.Bundle → cut v5.0.0
+```
+
+**v4.x bridge:** auto-projection ships alongside v1 tiers before v5. Consumers
+can try it while v1 paths still work. v5 is the clean cut.
+
+---
+
 ## Raw Ideas (No Design Yet)
 
 > _Triage 2026-08-04: 14 items reviewed. `cqrs-lint init` SHOWSTOPPER removed (fixed). None stale._
@@ -472,7 +540,9 @@ See [TODO_LIST.md](TODO_LIST.md) → System Package.
 - **Splitting the `event/` module** — 27 importers, real cohesion. Explicitly
   decided in v4. Do not split.
 - **ORM features** — no query builder, no ORM-style relations, no lazy loading.
-  `RawWhere` escape hatch covers the 5% case. Principle: "Library, not framework."
+  Auto-projection (v5, ADR-0123) infers everything from struct shapes. If the
+  auto-projection gets it wrong, override with an explicit `OnRecord` fold.
+  There is no raw-SQL escape hatch — the developer never touches SQL.
 - **RollupSpec / RollupProjection** — premature abstraction. `sink.Increment`
   is the composable primitive; consumers compose it directly.
 - **Redis adapter** — the author is not a fan of Redis. ValKey (the LF-backed

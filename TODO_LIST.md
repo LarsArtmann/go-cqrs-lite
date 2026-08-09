@@ -411,6 +411,160 @@ and is **never** duplicated here.
 
 ---
 
+## v5 Unification
+
+> Decision: [ADR-0123](docs/adr/0123-v5-unification-single-composition-root.md).
+> Vision: developers declare only Commands + Events + Queries; the system
+> infers projections, storage layout, and engine routing. Operators pick
+> infrastructure at deployment time. No dual paths, no escape hatches.
+>
+> Dependency chain — tasks are listed in execution order. Each phase gates the
+> next. See ADR-0123 for the full rationale.
+
+### Phase 1: Type Foundation
+
+- [ ] 🔥 **Finish Record consolidation (ADR-0111 Phases 3-4)** — consolidate
+      `event.Metadata`, `command.Metadata`, `metadata.Tracing` into
+      `record.CommonMetadata`. Record becomes the single structural base for
+      events + commands. Delete duplicate metadata types.
+      _(Effort: L)_
+
+### Phase 2: Quick Wins (dead code removal)
+
+- [ ] **Delete `metaengine.GraphBackend` (ADR-0113)** — remove the interface
+      (`engine.go:394`), remove implementations from all engines (memory engine
+      assertion at `engine.go:560`). Graph operations route through
+      `graphadapter` exclusively. Update `adttest.RunMatrix` to use graphadapter.
+      _(Effort: M)_
+- [ ] **Replace `simpleBus` with `watermill.EventBus` in `system/`** — delete
+      `system/bus.go` (simpleBus), delete `BusDriverFactory` +
+      `RegisterBusDriver` from `system/driver_registry.go`. Wire
+      `watermill.EventBus` as the bus in `system/constructor.go:179-185`.
+      Map `BusConfig.Driver` to watermill backend selection.
+      _(Effort: M)_
+
+### Phase 3: Self-Registration Infrastructure
+
+- [ ] 🔥 **Move driver registry to `metaengine/`** — relocate `RegisterDriver`,
+      `DriverFactory`, `EngineConfig`, `lookupDriver`, `createEngineFromDriver`
+      from `system/driver_registry.go` to a new `metaengine/registry.go`.
+      `system/` calls `metaengine.LookupDriver(name)` instead of its own map.
+      All 9 engines already depend on `metaengine/`, so no new deps.
+      _(Effort: M)_
+- [ ] **Convert memory + sqlite to self-registration** — move their
+      `RegisterDriver` calls from `system/init()` to their own packages.
+      `metaengine/memory_engine.go` gets `register.go`; `sqliteengine/` gets
+      `register.go`. Verify `system.New()` still works via blank imports in
+      tests/examples.
+      _(Effort: S)_
+
+### Phase 4: Backend Porting (all 8)
+
+- [ ] 🔥 **Port pebble driver** — `metaengine/pebbleengine/register.go` with
+      `RegisterDriver("pebble", ...)`. Map `cfg.DSN` to directory path. Handle
+      in-memory (`vfs.NewMem`) when DSN is empty. Verify through system tests.
+      _(Effort: S)_
+- [ ] **Port bbolt driver** — new `metaengine/bboltengine/` module (or extend
+      existing `storage/bbolt` as a metaengine engine). Self-register as
+      `"bbolt"`. Map DSN to file path.
+      _(Effort: M)_
+- [ ] **Port postgres driver** — `metaengine/pgengine/register.go` with
+      `RegisterDriver("postgres", ...)`. Map `cfg.DSN` to pgx connection string.
+      Handle pool config from `cfg.Pragmas` or new `EngineConfig` fields.
+      _(Effort: S)_
+- [ ] **Port duckdb driver** — `metaengine/duckdbengine/register.go` with
+      `RegisterDriver("duckdb", ...)`. CGo isolation preserved (separate module).
+      Map DSN to file path or `:memory:`.
+      _(Effort: S)_
+- [ ] **Port mysql driver** — new `metaengine/mysqlengine/` module or extend
+      `pgengine` with MySQL dialect. Self-register as `"mysql"`.
+      _(Effort: M)_
+- [ ] **Port turso driver** — `metaengine/tursoengine/` or extend with libSQL.
+      Self-register as `"turso"`. Handle sync config.
+      _(Effort: M)_
+- [ ] **Port badger driver** — `metaengine/badgerengine/register.go`.
+      Self-register as `"badger"`.
+      _(Effort: S)_
+- [ ] **Port dgraph driver** — `metaengine/dgraphengine/register.go`.
+      Self-register as `"dgraph"`.
+      _(Effort: S)_
+
+### Phase 5: Record-Typed Default Folds
+
+- [ ] 🔥 **Make `OnRecord` the default fold constructor** — change examples,
+      docs, and auto-projection to use `OnRecord`/`OnRecordTyped` instead of
+      `On`. Fold handlers receive `record.Record` as the first parameter.
+      Deprecate payload-only `On` (mark deprecated, remove in v5 cut).
+      _(Effort: M)_
+
+### Phase 6: Auto-Projection (the killer feature)
+
+- [ ] 🔥🔥 **Planner-time fold inference (ADR-0116 Layer 1)** — the planner
+      inspects event and query struct shapes at `Plan()` time and synthesizes
+      folds automatically. Field-name matching (`event.ID` → result `ID`,
+      `event.Status` → filter field `status`). Struct composition (nested
+      structs, slices → separate collections). Convention detection
+      (Created/Updated/Deleted suffixes → insert/update/delete folds). Consumer
+      declares zero folds for the 80% case.
+      _(Effort: XL)_
+- [ ] **Struct-composition-driven multi-collection** — when an event has a
+      `[]Attachment` field and a query requests `MessageView` (which has
+      `Attachments`), auto-generate a second collection for attachments.
+      Planners sees the relationship and generates a join-aware read path.
+      _(Effort: L)_
+- [ ] **Fold inference override API** — when auto-projection gets it wrong,
+      consumer can override with an explicit `OnRecord` fold for a specific
+      event/query pair. Override replaces (not supplements) the generated fold.
+      _(Effort: M)_
+
+### Phase 7: Universal Engine Coverage
+
+- [ ] 🔥 **Multi-collection batch atomicity** — when one event triggers folds
+      for multiple collections, all writes commit atomically in one engine
+      transaction. Modify `store.ApplyRecord` to batch all fold operations and
+      execute them in a single engine transaction. The batch boundary is the
+      event, not the collection. Replaces RelationalProjection's per-event tx.
+      _(Effort: L)_
+- [ ] **Universal ADT coverage per engine** — audit each engine for missing
+      ADT backends. Add degraded fallbacks where native support is impossible:
+      graph traversal via recursive CTE on SQLite/PG/MySQL; brute-force vector
+      search on Memory/Pebble; StreamLog on Dgraph (append-ordered nodes).
+      Every engine must handle every ADT.
+      _(Effort: XL)_
+- [ ] **Capability-degradation planner rule** — new `PlanRule` that emits
+      WARN/INFO when an ADT is routed to an engine whose `EngineProfile`
+      declares that ADT as degraded. Shows estimated cost penalty + recommends
+      a better engine if one is available. Integrates into `ExplainPlan()` and
+      `Doctor()`.
+      _(Effort: M)_
+
+### Phase 8: Deletion + v5 Cut
+
+- [ ] **Delete `stack.Materialize`** — auto-projection replaces it.
+      _(Effort: S)_
+- [ ] **Delete `storage.RelationalProjection` + `storage/view` (SQLViewStore)**
+      — multi-collection batch atomicity + auto-projection replaces them.
+      Absorb `ProjectionSink` operations as engine internals.
+      _(Effort: M)_
+- [ ] **Delete `graph.GraphProjection`** — auto-projection + graphadapter
+      replaces it.
+      _(Effort: S)_
+- [ ] **Delete `stack.Bundle` + all 8 stack presets** — `system.System` is the
+      only composition root. `stack/` module deleted entirely.
+      _(Effort: M)_
+- [ ] **Delete `stack.RunProjections`** — `projectionhost.Host` is the only
+      projection runner.
+      _(Effort: S)_
+- [ ] **Write v5 migration guide** — document the path from v4 (stack presets,
+      v1 tiers) to v5 (system.System, auto-projection). Include before/after
+      examples for each v1 tier.
+      _(Effort: L)_
+- [ ] **Cut v5.0.0** — tag all modules. Update CHANGELOG, README, SKILL.md,
+      examples. Run full verify gate.
+      _(Effort: M)_
+
+---
+
 ## Declined / Rejected (do not re-litigate)
 
 > Full rationale in the linked ADRs/reviews.

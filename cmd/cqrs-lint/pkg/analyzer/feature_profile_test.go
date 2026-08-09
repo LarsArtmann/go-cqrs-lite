@@ -850,11 +850,11 @@ func TestIsKnownPreset(t *testing.T) {
 	}
 }
 
-func TestValidPresetNames_ContainsAllFourPresets(t *testing.T) {
+func TestValidPresetNames_ContainsAllPresets(t *testing.T) {
 	t.Parallel()
 
 	names := ValidPresetNames()
-	expected := []string{"library", "local-cli", "production", "read-only"}
+	expected := []string{"library", "library-framework", "local-cli", "production", "read-only"}
 	if len(names) != len(expected) {
 		t.Fatalf("expected %d preset names, got %d: %v", len(expected), len(names), names)
 	}
