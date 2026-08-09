@@ -623,6 +623,12 @@
               golines.enable = true;
               nixfmt.enable = true;
             };
+            # Align goimports with gci's prefix(github.com/larsartmann/go-cqrs-lite)
+            # section so both tools produce the same 3-group import layout.
+            settings.formatter.goimports.options = [
+              "-local"
+              "github.com/larsartmann/go-cqrs-lite"
+            ];
           };
 
           devShells.default = pkgs.mkShellNoCC {
