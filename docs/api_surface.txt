@@ -3522,6 +3522,7 @@ system/const TierWarnOverride
 system/func CheckPlanSafety
 system/func CheckSafety
 system/func DispatchQuery
+system/func Event
 system/func Execute
 system/func LoadConfig
 system/func New
@@ -3539,6 +3540,7 @@ system/func RegisterDriver
 system/func RegisterQuery
 system/func RegisteredBusDrivers
 system/func RegisteredDrivers
+system/func View
 system/func WithCommandSerialization
 system/func WithQuerySerialization
 system/func WithSerialization
@@ -3559,12 +3561,14 @@ system/method Drain
 system/method EngineNames
 system/method EventStore
 system/method Explain
+system/method From
 system/method GracefulClose
 system/method HasErrors
 system/method HasWarnings
 system/method Health
 system/method HealthCheck
 system/method HealthCheckDetailed
+system/method Key
 system/method LagDuration
 system/method LagPerProjection
 system/method Load
@@ -3631,9 +3635,11 @@ system/struct EngineHealth
 system/struct EventAdapter
 system/struct InstanceConfig
 system/struct InstanceTopology
+system/struct LookupInput
 system/struct MultiBus
 system/struct Op
 system/struct ProjectionHostInfo
+system/struct ProjectionSpec
 system/struct QueryAdapter
 system/struct ScreamDiagnostic
 system/struct ScreamReport
