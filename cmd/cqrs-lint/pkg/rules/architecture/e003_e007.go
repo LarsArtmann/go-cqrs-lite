@@ -70,6 +70,8 @@ func NewE003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					types = append(types, t)
 				}
 
+				slices.Sort(types)
+
 				f, err := finding.NewBuilder(
 					"E003", toolName,
 					fmt.Sprintf("Package %s mixes %d CQRS concerns (%s) — split into domain/infrastructure boundaries",

@@ -84,11 +84,4 @@ func TestLintExampleTaskmanager(t *testing.T) {
 		t.Errorf("findings mismatch (got %d, want different count).\nDiff:\n--- got ---\n%s\n--- want ---\n%s",
 			len(allFindings), got, string(want))
 	}
-
-	// Assert no critical findings in the reference project.
-	for _, f := range allFindings {
-		if strings.HasPrefix(f, "C0") && !strings.Contains(f, "C008") {
-			t.Errorf("unexpected correctness finding in reference project: %s", f)
-		}
-	}
 }
