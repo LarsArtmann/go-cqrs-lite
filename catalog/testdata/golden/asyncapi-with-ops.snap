@@ -38,7 +38,7 @@
     },
     "queries.GetOrder": {
       "address": "order-svc.queries.get.order",
-      "title": "Get Order querie Channel",
+      "title": "Get Order query Channel",
       "description": "Get order by ID",
       "messages": {
         "queries": {
@@ -57,7 +57,7 @@
       },
       "messages": [
         {
-          "$ref": "#/components/messages/query.GetOrder"
+          "$ref": "#/channels/queries.GetOrder/messages/queries"
         }
       ],
       "tags": [
@@ -81,7 +81,7 @@
       },
       "messages": [
         {
-          "$ref": "#/components/messages/event.OrderCreated"
+          "$ref": "#/channels/events.OrderCreated/messages/events"
         }
       ],
       "tags": [
@@ -105,7 +105,7 @@
       },
       "messages": [
         {
-          "$ref": "#/components/messages/command.CreateOrder"
+          "$ref": "#/channels/commands.CreateOrder/messages/commands"
         }
       ],
       "tags": [

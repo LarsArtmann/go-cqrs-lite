@@ -38,7 +38,7 @@
     },
     "queries.GetOrder": {
       "address": "order-svc.queries.get.order",
-      "title": "Get Order querie Channel",
+      "title": "Get Order query Channel",
       "description": "Get order by ID",
       "messages": {
         "queries": {
@@ -57,7 +57,7 @@
       },
       "messages": [
         {
-          "$ref": "#/components/messages/query.GetOrder"
+          "$ref": "#/channels/queries.GetOrder/messages/queries"
         }
       ],
       "tags": [
@@ -78,7 +78,7 @@
       },
       "messages": [
         {
-          "$ref": "#/components/messages/event.OrderCreated"
+          "$ref": "#/channels/events.OrderCreated/messages/events"
         }
       ],
       "tags": [
@@ -99,7 +99,7 @@
       },
       "messages": [
         {
-          "$ref": "#/components/messages/command.CreateOrder"
+          "$ref": "#/channels/commands.CreateOrder/messages/commands"
         }
       ],
       "tags": [
@@ -211,7 +211,7 @@ channels:
                 $ref: '#/components/messages/event.OrderCreated'
     queries.GetOrder:
         address: order-svc.queries.get.order
-        title: Get Order querie Channel
+        title: Get Order query Channel
         description: Get order by ID
         messages:
             queries:
@@ -224,7 +224,7 @@ operations:
         channel:
             $ref: '#/channels/queries.GetOrder'
         messages:
-            -   $ref: '#/components/messages/query.GetOrder'
+            -   $ref: '#/channels/queries.GetOrder/messages/queries'
         tags:
             -   name: queries
             -   name: order-svc
@@ -235,7 +235,7 @@ operations:
         channel:
             $ref: '#/channels/events.OrderCreated'
         messages:
-            -   $ref: '#/components/messages/event.OrderCreated'
+            -   $ref: '#/channels/events.OrderCreated/messages/events'
         tags:
             -   name: events
             -   name: order-svc
@@ -246,7 +246,7 @@ operations:
         channel:
             $ref: '#/channels/commands.CreateOrder'
         messages:
-            -   $ref: '#/components/messages/command.CreateOrder'
+            -   $ref: '#/channels/commands.CreateOrder/messages/commands'
         tags:
             -   name: commands
             -   name: order-svc
