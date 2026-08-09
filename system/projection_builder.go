@@ -1,10 +1,10 @@
 package system
 
 import (
+	"encoding/json/v2"
 	"fmt"
 	"reflect"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -15,9 +15,9 @@ type LookupInput[K any] struct {
 	ID K
 }
 
-// ProjectionSpec is a type-erased projection declaration created by [View] or
-// [Count]. It carries a build closure that generates folds and decoder entries
-// when system.New() processes it.
+// ProjectionSpec is a type-erased projection declaration created by [View].
+// It carries a build closure that generates the query declaration and decoder
+// entries when system.New() processes it.
 //
 // Consumers create ProjectionSpec values via [View] and pass them in
 // DomainConfig.Projections. The system constructor detects ProjectionSpec
@@ -25,12 +25,12 @@ type LookupInput[K any] struct {
 type ProjectionSpec struct {
 	name string
 	// build generates the query declaration (as any, since QueryDecl is generic),
-	// decoder entries for TypeDecoder registration, and any error.
+// decoder entries for PayloadDecoder construction, and any error.
 	build func() (queryDecl any, decoderEntries []decoderEntry, err error)
 }
 
-// decoderEntry pairs a wire event type with its sample struct for TypeDecoder
-// registration.
+// decoderEntry pairs a wire event type with its sample struct for decoder
+// construction.
 type decoderEntry struct {
 	eventType string
 	sample    any
@@ -127,13 +127,26 @@ func Event(eventType string, sample any) metaengine.NamedSample {
 	return metaengine.NamedEvent(eventType, sample)
 }
 
-// buildProjection processes ProjectionSpec values from DomainConfig.Projections,
+// hasProjectionSpec returns true if any element in projections is a ProjectionSpec
+// (vs a raw metaengine.QueryDecl). This determines whether auto-projection
+// processing is needed.
+func hasProjectionSpec(projections []any) bool {
+	for _, p := range projections {
+		if _, ok := p.(ProjectionSpec); ok {
+			return true
+		}
+	}
+
+	return false
+}
+
+// buildProjections processes ProjectionSpec values from DomainConfig.Projections,
 // separating them from raw QueryDecl values. It calls each spec's build closure
 // to generate folds and decoder entries, then returns:
-//   - queryDecls: the generated QueryDecl values (as []any for Plan)
-//   - typeDecoder: a TypeDecoder with all auto-generated entries (may be nil)
-func buildProjection(projections []any) (queryDecls []any, typeDecoder *projectionadapter.TypeDecoder, err error) {
-	var allEntries []decoderEntry
+//   - queryDecls: the generated + raw QueryDecl values (as []any for Plan)
+//   - payloadDecoder: a decoder function for projectionadapter (nil if no specs)
+func buildProjections(projections []any) (queryDecls []any, payloadDecoder payloadDecoderFn, err error) {
+	var allEntries []decoderTypeEntry
 
 	for _, proj := range projections {
 		spec, ok := proj.(ProjectionSpec)
@@ -150,45 +163,56 @@ func buildProjection(projections []any) (queryDecls []any, typeDecoder *projecti
 		}
 
 		queryDecls = append(queryDecls, queryDecl)
-		allEntries = append(allEntries, entries...)
+
+		for _, e := range entries {
+			allEntries = append(allEntries, decoderTypeEntry{
+				eventType:  e.eventType,
+				sampleType: reflect.TypeOf(e.sample),
+			})
+		}
 	}
 
 	if len(allEntries) > 0 {
-		regs := make([]projectionadapter.EventRegistration, len(allEntries))
+		payloadDecoder = buildPayloadDecoder(allEntries)
+	}
 
-		for i, e := range allEntries {
-			regs[i] = buildRegistration(e)
+	return queryDecls, payloadDecoder, nil
+}
+
+// decoderTypeEntry pairs a wire event type with its reflect.Type for decoder
+// construction.
+type decoderTypeEntry struct {
+	eventType  string
+	sampleType reflect.Type
+}
+
+// payloadDecoderFn matches projectionadapter.PayloadDecoder but avoids the
+// import dependency cycle (projectionadapter imports metaengine which is fine,
+// but we avoid the direct dependency here for simplicity).
+type payloadDecoderFn func(eventType string, payload []byte) (any, error)
+
+// buildPayloadDecoder creates a decoder function that JSON-decodes payloads
+// into the correct Go type based on the event type string.
+func buildPayloadDecoder(entries []decoderTypeEntry) payloadDecoderFn {
+	typeMap := make(map[string]reflect.Type, len(entries))
+	for _, e := range entries {
+		typeMap[e.eventType] = e.sampleType
+	}
+
+	return func(eventType string, payload []byte) (any, error) {
+		t, ok := typeMap[eventType]
+		if !ok {
+			return nil, fmt.Errorf("system: no decoder registered for event type %q", eventType)
 		}
 
-		typeDecoder = projectionadapter.NewTypeDecoder(regs...)
-	}
+		val := reflect.New(t).Interface()
 
-	return queryDecls, typeDecoder, nil
-}
-
-// buildRegistration creates a projectionadapter.EventRegistration from a decoder
-// entry using reflection to avoid requiring a generic function per event type.
-func buildRegistration(e decoderEntry) projectionadapter.EventRegistration {
-	sampleType := reflect.TypeOf(e.sample)
-
-	return projectionadapter.RegisterString(e.eventType, e.sample).
-		WithDecoder(func(payload []byte) (any, error) {
-			val := reflect.New(sampleType).Interface()
-
-			if err := decodePayload(payload, val); err != nil {
-				return nil, err
+		if len(payload) > 0 {
+			if err := json.Unmarshal(payload, val); err != nil {
+				return nil, fmt.Errorf("system: decode %s: %w", eventType, err)
 			}
+		}
 
-			return reflect.ValueOf(val).Elem().Interface(), nil
-		})
-}
-
-// decodePayload unmarshals a JSON payload into the target value.
-// It uses encoding/json/v2 via the event module's codec.
-func decodePayload(payload []byte, target any) error {
-	if len(payload) == 0 {
-		return nil
+		return reflect.ValueOf(val).Elem().Interface(), nil
 	}
-
-	return jsonUnmarshal(payload, target)
 }

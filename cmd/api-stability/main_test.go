@@ -469,3 +469,174 @@ func TestExceptionsAreMinimal(t *testing.T) { //nolint:gocognit // comprehensive
 			d.module, d.dep, d.reason)
 	}
 }
+
+// TestGoArchLintConfigsAreValid verifies that every .go-arch-lint.yml in the
+// repo is well-formed: contains version/components/deps sections, and every
+// component's `in:` path resolves to a real directory. This prevents stale
+// configs after package renames or deletions.
+func TestGoArchLintConfigsAreValid(t *testing.T) {
+	t.Parallel()
+
+	projectRoot := filepath.Join(".", "..", "..")
+
+	var configs []string
+	err := filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			if info.Name() == ".go-arch-lint.yml" {
+				configs = append(configs, path)
+			}
+			return nil
+		}
+		name := info.Name()
+		if name == ".git" || name == "vendor" {
+			return filepath.SkipDir
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("walk failed: %v", err)
+	}
+	if len(configs) == 0 {
+		t.Fatal("no .go-arch-lint.yml files found — expected at least the root config")
+	}
+
+	inRe := regexp.MustCompile(`in:\s+(\S+)`)
+
+	for _, cfgPath := range configs {
+		rel, _ := filepath.Rel(projectRoot, cfgPath)
+		raw, err := os.ReadFile(cfgPath)
+		if err != nil {
+			t.Errorf("%s: read failed: %v", rel, err)
+			continue
+		}
+		content := string(raw)
+
+		if !strings.Contains(content, "version:") {
+			t.Errorf("%s: missing 'version:' section", rel)
+		}
+		if !strings.Contains(content, "components:") {
+			t.Errorf("%s: missing 'components:' section", rel)
+		}
+		if !strings.Contains(content, "deps:") {
+			t.Errorf("%s: missing 'deps:' section", rel)
+		}
+
+		// Extract and validate every `in: <path>` component path.
+		moduleDir := filepath.Dir(cfgPath)
+		for _, m := range inRe.FindAllStringSubmatch(content, -1) {
+			inPath := strings.TrimSpace(m[1])
+			// Strip go-arch-lint glob suffixes (e.g., "event/**" → "event").
+			globIdx := strings.Index(inPath, "/**")
+			if globIdx >= 0 {
+				inPath = inPath[:globIdx]
+			}
+			if inPath == "" {
+				continue
+			}
+			fullPath := filepath.Join(moduleDir, inPath)
+			if info, err := os.Stat(fullPath); err != nil || !info.IsDir() {
+				t.Errorf("%s: component path %q does not resolve to a directory (%s)",
+					rel, m[1], fullPath)
+			}
+		}
+	}
+}
+
+// TestMultiPackageModulesHaveArchLintConfig verifies that every Go module with
+// 3+ production packages (directories with non-test .go files) has a
+// .go-arch-lint.yml. This prevents the intra-module enforcement gap from
+// recurring as new packages are added to a module.
+func TestMultiPackageModulesHaveArchLintConfig(t *testing.T) {
+	t.Parallel()
+
+	projectRoot := filepath.Join(".", "..", "..")
+
+	excluded := map[string]string{
+		".":                             "root workspace go.mod",
+		"cmd/api-stability":             "this tool itself",
+		"integration":                   "workspace-only cross-module tests",
+		"example/getting-started":       "example application",
+		"example/metaengine-quickstart": "example application",
+		"example/readme-quickstart":     "example application",
+		"example/taskmanager":           "example application",
+	}
+
+	err := filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			return nil
+		}
+		name := info.Name()
+		if name == ".git" || name == "vendor" ||
+			(len(name) > 0 && name[0] == '.' && path != projectRoot) {
+			return filepath.SkipDir
+		}
+		if _, err := os.Stat(filepath.Join(path, "go.mod")); os.IsNotExist(err) {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(projectRoot, path)
+		if err != nil {
+			return err
+		}
+		if reason, ok := excluded[rel]; ok {
+			t.Logf("excluding %s (%s)", rel, reason)
+			return nil
+		}
+
+		// Find nested go.mod directories to exclude from package count.
+		nestedMods := make(map[string]bool)
+		_ = filepath.Walk(path, func(sub string, subInfo os.FileInfo, subErr error) error {
+			if subErr != nil || sub == path {
+				return nil
+			}
+			if _, e := os.Stat(filepath.Join(sub, "go.mod")); e == nil {
+				nestedMods[sub] = true
+			}
+			return nil
+		})
+
+		// Count production packages (directories with non-test .go files).
+		pkgDirs := make(map[string]bool)
+		_ = filepath.Walk(path, func(sub string, subInfo os.FileInfo, subErr error) error {
+			if subErr != nil || subInfo.IsDir() {
+				return nil
+			}
+			name := subInfo.Name()
+			if !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+				return nil
+			}
+			if strings.Contains(sub, "/testdata/") {
+				return nil
+			}
+			// Skip files inside nested modules.
+			for nested := range nestedMods {
+				if strings.HasPrefix(sub, nested+"/") {
+					return nil
+				}
+			}
+			pkgDirs[filepath.Dir(sub)] = true
+			return nil
+		})
+
+		if len(pkgDirs) < 3 {
+			return nil
+		}
+
+		if _, err := os.Stat(filepath.Join(path, ".go-arch-lint.yml")); os.IsNotExist(err) {
+			t.Errorf("module %s has %d production packages but no .go-arch-lint.yml — "+
+				"add one to enforce intra-module package dependencies", rel, len(pkgDirs))
+		}
+
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("walk failed: %v", err)
+	}
+}

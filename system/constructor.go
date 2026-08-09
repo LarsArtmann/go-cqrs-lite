@@ -36,6 +36,19 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		qryDisp:    query.NewDispatcher(),
 	}
 
+	// Process ProjectionSpec values (auto-projection) before planning.
+	autoDecoder := payloadDecoderFn(nil)
+	processedProjections := domain.Projections
+
+	if hasProjectionSpec(domain.Projections) {
+		var buildErr error
+
+		processedProjections, autoDecoder, buildErr = buildProjections(domain.Projections)
+		if buildErr != nil {
+			return nil, fmt.Errorf("system: build projections: %w", buildErr)
+		}
+	}
+
 	// Create engines from the deployment config via the driver registry.
 	engineCache := make(map[string]metaengine.Engine)
 
@@ -137,11 +150,8 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 				}
 			}
 
-			if len(projEngines) > 0 && len(domain.Projections) > 0 {
-				args := make([]any, len(domain.Projections))
-				copy(args, domain.Projections)
-
-				store, err := metaengine.Plan(projEngines, args...)
+			if len(projEngines) > 0 && len(processedProjections) > 0 {
+				store, err := metaengine.Plan(projEngines, processedProjections...)
 				if err != nil {
 					return nil, fmt.Errorf("system: plan projections: %w", err)
 				}
@@ -159,14 +169,11 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	}
 
 	// If no projection store, create one from Memory if projections are declared.
-	if sys.projStore == nil && len(domain.Projections) > 0 {
+	if sys.projStore == nil && len(processedProjections) > 0 {
 		eng := metaengine.NewMemoryEngine()
 		sys.engines = append(sys.engines, namedEngine{engine: eng, name: "projections"})
 
-		args := make([]any, len(domain.Projections))
-		copy(args, domain.Projections)
-
-		store, err := metaengine.Plan([]metaengine.Engine{eng}, args...)
+		store, err := metaengine.Plan([]metaengine.Engine{eng}, processedProjections...)
 		if err != nil {
 			return nil, fmt.Errorf("system: plan default projections: %w", err)
 		}
@@ -235,6 +242,8 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 			if domain.ProjectionDecoder != nil {
 				decoder = projectionadapter.PayloadDecoder(domain.ProjectionDecoder)
+			} else if autoDecoder != nil {
+				decoder = projectionadapter.PayloadDecoder(autoDecoder)
 			}
 
 			adapter = projectionadapter.New("projections", sys.projStore, decoder)

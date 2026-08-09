@@ -158,15 +158,10 @@ and is **never** duplicated here.
 
 ## Layer Enforcement / Architecture
 
-- [ ] **Add meta-test: every `.go-arch-lint.yml` is parseable and components
-      match real packages** — no test today asserts configs are valid or that
-      declared components resolve to actual Go packages. Prevents stale configs
-      after package renames/deletes.
-      _(Effort: S)_
-- [ ] **Add meta-test: every module with 3+ production packages has a
-      `.go-arch-lint.yml`** — prevents the intra-module enforcement gap from
-      recurring as new modules are added.
-      _(Effort: S)_
+> 11 `.go-arch-lint.yml` configs exist (root + catalog, cmd/cqrs-lint, command,
+> decider, event, kv, metaengine, middleware, projectionhost, signing, stack,
+> storage). Meta-tests in `cmd/api-stability/main_test.go` verify all configs
+> are valid and that every module with 3+ production packages has a config.
 
 ---
 
@@ -231,11 +226,8 @@ and is **never** duplicated here.
 
 ## Documentation
 
-- [ ] **Update `example/taskmanager/metaengine.go` to showcase new DX helpers**
-      — the canonical reference consumers copy from still uses manual
-      `eventWithID`/`taskEventDecoder` patterns (49 references). Should use
-      `projectionadapter.Register` + `NewTypeDecoder`.
-      _(Effort: M)_
+> taskmanager metaengine.go already uses `Register` + `NewTypeDecoder` DX helpers
+> (verified 2026-08-09 — zero references to old `eventWithID`/`taskEventDecoder` patterns).
 
 ---
 

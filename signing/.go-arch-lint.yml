@@ -1,0 +1,31 @@
+# go-arch-lint configuration for the signing module (intra-module rules)
+#
+# Run via: scripts/check-arch.sh (from the signing/ directory)
+# Enforces package-level dependency rules WITHIN the signing module.
+# Cross-module rules are enforced by scripts/check-module-layers.sh.
+
+version: 3
+
+allow:
+  depOnAnyVendor: true
+
+excludeFiles:
+  - "^.*_test\\.go$"
+  - "^.*testdata/.*$"
+
+components:
+  core: { in: . }
+  multisig: { in: multisig }
+  testutil: { in: internal/testutil }
+
+deps:
+  core:
+    anyProjectDeps: false
+    anyVendorDeps: true
+  multisig:
+    mayDependOn:
+      - core
+  testutil:
+    mayDependOn:
+      - core
+      - multisig
