@@ -419,6 +419,8 @@ metaengine.Engine — full interface hierarchy in [METAENGINE_DOMAIN_LANGUAGE.md
 | "Manual query routing"     | "Cost-based planner"           | The metaengine assigns queries to engines by estimated cost — never hand-pick an engine per query                                          |
 | "Hand-written DDL"         | "LayoutPlan auto-generation"   | The planner generates DDL from declared filter/sort fields — never write table schemas manually when a LayoutPlanner engine is available  |
 
+> Additional metaengine-specific anti-patterns (God Store, Theoretical cost) are in the [Metaengine Domain Language](METAENGINE_DOMAIN_LANGUAGE.md#terms-we-avoid-metaengine-specific).
+
 ---
 
 ## Patterns NOT in the Library
@@ -541,6 +543,9 @@ var _ = []any{
 	record.Record{},
 	record.NewStreamRef,
 	record.CommonMetadata{},
+	// Metaengine (self-containment for stub + interface hierarchy reference)
+	metaengine.NewMemoryEngine,
+	metaengine.Plan,
 	projection.NewProjection,
 	snapshot.NewTypedStore,
 	snapshot.EveryNEvents,

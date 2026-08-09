@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed — DOMAIN_LANGUAGE.md split: metaengine vocabulary extracted — 2026-08-09
+
+- **Metaengine domain language split**: `docs/DOMAIN_LANGUAGE.md` (1019 lines)
+  split into root file (640 lines) + new `docs/METAENGINE_DOMAIN_LANGUAGE.md`
+  (540 lines). Bidirectionally hyperlinked. Root file gained a table of
+  contents. Both files verified by `cmd/doc-check` (184 references across 56
+  packages). New file adds keycodec + testing sections not previously
+  documented. Verification blocks strengthened: root keeps minimal metaengine
+  symbols for self-containment; new file covers all 9 engines, keycodec (9
+  symbols), projection adapter (5 symbols). `flake.nix` verify gate now
+  includes both domain language files (pre-existing gap fixed).
+
 ### Added — Irohengine transport hardening, convergence test suite — 2026-08-08
 
 - **Runtime protocol-mismatch detection for QUIC stream pooling**: a pooled

@@ -527,6 +527,10 @@ var _ = []any{
 
 	// Projection adapter
 	projectionadapter.New,
+	projectionadapter.NewWithDecoder,
+	projectionadapter.WithEventDecoder,
+	projectionadapter.NewTypeDecoder,
+	projectionadapter.EventWithID[any],
 
 	// Test harnesses
 	adttest.RunMatrix,
@@ -534,7 +538,15 @@ var _ = []any{
 	enginetest.RunStreamLogBackendTest,
 	enginetest.RunAtomicAppenderTest,
 
-	// Key codec
+	// Key codec (symbols documented in Key Codec section)
 	keycodec.MapKey,
+	keycodec.CollectionPrefix,
+	keycodec.CounterKey,
+	keycodec.StreamKey,
+	keycodec.MultimapKey,
+	keycodec.LogPrefix,
+	keycodec.LogKey,
+	keycodec.EncodeJSON,
+	keycodec.DecodeCounterValue,
 }
 ```

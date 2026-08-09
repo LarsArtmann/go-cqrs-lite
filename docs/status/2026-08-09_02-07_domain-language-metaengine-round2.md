@@ -178,6 +178,11 @@
 
 ## g) Questions I Cannot Answer Myself
 
+> **RESOLVED (2026-08-09 follow-up session):** All three questions answered.
+> Q1: **Yes** — all 5 engine submodules added to the verification block in `docs/METAENGINE_DOMAIN_LANGUAGE.md` (76 references, 13 packages).
+> Q2: **Stay under Stack Bundles** — `system/` remains as a subsection; it serves the same consumer need.
+> Q3: **Both** — the file was split (metaengine extracted to `docs/METAENGINE_DOMAIN_LANGUAGE.md`) AND both files got table of contents.
+
 1. **Should the 5 remaining engine submodules (duckdbengine, badgerengine, dgraphengine, irohengine, graphadapter) be in the verification block?** doc-check uses static parsing, so CGo isn't a blocker. But adding them increases the maintenance surface — every API change in those modules would need a corresponding doc-check update. Is the verification coverage worth the coupling?
 
 2. **Should `system/` be its own top-level section or stay under Stack Bundles?** The system module is architecturally distinct (deployer-driven composition root, not a one-call preset), but it serves the same consumer need as Stack Bundles (wiring everything together). Moving it would change the file's information architecture.

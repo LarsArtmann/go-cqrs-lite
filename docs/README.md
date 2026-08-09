@@ -23,6 +23,7 @@
 - **[Signing Architecture](signing-architecture.md)** — Event signing with HMAC-SHA256 and Ed25519
 - **[Error Taxonomy](error-taxonomy.md)** — 6-family error classification system (Rejection / Conflict / Transient / Infrastructure / Corruption / Orchestration)
 - **[Domain Language](DOMAIN_LANGUAGE.md)** — Glossary of domain terms and ubiquitous language
+- **[Metaengine Domain Language](METAENGINE_DOMAIN_LANGUAGE.md)** — Specialized vocabulary for the cost-based storage planner (ADTs, fold DSL, cost model, 9 engines)
 - **[Turso Indexing Guidance](turso-indexing-guidance.md)** — Index management for Turso
 
 ## Modules

@@ -1270,6 +1270,8 @@ Tier 6 — Tooling & Examples: catalog/, integration/, benchkit/, stack/bench/, 
 > [project-definition](docs/planning/meta-engine-project-definition.md),
 > [design/vision](docs/planning/meta-engine-design.md),
 > [assumptions & query-planning](docs/planning/meta-engine-assumptions-and-query-planning.md).
+> **Domain vocabulary:** [`docs/METAENGINE_DOMAIN_LANGUAGE.md`](docs/METAENGINE_DOMAIN_LANGUAGE.md)
+> (ADTs, fold DSL, cost model, 9 engines, key codec, projection adapter).
 
 > **Saga pattern**: No dedicated saga module. Multi-step orchestration emerges from bus.SubscribeAll + command dispatch. See `example/taskmanager/` for a real architecture.
 
