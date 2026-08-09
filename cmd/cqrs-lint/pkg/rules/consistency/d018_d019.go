@@ -170,30 +170,18 @@ func fileEventQualifiers(gf *analyzer.GoFile) map[string]bool {
 	return quals
 }
 
-// isEventPackageQualifier checks whether a package qualifier refers to the
-// go-cqrs-lite event package. When type info is available, resolves the actual
-// import path via types.Info.Uses for precise detection. Falls back to the
-// qualifier-based map when type info is unavailable.
-func isEventPackageQualifier(
-	pkg *packages.Package,
-	ident *ast.Ident,
-	qualifiers map[string]bool,
-) bool {
+// isEventPackageQualifier resolves whether a package qualifier refers to
+// go-cqrs-lite event via types.Info.Uses. Falls back to qualifier map.
+func isEventPackageQualifier(pkg *packages.Package, ident *ast.Ident, quals map[string]bool) bool {
 	if pkg != nil && pkg.TypesInfo != nil {
-		use, ok := pkg.TypesInfo.Uses[ident]
-		if !ok {
-			return qualifiers[ident.Name]
-		}
-
-		pkgName, ok := use.(*types.PkgName)
-		if !ok {
+		if use, ok := pkg.TypesInfo.Uses[ident]; ok {
+			if pn, ok := use.(*types.PkgName); ok {
+				return strings.Contains(pn.Imported().Path(), "go-cqrs-lite/event")
+			}
 			return false
 		}
-
-		return strings.Contains(pkgName.Imported().Path(), "go-cqrs-lite/event")
 	}
-
-	return qualifiers[ident.Name]
+	return quals[ident.Name]
 }
 
 // collectEventNewTypes returns a set of event type strings from event.NewEvent
