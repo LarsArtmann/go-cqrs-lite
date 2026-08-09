@@ -576,7 +576,8 @@ func opKeys(doc *Document) []string {
 // The @asyncapi/parser checks that every message $ref in an operation starts
 // with the operation's channel $ref + "/messages". If it points directly to
 // #/components/messages/... instead, the parser reports:
-//   "Operation message does not belong to the specified channel."
+//
+//	"Operation message does not belong to the specified channel."
 //
 // This test uses BuildTestCatalog (commands, events, queries, agents) to
 // exercise all code paths and assert compliance.
