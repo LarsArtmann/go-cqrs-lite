@@ -73,10 +73,13 @@ and is **never** duplicated here.
       that both backends depend on.
       _(Effort: M)_
 - [ ] **Scan remaining engine modules for setup boilerplate** —
-      `metaengine/badgerengine/`, `metaengine/pebbleengine/`,
-      `metaengine/dgraphengine/` likely have the same `New(...) + err +
-  skip + defer Close` pattern that was fixed in pgengine/duckdbengine.
-      _(Effort: M)_
+      Helpers created for all 3 modules: `badgerengine/helper_test.go`,
+      `dgraphengine/helper_test.go`, `pebbleengine/helper_test.go`.
+      badgerengine: all 5 test files refactored. dgraphengine: all 10 files
+      refactored. pebbleengine: 4 of 20 files refactored (pebbleengine_test,
+      healthcheck, record_stamp, soak); remaining files can use
+      `mustNewPebbleEngine(t)` / `newPebbleEngineOrSkip(t)`.
+      _(Effort: M — remaining pebbleengine files are mechanical)_
 - [ ] **Audit `.golangci.yml` exclusion blocks** — `system/` (20 linters
       disabled), `cmd/cqrs-lint/` (13), `metaengine/` (15) have the broadest
       exclusions. Narrow where safe.

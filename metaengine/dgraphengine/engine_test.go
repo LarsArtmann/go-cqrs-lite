@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	dgraphengine "github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -14,11 +13,7 @@ import (
 func TestProfile(t *testing.T) {
 	t.Parallel()
 
-	eng, err := dgraphengine.New(dgraphAddr())
-	if err != nil {
-		t.Skipf("Dgraph not available: %v", err)
-	}
-	defer metaengine.DeferClose(eng)
+	eng := mustNewDgraphEngine(t)
 
 	profile := eng.Profile()
 
@@ -70,11 +65,7 @@ func TestProfile(t *testing.T) {
 func TestMapBackend(t *testing.T) {
 	t.Parallel()
 
-	eng, err := dgraphengine.New(dgraphAddr())
-	if err != nil {
-		t.Skipf("Dgraph not available: %v", err)
-	}
-	defer metaengine.DeferClose(eng)
+	eng := mustNewDgraphEngine(t)
 
 	ctx := context.Background()
 	mb := eng.(metaengine.MapBackend)
@@ -131,11 +122,7 @@ func TestMapBackend(t *testing.T) {
 func TestGraphBackend(t *testing.T) {
 	t.Parallel()
 
-	eng, err := dgraphengine.New(dgraphAddr())
-	if err != nil {
-		t.Skipf("Dgraph not available: %v", err)
-	}
-	defer metaengine.DeferClose(eng)
+	eng := mustNewDgraphEngine(t)
 
 	ctx := context.Background()
 	gb := eng.(metaengine.GraphBackend)

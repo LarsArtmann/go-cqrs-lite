@@ -5,28 +5,14 @@ import (
 	"testing"
 	"time"
 
-	dgraphengine "github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
-
-// newEngOrSkip creates a Dgraph engine for testing or skips the test.
-func newEngOrSkip(t *testing.T) (metaengine.Engine, context.Context) {
-	t.Helper()
-
-	eng, err := dgraphengine.New(dgraphAddr())
-	if err != nil {
-		t.Skipf("Dgraph not available: %v", err)
-	}
-
-	t.Cleanup(func() { _ = eng.Close() })
-
-	return eng, context.Background()
-}
 
 func TestDgraph_Multimap_EmptyCollection(t *testing.T) {
 	t.Parallel()
 
-	eng, ctx := newEngOrSkip(t)
+	eng := mustNewDgraphEngine(t)
+	ctx := context.Background()
 	mb := eng.(metaengine.MultimapBackend)
 
 	// MultiGet on a collection with no data should return empty, not error.
@@ -43,7 +29,8 @@ func TestDgraph_Multimap_EmptyCollection(t *testing.T) {
 func TestDgraph_Multimap_AddAndGetRoundtrip(t *testing.T) {
 	t.Parallel()
 
-	eng, ctx := newEngOrSkip(t)
+	eng := mustNewDgraphEngine(t)
+	ctx := context.Background()
 	mb := eng.(metaengine.MultimapBackend)
 
 	col := "mm-roundtrip"
@@ -68,7 +55,8 @@ func TestDgraph_Multimap_AddAndGetRoundtrip(t *testing.T) {
 func TestDgraph_Log_EmptyCollection(t *testing.T) {
 	t.Parallel()
 
-	eng, ctx := newEngOrSkip(t)
+	eng := mustNewDgraphEngine(t)
+	ctx := context.Background()
 	lb := eng.(metaengine.LogBackend)
 
 	// LogTail on empty collection with limit=0 (all entries).
@@ -95,7 +83,8 @@ func TestDgraph_Log_EmptyCollection(t *testing.T) {
 func TestDgraph_Log_AppendAndTailRoundtrip(t *testing.T) {
 	t.Parallel()
 
-	eng, ctx := newEngOrSkip(t)
+	eng := mustNewDgraphEngine(t)
+	ctx := context.Background()
 	lb := eng.(metaengine.LogBackend)
 
 	col := "log-roundtrip"

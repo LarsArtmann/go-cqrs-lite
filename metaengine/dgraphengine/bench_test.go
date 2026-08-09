@@ -5,20 +5,13 @@ import (
 	"fmt"
 	"testing"
 
-	dgraphengine "github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // BenchmarkDgraph_MapSet measures the per-op cost of MapSet on the Dgraph engine.
 // Used to validate DG_NsPerOp calibration (gRPC round-trip + RAFT consensus).
 func BenchmarkDgraph_MapSet(b *testing.B) {
-	addr := dgraphAddr()
-
-	eng, err := dgraphengine.New(addr)
-	if err != nil {
-		b.Skipf("Dgraph not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDgraphEngine(b)
 
 	mb, ok := eng.(metaengine.MapBackend)
 	if !ok {
@@ -38,13 +31,7 @@ func BenchmarkDgraph_MapSet(b *testing.B) {
 // BenchmarkDgraph_MapGet measures the per-op cost of MapGet on the Dgraph engine.
 // Used to validate DG_NsPerRead calibration (index lookup + gRPC response).
 func BenchmarkDgraph_MapGet(b *testing.B) {
-	addr := dgraphAddr()
-
-	eng, err := dgraphengine.New(addr)
-	if err != nil {
-		b.Skipf("Dgraph not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDgraphEngine(b)
 
 	mb, ok := eng.(metaengine.MapBackend)
 	if !ok {
@@ -75,13 +62,7 @@ func BenchmarkDgraph_MapGet(b *testing.B) {
 
 // BenchmarkDgraph_CounterIncrement measures the per-op cost of CounterIncrement.
 func BenchmarkDgraph_CounterIncrement(b *testing.B) {
-	addr := dgraphAddr()
-
-	eng, err := dgraphengine.New(addr)
-	if err != nil {
-		b.Skipf("Dgraph not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDgraphEngine(b)
 
 	cb, ok := eng.(metaengine.CounterBackend)
 	if !ok {
@@ -104,13 +85,7 @@ func BenchmarkDgraph_CounterIncrement(b *testing.B) {
 
 // BenchmarkDgraph_CounterGet measures the per-op cost of CounterGet.
 func BenchmarkDgraph_CounterGet(b *testing.B) {
-	addr := dgraphAddr()
-
-	eng, err := dgraphengine.New(addr)
-	if err != nil {
-		b.Skipf("Dgraph not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDgraphEngine(b)
 
 	cb, ok := eng.(metaengine.CounterBackend)
 	if !ok {
@@ -146,13 +121,7 @@ func BenchmarkDgraph_CounterGet(b *testing.B) {
 // BenchmarkDgraph_SetAdd measures the per-op cost of SetAdd on the Dgraph engine.
 // Dgraph uses @index(exact) for O(logN) membership checks.
 func BenchmarkDgraph_SetAdd(b *testing.B) {
-	addr := dgraphAddr()
-
-	eng, err := dgraphengine.New(addr)
-	if err != nil {
-		b.Skipf("Dgraph not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDgraphEngine(b)
 
 	sb, ok := eng.(metaengine.SetBackend)
 	if !ok {
@@ -173,13 +142,7 @@ func BenchmarkDgraph_SetAdd(b *testing.B) {
 // Each call is a 2-step upsert: (1) create/ensure both nodes exist,
 // (2) add bidirectional edges. Write-dominated by RAFT consensus.
 func BenchmarkDgraph_GraphAddEdge(b *testing.B) {
-	addr := dgraphAddr()
-
-	eng, err := dgraphengine.New(addr)
-	if err != nil {
-		b.Skipf("Dgraph not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDgraphEngine(b)
 
 	gb, ok := eng.(metaengine.GraphBackend)
 	if !ok {
@@ -217,13 +180,7 @@ func populateGraph(b *testing.B, gb metaengine.GraphBackend, collection string, 
 // BenchmarkDgraph_GraphNeighbors_Depth1 measures depth-1 neighbor traversal
 // (direct adjacency). Read-only via NewReadOnlyTxn — bypasses RAFT.
 func BenchmarkDgraph_GraphNeighbors_Depth1(b *testing.B) {
-	addr := dgraphAddr()
-
-	eng, err := dgraphengine.New(addr)
-	if err != nil {
-		b.Skipf("Dgraph not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDgraphEngine(b)
 
 	gb, ok := eng.(metaengine.GraphBackend)
 	if !ok {
@@ -253,13 +210,7 @@ func BenchmarkDgraph_GraphNeighbors_Depth1(b *testing.B) {
 // via Dgraph's native @recurse — the killer feature that SQL needs recursive
 // CTEs for. Read-only via NewReadOnlyTxn.
 func BenchmarkDgraph_GraphNeighbors_Depth3(b *testing.B) {
-	addr := dgraphAddr()
-
-	eng, err := dgraphengine.New(addr)
-	if err != nil {
-		b.Skipf("Dgraph not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDgraphEngine(b)
 
 	gb, ok := eng.(metaengine.GraphBackend)
 	if !ok {
@@ -284,13 +235,7 @@ func BenchmarkDgraph_GraphNeighbors_Depth3(b *testing.B) {
 // Each insertion upserts a document into the @index(term) full-text index.
 // Write-dominated by RAFT consensus.
 func BenchmarkDgraph_SearchInsert(b *testing.B) {
-	addr := dgraphAddr()
-
-	eng, err := dgraphengine.New(addr)
-	if err != nil {
-		b.Skipf("Dgraph not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDgraphEngine(b)
 
 	sb, ok := eng.(metaengine.SearchBackend)
 	if !ok {
@@ -317,13 +262,7 @@ func BenchmarkDgraph_SearchInsert(b *testing.B) {
 // BenchmarkDgraph_SearchQuery measures anyofterms() query latency over a
 // 500-document corpus with varied vocabulary. Read-only via NewReadOnlyTxn.
 func BenchmarkDgraph_SearchQuery(b *testing.B) {
-	addr := dgraphAddr()
-
-	eng, err := dgraphengine.New(addr)
-	if err != nil {
-		b.Skipf("Dgraph not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDgraphEngine(b)
 
 	sb, ok := eng.(metaengine.SearchBackend)
 	if !ok {

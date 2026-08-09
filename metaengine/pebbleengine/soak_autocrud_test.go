@@ -3,7 +3,6 @@ package pebbleengine_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
 
@@ -15,10 +14,7 @@ import (
 func TestSoak_AutoCRUD_Pebble(t *testing.T) {
 	t.Parallel()
 
-	eng, err := pebbleengine.NewPebbleEngine("")
-	if err != nil {
-		t.Fatalf("NewPebbleEngine: %v", err)
-	}
+	eng := newPebbleEngineOrSkip(t)
 
 	// store.Close() inside RunAutoCRUDSoak closes the engine.
 	enginetest.RunAutoCRUDSoak(t, eng)

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	dgraphengine "github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -24,11 +23,7 @@ import (
 func TestGraphRAG_SearchThenGraphTraverse(t *testing.T) {
 	t.Parallel()
 
-	eng, err := dgraphengine.New(dgraphAddr())
-	if err != nil {
-		t.Skipf("Dgraph not available: %v", err)
-	}
-	t.Cleanup(func() { metaengine.DeferClose(eng) })
+	eng := mustNewDgraphEngine(t)
 
 	gb, ok := eng.(metaengine.GraphBackend)
 	if !ok {
@@ -151,11 +146,7 @@ func TestGraphRAG_SearchThenGraphTraverse(t *testing.T) {
 func TestGraphRAG_DifferentQueries(t *testing.T) {
 	t.Parallel()
 
-	eng, err := dgraphengine.New(dgraphAddr())
-	if err != nil {
-		t.Skipf("Dgraph not available: %v", err)
-	}
-	t.Cleanup(func() { metaengine.DeferClose(eng) })
+	eng := mustNewDgraphEngine(t)
 
 	gb := eng.(metaengine.GraphBackend)
 	sb := eng.(metaengine.SearchBackend)

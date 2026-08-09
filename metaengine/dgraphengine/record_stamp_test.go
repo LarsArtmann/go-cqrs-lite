@@ -3,7 +3,6 @@ package dgraphengine_test
 import (
 	"testing"
 
-	dgraphengine "github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
 
@@ -15,11 +14,7 @@ import (
 func TestDgraph_RecordStamping(t *testing.T) {
 	t.Parallel()
 
-	eng, err := dgraphengine.New(dgraphAddr())
-	if err != nil {
-		t.Skipf("Dgraph not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDgraphEngine(t)
 
 	enginetest.RunRecordStampTest(t, eng)
 }

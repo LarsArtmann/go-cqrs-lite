@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	dgraphengine "github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -18,11 +17,7 @@ import (
 func TestAdversarialDQLInjection(t *testing.T) {
 	t.Parallel()
 
-	eng, err := dgraphengine.New(dgraphAddr())
-	if err != nil {
-		t.Skipf("Dgraph not available: %v", err)
-	}
-	t.Cleanup(func() { metaengine.DeferClose(eng) })
+	eng := mustNewDgraphEngine(t)
 
 	mb := eng.(metaengine.MapBackend)
 	sb := eng.(metaengine.SearchBackend)

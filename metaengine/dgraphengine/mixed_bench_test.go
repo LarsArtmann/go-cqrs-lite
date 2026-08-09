@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	dgraphengine "github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -73,13 +72,7 @@ func buildGraphRAGCorpus(b *testing.B, sb metaengine.SearchBackend, gb metaengin
 //  2. For each hit: GraphNeighbors(entity, depth=2) → related entities
 //  3. Deduplicate into context window
 func BenchmarkDgraph_GraphRAG_SearchThenExpand(b *testing.B) {
-	addr := dgraphAddr()
-
-	eng, err := dgraphengine.New(addr)
-	if err != nil {
-		b.Skipf("Dgraph not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDgraphEngine(b)
 
 	sb, ok := eng.(metaengine.SearchBackend)
 	if !ok {
@@ -137,13 +130,7 @@ func BenchmarkDgraph_GraphRAG_SearchThenExpand(b *testing.B) {
 //
 // Pattern: 1 write + 3 reads per iteration (25% write, 75% read).
 func BenchmarkDgraph_GraphWriteReadMix(b *testing.B) {
-	addr := dgraphAddr()
-
-	eng, err := dgraphengine.New(addr)
-	if err != nil {
-		b.Skipf("Dgraph not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDgraphEngine(b)
 
 	gb, ok := eng.(metaengine.GraphBackend)
 	if !ok {
@@ -181,13 +168,7 @@ func BenchmarkDgraph_GraphWriteReadMix(b *testing.B) {
 // 80% reads, 20% writes — the classic read-heavy pattern for materialized
 // views and projections.
 func BenchmarkDgraph_MapReadWriteMix(b *testing.B) {
-	addr := dgraphAddr()
-
-	eng, err := dgraphengine.New(addr)
-	if err != nil {
-		b.Skipf("Dgraph not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDgraphEngine(b)
 
 	mb, ok := eng.(metaengine.MapBackend)
 	if !ok {
@@ -230,13 +211,7 @@ func BenchmarkDgraph_MapReadWriteMix(b *testing.B) {
 // a mixed CQRS workload with key-value projections, graph relationships, and
 // full-text search?" (Spoiler: yes.)
 func BenchmarkDgraph_FullTriad_MapGraphSearch(b *testing.B) {
-	addr := dgraphAddr()
-
-	eng, err := dgraphengine.New(addr)
-	if err != nil {
-		b.Skipf("Dgraph not available: %v", err)
-	}
-	defer eng.Close()
+	eng := mustNewDgraphEngine(b)
 
 	mb, ok := eng.(metaengine.MapBackend)
 	if !ok {
