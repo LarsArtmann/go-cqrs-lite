@@ -74,14 +74,21 @@ func TestLintExampleTaskmanager(t *testing.T) {
 	want, err := os.ReadFile(goldenPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			t.Skipf("golden file not found at %s — run with CQRS_LINT_UPDATE_GOLDEN=1 to create", goldenPath)
+			t.Skipf(
+				"golden file not found at %s — run with CQRS_LINT_UPDATE_GOLDEN=1 to create",
+				goldenPath,
+			)
 		}
 
 		t.Fatalf("read golden: %v", err)
 	}
 
 	if got != strings.TrimRight(string(want), "\n") {
-		t.Errorf("findings mismatch (got %d, want different count).\nDiff:\n--- got ---\n%s\n--- want ---\n%s",
-			len(allFindings), got, string(want))
+		t.Errorf(
+			"findings mismatch (got %d, want different count).\nDiff:\n--- got ---\n%s\n--- want ---\n%s",
+			len(allFindings),
+			got,
+			string(want),
+		)
 	}
 }

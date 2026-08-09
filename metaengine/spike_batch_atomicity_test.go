@@ -310,7 +310,11 @@ func TestSpike_Batch_FoldOpClosureDesign(t *testing.T) {
 
 	// In batch mode, we'd undo committed ops here
 	if batchErr != nil {
-		t.Logf("✅ Batch mode: %d ops committed then rolled back on error: %v", len(committed), batchErr)
+		t.Logf(
+			"✅ Batch mode: %d ops committed then rolled back on error: %v",
+			len(committed),
+			batchErr,
+		)
 	}
 }
 

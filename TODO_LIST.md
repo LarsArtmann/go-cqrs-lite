@@ -32,13 +32,6 @@ and is **never** duplicated here.
 > view-store README + ADR-0122 + cqrs-lint v4.6.0 release notes documented.
 > See `docs/status/2026-08-09_07-25_pareto-execution-session-2-report.md`.
 
-- [ ] 🔥 **Replace `PackagesWithRegistration` with precise per-type tracing** —
-      the current E007 fix suppresses ALL findings in a package that has ANY
-      `RegisterTyped`/`RegisterQuery` call. Over-suppresses: if a package
-      registers 9 of 10 queries, the 10th won't be flagged. Replace with
-      per-type registration tracing (trace through generic wrapper functions
-      like crush-daily's `register[Q]()`).
-      _(Effort: M)_
 - [ ] **Reclassify misclassified FPs in validation report** — at least 9 of the
       original 39 "FPs" were actually TPs: D005 x4 (genuinely stale docs),
       A005 x1 (DualWriteBus.SubscribeAll is real), A032 x5 (PluginID on domain

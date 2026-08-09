@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	maxRetries       = 3
-	retryBaseDelay   = 50 * time.Millisecond
-	retryMaxDelay    = 500 * time.Millisecond
+	maxRetries     = 3
+	retryBaseDelay = 50 * time.Millisecond
+	retryMaxDelay  = 500 * time.Millisecond
 )
 
 // isTransientError returns true for errors that are safe to retry:

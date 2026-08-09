@@ -149,7 +149,9 @@ func hasProjectionSpec(projections []any) bool {
 // to generate folds and decoder entries, then returns:
 //   - queryDecls: the generated + raw QueryDecl values (as []any for Plan)
 //   - eventDecoder: a decoder function for projectionadapter (nil if no specs)
-func buildProjections(projections []any) (queryDecls []any, eventDecoder eventDecoderFn, err error) {
+func buildProjections(
+	projections []any,
+) (queryDecls []any, eventDecoder eventDecoderFn, err error) {
 	var allEntries []decoderTypeEntry
 
 	for _, proj := range projections {

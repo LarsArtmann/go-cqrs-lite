@@ -164,7 +164,9 @@ func TestSpike_EventTypeMismatch(t *testing.T) {
 		t.Fatal("expected event type mismatch but found none")
 	}
 
-	t.Log("✅ Confirmed: AutoCRUDByConvention uses struct names, system pipeline uses dot-separated types")
+	t.Log(
+		"✅ Confirmed: AutoCRUDByConvention uses struct names, system pipeline uses dot-separated types",
+	)
 	t.Log("   Solution: need a variant that accepts explicit event type strings")
 }
 
@@ -352,7 +354,11 @@ func TestSpike_FieldMatching(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result, err := ExecuteTyped[struct{ ID string }, partialView](ctx, store, struct{ ID string }{ID: "p1"})
+	result, err := ExecuteTyped[struct{ ID string }, partialView](
+		ctx,
+		store,
+		struct{ ID string }{ID: "p1"},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}

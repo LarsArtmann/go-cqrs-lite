@@ -58,9 +58,16 @@ func TestSystem_AutoProjection_MemoryEngine(t *testing.T) {
 								return nil, errors.New("already exists")
 							}
 
-							return []event.Event{mustEvent(event.New("autoproj.created",
-								cmd.StreamID(), "AutoProj", ver+1,
-								AutoProjCreated{ID: "auto-1", Title: "Auto-projection test", Status: "open"},
+							return []event.Event{mustEvent(event.New(
+								"autoproj.created",
+								cmd.StreamID(),
+								"AutoProj",
+								ver+1,
+								AutoProjCreated{
+									ID:     "auto-1",
+									Title:  "Auto-projection test",
+									Status: "open",
+								},
 							))}, nil
 						})
 				})
