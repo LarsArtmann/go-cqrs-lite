@@ -14,6 +14,7 @@ var (
 	ErrJournalMissing         = errors.New("system: store does not implement event.Journal")
 	ErrNoDecider              = errors.New("system: no decider registered for stream type")
 	ErrNoProjectionHost       = errors.New("system: no projection host configured")
+	ErrNoProjections          = errors.New("system: no projections configured")
 	ErrNotStreamLogBackend    = errors.New("system: engine does not implement StreamLogBackend")
 	ErrQueryResultMismatch    = errors.New("system: query result type mismatch")
 	ErrQueryTypeMismatch      = errors.New("system: query type mismatch")

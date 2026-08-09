@@ -421,6 +421,10 @@ func verifyEventParam[E any](handlerType reflect.Type, eventType string) error {
 	var sample E
 
 	expectedType := reflect.TypeOf(sample)
+	if expectedType == nil {
+		return nil // E is any/interface — handler accepts any event type
+	}
+
 	if expectedType.Kind() == reflect.Pointer {
 		expectedType = expectedType.Elem()
 	}
