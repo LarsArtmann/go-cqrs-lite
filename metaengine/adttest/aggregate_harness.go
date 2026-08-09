@@ -95,7 +95,14 @@ func RunAggregateMatrix(t *testing.T, factories []Factory) {
 				continue
 			}
 
-			got, err := gar.GroupedAggregate(ctx, "items", metaengine.AggregateCount, "", "status", nil)
+			got, err := gar.GroupedAggregate(
+				ctx,
+				"items",
+				metaengine.AggregateCount,
+				"",
+				"status",
+				nil,
+			)
 			if err != nil {
 				t.Fatalf("%s.GroupedAggregate: %v", fx.name, err)
 			}
@@ -164,11 +171,13 @@ func RunAggregateMatrix(t *testing.T, factories []Factory) {
 				t.Fatalf("%s MultiGroupedAggregate: %d rows, want 2", fx.name, len(rows))
 			}
 
-			if rows[0].Group != "closed" || rows[0].Values["cnt"] != 2 || rows[0].Values["total"] != -5 {
+			if rows[0].Group != "closed" || rows[0].Values["cnt"] != 2 ||
+				rows[0].Values["total"] != -5 {
 				t.Errorf("%s closed row = %+v", fx.name, rows[0])
 			}
 
-			if rows[1].Group != "open" || rows[1].Values["cnt"] != 3 || rows[1].Values["total"] != 60 {
+			if rows[1].Group != "open" || rows[1].Values["cnt"] != 3 ||
+				rows[1].Values["total"] != 60 {
 				t.Errorf("%s open row = %+v", fx.name, rows[1])
 			}
 		}

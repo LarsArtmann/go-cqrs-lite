@@ -9,10 +9,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.3.0
 	github.com/larsartmann/go-error-family v0.10.0
 	modernc.org/sqlite v1.56.0
 )

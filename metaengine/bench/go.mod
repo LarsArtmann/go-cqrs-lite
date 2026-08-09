@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.8.0
 	modernc.org/sqlite v1.56.0
 )
 

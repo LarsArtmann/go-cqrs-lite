@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.3.0
@@ -22,7 +22,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.3.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/testcontainers/testcontainers-go v0.43.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.43.0
