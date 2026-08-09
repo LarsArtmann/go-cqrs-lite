@@ -321,6 +321,17 @@ and is **never** duplicated here.
 
 ---
 
+## Storage Backends
+
+- [ ] **bbolt `ReadStreamFrom` O(N) linear scan** — journal keys are
+      `{unixnano}:{eventID}`, so `ReadStreamFrom` scans from journal start to
+      find the skip target. Pebble can Seek directly. A secondary index keyed
+      by eventID would allow O(log N) Seek. Low priority: bbolt is single-writer
+      and write-amplification of a secondary index may not be worth it.
+      _(Effort: M)_
+
+---
+
 ## System Package
 
 > Lifecycle edge-case tests + DuckDB/Postgres/ShutdownDependency integration tests
