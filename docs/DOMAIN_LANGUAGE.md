@@ -102,7 +102,7 @@ Both Commands (intent, pre-decision) and Events (facts, post-decision) are **Rec
 | Term                 | Definition                                                                         | Context                                                                                                          |
 | -------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | **Record**           | The shared structural base for Commands and Events: Type, Payload, StreamID, Version, MetaData | `record.Record` struct — append-only, immutable; the metaengine consumes Records directly via `OnRecord` folds   |
-| **StreamRef** (record) | `"StreamType/EntityID"` string — the primary key for event-sourced aggregates     | `record.StreamRef` type (`record.NewStreamRef(type, id)`) — distinct from `id.StreamRef` (branded ID) but same concept |
+| **StreamRef** (record) | `"StreamType/EntityID"` string — the primary key for event-sourced aggregates     | `record.StreamRef` type (`record.NewStreamRef(type, id)`) — the string form; `id.StreamRef` (above) is the branded typed form. Same concept, different type layer. |
 | **CommonMetadata**   | Metadata shared by all records: correlation, causation, actor, three timestamps   | `record.CommonMetadata` struct — replaces parallel metadata hierarchies in event/ and command/                  |
 | **ActorID**          | Who or what produced a record: user ID, service name, cron job, or `"system"`     | `record.CommonMetadata.ActorID` — provenance tracking for audit and authorization                                |
 | **ClientCreatedAt**  | Client's clock at creation — may lie (clock skew, offline tampering)              | `record.CommonMetadata.ClientCreatedAt` — for offline-first conflict resolution and UX                           |
@@ -204,6 +204,18 @@ A **cost-based storage planner** (CBO) for event-sourced projections. Given a se
 
 > **Relationship to Read Models:** The three projection tiers above (Document/KV, Relational, Graph) are _manual_ — the consumer hand-writes each projection. The metaengine _automates_ this: it infers the ADT from fold return types, picks the optimal engine, generates DDL, and routes queries — 80% auto-generated, 100% auto-routed ([ADR-0116](adr/0116-layered-auto-projection.md)).
 
+> **When to choose Metaengine vs Manual Read Models:**
+>
+> | Use Manual Read Models when…                | Use Metaengine when…                                       |
+> | ------------------------------------------- | ---------------------------------------------------------- |
+> | You need full control over SQL/table shape  | You want the planner to pick the engine and generate DDL   |
+> | Projections are simple (one type, one table) | You have many query patterns across multiple collections  |
+> | You need graph traversal (Cypher/Gremlin)    | You want cost-based engine selection (CBO)                 |
+> | You're comfortable hand-writing projections | You want auto-projection from Record types (planned, ADR-0116) |
+> | You need multi-table atomic writes (relational) | You want filter/sort pushdown without writing SQL      |
+
+> **Implementation status:** ADRs 0061–0098 are implemented (cost-based planner, 11 ADTs, 8 engines, layouts, persistence, replication, materialize-vs-replay, plan diff/manifest). ADRs 0111–0117 describe the v2 vision: ES-native planning from Record types (ADR-0112, partially implemented via `OnRecord`), tombstone-as-domain-event (ADR-0114, planned), and command lifecycle as event streams (ADR-0117, planned). Terms from unimplemented ADRs are marked **(planned)** below.
+
 ### Core Concepts
 
 | Term                   | Definition                                                                                  | Context                                                                                                          |
@@ -280,7 +292,7 @@ The cost model estimates how expensive serving a query on a given engine is, usi
 
 ### Storage Layouts
 
-A **StorageLayout** describes the physical storage structure — it lets the planner reason about _why_ one engine beats another for a given access pattern.
+A **StorageLayout** ([ADR-0073](adr/0073-metaengine-layout-planning.md), [ADR-0092](adr/0092-duckdb-columnar-native-storage.md)) describes the physical storage structure — it lets the planner reason about _why_ one engine beats another for a given access pattern.
 
 | Layout         | Optimal for                          | Used by                          | Constant                    |
 | -------------- | ------------------------------------ | -------------------------------- | --------------------------- |
@@ -352,7 +364,7 @@ Rules run **after** engine assignment — they enrich the `PlanResult` (diagnost
 
 ### Persistence Model
 
-**Persistence** (DDIA Ch1: survivability) answers one binary question: _if the process exits, is the data gone?_
+**Persistence** (DDIA Ch1: survivability — [ADR-0098](adr/0098-metaengine-persistence-enum.md)) answers one binary question: _if the process exits, is the data gone?_
 
 | Term           | Definition                                                                     | Constant                          |
 | -------------- | ------------------------------------------------------------------------------ | --------------------------------- |
@@ -363,7 +375,7 @@ The zero value is `PersistenceVolatile` — forgetting to set it causes a WARN (
 
 ### Replication Model
 
-**Replication** (DDIA Ch5) declares how an engine's data propagates across process boundaries. All CQRS read models are eventually consistent; the only strongly-consistent operation is the event store's optimistic-concurrency append.
+**Replication** (DDIA Ch5 — [ADR-0093](adr/0093-metaengine-replication-model.md)) declares how an engine's data propagates across process boundaries. All CQRS read models are eventually consistent; the only strongly-consistent operation is the event store's optimistic-concurrency append.
 
 | Term               | Definition                                                                  | Constant                              |
 | ------------------ | --------------------------------------------------------------------------- | ------------------------------------- |
@@ -557,6 +569,12 @@ The library provides explicit guarantees on the write side and eventual consiste
 | **idtest**        | Test helpers: `Parse*(tb, s)` for branded ID parsing                 | `id/idtest` — `tb.Fatalf` on error, no panics                                                                     |
 | **testutil**      | Shared cross-module test helpers                                     | `testutil` — `NewCmd(tb, ...)`                                                                                    |
 | **Scenario**      | Fluent BDD test DSL for deciders and projections                     | `scenario.Given/When/Then`, `scenario.GivenProjection/ThenNoError`                                                |
+| **cqrs-lint**     | Domain-aware linter: 202 rules across 10 categories                   | `cmd/cqrs-lint` — correctness, API misuse, boilerplate, architecture, security, performance                        |
+| **cqrs-bench**    | CLI: benchmark any backend with named workload profiles              | `cmd/cqrs-bench` — built on `benchkit`                                                                             |
+| **enginetest**    | Exported engine test harness for cross-engine parity                 | `metaengine/enginetest` — `RunTransactionalTest`, `RunStreamLogBackendTest`, `RunAtomicAppenderTest`              |
+| **adttest**       | Exported ADT test harness: 10-ADT matrix for engine implementors      | `metaengine/adttest` — `RunMatrix(t, factories)` — imported by all engine submodules                               |
+| **benchkit**      | Factory-driven benchmarking suite: Run/Compare, percentiles, memory  | `benchkit` — mirrors contracttest pattern                                                                          |
+| **FlightRecorder** | Go 1.25 runtime/trace capture on slow/error conditions              | `flightrecorder.New(opts...)` — `Recorder`; middleware wraps command/event/query dispatch                          |
 
 ---
 
@@ -634,7 +652,10 @@ metaengine.Engine = Profile() EngineProfile + Closer
     AtomicAppender:    AppendWithVersion (optimistic concurrency)
     SnapshotBackend:   SaveSnapshot/LoadSnapshot
     AggregateReader:   Aggregate(ctx, coll, specs) — SQL-level
+    GroupedAggregateReader: GroupedAggregate(ctx, coll, specs) — GROUP BY
+    MultiAggregateReader: MultiAggregate(ctx, coll, specs[]) — batch
     VersionedStorage:  GetAsOf(ctx, coll, key, timestamp) — temporal
+    Calibratable:      SetCalibration(CalibrationCosts) — replace estimates with real benchmarks
   Lifecycle:
     PlanRule:          Apply(ctx, PlanContext, result) error
     RulePipeline:      Run(ctx, PlanContext, result) error
