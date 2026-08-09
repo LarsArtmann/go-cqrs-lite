@@ -116,6 +116,7 @@
 ## f) Up to 50 Things to Get Done Next
 
 ### Verification Block Completion (high ROI, low effort)
+
 1. Add `duckdbengine.New` to verification block (CGo module, but doc-check is static)
 2. Add `badgerengine.NewBadgerEngine` to verification block
 3. Add `dgraphengine.New` to verification block
@@ -125,6 +126,7 @@
 7. Add `metaengine/bench` symbols to verification block
 
 ### Content Completeness
+
 8. Add `keycodec` subsection to Tooling (composite key encoding for LSM backends)
 9. Add `metaengine/bench` to Tooling (cross-engine benchmark module)
 10. Add Iroh three-tier transport testing pyramid to Metaengine section
@@ -139,6 +141,7 @@
 19. Document `ContractSuite` testing helper (exported for engine implementors)
 
 ### Navigation & Polish
+
 20. Add a table of contents at the top (1019 lines, 31 headings)
 21. Add section anchors for cross-referencing from other docs
 22. Inline "(planned)" annotations on specific v2-vision terms (not just block-level)
@@ -149,11 +152,13 @@
 27. Add Consistency Guarantees entries for metaengine (eventual consistency by default, read-your-writes not guaranteed across engines)
 
 ### Structural Improvements
+
 28. Move Projection Adapter subsection to immediately after Engines (currently after the Calibratable note — feels slightly disconnected)
 29. Consider whether `system/` belongs under Stack Bundles or warrants its own top-level section
 30. Consider whether the Record subsection should move to immediately before Metaengine (it's currently under Core Concepts)
 
 ### Verification & Gates
+
 31. Run `nix run .#verify` as a full safety net
 32. Run api-stability golden check (`cmd/api-stability`)
 33. Run `nix run .#doc-check` (flake version) to confirm parity with manual run
@@ -161,6 +166,7 @@
 35. Add a CI gate for DOMAIN_LANGUAGE.md line-count growth (prevent stale sections)
 
 ### Broader Documentation Health
+
 36. Check if `SKILL.md` references need metaengine vocabulary updates
 37. Check if `FEATURES.md` reflects the metaengine's current feature set
 38. Check if `TODO_LIST.md` has stale metaengine tasks
@@ -173,6 +179,7 @@
 45. Check if `docs/MIGRATION-kv-to-metaengine.md` uses consistent vocabulary
 
 ### Meta
+
 46. Generate a "Metaengine Design Doc Vocabulary Glossary" mapping domain language terms to design docs
 47. Add a "How to Read This File" guide for new consumers (suggested reading order)
 48. Consider splitting the metaengine section into its own `docs/METAENGINE_DOMAIN_LANGUAGE.md`

@@ -15,6 +15,7 @@ must be applied to the already-running engine.
 The current API requires the layout plan to be passed at construction time
 (`NewPlannedSQLiteEngine(db, plans)`). This forces consumers to know all
 queries upfront, which is impractical for:
+
 - Plugins that register projections after engine creation
 - Dynamic query registration (runtime-discovered schemas)
 - Test setups that build engines incrementally

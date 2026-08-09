@@ -22,14 +22,14 @@ Consumers import what they need and compose their own stack. Not a framework —
 
 [`SKILL.md`](SKILL.md) (symlink to `.agents/skills/go-cqrs-lite/SKILL.md`) is the canonical API reference for **all** agents — consumers AND contributors. Its `references/` contain verified, copy-paste recipes and module docs. This AGENTS.md covers internal contracts, procedures, and gotchas that only matter when working **inside** the repo.
 
-| Topic | Reference |
-|---|---|
-| Mental model, quickstart, decision matrix, conventions, cheat sheet | [`references/core.md`](.agents/skills/go-cqrs-lite/references/core.md) |
-| Composition recipes (ES setup, persistence, snapshots, signing, encryption, OTel, catalog, CBOR, metaengine, flight recorder) | [`references/recipes.md`](.agents/skills/go-cqrs-lite/references/recipes.md) |
-| Read models (projections, SQL views, CatchUpSubscriber, tier selection) | [`references/readmodels.md`](.agents/skills/go-cqrs-lite/references/readmodels.md) |
-| Advanced patterns (tombstone, watermill, gRPC, projection host, scheduling, graph, SSE, flight recorder, scenario DSL) | [`references/advanced.md`](.agents/skills/go-cqrs-lite/references/advanced.md) |
-| Per-module quick lookup | [`references/modules.md`](.agents/skills/go-cqrs-lite/references/modules.md) |
-| Common pitfalls, error messages, debugging | [`references/faq.md`](.agents/skills/go-cqrs-lite/references/faq.md) |
+| Topic                                                                                                                         | Reference                                                                          |
+| ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Mental model, quickstart, decision matrix, conventions, cheat sheet                                                           | [`references/core.md`](.agents/skills/go-cqrs-lite/references/core.md)             |
+| Composition recipes (ES setup, persistence, snapshots, signing, encryption, OTel, catalog, CBOR, metaengine, flight recorder) | [`references/recipes.md`](.agents/skills/go-cqrs-lite/references/recipes.md)       |
+| Read models (projections, SQL views, CatchUpSubscriber, tier selection)                                                       | [`references/readmodels.md`](.agents/skills/go-cqrs-lite/references/readmodels.md) |
+| Advanced patterns (tombstone, watermill, gRPC, projection host, scheduling, graph, SSE, flight recorder, scenario DSL)        | [`references/advanced.md`](.agents/skills/go-cqrs-lite/references/advanced.md)     |
+| Per-module quick lookup                                                                                                       | [`references/modules.md`](.agents/skills/go-cqrs-lite/references/modules.md)       |
+| Common pitfalls, error messages, debugging                                                                                    | [`references/faq.md`](.agents/skills/go-cqrs-lite/references/faq.md)               |
 
 **Contributing to the skill:** edit the `.md` files under `.agents/skills/go-cqrs-lite/`, then verify:
 
@@ -39,19 +39,19 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 
 ## Quick Reference
 
-| Item       | Value                                    |
-| ---------- | ---------------------------------------- |
-| Language   | Go 1.26.4                                |
-| Build      | `nix run .#build`                        |
-| Test       | `nix run .#test`                         |
-| Lint       | `nix run .#lint`                         |
-| Format     | `nix fmt`                                |
-| Dev shell  | `nix develop`                            |
-| Verify all | `nix run .#verify` (build + vet + test + race + lint + doc-check) |
-| Int. PG    | `nix run .#integration-pg` (ephemeral, no Docker) or `nix run .#integration-pg-vm` (QEMU VM) |
+| Item       | Value                                                                                                                                          |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Language   | Go 1.26.4                                                                                                                                      |
+| Build      | `nix run .#build`                                                                                                                              |
+| Test       | `nix run .#test`                                                                                                                               |
+| Lint       | `nix run .#lint`                                                                                                                               |
+| Format     | `nix fmt`                                                                                                                                      |
+| Dev shell  | `nix develop`                                                                                                                                  |
+| Verify all | `nix run .#verify` (build + vet + test + race + lint + doc-check)                                                                              |
+| Int. PG    | `nix run .#integration-pg` (ephemeral, no Docker) or `nix run .#integration-pg-vm` (QEMU VM)                                                   |
 | Int. MySQL | `nix run .#integration-mysql-nspawn` (nspawn, ~15s, needs root + uid-range) or `nix run .#integration-mysql-vm` (QEMU VM, ~131s, always works) |
-| Int. All   | `nix run .#test-integration` or `nix run .#test-all-backends` (SQLite+Pebble+bbolt+DuckDB+PG+MySQL) |
-| CI         | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module) |
+| Int. All   | `nix run .#test-integration` or `nix run .#test-all-backends` (SQLite+Pebble+bbolt+DuckDB+PG+MySQL)                                            |
+| CI         | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                  |
 
 Multi-module Go workspace (`go.work`) with 79 `go.mod` files. Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
 
@@ -61,74 +61,74 @@ Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
 
 Compact reference — see [`references/modules.md`](.agents/skills/go-cqrs-lite/references/modules.md) for the full consumer-facing lookup.
 
-| Module | Role | Notes |
-|---|---|---|
-| `event/` | EventSink/EventSource/Store/Bus/Journal, ImmutableEvent, NewEvent | Core. `v4/eventtest/` nested module (see Gotchas) |
-| `command/` | Dispatcher, Handler, Middleware, Bus, PersistedCommand, Store | |
-| `query/` | Dispatcher, Handler, PaginatedResult[T], PersistedQuery, Store | |
-| `decider/` | Decider[State], Repository[State], TypedDecider[State,Cmd] | Pure-function style, singleflight, state cache |
-| `deriver/` | Event→command derivation (ADR-0040) | |
-| `id/` | Branded IDs: `id.Of[T]` = `cbid.ID[T, ulid.ULID]` | |
-| `metadata/` | Tracing, CustomData[K] | Extracted from event/ — shared metadata types |
-| `record/` | Shared Record + CommonMetadata types (ADR-0111) | Zero deps. Structural base for Events + Commands |
-| `dispatcher/` | Generic Dispatcher[H, M] with LifecycleMixin | |
-| `schema/` | Upcaster, VersionedStore, Validator with RegisterType[T]() | Schema evolution |
-| `snapshot/` | Snapshot, SnapshotStore, SnapshotStrategy, EveryNEvents | |
-| `projection/` | Projection interface (consumer-side) | Extracted from event/ |
-| `projectionhost/` | Managed projection host: crash-restart, DLQ, checkpoint | Reads SeekableJournal directly |
-| `kv/` | Layer-0 KV: Store, TypedStore[T,K], Cache[T,K], ViewStore[V,K] | |
-| `graph/` | Graph projection tier: NodeRef, EdgeRef, MemoryDriver, GraphProjection | ADR-0033, ADR-0039 |
-| `codec/` | Payload encoding: JSON, CBOR (deterministic), Raw | |
-| `dedup/` | Bounded dedup ring buffer (O(1) fixed-capacity) | |
-| `listing/` | StreamListing, tombstone detection, StatusMiddleware | |
-| `scenario/` | Fluent BDD DSL: Given/When/Then for deciders + projections | |
-| `scheduling/` | Durable deadline timers (TimerStore, Scheduler) | |
-| `idempotency/` | Re-export of go-idempotency. kvstore/ + sqlstore/ local | ADR-0065 |
-| `signing/` | Event signing: HMAC-SHA256, Ed25519, multisig, middleware | |
-| `encryption/` | Payload encryption: XChaCha20-Poly1305, AES-256-GCM, codec wrapper | |
-| `middleware/` | Logging, Retry, Recovery, Validation, Idempotency, Metrics, OTel, Circuit Breaker, Flight Recorder | |
-| `otel/` | Shared OTel helpers — re-export instead of go.opentelemetry.io directly | |
-| `prometheus/` | OTel→Prometheus metrics bridge | |
-| `transport/http/` | SSE event delivery: SSEBroker, BackfillHandler | |
-| `transport/grpc/` | gRPC transport: CommandService, QueryService | |
-| `watermill/` | Watermill adapter: EventBus, CommandBus, CatchUpSubscriber | |
-| `flightrecorder/` | Go 1.25 runtime/trace FlightRecorder wrapper | |
-| `storage/memory/` | In-memory test impls (MemoryStore, etc.) | |
-| `storage/` | SQLBackend facade, SQL stores, relational projections, views | |
-| `storage/eventstore/` | SQLEventStore, SQLSnapshotStore, SQLCheckpointStore | |
-| `storage/readmodel/` | SQLKVStore (kv.Store backed by SQL) | |
-| `storage/sql/` | Dialect, DBHandle, QueryEngine, RunInTx, IsDuplicateKeyError, ScanSlice | Shared SQL helpers |
-| `storage/relational/` | RelationalSchema, RelationalProjection, RelationalStore, ProjectionSink | Multi-table SQL, rollup counters |
-| `storage/view/` | SQLViewStore[V,K], ViewMapper, AutoMapper | Queryable columns |
-| `storage/migrations/` | Embedded .sql DDL (postgres/sqlite/duckdb) via //go:embed | |
-| `storage/pebble/` | PebbleDB: EventStore, SnapshotStore, KVAdapter | **CGo-free** (cockroachdb/pebble) |
-| `storage/bbolt/` | bbolt: EventStore, KV, Backend facade | Pure Go, single-writer |
-| `storage/turso/` | Turso connector, indexing advisor | |
-| `testutil/` | Shared test helpers (NewCmd, RaceEnabled) | |
-| `testutil/pgtestcontainer/` | Shared Postgres testcontainer helpers | |
-| `retry/` | **DEPRECATED** — re-export of go-retry. Import directly | ADR-0064 |
-| `catalog/` | Registry, SchemaFromType[T](), AsyncAPI/D2/OpenAPI exporters | |
-| `integration/` | Cross-module tests | |
-| `benchkit/` | Factory-driven benchmarking suite | |
-| `system/` | Deployer-driven composition root: DomainConfig + DeploymentConfig | The strategic composition layer (D6, D9, D11) |
-| `stack/` | Stack types + durability tiers (Strict/Normal/Relaxed) | |
-| `stack/memory/` `stack/sqlite/` `stack/pebble/` `stack/bbolt/` | Bundle presets (one-call infrastructure) | |
-| `stack/postgres/` `stack/mysql/` `stack/turso/` | External-server bundle presets | |
-| `stack/duckdb/` | DuckDB bundle preset | **CGo required** (C++ engine) |
-| `stack/bench/` | Cross-preset benchmark suite | |
-| `metaengine/` | Cost-based storage planner — **THE STRATEGIC FUTURE** | See Metaengine section below |
-| `metaengine/*engine` | Engine backends: sqlite, pebble, duckdb, pg, badger, dgraph, iroh | Each is a separate module (dep isolation) |
-| `metaengine/adttest/` | Exported ADT test harness (RunMatrix) | Imported by engine modules for parity |
-| `metaengine/enginetest/` | Exported engine test harness | |
-| `metaengine/bench/` | Cross-engine benchmark module | **CGo** (imports all engines) |
-| `metaengine/projectionadapter/` | Wraps Store as projection.Projection | |
-| `metaengine/keycodec/` | Key encoding for LSM-style backends | |
-| `example/*` | 4 examples: taskmanager, getting-started, readme-quickstart, metaengine-quickstart | Usage demos, not deployments |
-| `cmd/cqrs-gen/` | Code generator: typed handler registration | |
-| `cmd/cqrs-lint/` | Domain-aware linter: 202 rules, 10 categories | |
-| `cmd/cqrs-bench/` | CLI benchmark tool | |
-| `cmd/api-stability/` | API surface checker (golden file) | |
-| `cmd/doc-check/` | Doc checker: verifies Go import paths in markdown | |
+| Module                                                         | Role                                                                                               | Notes                                             |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `event/`                                                       | EventSink/EventSource/Store/Bus/Journal, ImmutableEvent, NewEvent                                  | Core. `v4/eventtest/` nested module (see Gotchas) |
+| `command/`                                                     | Dispatcher, Handler, Middleware, Bus, PersistedCommand, Store                                      |                                                   |
+| `query/`                                                       | Dispatcher, Handler, PaginatedResult[T], PersistedQuery, Store                                     |                                                   |
+| `decider/`                                                     | Decider[State], Repository[State], TypedDecider[State,Cmd]                                         | Pure-function style, singleflight, state cache    |
+| `deriver/`                                                     | Event→command derivation (ADR-0040)                                                                |                                                   |
+| `id/`                                                          | Branded IDs: `id.Of[T]` = `cbid.ID[T, ulid.ULID]`                                                  |                                                   |
+| `metadata/`                                                    | Tracing, CustomData[K]                                                                             | Extracted from event/ — shared metadata types     |
+| `record/`                                                      | Shared Record + CommonMetadata types (ADR-0111)                                                    | Zero deps. Structural base for Events + Commands  |
+| `dispatcher/`                                                  | Generic Dispatcher[H, M] with LifecycleMixin                                                       |                                                   |
+| `schema/`                                                      | Upcaster, VersionedStore, Validator with RegisterType[T](<>)                                       | Schema evolution                                  |
+| `snapshot/`                                                    | Snapshot, SnapshotStore, SnapshotStrategy, EveryNEvents                                            |                                                   |
+| `projection/`                                                  | Projection interface (consumer-side)                                                               | Extracted from event/                             |
+| `projectionhost/`                                              | Managed projection host: crash-restart, DLQ, checkpoint                                            | Reads SeekableJournal directly                    |
+| `kv/`                                                          | Layer-0 KV: Store, TypedStore[T,K], Cache[T,K], ViewStore[V,K]                                     |                                                   |
+| `graph/`                                                       | Graph projection tier: NodeRef, EdgeRef, MemoryDriver, GraphProjection                             | ADR-0033, ADR-0039                                |
+| `codec/`                                                       | Payload encoding: JSON, CBOR (deterministic), Raw                                                  |                                                   |
+| `dedup/`                                                       | Bounded dedup ring buffer (O(1) fixed-capacity)                                                    |                                                   |
+| `listing/`                                                     | StreamListing, tombstone detection, StatusMiddleware                                               |                                                   |
+| `scenario/`                                                    | Fluent BDD DSL: Given/When/Then for deciders + projections                                         |                                                   |
+| `scheduling/`                                                  | Durable deadline timers (TimerStore, Scheduler)                                                    |                                                   |
+| `idempotency/`                                                 | Re-export of go-idempotency. kvstore/ + sqlstore/ local                                            | ADR-0065                                          |
+| `signing/`                                                     | Event signing: HMAC-SHA256, Ed25519, multisig, middleware                                          |                                                   |
+| `encryption/`                                                  | Payload encryption: XChaCha20-Poly1305, AES-256-GCM, codec wrapper                                 |                                                   |
+| `middleware/`                                                  | Logging, Retry, Recovery, Validation, Idempotency, Metrics, OTel, Circuit Breaker, Flight Recorder |                                                   |
+| `otel/`                                                        | Shared OTel helpers — re-export instead of go.opentelemetry.io directly                            |                                                   |
+| `prometheus/`                                                  | OTel→Prometheus metrics bridge                                                                     |                                                   |
+| `transport/http/`                                              | SSE event delivery: SSEBroker, BackfillHandler                                                     |                                                   |
+| `transport/grpc/`                                              | gRPC transport: CommandService, QueryService                                                       |                                                   |
+| `watermill/`                                                   | Watermill adapter: EventBus, CommandBus, CatchUpSubscriber                                         |                                                   |
+| `flightrecorder/`                                              | Go 1.25 runtime/trace FlightRecorder wrapper                                                       |                                                   |
+| `storage/memory/`                                              | In-memory test impls (MemoryStore, etc.)                                                           |                                                   |
+| `storage/`                                                     | SQLBackend facade, SQL stores, relational projections, views                                       |                                                   |
+| `storage/eventstore/`                                          | SQLEventStore, SQLSnapshotStore, SQLCheckpointStore                                                |                                                   |
+| `storage/readmodel/`                                           | SQLKVStore (kv.Store backed by SQL)                                                                |                                                   |
+| `storage/sql/`                                                 | Dialect, DBHandle, QueryEngine, RunInTx, IsDuplicateKeyError, ScanSlice                            | Shared SQL helpers                                |
+| `storage/relational/`                                          | RelationalSchema, RelationalProjection, RelationalStore, ProjectionSink                            | Multi-table SQL, rollup counters                  |
+| `storage/view/`                                                | SQLViewStore[V,K], ViewMapper, AutoMapper                                                          | Queryable columns                                 |
+| `storage/migrations/`                                          | Embedded .sql DDL (postgres/sqlite/duckdb) via //go:embed                                          |                                                   |
+| `storage/pebble/`                                              | PebbleDB: EventStore, SnapshotStore, KVAdapter                                                     | **CGo-free** (cockroachdb/pebble)                 |
+| `storage/bbolt/`                                               | bbolt: EventStore, KV, Backend facade                                                              | Pure Go, single-writer                            |
+| `storage/turso/`                                               | Turso connector, indexing advisor                                                                  |                                                   |
+| `testutil/`                                                    | Shared test helpers (NewCmd, RaceEnabled)                                                          |                                                   |
+| `testutil/pgtestcontainer/`                                    | Shared Postgres testcontainer helpers                                                              |                                                   |
+| `retry/`                                                       | **DEPRECATED** — re-export of go-retry. Import directly                                            | ADR-0064                                          |
+| `catalog/`                                                     | Registry, SchemaFromType[T](<>), AsyncAPI/D2/OpenAPI exporters                                     |                                                   |
+| `integration/`                                                 | Cross-module tests                                                                                 |                                                   |
+| `benchkit/`                                                    | Factory-driven benchmarking suite                                                                  |                                                   |
+| `system/`                                                      | Deployer-driven composition root: DomainConfig + DeploymentConfig                                  | The strategic composition layer (D6, D9, D11)     |
+| `stack/`                                                       | Stack types + durability tiers (Strict/Normal/Relaxed)                                             |                                                   |
+| `stack/memory/` `stack/sqlite/` `stack/pebble/` `stack/bbolt/` | Bundle presets (one-call infrastructure)                                                           |                                                   |
+| `stack/postgres/` `stack/mysql/` `stack/turso/`                | External-server bundle presets                                                                     |                                                   |
+| `stack/duckdb/`                                                | DuckDB bundle preset                                                                               | **CGo required** (C++ engine)                     |
+| `stack/bench/`                                                 | Cross-preset benchmark suite                                                                       |                                                   |
+| `metaengine/`                                                  | Cost-based storage planner — **THE STRATEGIC FUTURE**                                              | See Metaengine section below                      |
+| `metaengine/*engine`                                           | Engine backends: sqlite, pebble, duckdb, pg, badger, dgraph, iroh                                  | Each is a separate module (dep isolation)         |
+| `metaengine/adttest/`                                          | Exported ADT test harness (RunMatrix)                                                              | Imported by engine modules for parity             |
+| `metaengine/enginetest/`                                       | Exported engine test harness                                                                       |                                                   |
+| `metaengine/bench/`                                            | Cross-engine benchmark module                                                                      | **CGo** (imports all engines)                     |
+| `metaengine/projectionadapter/`                                | Wraps Store as projection.Projection                                                               |                                                   |
+| `metaengine/keycodec/`                                         | Key encoding for LSM-style backends                                                                |                                                   |
+| `example/*`                                                    | 4 examples: taskmanager, getting-started, readme-quickstart, metaengine-quickstart                 | Usage demos, not deployments                      |
+| `cmd/cqrs-gen/`                                                | Code generator: typed handler registration                                                         |                                                   |
+| `cmd/cqrs-lint/`                                               | Domain-aware linter: 202 rules, 10 categories                                                      |                                                   |
+| `cmd/cqrs-bench/`                                              | CLI benchmark tool                                                                                 |                                                   |
+| `cmd/api-stability/`                                           | API surface checker (golden file)                                                                  |                                                   |
+| `cmd/doc-check/`                                               | Doc checker: verifies Go import paths in markdown                                                  |                                                   |
 
 ## Internal Contracts
 
@@ -161,14 +161,14 @@ Non-obvious conventions that apply when editing code inside this repo. Consumer-
 
 The default codec differs by layer. Events are self-describing (`evt.Encoding()` stamped on every event), so mixed JSON+CBOR event streams decode correctly via `DecodePayloadAuto`.
 
-| Layer | Default codec | How to override |
-|---|---|---|
-| `stack.ReadModel`/`Materialize` | CBORCodec | `stack.WithDefaultCodec(json)` |
-| `event.New()` | CBORCodec | `event.DefaultCodec = codec.JSONCodec{}` or `event.WithCodec(c)` per-event |
-| `kv.NewTypedStore()` | CBORCodec | `kv.WithTypedCodec(c)` |
-| `snapshot.NewTypedStore()` | CBORCodec | positional arg: `NewTypedStore(store, c)` |
-| command typed store | CBORCodec | positional arg: `NewTypedCommandStore(store, c)` |
-| query typed store | CBORCodec | positional arg: `NewTypedQueryStore(store, c)` |
+| Layer                           | Default codec | How to override                                                            |
+| ------------------------------- | ------------- | -------------------------------------------------------------------------- |
+| `stack.ReadModel`/`Materialize` | CBORCodec     | `stack.WithDefaultCodec(json)`                                             |
+| `event.New()`                   | CBORCodec     | `event.DefaultCodec = codec.JSONCodec{}` or `event.WithCodec(c)` per-event |
+| `kv.NewTypedStore()`            | CBORCodec     | `kv.WithTypedCodec(c)`                                                     |
+| `snapshot.NewTypedStore()`      | CBORCodec     | positional arg: `NewTypedStore(store, c)`                                  |
+| command typed store             | CBORCodec     | positional arg: `NewTypedCommandStore(store, c)`                           |
+| query typed store               | CBORCodec     | positional arg: `NewTypedQueryStore(store, c)`                             |
 
 Blind stores (kv/snapshot/command/query) are self-describing too via the ADR-0044 envelope: `WrapEncode`/`UnwrapDecode` stamp the codec on write and auto-detect it on read. The `UnwrapDecode` fallback uses JSONCodec for backward compat with pre-envelope data.
 

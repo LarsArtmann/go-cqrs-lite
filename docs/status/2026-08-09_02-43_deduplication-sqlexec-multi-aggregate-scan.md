@@ -10,11 +10,13 @@
 ### 1. Extracted `dbExec` → `metaengine.SQLExec` (3-way clone eliminated)
 
 The identical `dbExec` interface was defined in three separate engine modules:
+
 - `metaengine/duckdbengine/transaction.go`
 - `metaengine/sqliteengine/transaction.go`
 - `metaengine/pgengine/transaction.go`
 
 Extracted as `metaengine.SQLExec` in `metaengine/scan.go`. Updated 9 production files across 3 engine modules:
+
 - `duckdbengine/transaction.go` — removed interface, `conn()` returns `metaengine.SQLExec`
 - `duckdbengine/pushdown.go` — `scanDuckDBJSONValues` param type
 - `sqliteengine/transaction.go` — removed interface, `xd()` returns `metaengine.SQLExec`, `txStmtCache.tx` field type
@@ -29,6 +31,7 @@ Extracted as `metaengine.SQLExec` in `metaengine/scan.go`. Updated 9 production 
 ### 2. Extracted `MultiAggregateScan` helper (clone group eliminated)
 
 The `scanMulti` (duckdb) / `scanMultiSQLite` (sqlite) methods were semantic clones:
+
 - `raws := make([]any, len(specs))`
 - `ptrs := make([]any, len(specs))`
 - Loop to set ptrs
@@ -44,6 +47,7 @@ The previous session's `RowQuerier` (1-method: `QueryContext`) was a strict subs
 ### 4. Added rationale comments to accepted cross-engine clones
 
 Added `art-dupl:accept` comments to:
+
 - `metaengine/duckdbengine/aggregations.go` — "cross-engine structural parallelism with sqliteengine"
 - `metaengine/sqliteengine/aggregations_grouped.go` — same rationale (reversed reference)
 
@@ -56,6 +60,7 @@ Added `art-dupl:accept` comments to:
 ### 6. All commits done
 
 The auto-commit daemon committed everything:
+
 - `75594506f` — `refactor(metaengine): consolidate dbExec into shared SQLExec interface`
 - `4be21e5c5` — `refactor(metaengine): extract MultiAggregateScan helper and rename RowQuerier to SQLExec`
 
@@ -123,6 +128,7 @@ The GroupedAggregate and MultiGroupedAggregate methods across duckdb/sqlite/pg s
 ## F. Up to 50 Things We Should Get Done Next
 
 ### Immediate verification (this session's work):
+
 1. Run `nix run .#lint` to verify formatting/depguard/lint passes on all modified files
 2. Run `nix run .#verify` for the full gate (build + vet + test + race + lint + coverage + layers)
 3. Run `nix run .#check-layers` to verify `database/sql` production dep is within budget
@@ -130,6 +136,7 @@ The GroupedAggregate and MultiGroupedAggregate methods across duckdb/sqlite/pg s
 5. Run `go vet -tags "goexperiment.jsonv2" ./metaengine/...` as a quick intermediate check
 
 ### Remaining deduplication targets (threshold 3):
+
 6. Extract dgraphengine `keyStr` helper — `fmt.Sprint(key)` appears 2x in the same module
 7. Extract system introspection nil-guard helper — 3 methods with identical `RLock/nil-check/return` pattern
 8. Refactor pgengine DistinctValues to share logic with `ScanDistinctValues` (JSONB variant)
@@ -137,24 +144,28 @@ The GroupedAggregate and MultiGroupedAggregate methods across duckdb/sqlite/pg s
 10. Check if pgengine MultiAggregate can delegate to `MultiAggregateScan`
 
 ### Architectural improvements:
+
 11. Decide whether `database/sql` in metaengine core is acceptable long-term
 12. Consider extracting a `SQLTxManager` for the duplicated `RunInTx` pattern across duckdb/sqlite/pg
 13. Consider whether `sqliteengine/dbExecer` (the stmtCache interface) could be consolidated with `SQLExec`
 14. Document the metaengine cross-engine interface contract in an ADR
 
 ### Testing improvements:
+
 15. Add a meta-test verifying all SQL engine `conn()`/`xd()` methods return `metaengine.SQLExec`
 16. Add a test verifying `MultiAggregateScan` handles zero specs gracefully
 17. Add a test verifying `ScanDistinctValues` handles empty result sets
 18. Run race detector on the modified transaction.go files specifically
 
 ### Documentation:
+
 19. Update AGENTS.md dedup helper patterns section with `SQLExec` and `MultiAggregateScan`
 20. Update the previous status report (2026-08-09_02-14) with a "superseded by" note
 21. Add `SQLExec` to the SKILL.md module reference for AI consumers
 22. Document the cross-engine aggregation file parallelism pattern in an ADR
 
 ### Broader cleanup:
+
 23. Check if `sqliteengine/dbExecer` is still needed or if `SQLExec` supersedes it
 24. Audit all `//nolint:sqlclosecheck` directives — the shared helpers now centralize rows cleanup via `DeferClose`
 25. Verify no engine module has a local `dbExec` type alias or shadow definition
@@ -165,6 +176,7 @@ The GroupedAggregate and MultiGroupedAggregate methods across duckdb/sqlite/pg s
 30. Check if `stack/bench` module references `dbExec` anywhere
 
 ### Additional clone evaluation:
+
 31. Evaluate the 4x `t.Helper()` clone in `commandtest/store_suite.go` — is there a test helper extraction?
 32. Evaluate the 2x `t.Helper()` clone in `enginetest/enginetest.go` — same question
 33. Evaluate the 2 backup lifecycle test clones — are they truly un-extractable with a shared test helper package?
@@ -172,17 +184,20 @@ The GroupedAggregate and MultiGroupedAggregate methods across duckdb/sqlite/pg s
 35. Evaluate the `if err != nil` error handling clones — could a shared `wrapQueryErr` helper help?
 
 ### Future threshold exploration:
+
 36. Run `art-dupl -t 2 --html` and review the full report for any missed harmful clones
 37. Run `art-dupl -t 5` to verify the threshold 5 view is clean
 38. Consider whether the baseline threshold should be raised to 4 to reduce noise from accepted patterns
 
 ### Quality gates:
+
 39. Verify `nix run .#check-coverage` doesn't show regression in modified files
 40. Run `nix run .#vulncheck` to verify no new vulnerabilities introduced
 41. Verify `nix run .#doc-check` passes with all the new/changed symbols
 42. Check if `cmd/cqrs-lint` self-lint needs updates after the interface rename
 
 ### Metaengine-specific:
+
 43. Add `SQLExec` to the metaengine EngineProfile documentation
 44. Consider whether `SQLExec` should be in a separate `metaengine/sql` subpackage
 45. Evaluate if `ScanDistinctValues` and `MultiAggregateScan` should be methods on a `SQLHelper` struct
@@ -190,6 +205,7 @@ The GroupedAggregate and MultiGroupedAggregate methods across duckdb/sqlite/pg s
 47. Verify the Iroh engine doesn't need any of these changes (it's CRDT-based, not SQL)
 
 ### Process:
+
 48. Create a pre-session checklist: "run nix run .#lint after code changes"
 49. Add "verify dependency budget after interface extraction" to the dedup workflow
 50. Consider adding a CI gate that runs `art-dupl check` at threshold 3 (currently threshold 4)

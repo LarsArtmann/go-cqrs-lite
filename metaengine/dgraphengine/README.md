@@ -31,12 +31,12 @@ Dgraph implements both natively, at full parity, with zero degradation.
 **Concurrent stress test**: 200 entities, ~600 edges, 16 goroutines,
 320 GraphRAG pipeline queries (search + depth-2 graph expansion per hit).
 
-| Metric             | Normal    | With -race   |
-| ------------------ | --------- | ------------ |
-| Throughput         | 2,955 q/s | 1,460 q/s    |
-| Latency p50        | 5.3 ms    | 10.7 ms      |
-| Latency p99        | 6.5 ms    | 13.1 ms      |
-| Latency max        | 6.7 ms    | 13.5 ms      |
+| Metric      | Normal    | With -race |
+| ----------- | --------- | ---------- |
+| Throughput  | 2,955 q/s | 1,460 q/s  |
+| Latency p50 | 5.3 ms    | 10.7 ms    |
+| Latency p99 | 6.5 ms    | 13.1 ms    |
+| Latency max | 6.7 ms    | 13.5 ms    |
 
 Each "query" = SearchQuery (limit 5) + 5 x GraphNeighbors (depth 2).
 That's 6 gRPC round-trips per pipeline query, all completing in <7ms p99.
@@ -48,14 +48,14 @@ expansions). Full Triad (Map + Graph + Search reads): 1.0 ms.
 
 Without Dgraph, GraphRAG requires a polyglot stack:
 
-| What you need      | Polyglot approach            | Dgraph         |
-| ------------------ | ---------------------------- | -------------- |
-| Full-text search   | Elasticsearch / Meilisearch  | @index(term)   |
-| Graph traversal    | Neo4j / Memgraph             | @recurse edges |
-| KV projections     | Redis / PostgreSQL           | @index(exact)  |
-| **Engines to run** | **3 separate databases**     | **1**          |
-| **Glue code**      | **join search IDs → graph**  | **none**       |
-| **Consistency**    | **eventual (cross-DB)**      | **transactional** |
+| What you need      | Polyglot approach           | Dgraph            |
+| ------------------ | --------------------------- | ----------------- |
+| Full-text search   | Elasticsearch / Meilisearch | @index(term)      |
+| Graph traversal    | Neo4j / Memgraph            | @recurse edges    |
+| KV projections     | Redis / PostgreSQL          | @index(exact)     |
+| **Engines to run** | **3 separate databases**    | **1**             |
+| **Glue code**      | **join search IDs → graph** | **none**          |
+| **Consistency**    | **eventual (cross-DB)**     | **transactional** |
 
 Every additional database is a deployment, a failure mode, a consistency
 boundary, and a maintenance burden. Dgraph collapses the polyglot stack.
@@ -93,6 +93,7 @@ for _, r := range results {
 ```
 
 Validated by:
+
 - `TestGraphRAG_SearchThenGraphTraverse` — correctness (8-entity graph)
 - `TestGraphRAG_DifferentQueries` — multi-query (5 microservices)
 - `TestGraphRAG_ConcurrentStress` — 320 concurrent queries, 16 goroutines
@@ -102,16 +103,16 @@ Validated by:
 
 ## ADT Support
 
-| ADT          | Complexity      | Degraded? | Notes                              |
-| ------------ | --------------- | --------- | ---------------------------------- |
-| **Graph**    | O(degree^depth) | **No**    | **Native — Dgraph's core strength** |
-| **Search**   | O(logN)         | **No**    | **@index(term) full-text**         |
-| Map          | O(logN)         | No        | @index(exact) point lookup         |
-| Counter      | O(1) incr       | No        | Batched multi-key increments       |
-| Set          | O(logN)         | No        | @index(exact) membership           |
-| Multimap     | O(logN)         | No        | One node per (key, value) pair     |
-| Log          | O(logN)         | No        | Append-only, timestamp-ordered     |
-| SortedMap    | O(N)            | Yes       | Scan + Go-side sort                |
+| ADT        | Complexity      | Degraded? | Notes                               |
+| ---------- | --------------- | --------- | ----------------------------------- |
+| **Graph**  | O(degree^depth) | **No**    | **Native — Dgraph's core strength** |
+| **Search** | O(logN)         | **No**    | **@index(term) full-text**          |
+| Map        | O(logN)         | No        | @index(exact) point lookup          |
+| Counter    | O(1) incr       | No        | Batched multi-key increments        |
+| Set        | O(logN)         | No        | @index(exact) membership            |
+| Multimap   | O(logN)         | No        | One node per (key, value) pair      |
+| Log        | O(logN)         | No        | Append-only, timestamp-ordered      |
+| SortedMap  | O(N)            | Yes       | Scan + Go-side sort                 |
 
 ## Implemented Backends
 
@@ -163,27 +164,27 @@ All benchmarks against Dgraph 25.4.0, single-node, localhost, `-benchtime=3s`.
 
 ### Single-ADT Operations
 
-| Operation                 | Latency   | Allocs   | Notes                                    |
-| ------------------------- | --------- | -------- | ---------------------------------------- |
-| MapSet                    | 2.7 ms    | 194      | gRPC + RAFT consensus commit             |
-| MapGet                    | 344 us    | 146      | read-only txn, no RAFT                   |
-| CounterIncrement          | 2.4 ms    | 288      | upsert with conditional mutation         |
-| CounterGet                | 3.4 ms    | 1,143    | returns all counters in collection       |
-| SetAdd                    | 2.1 ms    | 179      | upsert with @index(exact)                |
-| GraphAddEdge              | 2.8 ms    | 360      | 2-step upsert: nodes + bidirectional     |
-| GraphNeighbors (depth 1)  | 420 us    | 193      | direct adjacency, read-only txn          |
-| GraphNeighbors (depth 3)  | 963 us    | 463      | @recurse multi-hop (killer feature)      |
-| SearchInsert              | 2.5 ms    | 192      | upsert into @index(term) full-text index |
-| SearchQuery               | 882 us    | 157      | anyofterms() over 500-doc corpus         |
+| Operation                | Latency | Allocs | Notes                                    |
+| ------------------------ | ------- | ------ | ---------------------------------------- |
+| MapSet                   | 2.7 ms  | 194    | gRPC + RAFT consensus commit             |
+| MapGet                   | 344 us  | 146    | read-only txn, no RAFT                   |
+| CounterIncrement         | 2.4 ms  | 288    | upsert with conditional mutation         |
+| CounterGet               | 3.4 ms  | 1,143  | returns all counters in collection       |
+| SetAdd                   | 2.1 ms  | 179    | upsert with @index(exact)                |
+| GraphAddEdge             | 2.8 ms  | 360    | 2-step upsert: nodes + bidirectional     |
+| GraphNeighbors (depth 1) | 420 us  | 193    | direct adjacency, read-only txn          |
+| GraphNeighbors (depth 3) | 963 us  | 463    | @recurse multi-hop (killer feature)      |
+| SearchInsert             | 2.5 ms  | 192    | upsert into @index(term) full-text index |
+| SearchQuery              | 882 us  | 157    | anyofterms() over 500-doc corpus         |
 
 ### Mixed Workload Benchmarks
 
-| Workload                          | Latency   | Allocs | Pattern                                 |
-| --------------------------------- | --------- | ------ | --------------------------------------- |
-| **GraphRAG (search + expand)**    | **2.7 ms**| **1,098** | **search 5 docs + depth-2 graph per hit** |
-| Graph Write/Read Mix              | 4.8 ms    | 1,255  | 1 edge add + 3 neighbor queries (25/75) |
-| Map Read/Write Mix                | 671 us    | 152    | 80% MapGet + 20% MapSet                 |
-| Full Triad (Map + Graph + Search) | 1.0 ms    | 459    | 1 read from each backend per iteration  |
+| Workload                          | Latency    | Allocs    | Pattern                                   |
+| --------------------------------- | ---------- | --------- | ----------------------------------------- |
+| **GraphRAG (search + expand)**    | **2.7 ms** | **1,098** | **search 5 docs + depth-2 graph per hit** |
+| Graph Write/Read Mix              | 4.8 ms     | 1,255     | 1 edge add + 3 neighbor queries (25/75)   |
+| Map Read/Write Mix                | 671 us     | 152       | 80% MapGet + 20% MapSet                   |
+| Full Triad (Map + Graph + Search) | 1.0 ms     | 459       | 1 read from each backend per iteration    |
 
 Writes are dominated by RAFT consensus (2.1-2.8 ms).
 Reads bypass RAFT via `NewReadOnlyTxn()` (344 us - 963 us).
@@ -204,14 +205,14 @@ nix run .#ephemeral-dgraph -- go test -tags "goexperiment.jsonv2" -v \
 
 ### Test inventory
 
-| File                  | Tests                                      | What it validates                       |
-| --------------------- | ------------------------------------------ | --------------------------------------- |
-| `graphrag_test.go`    | 2 GraphRAG functional tests                | Search + Graph pipeline correctness     |
-| `stress_test.go`      | Concurrent stress (16 goroutines, 320 q)   | Throughput, p50/p99, race-safety        |
-| `bench_test.go`       | 10 single-ADT benchmarks                   | Per-operation cost calibration          |
-| `mixed_bench_test.go` | 4 mixed-workload benchmarks                | Real-world combined-ADT performance     |
-| `adt_matrix_test.go`  | Cross-engine parity (6 ADTs vs Memory)     | No semantic drift from Memory engine    |
-| `injection_test.go`   | DQL injection source-code scan             | No string-interpolated DQL              |
+| File                  | Tests                                    | What it validates                    |
+| --------------------- | ---------------------------------------- | ------------------------------------ |
+| `graphrag_test.go`    | 2 GraphRAG functional tests              | Search + Graph pipeline correctness  |
+| `stress_test.go`      | Concurrent stress (16 goroutines, 320 q) | Throughput, p50/p99, race-safety     |
+| `bench_test.go`       | 10 single-ADT benchmarks                 | Per-operation cost calibration       |
+| `mixed_bench_test.go` | 4 mixed-workload benchmarks              | Real-world combined-ADT performance  |
+| `adt_matrix_test.go`  | Cross-engine parity (6 ADTs vs Memory)   | No semantic drift from Memory engine |
+| `injection_test.go`   | DQL injection source-code scan           | No string-interpolated DQL           |
 
 ### Dgraph 25.x delete behavior
 

@@ -10,12 +10,14 @@
 ## a) FULLY DONE (11 of 27 medium tasks completed)
 
 ### M1: Verify gate to GREEN ✅
+
 - Ran `nix fmt` (0 files changed — clean)
 - Ran `nix run .#verify` — ALL checks passed (build, vet, test, race, lint,
   arch, duplication, coverage, API stability, doc check)
 - 0 failures. Foundation established.
 
 ### M3: Fix benchkit timing flakes ✅
+
 - **Files:** `benchkit/benchkit_test.go`
 - **Problem:** `TestRun_DurationAborts` and `TestRun_CancelledContext` had
   hardcoded 5s hang thresholds with no race-aware relaxation.
@@ -25,6 +27,7 @@
 - **Commit:** `48465bf25`
 
 ### M4: testModules meta-test ✅
+
 - **File:** `cmd/api-stability/main_test.go`
 - **Problem:** 8 modules were silently missing from `flake.nix` `testModules`.
   The Nix `check-modules` app exists but is NOT wired into the verify gate.
@@ -35,6 +38,7 @@
 - **Verified:** Test passes, correctly finds all 64+ modules covered.
 
 ### M5: Fix end-of-line suppression parser ✅
+
 - **Files:** `cmd/cqrs-lint/pkg/suppression/parser.go`, `parser_test.go`
 - **Problem:** The `disable` keyword was NOT recognized — only `ignore`. A
   consumer writing `code // cqrs-lint:disable(C031)` would silently get zero
@@ -47,6 +51,7 @@
 - **Commit:** `74b1bef18`
 
 ### M6: cqrs-lint FP batch ✅
+
 - **C031 FP fix:** `cmd/cqrs-lint/pkg/rules/correctness/c031.go` — bare `return`
   in named-return query handlers was incorrectly flagged as error swallowing.
   Added `funcHasNamedReturns(ft *ast.FuncType)` check.
@@ -58,6 +63,7 @@
 - **Commit:** `74b1bef18` (C031 fix)
 
 ### M8: Fix ShutdownOrder naming gap ✅
+
 - **Files:** `system/shutdown.go`, `system/introspection_extended.go`,
   `system/integration_shutdown_test.go`
 - **Problem:** `ShutdownOrder()` returned `Profile().Name` (driver names like
@@ -71,6 +77,7 @@
 - **Commits:** `f4d4f00cc`, `b961ab216`
 
 ### M9: QUIC convergence tests ✅
+
 - **File:** `metaengine/irohengine/quic/transport_test.go`
 - **Fix:** Added `t.Parallel()` to `TestQuicConvergenceSuite` (in-process and
   loopback variants already had it).
@@ -79,6 +86,7 @@
   LogConvergence, MultimapConvergence) in 1.1s. No race conditions found.
 
 ### M10: Regression tests for FP fixes ✅
+
 - **File:** `cmd/cqrs-lint/pkg/rules/correctness/c031_test.go`
 - **Added:** `TestC031_NoFindingForBareReturnWithNamedReturns` — regression test
   for the named-returns FP fix from M6. Verifies bare `return` in a query handler
@@ -86,6 +94,7 @@
 - All 8 existing C031 tests still pass.
 
 ### M11: cqrs-lint precision batch (partial) ✅
+
 - **library-framework preset:** Added `PresetLibraryFramework` to
   `cmd/cqrs-lint/pkg/analyzer/feature_profile.go` — extends `library` by
   disabling ALL F-series rules (F001-F029). For framework/SDK modules where
@@ -99,10 +108,12 @@
 - **Commit:** `d476982b1`
 
 ### M19: Metaengine core (already done) ✅
+
 - `command.AsRecord()` already exists at `command/asrecord.go` with tests.
   TODO item was stale — verified by reading code and running tests.
 
 ### M22: Quick dedup wins ✅
+
 - **newDuckDBPushdown dead wrapper:** Deleted, replaced 5 callers with
   `mustNewDuckEngine(t)` directly. `metaengine/duckdbengine/pushdown_cgo_test.go`.
 - **helper_test.go rename:** `git mv` to `helper_cgo_test.go`, added `//go:build cgo` tag.
@@ -118,6 +129,7 @@
 ## b) PARTIALLY DONE (2 tasks)
 
 ### M27: Docs batch (PARTIAL — interrupted)
+
 - **SKILL.md FAQ circuit-breaker entry:** ✅ DONE — added to
   `.agents/skills/go-cqrs-lite/references/faq.md`
 - **ADR-0121 ApplyLayoutPlan:** ✅ WRITTEN — `docs/adr/0121-apply-layout-plan-post-construction.md`
@@ -129,6 +141,7 @@
 - **cqrs-lint v4.6.0 release notes:** ❌ NOT DONE (also M16)
 
 ### M24: AGENTS.md + config audit (PARTIAL — not started code, only identified)
+
 - AGENTS.md "Dedup helper patterns" section needs updating with new helpers
 - `testModules` ↔ `lintModules` coupling documentation needed
 - `.golangci.yml` exclusion audit not started
@@ -138,11 +151,13 @@
 ## c) NOT STARTED (14 tasks)
 
 ### Tier 2 Consumer-Facing
+
 - **M7:** Run PG integration test vs live PG — not attempted (requires `nix run .#integration-pg`)
 - **M10 (full):** Only C031 regression test written; 9 more tests planned (A005, C027,
   S010, A032, C013, C034, C035, E009, D005)
 
 ### Tier 3 cqrs-lint Precision
+
 - **M12:** Broaden server detection + P012/P013 DSN pragma
 - **M13:** Per-module feature profiles + C034 context tracing
 - **M14:** Replace PackagesWithRegistration with per-type tracing
@@ -150,18 +165,22 @@
 - **M16:** Write cqrs-lint release notes
 
 ### Tier 4 Metaengine/Dgraph
+
 - **M17:** Dgraph VM test + retry logic + pool tuning
 - **M18:** Dgraph StreamLog + Counter fix + unit tests
 - **M20:** Aggregate NULL tests + calibration benchmarks
 
 ### Tier 5 Code Quality
+
 - **M23:** Dedup extraction (DistinctValues, engine boilerplate)
 
 ### Tier 6 System/Layer/Docs
+
 - **M25:** System batch tests (PG isolation, race tests, etc.)
 - **M26:** Layer enforcement .go-arch-lint.yml configs
 
 ### Release
+
 - **M2:** Cut CHANGELOG v4.7.0 + tag modules (blocked on coordinated module tagging)
 - **M21:** ADR-0117 command lifecycle implementation (L-effort, deferred)
 
@@ -186,72 +205,74 @@
    real bug — but the TODO description wasted investigation time.
 
 4. **Several TODO items turned out to be STALE** — C041 confidence (already 0.5),
-  D005 direct/indirect (already handled), F007/A016 (API exists),
-  `command.AsRecord()` (already implemented). The docs-health audit session
-  that generated these TODOs didn't verify against code thoroughly enough.
+   D005 direct/indirect (already handled), F007/A016 (API exists),
+   `command.AsRecord()` (already implemented). The docs-health audit session
+   that generated these TODOs didn't verify against code thoroughly enough.
 
 5. **Uncommitted untracked files at interruption** — `docs/adr/0121-*.md` and
-  `docs/adr/0122-*.md` are untracked. The auto-commit daemon may or may not
-  have picked them up. The `faq.md` and `explain.go` changes are modified but
-  unstaged. Session state is messy.
+   `docs/adr/0122-*.md` are untracked. The auto-commit daemon may or may not
+   have picked them up. The `faq.md` and `explain.go` changes are modified but
+   unstaged. Session state is messy.
 
 6. **M10 scope was reduced** — Only 1 of 10 planned regression tests was written.
-  The C031 named-returns test was the highest-value one, but the other 9 rules
-  (A005, C027, S010, A032, C013, C034, C035, E009, D005) still lack dedicated
-  regression tests.
+   The C031 named-returns test was the highest-value one, but the other 9 rules
+   (A005, C027, S010, A032, C013, C034, C035, E009, D005) still lack dedicated
+   regression tests.
 
 7. **M27 ADR-0122 was interrupted mid-write** — The `write` tool call for
-  ADR-0122 (WithClock) was interrupted by the status report request. The file
-  may exist but be empty or incomplete.
+   ADR-0122 (WithClock) was interrupted by the status report request. The file
+   may exist but be empty or incomplete.
 
 ---
 
 ## e) WHAT WE SHOULD IMPROVE
 
 1. **ALWAYS run `nix run .#verify` before stopping** — This is non-negotiable.
-  Every session that changes code must verify before claiming completion. The
-  fact that I skipped this after 8 commits is the exact anti-pattern the
-  project documents.
+   Every session that changes code must verify before claiming completion. The
+   fact that I skipped this after 8 commits is the exact anti-pattern the
+   project documents.
 
 2. **Verify TODO items against code BEFORE executing** — 4 of the 11 completed
-  tasks turned out to already be done (C041, D005, F007/A016, M19). A 5-minute
-  `grep` check before starting each task would have saved ~30min of investigation.
+   tasks turned out to already be done (C041, D005, F007/A016, M19). A 5-minute
+   `grep` check before starting each task would have saved ~30min of investigation.
 
 3. **Batch TODO staleness checks** — Before executing the Pareto plan, run a
-  bulk verification pass: grep each TODO claim against code, mark stale ones
-  as done. This prevents wasting time on already-completed work.
+   bulk verification pass: grep each TODO claim against code, mark stale ones
+   as done. This prevents wasting time on already-completed work.
 
 4. **Don't commit mid-task** — The auto-commit daemon committed my partial work
-  at various stages. While this is expected behavior, it means the git history
-  has intermediate states that don't represent logical units of work.
+   at various stages. While this is expected behavior, it means the git history
+   has intermediate states that don't represent logical units of work.
 
 5. **Write MORE tests per fix** — Each FP fix should get a regression test in
-  the same commit. I only wrote 1 test (C031) despite fixing multiple issues.
+   the same commit. I only wrote 1 test (C031) despite fixing multiple issues.
 
 6. **Track effort vs. plan estimates** — Several tasks took much less time
-  than estimated (because they were already done), while others (M8
-  ShutdownOrder) required deeper refactoring than the 30min estimate. The
-  Pareto plan's effort estimates need calibration.
+   than estimated (because they were already done), while others (M8
+   ShutdownOrder) required deeper refactoring than the 30min estimate. The
+   Pareto plan's effort estimates need calibration.
 
 7. **Investigate stale TODOs at the source** — The docs-health audit that
-  generated these TODOs should have verified against code more carefully.
-  The audit's VERIFY step failed to catch 4+ already-done items.
+   generated these TODOs should have verified against code more carefully.
+   The audit's VERIFY step failed to catch 4+ already-done items.
 
 8. **The `library-framework` preset disables 29 rules** — This is a very
-  aggressive disable list. We should validate it doesn't suppress real findings
-  by running cqrs-lint against go-cqrs-lite itself with the preset.
+   aggressive disable list. We should validate it doesn't suppress real findings
+   by running cqrs-lint against go-cqrs-lite itself with the preset.
 
 ---
 
 ## f) Up to 50 Things We Should Get Done Next
 
 ### CRITICAL (blocks everything)
+
 1. **Run `nix run .#verify`** — verify the 8 commits from this session don't break anything
 2. **Run `nix fmt`** — format any unformatted files from this session
 3. **Commit remaining untracked/unstaged files** — ADR-0121, ADR-0122, faq.md, explain.go
 4. **Update api-stability golden** if verify flags it — `cd cmd/api-stability && go run . --update`
 
 ### Release (M2)
+
 5. **Identify all modules changed since last tag batch** — `git log --oneline --since="last tag"`
 6. **Run `scripts/tag-release.sh --dry-run`** for each changed module
 7. **Strip replace directives** from each module's go.mod before tagging
@@ -261,6 +282,7 @@
 11. **Run `TestTagContentMatchesChangelog`** to verify the cut
 
 ### cqrs-lint (M10, M12-M16)
+
 12. **Write regression test for A005** (non-event-bus receiver FP)
 13. **Write regression test for C027** (non-event-bus receiver FP)
 14. **Write regression test for S010** (requires Use() wiring)
@@ -280,6 +302,7 @@
 28. **Write cqrs-lint v4.6.0 release notes** — 202 rules, 10 categories
 
 ### Metaengine/Dgraph (M17-M20)
+
 29. **Write `nix/vm/dgraph.nix`** — NixOS VM test for Dgraph Zero+Alpha
 30. **Add Dgraph retry logic** for transient RAFT errors
 31. **Add gRPC MaxCallRecvMsgSize** tuning for large result sets
@@ -294,6 +317,7 @@
 40. **Run calibration benchmarks** against baseline
 
 ### System/Tests (M25)
+
 41. **Add per-test database isolation** for Postgres integration test
 42. **Add TestSystem_GracefulClose_DrainError_NoClose**
 43. **Consolidate driver registration into shared TestMain**
@@ -301,6 +325,7 @@
 45. **Add Badger/bbolt source-of-truth integration tests**
 
 ### Docs/Layer (M26-M27)
+
 46. **Write `.go-arch-lint.yml`** for metaengine/, stack/, decider/, projectionhost/
 47. **Update example/taskmanager/metaengine.go** to use Register + NewTypeDecoder
 48. **Document WithoutViewAutoMigrate + AutoMapper + Increment** in view-store README
@@ -316,6 +341,7 @@
 The CHANGELOG `[Unreleased]` section is ~4800 lines. Cutting it requires tagging
 ≥10 modules via `scripts/tag-release.sh`. The `TestTagContentMatchesChangelog`
 test requires ≥1 tag at v4.7.0 before the CHANGELOG can be cut. However:
+
 - Many modules have `replace` directives that must be stripped before tagging
 - The auto-commit daemon may have bumped go.mod versions unpredictably
 - I don't know if you want to do a clean release now or batch more changes first
@@ -327,6 +353,7 @@ test requires ≥1 tag at v4.7.0 before the CHANGELOG can be cut. However:
 The `write` call for `docs/adr/0122-withclock-injectable-time.md` was
 interrupted by this status report request. The file exists as an untracked
 file but may be empty or incomplete. I don't know if:
+
 - You want me to complete it in the next session
 - The content I was about to write is what you'd want
 - There's an existing design for WithClock I should reference instead
@@ -346,17 +373,17 @@ stale items violate that rule.
 
 ## Session Metrics
 
-| Metric | Value |
-|--------|-------|
-| Session start | ~05:00 (from Pareto plan creation) |
-| Session end | 06:09 |
-| Duration | ~70 minutes |
-| Commits made | 8 (via auto-commit daemon) |
-| Files changed | 15+ across 8 modules |
-| Tasks completed (M-level) | 11 of 27 |
-| Tasks partially done | 2 (M24, M27) |
-| Tasks not started | 14 |
-| Verify gate run | 1x at start (GREEN), 0x at end (STALE — bad!) |
-| Tests written | 4 new tests (disable keyword x3, C031 named-returns x1) |
-| Bugs fixed | 3 (disable keyword, C031 named-returns FP, ShutdownOrder naming) |
-| Stale TODOs found | 4+ (C041, D005, F007/A016, M19) |
+| Metric                    | Value                                                            |
+| ------------------------- | ---------------------------------------------------------------- |
+| Session start             | ~05:00 (from Pareto plan creation)                               |
+| Session end               | 06:09                                                            |
+| Duration                  | ~70 minutes                                                      |
+| Commits made              | 8 (via auto-commit daemon)                                       |
+| Files changed             | 15+ across 8 modules                                             |
+| Tasks completed (M-level) | 11 of 27                                                         |
+| Tasks partially done      | 2 (M24, M27)                                                     |
+| Tasks not started         | 14                                                               |
+| Verify gate run           | 1x at start (GREEN), 0x at end (STALE — bad!)                    |
+| Tests written             | 4 new tests (disable keyword x3, C031 named-returns x1)          |
+| Bugs fixed                | 3 (disable keyword, C031 named-returns FP, ShutdownOrder naming) |
+| Stale TODOs found         | 4+ (C041, D005, F007/A016, M19)                                  |

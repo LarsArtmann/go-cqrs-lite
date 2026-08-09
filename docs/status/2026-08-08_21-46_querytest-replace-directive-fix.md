@@ -13,6 +13,7 @@
 **Root cause:** `query/querytest/store_suite.go` was added on master (commit `431c252c9`) but no new `query/v4` tag was cut. The latest tag is `query/v4.2.0`, which predates the file. Three storage modules required `query/v4 v4.2.0`, so CI per-module builds (`GOWORK=off`) couldn't see `RunStoreSuite` / `StoreSuite` / `StoreFactory`.
 
 **Affected modules (3):**
+
 - `storage/memory` — `query_store_test.go` uses `querytest.RunStoreSuite` (NOT mentioned in original bug report, discovered during investigation)
 - `storage/pebble` — `query_store_test.go:36` references undefined symbols
 - `storage/bbolt` — `query_store_test.go:12` references undefined symbols
@@ -20,6 +21,7 @@
 **Fix applied:** Added `replace github.com/larsartmann/go-cqrs-lite/query/v4 => ../../query` to all three modules' `go.mod`, following the existing `decider/go.mod` → `flightrecorder` pattern. Ran `go mod tidy` in each module to update `go.sum` (removed stale `query/v4 v4.2.0` hashes, since the replace makes Go resolve locally).
 
 **Verification:**
+
 - `GOWORK=off go test -tags "goexperiment.jsonv2" -count=1 ./...` → PASS (all 3 modules)
 - `GOWORK=off go vet -tags "goexperiment.jsonv2" ./...` → PASS (all 3 modules)
 - Workspace mode (`go test` with `go.work`) → PASS (all 3 modules)
@@ -45,6 +47,7 @@ Nothing partial — the fix is complete and verified for the specific issue.
 The `replace` directive is a **workaround**. The real fix is to tag `query/v4.3.0` (or higher) so all consumers can drop the replace directives and require the tagged version. This must happen at the next batch release.
 
 **Release steps when ready:**
+
 1. Strip the 3 `replace` directives from `storage/memory`, `storage/pebble`, `storage/bbolt`
 2. Bump `query/v4 v4.2.0` → `query/v4 v4.3.0` in all three
 3. Tag `query/v4.3.0` (annotated, via `scripts/tag-release.sh`)
@@ -70,6 +73,7 @@ The fix is correct and follows the established pattern. However:
 ### 2. Pre-existing systemic issue: UNTAGGED SHARED TEST HELPERS
 
 The root cause is a **process failure**: `store_suite.go` was added to `query/querytest/` in commit `431c252c9` (Jul 2026), consumers (`storage/memory`, `storage/pebble`, `storage/bbolt`) were updated to use it, but **nobody tagged a new `query/v4` version**. This went unnoticed because:
+
 - Workspace mode (`go.work`) resolves everything locally → tests pass
 - `nix run .#test` uses workspace mode → tests pass
 - Only `GOWORK=off` per-module CI builds catch this
@@ -201,6 +205,7 @@ A change to `scripts/ephemeral-dgraph.sh` (adding Alpha health endpoint polling 
 ### Q1: Should I cut `query/v4.3.0` right now, or wait for the next batch release?
 
 The replace directives are a temporary workaround. Cutting the tag now would let me strip the replaces and require the tagged version. But there may be other untagged changes in `query/` that should go into the same tag, or a release window I'm not aware of. Should I:
+
 - **(a)** Tag `query/v4.3.0` immediately and update consumers
 - **(b)** Leave the replaces and wait for the next batch release
 - **(c)** Audit `query/` for ALL changes since v4.2.0 first, then tag
@@ -212,6 +217,7 @@ The replace directives are a temporary workaround. Cutting the tag now would let
 ### Q3: Should the replace-directive pattern be formalized for pre-tag drift?
 
 Currently, `decider/go.mod` uses it for `flightrecorder`. Now 3 storage modules use it for `query`. This is an ad-hoc pattern. Should I:
+
 - **(a)** Document it as an official workaround in AGENTS.md / CONTRIBUTING.md
 - **(b)** Replace it with a faster tag-cutting process instead
 - **(c)** Add a meta-test that enforces "no replace directives at release time" and tracks them as tech debt
@@ -220,15 +226,16 @@ Currently, `decider/go.mod` uses it for `flightrecorder`. Now 3 storage modules 
 
 ## Summary
 
-| Category | Count | Status |
-|----------|-------|--------|
-| Fixed | 3 modules | ✅ Verified |
-| Root cause identified | query/v4 not tagged after store_suite.go added | ✅ |
-| Proper fix (tag) | query/v4.3.0 | ⏳ Not started |
-| CI prevention | Pre-tag drift detection | ⏳ Not started |
-| Docs update | AGENTS.md lesson | ⏳ Not started |
+| Category              | Count                                          | Status         |
+| --------------------- | ---------------------------------------------- | -------------- |
+| Fixed                 | 3 modules                                      | ✅ Verified    |
+| Root cause identified | query/v4 not tagged after store_suite.go added | ✅             |
+| Proper fix (tag)      | query/v4.3.0                                   | ⏳ Not started |
+| CI prevention         | Pre-tag drift detection                        | ⏳ Not started |
+| Docs update           | AGENTS.md lesson                               | ⏳ Not started |
 
 **Files changed this session:**
+
 - `storage/memory/go.mod` — added `replace query/v4 => ../../query`
 - `storage/memory/go.sum` — removed stale query/v4 v4.2.0 hashes
 - `storage/pebble/go.mod` — added `replace query/v4 => ../../query`
@@ -236,4 +243,4 @@ Currently, `decider/go.mod` uses it for `flightrecorder`. Now 3 storage modules 
 - `storage/bbolt/go.mod` — added `replace query/v4 => ../../query`
 - `storage/bbolt/go.sum` — removed stale query/v4 v4.2.0 hashes
 - `TODO_LIST.md` — marked item [x] with root cause + fix
-- *(not touched: `scripts/ephemeral-dgraph.sh` — auto-commit daemon change)*
+- _(not touched: `scripts/ephemeral-dgraph.sh` — auto-commit daemon change)_

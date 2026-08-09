@@ -66,6 +66,7 @@
 **Fix needed:** Add a `sameSliceAny` helper (like `sameSetAny`) that compares `[]any` to `[]string` with type coercion, or change `waitForLogTail` to convert the expected `[]string` to `[]any` before comparison.
 
 **NOT YET WIRED:**
+
 - Loopback tests do NOT yet call `RunConvergenceSuite` — they still have their own hand-written convergence tests.
 - QUIC tests do NOT yet call `RunConvergenceSuite` — they still have their own hand-written convergence tests.
 - The dedup benefit of ~200 lines is not yet realized for loopback and QUIC.
@@ -111,11 +112,13 @@ The daemon committed the `convergence_suite.go` with the `LogConvergence` bug in
 ## f) Up to 50 things we should get done next
 
 ### Immediate fixes (block CI)
+
 1. Fix `waitForLogTail` in `convergence_suite.go` — convert `[]string` expected to `[]any` before comparison, or use `sameSliceAny`.
 2. Verify the full in-process convergence suite passes (all 6 subtests).
 3. Check if the daemon's commit broke CI — run `nix run .#verify` or at minimum the irohengine test suite.
 
 ### Finish RunConvergenceSuite wiring
+
 4. Wire `RunConvergenceSuite` into loopback tests — create factory, replace 5 hand-written convergence tests.
 5. Wire `RunConvergenceSuite` into QUIC tests — create factory, replace 6 hand-written convergence tests.
 6. Run loopback tests to verify the suite passes on TCP transport.
@@ -125,6 +128,7 @@ The daemon committed the `convergence_suite.go` with the `LogConvergence` bug in
 10. Update CHANGELOG.md with the 5 completed items.
 
 ### Convergence suite improvements
+
 11. Move `RunConvergenceSuite` + `ClusterFactory` to an `irohengine/transporttest` sub-package (avoids polluting public API).
 12. Add `ClockFactory` parameter to `RunConvergenceSuite` for deterministic LWW tests across all transports.
 13. Add `LWWResolution` subtest to the suite (requires clock injection).
@@ -132,43 +136,51 @@ The daemon committed the `convergence_suite.go` with the `LogConvergence` bug in
 15. Consider adding a `BidirectionalMultimap` subtest (both nodes write to same key).
 
 ### Protocol mismatch improvements
+
 16. Consider making the magic byte a multi-byte magic sequence for future extensibility (version negotiation).
 17. Add a test for the reverse mismatch: non-pooled sender to pooled receiver.
 18. Add a test for mixed-mode relay: pooled node relaying to non-pooled node.
 19. Consider returning an error from `Publish` instead of silently dropping the op (currently logs + returns nil).
 
 ### Stream pooling improvements
+
 20. Add a `StreamPoolStats` accessor returning streams opened, ops sent, ops evicted.
 21. Add a test for stream eviction + reconnection after connection reset.
 22. Consider adding a `MaxStreamsPerPeer` limit to prevent unbounded stream growth in relay mode.
 23. Benchmark pooled vs non-pooled throughput difference.
 
 ### Framing improvements
+
 24. Consider adding frame-level CRC/checksum for corruption detection.
 25. Consider extracting `writeFrame`/`readFrame` from loopback into the shared `framing.go` (currently only constants are shared, I/O stays per-transport — which is correct per the TODO).
 26. Add a version byte to the framing protocol for future format changes.
 
 ### Clock/determinism improvements
+
 27. Consider extracting `quicManualClock` into a shared test helper (it duplicates `manualClock` from `helpers_test.go`).
 28. Consider porting the clock pattern to loopback LWW tests (`TestLoopbackLWWConvergence` still uses `time.Sleep(50ms)` + `time.Sleep(2s)`).
 29. Add a `WithClock` option to the loopback transport (currently clocks are on the engine, not the transport — this is correct, but the test should use it).
 
 ### Test quality
+
 30. Add `-race` flag to convergence suite tests and verify no data races.
 31. Add stress test: 1000 ops over pooled stream, verify all arrive.
 32. Add concurrent writer test: multiple goroutines writing to the same pooled stream.
 33. Add a test for stream reuse across reconnection (stream is evicted, new stream opened, ops continue to arrive).
 
 ### QUIC transport
+
 34. Consider adding `WithStreamPoolSize(n)` option to limit concurrent pooled streams per peer.
 35. Consider adding idle-stream timeout for pooled streams (close after N seconds of inactivity).
 36. Consider adding connection-level flow control metrics (blocked stream count).
 
 ### Loopback transport
+
 37. Consider adding `WithStreamPooling` to loopback for parity with QUIC (currently loopback is always "pooled" — one TCP connection per peer).
 38. Add `PeerCount()` method to loopback (already exists).
 
 ### Documentation
+
 39. Update `metaengine/irohengine/README.md` with the new protocol-mismatch detection feature.
 40. Update `metaengine/irohengine/quic/README.md` with stream-pooling protocol details.
 41. Add an ADR for the magic-byte protocol-mismatch detection pattern.
@@ -176,6 +188,7 @@ The daemon committed the `convergence_suite.go` with the `LogConvergence` bug in
 43. Update the irohengine section of the SKILL.md references.
 
 ### CI/release
+
 44. Run `nix run .#verify` to confirm the full gate passes.
 45. Run `nix run .#check-duplication` — the convergence suite dedup may affect the baseline.
 46. Update `art-dupl-baseline.json` if the dedup threshold changed.
@@ -183,6 +196,7 @@ The daemon committed the `convergence_suite.go` with the `LogConvergence` bug in
 48. Run `cmd/api-stability` and regenerate the golden file.
 
 ### Cleanup
+
 49. Remove `sameSet` function from `convergence_suite.go` — it's unused (only `sameSetAny` is used).
 50. Consider whether `FrameHeaderSize` and `ErrFrameTooLarge` should be in `framing.go` or in `transport.go` — `framing.go` is cleaner but adds a file.
 

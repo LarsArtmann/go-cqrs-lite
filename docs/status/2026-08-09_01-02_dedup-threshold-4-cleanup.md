@@ -53,6 +53,7 @@ Extracted `saveOneCommand(t, store)` helper returning `(ctx, ref, cmd)`. Shared 
 **Files:** `testcontainer_test.go` (helper added), 8 test files refactored
 
 Added `mustNewPgEngine(t)` to `testcontainer_test.go` — creates engine, skips on unavailable, auto-closes via `t.Cleanup`. Replaced 15 occurrences of the 6-line `pgengine.New(pgDSN(t)) + err check + skip + defer Close` pattern across:
+
 - `engine_test.go` (6 sites)
 - `stream_log_test.go` (4 sites)
 - `healthcheck_test.go` (1 site — partial, see "Fucked Up")
@@ -66,6 +67,7 @@ Removed now-unused `pgengine` import from `engine_test.go` and `pushdown_test.go
 **Files:** `helper_test.go` (new), 11 test files refactored
 
 Added `helper_test.go` with `mustNewDuckEngine(t)` — same pattern as pgengine. Replaced 35+ occurrences of the `duckdbengine.New("") + err check + skip + defer Close` pattern across:
+
 - `engine_cgo_test.go` (5 sites)
 - `layout_planner_cgo_test.go` (8 sites)
 - `aggregations_cgo_test.go` (13 sites)
@@ -83,11 +85,11 @@ Added `setupSeededAggTest(t)` helper returning `(ctx, eng)` — creates engine, 
 
 ## Results
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Clone groups (threshold 4) | 11 | 3 |
-| Total duplicated lines eliminated | ~350 | — |
-| Accepted clone groups | 0 | 3 |
+| Metric                            | Before | After |
+| --------------------------------- | ------ | ----- |
+| Clone groups (threshold 4)        | 11     | 3     |
+| Total duplicated lines eliminated | ~350   | —     |
+| Accepted clone groups             | 0      | 3     |
 
 ### Remaining 3 Accepted Clones
 
@@ -182,6 +184,7 @@ Added `setupSeededAggTest(t)` helper returning `(ctx, eng)` — creates engine, 
 ## f) Up to 50 Things We Should Get Done Next
 
 ### Immediate (blocking verify gate)
+
 1. Run `nix run .#verify` and fix any failures
 2. Run `nix run .#lint` and fix any lint issues
 3. Run `nix fmt` to ensure gofumpt/goimports compliance
@@ -189,6 +192,7 @@ Added `setupSeededAggTest(t)` helper returning `(ctx, eng)` — creates engine, 
 5. Check coverage drift via `nix run .#check-coverage`
 
 ### Quick wins (5-15 min each)
+
 6. Eliminate `newDuckDBPushdown` wrapper — replace 5 callers with `mustNewDuckEngine`, delete function
 7. Fix non-deferred `eng.Close()` in `pgengine/healthcheck_test.go:34`
 8. Fix non-deferred `eng.Close()` in `duckdbengine/healthcheck_cgo_test.go:36`
@@ -197,6 +201,7 @@ Added `setupSeededAggTest(t)` helper returning `(ctx, eng)` — creates engine, 
 11. Refactor `duckdbengine/stream_log_cgo_test.go` (4 sites with `t.Fatalf` + `DeferClose` pattern)
 
 ### Production code dedup
+
 12. Extract `DistinctValues` row-scan into `storage/sql/ScanAnyRows()` helper
 13. Extract bbolt/pebble backup lifecycle test into shared `backuptest` package
 14. Audit all remaining `_cgo_test.go` files for the same `New("") + skip + defer Close` pattern at threshold 3
@@ -208,12 +213,14 @@ Added `setupSeededAggTest(t)` helper returning `(ctx, eng)` — creates engine, 
 20. Check `metaengine/dgraphengine/` for the same test setup boilerplate
 
 ### Cross-module test infrastructure
+
 21. Create a shared `enginetest.MustNewEngine(t, factory)` pattern for all engine modules
 22. Standardize all engine test modules on `t.Cleanup` instead of `defer` for resource cleanup
 23. Create a `enginetest.SetupSeededTest(t, seeder)` helper for tests that need pre-seeded data
 24. Extract the `newAggSQLiteEngine` pattern into enginetest for reuse
 
 ### Deeper dedup (threshold 3)
+
 25. Re-run art-dupl at threshold 3 and categorize all 60 baseline groups
 26. Check for duplicate migration DDL between `storage/migrations/postgres.sql` and `sqlite.sql`
 27. Check for duplicate SQL dialect handling between `storage/sql/` and engine modules
@@ -222,6 +229,7 @@ Added `setupSeededAggTest(t)` helper returning `(ctx, eng)` — creates engine, 
 30. Scan for duplicated error-wrapping patterns (`fmt.Errorf("X: %w", err)`)
 
 ### Documentation
+
 31. Update AGENTS.md "Dedup helper patterns" section with new helpers
 32. Document `stdQueryInit` in the duckdbengine package comment
 33. Add `mustNewPgEngine` / `mustNewDuckEngine` to the enginetest conventions section
@@ -229,6 +237,7 @@ Added `setupSeededAggTest(t)` helper returning `(ctx, eng)` — creates engine, 
 35. Update the "Test setup boilerplate" pattern in the metaengine section
 
 ### Verification hardening
+
 36. Add a meta-test that asserts `newDuckDBPushdown` doesn't exist (prevents regression of dead wrapper)
 37. Add a meta-test that no test file uses bare `eng.Close()` without `defer`
 38. Add art-dupl to CI with threshold 4 as a blocking gate
@@ -236,6 +245,7 @@ Added `setupSeededAggTest(t)` helper returning `(ctx, eng)` — creates engine, 
 40. Add coverage threshold check for the new helper functions
 
 ### Broader quality
+
 41. Run `nix run .#check-duplication` to verify the baseline gate passes
 42. Check if the backup test duplication exists between `stack/bbolt` and `stack/pebble` too
 43. Audit all `_test.go` files for the `t.Skipf("X not available")` pattern — standardize
@@ -267,13 +277,13 @@ The verify gate takes 3-4 minutes. I tested all affected modules individually (a
 
 ## Session Metrics
 
-| Metric | Value |
-|--------|-------|
-| Files changed | ~25 |
-| Clone groups eliminated | 8 of 11 |
-| Lines of duplication removed | ~350 |
-| Production helpers extracted | 2 (`drainAll`, `stdQueryInit`) |
-| Test helpers extracted | 5 (`assertTxCommitSetup`, `saveOneCommand`, `mustNewPgEngine`, `mustNewDuckEngine`, `setupSeededAggTest`) |
-| Verify gate run | ❌ NO |
-| Lint run | ❌ NO |
-| Full format run | ❌ NO (gofmt only) |
+| Metric                       | Value                                                                                                     |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Files changed                | ~25                                                                                                       |
+| Clone groups eliminated      | 8 of 11                                                                                                   |
+| Lines of duplication removed | ~350                                                                                                      |
+| Production helpers extracted | 2 (`drainAll`, `stdQueryInit`)                                                                            |
+| Test helpers extracted       | 5 (`assertTxCommitSetup`, `saveOneCommand`, `mustNewPgEngine`, `mustNewDuckEngine`, `setupSeededAggTest`) |
+| Verify gate run              | ❌ NO                                                                                                     |
+| Lint run                     | ❌ NO                                                                                                     |
+| Full format run              | ❌ NO (gofmt only)                                                                                        |

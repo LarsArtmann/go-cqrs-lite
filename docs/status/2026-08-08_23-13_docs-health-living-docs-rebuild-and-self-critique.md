@@ -16,16 +16,16 @@
 
 ### 2. Verified claims against code
 
-| Claim checked | Expected | Actual | Discrepancy? |
-|---------------|----------|--------|-------------|
-| go.mod count | 77 (docs) | 79 (actual) | **YES** — docs stale |
-| go.work modules | 77+ (docs) | 78 (actual) | **YES** — docs stale |
-| cqrs-lint rules | 192 (docs) | 202 (actual) | **YES** — docs stale |
-| codec/ dependents | 48 of 78 (docs) | 48 (actual) | Match |
-| DecodeFloatResults guard | claimed in TODO | `scan.go:58` has `len(raws) < len(specs)` | Already done — was in TODO as open |
-| TestExceptionsAreMinimal | claimed missing in TODO | exists in `cmd/api-stability/main_test.go` | Already done — was in TODO as open |
-| querytest replace directives | claimed in TODO | confirmed in 3 go.mod files | Still open — correct |
-| EXCEPTIONS rationale comments | claimed missing | exist with per-entry comments | Already done — was in TODO as open |
+| Claim checked                 | Expected                | Actual                                     | Discrepancy?                       |
+| ----------------------------- | ----------------------- | ------------------------------------------ | ---------------------------------- |
+| go.mod count                  | 77 (docs)               | 79 (actual)                                | **YES** — docs stale               |
+| go.work modules               | 77+ (docs)              | 78 (actual)                                | **YES** — docs stale               |
+| cqrs-lint rules               | 192 (docs)              | 202 (actual)                               | **YES** — docs stale               |
+| codec/ dependents             | 48 of 78 (docs)         | 48 (actual)                                | Match                              |
+| DecodeFloatResults guard      | claimed in TODO         | `scan.go:58` has `len(raws) < len(specs)`  | Already done — was in TODO as open |
+| TestExceptionsAreMinimal      | claimed missing in TODO | exists in `cmd/api-stability/main_test.go` | Already done — was in TODO as open |
+| querytest replace directives  | claimed in TODO         | confirmed in 3 go.mod files                | Still open — correct               |
+| EXCEPTIONS rationale comments | claimed missing         | exist with per-entry comments              | Already done — was in TODO as open |
 
 ### 3. Updated all 4 living docs
 
@@ -39,7 +39,7 @@
 
 ## a) FULLY DONE
 
-1. **All 2026-08-* files read** — ~150 files inventoried, ~30 recent status reports + 7 planning docs read in detail
+1. _*All 2026-08-* files read_* — ~150 files inventoried, ~30 recent status reports + 7 planning docs read in detail
 2. **Forward-looking items harvested** — ~400 raw items extracted, deduplicated to ~149 genuinely open
 3. **Code verification** — rule counts, module counts, tag existence, key function existence all checked against code
 4. **TODO_LIST.md rebuilt** — 30+ completed items removed, 51 open items retained/added, 0 "Previously Completed" sections
@@ -201,12 +201,12 @@ This is the explicit "update-old-docs" work I skipped. It's ~1-2 hours of readin
 
 ## Self-Assessment Score
 
-| Dimension | Score | Notes |
-|-----------|-------|-------|
-| Completeness | 6/10 | Skipped ANNOTATE entirely (the explicit ask). Living docs done well. |
-| Accuracy | 8/10 | All claims verified against code. Some items in TODO may be stale (harvested from reports). |
-| Consistency | 9/10 | All 4 docs agree on counts. Cross-file consistency verified. |
-| Thoroughness | 7/10 | Read deeply but missed some secondary fixes (ADR-0046 counts, SEVEN-TIER-MODEL, duplicate FEATURES rows) |
-| Process | 5/10 | Didn't run verify gate, didn't run doc-check, didn't run `nix fmt` |
+| Dimension    | Score | Notes                                                                                                    |
+| ------------ | ----- | -------------------------------------------------------------------------------------------------------- |
+| Completeness | 6/10  | Skipped ANNOTATE entirely (the explicit ask). Living docs done well.                                     |
+| Accuracy     | 8/10  | All claims verified against code. Some items in TODO may be stale (harvested from reports).              |
+| Consistency  | 9/10  | All 4 docs agree on counts. Cross-file consistency verified.                                             |
+| Thoroughness | 7/10  | Read deeply but missed some secondary fixes (ADR-0046 counts, SEVEN-TIER-MODEL, duplicate FEATURES rows) |
+| Process      | 5/10  | Didn't run verify gate, didn't run doc-check, didn't run `nix fmt`                                       |
 
 **Overall: 7/10 — Solid living docs rebuild, but missed the ANNOTATE half of the task.**

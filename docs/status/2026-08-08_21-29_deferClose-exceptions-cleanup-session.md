@@ -8,12 +8,14 @@
 ## a) FULLY DONE
 
 ### 1. Pebble production deferClose — ALREADY COMPLETE (verified)
+
 - **What was asked:** Extend `deferClose` to pebble production code — 12 `defer func() { _ = x.Close() }()` sites remain.
 - **What I found:** All 12 production sites were ALREADY converted to `defer deferClose(...)` in a prior session. The helper lives at `storage/pebble/close_helper.go:8`.
 - **Sites verified:** `store.go:166`, `snapshot.go:240`, `save.go:48`, `query_read.go:85`, `journal.go:116`, `iteration.go:37`, `helpers.go:30`, `command_store.go:115,152`, `command_read.go:148`, `checkpoint.go:146`, `adapter.go:111` — all 12 use `defer deferClose(...)`.
 - **Zero** remaining `defer func() { _ =` patterns in production code (only in comments documenting the replaced idiom).
 
 ### 2. deferClose deduplication — DECIDED + DOCUMENTED
+
 - **What was asked:** Deduplicate `deferClose` helper duplicated 3x across `storage/pebble/close_helper.go`, `storage/pebble/defer_close_ext_test.go`, `storage/bbolt/defer_close_test.go`.
 - **Decision:** Accept the per-module idiom. Documented rationale in all 3 files:
   - **pebble `close_helper.go`:** Added comment explaining the ext_test mirror is structurally required (Go visibility rules — external tests can't access unexported symbols).
@@ -22,6 +24,7 @@
 - **Rationale:** A shared `storage/internal/closeutil` package was considered and rejected — it adds a new internal module + dependency edge for a 1-line `func deferClose(c Closer) { _ = c.Close() }`. The duplication is 3 lines repeated 3 times. Not worth the coupling.
 
 ### 3. event_metadata_test.go doc comment — DONE
+
 - **What was asked:** Update `event/event_metadata_test.go:82` doc comment — calls `event.EnsureCustom(&m)` but doc comment was not updated to match the backward-compat intent pattern used in `event/customdata_test.go`.
 - **What I did:** Added a doc comment to `TestNewMetadata` (line 69-71) explaining the deprecated `EnsureCustom` call exercises the backward-compat lazy-init path, matching the pattern in `customdata_test.go:170-171` (`TestCustomData_EnsureCustom`).
 - **Verified:** Event tests pass (`go test -tags "goexperiment.jsonv2" -run 'TestNewMetadata|TestCustomData'` → ok).
@@ -33,6 +36,7 @@
 ## b) PARTIALLY DONE
 
 ### 4. EXCEPTIONS audit — REMOVALS DONE, DEPTH INCOMPLETE
+
 - **What was asked:** Audit remaining ~10 EXCEPTIONS entries for dead rules. Only `EXCEPTIONS[storage]` had been checked and removed in a prior session.
 - **What I did:** Verified all 9 remaining entries against layer assignments. Removed 2 dead exceptions:
   - `EXCEPTIONS[schema]` → removed `snapshot` (schema=layer 2, snapshot=layer 2 — same-layer, no violation triggered).
@@ -53,6 +57,7 @@ Nothing from the 4-item list was left unstarted. All 4 items received at least i
 Nothing was broken. No regressions introduced. All changes are comment-only or script-only (no production logic changed). Layer check passes. Event tests pass. Pebble and bbolt production code builds.
 
 **However**, I noticed pre-existing issues I did NOT fix (see section e):
+
 - `storage/pebble/query_store_test.go` and `storage/bbolt/query_store_test.go` reference `querytest.RunStoreSuite` / `querytest.StoreSuite` which are **undefined** — test build fails in both modules. This is pre-existing (confirmed via `git stash` + retest).
 - `cmd/cqrs-lint/pkg/rules/resilience/b029.go` has **4 compiler errors** (unknown fields `RuleID`, `Title`, `Summary`, incompatible `Confidence` type). Also pre-existing from the auto-commit daemon.
 
@@ -127,14 +132,14 @@ Nothing was broken. No regressions introduced. All changes are comment-only or s
 
 ## Summary Table
 
-| Item | Status | Files Changed | Verified |
-|------|--------|---------------|----------|
-| 1. Pebble deferClose production | DONE (prior session) | 0 | grep confirmed 12/12 sites |
-| 2. deferClose dedup | DONE (accept + document) | 3 (comment-only) | Build OK |
-| 3. event_metadata_test doc comment | DONE | 1 (comment-only) | Test pass |
-| 4. EXCEPTIONS audit | PARTIALLY DONE | 1 (script) | Layer check pass |
-| Pre-existing: querytest undefined | NOT FIXED | 0 | Confirmed pre-existing |
-| Pre-existing: b029.go compiler errors | NOT FIXED | 0 | Confirmed pre-existing |
-| Full verify gate | NOT RUN | — | — |
-| art-dupl baseline | NOT CHECKED | — | — |
-| AGENTS.md update | NOT DONE | — | — |
+| Item                                  | Status                   | Files Changed    | Verified                   |
+| ------------------------------------- | ------------------------ | ---------------- | -------------------------- |
+| 1. Pebble deferClose production       | DONE (prior session)     | 0                | grep confirmed 12/12 sites |
+| 2. deferClose dedup                   | DONE (accept + document) | 3 (comment-only) | Build OK                   |
+| 3. event_metadata_test doc comment    | DONE                     | 1 (comment-only) | Test pass                  |
+| 4. EXCEPTIONS audit                   | PARTIALLY DONE           | 1 (script)       | Layer check pass           |
+| Pre-existing: querytest undefined     | NOT FIXED                | 0                | Confirmed pre-existing     |
+| Pre-existing: b029.go compiler errors | NOT FIXED                | 0                | Confirmed pre-existing     |
+| Full verify gate                      | NOT RUN                  | —                | —                          |
+| art-dupl baseline                     | NOT CHECKED              | —                | —                          |
+| AGENTS.md update                      | NOT DONE                 | —                | —                          |

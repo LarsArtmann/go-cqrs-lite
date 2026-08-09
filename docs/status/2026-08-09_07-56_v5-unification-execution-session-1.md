@@ -26,6 +26,7 @@ Executed the critical path of the v5 unification plan: **S1/S2 spikes → T01 (w
 **Solution validated:** Override the `eventType` field on generated fold structs. The fold structs (`*insertFold`, `*updateFold`, `*removeFold`) store `eventType` as an unexported field. Since the override runs in the same package (`metaengine/`), it has access. No structural change to the `Fold` interface needed.
 
 **All 6 tests pass:**
+
 1. `TestSpike_AutoCRUDByConvention_GeneratesFolds` — confirms 3 folds (insert/update/remove) generated
 2. `TestSpike_AutoCRUD_DirectApply` — validates create/update/query cycle with struct-name events
 3. `TestSpike_EventTypeMismatch` — proves the struct-name vs wire-type mismatch exists
@@ -40,6 +41,7 @@ Executed the critical path of the v5 unification plan: **S1/S2 spikes → T01 (w
 **Critical discovery:** Batch atomicity is MUCH simpler than the plan estimated. The plan said 3 days; the spike shows ~6 hours.
 
 **Two complementary strategies validated:**
+
 1. **SQL engines (SQLite/PG/DuckDB):** wrap `applyWithRecord` in `RunInTx`. The `Transactional` interface already exists. Each fold's `MapSet`/`MapUpdate` executes a SQL statement within the transaction. If any fails, the DB engine rolls back. ~10 lines of wrapping.
 2. **Memory engine:** snapshot/rollback (undo log). Before the fold loop, snapshot all keys that will be touched. On error, restore prior state. ~40 lines.
 
@@ -52,6 +54,7 @@ Executed the critical path of the v5 unification plan: **S1/S2 spikes → T01 (w
 **Files:** `system/bus.go` (70 LOC, down from 188), `system/constructor.go`, `system/driver_registry.go`, `watermill/event_bus_internals.go`
 
 **What changed:**
+
 - Deleted `simpleBus` (118 LOC of hand-rolled pub/sub with sync.RWMutex, handler slices, middleware chains)
 - `buildEventBus()` now returns `watermill.NewEventBus()` by default
 - `buildPublisher()` creates `watermill.NewEventBus()` per Publish target
@@ -65,6 +68,7 @@ Executed the critical path of the v5 unification plan: **S1/S2 spikes → T01 (w
 **File:** `metaengine/auto_named_events.go` (147 LOC)
 
 New exported API:
+
 - `NamedSample` struct — pairs a wire event type string with a sample struct
 - `NamedEvent(eventType, sample)` — constructor for `NamedSample`
 - `AutoCRUDByNamedEvents[R](keyField, samples...)` — generates folds with wire event type strings
@@ -105,6 +109,7 @@ result, _ := metaengine.ExecuteTyped[system.LookupInput[UserID], UserView](
 ```
 
 **What the system generates automatically:**
+
 1. Fold inference: `AutoCRUDByNamedEvents` generates insert/update/delete folds from struct field matching
 2. Query declaration: wraps folds in `metaengine.Query[LookupInput[K], R]`
 3. Event decoder: builds an `EventDecoder` that auto-detects CBOR/JSON from `evt.Encoding()`
@@ -114,12 +119,14 @@ result, _ := metaengine.ExecuteTyped[system.LookupInput[UserID], UserView](
 **Backward compatibility:** Raw `metaengine.QueryDecl` values still work alongside `ProjectionSpec` values. The constructor detects which type each projection is and processes accordingly.
 
 **Two tests pass:**
+
 1. `TestSystem_AutoProjection_MemoryEngine` — full E2E: command dispatch → event store → projection host → typed query. Validates projected data matches expected values.
 2. `TestSystem_AutoProjection_BackwardCompat` — mix of raw QueryDecl + ProjectionSpec in the same system.New() call. Both collections planned correctly.
 
 ### Additional work done by the auto-commit daemon
 
 The daemon committed several additional changes during this session window:
+
 - `system/integration_badger_test.go` (124 LOC) — badger engine integration test
 - `cmd/api-stability/main_test.go` (171 LOC) — arch-lint meta-tests
 - `cmd/cqrs-lint/pkg/rules/correctness/c034.go` — event-aware decoders and derived context tracing
@@ -132,9 +139,11 @@ The daemon committed several additional changes during this session window:
 ## b) PARTIALLY DONE
 
 ### AGENTS.md Documentation
+
 Added v5 auto-projection API examples and `AutoCRUDByNamedEvents` documentation. But the full module table (79 modules) hasn't been updated to reflect the watermill swap and auto-projection across all relevant entries.
 
 ### Execution Plan Progress Tracking
+
 Updated `docs/planning/2026-08-09_06-39_v5-unification-superb-execution-plan.md` with a progress table at the top showing completed tasks. But the Fine Plan section (F001-F122) hasn't been checked off.
 
 ---
@@ -142,60 +151,67 @@ Updated `docs/planning/2026-08-09_06-39_v5-unification-superb-execution-plan.md`
 ## c) NOT STARTED
 
 ### Critical Path Remaining
-| Task | Description | Effort | Deps |
-|------|-------------|--------|------|
-| T02 | Delete GraphBackend interface (15 files) | 2h | — |
-| T03 | Move driver registry to metaengine/ | 3h | — |
-| T06 | Migrate metaengine-quickstart example | 2h | T04-T05 ✅ |
-| T07 | Migrate taskmanager projections (199 LOC → 3 declarations) | 4h | T04-T05 ✅ |
+
+| Task | Description                                                | Effort | Deps       |
+| ---- | ---------------------------------------------------------- | ------ | ---------- |
+| T02  | Delete GraphBackend interface (15 files)                   | 2h     | —          |
+| T03  | Move driver registry to metaengine/                        | 3h     | —          |
+| T06  | Migrate metaengine-quickstart example                      | 2h     | T04-T05 ✅ |
+| T07  | Migrate taskmanager projections (199 LOC → 3 declarations) | 4h     | T04-T05 ✅ |
 
 ### Phase 3: Engine Self-Registration
-| Task | Description | Effort |
-|------|-------------|--------|
-| T08 | Self-register 5 existing engines (memory, sqlite, pebble, pg, duckdb) | 3h |
-| T09 | Self-register 3 more engines (badger, dgraph, iroh) | 2h |
-| T10 | Create bbolt metaengine module | 6h |
-| T11 | Create mysql metaengine module | 6h |
-| T12 | Create turso metaengine module | 6h |
+
+| Task | Description                                                           | Effort |
+| ---- | --------------------------------------------------------------------- | ------ |
+| T08  | Self-register 5 existing engines (memory, sqlite, pebble, pg, duckdb) | 3h     |
+| T09  | Self-register 3 more engines (badger, dgraph, iroh)                   | 2h     |
+| T10  | Create bbolt metaengine module                                        | 6h     |
+| T11  | Create mysql metaengine module                                        | 6h     |
+| T12  | Create turso metaengine module                                        | 6h     |
 
 ### Phase 4: Record Consolidation
-| Task | Description | Effort |
-|------|-------------|--------|
-| T13 | Extend record.CommonMetadata | 2h |
-| T14 | Consolidate production files | 3h |
-| T15 | Update test files + make OnRecord default | 3h |
+
+| Task | Description                               | Effort |
+| ---- | ----------------------------------------- | ------ |
+| T13  | Extend record.CommonMetadata              | 2h     |
+| T14  | Consolidate production files              | 3h     |
+| T15  | Update test files + make OnRecord default | 3h     |
 
 ### Phase 5: Batch Atomicity (gated by S2 ✅)
-| Task | Description | Effort |
-|------|-------------|--------|
-| T16 | Design BatchTxn interface (simplified per spike: use Transactional) | 2h |
-| T17 | Implement batch for memory engine (snapshot/rollback) | 4h |
-| T18 | Implement batch for sqlite engine (wrap in RunInTx) | 4h |
-| T19 | Refactor ApplyRecord to use batch | 4h |
-| T20 | Batch for pebble/duckdb/pg | 6h |
+
+| Task | Description                                                         | Effort |
+| ---- | ------------------------------------------------------------------- | ------ |
+| T16  | Design BatchTxn interface (simplified per spike: use Transactional) | 2h     |
+| T17  | Implement batch for memory engine (snapshot/rollback)               | 4h     |
+| T18  | Implement batch for sqlite engine (wrap in RunInTx)                 | 4h     |
+| T19  | Refactor ApplyRecord to use batch                                   | 4h     |
+| T20  | Batch for pebble/duckdb/pg                                          | 6h     |
 
 ### Phase 6: Universal ADT Coverage + Degradation
-| Task | Description | Effort |
-|------|-------------|--------|
-| T21 | Fill duckdb ADT gaps (Set, Multimap, Log) | 6h |
-| T22 | Fill pg ADT gaps (Set, Multimap, Log) | 6h |
-| T23 | Fill dgraph ADT gaps (StreamLog) | 4h |
-| T24 | Degraded graph fallback for SQL engines | 6h |
-| T25 | Capability-degradation rule | 3h |
+
+| Task | Description                               | Effort |
+| ---- | ----------------------------------------- | ------ |
+| T21  | Fill duckdb ADT gaps (Set, Multimap, Log) | 6h     |
+| T22  | Fill pg ADT gaps (Set, Multimap, Log)     | 6h     |
+| T23  | Fill dgraph ADT gaps (StreamLog)          | 4h     |
+| T24  | Degraded graph fallback for SQL engines   | 6h     |
+| T25  | Capability-degradation rule               | 3h     |
 
 ### Phase 7-8: Deletion + v5 Cut
-| Task | Description | Effort |
-|------|-------------|--------|
-| T26 | Delete stack.Bundle + v1 tiers + presets | 4h |
-| T27 | Migrate benchkit + cqrs-bench + cqrs-lint | 6h |
-| T28 | Migration guide + docs + examples | 8h |
-| T29 | Cut v5.0.0 | 2h |
+
+| Task | Description                               | Effort |
+| ---- | ----------------------------------------- | ------ |
+| T26  | Delete stack.Bundle + v1 tiers + presets  | 4h     |
+| T27  | Migrate benchkit + cqrs-bench + cqrs-lint | 6h     |
+| T28  | Migration guide + docs + examples         | 8h     |
+| T29  | Cut v5.0.0                                | 2h     |
 
 ---
 
 ## d) TOTALLY FUCKED UP
 
 ### Nothing is fucked up
+
 All code compiles. All tests pass. No broken builds. No data loss. The auto-commit daemon committed all work correctly.
 
 ### However, there ARE concerns:
@@ -313,6 +329,7 @@ All code compiles. All tests pass. No broken builds. No data loss. The auto-comm
 ### Q1: Should I delete the spike test files now that findings are validated?
 
 The spike tests (`spike_autoprojection_test.go` at 419 LOC and `spike_batch_atomicity_test.go` at 361 LOC) exceed the 350-line CI limit. The findings are documented in the test files themselves. Options:
+
 - **A:** Extract findings to an ADR, trim tests to <100 LOC regression tests, delete the rest
 - **B:** Delete the spike files entirely (they served their purpose)
 - **C:** Split each into 2 files to stay under 350 LOC
@@ -328,6 +345,7 @@ I can't verify this without knowing if any consumer in the wild relies on stop-o
 ### Q3: Should I continue executing the plan or pause for a review checkpoint?
 
 The critical path (S1, S2, T01, T04a, T04b-T05) is done. The remaining work falls into distinct phases that could be done in any order:
+
 - T02-T03 (parallel quick wins: GraphBackend delete, registry move)
 - T06-T07 (example migrations: proves the API)
 - T08-T12 (engine self-registration + new engines: mechanical)
@@ -341,26 +359,29 @@ I can't decide whether to continue with T02-T03 (parallel quick wins) or jump to
 ## File Inventory (this session)
 
 ### New files (created)
-| File | LOC | Purpose |
-|------|-----|---------|
-| `metaengine/auto_named_events.go` | 147 | `AutoCRUDByNamedEvents` + `NamedSample` + `NamedEvent` |
-| `system/projection_builder.go` | 228 | `View[V,K]` builder + `ProjectionSpec` + `buildProjections` |
-| `system/system_auto_projection_test.go` | 199 | E2E + backward compat tests for auto-projection |
-| `metaengine/spike_autoprojection_test.go` | 419 | S1 spike findings (event type mismatch + solution) |
-| `metaengine/spike_batch_atomicity_test.go` | 361 | S2 spike findings (batch atomicity strategies) |
-| `system/integration_badger_test.go` | 124 | Badger engine integration test (daemon) |
+
+| File                                       | LOC | Purpose                                                     |
+| ------------------------------------------ | --- | ----------------------------------------------------------- |
+| `metaengine/auto_named_events.go`          | 147 | `AutoCRUDByNamedEvents` + `NamedSample` + `NamedEvent`      |
+| `system/projection_builder.go`             | 228 | `View[V,K]` builder + `ProjectionSpec` + `buildProjections` |
+| `system/system_auto_projection_test.go`    | 199 | E2E + backward compat tests for auto-projection             |
+| `metaengine/spike_autoprojection_test.go`  | 419 | S1 spike findings (event type mismatch + solution)          |
+| `metaengine/spike_batch_atomicity_test.go` | 361 | S2 spike findings (batch atomicity strategies)              |
+| `system/integration_badger_test.go`        | 124 | Badger engine integration test (daemon)                     |
 
 ### Modified files
-| File | Change |
-|------|--------|
-| `system/bus.go` | Replaced 188 LOC simpleBus with 70 LOC watermill delegation |
-| `system/constructor.go` | Added auto-projection processing, bus lifecycle, io.Closer registration |
-| `system/driver_registry.go` | Updated gochannel driver to use watermill.NewEventBus() |
-| `watermill/event_bus_internals.go` | Fixed handler independence (call all handlers, return first error) |
-| `AGENTS.md` | Added v5 auto-projection API docs, AutoCRUDByNamedEvents, updated system/ description |
-| `docs/planning/2026-08-09_06-39_v5-unification-superb-execution-plan.md` | Added execution progress table |
+
+| File                                                                     | Change                                                                                |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `system/bus.go`                                                          | Replaced 188 LOC simpleBus with 70 LOC watermill delegation                           |
+| `system/constructor.go`                                                  | Added auto-projection processing, bus lifecycle, io.Closer registration               |
+| `system/driver_registry.go`                                              | Updated gochannel driver to use watermill.NewEventBus()                               |
+| `watermill/event_bus_internals.go`                                       | Fixed handler independence (call all handlers, return first error)                    |
+| `AGENTS.md`                                                              | Added v5 auto-projection API docs, AutoCRUDByNamedEvents, updated system/ description |
+| `docs/planning/2026-08-09_06-39_v5-unification-superb-execution-plan.md` | Added execution progress table                                                        |
 
 ### Commit history (this session, 13 commits)
+
 ```
 04741a1bb style: apply gofmt multi-line formatting across engine and test files
 418b9788f docs(todo): update integration test notes with current status
@@ -381,12 +402,12 @@ I can't decide whether to continue with T02-T03 (parallel quick wins) or jump to
 
 ## Test Status
 
-| Module | Status | Duration |
-|--------|--------|----------|
-| `system/` | ✅ PASS | 0.174s |
-| `metaengine/` | ✅ PASS | 12.756s |
-| `watermill/` | ✅ PASS | 0.071s |
-| `nix run .#verify` | ⚠️ NOT RUN | — |
+| Module             | Status     | Duration |
+| ------------------ | ---------- | -------- |
+| `system/`          | ✅ PASS    | 0.174s   |
+| `metaengine/`      | ✅ PASS    | 12.756s  |
+| `watermill/`       | ✅ PASS    | 0.071s   |
+| `nix run .#verify` | ⚠️ NOT RUN | —        |
 
 ---
 

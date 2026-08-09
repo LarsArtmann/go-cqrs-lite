@@ -119,13 +119,13 @@ Each preset pins feature flags AND disables rules that are known false-positives
 for that project type. Explicit `features` flags always override preset values;
 explicit `rules.disable` entries are added on top (union).
 
-| Preset       | Features                                                                    | Rule defaults                                                                      | Severity floor |
-| ------------ | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | -------------- |
-| `local-cli`  | `server: false`, `tracing: off`                                             | F004, F009, F013, F017                                                             | `warning`      |
-| `production` | `server: true`, `tracing: on`                                               | (none)                                                                             | (default)      |
-| `library`    | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F002, F006, F010, F011, F015, F022, F023, F024, F025, F026, S002, S003 | (default)      |
+| Preset              | Features                                                                    | Rule defaults                                                                                                                                                                                        | Severity floor |
+| ------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| `local-cli`         | `server: false`, `tracing: off`                                             | F004, F009, F013, F017                                                                                                                                                                               | `warning`      |
+| `production`        | `server: true`, `tracing: on`                                               | (none)                                                                                                                                                                                               | (default)      |
+| `library`           | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F002, F006, F010, F011, F015, F022, F023, F024, F025, F026, S002, S003                                                                                                                   | (default)      |
 | `library-framework` | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026, F027, F028, F029, S002, S003 | (default)      |
-| `read-only`  | `command-flow: read-only`                                                   | (none)                                                                             | (default)      |
+| `read-only`         | `command-flow: read-only`                                                   | (none)                                                                                                                                                                                               | (default)      |
 
 cqrs-lint warns on unknown preset names (typos) and unknown disabled rule IDs,
 so misconfigurations surface immediately instead of silently doing nothing.
@@ -224,8 +224,8 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 | C038 | event-type-typo                           | Error    | Emitted event type string is a likely typo of a fold case label — event silently dropped during replay |
 | C039 | goroutine-leak-in-handler                 | Warning  | Unmanaged goroutine inside event/command handler — resource leak and ordering violation                |
 | C040 | dead-fold-case                            | Warning  | Fold switch case handles an event type that is never emitted via event.New — dead code or a typo       |
-| C041 | save-ignores-expectedversion               | Warning  | Store.Save called without checking expected version — optimistic concurrency violation                 |
-| C042 | save-with-literal-zero-version             | Warning  | Store.Save with literal 0 as expected version — bypasses concurrency check                            |
+| C041 | save-ignores-expectedversion              | Warning  | Store.Save called without checking expected version — optimistic concurrency violation                 |
+| C042 | save-with-literal-zero-version            | Warning  | Store.Save with literal 0 as expected version — bypasses concurrency check                             |
 
 ## API Misuse Rules
 
@@ -258,33 +258,33 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 
 ## Boilerplate Rules
 
-| ID   | Rule                            | Severity | Description                                                                    |
-| ---- | ------------------------------- | -------- | ------------------------------------------------------------------------------ |
-| B001 | single-event-helper             | Info     | Use event.Single() instead                                                     |
-| B002 | manual-repository-wiring        | Info     | Use stack preset instead                                                       |
-| B003 | subscribeall-large-switch       | Info     | Split into separate projections                                                |
-| B004 | command-constructor-boilerplate | Info     | Command with many fields — use cqrs-gen                                        |
-| B005 | fold-switch-boilerplate         | Info     | Fold uses switch — consider decider.StrictApply                                |
-| B006 | duplicate-fk-stub-sql           | Info     | Duplicated foreign-key SQL — centralize                                        |
-| B007 | repeated-handler-registration   | Info     | 3+ consecutive registrations — table-driven                                    |
-| B008 | manual-retry-implementation     | Warning  | Manual retry loop — use retry.Do                                               |
-| B009 | emit-function-boilerplate       | Info     | Hand-written emit helper wrapping event.New                                    |
-| B010 | catalog-event-list-boilerplate  | Info     | 3+ catalog.Event calls — use cqrs-gen                                          |
-| B011 | must-marshal-helper             | Info     | mustMarshal helper — use event.New                                             |
-| B012 | make-event-helper               | Info     | Hand-written makeEvent helper — use event.New                                  |
-| B013 | missing-correlation-enricher    | Warning  | Repository without correlation enricher                                        |
-| B014 | missing-otel-middleware         | Info     | Bus/dispatcher lacks OTel tracing                                              |
-| B015 | missing-test-utilities          | Info     | Project has tests but no testutil imports                                      |
-| B021 | fold-without-strictapply        | Warning  | Fold function silently ignores unknown events — use decider.StrictApply        |
-| B023 | missing-command-middleware      | Warning  | Command dispatcher has no middleware — panics in handlers crash the process    |
-| B024 | missing-bus-recovery            | Warning  | Event bus has no recovery middleware — panics in handlers crash the bus        |
-| B025 | missing-state-cache             | Info     | Repository without WithStateCache — hot streams benefit from incremental loads |
-| B026 | missing-catalog-registration    | Info     | 3+ event types but no catalog import — documentation generation unavailable    |
-| B027 | hardcoded-stream-type           | Info     | Hardcoded stream-type string literal — use a constant                          |
-| B028 | manual-goroutine-dispatch       | Info     | Manual goroutine dispatch instead of deriver.AsHandler — loses idempotency     |
-| B029 | missing-retry-middleware         | Info     | Bus/dispatcher without retry middleware — transient failures propagate to callers |
-| B030 | missing-circuit-breaker          | Info     | Bus/dispatcher without circuit breaker middleware — cascading failures not isolated |
-| B031 | missing-dead-letter-config       | Info     | projectionhost.New without WithDeadLetterStore — poison events cause terminal failure |
+| ID   | Rule                            | Severity | Description                                                                           |
+| ---- | ------------------------------- | -------- | ------------------------------------------------------------------------------------- |
+| B001 | single-event-helper             | Info     | Use event.Single() instead                                                            |
+| B002 | manual-repository-wiring        | Info     | Use stack preset instead                                                              |
+| B003 | subscribeall-large-switch       | Info     | Split into separate projections                                                       |
+| B004 | command-constructor-boilerplate | Info     | Command with many fields — use cqrs-gen                                               |
+| B005 | fold-switch-boilerplate         | Info     | Fold uses switch — consider decider.StrictApply                                       |
+| B006 | duplicate-fk-stub-sql           | Info     | Duplicated foreign-key SQL — centralize                                               |
+| B007 | repeated-handler-registration   | Info     | 3+ consecutive registrations — table-driven                                           |
+| B008 | manual-retry-implementation     | Warning  | Manual retry loop — use retry.Do                                                      |
+| B009 | emit-function-boilerplate       | Info     | Hand-written emit helper wrapping event.New                                           |
+| B010 | catalog-event-list-boilerplate  | Info     | 3+ catalog.Event calls — use cqrs-gen                                                 |
+| B011 | must-marshal-helper             | Info     | mustMarshal helper — use event.New                                                    |
+| B012 | make-event-helper               | Info     | Hand-written makeEvent helper — use event.New                                         |
+| B013 | missing-correlation-enricher    | Warning  | Repository without correlation enricher                                               |
+| B014 | missing-otel-middleware         | Info     | Bus/dispatcher lacks OTel tracing                                                     |
+| B015 | missing-test-utilities          | Info     | Project has tests but no testutil imports                                             |
+| B021 | fold-without-strictapply        | Warning  | Fold function silently ignores unknown events — use decider.StrictApply               |
+| B023 | missing-command-middleware      | Warning  | Command dispatcher has no middleware — panics in handlers crash the process           |
+| B024 | missing-bus-recovery            | Warning  | Event bus has no recovery middleware — panics in handlers crash the bus               |
+| B025 | missing-state-cache             | Info     | Repository without WithStateCache — hot streams benefit from incremental loads        |
+| B026 | missing-catalog-registration    | Info     | 3+ event types but no catalog import — documentation generation unavailable           |
+| B027 | hardcoded-stream-type           | Info     | Hardcoded stream-type string literal — use a constant                                 |
+| B028 | manual-goroutine-dispatch       | Info     | Manual goroutine dispatch instead of deriver.AsHandler — loses idempotency            |
+| B029 | missing-retry-middleware        | Info     | Bus/dispatcher without retry middleware — transient failures propagate to callers     |
+| B030 | missing-circuit-breaker         | Info     | Bus/dispatcher without circuit breaker middleware — cascading failures not isolated   |
+| B031 | missing-dead-letter-config      | Info     | projectionhost.New without WithDeadLetterStore — poison events cause terminal failure |
 
 ## Consistency Rules
 
@@ -298,7 +298,7 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 | D011 | nil-payload-event            | Warning  | Event created with nil payload — cannot be decoded, provides no audit trail                                      |
 | D012 | raw-print-in-handler         | Info     | Raw fmt/log print in CQRS handler — use structured logging (slog)                                                |
 | D018 | stale-catalog-entries        | Info     | Event types in code but not registered in catalog — documentation drift                                          |
-| D019 | stale-spec-freshness         | Info     | Spec/schema files older than the event types they describe — documentation may be outdated                        |
+| D019 | stale-spec-freshness         | Info     | Spec/schema files older than the event types they describe — documentation may be outdated                       |
 
 ## Architecture Rules
 

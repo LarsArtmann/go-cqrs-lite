@@ -96,7 +96,7 @@ and is **never** duplicated here.
 - [ ] **Scan remaining engine modules for setup boilerplate** —
       `metaengine/badgerengine/`, `metaengine/pebbleengine/`,
       `metaengine/dgraphengine/` likely have the same `New(...) + err +
-      skip + defer Close` pattern that was fixed in pgengine/duckdbengine.
+    skip + defer Close` pattern that was fixed in pgengine/duckdbengine.
       _(Effort: M)_
 - [ ] **Audit `.golangci.yml` exclusion blocks** — `system/` (20 linters
       disabled), `cmd/cqrs-lint/` (13), `metaengine/` (15) have the broadest

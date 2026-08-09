@@ -10,6 +10,7 @@
 ### The 1% that delivers 51%
 
 **Push 998 unpushed tags to origin.** This single action unblocks:
+
 - `nix run .#vulncheck` (blocked by unpushed tags for 8+ sessions)
 - `scripts/check-tag-existence.sh` (CI gate)
 - Consumer module resolution via `go mod` (untagged pseudo-versions fail)
@@ -35,36 +36,36 @@
 
 ## Task Breakdown (Phase 1: 100-30min tasks)
 
-| # | Task | Impact | Effort | Customer Value |
-|---|------|--------|--------|----------------|
-| T1 | Push all 998 tags to origin | CRITICAL | 5min | Consumers can resolve modules |
-| T2 | Run `nix run .#verify-fast` | CRITICAL | 10min | Confirm build/lint/test GREEN |
-| T3 | Cut CHANGELOG [Unreleased] → [v4.7.0] | HIGH | 15min | Navigable changelog |
-| T4 | Fix incorrect false-positive annotations | MEDIUM | 10min | Accurate historical docs |
-| T5 | Create missing tags (query, dgraph, flight) | HIGH | 10min | Consumers get latest symbols |
-| T6 | Push new tags | HIGH | 2min | Same as T1 |
-| T7 | Consolidate FEATURES.md metaengine table | MEDIUM | 30min | Readable feature inventory |
-| T8 | Commit + push all changes | HIGH | 5min | Provenance |
+| #   | Task                                        | Impact   | Effort | Customer Value                |
+| --- | ------------------------------------------- | -------- | ------ | ----------------------------- |
+| T1  | Push all 998 tags to origin                 | CRITICAL | 5min   | Consumers can resolve modules |
+| T2  | Run `nix run .#verify-fast`                 | CRITICAL | 10min  | Confirm build/lint/test GREEN |
+| T3  | Cut CHANGELOG [Unreleased] → [v4.7.0]       | HIGH     | 15min  | Navigable changelog           |
+| T4  | Fix incorrect false-positive annotations    | MEDIUM   | 10min  | Accurate historical docs      |
+| T5  | Create missing tags (query, dgraph, flight) | HIGH     | 10min  | Consumers get latest symbols  |
+| T6  | Push new tags                               | HIGH     | 2min   | Same as T1                    |
+| T7  | Consolidate FEATURES.md metaengine table    | MEDIUM   | 30min  | Readable feature inventory    |
+| T8  | Commit + push all changes                   | HIGH     | 5min   | Provenance                    |
 
 ## Task Breakdown (Phase 2: max 12min tasks)
 
-| # | Task | From | Effort |
-|---|------|------|--------|
-| T1.1 | `git push origin --tags` | T1 | 5min |
-| T2.1 | Run `nix run .#verify-fast` | T2 | 10min |
-| T3.1 | Find the [v4.3.0] boundary in CHANGELOG | T3 | 2min |
-| T3.2 | Insert `## [v4.7.0] — 2026-08-08` header above [v4.3.0] | T3 | 2min |
-| T3.3 | Add release summary line | T3 | 5min |
-| T4.1 | Fix C002 annotation: "OPEN" → "DONE — TransportAdapter guard exists" | T4 | 3min |
-| T4.2 | Fix C027 annotation: "OPEN" → "DONE — ReceiverIsEventBus guard exists" | T4 | 3min |
-| T4.3 | Fix S010 annotation: "OPEN" → "DONE — Use/UsePublish check exists" | T4 | 3min |
-| T5.1 | `git tag -a query/v4.3.0 -m "..."` | T5 | 2min |
-| T5.2 | `git tag -a metaengine/dgraphengine/v4.0.2 -m "..."` | T5 | 2min |
-| T5.3 | `git tag -a flightrecorder/v4.0.0 -m "..."` | T5 | 2min |
-| T5.4 | Strip replace directives from storage/* go.mod files | T5 | 5min |
-| T5.5 | Verify build still passes after strip | T5 | 5min |
-| T7.1 | Identify duplicate/stale rows in FEATURES metaengine | T7 | 5min |
-| T7.2 | Remove duplicates, fix stale statuses | T7 | 5min |
+| #    | Task                                                                   | From | Effort |
+| ---- | ---------------------------------------------------------------------- | ---- | ------ |
+| T1.1 | `git push origin --tags`                                               | T1   | 5min   |
+| T2.1 | Run `nix run .#verify-fast`                                            | T2   | 10min  |
+| T3.1 | Find the [v4.3.0] boundary in CHANGELOG                                | T3   | 2min   |
+| T3.2 | Insert `## [v4.7.0] — 2026-08-08` header above [v4.3.0]                | T3   | 2min   |
+| T3.3 | Add release summary line                                               | T3   | 5min   |
+| T4.1 | Fix C002 annotation: "OPEN" → "DONE — TransportAdapter guard exists"   | T4   | 3min   |
+| T4.2 | Fix C027 annotation: "OPEN" → "DONE — ReceiverIsEventBus guard exists" | T4   | 3min   |
+| T4.3 | Fix S010 annotation: "OPEN" → "DONE — Use/UsePublish check exists"     | T4   | 3min   |
+| T5.1 | `git tag -a query/v4.3.0 -m "..."`                                     | T5   | 2min   |
+| T5.2 | `git tag -a metaengine/dgraphengine/v4.0.2 -m "..."`                   | T5   | 2min   |
+| T5.3 | `git tag -a flightrecorder/v4.0.0 -m "..."`                            | T5   | 2min   |
+| T5.4 | Strip replace directives from storage/* go.mod files                   | T5   | 5min   |
+| T5.5 | Verify build still passes after strip                                  | T5   | 5min   |
+| T7.1 | Identify duplicate/stale rows in FEATURES metaengine                   | T7   | 5min   |
+| T7.2 | Remove duplicates, fix stale statuses                                  | T7   | 5min   |
 
 ---
 
@@ -100,6 +101,7 @@ handle `^{}` peeled entries). `git push origin --tags` returned "Everything
 up-to-date." All pre-existing tags were already on origin.
 
 **3 new tags created and pushed:**
+
 - `query/v4.3.0` — querytest.RunStoreSuite + StoreSuite interface
 - `metaengine/dgraphengine/v4.0.2` — DQL injection fix + Multimap/Log backends + calibration
 - `flightrecorder/v4.0.0` — Go 1.25 runtime/trace wrapper, zero-dep
@@ -152,6 +154,7 @@ is a cosmetic improvement, not a correctness fix. Deferred to future session.
 ### T8: Commit + push — IN PROGRESS
 
 Daemon committed all changes. 3 commits ahead of origin/master:
+
 1. `df23eb1bf` — docs(lint): FP elimination session documentation in TODO_LIST
 2. `f84d01e0d` — refactor(system): drainAll extraction + CHANGELOG v4.7.0 revert
 3. `eb3f2f7d6` — test(system): edge case tests for system lifecycle

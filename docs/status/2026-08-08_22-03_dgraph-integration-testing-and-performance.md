@@ -18,18 +18,18 @@
 
 Verified with both normal and `-race` execution:
 
-| Test                          | Status | Notes                                    |
-| ----------------------------- | ------ | ---------------------------------------- |
-| TestProfile                   | PASS   | Profile constants verified               |
-| TestMapBackend                | PASS   | Set, Get, Delete, missing key            |
-| TestGraphBackend              | PASS   | 3 edges, depth-1 neighbor query          |
-| TestDgraph_RecordStamping     | PASS   | Record type → Dgraph node                |
-| TestDgraphADTMatrix/Map       | PASS   | Cross-engine parity with Memory          |
-| TestDgraphADTMatrix/Set       | PASS   | Cross-engine parity                      |
-| TestDgraphADTMatrix/Counter   | PASS   | Cross-engine parity                      |
-| TestDgraphADTMatrix/Graph     | PASS   | Dgraph's native strength                 |
-| TestDgraphADTMatrix/Search    | PASS   | @index(term) full-text search             |
-| TestDgraphADTMatrix/SortedMap | PASS   | Degraded (Go-side sort) but correct      |
+| Test                          | Status | Notes                               |
+| ----------------------------- | ------ | ----------------------------------- |
+| TestProfile                   | PASS   | Profile constants verified          |
+| TestMapBackend                | PASS   | Set, Get, Delete, missing key       |
+| TestGraphBackend              | PASS   | 3 edges, depth-1 neighbor query     |
+| TestDgraph_RecordStamping     | PASS   | Record type → Dgraph node           |
+| TestDgraphADTMatrix/Map       | PASS   | Cross-engine parity with Memory     |
+| TestDgraphADTMatrix/Set       | PASS   | Cross-engine parity                 |
+| TestDgraphADTMatrix/Counter   | PASS   | Cross-engine parity                 |
+| TestDgraphADTMatrix/Graph     | PASS   | Dgraph's native strength            |
+| TestDgraphADTMatrix/Search    | PASS   | @index(term) full-text search       |
+| TestDgraphADTMatrix/SortedMap | PASS   | Degraded (Go-side sort) but correct |
 
 5 ADTs correctly skip (not implemented): Vector, Spatial, Multimap, Log, StreamLog.
 
@@ -38,6 +38,7 @@ Verified with both normal and `-race` execution:
 **Root cause**: Dgraph 25.x does NOT delete all predicates when `DeleteJson` contains only `{"uid": "0x1"}`. The node remains fully intact — all predicate values persist. This is a behavior change from older Dgraph versions.
 
 **Debug journey**: Three approaches tested and ALL failed silently (returned `nil` error but data remained):
+
 1. Upsert `DeleteJson` with `{"uid": "uid(entry)"}` — no-op
 2. Upsert `DelNquads` with `uid(entry) * * .` — no-op
 3. Two-step: query concrete UID → `Mutate(DeleteJson: {"uid": "0x1"})` — no-op
@@ -49,6 +50,7 @@ The fix is in `engine.go:MapDelete`.
 ### 4. DQL injection regression test
 
 **`metaengine/dgraphengine/injection_test.go`** — `TestNoDQLInjectionPatterns`:
+
 - Scans all non-test `.go` files in the package
 - Asserts no `dqlString` identifier exists (the deleted escaper)
 - Asserts no `fmt.Sprintf` with `cqrs.` AND `%` on the same line (with allowlist for `sanitizePredicate`, `graphEdgePredicate`, `firstClause`)
@@ -99,6 +101,7 @@ All 5 items from "Metaengine v2 — Remaining Gaps" section replaced with a comp
 ### MultimapBackend / LogBackend / SnapshotBackend for Dgraph
 
 Not started. These would require:
+
 - `MultimapBackend`: map of keys to lists — Dgraph can model this via edges or repeated predicate values
 - `LogBackend`: append-only log — Dgraph can model via ordered nodes with timestamps
 - `SnapshotBackend`: point-in-time state snapshots — Dgraph doesn't have native snapshot semantics; would need versioned predicates or a separate snapshot namespace
@@ -134,6 +137,7 @@ Two debug test files (`internal_debug_test.go`, `debug_delete_test.go`) were cre
 ### 1. Dgraph calibration constants need real-world validation
 
 The engine uses `DG_NsPerOp = 10000.0` (10µs) and `DG_NsPerRead = 8000.0` (8µs). Real benchmarks show:
+
 - **MapSet: 2,721,392 ns/op (2.7ms)** — 271x higher than the 10µs calibration
 - **MapGet: 344,395 ns/op (344µs)** — 43x higher than the 8µs calibration
 - **CounterIncrement: 2,392,882 ns/op (2.4ms)** — 239x higher
@@ -178,10 +182,12 @@ Added `graphrag_test.go` (2 functional tests), `mixed_bench_test.go` (4 benchmar
 and `stress_test.go` (concurrent stress test).
 
 **GraphRAG tests** (`graphrag_test.go`):
+
 - `TestGraphRAG_SearchThenGraphTraverse`: 8-entity knowledge graph, search "golang" → 2 hits → depth-2 graph expansion → 6 context entities. Validates the full pipeline correctness.
 - `TestGraphRAG_DifferentQueries`: 5 microservices with dependencies, validates search→expand across different query terms.
 
 **Concurrent stress test** (`stress_test.go`):
+
 - `TestGraphRAG_ConcurrentStress`: 200 entities, ~600 edges, 16 goroutines, 320 GraphRAG pipeline queries.
 
 | Metric     | Normal    | -race     |
@@ -194,6 +200,7 @@ Each "query" = SearchQuery (limit 5) + 5 x GraphNeighbors (depth 2) = 6 gRPC
 round-trips. Production-grade GraphRAG from a single Dgraph instance.
 
 **Mixed workload benchmarks** (`mixed_bench_test.go`):
+
 - `BenchmarkDgraph_GraphRAG_SearchThenExpand` (2.7ms): full GraphRAG pipeline — search + 5 depth-2 graph traversals.
 - `BenchmarkDgraph_GraphWriteReadMix` (4.8ms): 25% write + 75% read graph workload.
 - `BenchmarkDgraph_MapReadWriteMix` (671µs): 80% read + 20% write key-value workload.
@@ -274,6 +281,7 @@ proposition validated with real numbers.
 ### 1. Should I update the Dgraph calibration constants to match real benchmarks?
 
 The current `DG_NsPerOp = 10,000` (10µs) and `DG_NsPerRead = 8,000` (8µs) are 100-270x lower than real measurements (2.7ms write, 344µs read). This means the planner will route queries to Dgraph that should go to Memory/SQLite. I can update them, but I can't decide whether you want to:
+
 - (a) Set them to measured values (honest but pessimistic for production with network latency)
 - (b) Implement `Calibratable.Benchmark()` for auto-calibration at startup
 - (c) Leave them and document the discrepancy

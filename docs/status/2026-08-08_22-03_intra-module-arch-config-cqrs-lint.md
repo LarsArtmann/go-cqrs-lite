@@ -38,13 +38,13 @@
 
 This is the single biggest finding. While the config works locally, **it will not catch violations in CI**.
 
-| Gate | What it runs | Layer 2? |
-|------|-------------|----------|
-| `.github/workflows/ci.yml` job `module-layers` | `bash scripts/check-module-layers.sh` | **No** — Layer 1 only |
-| `.github/workflows/ci.yml` job (main quality) | `nix run .#check-layers` | **No** — Layer 1 only |
-| `nix run .#verify` | `nix run .#check-layers` | **No** — Layer 1 only |
-| `nix run .#verify-fast` | `nix run .#check-layers` | **No** — Layer 1 only |
-| `nix run .#check-arch` | `scripts/check-arch.sh` (both layers) | **Yes** — but nobody calls it |
+| Gate                                           | What it runs                          | Layer 2?                      |
+| ---------------------------------------------- | ------------------------------------- | ----------------------------- |
+| `.github/workflows/ci.yml` job `module-layers` | `bash scripts/check-module-layers.sh` | **No** — Layer 1 only         |
+| `.github/workflows/ci.yml` job (main quality)  | `nix run .#check-layers`              | **No** — Layer 1 only         |
+| `nix run .#verify`                             | `nix run .#check-layers`              | **No** — Layer 1 only         |
+| `nix run .#verify-fast`                        | `nix run .#check-layers`              | **No** — Layer 1 only         |
+| `nix run .#check-arch`                         | `scripts/check-arch.sh` (both layers) | **Yes** — but nobody calls it |
 
 The `nix run .#check-arch` app exists in `flake.nix:759` but is **orphaned** — not referenced by CI, verify, or verify-fast. This means all 7 per-module go-arch-lint configs (`event`, `command`, `kv`, `middleware`, `storage`, `catalog`, and now `cmd/cqrs-lint`) are **local-only enforcement**.
 

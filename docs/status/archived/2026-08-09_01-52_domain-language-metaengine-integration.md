@@ -85,6 +85,7 @@ Nothing. All changes are doc-only, doc-check passes, and no code was modified.
 ## f) Up to 50 Things to Get Done Next
 
 ### DOMAIN_LANGUAGE.md Polish (high ROI, low effort)
+
 1. Add individual ADR links to each metaengine subsection (Persistence→0098, Replication→0093, Layout→0073/0092, etc.)
 2. Add "(planned)" annotations to v2 vision terms not yet in code
 3. Add a "When to use Metaengine vs Manual Read Models" decision table at the top of the Metaengine section
@@ -97,6 +98,7 @@ Nothing. All changes are doc-only, doc-check passes, and no code was modified.
 10. Add `adttest` to the Tooling section (exported ADT test harness for cross-engine parity)
 
 ### Content Completeness
+
 11. The Read Patterns table lists 5 patterns but the code defines 11 (ReadMembership, ReadMultiLookup, ReadLogTail, ReadVectorSearch, ReadFullTextSearch, ReadSpatialRange are missing). Add them.
 12. The Cost Model section mentions `ComplexityODegree` for graph traversal but doesn't explain the cost formula `estimated_latency = (ops × nsPerOp / 1e6) + NetworkRTT`. Add it.
 13. The Fold DSL section doesn't mention `AutoInsert`/`AutoUpdate` (reflection-based auto-folds that stamp Record metadata). Add them.
@@ -109,12 +111,14 @@ Nothing. All changes are doc-only, doc-check passes, and no code was modified.
 20. The metaengine section doesn't mention `metaengine/keycodec/` (composite key encoding for LSM backends). Add it.
 
 ### Verification & Gates
+
 21. Run `nix run .#verify` to confirm the doc change didn't break anything downstream (doc-check is the relevant gate, but verify is the full safety net)
 22. Run the api-stability golden check to see if any exported symbols referenced in the doc changed (`cd cmd/api-stability && GOWORK=off go run main.go`)
 23. Run `nix run .#doc-check` (the flake version) to confirm the flake-configured path matches the manual run
 24. Add a CI gate that checks DOMAIN_LANGUAGE.md line count growth (prevent stale sections — if the codebase adds modules but the doc doesn't grow, flag it)
 
 ### Broader Documentation Health
+
 25. Check if `SKILL.md` and skill references need metaengine vocabulary updates (the skill is the AI consumer guide)
 26. Check if `FEATURES.md` reflects the metaengine's current feature set
 27. Check if `TODO_LIST.md` has stale metaengine tasks
@@ -123,6 +127,7 @@ Nothing. All changes are doc-only, doc-check passes, and no code was modified.
 30. Check `docs/README.md` (docs index) links to the domain language
 
 ### Metaengine Deep Cuts (for a future session)
+
 31. Document the `ContractSuite` testing helper (exported for engine implementors)
 32. Document `metaengine/irohengine/` three-tier transport testing pyramid in the domain language
 33. Document the `loopback/` and `quic/` transport modules
@@ -140,6 +145,7 @@ Nothing. All changes are doc-only, doc-check passes, and no code was modified.
 45. Check if the `docs/MIGRATION-kv-to-metaengine.md` doc uses consistent vocabulary
 
 ### Polish
+
 46. Add a table of contents at the top of DOMAIN_LANGUAGE.md (the file is now 903 lines — a ToC would help navigation)
 47. Add section anchors/IDs for cross-referencing from other docs
 48. Consider splitting the metaengine section into its own `docs/METAENGINE_DOMAIN_LANGUAGE.md` if it grows further

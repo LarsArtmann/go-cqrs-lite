@@ -12,16 +12,17 @@
 
 After executing the [false-positive elimination plan](../planning/2026-08-08_23-33_cqrs-lint-false-positive-elimination.md):
 
-| Metric | Pre-Fix | Post-Fix | Change |
-|--------|---------|----------|--------|
-| Total findings | 128 | 96 | -32 |
-| True positives | 89 | 89 | 0 (all preserved) |
-| False positives | 39 | ~7 | -32 (82% eliminated) |
-| FP rate | 30.5% | ~7.3% | -76% |
-| Critical-severity FPs | 5 | 0 | -5 (all eliminated) |
-| Error-severity FPs | 6 | 0 | -6 (all eliminated) |
+| Metric                | Pre-Fix | Post-Fix | Change               |
+| --------------------- | ------- | -------- | -------------------- |
+| Total findings        | 128     | 96       | -32                  |
+| True positives        | 89      | 89       | 0 (all preserved)    |
+| False positives       | 39      | ~7       | -32 (82% eliminated) |
+| FP rate               | 30.5%   | ~7.3%    | -76%                 |
+| Critical-severity FPs | 5       | 0        | -5 (all eliminated)  |
+| Error-severity FPs    | 6       | 0        | -6 (all eliminated)  |
 
 **Eliminated FPs by fix:**
+
 - Transport adapter detection (C002×5 + A001×5 + E005×5 = 15 FPs)
 - E007 Type() method requirement + per-package registration check (7 FPs)
 - D005 code block/import path/pseudo-version skip (partial)
@@ -37,20 +38,20 @@ After executing the [false-positive elimination plan](../planning/2026-08-08_23-
 
 During the post-fix review ([execution report](2026-08-09_00-19_cqrs-lint-fp-elimination-execution.md)), **at least 10 of the original 39 "FPs" were actually true positives (TPs)**:
 
-| Rule | Count | Original Classification | Correct Classification | Reason |
-|------|-------|------------------------|----------------------|--------|
-| D005 | 4 | FP (version misparse) | **TP** | Docs genuinely reference stale versions (e.g., v4.2.0 vs go.mod v4.3.0+). The linter was correct — the docs ARE stale. |
-| A005 | 1 | FP (type-blind on DualWriteBus) | **TP** | Kernovia `DualWriteBus` **embeds** `event.Bus`, so it IS an event bus. SubscribeAll on it is a real manual-projection candidate. |
-| A032 | 5 | FP (display DTO) | **TP** | Kernovia `PluginID string` on **domain command** types — these should use branded IDs. Mistakenly grouped with transport-adapter FPs in the same file. |
+| Rule | Count | Original Classification         | Correct Classification | Reason                                                                                                                                                 |
+| ---- | ----- | ------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| D005 | 4     | FP (version misparse)           | **TP**                 | Docs genuinely reference stale versions (e.g., v4.2.0 vs go.mod v4.3.0+). The linter was correct — the docs ARE stale.                                 |
+| A005 | 1     | FP (type-blind on DualWriteBus) | **TP**                 | Kernovia `DualWriteBus` **embeds** `event.Bus`, so it IS an event bus. SubscribeAll on it is a real manual-projection candidate.                       |
+| A032 | 5     | FP (display DTO)                | **TP**                 | Kernovia `PluginID string` on **domain command** types — these should use branded IDs. Mistakenly grouped with transport-adapter FPs in the same file. |
 
 **Corrected counts:**
 
-| Metric | Original Claim | Corrected |
-|--------|---------------|-----------|
-| Original TPs | 89 | **99** (+10 reclassified) |
-| Original FPs | 39 | **~29** (-10 reclassified) |
-| Original FP rate | 30.5% | **~22.7%** |
-| Post-fix remaining "FPs" | ~7 | **~3** (D005 x4 and A005 x1 are TPs, not FPs) |
+| Metric                   | Original Claim | Corrected                                     |
+| ------------------------ | -------------- | --------------------------------------------- |
+| Original TPs             | 89             | **99** (+10 reclassified)                     |
+| Original FPs             | 39             | **~29** (-10 reclassified)                    |
+| Original FP rate         | 30.5%          | **~22.7%**                                    |
+| Post-fix remaining "FPs" | ~7             | **~3** (D005 x4 and A005 x1 are TPs, not FPs) |
 
 **Lesson:** The original manual FP classification was sloppy — findings were grouped by rule without verifying each individual case. D005 findings on prose version references were assumed to be import-path misparses without checking the actual doc content. A032 findings on PluginID were assumed to be display-DTO FPs because transport-adapter FPs existed in the same file.
 
@@ -58,15 +59,15 @@ During the post-fix review ([execution report](2026-08-09_00-19_cqrs-lint-fp-eli
 
 ## Pre-Fix Executive Summary
 
-| Metric | Value |
-|--------|-------|
-| Total findings | 128 |
-| True positives | 89 (69.5%) |
-| False positives | 39 (30.5%) |
+| Metric                | Value                              |
+| --------------------- | ---------------------------------- |
+| Total findings        | 128                                |
+| True positives        | 89 (69.5%)                         |
+| False positives       | 39 (30.5%)                         |
 | Critical-severity FPs | 5 (all C002 on transport adapters) |
-| Error-severity FPs | 6 |
-| Warning-severity FPs | 18 |
-| Info-severity FPs | 10 |
+| Error-severity FPs    | 6                                  |
+| Warning-severity FPs  | 18                                 |
+| Info-severity FPs     | 10                                 |
 
 **The 30.5% false-positive rate is too high for production use without `--fp-suspects` or suppression directives.** The five critical-severity false positives (C002 on transport adapter commands) are the most damaging — they would block CI on incorrect findings.
 
@@ -76,16 +77,16 @@ The linter's built-in `--fp-suspects` mode (confidence ≤ 0.25) catches only 21
 
 ## Per-Repo Breakdown
 
-| Repo | Findings | TP | FP | FP% | Notes |
-|------|----------|----|----|-----|-------|
-| Standup-Killer | 1 | 1 | 0 | 0% | Only V006 (version alignment) |
-| timesheets | 5 | 5 | 0 | 0% | Clean — all findings actionable |
-| bank-sync | 0 | 0 | 0 | — | No findings (minimal CQRS surface) |
-| KeyHolderAI | 4 | 3 | 1 | 25% | D005 version misparse |
-| Kernovia | 74 | 53 | 21 | 28% | Largest codebase, most findings |
-| crush-daily | 27 | 20 | 7 | 26% | E007 registration tracing failures |
-| cqrs-htmx | 11 | 4 | 7 | 64% | Type-blind matching + display DTOs |
-| DiscordSync | 6 | 3 | 3 | 50% | Empty doc.go + version misparse |
+| Repo           | Findings | TP  | FP  | FP% | Notes                              |
+| -------------- | -------- | --- | --- | --- | ---------------------------------- |
+| Standup-Killer | 1        | 1   | 0   | 0%  | Only V006 (version alignment)      |
+| timesheets     | 5        | 5   | 0   | 0%  | Clean — all findings actionable    |
+| bank-sync      | 0        | 0   | 0   | —   | No findings (minimal CQRS surface) |
+| KeyHolderAI    | 4        | 3   | 1   | 25% | D005 version misparse              |
+| Kernovia       | 74       | 53  | 21  | 28% | Largest codebase, most findings    |
+| crush-daily    | 27       | 20  | 7   | 26% | E007 registration tracing failures |
+| cqrs-htmx      | 11       | 4   | 7   | 64% | Type-blind matching + display DTOs |
+| DiscordSync    | 6        | 3   | 3   | 50% | Empty doc.go + version misparse    |
 
 **Key insight:** FP rate correlates with codebase complexity patterns, not size. cqrs-htmx (small but uses SSE broadcaster with same-named `Subscribe()` method) has the highest FP rate.
 
@@ -158,23 +159,23 @@ The linter suggests branded IDs (`id.Of[T]`) for string fields in display/view-m
 
 ## False Positives by Rule (Sorted by FP Count)
 
-| Rule | Total | FP | FP% | FP Severity | Root Cause |
-|------|-------|----|-----|------------|------------|
-| E007 | 7 | 7 | 100% | info | Registration tracing |
-| C002 | 10 | 5 | 50% | **critical** | Pattern (transport adapters) |
-| E005 | 5 | 5 | 100% | warning | Registration tracing |
-| A001 | 10 | 5 | 50% | error | Pattern (transport adapters) |
-| D005 | 4 | 4 | 100% | warning | Version misparse |
-| A032 | 8 | 3 | 38% | warning | Display DTO |
-| A005 | 4 | 2 | 50% | warning | Type-blind |
-| C034 | 1 | 1 | 100% | warning | Pattern (HTTP shutdown) |
-| C035 | 1 | 1 | 100% | warning | Pattern (per-request struct) |
-| S010 | 1 | 1 | 100% | error | Type-blind |
-| C013 | 1 | 1 | 100% | info | Pattern (json:"-" tag) |
-| C027 | 1 | 1 | 100% | warning | Type-blind |
-| E009 | 1 | 1 | 100% | info | Pattern (own transport) |
-| E014 | 2 | 1 | 50% | info | Pattern (empty doc.go) |
-| F005 | 3 | 1 | 33% | info | Pattern (empty doc.go) |
+| Rule | Total | FP  | FP%  | FP Severity  | Root Cause                   |
+| ---- | ----- | --- | ---- | ------------ | ---------------------------- |
+| E007 | 7     | 7   | 100% | info         | Registration tracing         |
+| C002 | 10    | 5   | 50%  | **critical** | Pattern (transport adapters) |
+| E005 | 5     | 5   | 100% | warning      | Registration tracing         |
+| A001 | 10    | 5   | 50%  | error        | Pattern (transport adapters) |
+| D005 | 4     | 4   | 100% | warning      | Version misparse             |
+| A032 | 8     | 3   | 38%  | warning      | Display DTO                  |
+| A005 | 4     | 2   | 50%  | warning      | Type-blind                   |
+| C034 | 1     | 1   | 100% | warning      | Pattern (HTTP shutdown)      |
+| C035 | 1     | 1   | 100% | warning      | Pattern (per-request struct) |
+| S010 | 1     | 1   | 100% | error        | Type-blind                   |
+| C013 | 1     | 1   | 100% | info         | Pattern (json:"-" tag)       |
+| C027 | 1     | 1   | 100% | warning      | Type-blind                   |
+| E009 | 1     | 1   | 100% | info         | Pattern (own transport)      |
+| E014 | 2     | 1   | 50%  | info         | Pattern (empty doc.go)       |
+| F005 | 3     | 1   | 33%  | info         | Pattern (empty doc.go)       |
 
 ### Rules with 0% false positives (clean rules):
 
@@ -195,18 +196,18 @@ All other rules that fired had **zero false positives** — every finding was a 
 
 The linter's built-in `--fp-suspects` flag (shows only confidence ≤ 0.25) identifies 21 findings as "likely false positives." Comparison with manual classification:
 
-| | Manual FP | fp-suspects caught | Missed |
-|---|---|---|---|
-| Total | 39 | 11 | 28 |
+|       | Manual FP | fp-suspects caught | Missed |
+| ----- | --------- | ------------------ | ------ |
+| Total | 39        | 11                 | 28     |
 
 **fp-suspects catches 28% of actual false positives.** The 28 missed FPs all have confidence ≥ 0.5 — the linter is confident they're real. The most dangerous missed FPs:
 
-| Finding | Severity | Confidence | Why dangerous |
-|---------|----------|------------|---------------|
-| C002 × 5 | critical | 0.75 | Blocks CI on transport adapter commands |
-| A001 × 5 | error | 0.75 | Same commands, pattern finding |
-| E005 × 5 | warning | 0.5 | Transport adapters flagged as unregistered |
-| S010 | error | 0.5 | Dead code flagged as active middleware |
+| Finding  | Severity | Confidence | Why dangerous                              |
+| -------- | -------- | ---------- | ------------------------------------------ |
+| C002 × 5 | critical | 0.75       | Blocks CI on transport adapter commands    |
+| A001 × 5 | error    | 0.75       | Same commands, pattern finding             |
+| E005 × 5 | warning  | 0.5        | Transport adapters flagged as unregistered |
+| S010     | error    | 0.5        | Dead code flagged as active middleware     |
 
 **Recommendation:** `--fp-suspects` is necessary but not sufficient. Confidence calibration needs adjustment — findings about registration status (E005/E007) and middleware wiring (S010) should default to lower confidence since the linter can't fully trace runtime behavior.
 
@@ -217,14 +218,17 @@ The linter's built-in `--fp-suspects` flag (shows only confidence ≤ 0.25) iden
 These findings represent the linter at its best — real bugs and anti-patterns that would cause production issues:
 
 ### Critical
+
 1. **C002 × 5 (Kernovia):** Domain commands return zero `CommandID{}` — if idempotency is ever enabled, all commands of the same type collide on the same ID. Real bug.
 2. **C005 × 6 (Kernovia):** Raw `json.Unmarshal` on event payloads — will fail silently when events use CBOR encoding. Mixed-codec bug.
 
 ### Error
+
 3. **A001 × 5 (Kernovia):** Manual command interface implementation — should embed `*command.BasicCommand`.
 4. **P012/P013 (Kernovia):** SQLite without WAL or busy_timeout — will hit "database is locked" under concurrent access.
 
 ### Warning
+
 5. **C008 × 12 (crush-daily):** `float64` for monetary fields — classic rounding error source.
 6. **D006 × 8 (Kernovia):** Unclassified errors bypassing the 6-family taxonomy.
 7. **V006 × 7 (all repos):** `record/v4` pinned at v4.0.0 while siblings use v4.2.0–v4.6.0.
@@ -243,14 +247,16 @@ These findings represent the linter at its best — real bugs and anti-patterns 
 
 **Impact:** 100% false-positive rate on these rules makes them noise.
 
-**Fix:** 
+**Fix:**
+
 - Trace through single-call-site wrapper functions (if a function's body is just `dispatcher.Register(name, handler)`, treat calls to it as registration).
 - Skip types that don't implement the full `query.Query` interface (no `Type()` method) — DTOs with only `form` tags are not query types.
 - Lower confidence to 0.25 for all E005/E007 findings (can't prove non-registration, only absence of evidence).
 
 ### ~~Priority 3: Fix type-blind matching (A005, C027, S010)~~
 
-**Status: ALL DONE.** 
+**Status: ALL DONE.**
+
 - **A005 DONE** — broadcast vs persistence classification.
 - **C027 DONE** — `ReceiverIsEventBus()` at `type_helpers.go:45` resolves the receiver type via `pkg.TypesInfo` and checks for `cqrs-lite/event/` package path. C027 calls it at `c027.go:51` — non-event-bus receivers (e.g., `*sse.Broadcaster`, `*ErrorBus`) are skipped.
 - **S010 DONE** — S010 now only scans arguments of `bus.Use()`/`bus.UsePublish()` calls. The selector filter at `s010.go:55` (`sel.Sel.Name != "Use" && sel.Sel.Name != "UsePublish"`) prevents firing on middleware that is merely defined but never wired. All 3 type-blind FPs eliminated.

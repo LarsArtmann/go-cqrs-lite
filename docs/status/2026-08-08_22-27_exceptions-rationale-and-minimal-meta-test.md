@@ -8,6 +8,7 @@
 ## a) FULLY DONE
 
 ### 1. Per-entry rationale comments — DONE
+
 - **What was asked:** The remaining 7 EXCEPTIONS entries in `scripts/check-module-layers.sh` had only a generic header comment ("Some modules legitimately depend on test helpers"). Each entry needed a comment explaining WHY the exception is legitimate.
 - **What I did:** Researched all 8 entries (the task said 7, but there were 8 after the prior session removed 2 and left 8 — the count was off in the source). For each entry, I checked:
   - Whether the dependency is imported from production `.go` files or only `_test.go` files
@@ -22,6 +23,7 @@
 - **Verified:** `nix run .#check-layers` passes.
 
 ### 2. TestExceptionsAreMinimal meta-test — DONE
+
 - **What was asked:** Automate dead-exception detection — remove EXCEPTIONS entries where `dep_layer <= mod_layer`. Prevents the `schema→snapshot` and `transport/http→testutil` class of stale entries.
 - **What I did:** Added `TestExceptionsAreMinimal` to `cmd/api-stability/main_test.go` (following the established `TestEveryGoModDirIsInModulesList` pattern). The test:
   1. Reads `scripts/check-module-layers.sh` via `os.ReadFile`
@@ -124,11 +126,11 @@ Nothing was broken. No regressions. Both changes are comment-only (script) and t
 
 ## Summary Table
 
-| Item | Status | Files Changed | Verified |
-|------|--------|---------------|----------|
-| 1. Per-entry rationale comments | DONE | 1 (scripts/check-module-layers.sh, +39 lines comment-only) | `nix run .#check-layers` pass |
-| 2. TestExceptionsAreMinimal meta-test | DONE | 1 (cmd/api-stability/main_test.go, +80 lines) | 7/7 tests pass, negative test verified |
-| Full verify gate | NOT RUN | — | — |
-| TODO_LIST.md update | NOT DONE | — | — |
-| Cache blind spot fix | NOT DONE | — | — |
-| Indirect-only dead exception detection | NOT DONE | — | — |
+| Item                                   | Status   | Files Changed                                              | Verified                               |
+| -------------------------------------- | -------- | ---------------------------------------------------------- | -------------------------------------- |
+| 1. Per-entry rationale comments        | DONE     | 1 (scripts/check-module-layers.sh, +39 lines comment-only) | `nix run .#check-layers` pass          |
+| 2. TestExceptionsAreMinimal meta-test  | DONE     | 1 (cmd/api-stability/main_test.go, +80 lines)              | 7/7 tests pass, negative test verified |
+| Full verify gate                       | NOT RUN  | —                                                          | —                                      |
+| TODO_LIST.md update                    | NOT DONE | —                                                          | —                                      |
+| Cache blind spot fix                   | NOT DONE | —                                                          | —                                      |
+| Indirect-only dead exception detection | NOT DONE | —                                                          | —                                      |

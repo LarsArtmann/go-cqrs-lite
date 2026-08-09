@@ -17,30 +17,35 @@
 ## A) FULLY DONE
 
 ### 1. Shared framing constants extracted (`irohengine/framing.go`)
+
 - `FrameHeaderSize = 4` and `ErrFrameTooLarge` sentinel now live in one place.
 - `quic/frame.go` and `loopback/frame.go` both alias via `const frameHeaderSize = irohengine.FrameHeaderSize`.
 - I/O code (writeFrame/readFrame) stays per-transport as specified.
 - **Verified:** builds + vet pass on all 3 modules.
 
 ### 2. Runtime protocol-mismatch detection for QUIC stream pooling (magic byte)
+
 - `pooledStreamMagic = 0x50` prepended to every pooled stream's first frame.
 - Receiver (`handleStream`, `handlePooledStream`) peeks first byte, detects mismatch, calls `stream.Send().Finish()` to unblock sender, returns.
 - `TestQuicPooledToNonPooled_NoHang` confirms no hang + op does NOT arrive at wrong receiver.
 - **Verified:** QUIC tests pass (CGo, 300s timeout).
 
 ### 3. Stream-reuse counter on `peerConn`
+
 - `peerConn.streamsOpened atomic.Int64` incremented under `streamMu` in `sendOpPooled`.
 - `QuicTransport.StreamsOpenedForPeer(peerID string) int64` public accessor.
 - `TestQuicPooled_StreamReuse` asserts 20 ops use exactly 1 stream.
 - **Verified:** QUIC tests pass.
 
 ### 4. Injectable clock ported to QUIC LWW tests
+
 - `quicManualClock` type (mirrors in-process `manualClock`) with `Now()`/`Advance()`.
 - `TestQuicLWWResolution` rewritten to use `WithClock` — zero `time.Sleep` timing assumptions.
 - Both nodes share the same clock instance for deterministic timestamp ordering.
 - **Verified:** QUIC tests pass.
 
 ### 5. `RunConvergenceSuite(t, factory)` shared test harness
+
 - `ClusterFactory` type + `RunConvergenceSuite` function in `irohengine` package.
 - 6 subtests: MapConvergence, Bidirectional, CounterConvergence, SetConvergence, LogConvergence, MultimapConvergence.
 - Polling helpers (`waitForMap`, `waitForCounter`, `waitForSetContains`, `waitForLogTail`, `waitForMultimap`) work with both sync (in-process) and async (loopback, QUIC) transports.
@@ -52,6 +57,7 @@
 - **Verified:** all 18 subtests (6 × 3) pass. Race-tested in-process + loopback.
 
 ### 6. Documentation updated
+
 - `TODO_LIST.md`: all 5 irohengine items marked `[x]`.
 - `CHANGELOG.md`: new "Added — Irohengine transport hardening, convergence test suite" section with all 5 items.
 
@@ -60,6 +66,7 @@
 ## B) PARTIALLY DONE
 
 ### API stability golden (`docs/api_surface.txt`)
+
 - The working tree has a dirty `api_surface.txt` with all 5 new exports correctly added (`FrameHeaderSize`, `ErrFrameTooLarge`, `RunConvergenceSuite`, `ClusterFactory`, `StreamsOpenedForPeer`).
 - **BUT:** this file is uncommitted in the working tree. The auto-commit daemon committed the source code changes but NOT this golden file update.
 - AGENTS.md rule: "API-surface changes require golden regen in the same edit" — I should have done this proactively, not relied on the daemon.
@@ -70,20 +77,25 @@
 ## C) NOT STARTED
 
 ### `nix run .#verify` — the full verification gate
+
 - **NOT RUN.** This is the biggest gap. AGENTS.md is explicit: "every session that changes code, go.mod, or docs must run `nix run .#verify` before claiming GREEN."
 - I ran per-module `go test` + `go vet` + targeted `-race` on 2 of 3 modules. This is NOT equivalent to the verify gate, which includes: build, vet, test, race, lint, doc-check, doc-assertions, api-stability, coverage, duplication check, arch check.
 - **Risk:** lint failures (golint/golangci-lint may flag the new code), doc-check failures (if SKILL.md or AGENTS.md references are now stale), coverage drift, duplication baseline mismatch.
 
 ### `nix fmt`
+
 - Not run. Could cause lint failures if formatting is off.
 
 ### `nix run .#check-duplication`
+
 - Not run. The consolidation should reduce duplication, but the `.art-dupl-baseline.json` golden was not verified.
 
 ### `nix run .#check-coverage`
+
 - Not run. Coverage drift detection not verified.
 
 ### QUIC `-race` test run
+
 - In-process and loopback convergence suites were race-tested. QUIC was NOT.
 - QUIC has the most concurrent goroutines (stream pools, connection handlers, CBOR encode/decode) and is the most likely to surface data races.
 
@@ -120,6 +132,7 @@
 ## F) NEXT THINGS TO DO (up to 50)
 
 ### Immediate (blocks GREEN claim)
+
 1. Run `nix run .#verify` and fix any failures
 2. Commit `docs/api_surface.txt` (uncommitted golden update)
 3. Add `t.Parallel()` to `TestQuicConvergenceSuite`
@@ -127,6 +140,7 @@
 5. Investigate the `docs/DOMAIN_LANGUAGE.md` uncommitted changes (not authored this session)
 
 ### Short-term (irohengine quality)
+
 6. Consider moving `RunConvergenceSuite`/`ClusterFactory` to a `transporttest` sub-package to avoid polluting the public API
 7. Run `nix run .#check-duplication` and update `.art-dupl-baseline.json` if the consolidation changed clone counts
 8. Run `nix run .#check-coverage` and verify coverage didn't regress
@@ -138,6 +152,7 @@
 14. Verify the `sameSetAny` helper handles non-string elements correctly (edge case: `MultiGet` returning `[]any` with non-string values from CBOR decode)
 
 ### Medium-term (broader irohengine improvements)
+
 15. Add a 3-node convergence test to the shared suite (in-process `TestMapConvergence3Node` exists but is transport-specific)
 16. Add network partition/recovery tests (simulate with `loopback.LoopbackTransport` disconnect)
 17. Add a convergence test for concurrent writes to the SAME key from both nodes (LWW stress)
@@ -151,6 +166,7 @@
 25. Add CBOR type normalization tests for non-string types (int, float, bool across transports)
 
 ### Architecture / code quality
+
 26. Run `nix run .#check-arch` to verify the new `framing.go` doesn't violate layer rules
 27. Verify `convergence_suite.go` doesn't exceed the 350-line file limit
 28. Check if `convergence_suite.go` functions are under 30 lines each
@@ -161,6 +177,7 @@
 33. Consider extracting polling helpers (`waitForMap`, etc.) to a shared testutil package
 
 ### Testing infrastructure
+
 34. Add a `TestConvergenceSuiteCoversAllCRDTOps` meta-test that verifies the suite tests all CRDT-safe ops
 35. Add a property-based test for convergence (rapid-generated ops, verify convergence)
 36. Add a soak test for QUIC convergence (1000+ ops, verify all arrive)
@@ -170,6 +187,7 @@
 40. Add logging/diagnostics to the polling helpers (how many polls before convergence?)
 
 ### Documentation
+
 41. Document the magic byte protocol in an ADR
 42. Document the stream pooling architecture in an ADR
 43. Add a sequence diagram for pooled vs non-pooled protocol negotiation
@@ -178,6 +196,7 @@
 46. Add the framing protocol spec to `docs/architecture-understanding/`
 
 ### Cleanup
+
 47. Remove the deprecated `retry/` module references if irohengine doesn't need them
 48. Verify all `replace` directives in irohengine go.mod files are current
 49. Check if `pooledStreamMagic` should be shared in `framing.go` (currently only in `quic/pool.go`)
@@ -188,10 +207,13 @@
 ## G) QUESTIONS (cannot figure out myself)
 
 ### 1. Should the `docs/DOMAIN_LANGUAGE.md` changes be committed or reverted?
+
 The working tree has 306 lines of uncommitted changes to `docs/DOMAIN_LANGUAGE.md` adding Record and Metaengine domain language. I did NOT author these — they appeared in the working tree during this session. Per AGENTS.md, I should not revert changes I didn't author. But I also can't verify their correctness without understanding the full Record/metaengine domain model context. Should I commit them, leave them, or should you review them first?
 
 ### 2. Should `RunConvergenceSuite` and `ClusterFactory` be moved to a `transporttest` sub-package?
+
 Currently they're exported from the main `irohengine` package, adding to the public API surface. Consumers who import `irohengine` for `Replicated()` now also get test infrastructure symbols. Moving to `irohengine/transporttest` would isolate the test API, but would require a new go.mod (dependency budget). What's the preferred tradeoff?
 
 ### 3. Is the QUIC transport ready for tagging, or are there pending features blocking a release?
+
 The 5 TODO items are done, but I haven't run the full verify gate. Before tagging `metaengine/irohengine/quic/v4.x.y`, should we wait for `nix run .#verify` to pass, or are there other pending irohengine features that should go in the same tag?

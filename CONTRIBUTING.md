@@ -234,10 +234,10 @@ Examples:
 
 The project enforces a **two-layer architecture model** via `scripts/check-arch.sh`:
 
-| Layer | Scope | Tool |
-|-------|-------|------|
-| Layer 1 | Cross-module dependency tiers + budgets | `check-module-layers.sh` (go.mod parsing) |
-| Layer 2 | Intra-module package dependencies | `go-arch-lint` (per-module `.go-arch-lint.yml`) |
+| Layer   | Scope                                   | Tool                                            |
+| ------- | --------------------------------------- | ----------------------------------------------- |
+| Layer 1 | Cross-module dependency tiers + budgets | `check-module-layers.sh` (go.mod parsing)       |
+| Layer 2 | Intra-module package dependencies       | `go-arch-lint` (per-module `.go-arch-lint.yml`) |
 
 ```bash
 # Full two-layer check (recommended — used in verify gate + CI)

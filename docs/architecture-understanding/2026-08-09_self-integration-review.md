@@ -36,20 +36,21 @@ Both `stack.Bundle` and `system.System` sit in Tier 5 and solve the same
 problem — wire a decider to storage, bus, and projections — with **fundamentally
 different philosophies** and **no compatibility layer** between them.
 
-| Dimension | `stack.Bundle` | `system.System` |
-|---|---|---|
-| Composition model | Peer field bag; consumer wires via accessors | Constructor-driven, auto-wired from 2 configs |
-| Config type | Go code (options) | `DomainConfig` (closures) + `DeploymentConfig` (YAML data) |
-| Storage layer | `storage.SQLBackend` / `storage/pebble` / `kv.Store` (direct) | `metaengine.Engine` / `StreamLogBackend` (via adapters) |
-| Event bus | `watermill.EventBus` (external dep, persistent, retries) | `simpleBus` (internal, no persistence/retry/async) |
-| Driver model | Hardcoded preset functions | `database/sql`-style driver registry (`RegisterDriver`) |
-| Projections | `Materialize` (KV) + `RunProjections` (watermill channel) | `projectionadapter.Adapter` → `metaengine.Store` + `projectionhost.Host` |
-| Backends wired | **8** presets (memory, sqlite, pebble, bbolt, duckdb, postgres, mysql, turso) | **2** built-in drivers (memory, sqlite); others must `RegisterDriver` at init |
-| Config loading | Go options only | YAML + env via koanf (`LoadConfig`) |
-| Safety | None | SCREAM checks, plan-drift detection, `CheckSafety` |
-| Lifecycle | `Bundle.Close()` (closer dedup) | `System.Close()` + `GracefulClose(ctx)` + `Drain()` + drainers |
+| Dimension         | `stack.Bundle`                                                                | `system.System`                                                               |
+| ----------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Composition model | Peer field bag; consumer wires via accessors                                  | Constructor-driven, auto-wired from 2 configs                                 |
+| Config type       | Go code (options)                                                             | `DomainConfig` (closures) + `DeploymentConfig` (YAML data)                    |
+| Storage layer     | `storage.SQLBackend` / `storage/pebble` / `kv.Store` (direct)                 | `metaengine.Engine` / `StreamLogBackend` (via adapters)                       |
+| Event bus         | `watermill.EventBus` (external dep, persistent, retries)                      | `simpleBus` (internal, no persistence/retry/async)                            |
+| Driver model      | Hardcoded preset functions                                                    | `database/sql`-style driver registry (`RegisterDriver`)                       |
+| Projections       | `Materialize` (KV) + `RunProjections` (watermill channel)                     | `projectionadapter.Adapter` → `metaengine.Store` + `projectionhost.Host`      |
+| Backends wired    | **8** presets (memory, sqlite, pebble, bbolt, duckdb, postgres, mysql, turso) | **2** built-in drivers (memory, sqlite); others must `RegisterDriver` at init |
+| Config loading    | Go options only                                                               | YAML + env via koanf (`LoadConfig`)                                           |
+| Safety            | None                                                                          | SCREAM checks, plan-drift detection, `CheckSafety`                            |
+| Lifecycle         | `Bundle.Close()` (closer dedup)                                               | `System.Close()` + `GracefulClose(ctx)` + `Drain()` + drainers                |
 
 **References:**
+
 - `stack.Bundle` — `stack/bundle.go:34` (bag of peer interface fields)
 - `system.System` — `system/system.go:111`
 - Driver registry — `system/driver_registry.go:19` (`DriverFactory`), `:116` (only `memory` + `sqlite` registered)
@@ -66,11 +67,11 @@ no bridge.
 v1 tiers all implement the one good contract — `projection.Projection`
 (`projection/projection.go:23`: `Name() / Handle(ctx, evt) / EventTypes()`):
 
-| Tier | Type | Location |
-|---|---|---|
-| KV/Materialize | `stack.Materialize[V,K]` | `stack/materialize.go:56` |
+| Tier           | Type                                              | Location                           |
+| -------------- | ------------------------------------------------- | ---------------------------------- |
+| KV/Materialize | `stack.Materialize[V,K]`                          | `stack/materialize.go:56`          |
 | Relational/SQL | `storage.RelationalProjection` + `ProjectionSink` | `storage/relational/projection.go` |
-| Graph | `graph.GraphProjection` + `GraphSink` | `graph/projection.go` |
+| Graph          | `graph.GraphProjection` + `GraphSink`             | `graph/projection.go`              |
 
 These coexist with `metaengine` + `projectionadapter`
 (`metaengine/projectionadapter/adapter.go:63`).
@@ -130,6 +131,7 @@ KV/Materialize, Relational/SQL (`storage.SQLViewStore` at
 `projectionhost.Host` (`projectionhost/host.go:32`).
 
 **Consumer steps (v1):**
+
 1. Pick backend (`storage.NewSQLiteViewStore` or `kv.TypedStore`).
 2. `decider.NewRepository(store, pub, Decider{...})`.
 3. Hand-write `stack.Materialize[V,K]{Store, KeyFromEvent, OnCreate, OnUpdate, OnTombstone}` — OR a `RelationalProjection` handler — OR a `GraphProjection` handler.
@@ -141,12 +143,14 @@ inference of query shape; filter/sort/pagination each require a different tier.
 ### 2.2 What metaengine provides (today)
 
 **Engine interface** — intentionally tiny (`metaengine/engine.go:547`):
+
 ```go
 type Engine interface {
     Profile() EngineProfile
     Closer
 }
 ```
+
 Backends declare capability via **optional per-ADT backend interfaces** (ISP),
 not one fat interface: `MapBackend`, `MapUpdater`, `ScanBackend`,
 `PushdownScan`, `LayoutPlanner`, `LayoutPlanApplier`, `RawValueReader`,
@@ -159,9 +163,11 @@ ADTLog, ADTStreamLog, ADTSortedMap, ADTMultimap` (+ `ADTVector, ADTSearch,
 ADTSpatial` referenced in profiles).
 
 **Plan function** (`metaengine/planner.go:75`):
+
 ```go
 func Plan(engines []Engine, args ...any) (*Store, error)
 ```
+
 Cost-based ranking per query via `EngineProfile` (NsPerOp / ReadCosts /
 Persistence / Replication), plus a **rule pipeline** producing diagnostics
 (write-amplification, durability, layout, replication rules).
@@ -173,26 +179,28 @@ routes events to every matching query's projection. Execute path: `Execute` /
 `ExecuteTyped[Q,R]`.
 
 **Consumer declaration API** (`metaengine/query.go:160`):
+
 ```go
 func Query[Q any, R any](name string, args ...any) QueryDecl[Q, R]
 ```
+
 with `On[P]` / `OnTyped` / `OnRecord` folds (`metaengine/fold.go:38`,
 `record_fold.go:35`), declarative `FilterOnField` / `SortOnField` (SQL
 pushdown), `WithColumnarLayout`.
 
 **Engines that EXIST (separate modules):**
 
-| Engine | Path | Status |
-|---|---|---|
-| memory | `metaengine/memory_engine.go` | Full — all ADTs |
-| sqlite | `metaengine/sqliteengine/` | Full — pushdown + layout |
-| pebble | `metaengine/pebbleengine/` | KV/log + layout planner |
-| duckdb | `metaengine/duckdbengine/` | CGo, columnar, layout planner (ADR-0092) |
-| pg (postgres) | `metaengine/pgengine/` | SQL/KV + pushdown |
-| badger | `metaengine/badgerengine/` | KV/log (ADR-0118) |
-| dgraph | `metaengine/dgraphengine/` | graph (ADR-0119) |
-| iroh | `metaengine/irohengine/` | distributed eval (ADR-0096) — loopback + quic |
-| graphadapter | `metaengine/graphadapter/adapter.go:20` | wraps `graph.MemoryDriver` as Engine (ADR-0113) |
+| Engine        | Path                                    | Status                                          |
+| ------------- | --------------------------------------- | ----------------------------------------------- |
+| memory        | `metaengine/memory_engine.go`           | Full — all ADTs                                 |
+| sqlite        | `metaengine/sqliteengine/`              | Full — pushdown + layout                        |
+| pebble        | `metaengine/pebbleengine/`              | KV/log + layout planner                         |
+| duckdb        | `metaengine/duckdbengine/`              | CGo, columnar, layout planner (ADR-0092)        |
+| pg (postgres) | `metaengine/pgengine/`                  | SQL/KV + pushdown                               |
+| badger        | `metaengine/badgerengine/`              | KV/log (ADR-0118)                               |
+| dgraph        | `metaengine/dgraphengine/`              | graph (ADR-0119)                                |
+| iroh          | `metaengine/irohengine/`                | distributed eval (ADR-0096) — loopback + quic   |
+| graphadapter  | `metaengine/graphadapter/adapter.go:20` | wraps `graph.MemoryDriver` as Engine (ADR-0113) |
 
 All share the `enginetest/` contract harness and the `adttest/` matrix.
 
@@ -222,6 +230,7 @@ this is the **only** place that imports `event/` and `projection/`. Core
 there):
 
 `system.New(ctx, domain, deployment)` (`system/constructor.go:22`):
+
 1. Creates engines from `DeploymentConfig.Engines` via driver registry (`:42`).
 2. Wires the **event store** from a `StreamLogBackend` engine via
    `NewEventAdapter` (`:68`, `:89`).
@@ -231,12 +240,13 @@ there):
 5. Creates `projectionhost.Host` from the event journal (`:210`).
 6. **Auto-registers a `projectionadapter.Adapter`** on the host, feeding events
    into `projStore` (`:217-240`), with decoder priority: `TypeDecoder >
-   EventDecoder > PayloadDecoder > generic JSON`.
+EventDecoder > PayloadDecoder > generic JSON`.
 
 `system.System.MetaEngine()` (`system.go:163`) returns the projection-layer
 store for typed reads.
 
 **But metaengine is NOT the only/default path everywhere:**
+
 - `stack.Bundle` still supports the v1 tiers and offers metaengine as a
   separate opt-in (`stack.WithMetaEngine`).
 - `storage/relational/`, `storage/view/`, `graph/` (v1 tiers) all remain
@@ -244,29 +254,32 @@ store for typed reads.
 
 ### 2.5 Comparison matrix
 
-| | **v1 (today)** | **metaengine (today)** | **v2 vision (ADRs 0111–0117)** |
-|---|---|---|---|
-| Model | Manual, per-tier | Declarative + cost-planned | ES-native, auto-generating |
+|               | **v1 (today)**                                                   | **metaengine (today)**                                                   | **v2 vision (ADRs 0111–0117)**                       |
+| ------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------- |
+| Model         | Manual, per-tier                                                 | Declarative + cost-planned                                               | ES-native, auto-generating                           |
 | Consumer does | Pick backend, wire `decider.Repository`, hand-write a projection | Declare `Query[Q,R]` + `On[P]` fold; `Plan()` cost-routes across engines | Declare domain types only; planner synthesizes folds |
-| Read tiers | KV/Materialize, SQL `RelationalProjection`, `GraphProjection` | 8 ADTs (+ Vector/Search/Spatial) | Same ADTs, planner-inferred |
-| Backends | 8 stack presets | 9 engines | same |
-| End-to-end? | Yes, via `stack.Bundle` | Yes, via `system/` | n/a |
+| Read tiers    | KV/Materialize, SQL `RelationalProjection`, `GraphProjection`    | 8 ADTs (+ Vector/Search/Spatial)                                         | Same ADTs, planner-inferred                          |
+| Backends      | 8 stack presets                                                  | 9 engines                                                                | same                                                 |
+| End-to-end?   | Yes, via `stack.Bundle`                                          | Yes, via `system/`                                                       | n/a                                                  |
 
 ---
 
 ## Part 3: The v2 vision (ADRs 0111–0117) — designed and scaffolded, not complete
 
 ### ADR-0111: Record Type Extraction — IMPLEMENTED (Phases 1–2), UNFINISHED (3–4)
+
 `record.Record` and `record.CommonMetadata` exist (`record/record.go:64`, `:25`)
 and are imported by metaengine. Shared base for Commands+Events. Phases 3–4
 (remove duplicate metadata types, remove Tombstone) **not yet done**.
 
 ### ADR-0112: ES-Native Metaengine — PARTIALLY DONE
-**Vision:** metaengine *is* the ES projection planner; fold handlers receive
+
+**Vision:** metaengine _is_ the ES projection planner; fold handlers receive
 `Record` not `any`; planner reasons about event relationships; auto-projection;
 materialize-vs-replay first-class.
 
 **Implemented:**
+
 - `record.Record` is a metaengine dependency.
 - `RecordAwareFold` interface (`record_fold.go:18`) + `OnRecord`/`OnRecordTyped`
   constructors (`:35`/`:40`).
@@ -275,15 +288,18 @@ materialize-vs-replay first-class.
   as the event store.
 
 **Not done:**
+
 - Folds still receive decoded `any` payload by default; `OnRecord` is opt-in,
   not enforced.
 - Materialize-vs-replay is a diagnostic, not an executor branch.
 
 ### ADR-0116: Layered Auto-Projection — PARTIALLY DONE
+
 **Vision:** 3 layers — (1) auto-generate 80% of folds from type inspection,
 (2) explicit folds for 20%, (3) auto-route 100%.
 
 **Implemented:**
+
 - Layer 3 (auto-route): **done** — `Plan()` cost-based routing works fully.
 - Layer 2 (explicit `On`/`OnRecord` folds): **done**.
 - Layer 1 (auto-generate): **partial** — `AutoInsert[E,R]`, `AutoUpdate[E,R]`,
@@ -296,6 +312,7 @@ itself inspects event+query type pairs at `Plan()` time and synthesizes folds
 without the consumer calling `AutoInsert`/`AutoCRUD`.
 
 ### ADR-0117: Command Lifecycle as Events — VISION, NOT IMPLEMENTED
+
 Commands are immutable intents; lifecycle (received/failed/retried/
 dead-lettered) lives in separate `CommandLifecycle/*` event streams; DLQ/retry
 are projections. **No `CommandLifecycle` stream or lifecycle event types exist
@@ -304,9 +321,11 @@ in code today** — design only. `system/` does wire `CommandAdapter` from
 projection machinery is absent.
 
 ### ADR-0114: Tombstone as Domain Event — NOT IMPLEMENTED
+
 Tombstones should be domain events, not mutable metadata. Not done.
 
 ### ADR-0113: Delete GraphBackend — NOT DONE
+
 Should delete `metaengine.GraphBackend` in favor of `graphadapter`. But
 `GraphBackend` is still defined at `engine.go:394` and the memory engine still
 asserts it (`engine.go:560`).
@@ -340,8 +359,9 @@ asserts it (`engine.go:560`).
 ## Bottom line
 
 metaengine is **real and integrated via `system/`** (event store + projections
-+ host), works today with explicit folds + `projectionadapter`, and supports 9
-engines with cost-based routing. It is **not** experimental or parallel-only.
+
+- host), works today with explicit folds + `projectionadapter`, and supports 9
+  engines with cost-based routing. It is **not** experimental or parallel-only.
 
 But it is a "declare queries + write folds" layer **today**, not the "declare
 types, get everything" vision of ADRs 0111–0117. The v2 vision is
@@ -362,28 +382,28 @@ executor) that the v1 tiers can be deprecated with a clear migration guide.
 
 ## Key file references
 
-| Concern | Location |
-|---|---|
-| `stack.Bundle` (peer field bag) | `stack/bundle.go:34` |
-| `stack.Repository[State]` accessor | `stack/accessors.go:31` |
-| `stack.Materialize[V,K]` (v1 KV projection) | `stack/materialize.go:56` |
-| `stack.RunProjections` | `stack/run_projections.go:35` |
-| `system.System` | `system/system.go:111` |
-| `system.New` (composition) | `system/constructor.go:22` |
-| `system.DomainConfig` / `DeploymentConfig` | `system/config_types.go:15` / `:94` |
-| `system` driver registry (only memory+sqlite) | `system/driver_registry.go:116` |
-| `system` EventAdapter (metaengine→event.Store) | `system/adapter_event.go:27` |
-| `system.RegisterDecider` | `system/register.go:41` |
-| `decider.Repository[State]` | `decider/decider.go:38` |
-| `event.Store` (the shared seam) | `event/store.go:93` |
-| `projection.Projection` (the shared contract) | `projection/projection.go:23` |
-| `projectionhost.Host` | `projectionhost/host.go:32` |
-| `metaengine.Engine` interface | `metaengine/engine.go:547` |
-| `metaengine.Plan` | `metaengine/planner.go:75` |
-| `metaengine.Store` | `metaengine/store.go:15` |
-| `metaengine.Query[Q,R]` | `metaengine/query.go:160` |
-| `metaengine` fold DSL (`On`/`OnRecord`) | `metaengine/fold.go:38` / `record_fold.go:35` |
-| `metaengine` auto-folds (`AutoInsert`/`AutoCRUD`) | `metaengine/auto_fold.go:80` |
-| `projectionadapter.Adapter` | `metaengine/projectionadapter/adapter.go:63` |
-| `projectionadapter.TypeDecoder` | `metaengine/projectionadapter/typed_decoder.go` |
-| `record.Record` / `CommonMetadata` | `record/record.go:64` / `:25` |
+| Concern                                           | Location                                        |
+| ------------------------------------------------- | ----------------------------------------------- |
+| `stack.Bundle` (peer field bag)                   | `stack/bundle.go:34`                            |
+| `stack.Repository[State]` accessor                | `stack/accessors.go:31`                         |
+| `stack.Materialize[V,K]` (v1 KV projection)       | `stack/materialize.go:56`                       |
+| `stack.RunProjections`                            | `stack/run_projections.go:35`                   |
+| `system.System`                                   | `system/system.go:111`                          |
+| `system.New` (composition)                        | `system/constructor.go:22`                      |
+| `system.DomainConfig` / `DeploymentConfig`        | `system/config_types.go:15` / `:94`             |
+| `system` driver registry (only memory+sqlite)     | `system/driver_registry.go:116`                 |
+| `system` EventAdapter (metaengine→event.Store)    | `system/adapter_event.go:27`                    |
+| `system.RegisterDecider`                          | `system/register.go:41`                         |
+| `decider.Repository[State]`                       | `decider/decider.go:38`                         |
+| `event.Store` (the shared seam)                   | `event/store.go:93`                             |
+| `projection.Projection` (the shared contract)     | `projection/projection.go:23`                   |
+| `projectionhost.Host`                             | `projectionhost/host.go:32`                     |
+| `metaengine.Engine` interface                     | `metaengine/engine.go:547`                      |
+| `metaengine.Plan`                                 | `metaengine/planner.go:75`                      |
+| `metaengine.Store`                                | `metaengine/store.go:15`                        |
+| `metaengine.Query[Q,R]`                           | `metaengine/query.go:160`                       |
+| `metaengine` fold DSL (`On`/`OnRecord`)           | `metaengine/fold.go:38` / `record_fold.go:35`   |
+| `metaengine` auto-folds (`AutoInsert`/`AutoCRUD`) | `metaengine/auto_fold.go:80`                    |
+| `projectionadapter.Adapter`                       | `metaengine/projectionadapter/adapter.go:63`    |
+| `projectionadapter.TypeDecoder`                   | `metaengine/projectionadapter/typed_decoder.go` |
+| `record.Record` / `CommonMetadata`                | `record/record.go:64` / `:25`                   |

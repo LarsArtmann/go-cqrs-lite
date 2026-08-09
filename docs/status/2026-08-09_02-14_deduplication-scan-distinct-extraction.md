@@ -14,6 +14,7 @@
 **Problem:** `metaengine/duckdbengine/aggregations.go` and `metaengine/sqliteengine/aggregations_grouped.go` had byte-for-byte identical 20-line single-column distinct-values scan routines. The only difference was the error prefix string (`duckdbengine.` vs `sqliteengine.`).
 
 **Fix:** Extracted two new exports to `metaengine/scan.go` (the existing home for cross-engine scan helpers like `DecodeFloat` and `DecodeFloatResults`):
+
 - `metaengine.RowQuerier` — minimal interface with only `QueryContext`, satisfied by both `*sql.DB` and `*sql.Tx`
 - `metaengine.ScanDistinctValues(ctx, querier, query, args, label)` — shared scan-into-`[]any` routine
 
@@ -26,6 +27,7 @@ Both `duckdbengine` and `sqliteengine` now call `metaengine.ScanDistinctValues(c
 **Problem:** `storage/bbolt/backup_lifecycle_test.go` and `storage/pebble/backup_lifecycle_test.go` share ~100 lines of identical test assertions.
 
 **Decision:** ACCEPT — intentional duplication. The two test files:
+
 - Live in **separate Go modules** (no shared test dependency)
 - Test **different backup mechanisms** (bbolt `tx.WriteTo` vs Pebble `Checkpoint`)
 - Return **different concrete store types** (`*bbolt.EventStore` vs `*pebble.EventStore`)
@@ -115,6 +117,7 @@ The `TestAPISurfaceCheck` test caught it: "3824 expected, 3826 actual — NEW ex
 ## f) Up to 50 Things to Get Done Next
 
 ### Deduplication (direct follow-up)
+
 1. Extract `dbExec` interface to metaengine core (3-way clone across duckdb/sqlite/pg engines)
 2. Refactor pgengine `DistinctValues` to use a shared scan helper with pluggable scan function
 3. Search for other `rows.Next() → Scan → append` loops across all SQL engines that could use `ScanDistinctValues` or a similar shared helper
@@ -124,24 +127,28 @@ The `TestAPISurfaceCheck` test caught it: "3824 expected, 3826 actual — NEW ex
 7. Consider extracting SQL WHERE-clause builder (the `whereStarted` flag pattern appears in multiple engines)
 
 ### Metaengine
+
 8. Extract common `columnExpr` / `fromClause` / `jsonPath` helpers where they're identical across engines
 9. Check if `aggExprSQLite` / `aggExprDuckDB` / `aggExprPG` share enough to warrant a shared aggregate-expression builder
 10. Consolidate the compile-time interface assertion blocks (`var _ metaengine.X = (*engine)(nil)`) into a shared pattern
 11. Review `layout_planner.go` across DuckDB/SQLite/PG for duplication in DDL generation
 
 ### Verification & CI
+
 12. Run full `nix run .#verify` gate to confirm everything passes end-to-end
 13. Run `nix run .#check-layers` to verify dependency budgets aren't violated by the new `database/sql` import in metaengine core
 14. Run `nix run .#check-coverage` to verify coverage hasn't regressed
 15. Tag metaengine/v4 with the new exports if a release is planned
 
 ### Documentation
+
 16. Update AGENTS.md dedup helper patterns section with `ScanDistinctValues` and `RowQuerier`
 17. Document the `RowQuerier` interface in the metaengine design docs
 18. Consider an ADR for the shared SQL-helper pattern in metaengine core
 19. Update `docs/architecture-understanding/SEVEN-TIER-MODEL.md` if the new interface changes tier responsibilities
 
 ### Broader quality
+
 20. Run `nix run .#lint` to verify no lint issues in the changed files
 21. Run `nix fmt` on the whole repo to verify formatting
 22. Check if `nix run .#vulncheck` passes with the new metaengine core dependency
@@ -149,11 +156,13 @@ The `TestAPISurfaceCheck` test caught it: "3824 expected, 3826 actual — NEW ex
 24. Run the sqliteengine test suite with `-race` for the same reason
 
 ### Storage
+
 25. Consider whether bbolt and pebble backup tests could share a common `testutil` package for backup verification patterns
 26. Audit other storage backends (turso, memory) for similar backup/restore test patterns
 27. Check if `deferClose` helper is duplicated across storage modules
 
 ### General codebase
+
 28. Run `art-dupl --type-aware -t 5` with HTML output for a comprehensive clone audit
 29. Check the stack/ presets for duplication patterns (stack/sqlite, stack/pebble, stack/postgres, etc.)
 30. Audit `cmd/cqrs-lint` rule detectors for shared patterns
@@ -167,6 +176,7 @@ The `TestAPISurfaceCheck` test caught it: "3824 expected, 3826 actual — NEW ex
 ### Q1: Should `RowQuerier` and `dbExec` be consolidated?
 
 I extracted `RowQuerier` (1 method: `QueryContext`) to metaengine core. But all three SQL engines also define a private `dbExec` interface with 3 methods (`ExecContext`, `QueryRowContext`, `QueryContext`). Should I:
+
 - **(a)** Extract the full 3-method `dbExec` to metaengine core and have `RowQuerier` be a subset?
 - **(b)** Keep `RowQuerier` minimal and leave `dbExec` private per-module?
 - **(c)** Replace `RowQuerier` with the full `dbExec` in `ScanDistinctValues`?
@@ -174,6 +184,7 @@ I extracted `RowQuerier` (1 method: `QueryContext`) to metaengine core. But all 
 ### Q2: Should pgengine's DistinctValues be refactored to share a helper?
 
 pgengine scans into `[]byte` then `json.Unmarshal`s (Postgres JSONB returns bytes, not native types). This makes it a variant clone — same structure, different scan target type. Should I:
+
 - **(a)** Add a `scanFn` parameter to `ScanDistinctValues` for pluggable scan logic?
 - **(b)** Create a separate `ScanDistinctValuesJSON` helper?
 - **(c)** Leave pgengine as-is (the JSON unmarshal step is a meaningful semantic difference)?

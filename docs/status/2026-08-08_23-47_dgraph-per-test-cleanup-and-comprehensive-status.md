@@ -18,53 +18,53 @@ The Dgraph engine for `metaengine/dgraphengine` has received **6 of 8** planned 
 
 ### Across all sessions (code + tests committed):
 
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | **Calibration constants fixed** | `DG_NsPerOp=2.5M`, `DG_NsPerRead=600K`, `DG_NsPerWrite=2.5M` — measured from real benchmarks, documented inline in `engine.go:35-51` |
-| 2 | **CounterIncrement batched** | `counter.go`: single read + single RAFT commit for N-key deltas (was N sequential commits). 2.4ms → 721µs (3.3x faster) |
-| 3 | **Adversarial DQL injection test** | `injection_adversarial_test.go`: 10 attack vectors × 3 backends (Map, Search, Counter) = 30 subtests. All pass. |
-| 4 | **MultimapBackend implemented** | `multimap_log.go:1-105`: MultiAdd/MultiGet, passes `adttest.RunMatrix` parity vs Memory engine |
-| 5 | **LogBackend implemented** | `multimap_log.go:107-159`: LogAppend/LogTail, passes `adttest.RunMatrix` parity |
-| 6 | **GraphRAG functional tests** | `graphrag_test.go`: 2 tests (8-entity knowledge graph, multi-query). Both pass with `-race`. |
-| 7 | **Concurrent GraphRAG stress test** | `stress_test.go`: 200 entities, 600 edges, 16 goroutines, 320 queries. 2,955 q/s normal, 1,460 q/s with `-race`. |
-| 8 | **Mixed workload benchmarks** | `mixed_bench_test.go`: 4 benchmarks combining Map+Graph+Search. GraphRAG pipeline 2.7ms. |
-| 9 | **Single-ADT benchmarks** | `bench_test.go`: 5 new benchmarks (GraphAddEdge, GraphNeighbors d1/d3, SearchInsert, SearchQuery) + helpers |
-| 10 | **README rewritten** | `README.md`: leads with GraphRAG as headline, pipeline diagram, performance tables, 8-ADT coverage table |
-| 11 | **DQL injection hardened (static)** | All queries use `QueryWithVars` with `$variable` placeholders — verified by `injection_test.go` source pattern scanner |
-| 12 | **Compile-time interface assertions** | `engine.go:353-364`: 10 `var _` assertions (Engine, MapBackend, CounterBackend, ScanBackend, GraphBackend, SetBackend, SearchBackend, MultimapBackend, LogBackend, Calibratable) |
-| 13 | **HealthCheck implemented** | `engine.go:172-175`: gRPC query-based liveness probe |
+| #   | Item                                  | Evidence                                                                                                                                                                         |
+| --- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Calibration constants fixed**       | `DG_NsPerOp=2.5M`, `DG_NsPerRead=600K`, `DG_NsPerWrite=2.5M` — measured from real benchmarks, documented inline in `engine.go:35-51`                                             |
+| 2   | **CounterIncrement batched**          | `counter.go`: single read + single RAFT commit for N-key deltas (was N sequential commits). 2.4ms → 721µs (3.3x faster)                                                          |
+| 3   | **Adversarial DQL injection test**    | `injection_adversarial_test.go`: 10 attack vectors × 3 backends (Map, Search, Counter) = 30 subtests. All pass.                                                                  |
+| 4   | **MultimapBackend implemented**       | `multimap_log.go:1-105`: MultiAdd/MultiGet, passes `adttest.RunMatrix` parity vs Memory engine                                                                                   |
+| 5   | **LogBackend implemented**            | `multimap_log.go:107-159`: LogAppend/LogTail, passes `adttest.RunMatrix` parity                                                                                                  |
+| 6   | **GraphRAG functional tests**         | `graphrag_test.go`: 2 tests (8-entity knowledge graph, multi-query). Both pass with `-race`.                                                                                     |
+| 7   | **Concurrent GraphRAG stress test**   | `stress_test.go`: 200 entities, 600 edges, 16 goroutines, 320 queries. 2,955 q/s normal, 1,460 q/s with `-race`.                                                                 |
+| 8   | **Mixed workload benchmarks**         | `mixed_bench_test.go`: 4 benchmarks combining Map+Graph+Search. GraphRAG pipeline 2.7ms.                                                                                         |
+| 9   | **Single-ADT benchmarks**             | `bench_test.go`: 5 new benchmarks (GraphAddEdge, GraphNeighbors d1/d3, SearchInsert, SearchQuery) + helpers                                                                      |
+| 10  | **README rewritten**                  | `README.md`: leads with GraphRAG as headline, pipeline diagram, performance tables, 8-ADT coverage table                                                                         |
+| 11  | **DQL injection hardened (static)**   | All queries use `QueryWithVars` with `$variable` placeholders — verified by `injection_test.go` source pattern scanner                                                           |
+| 12  | **Compile-time interface assertions** | `engine.go:353-364`: 10 `var _` assertions (Engine, MapBackend, CounterBackend, ScanBackend, GraphBackend, SetBackend, SearchBackend, MultimapBackend, LogBackend, Calibratable) |
+| 13  | **HealthCheck implemented**           | `engine.go:172-175`: gRPC query-based liveness probe                                                                                                                             |
 
 ### This session only:
 
-| # | Item | Status |
-|---|------|--------|
-| 14 | **TestMain with DropAll** | `main_test.go` created (57 lines). DropAll before+after test suite. Compiles clean. **NOT YET verified against live Dgraph** (test was started but hadn't completed when interrupted). |
+| #   | Item                      | Status                                                                                                                                                                                 |
+| --- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 14  | **TestMain with DropAll** | `main_test.go` created (57 lines). DropAll before+after test suite. Compiles clean. **NOT YET verified against live Dgraph** (test was started but hadn't completed when interrupted). |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| # | Item | What's done | What's missing |
-|---|------|-------------|----------------|
-| 1 | **Per-test data cleanup** | `main_test.go` written, compiles, has correct logic (DropAll before + after) | Not verified against live Dgraph yet (ephemeral-dgraph test was started in background but never completed) |
-| 2 | **`nix fmt`** | Not run at all | All new files (`main_test.go`, `multimap_log.go`, `counter.go` rewrite, `injection_adversarial_test.go`, `stress_test.go`, `graphrag_test.go`, `mixed_bench_test.go`, `bench_test.go` changes) are unverified for formatting |
-| 3 | **`nix run .#lint`** | Not run on new code | golangci-lint status unknown for the 6+ new/modified files |
-| 4 | **Full `-race` test suite** | Individual components were race-tested in prior sessions | Full suite run after Multimap/Log addition never happened — JSON marshal/unmarshal paths in new backends are untested under `-race` in a full suite context |
-| 5 | **b029.go "compile errors"** | Investigated — confirmed as **phantom gopls cache** (file is 53 lines, errors reference line 91+). `go build` and `go vet` pass cleanly. | gopls restarted but may re-report. The actual code is fine. |
+| #   | Item                         | What's done                                                                                                                              | What's missing                                                                                                                                                                                                               |
+| --- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Per-test data cleanup**    | `main_test.go` written, compiles, has correct logic (DropAll before + after)                                                             | Not verified against live Dgraph yet (ephemeral-dgraph test was started in background but never completed)                                                                                                                   |
+| 2   | **`nix fmt`**                | Not run at all                                                                                                                           | All new files (`main_test.go`, `multimap_log.go`, `counter.go` rewrite, `injection_adversarial_test.go`, `stress_test.go`, `graphrag_test.go`, `mixed_bench_test.go`, `bench_test.go` changes) are unverified for formatting |
+| 3   | **`nix run .#lint`**         | Not run on new code                                                                                                                      | golangci-lint status unknown for the 6+ new/modified files                                                                                                                                                                   |
+| 4   | **Full `-race` test suite**  | Individual components were race-tested in prior sessions                                                                                 | Full suite run after Multimap/Log addition never happened — JSON marshal/unmarshal paths in new backends are untested under `-race` in a full suite context                                                                  |
+| 5   | **b029.go "compile errors"** | Investigated — confirmed as **phantom gopls cache** (file is 53 lines, errors reference line 91+). `go build` and `go vet` pass cleanly. | gopls restarted but may re-report. The actual code is fine.                                                                                                                                                                  |
 
 ---
 
 ## c) NOT STARTED
 
-| # | Item | Effort | Notes |
-|---|------|--------|-------|
-| 1 | **Add Dgraph to `test-all-backends.sh`** | S | Script lists SQLite/Pebble/bbolt/DuckDB/PG/MySQL. Needs `pkgs.dgraph` in flake `runtimeInputs` + a Phase 4 section in the script. |
-| 2 | **Dgraph VM test** (`nix/vm/dgraph.nix`) | M | NixOS VM test for CI reproducibility. Pattern: postgres-vm/mysql-vm/duckdb-vm. Dgraph needs Zero + Alpha processes. |
-| 3 | **Tag `dgraphengine/v4.0.2`** | S | Blocked on: (a) verify gate pass, (b) answering the 3 design questions. |
-| 4 | **Dgraph retry logic** | S | Transient `"Please retry again"` RAFT errors need exponential backoff. |
-| 5 | **Dgraph connection pool tuning** | S | gRPC `MaxCallRecvMsgSize` for large result sets. |
-| 6 | **CounterGetOne optional interface** | M | New optional interface in `metaengine/` package — affects all engines. Blocked on design decision. |
-| 7 | **LogBackend sequence improvement** | S | Currently uses `time.Now().UnixNano()` — same-nanosecond collision possible. Blocked on design decision. |
+| #   | Item                                     | Effort | Notes                                                                                                                             |
+| --- | ---------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Add Dgraph to `test-all-backends.sh`** | S      | Script lists SQLite/Pebble/bbolt/DuckDB/PG/MySQL. Needs `pkgs.dgraph` in flake `runtimeInputs` + a Phase 4 section in the script. |
+| 2   | **Dgraph VM test** (`nix/vm/dgraph.nix`) | M      | NixOS VM test for CI reproducibility. Pattern: postgres-vm/mysql-vm/duckdb-vm. Dgraph needs Zero + Alpha processes.               |
+| 3   | **Tag `dgraphengine/v4.0.2`**            | S      | Blocked on: (a) verify gate pass, (b) answering the 3 design questions.                                                           |
+| 4   | **Dgraph retry logic**                   | S      | Transient `"Please retry again"` RAFT errors need exponential backoff.                                                            |
+| 5   | **Dgraph connection pool tuning**        | S      | gRPC `MaxCallRecvMsgSize` for large result sets.                                                                                  |
+| 6   | **CounterGetOne optional interface**     | M      | New optional interface in `metaengine/` package — affects all engines. Blocked on design decision.                                |
+| 7   | **LogBackend sequence improvement**      | S      | Currently uses `time.Now().UnixNano()` — same-nanosecond collision possible. Blocked on design decision.                          |
 
 ---
 
@@ -74,6 +74,7 @@ The Dgraph engine for `metaengine/dgraphengine` has received **6 of 8** planned 
 
 **File:** `multimap_log.go:127-131`
 **Code:**
+
 ```go
 q := fmt.Sprintf(`query log($col: string) {
     entries(func: eq(cqrs.log_collection, $col), orderdesc: cqrs.log_seq%s) {
@@ -103,6 +104,7 @@ While `firstClause` is derived from an `int` (not user input), this violates the
 ### 4. Test coverage gaps in the new backends
 
 `MultimapBackend` and `LogBackend` are only tested via `adttest.RunMatrix` (the generic ADT matrix). There are NO dedicated unit tests for edge cases:
+
 - MultiAdd with the same key twice (deduplication behavior?)
 - MultiGet on a nonexistent key
 - LogTail with limit=0 (returns all?)
@@ -116,6 +118,7 @@ The `main_test.go` I created does DropAll before and after the entire suite. But
 ### 6. The ephemeral-dgraph background test never completed
 
 I started `nix run .#ephemeral-dgraph -- go test ...` in the background (shell 05F) and it was still running with no output when the status report was requested. This could mean:
+
 - Dgraph is slow to start
 - The test is hanging
 - There's a deadlock

@@ -14,6 +14,7 @@
 The calibration constants were 100-270x too low, causing the metaengine planner to dramatically underestimate Dgraph costs and route queries to Dgraph that should go to Memory/SQLite.
 
 **Before:**
+
 ```
 DG_NsPerOp   = 10,000ns  (10µs)
 DG_NsPerRead =  8,000ns  (8µs)
@@ -21,6 +22,7 @@ ReadCosts:    point lookup 8µs, scan 2µs (absurd for a gRPC+RAFT database)
 ```
 
 **After (calibrated from real benchmarks):**
+
 ```
 DG_NsPerOp    = 2,500,000ns  (2.5ms — average of all ops)
 DG_NsPerRead  =   600,000ns  (600µs — average of all reads)
@@ -51,18 +53,18 @@ Each constant has a comment documenting the benchmark data point it was derived 
 
 **`TestAdversarialDQLInjection`** — runtime verification that DQL syntax in user input is treated as literal data, not executed. 10 attack vectors tested across 3 backends (30 subtests total):
 
-| Attack Vector | Map | Search | Counter |
-|---|---|---|---|
-| `} {} {` (close/open DQL blocks) | PASS | PASS | PASS |
-| `func: eq(cqrs.map_key, "injected") { ... }` (full DQL query) | PASS | PASS | PASS |
-| `" OR "1"="1` (SQL injection) | PASS | PASS | PASS |
-| `"); DROP COLLECTION; --` (SQL DROP) | PASS | PASS | PASS |
-| `' OR ''='` (classic SQL injection) | PASS | PASS | PASS |
-| `{ uid }` (DQL uid exfiltration) | PASS | PASS | PASS |
-| `@filter(eq(cqrs.map_key, "stolen"))` (DQL filter injection) | PASS | PASS | PASS |
-| `value } counter(func: all()) { uid }` (cross-collection exfiltration) | PASS | PASS | PASS |
-| `"><script>alert(1)</script>` (XSS) | PASS | PASS | PASS |
-| `%24col+%3D+%22hacked%22` (URL-encoded variable override) | PASS | PASS | PASS |
+| Attack Vector                                                          | Map  | Search | Counter |
+| ---------------------------------------------------------------------- | ---- | ------ | ------- |
+| `} {} {` (close/open DQL blocks)                                       | PASS | PASS   | PASS    |
+| `func: eq(cqrs.map_key, "injected") { ... }` (full DQL query)          | PASS | PASS   | PASS    |
+| `" OR "1"="1` (SQL injection)                                          | PASS | PASS   | PASS    |
+| `"); DROP COLLECTION; --` (SQL DROP)                                   | PASS | PASS   | PASS    |
+| `' OR ''='` (classic SQL injection)                                    | PASS | PASS   | PASS    |
+| `{ uid }` (DQL uid exfiltration)                                       | PASS | PASS   | PASS    |
+| `@filter(eq(cqrs.map_key, "stolen"))` (DQL filter injection)           | PASS | PASS   | PASS    |
+| `value } counter(func: all()) { uid }` (cross-collection exfiltration) | PASS | PASS   | PASS    |
+| `"><script>alert(1)</script>` (XSS)                                    | PASS | PASS   | PASS    |
+| `%24col+%3D+%22hacked%22` (URL-encoded variable override)              | PASS | PASS   | PASS    |
 
 The Map subtest verifies value round-trip (the attack string stored as data must come back identical). The Search subtest verifies no phantom documents appear. The Counter subtest verifies correct counter values per key.
 
@@ -128,6 +130,7 @@ TestNoDQLInjectionPatterns            PASS
 `CounterGet(ctx, col)` returns `map[string]int64` — all counters in the collection. The interface requires this shape. The implementation queries all nodes matching the collection and builds the map client-side. This is O(N) where N = number of counter keys in the collection.
 
 **What was done:** `CounterIncrement` was fixed (the actual perf bottleneck — N sequential RAFT commits). `CounterGet` was not changed because:
+
 1. The interface returns `map[string]int64` — there's no "get one counter" method.
 2. Server-side `@groupby` aggregation still returns all groups to the client.
 3. The dominant cost (RAFT write per increment) was fixed.
@@ -222,6 +225,7 @@ LogBackend is the storage primitive for events/commands/queries (per the interfa
 ### 8. The dgraphengine module has no dedicated unit tests for Multimap or Log
 
 Multimap and Log correctness is verified only through `adttest.RunMatrix` (the shared harness). There are no dgraphengine-specific tests for edge cases like:
+
 - MultiGet on a non-existent key (should return empty slice, not error)
 - LogTail with limit=0 (should return all entries)
 - LogTail on an empty collection (should return empty slice)

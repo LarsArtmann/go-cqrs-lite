@@ -11,18 +11,18 @@ Implemented all 4 open Irohengine TODO items: WithClock test hardening, QUIC str
 
 ### Files Changed
 
-| File                                                  | Change                                                                                              |
-| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `metaengine/irohengine/helpers_test.go`               | Added `manualClock` + `newTwoNodeClusterWithClock` helpers for deterministic LWW tests              |
-| `metaengine/irohengine/convergence_test.go`           | Refactored LWW + MapDelete tests to use injectable clock (removed all `time.Sleep`); added 2 new WithClock tests; expanded graceful shutdown test with 50 concurrent ops |
-| `metaengine/irohengine/quic/frame.go`                 | **NEW** — length-prefix framing helpers (`frameHeader`, `parseFrameHeader`) shared with pool.go     |
-| `metaengine/irohengine/quic/pool.go`                  | **NEW** — `sendOpPooled`, `handlePooledStream`, `evictPooledStream` — persistent BiStream send/recv |
-| `metaengine/irohengine/quic/options.go`               | Added `WithStreamPooling()` option + `poolStreams` config field                                     |
-| `metaengine/irohengine/quic/transport.go`             | Updated `Publish` to use `peerConn` (pooled-aware), updated `Close` to clean up pooled streams, updated `sendOp` comment |
-| `metaengine/irohengine/quic/stream.go`                | Updated `handleConnection` to dispatch to `handlePooledStream` when pooling enabled; updated `relayToOthers` to use `peerConn` |
-| `metaengine/irohengine/quic/bench_test.go`            | Added `BenchmarkQuicMapSet_Pooled` for pooled vs non-pooled comparison                              |
-| `metaengine/irohengine/quic/transport_test.go`        | Added 3 pooled stream tests: `TestQuicPooled_MapConvergence`, `TestQuicPooled_MultipleOpsSameStream`, `TestQuicPooled_Bidirectional` |
-| `TODO_LIST.md`                                        | Marked all 4 items `[x]` with implementation details                                                |
+| File                                           | Change                                                                                                                                                                   |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `metaengine/irohengine/helpers_test.go`        | Added `manualClock` + `newTwoNodeClusterWithClock` helpers for deterministic LWW tests                                                                                   |
+| `metaengine/irohengine/convergence_test.go`    | Refactored LWW + MapDelete tests to use injectable clock (removed all `time.Sleep`); added 2 new WithClock tests; expanded graceful shutdown test with 50 concurrent ops |
+| `metaengine/irohengine/quic/frame.go`          | **NEW** — length-prefix framing helpers (`frameHeader`, `parseFrameHeader`) shared with pool.go                                                                          |
+| `metaengine/irohengine/quic/pool.go`           | **NEW** — `sendOpPooled`, `handlePooledStream`, `evictPooledStream` — persistent BiStream send/recv                                                                      |
+| `metaengine/irohengine/quic/options.go`        | Added `WithStreamPooling()` option + `poolStreams` config field                                                                                                          |
+| `metaengine/irohengine/quic/transport.go`      | Updated `Publish` to use `peerConn` (pooled-aware), updated `Close` to clean up pooled streams, updated `sendOp` comment                                                 |
+| `metaengine/irohengine/quic/stream.go`         | Updated `handleConnection` to dispatch to `handlePooledStream` when pooling enabled; updated `relayToOthers` to use `peerConn`                                           |
+| `metaengine/irohengine/quic/bench_test.go`     | Added `BenchmarkQuicMapSet_Pooled` for pooled vs non-pooled comparison                                                                                                   |
+| `metaengine/irohengine/quic/transport_test.go` | Added 3 pooled stream tests: `TestQuicPooled_MapConvergence`, `TestQuicPooled_MultipleOpsSameStream`, `TestQuicPooled_Bidirectional`                                     |
+| `TODO_LIST.md`                                 | Marked all 4 items `[x]` with implementation details                                                                                                                     |
 
 ---
 
@@ -57,17 +57,19 @@ Implemented all 4 open Irohengine TODO items: WithClock test hardening, QUIC str
 
 **Performance measurement** (3-run average, local QUIC):
 
-| Mode         | ns/op (avg 3 runs) | ops/s    |
-| ------------ | ------------------ | -------- |
-| Non-pooled   | ~129K              | ~7,750   |
-| Pooled       | ~91K               | ~11,000  |
-| **Speedup**  | **~30% faster**    |          |
+| Mode        | ns/op (avg 3 runs) | ops/s   |
+| ----------- | ------------------ | ------- |
+| Non-pooled  | ~129K              | ~7,750  |
+| Pooled      | ~91K               | ~11,000 |
+| **Speedup** | **~30% faster**    |         |
 
 **New files:**
+
 - `quic/frame.go` — `frameHeader(size)`, `parseFrameHeader(header)`, `errFrameTooLarge`, `errInvalidFrameHeader`
 - `quic/pool.go` — `sendOpPooled(pc, data)`, `handlePooledStream(conn, peerID, stream)`, `evictPooledStream(pc)`
 
 **Tests added:**
+
 - `TestQuicPooled_MapConvergence` — basic op delivery over pooled stream
 - `TestQuicPooled_MultipleOpsSameStream` — 20 sequential ops over one persistent stream, all verified intact
 - `TestQuicPooled_Bidirectional` — ops flowing A→B and B→A over separate pooled streams

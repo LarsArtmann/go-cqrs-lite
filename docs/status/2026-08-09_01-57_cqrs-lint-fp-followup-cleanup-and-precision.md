@@ -92,6 +92,7 @@ Added `TestD018_AliasedEventImport` regression test verifying 0 findings when
 ### 5. Ran `nix fmt` on all changed files
 
 Ran `nix fmt` (treefmt). 5 files reformatted:
+
 - `d005_internal_test.go` — formatting alignment
 - `d018_d019.go` — formatting alignment
 - `integration_test.go` — import grouping
@@ -256,7 +257,7 @@ same commit chain, making it hard to isolate this session's work.
 17. **Document `CQRS_LINT_UPDATE_GOLDEN=1`** in AGENTS.md under Testing.
 18. **Add `verify-fast` to flake.nix** — build+vet+lint+unit only.
 19. **Pre-commit hook for api-stability golden** — `go test -run
-    TestAPISurfaceUpdateIdempotent` before every commit.
+TestAPISurfaceUpdateIdempotent` before every commit.
 20. **Consider snapshot testing (go-snaps) for finding profiles** — instead
     of a hardcoded `map[string]int`, use `snaps.MatchSnapshot` for richer
     diff output.

@@ -4,10 +4,10 @@
 > Run via: `go test -run='^$' -bench='BenchmarkCalibration' -benchtime=1s ./...`
 > CI regression threshold: 3× (fail if ns/op > 3× baseline)
 
-| Benchmark | Baseline (ns/op) | Notes |
-|-----------|-----------------|-------|
-| BenchmarkCalibration_PebbleSet-32 | 2439 | Pebble MapSet (JSON encode + LSM write) |
-| BenchmarkCalibration_PebbleGet-32 | 954 | Pebble MapGet (LSM point read + JSON decode) |
+| Benchmark                         | Baseline (ns/op) | Notes                                        |
+| --------------------------------- | ---------------- | -------------------------------------------- |
+| BenchmarkCalibration_PebbleSet-32 | 2439             | Pebble MapSet (JSON encode + LSM write)      |
+| BenchmarkCalibration_PebbleGet-32 | 954              | Pebble MapGet (LSM point read + JSON decode) |
 
 ## Usage
 

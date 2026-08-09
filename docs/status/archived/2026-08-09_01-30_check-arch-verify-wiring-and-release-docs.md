@@ -24,12 +24,12 @@ Executed the three TODO_LIST items under "CI / Release / Infrastructure":
 
 **Files changed:** `flake.nix` (3 sites), `.github/workflows/ci.yml` (1 site)
 
-| Location | Before | After |
-|----------|--------|-------|
-| `flake.nix` verify app (line 1112) | `nix run .#check-layers` | `nix run .#check-arch` |
-| `flake.nix` verify-fast app (line 1132) | `nix run .#check-layers` | `nix run .#check-arch` |
-| `flake.nix` ci app (line 921) | `bash scripts/check-module-layers.sh` | `nix run .#check-arch` |
-| `ci.yml` check job (line 61) | "Dependency layer check" → `#check-layers` | "Architecture check (layers + intra-module)" → `#check-arch` |
+| Location                                | Before                                     | After                                                        |
+| --------------------------------------- | ------------------------------------------ | ------------------------------------------------------------ |
+| `flake.nix` verify app (line 1112)      | `nix run .#check-layers`                   | `nix run .#check-arch`                                       |
+| `flake.nix` verify-fast app (line 1132) | `nix run .#check-layers`                   | `nix run .#check-arch`                                       |
+| `flake.nix` ci app (line 921)           | `bash scripts/check-module-layers.sh`      | `nix run .#check-arch`                                       |
+| `ci.yml` check job (line 61)            | "Dependency layer check" → `#check-layers` | "Architecture check (layers + intra-module)" → `#check-arch` |
 
 `#check-layers` retained as a standalone fast-subset app for quick iteration.
 
@@ -49,14 +49,14 @@ The auto-commit daemon also added `pkgs.go-arch-lint` to the devShell packages l
 
 **File changed:** `CONTRIBUTING.md`
 
-| Section | What was added |
-|---------|---------------|
-| Pull Request Process | Consolidated check-layers + check-arch into single `#check-arch` step |
-| Module Layer Validation | Rewritten with two-layer model table (Layer 1 cross-module + Layer 2 intra-module) |
-| Quality Gates | Added `#check-arch` as primary, `#check-layers` as "Layer 1 only (fast subset)" |
-| Release Process → Per-module tagging | Full `tag-release.sh` workflow (strip replaces, annotated tags, dry-run preview, manual fallback) |
-| Release Process → CHANGELOG-to-tag constraint | New subsection explaining `TestTagContentMatchesChangelog` meta-test invariant |
-| Release Process → Critical rules | Added "NEVER tag a module whose go.mod still has local replace directives" rule |
+| Section                                       | What was added                                                                                    |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Pull Request Process                          | Consolidated check-layers + check-arch into single `#check-arch` step                             |
+| Module Layer Validation                       | Rewritten with two-layer model table (Layer 1 cross-module + Layer 2 intra-module)                |
+| Quality Gates                                 | Added `#check-arch` as primary, `#check-layers` as "Layer 1 only (fast subset)"                   |
+| Release Process → Per-module tagging          | Full `tag-release.sh` workflow (strip replaces, annotated tags, dry-run preview, manual fallback) |
+| Release Process → CHANGELOG-to-tag constraint | New subsection explaining `TestTagContentMatchesChangelog` meta-test invariant                    |
+| Release Process → Critical rules              | Added "NEVER tag a module whose go.mod still has local replace directives" rule                   |
 
 ### 4. Doc references updated ✅
 
@@ -69,6 +69,7 @@ The auto-commit daemon also added `pkgs.go-arch-lint` to the devShell packages l
 ### 5. Auto-commit daemon additions (bonus) ✅
 
 The daemon made two improvements alongside this work:
+
 - Added `pkgs.go-arch-lint` to devShell packages (flake.nix:572) — `nix develop` shells now have it on PATH directly
 - Fixed a latent duplicate `TestLWWResolution` function in `metaengine/irohengine/convergence_test.go` (would have been a compile error)
 - Added `TestIntegration_TaskmanagerExpectedFindings` end-to-end finding-profile test

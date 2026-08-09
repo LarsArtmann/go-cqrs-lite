@@ -9,42 +9,45 @@
 
 ### M1–M9 (Quick wins — prior batch)
 
-| ID | What |
-|----|------|
-| M1 | Verify gate GREEN (`nix run .#verify` completed — stale GREEN pattern broken) |
-| M2 | 5 correctness bugs fixed (DecodeFloatResults guard, 10× context.Background→ctx, DuckDB 6× lookupPlan, mustSQLiteEngine fixed to return real SQLite engine, zombie functions deleted) |
-| M3 | Pebbleengine README fixed (7→6 backends), FOUR-TIER-MODEL.d2/.svg deleted |
-| M4 | TestMapDeleteLWWConvergence + TestGracefulShutdown_InflightOps (3× stable, -race clean) |
-| M5 | --fail-on-stale-suppressions flag implemented + C025 suppressed + duckdb/turso in VM matrix |
-| M6 | OTel span attributes on projectionadapter.Handle() + ApplyLayoutPlan on SQLite engine |
-| M7 | Production deferClose helper in pebble (12 sites replaced, duplicate test helper deleted) |
-| M8 | 1 dead EXCEPTIONS entry removed (snapshot→storage/memory) |
-| M9 | bbolt TestBackupRestore_FullLifecycle (using tx.WriteTo) |
+| ID  | What                                                                                                                                                                                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| M1  | Verify gate GREEN (`nix run .#verify` completed — stale GREEN pattern broken)                                                                                                        |
+| M2  | 5 correctness bugs fixed (DecodeFloatResults guard, 10× context.Background→ctx, DuckDB 6× lookupPlan, mustSQLiteEngine fixed to return real SQLite engine, zombie functions deleted) |
+| M3  | Pebbleengine README fixed (7→6 backends), FOUR-TIER-MODEL.d2/.svg deleted                                                                                                            |
+| M4  | TestMapDeleteLWWConvergence + TestGracefulShutdown_InflightOps (3× stable, -race clean)                                                                                              |
+| M5  | --fail-on-stale-suppressions flag implemented + C025 suppressed + duckdb/turso in VM matrix                                                                                          |
+| M6  | OTel span attributes on projectionadapter.Handle() + ApplyLayoutPlan on SQLite engine                                                                                                |
+| M7  | Production deferClose helper in pebble (12 sites replaced, duplicate test helper deleted)                                                                                            |
+| M8  | 1 dead EXCEPTIONS entry removed (snapshot→storage/memory)                                                                                                                            |
+| M9  | bbolt TestBackupRestore_FullLifecycle (using tx.WriteTo)                                                                                                                             |
 
 ### M10–M22 (Infrastructure — this batch)
 
-| ID | What |
-|----|------|
-| M15 | All 11 GitHub Actions pinned to commit SHAs (supply-chain hardening) |
-| M16 | `scripts/check-tag-existence.sh` + CI step (finds 2 known untagged modules) |
-| M17 | Soak test: 100K events through AsRecord→Handle→ApplyRecord, 0.8MB heap, 852 bytes/event |
-| M18 | WithClock option on irohengine (Clock interface, 7× time.Now()→clock.Now()) |
+| ID  | What                                                                                                       |
+| --- | ---------------------------------------------------------------------------------------------------------- |
+| M15 | All 11 GitHub Actions pinned to commit SHAs (supply-chain hardening)                                       |
+| M16 | `scripts/check-tag-existence.sh` + CI step (finds 2 known untagged modules)                                |
+| M17 | Soak test: 100K events through AsRecord→Handle→ApplyRecord, 0.8MB heap, 852 bytes/event                    |
+| M18 | WithClock option on irohengine (Clock interface, 7× time.Now()→clock.Now())                                |
 | M19 | QuicTransport connection pooling — documented as design constraint (Iroh BiStream Finish() = non-reusable) |
-| M20 | Redis/NATS integration test stubs with env-var gating (scripts exist, tests document usage pattern) |
-| M22 | Calibration benchmark baseline file + documentation |
+| M20 | Redis/NATS integration test stubs with env-var gating (scripts exist, tests document usage pattern)        |
+| M22 | Calibration benchmark baseline file + documentation                                                        |
 
 ---
 
 ## b) PARTIALLY DONE
 
 ### M11: cqrs-lint type-checking test helper — DONE
+
 `BuildContextWithTypes` implemented in `test_helpers.go`, verified with test (14 type entries from real type-checking). Works correctly. Build passes.
 
 ### M12–M14: cqrs-lint 10 new rules — IN PROGRESS
+
 - **B029** (Missing retry middleware detector) — written but NOT yet tested, NOT yet registered in register.go, NOT yet added to catalog.go. The file `cmd/cqrs-lint/pkg/rules/resilience/b029.go` exists but is incomplete (no test, no registration).
 - **B030–B038** (remaining 9 rules) — NOT STARTED.
 
 The rules are:
+
 1. B029: Missing retry middleware — file exists, untested
 2. B030: Circuit breaker absence — not started
 3. B031: Missing DLQ config — not started
@@ -60,14 +63,14 @@ The rules are:
 
 ## c) NOT STARTED
 
-| ID | Task | Blocked? |
-|----|------|----------|
-| M10 | Run cqrs-lint against real consumer repos | Needs cloning private repos |
-| M21 | Dgraph real-instance testing | Needs Docker |
-| M23 | Per-module .golangci.yml split | L effort, LOW impact |
+| ID  | Task                                       | Blocked?                                                |
+| --- | ------------------------------------------ | ------------------------------------------------------- |
+| M10 | Run cqrs-lint against real consumer repos  | Needs cloning private repos                             |
+| M21 | Dgraph real-instance testing               | Needs Docker                                            |
+| M23 | Per-module .golangci.yml split             | L effort, LOW impact                                    |
 | M24 | Intra-module arch config for cmd/cqrs-lint | Needs Go-based tool (bash script can't do intra-module) |
-| M25 | macOS verification of ephemeral PG | Needs macOS hardware |
-| M14 | Tag cqrs-lint v4.6.0 | After M12–M14 rules ship |
+| M25 | macOS verification of ephemeral PG         | Needs macOS hardware                                    |
+| M14 | Tag cqrs-lint v4.6.0                       | After M12–M14 rules ship                                |
 
 ---
 

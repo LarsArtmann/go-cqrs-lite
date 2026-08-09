@@ -119,10 +119,10 @@ All new test functions pass:
 
 ## Tasks Skipped (2/54)
 
-| #    | Task                                 | Reason                                                                                    | Impact                                                      |
-| ---- | ------------------------------------ | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| M4.2 | ~~DuckDB columnar extraction benchmark~~ done — `metaengine/bench/bench_duckdb_columnar_cgo_test.go` ships the 3-way comparison (Columnar vs Pushdown vs Memory) | LOW impact as expected |
-| M6.2 | Cross-engine swap under load | ~~Complex setup (swap engine mid-stream)~~ still open — no code exists for runtime engine swap under load |
+| #    | Task                                                                                                                                                             | Reason                                                                                                    | Impact |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------ |
+| M4.2 | ~~DuckDB columnar extraction benchmark~~ done — `metaengine/bench/bench_duckdb_columnar_cgo_test.go` ships the 3-way comparison (Columnar vs Pushdown vs Memory) | LOW impact as expected                                                                                    |
+| M6.2 | Cross-engine swap under load                                                                                                                                     | ~~Complex setup (swap engine mid-stream)~~ still open — no code exists for runtime engine swap under load |
 
 ---
 

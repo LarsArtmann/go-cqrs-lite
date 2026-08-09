@@ -176,6 +176,7 @@
 ### Q1: Should the root DOMAIN_LANGUAGE.md keep a minimal metaengine verification block?
 
 The root file's stub mentions `metaengine.Plan` and `metaengine.Store` in prose, but the verification block no longer imports the metaengine package. If the new file is deleted, these references silently stop being checked (doc-check treats unimported package aliases as "external" and skips them). Options:
+
 - **A)** Add back 2-3 metaengine symbols to the root verification block (redundant with new file but self-contained)
 - **B)** Accept the coupling — the new file must exist for the root file's metaengine prose to be verified
 - **C)** Remove metaengine symbol names from the root stub prose (use generic language only)

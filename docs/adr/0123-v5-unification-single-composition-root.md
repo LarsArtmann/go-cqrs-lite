@@ -13,13 +13,13 @@ go-cqrs-lite has accumulated two unreconciled generations of composition and
 read-model design. The result is a split-brain where consumers face two valid,
 overlapping stacks with no single blessed path:
 
-| Dimension | v1 (`stack.Bundle`) | v2 (`system.System`) |
-|---|---|---|
-| Backends wired | 8 presets | 2 drivers |
-| Event bus | watermill (persistent, retry) | simpleBus (synchronous, no persistence) |
-| Bus extension | `watermill.WithBackend` (NATS/Redis/Kafka) | `BusDriverFactory` (redundant, 1 driver) |
-| Read models | `Materialize` / `RelationalProjection` / `GraphProjection` | `metaengine` + `projectionadapter` |
-| Projection running | `RunProjections` (blocking loop) | `projectionhost.Host` (managed lifecycle) |
+| Dimension          | v1 (`stack.Bundle`)                                        | v2 (`system.System`)                      |
+| ------------------ | ---------------------------------------------------------- | ----------------------------------------- |
+| Backends wired     | 8 presets                                                  | 2 drivers                                 |
+| Event bus          | watermill (persistent, retry)                              | simpleBus (synchronous, no persistence)   |
+| Bus extension      | `watermill.WithBackend` (NATS/Redis/Kafka)                 | `BusDriverFactory` (redundant, 1 driver)  |
+| Read models        | `Materialize` / `RelationalProjection` / `GraphProjection` | `metaengine` + `projectionadapter`        |
+| Projection running | `RunProjections` (blocking loop)                           | `projectionhost.Host` (managed lifecycle) |
 
 Both solve the same problem. Neither is deprecated. There is no bridge.
 
@@ -60,7 +60,7 @@ selection:
 ```yaml
 buses:
   default:
-    driver: gochannel     # default (in-process, ordered)
+    driver: gochannel # default (in-process, ordered)
     # driver: nats        # multi-process (blank-import watermill-nats)
     # driver: redis       # multi-process (blank-import watermill-redis)
     url: nats://localhost:4222
@@ -135,13 +135,13 @@ escape hatch to a different system. There is no second API.
 
 ### 8. All v1 read-model tiers are deleted
 
-| Module | Fate |
-|---|---|
-| `stack.Materialize` | **Deleted.** Auto-projection replaces it. |
+| Module                         | Fate                                                                                               |
+| ------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `stack.Materialize`            | **Deleted.** Auto-projection replaces it.                                                          |
 | `storage.RelationalProjection` | **Deleted.** Multi-table concepts absorbed as engine internals (multi-collection batch atomicity). |
-| `storage.SQLViewStore` | **Deleted.** sqliteengine/pgengine with layout planning replaces it. |
-| `graph.GraphProjection` | **Deleted.** Auto-projection + graphadapter replaces it. |
-| `stack.RunProjections` | **Deleted.** `projectionhost.Host` is the only runner. |
+| `storage.SQLViewStore`         | **Deleted.** sqliteengine/pgengine with layout planning replaces it.                               |
+| `graph.GraphProjection`        | **Deleted.** Auto-projection + graphadapter replaces it.                                           |
+| `stack.RunProjections`         | **Deleted.** `projectionhost.Host` is the only runner.                                             |
 
 RelationalProjection's `ProjectionSink` operations (Upsert, Ensure, Update,
 Increment, DeleteWhere, UpsertCols, UpsertExpr) survive as **internal engine

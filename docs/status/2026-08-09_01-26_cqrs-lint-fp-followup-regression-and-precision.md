@@ -13,24 +13,24 @@
 
 Each test covers the specific FP scenario from the elimination session, verifying the fix prevents regression:
 
-| Rule | Test File | Test Name | FP Scenario Tested |
-|------|-----------|-----------|-------------------|
-| C013 | `correctness/c013_test.go` | `TestC013_SkipsJSONDashTag` | `json:"-"` tag suppresses time.Time finding |
-| C034 | `correctness/c034_test.go` | `TestC034_NoFindingWithShutdownPattern` | `ctx.Done()` + `Shutdown()` suppresses goroutine finding |
-| C035 | `correctness/c035_test.go` | `TestC035_SkipsSerializationDTOWithoutSync` | All-JSON-tag struct without `sync` import = serialization DTO |
-| A032 | `api/a032_test.go` | `TestA032_SkipsFormTagStruct` | `form:` tag = HTTP binding DTO, not domain type |
-| A032 | `api/a032_test.go` | `TestA032_SkipsDisplayPackage` | `dashboard/` path = display package |
-| S010 | `security/s010_test.go` | `TestS010_NoFindingForEncryptionOutsideUse` | Encryption used outside `.Use()` is not bus-wired |
-| A005 | `api/a005_regression_test.go` (NEW) | `TestA005_NoFindingForBroadcastOnlySubscriber` | Broadcast-only SubscribeAll callback = fan-out, not projection |
-| A005 | `api/a005_regression_test.go` | `TestA005_DetectsProjectionSubscriber` | SubscribeAll with `store.Set()` = real projection |
-| A005 | `api/a005_regression_test.go` | `TestA005_NoFindingForNonEventBus` | ErrorBus.SubscribeAll ≠ event.Bus.SubscribeAll (type-aware) |
-| C027 | `correctness/c027_regression_test.go` (NEW) | `TestC027_NoFindingForNonEventBus` | ErrorBus.Subscribe ≠ event.Bus.Subscribe (type-aware) |
-| C027 | `correctness/c027_regression_test.go` | `TestC027_DetectsEventBusSubscribeWithProjectionHost` | Real event.Bus.Subscribe alongside projectionhost = finding |
-| D005 | `consistency/d005_internal_test.go` | `TestExtractCQRSVersion_SkipsCodeBlocks` | Code blocks skipped (```` ``` ```` fences tracked) |
-| D005 | `consistency/d005_internal_test.go` | `TestExtractCQRSVersion_SkipsImportPaths` | `/v4.2.0` in import paths skipped |
-| D005 | `consistency/d005_internal_test.go` | `TestExtractCQRSVersion_SkipsPseudoVersions` | `-0.` pseudo-versions skipped |
-| B029 | `resilience/b029_b031_test.go` | `TestB029_NoFindingForNonCQRSBus` | `errorBus.Notify()` ≠ CQRS bus (no Use/Publish/Subscribe) |
-| E007 | `architecture/e007_regression_test.go` (NEW) | `TestE007_PerTypeRegistrationNotPackageWide` | Registering GetUserQuery does NOT suppress DeleteUserQuery |
+| Rule | Test File                                    | Test Name                                             | FP Scenario Tested                                             |
+| ---- | -------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------- |
+| C013 | `correctness/c013_test.go`                   | `TestC013_SkipsJSONDashTag`                           | `json:"-"` tag suppresses time.Time finding                    |
+| C034 | `correctness/c034_test.go`                   | `TestC034_NoFindingWithShutdownPattern`               | `ctx.Done()` + `Shutdown()` suppresses goroutine finding       |
+| C035 | `correctness/c035_test.go`                   | `TestC035_SkipsSerializationDTOWithoutSync`           | All-JSON-tag struct without `sync` import = serialization DTO  |
+| A032 | `api/a032_test.go`                           | `TestA032_SkipsFormTagStruct`                         | `form:` tag = HTTP binding DTO, not domain type                |
+| A032 | `api/a032_test.go`                           | `TestA032_SkipsDisplayPackage`                        | `dashboard/` path = display package                            |
+| S010 | `security/s010_test.go`                      | `TestS010_NoFindingForEncryptionOutsideUse`           | Encryption used outside `.Use()` is not bus-wired              |
+| A005 | `api/a005_regression_test.go` (NEW)          | `TestA005_NoFindingForBroadcastOnlySubscriber`        | Broadcast-only SubscribeAll callback = fan-out, not projection |
+| A005 | `api/a005_regression_test.go`                | `TestA005_DetectsProjectionSubscriber`                | SubscribeAll with `store.Set()` = real projection              |
+| A005 | `api/a005_regression_test.go`                | `TestA005_NoFindingForNonEventBus`                    | ErrorBus.SubscribeAll ≠ event.Bus.SubscribeAll (type-aware)    |
+| C027 | `correctness/c027_regression_test.go` (NEW)  | `TestC027_NoFindingForNonEventBus`                    | ErrorBus.Subscribe ≠ event.Bus.Subscribe (type-aware)          |
+| C027 | `correctness/c027_regression_test.go`        | `TestC027_DetectsEventBusSubscribeWithProjectionHost` | Real event.Bus.Subscribe alongside projectionhost = finding    |
+| D005 | `consistency/d005_internal_test.go`          | `TestExtractCQRSVersion_SkipsCodeBlocks`              | Code blocks skipped (` ``` ` fences tracked)                   |
+| D005 | `consistency/d005_internal_test.go`          | `TestExtractCQRSVersion_SkipsImportPaths`             | `/v4.2.0` in import paths skipped                              |
+| D005 | `consistency/d005_internal_test.go`          | `TestExtractCQRSVersion_SkipsPseudoVersions`          | `-0.` pseudo-versions skipped                                  |
+| B029 | `resilience/b029_b031_test.go`               | `TestB029_NoFindingForNonCQRSBus`                     | `errorBus.Notify()` ≠ CQRS bus (no Use/Publish/Subscribe)      |
+| E007 | `architecture/e007_regression_test.go` (NEW) | `TestE007_PerTypeRegistrationNotPackageWide`          | Registering GetUserQuery does NOT suppress DeleteUserQuery     |
 
 ### 2. B029-B031 `isBusName` Heuristic Improvement
 
@@ -70,11 +70,11 @@ C041 (`c041_c042.go:60`) already uses `finding.ConfidenceMedium` (0.5). No chang
 
 Added a "Reclassification" section documenting that at least 10 of the original 39 "FPs" were actually true positives:
 
-| Rule | Count | Was | Should Be | Reason |
-|------|-------|-----|-----------|--------|
-| D005 | 4 | FP | TP | Docs genuinely reference stale versions |
-| A005 | 1 | FP | TP | DualWriteBus embeds event.Bus |
-| A032 | 5 | FP | TP | PluginID on domain commands, not display DTOs |
+| Rule | Count | Was | Should Be | Reason                                        |
+| ---- | ----- | --- | --------- | --------------------------------------------- |
+| D005 | 4     | FP  | TP        | Docs genuinely reference stale versions       |
+| A005 | 1     | FP  | TP        | DualWriteBus embeds event.Bus                 |
+| A032 | 5     | FP  | TP        | PluginID on domain commands, not display DTOs |
 
 Corrected FP rate: ~22.7% pre-fix (not 30.5%), ~3% post-fix (not 7.3%).
 

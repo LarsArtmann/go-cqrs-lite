@@ -9,24 +9,28 @@
 ## a) FULLY DONE
 
 ### 1. QUIC test hang resolved
+
 - **Root cause**: `TestQuicPooled_MultipleOpsSameStream` hung during a prior session's verify run. Re-ran it 3x individually + with `-race` — all pass consistently (0.03-0.04s each). The hang was **transient** (resource contention during full parallel verify), NOT a code bug.
 - **Fix**: Added `-timeout=5m` (test phase) and `-timeout=8m` (race phase) to the verify gate in `flake.nix` (both `verify` and `verify-fast` apps). Future transient FFI hangs will now produce a diagnostic timeout panic instead of a silent 600s+ hang.
 
 ### 2. B029-B031 HasServer gating
+
 - Added `if !ctx.FeatureProfile.HasServer { return nil, nil }` to all three resilience rules (`b029.go`, `b030.go`, `b031.go`).
 - Updated all 6 resilience tests to set `ctx.FeatureProfile.HasServer = true` after context creation.
 - **Effect**: B029-B031 now only fire on server-mode consumer projects. CLI tools, libraries, and batch processors won't get false positives about missing retry/circuit-breaker/DLQ.
 
 ### 3. 5 lint issues fixed (0 total across all modules)
-| File | Linter | Fix |
-|------|--------|-----|
-| `cmd/cqrs-lint/pkg/rules/consistency/d018_d019.go:136` | `nilerr` | Changed `return nil, nil` → `return nil, err` (error was swallowed) |
-| `cmd/cqrs-lint/pkg/rules/correctness/c041_c042.go:137` | `gci` | Ran `gofumpt -w` + `goimports -w` to fix import ordering |
-| `cmd/cqrs-lint/pkg/rules/correctness/c023.go:68` | `forcetypeassert` | Added checked type assertion: `call, callOK := assign.Rhs[0].(*ast.CallExpr)` |
-| `cmd/cqrs-lint/run.go:114` | `err113` | Extracted `errStaleSuppressions` static error variable, used `fmt.Errorf("%d %w", ...)` |
-| `cmd/api-stability/main_test.go:298,304` | `nlreturn` | Added blank line before `continue` statements |
+
+| File                                                   | Linter            | Fix                                                                                     |
+| ------------------------------------------------------ | ----------------- | --------------------------------------------------------------------------------------- |
+| `cmd/cqrs-lint/pkg/rules/consistency/d018_d019.go:136` | `nilerr`          | Changed `return nil, nil` → `return nil, err` (error was swallowed)                     |
+| `cmd/cqrs-lint/pkg/rules/correctness/c041_c042.go:137` | `gci`             | Ran `gofumpt -w` + `goimports -w` to fix import ordering                                |
+| `cmd/cqrs-lint/pkg/rules/correctness/c023.go:68`       | `forcetypeassert` | Added checked type assertion: `call, callOK := assign.Rhs[0].(*ast.CallExpr)`           |
+| `cmd/cqrs-lint/run.go:114`                             | `err113`          | Extracted `errStaleSuppressions` static error variable, used `fmt.Errorf("%d %w", ...)` |
+| `cmd/api-stability/main_test.go:298,304`               | `nlreturn`        | Added blank line before `continue` statements                                           |
 
 ### 4. README.md rule tables updated
+
 - All 10 new rules documented in their respective category tables:
   - C041-C042 in Correctness Rules
   - B029-B031 in Boilerplate Rules
@@ -34,19 +38,24 @@
   - F027-F029 in Adoption Rules
 
 ### 5. AGENTS.md updated
+
 - Rule count: 192 → 202
 - Added B029-B031, F027-F029, C041-C042 descriptions to the cmd/cqrs-lint module comment
 
 ### 6. CHANGELOG.md updated
+
 - Added HasServer gating + verify gate timeout entries to the cqrs-lint infrastructure section
 
 ### 7. api-stability golden regenerated
+
 - 3814 → 3819 exports (auto-commit daemon added `DG_NsPerWrite` const + `LogAppend`/`LogTail`/`MultiAdd`/`MultiGet` methods to dgraphengine between sessions)
 
 ### 8. Duplication baseline updated
+
 - 67 → 68 clone groups (auto-commit daemon's dgraphengine multimap_log.go + backup lifecycle test clones accepted)
 
 ### 9. Verify gate GREEN
+
 - Full `nix run .#verify` completed successfully:
   - Build: ✅
   - Vet: ✅
@@ -64,11 +73,13 @@
 ## b) PARTIALLY DONE
 
 ### cqrs-lint v4.6.0 tag exists but NOT pushed
+
 - Tag `cmd/cqrs-lint/v4.6.0` created locally (annotated).
 - 15+ other module tags also exist locally, never pushed to origin.
 - **Blocked on user approval** per AGENTS.md safety rules (`NEVER push to remote unless explicitly asked`).
 
 ### RULES.md does not exist
+
 - Previous session's status report mentioned `cmd/cqrs-lint/RULES.md` as a file to create.
 - This file does NOT exist in the repo. Rules are documented in `README.md` rule tables instead.
 - This is NOT a gap — the README tables ARE the rule documentation. RULES.md was a phantom reference.
@@ -77,13 +88,13 @@
 
 ## c) NOT STARTED (from the original Pareto plan)
 
-| Milestone | Description | Blocker |
-|-----------|-------------|---------|
-| M10 | Private repo Nix flake support | Needs GOPRIVATE + SSH key config verification |
-| M21 | Docker integration test setup | Needs Docker environment |
-| M23 | Deferred to next session | Architecture lint gate wiring |
-| M24 | Go tool integration | Needs Go tool binary |
-| M25 | macOS CI runner | Needs macOS environment |
+| Milestone | Description                    | Blocker                                       |
+| --------- | ------------------------------ | --------------------------------------------- |
+| M10       | Private repo Nix flake support | Needs GOPRIVATE + SSH key config verification |
+| M21       | Docker integration test setup  | Needs Docker environment                      |
+| M23       | Deferred to next session       | Architecture lint gate wiring                 |
+| M24       | Go tool integration            | Needs Go tool binary                          |
+| M25       | macOS CI runner                | Needs macOS environment                       |
 
 ---
 

@@ -24,6 +24,7 @@ per CHANGELOG version. I should have checked this constraint BEFORE editing.
 ## a) FULLY DONE
 
 ### 1. Tags Created and Pushed ✓
+
 - `query/v4.3.0` — querytest.RunStoreSuite + StoreSuite interface
 - `metaengine/dgraphengine/v4.0.2` — DQL injection fix + Multimap/Log backends + calibration
 - `flightrecorder/v4.0.0` — Go 1.25 runtime/trace wrapper, zero-dep
@@ -31,6 +32,7 @@ per CHANGELOG version. I should have checked this constraint BEFORE editing.
 - **"998 unpushed tags" was a false alarm** — broken `comm` pipeline (didn't handle `^{}` peeled entries)
 
 ### 2. Replace Directives Stripped ✓
+
 - `storage/memory/go.mod` — query v4.2.0→v4.3.0, removed `replace` directive
 - `storage/pebble/go.mod` — same
 - `storage/bbolt/go.mod` — same
@@ -38,18 +40,20 @@ per CHANGELOG version. I should have checked this constraint BEFORE editing.
 - Daemon committed these in prior commits
 
 ### 3. False-Positive Annotations Corrected ✓
+
 Fixed 4 stale annotations in `docs/status/2026-08-08_cqrs-lint-false-positive-validation.md`:
 
-| Priority | Rule | Was | Now | Verified Code Location |
-|----------|------|-----|-----|----------------------|
-| 1 | C002 | "OPEN" | "DONE" | `scanner_adapters.go:16` (`ResolveTransportAdapters`) + `c002.go:26` (flag check) |
-| 3 | C027 | "OPEN" | "DONE" | `type_helpers.go:45` (`ReceiverIsEventBus`) + `c027.go:51` (call site) |
-| 3 | S010 | "OPEN" | "DONE" | `s010.go:55` (selector filter on `Use`/`UsePublish`) |
-| 6 | All | "PARTIALLY DONE" | "DONE" | Post-fix FP rate ~7.3% (down from 30.5%) |
+| Priority | Rule | Was              | Now    | Verified Code Location                                                            |
+| -------- | ---- | ---------------- | ------ | --------------------------------------------------------------------------------- |
+| 1        | C002 | "OPEN"           | "DONE" | `scanner_adapters.go:16` (`ResolveTransportAdapters`) + `c002.go:26` (flag check) |
+| 3        | C027 | "OPEN"           | "DONE" | `type_helpers.go:45` (`ReceiverIsEventBus`) + `c027.go:51` (call site)            |
+| 3        | S010 | "OPEN"           | "DONE" | `s010.go:55` (selector filter on `Use`/`UsePublish`)                              |
+| 6        | All  | "PARTIALLY DONE" | "DONE" | Post-fix FP rate ~7.3% (down from 30.5%)                                          |
 
 Each annotation includes `file:line` references verified by reading the actual code.
 
 ### 4. Verify Gate Run ✓
+
 - **Build:** PASS
 - **Vet:** PASS
 - **Tests:** All pass except 3 pre-existing benchkit timing flakes
@@ -58,9 +62,11 @@ Each annotation includes `file:line` references verified by reading the actual c
 - **check-layers:** PASS
 
 ### 5. Planning Doc Updated ✓
+
 Execution log filled in at `docs/planning/2026-08-08_23-49_SUPERB-TAG-PUSH-CHANGELOG-CUT-VERIFY.md`.
 
 ### 6. 3 Commits Pushed to Origin ✓
+
 - `df23eb1bf` — docs(lint): FP elimination session documentation
 - `f84d01e0d` — refactor(system): drainAll extraction + CHANGELOG revert
 - `eb3f2f7d6` — test(system): edge case tests for system lifecycle
@@ -70,12 +76,14 @@ Execution log filled in at `docs/planning/2026-08-08_23-49_SUPERB-TAG-PUSH-CHANG
 ## b) PARTIALLY DONE
 
 ### 1. CHANGELOG Cut — Attempted and Reverted
+
 - Cut `[Unreleased]` → `[v4.7.0]` with summary line
 - `TestTagContentMatchesChangelog` failed: "CHANGELOG has ## [v4.7.0] but zero git tags at that version"
 - Reverted to `[Unreleased]` — **correctly**, because cutting requires coordinated module tagging
 - **Gap:** No release process was followed. v4.7.0 needs ≥10 module tags via `scripts/tag-release.sh`
 
 ### 2. FEATURES.md Metaengine Table — Skipped
+
 - 90+ rows, accurate but unwieldy
 - Consolidation is cosmetic, not correctness
 - Deferred to future session
@@ -95,6 +103,7 @@ Execution log filled in at `docs/planning/2026-08-08_23-49_SUPERB-TAG-PUSH-CHANG
 ## d) TOTALLY FUCKED UP
 
 ### 1. CHANGELOG Cut Without Checking Constraints
+
 I should have known that `TestTagContentMatchesChangelog` in `cmd/api-stability/main_test.go:224-228`
 enforces that every CHANGELOG version must have ≥1 git tag. This test was added
 in a prior session and is documented. I charged ahead with the edit, ran verify-fast,
@@ -109,6 +118,7 @@ on it. `grep -r '\[Unreleased\]\|changelogVersions' cmd/api-stability/` would ha
 caught this in 2 seconds.
 
 ### 2. Didn't Catch the Daemon Committing v4.7.0 Again
+
 After I reverted the CHANGELOG manually, the auto-commit daemon re-committed the
 v4.7.0 block (commit `099e6e126`) because it saw my original edit in its buffer
 before my revert. Then a later daemon commit (`f84d01e0d`) removed it again.
@@ -116,6 +126,7 @@ This created churn in the git history. I should have been more aware that the
 daemon was running and might capture intermediate states.
 
 ### 3. Over-Trusted the Summary's Working Tree State
+
 The conversation summary said the working tree had 4 specific uncommitted files
 (`storage/*/go.mod` + planning doc). In reality, the daemon had already committed
 all of those and the working tree had 17+ completely different modified files.
@@ -210,7 +221,7 @@ was. **Always check `git status` first, trust the summary second.**
 19. **Add precondition checks to planning docs** — note CI gates that block tasks
 20. **Update TODO_LIST.md** — verify items from the daemon's `df23eb1bf` commit
     are still accurate
-21. **Verify all 2026-08-* status report annotations** against current code (3
+21. _*Verify all 2026-08-* status report annotations_* against current code (3
     sessions of stale annotations is too many)
 22. **Clean up planning docs** — Multiple overlapping plans in `docs/planning/`
     reference the same work; consolidate or archive completed ones
@@ -230,7 +241,7 @@ was. **Always check `git status` first, trust the summary second.**
     boundaries beyond check-module-layers.sh
 28. **Review `.golangci.yml` changes** — daemon modified it (uncommitted)
 29. **Review `testutil/pgtestcontainer` hardening** — daemon added type assertion
-    + migrated to ExecContext (uncommitted)
+    - migrated to ExecContext (uncommitted)
 30. **Review `stack/bbolt/preset.go` changes** — daemon modified (uncommitted)
 
 ### Testing
@@ -304,8 +315,8 @@ knowledge of expected SQLite performance under load.**
 
 ## Session Artifacts
 
-| Artifact | Path |
-|----------|------|
-| Planning doc (updated) | `docs/planning/2026-08-08_23-49_SUPERB-TAG-PUSH-CHANGELOG-CUT-VERIFY.md` |
-| False-positive report (corrected) | `docs/status/2026-08-08_cqrs-lint-false-positive-validation.md` |
-| This report | `docs/status/2026-08-09_00-49_tag-push-changelog-verify-status.md` |
+| Artifact                          | Path                                                                     |
+| --------------------------------- | ------------------------------------------------------------------------ |
+| Planning doc (updated)            | `docs/planning/2026-08-08_23-49_SUPERB-TAG-PUSH-CHANGELOG-CUT-VERIFY.md` |
+| False-positive report (corrected) | `docs/status/2026-08-08_cqrs-lint-false-positive-validation.md`          |
+| This report                       | `docs/status/2026-08-09_00-49_tag-push-changelog-verify-status.md`       |

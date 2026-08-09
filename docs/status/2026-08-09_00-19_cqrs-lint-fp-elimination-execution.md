@@ -9,6 +9,7 @@
 ## A) FULLY DONE (Complete and Verified)
 
 ### Phase 1: Transport Adapter Detection (15 FPs eliminated)
+
 - **New file:** `cmd/cqrs-lint/pkg/analyzer/scanner_adapters.go` — `ResolveTransportAdapters()` post-pass scans for `.toDomain()`/`.toCommand()`/`.asDomainCmd()` conversion methods on command types. Sets `CommandInfo.TransportAdapter = true`.
 - **New field:** `TransportAdapter bool` added to `CommandInfo` struct in `types.go`.
 - **Wired into all 3 build context entry points:** `BuildContext()` (loader.go), `BuildContextFromSource()` (test_helpers.go), `BuildContextFromTempFiles()`, `BuildContextWithTypes()`.
@@ -17,6 +18,7 @@
 - **All existing tests pass.**
 
 ### Phase 2: E007 Query Interface Check (7 FPs eliminated)
+
 - **New registry field:** `TypesWithTypeMethod map[string]bool` — tracks which struct types have a `Type()` method.
 - **New registry field:** `PackagesWithRegistration map[string]bool` — tracks packages containing `RegisterTyped`/`RegisterQuery`/`Register` calls. Catches generic wrapper functions like `register[Q]()` that the scanner can't trace through.
 - **Scanner update:** `scanTypedMethod()` in `scanner_folds.go` now records `TypesWithTypeMethod[recvType] = true` when method name is `Type`.
@@ -26,33 +28,39 @@
 - **New test:** `TestE007_NoFindingForQueryWithoutTypeMethod` — struct ending in "Query" without `Type()` method is NOT flagged.
 
 ### Phase 3a: D005 Version String Filtering (partial FPs eliminated)
+
 - **Code block tracking:** `extractCQRSVersion()` now tracks ``` and ~~~ fences, skipping lines inside code blocks.
 - **Import path skip:** Version tokens preceded by `/` (e.g., `cqrs-htmx/v4.2.0`) are skipped.
 - **Pseudo-version skip:** Tokens containing `-0.` (Go pseudo-version timestamps) are skipped.
 - **Inline code skip:** Tokens containing backticks are skipped.
 
 ### Phase 3b: Type-Blind Matching Fixes (3 FPs eliminated)
+
 - **New file:** `cmd/cqrs-lint/pkg/analyzer/type_helpers.go` — `ReceiverTypeName()`, `IsEventBusType()`, `ReceiverIsEventBus()` helpers using `types.Info.Types[sel.X]` to resolve the actual receiver type of method calls.
 - **A005 fix:** `SubscribeAll` calls now check `ReceiverIsEventBus(gf.Pkg, call)`. Non-event-bus receivers (e.g., `ErrorBus`, `CommandBus`) are skipped. When type info is unavailable (unit tests without `NeedTypes`), returns `true` (conservative — preserves current behavior).
 - **C027 fix:** Same `ReceiverIsEventBus` check for both `Subscribe` and `SubscribeAll` calls. SSE broadcasters and other non-event-bus `.Subscribe()` calls are no longer flagged.
 - **S010 fix:** Restructured to only set `busEncrypted`/`busSigned` when `EncryptMiddleware`/`SignMiddleware` appears as an argument to a `Use()` or `UsePublish()` call. Middleware defined but never wired to the bus (dead code) no longer triggers S010.
 
 ### Phase 4a: A032 Display DTO Skip (3 FPs eliminated)
+
 - **Form tag check:** `structHasFormTag()` — structs with any field carrying a `form:` tag are skipped (HTTP binding DTOs).
 - **Display package check:** `isDisplayPackage()` — files in paths containing `dashboard`, `ui`, `view`, `display`, `dto`, `frontend`, `webui` are skipped. Initial version missed `dashboardui` (substring match fixed).
 
 ### Phase 4b: Pattern Fixes (4 FPs eliminated)
+
 - **C013:** `hasJSONDashTag()` — fields with `json:"-"` tag are skipped (explicitly excluded from serialization).
 - **C034:** `enclosingFuncHasShutdown()` — suppresses goroutine warning when the enclosing function body contains `ctx.Done()` or `.Shutdown()` calls (standard HTTP server lifecycle pattern).
 - **C035:** `fileImportsSync()` + `structHasAllJSONTags()` — skips structs where every field has a JSON tag and the file doesn't import `sync` (serialization DTO, not shared mutable).
 - **E009:** `fileImportsCustomHTTP()` — checks for `net/http`, gin, echo, chi, gorilla/mux, fiber, httprouter imports in addition to go-cqrs-lite transport. Projects with their own HTTP layer are not flagged.
 
 ### Phase 5a: Confidence Calibration
+
 - **C027:** Lowered from `ConfidenceMedium` (0.5) to `ConfidenceLow` (0.25) — receiver type resolution is unreliable without full type checking.
 - **E005/E007:** Already at `ConfidenceLow` from prior sessions.
 - **S010:** Already at `ConfidenceMedium` after restructure (wiring check makes it more reliable).
 
 ### Phase 5b: Integration Test Re-run
+
 - **Binary rebuilt** with all fixes.
 - **All 8 repos re-tested:** 128 → 96 findings (32 eliminated).
 - **All 89 true positives preserved** (verified: V006=7, C008=12, C005=6, D006=8, C025=5 all unchanged).
@@ -60,6 +68,7 @@
 - **Zero error-severity false positives remaining.**
 
 ### Validation Report Updated
+
 - `docs/status/2026-08-08_cqrs-lint-false-positive-validation.md` updated with post-fix results table.
 
 ---
@@ -67,12 +76,15 @@
 ## B) PARTIALLY DONE
 
 ### D005 Version Misparsing — 4 of 4 FPs still remaining
+
 The D005 FPs are all **true version mismatches in prose** (docs reference v4.2.0 while go.mod has v4.4.0). The code block/import path/pseudo-version skips are correct but don't address these — they're prose references. These are arguably **true positives** (the docs ARE stale), not false positives. The original classification as FPs was questionable.
 
 ### A005 Receiver Type Resolution — 1 of 4 FPs still remaining
+
 The Kernovia `dual_write_bus.go:97` A005 finding is on a **real** `bus.SubscribeAll` call (DualWriteBus embeds event.Bus). The `ReceiverIsEventBus` check correctly identifies it as an event bus type. This is actually a **true positive** (Kernovia does have a manual projection pattern via DualWriteBus.SubscribeAll). The original classification as FP was wrong.
 
 ### A032 in Kernovia — 5 TPs (not FPs)
+
 The 5 remaining A032 findings in Kernovia (`PluginID string` on domain command types) are **true positives** — these are domain commands that should use branded IDs.
 
 ---
@@ -126,6 +138,7 @@ The 5 remaining A032 findings in Kernovia (`PluginID string` on domain command t
 ## F) Up to 50 Things to Get Done Next
 
 ### High Priority — Regression Test Coverage (missing from this session)
+
 1. Write `TestA005_SkipsNonEventBusReceiver` — ErrorBus.SubscribeAll is not flagged
 2. Write `TestC027_SkipsNonEventBusReceiver` — SSE Broadcaster.Subscribe is not flagged
 3. Write `TestS010_RequiresUseWiring` — middleware defined but not passed to Use() is not flagged
@@ -140,6 +153,7 @@ The 5 remaining A032 findings in Kernovia (`PluginID string` on domain command t
 12. Write `TestE007_SkipsWhenPackageHasRegistration` — query in registered package is not flagged
 
 ### Medium Priority — Remaining FP Elimination
+
 13. Re-examine D005 "FPs" — determine if they're actually TPs (stale docs) and update the validation report
 14. Re-examine A005 Kernovia finding — confirm it's a TP (DualWriteBus IS an event bus)
 15. Re-examine A032 Kernovia findings — confirm they're TPs (PluginID on domain commands)
@@ -147,6 +161,7 @@ The 5 remaining A032 findings in Kernovia (`PluginID string` on domain command t
 17. Consider E005 per-package registration check (same pattern as E007)
 
 ### Medium Priority — Precision Improvements
+
 18. Implement `DispatchedTypes` tracking — scan for `Dispatch`/`Publish` call sites and resolve argument types, for more precise transport adapter detection
 19. Replace `PackagesWithRegistration` with per-type registration tracing through generic wrappers
 20. Add `ReceiverTypeName` fallback — when `types.Info` is empty, use variable name + struct decl lookup
@@ -154,6 +169,7 @@ The 5 remaining A032 findings in Kernovia (`PluginID string` on domain command t
 22. Add `isConversionMethod` configurability — let consumers add custom conversion method names via `.cqrs-lint.json`
 
 ### Medium Priority — Release Hygiene
+
 23. Verify what commit `v4.3.0` tag points to — confirm all fixes were included before the tag
 24. If v4.3.0 is missing fixes, cut v4.3.1 with the remaining changes
 25. Update `cmd/cqrs-lint` version constant to match the latest tag
@@ -161,11 +177,13 @@ The 5 remaining A032 findings in Kernovia (`PluginID string` on domain command t
 27. Run `cmd/doc-check` to verify skill/AGENTS.md references are still valid
 
 ### Medium Priority — FP-Suspects Mode
+
 28. Verify `--fp-suspects` now catches >80% of remaining FPs (all are ConfidenceLow=0.25)
 29. Test the `--fp-suspects` + `--min-confidence` combination workflow
 30. Document recommended CI workflow: `cqrs-lint --fp-suspects --min-confidence 0.5`
 
 ### Lower Priority — Additional Hardening
+
 31. Add `isStubFile()` helper — count non-comment, non-blank lines; return true if ≤3
 32. Apply `isStubFile()` to E014 and F005 detectors
 33. Add E014 confidence calibration comment block
@@ -174,6 +192,7 @@ The 5 remaining A032 findings in Kernovia (`PluginID string` on domain command t
 36. Add scanner test for `PackagesWithRegistration` population
 
 ### Broader cqrs-lint Improvements
+
 37. Run the `--scorecard` against all 8 repos to measure module adoption
 38. Create fix PRs for top-value true positives (C002 zero IDs in Kernovia, C008 float64 money in crush-daily)
 39. Write "cqrs-lint in CI" guide with recommended flag combinations

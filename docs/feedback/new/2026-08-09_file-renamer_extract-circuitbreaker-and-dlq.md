@@ -16,12 +16,12 @@ The consumer assumes a zero-dependency state machine must be extracted because t
 
 failsafe-go already exposes the exact API the consumer wants:
 
-| Consumer asks for       | failsafe-go equivalent         |
-| ----------------------- | ------------------------------ |
-| `Allow() bool`          | `TryAcquirePermit() bool`      |
-| `RecordSuccess()`       | `RecordSuccess()`              |
-| `RecordFailure()`       | `RecordError(err)`             |
-| `State() State`         | `State() circuitbreaker.State` |
+| Consumer asks for | failsafe-go equivalent         |
+| ----------------- | ------------------------------ |
+| `Allow() bool`    | `TryAcquirePermit() bool`      |
+| `RecordSuccess()` | `RecordSuccess()`              |
+| `RecordFailure()` | `RecordError(err)`             |
+| `State() State`   | `State() circuitbreaker.State` |
 
 **No module.** A thin facade would add naming cosmetics (`Allow` vs `TryAcquirePermit`) at the cost of a leaky abstraction: consumers would inevitably want failsafe-go's real features (sliding windows, state-transition listeners, metrics hooks) exposed, forcing the facade to grow into the thing it wraps. `middleware/circuit_breaker.go` itself is ~20 lines of integration glue — the right reference implementation to point at.
 
@@ -29,12 +29,12 @@ failsafe-go already exposes the exact API the consumer wants:
 
 ### DLQ → don't extract; the consumer's use case is a different abstraction
 
-The consumer's `pkg/deadletter/deadletter.go` stores **failed file-rename operations** (file paths, error types, retry counts, operator actions). That is an **application-level retry queue**, not a dead-letter queue. This is a CQRS/ES library; dead-lettering is a *message* concept:
+The consumer's `pkg/deadletter/deadletter.go` stores **failed file-rename operations** (file paths, error types, retry counts, operator actions). That is an **application-level retry queue**, not a dead-letter queue. This is a CQRS/ES library; dead-lettering is a _message_ concept:
 
 - **Projection poison events** → `projectionhost.DeadLetterStore` (already exists, correctly event-specific)
 - **Commands that exhaust retries** → would be CQRS-aligned, but the consumer is not asking for this
 
-The projectionhost DLQ is tightly coupled to `event.Event` *by design*:
+The projectionhost DLQ is tightly coupled to `event.Event` _by design_:
 
 - `DeadLetterEntry` carries `ProjectionName`, `EventID`, `EventType`, `StreamID`, `ErrorCode`, `ErrorFamily`
 - The SQLite impl reconstructs events via `event.ReconstructEventFromFields` for replay
@@ -42,13 +42,13 @@ The projectionhost DLQ is tightly coupled to `event.Event` *by design*:
 
 Genericizing this into `Entry[P any]` would either lose that richness or force projectionhost to maintain a parallel typed layer on top — the exact coupling the consumer is trying to escape, now inside the library. A generic failed-work queue is general-purpose application infrastructure, not CQRS/ES building material.
 
-**No module.** The consumer's 200-line JSON-backed retry store is the right shape for *their* domain. It is bespoke application logic, not duplicated library logic.
+**No module.** The consumer's 200-line JSON-backed retry store is the right shape for _their_ domain. It is bespoke application logic, not duplicated library logic.
 
 ### Summary
 
-| Request          | Disposition           | Rationale                                                                  |
-| ---------------- | --------------------- | -------------------------------------------------------------------------- |
-| `circuitbreaker/v4` | Docs pointer, no module | failsafe-go IS the standalone breaker; a facade is a leaky abstraction     |
+| Request             | Disposition             | Rationale                                                                               |
+| ------------------- | ----------------------- | --------------------------------------------------------------------------------------- |
+| `circuitbreaker/v4` | Docs pointer, no module | failsafe-go IS the standalone breaker; a facade is a leaky abstraction                  |
 | `dlq/v4`            | No module, out of scope | Consumer needs an app-level retry queue; projectionhost DLQ is event-specific by design |
 
 ---

@@ -91,6 +91,7 @@ blows up at runtime.
 ### Problem 2: "Aggregate" and "View" are unnecessary concepts
 
 The current API forces the developer to understand:
+
 - **Aggregates** — a DDD concept that adds a registration step (`RegisterDecider`)
 - **Views** — database jargon for "materialized projection"
 - **Deciders** — pure-function folds that the developer writes by hand
@@ -111,14 +112,14 @@ different decoder fields — these are all operator concerns sitting on the
 
 ## 3. Core Design Principles
 
-| Principle | Meaning |
-|---|---|
-| **Declare, don't wire** | The developer declares types and relationships. The system wires everything. |
-| **Type safety, no `any`** | Sealed interfaces compile-time-reject invalid declarations. Go generics carry types end-to-end. |
-| **Domain != Deployment** | Two config structs, zero overlap. Developer never touches infrastructure. Operator never writes logic. |
+| Principle                         | Meaning                                                                                                                         |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **Declare, don't wire**           | The developer declares types and relationships. The system wires everything.                                                    |
+| **Type safety, no `any`**         | Sealed interfaces compile-time-reject invalid declarations. Go generics carry types end-to-end.                                 |
+| **Domain != Deployment**          | Two config structs, zero overlap. Developer never touches infrastructure. Operator never writes logic.                          |
 | **Access pattern drives storage** | The developer declares HOW they read (point lookup vs filtered scan vs aggregate). The engine builds the optimal storage shape. |
-| **Convention over configuration** | Field matching by name + type auto-generates folds for 80% of cases. Explicit folds for the rest. |
-| **Everything works everywhere** | Any engine serves any query. The planner warns, never blocks. |
+| **Convention over configuration** | Field matching by name + type auto-generates folds for 80% of cases. Explicit folds for the rest.                               |
+| **Everything works everywhere**   | Any engine serves any query. The planner warns, never blocks.                                                                   |
 
 ---
 
@@ -150,11 +151,11 @@ data**, which tells the engine **what storage shape to build**.
 
 Three access patterns, three constructors:
 
-| Constructor | Access Pattern | Engine Storage | Read Cost | Use When |
-|---|---|---|---|---|
-| `Lookup[R]("name")` | Single row by key | Hash map / KV | O(1) | "Get user X" |
+| Constructor           | Access Pattern                  | Engine Storage  | Read Cost        | Use When                       |
+| --------------------- | ------------------------------- | --------------- | ---------------- | ------------------------------ |
+| `Lookup[R]("name")`   | Single row by key               | Hash map / KV   | O(1)             | "Get user X"                   |
 | `QuerySet[R]("name")` | Multi-row with flexible filters | Table + indexes | O(log N) indexed | "Find tasks WHERE status=open" |
-| `Count("name")` | Numeric aggregate | Counter | O(1) | "How many tasks per status?" |
+| `Count("name")`       | Numeric aggregate               | Counter         | O(1)             | "How many tasks per status?"   |
 
 ### Why three constructors instead of one?
 
@@ -297,6 +298,7 @@ based on engine capabilities.
 ## 7. Commands: Logic Without Infrastructure
 
 Commands are pure business logic. Each handler receives:
+
 - `context.Context`
 - The typed command struct (embeds `*command.BasicCommand` for `StreamID()`)
 - The current state (loaded by replaying events through the matching query fold)
@@ -327,6 +329,7 @@ state loading. No explicit wiring.
 ### No aggregates, no deciders, no repositories
 
 The developer never writes:
+
 - `decider.Decider[State]{Initial: ..., Fold: ...}`
 - `RegisterDecider[State](sys, "Task", decider)`
 - `decider.NewRepository(store, bus, decider)`
@@ -580,21 +583,21 @@ Returns the same sealed `QuerySpec`. No `[]any` leak.
 
 ## 13. What Disappears
 
-| Concept | Current API | v5 API |
-|---|---|---|
-| **Aggregate** | `RegisterDecider[State](sys, "Task", decider)` | **Deleted.** System auto-builds from Query fold + Command handler. |
-| **State type** | Separate `TaskState` struct | **Unified.** Query result type IS the state type. |
-| **View** | `system.View[R,K]("name").From(events...)` | **Renamed to Query.** `Lookup`, `QuerySet`, `Count`. |
-| **Decider** | `decider.Decider[State]{Initial, Fold}` | **Auto-generated.** System builds from Query fold. |
-| **Fold** | `metaengine.On(...)` / `OnTyped(...)` | **Auto-generated** for L1/L2. Explicit only for L3. |
-| **ADT** | Manual classification | **Inferred** from constructor (Lookup→Map, QuerySet→SortedMap, Count→Counter). |
-| **Decoder** | `ProjectionTypeDecoder`, `EventDecoder`, `PayloadDecoder` | **Auto-generated** from event struct types. |
-| **Projection adapter** | `projectionadapter.New(name, store, decoder)` | **Auto-wired.** |
-| **Engine selection** | Manual `metaengine.Query` + `Plan` | **Auto-planned** by metaengine. |
-| **Projection host** | `projectionhost.New(journal, cpStore, opts...)` | **Auto-created** from Deployment config. |
-| **Bus** | `watermill.NewEventBus()` | **Auto-wired** from Deployment.Bus. |
-| `Projections []any` | Type-erased slice | `Queries []QuerySpec` — sealed interface. |
-| `Commands func(*System)` | Imperative callback | `Commands []CommandSpec` — declarative. |
+| Concept                  | Current API                                               | v5 API                                                                         |
+| ------------------------ | --------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| **Aggregate**            | `RegisterDecider[State](sys, "Task", decider)`            | **Deleted.** System auto-builds from Query fold + Command handler.             |
+| **State type**           | Separate `TaskState` struct                               | **Unified.** Query result type IS the state type.                              |
+| **View**                 | `system.View[R,K]("name").From(events...)`                | **Renamed to Query.** `Lookup`, `QuerySet`, `Count`.                           |
+| **Decider**              | `decider.Decider[State]{Initial, Fold}`                   | **Auto-generated.** System builds from Query fold.                             |
+| **Fold**                 | `metaengine.On(...)` / `OnTyped(...)`                     | **Auto-generated** for L1/L2. Explicit only for L3.                            |
+| **ADT**                  | Manual classification                                     | **Inferred** from constructor (Lookup→Map, QuerySet→SortedMap, Count→Counter). |
+| **Decoder**              | `ProjectionTypeDecoder`, `EventDecoder`, `PayloadDecoder` | **Auto-generated** from event struct types.                                    |
+| **Projection adapter**   | `projectionadapter.New(name, store, decoder)`             | **Auto-wired.**                                                                |
+| **Engine selection**     | Manual `metaengine.Query` + `Plan`                        | **Auto-planned** by metaengine.                                                |
+| **Projection host**      | `projectionhost.New(journal, cpStore, opts...)`           | **Auto-created** from Deployment config.                                       |
+| **Bus**                  | `watermill.NewEventBus()`                                 | **Auto-wired** from Deployment.Bus.                                            |
+| `Projections []any`      | Type-erased slice                                         | `Queries []QuerySpec` — sealed interface.                                      |
+| `Commands func(*System)` | Imperative callback                                       | `Commands []CommandSpec` — declarative.                                        |
 
 ---
 
@@ -699,11 +702,11 @@ decider. No projection adapter.
 Events like `TaskStarted`, `TaskAssigned`, `TaskArchived` don't match the
 naming convention. Three options:
 
-| Option | Mechanism | Pro | Con |
-|---|---|---|---|
-| **A. Field-matching** | If event has matching fields → update (patch); if only key → delete; else → insert | Zero hints needed | Magical, harder to debug edge cases |
-| **B. `.As(system.Update)` hint** | `On("task.started", TaskStarted{}, system.As(system.Update))` | Explicit, minimal API surface | Developer must know fold kinds |
-| **C. Always explicit fold** | Every event beyond Created/Deleted requires a fold func | Fully explicit | Verbose for simple cases |
+| Option                           | Mechanism                                                                          | Pro                           | Con                                 |
+| -------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
+| **A. Field-matching**            | If event has matching fields → update (patch); if only key → delete; else → insert | Zero hints needed             | Magical, harder to debug edge cases |
+| **B. `.As(system.Update)` hint** | `On("task.started", TaskStarted{}, system.As(system.Update))`                      | Explicit, minimal API surface | Developer must know fold kinds      |
+| **C. Always explicit fold**      | Every event beyond Created/Deleted requires a fold func                            | Fully explicit                | Verbose for simple cases            |
 
 **Current recommendation:** Field-matching (A) as default, with `.As(...)`
 override for ambiguous cases. The existing `matchFields` in `auto_naming.go`
@@ -715,11 +718,11 @@ only the key field → remove. Otherwise → insert.
 Commands need a stream type string (e.g., `"Task"`) for the event store. Three
 options:
 
-| Option | Mechanism | Pro | Con |
-|---|---|---|---|
-| **A. From state type name** | `TaskSummary` → strip suffix → `"Task"` | Zero config | Fragile naming convention |
-| **B. Explicit on On()** | `system.On("Task", "task.create", handler)` | Explicit, no surprise | Slightly more verbose |
-| **C. System.Stream wrapper** | `system.Stream("Task", system.On(...), system.On(...))` | Groups commands by stream | Adds nesting |
+| Option                       | Mechanism                                               | Pro                       | Con                       |
+| ---------------------------- | ------------------------------------------------------- | ------------------------- | ------------------------- |
+| **A. From state type name**  | `TaskSummary` → strip suffix → `"Task"`                 | Zero config               | Fragile naming convention |
+| **B. Explicit on On()**      | `system.On("Task", "task.create", handler)`             | Explicit, no surprise     | Slightly more verbose     |
+| **C. System.Stream wrapper** | `system.Stream("Task", system.On(...), system.On(...))` | Groups commands by stream | Adds nesting              |
 
 **Current recommendation:** Option B — explicit stream type on the command
 handler or a `Stream` grouping function. Naming conventions for stream
@@ -739,6 +742,7 @@ projections. The planner already warns when this exceeds the budget
 Commands load state by replaying events through the query fold. For hot streams
 with long histories, this can be expensive. The existing `decider.Repository`
 already solves this via:
+
 - **Snapshots** — point-in-time state capture (`snapshot.EveryNEvents`)
 - **Hot-state cache** — LRU-bounded in-memory cache (`decider.WithStateCache`)
 - **Load coalescing** — `singleflight.Group` for concurrent loads

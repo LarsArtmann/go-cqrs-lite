@@ -99,98 +99,98 @@
 
 ### Immediate (this repo, code changes)
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | 🔥 Push all unpushed tags to origin (blocks vulncheck) | CRITICAL | S — needs user approval |
-| 2 | 🔥 Wire `#check-arch` into verify gate + CI | HIGH | S |
-| 3 | Tag `query/v4.3.0` (eliminate replace directives) | HIGH | S |
-| 4 | Tag `dgraphengine/v4.0.2` (security fix) | HIGH | S |
-| 5 | Tag `flightrecorder/v4.0.0` (pseudo-version) | MEDIUM | S |
-| 6 | Cut CHANGELOG `[Unreleased]` → `[v4.7.0]` versioned release | HIGH | M |
-| 7 | Consolidate FEATURES.md metaengine table (90→30 rows) | MEDIUM | M |
-| 8 | Improve C002 false-positive detection (transport adapters) | HIGH | M |
-| 9 | Improve C027 type-blind matching (non-event-bus Subscribe) | HIGH | M |
-| 10 | Fix S010 type-blind matching (SignMiddleware without bus.Use) | HIGH | S |
-| 11 | Improve B029-B031 isBusName heuristic | MEDIUM | S |
-| 12 | Improve D018 collectEventNewTypes precision | MEDIUM | S |
-| 13 | Raise C041 confidence to Medium | MEDIUM | S |
-| 14 | Add integration test: lint example/taskmanager end-to-end | MEDIUM | M |
-| 15 | Write cqrs-lint v4.6.0 release notes | MEDIUM | S |
+| #   | Task                                                          | Impact   | Effort                  |
+| --- | ------------------------------------------------------------- | -------- | ----------------------- |
+| 1   | 🔥 Push all unpushed tags to origin (blocks vulncheck)        | CRITICAL | S — needs user approval |
+| 2   | 🔥 Wire `#check-arch` into verify gate + CI                   | HIGH     | S                       |
+| 3   | Tag `query/v4.3.0` (eliminate replace directives)             | HIGH     | S                       |
+| 4   | Tag `dgraphengine/v4.0.2` (security fix)                      | HIGH     | S                       |
+| 5   | Tag `flightrecorder/v4.0.0` (pseudo-version)                  | MEDIUM   | S                       |
+| 6   | Cut CHANGELOG `[Unreleased]` → `[v4.7.0]` versioned release   | HIGH     | M                       |
+| 7   | Consolidate FEATURES.md metaengine table (90→30 rows)         | MEDIUM   | M                       |
+| 8   | Improve C002 false-positive detection (transport adapters)    | HIGH     | M                       |
+| 9   | Improve C027 type-blind matching (non-event-bus Subscribe)    | HIGH     | M                       |
+| 10  | Fix S010 type-blind matching (SignMiddleware without bus.Use) | HIGH     | S                       |
+| 11  | Improve B029-B031 isBusName heuristic                         | MEDIUM   | S                       |
+| 12  | Improve D018 collectEventNewTypes precision                   | MEDIUM   | S                       |
+| 13  | Raise C041 confidence to Medium                               | MEDIUM   | S                       |
+| 14  | Add integration test: lint example/taskmanager end-to-end     | MEDIUM   | M                       |
+| 15  | Write cqrs-lint v4.6.0 release notes                          | MEDIUM   | S                       |
 
 ### Dgraph Engine
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 16 | Add Dgraph to `test-all-backends.sh` | MEDIUM | S |
-| 17 | Add Dgraph VM test (`nix/vm/dgraph.nix`) | MEDIUM | M |
-| 18 | Add per-test data cleanup for Dgraph | MEDIUM | S |
-| 19 | Add Dgraph retry logic for transient errors | LOW | S |
-| 20 | Add Dgraph connection pool tuning | LOW | S |
+| #   | Task                                        | Impact | Effort |
+| --- | ------------------------------------------- | ------ | ------ |
+| 16  | Add Dgraph to `test-all-backends.sh`        | MEDIUM | S      |
+| 17  | Add Dgraph VM test (`nix/vm/dgraph.nix`)    | MEDIUM | M      |
+| 18  | Add per-test data cleanup for Dgraph        | MEDIUM | S      |
+| 19  | Add Dgraph retry logic for transient errors | LOW    | S      |
+| 20  | Add Dgraph connection pool tuning           | LOW    | S      |
 
 ### Irohengine
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 21 | Add runtime protocol-mismatch detection for QUIC pooling | MEDIUM | S |
-| 22 | Add stream-reuse counter to peerConn | LOW | S |
-| 23 | Extract shared framing constants | LOW | S |
-| 24 | Port injectable-clock pattern to QUIC LWW tests | LOW | S |
-| 25 | Extract RunConvergenceSuite shared test harness | MEDIUM | M |
+| #   | Task                                                     | Impact | Effort |
+| --- | -------------------------------------------------------- | ------ | ------ |
+| 21  | Add runtime protocol-mismatch detection for QUIC pooling | MEDIUM | S      |
+| 22  | Add stream-reuse counter to peerConn                     | LOW    | S      |
+| 23  | Extract shared framing constants                         | LOW    | S      |
+| 24  | Port injectable-clock pattern to QUIC LWW tests          | LOW    | S      |
+| 25  | Extract RunConvergenceSuite shared test harness          | MEDIUM | M      |
 
 ### Layer Enforcement
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 26 | Add `.go-arch-lint.yml` for metaengine/ | MEDIUM | M |
-| 27 | Add `.go-arch-lint.yml` for stack/ | LOW | S |
-| 28 | Add `.go-arch-lint.yml` for decider/ | LOW | S |
-| 29 | Add `.go-arch-lint.yml` for projectionhost/ | LOW | S |
-| 30 | Add meta-test: every .go-arch-lint.yml is parseable | MEDIUM | S |
-| 31 | Add meta-test: every 3+ package module has .go-arch-lint.yml | MEDIUM | S |
+| #   | Task                                                         | Impact | Effort |
+| --- | ------------------------------------------------------------ | ------ | ------ |
+| 26  | Add `.go-arch-lint.yml` for metaengine/                      | MEDIUM | M      |
+| 27  | Add `.go-arch-lint.yml` for stack/                           | LOW    | S      |
+| 28  | Add `.go-arch-lint.yml` for decider/                         | LOW    | S      |
+| 29  | Add `.go-arch-lint.yml` for projectionhost/                  | LOW    | S      |
+| 30  | Add meta-test: every .go-arch-lint.yml is parseable          | MEDIUM | S      |
+| 31  | Add meta-test: every 3+ package module has .go-arch-lint.yml | MEDIUM | S      |
 
 ### System Package
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 32 | Add system lifecycle edge-case tests | MEDIUM | M |
-| 33 | Add DuckDB source-of-truth integration test | MEDIUM | M |
-| 34 | Add Postgres source-of-truth integration test | MEDIUM | M |
-| 35 | Add ShutdownDependency integration test | MEDIUM | M |
+| #   | Task                                          | Impact | Effort |
+| --- | --------------------------------------------- | ------ | ------ |
+| 32  | Add system lifecycle edge-case tests          | MEDIUM | M      |
+| 33  | Add DuckDB source-of-truth integration test   | MEDIUM | M      |
+| 34  | Add Postgres source-of-truth integration test | MEDIUM | M      |
+| 35  | Add ShutdownDependency integration test       | MEDIUM | M      |
 
 ### Metaengine Coverage
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 36 | Cross-engine parity test for all 5 aggregate interfaces | MEDIUM | M |
-| 37 | Run full DuckDB test suite under -race | MEDIUM | S |
-| 38 | Add aggregate tests with NULL + large datasets | LOW | S |
-| 39 | Add SQLite engine Doctor test | LOW | S |
-| 40 | Run calibration benchmarks against baseline | MEDIUM | M |
+| #   | Task                                                    | Impact | Effort |
+| --- | ------------------------------------------------------- | ------ | ------ |
+| 36  | Cross-engine parity test for all 5 aggregate interfaces | MEDIUM | M      |
+| 37  | Run full DuckDB test suite under -race                  | MEDIUM | S      |
+| 38  | Add aggregate tests with NULL + large datasets          | LOW    | S      |
+| 39  | Add SQLite engine Doctor test                           | LOW    | S      |
+| 40  | Run calibration benchmarks against baseline             | MEDIUM | M      |
 
 ### Integration Tests
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 41 | Write actual Redis/NATS integration tests | MEDIUM | M |
-| 42 | macOS verification of ephemeral PG | LOW | M — blocked |
+| #   | Task                                      | Impact | Effort      |
+| --- | ----------------------------------------- | ------ | ----------- |
+| 41  | Write actual Redis/NATS integration tests | MEDIUM | M           |
+| 42  | macOS verification of ephemeral PG        | LOW    | M — blocked |
 
 ### Documentation
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 43 | Write ADR for ApplyLayoutPlan pattern | LOW | S |
-| 44 | Write ADR for WithClock pattern | LOW | S |
-| 45 | Document GitHub Actions SHA pinning in CONTRIBUTING.md | LOW | S |
-| 46 | Update AGENTS.md "Dedup helper patterns" section | LOW | S |
-| 47 | Add integration testing guide to CONTRIBUTING.md | LOW | S |
+| #   | Task                                                   | Impact | Effort |
+| --- | ------------------------------------------------------ | ------ | ------ |
+| 43  | Write ADR for ApplyLayoutPlan pattern                  | LOW    | S      |
+| 44  | Write ADR for WithClock pattern                        | LOW    | S      |
+| 45  | Document GitHub Actions SHA pinning in CONTRIBUTING.md | LOW    | S      |
+| 46  | Update AGENTS.md "Dedup helper patterns" section       | LOW    | S      |
+| 47  | Add integration testing guide to CONTRIBUTING.md       | LOW    | S      |
 
 ### Code Quality
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 48 | Consolidate deferClose helper (3 copies) | LOW | M |
-| 49 | Audit .golangci.yml exclusion blocks | LOW | M |
-| 50 | Write actual Dgraph integration tests in Go | MEDIUM | M |
+| #   | Task                                        | Impact | Effort |
+| --- | ------------------------------------------- | ------ | ------ |
+| 48  | Consolidate deferClose helper (3 copies)    | LOW    | M      |
+| 49  | Audit .golangci.yml exclusion blocks        | LOW    | M      |
+| 50  | Write actual Dgraph integration tests in Go | MEDIUM | M      |
 
 ---
 
@@ -212,12 +212,12 @@ Both are in TODO_LIST. The cqrs-lint fixes improve consumer trust (external-faci
 
 ## Self-Assessment Score
 
-| Dimension | Score | Notes |
-|-----------|-------|-------|
-| Accuracy | 7/10 | Fixes were correct but self-critique had 57% false-positive rate on prior gaps |
-| Completeness | 8/10 | All planned tasks executed. 3 reports annotated. Docs consistent. |
-| Consistency | 9/10 | 202 rules, 78 modules, 79 go.mod — all docs agree |
-| Thoroughness | 6/10 | Did not run verify gate, did not consolidate FEATURES metaengine table |
-| Process | 7/10 | Plan written, executed, committed, pushed. But TODO routing took 3 passes. |
+| Dimension    | Score | Notes                                                                          |
+| ------------ | ----- | ------------------------------------------------------------------------------ |
+| Accuracy     | 7/10  | Fixes were correct but self-critique had 57% false-positive rate on prior gaps |
+| Completeness | 8/10  | All planned tasks executed. 3 reports annotated. Docs consistent.              |
+| Consistency  | 9/10  | 202 rules, 78 modules, 79 go.mod — all docs agree                              |
+| Thoroughness | 6/10  | Did not run verify gate, did not consolidate FEATURES metaengine table         |
+| Process      | 7/10  | Plan written, executed, committed, pushed. But TODO routing took 3 passes.     |
 
 **Overall: 7.5/10 — Solid execution of gap closure, but self-critique reliability is questionable.**
