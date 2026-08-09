@@ -192,3 +192,53 @@ store, _ := turso.NewEventStore(db)
 - [**memory**](../storage/memory/README.md) — In-memory implementations for tests
 - [**otel**](../otel/README.md) — Span recording via `otel/` re-exports
 - [**listing**](../listing/README.md) — SQL-backed aggregate reader
+
+## SQL View Store
+
+The `storage/view` package provides `SQLViewStore[V, K]` — a column-mapped
+view store that writes typed structs to SQL tables with queryable columns.
+Use it for projection read models that need SQL power (WHERE, ORDER BY,
+LIMIT/OFFSET) beyond simple key-value lookups.
+
+### AutoMapper (default)
+
+When you create a `SQLViewStore` via `NewSQLiteViewStore` or
+`NewSQLViewStore`, the table schema is **auto-generated** from the struct
+type `V` using reflection. Each exported field becomes a column with an
+inferred SQL type. This is the default — no manual schema declaration needed.
+
+```go
+store, _ := storage.NewSQLiteViewStore[TodoView, TodoID](db,
+    storage.AutoMapper[TodoView]("todos_view"))
+// Creates table: CREATE TABLE IF NOT EXISTS todos_view (id TEXT, title TEXT, completed INTEGER, ...)
+```
+
+To skip auto-migration (e.g., when the table already exists or you manage
+schema externally):
+
+```go
+store, _ := storage.NewSQLiteViewStore[TodoView, TodoID](db,
+    storage.AutoMapper[TodoView]("todos_view"),
+    storage.WithoutViewAutoMigrate())
+```
+
+### Tombstone column
+
+For soft-delete support, add a tombstone column to the mapper:
+
+```go
+storage.AutoMapperWithTombstone[TodoView]("todos_view", "tombstoned")
+```
+
+### Increment (non-clamping)
+
+The `Increment` method on `ProjectionSink` atomically adds a delta to a
+numeric column. The semantics are **non-clamping**: values can go negative.
+This is intentional — clamping (preventing negative counts) would mask
+projection bugs (e.g., double-processing a delete event). If a counter goes
+negative, investigate the event handler, not the increment logic.
+
+```go
+sink.Increment(ctx, "channel_activity", storage.Row{"day": today}, "message_count", +1)
+sink.Increment(ctx, "channel_activity", storage.Row{"day": today}, "message_count", -1) // delete
+```
