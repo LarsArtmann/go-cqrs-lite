@@ -528,6 +528,21 @@ can try it while v1 paths still work. v5 is the clean cut.
 - Run cqrs-lint against real consumer repos (Kernovia, Standup-Killer,
   bank-sync, cqrs-htmx, DiscordSync, timesheets, crush-daily, KeyHolderAI) —
   validate false-positive rates. L effort, needs private repo access.
+- Test against CockroachDB — it speaks the PostgreSQL wire protocol, so the
+  existing `stack/postgres` + `storage/` SQL layer (pgx driver, `INSERT ON
+  CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
+  26257 and run the Postgres test suite. Note: CockroachDB is source-available
+  (not OSS) — single-node/dev use only without a commercial license. Users who
+  bring their own license can run it; go-cqrs-lite just speaks Postgres wire.
+- Add ScyllaDB metaengine backend + performance benchmarks — ScyllaDB is a
+  NoSQL wide-column store (CQL, Cassandra-compatible, shard-per-core C++/Seastar,
+  ultra-low single-digit-ms latency). NOT SQL — integration would be a new
+  `metaengine/scyllaengine/` module via `gocql` (scylladb fork), not a SQL layer
+  adaptation. Natural fit for write-heavy ADTs (Counter via distributed counters,
+  Map/Set via wide-column rows, Log via clustering-key append). Compare against
+  Pebble/SQLite on write throughput and point-read latency. Note: ScyllaDB is
+  source-available (not OSS, switched from AGPL v3 in 2025) — free tier caps at
+  10 TB / 50 vCPUs; "Never Customer" clause.
 
 > Items with design docs graduate to a Theme above, then to [TODO_LIST.md](TODO_LIST.md)
 > when actively worked.
