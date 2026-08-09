@@ -3,6 +3,7 @@ package system
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -33,7 +34,6 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		deciders:   make(map[string]any),
 		cmdDisp:    command.NewDispatcher(),
 		qryDisp:    query.NewDispatcher(),
-		bus:        newSimpleBus(),
 	}
 
 	// Create engines from the deployment config via the driver registry.
@@ -183,6 +183,11 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 	sys.bus = bus
 	sys.pubBus = buildPublisher(deployment, sys.bus)
+
+	// Register the bus for lifecycle management (watermill.EventBus implements io.Closer).
+	if closer, ok := bus.(io.Closer); ok {
+		sys.closers = append(sys.closers, namedCloser{closer: closer, name: "event-bus"})
+	}
 
 	// Wire projection host if we have projections and an event journal.
 	if sys.projStore != nil {

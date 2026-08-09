@@ -15,7 +15,7 @@ C023 Stop() error ignored — pending events or resources may be lost
 C026 Idempotency TTL mismatch — literal TTL passed but a TTL constant (projectionSettleMs) is defined and not used here
 C026 Idempotency TTL mismatch — literal TTL passed but a TTL constant (projectionSettleMs) is defined and not used here
 D013 Project creates 11 events without event.WithSchemaVersion — schema evolution (upcasting) is impossible to add retroactively
-E003 Package github.com/larsartmann/go-cqrs-lite/example/taskmanager mixes 4 CQRS concerns (fold, projection, command, event) — split into domain/infrastructure boundaries
+E003 Package github.com/larsartmann/go-cqrs-lite/example/taskmanager mixes 4 CQRS concerns (command, event, fold, projection) — split into domain/infrastructure boundaries
 E005 Command type "AddBlockerCmd" has no registered handler — dispatching it will return ErrNoHandler
 E005 Command type "ArchiveTaskCmd" has no registered handler — dispatching it will return ErrNoHandler
 E005 Command type "AssignTaskCmd" has no registered handler — dispatching it will return ErrNoHandler

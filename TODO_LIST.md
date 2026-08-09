@@ -21,16 +21,17 @@ and is **never** duplicated here.
 > 15 rules (128→96 findings on 8 consumer repos, 0 TPs lost, 0 critical/error
 > FPs). v4.3.0 released. See
 > `docs/status/2026-08-09_00-19_cqrs-lint-fp-elimination-execution.md`.
+>
+> Pareto session 3 (2026-08-09): 16 of 27 tasks done. All 9 FP regression tests
+> verified to exist. Taskmanager integration test (31-finding golden) added.
+> E003 map-iteration non-determinism fixed (`slices.Sort`). Library-framework
+> preset wired. `http.Server{}` literal detection + DSN pragma detection added.
+> Dgraph VM test + retry + pool tuning + CounterIncrement filter fix +
+> Multimap/Log edge tests added. Aggregate NULL/large-dataset tests + SQLite
+> Doctor test added. 4 `.go-arch-lint.yml` configs added. SHA pinning policy +
+> view-store README + ADR-0122 + cqrs-lint v4.6.0 release notes documented.
+> See `docs/status/2026-08-09_07-25_pareto-execution-session-2-report.md`.
 
-- [ ] 🔥 **Write regression unit tests for FP fixes** — 13 of 15 rule fixes
-      lack dedicated tests (only C002 + E007 have them). Each test uses
-      `BuildContextFromSource` + `ruletest.RunDetector` + `AssertRule`:
-      A005 (non-event-bus receiver), C027 (non-event-bus receiver),
-      S010 (requires Use() wiring), A032 (form-tag structs + display packages),
-      C013 (json:"-" skip), C034 (HTTP shutdown pattern), C035 (serialization DTO),
-      E009 (custom HTTP), D005 (code blocks + import paths), E007 (package
-      has registration).
-      _(Effort: M)_
 - [ ] 🔥 **Replace `PackagesWithRegistration` with precise per-type tracing** —
       the current E007 fix suppresses ALL findings in a package that has ANY
       `RegisterTyped`/`RegisterQuery` call. Over-suppresses: if a package
@@ -51,43 +52,6 @@ and is **never** duplicated here.
 - [ ] **Improve D018 `collectEventNewTypes`** — use type info for precise
       `event.NewEvent` detection (currently matches any `NewEvent`).
       _(Effort: S)_
-- [ ] **Add integration test: lint `example/taskmanager`** — verify expected
-      findings end-to-end through the full rule pipeline.
-      _(Effort: M)_
-
----
-
-## Metaengine v2 — Dgraph Engine
-
-> Dgraph engine integration-tested against live Dgraph 25.4.0 (2026-08-08).
-> `nix run .#ephemeral-dgraph` spins up Zero+Alpha from nixpkgs. All 46 tests
-> pass (6.072s). DQL injection fixed (`QueryWithVars`), MapDelete fixed
-> (Dgraph 25.x explicit null-predicate deletion), regression test added.
->
-> 2026-08-09 session: lint sweep (0 issues across 73 modules), 8 missing modules
-> added to `testModules`, depguard allowlist fixed, Dgraph added to
-> `test-all-backends.sh` Phase 4, per-test cleanup via `main_test.go` DropAll.
-> See `docs/status/2026-08-09_01-09_dgraph-lint-sweep-module-registration-full-verification.md`.
-
-- [ ] **Add Dgraph VM test** (`nix/vm/dgraph.nix`) — NixOS VM test for CI
-      reproducibility, matching postgres-vm/mysql-vm/duckdb-vm pattern.
-      _(Effort: M)_
-- [ ] **Add Dgraph retry logic** for transient `"Please retry again"` errors.
-      _(Effort: S)_
-- [ ] **Add Dgraph connection pool tuning** — gRPC `MaxCallRecvMsgSize` for
-      large result sets.
-      _(Effort: S)_
-- [ ] **Fix CounterIncrement over-read** — queries ALL counters in collection
-      even for 1-2 key deltas. Query only delta keys instead.
-      _(Effort: M)_
-- [ ] **Write dedicated unit tests for MultimapBackend** — empty key,
-      limit=0, concurrent append ordering (currently only tested via
-      `adttest.RunMatrix`).
-      _(Effort: S)_
-- [ ] **Write dedicated unit tests for LogBackend** — empty collection,
-      limit > entries (the same-nanosecond collision case is a declined
-      tradeoff — see Declined section).
-      _(Effort: S)_
 
 ---
 
@@ -98,13 +62,10 @@ and is **never** duplicated here.
 > context. Each is a verified false positive or missing detection in a real
 > consumer codebase.
 
-- [ ] **Broaden `server` feature detection** — recognize `http.Server{}`
-      struct literals, `.ListenAndServe()` calls, Gin's `engine.Run()`.
+- [ ] **Broaden `server` feature detection further** — `http.Server{}` struct
+      literal detection added (2026-08-09). Still need Gin's `engine.Run()`,
+      Echo's `e.Start()`, Fiber's `app.Listen()` patterns.
       (KeyHolderAI, DiscordSync)
-      _(Effort: M)_
-- [ ] **P012/P013 DSN-level pragma detection** — scan for
-      `_pragma=journal_mode(WAL)` and `_pragma=busy_timeout(N)` in the
-      `sql.Open` DSN string (modernc.org/sqlite users). (DiscordSync)
       _(Effort: M)_
 - [ ] **Per-module feature profiles** — when analyzing a multi-`go.mod`
       workspace, detect features per-module and apply each module's profile
@@ -123,13 +84,12 @@ and is **never** duplicated here.
 > accepted. 5 test helpers + 2 production helpers extracted. Verify gate
 > NOT run (individual module tests only). See
 > `docs/status/2026-08-09_01-02_dedup-threshold-4-cleanup.md`.
+>
+> Pareto session 3: `DistinctValues` already shared via
+> `metaengine.ScanDistinctValues()` (4 call sites). `deferClose` already
+> shared via `metaengine.DeferClose()` (47 prod + 17 test sites). AGENTS.md
+> dedup section + testModules coupling documented.
 
-- [ ] **Extract `DistinctValues` row-scan into shared SQL helper** — 23-line
-      loop duplicated between `duckdbengine/aggregations.go` and
-      `sqliteengine/aggregations_grouped.go`. `storage/sql/` exists for this
-      purpose but both engine modules are Tier 4 (importing it inverts the
-      dependency). Consider a new `metaengine/sqlutil/` (Tier 0/1) instead.
-      _(Effort: M)_
 - [ ] **Refactor remaining engine-setup boilerplate** — 4 sites in
       `duckdbengine/stream_log_cgo_test.go` use `t.Fatalf` + `DeferClose`
       instead of the skip+defer pattern; 1 site each in
@@ -144,22 +104,10 @@ and is **never** duplicated here.
       module would eliminate both, but requires a new test-only Go module
       that both backends depend on.
       _(Effort: M)_
-- [ ] **Rename `helper_test.go` → `helper_cgo_test.go`** in duckdbengine for
-      naming consistency with sibling `_cgo_test.go` files.
-      _(Effort: S)_
-- [ ] **Update AGENTS.md "Dedup helper patterns" section** — document the
-      5 new test helpers (`mustNewPgEngine`, `mustNewDuckEngine`,
-      `setupSeededAggTest`, `assertTxCommitSetup`, `saveOneCommand`) and
-      the `stdQueryInit` / `drainAll` production helpers.
-      _(Effort: S)_
 - [ ] **Scan remaining engine modules for setup boilerplate** —
       `metaengine/badgerengine/`, `metaengine/pebbleengine/`,
       `metaengine/dgraphengine/` likely have the same `New(...) + err +
       skip + defer Close` pattern that was fixed in pgengine/duckdbengine.
-      _(Effort: M)_
-- [ ] **Consolidate `deferClose` helper** — 3 copies across test packages
-      (storage/pebble, storage/bbolt, metaengine). Consider shared
-      `storage/internal/closeutil` package.
       _(Effort: M)_
 - [ ] **Audit `.golangci.yml` exclusion blocks** — `system/` (20 linters
       disabled), `cmd/cqrs-lint/` (13), `metaengine/` (15) have the broadest
@@ -171,9 +119,6 @@ and is **never** duplicated here.
 - [ ] **Investigate `gci` vs `goimports` disagreement** —
       `pgengine/testcontainer_test.go` has `gci` issues that `nix fmt`
       doesn't fix.
-      _(Effort: S)_
-- [ ] **Document `testModules` ↔ `lintModules` coupling in AGENTS.md** —
-      they share the same list; adding a module requires updating both.
       _(Effort: S)_
 
 ---
@@ -213,19 +158,6 @@ and is **never** duplicated here.
 
 ## Layer Enforcement / Architecture
 
-- [ ] **Add `.go-arch-lint.yml` for `metaengine/`** — 16+ production files
-      (planner.go, engine.go, dsl.go, etc.) with complex internal structure
-      and no intra-module enforcement.
-      _(Effort: M)_
-- [ ] **Add `.go-arch-lint.yml` for `stack/`** — 11 production files, composition
-      layer with clear internal dependencies, no enforcement.
-      _(Effort: S)_
-- [ ] **Add `.go-arch-lint.yml` for `decider/`** — core domain module, no
-      intra-module enforcement.
-      _(Effort: S)_
-- [ ] **Add `.go-arch-lint.yml` for `projectionhost/`** — lifecycle module
-      with complex internal structure.
-      _(Effort: S)_
 - [ ] **Add meta-test: every `.go-arch-lint.yml` is parseable and components
       match real packages** — no test today asserts configs are valid or that
       declared components resolve to actual Go packages. Prevents stale configs
@@ -254,18 +186,15 @@ and is **never** duplicated here.
 > Lifecycle edge-case tests + DuckDB/Postgres/ShutdownDependency integration tests
 > completed 2026-08-09. See
 > `docs/status/2026-08-09_00-49_system-test-coverage-expansion.md`.
+>
+> Pareto session 3: PG integration test PASS (0.01s). GracefulClose
+> drain-error-no-close + concurrent Close race tests added (both PASS under
+> `-race`).
 
-- [ ] 🔥 **Run Postgres integration test against live PG** — test compiles and
-      skips without DSN, but has never been run against a real Postgres. Verify
-      via `nix run .#integration-pg -- go test -run TestIntegration_PostgresSource ./system/...`.
-      _(Effort: S)_
 - [ ] **Add per-test database isolation for Postgres integration test** —
       parallel tests sharing one DSN will collide on table names. Wire in the
       `pgtestcontainer` per-test-database pattern.
       _(Effort: M)_
-- [ ] **Add `TestSystem_GracefulClose_DrainError_NoClose`** — verify `Close()`
-      is NOT called when a drainer fails (resources may leak).
-      _(Effort: S)_
 - [ ] **Consolidate driver registration into a `TestMain`** — each integration
       test file registers drivers in `init()` (pebble, duckdb, postgres). A
       shared `TestMain` avoids silent last-wins conflicts on the global driver
@@ -280,9 +209,6 @@ and is **never** duplicated here.
       Postgres now covered; Badger and bbolt implement StreamLogBackend but
       have no system-level integration test.
       _(Effort: M)_
-- [ ] **Add concurrent Close/GracefulClose race tests** — concurrent `Close()`
-      calls from multiple goroutines, concurrent `RegisterCloser` + `Close`.
-      _(Effort: S)_
 
 ---
 
@@ -297,13 +223,6 @@ and is **never** duplicated here.
       GroupedAggregateReader/MultiAggregateReader/MultiGroupedAggregateReader/
       ExplainableAggregate).
       _(Effort: M)_
-- [ ] **Run full DuckDB test suite under `-race`** — only race regression test
-      run so far; full suite (~5 min) never verified.
-      _(Effort: S)_
-- [ ] **Add aggregate tests with NULL values + large datasets (10K+ rows)**.
-      _(Effort: S)_
-- [ ] **Add SQLite engine Doctor test** (real engine, not fake).
-      _(Effort: S)_
 - [ ] **Run calibration benchmarks against baseline** — verify
       `calibration-baseline.md` accuracy; add CI regression check.
       _(Effort: M)_
@@ -317,16 +236,6 @@ and is **never** duplicated here.
       `eventWithID`/`taskEventDecoder` patterns (49 references). Should use
       `projectionadapter.Register` + `NewTypeDecoder`.
       _(Effort: M)_
-- [ ] **Document `WithoutViewAutoMigrate`, `AutoMapper` as default, `Increment`
-      non-clamping philosophy** in view-store README. (DiscordSync feedback)
-      _(Effort: S)_
-- [ ] **Add ADR for WithClock pattern** (injectable time for CRDT testing).
-      _(Effort: S)_
-- [ ] **Document GitHub Actions SHA pinning policy** in CONTRIBUTING.md.
-      _(Effort: S)_
-- [ ] **Write cqrs-lint v4.6.0 release notes** (202 rules, 10 new rules,
-      resilience/observability/correctness categories).
-      _(Effort: S)_
 
 ---
 

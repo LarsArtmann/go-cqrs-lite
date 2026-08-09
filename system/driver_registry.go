@@ -10,6 +10,7 @@ import (
 
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 // DriverFactory creates a metaengine.Engine from an EngineConfig.
@@ -148,9 +149,9 @@ func init() {
 		},
 	)
 
-	// Register the built-in gochannel bus driver (in-process pub/sub).
+	// Register the built-in gochannel bus driver (Watermill GoChannel).
 	RegisterBusDriver("gochannel", func(_ BusConfig) (any, error) {
-		return newSimpleBus(), nil
+		return watermill.NewEventBus(), nil
 	})
 }
 
