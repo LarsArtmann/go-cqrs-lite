@@ -72,7 +72,7 @@ func TestSystem_AutoProjection_MemoryEngine(t *testing.T) {
 						})
 				})
 		},
-		Projections: []any{
+		Projections: []system.ProjectionDeclaration{
 			system.View[AutoProjView, string]("auto_views").From(
 				system.Event("autoproj.created", AutoProjCreated{}),
 				system.Event("autoproj.updated", AutoProjUpdated{}),
@@ -154,7 +154,7 @@ func TestSystem_AutoProjection_BackwardCompat(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Mix: raw QueryDecl + auto-projection ProjectionSpec
+	// Mix: raw QueryDecl (wrapped) + auto-projection ProjectionSpec
 	rawQuery := metaengine.Query[FindTask, TaskView]("raw_views",
 		metaengine.OnTyped("raw.event", TaskCreated{}, func(e TaskCreated) (string, TaskView) {
 			return e.Title, TaskView{Title: e.Title, Status: "manual"}
@@ -166,7 +166,10 @@ func TestSystem_AutoProjection_BackwardCompat(t *testing.T) {
 	)
 
 	domain := system.DomainConfig{
-		Projections: []any{rawQuery, autoProj},
+		Projections: []system.ProjectionDeclaration{
+			system.RawQuery(rawQuery),
+			autoProj,
+		},
 	}
 
 	deployment := system.DeploymentConfig{

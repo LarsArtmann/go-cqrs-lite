@@ -16,18 +16,52 @@ type LookupInput[K any] struct {
 	ID K
 }
 
-// ProjectionSpec is a type-erased projection declaration created by [View].
-// It carries a build closure that generates the query declaration and decoder
-// entries when system.New() processes it.
+// ProjectionDeclaration is a sealed interface for projection/query
+// declarations. Only constructors in the system package can produce values
+// that satisfy it. This replaces the previous []any slice with compile-time
+// type safety: stray strings, nils, or typos are rejected at build time.
 //
-// Consumers create ProjectionSpec values via [View] and pass them in
-// DomainConfig.Projections. The system constructor detects ProjectionSpec
-// values (vs raw metaengine.QueryDecl values) and processes them automatically.
+// Implementations: ProjectionSpec (auto-projection via Lookup/QuerySet),
+// rawQuerySpec (passthrough for raw metaengine.QueryDecl).
+type ProjectionDeclaration interface {
+	isProjectionDeclaration()
+}
+
+// ProjectionSpec is a type-erased projection declaration created by [Lookup],
+// [QuerySet], or [Count]. It carries a build closure that generates the query
+// declaration and decoder entries when system.New() processes it.
+//
+// Consumers create ProjectionSpec values via the query constructors and pass
+// them in DomainConfig.Projections. The system constructor processes them
+// automatically.
 type ProjectionSpec struct {
 	name string
 	// build generates the query declaration (as any, since QueryDecl is generic),
 	// decoder entries for EventDecoder construction, and any error.
 	build func() (queryDecl any, decoderEntries []decoderEntry, err error)
+}
+
+// isProjectionDeclaration seals ProjectionSpec.
+func (ProjectionSpec) isProjectionDeclaration() {}
+
+// rawQuerySpec wraps a raw metaengine.QueryDecl for passthrough to Plan().
+// It allows consumers to mix auto-generated projections with hand-written
+// metaengine.QueryDecl values in the same DomainConfig.Projections slice.
+type rawQuerySpec struct {
+	decl any // metaengine.QueryDecl[Q,R]
+}
+
+// isProjectionDeclaration seals rawQuerySpec.
+func (rawQuerySpec) isProjectionDeclaration() {}
+
+// RawQuery wraps a raw metaengine.QueryDecl so it can be used in
+// DomainConfig.Projections alongside auto-generated projections.
+//
+//	autoProj := system.Lookup[UserView]("users").On(...).Done()
+//	rawQuery := system.RawQuery(metaengine.Query[FindUser, UserView]("find_user", ...))
+//	domain := system.DomainConfig{Projections: []system.ProjectionDeclaration{autoProj, rawQuery}}
+func RawQuery[Q any, R any](q metaengine.QueryDecl[Q, R]) ProjectionDeclaration {
+	return rawQuerySpec{decl: q}
 }
 
 // decoderEntry pairs a wire event type with its sample struct for decoder
@@ -131,50 +165,40 @@ func Event(eventType string, sample any) metaengine.NamedSample {
 // eventDecoderFn matches projectionadapter.EventDecoder.
 type eventDecoderFn func(evt event.Event) (any, error)
 
-// hasProjectionSpec returns true if any element in projections is a ProjectionSpec
-// (vs a raw metaengine.QueryDecl). This determines whether auto-projection
-// processing is needed.
-func hasProjectionSpec(projections []any) bool {
-	for _, p := range projections {
-		if _, ok := p.(ProjectionSpec); ok {
-			return true
-		}
-	}
-
-	return false
-}
-
-// buildProjections processes ProjectionSpec values from DomainConfig.Projections,
-// separating them from raw QueryDecl values. It calls each spec's build closure
-// to generate folds and decoder entries, then returns:
+// buildProjections processes ProjectionDeclaration values from
+// DomainConfig.Projections. It type-switches on the sealed interface to
+// separate auto-generated ProjectionSpec values from raw QueryDecl passthroughs.
+// It calls each ProjectionSpec's build closure to generate folds and decoder
+// entries, then returns:
 //   - queryDecls: the generated + raw QueryDecl values (as []any for Plan)
 //   - eventDecoder: a decoder function for projectionadapter (nil if no specs)
 func buildProjections(
-	projections []any,
+	decls []ProjectionDeclaration,
 ) (queryDecls []any, eventDecoder eventDecoderFn, err error) {
 	var allEntries []decoderTypeEntry
 
-	for _, proj := range projections {
-		spec, ok := proj.(ProjectionSpec)
-		if !ok {
-			// Raw QueryDecl — pass through unchanged.
-			queryDecls = append(queryDecls, proj)
+	for _, decl := range decls {
+		switch d := decl.(type) {
+		case ProjectionSpec:
+			queryDecl, entries, buildErr := d.build()
+			if buildErr != nil {
+				return nil, nil, buildErr
+			}
 
-			continue
-		}
+			queryDecls = append(queryDecls, queryDecl)
 
-		queryDecl, entries, buildErr := spec.build()
-		if buildErr != nil {
-			return nil, nil, buildErr
-		}
-
-		queryDecls = append(queryDecls, queryDecl)
-
-		for _, e := range entries {
-			allEntries = append(allEntries, decoderTypeEntry{
-				eventType:  e.eventType,
-				sampleType: reflect.TypeOf(e.sample),
-			})
+			for _, e := range entries {
+				allEntries = append(allEntries, decoderTypeEntry{
+					eventType:  e.eventType,
+					sampleType: reflect.TypeOf(e.sample),
+				})
+			}
+		case rawQuerySpec:
+			queryDecls = append(queryDecls, d.decl)
+		default:
+			return nil, nil, fmt.Errorf(
+				"system: unreachable: unknown ProjectionDeclaration %T", decl,
+			)
 		}
 	}
 

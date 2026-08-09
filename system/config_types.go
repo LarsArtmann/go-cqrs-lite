@@ -21,11 +21,13 @@ type DomainConfig struct {
 	// System via sys.Query(...).
 	Queries func(*System)
 
-	// Projections are metaengine query declarations that the System will
-	// auto-wire into projection instances. Pass them as []any because Go
-	// generics are invariant — QueryDecl[ConcreteInput, ConcreteResult] is
-	// not assignable to QueryDecl[any, any].
-	Projections []any
+	// Projections are sealed projection/query declarations that the System
+	// will auto-wire into projection instances. Pass values created by
+	// [Lookup], [QuerySet], [Count], or [RawQuery].
+	//
+	// The sealed [ProjectionDeclaration] interface replaces the previous
+	// []any slice: stray strings, nils, or typos are now compile-time errors.
+	Projections []ProjectionDeclaration
 
 	// ProjectionDecoder decodes event payloads for the projection fold handlers.
 	// If nil, events are decoded as generic JSON (map[string]any).

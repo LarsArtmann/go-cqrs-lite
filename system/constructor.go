@@ -36,11 +36,11 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		qryDisp:    query.NewDispatcher(),
 	}
 
-	// Process ProjectionSpec values (auto-projection) before planning.
+	// Process ProjectionDeclaration values (auto-projection) before planning.
 	autoEventDecoder := eventDecoderFn(nil)
-	processedProjections := domain.Projections
+	processedProjections := []any(nil)
 
-	if hasProjectionSpec(domain.Projections) {
+	if len(domain.Projections) > 0 {
 		var buildErr error
 
 		processedProjections, autoEventDecoder, buildErr = buildProjections(domain.Projections)
