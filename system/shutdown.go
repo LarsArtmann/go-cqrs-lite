@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -29,8 +30,20 @@ type shutdownEdge struct {
 // in any dependency edge keep their creation order. Cycles fall back to
 // creation order for the affected engines.
 func (s *System) orderedEngines() []metaengine.Engine {
+	named := s.orderedNamedEngines()
+	engines := make([]metaengine.Engine, len(named))
+	for i, ne := range named {
+		engines[i] = ne.engine
+	}
+	return engines
+}
+
+// orderedNamedEngines returns the topologically sorted engines with their
+// config-key names. ShutdownOrder uses the names so callers can correlate
+// the output with ShutdownDependency.Before/After values.
+func (s *System) orderedNamedEngines() []namedEngine {
 	if len(s.shutdownDeps) == 0 || len(s.engines) == 0 {
-		return s.engineSlice()
+		return slices.Clone(s.engines)
 	}
 
 	// Build a set of unique engine indices by name.
@@ -65,14 +78,14 @@ func (s *System) orderedEngines() []metaengine.Engine {
 		}
 	}
 
-	result := make([]metaengine.Engine, 0, len(s.engines))
+	result := make([]namedEngine, 0, len(s.engines))
 	processed := 0
 
 	for len(queue) > 0 {
 		idx := queue[0]
 		queue = queue[1:]
 
-		result = append(result, s.engines[idx].engine)
+		result = append(result, s.engines[idx])
 		processed++
 
 		for _, next := range after[idx] {
@@ -91,7 +104,7 @@ func (s *System) orderedEngines() []metaengine.Engine {
 		seen := make(map[int]bool, len(result))
 		for i := range s.engines {
 			if inDegree[i] > 0 && !seen[i] {
-				result = append(result, s.engines[i].engine)
+				result = append(result, s.engines[i])
 				seen[i] = true
 			}
 		}
@@ -99,6 +112,7 @@ func (s *System) orderedEngines() []metaengine.Engine {
 
 	return result
 }
+
 
 // RegisterDrainer registers a [Drainer] that will be called by [System.GracefulClose]
 // before [System.Close]. Use this to ensure in-flight work (e.g., event subscribers,
