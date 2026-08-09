@@ -84,32 +84,31 @@ func TestIntegration_ShutdownDependency(t *testing.T) {
 		t.Fatalf("expected 1 event, got %d", len(events))
 	}
 
-	// ShutdownOrder returns Profile().Name (the engine's internal name), not
-	// the config map key. For our two engines these are "memory" and "sqlite".
-	// The dependency says "projections"(memory) must close before
-	// "event-store"(sqlite), so memory must appear before sqlite.
+	// ShutdownOrder returns config keys (matching DeploymentConfig.Engines
+	// map keys), so the dependency "projections" before "event-store" can
+	// be verified directly.
 	order := sys.ShutdownOrder()
 	if len(order) != 2 {
 		t.Fatalf("expected 2 engines in shutdown order, got %d: %v", len(order), order)
 	}
 
-	// Map profile names to positions.
+	// Map config keys to positions.
 	pos := make(map[string]int, len(order))
 	for i, name := range order {
 		pos[name] = i
 	}
 
-	memIdx, memOK := pos["memory"]
-	sqliteIdx, sqliteOK := pos["sqlite"]
-	if !memOK || !sqliteOK {
-		t.Fatalf("expected memory + sqlite in shutdown order, got: %v", order)
+	projIdx, projOK := pos["projections"]
+	eventIdx, eventOK := pos["event-store"]
+	if !projOK || !eventOK {
+		t.Fatalf("expected projections + event-store in shutdown order, got: %v", order)
 	}
 
-	if memIdx > sqliteIdx {
+	if projIdx > eventIdx {
 		t.Fatalf(
-			"memory (projections, idx %d) must close before sqlite (event-store, idx %d), order: %v",
-			memIdx,
-			sqliteIdx,
+			"projections (idx %d) must close before event-store (idx %d), order: %v",
+			projIdx,
+			eventIdx,
 			order,
 		)
 	}

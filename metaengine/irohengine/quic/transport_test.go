@@ -142,6 +142,7 @@ func newQuicCluster(t *testing.T) *quicCluster {
 }
 
 func TestQuicConvergenceSuite(t *testing.T) {
+	t.Parallel()
 	irohengine.RunConvergenceSuite(t, func(t *testing.T) (metaengine.Engine, metaengine.Engine) {
 		nodeA, nodeB, tA, tB := setupTwoNodeQuic(t)
 		t.Cleanup(func() { _ = nodeA.Close() })

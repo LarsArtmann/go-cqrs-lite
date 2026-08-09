@@ -32,15 +32,19 @@ func (s *System) EngineNames() []string {
 // ShutdownOrder returns the resolved close order as engine names. This is
 // the same order used by [System.Close]. Useful for debugging shutdown hangs
 // and verifying shutdown dependency edges.
+// ShutdownOrder returns the resolved close order as engine config keys
+// (matching DeploymentConfig.Engines map keys). These are the same values
+// used in ShutdownDependency.Before/After, so callers can directly correlate
+// the output with their declared dependency edges.
 func (s *System) ShutdownOrder() []string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	ordered := s.orderedEngines()
+	ordered := s.orderedNamedEngines()
 
 	names := make([]string, len(ordered))
-	for i, eng := range ordered {
-		names[i] = eng.Profile().Name
+	for i, ne := range ordered {
+		names[i] = ne.name
 	}
 
 	return names
