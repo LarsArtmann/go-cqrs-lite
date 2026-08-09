@@ -183,17 +183,7 @@ func (e *pgEngine) MultiAggregate(
 		appendPGFilter(&b, &args, f)
 	}
 
-	raws := make([]any, len(specs))
-	ptrs := make([]any, len(specs))
-	for i := range raws {
-		ptrs[i] = &raws[i]
-	}
-
-	if err := e.conn().QueryRowContext(ctx, b.String(), args...).Scan(ptrs...); err != nil {
-		return nil, fmt.Errorf("pgengine.MultiAggregate: %w", err)
-	}
-
-	return metaengine.DecodeFloatResults(raws, specs, "pgengine.MultiAggregate")
+	return metaengine.MultiAggregateScan(ctx, e.conn(), b.String(), args, specs, "pgengine.MultiAggregate")
 }
 
 // ---------------------------------------------------------------------------

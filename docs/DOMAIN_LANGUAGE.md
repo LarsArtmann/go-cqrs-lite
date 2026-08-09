@@ -17,6 +17,35 @@ If a word means something different to a consumer than to an implementer, it is 
 
 ---
 
+## Table of Contents
+
+- [Core Concepts](#core-concepts)
+  - [Event Sourcing](#event-sourcing)
+  - [CQRS](#cqrs)
+  - [Identity](#identity)
+  - [Error Taxonomy](#error-taxonomy)
+  - [Record (Structural Foundation)](#record-structural-foundation)
+- [Storage](#storage)
+- [Stack Bundles](#stack-bundles)
+  - [System (Deployer Composition Root)](#system-deployer-composition-root)
+- [Read Models](#read-models)
+  - [KV Layer](#kv-layer)
+  - [Projection Builders](#projection-builders)
+  - [Projection Lifecycle](#projection-lifecycle)
+- [Metaengine](#metaengine)
+- [Messaging & Transport](#messaging--transport)
+- [Security](#security)
+- [Cross-Cutting](#cross-cutting)
+- [Deployment Scope](#deployment-scope)
+- [Consistency Guarantees](#consistency-guarantees)
+- [Tooling & Testing](#tooling--testing)
+- [Interface Hierarchy](#interface-hierarchy)
+- [Anti-Patterns (Terms We Avoid)](#anti-patterns-terms-we-avoid)
+- [Patterns NOT in the Library](#patterns-not-in-the-library)
+- [Verification](#verification)
+
+---
+
 ## Core Concepts
 
 ### Event Sourcing
@@ -429,6 +458,9 @@ import (
 
 	// Record (structural foundation)
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
+
+	// Metaengine (stub reference only — full vocabulary in METAENGINE_DOMAIN_LANGUAGE.md)
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 
 	// CQRS
 	"github.com/larsartmann/go-cqrs-lite/command/v4"

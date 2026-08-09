@@ -125,9 +125,9 @@ func ScanDistinctValues(
 }
 
 // MultiAggregateScan executes a single-row aggregate query and decodes the
-// results into a map keyed by each spec's alias. Shared by DuckDB and SQLite
-// engine implementations for MultiAggregate. The label is used as the error
-// prefix (e.g. "duckdbengine.MultiAggregate").
+// results into a map keyed by each spec's alias. Shared by DuckDB, SQLite,
+// and Postgres engine implementations for MultiAggregate. The label is used
+// as the error prefix (e.g. "duckdbengine.MultiAggregate").
 func MultiAggregateScan(
 	ctx context.Context,
 	q SQLExec,
