@@ -184,13 +184,14 @@ and is **never** duplicated here.
 
 - [ ] **Add per-test database isolation for Postgres integration test** —
       parallel tests sharing one DSN will collide on table names. Wire in the
-      `pgtestcontainer` per-test-database pattern.
+      `pgtestcontainer` per-test-database pattern. Currently only one PG test
+      exists so this is not urgent.
       _(Effort: M)_
 - [ ] **Consolidate driver registration into a `TestMain`** — each integration
-      test file registers drivers in `init()` (pebble, duckdb, postgres). A
-      shared `TestMain` avoids silent last-wins conflicts on the global driver
-      map.
-      _(Effort: S)_
+      test file registers drivers in `init()` (pebble, duckdb, postgres,
+      badger). No conflicts exist (unique names), but a shared `TestMain`
+      would prevent future accidental duplicates. Complicated by CGo build
+      tag on the DuckDB driver.
 - [ ] **Consider moving CGo DuckDB test to a sub-module** — `duckdbengine` adds
       ~20 indirect deps to `system/go.mod` (Arrow, FlatBuffers, 6 platform
       DuckDB binding packages). A `system/integration/` sub-module follows the
