@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed — docs-health audit: TODO_LIST/FEATURES/ROADMAP rebuilt, historical reports archived — 2026-08-09
+
+- **TODO_LIST.md rebuilt**: removed LogBackend split-brain (item was both open
+  AND declined — removed the open duplicate, kept the declined rationale);
+  removed the done `dgraphengine/v4.0.2` tag item (tag exists). Added 14
+  genuinely-open items harvested from 2026-08-0* status reports + consumer
+  feedback, verified against code: 9 cqrs-lint consumer-feedback detector
+  improvements (C031 `(any,error)` FP, F007/A016 imaginary API, D005
+  indirect-marker, server detection broadening, P012/P013 DSN-pragma,
+  end-of-line suppression parser, per-module feature profiles, C034 context
+  tracing, `library-framework` preset), `record.FromCommand()` adapter +
+  ADR-0117 command lifecycle, taskmanager DX-helper showcase, SKILL.md
+  circuit-breaker FAQ, view-store README docs, bbolt `ReadStreamFrom` perf.
+- **FEATURES.md updated**: dgraphengine tag version corrected (v4.0.1 →
+  v4.0.2), verify-gate description now includes `check-arch` (two-layer
+  architecture enforcement), 3 missing metaengine submodules
+  (`enginetest`, `keycodec`, `bench`) added to the module maturity matrix.
+- **ROADMAP.md banner updated**: stale "14 tags pushed" → "all module tags
+  pushed to origin" (verified: 1022 local tags, 0 unpushed).
+
 ### Changed — DOMAIN_LANGUAGE.md split: metaengine vocabulary extracted — 2026-08-09
 
 - **Metaengine domain language split**: `docs/DOMAIN_LANGUAGE.md` (1019 lines)

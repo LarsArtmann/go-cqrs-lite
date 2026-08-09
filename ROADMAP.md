@@ -17,7 +17,8 @@ RegisterCloser. Aggregate pushdown (5 interfaces on DuckDB/SQLite/PG, GROUP BY
 4.4x faster). GraphBackend cleanup (-433 lines, removed from 4 degraded engines).
 Dedup driven to 0 at all thresholds. Dedup helper extraction (DeferClose,
 renderTable). Metadata deprecation (EnsureCustom → WithCustom). CBOR encoding
-bugfix. 14 tags pushed to `origin`. See CHANGELOG `[Unreleased]`.
+bugfix. All module tags pushed to `origin` (query/v4.3.0, dgraphengine/v4.0.2,
+flightrecorder/v4.0.0 cut 2026-08-09). See CHANGELOG `[Unreleased]`.
 
 ---
 
