@@ -183,7 +183,14 @@ func (e *pgEngine) MultiAggregate(
 		appendPGFilter(&b, &args, f)
 	}
 
-	return metaengine.MultiAggregateScan(ctx, e.conn(), b.String(), args, specs, "pgengine.MultiAggregate")
+	return metaengine.MultiAggregateScan(
+		ctx,
+		e.conn(),
+		b.String(),
+		args,
+		specs,
+		"pgengine.MultiAggregate",
+	)
 }
 
 // ---------------------------------------------------------------------------

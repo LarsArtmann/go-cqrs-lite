@@ -151,7 +151,11 @@ func run() error {
 	}
 
 	// 5. Query the result — Record metadata is auto-stamped.
-	result, err := metaengine.ExecuteTyped[TaskQuery, TaskView](ctx, store, TaskQuery{ID: demoTaskID})
+	result, err := metaengine.ExecuteTyped[TaskQuery, TaskView](
+		ctx,
+		store,
+		TaskQuery{ID: demoTaskID},
+	)
 	if err != nil {
 		return fmt.Errorf("ExecuteTyped: %w", err)
 	}

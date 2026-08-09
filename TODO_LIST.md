@@ -80,10 +80,6 @@ and is **never** duplicated here.
 - [ ] **Add Dgraph connection pool tuning** — gRPC `MaxCallRecvMsgSize` for
       large result sets.
       _(Effort: S)_
-- [ ] **Fix LogBackend same-nanosecond collision** — `time.Now().UnixNano()`
-      can collide under concurrency. Consider atomic counter per collection
-      or ULID.
-      _(Effort: S)_
 - [ ] **Fix CounterIncrement over-read** — queries ALL counters in collection
       even for 1-2 key deltas. Query only delta keys instead.
       _(Effort: M)_
@@ -91,16 +87,57 @@ and is **never** duplicated here.
       limit=0, concurrent append ordering (currently only tested via
       `adttest.RunMatrix`).
       _(Effort: S)_
-- [ ] **Write dedicated unit tests for LogBackend** — same-nanosecond
-      collision, empty collection, limit > entries.
+- [ ] **Write dedicated unit tests for LogBackend** — empty collection,
+      limit > entries (the same-nanosecond collision case is a declined
+      tradeoff — see Declined section).
       _(Effort: S)_
-- [ ] **Add StreamLogBackend to dgraphengine** — currently skips (8/11 ADTs).
+
+---
+
+## cqrs-lint — Consumer Feedback (2026-08-04 → 2026-08-09)
+
+> Concrete detector improvements requested by real consumers (KeyHolderAI,
+> cqrs-htmx, DiscordSync, file-renamer). See `docs/feedback/new/` for full
+> context. Each is a verified false positive or missing detection in a real
+> consumer codebase.
+
+- [ ] 🔥 **Fix end-of-line suppression parser** — `cqrs-htmx` reports inline
+      suppressions placed at end-of-line silently don't work. Verify the
+      parser handles `code // cqrs-lint:disable` (not just line-above).
+      _(Effort: S)_
+- [ ] **Fix C031 FP on `(any, error)` returns** — detector must distinguish
+      single-return command handlers (`func(...) error`) from multi-return
+      query handlers (`func(...) (any, error)`) where `return nil, err` is
+      correct. (KeyHolderAI)
+      _(Effort: S)_
+- [ ] **Fix F007/A016 imaginary API suggestions** — suggests
+      `middleware.CommandIdempotency()` which does not exist. Suggest actual
+      building blocks (`command.Middleware` + `idempotency.MemoryStore`).
+      (KeyHolderAI)
+      _(Effort: S)_
+- [ ] **D005 check direct imports only for version** — should read the
+      direct (non-`// indirect`) import line, not any line matching the
+      module path prefix. (KeyHolderAI)
+      _(Effort: S)_
+- [ ] **Broaden `server` feature detection** — recognize `http.Server{}`
+      struct literals, `.ListenAndServe()` calls, Gin's `engine.Run()`.
+      (KeyHolderAI, DiscordSync)
       _(Effort: M)_
-- [ ] **Run full `-race` suite on dgraphengine with fresh Dgraph** — non-race
-      run passed clean (46/46); clean `-race` run not yet re-attempted after
-      confirming transient failure was stale-process related.
-      _(Effort: S)_
-- [ ] **Tag `dgraphengine/v4.0.2`** after verifying full gate passes.
+- [ ] **P012/P013 DSN-level pragma detection** — scan for
+      `_pragma=journal_mode(WAL)` and `_pragma=busy_timeout(N)` in the
+      `sql.Open` DSN string (modernc.org/sqlite users). (DiscordSync)
+      _(Effort: M)_
+- [ ] **Per-module feature profiles** — when analyzing a multi-`go.mod`
+      workspace, detect features per-module and apply each module's profile
+      only to its own packages. (cqrs-htmx)
+      _(Effort: L)_
+- [ ] **C034 context-derivation tracing** — recognize
+      `context.WithCancel(ctx)` → variable → `<-variable.Done()` as satisfying
+      the rule. (DiscordSync)
+      _(Effort: M)_
+- [ ] **`library-framework` preset** — extend `library` preset to disable
+      adoption-coaching rules (F-series) for modules that are libraries, not
+      applications. (cqrs-htmx)
       _(Effort: S)_
 
 ---
@@ -328,6 +365,14 @@ and is **never** duplicated here.
 
 ## Metaengine Coverage Gaps
 
+- [ ] **`record.FromCommand()` adapter** — mirror of `event.AsRecord()`, for
+      command lifecycle streams (ADR-0117). Reads `command.Command` +
+      `command.Metadata`. Prerequisite for command-lifecycle-as-events.
+      _(Effort: S)_
+- [ ] **ADR-0117 command lifecycle implementation** — DLQ as event streams,
+      retries as event streams (no status fields). Design complete in ADR;
+      no code yet.
+      _(Effort: L)_
 - [ ] **Cross-engine parity test for all 5 aggregate interfaces** — like
       `adttest.RunMatrix` but for aggregate pushdown (AggregateReader/
       GroupedAggregateReader/MultiAggregateReader/MultiGroupedAggregateReader/
@@ -348,6 +393,19 @@ and is **never** duplicated here.
 
 ## Documentation
 
+- [ ] **Update `example/taskmanager/metaengine.go` to showcase new DX helpers**
+      — the canonical reference consumers copy from still uses manual
+      `eventWithID`/`taskEventDecoder` patterns (49 references). Should use
+      `projectionadapter.Register` + `NewTypeDecoder`.
+      _(Effort: M)_
+- [ ] **SKILL.md FAQ: circuit-breaker → failsafe-go** — add entry directing
+      standalone circuit-breaker consumers to `failsafe-go` directly, cross-
+      referencing `middleware/circuit_breaker.go` as the integration pattern.
+      (file-renamer feedback)
+      _(Effort: S)_
+- [ ] **Document `WithoutViewAutoMigrate`, `AutoMapper` as default, `Increment`
+      non-clamping philosophy** in view-store README. (DiscordSync feedback)
+      _(Effort: S)_
 - [ ] **Add ADR for ApplyLayoutPlan post-construction registration pattern**.
       _(Effort: S)_
 - [ ] **Add ADR for WithClock pattern** (injectable time for CRDT testing).
