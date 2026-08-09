@@ -51,9 +51,6 @@ and is **never** duplicated here.
 - [ ] **Improve D018 `collectEventNewTypes`** — use type info for precise
       `event.NewEvent` detection (currently matches any `NewEvent`).
       _(Effort: S)_
-- [ ] **Raise C041 confidence to Medium (0.5)** — Save ignoring
-      `expectedVersion` is a real bug, not low-confidence.
-      _(Effort: S)_
 - [ ] **Add integration test: lint `example/taskmanager`** — verify expected
       findings end-to-end through the full rule pipeline.
       _(Effort: M)_
@@ -101,24 +98,6 @@ and is **never** duplicated here.
 > context. Each is a verified false positive or missing detection in a real
 > consumer codebase.
 
-- [ ] 🔥 **Fix end-of-line suppression parser** — `cqrs-htmx` reports inline
-      suppressions placed at end-of-line silently don't work. Verify the
-      parser handles `code // cqrs-lint:disable` (not just line-above).
-      _(Effort: S)_
-- [ ] **Fix C031 FP on `(any, error)` returns** — detector must distinguish
-      single-return command handlers (`func(...) error`) from multi-return
-      query handlers (`func(...) (any, error)`) where `return nil, err` is
-      correct. (KeyHolderAI)
-      _(Effort: S)_
-- [ ] **Fix F007/A016 imaginary API suggestions** — suggests
-      `middleware.CommandIdempotency()` which does not exist. Suggest actual
-      building blocks (`command.Middleware` + `idempotency.MemoryStore`).
-      (KeyHolderAI)
-      _(Effort: S)_
-- [ ] **D005 check direct imports only for version** — should read the
-      direct (non-`// indirect`) import line, not any line matching the
-      module path prefix. (KeyHolderAI)
-      _(Effort: S)_
 - [ ] **Broaden `server` feature detection** — recognize `http.Server{}`
       struct literals, `.ListenAndServe()` calls, Gin's `engine.Run()`.
       (KeyHolderAI, DiscordSync)
@@ -135,22 +114,6 @@ and is **never** duplicated here.
       `context.WithCancel(ctx)` → variable → `<-variable.Done()` as satisfying
       the rule. (DiscordSync)
       _(Effort: M)_
-- [ ] **`library-framework` preset** — extend `library` preset to disable
-      adoption-coaching rules (F-series) for modules that are libraries, not
-      applications. (cqrs-htmx)
-      _(Effort: S)_
-
----
-
-## Irohengine / Replicated Engine
-
-- [ ] **Add `t.Parallel()` to `TestQuicConvergenceSuite`** — in-process and
-      loopback variants have it; QUIC variant committed without it.
-      _(Effort: S)_
-- [ ] **Run QUIC convergence suite with `-race`** — the highest-concurrency
-      transport, most likely to surface data races; never run under race
-      detector.
-      _(Effort: S)_
 
 ---
 
@@ -161,26 +124,12 @@ and is **never** duplicated here.
 > NOT run (individual module tests only). See
 > `docs/status/2026-08-09_01-02_dedup-threshold-4-cleanup.md`.
 
-- [ ] 🔥 **Run `nix run .#verify`** — the dedup session changed ~25 files
-      across 6 modules but only ran individual `go test`/`go vet`. Lint,
-      doc-check, race detection, and cross-module integration were NOT
-      verified.
-      _(Effort: S — just run it and fix failures)_
-- [ ] **Eliminate `newDuckDBPushdown` dead wrapper** — collapsed to a 1-line
-      `return mustNewDuckEngine(t)` but left 5 callers pointing at it.
-      Replace all callers with `mustNewDuckEngine` directly, delete function.
-      _(Effort: S)_
 - [ ] **Extract `DistinctValues` row-scan into shared SQL helper** — 23-line
       loop duplicated between `duckdbengine/aggregations.go` and
       `sqliteengine/aggregations_grouped.go`. `storage/sql/` exists for this
       purpose but both engine modules are Tier 4 (importing it inverts the
       dependency). Consider a new `metaengine/sqlutil/` (Tier 0/1) instead.
       _(Effort: M)_
-- [ ] **Fix non-deferred `eng.Close()` in healthcheck tests** — both
-      `pgengine/healthcheck_test.go:34` and
-      `duckdbengine/healthcheck_cgo_test.go:36` call bare `eng.Close()`
-      (not deferred) — leaks the engine on test failure.
-      _(Effort: S)_
 - [ ] **Refactor remaining engine-setup boilerplate** — 4 sites in
       `duckdbengine/stream_log_cgo_test.go` use `t.Fatalf` + `DeferClose`
       instead of the skip+defer pattern; 1 site each in
@@ -216,29 +165,15 @@ and is **never** duplicated here.
       disabled), `cmd/cqrs-lint/` (13), `metaengine/` (15) have the broadest
       exclusions. Narrow where safe.
       _(Effort: M)_
-- [ ] 🔥 **Add meta-test enforcing `testModules == all go.mod dirs`** — 8
-      modules were silently missing from `flake.nix` `testModules`, meaning
-      they were never built, tested, or linted. Like
-      `TestEveryGoModDirIsInModulesList` in api-stability.
-      _(Effort: S)_
 - [ ] **Add CI check comparing `go.mod` requires vs depguard allow list** —
       dependencies are only added to `.golangci.yml` after lint fails.
       _(Effort: M)_
-- [ ] **Investigate `gci` vs `goimports` disagreement** — two test files
-      (`pgengine/testcontainer_test.go`, `duckdbengine/helper_test.go`) have
-      `gci` issues that `nix fmt` doesn't fix.
+- [ ] **Investigate `gci` vs `goimports` disagreement** —
+      `pgengine/testcontainer_test.go` has `gci` issues that `nix fmt`
+      doesn't fix.
       _(Effort: S)_
 - [ ] **Document `testModules` ↔ `lintModules` coupling in AGENTS.md** —
       they share the same list; adding a module requires updating both.
-      _(Effort: S)_
-- [ ] 🔥 **Fix benchkit timing flakes** — `TestRun_SQLite_DurationAborts`,
-      `TestCompare_ThreeBackends`, `TestRun_CancelledContext` fail under
-      parallel test load with hardcoded 5s thresholds. Apply the
-      `testutil.RaceEnabled` relaxed-bound pattern or increase thresholds to
-      account for system load.
-      _(Effort: S)_
-- [ ] **Remove unused `newSQLiteEngineForPath`** in
-      `metaengine/bench/sqlite_factory_test.go:26` (gopls unusedfunc warning).
       _(Effort: S)_
 
 ---
@@ -324,11 +259,6 @@ and is **never** duplicated here.
       skips without DSN, but has never been run against a real Postgres. Verify
       via `nix run .#integration-pg -- go test -run TestIntegration_PostgresSource ./system/...`.
       _(Effort: S)_
-- [ ] 🔥 **Fix ShutdownOrder naming gap** — `ShutdownOrder()` returns
-      `Profile().Name` (e.g., `"memory"`) but `ShutdownDependency.Before`/`After`
-      reference config keys (e.g., `"event-store"`). Either document the
-      discrepancy or change `ShutdownOrder()` to return config keys.
-      _(Effort: S for doc, M for code change)_
 - [ ] **Add per-test database isolation for Postgres integration test** —
       parallel tests sharing one DSN will collide on table names. Wire in the
       `pgtestcontainer` per-test-database pattern.
@@ -391,15 +321,8 @@ and is **never** duplicated here.
       `eventWithID`/`taskEventDecoder` patterns (49 references). Should use
       `projectionadapter.Register` + `NewTypeDecoder`.
       _(Effort: M)_
-- [ ] **SKILL.md FAQ: circuit-breaker → failsafe-go** — add entry directing
-      standalone circuit-breaker consumers to `failsafe-go` directly, cross-
-      referencing `middleware/circuit_breaker.go` as the integration pattern.
-      (file-renamer feedback)
-      _(Effort: S)_
 - [ ] **Document `WithoutViewAutoMigrate`, `AutoMapper` as default, `Increment`
       non-clamping philosophy** in view-store README. (DiscordSync feedback)
-      _(Effort: S)_
-- [ ] **Add ADR for ApplyLayoutPlan post-construction registration pattern**.
       _(Effort: S)_
 - [ ] **Add ADR for WithClock pattern** (injectable time for CRDT testing).
       _(Effort: S)_
