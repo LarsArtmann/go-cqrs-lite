@@ -13,6 +13,12 @@ import (
 // TestBackupRestore_FullLifecycle verifies that a Pebble checkpoint (backup)
 // preserves data across ALL store types (events, snapshots, checkpoints) and
 // that a restored backend is fully functional for continued operations.
+//
+// This test mirrors storage/bbolt/backup_lifecycle_test.go. The duplication is
+// intentional: the two modules use different backup mechanisms (Pebble Checkpoint
+// vs tx.WriteTo), live in separate Go modules, and return different concrete
+// store types — extracting a shared helper would require interface plumbing and
+// new cross-module test dependencies that outweigh the ~100 lines of assertions.
 func TestBackupRestore_FullLifecycle(t *testing.T) {
 	t.Parallel()
 
