@@ -1539,6 +1539,7 @@ metaengine/func AllReadPatterns
 metaengine/func AllStorageLayouts
 metaengine/func AutoCRUD
 metaengine/func AutoCRUDByConvention
+metaengine/func AutoCRUDByNamedEvents
 metaengine/func AutoDelete
 metaengine/func AutoInsert
 metaengine/func AutoUpdate
@@ -1568,6 +1569,7 @@ metaengine/func MapUpdateTyped
 metaengine/func MaterializeCost
 metaengine/func MultiAggregateScan
 metaengine/func MustPlanFingerprint
+metaengine/func NamedEvent
 metaengine/func NewCostAccuracyReporter
 metaengine/func NewEventLog
 metaengine/func NewManifest
@@ -1856,6 +1858,7 @@ metaengine/method EventType
 metaengine/method EventType
 metaengine/method EventType
 metaengine/method EventType
+metaengine/method EventType
 metaengine/method EventTypes
 metaengine/method Events
 metaengine/method Execute
@@ -1974,6 +1977,7 @@ metaengine/method ReplicationMode
 metaengine/method Report
 metaengine/method Report
 metaengine/method RunInTx
+metaengine/method Sample
 metaengine/method Scan
 metaengine/method ScanPage
 metaengine/method Search
@@ -2194,6 +2198,7 @@ metaengine/struct MemorySearchIndex
 metaengine/struct MemorySpatialIndex
 metaengine/struct MemoryVectorIndex
 metaengine/struct MultiEntry
+metaengine/struct NamedSample
 metaengine/struct PlanContext
 metaengine/struct PlanDiffResult
 metaengine/struct PlanResult
@@ -3582,7 +3587,6 @@ system/method ProjectionExplain
 system/method ProjectionHost
 system/method ProjectionPlan
 system/method Publish
-system/method Publish
 system/method Publisher
 system/method Publishers
 system/method QueryDispatcher
@@ -3610,11 +3614,7 @@ system/method SnapshotStore
 system/method Start
 system/method StreamID
 system/method StreamType
-system/method Subscribe
-system/method SubscribeAll
-system/method Use
 system/method UseCommandMiddleware
-system/method UsePublish
 system/method VerifyProjections
 system/method WorkerStatus
 system/struct BusConfig

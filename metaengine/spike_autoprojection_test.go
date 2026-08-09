@@ -12,8 +12,6 @@ package metaengine
 import (
 	"context"
 	"encoding/json/v2"
-	"errors"
-	"reflect"
 	"testing"
 )
 
@@ -325,8 +323,8 @@ func TestSpike_FieldMatching(t *testing.T) {
 		Title  string // no Status field
 	}
 
-	folds, err := autoCRUDByNamedEvents[partialView]("ID",
-		namedEvent("task.created", spikeTaskCreated{}),
+	folds, err := AutoCRUDByNamedEvents[partialView]("ID",
+		NamedEvent("task.created", spikeTaskCreated{}),
 	)
 	if err != nil {
 		t.Fatal(err)
