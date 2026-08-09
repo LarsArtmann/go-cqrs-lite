@@ -66,6 +66,7 @@ type dgraphEngine struct {
 func New(addr string) (metaengine.Engine, error) {
 	client, err := dgo.NewClient(addr,
 		dgo.WithGrpcOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
+		dgo.WithGrpcOption(grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(64*1024*1024))),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.New: connect: %w", err)
