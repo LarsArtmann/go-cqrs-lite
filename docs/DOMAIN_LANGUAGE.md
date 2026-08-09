@@ -252,6 +252,8 @@ A **Fold** is a single typed event-to-projection update rule: "when event E happ
 
 The cost model estimates how expensive serving a query on a given engine is, using Big-O complexity classes and calibrated nanoseconds-per-operation.
 
+> **Core formula:** `estimated_latency = (ops × nsPerOp / 1e6) + NetworkRTT` — ops derived from complexity class × volume, nsPerOp from calibration, NetworkRTT is additive fixed latency (0 for in-process engines).
+
 | Term                     | Definition                                                                          | Context                                                                                            |
 | ------------------------ | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | **Complexity**           | A Big-O complexity class for cost estimation                                        | `metaengine.Complexity` — `ComplexityO1`, `ComplexityOLogN`, `ComplexityON`, `ComplexityONLogN`, `ComplexityODegree` |
@@ -387,6 +389,9 @@ The planner can recommend whether a projection should be **materialized** (persi
 | **DryRun**            | Plan option that returns PlanResult without modifying engine state  | `metaengine.WithDryRun()` — no DDL, no pinning                                          |
 | **ExplainPlan**       | Human-readable plan explanation: engine per query + diagnostics      | `Store.ExplainPlan()` — string output for debugging                                     |
 | **Doctor**            | Health report: per-collection engine, replication, persistence      | `Store.Doctor(ctx)` — string output for operations                                      |
+| **Collections**        | Introspects all planned collections: engine, ADT, layout, persistence, replication | `Store.Collections()` — returns `[]CollectionInfo`                               |
+| **ReplicationMode**    | Returns the replication topology for a single query                  | `Store.ReplicationMode(queryName)` — `ReplicationNone`, `ReplicationLeaderless`, etc.  |
+| **Persistence**        | Returns the survivability classification for a single query          | `Store.Persistence(queryName)` — `PersistenceVolatile` or `PersistencePersistent`     |
 
 ### Engine Capabilities (Optional Interfaces)
 
@@ -428,6 +433,19 @@ Concrete `Engine` implementations, each in its own subpackage:
 | **Postgres** | Client-server OLTP; persistent; streaming replication | `metaengine/pgengine/`   |
 | **Dgraph** | Graph-native; persistent                   | `metaengine/dgraphengine/`       |
 | **Iroh**   | Leaderless CRDT replication (eventual convergence) | `metaengine/irohengine/`    |
+
+> **Calibratable:** Engines implementing `metaengine.Calibratable` accept benchmark-calibrated cost measurements (`SetCalibration(CalibrationCosts)`) to replace theoretical Big-O estimates with real ns/op data. Currently: Memory, SQLite, Pebble, Badger, DuckDB.
+
+### Projection Adapter
+
+The bridge from a metaengine `Store` to the `projection.Projection` interface, enabling a metaengine-planned collection to participate in the standard projection lifecycle (`projectionhost.Host`).
+
+| Term             | Definition                                                          | Context                                                                                                |
+| ---------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Adapter**      | Wraps a metaengine Store collection as a `projection.Projection`     | `projectionadapter.New(name, store, decoder)` — implements `Name()`, `Handle()`, `EventTypes()`        |
+| **EventDecoder** | Function decoding raw event payloads into typed fold inputs          | `projectionadapter.WithEventDecoder(fn)` — replaces per-event-type switch/case boilerplate            |
+| **EventWithID**  | Wrapper bundling stream ID with event payload for keyed folds        | `projectionadapter.EventWithID[P]` — exported type so consumers don't reinvent the wrapper             |
+| **NewTypeDecoder** | Builds an EventDecoder from a `catalog.Registry` type registry     | `projectionadapter.NewTypeDecoder(registry)` — replaces 70+ line decoder switch/case                   |
 
 ---
 
