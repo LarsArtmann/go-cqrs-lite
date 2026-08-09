@@ -749,8 +749,19 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 
-	// Metaengine
+	// Metaengine (core + engines + adapter)
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/adttest"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/enginetest"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
+
+	// System + FlightRecorder + Benchkit
+	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
+	"github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
 
 	// Messaging & Transport
 	http "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
@@ -902,8 +913,46 @@ var _ = []any{
 	metaengine.Edge{},
 	metaengine.Skip{},
 	metaengine.VersionedStorage(nil),
+	metaengine.GroupedAggregateReader(nil),
+	metaengine.MultiAggregateReader(nil),
+	metaengine.Calibratable(nil),
 	metaengine.EngineProfile{},
 	metaengine.Store{},
+
+	// Metaengine — Read Patterns (complete set)
+	metaengine.ReadMembership,
+	metaengine.ReadMultiLookup,
+	metaengine.ReadLogTail,
+	metaengine.ReadVectorSearch,
+	metaengine.ReadFullTextSearch,
+	metaengine.ReadSpatialRange,
+
+	// Metaengine — Auto folds + typed inputs
+	metaengine.AutoInsert[any, any],
+	metaengine.AutoUpdate[any, any],
+	metaengine.AutoDelete[any],
+	metaengine.AutoCRUD[any, any, any, any],
+	metaengine.MapUpdateTyped[any],
+	metaengine.Embedding{},
+	metaengine.IndexedText{},
+
+	// Metaengine — engines + adapter
+	sqliteengine.NewSQLiteEngine,
+	pebbleengine.NewPebbleEngine,
+	pgengine.New,
+	projectionadapter.New,
+	adttest.RunMatrix,
+	enginetest.RunTransactionalTest,
+	enginetest.RunStreamLogBackendTest,
+	enginetest.RunAtomicAppenderTest,
+
+	// System + FlightRecorder + Benchkit
+	system.New,
+	system.DomainConfig{},
+	system.DeploymentConfig{},
+	flightrecorder.New,
+	flightrecorder.Recorder{},
+	benchkit.Run,
 
 	// Projection Lifecycle
 	projectionhost.New,

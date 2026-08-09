@@ -1,6 +1,8 @@
 package metaengine
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json/v2"
 	"fmt"
 	"math/big"
@@ -71,6 +73,48 @@ func DecodeFloatResults(
 		}
 
 		result[s.AliasOr()] = val
+	}
+
+	return result, nil
+}
+
+// RowQuerier is the minimal interface for executing a query that returns rows.
+// Both *sql.DB and *sql.Tx satisfy this interface.
+type RowQuerier interface {
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+}
+
+// ScanDistinctValues executes a single-column query and collects each row into
+// []any. Shared by DuckDB and SQLite engine implementations for DistinctValues.
+// The label is used as the error prefix (e.g. "duckdbengine.DistinctValues").
+func ScanDistinctValues(
+	ctx context.Context,
+	q RowQuerier,
+	query string,
+	args []any,
+	label string,
+) ([]any, error) {
+	rows, err := q.QueryContext(ctx, query, args...) //nolint:sqlclosecheck
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", label, err)
+	}
+
+	defer DeferClose(rows)
+
+	var result []any
+
+	for rows.Next() {
+		var raw any
+
+		if err := rows.Scan(&raw); err != nil {
+			return nil, fmt.Errorf("%s: scan: %w", label, err)
+		}
+
+		result = append(result, raw)
+	}
+
+	if err := rows.Err(); err != nil {
+		return result, fmt.Errorf("%s: %w", label, err)
 	}
 
 	return result, nil

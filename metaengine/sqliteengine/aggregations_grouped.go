@@ -399,7 +399,7 @@ func (e *sqliteEngine) distinctStandard(
 		appendStandardFilter(&b, &args, f)
 	}
 
-	return e.scanDistinctSQLite(ctx, b.String(), args)
+	return metaengine.ScanDistinctValues(ctx, e.xd(), b.String(), args, "sqliteengine.DistinctValues")
 }
 
 func (e *sqliteEngine) distinctPlanned(
@@ -421,38 +421,7 @@ func (e *sqliteEngine) distinctPlanned(
 		appendPlannedFilter(&b, &args, f, &whereStarted)
 	}
 
-	return e.scanDistinctSQLite(ctx, b.String(), args)
-}
-
-func (e *sqliteEngine) scanDistinctSQLite(
-	ctx context.Context,
-	query string,
-	args []any,
-) ([]any, error) {
-	rows, err := e.xd().QueryContext(ctx, query, args...) //nolint:sqlclosecheck
-	if err != nil {
-		return nil, fmt.Errorf("sqliteengine.DistinctValues: %w", err)
-	}
-
-	defer metaengine.DeferClose(rows)
-
-	var result []any
-
-	for rows.Next() {
-		var raw any
-
-		if err := rows.Scan(&raw); err != nil {
-			return nil, fmt.Errorf("sqliteengine.DistinctValues: scan: %w", err)
-		}
-
-		result = append(result, raw)
-	}
-
-	if err := rows.Err(); err != nil {
-		return result, fmt.Errorf("sqliteengine.DistinctValues: %w", err)
-	}
-
-	return result, nil
+	return metaengine.ScanDistinctValues(ctx, e.xd(), b.String(), args, "sqliteengine.DistinctValues")
 }
 
 // ---------------------------------------------------------------------------

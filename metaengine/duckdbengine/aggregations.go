@@ -678,7 +678,7 @@ func (e *duckdbEngine) distinctStandard(
 		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
 	}
 
-	return e.scanDistinct(ctx, b.String(), args)
+	return metaengine.ScanDistinctValues(ctx, e.conn(), b.String(), args, "duckdbengine.DistinctValues")
 }
 
 func (e *duckdbEngine) distinctPlanned(
@@ -710,35 +710,5 @@ func (e *duckdbEngine) distinctPlanned(
 		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
 	}
 
-	return e.scanDistinct(ctx, b.String(), args)
-}
-
-func (e *duckdbEngine) scanDistinct(
-	ctx context.Context,
-	query string,
-	args []any,
-) ([]any, error) {
-	rows, err := e.conn().QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, fmt.Errorf("duckdbengine.DistinctValues: %w", err)
-	}
-
-	defer metaengine.DeferClose(rows)
-
-	var result []any
-
-	for rows.Next() {
-		var raw any
-		if err := rows.Scan(&raw); err != nil {
-			return nil, fmt.Errorf("duckdbengine.DistinctValues: scan: %w", err)
-		}
-
-		result = append(result, raw)
-	}
-
-	if err := rows.Err(); err != nil {
-		return result, fmt.Errorf("duckdbengine.DistinctValues: %w", err)
-	}
-
-	return result, nil
+	return metaengine.ScanDistinctValues(ctx, e.conn(), b.String(), args, "duckdbengine.DistinctValues")
 }
