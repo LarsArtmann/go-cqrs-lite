@@ -98,7 +98,9 @@ func (it *bboltEventIterator) Close() error {
 }
 
 // newJournalIterator opens a read-only transaction against the journal bucket
-// (global ordering by OccurredAt).
+// (global ordering by OccurredAt). When skipID is set, it uses the secondary
+// index (bucketJournalIdx: eventID → journalKey) to Seek directly to the
+// position after the given event, falling back to linear scan for old data.
 func (s *EventStore) newJournalIterator(
 	skipID string,
 	limit int,
@@ -115,7 +117,25 @@ func (s *EventStore) newJournalIterator(
 	}
 
 	cursor := bucket.Cursor()
-	k, v := cursor.First()
+
+	var k, v []byte
+	seeked := false
+
+	if skipID != "" {
+		if idx := tx.Bucket([]byte(bucketJournalIdx)); idx != nil {
+			if jk := idx.Get([]byte(skipID)); jk != nil {
+				k, v = cursor.Seek(jk)
+				if k != nil && journalKeyEventID(k) == skipID {
+					k, v = cursor.Next()
+				}
+				seeked = true
+			}
+		}
+	}
+
+	if !seeked {
+		k, v = cursor.First()
+	}
 
 	iter := &bboltEventIterator{
 		tx:        tx,
@@ -123,7 +143,7 @@ func (s *EventStore) newJournalIterator(
 		k:         k,
 		v:         v,
 		skipUntil: skipID,
-		skipping:  skipID != "",
+		skipping:  skipID != "" && !seeked,
 		limit:     limit,
 	}
 
