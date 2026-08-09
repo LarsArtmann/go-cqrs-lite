@@ -46,25 +46,19 @@ func isBusName(name string) bool {
 		strings.HasSuffix(name, "disp")
 }
 
-// busMethodNames are CQRS bus/dispatcher methods that confirm a variable is
-// actually a CQRS transport, not just a variable whose name ends in "bus".
-var busMethodNames = map[string]bool{
-	"Use":           true,
-	"UsePublish":    true,
-	"Publish":       true,
-	"Subscribe":     true,
-	"SubscribeAll":  true,
-	"Handle":        true,
-	"Dispatch":      true,
-	"RegisterTyped": true,
-	"RegisterQuery": true,
-}
-
-// hasBusMethodCall reports whether varName has any CQRS bus method call
-// (Use, UsePublish, Publish, Subscribe, Handle, Dispatch, etc.) in non-test
-// files. This distinguishes actual CQRS buses from lookalike variables (e.g.
-// errorBus that only calls Notify).
 func hasBusMethodCall(ctx *analyzer.AnalysisContext, varName string) bool {
+	busMethodNames := map[string]bool{
+		"Use":           true,
+		"UsePublish":    true,
+		"Publish":       true,
+		"Subscribe":     true,
+		"SubscribeAll":  true,
+		"Handle":        true,
+		"Dispatch":      true,
+		"RegisterTyped": true,
+		"RegisterQuery": true,
+	}
+
 	for _, gf := range ctx.GoFiles {
 		if gf.IsTest {
 			continue
