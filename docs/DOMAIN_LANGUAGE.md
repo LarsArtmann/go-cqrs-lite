@@ -224,6 +224,8 @@ An **ADT** is the logical data structure the planner infers from a query's fold 
 
 Each ADT maps to an optional **Backend interface** an engine implements (ISP): `MapBackend`, `SetBackend`, `CounterBackend`, `MultimapBackend`, `LogBackend`, `StreamLogBackend`, `GraphBackend`, `VectorBackend`, `SearchBackend`, `SpatialBackend`. An engine that lacks the native backend for an ADT may still serve it via **degraded** brute-force fallback (with a `DEGRADED` diagnostic).
 
+> **Typed fold inputs:** Vector and Search ADTs have dedicated input types: `metaengine.Embedding` (ID + `[]float32` values) for k-NN similarity folds, and `metaengine.IndexedText` (ID + content string) for full-text search folds.
+
 ### Fold DSL (Event → Projection Mapping)
 
 A **Fold** is a single typed event-to-projection update rule: "when event E happens, update the projection like this." Folds are the write path. The planner inspects fold return types to infer the ADT.
@@ -241,6 +243,10 @@ A **Fold** is a single typed event-to-projection update rule: "when event E happ
 | **Skip**       | Sentinel signaling an event does not apply to this projection (no-op)            | `metaengine.Skip` struct — return `metaengine.Skip{}` to ignore                        |
 | **Remove**     | Constructor for a delete-by-key fold                                              | `metaengine.Remove[V]()`                                                               |
 | **Poison**     | A collection refuses reads after a fold panic; error stored until store recreate | `Store.IsPoisoned(collection)` — quarantine mechanism                                  |
+| **AutoInsert** | Reflection-based fold: inserts a new record from event fields, auto-stamping Record metadata | `metaengine.AutoInsert[E, R](sample, eventType)` — no hand-written handler needed |
+| **AutoUpdate** | Reflection-based fold: updates an existing record's fields from event            | `metaengine.AutoUpdate[E, R](sample, eventType)` — field-by-field merge via reflection |
+| **AutoDelete** | Reflection-based fold: marks a record for deletion by key                        | `metaengine.AutoDelete[E](sample, eventType)`                                          |
+| **AutoCRUD**   | Combines AutoInsert + AutoUpdate + AutoDelete into one declaration               | `metaengine.AutoCRUD[C, U, D, R](create, update, delete, result)` — full lifecycle    |
 
 ### Cost Model
 
@@ -282,13 +288,19 @@ A **StorageLayout** describes the physical storage structure — it lets the pla
 
 A **ReadPattern** describes how a query reads its projection — distinct from the ADT's data-structure complexity. The cost model adjusts complexity per read pattern (a hash map O(1) for point lookup still scans O(N) for filtered scans).
 
-| Read Pattern        | Meaning                           | Constant                          |
-| ------------------- | --------------------------------- | --------------------------------- |
-| **Point Lookup**    | Single key → value                | `metaengine.ReadPointLookup`      |
-| **Filtered Scan**   | WHERE predicate over collection   | `metaengine.ReadFilteredScan`     |
-| **Aggregate**       | COUNT/SUM/MIN/MAX/AVG             | `metaengine.ReadAggregate`        |
-| **Traversal**       | Graph neighbor traversal          | `metaengine.ReadTraversal`        |
-| **Scan**            | Full collection scan              | `metaengine.ReadScan`             |
+| Read Pattern          | Meaning                              | Constant                              |
+| --------------------- | ------------------------------------ | ------------------------------------- |
+| **Point Lookup**      | Single key → value                   | `metaengine.ReadPointLookup`          |
+| **Membership**        | Key exists in set?                   | `metaengine.ReadMembership`           |
+| **Multi-Lookup**      | Batch key → values                   | `metaengine.ReadMultiLookup`          |
+| **Filtered Scan**     | WHERE predicate over collection      | `metaengine.ReadFilteredScan`         |
+| **Aggregate**         | COUNT/SUM/MIN/MAX/AVG                | `metaengine.ReadAggregate`            |
+| **Traversal**         | Graph neighbor traversal             | `metaengine.ReadTraversal`            |
+| **Scan**              | Full collection scan                 | `metaengine.ReadScan`                 |
+| **Log Tail**          | Read latest N entries from append log | `metaengine.ReadLogTail`             |
+| **Vector Search**     | k-NN similarity search               | `metaengine.ReadVectorSearch`         |
+| **Full-Text Search**  | TF-IDF/BM25 ranked query             | `metaengine.ReadFullTextSearch`       |
+| **Spatial Range**     | Geo proximity query (haversine)      | `metaengine.ReadSpatialRange`         |
 
 ### Filter, Sort & Pagination
 
@@ -389,6 +401,8 @@ Engines implement optional capability interfaces (ISP) — the planner checks at
 | **SnapshotBackend** | Engine capability for storing decider snapshots                             | `metaengine.SnapshotBackend` interface                 |
 | **MapUpdater**      | Atomic read-modify-write for Map ADT (transactional)                        | `metaengine.MapUpdater` interface                      |
 | **AggregateReader** | SQL-level aggregation avoiding loading all rows into Go                     | `metaengine.AggregateReader` interface                 |
+| **GroupedAggregateReader** | SQL-level GROUP BY aggregation (vectorized on columnar engines)      | `metaengine.GroupedAggregateReader` interface           |
+| **MultiAggregateReader** | Multiple aggregate queries in one call (batch optimization)            | `metaengine.MultiAggregateReader` interface             |
 
 ### Hot Operations
 
@@ -398,6 +412,7 @@ Engines implement optional capability interfaces (ISP) — the planner checks at
 | **Watcher**     | Subscribe to real-time value updates on a collection (push notifications) | `metaengine.NewWatcher[V](store, coll)`         |
 | **SwapEngine**  | Replaces an engine at runtime, reassigning queries — zero-downtime upgrades | `Store.SwapEngine(name, newEngine)`             |
 | **PrefetchCache** | Caches scan results beyond requested limit for next page           | `metaengine.PrefetchCache` — eliminates redundant round-trips |
+| **MapUpdateTyped** | Typed atomic read-modify-write for a single Map key (transactional) | `metaengine.MapUpdateTyped[V](store, coll, key, fn)` — fn receives `*V`, returns updated value |
 
 ### Engines
 

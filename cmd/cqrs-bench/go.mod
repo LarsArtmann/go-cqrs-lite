@@ -9,11 +9,11 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.0.0-20260806160506-f6bcfb0bcb06
 	github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.0.0-20260731174855-00ddf243d19f
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/stack/mysql/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/turso/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/stack/mysql/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.1-0.20260806063227-a19b9d370eaa
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-output v0.35.0
@@ -26,6 +26,7 @@ require (
 require (
 	charm.land/fang/v2 v2.0.1 // indirect
 	charm.land/lipgloss/v2 v2.0.5 // indirect
+	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.2 // indirect
 	github.com/a-h/templ v0.3.1020 // indirect
@@ -65,6 +66,7 @@ require (
 	github.com/go-faster/yaml v0.4.6 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/go-sql-driver/mysql v1.10.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/goccy/go-json v0.10.6 // indirect
 	github.com/gofrs/flock v0.13.0 // indirect
@@ -93,7 +95,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260806063227-a19b9d370eaa // indirect
+	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
@@ -103,8 +105,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0-20260806125330-508e2817469c // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/turso/v4 v4.2.0 // indirect
@@ -159,6 +163,7 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect
+	go.etcd.io/bbolt v1.5.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.45.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.45.0 // indirect
