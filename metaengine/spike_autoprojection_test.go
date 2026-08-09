@@ -264,10 +264,10 @@ func TestSpike_AutoCRUDByNamedEvents_Works(t *testing.T) {
 func TestSpike_AutoCRUDByNamedEvents_JSONRoundTrip(t *testing.T) {
 	ctx := context.Background()
 
-	folds, err := autoCRUDByNamedEvents[spikeTaskView]("ID",
-		namedEvent("task.created", spikeTaskCreated{}),
-		namedEvent("task.updated", spikeTaskUpdated{}),
-		namedEvent("task.deleted", spikeTaskDeleted{}),
+	folds, err := AutoCRUDByNamedEvents[spikeTaskView]("ID",
+		NamedEvent("task.created", spikeTaskCreated{}),
+		NamedEvent("task.updated", spikeTaskUpdated{}),
+		NamedEvent("task.deleted", spikeTaskDeleted{}),
 	)
 	if err != nil {
 		t.Fatal(err)
