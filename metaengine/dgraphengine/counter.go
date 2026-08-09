@@ -36,9 +36,10 @@ func (e *dgraphEngine) counterIncrementBatch(
 	txn := e.client.NewTxn()
 	defer func() { _ = txn.Discard(ctx) }()
 
-	// Query all counters in the collection (variable-safe, no DQL injection).
-	// For large collections with small deltas this over-reads, but the write
-	// batch (1 RAFT commit instead of N) is the dominant win.
+	// Query only the delta keys (not the entire collection) to avoid over-reading.
+	// For small delta sets (≤20 keys), we build a DQL @filter with eq() per key.
+	// For larger sets, the filter expression would be excessively long and we
+	// fall back to querying all counters in the collection.
 	q := `query counters($col: string) {
 		counter(func: eq(cqrs.counter_collection, $col)) {
 			uid
@@ -46,6 +47,21 @@ func (e *dgraphEngine) counterIncrementBatch(
 			cqrs.counter_value
 		}
 	}`
+
+	if len(deltas) <= 20 {
+		parts := make([]string, 0, len(deltas))
+		for key := range deltas {
+			escaped, _ := json.Marshal(key)
+			parts = append(parts, fmt.Sprintf("eq(cqrs.counter_key, %s)", escaped))
+		}
+		q = fmt.Sprintf(`query counters($col: string) {
+			counter(func: eq(cqrs.counter_collection, $col)) @filter(%s) {
+				uid
+				cqrs.counter_key
+				cqrs.counter_value
+			}
+		}`, strings.Join(parts, " OR "))
+	}
 
 	resp, err := txn.QueryWithVars(ctx, q, map[string]string{"$col": col})
 	if err != nil {
