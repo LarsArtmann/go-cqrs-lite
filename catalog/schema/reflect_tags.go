@@ -99,7 +99,7 @@ func parseJSONTag(tag string) (string, bool) {
 
 	parts := strings.Split(tag, ",")
 	name := parts[0]
-	omit := len(parts) > 1 && parts[1] == "omitempty"
+	omit := len(parts) > 1 && (parts[1] == "omitempty" || parts[1] == "omitzero")
 
 	return name, omit
 }

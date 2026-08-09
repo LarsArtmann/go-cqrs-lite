@@ -843,6 +843,10 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-coverage.sh" "$@"
             '';
 
+            check-depguard = mkApp "check-depguard" [ pkgs.bash pkgs.findutils pkgs.gnugrep ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-depguard.sh"
+            '';
+
             check-rule-count = mkApp "check-rule-count" [ goPkg pkgs.bash ] ''
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-rule-count.sh" "$@"
             '';

@@ -437,6 +437,48 @@ func setup() {
 	}
 }
 
+func TestDetectFeatures_EchoStartDetectsServer(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/labstack/echo/v4"
+
+func serve() {
+	e := echo.New()
+	_ = e.Start(":8080")
+}
+`,
+	})
+
+	fp := DetectFeatures(ctx)
+	if !fp.HasServer {
+		t.Error("echo e.Start() should detect HasServer=true")
+	}
+}
+
+func TestDetectFeatures_FiberListenDetectsServer(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/gofiber/fiber/v2"
+
+func serve() {
+	app := fiber.New()
+	_ = app.Listen(":3000")
+}
+`,
+	})
+
+	fp := DetectFeatures(ctx)
+	if !fp.HasServer {
+		t.Error("fiber app.Listen() should detect HasServer=true")
+	}
+}
+
 func TestDetectFeatures_HttpServerListenAndServe(t *testing.T) {
 	t.Parallel()
 

@@ -41,11 +41,6 @@ and is **never** duplicated here.
 > context. Each is a verified false positive or missing detection in a real
 > consumer codebase.
 
-- [ ] **Broaden `server` feature detection further** — `http.Server{}` struct
-      literal detection added (2026-08-09). Still need Gin's `engine.Run()`,
-      Echo's `e.Start()`, Fiber's `app.Listen()` patterns.
-      (KeyHolderAI, DiscordSync)
-      _(Effort: M)_
 - [ ] **Per-module feature profiles** — when analyzing a multi-`go.mod`
       workspace, detect features per-module and apply each module's profile
       only to its own packages. (cqrs-htmx)
@@ -81,13 +76,12 @@ and is **never** duplicated here.
       `mustNewPebbleEngine(t)` / `newPebbleEngineOrSkip(t)`.
       _(Effort: M — remaining pebbleengine files are mechanical)_
 - [ ] **Audit `.golangci.yml` exclusion blocks** — `system/` (20 linters
-      disabled), `cmd/cqrs-lint/` (13), `metaengine/` (15) have the broadest
-      exclusions. Narrow where safe.
-      _(Effort: M)_
-- [ ] **Add CI check comparing `go.mod` requires vs depguard allow list** —
-      dependencies are only added to `.golangci.yml` after lint fails.
-      _(Effort: M)_
-
+      disabled), `cmd/cqrs-lint/` (17), `metaengine/` (21) have the broadest
+      exclusions. Audit done 2026-08-09: `staticcheck` disabled for `system/`
+      is the most concerning (correctness linter). Test shows no violations
+      when enabled, but full lint gate verification needed before removing.
+      Narrow where safe.
+      _(Effort: M — needs full lint run to verify narrowing)_
 ---
 
 ## CI / Release / Infrastructure

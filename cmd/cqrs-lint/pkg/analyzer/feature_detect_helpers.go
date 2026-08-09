@@ -179,8 +179,8 @@ func scanASTCalls(
 				method == "Serve" {
 				fp.HasServer = true
 			}
-			// Gin/Echo/Fiber engine.Run() starts an HTTP listener.
-			if method == "Run" && hasHTTPFramework {
+			// Gin engine.Run(), Echo e.Start(), Fiber app.Listen() start HTTP listeners.
+			if hasHTTPFramework && (method == "Run" || method == "Start" || method == "Listen") {
 				fp.HasServer = true
 			}
 			if method == "Listen" || method == "NewListener" {
