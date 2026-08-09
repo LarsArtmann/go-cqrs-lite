@@ -144,26 +144,6 @@ and is **never** duplicated here.
 
 ## Irohengine / Replicated Engine
 
-- [x] **Add runtime protocol-mismatch detection for QUIC stream pooling** — a
-      pooled sender connected to a non-pooled receiver silently hangs (receiver
-      calls `ReadToEnd` waiting for `Finish()` that never comes). Detect via a
-      magic byte in the first frame and return a clear error.
-      _(Effort: S)_
-- [x] **Add stream-reuse counter to `peerConn`** — increment each time
-      `sendOpPooled` opens a new BiStream. Tests can assert that N ops over a
-      pooled connection used only 1 stream (proving reuse, not just correctness).
-      _(Effort: S)_
-- [x] **Extract shared framing constants** — `frameHeaderSize`, `errFrameTooLarge`
-      are duplicated between `quic/frame.go` and `loopback/frame.go`. Move to
-      `irohengine/framing.go` (protocol constants only; I/O stays per-transport).
-      _(Effort: S)_
-- [x] **Port injectable-clock pattern to QUIC LWW tests** — `TestQuicLWWResolution`
-      still relies on replication-time-gap for timestamp ordering. Could use
-      `WithClock` for determinism (same pattern as the in-process tests).
-      _(Effort: S)_
-- [x] **Extract `RunConvergenceSuite(t, factory)`** — shared test harness for
-      all 3 transports (~200 lines dedup between in-process, loopback, QUIC).
-      _(Effort: M)_
 - [ ] **Add `t.Parallel()` to `TestQuicConvergenceSuite`** — in-process and
       loopback variants have it; QUIC variant committed without it.
       _(Effort: S)_
@@ -269,16 +249,6 @@ and is **never** duplicated here.
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must
   v0.1.2).
-- [x] **Wire `#check-arch` into the verify gate and CI** — replaced
-      `#check-layers` with `#check-arch` in verify, verify-fast, ci app,
-      and `.github/workflows/ci.yml`. `check-arch` is a strict superset
-      (calls Layer 1 internally + Layer 2 go-arch-lint per-module).
-- [x] **Add go-arch-lint as a nix dependency in `#check-arch`** — added
-      `pkgs.go-arch-lint` (v1.17.0 from nixpkgs) + `findutils` + `gnugrep`
-      to the app's runtimeInputs. No longer depends on system PATH.
-- [x] **Document CHANGELOG release process** — added `tag-release.sh`
-      workflow, CHANGELOG-to-tag constraint explanation, and two-layer
-      architecture model docs to CONTRIBUTING.md.
 - [ ] 🔥 **Cut CHANGELOG `[Unreleased]` → `[v4.7.0]`** — `TestTagContentMatchesChangelog`
       requires ≥1 git tag at the version. Needs ≥10 coordinated module tags via
       `scripts/tag-release.sh` first. Attempted + reverted 2026-08-09 (zero tags
