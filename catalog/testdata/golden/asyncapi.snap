@@ -117,8 +117,6 @@
       "command.CreateOrder": {
         "properties": {
           "orderId": {
-            "deprecated": false,
-            "nullable": false,
             "type": "string"
           }
         },
@@ -144,8 +142,7 @@
           {
             "name": "commands"
           }
-        ],
-        "deprecated": false
+        ]
       },
       "event.OrderCreated": {
         "name": "OrderCreated",
@@ -159,8 +156,7 @@
           {
             "name": "events"
           }
-        ],
-        "deprecated": false
+        ]
       },
       "query.GetOrder": {
         "name": "GetOrder",
@@ -174,8 +170,7 @@
           {
             "name": "queries"
           }
-        ],
-        "deprecated": false
+        ]
       }
     }
   }

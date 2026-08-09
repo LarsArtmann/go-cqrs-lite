@@ -23,3 +23,17 @@ func mustNewDuckEngine(t *testing.T) metaengine.Engine {
 
 	return eng
 }
+
+// newDuckEngineOrSkip creates an in-memory DuckDB engine without registering
+// cleanup. Use when the test needs to control the engine lifecycle manually
+// (e.g. testing closed-state behavior).
+func newDuckEngineOrSkip(t *testing.T) metaengine.Engine {
+	t.Helper()
+
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+
+	return eng
+}

@@ -39,7 +39,7 @@ type Operation struct {
 	Summary     string                `json:"summary,omitempty"`
 	Description string                `json:"description,omitempty"`
 	OperationID string                `json:"operationId,omitempty"`
-	Deprecated  bool                  `json:"deprecated,omitempty"`
+	Deprecated  bool                  `json:"deprecated,omitzero"`
 	RequestBody *RequestBody          `json:"requestBody,omitempty"`
 	Responses   map[string]*Response  `json:"responses"`
 	Parameters  []Parameter           `json:"parameters,omitempty"`
@@ -49,7 +49,7 @@ type Operation struct {
 type RequestBody struct {
 	Description string               `json:"description,omitempty"`
 	Content     map[string]MediaType `json:"content"`
-	Required    bool                 `json:"required,omitempty"`
+	Required    bool                 `json:"required,omitzero"`
 }
 
 type Response struct {
@@ -66,7 +66,7 @@ type Parameter struct {
 	Name        string `json:"name"`
 	In          string `json:"in"`
 	Description string `json:"description,omitempty"`
-	Required    bool   `json:"required,omitempty"`
+	Required    bool   `json:"required,omitzero"`
 	Schema      any    `json:"schema,omitempty"`
 }
 

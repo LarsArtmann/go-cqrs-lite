@@ -45,8 +45,8 @@ type Property struct {
 	Required    []string            `json:"required,omitempty"`
 	Default     string              `json:"default,omitempty"`
 	Enum        []string            `json:"enum,omitempty"`
-	Nullable    bool                `json:"nullable,omitempty"`
-	Deprecated  bool                `json:"deprecated,omitempty"`
+	Nullable    bool                `json:"nullable,omitzero"`
+	Deprecated  bool                `json:"deprecated,omitzero"`
 	Pattern     string              `json:"pattern,omitempty"`
 	Examples    []jsontext.Value    `json:"examples,omitempty"`
 }

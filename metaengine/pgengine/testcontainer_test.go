@@ -32,3 +32,16 @@ func mustNewPgEngine(t *testing.T) metaengine.Engine {
 
 	return eng
 }
+
+// newPgEngineOrSkip creates a Postgres engine without registering cleanup.
+// Use when the test needs to control the engine lifecycle manually.
+func newPgEngineOrSkip(t *testing.T) metaengine.Engine {
+	t.Helper()
+
+	eng, err := pgengine.New(pgDSN(t))
+	if err != nil {
+		t.Skipf("Postgres not available: %v", err)
+	}
+
+	return eng
+}
