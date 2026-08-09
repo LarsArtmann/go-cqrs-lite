@@ -450,10 +450,15 @@ func TestRun_DurationAborts(t *testing.T) {
 
 	elapsed := time.Since(start)
 
-	// The run should finish quickly. Under -race with parallel test load,
-	// setup + teardown adds overhead, so allow 5s (not 2s).
-	if elapsed > 5*time.Second {
-		t.Errorf("run took %v with Duration=5ms; expected < 5s", elapsed)
+	// Under -race with parallel test load, setup + teardown adds overhead.
+	hangThreshold := 5 * time.Second
+	if raceEnabled {
+		hangThreshold = 30 * time.Second
+	}
+
+	// The run should finish quickly.
+	if elapsed > hangThreshold {
+		t.Errorf("run took %v with Duration=5ms; expected < %v", elapsed, hangThreshold)
 	}
 
 	// The duration cap should prevent all events from being written.
@@ -478,9 +483,15 @@ func TestRun_CancelledContext(t *testing.T) {
 
 	elapsed := time.Since(start)
 
+	// Under -race with parallel test load, overhead inflates runtime.
+	hangThreshold := 5 * time.Second
+	if raceEnabled {
+		hangThreshold = 30 * time.Second
+	}
+
 	// Must not hang.
-	if elapsed > 5*time.Second {
-		t.Errorf("run with cancelled context took %v, expected < 5s", elapsed)
+	if elapsed > hangThreshold {
+		t.Errorf("run with cancelled context took %v, expected < %v", elapsed, hangThreshold)
 	}
 
 	// With pre-cancelled context, either an error occurs or only a partial
