@@ -1,8 +1,140 @@
-# v5 Unification — Superb Execution Plan
+# v5 Unification — SUPERB Execution Plan
 
-> **Date:** 2026-08-09 06:39
+> **Date:** 2026-08-09 06:39 (revised 07:15)
 > **Decision:** [ADR-0123](../adr/0123-v5-unification-single-composition-root.md)
-> **Vision:** Developers declare only Commands + Events + Queries. The system infers projections, storage layout, indexes, and engine routing. Operators pick infrastructure at deployment time. No developer ever thinks about the storage layer.
+> **Vision:** Developers declare only Commands + Events + Queries. The system infers projections, storage layout, indexes, and engine routing. Operators pick infrastructure at deployment time.
+
+---
+
+## What was wrong with v1 of this plan (honest self-review)
+
+| Flaw | Fix |
+|------|-----|
+| Auto-projection was "a PlanRule, ~60 lines" | **Wrong layer.** PlanRules run AFTER engine assignment and can only enrich `PlanResult` — they CANNOT generate folds (folds are on `QueryDecl` BEFORE `Plan()`). Fold inference is a **system-level** or **Query-constructor** concern, not a planner rule. |
+| No consumer API mockup | **Added below.** The API is the foundation, not an afterthought. |
+| Batch atomicity was "90min" | **Wrong by 10x.** No batching/queueing concept exists. The `Transactional` interface exists but `ApplyRecord` doesn't use it. Real estimate: 3-5 days for memory + sqlite. |
+| Universal ADT coverage was "90min" | **Wrong by 5x.** Each missing ADT needs DDL + write/read paths + tests (~2-4h per ADT per engine, ~15 missing ADTs total). Real estimate: 3-5 days. |
+| Struct-composition multi-collection was in the "20%" tier | **Fantasy-tier scope.** Detecting slice fields → auto-generating sub-collections → join at read time is ORM relationship inference. Moved to **post-v5**. |
+| Record consolidation was on the critical path | **False dependency.** Watermill swap, GraphBackend delete, and fold inference don't depend on it. Removed from critical path. |
+| No spike tasks | **Added.** Batch atomicity and fold inference need feasibility validation before scheduling. |
+| No v4.x bridge strategy | **Added.** Ship auto-projection as opt-in in v4.x, deprecate v1 tiers, cut v5. |
+| cqrs-lint rules ignored | **Added.** E008/E011 stack-detection rules break when stack/ is deleted. |
+| samber/do ignored | **Explicitly deferred.** Not v5 scope. |
+
+---
+
+## The Consumer API (this is the foundation)
+
+### What a v5 consumer writes for a full CRUD aggregate with projections
+
+```go
+// ── Domain types (you already write these) ──────────────────
+
+type UserCreated struct { ID UserID; Name string; Email string; CreatedAt time.Time }
+type UserUpdated struct { ID UserID; Name string; Email string }
+type UserDeleted struct { ID UserID }
+
+type UserView struct { ID UserID; Name string; Email string; Active bool; CreatedAt time.Time }
+
+type GetUserInput struct { ID UserID }
+type ListUsersInput struct { Status string; metaengine.Pagination }
+
+// ── Decider (pure domain logic, you already write this) ─────
+
+var userDecider = decider.Decider[UserState]{
+    Initial: UserState{},
+    Fold:    foldUserEvents,
+    Decide:  decideUser, // func(state, command) ([]event, error)
+}
+
+// ── The v5 wiring (THIS IS ALL YOU WRITE) ───────────────────
+
+sys, _ := system.New(ctx,
+    system.Domain{
+        Aggregates: []system.AggregateSpec{
+            system.Aggregate("User", userDecider).
+                Command[CreateUser]("user.create").
+                Command[UpdateUser]("user.update").
+                Command[DeleteUser]("user.delete"),
+        },
+        Projections: []system.ProjectionSpec{
+            // ONE LINE. System auto-generates folds from struct field matching.
+            system.View[UserView, UserID]("users").
+                From(UserCreated{}, UserUpdated{}, UserDeleted{}),
+            
+            // Counter example: auto-generates CounterIncrement fold
+            system.Count[UserCountInput]("user_count").
+                From(UserCreated{}, UserDeleted{}),
+        },
+    },
+    system.Deployment{
+        Engines: map[string]system.EngineConfig{
+            "primary": {Driver: "sqlite", DSN: "app.db"},
+        },
+    },
+)
+
+// ── Use it ───────────────────────────────────────────────────
+
+sys.Execute(ctx, "user.create", CreateUser{Name: "Alice"})
+user, _ := sys.Projection[UserView, UserID](ctx, "users", userID)
+users, _ := sys.ProjectionList[UserView](ctx, "users", ListUsersInput{Status: "active"})
+```
+
+### What the system generates automatically
+
+```
+system.View[UserView, UserID]("users").From(UserCreated{}, UserUpdated{}, UserDeleted{})
+    ↓ system.New() internally:
+    ↓
+    1. Fold inference: UserCreated → insert (Created suffix), field matching
+       (ID→ID, Name→Name, Email→Email, CreatedAt→CreatedAt, Active→true default)
+    2. Fold inference: UserUpdated → update (Updated suffix), partial field copy
+    3. Fold inference: UserDeleted → delete (Deleted suffix)
+    4. ADT classification: Map (keyed lookup by UserID)
+    5. metaengine.Query[GetUserInput, UserView]("users", <generated folds>)
+    6. TypeDecoder auto-registration (UserCreated/Updated/Deleted)
+    7. projectionadapter wiring (event types, decoder, ApplyRecord)
+    8. LayoutPlan: FilterOn/SortOn from GetUserInput struct fields → SQL columns + indexes
+    9. Engine routing: sqlite engine selected (cost-based, only engine available)
+```
+
+### What changes from v4 today (taskmanager example)
+
+| Aspect | v4 today | v5 target |
+|--------|----------|-----------|
+| Lines for projection setup | ~199 LOC (11 hand-written `OnTyped` folds + 11 decoder registrations) | **~5 LOC** (3 `system.View/Count` declarations) |
+| Lines for command registration | ~60 LOC (10 nearly-identical `RegisterCommand` blocks) | **~5 LOC** (`.Command[CreateUser]("user.create")` chain) |
+| Fold code | Hand-written closures matching field names | **Zero** (auto-generated from struct field matching) |
+| Decoder registration | Manual `Register` calls | **Zero** (auto-registered from `.From(...)` types) |
+| Backend choice | Code-level (`stack/sqlite.New()`) | **YAML** (`Driver: "sqlite"`) |
+
+---
+
+## Architecture: Where fold inference actually lives
+
+**NOT a PlanRule.** PlanRules run AFTER engine assignment and can only enrich `PlanResult` (diagnostics, layouts). They cannot modify `QueryDecl` folds.
+
+```
+Consumer writes:
+  system.View[UserView, UserID]("users").From(UserCreated{}, ...)
+
+system.New() internally:
+  1. system/projection_builder.go (NEW):
+     - Receives ProjectionSpec with event type samples
+     - Calls metaengine.AutoCRUDByConvention[ResultType]("ID", samples...)
+       (logic ALREADY EXISTS at auto_naming.go:150)
+     - Wraps generated folds in metaengine.Query[Input, Result](...)
+     - Auto-registers TypeDecoder entries for each event type
+     
+  2. metaengine.Plan(engines, queries...) — normal planning
+     - Cost-based routing (unchanged)
+     - Layout planning from filter/sort declarations (unchanged)
+     
+  3. projectionadapter — normal event→store bridge (unchanged)
+```
+
+The **only new code** is `system/projection_builder.go` (~100-150 LOC) that translates `ProjectionSpec` → `metaengine.QueryDecl` using the existing `AutoCRUDByConvention` + `TypeDecoder.Register` functions.
 
 ---
 
@@ -10,451 +142,456 @@
 
 ```mermaid
 graph TD
-    %% Pareto 1% — 51% of value
-    T02[T02: Watermill Swap] --> T04[T04: Planner-time Fold Inference]
-    T03[T03: Delete GraphBackend] --> T04
-    T04 --> T05[T05: Auto-projection Default in system.New]
+    %% Spike validation (gate for the hard stuff)
+    S1[S1: Spike - fold inference API] --> P2
+    S2[S2: Spike - batch atomicity feasibility] --> P5
 
-    %% Pareto 4% — 64% of value
-    T01[T01: Record Consolidation] --> T06[T06: Registry → metaengine/]
-    T01 --> T12[T12: OnRecord Default Folds]
-    T06 --> T07[T07: Self-register 5 Existing Engines]
-    T07 --> T08[T08: Self-register 3 More Engines]
+    %% Phase 1: Foundation quick wins (NO dependencies)
+    P1a[P1a: Watermill swap] --> P3
+    P1b[P1b: GraphBackend delete] --> P3
+    P1c[P1c: Registry → metaengine/] --> P3
 
-    %% Pareto 20% — 80% of value
-    T05 --> T14[T14: Struct-composition Multi-collection]
-    T08 --> T09[T09: Create bbolt Engine]
-    T08 --> T10[T10: Create mysql Engine]
-    T08 --> T11[T11: Create turso Engine]
-    T14 --> T16[T16: Batch Atomicity]
-    T12 --> T16
-    T16 --> T17[T17: Universal ADT Coverage]
-    T16 --> T18[T18: Degradation Rule]
-    T14 --> T15[T15: Override API]
+    %% Phase 2: Auto-projection MVP (the 1%)
+    S1 --> P2[P2: Auto-projection in system.New]
+    P2 --> P2b[P2b: Migrate metaengine-quickstart]
+    P2 --> P2c[P2c: Migrate taskmanager projections]
 
-    %% Remaining 20% — 100%
-    T17 --> T19[T19: Delete stack.Bundle + 8 Presets]
-    T18 --> T20[T20: Delete v1 Tiers]
-    T19 --> T23[T23: Migrate benchkit + cqrs-bench]
-    T20 --> T23
-    T23 --> T24[T24: Migration Guide]
-    T24 --> T25[T25: Update Docs]
-    T25 --> T26[T26: Cut v5.0.0]
+    %% Phase 3: Engine self-registration
+    P1c --> P3[P3: Self-register 9 existing engines]
+    P3 --> P3b[P3b: Create bbolt/mysql/turso engines]
+
+    %% Phase 4: Record consolidation (parallel track)
+    P4[P4: Record consolidation] --> P6
+    P4 --> P2
+
+    %% Phase 5: Batch atomicity (hard, gated by spike)
+    S2 --> P5[P5: Batch atomicity for memory+sqlite]
+    P5 --> P5b[P5b: Batch atomicity for other engines]
+
+    %% Phase 6: Universal coverage + degradation
+    P3b --> P6[P6: Universal ADT coverage]
+    P6 --> P6b[P6b: Degradation rule]
+
+    %% Phase 7: Deletion + migration
+    P2c --> P7[P7: Delete v1 tiers + stack.Bundle]
+    P6 --> P7
+    P7 --> P7b[P7b: Migrate benchkit + cqrs-bench]
+    P7 --> P7c[P7c: Update cqrs-lint rules]
+    P7b --> P7d[P7d: Migration guide + docs]
+
+    %% Phase 8: v5 cut
+    P7d --> P8[P8: Cut v5.0.0]
 
     %% Styling
-    classDef p1 fill:#f9d0c4,stroke:#c0392b,stroke-width:3px
-    classDef p4 fill:#fdebd0,stroke:#e67e22,stroke-width:2px
-    classDef p20 fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
-    classDef prest fill:#d6eaf8,stroke:#2980b9,stroke-width:1px
+    classDef spike fill:#fadbd8,stroke:#c0392b,stroke-width:2px,stroke-dasharray: 5 5
+    classDef phase1 fill:#f9d0c4,stroke:#c0392b,stroke-width:3px
+    classDef phase2 fill:#fdebd0,stroke:#e67e22,stroke-width:2px
+    classDef rest fill:#d5f5e3,stroke:#27ae60,stroke-width:1px
 
-    class T02,T03,T04,T05 p1
-    class T01,T06,T07,T08,T12 p4
-    class T09,T10,T11,T14,T15,T16,T17,T18 p20
-    class T19,T20,T23,T24,T25,T26 prest
+    class S1,S2 spike
+    class P1a,P1b,P1c,P2,P2b,P2c phase1
+    class P3,P3b,P4,P5,P5b,P6,P6b phase2
+    class P7,P7b,P7c,P7d,P8 rest
 ```
 
-### Critical Path (longest dependency chain)
+### Critical Path (corrected)
 
 ```
-T01 (Record) → T06 (Registry) → T07 (5 Engines) → T08 (3 Engines)
-  → T16 (Batch Atomicity) → T17 (Universal ADT) → T19 (Delete stack)
-  → T23 (Migrate benchkit) → T24 (Guide) → T25 (Docs) → T26 (v5 Cut)
+S1 (spike) → P2 (auto-projection) → P2c (migrate taskmanager)
+  → P7 (delete v1) → P7b (benchkit) → P7d (docs) → P8 (v5 cut)
 ```
 
-### Parallelizable Tracks
-
-- **Track A (Auto-projection):** T02 → T03 → T04 → T05 → T14 → T15
-- **Track B (Foundation):** T01 → T06 → T07 → T08 → T09/T10/T11
-- **Track C (Engine internals):** T16 → T17 → T18
-- **Track D (Cleanup):** T19 → T20 → T23 (gated on A+B+C)
+Record consolidation (P4) is **NOT** on the critical path. It runs in parallel.
 
 ---
 
-## Pareto Breakdown
+## Pareto Breakdown (revised)
 
-### The 1% that delivers 51% of the value
+### The 1% that delivers 51% (validated by spike)
 
-The user's north star: "developer declares only Commands + Events + Queries, system infers projections." The 1% makes this REAL for the first time.
+| Task | What | Why 51% | Effort |
+|------|------|---------|--------|
+| S1 | **Spike: fold inference API validation** | De-risks the entire plan. Validates that `system.View[V,K](name).From(samples...)` generates working folds. | 4h |
+| P1a | **Watermill swap** | 1-line change. Both implement `event.Bus`. Makes system/ production-ready. | 30min |
+| P1b | **GraphBackend delete** | Already removed from 4/5 engines. Dead interface. | 2h |
+| P2 | **Auto-projection in system.New()** | `system/projection_builder.go` (~120 LOC) calls existing `AutoCRUDByConvention` + `TypeDecoder.Register`. Consumer writes `system.View[V,K](...).From(...)` instead of 200 LOC. | 4h |
 
-**Why these 4 tasks = 51%:** `AutoCRUDByConvention` reflection logic ALREADY EXISTS (`auto_naming.go:150`). The watermill swap is 1 line (both implement `event.Bus`). GraphBackend is dead code in 4 of 5 engines already. The gap between "today" and "developer declares types, gets projections through a production-ready composition root" is ~3 hours of work.
+**Total 1%: ~11 hours.** After this, system/ is the working composition root with auto-projection.
 
-| Task | What | Why it's 1% | Why it delivers 51% |
-|------|------|-------------|---------------------|
-| T02 | Swap simpleBus → watermill | 1-line change, both implement `event.Bus` | system/ becomes production-ready (persistent bus, retries, NATS/Redis/Kafka via WithBackend) |
-| T03 | Delete GraphBackend | Already removed from 4/5 engines (-433 lines done) | Removes the last dead interface, unblocks graphadapter as sole path |
-| T04 | Planner-time fold inference PlanRule | Reflection logic exists in auto_naming.go, just needs a PlanRule wrapper (~60 lines) | THE killer feature: `Plan()` auto-generates folds from struct shapes. Developer writes ZERO fold code. |
-| T05 | Auto-projection as default in system.New() | Wire projectionadapter to use auto-projection by default | Consumer declares `Projections: []any{...}` with raw types → working projections with no fold code |
+### The 4% that delivers 64%
 
-### The 4% that delivers 64% of the value
+| Task | What | Effort |
+|------|------|--------|
+| P1c | **Registry → metaengine/** | 3h. Mechanical move. |
+| P3 | **Self-register 9 existing engines** | 4h. Each is ~10 LOC `register.go`. |
+| P4 | **Record consolidation** | 8h. Only 3 production files use `event.Metadata` directly. Adapters exist. Can run in parallel. |
+| P2b | **Migrate metaengine-quickstart to auto-projection** | 2h. Proves the API end-to-end. |
+| S2 | **Spike: batch atomicity feasibility** | 4h. Prototype BatchTxn on memory engine. De-risks P5. |
 
-| Task | What | Why 64% |
-|------|------|---------|
-| T01 | Record consolidation | Unifies the type system. Only 3 production files use event.Metadata directly. Adapters already exist. |
-| T06 | Move registry to metaengine/ | Enables self-registration without dependency inversion. All engines already depend on metaengine/. |
-| T07 | Self-register 5 existing engines | memory, sqlite, pebble, postgres, duckdb — all exist as metaengine engines, just need register.go (~10 lines each) |
-| T08 | Self-register 3 more (badger, dgraph, iroh) | Same — exist as engines, just register.go |
-| T12 | OnRecord as default fold | Folds receive Record (StreamID, Version, Metadata) — ES-native by default, not opt-in |
+### The 20% that delivers 80%
 
-### The 20% that delivers 80% of the value
-
-| Task | What | Why 80% |
-|------|------|---------|
-| T09-T11 | Create bbolt/mysql/turso metaengine modules | These don't have metaengine engine modules yet — need adapter or new module |
-| T14 | Struct-composition multi-collection | Detect `[]Attachment` on event → auto-generate second collection. The "zero-config relational" dream. |
-| T16 | Multi-collection batch atomicity | Currently folds execute independently — no rollback. Needs store-level transaction batching. Critical for correctness. |
-| T17 | Universal ADT coverage | Fill gaps: duckdb/pg need Set/Multimap/Log; dgraph needs StreamLog. Every engine handles every ADT. |
-| T18 | Capability-degradation rule | Planner emits WARN when ADT is degraded on chosen engine. Honest diagnostics. |
+| Task | What | Effort |
+|------|------|--------|
+| P2c | **Migrate taskmanager projections** (11 folds → 3 declarations) | 4h |
+| P3b | **Create bbolt/mysql/turso engines** | 3 × 6h = 18h |
+| P5 | **Batch atomicity for memory + sqlite** | 3 days |
+| P6 | **Universal ADT coverage** (fill ~15 gaps across 8 engines) | 4 days |
+| P6b | **Degradation planner rule** | 4h |
 
 ### The remaining 20% (to reach 100%)
 
-| Task | What |
-|------|------|
-| T13 | Deprecate + remove payload-only On constructor |
-| T15 | Fold inference override API |
-| T19 | Delete stack.Bundle + all 8 presets |
-| T20 | Delete v1 tiers (Materialize, RelationalProjection, SQLViewStore, GraphProjection) |
-| T21 | Delete stack.RunProjections |
-| T22 | Delete stack.Materialize |
-| T23 | Migrate benchkit + cmd/cqrs-bench to system.System |
-| T24 | Write v5 migration guide |
-| T25 | Update README, SKILL.md, AGENTS.md, examples |
-| T26 | Cut v5.0.0 — tag + CHANGELOG |
+| Task | What | Effort |
+|------|------|--------|
+| P5b | Batch atomicity for pebble/duckdb/pg/badger | 2 days |
+| P7 | Delete v1 tiers + stack.Bundle | 4h |
+| P7b | Migrate benchkit + cqrs-bench | 6h |
+| P7c | Update cqrs-lint rules (E008/E011) | 2h |
+| P7d | Migration guide + docs + examples | 8h |
+| P8 | Cut v5.0.0 | 2h |
+
+**Deferred to post-v5:** struct-composition multi-collection (ORM relationship inference), command lifecycle as events (ADR-0117), samber/do, vector/search/spatial on all engines.
 
 ---
 
-## Medium Plan (30-100min tasks)
+## Detailed Plan (30-100min tasks)
 
-> 26 tasks, sorted by Pareto tier then dependency order.
+> Sorted by Pareto tier, then dependency order. 28 tasks.
 
-| # | Task | Pareto | Impact | Effort | Deps | Description |
-|---|------|--------|--------|--------|------|-------------|
-| T01 | Record consolidation (ADR-0111 P3-4) | 4% | Critical | 90min | — | Consolidate event.Metadata, command.Metadata, metadata.Tracing into record.CommonMetadata. 3 production files (watermill/protocol.go, pebble/serialization.go, bbolt/serialization.go) + ~10 test files. Adapters (event.AsRecord, command.AsRecord) already exist. |
-| T02 | Swap simpleBus → watermill.EventBus | 1% | Critical | 30min | — | Replace newSimpleBus() with watermill.NewEventBus() in system/driver_registry.go:152. Add watermill dep to system/go.mod. Map BusConfig.Driver to watermill backend selection. Both implement event.Bus — no adapter needed. |
-| T03 | Delete metaengine.GraphBackend (ADR-0113) | 1% | High | 60min | — | Remove GraphBackend interface from engine.go:394. Remove assertion from memory engine (engine.go:560). Update adttest.RunMatrix to test graph via graphadapter. ~15 files touched. |
-| T04 | Planner-time fold inference PlanRule | 1% | Critical | 60min | T03 | New PlanRule (~60 lines) that accepts event type samples on QueryDecl and calls autoInsertByType/autoUpdateByType/autoDeleteByType internally. Convention logic already exists in AutoCRUDByConvention (auto_naming.go:150). The gap is API design (how samples reach Plan()), not reflection logic. |
-| T05 | Auto-projection as default in system.New() | 1% | Critical | 45min | T04 | Wire system/constructor.go projection setup to use auto-projection by default. Consumer passes raw event/query types in DomainConfig.Projections → system auto-generates folds → projectionadapter feeds them to metaengine.Store. Zero fold code from consumer. |
-| T06 | Move driver registry to metaengine/ | 4% | High | 60min | T01 | Relocate RegisterDriver, DriverFactory, EngineConfig, lookupDriver from system/driver_registry.go to new metaengine/registry.go. system/ calls metaengine.LookupDriver(name). All engines already depend on metaengine/. |
-| T07 | Self-register 5 existing engines | 4% | High | 45min | T06 | Create register.go in memory_engine, sqliteengine, pebbleengine, pgengine, duckdbengine. Each is ~10 lines: `func init() { metaengine.RegisterDriver("name", factory) }`. Move existing init() registrations from system/driver_registry.go. |
-| T08 | Self-register 3 more engines | 20% | Medium | 30min | T06 | Create register.go in badgerengine, dgraphengine, irohengine. Same pattern as T07. |
-| T09 | Create bbolt metaengine module | 20% | Medium | 60min | T07 | New metaengine/bboltengine/ module (or adapter wrapping storage/bbolt). Implement MapBackend, SetBackend, CounterBackend, LogBackend, StreamLogBackend, AtomicAppender. Self-register as "bbolt". |
-| T10 | Create mysql metaengine module | 20% | Medium | 60min | T07 | Extend pgengine pattern to MySQL dialect, or new metaengine/mysqlengine/. Self-register as "mysql". |
-| T11 | Create turso metaengine module | 20% | Medium | 60min | T07 | Turso is libSQL (SQLite-compatible). May work with sqliteengine directly, or needs thin adapter for sync API. Self-register as "turso". |
-| T12 | Make OnRecord the default fold | 4% | High | 45min | T01 | Update examples, docs, auto-projection to use OnRecord/OnRecordTyped. Fold handlers receive record.Record as first parameter. Mark payload-only On as deprecated. |
-| T13 | Deprecate + remove On constructor | Rest | Medium | 30min | T12 | Mark On() as deprecated, update all internal callers, remove in v5 cut. |
-| T14 | Struct-composition multi-collection | 20% | High | 90min | T04 | When event has `[]Attachment` field and query requests MessageView (which has Attachments), auto-generate second collection for attachments. Planner detects the relationship. |
-| T15 | Fold inference override API | Rest | Medium | 45min | T04 | When auto-projection gets it wrong, consumer can override with explicit OnRecord fold for a specific event/query pair. Override replaces (not supplements) the generated fold. |
-| T16 | Multi-collection batch atomicity | 20% | Critical | 90min | T12 | Refactor store.ApplyRecord to QUEUE fold operations, then execute all in one engine transaction. Today folds execute immediately and independently — no rollback. Add BatchTxn interface to engines. Implement in memory + sqlite first. |
-| T17 | Universal ADT coverage | 20% | High | 90min | T16 | Audit each engine for missing ADTs. Fill gaps: duckdb/pg need Set/Multimap/Log; dgraph needs StreamLog. Add degraded fallbacks where native is impossible (graph via recursive CTE on SQL engines). |
-| T18 | Capability-degradation planner rule | 20% | High | 45min | T17 | New PlanRule that emits WARN/INFO when ADT is routed to engine whose EngineProfile declares it degraded. Shows estimated cost penalty + recommends better engine. Integrates into ExplainPlan() and Doctor(). |
-| T19 | Delete stack.Bundle + 8 presets | Rest | Medium | 60min | T17, T18 | Delete stack/bundle.go, stack/accessors.go, stack/options.go, stack/materialize.go, stack/run_projections.go + all 8 preset packages. ~30+ files. |
-| T20 | Delete v1 read-model tiers | Rest | Medium | 45min | T19 | Delete storage/relational/ (RelationalProjection + ProjectionSink + RelationalStore), storage/view/ (SQLViewStore + ViewMapper). Absorb concepts as engine internals. |
-| T21 | Delete graph.GraphProjection | Rest | Low | 30min | T19 | Delete graph/projection.go + graph/sink.go. Auto-projection + graphadapter replaces it. |
-| T22 | Delete stack.Materialize + RunProjections | Rest | Low | 30min | T19 | Already covered by T19 deletion, but listed separately for tracking. Ensure all references are gone. |
-| T23 | Migrate benchkit + cqrs-bench | Rest | High | 60min | T19, T20 | benchkit/runner.go stores *stack.Bundle as field — rearchitect to use *system.System. cmd/cqrs-bench/factory.go returns func() (*stack.Bundle, error) — convert to system configs. ~4 files. |
-| T24 | Write v5 migration guide | Rest | High | 60min | T23 | Document path from v4 (stack presets, v1 tiers) to v5 (system.System, auto-projection). Before/after examples for each v1 tier. Include auto-projection getting started. |
-| T25 | Update README, SKILL.md, AGENTS.md, examples | Rest | High | 60min | T24 | Rewrite all consumer-facing docs for the single composition root + auto-projection. Update 4 examples (taskmanager, getting-started, readme-quickstart, metaengine-quickstart). |
-| T26 | Cut v5.0.0 | Rest | Critical | 30min | T25 | Tag all modules with v5.0.0. Update CHANGELOG. Run full verify gate. Push tags. |
+### Spikes (validate before committing)
 
-**Total estimated effort:** ~21 hours
+| # | Task | Impact | Effort | Deps | Description |
+|---|------|--------|--------|------|-------------|
+| S1 | Spike: fold inference API | Gates everything | 4h | — | Write a throwaway test: `system.View[TaskView, TaskID]("tasks").From(TaskCreated{}, TaskUpdated{}, TaskDeleted{})` → build QueryDecl internally via AutoCRUDByConvention → Plan → Apply event → read back projected data. Validate the API ergonomics and the fold quality. |
+| S2 | Spike: batch atomicity | Gates P5 | 4h | — | Prototype `BatchTxn` interface on memory engine: queue MapSet + CounterIncrement ops from a single ApplyRecord call, execute atomically, test rollback on simulated failure. Validate the interface design. |
+
+### Phase 1: Foundation quick wins (no dependencies, parallel-safe)
+
+| # | Task | Impact | Effort | Deps | Description |
+|---|------|--------|--------|------|-------------|
+| T01 | Watermill swap | Critical | 30min | — | Replace `newSimpleBus()` with `watermill.NewEventBus()` in `system/driver_registry.go:152`. Add watermill dep to `system/go.mod`. Delete `system/bus.go` (simpleBus). Both implement `event.Bus`. Run system tests. |
+| T02 | Delete GraphBackend | High | 2h | — | Remove `GraphBackend` interface from `metaengine/engine.go:394`. Remove methods from memory engine. Update `adttest.RunMatrix` to route graph tests through `graphadapter`. ~15 files. |
+| T03 | Move registry to metaengine/ | High | 3h | — | Move `RegisterDriver`, `DriverFactory`, `EngineConfig`, `lookupDriver` from `system/driver_registry.go` to new `metaengine/registry.go`. system/ calls `metaengine.LookupDriver()`. All engines already depend on metaengine/. |
+
+### Phase 2: Auto-projection (the killer feature, gated by S1)
+
+| # | Task | Impact | Effort | Deps | Description |
+|---|------|--------|--------|------|-------------|
+| T04 | Build `system/projection_builder.go` | Critical | 4h | S1, T03 | New file (~120 LOC). `ProjectionSpec` → `metaengine.QueryDecl` + `TypeDecoder`. Calls `AutoCRUDByConvention[R](keyField, samples...)` (exists at `auto_naming.go:150`). Auto-registers decoder entries. Returns `([]any, *TypeDecoder)` for system.New(). |
+| T05 | Wire auto-projection into system.New() | Critical | 2h | T04 | Update `system/constructor.go:126-151`: if `DomainConfig.Projections` contains `ProjectionSpec` values (not raw `QueryDecl`), run them through `projection_builder.go` first. Seamless: explicit `QueryDecl` still works (backward compat within v4.x). |
+| T06 | Migrate metaengine-quickstart | High | 2h | T05 | Rewrite `example/metaengine-quickstart/main.go` to use `system.New()` with `system.View[TaskView, TaskID]("tasks").From(...)`. Proves the API end-to-end. Compare LOC reduction (currently ~120 LOC → target ~30). |
+| T07 | Migrate taskmanager projections | High | 4h | T05 | Rewrite `example/taskmanager/metaengine.go` (199 LOC, 11 folds) → 3 `ProjectionSpec` declarations. Rewrite `handlers.go` command registration (60 LOC) → aggregate chain. Validate all HTTP endpoints still work. |
+
+### Phase 3: Engine self-registration (gated by T03)
+
+| # | Task | Impact | Effort | Deps | Description |
+|---|------|--------|--------|------|-------------|
+| T08 | Self-register 5 existing engines | High | 3h | T03 | Create `register.go` in memory, sqliteengine, pebbleengine, pgengine, duckdbengine. Each ~10 LOC. Move factory logic from system/driver_registry.go init(). |
+| T09 | Self-register 3 more engines | Medium | 2h | T03 | Create `register.go` in badgerengine, dgraphengine, irohengine. |
+| T10 | Create bbolt metaengine module | Medium | 6h | T08 | New `metaengine/bboltengine/` module. Implement MapBackend, SetBackend, CounterBackend, LogBackend, StreamLogBackend, AtomicAppender. bbolt's single-writer tx = natural optimistic concurrency. Run adttest.RunMatrix. |
+| T11 | Create mysql metaengine module | Medium | 6h | T08 | Adapt pgengine for MySQL dialect (`$1` → `?`, `ON CONFLICT` → `ON DUPLICATE KEY`, `JSONB` → `JSON`). Self-register as "mysql". Test via nix run .#integration-mysql-nspawn. |
+| T12 | Create turso metaengine module | Medium | 6h | T08 | Determine if sqliteengine works with libSQL directly. If yes: thin adapter with sync API. If no: new module. Self-register as "turso". |
+
+### Phase 4: Record consolidation (parallel track, no blockers)
+
+| # | Task | Impact | Effort | Deps | Description |
+|---|------|--------|--------|------|-------------|
+| T13 | Extend record.CommonMetadata | High | 2h | — | Map field differences: event.Metadata has Tombstone, Causation, Source, IPAddress, UserAgent not in CommonMetadata. Either extend CommonMetadata or decide these move to domain-specific. |
+| T14 | Consolidate production files | High | 3h | T13 | Update `watermill/protocol.go`, `storage/pebble/serialization.go`, `storage/bbolt/serialization.go` to use record.CommonMetadata. Update event/asrecord.go + command/asrecord.go adapters. |
+| T15 | Update test files + make OnRecord default | Medium | 3h | T14 | Update ~10 test files. Mark payload-only `On()` as deprecated. Update internal callers to `OnRecord`. |
+
+### Phase 5: Batch atomicity (gated by S2)
+
+| # | Task | Impact | Effort | Deps | Description |
+|---|------|--------|--------|------|-------------|
+| T16 | Design BatchTxn interface | Critical | 2h | S2 | New optional engine interface. Design based on spike findings. Must support: queue ops from multiple collections, execute atomically, rollback on failure, fallback for non-batch engines. |
+| T17 | Implement batch for memory engine | Critical | 4h | T16 | Queue fold operations as closures, execute all in one step, rollback = skip remaining. |
+| T18 | Implement batch for sqlite engine | Critical | 4h | T16 | Wrap ApplyRecord's fold loop in `BEGIN TRANSACTION ... COMMIT`. sqliteengine already has `Transactional.RunInTx` (`transaction.go:71`). |
+| T19 | Refactor ApplyRecord to use batch | Critical | 4h | T17, T18 | Change `store.applyWithRecord` to: (1) detect if engine implements BatchTxn, (2) if yes: queue all folds → execute batch, (3) if no: fallback to current immediate execution. Backward compatible. |
+| T20 | Batch for pebble/duckdb/pg | Medium | 6h | T19 | Pebble: use `*pebble.Batch` (already used internally). DuckDB/PG: SQL transactions. |
+
+### Phase 6: Universal ADT coverage + degradation
+
+| # | Task | Impact | Effort | Deps | Description |
+|---|------|--------|--------|------|-------------|
+| T21 | Fill duckdb ADT gaps (Set, Multimap, Log) | High | 6h | T08 | Each needs DDL + write/read/test. ~2h per ADT. SQL tables same pattern as sqliteengine. |
+| T22 | Fill pg ADT gaps (Set, Multimap, Log) | High | 6h | T08 | Same as T21, Postgres dialect. |
+| T23 | Fill dgraph ADT gaps (StreamLog) | Medium | 4h | T09 | Append-ordered nodes with seq predicate. |
+| T24 | Degraded graph fallback for SQL engines | Medium | 6h | T02 | Recursive CTE wrapper for SQLite (`WITH RECURSIVE`) and Postgres. Not a GraphBackend — a ScanBackend variant that handles traversal queries. |
+| T25 | Capability-degradation rule | High | 3h | T21-T24 | New PlanRule (`rule_degradation.go`): emits WARN when ADT is routed to engine with degraded complexity. Shows cost estimate. Integrates into ExplainPlan() + Doctor(). |
+
+### Phase 7: Deletion + migration
+
+| # | Task | Impact | Effort | Deps | Description |
+|---|------|--------|--------|------|-------------|
+| T26 | Delete stack.Bundle + v1 tiers + presets | Medium | 4h | T07, T19, T25 | Delete `stack/` (bundle, accessors, options, materialize, run_projections, 8 presets, bench, contracttest, sqlopt). Delete `storage/relational/`, `storage/view/`. Delete `graph/projection.go`. ~60+ files. |
+| T27 | Migrate benchkit + cqrs-bench + cqrs-lint | High | 6h | T26 | benchkit/runner.go: replace `*stack.Bundle` with `*system.System`. cmd/cqrs-bench/factory.go: convert factories. cmd/cqrs-lint E008/E011: update to detect system/ instead of stack/. |
+| T28 | Migration guide + docs + examples | High | 8h | T27 | `docs/migration/V4_TO_V5.md` with before/after for each tier. Update README, SKILL.md, AGENTS.md. Update 4 examples. Run doc-check. |
+
+### Phase 8: v5 cut
+
+| # | Task | Impact | Effort | Deps | Description |
+|---|------|--------|--------|------|-------------|
+| T29 | Cut v5.0.0 | Critical | 2h | T28 | CHANGELOG. `nix run .#verify`. Tag all modules. Push tags. |
+
+**Total realistic effort: ~16 working days (~3 weeks)**
+
+---
+
+## v4.x Bridge Strategy
+
+The plan does NOT strand v4 consumers. Phases ship incrementally:
+
+| Release | What ships | What's deprecated | What's deleted |
+|---------|-----------|-------------------|----------------|
+| **v4.7** | T01-T03: watermill bus, GraphBackend gone, registry in metaengine/ | — | simpleBus |
+| **v4.8** | T04-T07: auto-projection in system.New(), taskmanager migrated | `On()` constructor (deprecated, not removed) | — |
+| **v4.9** | T08-T12: all 9 engines self-register, 3 new engine modules | — | — |
+| **v4.10** | T13-T20: Record consolidation, batch atomicity | v1 tiers (deprecated) | `On()` constructor |
+| **v5.0** | T21-T29: universal coverage, degradation rule, v1 deletion, docs | — | stack.Bundle, v1 tiers, presets, Materialize, RelationalProjection, SQLViewStore, GraphProjection |
+
+Consumers can try auto-projection in v4.8 while stack.Bundle still works. They have 2 minor releases to migrate before v5.
 
 ---
 
 ## Fine Plan (max 12min tasks)
 
-> 104 tasks. Each is a single focused action. Sorted by dependency on medium task, then execution order within.
+> 122 tasks. Each is one focused action.
 
-### T01: Record Consolidation (90min → 8 tasks)
-
-| # | Task | Time |
-|---|------|------|
-| F001 | Audit all references to event.Metadata in production code (grep -rn "event.Metadata" --include="*.go" \| grep -v _test) | 5min |
-| F002 | Map field differences: event.Metadata (11 fields) vs record.CommonMetadata (7 fields). Document gap (Tombstone, Causation, Source, IPAddress, UserAgent missing from CommonMetadata). | 10min |
-| F003 | Extend record.CommonMetadata with missing fields (Tombstone, Causation, Source, IPAddress, UserAgent) OR decide they move to domain-specific metadata | 12min |
-| F004 | Update event/asrecord.go AsRecord() to map ALL fields to the extended CommonMetadata | 10min |
-| F005 | Update watermill/protocol.go buildMetadata() to use record.CommonMetadata | 10min |
-| F006 | Update storage/pebble/serialization.go + storage/bbolt/serialization.go to use record.CommonMetadata | 12min |
-| F007 | Update all ~10 test files that reference event.Metadata | 12min |
-| F008 | Run per-module tests: cd event && GOWORK=off go test ./... -count=1. Fix failures. | 10min |
-
-### T02: Watermill Swap (30min → 4 tasks)
+### S1: Spike — Fold Inference API Validation (4h → 5 tasks)
 
 | # | Task | Time |
 |---|------|------|
-| F009 | Read system/bus.go (simpleBus) and system/driver_registry.go:152 (gochannel registration) | 5min |
-| F010 | Add watermill dependency to system/go.mod (cd system && GOWORK=off go get github.com/larsartmann/go-cqrs-lite/watermill/v4) | 5min |
-| F011 | Replace RegisterBusDriver("gochannel", ...) body: return watermill.NewEventBus() instead of newSimpleBus() | 5min |
-| F012 | Delete simpleBus from system/bus.go. Update buildEventBus/buildPublisher if needed. Run system tests. | 12min |
+| F001 | Read `auto_naming.go:150` (AutoCRUDByConvention) + `auto_fold.go:80-135` (AutoInsert/Update/Delete). Understand the exact contract: what it needs, what it returns. | 10min |
+| F002 | Write throwaway test in `system/`: create `ProjectionSpec{ResultType: TaskView, KeyField: "ID", Events: []any{TaskCreated{}, TaskUpdated{}, TaskDeleted{}}}` | 12min |
+| F003 | Implement minimal `buildProjection(spec)` that calls `AutoCRUDByConvention[TaskView]("ID", samples...)` and wraps result in `Query[TaskQuery, TaskView]` | 12min |
+| F004 | Test end-to-end: Plan with memory engine → ApplyRecord(TaskCreated{}) → ExecuteTyped → verify TaskView projected correctly | 12min |
+| F005 | Document findings: what works, what's missing, what API changes needed. Delete throwaway test. Write the real ProjectionSpec type based on findings. | 10min |
 
-### T03: Delete GraphBackend (60min → 5 tasks)
-
-| # | Task | Time |
-|---|------|------|
-| F013 | Grep for GraphBackend across all .go files to find all references | 5min |
-| F014 | Remove GraphBackend interface + GraphAddEdge/GraphNeighbors/GraphBackend from metaengine/engine.go (~line 394) | 10min |
-| F015 | Remove GraphBackend assertion from memory engine (engine.go ~560). Remove graph methods from memory_engine.go. | 12min |
-| F016 | Update adttest.RunMatrix: remove GraphBackend tests OR reroute through graphadapter | 12min |
-| F017 | Run adttest matrix across all engines. Fix failures. Run metaengine tests. | 12min |
-
-### T04: Planner-time Fold Inference (60min → 5 tasks)
+### S2: Spike — Batch Atomicity Feasibility (4h → 5 tasks)
 
 | # | Task | Time |
 |---|------|------|
-| F018 | Read metaengine/planner.go RulePipeline + existing rules (rule_*.go). Understand the PlanRule interface. | 10min |
-| F019 | Design QueryDecl API extension: add WithEventSamples(samples...) option that carries event type samples to Plan() | 12min |
-| F020 | Write autoProjectionRule (new rule_auto_projection.go ~60 lines): for each query with event samples, call autoInsertByType/autoUpdateByType/autoDeleteByType based on convention. Inject generated folds into the query. | 12min |
-| F021 | Register autoProjectionRule in NewRulePipeline (planner.go:130). Ensure it runs BEFORE layout rules. | 5min |
-| F022 | Write test: declare Query with event samples (no explicit folds) → Plan() → Store → Apply event → verify collection has the projected data. | 12min |
+| F006 | Read `store.go:267-311` (applyWithRecord) + `store.go:360-418` (applyFold type switch). Map the execution path. | 10min |
+| F007 | Read `metaengine/transaction.go:7-9` (Transactional interface) + `sqliteengine/transaction.go:71`. Understand existing tx seam. | 10min |
+| F008 | Prototype: add `BatchTxn` interface to memory engine. Queue closures in a slice. Execute all. On error, return without executing remaining. | 12min |
+| F009 | Test: event triggers 3 collection folds → simulate fold #2 failure → verify fold #1 is NOT persisted (rollback) | 12min |
+| F010 | Document: is BatchTxn viable? What's the interface? Can ApplyRecord detect it? Delete prototype. Write the real interface spec. | 10min |
 
-### T05: Auto-projection Default in system.New() (45min → 4 tasks)
-
-| # | Task | Time |
-|---|------|------|
-| F023 | Read system/constructor.go:144-240 (projection wiring: Plan, projectionadapter, host.Register) | 8min |
-| F024 | Update DomainConfig.Projections handling: if projections are raw types (not QueryDecl), auto-generate QueryDecl with WithEventSamples | 12min |
-| F025 | Ensure projectionadapter auto-derives event types and decoder works with auto-generated folds | 12min |
-| F026 | Integration test: system.New() with DomainConfig.Projections = []any{UserCreated{}, UserUpdated{}} → Execute command → MetaEngine() returns projected data. Zero fold code. | 12min |
-
-### T06: Move Registry to metaengine/ (60min → 5 tasks)
+### T01: Watermill Swap (30min → 4 tasks)
 
 | # | Task | Time |
 |---|------|------|
-| F027 | Create metaengine/registry.go: move RegisterDriver, DriverFactory, EngineConfig, lookupDriver, driverMu, drivers from system/driver_registry.go | 12min |
-| F028 | Create metaengine/bus_registry.go: move RegisterBusDriver, BusDriverFactory, lookupBusDriver from system/driver_registry.go | 10min |
-| F029 | Update system/driver_registry.go: replace local calls with metaengine.LookupDriver / metaengine.LookupBusDriver. Keep system-specific createEngineFromDriver wrapper. | 10min |
-| F030 | Run metaengine tests + system tests. Fix import cycles. | 12min |
-| F031 | Run api-stability golden regen (cd cmd/api-stability && GOWORK=off go run main.go -update) | 8min |
+| F011 | Read `system/bus.go` (simpleBus) + `system/driver_registry.go:152` (gochannel registration) | 5min |
+| F012 | Add watermill dep: `cd system && GOWORK=off go get github.com/larsartmann/go-cqrs-lite/watermill/v4` | 5min |
+| F013 | Replace `newSimpleBus()` with `watermill.NewEventBus()` in driver registration. Delete `system/bus.go`. | 5min |
+| F014 | Run system tests. Fix failures. | 12min |
 
-### T07: Self-register 5 Existing Engines (45min → 5 tasks)
-
-| # | Task | Time |
-|---|------|------|
-| F032 | Create metaengine/memory_engine_register.go: func init() { metaengine.RegisterDriver("memory", ...) } | 5min |
-| F033 | Create sqliteengine/register.go: func init() { metaengine.RegisterDriver("sqlite", ...) }. Move factory logic from system/driver_registry.go:121-149. | 10min |
-| F034 | Create pebbleengine/register.go: func init() { metaengine.RegisterDriver("pebble", ...) } | 8min |
-| F035 | Create pgengine/register.go + duckdbengine/register.go | 10min |
-| F036 | Remove init() registrations from system/driver_registry.go. Add blank imports in system tests. Run all engine tests. | 12min |
-
-### T08: Self-register 3 More Engines (30min → 3 tasks)
+### T02: Delete GraphBackend (2h → 6 tasks)
 
 | # | Task | Time |
 |---|------|------|
-| F037 | Create badgerengine/register.go: func init() { metaengine.RegisterDriver("badger", ...) } | 8min |
-| F038 | Create dgraphengine/register.go: func init() { metaengine.RegisterDriver("dgraph", ...) } | 8min |
-| F039 | Create irohengine/register.go: func init() { metaengine.RegisterDriver("iroh", ...) }. Test all 3. | 12min |
+| F015 | Grep `GraphBackend` across all .go files. List all references. | 5min |
+| F016 | Remove GraphBackend interface + methods from `metaengine/engine.go` (~L394) | 10min |
+| F017 | Remove GraphBackend from memory engine assertions + implementations | 12min |
+| F018 | Check if any other engine claims GraphBackend. Remove dead assertions. | 8min |
+| F019 | Update adttest.RunMatrix: remove direct GraphBackend tests, route through graphadapter | 12min |
+| F020 | Run full engine matrix tests. Fix failures. | 12min |
 
-### T09: Create bbolt Metaengine Module (60min → 5 tasks)
-
-| # | Task | Time |
-|---|------|------|
-| F040 | Decide: new metaengine/bboltengine/ module OR adapter wrapping storage/bbolt. Check storage/bbolt Backend API. | 10min |
-| F041 | Create metaengine/bboltengine/ module with go.mod. Implement Engine interface + EngineProfile. | 12min |
-| F042 | Implement MapBackend, SetBackend, CounterBackend, LogBackend (bbolt bucket-per-ADT model) | 12min |
-| F043 | Implement StreamLogBackend + AtomicAppender (single-writer tx = optimistic concurrency) | 12min |
-| F044 | Create register.go. Run adttest.RunMatrix. Run enginetest.RunMatrix. | 12min |
-
-### T10: Create mysql Metaengine Module (60min → 5 tasks)
+### T03: Move Registry to metaengine/ (3h → 5 tasks)
 
 | # | Task | Time |
 |---|------|------|
-| F045 | Study pgengine structure. Identify what dialect-specific code differs (placeholder style, DDL syntax, ON DUPLICATE KEY vs ON CONFLICT). | 10min |
-| F046 | Create metaengine/mysqlengine/ module with go.mod. Copy pgengine structure, adapt for MySQL dialect. | 12min |
-| F047 | Implement MapBackend + CounterBackend + ScanBackend + StreamLogBackend + AtomicAppender with MySQL syntax | 12min |
-| F048 | Implement PushdownScan (MySQL JSON_EXTRACT instead of json_extract) | 10min |
-| F049 | Create register.go. Run adttest.RunMatrix. Test with nix run .#integration-mysql-nspawn. | 12min |
+| F021 | Create `metaengine/registry.go`: copy RegisterDriver, DriverFactory, EngineConfig, lookupDriver, driverMu, drivers map | 12min |
+| F022 | Create `metaengine/bus_registry.go`: copy RegisterBusDriver, BusDriverFactory, lookupBusDriver | 10min |
+| F023 | Update `system/driver_registry.go`: replace local registry with `metaengine.LookupDriver()`. Keep system-specific createEngineFromDriver. | 12min |
+| F024 | Run metaengine tests + system tests. Fix import cycles. | 12min |
+| F025 | Regen api-stability golden. | 8min |
 
-### T11: Create turso Metaengine Module (60min → 5 tasks)
-
-| # | Task | Time |
-|---|------|------|
-| F050 | Determine: is libSQL a drop-in for sqliteengine? Test sqliteengine with Turso DSN. | 10min |
-| F051 | If yes: thin adapter wrapping sqliteengine with sync API. If no: new module. | 10min |
-| F052 | Implement sync support (WithSync option, Push/Pull lifecycle) | 12min |
-| F053 | Create register.go. Test basic CRUD + StreamLog operations. | 10min |
-| F054 | Run adttest.RunMatrix. Test with turso VM test if available. | 12min |
-
-### T12: OnRecord Default Folds (45min → 4 tasks)
+### T04: Build projection_builder.go (4h → 8 tasks)
 
 | # | Task | Time |
 |---|------|------|
-| F055 | Update metaengine/query.go examples and doc comments to use OnRecord by default | 8min |
-| F056 | Update auto_fold.go: AutoInsert/AutoUpdate/AutoDelete internally use record-aware folds | 12min |
-| F057 | Update projectionadapter to always pass Record context (already done via ApplyRecord — verify) | 10min |
-| F058 | Add // Deprecated comment to On(). Update all internal callers to OnRecord. | 12min |
+| F026 | Define `ProjectionSpec` type in `system/config_types.go`: Name, ResultType (reflect.Type), KeyField, Events []any, Options (filter/sort/index declarations) | 12min |
+| F027 | Define `system.View[R, K](name)` and `system.Count[I](name)` builder constructors returning ProjectionSpec | 10min |
+| F028 | Add `.From(samples...)` method on the builder that stores event type samples | 5min |
+| F029 | Write `buildProjection(spec) → (metaengine.QueryDecl, []TypeDecoderEntry, error)` in `system/projection_builder.go`: calls AutoCRUDByConvention internally | 12min |
+| F030 | Handle the `[]any` fold-args conversion wart: builder returns QueryDecl directly, no manual wrapping | 8min |
+| F031 | Auto-generate TypeDecoder entries: for each sample type, register with `event.DecodePayloadAuto[T]` | 10min |
+| F032 | Write unit test: `View[TaskView, TaskID]("tasks").From(TaskCreated{}, TaskUpdated{}, TaskDeleted{})` → verify QueryDecl has 3 folds (insert/update/remove) | 12min |
+| F033 | Write unit test: verify TypeDecoder entries match the sample types | 10min |
 
-### T13: Deprecate On Constructor (30min → 3 tasks)
-
-| # | Task | Time |
-|---|------|------|
-| F059 | Grep for all On( calls in production code (not OnRecord/OnTyped/OnRecordTyped) | 5min |
-| F060 | Replace each On( call with OnRecord equivalent. Update fold function signatures. | 12min |
-| F061 | Mark On as deprecated with // Deprecated: use OnRecord. Run tests. | 10min |
-
-### T14: Struct-composition Multi-collection (90min → 7 tasks)
+### T05: Wire into system.New() (2h → 4 tasks)
 
 | # | Task | Time |
 |---|------|------|
-| F062 | Design: when event has slice field ([]Attachment), and result type has matching slice, auto-generate second QueryDecl for the sub-type | 10min |
-| F063 | Write detectSliceFields(eventType, resultType) → returns []SubCollectionSpec with field name, element type, key field | 12min |
-| F064 | Extend autoProjectionRule: for each detected sub-collection, generate insert fold that iterates the slice and inserts each element | 12min |
-| F065 | Extend planner: register sub-collections as additional queries in the Store. Parent query can join at read time. | 12min |
-| F066 | Write test: MessageCreated{Attachments: []Attachment{...}} → two collections auto-generated → Apply event → both populated | 12min |
-| F067 | Write test: query parent collection → results include nested data (via join or separate read + merge) | 10min |
-| F068 | Document the convention: slice fields on events → auto sub-collections. Field name = collection name. | 8min |
+| F034 | Update `system/constructor.go:126-151`: detect ProjectionSpec vs raw QueryDecl. If ProjectionSpec: call buildProjection first. | 10min |
+| F035 | Pass generated QueryDecls + TypeDecoder to the existing metaengine.Plan + projectionadapter path | 10min |
+| F036 | Integration test: system.New() with ProjectionSpec → Execute command → MetaEngine().ExecuteTyped → verify projected data | 12min |
+| F037 | Backward compat test: system.New() with raw metaengine.QueryDecl still works (no ProjectionSpec) | 8min |
 
-### T15: Override API (45min → 4 tasks)
+### T06: Migrate metaengine-quickstart (2h → 3 tasks)
 
 | # | Task | Time |
 |---|------|------|
-| F069 | Design API: WithOverride(eventType, explicitFold) option on QueryDecl. Replaces auto-generated fold for that event type. | 10min |
-| F070 | Implement in autoProjectionRule: if override exists for event type, skip auto-generation, use explicit fold | 12min |
-| F071 | Write test: auto-projection generates fold for Created → override with custom OnRecord fold → verify override is used | 12min |
-| F072 | Document override pattern in ADR-0123 or auto-projection guide | 8min |
+| F038 | Rewrite `example/metaengine-quickstart/main.go` to use `system.New()` with `system.View[TaskView, TaskID]("tasks").From(...)` | 12min |
+| F039 | Delete the manual fold closures + decoder switch. Compare LOC. | 10min |
+| F040 | Run quickstart. Verify it works end-to-end. | 10min |
 
-### T16: Multi-collection Batch Atomicity (90min → 8 tasks)
-
-| # | Task | Time |
-|---|------|------|
-| F073 | Read store.ApplyRecord (store.go:267) and applyFold (store.go:360). Understand current execution model (immediate, per-fold). | 8min |
-| F074 | Design BatchTxn interface: BeginTxn(ctx) → txn; txn.MapSet/txn.SetAdd/etc; txn.Commit() → error. Engines that can't batch fall back to immediate execution. | 12min |
-| F075 | Refactor applyFold to produce FoldOp (queued operation) instead of executing immediately | 12min |
-| F076 | Refactor ApplyRecord: collect all FoldOps across all matching queries → if engine implements BatchTxn, execute in one txn. Else fallback to immediate. | 12min |
-| F077 | Implement BatchTxn in memory engine (in-memory slice of ops, apply atomically) | 10min |
-| F078 | Implement BatchTxn in sqliteengine (BEGIN TRANSACTION ... COMMIT) | 12min |
-| F079 | Write test: event triggers 3 collections → second fold fails → verify first fold is rolled back | 12min |
-| F080 | Write test: engine without BatchTxn falls back to immediate execution (backward compat) | 8min |
-
-### T17: Universal ADT Coverage (90min → 8 tasks)
+### T07: Migrate taskmanager (4h → 6 tasks)
 
 | # | Task | Time |
 |---|------|------|
-| F081 | Audit: for each engine, list missing ADTs. Create coverage matrix (from research: duckdb missing Set/Multimap/Log/Graph; pg missing same; dgraph missing StreamLog/Snapshot) | 8min |
-| F082 | Implement SetBackend + MultimapBackend + LogBackend for duckdbengine (SQL tables, same pattern as sqliteengine) | 12min |
-| F083 | Implement SetBackend + MultimapBackend + LogBackend for pgengine (same SQL pattern) | 12min |
-| F084 | Implement StreamLogBackend for dgraph (append-ordered nodes with seq predicate) | 12min |
-| F085 | Add graph traversal degraded fallback for sqliteengine (recursive CTE wrapper) | 12min |
-| F086 | Add graph traversal degraded fallback for pgengine (WITH RECURSIVE) | 10min |
-| F087 | Update EngineProfile for each engine: mark previously-missing ADTs with appropriate Complexity | 8min |
-| F088 | Run adttest.RunMatrix across ALL engines. Fix failures. | 12min |
+| F041 | Rewrite `example/taskmanager/metaengine.go` (199 LOC, 11 folds) → 3 ProjectionSpec declarations | 12min |
+| F042 | Rewrite `example/taskmanager/handlers.go` command registration (60 LOC) → aggregate chain `.Command[CreateUser]("user.create")` | 12min |
+| F043 | Delete the TypeDecoder manual registration (11 Register calls) | 5min |
+| F044 | Run taskmanager. Test all HTTP endpoints. | 12min |
+| F045 | Update setup.go to remove any manual projection wiring | 10min |
+| F046 | Measure LOC reduction. Document as migration-guide example. | 8min |
 
-### T18: Capability-degradation Rule (45min → 4 tasks)
+### T08-T09: Self-register engines (5h → 7 tasks)
 
 | # | Task | Time |
 |---|------|------|
-| F089 | Read existing rule pipeline (metaengine/rule_*.go). Understand Diagnostic struct (severity, message, query, engine). | 8min |
-| F090 | Write rule_degradation.go: for each query, check if assigned engine's EngineProfile marks the ADT as ComplexityDegraded. If so, emit WARN with cost estimate + recommendation. | 12min |
-| F091 | Register rule in NewRulePipeline. Ensure it runs AFTER engine assignment (post-routing). | 8min |
-| F092 | Write test: route graph query to SQLite → verify WARN in PlanResult.Diagnostics. Route to graphadapter → no warning. | 12min |
+| F047 | Create `metaengine/memory_engine_register.go` with `func init() { metaengine.RegisterDriver("memory", ...) }` | 5min |
+| F048 | Create `sqliteengine/register.go`. Move factory logic from system/driver_registry.go:121-149 | 10min |
+| F049 | Create `pebbleengine/register.go` + `pgengine/register.go` | 10min |
+| F050 | Create `duckdbengine/register.go` | 8min |
+| F051 | Create `badgerengine/register.go` + `dgraphengine/register.go` + `irohengine/register.go` | 12min |
+| F052 | Remove init() registrations from system/driver_registry.go. Add blank imports in system tests. | 10min |
+| F053 | Run all engine tests with self-registration. Fix failures. | 12min |
 
-### T19: Delete stack.Bundle + 8 Presets (60min → 5 tasks)
-
-| # | Task | Time |
-|---|------|------|
-| F093 | Grep for all stack.Bundle references across repo. Document blast radius (~30+ files). | 8min |
-| F094 | Delete stack/bundle.go, stack/accessors.go, stack/options.go, stack/capabilities.go, stack/closers.go, stack/debug.go, stack/durability.go, stack/errors.go, stack/health.go, stack/shutdown.go, stack/metaengine.go | 12min |
-| F095 | Delete all 8 preset directories: stack/memory/, stack/sqlite/, stack/pebble/, stack/bbolt/, stack/duckdb/, stack/postgres/, stack/mysql/, stack/turso/ | 10min |
-| F096 | Delete stack/bench/, stack/contracttest/, stack/sqlopt/ sub-packages | 8min |
-| F097 | Run go build ./... — fix cascading import errors. Update go.work (remove deleted modules). | 12min |
-
-### T20: Delete v1 Read-model Tiers (45min → 4 tasks)
+### T10-T12: Create bbolt/mysql/turso engines (18h → 15 tasks)
 
 | # | Task | Time |
 |---|------|------|
-| F098 | Delete storage/relational/ (projection.go, sink.go, store.go, schema.go — ~8 files) | 10min |
-| F099 | Delete storage/view/ (store.go, query.go, count.go, mapper.go — ~6 files) | 10min |
-| F100 | Grep for remaining references to RelationalProjection, SQLViewStore, ViewMapper, ProjectionSink. Remove dead imports. | 12min |
-| F101 | Run go build ./... + go test. Fix cascading failures. | 10min |
+| F054 | bbolt: Create `metaengine/bboltengine/` with go.mod. Implement Engine interface + EngineProfile. | 12min |
+| F055 | bbolt: Implement MapBackend (bucket-per-collection, key-value within bucket) | 12min |
+| F056 | bbolt: Implement SetBackend + CounterBackend (separate buckets) | 12min |
+| F057 | bbolt: Implement LogBackend + StreamLogBackend + AtomicAppender (single-writer tx) | 12min |
+| F058 | bbolt: Create register.go. Run adttest.RunMatrix + enginetest.RunMatrix. | 12min |
+| F059 | mysql: Study pgengine. Identify dialect differences (placeholder, DDL, UPSERT syntax). | 10min |
+| F060 | mysql: Create `metaengine/mysqlengine/` with go.mod. Copy pgengine, adapt dialect. | 12min |
+| F061 | mysql: Implement MapBackend + CounterBackend with MySQL syntax | 12min |
+| F062 | mysql: Implement ScanBackend + StreamLogBackend + AtomicAppender | 12min |
+| F063 | mysql: Create register.go. Test via `nix run .#integration-mysql-nspawn`. | 12min |
+| F064 | turso: Test if sqliteengine works with libSQL DSN directly. | 10min |
+| F065 | turso: If yes: create thin adapter module with sync API. If no: create new module. | 12min |
+| F066 | turso: Implement sync support (Push/Pull lifecycle) | 12min |
+| F067 | turso: Create register.go. Run adttest.RunMatrix. | 10min |
+| F068 | turso: Test basic CRUD + StreamLog operations. | 10min |
 
-### T21: Delete graph.GraphProjection (30min → 3 tasks)
-
-| # | Task | Time |
-|---|------|------|
-| F102 | Delete graph/projection.go + graph/sink.go | 8min |
-| F103 | Grep for GraphProjection references. Remove dead imports. | 10min |
-| F104 | Run graph tests. Fix failures. | 10min |
-
-### T22: Delete stack.Materialize + RunProjections (30min → 3 tasks)
-
-| # | Task | Time |
-|---|------|------|
-| F105 | Verify stack/materialize.go + stack/run_projections.go are already deleted (from T19). If not, delete now. | 5min |
-| F106 | Grep for Materialize, RunProjections references outside stack/ (examples, tests). Remove. | 12min |
-| F107 | Run go build ./... Fix failures. | 10min |
-
-### T23: Migrate benchkit + cqrs-bench (60min → 5 tasks)
+### T13-T15: Record consolidation (8h → 8 tasks)
 
 | # | Task | Time |
 |---|------|------|
-| F108 | Read benchkit/runner.go: Runner.bundle field type (*stack.Bundle). Design *system.System replacement. | 10min |
-| F109 | Refactor Runner to use system.System instead of stack.Bundle. Update New() constructor, all accessor methods. | 12min |
-| F110 | Refactor cmd/cqrs-bench/factory.go: all factory functions return system configs instead of func() (*stack.Bundle, error) | 12min |
-| F111 | Update cmd/cqrs-bench/factory_duckdb_cgo.go. Test benchkit suite. | 12min |
-| F112 | Run cmd/cqrs-bench tests. Fix failures. | 10min |
+| F069 | Map ALL fields in event.Metadata (11) vs record.CommonMetadata (7). Document the 4-field gap. | 10min |
+| F070 | Decide: extend CommonMetadata with Tombstone/Causation/Source/IPAddress/UserAgent? Or domain-specific? Write decision in ADR-0123 amendment. | 12min |
+| F071 | Implement the decision (extend or move). Update record/record.go. | 12min |
+| F072 | Update event/asrecord.go AsRecord() + command/asrecord.go to map all fields. | 12min |
+| F073 | Update 3 production files (watermill/protocol.go, pebble/serialization.go, bbolt/serialization.go). | 12min |
+| F074 | Update ~10 test files that reference event.Metadata. | 12min |
+| F075 | Mark On() as deprecated. Update internal callers to OnRecord. | 12min |
+| F076 | Run per-module tests for event/, command/, metadata/, record/. Fix failures. | 10min |
 
-### T24: Write v5 Migration Guide (60min → 5 tasks)
-
-| # | Task | Time |
-|---|------|------|
-| F113 | Create docs/migration/V4_TO_V5.md. Structure: overview, composition root, bus, read models, per-tier migration. | 10min |
-| F114 | Write "stack/sqlite.New() → system.New()" before/after example with DomainConfig + DeploymentConfig | 12min |
-| F115 | Write "Materialize → auto-projection" before/after example | 12min |
-| F116 | Write "RelationalProjection → auto-projection multi-collection" before/after example | 12min |
-| F117 | Write "simpleBus → watermill" and "blank-import engine registration" sections | 10min |
-
-### T25: Update Docs (60min → 5 tasks)
+### T16-T20: Batch atomicity (3+2 days → 16 tasks)
 
 | # | Task | Time |
 |---|------|------|
-| F118 | Rewrite SKILL.md + references/ for single composition root + auto-projection. Update decision matrix, recipes, read-models guide. | 12min |
-| F119 | Update AGENTS.md: module list (remove deleted modules), build/test commands, key patterns (remove v1 tier examples) | 12min |
-| F120 | Update example/taskmanager to use system.New() with auto-projection (remove stack imports, manual projections) | 12min |
-| F121 | Update example/getting-started + example/readme-quickstart + example/metaengine-quickstart | 12min |
-| F122 | Run cmd/doc-check to verify all import paths + qualified symbols are valid | 10min |
+| F077 | Define `BatchTxn` interface in metaengine/: `BeginBatch(ctx) → Batch; Batch.Set/Add/Increment/Delete/Append; Batch.Commit() → error` | 12min |
+| F078 | Refactor `applyFold` to return a `FoldOp` closure instead of executing immediately | 12min |
+| F079 | Refactor `applyWithRecord`: collect all FoldOps across matching queries into `[]FoldOp` | 12min |
+| F080 | If engine implements BatchTxn: convert FoldOps to Batch operations, execute atomically | 12min |
+| F081 | If engine does NOT implement BatchTxn: fallback to immediate execution (backward compat) | 10min |
+| F082 | Implement BatchTxn on memory engine: slice of closures, execute all, first error stops | 12min |
+| F083 | Implement BatchTxn on sqlite engine: wrap in BEGIN TRANSACTION ... COMMIT | 12min |
+| F084 | Test: 3 collections, fold #2 fails, verify fold #1 rolled back (memory) | 12min |
+| F085 | Test: 3 collections, fold #2 fails, verify fold #1 rolled back (sqlite) | 12min |
+| F086 | Test: non-BatchTxn engine falls back to immediate execution | 10min |
+| F087 | Implement BatchTxn on pebble engine: use existing *pebble.Batch API | 12min |
+| F088 | Implement BatchTxn on duckdb engine: SQL transaction | 12min |
+| F089 | Implement BatchTxn on pg engine: SQL transaction | 12min |
+| F090 | Test batch on pebble, duckdb, pg. Verify rollback works. | 12min |
+| F091 | Run adttest.RunMatrix with batch enabled. Verify no regressions. | 12min |
+| F092 | Benchmark: batch vs immediate execution. Document performance impact. | 10min |
 
-### T26: Cut v5.0.0 (30min → 4 tasks)
+### T21-T25: Universal ADT coverage + degradation (4 days → 16 tasks)
 
 | # | Task | Time |
 |---|------|------|
-| F123 | Update CHANGELOG.md with v5.0.0 section (all changes from ADR-0123) | 10min |
-| F124 | Run full verify gate: nix run .#verify. Fix any failures. | 12min |
-| F125 | Tag all modules: bash scripts/tag-release.sh v5.0.0. Verify with git tag -l '*/v5*' | 5min |
-| F126 | Push tags: git push origin --tags. Update go.work if needed. | 5min |
+| F093 | duckdb: Implement SetBackend (CREATE TABLE meta_set, INSERT/DELETE) | 12min |
+| F094 | duckdb: Implement MultimapBackend (same pattern as sqliteengine) | 12min |
+| F095 | duckdb: Implement LogBackend (autoincrement + collection column) | 12min |
+| F096 | pg: Implement SetBackend + MultimapBackend + LogBackend (same SQL pattern) | 12min |
+| F097 | dgraph: Implement StreamLogBackend (append-ordered nodes with seq predicate) | 12min |
+| F098 | sqlite: Implement degraded graph traversal via recursive CTE (WITH RECURSIVE) | 12min |
+| F099 | pg: Implement degraded graph traversal via WITH RECURSIVE | 12min |
+| F100 | Update EngineProfile for each engine: mark new ADTs with appropriate Complexity | 10min |
+| F101 | Run adttest.RunMatrix across ALL engines. Fix failures. | 12min |
+| F102 | Write `rule_degradation.go`: for each query, check ADT complexity on assigned engine. If degraded: emit WARN with cost estimate. | 12min |
+| F103 | Register degradationRule in NewRulePipeline (after engine assignment) | 5min |
+| F104 | Test: route graph query to SQLite → verify WARN. Route to graphadapter → no warning. | 12min |
+| F105 | Test: ExplainPlan() shows degradation warning with cost delta. | 10min |
+| F106 | Test: Doctor() lists degraded ADTs per engine. | 10min |
+| F107 | Update SerializablePlan to include degradation warnings. | 10min |
+| F108 | Document: create `docs/METAENGINE_DEGRADATION.md` explaining the degraded-vs-native model. | 12min |
+
+### T26-T29: Deletion + migration + v5 cut (16h → 14 tasks)
+
+| # | Task | Time |
+|---|------|------|
+| F109 | Delete `stack/` package files: bundle.go, accessors.go, options.go, capabilities.go, closers.go, debug.go, durability.go, errors.go, health.go, materialize.go, run_projections.go, shutdown.go, metaengine.go | 12min |
+| F110 | Delete 8 preset directories: stack/memory/, stack/sqlite/, stack/pebble/, stack/bbolt/, stack/duckdb/, stack/postgres/, stack/mysql/, stack/turso/ | 10min |
+| F111 | Delete stack/bench/, stack/contracttest/, stack/sqlopt/ | 8min |
+| F112 | Delete storage/relational/ + storage/view/ + graph/projection.go + graph/sink.go | 12min |
+| F113 | Run `go build ./...`. Fix cascading import errors. Update go.work. | 12min |
+| F114 | Migrate benchkit/runner.go: replace `*stack.Bundle` field with `*system.System` | 12min |
+| F115 | Migrate cmd/cqrs-bench/factory.go: convert factory return types to system configs | 12min |
+| F116 | Update cmd/cqrs-lint E008/E011 rules: detect system/ instead of stack/ | 12min |
+| F117 | Write `docs/migration/V4_TO_V5.md`: before/after for stack→system, Materialize→auto-projection, RelationalProjection→multi-collection, simpleBus→watermill | 12min |
+| F118 | Update README, SKILL.md, AGENTS.md, 4 examples. Run doc-check. | 12min |
+| F119 | Update CHANGELOG with v5.0.0 section | 10min |
+| F120 | Run full verify gate: `nix run .#verify`. Fix any failures. | 12min |
+| F121 | Tag all modules: `bash scripts/tag-release.sh v5.0.0` | 8min |
+| F122 | Push tags. Verify `git tag -l '*/v5*'` | 5min |
 
 ---
 
-## Summary Statistics
+## Summary Statistics (revised)
 
-| Metric | Value |
-|--------|-------|
-| Medium tasks | 26 |
-| Fine tasks | 126 |
-| Total estimated effort | ~21 hours |
-| Pareto 1% tasks (51% value) | 4 tasks, ~3.25 hours |
-| Pareto 4% tasks (64% value) | +5 tasks, +5.25 hours |
-| Pareto 20% tasks (80% value) | +7 tasks, +8.25 hours |
-| Remaining tasks (100%) | +10 tasks, +4.25 hours |
-| Critical path length | 11 tasks |
-| Parallelizable tracks | 4 |
-
----
-
-## Risk Register
-
-| Risk | Mitigation |
-|------|------------|
-| Auto-projection inference too aggressive (wrong folds) | T15 override API provides escape valve. Start with conservative conventions. |
-| Batch atomicity refactoring breaks existing single-collection flows | F080 backward-compat test (fallback for non-BatchTxn engines). |
-| Engine ADT coverage gaps are larger than estimated | F081 audit task produces real matrix before commitment. Prioritize core 4 engines. |
-| stack.Bundle deletion breaks benchkit deeply | T23 is on the critical path. Can defer benchkit migration to v5.1 if needed. |
-| Record consolidation field gap (Tombstone, Causation) | F003 decides: extend CommonMetadata OR move to domain-specific. Don't rush this. |
+| Metric | v1 plan | SUPERB plan |
+|--------|---------|-------------|
+| Medium tasks | 26 | 29 (added 2 spikes, 1 split, removed fantasy) |
+| Fine tasks | 126 | 122 |
+| Total effort estimate | ~21h (WRONG) | **~16 working days (~3 weeks)** |
+| Spike tasks | 0 | **2** (de-risk the hard stuff) |
+| Consumer API mockup | None | **Yes** (concrete code) |
+| v4.x bridge | None | **4 incremental releases** |
+| Critical path | 11 tasks (wrong) | **S1→T04→T05→T07→T26→T27→T28→T29** (8 tasks) |
+| Parallel tracks | 4 | **5** (auto-projection, foundation, record, batch, coverage) |
+| Struct-composition multi-collection | In critical path | **Deferred to post-v5** |
 
 ---
 
-## "Don't Break Shit" Checklist
+## Risk Register (revised)
 
-- [ ] Every phase ends with `go build -tags "goexperiment.jsonv2" ./...` passing
-- [ ] Every phase ends with affected module tests passing
-- [ ] No module is deleted before all its consumers are migrated
-- [ ] api-stability golden is regenerated after any export change
-- [ ] go.work is updated when modules are added/removed
-- [ ] `nix run .#verify` passes before v5 tag
-- [ ] No v4 consumer is broken before v5 tag (v1 tiers + stack stay until Phase 8)
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Auto-projection fold quality insufficient for real events | Medium | High | S1 spike validates before committing. Override API (T15) as escape valve. Start with conservative conventions. |
+| Batch atomicity interface design wrong | Medium | High | S2 spike validates on memory engine first. Fallback path (non-BatchTxn) ensures backward compat. |
+| Engine ADT coverage gaps larger than estimated | Medium | Medium | F093-F101 fill gaps incrementally. Prioritize core 4 engines (memory, sqlite, pebble, pg) for v5. |
+| stack.Bundle deletion breaks benchkit deeply | Low | Medium | T27 is on critical path but isolated. Can defer benchkit to v5.1 if needed. |
+| Record consolidation field gap contentious | Low | Low | T13/T14 are parallel track, not blocking. Can ship v5 without full consolidation. |
+| Consumer API ergonomics wrong | Medium | High | S1 spike + T06 (migrate quickstart) validates API before committing. Taskmanager migration (T07) is the real test. |
+
+---
+
+## Deferred to Post-v5
+
+| Item | Why deferred |
+|------|-------------|
+| Struct-composition multi-collection (`[]Attachment` → auto sub-collection) | Research-grade. ORM relationship inference. Weeks of work. |
+| Command lifecycle as events (ADR-0117) | Large scope, changes operational model. Not needed for v5 vision. |
+| samber/do integration | Explicitly deferred. system/ lifecycle works without it. |
+| Vector/Search/Spatial on all engines | Currently memory-only. Low consumer demand. |
+| Planner-time index recommendation | Materialize-vs-replay is advisory only. True replay-on-read executor is future work. |
+| Materialize-vs-replay execution path | Advisory diagnostic today. Executor branch is future work. |
