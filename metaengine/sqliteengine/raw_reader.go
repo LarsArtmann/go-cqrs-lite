@@ -224,7 +224,12 @@ func scanSingleColumn(
 	return result, rows.Err() //nolint:wrapcheck // passthrough
 }
 
-func scanRawRows(ctx context.Context, db metaengine.SQLExec, query string, args ...any) ([][]byte, error) {
+func scanRawRows(
+	ctx context.Context,
+	db metaengine.SQLExec,
+	query string,
+	args ...any,
+) ([][]byte, error) {
 	rows, err := db.QueryContext(ctx, query, args...) //nolint:sqlclosecheck
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough

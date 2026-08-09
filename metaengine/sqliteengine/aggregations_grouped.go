@@ -209,7 +209,14 @@ func (e *sqliteEngine) scanMultiSQLite(
 	args []any,
 	specs []metaengine.AggregateSpec,
 ) (map[string]float64, error) {
-	return metaengine.MultiAggregateScan(ctx, e.xd(), query, args, specs, "sqliteengine.MultiAggregate")
+	return metaengine.MultiAggregateScan(
+		ctx,
+		e.xd(),
+		query,
+		args,
+		specs,
+		"sqliteengine.MultiAggregate",
+	)
 }
 
 // ---------------------------------------------------------------------------
@@ -391,7 +398,13 @@ func (e *sqliteEngine) distinctStandard(
 		appendStandardFilter(&b, &args, f)
 	}
 
-	return metaengine.ScanDistinctValues(ctx, e.xd(), b.String(), args, "sqliteengine.DistinctValues")
+	return metaengine.ScanDistinctValues(
+		ctx,
+		e.xd(),
+		b.String(),
+		args,
+		"sqliteengine.DistinctValues",
+	)
 }
 
 func (e *sqliteEngine) distinctPlanned(
@@ -413,7 +426,13 @@ func (e *sqliteEngine) distinctPlanned(
 		appendPlannedFilter(&b, &args, f, &whereStarted)
 	}
 
-	return metaengine.ScanDistinctValues(ctx, e.xd(), b.String(), args, "sqliteengine.DistinctValues")
+	return metaengine.ScanDistinctValues(
+		ctx,
+		e.xd(),
+		b.String(),
+		args,
+		"sqliteengine.DistinctValues",
+	)
 }
 
 // ---------------------------------------------------------------------------

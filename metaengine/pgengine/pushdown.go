@@ -146,7 +146,12 @@ func (e *pgEngine) ApplyLayout(collection string, filterFields, sortFields []str
 }
 
 // scanPGJSONValues executes the query and decodes each row's JSONB value.
-func scanPGJSONValues(ctx context.Context, db metaengine.SQLExec, query string, args ...any) ([]any, error) {
+func scanPGJSONValues(
+	ctx context.Context,
+	db metaengine.SQLExec,
+	query string,
+	args ...any,
+) ([]any, error) {
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("pgengine scan: %w", err)

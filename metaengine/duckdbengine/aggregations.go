@@ -473,7 +473,14 @@ func (e *duckdbEngine) scanMulti(
 	args []any,
 	specs []metaengine.AggregateSpec,
 ) (map[string]float64, error) {
-	return metaengine.MultiAggregateScan(ctx, e.conn(), query, args, specs, "duckdbengine.MultiAggregate")
+	return metaengine.MultiAggregateScan(
+		ctx,
+		e.conn(),
+		query,
+		args,
+		specs,
+		"duckdbengine.MultiAggregate",
+	)
 }
 
 // ---------------------------------------------------------------------------
@@ -670,7 +677,13 @@ func (e *duckdbEngine) distinctStandard(
 		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
 	}
 
-	return metaengine.ScanDistinctValues(ctx, e.conn(), b.String(), args, "duckdbengine.DistinctValues")
+	return metaengine.ScanDistinctValues(
+		ctx,
+		e.conn(),
+		b.String(),
+		args,
+		"duckdbengine.DistinctValues",
+	)
 }
 
 func (e *duckdbEngine) distinctPlanned(
@@ -702,5 +715,11 @@ func (e *duckdbEngine) distinctPlanned(
 		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
 	}
 
-	return metaengine.ScanDistinctValues(ctx, e.conn(), b.String(), args, "duckdbengine.DistinctValues")
+	return metaengine.ScanDistinctValues(
+		ctx,
+		e.conn(),
+		b.String(),
+		args,
+		"duckdbengine.DistinctValues",
+	)
 }
