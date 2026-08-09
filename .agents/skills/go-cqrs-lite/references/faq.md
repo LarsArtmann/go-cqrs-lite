@@ -210,3 +210,18 @@ For projection lifecycle (checkpoint, retry, DLQ), wrap the store in
 `projectionadapter.New(name, store, decoder)` and register with the projection host.
 The consumer calls `metaengine.Plan()` themselves because typed generics
 can't flow through `any` constraints.
+
+### "Should I use the circuit breaker from middleware/ or failsafe-go directly?"
+
+For CQRS integration (command/event/query dispatchers), use
+`middleware/circuit_breaker.go` which wraps `failsafe-go/circuitbreaker` and
+provides `CircuitBreakerConfig` with the CQRS-specific API surface.
+
+For standalone circuit breaking outside the CQRS pipeline (e.g., protecting
+an HTTP client, a database connection pool, or an external API call), import
+`failsafe-go/circuitbreaker` directly. The middleware package is designed
+specifically for the command/event/query dispatcher chain and adds no value
+when you're not dispatching through CQRS types.
+
+See `middleware/circuit_breaker.go` for the integration pattern if you need
+to wire circuit breaking into a custom execution path.

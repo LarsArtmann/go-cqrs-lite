@@ -31,10 +31,11 @@ func setupExplainCommand(cli *cmdguard.CLI[AppConfig]) error {
 //
 //nolint:gochecknoglobals // read-only documentation table
 var presetDescriptions = map[analyzer.ConfigPreset]string{
-	analyzer.PresetLocalCLI:   "Single-user CLIs and local tools: no network server, no tracing.",
-	analyzer.PresetProduction: "Deployed services: pins server=true and tracing=on for production safety.",
-	analyzer.PresetLibrary:    "Library/SDK modules consumed by other Go programs: silences app-only rules.",
-	analyzer.PresetReadOnly:   "Event/query consumers that never dispatch commands.",
+	analyzer.PresetLocalCLI:         "Single-user CLIs and local tools: no network server, no tracing.",
+	analyzer.PresetProduction:       "Deployed services: pins server=true and tracing=on for production safety.",
+	analyzer.PresetLibrary:          "Library/SDK modules consumed by other Go programs: silences app-only rules.",
+	analyzer.PresetLibraryFramework: "Framework/SDK modules: disables ALL adoption-coaching (F-series) rules.",
+	analyzer.PresetReadOnly:         "Event/query consumers that never dispatch commands.",
 }
 
 func renderExplain() string {
