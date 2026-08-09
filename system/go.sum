@@ -52,6 +52,10 @@ github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ3
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/dgraph-io/badger/v4 v4.9.6 h1:IQqMPVGLNCQr1b4Mu8lHkYm/xyqFRsyKaFEtyLi9CCQ=
+github.com/dgraph-io/badger/v4 v4.9.6/go.mod h1:Xa9dAupjbwAacupWFCpa6YEn9E1PjBXkfZYr2I/8aWg=
+github.com/dgraph-io/ristretto/v2 v2.4.2 h1:x0cvjmUKxt764Yxdk2nr94we1AvPPAMh1rh5TQ+Jo80=
+github.com/dgraph-io/ristretto/v2 v2.4.2/go.mod h1:0KsrXtXvnv0EqnzyowllbVJB8yBonswa2lTCK2gGo9E=
 github.com/distribution/reference v0.6.0 h1:0IXCQ5g4/QMHHkarYzh5l+u8T3t73zM5QvfrDyIgxBk=
 github.com/distribution/reference v0.6.0/go.mod h1:BbU0aIcezP1/5jX/8MP0YiH4SdvB5Y4f/wlDRiLyi3E=
 github.com/docker/go-connections v0.8.1 h1:JibmG5hULs5qXSr/cp/w3Pw5fZuStt4MOHMUExb29/M=
@@ -166,6 +170,8 @@ github.com/larsartmann/go-cqrs-lite/listing/v4 v4.0.3 h1:sSqnScQC8b6K6qAVIuQUKy6
 github.com/larsartmann/go-cqrs-lite/listing/v4 v4.0.3/go.mod h1:jd8OCVEFzRJIgSPnbkQriJo1O3szOlroZ8AQglDn/7Q=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 h1:zdDVNIVABTPII8G2Gj6n9RYkTVdyrtGpZoFjJI1/13Y=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0/go.mod h1:nMOU7fUkKn92n973yl8ZrQGasqSTCPjcbszMA1TfeTg=
+github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.0.1 h1:edkyd5V/rNko6fIWBuRthqR7bkxEtT2DQS73DHuc0zs=
+github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.0.1/go.mod h1:NBu5VBqkIG+pQdKoniBYWHFOXYkkm9Nrxw/Xoxl6k/o=
 github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.0.1 h1:UbXXzooKXFYDbfno7ldDMsAU5nXIY6jezlhkV6HnyvU=
 github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.0.1/go.mod h1:AaHIdrsgXxx+5A0Z1WzFUjyoiYDF6kAi2iBbc/6vTSE=
 github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.0.1 h1:1ReGC4EI6huUFVp8h1q/ZCZc9DZErCCN3iVh6juCWs8=

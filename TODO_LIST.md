@@ -196,10 +196,9 @@ and is **never** duplicated here.
       DuckDB binding packages). A `system/integration/` sub-module follows the
       `testutil/pgtestcontainer` precedent and keeps the system module lean.
       _(Effort: M)_
-- [ ] **Add Badger/bbolt source-of-truth integration tests** — DuckDB and
-      Postgres now covered; Badger and bbolt implement StreamLogBackend but
-      have no system-level integration test.
-      _(Effort: M)_
+- [ ] **Add bbolt source-of-truth integration test** — bbolt needs a
+      `metaengine/bboltengine/` module first (v5 Phase 4 dependency). Badger
+      and Pebble already covered.
 
 ---
 

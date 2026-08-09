@@ -144,7 +144,7 @@ go-cqrs-lite/
 ├── cmd/doc-check/       # Doc checker: verifies Go import paths + qualified symbols in markdown files
 ├── benchkit/            # Factory-driven benchmarking suite: Run/Compare, latency percentiles, throughput, memory (mirrors contracttest pattern)
 ├── integration/         # Cross-module tests (command, event, query, signing, encryption)
-├── system/              # Deployer-driven composition root: DomainConfig (consumer) + DeploymentConfig (operator). Driver registry (database/sql model), SQLite + Memory engines, auto-wired projections, scream store safety checks, MultiBus fan-out, introspection. Lifecycle: Close (error-joined), GracefulClose (drain+close, ctx-bounded), Drain (standalone, rolling deploys), RegisterCloser (external io.Closer), RegisterDrainer. Introspection: Snapshot, Health, HealthCheck, HealthCheckDetailed ([]EngineHealth), Explain (engine names + count), EngineNames, ShutdownOrder, LagPerProjection, LagDuration, WorkerStatus. All 6 engines (SQLite, Pebble, Badger, DuckDB, Postgres, Dgraph) implement HealthChecker. Replaces stack.Bundle with deployer-picks-infrastructure model (D6, D9, D11)
+├── system/              # Deployer-driven composition root: DomainConfig (consumer) + DeploymentConfig (operator). Driver registry (database/sql model), SQLite + Memory engines, auto-wired projections, scream store safety checks, MultiBus fan-out, **v5 auto-projection API** (system.View[V,K](name).From(events...)), watermill EventBus (replaces simpleBus), introspection. Lifecycle: Close (error-joined), GracefulClose (drain+close, ctx-bounded), Drain (standalone, rolling deploys), RegisterCloser (external io.Closer), RegisterDrainer. Introspection: Snapshot, Health, HealthCheck, HealthCheckDetailed ([]EngineHealth), Explain (engine names + count), EngineNames, ShutdownOrder, LagPerProjection, LagDuration, WorkerStatus. All 6 engines (SQLite, Pebble, Badger, DuckDB, Postgres, Dgraph) implement HealthChecker. Replaces stack.Bundle with deployer-picks-infrastructure model (D6, D9, D11)
 ├── example/taskmanager/    # Flagship full HTTP service: event sourcing, CQRS, projections, middleware, OTel, signing
 ├── example/getting-started/ # Minimal 80-line example showing the core pipeline
 ├── example/readme-quickstart/ # README-driven quickstart example
@@ -888,6 +888,43 @@ mode := event.ProcessingModeFrom(ctx)    // ModeLive or ModeReplay
 //   }
 //   adapter := projectionadapter.New("items", store, nil,
 //       projectionadapter.WithEventDecoder(myDecoder))
+
+// v5 Auto-projection via system.New() (THE RECOMMENDED API — zero fold boilerplate)
+//   // Declare a view + event types. System auto-generates insert/update/delete folds
+//   // from struct field matching, auto-registers the event decoder, and wires the
+//   // projectionadapter. Consumers write ~5 LOC instead of ~200 LOC.
+//   sys, _ := system.New(ctx,
+//       system.DomainConfig{
+//           Projections: []any{
+//               system.View[UserView, UserID]("users").From(
+//                   system.Event("user.created", UserCreated{}),
+//                   system.Event("user.updated", UserUpdated{}),
+//                   system.Event("user.deleted", UserDeleted{}),
+//               ),
+//           },
+//       },
+//       system.DeploymentConfig{
+//           Engines:   map[string]system.EngineConfig{"primary": {Driver: "sqlite", DSN: "app.db"}},
+//           Instances: []system.InstanceConfig{
+//               {Role: system.RoleSourceOfTruth, Engine: "primary"},
+//               {Role: system.RoleProjections, Engine: "primary"},
+//           },
+//       },
+//   )
+//   // Query: result, _ := metaengine.ExecuteTyped[system.LookupInput[UserID], UserView](
+//   //     ctx, sys.MetaEngine(), system.LookupInput[UserID]{ID: uid})
+//   //
+//   // Raw metaengine.QueryDecl values still work alongside ProjectionSpec (backward compat).
+//   // The event decoder auto-detects CBOR/JSON from the event's Encoding() stamp.
+
+// metaengine.AutoCRUDByNamedEvents (v5: wire event type strings for fold matching)
+//   // AutoCRUDByConvention uses Go struct names ("TaskCreated") as event types.
+//   // AutoCRUDByNamedEvents accepts explicit wire event type strings ("task.created"):
+//   folds, _ := metaengine.AutoCRUDByNamedEvents[UserView]("ID",
+//       metaengine.NamedEvent("user.created", UserCreated{}),
+//       metaengine.NamedEvent("user.updated", UserUpdated{}),
+//       metaengine.NamedEvent("user.deleted", UserDeleted{}),
+//   )
 
 // Metaengine FilterOnField + SortOnField (SQLite json_extract pushdown)
 //   // Declare at query time — planner pushes filter/sort to SQLite WHERE/ORDER BY.

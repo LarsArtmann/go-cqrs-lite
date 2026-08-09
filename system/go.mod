@@ -40,6 +40,8 @@ require (
 	github.com/cockroachdb/redact v1.1.8 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20250429170803-42689b6311bb // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/dgraph-io/badger/v4 v4.9.6 // indirect
+	github.com/dgraph-io/ristretto/v2 v2.4.2 // indirect
 	github.com/duckdb/duckdb-go-bindings v0.10505.0 // indirect
 	github.com/duckdb/duckdb-go-bindings/lib/darwin-amd64 v0.10505.0 // indirect
 	github.com/duckdb/duckdb-go-bindings/lib/darwin-arm64 v0.10505.0 // indirect
@@ -72,6 +74,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect

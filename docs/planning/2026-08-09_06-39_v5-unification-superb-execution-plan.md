@@ -1,8 +1,21 @@
 # v5 Unification — SUPERB Execution Plan
 
-> **Date:** 2026-08-09 06:39 (revised 07:15)
+> **Date:** 2026-08-09 06:39 (revised 07:15, execution started 07:30)
 > **Decision:** [ADR-0123](../adr/0123-v5-unification-single-composition-root.md)
 > **Vision:** Developers declare only Commands + Events + Queries. The system infers projections, storage layout, indexes, and engine routing. Operators pick infrastructure at deployment time.
+
+## Execution Progress (2026-08-09 07:45)
+
+| Task | Status | Notes |
+|------|--------|-------|
+| S1: Spike — fold inference API | ✅ DONE | **Key finding:** AutoCRUDByConvention uses struct names; system pipeline needs wire event types. Solution: AutoCRUDByNamedEvents (override eventType field on generated folds). Validated end-to-end. |
+| S2: Spike — batch atomicity | ✅ DONE | **Key finding:** Much simpler than estimated (~6h vs 3 days). Wrap applyWithRecord in RunInTx for SQL engines; snapshot/rollback for memory. No new interface needed. |
+| T01: Watermill swap | ✅ DONE | simpleBus deleted (188 LOC). watermill.NewEventBus() used everywhere. Fixed handler independence (watermill stopped on first error, fixed to call all handlers). Bus registered as io.Closer. |
+| T04a: AutoCRUDByNamedEvents | ✅ DONE | New exported function in metaengine/auto_named_events.go (147 LOC). NamedSample + NamedEvent types. Override eventType on generated folds. |
+| T04b-T05: Auto-projection MVP | ✅ DONE | system/projection_builder.go (226 LOC). system.View[V,K](name).From(events...). Auto-generates folds + EventDecoder. Full pipeline working: command → event → projection → typed query. Backward compat with raw QueryDecl. |
+| T02: GraphBackend delete | ⏳ PENDING | 15 files, not on critical path |
+| T03: Registry → metaengine/ | ⏳ PENDING | |
+| T06-T07: Example migrations | ⏳ PENDING | |
 
 ---
 
