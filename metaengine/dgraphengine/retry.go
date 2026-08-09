@@ -62,10 +62,7 @@ func withRetry[T any](ctx context.Context, fn func(ctx context.Context) (T, erro
 		}
 
 		if attempt < maxRetries {
-			delay := retryBaseDelay << attempt
-			if delay > retryMaxDelay {
-				delay = retryMaxDelay
-			}
+			delay := min(retryBaseDelay<<attempt, retryMaxDelay)
 
 			select {
 			case <-ctx.Done():

@@ -488,12 +488,14 @@ func TestGoArchLintConfigsAreValid(t *testing.T) {
 			if info.Name() == ".go-arch-lint.yml" {
 				configs = append(configs, path)
 			}
+
 			return nil
 		}
 		name := info.Name()
 		if name == ".git" || name == "vendor" {
 			return filepath.SkipDir
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -510,6 +512,7 @@ func TestGoArchLintConfigsAreValid(t *testing.T) {
 		raw, err := os.ReadFile(cfgPath)
 		if err != nil {
 			t.Errorf("%s: read failed: %v", rel, err)
+
 			continue
 		}
 		content := string(raw)
@@ -587,6 +590,7 @@ func TestMultiPackageModulesHaveArchLintConfig(t *testing.T) {
 		}
 		if reason, ok := excluded[rel]; ok {
 			t.Logf("excluding %s (%s)", rel, reason)
+
 			return nil
 		}
 
@@ -599,6 +603,7 @@ func TestMultiPackageModulesHaveArchLintConfig(t *testing.T) {
 			if _, e := os.Stat(filepath.Join(sub, "go.mod")); e == nil {
 				nestedMods[sub] = true
 			}
+
 			return nil
 		})
 
@@ -622,6 +627,7 @@ func TestMultiPackageModulesHaveArchLintConfig(t *testing.T) {
 				}
 			}
 			pkgDirs[filepath.Dir(sub)] = true
+
 			return nil
 		})
 

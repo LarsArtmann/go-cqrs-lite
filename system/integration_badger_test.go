@@ -22,7 +22,7 @@ func init() {
 		func(_ context.Context, cfg system.EngineConfig) (metaengine.Engine, error) {
 			return badgerengine.NewBadgerEngine(
 				cfg.DSN,
-			) //nolint:contextcheck // constructor doesn't take ctx
+			)
 		},
 	)
 }

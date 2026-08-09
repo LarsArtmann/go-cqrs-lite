@@ -56,7 +56,7 @@ func TestSpike_Batch_SQLTransactionApproach(t *testing.T) {
 	// Register a trivial query so Plan succeeds.
 	dummyQuery := Query[struct{ ID string }, spikeBatchView]("spike_batch_dummy",
 		OnTyped("test.event", spikeBatchEvent{}, func(e spikeBatchEvent) (string, spikeBatchView) {
-			return e.ID, spikeBatchView{ID: e.ID, Status: e.Status}
+			return e.ID, spikeBatchView(e)
 		}),
 	)
 

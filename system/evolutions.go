@@ -173,7 +173,7 @@ func reifyTo(src, dst any) {
 		return
 	}
 
-	_ = json.Unmarshal(data, dst) //nolint:errcheck // best-effort reify
+	_ = json.Unmarshal(data, dst)
 }
 
 // evolutionDecoderEntries extracts decoder entries from an evolutionSpec's
