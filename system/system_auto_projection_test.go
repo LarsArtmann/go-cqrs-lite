@@ -73,11 +73,11 @@ func TestSystem_AutoProjection_MemoryEngine(t *testing.T) {
 				})
 		},
 		Projections: []system.ProjectionDeclaration{
-			system.View[AutoProjView, string]("auto_views").From(
-				system.Event("autoproj.created", AutoProjCreated{}),
-				system.Event("autoproj.updated", AutoProjUpdated{}),
-				system.Event("autoproj.deleted", AutoProjDeleted{}),
-			),
+			system.Lookup[AutoProjView]("auto_views").
+				On("autoproj.created", AutoProjCreated{}).
+				On("autoproj.updated", AutoProjUpdated{}).
+				On("autoproj.deleted", AutoProjDeleted{}).
+				Done(),
 		},
 	}
 
@@ -161,9 +161,9 @@ func TestSystem_AutoProjection_BackwardCompat(t *testing.T) {
 		}),
 	)
 
-	autoProj := system.View[AutoProjView, string]("auto_views_bc").From(
-		system.Event("autoproj.created", AutoProjCreated{}),
-	)
+	autoProj := system.Lookup[AutoProjView]("auto_views_bc").
+		On("autoproj.created", AutoProjCreated{}).
+		Done()
 
 	domain := system.DomainConfig{
 		Projections: []system.ProjectionDeclaration{
