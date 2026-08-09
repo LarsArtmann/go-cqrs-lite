@@ -126,21 +126,21 @@ The only thing retained from traditional DDD is the **stream partition key**
 snapshots. The aggregateless critique's core insight — **feature slices** — is
 exactly what this API adopts:
 
-| Aspect | Aggregate Hydration | Feature Slice (this API) |
-|---|---|---|
-| State shape | Fixed (one per aggregate) | Flexible (one per result type) |
-| Events loaded | All events in stream | Only relevant event types |
-| Unused fields | Hydrated but ignored | Not loaded at all |
-| Multiple consumers | All see same state | Each sees tailored state |
-| Consistency boundary | The aggregate | The stream (via optimistic concurrency) |
+| Aspect               | Aggregate Hydration       | Feature Slice (this API)                |
+| -------------------- | ------------------------- | --------------------------------------- |
+| State shape          | Fixed (one per aggregate) | Flexible (one per result type)          |
+| Events loaded        | All events in stream      | Only relevant event types               |
+| Unused fields        | Hydrated but ignored      | Not loaded at all                       |
+| Multiple consumers   | All see same state        | Each sees tailored state                |
+| Consistency boundary | The aggregate             | The stream (via optimistic concurrency) |
 
 ### What this API rejects from aggregateless ES
 
-| Aggregateless idea | Why rejected |
-|---|---|
+| Aggregateless idea                    | Why rejected                                       |
+| ------------------------------------- | -------------------------------------------------- |
 | Single flat events table (no streams) | Lose optimistic concurrency, versioning, snapshots |
-| Raw JSONB (no typed events) | Lose compile-time safety |
-| No snapshotting | Operational regression |
+| Raw JSONB (no typed events)           | Lose compile-time safety                           |
+| No snapshotting                       | Operational regression                             |
 
 ### Evolutions are NOT aggregates
 
@@ -159,15 +159,15 @@ what's happening: events evolve a materialized state.
 
 ## 4. Core Design Principles
 
-| Principle | Meaning |
-|---|---|
-| **Declare, don't wire** | The developer declares types and relationships. The system wires everything. |
-| **Type safety, no `any`** | Sealed interfaces compile-time-reject invalid declarations. Go generics carry types end-to-end. No `map[string]any` in domain code. |
-| **Domain != Deployment** | Two config structs, zero overlap. Developer never touches infrastructure. Operator never writes logic. |
-| **Access pattern drives storage** | The developer declares HOW they read (point lookup vs filtered scan vs traversal). The engine builds the optimal storage shape. |
-| **Convention over configuration** | Field matching by name + type auto-generates folds for 80% of cases. Explicit folds for the rest. |
-| **Everything works everywhere** | Any engine serves any query. The planner warns, never blocks. |
-| **Feature slices, not aggregates** | Each result type is an independent fold over events. No god-object state. |
+| Principle                          | Meaning                                                                                                                             |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Declare, don't wire**            | The developer declares types and relationships. The system wires everything.                                                        |
+| **Type safety, no `any`**          | Sealed interfaces compile-time-reject invalid declarations. Go generics carry types end-to-end. No `map[string]any` in domain code. |
+| **Domain != Deployment**           | Two config structs, zero overlap. Developer never touches infrastructure. Operator never writes logic.                              |
+| **Access pattern drives storage**  | The developer declares HOW they read (point lookup vs filtered scan vs traversal). The engine builds the optimal storage shape.     |
+| **Convention over configuration**  | Field matching by name + type auto-generates folds for 80% of cases. Explicit folds for the rest.                                   |
+| **Everything works everywhere**    | Any engine serves any query. The planner warns, never blocks.                                                                       |
+| **Feature slices, not aggregates** | Each result type is an independent fold over events. No god-object state.                                                           |
 
 ---
 
@@ -302,12 +302,12 @@ the Evolution.
 
 Three access patterns, three constructors:
 
-| Constructor | Access Pattern | Engine Storage | Read Cost | Use When |
-|---|---|---|---|---|
-| `Lookup[R]("name")` | Single row by key | Hash map / KV | O(1) | "Get user X" |
-| `QuerySet[R]("name")` | Multi-row with flexible filters | Table + indexes | O(log N) indexed | "Find tasks WHERE status=open" |
-| `Count("name")` | Numeric aggregate | Counter | O(1) | "How many tasks per status?" |
-| `Traversal[R]("name")` | Graph neighbor traversal | Graph adjacency | O(degree^depth) | "Who follows this user?" |
+| Constructor            | Access Pattern                  | Engine Storage  | Read Cost        | Use When                       |
+| ---------------------- | ------------------------------- | --------------- | ---------------- | ------------------------------ |
+| `Lookup[R]("name")`    | Single row by key               | Hash map / KV   | O(1)             | "Get user X"                   |
+| `QuerySet[R]("name")`  | Multi-row with flexible filters | Table + indexes | O(log N) indexed | "Find tasks WHERE status=open" |
+| `Count("name")`        | Numeric aggregate               | Counter         | O(1)             | "How many tasks per status?"   |
+| `Traversal[R]("name")` | Graph neighbor traversal        | Graph adjacency | O(degree^depth)  | "Who follows this user?"       |
 
 ### Why access-pattern constructors?
 
@@ -575,6 +575,7 @@ can't.
 ## 10. Commands: Logic Without Infrastructure
 
 Commands are pure business logic. Each handler receives:
+
 - `context.Context`
 - The typed command struct (embeds `*command.BasicCommand` for `StreamID()`)
 - The current state (loaded by replaying events through the matching Evolution fold)
@@ -865,21 +866,21 @@ Returns the same sealed `EvolutionSpec`. No `[]any` leak.
 
 ## 16. What Disappears
 
-| Concept | Current API | v5 API |
-|---|---|---|
-| **Aggregate** | `RegisterDecider[State](sys, "Task", decider)` | **Deleted.** System auto-builds from Evolution + Command handler. |
-| **State type** | Separate `TaskState` struct | **Unified.** Evolution result type IS the state type. |
-| **View** | `system.View[R,K]("name")` | **Deleted.** Queries (`Lookup`, `QuerySet`, `Count`, `Traversal`) replace it. |
-| **Decider** | `decider.Decider[State]{Initial, Fold}` | **Auto-generated.** System builds from Evolution fold. |
-| **Fold** | `metaengine.On(...)` / `OnTyped(...)` | **On Evolution.** Auto-generated for L1/L2. |
-| **ADT** | Manual classification | **Inferred** from result type shape (struct → Map, From/To fields → Graph, map\[string\]int64 → Counter). |
-| **Decoder** | `ProjectionTypeDecoder`, `EventDecoder`, `PayloadDecoder` | **Auto-generated** from event struct types. |
-| **Projection adapter** | `projectionadapter.New(...)` | **Auto-wired.** |
-| **Engine selection** | Manual `metaengine.Query` + `Plan` | **Auto-planned** by metaengine. |
-| **Projection host** | `projectionhost.New(...)` | **Auto-created** from Deployment config. |
-| `Projections []any` | Type-erased slice | `Queries []QuerySpec` — sealed interface. |
-| `Commands func(*System)` | Imperative callback | `Commands []CommandSpec` — declarative. |
-| `map[string]any` in domain code | `graph.MergeNode(ref, map[string]any{...})` | **Typed structs.** No `any` in domain logic. |
+| Concept                         | Current API                                               | v5 API                                                                                                    |
+| ------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Aggregate**                   | `RegisterDecider[State](sys, "Task", decider)`            | **Deleted.** System auto-builds from Evolution + Command handler.                                         |
+| **State type**                  | Separate `TaskState` struct                               | **Unified.** Evolution result type IS the state type.                                                     |
+| **View**                        | `system.View[R,K]("name")`                                | **Deleted.** Queries (`Lookup`, `QuerySet`, `Count`, `Traversal`) replace it.                             |
+| **Decider**                     | `decider.Decider[State]{Initial, Fold}`                   | **Auto-generated.** System builds from Evolution fold.                                                    |
+| **Fold**                        | `metaengine.On(...)` / `OnTyped(...)`                     | **On Evolution.** Auto-generated for L1/L2.                                                               |
+| **ADT**                         | Manual classification                                     | **Inferred** from result type shape (struct → Map, From/To fields → Graph, map\[string\]int64 → Counter). |
+| **Decoder**                     | `ProjectionTypeDecoder`, `EventDecoder`, `PayloadDecoder` | **Auto-generated** from event struct types.                                                               |
+| **Projection adapter**          | `projectionadapter.New(...)`                              | **Auto-wired.**                                                                                           |
+| **Engine selection**            | Manual `metaengine.Query` + `Plan`                        | **Auto-planned** by metaengine.                                                                           |
+| **Projection host**             | `projectionhost.New(...)`                                 | **Auto-created** from Deployment config.                                                                  |
+| `Projections []any`             | Type-erased slice                                         | `Queries []QuerySpec` — sealed interface.                                                                 |
+| `Commands func(*System)`        | Imperative callback                                       | `Commands []CommandSpec` — declarative.                                                                   |
+| `map[string]any` in domain code | `graph.MergeNode(ref, map[string]any{...})`               | **Typed structs.** No `any` in domain logic.                                                              |
 
 ---
 
@@ -992,13 +993,13 @@ part of the CQRS/ES innovations research
 
 ### What Akka/Kalix does the same way
 
-| Kalix concept | What it does | This API's equivalent |
-|---|---|---|
-| Event Sourced Entity | Classic event-sourced write side | Commands + Streams |
-| Event Handler | Folds events into state | Evolutions |
-| View | Read-side projection from events | Queries |
-| Topic | Event stream for pub/sub | Event Bus (auto-wired) |
-| Snapshot | Periodic state capture | Auto-wired (SnapshotBackend) |
+| Kalix concept        | What it does                     | This API's equivalent        |
+| -------------------- | -------------------------------- | ---------------------------- |
+| Event Sourced Entity | Classic event-sourced write side | Commands + Streams           |
+| Event Handler        | Folds events into state          | Evolutions                   |
+| View                 | Read-side projection from events | Queries                      |
+| Topic                | Event stream for pub/sub         | Event Bus (auto-wired)       |
+| Snapshot             | Periodic state capture           | Auto-wired (SnapshotBackend) |
 
 The architecture is **identical**. Kalix calls them "Entities" and "Views."
 This API calls them "Commands," "Evolutions," and "Queries." Same separation,
@@ -1006,29 +1007,29 @@ different vocabulary.
 
 ### What to take from Akka
 
-| Take it | How |
-|---|---|
-| Views as first-class | Already in this design — Queries are declared separately from Commands |
-| Event Sourced Entity = Stream | Already done via ADR-0001, ADR-0058 |
-| Replicated Entity (CRDT) | Future: maps to metaengine's replication model for multi-leader engines |
-| Topic-based distribution | Already have `event.Bus` + watermill |
+| Take it                       | How                                                                     |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| Views as first-class          | Already in this design — Queries are declared separately from Commands  |
+| Event Sourced Entity = Stream | Already done via ADR-0001, ADR-0058                                     |
+| Replicated Entity (CRDT)      | Future: maps to metaengine's replication model for multi-leader engines |
+| Topic-based distribution      | Already have `event.Bus` + watermill                                    |
 
 ### What to leave
 
-| Leave it | Why |
-|---|---|
+| Leave it                     | Why                                                                                                                          |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | Actor model / virtual actors | Requires a distributed runtime (cluster, sharding, location service). Contradicts "lite." Optimistic concurrency is simpler. |
-| Kalix service mesh | Deployment platform concern, not library concern. |
-| Kalix protobuf codegen | Go generics provide compile-time safety without codegen. |
+| Kalix service mesh           | Deployment platform concern, not library concern.                                                                            |
+| Kalix protobuf codegen       | Go generics provide compile-time safety without codegen.                                                                     |
 
 ### The single-writer comparison
 
-| | Virtual Actors (Akka) | Optimistic Concurrency (this lib) |
-|---|---|---|
+|                         | Virtual Actors (Akka)  | Optimistic Concurrency (this lib)         |
+| ----------------------- | ---------------------- | ----------------------------------------- |
 | Single writer guarantee | Yes (runtime enforced) | No (conflicts possible, detected on Save) |
-| Conflict handling | None (serialized) | Retry on version mismatch |
-| Distribution | Built-in | External (Postgres, coordinator) |
-| Complexity | Actor runtime required | Zero runtime — just version numbers |
+| Conflict handling       | None (serialized)      | Retry on version mismatch                 |
+| Distribution            | Built-in               | External (Postgres, coordinator)          |
+| Complexity              | Actor runtime required | Zero runtime — just version numbers       |
 
 **Decision:** Do NOT adopt the actor model. It requires a distributed runtime
 that contradicts "lite." Optimistic concurrency is simpler, works with any
@@ -1043,11 +1044,11 @@ backend, and the retry-on-conflict pattern is well-understood.
 Events like `TaskStarted`, `TaskAssigned`, `TaskArchived` don't match the naming
 convention. Three options:
 
-| Option | Mechanism | Pro | Con |
-|---|---|---|---|
-| **A. Field-matching** | If event has matching fields → update (patch); if only key → delete; else → insert | Zero hints needed | Magical, harder to debug edge cases |
-| **B. `.As(system.Update)` hint** | `On("task.started", TaskStarted{}, system.As(system.Update))` | Explicit, minimal API surface | Developer must know fold kinds |
-| **C. Always explicit fold** | Every event beyond Created/Deleted requires a fold func | Fully explicit | Verbose for simple cases |
+| Option                           | Mechanism                                                                          | Pro                           | Con                                 |
+| -------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
+| **A. Field-matching**            | If event has matching fields → update (patch); if only key → delete; else → insert | Zero hints needed             | Magical, harder to debug edge cases |
+| **B. `.As(system.Update)` hint** | `On("task.started", TaskStarted{}, system.As(system.Update))`                      | Explicit, minimal API surface | Developer must know fold kinds      |
+| **C. Always explicit fold**      | Every event beyond Created/Deleted requires a fold func                            | Fully explicit                | Verbose for simple cases            |
 
 **Current recommendation:** Field-matching (A) as default, with `.As(...)`
 override for ambiguous cases. The existing `matchFields` in `auto_naming.go`
@@ -1059,11 +1060,11 @@ only the key field → remove. Otherwise → insert.
 Commands need a stream type string (e.g., `"Task"`) for the event store. Three
 options:
 
-| Option | Mechanism | Pro | Con |
-|---|---|---|---|
-| **A. From state type name** | `TaskSummary` → strip suffix → `"Task"` | Zero config | Fragile naming convention |
-| **B. Explicit on On()** | `system.On("Task", "task.create", handler)` | Explicit, no surprise | Slightly more verbose |
-| **C. System.Stream wrapper** | `system.Stream("Task", system.On(...), system.On(...))` | Groups commands by stream | Adds nesting |
+| Option                       | Mechanism                                               | Pro                       | Con                       |
+| ---------------------------- | ------------------------------------------------------- | ------------------------- | ------------------------- |
+| **A. From state type name**  | `TaskSummary` → strip suffix → `"Task"`                 | Zero config               | Fragile naming convention |
+| **B. Explicit on On()**      | `system.On("Task", "task.create", handler)`             | Explicit, no surprise     | Slightly more verbose     |
+| **C. System.Stream wrapper** | `system.Stream("Task", system.On(...), system.On(...))` | Groups commands by stream | Adds nesting              |
 
 **Current recommendation:** Option B — explicit stream type on the command
 handler or a `Stream` grouping function. Naming conventions for stream
@@ -1074,10 +1075,10 @@ derivation (A) are too fragile for a library.
 For graph queries, the system needs to know which fields on a struct are
 endpoints. Two options:
 
-| Option | Mechanism | Pro | Con |
-|---|---|---|---|
-| **A. Convention** | `From`/`To` or `Source`/`Target` fields → edge | Zero config | Fragile naming |
-| **B. Explicit** | `system.Edge("From", "To")` option on Evolve | Explicit, no surprise | Slightly more verbose |
+| Option            | Mechanism                                      | Pro                   | Con                   |
+| ----------------- | ---------------------------------------------- | --------------------- | --------------------- |
+| **A. Convention** | `From`/`To` or `Source`/`Target` fields → edge | Zero config           | Fragile naming        |
+| **B. Explicit**   | `system.Edge("From", "To")` option on Evolve   | Explicit, no surprise | Slightly more verbose |
 
 **Current recommendation:** Convention (A) as default, with explicit `Edge()`
 override. Convention + override = zero config for common case, escape hatch for

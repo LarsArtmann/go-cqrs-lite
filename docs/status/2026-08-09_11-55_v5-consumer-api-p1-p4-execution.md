@@ -210,7 +210,7 @@ fix).
    runtime type check in `buildProjections`.
 
 3. **Counter builder is not type-safe.** `Count(name).On(eventType, sample,
-   delta, key)` accepts `sample any`. The sample's type is only checked at
+delta, key)` accepts `sample any`. The sample's type is only checked at
    fold construction time. A typo in the sample type compiles fine. **Options:**
    make `Count.On` generic like `OnEvolution`.
 
@@ -252,7 +252,7 @@ fix).
 ### HIGH (API completeness)
 
 5. **Make `Count.On` generic** — `CountOn[E any](b *countBuilder, eventType
-   string, sample E, delta int64, key string)` to avoid the `any`-typed sample
+string, sample E, delta int64, key string)` to avoid the `any`-typed sample
 6. **Add field validation on `Filterable()`/`Sortable()`** — reflect-check field
    exists on R at `.Done()` time
 7. **Add `PaginatedResult[R]` return type** with cursor for `Find()`
