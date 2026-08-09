@@ -107,6 +107,7 @@ func run(files []string) error {
 			filepath.Join(root, "SKILL.md"),
 			filepath.Join(root, "AGENTS.md"),
 			filepath.Join(root, "docs/DOMAIN_LANGUAGE.md"),
+			filepath.Join(root, "docs/METAENGINE_DOMAIN_LANGUAGE.md"),
 		}
 		// Auto-discover skill reference files so split SKILL.md content stays checked.
 		if refFiles, err := filepath.Glob(

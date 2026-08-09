@@ -6,6 +6,53 @@
 
 ---
 
+## Prependix — Review & Disposition (2026-08-09)
+
+**Decision: No new modules.** Both requests resolve to "the library is correct as-is; the consumer's need is met by existing tooling or is out of scope."
+
+### CircuitBreaker → point at failsafe-go directly (docs, not a module)
+
+The consumer assumes a zero-dependency state machine must be extracted because the library version is "trapped" in `middleware/v4`. This misses that `middleware/circuit_breaker.go` **delegates the entire state machine to [failsafe-go](https://github.com/failsafe-go/failsafe-go)** — it does not implement one. The library deliberately migrated away from a hand-rolled `sync/atomic` breaker to failsafe-go ([AGENTS.md principle #17](../../../AGENTS.md)).
+
+failsafe-go already exposes the exact API the consumer wants:
+
+| Consumer asks for       | failsafe-go equivalent         |
+| ----------------------- | ------------------------------ |
+| `Allow() bool`          | `TryAcquirePermit() bool`      |
+| `RecordSuccess()`       | `RecordSuccess()`              |
+| `RecordFailure()`       | `RecordError(err)`             |
+| `State() State`         | `State() circuitbreaker.State` |
+
+**No module.** A thin facade would add naming cosmetics (`Allow` vs `TryAcquirePermit`) at the cost of a leaky abstraction: consumers would inevitably want failsafe-go's real features (sliding windows, state-transition listeners, metrics hooks) exposed, forcing the facade to grow into the thing it wraps. `middleware/circuit_breaker.go` itself is ~20 lines of integration glue — the right reference implementation to point at.
+
+**Action**: add a SKILL.md FAQ entry directing standalone circuit-breaker consumers to failsafe-go, with a cross-reference to `middleware/circuit_breaker.go` as the integration pattern.
+
+### DLQ → don't extract; the consumer's use case is a different abstraction
+
+The consumer's `pkg/deadletter/deadletter.go` stores **failed file-rename operations** (file paths, error types, retry counts, operator actions). That is an **application-level retry queue**, not a dead-letter queue. This is a CQRS/ES library; dead-lettering is a *message* concept:
+
+- **Projection poison events** → `projectionhost.DeadLetterStore` (already exists, correctly event-specific)
+- **Commands that exhaust retries** → would be CQRS-aligned, but the consumer is not asking for this
+
+The projectionhost DLQ is tightly coupled to `event.Event` *by design*:
+
+- `DeadLetterEntry` carries `ProjectionName`, `EventID`, `EventType`, `StreamID`, `ErrorCode`, `ErrorFamily`
+- The SQLite impl reconstructs events via `event.ReconstructEventFromFields` for replay
+- The `Store`/`List`/`Delete`/`Purge` surface assumes message-quarantine semantics
+
+Genericizing this into `Entry[P any]` would either lose that richness or force projectionhost to maintain a parallel typed layer on top — the exact coupling the consumer is trying to escape, now inside the library. A generic failed-work queue is general-purpose application infrastructure, not CQRS/ES building material.
+
+**No module.** The consumer's 200-line JSON-backed retry store is the right shape for *their* domain. It is bespoke application logic, not duplicated library logic.
+
+### Summary
+
+| Request          | Disposition           | Rationale                                                                  |
+| ---------------- | --------------------- | -------------------------------------------------------------------------- |
+| `circuitbreaker/v4` | Docs pointer, no module | failsafe-go IS the standalone breaker; a facade is a leaky abstraction     |
+| `dlq/v4`            | No module, out of scope | Consumer needs an app-level retry queue; projectionhost DLQ is event-specific by design |
+
+---
+
 ## Context
 
 The `file-and-image-renamer` project is migrating to full CQRS/ES using go-cqrs-lite.
