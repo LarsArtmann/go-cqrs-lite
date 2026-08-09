@@ -167,6 +167,8 @@ The library provides three projection tiers, chosen by read-pattern shape:
 | **Relational**  | `storage.RelationalProjection` | Multiple related SQL tables | Multi-table atomic writes (messages + attachments + junction tables) |
 | **Graph**       | `graph.GraphProjection`        | Nodes + edges               | Variable-depth traversal, adjacency, path-finding                    |
 
+> A fourth, automated tier exists: the **[metaengine](METAENGINE_DOMAIN_LANGUAGE.md)** infers the ADT, picks the engine, generates DDL, and routes queries — 80% auto-generated, 100% auto-routed.
+
 ### KV Layer
 
 | Term             | Definition                                                            | Context                                                                                           |

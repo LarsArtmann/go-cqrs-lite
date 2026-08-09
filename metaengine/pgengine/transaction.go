@@ -2,22 +2,14 @@ package pgengine
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-)
 
-// dbExec is the common interface between *sql.DB and *sql.Tx. Every engine
-// operation routes through conn() so that writes and reads participate in the
-// active transaction when one exists.
-type dbExec interface {
-	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
-	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
-	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
-}
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
 
 // conn returns the active transaction if RunInTx is in progress, otherwise
 // the engine's *sql.DB.
-func (e *pgEngine) conn() dbExec {
+func (e *pgEngine) conn() metaengine.SQLExec {
 	if tx := e.activeTx.Load(); tx != nil {
 		return tx
 	}
@@ -29,7 +21,7 @@ func (e *pgEngine) conn() dbExec {
 // in the outer transaction. Otherwise a new transaction is started and
 // committed (or rolled back on error). Used by StreamAppend and
 // StreamAppendExpected which need per-call atomicity when called standalone.
-func (e *pgEngine) inTx(ctx context.Context, fn func(dbExec) error) error {
+func (e *pgEngine) inTx(ctx context.Context, fn func(metaengine.SQLExec) error) error {
 	if tx := e.activeTx.Load(); tx != nil {
 		return fn(tx)
 	}

@@ -113,7 +113,7 @@ func jsonPath(field string) string {
 // scanDuckDBJSONValues executes the query and decodes each row's JSON value.
 func scanDuckDBJSONValues(
 	ctx context.Context,
-	db dbExec,
+	db metaengine.SQLExec,
 	query string,
 	args ...any,
 ) ([]any, error) {

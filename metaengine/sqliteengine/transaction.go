@@ -9,13 +9,6 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
-// dbExec is the common interface between *sql.DB and *sql.Tx.
-type dbExec interface {
-	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
-	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
-	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
-}
-
 // dbExecer is the common interface between stmtCache and txStmtCache.
 // Both provide exec/queryRow/query with identical signatures.
 type dbExecer interface {
@@ -39,8 +32,8 @@ func (e *sqliteEngine) xc() dbExecer {
 
 // xd returns the active raw DB/Tx for direct SQL operations (dynamic
 // queries that cannot use prepared-statement caching, e.g. PushdownMapScan
-// with variable WHERE clauses). Both *sql.DB and *sql.Tx satisfy dbExec.
-func (e *sqliteEngine) xd() dbExec {
+// with variable WHERE clauses). Both *sql.DB and *sql.Tx satisfy SQLExec.
+func (e *sqliteEngine) xd() metaengine.SQLExec {
 	if tx := e.activeTx.Load(); tx != nil {
 		return tx.tx
 	}
@@ -51,7 +44,7 @@ func (e *sqliteEngine) xd() dbExec {
 // txStmtCache is a non-caching statement wrapper for *sql.Tx.
 // Prepared statements are transaction-scoped, so no caching during tx.
 type txStmtCache struct {
-	tx dbExec
+	tx metaengine.SQLExec
 }
 
 func (c *txStmtCache) exec(ctx context.Context, query string, args ...any) (sql.Result, error) {

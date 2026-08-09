@@ -78,9 +78,13 @@ func DecodeFloatResults(
 	return result, nil
 }
 
-// RowQuerier is the minimal interface for executing a query that returns rows.
-// Both *sql.DB and *sql.Tx satisfy this interface.
-type RowQuerier interface {
+// SQLExec is the common interface between *sql.DB and *sql.Tx. Every SQL
+// engine implementation (DuckDB, SQLite, Postgres) uses this to route
+// operations through the active transaction when one exists. Both *sql.DB
+// and *sql.Tx satisfy this interface.
+type SQLExec interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
 	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 }
 
@@ -89,7 +93,7 @@ type RowQuerier interface {
 // The label is used as the error prefix (e.g. "duckdbengine.DistinctValues").
 func ScanDistinctValues(
 	ctx context.Context,
-	q RowQuerier,
+	q SQLExec,
 	query string,
 	args []any,
 	label string,
@@ -118,4 +122,30 @@ func ScanDistinctValues(
 	}
 
 	return result, nil
+}
+
+// MultiAggregateScan executes a single-row aggregate query and decodes the
+// results into a map keyed by each spec's alias. Shared by DuckDB and SQLite
+// engine implementations for MultiAggregate. The label is used as the error
+// prefix (e.g. "duckdbengine.MultiAggregate").
+func MultiAggregateScan(
+	ctx context.Context,
+	q SQLExec,
+	query string,
+	args []any,
+	specs []AggregateSpec,
+	label string,
+) (map[string]float64, error) {
+	raws := make([]any, len(specs))
+	ptrs := make([]any, len(specs))
+
+	for i := range raws {
+		ptrs[i] = &raws[i]
+	}
+
+	if err := q.QueryRowContext(ctx, query, args...).Scan(ptrs...); err != nil {
+		return nil, fmt.Errorf("%s: %w", label, err)
+	}
+
+	return DecodeFloatResults(raws, specs, label)
 }
