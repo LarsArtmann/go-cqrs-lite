@@ -142,6 +142,19 @@ The primary consumer entry point. A **Bundle** wires all stores, buses, and jour
 
 > **When to use Stack vs raw modules:** Stack presets are the recommended entry point for new consumers. Use raw modules (`storage.NewSQLiteEventStore`, `pebble.NewStore`, etc.) when you need fine-grained control over which stores to create.
 
+### System (Deployer Composition Root)
+
+The `system/` module is the evolution of Stack Bundles for production deployments — a **deployer-driven** composition root where the consumer declares domain configuration (`DomainConfig`) and the operator declares infrastructure (`DeploymentConfig`).
+
+| Term                | Definition                                                          | Context                                                                                  |
+| ------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **System**          | Deployer-driven composition root: wires engines, projections, buses | `system.New(ctx, DomainConfig, DeploymentConfig)` — returns `*System`                    |
+| **DomainConfig**    | Consumer-side: declares deciders, event types, projection handlers  | `system.DomainConfig` struct                                                             |
+| **DeploymentConfig** | Operator-side: picks database engines, durability, pool sizes      | `system.DeploymentConfig` struct                                                         |
+| **GracefulClose**   | Drains projections then closes engines (ctx-bounded shutdown)       | `system.GracefulClose(ctx)` — rolling deploy safe                                         |
+| **Health**          | Aggregated health across all engines                                | `system.Health(ctx)` — `"healthy"` or first error                                        |
+| **Snapshot**        | Topology introspection: engines, projections, wiring                | `system.Snapshot(ctx)` — returns `*Topology`                                             |
+
 ---
 
 ## Read Models
