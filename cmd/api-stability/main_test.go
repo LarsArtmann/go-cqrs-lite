@@ -86,6 +86,100 @@ func TestEveryGoModDirIsInModulesList(t *testing.T) {
 	}
 }
 
+// TestEveryGoModDirIsInTestModules asserts that every directory containing a
+// go.mod (except examples, the root workspace, and integration) appears in the
+// testModules list in flake.nix. This catches the class of omission where a
+// module ships without being built, tested, or linted in CI — the exact bug
+// that left 8 modules silently untested in the 2026-08-09 session.
+func TestEveryGoModDirIsInTestModules(t *testing.T) {
+	t.Parallel()
+
+	projectRoot := filepath.Join(".", "..", "..")
+
+	// Parse testModules from flake.nix by extracting quoted strings between
+	// "testModules = [" and the closing "]".
+	flakeBytes, err := os.ReadFile(filepath.Join(projectRoot, "flake.nix"))
+	if err != nil {
+		t.Fatalf("read flake.nix: %v", err)
+	}
+	flake := string(flakeBytes)
+
+	// Extract the testModules block.
+	startIdx := strings.Index(flake, "testModules = [")
+	if startIdx < 0 {
+		t.Fatal("could not find 'testModules = [' in flake.nix")
+	}
+	endIdx := strings.Index(flake[startIdx:], "];")
+	if endIdx < 0 {
+		t.Fatal("could not find closing '];' for testModules in flake.nix")
+	}
+	block := flake[startIdx : startIdx+endIdx]
+
+	// Extract quoted module paths from the block.
+	quoteRe := regexp.MustCompile(`"([^"]+)"`)
+	testModules := make(map[string]struct{})
+	for _, m := range quoteRe.FindAllStringSubmatch(block, -1) {
+		testModules[m[1]] = struct{}{}
+	}
+	if len(testModules) == 0 {
+		t.Fatal("failed to parse any module paths from testModules in flake.nix")
+	}
+
+	// Directories intentionally excluded (same set as the Nix check-modules app
+	// and TestEveryGoModDirIsInModulesList).
+	excluded := map[string]string{
+		".":                 "root workspace go.mod",
+		"integration":       "workspace-only cross-module tests",
+		"example/getting-started": "example application",
+		"example/metaengine-quickstart": "example application",
+		"example/readme-quickstart": "example application",
+		"example/taskmanager": "example application",
+	}
+
+	err = filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			return nil
+		}
+		name := info.Name()
+		if name == ".git" || name == "vendor" ||
+			(len(name) > 0 && name[0] == '.' && path != projectRoot) {
+			return filepath.SkipDir
+		}
+		if _, err := os.Stat(filepath.Join(path, "go.mod")); os.IsNotExist(err) {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(projectRoot, path)
+		if err != nil {
+			return err
+		}
+		if reason, ok := excluded[rel]; ok {
+			t.Logf("excluding %s (%s)", rel, reason)
+			return nil
+		}
+		// Check direct match or parent coverage (e.g., event/v4/eventtest
+		// is covered by "event" in testModules).
+		if _, ok := testModules[rel]; ok {
+			return nil
+		}
+		for mod := range testModules {
+			if strings.HasPrefix(rel, mod+"/") {
+				return nil
+			}
+		}
+		t.Errorf("directory %q has a go.mod but is NOT in testModules in flake.nix — "+
+			"add it so CI builds, tests, and lints it", rel)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("walk failed: %v", err)
+	}
+}
+
 func TestAPISurfaceCheck(t *testing.T) {
 	t.Parallel()
 

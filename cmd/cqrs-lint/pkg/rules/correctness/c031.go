@@ -50,7 +50,7 @@ func NewC031Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							continue
 						}
 
-						scanHandlerBodyForSwallowedError(ctx, lit.Body, &findings)
+						scanHandlerBodyForSwallowedError(ctx, lit.Body, funcHasNamedReturns(lit.Type), &findings)
 					}
 
 					return true
@@ -68,6 +68,7 @@ func NewC031Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 func scanHandlerBodyForSwallowedError(
 	ctx *analyzer.AnalysisContext,
 	body *ast.BlockStmt,
+	hasNamedReturns bool,
 	findings *[]finding.Finding,
 ) {
 	ast.Inspect(body, func(n ast.Node) bool {
@@ -81,7 +82,7 @@ func scanHandlerBodyForSwallowedError(
 		}
 
 		for _, stmt := range ifStmt.Body.List {
-			if isSwallowingReturn(stmt) {
+			if isSwallowingReturn(stmt, hasNamedReturns) {
 				pos := ctx.Fset.Position(stmt.Pos())
 
 				f, err := finding.NewBuilder(
@@ -135,18 +136,22 @@ func isErrNotNilCheck(expr ast.Expr) bool {
 // isSwallowingReturn reports whether stmt is `return nil`, `return nil, nil`,
 // or bare `return` inside an error-check block — the error is swallowed.
 //
-// For multi-value returns like `return nil, err` (the canonical (any, error)
+// For multi value returns like `return nil, err` (the canonical (any, error)
 // handler pattern), the error IS propagated via the second value, so this
 // returns false. Only returns where ALL values are nil (or bare returns)
 // indicate a swallowed error.
-func isSwallowingReturn(stmt ast.Stmt) bool {
+//
+// When hasNamedReturns is true, bare `return` is NOT swallowing because the
+// named return values (e.g., `result any, err error`) are propagated
+// automatically.
+func isSwallowingReturn(stmt ast.Stmt, hasNamedReturns bool) bool {
 	ret, ok := stmt.(*ast.ReturnStmt)
 	if !ok {
 		return false
 	}
 
 	if len(ret.Results) == 0 {
-		return true
+		return !hasNamedReturns
 	}
 
 	for _, result := range ret.Results {
@@ -161,4 +166,19 @@ func isSwallowingReturn(stmt ast.Stmt) bool {
 func isNilLiteral(expr ast.Expr) bool {
 	id, ok := expr.(*ast.Ident)
 	return ok && id.Name == "nil"
+}
+
+// funcHasNamedReturns reports whether the function type declares named
+// return values (e.g., `func(...) (result any, err error)`). When true, bare
+// `return` propagates the named values, so the error is NOT swallowed.
+func funcHasNamedReturns(ft *ast.FuncType) bool {
+	if ft == nil || ft.Results == nil {
+		return false
+	}
+	for _, field := range ft.Results.List {
+		if len(field.Names) > 0 {
+			return true
+		}
+	}
+	return false
 }

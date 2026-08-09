@@ -395,11 +395,20 @@ func ParseSuppressions(commentText string) map[string]string {
 		}
 
 		text := strings.TrimSpace(line[cs+2:])
-		if !strings.HasPrefix(text, "cqrs-lint:ignore") {
+
+		// Accept both "cqrs-lint:ignore" and "cqrs-lint:disable" as keywords.
+		// Consumers familiar with golangci-lint's "disable" syntax expect it to
+		// work; silently ignoring it is the worst outcome.
+		var rest string
+		switch {
+		case strings.HasPrefix(text, "cqrs-lint:ignore"):
+			rest = strings.TrimSpace(strings.TrimPrefix(text, "cqrs-lint:ignore"))
+		case strings.HasPrefix(text, "cqrs-lint:disable"):
+			rest = strings.TrimSpace(strings.TrimPrefix(text, "cqrs-lint:disable"))
+		default:
 			continue
 		}
 
-		rest := strings.TrimSpace(strings.TrimPrefix(text, "cqrs-lint:ignore"))
 		if strings.HasPrefix(rest, "(") {
 			end := strings.Index(rest, ")")
 			if end > 0 {

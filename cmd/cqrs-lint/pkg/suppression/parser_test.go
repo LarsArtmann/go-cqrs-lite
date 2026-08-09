@@ -266,6 +266,34 @@ func TestParseSuppressions_EndOfLine(t *testing.T) {
 	}
 }
 
+func TestParseSuppressions_DisableKeyword(t *testing.T) {
+	t.Parallel()
+
+	// The "disable" keyword must be accepted as an alias for "ignore".
+	// Consumers familiar with golangci-lint's "//nolint" / "disable" syntax
+	// expect it to work.
+	tests := []struct {
+		name string
+		line string
+	}{
+		{"disable line-above", "//cqrs-lint:disable(C031)"},
+		{"disable end-of-line", "return nil, err //cqrs-lint:disable(C031)"},
+		{"disable with space", "// cqrs-lint:disable(C031) multi-return"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			suppressions := suppression.ParseSuppressions(tt.line)
+			if len(suppressions) != 1 {
+				t.Fatalf("got %d suppressions, want 1 for %q", len(suppressions), tt.line)
+			}
+			if _, ok := suppressions["C031"]; !ok {
+				t.Errorf("C031 not recognized in: %q", tt.line)
+			}
+		})
+	}
+}
+
 func TestParseSuppressions_EndOfLine_SpaceAfterSlashes(t *testing.T) {
 	t.Parallel()
 
