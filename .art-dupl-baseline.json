@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "threshold": 3,
-  "recordedAt": "2026-08-08T23:00:37.993697105Z",
+  "recordedAt": "2026-08-09T00:12:48.358255542Z",
   "entries": [
     {
       "hash": "042a25ea73339942",
@@ -251,14 +251,6 @@
       "tokens": 6
     },
     {
-      "hash": "814a6e1c2522c463",
-      "files": [
-        "metaengine/sqliteengine/aggregations_grouped.go",
-        "metaengine/sqliteengine/aggregations_grouped.go"
-      ],
-      "tokens": 6
-    },
-    {
       "hash": "83c4a53e18bcfd32",
       "files": [
         "metaengine/pebbleengine/stream_log.go",
@@ -330,14 +322,6 @@
         "system/cache.go"
       ],
       "tokens": 6
-    },
-    {
-      "hash": "a86a20abbe67df5e",
-      "files": [
-        "metaengine/duckdbengine/aggregations.go",
-        "metaengine/sqliteengine/aggregations_grouped.go"
-      ],
-      "tokens": 12
     },
     {
       "hash": "a9c9040c596098a8",

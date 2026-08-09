@@ -1601,6 +1601,7 @@ metaengine/func Remove
 metaengine/func ReplayCost
 metaengine/func SQLiteEngineProfile
 metaengine/func SaveManifest
+metaengine/func ScanDistinctValues
 metaengine/func SearchExecuteTyped
 metaengine/func Serialize
 metaengine/func SerializeToJSON
@@ -1677,6 +1678,7 @@ metaengine/interface PushdownScan
 metaengine/interface RawScanReader
 metaengine/interface RawValueReader
 metaengine/interface RecordAwareFold
+metaengine/interface RowQuerier
 metaengine/interface ScanBackend
 metaengine/interface SearchBackend
 metaengine/interface SetBackend
