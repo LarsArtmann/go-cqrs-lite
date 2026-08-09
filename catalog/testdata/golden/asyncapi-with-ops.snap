@@ -146,8 +146,7 @@
           {
             "name": "commands"
           }
-        ],
-        "deprecated": false
+        ]
       },
       "event.OrderCreated": {
         "name": "OrderCreated",
@@ -161,8 +160,7 @@
           {
             "name": "events"
           }
-        ],
-        "deprecated": false
+        ]
       },
       "query.GetOrder": {
         "name": "GetOrder",
@@ -176,8 +174,7 @@
           {
             "name": "queries"
           }
-        ],
-        "deprecated": false
+        ]
       }
     }
   }

@@ -29,8 +29,8 @@ var ErrNoFoldForEventType = errors.New("projectionadapter: no fold registered fo
 // For Counter/Set queries that don't need the entity ID, use the payload
 // type directly (the fold handler can accept the raw payload).
 type EventWithID[P any] struct {
-	ID        string
-	Payload   P
+	ID         string
+	Payload    P
 	OccurredAt time.Time
 }
 

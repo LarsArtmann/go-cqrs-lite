@@ -82,7 +82,7 @@ type Message struct {
 	Payload     Ref       `json:"payload"              yaml:"payload"`
 	Tags        []Tag     `json:"tags,omitempty"       yaml:"tags,omitempty"`
 	Examples    []Example `json:"examples,omitempty"   yaml:"examples,omitempty"`
-	Deprecated  bool      `json:"deprecated,omitzero" yaml:"deprecated,omitzero"`
+	Deprecated  bool      `json:"deprecated,omitzero" yaml:"deprecated,omitempty"`
 }
 
 // Example provides an example payload for a message.
