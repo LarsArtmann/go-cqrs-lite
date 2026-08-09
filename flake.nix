@@ -535,6 +535,69 @@
             '';
           };
 
+          # Dgraph Zero+Alpha VM test: verify distributed graph DB boots and serves DQL.
+          # This validates the dgraphengine integration path (DQL queries, mutations).
+          dgraphTest = pkgs.testers.runNixOSTest {
+            name = "dgraph-health";
+
+            nodes.machine =
+              { pkgs, ... }:
+              {
+                systemd.services.dgraph-zero = {
+                  description = "Dgraph Zero (RAFT coordinator)";
+                  wantedBy = [ "multi-user.target" ];
+                  after = [ "network.target" ];
+                  serviceConfig = {
+                    ExecStart = "${pkgs.dgraph}/bin/dgraph zero --my=127.0.0.1:5080 --idx=1 --postings /var/lib/dgraph-zero/p --wal /var/lib/dgraph-zero/w";
+                    StateDirectory = "dgraph-zero";
+                    Restart = "on-failure";
+                  };
+                };
+
+                systemd.services.dgraph-alpha = {
+                  description = "Dgraph Alpha (graph database)";
+                  wantedBy = [ "multi-user.target" ];
+                  after = [
+                    "network.target"
+                    "dgraph-zero.service"
+                  ];
+                  requires = [ "dgraph-zero.service" ];
+                  serviceConfig = {
+                    ExecStart = "${pkgs.dgraph}/bin/dgraph alpha --my=127.0.0.1:7080 --zero=127.0.0.1:5080 --postings /var/lib/dgraph-alpha/p --wal /var/lib/dgraph-alpha/w --security whitelist=0.0.0.0/0";
+                    StateDirectory = "dgraph-alpha";
+                    Restart = "on-failure";
+                  };
+                };
+
+                environment.systemPackages = [ pkgs.curl ];
+              };
+
+            testScript = ''
+              machine.start()
+              machine.wait_for_unit("multi-user.target")
+
+              # Wait for Dgraph Alpha HTTP API to be ready
+              machine.wait_until_succeeds("curl -sf http://127.0.0.1:8080/health | grep -q healthy", timeout=60)
+
+              # Mutate: insert a test node
+              machine.succeed(
+                "curl -sf -X POST http://127.0.0.1:8080/mutate?commitNow=true "
+                "-H 'Content-Type: application/rdf' "
+                "-d '{ set { _:cqrs <name> \"dgraph-vm-test\" . } }'"
+              )
+
+              # Query: verify the node exists
+              result = machine.succeed(
+                "curl -sf -X POST http://127.0.0.1:8080/query "
+                "-H 'Content-Type: application/dql' "
+                "-d '{ cqrs(func: has(name)) { name } }'"
+              )
+              assert "dgraph-vm-test" in result, f"DQL query failed: {result}"
+
+              print("Dgraph health verified (Zero+Alpha, DQL mutate+query)")
+            '';
+          };
+
           benchstat = pkgs.buildGoModule {
             pname = "benchstat";
             version = "unstable-2026-06-14";
@@ -621,6 +684,8 @@
             duckdb-vm = duckdbTest;
             # Turso libSQL server health (remote sync path).
             turso-vm = tursoTest;
+            # Dgraph distributed graph DB health (Zero+Alpha, DQL).
+            dgraph-vm = dgraphTest;
           };
 
           # No-op default package so `nix build .` (BuildFlow's full mode) succeeds.

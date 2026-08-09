@@ -307,7 +307,10 @@ func TestSystem_GracefulClose_DrainError_NoClose(t *testing.T) {
 	defer mu.Unlock()
 
 	if closeCount != 0 {
-		t.Errorf("engine should NOT be closed on drain error, but Close was called %d times", closeCount)
+		t.Errorf(
+			"engine should NOT be closed on drain error, but Close was called %d times",
+			closeCount,
+		)
 	}
 }
 
