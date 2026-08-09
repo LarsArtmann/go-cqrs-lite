@@ -1341,12 +1341,15 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `metaengine/sqliteengine`        | `…/metaengine/sqliteengine/v4`        | 🧪 Experimental (SQLite engine extracted from core — ADR-0115. Unpublished, untagged)                                                                      |
 | `metaengine/graphadapter`        | `…/metaengine/graphadapter/v4`        | 🧪 Experimental (wraps graph.MemoryDriver as Engine — ADR-0113. Unpublished, untagged)                                                                     |
 | `metaengine/badgerengine`        | `…/metaengine/badgerengine/v4`        | 🧪 Experimental (Badger LSM engine: MapBackend, ScanBackend, Calibratable. ADR-0118)                                                                       |
-| `metaengine/dgraphengine`        | `…/metaengine/dgraphengine/v4`        | 🧪 Experimental (Dgraph distributed graph backend via dgo + DQL. ADR-0119. v4.0.1 tagged)                                                                |
+| `metaengine/dgraphengine`        | `…/metaengine/dgraphengine/v4`        | 🧪 Experimental (Dgraph distributed graph backend via dgo + DQL. ADR-0119. v4.0.2 tagged)                                                                |
 | `record`                         | `…/record/v4`                         | 🧪 Experimental (shared Record + CommonMetadata + StreamRef — zero deps. ADR-0111)                                                                         |
 | `metaengine/pebbleengine`        | `…/metaengine/pebbleengine/v4`        | 🧪 Experimental (Pebble LSM engine: MapBackend, ScanBackend, LayoutPlanner, sort index)                                                                    |
 | `metaengine/duckdbengine`        | `…/metaengine/duckdbengine/v4`        | 🧪 Experimental (DuckDB columnar engine: MapBackend, CounterBackend, PushdownScan. CGo)                                                                    |
 | `metaengine/pgengine`            | `…/metaengine/pgengine/v4`            | 🧪 Experimental (Postgres engine: MapBackend, CounterBackend, ScanBackend, PushdownScan, LayoutPlanner. Pure Go)                                           |
 | `metaengine/adttest`             | `…/metaengine/adttest/v4`             | 🧪 Test harness (RunMatrix cross-engine parity for 10 ADTs)                                                                                                |
+| `metaengine/enginetest`           | `…/metaengine/enginetest/v4`           | 🧪 Test harness (RunMatrix, RunTransactionalTest, RunStreamLogBackendTest, RunAtomicAppenderTest)                                                          |
+| `metaengine/keycodec`             | `…/metaengine/keycodec/v4`             | 🧪 Utility (composite key encoding/decoding for LSM backends — Badger, Pebble)                                                                              |
+| `metaengine/bench`                | `…/metaengine/bench/v4`                | 🧪 Benchmarks (cross-engine: DuckDB columnar extraction, parity tests, planner/layout/materialize benchmarks)                                              |
 | `metaengine/irohengine`          | `…/metaengine/irohengine/v4`          | 🧪 Experimental (Iroh Level 2 CRDT replication wrapper. In-process Network mock simulates P2P sync)                                                        |
 | `metaengine/irohengine/quic`     | `…/metaengine/irohengine/quic/v4`     | 🧪 Experimental (real QUIC FFI transport via iroh-go C bindings. CGo required)                                                                             |
 | `metaengine/irohengine/loopback` | `…/metaengine/irohengine/loopback/v4` | 🧪 Experimental (real TCP transport with length-prefix framing. NO CGo)                                                                                    |
@@ -1363,7 +1366,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Guarantee              | Detail                                                                                                                            |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Lint posture           | `nix run .#lint` passes across all modules. `nix run .#verify` runs build + vet + test + race + lint + api-stability + doc-check. |
+| Lint posture           | `nix run .#lint` passes across all modules. `nix run .#verify` runs build + vet + test + race + lint + api-stability + doc-check + check-arch (two-layer architecture enforcement). |
 | Race-free              | `go test -race` passes across all modules                                                                                         |
 | Multi-module isolation | Each module has independent `go.mod`, no circular dependencies                                                                    |
 | Strong types           | `event.Event` is a concrete type alias (`= *ImmutableEvent`); core store/bus are interfaces for DI                                |
