@@ -113,7 +113,6 @@ func (s *System) orderedNamedEngines() []namedEngine {
 	return result
 }
 
-
 // RegisterDrainer registers a [Drainer] that will be called by [System.GracefulClose]
 // before [System.Close]. Use this to ensure in-flight work (e.g., event subscribers,
 // HTTP handlers) completes before infrastructure connections are dropped.

@@ -511,3 +511,30 @@ The `release.yml` workflow triggers on any tag matching `v*` or `*/v*`. It:
 1. Auto-discovers all modules from `go.work`
 2. Builds, tests (with `-race`), and runs `govulncheck` on each module independently (GOWORK=off)
 3. Creates a GitHub Release with auto-generated notes
+
+### GitHub Actions SHA Pinning Policy
+
+Third-party GitHub Actions in `.github/workflows/` MUST be pinned to a
+full 40-character commit SHA, not a tag or branch name:
+
+```yaml
+# GOOD — SHA-pinned (immutable, reproducible, auditable)
+uses: actions/checkout@8e5e7e5cb8c3156cbe153f3146d5f156158096d5
+
+# BAD — tag-pinned (mutable: a tag can be moved by the maintainer)
+uses: actions/checkout@v4
+
+# BAD — branch-pinned (tracks HEAD, non-reproducible)
+uses: actions/checkout@main
+```
+
+**Why:** Supply-chain attacks on GitHub Actions (e.g., tj-actions/changed-files
+in March 2025) demonstrate that tag-based pins are mutable and exploitable. A
+compromised maintainer account can silently move a tag to a malicious commit.
+SHA pins make the dependency immutable — the SHA can only change via a PR that
+updates the hash, providing full audit trail.
+
+**Exemption:** `actions/*` first-party actions from GitHub are exempt when
+pinned to a major version tag (`@v4`), because GitHub's own release pipeline
+governs those tags. All third-party actions (any non-`actions/` repo) MUST use
+SHA pins.

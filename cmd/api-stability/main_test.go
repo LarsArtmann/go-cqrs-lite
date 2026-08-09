@@ -128,12 +128,12 @@ func TestEveryGoModDirIsInTestModules(t *testing.T) {
 	// Directories intentionally excluded (same set as the Nix check-modules app
 	// and TestEveryGoModDirIsInModulesList).
 	excluded := map[string]string{
-		".":                 "root workspace go.mod",
-		"integration":       "workspace-only cross-module tests",
-		"example/getting-started": "example application",
+		".":                             "root workspace go.mod",
+		"integration":                   "workspace-only cross-module tests",
+		"example/getting-started":       "example application",
 		"example/metaengine-quickstart": "example application",
-		"example/readme-quickstart": "example application",
-		"example/taskmanager": "example application",
+		"example/readme-quickstart":     "example application",
+		"example/taskmanager":           "example application",
 	}
 
 	err = filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {

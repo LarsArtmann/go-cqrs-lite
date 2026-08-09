@@ -50,7 +50,12 @@ func NewC031Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							continue
 						}
 
-						scanHandlerBodyForSwallowedError(ctx, lit.Body, funcHasNamedReturns(lit.Type), &findings)
+						scanHandlerBodyForSwallowedError(
+							ctx,
+							lit.Body,
+							funcHasNamedReturns(lit.Type),
+							&findings,
+						)
 					}
 
 					return true
