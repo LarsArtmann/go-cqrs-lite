@@ -13,6 +13,7 @@ package main
 import (
 	"context"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"log"
 
@@ -21,6 +22,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
+
+const demoTaskID = "task-1"
+
+var errUnknownEventType = errors.New("unknown event type")
 
 // ── Domain Events ──
 
@@ -56,6 +61,12 @@ type TaskQuery struct {
 }
 
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
 	ctx := context.Background()
 
 	// 1. Auto-generate CRUD folds by naming convention — zero boilerplate.
@@ -63,7 +74,7 @@ func main() {
 		TaskCreated{}, TaskUpdated{}, TaskDeleted{},
 	)
 	if err != nil {
-		log.Fatalf("AutoCRUDByConvention: %v", err)
+		return fmt.Errorf("AutoCRUDByConvention: %w", err)
 	}
 
 	foldArgs := make([]any, len(folds))
@@ -79,9 +90,10 @@ func main() {
 		query,
 	)
 	if err != nil {
-		log.Fatalf("Plan: %v", err)
+		return fmt.Errorf("plan: %w", err)
 	}
-	defer store.Close()
+
+	defer func() { _ = store.Close() }()
 
 	// 3. Wire the projection adapter — this bridges event.Event → record.Record.
 	decoder := func(eventType string, payload []byte) (any, error) {
@@ -99,7 +111,7 @@ func main() {
 
 			return e, json.Unmarshal(payload, &e)
 		default:
-			return nil, fmt.Errorf("unknown event type: %s", eventType)
+			return nil, fmt.Errorf("%w: %s", errUnknownEventType, eventType)
 		}
 	}
 
@@ -111,32 +123,37 @@ func main() {
 
 	// Create
 	createPayload, _ := json.Marshal(
-		TaskCreated{ID: "task-1", Title: "Build metaengine app", Status: "open"},
+		TaskCreated{ID: demoTaskID, Title: "Build metaengine app", Status: "open"},
 	)
 
 	createEvt, _ := event.New("TaskCreated", streamID, "Task", event.Version(1), createPayload,
 		event.WithCorrelationID(correlationID),
 	)
 	if err := adapter.Handle(ctx, createEvt); err != nil {
-		log.Fatalf("Handle create: %v", err)
+		return fmt.Errorf("handle create: %w", err)
 	}
 
 	// Update
 	updatePayload, _ := json.Marshal(
-		TaskUpdated{ID: "task-1", Title: "Build metaengine app", Status: "in_progress"},
+		TaskUpdated{ID: demoTaskID, Title: "Build metaengine app", Status: "in_progress"},
 	)
 
-	updateEvt, _ := event.New("TaskUpdated", streamID, "Task", event.Version(2), updatePayload,
+	updateEvt, _ := event.New(
+		"TaskUpdated",
+		streamID,
+		"Task",
+		event.Version(2), //nolint:mnd // sequential stream position
+		updatePayload,
 		event.WithCorrelationID(correlationID),
 	)
 	if err := adapter.Handle(ctx, updateEvt); err != nil {
-		log.Fatalf("Handle update: %v", err)
+		return fmt.Errorf("handle update: %w", err)
 	}
 
 	// 5. Query the result — Record metadata is auto-stamped.
-	result, err := metaengine.ExecuteTyped[TaskQuery, TaskView](ctx, store, TaskQuery{ID: "task-1"})
+	result, err := metaengine.ExecuteTyped[TaskQuery, TaskView](ctx, store, TaskQuery{ID: demoTaskID})
 	if err != nil {
-		log.Fatalf("ExecuteTyped: %v", err)
+		return fmt.Errorf("ExecuteTyped: %w", err)
 	}
 
 	fmt.Printf("Task: %+v\n", result)
@@ -145,15 +162,23 @@ func main() {
 	fmt.Printf("  CorrelationID: %s (auto-stamped from Record)\n", result.CorrelationID)
 
 	// 6. Delete
-	deletePayload, _ := json.Marshal(TaskDeleted{ID: "task-1"})
+	deletePayload, _ := json.Marshal(TaskDeleted{ID: demoTaskID})
 
-	deleteEvt, _ := event.New("TaskDeleted", streamID, "Task", event.Version(3), deletePayload)
+	deleteEvt, _ := event.New(
+		"TaskDeleted",
+		streamID,
+		"Task",
+		event.Version(3), //nolint:mnd // sequential stream position
+		deletePayload,
+	)
 	if err := adapter.Handle(ctx, deleteEvt); err != nil {
-		log.Fatalf("Handle delete: %v", err)
+		return fmt.Errorf("handle delete: %w", err)
 	}
 
-	_, err = metaengine.ExecuteTyped[TaskQuery, TaskView](ctx, store, TaskQuery{ID: "task-1"})
+	_, err = metaengine.ExecuteTyped[TaskQuery, TaskView](ctx, store, TaskQuery{ID: demoTaskID})
 	if err != nil {
 		fmt.Printf("\nAfter delete: %v (expected not-found error)\n", err)
 	}
+
+	return nil
 }

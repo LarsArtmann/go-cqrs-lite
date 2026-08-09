@@ -34,6 +34,7 @@ const (
 	httpReadHeaderSecs   = 5
 	shutdownTimeoutSecs  = 30
 	projectionSettleMs   = 100
+	primaryEngine        = "primary"
 )
 
 // Server holds the System and HTTP lifecycle. Infrastructure (event store,
@@ -47,7 +48,6 @@ type Server struct {
 	Logger       *slog.Logger
 	otelProvider *cqrsotel.Provider
 	signer       signing.SignerVerifier
-	idemStore    idempotency.Store
 	httpServer   *http.Server
 	sseBroker    *cqrshttp.SSEBroker
 }
@@ -96,7 +96,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 
 	const idempotencyTTL = 10 * time.Minute
 
-	commandMW := []command.Middleware{
+	commandMW := []command.Middleware{ //nolint:prealloc // small fixed set + append
 		middleware.CommandRecovery(),
 		middleware.CommandLogging(logger),
 		middleware.CommandRetry(middleware.DefaultRetryConfig()),
@@ -124,15 +124,15 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	// ── Build deployment config ──────────────────────────────────────────
 	deployment := system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{
-			"primary": {
+			primaryEngine: {
 				Driver:  "sqlite",
 				DSN:     cfg.DatabasePath,
 				Pragmas: []string{"journal_mode=wal"},
 			},
 		},
 		Instances: []system.InstanceConfig{
-			{Role: system.RoleSourceOfTruth, Engine: "primary"},
-			{Role: system.RoleProjections, Engine: "primary"},
+			{Role: system.RoleSourceOfTruth, Engine: primaryEngine},
+			{Role: system.RoleProjections, Engine: primaryEngine},
 		},
 	}
 

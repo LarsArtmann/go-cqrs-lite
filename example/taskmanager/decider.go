@@ -496,7 +496,7 @@ func RemoveBlocker(cmd UnblockBy) decider.DecideFunc[TaskState] {
 	}
 }
 
-// DeleteTask command — soft-delete via tombstone metadata.
+// DeleteTask command — emits a domain deletion event (ADR-0114).
 type DeleteTask struct {
 	ID TaskID
 }
@@ -527,17 +527,7 @@ func Delete(cmd DeleteTask) decider.DecideFunc[TaskState] {
 			)
 		}
 
-		marked, markErr := event.MarkTombstone(evt)
-		if markErr != nil {
-			return nil, errorfamily.Newf(
-				errorfamily.Infrastructure,
-				"task.delete.tombstone",
-				"mark: %v",
-				markErr,
-			)
-		}
-
-		return []event.Event{marked}, nil
+		return []event.Event{evt}, nil
 	}
 }
 

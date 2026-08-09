@@ -88,10 +88,10 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 		t.Errorf("status: got %q, want %q", view.Status, StatusCompleted)
 	}
 
-	// ── Delete the task (tombstone) ───────────────────────────────────
-	// The tombstone event flows through the bus to the projection,
-	// which sets Tombstoned=true on the view. We verify BOTH the
-	// read-model projection AND the event-store metadata.
+	// ── Delete the task ───────────────────────────────────────────────
+	// The TaskDeleted event flows through the bus to the projection,
+	// which removes the view (metaengine.Remove). We verify the event
+	// was persisted with the correct type.
 	if err := srv.CmdDisp.Dispatch(ctx, DeleteTaskCmd{
 		BasicCommand: gomust.Must(command.New(cmdDeleteTask, taskID)),
 	}); err != nil {
@@ -101,7 +101,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 	// Verify the projection reflects the deletion (metaengine removes the entry).
 	waitForViewRemoved(t, srv, taskID)
 
-	// Verify the event store persisted correct tombstone metadata.
+	// Verify the event store persisted the deletion event.
 	ref := id.NewStreamRef(streamType, taskID)
 	allEvents, err := srv.Sys.EventStore().Load(ctx, ref)
 	if err != nil {
@@ -111,11 +111,6 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 	last := allEvents[len(allEvents)-1]
 	if last.Type() != evtTaskDeleted {
 		t.Errorf("last event type: got %s, want %s", last.Type(), evtTaskDeleted)
-	}
-
-	if md := last.Metadata(); md.Tombstone == nil ||
-		!md.Tombstone.Status.IsTombstoned() {
-		t.Error("last event should have tombstone=tombstoned metadata")
 	}
 }
 

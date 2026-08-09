@@ -179,7 +179,6 @@ func TestDecider_DeleteTask(t *testing.T) {
 		t.Parallel()
 
 		deleted := mustEvt(evtTaskDeleted, taskID, TaskDeletedPayload{})
-		deleted, _ = event.MarkTombstone(deleted)
 
 		scenario.Given[DeleteTask, TaskState](t, applyTask, TaskState{}, created, deleted).
 			When(DeleteTask{ID: taskID},
