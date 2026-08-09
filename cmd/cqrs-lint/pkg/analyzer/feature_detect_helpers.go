@@ -149,6 +149,18 @@ func scanASTCalls(
 		}
 
 		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			// Check for http.Server{} / http3.Server{} struct literal
+			// (strong server signal — consumers configure the server struct
+			// directly instead of calling http.ListenAndServe).
+			if lit, ok := n.(*ast.CompositeLit); ok {
+				if sel, ok := SelectorFromExpr(lit.Type); ok && sel.Sel.Name == "Server" {
+					pkgName := SelectorPackage(sel)
+					if strings.Contains(pkgName, "http") {
+						fp.HasServer = true
+					}
+				}
+			}
+
 			call, ok := n.(*ast.CallExpr)
 			if !ok {
 				return true

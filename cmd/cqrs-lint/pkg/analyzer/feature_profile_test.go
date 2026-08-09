@@ -458,6 +458,27 @@ func serve() {
 	}
 }
 
+func TestDetectFeatures_HttpServerStructLiteral(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "net/http"
+
+func serve() {
+	srv := &http.Server{Addr: ":8080", Handler: mux}
+	registerServer(srv)
+}
+`,
+	})
+
+	fp := DetectFeatures(ctx)
+	if !fp.HasServer {
+		t.Error("http.Server{} struct literal should detect HasServer=true")
+	}
+}
+
 func TestDetectFeatures_Tracing(t *testing.T) {
 	t.Parallel()
 
