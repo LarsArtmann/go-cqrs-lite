@@ -6,7 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Changed — docs-health audit: TODO_LIST/FEATURES/ROADMAP rebuilt, historical reports archived — 2026-08-09
+### Added — cqrs-lint v4.6.0 release notes
+
+cqrs-lint v4.6.0 ships 202 rules across 10 categories (correctness, API misuse,
+boilerplate, consistency, architecture, security, performance, version, testing,
+adoption), built on go-finding + cmdguard. Key capabilities:
+
+- **Feature profile system**: auto-detects which go-cqrs-lite modules a consumer
+  uses (store, command-flow, server, server-local, soft-delete, tracing, snapshot,
+  transport) and adapts context-dependent rules. Metaengine-aware detection
+  (F018-F026: manual filtering/sort/pagination/aggregation without pushdown).
+  `cqrs-lint doctor` prints the detected profile.
+- **Config presets** (5): `local-cli`, `production`, `library`,
+  `library-framework` (disables all adoption-coaching F-series rules), `read-only`.
+  Single source of truth (`PresetDefinitions` map); both `init` and runtime read
+  from it. Warns on unknown preset names and unknown disabled rule IDs.
+- **Subcommands**: `version` (`--verbose`), `rules`, `doctor`, `scorecard`
+  (bilateral module-adoption scorecard), `explain` (interactive config/rules/
+  presets docs), `init` (config-file generator), `changelog`.
+- **Output formats**: Text (default, grouped by module/aggregate), JSON, SARIF
+  (GitHub Security tab), Markdown.
+- **CLI flags**: `--min-confidence`, `--health-score`, `--strict-load`,
+  `--verbose`, `--group-by` (none/module/aggregate), `--color`, struct-tag flags.
+- **Library self-lint mode**: `IsLibrarySelfLint()` auto-skips consumer-coaching
+  rules when linting go-cqrs-lite source itself.
+- **C008 config overrides**: `c008-ignore-fields` (case-insensitive) and
+  `c008-ignore-structs` (skip entire structs).
+- **C038/C039/C040**: event-type mismatch + dead-fold-case detection.
+- **B029-B031**: resilience rules (missing retry/circuit-breaker/DLQ) gated on
+  HasServer.
+- **F027-F029**: observability rules (OTel SDK init, slog.SetDefault, span
+  creation).
+- **C041-C042**: optimistic concurrency rules.
+- **Suppression**: `cqrs-lint:ignore(RULE)` and `cqrs-lint:disable(RULE)`
+  keywords, line-above and end-of-line.
+
+### Changed — docs-health audit: TODO_LIST/FEATURES/ROADMAP rebuilt — 2026-08-09
 
 - **TODO_LIST.md rebuilt**: removed LogBackend split-brain (item was both open
   AND declined — removed the open duplicate, kept the declined rationale);
