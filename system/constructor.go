@@ -43,7 +43,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	if len(domain.Projections) > 0 {
 		var buildErr error
 
-		processedProjections, autoEventDecoder, buildErr = buildProjections(domain.Projections)
+		processedProjections, autoEventDecoder, buildErr = buildProjections(domain.Evolutions, domain.Projections)
 		if buildErr != nil {
 			return nil, fmt.Errorf("system: build projections: %w", buildErr)
 		}

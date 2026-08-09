@@ -29,6 +29,11 @@ type DomainConfig struct {
 	// []any slice: stray strings, nils, or typos are now compile-time errors.
 	Projections []ProjectionDeclaration
 
+	// Evolutions declare how result types materialize from events (the fold).
+	// When present, queries (Lookup, QuerySet) without their own .On() calls
+	// inherit folds from the matching Evolution by result type.
+	Evolutions []EvolutionSpec
+
 	// ProjectionDecoder decodes event payloads for the projection fold handlers.
 	// If nil, events are decoded as generic JSON (map[string]any).
 	//
