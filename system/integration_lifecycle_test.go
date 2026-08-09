@@ -62,7 +62,7 @@ func TestIntegration_SQLiteSource_MemoryProjection_HealthCheck(t *testing.T) {
 						})
 				})
 		},
-		Projections: []system.ProjectionDeclaration{system.RawQuery(taskViewQuery)},
+		Projections:       []system.ProjectionDeclaration{system.RawQuery(taskViewQuery)},
 		ProjectionDecoder: projectionDecoder,
 	}
 

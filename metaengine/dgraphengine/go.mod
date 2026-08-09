@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/dgraph-io/dgo/v240 v240.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.7.0
 	google.golang.org/grpc v1.83.0
 )
 

@@ -70,10 +70,17 @@ func (b *lookupBuilder[R]) Done() ProjectionDeclaration {
 					return nil, nil, err
 				}
 
-				return buildQueryFromFolds[LookupInput[string], R](name, folds, evolutionDecoderEntries(evo))
+				return buildQueryFromFolds[LookupInput[string], R](
+					name,
+					folds,
+					evolutionDecoderEntries(evo),
+				)
 			}
 
-			return nil, nil, fmt.Errorf("system: projection %q: no samples and no matching evolution", name)
+			return nil, nil, fmt.Errorf(
+				"system: projection %q: no samples and no matching evolution",
+				name,
+			)
 		},
 	}
 }
@@ -188,7 +195,10 @@ func (b *querySetBuilder[R]) Done() ProjectionDeclaration {
 				return query, evolutionDecoderEntries(evo), nil
 			}
 
-			return nil, nil, fmt.Errorf("system: projection %q: no samples and no matching evolution", name)
+			return nil, nil, fmt.Errorf(
+				"system: projection %q: no samples and no matching evolution",
+				name,
+			)
 		},
 	}
 }

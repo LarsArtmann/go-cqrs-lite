@@ -71,7 +71,7 @@ func TestSystem_ProjectionTypeDecoder_MapByKey(t *testing.T) {
 						})
 				})
 		},
-		Projections: []system.ProjectionDeclaration{system.RawQuery(itemQuery)},
+		Projections:           []system.ProjectionDeclaration{system.RawQuery(itemQuery)},
 		ProjectionTypeDecoder: dec,
 	}
 
@@ -183,7 +183,7 @@ func TestSystem_ProjectionEventDecoder(t *testing.T) {
 						})
 				})
 		},
-		Projections: []system.ProjectionDeclaration{system.RawQuery(itemQuery)},
+		Projections:            []system.ProjectionDeclaration{system.RawQuery(itemQuery)},
 		ProjectionEventDecoder: customDecoder,
 	}
 

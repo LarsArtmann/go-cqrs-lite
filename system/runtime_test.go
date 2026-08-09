@@ -19,8 +19,8 @@ type RuntimeCreated struct {
 }
 
 type RuntimeUpdated struct {
-	ID       string
-	Status   string
+	ID     string
+	Status string
 }
 
 type RuntimeDeleted struct {
@@ -139,9 +139,21 @@ func TestSystem_Runtime_Find(t *testing.T) {
 
 	store := sys.MetaEngine()
 
-	_ = store.Apply(ctx, "rt.created", RuntimeCreated{ID: "1", Title: "A", Status: "open", Priority: 1})
-	_ = store.Apply(ctx, "rt.created", RuntimeCreated{ID: "2", Title: "B", Status: "done", Priority: 3})
-	_ = store.Apply(ctx, "rt.created", RuntimeCreated{ID: "3", Title: "C", Status: "open", Priority: 5})
+	_ = store.Apply(
+		ctx,
+		"rt.created",
+		RuntimeCreated{ID: "1", Title: "A", Status: "open", Priority: 1},
+	)
+	_ = store.Apply(
+		ctx,
+		"rt.created",
+		RuntimeCreated{ID: "2", Title: "B", Status: "done", Priority: 3},
+	)
+	_ = store.Apply(
+		ctx,
+		"rt.created",
+		RuntimeCreated{ID: "3", Title: "C", Status: "open", Priority: 5},
+	)
 
 	// All results.
 	all, err := system.Find[RuntimeView](ctx, sys, "rt_set")

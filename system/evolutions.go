@@ -215,7 +215,11 @@ func buildEvolutionFolds[R any](evo *evolutionSpec) ([]metaengine.Fold, error) {
 }
 
 // buildQueryFromFolds creates a metaengine.Query from fold functions and decoder entries.
-func buildQueryFromFolds[Q any, R any](name string, folds []metaengine.Fold, entries []decoderEntry) (any, []decoderEntry, error) {
+func buildQueryFromFolds[Q any, R any](
+	name string,
+	folds []metaengine.Fold,
+	entries []decoderEntry,
+) (any, []decoderEntry, error) {
 	foldArgs := make([]any, len(folds))
 	for i, f := range folds {
 		foldArgs[i] = f

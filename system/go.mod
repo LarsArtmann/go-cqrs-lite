@@ -12,12 +12,13 @@ require (
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0
@@ -74,7 +75,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect

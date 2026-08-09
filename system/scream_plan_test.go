@@ -333,7 +333,9 @@ func TestSystem_ManifestPath_BlocksOnRemovedQuery(t *testing.T) {
 		ManifestPath: manifestPath,
 	}
 
-	domain1 := system.DomainConfig{Projections: []system.ProjectionDeclaration{system.RawQuery(proj1), system.RawQuery(proj2)}}
+	domain1 := system.DomainConfig{
+		Projections: []system.ProjectionDeclaration{system.RawQuery(proj1), system.RawQuery(proj2)},
+	}
 
 	sys1, err := system.New(context.Background(), domain1, deployment)
 	if err != nil {
@@ -343,7 +345,9 @@ func TestSystem_ManifestPath_BlocksOnRemovedQuery(t *testing.T) {
 	sys1.Close()
 
 	// Second deployment — removes proj2 ("items"), should SCREAM.
-	domain2 := system.DomainConfig{Projections: []system.ProjectionDeclaration{system.RawQuery(proj1)}}
+	domain2 := system.DomainConfig{
+		Projections: []system.ProjectionDeclaration{system.RawQuery(proj1)},
+	}
 
 	_, err = system.New(context.Background(), domain2, deployment)
 	if err == nil {
