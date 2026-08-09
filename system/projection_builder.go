@@ -32,8 +32,9 @@ type ProjectionDeclaration interface {
 // [QuerySet], or [Count]. It carries a build closure that generates the query
 // declaration and decoder entries when system.New() processes it.
 type ProjectionSpec struct {
-	name string
-	build func() (queryDecl any, decoderEntries []decoderEntry, err error)
+	name       string
+	resultType reflect.Type
+	build      func(evoIndex map[reflect.Type]*evolutionSpec) (queryDecl any, decoderEntries []decoderEntry, err error)
 }
 
 func (ProjectionSpec) isProjectionDeclaration() {}
@@ -65,14 +66,27 @@ type eventDecoderFn func(evt event.Event) (any, error)
 // DomainConfig.Projections. It type-switches on the sealed interface to
 // separate auto-generated ProjectionSpec values from raw QueryDecl passthroughs.
 func buildProjections(
+	evolutions []EvolutionSpec,
 	decls []ProjectionDeclaration,
 ) (queryDecls []any, eventDecoder eventDecoderFn, err error) {
+	evoIndex := make(map[reflect.Type]*evolutionSpec)
+	for _, e := range evolutions {
+		es, ok := e.(*evolutionSpec)
+		if !ok {
+			return nil, nil, fmt.Errorf(
+				"system: unreachable: unknown EvolutionSpec %T", e,
+			)
+		}
+
+		evoIndex[es.resultType] = es
+	}
+
 	var allEntries []decoderTypeEntry
 
 	for _, decl := range decls {
 		switch d := decl.(type) {
 		case ProjectionSpec:
-			queryDecl, entries, buildErr := d.build()
+			queryDecl, entries, buildErr := d.build(evoIndex)
 			if buildErr != nil {
 				return nil, nil, buildErr
 			}

@@ -30,8 +30,8 @@ type DomainConfig struct {
 	Projections []ProjectionDeclaration
 
 	// Evolutions declare how result types materialize from events (the fold).
-	// When present, queries (Lookup, QuerySet) without their own .On() calls
-	// inherit folds from the matching Evolution by result type.
+	// Projections without their own samples inherit folds from the matching
+	// Evolution by result type.
 	Evolutions []EvolutionSpec
 
 	// ProjectionDecoder decodes event payloads for the projection fold handlers.

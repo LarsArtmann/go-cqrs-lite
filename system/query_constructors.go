@@ -2,6 +2,7 @@ package system
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -52,12 +53,27 @@ func (b *lookupBuilder[R]) Done() ProjectionDeclaration {
 	}
 
 	name := b.name
+	rt := reflect.TypeFor[R]()
 	samplesCopy := append([]metaengine.NamedSample(nil), b.samples...)
 
 	return ProjectionSpec{
-		name: name,
-		build: func() (any, []decoderEntry, error) {
-			return buildCRUDQuery[LookupInput[string], R](name, keyField, samplesCopy)
+		name:       name,
+		resultType: rt,
+		build: func(evoIndex map[reflect.Type]*evolutionSpec) (any, []decoderEntry, error) {
+			if len(samplesCopy) > 0 {
+				return buildCRUDQuery[LookupInput[string], R](name, keyField, samplesCopy)
+			}
+
+			if evo, ok := evoIndex[rt]; ok {
+				folds, err := buildEvolutionFolds[R](evo)
+				if err != nil {
+					return nil, nil, err
+				}
+
+				return buildQueryFromFolds[LookupInput[string], R](name, folds, evolutionDecoderEntries(evo))
+			}
+
+			return nil, nil, fmt.Errorf("system: projection %q: no samples and no matching evolution", name)
 		},
 	}
 }
@@ -132,13 +148,15 @@ func (b *querySetBuilder[R]) Done() ProjectionDeclaration {
 	}
 
 	name := b.name
+	rt := reflect.TypeFor[R]()
 	samplesCopy := append([]metaengine.NamedSample(nil), b.samples...)
 	filterCopy := append([]string(nil), b.filterable...)
 	sortCopy := append([]sortSpec(nil), b.sortFields...)
 
 	return ProjectionSpec{
-		name: name,
-		build: func() (any, []decoderEntry, error) {
+		name:       name,
+		resultType: rt,
+		build: func(evoIndex map[reflect.Type]*evolutionSpec) (any, []decoderEntry, error) {
 			opts := make([]any, 0, len(filterCopy)+len(sortCopy))
 
 			for _, f := range filterCopy {
@@ -149,7 +167,28 @@ func (b *querySetBuilder[R]) Done() ProjectionDeclaration {
 				opts = append(opts, metaengine.SortOnField[R](s.field, s.desc))
 			}
 
-			return buildCRUDQueryWithOptions[ScanInput, R](name, keyField, samplesCopy, opts)
+			if len(samplesCopy) > 0 {
+				return buildCRUDQueryWithOptions[ScanInput, R](name, keyField, samplesCopy, opts)
+			}
+
+			if evo, ok := evoIndex[rt]; ok {
+				folds, err := buildEvolutionFolds[R](evo)
+				if err != nil {
+					return nil, nil, err
+				}
+
+				args := make([]any, 0, len(folds)+len(opts))
+				for _, f := range folds {
+					args = append(args, f)
+				}
+				args = append(args, opts...)
+
+				query := metaengine.Query[ScanInput, R](name, args...)
+
+				return query, evolutionDecoderEntries(evo), nil
+			}
+
+			return nil, nil, fmt.Errorf("system: projection %q: no samples and no matching evolution", name)
 		},
 	}
 }
@@ -201,8 +240,9 @@ func (b *countBuilder) Done() ProjectionDeclaration {
 	entriesCopy := append([]countEntry(nil), b.entries...)
 
 	return ProjectionSpec{
-		name: name,
-		build: func() (any, []decoderEntry, error) {
+		name:       name,
+		resultType: reflect.TypeFor[map[string]int64](),
+		build: func(_ map[reflect.Type]*evolutionSpec) (any, []decoderEntry, error) {
 			return buildCounterQuery(name, entriesCopy)
 		},
 	}
