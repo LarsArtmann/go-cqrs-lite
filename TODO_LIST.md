@@ -164,6 +164,13 @@ and is **never** duplicated here.
 - [x] **Extract `RunConvergenceSuite(t, factory)`** — shared test harness for
       all 3 transports (~200 lines dedup between in-process, loopback, QUIC).
       _(Effort: M)_
+- [ ] **Add `t.Parallel()` to `TestQuicConvergenceSuite`** — in-process and
+      loopback variants have it; QUIC variant committed without it.
+      _(Effort: S)_
+- [ ] **Run QUIC convergence suite with `-race`** — the highest-concurrency
+      transport, most likely to surface data races; never run under race
+      detector.
+      _(Effort: S)_
 
 ---
 
@@ -272,6 +279,11 @@ and is **never** duplicated here.
 - [x] **Document CHANGELOG release process** — added `tag-release.sh`
       workflow, CHANGELOG-to-tag constraint explanation, and two-layer
       architecture model docs to CONTRIBUTING.md.
+- [ ] 🔥 **Cut CHANGELOG `[Unreleased]` → `[v4.7.0]`** — `TestTagContentMatchesChangelog`
+      requires ≥1 git tag at the version. Needs ≥10 coordinated module tags via
+      `scripts/tag-release.sh` first. Attempted + reverted 2026-08-09 (zero tags
+      at v4.7.0). The `[Unreleased]` section is ~4800 lines.
+      _(Effort: M — run tag-release.sh for changed modules, then cut)_
 
 ---
 
