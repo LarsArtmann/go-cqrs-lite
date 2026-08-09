@@ -2,7 +2,7 @@
 
 package duckdbengine_test
 
-import ( //nolint:gci
+import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"

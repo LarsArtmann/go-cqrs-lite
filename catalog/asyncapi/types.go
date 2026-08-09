@@ -75,13 +75,13 @@ type Components struct {
 
 // Message describes a message type including its schema reference and metadata.
 type Message struct {
-	Name        string    `json:"name"                 yaml:"name"`
-	Title       string    `json:"title"                yaml:"title"`
-	Summary     string    `json:"summary,omitempty"    yaml:"summary,omitempty"`
-	ContentType string    `json:"contentType"          yaml:"contentType"`
-	Payload     Ref       `json:"payload"              yaml:"payload"`
-	Tags        []Tag     `json:"tags,omitempty"       yaml:"tags,omitempty"`
-	Examples    []Example `json:"examples,omitempty"   yaml:"examples,omitempty"`
+	Name        string    `json:"name"                yaml:"name"`
+	Title       string    `json:"title"               yaml:"title"`
+	Summary     string    `json:"summary,omitempty"   yaml:"summary,omitempty"`
+	ContentType string    `json:"contentType"         yaml:"contentType"`
+	Payload     Ref       `json:"payload"             yaml:"payload"`
+	Tags        []Tag     `json:"tags,omitempty"      yaml:"tags,omitempty"`
+	Examples    []Example `json:"examples,omitempty"  yaml:"examples,omitempty"`
 	Deprecated  bool      `json:"deprecated,omitzero" yaml:"deprecated,omitempty"`
 }
 
