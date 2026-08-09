@@ -4,9 +4,11 @@ import (
 	"context"
 	"go/ast"
 	"go/token"
+	"go/types"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
+	"golang.org/x/tools/go/packages"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
@@ -168,10 +170,36 @@ func fileEventQualifiers(gf *analyzer.GoFile) map[string]bool {
 	return quals
 }
 
+// isEventPackageQualifier checks whether a package qualifier refers to the
+// go-cqrs-lite event package. When type info is available, resolves the actual
+// import path via types.Info.Uses for precise detection. Falls back to the
+// qualifier-based map when type info is unavailable.
+func isEventPackageQualifier(
+	pkg *packages.Package,
+	ident *ast.Ident,
+	qualifiers map[string]bool,
+) bool {
+	if pkg != nil && pkg.TypesInfo != nil {
+		use, ok := pkg.TypesInfo.Uses[ident]
+		if !ok {
+			return qualifiers[ident.Name]
+		}
+
+		pkgName, ok := use.(*types.PkgName)
+		if !ok {
+			return false
+		}
+
+		return strings.Contains(pkgName.Imported().Path(), "go-cqrs-lite/event")
+	}
+
+	return qualifiers[ident.Name]
+}
+
 // collectEventNewTypes returns a set of event type strings from event.NewEvent
 // and event.WithType calls in non-test files.
 func collectEventNewTypes(ctx *analyzer.AnalysisContext) map[string]bool {
-	types := make(map[string]bool)
+	result := make(map[string]bool)
 
 	for _, gf := range ctx.GoFiles {
 		if gf.IsTest {
@@ -191,30 +219,34 @@ func collectEventNewTypes(ctx *analyzer.AnalysisContext) map[string]bool {
 				return true
 			}
 
-			pkg, ok := sel.X.(*ast.Ident)
+			pkgIdent, ok := sel.X.(*ast.Ident)
 			if !ok {
 				return true
 			}
 
-			if sel.Sel.Name != "NewEvent" || !eventQualifiers[pkg.Name] {
+			if sel.Sel.Name != "NewEvent" {
+				return true
+			}
+
+			if !isEventPackageQualifier(gf.Pkg, pkgIdent, eventQualifiers) {
 				return true
 			}
 
 			typeName := extractStringArg(call, 0)
 			if typeName != "" {
-				types[typeName] = true
+				result[typeName] = true
 			}
 
 			return true
 		})
 	}
 
-	return types
+	return result
 }
 
 // collectCatalogTypes returns a set of event type strings registered in the catalog.
 func collectCatalogTypes(ctx *analyzer.AnalysisContext) map[string]bool {
-	types := make(map[string]bool)
+	result := make(map[string]bool)
 
 	for _, gf := range ctx.GoFiles {
 		if gf.IsTest {
@@ -233,14 +265,14 @@ func collectCatalogTypes(ctx *analyzer.AnalysisContext) map[string]bool {
 
 			typeName := extractStringArg(call, 0)
 			if typeName != "" {
-				types[typeName] = true
+				result[typeName] = true
 			}
 
 			return true
 		})
 	}
 
-	return types
+	return result
 }
 
 // projectExportsSpecs reports whether any non-test file calls catalog export functions.

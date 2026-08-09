@@ -47,6 +47,27 @@ func isBusName(name string) bool {
 		strings.HasSuffix(name, "disp")
 }
 
+// receiverIsCQRSBus checks whether a method call's receiver is a go-cqrs-lite
+// bus type (event, command, query, or dispatcher). Returns true when type info
+// is unavailable (conservative — assumes yes to avoid false negatives).
+func receiverIsCQRSBus(pkg *packages.Package, sel *ast.SelectorExpr) bool {
+	if pkg == nil || pkg.TypesInfo == nil {
+		return true
+	}
+
+	tv, ok := pkg.TypesInfo.Types[sel.X]
+	if !ok || tv.Type == nil {
+		return true
+	}
+
+	typeStr := tv.Type.String()
+
+	return strings.Contains(typeStr, "cqrs-lite/event/") ||
+		strings.Contains(typeStr, "cqrs-lite/command/") ||
+		strings.Contains(typeStr, "cqrs-lite/query/") ||
+		strings.Contains(typeStr, "cqrs-lite/dispatcher/")
+}
+
 func hasBusMethodCall(ctx *analyzer.AnalysisContext, varName string) bool {
 	busMethodNames := map[string]bool{
 		"Use":           true,
@@ -88,8 +109,10 @@ func hasBusMethodCall(ctx *analyzer.AnalysisContext, varName string) bool {
 			}
 
 			if busMethodNames[sel.Sel.Name] {
-				found = true
-				return false
+				if receiverIsCQRSBus(gf.Pkg, sel) {
+					found = true
+					return false
+				}
 			}
 
 			return true

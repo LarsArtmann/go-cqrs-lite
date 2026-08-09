@@ -62,6 +62,30 @@ func main() {
 	ruletest.AssertRule(t, findings, "B029", 0)
 }
 
+func TestB029_TypeAwareSkipCustomBus(t *testing.T) {
+	t.Parallel()
+
+	ctx, cleanup := analyzer.BuildContextWithTypes(t, "1.26", map[string]string{
+		"main.go": `package main
+
+type CustomBus struct{}
+
+func (c *CustomBus) Use(mw any)     {}
+func (c *CustomBus) Publish(evt any) {}
+
+func main() {
+	bus := &CustomBus{}
+	bus.Use(nil)
+}
+`,
+	})
+	defer cleanup()
+	ctx.FeatureProfile.HasServer = true
+
+	findings := ruletest.RunDetector(t, resilience.NewB029Detector(ctx))
+	ruletest.AssertRule(t, findings, "B029", 0)
+}
+
 func TestB030_BusWithoutCircuitBreaker(t *testing.T) {
 	t.Parallel()
 
