@@ -512,9 +512,10 @@ can try it while v1 paths still work. v5 is the clean cut.
   save ~99% of transform cost under high fan-out.
 - Auto-denormalization in metaengine — planner detects that two queries share
   a common prefix and recommends a denormalized projection to avoid fan-out
-  joins at read time.
+  joins at read time. **→ Subsumed by v5 auto-projection (ADR-0123 Phase 6).**
 - Metaengine plugin registry — third-party engine backends registered at
   runtime without recompiling (operator YAML config for engine selection).
+  **→ Subsumed by v5 self-registration (ADR-0123 Phase 3).**
 - CALM theorem ADR for metaengine — document why monotonic folds are CRDT-safe
   for replicated engines (supports Iroh integration, ADR-0096).
 - `CalibrateScanEngine` — runtime calibration for scan/aggregation costs (not
