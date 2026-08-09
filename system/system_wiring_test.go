@@ -54,7 +54,7 @@ func TestSystem_ProjectionPlan_WithProjectionStore(t *testing.T) {
 	)
 
 	domain := system.DomainConfig{
-		Projections:       []any{taskViewQuery},
+		Projections: []system.ProjectionDeclaration{system.RawQuery(taskViewQuery)},
 		ProjectionDecoder: projectionDecoder,
 	}
 

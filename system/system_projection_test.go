@@ -71,7 +71,7 @@ func TestSystem_ProjectionE2E(t *testing.T) {
 						})
 				})
 		},
-		Projections:       []any{taskViewQuery},
+		Projections: []system.ProjectionDeclaration{system.RawQuery(taskViewQuery)},
 		ProjectionDecoder: projectionDecoder,
 	}
 
@@ -170,7 +170,7 @@ func TestSystem_ProjectionWithSQLite(t *testing.T) {
 						})
 				})
 		},
-		Projections:       []any{taskViewQuery},
+		Projections: []system.ProjectionDeclaration{system.RawQuery(taskViewQuery)},
 		ProjectionDecoder: projectionDecoder,
 	}
 

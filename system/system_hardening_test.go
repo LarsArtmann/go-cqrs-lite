@@ -208,7 +208,7 @@ func taskDomainConfig(
 						})
 				})
 		},
-		Projections:           []any{projection},
+		Projections: []system.ProjectionDeclaration{system.RawQuery(projection)},
 		ProjectionDecoder:     projectionDecoder,
 		ProjectionHostOptions: opts,
 		CheckpointStore:       cpStore,
@@ -311,7 +311,7 @@ func TestSystem_HealthCheck_FailedProjection(t *testing.T) {
 						})
 				})
 		},
-		Projections:       []any{taskProjectionQuery("fail_proj")},
+		Projections: []system.ProjectionDeclaration{system.RawQuery(taskProjectionQuery("fail_proj"))},
 		ProjectionDecoder: failingDecoder,
 		ProjectionHostOptions: []projectionhost.HostOption{
 			projectionhost.WithMaxRestarts(1),
