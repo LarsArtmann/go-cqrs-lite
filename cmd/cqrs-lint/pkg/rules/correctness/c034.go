@@ -38,13 +38,15 @@ func NewC034Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
+					derivedCtxVars := findDerivedContextVars(fn.Body)
+
 					ast.Inspect(fn.Body, func(inner ast.Node) bool {
 						goStmt, ok := inner.(*ast.GoStmt)
 						if !ok {
 							return true
 						}
 
-						if goroutineHasCtxArg(goStmt) {
+						if goroutineHasCtxArg(goStmt, derivedCtxVars) {
 							return true
 						}
 
@@ -82,8 +84,10 @@ func NewC034Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // goroutineHasCtxArg reports whether the go statement's function call passes
-// a ctx-like argument.
-func goroutineHasCtxArg(goStmt *ast.GoStmt) bool {
+// a ctx-like argument. The derivedCtxVars set contains variable names assigned
+// from context.WithCancel/WithTimeout/WithDeadline/WithValue calls — those are
+// also valid context variables that properly propagate cancellation.
+func goroutineHasCtxArg(goStmt *ast.GoStmt, derivedCtxVars map[string]bool) bool {
 	if goStmt.Call == nil {
 		return false
 	}
@@ -91,19 +95,19 @@ func goroutineHasCtxArg(goStmt *ast.GoStmt) bool {
 	for _, arg := range goStmt.Call.Args {
 		if id, ok := arg.(*ast.Ident); ok {
 			name := strings.ToLower(id.Name)
-			if name == "ctx" || name == "context" {
+			if name == "ctx" || name == "context" || derivedCtxVars[id.Name] {
 				return true
 			}
 		}
 	}
 
-	// Check function literals that capture ctx
+	// Check function literals that capture ctx or a derived context.
 	if fnLit, ok := goStmt.Call.Fun.(*ast.FuncLit); ok && fnLit.Body != nil {
 		hasCtxRef := false
 		ast.Inspect(fnLit.Body, func(n ast.Node) bool {
 			if id, ok := n.(*ast.Ident); ok {
 				name := strings.ToLower(id.Name)
-				if name == "ctx" || name == "context" {
+				if name == "ctx" || name == "context" || derivedCtxVars[id.Name] {
 					hasCtxRef = true
 					return false
 				}
@@ -114,6 +118,53 @@ func goroutineHasCtxArg(goStmt *ast.GoStmt) bool {
 	}
 
 	return false
+}
+
+// findDerivedContextVars scans the function body for variables assigned from
+// context.WithCancel/WithTimeout/WithDeadline/WithValue calls. These variables
+// are valid context values — passing them to a goroutine counts as ctx
+// propagation. Returns a set of variable names.
+func findDerivedContextVars(body *ast.BlockStmt) map[string]bool {
+	if body == nil {
+		return nil
+	}
+
+	derived := make(map[string]bool)
+
+	ast.Inspect(body, func(n ast.Node) bool {
+		assign, ok := n.(*ast.AssignStmt)
+		if !ok {
+			return true
+		}
+
+		for _, rhs := range assign.Rhs {
+			call, ok := rhs.(*ast.CallExpr)
+			if !ok {
+				continue
+			}
+			sel, ok := call.Fun.(*ast.SelectorExpr)
+			if !ok {
+				continue
+			}
+			pkg, ok := sel.X.(*ast.Ident)
+			if !ok || pkg.Name != "context" {
+				continue
+			}
+			if !strings.HasPrefix(sel.Sel.Name, "With") {
+				continue
+			}
+
+			// The first LHS variable is the derived context.
+			if len(assign.Lhs) > 0 {
+				if id, ok := assign.Lhs[0].(*ast.Ident); ok {
+					derived[id.Name] = true
+				}
+			}
+		}
+		return true
+	})
+
+	return derived
 }
 
 // enclosingFuncHasShutdown reports whether the function body contains

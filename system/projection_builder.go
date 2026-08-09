@@ -1,10 +1,11 @@
 package system
 
 import (
-	"encoding/json/v2"
 	"fmt"
 	"reflect"
 
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -25,7 +26,7 @@ type LookupInput[K any] struct {
 type ProjectionSpec struct {
 	name string
 	// build generates the query declaration (as any, since QueryDecl is generic),
-// decoder entries for PayloadDecoder construction, and any error.
+	// decoder entries for EventDecoder construction, and any error.
 	build func() (queryDecl any, decoderEntries []decoderEntry, err error)
 }
 
@@ -127,6 +128,9 @@ func Event(eventType string, sample any) metaengine.NamedSample {
 	return metaengine.NamedEvent(eventType, sample)
 }
 
+// eventDecoderFn matches projectionadapter.EventDecoder.
+type eventDecoderFn func(evt event.Event) (any, error)
+
 // hasProjectionSpec returns true if any element in projections is a ProjectionSpec
 // (vs a raw metaengine.QueryDecl). This determines whether auto-projection
 // processing is needed.
@@ -144,8 +148,8 @@ func hasProjectionSpec(projections []any) bool {
 // separating them from raw QueryDecl values. It calls each spec's build closure
 // to generate folds and decoder entries, then returns:
 //   - queryDecls: the generated + raw QueryDecl values (as []any for Plan)
-//   - payloadDecoder: a decoder function for projectionadapter (nil if no specs)
-func buildProjections(projections []any) (queryDecls []any, payloadDecoder payloadDecoderFn, err error) {
+//   - eventDecoder: a decoder function for projectionadapter (nil if no specs)
+func buildProjections(projections []any) (queryDecls []any, eventDecoder eventDecoderFn, err error) {
 	var allEntries []decoderTypeEntry
 
 	for _, proj := range projections {
@@ -173,10 +177,10 @@ func buildProjections(projections []any) (queryDecls []any, payloadDecoder paylo
 	}
 
 	if len(allEntries) > 0 {
-		payloadDecoder = buildPayloadDecoder(allEntries)
+		eventDecoder = buildEventDecoder(allEntries)
 	}
 
-	return queryDecls, payloadDecoder, nil
+	return queryDecls, eventDecoder, nil
 }
 
 // decoderTypeEntry pairs a wire event type with its reflect.Type for decoder
@@ -186,20 +190,18 @@ type decoderTypeEntry struct {
 	sampleType reflect.Type
 }
 
-// payloadDecoderFn matches projectionadapter.PayloadDecoder but avoids the
-// import dependency cycle (projectionadapter imports metaengine which is fine,
-// but we avoid the direct dependency here for simplicity).
-type payloadDecoderFn func(eventType string, payload []byte) (any, error)
-
-// buildPayloadDecoder creates a decoder function that JSON-decodes payloads
-// into the correct Go type based on the event type string.
-func buildPayloadDecoder(entries []decoderTypeEntry) payloadDecoderFn {
+// buildEventDecoder creates an EventDecoder that auto-detects the payload
+// encoding (JSON or CBOR) from the event's Encoding() field and decodes into
+// the correct Go type based on the event type string.
+func buildEventDecoder(entries []decoderTypeEntry) eventDecoderFn {
 	typeMap := make(map[string]reflect.Type, len(entries))
 	for _, e := range entries {
 		typeMap[e.eventType] = e.sampleType
 	}
 
-	return func(eventType string, payload []byte) (any, error) {
+	return func(evt event.Event) (any, error) {
+		eventType := string(evt.Type())
+
 		t, ok := typeMap[eventType]
 		if !ok {
 			return nil, fmt.Errorf("system: no decoder registered for event type %q", eventType)
@@ -207,8 +209,14 @@ func buildPayloadDecoder(entries []decoderTypeEntry) payloadDecoderFn {
 
 		val := reflect.New(t).Interface()
 
-		if len(payload) > 0 {
-			if err := json.Unmarshal(payload, val); err != nil {
+		if len(evt.Payload()) > 0 {
+			// Auto-detect codec from event encoding stamp.
+			c, err := codec.ForEncoding(codec.Encoding(evt.Encoding()))
+			if err != nil {
+				return nil, fmt.Errorf("system: codec for encoding %q: %w", evt.Encoding(), err)
+			}
+
+			if err := c.Decode(evt.Payload(), val); err != nil {
 				return nil, fmt.Errorf("system: decode %s: %w", eventType, err)
 			}
 		}

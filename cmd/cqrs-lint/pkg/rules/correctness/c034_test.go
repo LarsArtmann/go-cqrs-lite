@@ -93,3 +93,45 @@ func TestC034_NoFindingOnEmptyContext(t *testing.T) {
 	findings := ruletest.RunDetector(t, correctness.NewC034Detector(ctx))
 	ruletest.AssertRule(t, findings, "C034", 0)
 }
+
+func TestC034_NoFindingWithDerivedContextPassedToGoroutine(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"handler.go": `package main
+
+import "context"
+
+func handle(ctx context.Context, cmd *Command) error {
+	workCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	go process(workCtx, cmd)
+	return nil
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC034Detector(ctx))
+	ruletest.AssertRule(t, findings, "C034", 0)
+}
+
+func TestC034_NoFindingWithDerivedContextInGoroutineLiteral(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"handler.go": `package main
+
+import "context"
+
+func handle(ctx context.Context) error {
+	stopCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	go func() {
+		<-stopCtx.Done()
+	}()
+	return nil
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC034Detector(ctx))
+	ruletest.AssertRule(t, findings, "C034", 0)
+}

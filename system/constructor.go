@@ -37,13 +37,13 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	}
 
 	// Process ProjectionSpec values (auto-projection) before planning.
-	autoDecoder := payloadDecoderFn(nil)
+	autoEventDecoder := eventDecoderFn(nil)
 	processedProjections := domain.Projections
 
 	if hasProjectionSpec(domain.Projections) {
 		var buildErr error
 
-		processedProjections, autoDecoder, buildErr = buildProjections(domain.Projections)
+		processedProjections, autoEventDecoder, buildErr = buildProjections(domain.Projections)
 		if buildErr != nil {
 			return nil, fmt.Errorf("system: build projections: %w", buildErr)
 		}
@@ -237,13 +237,17 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 			adapter = projectionadapter.New("projections", sys.projStore, nil,
 				projectionadapter.WithEventDecoder(domain.ProjectionEventDecoder),
 			)
+		case autoEventDecoder != nil:
+			adapter = projectionadapter.New("projections", sys.projStore, nil,
+				projectionadapter.WithEventDecoder(
+					projectionadapter.EventDecoder(autoEventDecoder),
+				),
+			)
 		default:
 			var decoder projectionadapter.PayloadDecoder
 
 			if domain.ProjectionDecoder != nil {
 				decoder = projectionadapter.PayloadDecoder(domain.ProjectionDecoder)
-			} else if autoDecoder != nil {
-				decoder = projectionadapter.PayloadDecoder(autoDecoder)
 			}
 
 			adapter = projectionadapter.New("projections", sys.projStore, decoder)

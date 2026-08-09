@@ -71,10 +71,6 @@ and is **never** duplicated here.
       workspace, detect features per-module and apply each module's profile
       only to its own packages. (cqrs-htmx)
       _(Effort: L)_
-- [ ] **C034 context-derivation tracing** — recognize
-      `context.WithCancel(ctx)` → variable → `<-variable.Done()` as satisfying
-      the rule. (DiscordSync)
-      _(Effort: M)_
 
 ---
 

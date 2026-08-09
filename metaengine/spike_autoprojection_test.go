@@ -319,8 +319,8 @@ func TestSpike_AutoCRUDByNamedEvents_JSONRoundTrip(t *testing.T) {
 
 func TestSpike_FieldMatching(t *testing.T) {
 	type partialView struct {
-		ID     string
-		Title  string // no Status field
+		ID    string
+		Title string // no Status field
 	}
 
 	folds, err := AutoCRUDByNamedEvents[partialView]("ID",
