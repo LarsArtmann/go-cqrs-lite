@@ -23,19 +23,6 @@ func newSQLiteEngine() (metaengine.Engine, *sql.DB) {
 	return eng, db
 }
 
-func newSQLiteEngineForPath(path string) (metaengine.Engine, *sql.DB) {
-	db, err := sql.Open("sqlite", path)
-	if err != nil {
-		panic(err)
-	}
-	db.SetMaxOpenConns(1)
-	eng, err := sqliteengine.NewSQLiteEngine(db)
-	if err != nil {
-		panic(err)
-	}
-	return eng, db
-}
-
 func newPlannedSQLiteEngine(
 	t *testing.T,
 	plans []metaengine.LayoutPlan,

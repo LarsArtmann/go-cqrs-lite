@@ -1,3 +1,5 @@
+//go:build cgo
+
 package duckdbengine_test
 
 import ( //nolint:gci

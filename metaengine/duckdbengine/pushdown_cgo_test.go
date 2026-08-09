@@ -41,21 +41,10 @@ func seedDuckDBProducts(t *testing.T, eng metaengine.Engine, col string) {
 	}
 }
 
-// newDuckDBPushdown returns the engine for the calling test. The engine is
-// closed automatically via t.Cleanup. The pushdown test helper does the
-// PushdownScan type assertion, so this returns just the engine.
-func newDuckDBPushdown(t *testing.T) metaengine.Engine {
-	t.Helper()
-
-	eng := mustNewDuckEngine(t)
-
-	return eng
-}
-
 func TestDuckDBEngine_PushdownFilter(t *testing.T) {
 	t.Parallel()
 
-	eng := newDuckDBPushdown(t)
+	eng := mustNewDuckEngine(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_filter", seedDuckDBProducts,
 		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
@@ -82,7 +71,7 @@ func TestDuckDBEngine_PushdownFilter(t *testing.T) {
 func TestDuckDBEngine_PushdownSort(t *testing.T) {
 	t.Parallel()
 
-	eng := newDuckDBPushdown(t)
+	eng := mustNewDuckEngine(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_sort", seedDuckDBProducts,
 		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
@@ -106,7 +95,7 @@ func TestDuckDBEngine_PushdownSort(t *testing.T) {
 func TestDuckDBEngine_PushdownFilterSortLimit(t *testing.T) {
 	t.Parallel()
 
-	eng := newDuckDBPushdown(t)
+	eng := mustNewDuckEngine(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_fsl", seedDuckDBProducts,
 		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
@@ -138,7 +127,7 @@ func TestDuckDBEngine_PushdownFilterSortLimit(t *testing.T) {
 func TestDuckDBEngine_PushdownCursor(t *testing.T) {
 	t.Parallel()
 
-	eng := newDuckDBPushdown(t)
+	eng := mustNewDuckEngine(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_cursor", seedDuckDBProducts,
 		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
@@ -162,7 +151,7 @@ func TestDuckDBEngine_PushdownCursor(t *testing.T) {
 func TestDuckDBEngine_PushdownFilterIn(t *testing.T) {
 	t.Parallel()
 
-	eng := newDuckDBPushdown(t)
+	eng := mustNewDuckEngine(t)
 
 	enginetest.RunPushdownTest(t, eng, "push_in", seedDuckDBProducts,
 		func(t *testing.T, ctx context.Context, ps metaengine.PushdownScan) {
