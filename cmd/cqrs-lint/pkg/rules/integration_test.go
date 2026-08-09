@@ -7,9 +7,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/larsartmann/go-finding"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules"
-	"github.com/larsartmann/go-finding"
 )
 
 // TestIntegration_Taskmanager runs all rules against the example/taskmanager project
@@ -57,7 +58,7 @@ func TestIntegration_Taskmanager(t *testing.T) {
 // taskmanagerGoldenProfile is the expected finding profile for example/taskmanager.
 // It pins the rule→count map so that any change in finding behavior (new FP,
 // lost detection, count drift) is caught as a test failure.
-// Update with CQRS_LINT_UPDATE_GOLDEN=1 go test -run TestIntegration_TaskmanagerExpectedFindings ./pkg/rules/
+// Update with CQRS_LINT_UPDATE_GOLDEN=1 go test -run TestIntegration_TaskmanagerExpectedFindings ./pkg/rules/.
 var taskmanagerGoldenProfile = map[string]int{
 	"A009": 1,
 	"A032": 3,

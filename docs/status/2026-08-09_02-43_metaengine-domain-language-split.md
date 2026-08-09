@@ -164,6 +164,8 @@
 
 ## g) Questions (3)
 
+> **ALL RESOLVED (2026-08-09 02:53 follow-up session):**
+
 ### Q1: Should the root DOMAIN_LANGUAGE.md keep a minimal metaengine verification block?
 
 The root file's stub mentions `metaengine.Plan` and `metaengine.Store` in prose, but the verification block no longer imports the metaengine package. If the new file is deleted, these references silently stop being checked (doc-check treats unimported package aliases as "external" and skips them). Options:
@@ -171,10 +173,16 @@ The root file's stub mentions `metaengine.Plan` and `metaengine.Store` in prose,
 - **B)** Accept the coupling — the new file must exist for the root file's metaengine prose to be verified
 - **C)** Remove metaengine symbol names from the root stub prose (use generic language only)
 
+> **RESOLVED: Option A.** Added `metaengine.NewMemoryEngine` + `metaengine.Plan` to root verification block (2 symbols + 1 import). Root file is now self-contained for the `metaengine.Engine` reference in its interface hierarchy.
+
 ### Q2: Should em dashes be cleaned up in the domain language files?
 
 The AGENTS.md rule says "Never use em dashes in source code." Both domain language files use `—` extensively. This was inherited from the original content. Should I do a cleanup pass replacing all em dashes with commas/periods/parentheses? It's a large find-replace across both files (100+ occurrences) and will produce a noisy diff, but it aligns with the stated style rule. Or is the rule intended for `.go` files only, with markdown docs being exempt?
 
+> **RESOLVED: Skip.** The AGENTS.md rule says "in source code." Markdown docs are not source code. The em dashes are inherited from original content and consistent across both files. A 100+ occurrence find-replace would produce a noisy diff with marginal value.
+
 ### Q3: Should the metaengine vocabulary be split further?
 
 The new file is 540 lines. The engines section alone documents 9 engines across 3 storage types. Should the engines get their own `docs/METAENGINE_ENGINES.md`? Or is 540 lines the right size — comprehensive but not overwhelming? My recommendation is to keep it as one file (the ToC makes navigation easy), but I want to confirm before the file grows further.
+
+> **RESOLVED: Keep as one file.** 540 lines with a ToC is navigable. Splitting engines out would add cross-file dependencies for no real benefit. Will revisit if it exceeds 800 lines.
