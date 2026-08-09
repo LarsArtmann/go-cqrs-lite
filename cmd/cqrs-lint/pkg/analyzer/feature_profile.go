@@ -263,6 +263,12 @@ const (
 	// read-only, suppressing idempotency and command-flow rules. Use it when a
 	// service consumes events/queries but never dispatches commands.
 	PresetReadOnly ConfigPreset = "read-only"
+	// PresetLibraryFramework extends PresetLibrary by disabling ALL adoption-
+	// coaching (F-series) rules. Use this for framework/SDK modules where
+	// every F-rule is a false positive — the framework provides building blocks
+	// but cannot dictate how consumers compose them. Consumers of the framework
+	// should use "production" or "local-cli" instead.
+	PresetLibraryFramework ConfigPreset = "library-framework"
 )
 
 // PresetDefinition is the single source of truth for a named preset. It bundles
@@ -359,6 +365,28 @@ var PresetDefinitions = map[ConfigPreset]PresetDefinition{
 	PresetReadOnly: {
 		Features: ConfigFeatures{
 			CommandFlow: new(CommandFlowReadOnly),
+		},
+	},
+	PresetLibraryFramework: {
+		Features: ConfigFeatures{
+			Server:      new(false),
+			CommandFlow: new(CommandFlowReadOnly),
+			Tracing:     new(TracingOff),
+			Snapshot:    new(SnapshotOff),
+		},
+		Rules: RulesConfig{
+			// Same disables as PresetLibrary, PLUS every F-series rule.
+			// A framework provides building blocks but cannot dictate how
+			// consumers adopt them — all adoption coaching is noise.
+			Disable: []string{
+				"E003", "E016",
+				"F001", "F002", "F003", "F004", "F005", "F006", "F007",
+				"F008", "F009", "F010", "F011", "F012", "F013", "F014",
+				"F015", "F016", "F017", "F018", "F019", "F020", "F021",
+				"F022", "F023", "F024", "F025", "F026", "F027", "F028",
+				"F029",
+				"S002", "S003",
+			},
 		},
 	},
 }

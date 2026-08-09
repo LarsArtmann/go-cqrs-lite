@@ -156,3 +156,29 @@ func setup() {
 	findings := ruletest.RunDetector(t, correctness.NewC031Detector(ctx))
 	ruletest.AssertRule(t, findings, "C031", 1)
 }
+
+func TestC031_NoFindingForBareReturnWithNamedReturns(t *testing.T) {
+	t.Parallel()
+
+	// Regression test: a query handler with NAMED returns using bare `return`
+	// propagates the error via the named `err` field. This must NOT be flagged
+	// as swallowing. Previously, bare `return` was unconditionally flagged.
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"handler.go": `package main
+
+import "context"
+
+func setup() {
+	query.RegisterTyped(qdisp, "user.get", func(ctx context.Context, q *GetUser) (result any, err error) {
+		result, err = service.Get(ctx, q.ID)
+		if err != nil {
+			return
+		}
+		return result, nil
+	})
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC031Detector(ctx))
+	ruletest.AssertRule(t, findings, "C031", 0)
+}
