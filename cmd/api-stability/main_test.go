@@ -159,6 +159,7 @@ func TestEveryGoModDirIsInTestModules(t *testing.T) {
 		}
 		if reason, ok := excluded[rel]; ok {
 			t.Logf("excluding %s (%s)", rel, reason)
+
 			return nil
 		}
 		// Check direct match or parent coverage (e.g., event/v4/eventtest
@@ -173,6 +174,7 @@ func TestEveryGoModDirIsInTestModules(t *testing.T) {
 		}
 		t.Errorf("directory %q has a go.mod but is NOT in testModules in flake.nix — "+
 			"add it so CI builds, tests, and lints it", rel)
+
 		return nil
 	})
 	if err != nil {
