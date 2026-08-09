@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -13,13 +12,9 @@ import (
 // Results feed into BadgerNsPerOp/BadgerNsPerRead/BadgerNsPerWrite calibration.
 
 func BenchmarkCalibration_BadgerSet(b *testing.B) {
-	eng, err := badgerengine.NewBadgerEngine("")
-	if err != nil {
-		b.Fatalf("NewBadgerEngine: %v", err)
-	}
+	eng := mustNewBadgerEngine(b)
 
 	mb := eng.(metaengine.MapBackend)
-	defer eng.Close()
 
 	ctx := context.Background()
 	var i int
@@ -33,13 +28,9 @@ func BenchmarkCalibration_BadgerSet(b *testing.B) {
 }
 
 func BenchmarkCalibration_BadgerGet(b *testing.B) {
-	eng, err := badgerengine.NewBadgerEngine("")
-	if err != nil {
-		b.Fatalf("NewBadgerEngine: %v", err)
-	}
+	eng := mustNewBadgerEngine(b)
 
 	mb := eng.(metaengine.MapBackend)
-	defer eng.Close()
 
 	ctx := context.Background()
 
@@ -62,13 +53,9 @@ func BenchmarkCalibration_BadgerGet(b *testing.B) {
 }
 
 func BenchmarkCalibration_BadgerCounterIncrement(b *testing.B) {
-	eng, err := badgerengine.NewBadgerEngine("")
-	if err != nil {
-		b.Fatalf("NewBadgerEngine: %v", err)
-	}
+	eng := mustNewBadgerEngine(b)
 
 	cb := eng.(metaengine.CounterBackend)
-	defer eng.Close()
 
 	ctx := context.Background()
 	var i int

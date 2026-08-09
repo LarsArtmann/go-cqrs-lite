@@ -3,7 +3,6 @@ package badgerengine_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
 
@@ -14,12 +13,7 @@ import (
 func TestBadger_RecordStamping(t *testing.T) {
 	t.Parallel()
 
-	eng, err := badgerengine.NewBadgerEngine("")
-	if err != nil {
-		t.Fatalf("NewBadgerEngine: %v", err)
-	}
-
-	defer eng.Close()
+	eng := mustNewBadgerEngine(t)
 
 	enginetest.RunRecordStampTest(t, eng)
 }

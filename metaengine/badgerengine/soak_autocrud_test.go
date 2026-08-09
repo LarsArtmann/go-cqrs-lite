@@ -3,7 +3,6 @@ package badgerengine_test
 import (
 	"testing"
 
-	badgerengine "github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
 
@@ -16,10 +15,7 @@ import (
 func TestSoak_AutoCRUD_Badger(t *testing.T) {
 	t.Parallel()
 
-	eng, err := badgerengine.NewBadgerEngine("")
-	if err != nil {
-		t.Fatalf("NewBadgerEngine: %v", err)
-	}
+	eng := mustNewBadgerEngine(t)
 
 	enginetest.RunAutoCRUDSoak(t, eng)
 }
