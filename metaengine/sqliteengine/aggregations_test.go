@@ -607,9 +607,9 @@ func TestSQLite_Aggregate_NullValues(t *testing.T) { //nolint:tparallel
 		val map[string]any
 	}{
 		{"a", map[string]any{"id": "a", "status": "open", "price": 10.0}},
-		{"b", map[string]any{"id": "b", "status": "open"}},               // no price
+		{"b", map[string]any{"id": "b", "status": "open"}}, // no price
 		{"c", map[string]any{"id": "c", "status": "closed", "price": 0.0}},
-		{"d", map[string]any{"id": "d", "status": "closed"}},             // no price
+		{"d", map[string]any{"id": "d", "status": "closed"}}, // no price
 		{"e", map[string]any{"id": "e", "status": "open", "price": 30.0}},
 	}
 

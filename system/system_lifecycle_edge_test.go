@@ -277,3 +277,74 @@ func (f *failedStatusProjHost) Reset(
 ) error {
 	return nil
 }
+
+// ── GracefulClose drain-error: Close must NOT run ──
+
+func TestSystem_GracefulClose_DrainError_NoClose(t *testing.T) {
+	t.Parallel()
+
+	var mu sync.Mutex
+	var closeCount int
+
+	sys := &System{
+		engines: []namedEngine{
+			{
+				engine: &countingCloseEngine{name: "engine-a", count: &closeCount, mu: &mu},
+				name:   "engine-a",
+			},
+		},
+		drainers: []Drainer{
+			&errorDrainer{err: errors.New("drain failed")},
+		},
+	}
+
+	err := sys.GracefulClose(context.Background())
+	if err == nil {
+		t.Fatal("expected GracefulClose to fail with drain error")
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	if closeCount != 0 {
+		t.Errorf("engine should NOT be closed on drain error, but Close was called %d times", closeCount)
+	}
+}
+
+// ── Concurrent Close: no panic, exactly one close ──
+
+func TestSystem_ConcurrentClose(t *testing.T) {
+	t.Parallel()
+
+	var mu sync.Mutex
+	var closeCount int
+
+	sys := &System{
+		engines: []namedEngine{
+			{
+				engine: &countingCloseEngine{name: "engine-a", count: &closeCount, mu: &mu},
+				name:   "engine-a",
+			},
+		},
+	}
+
+	var wg sync.WaitGroup
+
+	const goroutines = 10
+
+	for range goroutines {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_ = sys.Close()
+		}()
+	}
+	wg.Wait()
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	if closeCount != 1 {
+		t.Errorf("engine should be closed exactly once under concurrent Close, got %d", closeCount)
+	}
+}
