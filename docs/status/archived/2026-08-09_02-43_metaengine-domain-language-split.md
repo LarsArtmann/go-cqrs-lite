@@ -3,6 +3,13 @@
 **Date:** 2026-08-09 02:43
 **Session goal:** Split metaengine content out of `docs/DOMAIN_LANGUAGE.md` into a dedicated `docs/METAENGINE_DOMAIN_LANGUAGE.md`, hyperlinked bidirectionally.
 
+> ✅ **ARCHIVED 2026-08-09** — Split shipped and verified (184 references across
+> 56 packages). `docs/METAENGINE_DOMAIN_LANGUAGE.md` (540 lines) +
+> bidirectional hyperlinks + ToC on root file all delivered. CHANGELOG entry
+> added. Remaining polish items (keycodec symbol coverage, `(planned)` inline
+> annotations, DX-helper docs) addressed by the followup
+> (`2026-08-09_02-57`).
+
 ---
 
 ## a) FULLY DONE

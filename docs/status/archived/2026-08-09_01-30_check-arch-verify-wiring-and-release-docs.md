@@ -1,5 +1,13 @@
 # Status Report: CI/Release/Infrastructure Wiring — 2026-08-09 01:30
 
+> ✅ **ARCHIVED 2026-08-09** — All 3 scoped TODO items fully complete and marked
+> `[x]` in TODO_LIST.md: (1) `#check-arch` wired into verify/verify-fast/ci
+> (`flake.nix:921,1112,1132` + `.github/workflows/ci.yml`); (2) `go-arch-lint`
+> v1.17.0 added as nix dependency (`flake.nix:767`); (3) CHANGELOG release
+> process documented in CONTRIBUTING.md. Verified: `#check-arch` runs both
+> Layer 1 + Layer 2. Only remaining item is an external blocker
+> (go-finding/go-must publish — needs user action).
+
 ## Session Scope
 
 Executed the three TODO_LIST items under "CI / Release / Infrastructure":

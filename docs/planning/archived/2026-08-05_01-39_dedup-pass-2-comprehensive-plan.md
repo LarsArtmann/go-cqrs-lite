@@ -1,6 +1,13 @@
 # Deduplication Pass 2 — Comprehensive Execution Plan
 
 > Created: 2026-08-05 01:39
+> ✅ **ARCHIVED 2026-08-09** — Fully executed. All tasks A–J done (extractions:
+> seedStreamSeqs, irohengine latency helpers, explain.go table renderer,
+> adapter_event temporal helper, lintutil.SelectorIdent; split-brain comments
+> on DurabilityTier + Dialect; baseline + api-stability regenerated; verify
+> gate GREEN). Companion status report
+> `docs/status/2026-08-05_02-41_dedup-pass-2-execution-review.md` confirms:
+> "Nothing from the pass 2 plan remains unstarted."
 > Context: Follow-up to `2026-08-05_01-07_deduplication-pass.md` and `2026-08-05_01-30_dedup-followup-review.md`
 > Tool: `art-dupl --type-aware --sort total-tokens -t 3` → 42 clone groups remaining
 

@@ -4,6 +4,14 @@
 **Session focus:** Complete 5 TODO items from the Irohengine/Replicated Engine section of TODO_LIST.md  
 **Commits (by auto-commit daemon):** `1c1b41046`, `664279d8b`, plus earlier `394ca898a`, `1a6f57bf8`, `5dddea151`
 
+> ✅ **ARCHIVED 2026-08-09** — All 5 TODO items shipped: framing constants
+> (`FrameHeaderSize`/`ErrFrameTooLarge`), QUIC pooled-stream magic-byte mismatch
+> detection, stream-reuse counter (`StreamsOpenedForPeer`), injectable clock in
+> QUIC LWW tests, `RunConvergenceSuite`/`ClusterFactory` wired into all 3
+> transports (18/18 subtests pass). CHANGELOG entry added. `api_surface.txt`
+> golden committed (`4be21e5c5`). 2 minor test-quality items (missing
+> `t.Parallel()` on QUIC suite, QUIC `-race` untested) moved to TODO_LIST.
+
 ---
 
 ## A) FULLY DONE

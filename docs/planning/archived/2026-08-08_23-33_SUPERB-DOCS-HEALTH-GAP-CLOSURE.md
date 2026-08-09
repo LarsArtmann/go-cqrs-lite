@@ -1,6 +1,10 @@
 # SUPERB — Docs Health Gap Closure & Verification Plan
 
 > **Created:** 2026-08-08 23:33
+> ✅ **ARCHIVED 2026-08-09** — Fully executed. Every task (P1-1 through P11-1)
+> marked ✅ in the inline execution log: duplicate ADT row deleted, stale
+> CalibrateEngine claim fixed, 7 L-items moved TODO_LIST → ROADMAP, doc-check
+> (545 refs) passed, 3 reports annotated, committed + pushed.
 > **Context:** Following the docs-health living docs rebuild session (23:13), a self-critique identified remaining gaps. This plan closes them.
 > **Key finding from verification:** Self-critique over-reported gaps. SEVEN-TIER-MODEL.md counts, ADR-0046 counts, and CHANGELOG "duplicate" v4.3.0 were ALL already fixed by prior sessions. Only 3 reports are unannotated (not 42). The real remaining work is small and surgical.
 

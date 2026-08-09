@@ -4,6 +4,11 @@
 **Session goal:** Execute all remaining improvement items from the prior status report (50-item list), making the domain language comprehensive and verified.
 **Result:** 16 tasks completed. All gaps from the prior report's top-10 priorities are closed. doc-check passes: **174 references valid across 50 packages** (up from 144/41).
 
+> ✅ **ARCHIVED 2026-08-09** — All 18 items shipped; 3 open questions resolved
+> in the follow-up split session (`2026-08-09_02-43`). The metaengine content
+> was subsequently split into `docs/METAENGINE_DOMAIN_LANGUAGE.md`. Read that
+> file + the `2026-08-09_02-57` followup for current state.
+
 ---
 
 ## a) FULLY DONE

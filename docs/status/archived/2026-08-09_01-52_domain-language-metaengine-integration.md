@@ -4,6 +4,14 @@
 **Session goal:** Make `docs/DOMAIN_LANGUAGE.md` superb and ensure it supports the metaengine.
 **Result:** Substantially complete — one verification gap remains.
 
+> ✅ **ARCHIVED 2026-08-09** — All primary work shipped and verified (doc-check:
+> 144 references / 41 packages). The 16-subsection metaengine section added here
+> was expanded by **Round 2** (`2026-08-09_02-07`) and then split into a
+> dedicated file (`docs/METAENGINE_DOMAIN_LANGUAGE.md`) by the split session
+> (`2026-08-09_02-43`), polished by the followup (`2026-08-09_02-57`). This
+> report is the first link in a 4-session chain — read the followup for current
+> state.
+
 ---
 
 ## a) FULLY DONE

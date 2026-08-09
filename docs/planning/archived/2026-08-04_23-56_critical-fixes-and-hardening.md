@@ -1,6 +1,12 @@
 # Metaengine System: Critical Fixes & Hardening Plan
 
 > **Date:** 2026-08-04 23:56
+> ✅ **ARCHIVED 2026-08-09** — Fully executed. All 13 tasks verified in the
+> committed codebase: DuckDB/PG AtomicAppender, SnapshotBackend wired, Pebble
+> seq restart safety, MultiBus test, concurrent-write race test,
+> StreamTemporalReader wired, StreamLogBackend in adttest, stream codec
+> consolidation, Pebble/DuckDB stream tests. (codebase-verified by agent,
+> 2026-08-09).
 > **Source:** Status report at `docs/status/2026-08-04_23-52_metaengine-system-pareto-completion-report.md`
 > **Codebase:** `system/` (332 lines constructor) + `metaengine/` core + 5 engine modules
 
