@@ -205,7 +205,7 @@ func (e *bboltEngine) HealthCheck(_ context.Context) error {
 
 // Key encoding helpers — package-level aliases to keycodec functions.
 //
-// var
+// var.
 var (
 	mapKey             = keycodec.MapKey //art-dupl:accept keycodec alias across engine modules
 	setKey             = keycodec.SetKey //nolint:unused // used in backends.go

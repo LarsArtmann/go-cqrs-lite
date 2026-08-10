@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -299,11 +300,5 @@ func isMaterializedTombstoned[V any](v *V) bool {
 
 // isEventType returns true if the event's type matches any of the given types.
 func isEventType(evt event.Event, types []event.Type) bool {
-	for _, t := range types {
-		if evt.Type() == t {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(types, evt.Type())
 }

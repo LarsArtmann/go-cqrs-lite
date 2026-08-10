@@ -80,7 +80,7 @@ func (r *liveLatencyRule) Apply(result *PlanResult, ctx PlanContext) error {
 		result.RuleTrace = append(result.RuleTrace, RuleTraceEntry{
 			Rule:   r.Name(),
 			Query:  queries[0],
-			Reason: fmt.Sprintf("%s remote, no fresh live RTT", profile.Name),
+			Reason: profile.Name + " remote, no fresh live RTT",
 		})
 	}
 

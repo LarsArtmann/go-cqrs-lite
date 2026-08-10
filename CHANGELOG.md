@@ -6,6 +6,70 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — Metaengine: Live Cost Measurement (dynamic NetworkRTT) — 2026-08-10
+
+> `NetworkRTT` and per-op latency are now runtime observations, not compile-time
+> constants. Engines declare a structural fact (`RequiresNetwork`) + a prior;
+> the runtime measures true RTT via `ProbeEngine` and feeds it live into
+> `Profile()`. The planner sees fresh numbers on every re-plan. Design:
+> `docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md` (P1 + P3 + UX done; P2 ~80%).
+> Status: `docs/status/2026-08-10_18-49_live-latency-model-implementation.md`.
+
+- **`metaengine.LatencyTracker`** — sliding-window (512 samples) latency
+  collector with incremental EWMA + P50/P95/P99/Max/Mean. `Record()` is O(1);
+  `Snapshot()` sorts on demand. `Fresh()` / `Live()` gate staleness so routing
+  never silently trusts an old number. Configurable via `WithTrackerWindow`,
+  `WithTrackerAlpha`, `WithStaleAfter`, `WithTrackerSink`. Race-clean.
+- **`metaengine.Prober` / `TransactMeasurer`** — optional capability interfaces
+  for engines that can measure point-to-point I/O latency. `Prober` = network
+  RTT (PG `SELECT 1`, Dgraph healthcheck). `TransactMeasurer` = per-read
+  operation latency from live traffic.
+- **`metaengine.ProbeEngine(eng, opts...) (stop func())`** — background probe
+  loop (interval + jitter + timeout) that feeds measurements into `Profile()`
+  through the engine's embedded `Calibration`. No-op for local engines (safe to
+  call unconditionally). Stop function halts and waits.
+- **`metaengine.StatSink` / `LatencySample` / `SampleKind`** — open measurement
+  ingress (P3). External engines push live measurements through a sink without
+  importing probe internals. `NopSink()` for the zero case.
+- **`metaengine.EngineProfile.RequiresNetwork`** — structural boolean declaring
+  "this engine does network I/O." Independent of the measured `NetworkRTT` value.
+  Drives WARN diagnostics and stale labelling.
+- **`metaengine.EngineProfile.IsRemote()`** — returns true if `RequiresNetwork`
+  or `NetworkRTT > 0`. Convenience for planner + diagnostics.
+- **`metaengine.CalibrationCosts.NetworkRTT`** — declared prior field. Seeds
+  planning before the first probe; replaced by live EWMA when fresh.
+- **`metaengine.Calibration.SetRTTTracker` / `SetReadTracker` / `LiveLatency`** —
+  live tracker host methods promoted to every engine that embeds `Calibration`.
+  `ApplyCalibration` now layers live EWMA on top of priors when fresh.
+- **`metaengine.Store.GetEngineStats(ctx) []EngineStats`** — per-engine runtime
+  measurement report: profile, measured RTT (EWMA + percentiles), samples,
+  lastProbe, stale flag.
+- **`metaengine.FormatLiveLatency(EngineStats) string`** — renders
+  `rtt=live 2.1ms (p95 4.0ms, n=512)`, `rtt=prior 1ms [stale, no live samples]`,
+  or `rtt=0s (local)`.
+- **`metaengine.liveLatencyRule`** — planner rule emitting WARN when routing
+  relies on a prior/stale RTT for a remote engine. Registered in `defaultRules`.
+- **pgengine `Prober`** — `SELECT 1` timing. `PG_NetworkRTT` = 1ms prior.
+  `RequiresNetwork: true`.
+- **dgraphengine `Prober`** — healthcheck query timing (read-only txn, bypasses
+  RAFT). `DG_NetworkRTT` = 2ms prior. `RequiresNetwork: true`.
+- **15 tests** covering tracker math, EWMA convergence, window eviction,
+  freshness/staleness, sink ingress, probe loop, routing-flip-on-RTT-shift,
+  prior-RTT WARN, stale labelling, Doctor/EXPLAIN output.
+
+### Changed — Live Cost Measurement — 2026-08-10
+
+- **`metaengine.WithNetworkRTT` doc** updated: now documented as a PRIOR for the
+  initial plan, replaced by live measurement when available (was: "adds a fixed
+  per-query latency overhead").
+- **`metaengine.EngineProfile.EffectiveNetworkRTT` doc** updated: notes it may
+  return a live measurement, not just a compile-time constant.
+- **`metaengine.ExplainPlan()`** now shows `FormatLiveLatency` output per remote
+  engine instead of a bare `rtt=` value.
+- **`metaengine.Doctor()`** adds a `--- Latency ---` section with per-engine
+  live/stale/local RTT lines.
+- **`docs/api_surface.txt`** regenerated (3981 exports, +11 new symbols).
+
 ### Added — Metaengine Phase 4: backend porting complete (all 8) — 2026-08-10
 
 > All 8 storage engines now self-register via `metaengine.RegisterDriver`.

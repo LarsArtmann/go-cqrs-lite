@@ -85,12 +85,12 @@ func (e *bboltEngine) seedMultimapSeqs(bucket *bolt.Bucket) error {
 		}
 
 		rest := k[tagLen:]
-		nulIdx := bytes.IndexByte(rest, 0)
-		if nulIdx < 0 {
+		before, _, ok := bytes.Cut(rest, []byte{0})
+		if !ok {
 			continue
 		}
 
-		col := string(rest[:nulIdx])
+		col := string(before)
 
 		if k[len(k)-21] != 0 {
 			continue

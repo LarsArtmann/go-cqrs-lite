@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 )
@@ -75,4 +76,4 @@ func RegisteredDrivers() []string {
 }
 
 // ErrUnknownDriver is returned when LookupDriver cannot find a driver.
-var ErrUnknownDriver = fmt.Errorf("unknown driver")
+var ErrUnknownDriver = errors.New("unknown driver")

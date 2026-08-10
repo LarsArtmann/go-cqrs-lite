@@ -197,7 +197,7 @@ func (t *LatencyTracker) Snapshot() LatencyStats {
 
 // Fresh reports whether the tracker has a usable current estimate: at least one
 // sample AND the last sample is within the stale-after window. A zero
-// staleAfter means "never stale once sampled."
+// staleAfter means "never stale once sampled.".
 func (t *LatencyTracker) Fresh() bool {
 	t.mu.Lock()
 	defer t.mu.Unlock()

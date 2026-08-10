@@ -15,6 +15,7 @@ import (
 // a live RTT shift changes Profile().NetworkRTT and therefore Plan() routing.
 type fakeRemoteEngine struct {
 	metaengine.Calibration
+
 	name     string
 	profile  metaengine.EngineProfile
 	probeRTT time.Duration
@@ -215,6 +216,7 @@ func TestPlan_NoLiveLatencyWarnForFreshTracker(t *testing.T) {
 
 type fakeLocalEngine struct {
 	metaengine.Calibration
+
 	name    string
 	nsPerOp float64
 }
