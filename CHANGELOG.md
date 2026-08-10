@@ -6,6 +6,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — Metaengine Phase 4: backend porting complete (all 8) — 2026-08-10
+
+> All 8 storage engines now self-register via `metaengine.RegisterDriver`.
+> The full driver registry: `memory`, `sqlite`, `pebble`, `bbolt`, `duckdb`,
+> `postgres`, `mysql`, `badger`, `dgraph`, `turso`. Operators select engines
+> by name at deployment time; developers never touch storage code.
+
+- **`metaengine/bboltengine` — new module**: bbolt (B+tree) KV engine, modeled
+  after badgerengine/pebbleengine. Implements MapBackend, MapUpdater, ScanBackend,
+  SetBackend, CounterBackend, MultimapBackend, LogBackend, StreamLogBackend,
+  AtomicAppender, StreamingScan, Calibratable. Uses `keycodec` for key encoding
+  (shared with pebble/badger). Restart-safe seq counter seeding. Self-registers
+  as `"bbolt"`. ADT matrix, healthcheck, record-stamp, and soak tests pass
+  (including `-race`). Estimated cost model (not yet calibrated).
+- **`metaengine/tursoengine` — new module**: Turso/libSQL engine, thin wrapper
+  over `sqliteengine` (libSQL is SQLite wire-compatible). Opens via
+  `turso.tech/database/tursogo` driver, delegates all operations to
+  `sqliteengine.NewSQLiteEngine`. Self-registers as `"turso"`. DSN maps to file
+  path, `:memory:`, or `libsql://` remote URL. ADT matrix and driver
+  registration tests pass.
+- **`metaengine/mysqlengine` — new module**: MySQL SQL engine with MySQL-specific
+  dialect. Implements MapBackend, CounterBackend, ScanBackend, PushdownScan,
+  LayoutPlanner, StreamLogBackend, AtomicAppender, Transactional. Uses `?`
+  placeholders, `ON DUPLICATE KEY UPDATE` UPSERT, `value->'$.field'` JSON path
+  operators, backtick-escaped `key` reserved word, VARCHAR(255) primary keys.
+  Self-registers as `"mysql"`. Driver registration test passes; ADT matrix and
+  healthcheck skip without `MYSQL_TEST_DSN`.
+- **Module registration**: all 3 modules added to `go.work`, `flake.nix`
+  testModules (feeds `#test` + `#lint`), `cmd/api-stability` modules list.
+  API-surface golden regenerated (3928 exports). Meta-tests
+  `TestEveryGoModDirIsInModulesList` and `TestEveryGoModDirIsInTestModules` pass.
+
+### Changed — Metaengine Phase 4 — 2026-08-10
+
+- **`AGENTS.md` module map** updated: `metaengine/*engine` entry now lists all
+  10 engine names (was 7).
+
 ### Removed — Record consolidation Phase 3-4 (ADR-0111, ADR-0114) — 2026-08-10
 
 > **All 79 modules compile.** ADR-0114 tombstone build breaks fixed 2026-08-10.

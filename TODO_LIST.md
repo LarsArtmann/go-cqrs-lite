@@ -236,9 +236,10 @@ and is **never** duplicated here.
       DuckDB binding packages). A `system/integration/` sub-module follows the
       `testutil/pgtestcontainer` precedent and keeps the system module lean.
       _(Effort: M)_
-- [ ] **Add bbolt source-of-truth integration test** — bbolt needs a
-      `metaengine/bboltengine/` module first (v5 Phase 4 dependency). Badger
-      and Pebble already covered.
+- [ ] **Add bbolt source-of-truth integration test** — `metaengine/bboltengine/`
+      module now exists (created 2026-08-10). Needs persistence_test,
+      restart_safety_test, disk_backed_test, and calibration_bench_test to
+      match pebbleengine coverage. Badger and Pebble already covered.
 
 ---
 
@@ -365,34 +366,45 @@ and is **never** duplicated here.
       updated 74→90 for concurrent-work clones.
       _(Effort: S)_ ✅
 
-### Phase 4: Backend Porting (all 8)
+### Phase 4: Backend Porting (all 8) — DONE 2026-08-10
 
-- [ ] 🔥 **Port pebble driver** — `metaengine/pebbleengine/register.go` with
+> All 8 engines self-register via `metaengine.RegisterDriver`. 6 pre-existed
+> (pebble, postgres, duckdb, badger, dgraph were done in Phase 3; memory is
+> built-in). The remaining 3 (bbolt, mysql, turso) were created this session.
+> All 10 driver names now register: memory, sqlite, pebble, bbolt, duckdb,
+> postgres, mysql, badger, dgraph, turso.
+>
+> **Remaining gaps** (see status report
+> `2026-08-10_16-14_metaengine-backend-porting-bbolt-turso-mysql.md`):
+> missing compile-time assertions, calibration benchmarks, MySQL integration
+> test infrastructure, SKILL.md docs update, `nix fmt` + `nix run .#verify`.
+
+- [x] 🔥 **Port pebble driver** — `metaengine/pebbleengine/register.go` with
       `RegisterDriver("pebble", ...)`. Map `cfg.DSN` to directory path. Handle
       in-memory (`vfs.NewMem`) when DSN is empty. Verify through system tests.
       _(Effort: S)_
-- [ ] **Port bbolt driver** — new `metaengine/bboltengine/` module (or extend
+- [x] **Port bbolt driver** — new `metaengine/bboltengine/` module (or extend
       existing `storage/bbolt` as a metaengine engine). Self-register as
       `"bbolt"`. Map DSN to file path.
       _(Effort: M)_
-- [ ] **Port postgres driver** — `metaengine/pgengine/register.go` with
+- [x] **Port postgres driver** — `metaengine/pgengine/register.go` with
       `RegisterDriver("postgres", ...)`. Map `cfg.DSN` to pgx connection string.
       Handle pool config from `cfg.Pragmas` or new `EngineConfig` fields.
       _(Effort: S)_
-- [ ] **Port duckdb driver** — `metaengine/duckdbengine/register.go` with
+- [x] **Port duckdb driver** — `metaengine/duckdbengine/register.go` with
       `RegisterDriver("duckdb", ...)`. CGo isolation preserved (separate module).
       Map DSN to file path or `:memory:`.
       _(Effort: S)_
-- [ ] **Port mysql driver** — new `metaengine/mysqlengine/` module or extend
+- [x] **Port mysql driver** — new `metaengine/mysqlengine/` module or extend
       `pgengine` with MySQL dialect. Self-register as `"mysql"`.
       _(Effort: M)_
-- [ ] **Port turso driver** — `metaengine/tursoengine/` or extend with libSQL.
+- [x] **Port turso driver** — `metaengine/tursoengine/` or extend with libSQL.
       Self-register as `"turso"`. Handle sync config.
       _(Effort: M)_
-- [ ] **Port badger driver** — `metaengine/badgerengine/register.go`.
+- [x] **Port badger driver** — `metaengine/badgerengine/register.go`.
       Self-register as `"badger"`.
       _(Effort: S)_
-- [ ] **Port dgraph driver** — `metaengine/dgraphengine/register.go`.
+- [x] **Port dgraph driver** — `metaengine/dgraphengine/register.go`.
       Self-register as `"dgraph"`.
       _(Effort: S)_
 
