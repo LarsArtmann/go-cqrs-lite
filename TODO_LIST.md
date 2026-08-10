@@ -271,6 +271,35 @@ and is **never** duplicated here.
       tests/examples.
       _(Effort: S)_
 
+### Phase 2–3 Follow-ups (discovered during status review)
+
+- [ ] **Delete `system/sqlite_driver.go`** — `createSQLiteEngine` (44 lines) is
+      dead code, superseded by `sqliteengine/register.go`. Gopls flags it as
+      `unusedfunc`. Deleting it removes `database/sql` and `modernc.org/sqlite`
+      from system's production deps.
+      _(Effort: XS)_
+- [ ] **Fix 9 stale GraphBackend error messages** — dgraphengine test files
+      still say `"does not implement GraphBackend"` in `t.Fatal`/`b.Fatal`
+      strings. Replace with `"does not implement graph dispatch"`. Files:
+      `bench_test.go:149,187,217`, `mixed_bench_test.go:84,137,223`,
+      `stress_test.go:31`, `graphrag_test.go:30`.
+      _(Effort: XS)_
+- [ ] **Rename `TestGraphBackend` → `TestGraphOperations`** in
+      `metaengine/dgraphengine/engine_test.go:130`.
+      _(Effort: XS)_
+- [ ] **Fix 5 stale GraphBackend doc references** — `METAENGINE_DOMAIN_LANGUAGE.md`
+      lines 86, 374; `metaengine/README.md` lines 531, 533; `ROADMAP.md` line 511.
+      _(Effort: XS)_
+- [ ] **Remove `system.ErrUnknownDriver`** from `system/errors.go` (0 references;
+      `metaengine.ErrUnknownDriver` is canonical).
+      _(Effort: XS)_
+- [ ] **Run `nix run .#verify-fast`** — never run this session; doc-check
+      failures likely from stale GraphBackend refs.
+      _(Effort: S)_
+- [ ] **Run `nix run .#check-duplication`** — `.art-dupl-baseline.json` was
+      modified by the auto-commit daemon; verify it's clean.
+      _(Effort: S)_
+
 ### Phase 4: Backend Porting (all 8)
 
 - [ ] 🔥 **Port pebble driver** — `metaengine/pebbleengine/register.go` with

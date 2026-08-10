@@ -41,6 +41,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   own `register.go` file, matching the pattern used by all other engines
   (sqliteengine, pebbleengine, badgerengine, etc.).
 
+### Known issues — Phase 2–3 follow-ups — 2026-08-10
+
+Discovered during status review, not yet fixed:
+
+- **`system/sqlite_driver.go` is dead code** (44 lines): `createSQLiteEngine` is
+  unused — superseded by `sqliteengine/register.go` self-registration. Gopls
+  flags as `unusedfunc`. Deleting it removes `database/sql` and
+  `modernc.org/sqlite` from system's production deps.
+- **9 stale `"does not implement GraphBackend"` error messages** in dgraphengine
+  test files (`bench_test.go`, `mixed_bench_test.go`, `stress_test.go`,
+  `graphrag_test.go`) — reference the deleted `GraphBackend` type. Cosmetic but
+  misleading.
+- **`TestGraphBackend` test name** in `dgraphengine/engine_test.go:130` not
+  renamed to reflect the deleted interface.
+- **5 stale `GraphBackend` doc references** in `METAENGINE_DOMAIN_LANGUAGE.md`
+  (L86, L374), `metaengine/README.md` (L531, L533), `ROADMAP.md` (L511).
+- **`system.ErrUnknownDriver`** in `system/errors.go` has 0 references;
+  `metaengine.ErrUnknownDriver` is canonical.
+- **`nix run .#verify` and `nix run .#check-duplication`** not run this session.
+
 ### Added — v5 unification infrastructure — 2026-08-10
 
 - **Driver registry moved to `metaengine/registry.go`** (ADR-0113, ADR-0123):
