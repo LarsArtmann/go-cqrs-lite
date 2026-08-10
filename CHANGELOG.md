@@ -102,9 +102,17 @@ Discovered during status review, not yet fixed:
 ### Fixed — 2026-08-10
 
 - **`storage/pebble/cbor_test.go` branded ID type mismatch**:
-  `CorrelationID`/`CausationID` comparisons needed `.String()` to match
-  `string` fields on `event.Metadata` (pre-existing, was blocking all pebble
-  test compilation).
+  `CorrelationID`/`CausationID` comparisons now use direct branded-type
+  equality (`!= corrID`) instead of converting one side to `string`.
+  Pre-existing, was blocking pebble GOWORK=off compilation.
+- **GOWORK=off resolution for `storage/backuptest/v4`**: added
+  `replace => ../backuptest` directives to `storage/bbolt/go.mod` and
+  `storage/pebble/go.mod` (the repo's established internal-dep pattern).
+  Lightweight dev tag deleted; no tag needed with replace directives.
+- **Architecture gate registration**: added `LAYER[storage/backuptest]=5`
+  and `DEP_BUDGET[storage/backuptest]=3` to `scripts/check-module-layers.sh`
+  (mandatory coverage check). Bumped `DEP_BUDGET[system]` 17→18 for
+  pre-existing drift. Fixed `thelper` lint in `backuptest/suite.go`.
 
 ### Changed — v5 deprecation markers — 2026-08-10
 
