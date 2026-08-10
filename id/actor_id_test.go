@@ -81,10 +81,20 @@ func TestParseActorID(t *testing.T) {
 		wantRaw   string
 		wantError bool
 	}{
-		{name: "user", input: "user:01H4S2Z4QX8N1P5K3M7R9T0V2W", wantKind: ActorUser, wantRaw: "01H4S2Z4QX8N1P5K3M7R9T0V2W"},
+		{
+			name:     "user",
+			input:    "user:01H4S2Z4QX8N1P5K3M7R9T0V2W",
+			wantKind: ActorUser,
+			wantRaw:  "01H4S2Z4QX8N1P5K3M7R9T0V2W",
+		},
 		{name: "bot", input: "bot:ci-runner", wantKind: ActorBot, wantRaw: "ci-runner"},
 		{name: "system", input: "system:gc", wantKind: ActorSystem, wantRaw: "gc"},
-		{name: "service", input: "service:notification-worker", wantKind: ActorService, wantRaw: "notification-worker"},
+		{
+			name:     "service",
+			input:    "service:notification-worker",
+			wantKind: ActorService,
+			wantRaw:  "notification-worker",
+		},
 		{name: "empty", input: "", wantKind: ActorUnknown, wantRaw: ""},
 		{name: "missing_colon", input: "userraw", wantError: true},
 		{name: "unknown_kind", input: "alien:raw", wantError: true},
@@ -128,7 +138,11 @@ func TestActorID_PrefixedString(t *testing.T) {
 		a    ActorID
 		want string
 	}{
-		{"user", NewUserActor(mustParseUserID(t, "01H4S2Z4QX8N1P5K3M7R9T0V2W")), "user:01H4S2Z4QX8N1P5K3M7R9T0V2W"},
+		{
+			"user",
+			NewUserActor(mustParseUserID(t, "01H4S2Z4QX8N1P5K3M7R9T0V2W")),
+			"user:01H4S2Z4QX8N1P5K3M7R9T0V2W",
+		},
 		{"system", NewSystemActor("scheduler"), "system:scheduler"},
 		{"zero", ActorID{}, ""},
 	}

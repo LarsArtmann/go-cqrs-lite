@@ -14,7 +14,7 @@ import (
 // collection, decodes JSON values, then applies filter/sort/limit in Go.
 // For declarative filter/sort via FilterOnField/SortOnField, the executor
 // prefers PushdownMapScan (see pushdown.go) which pushes these into SQL.
-//art-dupl:accept cross-module SQL engine pattern — separate go.mod
+// art-dupl:accept cross-module SQL engine pattern — separate go.mod
 func (e *mysqlEngine) MapScan(
 	ctx context.Context,
 	collection string,

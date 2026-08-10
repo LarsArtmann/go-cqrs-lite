@@ -28,15 +28,15 @@ var recordFieldGetters = map[string]struct {
 	"StreamType": {func(r record.Record) any { return r.StreamType }, reflect.TypeFor[string]()},
 	"Version":    {func(r record.Record) any { return r.Version }, reflect.TypeFor[int64]()},
 	"CorrelationID": {
-		func(r record.Record) any { return r.MetaData.CorrelationID },
+		func(r record.Record) any { return r.MetaData.CorrelationID.String() },
 		reflect.TypeFor[string](),
 	},
 	"CausationID": {
-		func(r record.Record) any { return r.MetaData.CausationID },
+		func(r record.Record) any { return r.MetaData.CausationID.String() },
 		reflect.TypeFor[string](),
 	},
 	"ActorID": {
-		func(r record.Record) any { return r.MetaData.ActorID },
+		func(r record.Record) any { return r.MetaData.ActorID.String() },
 		reflect.TypeFor[string](),
 	},
 	"SchemaVersion": {

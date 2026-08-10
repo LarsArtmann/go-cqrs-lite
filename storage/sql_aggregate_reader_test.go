@@ -11,7 +11,10 @@ import (
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
-func openSQLiteListingDB(t *testing.T, opts ...StreamProjectionOption) (*sql.DB, *StreamProjection) {
+func openSQLiteListingDB(
+	t *testing.T,
+	opts ...StreamProjectionOption,
+) (*sql.DB, *StreamProjection) {
 	t.Helper()
 
 	db, err := OpenSQLiteInMemory()
@@ -19,7 +22,12 @@ func openSQLiteListingDB(t *testing.T, opts ...StreamProjectionOption) (*sql.DB,
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
 
-	proj, err := NewStreamProjection(context.Background(), db, "test_", sqlpkg.SQLiteDialect{}, opts...)
+	proj, err := NewStreamProjection(
+		context.Background(),
+		db,
+		"test_",
+		sqlpkg.SQLiteDialect{},
+		opts...)
 	if err != nil {
 		t.Fatalf("NewStreamProjection: %v", err)
 	}

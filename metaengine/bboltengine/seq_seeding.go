@@ -51,7 +51,7 @@ func (e *bboltEngine) seedSeqCounters() error {
 
 // seedCollectionSeqs scans a tag prefix (e.g. "jl", "l", "sl") and seeds a
 // per-collection (or per-stream) counter sync.Map.
-//art-dupl:accept cross-module KV engine pattern — separate go.mod
+// art-dupl:accept cross-module KV engine pattern — separate go.mod
 func (e *bboltEngine) seedCollectionSeqs(bucket *bolt.Bucket, tag string, target *sync.Map) error {
 	prefix := []byte(tag + sep)
 	tagLen := len(tag + sep)
@@ -71,7 +71,7 @@ func (e *bboltEngine) seedCollectionSeqs(bucket *bolt.Bucket, tag string, target
 }
 
 // seedMultimapSeqs scans the mm prefix and seeds mmSeq counters.
-//art-dupl:accept cross-module KV engine pattern — separate go.mod
+// art-dupl:accept cross-module KV engine pattern — separate go.mod
 func (e *bboltEngine) seedMultimapSeqs(bucket *bolt.Bucket) error {
 	tag := "mm"
 	prefix := []byte(tag + sep)
@@ -108,7 +108,7 @@ func (e *bboltEngine) seedMultimapSeqs(bucket *bolt.Bucket) error {
 }
 
 // extractGroupAndSeq parses a bbolt key into its group identifier and seq.
-//art-dupl:accept cross-module KV engine pattern — separate go.mod
+// art-dupl:accept cross-module KV engine pattern — separate go.mod
 func extractGroupAndSeq(key []byte, prefixLen int) (string, int64, bool) {
 	if len(key) < prefixLen+22 {
 		return "", 0, false
@@ -127,7 +127,7 @@ func extractGroupAndSeq(key []byte, prefixLen int) (string, int64, bool) {
 }
 
 // seedSyncMapMax seeds a sync.Map (storing *atomic.Int64) to at least seq.
-//art-dupl:accept cross-module KV engine pattern — separate go.mod
+// art-dupl:accept cross-module KV engine pattern — separate go.mod
 func seedSyncMapMax(m *sync.Map, key string, seq int64) {
 	actual, _ := m.LoadOrStore(key, new(atomic.Int64))
 	counter := actual.(*atomic.Int64)

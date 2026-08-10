@@ -26,8 +26,8 @@ import (
 
 	_ "turso.tech/database/tursogo" // registers "turso" driver with database/sql
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // New creates a Turso-backed metaengine Engine from a DSN. The DSN must be a

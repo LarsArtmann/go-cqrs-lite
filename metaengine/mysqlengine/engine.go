@@ -183,7 +183,7 @@ func (e *mysqlEngine) HealthCheck(ctx context.Context) error {
 
 // conn returns the active transaction if RunInTx is in progress, otherwise
 // the engine's *sql.DB.
-//art-dupl:accept cross-module SQL engine pattern — separate go.mod
+// art-dupl:accept cross-module SQL engine pattern — separate go.mod
 func (e *mysqlEngine) conn() metaengine.SQLExec {
 	if tx := e.activeTx.Load(); tx != nil {
 		return tx
@@ -195,7 +195,7 @@ func (e *mysqlEngine) conn() metaengine.SQLExec {
 // inTx runs fn in a transaction. If RunInTx is in progress, fn participates
 // in the outer transaction. Otherwise a new transaction is started and
 // committed (or rolled back on error).
-//art-dupl:accept cross-module SQL engine pattern — separate go.mod
+// art-dupl:accept cross-module SQL engine pattern — separate go.mod
 func (e *mysqlEngine) inTx(ctx context.Context, fn func(metaengine.SQLExec) error) error {
 	if tx := e.activeTx.Load(); tx != nil {
 		return fn(tx)

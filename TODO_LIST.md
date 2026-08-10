@@ -132,13 +132,11 @@ and is **never** duplicated here.
 
 ## CI / Release / Infrastructure
 
-- 🔥 **Record consolidation fallout — 16 modules do not compile** — ADR-0111
-  Phases 3-4 (metadata consolidation + tombstone removal) are DONE in core
-  modules (id/, record/, event/, command/, query/, metadata/) and partially done
-  in listing/, watermill/, integration/event/. But **16 downstream modules still
-  reference deleted tombstone types** (`event.TombstoneStatus`, `event.MarkTombstone`,
-  `md.Tombstone`, `event.MetadataKeyTombstone`, etc.) and cannot compile.
-  See `docs/status/2026-08-10_15-25_record-consolidation-phase3-4-session2.md`.
+- [x] 🔥 **Record consolidation fallout — all modules compile** — ADR-0111
+  Phases 3-4 (metadata consolidation + tombstone removal) are DONE. All 79
+  modules build clean. The ADR-0114 tombstone build breaks in storage/,
+  stack/, transport/grpc/, and example/taskmanager were fixed 2026-08-10.
+  See `docs/status/2026-08-10_16-15_graphbackend-cleanup-and-adr0114-tombstone-unblock.md`.
   **IMPORTANT: `go test ./...` from workspace root tests ZERO packages (no root
   go.mod). Always verify per-module or use `nix run .#test`.**
   Done:
@@ -151,24 +149,29 @@ and is **never** duplicated here.
   - [x] API stability goldens regenerated
   - [x] `metaengine/enginetest/record_stamp.go:57-58` — FIXED.
   - [x] `system/sqlite_driver.go` deleted + `system.ErrUnknownDriver` removed.
-  Remaining:
-  - [ ] **storage/** — `aggregate_projection.go` (8 tombstone refs),
-        `sql_aggregate_reader.go` (1 ref). `detectStatusFromMetadata()` broken.
-  - [ ] **stack/materialize.go** — `handleEvent()` checks `md.Tombstone` (5 refs).
-        `OnTombstone`/`OnRebirth` callbacks can never fire. Needs redesign.
-  - [ ] **transport/grpc/event_server.go:158-159** — `md.Tombstone` undefined.
-  - [ ] **Cascading**: benchkit/, cmd/cqrs-bench/, example/getting-started/,
-        ALL stack/* presets (bbolt, duckdb, memory, mysql, pebble, postgres,
-        sqlite, turso), storage/turso/ — all fail because they import stack/.
-  - [ ] **storage/sql_aggregate_reader_test.go** — `event.MarkTombstone` refs.
-  - [ ] **stack/sqlite/view_models_integration_test.go** — tombstone refs.
-  - [ ] **stack/turso/view_models_integration_test.go** — tombstone refs.
-  - [ ] **cmd/cqrs-lint/** — rules recommend deleted APIs (`f001.go`,
-        `a009_a013.go`, `catalog_extra.go`). Compiles but gives wrong guidance.
-  - [ ] Resolve new clone: `command/metadata.go` vs `query/query.go` (identical
-        MetadataKey + Metadata struct) or update dedup baseline
-  - [ ] Run `nix run .#verify` end-to-end once build is fixed
-  _(Effort: L — storage/stack redesign decisions needed)_
+  - [x] storage/aggregate_projection.go — reworked to `WithDeleteTypes` option.
+  - [x] stack/materialize.go — reworked to `DeleteTypes`/`RebirthTypes` fields.
+  - [x] transport/grpc/event_server.go — dead tombstone serialization removed.
+  - [x] storage/sql_aggregate_reader.go — `listing.Status` replaces `event.TombstoneStatus`.
+  - [x] example/taskmanager — `[]system.ProjectionDeclaration` with `system.RawQuery()`.
+  - [x] All test files fixed (sql_aggregate_reader_test.go, view_models_integration_test.go,
+        fuzz_test.go, auto_fold_record_test.go, soak_record_test.go,
+        adapter_record_test.go, projectionhost_record_test.go).
+  - [x] Dedup baseline updated (74→90 groups for concurrent engine clones).
+  Remaining (tests still failing, NOT build breaks):
+  - [ ] **Memory engine graph ADT support** — memory engine lost graph support
+        after ADR-0113; 15 metaengine Ginkgo specs fail.
+        Needs `graph` added to Supports map OR structural planner detection.
+  - [ ] **Branded-ID auto-fold stamping panic** — `AutoInsert` reflect code
+        can't stamp `id.ID[CorrelationMarker, ULID]` into `string` fields.
+        `TestAutoFold_RecordAware_Insert` + `TestIntegration_AutoInsert_ThroughAdapter`.
+  - [ ] **Signing golden stale** — `TestGolden_HMACSignedEvent` needs regen
+        (userId→actorId + new timestamp fields).
+  - [ ] **Metadata roundtrip (pebble/bbolt)** — `TestEventStore_MetadataRoundtrip`
+        loses UserID/ActorID during serialization.
+  - [ ] **cqrs-lint findings mismatch** — `TestLintExampleTaskmanager` count changed.
+  - [ ] Run `nix run .#verify` end-to-end once test failures are fixed.
+  _(Effort: M — test fixes needed, not build fixes)_
 - [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must
@@ -340,32 +343,27 @@ and is **never** duplicated here.
 
 ### Phase 2–3 Follow-ups (discovered during status review)
 
-- [ ] **Delete `system/sqlite_driver.go`** — `createSQLiteEngine` (44 lines) is
-      dead code, superseded by `sqliteengine/register.go`. Gopls flags it as
-      `unusedfunc`. Deleting it removes `database/sql` and `modernc.org/sqlite`
-      from system's production deps.
-      _(Effort: XS)_
-- [ ] **Fix 9 stale GraphBackend error messages** — dgraphengine test files
-      still say `"does not implement GraphBackend"` in `t.Fatal`/`b.Fatal`
-      strings. Replace with `"does not implement graph dispatch"`. Files:
-      `bench_test.go:149,187,217`, `mixed_bench_test.go:84,137,223`,
-      `stress_test.go:31`, `graphrag_test.go:30`.
-      _(Effort: XS)_
-- [ ] **Rename `TestGraphBackend` → `TestGraphOperations`** in
-      `metaengine/dgraphengine/engine_test.go:130`.
-      _(Effort: XS)_
-- [ ] **Fix 5 stale GraphBackend doc references** — `METAENGINE_DOMAIN_LANGUAGE.md`
-      lines 86, 374; `metaengine/README.md` lines 531, 533; `ROADMAP.md` line 511.
-      _(Effort: XS)_
-- [ ] **Remove `system.ErrUnknownDriver`** from `system/errors.go` (0 references;
-      `metaengine.ErrUnknownDriver` is canonical).
-      _(Effort: XS)_
-- [ ] **Run `nix run .#verify-fast`** — never run this session; doc-check
-      failures likely from stale GraphBackend refs.
-      _(Effort: S)_
-- [ ] **Run `nix run .#check-duplication`** — `.art-dupl-baseline.json` was
-      modified by the auto-commit daemon; verify it's clean.
-      _(Effort: S)_
+- [x] **Delete `system/sqlite_driver.go`** — DONE. Removes `database/sql` and
+      `modernc.org/sqlite` from system's production deps.
+      _(Effort: XS)_ ✅
+- [x] **Fix stale GraphBackend error messages** — DONE. 8 Fatal strings in
+      dgraphengine test files changed to `"does not implement graph dispatch"`.
+      _(Effort: XS)_ ✅
+- [x] **Rename `TestGraphBackend` → `TestGraphOperations`** — DONE.
+      _(Effort: XS)_ ✅
+- [x] **Fix stale GraphBackend doc references** — DONE. METAENGINE_DOMAIN_LANGUAGE.md,
+      metaengine/README.md cleaned. ROADMAP.md left as historical migration doc.
+      _(Effort: XS)_ ✅
+- [x] **Remove `system.ErrUnknownDriver`** — DONE. API-stability golden regenerated.
+      _(Effort: XS)_ ✅
+- [x] **Run `nix run .#verify-fast`** — DONE. Build + vet + doc-check + doc
+      assertions PASS. Also fixed ADR-0114 tombstone build breaks in storage/,
+      stack/, transport/grpc/, example/taskmanager. Test failures remain
+      (pre-existing, see ADR-0114 fallout section below).
+      _(Effort: S)_ ✅
+- [x] **Run `nix run .#check-duplication`** — DONE. 0 new clones. Baseline
+      updated 74→90 for concurrent-work clones.
+      _(Effort: S)_ ✅
 
 ### Phase 4: Backend Porting (all 8)
 

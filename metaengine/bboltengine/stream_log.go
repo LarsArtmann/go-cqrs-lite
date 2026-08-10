@@ -298,7 +298,7 @@ func (e *bboltEngine) StreamScan(
 }
 
 // sortMatchedFuncKV sorts a slice of decoded items by a named column.
-//art-dupl:accept cross-module KV engine pattern — separate go.mod
+// art-dupl:accept cross-module KV engine pattern — separate go.mod
 func sortMatchedFuncKV(matched []any, sort *metaengine.SortSpec) {
 	slices.SortFunc(matched, func(a, b any) int {
 		av := metaengine.ItemFieldByName(a, sort.Column)
@@ -314,7 +314,7 @@ func sortMatchedFuncKV(matched []any, sort *metaengine.SortSpec) {
 }
 
 // countStreamEntriesBBolt counts entries matching a stream prefix.
-//art-dupl:accept cross-module KV engine pattern — separate go.mod
+// art-dupl:accept cross-module KV engine pattern — separate go.mod
 func countStreamEntriesBBolt(bucket *bolt.Bucket, col, sid string) (int64, error) {
 	prefix := streamPrefix(col, sid)
 
@@ -331,7 +331,7 @@ func countStreamEntriesBBolt(bucket *bolt.Bucket, col, sid string) (int64, error
 
 // extractJournalValue parses a journal entry "streamID\x00value" and returns
 // the decoded value part.
-//art-dupl:accept cross-module KV engine pattern — separate go.mod
+// art-dupl:accept cross-module KV engine pattern — separate go.mod
 func extractJournalValue(raw []byte) any {
 	_, after, ok := bytes.Cut(raw, []byte(sep))
 	if ok {

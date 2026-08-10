@@ -3,8 +3,8 @@ package bboltengine
 import (
 	"bytes"
 	"context"
-	"sort"
 	"slices"
+	"sort"
 
 	bolt "go.etcd.io/bbolt"
 
@@ -148,7 +148,7 @@ func (e *bboltEngine) MapScan(
 
 // sortAndPaginateKV sorts pairs by value (with byte-key tiebreak for
 // determinism), applies keyset pagination, and truncates to limit+1.
-//art-dupl:accept cross-module KV engine pattern — separate go.mod
+// art-dupl:accept cross-module KV engine pattern — separate go.mod
 func sortAndPaginateKV(pairs []kvPair, sortFn func(a, b any) int, cursor any, limit int) []kvPair {
 	if sortFn != nil {
 		sort.Slice(pairs, func(i, j int) bool {

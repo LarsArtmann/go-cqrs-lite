@@ -12,7 +12,7 @@ import (
 // Operations inside fn automatically route through the active transaction via
 // conn(), so MapSet, CounterIncrement, StreamAppend, etc. all participate
 // atomically.
-//art-dupl:accept cross-module SQL engine pattern — separate go.mod
+// art-dupl:accept cross-module SQL engine pattern — separate go.mod
 func (e *mysqlEngine) RunInTx(ctx context.Context, fn func(context.Context) error) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()

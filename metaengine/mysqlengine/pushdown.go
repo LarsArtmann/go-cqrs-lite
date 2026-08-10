@@ -15,7 +15,7 @@ import (
 //
 // Using value->'$.field' preserves the native JSON type for numeric
 // comparisons. Keyset pagination adds a WHERE clause on the sort column.
-//art-dupl:accept cross-module SQL engine pattern — separate go.mod
+// art-dupl:accept cross-module SQL engine pattern — separate go.mod
 func (e *mysqlEngine) PushdownMapScan(
 	ctx context.Context,
 	collection string,
@@ -92,7 +92,7 @@ func (e *mysqlEngine) PushdownMapScan(
 // ApplyLayout implements metaengine.LayoutPlanner. It creates functional
 // indexes on the meta_map table for the declared filter/sort fields.
 // MySQL 8.0.13+ supports functional key parts.
-//art-dupl:accept cross-module SQL engine pattern — separate go.mod
+// art-dupl:accept cross-module SQL engine pattern — separate go.mod
 func (e *mysqlEngine) ApplyLayout(collection string, filterFields, sortFields []string) error {
 	e.layoutMu.Lock()
 	defer e.layoutMu.Unlock()
@@ -140,7 +140,7 @@ func (e *mysqlEngine) ApplyLayout(collection string, filterFields, sortFields []
 }
 
 // scanMySQLJSONValues executes the query and decodes each row's JSON value.
-//art-dupl:accept cross-module SQL engine pattern — separate go.mod
+// art-dupl:accept cross-module SQL engine pattern — separate go.mod
 func scanMySQLJSONValues(
 	ctx context.Context,
 	db metaengine.SQLExec,
@@ -179,7 +179,7 @@ func scanMySQLJSONValues(
 }
 
 // escapeJSONPath escapes single quotes in a JSON path expression for use
-// inside value->'$.field'. MySQL uses '' to escape a single quote.
+// inside value->'$.field'. MySQL uses ” to escape a single quote.
 func escapeJSONPath(key string) string {
 	return strings.ReplaceAll(key, "'", "''")
 }
@@ -200,7 +200,8 @@ func sanitizeIndexName(parts ...string) string {
 		}
 
 		for _, r := range p {
-			if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_' {
+			if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') ||
+				r == '_' {
 				b.WriteRune(r)
 			} else {
 				b.WriteByte('_')

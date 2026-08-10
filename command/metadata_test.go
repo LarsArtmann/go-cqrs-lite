@@ -70,7 +70,8 @@ func TestCommand_WithUserID(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	if cmd.Metadata().ActorID.Kind() != id.ActorUser || cmd.Metadata().ActorID.Raw() != uid.String() {
+	if cmd.Metadata().ActorID.Kind() != id.ActorUser ||
+		cmd.Metadata().ActorID.Raw() != uid.String() {
 		t.Errorf("UserID = %v, want %v", cmd.Metadata().ActorID, uid)
 	}
 }

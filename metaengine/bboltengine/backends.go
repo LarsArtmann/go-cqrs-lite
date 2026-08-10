@@ -186,7 +186,7 @@ func (e *bboltEngine) nextLogSeq(col string) int64 {
 
 // cloneBytes copies a byte slice, since bbolt values are only valid during the
 // transaction. Uses append to avoid an extra import.
-//art-dupl:accept cross-module KV engine pattern — separate go.mod
+// art-dupl:accept cross-module KV engine pattern — separate go.mod
 func cloneBytes(b []byte) []byte {
 	return append([]byte(nil), b...)
 }

@@ -61,7 +61,8 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("CausationID: got %v, want %v", rec.MetaData.CausationID, causationID)
 	}
 
-	if rec.MetaData.ActorID.Kind() != id.ActorUser || rec.MetaData.ActorID.Raw() != userID.String() {
+	if rec.MetaData.ActorID.Kind() != id.ActorUser ||
+		rec.MetaData.ActorID.Raw() != userID.String() {
 		t.Errorf("ActorID: got %v, want user:%s", rec.MetaData.ActorID, userID)
 	}
 
