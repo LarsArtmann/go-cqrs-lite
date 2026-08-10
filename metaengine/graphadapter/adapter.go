@@ -21,9 +21,7 @@ type Adapter struct {
 	driver *graph.MemoryDriver
 }
 
-var (
-	_ metaengine.Engine = (*Adapter)(nil)
-)
+var _ metaengine.Engine = (*Adapter)(nil)
 
 // New creates a graphadapter backed by a fresh graph.MemoryDriver.
 func New() *Adapter {

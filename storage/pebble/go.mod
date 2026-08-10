@@ -14,6 +14,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/storage/backuptest/v4 v4.0.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/onsi/gomega v1.42.1
 )
@@ -78,3 +79,5 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/larsartmann/go-cqrs-lite/storage/backuptest/v4 => ../backuptest

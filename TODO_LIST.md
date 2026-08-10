@@ -258,13 +258,13 @@ and is **never** duplicated here.
 
 ### Phase 3: Self-Registration Infrastructure
 
-- [ ] 🔥 **Move driver registry to `metaengine/`** — relocate `RegisterDriver`,
+- [x] 🔥 **Move driver registry to `metaengine/`** — relocate `RegisterDriver`,
       `DriverFactory`, `EngineConfig`, `lookupDriver`, `createEngineFromDriver`
       from `system/driver_registry.go` to a new `metaengine/registry.go`.
       `system/` calls `metaengine.LookupDriver(name)` instead of its own map.
       All 9 engines already depend on `metaengine/`, so no new deps.
       _(Effort: M)_
-- [ ] **Convert memory + sqlite to self-registration** — move their
+- [x] **Convert memory + sqlite to self-registration** — move their
       `RegisterDriver` calls from `system/init()` to their own packages.
       `metaengine/memory_engine.go` gets `register.go`; `sqliteengine/` gets
       `register.go`. Verify `system.New()` still works via blank imports in

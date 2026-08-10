@@ -59,10 +59,10 @@ var _ = Describe("Event Creation", func() {
 				Expect(evt.ID().IsZero()).To(BeFalse())
 				Expect(evt.OccurredAt()).To(BeTemporally("~", time.Now(), time.Second))
 
-				Expect(evt.Metadata().CorrelationID).To(Equal(corrID.String()))
-				Expect(evt.Metadata().CausationID).To(Equal(causeID.String()))
-				Expect(evt.Metadata().ActorID).To(Equal(userID.String()))
-				Expect(evt.Metadata().RequestID).To(Equal(reqID.String()))
+				Expect(evt.Metadata().CorrelationID).To(Equal(corrID))
+				Expect(evt.Metadata().CausationID).To(Equal(causeID))
+				Expect(evt.Metadata().ActorID).To(Equal(id.NewUserActor(userID)))
+				Expect(evt.Metadata().RequestID).To(Equal(reqID))
 				Expect(evt.Metadata().Source).To(Equal(event.Source("api-gateway")))
 				Expect(
 					evt.Metadata().Custom,

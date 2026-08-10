@@ -6,12 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"slices"
 	"testing"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
@@ -317,16 +319,7 @@ func TestSystem_SQLitePersistence(t *testing.T) {
 func TestSystem_SQLiteDriverRegistered(t *testing.T) {
 	t.Parallel()
 
-	drivers := system.RegisteredDrivers()
-	found := false
-
-	for _, d := range drivers {
-		if d == "sqlite" {
-			found = true
-		}
-	}
-
-	if !found {
+	if !slices.Contains(metaengine.RegisteredDrivers(), "sqlite") {
 		t.Fatal("sqlite driver not registered")
 	}
 }

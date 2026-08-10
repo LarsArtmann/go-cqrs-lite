@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json/v2"
 	"errors"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -72,16 +73,7 @@ func TestSystem_QueryDispatch(t *testing.T) {
 func TestSystem_DriverRegistry(t *testing.T) {
 	t.Parallel()
 
-	drivers := system.RegisteredDrivers()
-	found := false
-
-	for _, d := range drivers {
-		if d == "memory" {
-			found = true
-		}
-	}
-
-	if !found {
+	if !slices.Contains(metaengine.RegisteredDrivers(), "memory") {
 		t.Fatal("memory driver not registered")
 	}
 }

@@ -160,17 +160,27 @@ func main() {
 
 ### Driver Registry
 
-| Symbol                       | Description                                              |
-| ---------------------------- | -------------------------------------------------------- |
-| `RegisterDriver(name, f)`    | Register a storage engine factory (like `database/sql`). |
-| `RegisterBusDriver(name, f)` | Register a bus driver factory.                           |
-| `RegisteredDrivers()`        | List registered engine driver names.                     |
-| `RegisteredBusDrivers()`     | List registered bus driver names.                        |
+The driver registry lives in **metaengine** (the `database/sql` model).
+Drivers self-register at `init()` time; the operator picks which to activate
+via config.
 
-Built-in drivers: `memory`, `sqlite`.
+| Symbol                                  | Description                                              |
+| --------------------------------------- | -------------------------------------------------------- |
+| `metaengine.RegisterDriver(name, f)`    | Register a storage engine factory (like `database/sql`). |
+| `metaengine.LookupDriver(name)`         | Look up a registered driver factory by name.             |
+| `metaengine.RegisteredDrivers()`        | List registered engine driver names.                     |
 
-Built-in bus drivers: `gochannel` (in-process). Unknown driver names return
-an error at construction time (no silent fallback).
+Built-in drivers: `memory` (always available). Additional drivers
+(`sqlite`, `pebble`, `badger`, `duckdb`, `postgres`, `dgraph`) self-register
+when their package is imported via a blank import:
+
+```go
+import _ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+```
+
+Bus drivers are wired directly via `watermill` (no registry). Only
+`gochannel` (in-process) is supported; unknown driver names return an error
+at construction time (no silent fallback).
 
 ### Introspection
 
@@ -337,8 +347,9 @@ CQRS_DEFAULT_DSN=file:events.db
 
 - **Separate config types**: `DomainConfig` (consumer) and `DeploymentConfig`
   (operator) are distinct types — the compiler enforces the separation (D11).
-- **Driver registry**: Modeled after `database/sql` — drivers register
-  themselves via `init()`, the system looks them up by name.
+- **Driver registry**: Lives in `metaengine` (the `database/sql` model) —
+  drivers self-register via `init()`, system looks them up by name via
+  `metaengine.LookupDriver`.
 - **Metaengine integration**: Projections use `metaengine.Store` instances
   connected via `StreamLogBackend` — the source-of-truth layer feeds the
   projection layer.

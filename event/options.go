@@ -109,6 +109,7 @@ func WithCustom(key MetadataKey, value string) Option {
 func WithActor(a id.ActorID) Option {
 	return apply(func(m *Metadata, v id.ActorID) { m.ActorID = v }, a)
 }
+
 // Defaults to 1. Use when reconstructing events from storage or
 // when creating events with a known schema version.
 func WithSchemaVersion(v SchemaVersion) Option {

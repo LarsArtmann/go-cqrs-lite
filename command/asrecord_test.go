@@ -53,16 +53,16 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("Version: got %d, want 0 (commands have no version)", rec.Version)
 	}
 
-	if rec.MetaData.CorrelationID != corrID.String() {
-		t.Errorf("CorrelationID: got %q, want %q", rec.MetaData.CorrelationID, corrID.String())
+	if !rec.MetaData.CorrelationID.Equal(corrID) {
+		t.Errorf("CorrelationID: got %v, want %v", rec.MetaData.CorrelationID, corrID)
 	}
 
-	if rec.MetaData.CausationID != causationID.String() {
-		t.Errorf("CausationID: got %q, want %q", rec.MetaData.CausationID, causationID.String())
+	if !rec.MetaData.CausationID.Equal(causationID) {
+		t.Errorf("CausationID: got %v, want %v", rec.MetaData.CausationID, causationID)
 	}
 
-	if rec.MetaData.ActorID != userID.String() {
-		t.Errorf("ActorID: got %q, want %q", rec.MetaData.ActorID, userID.String())
+	if rec.MetaData.ActorID.Kind() != id.ActorUser || rec.MetaData.ActorID.Raw() != userID.String() {
+		t.Errorf("ActorID: got %v, want user:%s", rec.MetaData.ActorID, userID)
 	}
 
 	if rec.Payload != nil {
@@ -81,16 +81,16 @@ func TestAsRecord_ZeroMetadata(t *testing.T) {
 
 	rec := command.AsRecord(cmd)
 
-	if rec.MetaData.CorrelationID != "" {
-		t.Errorf("CorrelationID: got %q, want empty for zero metadata", rec.MetaData.CorrelationID)
+	if !rec.MetaData.CorrelationID.IsZero() {
+		t.Errorf("CorrelationID: got %v, want zero", rec.MetaData.CorrelationID)
 	}
 
-	if rec.MetaData.CausationID != "" {
-		t.Errorf("CausationID: got %q, want empty for zero metadata", rec.MetaData.CausationID)
+	if !rec.MetaData.CausationID.IsZero() {
+		t.Errorf("CausationID: got %v, want zero", rec.MetaData.CausationID)
 	}
 
-	if rec.MetaData.ActorID != "" {
-		t.Errorf("ActorID: got %q, want empty for zero metadata", rec.MetaData.ActorID)
+	if !rec.MetaData.ActorID.IsZero() {
+		t.Errorf("ActorID: got %v, want zero", rec.MetaData.ActorID)
 	}
 
 	if rec.Type != "user.create" {

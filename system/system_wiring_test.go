@@ -2,6 +2,7 @@ package system_test
 
 import (
 	"context"
+	"slices"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -180,26 +181,13 @@ func TestSystem_MultiBusFanOut(t *testing.T) {
 func TestSystem_RegisteredDriversIncludesMemoryAndSQLite(t *testing.T) {
 	t.Parallel()
 
-	drivers := system.RegisteredDrivers()
+	drivers := metaengine.RegisteredDrivers()
 
-	hasMemory := false
-	hasSQLite := false
-
-	for _, d := range drivers {
-		if d == "memory" {
-			hasMemory = true
-		}
-
-		if d == "sqlite" {
-			hasSQLite = true
-		}
-	}
-
-	if !hasMemory {
+	if !slices.Contains(drivers, "memory") {
 		t.Fatal("memory driver not registered")
 	}
 
-	if !hasSQLite {
+	if !slices.Contains(drivers, "sqlite") {
 		t.Fatal("sqlite driver not registered")
 	}
 }

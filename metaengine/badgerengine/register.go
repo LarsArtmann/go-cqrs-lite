@@ -7,7 +7,10 @@ import (
 )
 
 func init() {
-	metaengine.RegisterDriver("badger", func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
-		return NewBadgerEngine(cfg.DSN)
-	})
+	metaengine.RegisterDriver(
+		"badger",
+		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
+			return NewBadgerEngine(cfg.DSN)
+		},
+	)
 }

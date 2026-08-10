@@ -15,7 +15,10 @@ import (
 // This lives in system/ (not sqliteengine/) because it needs database/sql
 // and modernc.org/sqlite, which are system/ deps.
 // In v5 Phase 4, this will move to sqliteengine/register.go.
-func createSQLiteEngine(ctx context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
+func createSQLiteEngine(
+	ctx context.Context,
+	cfg metaengine.DriverConfig,
+) (metaengine.Engine, error) {
 	dsn := cfg.DSN
 	if dsn == "" {
 		dsn = ":memory:"

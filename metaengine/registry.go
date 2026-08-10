@@ -76,9 +76,3 @@ func RegisteredDrivers() []string {
 
 // ErrUnknownDriver is returned when LookupDriver cannot find a driver.
 var ErrUnknownDriver = fmt.Errorf("unknown driver")
-
-func init() {
-	RegisterDriver("memory", func(_ context.Context, _ DriverConfig) (Engine, error) {
-		return NewMemoryEngine(), nil
-	})
-}

@@ -7,7 +7,10 @@ import (
 )
 
 func init() {
-	metaengine.RegisterDriver("pebble", func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
-		return NewPebbleEngine(cfg.DSN)
-	})
+	metaengine.RegisterDriver(
+		"pebble",
+		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
+			return NewPebbleEngine(cfg.DSN)
+		},
+	)
 }

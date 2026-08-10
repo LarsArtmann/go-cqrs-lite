@@ -9,7 +9,10 @@ import (
 )
 
 func init() {
-	metaengine.RegisterDriver("duckdb", func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
-		return New(cfg.DSN) //nolint:contextcheck // constructor doesn't take ctx
-	})
+	metaengine.RegisterDriver(
+		"duckdb",
+		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
+			return New(cfg.DSN) //nolint:contextcheck // constructor doesn't take ctx
+		},
+	)
 }

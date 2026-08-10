@@ -26,15 +26,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   drivers return `ErrUnknownBusDriver`. Future NATS/Kafka support will map
   `BusConfig.Driver` to `watermill.WithBackend(...)`.
 
+### Removed — Phase 3 self-registration cleanup — 2026-08-10
+
+- **`system.RegisterDriver`, `system.RegisteredDrivers`, `system.DriverFactory`
+  deleted** (ADR-0123, **BREAKING**): the backward-compat delegate shims in
+  `system/driver_registry.go` are removed. The driver registry lives entirely in
+  `metaengine/` — consumers call `metaengine.RegisterDriver`,
+  `metaengine.LookupDriver`, `metaengine.RegisteredDrivers` directly.
+  `system/driver_registry.go` now contains only `createEngineFromDriver`, the
+  system-layer bridge from `EngineConfig` (operator config with koanf tags) to
+  `metaengine.DriverConfig`.
+- **Memory driver registration moved to `metaengine/register.go`**: the memory
+  engine's `init()` self-registration is extracted from `registry.go` into its
+  own `register.go` file, matching the pattern used by all other engines
+  (sqliteengine, pebbleengine, badgerengine, etc.).
+
 ### Added — v5 unification infrastructure — 2026-08-10
 
 - **Driver registry moved to `metaengine/registry.go`** (ADR-0113, ADR-0123):
   `RegisterDriver`, `LookupDriver`, `RegisteredDrivers`, `DriverFactory`,
-  `DriverConfig` now live in the `metaengine/` package. `system/` delegates
-  to them. This enables engine self-registration (the `database/sql` model).
+  `DriverConfig` now live in the `metaengine/` package. `system/` calls
+  `metaengine.LookupDriver` directly. This enables engine self-registration
+  (the `database/sql` model).
 - **All engines self-register via `register.go` + `init()`**: memory
-  (metaengine/), sqlite (sqliteengine/), pebble (pebbleengine/), badger
-  (badgerengine/), dgraph (dgraphengine/), postgres (pgengine/), duckdb
+  (`metaengine/register.go`), sqlite (sqliteengine/), pebble (pebbleengine/),
+  badger (badgerengine/), dgraph (dgraphengine/), postgres (pgengine/), duckdb
   (duckdbengine/, CGo). Consumers blank-import the engine packages they need.
   `system/` no longer hardcodes engine registrations.
 - **`record.CommonMetadata.RequestID`** added (ADR-0111 Phase 3): fills the

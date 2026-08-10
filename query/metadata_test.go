@@ -18,7 +18,7 @@ func TestQuery_MetadataMerge(t *testing.T) {
 	overlay := query.Metadata{
 		Custom: map[query.MetadataKey]string{"region": "us-east-1"},
 	}
-	overlay.UserID = id.NewUserID()
+	overlay.ActorID = id.NewUserActor(id.NewUserID())
 
 	merged := base.Merge(overlay)
 
@@ -27,8 +27,8 @@ func TestQuery_MetadataMerge(t *testing.T) {
 			merged.CorrelationID, base.CorrelationID)
 	}
 
-	if merged.UserID != overlay.UserID {
-		t.Errorf("UserID not overlaid: got %v, want %v", merged.UserID, overlay.UserID)
+	if !merged.ActorID.Equal(overlay.ActorID) {
+		t.Errorf("UserID not overlaid: got %v, want %v", merged.ActorID, overlay.ActorID)
 	}
 
 	if merged.Custom["tenant"] != "acme" {

@@ -7,7 +7,10 @@ import (
 )
 
 func init() {
-	metaengine.RegisterDriver("postgres", func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
-		return New(cfg.DSN) //nolint:contextcheck // constructor doesn't take ctx
-	})
+	metaengine.RegisterDriver(
+		"postgres",
+		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
+			return New(cfg.DSN) //nolint:contextcheck // constructor doesn't take ctx
+		},
+	)
 }

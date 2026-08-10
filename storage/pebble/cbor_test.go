@@ -460,11 +460,11 @@ func TestDeserializeEvent_CBORWithMetadata(t *testing.T) {
 		t.Fatalf("deserialize: %v", err)
 	}
 
-	if got.Metadata().CorrelationID != corrID.String() {
+	if got.Metadata().CorrelationID != corrID {
 		t.Errorf("correlation ID: want %s, got %s", corrID, got.Metadata().CorrelationID)
 	}
 
-	if got.Metadata().CausationID != causeID.String() {
+	if got.Metadata().CausationID != causeID {
 		t.Errorf("causation ID: want %s, got %s", causeID, got.Metadata().CausationID)
 	}
 }

@@ -265,11 +265,11 @@ func TestStoreMetadataRoundtrip(
 	}
 
 	meta := loaded[0].Metadata()
-	if meta.CorrelationID != cid.String() {
+	if !meta.CorrelationID.Equal(cid) {
 		t.Errorf("CorrelationID = %v, want %v", meta.CorrelationID, cid)
 	}
 
-	if meta.ActorID != uid.String() {
+	if meta.ActorID.Kind() != id.ActorUser || meta.ActorID.Raw() != uid.String() {
 		t.Errorf("UserID = %v, want %v", meta.ActorID, uid)
 	}
 

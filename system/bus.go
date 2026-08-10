@@ -17,7 +17,11 @@ func createEventBus(deployment DeploymentConfig) (event.Bus, error) {
 		case "", "gochannel":
 			return watermill.NewEventBus(), nil
 		default:
-			return nil, fmt.Errorf("%w: %q (supported: gochannel)", ErrUnknownBusDriver, busCfg.Driver)
+			return nil, fmt.Errorf(
+				"%w: %q (supported: gochannel)",
+				ErrUnknownBusDriver,
+				busCfg.Driver,
+			)
 		}
 	}
 

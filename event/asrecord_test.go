@@ -9,6 +9,8 @@ import (
 )
 
 func TestAsRecord_NilEvent(t *testing.T) {
+	t.Parallel()
+
 	rec := AsRecord(nil)
 	if rec.Type != "" || rec.Payload != nil || rec.StreamID != "" {
 		t.Errorf("AsRecord(nil) = %+v, want zero Record", rec)
@@ -16,6 +18,8 @@ func TestAsRecord_NilEvent(t *testing.T) {
 }
 
 func TestAsRecord_BasicMapping(t *testing.T) {
+	t.Parallel()
+
 	streamID := id.NewStreamID()
 	occurredAt := time.Date(2026, 8, 6, 12, 0, 0, 0, time.UTC)
 	correlationID := id.NewCorrelationID()
@@ -62,12 +66,13 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("Version = %d, want 3", rec.Version)
 	}
 
-	if rec.MetaData.CorrelationID != correlationID.String() {
-		t.Errorf("CorrelationID = %q, want %q", rec.MetaData.CorrelationID, correlationID.String())
+	if !rec.MetaData.CorrelationID.Equal(correlationID) {
+		t.Errorf("CorrelationID = %v, want %v", rec.MetaData.CorrelationID, correlationID)
 	}
 
-	if rec.MetaData.ActorID != userID.String() {
-		t.Errorf("ActorID = %q, want %q", rec.MetaData.ActorID, userID.String())
+	if rec.MetaData.ActorID.Kind() != id.ActorUser ||
+		rec.MetaData.ActorID.Raw() != userID.String() {
+		t.Errorf("ActorID = %v, want user:%s", rec.MetaData.ActorID, userID)
 	}
 
 	if rec.MetaData.SchemaVersion != 2 {
@@ -84,7 +89,11 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 }
 
 func TestAsRecord_CausationID(t *testing.T) {
+	t.Parallel()
+
 	t.Run("typed Causation takes precedence", func(t *testing.T) {
+		t.Parallel()
+
 		causationID := id.NewCausationID()
 		commandID := id.NewCommandID()
 
@@ -103,13 +112,16 @@ func TestAsRecord_CausationID(t *testing.T) {
 
 		rec := AsRecord(evt)
 
-		if rec.MetaData.CausationID != commandID.String() {
-			t.Errorf("CausationID = %q, want command ID %q",
-				rec.MetaData.CausationID, commandID.String())
+		want, _ := id.ParseCausationID(commandID.String())
+		if rec.MetaData.CausationID != want {
+			t.Errorf("CausationID = %v, want command ID %v",
+				rec.MetaData.CausationID, want)
 		}
 	})
 
-	t.Run("falls back to Tracing.CausationID when no typed Causation", func(t *testing.T) {
+	t.Run("falls back to CommonMetadata.CausationID when no typed Causation", func(t *testing.T) {
+		t.Parallel()
+
 		causationID := id.NewCausationID()
 
 		evt, err := New(
@@ -126,13 +138,14 @@ func TestAsRecord_CausationID(t *testing.T) {
 
 		rec := AsRecord(evt)
 
-		if rec.MetaData.CausationID != causationID.String() {
-			t.Errorf("CausationID = %q, want tracing causation %q",
-				rec.MetaData.CausationID, causationID.String())
+		if rec.MetaData.CausationID != causationID {
+			t.Errorf("CausationID = %v, want %v", rec.MetaData.CausationID, causationID)
 		}
 	})
 
 	t.Run("empty when neither set", func(t *testing.T) {
+		t.Parallel()
+
 		evt, err := New(
 			"user.created",
 			id.NewStreamID(),
@@ -146,13 +159,15 @@ func TestAsRecord_CausationID(t *testing.T) {
 
 		rec := AsRecord(evt)
 
-		if rec.MetaData.CausationID != "" {
-			t.Errorf("CausationID = %q, want empty", rec.MetaData.CausationID)
+		if !rec.MetaData.CausationID.IsZero() {
+			t.Errorf("CausationID = %v, want zero", rec.MetaData.CausationID)
 		}
 	})
 }
 
 func TestAsRecord_ZeroValueMetadata(t *testing.T) {
+	t.Parallel()
+
 	evt, err := New(
 		"thing.happened",
 		id.NewStreamID(),
@@ -166,16 +181,16 @@ func TestAsRecord_ZeroValueMetadata(t *testing.T) {
 
 	rec := AsRecord(evt)
 
-	if rec.MetaData.CorrelationID != "" {
-		t.Errorf("CorrelationID = %q, want empty", rec.MetaData.CorrelationID)
+	if !rec.MetaData.CorrelationID.IsZero() {
+		t.Errorf("CorrelationID = %v, want zero", rec.MetaData.CorrelationID)
 	}
 
-	if rec.MetaData.CausationID != "" {
-		t.Errorf("CausationID = %q, want empty", rec.MetaData.CausationID)
+	if !rec.MetaData.CausationID.IsZero() {
+		t.Errorf("CausationID = %v, want zero", rec.MetaData.CausationID)
 	}
 
-	if rec.MetaData.ActorID != "" {
-		t.Errorf("ActorID = %q, want empty", rec.MetaData.ActorID)
+	if !rec.MetaData.ActorID.IsZero() {
+		t.Errorf("ActorID = %v, want zero", rec.MetaData.ActorID)
 	}
 
 	if rec.MetaData.SchemaVersion != 1 {

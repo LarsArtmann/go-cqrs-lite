@@ -238,7 +238,7 @@ var _ = Describe("Command Dispatcher", func() {
 				Expect(cmd.StreamID()).To(Equal(streamID))
 				Expect(cmd.Metadata().CorrelationID).To(Equal(corrID))
 				Expect(cmd.Metadata().CausationID).To(Equal(causeID))
-				Expect(cmd.Metadata().UserID).To(Equal(userID))
+				Expect(cmd.Metadata().ActorID.Raw()).To(Equal(userID))
 				Expect(cmd.Metadata().RequestID).To(Equal(reqID))
 			})
 		})

@@ -158,10 +158,10 @@ func BenchmarkDecodePayload_clone_vs_direct(b *testing.B) {
 func BenchmarkMetadata_access(b *testing.B) {
 	meta := Metadata{
 		CommonMetadata: record.CommonMetadata{
-			CorrelationID: id.NewCorrelationID().String(),
-			CausationID:   id.NewCausationID().String(),
-			ActorID:       id.NewUserID().String(),
-			RequestID:     id.NewRequestID().String(),
+			CorrelationID: id.NewCorrelationID(),
+			CausationID:   id.NewCausationID(),
+			ActorID:       id.NewUserActor(id.NewUserID()),
+			RequestID:     id.NewRequestID(),
 		},
 		Source: "test-service",
 		Custom: map[MetadataKey]string{

@@ -64,10 +64,14 @@ func RunFullLifecycle(t *testing.T, f Factory) {
 	must(t, "save snapshot", source.SnapshotStore().Save(ctx, snap))
 
 	cpEventID := id.NewEventID()
-	must(t, "save checkpoint", source.CheckpointStore().Save(ctx, "users-projection", event.Checkpoint{
-		EventID:     cpEventID,
-		ProcessedAt: evtA1.OccurredAt(),
-	}))
+	must(
+		t,
+		"save checkpoint",
+		source.CheckpointStore().Save(ctx, "users-projection", event.Checkpoint{
+			EventID:     cpEventID,
+			ProcessedAt: evtA1.OccurredAt(),
+		}),
+	)
 
 	backupPath := filepath.Join(t.TempDir(), "backup")
 	f.Backup(t, source, backupPath)
@@ -75,10 +79,14 @@ func RunFullLifecycle(t *testing.T, f Factory) {
 	evtA2, _ := event.NewEvent("UserUpdated", streamA, "User", 2, []byte(`{"name":"alice2"}`))
 	must(t, "save A2 post-backup", source.EventStore().Save(ctx, refA, []event.Event{evtA2}, 1))
 
-	must(t, "save checkpoint post-backup", source.CheckpointStore().Save(ctx, "users-projection", event.Checkpoint{
-		EventID:     id.NewEventID(),
-		ProcessedAt: evtA2.OccurredAt(),
-	}))
+	must(
+		t,
+		"save checkpoint post-backup",
+		source.CheckpointStore().Save(ctx, "users-projection", event.Checkpoint{
+			EventID:     id.NewEventID(),
+			ProcessedAt: evtA2.OccurredAt(),
+		}),
+	)
 
 	restored := f.Restore(t, backupPath)
 	t.Cleanup(func() { _ = restored.Close() })
@@ -112,7 +120,11 @@ func RunFullLifecycle(t *testing.T, f Factory) {
 	}
 
 	evtA3, _ := event.NewEvent("UserDeleted", streamA, "User", 2, []byte(`{}`))
-	must(t, "save to restored backend", restored.EventStore().Save(ctx, refA, []event.Event{evtA3}, 1))
+	must(
+		t,
+		"save to restored backend",
+		restored.EventStore().Save(ctx, refA, []event.Event{evtA3}, 1),
+	)
 
 	loadedA2, err := restored.EventStore().Load(ctx, refA)
 	must(t, "load after new write", err)
