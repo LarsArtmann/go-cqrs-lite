@@ -4,8 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/onsi/gomega"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -13,9 +11,7 @@ func TestPebbleScanCount_NoFilters(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng, err := NewPebbleEngine("")
-	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	defer eng.Close()
+	eng := mustNewPebbleEngineInternal(t)
 
 	mb := eng.(metaengine.MapBackend)
 
@@ -39,9 +35,7 @@ func TestPebbleScanCount_WithFilters(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng, err := NewPebbleEngine("")
-	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	defer eng.Close()
+	eng := mustNewPebbleEngineInternal(t)
 
 	mb := eng.(metaengine.MapBackend)
 

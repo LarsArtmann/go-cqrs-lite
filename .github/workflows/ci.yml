@@ -61,6 +61,9 @@ jobs:
       - name: Architecture check (layers + intra-module)
         run: nix run .#check-arch
 
+      - name: Depguard check (go.mod vs depguard allow list)
+        run: nix run .#check-depguard
+
       - name: Coverage drift check
         run: nix run .#check-coverage
 

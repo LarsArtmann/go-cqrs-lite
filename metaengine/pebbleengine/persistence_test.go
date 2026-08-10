@@ -15,9 +15,7 @@ func TestPebblePersistence_InMemoryIsVolatile(t *testing.T) {
 
 	g := NewGomegaWithT(t)
 
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
+	eng := mustNewPebbleEngine(t)
 
 	g.Expect(eng.Profile().IsVolatile()).To(BeTrue(),
 		"in-memory Pebble engine (dir=\"\") should be volatile")
@@ -32,7 +30,6 @@ func TestPebblePersistence_OnDiskIsPersistent(t *testing.T) {
 	dir := filepath.Join(t.TempDir(), "pebble")
 	eng, err := pebbleengine.NewPebbleEngine(dir)
 	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
 
 	g.Expect(eng.Profile().IsPersistent()).To(BeTrue(),
 		"on-disk Pebble engine should be persistent")
@@ -51,7 +48,6 @@ func TestPebblePersistence_FromDBIsPersistent(t *testing.T) {
 
 	eng, err := pebbleengine.NewPebbleEngineFromDB(db)
 	g.Expect(err).NotTo(HaveOccurred())
-	defer eng.Close()
 
 	g.Expect(eng.Profile().IsPersistent()).To(BeTrue(),
 		"Pebble engine from a caller-owned DB should be persistent")

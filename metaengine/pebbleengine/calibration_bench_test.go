@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -12,13 +11,9 @@ import (
 // Results feed into PebbleNsPerOp calibration.
 
 func BenchmarkCalibration_PebbleSet(b *testing.B) {
-	eng, err := pebbleengine.NewPebbleEngine("")
-	if err != nil {
-		b.Fatalf("NewPebbleEngine: %v", err)
-	}
+	eng := mustNewPebbleEngine(b)
 
 	mb := eng.(metaengine.MapBackend)
-	defer eng.Close()
 
 	ctx := context.Background()
 	var i int
@@ -32,13 +27,9 @@ func BenchmarkCalibration_PebbleSet(b *testing.B) {
 }
 
 func BenchmarkCalibration_PebbleGet(b *testing.B) {
-	eng, err := pebbleengine.NewPebbleEngine("")
-	if err != nil {
-		b.Fatalf("NewPebbleEngine: %v", err)
-	}
+	eng := mustNewPebbleEngine(b)
 
 	mb := eng.(metaengine.MapBackend)
-	defer eng.Close()
 
 	ctx := context.Background()
 

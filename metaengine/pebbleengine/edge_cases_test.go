@@ -9,7 +9,6 @@ import (
 
 	"github.com/onsi/gomega"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -19,10 +18,7 @@ func TestPebbleLayoutPlanner_EmptyFilterResults(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng, err := pebbleengine.NewPebbleEngine("")
-	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-
-	defer eng.Close()
+	eng := mustNewPebbleEngine(t)
 
 	lp := eng.(metaengine.LayoutPlanner)
 	gomega.NewWithT(t).Expect(lp.ApplyLayout("items", []string{"status"}, nil)).To(gomega.Succeed())
@@ -49,10 +45,7 @@ func TestPebbleLayoutPlanner_ConcurrentReadWrite(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng, err := pebbleengine.NewPebbleEngine("")
-	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-
-	defer eng.Close()
+	eng := mustNewPebbleEngine(t)
 
 	lp := eng.(metaengine.LayoutPlanner)
 	gomega.NewWithT(t).Expect(lp.ApplyLayout("items", []string{"score"}, nil)).To(gomega.Succeed())
@@ -107,10 +100,7 @@ func TestPebbleLayoutPlanner_KeyCollision(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng, err := pebbleengine.NewPebbleEngine("")
-	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-
-	defer eng.Close()
+	eng := mustNewPebbleEngine(t)
 
 	lp := eng.(metaengine.LayoutPlanner)
 	gomega.NewWithT(t).Expect(lp.ApplyLayout("items", []string{"score"}, nil)).To(gomega.Succeed())
@@ -145,10 +135,7 @@ func TestPebbleLayoutPlanner_NoLayoutFullScan(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng, err := pebbleengine.NewPebbleEngine("")
-	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-
-	defer eng.Close()
+	eng := mustNewPebbleEngine(t)
 
 	mb := eng.(metaengine.MapBackend)
 

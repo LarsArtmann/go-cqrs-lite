@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -13,11 +12,7 @@ import (
 // filter on 10K items where only 100 match. Every item is decoded and checked.
 func BenchmarkLayoutPlanner_FullScan(b *testing.B) {
 	ctx := context.Background()
-	eng, err := pebbleengine.NewPebbleEngine("")
-	if err != nil {
-		b.Fatal(err)
-	}
-	defer eng.Close()
+	eng := mustNewPebbleEngine(b)
 
 	mb := eng.(metaengine.MapBackend)
 
@@ -70,11 +65,7 @@ func BenchmarkLayoutPlanner_SortIndexVsGoSort(b *testing.B) {
 
 	for _, bm := range benchmarks {
 		b.Run(bm.name, func(b *testing.B) {
-			eng, err := pebbleengine.NewPebbleEngine("")
-			if err != nil {
-				b.Fatal(err)
-			}
-			defer eng.Close()
+			eng := mustNewPebbleEngine(b)
 
 			if bm.layout {
 				lp := eng.(metaengine.LayoutPlanner)
@@ -115,11 +106,7 @@ func BenchmarkLayoutPlanner_SortIndexVsGoSort(b *testing.B) {
 // index. Only matching items are visited — O(matches) instead of O(all rows).
 func BenchmarkLayoutPlanner_IndexedScan(b *testing.B) {
 	ctx := context.Background()
-	eng, err := pebbleengine.NewPebbleEngine("")
-	if err != nil {
-		b.Fatal(err)
-	}
-	defer eng.Close()
+	eng := mustNewPebbleEngine(b)
 
 	lp := eng.(metaengine.LayoutPlanner)
 	if err := lp.ApplyLayout("bench", []string{"status"}, nil); err != nil {

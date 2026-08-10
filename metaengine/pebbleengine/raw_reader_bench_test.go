@@ -5,7 +5,6 @@ import (
 	"encoding/json/v2"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -22,10 +21,7 @@ type benchUser struct {
 func setupBenchEngine(b *testing.B) (metaengine.Engine, metaengine.RawValueReader) {
 	b.Helper()
 
-	eng, err := pebbleengine.NewPebbleEngine("")
-	if err != nil {
-		b.Fatal(err)
-	}
+	eng := mustNewPebbleEngine(b)
 
 	b.Cleanup(func() { eng.Close() })
 

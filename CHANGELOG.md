@@ -6,6 +6,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — cqrs-lint: server detection + validation report improvements — 2026-08-09
+
+- **B029 `receiverIsCQRSBus` heuristic broadened**: `hasHTTPFramework &&
+  (method == "Run" || method == "Start" || method == "Listen")` now detects
+  Echo `e.Start()`, Fiber `app.Listen()`, and similar framework entry points
+  that were previously missed. Tests:
+  `TestDetectFeatures_EchoStartDetectsServer`,
+  `TestDetectFeatures_FiberListenDetectsServer`.
+- **D018 `isEventPackageQualifier` uses type info**: event-package qualifier
+  detection now leverages go-finding type information instead of string
+  matching, reducing false positives on similarly-named external packages.
+- **Validation report FP reclassification**: false positives in the validation
+  report are now clearly separated from true positives, improving signal-to-noise
+  for consumers running `cqrs-lint` on their codebases.
+
+### Changed — engine test boilerplate reduction — 2026-08-09
+
+- **Engine setup helpers extracted**: `mustNewBadgerEngine(tb)`,
+  `newBadgerEngineOrSkip(tb)`, `mustNewDgraphEngine(tb)`,
+  `newDgraphEngineOrSkip(tb)`, `mustNewPebbleEngine(tb)`,
+  `newPebbleEngineOrSkip(tb)` factory functions centralize engine creation +
+  skip logic. All `badgerengine` (5 files) and `dgraphengine` (10 files) test
+  sites refactored; `pebbleengine` partially refactored (4 of 20 files). Each
+  helper uses `testing.TB` (covers both `*testing.T` and `*testing.B`),
+  improving on duckdbengine's `*testing.T`-only reference.
+
+### Fixed — tooling — 2026-08-09
+
+- **`gci` vs `goimports` conflict resolved**: import formatting now uses `gci`
+  consistently for section ordering, eliminating conflicts with `goimports`
+  that caused flaky formatting.
+- **`ephemeral-dgraph.sh` PID reaper**: the script now properly reaps child
+  PIDs on exit, preventing orphaned Dgraph processes after test runs.
+
 ### Added — cqrs-lint v4.6.0 release notes
 
 cqrs-lint v4.6.0 ships 202 rules across 10 categories (correctness, API misuse,

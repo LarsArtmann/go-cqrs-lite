@@ -4,8 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/onsi/gomega"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -14,9 +12,7 @@ func TestPebbleStreamScan_Unsorted(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng, err := NewPebbleEngine("")
-	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	defer eng.Close()
+	eng := mustNewPebbleEngineInternal(t)
 
 	mb := eng.(metaengine.MapBackend)
 
@@ -65,9 +61,7 @@ func TestPebbleStreamScan_WithFilter(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng, err := NewPebbleEngine("")
-	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	defer eng.Close()
+	eng := mustNewPebbleEngineInternal(t)
 
 	mb := eng.(metaengine.MapBackend)
 
@@ -117,9 +111,7 @@ func TestPebbleStreamScan_EarlyExit(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng, err := NewPebbleEngine("")
-	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
-	defer eng.Close()
+	eng := mustNewPebbleEngineInternal(t)
 
 	mb := eng.(metaengine.MapBackend)
 

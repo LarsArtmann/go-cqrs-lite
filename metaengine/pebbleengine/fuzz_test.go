@@ -5,7 +5,6 @@ import (
 	"encoding/json/v2"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -22,12 +21,7 @@ func FuzzScanRawValues(f *testing.F) {
 		t.Parallel()
 
 		ctx := context.Background()
-		eng, err := pebbleengine.NewPebbleEngine("")
-		if err != nil {
-			t.Skipf("pebble engine: %v", err)
-		}
-
-		defer eng.Close()
+		eng := mustNewPebbleEngine(t)
 
 		lp := eng.(metaengine.LayoutPlanner)
 		if err := lp.ApplyLayout("items", []string{"score"}, nil); err != nil {

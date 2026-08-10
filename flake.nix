@@ -1185,6 +1185,7 @@
                   echo "=== Race ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 -timeout=8m && \
                   echo "=== Lint ===" && nix run .#lint && \
                   echo "=== Check Arch ===" && nix run .#check-arch && \
+                  echo "=== Check Depguard ===" && nix run .#check-depguard && \
                   echo "=== Check Duplication ===" && nix run .#check-duplication && \
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
@@ -1205,6 +1206,7 @@
                   echo "=== Race (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -race -count=1 -timeout=8m && \
                   echo "=== Lint ===" && nix run .#lint && \
                   echo "=== Check Arch ===" && nix run .#check-arch && \
+                  echo "=== Check Depguard ===" && nix run .#check-depguard && \
                   echo "=== Check Duplication ===" && nix run .#check-duplication && \
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \

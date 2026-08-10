@@ -7,7 +7,6 @@ import (
 
 	"github.com/onsi/gomega"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -31,9 +30,7 @@ type watcherTask struct {
 func TestPebbleWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 	g := gomega.NewWithT(t)
 
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(gomega.HaveOccurred())
-	defer eng.Close()
+	eng := mustNewPebbleEngine(t)
 
 	q := metaengine.Query[watcherTask, watcherTask](
 		"pebble_watcher_tasks",
@@ -86,9 +83,7 @@ func TestPebbleWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 func TestPebbleWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 	g := gomega.NewWithT(t)
 
-	eng, err := pebbleengine.NewPebbleEngine("")
-	g.Expect(err).NotTo(gomega.HaveOccurred())
-	defer eng.Close()
+	eng := mustNewPebbleEngine(t)
 
 	q := metaengine.Query[watcherTask, watcherTask](
 		"pebble_replay_tasks",
