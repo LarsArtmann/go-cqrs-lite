@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // MetadataKey represents a custom metadata key for commands.
@@ -13,15 +14,13 @@ import (
 type MetadataKey string
 
 // Metadata contains tracing and contextual information for commands.
-// It is a standalone struct (not a type alias) so that Clone and Merge return
-// command.Metadata directly. The JSON shape is identical to the previous
-// metadata.CustomData[MetadataKey] alias (ADR-0031).
+// The common tracing fields come from [record.CommonMetadata], which is the
+// single structural base shared with events (ADR-0111 Phase 3).
 //
 // Unlike event.Metadata, command.Metadata does NOT carry event-only concerns
-// (Tombstone, Causation): commands have no tombstones and no event-causation
-// link.
+// (Causation): commands have no event-causation link.
 type Metadata struct {
-	metadata.Tracing
+	record.CommonMetadata
 
 	Custom map[MetadataKey]string `json:"custom,omitempty"`
 }
@@ -29,8 +28,8 @@ type Metadata struct {
 // Clone returns a copy of m with a cloned Custom map.
 func (m Metadata) Clone() Metadata {
 	return Metadata{
-		Tracing: m.Tracing,
-		Custom:  maps.Clone(m.Custom),
+		CommonMetadata: m.CommonMetadata,
+		Custom:         maps.Clone(m.Custom),
 	}
 }
 
@@ -38,8 +37,8 @@ func (m Metadata) Clone() Metadata {
 // overlaid onto m.
 func (m Metadata) Merge(other Metadata) Metadata {
 	return Metadata{
-		Tracing: m.Tracing.Merge(other.Tracing),
-		Custom:  metadata.MergeCustomMaps(m.Custom, other.Custom),
+		CommonMetadata: m.CommonMetadata.Merge(other.CommonMetadata),
+		Custom:         metadata.MergeCustomMaps(m.Custom, other.Custom),
 	}
 }
 
@@ -54,8 +53,8 @@ func (m Metadata) WithCustom(key MetadataKey, value string) Metadata {
 	custom[key] = value
 
 	return Metadata{
-		Tracing: m.Tracing,
-		Custom:  custom,
+		CommonMetadata: m.CommonMetadata,
+		Custom:         custom,
 	}
 }
 
@@ -78,9 +77,9 @@ func WithCausationID(v id.CausationID) Option {
 	return func(c *BasicCommand) { c.metadata.CausationID = v }
 }
 
-// WithUserID sets the user ID who issued the command.
+// WithUserID sets the user who issued the command as the ActorID.
 func WithUserID(v id.UserID) Option {
-	return func(c *BasicCommand) { c.metadata.UserID = v }
+	return func(c *BasicCommand) { c.metadata.ActorID = id.NewUserActor(v) }
 }
 
 // WithRequestID sets the request ID for debugging.

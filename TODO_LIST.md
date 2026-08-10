@@ -244,12 +244,12 @@ and is **never** duplicated here.
 
 ### Phase 2: Quick Wins (dead code removal)
 
-- [ ] **Delete `metaengine.GraphBackend` (ADR-0113)** — remove the interface
+- [x] **Delete `metaengine.GraphBackend` (ADR-0113)** — remove the interface
       (`engine.go:394`), remove implementations from all engines (memory engine
       assertion at `engine.go:560`). Graph operations route through
       `graphadapter` exclusively. Update `adttest.RunMatrix` to use graphadapter.
       _(Effort: M)_
-- [ ] **Replace `simpleBus` with `watermill.EventBus` in `system/`** — delete
+- [x] **Replace `simpleBus` with `watermill.EventBus` in `system/`** — delete
       `system/bus.go` (simpleBus), delete `BusDriverFactory` +
       `RegisterBusDriver` from `system/driver_registry.go`. Wire
       `watermill.EventBus` as the bus in `system/constructor.go:179-185`.

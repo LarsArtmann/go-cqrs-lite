@@ -10,6 +10,8 @@ package record
 import (
 	"fmt"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // StreamRef identifies a stream as "StreamType/EntityID", e.g. "User/01J...".
@@ -26,20 +28,21 @@ type CommonMetadata struct {
 	// CorrelationID links a chain of related records across the system.
 	// A user action that triggers a command, which emits events, which trigger
 	// sagas that emit more commands — all share one CorrelationID.
-	CorrelationID string `json:"correlationId,omitempty"`
+	CorrelationID id.CorrelationID `json:"correlationId"`
 
 	// CausationID identifies what caused this record. For events emitted by a
 	// command, this is the command ID. For scheduled commands, the timer ID.
-	// For direct user actions, this is empty — the ActorID covers the "who".
-	CausationID string `json:"causationId,omitempty"`
+	// For direct user actions, this is zero — the ActorID covers the "who".
+	CausationID id.CausationID `json:"causationId"`
 
-	// ActorID identifies who or what produced this record: a user ID, a service
-	// name, a cron job identifier, or "system" for internal processes.
-	ActorID string `json:"actorId,omitempty"`
+	// ActorID identifies who or what produced this record: a user, a bot,
+	// a system process, or a named service. See [id.ActorID] for the full
+	// kind taxonomy.
+	ActorID id.ActorID `json:"actorId"`
 
 	// RequestID identifies the specific request that produced this record.
 	// Useful for debugging distributed flows.
-	RequestID string `json:"requestId,omitempty"`
+	RequestID id.RequestID `json:"requestId"`
 
 	// ClientCreatedAt is the client's clock at the moment of creation. This may
 	// lie (clock skew, offline tampering). Use for offline-first conflict
@@ -61,23 +64,24 @@ type CommonMetadata struct {
 	SchemaVersion int `json:"schemaVersion,omitempty"`
 }
 
-// Merge overlays non-zero/non-empty fields from other onto the receiver,
+// Merge overlays non-zero fields from other onto the receiver,
 // returning a new value. The receiver is unchanged.
 func (cm CommonMetadata) Merge(other CommonMetadata) CommonMetadata {
 	result := cm
-	if other.CorrelationID != "" {
+
+	if !other.CorrelationID.IsZero() {
 		result.CorrelationID = other.CorrelationID
 	}
 
-	if other.CausationID != "" {
+	if !other.CausationID.IsZero() {
 		result.CausationID = other.CausationID
 	}
 
-	if other.ActorID != "" {
+	if !other.ActorID.IsZero() {
 		result.ActorID = other.ActorID
 	}
 
-	if other.RequestID != "" {
+	if !other.RequestID.IsZero() {
 		result.RequestID = other.RequestID
 	}
 

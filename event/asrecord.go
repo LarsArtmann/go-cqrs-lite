@@ -34,7 +34,7 @@ import (
 //     non-zero, the typed command ID wins. This is the strongest signal —
 //     it means the event was produced by a specific command whose ID is known.
 //  2. Otherwise, the CommonMetadata.CausationID set by WithCausationID is used.
-//  3. If both are empty, CausationID is empty.
+//  3. If both are zero, CausationID is zero.
 //
 // A nil Event returns a zero-valued Record.
 func AsRecord(evt Event) record.Record {
@@ -48,7 +48,7 @@ func AsRecord(evt Event) record.Record {
 	cm.SchemaVersion = int(evt.SchemaVersion())
 
 	if md.Causation != nil && !md.Causation.CommandID.IsZero() {
-		cm.CausationID = md.Causation.CommandID.String()
+		cm.CausationID, _ = id.ParseCausationID(md.Causation.CommandID.String())
 	}
 
 	streamType := string(evt.StreamType())
@@ -62,19 +62,3 @@ func AsRecord(evt Event) record.Record {
 		MetaData:   cm,
 	}
 }
-
-// brandedString returns the string form of a branded ID, or "" if it is zero.
-// Prevents zero-value ULIDs from leaking as "0000..." into CommonMetadata fields.
-func brandedString[T interface {
-	String() string
-	IsZero() bool
-}](v T) string {
-	if v.IsZero() {
-		return ""
-	}
-
-	return v.String()
-}
-
-// Compile-time: verify the branded ID types satisfy the constraint.
-var _ = brandedString[id.CorrelationID]

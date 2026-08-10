@@ -53,23 +53,22 @@ func WithMetadata(m Metadata) Option {
 
 // WithCorrelationID sets the correlation ID for distributed tracing.
 func WithCorrelationID(v id.CorrelationID) Option {
-	return apply(func(m *Metadata, v id.CorrelationID) { m.CorrelationID = brandedString(v) }, v)
+	return apply(func(m *Metadata, v id.CorrelationID) { m.CorrelationID = v }, v)
 }
 
 // WithCausationID sets the causation ID (indicates what triggered this event).
 func WithCausationID(v id.CausationID) Option {
-	return apply(func(m *Metadata, v id.CausationID) { m.CausationID = brandedString(v) }, v)
+	return apply(func(m *Metadata, v id.CausationID) { m.CausationID = v }, v)
 }
 
-// WithUserID sets the user ID who triggered the event.
-// The value is stored as ActorID in [record.CommonMetadata] (ADR-0111).
+// WithUserID sets the user who triggered the event as the ActorID.
 func WithUserID(v id.UserID) Option {
-	return apply(func(m *Metadata, v id.UserID) { m.ActorID = brandedString(v) }, v)
+	return apply(func(m *Metadata, v id.UserID) { m.ActorID = id.NewUserActor(v) }, v)
 }
 
 // WithRequestID sets the request ID for debugging.
 func WithRequestID(v id.RequestID) Option {
-	return apply(func(m *Metadata, v id.RequestID) { m.RequestID = brandedString(v) }, v)
+	return apply(func(m *Metadata, v id.RequestID) { m.RequestID = v }, v)
 }
 
 // WithSource sets the source of the event.
@@ -104,7 +103,12 @@ func WithCustom(key MetadataKey, value string) Option {
 	}
 }
 
-// WithSchemaVersion sets the schema version of the event payload.
+// WithActor sets the ActorID for this event, supporting users, bots,
+// system processes, and services (ADR-0111). Use WithUserID for the common
+// case of a human user.
+func WithActor(a id.ActorID) Option {
+	return apply(func(m *Metadata, v id.ActorID) { m.ActorID = v }, a)
+}
 // Defaults to 1. Use when reconstructing events from storage or
 // when creating events with a known schema version.
 func WithSchemaVersion(v SchemaVersion) Option {

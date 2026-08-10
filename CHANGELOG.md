@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Removed — Phase 2 dead code cleanup — 2026-08-10
+
+- **`metaengine.GraphBackend` interface deleted** (ADR-0113, **BREAKING**): the
+  exported 2-method graph interface (`GraphAddEdge`, `GraphNeighbors`) is removed
+  from `metaengine/engine.go`. The memory engine's graph implementations
+  (`GraphAddEdge`, `GraphNeighbors`, `memGraph` struct, `getGraphLocked`,
+  `ADTGraph` profile entry) are deleted — memory engine no longer supports graph
+  operations. Graph-capable engines (`dgraphengine`, `graphadapter`) retain their
+  methods and satisfy the unexported `graphBackend` dispatch contract in
+  `dispatch.go` structurally. Consumers use `graphadapter.Adapter` for graph
+  support; capability detection uses `metaengine.HasGraphSupport(eng)`.
+- **`system.BusDriverFactory`, `RegisterBusDriver`, `RegisteredBusDrivers`,
+  `lookupBusDriver` deleted**: the bus driver factory registry pattern is removed
+  from `system/driver_registry.go`. `system/bus.go` now calls
+  `watermill.NewEventBus()` directly via a simple `switch` on `BusConfig.Driver`.
+  The `init()` self-registration of the `"gochannel"` driver is removed.
+  `ErrBusDriverNotEventBus` sentinel is removed (no longer reachable). Unknown
+  drivers return `ErrUnknownBusDriver`. Future NATS/Kafka support will map
+  `BusConfig.Driver` to `watermill.WithBackend(...)`.
+
 ### Added — v5 unification infrastructure — 2026-08-10
 
 - **Driver registry moved to `metaengine/registry.go`** (ADR-0113, ADR-0123):
