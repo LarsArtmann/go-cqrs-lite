@@ -6,6 +6,51 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — v5 unification infrastructure — 2026-08-10
+
+- **Driver registry moved to `metaengine/registry.go`** (ADR-0113, ADR-0123):
+  `RegisterDriver`, `LookupDriver`, `RegisteredDrivers`, `DriverFactory`,
+  `DriverConfig` now live in the `metaengine/` package. `system/` delegates
+  to them. This enables engine self-registration (the `database/sql` model).
+- **All engines self-register via `register.go` + `init()`**: memory
+  (metaengine/), sqlite (sqliteengine/), pebble (pebbleengine/), badger
+  (badgerengine/), dgraph (dgraphengine/), postgres (pgengine/), duckdb
+  (duckdbengine/, CGo). Consumers blank-import the engine packages they need.
+  `system/` no longer hardcodes engine registrations.
+- **`record.CommonMetadata.RequestID`** added (ADR-0111 Phase 3): fills the
+  schema gap between `metadata.Tracing.RequestID` and the consolidated
+  `CommonMetadata` type.
+- **`metadata.Tracing.ToCommonMetadata()` / `FromCommonMetadata()`** bridge
+  methods: convert between branded ID types (`id.CorrelationID`, etc.) and
+  plain-string `CommonMetadata` fields.
+- **`metaengine.HasGraphSupport(eng)`**: exported capability check replacing
+  the exported `GraphBackend` interface for graph dispatch (ADR-0113).
+- **bbolt `BenchmarkReadStreamFrom_Seek` / `_FullScan`**: benchmarks
+  measuring the O(log N) Seek-based read path vs linear scan.
+- **`check-depguard` wired into `#verify` + `#verify-fast` + CI**: validates
+  go.mod requires vs depguard allow list (112 deps across 79 modules).
+
+### Changed — v5 deprecation markers — 2026-08-10
+
+- **`metaengine.GraphBackend` deprecated** (ADR-0113): production dispatch
+  uses unexported `graphBackend` in `dispatch.go`. Exported interface retained
+  for test infrastructure; will be removed at v5 cut.
+- **`metaengine.On` / `OnTyped` deprecated** (ADR-0116): use `OnRecord` /
+  `OnRecordTyped` instead for full Record context (StreamID, Version,
+  metadata). On/OnTyped will be removed in v5.0.0.
+- **`metadata.Tracing` deprecated** (ADR-0111 Phase 3): consolidated into
+  `record.CommonMetadata`. Bridge methods provided for migration. Will not
+  be removed this major version.
+- **`system.RegisterDriver` deprecated**: use `metaengine.RegisterDriver`
+  directly. `system.DriverFactory` is now a type alias for
+  `metaengine.DriverFactory`.
+- **`staticcheck` re-enabled for `system/`** in `.golangci.yml`: audit found
+  zero violations. Fixed 3 pre-existing lint issues (`unconvert`, 2× `unparam`).
+- **Pebbleengine test boilerplate eliminated**: all test files now use
+  `mustNewPebbleEngine(t)` / `newPebbleEngineOrSkip(t)` helpers.
+
+## [v4.7.0] — 2026-08-10
+
 ### Added — cqrs-lint: server detection + validation report improvements — 2026-08-09
 
 - **B029 `receiverIsCQRSBus` heuristic broadened**: `hasHTTPFramework &&

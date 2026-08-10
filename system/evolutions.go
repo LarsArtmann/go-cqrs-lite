@@ -219,7 +219,7 @@ func buildQueryFromFolds[Q any, R any](
 	name string,
 	folds []metaengine.Fold,
 	entries []decoderEntry,
-) (any, []decoderEntry, error) {
+) (any, []decoderEntry) {
 	foldArgs := make([]any, len(folds))
 	for i, f := range folds {
 		foldArgs[i] = f
@@ -227,5 +227,5 @@ func buildQueryFromFolds[Q any, R any](
 
 	query := metaengine.Query[Q, R](name, foldArgs...)
 
-	return query, entries, nil
+	return query, entries
 }

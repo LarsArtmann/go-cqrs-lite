@@ -266,6 +266,10 @@ func Remove[V any]() removeSignal {
 //
 // For folds that need Record context (StreamID, Version, metadata), see
 // OnRecord — it passes record.Record as the first handler parameter.
+//
+// Deprecated: Use OnRecord instead. OnRecord provides the same functionality
+// plus access to the full Record context (StreamID, Version, metadata).
+// On and OnTyped will be removed in the v5.0.0 release.
 func On[E any](sample E, handler any) Fold {
 	return onFold(EventTypeName(sample), sample, handler)
 }
@@ -275,6 +279,10 @@ func On[E any](sample E, handler any) Fold {
 // CQRS events whose wire type string (event.Type(), e.g. "user.created") does
 // not match the payload struct name (e.g. "UserCreated"). store.Apply(ctx,
 // eventType, payload) matches folds by this string.
+//
+// Deprecated: Use OnRecordTyped instead. OnRecordTyped provides the same
+// functionality plus access to the full Record context. OnTyped will be
+// removed in the v5.0.0 release.
 func OnTyped[E any](eventType string, sample E, handler any) Fold {
 	return onFold(eventType, sample, handler)
 }

@@ -70,11 +70,12 @@ func (b *lookupBuilder[R]) Done() ProjectionDeclaration {
 					return nil, nil, err
 				}
 
-				return buildQueryFromFolds[LookupInput[string], R](
+				q, decs := buildQueryFromFolds[LookupInput[string], R](
 					name,
 					folds,
 					evolutionDecoderEntries(evo),
 				)
+				return q, decs, nil
 			}
 
 			return nil, nil, fmt.Errorf(
@@ -253,7 +254,8 @@ func (b *countBuilder) Done() ProjectionDeclaration {
 		name:       name,
 		resultType: reflect.TypeFor[map[string]int64](),
 		build: func(_ map[reflect.Type]*evolutionSpec) (any, []decoderEntry, error) {
-			return buildCounterQuery(name, entriesCopy)
+			q, decs := buildCounterQuery(name, entriesCopy)
+			return q, decs, nil
 		},
 	}
 }
@@ -308,7 +310,7 @@ func buildCRUDQueryWithOptions[Q any, R any](
 func buildCounterQuery(
 	name string,
 	entries []countEntry,
-) (any, []decoderEntry, error) {
+) (any, []decoderEntry) {
 	folds := make([]metaengine.Fold, 0, len(entries))
 	decEntries := make([]decoderEntry, 0, len(entries))
 
@@ -334,7 +336,7 @@ func buildCounterQuery(
 
 	query := metaengine.Query[CountInput, map[string]int64](name, foldArgs...)
 
-	return query, decEntries, nil
+	return query, decEntries
 }
 
 func samplesToDecoderEntries(samples []metaengine.NamedSample) []decoderEntry {

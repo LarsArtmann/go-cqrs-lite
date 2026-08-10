@@ -11,21 +11,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	badgerengine "github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	_ "github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4" // self-registers "badger"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
-
-func init() {
-	system.RegisterDriver(
-		"badger",
-		func(_ context.Context, cfg system.EngineConfig) (metaengine.Engine, error) {
-			return badgerengine.NewBadgerEngine(
-				cfg.DSN,
-			)
-		},
-	)
-}
 
 // TestIntegration_BadgerSource_HealthCheck verifies a Badger-backed
 // source-of-truth: dispatch a command, persist an event, load it back,

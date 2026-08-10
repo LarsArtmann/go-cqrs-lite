@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
-	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0
+	github.com/larsartmann/go-flightrecorder v0.0.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0
@@ -78,6 +78,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 )
-
-// Workspace-local replace. flightrecorder is not yet tagged.
-replace github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 => ../flightrecorder

@@ -13,19 +13,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	_ "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4" // self-registers "duckdb"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
-
-func init() {
-	system.RegisterDriver(
-		"duckdb",
-		func(_ context.Context, cfg system.EngineConfig) (metaengine.Engine, error) {
-			return duckdbengine.New(cfg.DSN) //nolint:contextcheck // constructor doesn't take ctx
-		},
-	)
-}
 
 // TestIntegration_DuckDBSource_HealthCheck verifies a DuckDB-backed
 // source-of-truth: dispatch a command, persist an event, load it back,

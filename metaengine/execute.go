@@ -164,7 +164,7 @@ func (s *Store) executeQueryInner(
 		}
 
 		depth := extractDepthFromInput(input)
-		if gb, ok := q.QueryEngine().(GraphBackend); ok {
+		if gb, ok := q.QueryEngine().(graphBackend); ok {
 			neighbors, err := gb.GraphNeighbors(ctx, q.QueryName(), node, depth)
 			if err != nil {
 				return nil, fmt.Errorf("graph neighbors %s: %w", q.QueryName(), err)

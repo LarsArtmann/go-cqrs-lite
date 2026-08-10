@@ -13,7 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
-func TestSimpleBus_HandlerIndependence(t *testing.T) {
+func TestEventBus_HandlerIndependence(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()

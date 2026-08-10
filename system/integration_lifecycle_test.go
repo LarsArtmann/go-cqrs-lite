@@ -12,20 +12,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	pebbleengine "github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
+	_ "github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4" // self-registers "pebble"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
-
-func init() {
-	system.RegisterDriver(
-		"pebble",
-		func(_ context.Context, cfg system.EngineConfig) (metaengine.Engine, error) {
-			return pebbleengine.NewPebbleEngine(cfg.DSN)
-		},
-	)
-}
 
 // TestIntegration_SQLiteSource_MemoryProjection_HealthCheck verifies a
 // two-engine deployment: SQLite for the event source-of-truth, Memory for

@@ -37,6 +37,10 @@ type CommonMetadata struct {
 	// name, a cron job identifier, or "system" for internal processes.
 	ActorID string
 
+	// RequestID identifies the specific request that produced this record.
+	// Useful for debugging distributed flows. Maps to metadata.Tracing.RequestID.
+	RequestID string
+
 	// ClientCreatedAt is the client's clock at the moment of creation. This may
 	// lie (clock skew, offline tampering). Use for offline-first conflict
 	// resolution and UX ("you created this at...").

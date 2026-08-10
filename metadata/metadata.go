@@ -13,6 +13,11 @@ import (
 // When embedded anonymously in a struct, encoding/json promotes these
 // fields to the parent level, preserving the existing JSON shape:
 // {"correlationId": "...", "causationId": "...", ...}.
+//
+// Deprecated: ADR-0111 Phase 3 consolidates this type into
+// record.CommonMetadata. Use Tracing.ToCommonMetadata() and
+// FromCommonMetadata() to bridge between the two during migration.
+// Tracing will not be removed this major version.
 type Tracing struct {
 	CorrelationID id.CorrelationID `json:"correlationId"`
 	CausationID   id.CausationID   `json:"causationId"`

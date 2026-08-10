@@ -540,7 +540,7 @@ func (s *Store) applyFoldEdge(
 	col := q.QueryName()
 	edge := fold.invoke(payload)
 
-	if gb, ok := q.QueryEngine().(GraphBackend); ok {
+	if gb, ok := q.QueryEngine().(graphBackend); ok {
 		if err := gb.GraphAddEdge(ctx, col, edge); err != nil {
 			return fmt.Errorf("graph add edge %s: %w", col, err)
 		}

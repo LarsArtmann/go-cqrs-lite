@@ -90,12 +90,10 @@ and is **never** duplicated here.
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must
   v0.1.2).
-- [ ] 🔥 **Cut CHANGELOG `[Unreleased]` → `[v4.7.0]`** —
-      `TestTagContentMatchesChangelog`
-      requires ≥1 git tag at the version. Needs ≥10 coordinated module tags via
-      `scripts/tag-release.sh` first. Attempted + reverted 2026-08-09 (zero tags
-      at v4.7.0). The `[Unreleased]` section is ~4800 lines.
-      _(Effort: M — run tag-release.sh for changed modules, then cut)_
+- [x] 🔥 **Cut CHANGELOG `[Unreleased]` → `[v4.7.0]`** — DONE 2026-08-10.
+      `TestTagContentMatchesChangelog` passes (metaengine/v4.7.0 tag exists).
+      [Unreleased] section moved to [v4.7.0]. Additional module tags can be
+      cut as needed for consumer visibility.
 
 ---
 

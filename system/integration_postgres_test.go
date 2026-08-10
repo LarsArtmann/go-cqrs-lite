@@ -12,19 +12,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	pgengine "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	_ "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4" // self-registers "postgres"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
-
-func init() {
-	system.RegisterDriver(
-		"postgres",
-		func(_ context.Context, cfg system.EngineConfig) (metaengine.Engine, error) {
-			return pgengine.New(cfg.DSN) //nolint:contextcheck // constructor doesn't take ctx
-		},
-	)
-}
 
 // postgresTestDSN returns a Postgres DSN from POSTGRES_TEST_DSN or DATABASE_URL.
 // Returns "" when no DSN is available (test should skip).

@@ -140,7 +140,7 @@ func buildEventDecoder(entries []decoderTypeEntry) eventDecoderFn {
 		val := reflect.New(t).Interface()
 
 		if len(evt.Payload()) > 0 {
-			c, err := codec.ForEncoding(codec.Encoding(evt.Encoding()))
+			c, err := codec.ForEncoding(evt.Encoding())
 			if err != nil {
 				return nil, fmt.Errorf("system: codec for encoding %q: %w", evt.Encoding(), err)
 			}
