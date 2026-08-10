@@ -53,22 +53,23 @@ func WithMetadata(m Metadata) Option {
 
 // WithCorrelationID sets the correlation ID for distributed tracing.
 func WithCorrelationID(v id.CorrelationID) Option {
-	return apply(func(m *Metadata, v id.CorrelationID) { m.CorrelationID = v }, v)
+	return apply(func(m *Metadata, v id.CorrelationID) { m.CorrelationID = brandedString(v) }, v)
 }
 
 // WithCausationID sets the causation ID (indicates what triggered this event).
 func WithCausationID(v id.CausationID) Option {
-	return apply(func(m *Metadata, v id.CausationID) { m.CausationID = v }, v)
+	return apply(func(m *Metadata, v id.CausationID) { m.CausationID = brandedString(v) }, v)
 }
 
 // WithUserID sets the user ID who triggered the event.
+// The value is stored as ActorID in [record.CommonMetadata] (ADR-0111).
 func WithUserID(v id.UserID) Option {
-	return apply(func(m *Metadata, v id.UserID) { m.UserID = v }, v)
+	return apply(func(m *Metadata, v id.UserID) { m.ActorID = brandedString(v) }, v)
 }
 
 // WithRequestID sets the request ID for debugging.
 func WithRequestID(v id.RequestID) Option {
-	return apply(func(m *Metadata, v id.RequestID) { m.RequestID = v }, v)
+	return apply(func(m *Metadata, v id.RequestID) { m.RequestID = brandedString(v) }, v)
 }
 
 // WithSource sets the source of the event.

@@ -6,7 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func BenchmarkPayload(b *testing.B) {
@@ -157,11 +157,11 @@ func BenchmarkDecodePayload_clone_vs_direct(b *testing.B) {
 
 func BenchmarkMetadata_access(b *testing.B) {
 	meta := Metadata{
-		Tracing: metadata.Tracing{
-			CorrelationID: id.NewCorrelationID(),
-			CausationID:   id.NewCausationID(),
-			UserID:        id.NewUserID(),
-			RequestID:     id.NewRequestID(),
+		CommonMetadata: record.CommonMetadata{
+			CorrelationID: id.NewCorrelationID().String(),
+			CausationID:   id.NewCausationID().String(),
+			ActorID:       id.NewUserID().String(),
+			RequestID:     id.NewRequestID().String(),
 		},
 		Source: "test-service",
 		Custom: map[MetadataKey]string{

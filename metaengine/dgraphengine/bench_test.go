@@ -144,7 +144,7 @@ func BenchmarkDgraph_SetAdd(b *testing.B) {
 func BenchmarkDgraph_GraphAddEdge(b *testing.B) {
 	eng := mustNewDgraphEngine(b)
 
-	gb, ok := eng.(metaengine.GraphBackend)
+	gb, ok := eng.(graphBackend)
 	if !ok {
 		b.Fatal("dgraph engine does not implement GraphBackend")
 	}
@@ -163,7 +163,7 @@ func BenchmarkDgraph_GraphAddEdge(b *testing.B) {
 // populateGraph builds a 100-node graph where each node connects to its next
 // 3 neighbors (mod N). This creates a dense ring with ~300 bidirectional edges.
 // At depth 3, most of the graph is reachable (3+9+27 = 39+ nodes).
-func populateGraph(b *testing.B, gb metaengine.GraphBackend, collection string, numNodes int) {
+func populateGraph(b *testing.B, gb graphBackend, collection string, numNodes int) {
 	ctx := context.Background()
 
 	for i := range numNodes {
@@ -182,7 +182,7 @@ func populateGraph(b *testing.B, gb metaengine.GraphBackend, collection string, 
 func BenchmarkDgraph_GraphNeighbors_Depth1(b *testing.B) {
 	eng := mustNewDgraphEngine(b)
 
-	gb, ok := eng.(metaengine.GraphBackend)
+	gb, ok := eng.(graphBackend)
 	if !ok {
 		b.Fatal("dgraph engine does not implement GraphBackend")
 	}
@@ -212,7 +212,7 @@ func BenchmarkDgraph_GraphNeighbors_Depth1(b *testing.B) {
 func BenchmarkDgraph_GraphNeighbors_Depth3(b *testing.B) {
 	eng := mustNewDgraphEngine(b)
 
-	gb, ok := eng.(metaengine.GraphBackend)
+	gb, ok := eng.(graphBackend)
 	if !ok {
 		b.Fatal("dgraph engine does not implement GraphBackend")
 	}

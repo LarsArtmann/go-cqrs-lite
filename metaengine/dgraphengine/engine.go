@@ -357,7 +357,6 @@ var (
 	_ metaengine.MapBackend      = (*dgraphEngine)(nil)
 	_ metaengine.CounterBackend  = (*dgraphEngine)(nil)
 	_ metaengine.ScanBackend     = (*dgraphEngine)(nil)
-	_ metaengine.GraphBackend    = (*dgraphEngine)(nil)
 	_ metaengine.SetBackend      = (*dgraphEngine)(nil)
 	_ metaengine.SearchBackend   = (*dgraphEngine)(nil)
 	_ metaengine.MultimapBackend = (*dgraphEngine)(nil)

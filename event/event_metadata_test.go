@@ -7,7 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
-	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func TestEventOptions(t *testing.T) {
@@ -33,19 +33,19 @@ func TestEventOptions(t *testing.T) {
 	}
 
 	m := evt.Metadata()
-	if m.CorrelationID != idtest.ParseCorrelationID(t, "01HK154EJG2GP2SR75DK1Q1TBH") {
+	if m.CorrelationID != idtest.ParseCorrelationID(t, "01HK154EJG2GP2SR75DK1Q1TBH").String() {
 		t.Errorf("expected correlation ID corr-123, got %s", m.CorrelationID)
 	}
 
-	if m.CausationID != idtest.ParseCausationID(t, "01HK154FHRS5276AC3V7GRNTYM") {
+	if m.CausationID != idtest.ParseCausationID(t, "01HK154FHRS5276AC3V7GRNTYM").String() {
 		t.Errorf("expected causation ID cause-456, got %s", m.CausationID)
 	}
 
-	if m.UserID != idtest.ParseUserID(t, "01HK1543TRR6BB4AF65NQX5V8S") {
-		t.Errorf("expected user ID user-789, got %s", m.UserID)
+	if m.ActorID != idtest.ParseUserID(t, "01HK1543TRR6BB4AF65NQX5V8S").String() {
+		t.Errorf("expected user ID user-789, got %s", m.ActorID)
 	}
 
-	if m.RequestID != idtest.ParseRequestID(t, "01HK154GH03H0ZJCWQ2PEYSCZW") {
+	if m.RequestID != idtest.ParseRequestID(t, "01HK154GH03H0ZJCWQ2PEYSCZW").String() {
 		t.Errorf("expected request ID req-001, got %s", m.RequestID)
 	}
 
@@ -87,7 +87,7 @@ func TestNewMetadata(t *testing.T) {
 		t.Error("EnsureCustom should initialize the Custom map")
 	}
 
-	if !m.CorrelationID.IsZero() {
+	if m.CorrelationID != "" {
 		t.Errorf("CorrelationID should be zero, got %s", m.CorrelationID)
 	}
 }
@@ -155,22 +155,22 @@ func TestWithMetadata_MergesInsteadOfReplace(t *testing.T) {
 		1,
 		nil,
 		event.WithCorrelationID(correlationID),
-		event.WithMetadata(event.Metadata{Tracing: metadata.Tracing{UserID: userID}}),
+		event.WithMetadata(event.Metadata{CommonMetadata: record.CommonMetadata{ActorID: userID.String()}}),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	meta := evt.Metadata()
-	if meta.CorrelationID != correlationID {
+	if meta.CorrelationID != correlationID.String() {
 		t.Errorf(
 			"correlation ID should be preserved after WithMetadata, got %s",
 			meta.CorrelationID,
 		)
 	}
 
-	if meta.UserID != userID {
-		t.Errorf("user ID should be merged from WithMetadata, got %s", meta.UserID)
+	if meta.ActorID != userID.String() {
+		t.Errorf("user ID should be merged from WithMetadata, got %s", meta.ActorID)
 	}
 }
 

@@ -26,39 +26,78 @@ type CommonMetadata struct {
 	// CorrelationID links a chain of related records across the system.
 	// A user action that triggers a command, which emits events, which trigger
 	// sagas that emit more commands — all share one CorrelationID.
-	CorrelationID string
+	CorrelationID string `json:"correlationId,omitempty"`
 
 	// CausationID identifies what caused this record. For events emitted by a
 	// command, this is the command ID. For scheduled commands, the timer ID.
 	// For direct user actions, this is empty — the ActorID covers the "who".
-	CausationID string
+	CausationID string `json:"causationId,omitempty"`
 
 	// ActorID identifies who or what produced this record: a user ID, a service
 	// name, a cron job identifier, or "system" for internal processes.
-	ActorID string
+	ActorID string `json:"actorId,omitempty"`
 
 	// RequestID identifies the specific request that produced this record.
-	// Useful for debugging distributed flows. Maps to metadata.Tracing.RequestID.
-	RequestID string
+	// Useful for debugging distributed flows.
+	RequestID string `json:"requestId,omitempty"`
 
 	// ClientCreatedAt is the client's clock at the moment of creation. This may
 	// lie (clock skew, offline tampering). Use for offline-first conflict
 	// resolution and UX ("you created this at...").
-	ClientCreatedAt time.Time
+	ClientCreatedAt time.Time `json:"clientCreatedAt,omitempty"`
 
 	// ServerReceivedAt is the server clock when the record arrived. Trustworthy
 	// for server-side ordering but not for client intent. Set before store.Save.
-	ServerReceivedAt time.Time
+	ServerReceivedAt time.Time `json:"serverReceivedAt,omitempty"`
 
 	// ServerStoredAt is the database's acknowledgment timestamp. This is what
 	// the DB told us, not necessarily what it did internally. Use for
 	// audit trails and eventual-consistency reconciliation.
-	ServerStoredAt time.Time
+	ServerStoredAt time.Time `json:"serverStoredAt,omitempty"`
 
 	// SchemaVersion is the payload schema version. Set once at record creation
 	// and never changed. Enables upcasting: different versions of the same
 	// logical event type can coexist in the stream.
-	SchemaVersion int
+	SchemaVersion int `json:"schemaVersion,omitempty"`
+}
+
+// Merge overlays non-zero/non-empty fields from other onto the receiver,
+// returning a new value. The receiver is unchanged.
+func (cm CommonMetadata) Merge(other CommonMetadata) CommonMetadata {
+	result := cm
+	if other.CorrelationID != "" {
+		result.CorrelationID = other.CorrelationID
+	}
+
+	if other.CausationID != "" {
+		result.CausationID = other.CausationID
+	}
+
+	if other.ActorID != "" {
+		result.ActorID = other.ActorID
+	}
+
+	if other.RequestID != "" {
+		result.RequestID = other.RequestID
+	}
+
+	if !other.ClientCreatedAt.IsZero() {
+		result.ClientCreatedAt = other.ClientCreatedAt
+	}
+
+	if !other.ServerReceivedAt.IsZero() {
+		result.ServerReceivedAt = other.ServerReceivedAt
+	}
+
+	if !other.ServerStoredAt.IsZero() {
+		result.ServerStoredAt = other.ServerStoredAt
+	}
+
+	if other.SchemaVersion != 0 {
+		result.SchemaVersion = other.SchemaVersion
+	}
+
+	return result
 }
 
 // Record is the shared structural base for Commands and Events (ADR-0111).

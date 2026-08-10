@@ -72,16 +72,16 @@ func TestBuilder_Build_WithMetadata(t *testing.T) {
 	}
 
 	meta := evt.Metadata()
-	if meta.CorrelationID != correlationID {
+	if meta.CorrelationID != correlationID.String() {
 		t.Errorf("expected correlation ID %s, got %s", correlationID, meta.CorrelationID)
 	}
 
-	if meta.CausationID != causationID {
+	if meta.CausationID != causationID.String() {
 		t.Errorf("expected causation ID %s, got %s", causationID, meta.CausationID)
 	}
 
-	if meta.UserID != userID {
-		t.Errorf("expected user ID %s, got %s", userID, meta.UserID)
+	if meta.ActorID != userID.String() {
+		t.Errorf("expected user ID %s, got %s", userID, meta.ActorID)
 	}
 }
 
@@ -128,7 +128,7 @@ func TestBuilder_Build_WithOptions(t *testing.T) {
 	}
 
 	meta := evt.Metadata()
-	if meta.CorrelationID != correlationID {
+	if meta.CorrelationID != correlationID.String() {
 		t.Errorf("expected correlation ID %s, got %s", correlationID, meta.CorrelationID)
 	}
 }

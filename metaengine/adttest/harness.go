@@ -30,6 +30,15 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// graphBackend is the local graph dispatch contract for test scenarios.
+// Engines with graph support (graphadapter, dgraphengine) implement this
+// structurally. The memory engine does NOT — graph operations route through
+// graphadapter exclusively (ADR-0113).
+type graphBackend interface {
+	GraphAddEdge(ctx context.Context, collection string, edge metaengine.Edge) error
+	GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error)
+}
+
 // Factory creates a fresh, isolated engine for testing.
 type Factory struct {
 	Name     string
@@ -56,7 +65,7 @@ var backendInterfaces = map[string]reflect.Type{ //nolint:gochecknoglobals // im
 	"MapBackend":       reflect.TypeFor[metaengine.MapBackend](),
 	"SetBackend":       reflect.TypeFor[metaengine.SetBackend](),
 	"CounterBackend":   reflect.TypeFor[metaengine.CounterBackend](),
-	"GraphBackend":     reflect.TypeFor[metaengine.GraphBackend](),
+	"GraphBackend":     reflect.TypeFor[graphBackend](),
 	"ScanBackend":      reflect.TypeFor[metaengine.ScanBackend](),
 	"LogBackend":       reflect.TypeFor[metaengine.LogBackend](),
 	"MultimapBackend":  reflect.TypeFor[metaengine.MultimapBackend](),
@@ -249,7 +258,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 			Name:     "Graph",
 			Requires: "GraphBackend",
 			Setup: func(ctx context.Context, eng metaengine.Engine) error {
-				gb := eng.(metaengine.GraphBackend)
+				gb := eng.(graphBackend)
 				edges := []metaengine.Edge{
 					{From: "A", To: "B"},
 					{From: "A", To: "C"},
@@ -264,7 +273,7 @@ func Scenarios() []Scenario { //nolint:maintidx // 11-ADT test matrix
 				return nil
 			},
 			Read: func(ctx context.Context, eng metaengine.Engine) (any, error) {
-				gb := eng.(metaengine.GraphBackend)
+				gb := eng.(graphBackend)
 
 				return gb.GraphNeighbors(ctx, "graph", "A", 1)
 			},

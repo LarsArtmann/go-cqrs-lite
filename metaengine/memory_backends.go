@@ -57,56 +57,6 @@ func (m *memoryEngine) CounterGet(_ context.Context, col string) (map[string]int
 	return result, nil
 }
 
-// --- GraphBackend ---
-
-func (m *memoryEngine) GraphAddEdge(_ context.Context, col string, edge Edge) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	g := m.getGraphLocked(col)
-	g.adjacency[edge.From] = append(g.adjacency[edge.From], edge.To)
-	g.adjacency[edge.To] = append(g.adjacency[edge.To], edge.From)
-
-	return nil
-}
-
-func (m *memoryEngine) GraphNeighbors(
-	_ context.Context,
-	col string,
-	node any,
-	depth int,
-) ([]any, error) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	g := m.data.graphs[col]
-	if g == nil {
-		return nil, nil
-	}
-
-	visited := map[any]bool{node: true}
-	frontier := []any{node}
-	result := []any{}
-
-	for d := 0; d < depth && len(frontier) > 0; d++ {
-		var next []any
-
-		for _, n := range frontier {
-			for _, neighbor := range g.adjacency[n] {
-				if !visited[neighbor] {
-					visited[neighbor] = true
-					result = append(result, neighbor)
-					next = append(next, neighbor)
-				}
-			}
-		}
-
-		frontier = next
-	}
-
-	return result, nil
-}
-
 // --- Lifecycle ---
 
 func (m *memoryEngine) Close() error { return nil }

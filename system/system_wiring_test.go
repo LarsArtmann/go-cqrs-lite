@@ -177,26 +177,6 @@ func TestSystem_MultiBusFanOut(t *testing.T) {
 	}
 }
 
-// ── T19: gochannel bus driver test ──
-
-func TestSystem_GochannelBusDriverRegistered(t *testing.T) {
-	t.Parallel()
-
-	drivers := system.RegisteredBusDrivers()
-
-	found := false
-	for _, d := range drivers {
-		if d == "gochannel" {
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		t.Fatalf("gochannel driver not registered, got: %v", drivers)
-	}
-}
-
 func TestSystem_RegisteredDriversIncludesMemoryAndSQLite(t *testing.T) {
 	t.Parallel()
 
@@ -224,25 +204,7 @@ func TestSystem_RegisteredDriversIncludesMemoryAndSQLite(t *testing.T) {
 	}
 }
 
-func TestBusDriverRegistry_GochannelRegistered(t *testing.T) {
-	t.Parallel()
-
-	drivers := system.RegisteredBusDrivers()
-
-	found := false
-
-	for _, d := range drivers {
-		if d == "gochannel" {
-			found = true
-		}
-	}
-
-	if !found {
-		t.Fatal("gochannel bus driver not registered")
-	}
-}
-
-func TestBusDriverRegistry_UnknownDriverErrors(t *testing.T) {
+func TestUnknownBusDriverErrors(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()

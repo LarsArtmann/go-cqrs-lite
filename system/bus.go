@@ -7,40 +7,18 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
-// buildEventBus creates the event bus based on the deployment config.
-// If the deployment configures a bus with a known driver, the driver factory
-// is used. Otherwise a Watermill GoChannel bus is created (D9).
-func buildEventBus(deployment DeploymentConfig) (event.Bus, error) {
-	// If a bus is explicitly configured, use the driver registry.
+// createEventBus creates a watermill.EventBus based on the deployment config.
+// The Driver field maps to watermill backend selection: "gochannel" (default)
+// uses Watermill's in-process GoChannel pub/sub. Future drivers (nats, kafka)
+// will use watermill.WithBackend to inject external publisher/subscriber.
+func createEventBus(deployment DeploymentConfig) (event.Bus, error) {
 	for _, busCfg := range deployment.Buses {
-		if busCfg.Driver == "" {
-			continue
-		}
-
-		// "gochannel" is the built-in default: Watermill GoChannel.
-		if busCfg.Driver == "gochannel" {
+		switch busCfg.Driver {
+		case "", "gochannel":
 			return watermill.NewEventBus(), nil
+		default:
+			return nil, fmt.Errorf("%w: %q (supported: gochannel)", ErrUnknownBusDriver, busCfg.Driver)
 		}
-
-		factory, err := lookupBusDriver(busCfg.Driver)
-		if err != nil {
-			return nil, fmt.Errorf("system: bus driver %q: %w", busCfg.Driver, err)
-		}
-
-		bus, err := factory(busCfg)
-		if err != nil {
-			return nil, fmt.Errorf("system: bus driver %q create: %w", busCfg.Driver, err)
-		}
-
-		eb, ok := bus.(event.Bus)
-		if !ok {
-			return nil, fmt.Errorf(
-				"system: bus driver %q returned %T: %w",
-				busCfg.Driver, bus, ErrBusDriverNotEventBus,
-			)
-		}
-
-		return eb, nil
 	}
 
 	// Default: Watermill GoChannel (in-process pub/sub).

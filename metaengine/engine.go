@@ -391,18 +391,6 @@ type CounterBackend interface {
 	CounterGet(ctx context.Context, collection string) (map[string]int64, error)
 }
 
-// GraphBackend is the graph dispatch contract for engines that support graph
-// operations. Deprecated per ADR-0113: consumers use graphadapter.Adapter for
-// graph support. Production dispatch uses the unexported graphBackend in
-// dispatch.go. This exported interface is retained for test infrastructure
-// (adttest, dgraphengine tests) and will be removed at v5 cut.
-//
-// Deprecated: Use graphadapter.Adapter instead.
-type GraphBackend interface {
-	GraphAddEdge(ctx context.Context, collection string, edge Edge) error
-	GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error)
-}
-
 // MultimapBackend handles one-to-many key-to-values collections.
 type MultimapBackend interface {
 	MultiAdd(ctx context.Context, collection string, key any, value any) error
@@ -564,7 +552,6 @@ var (
 	_ ScanBackend      = (*memoryEngine)(nil)
 	_ SetBackend       = (*memoryEngine)(nil)
 	_ CounterBackend   = (*memoryEngine)(nil)
-	_ GraphBackend     = (*memoryEngine)(nil)
 	_ MultimapBackend  = (*memoryEngine)(nil)
 	_ LogBackend       = (*memoryEngine)(nil)
 	_ StreamLogBackend = (*memoryEngine)(nil)

@@ -193,6 +193,7 @@
             "prometheus"
             "signing"
             "storage"
+            "storage/backuptest"
             "storage/bbolt"
             "watermill"
             "encryption"

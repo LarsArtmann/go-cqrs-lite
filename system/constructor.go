@@ -185,7 +185,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 	// Wire the event bus and publisher BEFORE the projection host so the
 	// host can use the bus as a live subscriber.
-	bus, err := buildEventBus(deployment)
+	bus, err := createEventBus(deployment)
 	if err != nil {
 		return nil, err
 	}

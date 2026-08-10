@@ -27,11 +27,11 @@ func TestEnrichEvent(t *testing.T) {
 	enrichEvent(context.Background(), evt, enricher)
 
 	meta := evt.Metadata()
-	if meta.CorrelationID.IsZero() {
+	if meta.CorrelationID == "" {
 		t.Error("expected correlation ID to be set")
 	}
 
-	if meta.UserID.IsZero() {
+	if meta.ActorID == "" {
 		t.Error("expected user ID to be set")
 	}
 }
@@ -63,7 +63,7 @@ func TestCompositeEnricher(t *testing.T) {
 	enrichEvent(context.Background(), evt, composite)
 
 	meta := evt.Metadata()
-	if meta.CorrelationID.IsZero() {
+	if meta.CorrelationID == "" {
 		t.Error("expected correlation ID from first enricher")
 	}
 
@@ -87,7 +87,7 @@ func TestCompositeEnricher_Empty(t *testing.T) {
 	enrichEvent(context.Background(), evt, composite)
 
 	meta := evt.Metadata()
-	if !meta.CorrelationID.IsZero() {
+	if meta.CorrelationID != "" {
 		t.Error("expected no correlation ID from empty enricher")
 	}
 }

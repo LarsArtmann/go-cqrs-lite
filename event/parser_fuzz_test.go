@@ -225,51 +225,6 @@ func FuzzCheckVersionConflict(f *testing.F) {
 	})
 }
 
-// FuzzDetectTombstone drives DetectTombstone with arbitrary event streams
-// and custom metadata. The "last event wins" rule and rebirth precedence
-// must hold.
-func FuzzDetectTombstone(f *testing.F) {
-	f.Add("", "true", "false")
-	f.Add("true", "true", "false")
-	f.Add("true", "true", "true") // rebirth wins
-	f.Add("", "", "")
-	f.Add("true", "false", "true")
-
-	f.Fuzz(func(t *testing.T, t1Val, t2Val, t3Val string) {
-		events := make([]event.Event, 3)
-		for i, v := range []string{t1Val, t2Val, t3Val} {
-			e, err := event.NewEvent(
-				"evt", id.NewStreamID(), "Test", event.Version(i+1), nil,
-				event.WithMetadata(event.Metadata{
-					Custom: map[event.MetadataKey]string{
-						event.MetadataKeyTombstone: t1Val,
-						event.MetadataKeyRebirth:   t2Val,
-					},
-				}),
-			)
-			if err != nil {
-				t.Fatalf("build event %d: %v", i, err)
-			}
-
-			_ = v
-			events[i] = e
-		}
-
-		// Empty stream → undetermined
-		if got := event.DetectTombstone(nil); got != event.TombstoneUndetermined {
-			t.Errorf("empty: got %v, want undetermined", got)
-		}
-
-		// Rebirth on last event always wins
-		last := events[len(events)-1]
-		if last.Metadata().Custom[event.MetadataKeyRebirth] == "true" {
-			if got := event.DetectTombstone(events); got != event.TombstoneActive {
-				t.Errorf("rebirth precedence: got %v, want Active", got)
-			}
-		}
-	})
-}
-
 // FuzzMetadata_CloneIsDeep drives Metadata.Clone with arbitrary Custom maps
 // and verifies the clone is independent.
 func FuzzMetadata_CloneIsDeep(f *testing.F) {

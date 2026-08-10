@@ -26,7 +26,7 @@ func TestGraphRAG_ConcurrentStress(t *testing.T) {
 
 	eng := mustNewDgraphEngine(t)
 
-	gb, ok := eng.(metaengine.GraphBackend)
+	gb, ok := eng.(graphBackend)
 	if !ok {
 		t.Fatal("engine does not implement GraphBackend")
 	}

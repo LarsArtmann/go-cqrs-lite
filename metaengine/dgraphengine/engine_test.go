@@ -8,6 +8,14 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// graphBackend is the local graph dispatch contract for tests. The Dgraph
+// engine implements this structurally via its GraphAddEdge/GraphNeighbors
+// methods (ADR-0113: the exported metaengine.GraphBackend was deleted).
+type graphBackend interface {
+	GraphAddEdge(ctx context.Context, collection string, edge metaengine.Edge) error
+	GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error)
+}
+
 // TestProfile verifies the Dgraph engine profile without requiring a running
 // Dgraph instance. The profile values are compile-time constants.
 func TestProfile(t *testing.T) {
@@ -125,7 +133,7 @@ func TestGraphBackend(t *testing.T) {
 	eng := mustNewDgraphEngine(t)
 
 	ctx := context.Background()
-	gb := eng.(metaengine.GraphBackend)
+	gb := eng.(graphBackend)
 
 	// Build: A→B, A→C, B→D (bidirectional).
 	edges := []metaengine.Edge{

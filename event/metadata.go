@@ -4,15 +4,18 @@ import (
 	"maps"
 
 	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // Metadata contains tracing and contextual information for events.
+// The common tracing fields (CorrelationID, CausationID, ActorID, RequestID,
+// timestamps, SchemaVersion) come from [record.CommonMetadata], which is the
+// single structural base shared with commands (ADR-0111 Phase 3).
 type Metadata struct {
-	metadata.Tracing
+	record.CommonMetadata
 	Source    Source                 `json:"source,omitempty"`
 	IPAddress IPAddress              `json:"ipAddress,omitempty"`
 	UserAgent UserAgent              `json:"userAgent,omitempty"`
-	Tombstone *TombstoneMark         `json:"tombstone,omitempty"`
 	Causation *Causation             `json:"causation,omitempty"`
 	Custom    map[MetadataKey]string `json:"custom,omitempty"`
 }
@@ -29,11 +32,6 @@ func (m Metadata) Clone() Metadata {
 
 	if m.Custom != nil {
 		cp.Custom = maps.Clone(m.Custom)
-	}
-
-	if m.Tombstone != nil {
-		mark := *m.Tombstone
-		cp.Tombstone = &mark
 	}
 
 	if m.Causation != nil {
@@ -71,7 +69,7 @@ func EnsureCustom(m *Metadata) {
 // Merge returns a new Metadata with non-zero fields from other overlaid onto m.
 func (m Metadata) Merge(other Metadata) Metadata {
 	result := m
-	result.Tracing = m.Tracing.Merge(other.Tracing)
+	result.CommonMetadata = m.CommonMetadata.Merge(other.CommonMetadata)
 
 	if other.Source != "" {
 		result.Source = other.Source
@@ -83,11 +81,6 @@ func (m Metadata) Merge(other Metadata) Metadata {
 
 	if other.UserAgent != "" {
 		result.UserAgent = other.UserAgent
-	}
-
-	if other.Tombstone != nil {
-		mark := *other.Tombstone
-		result.Tombstone = &mark
 	}
 
 	if other.Causation != nil {

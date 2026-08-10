@@ -746,14 +746,9 @@ event/const MetadataKeyClientID
 event/const MetadataKeyClientOccurredAt
 event/const MetadataKeyCommandID
 event/const MetadataKeyCommandType
-event/const MetadataKeyRebirth
-event/const MetadataKeyTombstone
 event/const ModeLive
 event/const ModeReplay
 event/const Rejection
-event/const TombstoneActive
-event/const TombstoneTombstoned
-event/const TombstoneUndetermined
 event/const Transient
 event/func AsRecord
 event/func CheckVersionConflict
@@ -763,15 +758,12 @@ event/func CompositeEnricher
 event/func DecodePayload
 event/func DecodePayloadAuto
 event/func DecodePayloads
-event/func DetectTombstone
 event/func EnsureCustom
 event/func ExtractCustomBytes
 event/func ExtractCustomBytesChecked
 event/func FilterByTimestamp
 event/func FromContext
 event/func IsReplay
-event/func MarkRebirth
-event/func MarkTombstone
 event/func MarshalMetadataJSON
 event/func New
 event/func NewDate
@@ -865,11 +857,8 @@ event/method Increment
 event/method Increment
 event/method Int
 event/method Int
-event/method IsActive
-event/method IsKnown
 event/method IsPositive
 event/method IsPositive
-event/method IsTombstoned
 event/method IsValid
 event/method IsZero
 event/method IsZero
@@ -899,7 +888,6 @@ event/method Publish
 event/method SchemaVersion
 event/method StreamID
 event/method StreamType
-event/method String
 event/method String
 event/method String
 event/method String
@@ -941,7 +929,6 @@ event/struct Instant
 event/struct Metadata
 event/struct MultiBatchEntry
 event/struct SliceIterator
-event/struct TombstoneMark
 event/struct WallTime
 event/type AggregateID
 event/type AggregateRef
@@ -965,7 +952,6 @@ event/type SchemaVersion
 event/type Source
 event/type StreamRef
 event/type StreamType
-event/type TombstoneStatus
 event/type Type
 event/type UserAgent
 event/type Version
@@ -1662,7 +1648,6 @@ metaengine/interface Engine
 metaengine/interface ExplainableAggregate
 metaengine/interface ExplainableScan
 metaengine/interface Fold
-metaengine/interface GraphBackend
 metaengine/interface GroupedAggregateReader
 metaengine/interface HealthChecker
 metaengine/interface LayoutPlanApplier
@@ -1872,8 +1857,6 @@ metaengine/method Get
 metaengine/method Get
 metaengine/method Get
 metaengine/method GetBatch
-metaengine/method GraphAddEdge
-metaengine/method GraphNeighbors
 metaengine/method GroupBy
 metaengine/method GroupedAvg
 metaengine/method GroupedCount
@@ -2630,6 +2613,7 @@ query/var ErrQueryNotFound
 query/var ErrStoreClosed
 query/var ErrTypeAssertion
 record/func NewStreamRef
+record/method Merge
 record/method Split
 record/method String
 record/struct CommonMetadata
@@ -2954,6 +2938,10 @@ stack/var ErrMissingPublisher
 stack/var ErrMissingQueryStore
 stack/var ErrMissingReadModels
 stack/var ErrMissingSubscriber
+storage/backuptest/func RunFullLifecycle
+storage/backuptest/func RunIncrementalCheckpoints
+storage/backuptest/interface Backend
+storage/backuptest/struct Factory
 storage/bbolt/func NewBackend
 storage/bbolt/func NewCheckpointStore
 storage/bbolt/func NewCommandStore
@@ -3550,12 +3538,10 @@ system/func OnEvolution
 system/func OrderBy
 system/func QuerySet
 system/func RawQuery
-system/func RegisterBusDriver
 system/func RegisterCommand
 system/func RegisterDecider
 system/func RegisterDriver
 system/func RegisterQuery
-system/func RegisteredBusDrivers
 system/func RegisteredDrivers
 system/func Where
 system/func WithCommandSerialization
@@ -3677,7 +3663,6 @@ system/struct ShutdownDependency
 system/struct SnapshotAdapter
 system/struct System
 system/struct Topology
-system/type BusDriverFactory
 system/type CommandAdapterOption
 system/type DriverFactory
 system/type DurabilityTier
@@ -3691,7 +3676,6 @@ system/type ScreamTier
 system/type SnapshotBackend
 system/type SortOrder
 system/var ErrAlreadyStarted
-system/var ErrBusDriverNotEventBus
 system/var ErrCacheCapacityInvalid
 system/var ErrCommandTypeMismatch
 system/var ErrDeciderTypeMismatch

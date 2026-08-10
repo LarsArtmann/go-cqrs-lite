@@ -11,6 +11,13 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// graphBackend is the local graph dispatch contract for tests. Engines with
+// graph support (graphadapter, dgraphengine) implement this structurally.
+type graphBackend interface {
+	GraphAddEdge(ctx context.Context, collection string, edge metaengine.Edge) error
+	GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error)
+}
+
 // TestConcurrentExecuteTypedUnderWritePressure (#30): concurrent reads via
 // ExecuteTyped while Apply is writing from multiple goroutines. Catches
 // race conditions in the FoldUpdate atomic RMW path (ADR-0067).
@@ -154,9 +161,9 @@ func TestCrossEngineGraphNeighborsParity(t *testing.T) {
 	for name, eng := range engines {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			gb, ok := eng.(metaengine.GraphBackend)
+			gb, ok := eng.(graphBackend)
 			if !ok {
-				t.Skipf("%s engine does not implement GraphBackend", name)
+				t.Skipf("%s engine does not implement graphBackend", name)
 			}
 
 			for _, e := range edges {

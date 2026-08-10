@@ -61,9 +61,8 @@ func TestAdapter_ImplementsInterfaces(t *testing.T) {
 	var eng metaengine.Engine = graphadapter.New()
 	defer eng.Close()
 
-	gb := eng.(metaengine.GraphBackend)
-	if gb == nil {
-		t.Fatal("Adapter does not implement GraphBackend")
+	if !metaengine.HasGraphSupport(eng) {
+		t.Fatal("Adapter does not implement graph dispatch (GraphAddEdge + GraphNeighbors)")
 	}
 }
 

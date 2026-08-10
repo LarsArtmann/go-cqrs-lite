@@ -25,7 +25,7 @@ import (
 //
 // The graph has ~50 entities and ~100 edges (each entity connects to 2-3 others),
 // forming a connected graph where 2-hop traversal reaches most of the graph.
-func buildGraphRAGCorpus(b *testing.B, sb metaengine.SearchBackend, gb metaengine.GraphBackend,
+func buildGraphRAGCorpus(b *testing.B, sb metaengine.SearchBackend, gb graphBackend,
 	searchCol, graphCol string, numEntities int,
 ) {
 	ctx := context.Background()
@@ -79,7 +79,7 @@ func BenchmarkDgraph_GraphRAG_SearchThenExpand(b *testing.B) {
 		b.Fatal("engine does not implement SearchBackend")
 	}
 
-	gb, ok := eng.(metaengine.GraphBackend)
+	gb, ok := eng.(graphBackend)
 	if !ok {
 		b.Fatal("engine does not implement GraphBackend")
 	}
@@ -132,7 +132,7 @@ func BenchmarkDgraph_GraphRAG_SearchThenExpand(b *testing.B) {
 func BenchmarkDgraph_GraphWriteReadMix(b *testing.B) {
 	eng := mustNewDgraphEngine(b)
 
-	gb, ok := eng.(metaengine.GraphBackend)
+	gb, ok := eng.(graphBackend)
 	if !ok {
 		b.Fatal("engine does not implement GraphBackend")
 	}
@@ -218,7 +218,7 @@ func BenchmarkDgraph_FullTriad_MapGraphSearch(b *testing.B) {
 		b.Fatal("engine does not implement MapBackend")
 	}
 
-	gb, ok := eng.(metaengine.GraphBackend)
+	gb, ok := eng.(graphBackend)
 	if !ok {
 		b.Fatal("engine does not implement GraphBackend")
 	}

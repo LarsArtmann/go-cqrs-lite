@@ -25,7 +25,7 @@ func TestGraphRAG_SearchThenGraphTraverse(t *testing.T) {
 
 	eng := mustNewDgraphEngine(t)
 
-	gb, ok := eng.(metaengine.GraphBackend)
+	gb, ok := eng.(graphBackend)
 	if !ok {
 		t.Fatal("engine does not implement GraphBackend")
 	}
@@ -148,7 +148,7 @@ func TestGraphRAG_DifferentQueries(t *testing.T) {
 
 	eng := mustNewDgraphEngine(t)
 
-	gb := eng.(metaengine.GraphBackend)
+	gb := eng.(graphBackend)
 	sb := eng.(metaengine.SearchBackend)
 
 	ctx := context.Background()

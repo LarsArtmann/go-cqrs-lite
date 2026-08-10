@@ -10,7 +10,7 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
-// --- GraphBackend ---
+// --- Graph Operations ---
 //
 // Dgraph's native strength: O(degree^depth) graph traversal with zero
 // degradation. Edges are stored as uid→uid predicates with @reverse for

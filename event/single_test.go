@@ -73,7 +73,7 @@ func TestSingle_WithCorrelationID(t *testing.T) {
 	}
 
 	md := events[0].Metadata()
-	if md.CorrelationID != corrID {
+	if md.CorrelationID != corrID.String() {
 		t.Errorf("CorrelationID mismatch: got %v, want %v", md.CorrelationID, corrID)
 	}
 }

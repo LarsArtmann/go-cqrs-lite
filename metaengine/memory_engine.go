@@ -23,7 +23,6 @@ type memData struct {
 	maps      map[string]map[any]any
 	sets      map[string]map[any]struct{}
 	counters  map[string]map[string]int64
-	graphs    map[string]*memGraph
 	multimaps map[string]map[any][]any
 	logs      map[string][]any
 	// streams stores stream-keyed append-only values: collection → streamID → values.
@@ -39,17 +38,12 @@ type streamJournalEntry struct {
 	value    any
 }
 
-type memGraph struct {
-	adjacency map[any][]any
-}
-
 func NewMemoryEngine() Engine {
 	return &memoryEngine{
 		data: &memData{
 			maps:          make(map[string]map[any]any),
 			sets:          make(map[string]map[any]struct{}),
 			counters:      make(map[string]map[string]int64),
-			graphs:        make(map[string]*memGraph),
 			multimaps:     make(map[string]map[any][]any),
 			logs:          make(map[string][]any),
 			streams:       make(map[string]map[string][]any),
@@ -86,7 +80,6 @@ func (m *memoryEngine) Profile() EngineProfile {
 			ADTMap:       ComplexityO1,
 			ADTSet:       ComplexityO1,
 			ADTCounter:   ComplexityO1,
-			ADTGraph:     ComplexityODegree,
 			ADTSortedMap: ComplexityON,
 			ADTLog:       ComplexityON,
 			ADTMultimap:  ComplexityO1,
@@ -118,15 +111,6 @@ func (m *memoryEngine) getMapLocked(col string) map[any]any {
 	}
 
 	return m.data.maps[col]
-}
-
-// getGraphLocked returns or creates a graph collection. Caller MUST hold m.mu.Lock().
-func (m *memoryEngine) getGraphLocked(col string) *memGraph {
-	if m.data.graphs[col] == nil {
-		m.data.graphs[col] = &memGraph{adjacency: make(map[any][]any)}
-	}
-
-	return m.data.graphs[col]
 }
 
 func (m *memoryEngine) MapSet(_ context.Context, col string, key any, value any) error {

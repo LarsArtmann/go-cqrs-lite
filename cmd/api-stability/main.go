@@ -75,6 +75,7 @@ var modules = []string{
 	"middleware",
 	"storage",
 	"storage/sql",
+	"storage/backuptest",
 	"storage/pebble",
 	"storage/bbolt",
 	"storage/turso",
