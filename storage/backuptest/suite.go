@@ -36,6 +36,7 @@ type Factory struct {
 // (events, snapshots, checkpoints) and that a restored backend is fully
 // functional for continued operations.
 func RunFullLifecycle(t *testing.T, f Factory) {
+	t.Helper()
 	t.Parallel()
 
 	ctx := context.Background()
@@ -136,6 +137,7 @@ func RunFullLifecycle(t *testing.T, f Factory) {
 // RunIncrementalCheckpoints verifies that multiple sequential backups capture
 // the state at each point in time.
 func RunIncrementalCheckpoints(t *testing.T, f Factory) {
+	t.Helper()
 	t.Parallel()
 
 	ctx := context.Background()
