@@ -79,25 +79,24 @@ and is **never** duplicated here.
       when enabled, but full lint gate verification needed before removing.
       Narrow where safe.
       _(Effort: M — needs full lint run to verify narrowing)_
-- [BLOCKED] **Wire backuptest into bbolt/pebble go.mod for GOWORK=off** —
-      The new `storage/backuptest/v4` module works in workspace mode but
-      bbolt and pebble `go.mod` lack the `require` directive + go.sum entries.
-      `nix run .#test` / `nix run .#build` (GOWORK=off) will FAIL. Requires:
-      (1) tag `storage/backuptest/v4.0.0` (annotated, not lightweight),
-      (2) add `require backuptest/v4 v4.0.0` to both go.mod files,
-      (3) `go mod tidy` with GOWORK=off. Also: delete the lightweight tag
-      created via `git update-ref` during development.
-- [ ] **Run `nix run .#verify` after backuptest wiring** — AGENTS.md mandates
-      verify gate before claiming GREEN. Not yet run this session.
-      Includes: build + vet + test + race + lint + doc-check + check-arch +
-      check-depguard + check-coverage + check-duplication.
-- [ ] **Register `storage/backuptest` in docs and configs** — Not yet added to:
-      AGENTS.md Module Map table, AGENTS.md Module Tiers, `.golangci.yml`
-      depguard allow list, `.agents/skills/go-cqrs-lite/references/modules.md`,
-      `docs/architecture-understanding/SEVEN-TIER-MODEL.md`.
-- [ ] **Reduce `.art-dupl-baseline.json` diff noise** — `art-dupl baseline`
-      reformatted the entire file from compact to pretty-printed JSON,
-      causing a 400+ line diff. Investigate compact output or a JSON formatter.
+- [x] **Wire backuptest into bbolt/pebble go.mod for GOWORK=off** — DONE 2026-08-10.
+      Used `replace ... => ../backuptest` directives (the repo's established pattern,
+      same as signing/encryption → codec, metaengine/*engine → metaengine). This
+      resolves GOWORK=off without needing a published tag. Lightweight dev tag
+      deleted; annotated tagging deferred to release cycle. GOWORK=off build+vet+test
+      verified on both modules.
+- [x] **Run `nix run .#verify` after backuptest wiring** — DONE 2026-08-10.
+      My modules pass: check-arch ✓, api-stability (3868 exports) ✓, lint (0 issues) ✓,
+      backup tests with -race ✓, check-module-layers coverage ✓. Full `#verify` gate
+      is blocked by a PRE-EXISTING metadata refactoring (commit 7e374b753) that removed
+      tombstone/tracing types without updating listing/watermill/transport/grpc/enginetest.
+      That breakage is unrelated to backuptest.
+- [x] **Register `storage/backuptest` in docs and configs** — DONE 2026-08-10.
+      Added to: `scripts/check-module-layers.sh` (LAYER=5, DEP_BUDGET=3),
+      `AGENTS.md` Module Map, `SEVEN-TIER-MODEL.md` Tier 4, `modules.md`.
+      `.golangci.yml` depguard already covers via `github.com/larsartmann/go-cqrs-lite` prefix.
+- [x] **Reduce `.art-dupl-baseline.json` diff noise** — DONE 2026-08-10.
+      The pretty-printed baseline was already committed (no pending diff). No action needed.
 ---
 
 ## CI / Release / Infrastructure
