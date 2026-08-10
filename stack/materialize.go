@@ -71,14 +71,22 @@ type Materialize[V any, K fmt.Stringer] struct {
 	// If the record does not exist, the event is skipped.
 	OnUpdate func(ctx context.Context, evt event.Event, existing *V) (*V, error)
 
-	// OnTombstone handles a tombstone event (soft-delete).
+	// OnTombstone handles a delete event (soft-delete, ADR-0114).
+	// Triggered when the event type matches one of DeleteTypes.
 	// The record is NOT deleted from the store — it is marked tombstoned
 	// and excluded from default query results.
 	OnTombstone func(ctx context.Context, evt event.Event, existing *V) (*V, error)
 
+	// DeleteTypes are the event types that trigger OnTombstone (ADR-0114).
+	// Tombstones are domain events, not metadata markers.
+	DeleteTypes []event.Type
+
 	// OnRebirth handles a rebirth event (undo tombstone).
-	// The record is restored to active status.
+	// Triggered when the event type matches one of RebirthTypes.
 	OnRebirth func(ctx context.Context, evt event.Event, existing *V) (*V, error)
+
+	// RebirthTypes are the event types that trigger OnRebirth (ADR-0114).
+	RebirthTypes []event.Type
 
 	// ProjectionName optionally sets the name returned by [Name] for
 	// diagnostics and runner registration. Defaults to "materialize".
@@ -140,10 +148,8 @@ func (m *Materialize[V, K]) handleEvent(ctx context.Context, evt event.Event) er
 			"extract key from event")
 	}
 
-	md := evt.Metadata()
-
-	// Check for tombstone/rebirth marks.
-	if md.Tombstone != nil {
+	// Check for delete/rebirth event types (ADR-0114: tombstones are domain events).
+	if isEventType(evt, m.DeleteTypes) && m.OnTombstone != nil {
 		existing, getErr := m.Store.Get(ctx, key)
 		if getErr != nil && !errors.Is(getErr, kv.ErrNotFound) {
 			return errorfamily.Wrap(getErr, errorfamily.Classify(getErr),
@@ -154,31 +160,31 @@ func (m *Materialize[V, K]) handleEvent(ctx context.Context, evt event.Event) er
 			existing = nil
 		}
 
-		switch md.Tombstone.Status {
-		case event.TombstoneTombstoned:
-			if m.OnTombstone != nil {
-				updated, err := m.OnTombstone(ctx, evt, existing)
-				if err != nil {
-					return err
-				}
-
-				return m.Store.Set(ctx, key, updated)
-			}
-		case event.TombstoneActive:
-			if m.OnRebirth != nil {
-				updated, err := m.OnRebirth(ctx, evt, existing)
-				if err != nil {
-					return err
-				}
-
-				return m.Store.Set(ctx, key, updated)
-			}
-		case event.TombstoneUndetermined:
-			// Can't determine status — skip projection. A subsequent event
-			// with a definitive status will resolve the stream state.
+		updated, err := m.OnTombstone(ctx, evt, existing)
+		if err != nil {
+			return err
 		}
 
-		return nil
+		return m.Store.Set(ctx, key, updated)
+	}
+
+	if isEventType(evt, m.RebirthTypes) && m.OnRebirth != nil {
+		existing, getErr := m.Store.Get(ctx, key)
+		if getErr != nil && !errors.Is(getErr, kv.ErrNotFound) {
+			return errorfamily.Wrap(getErr, errorfamily.Classify(getErr),
+				"stack.materialize.load_rebirth", "load existing for rebirth")
+		}
+
+		if errors.Is(getErr, kv.ErrNotFound) {
+			existing = nil
+		}
+
+		updated, err := m.OnRebirth(ctx, evt, existing)
+		if err != nil {
+			return err
+		}
+
+		return m.Store.Set(ctx, key, updated)
 	}
 
 	// Regular event: try OnUpdate first, fall back to OnCreate.
@@ -286,6 +292,17 @@ func isMaterializedTombstoned[V any](v *V) bool {
 
 	if t, ok := any(v).(tombstoner); ok {
 		return t.IsTombstoned()
+	}
+
+	return false
+}
+
+// isEventType returns true if the event's type matches any of the given types.
+func isEventType(evt event.Event, types []event.Type) bool {
+	for _, t := range types {
+		if evt.Type() == t {
+			return true
+		}
 	}
 
 	return false

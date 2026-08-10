@@ -5,6 +5,7 @@ import (
 	"encoding/json/v2"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
@@ -53,8 +54,8 @@ func TestAutoFold_RecordAware_Insert(t *testing.T) {
 		StreamType: "Product",
 		Version:    5,
 		MetaData: record.CommonMetadata{
-			CorrelationID: "corr-abc",
-			ActorID:       "user-xyz",
+			CorrelationID: id.NewCorrelationID(),
+			ActorID:       id.NewSystemActor("test"),
 		},
 	}
 

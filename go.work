@@ -38,16 +38,19 @@ use (
 	./metaengine
 	./metaengine/badgerengine
 	./metaengine/bench
+	./metaengine/bboltengine
 	./metaengine/dgraphengine
 	./metaengine/duckdbengine
 	./metaengine/graphadapter
 	./metaengine/irohengine
 	./metaengine/irohengine/loopback
 	./metaengine/irohengine/quic
+	./metaengine/mysqlengine
 	./metaengine/pebbleengine
 	./metaengine/pgengine
 	./metaengine/projectionadapter
 	./metaengine/sqliteengine
+	./metaengine/tursoengine
 	./middleware
 	./otel
 	./projection

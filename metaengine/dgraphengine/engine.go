@@ -2,9 +2,9 @@
 //
 // Dgraph is a distributed graph database with native DQL (GraphQL+-) query
 // support. This engine implements MapBackend, CounterBackend, ScanBackend,
-// GraphBackend, SetBackend, and SearchBackend.
+// graph dispatch, SetBackend, and SearchBackend.
 //
-// GraphBackend is Dgraph's native strength — O(degree^depth) traversal with
+// Graph dispatch is Dgraph's native strength — O(degree^depth) traversal with
 // zero degradation. SearchBackend leverages Dgraph's built-in term index
 // (@index(term)) for efficient full-text search. MapBackend uses Dgraph's
 // exact index (@index(exact)) for O(logN) point lookups.

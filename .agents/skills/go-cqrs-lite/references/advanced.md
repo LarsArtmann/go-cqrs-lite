@@ -20,14 +20,15 @@
 ### 6.1 Tombstone Soft-Delete & Rebirth
 
 ```go
-// Delete: emit a tombstone event
-marked, _ := event.MarkTombstone(evt)
-store.Save(ctx, ref, []event.Event{marked}, expectedVersion)
+// Delete: append a deletion event to the stream (ADR-0114)
+deleted := event.New(ref, "user.deleted", payload, version)
+store.Save(ctx, ref, []event.Event{deleted}, expectedVersion)
 
-// Detect: check stream status
-status := event.DetectTombstone(events) // Active | Tombstoned | Undetermined
+// Detect: use listing/ to check stream status
+page, _ := listingBuilder.ListWithStatus(ctx)
+// page.Items[i].Status → listing.StatusActive | listing.StatusDeleted
 
-// Rebirth: emit a new event after tombstone (tombstone is just metadata)
+// Rebirth: emit a new event after the deletion event
 // See example/taskmanager/ for the full tombstone + rebirth cycle
 ```
 

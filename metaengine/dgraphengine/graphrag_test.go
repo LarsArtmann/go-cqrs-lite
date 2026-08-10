@@ -17,7 +17,7 @@ import (
 //  4. ASSEMBLE: deduplicate into a context window.
 //
 // This is the use case that makes Dgraph uniquely valuable — it's the only
-// metaengine that implements BOTH GraphBackend AND SearchBackend at full
+// metaengine that implements BOTH graph dispatch AND SearchBackend at full
 // parity (no degradation). A GraphRAG pipeline on Memory/SQLite/Pebble would
 // need two separate engines and glue code to join them.
 func TestGraphRAG_SearchThenGraphTraverse(t *testing.T) {

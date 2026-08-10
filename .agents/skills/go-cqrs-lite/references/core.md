@@ -153,15 +153,17 @@ These are **non-negotiable** rules. Violating them breaks the library's contract
 
 ### 3.1 Tombstone over delete — NEVER call Delete
 
-There is **no `Delete` on Store**. Soft-delete via metadata:
+There is **no `Delete` on Store**. Soft-delete by emitting a domain event
+(ADR-0114: tombstones are immutable facts, not mutable metadata):
 
 ```go
-// Correct: mark tombstone
-marked, _ := event.MarkTombstone(evt)
-status := event.DetectTombstone(events) // Active | Tombstoned | Undetermined
+// Delete: append a deletion event to the stream
+deleted := event.New(ref, "user.deleted", payload, version)
+store.Save(ctx, ref, []event.Event{deleted}, expectedVersion)
 ```
 
-Use `listing/` for tombstone-aware stream status read models.
+Use `listing/` for tombstone-aware stream status read models
+(`listing.StatusActive` / `listing.StatusDeleted` via `ListWithStatus`).
 
 ### 3.2 Sink/Source split — use the right interface
 
@@ -243,7 +245,7 @@ cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 
 | Anti-pattern                               | Correct approach                                                        |
 | ------------------------------------------ | ----------------------------------------------------------------------- |
-| Adding a `Delete()` method to Store        | Use tombstone metadata (`event.MarkTombstone`)                          |
+| Adding a `Delete()` method to Store        | Emit a domain deletion event (ADR-0114)                                 |
 | Taking `Store` param when you only read    | Take `EventSource` or `Journal`                                         |
 | Type-asserting `evt.Payload()`             | Use `event.DecodePayloadAuto[T](evt)` or `DecodePayload[T](evt, codec)` |
 | Importing `go.opentelemetry.io` directly   | Import `otel/v4` re-exports                                             |

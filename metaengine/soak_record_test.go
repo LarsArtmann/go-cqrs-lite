@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
@@ -94,7 +95,7 @@ func TestSoak_RecordAwarePipeline(t *testing.T) {
 			StreamType: "Item",
 			Version:    int64(i/numKeys + 1),
 			MetaData: record.CommonMetadata{
-				CorrelationID: fmt.Sprintf("corr-%d", i),
+				CorrelationID: id.NewCorrelationID(),
 			},
 		}
 

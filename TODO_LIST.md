@@ -106,57 +106,69 @@ and is **never** duplicated here.
 > partially done. Remaining gaps tracked here. See
 > `docs/status/2026-08-10_15-26_graphbackend-deadcode-cleanup-followups.md`.
 
-- [ ] **Fix `dgraphengine/README.md:71` broken code example** —
-      `eng.(metaengine.GraphBackend)` references the deleted exported type.
-      Compile error if copy-pasted by a consumer. Rewrite to `graphadapter`
-      usage or the unexported `graphBackend` pattern.
-      _(Effort: XS)_
-- [ ] **Clean 5 stale `GraphBackend` comment references** in dgraphengine Go
-      files: `engine.go:5,7`, `engine_test.go:13`, `graphrag_test.go:20`,
-      `mixed_bench_test.go:14` — conceptual refs to the deleted type. Reword to
-      "graph dispatch" or "Graph ADT".
-      _(Effort: XS)_
-- [ ] **Run `doc-check`** after `ErrUnknownDriver` removal —
-      `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`
-      _(Effort: XS)_
-- [ ] **Audit skill references** (`.agents/skills/go-cqrs-lite/references/*.md`)
-      for `ErrUnknownDriver` mentions after the removal.
-      _(Effort: XS)_
-- [ ] **Re-run `go vet`** on system + metaengine after the Go build-cache clear
-      mid-session (first vet run hit corrupted cache).
-      _(Effort: XS)_
+- [x] **Fix `dgraphengine/README.md:71` broken code example** —
+      Replaced with local `graphDispatch` interface definition (ADR-0113 pattern).
+      Prose (lines 7, 119) updated from "GraphBackend" to "graph dispatch".
+      _(Effort: XS)_ ✅
+- [x] **Clean stale `GraphBackend` comment references** in dgraphengine Go
+      files: `engine.go:5,7`, `graphrag_test.go:20`, `mixed_bench_test.go:14`
+      reworded to "graph dispatch". `engine_test.go:13` left as historically
+      accurate ("ADR-0113: the exported metaengine.GraphBackend was deleted").
+      _(Effort: XS)_ ✅
+- [x] **Run `doc-check`** after `ErrUnknownDriver` removal —
+      Passed: all 695 references valid. Fixed 4 stale `event.MarkTombstone`/
+      `event.DetectTombstone` references in skill docs (`core.md`, `advanced.md`)
+      rewritten to the ADR-0114 domain-event pattern.
+      _(Effort: XS)_ ✅
+- [x] **Audit skill references** (`.agents/skills/go-cqrs-lite/references/*.md`)
+      for `ErrUnknownDriver` — zero references found. Nothing to fix.
+      _(Effort: XS)_ ✅
+- [x] **Re-run `go vet`** on system + metaengine — passes clean.
+      Also fixed 2 additional branded-ID build breaks: `auto_fold_record_test.go:56-57`
+      and `soak_record_test.go:97`.
+      _(Effort: XS)_ ✅
 
 ---
 
 ## CI / Release / Infrastructure
 
-- 🔥 **Fix metadata refactoring fallout — HEAD does not build** — Commits
-  `7e374b753` + `445beb74d` removed `event.TombstoneStatus`, `event.TombstoneMark`,
-  `event.DetectTombstone`, `event.MarkTombstone`, `event.MarkRebirth`,
-  `metadata.Tracing`, `Metadata.Tombstone`, `Metadata.Tracing`, `Metadata.UserID`
-  WITHOUT updating 4 dependent packages. `nix run .#build` / `#verify` / `#test`
-  ALL FAIL. No CI gate can pass until this is fixed.
-  See `docs/status/2026-08-10_15-10_backuptest-wiring-complete-metadata-refactoring-blocks-ci.md`.
-  Specific breakages:
-  - [ ] `transport/grpc/event_server.go:158-159` — `md.Tombstone undefined`
-        (no uncommitted fix exists)
-  - [x] `metaengine/enginetest/record_stamp.go:57-58` — FIXED 2026-08-10.
-        Branded-ID string literals replaced with `id.NewCorrelationID()` /
-        `id.NewSystemActor("test")`. `id/v4` added to `metaengine/go.mod`.
-  - [ ] Commit uncommitted `listing/` fixes (14 files — TombstoneStatus/MarkTombstone/
-        DetectTombstone/MarkRebirth references)
-  - [ ] Commit uncommitted `watermill/` fixes (6 files — Tracing/Tombstone/UserID
-        references)
-  - [x] `system/sqlite_driver.go` deleted + `system.ErrUnknownDriver` removed +
-        `system/introspection.go` qualifier fixed — DONE 2026-08-10.
-        `modernc.org/sqlite` + 5 transitive deps removed from system production deps.
-        See `docs/status/2026-08-10_15-26_graphbackend-deadcode-cleanup-followups.md`.
-  - [ ] Fix `TestContract_MetadataRoundtrip` (bbolt) — UserID field removed
-  - [ ] Fix `TestEventStore_MetadataRoundtrip` (pebble) — same root cause
+- 🔥 **Record consolidation fallout — 16 modules do not compile** — ADR-0111
+  Phases 3-4 (metadata consolidation + tombstone removal) are DONE in core
+  modules (id/, record/, event/, command/, query/, metadata/) and partially done
+  in listing/, watermill/, integration/event/. But **16 downstream modules still
+  reference deleted tombstone types** (`event.TombstoneStatus`, `event.MarkTombstone`,
+  `md.Tombstone`, `event.MetadataKeyTombstone`, etc.) and cannot compile.
+  See `docs/status/2026-08-10_15-25_record-consolidation-phase3-4-session2.md`.
+  **IMPORTANT: `go test ./...` from workspace root tests ZERO packages (no root
+  go.mod). Always verify per-module or use `nix run .#test`.**
+  Done:
+  - [x] Core metadata consolidation (record.CommonMetadata branded types)
+  - [x] `id.ActorID` kind-discriminated struct + tests
+  - [x] Tombstone types deleted from event/
+  - [x] listing/ refactored to event-type-based detection (ADR-0114)
+  - [x] watermill/ protocol updated (writeCommonMetadata replaces writeTracing)
+  - [x] integration/event/ tests fixed (.UserID → .ActorID)
+  - [x] API stability goldens regenerated
+  - [x] `metaengine/enginetest/record_stamp.go:57-58` — FIXED.
+  - [x] `system/sqlite_driver.go` deleted + `system.ErrUnknownDriver` removed.
+  Remaining:
+  - [ ] **storage/** — `aggregate_projection.go` (8 tombstone refs),
+        `sql_aggregate_reader.go` (1 ref). `detectStatusFromMetadata()` broken.
+  - [ ] **stack/materialize.go** — `handleEvent()` checks `md.Tombstone` (5 refs).
+        `OnTombstone`/`OnRebirth` callbacks can never fire. Needs redesign.
+  - [ ] **transport/grpc/event_server.go:158-159** — `md.Tombstone` undefined.
+  - [ ] **Cascading**: benchkit/, cmd/cqrs-bench/, example/getting-started/,
+        ALL stack/* presets (bbolt, duckdb, memory, mysql, pebble, postgres,
+        sqlite, turso), storage/turso/ — all fail because they import stack/.
+  - [ ] **storage/sql_aggregate_reader_test.go** — `event.MarkTombstone` refs.
+  - [ ] **stack/sqlite/view_models_integration_test.go** — tombstone refs.
+  - [ ] **stack/turso/view_models_integration_test.go** — tombstone refs.
+  - [ ] **cmd/cqrs-lint/** — rules recommend deleted APIs (`f001.go`,
+        `a009_a013.go`, `catalog_extra.go`). Compiles but gives wrong guidance.
   - [ ] Resolve new clone: `command/metadata.go` vs `query/query.go` (identical
         MetadataKey + Metadata struct) or update dedup baseline
   - [ ] Run `nix run .#verify` end-to-end once build is fixed
-  _(Effort: L — requires understanding the intended new API)_
+  _(Effort: L — storage/stack redesign decisions needed)_
 - [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must

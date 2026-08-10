@@ -50,8 +50,8 @@ func TestAdapter_OnRecordFold_ReceivesRealMetadata(t *testing.T) {
 				Name:     e.Name,
 				StreamID: rec.StreamID.String(),
 				Version:  rec.Version,
-				CorrID:   rec.MetaData.CorrelationID,
-				ActorID:  rec.MetaData.ActorID,
+				CorrID:   rec.MetaData.CorrelationID.String(),
+				ActorID:  rec.MetaData.ActorID.String(),
 			}
 		}),
 	)
@@ -117,14 +117,14 @@ func TestAdapter_OnRecordFold_ReceivesRealMetadata(t *testing.T) {
 		t.Errorf("Type = %q, want %q", capturedRec.Type, "itemEvent")
 	}
 
-	if capturedRec.MetaData.CorrelationID != correlationID.String() {
+	if capturedRec.MetaData.CorrelationID.String() != correlationID.String() {
 		t.Errorf("CorrelationID = %q, want %q",
-			capturedRec.MetaData.CorrelationID, correlationID.String())
+			capturedRec.MetaData.CorrelationID.String(), correlationID.String())
 	}
 
-	if capturedRec.MetaData.ActorID != userID.String() {
+	if capturedRec.MetaData.ActorID.String() != userID.String() {
 		t.Errorf("ActorID = %q, want %q",
-			capturedRec.MetaData.ActorID, userID.String())
+			capturedRec.MetaData.ActorID.String(), userID.String())
 	}
 
 	// Verify the query result reflects the record context.

@@ -11,7 +11,7 @@ import (
 // This file contains mixed/realistic workload benchmarks that combine
 // multiple backend capabilities — the patterns real consumers use.
 //
-// Dgraph is the ONLY metaengine implementing both GraphBackend AND
+// Dgraph is the ONLY metaengine implementing both graph dispatch AND
 // SearchBackend at full parity. These benchmarks prove that combined
 // workloads perform well on a single Dgraph instance — no need for a
 // separate graph DB + search engine + glue code.

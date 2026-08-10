@@ -188,7 +188,7 @@ func TestMarshalMetadata_Empty(t *testing.T) {
 func TestMarshalMetadata_Full(t *testing.T) {
 	meta := event.NewMetadata()
 	meta.CorrelationID = id.NewCorrelationID()
-	meta.UserID = id.NewUserID()
+	meta.ActorID = id.NewUserActor(id.NewUserID())
 	meta.Custom = map[event.MetadataKey]string{"env": "test"}
 
 	result, err := sqlpkg.MarshalMetadata(meta)
@@ -350,8 +350,8 @@ func TestScanEvents_MetadataRoundtrip(t *testing.T) {
 		t.Errorf("CorrelationID = %v, want %v", got.Metadata().CorrelationID, cid)
 	}
 
-	if got.Metadata().UserID != uid {
-		t.Errorf("UserID = %v, want %v", got.Metadata().UserID, uid)
+	if !got.Metadata().ActorID.Equal(id.NewUserActor(uid)) {
+		t.Errorf("ActorID = %v, want %v", got.Metadata().ActorID, id.NewUserActor(uid))
 	}
 
 	if got.Metadata().Custom["env"] != "test" {

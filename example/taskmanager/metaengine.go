@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -36,7 +37,7 @@ const estimatedTaskVolume = 10_000
 // buildProjections returns the metaengine query declarations and the typed
 // event decoder. These are passed to system.DomainConfig for the System to
 // plan, create the projection store, and wire the projection adapter.
-func buildProjections() ([]any, *projectionadapter.TypeDecoder) {
+func buildProjections() ([]system.ProjectionDeclaration, *projectionadapter.TypeDecoder) {
 	taskCounts := metaengine.Query[taskCountsInput, map[string]int64](
 		"task_counts_by_status",
 		metaengine.OnTyped(
@@ -194,7 +195,7 @@ func buildProjections() ([]any, *projectionadapter.TypeDecoder) {
 		projectionadapter.Register(evtTaskDeleted, TaskDeletedPayload{}),
 	)
 
-	return []any{taskCounts, taskViews}, decoder
+	return []system.ProjectionDeclaration{system.RawQuery(taskCounts), system.RawQuery(taskViews)}, decoder
 }
 
 // handleGetTaskStats serves GET /api/stats — returns task counts by status

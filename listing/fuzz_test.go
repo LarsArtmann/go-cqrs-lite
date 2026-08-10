@@ -100,7 +100,7 @@ func FuzzTombstonePolicy_String(f *testing.F) {
 // FuzzStreamStatus_MarshalOnly verifies the MarshalJSON path of
 // StreamStatus without asserting full roundtrip — there is currently no
 // custom UnmarshalJSON (it inherits the default, which expects an int for
-// TombstoneStatus, but Marshal emits a string). We just verify marshaling
+// Status, but Marshal emits a string). We just verify marshaling
 // never panics on any status value.
 func FuzzStreamStatus_MarshalOnly(f *testing.F) {
 	f.Add("01H4S2Z4QX8N1P5K3M7R9T0V2W", "User", int64(1), uint(5), int(0))

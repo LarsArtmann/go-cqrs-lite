@@ -4,7 +4,7 @@
 
 GraphRAG combines full-text search with knowledge-graph traversal in one pipeline:
 search for relevant entities by text, then expand context by traversing their
-relationships. Every other metaengine implements either GraphBackend **or**
+relationships. Every other metaengine implements either graph dispatch **or**
 SearchBackend — forcing you to run two databases and glue them together.
 Dgraph implements both natively, at full parity, with zero degradation.
 
@@ -68,7 +68,13 @@ import dgraphengine "github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine
 eng, _ := dgraphengine.New("localhost:9080")
 defer eng.Close()
 
-gb := eng.(metaengine.GraphBackend)
+// Dgraph implements graph dispatch + full-text search natively (ADR-0113).
+type graphDispatch interface {
+	GraphAddEdge(ctx context.Context, collection string, edge metaengine.Edge) error
+	GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error)
+}
+
+gb := eng.(graphDispatch)
 sb := eng.(metaengine.SearchBackend)
 
 // 1. INDEX: insert entities with text + relationships.
@@ -116,7 +122,7 @@ Validated by:
 
 ## Implemented Backends
 
-- **`GraphBackend`** — native graph edges with @reverse, O(degree^depth) traversal
+- **Graph dispatch** — native graph edges with @reverse, O(degree^depth) traversal
 - **`SearchBackend`** — full-text search via @index(term) + anyofterms()
 - `MapBackend` — key-value storage via Dgraph nodes with @index(exact)
 - `CounterBackend` — batched multi-key increments, 1 RAFT commit per Delta

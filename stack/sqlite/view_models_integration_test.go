@@ -3,7 +3,6 @@ package sqlite_test
 import (
 	"context"
 	"path/filepath"
-	"strconv"
 	"testing"
 
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -36,14 +35,6 @@ func buildViewMessage(evt event.Event, eventType string) *message.Message {
 	msg.Metadata.Set("aggregate_type", string(evt.StreamType()))
 	msg.Metadata.Set("version", "1")
 	msg.Metadata.Set("schema_version", "1")
-
-	md := evt.Metadata()
-	if md.Tombstone != nil {
-		msg.Metadata.Set("tombstone_status", strconv.Itoa(int(md.Tombstone.Status)))
-		if md.Tombstone.Reason != "" {
-			msg.Metadata.Set("tombstone_reason", md.Tombstone.Reason)
-		}
-	}
 
 	return msg
 }
@@ -80,6 +71,7 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 		OnUpdate: func(_ context.Context, evt event.Event, existing *sqlUserView) (*sqlUserView, error) {
 			return &sqlUserView{Name: existing.Name + " Updated", Email: existing.Email}, nil
 		},
+		DeleteTypes: []event.Type{"user.deleted"},
 	}
 
 	ctx := context.Background()
@@ -140,7 +132,6 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 		event.Version(3),
 		nil,
 	)
-	tombEvt, _ = event.MarkTombstone(tombEvt)
 
 	mat.OnTombstone = func(_ context.Context, _ event.Event, existing *sqlUserView) (*sqlUserView, error) {
 		return &sqlUserView{Name: existing.Name, Email: existing.Email, Tombstoned: true}, nil

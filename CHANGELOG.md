@@ -6,6 +6,69 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Removed — Record consolidation Phase 3-4 (ADR-0111, ADR-0114) — 2026-08-10
+
+> **16 downstream modules do not compile yet** — see TODO_LIST → CI section.
+
+- **`metadata.Tracing` type DELETED** (ADR-0111 Phase 3, **BREAKING**): the
+  standalone tracing struct is removed. `record.CommonMetadata` is now the
+  single structural base for events, commands, and queries. `metadata/bridge.go`
+  (bridge methods) deleted. `event.Metadata`, `command.Metadata`, and
+  `query.Metadata` now embed `record.CommonMetadata` directly. The `metadata/`
+  module retains only `CustomData[K]` (now embedding `CommonMetadata`) and
+  `MergeCustomMaps`.
+- **All tombstone types DELETED** (ADR-0114, **BREAKING**): `event.TombstoneStatus`,
+  `event.TombstoneMark`, `event.TombstoneActive`, `event.TombstoneTombstoned`,
+  `event.TombstoneUndetermined`, `event.MarkTombstone`, `event.MarkRebirth`,
+  `event.DetectTombstone`, `event.MetadataKeyTombstone`,
+  `event.MetadataKeyRebirth` — all removed. Deletion semantics are now
+  domain-specific: delete events are regular domain events; the projection
+  handler encodes what "deleted" means.
+- **`Metadata.Tombstone` field removed** from `event.Metadata` (**BREAKING**).
+- **`Metadata.UserID` field removed** from `event.Metadata`, `command.Metadata`,
+  `query.Metadata` (**BREAKING**) — replaced by `ActorID` (see Added below).
+- **`listing.StatusMiddleware` DELETED** (**BREAKING**): the publish middleware
+  that stamped tombstone/rebirth metadata is obsolete with event-type-based
+  detection. `listing.StreamStatus.Status` changed from `event.TombstoneStatus`
+  to a new local `listing.Status` type (Active/Deleted).
+- **`watermill.writeTracing` DELETED** (**BREAKING**): replaced by
+  `writeCommonMetadata(record.CommonMetadata)`. Tombstone
+  serialization/deserialization removed from the watermill protocol.
+
+### Added — Record consolidation Phase 3-4 — 2026-08-10
+
+- **`id.ActorID` kind-discriminated struct**: unifies users, bots, system
+  processes, and services under one type (`ActorKind` = User/Bot/System/Service).
+  Wire format is self-describing: `"user:01JXYZ..."`, `"system:scheduler"`.
+  Constructors: `NewUserActor`, `NewBotActor`, `NewSystemActor`,
+  `NewServiceActor`. `ParseActorID()`, `IsZero()`, `Equal()`, `PrefixedString()`,
+  `Kind()`, `Raw()`, JSON marshaling. Full test coverage in `actor_id_test.go`.
+- **`record.CommonMetadata` now uses branded types**: fields changed from plain
+  `string` to `id.CorrelationID`, `id.CausationID`, `id.ActorID`, `id.RequestID`.
+  `Merge()` method added. JSON tags added. `id/v4` dependency added to
+  `record/go.mod`.
+- **`listing.Status` type**: local Active/Deleted enum replacing
+  `event.TombstoneStatus`. `IsDeleted()` method.
+- **`listing.WithDeleteTypes(event.Type...)` option**: configures
+  `InMemoryStreamReader` to detect deletion from event types (ADR-0114 pattern).
+  Deletion is detected by checking if the stream's last event type matches a
+  configured delete type.
+- **`listing.Option` functional options**: `WithDeleteTypes` is the first
+  `InMemoryStreamReader` option.
+- **`event.WithActor(id.ActorID)` option**: sets the actor directly.
+
+### Changed — Record consolidation Phase 3-4 — 2026-08-10
+
+- **`event.WithUserID(v id.UserID)`** still exists for backward compat but now
+  constructs `id.NewUserActor(v)` internally. The metadata field is `ActorID`,
+  not `UserID`.
+- **`listing.InMemoryStreamReader.buildRefs()`** now calls `detectStatus()` to
+  check the last event's type against configured delete types, instead of
+  calling `event.DetectTombstone`.
+- **`watermill` protocol** serializes `ActorID.Raw()` to the `user_id` wire key
+  and deserializes via `id.NewUserActor(id.ParseUserID(...))`. Wire-compatible
+  with existing messages that carry a `user_id` metadata key.
+
 ### Removed — Phase 2 dead code cleanup — 2026-08-10
 
 - **`metaengine.GraphBackend` interface deleted** (ADR-0113, **BREAKING**): the
@@ -85,6 +148,28 @@ Resolved the follow-up items discovered during the Phase 2–3 status review:
 - **Skill references** (`.agents/skills/go-cqrs-lite/references/*.md`) not
   audited for the `ErrUnknownDriver` removal.
 
+#### Follow-ups resolved — 2026-08-10
+
+- **`dgraphengine/README.md` broken code example fixed** — replaced
+  `eng.(metaengine.GraphBackend)` with a local `graphDispatch` interface
+  definition (matching the test-file pattern). Updated prose (lines 7, 119)
+  from "GraphBackend" to "graph dispatch".
+- **4 stale `GraphBackend` comment references fixed** — `engine.go:5,7`,
+  `graphrag_test.go:20`, `mixed_bench_test.go:14` reworded to "graph dispatch".
+  `engine_test.go:13` left as historically accurate ("ADR-0113: the exported
+  metaengine.GraphBackend was deleted").
+- **`doc-check` passed** — all 695 references valid across 42 packages. Fixed 4
+  stale `event.MarkTombstone`/`event.DetectTombstone` references in skill docs
+  (`core.md` §3.1 + anti-pattern table, `advanced.md` §6.1) — rewritten to the
+  ADR-0114 domain-event pattern using `event.New` + `listing/`.
+- **Skill references audited for `ErrUnknownDriver`** — zero references found
+  in `.agents/skills/go-cqrs-lite/references/` or `SKILL.md`.
+- **Pre-existing build breaks fixed: `metaengine/auto_fold_record_test.go:56-57`
+  and `soak_record_test.go:97`** — branded-ID string literals replaced with
+  `id.NewCorrelationID()` / `id.NewSystemActor("test")` (same regression class
+  as `record_stamp.go`).
+- **`go build` + `go vet` pass clean** on `./system/...` and `./metaengine/...`.
+
 ### Added — v5 unification infrastructure — 2026-08-10
 
 - **Driver registry moved to `metaengine/registry.go`** (ADR-0113, ADR-0123):
@@ -101,8 +186,7 @@ Resolved the follow-up items discovered during the Phase 2–3 status review:
   schema gap between `metadata.Tracing.RequestID` and the consolidated
   `CommonMetadata` type.
 - **`metadata.Tracing.ToCommonMetadata()` / `FromCommonMetadata()`** bridge
-  methods: convert between branded ID types (`id.CorrelationID`, etc.) and
-  plain-string `CommonMetadata` fields.
+  methods **deleted** — `metadata.Tracing` type is gone (see Removed section above).
 - **`metaengine.HasGraphSupport(eng)`**: exported capability check replacing
   the exported `GraphBackend` interface for graph dispatch (ADR-0113).
 - **bbolt `BenchmarkReadStreamFrom_Seek` / `_FullScan`**: benchmarks
@@ -150,9 +234,8 @@ Resolved the follow-up items discovered during the Phase 2–3 status review:
 - **`metaengine.On` / `OnTyped` deprecated** (ADR-0116): use `OnRecord` /
   `OnRecordTyped` instead for full Record context (StreamID, Version,
   metadata). On/OnTyped will be removed in v5.0.0.
-- **`metadata.Tracing` deprecated** (ADR-0111 Phase 3): consolidated into
-  `record.CommonMetadata`. Bridge methods provided for migration. Will not
-  be removed this major version.
+- **`metadata.Tracing` deleted** (ADR-0111 Phase 3): consolidated into
+  `record.CommonMetadata` with branded types. Bridge methods removed.
 - **`system.RegisterDriver` deprecated**: use `metaengine.RegisterDriver`
   directly. `system.DriverFactory` is now a type alias for
   `metaengine.DriverFactory`.

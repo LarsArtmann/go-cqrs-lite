@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -153,10 +152,6 @@ func eventToEnvelope(evt event.Event) *cqrsproto.EventEnvelope {
 	if md.Causation != nil {
 		meta["command_type"] = md.Causation.CommandType
 		meta["command_id"] = md.Causation.CommandID.String()
-	}
-
-	if md.Tombstone != nil {
-		meta["tombstone_status"] = fmt.Sprintf("%d", md.Tombstone.Status)
 	}
 
 	for k, v := range md.Custom {

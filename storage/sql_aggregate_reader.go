@@ -158,7 +158,7 @@ func scanStreamStatuses(rows *sql.Rows) ([]listing.StreamStatus, error) {
 				Version:    event.Version(version),
 				EventCount: count,
 			},
-			Status: event.TombstoneStatus(statusInt),
+			Status: listing.Status(statusInt),
 		})
 	}
 

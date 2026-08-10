@@ -11,7 +11,7 @@ import (
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
-func openSQLiteListingDB(t *testing.T) (*sql.DB, *StreamProjection) {
+func openSQLiteListingDB(t *testing.T, opts ...StreamProjectionOption) (*sql.DB, *StreamProjection) {
 	t.Helper()
 
 	db, err := OpenSQLiteInMemory()
@@ -19,7 +19,7 @@ func openSQLiteListingDB(t *testing.T) (*sql.DB, *StreamProjection) {
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
 
-	proj, err := NewStreamProjection(context.Background(), db, "test_", sqlpkg.SQLiteDialect{})
+	proj, err := NewStreamProjection(context.Background(), db, "test_", sqlpkg.SQLiteDialect{}, opts...)
 	if err != nil {
 		t.Fatalf("NewStreamProjection: %v", err)
 	}
@@ -222,7 +222,7 @@ func TestSQLStreamReader_List_Pagination(t *testing.T) {
 
 func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 	t.Parallel()
-	db, proj := openSQLiteListingDB(t)
+	db, proj := openSQLiteListingDB(t, WithDeleteTypes(event.Type("user.deleted")))
 	defer func() { _ = db.Close() }()
 
 	ctx := context.Background()
@@ -234,20 +234,15 @@ func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 	)
 	_ = proj.Handle(ctx, evt)
 
-	tombstoneEvt, err := event.NewEvent(
+	deleteEvt, err := event.NewEvent(
 		event.Type("user.deleted"), streamID, id.StreamType("User"),
 		event.Version(2), []byte(`{}`),
 	)
 	if err != nil {
-		t.Fatalf("NewEvent tombstone: %v", err)
+		t.Fatalf("NewEvent delete: %v", err)
 	}
 
-	marked, err := event.MarkTombstone(tombstoneEvt)
-	if err != nil {
-		t.Fatalf("MarkTombstone: %v", err)
-	}
-
-	_ = proj.Handle(ctx, marked)
+	_ = proj.Handle(ctx, deleteEvt)
 
 	reader, _ := NewSQLStreamReader(db, "test_", sqlpkg.SQLiteDialect{})
 
@@ -275,8 +270,8 @@ func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 		t.Fatalf("expected 1 tombstoned item, got %d", len(tombstonedPage.Items))
 	}
 
-	if tombstonedPage.Items[0].Status != event.TombstoneTombstoned {
-		t.Fatalf("expected TombstoneTombstoned, got %d", tombstonedPage.Items[0].Status)
+	if tombstonedPage.Items[0].Status != listing.StatusDeleted {
+		t.Fatalf("expected StatusDeleted, got %d", tombstonedPage.Items[0].Status)
 	}
 
 	allPage, err := reader.ListWithStatus(ctx, listing.ListOptions{
