@@ -424,6 +424,42 @@ example/taskmanager migrated to `system.New()`.
 **Remaining:** NATS/Redis bus driver registration, Dgraph real-instance testing.
 See [TODO_LIST.md](TODO_LIST.md) → System Package.
 
+### 12. FoundationDB Backend (design-doc-backed)
+
+> Fit analysis: `docs/planning/FOUNDATIONDB_METAENGINE_FIT.md` (2026-08-10) —
+> all external claims verified against primary sources. Ordered tasks when
+> actively worked: [TODO_LIST.md](TODO_LIST.md).
+
+FoundationDB (Apple, Apache-2.0) as a metaengine engine. **Verdict: a viable
+9th projection backend with a narrow scope — "shared durable projection state
+across processes."** It is the only native multi-node, serializable, fully-ACID
+engine in the roster; atomic counters (`tr.Add`), consistent secondary indexes
+(simple-index pattern, one ACID txn), and push-based watch notifications are
+its killer features. It loses on SQL pushdown, large values (10 MB txn cap,
+100 KB value cap), OLAP aggregates, and operational weight (separate
+`fdbserver` processes; Go binding requires CGo + `libfdb_c` → dedicated module
+like `duckdbengine`).
+
+- ✅ **Fit analysis** — full ADT × engine scoring, proposed `EngineProfile`
+  (SingleLeader, lag 0, live-RTT via the Live Cost Measurement work), planner
+  routing matrix, module strategy (`metaengine/fdbengine/`, register.go,
+  NixOS `foundationdb` 7.3.68 ephemeral service for CI)
+- **Goal (P0): projection engine** — Map/Set/Counter/Multimap/Log/SortedMap
+  secondary indexes, Go-side scans, `MapUpdater` with transactional retries,
+  10 MB-aware batching. Explicitly NOT v1: global journal (10 MB cap — keep
+  event log local), Graph/Search/Spatial/Vector ADTs (declare degraded;
+  FDB's "vector" recipe is a growable array, not ANN search)
+- **Goal (P1): cross-process watchers** — FDB watches → change notifications
+  across app replicas (new `WatcherSource`-style wiring); multi-instance
+  control plane (plan/checkpoint/DLQ registry on FDB)
+- **Alternative role** (cheaper first slice): FDB as multi-instance
+  coordinator for plan/checkpoint/DLQ state, using existing local engines
+- **Dependency:** live latency measurement (Theme 8 → Live Cost Measurement)
+  must land first so FDB's profile uses measured RTT, not a hardcoded constant
+- **Prereq:** half-day spike comparing `fdbengine` P0 vs pgengine + HA tooling
+  for the target deployment (FDB wins on counters/watches/elasticity, pays
+  ops tax)
+
 ---
 
 ## v5 Unification — Declare Types, Not Storage
@@ -534,6 +570,11 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
   26257 and run the Postgres test suite. Note: CockroachDB is source-available
   (not OSS) — single-node/dev use only without a commercial license. Users who
   bring their own license can run it; go-cqrs-lite just speaks Postgres wire.
+- **FoundationDB as a metaengine backend** — distributed ordered KV with
+  ACID transactions (Apple, Apache-2.0). Atomic counters, consistent
+  secondary indexes, push watches. Requires CGo binding + separate
+  `fdbserver` deployment. **→ Graduated to [Theme 12](#12-foundationdb-backend-design-doc-backed)**
+  (fit analysis: `docs/planning/FOUNDATIONDB_METAENGINE_FIT.md`).
 - Add ScyllaDB metaengine backend + performance benchmarks — ScyllaDB is a
   NoSQL wide-column store (CQL, Cassandra-compatible, shard-per-core C++/Seastar,
   ultra-low single-digit-ms latency). NOT SQL — integration would be a new

@@ -168,6 +168,39 @@ and is **never** duplicated here.
 
 ---
 
+## Live Cost Measurement (dynamic NetworkRTT / per-op latency)
+
+> Design: `docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md` — the critique that
+> `NetworkRTT` is a compile-time constant on `EngineProfile` while real latency
+> is a runtime observation. ADR-0093 defers the fix; the ReadCosts doc labels
+> per-op costs "compile-time, do not evolve at runtime." This section tracks
+> the phased remediation. Long-term vision: ROADMAP → Themes.
+
+- [ ] 🔥 **P1: Prober + LatencyTracker** — optional `Prober`/`TransactMeasurer`
+      interfaces, `LatencyTracker` (window + EWMA + percentiles), `ProbeEngine()`
+      helper, `CalibrationCosts` gains `NetworkRTT` + measured read/write fields,
+      live `Profile()` composition. Test-double engine proves a live RTT shift
+      changes `Profile()`. Wire PG (`SELECT 1`) + Dgraph (healthcheck) probes.
+      _(Effort: M)_
+- [ ] **P2: Live planner view + Store stats** — Store keeps runtime profile
+      snapshot; refresh on plan / `GetStats()` / background interval;
+      `EngineStats` {profile, measured RTT, samples, lastProbe, stale};
+      `EXPLAIN` shows `rtt=live … (p95, n)`; WARN diagnostic when routing on
+      stale/prior RTT; optional live re-scoring of near-tied queries with
+      hysteresis. `WithNetworkRTT` documented as a prior, not a constant.
+      _(Effort: M)_
+- [ ] **P3: Open measurement ingress for external engines** — exported
+      `StatSink` so external engines (future fdbengine, pgengine, dgraphengine)
+      push live measurements without a hard core dependency. Test: fake prober
+      drives planner decisions with/without live stats.
+      _(Effort: M — independent of P1/P2)_
+- [ ] **Wire live latency into `GetStats`/Doctor UX** — Doctor + EXPLAIN show
+      measured RTT per remote engine with freshness (samples, last probe) and
+      stale labeling.
+      _(Effort: S — P2 dependent)_
+
+---
+
 ## Documentation
 
 > taskmanager metaengine.go already uses `Register` + `NewTypeDecoder` DX helpers
