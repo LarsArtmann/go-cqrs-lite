@@ -97,6 +97,35 @@ and is **never** duplicated here.
       `.golangci.yml` depguard already covers via `github.com/larsartmann/go-cqrs-lite` prefix.
 - [x] **Reduce `.art-dupl-baseline.json` diff noise** — DONE 2026-08-10.
       The pretty-printed baseline was already committed (no pending diff). No action needed.
+
+---
+
+## GraphBackend / Dead-Code Cleanup Follow-ups
+
+> Phase 2–3 cleanup session (2026-08-10): 7 items tasked, 3 fully done, 2
+> partially done. Remaining gaps tracked here. See
+> `docs/status/2026-08-10_15-26_graphbackend-deadcode-cleanup-followups.md`.
+
+- [ ] **Fix `dgraphengine/README.md:71` broken code example** —
+      `eng.(metaengine.GraphBackend)` references the deleted exported type.
+      Compile error if copy-pasted by a consumer. Rewrite to `graphadapter`
+      usage or the unexported `graphBackend` pattern.
+      _(Effort: XS)_
+- [ ] **Clean 5 stale `GraphBackend` comment references** in dgraphengine Go
+      files: `engine.go:5,7`, `engine_test.go:13`, `graphrag_test.go:20`,
+      `mixed_bench_test.go:14` — conceptual refs to the deleted type. Reword to
+      "graph dispatch" or "Graph ADT".
+      _(Effort: XS)_
+- [ ] **Run `doc-check`** after `ErrUnknownDriver` removal —
+      `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`
+      _(Effort: XS)_
+- [ ] **Audit skill references** (`.agents/skills/go-cqrs-lite/references/*.md`)
+      for `ErrUnknownDriver` mentions after the removal.
+      _(Effort: XS)_
+- [ ] **Re-run `go vet`** on system + metaengine after the Go build-cache clear
+      mid-session (first vet run hit corrupted cache).
+      _(Effort: XS)_
+
 ---
 
 ## CI / Release / Infrastructure
@@ -111,13 +140,17 @@ and is **never** duplicated here.
   Specific breakages:
   - [ ] `transport/grpc/event_server.go:158-159` — `md.Tombstone undefined`
         (no uncommitted fix exists)
-  - [ ] `metaengine/enginetest/record_stamp.go:57-58` — string literals assigned
-        to branded types `CorrelationID`/`ActorID` (no uncommitted fix exists)
+  - [x] `metaengine/enginetest/record_stamp.go:57-58` — FIXED 2026-08-10.
+        Branded-ID string literals replaced with `id.NewCorrelationID()` /
+        `id.NewSystemActor("test")`. `id/v4` added to `metaengine/go.mod`.
   - [ ] Commit uncommitted `listing/` fixes (14 files — TombstoneStatus/MarkTombstone/
         DetectTombstone/MarkRebirth references)
   - [ ] Commit uncommitted `watermill/` fixes (6 files — Tracing/Tombstone/UserID
         references)
-  - [ ] Commit uncommitted `system/` changes (4 files incl. sqlite_driver.go deletion)
+  - [x] `system/sqlite_driver.go` deleted + `system.ErrUnknownDriver` removed +
+        `system/introspection.go` qualifier fixed — DONE 2026-08-10.
+        `modernc.org/sqlite` + 5 transitive deps removed from system production deps.
+        See `docs/status/2026-08-10_15-26_graphbackend-deadcode-cleanup-followups.md`.
   - [ ] Fix `TestContract_MetadataRoundtrip` (bbolt) — UserID field removed
   - [ ] Fix `TestEventStore_MetadataRoundtrip` (pebble) — same root cause
   - [ ] Resolve new clone: `command/metadata.go` vs `query/query.go` (identical

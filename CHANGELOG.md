@@ -41,25 +41,49 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   own `register.go` file, matching the pattern used by all other engines
   (sqliteengine, pebbleengine, badgerengine, etc.).
 
-### Known issues — Phase 2–3 follow-ups — 2026-08-10
+### Fixed — Phase 2–3 follow-ups — 2026-08-10
 
-Discovered during status review, not yet fixed:
+Resolved the follow-up items discovered during the Phase 2–3 status review:
 
-- **`system/sqlite_driver.go` is dead code** (44 lines): `createSQLiteEngine` is
-  unused — superseded by `sqliteengine/register.go` self-registration. Gopls
-  flags as `unusedfunc`. Deleting it removes `database/sql` and
-  `modernc.org/sqlite` from system's production deps.
-- **9 stale `"does not implement GraphBackend"` error messages** in dgraphengine
-  test files (`bench_test.go`, `mixed_bench_test.go`, `stress_test.go`,
-  `graphrag_test.go`) — reference the deleted `GraphBackend` type. Cosmetic but
-  misleading.
-- **`TestGraphBackend` test name** in `dgraphengine/engine_test.go:130` not
-  renamed to reflect the deleted interface.
-- **5 stale `GraphBackend` doc references** in `METAENGINE_DOMAIN_LANGUAGE.md`
-  (L86, L374), `metaengine/README.md` (L531, L533), `ROADMAP.md` (L511).
-- **`system.ErrUnknownDriver`** in `system/errors.go` has 0 references;
-  `metaengine.ErrUnknownDriver` is canonical.
-- **`nix run .#verify` and `nix run .#check-duplication`** not run this session.
+- **`system/sqlite_driver.go` deleted** (44 lines dead code): `createSQLiteEngine`
+  was unused — superseded by `sqliteengine/register.go` self-registration. Removes
+  `database/sql` and `modernc.org/sqlite` (+ 5 transitive deps: `go-isatty`,
+  `go-strftime`, `bigfft`, `mathutil`, `memory`) from system's production deps.
+- **8 stale `"does not implement GraphBackend"` error messages fixed** in
+  dgraphengine test files (`bench_test.go`, `mixed_bench_test.go`,
+  `stress_test.go`, `graphrag_test.go`) — now read `"does not implement graph
+  dispatch"`, matching the canonical phrasing in `graphadapter/adapter_test.go`.
+- **`TestGraphBackend` renamed to `TestGraphOperations`** in
+  `dgraphengine/engine_test.go`.
+- **4 stale `GraphBackend` doc references fixed**: removed from
+  `METAENGINE_DOMAIN_LANGUAGE.md` (interface list + methods block),
+  `metaengine/README.md` (backend list + example rewritten to use verifiable
+  `SearchBackend`). `ROADMAP.md:511` intentionally retained — it sits in a "What
+  Gets Deleted in v5" migration table, not a capability claim.
+- **`system.ErrUnknownDriver` removed** from `system/errors.go` (0 references;
+  `metaengine.ErrUnknownDriver` is canonical). API-stability golden regenerated.
+- **Pre-existing build break fixed: `system/introspection.go:196`** —
+  `RegisteredDrivers()` → `metaengine.RegisteredDrivers()` (missing qualifier
+  from the driver-registry unification commit).
+- **Pre-existing build break fixed: `metaengine/enginetest/record_stamp.go:57-58`**
+  — branded-ID string literals (`"corr-123"`, `"user-456"`) replaced with
+  `id.NewCorrelationID()` / `id.NewSystemActor("test")` (Record consolidation
+  regression; `id/v4` added to `metaengine/go.mod`).
+- **`nix run .#verify-fast` and `#check-duplication` run**: 0 new clones from
+  this session's changes. Full `verify-fast` blocked by a concurrent metadata
+  refactoring (see TODO_LIST → CI section), not by these changes.
+
+#### Remaining gaps (not yet fixed)
+
+- **`dgraphengine/README.md:71`** — code example `eng.(metaengine.GraphBackend)`
+  references the deleted type (compile error if copy-pasted). Needs rewrite to
+  `graphadapter` or the unexported `graphBackend` pattern.
+- **5 stale `GraphBackend` comment references** in dgraphengine Go files
+  (`engine.go:5,7`, `engine_test.go:13`, `graphrag_test.go:20`,
+  `mixed_bench_test.go:14`) — conceptual, not breaking.
+- **`doc-check` not run** after exported-symbol removal (`ErrUnknownDriver`).
+- **Skill references** (`.agents/skills/go-cqrs-lite/references/*.md`) not
+  audited for the `ErrUnknownDriver` removal.
 
 ### Added — v5 unification infrastructure — 2026-08-10
 
