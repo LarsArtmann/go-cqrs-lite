@@ -69,10 +69,17 @@ func isCBOR(data []byte) bool {
 }
 
 // serializeEvent converts a CQRS event to CBOR.
-// Uses marshalCBOR directly: fxamacker/cbor already pools encode
-// buffers internally, so this is the lowest-allocation path for producing an
-// owned []byte that Pebble can store.
+// Metadata is stored as JSON bytes inside the CBOR envelope so that types
+// implementing json.Marshaler (e.g. id.ActorID) serialize correctly —
+// fxamacker/cbor does not invoke json.Marshaler.
 func (a *EventStore) serializeEvent(evt event.Event) ([]byte, error) {
+	metadataJSON, err := event.MarshalMetadataJSON(
+		evt.Metadata(), "pebble.serialize_metadata",
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	s := serializableEvent{
 		ID:            evt.ID(),
 		Type:          string(evt.Type()),
@@ -82,7 +89,7 @@ func (a *EventStore) serializeEvent(evt event.Event) ([]byte, error) {
 		SchemaVersion: evt.SchemaVersion().Int(),
 		Payload:       event.PayloadReadOnly(evt),
 		OccurredAt:    evt.OccurredAt().UnixNano(),
-		Metadata:      evt.Metadata(),
+		Metadata:      metadataPayload(metadataJSON),
 		Encoding:      string(evt.Encoding()),
 	}
 
@@ -100,16 +107,10 @@ func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 		return nil, err
 	}
 
-	metadataJSON, err := event.MarshalMetadataJSON(s.Metadata, "pebble.marshal_metadata")
-	if err != nil {
-		return nil, errorfamily.WrapCorruption(err, "pebble.marshal_metadata",
-			"failed to marshal metadata for deserialization")
-	}
-
 	evt, err := event.ReconstructEventFromFields(
 		s.ID, event.Type(s.Type), id.StreamType(s.StreamType), s.StreamID,
 		s.Version, s.SchemaVersion,
-		s.Payload, metadataJSON,
+		s.Payload, []byte(s.Metadata),
 		time.Unix(0, s.OccurredAt).UTC(),
 		codec.Encoding(s.Encoding),
 		"pebble",
@@ -126,14 +127,53 @@ func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 // fxamacker/cbor reads `json` struct tags by default, so no separate `cbor` tags needed.
 // cqrs-lint:ignore(A011) library code or intentional pattern
 type serializableEvent struct {
-	ID            id.EventID     `json:"id"`
-	Type          string         `json:"type"`
-	StreamID      id.StreamID    `json:"aggregate_id"`
-	StreamType    string         `json:"aggregate_type"`
-	Version       int            `json:"version"`
-	SchemaVersion int            `json:"schema_version,omitempty"`
-	Payload       []byte         `json:"payload"`
-	OccurredAt    int64          `json:"occurred_at"`
-	Metadata      event.Metadata `json:"metadata"`
-	Encoding      string         `json:"encoding,omitempty"`
+	ID            id.EventID       `json:"id"`
+	Type          string           `json:"type"`
+	StreamID      id.StreamID      `json:"aggregate_id"`
+	StreamType    string           `json:"aggregate_type"`
+	Version       int              `json:"version"`
+	SchemaVersion int              `json:"schema_version,omitempty"`
+	Payload       []byte           `json:"payload"`
+	OccurredAt    int64            `json:"occurred_at"`
+	Metadata      metadataPayload  `json:"metadata"`
+	Encoding      string           `json:"encoding,omitempty"`
+}
+
+// metadataPayload stores event.Metadata as JSON bytes within the CBOR envelope.
+// This ensures types implementing json.Marshaler (e.g. id.ActorID, which has
+// unexported fields) serialize correctly, since fxamacker/cbor does not invoke
+// json.Marshaler. On decode, legacy CBOR data (where metadata was a CBOR map) is
+// handled by falling back to struct reflection and re-marshaling to JSON.
+type metadataPayload []byte
+
+func (m metadataPayload) MarshalJSON() ([]byte, error) {
+	if len(m) == 0 {
+		return []byte("null"), nil
+	}
+
+	return m, nil
+}
+
+func (m *metadataPayload) UnmarshalJSON(data []byte) error { *m = data; return nil }
+
+func (m metadataPayload) MarshalCBOR() ([]byte, error) {
+	return marshalCBOR([]byte(m))
+}
+
+func (m *metadataPayload) UnmarshalCBOR(data []byte) error {
+	var jsonBytes []byte
+	if err := unmarshalCBOR(data, &jsonBytes); err == nil {
+		*m = jsonBytes
+		return nil
+	}
+	var meta event.Metadata
+	if err := unmarshalCBOR(data, &meta); err != nil {
+		return err
+	}
+	jsonBytes, err := json.Marshal(meta)
+	if err != nil {
+		return err
+	}
+	*m = jsonBytes
+	return nil
 }

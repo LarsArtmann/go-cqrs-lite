@@ -217,7 +217,7 @@ func TestExplainPlan_ShowsReplicationForReplicatedEngine(t *testing.T) {
 	defer store.Close()
 
 	output := store.ExplainPlan()
-	for _, want := range []string{"replication=single-leader", "lag=50ms", "rtt=5ms"} {
+	for _, want := range []string{"replication=single-leader", "lag=50ms", "rtt=prior 5ms"} {
 		if !strings.Contains(output, want) {
 			t.Errorf("ExplainPlan: expected %q in output, got:\n%s", want, output)
 		}

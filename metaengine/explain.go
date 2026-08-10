@@ -137,8 +137,11 @@ func (s *Store) ExplainPlan() string {
 				p.Name, p.ReadNsPerOp(), p.WriteNsPerOp())
 		}
 		if p.IsReplicated() {
-			fmt.Fprintf(&b, " replication=%s, lag=%s, rtt=%s",
-				p.Replication, p.EffectiveReplicationLag(), p.EffectiveNetworkRTT())
+			fmt.Fprintf(&b, " replication=%s, lag=%s",
+				p.Replication, p.EffectiveReplicationLag())
+		}
+		if p.IsRemote() {
+			fmt.Fprintf(&b, " %s", FormatLiveLatency(buildEngineStats(eng)))
 		}
 		if p.IsVolatile() {
 			fmt.Fprintf(&b, " volatile")
@@ -283,6 +286,22 @@ func (s *Store) Doctor(ctx context.Context) string {
 
 	if !aggAny {
 		b.WriteString("  none\n")
+	}
+
+	b.WriteString("\n--- Latency ---\n")
+
+	latAny := false
+	for _, st := range s.GetEngineStats(ctx) {
+		if !st.Profile.IsRemote() {
+			continue
+		}
+
+		fmt.Fprintf(&b, "  %s: %s\n", st.Name, FormatLiveLatency(st))
+		latAny = true
+	}
+
+	if !latAny {
+		b.WriteString("  all engines local\n")
 	}
 
 	return b.String()

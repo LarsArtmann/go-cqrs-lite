@@ -1509,6 +1509,9 @@ metaengine/const ReplicationMultiLeader
 metaengine/const ReplicationNone
 metaengine/const ReplicationSingleLeader
 metaengine/const SQLiteNsPerOp
+metaengine/const SampleRTT
+metaengine/const SampleRead
+metaengine/dgraphengine/const DG_NetworkRTT
 metaengine/dgraphengine/const DG_NsPerOp
 metaengine/dgraphengine/const DG_NsPerRead
 metaengine/dgraphengine/const DG_NsPerWrite
@@ -1528,6 +1531,7 @@ metaengine/dgraphengine/method MapScan
 metaengine/dgraphengine/method MapSet
 metaengine/dgraphengine/method MultiAdd
 metaengine/dgraphengine/method MultiGet
+metaengine/dgraphengine/method Probe
 metaengine/dgraphengine/method Profile
 metaengine/dgraphengine/method SearchInsert
 metaengine/dgraphengine/method SearchQuery
@@ -1596,6 +1600,7 @@ metaengine/func ExecuteTyped
 metaengine/func ExtractFields
 metaengine/func FilterOn
 metaengine/func FilterOnField
+metaengine/func FormatLiveLatency
 metaengine/func HasGraphSupport
 metaengine/func ItemFieldByName
 metaengine/func JSONFieldName
@@ -1608,6 +1613,7 @@ metaengine/func MustPlanFingerprint
 metaengine/func NamedEvent
 metaengine/func NewCostAccuracyReporter
 metaengine/func NewEventLog
+metaengine/func NewLatencyTracker
 metaengine/func NewManifest
 metaengine/func NewMemoryEngine
 metaengine/func NewMemoryEngineWithVersioning
@@ -1623,6 +1629,7 @@ metaengine/func NewRulePipeline
 metaengine/func NewSSEReplay
 metaengine/func NewTieredStore
 metaengine/func NewWatcher
+metaengine/func NopSink
 metaengine/func On
 metaengine/func OnRecord
 metaengine/func OnRecordTyped
@@ -1634,6 +1641,7 @@ metaengine/func PlanDiff
 metaengine/func PlanFingerprint
 metaengine/func PlanFromMemory
 metaengine/func PlansColumnCompatible
+metaengine/func ProbeEngine
 metaengine/func Query
 metaengine/func QuoteIdent
 metaengine/func RegisterDriver
@@ -1670,6 +1678,11 @@ metaengine/func WithLimit
 metaengine/func WithMetrics
 metaengine/func WithNetworkRTT
 metaengine/func WithOr
+metaengine/func WithProbeContext
+metaengine/func WithProbeInterval
+metaengine/func WithProbeJitter
+metaengine/func WithProbeSink
+metaengine/func WithProbeTimeout
 metaengine/func WithRange
 metaengine/func WithReadCoalescer
 metaengine/func WithReplication
@@ -1680,8 +1693,12 @@ metaengine/func WithSSETimeout
 metaengine/func WithSlowQueryLog
 metaengine/func WithSort
 metaengine/func WithSortColumns
+metaengine/func WithStaleAfter
 metaengine/func WithTTL
 metaengine/func WithTracing
+metaengine/func WithTrackerAlpha
+metaengine/func WithTrackerSink
+metaengine/func WithTrackerWindow
 metaengine/func WithWorkloadStats
 metaengine/func WithWriteAmplificationBudget
 metaengine/graphadapter/func New
@@ -1714,6 +1731,7 @@ metaengine/interface MultiAggregateReader
 metaengine/interface MultiGroupedAggregateReader
 metaengine/interface MultimapBackend
 metaengine/interface PlanRule
+metaengine/interface Prober
 metaengine/interface PushdownScan
 metaengine/interface RawScanReader
 metaengine/interface RawValueReader
@@ -1725,10 +1743,13 @@ metaengine/interface SetBackend
 metaengine/interface SnapshotBackend
 metaengine/interface Span
 metaengine/interface SpatialBackend
+metaengine/interface StatSink
 metaengine/interface StreamLogBackend
 metaengine/interface StreamTemporalReader
 metaengine/interface StreamingScan
 metaengine/interface Tracer
+metaengine/interface TrackerHost
+metaengine/interface TransactMeasurer
 metaengine/interface Transactional
 metaengine/interface VectorBackend
 metaengine/interface VersionedStorage
@@ -1842,6 +1863,7 @@ metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
+metaengine/method Apply
 metaengine/method ApplyBatch
 metaengine/method ApplyBatch
 metaengine/method ApplyCalibration
@@ -1907,10 +1929,14 @@ metaengine/method Explain
 metaengine/method ExplainAggregate
 metaengine/method ExplainPlan
 metaengine/method Export
+metaengine/method Fresh
 metaengine/method Get
 metaengine/method Get
 metaengine/method Get
 metaengine/method GetBatch
+metaengine/method GetEngineStats
+metaengine/method GraphAddEdge
+metaengine/method GraphNeighbors
 metaengine/method GroupBy
 metaengine/method GroupedAvg
 metaengine/method GroupedCount
@@ -1934,6 +1960,7 @@ metaengine/method IsDegraded
 metaengine/method IsEmpty
 metaengine/method IsPersistent
 metaengine/method IsPoisoned
+metaengine/method IsRemote
 metaengine/method IsReplicated
 metaengine/method IsVolatile
 metaengine/method JournalReadAll
@@ -1953,6 +1980,8 @@ metaengine/method Kind
 metaengine/method LatestSeq
 metaengine/method Len
 metaengine/method Limit
+metaengine/method Live
+metaengine/method LiveLatency
 metaengine/method LogAppend
 metaengine/method LogPlan
 metaengine/method LogTail
@@ -1971,6 +2000,7 @@ metaengine/method MultiAdd
 metaengine/method MultiAggregate
 metaengine/method MultiGet
 metaengine/method MultiGroupedAggregate
+metaengine/method Name
 metaengine/method Name
 metaengine/method Name
 metaengine/method Name
@@ -2004,6 +2034,7 @@ metaengine/method Range
 metaengine/method ReadNsPerOp
 metaengine/method Record
 metaengine/method Record
+metaengine/method Record
 metaengine/method RegisterQuery
 metaengine/method ReificationFailures
 metaengine/method Replay
@@ -2011,6 +2042,7 @@ metaengine/method Replay
 metaengine/method ReplicationMode
 metaengine/method Report
 metaengine/method Report
+metaengine/method ReportSample
 metaengine/method RunInTx
 metaengine/method Sample
 metaengine/method Scan
@@ -2026,6 +2058,9 @@ metaengine/method SetCurrentRecord
 metaengine/method SetCurrentRecord
 metaengine/method SetCurrentRecord
 metaengine/method SetCurrentRecord
+metaengine/method SetRTTTracker
+metaengine/method SetReadTracker
+metaengine/method Snapshot
 metaengine/method SnapshotDelete
 metaengine/method SnapshotLoad
 metaengine/method SnapshotLoadAtVersion
@@ -2127,6 +2162,7 @@ metaengine/pebbleengine/method StreamAppendExpected
 metaengine/pebbleengine/method StreamRead
 metaengine/pebbleengine/method StreamScan
 metaengine/pebbleengine/method StreamVersion
+metaengine/pgengine/const PG_NetworkRTT
 metaengine/pgengine/const PG_NsPerOp
 metaengine/pgengine/const PG_NsPerRead
 metaengine/pgengine/func New
@@ -2149,6 +2185,7 @@ metaengine/pgengine/method MapScan
 metaengine/pgengine/method MapSet
 metaengine/pgengine/method MultiAggregate
 metaengine/pgengine/method MultiGroupedAggregate
+metaengine/pgengine/method Probe
 metaengine/pgengine/method Profile
 metaengine/pgengine/method PushdownMapScan
 metaengine/pgengine/method RunInTx
@@ -2241,6 +2278,7 @@ metaengine/struct DriverConfig
 metaengine/struct Edge
 metaengine/struct Embedding
 metaengine/struct EngineProfile
+metaengine/struct EngineStats
 metaengine/struct EventInput
 metaengine/struct EventLog
 metaengine/struct ExplainAggregateOptions
@@ -2250,8 +2288,12 @@ metaengine/struct GroupedAggregateRow
 metaengine/struct Hooks
 metaengine/struct InSpec
 metaengine/struct IndexedText
+metaengine/struct LatencySample
+metaengine/struct LatencyStats
+metaengine/struct LatencyTracker
 metaengine/struct LayoutPlan
 metaengine/struct LayoutVersion
+metaengine/struct LiveLatency
 metaengine/struct Manifest
 metaengine/struct MemorySearchIndex
 metaengine/struct MemorySpatialIndex
@@ -2311,14 +2353,17 @@ metaengine/type ItemCount
 metaengine/type JSONValue
 metaengine/type Nanoseconds
 metaengine/type Persistence
+metaengine/type ProbeOption
 metaengine/type QueryOption
 metaengine/type RatePerSecond
 metaengine/type ReadPattern
 metaengine/type Replication
 metaengine/type SSEOption
+metaengine/type SampleKind
 metaengine/type ScanOption
 metaengine/type StorageLayout
 metaengine/type StoreHooks
+metaengine/type TrackerOption
 metaengine/var ErrAmbiguousKey
 metaengine/var ErrDuplicateEvent
 metaengine/var ErrExecuteTypeMismatch
@@ -3071,6 +3116,8 @@ storage/bbolt/method LoadStreamFromVersion
 storage/bbolt/method LoadToTimestamp
 storage/bbolt/method LoadToTimestamp
 storage/bbolt/method LoadToVersion
+storage/bbolt/method MarshalCBOR
+storage/bbolt/method MarshalJSON
 storage/bbolt/method NewIterator
 storage/bbolt/method Next
 storage/bbolt/method Next
@@ -3095,6 +3142,8 @@ storage/bbolt/method Set
 storage/bbolt/method Set
 storage/bbolt/method SetIfAbsent
 storage/bbolt/method SnapshotStore
+storage/bbolt/method UnmarshalCBOR
+storage/bbolt/method UnmarshalJSON
 storage/bbolt/method Value
 storage/bbolt/method Value
 storage/bbolt/struct Backend
@@ -3293,6 +3342,8 @@ storage/pebble/method LoadStreamFromVersion
 storage/pebble/method LoadToTimestamp
 storage/pebble/method LoadToTimestamp
 storage/pebble/method LoadToVersion
+storage/pebble/method MarshalCBOR
+storage/pebble/method MarshalJSON
 storage/pebble/method Metrics
 storage/pebble/method NewIterator
 storage/pebble/method NewSnapshot
@@ -3317,6 +3368,8 @@ storage/pebble/method Set
 storage/pebble/method Set
 storage/pebble/method SetIfAbsent
 storage/pebble/method SnapshotStore
+storage/pebble/method UnmarshalCBOR
+storage/pebble/method UnmarshalJSON
 storage/pebble/method Value
 storage/pebble/struct Backend
 storage/pebble/struct CheckpointStore

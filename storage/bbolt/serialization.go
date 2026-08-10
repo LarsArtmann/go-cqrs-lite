@@ -45,6 +45,13 @@ func unmarshalCBOROrJSON(data []byte, target any, code, msg string) error {
 }
 
 func serializeEvent(evt event.Event) ([]byte, error) {
+	metadataJSON, err := event.MarshalMetadataJSON(
+		evt.Metadata(), "bbolt.serialize_metadata",
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	s := serializableEvent{
 		ID:            evt.ID(),
 		Type:          string(evt.Type()),
@@ -54,7 +61,7 @@ func serializeEvent(evt event.Event) ([]byte, error) {
 		SchemaVersion: evt.SchemaVersion().Int(),
 		Payload:       event.PayloadReadOnly(evt),
 		OccurredAt:    evt.OccurredAt().UnixNano(),
-		Metadata:      evt.Metadata(),
+		Metadata:      metadataPayload(metadataJSON),
 		Encoding:      string(evt.Encoding()),
 	}
 
@@ -73,16 +80,10 @@ func deserializeEvent(data []byte) (event.Event, error) {
 		return nil, err
 	}
 
-	metadataJSON, err := event.MarshalMetadataJSON(s.Metadata, "bbolt.marshal_metadata")
-	if err != nil {
-		return nil, errorfamily.WrapCorruption(err, "bbolt.marshal_metadata",
-			"failed to marshal metadata for deserialization")
-	}
-
 	evt, err := event.ReconstructEventFromFields(
 		s.ID, event.Type(s.Type), id.StreamType(s.StreamType), s.StreamID,
 		s.Version, s.SchemaVersion,
-		s.Payload, metadataJSON,
+		s.Payload, []byte(s.Metadata),
 		time.Unix(0, s.OccurredAt).UTC(),
 		codec.Encoding(s.Encoding), "bbolt",
 	)
@@ -95,14 +96,54 @@ func deserializeEvent(data []byte) (event.Event, error) {
 }
 
 type serializableEvent struct {
-	ID            id.EventID     `json:"id"`
-	Type          string         `json:"type"`
-	StreamID      id.StreamID    `json:"aggregate_id"`
-	StreamType    string         `json:"aggregate_type"`
-	Version       int            `json:"version"`
-	SchemaVersion int            `json:"schema_version,omitempty"`
-	Payload       []byte         `json:"payload"`
-	OccurredAt    int64          `json:"occurred_at"`
-	Metadata      event.Metadata `json:"metadata"`
-	Encoding      string         `json:"encoding,omitempty"`
+	ID            id.EventID      `json:"id"`
+	Type          string          `json:"type"`
+	StreamID      id.StreamID     `json:"aggregate_id"`
+	StreamType    string          `json:"aggregate_type"`
+	Version       int             `json:"version"`
+	SchemaVersion int             `json:"schema_version,omitempty"`
+	Payload       []byte          `json:"payload"`
+	OccurredAt    int64           `json:"occurred_at"`
+	Metadata      metadataPayload `json:"metadata"`
+	Encoding      string          `json:"encoding,omitempty"`
+}
+
+// metadataPayload stores event.Metadata as JSON bytes within the CBOR envelope.
+// This ensures types implementing json.Marshaler (e.g. id.ActorID, which has
+// unexported fields) serialize correctly, since fxamacker/cbor does not invoke
+// json.Marshaler. On decode, legacy CBOR data (where metadata was a CBOR map) is
+// handled by falling back to struct reflection and re-marshaling to JSON.
+//art-dupl:accept intentional cross-module duplicate — separate go.mod
+type metadataPayload []byte
+
+func (m metadataPayload) MarshalJSON() ([]byte, error) {
+	if len(m) == 0 {
+		return []byte("null"), nil
+	}
+
+	return m, nil
+}
+
+func (m *metadataPayload) UnmarshalJSON(data []byte) error { *m = data; return nil }
+
+func (m metadataPayload) MarshalCBOR() ([]byte, error) {
+	return marshalCBOR([]byte(m))
+}
+
+func (m *metadataPayload) UnmarshalCBOR(data []byte) error {
+	var jsonBytes []byte
+	if err := unmarshalCBOR(data, &jsonBytes); err == nil {
+		*m = jsonBytes
+		return nil
+	}
+	var meta event.Metadata
+	if err := unmarshalCBOR(data, &meta); err != nil {
+		return err
+	}
+	jsonBytes, err := json.Marshal(meta)
+	if err != nil {
+		return err
+	}
+	*m = jsonBytes
+	return nil
 }

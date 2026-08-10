@@ -29,6 +29,8 @@ type memData struct {
 	streams map[string]map[string][]any
 	// streamJournal stores cross-stream ordered entries for JournalReadAll/ReadFrom.
 	streamJournal map[string][]streamJournalEntry
+	// graphs stores adjacency lists: collection → fromNode → []toNode.
+	graphs map[string]map[any][]any
 }
 
 // streamJournalEntry is one entry in the global journal for a collection.
@@ -80,6 +82,7 @@ func (m *memoryEngine) Profile() EngineProfile {
 			ADTMap:       ComplexityO1,
 			ADTSet:       ComplexityO1,
 			ADTCounter:   ComplexityO1,
+			ADTGraph:     ComplexityODegree,
 			ADTSortedMap: ComplexityON,
 			ADTLog:       ComplexityON,
 			ADTMultimap:  ComplexityO1,

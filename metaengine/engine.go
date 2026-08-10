@@ -63,12 +63,27 @@ type EngineProfile struct {
 	// staleness is a freshness property, not a performance cost.
 	ReplicationLag time.Duration
 
-	// NetworkRTT is the typical round-trip time to reach this engine's data
+	// NetworkRTT is the round-trip time to reach this engine's data
 	// (DDIA Ch1). Zero for in-process engines (Memory, SQLite, Pebble, DuckDB).
 	// Non-zero for any engine accessed over a network. Used by the cost
 	// estimator as an additive fixed latency component — it does NOT scale
 	// with query volume.
+	//
+	// This is a PRIOR, not a fact. For remote engines it seeds planning before
+	// the first live probe; once a LatencyTracker has fresh samples, Profile()
+	// returns the measured EWMA here instead (see ApplyCalibration). Set
+	// RequiresNetwork to declare the structural fact "this engine does network
+	// I/O" independently of the current measured value.
 	NetworkRTT time.Duration
+
+	// RequiresNetwork declares the structural fact that this engine reaches its
+	// data over a network (DDIA Ch1: "networked services"). It is a compile-time
+	// truth, distinct from the measured NetworkRTT value: an engine is remote
+	// even before the first probe runs, and stays remote if a probe goes stale.
+	// The planner uses it to emit a WARN diagnostic when routing relies on a
+	// prior or stale RTT, and GetEngineStats uses it to label remote engines
+	// that have no fresh live measurement. Local engines leave it false.
+	RequiresNetwork bool
 
 	// DegradedADTs marks ADTs that the engine can execute only via a brute-force
 	// fallback (e.g. Vector search via O(N) scan on SQLite). An ADT in both

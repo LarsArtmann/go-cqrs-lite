@@ -47,6 +47,8 @@ func TestAutoFold_RecordAware_Insert(t *testing.T) {
 	}
 	defer store.Close()
 
+	correlationID := id.NewCorrelationID()
+
 	rec := record.Record{
 		Type:       "productCreated",
 		Payload:    []byte(`{"ID":"p1","Name":"Widget","Price":999}`),
@@ -54,7 +56,7 @@ func TestAutoFold_RecordAware_Insert(t *testing.T) {
 		StreamType: "Product",
 		Version:    5,
 		MetaData: record.CommonMetadata{
-			CorrelationID: id.NewCorrelationID(),
+			CorrelationID: correlationID,
 			ActorID:       id.NewSystemActor("test"),
 		},
 	}
@@ -85,8 +87,8 @@ func TestAutoFold_RecordAware_Insert(t *testing.T) {
 		t.Errorf("Version = %d, want 5", result.Version)
 	}
 
-	if result.CorrelationID != "corr-abc" {
-		t.Errorf("CorrelationID = %q, want %q", result.CorrelationID, "corr-abc")
+	if result.CorrelationID != correlationID.String() {
+		t.Errorf("CorrelationID = %q, want %q", result.CorrelationID, correlationID.String())
 	}
 
 	if result.Name != "Widget" {

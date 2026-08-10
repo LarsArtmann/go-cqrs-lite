@@ -144,6 +144,11 @@ func (e *pgEngine) Profile() metaengine.EngineProfile {
 		NsPerOp:     PG_NsPerOp,
 		NsPerRead:   PG_NsPerRead,
 		Persistence: metaengine.PersistencePersistent, // remote server — always survives
+		// Postgres is a networked service. RequiresNetwork declares the structural
+		// fact; NetworkRTT is a same-datacenter PRIOR replaced by a live probe
+		// (SELECT 1) once ProbeEngine runs. See METAENGINE-LIVE-LATENCY-MODEL.md.
+		RequiresNetwork: true,
+		NetworkRTT:      PG_NetworkRTT,
 		// Per-read-pattern calibrated costs (see calibration_bench_test.go).
 		// Postgres has a real B-tree index on meta_map PK, so point lookups
 		// are genuinely fast (unlike DuckDB's columnar scan). Scan/aggregation

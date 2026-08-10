@@ -62,9 +62,11 @@ func WithReplication(r Replication) planOption {
 }
 
 // WithNetworkRTT overrides the network round-trip time for all engines.
-// This adds a fixed per-query latency overhead to the cost estimate.
-// Use this when the engine's actual network distance differs from its
-// declared profile (e.g., Postgres in a different region).
+// This is a PRIOR for the initial plan, not a constant: it seeds planning
+// before any live probe runs and is replaced by a live measurement (via
+// ProbeEngine) once fresh samples exist. Use it when the deployment topology
+// differs from the engine's declared profile (e.g., Postgres in another
+// region), or to simulate a what-if RTT without spinning up a probe.
 func WithNetworkRTT(rtt time.Duration) planOption {
 	return func(c *planConfig) { c.networkRTTOverride = &rtt }
 }

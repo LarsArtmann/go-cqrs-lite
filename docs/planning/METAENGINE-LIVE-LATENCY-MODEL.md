@@ -10,7 +10,8 @@
 > path to honest measurement. No code was written; this is a design proposal
 > grounded in the actual codebase.
 >
-> **Status:** Design / proposal — no code written
+> **Status:** P1, P2, P3, and the GetStats/Doctor UX wiring are IMPLEMENTED.
+> See "Implementation Status" below for the per-phase mapping to code.
 > **Date:** 2026-08-10
 
 ---
@@ -51,6 +52,21 @@ knowledge* (which the consumer has: topology, expected RTT, allowed latency
 budget) from *live observation* (which only the running system has). The
 compile-time profile declares who is remote and a *prior*; the runtime keeps
 the number honest.
+
+---
+
+## Implementation Status
+
+All four work items are implemented and covered by tests in `metaengine/`:
+
+| Phase | What shipped | Code |
+| --- | --- | --- |
+| **P1 — Probe & measure** | `Prober` / `TransactMeasurer` interfaces, `LatencyTracker` (ring buffer + incremental EWMA + P50/P95/P99), `ProbeEngine()` helper, `CalibrationCosts.NetworkRTT` prior, `Calibration` hosts live RTT + per-read trackers whose EWMA `ApplyCalibration` merges into `Profile()`. Test-double engine proves a live RTT shift changes `Profile()`. PG `SELECT 1` + Dgraph healthcheck probes wired. | `latency.go`, `probe.go`, `reliability.go`, `engine.go` (`RequiresNetwork`), `pgengine/probe.go`, `dgraphengine/probe.go` |
+| **P2 — Live planner view + Store stats** | `Store.GetEngineStats()` returns `EngineStats {profile, measured RTT, samples, lastProbe, stale}`; `EXPLAIN`/`Doctor` show `rtt=live … (p95, n)` and stale labelling; `liveLatencyRule` emits a WARN when routing relies on a prior/stale RTT for a remote engine; `WithNetworkRTT` doc now says "prior, not constant." The plan-time `Profile()` read is already live, so a re-plan automatically picks up fresh numbers (gate test: routing flips on an RTT shift). | `engine_stats.go`, `rule_live_latency.go`, `explain.go`, `planner.go`, `rules.go` |
+| **P3 — Open measurement ingress** | Exported `StatSink` / `LatencySample` / `SampleKind`; `LatencyTracker` forwards every sample to a configured sink; `ProbeEngine` accepts `WithProbeSink`. External engines can push measurements through a sink without internal helpers. Test: fake prober drives planner decisions with/without live stats. | `probe.go`, `latency.go` (`WithTrackerSink`) |
+| **UX — GetStats / Doctor** | `Doctor` adds a `--- Latency ---` section; `ExplainPlan` shows the live-latency line per remote engine; `FormatLiveLatency` renders live/stale/local. | `explain.go`, `engine_stats.go` |
+
+Backward compatibility: the `Engine` interface is unchanged (`Profile()+Close()`); `Profile()` is free to return a live view. Engines without a tracker behave exactly as before. The new profile field `RequiresNetwork` and `CalibrationCosts.NetworkRTT` default to zero (local / no override), so every existing engine compiles and plans unchanged.
 
 ---
 

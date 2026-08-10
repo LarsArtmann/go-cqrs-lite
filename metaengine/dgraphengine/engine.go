@@ -128,6 +128,11 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 		NsPerWrite:  DG_NsPerWrite,
 		Persistence: metaengine.PersistencePersistent,
 		Replication: metaengine.ReplicationSingleLeader,
+		// Dgraph is a networked gRPC service using RAFT consensus. RequiresNetwork
+		// declares the structural fact; NetworkRTT is a same-datacenter PRIOR replaced
+		// by a live probe (healthcheck query) once ProbeEngine runs.
+		RequiresNetwork: true,
+		NetworkRTT:      DG_NetworkRTT,
 		ReadCosts: metaengine.ReadCosts{
 			NsPerPointLookup:  350_000, // MapGet ~344µs
 			NsPerFilteredScan: 900_000, // SearchQuery anyofterms ~882µs

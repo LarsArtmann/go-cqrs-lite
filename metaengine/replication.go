@@ -45,6 +45,14 @@ func (p EngineProfile) IsReplicated() bool {
 	return p.Replication != ReplicationNone
 }
 
+// IsRemote returns true if the engine reaches its data over a network — either
+// because it declares RequiresNetwork (the structural fact) or because a
+// non-zero NetworkRTT is in effect (a prior or live measurement). The planner
+// and GetEngineStats use this to decide whether RTT diagnostics apply.
+func (p EngineProfile) IsRemote() bool {
+	return p.RequiresNetwork || p.NetworkRTT > 0
+}
+
 // EffectiveReplicationLag returns the expected replication lag, defaulting to
 // zero (no lag) when unset. For replicated engines, this represents the
 // typical delay between a write on one node and it being visible on another.
@@ -54,9 +62,12 @@ func (p EngineProfile) EffectiveReplicationLag() time.Duration {
 }
 
 // EffectiveNetworkRTT returns the round-trip time to reach this engine's data,
-// defaulting to zero (in-process) when unset. For remote engines, this is the
-// fixed per-query network overhead. Used by the cost estimator as an additive
-// latency component: total_latency = compute_cost + NetworkRTT.
+// defaulting to zero (in-process) when unset. For remote engines this may be a
+// live measurement: when a LatencyTracker has fresh samples, ApplyCalibration
+// stores its EWMA in NetworkRTT, so this returns the current observed RTT
+// rather than a compile-time constant. When no live measurement exists it
+// returns the declared prior (possibly zero). Used by the cost estimator as an
+// additive latency component: total_latency = compute_cost + NetworkRTT.
 func (p EngineProfile) EffectiveNetworkRTT() time.Duration {
 	return p.NetworkRTT
 }

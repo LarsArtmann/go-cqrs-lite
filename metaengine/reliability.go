@@ -14,11 +14,18 @@ import (
 // CalibrateEngine builds this from micro-benchmarks; consumers can also
 // construct it manually from their own measurements and pass it to
 // SetCalibration.
+//
+// NetworkRTT is the declared PRIOR for a remote engine (same-datacenter
+// estimate). It seeds planning before the first live probe; once a live tracker
+// has fresh samples, ApplyCalibration replaces it with the measured EWMA. A
+// prior is never a fact — it is a fallback, explicitly labelled "prior" or
+// "stale" by GetEngineStats when no live measurement backs it.
 type CalibrationCosts struct {
 	NsPerOp    float64
 	NsPerRead  float64
 	NsPerWrite float64
 	ReadCosts  ReadCosts
+	NetworkRTT time.Duration
 }
 
 // Calibration holds runtime-calibrated cost overrides for an engine.
@@ -26,11 +33,26 @@ type CalibrationCosts struct {
 // Core engines (memoryEngine, sqliteEngine) embed this struct to support
 // CalibrateEngine. External engine packages (duckdbengine, pebbleengine,
 // pgengine) embed it the same way.
+//
+// Calibration also hosts optional live latency trackers (see
+// METAENGINE-LIVE-LATENCY-MODEL.md). When ProbeEngine installs a tracker, every
+// Profile() call — including the planner's plan-time read — reflects the latest
+// measured RTT and per-read latency instead of a frozen constant. This is why
+// the embedded value type works: engines embed Calibration by value, and the
+// pointer-receiver tracker methods are promoted to *Engine, so ProbeEngine can
+// wire live measurement into Profile() with zero per-engine code.
 type Calibration struct {
 	nsPerOp    float64
 	nsPerRead  float64
 	nsPerWrite float64
 	readCosts  ReadCosts
+	networkRTT time.Duration // declared prior, replaced by live tracker when fresh
+
+	// Live trackers (optional). Set by ProbeEngine via SetRTTTracker /
+	// SetReadTracker. nil = no live measurement; the prior/compile-time values
+	// stand and are labelled "prior" by GetEngineStats.
+	rtt  *LatencyTracker
+	read *LatencyTracker
 }
 
 // SetCalibration stores measured cost values. CalibrateEngine calls this
@@ -40,10 +62,60 @@ func (c *Calibration) SetCalibration(costs CalibrationCosts) {
 	c.nsPerRead = costs.NsPerRead
 	c.nsPerWrite = costs.NsPerWrite
 	c.readCosts = costs.ReadCosts
+	c.networkRTT = costs.NetworkRTT
+}
+
+// SetRTTTracker installs a live RTT tracker. ProbeEngine calls this on engines
+// that embed Calibration. Once installed, ApplyCalibration replaces the declared
+// NetworkRTT prior with the tracker's EWMA whenever fresh samples exist.
+func (c *Calibration) SetRTTTracker(t *LatencyTracker) { c.rtt = t }
+
+// SetReadTracker installs a live per-read-operation latency tracker. When fresh,
+// ApplyCalibration uses its EWMA (in nanoseconds) as NsPerRead.
+func (c *Calibration) SetReadTracker(t *LatencyTracker) { c.read = t }
+
+// LiveLatency reports the engine's live measurement state for diagnostics
+// (GetEngineStats, Doctor, EXPLAIN). HasRTT/HasRead indicate whether a tracker
+// is installed; Fresh indicates whether its samples are current enough to drive
+// routing. A tracker with no samples reports Stats.Samples == 0 and Fresh false.
+type LiveLatency struct {
+	RTT     LatencyStats
+	Read    LatencyStats
+	HasRTT  bool
+	HasRead bool
+	Fresh   bool
+}
+
+// LiveLatency returns the live measurement snapshot for this engine. It is
+// promoted to every engine that embeds Calibration, so GetEngineStats can read
+// it through a type assertion without per-engine code.
+func (c *Calibration) LiveLatency() LiveLatency {
+	out := LiveLatency{}
+	if c.rtt != nil {
+		out.HasRTT = true
+		stats, fresh := c.rtt.Live()
+		out.RTT = stats
+		out.Fresh = out.Fresh || fresh
+	}
+	if c.read != nil {
+		out.HasRead = true
+		stats, fresh := c.read.Live()
+		out.Read = stats
+		out.Fresh = out.Fresh || fresh
+	}
+
+	return out
 }
 
 // ApplyCalibration overrides the profile's cost fields with calibrated values
-// when they are non-zero. Zero values preserve the engine's defaults.
+// when they are non-zero, then layers live measurements on top when they are
+// fresh. The precedence is:
+//
+//  1. Engine compile-time defaults (set by the engine before calling this).
+//  2. SetCalibration priors (cold micro-benchmark / operator override).
+//  3. Live tracker EWMA (runtime observation) — the most honest value, used
+//     only when fresh; otherwise the prior stands and is labelled stale.
+//
 // Engines call this inside their Profile() method.
 func (c *Calibration) ApplyCalibration(p *EngineProfile) {
 	if c.nsPerOp > 0 {
@@ -72,6 +144,27 @@ func (c *Calibration) ApplyCalibration(p *EngineProfile) {
 
 	if c.readCosts.NsPerScan > 0 {
 		p.ReadCosts.NsPerScan = c.readCosts.NsPerScan
+	}
+
+	// Declared RTT prior (operator/calibration override of the compile-time value).
+	if c.networkRTT > 0 {
+		p.NetworkRTT = c.networkRTT
+	}
+
+	// Live RTT measurement replaces the prior when fresh. This is the whole
+	// point of the live-latency model: Profile() returns the current network
+	// distance, not a compile-time guess.
+	if c.rtt != nil {
+		if stats, fresh := c.rtt.Live(); fresh {
+			p.NetworkRTT = stats.EWMA
+		}
+	}
+
+	// Live per-read latency replaces the calibrated NsPerRead when fresh.
+	if c.read != nil {
+		if stats, fresh := c.read.Live(); fresh {
+			p.NsPerRead = float64(stats.EWMA.Nanoseconds())
+		}
 	}
 }
 
