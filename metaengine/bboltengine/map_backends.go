@@ -84,7 +84,10 @@ func (e *bboltEngine) MapUpdate(
 
 		newVal := update(prev)
 
-		return bucket.Put(k, encodeJSON(newVal)) //nolint:wrapcheck // bbolt error is self-describing
+		return bucket.Put(
+			k,
+			encodeJSON(newVal),
+		) //nolint:wrapcheck // bbolt error is self-describing
 	})
 }
 

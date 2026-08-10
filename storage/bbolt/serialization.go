@@ -113,7 +113,7 @@ type serializableEvent struct {
 // unexported fields) serialize correctly, since fxamacker/cbor does not invoke
 // json.Marshaler. On decode, legacy CBOR data (where metadata was a CBOR map) is
 // handled by falling back to struct reflection and re-marshaling to JSON.
-//art-dupl:accept intentional cross-module duplicate — separate go.mod
+// art-dupl:accept intentional cross-module duplicate — separate go.mod
 type metadataPayload []byte
 
 func (m metadataPayload) MarshalJSON() ([]byte, error) {

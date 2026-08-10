@@ -49,7 +49,9 @@ func newFakeRemote(name string, nsPerOp float64, priorRTT time.Duration) *fakeRe
 			Persistence:     metaengine.PersistencePersistent,
 			RequiresNetwork: true,
 			NetworkRTT:      priorRTT,
-			Supports:        map[metaengine.ADT]metaengine.Complexity{metaengine.ADTMap: metaengine.ComplexityO1},
+			Supports: map[metaengine.ADT]metaengine.Complexity{
+				metaengine.ADTMap: metaengine.ComplexityO1,
+			},
 		},
 	}
 }
@@ -226,7 +228,9 @@ func (e *fakeLocalEngine) Profile() metaengine.EngineProfile {
 		Name:        e.name,
 		NsPerOp:     e.nsPerOp,
 		Persistence: metaengine.PersistenceVolatile,
-		Supports:    map[metaengine.ADT]metaengine.Complexity{metaengine.ADTMap: metaengine.ComplexityO1},
+		Supports: map[metaengine.ADT]metaengine.Complexity{
+			metaengine.ADTMap: metaengine.ComplexityO1,
+		},
 	}
 	e.ApplyCalibration(&p)
 

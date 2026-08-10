@@ -477,6 +477,10 @@ func TestDeserializeEvent_CBORWithMetadata(t *testing.T) {
 	}
 
 	if !got.Metadata().ActorID.Equal(actor) {
-		t.Errorf("actor ID: want %s, got %s", actor.PrefixedString(), got.Metadata().ActorID.PrefixedString())
+		t.Errorf(
+			"actor ID: want %s, got %s",
+			actor.PrefixedString(),
+			got.Metadata().ActorID.PrefixedString(),
+		)
 	}
 }

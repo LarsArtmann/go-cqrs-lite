@@ -233,7 +233,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"metaengine/irohengine/quic":     "sub-engine transport (covered by metaengine/irohengine)",
 		"metaengine/adttest":             "test helper sub-package",
 		"metaengine/badgerengine":        "sub-engine (covered by metaengine)",
-		"metaengine/bboltengine":        "sub-engine (covered by metaengine)",
+		"metaengine/bboltengine":         "sub-engine (covered by metaengine)",
 		"metaengine/bench":               "benchmarking utility (covered by metaengine)",
 		"metaengine/dgraphengine":        "sub-engine (covered by metaengine)",
 		"metaengine/duckdbengine":        "sub-engine (covered by metaengine)",

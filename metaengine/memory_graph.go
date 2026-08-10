@@ -39,7 +39,12 @@ func (m *memoryEngine) GraphAddEdge(_ context.Context, collection string, edge E
 
 // GraphNeighbors returns all nodes reachable from node within the given depth.
 // Depth 1 returns direct neighbors; depth 2 includes neighbors-of-neighbors.
-func (m *memoryEngine) GraphNeighbors(_ context.Context, collection string, node any, depth int) ([]any, error) {
+func (m *memoryEngine) GraphNeighbors(
+	_ context.Context,
+	collection string,
+	node any,
+	depth int,
+) ([]any, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 

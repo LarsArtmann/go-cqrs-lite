@@ -127,16 +127,16 @@ func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 // fxamacker/cbor reads `json` struct tags by default, so no separate `cbor` tags needed.
 // cqrs-lint:ignore(A011) library code or intentional pattern
 type serializableEvent struct {
-	ID            id.EventID       `json:"id"`
-	Type          string           `json:"type"`
-	StreamID      id.StreamID      `json:"aggregate_id"`
-	StreamType    string           `json:"aggregate_type"`
-	Version       int              `json:"version"`
-	SchemaVersion int              `json:"schema_version,omitempty"`
-	Payload       []byte           `json:"payload"`
-	OccurredAt    int64            `json:"occurred_at"`
-	Metadata      metadataPayload  `json:"metadata"`
-	Encoding      string           `json:"encoding,omitempty"`
+	ID            id.EventID      `json:"id"`
+	Type          string          `json:"type"`
+	StreamID      id.StreamID     `json:"aggregate_id"`
+	StreamType    string          `json:"aggregate_type"`
+	Version       int             `json:"version"`
+	SchemaVersion int             `json:"schema_version,omitempty"`
+	Payload       []byte          `json:"payload"`
+	OccurredAt    int64           `json:"occurred_at"`
+	Metadata      metadataPayload `json:"metadata"`
+	Encoding      string          `json:"encoding,omitempty"`
 }
 
 // metadataPayload stores event.Metadata as JSON bytes within the CBOR envelope.

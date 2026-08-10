@@ -37,8 +37,8 @@ use (
 	./metadata
 	./metaengine
 	./metaengine/badgerengine
-	./metaengine/bench
 	./metaengine/bboltengine
+	./metaengine/bench
 	./metaengine/dgraphengine
 	./metaengine/duckdbengine
 	./metaengine/graphadapter

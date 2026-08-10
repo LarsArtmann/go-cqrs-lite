@@ -195,7 +195,10 @@ func buildProjections() ([]system.ProjectionDeclaration, *projectionadapter.Type
 		projectionadapter.Register(evtTaskDeleted, TaskDeletedPayload{}),
 	)
 
-	return []system.ProjectionDeclaration{system.RawQuery(taskCounts), system.RawQuery(taskViews)}, decoder
+	return []system.ProjectionDeclaration{
+		system.RawQuery(taskCounts),
+		system.RawQuery(taskViews),
+	}, decoder
 }
 
 // handleGetTaskStats serves GET /api/stats — returns task counts by status
