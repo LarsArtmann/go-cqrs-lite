@@ -68,6 +68,7 @@ var taskmanagerGoldenProfile = map[string]int{
 	"C004": 1,
 	"C009": 2,
 	"C013": 1,
+	"C017": 1,
 	"C023": 3,
 	"C026": 2,
 	"D013": 1,
@@ -75,6 +76,7 @@ var taskmanagerGoldenProfile = map[string]int{
 	"E005": 10,
 	"E017": 1,
 	"S010": 1,
+	"V003": 1,
 	"V006": 1,
 }
 

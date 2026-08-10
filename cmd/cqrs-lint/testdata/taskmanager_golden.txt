@@ -9,6 +9,7 @@ C004 Projection launches async work — checkpoint may be saved before completio
 C009 panic() in production code — use error returns instead
 C009 panic() in production code — use error returns instead
 C013 Struct TaskDueDateSetPayload has DueDate of type time.Time — timezone info is lost via CBOR epoch encoding
+C017 In-memory dead-letter store paired with persistent event store (sqlite) — lost on restart
 C023 Shutdown() error ignored — pending events or resources may be lost
 C023 Shutdown() error ignored — pending events or resources may be lost
 C023 Stop() error ignored — pending events or resources may be lost
@@ -28,4 +29,5 @@ E005 Command type "StartTaskCmd" has no registered handler — dispatching it wi
 E005 Command type "UpdateTitleCmd" has no registered handler — dispatching it will return ErrNoHandler
 E017 signal.Notify without GracefulClose/Stop — in-flight events lost on SIGTERM
 S010 Bus has encryption/signing middleware but store is not wrapped — events stored in cleartext
+V003 metaengine/sqliteengine/v4 is on v4.0.x — 3 minor versions behind latest (v4.3.x), missing bug fixes and features
 V006 flightrecorder/v4 is on v4.0.0 but other v4 modules use v4.0.1, v4.1.0, v4.2.0, v4.3.0, v4.4.0, v4.5.0, v4.8.0 — go-cqrs-lite modules within the same major version should be pinned to the same release

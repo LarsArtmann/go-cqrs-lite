@@ -262,29 +262,89 @@ and is **never** duplicated here.
 > is a runtime observation. ADR-0093 defers the fix; the ReadCosts doc labels
 > per-op costs "compile-time, do not evolve at runtime." This section tracks
 > the phased remediation. Long-term vision: ROADMAP → Themes.
+>
+> Implementation session 2026-08-10: P1, P3, and UX fully done; P2 ~80%.
+> Full status: `docs/status/2026-08-10_18-49_live-latency-model-implementation.md`.
 
-- [ ] 🔥 **P1: Prober + LatencyTracker** — optional `Prober`/`TransactMeasurer`
-      interfaces, `LatencyTracker` (window + EWMA + percentiles), `ProbeEngine()`
-      helper, `CalibrationCosts` gains `NetworkRTT` + measured read/write fields,
-      live `Profile()` composition. Test-double engine proves a live RTT shift
-      changes `Profile()`. Wire PG (`SELECT 1`) + Dgraph (healthcheck) probes.
+- [x] 🔥 **P1: Prober + LatencyTracker** — DONE 2026-08-10. Optional `Prober`/
+      `TransactMeasurer` interfaces, `LatencyTracker` (ring buffer + incremental
+      EWMA + P50/P95/P99), `ProbeEngine()` helper, `CalibrationCosts.NetworkRTT`
+      prior, `Calibration` hosts live trackers whose EWMA `ApplyCalibration`
+      merges into `Profile()`. `EngineProfile.RequiresNetwork` structural flag.
+      Test-double engine proves a live RTT shift changes `Profile()`.
+      PG (`SELECT 1`) + Dgraph (healthcheck) probes wired. 15 tests pass
+      (incl. `-race`).
+      Files: `latency.go`, `probe.go`, `reliability.go`, `engine.go`,
+      `pgengine/probe.go`, `dgraphengine/probe.go`.
+- [x] **P3: Open measurement ingress for external engines** — DONE 2026-08-10.
+      Exported `StatSink` / `LatencySample` / `SampleKind`. `LatencyTracker`
+      forwards every sample to a configured sink via `WithTrackerSink`.
+      `ProbeEngine` accepts `WithProbeSink`. Test: fake prober drives planner
+      decisions with/without live stats.
+- [x] **Wire live latency into `GetStats`/Doctor UX** — DONE 2026-08-10.
+      `Store.GetEngineStats(ctx) []EngineStats` with measured RTT, samples,
+      lastProbe, stale. `Doctor()` adds `--- Latency ---` section. `ExplainPlan()`
+      shows `rtt=live … (p95, n)` per remote engine. `FormatLiveLatency()` renders
+      live/stale/local. WARN diagnostic when routing on prior/stale RTT.
+      Files: `engine_stats.go`, `explain.go`, `rule_live_latency.go`.
+- [ ] **P2 (remaining): `Store.Replan(ctx)`** — in-place re-plan for a long-lived
+      Store to pick up fresh profiles without constructing a new Store. The
+      plan-time read is already live (planner calls `engine.Profile()` directly);
+      the method just doesn't exist yet.
+      _(Effort: S)_
+- [ ] **P2 (remaining): Execution-time live re-scoring** — optional: re-score
+      near-tied queries at execution time with a hysteresis deadband, without a
+      full re-plan. Emits `REPLAN-SUGGESTED` diagnostic when current measured RTT
+      makes an alternative strictly cheaper.
       _(Effort: M)_
-- [ ] **P2: Live planner view + Store stats** — Store keeps runtime profile
-      snapshot; refresh on plan / `GetStats()` / background interval;
-      `EngineStats` {profile, measured RTT, samples, lastProbe, stale};
-      `EXPLAIN` shows `rtt=live … (p95, n)`; WARN diagnostic when routing on
-      stale/prior RTT; optional live re-scoring of near-tied queries with
-      hysteresis. `WithNetworkRTT` documented as a prior, not a constant.
+- [ ] **Fix `staleThresholdFor` code smell** — `engine_stats.go` display-side
+      staleness check ignores its parameter and returns a hardcoded 30s default.
+      Carry the configured stale-after in `LatencyStats` (or read from
+      `LiveLatency.Fresh`) so display and routing agree.
+      _(Effort: XS)_
+- [ ] **Fix `LiveLatency.Fresh` OR-semantics** — `Calibration.LiveLatency()` sets
+      `Fresh = RTT-fresh OR Read-fresh`. A remote engine with only a read tracker
+      would suppress the WARN rule. Split into RTT-specific freshness for the
+      rule, or document that `ProbeEngine` always installs RTT when `Prober` is
+      implemented.
+      _(Effort: XS)_
+- [ ] **Add `WithProbeWindow`/`WithProbeAlpha`/`WithProbeStale` ProbeOptions** —
+      currently `ProbeEngine` hardcodes tracker defaults; consumers can't tune
+      EWMA responsiveness through the probe API.
+      _(Effort: S)_
+- [ ] **Wire mysqlengine Prober** — `SELECT 1` timing + `RequiresNetwork` +
+      `NetworkRTT` prior. Same pattern as PG.
+      _(Effort: XS)_
+- [ ] **Wire tursoengine Prober** — `RequiresNetwork` + `NetworkRTT` prior.
+      Turso is remote libSQL; same pattern as PG.
+      _(Effort: XS)_
+- [ ] **Migrate irohengine onto core `LatencyTracker`** — iroh still uses its
+      own `LatencyCollector` (window + percentiles). Consolidate to eliminate
+      duplicate percentile machinery. Decision needed: delete iroh's collector
+      or keep as transport-level feeder (convergence axis).
       _(Effort: M)_
-- [ ] **P3: Open measurement ingress for external engines** — exported
-      `StatSink` so external engines (future fdbengine, pgengine, dgraphengine)
-      push live measurements without a hard core dependency. Test: fake prober
-      drives planner decisions with/without live stats.
-      _(Effort: M — independent of P1/P2)_
-- [ ] **Wire live latency into `GetStats`/Doctor UX** — Doctor + EXPLAIN show
-      measured RTT per remote engine with freshness (samples, last probe) and
-      stale labeling.
-      _(Effort: S — P2 dependent)_
+- [ ] **Implement `TransactMeasurer` on at least one engine** — the per-read
+      live latency interface exists and `ProbeEngine` handles it, but zero
+      engines implement it. PG: time a real `SELECT ... LIMIT 1` point lookup.
+      Proves the per-op live path end-to-end.
+      _(Effort: S)_
+- [ ] **Run `nix run .#verify`** — full verify gate not yet run on the
+      live-latency changes (build + test + gofumpt verified, but lint,
+      coverage, duplication, doc-check together not confirmed). Stale-GREEN
+      risk per AGENTS.md.
+      _(Effort: S)_
+- [ ] **Integration test: real PG testcontainer + ProbeEngine** — verify
+      `GetEngineStats` shows live RTT against a real Postgres instance.
+      Currently only the fake engine proves the mechanism.
+      _(Effort: M)_
+- [ ] **Update AGENTS.md + skill docs** — metaengine section doesn't mention
+      `RequiresNetwork`, `ProbeEngine`, `LatencyTracker`, or the live-latency
+      feature. Add a recipe to `references/recipes.md`.
+      _(Effort: S)_
+- [ ] **Consolidate percentile helpers** — core `percentileDur` (latency.go) vs
+      iroh's `percentile`/`PercentileIdx`/`SortDurations` (latency.go). DRY
+      violation; extract to shared helper or delete one.
+      _(Effort: XS — blocked on iroh migration decision)_
 
 ---
 
