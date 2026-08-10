@@ -444,7 +444,6 @@ linters:
           - nlreturn
           - nonamedreturns
           - revive
-          - staticcheck
           - tagliatelle
           - varnamelen
           - forcetypeassert
