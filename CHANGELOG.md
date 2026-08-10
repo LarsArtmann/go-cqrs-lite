@@ -296,24 +296,59 @@ files. All fixed to unblock `verify-fast`:
   slices that trigger `OnTombstone`/`OnRebirth` callbacks. Replace metadata-based
   tombstone detection.
 
+### Fixed — Session 3: all 82 modules passing — 2026-08-10
+
+> **All 82 workspace modules pass `go test -tags "goexperiment.jsonv2"`.** Zero
+> failures. Every "Known issue" from sessions 1-2 is resolved.
+> See `docs/status/2026-08-10_19-06_record-consolidation-fallout-fix-session3.md`.
+
+- **Memory engine graph ADT support restored**: added `GraphAddEdge` and
+  `GraphNeighbors` methods to `memoryEngine` (new file `memory_graph.go`).
+  `ADTGraph: ComplexityODegree` added to the memory engine `Supports` map.
+  The memory engine is now the universal graph fallback — 15 previously-failing
+  Ginkgo specs pass.
+- **Branded-ID auto-fold stamping fixed**: `metaengine/record_stamp.go` getters
+  for `CorrelationID`, `CausationID`, and `ActorID` now call `.String()` on the
+  branded types before returning. Fixes `reflect.Set` panic when auto-stamping
+  into `string` result fields. `TestAutoFold_RecordAware_Insert` and
+  `TestIntegration_AutoInsert_ThroughAdapter` pass.
+- **Signing golden snapshot regenerated**: `hmac-signed-metadata.snap` updated
+  for new metadata JSON structure (ActorID, no Tombstone field). Obsolete
+  `signature-json.snap` cleaned.
+- **cqrs-lint F001 rule rewritten for ADR-0114**: the rule now detects `Delete*`
+  functions without domain deletion events (e.g., `"user.deleted"`) instead of
+  recommending the deleted `event.MarkTombstone`. Uses `hasDeletionEventTypes()`
+  helper scanning `EventTypesEmitted`. Golden profiles updated (33 findings,
+  C017+V003 added). Module catalog exclusion list updated for 4 new modules
+  (`metaengine/bboltengine`, `metaengine/mysqlengine`, `metaengine/tursoengine`,
+  `storage/backuptest`).
+- **example/taskmanager sqlite driver registration**: added blank import of
+  `metaengine/sqliteengine/v4` to register the `"sqlite"` driver (was previously
+  registered by the deleted `system/sqlite_driver.go`).
+- **Storage test `.UserID` → `.ActorID` migration**: 3 test files updated
+  (`event_store_load_query_test.go`, `command_store_journal_test.go`,
+  `query_store_test.go`) to use `ActorID` with `id.NewUserActor()` + `.Equal()`.
+- **Orphaned watermill constants removed**: `metaTombstoneStatus` and
+  `metaTombstoneReason` deleted from `watermill/protocol.go` (dead code after
+  tombstone serialization was removed in session 2).
+- **`metaengine/rule_replication_test.go`**: expected string `"rtt=5ms"` →
+  `"rtt=prior 5ms"` (format had changed in the live-latency model).
+
 ### Known issues — ADR-0113/0114 test failures (pre-existing, not from cleanup)
 
-> All build/vet/doc-check passes. These are runtime test failures from the
-> concurrent ADR-0113/0114 refactoring, not from the cleanup work above.
-> See `docs/status/2026-08-10_16-15_graphbackend-cleanup-and-adr0114-tombstone-unblock.md`.
+> ~~All build/vet/doc-check passes. These are runtime test failures from the~~
+> ~~concurrent ADR-0113/0114 refactoring, not from the cleanup work above.~~
+> **RESOLVED 2026-08-10 session 3.** All 82 modules pass. The items below are
+> retained for historical reference only.
 
-- **Memory engine graph ADT support missing** (15 metaengine Ginkgo failures):
-  memory engine lost graph support after ADR-0113. `Supports` map doesn't
-  include "graph". Needs fix.
-- **Branded-ID auto-fold stamping panic**: `AutoInsert` reflect code can't
-  stamp `id.ID[CorrelationMarker, ULID]` into `string` fields. Two tests fail.
-- **Signing golden snapshot stale**: `TestGolden_HMACSignedEvent` — metadata
-  shape changed (userId→actorId + new timestamp fields). Needs regen.
-- **Metadata roundtrip (pebble/bbolt)**: `TestEventStore_MetadataRoundtrip`
-  loses UserID/ActorID during serialization.
-- **cqrs-lint findings mismatch**: `TestLintExampleTaskmanager` count changed
-  from concurrent code changes.
-- **benchkit timing tests**: 3 flaky timing tests under load (pre-existing).
+- ~~**Memory engine graph ADT support missing** (15 metaengine Ginkgo failures)~~
+  → **FIXED**: `GraphAddEdge`/`GraphNeighbors` implemented in `memory_graph.go`.
+- ~~**Branded-ID auto-fold stamping panic**~~ → **FIXED**: `.String()` calls in
+  `record_stamp.go`.
+- ~~**Signing golden snapshot stale**~~ → **FIXED**: regenerated.
+- ~~**Metadata roundtrip (pebble/bbolt)**~~ → **Was already passing**.
+- ~~**cqrs-lint findings mismatch**~~ → **FIXED**: F001 rewritten, goldens updated.
+- **benchkit timing tests**: 3 flaky timing tests under load (pre-existing, unrelated).
 
 ### Added — v5 unification infrastructure — 2026-08-10
 

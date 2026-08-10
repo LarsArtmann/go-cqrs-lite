@@ -159,19 +159,28 @@ and is **never** duplicated here.
         adapter_record_test.go, projectionhost_record_test.go).
   - [x] Dedup baseline updated (74→90 groups for concurrent engine clones).
   Remaining (tests still failing, NOT build breaks):
-  - [ ] **Memory engine graph ADT support** — memory engine lost graph support
-        after ADR-0113; 15 metaengine Ginkgo specs fail.
-        Needs `graph` added to Supports map OR structural planner detection.
-  - [ ] **Branded-ID auto-fold stamping panic** — `AutoInsert` reflect code
-        can't stamp `id.ID[CorrelationMarker, ULID]` into `string` fields.
-        `TestAutoFold_RecordAware_Insert` + `TestIntegration_AutoInsert_ThroughAdapter`.
-  - [ ] **Signing golden stale** — `TestGolden_HMACSignedEvent` needs regen
-        (userId→actorId + new timestamp fields).
-  - [ ] **Metadata roundtrip (pebble/bbolt)** — `TestEventStore_MetadataRoundtrip`
-        loses UserID/ActorID during serialization.
-  - [ ] **cqrs-lint findings mismatch** — `TestLintExampleTaskmanager` count changed.
-  - [ ] Run `nix run .#verify` end-to-end once test failures are fixed.
-  _(Effort: M — test fixes needed, not build fixes)_
+  - [x] **Memory engine graph ADT support** — DONE 2026-08-10 session 3.
+        Added `GraphAddEdge`/`GraphNeighbors` to memory engine (`memory_graph.go`).
+        `ADTGraph: ComplexityODegree` added to profile. All 15 Ginkgo specs pass.
+  - [x] **Branded-ID auto-fold stamping panic** — DONE 2026-08-10 session 3.
+        `metaengine/record_stamp.go` getters now call `.String()` on branded types.
+        `TestAutoFold_RecordAware_Insert` + `TestIntegration_AutoInsert_ThroughAdapter` pass.
+  - [x] **Signing golden stale** — DONE 2026-08-10 session 3.
+        `hmac-signed-metadata.snap` regenerated. Obsolete `signature-json.snap` cleaned.
+  - [x] **Metadata roundtrip (pebble/bbolt)** — DONE (was already passing).
+  - [x] **cqrs-lint findings mismatch** — DONE 2026-08-10 session 3.
+        F001 rule rewritten for domain deletion events. Golden profiles updated
+        (33 findings, C017+V003 added). Catalog exclusion list updated for new modules.
+  - [x] **example/taskmanager sqlite driver** — DONE 2026-08-10 session 3.
+        Blank import of `sqliteengine/v4` added to register the "sqlite" driver.
+  - [x] **All 82 workspace modules pass `go test`** — DONE 2026-08-10 session 3.
+  - [ ] Run `nix run .#verify` end-to-end (build + vet + test + race + lint + doc-check).
+  - [ ] Regenerate API stability goldens (`cmd/api-stability -update`).
+  - [ ] Naming cleanup: rename `TombstonePolicy` → `DeletePolicy` across stack/ + listing/.
+  - [ ] Write `docs/migration/tombstone-to-domain-events.md`.
+  - [ ] Update docs: AGENTS.md, SKILL.md, skill references for ADR-0114 patterns.
+  - [ ] Run `nix fmt` on all changed files.
+  _(Effort: M — verification + docs + naming cleanup remaining)_
 - [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must
