@@ -74,7 +74,7 @@ var _ = Describe("Event Metadata Roundtrip", func() {
 		Expect(meta).ToNot(BeNil())
 		Expect(meta.CorrelationID).To(Equal(corrID))
 		Expect(meta.CausationID).To(Equal(causID))
-		Expect(meta.UserID).To(Equal(userID))
+		Expect(meta.ActorID).To(Equal(id.NewUserActor(userID)))
 		Expect(meta.RequestID).To(Equal(reqID))
 		Expect(meta.Source).To(Equal(event.Source("test-service")))
 		Expect(meta.IPAddress).To(Equal(event.IPAddress("192.168.1.1")))

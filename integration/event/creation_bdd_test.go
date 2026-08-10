@@ -45,7 +45,7 @@ var _ = Describe("Event Creation", func() {
 				Expect(evt.Payload()).To(ContainSubstring("alice@example.com"))
 				Expect(evt.Metadata().CorrelationID).To(Equal(corrID))
 				Expect(evt.Metadata().CausationID).To(Equal(causeID))
-				Expect(evt.Metadata().UserID).To(Equal(uID))
+				Expect(evt.Metadata().ActorID).To(Equal(id.NewUserActor(uID)))
 				Expect(evt.Metadata().RequestID).To(Equal(reqID))
 				Expect(evt.Metadata().Source).To(Equal(event.Source("api")))
 				Expect(evt.OccurredAt()).To(BeTemporally("<", time.Now().Add(time.Second)))
