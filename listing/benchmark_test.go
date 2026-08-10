@@ -112,21 +112,17 @@ func BenchmarkInMemoryList_TombstoneFilter(b *testing.B) {
 		payload, _ := json.Marshal(
 			map[string]string{"name": "deleted"},
 		)
-		evt, _ := event.NewEvent("DocCreated", streamID, "Doc", 1, payload)
+		evt, _ := event.NewEvent("DocDeleted", streamID, "Doc", 1, payload)
 		_ = store.AppendBatch(
 			ctx,
 			id.NewStreamRef(id.StreamType("Doc"), streamID),
 			[]event.Event{evt},
 		)
-		marked, _ := event.MarkTombstone(evt)
-		_ = store.AppendBatch(
-			ctx,
-			id.NewStreamRef(id.StreamType("Doc"), streamID),
-			[]event.Event{marked},
-		)
 	}
 
-	reader := listing.NewInMemoryStreamReader(store)
+	reader := listing.NewInMemoryStreamReader(store,
+		listing.WithDeleteTypes("DocDeleted"),
+	)
 
 	b.ResetTimer()
 

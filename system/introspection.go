@@ -193,7 +193,7 @@ func (s *System) Explain(ctx context.Context) string {
 	var b strings.Builder
 
 	b.WriteString("System Topology:\n")
-	fmt.Fprintf(&b, "  Drivers: %s\n", strings.Join(RegisteredDrivers(), ", "))
+	fmt.Fprintf(&b, "  Drivers: %s\n", strings.Join(metaengine.RegisteredDrivers(), ", "))
 	fmt.Fprintf(&b, "  Engines: %d\n", len(s.engines))
 
 	for _, ne := range s.engines {

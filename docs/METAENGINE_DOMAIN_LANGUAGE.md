@@ -83,7 +83,7 @@ An **ADT** is the logical data structure the planner infers from a query's fold 
 | **Search**     | Insert document / full-text query  | Inverted index (TF-IDF/BM25)  | `metaengine.ADTSearch`    |
 | **Spatial**    | Insert point / range proximity     | Geo distance (haversine)      | `metaengine.ADTSpatial`   |
 
-Each ADT maps to an optional **Backend interface** an engine implements (ISP): `MapBackend`, `SetBackend`, `CounterBackend`, `MultimapBackend`, `LogBackend`, `StreamLogBackend`, `GraphBackend`, `VectorBackend`, `SearchBackend`, `SpatialBackend`. An engine that lacks the native backend for an ADT may still serve it via **degraded** brute-force fallback (with a `DEGRADED` diagnostic).
+Each ADT maps to an optional **Backend interface** an engine implements (ISP): `MapBackend`, `SetBackend`, `CounterBackend`, `MultimapBackend`, `LogBackend`, `StreamLogBackend`, `VectorBackend`, `SearchBackend`, `SpatialBackend`. An engine that lacks the native backend for an ADT may still serve it via **degraded** brute-force fallback (with a `DEGRADED` diagnostic).
 
 > **Typed fold inputs:** Vector and Search ADTs have dedicated input types: `metaengine.Embedding` (ID + `[]float32` values) for k-NN similarity folds, and `metaengine.IndexedText` (ID + content string) for full-text search folds.
 
@@ -371,7 +371,6 @@ metaengine.Engine = Profile() EngineProfile + Closer
     MultimapBackend:   MultiAdd/MultiGet
     LogBackend:        LogAppend/LogTail
     StreamLogBackend:  StreamAppend/StreamRead/StreamVersion
-    GraphBackend:      GraphAddEdge/GraphNeighbors
     VectorBackend:     VectorInsert/VectorSearch
     SearchBackend:     SearchInsert/SearchQuery
     SpatialBackend:    SpatialInsert/SpatialRange

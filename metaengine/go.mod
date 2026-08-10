@@ -4,6 +4,7 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0
 	github.com/larsartmann/go-sse v0.4.0
@@ -17,6 +18,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
+	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	modernc.org/libc v1.75.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect

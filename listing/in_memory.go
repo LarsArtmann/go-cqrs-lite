@@ -16,7 +16,8 @@ import (
 // Caches the stream index and only rebuilds when the event count changes.
 // Suitable for testing, development, and single-process deployments.
 type InMemoryStreamReader struct {
-	journal event.Journal
+	journal     event.Journal
+	deleteTypes map[event.Type]struct{}
 
 	mu     sync.RWMutex
 	cached []StreamStatus
@@ -24,11 +25,33 @@ type InMemoryStreamReader struct {
 
 var _ StreamReader = (*InMemoryStreamReader)(nil)
 
-// NewInMemoryStreamReader creates a reader that enumerates via Journal.ReadAll.
-func NewInMemoryStreamReader(journal event.Journal) *InMemoryStreamReader {
-	return &InMemoryStreamReader{ //nolint:exhaustruct // mu and cached zero-initialized
-		journal: journal,
+// Option configures an InMemoryStreamReader.
+type Option func(*InMemoryStreamReader)
+
+// WithDeleteTypes configures which event types signal stream deletion.
+// When the last event in a stream has one of these types, the stream's
+// Status is StatusDeleted. Without this option, all streams are StatusActive.
+//
+// Per ADR-0114, deletion is expressed as domain events — the event type
+// is the signal, not metadata stamps.
+func WithDeleteTypes(types ...event.Type) Option {
+	return func(r *InMemoryStreamReader) {
+		r.deleteTypes = event.NewTypeSet(types)
 	}
+} //nolint:wsl // closing brace alignment
+
+// NewInMemoryStreamReader creates a reader that enumerates via Journal.ReadAll.
+func NewInMemoryStreamReader(journal event.Journal, opts ...Option) *InMemoryStreamReader {
+	r := &InMemoryStreamReader{ //nolint:exhaustruct // mu and cached zero-initialized
+		journal:     journal,
+		deleteTypes: map[event.Type]struct{}{},
+	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r
 }
 
 // Deprecated: use InMemoryStreamReader.
@@ -89,7 +112,7 @@ func (r *InMemoryStreamReader) rebuildCache(ctx context.Context) ([]StreamStatus
 		)
 	}
 
-	refs := buildRefs(all)
+	refs := r.buildRefs(all)
 
 	slices.SortFunc(refs, func(a, b StreamStatus) int {
 		if a.Ref.Type != b.Ref.Type {
@@ -114,7 +137,7 @@ func (r *InMemoryStreamReader) InvalidateCache() {
 	r.mu.Unlock()
 }
 
-func buildRefs(events []event.Event) []StreamStatus {
+func (r *InMemoryStreamReader) buildRefs(events []event.Event) []StreamStatus {
 	type streamKey struct {
 		streamType id.StreamType
 		streamID   id.StreamID
@@ -152,11 +175,21 @@ func buildRefs(events []event.Event) []StreamStatus {
 	for _, b := range builders {
 		result = append(result, StreamStatus{
 			Ref:    b.ref,
-			Status: event.DetectTombstone([]event.Event{b.lastEvent}),
+			Status: r.detectStatus(b.lastEvent),
 		})
 	}
 
 	return result
+}
+
+// detectStatus determines whether a stream is deleted by checking if its
+// last event type is in the configured delete types set (ADR-0114).
+func (r *InMemoryStreamReader) detectStatus(lastEvent event.Event) Status {
+	if _, isDelete := r.deleteTypes[lastEvent.Type()]; isDelete {
+		return StatusDeleted
+	}
+
+	return StatusActive
 }
 
 func filterByType(refs []StreamStatus, streamType id.StreamType) []StreamStatus {
@@ -179,9 +212,9 @@ func applyTombstonePolicy(refs []StreamStatus, policy TombstonePolicy) []StreamS
 	filtered := make([]StreamStatus, 0, len(refs))
 
 	for _, r := range refs {
-		if policy == TombstoneExclude && !r.Status.IsTombstoned() {
+		if policy == TombstoneExclude && !r.Status.IsDeleted() {
 			filtered = append(filtered, r)
-		} else if policy == TombstoneOnly && r.Status.IsTombstoned() {
+		} else if policy == TombstoneOnly && r.Status.IsDeleted() {
 			filtered = append(filtered, r)
 		}
 	}

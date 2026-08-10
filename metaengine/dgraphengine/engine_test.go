@@ -126,8 +126,8 @@ func TestMapBackend(t *testing.T) {
 	}
 }
 
-// TestGraphBackend exercises the Graph ADT — Dgraph's killer feature.
-func TestGraphBackend(t *testing.T) {
+// TestGraphOperations exercises the Graph ADT — Dgraph's killer feature.
+func TestGraphOperations(t *testing.T) {
 	t.Parallel()
 
 	eng := mustNewDgraphEngine(t)

@@ -120,7 +120,7 @@ func FuzzStreamStatus_MarshalOnly(f *testing.F) {
 				return
 			}
 
-			status := event.TombstoneStatus(statusInt)
+			status := listing.Status(statusInt)
 
 			original := listing.StreamStatus{
 				Ref: listing.StreamListing{
@@ -139,9 +139,9 @@ func FuzzStreamStatus_MarshalOnly(f *testing.F) {
 				t.Fatalf("Marshal: %v", err)
 			}
 
-			// The marshaled status is a string ("active", "tombstoned", "undetermined", or "TombstoneStatus(N)").
-			if statusInt >= 0 && statusInt <= 2 {
-				expected := []string{`"active"`, `"tombstoned"`, `"undetermined"`}[statusInt]
+			// The marshaled status is a string ("active", "deleted", or "Status(N)").
+			if statusInt >= 0 && statusInt <= 1 {
+				expected := []string{`"active"`, `"deleted"`}[statusInt]
 				if !strings.Contains(string(data), expected) {
 					t.Errorf("Marshal: expected to contain %s, got %s", expected, data)
 				}

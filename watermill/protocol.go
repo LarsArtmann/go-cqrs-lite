@@ -70,7 +70,7 @@ func eventToMessage(evt event.Event) *message.Message {
 	}
 
 	m := evt.Metadata()
-	writeTracing(md, m.Tracing)
+	writeCommonMetadata(md, m.CommonMetadata)
 
 	if m.Source != "" {
 		md.Set(metaSource, string(m.Source))
@@ -80,12 +80,6 @@ func eventToMessage(evt event.Event) *message.Message {
 	}
 	if m.UserAgent != "" {
 		md.Set(metaUserAgent, string(m.UserAgent))
-	}
-	if m.Tombstone != nil {
-		md.Set(metaTombstoneStatus, strconv.Itoa(int(m.Tombstone.Status)))
-		if m.Tombstone.Reason != "" {
-			md.Set(metaTombstoneReason, m.Tombstone.Reason)
-		}
 	}
 	writeCustomEntries(md, m.Custom)
 
@@ -240,7 +234,15 @@ func buildMetadata(md message.Metadata) (event.Metadata, error) {
 		func(v id.CausationID) { m.CausationID = v },
 		&errs,
 	)
-	parseIDField(md, metaUserID, id.ParseUserID, func(v id.UserID) { m.UserID = v }, &errs)
+	if uidStr := md.Get(metaUserID); uidStr != "" {
+		userID, err := id.ParseUserID(uidStr)
+		if err != nil {
+			errs = append(errs, errorfamily.WrapRejection(err, "watermill.parse_user_id_failed",
+				fmt.Sprintf("parse %s", metaUserID)))
+		} else {
+			m.ActorID = id.NewUserActor(userID)
+		}
+	}
 	parseIDField(
 		md,
 		metaRequestID,
@@ -257,19 +259,6 @@ func buildMetadata(md message.Metadata) (event.Metadata, error) {
 	}
 	if v := md.Get(metaUserAgent); v != "" {
 		m.UserAgent = event.UserAgent(v)
-	}
-
-	if statusStr := md.Get(metaTombstoneStatus); statusStr != "" {
-		if statusInt, err := strconv.Atoi(statusStr); err == nil {
-			mark := event.TombstoneMark{
-				Status: event.TombstoneStatus(statusInt),
-				Reason: md.Get(metaTombstoneReason),
-			}
-			m.Tombstone = &mark
-		} else {
-			errs = append(errs, errorfamily.WrapRejection(err, "watermill.parse_tombstone_status",
-				fmt.Sprintf("parse %s", metaTombstoneStatus)))
-		}
 	}
 
 	for k, v := range md {

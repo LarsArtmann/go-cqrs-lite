@@ -528,10 +528,10 @@ For raw domain event streaming (bus-to-client), use
 ## Optional Engine Interfaces
 
 Engines implement whichever ADT backends they support (`MapBackend`,
-`SetBackend`, `CounterBackend`, `GraphBackend`, `MultimapBackend`,
+`SetBackend`, `CounterBackend`, `MultimapBackend`,
 `LogBackend`). Not all engines implement all backends — for example,
-`GraphBackend` is implemented by the Memory, Dgraph, and graphadapter engines
-only. Check each engine's compile-time assertions or `Profile().Supports` map
+`SearchBackend` (full-text search) is implemented by only a subset of engines
+(e.g. Dgraph, Iroh). Check each engine's compile-time assertions or `Profile().Supports` map
 for the definitive list. Additionally, engines can implement these optional
 capability interfaces for optimized read paths:
 

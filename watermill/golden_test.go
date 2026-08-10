@@ -15,8 +15,9 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
-	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	wm "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
@@ -50,10 +51,10 @@ func TestGolden_MessageMetadata(t *testing.T) {
 		event.WithOccurredAt(time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)),
 		event.WithSchemaVersion(2),
 		event.WithMetadata(event.Metadata{
-			Tracing: metadata.Tracing{
+			CommonMetadata: record.CommonMetadata{
 				CorrelationID: corrID,
 				CausationID:   causID,
-				UserID:        userID,
+				ActorID:       id.NewUserActor(userID),
 			},
 			Source:    "test-service",
 			IPAddress: "10.0.0.1",

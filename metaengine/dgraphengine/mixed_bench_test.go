@@ -81,7 +81,7 @@ func BenchmarkDgraph_GraphRAG_SearchThenExpand(b *testing.B) {
 
 	gb, ok := eng.(graphBackend)
 	if !ok {
-		b.Fatal("engine does not implement GraphBackend")
+		b.Fatal("engine does not implement graph dispatch")
 	}
 
 	const searchCol = "rag-bench-search"
@@ -134,7 +134,7 @@ func BenchmarkDgraph_GraphWriteReadMix(b *testing.B) {
 
 	gb, ok := eng.(graphBackend)
 	if !ok {
-		b.Fatal("engine does not implement GraphBackend")
+		b.Fatal("engine does not implement graph dispatch")
 	}
 
 	ctx := context.Background()
@@ -220,7 +220,7 @@ func BenchmarkDgraph_FullTriad_MapGraphSearch(b *testing.B) {
 
 	gb, ok := eng.(graphBackend)
 	if !ok {
-		b.Fatal("engine does not implement GraphBackend")
+		b.Fatal("engine does not implement graph dispatch")
 	}
 
 	sb, ok := eng.(metaengine.SearchBackend)

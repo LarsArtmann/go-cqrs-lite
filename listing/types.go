@@ -22,10 +22,38 @@ type StreamListing struct {
 // Deprecated: use StreamListing.
 type AggregateListing = StreamListing
 
-// StreamStatus pairs a stream listing with its computed tombstone state.
+// Status is the computed lifecycle state of a stream.
+// Determined by checking whether the stream's last event type
+// matches a configured delete type (ADR-0114).
+type Status int
+
+const (
+	// StatusActive means the stream is live and visible.
+	StatusActive Status = iota
+	// StatusDeleted means the stream's last event signals deletion.
+	StatusDeleted
+)
+
+func (s Status) String() string {
+	switch s {
+	case StatusActive:
+		return "active"
+	case StatusDeleted:
+		return "deleted"
+	default:
+		return fmt.Sprintf("Status(%d)", int(s))
+	}
+}
+
+// IsDeleted returns true if the stream is in the Deleted state.
+func (s Status) IsDeleted() bool {
+	return s == StatusDeleted
+}
+
+// StreamStatus pairs a stream listing with its computed lifecycle state.
 type StreamStatus struct {
 	Ref    StreamListing
-	Status event.TombstoneStatus
+	Status Status
 }
 
 // Deprecated: use StreamStatus.
@@ -42,11 +70,11 @@ type Page[T any] struct {
 type TombstonePolicy int
 
 const (
-	// TombstoneExclude hides tombstoned streams (default).
+	// TombstoneExclude hides deleted streams (default).
 	TombstoneExclude TombstonePolicy = iota
 	// TombstoneInclude shows all streams, with Status.
 	TombstoneInclude
-	// TombstoneOnly shows only tombstoned streams.
+	// TombstoneOnly shows only deleted streams.
 	TombstoneOnly
 )
 
@@ -59,7 +87,7 @@ func (p TombstonePolicy) String() string {
 	case TombstoneOnly:
 		return "only"
 	default:
-		return fmt.Sprintf("TombstonePolicy(%d)", p)
+		return fmt.Sprintf("TombstonePolicy(%d)", int(p))
 	}
 }
 
@@ -87,7 +115,7 @@ type ListOptions struct {
 	// Zero defaults to the reader's default page size.
 	Limit uint
 
-	// Tombstone controls visibility of soft-deleted streams.
+	// Tombstone controls visibility of deleted streams.
 	// Default is TombstoneExclude.
 	Tombstone TombstonePolicy
 }

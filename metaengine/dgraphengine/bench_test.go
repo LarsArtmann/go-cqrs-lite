@@ -146,7 +146,7 @@ func BenchmarkDgraph_GraphAddEdge(b *testing.B) {
 
 	gb, ok := eng.(graphBackend)
 	if !ok {
-		b.Fatal("dgraph engine does not implement GraphBackend")
+		b.Fatal("dgraph engine does not implement graph dispatch")
 	}
 
 	ctx := context.Background()
@@ -184,7 +184,7 @@ func BenchmarkDgraph_GraphNeighbors_Depth1(b *testing.B) {
 
 	gb, ok := eng.(graphBackend)
 	if !ok {
-		b.Fatal("dgraph engine does not implement GraphBackend")
+		b.Fatal("dgraph engine does not implement graph dispatch")
 	}
 
 	const numNodes = 100
@@ -214,7 +214,7 @@ func BenchmarkDgraph_GraphNeighbors_Depth3(b *testing.B) {
 
 	gb, ok := eng.(graphBackend)
 	if !ok {
-		b.Fatal("dgraph engine does not implement GraphBackend")
+		b.Fatal("dgraph engine does not implement graph dispatch")
 	}
 
 	const numNodes = 100

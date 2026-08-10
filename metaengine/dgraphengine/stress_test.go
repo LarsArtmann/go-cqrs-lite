@@ -28,7 +28,7 @@ func TestGraphRAG_ConcurrentStress(t *testing.T) {
 
 	gb, ok := eng.(graphBackend)
 	if !ok {
-		t.Fatal("engine does not implement GraphBackend")
+		t.Fatal("engine does not implement graph dispatch")
 	}
 
 	sb, ok := eng.(metaengine.SearchBackend)

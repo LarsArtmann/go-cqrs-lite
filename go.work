@@ -2,6 +2,7 @@ go 1.26.5
 
 use (
 	.
+	../go-flightrecorder
 	../go-idempotency
 	../go-retry
 	./benchkit
@@ -93,7 +94,3 @@ use (
 // the package overlap. This can be removed once cockroachdb/errors drops
 // the monolithic genproto dependency (cockroachdb/errors#79).
 replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20250603155806-513f23925822
-
-// go-flightrecorder is a local external repo, not yet published.
-// Using replace instead of use to avoid version resolution issues.
-replace github.com/larsartmann/go-flightrecorder => ../go-flightrecorder

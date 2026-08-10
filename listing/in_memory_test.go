@@ -18,7 +18,9 @@ func TestInMemoryStreamReader_List( //nolint:gocognit // table-driven test with 
 	store := memory.NewMemoryStore()
 	seedEvents(t, store)
 
-	reader := listing.NewInMemoryStreamReader(store)
+	reader := listing.NewInMemoryStreamReader(store,
+		listing.WithDeleteTypes("user.deleted"),
+	)
 
 	t.Run("lists all active users", func(t *testing.T) {
 		t.Parallel()
@@ -40,7 +42,7 @@ func TestInMemoryStreamReader_List( //nolint:gocognit // table-driven test with 
 		}
 	})
 
-	t.Run("lists with status shows tombstoned", func(t *testing.T) {
+	t.Run("lists with status shows deleted", func(t *testing.T) {
 		t.Parallel()
 
 		page, err := listing.NewListBuilder(reader).
@@ -56,28 +58,28 @@ func TestInMemoryStreamReader_List( //nolint:gocognit // table-driven test with 
 			t.Fatalf("got %d items, want 2", len(page.Items))
 		}
 
-		var foundActive, foundTombstoned bool
+		var foundActive, foundDeleted bool
 
 		for _, item := range page.Items {
-			if item.Status.IsTombstoned() {
-				foundTombstoned = true
+			if item.Status.IsDeleted() {
+				foundDeleted = true
 			}
 
-			if !item.Status.IsTombstoned() {
+			if !item.Status.IsDeleted() {
 				foundActive = true
 			}
 		}
 
 		if !foundActive {
-			t.Error("expected at least one active (non-tombstoned) user")
+			t.Error("expected at least one active (non-deleted) user")
 		}
 
-		if !foundTombstoned {
-			t.Error("expected at least one tombstoned user")
+		if !foundDeleted {
+			t.Error("expected at least one deleted user")
 		}
 	})
 
-	t.Run("OnlyDeleted filters to tombstoned", func(t *testing.T) {
+	t.Run("OnlyDeleted filters to deleted", func(t *testing.T) {
 		t.Parallel()
 
 		page, err := listing.NewListBuilder(reader).
@@ -93,8 +95,8 @@ func TestInMemoryStreamReader_List( //nolint:gocognit // table-driven test with 
 			t.Fatalf("got %d items, want 1", len(page.Items))
 		}
 
-		if !page.Items[0].Status.IsTombstoned() {
-			t.Error("expected tombstoned status")
+		if !page.Items[0].Status.IsDeleted() {
+			t.Error("expected deleted status")
 		}
 	})
 
@@ -175,12 +177,11 @@ func seedEvents(t *testing.T, store *memory.MemoryStore) {
 		t.Fatal(err)
 	}
 
-	// Tombstoned user
+	// Deleted user (detected by event type 'user.deleted')
 	deletedID := id.NewStreamID()
 	deletedEvt, err := event.NewEvent(
 		"user.deleted", deletedID, "User",
 		event.Version(1), []byte(`{"reason":"gdpr"}`),
-		event.WithCustom(event.MetadataKeyTombstone, "true"),
 	)
 	if err != nil {
 		t.Fatal(err)

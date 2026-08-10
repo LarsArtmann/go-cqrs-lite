@@ -23,7 +23,7 @@ func testListingStatus(
 	v int,
 	evtCount int,
 	lastEventAt time.Time,
-	status event.TombstoneStatus,
+	status listing.Status,
 ) listing.StreamStatus {
 	return listing.StreamStatus{
 		Ref: listing.StreamListing{
@@ -47,7 +47,7 @@ func TestGolden_StreamStatusJSON(t *testing.T) {
 			10,
 			10,
 			time.Date(2026, 6, 1, 12, 0, 0, 0, time.UTC),
-			event.TombstoneActive,
+			listing.StatusActive,
 		),
 		testListingStatus(
 			streamID,
@@ -55,7 +55,7 @@ func TestGolden_StreamStatusJSON(t *testing.T) {
 			5,
 			5,
 			time.Date(2026, 5, 15, 8, 30, 0, 0, time.UTC),
-			event.TombstoneTombstoned,
+			listing.StatusDeleted,
 		),
 		{
 			Ref: listing.StreamListing{
@@ -65,7 +65,7 @@ func TestGolden_StreamStatusJSON(t *testing.T) {
 				EventCount:  0,
 				LastEventAt: time.Time{},
 			},
-			Status: event.TombstoneUndetermined,
+			Status: listing.StatusActive,
 		},
 	}
 
@@ -93,7 +93,7 @@ func TestGolden_PageJSON(t *testing.T) {
 				3,
 				3,
 				time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC),
-				event.TombstoneActive,
+				listing.StatusActive,
 			),
 		},
 		HasMore: true,

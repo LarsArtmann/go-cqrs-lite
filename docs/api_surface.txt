@@ -1337,6 +1337,8 @@ kv/var ErrClosed
 kv/var ErrInvalidCacheCap
 kv/var ErrNilTypedStore
 kv/var ErrNotFound
+listing/const StatusActive
+listing/const StatusDeleted
 listing/const TombstoneExclude
 listing/const TombstoneInclude
 listing/const TombstoneOnly
@@ -1345,12 +1347,13 @@ listing/func ListRefsFromStatus
 listing/func NewInMemoryAggregateReader
 listing/func NewInMemoryStreamReader
 listing/func NewListBuilder
-listing/func StatusMiddleware
+listing/func WithDeleteTypes
 listing/interface CacheInvalidator
 listing/interface StreamReader
 listing/method After
 listing/method IncludeDeleted
 listing/method InvalidateCache
+listing/method IsDeleted
 listing/method List
 listing/method List
 listing/method ListWithStatus
@@ -1359,6 +1362,7 @@ listing/method MarshalJSON
 listing/method OfType
 listing/method OnlyDeleted
 listing/method PageSize
+listing/method String
 listing/method String
 listing/struct InMemoryStreamReader
 listing/struct ListBuilder
@@ -1370,6 +1374,8 @@ listing/type AggregateListing
 listing/type AggregateReader
 listing/type AggregateStatus
 listing/type InMemoryAggregateReader
+listing/type Option
+listing/type Status
 listing/type TombstonePolicy
 metadata/func MergeCustomMaps
 metadata/method Clone
@@ -3707,7 +3713,6 @@ system/var ErrQueryTypeMismatch
 system/var ErrSeekableJournalMissing
 system/var ErrSystemStopped
 system/var ErrUnknownBusDriver
-system/var ErrUnknownDriver
 system/var ErrUnknownEngine
 system/var ErrUnsafeChange
 system/var ErrUnsupportedValueType

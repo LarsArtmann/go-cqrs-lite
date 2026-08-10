@@ -20,7 +20,6 @@ var (
 	ErrSeekableJournalMissing = errors.New("system: store does not implement event.SeekableJournal")
 	ErrSystemStopped          = errors.New("system: already stopped")
 	ErrUnknownBusDriver       = errors.New("system: unknown bus driver")
-	ErrUnknownDriver          = errors.New("system: unknown driver")
 	ErrUnknownEngine          = errors.New("system: unknown engine")
 	ErrUnsupportedValueType   = errors.New("system: unsupported value type")
 )

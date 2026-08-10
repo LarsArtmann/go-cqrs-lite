@@ -15,7 +15,7 @@
     "version": 5,
     "event_count": 5,
     "last_event_at": "2026-05-15T08:30:00Z",
-    "status": "tombstoned"
+    "status": "deleted"
   },
   {
     "id": "01HK1540X0841Y0A6BSX1VKR95",
@@ -23,7 +23,7 @@
     "version": 0,
     "event_count": 0,
     "last_event_at": "0001-01-01T00:00:00Z",
-    "status": "undetermined"
+    "status": "active"
   }
 ]
 ---

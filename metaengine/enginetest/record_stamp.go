@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
@@ -54,8 +55,8 @@ func RunRecordStampTest(t *testing.T, eng metaengine.Engine) {
 		StreamType: "Item",
 		Version:    3,
 		MetaData: record.CommonMetadata{
-			CorrelationID: "corr-123",
-			ActorID:       "user-456",
+			CorrelationID: id.NewCorrelationID(),
+			ActorID:       id.NewSystemActor("test"),
 		},
 	}
 

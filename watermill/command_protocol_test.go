@@ -79,7 +79,7 @@ func TestCommandRoundTrip(t *testing.T) {
 	if md.CausationID != causationID {
 		t.Fatalf("causation_id mismatch after round-trip")
 	}
-	if md.UserID != userID {
+	if !md.ActorID.Equal(id.NewUserActor(userID)) {
 		t.Fatalf("user_id mismatch after round-trip")
 	}
 	if md.RequestID != requestID {
