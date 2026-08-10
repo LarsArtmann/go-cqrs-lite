@@ -47,6 +47,7 @@ node_modules/
 # Build artifacts
 /go-cqrs-lite
 /user
+/example/metaengine-quickstart/metaengine-quickstart
 # Test coverage
 /coverage
 # Sensitive files
