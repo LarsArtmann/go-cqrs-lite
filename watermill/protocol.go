@@ -31,8 +31,6 @@ const (
 	metaSource          = "source"
 	metaIPAddress       = "ip_address"
 	metaUserAgent       = "user_agent"
-	metaTombstoneStatus = "tombstone_status"
-	metaTombstoneReason = "tombstone_reason"
 	metaPayloadEncoding = "payload_encoding"
 	metaCustomPrefix    = "custom."
 )

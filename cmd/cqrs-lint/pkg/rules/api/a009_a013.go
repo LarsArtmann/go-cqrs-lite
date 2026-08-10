@@ -208,7 +208,7 @@ func NewA012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				).
 					WithCategory(finding.CategoryBestPractice).
 					WithConfidence(finding.ConfidenceLow).
-					WithSuggestion("Use event.DetectTombstone(events) to handle soft-delete in your fold function").
+					WithSuggestion("Handle deletion events (e.g., \"user.deleted\") in your fold function via event-type-based detection (ADR-0114)").
 					WithSnippet(ctx.SourceLine(fold.File, fold.Pos.Line)).
 					Build()
 				if err != nil {

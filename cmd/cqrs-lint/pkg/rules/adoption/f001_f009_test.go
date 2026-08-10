@@ -26,7 +26,7 @@ func _() {
 	ruletest.AssertRule(t, findings, "F001", 1)
 }
 
-func TestF001_NoFindingWithMarkTombstone(t *testing.T) {
+func TestF001_NoFindingWithDeletionEvent(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
@@ -36,7 +36,7 @@ func DeleteUser(id string) {}
 
 func _() {
 	event.New("user.created", sid, st, v, p)
-	event.MarkTombstone(evt)
+	event.New("user.deleted", sid, st, v, p)
 }
 `,
 	})

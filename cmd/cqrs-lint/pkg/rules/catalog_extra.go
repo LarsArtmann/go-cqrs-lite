@@ -935,11 +935,11 @@ func adoptionRules() []RuleInfo {
 	return []RuleInfo{
 		{
 			ID:          "F001",
-			Name:        "no-tombstone-softdelete",
+			Name:        "no-domain-delete-event",
 			Category:    "adoption",
 			Severity:    "info",
 			Confidence:  "medium",
-			Description: "Delete operations without event.MarkTombstone — consider tombstone soft-delete for audit trail",
+			Description: "Delete operations without a domain deletion event — consider emitting a deletion event (e.g., \"user.deleted\") for audit trail (ADR-0114)",
 			AutoFix:     false,
 		},
 		{
