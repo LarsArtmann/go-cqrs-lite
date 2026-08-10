@@ -60,21 +60,18 @@ and is **never** duplicated here.
 > shared via `metaengine.DeferClose()` (47 prod + 17 test sites). AGENTS.md
 > dedup section + testModules coupling documented.
 
-- [ ] **Extract bbolt/pebble backup lifecycle test suite** — the 2 largest
-      remaining clone groups (73 + 46 lines) are near-identical test files
-      in `storage/bbolt/backup_lifecycle_test.go` and
-      `storage/pebble/backup_lifecycle_test.go`. A shared `backuptest`
-      module would eliminate both, but requires a new test-only Go module
-      that both backends depend on.
-      _(Effort: M)_
-- [ ] **Scan remaining engine modules for setup boilerplate** —
-      Helpers created for all 3 modules: `badgerengine/helper_test.go`,
-      `dgraphengine/helper_test.go`, `pebbleengine/helper_test.go`.
-      badgerengine: all 5 test files refactored. dgraphengine: all 10 files
-      refactored. pebbleengine: 4 of 20 files refactored (pebbleengine_test,
-      healthcheck, record_stamp, soak); remaining files can use
-      `mustNewPebbleEngine(t)` / `newPebbleEngineOrSkip(t)`.
-      _(Effort: M — remaining pebbleengine files are mechanical)_
+- [x] **Extract bbolt/pebble backup lifecycle test suite** — DONE 2026-08-10.
+      New `storage/backuptest/v4` module with `Backend` interface, `Factory`
+      struct, `RunFullLifecycle()`, `RunIncrementalCheckpoints()`. bbolt: 255→75
+      lines. pebble: 235→59 lines. Both backends now use thin adapters. Dedup
+      baseline updated; `art-dupl check` passes with 0 new clones.
+      See `docs/status/2026-08-10_14-20_backuptest-extraction-and-pebbleengine-scan.md`.
+- [x] **Scan remaining engine modules for setup boilerplate** — DONE 2026-08-10.
+      pebbleengine: 18 of 23 test files now use helpers. The 4 remaining files
+      (`format_index_test.go`, `nextkey_test.go`, `disk_backed_test.go`,
+      `restart_safety_test.go`) cannot use helpers by design (pure functions or
+      custom close/reopen lifecycle). All applicable files are refactored.
+      See `docs/status/2026-08-10_14-20_backuptest-extraction-and-pebbleengine-scan.md`.
 - [ ] **Audit `.golangci.yml` exclusion blocks** — `system/` (20 linters
       disabled), `cmd/cqrs-lint/` (17), `metaengine/` (21) have the broadest
       exclusions. Audit done 2026-08-09: `staticcheck` disabled for `system/`
@@ -82,6 +79,25 @@ and is **never** duplicated here.
       when enabled, but full lint gate verification needed before removing.
       Narrow where safe.
       _(Effort: M — needs full lint run to verify narrowing)_
+- [BLOCKED] **Wire backuptest into bbolt/pebble go.mod for GOWORK=off** —
+      The new `storage/backuptest/v4` module works in workspace mode but
+      bbolt and pebble `go.mod` lack the `require` directive + go.sum entries.
+      `nix run .#test` / `nix run .#build` (GOWORK=off) will FAIL. Requires:
+      (1) tag `storage/backuptest/v4.0.0` (annotated, not lightweight),
+      (2) add `require backuptest/v4 v4.0.0` to both go.mod files,
+      (3) `go mod tidy` with GOWORK=off. Also: delete the lightweight tag
+      created via `git update-ref` during development.
+- [ ] **Run `nix run .#verify` after backuptest wiring** — AGENTS.md mandates
+      verify gate before claiming GREEN. Not yet run this session.
+      Includes: build + vet + test + race + lint + doc-check + check-arch +
+      check-depguard + check-coverage + check-duplication.
+- [ ] **Register `storage/backuptest` in docs and configs** — Not yet added to:
+      AGENTS.md Module Map table, AGENTS.md Module Tiers, `.golangci.yml`
+      depguard allow list, `.agents/skills/go-cqrs-lite/references/modules.md`,
+      `docs/architecture-understanding/SEVEN-TIER-MODEL.md`.
+- [ ] **Reduce `.art-dupl-baseline.json` diff noise** — `art-dupl baseline`
+      reformatted the entire file from compact to pretty-printed JSON,
+      causing a 400+ line diff. Investigate compact output or a JSON formatter.
 ---
 
 ## CI / Release / Infrastructure

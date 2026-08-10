@@ -30,6 +30,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`check-depguard` wired into `#verify` + `#verify-fast` + CI**: validates
   go.mod requires vs depguard allow list (112 deps across 79 modules).
 
+### Added — shared backup lifecycle test suite — 2026-08-10
+
+- **New module `storage/backuptest/v4`**: eliminates the 2 largest remaining
+  clone groups (73 + 46 duplicated statements) from `storage/bbolt/` and
+  `storage/pebble/`. Exports `Backend` interface, `Factory` struct,
+  `RunFullLifecycle(t, f)`, and `RunIncrementalCheckpoints(t, f)`. Each backend
+  now provides a ~40-line adapter instead of ~250 lines of duplicated
+  assertions. bbolt: 255→75 lines. pebble: 235→59 lines.
+- **pebbleengine helper adoption complete**: 18 of 23 test files now use
+  `mustNewPebbleEngine(t)` / `newPebbleEngineOrSkip(t)` /
+  `mustNewPebbleEngineInternal(t)`. The 4 remaining files test pure functions
+  or custom close/reopen lifecycles that cannot use the helpers.
+
+### Fixed — 2026-08-10
+
+- **`storage/pebble/cbor_test.go` branded ID type mismatch**:
+  `CorrelationID`/`CausationID` comparisons needed `.String()` to match
+  `string` fields on `event.Metadata` (pre-existing, was blocking all pebble
+  test compilation).
+
 ### Changed — v5 deprecation markers — 2026-08-10
 
 - **`metaengine.GraphBackend` deprecated** (ADR-0113): production dispatch
@@ -75,7 +95,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   skip logic. All `badgerengine` (5 files) and `dgraphengine` (10 files) test
   sites refactored; `pebbleengine` partially refactored (4 of 20 files). Each
   helper uses `testing.TB` (covers both `*testing.T` and `*testing.B`),
-  improving on duckdbengine's `*testing.T`-only reference.
+  improving on duckdbengine's `*testing.T`-only reference. pebbleengine
+  adoption now complete: 18 of 23 files use helpers (4 remaining test pure
+  functions or custom lifecycles).
 
 ### Fixed — tooling — 2026-08-09
 
