@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed — TombstonePolicy → DeletePolicy rename (ADR-0114 cleanup) — 2026-08-10
+
+> Renamed all `TombstonePolicy` types and constants to `DeletePolicy` across
+> `listing/` and `stack/`. Rewrote the migration guide from scratch (fixing
+> critical doc/code drift). Updated 12 documentation files to remove stale
+> tombstone metadata references. API stability goldens regenerated (3992 exports).
+
+- **`listing.TombstonePolicy` → `listing.DeletePolicy`** (**BREAKING**):
+  constants renamed `TombstoneExclude`/`TombstoneInclude`/`TombstoneOnly` →
+  `DeleteExclude`/`DeleteInclude`/`DeleteOnly`. `ListOptions.Tombstone` field →
+  `ListOptions.DeletePolicy`. `applyTombstonePolicy` → `applyDeletePolicy`.
+- **`stack.TombstonePolicy` → `stack.DeletePolicy`** (**BREAKING**):
+  constants renamed `IncludeTombstoned`/`ExcludeTombstoned`/`OnlyTombstoned` →
+  `IncludeDeleted`/`ExcludeDeleted`/`OnlyDeleted`. `FilterTombstoned` →
+  `FilterDeleted`.
+- **`docs/migration/tombstone-to-domain-events.md`** — complete rewrite. Old
+  guide incorrectly described the API as "deprecated" (it's removed) and claimed
+  `OnTombstone` was metadata-triggered (it's event-type-triggered via
+  `DeleteTypes`). New guide covers all three deletion patterns with accurate
+  code examples.
+- **Documentation updated (12 files)**: AGENTS.md (contract #11, module map),
+  skill references (`advanced.md`, `core.md`, `modules.md`, `readmodels.md`),
+  `FEATURES.md`, `docs/DOMAIN_LANGUAGE.md`, `event/README.md`,
+  `listing/README.md`, `stack/README.md`, `cmd/cqrs-lint/README.md`.
+- **`docs/api_surface.txt`** regenerated (3992 exports).
+
 ### Added — Metaengine: Live Cost Measurement (dynamic NetworkRTT) — 2026-08-10
 
 > `NetworkRTT` and per-op latency are now runtime observations, not compile-time
