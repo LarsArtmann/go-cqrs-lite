@@ -112,7 +112,7 @@ results, _ := store.Query(ctx, kv.ViewQuery{
 
 // 5. List automatically uses server-side tombstone filtering when
 //    TombstoneColumn is configured (no full-table load).
-active, _ := mat.List(ctx, stack.ExcludeTombstoned)
+active, _ := mat.List(ctx, stack.ExcludeDeleted)
 ```
 
 Shortcut: auto-generate the mapper from struct tags:

@@ -89,7 +89,7 @@ func BenchmarkInMemoryList(b *testing.B) {
 	}
 }
 
-func BenchmarkInMemoryList_TombstoneFilter(b *testing.B) {
+func BenchmarkInMemoryList_DeleteFilter(b *testing.B) {
 	b.ReportAllocs()
 	store := memory.NewMemoryStore()
 	ctx := context.Background()

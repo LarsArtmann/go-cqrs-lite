@@ -66,28 +66,28 @@ type Page[T any] struct {
 	HasMore bool `json:"hasMore"`
 }
 
-// TombstonePolicy controls visibility of soft-deleted streams.
-type TombstonePolicy int
+// DeletePolicy controls visibility of soft-deleted streams.
+type DeletePolicy int
 
 const (
-	// TombstoneExclude hides deleted streams (default).
-	TombstoneExclude TombstonePolicy = iota
-	// TombstoneInclude shows all streams, with Status.
-	TombstoneInclude
-	// TombstoneOnly shows only deleted streams.
-	TombstoneOnly
+	// DeleteExclude hides deleted streams (default).
+	DeleteExclude DeletePolicy = iota
+	// DeleteInclude shows all streams, with Status.
+	DeleteInclude
+	// DeleteOnly shows only deleted streams.
+	DeleteOnly
 )
 
-func (p TombstonePolicy) String() string {
+func (p DeletePolicy) String() string {
 	switch p {
-	case TombstoneExclude:
+	case DeleteExclude:
 		return "exclude"
-	case TombstoneInclude:
+	case DeleteInclude:
 		return "include"
-	case TombstoneOnly:
+	case DeleteOnly:
 		return "only"
 	default:
-		return fmt.Sprintf("TombstonePolicy(%d)", int(p))
+		return fmt.Sprintf("DeletePolicy(%d)", int(p))
 	}
 }
 
@@ -115,7 +115,7 @@ type ListOptions struct {
 	// Zero defaults to the reader's default page size.
 	Limit uint
 
-	// Tombstone controls visibility of deleted streams.
-	// Default is TombstoneExclude.
-	Tombstone TombstonePolicy
+	// DeletePolicy controls visibility of deleted streams.
+	// Default is DeleteExclude.
+	DeletePolicy DeletePolicy
 }

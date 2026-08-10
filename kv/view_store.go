@@ -86,7 +86,7 @@ type ViewQuerier[V any] interface {
 // can filter tombstoned records server-side, avoiding a full-table load.
 //
 // excludeTombstoned and onlyTombstoned are mutually exclusive. When both are
-// false, all records are returned (equivalent to IncludeTombstoned).
+// false, all records are returned (equivalent to IncludeDeleted).
 //
 // SQL-backed stores implement this when a tombstone column is configured in the
 // ViewMapper. KV-backed stores do not — they fall back to in-memory filtering.

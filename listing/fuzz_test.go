@@ -71,9 +71,9 @@ func FuzzStreamListing_JSON_Roundtrip(f *testing.F) {
 	})
 }
 
-// FuzzTombstonePolicy_String ensures TombstonePolicy.String() always returns
+// FuzzDeletePolicy_String ensures DeletePolicy.String() always returns
 // one of the canonical values or a default format.
-func FuzzTombstonePolicy_String(f *testing.F) {
+func FuzzDeletePolicy_String(f *testing.F) {
 	f.Add(int(0))
 	f.Add(int(1))
 	f.Add(int(2))
@@ -82,7 +82,7 @@ func FuzzTombstonePolicy_String(f *testing.F) {
 	f.Add(int(math.MaxInt32))
 
 	f.Fuzz(func(t *testing.T, raw int) {
-		policy := listing.TombstonePolicy(raw)
+		policy := listing.DeletePolicy(raw)
 
 		got := policy.String()
 		if raw >= 0 && raw <= 2 {
@@ -90,7 +90,7 @@ func FuzzTombstonePolicy_String(f *testing.F) {
 			if got != expected {
 				t.Errorf("String(%d): got %q, want %q", raw, got, expected)
 			}
-		} else if !strings.HasPrefix(got, "TombstonePolicy(") {
+		} else if !strings.HasPrefix(got, "DeletePolicy(") {
 			// Out-of-range must use default format
 			t.Errorf("out-of-range String(%d): got %q, want default format", raw, got)
 		}

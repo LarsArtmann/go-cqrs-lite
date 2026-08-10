@@ -1,29 +1,26 @@
 # Tombstone to Domain Events — Migration Guide
 
 **Related ADR:** [ADR-0114](../adr/0114-tombstone-as-domain-event.md)
-**Status:** Tombstone API is deprecated as of v4. Removal planned for v5.
+**Status:** The old tombstone metadata API (`MarkTombstone`, `DetectTombstone`, `TombstoneStatus`) has been **removed**. This guide shows how to migrate to event-type-based deletion.
 
 ## Why Migrate?
 
-The tombstone API (`MarkTombstone`, `DetectTombstone`, `TombstoneStatus`) mutates
-event metadata after creation. This violates the principle that event streams are
-immutable write-ahead logs — a fact that happened cannot be un-happened.
+The old tombstone API (`MarkTombstone`, `DetectTombstone`, `TombstoneStatus`) mutated event metadata after creation. This violated the principle that event streams are immutable write-ahead logs — a fact that happened cannot be un-happened.
 
-Domain-event-based deletion keeps streams pure: deletion is just another event in
-the stream, carrying its own immutable payload.
+Domain-event-based deletion keeps streams pure: deletion is just another event in the stream, carrying its own immutable payload. The event type itself is the signal — no metadata markers needed.
 
-## Before (Tombstone Metadata)
+## Before (Removed Tombstone API)
 
 ```go
 // Command handler: mark deletion via tombstone metadata
 func Delete(cmd DeleteCommand) []event.Event {
     evt, _ := event.NewEvent("task.deleted", streamID, "Task", version, payload)
-    marked, _ := event.MarkTombstone(evt)        // mutates metadata
+    marked, _ := event.MarkTombstone(evt)        // REMOVED: mutated metadata
     return []event.Event{marked}
 }
 
 // Projection: check tombstone status
-status := event.DetectTombstone(events)
+status := event.DetectTombstone(events)          // REMOVED
 if status.IsTombstoned() {
     // skip or remove from projection
 }
@@ -31,60 +28,120 @@ if status.IsTombstoned() {
 
 ## After (Domain Events)
 
+### 1. Command Handler — Emit a Deletion Event
+
 ```go
-// Command handler: emit a deletion event — no metadata mutation
 func Delete(cmd DeleteCommand) []event.Event {
     evt, _ := event.NewEvent("task.deleted", streamID, "Task", version,
         TaskDeleted{Reason: cmd.Reason})
     return []event.Event{evt}                    // pure, immutable
 }
+```
 
-// Projection fold: handle the deletion event type directly
-metaengine.On(TaskDeleted{}, func(e TaskDeleted) metaengine.Skip {
-    return metaengine.Skip{}                     // remove from projection
-})
+No metadata mutation. The event type `"task.deleted"` IS the signal.
 
-// Or in a Materialize builder:
+### 2. Metaengine Projection — Remove on Delete
+
+```go
+metaengine.OnTyped(
+    string(evtTaskDeleted),
+    projectionadapter.EventWithID[TaskDeletedPayload]{},
+    metaengine.Remove[TaskView](),               // hard-remove from the Map ADT
+)
+```
+
+See `example/taskmanager/metaengine.go` for a full working example.
+
+### 3. stack.Materialize — Event-Type-Based Detection
+
+```go
 mat := stack.Materialize[TaskView, TaskID]{
-    OnCreate: func(ctx, evt) (*TaskView, error) { ... },
-    OnUpdate: func(ctx, evt, prev *TaskView) (*TaskView, error) { ... },
-    // Handle deletion as a regular event — set Tombstoned or return nil
+    Store:        kvStore,
+    KeyFromEvent: func(evt event.Event) (TaskID, error) { ... },
+    OnCreate:     func(ctx, evt) (*TaskView, error) { ... },
+    OnUpdate:     func(ctx, evt, prev *TaskView) (*TaskView, error) { ... },
+
+    // ADR-0114: deletion events trigger OnTombstone via type matching
+    DeleteTypes:  []event.Type{"task.deleted"},
+    OnTombstone: func(ctx context.Context, evt event.Event, existing *TaskView) (*TaskView, error) {
+        existing.Tombstoned = true
+        return existing, nil
+    },
+
+    // Optional: rebirth (undo deletion)
+    RebirthTypes: []event.Type{"task.restored"},
+    OnRebirth: func(ctx context.Context, evt event.Event, existing *TaskView) (*TaskView, error) {
+        existing.Tombstoned = false
+        return existing, nil
+    },
 }
+```
+
+`DeleteTypes` and `RebirthTypes` are event-type slices. When an event's type
+matches, the corresponding callback fires. No metadata inspection.
+
+### 4. listing — Stream Status via Delete Types
+
+```go
+reader := listing.NewInMemoryStreamReader(journal,
+    listing.WithDeleteTypes("task.deleted", "task.archived"),
+)
+
+// Streams whose last event is a delete type show StatusDeleted.
+// Use DeletePolicy to control visibility:
+page, _ := reader.ListWithStatus(ctx, listing.ListOptions{
+    Type:         "Task",
+    DeletePolicy: listing.DeleteExclude,           // hide deleted (default)
+    // DeletePolicy: listing.DeleteInclude,         // show all
+    // DeletePolicy: listing.DeleteOnly,            // only deleted
+})
 ```
 
 ## API Mapping
 
-| Old (Tombstone)                                  | New (Domain Events)                                               |
-| ------------------------------------------------ | ----------------------------------------------------------------- |
-| `event.MarkTombstone(evt)`                       | Emit `"entity.deleted"` event directly                            |
-| `event.MarkRebirth(evt)`                         | Emit `"entity.restored"` event directly                           |
-| `event.DetectTombstone(events)`                  | Check last event type: `events[len-1].Type() == "entity.deleted"` |
-| `event.TombstoneStatus` + `IsTombstoned()`       | Custom logic based on event types                                 |
-| `listing.TombstonePolicy` (Exclude/Include/Only) | Filter in your projection handler                                 |
-| `stack.Materialize.OnTombstone` / `OnRebirth`    | Handle deletion events in `OnUpdate` or a custom fold             |
-| `kv.TombstoneQuerier` / `QueryByTombstone`       | Add a `Deleted bool` column to your view struct                   |
+| Old (Removed)                                     | New (Domain Events)                                               |
+| ------------------------------------------------- | ----------------------------------------------------------------- |
+| `event.MarkTombstone(evt)`                        | Emit `"entity.deleted"` event directly                            |
+| `event.MarkRebirth(evt)`                          | Emit `"entity.restored"` event directly                           |
+| `event.DetectTombstone(events)`                   | Check last event type: `events[len-1].Type() == "entity.deleted"` |
+| `event.TombstoneStatus` + `IsTombstoned()`        | Custom logic based on event types                                 |
+| `listing.TombstonePolicy` (Exclude/Include/Only)  | `listing.DeletePolicy` (DeleteExclude/DeleteInclude/DeleteOnly)   |
+| `stack.TombstonePolicy` (Include/Exclude/Only)    | `stack.DeletePolicy` (IncludeDeleted/ExcludeDeleted/OnlyDeleted)  |
+| `stack.FilterTombstoned(results, policy)`         | `stack.FilterDeleted(results, policy)`                            |
+| `stack.Materialize` triggered by metadata         | `stack.Materialize` triggered by `DeleteTypes`/`RebirthTypes`     |
+| `kv.TombstoneQuerier` / `QueryByTombstone`        | Unchanged — still works for server-side SQL filtering             |
 
 ## listing/ Module
 
-The `listing.StatusMiddleware` auto-marks events as tombstones based on event
-type lists. With domain events, this is unnecessary — the event type itself
-communicates the intent. Instead of configuring `StatusMiddleware`, simply
-emit the appropriate event types.
+`listing.StatusMiddleware` (auto-marks events as tombstones from type lists) is
+no longer needed — the event type itself communicates the intent. Instead of
+configuring middleware, use `listing.WithDeleteTypes(...)` on the reader.
 
-## stack.Materialize
+## Filtering Deleted Records
 
-`Materialize.OnTombstone` and `OnRebirth` callbacks are triggered when
-`md.Tombstone` metadata is present. To migrate:
+### stack.Materialize.List
 
-1. Add a `Tombstoned bool` field to your view struct
-2. Handle deletion events in `OnUpdate` (or a dedicated fold)
-3. Set `Tombstoned = true` in the handler
-4. Filter using `kv.ViewQuery` conditions on the `Tombstoned` column
+```go
+// ExcludeDeleted is the default — hides records where IsTombstoned() returns true.
+results, _ := mat.List(ctx, stack.ExcludeDeleted)
 
-## Timeline
+// OnlyDeleted returns only soft-deleted records.
+deleted, _ := mat.List(ctx, stack.OnlyDeleted)
 
-- **v4 (current):** Tombstone API deprecated with `// Deprecated:` directives.
-  All existing code continues to work. IDE warnings guide consumers to migrate.
-- **v5 (future):** Tombstone API removed. `Metadata.Tombstone` field removed.
-  `DetectTombstone`, `MarkTombstone`, `MarkRebirth` removed. `TombstoneStatus`,
-  `TombstoneMark` types removed. Consumers must migrate before upgrading to v5.
+// IncludeDeleted returns everything.
+all, _ := mat.List(ctx, stack.IncludeDeleted)
+```
+
+For server-side filtering (SQL stores with a tombstone column), implement
+`kv.TombstoneQuerier` on your store. The `List` method automatically pushes
+the filter to SQL when available.
+
+### listing StreamReader
+
+```go
+// Use the fluent builder:
+page, _ := listing.NewListBuilder(reader).
+    OfType("Task").
+    IncludeDeleted().    // or OnlyDeleted()
+    List(ctx)
+```

@@ -72,6 +72,7 @@ func buildEngineStats(eng Engine) EngineStats {
 		Profile: profile,
 	}
 
+	rttFresh := false
 	if reporter, ok := eng.(liveLatencyReporter); ok {
 		live := reporter.LiveLatency()
 		stats.HasLiveRTT = live.HasRTT
@@ -80,26 +81,18 @@ func buildEngineStats(eng Engine) EngineStats {
 		stats.MeasuredRead = live.Read
 		stats.Samples = live.RTT.Samples
 		stats.LastProbe = live.RTT.LastSample
+		rttFresh = live.Fresh
 	}
 
-	// A remote engine is stale when it has no tracker, no samples, or samples
-	// older than the stale window. Local engines are never stale — RTT is
-	// structurally zero.
-	if profile.IsRemote() && (!stats.HasLiveRTT || stats.Samples == 0 ||
-		time.Since(stats.LastProbe) > staleThresholdFor(stats)) {
+	// A remote engine is stale when its RTT measurement is missing or not
+	// current. We use the tracker's own Fresh() determination (authoritative:
+	// it knows the configured stale-after window) instead of a display-side
+	// approximation. Local engines are never stale — RTT is structurally zero.
+	if profile.IsRemote() && !rttFresh {
 		stats.Stale = true
 	}
 
 	return stats
-}
-
-// staleThresholdFor derives the stale window from the measured RTT tracker.
-// Since LatencyStats does not carry the configured stale-after, fall back to a
-// conservative default; the precise value is enforced inside LatencyTracker.Live
-// (used for routing), and this display-side check only needs to be consistent
-// enough to label clearly-stale measurements.
-func staleThresholdFor(EngineStats) time.Duration {
-	return defaultStaleAfter
 }
 
 // FormatLiveLatency renders a one-line live-latency summary for EXPLAIN/Doctor.

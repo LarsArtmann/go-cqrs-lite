@@ -2,14 +2,16 @@ package irohengine
 
 import (
 	"slices"
-	"sync"
 	"time"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 const latencyWindowSize = 512
 
 // SortDurations returns a sorted copy of d (ascending). Shared by transports
-// that compute latency percentiles from RTT samples.
+// that compute latency percentiles from RTT samples outside the LatencyCollector
+// (e.g. loopback, quic transports that maintain their own sample slices).
 func SortDurations(d []time.Duration) []time.Duration {
 	cp := append([]time.Duration(nil), d...)
 	slices.Sort(cp)
@@ -32,36 +34,27 @@ func PercentileIdx(n int, p float64) int {
 }
 
 // LatencyCollector records real delivery and convergence times from replication
-// traffic. All stats are computed from actual measurements — no hardcoded values.
+// traffic. It delegates to two core [metaengine.LatencyTracker] instances
+// (ring buffer + incremental EWMA), consolidating the percentile machinery so
+// there is one source of truth for latency statistics across the codebase.
 type LatencyCollector struct {
-	mu           sync.Mutex
-	deliveries   []time.Duration
-	convergences []time.Duration
+	delivery    *metaengine.LatencyTracker
+	convergence *metaengine.LatencyTracker
 }
 
 func newLatencyCollector() *LatencyCollector {
 	return &LatencyCollector{
-		deliveries:   make([]time.Duration, 0, latencyWindowSize),
-		convergences: make([]time.Duration, 0, latencyWindowSize),
+		delivery:    metaengine.NewLatencyTracker(metaengine.WithTrackerWindow(latencyWindowSize)),
+		convergence: metaengine.NewLatencyTracker(metaengine.WithTrackerWindow(latencyWindowSize)),
 	}
 }
 
 func (lc *LatencyCollector) recordDelivery(d time.Duration) {
-	lc.mu.Lock()
-	defer lc.mu.Unlock()
-	lc.deliveries = append(lc.deliveries, d)
-	if len(lc.deliveries) > latencyWindowSize {
-		lc.deliveries = lc.deliveries[len(lc.deliveries)-latencyWindowSize:]
-	}
+	lc.delivery.Record(d)
 }
 
 func (lc *LatencyCollector) recordConvergence(d time.Duration) {
-	lc.mu.Lock()
-	defer lc.mu.Unlock()
-	lc.convergences = append(lc.convergences, d)
-	if len(lc.convergences) > latencyWindowSize {
-		lc.convergences = lc.convergences[len(lc.convergences)-latencyWindowSize:]
-	}
+	lc.convergence.Record(d)
 }
 
 // LatencyStats is a snapshot of measured latency at a point in time.
@@ -75,17 +68,11 @@ type LatencyStats struct {
 }
 
 func (lc *LatencyCollector) DeliveryStats() LatencyStats {
-	lc.mu.Lock()
-	s := append([]time.Duration(nil), lc.deliveries...)
-	lc.mu.Unlock()
-	return computeStats(s)
+	return fromCoreStats(lc.delivery.Snapshot())
 }
 
 func (lc *LatencyCollector) ConvergenceStats() LatencyStats {
-	lc.mu.Lock()
-	s := append([]time.Duration(nil), lc.convergences...)
-	lc.mu.Unlock()
-	return computeStats(s)
+	return fromCoreStats(lc.convergence.Snapshot())
 }
 
 // LatencySnapshot is a compact view for the EngineProfile cost model.
@@ -96,8 +83,9 @@ type LatencySnapshot struct {
 }
 
 func (lc *LatencyCollector) Snapshot() LatencySnapshot {
-	d := lc.DeliveryStats()
-	c := lc.ConvergenceStats()
+	d := lc.delivery.Snapshot()
+	c := lc.convergence.Snapshot()
+
 	return LatencySnapshot{
 		DeliveryP50:    d.P50,
 		DeliveryP99:    d.P99,
@@ -111,32 +99,15 @@ type LatencyProvider interface {
 	LatencySnapshot() LatencySnapshot
 }
 
-func computeStats(samples []time.Duration) LatencyStats {
-	n := len(samples)
-	if n == 0 {
-		return LatencyStats{}
-	}
-	sorted := SortDurations(samples)
-
-	var sum time.Duration
-	for _, d := range sorted {
-		sum += d
-	}
-
+// fromCoreStats converts a [metaengine.LatencyStats] (which includes EWMA and
+// LastSample) to the local LatencyStats type that the iroh transports expect.
+func fromCoreStats(s metaengine.LatencyStats) LatencyStats {
 	return LatencyStats{
-		Samples: n,
-		Mean:    sum / time.Duration(n),
-		P50:     percentile(sorted, 0.50),
-		P95:     percentile(sorted, 0.95),
-		P99:     percentile(sorted, 0.99),
-		Max:     sorted[n-1],
+		Samples: s.Samples,
+		Mean:    s.Mean,
+		P50:     s.P50,
+		P95:     s.P95,
+		P99:     s.P99,
+		Max:     s.Max,
 	}
-}
-
-func percentile(sorted []time.Duration, p float64) time.Duration {
-	if len(sorted) == 0 {
-		return 0
-	}
-
-	return sorted[PercentileIdx(len(sorted), p)]
 }

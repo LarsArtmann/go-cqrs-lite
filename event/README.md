@@ -76,7 +76,6 @@ type Bus interface {
 | `SchemaVersion`   | Event schema version for upcasting                                                  |
 | `Metadata`        | CorrelationID, CausationID, UserID, RequestID, Source, IPAddress, UserAgent, Custom |
 | `Checkpoint`      | EventID + ProcessedAt for projection checkpointing                                  |
-| `TombstoneStatus` | Active / Tombstoned / Undetermined for soft-delete                                  |
 
 ## 19 Functional Options
 

@@ -14,16 +14,16 @@ import (
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
-// TombstonePolicy controls which records appear in [Materialize.List] results.
-type TombstonePolicy int
+// DeletePolicy controls which records appear in [Materialize.List] results.
+type DeletePolicy int
 
 const (
-	// IncludeTombstoned returns all records, including tombstoned ones.
-	IncludeTombstoned TombstonePolicy = iota
-	// ExcludeTombstoned filters out tombstoned records (default behavior).
-	ExcludeTombstoned
-	// OnlyTombstoned returns only tombstoned records.
-	OnlyTombstoned
+	// IncludeDeleted returns all records, including deleted ones.
+	IncludeDeleted DeletePolicy = iota
+	// ExcludeDeleted filters out deleted records (default behavior).
+	ExcludeDeleted
+	// OnlyDeleted returns only deleted records.
+	OnlyDeleted
 )
 
 // Materialize turns a stream of events into a materialized view stored in a
@@ -227,27 +227,27 @@ func (m *Materialize[V, K]) View(ctx context.Context, key K) (*V, error) {
 	return m.Store.Get(ctx, key)
 }
 
-// List returns all records matching the given tombstone policy.
+// List returns all records matching the given delete policy.
 // Records are returned in lexicographic key order.
 //
 // When the backing store implements [kv.TombstoneQuerier] (e.g. SQL-backed
 // stores with a configured tombstone column), the filter is pushed to SQL —
 // only matching records are loaded. Otherwise, all records are loaded and
 // filtered in Go.
-func (m *Materialize[V, K]) List(ctx context.Context, policy TombstonePolicy) ([]*V, error) {
+func (m *Materialize[V, K]) List(ctx context.Context, policy DeletePolicy) ([]*V, error) {
 	if tq, ok := m.Store.(kv.TombstoneQuerier[V]); ok {
 		results, err := tq.QueryByTombstone(
 			ctx,
-			policy == ExcludeTombstoned,
-			policy == OnlyTombstoned,
+			policy == ExcludeDeleted,
+			policy == OnlyDeleted,
 		)
 		if err != nil {
 			return nil, err
 		}
 
 		// Safety net: stores without a tombstone column return all records.
-		// FilterTombstoned is a no-op when the store already filtered.
-		return FilterTombstoned(results, policy), nil
+		// FilterDeleted is a no-op when the store already filtered.
+		return FilterDeleted(results, policy), nil
 	}
 
 	all, err := m.Store.Scan(ctx, nil)
@@ -255,14 +255,14 @@ func (m *Materialize[V, K]) List(ctx context.Context, policy TombstonePolicy) ([
 		return nil, err
 	}
 
-	return FilterTombstoned(all, policy), nil
+	return FilterDeleted(all, policy), nil
 }
 
-// FilterTombstoned filters a slice of records according to the given tombstone policy.
+// FilterDeleted filters a slice of records according to the given delete policy.
 // Records whose value type implements `IsTombstoned() bool` are checked; all others
 // are treated as active.
-func FilterTombstoned[V any](all []*V, policy TombstonePolicy) []*V {
-	if policy == IncludeTombstoned {
+func FilterDeleted[V any](all []*V, policy DeletePolicy) []*V {
+	if policy == IncludeDeleted {
 		return all
 	}
 
@@ -272,9 +272,9 @@ func FilterTombstoned[V any](all []*V, policy TombstonePolicy) []*V {
 		isTombstoned := isMaterializedTombstoned(v)
 
 		switch {
-		case policy == ExcludeTombstoned && !isTombstoned:
+		case policy == ExcludeDeleted && !isTombstoned:
 			filtered = append(filtered, v)
-		case policy == OnlyTombstoned && isTombstoned:
+		case policy == OnlyDeleted && isTombstoned:
 			filtered = append(filtered, v)
 		}
 	}

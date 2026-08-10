@@ -48,6 +48,44 @@ and is **never** duplicated here.
 
 ---
 
+## ADR-0114 Cleanup Follow-ups
+
+> Session 4 (2026-08-10): TombstonePolicy → DeletePolicy rename done, goldens
+> regenerated, migration guide rewritten, docs updated across 12 files.
+> Remaining cleanup tracked here. See
+> `docs/status/2026-08-10_19-26_tombstone-rename-docs-goldens-session4.md`.
+
+- [ ] 🔥 **Run `nix run .#verify`** — full CI gate (build + vet + test + race +
+      lint + doc-check). NOT run this session. Only per-module tests verified.
+      _(Effort: S — just run it)_
+- [ ] **Run `nix fmt`** on all changed files from sessions 3+4. Formatting
+      could shift nolint comments and break linting.
+      _(Effort: S)_
+- [ ] **Fix `listing/README.md:16`** — stale "tri-state status: Active,
+      Tombstoned, Undetermined" claim. Should say "bi-state: Active, Deleted".
+      _(Effort: XS)_
+- [ ] **Unify `DeletePolicy` constant naming** — listing uses
+      `DeleteExclude`/`DeleteInclude`/`DeleteOnly`; stack uses
+      `ExcludeDeleted`/`IncludeDeleted`/`OnlyDeleted`. Same divergence as
+      before the rename, just with new names.
+      _(Effort: M — breaking change)_
+- [ ] **Rename remaining internal "tombstone" vocabulary** — `OnTombstone`,
+      `OnRebirth`, `isMaterializedTombstoned`, `tombstoner` interface,
+      `kv.TombstoneQuerier`, `AutoMapperWithTombstone`, `TombstoneColumn`,
+      `IsTombstoned()` all still use old vocabulary. Large blast radius.
+      _(Effort: L — breaking change, needs user decision)_
+- [ ] **Consider backward-compat type aliases** — `type TombstonePolicy =
+      DeletePolicy` for smoother consumer migration. Currently a hard break.
+      _(Effort: S — needs user decision)_
+- [ ] **Decide `metadata/` module fate** — only `CustomData[K]` +
+      `MergeCustomMaps` remain. Keep, move into `event/` or `record/`, or delete.
+      _(Effort: S — needs user decision)_
+- [ ] **Fix `example/taskmanager/setup.go:113`** — pre-existing `[]any` vs
+      `[]system.ProjectionDeclaration` type mismatch.
+      _(Effort: XS)_
+
+---
+
 ## Code Quality / Dedup
 
 > Dedup session 2026-08-09: 11→3 clone groups at threshold 4. 8 fixed, 3
@@ -175,10 +213,19 @@ and is **never** duplicated here.
         Blank import of `sqliteengine/v4` added to register the "sqlite" driver.
   - [x] **All 82 workspace modules pass `go test`** — DONE 2026-08-10 session 3.
   - [ ] Run `nix run .#verify` end-to-end (build + vet + test + race + lint + doc-check).
-  - [ ] Regenerate API stability goldens (`cmd/api-stability -update`).
-  - [ ] Naming cleanup: rename `TombstonePolicy` → `DeletePolicy` across stack/ + listing/.
-  - [ ] Write `docs/migration/tombstone-to-domain-events.md`.
-  - [ ] Update docs: AGENTS.md, SKILL.md, skill references for ADR-0114 patterns.
+  - [x] Regenerate API stability goldens (`cmd/api-stability --update`) — DONE 2026-08-10 session 4.
+        3992 exports verified. Meta-tests pass.
+  - [x] Naming cleanup: rename `TombstonePolicy` → `DeletePolicy` across stack/ + listing/ — DONE 2026-08-10 session 4.
+        listing: `DeletePolicy` (`DeleteExclude`/`DeleteInclude`/`DeleteOnly`), `ListOptions.DeletePolicy`.
+        stack: `DeletePolicy` (`IncludeDeleted`/`ExcludeDeleted`/`OnlyDeleted`), `FilterDeleted`.
+        14 Go files updated (production + tests). Zero old references remain.
+  - [x] Write `docs/migration/tombstone-to-domain-events.md` — DONE 2026-08-10 session 4.
+        Rewritten from scratch: fixes doc/code drift, covers all 3 patterns
+        (metaengine.Remove, stack.Materialize.DeleteTypes, listing.WithDeleteTypes).
+  - [x] Update docs: AGENTS.md, SKILL.md, skill references for ADR-0114 patterns — DONE 2026-08-10 session 4.
+        12 files updated: AGENTS.md, advanced.md, core.md, modules.md, readmodels.md,
+        FEATURES.md, DOMAIN_LANGUAGE.md, event/README.md, listing/README.md,
+        stack/README.md, cqrs-lint/README.md. doc-check passes (695 refs).
   - [ ] Run `nix fmt` on all changed files.
   _(Effort: M — verification + docs + naming cleanup remaining)_
 - [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod

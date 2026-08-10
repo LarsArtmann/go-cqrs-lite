@@ -134,6 +134,35 @@ func WithProbeSink(name string, sink StatSink) ProbeOption {
 	}
 }
 
+// WithProbeWindow sets the sample window size for the latency trackers created
+// by ProbeEngine (default 512). Larger windows smooth more but respond slower.
+func WithProbeWindow(n int) ProbeOption {
+	return func(c *probeConfig) {
+		if n > 0 {
+			c.window = n
+		}
+	}
+}
+
+// WithProbeAlpha sets the EWMA smoothing factor for the latency trackers created
+// by ProbeEngine (default 0.1). Higher means more responsive to recent samples.
+func WithProbeAlpha(a float64) ProbeOption {
+	return func(c *probeConfig) {
+		if a > 0 && a <= 1 {
+			c.alpha = a
+		}
+	}
+}
+
+// WithProbeStale sets how long after the last sample the trackers created by
+// ProbeEngine consider the measurement stale (default 30s). Zero disables
+// staleness (always fresh once sampled).
+func WithProbeStale(d time.Duration) ProbeOption {
+	return func(c *probeConfig) {
+		c.stale = d
+	}
+}
+
 // ProbeEngine starts a background loop that measures the live RTT (and, when the
 // engine implements TransactMeasurer, per-read latency) of an engine and feeds
 // it into Profile() through the engine's embedded Calibration. It returns a

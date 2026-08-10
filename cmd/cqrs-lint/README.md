@@ -360,7 +360,7 @@ Adoption rules (F-series) are advisory: they suggest modules and patterns that i
 
 | ID   | Rule                             | Severity | Description                                                                                                        |
 | ---- | -------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
-| F001 | no-tombstone-softdelete          | Info     | Delete operations without event.MarkTombstone — consider tombstone soft-delete for audit trail                     |
+| F001 | no-domain-delete-event           | Info     | Delete operations without a domain deletion event — consider emitting a "entity.deleted" event for audit trail       |
 | F002 | no-catalog-documentation         | Info     | 3+ event types but no catalog.NewBuilder — event documentation not generated                                       |
 | F003 | no-otel-tracing                  | Info     | Server-mode project with no OpenTelemetry tracing                                                                  |
 | F004 | no-prometheus-metrics            | Info     | Server-mode project with no Prometheus metrics                                                                     |

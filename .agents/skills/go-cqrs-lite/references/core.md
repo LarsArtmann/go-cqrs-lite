@@ -107,7 +107,7 @@ with projection + read model.
 | Deduplicate commands on retry (idempotency)                           | `idempotency` + `middleware`                                                                   | recipes §2.8    |
 | Add OpenTelemetry tracing/metrics                                     | `otel` + `middleware`                                                                          | recipes §2.8    |
 | Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs                   | `catalog`                                                                                      | recipes §2.9    |
-| Soft-delete streams without data loss                                 | `event` (tombstone metadata)                                                                   | advanced §6.1   |
+| Soft-delete streams without data loss                                 | `listing` (event-type detection, ADR-0114)                                                     | advanced §6.1   |
 | Generate typed handler boilerplate                                    | `cmd/cqrs-gen`                                                                                 | advanced §6.7   |
 | Publish events to Watermill router                                    | `watermill`                                                                                    | advanced §6.4   |
 | Dispatch commands/queries over gRPC                                   | `transport/grpc`                                                                               | advanced §6.8   |

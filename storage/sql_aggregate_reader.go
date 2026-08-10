@@ -93,12 +93,12 @@ func (r *SQLStreamReader) buildListQuery(opts listing.ListOptions) (string, []an
 	args = append(args, string(opts.Type))
 	pi++
 
-	switch opts.Tombstone {
-	case listing.TombstoneExclude:
+	switch opts.DeletePolicy {
+	case listing.DeleteExclude:
 		conditions = append(conditions, "tombstone_status = 0")
-	case listing.TombstoneOnly:
+	case listing.DeleteOnly:
 		conditions = append(conditions, "tombstone_status = 1")
-	case listing.TombstoneInclude:
+	case listing.DeleteInclude:
 	}
 
 	if !opts.After.IsZero() {

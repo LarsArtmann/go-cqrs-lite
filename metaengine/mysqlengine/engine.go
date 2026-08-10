@@ -122,6 +122,11 @@ func (e *mysqlEngine) Profile() metaengine.EngineProfile {
 		NsPerOp:     MySQLNsPerOp,
 		NsPerRead:   MySQLNsPerRead,
 		Persistence: metaengine.PersistencePersistent,
+		// MySQL is a networked service. RequiresNetwork declares the structural
+		// fact; NetworkRTT is a same-datacenter PRIOR replaced by a live probe
+		// (SELECT 1) once ProbeEngine runs. See METAENGINE-LIVE-LATENCY-MODEL.md.
+		RequiresNetwork: true,
+		NetworkRTT:      MySQL_NetworkRTT,
 		ReadCosts: metaengine.ReadCosts{
 			NsPerPointLookup:  5_000,
 			NsPerFilteredScan: 400,

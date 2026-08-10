@@ -26,3 +26,22 @@ func (e *pgEngine) Probe(ctx context.Context) (time.Duration, error) {
 
 	return time.Since(start), nil
 }
+
+// MeasureTransact times a real point-lookup query against meta_map, exercising
+// the full read path (parse + plan + B-tree index seek + JSONB decode). It
+// implements [metaengine.TransactMeasurer] so ProbeEngine can build a live
+// per-read latency tracker that feeds Profile().NsPerRead. The query targets a
+// sentinel key that never exists, so it always returns zero rows — the timing
+// captures index traversal cost without depending on user data.
+func (e *pgEngine) MeasureTransact(ctx context.Context) (time.Duration, error) {
+	start := time.Now()
+	_, err := e.conn().ExecContext(ctx,
+		`SELECT value FROM meta_map WHERE collection = $1 AND key = $2 LIMIT 1`,
+		"__probe", "__probe",
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	return time.Since(start), nil
+}

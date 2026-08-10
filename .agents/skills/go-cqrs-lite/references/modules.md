@@ -7,7 +7,7 @@
 | `id`         | `id/v4`         | Branded IDs: `id.Of[T]` = `cbid.ID[T, ulid.ULID]`. All 8 markers exported (`StreamMarker`, `EventMarker`, `CommandMarker`, …) for `BrandNamer` integration. Custom via `id.Of[struct{}]`.                                                                                |
 | `dispatcher` | `dispatcher/v4` | Generic `Dispatcher[H, M]` with `LifecycleMixin`. Base for command/query dispatchers.                                                                                                                                                                                    |
 | `codec`      | `codec/v4`      | Payload encoding: `JSONCodec{}`, `CBORCodec{}` (deterministic), `RawCodec{}`, `ForEncoding(enc)`, `AutoDetect(data)`, `Size(v)`, `TranscodeToJSON(payload, enc)` (CBOR→JSON bridge for browsers/SSE).                                                                    |
-| `event`      | `event/v4`      | `Event`, `Store` (=`EventSink`+`EventSource`), `Bus`, `Journal`, `SeekableJournal`, `NewEvent`, `NewEvents`, `DecodePayload[T]`, `DecodePayloadAuto[T]`, `DefaultCodec`, 6-family errors, tombstone (`TombstoneMark`), causality (`Causation`), `Tracing`, `Checkpoint`. |
+| `event`      | `event/v4`      | `Event`, `Store` (=`EventSink`+`EventSource`), `Bus`, `Journal`, `SeekableJournal`, `NewEvent`, `NewEvents`, `DecodePayload[T]`, `DecodePayloadAuto[T]`, `DefaultCodec`, 6-family errors, causality (`Causation`), `Tracing`, `Checkpoint`. |
 | `command`    | `command/v4`    | `Dispatcher`, `Handler`, `RegisterTyped`, `BasicCommand`, `PersistedCommand`, `CommandSink`/`Source`, `CommandBus` (pub/sub).                                                                                                                                            |
 | `query`      | `query/v4`      | `Dispatcher`, `TypedHandler[Q,R]`, `RegisterTyped`, `PaginatedResult[T]`, `PersistedQuery`, `QuerySink`/`Source`.                                                                                                                                                        |
 | `decider`    | `decider/v4`    | `Decider[State]{Initial, Apply}`, `Repository[State]` (`Execute`, `Load`, `LoadAtVersion`), `NewStateCache`, snapshot integration.                                                                                                                                       |
@@ -18,7 +18,7 @@
 | --------- | ------------ | ------------------------------------------------------------------------------------------------------------- |
 | `kv`      | `kv/v4`      | `ViewStore[V,K]` interface, `TypedStore[V,K]`, `Cache[V,K]`, `MemStore`. Foundation for all read models.      |
 | `stack`   | `stack/v4`   | `Materialize[V,K]` (deployer-first projection builder), `Bundle`, presets. Accepts any `kv.ViewStore`.        |
-| `listing` | `listing/v4` | `StreamListing`, `StreamStatus` (Active/Tombstoned/Undetermined), `StatusMiddleware`, `InMemoryStreamReader`. |
+| `listing` | `listing/v4` | `StreamListing`, `StreamStatus` (Active/Deleted), `WithDeleteTypes`, `DeletePolicy` (Exclude/Include/Only), `InMemoryStreamReader`, `ListBuilder`. |
 | `query`   | `query/v4`   | (see Core) — query the read model.                                                                            |
 
 ### Storage (Layer 5)

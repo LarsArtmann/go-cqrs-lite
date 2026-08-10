@@ -73,7 +73,7 @@ func TestMaterialize_OnCreate(t *testing.T) {
 	}
 }
 
-func TestMaterialize_TombstonePolicy(t *testing.T) {
+func TestMaterialize_DeletePolicy(t *testing.T) {
 	t.Parallel()
 
 	memStore := kv.NewMemStore()
@@ -85,23 +85,23 @@ func TestMaterialize_TombstonePolicy(t *testing.T) {
 	_ = ts.Set(ctx, stringKey("active"), &userView{Name: "Alice", Deleted: false})
 	_ = ts.Set(ctx, stringKey("deleted"), &userView{Name: "Bob", Deleted: true})
 
-	// Test ExcludeTombstoned (default).
+	// Test ExcludeDeleted (default).
 	results, err := ts.Scan(ctx, nil)
 	if err != nil {
 		t.Fatalf("Scan: %v", err)
 	}
 
-	excluded := stack.FilterTombstoned(results, stack.ExcludeTombstoned)
+	excluded := stack.FilterDeleted(results, stack.ExcludeDeleted)
 	if len(excluded) != 1 {
 		t.Fatalf("expected 1 active record, got %d", len(excluded))
 	}
 
-	onlyTombstoned := stack.FilterTombstoned(results, stack.OnlyTombstoned)
-	if len(onlyTombstoned) != 1 {
-		t.Fatalf("expected 1 tombstoned record, got %d", len(onlyTombstoned))
+	onlyDeleted := stack.FilterDeleted(results, stack.OnlyDeleted)
+	if len(onlyDeleted) != 1 {
+		t.Fatalf("expected 1 deleted record, got %d", len(onlyDeleted))
 	}
 
-	all := stack.FilterTombstoned(results, stack.IncludeTombstoned)
+	all := stack.FilterDeleted(results, stack.IncludeDeleted)
 	if len(all) != 2 {
 		t.Fatalf("expected 2 total records, got %d", len(all))
 	}

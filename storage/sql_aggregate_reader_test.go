@@ -256,7 +256,7 @@ func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 
 	activePage, err := reader.ListWithStatus(ctx, listing.ListOptions{
 		Type:      "User",
-		Tombstone: listing.TombstoneExclude,
+		DeletePolicy: listing.DeleteExclude,
 	})
 	if err != nil {
 		t.Fatalf("ListWithStatus Exclude: %v", err)
@@ -268,7 +268,7 @@ func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 
 	tombstonedPage, err := reader.ListWithStatus(ctx, listing.ListOptions{
 		Type:      "User",
-		Tombstone: listing.TombstoneOnly,
+		DeletePolicy: listing.DeleteOnly,
 	})
 	if err != nil {
 		t.Fatalf("ListWithStatus Only: %v", err)
@@ -284,7 +284,7 @@ func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 
 	allPage, err := reader.ListWithStatus(ctx, listing.ListOptions{
 		Type:      "User",
-		Tombstone: listing.TombstoneInclude,
+		DeletePolicy: listing.DeleteInclude,
 	})
 	if err != nil {
 		t.Fatalf("ListWithStatus Include: %v", err)

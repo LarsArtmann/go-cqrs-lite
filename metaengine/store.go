@@ -30,6 +30,59 @@ type Store struct {
 
 func (s *Store) Plan() *PlanResult { return s.plan }
 
+// Replan recomputes the plan using current engine profiles. This is the primary
+// mechanism for picking up live latency measurements: ProbeEngine continuously
+// updates trackers via background probing, and Replan re-reads Profile() which
+// reflects those updates through ApplyCalibration. Call Replan periodically
+// (e.g. every 30s) or after detecting a significant latency shift.
+//
+// Replan is safe for concurrent use: it holds the Store's write lock for the
+// duration, blocking reads. The re-plan itself is pure computation (no I/O) so
+// the lock window is short — proportional to the number of queries × engines.
+//
+// The plan version is incremented on each successful Replan. Consumers can
+// compare versions to detect that a re-plan occurred without inspecting the
+// full PlanResult.
+func (s *Store) Replan(ctx context.Context) error {
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("metaengine.Store.Replan: %w", err)
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	cfg := planConfig{writeAmplificationBudget: DefaultWriteAmplificationBudget}
+
+	plan := &PlanResult{}
+
+	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
+		q := s.queries[name]
+
+		assignment, err := planQuery(q, s.engines, cfg)
+		if err != nil {
+			return fmt.Errorf("metaengine.Store.Replan: %w", err)
+		}
+
+		plan.Queries = append(plan.Queries, assignment)
+	}
+
+	pipeline := NewRulePipeline(defaultRules(cfg)...)
+	if err := pipeline.Apply(plan, PlanContext{Store: s, Config: cfg}); err != nil {
+		return fmt.Errorf("metaengine.Store.Replan: %w", err)
+	}
+
+	if s.plan != nil {
+		plan.Version = s.plan.Version + 1
+	} else {
+		plan.Version = 1
+	}
+
+	plan.ComputedAt = time.Now()
+	s.plan = plan
+
+	return nil
+}
+
 // CollectionInfo describes a planned query collection.
 type CollectionInfo struct {
 	Name        string

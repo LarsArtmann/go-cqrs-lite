@@ -61,7 +61,7 @@ host.Register(&mat)
 | Symbol              | Kind   | Description                                                             |
 | ------------------- | ------ | ----------------------------------------------------------------------- |
 | `Materialize[V, K]` | Struct | Tombstone-aware projection builder. Implements `projection.Projection`. |
-| `TombstonePolicy`   | Type   | `IncludeTombstoned`, `ExcludeTombstoned` (default), `OnlyTombstoned`.   |
+| `DeletePolicy`     | Type   | `IncludeDeleted`, `ExcludeDeleted` (default), `OnlyDeleted`.           |
 | `Store`             | Field  | Any `kv.ViewStore[V, K]` implementation.                                |
 | `KeyFromEvent`      | Field  | Extracts the view key from an event.                                    |
 | `OnCreate`          | Field  | Callback for new view creation.                                         |

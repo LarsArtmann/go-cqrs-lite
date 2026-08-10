@@ -64,7 +64,7 @@ builder := listing.NewListBuilder(reader)
 // proj, _ := storage.NewStreamProjection(ctx, db, "stream_listing", dialect)
 // runner.Register(proj)
 
-// reader.List() → []StreamListing with Status: Active | Tombstoned
+// reader.List() → []StreamListing with Status: Active | Deleted
 ```
 
 ### 6.4 Watermill Integration

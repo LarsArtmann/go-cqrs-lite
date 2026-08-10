@@ -87,7 +87,7 @@ func (r *InMemoryStreamReader) ListWithStatus(
 		refs = filterByType(refs, opts.Type)
 	}
 
-	refs = applyTombstonePolicy(refs, opts.Tombstone)
+	refs = applyDeletePolicy(refs, opts.DeletePolicy)
 
 	refs = applyCursor(refs, opts.After)
 
@@ -204,17 +204,17 @@ func filterByType(refs []StreamStatus, streamType id.StreamType) []StreamStatus 
 	return filtered
 }
 
-func applyTombstonePolicy(refs []StreamStatus, policy TombstonePolicy) []StreamStatus {
-	if policy == TombstoneInclude {
+func applyDeletePolicy(refs []StreamStatus, policy DeletePolicy) []StreamStatus {
+	if policy == DeleteInclude {
 		return refs
 	}
 
 	filtered := make([]StreamStatus, 0, len(refs))
 
 	for _, r := range refs {
-		if policy == TombstoneExclude && !r.Status.IsDeleted() {
+		if policy == DeleteExclude && !r.Status.IsDeleted() {
 			filtered = append(filtered, r)
-		} else if policy == TombstoneOnly && r.Status.IsDeleted() {
+		} else if policy == DeleteOnly && r.Status.IsDeleted() {
 			filtered = append(filtered, r)
 		}
 	}

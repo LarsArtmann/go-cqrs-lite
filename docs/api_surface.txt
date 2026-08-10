@@ -1337,11 +1337,11 @@ kv/var ErrClosed
 kv/var ErrInvalidCacheCap
 kv/var ErrNilTypedStore
 kv/var ErrNotFound
+listing/const DeleteExclude
+listing/const DeleteInclude
+listing/const DeleteOnly
 listing/const StatusActive
 listing/const StatusDeleted
-listing/const TombstoneExclude
-listing/const TombstoneInclude
-listing/const TombstoneOnly
 listing/func CacheInvalidationMiddleware
 listing/func ListRefsFromStatus
 listing/func NewInMemoryAggregateReader
@@ -1373,10 +1373,10 @@ listing/struct StreamStatus
 listing/type AggregateListing
 listing/type AggregateReader
 listing/type AggregateStatus
+listing/type DeletePolicy
 listing/type InMemoryAggregateReader
 listing/type Option
 listing/type Status
-listing/type TombstonePolicy
 metadata/func MergeCustomMaps
 metadata/method Clone
 metadata/method EnsureCustom
@@ -1462,6 +1462,7 @@ metaengine/const ComplexityODegree
 metaengine/const ComplexityOLogN
 metaengine/const ComplexityON
 metaengine/const ComplexityONLogN
+metaengine/const DefaultRoutingHysteresis
 metaengine/const DefaultWriteAmplificationBudget
 metaengine/const DiagLevelDegraded
 metaengine/const DiagLevelInfo
@@ -1678,11 +1679,14 @@ metaengine/func WithLimit
 metaengine/func WithMetrics
 metaengine/func WithNetworkRTT
 metaengine/func WithOr
+metaengine/func WithProbeAlpha
 metaengine/func WithProbeContext
 metaengine/func WithProbeInterval
 metaengine/func WithProbeJitter
 metaengine/func WithProbeSink
+metaengine/func WithProbeStale
 metaengine/func WithProbeTimeout
+metaengine/func WithProbeWindow
 metaengine/func WithRange
 metaengine/func WithReadCoalescer
 metaengine/func WithReplication
@@ -1873,6 +1877,7 @@ metaengine/method ApplyRecord
 metaengine/method Avg
 metaengine/method Check
 metaengine/method CheckAndRecord
+metaengine/method CheckRouting
 metaengine/method Clear
 metaengine/method Clear
 metaengine/method Close
@@ -2037,6 +2042,7 @@ metaengine/method Record
 metaengine/method Record
 metaengine/method RegisterQuery
 metaengine/method ReificationFailures
+metaengine/method Replan
 metaengine/method Replay
 metaengine/method Replay
 metaengine/method ReplicationMode
@@ -2068,6 +2074,7 @@ metaengine/method SnapshotSave
 metaengine/method SortBy
 metaengine/method SpatialInsert
 metaengine/method SpatialRange
+metaengine/method StartAutoReplan
 metaengine/method Stats
 metaengine/method Stats
 metaengine/method StreamAppend
@@ -2107,6 +2114,7 @@ metaengine/method WithinBudget
 metaengine/method WriteNsPerOp
 metaengine/mysqlengine/const MySQLNsPerOp
 metaengine/mysqlengine/const MySQLNsPerRead
+metaengine/mysqlengine/const MySQL_NetworkRTT
 metaengine/mysqlengine/func New
 metaengine/mysqlengine/func NewFromDB
 metaengine/mysqlengine/method ApplyLayout
@@ -2120,6 +2128,7 @@ metaengine/mysqlengine/method MapDelete
 metaengine/mysqlengine/method MapGet
 metaengine/mysqlengine/method MapScan
 metaengine/mysqlengine/method MapSet
+metaengine/mysqlengine/method Probe
 metaengine/mysqlengine/method Profile
 metaengine/mysqlengine/method PushdownMapScan
 metaengine/mysqlengine/method RunInTx
@@ -2183,6 +2192,7 @@ metaengine/pgengine/method MapDelete
 metaengine/pgengine/method MapGet
 metaengine/pgengine/method MapScan
 metaengine/pgengine/method MapSet
+metaengine/pgengine/method MeasureTransact
 metaengine/pgengine/method MultiAggregate
 metaengine/pgengine/method MultiGroupedAggregate
 metaengine/pgengine/method Probe
@@ -2340,6 +2350,7 @@ metaengine/struct TypedReader
 metaengine/struct VectorResult
 metaengine/struct Watcher
 metaengine/struct WorkloadStats
+metaengine/tursoengine/const Turso_NetworkRTT
 metaengine/tursoengine/func New
 metaengine/type ADT
 metaengine/type AggregateFn
@@ -2922,16 +2933,16 @@ stack/bbolt/type Option
 stack/const DurabilityNormal
 stack/const DurabilityRelaxed
 stack/const DurabilityStrict
-stack/const ExcludeTombstoned
-stack/const IncludeTombstoned
-stack/const OnlyTombstoned
+stack/const ExcludeDeleted
+stack/const IncludeDeleted
+stack/const OnlyDeleted
 stack/duckdb/func New
 stack/duckdb/func SQLViewModel
 stack/duckdb/func WithDSN
 stack/duckdb/func WithMemoryLimit
 stack/duckdb/func WithThreads
 stack/duckdb/type Option
-stack/func FilterTombstoned
+stack/func FilterDeleted
 stack/func New
 stack/func NewFuncCloser
 stack/func NewMaterialize
@@ -3049,9 +3060,9 @@ stack/turso/method Sync
 stack/turso/struct Bundle
 stack/turso/type Option
 stack/turso/var ErrNoDatabase
+stack/type DeletePolicy
 stack/type DurabilityTier
 stack/type Option
-stack/type TombstonePolicy
 stack/var ErrEmpty
 stack/var ErrMissingCheckpoint
 stack/var ErrMissingEventStore

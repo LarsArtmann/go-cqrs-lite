@@ -113,8 +113,8 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 		t.Fatalf("View after update: name=%s, want 'Alice Updated'", got.Name)
 	}
 
-	// List with ExcludeTombstoned → should use TombstoneQuerier fast path.
-	results, err := mat.List(ctx, stack.ExcludeTombstoned)
+	// List with ExcludeDeleted → should use TombstoneQuerier fast path.
+	results, err := mat.List(ctx, stack.ExcludeDeleted)
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
@@ -141,8 +141,8 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 		t.Fatalf("Handler tombstone: %v", err)
 	}
 
-	// List with ExcludeTombstoned → 0 results (server-side filtered).
-	results, err = mat.List(ctx, stack.ExcludeTombstoned)
+	// List with ExcludeDeleted → 0 results (server-side filtered).
+	results, err = mat.List(ctx, stack.ExcludeDeleted)
 	if err != nil {
 		t.Fatalf("List after tombstone: %v", err)
 	}
@@ -151,14 +151,14 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 		t.Fatalf("List after tombstone: got %d, want 0", len(results))
 	}
 
-	// List with OnlyTombstoned → 1 result.
-	results, err = mat.List(ctx, stack.OnlyTombstoned)
+	// List with OnlyDeleted → 1 result.
+	results, err = mat.List(ctx, stack.OnlyDeleted)
 	if err != nil {
-		t.Fatalf("List only tombstoned: %v", err)
+		t.Fatalf("List only deleted: %v", err)
 	}
 
 	if len(results) != 1 {
-		t.Fatalf("List only tombstoned: got %d, want 1", len(results))
+		t.Fatalf("List only deleted: got %d, want 1", len(results))
 	}
 
 	// Query via SQLViewStore directly (proves real columns work).

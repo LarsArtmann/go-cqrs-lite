@@ -76,8 +76,11 @@ func (c *Calibration) SetReadTracker(t *LatencyTracker) { c.read = t }
 
 // LiveLatency reports the engine's live measurement state for diagnostics
 // (GetEngineStats, Doctor, EXPLAIN). HasRTT/HasRead indicate whether a tracker
-// is installed; Fresh indicates whether its samples are current enough to drive
-// routing. A tracker with no samples reports Stats.Samples == 0 and Fresh false.
+// is installed; Fresh indicates whether the RTT tracker specifically has samples
+// current enough to drive routing. The WARN rule (rule_live_latency) uses this
+// to decide whether estimates rely on a measured value or a prior — RTT is the
+// primary routing signal, so freshness is RTT-specific. Read-tracker freshness
+// is consumed internally by ApplyCalibration and does not affect the WARN.
 type LiveLatency struct {
 	RTT     LatencyStats
 	Read    LatencyStats
@@ -89,19 +92,23 @@ type LiveLatency struct {
 // LiveLatency returns the live measurement snapshot for this engine. It is
 // promoted to every engine that embeds Calibration, so GetEngineStats can read
 // it through a type assertion without per-engine code.
+//
+// Fresh is RTT-specific: true only when the RTT tracker exists and has current
+// samples. A stale or missing RTT tracker yields Fresh=false even if the read
+// tracker is fresh — this prevents a read-only tracker from suppressing the
+// "routing on prior RTT" WARN.
 func (c *Calibration) LiveLatency() LiveLatency {
 	out := LiveLatency{}
 	if c.rtt != nil {
 		out.HasRTT = true
 		stats, fresh := c.rtt.Live()
 		out.RTT = stats
-		out.Fresh = out.Fresh || fresh
+		out.Fresh = fresh
 	}
 	if c.read != nil {
 		out.HasRead = true
-		stats, fresh := c.read.Live()
+		stats, _ := c.read.Live()
 		out.Read = stats
-		out.Fresh = out.Fresh || fresh
 	}
 
 	return out

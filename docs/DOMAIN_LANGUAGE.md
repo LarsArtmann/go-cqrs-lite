@@ -66,10 +66,10 @@ If a word means something different to a consumer than to an implementer, it is 
 | **Snapshot Store**   | Persistence layer for stream snapshots                                          | `snapshot.SnapshotStore` (composite of `SnapshotSink` + `SnapshotSource`)                                    |
 | **Projection**       | Consumer-side contract for building a read model from events                    | `projection.Projection` — `Name()`, `Handle()`, `EventTypes()`                                               |
 | **Checkpoint**       | Last-processed event position for a specific projection                         | `event.CheckpointStore` — enables resume after restart                                                       |
-| **Tombstone**        | Soft-delete marker on event metadata (3 statuses)                               | `Active`, `Tombstoned`, `Undetermined` — detected via `event.DetectTombstone()`                              |
-| **Rebirth**          | Undo of a tombstone — marks a stream as live again                              | `event.MarkRebirth(evt)` — sets rebirth metadata                                                             |
+| **Deletion Event**  | Domain event that signals soft-delete (ADR-0114) — replaces metadata tombstones   | `listing.StatusDeleted` — detected via `listing.WithDeleteTypes("entity.deleted")`          |
+| **Rebirth Event**    | Domain event that undoes a deletion                                              | Emit `"entity.restored"` event — detected via `stack.Materialize.RebirthTypes`               |
 | **ProcessingMode**   | Context-scoped flag: `ModeLive` vs `ModeReplay`                                 | `event.WithProcessingMode(ctx, ModeReplay)` — lets handlers skip side-effects during catch-up                |
-| **Metadata**         | Typed envelope on every event: tracing, causation, tombstone, custom fields     | `event.Metadata` struct — `Tracing`, `Causation`, `Tombstone`, `Custom map[MetadataKey]string`               |
+| **Metadata**         | Typed envelope on every event: tracing, causation, custom fields                 | `event.Metadata` struct — `Tracing`, `Causation`, `Custom map[MetadataKey]string`               |
 | **Tracing**          | Embedded metadata fields: CorrelationID, CausationID, UserID, RequestID         | `event.Tracing` struct — promoted into `Metadata`, JSON-serializable                                         |
 | **Causation**        | Links an event to the command that caused it (type + ID)                        | `event.Causation{CommandType, CommandID}` — set via `event.WithCommandCausality(ctx, type, id)`              |
 | **ContextEnricher**  | Function that extracts metadata from context and stamps it onto new events      | `event.ContextEnricher` — `decider.Repository` applies it automatically on Save                              |
@@ -527,9 +527,6 @@ var _ = []any{
 	event.New,
 	event.NewEvent,
 	id.NewStreamRef,
-	event.DetectTombstone,
-	event.MarkTombstone,
-	event.MarkRebirth,
 	event.WithProcessingMode,
 	event.ProcessingModeFrom,
 	event.DecodePayloadAuto,
