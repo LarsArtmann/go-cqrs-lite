@@ -113,6 +113,10 @@ Discovered during status review, not yet fixed:
   and `DEP_BUDGET[storage/backuptest]=3` to `scripts/check-module-layers.sh`
   (mandatory coverage check). Bumped `DEP_BUDGET[system]` 17→18 for
   pre-existing drift. Fixed `thelper` lint in `backuptest/suite.go`.
+- **Documentation registration**: `storage/backuptest` added to AGENTS.md
+  Module Map, SEVEN-TIER-MODEL.md Tier 4 Storage Backends,
+  `.agents/skills/go-cqrs-lite/references/modules.md`. Depguard already
+  covered via `github.com/larsartmann/go-cqrs-lite` prefix match.
 
 ### Changed — v5 deprecation markers — 2026-08-10
 

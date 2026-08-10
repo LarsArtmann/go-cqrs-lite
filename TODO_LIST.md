@@ -101,6 +101,29 @@ and is **never** duplicated here.
 
 ## CI / Release / Infrastructure
 
+- 🔥 **Fix metadata refactoring fallout — HEAD does not build** — Commits
+  `7e374b753` + `445beb74d` removed `event.TombstoneStatus`, `event.TombstoneMark`,
+  `event.DetectTombstone`, `event.MarkTombstone`, `event.MarkRebirth`,
+  `metadata.Tracing`, `Metadata.Tombstone`, `Metadata.Tracing`, `Metadata.UserID`
+  WITHOUT updating 4 dependent packages. `nix run .#build` / `#verify` / `#test`
+  ALL FAIL. No CI gate can pass until this is fixed.
+  See `docs/status/2026-08-10_15-10_backuptest-wiring-complete-metadata-refactoring-blocks-ci.md`.
+  Specific breakages:
+  - [ ] `transport/grpc/event_server.go:158-159` — `md.Tombstone undefined`
+        (no uncommitted fix exists)
+  - [ ] `metaengine/enginetest/record_stamp.go:57-58` — string literals assigned
+        to branded types `CorrelationID`/`ActorID` (no uncommitted fix exists)
+  - [ ] Commit uncommitted `listing/` fixes (14 files — TombstoneStatus/MarkTombstone/
+        DetectTombstone/MarkRebirth references)
+  - [ ] Commit uncommitted `watermill/` fixes (6 files — Tracing/Tombstone/UserID
+        references)
+  - [ ] Commit uncommitted `system/` changes (4 files incl. sqlite_driver.go deletion)
+  - [ ] Fix `TestContract_MetadataRoundtrip` (bbolt) — UserID field removed
+  - [ ] Fix `TestEventStore_MetadataRoundtrip` (pebble) — same root cause
+  - [ ] Resolve new clone: `command/metadata.go` vs `query/query.go` (identical
+        MetadataKey + Metadata struct) or update dedup baseline
+  - [ ] Run `nix run .#verify` end-to-end once build is fixed
+  _(Effort: L — requires understanding the intended new API)_
 - [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must
