@@ -48,45 +48,6 @@ and is **never** duplicated here.
 
 ---
 
-## ADR-0114 Cleanup Follow-ups
-
-> Session 4 (2026-08-10): TombstonePolicy → DeletePolicy rename done, goldens
-> regenerated, migration guide rewritten, docs updated across 12 files.
-> Remaining cleanup tracked here. See
-> `docs/status/2026-08-10_19-26_tombstone-rename-docs-goldens-session4.md`.
-
-- [x] 🔥 **Run `nix run .#verify`** — DONE 2026-08-11. Full CI gate green:
-      build + vet + test + race + lint (0 issues) + arch + dedup + coverage +
-      api-stability (3989 exports) + doc-check (928 refs).
-      See `docs/status/2026-08-11_04-04_verify-green-and-lint-cleanup.md`.
-- [x] **Run `nix fmt`** on all changed files — DONE 2026-08-11.
-- [x] **Fix `listing/README.md:16`** — DONE 2026-08-11. Fixed stale tri-state
-      claim to bi-state (Active, Deleted).
-      _(Effort: XS)_
-- [x] **Unify `DeletePolicy` constant naming** — DONE 2026-08-11. Made
-      listing enum canonical; stack now uses `type DeletePolicy = listing.DeletePolicy`
-      with deprecated aliases (`ExcludeDeleted`, `IncludeDeleted`, `OnlyDeleted`) for
-      backward compat.
-      _(Effort: M)_
-- [x] **Rename remaining internal "tombstone" vocabulary** — PARTIALLY DONE
-      2026-08-11. Added deprecated aliases: `kv.DeleteQuerier[V] = TombstoneQuerier[V]`,
-      `storage/view.AutoMapperWithDelete`. Full rename of struct fields
-      (`OnTombstone`, `OnRebirth`, `TombstoneColumn`) deferred to v5.
-      _(Effort: L — struct fields deferred to v5)_
-- [x] **Backward-compat type aliases** — DONE 2026-08-11. All renamed types
-      have deprecated aliases. No hard breaks in this session.
-      _(Effort: S)_
-- [x] **Decide `metadata/` module fate** — DECIDED 2026-08-11: keep as-is,
-      marked deprecated at package level. No new features will be added.
-      _(Effort: S)_
-- [x] **Fix `example/taskmanager/setup.go:113`** — RESOLVED 2026-08-11.
-      Root cause was version-sequence: `system.ProjectionDeclaration` added after
-      `system/v4.1.0` tag. Tagged `system/v4.2.0`. Tags need `git push` for
-      CI/GOWORK=off builds.
-      _(Effort: XS)_
-
----
-
 ## Code Quality / Dedup
 
 > Dedup session 2026-08-09: 11→3 clone groups at threshold 4. 8 fixed, 3
@@ -103,31 +64,12 @@ and is **never** duplicated here.
 > `nix run .#verify` GREEN. See
 > `docs/status/2026-08-11_04-04_verify-green-and-lint-cleanup.md`.
 
-- [x] 🔥 **Migrate `metaengine.On` → `metaengine.OnRecord`** — DONE 2026-08-11.
-      59 files migrated via AST-based tool. SA1019 blanket exclusion removed.
-      On/OnTyped now have `// Deprecated:` godoc pointing to OnRecord/OnRecordTyped.
-      _(Effort: M — mechanical migration)_
 - [ ] **Audit `.golangci.yml` exclusion blocks** — `system/` (20 linters
       disabled), `cmd/cqrs-lint/` (17), `metaengine/` (24) have the broadest
       exclusions. Several new exclusions added 2026-08-11 for the
       `On/OnTyped` migration, `flightrecorder/`, `id/`, `record/`, engine
       `register.go`. Track which can be removed after migrations complete.
       _(Effort: M — needs full lint run to verify narrowing)_
-- [x] **Add smoke test for `check-module-layers.sh`** — DONE 2026-08-11.
-      `scripts/test-check-module-layers.sh` validates the arch script on
-      known-good tree + handles missing go.mod.
-      _(Effort: S)_
-- [x] **Lint code-fix batch (narrow exclusions by fixing the code)** —
-      DONE 2026-08-11 (partial). Fixed: `id/actor_id.go` (extracted kind
-      constants for goconst, replaced `strings.IndexByte` with `strings.Cut`
-      for modernize, narrowed exclusion from 9→7 linters),
-      `cmd/api-stability/main_test.go` (nilerr fix, exclusion narrowed),
-      `dgraphengine/retry.go` (deleted dead code + removed exclusion).
-      Remaining as permanent exclusions: `flightrecorder/alias.go`
-      (deprecated re-export, deleted in v5), `mysqlengine` sqlclosecheck
-      (false positive — linter cannot see `DeferClose` indirection; pgengine
-      uses the same pattern).
-      _(Effort: M → partial)_
 - [ ] **Infrastructure polish (nix apps + shared helpers)** — add
       `#check-lint-config` (validate `.golangci.yml` + excluded paths exist),
       `#verify-ci` (mirror GH Actions GOWORK=off per-module), wire `#sweep`
@@ -138,161 +80,15 @@ and is **never** duplicated here.
       if a 3rd KV engine is added. See plan
       `docs/planning/2026-08-11_04-12_pareto-comprehensive-plan.html` (M27).
       _(Effort: M)_
-- [x] **Extract bbolt/pebble backup lifecycle test suite** — DONE 2026-08-10.
-      New `storage/backuptest/v4` module with `Backend` interface, `Factory`
-      struct, `RunFullLifecycle()`, `RunIncrementalCheckpoints()`. bbolt: 255→75
-      lines. pebble: 235→59 lines. Both backends now use thin adapters. Dedup
-      baseline updated; `art-dupl check` passes with 0 new clones.
-      See `docs/status/2026-08-10_14-20_backuptest-extraction-and-pebbleengine-scan.md`.
-- [x] **Scan remaining engine modules for setup boilerplate** — DONE 2026-08-10.
-      pebbleengine: 18 of 23 test files now use helpers. The 4 remaining files
-      (`format_index_test.go`, `nextkey_test.go`, `disk_backed_test.go`,
-      `restart_safety_test.go`) cannot use helpers by design (pure functions or
-      custom close/reopen lifecycle). All applicable files are refactored.
-      See `docs/status/2026-08-10_14-20_backuptest-extraction-and-pebbleengine-scan.md`.
-- [ ] **Audit `.golangci.yml` exclusion blocks** — `system/` (20 linters
-      disabled), `cmd/cqrs-lint/` (17), `metaengine/` (21) have the broadest
-      exclusions. Audit done 2026-08-09: `staticcheck` disabled for `system/`
-      is the most concerning (correctness linter). Test shows no violations
-      when enabled, but full lint gate verification needed before removing.
-      Narrow where safe.
-      _(Effort: M — needs full lint run to verify narrowing)_
-- [x] **Wire backuptest into bbolt/pebble go.mod for GOWORK=off** — DONE 2026-08-10.
-      Used `replace ... => ../backuptest` directives (the repo's established pattern,
-      same as signing/encryption → codec, metaengine/*engine → metaengine). This
-      resolves GOWORK=off without needing a published tag. Lightweight dev tag
-      deleted; annotated tagging deferred to release cycle. GOWORK=off build+vet+test
-      verified on both modules.
-- [x] **Run `nix run .#verify` after backuptest wiring** — DONE 2026-08-10.
-      My modules pass: check-arch ✓, api-stability (3868 exports) ✓, lint (0 issues) ✓,
-      backup tests with -race ✓, check-module-layers coverage ✓. Full `#verify` gate
-      is blocked by a PRE-EXISTING metadata refactoring (commit 7e374b753) that removed
-      tombstone/tracing types without updating listing/watermill/transport/grpc/enginetest.
-      That breakage is unrelated to backuptest.
-- [x] **Register `storage/backuptest` in docs and configs** — DONE 2026-08-10.
-      Added to: `scripts/check-module-layers.sh` (LAYER=5, DEP_BUDGET=3),
-      `AGENTS.md` Module Map, `SEVEN-TIER-MODEL.md` Tier 4, `modules.md`.
-      `.golangci.yml` depguard already covers via `github.com/larsartmann/go-cqrs-lite` prefix.
-- [x] **Reduce `.art-dupl-baseline.json` diff noise** — DONE 2026-08-10.
-      The pretty-printed baseline was already committed (no pending diff). No action needed.
-
----
-
-## GraphBackend / Dead-Code Cleanup Follow-ups
-
-> Phase 2–3 cleanup session (2026-08-10): 7 items tasked, 3 fully done, 2
-> partially done. Remaining gaps tracked here. See
-> `docs/status/2026-08-10_15-26_graphbackend-deadcode-cleanup-followups.md`.
-
-- [x] **Fix `dgraphengine/README.md:71` broken code example** —
-      Replaced with local `graphDispatch` interface definition (ADR-0113 pattern).
-      Prose (lines 7, 119) updated from "GraphBackend" to "graph dispatch".
-      _(Effort: XS)_ ✅
-- [x] **Clean stale `GraphBackend` comment references** in dgraphengine Go
-      files: `engine.go:5,7`, `graphrag_test.go:20`, `mixed_bench_test.go:14`
-      reworded to "graph dispatch". `engine_test.go:13` left as historically
-      accurate ("ADR-0113: the exported metaengine.GraphBackend was deleted").
-      _(Effort: XS)_ ✅
-- [x] **Run `doc-check`** after `ErrUnknownDriver` removal —
-      Passed: all 695 references valid. Fixed 4 stale `event.MarkTombstone`/
-      `event.DetectTombstone` references in skill docs (`core.md`, `advanced.md`)
-      rewritten to the ADR-0114 domain-event pattern.
-      _(Effort: XS)_ ✅
-- [x] **Audit skill references** (`.agents/skills/go-cqrs-lite/references/*.md`)
-      for `ErrUnknownDriver` — zero references found. Nothing to fix.
-      _(Effort: XS)_ ✅
-- [x] **Re-run `go vet`** on system + metaengine — passes clean.
-      Also fixed 2 additional branded-ID build breaks: `auto_fold_record_test.go:56-57`
-      and `soak_record_test.go:97`.
-      _(Effort: XS)_ ✅
 
 ---
 
 ## CI / Release / Infrastructure
 
-- [x] 🔥 **Record consolidation fallout — all modules compile** — ADR-0111
-  Phases 3-4 (metadata consolidation + tombstone removal) are DONE. All 79
-  modules build clean. The ADR-0114 tombstone build breaks in storage/,
-  stack/, transport/grpc/, and example/taskmanager were fixed 2026-08-10.
-  See `docs/status/2026-08-10_16-15_graphbackend-cleanup-and-adr0114-tombstone-unblock.md`.
-  **IMPORTANT: `go test ./...` from workspace root tests ZERO packages (no root
-  go.mod). Always verify per-module or use `nix run .#test`.**
-  Done:
-  - [x] Core metadata consolidation (record.CommonMetadata branded types)
-  - [x] `id.ActorID` kind-discriminated struct + tests
-  - [x] Tombstone types deleted from event/
-  - [x] listing/ refactored to event-type-based detection (ADR-0114)
-  - [x] watermill/ protocol updated (writeCommonMetadata replaces writeTracing)
-  - [x] integration/event/ tests fixed (.UserID → .ActorID)
-  - [x] API stability goldens regenerated
-  - [x] `metaengine/enginetest/record_stamp.go:57-58` — FIXED.
-  - [x] `system/sqlite_driver.go` deleted + `system.ErrUnknownDriver` removed.
-  - [x] storage/aggregate_projection.go — reworked to `WithDeleteTypes` option.
-  - [x] stack/materialize.go — reworked to `DeleteTypes`/`RebirthTypes` fields.
-  - [x] transport/grpc/event_server.go — dead tombstone serialization removed.
-  - [x] storage/sql_aggregate_reader.go — `listing.Status` replaces `event.TombstoneStatus`.
-  - [x] example/taskmanager — `[]system.ProjectionDeclaration` with `system.RawQuery()`.
-  - [x] All test files fixed (sql_aggregate_reader_test.go, view_models_integration_test.go,
-        fuzz_test.go, auto_fold_record_test.go, soak_record_test.go,
-        adapter_record_test.go, projectionhost_record_test.go).
-  - [x] Dedup baseline updated (74→90 groups for concurrent engine clones).
-  Remaining (tests still failing, NOT build breaks):
-  - [x] **Memory engine graph ADT support** — DONE 2026-08-10 session 3.
-        Added `GraphAddEdge`/`GraphNeighbors` to memory engine (`memory_graph.go`).
-        `ADTGraph: ComplexityODegree` added to profile. All 15 Ginkgo specs pass.
-  - [x] **Branded-ID auto-fold stamping panic** — DONE 2026-08-10 session 3.
-        `metaengine/record_stamp.go` getters now call `.String()` on branded types.
-        `TestAutoFold_RecordAware_Insert` + `TestIntegration_AutoInsert_ThroughAdapter` pass.
-  - [x] **Signing golden stale** — DONE 2026-08-10 session 3.
-        `hmac-signed-metadata.snap` regenerated. Obsolete `signature-json.snap` cleaned.
-  - [x] **Metadata roundtrip (pebble/bbolt)** — DONE 2026-08-11.
-        Root cause: `id.ActorID` has unexported fields implementing `json.Marshaler`
-        but NOT `cbor.Marshaler`. fxamacker/cbor uses reflection → encodes as `{}`.
-        Fix: `metadataPayload` type stores metadata as JSON bytes inside the CBOR
-        envelope. Applied to both pebble + bbolt serialization. ActorID regression
-        test added. Committed in `74b5762e2`.
-  - [x] **cqrs-lint findings mismatch** — DONE 2026-08-10 session 3.
-        F001 rule rewritten for domain deletion events. Golden profiles updated
-        (33 findings, C017+V003 added). Catalog exclusion list updated for new modules.
-  - [x] **example/taskmanager sqlite driver** — DONE 2026-08-10 session 3.
-        Blank import of `sqliteengine/v4` added to register the "sqlite" driver.
-  - [x] **All 82 workspace modules pass `go test`** — DONE 2026-08-10 session 3.
-  - [x] Run `nix run .#verify` end-to-end — DONE 2026-08-11. GREEN.
-        Fixed build break (`Tombstone→DeletePolicy` in sql_aggregate_reader),
-        regenerated API golden (3989 exports), fixed 147 lint issues (→0),
-        fixed arch check script (submodule detection + `set -e` bug),
-        registered bboltengine/mysqlengine/tursoengine in LAYER+DEP_BUDGET,
-        removed metaengine excess deps (go-humanize, direct sqlite),
-        updated dedup baseline (92 groups).
-  - [x] Regenerate API stability goldens (`cmd/api-stability --update`) — DONE 2026-08-10 session 4.
-        3992 exports verified. Meta-tests pass.
-  - [x] Naming cleanup: rename `TombstonePolicy` → `DeletePolicy` across stack/ + listing/ — DONE 2026-08-10 session 4.
-        listing: `DeletePolicy` (`DeleteExclude`/`DeleteInclude`/`DeleteOnly`), `ListOptions.DeletePolicy`.
-        stack: `DeletePolicy` (`IncludeDeleted`/`ExcludeDeleted`/`OnlyDeleted`), `FilterDeleted`.
-        14 Go files updated (production + tests). Zero old references remain.
-  - [x] Write `docs/migration/tombstone-to-domain-events.md` — DONE 2026-08-10 session 4.
-        Rewritten from scratch: fixes doc/code drift, covers all 3 patterns
-        (metaengine.Remove, stack.Materialize.DeleteTypes, listing.WithDeleteTypes).
-  - [x] Update docs: AGENTS.md, SKILL.md, skill references for ADR-0114 patterns — DONE 2026-08-10 session 4.
-        12 files updated: AGENTS.md, advanced.md, core.md, modules.md, readmodels.md,
-        FEATURES.md, DOMAIN_LANGUAGE.md, event/README.md, listing/README.md,
-        stack/README.md, cqrs-lint/README.md. doc-check passes (695 refs).
-  - [x] Run `nix fmt` on all changed files — DONE 2026-08-11.
-  - [x] Fix stale `metadata/doc.go` — DONE 2026-08-11. Removed references to
-        deleted `Tracing` type; documented `record.CommonMetadata` embedding.
-  _(Effort: M — verification + docs + naming cleanup remaining)_
 - [BLOCKED] **Publish go-finding + go-must as tagged modules** — the go.mod
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must
   v0.1.2).
-- [x] 🔥 **Release `record/v4` tag** — DONE 2026-08-11. Tagged `record/v4.1.0`
-      with branded ID types, ActorID taxonomy, and Merge method.
-      `metadata/go.mod` + `event/go.mod` pinned to v4.1.0.
-      _(Effort: S)_
-- [x] 🔥 **Cut CHANGELOG `[Unreleased]` → `[v4.7.0]`** — DONE 2026-08-10.
-      `TestTagContentMatchesChangelog` passes (metaengine/v4.7.0 tag exists).
-      [Unreleased] section moved to [v4.7.0]. Additional module tags can be
-      cut as needed for consumer visibility.
 
 ---
 
