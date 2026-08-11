@@ -213,11 +213,19 @@ DONE 2026-08-10/11. See [CHANGELOG.md](CHANGELOG.md) and status reports
       line-count violations (`query.go` > 350 limit), lint, arch, dedup,
       coverage, race.
       _(Effort: M)_
-- [ ] **Fold inference override API** — when auto-projection gets it wrong,
+- [x] **Fold inference override API** — when auto-projection gets it wrong,
       consumer can override with an explicit `OnRecord` fold for a specific
       event/query pair. Override replaces (not supplements) the generated fold.
       Without this, `Infer()` is all-or-nothing.
-      _(Effort: M)_
+      _(Effort: M)_ — DONE 2026-08-11. `metaengine.Override()` wraps a fold as
+      an `overrideFold` marker; `applyOverrides()` in `ensureFolds()` replaces
+      inferred folds by `EventType()` match, appends unmatched overrides as new
+      folds. Safety guards: `Override` without `Infer` panics, mixing `Infer`
+      with raw `Fold` args panics. Three tests in `override_test.go` pass
+      (replace, panic-guard, add-for-uncovered-event). Note: `Infer()` keys off
+      `*Created`/`*Updated`/`*Deleted` suffixes (CRUD naming), so
+      intention-revealing events bypass inference entirely — well-designed
+      domains use explicit `OnRecord` folds instead.
 - [x] **Fold inference gaps** — `[]Struct` fields in event types (verified:
       whole-slice embedding works, `time.Time` field matching fixed),
       `InferFromNamedEvents()` for wire event types (implemented:

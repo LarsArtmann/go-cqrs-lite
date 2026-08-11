@@ -48,6 +48,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   keys (dynamic struct types from `reflect.StructOf`) by assembling from
   individual input fields by type.
 
+### Added — Fold inference override API (`metaengine.Override`) — 2026-08-11
+
+> Resolves the `Fold inference override API` TODO item from Phase 6:
+> Auto-Projection. `Infer()` is no longer all-or-nothing — consumers can
+> override the auto-generated fold for specific event types while keeping
+> inference for the rest.
+
+- **`metaengine/override.go`** (NEW): `Override(f Fold) overrideFold` wraps a
+  fold as an override marker. When combined with `Infer()`, the wrapped fold
+  replaces any inferred fold for the same event type (matched by
+  `EventType()`). Overrides that don't match an inferred event type are
+  appended as additional folds.
+- **`metaengine/query.go`**: `Query()` variadic arg processing now collects
+  `overrideFold` args separately from plain `Fold` args. Two safety guards: (1)
+  `Override` without `Infer` panics ("use explicit folds instead"), (2) mixing
+  `Infer` with raw `Fold` args panics ("use Override instead").
+- **`metaengine/fold_inference.go`**: `ensureFolds()` calls `applyOverrides()`
+  after generating inferred folds but before filter/sort inference.
+- **`metaengine/override_test.go`** (NEW): Three tests — replaces inferred fold
+  for matching event type, panics when used without `Infer`, adds fold for
+  event not covered by `Infer` samples.
+
 ### Fixed — Docs-health: verify gate blockers, test normalization, go-output audit renderer — 2026-08-11
 
 > Unblocks `verify-fast` for all future sessions. Three fixes that were
