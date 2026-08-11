@@ -14,6 +14,8 @@ use (
 	./cmd/doc-check
 	./codec
 	./command
+	./commandlifecycle
+	./commandlifecycle/projections
 	./decider
 	./dedup
 	./deriver

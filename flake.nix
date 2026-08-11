@@ -165,6 +165,8 @@
           testModules = [
             "event"
             "command"
+            "commandlifecycle"
+            "commandlifecycle/projections"
             "query"
             "decider"
             "id"
