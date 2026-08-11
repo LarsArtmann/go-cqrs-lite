@@ -129,6 +129,20 @@ func (s *Store) LayoutWarnings() []LayoutWarning {
 	return warnings
 }
 
+// layoutExplainAnnotation returns a compact layout+priority tag for ExplainPlan
+// query lines, e.g. " layout=Embed(Balanced)". It is a pure function — callers
+// must hold the store read lock (no re-locking to avoid deadlock).
+func layoutExplainAnnotation(pc *PriorityConfig, profile EngineProfile, queryName string) string {
+	resolved := PriorityBalanced
+	if pc != nil {
+		resolved = pc.Resolve(profile.Name, queryName)
+	}
+
+	layout, _ := SelectLayout(profile, resolved)
+
+	return fmt.Sprintf(" layout=%s(%s)", layout, resolved)
+}
+
 // LayoutDoctorSection returns the "--- Layout ---" text block for Doctor()
 // output. Shows the resolved priority, layout option, and any warnings per query.
 func (s *Store) LayoutDoctorSection() string {

@@ -1366,6 +1366,7 @@ kv/struct TypedStore
 kv/struct ViewItem
 kv/struct ViewQuery
 kv/type CacheOption
+kv/type DeleteQuerier
 kv/type Operator
 kv/type TypedOption
 kv/var ErrClosed

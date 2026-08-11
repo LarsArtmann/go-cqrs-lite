@@ -84,6 +84,7 @@ use (
 	./storage/pebble
 	./storage/turso
 	./system
+	./system/integration
 	./testutil
 	./testutil/pgtestcontainer
 	./transport/grpc

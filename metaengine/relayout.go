@@ -3,6 +3,8 @@ package metaengine
 import (
 	"context"
 	"fmt"
+	"maps"
+	"slices"
 )
 
 // RebuildThreshold configures when a projection rebuild is automatic vs
@@ -156,17 +158,5 @@ func (s *Store) ConfirmRebuild(ctx context.Context, diffs []LayoutDiff) error {
 
 // sortedQueryNames returns query names in sorted order for deterministic output.
 func sortedQueryNames(queries map[string]queryMeta) []string {
-	names := make([]string, 0, len(queries))
-	for name := range queries {
-		names = append(names, name)
-	}
-
-	// Simple sort without imports (avoid adding sort import just for this)
-	for i := 1; i < len(names); i++ {
-		for j := i; j > 0 && names[j-1] > names[j]; j-- {
-			names[j-1], names[j] = names[j], names[j-1]
-		}
-	}
-
-	return names
+	return slices.Sorted(maps.Keys(queries))
 }

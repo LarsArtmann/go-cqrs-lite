@@ -155,8 +155,10 @@ func (s *Store) ExplainPlan() string {
 
 	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
 		q := s.queries[name]
-		fmt.Fprintf(&b, "  %s: %s via %s (%s)", name, q.QueryADT(),
-			q.QueryEngine().Profile().Name, q.QueryComplexity())
+		profile := q.QueryEngine().Profile()
+		fmt.Fprintf(&b, "  %s: %s via %s (%s)%s", name, q.QueryADT(),
+			profile.Name, q.QueryComplexity(),
+			layoutExplainAnnotation(s.priorityConfig, profile, name))
 
 		if s.plan != nil {
 			for _, qa := range s.plan.Queries {
@@ -165,13 +167,9 @@ func (s *Store) ExplainPlan() string {
 						fmt.Fprintf(&b, " est=%.3fms", qa.Cost.EstimatedLatencyMs)
 					}
 
-					if rc := q.QueryEngine().Profile().ReadCosts; rc.NsPerPointLookup > 0 ||
+					if rc := profile.ReadCosts; rc.NsPerPointLookup > 0 ||
 						rc.NsPerFilteredScan > 0 || rc.NsPerAggregate > 0 || rc.NsPerScan > 0 {
-						fmt.Fprintf(
-							&b,
-							" read=%.0fns",
-							q.QueryEngine().Profile().NsForRead(qa.ReadPattern),
-						)
+						fmt.Fprintf(&b, " read=%.0fns", profile.NsForRead(qa.ReadPattern))
 					}
 				}
 			}

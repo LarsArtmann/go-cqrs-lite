@@ -12,7 +12,8 @@ import (
 
 // TestMain ensures all engine drivers are registered exactly once before any
 // integration test runs. Individual test files no longer need blank imports.
-// CGo-gated drivers (duckdb) are registered in main_cgo_test.go.
+// CGo-gated drivers (duckdb) are tested in system/integration/, a separate
+// Go module that keeps CGo deps out of system/go.mod.
 func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }

@@ -84,11 +84,11 @@ func TestCatalogHasExpectedCounts(t *testing.T) {
 	if len(core) != 6 {
 		t.Fatalf("expected 6 core entries, got %d: %+v", len(core), core)
 	}
-	if len(scored) != 33 {
-		t.Fatalf("expected 33 scored entries, got %d", len(scored))
+	if len(scored) != 34 {
+		t.Fatalf("expected 34 scored entries, got %d", len(scored))
 	}
-	if len(all) != 39 {
-		t.Fatalf("expected 39 total entries, got %d", len(all))
+	if len(all) != 40 {
+		t.Fatalf("expected 40 total entries, got %d", len(all))
 	}
 }
 

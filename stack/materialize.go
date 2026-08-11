@@ -11,19 +11,25 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 // DeletePolicy controls which records appear in [Materialize.List] results.
-type DeletePolicy int
+// It is an alias for [listing.DeletePolicy] so that the listing and stack
+// packages share a single canonical enum (ADR-0114 cleanup).
+type DeletePolicy = listing.DeletePolicy
 
+// Deprecated aliases for backward compatibility. New code should use
+// [listing.DeleteExclude], [listing.DeleteInclude], and [listing.DeleteOnly]
+// directly.
 const (
-	// IncludeDeleted returns all records, including deleted ones.
-	IncludeDeleted DeletePolicy = iota
-	// ExcludeDeleted filters out deleted records (default behavior).
-	ExcludeDeleted
-	// OnlyDeleted returns only deleted records.
-	OnlyDeleted
+	// Deprecated: use [listing.DeleteInclude].
+	IncludeDeleted = listing.DeleteInclude
+	// Deprecated: use [listing.DeleteExclude].
+	ExcludeDeleted = listing.DeleteExclude
+	// Deprecated: use [listing.DeleteOnly].
+	OnlyDeleted = listing.DeleteOnly
 )
 
 // Materialize turns a stream of events into a materialized view stored in a
@@ -238,8 +244,8 @@ func (m *Materialize[V, K]) List(ctx context.Context, policy DeletePolicy) ([]*V
 	if tq, ok := m.Store.(kv.TombstoneQuerier[V]); ok {
 		results, err := tq.QueryByTombstone(
 			ctx,
-			policy == ExcludeDeleted,
-			policy == OnlyDeleted,
+			policy == listing.DeleteExclude,
+			policy == listing.DeleteOnly,
 		)
 		if err != nil {
 			return nil, err
@@ -262,7 +268,7 @@ func (m *Materialize[V, K]) List(ctx context.Context, policy DeletePolicy) ([]*V
 // Records whose value type implements `IsTombstoned() bool` are checked; all others
 // are treated as active.
 func FilterDeleted[V any](all []*V, policy DeletePolicy) []*V {
-	if policy == IncludeDeleted {
+	if policy == listing.DeleteInclude {
 		return all
 	}
 
@@ -272,9 +278,9 @@ func FilterDeleted[V any](all []*V, policy DeletePolicy) []*V {
 		isTombstoned := isMaterializedTombstoned(v)
 
 		switch {
-		case policy == ExcludeDeleted && !isTombstoned:
+		case policy == listing.DeleteExclude && !isTombstoned:
 			filtered = append(filtered, v)
-		case policy == OnlyDeleted && isTombstoned:
+		case policy == listing.DeleteOnly && isTombstoned:
 			filtered = append(filtered, v)
 		}
 	}

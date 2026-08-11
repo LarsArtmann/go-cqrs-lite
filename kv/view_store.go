@@ -90,9 +90,16 @@ type ViewQuerier[V any] interface {
 //
 // SQL-backed stores implement this when a tombstone column is configured in the
 // ViewMapper. KV-backed stores do not — they fall back to in-memory filtering.
+//
+// DeleteQuerier is a deprecated alias for TombstoneQuerier. New code should
+// use DeleteQuerier; TombstoneQuerier will be removed in v5.
 type TombstoneQuerier[V any] interface {
 	QueryByTombstone(ctx context.Context, excludeTombstoned, onlyTombstoned bool) ([]*V, error)
 }
+
+// DeleteQuerier is the canonical name for [TombstoneQuerier].
+// TombstoneQuerier is kept as a deprecated alias for backward compatibility.
+type DeleteQuerier[V any] = TombstoneQuerier[V]
 
 // ViewCounter is an optional capability implemented by view stores that can
 // count records matching a query without loading them. This is far cheaper

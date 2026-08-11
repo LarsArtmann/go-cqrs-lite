@@ -63,24 +63,26 @@ and is **never** duplicated here.
 - [x] **Fix `listing/README.md:16`** — DONE 2026-08-11. Fixed stale tri-state
       claim to bi-state (Active, Deleted).
       _(Effort: XS)_
-- [ ] **Unify `DeletePolicy` constant naming** — listing uses
-      `DeleteExclude`/`DeleteInclude`/`DeleteOnly`; stack uses
-      `ExcludeDeleted`/`IncludeDeleted`/`OnlyDeleted`. Same divergence as
-      before the rename, just with new names.
-      _(Effort: M — breaking change)_
-- [ ] **Rename remaining internal "tombstone" vocabulary** — `OnTombstone`,
-      `OnRebirth`, `isMaterializedTombstoned`, `tombstoner` interface,
-      `kv.TombstoneQuerier`, `AutoMapperWithTombstone`, `TombstoneColumn`,
-      `IsTombstoned()` all still use old vocabulary. Large blast radius.
-      _(Effort: L — breaking change, needs user decision)_
-- [ ] **Consider backward-compat type aliases** — `type TombstonePolicy =
-      DeletePolicy` for smoother consumer migration. Currently a hard break.
-      _(Effort: S — needs user decision)_
-- [ ] **Decide `metadata/` module fate** — only `CustomData[K]` +
-      `MergeCustomMaps` remain. Keep, move into `event/` or `record/`, or delete.
-      _(Effort: S — needs user decision)_
-- [ ] **Fix `example/taskmanager/setup.go:113`** — pre-existing `[]any` vs
-      `[]system.ProjectionDeclaration` type mismatch.
+- [x] **Unify `DeletePolicy` constant naming** — DONE 2026-08-11. Made
+      listing enum canonical; stack now uses `type DeletePolicy = listing.DeletePolicy`
+      with deprecated aliases (`ExcludeDeleted`, `IncludeDeleted`, `OnlyDeleted`) for
+      backward compat.
+      _(Effort: M)_
+- [x] **Rename remaining internal "tombstone" vocabulary** — PARTIALLY DONE
+      2026-08-11. Added deprecated aliases: `kv.DeleteQuerier[V] = TombstoneQuerier[V]`,
+      `storage/view.AutoMapperWithDelete`. Full rename of struct fields
+      (`OnTombstone`, `OnRebirth`, `TombstoneColumn`) deferred to v5.
+      _(Effort: L — struct fields deferred to v5)_
+- [x] **Backward-compat type aliases** — DONE 2026-08-11. All renamed types
+      have deprecated aliases. No hard breaks in this session.
+      _(Effort: S)_
+- [x] **Decide `metadata/` module fate** — DECIDED 2026-08-11: keep as-is,
+      marked deprecated at package level. No new features will be added.
+      _(Effort: S)_
+- [x] **Fix `example/taskmanager/setup.go:113`** — RESOLVED 2026-08-11.
+      Root cause was version-sequence: `system.ProjectionDeclaration` added after
+      `system/v4.1.0` tag. Tagged `system/v4.2.0`. Tags need `git push` for
+      CI/GOWORK=off builds.
       _(Effort: XS)_
 
 ---
@@ -848,9 +850,18 @@ and is **never** duplicated here.
 - [x] **`Store.SetPriority(ctx, pc)` runtime API** — DONE. Stores priorityConfig
       on Store and triggers Replan. Used by LayoutWarnings, GetLayoutInfo, and
       Doctor. File: `priority.go`.
-- [x] **Wire layout warnings into `Doctor()` + `EXPLAIN`** — DONE (Doctor).
-      Added `--- Layout ---` section with per-query layout info and warnings.
-      File: `layout_observability.go` (`LayoutDoctorSection`).
+- [x] **Wire layout warnings into `Doctor()` + `ExplainPlan()`** — DONE. Both
+      `Doctor()` (`--- Layout ---` section) and `ExplainPlan()` (`layout=Embed(Balanced)`
+      per query line) now show resolved priority and selected layout. Files:
+      `layout_observability.go` (`LayoutDoctorSection`, `layoutExplainAnnotation`),
+      `explain.go`.
+- [x] **Replace `sortedQueryNames` bubble sort with stdlib** — DONE. Was O(n²)
+      hand-rolled sort with comment "avoid adding sort import just for this";
+      replaced with `slices.Sorted(maps.Keys(...))`. File: `relayout.go`.
+- [x] **Add direct test coverage for `dispatchFolds`** — DONE. Tested through
+      Apply API: multi-query dispatch (one event → two queries on same engine),
+      multi-event dispatch. Also added e2e layout migration test
+      (Plan→Apply→ReplanLayout→ConfirmRebuild→verify). File: `layout_followup_test.go`.
 - [ ] **`cqrs-bench layout` CLI subcommand** — pre-deployment "what if"
       exploration tool.
 - [ ] **Real workload trace format** — JSON-lines spec, trace recorder, trace

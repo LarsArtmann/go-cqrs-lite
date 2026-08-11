@@ -383,4 +383,158 @@ var _ = Describe("Layout planning follow-ups (ADR-0124 Phase 6b)", func() {
 			Expect(result).NotTo(BeNil())
 		})
 	})
+
+	// dispatchFolds is unexported; these tests exercise its behavior through the
+	// public Apply API (Apply → applyWithRecord → dispatchFolds).
+	Describe("dispatchFolds behavior (multi-query dispatch)", func() {
+		It("dispatches one event to multiple queries on the same engine", func() {
+			mem := metaengine.NewMemoryEngine()
+			defer mem.Close()
+
+			// find_task (Map/Insert) and count_by_status (Counter/Delta) both
+			// have a fold for TaskCreated.
+			store, err := metaengine.Plan(
+				[]metaengine.Engine{mem},
+				findTaskQuery(),
+				countByStatusQuery(),
+			)
+			Expect(err).NotTo(HaveOccurred())
+			defer store.Close()
+
+			err = store.Apply(context.Background(), "TaskCreated", TaskCreated{
+				ID: "t1", Title: "Task 1", Status: "open",
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			// find_task projection
+			result, err := store.ExecuteCtx(context.Background(), FindTask{ID: "t1"})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).NotTo(BeNil())
+
+			// count_by_status projection
+			raw, err := store.ExecuteCtx(context.Background(), CountByStatus{})
+			Expect(err).NotTo(HaveOccurred())
+			counts, ok := raw.(map[string]int64)
+			Expect(ok).To(BeTrue())
+			Expect(counts["open"]).To(Equal(int64(1)))
+		})
+
+		It("dispatches multiple events to the same query", func() {
+			mem := metaengine.NewMemoryEngine()
+			defer mem.Close()
+
+			store, err := metaengine.Plan([]metaengine.Engine{mem}, findTaskQuery())
+			Expect(err).NotTo(HaveOccurred())
+			defer store.Close()
+
+			for _, id := range []string{"t1", "t2", "t3"} {
+				err = store.Apply(context.Background(), "TaskCreated", TaskCreated{
+					ID: TaskID(id), Title: id, Status: "open",
+				})
+				Expect(err).NotTo(HaveOccurred())
+			}
+
+			for _, id := range []string{"t1", "t2", "t3"} {
+				result, err := store.ExecuteCtx(context.Background(), FindTask{ID: TaskID(id)})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(result).NotTo(BeNil())
+			}
+		})
+	})
+
+	Describe("ExplainPlan layout annotation", func() {
+		It("includes layout= and priority= in query lines", func() {
+			mem := metaengine.NewMemoryEngine()
+			defer mem.Close()
+
+			store, err := metaengine.Plan([]metaengine.Engine{mem}, findTaskQuery())
+			Expect(err).NotTo(HaveOccurred())
+			defer store.Close()
+
+			output := store.ExplainPlan()
+			Expect(output).To(ContainSubstring("layout="))
+			Expect(output).To(ContainSubstring("Balanced"))
+		})
+
+		It("reflects priority changes in the annotation", func() {
+			kv := &fakeEngine{profile: metaengine.EngineProfile{
+				Name: "kv-test",
+				Layouts: map[metaengine.ADT]metaengine.StorageLayout{
+					metaengine.ADTMap: metaengine.LayoutKV,
+				},
+				Supports: map[metaengine.ADT]metaengine.Complexity{
+					metaengine.ADTMap: metaengine.ComplexityO1,
+				},
+			}}
+
+			store, err := metaengine.Plan([]metaengine.Engine{kv}, findTaskQuery())
+			Expect(err).NotTo(HaveOccurred())
+			defer store.Close()
+
+			err = store.SetPriority(context.Background(), &metaengine.PriorityConfig{
+				Global: metaengine.PriorityWriteSpeed,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			output := store.ExplainPlan()
+			Expect(output).To(ContainSubstring("WriteSpeed"))
+			Expect(output).To(ContainSubstring("Normalize"))
+		})
+	})
+
+	Describe("End-to-end layout migration", func() {
+		It("plans, applies, re-plans layout, confirms rebuild, verifies data", func() {
+			mem := metaengine.NewMemoryEngine()
+			defer mem.Close()
+
+			store, err := metaengine.Plan([]metaengine.Engine{mem}, simpleInsertQuery())
+			Expect(err).NotTo(HaveOccurred())
+			defer store.Close()
+
+			log := metaengine.NewEventLog()
+			metaengine.WithEventLog(store, log)
+
+			// 1. Apply events under default (Balanced → Embed on KV)
+			for _, id := range []string{"t1", "t2"} {
+				err = store.Apply(context.Background(), "TaskCreated", TaskCreated{
+					ID: TaskID(id), Title: id,
+				})
+				Expect(err).NotTo(HaveOccurred())
+			}
+
+			// 2. Verify data exists
+			r1, err := store.ExecuteCtx(context.Background(), FindTask{ID: "t1"})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(r1).NotTo(BeNil())
+
+			// 3. Default layout should be Embed (Balanced on KV)
+			infos := store.GetLayoutInfo()
+			Expect(infos[0].Layout).To(Equal(metaengine.LayoutEmbed))
+
+			// 4. ReplanLayout with WriteSpeed → should show Embed→Normalize diff
+			diffs, err := store.ReplanLayout(context.Background(), &metaengine.PriorityConfig{
+				Global: metaengine.PriorityWriteSpeed,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(diffs).To(HaveLen(1))
+			Expect(diffs[0].From).To(Equal(metaengine.LayoutEmbed))
+			Expect(diffs[0].To).To(Equal(metaengine.LayoutNormalize))
+
+			// 5. ConfirmRebuild replays events (idempotent insert → safe)
+			err = store.ConfirmRebuild(context.Background(), diffs)
+			Expect(err).NotTo(HaveOccurred())
+
+			// 6. Verify data is still correct after rebuild
+			r1After, err := store.ExecuteCtx(context.Background(), FindTask{ID: "t1"})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(r1After).NotTo(BeNil())
+
+			r2After, err := store.ExecuteCtx(context.Background(), FindTask{ID: "t2"})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(r2After).NotTo(BeNil())
+
+			// EventLog should not have grown (replay doesn't record)
+			Expect(log.Len()).To(Equal(2))
+		})
+	})
 })

@@ -1,20 +1,70 @@
 //go:build cgo
 
-package system_test
+package integration
 
 import (
 	"context"
 	"encoding/json/v2"
 	"errors"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
+
+	_ "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4" // registers "duckdb"
 )
+
+type duckTaskCreated struct {
+	Title string
+	At    time.Time
+}
+
+type duckTaskState struct {
+	Title  string
+	Status string
+	Exists bool
+}
+
+func applyDuckTask(state duckTaskState, evt event.Event) (duckTaskState, error) {
+	switch evt.Type() {
+	case "task.created":
+		var p duckTaskCreated
+		_ = json.Unmarshal(evt.Payload(), &p)
+		state.Title = p.Title
+		state.Status = "pending"
+		state.Exists = true
+	}
+
+	return state, nil
+}
+
+var duckTaskDecider = decider.Decider[duckTaskState]{
+	Initial: duckTaskState{},
+	Apply:   applyDuckTask,
+}
+
+func mustEvent(evt event.Event, err error) event.Event {
+	if err != nil {
+		panic(err)
+	}
+
+	return evt
+}
+
+func newCmd(cmdType command.Type, streamID id.StreamID) *command.BasicCommand {
+	cmd, err := command.New(cmdType, streamID)
+	if err != nil {
+		panic(err)
+	}
+
+	return cmd
+}
 
 // TestIntegration_DuckDBSource_HealthCheck verifies a DuckDB-backed
 // source-of-truth: dispatch a command, persist an event, load it back,
@@ -27,19 +77,19 @@ func TestIntegration_DuckDBSource_HealthCheck(t *testing.T) {
 
 	domain := system.DomainConfig{
 		Commands: func(sys *system.System) {
-			system.RegisterDecider(sys, "Task", TaskDecider)
+			system.RegisterDecider(sys, "Task", duckTaskDecider)
 
-			system.RegisterCommand[*command.BasicCommand, TaskState](sys, "task.create",
-				func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
+			system.RegisterCommand[*command.BasicCommand, duckTaskState](sys, "task.create",
+				func(ctx context.Context, cmd *command.BasicCommand) system.Op[duckTaskState] {
 					return system.Execute(ctx, cmd.StreamID(), "Task",
-						func(state TaskState, ver event.Version) ([]event.Event, error) {
+						func(state duckTaskState, ver event.Version) ([]event.Event, error) {
 							if state.Exists {
 								return nil, errors.New("task already exists")
 							}
 
 							return []event.Event{mustEvent(event.New("task.created",
 								cmd.StreamID(), "Task", ver+1,
-								TaskCreated{Title: "duckdb-integration", At: time.Now()},
+								duckTaskCreated{Title: "duckdb-integration", At: time.Now()},
 								event.WithCodec(codec.JSONCodec{})))}, nil
 						})
 				})
@@ -67,7 +117,6 @@ func TestIntegration_DuckDBSource_HealthCheck(t *testing.T) {
 		t.Fatalf("dispatch: %v", err)
 	}
 
-	// Verify the event was persisted.
 	ref := id.NewStreamRef("Task", streamID)
 	events, err := sys.EventStore().Load(ctx, ref)
 	if err != nil {
@@ -78,7 +127,7 @@ func TestIntegration_DuckDBSource_HealthCheck(t *testing.T) {
 		t.Fatalf("expected 1 event, got %d", len(events))
 	}
 
-	var p TaskCreated
+	var p duckTaskCreated
 	if err := json.Unmarshal(events[0].Payload(), &p); err != nil {
 		t.Fatalf("unmarshal payload: %v", err)
 	}
@@ -87,12 +136,10 @@ func TestIntegration_DuckDBSource_HealthCheck(t *testing.T) {
 		t.Fatalf("expected title duckdb-integration, got %s", p.Title)
 	}
 
-	// HealthCheck should pass — DuckDB implements HealthChecker.
 	if err := sys.HealthCheck(ctx); err != nil {
 		t.Fatalf("HealthCheck: %v", err)
 	}
 
-	// HealthCheckDetailed should include the duckdb engine and report it healthy.
 	detailed := sys.HealthCheckDetailed(ctx)
 	found := false
 
@@ -113,4 +160,8 @@ func TestIntegration_DuckDBSource_HealthCheck(t *testing.T) {
 	if err := sys.Close(); err != nil {
 		t.Fatalf("Close: %v", err)
 	}
+}
+
+func TestMain(m *testing.M) {
+	os.Exit(m.Run())
 }

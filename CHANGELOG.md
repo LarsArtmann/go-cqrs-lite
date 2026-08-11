@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed — Layout planning quality: sort fix, ExplainPlan layout annotations, test coverage — 2026-08-11
+
+> Addresses follow-up quality items from the ADR-0124 layout planning rollout:
+> replaces O(n²) bubble sort with stdlib, surfaces layout decisions in
+> ExplainPlan, and adds behavioral + e2e test coverage.
+
+- **`metaengine/relayout.go`** (QUALITY): Replaced hand-rolled O(n²) bubble sort
+  in `sortedQueryNames` with `slices.Sorted(maps.Keys(...))` — O(n log n) and
+  idiomatic. The function had a comment "avoid adding sort import just for this"
+  which was unfounded since `slices`/`maps` are already used in the package.
+- **`metaengine/explain.go`** + **`layout_observability.go`** (ADD):
+  `ExplainPlan()` now shows `layout=Embed(Balanced)` per query line, so operators
+  can see layout decisions alongside engine assignments. Added
+  `layoutExplainAnnotation` pure function (no locking — safe to call under held
+  store read lock).
+- **`metaengine/layout_followup_test.go`** (+5 tests, 205 total): Multi-query
+  dispatchFolds behavior (one event → two queries on same engine), ExplainPlan
+  layout annotation (includes layout= and reflects priority changes), end-to-end
+  layout migration (Plan → Apply → ReplanLayout → ConfirmRebuild → verify data
+  integrity and no double-logging).
+
 ### Fixed — Layout planning follow-ups: safe backfill, correct warnings, real rebuilds — 2026-08-11
 
 > Fixes the 3 critical bugs (🔥) from the ADR-0124 layout planning rollout, plus
