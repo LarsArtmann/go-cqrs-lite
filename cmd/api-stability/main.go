@@ -106,6 +106,7 @@ var modules = []string{
 	"catalog",
 	"benchkit",
 	"system",
+	"system/integration",
 	"cmd/cqrs-lint",
 	"cmd/cqrs-bench",
 	"cmd/cqrs-gen",

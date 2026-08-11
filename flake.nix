@@ -241,6 +241,7 @@
             "metaengine/irohengine/quic"
             "metaengine/mysqlengine"
             "system"
+            "system/integration"
             "flightrecorder"
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
