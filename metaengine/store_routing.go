@@ -216,7 +216,7 @@ func (s *Store) autoReplanLoop(ctx context.Context, interval time.Duration) {
 		case <-ticker.C:
 			diags := s.CheckRouting(ctx)
 			if len(diags) > 0 {
-				_ = s.Replan(ctx)
+				_ = s.replanWithTrigger(ctx, triggerAutoReroute)
 			}
 		}
 	}

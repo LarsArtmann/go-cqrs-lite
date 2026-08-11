@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed — Extract codec/ into standalone go-codec repo — 2026-08-11
+
+- **`codec/`** is now a **deprecated re-export alias** for the standalone
+  [`go-codec`](https://pkg.go.dev/github.com/larsartmann/go-codec) module.
+  All types, functions, constants, and error sentinels are re-exported as
+  type/variable aliases. Existing imports of
+  `github.com/larsartmann/go-cqrs-lite/codec/v4` continue to compile; new code
+  should import `github.com/larsartmann/go-codec` directly.
+- All 53 consumer modules across the workspace now import `go-codec` directly
+  instead of the internal `codec/v4` path.
+- `go.work` uses a `replace` directive to redirect to the local `../go-codec`
+  directory until the repo is published on GitHub with a `v0.1.0` tag. Once
+  published, remove the replace and add `../go-codec` to the `use` block (same
+  pattern as `go-retry` and `go-idempotency`).
+
 ### Added — Metaengine ADT coverage, degraded rule enhancement, engine test parity — 2026-08-11
 
 > Closes 4 Phase 7 tasks: capability-degradation planner rule, engine test

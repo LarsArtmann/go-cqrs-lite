@@ -175,7 +175,7 @@ import (
     "context"
     "fmt"
 
-    "github.com/larsartmann/go-cqrs-lite/codec/v4"
+    "github.com/larsartmann/go-codec"
     "github.com/larsartmann/go-cqrs-lite/command/v4"
     "github.com/larsartmann/go-cqrs-lite/decider/v4"
     "github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -1138,3 +1138,92 @@ store, _ := metaengine.Plan(
 )
 // Pure Go (pgx/v5 driver, no CGo)
 ```
+
+### Operator-Driven Layout Planning (metaengine — ADR-0124)
+
+The developer declares queries; the **operator** tunes how projections are
+physically stored via four priority levers. The planner scores each layout
+(Embed vs Normalize) against the engine's cost profile and the operator's
+priority, picking the lowest weighted cost. See
+[`docs/adr/0124-operator-driven-layout-planning.md`](../../../../docs/adr/0124-operator-driven-layout-planning.md)
+and
+[`docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md`](../../../../docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md).
+
+**Four priorities** (cost-type multipliers):
+
+| Priority | ReadW | WriteW | StorageW | Favors |
+|----------|-------|--------|----------|--------|
+| `PriorityBalanced` (default) | 1.0 | 1.0 | 1.0 | No preference |
+| `PriorityReadSpeed` | 1.5 | 0.5 | 1.0 | Embedded (single-read aggregate) |
+| `PriorityWriteSpeed` | 0.5 | 1.5 | 1.0 | Normalized (O(1) child insert) |
+| `PriorityStorageSpace` | 0.8 | 0.8 | 2.5 | Normalized (no duplication) |
+
+**Decision matrix** (which layout wins per engine type × priority):
+
+| Engine type | Balanced | ReadSpeed | WriteSpeed | StorageSpace |
+|-------------|----------|-----------|------------|--------------|
+| KV (Memory) | Embed | Embed | Normalize | Normalize |
+| LSM (Pebble/bbolt) | Embed | Embed | Normalize | Normalize |
+| Row (SQL) | Normalize | Normalize | Normalize | Normalize |
+| Columnar (DuckDB) | Normalize | Embed (tie) | Normalize | Normalize |
+
+**Set priority at Plan time** (static):
+
+```go
+store, _ := metaengine.Plan(engines, query,
+    metaengine.WithPriorityConfig(&metaengine.PriorityConfig{
+        Global: metaengine.PriorityReadSpeed,
+        // Optional overrides (most specific wins):
+        // PerEngine: map[string]metaengine.Priority{"pebble": metaengine.PriorityWriteSpeed},
+        // PerQuery:  map[string]metaengine.Priority{"find_task": metaengine.PriorityStorageSpace},
+    }),
+)
+```
+
+**Change priority at runtime** (triggers immediate re-plan):
+
+```go
+_ = store.SetPriority(ctx, &metaengine.PriorityConfig{
+    Global: metaengine.PriorityWriteSpeed,
+})
+
+// Preview which projections would change layout:
+diffs, _ := store.ReplanLayout(ctx, nil) // nil = use Store's active config
+for _, d := range diffs {
+    fmt.Printf("%s: %s → %s (rebuild ~%d events)\n",
+        d.QueryName, d.From, d.To, d.EstimatedRebuildEvents)
+}
+
+// Execute rebuilds that exceed the auto-rebuild threshold:
+_ = store.ConfirmRebuild(ctx, diffs)
+```
+
+**Inspect the plan audit trail** (who changed what priority when):
+
+```go
+for _, e := range store.PlanHistory() {
+    pri := "none"
+    if e.Priority != nil {
+        pri = string(e.Priority.Resolve("", ""))
+    }
+    fmt.Printf("v%d %s trigger=%s priority=%s\n", e.Version, e.At, e.Trigger, pri)
+}
+// v3 2026-08-11 trigger=priority-change priority=WriteSpeed
+// v2 2026-08-11 trigger=engine-added priority=Balanced
+// v1 2026-08-11 trigger=manual priority=Balanced
+```
+
+The Doctor report surfaces recent transitions in the `--- Routing ---` section:
+
+```go
+fmt.Println(store.Doctor(ctx))
+// --- Routing ---
+//   plan version: 3
+//   replans: 3 (last 12s ago)
+//   audit: v3 priority-change(WriteSpeed) ← v2 engine-added(Balanced) ← v1 manual(Balanced)
+```
+
+Key types: `Priority`, `PriorityConfig`, `PriorityWeights`, `SelectLayout`,
+`ScoreLayouts`, `LayoutOption` (`LayoutEmbed`/`LayoutNormalize`),
+`LayoutDiff`, `SetPriority`, `ReplanLayout`, `ConfirmRebuild`,
+`PlanHistory`, `PlanAuditEntry`.

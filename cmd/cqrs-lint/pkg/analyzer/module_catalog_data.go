@@ -246,7 +246,7 @@ func buildDefaultCatalog() []ModuleEntry {
 		// ── Optimization ───────────────────────────────────────────────
 		{
 			Key: "codec", DisplayName: "Codec", Category: CategoryOptimization,
-			ImportHints: []string{"go-cqrs-lite/codec"},
+			ImportHints: []string{"go-cqrs-lite/codec", "go-codec"},
 			Description: "Payload encoding (JSON, CBOR deterministic, Raw)",
 			Suggestion:  "CBOR codec for ~35% smaller event payloads",
 		},

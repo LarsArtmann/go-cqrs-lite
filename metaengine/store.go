@@ -32,6 +32,7 @@ type Store struct {
 	routingMinDelta   float64        // min absolute improvement (ms) before suggesting re-route
 	lastReplanAt      time.Time
 	replanCount       int
+	planHistory       []PlanAuditEntry // bounded audit trail (max maxPlanHistory)
 	routingMu         sync.Mutex // protects routingSig + routingDiags
 	routingSig        string
 	routingDiags      []Diagnostic
@@ -55,6 +56,14 @@ func (s *Store) Plan() *PlanResult { return s.plan }
 // compare versions to detect that a re-plan occurred without inspecting the
 // full PlanResult.
 func (s *Store) Replan(ctx context.Context) error {
+	return s.replanWithTrigger(ctx, triggerManual)
+}
+
+// replanWithTrigger is the shared body of every re-plan path. The trigger
+// string is recorded in the audit trail so operators can distinguish a manual
+// Replan from one caused by SetPriority, AddEngine/RemoveEngine, or the
+// auto-reroute loop.
+func (s *Store) replanWithTrigger(ctx context.Context, trigger string) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("metaengine.Store.Replan: %w", err)
 	}
@@ -99,9 +108,10 @@ func (s *Store) Replan(ctx context.Context) error {
 	s.plan = plan
 	s.lastReplanAt = plan.ComputedAt
 	s.replanCount++
+	s.appendPlanAudit(plan.Version, plan.ComputedAt, trigger, s.priorityConfig)
 
 	slog.Info("metaengine: replan completed",
-		"version", plan.Version, "queries", len(plan.Queries))
+		"version", plan.Version, "queries", len(plan.Queries), "trigger", trigger)
 
 	return nil
 }

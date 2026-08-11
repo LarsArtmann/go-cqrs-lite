@@ -158,5 +158,5 @@ func (s *Store) SetPriority(ctx context.Context, pc *PriorityConfig) error {
 	s.priorityConfig = pc
 	s.mu.Unlock()
 
-	return s.Replan(ctx)
+	return s.replanWithTrigger(ctx, triggerPriority)
 }

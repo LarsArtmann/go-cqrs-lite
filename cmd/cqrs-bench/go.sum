@@ -199,8 +199,6 @@ github.com/larsartmann/go-branded-id v0.5.1 h1:4Cyv41AkbtQuf66TuNfWugjqHYA48I3Kf
 github.com/larsartmann/go-branded-id v0.5.1/go.mod h1:ElTJY6HNf3ziPytNA5mpW32bxjfsZ/C8ILn4nPQdbmI=
 github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.3.0 h1:hFsVU97rtxPvg1+VJj6wneXmZ2tirK/mV54i4S/Ud4A=
 github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.3.0/go.mod h1:clTomPSe0QxopNnzM6ejeoOw4lgHH6Ef+WEg5KJAGi8=
-github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0 h1:1ADPqnQQYMiEov7BCASKd6hAiUzpWsmSo5JPIMWD3xE=
-github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0/go.mod h1:rllfH3yP5OoS+lpjkG9m7Y0FuDEmCxMhxQLtiflqKqE=
 github.com/larsartmann/go-cqrs-lite/decider/v4 v4.2.0 h1:wMT/9V20nCmSjRVPxfReyutBCkviIBphof4mNMla9JA=
 github.com/larsartmann/go-cqrs-lite/decider/v4 v4.2.0/go.mod h1:vgepRQ2ys9waFl8QUZglz6iDYUBdw53I7u1aataLu4Y=
 github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 h1:cz9UT/X4sIPvPqIF8YNp4ngPcXIi10OLJTjALEXE+2Q=

@@ -80,7 +80,7 @@ Compact reference — see [`references/modules.md`](.agents/skills/go-cqrs-lite/
 | `projectionhost/`                                              | Managed projection host: crash-restart, DLQ, checkpoint                                            | Reads SeekableJournal directly                    |
 | `kv/`                                                          | Layer-0 KV: Store, TypedStore[T,K], Cache[T,K], ViewStore[V,K]                                     |                                                   |
 | `graph/`                                                       | Graph projection tier: NodeRef, EdgeRef, MemoryDriver, GraphProjection                             | ADR-0033, ADR-0039                                |
-| `codec/`                                                       | Payload encoding: JSON, CBOR (deterministic), Raw                                                  |                                                   |
+| `codec/`                                                       | **DEPRECATED** — re-export alias for `go-codec`. Import `github.com/larsartmann/go-codec` directly | Extracted to standalone repo                        |
 | `dedup/`                                                       | Bounded dedup ring buffer (O(1) fixed-capacity)                                                    |                                                   |
 | `listing/`                                                     | StreamListing, stream status (Active/Deleted), DeletePolicy, WithDeleteTypes                      |                                                   |
 | `scenario/`                                                    | Fluent BDD DSL: Given/When/Then for deciders + projections                                         |                                                   |
@@ -266,7 +266,7 @@ nix run .#check-duplication  # no-new-clones gate
 Seven-tier model — see [ADR-0046](docs/adr/0046-seven-tier-model.md) and [SEVEN-TIER-MODEL.md](docs/architecture-understanding/SEVEN-TIER-MODEL.md) for full mapping (78 modules across 7 tiers).
 
 ```
-Tier 0 — Primitives: id/, dispatcher/, codec/, kv/, dedup/, record/, flightrecorder/, retry/ (DEPRECATED)
+Tier 0 — Primitives: id/, dispatcher/, codec/ (DEPRECATED → go-codec), kv/, dedup/, record/, flightrecorder/, retry/ (DEPRECATED)
 Tier 1 — Core Domain: event/, command/, query/, scheduling/, metadata/
 Tier 2 — Domain Utilities: schema/, snapshot/, projection/, idempotency/, deriver/, commandlifecycle/, idempotency/kvstore/, idempotency/sqlstore/
 Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/, metaengine/, commandlifecycle/projections/

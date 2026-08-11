@@ -69,7 +69,7 @@ func (s *Store) AddEngine(ctx context.Context, engine Engine) error {
 	s.engines = append(s.engines, engine)
 	s.mu.Unlock()
 
-	return s.Replan(ctx)
+	return s.replanWithTrigger(ctx, triggerEngineAdd)
 }
 
 // RemoveEngine deregisters an engine at runtime and triggers a re-plan.
@@ -94,7 +94,7 @@ func (s *Store) RemoveEngine(ctx context.Context, name string) error {
 	s.engines = append(s.engines[:idx], s.engines[idx+1:]...)
 	s.mu.Unlock()
 
-	return s.Replan(ctx)
+	return s.replanWithTrigger(ctx, triggerEngineRemove)
 }
 
 // Backfill replays all events from the attached EventLog into all projections.

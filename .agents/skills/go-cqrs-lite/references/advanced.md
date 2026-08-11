@@ -607,3 +607,71 @@ defer recorder.Close()
 - `Recorder` implements `io.Closer` — participates in `stack.Bundle.Close()` shutdown ordering
 
 See [ADR-0089](../../../../docs/adr/0089-flight-recorder.md) for design rationale.
+
+### 6.18 Command Lifecycle as Event Streams (commandlifecycle — ADR-0117)
+
+Track the full lifecycle of every command as durable event streams. Instead of
+ephemeral logs, commands emit lifecycle events (`received`, `failed`, `retried`,
+`dead-lettered`, `completed`) that feed pre-built projections: dead-letter
+queue, retry counts, failure log, and processing-time metrics.
+
+**Why event streams instead of a side table?** Lifecycle data lives in the same
+EventStore as domain events — same durability, same replay semantics, same
+projections. A dead-lettered command survives a crash; the DLQ projection is
+rebuilt from the event log on restart.
+
+**Two middleware layers** wrap the retry middleware:
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
+import "github.com/larsartmann/go-cqrs-lite/middleware/v4"
+
+recorder := commandlifecycle.NewRecorder(eventStore)
+outer, attempt := commandlifecycle.New(recorder)
+
+dispatcher.Use(
+    outer,                           // wraps everything: received, completed, dead-lettered
+    middleware.CommandRetry(config), // retry logic in the middle
+    attempt,                         // per-attempt: failed, retried
+)
+```
+
+- **Outer middleware** fires `command.received` before dispatch and
+  `command.completed` / `command.dead-lettered` after.
+- **Attempt middleware** fires `command.failed` and `command.retried` around
+  each retry attempt.
+
+**Query the projections** (via metaengine — see §2.19 in recipes.md for the
+full API):
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4"
+
+// Dead-letter queue: which commands exhausted all retries?
+result, _ := metaengine.ExecuteTyped[projections.DeadLetterQuery, projections.DeadLetterEntry](
+    ctx, store, projections.DeadLetterQuery{CommandID: "01J..."},
+)
+```
+
+| Lifecycle event | Emitted when | Projection |
+|-----------------|-------------|------------|
+| `command.received` | Server accepts command | ProcessingTime |
+| `command.failed` | Single attempt fails | FailureLog |
+| `command.retried` | Before each retry | RetryCount |
+| `command.dead-lettered` | All retries exhausted | DLQ |
+| `command.completed` | Command processed successfully | ProcessingTime |
+
+Use `commandlifecycle.WithStrict()` when lifecycle tracking must not silently
+fail (auditable systems). See [ADR-0117](../../../../docs/adr/0117-command-lifecycle-as-events.md).
+
+### 6.19 Operator-Driven Layout Planning (metaengine — ADR-0124)
+
+The developer declares Commands + Events + Queries; the **operator** chooses
+how projections are physically stored at deployment time via four priority
+levers. The planner scores Embed vs Normalize against the engine's cost profile
+and picks the lowest weighted cost.
+
+See §"Operator-Driven Layout Planning" in
+[recipes.md](recipes.md) for copy-paste code, the full 16-cell decision matrix,
+and the audit-trail API. Design doc:
+[`docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md`](../../../../docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md).

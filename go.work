@@ -2,7 +2,6 @@ go 1.26.5
 
 use (
 	.
-	../go-codec
 	../go-flightrecorder
 	../go-idempotency
 	../go-retry
@@ -92,6 +91,13 @@ use (
 	./transport/http
 	./watermill
 )
+
+// go-codec is extracted from codec/ into a standalone repo. This replace
+// directive redirects all workspace modules to the local directory until
+// the repo is published on GitHub with a v0.1.0 tag. Once published, remove
+// this replace and add `../go-codec` to the use block above (same pattern
+// as go-retry and go-idempotency).
+replace github.com/larsartmann/go-codec => ../go-codec
 
 // The genproto replace resolves an ambiguous-import conflict between
 // cockroachdb/errors (transitive from pebble, pulls the monolithic

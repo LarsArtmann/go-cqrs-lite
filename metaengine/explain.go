@@ -336,6 +336,10 @@ func (s *Store) Doctor(ctx context.Context) string {
 		b.WriteString("  replans: 0 (never)\n")
 	}
 
+	if hist := s.formatPlanAuditTrail(); hist != "" {
+		fmt.Fprintf(&b, "  audit: %s\n", hist)
+	}
+
 	fmt.Fprintf(&b, "  hysteresis: %.0f%%\n", hysteresis*100)
 
 	driftDiags := s.CheckRouting(ctx)
