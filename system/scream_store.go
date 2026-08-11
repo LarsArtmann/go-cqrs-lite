@@ -75,7 +75,8 @@ func CheckSafety(_ context.Context, deployment DeploymentConfig) (*ScreamReport,
 				Rule: "invalid-priority",
 				Detail: fmt.Sprintf(
 					"priority %q on %s is not a recognized value (WriteSpeed, ReadSpeed, StorageSpace, Balanced) — resolves to Balanced",
-					p, where,
+					p,
+					where,
 				),
 			})
 		}

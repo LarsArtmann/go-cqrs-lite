@@ -3,6 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/bench/v4
 go 1.26.5
 
 require (
+	github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0
@@ -59,6 +60,7 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect
+	go.etcd.io/bbolt v1.5.0 // indirect
 	golang.org/x/exp v0.0.0-20260810151157-a8b543ca52da // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
@@ -76,3 +78,7 @@ replace (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 => ../bboltengine
+
+replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record
+
+replace github.com/larsartmann/go-cqrs-lite/id/v4 => ../../id

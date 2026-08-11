@@ -246,8 +246,9 @@ DONE 2026-08-10/11. See [CHANGELOG.md](CHANGELOG.md) and status reports
 - [ ] **Update SKILL.md + skill references** — layout planning concepts,
       priority system, benchmark mode consumer docs.
       _(Effort: S)_
-- [ ] **Tag `benchkit/v4.4.0`** — `Truncate`/`TitleCase` added after v4.3.0 tag.
-      `cmd/cqrs-bench` fails under GOWORK=off without it.
+- [x] **Tag `benchkit/v4.4.0`** — `Truncate`/`TitleCase` added after v4.3.0 tag.
+      `cmd/cqrs-bench` fails under GOWORK=off without it. Already tagged
+      (7d5cd10c7). Closed 2026-08-11.
       _(Effort: XS)_
 - [ ] **Document commandlifecycle in skill references** — modules.md, recipes.md,
       advanced.md do not mention commandlifecycle/. Only AGENTS.md has it.

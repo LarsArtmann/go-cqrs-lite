@@ -3843,6 +3843,9 @@ system/method MetaEngine
 system/method On
 system/method On
 system/method On
+system/method Priority
+system/method Priority
+system/method Priority
 system/method ProjectionExplain
 system/method ProjectionHost
 system/method ProjectionPlan
@@ -3897,6 +3900,7 @@ system/struct InstanceTopology
 system/struct LookupInput
 system/struct MultiBus
 system/struct Op
+system/struct PriorityConfig
 system/struct ProjectionHostInfo
 system/struct ProjectionSpec
 system/struct QueryAdapter

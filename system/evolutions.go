@@ -220,17 +220,21 @@ func buildEvolutionFolds[R any](evo *evolutionSpec) ([]metaengine.Fold, error) {
 }
 
 // buildQueryFromFolds creates a metaengine.Query from fold functions and decoder entries.
+// Extra args (e.g., metaengine.WithLayoutPriority) are appended after the folds.
 func buildQueryFromFolds[Q any, R any](
 	name string,
 	folds []metaengine.Fold,
 	entries []decoderEntry,
+	extraArgs ...any,
 ) (any, []decoderEntry) {
-	foldArgs := make([]any, len(folds))
-	for i, f := range folds {
-		foldArgs[i] = f
+	args := make([]any, 0, len(folds)+len(extraArgs))
+	for _, f := range folds {
+		args = append(args, f)
 	}
 
-	query := metaengine.Query[Q, R](name, foldArgs...)
+	args = append(args, extraArgs...)
+
+	query := metaengine.Query[Q, R](name, args...)
 
 	return query, entries
 }

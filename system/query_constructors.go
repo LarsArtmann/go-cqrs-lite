@@ -67,13 +67,16 @@ func (b *lookupBuilder[R]) Done() ProjectionDeclaration {
 	name := b.name
 	rt := reflect.TypeFor[R]()
 	samplesCopy := append([]metaengine.NamedSample(nil), b.samples...)
+	layoutPriority := b.layoutPriority
 
 	return ProjectionSpec{
 		name:       name,
 		resultType: rt,
 		build: func(evoIndex map[reflect.Type]*evolutionSpec) (any, []decoderEntry, error) {
 			if len(samplesCopy) > 0 {
-				return buildCRUDQuery[LookupInput[string], R](name, keyField, samplesCopy, layoutPriority)
+				return buildCRUDQuery[LookupInput[string], R](
+					name, keyField, samplesCopy, layoutPriority,
+				)
 			}
 
 			if evo, ok := evoIndex[rt]; ok {
@@ -82,11 +85,18 @@ func (b *lookupBuilder[R]) Done() ProjectionDeclaration {
 					return nil, nil, err
 				}
 
+				var extra []any
+				if layoutPriority.Valid() {
+					extra = append(extra, metaengine.WithLayoutPriority(layoutPriority))
+				}
+
 				q, decs := buildQueryFromFolds[LookupInput[string], R](
 					name,
 					folds,
 					evolutionDecoderEntries(evo),
+					extra...,
 				)
+
 				return q, decs, nil
 			}
 
@@ -104,11 +114,12 @@ func (b *lookupBuilder[R]) Done() ProjectionDeclaration {
 // filtering and sorting. The engine builds a table with indexes on declared
 // filterable/sortable fields.
 type querySetBuilder[R any] struct {
-	name       string
-	keyField   string
-	samples    []metaengine.NamedSample
-	filterable []string
-	sortFields []sortSpec
+	name           string
+	keyField       string
+	samples        []metaengine.NamedSample
+	filterable     []string
+	sortFields     []sortSpec
+	layoutPriority metaengine.Priority
 }
 
 type sortSpec struct {
@@ -144,6 +155,14 @@ func (b *querySetBuilder[R]) On(eventType string, sample any) *querySetBuilder[R
 	return b
 }
 
+// Priority pins the layout-planning objective for this query
+// (ADR-0124 Layer 4). See [lookupBuilder.Priority] for resolution semantics.
+func (b *querySetBuilder[R]) Priority(p metaengine.Priority) *querySetBuilder[R] {
+	b.layoutPriority = p
+
+	return b
+}
+
 // Filterable declares fields that runtime queries can filter on.
 // The engine generates indexes on these fields for SQL pushdown.
 func (b *querySetBuilder[R]) Filterable(fields ...string) *querySetBuilder[R] {
@@ -172,12 +191,13 @@ func (b *querySetBuilder[R]) Done() ProjectionDeclaration {
 	samplesCopy := append([]metaengine.NamedSample(nil), b.samples...)
 	filterCopy := append([]string(nil), b.filterable...)
 	sortCopy := append([]sortSpec(nil), b.sortFields...)
+	layoutPriority := b.layoutPriority
 
 	return ProjectionSpec{
 		name:       name,
 		resultType: rt,
 		build: func(evoIndex map[reflect.Type]*evolutionSpec) (any, []decoderEntry, error) {
-			opts := make([]any, 0, len(filterCopy)+len(sortCopy))
+			opts := make([]any, 0, len(filterCopy)+len(sortCopy)+1)
 
 			for _, f := range filterCopy {
 				opts = append(opts, metaengine.FilterOnField[R](f, metaengine.FilterEq))
@@ -188,7 +208,9 @@ func (b *querySetBuilder[R]) Done() ProjectionDeclaration {
 			}
 
 			if len(samplesCopy) > 0 {
-				return buildCRUDQueryWithOptions[ScanInput, R](name, keyField, samplesCopy, opts)
+				return buildCRUDQueryWithOptions[ScanInput, R](
+					name, keyField, samplesCopy, opts, layoutPriority,
+				)
 			}
 
 			if evo, ok := evoIndex[rt]; ok {
@@ -197,11 +219,15 @@ func (b *querySetBuilder[R]) Done() ProjectionDeclaration {
 					return nil, nil, err
 				}
 
-				args := make([]any, 0, len(folds)+len(opts))
+				args := make([]any, 0, len(folds)+len(opts)+1)
 				for _, f := range folds {
 					args = append(args, f)
 				}
 				args = append(args, opts...)
+
+				if layoutPriority.Valid() {
+					args = append(args, metaengine.WithLayoutPriority(layoutPriority))
+				}
 
 				query := metaengine.Query[ScanInput, R](name, args...)
 
@@ -228,8 +254,9 @@ type countEntry struct {
 
 // countBuilder builds a counter projection that maintains numeric aggregates.
 type countBuilder struct {
-	name    string
-	entries []countEntry
+	name           string
+	entries        []countEntry
+	layoutPriority metaengine.Priority
 }
 
 // Count declares a counter projection: maintain numeric aggregates per key.
@@ -242,6 +269,14 @@ type countBuilder struct {
 //	    Done()
 func Count(name string) *countBuilder {
 	return &countBuilder{name: name}
+}
+
+// Priority pins the layout-planning objective for this query
+// (ADR-0124 Layer 4). See [lookupBuilder.Priority] for resolution semantics.
+func (b *countBuilder) Priority(p metaengine.Priority) *countBuilder {
+	b.layoutPriority = p
+
+	return b
 }
 
 // On registers an event that adjusts a counter key by delta.
@@ -261,12 +296,14 @@ func (b *countBuilder) On(eventType string, sample any, delta int64, key string)
 func (b *countBuilder) Done() ProjectionDeclaration {
 	name := b.name
 	entriesCopy := append([]countEntry(nil), b.entries...)
+	layoutPriority := b.layoutPriority
 
 	return ProjectionSpec{
 		name:       name,
 		resultType: reflect.TypeFor[map[string]int64](),
 		build: func(_ map[reflect.Type]*evolutionSpec) (any, []decoderEntry, error) {
-			q, decs := buildCounterQuery(name, entriesCopy)
+			q, decs := buildCounterQuery(name, entriesCopy, layoutPriority)
+
 			return q, decs, nil
 		},
 	}
@@ -278,18 +315,23 @@ func (b *countBuilder) Done() ProjectionDeclaration {
 func buildCRUDQuery[Q any, R any](
 	name, keyField string,
 	samples []metaengine.NamedSample,
+	layoutPriority metaengine.Priority,
 ) (any, []decoderEntry, error) {
 	folds, err := metaengine.AutoCRUDByNamedEvents[R](keyField, samples...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("system: projection %q: %w", name, err)
 	}
 
-	foldArgs := make([]any, len(folds))
-	for i, f := range folds {
-		foldArgs[i] = f
+	args := make([]any, 0, len(folds)+1)
+	for _, f := range folds {
+		args = append(args, f)
 	}
 
-	query := metaengine.Query[Q, R](name, foldArgs...)
+	if layoutPriority.Valid() {
+		args = append(args, metaengine.WithLayoutPriority(layoutPriority))
+	}
+
+	query := metaengine.Query[Q, R](name, args...)
 
 	return query, samplesToDecoderEntries(samples), nil
 }
@@ -300,18 +342,23 @@ func buildCRUDQueryWithOptions[Q any, R any](
 	name, keyField string,
 	samples []metaengine.NamedSample,
 	opts []any,
+	layoutPriority metaengine.Priority,
 ) (any, []decoderEntry, error) {
 	folds, err := metaengine.AutoCRUDByNamedEvents[R](keyField, samples...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("system: projection %q: %w", name, err)
 	}
 
-	args := make([]any, 0, len(folds)+len(opts))
+	args := make([]any, 0, len(folds)+len(opts)+1)
 	for _, f := range folds {
 		args = append(args, f)
 	}
 
 	args = append(args, opts...)
+
+	if layoutPriority.Valid() {
+		args = append(args, metaengine.WithLayoutPriority(layoutPriority))
+	}
 
 	query := metaengine.Query[Q, R](name, args...)
 
@@ -322,6 +369,7 @@ func buildCRUDQueryWithOptions[Q any, R any](
 func buildCounterQuery(
 	name string,
 	entries []countEntry,
+	layoutPriority metaengine.Priority,
 ) (any, []decoderEntry) {
 	folds := make([]metaengine.Fold, 0, len(entries))
 	decEntries := make([]decoderEntry, 0, len(entries))
@@ -345,12 +393,16 @@ func buildCounterQuery(
 		})
 	}
 
-	foldArgs := make([]any, len(folds))
-	for i, f := range folds {
-		foldArgs[i] = f
+	args := make([]any, 0, len(folds)+1)
+	for _, f := range folds {
+		args = append(args, f)
 	}
 
-	query := metaengine.Query[CountInput, map[string]int64](name, foldArgs...)
+	if layoutPriority.Valid() {
+		args = append(args, metaengine.WithLayoutPriority(layoutPriority))
+	}
+
+	query := metaengine.Query[CountInput, map[string]int64](name, args...)
 
 	return query, decEntries
 }
