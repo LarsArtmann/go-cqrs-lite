@@ -29,8 +29,8 @@ type sqliteEngine struct {
 	plans    map[string]metaengine.LayoutPlan
 	txMu     sync.Mutex
 	activeTx atomic.Pointer[txExecutor]
-	cal      metaengine.Calibration
-	probeFn  func(context.Context) (time.Duration, error)
+	metaengine.Calibration
+	probeFn func(context.Context) (time.Duration, error)
 }
 
 // sqliteQuerySet holds pre-built SQL strings for each operation.
@@ -137,14 +137,9 @@ func NewSQLiteEngine(database *sql.DB) (metaengine.Engine, error) {
 	return eng, nil
 }
 
-// SetCalibration implements metaengine.Calibratable for runtime cost calibration.
-func (e *sqliteEngine) SetCalibration(costs metaengine.CalibrationCosts) {
-	e.cal.SetCalibration(costs)
-}
-
 func (e *sqliteEngine) Profile() metaengine.EngineProfile {
 	p := metaengine.SQLiteEngineProfile()
-	e.cal.ApplyCalibration(&p)
+	e.ApplyCalibration(&p)
 
 	return p
 }

@@ -61,7 +61,7 @@ type pebbleEngine struct {
 	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
 	layoutMu    sync.Mutex
 	layouts     map[string]layoutPlan // collection → layout plan (secondary indexes)
-	cal         metaengine.Calibration
+	metaengine.Calibration
 }
 
 // NewPebbleEngine creates a Pebble-backed metaengine engine. If dir is empty,
@@ -140,14 +140,9 @@ func (e *pebbleEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSpatial: true,
 		},
 	}
-	e.cal.ApplyCalibration(&p)
+	e.ApplyCalibration(&p)
 
 	return p
-}
-
-// SetCalibration implements metaengine.Calibratable.
-func (e *pebbleEngine) SetCalibration(costs metaengine.CalibrationCosts) {
-	e.cal.SetCalibration(costs)
 }
 
 func (e *pebbleEngine) Close() error {

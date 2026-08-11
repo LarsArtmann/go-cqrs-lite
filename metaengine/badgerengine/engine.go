@@ -52,7 +52,7 @@ type badgerEngine struct {
 	mmSeq       sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
 	streamSeq   sync.Map   // "col\x00sid" → *atomic.Int64 (per-stream sequence)
 	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
-	cal         metaengine.Calibration
+	metaengine.Calibration
 }
 
 // NewBadgerEngine creates a Badger-backed metaengine engine. If dir is empty,
@@ -122,14 +122,9 @@ func (e *badgerEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
 		},
 	}
-	e.cal.ApplyCalibration(&p)
+	e.ApplyCalibration(&p)
 
 	return p
-}
-
-// SetCalibration implements metaengine.Calibratable.
-func (e *badgerEngine) SetCalibration(costs metaengine.CalibrationCosts) {
-	e.cal.SetCalibration(costs)
 }
 
 // HealthCheck verifies the underlying Badger DB is responsive by opening a

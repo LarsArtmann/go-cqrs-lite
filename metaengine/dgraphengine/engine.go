@@ -57,7 +57,7 @@ type dgraphEngine struct {
 	done           bool
 	schemaMu       sync.Mutex
 	appliedSchemas map[string]bool
-	cal            metaengine.Calibration
+	metaengine.Calibration
 }
 
 // New creates a Dgraph-backed metaengine Engine from a gRPC address.
@@ -161,14 +161,9 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSearch:    metaengine.LayoutKV,
 		},
 	}
-	e.cal.ApplyCalibration(&p)
+	e.ApplyCalibration(&p)
 
 	return p
-}
-
-// SetCalibration implements metaengine.Calibratable.
-func (e *dgraphEngine) SetCalibration(costs metaengine.CalibrationCosts) {
-	e.cal.SetCalibration(costs)
 }
 
 // HealthCheck verifies the Dgraph gRPC connection is responsive by executing

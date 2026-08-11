@@ -61,7 +61,7 @@ type bboltEngine struct {
 	mmSeq       sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
 	streamSeq   sync.Map   // "col\x00sid" → *atomic.Int64 (per-stream sequence)
 	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
-	cal         metaengine.Calibration
+	metaengine.Calibration
 }
 
 // NewBboltEngine creates a bbolt-backed metaengine engine. If path is empty,
@@ -164,14 +164,9 @@ func (e *bboltEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
 		},
 	}
-	e.cal.ApplyCalibration(&p)
+	e.ApplyCalibration(&p)
 
 	return p
-}
-
-// SetCalibration implements metaengine.Calibratable.
-func (e *bboltEngine) SetCalibration(costs metaengine.CalibrationCosts) {
-	e.cal.SetCalibration(costs)
 }
 
 func (e *bboltEngine) Close() error {
