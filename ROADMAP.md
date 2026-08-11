@@ -520,8 +520,7 @@ Phase 2: Dead code removal (GraphBackend, simpleBus → watermill)
 Phase 3: Self-registration infrastructure (registry → metaengine/)
 Phase 4: All 8 backends self-register
 Phase 5: Record-typed default folds
-Phase 6: Auto-projection (planner-time fold inference) ← the killer feature
-Phase 7: Universal engine coverage + batch atomicity + degradation rule
+
 Phase 8: Delete v1 tiers + stack.Bundle → cut v5.0.0
 ```
 
@@ -548,7 +547,8 @@ can try it while v1 paths still work. v5 is the clean cut.
   save ~99% of transform cost under high fan-out.
 - Auto-denormalization in metaengine — planner detects that two queries share
   a common prefix and recommends a denormalized projection to avoid fan-out
-  joins at read time. **→ Subsumed by v5 auto-projection (ADR-0123 Phase 6).**
+  joins at read time. **→ Subsumed by operator-driven layout planning
+  ([ADR-0124](docs/adr/0124-operator-driven-layout-planning.md)).**
 - Metaengine plugin registry — third-party engine backends registered at
   runtime without recompiling (operator YAML config for engine selection).
   **→ Subsumed by v5 self-registration (ADR-0123 Phase 3).**

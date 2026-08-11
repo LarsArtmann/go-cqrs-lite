@@ -7,9 +7,10 @@ import (
 )
 
 type rankedEngine struct {
-	engine     Engine
-	complexity Complexity
-	cost       CostEstimate
+	engine           Engine
+	complexity       Complexity
+	cost             CostEstimate
+	weightedLatencyMs float64 // priority-adjusted latency for ranking (ADR-0124)
 }
 
 // DefaultWriteAmplificationBudget is the default maximum number of projections
@@ -24,6 +25,7 @@ type planConfig struct {
 	networkRTTOverride       *time.Duration // overrides all engines' declared NetworkRTT for cost estimation
 	routingHysteresis        float64        // min fractional improvement for re-routing suggestions
 	routingMinDeltaMs        float64        // min absolute improvement (ms) for re-routing suggestions
+	priority                 *PriorityConfig // operator-driven layout priorities (ADR-0124)
 }
 
 type planOption func(*planConfig)
@@ -97,6 +99,25 @@ func WithRoutingMinDelta(delta time.Duration) planOption {
 			c.routingMinDeltaMs = float64(delta.Microseconds()) / 1e3
 		}
 	}
+}
+
+// WithPriorityConfig sets the operator-driven layout priority configuration
+// (ADR-0124). The priority weights the cost model's scoring function,
+// influencing which engine/layout the planner selects. Resolution order:
+// per-Query → per-Engine → Global → Balanced (default).
+//
+// Example:
+//
+//	store, _ := metaengine.Plan(engines, query,
+//	    metaengine.WithPriorityConfig(&metaengine.PriorityConfig{
+//	        Global: metaengine.PriorityReadSpeed,
+//	        PerEngine: map[string]metaengine.Priority{
+//	            "pebble": metaengine.PriorityWriteSpeed,
+//	        },
+//	    }),
+//	)
+func WithPriorityConfig(pc *PriorityConfig) planOption {
+	return func(c *planConfig) { c.priority = pc }
 }
 
 // Plan creates a storage plan from available engines and declared queries.
@@ -227,15 +248,24 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 			}
 
 			readC := effectiveReadComplexity(meta.QueryReadPattern(), c)
+			cost := estimateCost(
+				readC,
+				cfg.Volume,
+				profile.NsForRead(meta.QueryReadPattern()),
+				profile.NetworkRTT,
+			)
+
+			weightedMs := cost.EstimatedLatencyMs
+			if pc.priority != nil {
+				p := pc.priority.Resolve(profile.Name, meta.QueryName())
+				weightedMs = cost.EstimatedLatencyMs * priorityFactor(p, readC)
+			}
+
 			ranked = append(ranked, rankedEngine{
-				engine:     eng,
-				complexity: c,
-				cost: estimateCost(
-					readC,
-					cfg.Volume,
-					profile.NsForRead(meta.QueryReadPattern()),
-					profile.NetworkRTT,
-				),
+				engine:            eng,
+				complexity:        c,
+				cost:              cost,
+				weightedLatencyMs: weightedMs,
 			})
 		}
 	}
@@ -257,8 +287,8 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 	}
 
 	sort.SliceStable(ranked, func(i, j int) bool {
-		if ranked[i].cost.EstimatedLatencyMs != ranked[j].cost.EstimatedLatencyMs {
-			return ranked[i].cost.EstimatedLatencyMs < ranked[j].cost.EstimatedLatencyMs
+		if ranked[i].weightedLatencyMs != ranked[j].weightedLatencyMs {
+			return ranked[i].weightedLatencyMs < ranked[j].weightedLatencyMs
 		}
 
 		return complexityRank(ranked[i].complexity) < complexityRank(ranked[j].complexity)

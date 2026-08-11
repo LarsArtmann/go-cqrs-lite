@@ -442,16 +442,13 @@ linters:
       # ── id/ branded-ID module ───────────────────────────────────
       # ActorID uses unexported fields with custom Marshaler/Unmarshaler
       # implementations. Mixed receiver pattern is intentional (Marshal
-      # = value receiver, Unmarshal = pointer receiver). String literals
-      # for actor kinds are domain constants, not magic strings.
+      # = value receiver, Unmarshal = pointer receiver).
       - path: id/
         linters:
           - err113
           - errcheck
           - exhaustive
           - exhaustruct
-          - goconst
-          - modernize
           - recvcheck
           - wrapcheck
           - nolintlint

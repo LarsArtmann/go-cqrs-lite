@@ -640,7 +640,8 @@ func (s *Store) applyFoldEdge(
 		return nil
 	}
 
-	return unsupportedEngine(errUnsupportedGraphOps, q.QueryEngine().Profile().Name)
+	// Degraded fallback: store edge via MultimapBackend (O(N) traversal).
+	return graphAddEdgeFallback(ctx, q.QueryEngine(), col, edge)
 }
 
 func (s *Store) applyFoldSet(

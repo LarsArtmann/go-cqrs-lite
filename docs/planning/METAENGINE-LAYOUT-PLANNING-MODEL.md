@@ -298,3 +298,210 @@ reflection") is **wrong** because it:
 priorities and measured costs, and lets the operator benchmark real plans
 before committing — because the developer's job is to declare the domain, and
 the operator's job is to tune the deployment.
+
+---
+
+## 13. Current Infer() Behavior with Slice Fields (Code Audit)
+
+**Audited:** `metaengine/fold_inference.go`, `metaengine/auto_fold.go`
+
+### What works today
+
+1. **Scalar field matching** — `matchFields()` maps event fields to result
+   fields by name + type assignability. `MessageCreated.Title` →
+   `MessageView.Title` ✓
+
+2. **Nested struct flattening** — If an event has `Address{City, Zip}` (a
+   nested struct), `matchFields()` flattens it via `matchNestedFields()` and
+   maps `City` and `Zip` individually to result fields. ✓
+
+3. **Collection result types** — `collectionElementType()` handles `Items []T`
+   in *result* types: extracts element type T and uses it for field matching.
+   A query returning `Result{Items []UserView}` matches against `UserView`
+   fields, not the wrapper. ✓
+
+4. **Embedded slice mapping** — If event has `Attachments []Attachment` and
+   result has `Attachments []Attachment` (same type), `matchFields()` maps the
+   whole slice as a single field. This is embedding behavior. ✓
+
+### The gap (what does NOT work)
+
+**No slice decomposition in fold inference.** When an event has
+`Attachments []Attachment`, Infer() cannot generate a fold that iterates the
+slice and inserts each attachment as a separate projection entry. There is no
+mechanism to:
+
+- Generate a fold for a child collection (e.g., `attachments` keyed by
+  attachment ID within message ID)
+- Map individual slice elements' fields to result fields
+- Generate a "fan-out" fold (one event → N projection entries)
+
+### Why this is correct (not a bug)
+
+Slice decomposition is a **layout planning** concern (Layer 4, ADR-0124), not
+a fold inference concern (Layer 1, ADR-0116). Fold inference generates *how
+events map to projection entries*. Layout planning decides *the physical shape
+of those entries* (one embedded row vs. parent + child collection).
+
+The current behavior — embed the whole slice as a single field — is the
+correct default. Normalization (decomposing into a child collection) happens
+when the operator's priority + the cost model justify it, not when the type
+shape triggers it.
+
+### What needs to happen for normalization support
+
+When layout planning decides to normalize a `[]T` field:
+
+1. The fold must change from "store whole slice" to "iterate and insert each
+   element into child collection"
+2. This is a **fold transformation** applied at plan time, not a fold inference
+   change
+3. The existing `OnRecord` fold API already supports this — consumers can write
+   explicit folds that iterate slices. The gap is only in *auto-inferred* folds.
+
+**Action item:** When implementing layout planning (Phase 6b), add a fold
+transformer that converts an embedded-slice fold into a normalized multi-
+collection fold when the cost model selects normalization.
+
+---
+
+## 14. Worked Example: Message + Attachments
+
+### Domain types (developer declares)
+
+```go
+type Attachment struct {
+    ID       AttachmentID
+    Filename string
+    Size     int64
+}
+
+type MessageCreated struct {
+    ID          MessageID
+    Title       string
+    Body        string
+    Attachments []Attachment  // full struct values — embed is possible
+}
+
+type AttachmentAdded struct {
+    MessageID  MessageID
+    Attachment Attachment  // single attachment appended
+}
+
+type MessageDeleted struct {
+    ID MessageID
+}
+
+// Query results
+type MessageView struct {
+    ID    MessageID
+    Title string
+}
+
+type MessageDetail struct {
+    ID          MessageID
+    Title       string
+    Body        string
+    Attachments []Attachment  // full aggregate read
+}
+```
+
+### Scenario 1: Static plan, ReadSpeed priority, Pebble engine
+
+Operator config:
+```yaml
+priority:
+  global: ReadSpeed
+```
+
+Planner reasoning:
+- Pebble is a KV engine → embedding is native (O(1) lookup)
+- ReadSpeed penalizes joins → embedding wins (no join needed)
+- **Selected layout:** `MessageDetail` stores `Attachments` as a single CBOR-
+  encoded value in the row. `AttachmentAdded` triggers a read-modify-write
+  (load parent, append, write back).
+
+Cost: write amplification on `AttachmentAdded`, but O(1) reads.
+
+### Scenario 2: Operator switches to StorageSpace priority
+
+Operator config change:
+```yaml
+priority:
+  global: StorageSpace
+```
+
+Planner re-plans:
+- StorageSpace penalizes data duplication
+- Attachments are duplicated across `MessageDetail` and the event log
+- Normalization eliminates duplication: `attachments` becomes a child collection
+  keyed by `(MessageID, AttachmentID)`
+- **Selected layout:** `MessageDetail` stores `AttachmentID` list. Separate
+  `attachments` collection holds `{AttachmentID, Filename, Size}`.
+- `AttachmentAdded` → insert into child collection (O(1) write, no read-modify-
+  write). `MessageDetail` read requires a join (two point lookups on Pebble).
+
+### Scenario 3: Re-layout trigger
+
+Changing from Scenario 1 to Scenario 2 requires rebuilding `MessageDetail`
+projections:
+
+1. Planner computes new plan: `MessageDetail.Attachments` goes from embedded to
+   normalized.
+2. Estimates rebuild cost: 50K events, ~200MB projected data.
+3. Threshold check: 50K < 100K threshold → **auto-rebuild**.
+4. Rebuild: replay event log from position 0, apply new folds.
+5. `attachments` child collection created from scratch.
+6. `MessageDetail` re-materialized without embedded attachments.
+
+### Scenario 4: Pathological layout — obey + warn
+
+Operator config:
+```yaml
+priority:
+  global: StorageSpace
+  engines:
+    pebble: StorageSpace  # KV engine, normalization is expensive
+```
+
+Planner:
+- Normalization on Pebble requires in-memory joins (no native JOIN)
+- WARN LOUDLY: "StorageSpace on Pebble: 12 queries require multi-lookup joins
+  (estimated 3x read latency increase). Consider ReadSpeed for this engine."
+- **Obeys the configuration.** The operator may have good reasons (e.g., Pebble
+  is a backup engine, reads are rare here).
+- Benchmark mode available: `cqrs-bench layout --engine pebble --priority
+  storage-space` shows measured latency impact before the operator commits.
+
+---
+
+## 15. WARN LOUDLY Specification
+
+### Where warnings appear
+
+| Surface | What it shows |
+| --- | --- |
+| `Doctor()` output | `--- Layout Warnings ---` section: priority conflicts, pathological layouts, rebuild backlog |
+| `EXPLAIN <query>` | Layout annotation: "embedded (ReadSpeed priority)", "normalized via child collection (StorageSpace priority)", "WARNING: 3-way join on KV engine" |
+| Structured logs | `slog.Warn` with fields: `layout.warn`, `priority.conflict`, `engine.name`, `query.name`, `cost.estimate` |
+| `GetEngineStats()` | `LayoutWarnings []LayoutWarning` field: machine-readable warning list |
+
+### Warning types
+
+| Warning | Trigger | Severity |
+| --- | --- | --- |
+| `PRIORITY_MISMATCH` | Engine can't efficiently serve the selected layout (e.g., normalized on KV) | WARN |
+| `REBUILD_BACKLOG` | Large projections pending rebuild after priority change | WARN |
+| `JOIN_AMPLIFICATION` | Query requires N-way join where N > 2 on a non-SQL engine | WARN |
+| `WRITE_AMPLIFICATION` | Embedded layout with high child-mutation rate (write amplification) | INFO |
+| `COST_MODEL_STALE` | Cost estimates based on compile-time priors, no live calibration | INFO |
+
+### Priority conflict resolution
+
+When priorities conflict (GLOBAL says one thing, Engine says another):
+
+1. **Most specific wins** (per-Query > per-Engine > GLOBAL). No ambiguity.
+2. If the resolved priority produces a suboptimal layout for the engine, emit
+   `PRIORITY_MISMATCH` warning with the reasoning.
+3. The operator sees both the resolved priority and the warning in `Doctor()`.
+4. **The planner never refuses.** Obey + warn. The operator is the decision-maker.

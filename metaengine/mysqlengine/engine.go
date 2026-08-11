@@ -140,11 +140,13 @@ func (e *mysqlEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTCounter:   metaengine.ComplexityO1,
 			metaengine.ADTSortedMap: metaengine.ComplexityOLogN,
 			metaengine.ADTSet:       metaengine.ComplexityON,
+			metaengine.ADTGraph:     metaengine.ComplexityON, // brute-force BFS via multimap fallback
 			metaengine.ADTLog:       metaengine.ComplexityON,
 			metaengine.ADTMultimap:  metaengine.ComplexityON,
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
 			metaengine.ADTSet:      true,
+			metaengine.ADTGraph:    true,
 			metaengine.ADTLog:      true,
 			metaengine.ADTMultimap: true,
 		},

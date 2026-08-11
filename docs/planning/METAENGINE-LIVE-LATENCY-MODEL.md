@@ -482,3 +482,8 @@ without live stats.
 - [metaengine/store.go](../../metaengine/store.go) — per-query `QueryCost` snapshot
 - [metaengine/irohengine/engine.go](../../metaengine/irohengine/engine.go) — measured profile
   (ReplicationLag=ConvergenceP99, NetworkRTT=DeliveryP50*2)
+- [Operator-Driven Layout Planning](METAENGINE-LAYOUT-PLANNING-MODEL.md) — extends this model:
+  operator priorities weight the cost model's embed-vs-normalize scoring. The
+  adaptive planner mode (§6.2) reuses `Store.Replan` / `CheckRouting` from this
+  design. [ADR-0124](../adr/0124-operator-driven-layout-planning.md) defines the
+  full layout planning model.

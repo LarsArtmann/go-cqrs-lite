@@ -1528,6 +1528,10 @@ metaengine/const LayoutRow
 metaengine/const MemoryNsPerOp
 metaengine/const PersistencePersistent
 metaengine/const PersistenceVolatile
+metaengine/const PriorityBalanced
+metaengine/const PriorityReadSpeed
+metaengine/const PriorityStorageSpace
+metaengine/const PriorityWriteSpeed
 metaengine/const ReadAggregate
 metaengine/const ReadFilteredScan
 metaengine/const ReadFullTextSearch
@@ -1615,6 +1619,7 @@ metaengine/func AutoCRUDByNamedEvents
 metaengine/func AutoDelete
 metaengine/func AutoInsert
 metaengine/func AutoUpdate
+metaengine/func BenchmarkPlan
 metaengine/func BuildColumnarLayoutPlan
 metaengine/func BuildLayoutPlan
 metaengine/func BuildLayoutPlanFromType
@@ -1714,6 +1719,7 @@ metaengine/func WithLimit
 metaengine/func WithMetrics
 metaengine/func WithNetworkRTT
 metaengine/func WithOr
+metaengine/func WithPriorityConfig
 metaengine/func WithProbeAlpha
 metaengine/func WithProbeContext
 metaengine/func WithProbeErrorHandler
@@ -1973,6 +1979,7 @@ metaengine/method ExplainAggregate
 metaengine/method ExplainPlan
 metaengine/method Export
 metaengine/method Failures
+metaengine/method FormatTable
 metaengine/method Fresh
 metaengine/method Get
 metaengine/method Get
@@ -2088,6 +2095,7 @@ metaengine/method ReplicationMode
 metaengine/method Report
 metaengine/method Report
 metaengine/method ReportSample
+metaengine/method Resolve
 metaengine/method RunInTx
 metaengine/method Sample
 metaengine/method Scan
@@ -2139,12 +2147,14 @@ metaengine/method Valid
 metaengine/method Valid
 metaengine/method Valid
 metaengine/method Valid
+metaengine/method Valid
 metaengine/method VectorInsert
 metaengine/method VectorSearch
 metaengine/method Verify
 metaengine/method VerifyFingerprint
 metaengine/method Watch
 metaengine/method WatchWithSeq
+metaengine/method Weights
 metaengine/method Where
 metaengine/method WhereIn
 metaengine/method WhereRange
@@ -2316,6 +2326,9 @@ metaengine/struct AggregateSpec
 metaengine/struct Append
 metaengine/struct ApplyError
 metaengine/struct AsOfSignal
+metaengine/struct BenchmarkConfig
+metaengine/struct BenchmarkResult
+metaengine/struct BenchmarkSummary
 metaengine/struct Calibration
 metaengine/struct CalibrationCosts
 metaengine/struct CollectionInfo
@@ -2358,6 +2371,8 @@ metaengine/struct PlannedColumn
 metaengine/struct PlannedIndex
 metaengine/struct Point
 metaengine/struct PrefetchCache
+metaengine/struct PriorityConfig
+metaengine/struct PriorityWeights
 metaengine/struct ProbeHandle
 metaengine/struct QueryAssignment
 metaengine/struct QueryBuilder
@@ -2406,6 +2421,7 @@ metaengine/type ItemCount
 metaengine/type JSONValue
 metaengine/type Nanoseconds
 metaengine/type Persistence
+metaengine/type Priority
 metaengine/type ProbeOption
 metaengine/type QueryOption
 metaengine/type RatePerSecond

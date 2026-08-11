@@ -6,8 +6,8 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
 	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4"
+	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
@@ -99,9 +99,9 @@ func TestDeadLetterQueue_AppliesAndStores(t *testing.T) {
 	cmdID := id.NewCommandID()
 
 	dlPayload := commandlifecycle.DeadLetteredPayload{
-		CommandType:   "create_user",
-		Error:         "database timeout",
-		Attempts:      3,
+		CommandType: "create_user",
+		Error:       "database timeout",
+		Attempts:    3,
 	}
 
 	g.Expect(store.ApplyRecord(

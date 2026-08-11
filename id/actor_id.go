@@ -9,6 +9,15 @@ import (
 // records (events, commands). The zero value is ActorUnknown.
 type ActorKind uint8
 
+// Actor kind string representations used in the wire format "kind:raw".
+const (
+	kindUserStr    = "user"
+	kindBotStr     = "bot"
+	kindSystemStr  = "system"
+	kindServiceStr = "service"
+	kindUnknownStr = "unknown"
+)
+
 const (
 	// ActorUnknown is the zero value, meaning the kind was not set.
 	// An ActorID with this kind and an empty raw value is considered zero.
@@ -28,15 +37,15 @@ const (
 func (k ActorKind) String() string {
 	switch k {
 	case ActorUser:
-		return "user"
+		return kindUserStr
 	case ActorBot:
-		return "bot"
+		return kindBotStr
 	case ActorSystem:
-		return "system"
+		return kindSystemStr
 	case ActorService:
-		return "service"
+		return kindServiceStr
 	default:
-		return "unknown"
+		return kindUnknownStr
 	}
 }
 
@@ -89,12 +98,10 @@ func ParseActorID(s string) (ActorID, error) {
 		return ActorID{}, nil
 	}
 
-	idx := strings.IndexByte(s, ':')
-	if idx < 0 {
+	kindStr, raw, found := strings.Cut(s, ":")
+	if !found {
 		return ActorID{}, fmt.Errorf("actor id %q: missing kind prefix (expected \"kind:raw\")", s)
 	}
-
-	kindStr, raw := s[:idx], s[idx+1:]
 
 	kind, ok := parseActorKind(kindStr)
 	if !ok {
@@ -106,13 +113,13 @@ func ParseActorID(s string) (ActorID, error) {
 
 func parseActorKind(s string) (ActorKind, bool) {
 	switch s {
-	case "user":
+	case kindUserStr:
 		return ActorUser, true
-	case "bot":
+	case kindBotStr:
 		return ActorBot, true
-	case "system":
+	case kindSystemStr:
 		return ActorSystem, true
-	case "service":
+	case kindServiceStr:
 		return ActorService, true
 	default:
 		return ActorUnknown, false

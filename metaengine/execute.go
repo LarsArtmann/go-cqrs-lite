@@ -173,7 +173,8 @@ func (s *Store) executeQueryInner(
 			return neighbors, nil
 		}
 
-		return nil, unsupportedEngine(errUnsupportedGraphReads, q.QueryEngine().Profile().Name)
+		// Degraded fallback: BFS traversal via MultimapBackend (O(N)).
+		return graphNeighborsFallback(ctx, q.QueryEngine(), q.QueryName(), node, depth)
 
 	case ReadMultiLookup:
 		key := extractFirstDomainField(input)

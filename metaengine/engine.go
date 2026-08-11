@@ -617,11 +617,13 @@ func SQLiteEngineProfile() EngineProfile {
 			ADTSortedMap: ComplexityOLogN,
 			ADTLog:       ComplexityOLogN,
 			ADTMultimap:  ComplexityOLogN,
+			ADTGraph:     ComplexityON, // brute-force BFS via multimap fallback
 			ADTVector:    ComplexityON,
 			ADTSearch:    ComplexityON,
 			ADTSpatial:   ComplexityON,
 		},
 		DegradedADTs: map[ADT]bool{
+			ADTGraph:   true,
 			ADTVector:  true,
 			ADTSearch:  true,
 			ADTSpatial: true,

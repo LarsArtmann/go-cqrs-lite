@@ -377,10 +377,10 @@ and is **never** duplicated here.
 
 ## Metaengine Coverage Gaps
 
-- [ ] **ADR-0117 command lifecycle implementation** — DLQ as event streams,
-      retries as event streams (no status fields). Design complete in ADR;
-      no code yet.
-      _(Effort: L)_
+- [x] **ADR-0117 command lifecycle implementation** — DLQ as event streams,
+      retries as event streams (no status fields). Implemented in
+      `commandlifecycle/` (events, recorder, middleware) and
+      `commandlifecycle/projections/` (DLQ/retry-count/failure-log projections).
 - [ ] **Run calibration benchmarks against baseline** — verify
       `calibration-baseline.md` accuracy; add CI regression check.
       _(Effort: M)_

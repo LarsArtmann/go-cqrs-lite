@@ -68,6 +68,8 @@ Compact reference — see [`references/modules.md`](.agents/skills/go-cqrs-lite/
 | `query/`                                                       | Dispatcher, Handler, PaginatedResult[T], PersistedQuery, Store                                     |                                                   |
 | `decider/`                                                     | Decider[State], Repository[State], TypedDecider[State,Cmd]                                         | Pure-function style, singleflight, state cache    |
 | `deriver/`                                                     | Event→command derivation (ADR-0040)                                                                |                                                   |
+| `commandlifecycle/`                                             | Command lifecycle as event streams: Recorder, Middleware (ADR-0117)                               | Tier 2. Events + middleware                       |
+| `commandlifecycle/projections/`                                 | Pre-built metaengine projections: DLQ, retry count, failure log (ADR-0117)                         | Tier 3. Depends on metaengine                     |
 | `id/`                                                          | Branded IDs: `id.Of[T]` = `cbid.ID[T, ulid.ULID]`                                                  |                                                   |
 | `metadata/`                                                    | Tracing, CustomData[K]                                                                             | Extracted from event/ — shared metadata types     |
 | `record/`                                                      | Shared Record + CommonMetadata types (ADR-0111)                                                    | Zero deps. Structural base for Events + Commands  |
@@ -264,8 +266,8 @@ Seven-tier model — see [ADR-0046](docs/adr/0046-seven-tier-model.md) and [SEVE
 ```
 Tier 0 — Primitives: id/, dispatcher/, codec/, kv/, dedup/, record/, flightrecorder/, retry/ (DEPRECATED)
 Tier 1 — Core Domain: event/, command/, query/, scheduling/, metadata/
-Tier 2 — Domain Utilities: schema/, snapshot/, projection/, idempotency/, deriver/, idempotency/kvstore/, idempotency/sqlstore/
-Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/, metaengine/
+Tier 2 — Domain Utilities: schema/, snapshot/, projection/, idempotency/, deriver/, commandlifecycle/, idempotency/kvstore/, idempotency/sqlstore/
+Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/, metaengine/, commandlifecycle/projections/
 Tier 4 — Infrastructure: storage/*, signing/, encryption/, otel/, prometheus/, middleware/, transport/*, watermill/,
                      testutil/, metaengine/*engine/, metaengine/projectionadapter/, metaengine/keycodec/, scheduling/sqlstore/
 Tier 5 — Composition: stack/, stack/*presets/, system/
