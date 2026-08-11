@@ -101,25 +101,6 @@ func WithRoutingMinDelta(delta time.Duration) planOption {
 	}
 }
 
-// WithPriorityConfig sets the operator-driven layout priority configuration
-// (ADR-0124). The priority weights the cost model's scoring function,
-// influencing which engine/layout the planner selects. Resolution order:
-// per-Query → per-Engine → Global → Balanced (default).
-//
-// Example:
-//
-//	store, _ := metaengine.Plan(engines, query,
-//	    metaengine.WithPriorityConfig(&metaengine.PriorityConfig{
-//	        Global: metaengine.PriorityReadSpeed,
-//	        PerEngine: map[string]metaengine.Priority{
-//	            "pebble": metaengine.PriorityWriteSpeed,
-//	        },
-//	    }),
-//	)
-func WithPriorityConfig(pc *PriorityConfig) planOption {
-	return func(c *planConfig) { c.priority = pc }
-}
-
 // Plan creates a storage plan from available engines and declared queries.
 // Each query gets its own independent projection — the same event updates
 // each matching query's projection separately.

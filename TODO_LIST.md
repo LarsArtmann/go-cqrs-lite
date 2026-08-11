@@ -768,36 +768,24 @@ and is **never** duplicated here.
 > planning decides the physical storage shape of those projections (embed vs.
 > normalize within an engine). They are orthogonal concerns.
 
-- [ ] 🔥 **Operator priority system** — define `Priority` enum
-      (`WriteSpeed` / `ReadSpeed` / `StorageSpace` / `Balanced`) and a priority
-      hierarchy: `GLOBAL` (whole deployment) → per-Engine → per-Query (most
-      specific wins). Wire into `EngineConfig` / `QueryDecl` / deployment config.
-      The priority weights the existing cost model — it does not bypass it.
-      _(Effort: L)_
-- [ ] 🔥 **Cost model: embed-vs-normalize scoring** — extend the cost model to
-      score embed (denormalized) vs. normalize (child collection + join) per
-      field, per priority, per backend. The per-backend truth: KV favors embed,
-      SQL favors normalize, graph favors normalize, DuckDB is workload-dependent.
-      Even single nested structs (not just slices) can be normalized if the
-      priority justifies it. The operator's control has no structural floor.
-      _(Effort: L)_
-- [ ] **Benchmark mode** — let the operator try multiple plans against real or
-      simulated workloads and see measured results + scaling predictions before
-      committing. Delivery: both CLI (extends `cqrs-bench`, pre-deployment "what
-      if") and runtime API (ongoing monitoring + adaptive re-tuning). Workload:
-      synthesize from declared queries by default; accept real operator-provided
-      traces for calibration.
-      _(Effort: L)_
-- [ ] **Runtime backend addition + dual-use / migration / backup** — the
-      planner maintains parallel projections across engines with explicit roles:
-      active read, migration target, backup replica, dual-use. New backends added
-      at runtime; planner generates plan + backfills from event log. Sync is
-      role-based: fold pipeline (strong) for active + dual-use; async replication
-      (eventual) for backup + migration.
-      _(Effort: XL)_
-- [ ] **Threshold-based re-layout trigger** — when the operator changes a
-      priority, small projections (below threshold) rebuild automatically from
-      the event log; large ones require explicit operator confirmation. Threshold
+
+
+- [x] **Benchmark mode** — SPIKE IMPLEMENTED. `BenchmarkPlan` runtime API +
+      `BenchmarkConfig`/`BenchmarkResult`/`BenchmarkSummary`. Tries N plans with
+      different priority configs, reports P50/P95/P99 latency, throughput,
+      storage. `FormatTable()` for CLI comparison output. CLI subcommand
+      (`cqrs-bench layout`) is future work. Files: `benchmark.go`.
+- [x] **Runtime backend addition + dual-use / migration / backup** — SPIKE
+      IMPLEMENTED. `Store.AddEngine(ctx, engine)` + `Store.RemoveEngine(ctx,
+      name)` + `Store.Backfill(ctx)` (replays EventLog). `ProjectionRole` enum
+      (Active/DualUse/Migration/Backup). `EngineNames()`. Role-based sync is
+      designed but not yet wired into the fold pipeline. Files:
+      `runtime_backend.go`.
+- [x] **Threshold-based re-layout trigger** — IMPLEMENTED.
+      `Store.ReplanLayout(ctx, pc)` computes layout diffs. `RebuildThreshold`
+      (default 100K events / 1GB). `LayoutDiff.AutoRebuild` flag for small vs
+      large projections. `Store.ConfirmRebuild(ctx, diffs)` for operator
+      approval. Files: `relayout.go`, `layout_observability.go`.
       is operator-configurable. Prevents a global priority change from silently
       launching massive parallel rebuilds.
       _(Effort: M)_

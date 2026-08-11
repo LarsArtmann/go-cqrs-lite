@@ -128,3 +128,11 @@ func priorityFactor(p Priority, c Complexity) float64 {
 		return w.ReadW
 	}
 }
+
+// WithPriorityConfig sets the operator-driven layout priority configuration
+// (ADR-0124). The priority weights the cost model's scoring function,
+// influencing which engine/layout the planner selects. Resolution order:
+// per-Query → per-Engine → Global → Balanced (default).
+func WithPriorityConfig(pc *PriorityConfig) planOption {
+	return func(c *planConfig) { c.priority = pc }
+}
