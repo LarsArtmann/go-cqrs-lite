@@ -426,16 +426,6 @@ linters:
           - staticcheck
         text: "SA1019: .*EnsureCustom.*is deprecated"
 
-      # ── metaengine.On/OnTyped deprecation (ADR-0112) ────────────
-      # On and OnTyped are deprecated in favour of OnRecord/OnRecordTyped
-      # which provide access to the full Record context. Migration is in
-      # progress across metaengine engine modules, projectionadapter,
-      # system/, stack/, and test files. Suppress SA1019 until complete.
-      - path: (metaengine|system|stack|benchkit)/.*\.go$
-        linters:
-          - staticcheck
-        text: "SA1019: metaengine\\.On(Typed)? is deprecated"
-
       # ── flightrecorder/ deprecated re-export module ─────────────
       # This module re-exports github.com/larsartmann/go-flightrecorder
       # for backward compat. The depguard, gocritic, and wrapcheck

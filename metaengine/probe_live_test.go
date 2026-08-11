@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // fakeRemoteEngine is a test-double Engine that embeds Calibration (so it gets
@@ -60,10 +61,10 @@ func newFakeRemote(name string, nsPerOp float64, priorRTT time.Duration) *fakeRe
 func freshFindTaskQuery() metaengine.QueryDecl[FindTask, FindTaskResult] {
 	return metaengine.Query[FindTask, FindTaskResult](
 		"find_task_live",
-		metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, FindTaskResult) {
+		metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
 			return e.ID, FindTaskResult{ID: e.ID, Title: e.Title}
 		}),
-		metaengine.On(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
+		metaengine.OnRecord(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
 	)
 }
 

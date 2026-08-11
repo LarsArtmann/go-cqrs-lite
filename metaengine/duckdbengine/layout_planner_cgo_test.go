@@ -10,6 +10,7 @@ import (
 
 	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func TestDuckDBEngine_ApplyLayout(t *testing.T) {
@@ -355,7 +356,7 @@ func TestDuckDBEngine_LayoutMetaenginePlan(t *testing.T) {
 		[]metaengine.Engine{eng},
 		metaengine.Query[CountInput, map[string]int64](
 			"category_counts_layout",
-			metaengine.On(ItemCreated{}, func(e ItemCreated) metaengine.Delta {
+			metaengine.OnRecord(ItemCreated{}, func(_ record.Record, e ItemCreated) metaengine.Delta {
 				return metaengine.Delta{e.Category: 1}
 			}),
 		),
@@ -491,7 +492,7 @@ func TestDuckDBEngine_ColumnarLayoutWithPlan(t *testing.T) {
 		[]metaengine.Engine{eng},
 		metaengine.Query[ProductInput, ProductView](
 			"products",
-			metaengine.On(ProductCreated{}, func(e ProductCreated) (string, ProductView) {
+			metaengine.OnRecord(ProductCreated{}, func(_ record.Record, e ProductCreated) (string, ProductView) {
 				return e.ID, ProductView{
 					Name:     e.Name,
 					Category: e.Category,
@@ -587,7 +588,7 @@ func TestDuckDBEngine_ColumnarAggregation(t *testing.T) {
 		[]metaengine.Engine{eng},
 		metaengine.Query[ProductInput, ProductView](
 			"products_agg",
-			metaengine.On(ProductCreated{}, func(e ProductCreated) (string, ProductView) {
+			metaengine.OnRecord(ProductCreated{}, func(_ record.Record, e ProductCreated) (string, ProductView) {
 				return e.ID, ProductView{
 					Name:     e.Name,
 					Category: e.Category,

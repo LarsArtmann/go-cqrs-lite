@@ -85,7 +85,7 @@ func TestAdapter_StoreIntegration_RecordAware(t *testing.T) {
 	store, err := metaengine.Plan(
 		[]metaengine.Engine{eng},
 		metaengine.Query[AssignmentsInput, string]("assignments",
-			metaengine.On(TaskAssigned{}, func(e TaskAssigned) metaengine.Edge {
+			metaengine.OnRecord(TaskAssigned{}, func(_ record.Record, e TaskAssigned) metaengine.Edge {
 				return metaengine.Edge{From: e.UserID, To: e.TaskID}
 			}),
 		),

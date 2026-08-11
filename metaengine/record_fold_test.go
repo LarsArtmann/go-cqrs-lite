@@ -64,7 +64,7 @@ func TestOnRecord_LegacyApplyStillWorks(t *testing.T) {
 
 	q := metaengine.Query[query, result](
 		"onrecord_legacy",
-		metaengine.On(evt{}, func(e evt) (string, result) {
+		metaengine.OnRecord(evt{}, func(_ record.Record, e evt) (string, result) {
 			return e.ID, result(e)
 		}),
 	)

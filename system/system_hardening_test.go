@@ -13,6 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func TestSystem_HealthCheck_Healthy(t *testing.T) {
@@ -171,7 +172,7 @@ func (s *recordingCheckpointStore) Close() error { return nil }
 // projection. Used by multiple hardening tests.
 func taskProjectionQuery(collection string) any {
 	return metaengine.Query[FindTask, TaskView](collection,
-		metaengine.OnTyped("task.created", TaskCreated{}, func(e TaskCreated) (string, TaskView) {
+		metaengine.OnRecordTyped("task.created", TaskCreated{}, func(_ record.Record, e TaskCreated) (string, TaskView) {
 			return e.Title, TaskView{Title: e.Title, Status: "pending"}
 		}),
 	)

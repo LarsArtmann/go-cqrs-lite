@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ─── T1: Cursor-Based Pagination ───
@@ -402,7 +403,7 @@ func TestStore_RegisterQuery(t *testing.T) {
 	// Start with just the counter query.
 	counterQ := metaengine.Query[benchListInput, map[string]int64](
 		"runtime_counter",
-		metaengine.On(benchItemResult{}, func(e benchItemResult) metaengine.Delta {
+		metaengine.OnRecord(benchItemResult{}, func(_ record.Record, e benchItemResult) metaengine.Delta {
 			return metaengine.Delta{e.Status: +1}
 		}),
 	)
@@ -432,7 +433,7 @@ func TestStore_RegisterQuery(t *testing.T) {
 	// Register a Map query at runtime.
 	mapQ := metaengine.Query[benchListInput, benchItemResult](
 		"runtime_map",
-		metaengine.On(benchItemResult{}, func(e benchItemResult) (string, benchItemResult) {
+		metaengine.OnRecord(benchItemResult{}, func(_ record.Record, e benchItemResult) (string, benchItemResult) {
 			return e.ID, e
 		}),
 	)

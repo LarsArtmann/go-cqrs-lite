@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // pushdown_test.go validates that the SQLite PushdownScan implementation
@@ -217,7 +218,7 @@ var _ = Describe("PushdownScan", func() {
 			// applied by Plan() — no need for manual NewMemoryEngine.
 			pdQuery := metaengine.Query[ListTasksByStatus, ListTasksByStatusResult](
 				"pd_tasks",
-				metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, FindTaskResult) {
+				metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
 					return e.ID, FindTaskResult{
 						ID: e.ID, Title: e.Title, Assignee: e.Assignee,
 						Status: e.Status, Priority: e.Priority,

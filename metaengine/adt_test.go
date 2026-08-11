@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ─── MULTIMAP ADT ───
@@ -23,7 +24,7 @@ type TasksForUserResult struct {
 func tasksForUserQuery() metaengine.QueryDecl[TasksForUser, TasksForUserResult] {
 	return metaengine.Query[TasksForUser, TasksForUserResult](
 		"tasks_for_user",
-		metaengine.On(TaskAssigned{}, func(e TaskAssigned) metaengine.MultiEntry {
+		metaengine.OnRecord(TaskAssigned{}, func(_ record.Record, e TaskAssigned) metaengine.MultiEntry {
 			return metaengine.MultiEntry{Key: e.Assignee, Value: e.TaskID}
 		}),
 	)
@@ -97,7 +98,7 @@ type RecentTasksResult struct {
 func recentTasksQuery() metaengine.QueryDecl[RecentTasks, RecentTasksResult] {
 	return metaengine.Query[RecentTasks, RecentTasksResult](
 		"recent_tasks",
-		metaengine.On(TaskCreated{}, func(e TaskCreated) metaengine.Append {
+		metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) metaengine.Append {
 			return metaengine.Append{Value: e}
 		}),
 	)
@@ -162,14 +163,14 @@ var _ = Describe("On classification for new ADTs", func() {
 	type event struct{ ID, Val string }
 
 	It("classifies MultiEntry return as FoldMultiInsert", func() {
-		fold := metaengine.On(event{}, func(e event) metaengine.MultiEntry {
+		fold := metaengine.OnRecord(event{}, func(_ record.Record, e event) metaengine.MultiEntry {
 			return metaengine.MultiEntry{Key: e.ID, Value: e.Val}
 		})
 		Expect(fold.Kind()).To(Equal(metaengine.FoldMultiInsert))
 	})
 
 	It("classifies Append return as FoldAppend", func() {
-		fold := metaengine.On(event{}, func(e event) metaengine.Append {
+		fold := metaengine.OnRecord(event{}, func(_ record.Record, e event) metaengine.Append {
 			return metaengine.Append{Value: e}
 		})
 		Expect(fold.Kind()).To(Equal(metaengine.FoldAppend))

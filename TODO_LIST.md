@@ -517,10 +517,11 @@ and is **never** duplicated here.
 
 ### Phase 1: Type Foundation
 
-- [ ] 🔥 **Finish Record consolidation (ADR-0111 Phases 3-4)** — consolidate
-      `event.Metadata`, `command.Metadata`, `metadata.Tracing` into
-      `record.CommonMetadata`. Record becomes the single structural base for
-      events + commands. Delete duplicate metadata types.
+- [x] 🔥 **Finish Record consolidation (ADR-0111 Phases 3-4)** — DONE.
+      `record.CommonMetadata` is the single structural base; `event.Metadata`
+      and `command.Metadata` now embed it (no duplicated tracing fields);
+      `metadata.Tracing` deleted; `metadata.CustomData[K]` deprecated.
+      See CI/Release section (line ~209) for the full done-subitem list.
       _(Effort: L)_
 
 ### Phase 2: Quick Wins (dead code removal)

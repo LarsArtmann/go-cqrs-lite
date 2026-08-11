@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ─── Lookup: point lookup by key ───
@@ -318,7 +319,7 @@ func buildCounterQuery(
 		delta := e.delta
 		key := e.key
 
-		fold := metaengine.OnTyped(e.eventType, e.sample, func(_ any) metaengine.Delta {
+		fold := metaengine.OnRecordTyped(e.eventType, e.sample, func(_ record.Record, _ any) metaengine.Delta {
 			return metaengine.Delta{key: delta}
 		})
 		folds = append(folds, fold)

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ─── E-COMMERCE DOMAIN (for promise benchmarks) ───
@@ -72,22 +73,22 @@ type OrderView struct {
 func findOrderQuery() metaengine.QueryDecl[FindOrderInput, OrderView] {
 	return metaengine.Query[FindOrderInput, OrderView](
 		"find_order",
-		metaengine.On(OrderCreated{}, func(e OrderCreated) (OrderID, OrderView) {
+		metaengine.OnRecord(OrderCreated{}, func(_ record.Record, e OrderCreated) (OrderID, OrderView) {
 			return e.ID, OrderView{
 				ID: e.ID, CustomerID: e.CustomerID, Status: e.Status,
 				TotalCents: e.AmountCents, Items: []string{e.ProductID},
 			}
 		}),
-		metaengine.On(ItemAdded{}, func(e ItemAdded, prev OrderView) OrderView {
+		metaengine.OnRecord(ItemAdded{}, func(_ record.Record, e ItemAdded, prev OrderView) OrderView {
 			prev.Items = append(prev.Items, e.ProductID)
 			prev.TotalCents += e.PriceCents
 			return prev
 		}),
-		metaengine.On(OrderShipped{}, func(e OrderShipped, prev OrderView) OrderView {
+		metaengine.OnRecord(OrderShipped{}, func(_ record.Record, e OrderShipped, prev OrderView) OrderView {
 			prev.Status = "shipped"
 			return prev
 		}),
-		metaengine.On(OrderCancelled{}, func(e OrderCancelled, prev OrderView) OrderView {
+		metaengine.OnRecord(OrderCancelled{}, func(_ record.Record, e OrderCancelled, prev OrderView) OrderView {
 			prev.Status = "cancelled"
 			return prev
 		}),
@@ -104,17 +105,17 @@ type ListOrdersByStatusInput struct {
 func listOrdersByStatusQuery() metaengine.QueryDecl[ListOrdersByStatusInput, OrderView] {
 	return metaengine.Query[ListOrdersByStatusInput, OrderView](
 		"list_orders_by_status",
-		metaengine.On(OrderCreated{}, func(e OrderCreated) (OrderID, OrderView) {
+		metaengine.OnRecord(OrderCreated{}, func(_ record.Record, e OrderCreated) (OrderID, OrderView) {
 			return e.ID, OrderView{
 				ID: e.ID, CustomerID: e.CustomerID, Status: e.Status,
 				TotalCents: e.AmountCents, Items: []string{e.ProductID},
 			}
 		}),
-		metaengine.On(OrderShipped{}, func(e OrderShipped, prev OrderView) OrderView {
+		metaengine.OnRecord(OrderShipped{}, func(_ record.Record, e OrderShipped, prev OrderView) OrderView {
 			prev.Status = "shipped"
 			return prev
 		}),
-		metaengine.On(OrderCancelled{}, func(e OrderCancelled, prev OrderView) OrderView {
+		metaengine.OnRecord(OrderCancelled{}, func(_ record.Record, e OrderCancelled, prev OrderView) OrderView {
 			prev.Status = "cancelled"
 			return prev
 		}),
@@ -130,13 +131,13 @@ type CountOrdersByStatusInput struct{}
 func countOrdersByStatusQuery() metaengine.QueryDecl[CountOrdersByStatusInput, map[string]int64] {
 	return metaengine.Query[CountOrdersByStatusInput, map[string]int64](
 		"count_orders_by_status",
-		metaengine.On(OrderCreated{}, func(e OrderCreated) metaengine.Delta {
+		metaengine.OnRecord(OrderCreated{}, func(_ record.Record, e OrderCreated) metaengine.Delta {
 			return metaengine.Delta{e.Status: +1}
 		}),
-		metaengine.On(OrderShipped{}, func(e OrderShipped) metaengine.Delta {
+		metaengine.OnRecord(OrderShipped{}, func(_ record.Record, e OrderShipped) metaengine.Delta {
 			return metaengine.Delta{"pending": -1, "shipped": +1}
 		}),
-		metaengine.On(OrderCancelled{}, func(e OrderCancelled) metaengine.Delta {
+		metaengine.OnRecord(OrderCancelled{}, func(_ record.Record, e OrderCancelled) metaengine.Delta {
 			return metaengine.Delta{"pending": -1, "cancelled": +1}
 		}),
 	)
@@ -151,7 +152,7 @@ type OrdersByCustomerInput struct {
 func ordersByCustomerQuery() metaengine.QueryDecl[OrdersByCustomerInput, []OrderID] {
 	return metaengine.Query[OrdersByCustomerInput, []OrderID](
 		"orders_by_customer",
-		metaengine.On(OrderCreated{}, func(e OrderCreated) metaengine.MultiEntry {
+		metaengine.OnRecord(OrderCreated{}, func(_ record.Record, e OrderCreated) metaengine.MultiEntry {
 			return metaengine.MultiEntry{Key: e.CustomerID, Value: e.ID}
 		}),
 	)
@@ -166,7 +167,7 @@ type RecentOrdersInput struct {
 func recentOrdersQuery() metaengine.QueryDecl[RecentOrdersInput, []OrderID] {
 	return metaengine.Query[RecentOrdersInput, []OrderID](
 		"recent_orders",
-		metaengine.On(OrderCreated{}, func(e OrderCreated) metaengine.Append {
+		metaengine.OnRecord(OrderCreated{}, func(_ record.Record, e OrderCreated) metaengine.Append {
 			return metaengine.Append{Value: e.ID}
 		}),
 	)
@@ -179,7 +180,7 @@ type TotalRevenueInput struct{}
 func totalRevenueQuery() metaengine.QueryDecl[TotalRevenueInput, map[string]int64] {
 	return metaengine.Query[TotalRevenueInput, map[string]int64](
 		"total_revenue",
-		metaengine.On(OrderPaid{}, func(e OrderPaid) metaengine.Delta {
+		metaengine.OnRecord(OrderPaid{}, func(_ record.Record, e OrderPaid) metaengine.Delta {
 			return metaengine.Delta{"revenue_cents": e.AmountCents}
 		}),
 	)

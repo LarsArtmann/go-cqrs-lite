@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // TestQueryBuilder verifies the fluent QueryBuilder API produces correct
@@ -27,7 +28,7 @@ func TestQueryBuilder(t *testing.T) {
 
 	q := metaengine.Query[testItemInput, testItem](
 		"items",
-		metaengine.On(testItemCreated{}, func(e testItemCreated) (string, testItem) {
+		metaengine.OnRecord(testItemCreated{}, func(_ record.Record, e testItemCreated) (string, testItem) {
 			return e.ID, testItem(e)
 		}),
 		metaengine.FilterOnField[testItem]("status", metaengine.FilterEq),

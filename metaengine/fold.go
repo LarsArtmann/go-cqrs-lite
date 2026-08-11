@@ -449,3 +449,28 @@ func verifyEventParam[E any](handlerType reflect.Type, eventType string) error {
 
 	return nil
 }
+
+func verifyRecordEventParam[E any](handlerType reflect.Type, eventType string) error {
+	var sample E
+
+	expectedType := reflect.TypeOf(sample)
+	if expectedType == nil {
+		return nil
+	}
+
+	if expectedType.Kind() == reflect.Pointer {
+		expectedType = expectedType.Elem()
+	}
+
+	paramType := handlerType.In(1)
+	if paramType.Kind() == reflect.Pointer {
+		paramType = paramType.Elem()
+	}
+
+	if paramType != expectedType {
+		return fmt.Errorf("metaengine.OnRecord(%s): %w %s, got %s",
+			eventType, errInvalidEventType, expectedType, handlerType.In(1))
+	}
+
+	return nil
+}

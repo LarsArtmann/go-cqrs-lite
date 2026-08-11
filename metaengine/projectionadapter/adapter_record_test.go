@@ -156,7 +156,7 @@ func TestAdapter_OnRecordFold_LegacyOnStillWorks(t *testing.T) {
 
 	q := metaengine.Query[struct{}, map[string]int64](
 		"plain-count",
-		metaengine.On(plainEvent{}, func(e plainEvent) metaengine.Delta {
+		metaengine.OnRecord(plainEvent{}, func(_ record.Record, e plainEvent) metaengine.Delta {
 			return metaengine.Delta{e.ID: e.Count}
 		}),
 	)

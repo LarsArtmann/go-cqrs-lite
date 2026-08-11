@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ── Map ADT types (new workload: collection CRUD + query) ──
@@ -30,7 +31,7 @@ type meBenchItemCreated struct {
 func meBenchMapQuery() metaengine.QueryDecl[struct{}, map[string]meBenchItem] {
 	return metaengine.Query[struct{}, map[string]meBenchItem](
 		"bench_items",
-		metaengine.On(meBenchItemCreated{}, func(e meBenchItemCreated) (string, meBenchItem) {
+		metaengine.OnRecord(meBenchItemCreated{}, func(_ record.Record, e meBenchItemCreated) (string, meBenchItem) {
 			return e.ID, meBenchItem(e)
 		}),
 		metaengine.FilterOnField[meBenchItem]("status", metaengine.FilterEq),

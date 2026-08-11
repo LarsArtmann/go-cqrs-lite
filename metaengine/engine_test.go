@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // fakeEngine implements metaengine.Engine (Profile + Close) but zero backend
@@ -34,7 +35,7 @@ type mmResult struct{ Tasks []TaskID }
 func multimapQuery() metaengine.QueryDecl[mmInput, mmResult] {
 	return metaengine.Query[mmInput, mmResult](
 		"mm_tasks",
-		metaengine.On(TaskAssigned{}, func(e TaskAssigned) metaengine.MultiEntry {
+		metaengine.OnRecord(TaskAssigned{}, func(_ record.Record, e TaskAssigned) metaengine.MultiEntry {
 			return metaengine.MultiEntry{Key: e.Assignee, Value: e.TaskID}
 		}),
 	)
@@ -47,7 +48,7 @@ type logResult struct{ Entries []TaskCreated }
 func logQuery() metaengine.QueryDecl[logInput, logResult] {
 	return metaengine.Query[logInput, logResult](
 		"task_log",
-		metaengine.On(TaskCreated{}, func(e TaskCreated) metaengine.Append {
+		metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) metaengine.Append {
 			return metaengine.Append{Value: e}
 		}),
 	)

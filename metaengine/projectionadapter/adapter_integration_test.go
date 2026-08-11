@@ -12,6 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ─── Domain types for the integration test ───
@@ -147,12 +148,12 @@ func TestAdapter_ProjectionHostIntegration(t *testing.T) {
 	// Build a metaengine Store with a simple Map query that counts increments.
 	counterQuery := metaengine.Query[FindCounter, CounterState](
 		"counter",
-		metaengine.On(CounterIncremented{}, func(e CounterIncremented) (CounterID, CounterState) {
+		metaengine.OnRecord(CounterIncremented{}, func(_ record.Record, e CounterIncremented) (CounterID, CounterState) {
 			return e.ID, CounterState{Value: e.Amount}
 		}),
-		metaengine.On(
+		metaengine.OnRecord(
 			CounterIncremented{},
-			func(e CounterIncremented, prev CounterState) CounterState {
+			func(_ record.Record, e CounterIncremented, prev CounterState) CounterState {
 				prev.Value += e.Amount
 
 				return prev
@@ -267,7 +268,7 @@ func TestAdapter_NameAndTypes(t *testing.T) {
 
 	counterQuery := metaengine.Query[FindCounter, CounterState](
 		"counter",
-		metaengine.On(CounterIncremented{}, func(e CounterIncremented) (CounterID, CounterState) {
+		metaengine.OnRecord(CounterIncremented{}, func(_ record.Record, e CounterIncremented) (CounterID, CounterState) {
 			return e.ID, CounterState{Value: e.Amount}
 		}),
 	)

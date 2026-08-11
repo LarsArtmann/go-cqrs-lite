@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 type integCounterInput struct{}
@@ -23,10 +24,10 @@ type IntegItemCompleted struct{}
 func integCounterQuery() metaengine.QueryDecl[integCounterInput, map[string]int64] {
 	return metaengine.Query[integCounterInput, map[string]int64](
 		"integ_task_counts",
-		metaengine.On(IntegItemCreated{}, func(e IntegItemCreated) metaengine.Delta {
+		metaengine.OnRecord(IntegItemCreated{}, func(_ record.Record, e IntegItemCreated) metaengine.Delta {
 			return metaengine.Delta{e.Status: +1}
 		}),
-		metaengine.On(IntegItemCompleted{}, func(e IntegItemCompleted) metaengine.Delta {
+		metaengine.OnRecord(IntegItemCompleted{}, func(_ record.Record, e IntegItemCompleted) metaengine.Delta {
 			return metaengine.Delta{"active": -1, "completed": +1}
 		}),
 	)
@@ -135,7 +136,7 @@ func TestMetaEngine_MapPipeline(t *testing.T) {
 
 	queryDecl := metaengine.Query[integFindItem, integItemResult](
 		"integ_items",
-		metaengine.On(IntegItemEvent{}, func(e IntegItemEvent) (integItemKey, integItemResult) {
+		metaengine.OnRecord(IntegItemEvent{}, func(_ record.Record, e IntegItemEvent) (integItemKey, integItemResult) {
 			return e.ID, integItemResult{ID: e.ID, Title: e.Title}
 		}),
 	)

@@ -7,6 +7,7 @@ import (
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // watcherTaskID is a distinct key type so Remove[V]() can identify the key
@@ -31,14 +32,14 @@ func TestPostgresWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 
 	q := metaengine.Query[watcherTask, watcherTask](
 		"pg_watcher_tasks",
-		metaengine.OnTyped(
+		metaengine.OnRecordTyped(
 			"task_created",
 			watcherTask{},
-			func(e watcherTask) (watcherTaskID, watcherTask) {
+			func(_ record.Record, e watcherTask) (watcherTaskID, watcherTask) {
 				return e.ID, e
 			},
 		),
-		metaengine.OnTyped("task_deleted", watcherTask{}, metaengine.Remove[watcherTask]()),
+		metaengine.OnRecordTyped("task_deleted", watcherTask{}, metaengine.Remove[watcherTask]()),
 	)
 
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
@@ -102,10 +103,10 @@ func TestPostgresWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 			Build: func(t *testing.T, eng metaengine.Engine) (*metaengine.Store, *metaengine.Watcher[watcherTask]) {
 				q := metaengine.Query[watcherTask, watcherTask](
 					"pg_replay_tasks",
-					metaengine.OnTyped(
+					metaengine.OnRecordTyped(
 						"task_created",
 						watcherTask{},
-						func(e watcherTask) (watcherTaskID, watcherTask) {
+						func(_ record.Record, e watcherTask) (watcherTaskID, watcherTask) {
 							return e.ID, e
 						},
 					),

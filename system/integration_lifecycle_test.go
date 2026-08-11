@@ -16,6 +16,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // TestIntegration_SQLiteSource_MemoryProjection_HealthCheck verifies a
@@ -29,7 +30,7 @@ func TestIntegration_SQLiteSource_MemoryProjection_HealthCheck(t *testing.T) {
 	defer cancel()
 
 	taskViewQuery := metaengine.Query[FindTask, TaskView]("task_views_sqlmem",
-		metaengine.OnTyped("task.created", TaskCreated{}, func(e TaskCreated) (string, TaskView) {
+		metaengine.OnRecordTyped("task.created", TaskCreated{}, func(_ record.Record, e TaskCreated) (string, TaskView) {
 			return e.Title, TaskView{Title: e.Title, Status: "pending"}
 		}),
 	)

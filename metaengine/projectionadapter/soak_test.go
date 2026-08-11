@@ -12,6 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 type soakItem struct {
@@ -35,7 +36,7 @@ func TestSoak_RecordPipeline_100K(t *testing.T) {
 
 	q := metaengine.Query[soakQuery, soakItem](
 		"soak-items",
-		metaengine.On(soakItem{}, func(e soakItem) (string, soakItem) {
+		metaengine.OnRecord(soakItem{}, func(_ record.Record, e soakItem) (string, soakItem) {
 			return e.ID, e
 		}),
 	)

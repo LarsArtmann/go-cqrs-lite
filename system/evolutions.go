@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // EvolutionSpec is a sealed interface for evolution declarations. An Evolution
@@ -139,7 +140,7 @@ func (b *evolutionBuilder[R]) Done() EvolutionSpec {
 // makeExplicitFold creates a metaengine update fold from an explicit fold entry.
 // It reifies prev to the result type, applies the mutation, and returns the result.
 func makeExplicitFold(resultType reflect.Type, ef explicitFoldEntry) metaengine.Fold {
-	return metaengine.OnTyped(ef.eventType, ef.sample, func(e any, prev any) any {
+	return metaengine.OnRecordTyped(ef.eventType, ef.sample, func(_ record.Record, e any, prev any) any {
 		v := reflect.New(resultType)
 
 		if prev != nil {

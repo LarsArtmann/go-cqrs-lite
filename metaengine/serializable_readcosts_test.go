@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func TestSerializableReadCosts_RoundTrip(t *testing.T) {
@@ -26,7 +27,7 @@ func TestSerializableReadCosts_RoundTrip(t *testing.T) {
 	type result map[TaskID]string
 
 	decl := metaengine.Query[input, result]("test-map",
-		metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, result) {
+		metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, result) {
 			return e.ID, result{e.ID: e.Title}
 		}),
 	)
@@ -99,7 +100,7 @@ func TestSerializableReadCosts_NilWhenUncalibrated(t *testing.T) {
 	type result map[TaskID]string
 
 	decl := metaengine.Query[input, result]("test-map",
-		metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, result) {
+		metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, result) {
 			return e.ID, result{e.ID: e.Title}
 		}),
 	)
@@ -146,7 +147,7 @@ func TestSerializableReadCosts_MemoryEngineSerializes(t *testing.T) {
 	type result map[TaskID]string
 
 	decl := metaengine.Query[input, result]("counts",
-		metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, result) {
+		metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, result) {
 			return e.ID, result{e.ID: e.Title}
 		}),
 	)

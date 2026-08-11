@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // graphBackend is the local graph dispatch contract for tests. Engines with
@@ -34,10 +35,10 @@ func TestConcurrentExecuteTypedUnderWritePressure(t *testing.T) {
 
 	q := metaengine.Query[input, val](
 		"counters",
-		metaengine.On(evt{}, func(e evt) (string, val) {
+		metaengine.OnRecord(evt{}, func(_ record.Record, e evt) (string, val) {
 			return e.ID, val{ID: e.ID, Total: e.Amount}
 		}),
-		metaengine.On(evt{}, func(e evt, prev val) val {
+		metaengine.OnRecord(evt{}, func(_ record.Record, e evt, prev val) val {
 			prev.Total += e.Amount
 
 			return prev
@@ -214,10 +215,10 @@ func TestNonStructFoldUpdateSQLite(t *testing.T) {
 
 	q := metaengine.Query[input, int](
 		"counters",
-		metaengine.On(evt{}, func(e evt) (string, int) {
+		metaengine.OnRecord(evt{}, func(_ record.Record, e evt) (string, int) {
 			return e.ID, e.Delta
 		}),
-		metaengine.On(evt{}, func(e evt, prev int) int {
+		metaengine.OnRecord(evt{}, func(_ record.Record, e evt, prev int) int {
 			return prev + e.Delta
 		}),
 	)

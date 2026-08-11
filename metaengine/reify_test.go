@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // recordResult has an unexported field that is lost when the value crosses
@@ -48,7 +49,7 @@ func TestExecuteTyped_SQLite_UnexportedFieldsLost(t *testing.T) {
 
 	query := metaengine.Query[recordQuery, recordResult](
 		"record_lookup",
-		metaengine.On(recordEvent{}, func(e recordEvent) (string, recordResult) {
+		metaengine.OnRecord(recordEvent{}, func(_ record.Record, e recordEvent) (string, recordResult) {
 			return e.ID, recordResult{ID: e.ID, secret: "hidden-value"}
 		}),
 	)
@@ -90,7 +91,7 @@ func ExampleNewSQLiteEngine() {
 		[]metaengine.Engine{metaengine.NewMemoryEngine(), sqliteEng},
 		metaengine.Query[recordQuery, recordResult](
 			"example_record",
-			metaengine.On(recordEvent{}, func(e recordEvent) (string, recordResult) {
+			metaengine.OnRecord(recordEvent{}, func(_ record.Record, e recordEvent) (string, recordResult) {
 				return e.ID, recordResult{ID: e.ID}
 			}),
 		),
@@ -123,7 +124,7 @@ func BenchmarkExecuteTyped_SQLite_Reify(b *testing.B) {
 
 	query := metaengine.Query[recordQuery, recordResult](
 		"bench_reify",
-		metaengine.On(recordEvent{}, func(e recordEvent) (string, recordResult) {
+		metaengine.OnRecord(recordEvent{}, func(_ record.Record, e recordEvent) (string, recordResult) {
 			return e.ID, recordResult{ID: e.ID, secret: "hidden"}
 		}),
 	)

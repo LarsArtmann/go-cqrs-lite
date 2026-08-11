@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func metaEngineFactory(t *testing.T) Factory {
@@ -20,9 +21,9 @@ func metaEngineFactory(t *testing.T) Factory {
 			[]metaengine.Engine{eng},
 			metaengine.Query[meBenchCounterInput, map[string]int64](
 				"bench_counter",
-				metaengine.On(
+				metaengine.OnRecord(
 					meBenchIncrementEvent{},
-					func(e meBenchIncrementEvent) metaengine.Delta {
+					func(_ record.Record, e meBenchIncrementEvent) metaengine.Delta {
 						return metaengine.Delta{e.Status: +1}
 					},
 				),

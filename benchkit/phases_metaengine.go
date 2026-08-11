@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // maxMetaEngineSamples caps Apply and query samples so the phase stays fast
@@ -55,7 +56,7 @@ type meBenchIncrementEvent struct {
 func meBenchCounterQuery() metaengine.QueryDecl[meBenchCounterInput, map[string]int64] {
 	return metaengine.Query[meBenchCounterInput, map[string]int64](
 		"bench_counter",
-		metaengine.On(meBenchIncrementEvent{}, func(e meBenchIncrementEvent) metaengine.Delta {
+		metaengine.OnRecord(meBenchIncrementEvent{}, func(_ record.Record, e meBenchIncrementEvent) metaengine.Delta {
 			return metaengine.Delta{e.Status: +1}
 		}),
 	)

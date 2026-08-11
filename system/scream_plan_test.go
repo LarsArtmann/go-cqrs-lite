@@ -12,6 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 const o1 = string(metaengine.ComplexityO1)
@@ -314,12 +315,12 @@ func TestSystem_ManifestPath_BlocksOnRemovedQuery(t *testing.T) {
 
 	// First deployment — pins a plan with two projections.
 	proj1 := metaengine.Query[taskCountInput, map[string]int64]("counts",
-		metaengine.On(TaskCreated{}, func(e TaskCreated) metaengine.Delta {
+		metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) metaengine.Delta {
 			return metaengine.Delta{"pending": +1}
 		}),
 	)
 	proj2 := metaengine.Query[taskCountInput, map[string]int64]("items",
-		metaengine.On(TaskCreated{}, func(e TaskCreated) metaengine.Delta {
+		metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) metaengine.Delta {
 			return metaengine.Delta{"pending": +1}
 		}),
 	)

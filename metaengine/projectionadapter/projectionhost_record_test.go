@@ -143,7 +143,7 @@ func TestProjectionHost_CheckpointAdvances(t *testing.T) {
 
 	q := metaengine.Query[cpQuery, cpResult](
 		"cp-items",
-		metaengine.On(cpEvent{}, func(e cpEvent) (string, cpResult) {
+		metaengine.OnRecord(cpEvent{}, func(_ record.Record, e cpEvent) (string, cpResult) {
 			return e.ID, cpResult(e)
 		}),
 	)

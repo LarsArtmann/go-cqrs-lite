@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // cursorNonNumericEngines returns both engine implementations for the
@@ -60,7 +61,7 @@ type ListByNameResult struct {
 func listByNameQuery() metaengine.QueryDecl[ListByNameInput, ListByNameResult] {
 	return metaengine.Query[ListByNameInput, ListByNameResult](
 		"list_by_name",
-		metaengine.On(StringKeyEvent{}, func(e StringKeyEvent) (string, StringKeyItem) {
+		metaengine.OnRecord(StringKeyEvent{}, func(_ record.Record, e StringKeyEvent) (string, StringKeyItem) {
 			return e.ID, StringKeyItem(e)
 		}),
 		metaengine.SortOn(func(item StringKeyItem) string { return item.Name }),
@@ -93,7 +94,7 @@ type ListByTimeResult struct {
 func listByTimeQuery() metaengine.QueryDecl[ListByTimeInput, ListByTimeResult] {
 	return metaengine.Query[ListByTimeInput, ListByTimeResult](
 		"list_by_time",
-		metaengine.On(TimeKeyEvent{}, func(e TimeKeyEvent) (string, TimeKeyItem) {
+		metaengine.OnRecord(TimeKeyEvent{}, func(_ record.Record, e TimeKeyEvent) (string, TimeKeyItem) {
 			return e.ID, TimeKeyItem(e)
 		}),
 		metaengine.SortOn(func(item TimeKeyItem) time.Time { return item.At }),

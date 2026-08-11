@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ── Auto-projection domain types ──
@@ -156,7 +157,7 @@ func TestSystem_AutoProjection_BackwardCompat(t *testing.T) {
 
 	// Mix: raw QueryDecl (wrapped) + auto-projection ProjectionSpec
 	rawQuery := metaengine.Query[FindTask, TaskView]("raw_views",
-		metaengine.OnTyped("raw.event", TaskCreated{}, func(e TaskCreated) (string, TaskView) {
+		metaengine.OnRecordTyped("raw.event", TaskCreated{}, func(_ record.Record, e TaskCreated) (string, TaskView) {
 			return e.Title, TaskView{Title: e.Title, Status: "manual"}
 		}),
 	)

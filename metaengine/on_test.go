@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 var _ = Describe("On constructor", func() {
@@ -25,7 +26,7 @@ var _ = Describe("On constructor", func() {
 	DescribeTable(
 		"classifying handler signatures into fold kinds",
 		func(handler any, expectedKind metaengine.FoldKind) {
-			fold := metaengine.On(sample, handler)
+			fold := metaengine.OnRecord(sample, handler)
 			Expect(fold.Kind()).To(Equal(expectedKind))
 		},
 		Entry("insert: func(e) (K, V)",
@@ -57,14 +58,14 @@ var _ = Describe("On constructor", func() {
 
 	Describe("recording the event type", func() {
 		It("uses the Go struct name as the event type", func() {
-			fold := metaengine.On(sample, func(e event) (string, result) {
+			fold := metaengine.OnRecord(sample, func(_ record.Record, e event) (string, result) {
 				return e.ID, result{Name: e.Name}
 			})
 			Expect(fold.EventType()).To(Equal("event"))
 		})
 
 		It("unwraps pointer samples to get the struct name", func() {
-			fold := metaengine.On(&sample, func(e event) (string, result) {
+			fold := metaengine.OnRecord(&sample, func(_ record.Record, e event) (string, result) {
 				return e.ID, result{Name: e.Name}
 			})
 			Expect(fold.EventType()).To(Equal("event"))
@@ -74,7 +75,7 @@ var _ = Describe("On constructor", func() {
 	When("the handler is not a function", func() {
 		It("panics with a clear message", func() {
 			Expect(func() {
-				metaengine.On(sample, 42)
+				metaengine.OnRecord(sample, 42)
 			}).To(PanicWith(MatchRegexp("handler must be a function")))
 		})
 	})
@@ -82,7 +83,7 @@ var _ = Describe("On constructor", func() {
 	When("the handler has the wrong first parameter type", func() {
 		It("panics with a clear message naming the expected and actual types", func() {
 			Expect(func() {
-				metaengine.On(sample, func(e string) (string, result) {
+				metaengine.OnRecord(sample, func(_ record.Record, e string) (string, result) {
 					return e, result{}
 				})
 			}).To(PanicWith(MatchRegexp("handler first param must be")))
@@ -92,10 +93,10 @@ var _ = Describe("On constructor", func() {
 	When("the handler has too many parameters", func() {
 		It("panics", func() {
 			Expect(func() {
-				metaengine.On(sample, func(e event, x string, y int) result {
+				metaengine.OnRecord(sample, func(_ record.Record, e event, x string, y int) result {
 					return result{}
 				})
-			}).To(PanicWith(MatchRegexp("handler must have 1-2 params")))
+			}).To(PanicWith(MatchRegexp("unsupported handler signature")))
 		})
 	})
 })
@@ -104,22 +105,22 @@ var _ = Describe("Remove sentinel", func() {
 	type value struct{ Data string }
 
 	It("records the value type for projection matching", func() {
-		fold := metaengine.On(struct{ ID string }{}, metaengine.Remove[value]())
+		fold := metaengine.OnRecord(struct{ ID string }{}, metaengine.Remove[value]())
 		Expect(fold.Kind()).To(Equal(metaengine.FoldRemove))
 	})
 
 	It("works with different value types in the same query", func() {
 		type other struct{ Count int }
-		fold := metaengine.On(struct{ ID string }{}, metaengine.Remove[other]())
+		fold := metaengine.OnRecord(struct{ ID string }{}, metaengine.Remove[other]())
 		Expect(fold.Kind()).To(Equal(metaengine.FoldRemove))
 	})
 })
 
 var _ = Describe("Skip sentinel", func() {
 	It("is classified as FoldSkip", func() {
-		fold := metaengine.On(
+		fold := metaengine.OnRecord(
 			struct{ ID string }{},
-			func(e struct{ ID string }) metaengine.Skip { return metaengine.Skip{} },
+			func(_ record.Record, e struct{ ID string }) metaengine.Skip { return metaengine.Skip{} },
 		)
 		Expect(fold.Kind()).To(Equal(metaengine.FoldSkip))
 	})
@@ -146,9 +147,9 @@ var _ = Describe("Query constructor panics", func() {
 			Expect(func() {
 				_ = metaengine.Query[qInput, qResult](
 					"bad_args",
-					metaengine.On(
+					metaengine.OnRecord(
 						struct{ ID string }{},
-						func(e struct{ ID string }) (string, qResult) {
+						func(_ record.Record, e struct{ ID string }) (string, qResult) {
 							return e.ID, qResult{}
 						},
 					),

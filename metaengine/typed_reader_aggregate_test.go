@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // TestTypedReader_AggregateFallback tests the Go-side fallback paths for
@@ -24,7 +25,7 @@ type aggItem struct {
 func aggItemQuery() metaengine.QueryDecl[struct{}, aggItem] {
 	return metaengine.Query[struct{}, aggItem](
 		"agg_items",
-		metaengine.On(aggItem{}, func(e aggItem) (string, aggItem) {
+		metaengine.OnRecord(aggItem{}, func(_ record.Record, e aggItem) (string, aggItem) {
 			return e.ID, e
 		}),
 	)

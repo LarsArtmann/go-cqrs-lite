@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ─── Test types for TypeDecoder ───
@@ -178,17 +179,17 @@ func TestNewWithDecoder_EndToEnd(t *testing.T) {
 	// Declare a Counter query keyed by stream ID.
 	q := metaengine.Query[statsInput, map[string]int64](
 		"item_counts",
-		metaengine.OnTyped(
+		metaengine.OnRecordTyped(
 			"item.created",
 			projectionadapter.EventWithID[createdPayload]{},
-			func(_ projectionadapter.EventWithID[createdPayload]) metaengine.Delta {
+			func(_ record.Record, _ projectionadapter.EventWithID[createdPayload]) metaengine.Delta {
 				return metaengine.Delta{"created": 1}
 			},
 		),
-		metaengine.OnTyped(
+		metaengine.OnRecordTyped(
 			"item.deleted",
 			projectionadapter.EventWithID[deletedPayload]{},
-			func(_ projectionadapter.EventWithID[deletedPayload]) metaengine.Delta {
+			func(_ record.Record, _ projectionadapter.EventWithID[deletedPayload]) metaengine.Delta {
 				return metaengine.Delta{"created": -1}
 			},
 		),
