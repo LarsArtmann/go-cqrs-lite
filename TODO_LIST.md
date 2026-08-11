@@ -234,7 +234,7 @@ DONE 2026-08-10/11. See [CHANGELOG.md](CHANGELOG.md) and status reports
 - [ ] **Real workload trace format** — JSON-lines spec, trace recorder, trace
       player for benchmark calibration.
       _(Effort: M)_
-- [ ] **Wire `Priority` into deployment YAML** — `EngineConfig`/`DriverConfig`
+- [x] **Wire `Priority` into deployment YAML** — `EngineConfig`/`DriverConfig`
       + `QueryDecl` builder options + config validation.
       _(Effort: M)_
 - [ ] **Aggregate boundary config** — `WithSharedCollection("Attachment")`

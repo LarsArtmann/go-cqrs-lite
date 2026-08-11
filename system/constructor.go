@@ -156,7 +156,10 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 				var planOpts []any
 
 				if deployment.Priority != nil {
-					planOpts = append(planOpts, metaengine.WithPriorityConfig(deployment.Priority.toMeta()))
+					planOpts = append(
+						planOpts,
+						metaengine.WithPriorityConfig(deployment.Priority.toMeta()),
+					)
 				}
 
 				store, err := metaengine.Plan(
