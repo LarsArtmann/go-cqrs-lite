@@ -21,15 +21,16 @@ func NewB030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			if ctx.IsLibrarySelfLint() {
 				return nil, nil
 			}
-			if !ctx.FeatureProfile.HasServer {
-				return nil, nil
-			}
 
 			buses := findBusVariables(ctx)
 
 			var findings []finding.Finding
 
 			for name, pos := range buses {
+				if !ctx.ProfileForFile(pos.Filename).HasServer {
+					continue
+				}
+
 				if hasMiddlewareKeyword(ctx, name, "circuit") ||
 					hasMiddlewareKeyword(ctx, name, "breaker") {
 					continue

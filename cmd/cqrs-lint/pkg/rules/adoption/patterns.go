@@ -87,10 +87,6 @@ func hasPIIInEventPayloads(ctx *analyzer.AnalysisContext) (token.Position, bool)
 // hasTimeBasedPatterns detects signals that the domain has time-based business
 // rules (deadlines, expirations, timeouts) by scanning for time.AfterFunc,
 // time.NewTimer, or function names containing deadline/expire/timeout/schedule.
-func hasTimeBasedPatterns(ctx *analyzer.AnalysisContext) (token.Position, bool) {
-	return hasTimeBasedPatternsIn(ctx.Fset, ctx.GoFiles)
-}
-
 func hasTimeBasedPatternsIn(
 	fset *token.FileSet,
 	files []*analyzer.GoFile,
@@ -202,10 +198,6 @@ var webFrameworkImportPaths = []string{ //nolint:gochecknoglobals // static look
 // web framework (chi, gin, echo, fiber, gorilla/mux, httprouter). These
 // frameworks are used for manual HTTP handler registration, which is an
 // alternative to go-cqrs-lite transport/http + transport/grpc.
-func hasWebFrameworkHandlers(ctx *analyzer.AnalysisContext) bool {
-	return hasWebFrameworkHandlersIn(ctx.GoFiles)
-}
-
 func hasWebFrameworkHandlersIn(files []*analyzer.GoFile) bool {
 	for _, prefix := range webFrameworkImportPaths {
 		if importsPathIn(files, prefix) {

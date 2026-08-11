@@ -101,8 +101,11 @@ and is **never** duplicated here.
       `ephemeral-nats.sh` exist but no Go tests use them. Watermill Redis
       Streams and NATS JetStream roundtrips untested.
       _(Effort: M)_
-- [ ] **Write actual Dgraph integration tests in Go** — ephemeral-dgraph script
-      exists; ADT tests run but no system-level integration test.
+- [x] **Write actual Dgraph integration tests in Go** — Added ScanBackend
+      contract test (MapScan filter/sort/pagination), AutoCRUD soak test
+      (46K-event memory leak + CRUD lifecycle), and `nix run .#integration-dgraph`
+      runner. Fixed go.mod standalone build (missing `id/v4` replace).
+      Pre-existing failures: Counter DQL syntax bug, JournalReadFrom seq offset.
       _(Effort: M)_
 
 ---

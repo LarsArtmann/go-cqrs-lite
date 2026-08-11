@@ -59,20 +59,6 @@ func NewF022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// hasSQLStore reports whether the project's detected store is SQL-backed
-// (capable of ORDER BY / WHERE pushdown). Delegates to StoreKind.IsSQL
-// so store-type classification lives in one place.
-func hasSQLStore(ctx *analyzer.AnalysisContext) bool {
-	return ctx.FeatureProfile.Store.IsSQL()
-}
-
-// firstManualSortPos returns the position of the first manual sort call
-// (sort.Slice, sort.SliceStable, slices.SortFunc, slices.SortStableFunc,
-// slices.Sort) in any non-test file.
-func firstManualSortPos(ctx *analyzer.AnalysisContext) (token.Position, bool) {
-	return firstManualSortPosIn(ctx.Fset, ctx.GoFiles)
-}
-
 func firstManualSortPosIn(
 	fset *token.FileSet,
 	files []*analyzer.GoFile,

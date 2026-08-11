@@ -61,12 +61,6 @@ func NewF026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// firstNewReaderPos returns the position of the first metaengine.NewReader
-// call in any non-test file.
-func firstNewReaderPos(ctx *analyzer.AnalysisContext) (token.Position, bool) {
-	return firstNewReaderPosIn(ctx.Fset, ctx.GoFiles)
-}
-
 func firstNewReaderPosIn(
 	fset *token.FileSet,
 	files []*analyzer.GoFile,

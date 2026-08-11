@@ -23,9 +23,6 @@ func NewB031Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			if ctx.IsLibrarySelfLint() {
 				return nil, nil
 			}
-			if !ctx.FeatureProfile.HasServer {
-				return nil, nil
-			}
 
 			var findings []finding.Finding
 
@@ -61,6 +58,10 @@ func NewB031Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					pos := ctx.Fset.Position(call.Pos())
+
+					if !ctx.ProfileForFile(pos.Filename).HasServer {
+						return true
+					}
 
 					fs := singleInfoFinding(
 						ctx,

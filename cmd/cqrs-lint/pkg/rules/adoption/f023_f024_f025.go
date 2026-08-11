@@ -23,31 +23,37 @@ func NewF023Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F023-manual-filter-no-pushdown",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if usesMetaengine(ctx) {
-				return nil, nil
+			var out []finding.Finding
+
+			for _, sc := range coachingScopes(ctx) {
+				if importsPathIn(sc.files, "go-cqrs-lite/metaengine") {
+					continue
+				}
+
+				if !sc.profile.Store.IsSQL() {
+					continue
+				}
+
+				pos, ok := firstManualFilterPosIn(ctx.Fset, sc.files)
+				if !ok {
+					continue
+				}
+
+				out = append(out, singleInfoFinding(
+					ctx,
+					"F023",
+					"Manual in-memory filtering (for-range + if + append) with a SQL "+
+						"store but no metaengine — all rows loaded into Go memory for filtering",
+					"Use metaengine.FilterOnField for declarative WHERE-clause pushdown. "+
+						"Declare queries with metaengine.Query[Q,R](name, folds..., "+
+						"metaengine.FilterOnField[R](\"column\", metaengine.FilterEq, value)) "+
+						"and the planner pushes the filter to the SQL engine. "+
+						"For SQLite: sqliteengine.PlanFromDSN(dsn, queries...) is a one-call setup.",
+					pos, finding.ConfidenceLow,
+				)...)
 			}
 
-			if !hasSQLStore(ctx) {
-				return nil, nil
-			}
-
-			pos, ok := firstManualFilterPos(ctx)
-			if !ok {
-				return nil, nil
-			}
-
-			return singleInfoFinding(
-				ctx,
-				"F023",
-				"Manual in-memory filtering (for-range + if + append) with a SQL "+
-					"store but no metaengine — all rows loaded into Go memory for filtering",
-				"Use metaengine.FilterOnField for declarative WHERE-clause pushdown. "+
-					"Declare queries with metaengine.Query[Q,R](name, folds..., "+
-					"metaengine.FilterOnField[R](\"column\", metaengine.FilterEq, value)) "+
-					"and the planner pushes the filter to the SQL engine. "+
-					"For SQLite: sqliteengine.PlanFromDSN(dsn, queries...) is a one-call setup.",
-				pos, finding.ConfidenceLow,
-			), nil
+			return out, nil
 		},
 	)
 }
@@ -64,31 +70,37 @@ func NewF024Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F024-manual-pagination-no-pushdown",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if usesMetaengine(ctx) {
-				return nil, nil
+			var out []finding.Finding
+
+			for _, sc := range coachingScopes(ctx) {
+				if importsPathIn(sc.files, "go-cqrs-lite/metaengine") {
+					continue
+				}
+
+				if !sc.profile.Store.IsSQL() {
+					continue
+				}
+
+				pos, ok := firstManualPaginationPosIn(ctx.Fset, sc.files)
+				if !ok {
+					continue
+				}
+
+				out = append(out, singleInfoFinding(
+					ctx,
+					"F024",
+					"Manual pagination (slice[offset:offset+limit]) with a SQL store "+
+						"but no metaengine — all rows loaded into Go memory before slicing",
+					"Use metaengine cursor pagination: WithLimit(n) pushes LIMIT to the "+
+						"SQL engine, and WithCursor/WithCursorString enable encoded cursor "+
+						"pagination without OFFSET scans. Declare queries with "+
+						"metaengine.Query[Q,R](name, folds...) and read via "+
+						"metaengine.NewReader[R](store, collection).",
+					pos, finding.ConfidenceMedium,
+				)...)
 			}
 
-			if !hasSQLStore(ctx) {
-				return nil, nil
-			}
-
-			pos, ok := firstManualPaginationPos(ctx)
-			if !ok {
-				return nil, nil
-			}
-
-			return singleInfoFinding(
-				ctx,
-				"F024",
-				"Manual pagination (slice[offset:offset+limit]) with a SQL store "+
-					"but no metaengine — all rows loaded into Go memory before slicing",
-				"Use metaengine cursor pagination: WithLimit(n) pushes LIMIT to the "+
-					"SQL engine, and WithCursor/WithCursorString enable encoded cursor "+
-					"pagination without OFFSET scans. Declare queries with "+
-					"metaengine.Query[Q,R](name, folds...) and read via "+
-					"metaengine.NewReader[R](store, collection).",
-				pos, finding.ConfidenceMedium,
-			), nil
+			return out, nil
 		},
 	)
 }
@@ -105,31 +117,37 @@ func NewF025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F025-manual-count-no-counter-adt",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if usesMetaengine(ctx) {
-				return nil, nil
+			var out []finding.Finding
+
+			for _, sc := range coachingScopes(ctx) {
+				if importsPathIn(sc.files, "go-cqrs-lite/metaengine") {
+					continue
+				}
+
+				if !sc.profile.Store.IsSQL() {
+					continue
+				}
+
+				pos, ok := firstManualAggregationPosIn(ctx.Fset, sc.files)
+				if !ok {
+					continue
+				}
+
+				out = append(out, singleInfoFinding(
+					ctx,
+					"F025",
+					"Manual count/aggregation (for-range + count++/sum +=) with a SQL "+
+						"store but no metaengine — full collection scanned for every count",
+					"Use the metaengine Counter ADT for pre-materialized O(1) counts. "+
+						"Declare a counter query with metaengine.Query[Q,R](name, "+
+						"metaengine.OnRecord(Event{}, func(_ record.Record, e Event) metaengine.Delta{ "+
+						"return metaengine.Delta{e.Status: +1} })) and read via "+
+						"metaengine.ExecuteTyped[Q, map[string]int64](ctx, store, input).",
+					pos, finding.ConfidenceMedium,
+				)...)
 			}
 
-			if !hasSQLStore(ctx) {
-				return nil, nil
-			}
-
-			pos, ok := firstManualAggregationPos(ctx)
-			if !ok {
-				return nil, nil
-			}
-
-			return singleInfoFinding(
-				ctx,
-				"F025",
-				"Manual count/aggregation (for-range + count++/sum +=) with a SQL "+
-					"store but no metaengine — full collection scanned for every count",
-				"Use the metaengine Counter ADT for pre-materialized O(1) counts. "+
-					"Declare a counter query with metaengine.Query[Q,R](name, "+
-					"metaengine.OnRecord(Event{}, func(_ record.Record, e Event) metaengine.Delta{ "+
-					"return metaengine.Delta{e.Status: +1} })) and read via "+
-					"metaengine.ExecuteTyped[Q, map[string]int64](ctx, store, input).",
-				pos, finding.ConfidenceMedium,
-			), nil
+			return out, nil
 		},
 	)
 }
@@ -138,7 +156,14 @@ func NewF025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // slice" idiom: a for/range loop whose body contains an if-statement whose
 // body contains an append() call.
 func firstManualFilterPos(ctx *analyzer.AnalysisContext) (token.Position, bool) {
-	for _, gf := range ctx.GoFiles {
+	return firstManualFilterPosIn(ctx.Fset, ctx.GoFiles)
+}
+
+func firstManualFilterPosIn(
+	fset *token.FileSet,
+	files []*analyzer.GoFile,
+) (token.Position, bool) {
+	for _, gf := range files {
 		if gf.IsTest {
 			continue
 		}
@@ -164,7 +189,7 @@ func firstManualFilterPos(ctx *analyzer.AnalysisContext) (token.Position, bool) 
 		})
 
 		if hit != nil {
-			return ctx.Fset.Position(hit.Pos()), true
+			return fset.Position(hit.Pos()), true
 		}
 	}
 
@@ -175,7 +200,14 @@ func firstManualFilterPos(ctx *analyzer.AnalysisContext) (token.Position, bool) 
 // whose indices reference pagination-like variables (offset, limit, start,
 // end, page, size, skip, take).
 func firstManualPaginationPos(ctx *analyzer.AnalysisContext) (token.Position, bool) {
-	for _, gf := range ctx.GoFiles {
+	return firstManualPaginationPosIn(ctx.Fset, ctx.GoFiles)
+}
+
+func firstManualPaginationPosIn(
+	fset *token.FileSet,
+	files []*analyzer.GoFile,
+) (token.Position, bool) {
+	for _, gf := range files {
 		if gf.IsTest {
 			continue
 		}
@@ -201,7 +233,7 @@ func firstManualPaginationPos(ctx *analyzer.AnalysisContext) (token.Position, bo
 		})
 
 		if hit != nil {
-			return ctx.Fset.Position(hit.Pos()), true
+			return fset.Position(hit.Pos()), true
 		}
 	}
 
@@ -212,7 +244,14 @@ func firstManualPaginationPos(ctx *analyzer.AnalysisContext) (token.Position, bo
 // sum" idiom: a for/range loop whose body contains an increment (++) or
 // compound assignment (+=, -=).
 func firstManualAggregationPos(ctx *analyzer.AnalysisContext) (token.Position, bool) {
-	for _, gf := range ctx.GoFiles {
+	return firstManualAggregationPosIn(ctx.Fset, ctx.GoFiles)
+}
+
+func firstManualAggregationPosIn(
+	fset *token.FileSet,
+	files []*analyzer.GoFile,
+) (token.Position, bool) {
+	for _, gf := range files {
 		if gf.IsTest {
 			continue
 		}
@@ -238,7 +277,7 @@ func firstManualAggregationPos(ctx *analyzer.AnalysisContext) (token.Position, b
 		})
 
 		if hit != nil {
-			return ctx.Fset.Position(hit.Pos()), true
+			return fset.Position(hit.Pos()), true
 		}
 	}
 
