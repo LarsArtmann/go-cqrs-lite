@@ -1,6 +1,9 @@
 # Status: 2026-08-11 04:04 — `nix run .#verify` GREEN + Lint Cleanup
 
-> **`nix run .#verify` passes end-to-end (exit 0).** Build, vet, test, race, lint, arch, dedup, coverage, api-stability, doc-check — all green.
+> **ARCHIVED 2026-08-11 — This report is fully complete. ~~Original content retained for historical context below.~~**
+> ~~~
+> ~~`nix run .#verify` passes end-to-end (exit 0).~~ Build, vet, test, race, lint, arch, dedup, coverage, api-stability, doc-check — all green.
+> ~~~
 
 ---
 
