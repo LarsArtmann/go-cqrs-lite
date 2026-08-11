@@ -53,6 +53,7 @@ var _ = Describe("On constructor", func() {
 			metaengine.FoldRemove),
 		Entry("skip: func(rec, e) Skip",
 			func(_ record.Record, e event) metaengine.Skip { return metaengine.Skip{} },
+			metaengine.FoldSkip),
 	)
 
 	Describe("recording the event type", func() {
