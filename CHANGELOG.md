@@ -95,7 +95,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > the runtime measures true RTT via `ProbeEngine` and feeds it live into
 > `Profile()`. The planner sees fresh numbers on every re-plan. Design:
 > `docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md` (P1+P2+P3+UX complete).
-> Status: `docs/status/2026-08-10_18-49_live-latency-model-implementation.md`.
+> Status: `docs/status/2026-08-11_04-04_live-latency-phase2-complete.md`.
 
 - **`metaengine.LatencyTracker`** — sliding-window (512 samples) latency
   collector with incremental EWMA + P50/P95/P99/Max/Mean. `Record()` is O(1);
@@ -160,6 +160,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > the background. All remote engines (PG, Dgraph, MySQL, Turso) now declare
 > `RequiresNetwork` + RTT prior. PG implements `TransactMeasurer`. Iroh migrated
 > to core `LatencyTracker`, eliminating duplicate percentile machinery.
+> `nix run .#verify` GREEN (2026-08-11).
+> Status: `docs/status/2026-08-11_04-04_live-latency-phase2-complete.md`.
 
 - **`metaengine.Store.Replan(ctx)`** — in-place re-plan for a long-lived Store.
   Re-reads `engine.Profile()` (reflects live tracker EWMA), re-assigns engines,

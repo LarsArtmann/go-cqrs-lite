@@ -349,8 +349,8 @@ and is **never** duplicated here.
 > per-op costs "compile-time, do not evolve at runtime." This section tracks
 > the phased remediation. Long-term vision: ROADMAP → Themes.
 >
-> Implementation sessions 2026-08-10: P1, P2, P3, and UX all DONE.
-> Full status: `docs/status/2026-08-10_18-49_live-latency-model-implementation.md`.
+> Implementation sessions 2026-08-10/11: P1, P2, P3, and UX all DONE. `nix run .#verify` GREEN.
+> Full status: `docs/status/2026-08-11_04-04_live-latency-phase2-complete.md`.
 
 - [x] 🔥 **P1: Prober + LatencyTracker** — DONE 2026-08-10. Optional `Prober`/
       `TransactMeasurer` interfaces, `LatencyTracker` (ring buffer + incremental
@@ -418,6 +418,67 @@ and is **never** duplicated here.
       `computeStats` + `percentile` removed (LatencyCollector now uses core
       tracker). `PercentileIdx`/`SortDurations` kept as transport-facing utilities
       (separate modules, different use case — acceptable 3-line index formula).
+
+#### Live Cost Measurement — Improvement Backlog (from phase 2 self-review)
+
+- [ ] **Integration test: real PG testcontainer + ProbeEngine** — verify
+      `GetEngineStats` shows live RTT against a real Postgres instance.
+      Currently only the fake engine proves the mechanism.
+      _(Effort: M)_
+- [ ] **Add `WithRoutingHysteresis(float64)` Store option** —
+      `DefaultRoutingHysteresis` is a const (0.20); consumers can't tune the
+      deadband without forking the function.
+      _(Effort: XS)_
+- [ ] **Accept parent context in `StartAutoReplan`** — currently uses
+      `context.Background()` internally; if the Store lives inside a request-
+      scoped context tree, the goroutine outlives the parent.
+      _(Effort: XS)_
+- [ ] **Wire OTel spans/metrics into `CheckRouting` and `Replan`** — operators
+      can't observe how often routing drifts or how long replans take.
+      _(Effort: S)_
+- [ ] **Differential `CheckRouting`** — skip queries whose assigned engine's
+      tracker hasn't changed since last check instead of re-scoring all queries
+      × engines every call.
+      _(Effort: S)_
+- [ ] **Fix turso live probing gap** — sqliteengine delegation prevents adding
+      `Prober`. Options: export `sqliteEngine`, add `SetProber` injection point,
+      or create a turso wrapper type. API design decision needed.
+      _(Effort: S)_
+- [ ] **Add absolute minimum delta to hysteresis** — percentage-based deadband
+      (20%) is negligible for very cheap queries (0.01ms). Consider adding an
+      absolute floor (e.g. 0.5ms).
+      _(Effort: XS)_
+- [ ] **Concurrency stress test** — multiple goroutines calling `Replan` +
+      `Execute` + `CheckRouting` simultaneously. Lock structure should handle
+      it but no test proves it under load.
+      _(Effort: S)_
+- [ ] **Edge case tests** — zero queries, zero engines, nil plan for both
+      `Replan` and `CheckRouting`.
+      _(Effort: XS)_
+- [ ] **Add `Replan` to Doctor report** — show plan version + last replan time
+      + routing drift count.
+      _(Effort: XS)_
+- [ ] **Wire `TransactMeasurer` on mysqlengine** — same `SELECT ... LIMIT 1`
+      pattern as PG.
+      _(Effort: XS)_
+- [ ] **Wire `TransactMeasurer` on dgraphengine** — time a real single-node
+      `Query`.
+      _(Effort: XS)_
+- [ ] **Add live-latency section to AGENTS.md metaengine section** — mention
+      `RequiresNetwork`, `ProbeEngine`, `LatencyTracker`, `Replan`,
+      `CheckRouting`, `StartAutoReplan`.
+      _(Effort: S)_
+- [ ] **Update `METAENGINE-LIVE-LATENCY-MODEL.md` implementation status** — P2
+      now complete; update the implementation status table.
+      _(Effort: XS)_
+- [ ] **Cost model: RTT amortization for batch reads** — `estimateCost` formula
+      `(ops × nsPerOp / 1e6) + RTT` is additive; a scan reading 10K rows over
+      the network pays RTT once, not 10K times. Formula overestimates remote
+      scan cost.
+      _(Effort: M)_
+- [ ] **Probe failure observability** — `ProbeEngine` drops failed probes
+      silently (no log, no metric). Add an error counter + structured log.
+      _(Effort: S)_
 
 ---
 
