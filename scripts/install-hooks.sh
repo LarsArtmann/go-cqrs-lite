@@ -12,16 +12,16 @@ set -euo pipefail
 HOOK_PATH=".git/hooks/pre-commit"
 
 if [ ! -d .git/hooks ]; then
-  echo "Error: not a git repository root (.git/hooks not found)" >&2
-  exit 1
+	echo "Error: not a git repository root (.git/hooks not found)" >&2
+	exit 1
 fi
 
 if ! command -v buildflow &>/dev/null; then
-  echo "Error: buildflow not found in PATH. Run 'nix develop' first." >&2
-  exit 1
+	echo "Error: buildflow not found in PATH. Run 'nix develop' first." >&2
+	exit 1
 fi
 
-cat > "$HOOK_PATH" << 'HOOK_EOF'
+cat >"$HOOK_PATH" <<'HOOK_EOF'
 #!/usr/bin/env bash
 # BuildFlow Pre-Commit Hook
 # Installed by scripts/install-hooks.sh

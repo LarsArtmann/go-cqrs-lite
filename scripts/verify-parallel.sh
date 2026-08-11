@@ -16,8 +16,8 @@ EXTRA_ARGS="$*"
 
 # Read module list from flake.nix (same list as #test).
 mapfile -t MODULES < <(find . -maxdepth 3 -name go.mod -not -path './vendor/*' \
-  -not -path './.git/*' -not -path './example/*' -not -name 'go.work' \
-  -exec dirname {} \; | sed 's|^\./||' | sort -u)
+	-not -path './.git/*' -not -path './example/*' -not -name 'go.work' \
+	-exec dirname {} \; | sed 's|^\./||' | sort -u)
 
 echo "=== Parallel test: ${#MODULES[@]} modules in $BATCHES batches (race detector ON) ==="
 
@@ -26,43 +26,43 @@ PIDS=()
 RESULTS_DIR=$(mktemp -d)
 trap 'rm -rf "$RESULTS_DIR"' EXIT
 
-batch_size=$(( (${#MODULES[@]} + BATCHES - 1) / BATCHES ))
+batch_size=$(((${#MODULES[@]} + BATCHES - 1) / BATCHES))
 
 batch_idx=0
-for ((i=0; i<${#MODULES[@]}; i+=batch_size)); do
-  batch=("${MODULES[@]:i:batch_size}")
-  batch_idx=$((batch_idx + 1))
-  result_file="$RESULTS_DIR/batch_${batch_idx}.log"
+for ((i = 0; i < ${#MODULES[@]}; i += batch_size)); do
+	batch=("${MODULES[@]:i:batch_size}")
+	batch_idx=$((batch_idx + 1))
+	result_file="$RESULTS_DIR/batch_${batch_idx}.log"
 
-  (
-    paths=""
-    for m in "${batch[@]}"; do
-      paths+="./${m}/... "
-    done
-    if go test $TAGS -race -count=1 $EXTRA_ARGS $paths > "$result_file" 2>&1; then
-      echo "✅ Batch $batch_idx passed" >> "$result_file"
-    else
-      echo "❌ Batch $batch_idx FAILED" >> "$result_file"
-    fi
-  ) &
-  PIDS+=($!)
+	(
+		paths=""
+		for m in "${batch[@]}"; do
+			paths+="./${m}/... "
+		done
+		if go test $TAGS -race -count=1 $EXTRA_ARGS $paths >"$result_file" 2>&1; then
+			echo "✅ Batch $batch_idx passed" >>"$result_file"
+		else
+			echo "❌ Batch $batch_idx FAILED" >>"$result_file"
+		fi
+	) &
+	PIDS+=($!)
 done
 
 # Wait for all batches
 for pid in "${PIDS[@]}"; do
-  wait "$pid" || FAILED=1
+	wait "$pid" || FAILED=1
 done
 
 # Print results
 for result_file in "$RESULTS_DIR"/batch_*.log; do
-  if grep -q "FAILED" "$result_file" 2>/dev/null; then
-    cat "$result_file"
-  fi
+	if grep -q "FAILED" "$result_file" 2>/dev/null; then
+		cat "$result_file"
+	fi
 done
 
 if [ "$FAILED" -eq 0 ]; then
-  echo "✅ All parallel test batches passed"
+	echo "✅ All parallel test batches passed"
 else
-  echo "❌ One or more test batches failed"
-  exit 1
+	echo "❌ One or more test batches failed"
+	exit 1
 fi

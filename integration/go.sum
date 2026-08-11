@@ -128,8 +128,8 @@ github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.0.0 h1:yFsbgR2NFFG2upjH
 github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.0.0/go.mod h1:jMpo3K/BD9y1VMmXewFC5vAB9hY4r4NbAsNUz9fFgJg=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0 h1:axNv6S9pIzvEPN7E7liORtGTfLnHAhM0FBHlhh7qsuY=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0/go.mod h1:HaDwpxArq0oxdFMIIKKGmjn9VtiNMKjqjGEE1LpGN34=
-github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 h1:6751shB8+f6PX4ogTOBArJpdQDLAsLo9nCwmYsSxnjU=
-github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0/go.mod h1:TB0o6rv8eIdLqV9ZxdIsRNTNQuALt/d5/MFtPZp5AjQ=
+github.com/larsartmann/go-cqrs-lite/record/v4 v4.1.0 h1:ymxobjemAsCLMGCEYiDWDtsXuFFhEuJecgoExVO4qtw=
+github.com/larsartmann/go-cqrs-lite/record/v4 v4.1.0/go.mod h1:Ng5QOIespmZ+WStPtAeGi8Gy4T9TZ5JkhieR83xBqD0=
 github.com/larsartmann/go-cqrs-lite/retry/v4 v4.1.0 h1:vKzVdXL7yUhsYgWn63ax5kJVLLAuSQp+0HEVJgyOlCE=
 github.com/larsartmann/go-cqrs-lite/retry/v4 v4.1.0/go.mod h1:YMkC00d3iFCxtiLIpJBgxC8XbiwnNwHwgMNCDeu5FYE=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.0.3 h1:50B8PXL/8YToTopQ07INi+t+ZUPvk5Ol0Jgr5ldr1So=

@@ -43,14 +43,14 @@ awk '
       in_allow = 0
     }
   }
-' .golangci.yml > "$ALLOW_FILE"
+' .golangci.yml >"$ALLOW_FILE"
 
 if [ ! -s "$ALLOW_FILE" ]; then
-  echo "ERROR: could not extract depguard allow list from .golangci.yml" >&2
-  exit 1
+	echo "ERROR: could not extract depguard allow list from .golangci.yml" >&2
+	exit 1
 fi
 
-echo "Allowed prefixes ($(wc -l < "$ALLOW_FILE") entries):"
+echo "Allowed prefixes ($(wc -l <"$ALLOW_FILE") entries):"
 sed 's/^/  /' "$ALLOW_FILE"
 echo ""
 
@@ -64,15 +64,15 @@ REQUIRES_FILE=$(mktemp)
 trap 'rm -f "$ALLOW_FILE" "$REQUIRES_FILE"' EXIT
 
 find . -name go.mod -not -path './vendor/*' -print0 |
-  while IFS= read -r -d '' modfile; do
-    # Extract require block entries (not indirect).
-    awk '
+	while IFS= read -r -d '' modfile; do
+		# Extract require block entries (not indirect).
+		awk '
       /^require \(/ { in_block = 1; next }
       in_block && /^\)/ { in_block = 0; next }
       in_block && !/\/\/ indirect/ && /^\t/ { print $1 }
       /^require / && !/\/\// && !/\(/ { print $2 }
     ' "$modfile"
-  done | sort -u > "$REQUIRES_FILE"
+	done | sort -u >"$REQUIRES_FILE"
 
 # ── Check each require against the allow list ─────────────────────────────
 #
@@ -82,38 +82,38 @@ find . -name go.mod -not -path './vendor/*' -print0 |
 
 MISSING=0
 while IFS= read -r dep; do
-  [ -z "$dep" ] && continue
+	[ -z "$dep" ] && continue
 
-  # Skip stdlib (no dot in first segment = no domain).
-  first_seg="${dep%%/*}"
-  if [[ "$first_seg" != *.* ]]; then
-    continue
-  fi
+	# Skip stdlib (no dot in first segment = no domain).
+	first_seg="${dep%%/*}"
+	if [[ "$first_seg" != *.* ]]; then
+		continue
+	fi
 
-  # Check against allow list.
-  if ! grep -qF "$dep" "$ALLOW_FILE" 2>/dev/null; then
-    # Try prefix match: does any allowed entry match as a prefix?
-    matched=0
-    while IFS= read -r prefix; do
-      if [[ "$dep" == "$prefix"* ]]; then
-        matched=1
-        break
-      fi
-    done < "$ALLOW_FILE"
+	# Check against allow list.
+	if ! grep -qF "$dep" "$ALLOW_FILE" 2>/dev/null; then
+		# Try prefix match: does any allowed entry match as a prefix?
+		matched=0
+		while IFS= read -r prefix; do
+			if [[ "$dep" == "$prefix"* ]]; then
+				matched=1
+				break
+			fi
+		done <"$ALLOW_FILE"
 
-    if [ "$matched" -eq 0 ]; then
-      echo "MISSING from depguard allow list: $dep"
-      MISSING=$((MISSING + 1))
-    fi
-  fi
-done < "$REQUIRES_FILE"
+		if [ "$matched" -eq 0 ]; then
+			echo "MISSING from depguard allow list: $dep"
+			MISSING=$((MISSING + 1))
+		fi
+	fi
+done <"$REQUIRES_FILE"
 
 echo ""
 if [ "$MISSING" -gt 0 ]; then
-  echo "FAIL: $MISSING dependencies in go.mod files are not in the depguard allow list."
-  echo "Fix: add them to .golangci.yml under depguard.rules.Main.allow"
-  exit 1
+	echo "FAIL: $MISSING dependencies in go.mod files are not in the depguard allow list."
+	echo "Fix: add them to .golangci.yml under depguard.rules.Main.allow"
+	exit 1
 fi
 
-TOTAL_REQUIRES=$(wc -l < "$REQUIRES_FILE")
+TOTAL_REQUIRES=$(wc -l <"$REQUIRES_FILE")
 echo "OK: all $TOTAL_REQUIRES unique direct dependencies are covered by the depguard allow list."

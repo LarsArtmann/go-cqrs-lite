@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.8.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.1.0
 	github.com/onsi/gomega v1.42.1
 	go.etcd.io/bbolt v1.5.0
 )

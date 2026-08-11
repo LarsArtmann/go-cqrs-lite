@@ -36,47 +36,62 @@ BENCH_COUNT=1
 BENCH_TIME=""
 
 while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --quick) QUICK=true; shift ;;
-        --module) MODULE_FILTER="$2"; shift 2 ;;
-        --count) BENCH_COUNT="$2"; shift 2 ;;
-        --benchtime) BENCH_TIME="$2"; shift 2 ;;
-        --matrix) exec "$SCRIPT_DIR/bench-matrix.sh" "${@:2}" ;;
-        *) echo "Unknown option: $1"; exit 1 ;;
-    esac
+	case "$1" in
+	--quick)
+		QUICK=true
+		shift
+		;;
+	--module)
+		MODULE_FILTER="$2"
+		shift 2
+		;;
+	--count)
+		BENCH_COUNT="$2"
+		shift 2
+		;;
+	--benchtime)
+		BENCH_TIME="$2"
+		shift 2
+		;;
+	--matrix) exec "$SCRIPT_DIR/bench-matrix.sh" "${@:2}" ;;
+	*)
+		echo "Unknown option: $1"
+		exit 1
+		;;
+	esac
 done
 
 BENCH_TIME_FLAG=""
 if [[ -n "$BENCH_TIME" ]]; then
-    BENCH_TIME_FLAG="-benchtime=$BENCH_TIME"
+	BENCH_TIME_FLAG="-benchtime=$BENCH_TIME"
 fi
 
 # Modules that have benchmark files (auto-discovered).
 # We search for func Benchmark in _test.go files.
 mapfile -t MODULES < <(
-    find . -name '*_test.go' -not -path './vendor/*' -not -path './.git/*' \
-        -exec grep -l 'func Benchmark' {} \; \
-    | xargs -I{} dirname {} \
-    | sort -u
+	find . -name '*_test.go' -not -path './vendor/*' -not -path './.git/*' \
+		-exec grep -l 'func Benchmark' {} \; |
+		xargs -I{} dirname {} |
+		sort -u
 )
 
 # Slow modules skipped in --quick mode (exact paths, no glob fragility)
 SLOW_MODULES=(
-    "metaengine/bench"
-    "metaengine/duckdbengine"
-    "metaengine/pgengine"
-    "integration"
-    "stack/bench"
+	"metaengine/bench"
+	"metaengine/duckdbengine"
+	"metaengine/pgengine"
+	"integration"
+	"stack/bench"
 )
 
 is_slow_module() {
-    local target="$1"
-    for slow in "${SLOW_MODULES[@]}"; do
-        if [[ "$target" == "$slow" || "$target" == "$slow"/* ]]; then
-            return 0
-        fi
-    done
-    return 1
+	local target="$1"
+	for slow in "${SLOW_MODULES[@]}"; do
+		if [[ "$target" == "$slow" || "$target" == "$slow"/* ]]; then
+			return 0
+		fi
+	done
+	return 1
 }
 
 echo "============================================"
@@ -99,61 +114,61 @@ FAILED_MODULES=()
 START_TIME=$SECONDS
 
 for mod in "${MODULES[@]}"; do
-    mod_name="${mod#./}"
+	mod_name="${mod#./}"
 
-    # Apply module filter
-    if [[ -n "$MODULE_FILTER" && "$mod_name" != *"$MODULE_FILTER"* ]]; then
-        continue
-    fi
+	# Apply module filter
+	if [[ -n "$MODULE_FILTER" && "$mod_name" != *"$MODULE_FILTER"* ]]; then
+		continue
+	fi
 
-    # Quick mode: skip slow modules
-    if $QUICK; then
-        if is_slow_module "$mod_name"; then
-            echo "  SKIP   $mod_name (slow module, --quick)"
-            ((TOTAL_SKIPPED++)) || true
-            continue
-        fi
-    fi
+	# Quick mode: skip slow modules
+	if $QUICK; then
+		if is_slow_module "$mod_name"; then
+			echo "  SKIP   $mod_name (slow module, --quick)"
+			((TOTAL_SKIPPED++)) || true
+			continue
+		fi
+	fi
 
-    echo "  RUN    $mod_name"
+	echo "  RUN    $mod_name"
 
-    # Count benchmarks in this module
-    bench_count=$(
-        grep -rh 'func Benchmark' "$mod"/*_test.go 2>/dev/null \
-        | grep -c 'func Benchmark' || true
-    )
+	# Count benchmarks in this module
+	bench_count=$(
+		grep -rh 'func Benchmark' "$mod"/*_test.go 2>/dev/null |
+			grep -c 'func Benchmark' || true
+	)
 
-    output=$(timeout "$TIMEOUT" go test \
-        -tags "goexperiment.jsonv2" \
-        -run='^$' \
-        -bench=. \
-        $BENCH_TIME_FLAG \
-        -benchmem \
-        -count="$BENCH_COUNT" \
-        -timeout "$TIMEOUT" \
-        "./${mod_name}/..." 2>&1) && exit_code=0 || exit_code=$?
+	output=$(timeout "$TIMEOUT" go test \
+		-tags "goexperiment.jsonv2" \
+		-run='^$' \
+		-bench=. \
+		$BENCH_TIME_FLAG \
+		-benchmem \
+		-count="$BENCH_COUNT" \
+		-timeout "$TIMEOUT" \
+		"./${mod_name}/..." 2>&1) && exit_code=0 || exit_code=$?
 
-    # Use exit code for FAIL detection (not grep — grep false-positives on benchmark names)
-    if [[ $exit_code -ne 0 ]]; then
-        echo "  FAIL   $mod_name ($bench_count benchmarks, exit=$exit_code)"
-        echo "$output" | grep -E '(FAIL|panic:|--- FAIL|Error)' | head -5 | sed 's/^/         /'
-        ((TOTAL_FAILED++)) || true
-        FAILED_MODULES+=("$mod_name")
-    elif echo "$output" | grep -qE '(--- SKIP|no benchmarks|no Go files)'; then
-        echo "  SKIP   $mod_name (skipped/no-output)"
-        ((TOTAL_SKIPPED++)) || true
-    elif echo "$output" | grep -qE '^ok'; then
-        # Use last ok line for duration (handles multi-package modules)
-        duration=$(echo "$output" | grep '^ok' | tail -1 | awk '{print $NF}' || echo "?")
-        echo "  PASS   $mod_name ($bench_count benchmarks, $duration)"
-        ((TOTAL_PASSED++)) || true
-    else
-        echo "  ???    $mod_name (unexpected output)"
-        ((TOTAL_FAILED++)) || true
-        FAILED_MODULES+=("$mod_name")
-    fi
-    ((TOTAL_RAN++)) || true
-    echo ""
+	# Use exit code for FAIL detection (not grep — grep false-positives on benchmark names)
+	if [[ $exit_code -ne 0 ]]; then
+		echo "  FAIL   $mod_name ($bench_count benchmarks, exit=$exit_code)"
+		echo "$output" | grep -E '(FAIL|panic:|--- FAIL|Error)' | head -5 | sed 's/^/         /'
+		((TOTAL_FAILED++)) || true
+		FAILED_MODULES+=("$mod_name")
+	elif echo "$output" | grep -qE '(--- SKIP|no benchmarks|no Go files)'; then
+		echo "  SKIP   $mod_name (skipped/no-output)"
+		((TOTAL_SKIPPED++)) || true
+	elif echo "$output" | grep -qE '^ok'; then
+		# Use last ok line for duration (handles multi-package modules)
+		duration=$(echo "$output" | grep '^ok' | tail -1 | awk '{print $NF}' || echo "?")
+		echo "  PASS   $mod_name ($bench_count benchmarks, $duration)"
+		((TOTAL_PASSED++)) || true
+	else
+		echo "  ???    $mod_name (unexpected output)"
+		((TOTAL_FAILED++)) || true
+		FAILED_MODULES+=("$mod_name")
+	fi
+	((TOTAL_RAN++)) || true
+	echo ""
 done
 
 ELAPSED=$((SECONDS - START_TIME))
@@ -170,14 +185,14 @@ echo "  Modules failed:  $TOTAL_FAILED"
 echo "  Modules skipped: $TOTAL_SKIPPED"
 echo "  Wall time:       ${ELAPSED_MIN}m ${ELAPSED_SEC}s"
 if [[ ${#FAILED_MODULES[@]} -gt 0 ]]; then
-    echo ""
-    echo "  FAILED MODULES:"
-    for m in "${FAILED_MODULES[@]}"; do
-        echo "    - $m"
-    done
+	echo ""
+	echo "  FAILED MODULES:"
+	for m in "${FAILED_MODULES[@]}"; do
+		echo "    - $m"
+	done
 fi
 echo "============================================"
 
 if [[ $TOTAL_FAILED -gt 0 ]]; then
-    exit 1
+	exit 1
 fi

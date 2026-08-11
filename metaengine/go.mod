@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.1.0
 	github.com/larsartmann/go-sse v0.4.0
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1

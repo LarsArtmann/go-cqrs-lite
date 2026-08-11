@@ -22,8 +22,8 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 if [ $# -eq 0 ]; then
-  echo "Usage: $0 \"<module> <version> <description>\" ..."
-  exit 1
+	echo "Usage: $0 \"<module> <version> <description>\" ..."
+	exit 1
 fi
 
 # Parse arguments into arrays
@@ -33,38 +33,38 @@ descriptions=()
 tags=()
 
 for arg in "$@"; do
-  module=$(echo "$arg" | awk '{print $1}')
-  version=$(echo "$arg" | awk '{print $2}')
-  description=$(echo "$arg" | cut -d' ' -f3-)
-  tag="${module}/${version}"
+	module=$(echo "$arg" | awk '{print $1}')
+	version=$(echo "$arg" | awk '{print $2}')
+	description=$(echo "$arg" | cut -d' ' -f3-)
+	tag="${module}/${version}"
 
-  if [ ! -f "${module}/go.mod" ]; then
-    echo "ERROR: ${module}/go.mod not found"
-    exit 1
-  fi
+	if [ ! -f "${module}/go.mod" ]; then
+		echo "ERROR: ${module}/go.mod not found"
+		exit 1
+	fi
 
-  if git tag -l "$tag" | grep -q .; then
-    echo "ERROR: tag ${tag} already exists"
-    exit 1
-  fi
+	if git tag -l "$tag" | grep -q .; then
+		echo "ERROR: tag ${tag} already exists"
+		exit 1
+	fi
 
-  modules+=("$module")
-  versions+=("$version")
-  descriptions+=("$description")
-  tags+=("$tag")
+	modules+=("$module")
+	versions+=("$version")
+	descriptions+=("$description")
+	tags+=("$tag")
 done
 
 echo "Releasing ${#tags[@]} modules:"
 for i in "${!tags[@]}"; do
-  echo "  ${tags[$i]}: ${descriptions[$i]}"
+	echo "  ${tags[$i]}: ${descriptions[$i]}"
 done
 echo ""
 
 # Verify clean working tree
 if ! git diff-index --quiet HEAD --; then
-  echo "ERROR: working tree has uncommitted changes. Commit first."
-  git status --short
-  exit 1
+	echo "ERROR: working tree has uncommitted changes. Commit first."
+	git status --short
+	exit 1
 fi
 
 # --- Strip replace directives from ALL go.mod files ---
@@ -72,50 +72,50 @@ echo "Stripping replace directives from all go.mod files..."
 
 backup_dir="$(mktemp -d)"
 cleanup_on_exit() {
-  rm -rf "$backup_dir"
-  # Restore go.mod files if the strip phase modified them
-  if ! git diff-index --quiet HEAD --; then
-    find . -name go.mod -not -path './vendor/*' -not -path './.git/*' -exec git restore {} + 2>/dev/null || true
-    find . -name go.sum -not -path './vendor/*' -not -path './.git/*' -exec git restore {} + 2>/dev/null || true
-  fi
+	rm -rf "$backup_dir"
+	# Restore go.mod files if the strip phase modified them
+	if ! git diff-index --quiet HEAD --; then
+		find . -name go.mod -not -path './vendor/*' -not -path './.git/*' -exec git restore {} + 2>/dev/null || true
+		find . -name go.sum -not -path './vendor/*' -not -path './.git/*' -exec git restore {} + 2>/dev/null || true
+	fi
 }
 trap cleanup_on_exit EXIT
 
 find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | while IFS= read -r gomod; do
-  dir="$(dirname "$gomod")"
-  mkdir -p "$backup_dir/$dir"
-  cp "$gomod" "$backup_dir/$gomod"
+	dir="$(dirname "$gomod")"
+	mkdir -p "$backup_dir/$dir"
+	cp "$gomod" "$backup_dir/$gomod"
 
-  while IFS= read -r replace_line; do
-    replace_path=$(echo "$replace_line" | grep -oP 'github\.com/larsartmann/go-cqrs-lite/\S+' | head -1 || true)
-    if [ -n "$replace_path" ]; then
-      (cd "$dir" && go mod edit "-dropreplace=${replace_path}")
-    fi
-  done < <(grep '=>' "$gomod" 2>/dev/null || true)
+	while IFS= read -r replace_line; do
+		replace_path=$(echo "$replace_line" | grep -oP 'github\.com/larsartmann/go-cqrs-lite/\S+' | head -1 || true)
+		if [ -n "$replace_path" ]; then
+			(cd "$dir" && go mod edit "-dropreplace=${replace_path}")
+		fi
+	done < <(grep '=>' "$gomod" 2>/dev/null || true)
 done
 
 # Re-resolve requires after stripping replaces
 echo "Re-resolving requires (go mod tidy with replaces stripped)..."
 find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | while IFS= read -r gomod; do
-  dir="$(dirname "$gomod")"
-  (cd "$dir" && GOWORK=off go mod tidy -e 2>/dev/null || true)
+	dir="$(dirname "$gomod")"
+	(cd "$dir" && GOWORK=off go mod tidy -e 2>/dev/null || true)
 done
 
 # Verify: no pseudo-versions remain in modules being tagged
 echo "Verifying no pseudo-versions remain in tagged modules..."
 pseudo_files=""
 for mod in "${modules[@]}"; do
-  if grep -q "00010101000000" "${mod}/go.mod" 2>/dev/null; then
-    pseudo_files="${pseudo_files} ${mod}/go.mod"
-  fi
+	if grep -q "00010101000000" "${mod}/go.mod" 2>/dev/null; then
+		pseudo_files="${pseudo_files} ${mod}/go.mod"
+	fi
 done
 pseudo_count=$(echo "$pseudo_files" | wc -w)
 if [ "$pseudo_count" -gt 0 ]; then
-  echo "WARNING: $pseudo_count tagged module(s) still contain pseudo-version requires."
-  echo "$pseudo_files"
-  echo ""
-  echo "Aborting release."
-  exit 1
+	echo "WARNING: $pseudo_count tagged module(s) still contain pseudo-version requires."
+	echo "$pseudo_files"
+	echo ""
+	echo "Aborting release."
+	exit 1
 fi
 
 # Create temporary commit with stripped go.mod files
@@ -125,28 +125,28 @@ git commit -m "$temp_msg" --no-verify 2>/dev/null || true
 
 # Create all annotated tags from the stripped commit
 for i in "${!tags[@]}"; do
-  tag="${tags[$i]}"
-  desc="${descriptions[$i]}"
-  echo "Creating annotated tag: ${tag}"
-  git tag -a "$tag" -m "${tag}: ${desc}"
+	tag="${tags[$i]}"
+	desc="${descriptions[$i]}"
+	echo "Creating annotated tag: ${tag}"
+	git tag -a "$tag" -m "${tag}: ${desc}"
 
-  tag_type=$(git cat-file -t "$tag")
-  if [ "$tag_type" != "tag" ]; then
-    echo "ERROR: tag ${tag} is ${tag_type}, not 'tag' (annotated). Deleting and retrying."
-    git tag -d "$tag"
-    # Continue with others, report at end
-  else
-    echo "  ✓ ${tag_type}: ${tag}"
-  fi
+	tag_type=$(git cat-file -t "$tag")
+	if [ "$tag_type" != "tag" ]; then
+		echo "ERROR: tag ${tag} is ${tag_type}, not 'tag' (annotated). Deleting and retrying."
+		git tag -d "$tag"
+		# Continue with others, report at end
+	else
+		echo "  ✓ ${tag_type}: ${tag}"
+	fi
 done
 
 # --- Restore original go.mod files ---
 echo ""
 echo "Restoring original go.mod files..."
 find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | while IFS= read -r gomod; do
-  if [ -f "$backup_dir/$gomod" ]; then
-    cp "$backup_dir/$gomod" "$gomod"
-  fi
+	if [ -f "$backup_dir/$gomod" ]; then
+		cp "$backup_dir/$gomod" "$gomod"
+	fi
 done
 
 # Undo the temporary commit

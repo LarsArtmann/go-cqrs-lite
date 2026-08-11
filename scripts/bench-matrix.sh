@@ -21,28 +21,28 @@ COUNT="3"
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
-		--quick)
-			QUICK="1"
-			BENCHTIME="1x"
-			COUNT="1"
-			shift
-			;;
-		--output)
-			OUTPUT="$2"
-			shift 2
-			;;
-		--benchtime)
-			BENCHTIME="$2"
-			shift 2
-			;;
-		--count)
-			COUNT="$2"
-			shift 2
-			;;
-		*)
-			echo "Unknown flag: $1" >&2
-			exit 1
-			;;
+	--quick)
+		QUICK="1"
+		BENCHTIME="1x"
+		COUNT="1"
+		shift
+		;;
+	--output)
+		OUTPUT="$2"
+		shift 2
+		;;
+	--benchtime)
+		BENCHTIME="$2"
+		shift 2
+		;;
+	--count)
+		COUNT="$2"
+		shift 2
+		;;
+	*)
+		echo "Unknown flag: $1" >&2
+		exit 1
+		;;
 	esac
 done
 
@@ -107,7 +107,7 @@ if [[ -n "$OUTPUT" ]]; then
 	# Combine all results into a single output file.
 	cat /tmp/matrix_pipeline.txt /tmp/matrix_durability.txt \
 		/tmp/matrix_codec.txt /tmp/matrix_batch.txt \
-		/tmp/matrix_metaengine.txt > "$OUTPUT"
+		/tmp/matrix_metaengine.txt >"$OUTPUT"
 	echo ""
 	echo "Combined results written to: $OUTPUT"
 fi

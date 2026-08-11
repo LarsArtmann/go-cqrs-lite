@@ -19,8 +19,8 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LINT_DIR="$REPO_ROOT/cmd/cqrs-lint"
 
 if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "ERROR: version must be semver (X.Y.Z), got: $VERSION" >&2
-    exit 1
+	echo "ERROR: version must be semver (X.Y.Z), got: $VERSION" >&2
+	exit 1
 fi
 
 echo "==> Bumping cqrs-lint to v$VERSION"
@@ -31,25 +31,25 @@ echo "  Updated version constant in main.go"
 
 # 2. go mod tidy
 echo "==> Running go mod tidy (GOWORK=off)..."
-( cd "$LINT_DIR" && GOWORK=off go mod tidy )
+(cd "$LINT_DIR" && GOWORK=off go mod tidy)
 
 # 3. nix build (retry with corrected vendorHash)
 echo "==> Building with nix..."
 cd "$REPO_ROOT"
 if nix build .#cqrs-lint --no-link 2>&1 | tee /tmp/cqrs-lint-build.log; then
-    echo "  Build succeeded on first try"
+	echo "  Build succeeded on first try"
 else
-    # Extract the correct hash from the error
-    NEW_HASH=$(grep -oP 'got:\s+\Ksha256-[a-zA-Z0-9+/=]+' /tmp/cqrs-lint-build.log || true)
-    if [[ -z "$NEW_HASH" ]]; then
-        echo "ERROR: Build failed and could not extract vendorHash from output" >&2
-        cat /tmp/cqrs-lint-build.log
-        exit 1
-    fi
-    echo "  vendorHash mismatch — updating flake.nix"
-    sed -i "s|vendorHash = \"sha256-[a-zA-Z0-9+/=]*\"|vendorHash = \"$NEW_HASH\"|" "$REPO_ROOT/flake.nix"
-    echo "  Retrying build with corrected hash..."
-    nix build .#cqrs-lint --no-link
+	# Extract the correct hash from the error
+	NEW_HASH=$(grep -oP 'got:\s+\Ksha256-[a-zA-Z0-9+/=]+' /tmp/cqrs-lint-build.log || true)
+	if [[ -z "$NEW_HASH" ]]; then
+		echo "ERROR: Build failed and could not extract vendorHash from output" >&2
+		cat /tmp/cqrs-lint-build.log
+		exit 1
+	fi
+	echo "  vendorHash mismatch — updating flake.nix"
+	sed -i "s|vendorHash = \"sha256-[a-zA-Z0-9+/=]*\"|vendorHash = \"$NEW_HASH\"|" "$REPO_ROOT/flake.nix"
+	echo "  Retrying build with corrected hash..."
+	nix build .#cqrs-lint --no-link
 fi
 
 echo ""

@@ -15,9 +15,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/system/v4"
-
 	_ "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4" // registers "duckdb"
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
 type duckTaskCreated struct {

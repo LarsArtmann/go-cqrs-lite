@@ -11,9 +11,9 @@
 set -euo pipefail
 
 if [ "$(id -u)" -ne 0 ]; then
-    echo "ERROR: This script must be run as root ( systemd-nspawn needs CAP_SYS_ADMIN )."
-    echo "  sudo bash $0"
-    exit 1
+	echo "ERROR: This script must be run as root ( systemd-nspawn needs CAP_SYS_ADMIN )."
+	echo "  sudo bash $0"
+	exit 1
 fi
 
 CONFIG_FILE="/etc/nixos/configuration.nix"
@@ -21,7 +21,7 @@ MODULE_FILE="/etc/nixos/nspawn-support.nix"
 
 # --- Create the nspawn support module ---------------------------------------
 
-cat > "$MODULE_FILE" <<'EOF'
+cat >"$MODULE_FILE" <<'EOF'
 # nspawn-support.nix — Enable systemd-nspawn container tests for the NixOS
 # test driver. Required by: nix build .#checks.x86_64-linux.mysql-nspawn
 #
@@ -55,11 +55,11 @@ echo "==> Created $MODULE_FILE"
 # --- Import the module in configuration.nix (idempotent) --------------------
 
 if grep -q "nspawn-support.nix" "$CONFIG_FILE"; then
-    echo "==> $CONFIG_FILE already imports nspawn-support.nix — skipping"
+	echo "==> $CONFIG_FILE already imports nspawn-support.nix — skipping"
 else
-    # Add import before the closing brace
-    sed -i '/^}/i\  # Enable systemd-nspawn container test support\n  imports = [ ./nspawn-support.nix ];\n' "$CONFIG_FILE"
-    echo "==> Added import to $CONFIG_FILE"
+	# Add import before the closing brace
+	sed -i '/^}/i\  # Enable systemd-nspawn container test support\n  imports = [ ./nspawn-support.nix ];\n' "$CONFIG_FILE"
+	echo "==> Added import to $CONFIG_FILE"
 fi
 
 # --- Rebuild ----------------------------------------------------------------
@@ -72,10 +72,10 @@ echo "==> Verifying uid-range is available..."
 AVAILABLE=$(nix show-config 2>/dev/null | grep '^system-features' | sed 's/.*= //')
 echo "    system-features: $AVAILABLE"
 if echo "$AVAILABLE" | grep -qw uid-range; then
-    echo "✅ uid-range is available — nspawn tests will work"
+	echo "✅ uid-range is available — nspawn tests will work"
 else
-    echo "❌ uid-range NOT in system-features — rebuild may have failed"
-    exit 1
+	echo "❌ uid-range NOT in system-features — rebuild may have failed"
+	exit 1
 fi
 
 echo ""

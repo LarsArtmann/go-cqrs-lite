@@ -35,7 +35,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0 // indirect

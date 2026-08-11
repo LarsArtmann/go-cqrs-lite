@@ -14,10 +14,10 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 drift=$(
-    grep -rhE 'go-cqrs-lite/.*/v[0-9]+ v[0-9]' */go.mod 2>/dev/null \
-        | grep -oE 'go-cqrs-lite/[^ ]+/v[0-9]+ v[0-9]+\.[0-9]+\.[0-9]+' \
-        | sort -u \
-        | awk '
+	grep -rhE 'go-cqrs-lite/.*/v[0-9]+ v[0-9]' */go.mod 2>/dev/null |
+		grep -oE 'go-cqrs-lite/[^ ]+/v[0-9]+ v[0-9]+\.[0-9]+\.[0-9]+' |
+		sort -u |
+		awk '
             {
                 mod = $1; ver = $2
                 if (mod != prev && prev != "" && cnt > 1) {
@@ -36,9 +36,9 @@ drift=$(
 )
 
 if [ -n "$drift" ]; then
-    echo "::error::Version drift detected:"
-    echo "$drift" | while IFS= read -r line; do echo "  $line"; done
-    exit 1
+	echo "::error::Version drift detected:"
+	echo "$drift" | while IFS= read -r line; do echo "  $line"; done
+	exit 1
 fi
 
 echo "✓ No version drift detected."

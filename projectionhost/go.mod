@@ -44,7 +44,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect

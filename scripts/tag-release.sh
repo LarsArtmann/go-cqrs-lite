@@ -34,34 +34,34 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 usage() {
-  echo "Usage: $0 <module-path> <version> <description> [--dry-run]"
-  echo "Examples:"
-  echo "  $0 event v4.0.1 \"Fix event payload marshaling\""
-  echo "  $0 cmd/cqrs-lint v0.1.0 \"First release\""
-  echo "  $0 metaengine v4.0.0 \"First release\" --dry-run"
+	echo "Usage: $0 <module-path> <version> <description> [--dry-run]"
+	echo "Examples:"
+	echo "  $0 event v4.0.1 \"Fix event payload marshaling\""
+	echo "  $0 cmd/cqrs-lint v0.1.0 \"First release\""
+	echo "  $0 metaengine v4.0.0 \"First release\" --dry-run"
 }
 
 # --- Parse args: peel off --dry-run / -h, keep positionals ---
 dry_run=false
 positionals=()
 for arg in "$@"; do
-  case "$arg" in
-    --dry-run)
-      dry_run=true
-      ;;
-    -h|--help)
-      usage
-      exit 0
-      ;;
-    *)
-      positionals+=("$arg")
-      ;;
-  esac
+	case "$arg" in
+	--dry-run)
+		dry_run=true
+		;;
+	-h | --help)
+		usage
+		exit 0
+		;;
+	*)
+		positionals+=("$arg")
+		;;
+	esac
 done
 
 if [ "${#positionals[@]}" -lt 3 ]; then
-  usage
-  exit 1
+	usage
+	exit 1
 fi
 
 module="${positionals[0]}"
@@ -72,21 +72,21 @@ gomod="${module}/go.mod"
 
 # Verify module exists
 if [ ! -f "$gomod" ]; then
-  echo "ERROR: ${gomod} not found"
-  exit 1
+	echo "ERROR: ${gomod} not found"
+	exit 1
 fi
 
 # Verify tag doesn't already exist
 if git tag -l "$tag" | grep -q .; then
-  echo "ERROR: tag ${tag} already exists"
-  exit 1
+	echo "ERROR: tag ${tag} already exists"
+	exit 1
 fi
 
 # Verify clean working tree (no uncommitted changes)
 if ! git diff-index --quiet HEAD --; then
-  echo "ERROR: working tree has uncommitted changes. Commit first."
-  git status --short
-  exit 1
+	echo "ERROR: working tree has uncommitted changes. Commit first."
+	git status --short
+	exit 1
 fi
 
 # --- Restore helpers ---
@@ -117,14 +117,14 @@ fi
 original_head="$(git rev-parse HEAD)"
 
 restore_working_tree() {
-  git restore --staged --worktree . 2>/dev/null || true
+	git restore --staged --worktree . 2>/dev/null || true
 }
 
 undo_temp_commit() {
-  # Move HEAD back to the pre-strip commit (original go.mod), then discard
-  # all staged/working-tree changes in favour of that original.
-  git reset --soft "$original_head" 2>/dev/null || true
-  restore_working_tree
+	# Move HEAD back to the pre-strip commit (original go.mod), then discard
+	# all staged/working-tree changes in favour of that original.
+	git reset --soft "$original_head" 2>/dev/null || true
+	restore_working_tree
 }
 
 # --- Strip LOCAL replace directives (single module) ---
@@ -139,25 +139,25 @@ undo_temp_commit() {
 echo "Stripping local replace directives from ${gomod}..."
 
 while IFS= read -r line; do
-  # Split on the first '=>'.
-  lhs="${line%%=>*}"
-  rhs="${line#*=>}"
-  # Drop the `replace ` keyword (single-line form); block-form lines have none.
-  lhs="${lhs#replace }"
-  # Trim surrounding whitespace.
-  lhs="$(printf '%s' "$lhs" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-  rhs="$(printf '%s' "$rhs" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-  # LHS may carry a version ("foo v1.0.0"); keep only the path component.
-  lhs="${lhs%% *}"
-  [ -z "$lhs" ] && continue
-  # Only strip LOCAL targets. Versioned replaces (foo v1 => bar v2) and
-  # module-path redirects (foo => other.tld/foo) are left untouched.
-  case "$rhs" in
-    .*|/*)
-      (cd "$module" && go mod edit "-dropreplace=${lhs}")
-      echo "  dropped replace ${lhs} => ${rhs}"
-      ;;
-  esac
+	# Split on the first '=>'.
+	lhs="${line%%=>*}"
+	rhs="${line#*=>}"
+	# Drop the `replace ` keyword (single-line form); block-form lines have none.
+	lhs="${lhs#replace }"
+	# Trim surrounding whitespace.
+	lhs="$(printf '%s' "$lhs" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+	rhs="$(printf '%s' "$rhs" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+	# LHS may carry a version ("foo v1.0.0"); keep only the path component.
+	lhs="${lhs%% *}"
+	[ -z "$lhs" ] && continue
+	# Only strip LOCAL targets. Versioned replaces (foo v1 => bar v2) and
+	# module-path redirects (foo => other.tld/foo) are left untouched.
+	case "$rhs" in
+	.* | /*)
+		(cd "$module" && go mod edit "-dropreplace=${lhs}")
+		echo "  dropped replace ${lhs} => ${rhs}"
+		;;
+	esac
 done < <(grep '=>' "$gomod" 2>/dev/null || true)
 
 # --- Re-resolve requires ---
@@ -180,40 +180,40 @@ echo "Re-resolving requires (go mod tidy with local replaces stripped)..."
 # confusing. This form is obviously correct.
 echo "Verifying no pseudo-versions remain in ${gomod}..."
 if grep -q "00010101000000" "$gomod"; then
-  echo "WARNING: ${gomod} still contains a pseudo-version require."
-  echo "These break downstream consumers. Matching lines:"
-  grep -n "00010101000000" "$gomod" || true
-  echo ""
-  echo "Aborting release. Every module ${module} depends on must have a"
-  echo "published tag. Publish the missing sibling(s), then re-run."
-  restore_working_tree
-  exit 1
+	echo "WARNING: ${gomod} still contains a pseudo-version require."
+	echo "These break downstream consumers. Matching lines:"
+	grep -n "00010101000000" "$gomod" || true
+	echo ""
+	echo "Aborting release. Every module ${module} depends on must have a"
+	echo "published tag. Publish the missing sibling(s), then re-run."
+	restore_working_tree
+	exit 1
 fi
 
 # --- Dry-run preview ---
 if $dry_run; then
-  echo ""
-  echo "=== DRY RUN — no commit or tag will be created ==="
-  echo "Would create annotated tag: ${tag}"
-  echo "  module:      ${module}"
-  echo "  version:     ${version}"
-  echo "  description: ${description}"
-  echo ""
-  echo "Stripped ${gomod} (diff against original):"
-  git diff --no-color -- "$gomod" 2>/dev/null || true
-  if [ -f "${module}/go.sum" ]; then
-    git diff --no-color -- "${module}/go.sum" 2>/dev/null || true
-  fi
-  restore_working_tree
-  echo ""
-  echo "Dry run complete. Working tree restored; no commit or tag created."
-  exit 0
+	echo ""
+	echo "=== DRY RUN — no commit or tag will be created ==="
+	echo "Would create annotated tag: ${tag}"
+	echo "  module:      ${module}"
+	echo "  version:     ${version}"
+	echo "  description: ${description}"
+	echo ""
+	echo "Stripped ${gomod} (diff against original):"
+	git diff --no-color -- "$gomod" 2>/dev/null || true
+	if [ -f "${module}/go.sum" ]; then
+		git diff --no-color -- "${module}/go.sum" 2>/dev/null || true
+	fi
+	restore_working_tree
+	echo ""
+	echo "Dry run complete. Working tree restored; no commit or tag created."
+	exit 0
 fi
 
 # --- Create temp commit + annotated tag ---
 git add "$gomod"
 if [ -f "${module}/go.sum" ]; then
-  git add "${module}/go.sum"
+	git add "${module}/go.sum"
 fi
 
 temp_msg="chore(release): strip replace directives for ${tag}"
@@ -225,10 +225,10 @@ git tag -a "$tag" -m "${tag}: ${description}"
 # Verify the tag is annotated (an object, not a lightweight ref).
 tag_type="$(git cat-file -t "$tag")"
 if [ "$tag_type" != "tag" ]; then
-  echo "ERROR: tag is ${tag_type}, not 'tag' (annotated). Cleaning up..."
-  git tag -d "$tag"
-  undo_temp_commit
-  exit 1
+	echo "ERROR: tag is ${tag_type}, not 'tag' (annotated). Cleaning up..."
+	git tag -d "$tag"
+	undo_temp_commit
+	exit 1
 fi
 
 echo "✓ Created ${tag_type}: ${tag}"

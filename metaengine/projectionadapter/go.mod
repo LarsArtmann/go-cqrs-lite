@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.1.0
 	go.opentelemetry.io/otel v1.45.0
 	go.opentelemetry.io/otel/trace v1.45.0
 )

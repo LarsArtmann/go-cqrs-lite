@@ -15,16 +15,16 @@ cd "$ROOT"
 
 echo "=== Doc Stub Check ==="
 
-stubs=$(find . -name doc.go -not -path './vendor/*' -print0 \
-  | xargs -0 grep -l '// Package .* provides \.\.\.' 2>/dev/null || true)
+stubs=$(find . -name doc.go -not -path './vendor/*' -print0 |
+	xargs -0 grep -l '// Package .* provides \.\.\.' 2>/dev/null || true)
 
 if [ -n "$stubs" ]; then
-  echo "FAIL: placeholder doc.go stubs found:"
-  echo "$stubs" | sed 's/^/  /'
-  echo ""
-  echo "Each file above contains '// Package X provides ...' which is the"
-  echo "goimports default placeholder. Replace with a real description."
-  exit 1
+	echo "FAIL: placeholder doc.go stubs found:"
+	echo "$stubs" | sed 's/^/  /'
+	echo ""
+	echo "Each file above contains '// Package X provides ...' which is the"
+	echo "goimports default placeholder. Replace with a real description."
+	exit 1
 fi
 
 echo "All doc.go files have real package descriptions."

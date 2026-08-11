@@ -14,8 +14,8 @@ set -euo pipefail
 
 KEEP_ALIVE=false
 if [ "${1:-}" = "--keep-alive" ]; then
-    KEEP_ALIVE=true
-    shift
+	KEEP_ALIVE=true
+	shift
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -27,30 +27,30 @@ DRIVER_PID=""
 DRIVER_LOG=$(mktemp /tmp/cqrs-pg-driver-XXXXXX.log)
 
 cleanup() {
-    if [ -n "$DRIVER_PID" ] && kill -0 "$DRIVER_PID" 2>/dev/null; then
-        echo "==> Stopping test driver (PID $DRIVER_PID)"
-        kill "$DRIVER_PID" 2>/dev/null || true
-        wait "$DRIVER_PID" 2>/dev/null || true
-    fi
-    rm -f "$DRIVER_LOG"
+	if [ -n "$DRIVER_PID" ] && kill -0 "$DRIVER_PID" 2>/dev/null; then
+		echo "==> Stopping test driver (PID $DRIVER_PID)"
+		kill "$DRIVER_PID" 2>/dev/null || true
+		wait "$DRIVER_PID" 2>/dev/null || true
+	fi
+	rm -f "$DRIVER_LOG"
 }
 trap cleanup EXIT INT TERM
 
 # Warn if KVM is not available (10-50x slowdown without it)
 if [ ! -e /dev/kvm ]; then
-    echo "WARNING: /dev/kvm not found — QEMU will use software emulation (10-50x slower)"
+	echo "WARNING: /dev/kvm not found — QEMU will use software emulation (10-50x slower)"
 fi
 
 echo "==> Building PostgreSQL test driver (cached by Nix)"
 DRIVER=$(nix build .#checks.x86_64-linux.postgres-vm.driver --no-link --print-out-paths 2>&1 | tail -1)
 if [ ! -x "$DRIVER/bin/nixos-test-driver" ]; then
-    echo "ERROR: Driver build failed: $DRIVER"
-    exit 1
+	echo "ERROR: Driver build failed: $DRIVER"
+	exit 1
 fi
 
 # Custom test script: boot VM, wait for PG, keep alive for external tests
 TEST_SCRIPT=$(mktemp /tmp/cqrs-pg-test-XXXXXX.py)
-cat > "$TEST_SCRIPT" <<'PYEOF'
+cat >"$TEST_SCRIPT" <<'PYEOF'
 machine.start()
 machine.wait_for_unit("postgresql.service")
 print("POSTGRESQL_READY", flush=True)
@@ -68,23 +68,23 @@ DRIVER_PID=$!
 
 echo "==> Waiting for PostgreSQL to become ready..."
 for i in $(seq 1 120); do
-    if ! kill -0 "$DRIVER_PID" 2>/dev/null; then
-        echo "ERROR: Driver exited unexpectedly"
-        cat "$DRIVER_LOG" 2>/dev/null | tail -30
-        exit 1
-    fi
+	if ! kill -0 "$DRIVER_PID" 2>/dev/null; then
+		echo "ERROR: Driver exited unexpectedly"
+		cat "$DRIVER_LOG" 2>/dev/null | tail -30
+		exit 1
+	fi
 
-    if pg_isready -h 127.0.0.1 -p "$HOST_PORT" -U cqrs -d cqrs_test 2>/dev/null; then
-        echo "==> PostgreSQL is ready"
-        break
-    fi
+	if pg_isready -h 127.0.0.1 -p "$HOST_PORT" -U cqrs -d cqrs_test 2>/dev/null; then
+		echo "==> PostgreSQL is ready"
+		break
+	fi
 
-    if [ "$i" -eq 120 ]; then
-        echo "ERROR: PostgreSQL did not become ready within 120s"
-        exit 1
-    fi
+	if [ "$i" -eq 120 ]; then
+		echo "ERROR: PostgreSQL did not become ready within 120s"
+		exit 1
+	fi
 
-    sleep 1
+	sleep 1
 done
 
 export POSTGRES_TEST_DSN="postgres://cqrs@127.0.0.1:${HOST_PORT}/cqrs_test?sslmode=disable"
@@ -93,47 +93,47 @@ echo "==> DSN: $POSTGRES_TEST_DSN"
 
 # Determine what to run
 if [ $# -gt 0 ]; then
-    if [ "$1" = "go" ]; then
-        shift
-        echo "==> Running: go $*"
-        go "$@"
-    elif [[ "$1" == ./...* ]] || [[ "$1" == ./* ]]; then
-        echo "==> Running: go test -tags=integration $*"
-        go test -tags "integration goexperiment.jsonv2" "$@" -count=1 -v
-    else
-        # Strip leading "-run " if user passed it explicitly
-        TEST_PATTERN="${*#-run }"
-        echo "==> Running integration tests matching: $TEST_PATTERN"
-        go test -tags "integration goexperiment.jsonv2" \
-            ./storage/... ./stack/postgres/... ./metaengine/pgengine/... ./projectionhost/... ./scheduling/sqlstore/... ./benchkit/... \
-            -count=1 -v -run "$TEST_PATTERN"
-    fi
+	if [ "$1" = "go" ]; then
+		shift
+		echo "==> Running: go $*"
+		go "$@"
+	elif [[ "$1" == ./...* ]] || [[ "$1" == ./* ]]; then
+		echo "==> Running: go test -tags=integration $*"
+		go test -tags "integration goexperiment.jsonv2" "$@" -count=1 -v
+	else
+		# Strip leading "-run " if user passed it explicitly
+		TEST_PATTERN="${*#-run }"
+		echo "==> Running integration tests matching: $TEST_PATTERN"
+		go test -tags "integration goexperiment.jsonv2" \
+			./storage/... ./stack/postgres/... ./metaengine/pgengine/... ./projectionhost/... ./scheduling/sqlstore/... ./benchkit/... \
+			-count=1 -v -run "$TEST_PATTERN"
+	fi
 else
-    echo "==> Running all PostgreSQL integration tests"
-    FAILED=0
-    for mod in storage stack/postgres metaengine/pgengine projectionhost scheduling/sqlstore benchkit; do
-        echo ""
-        echo "--- $mod ---"
-        (
-            cd "$mod"
-            CGO_ENABLED=1 GOWORK=off \
-            go test -tags "integration goexperiment.jsonv2" ./... -count=1 -v 2>&1
-        ) || FAILED=1
-    done
-    if [ "$FAILED" -ne 0 ]; then
-        echo ""
-        echo "❌ Some integration tests failed"
-        exit 1
-    fi
+	echo "==> Running all PostgreSQL integration tests"
+	FAILED=0
+	for mod in storage stack/postgres metaengine/pgengine projectionhost scheduling/sqlstore benchkit; do
+		echo ""
+		echo "--- $mod ---"
+		(
+			cd "$mod"
+			CGO_ENABLED=1 GOWORK=off \
+				go test -tags "integration goexperiment.jsonv2" ./... -count=1 -v 2>&1
+		) || FAILED=1
+	done
+	if [ "$FAILED" -ne 0 ]; then
+		echo ""
+		echo "❌ Some integration tests failed"
+		exit 1
+	fi
 fi
 
 echo ""
 echo "✅ Integration tests passed"
 
 if [ "$KEEP_ALIVE" = true ]; then
-    echo ""
-    echo "==> --keep-alive: VM is still running on port $HOST_PORT"
-    echo "    DSN: $POSTGRES_TEST_DSN"
-    echo "    Press Ctrl+C to stop the VM and exit."
-    wait "$DRIVER_PID"
+	echo ""
+	echo "==> --keep-alive: VM is still running on port $HOST_PORT"
+	echo "    DSN: $POSTGRES_TEST_DSN"
+	echo "    Press Ctrl+C to stop the VM and exit."
+	wait "$DRIVER_PID"
 fi
