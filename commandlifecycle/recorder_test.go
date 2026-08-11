@@ -34,7 +34,11 @@ func newMemoryStore(t *testing.T) *memorystore.MemoryStore {
 	return store
 }
 
-func loadLifecycleEvents(t *testing.T, store *memorystore.MemoryStore, cmd command.Command) []event.Event {
+func loadLifecycleEvents(
+	t *testing.T,
+	store *memorystore.MemoryStore,
+	cmd command.Command,
+) []event.Event {
 	t.Helper()
 
 	ref := commandlifecycle.LifecycleStreamRef(cmd)
@@ -320,6 +324,7 @@ func TestAttemptMiddleware_DetectsRetries(t *testing.T) {
 		if callCount < 3 {
 			return errors.New("transient")
 		}
+
 		return nil
 	})
 
@@ -355,6 +360,7 @@ func TestNew_FullRetryScenario_SucceedsOnThirdAttempt(t *testing.T) {
 		if callCount < 3 {
 			return errors.New("transient")
 		}
+
 		return nil
 	})
 

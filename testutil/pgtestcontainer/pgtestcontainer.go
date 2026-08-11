@@ -64,7 +64,13 @@ func TestMain(m *testing.M) {
 		// Without this, all tests share one database and cross-test interference
 		// becomes a problem (especially under -race).
 		adminDB, _ = sql.Open("pgx", containerDSN)
-		os.Exit(m.Run())
+		code := m.Run()
+
+		if adminDB != nil {
+			_ = adminDB.Close()
+		}
+
+		os.Exit(code)
 	}
 
 	if testing.Short() {

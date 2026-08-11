@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"errors"
 	"fmt"
 )
 
@@ -31,8 +32,8 @@ const (
 
 // AddedEngine tracks an engine added at runtime (ADR-0124 §7).
 type AddedEngine struct {
-	Engine   Engine
-	Role     ProjectionRole
+	Engine     Engine
+	Role       ProjectionRole
 	Backfilled bool
 }
 
@@ -46,12 +47,12 @@ type AddedEngine struct {
 // to replay events into the new engine's projections.
 func (s *Store) AddEngine(ctx context.Context, engine Engine) error {
 	if engine == nil {
-		return fmt.Errorf("metaengine.Store.AddEngine: engine is nil")
+		return errors.New("metaengine.Store.AddEngine: engine is nil")
 	}
 
 	name := engine.Profile().Name
 	if name == "" {
-		return fmt.Errorf("metaengine.Store.AddEngine: engine has empty Name in profile")
+		return errors.New("metaengine.Store.AddEngine: engine has empty Name in profile")
 	}
 
 	s.mu.Lock()

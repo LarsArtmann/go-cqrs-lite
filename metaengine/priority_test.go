@@ -12,7 +12,9 @@ import (
 var _ = Describe("Priority system (ADR-0124)", func() {
 	Describe("PriorityConfig.Resolve", func() {
 		It("defaults to Balanced when config is nil", func() {
-			Expect(((*metaengine.PriorityConfig)(nil)).Resolve("any", "any")).To(Equal(metaengine.PriorityBalanced))
+			Expect(
+				(*metaengine.PriorityConfig)(nil).Resolve("any", "any"),
+			).To(Equal(metaengine.PriorityBalanced))
 		})
 
 		It("defaults to Balanced when all fields are empty", func() {
@@ -38,7 +40,9 @@ var _ = Describe("Priority system (ADR-0124)", func() {
 			pc := &metaengine.PriorityConfig{
 				Global:    metaengine.PriorityReadSpeed,
 				PerEngine: map[string]metaengine.Priority{"pebble": metaengine.PriorityWriteSpeed},
-				PerQuery:  map[string]metaengine.Priority{"find_task": metaengine.PriorityStorageSpace},
+				PerQuery: map[string]metaengine.Priority{
+					"find_task": metaengine.PriorityStorageSpace,
+				},
 			}
 			Expect(pc.Resolve("pebble", "find_task")).To(Equal(metaengine.PriorityStorageSpace))
 			Expect(pc.Resolve("pebble", "other")).To(Equal(metaengine.PriorityWriteSpeed))
@@ -138,8 +142,10 @@ var _ = Describe("Priority system (ADR-0124)", func() {
 				[]metaengine.Engine{engineLogN, engineO1},
 				findTaskQuery(),
 				metaengine.WithPriorityConfig(&metaengine.PriorityConfig{
-					Global:   metaengine.PriorityReadSpeed,
-					PerQuery: map[string]metaengine.Priority{"find_task": metaengine.PriorityWriteSpeed},
+					Global: metaengine.PriorityReadSpeed,
+					PerQuery: map[string]metaengine.Priority{
+						"find_task": metaengine.PriorityWriteSpeed,
+					},
 				}),
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -206,5 +212,5 @@ func testPriorityFactor(p metaengine.Priority, c metaengine.Complexity) float64 
 	}
 }
 
-// Ensure time import is used (for potential future time-based priority tests)
+// Ensure time import is used (for potential future time-based priority tests).
 var _ = time.Second

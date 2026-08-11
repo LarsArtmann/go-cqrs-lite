@@ -91,13 +91,18 @@ func (s *Store) ReplanLayout(ctx context.Context, pc *PriorityConfig) ([]LayoutD
 			estimatedBytes := vol * 256 // ~256B per entry
 
 			diff := LayoutDiff{
-				QueryName:              name,
-				From:                   currentOption,
-				To:                     newOption,
-				Reason:                 fmt.Sprintf("priority=%s on %s engine", resolvedPriority, profile.Name),
+				QueryName: name,
+				From:      currentOption,
+				To:        newOption,
+				Reason: fmt.Sprintf(
+					"priority=%s on %s engine",
+					resolvedPriority,
+					profile.Name,
+				),
 				EstimatedRebuildEvents: vol,
 				EstimatedRebuildBytes:  estimatedBytes,
-				AutoRebuild:            vol < threshold.MaxEventCount && estimatedBytes < threshold.MaxDataBytes,
+				AutoRebuild: vol < threshold.MaxEventCount &&
+					estimatedBytes < threshold.MaxDataBytes,
 			}
 
 			diffs = append(diffs, diff)

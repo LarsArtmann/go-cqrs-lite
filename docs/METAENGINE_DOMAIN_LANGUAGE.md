@@ -29,8 +29,7 @@ A **cost-based storage planner** (CBO) for event-sourced projections. Given a se
 - [Core Concepts](#core-concepts)
 - [ADTs (Abstract Data Types)](#adts-abstract-data-types)
 - [Fold DSL (Event to Projection Mapping)](#fold-dsl-event-to-projection-mapping)
-- [Cost Model](#cost-model)
-- [Storage Layouts](#storage-layouts)
+
 - [Read Patterns](#read-patterns)
 - [Filter, Sort & Pagination](#filter-sort--pagination)
 - [PlanRule Pipeline](#planrule-pipeline)

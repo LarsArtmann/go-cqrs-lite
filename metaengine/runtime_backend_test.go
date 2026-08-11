@@ -77,12 +77,15 @@ var _ = Describe("Runtime backend addition (ADR-0124 §7)", func() {
 			Expect(err).NotTo(HaveOccurred())
 			defer store.Close()
 
-			err = store.AddEngine(context.Background(), &fakeEngine{profile: metaengine.EngineProfile{
-				Name: "same-name",
-				Supports: map[metaengine.ADT]metaengine.Complexity{
-					metaengine.ADTMap: metaengine.ComplexityO1,
-				},
-			}})
+			err = store.AddEngine(
+				context.Background(),
+				&fakeEngine{profile: metaengine.EngineProfile{
+					Name: "same-name",
+					Supports: map[metaengine.ADT]metaengine.Complexity{
+						metaengine.ADTMap: metaengine.ComplexityO1,
+					},
+				}},
+			)
 			Expect(err).To(HaveOccurred())
 		})
 	})

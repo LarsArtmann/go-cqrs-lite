@@ -2,7 +2,9 @@ package metaengine
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -29,15 +31,15 @@ type BenchmarkConfig struct {
 
 // BenchmarkResult captures measured performance for a single plan.
 type BenchmarkResult struct {
-	Label       string
-	Priority    Priority
-	EngineName  string
-	Iterations  int
-	Duration    time.Duration
-	LatencyP50  time.Duration
-	LatencyP95  time.Duration
-	LatencyP99  time.Duration
-	Throughput  float64 // ops/sec
+	Label        string
+	Priority     Priority
+	EngineName   string
+	Iterations   int
+	Duration     time.Duration
+	LatencyP50   time.Duration
+	LatencyP95   time.Duration
+	LatencyP99   time.Duration
+	Throughput   float64 // ops/sec
 	StorageBytes int64
 }
 
@@ -58,8 +60,9 @@ func (s *BenchmarkSummary) FormatTable() string {
 	)
 
 	rows := header
+	var rowsSb61 strings.Builder
 	for _, r := range s.Results {
-		rows += fmt.Sprintf(
+		rowsSb61.WriteString(fmt.Sprintf(
 			"%-15s %-12s %-10s %-10s %-10s %-12.0f %12s\n",
 			r.Label,
 			r.Priority,
@@ -68,8 +71,9 @@ func (s *BenchmarkSummary) FormatTable() string {
 			fmt.Sprintf("%.2fms", float64(r.LatencyP99.Microseconds())/1e3),
 			r.Throughput,
 			formatBytes(r.StorageBytes),
-		)
+		))
 	}
+	rows += rowsSb61.String()
 
 	return rows
 }
@@ -106,7 +110,7 @@ func BenchmarkPlan(
 	}
 
 	if len(cfg.PriorityConfigs) == 0 {
-		return nil, fmt.Errorf("benchmark: at least one PriorityConfig required")
+		return nil, errors.New("benchmark: at least one PriorityConfig required")
 	}
 
 	summary := &BenchmarkSummary{Results: make([]BenchmarkResult, 0, len(cfg.PriorityConfigs))}

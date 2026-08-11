@@ -59,6 +59,7 @@ func NewRecorder(sink event.EventSink, opts ...RecorderOption) *Recorder {
 	for _, opt := range opts {
 		opt(r)
 	}
+
 	return r
 }
 
@@ -168,6 +169,7 @@ func (r *Recorder) nextVersion(streamKey string) event.Version {
 func (r *Recorder) ResetVersion(streamKey string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
 	delete(r.versions, streamKey)
 }
 
@@ -206,5 +208,6 @@ func errorMessage(err error) string {
 	if err == nil {
 		return ""
 	}
+
 	return err.Error()
 }

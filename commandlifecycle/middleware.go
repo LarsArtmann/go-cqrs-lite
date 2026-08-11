@@ -21,19 +21,23 @@ func newAttemptTracker() *attemptTracker {
 func (t *attemptTracker) next(cmdID string) int {
 	t.mu.Lock()
 	defer t.mu.Unlock()
+
 	t.attempts[cmdID]++
+
 	return t.attempts[cmdID]
 }
 
 func (t *attemptTracker) get(cmdID string) int {
 	t.mu.Lock()
 	defer t.mu.Unlock()
+
 	return t.attempts[cmdID]
 }
 
 func (t *attemptTracker) clear(cmdID string) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
+
 	delete(t.attempts, cmdID)
 }
 
@@ -56,6 +60,7 @@ func (t *attemptTracker) clear(cmdID string) {
 //	dispatcher.Use(outer)
 func New(recorder *Recorder) (outer, attempt command.Middleware) {
 	tracker := newAttemptTracker()
+
 	return outerMiddleware(recorder, tracker), attemptMiddleware(recorder, tracker)
 }
 
@@ -83,18 +88,19 @@ func outerMiddleware(recorder *Recorder, tracker *attemptTracker) command.Middle
 			_ = recorder.RecordReceived(ctx, cmd)
 
 			err := next(ctx, cmd)
-
 			if err != nil {
 				attempts := 1
 				if tracker != nil {
 					attempts = tracker.get(cmd.ID().String())
 					tracker.clear(cmd.ID().String())
 				}
+
 				_ = recorder.RecordDeadLettered(ctx, cmd, err, attempts)
 			} else {
 				if tracker != nil {
 					tracker.clear(cmd.ID().String())
 				}
+
 				_ = recorder.RecordCompleted(ctx, cmd)
 			}
 
@@ -115,6 +121,7 @@ func attemptMiddleware(recorder *Recorder, tracker *attemptTracker) command.Midd
 			err := next(ctx, cmd)
 			if err != nil {
 				_ = recorder.RecordFailed(ctx, cmd, err, attemptNum)
+
 				return err
 			}
 

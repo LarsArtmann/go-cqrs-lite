@@ -142,7 +142,9 @@ func buildDefaultCatalog() []ModuleEntry {
 			Suggestion:  "Exponential backoff for transient error recovery",
 		},
 		{
-			Key: "commandlifecycle", DisplayName: "Command Lifecycle", Category: CategoryReliability,
+			Key:         "commandlifecycle",
+			DisplayName: "Command Lifecycle",
+			Category:    CategoryReliability,
 			ImportHints: []string{"go-cqrs-lite/commandlifecycle"},
 			Description: "Command lifecycle tracking as event streams (DLQ, retries, failures)",
 			Suggestion:  "Track command lifecycle (received, failed, retried, dead-lettered) as event streams",

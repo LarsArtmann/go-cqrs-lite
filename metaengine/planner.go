@@ -7,9 +7,9 @@ import (
 )
 
 type rankedEngine struct {
-	engine           Engine
-	complexity       Complexity
-	cost             CostEstimate
+	engine            Engine
+	complexity        Complexity
+	cost              CostEstimate
 	weightedLatencyMs float64 // priority-adjusted latency for ranking (ADR-0124)
 }
 
@@ -21,10 +21,10 @@ type planConfig struct {
 	writeAmplificationBudget int
 	dryRun                   bool
 	stats                    map[string]WorkloadStats
-	replicationOverride      *Replication   // overrides all engines' declared replication for cost estimation
-	networkRTTOverride       *time.Duration // overrides all engines' declared NetworkRTT for cost estimation
-	routingHysteresis        float64        // min fractional improvement for re-routing suggestions
-	routingMinDeltaMs        float64        // min absolute improvement (ms) for re-routing suggestions
+	replicationOverride      *Replication    // overrides all engines' declared replication for cost estimation
+	networkRTTOverride       *time.Duration  // overrides all engines' declared NetworkRTT for cost estimation
+	routingHysteresis        float64         // min fractional improvement for re-routing suggestions
+	routingMinDeltaMs        float64         // min absolute improvement (ms) for re-routing suggestions
 	priority                 *PriorityConfig // operator-driven layout priorities (ADR-0124)
 }
 

@@ -64,7 +64,7 @@ func (p Priority) Weights() PriorityWeights {
 	case PriorityWriteSpeed:
 		return PriorityWeights{ReadW: 0.5, WriteW: 1.5, StorageW: 1.0}
 	case PriorityStorageSpace:
-		return PriorityWeights{ReadW: 1.0, WriteW: 1.0, StorageW: 1.5}
+		return PriorityWeights{ReadW: 0.8, WriteW: 0.8, StorageW: 2.5}
 	default:
 		return PriorityWeights{ReadW: 1.0, WriteW: 1.0, StorageW: 1.0}
 	}
@@ -75,9 +75,9 @@ func (p Priority) Weights() PriorityWeights {
 // per-Engine → Global (least specific). The most specific non-empty priority
 // wins. Empty config resolves to PriorityBalanced everywhere.
 type PriorityConfig struct {
-	Global    Priority            `json:"global,omitempty" yaml:"global,omitempty"`
+	Global    Priority            `json:"global,omitempty"    yaml:"global,omitempty"`
 	PerEngine map[string]Priority `json:"perEngine,omitempty" yaml:"perEngine,omitempty"`
-	PerQuery  map[string]Priority `json:"perQuery,omitempty" yaml:"perQuery,omitempty"`
+	PerQuery  map[string]Priority `json:"perQuery,omitempty"  yaml:"perQuery,omitempty"`
 }
 
 // Resolve returns the effective priority for a given engine and query.

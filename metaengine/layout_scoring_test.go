@@ -55,22 +55,25 @@ var _ = Describe("Layout scoring (ADR-0124 Layer 4)", func() {
 			Expect(option).To(Equal(metaengine.LayoutNormalize))
 		})
 
-		It("selects Embed for KV engine with StorageSpace is NOT selected (KV embed is cheaper on storage for small aggregates)", func() {
-			// StorageSpace penalizes duplication. Embed has higher storage cost.
-			// So Normalize should be selected for StorageSpace.
-			kvProfile := metaengine.EngineProfile{
-				Name: "pebble",
-				Layouts: map[metaengine.ADT]metaengine.StorageLayout{
-					metaengine.ADTMap: metaengine.LayoutKV,
-				},
-				Supports: map[metaengine.ADT]metaengine.Complexity{
-					metaengine.ADTMap: metaengine.ComplexityO1,
-				},
-			}
+		It(
+			"selects Embed for KV engine with StorageSpace is NOT selected (KV embed is cheaper on storage for small aggregates)",
+			func() {
+				// StorageSpace penalizes duplication. Embed has higher storage cost.
+				// So Normalize should be selected for StorageSpace.
+				kvProfile := metaengine.EngineProfile{
+					Name: "pebble",
+					Layouts: map[metaengine.ADT]metaengine.StorageLayout{
+						metaengine.ADTMap: metaengine.LayoutKV,
+					},
+					Supports: map[metaengine.ADT]metaengine.Complexity{
+						metaengine.ADTMap: metaengine.ComplexityO1,
+					},
+				}
 
-			option, _ := metaengine.SelectLayout(kvProfile, metaengine.PriorityStorageSpace)
-			Expect(option).To(Equal(metaengine.LayoutNormalize))
-		})
+				option, _ := metaengine.SelectLayout(kvProfile, metaengine.PriorityStorageSpace)
+				Expect(option).To(Equal(metaengine.LayoutNormalize))
+			},
+		)
 	})
 
 	Describe("LayoutCost.ScoreWeighted", func() {
