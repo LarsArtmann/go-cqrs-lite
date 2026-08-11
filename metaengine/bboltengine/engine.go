@@ -50,6 +50,8 @@ const BboltNsPerRead = 1500.0
 // Write transactions involve page allocation and an optional fsync.
 const BboltNsPerWrite = 5000.0
 
+var _ metaengine.TrackerHost = (*bboltEngine)(nil)
+
 type bboltEngine struct {
 	db          *bolt.DB
 	ownsDB      bool

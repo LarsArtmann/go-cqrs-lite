@@ -50,6 +50,8 @@ const PebbleNsPerRead = 1300.0
 // Used by the planner's write-cost path (EngineProfile.WriteNsPerOp).
 const PebbleNsPerWrite = 2500.0
 
+var _ metaengine.TrackerHost = (*pebbleEngine)(nil)
+
 type pebbleEngine struct {
 	db          *pebble.DB
 	ownsDB      bool

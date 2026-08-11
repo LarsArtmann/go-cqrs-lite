@@ -40,6 +40,8 @@ const MySQLNsPerOp = 12000.0
 const MySQLNsPerRead = 5000.0
 
 // mysqlEngine implements metaengine.Engine with MySQL as the backend.
+var _ metaengine.TrackerHost = (*mysqlEngine)(nil)
+
 type mysqlEngine struct {
 	db             *sql.DB
 	mu             sync.Mutex

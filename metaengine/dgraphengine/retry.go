@@ -74,11 +74,3 @@ func withRetry[T any](ctx context.Context, fn func(ctx context.Context) (T, erro
 
 	return zero, lastErr
 }
-
-// withRetryVoid is the void variant of withRetry for operations with no return value.
-func withRetryVoid(ctx context.Context, fn func(ctx context.Context) error) error {
-	_, err := withRetry(ctx, func(ctx context.Context) (struct{}, error) {
-		return struct{}{}, fn(ctx)
-	})
-	return err
-}

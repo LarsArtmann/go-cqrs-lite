@@ -42,6 +42,8 @@ const DuckDBNsPerOp = 15000.0
 const DuckDBNsPerRead = 1200.0
 
 // duckdbEngine implements metaengine.Engine with DuckDB as the backend.
+var _ metaengine.TrackerHost = (*duckdbEngine)(nil)
+
 type duckdbEngine struct {
 	db          *sql.DB
 	persistence metaengine.Persistence
