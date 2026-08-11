@@ -52,6 +52,13 @@ LAYER[metaengine/dgraphengine]=5
 LAYER[metaengine/graphadapter]=5
 LAYER[metaengine/sqliteengine]=5
 LAYER[metaengine/projectionadapter]=5
+LAYER[metaengine/bboltengine]=5
+LAYER[metaengine/mysqlengine]=5
+LAYER[metaengine/tursoengine]=5
+LAYER[metaengine/keycodec]=5
+LAYER[metaengine/adttest]=7
+LAYER[metaengine/enginetest]=7
+LAYER[metaengine/projectionadapter]=5
 LAYER[metaengine/irohengine]=5
 LAYER[metaengine/irohengine/loopback]=5
 LAYER[metaengine/irohengine/quic]=5
@@ -213,6 +220,9 @@ DEP_BUDGET[metaengine/dgraphengine]=3
 DEP_BUDGET[metaengine/graphadapter]=2
 DEP_BUDGET[metaengine/sqliteengine]=3
 DEP_BUDGET[metaengine/projectionadapter]=10
+DEP_BUDGET[metaengine/bboltengine]=5
+DEP_BUDGET[metaengine/mysqlengine]=5
+DEP_BUDGET[metaengine/tursoengine]=5
 DEP_BUDGET[flightrecorder]=0
 DEP_BUDGET[retry]=1
 DEP_BUDGET[transport/grpc]=12
@@ -284,9 +294,27 @@ for mod in "${!DEP_BUDGET[@]}"; do
         done
         [ "$skip" -eq 1 ] && continue
 
-        # If no non-test .go file imports this dep, it's test-only
-        if ! grep -rl "\"${dep_path}" "${mod}/" --include='*.go' 2>/dev/null \
-            | grep -vq '_test\.go$'; then
+        # If no non-test .go file imports this dep, it's test-only.
+        # Exclude files in subdirectories with their own go.mod (submodules) —
+        # their imports belong to the submodule, not the parent module.
+        non_test_files=$(grep -rl "\"${dep_path}" "${mod}/" --include='*.go' 2>/dev/null | grep -v '_test\.go$' || true)
+        found_prod=false
+        for f in $non_test_files; do
+            dir=$(dirname "$f")
+            in_submodule=false
+            while [ "$dir" != "${mod}" ] && [ "$dir" != "." ] && [ "$dir" != "/" ]; do
+                if [ -f "$dir/go.mod" ]; then
+                    in_submodule=true
+                    break
+                fi
+                dir=$(dirname "$dir")
+            done
+            if [ "$in_submodule" = "false" ]; then
+                found_prod=true
+                break
+            fi
+        done
+        if [ "$found_prod" = "false" ]; then
             test_deps=$((test_deps + 1))
             continue
         fi

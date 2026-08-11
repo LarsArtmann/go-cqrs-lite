@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "threshold": 3,
-  "recordedAt": "2026-08-10T14:14:26.52884275Z",
+  "recordedAt": "2026-08-10T18:34:54.477040644Z",
   "entries": [
     {
       "hash": "042a25ea73339942",
@@ -219,6 +219,14 @@
       "tokens": 8
     },
     {
+      "hash": "40c0d13d03ea41ae",
+      "files": [
+        "storage/bbolt/serialization.go",
+        "storage/pebble/serialization.go"
+      ],
+      "tokens": 30
+    },
+    {
       "hash": "4540881f22df307d",
       "files": [
         "metaengine/sqliteengine/raw_reader.go",
@@ -430,6 +438,14 @@
       "files": [
         "metaengine/sqliteengine/aggregations_grouped.go",
         "metaengine/pgengine/aggregations.go"
+      ],
+      "tokens": 6
+    },
+    {
+      "hash": "86c1b5206828c509",
+      "files": [
+        "metaengine/mysqlengine/probe.go",
+        "metaengine/pgengine/probe.go"
       ],
       "tokens": 6
     },

@@ -44,7 +44,7 @@ type EngineStats struct {
 // fresh measurement are marked Stale. Use this for the Doctor report,
 // readiness probes, and any operator dashboard that needs to show whether the
 // planner is routing on measured or prior latency.
-func (s *Store) GetEngineStats(ctx context.Context) []EngineStats {
+func (s *Store) GetEngineStats(_ context.Context) []EngineStats {
 	s.mu.RLock()
 	engines := s.engines
 	s.mu.RUnlock()

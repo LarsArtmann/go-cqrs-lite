@@ -153,6 +153,7 @@ linters:
             - go.opentelemetry.io/otel
             - github.com/cockroachdb/pebble
             - github.com/larsartmann/go-error-family
+            - github.com/larsartmann/go-flightrecorder
             - github.com/larsartmann/go-must
             - modernc.org/sqlite
             - github.com/mattn/go-sqlite3
@@ -425,6 +426,74 @@ linters:
           - staticcheck
         text: "SA1019: .*EnsureCustom.*is deprecated"
 
+      # ── metaengine.On/OnTyped deprecation (ADR-0112) ────────────
+      # On and OnTyped are deprecated in favour of OnRecord/OnRecordTyped
+      # which provide access to the full Record context. Migration is in
+      # progress across metaengine engine modules, projectionadapter,
+      # system/, stack/, and test files. Suppress SA1019 until complete.
+      - path: (metaengine|system|stack|benchkit)/.*\.go$
+        linters:
+          - staticcheck
+        text: "SA1019: metaengine\\.On(Typed)? is deprecated"
+
+      # ── flightrecorder/ deprecated re-export module ─────────────
+      # This module re-exports github.com/larsartmann/go-flightrecorder
+      # for backward compat. The depguard, gocritic, and wrapcheck
+      # findings are inherent to its nature as a thin shim.
+      - path: flightrecorder/
+        linters:
+          - depguard
+          - gocritic
+          - inamedparam
+          - wrapcheck
+          - recvcheck
+          - nolintlint
+
+      # ── id/ branded-ID module ───────────────────────────────────
+      # ActorID uses unexported fields with custom Marshaler/Unmarshaler
+      # implementations. Mixed receiver pattern is intentional (Marshal
+      # = value receiver, Unmarshal = pointer receiver). String literals
+      # for actor kinds are domain constants, not magic strings.
+      - path: id/
+        linters:
+          - err113
+          - errcheck
+          - exhaustive
+          - exhaustruct
+          - goconst
+          - modernize
+          - recvcheck
+          - wrapcheck
+          - nolintlint
+
+      # ── record/ shared Record type ──────────────────────────────
+      # time.Time fields use omitempty for backward-compatible JSON
+      # (clients that don't set timestamps omit them). modernize
+      # suggests omitzero but that changes wire format.
+      - path: record/
+        linters:
+          - modernize
+
+      # ── metaengine engine register.go files ────────────────────
+      # Engine modules use init() for driver registration (same pattern
+      # as database/sql drivers).
+      - path: metaengine/(.*/)?register\.go$
+        linters:
+          - gochecknoinits
+
+      # ── metaengine/mysqlengine ──────────────────────────────────
+      # External MySQL driver; same sqlclosecheck false-positives as
+      # pgengine and duckdbengine (CloseRows indirection not visible).
+      - path: metaengine/mysqlengine/
+        linters:
+          - sqlclosecheck
+          - wrapcheck
+          - varnamelen
+      # Dgraph engine: retry utilities prepared for future wiring.
+      - path: metaengine/dgraphengine/retry\.go$
+        linters:
+          - unused
+
       # ── system/ deployer composition root ────────────────────────
       # The system/ module wires infrastructure via reflection and dynamic
       # dispatch (driver registry, auto-wired projections). Many style
@@ -478,6 +547,8 @@ linters:
           - gochecknoglobals
           - wrapcheck
           - nolintlint
+          - containedctx
+          - modernize
       # Iroh engine: CGo bridge with external dependency (iroh-go).
       # Relaxed style for FFI boundary code.
       - path: metaengine/irohengine/
@@ -680,6 +751,7 @@ linters:
           - perfsprint
           - nolintlint
           - ireturn
+          - varnamelen
 
       # ── transport/ ───────────────────────────────────────────────
       # SSE broker uses interface returns; event delivery has error paths.
@@ -793,6 +865,11 @@ linters:
         linters:
           - gosec
           - err113
+      - path: cmd/api-stability/
+        linters:
+          - gocognit
+          - nilerr
+          - nolintlint
 
       # ── system/ operator topology ───────────────────────────────
       # Deployer-picks-infrastructure model with driver registry,

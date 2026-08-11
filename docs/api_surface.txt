@@ -1603,6 +1603,7 @@ metaengine/func FilterOn
 metaengine/func FilterOnField
 metaengine/func FormatLiveLatency
 metaengine/func HasGraphSupport
+metaengine/func Infer
 metaengine/func ItemFieldByName
 metaengine/func JSONFieldName
 metaengine/func LoadManifest

@@ -36,9 +36,10 @@ func (s *Store) Plan() *PlanResult { return s.plan }
 // reflects those updates through ApplyCalibration. Call Replan periodically
 // (e.g. every 30s) or after detecting a significant latency shift.
 //
-// Replan is safe for concurrent use: it holds the Store's write lock for the
-// duration, blocking reads. The re-plan itself is pure computation (no I/O) so
-// the lock window is short — proportional to the number of queries × engines.
+// Replan is safe for concurrent use: it holds the Store's write lock only
+// during engine re-assignment (mutating QueryDecl) and the atomic plan swap.
+// The rule pipeline runs without the lock — same as Plan() — because rules
+// read from the Store and would self-deadlock if the write lock were held.
 //
 // The plan version is incremented on each successful Replan. Consumers can
 // compare versions to detect that a re-plan occurred without inspecting the
@@ -48,28 +49,35 @@ func (s *Store) Replan(ctx context.Context) error {
 		return fmt.Errorf("metaengine.Store.Replan: %w", err)
 	}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	cfg := planConfig{writeAmplificationBudget: DefaultWriteAmplificationBudget}
 
+	// Phase 1: re-assign engines under the write lock (mutates QueryDecl).
 	plan := &PlanResult{}
 
+	s.mu.Lock()
 	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
 		q := s.queries[name]
 
 		assignment, err := planQuery(q, s.engines, cfg)
 		if err != nil {
+			s.mu.Unlock()
 			return fmt.Errorf("metaengine.Store.Replan: %w", err)
 		}
 
 		plan.Queries = append(plan.Queries, assignment)
 	}
+	s.mu.Unlock()
 
+	// Phase 2: run rules without the lock (rules read from Store and would
+	// self-deadlock if the write lock were held — same pattern as Plan()).
 	pipeline := NewRulePipeline(defaultRules(cfg)...)
 	if err := pipeline.Apply(plan, PlanContext{Store: s, Config: cfg}); err != nil {
 		return fmt.Errorf("metaengine.Store.Replan: %w", err)
 	}
+
+	// Phase 3: atomically swap the plan under the write lock.
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	if s.plan != nil {
 		plan.Version = s.plan.Version + 1

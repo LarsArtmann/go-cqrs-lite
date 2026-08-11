@@ -52,7 +52,11 @@ func (e *bboltEngine) seedSeqCounters() error {
 // seedCollectionSeqs scans a tag prefix (e.g. "jl", "l", "sl") and seeds a
 // per-collection (or per-stream) counter sync.Map.
 // art-dupl:accept cross-module KV engine pattern — separate go.mod
-func (e *bboltEngine) seedCollectionSeqs(bucket *bolt.Bucket, tag string, target *sync.Map) error {
+func (e *bboltEngine) seedCollectionSeqs(
+	bucket *bolt.Bucket,
+	tag string,
+	target *sync.Map,
+) error { //nolint:unparam // consistent KV engine pattern
 	prefix := []byte(tag + sep)
 	tagLen := len(tag + sep)
 
@@ -72,7 +76,9 @@ func (e *bboltEngine) seedCollectionSeqs(bucket *bolt.Bucket, tag string, target
 
 // seedMultimapSeqs scans the mm prefix and seeds mmSeq counters.
 // art-dupl:accept cross-module KV engine pattern — separate go.mod
-func (e *bboltEngine) seedMultimapSeqs(bucket *bolt.Bucket) error {
+func (e *bboltEngine) seedMultimapSeqs(
+	bucket *bolt.Bucket,
+) error { //nolint:unparam // consistent KV engine pattern
 	tag := "mm"
 	prefix := []byte(tag + sep)
 	tagLen := len(tag + sep)

@@ -16,6 +16,7 @@ const MySQL_NetworkRTT = 1 * time.Millisecond
 // RTT tracker that feeds Profile().NetworkRTT. A failed probe returns the error
 // and is dropped by the probe loop (never recorded), so a stalled connection
 // cannot poison the EWMA.
+// art-dupl:accept intentional cross-module duplicate — separate go.mod
 func (e *mysqlEngine) Probe(ctx context.Context) (time.Duration, error) {
 	start := time.Now()
 	if err := e.db.PingContext(ctx); err != nil {

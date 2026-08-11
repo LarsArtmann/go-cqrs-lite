@@ -3,10 +3,9 @@ package metaengine
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
-
-	"github.com/dustin/go-humanize"
 )
 
 // Diagnostic levels for plan output.
@@ -78,7 +77,7 @@ func (a QueryAssignment) String() string {
 	if a.Cost.Volume > 0 {
 		parts = append(
 			parts,
-			fmt.Sprintf("latency<%sms", humanize.Commaf(a.Cost.EstimatedLatencyMs)),
+			fmt.Sprintf("latency<%sms", strconv.FormatFloat(a.Cost.EstimatedLatencyMs, 'f', 0, 64)),
 		)
 	}
 

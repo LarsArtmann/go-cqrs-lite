@@ -255,7 +255,7 @@ func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 	reader, _ := NewSQLStreamReader(db, "test_", sqlpkg.SQLiteDialect{})
 
 	activePage, err := reader.ListWithStatus(ctx, listing.ListOptions{
-		Type:      "User",
+		Type:         "User",
 		DeletePolicy: listing.DeleteExclude,
 	})
 	if err != nil {
@@ -267,7 +267,7 @@ func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 	}
 
 	tombstonedPage, err := reader.ListWithStatus(ctx, listing.ListOptions{
-		Type:      "User",
+		Type:         "User",
 		DeletePolicy: listing.DeleteOnly,
 	})
 	if err != nil {
@@ -283,7 +283,7 @@ func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 	}
 
 	allPage, err := reader.ListWithStatus(ctx, listing.ListOptions{
-		Type:      "User",
+		Type:         "User",
 		DeletePolicy: listing.DeleteInclude,
 	})
 	if err != nil {

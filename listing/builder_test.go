@@ -45,7 +45,7 @@ func TestListBuilder_DefaultOptions(t *testing.T) {
 				t.Errorf("default limit = %d, want 20", opts.Limit)
 			}
 
-				if opts.DeletePolicy != listing.DeleteExclude {
+			if opts.DeletePolicy != listing.DeleteExclude {
 				t.Errorf("default delete policy = %v, want DeleteExclude", opts.DeletePolicy)
 			}
 

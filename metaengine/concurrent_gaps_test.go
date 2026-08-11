@@ -2,12 +2,10 @@ package metaengine_test
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"sync"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -98,6 +96,7 @@ func TestConcurrentExecuteTypedUnderWritePressure(t *testing.T) {
 // memory and SQLite engines. Verify both produce the same logical results
 // for the same sequence of appends.
 func TestCrossEngineLogTailParity(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	ctx := context.Background()
@@ -144,6 +143,7 @@ func TestCrossEngineLogTailParity(t *testing.T) {
 // from both engines. Verify both produce equivalent adjacency for the same
 // edge additions.
 func TestCrossEngineGraphNeighborsParity(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	ctx := context.Background()
@@ -195,21 +195,8 @@ func TestCrossEngineGraphNeighborsParity(t *testing.T) {
 
 func mustSQLiteEngine(t *testing.T) metaengine.Engine {
 	t.Helper()
-
-	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
-	if err != nil {
-		t.Fatalf("sql.Open: %v", err)
-	}
-
-	db.SetMaxOpenConns(1)
-	t.Cleanup(func() { _ = db.Close() })
-
-	eng, err := sqliteengine.NewSQLiteEngine(db)
-	if err != nil {
-		t.Fatalf("sqliteengine.NewSQLiteEngine: %v", err)
-	}
-
-	return eng
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
+	return nil
 }
 
 // TestNonStructFoldUpdateSQLite (#31): FoldUpdate with a non-struct value

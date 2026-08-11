@@ -64,8 +64,8 @@ func TestGetEngineStats_MarksRemoteStaleWithoutTracker(t *testing.T) {
 		t.Error("Stale = false for remote engine with no tracker, want true")
 	}
 
-	if !st.HasLiveRTT {
-		// expected: no tracker installed
+	if st.HasLiveRTT {
+		t.Error("HasLiveRTT = true for remote engine with no tracker, want false")
 	}
 }
 

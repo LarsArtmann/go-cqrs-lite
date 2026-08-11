@@ -42,7 +42,7 @@ func autoInsertByType(eventType, resultType reflect.Type, keyField string) Fold 
 		result := reflect.New(resultType).Elem()
 
 		for _, m := range mappings {
-			result.Field(m.dstIdx).Set(eVal.Field(m.srcIdx))
+			result.Field(m.dstIdx).Set(fieldValue(eVal, m.srcPath))
 		}
 
 		applyRecordStamps(result, stamps, recHolder.rec)
@@ -82,7 +82,7 @@ func autoUpdateByType(eventType, resultType reflect.Type, keyField string) Fold 
 		}
 
 		for _, m := range mappings {
-			srcVal := eVal.Field(m.srcIdx)
+			srcVal := fieldValue(eVal, m.srcPath)
 			if !srcVal.IsZero() {
 				result.Field(m.dstIdx).Set(srcVal)
 			}

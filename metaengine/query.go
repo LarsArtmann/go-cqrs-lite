@@ -139,6 +139,11 @@ type QueryDecl[Q any, R any] struct {
 	querySample  Q
 	resultSample R
 
+	// Inference support (ADR-0116 Layer 1). When needsInference is true,
+	// Folds/ADT/ReadPattern are populated at Plan() time by ensureFolds().
+	eventSamples   []any
+	needsInference bool
+
 	// Runtime-assigned by planQuery — eliminates the queryRuntime twin.
 	engine      Engine
 	complexity  Complexity
@@ -162,25 +167,57 @@ func Query[Q any, R any](name string, args ...any) QueryDecl[Q, R] {
 
 	var folds []Fold
 
+	var eventSamples []any
+
+	needsInference := false
+
 	for _, arg := range args {
 		switch a := arg.(type) {
 		case Fold:
 			folds = append(folds, a)
 		case QueryOption:
 			a(&cfg)
+		case inferenceRequest:
+			eventSamples = a.samples
+			needsInference = true
 		default:
 			panic(fmt.Sprintf(
-				"metaengine.Query(%q): unexpected argument type %T (expected Fold or QueryOption)",
-				name, arg,
+				"metaengine.Query(%q): unexpected argument type %T (expected Fold, QueryOption, or Infer)",
+				name,
+				arg,
 			))
 		}
 	}
 
-	if len(folds) == 0 {
+	if needsInference && len(folds) > 0 {
+		panic(fmt.Sprintf(
+			"metaengine.Query(%q): Infer() cannot be combined with explicit folds", name,
+		))
+	}
+
+	if !needsInference && len(folds) == 0 {
 		panic(fmt.Sprintf("metaengine.Query(%q): at least one fold required", name))
 	}
 
-	adt, err := classifyADT(folds)
+	q := QueryDecl[Q, R]{
+		Name:           name,
+		Config:         cfg,
+		eventSamples:   eventSamples,
+		needsInference: needsInference,
+		querySample:    *new(Q),
+		resultSample:   *new(R),
+	}
+	q.InputTypeName = qualifiedTypeName(q.querySample)
+
+	if needsInference {
+		return q
+	}
+
+	q.Folds = folds
+
+	var err error
+
+	q.ADT, err = classifyADT(folds)
 	if err != nil {
 		panic(fmt.Sprintf("metaengine.Query(%q): %v", name, err))
 	}
@@ -189,15 +226,6 @@ func Query[Q any, R any](name string, args ...any) QueryDecl[Q, R] {
 		panic(fmt.Sprintf("metaengine.Query(%q): %v", name, err))
 	}
 
-	q := QueryDecl[Q, R]{
-		Name:         name,
-		Folds:        folds,
-		ADT:          adt,
-		Config:       cfg,
-		querySample:  *new(Q),
-		resultSample: *new(R),
-	}
-	q.InputTypeName = qualifiedTypeName(q.querySample)
 	q.infer()
 
 	return q
@@ -289,6 +317,11 @@ type queryMeta interface {
 	QueryComplexity() Complexity
 	QueryFoldByEvent() map[string]int
 	assignPlan(engine Engine, complexity Complexity, foldByEvent map[string]int)
+
+	// ensureFolds runs planner-time fold inference for queries declared with
+	// Infer(). For queries with explicit folds, this is a no-op. Called by
+	// Plan() before planQuery().
+	ensureFolds() error
 }
 
 // asQueryMeta adapts a value to queryMeta. Query() returns a value type

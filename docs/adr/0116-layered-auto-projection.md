@@ -1,7 +1,7 @@
 # ADR-0116: Layered Auto-Projection
 
 **Date:** 2026-08-06
-**Status:** Accepted
+**Status:** Accepted (Layer 1 implemented)
 **Related:** ADR-0112 (ES-native metaengine), ADR-0111 (Record type)
 
 ## Context
@@ -126,6 +126,35 @@ event-type-string flexibility for zero-config CRUD setup.
 - No `*Created` sample provided → error (insert is the minimum requirement)
 - Multiple samples with the same suffix → error (ambiguous)
 - Sample with unrecognized suffix → error (must be Created/Updated/Deleted)
+
+## Implementation Status
+
+### Layer 1: Implemented (planner-time fold inference)
+
+The `Infer()` API provides planner-time fold inference:
+
+```go
+q := metaengine.Query[GetUser, UserView]("users",
+    metaengine.Infer(UserCreated{}, UserUpdated{}, UserDeleted{}),
+)
+```
+
+The planner infers at `Plan()` time:
+- **Convention detection** — `*Created` → insert, `*Updated` → update, `*Deleted` → remove
+- **Key field auto-detection** — from the query input type Q (if Q has one field whose Go type unambiguously matches a Created event field), falling back to `"ID"`
+- **Field-name matching** — event fields map to result fields by name, including nested struct flattening (event `Address{City, Zip}` → result `City`, `Zip`)
+- **Filter auto-detection** — query input fields beyond the key that share a name with a result field become `FilterOnField` declarations
+- **Collection result support** — for `R{Items []T}`, the element type T is used for fold generation and filter matching
+
+Pre-existing helpers (`AutoInsert`, `AutoUpdate`, `AutoDelete`, `AutoCRUD`, `AutoCRUDByConvention`) remain for consumer-time fold generation. `Infer()` defers to Plan() time.
+
+### Layer 2: Available (explicit folds)
+
+`On()`, `OnRecord()`, and friends provide explicit fold handlers for the 20% case.
+
+### Layer 3: Available (auto-route)
+
+The cost-based planner (`Plan()`) routes all queries — inferred or explicit — to the cheapest engine.
 
 ## Alternatives Considered
 

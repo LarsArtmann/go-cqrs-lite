@@ -315,7 +315,10 @@ func sortMatchedFuncKV(matched []any, sort *metaengine.SortSpec) {
 
 // countStreamEntriesBBolt counts entries matching a stream prefix.
 // art-dupl:accept cross-module KV engine pattern — separate go.mod
-func countStreamEntriesBBolt(bucket *bolt.Bucket, col, sid string) (int64, error) {
+func countStreamEntriesBBolt(
+	bucket *bolt.Bucket,
+	col, sid string,
+) (int64, error) { //nolint:unparam // consistent KV engine pattern
 	prefix := streamPrefix(col, sid)
 
 	var count int64

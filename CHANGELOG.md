@@ -38,7 +38,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > constants. Engines declare a structural fact (`RequiresNetwork`) + a prior;
 > the runtime measures true RTT via `ProbeEngine` and feeds it live into
 > `Profile()`. The planner sees fresh numbers on every re-plan. Design:
-> `docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md` (P1 + P3 + UX done; P2 ~80%).
+> `docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md` (P1+P2+P3+UX complete).
 > Status: `docs/status/2026-08-10_18-49_live-latency-model-implementation.md`.
 
 - **`metaengine.LatencyTracker`** — sliding-window (512 samples) latency
@@ -94,7 +94,58 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   engine instead of a bare `rtt=` value.
 - **`metaengine.Doctor()`** adds a `--- Latency ---` section with per-engine
   live/stale/local RTT lines.
-- **`docs/api_surface.txt`** regenerated (3981 exports, +11 new symbols).
+- **`docs/api_surface.txt`** regenerated (3992 exports).
+
+### Added — Live Cost Measurement Phase 2 (Replan + Routing + Engine Wiring) — 2026-08-10
+
+> P2 complete. `Store.Replan(ctx)` re-plans in-place picking up fresh live
+> profiles. `Store.CheckRouting(ctx)` emits REPLAN-SUGGESTED diagnostics with a
+> 20% hysteresis deadband. `Store.StartAutoReplan(interval)` runs the loop in
+> the background. All remote engines (PG, Dgraph, MySQL, Turso) now declare
+> `RequiresNetwork` + RTT prior. PG implements `TransactMeasurer`. Iroh migrated
+> to core `LatencyTracker`, eliminating duplicate percentile machinery.
+
+- **`metaengine.Store.Replan(ctx)`** — in-place re-plan for a long-lived Store.
+  Re-reads `engine.Profile()` (reflects live tracker EWMA), re-assigns engines,
+  re-runs the rule pipeline, increments the plan version. Three-phase locking
+  (assign under write lock, run rules without lock, atomic plan swap) avoids
+  self-deadlock with rules that read from the Store.
+- **`metaengine.Store.CheckRouting(ctx) []Diagnostic`** — execution-time
+  re-scoring with hysteresis deadband. Re-computes current costs from live
+  profiles for every query; emits `REPLAN-SUGGESTED` when an alternative engine
+  is cheaper by more than `DefaultRoutingHysteresis` (20%). Advisory only — does
+  not change assignments.
+- **`metaengine.Store.StartAutoReplan(interval) (stop func())`** — background
+  loop that periodically calls CheckRouting + Replan when routing drifts.
+  Convenience for long-lived Stores with ProbeEngine running.
+- **`metaengine.DefaultRoutingHysteresis`** = 0.20 (20% improvement required
+  before suggesting re-routing, preventing oscillation from RTT jitter).
+- **`metaengine.WithProbeWindow` / `WithProbeAlpha` / `WithProbeStale`** —
+  `ProbeOption` functions to tune the latency trackers created by ProbeEngine.
+- **mysqlengine `Prober`** — `SELECT 1` timing. `MySQL_NetworkRTT` = 1ms prior.
+  `RequiresNetwork: true`.
+- **tursoengine remote DSN detection** — `isRemoteDSN` detects `libsql://`,
+  `https://`, `http://` URLs and sets `NetworkRTT` prior via calibration.
+  `Turso_NetworkRTT` = 2ms prior. Live probing deferred (sqliteengine
+  delegation prevents adding `Prober` without wrapping — documented gap).
+- **pgengine `TransactMeasurer`** — `MeasureTransact` times a real
+  `SELECT value FROM meta_map ... LIMIT 1` point lookup, exercising the full
+  read path (B-tree index seek + JSONB decode). Proves the per-op live path
+  end-to-end.
+- **irohengine `LatencyCollector` migrated** to core `metaengine.LatencyTracker`.
+  Eliminates duplicate ring buffer + percentile machinery. `SortDurations` and
+  `PercentileIdx` kept as transport-facing utilities (loopback/quic transports
+  maintain their own sample arrays).
+- **`LiveLatency.Fresh`** is now RTT-specific (was: OR of RTT+Read freshness).
+  Prevents a read-only tracker from suppressing the "routing on prior RTT" WARN.
+- **`staleThresholdFor` removed** — `buildEngineStats` uses the tracker's
+  authoritative `LiveLatency.Fresh` instead of a hardcoded 30s display-side
+  approximation. Display and routing now agree on staleness.
+- **24 tests** (15 + 9 new) covering tracker math, EWMA, window eviction,
+  freshness/staleness, sink ingress, probe loop, routing-flip-on-RTT-shift,
+  prior-RTT WARN, stale labelling, Doctor/EXPLAIN output, Replan, CheckRouting
+  with/without deadband, StartAutoReplan lifecycle, RTT-specific freshness,
+  probe option tuning.
 
 ### Added — Metaengine Phase 4: backend porting complete (all 8) — 2026-08-10
 

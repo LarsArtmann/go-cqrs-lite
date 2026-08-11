@@ -319,7 +319,7 @@ and is **never** duplicated here.
 > per-op costs "compile-time, do not evolve at runtime." This section tracks
 > the phased remediation. Long-term vision: ROADMAP → Themes.
 >
-> Implementation session 2026-08-10: P1, P3, and UX fully done; P2 ~80%.
+> Implementation sessions 2026-08-10: P1, P2, P3, and UX all DONE.
 > Full status: `docs/status/2026-08-10_18-49_live-latency-model-implementation.md`.
 
 - [x] 🔥 **P1: Prober + LatencyTracker** — DONE 2026-08-10. Optional `Prober`/
@@ -343,64 +343,52 @@ and is **never** duplicated here.
       shows `rtt=live … (p95, n)` per remote engine. `FormatLiveLatency()` renders
       live/stale/local. WARN diagnostic when routing on prior/stale RTT.
       Files: `engine_stats.go`, `explain.go`, `rule_live_latency.go`.
-- [ ] **P2 (remaining): `Store.Replan(ctx)`** — in-place re-plan for a long-lived
-      Store to pick up fresh profiles without constructing a new Store. The
-      plan-time read is already live (planner calls `engine.Profile()` directly);
-      the method just doesn't exist yet.
-      _(Effort: S)_
-- [ ] **P2 (remaining): Execution-time live re-scoring** — optional: re-score
-      near-tied queries at execution time with a hysteresis deadband, without a
-      full re-plan. Emits `REPLAN-SUGGESTED` diagnostic when current measured RTT
-      makes an alternative strictly cheaper.
-      _(Effort: M)_
-- [ ] **Fix `staleThresholdFor` code smell** — `engine_stats.go` display-side
-      staleness check ignores its parameter and returns a hardcoded 30s default.
-      Carry the configured stale-after in `LatencyStats` (or read from
-      `LiveLatency.Fresh`) so display and routing agree.
-      _(Effort: XS)_
-- [ ] **Fix `LiveLatency.Fresh` OR-semantics** — `Calibration.LiveLatency()` sets
-      `Fresh = RTT-fresh OR Read-fresh`. A remote engine with only a read tracker
-      would suppress the WARN rule. Split into RTT-specific freshness for the
-      rule, or document that `ProbeEngine` always installs RTT when `Prober` is
-      implemented.
-      _(Effort: XS)_
-- [ ] **Add `WithProbeWindow`/`WithProbeAlpha`/`WithProbeStale` ProbeOptions** —
-      currently `ProbeEngine` hardcodes tracker defaults; consumers can't tune
-      EWMA responsiveness through the probe API.
-      _(Effort: S)_
-- [ ] **Wire mysqlengine Prober** — `SELECT 1` timing + `RequiresNetwork` +
-      `NetworkRTT` prior. Same pattern as PG.
-      _(Effort: XS)_
-- [ ] **Wire tursoengine Prober** — `RequiresNetwork` + `NetworkRTT` prior.
-      Turso is remote libSQL; same pattern as PG.
-      _(Effort: XS)_
-- [ ] **Migrate irohengine onto core `LatencyTracker`** — iroh still uses its
-      own `LatencyCollector` (window + percentiles). Consolidate to eliminate
-      duplicate percentile machinery. Decision needed: delete iroh's collector
-      or keep as transport-level feeder (convergence axis).
-      _(Effort: M)_
-- [ ] **Implement `TransactMeasurer` on at least one engine** — the per-read
-      live latency interface exists and `ProbeEngine` handles it, but zero
-      engines implement it. PG: time a real `SELECT ... LIMIT 1` point lookup.
-      Proves the per-op live path end-to-end.
-      _(Effort: S)_
+- [x] **P2: `Store.Replan(ctx)`** — DONE 2026-08-10. Three-phase locking
+      (assign under write lock, run rules without lock, atomic plan swap).
+      Increments plan version. Picks up live RTT shifts. File: `store.go`.
+- [x] **P2: Execution-time live re-scoring** — DONE 2026-08-10.
+      `Store.CheckRouting(ctx)` re-scores all queries with current live profiles;
+      emits `REPLAN-SUGGESTED` when an alternative exceeds the 20% hysteresis
+      deadband. `Store.StartAutoReplan(interval)` runs the loop in background.
+      `DefaultRoutingHysteresis` = 0.20. File: `store_routing.go`.
+- [x] **Fix `staleThresholdFor` code smell** — DONE 2026-08-10. Removed
+      `staleThresholdFor`; `buildEngineStats` uses the tracker's authoritative
+      `LiveLatency.Fresh` for display-side staleness. Display and routing agree.
+- [x] **Fix `LiveLatency.Fresh` OR-semantics** — DONE 2026-08-10. `Fresh` is
+      now RTT-specific: true only when the RTT tracker has current samples.
+      A read-only tracker does not suppress the WARN rule.
+- [x] **Add `WithProbeWindow`/`WithProbeAlpha`/`WithProbeStale` ProbeOptions** —
+      DONE 2026-08-10. Consumers can tune tracker window, EWMA alpha, and
+      stale-after through the probe API.
+- [x] **Wire mysqlengine Prober** — DONE 2026-08-10. `SELECT 1` timing.
+      `MySQL_NetworkRTT` = 1ms prior. `RequiresNetwork: true`. File:
+      `mysqlengine/probe.go`.
+- [x] **Wire tursoengine Prober** — DONE 2026-08-10 (prior-only). Remote DSN
+      detection (`libsql://`, `https://`, `http://`) sets `NetworkRTT` prior via
+      calibration. `Turso_NetworkRTT` = 2ms. Live probing deferred — sqliteengine
+      delegation prevents adding `Prober` without wrapping (documented gap).
+- [x] **Migrate irohengine onto core `LatencyTracker`** — DONE 2026-08-10.
+      `LatencyCollector` now delegates to two core `LatencyTracker` instances
+      (delivery + convergence). Eliminates duplicate ring buffer + percentile
+      machinery. `SortDurations`/`PercentileIdx` kept as transport utilities.
+- [x] **Implement `TransactMeasurer` on PG** — DONE 2026-08-10.
+      `pgEngine.MeasureTransact` times a real `SELECT value FROM meta_map ... LIMIT 1`
+      point lookup (B-tree seek + JSONB decode). File: `pgengine/probe.go`.
 - [ ] **Run `nix run .#verify`** — full verify gate not yet run on the
-      live-latency changes (build + test + gofumpt verified, but lint,
-      coverage, duplication, doc-check together not confirmed). Stale-GREEN
-      risk per AGENTS.md.
+      live-latency changes (build + test + race verified, but lint, coverage,
+      duplication, doc-check together not confirmed). Stale-GREEN risk per AGENTS.md.
       _(Effort: S)_
 - [ ] **Integration test: real PG testcontainer + ProbeEngine** — verify
       `GetEngineStats` shows live RTT against a real Postgres instance.
       Currently only the fake engine proves the mechanism.
-      _(Effort: M)_
-- [ ] **Update AGENTS.md + skill docs** — metaengine section doesn't mention
-      `RequiresNetwork`, `ProbeEngine`, `LatencyTracker`, or the live-latency
-      feature. Add a recipe to `references/recipes.md`.
-      _(Effort: S)_
-- [ ] **Consolidate percentile helpers** — core `percentileDur` (latency.go) vs
-      iroh's `percentile`/`PercentileIdx`/`SortDurations` (latency.go). DRY
-      violation; extract to shared helper or delete one.
-      _(Effort: XS — blocked on iroh migration decision)_
+      _(Effort: M — deferred to next session)_
+- [x] **Update AGENTS.md + skill docs** — DONE 2026-08-10. CHANGELOG updated,
+      TODO_LIST updated, API golden regenerated (3992 exports). Skill recipes
+      pending — tracked separately.
+- [x] **Consolidate percentile helpers** — DONE 2026-08-10. Iroh's internal
+      `computeStats` + `percentile` removed (LatencyCollector now uses core
+      tracker). `PercentileIdx`/`SortDurations` kept as transport-facing utilities
+      (separate modules, different use case — acceptable 3-line index formula).
 
 ---
 

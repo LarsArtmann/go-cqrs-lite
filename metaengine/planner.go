@@ -114,6 +114,10 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 			return nil, fmt.Errorf("%w: %T", errNotQueryMeta, q)
 		}
 
+		if err := meta.ensureFolds(); err != nil {
+			return nil, fmt.Errorf("metaengine.Plan: %w", err)
+		}
+
 		if _, exists := store.queries[meta.QueryName()]; exists {
 			return nil, fmt.Errorf("%w: %q", errDuplicateQuery, meta.QueryName())
 		}

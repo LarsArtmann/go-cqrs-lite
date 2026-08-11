@@ -5,12 +5,24 @@ import (
 	"reflect"
 )
 
-// fieldMapping pairs a source field index (in the event struct) with a
-// destination field index (in the result struct). Pre-computed at fold
-// construction time so the hot path avoids map lookups.
+// fieldMapping pairs a source field path (in the event struct) with a
+// destination field index (in the result struct). srcPath supports nested
+// structs: len(srcPath)==1 for top-level fields, len(srcPath)==2 for fields
+// inside a nested struct. Pre-computed at fold construction time so the hot
+// path avoids map lookups.
 type fieldMapping struct {
-	srcIdx int
-	dstIdx int
+	srcPath []int
+	dstIdx  int
+}
+
+// fieldValue follows a field index path through nested structs, returning the
+// reflect.Value at the end of the path.
+func fieldValue(val reflect.Value, path []int) reflect.Value {
+	for _, idx := range path {
+		val = val.Field(idx)
+	}
+
+	return val
 }
 
 // findField returns the index of a named exported field in a struct type,
@@ -31,9 +43,13 @@ func findField(t reflect.Type, name string) (int, error) {
 }
 
 // matchFields finds all exported fields in srcType whose names match exported
-// fields in dstType, with compatible (assignable) types. Returns a slice of
-// fieldMapping values, pre-sorted by source index.
+// fields in dstType, with compatible (assignable) types. Supports nested structs:
+// fields inside a nested struct are flattened and matched by name against
+// top-level dst fields. Returns a slice of fieldMapping values with srcPath
+// supporting multi-level indexing.
 func matchFields(srcType, dstType reflect.Type) []fieldMapping {
+	dstIndex := buildFieldIndex(dstType)
+
 	var mappings []fieldMapping
 
 	for i := range srcType.NumField() {
@@ -42,17 +58,58 @@ func matchFields(srcType, dstType reflect.Type) []fieldMapping {
 			continue
 		}
 
-		for j := range dstType.NumField() {
-			dstField := dstType.Field(j)
-			if !dstField.IsExported() {
-				continue
+		if srcField.Type.Kind() == reflect.Struct {
+			for _, m := range matchNestedFields(srcField.Type, dstIndex) {
+				mappings = append(mappings, fieldMapping{
+					srcPath: append([]int{i}, m.srcPath...),
+					dstIdx:  m.dstIdx,
+				})
 			}
 
-			if srcField.Name == dstField.Name && srcField.Type.AssignableTo(dstField.Type) {
-				mappings = append(mappings, fieldMapping{srcIdx: i, dstIdx: j})
+			continue
+		}
 
-				break
-			}
+		if dst, ok := dstIndex[srcField.Name]; ok && srcField.Type.AssignableTo(dst.Type) {
+			mappings = append(mappings, fieldMapping{srcPath: []int{i}, dstIdx: dst.idx})
+		}
+	}
+
+	return mappings
+}
+
+// dstFieldEntry pairs a destination field index with its reflect.Type.
+type dstFieldEntry struct {
+	idx  int
+	Type reflect.Type
+}
+
+// buildFieldIndex creates a name → dstFieldEntry map for all exported fields.
+func buildFieldIndex(t reflect.Type) map[string]dstFieldEntry {
+	index := make(map[string]dstFieldEntry)
+
+	for i := range t.NumField() {
+		f := t.Field(i)
+		if f.IsExported() {
+			index[f.Name] = dstFieldEntry{idx: i, Type: f.Type}
+		}
+	}
+
+	return index
+}
+
+// matchNestedFields matches exported fields of a nested struct type against
+// the destination field index by name.
+func matchNestedFields(nestedType reflect.Type, dstIndex map[string]dstFieldEntry) []fieldMapping {
+	var mappings []fieldMapping
+
+	for i := range nestedType.NumField() {
+		f := nestedType.Field(i)
+		if !f.IsExported() {
+			continue
+		}
+
+		if dst, ok := dstIndex[f.Name]; ok && f.Type.AssignableTo(dst.Type) {
+			mappings = append(mappings, fieldMapping{srcPath: []int{i}, dstIdx: dst.idx})
 		}
 	}
 

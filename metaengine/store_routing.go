@@ -63,8 +63,11 @@ func (s *Store) CheckRouting(ctx context.Context) []Diagnostic {
 
 // checkQueryRouting re-scores all eligible engines for a single query and
 // returns a REPLAN-SUGGESTED diagnostic if a cheaper alternative exists beyond
-// the hysteresis deadband. Returns nil when the current assignment is still
-// optimal (or near-optimal within the deadband).
+// the hysteresis deadband. Both the current assignment and alternatives are
+// re-scored from their CURRENT Profile() (which reflects live tracker EWMA) —
+// not the plan-time cost, which may be stale after a latency shift.
+// Returns nil when the current assignment is still optimal (or near-optimal
+// within the deadband).
 func checkQueryRouting(
 	q queryMeta,
 	qa QueryAssignment,
@@ -74,19 +77,14 @@ func checkQueryRouting(
 	cfg := q.QueryConfig()
 	rp := q.QueryReadPattern()
 
-	currentCost := qa.Cost.EstimatedLatencyMs
-	if currentCost <= 0 {
-		return nil
-	}
+	var currentCost float64
+	found := false
 
 	var bestAltName string
 	var bestAltCost float64
 
 	for _, eng := range engines {
 		profile := eng.Profile()
-		if profile.Name == qa.EngineName {
-			continue
-		}
 
 		c, ok := profile.SupportsADT(adt)
 		if !ok {
@@ -96,13 +94,16 @@ func checkQueryRouting(
 		readC := effectiveReadComplexity(rp, c)
 		cost := estimateCost(readC, cfg.Volume, profile.NsForRead(rp), profile.NetworkRTT)
 
-		if bestAltName == "" || cost.EstimatedLatencyMs < bestAltCost {
+		if profile.Name == qa.EngineName {
+			currentCost = cost.EstimatedLatencyMs
+			found = true
+		} else if bestAltName == "" || cost.EstimatedLatencyMs < bestAltCost {
 			bestAltName = profile.Name
 			bestAltCost = cost.EstimatedLatencyMs
 		}
 	}
 
-	if bestAltName == "" {
+	if !found || bestAltName == "" || currentCost <= 0 {
 		return nil
 	}
 

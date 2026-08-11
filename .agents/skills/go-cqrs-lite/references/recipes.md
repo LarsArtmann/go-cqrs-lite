@@ -490,7 +490,53 @@ store, _ := metaengine.Plan(
 result, _ := store.Execute(FindTaskInput{ID: "task-1"})
 ```
 
-### 2.11 SQL-Backed Idempotency (idempotency/sqlstore)
+### 2.11 Live Latency Measurement — Dynamic RTT + Auto-Replan (metaengine)
+
+`NetworkRTT` is a runtime observation, not a compile-time constant. `ProbeEngine`
+measures the real round-trip to remote engines and feeds it into `Profile()`.
+The planner sees fresh numbers on every re-plan.
+
+```go
+import (
+    "context"
+    "time"
+
+    metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+    "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
+)
+
+pg, _ := pgengine.New("postgres://localhost/mydb")
+mem := metaengine.NewMemoryEngine()
+
+store, _ := metaengine.Plan([]metaengine.Engine{pg, mem}, query)
+
+// Start background RTT probing for PG (SELECT 1 every 1s).
+// Safe to call on local engines too — no-op for engines without Prober.
+stop := metaengine.ProbeEngine(pg,
+    metaengine.WithProbeInterval(time.Second),
+    metaengine.WithProbeTimeout(5*time.Second),
+)
+defer stop()
+
+// Option A: manual re-plan after detecting a shift
+_ = store.Replan(context.Background())
+
+// Option B: auto-replan when routing drifts beyond 20% hysteresis deadband
+autoStop := store.StartAutoReplan(30 * time.Second)
+defer autoStop()
+
+// Inspect live measurements
+for _, st := range store.GetEngineStats(context.Background()) {
+    fmt.Printf("%s: %s\n", st.Name, metaengine.FormatLiveLatency(st))
+    // postgres: rtt=live 1.2ms (p95 2.8ms, n=512)
+    // memory: rtt=0s (local)
+}
+```
+
+Key types: `LatencyTracker`, `Prober`, `TransactMeasurer`, `StatSink`,
+`EngineStats`, `DefaultRoutingHysteresis`.
+
+### 2.12 SQL-Backed Idempotency (idempotency/sqlstore)
 
 Durable dedup for at-least-once delivery, surviving process restarts.
 
@@ -509,7 +555,7 @@ store, _ := sqlstore.NewSQLiteStore(ctx, db)
 cmds.Use(middleware.CommandIdempotency(store, 10*time.Minute, nil))
 ```
 
-### 2.12 Retry with Backoff (retry)
+### 2.13 Retry with Backoff (retry)
 
 Zero-dependency retry with exponential backoff and jitter.
 
@@ -534,7 +580,7 @@ if errors.Is(err, retry.ErrExhausted) {
 }
 ```
 
-### 2.13 Scaling Out — NATS Transport & Parquet Journal (design docs)
+### 2.14 Scaling Out — NATS Transport & Parquet Journal (design docs)
 
 The library ships no opinionated broker or columnar store (principle #1: "library,
 not framework"), but design studies exist for two common scale-out backends. Read
@@ -555,7 +601,7 @@ the integration shape, ordering guarantees, and materialization strategies.
 > consumer would compose the existing store/bus/projection interfaces against
 > these backends.
 
-### 2.14 CBOR→JSON for Browser SSE Clients (codec + transport/http)
+### 2.15 CBOR→JSON for Browser SSE Clients (codec + transport/http)
 
 Store events in compact CBOR but serve JSON over SSE to browsers. The
 `codec.TranscodeToJSON` primitive decodes CBOR generically and re-encodes as
@@ -579,7 +625,7 @@ structs) or custom logging, call `codec.TranscodeToJSON` directly inside your
 own `func(event.Event) []byte` and use `event.DecodePayloadAuto[T]` for typed
 decoding. See `codec/README.md` → "CBOR → JSON Transcoding".
 
-### 2.15 Metaengine SSE Streaming with Reconnection (metaengine)
+### 2.16 Metaengine SSE Streaming with Reconnection (metaengine)
 
 Stream metaengine value changes as Server-Sent Events with automatic
 Last-Event-ID reconnection. Clients that disconnect receive missed events
@@ -611,7 +657,7 @@ Without `WithReplay`, ServeSSE works as a plain live stream (no id field,
 no reconnection). The replay journal uses a ring buffer with `dedup.Ring`
 for the replay-to-live overlap.
 
-### 2.16 Metaengine Cursor Pagination with PrefetchCache (metaengine)
+### 2.17 Metaengine Cursor Pagination with PrefetchCache (metaengine)
 
 Paginate metaengine scans with HTTP-safe encoded cursors and a prefetch
 cache that eliminates the limit+1 round-trip pattern.
@@ -645,7 +691,7 @@ Both `WithCursor(raw)` and `WithCursorString(encoded)` produce identical
 PrefetchCache keys because the cache normalizes through `Cursor.Encode()`.
 The `PrefetchCache` is thread-safe (RWMutex).
 
-### 2.17 Flight Recorder — Capture Trace on Slow/Error (flightrecorder + middleware)
+### 2.18 Flight Recorder — Capture Trace on Slow/Error (flightrecorder + middleware)
 
 Buffer the last few seconds of execution trace in memory. When an operation
 crosses a latency threshold or errors, snapshot the trace for offline analysis

@@ -12,9 +12,12 @@ func TestLatencyTracker_RecordsAndSnapshots(t *testing.T) {
 	tracker := metaengine.NewLatencyTracker()
 
 	for _, d := range []time.Duration{
-		1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+		1 * time.Millisecond, 2 * time.Millisecond, 3 * time.Millisecond,
+		4 * time.Millisecond, 5 * time.Millisecond, 6 * time.Millisecond,
+		7 * time.Millisecond, 8 * time.Millisecond, 9 * time.Millisecond,
+		10 * time.Millisecond,
 	} {
-		tracker.Record(d * time.Millisecond)
+		tracker.Record(d)
 	}
 
 	stats := tracker.Snapshot()
