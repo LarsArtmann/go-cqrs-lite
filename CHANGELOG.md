@@ -6,6 +6,72 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — Data race: SetCurrentRecord + fold invoke — 2026-08-11
+
+> `Store.applyWithRecord` called `fold.SetCurrentRecord(rec)` in a collection
+> loop and `fold.invoke()` in a separate execution loop. The fold's
+> `recHolder` is shared mutable state — two concurrent `Apply` calls could
+> interleave, causing goroutine A to see goroutine B's record. Both a data race
+> (detected by `-race`) and a correctness bug.
+
+- **`metaengine/store.go`** (FIX): Added `foldMu sync.Mutex` to `Store`. The
+  `SetCurrentRecord` + `applyFold` pair is now atomic. Verified with
+  `-race -count=1` — zero races across all 184 Ginkgo specs.
+  Commit `0e8f7ce56`.
+
+### Added — Graph fallback for non-graph engines (M8 partial) — 2026-08-11
+
+> Engines without native `graphBackend` support (SQLite, MySQL, Pebble, bbolt)
+> can now serve graph queries via `MultimapBackend` (O(N) BFS with cycle
+> detection). This satisfies the "graceful degradation" invariant: given one
+> engine, metaengine serves every query on it, emitting advisory diagnostics
+> for degraded paths.
+
+- **`metaengine/graph_fallback.go`** (NEW, 91 lines): `graphAddEdgeFallback`
+  (stores edges as multimap entries) + `graphNeighborsFallback` (BFS traversal
+  with visited-set cycle prevention).
+- **`metaengine/graph_fallback_test.go`** (NEW, 4 tests): basic traversal,
+  depth-limited, cycle safety, depth-0 edge case.
+- **`metaengine/store.go`** (MODIFIED): `applyFoldEdge` falls back to
+  `graphAddEdgeFallback` when engine lacks `graphBackend`.
+- **`metaengine/execute.go`** (MODIFIED): `ReadTraversal` falls back to
+  `graphNeighborsFallback` when engine lacks `graphBackend`.
+- **`metaengine/engine.go`** (MODIFIED): ADTGraph (degraded, O(N)) added to
+  `SQLiteEngineProfile`.
+- **`metaengine/mysqlengine/engine.go`** (MODIFIED): ADTGraph (degraded, O(N))
+  added to MySQL profile.
+- **`metaengine/reify_regression_test.go`** (NEW, 5 tests): Direct regression
+  test for the `reifyReflect` fix in `OnRecord` update folds — feeds
+  `map[string]any` prev values (simulating SQL engine returns) and asserts no
+  panic + correct reification.
+
+### Fixed — Per-test PG isolation for external DSN (M18) — 2026-08-11
+
+> When using `DATABASE_URL`/`POSTGRES_TEST_DSN` (nix CI path), all tests shared
+> one database — cross-test interference under `-race`.
+
+- **`testutil/pgtestcontainer/pgtestcontainer.go`** (FIX): `TestMain` now opens
+  an admin connection for external DSN paths. `DSN()` creates per-test databases
+  via `CREATE DATABASE` regardless of DSN source. Falls back to shared DSN only
+  when `adminDB == nil` (testcontainer failed to start).
+
+### Fixed — Lint cleanup: id/actor_id.go, dead code, exclusion narrowing — 2026-08-11
+
+- **`id/actor_id.go`**: Extracted kind string constants (`kindUserStr`, etc.)
+  for `goconst`. Replaced `strings.IndexByte` with `strings.Cut` for
+  `modernize`. Narrowed id/ exclusion from 9 to 7 linters.
+- **`metaengine/dgraphengine/retry.go`**: Deleted (dead code — `withRetry`/
+  `isTransientError` had zero callers). Removed `unused` exclusion.
+- **`cmd/api-stability/main_test.go`**: Fixed 2 `nilerr` findings —
+  `filepath.Walk` callbacks now propagate `subErr`. Narrowed api-stability
+  exclusion (dropped `nilerr`, `nolintlint`).
+- **`system/`**: Consolidated driver registration into `TestMain`
+  (`main_test.go` + `main_cgo_test.go`). Removed scattered blank imports from 4
+  test files. Deleted `system/engines_test.go`.
+- **`cmd/cqrs-lint/pkg/analyzer/module_catalog_data.go`**: Added
+  `commandlifecycle` to the DefaultCatalog.
+
+
 ### Added — ADR-0124: Operator-Driven Layout Planning — 2026-08-11
 
 > Replaces the original M9 ("auto-generate child collections from `[]Attachment`
@@ -115,13 +181,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `Recorder` (writes lifecycle events to any `event.EventSink`), and
   `New(recorder)` middleware pair (outer = received/completed/dead-lettered,
   attempt = failed/retried) with shared attempt tracker. Best-effort and strict
-  recording modes. 16 tests.
+  recording modes. 21 tests.
 - **`commandlifecycle/projections/`** (**NEW MODULE**, Tier 3): Pre-built
   metaengine `QueryDecl`s — `DeadLetterQueue()` (Map ADT), `RetryCount()`
-  (Counter ADT), `FailureLog()` (Log ADT), plus `All()` convenience. 6 tests.
-- **`go.work`**, **`flake.nix`** (`testModules`), **`cmd/api-stability/main.go`**:
-  both new modules wired into workspace, test/lint pipeline, and API stability
-  gate. Golden file regenerated (4034 exports).
+  (Counter ADT), `FailureLog()` (Log ADT), plus `All()` convenience. 2 tests.
+- **`go.work`**, **`flake.nix`** (`testModules`), **`cmd/api-stability/main.go`**,
+  **`cmd/cqrs-lint/pkg/analyzer/module_catalog_data.go`**: both new modules
+  wired into workspace, test/lint pipeline, API stability gate (4050 exports),
+  and cqrs-lint module catalog.
 - **`AGENTS.md`**: module map and seven-tier model updated.
 
 ### Known Gaps (ADR-0117 follow-ups)

@@ -115,15 +115,17 @@ and is **never** duplicated here.
       `scripts/test-check-module-layers.sh` validates the arch script on
       known-good tree + handles missing go.mod.
       _(Effort: S)_
-- [ ] **Lint code-fix batch (narrow exclusions by fixing the code)** —
-      surfaced by the 2026-08-11 lint-cleanup session. Each is currently
-      suppressed by a blanket exclusion; fix the code instead:
-      `flightrecorder/alias.go` (13 deprecatedComment findings),
-      `id/actor_id.go` (16 findings: constants, receiver, strings.Cut),
-      `mysqlengine` (4 sqlclosecheck — use CloseRows indirection like
-      pgengine), `cmd/api-stability/main_test.go` (nilerr, gocognit),
-      `dgraphengine/retry.go` (wire or remove unused retry utilities).
-      _(Effort: M)_
+- [x] **Lint code-fix batch (narrow exclusions by fixing the code)** —
+      DONE 2026-08-11 (partial). Fixed: `id/actor_id.go` (extracted kind
+      constants for goconst, replaced `strings.IndexByte` with `strings.Cut`
+      for modernize, narrowed exclusion from 9→7 linters),
+      `cmd/api-stability/main_test.go` (nilerr fix, exclusion narrowed),
+      `dgraphengine/retry.go` (deleted dead code + removed exclusion).
+      Remaining as permanent exclusions: `flightrecorder/alias.go`
+      (deprecated re-export, deleted in v5), `mysqlengine` sqlclosecheck
+      (false positive — linter cannot see `DeferClose` indirection; pgengine
+      uses the same pattern).
+      _(Effort: M → partial)_
 - [ ] **Infrastructure polish (nix apps + shared helpers)** — add
       `#check-lint-config` (validate `.golangci.yml` + excluded paths exist),
       `#verify-ci` (mirror GH Actions GOWORK=off per-module), wire `#sweep`
@@ -330,16 +332,19 @@ and is **never** duplicated here.
 > drain-error-no-close + concurrent Close race tests added (both PASS under
 > `-race`).
 
-- [ ] **Add per-test database isolation for Postgres integration test** —
-      parallel tests sharing one DSN will collide on table names. Wire in the
-      `pgtestcontainer` per-test-database pattern. Currently only one PG test
-      exists so this is not urgent.
+- [x] **Add per-test database isolation for Postgres integration test** —
+      DONE 2026-08-11. `pgtestcontainer.go` now opens an admin connection for
+      external DSN paths (`DATABASE_URL`/`POSTGRES_TEST_DSN`). Each test gets
+      its own fresh database via `CREATE DATABASE` + `DROP DATABASE WITH
+      (FORCE)` cleanup. Previously, external DSN tests all shared one database.
       _(Effort: M)_
-- [ ] **Consolidate driver registration into a `TestMain`** — each integration
-      test file registers drivers in `init()` (pebble, duckdb, postgres,
-      badger). No conflicts exist (unique names), but a shared `TestMain`
-      would prevent future accidental duplicates. Complicated by CGo build
-      tag on the DuckDB driver.
+- [x] **Consolidate driver registration into a `TestMain`** — DONE 2026-08-11.
+      `system/main_test.go` has `TestMain` with centralized pure-Go driver
+      blank imports (badger, pebble, sqlite, postgres).
+      `system/main_cgo_test.go` has CGo-gated duckdb import.
+      Removed scattered blank imports from 4 test files.
+      Deleted `system/engines_test.go` (absorbed into main_test.go).
+      _(Effort: S)_
 - [ ] **Consider moving CGo DuckDB test to a sub-module** — `duckdbengine` adds
       ~20 indirect deps to `system/go.mod` (Arrow, FlatBuffers, 6 platform
       DuckDB binding packages). A `system/integration/` sub-module follows the
@@ -808,6 +813,24 @@ and is **never** duplicated here.
 
 #### Phase 6b Follow-ups (from status report 2026-08-11_07-23)
 
+- [ ] **Add e2e Store integration test for graph fallback** — graph_fallback_test.go
+      tests helper functions directly; needs a full Store.Apply → Store.Execute
+      test through a non-graph engine (e.g., SQLite/Pebble).
+      _(Effort: S)_
+- [ ] **Tag `benchkit/v4.4.0`** — `Truncate`/`TitleCase` added after v4.3.0 tag.
+      `cmd/cqrs-bench` fails under GOWORK=off without it.
+      _(Effort: XS)_
+- [ ] **Document commandlifecycle in skill references** — modules.md, recipes.md,
+      advanced.md do not mention commandlifecycle/. Only AGENTS.md has it.
+      _(Effort: S)_
+- [ ] **Test pgtestcontainer external DSN isolation** — M18 change is untested;
+      verify per-test database creation with actual external Postgres.
+      _(Effort: S)_
+- [ ] **Consider per-fold mutex instead of global foldMu** — current foldMu
+      serializes all fold execution; per-fold would allow parallel writes across
+      different queries.
+      _(Effort: M)_
+
 - [ ] 🔥 **Wire `ConfirmRebuild` to execute rebuilds** — currently a stub.
       Must trigger actual event-log replay for affected projections.
 - [ ] 🔥 **Fix `Backfill` double-counting** — Counter/Set ADTs are not
@@ -856,11 +879,15 @@ and is **never** duplicated here.
       collection. Replaces RelationalProjection's per-event tx. See
       [`METAENGINE-LAYOUT-PLANNING-MODEL.md`](docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md) §6 (dual-use sync).
       _(Effort: L)_
-- [ ] **Universal ADT coverage per engine** — audit each engine for missing
+- [ ] 🔥 **Universal ADT coverage per engine** — audit each engine for missing
       ADT backends. Add degraded fallbacks where native support is impossible:
       graph traversal via recursive CTE on SQLite/PG/MySQL; brute-force vector
       search on Memory/Pebble; StreamLog on Dgraph (append-ordered nodes).
       Every engine must handle every ADT.
+      **Partial progress 2026-08-11:** Graph fallback via MultimapBackend BFS
+      implemented (`graph_fallback.go`). ADTGraph added (degraded) to SQLite
+      + MySQL profiles. 4 unit tests. Still missing: StreamLog on Dgraph,
+      recursive CTE optimization, e2e Store integration test.
       _(Effort: XL)_
 - [ ] **Capability-degradation planner rule** — new `PlanRule` that emits
       WARN/INFO when an ADT is routed to an engine whose `EngineProfile`
