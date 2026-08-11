@@ -22,34 +22,41 @@ func NewF026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F026-no-metaengine-prefetch",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !usesMetaengine(ctx) && !ctx.FeatureProfile.HasMetaengine {
-				return nil, nil
+			var out []finding.Finding
+
+			for _, sc := range coachingScopes(ctx) {
+				if !importsPathIn(sc.files, "go-cqrs-lite/metaengine") &&
+					!sc.profile.HasMetaengine {
+					continue
+				}
+
+				if !hasCallIn(sc.files, "metaengine", "NewReader") {
+					continue
+				}
+
+				if hasCallIn(sc.files, "metaengine", "WithPrefetch") {
+					continue
+				}
+
+				pos, ok := firstNewReaderPosIn(ctx.Fset, sc.files)
+				if !ok {
+					continue
+				}
+
+				out = append(out, singleInfoFinding(
+					ctx,
+					"F026",
+					"metaengine.NewReader used but WithPrefetch never called — "+
+						"every Scan/Get hits the underlying store individually",
+					"Pass metaengine.WithPrefetch(n) to reader.Scan/Get calls to "+
+						"batch reads and reduce round-trips, especially for SQL engines. "+
+						"Example: reader.Scan(ctx, metaengine.WithPrefetch(100), "+
+						"metaengine.WithLimit(50))",
+					pos, finding.ConfidenceLow,
+				)...)
 			}
 
-			if !projectHasCall(ctx, "metaengine", "NewReader") {
-				return nil, nil
-			}
-
-			if projectHasCall(ctx, "metaengine", "WithPrefetch") {
-				return nil, nil
-			}
-
-			pos, ok := firstNewReaderPos(ctx)
-			if !ok {
-				return nil, nil
-			}
-
-			return singleInfoFinding(
-				ctx,
-				"F026",
-				"metaengine.NewReader used but WithPrefetch never called — "+
-					"every Scan/Get hits the underlying store individually",
-				"Pass metaengine.WithPrefetch(n) to reader.Scan/Get calls to "+
-					"batch reads and reduce round-trips, especially for SQL engines. "+
-					"Example: reader.Scan(ctx, metaengine.WithPrefetch(100), "+
-					"metaengine.WithLimit(50))",
-				pos, finding.ConfidenceLow,
-			), nil
+			return out, nil
 		},
 	)
 }
@@ -57,7 +64,14 @@ func NewF026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // firstNewReaderPos returns the position of the first metaengine.NewReader
 // call in any non-test file.
 func firstNewReaderPos(ctx *analyzer.AnalysisContext) (token.Position, bool) {
-	for _, gf := range ctx.GoFiles {
+	return firstNewReaderPosIn(ctx.Fset, ctx.GoFiles)
+}
+
+func firstNewReaderPosIn(
+	fset *token.FileSet,
+	files []*analyzer.GoFile,
+) (token.Position, bool) {
+	for _, gf := range files {
 		if gf.IsTest {
 			continue
 		}
@@ -93,7 +107,7 @@ func firstNewReaderPos(ctx *analyzer.AnalysisContext) (token.Position, bool) {
 		})
 
 		if hit != nil {
-			return ctx.Fset.Position(hit.Pos()), true
+			return fset.Position(hit.Pos()), true
 		}
 	}
 

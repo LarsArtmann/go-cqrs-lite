@@ -3,7 +3,6 @@ package adoption
 import (
 	"go/ast"
 	"go/token"
-	"strings"
 
 	"github.com/larsartmann/go-finding"
 
@@ -15,24 +14,7 @@ import (
 // suffix. Works with AST-level import declarations so it is testable via
 // analyzer.BuildContextFromSource.
 func importsPath(ctx *analyzer.AnalysisContext, suffix string) bool {
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
-			continue
-		}
-
-		for _, imp := range gf.AST.Imports {
-			if imp == nil || imp.Path == nil {
-				continue
-			}
-
-			path := strings.Trim(imp.Path.Value, `"`)
-			if strings.Contains(path, suffix) {
-				return true
-			}
-		}
-	}
-
-	return false
+	return importsPathIn(ctx.GoFiles, suffix)
 }
 
 // usesMetaengine reports whether the project imports the metaengine core
@@ -64,93 +46,13 @@ func projectHasCall(ctx *analyzer.AnalysisContext, pkgName, funcName string) boo
 // projectHasCallAny reports whether any non-test file calls any of funcNames
 // on pkgName.
 func projectHasCallAny(ctx *analyzer.AnalysisContext, pkgName string, funcNames ...string) bool {
-	nameSet := make(map[string]bool, len(funcNames))
-	for _, n := range funcNames {
-		nameSet[n] = true
-	}
-
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
-			continue
-		}
-
-		found := false
-
-		ast.Inspect(gf.AST, func(n ast.Node) bool {
-			if found {
-				return false
-			}
-
-			call, ok := n.(*ast.CallExpr)
-			if !ok {
-				return true
-			}
-
-			sel, ok := analyzer.SelectorFromExpr(call.Fun)
-			if !ok {
-				return true
-			}
-
-			pkg, ok := sel.X.(*ast.Ident)
-			if !ok || pkg.Name != pkgName {
-				return true
-			}
-
-			if nameSet[sel.Sel.Name] {
-				found = true
-				return false
-			}
-
-			return true
-		})
-
-		if found {
-			return true
-		}
-	}
-
-	return false
+	return hasCallIn(ctx.GoFiles, pkgName, funcNames...)
 }
 
 // projectHasSelector reports whether any non-test file references pkgName.selName
 // in any selector expression (covers type usage, composite literals, calls).
 func projectHasSelector(ctx *analyzer.AnalysisContext, pkgName, selName string) bool {
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
-			continue
-		}
-
-		found := false
-
-		ast.Inspect(gf.AST, func(n ast.Node) bool {
-			if found {
-				return false
-			}
-
-			sel, ok := n.(*ast.SelectorExpr)
-			if !ok {
-				return true
-			}
-
-			pkg, ok := sel.X.(*ast.Ident)
-			if !ok {
-				return true
-			}
-
-			if pkg.Name == pkgName && sel.Sel.Name == selName {
-				found = true
-				return false
-			}
-
-			return true
-		})
-
-		if found {
-			return true
-		}
-	}
-
-	return false
+	return hasSelectorIn(ctx.GoFiles, pkgName, selName)
 }
 
 // firstCallPos returns the position of the first call to pkgName.funcName
@@ -159,47 +61,7 @@ func firstCallPos(
 	ctx *analyzer.AnalysisContext,
 	pkgName, funcName string,
 ) (token.Position, bool) {
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
-			continue
-		}
-
-		var hit *ast.CallExpr
-
-		ast.Inspect(gf.AST, func(n ast.Node) bool {
-			if hit != nil {
-				return false
-			}
-
-			call, ok := n.(*ast.CallExpr)
-			if !ok {
-				return true
-			}
-
-			sel, ok := analyzer.SelectorFromExpr(call.Fun)
-			if !ok {
-				return true
-			}
-
-			pkg, ok := sel.X.(*ast.Ident)
-			if !ok || pkg.Name != pkgName {
-				return true
-			}
-
-			if sel.Sel.Name == funcName {
-				hit = call
-				return false
-			}
-
-			return true
-		})
-
-		if hit != nil {
-			return ctx.Fset.Position(hit.Pos()), true
-		}
-	}
-
-	return token.Position{}, false
+	return firstCallPosIn(ctx.Fset, ctx.GoFiles, pkgName, funcName)
 }
 
 // firstFilePos returns the package declaration position of the first non-test
@@ -214,24 +76,7 @@ func firstFuncDeclPos(
 	ctx *analyzer.AnalysisContext,
 	prefix string,
 ) (token.Position, bool) {
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
-			continue
-		}
-
-		for _, decl := range gf.AST.Decls {
-			fn, ok := decl.(*ast.FuncDecl)
-			if !ok {
-				continue
-			}
-
-			if strings.HasPrefix(fn.Name.Name, prefix) {
-				return ctx.Fset.Position(fn.Pos()), true
-			}
-		}
-	}
-
-	return token.Position{}, false
+	return firstFuncDeclPosIn(ctx.Fset, ctx.GoFiles, prefix)
 }
 
 // astInspectCalls walks the AST and calls fn for every *ast.CallExpr.
@@ -254,42 +99,7 @@ func firstCallByName(
 	ctx *analyzer.AnalysisContext,
 	funcName string,
 ) (token.Position, bool) {
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
-			continue
-		}
-
-		var hit *ast.CallExpr
-
-		ast.Inspect(gf.AST, func(n ast.Node) bool {
-			if hit != nil {
-				return false
-			}
-
-			call, ok := n.(*ast.CallExpr)
-			if !ok {
-				return true
-			}
-
-			sel, ok := analyzer.SelectorFromExpr(call.Fun)
-			if !ok {
-				return true
-			}
-
-			if sel.Sel.Name == funcName {
-				hit = call
-				return false
-			}
-
-			return true
-		})
-
-		if hit != nil {
-			return ctx.Fset.Position(hit.Pos()), true
-		}
-	}
-
-	return token.Position{}, false
+	return firstCallByNameIn(ctx.Fset, ctx.GoFiles, funcName)
 }
 
 // singleInfoFinding builds and returns a single info-level finding with the

@@ -2,7 +2,6 @@ package adoption
 
 import (
 	"context"
-	"go/ast"
 
 	"github.com/larsartmann/go-finding"
 
@@ -101,74 +100,52 @@ func NewF017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F017-no-dedup-module",
 		func(_ context.Context) ([]finding.Finding, error) {
-			// Only relevant for projects with a distributed/async event bus —
-			// in-memory buses don't have at-least-once delivery issues.
-			if !ctx.FeatureProfile.HasAsyncBus {
-				return nil, nil
-			}
+			var out []finding.Finding
 
-			if importsPath(ctx, "go-cqrs-lite/dedup") {
-				return nil, nil
-			}
-
-			if !projectHasCallAny(ctx, "bus", "Subscribe", "SubscribeAll") {
-				return nil, nil
-			}
-
-			pos, ok := firstCallPos(ctx, "bus", "Subscribe")
-			if !ok {
-				pos, ok = firstCallPos(ctx, "bus", "SubscribeAll")
-			}
-
-			if !ok {
-				pos, ok = firstFilePos(ctx)
-				if !ok {
-					return nil, nil
+			for _, sc := range coachingScopes(ctx) {
+				if !sc.profile.HasAsyncBus {
+					continue
 				}
+
+				if importsPathIn(sc.files, "go-cqrs-lite/dedup") {
+					continue
+				}
+
+				if !hasCallIn(sc.files, "bus", "Subscribe", "SubscribeAll") {
+					continue
+				}
+
+				pos, ok := firstCallPosIn(ctx.Fset, sc.files, "bus", "Subscribe")
+				if !ok {
+					pos, ok = firstCallPosIn(ctx.Fset, sc.files, "bus", "SubscribeAll")
+				}
+
+				if !ok {
+					pos, ok = firstFilePosIn(ctx.Fset, sc.files)
+					if !ok {
+						continue
+					}
+				}
+
+				out = append(out, singleInfoFinding(
+					ctx,
+					"F017",
+					"bus.Subscribe/SubscribeAll is used but dedup module is not — "+
+						"duplicate event delivery under at-least-once semantics is "+
+						"not handled at stream boundaries",
+					"Import the dedup module and use dedup.NewRing() for O(1) "+
+						"fixed-capacity ID deduplication at stream boundaries. "+
+						"Pair with idempotency middleware for full duplicate protection.",
+					pos, finding.ConfidenceLow,
+				)...)
 			}
 
-			return singleInfoFinding(
-				ctx,
-				"F017",
-				"bus.Subscribe/SubscribeAll is used but dedup module is not — "+
-					"duplicate event delivery under at-least-once semantics is "+
-					"not handled at stream boundaries",
-				"Import the dedup module and use dedup.NewRing() for O(1) "+
-					"fixed-capacity ID deduplication at stream boundaries. "+
-					"Pair with idempotency middleware for full duplicate protection.",
-				pos, finding.ConfidenceLow,
-			), nil
+			return out, nil
 		},
 	)
 }
 
 // countCalls counts calls to pkgName.funcName across non-test files.
 func countCalls(ctx *analyzer.AnalysisContext, pkgName, funcName string) int {
-	count := 0
-
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
-			continue
-		}
-
-		astInspectCalls(gf.AST, func(call *ast.CallExpr) bool {
-			sel, ok := analyzer.SelectorFromExpr(call.Fun)
-			if !ok {
-				return true
-			}
-
-			pkg, ok := sel.X.(*ast.Ident)
-			if !ok || pkg.Name != pkgName {
-				return true
-			}
-
-			if sel.Sel.Name == funcName {
-				count++
-			}
-
-			return true
-		})
-	}
-
-	return count
+	return countCallsIn(ctx.GoFiles, pkgName, funcName)
 }

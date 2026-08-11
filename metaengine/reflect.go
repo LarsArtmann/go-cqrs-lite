@@ -124,10 +124,8 @@ func extractKeyValueByType(input any, keyType reflect.Type) any {
 func buildCompositeKeyFromInput(input any, compositeType reflect.Type) any {
 	result := reflect.New(compositeType).Elem()
 
-	skipMeta := func(name string) bool { return isMetaFieldName(name) }
-
 	for i := range compositeType.NumField() {
-		fieldVal := findValueByType(input, compositeType.Field(i).Type, skipMeta)
+		fieldVal := findValueByType(input, compositeType.Field(i).Type, isMetaFieldName)
 		if fieldVal == nil {
 			return nil
 		}

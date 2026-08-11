@@ -17,38 +17,44 @@ func NewF007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F007-no-idempotency-middleware",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if ctx.FeatureProfile.CommandFlow != analyzer.CommandFlowCommands {
-				return nil, nil
-			}
+			var out []finding.Finding
 
-			if projectHasCallAny(ctx, "middleware",
-				"CommandIdempotency", "EventIdempotency", "QueryIdempotency") {
-				return nil, nil
-			}
-
-			if importsPath(ctx, "go-cqrs-lite/idempotency") {
-				return nil, nil
-			}
-
-			pos, ok := firstCallByName(ctx, "NewDispatcher")
-			if !ok {
-				pos, ok = firstFilePos(ctx)
-				if !ok {
-					return nil, nil
+			for _, sc := range coachingScopes(ctx) {
+				if sc.profile.CommandFlow != analyzer.CommandFlowCommands {
+					continue
 				}
+
+				if hasCallIn(sc.files, "middleware",
+					"CommandIdempotency", "EventIdempotency", "QueryIdempotency") {
+					continue
+				}
+
+				if importsPathIn(sc.files, "go-cqrs-lite/idempotency") {
+					continue
+				}
+
+				pos, ok := firstCallByNameIn(ctx.Fset, sc.files, "NewDispatcher")
+				if !ok {
+					pos, ok = firstFilePosIn(ctx.Fset, sc.files)
+					if !ok {
+						continue
+					}
+				}
+
+				out = append(out, singleInfoFinding(
+					ctx,
+					"F007",
+					"Command dispatcher has no idempotency middleware — "+
+						"duplicate commands cause duplicate side effects under "+
+						"at-least-once delivery",
+					"Add middleware.CommandIdempotency(store, ttl, nil) to your "+
+						"command dispatcher's Use() chain. Requires an idempotency.Store "+
+						"(MemoryStore for single-process, KVStore/SQLStore for distributed).",
+					pos, finding.ConfidenceLow,
+				)...)
 			}
 
-			return singleInfoFinding(
-				ctx,
-				"F007",
-				"Command dispatcher has no idempotency middleware — "+
-					"duplicate commands cause duplicate side effects under "+
-					"at-least-once delivery",
-				"Add middleware.CommandIdempotency(store, ttl, nil) to your "+
-					"command dispatcher's Use() chain. Requires an idempotency.Store "+
-					"(MemoryStore for single-process, KVStore/SQLStore for distributed).",
-				pos, finding.ConfidenceLow,
-			), nil
+			return out, nil
 		},
 	)
 }

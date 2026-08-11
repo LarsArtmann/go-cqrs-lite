@@ -18,38 +18,43 @@ func NewF012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F012-no-deriver-module",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if importsPath(ctx, "go-cqrs-lite/deriver") {
-				return nil, nil
-			}
+			var out []finding.Finding
 
-			// Need SubscribeAll + command dispatch to suggest deriver.
-			if !projectHasCallAny(ctx, "bus", "SubscribeAll") {
-				return nil, nil
-			}
-
-			if ctx.FeatureProfile.CommandFlow != analyzer.CommandFlowCommands {
-				return nil, nil
-			}
-
-			pos, ok := firstCallPos(ctx, "bus", "SubscribeAll")
-			if !ok {
-				pos, ok = firstFilePos(ctx)
-				if !ok {
-					return nil, nil
+			for _, sc := range coachingScopes(ctx) {
+				if importsPathIn(sc.files, "go-cqrs-lite/deriver") {
+					continue
 				}
+
+				if !hasCallIn(sc.files, "bus", "SubscribeAll") {
+					continue
+				}
+
+				if sc.profile.CommandFlow != analyzer.CommandFlowCommands {
+					continue
+				}
+
+				pos, ok := firstCallPosIn(ctx.Fset, sc.files, "bus", "SubscribeAll")
+				if !ok {
+					pos, ok = firstFilePosIn(ctx.Fset, sc.files)
+					if !ok {
+						continue
+					}
+				}
+
+				out = append(out, singleInfoFinding(
+					ctx,
+					"F012",
+					"bus.SubscribeAll with command dispatch detected but deriver "+
+						"module is not used — saga-like patterns benefit from "+
+						"type-safe event→command derivation",
+					"Import the deriver module and use deriver.New() with Then() "+
+						"chains for type-safe event→command derivation. Provides "+
+						"Filter, Idempotent, and AsHandler for clean saga composition.",
+					pos, finding.ConfidenceLow,
+				)...)
 			}
 
-			return singleInfoFinding(
-				ctx,
-				"F012",
-				"bus.SubscribeAll with command dispatch detected but deriver "+
-					"module is not used — saga-like patterns benefit from "+
-					"type-safe event→command derivation",
-				"Import the deriver module and use deriver.New() with Then() "+
-					"chains for type-safe event→command derivation. Provides "+
-					"Filter, Idempotent, and AsHandler for clean saga composition.",
-				pos, finding.ConfidenceLow,
-			), nil
+			return out, nil
 		},
 	)
 }
@@ -63,55 +68,48 @@ func NewF013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F013-no-transport-module",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !ctx.FeatureProfile.HasServer {
-				return nil, nil
-			}
+			var out []finding.Finding
 
-			// CLI tools with embedded dashboards don't need transport modules.
-			if ctx.FeatureProfile.ServerLocal {
-				return nil, nil
-			}
-
-			// The project already has a transport layer (transport/http,
-			// transport/grpc, or an external module like cqrs-htmx). F013
-			// suggests adopting a transport module — no point if one is present.
-			if ctx.FeatureProfile.HasTransport {
-				return nil, nil
-			}
-
-			// Check for manual HTTP handlers via stdlib, gorilla/mux, or
-			// third-party web frameworks (chi, gin, echo, fiber).
-			hasHTTPHandlers := projectHasCallAny(ctx, "http", "HandleFunc", "Handle") ||
-				projectHasCallAny(ctx, "mux", "HandleFunc", "Handle") ||
-				hasWebFrameworkHandlers(ctx)
-
-			if !hasHTTPHandlers {
-				return nil, nil
-			}
-
-			pos, ok := firstCallPos(ctx, "http", "HandleFunc")
-			if !ok {
-				pos, ok = firstCallPos(ctx, "mux", "HandleFunc")
-			}
-
-			if !ok {
-				pos, ok = firstFilePos(ctx)
-				if !ok {
-					return nil, nil
+			for _, sc := range coachingScopes(ctx) {
+				if !sc.profile.HasServer || sc.profile.ServerLocal ||
+					sc.profile.HasTransport {
+					continue
 				}
+
+				hasHTTPHandlers := hasCallIn(sc.files, "http", "HandleFunc", "Handle") ||
+					hasCallIn(sc.files, "mux", "HandleFunc", "Handle") ||
+					hasWebFrameworkHandlersIn(sc.files)
+
+				if !hasHTTPHandlers {
+					continue
+				}
+
+				pos, ok := firstCallPosIn(ctx.Fset, sc.files, "http", "HandleFunc")
+				if !ok {
+					pos, ok = firstCallPosIn(ctx.Fset, sc.files, "mux", "HandleFunc")
+				}
+
+				if !ok {
+					pos, ok = firstFilePosIn(ctx.Fset, sc.files)
+					if !ok {
+						continue
+					}
+				}
+
+				out = append(out, singleInfoFinding(
+					ctx,
+					"F013",
+					"Manual HTTP handlers for dispatch but transport module is not "+
+						"used — hand-rolled HTTP/gRPC lacks SSE delivery and typed "+
+						"remote dispatch",
+					"Import transport/http for SSE event delivery (SSEBroker, "+
+						"BackfillHandler) or transport/grpc for typed remote "+
+						"command/query dispatch (CommandClient, QueryClient).",
+					pos, finding.ConfidenceLow,
+				)...)
 			}
 
-			return singleInfoFinding(
-				ctx,
-				"F013",
-				"Manual HTTP handlers for dispatch but transport module is not "+
-					"used — hand-rolled HTTP/gRPC lacks SSE delivery and typed "+
-					"remote dispatch",
-				"Import transport/http for SSE event delivery (SSEBroker, "+
-					"BackfillHandler) or transport/grpc for typed remote "+
-					"command/query dispatch (CommandClient, QueryClient).",
-				pos, finding.ConfidenceLow,
-			), nil
+			return out, nil
 		},
 	)
 }

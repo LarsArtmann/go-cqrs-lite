@@ -88,16 +88,23 @@ func hasPIIInEventPayloads(ctx *analyzer.AnalysisContext) (token.Position, bool)
 // rules (deadlines, expirations, timeouts) by scanning for time.AfterFunc,
 // time.NewTimer, or function names containing deadline/expire/timeout/schedule.
 func hasTimeBasedPatterns(ctx *analyzer.AnalysisContext) (token.Position, bool) {
+	return hasTimeBasedPatternsIn(ctx.Fset, ctx.GoFiles)
+}
+
+func hasTimeBasedPatternsIn(
+	fset *token.FileSet,
+	files []*analyzer.GoFile,
+) (token.Position, bool) {
 	timeFns := []string{"AfterFunc", "NewTimer", "Tick", "After", "NewTicker"}
 
 	for _, fn := range timeFns {
-		if pos, ok := firstCallPos(ctx, "time", fn); ok {
+		if pos, ok := firstCallPosIn(fset, files, "time", fn); ok {
 			return pos, true
 		}
 	}
 
 	for _, prefix := range []string{"Expire", "Timeout", "Deadline", "Schedule", "Cancel"} {
-		if pos, ok := firstFuncDeclPos(ctx, prefix); ok {
+		if pos, ok := firstFuncDeclPosIn(fset, files, prefix); ok {
 			return pos, true
 		}
 	}
@@ -196,8 +203,12 @@ var webFrameworkImportPaths = []string{ //nolint:gochecknoglobals // static look
 // frameworks are used for manual HTTP handler registration, which is an
 // alternative to go-cqrs-lite transport/http + transport/grpc.
 func hasWebFrameworkHandlers(ctx *analyzer.AnalysisContext) bool {
+	return hasWebFrameworkHandlersIn(ctx.GoFiles)
+}
+
+func hasWebFrameworkHandlersIn(files []*analyzer.GoFile) bool {
 	for _, prefix := range webFrameworkImportPaths {
-		if importsPath(ctx, prefix) {
+		if importsPathIn(files, prefix) {
 			return true
 		}
 	}

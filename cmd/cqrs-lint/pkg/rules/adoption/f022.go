@@ -24,31 +24,37 @@ func NewF022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F022-manual-sort-no-pushdown",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if usesMetaengine(ctx) {
-				return nil, nil
+			var out []finding.Finding
+
+			for _, sc := range coachingScopes(ctx) {
+				if importsPathIn(sc.files, "go-cqrs-lite/metaengine") {
+					continue
+				}
+
+				if !sc.profile.Store.IsSQL() {
+					continue
+				}
+
+				pos, ok := firstManualSortPosIn(ctx.Fset, sc.files)
+				if !ok {
+					continue
+				}
+
+				out = append(out, singleInfoFinding(
+					ctx,
+					"F022",
+					"Manual in-memory sorting (sort.Slice/slices.SortFunc) with a SQL "+
+						"store but no metaengine — all rows loaded into Go memory for sorting",
+					"Use metaengine.SortOnField for declarative ORDER BY pushdown. "+
+						"Declare queries with metaengine.Query[Q,R](name, folds..., "+
+						"metaengine.SortOnField[R](\"column\", true)) and the planner "+
+						"pushes sort to the SQL engine with indexed access. "+
+						"For SQLite: sqliteengine.PlanFromDSN(dsn, queries...) is a one-call setup.",
+					pos, finding.ConfidenceMedium,
+				)...)
 			}
 
-			if !hasSQLStore(ctx) {
-				return nil, nil
-			}
-
-			pos, ok := firstManualSortPos(ctx)
-			if !ok {
-				return nil, nil
-			}
-
-			return singleInfoFinding(
-				ctx,
-				"F022",
-				"Manual in-memory sorting (sort.Slice/slices.SortFunc) with a SQL "+
-					"store but no metaengine — all rows loaded into Go memory for sorting",
-				"Use metaengine.SortOnField for declarative ORDER BY pushdown. "+
-					"Declare queries with metaengine.Query[Q,R](name, folds..., "+
-					"metaengine.SortOnField[R](\"column\", true)) and the planner "+
-					"pushes sort to the SQL engine with indexed access. "+
-					"For SQLite: sqliteengine.PlanFromDSN(dsn, queries...) is a one-call setup.",
-				pos, finding.ConfidenceMedium,
-			), nil
+			return out, nil
 		},
 	)
 }
@@ -64,7 +70,14 @@ func hasSQLStore(ctx *analyzer.AnalysisContext) bool {
 // (sort.Slice, sort.SliceStable, slices.SortFunc, slices.SortStableFunc,
 // slices.Sort) in any non-test file.
 func firstManualSortPos(ctx *analyzer.AnalysisContext) (token.Position, bool) {
-	for _, gf := range ctx.GoFiles {
+	return firstManualSortPosIn(ctx.Fset, ctx.GoFiles)
+}
+
+func firstManualSortPosIn(
+	fset *token.FileSet,
+	files []*analyzer.GoFile,
+) (token.Position, bool) {
+	for _, gf := range files {
 		if gf.IsTest {
 			continue
 		}
@@ -102,7 +115,7 @@ func firstManualSortPos(ctx *analyzer.AnalysisContext) (token.Position, bool) {
 		})
 
 		if hit != nil {
-			return ctx.Fset.Position(hit.Pos()), true
+			return fset.Position(hit.Pos()), true
 		}
 	}
 

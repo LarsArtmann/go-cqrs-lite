@@ -1165,11 +1165,23 @@
             '';
 
             # Ephemeral Dgraph for dgraphengine integration testing.
+            # Usage: nix run .#ephemeral-dgraph                # start Dgraph only
+            #        nix run .#ephemeral-dgraph -- go test ./... # arbitrary command
             ephemeral-dgraph = mkApp "ephemeral-dgraph" [ goPkg pkgs.dgraph ] ''
               export CGO_ENABLED=1
               export GOEXPERIMENT=jsonv2
               bash "$PWD/scripts/ephemeral-dgraph.sh" "$@"
             '';
+
+            # Dgraph integration tests — starts ephemeral Dgraph, runs tests, tears down.
+            # Usage: nix run .#integration-dgraph
+            #        nix run .#integration-dgraph -- -run TestDgraph_ScanBackend
+            integration-dgraph =
+              mkApp "integration-dgraph" [ goPkg pkgs.dgraph ] ''
+                export CGO_ENABLED=1
+                export GOEXPERIMENT=jsonv2
+                bash "$PWD/scripts/ephemeral-dgraph.sh" "$@"
+              '';
 
             # Cross-backend test suite: SQLite, Pebble, bbolt, DuckDB, PG, MySQL.
             test-all-backends =

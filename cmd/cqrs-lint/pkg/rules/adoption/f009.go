@@ -18,34 +18,38 @@ func NewF009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F009-no-scheduling-module",
 		func(_ context.Context) ([]finding.Finding, error) {
-			// Only relevant for server or command-dispatch projects — CLI
-			// tools with simple timers don't need durable scheduling.
-			if !ctx.FeatureProfile.HasServer &&
-				ctx.FeatureProfile.CommandFlow != analyzer.CommandFlowCommands {
-				return nil, nil
+			var out []finding.Finding
+
+			for _, sc := range coachingScopes(ctx) {
+				if !sc.profile.HasServer &&
+					sc.profile.CommandFlow != analyzer.CommandFlowCommands {
+					continue
+				}
+
+				if importsPathIn(sc.files, "go-cqrs-lite/scheduling") {
+					continue
+				}
+
+				pos, ok := hasTimeBasedPatternsIn(ctx.Fset, sc.files)
+				if !ok {
+					continue
+				}
+
+				out = append(out, singleInfoFinding(
+					ctx,
+					"F009",
+					"Time-based patterns detected (timers, deadlines, expirations) "+
+						"but scheduling module is not used — hand-rolled timers are "+
+						"fragile and not crash-safe",
+					"Import the scheduling module and use scheduling.Scheduler with "+
+						"a TimerStore for durable, idempotent deadline management. "+
+						"Example: scheduling.New(store, dispatchFn) for 'cancel order "+
+						"after 30 min' patterns.",
+					pos, finding.ConfidenceMedium,
+				)...)
 			}
 
-			if importsPath(ctx, "go-cqrs-lite/scheduling") {
-				return nil, nil
-			}
-
-			pos, ok := hasTimeBasedPatterns(ctx)
-			if !ok {
-				return nil, nil
-			}
-
-			return singleInfoFinding(
-				ctx,
-				"F009",
-				"Time-based patterns detected (timers, deadlines, expirations) "+
-					"but scheduling module is not used — hand-rolled timers are "+
-					"fragile and not crash-safe",
-				"Import the scheduling module and use scheduling.Scheduler with "+
-					"a TimerStore for durable, idempotent deadline management. "+
-					"Example: scheduling.New(store, dispatchFn) for 'cancel order "+
-					"after 30 min' patterns.",
-				pos, finding.ConfidenceMedium,
-			), nil
+			return out, nil
 		},
 	)
 }

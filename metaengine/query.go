@@ -44,14 +44,6 @@ func WithColumnarLayout() QueryOption {
 	return func(c *QueryConfig) { c.columnarLayout = true }
 }
 
-// layoutAssignment pairs a query name with a per-query layout priority
-// (ADR-0124). The planner applies it on top of the operator's PriorityConfig;
-// a value of PriorityBalanced is a no-op (defer to the config).
-type layoutAssignment struct {
-	queryName string
-	priority  Priority
-}
-
 // WithLayoutPriority sets a per-query layout priority override (ADR-0124
 // Layer 4, clarified by ADR-0125). This is the developer-side counterpart to
 // the operator's DeploymentConfig priorities: the developer pins the layout

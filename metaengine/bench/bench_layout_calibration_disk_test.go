@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json/v2"
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -85,11 +84,7 @@ func newDiskCalibEngines(b *testing.B) diskCalibEngines {
 
 	engs := diskCalibEngines{}
 
-	pebbleDir, err := os.MkdirTemp("", "metaengine-diskcalib-pebble-*")
-	if err != nil {
-		b.Fatalf("diskcalib: pebble mkdir: %v", err)
-	}
-	b.Cleanup(func() { _ = os.RemoveAll(pebbleDir) })
+	pebbleDir := b.TempDir()
 
 	peb, err := pebbleengine.NewPebbleEngine(pebbleDir)
 	if err != nil {
@@ -98,11 +93,7 @@ func newDiskCalibEngines(b *testing.B) diskCalibEngines {
 	b.Cleanup(func() { _ = peb.Close() })
 	engs.pebble = peb
 
-	bboltDir, err := os.MkdirTemp("", "metaengine-diskcalib-bbolt-*")
-	if err != nil {
-		b.Fatalf("diskcalib: bbolt mkdir: %v", err)
-	}
-	b.Cleanup(func() { _ = os.RemoveAll(bboltDir) })
+	bboltDir := b.TempDir()
 
 	bb, err := bboltengine.NewBboltEngine(filepath.Join(bboltDir, "calib.db"))
 	if err != nil {

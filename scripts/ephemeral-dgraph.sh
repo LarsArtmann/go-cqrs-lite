@@ -157,13 +157,22 @@ echo "$ALPHA_PID:$DGRAPH_DIR" >"$PID_FILE"
 echo "==> DGRAPH_ADDR=$DGRAPH_ADDR"
 echo "==> Logs in $DGRAPH_DIR"
 
-# Run the requested command.
-if [ $# -gt 0 ]; then
+# Run the requested command, or default to running dgraphengine tests.
+if [ $# -gt 0 ] && [ "$1" = "go" ]; then
+	shift
+	echo "==> Running: go $*"
+	go "$@"
+elif [ $# -gt 0 ]; then
 	echo "==> Running: $*"
 	"$@"
 else
-	echo "==> No command specified. Dgraph is running at $DGRAPH_ADDR"
-	echo "    Set DGRAPH_ADDR and run your tests in another terminal."
-	echo "    Press Ctrl+C to stop."
-	wait "$ALPHA_PID"
+	echo "==> Running dgraphengine integration tests"
+	TEST_TIMEOUT="${TEST_TIMEOUT:-600}"
+	(
+		cd metaengine/dgraphengine
+		CGO_ENABLED=1 GOWORK=off \
+			timeout "$TEST_TIMEOUT" \
+			go test -tags "goexperiment.jsonv2" ./... \
+			-count=1 -v -timeout="${TEST_TIMEOUT}s" 2>&1
+	)
 fi
