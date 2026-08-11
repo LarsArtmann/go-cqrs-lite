@@ -78,7 +78,7 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		collectFindings(result),
 	)
 
-	if err := outputFindings(ctx, active, cfg); err != nil {
+	if err := outputFindings(ctx, active, cfg, len(actx.LoadErrors)); err != nil {
 		return fmt.Errorf("output: %w", err)
 	}
 
@@ -219,11 +219,19 @@ func resolveMinSeverity(presetMinSeverity, userMinSeverity string) string {
 	return userMinSeverity
 }
 
+// isStrictMode reports whether either --strict or --strict-load is set.
+// --strict is the short alias advertised in warning messages; --strict-load
+// is the original name kept for backward compatibility.
+func isStrictMode(cfg *AppConfig) bool {
+	return cfg.StrictLoad || cfg.Strict
+}
+
 // handleLoadErrors processes package-loading failures and returns an error
-// if the lint should abort (--strict-load, no files with errors). Returns nil
-// when the analysis can proceed, possibly after printing a partial-analysis warning.
+// if the lint should abort (--strict/--strict-load, no files with errors).
+// Returns nil when the analysis can proceed, possibly after printing a
+// partial-analysis warning.
 func handleLoadErrors(cfg *AppConfig, actx *analyzer.AnalysisContext) error {
-	if cfg.StrictLoad && len(actx.LoadErrors) > 0 {
+	if isStrictMode(cfg) && len(actx.LoadErrors) > 0 {
 		fmt.Fprintln(os.Stderr, "cqrs-lint: --strict-load mode — package loading reported errors:")
 		fmt.Fprintln(os.Stderr)
 		printLoadErrors(os.Stderr, actx.LoadErrors)
@@ -276,7 +284,7 @@ func handleLoadErrors(cfg *AppConfig, actx *analyzer.AnalysisContext) error {
 			"WARNING: %d package(s) failed to load; analysis is partial.\n",
 			len(actx.LoadErrors),
 		)
-		fmt.Fprintln(os.Stderr, "Use --verbose for details or --strict to fail on any load error.")
+		fmt.Fprintln(os.Stderr, "Use --verbose for details or --strict-load to fail on any load error.")
 		fmt.Fprintln(os.Stderr)
 	}
 

@@ -219,14 +219,7 @@ func filterByExcludedPaths(findings []finding.Finding, patterns []string) []find
 			if pattern == "" {
 				continue
 			}
-			if matched, _ := filepath.Match(
-				pattern,
-				filepath.Base(string(f.Position.File)),
-			); matched {
-				excluded = true
-				break
-			}
-			if strings.Contains(string(f.Position.File), pattern) {
+			if matchExcludePattern(pattern, string(f.Position.File)) {
 				excluded = true
 				break
 			}
@@ -237,6 +230,95 @@ func filterByExcludedPaths(findings []finding.Finding, patterns []string) []find
 	}
 
 	return result
+}
+
+// matchExcludePattern tests whether a file path should be excluded by the
+// given glob pattern. Supports three matching modes:
+//
+//  1. Path glob with ** (e.g. "**/*_templ.go", "vendor/**/*.go"):
+//     ** matches zero or more path segments. Matched against the full path.
+//  2. Simple glob without / or ** (e.g. "*_test.go", "generated.go"):
+//     Matched against the basename via filepath.Match, plus substring fallback.
+//  3. Substring (e.g. "vendor/", "gen"):
+//     Literal substring match against the full path.
+func matchExcludePattern(pattern, filePath string) bool {
+	if strings.Contains(pattern, "**") {
+		return matchDoubleStarGlob(pattern, filePath)
+	}
+
+	if matched, _ := filepath.Match(pattern, filepath.Base(filePath)); matched {
+		return true
+	}
+
+	if strings.Contains(pattern, "/") {
+		if matched, _ := filepath.Match(pattern, filePath); matched {
+			return true
+		}
+	}
+
+	return strings.Contains(filePath, pattern)
+}
+
+// matchDoubleStarGlob matches a glob pattern containing ** against a file path.
+// ** matches zero or more path segments (directories). * matches within a
+// single segment. Pattern separators and path separators are normalized to /.
+func matchDoubleStarGlob(pattern, path string) bool {
+	pattern = filepath.ToSlash(pattern)
+	path = filepath.ToSlash(path)
+
+	patternSegs := splitNonEmpty(pattern, "/")
+	pathSegs := splitNonEmpty(path, "/")
+
+	return matchGlobSegments(patternSegs, pathSegs)
+}
+
+// splitNonEmpty splits s by sep and drops empty segments (leading/trailing/double separators).
+func splitNonEmpty(s, sep string) []string {
+	parts := strings.Split(s, sep)
+	result := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if p != "" {
+			result = append(result, p)
+		}
+	}
+	return result
+}
+
+// matchGlobSegments matches pattern segments against path segments.
+// ** consumes zero or more path segments. Other segments match exactly one
+// via filepath.Match.
+func matchGlobSegments(patternSegs, pathSegs []string) bool {
+	pi, pj := 0, 0
+
+	for pi < len(patternSegs) {
+		if patternSegs[pi] == "**" {
+			// ** at end of pattern matches all remaining path segments
+			if pi == len(patternSegs)-1 {
+				return true
+			}
+			// Try matching the rest of the pattern at each remaining position
+			for skip := 0; skip <= len(pathSegs)-pj; skip++ {
+				if matchGlobSegments(patternSegs[pi+1:], pathSegs[pj+skip:]) {
+					return true
+				}
+			}
+			return false
+		}
+
+		if pj >= len(pathSegs) {
+			return false
+		}
+
+		matched, _ := filepath.Match(patternSegs[pi], pathSegs[pj])
+		if !matched {
+			return false
+		}
+
+		pi++
+		pj++
+	}
+
+	return pj == len(pathSegs)
 }
 
 // filterFPSuspects returns only findings with confidence below Medium —

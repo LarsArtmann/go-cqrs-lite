@@ -108,6 +108,77 @@ func TestParseColorMode(t *testing.T) {
 	}
 }
 
+// sampleErrorFinding returns a single ERROR finding reused by the color-mode
+// regression tests below.
+func sampleErrorFinding(t *testing.T) finding.Finding {
+	t.Helper()
+
+	f, err := finding.NewBuilder(
+		"C001", "cqrs-lint", "test message",
+		finding.SeverityError,
+		finding.Pos(finding.FilePath("example.go"), 10, 5),
+	).Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return f
+}
+
+const ansiEscape = "\x1b"
+
+func hasANSI(s string) bool { return strings.Contains(s, ansiEscape) }
+
+// TestFormatFindingsText_HonorsNoColor locks the NO_COLOR regression.
+// formatFindingsText now delegates to cm.ShouldColor(), which honors NO_COLOR.
+// The deleted hand-rolled shouldColor only checked os.ModeCharDevice and ignored
+// NO_COLOR entirely, producing colored findings while go-output tables (which
+// honored NO_COLOR) were colorless — an inconsistent single run.
+func TestFormatFindingsText_HonorsNoColor(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+	t.Setenv("FORCE_COLOR", "")
+
+	var buf bytes.Buffer
+	formatFindingsText(&buf, []finding.Finding{sampleErrorFinding(t)}, parseColorMode("auto"))
+
+	if hasANSI(buf.String()) {
+		t.Errorf("NO_COLOR=1 must suppress ANSI in findings text, got: %q", buf.String())
+	}
+}
+
+// TestFormatFindingsText_HonorsCIEnv locks the CI regression: CI providers
+// (GitHub Actions, GitLab CI, etc.) must get colorless findings text under
+// ColorModeAuto, matching go-output table behavior.
+func TestFormatFindingsText_HonorsCIEnv(t *testing.T) {
+	t.Setenv("CI", "true")
+	t.Setenv("FORCE_COLOR", "")
+
+	var buf bytes.Buffer
+	formatFindingsText(&buf, []finding.Finding{sampleErrorFinding(t)}, parseColorMode("auto"))
+
+	if hasANSI(buf.String()) {
+		t.Errorf("CI=true must suppress ANSI in findings text, got: %q", buf.String())
+	}
+}
+
+// TestFormatFindingsText_HonorsForceColor locks the FORCE_COLOR gain: even when
+// stdout is not a terminal (as in this test), FORCE_COLOR must produce colored
+// findings text under ColorModeAuto. The old shouldColor checked ModeCharDevice
+// on the writer and returned false for non-terminals, silently dropping color.
+func TestFormatFindingsText_HonorsForceColor(t *testing.T) {
+	t.Setenv("FORCE_COLOR", "1")
+	t.Setenv("NO_COLOR", "")
+	t.Setenv("CI", "")
+	t.Setenv("TERM", "xterm")
+
+	var buf bytes.Buffer
+	formatFindingsText(&buf, []finding.Finding{sampleErrorFinding(t)}, parseColorMode("auto"))
+
+	if !hasANSI(buf.String()) {
+		t.Errorf("FORCE_COLOR=1 must produce ANSI in findings text, got plain: %q", buf.String())
+	}
+}
+
 func TestFilterByExcludedPaths(t *testing.T) {
 	t.Parallel()
 
@@ -166,6 +237,56 @@ func TestFilterByExcludedPaths_EmptyPatterns(t *testing.T) {
 	filtered = filterByExcludedPaths(findings, []string{"", "  "})
 	if len(filtered) != 1 {
 		t.Errorf("expected 1 finding with blank patterns, got %d", len(filtered))
+	}
+}
+
+func TestFilterByExcludedPaths_DoubleStarGlob(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		pattern  string
+		path     string
+		expected bool
+	}{
+		{"** matches nested templ file", "**/*_templ.go", "src/views/timeline_templ.go", true},
+		{"** matches root-level templ file", "**/*_templ.go", "main_templ.go", true},
+		{"** does not match non-templ file", "**/*_templ.go", "src/views/timeline.go", false},
+		{"** in middle matches deep path", "src/**/generated.go", "src/a/b/c/generated.go", true},
+		{"** in middle matches shallow path", "src/**/generated.go", "src/generated.go", true},
+		{"vendor/** matches nested vendor file", "vendor/**", "vendor/lib/db.go", true},
+		{"vendor/** does not match non-vendor", "vendor/**", "src/main.go", false},
+		{"trailing ** matches everything under dir", "gen/**", "gen/a/b/c.go", true},
+		{"** at end matches any depth", "**", "any/deep/path/file.go", true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			got := matchExcludePattern(tc.pattern, tc.path)
+			if got != tc.expected {
+				t.Errorf("matchExcludePattern(%q, %q) = %v, want %v",
+					tc.pattern, tc.path, got, tc.expected)
+			}
+		})
+	}
+}
+
+func TestFilterByExcludedPaths_BackwardCompatSubstrings(t *testing.T) {
+	t.Parallel()
+
+	findings := []finding.Finding{
+		{Position: finding.Position{File: finding.FilePath("vendor/lib/db.go")}},
+		{Position: finding.Position{File: finding.FilePath("src/handler.go")}},
+		{Position: finding.Position{File: finding.FilePath("gen/generated.go")}},
+	}
+
+	filtered := filterByExcludedPaths(findings, []string{"vendor/", "gen"})
+	if len(filtered) != 1 {
+		t.Errorf("expected 1 finding after substring exclusion, got %d", len(filtered))
+	}
+	if string(filtered[0].Position.File) != "src/handler.go" {
+		t.Errorf("expected handler.go to remain, got %s", filtered[0].Position.File)
 	}
 }
 

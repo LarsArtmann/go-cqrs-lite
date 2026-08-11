@@ -7,6 +7,7 @@ require (
 	github.com/larsartmann/go-finding v1.6.0
 	github.com/larsartmann/go-finding/pipeline v1.6.0
 	github.com/larsartmann/go-output v0.37.0
+	github.com/larsartmann/go-output/delimited v0.37.0
 	github.com/larsartmann/go-output/table v0.37.0
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/tools v0.48.0
@@ -47,7 +48,6 @@ require (
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
 	github.com/larsartmann/go-output/d2 v0.37.0 // indirect
 	github.com/larsartmann/go-output/daghtml v0.37.0 // indirect
-	github.com/larsartmann/go-output/delimited v0.37.0 // indirect
 	github.com/larsartmann/go-output/escape v0.37.0 // indirect
 	github.com/larsartmann/go-output/graph v0.37.0 // indirect
 	github.com/larsartmann/go-output/markdown v0.37.0 // indirect

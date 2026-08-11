@@ -1,5 +1,15 @@
 package main
 
+// Render layering in cqrs-lint:
+//   - Structured/tabular output (rules table, health-score breakdown, scorecard
+//     tables) goes through go-output's table.Render, which honors ColorMode
+//     (NO_COLOR/CI/FORCE_COLOR) internally via cm.ShouldColor().
+//   - Findings text is a bespoke diagnostic layout (severity + location +
+//     message + rule + suggestion + snippet). go-output has no styled-text API,
+//     only format renderers, so raw ANSI codes are used here. Color is gated by
+//     cm.ShouldColor() so findings stay consistent with the tables under
+//     NO_COLOR/CI/FORCE_COLOR — do NOT reintroduce a hand-rolled terminal check.
+
 import (
 	"fmt"
 	"io"
@@ -121,6 +131,31 @@ func renderHealthScore(hs HealthScore, colorMode output.ColorMode) string {
 	}
 
 	return result
+}
+
+// findingsToTable models findings as a flat output.Table for delimited formats
+// (CSV/TSV). Each finding becomes one row with structured columns suitable for
+// spreadsheet analysis and CI pipeline ingestion. Snippet is excluded because
+// it is often multi-line and a poor fit for a single delimited cell.
+func findingsToTable(findings []finding.Finding) *output.Table {
+	builder := output.NewTableBuilder().
+		SetHeaders("Rule", "Severity", "File", "Line", "Column", "Message", "Suggestion", "Category", "Confidence")
+
+	for _, f := range findings {
+		builder.AddRow(
+			string(f.Rule),
+			f.Severity.String(),
+			string(f.Position.File),
+			fmt.Sprintf("%d", f.Position.Line),
+			fmt.Sprintf("%d", f.Position.Column),
+			f.Message,
+			f.Suggestion,
+			f.Category.String(),
+			f.Confidence.String(),
+		)
+	}
+
+	return builder.Build()
 }
 
 func formatFindingsText(w io.Writer, findings []finding.Finding, cm output.ColorMode) {

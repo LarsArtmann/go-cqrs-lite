@@ -20,6 +20,7 @@ Tags use the full module path: `cmd/cqrs-lint/vX.Y.Z`.
 
 ### Fixed
 
+- **Color consistency under NO_COLOR/CI** — findings text now routes color detection through go-output's env-aware `ColorMode.ShouldColor()`, matching the table renderer. A hand-rolled `shouldColor` previously checked only `os.ModeCharDevice`, so `NO_COLOR=1` produced colorless tables but colored findings text (inconsistent within one run). CI environments (GitHub Actions, GitLab CI) now get consistent colorless output. The hand-rolled `parseColorMode` switch was also replaced with the library's `output.ParseColorMode` (case-insensitive input preserved via `strings.ToLower`).
 - **Catalog drift** — `metaengine/irohengine/quic` added to the exclusion list (sub-engine transport, covered by `metaengine/irohengine`).
 
 ### Fixed

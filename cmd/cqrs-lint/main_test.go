@@ -150,7 +150,7 @@ func TestOutputFindingsJSON(t *testing.T) {
 	}
 
 	cfg := &AppConfig{Format: "json"}
-	err = outputFindings(context.Background(), []finding.Finding{f}, cfg)
+	err = outputFindings(context.Background(), []finding.Finding{f}, cfg, 0)
 	if err != nil {
 		t.Errorf("outputFindings json: %v", err)
 	}
@@ -160,7 +160,7 @@ func TestOutputFindingsEmpty(t *testing.T) {
 	t.Parallel()
 
 	cfg := &AppConfig{Format: "text", Quiet: true}
-	err := outputFindings(context.Background(), nil, cfg)
+	err := outputFindings(context.Background(), nil, cfg, 0)
 	if err != nil {
 		t.Errorf("outputFindings empty: %v", err)
 	}

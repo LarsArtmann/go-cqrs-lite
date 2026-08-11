@@ -168,7 +168,7 @@ var topLevelKeys = []topLevelKey{
 	},
 	{"min-confidence", "string", `"low"`, "Minimum confidence to show: low, medium, high"},
 	{"format", "string", `"text"`, "Output format: text, json, sarif, markdown"},
-	{"exclude", "string", `""`, "Paths to exclude (comma-separated glob patterns)"},
+	{"exclude", "string", `""`, "Glob patterns to exclude (comma-separated). Supports: **/*.go (path glob), *_test.go (filename glob), vendor/ (substring)"},
 	{"exclude-rules", "string", `""`, "Rule IDs to exclude (comma-separated, e.g. \"C007,A001\")"},
 	{"color", "string", `"auto"`, "Color output: auto, always, never"},
 	{"group-by", "string", `""`, "Group findings by: none, module, aggregate"},

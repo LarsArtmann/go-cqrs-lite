@@ -292,6 +292,30 @@ DONE 2026-08-10/11. See [CHANGELOG.md](CHANGELOG.md) and status reports
       a better engine if one is available. Integrates into `ExplainPlan()` and
       `Doctor()`.
       _(Effort: M)_
+- [ ] **Engine test parity gaps** — bboltengine lacks 5 test files that pebble
+      has (`edge_cases_test.go`, `fuzz_test.go`, `stream_log_test.go`,
+      `watcher_test.go`, `scan_bench_test.go`); mysqlengine lacks
+      `stream_log_test.go`, `pushdown_test.go`, `calibration_bench_test.go`,
+      and `explain.go` (`ExplainableScan`/`ExplainableAggregate`); tursoengine
+      lacks `record_stamp_test.go`, `soak_autocrud_test.go`,
+      `healthcheck_test.go`.
+      _(Effort: L)_
+- [ ] **Engine compile-time assertion gaps** — bboltengine missing
+      `HealthChecker` and `StreamingScan` assertions; mysqlengine missing
+      `Calibratable` and `HealthChecker` assertions.
+      _(Effort: S)_
+- [ ] 🔥 **Fix bench fold `reflect.Call` panic** — 3 tests fail
+      (`TestPromise_CostModelAccuracy`, `TestPromise_CrossEngine_ParityAtScale`,
+      `TestPromise_ParityWithDuckDB`) because bench fold inference passes
+      `map[string]interface{}` where `bench_test.OrderView` is expected.
+      Blocks `nix run .#verify` GREEN.
+      _(Effort: M)_
+- [ ] **Pebble `CounterIncrement` calibration benchmark** — verify
+      pebble's counter increment performance is correctly cost-modeled.
+      _(Effort: S)_
+- [ ] **Batch atomicity rollback test** — `batch_atomicity_test.go` only has
+      happy-path tests; needs a failure-path test verifying rollback semantics.
+      _(Effort: S)_
 
 ### Phase 8: Deletion + v5 Cut
 
