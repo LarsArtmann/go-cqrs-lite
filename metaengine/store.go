@@ -15,6 +15,7 @@ import (
 
 type Store struct {
 	mu                sync.RWMutex
+	foldMu            sync.Mutex // serializes SetCurrentRecord + invoke (shared fold state)
 	engines           []Engine
 	queries           map[string]queryMeta
 	byInputType       map[string]string
@@ -363,9 +364,6 @@ func (s *Store) applyWithRecord(
 		}
 
 		fold := q.QueryFolds()[foldIdx]
-		if ra, ok := fold.(RecordAwareFold); ok {
-			ra.SetCurrentRecord(rec)
-		}
 
 		eng := q.QueryEngine()
 		byEngine[eng] = append(byEngine[eng], foldTask{q: q, fold: fold})
@@ -380,8 +378,21 @@ func (s *Store) applyWithRecord(
 
 		applyAll := func(ctx context.Context) error {
 			for _, t := range tasks {
-				if err := s.applyFold(ctx, t.q, t.fold, payload); err != nil {
-					return fmt.Errorf("query %q fold for %s: %w", t.q.QueryName(), eventType, err)
+				// Lock around SetCurrentRecord + invoke because the fold's
+				// recordHolder is shared mutable state. Without this lock,
+				// concurrent Apply calls race on recHolder.rec.
+				s.foldMu.Lock()
+
+				if ra, ok := t.fold.(RecordAwareFold); ok {
+					ra.SetCurrentRecord(rec)
+				}
+
+				applyErr := s.applyFold(ctx, t.q, t.fold, payload)
+
+				s.foldMu.Unlock()
+
+				if applyErr != nil {
+					return fmt.Errorf("query %q fold for %s: %w", t.q.QueryName(), eventType, applyErr)
 				}
 			}
 

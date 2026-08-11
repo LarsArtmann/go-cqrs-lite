@@ -1522,8 +1522,11 @@ metaengine/const FoldSpatial
 metaengine/const FoldUpdate
 metaengine/const FoldVector
 metaengine/const LayoutColumnar
+metaengine/const LayoutEmbed
+metaengine/const LayoutHybrid
 metaengine/const LayoutKV
 metaengine/const LayoutLSM
+metaengine/const LayoutNormalize
 metaengine/const LayoutRow
 metaengine/const MemoryNsPerOp
 metaengine/const PersistencePersistent
@@ -1547,9 +1550,16 @@ metaengine/const ReplicationLeaderless
 metaengine/const ReplicationMultiLeader
 metaengine/const ReplicationNone
 metaengine/const ReplicationSingleLeader
+metaengine/const RoleActive
+metaengine/const RoleBackup
+metaengine/const RoleDualUse
+metaengine/const RoleMigration
 metaengine/const SQLiteNsPerOp
 metaengine/const SampleRTT
 metaengine/const SampleRead
+metaengine/const WarnJoinAmplification
+metaengine/const WarnPriorityMismatch
+metaengine/const WarnWriteAmplification
 metaengine/dgraphengine/const DG_NetworkRTT
 metaengine/dgraphengine/const DG_NsPerOp
 metaengine/dgraphengine/const DG_NsPerRead
@@ -1630,6 +1640,7 @@ metaengine/func ContractSuite
 metaengine/func DecodeFloat
 metaengine/func DecodeFloatResults
 metaengine/func DecodeStreamValue
+metaengine/func DefaultRebuildThreshold
 metaengine/func DeferClose
 metaengine/func DeserializePlan
 metaengine/func EncodeStreamValue
@@ -1692,7 +1703,9 @@ metaengine/func ReplayCost
 metaengine/func SQLiteEngineProfile
 metaengine/func SaveManifest
 metaengine/func ScanDistinctValues
+metaengine/func ScoreLayouts
 metaengine/func SearchExecuteTyped
+metaengine/func SelectLayout
 metaengine/func Serialize
 metaengine/func SerializeToJSON
 metaengine/func ServeSSE
@@ -1899,6 +1912,7 @@ metaengine/irohengine/var ErrScanBackendNotImplemented
 metaengine/irohengine/var ErrSearchBackendNotImplemented
 metaengine/irohengine/var ErrSpatialBackendNotImplemented
 metaengine/irohengine/var ErrVectorBackendNotImplemented
+metaengine/method AddEngine
 metaengine/method AliasOr
 metaengine/method Apply
 metaengine/method Apply
@@ -1919,6 +1933,7 @@ metaengine/method ApplyEncoded
 metaengine/method ApplyIdempotent
 metaengine/method ApplyRecord
 metaengine/method Avg
+metaengine/method Backfill
 metaengine/method Check
 metaengine/method CheckAndRecord
 metaengine/method CheckRouting
@@ -1929,6 +1944,7 @@ metaengine/method Close
 metaengine/method Close
 metaengine/method Collections
 metaengine/method ColumnNames
+metaengine/method ConfirmRebuild
 metaengine/method Count
 metaengine/method CounterGet
 metaengine/method CounterIncrement
@@ -1941,6 +1957,7 @@ metaengine/method DotGraph
 metaengine/method EffectiveNetworkRTT
 metaengine/method EffectiveReplicationLag
 metaengine/method Encode
+metaengine/method EngineNames
 metaengine/method Error
 metaengine/method EventSample
 metaengine/method EventSample
@@ -1986,6 +2003,7 @@ metaengine/method Get
 metaengine/method Get
 metaengine/method GetBatch
 metaengine/method GetEngineStats
+metaengine/method GetLayoutInfo
 metaengine/method GraphAddEdge
 metaengine/method GraphNeighbors
 metaengine/method GroupBy
@@ -2029,6 +2047,7 @@ metaengine/method Kind
 metaengine/method Kind
 metaengine/method Kind
 metaengine/method LatestSeq
+metaengine/method LayoutWarnings
 metaengine/method Len
 metaengine/method Limit
 metaengine/method Live
@@ -2088,7 +2107,9 @@ metaengine/method Record
 metaengine/method Record
 metaengine/method RegisterQuery
 metaengine/method ReificationFailures
+metaengine/method RemoveEngine
 metaengine/method Replan
+metaengine/method ReplanLayout
 metaengine/method Replay
 metaengine/method Replay
 metaengine/method ReplicationMode
@@ -2100,6 +2121,7 @@ metaengine/method RunInTx
 metaengine/method Sample
 metaengine/method Scan
 metaengine/method ScanPage
+metaengine/method ScoreWeighted
 metaengine/method Search
 metaengine/method SearchInsert
 metaengine/method SearchQuery
@@ -2322,6 +2344,7 @@ metaengine/sqliteengine/method StreamReadFromVersion
 metaengine/sqliteengine/method StreamScan
 metaengine/sqliteengine/method StreamVersion
 metaengine/sqliteengine/var ErrNoProber
+metaengine/struct AddedEngine
 metaengine/struct AggregateSpec
 metaengine/struct Append
 metaengine/struct ApplyError
@@ -2355,8 +2378,12 @@ metaengine/struct IndexedText
 metaengine/struct LatencySample
 metaengine/struct LatencyStats
 metaengine/struct LatencyTracker
+metaengine/struct LayoutCost
+metaengine/struct LayoutDiff
+metaengine/struct LayoutInfo
 metaengine/struct LayoutPlan
 metaengine/struct LayoutVersion
+metaengine/struct LayoutWarning
 metaengine/struct LiveLatency
 metaengine/struct Manifest
 metaengine/struct MemorySearchIndex
@@ -2383,6 +2410,7 @@ metaengine/struct RangeSpec
 metaengine/struct RawScanResult
 metaengine/struct ReadCoalescer
 metaengine/struct ReadCosts
+metaengine/struct RebuildThreshold
 metaengine/struct RulePipeline
 metaengine/struct RuleTraceEntry
 metaengine/struct SSEConfig
@@ -2419,10 +2447,12 @@ metaengine/type FilterOp
 metaengine/type FoldKind
 metaengine/type ItemCount
 metaengine/type JSONValue
+metaengine/type LayoutOption
 metaengine/type Nanoseconds
 metaengine/type Persistence
 metaengine/type Priority
 metaengine/type ProbeOption
+metaengine/type ProjectionRole
 metaengine/type QueryOption
 metaengine/type RatePerSecond
 metaengine/type ReadPattern

@@ -125,6 +125,25 @@ The cost model estimates how expensive serving a query on a given engine is, usi
 | **LatencyBudget**      | Target latency ceiling for engine selection; planner flags when unmet                | `metaengine.WithLatencyBudget(ms)` QueryOption                                                                       |
 | **WriteAmplification** | The cost of read optimization: each projection an event updates increases write cost | `metaengine.DefaultWriteAmplificationBudget` (3) — planner warns when exceeded                                       |
 
+### Layout Planning (ADR-0124)
+
+Operator-driven physical layout planning — decides embed vs. normalize within an engine based on operator priorities. This is **Layer 4: Physical Layout**, orthogonal to ADR-0116 Layers 1–3 (fold generation, explicit folds, engine routing). Replaces the original M9 ("auto-generate child collections via reflection").
+
+The developer expresses **zero storage intent**. The operator sets priorities to tune the deployment. See [`METAENGINE-LAYOUT-PLANNING-MODEL.md`](planning/METAENGINE-LAYOUT-PLANNING-MODEL.md).
+
+| Term | Definition | Context |
+| --- | --- | --- |
+| **Priority** | Operator optimization objective: `WriteSpeed`, `ReadSpeed`, `StorageSpace`, `Balanced` (default) | `metaengine.PriorityBalanced` |
+| **PriorityConfig** | Three-level hierarchy: Global → per-Engine → per-Query (most specific wins) | `metaengine.PriorityConfig{Global: ...}` |
+| **PriorityWeights** | Cost-type multipliers derived from Priority: ReadW, WriteW, StorageW | `Priority.Weights()` |
+| **LayoutOption** | Physical layout choice: `Embed` (single value), `Normalize` (parent + child collection), `Hybrid` | `metaengine.LayoutEmbed` |
+| **LayoutCost** | Relative cost estimate per LayoutOption: ReadCost, WriteCost, StorageCost | `LayoutCost.ScoreWeighted(weights)` |
+| **ProjectionRole** | Purpose of a projection on an engine: `Active`, `DualUse`, `Migration`, `Backup` | `metaengine.RoleActive` |
+| **RebuildThreshold** | When rebuild is automatic vs. requires operator confirmation (default: 100K events / 1GB) | `metaengine.DefaultRebuildThreshold()` |
+| **LayoutDiff** | Describes a projection's layout change (From → To, with rebuild estimate) | `Store.ReplanLayout(ctx, pc)` |
+| **LayoutWarning** | Advisory warning about a layout decision (obey + WARN LOUDLY) | `Store.LayoutWarnings()` |
+| **BenchmarkConfig** | Try multiple plans against a workload, show measured results | `metaengine.BenchmarkPlan(ctx, ...)` |
+
 ### Storage Layouts
 
 A **StorageLayout** ([ADR-0073](adr/0073-metaengine-layout-planning.md), [ADR-0092](adr/0092-duckdb-columnar-native-storage.md)) describes the physical storage structure — it lets the planner reason about _why_ one engine beats another for a given access pattern.
