@@ -11,5 +11,3 @@ require (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/id/v4 => ../id
-
-replace github.com/larsartmann/go-cqrs-lite/id/v4 => ../id

@@ -39,20 +39,23 @@ func (lc LayoutCost) ScoreWeighted(w PriorityWeights) float64 {
 // scoreEmbed returns the relative cost of embedding on the given storage layout.
 // KV/LSM engines favor embedding (native single-key lookup).
 //
-// KV values are CALIBRATED via BenchmarkLayoutCalibration_* on the memory
-// engine (AMD Ryzen AI MAX+ 395, 2026-08-11) and keep the operator's layout
-// levers decisive: Balanced and ReadSpeed favor Embed, WriteSpeed and
-// StorageSpace favor Normalize.
+// KV values are the anchor (1.0-center convention): Embed ReadCost < 1.0
+// because single-key hash-map lookup is the cheapest operation; WriteCost = 1.0
+// as the baseline; StorageCost > 1.0 because embedding duplicates the aggregate
+// across projections.
+//
+// KV Normalize values are CALIBRATED via BenchmarkLayoutCalibration_* on the
+// memory engine (AMD Ryzen AI MAX+ 395, 2026-08-11). Measured normalize/embed
+// ratios: read 2.2x, write 0.48x, storage 0.63x. The read ratio includes
+// application-level merge overhead (combining parent + child results) that
+// brings the effective ratio above the raw 2.2x hash-map lookup difference.
 //
 // LSM values are CALIBRATED 2026-08-11 via
 // BenchmarkDiskLayoutCalibration_* in metaengine/bench on real on-disk Pebble
-// and bbolt databases (60s benchtime). Measured normalize/embed ratios:
+// and bbolt databases. Measured normalize/embed ratios:
 //
 //	read  1.35x (geomean across Pebble 1.49x and bbolt 1.23x)
 //	write 0.75x (geomean across Pebble 0.53x and bbolt 1.05x)
-//
-// The constants below are scaled to the 1.0-center convention while keeping
-// every operator priority decisive (see priority.go weights).
 //
 // Row and Columnar values are analytical estimates based on known engine
 // characteristics (SQLite B-Tree JSON columns, DuckDB columnar storage).
@@ -94,16 +97,16 @@ func scoreEmbed(layout StorageLayout) LayoutCost {
 // scoreNormalize returns the relative cost of normalizing on the given storage
 // layout. SQL engines favor normalization (native JOIN + index-backed).
 //
-// See scoreEmbed for the KV and LSM calibration provenance. The normalize
-// values are the measured inverse of the embed values (geomean-centered).
+// KV Normalize values are CALIBRATED from BenchmarkLayoutCalibration_* (memory
+// engine, 2026-08-11). See scoreEmbed for the LSM calibration provenance.
 func scoreNormalize(layout StorageLayout) LayoutCost {
 	switch layout {
 	case LayoutKV:
 		return LayoutCost{
 			Option:      LayoutNormalize,
-			ReadCost:    2.0, // multi-key lookup + in-memory merge — expensive on KV
-			WriteCost:   0.5, // single insert into child collection — O(1)
-			StorageCost: 0.7, // no data duplication
+			ReadCost:    1.8,  // multi-key lookup + in-memory merge — calibrated from 2.2x measured ratio
+			WriteCost:   0.48, // single insert into child collection — calibrated from 2.1x measured ratio
+			StorageCost: 0.63, // no data duplication — calibrated from 2.06x measured ratio (3 projections)
 		}
 	case LayoutLSM:
 		return LayoutCost{

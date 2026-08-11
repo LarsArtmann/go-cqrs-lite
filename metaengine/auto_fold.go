@@ -58,6 +58,14 @@ func matchFields(srcType, dstType reflect.Type) []fieldMapping {
 			continue
 		}
 
+		// Try direct name+type match first. This handles opaque struct types
+		// like time.Time that should be copied as whole values, not flattened.
+		if dst, ok := dstIndex[srcField.Name]; ok && srcField.Type.AssignableTo(dst.Type) {
+			mappings = append(mappings, fieldMapping{srcPath: []int{i}, dstIdx: dst.idx})
+			continue
+		}
+
+		// Then try flattening nested structs (Address{City, Zip} → City, Zip).
 		if srcField.Type.Kind() == reflect.Struct {
 			for _, m := range matchNestedFields(srcField.Type, dstIndex) {
 				mappings = append(mappings, fieldMapping{
@@ -65,12 +73,6 @@ func matchFields(srcType, dstType reflect.Type) []fieldMapping {
 					dstIdx:  m.dstIdx,
 				})
 			}
-
-			continue
-		}
-
-		if dst, ok := dstIndex[srcField.Name]; ok && srcField.Type.AssignableTo(dst.Type) {
-			mappings = append(mappings, fieldMapping{srcPath: []int{i}, dstIdx: dst.idx})
 		}
 	}
 

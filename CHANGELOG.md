@@ -6,6 +6,48 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — Fold inference gaps: composite keys, filter operators, sort inference, InferFromNamedEvents, time.Time fix — 2026-08-11
+
+> Resolves the five `Fold inference gaps` TODO items from Phase 6: Auto-Projection.
+> All changes are in the `metaengine/` module. 19 inference tests pass (+7 new).
+
+- **`metaengine/infer_composite.go`** (NEW): Composite key support via
+  `detectKeyFields()` — when query input has 2+ non-meta fields whose types each
+  unambiguously match distinct Created event fields (and none is named "ID"),
+  a composite key is created using `reflect.StructOf`. Runtime extraction
+  (`extractKeyValueByType`) constructs the composite from individual query input
+  fields. Filter-prefix fields (`MinScore`, `MaxScore`) are excluded from key
+  candidacy.
+- **`metaengine/infer_filters.go`** (NEW): Filter operator inference via naming
+  conventions. Query input fields named `MinScore`/`SinceCreated`/`FromPrice`
+  → `FilterGe`; `MaxScore`/`UntilDate`/`ToPrice` → `FilterLe`;
+  `Before*`/`After*` → `FilterLt`/`FilterGt`. Requires uppercase letter after
+  prefix to avoid false positives (`Minimum` ≠ `Min` + `imum`).
+- **`metaengine/infer_sort.go`** (NEW): Sort inference — auto-detects temporal
+  fields (`CreatedAt`, `Timestamp`, `UpdatedAt`, etc.) on collection result
+  types and generates `SortOnField(field, desc=true)`. Only fires when no
+  explicit sort is declared and the result is a collection (`Items []T`).
+- **`metaengine/infer_named.go`** (NEW): `InferFromNamedEvents()` — the
+  production counterpart to `Infer()` for wire event types. Pairs
+  `NamedEvent("user.created", UserCreated{})` samples with dot-separated event
+  types. The planner classifies by Go struct name suffix, generates folds, then
+  overrides event types with wire types.
+- **`metaengine/engine.go`**: Added `FilterSpec.InputColumn` — optional field
+  name for value extraction from query input when it differs from the result
+  column name. Enables prefix-based filter operator inference.
+- **`metaengine/auto_fold.go`**: Fixed `matchFields` to try direct name+type
+  match BEFORE struct flattening. This fixes `time.Time` fields being silently
+  dropped (time.Time is a struct, was being flattened instead of copied whole).
+- **`metaengine/execute.go`**: Closure-fallback filter path now respects
+  `FilterOp` via `matchFilter()` (was hardcoded to `DeepEqual`/`FilterEq`).
+  Added `buildDeclarativeSortFunc()` for in-Go sorting by declarative
+  `SortSpec` (was only handled via pushdown or closure-based sort).
+- **`metaengine/compare.go`**: Added `matchFilter()` and `switchCompare()`
+  helpers for operator-aware predicate evaluation.
+- **`metaengine/reflect.go`**: `extractKeyValueByType` now handles composite
+  keys (dynamic struct types from `reflect.StructOf`) by assembling from
+  individual input fields by type.
+
 ### Fixed — Docs-health: verify gate blockers, test normalization, go-output audit renderer — 2026-08-11
 
 > Unblocks `verify-fast` for all future sessions. Three fixes that were

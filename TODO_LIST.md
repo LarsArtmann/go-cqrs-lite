@@ -186,9 +186,18 @@ DONE 2026-08-10/11. See [CHANGELOG.md](CHANGELOG.md) and status reports
       event/query pair. Override replaces (not supplements) the generated fold.
       Without this, `Infer()` is all-or-nothing.
       _(Effort: M)_
-- [ ] **Fold inference gaps** — `[]Struct` fields in event types,
-      `InferFromNamedEvents()` for wire event types, sort inference,
-      composite keys, filter operators beyond `FilterEq`.
+- [x] **Fold inference gaps** — `[]Struct` fields in event types (verified:
+      whole-slice embedding works, `time.Time` field matching fixed),
+      `InferFromNamedEvents()` for wire event types (implemented:
+      `infer_named.go`), sort inference (implemented: `infer_sort.go` —
+      auto-detects `CreatedAt`/`Timestamp` on collection result types),
+      composite keys (implemented: `infer_composite.go` — multi-field keys
+      via `reflect.StructOf`), filter operators beyond `FilterEq`
+      (implemented: `infer_filters.go` — `MinScore`→`FilterGe`,
+      `MaxScore`→`FilterLe`, etc. via prefix conventions; `FilterSpec.InputColumn`
+      added for name-divergent filter fields; closure-fallback path now
+      respects `FilterOp` via `matchFilter`; declarative sort fallback via
+      `buildDeclarativeSortFunc`).
       _(Effort: M)_
 
 ### Phase 6b: Operator-Driven Layout Planning (replaces M9)
@@ -205,12 +214,14 @@ DONE 2026-08-10/11. See [CHANGELOG.md](CHANGELOG.md) and status reports
 - [ ] 🔥 **Run `nix run .#verify` clean for layout planning** — `nix fmt`,
       file line-count limits (`explain.go`), lint, arch, dedup, coverage, race.
       _(Effort: M)_
-- [ ] 🔥 **`cqrs-bench layout` CLI subcommand** — pre-deployment "what if"
-      exploration tool.
-      _(Effort: M)_
-- [ ] 🔥 **Calibrate cost model multipliers** — replace placeholder constants
-      (0.5, 1.0, 1.3, 2.0) with measured values from real engine benchmarks.
-      _(Effort: L)_
+- [x] 🔥 **`cqrs-bench layout` CLI subcommand** — pre-deployment "what if"
+      exploration tool. DONE 2026-08-11. Shows layout cost model analysis for
+      all storage layouts × priorities with `--verbose` cost breakdowns and
+      JSON output. No running engines needed — pure static analysis.
+- [x] 🔥 **Calibrate cost model multipliers** — KV Normalize values calibrated
+      from BenchmarkLayoutCalibration_* (memory engine, 2026-08-11). LSM values
+      calibrated from BenchmarkDiskLayoutCalibration_* (Pebble + bbolt). Row
+      and Columnar remain analytical estimates.
 - [ ] **Fold-pipeline sync for Active+DualUse roles** — event → all
       Active+DualUse projections in one transaction (strong consistency).
       _(Effort: L)_

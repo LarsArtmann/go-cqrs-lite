@@ -79,6 +79,43 @@ func evalFilterOp(op FilterOp, actual, expected any) bool {
 	}
 }
 
+// matchFilter evaluates whether itemVal satisfies the given FilterOp against
+// expected. Used by the closure-fallback filter path for declarative filters
+// (FilterOnField) on engines that don't support pushdown.
+func matchFilter(itemVal any, op FilterOp, expected any) bool {
+	switch op {
+	case FilterEq:
+		return reflect.DeepEqual(itemVal, expected)
+	case FilterNe:
+		return !reflect.DeepEqual(itemVal, expected)
+	case FilterLt, FilterLe, FilterGt, FilterGe:
+		if itemVal == nil {
+			return false
+		}
+
+		cmp := compareValue(itemVal, expected)
+
+		return switchCompare(cmp, op)
+	default:
+		return false
+	}
+}
+
+func switchCompare(cmp int, op FilterOp) bool {
+	switch op {
+	case FilterLt:
+		return cmp < 0
+	case FilterLe:
+		return cmp <= 0
+	case FilterGt:
+		return cmp > 0
+	case FilterGe:
+		return cmp >= 0
+	default:
+		return false
+	}
+}
+
 // compareValue performs a type-aware tri-state comparison: -1 (a < b), 0 (equal), +1 (a > b).
 // Handles same-type comparison, cross-type numeric comparison (e.g., int from item
 // vs float64 from a deserialized cursor), and falls back to string comparison.

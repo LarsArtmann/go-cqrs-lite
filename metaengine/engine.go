@@ -324,10 +324,17 @@ const (
 // FilterSpec is a declarative filter that can be pushed down to the database
 // engine. Column is a JSON path within the stored value (e.g. "status"),
 // producing json_extract(value, '$.status') on SQLite.
+//
+// InputColumn optionally names a DIFFERENT field in the query input struct
+// from which the filter value is extracted. When empty, Column is used for
+// both the result column and the input field. This separation enables
+// convention-based operator inference: a query input field named "MinScore"
+// maps to FilterSpec{Column: "Score", Op: FilterGe, InputColumn: "MinScore"}.
 type FilterSpec struct {
-	Column string
-	Op     FilterOp
-	Value  any
+	Column      string
+	Op          FilterOp
+	Value       any
+	InputColumn string
 }
 
 // SortSpec is a declarative sort directive that can be pushed down to the

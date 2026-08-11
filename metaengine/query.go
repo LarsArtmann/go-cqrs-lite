@@ -204,6 +204,7 @@ type QueryDecl[Q any, R any] struct {
 	// Inference support (ADR-0116 Layer 1). When needsInference is true,
 	// Folds/ADT/ReadPattern are populated at Plan() time by ensureFolds().
 	eventSamples   []any
+	namedSamples   []NamedSample
 	needsInference bool
 	overrides      []overrideFold
 
@@ -232,6 +233,8 @@ func Query[Q any, R any](name string, args ...any) QueryDecl[Q, R] {
 
 	var eventSamples []any
 
+	var namedSamples []NamedSample
+
 	needsInference := false
 
 	var inferenceOverrides []overrideFold
@@ -246,6 +249,9 @@ func Query[Q any, R any](name string, args ...any) QueryDecl[Q, R] {
 			a(&cfg)
 		case inferenceRequest:
 			eventSamples = a.samples
+			needsInference = true
+		case namedInferenceRequest:
+			namedSamples = a.samples
 			needsInference = true
 		default:
 			panic(fmt.Sprintf(
@@ -277,6 +283,7 @@ func Query[Q any, R any](name string, args ...any) QueryDecl[Q, R] {
 		Name:           name,
 		Config:         cfg,
 		eventSamples:   eventSamples,
+		namedSamples:   namedSamples,
 		needsInference: needsInference,
 		overrides:      inferenceOverrides,
 		querySample:    *new(Q),

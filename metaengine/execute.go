@@ -286,8 +286,11 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryMeta, input any)
 	}
 
 	var sortFunc func(a, b any) int
-	if q.QueryConfig().sortAccessor.closure != nil {
-		sortFunc = buildSortFunc(q.QueryConfig().sortAccessor.closure)
+	cfg := q.QueryConfig()
+	if cfg.sortAccessor.closure != nil {
+		sortFunc = buildSortFunc(cfg.sortAccessor.closure)
+	} else if cfg.sortAccessor.spec != nil {
+		sortFunc = buildDeclarativeSortFunc(cfg.sortAccessor.spec)
 	} else {
 		sortFunc = nil
 	}
@@ -380,7 +383,12 @@ func buildFilterSpecs(cfg QueryConfig, input any) []FilterSpec {
 			continue
 		}
 
-		val := extractValueByName(input, acc.spec.Column)
+		inputField := acc.spec.Column
+		if acc.spec.InputColumn != "" {
+			inputField = acc.spec.InputColumn
+		}
+
+		val := extractValueByName(input, inputField)
 		if val == nil {
 			continue
 		}
@@ -412,17 +420,23 @@ func buildFilterPredicates(q queryMeta, input any) []filterPredicate {
 		// expected value is read from the input by column name; the item value is
 		// read from each row by the same column name (map key or struct field).
 		if acc.spec != nil {
-			expected := extractValueByName(input, acc.spec.Column)
+			inputField := acc.spec.Column
+			if acc.spec.InputColumn != "" {
+				inputField = acc.spec.InputColumn
+			}
+
+			expected := extractValueByName(input, inputField)
 			if expected == nil {
 				continue
 			}
 
 			col := acc.spec.Column
+			op := acc.spec.Op
 
 			predicates = append(predicates, filterPredicate{
 				expected: expected,
 				test: func(item any) bool {
-					return reflect.DeepEqual(itemFieldByName(item, col), expected)
+					return matchFilter(itemFieldByName(item, col), op, expected)
 				},
 			})
 
@@ -490,6 +504,22 @@ func buildSortFunc(closure any) func(a, b any) int {
 
 	return func(a, b any) int {
 		return compareValue(extractKey(a), extractKey(b))
+	}
+}
+
+// buildDeclarativeSortFunc creates a comparator from a declarative SortSpec
+// (SortOnField). Extracts the sort key from each item by column name and
+// compares using compareValue. Reverses the result when Desc is true.
+func buildDeclarativeSortFunc(spec *SortSpec) func(a, b any) int {
+	col := spec.Column
+
+	return func(a, b any) int {
+		cmp := compareValue(itemFieldByName(a, col), itemFieldByName(b, col))
+		if spec.Desc {
+			return -cmp
+		}
+
+		return cmp
 	}
 }
 

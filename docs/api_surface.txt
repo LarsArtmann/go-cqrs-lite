@@ -369,6 +369,7 @@ catalog/var ErrEmptyServiceID
 cmd/cqrs-bench/struct AppConfig
 cmd/cqrs-bench/struct BenchFlags
 cmd/cqrs-bench/struct CompareFlags
+cmd/cqrs-bench/struct LayoutFlags
 cmd/cqrs-bench/struct ListPhasesFlags
 cmd/cqrs-bench/struct RunFlags
 cmd/cqrs-bench/struct SweepFlags
@@ -1660,6 +1661,7 @@ metaengine/func FilterOnField
 metaengine/func FormatLiveLatency
 metaengine/func HasGraphSupport
 metaengine/func Infer
+metaengine/func InferFromNamedEvents
 metaengine/func ItemFieldByName
 metaengine/func JSONFieldName
 metaengine/func LoadManifest

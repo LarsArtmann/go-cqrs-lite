@@ -140,54 +140,6 @@ func classifyByConvention(samples []any) (conventionClassification, error) {
 	return c, nil
 }
 
-// detectKeyField auto-detects the key field name from the query input type.
-// Strategy 1: if the query input has exactly one non-meta field whose type
-// unambiguously identifies a single field in the Created event, use that.
-// Strategy 2: fall back to a field named "ID" in the Created event.
-func detectKeyField(queryType, createdType reflect.Type) (string, error) {
-	inputFields := exportedNonMetaTypeFields(queryType)
-
-	if len(inputFields) == 1 {
-		keyType := inputFields[0].Type
-
-		found := ""
-		ambiguous := false
-
-		for i := range createdType.NumField() {
-			f := createdType.Field(i)
-			if !f.IsExported() {
-				continue
-			}
-
-			if f.Type == keyType {
-				if found != "" {
-					ambiguous = true
-				}
-
-				found = f.Name
-			}
-		}
-
-		if !ambiguous && found != "" {
-			return found, nil
-		}
-	}
-
-	for i := range createdType.NumField() {
-		f := createdType.Field(i)
-		if f.IsExported() && f.Name == "ID" {
-			return "ID", nil
-		}
-	}
-
-	return "", fmt.Errorf(
-		"infer: cannot auto-detect key field — query %s has %d non-meta field(s), no unambiguous type match in %s, and no ID field",
-		queryType.Name(),
-		len(inputFields),
-		createdType.Name(),
-	)
-}
-
 // exportedNonMetaTypeFields returns exported struct fields that are not
 // pagination metadata (Limit, After, Depth).
 func exportedNonMetaTypeFields(t reflect.Type) []reflect.StructField {
@@ -253,46 +205,13 @@ func collectionElementType(resultType reflect.Type) reflect.Type {
 	return resultType
 }
 
-// autoInferFilters inspects query input fields (excluding the key field and
-// pagination meta) and generates FilterOnField options for any field whose
-// name matches a result field. For collection result types (struct with an
-// Items []T field), filters are matched against the element type T.
-func autoInferFilters(
-	queryType, resultType reflect.Type,
-	keyField string,
-	cfg QueryConfig,
-) QueryConfig {
-	resultFields := buildFieldIndex(collectionElementType(resultType))
-
-	for i := range queryType.NumField() {
-		f := queryType.Field(i)
-		if !f.IsExported() {
-			continue
-		}
-
-		if f.Name == keyField {
-			continue
-		}
-
-		if f.Name == limitField || f.Name == afterField || f.Name == depthField {
-			continue
-		}
-
-		if _, ok := resultFields[f.Name]; ok {
-			cfg.filterAccessors = append(cfg.filterAccessors, filterAccessor{
-				spec: &FilterSpec{Column: f.Name, Op: FilterEq},
-			})
-		}
-	}
-
-	return cfg
-}
-
 // ensureFolds runs planner-time fold inference for queries declared with
-// Infer(). For queries with explicit folds, this is a no-op. It classifies
-// events by naming convention, auto-detects the key field from the query
-// input type, generates folds via field-name matching (including nested struct
-// flattening), and auto-infers filters from query input fields.
+// Infer() or InferFromNamedEvents(). For queries with explicit folds, this
+// is a no-op. It classifies events by naming convention, auto-detects key
+// fields from the query input type (including composite keys), generates
+// folds via field-name matching (including nested struct flattening), applies
+// wire event type overrides for named inference, and auto-infers filters
+// and sort from query input and result types.
 func (q *QueryDecl[Q, R]) ensureFolds() error {
 	if !q.needsInference {
 		return nil
@@ -301,21 +220,32 @@ func (q *QueryDecl[Q, R]) ensureFolds() error {
 	resultType := reflect.TypeOf(q.resultSample)
 	queryType := reflect.TypeOf(q.querySample)
 
-	classified, err := classifyByConvention(q.eventSamples)
+	classified, err := classifyByConvention(samplesForClassification(q))
 	if err != nil {
 		return fmt.Errorf("query %q: %w", q.Name, err)
 	}
 
-	keyField, err := detectKeyField(queryType, classified.created)
+	det, err := detectKeyFields(queryType, classified.created)
 	if err != nil {
 		return fmt.Errorf("query %q: %w", q.Name, err)
 	}
 
-	folds := generateInferredFolds(classified, resultType, keyField)
+	var folds []Fold
+
+	if det.composite {
+		folds = generateCompositeFolds(classified, resultType, det)
+	} else {
+		folds = generateInferredFolds(classified, resultType, det.fields[0])
+	}
 
 	folds = applyOverrides(folds, q.overrides)
 
-	q.Config = autoInferFilters(queryType, resultType, keyField, q.Config)
+	if len(q.namedSamples) > 0 {
+		applyNamedEventTypes(folds, q.namedSamples)
+	}
+
+	q.Config = autoInferFilters(queryType, resultType, det.fields, q.Config)
+	q.Config = autoInferSort(queryType, resultType, q.Config)
 
 	adt, err := classifyADT(folds)
 	if err != nil {
@@ -331,4 +261,20 @@ func (q *QueryDecl[Q, R]) ensureFolds() error {
 	q.infer()
 
 	return nil
+}
+
+// samplesForClassification extracts the struct samples from the query
+// declaration for convention classification. Uses namedSamples when present
+// (InferFromNamedEvents), otherwise eventSamples (Infer).
+func samplesForClassification[Q any, R any](q *QueryDecl[Q, R]) []any {
+	if len(q.namedSamples) > 0 {
+		samples := make([]any, len(q.namedSamples))
+		for i, s := range q.namedSamples {
+			samples[i] = s.sample
+		}
+
+		return samples
+	}
+
+	return q.eventSamples
 }
