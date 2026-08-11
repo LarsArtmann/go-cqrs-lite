@@ -6,6 +6,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — ADR-0117: Command lifecycle as event streams — 2026-08-11
+
+> Commands are immutable intents with no status field. Their lifecycle —
+> received, failed, retried, dead-lettered, completed — is tracked via events
+> appended to per-command lifecycle streams. Dead-letter queues, retry counts,
+> and failure logs emerge as metaengine projections over these event streams.
+> See `docs/status/2026-08-11_07-07_adr-0117-command-lifecycle.md`.
+
+- **`commandlifecycle/`** (**NEW MODULE**, Tier 2): Lifecycle event vocabulary
+  (`command.received/failed/retried/dead-lettered/completed`), typed payloads,
+  `Recorder` (writes lifecycle events to any `event.EventSink`), and
+  `New(recorder)` middleware pair (outer = received/completed/dead-lettered,
+  attempt = failed/retried) with shared attempt tracker. Best-effort and strict
+  recording modes. 16 tests.
+- **`commandlifecycle/projections/`** (**NEW MODULE**, Tier 3): Pre-built
+  metaengine `QueryDecl`s — `DeadLetterQueue()` (Map ADT), `RetryCount()`
+  (Counter ADT), `FailureLog()` (Log ADT), plus `All()` convenience. 6 tests.
+- **`go.work`**, **`flake.nix`** (`testModules`), **`cmd/api-stability/main.go`**:
+  both new modules wired into workspace, test/lint pipeline, and API stability
+  gate. Golden file regenerated (4034 exports).
+- **`AGENTS.md`**: module map and seven-tier model updated.
+
+### Known Gaps (ADR-0117 follow-ups)
+
+> Tracked as open items in TODO_LIST.md → "ADR-0117 Follow-ups".
+
+- Recorder version tracking uses an in-memory counter that resets on restart —
+  must be replaced with store-assigned versions or optimistic concurrency before
+  production use.
+- No integration test wiring the lifecycle middleware through the real
+  `middleware.CommandRetry` (current tests simulate retries manually).
+- DLQ and FailureLog projection tests only verify `ApplyRecord` succeeds — no
+  `ExecuteTyped` read-back assertions yet.
+- No processing-time projection (`command.received` + `command.completed` delta).
+- No `system.WithCommandLifecycle()` convenience wiring.
+- Full `nix run .#verify` gate not yet run (only individual checks passed).
+
 ### Fixed — Calibration embedding across ALL engines — 2026-08-11
 
 > Same systemic bug as pgengine (below): every engine used a named `cal`

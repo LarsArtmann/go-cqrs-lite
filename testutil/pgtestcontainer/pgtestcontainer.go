@@ -59,6 +59,11 @@ func TestMain(m *testing.M) {
 	}
 
 	if containerDSN != "" {
+		// Even with an external DSN (CI service container), open an admin
+		// connection so DSN() can provision per-test databases for isolation.
+		// Without this, all tests share one database and cross-test interference
+		// becomes a problem (especially under -race).
+		adminDB, _ = sql.Open("pgx", containerDSN)
 		os.Exit(m.Run())
 	}
 
@@ -109,7 +114,9 @@ func DSN(tb testing.TB) string {
 		tb.Skip("postgres not available: set DATABASE_URL/POSTGRES_TEST_DSN or run with Docker")
 	}
 
-	if os.Getenv("DATABASE_URL") != "" || os.Getenv("POSTGRES_TEST_DSN") != "" {
+	// When no admin connection is available (testcontainer failed to start),
+	// fall back to the shared DSN without per-test isolation.
+	if adminDB == nil {
 		return containerDSN
 	}
 

@@ -381,6 +381,35 @@ and is **never** duplicated here.
       retries as event streams (no status fields). Implemented in
       `commandlifecycle/` (events, recorder, middleware) and
       `commandlifecycle/projections/` (DLQ/retry-count/failure-log projections).
+      See `docs/status/2026-08-11_07-07_adr-0117-command-lifecycle.md`.
+
+### ADR-0117 Follow-ups (from status report)
+
+- [ ] 🔥 **Fix Recorder version tracking** — in-memory counter resets on restart;
+      use store-assigned versions or optimistic concurrency.
+      _(Effort: M)_
+- [ ] 🔥 **Integration test with real retry middleware** — current tests simulate
+      retries manually; wire through `middleware.CommandRetry` end-to-end.
+      _(Effort: S)_
+- [ ] **Complete projection query tests** — DLQ and FailureLog only test
+      `ApplyRecord` succeeds; add `ExecuteTyped` read-back assertions.
+      _(Effort: S)_
+- [ ] **Implement processing-time projection** — `command.received` +
+      `command.completed` delta (mentioned in ADR, not yet built).
+      _(Effort: S)_
+- [ ] **Wire `system.WithCommandLifecycle(eventSink)`** — one-call setup instead
+      of manual recorder + middleware + projections wiring.
+      _(Effort: M)_
+- [ ] **Add lifecycle recipe to skill references** — `references/recipes.md`
+      and `references/readmodels.md` need a consumer-facing ADR-0117 recipe.
+      _(Effort: S)_
+- [ ] **Run full `nix run .#verify`** — only individual checks run so far;
+      need check-arch, check-coverage, check-duplication, vulncheck.
+      _(Effort: S)_
+- [ ] **Tag `commandlifecycle/v4.0.0`** — publish the two new modules after
+      version tracking fix and verify gate pass.
+      _(Effort: S)_
+
 - [ ] **Run calibration benchmarks against baseline** — verify
       `calibration-baseline.md` accuracy; add CI regression check.
       _(Effort: M)_
