@@ -326,7 +326,12 @@ func (s *Store) Doctor(ctx context.Context) string {
 	}
 
 	if replanCount > 0 {
-		fmt.Fprintf(&b, "  replans: %d (last %s ago)\n", replanCount, roundDur(time.Since(lastReplan)))
+		fmt.Fprintf(
+			&b,
+			"  replans: %d (last %s ago)\n",
+			replanCount,
+			roundDur(time.Since(lastReplan)),
+		)
 	} else {
 		b.WriteString("  replans: 0 (never)\n")
 	}

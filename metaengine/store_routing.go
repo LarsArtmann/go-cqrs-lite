@@ -62,7 +62,7 @@ func (s *Store) CheckRouting(ctx context.Context) []Diagnostic {
 	}
 
 	// Differential: if no engine's RTT changed since the last check, the result
-		// is identical — return the cached diagnostics without re-scoring.
+	// is identical — return the cached diagnostics without re-scoring.
 	sig := s.routingSignature()
 
 	s.routingMu.Lock()

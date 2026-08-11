@@ -495,8 +495,6 @@ and is **never** duplicated here.
 - [x] **Probe failure observability** —
       DONE 2026-08-11. `ProbeHandle.Failures()` counter +
       `WithProbeErrorHandler` option + slog.Debug for probe failures (`probe.go`).
-      silently (no log, no metric). Add an error counter + structured log.
-      _(Effort: S)_
 
 ---
 

@@ -512,17 +512,17 @@ store, _ := metaengine.Plan([]metaengine.Engine{pg, mem}, query)
 
 // Start background RTT probing for PG (SELECT 1 every 1s).
 // Safe to call on local engines too — no-op for engines without Prober.
-stop := metaengine.ProbeEngine(pg,
+probe := metaengine.ProbeEngine(pg,
     metaengine.WithProbeInterval(time.Second),
     metaengine.WithProbeTimeout(5*time.Second),
 )
-defer stop()
+defer probe.Stop()
 
 // Option A: manual re-plan after detecting a shift
 _ = store.Replan(context.Background())
 
 // Option B: auto-replan when routing drifts beyond 20% hysteresis deadband
-autoStop := store.StartAutoReplan(30 * time.Second)
+autoStop := store.StartAutoReplan(context.Background(), 30*time.Second)
 defer autoStop()
 
 // Inspect live measurements
@@ -534,7 +534,8 @@ for _, st := range store.GetEngineStats(context.Background()) {
 ```
 
 Key types: `LatencyTracker`, `Prober`, `TransactMeasurer`, `StatSink`,
-`EngineStats`, `DefaultRoutingHysteresis`.
+`ProbeHandle`, `EngineStats`, `DefaultRoutingHysteresis`, `DefaultRoutingMinDelta`,
+`WithRoutingHysteresis`, `WithRoutingMinDelta`.
 
 ### 2.12 SQL-Backed Idempotency (idempotency/sqlstore)
 

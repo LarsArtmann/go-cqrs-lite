@@ -181,6 +181,89 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   live/stale/local RTT lines.
 - **`docs/api_surface.txt`** regenerated (3992 exports).
 
+### ⚠ Breaking — Live Cost Measurement Phase 3 — 2026-08-11
+
+> Two API signatures changed. Existing consumers must update call sites.
+> Migration guide below. Status: `docs/status/2026-08-11_05-08_live-latency-phase3-improvement-backlog.md`.
+
+- **`metaengine.ProbeEngine` return type changed** from `func()` to
+  `*ProbeHandle`. The handle exposes `Stop()` (replaces calling the function
+  directly) and `Failures() int64` (probe error counter).
+  - **Before:** `stop := metaengine.ProbeEngine(eng); defer stop()`
+  - **After:** `ph := metaengine.ProbeEngine(eng); defer ph.Stop()`
+- **`metaengine.Store.StartAutoReplan` signature changed** to accept a parent
+  context. The goroutine's lifecycle is now tied to the caller's context tree.
+  - **Before:** `stop := store.StartAutoReplan(30 * time.Second)`
+  - **After:** `stop := store.StartAutoReplan(ctx, 30 * time.Second)`
+
+### Added — Live Cost Measurement Phase 3 (Improvement Backlog) — 2026-08-11
+
+> 15 of 16 backlog items from the Phase 2 self-review implemented.
+> `nix run .#verify` NOT YET RUN (explain.go over 350-line limit — pending fix).
+
+- **`metaengine.WithRoutingHysteresis(float64)`** — plan option to tune the
+  fractional re-routing deadband (default 20%). Lower values make the planner
+  more sensitive to latency shifts.
+- **`metaengine.WithRoutingMinDelta(time.Duration)`** — plan option setting the
+  minimum absolute improvement required before suggesting re-routing. Prevents
+  re-routing on tiny absolute differences for very cheap queries.
+  `DefaultRoutingMinDelta = 0.5ms`.
+- **`metaengine.ProbeHandle`** — replaces the bare `func()` return from
+  `ProbeEngine`. Exposes `Stop()` and `Failures() int64` (atomic counter of
+  failed probes). Nil-safe.
+- **`metaengine.WithProbeErrorHandler(func(error))`** — `ProbeOption` for custom
+  probe-failure observability (e.g. Prometheus counter, alerting). Default:
+  `slog.Debug` with stage + engine name + error.
+- **`metaengine.Store` structured logging** — `slog.Info` on every successful
+  Replan (version, query count) and when CheckRouting detects routing drift
+  (drift count, total queries).
+- **`metaengine.Store.CheckRouting` differential optimization** — caches the
+  diagnostic result until any engine's `NetworkRTT` changes (via
+  `routingSignature`). Avoids re-scoring all queries × engines on every call.
+- **`metaengine.NsForRead` RTT amortization** — scan-pattern fallback costs now
+  subtract `NetworkRTT` when the base cost exceeds it, preventing double-counting
+  (estimateCost adds RTT once per query; the per-row cost should exclude it).
+  Only affects the fallback path when no explicit `ReadCosts.NsPerScan` etc. is
+  set.
+- **`metaengine.Doctor()` `--- Routing ---` section** — shows plan version,
+  computed-ago, replan count + last-replan-ago, hysteresis %, and routing drift
+  summary (count + per-query REPLAN-SUGGESTED messages).
+- **`sqliteengine.SetProber` + `ProberSetter` interface** — allows wrapper
+  packages to inject a live probe function into the unexported `sqliteEngine`
+  without exporting the type.
+- **`sqliteengine.ErrNoProber`** — returned by `Probe()` when no probe function
+  is configured.
+- **`ProbeEngine` IsRemote guard** — skips probing local engines even if they
+  implement `Prober`, preventing `ErrNoProber` for local SQLite/turso databases.
+- **tursoengine live probing** — remote Turso DSNs (`libsql://`, `https://`)
+  now inject `db.PingContext` as the probe function via
+  `sqliteengine.SetProber`. The prior (2ms) is replaced by a live measurement.
+  Closes the gap documented in Phase 2.
+- **mysqlengine `TransactMeasurer`** — `MeasureTransact` times a
+  `SELECT value FROM meta_map WHERE collection = ? AND \`key\` = ? LIMIT 1`
+  point lookup. Exercises full read path (B-tree + JSON decode).
+- **dgraphengine `TransactMeasurer`** — `MeasureTransact` times a predicate
+  index seek on a sentinel `__probe` key.
+- **12 new tests** in `live_latency_phase3_test.go`: edge cases (3), hysteresis
+  config (2), probe failure counter (2), parent context cancellation (1),
+  concurrency stress (1), differential caching (1), Doctor routing section (1),
+  RTT amortization (1). All pass with `-race`.
+- **`docs/api_surface.txt`** regenerated (4006 exports).
+
+### Changed — Live Cost Measurement Phase 3 — 2026-08-11
+
+- **`Store.CheckRouting` now accepts configurable hysteresis** — the 20%
+  deadband is no longer hardcoded. Pass `WithRoutingHysteresis(0.05)` to `Plan`
+  for tighter thresholds, or `WithRoutingMinDelta(1*time.Millisecond)` for an
+  absolute floor.
+- **`Store.StartAutoReplan` now requires a context** — see breaking changes
+  above.
+- **`tursoengine` package doc updated** — no longer documents live probing as
+  "deferred." Remote DSNs now wire a real probe.
+- **`METAENGINE-LIVE-LATENCY-MODEL.md` status table** — Phase 3 row added.
+- **`AGENTS.md`** — new `### Live Cost Measurement` section with 11-row
+  component table.
+
 ### Added — Live Cost Measurement Phase 2 (Replan + Routing + Engine Wiring) — 2026-08-10
 
 > P2 complete. `Store.Replan(ctx)` re-plans in-place picking up fresh live
@@ -205,6 +288,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`metaengine.Store.StartAutoReplan(interval) (stop func())`** — background
   loop that periodically calls CheckRouting + Replan when routing drifts.
   Convenience for long-lived Stores with ProbeEngine running.
+  *(Phase 3: signature changed to `StartAutoReplan(ctx, interval)` — see above.)*
 - **`metaengine.DefaultRoutingHysteresis`** = 0.20 (20% improvement required
   before suggesting re-routing, preventing oscillation from RTT jitter).
 - **`metaengine.WithProbeWindow` / `WithProbeAlpha` / `WithProbeStale`** —
@@ -213,8 +297,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `RequiresNetwork: true`.
 - **tursoengine remote DSN detection** — `isRemoteDSN` detects `libsql://`,
   `https://`, `http://` URLs and sets `NetworkRTT` prior via calibration.
-  `Turso_NetworkRTT` = 2ms prior. Live probing deferred (sqliteengine
-  delegation prevents adding `Prober` without wrapping — documented gap).
+  `Turso_NetworkRTT` = 2ms prior.
+  *(Phase 3: live probing now wired via `sqliteengine.SetProber` — see above.)*
 - **pgengine `TransactMeasurer`** — `MeasureTransact` times a real
   `SELECT value FROM meta_map ... LIMIT 1` point lookup, exercising the full
   read path (B-tree index seek + JSONB decode). Proves the per-op live path

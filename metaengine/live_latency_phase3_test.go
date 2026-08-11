@@ -181,7 +181,7 @@ func TestProbeHandle_NilSafe(t *testing.T) {
 
 	var ph *metaengine.ProbeHandle
 
-	ph.Stop()      // must not panic
+	ph.Stop() // must not panic
 	if got := ph.Failures(); got != 0 {
 		t.Errorf("nil Failures = %d, want 0", got)
 	}

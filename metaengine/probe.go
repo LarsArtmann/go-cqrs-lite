@@ -76,16 +76,16 @@ func NopSink() StatSink { return nopSink{} }
 type ProbeOption func(*probeConfig)
 
 type probeConfig struct {
-	interval      time.Duration
-	timeout       time.Duration
-	jitter        float64
-	ctx           context.Context
-	sink          StatSink
-	name          string
-	window        int
-	alpha         float64
-	stale         time.Duration
-	errorHandler  func(error)
+	interval     time.Duration
+	timeout      time.Duration
+	jitter       float64
+	ctx          context.Context
+	sink         StatSink
+	name         string
+	window       int
+	alpha        float64
+	stale        time.Duration
+	errorHandler func(error)
 }
 
 // WithProbeInterval sets the time between probes (default 1s).
@@ -215,10 +215,10 @@ func (h *ProbeHandle) Failures() int64 {
 // engines), ProbeEngine is a no-op and returns a ProbeHandle whose Stop does
 // nothing — calling it unconditionally is always safe.
 //
-// 	ph := metaengine.ProbeEngine(pg,
-// 	    metaengine.WithProbeInterval(time.Second),
-// 	)
-// 	defer ph.Stop()
+//	ph := metaengine.ProbeEngine(pg,
+//	    metaengine.WithProbeInterval(time.Second),
+//	)
+//	defer ph.Stop()
 func ProbeEngine(eng Engine, opts ...ProbeOption) *ProbeHandle {
 	c := probeConfig{
 		interval: time.Second,
