@@ -112,7 +112,7 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			}
 			prevType := hv.Type().In(2)
 			if prev != nil {
-				args = append(args, reflect.ValueOf(prev))
+				args = append(args, reifyReflect(prev, prevType))
 			} else {
 				args = append(args, reflect.Zero(prevType))
 			}
