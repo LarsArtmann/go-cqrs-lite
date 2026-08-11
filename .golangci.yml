@@ -853,8 +853,6 @@ linters:
       - path: cmd/api-stability/
         linters:
           - gocognit
-          - nilerr
-          - nolintlint
 
       # ── system/ operator topology ───────────────────────────────
       # Deployer-picks-infrastructure model with driver registry,
