@@ -67,35 +67,42 @@ func NewF008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F008-no-cbor-codec",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if eventCount(ctx) < 5 {
-				return nil, nil
+			var out []finding.Finding
+
+			for _, sc := range coachingScopes(ctx) {
+				count := eventCountIn(ctx, sc.files)
+				if count < 5 {
+					continue
+				}
+
+				if !hasSelectorIn(sc.files, "codec", "JSONCodec") {
+					continue
+				}
+
+				if hasSelectorIn(sc.files, "codec", "CBORCodec") {
+					continue
+				}
+
+				pos, ok := firstFilePosIn(ctx.Fset, sc.files)
+				if !ok {
+					continue
+				}
+
+				out = append(out, singleInfoFinding(
+					ctx,
+					"F008",
+					"Project has "+itoa(count)+
+						" event types and uses JSON codec — CBOR is ~35% smaller "+
+						"for event-heavy systems",
+					"Switch to codec.CBORCodec{} via event.DefaultCodec or the stack "+
+						"bundle's WithEventCodec option. Events are self-describing "+
+						"(encoding stamped per event), so mixed JSON+CBOR streams "+
+						"decode correctly.",
+					pos, finding.ConfidenceLow,
+				)...)
 			}
 
-			if !projectHasSelector(ctx, "codec", "JSONCodec") {
-				return nil, nil
-			}
-
-			if projectHasSelector(ctx, "codec", "CBORCodec") {
-				return nil, nil
-			}
-
-			pos, ok := firstFilePos(ctx)
-			if !ok {
-				return nil, nil
-			}
-
-			return singleInfoFinding(
-				ctx,
-				"F008",
-				"Project has "+itoa(eventCount(ctx))+
-					" event types and uses JSON codec — CBOR is ~35% smaller "+
-					"for event-heavy systems",
-				"Switch to codec.CBORCodec{} via event.DefaultCodec or the stack "+
-					"bundle's WithEventCodec option. Events are self-describing "+
-					"(encoding stamped per event), so mixed JSON+CBOR streams "+
-					"decode correctly.",
-				pos, finding.ConfidenceLow,
-			), nil
+			return out, nil
 		},
 	)
 }

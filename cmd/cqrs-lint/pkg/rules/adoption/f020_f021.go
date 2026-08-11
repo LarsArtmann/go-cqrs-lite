@@ -25,37 +25,44 @@ func NewF020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F020-metaengine-sorton-pushdown",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !usesMetaengine(ctx) {
-				return nil, nil
-			}
+			var out []finding.Finding
 
-			pos, ok := firstCallPos(ctx, "metaengine", "SortOn")
-			if !ok {
-				return nil, nil
-			}
+			for _, sc := range coachingScopes(ctx) {
+				if !importsPathIn(sc.files, "go-cqrs-lite/metaengine") {
+					continue
+				}
 
-			suggestion := "Use metaengine.SortOnField for declarative sorts that enable " +
-				"ORDER BY pushdown (indexed access instead of full scan + sort). " +
-				"SortOnField accepts a column name and descending flag, " +
-				"allowing the SQLite/Postgres engine to use column indexes."
+				pos, ok := firstCallPosIn(ctx.Fset, sc.files, "metaengine", "SortOn")
+				if !ok {
+					continue
+				}
 
-			if projectHasCall(ctx, "metaengine", "SortOnField") {
-				return singleInfoFinding(
+				suggestion := "Use metaengine.SortOnField for declarative sorts that enable " +
+					"ORDER BY pushdown (indexed access instead of full scan + sort). " +
+					"SortOnField accepts a column name and descending flag, " +
+					"allowing the SQLite/Postgres engine to use column indexes."
+
+				if hasCallIn(sc.files, "metaengine", "SortOnField") {
+					out = append(out, singleInfoFinding(
+						ctx,
+						"F020",
+						"mixed metaengine usage: SortOnField (pushdown) and SortOn (closure) "+
+							"— the SortOn call still forces in-memory sorting for that query",
+						suggestion, pos, finding.ConfidenceLow,
+					)...)
+					continue
+				}
+
+				out = append(out, singleInfoFinding(
 					ctx,
 					"F020",
-					"mixed metaengine usage: SortOnField (pushdown) and SortOn (closure) "+
-						"— the SortOn call still forces in-memory sorting for that query",
-					suggestion, pos, finding.ConfidenceLow,
-				), nil
+					"metaengine.SortOn uses closure-based sorting which prevents "+
+						"SQL ORDER BY pushdown — queries scan all rows and sort in Go memory",
+					suggestion, pos, finding.ConfidenceMedium,
+				)...)
 			}
 
-			return singleInfoFinding(
-				ctx,
-				"F020",
-				"metaengine.SortOn uses closure-based sorting which prevents "+
-					"SQL ORDER BY pushdown — queries scan all rows and sort in Go memory",
-				suggestion, pos, finding.ConfidenceMedium,
-			), nil
+			return out, nil
 		},
 	)
 }
@@ -77,54 +84,58 @@ func NewF021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F021-metaengine-write-amplification",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !usesMetaengine(ctx) {
-				return nil, nil
-			}
+			var out []finding.Finding
 
-			queries, totalFolds := findQueriesWithFolds(ctx)
+			for _, sc := range coachingScopes(ctx) {
+				if !importsPathIn(sc.files, "go-cqrs-lite/metaengine") {
+					continue
+				}
 
-			// Per-query analysis: emit a finding for each amplified query.
-			if len(queries) > 0 {
-				return perQueryFindings(ctx, queries), nil
-			}
+				queries, totalFolds := findQueriesWithFoldsIn(ctx.Fset, sc.files)
 
-			// Fallback: no direct Query calls found but many folds exist
-			// (folds may be stored in variables or passed indirectly).
-			if totalFolds < 3 {
-				return nil, nil
-			}
+				if len(queries) > 0 {
+					out = append(out, perQueryFindings(ctx, queries)...)
+					continue
+				}
 
-			pos, ok := firstCallPos(ctx, "metaengine", "OnRecordTyped")
-			if !ok {
-				pos, ok = firstCallPos(ctx, "metaengine", "OnTyped")
+				if totalFolds < 3 {
+					continue
+				}
+
+				pos, ok := firstCallPosIn(ctx.Fset, sc.files, "metaengine", "OnRecordTyped")
 				if !ok {
-					pos, ok = firstCallPos(ctx, "metaengine", "OnRecord")
+					pos, ok = firstCallPosIn(ctx.Fset, sc.files, "metaengine", "OnTyped")
 					if !ok {
-						pos, ok = firstCallPos(ctx, "metaengine", "On")
+						pos, ok = firstCallPosIn(ctx.Fset, sc.files, "metaengine", "OnRecord")
 						if !ok {
-							pos, ok = firstFilePos(ctx)
+							pos, ok = firstCallPosIn(ctx.Fset, sc.files, "metaengine", "On")
 							if !ok {
-								return nil, nil
+								pos, ok = firstFilePosIn(ctx.Fset, sc.files)
+								if !ok {
+									continue
+								}
 							}
 						}
 					}
 				}
+
+				out = append(out, singleInfoFinding(
+					ctx,
+					"F021",
+					fmt.Sprintf(
+						"metaengine has %d fold declarations — high write amplification "+
+							"may degrade ingest throughput (each event triggers multiple engine writes)",
+						totalFolds,
+					),
+					"Consider batching related folds into a single handler, "+
+						"or using WithLatencyBudget to let the planner coalesce writes. "+
+						"Each fold maps to a separate engine operation (MapSet, CounterIncrement, etc.); "+
+						"3+ folds suggest the projection model may be over-decomposed.",
+					pos, finding.ConfidenceLow,
+				)...)
 			}
 
-			return singleInfoFinding(
-				ctx,
-				"F021",
-				fmt.Sprintf(
-					"metaengine has %d fold declarations — high write amplification "+
-						"may degrade ingest throughput (each event triggers multiple engine writes)",
-					totalFolds,
-				),
-				"Consider batching related folds into a single handler, "+
-					"or using WithLatencyBudget to let the planner coalesce writes. "+
-					"Each fold maps to a separate engine operation (MapSet, CounterIncrement, etc.); "+
-					"3+ folds suggest the projection model may be over-decomposed.",
-				pos, finding.ConfidenceLow,
-			), nil
+			return out, nil
 		},
 	)
 }
@@ -140,10 +151,11 @@ type queryFoldCount struct {
 // fold-constructor arguments directly nested in each call. Returns one
 // entry per Query call plus the total count of fold constructors seen
 // anywhere in non-test files.
-func findQueriesWithFolds(
-	ctx *analyzer.AnalysisContext,
+func findQueriesWithFoldsIn(
+	fset *token.FileSet,
+	files []*analyzer.GoFile,
 ) (queries []queryFoldCount, totalFolds int) {
-	for _, gf := range ctx.GoFiles {
+	for _, gf := range files {
 		if gf.IsTest {
 			continue
 		}
@@ -206,7 +218,7 @@ func findQueriesWithFolds(
 			}
 
 			queries = append(queries, queryFoldCount{
-				pos:       ctx.Fset.Position(call.Pos()),
+				pos:       fset.Position(call.Pos()),
 				name:      name,
 				foldCount: foldCount,
 			})

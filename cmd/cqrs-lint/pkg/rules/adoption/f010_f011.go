@@ -18,26 +18,32 @@ func NewF010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F010-no-graph-projections",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if importsPath(ctx, "go-cqrs-lite/graph") {
-				return nil, nil
+			var out []finding.Finding
+
+			for _, sc := range coachingScopes(ctx) {
+				if importsPathIn(sc.files, "go-cqrs-lite/graph") {
+					continue
+				}
+
+				pos, ok := hasTraversalPatternsIn(ctx.Fset, sc.files)
+				if !ok {
+					continue
+				}
+
+				out = append(out, singleInfoFinding(
+					ctx,
+					"F010",
+					"Graph-traversal patterns detected (recursive queries, ancestry, "+
+						"path-finding) but graph module is not used — recursive SQL "+
+						"CTEs are slow for deep traversals",
+					"Import the graph module and use graph.NewGraphProjection to build "+
+						"node/edge read models. The MemoryDriver supports Traverse, "+
+						"Neighbors, and ShortestPath in Go-native code.",
+					pos, finding.ConfidenceLow,
+				)...)
 			}
 
-			pos, ok := hasTraversalPatterns(ctx)
-			if !ok {
-				return nil, nil
-			}
-
-			return singleInfoFinding(
-				ctx,
-				"F010",
-				"Graph-traversal patterns detected (recursive queries, ancestry, "+
-					"path-finding) but graph module is not used — recursive SQL "+
-					"CTEs are slow for deep traversals",
-				"Import the graph module and use graph.NewGraphProjection to build "+
-					"node/edge read models. The MemoryDriver supports Traverse, "+
-					"Neighbors, and ShortestPath in Go-native code.",
-				pos, finding.ConfidenceLow,
-			), nil
+			return out, nil
 		},
 	)
 }
@@ -51,50 +57,55 @@ func NewF011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F011-no-relational-projections",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if projectHasCall(ctx, "storage", "NewRelationalProjection") {
-				return nil, nil
+			var out []finding.Finding
+
+			for _, sc := range coachingScopes(ctx) {
+				if hasCallIn(sc.files, "storage", "NewRelationalProjection") {
+					continue
+				}
+
+				if !importsPathIn(sc.files, "database/sql") &&
+					!importsPathIn(sc.files, "go-cqrs-lite/storage") {
+					continue
+				}
+
+				if eventCountIn(ctx, sc.files) == 0 {
+					continue
+				}
+
+				execCount := countSQLExecIn(sc.files)
+				if execCount < 3 {
+					continue
+				}
+
+				pos, ok := firstFilePosIn(ctx.Fset, sc.files)
+				if !ok {
+					continue
+				}
+
+				out = append(out, singleInfoFinding(
+					ctx,
+					"F011",
+					"Multiple SQL Exec calls in event-handling code but "+
+						"storage.RelationalProjection is not used — manual "+
+						"multi-table writes lack atomicity guarantees",
+					"Use storage.NewRelationalProjection for multi-table atomic "+
+						"writes per event. Provides Ensure, Upsert, Increment "+
+						"(rollup counters), and junction-table support with "+
+						"automatic transaction management.",
+					pos, finding.ConfidenceLow,
+				)...)
 			}
 
-			// Need SQL usage + projection/event handling + multiple Exec calls.
-			if !importsPath(ctx, "database/sql") &&
-				!importsPath(ctx, "go-cqrs-lite/storage") {
-				return nil, nil
-			}
-
-			if eventCount(ctx) == 0 {
-				return nil, nil
-			}
-
-			execCount := countSQLExec(ctx)
-			if execCount < 3 {
-				return nil, nil
-			}
-
-			pos, ok := firstFilePos(ctx)
-			if !ok {
-				return nil, nil
-			}
-
-			return singleInfoFinding(
-				ctx,
-				"F011",
-				"Multiple SQL Exec calls in event-handling code but "+
-					"storage.RelationalProjection is not used — manual "+
-					"multi-table writes lack atomicity guarantees",
-				"Use storage.NewRelationalProjection for multi-table atomic "+
-					"writes per event. Provides Ensure, Upsert, Increment "+
-					"(rollup counters), and junction-table support with "+
-					"automatic transaction management.",
-				pos, finding.ConfidenceLow,
-			), nil
+			return out, nil
 		},
 	)
 }
 
-// countSQLExec counts calls to Exec/ExecContext on *sql.DB, *sql.Tx, or
-// *sql.Conn variables across non-test files. Uses type info to avoid counting
-// unrelated .Exec() calls (e.g., os/exec, custom types).
-func countSQLExec(ctx *analyzer.AnalysisContext) int {
+// countSQLExecIn counts calls to Exec/ExecContext on *sql.DB, *sql.Tx, or
+// *sql.Conn variables across the given file slice. Uses type info to avoid
+// counting unrelated .Exec() calls (e.g., os/exec, custom types).
+func countSQLExecIn(files []*analyzer.GoFile) int {
 	count := 0
 
 	execMethods := map[string]bool{
@@ -109,7 +120,7 @@ func countSQLExec(ctx *analyzer.AnalysisContext) int {
 		"*github.com/larsartmann/go-cqrs-lite/storage/sql.DBCloser": true,
 	}
 
-	for _, gf := range ctx.GoFiles {
+	for _, gf := range files {
 		if gf.IsTest {
 			continue
 		}

@@ -2,7 +2,6 @@ package bboltengine_test
 
 import (
 	"context"
-	"encoding/json/v2"
 	"fmt"
 	"sync"
 	"testing"
@@ -97,11 +96,7 @@ func TestBboltEdgeCases_KeyCollision(t *testing.T) {
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(results.Items).To(gomega.HaveLen(1))
 
-	var decoded map[string]any
-	g.Expect(json.Unmarshal(results.Items[0].([]byte), &decoded)).To(gomega.Succeed())
-
-	// Wait — bbolt's MapScan returns already-decoded values via ScanBackend.
-	// Check if the result is raw bytes or decoded.
+	// bbolt's MapScan returns decoded values (map[string]any).
 	if m, ok := results.Items[0].(map[string]any); ok {
 		g.Expect(m["score"]).To(gomega.Equal(float64(50)))
 	}
