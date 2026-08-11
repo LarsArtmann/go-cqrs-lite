@@ -60,8 +60,8 @@ and is **never** duplicated here.
       api-stability (3989 exports) + doc-check (928 refs).
       See `docs/status/2026-08-11_04-04_verify-green-and-lint-cleanup.md`.
 - [x] **Run `nix fmt`** on all changed files — DONE 2026-08-11.
-- [ ] **Fix `listing/README.md:16`** — stale "tri-state status: Active,
-      Tombstoned, Undetermined" claim. Should say "bi-state: Active, Deleted".
+- [x] **Fix `listing/README.md:16`** — DONE 2026-08-11. Fixed stale tri-state
+      claim to bi-state (Active, Deleted).
       _(Effort: XS)_
 - [ ] **Unify `DeletePolicy` constant naming** — listing uses
       `DeleteExclude`/`DeleteInclude`/`DeleteOnly`; stack uses
@@ -101,9 +101,9 @@ and is **never** duplicated here.
 > `nix run .#verify` GREEN. See
 > `docs/status/2026-08-11_04-04_verify-green-and-lint-cleanup.md`.
 
-- [ ] 🔥 **Migrate `metaengine.On` → `metaengine.OnRecord`** — 58 SA1019
-      violations across 33 files currently suppressed by blanket lint
-      exclusion. Largest single lint debt item.
+- [x] 🔥 **Migrate `metaengine.On` → `metaengine.OnRecord`** — DONE 2026-08-11.
+      59 files migrated via AST-based tool. SA1019 blanket exclusion removed.
+      On/OnTyped now have `// Deprecated:` godoc pointing to OnRecord/OnRecordTyped.
       _(Effort: M — mechanical migration)_
 - [ ] **Audit `.golangci.yml` exclusion blocks** — `system/` (20 linters
       disabled), `cmd/cqrs-lint/` (17), `metaengine/` (24) have the broadest
@@ -111,9 +111,9 @@ and is **never** duplicated here.
       `On/OnTyped` migration, `flightrecorder/`, `id/`, `record/`, engine
       `register.go`. Track which can be removed after migrations complete.
       _(Effort: M — needs full lint run to verify narrowing)_
-- [ ] **Add smoke test for `check-module-layers.sh`** — the script had a
-      subtle `set -euo pipefail` + `grep` exit-code bug and a submodule
-      detection gap. Both fixed 2026-08-11 but no regression test exists.
+- [x] **Add smoke test for `check-module-layers.sh`** — DONE 2026-08-11.
+      `scripts/test-check-module-layers.sh` validates the arch script on
+      known-good tree + handles missing go.mod.
       _(Effort: S)_
 - [ ] **Lint code-fix batch (narrow exclusions by fixing the code)** —
       surfaced by the 2026-08-11 lint-cleanup session. Each is currently
@@ -281,12 +281,9 @@ and is **never** duplicated here.
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must
   v0.1.2).
-- [ ] 🔥 **Release `record/v4` tag** — the `Merge` method was added to
-      `record/` after `record/v4.0.0` was tagged. Downstream modules that
-      depend on it (e.g. `metadata/`) fail `GOWORK=off go test` until a new
-      tag (`record/v4.0.1` or `v4.1.0`) exists. Tag via
-      `scripts/tag-release.sh`, then pin `metadata/go.mod` (and other
-      dependents) to the new tag. Highest value-per-minute unblock.
+- [x] 🔥 **Release `record/v4` tag** — DONE 2026-08-11. Tagged `record/v4.1.0`
+      with branded ID types, ActorID taxonomy, and Merge method.
+      `metadata/go.mod` + `event/go.mod` pinned to v4.1.0.
       _(Effort: S)_
 - [x] 🔥 **Cut CHANGELOG `[Unreleased]` → `[v4.7.0]`** — DONE 2026-08-10.
       `TestTagContentMatchesChangelog` passes (metaengine/v4.7.0 tag exists).
@@ -364,14 +361,10 @@ and is **never** duplicated here.
       indirect dep flagged by gopls. Not needed by bboltengine itself (inherited
       from metaengine).
       _(Effort: XS)_
-- [ ] **Fix `record_stamp.go` GOWORK=off build failure** — `record_stamp.go`
-      calls `.String()` on `CorrelationID`/`CausationID`/`ActorID` branded types
-      that resolve to plain `string` in published `record/v4.0.0`. Under
-      `GOWORK=off`, the `replace record/v4 => ../record` in metaengine's go.mod
-      is invisible to engine submodules, breaking `go test` for ALL engine
-      modules. Either replace `.String()` with `string(...)` casts, or add
-      `replace` directives to each engine go.mod, or release `record/v4.0.1`.
-      _(Effort: S — needs user decision on approach)_
+- [x] **Fix `record_stamp.go` GOWORK=off build failure** — DONE 2026-08-11.
+      Resolved by releasing `record/v4.1.0` tag with branded ID types.
+      Engine modules can now resolve branded types under GOWORK=off.
+      _(Effort: S)_
 - [ ] **Add `CounterIncrement` benchmark to pebbleengine calibration** — badger
       and bbolt have it; pebble does not. All engines should have calibration
       data for all ADT operations.
@@ -530,17 +523,13 @@ and is **never** duplicated here.
 - [x] **Probe failure observability** —
       DONE 2026-08-11. `ProbeHandle.Failures()` counter +
       `WithProbeErrorHandler` option + slog.Debug for probe failures (`probe.go`).
-- [ ] 🔥 **Fix dgraphengine Calibration embedding** — same bug as pgengine:
-      `dgraphEngine` uses a named `cal` field instead of embedding
-      `metaengine.Calibration`, so `ProbeEngine` cannot install trackers and
-      `GetEngineStats` never sees live data. `Prober` + `TransactMeasurer` are
-      implemented but dead-wired. Mechanical fix: embed `Calibration`, remove
-      explicit `SetCalibration` passthrough.
+- [x] 🔥 **Fix dgraphengine Calibration embedding** — DONE 2026-08-11.
+      Embedded `metaengine.Calibration` in all 7 remaining engines (dgraph,
+      badger, bbolt, pebble, sqlite, duckdb, mysql). Removed explicit
+      `SetCalibration` passthroughs (now promoted).
       _(Effort: XS)_
-- [ ] 🔥 **Fix badgerengine Calibration embedding** — same bug: `badgerEngine`
-      uses a named `cal` field. `ProbeEngine` is a no-op for this engine.
-      Note: badger is local-only (`IsRemote` guard prevents probing), so this
-      is lower urgency than dgraph.
+- [x] 🔥 **Fix badgerengine Calibration embedding** — DONE 2026-08-11.
+      Same fix applied to all engines (see dgraphengine item above).
       _(Effort: XS)_
 - [ ] **Verify tursoengine Calibration/probe wiring** — turso uses
       `sqliteengine.SetProber` pattern. Did not verify whether `Calibration` is

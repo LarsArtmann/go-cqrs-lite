@@ -1405,7 +1405,6 @@ metaengine/badgerengine/method MultiAdd
 metaengine/badgerengine/method MultiGet
 metaengine/badgerengine/method Profile
 metaengine/badgerengine/method SetAdd
-metaengine/badgerengine/method SetCalibration
 metaengine/badgerengine/method SetContains
 metaengine/badgerengine/method StreamAppend
 metaengine/badgerengine/method StreamAppendExpected
@@ -1434,7 +1433,6 @@ metaengine/bboltengine/method MultiAdd
 metaengine/bboltengine/method MultiGet
 metaengine/bboltengine/method Profile
 metaengine/bboltengine/method SetAdd
-metaengine/bboltengine/method SetCalibration
 metaengine/bboltengine/method SetContains
 metaengine/bboltengine/method StreamAppend
 metaengine/bboltengine/method StreamAppendExpected
@@ -1539,7 +1537,6 @@ metaengine/dgraphengine/method Profile
 metaengine/dgraphengine/method SearchInsert
 metaengine/dgraphengine/method SearchQuery
 metaengine/dgraphengine/method SetAdd
-metaengine/dgraphengine/method SetCalibration
 metaengine/dgraphengine/method SetContains
 metaengine/duckdbengine/const DuckDBNsPerOp
 metaengine/duckdbengine/const DuckDBNsPerRead
@@ -1567,7 +1564,6 @@ metaengine/duckdbengine/method MultiGroupedAggregate
 metaengine/duckdbengine/method Profile
 metaengine/duckdbengine/method PushdownMapScan
 metaengine/duckdbengine/method RunInTx
-metaengine/duckdbengine/method SetCalibration
 metaengine/duckdbengine/method StreamAppend
 metaengine/duckdbengine/method StreamAppendExpected
 metaengine/duckdbengine/method StreamRead
@@ -1638,6 +1634,7 @@ metaengine/func On
 metaengine/func OnRecord
 metaengine/func OnRecordTyped
 metaengine/func OnTyped
+metaengine/func Override
 metaengine/func ParseCursor
 metaengine/func PassesFilterSpecs
 metaengine/func Plan
@@ -2141,7 +2138,6 @@ metaengine/mysqlengine/method Probe
 metaengine/mysqlengine/method Profile
 metaengine/mysqlengine/method PushdownMapScan
 metaengine/mysqlengine/method RunInTx
-metaengine/mysqlengine/method SetCalibration
 metaengine/mysqlengine/method StreamAppend
 metaengine/mysqlengine/method StreamAppendExpected
 metaengine/mysqlengine/method StreamRead
@@ -2173,7 +2169,6 @@ metaengine/pebbleengine/method Profile
 metaengine/pebbleengine/method ScanCount
 metaengine/pebbleengine/method ScanRawValues
 metaengine/pebbleengine/method SetAdd
-metaengine/pebbleengine/method SetCalibration
 metaengine/pebbleengine/method SetContains
 metaengine/pebbleengine/method StreamAppend
 metaengine/pebbleengine/method StreamAppendExpected
@@ -2208,7 +2203,6 @@ metaengine/pgengine/method Probe
 metaengine/pgengine/method Profile
 metaengine/pgengine/method PushdownMapScan
 metaengine/pgengine/method RunInTx
-metaengine/pgengine/method SetCalibration
 metaengine/pgengine/method StreamAppend
 metaengine/pgengine/method StreamAppendExpected
 metaengine/pgengine/method StreamRead
@@ -2269,7 +2263,6 @@ metaengine/sqliteengine/method PushdownMapScan
 metaengine/sqliteengine/method RunInTx
 metaengine/sqliteengine/method ScanRawValues
 metaengine/sqliteengine/method SetAdd
-metaengine/sqliteengine/method SetCalibration
 metaengine/sqliteengine/method SetContains
 metaengine/sqliteengine/method SetProber
 metaengine/sqliteengine/method SnapshotDelete

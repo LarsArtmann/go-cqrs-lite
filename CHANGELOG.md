@@ -6,6 +6,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — Calibration embedding across ALL engines — 2026-08-11
+
+> Same systemic bug as pgengine (below): every engine used a named `cal`
+> field instead of embedding `metaengine.Calibration`. This prevented
+> `ProbeEngine` from installing live-latency trackers because the engine
+> struct did not satisfy `TrackerHost` through promoted methods.
+
+- **All 7 remaining engines** (**BUGFIX**): `dgraphengine`, `badgerengine`,
+  `bboltengine`, `pebbleengine`, `sqliteengine`, `duckdbengine`,
+  `mysqlengine` now embed `metaengine.Calibration` directly. Explicit
+  `SetCalibration` passthroughs removed (now promoted). This unblocks
+  live-latency probing for ALL engines, not just pgengine.
+
+### Added — Fold inference Override API (ADR-0116 Layer 2) — 2026-08-11
+
+> Escape hatch for the 20% case where auto-projection gets the fold wrong.
+> `Override()` marks a fold as a replacement for inferred folds matching
+> the same event type.
+
+- **`metaengine/override.go`** (**NEW**): `Override(f Fold)` wraps a fold
+  as an override. `applyOverrides()` replaces inferred folds by event type
+  match, and appends unmatched overrides as additional folds.
+- **`metaengine/query.go`**: `case overrideFold:` in the arg parser type
+  switch (placed before `case Fold:` to handle embedded type correctly).
+- **`metaengine/fold_inference.go`**: `ensureFolds()` calls
+  `applyOverrides(folds, q.overrides)` after `generateInferredFolds()`.
+- **`metaengine/override_test.go`** (**NEW**): 3 tests (replace inferred,
+  panic without Infer, add fold for uncovered event).
+
+### Added — Arch smoke test for check-module-layers.sh — 2026-08-11
+
+- **`scripts/test-check-module-layers.sh`** (**NEW**): validates the arch
+  enforcement script on known-good tree + handles missing go.mod gracefully.
+
+### Released — record/v4.1.0 — 2026-08-11
+
+- Tagged `record/v4.1.0` with branded ID types, ActorID taxonomy, and
+  `CommonMetadata.Merge()` method. `metadata/go.mod` + `event/go.mod`
+  pinned to v4.1.0. Unblocks GOWORK=off builds for all engine modules.
+
 ### Fixed — pgengine Calibration embedding (live-latency dead-code bug) — 2026-08-11
 
 > `pgEngine` used a named `cal metaengine.Calibration` field instead of
@@ -15,7 +55,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > trackers and `GetEngineStats` never saw live data. The entire live-latency
 > system was dead code for the real PG engine — only the fake-engine unit
 > tests passed because the test double embedded `Calibration` correctly.
-> Same bug likely exists in `dgraphengine` and `badgerengine` (not yet fixed).
+> Same bug existed in all 7 other engines (dgraphengine, badgerengine,
+> bboltengine, pebbleengine, sqliteengine, duckdbengine, mysqlengine) —
+> all fixed in the same session. See entry above.
 > See
 > `docs/status/2026-08-11_05-53_pg-probeengine-integration-test-calibration-embedding-fix.md`.
 
