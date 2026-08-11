@@ -392,7 +392,12 @@ func (s *Store) applyWithRecord(
 				s.foldMu.Unlock()
 
 				if applyErr != nil {
-					return fmt.Errorf("query %q fold for %s: %w", t.q.QueryName(), eventType, applyErr)
+					return fmt.Errorf(
+						"query %q fold for %s: %w",
+						t.q.QueryName(),
+						eventType,
+						applyErr,
+					)
 				}
 			}
 

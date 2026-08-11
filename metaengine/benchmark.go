@@ -62,16 +62,14 @@ func (s *BenchmarkSummary) FormatTable() string {
 	rows := header
 	var rowsSb61 strings.Builder
 	for _, r := range s.Results {
-		rowsSb61.WriteString(fmt.Sprintf(
-			"%-15s %-12s %-10s %-10s %-10s %-12.0f %12s\n",
+		fmt.Fprintf(&rowsSb61, "%-15s %-12s %-10s %-10s %-10s %-12.0f %12s\n",
 			r.Label,
 			r.Priority,
 			fmt.Sprintf("%.2fms", float64(r.LatencyP50.Microseconds())/1e3),
 			fmt.Sprintf("%.2fms", float64(r.LatencyP95.Microseconds())/1e3),
 			fmt.Sprintf("%.2fms", float64(r.LatencyP99.Microseconds())/1e3),
 			r.Throughput,
-			formatBytes(r.StorageBytes),
-		))
+			formatBytes(r.StorageBytes))
 	}
 	rows += rowsSb61.String()
 

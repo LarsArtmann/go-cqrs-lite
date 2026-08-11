@@ -767,28 +767,84 @@ and is **never** duplicated here.
 > generates fold functions (how events map to projection entries). Layout
 > planning decides the physical storage shape of those projections (embed vs.
 > normalize within an engine). They are orthogonal concerns.
-
-
-
+- [x] 🔥 **Operator priority system** — IMPLEMENTED (ADR-0124). `Priority` enum
+      (`WriteSpeed` / `ReadSpeed` / `StorageSpace` / `Balanced`), `PriorityConfig`
+      hierarchy (GLOBAL → per-Engine → per-Query), `WithPriorityConfig` plan
+      option. Priority weights the cost model via `priorityFactor` in `planQuery`.
+      24 new tests validate hierarchy resolution, weight application, and engine
+      selection. Files: `priority.go`, `planner.go`.
+      _(Effort: L → done)_
+- [x] 🔥 **Cost model: embed-vs-normalize scoring** — IMPLEMENTED.
+      `LayoutOption` (Embed/Normalize/Hybrid), `LayoutCost` (ReadCost/WriteCost/
+      StorageCost), per-backend `scoreEmbed`/`scoreNormalize` functions.
+      `SelectLayout(profile, priority)` picks optimal layout. KV favors embed,
+      SQL favors normalize, graph favors normalize, DuckDB workload-dependent.
+      Files: `layout_scoring.go`. **WARNING: cost multipliers are uncalibrated
+      guesses — must be calibrated via real benchmarks before production use.**
+      _(Effort: L → done)_
 - [x] **Benchmark mode** — SPIKE IMPLEMENTED. `BenchmarkPlan` runtime API +
       `BenchmarkConfig`/`BenchmarkResult`/`BenchmarkSummary`. Tries N plans with
       different priority configs, reports P50/P95/P99 latency, throughput,
       storage. `FormatTable()` for CLI comparison output. CLI subcommand
       (`cqrs-bench layout`) is future work. Files: `benchmark.go`.
+      _(Effort: L → partial: runtime API done, CLI + trace format + scaling
+      prediction not started)_
 - [x] **Runtime backend addition + dual-use / migration / backup** — SPIKE
       IMPLEMENTED. `Store.AddEngine(ctx, engine)` + `Store.RemoveEngine(ctx,
       name)` + `Store.Backfill(ctx)` (replays EventLog). `ProjectionRole` enum
       (Active/DualUse/Migration/Backup). `EngineNames()`. Role-based sync is
-      designed but not yet wired into the fold pipeline. Files:
-      `runtime_backend.go`.
+      designed but not yet wired into the fold pipeline. **WARNING: `Backfill`
+      double-counts Counter/Set ADTs — not idempotent for all fold types.**
+      Files: `runtime_backend.go`.
+      _(Effort: XL → partial: add/remove/backfill done, role-based sync +
+      transitions not started)_
 - [x] **Threshold-based re-layout trigger** — IMPLEMENTED.
       `Store.ReplanLayout(ctx, pc)` computes layout diffs. `RebuildThreshold`
       (default 100K events / 1GB). `LayoutDiff.AutoRebuild` flag for small vs
       large projections. `Store.ConfirmRebuild(ctx, diffs)` for operator
-      approval. Files: `relayout.go`, `layout_observability.go`.
-      is operator-configurable. Prevents a global priority change from silently
-      launching massive parallel rebuilds.
-      _(Effort: M)_
+      approval (stub — does not execute rebuilds yet). Files: `relayout.go`,
+      `layout_observability.go`.
+      _(Effort: M → partial: diff computation done, rebuild execution is a stub)_
+
+#### Phase 6b Follow-ups (from status report 2026-08-11_07-23)
+
+- [ ] 🔥 **Wire `ConfirmRebuild` to execute rebuilds** — currently a stub.
+      Must trigger actual event-log replay for affected projections.
+- [ ] 🔥 **Fix `Backfill` double-counting** — Counter/Set ADTs are not
+      idempotent. Either refuse for non-idempotent ADTs, clear-first, or
+      implement per-fold idempotency keys.
+- [ ] 🔥 **Fix `LayoutWarnings()` noise** — currently warns on EVERY KV engine
+      query regardless of actual selected layout. Must check the resolved
+      layout option before emitting JOIN_AMPLIFICATION.
+- [ ] **`Store.SetPriority(ctx, pc)` runtime API** — change priorities after
+      `Plan()` returns, triggering replan + threshold-based rebuild.
+- [ ] **Integrate `ReplanLayout` with `Store.Replan`/`CheckRouting`** — avoid
+      two parallel planning systems that will conflict.
+- [ ] **`cqrs-bench layout` CLI subcommand** — pre-deployment "what if"
+      exploration tool.
+- [ ] **Real workload trace format** — JSON-lines spec, trace recorder, trace
+      player for benchmark calibration.
+- [ ] **Wire layout warnings into `Doctor()` + `EXPLAIN`** — `--- Layout
+      Warnings ---` section, layout annotations in EXPLAIN output.
+- [ ] **Calibrate cost model multipliers** — replace placeholder constants
+      (0.5, 1.0, 1.3, 2.0) with measured values from real engine benchmarks.
+- [ ] **Multi-engine integration test** — two real MemoryEngines, add at
+      runtime, backfill, verify both serve correct query results.
+- [ ] **Wire `Priority` into deployment YAML** — `EngineConfig`/`DriverConfig`
+      + `QueryDecl` builder options + config validation.
+- [ ] **Fold-pipeline sync for Active+DualUse roles** — event → all
+      Active+DualUse projections in one transaction (strong consistency).
+- [ ] **Async replication for Backup+Migration roles** — eventual consistency,
+      failure-isolated.
+- [ ] **Role transition API** — Backup→Active promote, Migration→Active cutover.
+- [ ] **Aggregate boundary config** — `WithSharedCollection("Attachment")`
+      opt-in for shared-by-type collections.
+- [ ] **Layout audit trail** — plan version history, who changed what priority
+      when, in `GetEngineStats()`.
+- [ ] **Update SKILL.md + skill references** — layout planning concepts,
+      priority system, benchmark mode consumer docs.
+- [ ] **Run `nix run .#verify`** — full CI gate not yet run on layout planning
+      code. Must pass before tagging any release that includes ADR-0124.
 
 ### Phase 7: Universal Engine Coverage
 

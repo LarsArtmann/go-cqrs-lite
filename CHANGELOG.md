@@ -6,6 +6,102 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — ADR-0124: Operator-Driven Layout Planning — 2026-08-11
+
+> Replaces the original M9 ("auto-generate child collections from `[]Attachment`
+> via reflection") with an operator-driven, cost-aware model. The developer
+> expresses zero storage intent — layout (embed vs. normalize within an engine)
+> is 100% the operator's call via priorities that weight the cost model. This is
+> **Layer 4: Physical Layout**, orthogonal to ADR-0116 Layers 1-3 (fold
+> generation, explicit folds, engine routing).
+>
+> See `docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md` for the full design
+> and `docs/status/2026-08-11_07-23_layout-planning-implementation-comprehensive-status.md`
+> for implementation status.
+
+- **`metaengine/priority.go`** (NEW, 138 lines): `Priority` enum
+  (`WriteSpeed`/`ReadSpeed`/`StorageSpace`/`Balanced`), `PriorityConfig`
+  with 3-level hierarchy (GLOBAL → per-Engine → per-Query, most specific
+  wins), `PriorityWeights` for cost-type multipliers, `WithPriorityConfig`
+  plan option. The priority weights the cost model — it does not bypass it.
+- **`metaengine/layout_scoring.go`** (NEW, 149 lines): `LayoutOption`
+  (Embed/Normalize/Hybrid), `LayoutCost` (ReadCost/WriteCost/StorageCost),
+  per-backend `scoreEmbed`/`scoreNormalize` scorers (KV favors embed, SQL
+  favors normalize), `SelectLayout(profile, priority)`.
+- **`metaengine/benchmark.go`** (NEW, 187 lines): `BenchmarkPlan` runtime
+  API — tries N plans with different priority configs, reports P50/P95/P99
+  latency, throughput, storage. `FormatTable()` for CLI comparison output.
+- **`metaengine/runtime_backend.go`** (NEW, 137 lines):
+  `Store.AddEngine(ctx, engine)` + `Store.RemoveEngine(ctx, name)` +
+  `Store.Backfill(ctx)` (replays EventLog). `ProjectionRole` enum
+  (Active/DualUse/Migration/Backup). `EngineNames()`.
+- **`metaengine/relayout.go`** (NEW, 149 lines): `Store.ReplanLayout(ctx, pc)`
+  computes layout diffs. `RebuildThreshold` (default 100K events / 1GB).
+  `LayoutDiff.AutoRebuild` flag. `Store.ConfirmRebuild(ctx, diffs)`.
+- **`metaengine/layout_observability.go`** (NEW, 102 lines):
+  `Store.GetLayoutInfo()`, `Store.LayoutWarnings()`, `LayoutWarning` type
+  with 3 warning categories (PRIORITY_MISMATCH, JOIN_AMPLIFICATION,
+  WRITE_AMPLIFICATION).
+- **`metaengine/planner.go`** (MODIFIED): `planConfig.priority` field,
+  `rankedEngine.weightedLatencyMs` for priority-weighted engine ranking.
+  Priority factor adjusts cost by complexity class — ReadSpeed penalizes
+  O(N), WriteSpeed reduces read penalty.
+- **`metaengine/priority_test.go`** (NEW, 216 lines): 24 tests — hierarchy
+  resolution (nil/empty/Global/Engine-override/Query-override/invalid),
+  weight correctness, plan integration (backward compat, priority changes
+  ranking).
+- **`metaengine/benchmark_test.go`** (NEW, 106 lines): 3 tests — multi-plan
+  comparison, table formatting, error on missing configs.
+- **`metaengine/runtime_backend_test.go`** (NEW, 229 lines): 12 tests —
+  AddEngine routes to cheaper engine, RemoveEngine re-routes, duplicate
+  rejection, Backfill with real memory engine, ApplyRecord with EventLog,
+  ProjectionRole constants.
+- **`metaengine/layout_scoring_test.go`** (NEW, 114 lines): 7 tests —
+  KV+ReadSpeed→Embed, KV+WriteSpeed→Normalize, SQL+ReadSpeed→Normalize,
+  KV+StorageSpace→Normalize, weighted scoring, both options returned.
+- **`metaengine/relayout_test.go`** (NEW, 133 lines): 8 tests — empty diffs
+  on Balanced, diff on WriteSpeed, auto-rebuild for small, confirmation for
+  large, nil config, ConfirmRebuild stub.
+- **`docs/adr/0124-operator-driven-layout-planning.md`** (NEW): Full ADR —
+  context, decision (Layer 4, priority system, 3 planner modes, runtime
+  backends, re-layout trigger, obey+warn), 3 rejected alternatives,
+  consequences.
+- **`docs/adr/README.md`** (UPDATED): Added ADR index entries 0098-0124
+  (index was stale at 0097).
+- **`docs/adr/0116-layered-auto-projection.md`** (UPDATED): Cross-referenced
+  ADR-0124 as Layer 4 (Physical Layout).
+- **`docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md`** (UPDATED): Resolved
+  §4 contradiction (constraint vs intent), added §13 (fold inference code
+  audit), §14 (4-scenario worked example), §15 (WARN LOUDLY specification).
+- **`docs/METAENGINE_DOMAIN_LANGUAGE.md`** (UPDATED): New "Layout Planning
+  (ADR-0124)" section with 11 vocabulary terms.
+- **`AGENTS.md`** (UPDATED): Design doc registered, new "Operator-Driven
+  Layout Planning" section with component table, ADR-0124 in additional ADRs.
+- **`ROADMAP.md`** (UPDATED): Phase 6b added to phased delivery, auto-
+  denormalization raw idea updated to reference ADR-0124.
+- **`metadata/README.md`** (REWRITTEN): Removed deleted `Tracing` type,
+  documented `record.CommonMetadata` as the structural base (ADR-0111).
+- **`TODO_LIST.md`** (UPDATED): Phase 6b tasks marked done with
+  implementation details + warnings. 18 follow-up tasks added for known gaps.
+
+### Known Gaps (ADR-0124 follow-ups)
+
+> Tracked as open items in TODO_LIST.md → "Phase 6b Follow-ups".
+
+- Cost model multipliers (`scoreEmbed`/`scoreNormalize`) are uncalibrated
+  placeholder constants — must be benchmarked before production use.
+- `Store.Backfill(ctx)` is not idempotent for Counter/Set ADTs (double-counts).
+- `Store.ConfirmRebuild` is a stub — does not execute actual rebuilds.
+- `LayoutWarnings()` emits noise — warns on every KV engine query regardless
+  of selected layout.
+- No `cqrs-bench layout` CLI subcommand (runtime API only).
+- No real workload trace format / recorder / player.
+- Role-based sync (fold pipeline for Active+DualUse, async for Backup+Migration)
+  is designed but not wired into the fold pipeline.
+- Priority not wired into deployment YAML (`EngineConfig`/`QueryDecl`).
+- Layout warnings not surfaced in `Doctor()` or `EXPLAIN` output.
+- Full `nix run .#verify` gate not yet run.
+
 ### Added — ADR-0117: Command lifecycle as event streams — 2026-08-11
 
 > Commands are immutable intents with no status field. Their lifecycle —
