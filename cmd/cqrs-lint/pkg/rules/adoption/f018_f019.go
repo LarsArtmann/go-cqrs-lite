@@ -18,37 +18,44 @@ func NewF018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F018-metaengine-filteron-pushdown",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !usesMetaengine(ctx) {
-				return nil, nil
-			}
+			var out []finding.Finding
 
-			pos, ok := firstCallPos(ctx, "metaengine", "FilterOn")
-			if !ok {
-				return nil, nil
-			}
+			for _, sc := range coachingScopes(ctx) {
+				if !importsPathIn(sc.files, "go-cqrs-lite/metaengine") {
+					continue
+				}
 
-			suggestion := "Use metaengine.FilterOnField for declarative filters that enable " +
-				"WHERE-clause pushdown (O(logN) indexed lookup instead of O(N) scan). " +
-				"FilterOnField accepts a column name and comparison operator, " +
-				"allowing the SQLite/Postgres engine to use json_extract() indexes."
+				pos, ok := firstCallPosIn(ctx.Fset, sc.files, "metaengine", "FilterOn")
+				if !ok {
+					continue
+				}
 
-			if projectHasCall(ctx, "metaengine", "FilterOnField") {
-				return singleInfoFinding(
+				suggestion := "Use metaengine.FilterOnField for declarative filters that enable " +
+					"WHERE-clause pushdown (O(logN) indexed lookup instead of O(N) scan). " +
+					"FilterOnField accepts a column name and comparison operator, " +
+					"allowing the SQLite/Postgres engine to use json_extract() indexes."
+
+				if hasCallIn(sc.files, "metaengine", "FilterOnField") {
+					out = append(out, singleInfoFinding(
+						ctx,
+						"F018",
+						"mixed metaengine usage: FilterOnField (pushdown) and FilterOn (closure) "+
+							"— the FilterOn call still forces in-memory filtering for that query",
+						suggestion, pos, finding.ConfidenceLow,
+					)...)
+					continue
+				}
+
+				out = append(out, singleInfoFinding(
 					ctx,
 					"F018",
-					"mixed metaengine usage: FilterOnField (pushdown) and FilterOn (closure) "+
-						"— the FilterOn call still forces in-memory filtering for that query",
-					suggestion, pos, finding.ConfidenceLow,
-				), nil
+					"metaengine.FilterOn uses closure-based filtering which prevents "+
+						"SQL pushdown — queries scan all rows and filter in Go memory",
+					suggestion, pos, finding.ConfidenceMedium,
+				)...)
 			}
 
-			return singleInfoFinding(
-				ctx,
-				"F018",
-				"metaengine.FilterOn uses closure-based filtering which prevents "+
-					"SQL pushdown — queries scan all rows and filter in Go memory",
-				suggestion, pos, finding.ConfidenceMedium,
-			), nil
+			return out, nil
 		},
 	)
 }
@@ -63,49 +70,49 @@ func NewF019Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F019-metaengine-missing-volume-hint",
 		func(_ context.Context) ([]finding.Finding, error) {
-			if !usesMetaengine(ctx) {
-				return nil, nil
-			}
+			var out []finding.Finding
 
-			if !projectHasCall(ctx, "metaengine", "Query") &&
-				!projectHasCallAny(
-					ctx,
-					"metaengine",
-					"On",
-					"OnTyped",
-					"OnRecord",
-					"OnRecordTyped",
-				) {
-				return nil, nil
-			}
-
-			if projectHasCall(ctx, "metaengine", "Volume") {
-				return nil, nil
-			}
-
-			pos, ok := firstCallPos(ctx, "metaengine", "Query")
-			if !ok {
-				pos, ok = firstCallPos(ctx, "metaengine", "On")
-			}
-
-			if !ok {
-				pos, ok = firstFilePos(ctx)
-				if !ok {
-					return nil, nil
+			for _, sc := range coachingScopes(ctx) {
+				if !importsPathIn(sc.files, "go-cqrs-lite/metaengine") {
+					continue
 				}
+
+				if !hasCallIn(sc.files, "metaengine", "Query") &&
+					!hasCallIn(sc.files, "metaengine",
+						"On", "OnTyped", "OnRecord", "OnRecordTyped") {
+					continue
+				}
+
+				if hasCallIn(sc.files, "metaengine", "Volume") {
+					continue
+				}
+
+				pos, ok := firstCallPosIn(ctx.Fset, sc.files, "metaengine", "Query")
+				if !ok {
+					pos, ok = firstCallPosIn(ctx.Fset, sc.files, "metaengine", "On")
+				}
+
+				if !ok {
+					pos, ok = firstFilePosIn(ctx.Fset, sc.files)
+					if !ok {
+						continue
+					}
+				}
+
+				out = append(out, singleInfoFinding(
+					ctx,
+					"F019",
+					"metaengine query declarations lack a Volume hint — the cost-based "+
+						"planner cannot distinguish high-volume collections from point-lookups",
+					"Add .Volume(N) to query declarations (e.g. Volume(100000) for a "+
+						"large collection, Volume(100) for a small one). This enables the "+
+						"planner to choose memory engines for small collections and SQLite "+
+						"for large ones, and to prioritize index creation.",
+					pos, finding.ConfidenceLow,
+				)...)
 			}
 
-			return singleInfoFinding(
-				ctx,
-				"F019",
-				"metaengine query declarations lack a Volume hint — the cost-based "+
-					"planner cannot distinguish high-volume collections from point-lookups",
-				"Add .Volume(N) to query declarations (e.g. Volume(100000) for a "+
-					"large collection, Volume(100) for a small one). This enables the "+
-					"planner to choose memory engines for small collections and SQLite "+
-					"for large ones, and to prioritize index creation.",
-				pos, finding.ConfidenceLow,
-			), nil
+			return out, nil
 		},
 	)
 }

@@ -13,12 +13,9 @@ import (
 )
 
 // TestGraphFallback_E2E_SQLiteStore runs the full Store pipeline against a real
-// non-graph engine: the SQLite engine supports ADTGraph only via the degraded
-// multimap BFS fallback (ADTGraph is in SQLiteEngineProfile().DegradedADTs).
-//
-// This closes the TODO gap: the memory-based multimapOnlyEngine wrapper proved
-// the fallback logic, but a real SQL-backed engine exercises the actual
-// MultimapBackend SQL statements through Store.Apply → Store.Execute.
+// SQLite engine. Since SQLite now implements graphBackend natively via recursive
+// CTE (ADTGraph declared as ComplexityODegree, not degraded), this test
+// exercises the native CTE path through Store.Apply → Store.Execute.
 func TestGraphFallback_E2E_SQLiteStore(t *testing.T) {
 	t.Parallel()
 

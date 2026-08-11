@@ -14,6 +14,25 @@ func eventCount(ctx *analyzer.AnalysisContext) int {
 	return len(ctx.Registry.EventTypesEmitted)
 }
 
+// eventCountIn returns the number of distinct event types emitted from files
+// in the given slice. Used by per-module coaching rules to count events per
+// module instead of workspace-wide.
+func eventCountIn(ctx *analyzer.AnalysisContext, files []*analyzer.GoFile) int {
+	paths := make(map[string]bool, len(files))
+	for _, gf := range files {
+		paths[gf.Path] = true
+	}
+
+	count := 0
+	for _, emission := range ctx.Registry.EventTypesEmitted {
+		if paths[emission.File] {
+			count++
+		}
+	}
+
+	return count
+}
+
 // distinctAggregateCount returns the number of distinct aggregate types
 // inferred from event type prefixes (the segment before the first dot).
 // Event types without dots each count as a separate aggregate.
@@ -32,16 +51,48 @@ func distinctAggregateCount(ctx *analyzer.AnalysisContext) int {
 	return len(aggregates)
 }
 
+// distinctAggregateCountIn returns the number of distinct aggregate types
+// emitted from files in the given slice. Used by per-module coaching rules.
+func distinctAggregateCountIn(ctx *analyzer.AnalysisContext, files []*analyzer.GoFile) int {
+	paths := make(map[string]bool, len(files))
+	for _, gf := range files {
+		paths[gf.Path] = true
+	}
+
+	aggregates := make(map[string]bool)
+	for eventType, emission := range ctx.Registry.EventTypesEmitted {
+		if !paths[emission.File] {
+			continue
+		}
+
+		prefix := eventType
+		if idx := strings.Index(eventType, "."); idx > 0 {
+			prefix = eventType[:idx]
+		}
+
+		aggregates[prefix] = true
+	}
+
+	return len(aggregates)
+}
+
 // hasPIIInEventPayloads scans event payload structs for PII-like field names.
 // Returns the position of the first PII field found.
 func hasPIIInEventPayloads(ctx *analyzer.AnalysisContext) (token.Position, bool) {
+	return hasPIIInEventPayloadsIn(ctx.Fset, ctx.GoFiles)
+}
+
+func hasPIIInEventPayloadsIn(
+	fset *token.FileSet,
+	files []*analyzer.GoFile,
+) (token.Position, bool) {
 	piiFields := []string{
 		"email", "phone", "ssn", "password", "address",
 		"creditcard", "credit_card", "passport", "iban",
 		"national_id", "dob", "birthdate",
 	}
 
-	for _, gf := range ctx.GoFiles {
+	for _, gf := range files {
 		if gf.IsTest {
 			continue
 		}
@@ -72,7 +123,7 @@ func hasPIIInEventPayloads(ctx *analyzer.AnalysisContext) (token.Position, bool)
 						lower := strings.ToLower(name.Name)
 						for _, pii := range piiFields {
 							if strings.Contains(lower, pii) {
-								return ctx.Fset.Position(field.Pos()), true
+								return fset.Position(field.Pos()), true
 							}
 						}
 					}
@@ -111,12 +162,19 @@ func hasTimeBasedPatternsIn(
 // hasTraversalPatterns detects signals that the domain needs graph-like
 // traversal (recursive queries, ancestry, path-finding).
 func hasTraversalPatterns(ctx *analyzer.AnalysisContext) (token.Position, bool) {
+	return hasTraversalPatternsIn(ctx.Fset, ctx.GoFiles)
+}
+
+func hasTraversalPatternsIn(
+	fset *token.FileSet,
+	files []*analyzer.GoFile,
+) (token.Position, bool) {
 	keywords := []string{
 		"Traverse", "Ancestor", "Descendant", "ShortestPath",
 		"Path", "Neighbor", "Adjacency", "Hierarchy",
 	}
 
-	for _, gf := range ctx.GoFiles {
+	for _, gf := range files {
 		if gf.IsTest {
 			continue
 		}
@@ -129,13 +187,13 @@ func hasTraversalPatterns(ctx *analyzer.AnalysisContext) (token.Position, bool) 
 
 			for _, kw := range keywords {
 				if strings.Contains(fn.Name.Name, kw) {
-					return ctx.Fset.Position(fn.Pos()), true
+					return fset.Position(fn.Pos()), true
 				}
 			}
 		}
 	}
 
-	for _, gf := range ctx.GoFiles {
+	for _, gf := range files {
 		if gf.IsTest {
 			continue
 		}
@@ -162,7 +220,7 @@ func hasTraversalPatterns(ctx *analyzer.AnalysisContext) (token.Position, bool) 
 		})
 
 		if found {
-			return ctx.Fset.Position(gf.AST.Pos()), true
+			return fset.Position(gf.AST.Pos()), true
 		}
 	}
 
