@@ -112,23 +112,46 @@ func (s *Store) ReplanLayout(ctx context.Context, pc *PriorityConfig) ([]LayoutD
 	return diffs, nil
 }
 
-// ConfirmRebuild executes the layout diffs that require operator confirmation.
-// Auto-rebuild diffs are NOT executed by this method — they should be handled
-// by ReplanLayout + Backfill.
+// ConfirmRebuild executes the layout rebuilds that require operator confirmation
+// (diffs with AutoRebuild=false). It replays events from the attached EventLog
+// into the affected projections, respecting the same idempotency safety as
+// Backfill.
 //
-// This is a safety mechanism: large projection rebuilds require explicit
-// operator approval to prevent accidental massive parallel rebuilds.
+// Without an attached EventLog, ConfirmRebuild returns an error — it cannot
+// rebuild projections without the event history.
+//
+// Auto-rebuild diffs (AutoRebuild=true) are NOT executed by this method; they
+// are handled by ReplanLayout + Backfill when the threshold permits.
 func (s *Store) ConfirmRebuild(ctx context.Context, diffs []LayoutDiff) error {
+	confirmed := make([]LayoutDiff, 0, len(diffs))
 	for _, d := range diffs {
-		if d.AutoRebuild {
-			continue // auto-rebuilds are handled separately
+		if !d.AutoRebuild {
+			confirmed = append(confirmed, d)
 		}
-
-		// In the spike implementation, we just log the confirmation.
-		// In production, this would trigger the actual rebuild.
 	}
 
-	return nil
+	if len(confirmed) == 0 {
+		return nil
+	}
+
+	if s.eventLog == nil {
+		return fmt.Errorf(
+			"metaengine.Store.ConfirmRebuild: %d diff(s) require rebuild but no EventLog is attached",
+			len(confirmed),
+		)
+	}
+
+	events := s.eventLog.Events()
+	if len(events) == 0 {
+		return nil
+	}
+
+	queryFilter := make(map[string]bool, len(confirmed))
+	for _, d := range confirmed {
+		queryFilter[d.QueryName] = true
+	}
+
+	return s.replayEvents(ctx, events, queryFilter, false)
 }
 
 // sortedQueryNames returns query names in sorted order for deterministic output.

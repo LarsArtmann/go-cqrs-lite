@@ -348,6 +348,8 @@ func (s *Store) Doctor(ctx context.Context) string {
 		b.WriteString("  drift: none\n")
 	}
 
+	b.WriteString(s.LayoutDoctorSection())
+
 	return b.String()
 }
 

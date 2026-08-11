@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ProjectionRole defines the purpose of a projection on a specific engine
@@ -97,14 +100,13 @@ func (s *Store) RemoveEngine(ctx context.Context, name string) error {
 // Backfill replays all events from the attached EventLog into all projections.
 // This is used after AddEngine to populate new projections on the added engine.
 //
-// WARNING: Backfill replays ALL events, which means projections that already
-// have data will receive duplicate events. For insert/remove folds (Map ADT),
-// this is safe (idempotent — same key overwrites). For counter/set folds, it
-// is NOT safe (double-counting). Use Backfill only on fresh stores or clear
-// projections first.
+// Backfill detects non-idempotent fold types (Counter, Graph, Log, Multimap,
+// Vector, Search, Spatial, and Map-update) and REFUSES to replay by default —
+// replaying these would silently double-count or duplicate data. To override
+// (e.g. when the target projections are known-empty), pass WithBackfillForce().
 //
 // If no EventLog is attached, Backfill returns nil without error.
-func (s *Store) Backfill(ctx context.Context) error {
+func (s *Store) Backfill(ctx context.Context, opts ...BackfillOption) error {
 	if s.eventLog == nil {
 		return nil
 	}
@@ -114,13 +116,168 @@ func (s *Store) Backfill(ctx context.Context) error {
 		return nil
 	}
 
+	cfg := backfillConfig{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	return s.replayEvents(ctx, events, nil, cfg.force)
+}
+
+// replayEvents replays a slice of events through the fold pipeline WITHOUT
+// recording them to the EventLog (they are already there). When queryFilter is
+// non-nil, only folds for the named queries are applied. When force is false,
+// the method refuses if any affected query has non-idempotent folds.
+func (s *Store) replayEvents(
+	ctx context.Context,
+	events []EventInput,
+	queryFilter map[string]bool,
+	force bool,
+) error {
+	if !force {
+		var nonIdem []string
+
+		s.mu.RLock()
+		for _, name := range sortedQueryNames(s.queries) {
+			if queryFilter != nil && !queryFilter[name] {
+				continue
+			}
+
+			for _, fold := range s.queries[name].QueryFolds() {
+				if !isIdempotentFold(fold) {
+					nonIdem = append(nonIdem,
+						fmt.Sprintf("%s/%s(%s)", name, fold.EventType(), fold.Kind()))
+				}
+			}
+		}
+		s.mu.RUnlock()
+
+		if len(nonIdem) > 0 {
+			return fmt.Errorf(
+				"metaengine: %d non-idempotent fold(s): %s — "+
+					"replaying would double-count or duplicate data; "+
+					"use force/WithBackfillForce() on empty projections",
+				len(nonIdem),
+				strings.Join(nonIdem, ", "),
+			)
+		}
+	}
+
 	for _, evt := range events {
-		if err := s.Apply(ctx, evt.Type, evt.Payload); err != nil {
-			return fmt.Errorf("metaengine.Store.Backfill: replay %s: %w", evt.Type, err)
+		if err := s.applyReplay(ctx, evt.Type, evt.Payload, queryFilter); err != nil {
+			return fmt.Errorf("metaengine: replay %s: %w", evt.Type, err)
 		}
 	}
 
 	return nil
+}
+
+// applyReplay dispatches an event through matching folds WITHOUT recording to
+// the EventLog. When queryFilter is non-nil, only folds for the named queries
+// are applied.
+func (s *Store) applyReplay(
+	ctx context.Context,
+	eventType string,
+	payload any,
+	queryFilter map[string]bool,
+) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	type foldTask struct {
+		q    queryMeta
+		fold Fold
+	}
+
+	byEngine := make(map[Engine][]foldTask)
+
+	for _, name := range sortedQueryNames(s.queries) {
+		if queryFilter != nil && !queryFilter[name] {
+			continue
+		}
+
+		q := s.queries[name]
+
+		foldIdx, ok := q.QueryFoldByEvent()[eventType]
+		if !ok {
+			continue
+		}
+
+		fold := q.QueryFolds()[foldIdx]
+		eng := q.QueryEngine()
+		byEngine[eng] = append(byEngine[eng], foldTask{q: q, fold: fold})
+	}
+
+	for _, eng := range s.engines {
+		tasks, ok := byEngine[eng]
+		if !ok {
+			continue
+		}
+
+		applyAll := func(ctx context.Context) error {
+			for _, t := range tasks {
+				s.foldMu.Lock()
+
+				if ra, ok := t.fold.(RecordAwareFold); ok {
+					ra.SetCurrentRecord(record.Record{Type: eventType})
+				}
+
+				applyErr := s.applyFold(ctx, t.q, t.fold, payload)
+
+				s.foldMu.Unlock()
+
+				if applyErr != nil {
+					return fmt.Errorf(
+						"query %q fold for %s: %w",
+						t.q.QueryName(),
+						eventType,
+						applyErr,
+					)
+				}
+			}
+
+			return nil
+		}
+
+		if tx, ok := eng.(Transactional); ok {
+			if err := tx.RunInTx(ctx, applyAll); err != nil {
+				return fmt.Errorf("batch apply on %s: %w", eng.Profile().Name, err)
+			}
+		} else {
+			if err := applyAll(ctx); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// BackfillOption configures Backfill behavior.
+type BackfillOption func(*backfillConfig)
+
+type backfillConfig struct {
+	force bool
+}
+
+// WithBackfillForce skips the idempotency check. Use ONLY when the target
+// projections are known-empty (e.g. a freshly added engine). Replaying events
+// into non-empty projections with non-idempotent folds will corrupt data.
+func WithBackfillForce() BackfillOption {
+	return func(c *backfillConfig) { c.force = true }
+}
+
+// isIdempotentFold reports whether replaying this fold produces the same result
+// as the first application. Insert/Remove/Set folds are idempotent (overwrite or
+// no-op). Update/Count/Edge/Multi/Append/Vector/Search/Spatial folds are NOT
+// idempotent (they accumulate or depend on previous state).
+func isIdempotentFold(f Fold) bool {
+	switch f.Kind() {
+	case FoldInsert, FoldRemove, FoldSet, FoldSkip:
+		return true
+	default:
+		return false
+	}
 }
 
 // EngineNames returns the names of all registered engines.
