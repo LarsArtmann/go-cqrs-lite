@@ -24,6 +24,8 @@ LAYER[snapshot]=2
 LAYER[projection]=2
 LAYER[idempotency]=2
 LAYER[deriver]=2
+LAYER[commandlifecycle]=2
+LAYER[commandlifecycle/projections]=3
 LAYER[listing]=3
 LAYER[decider]=3
 LAYER[graph]=3
@@ -145,6 +147,10 @@ EXCEPTIONS[command]="storage/memory"
 # listing (L3) — test-only: middleware/BDD/example/benchmark tests
 EXCEPTIONS[listing]="storage/memory"
 
+# commandlifecycle (L2) — test-only: middleware (retry integration tests),
+# storage/memory (recorder + middleware tests)
+EXCEPTIONS[commandlifecycle]="middleware storage/memory"
+
 # projectionhost (L3) — storage/memory test-only (integration/stress tests);
 # otel PRODUCTION (tracing in worker.go, options.go, worker_drain.go);
 # testutil + testutil/pgtestcontainer test-only (host + PG container tests)
@@ -177,6 +183,8 @@ DEP_BUDGET[snapshot]=5
 DEP_BUDGET[projection]=2
 DEP_BUDGET[idempotency]=4
 DEP_BUDGET[deriver]=4
+DEP_BUDGET[commandlifecycle]=6
+DEP_BUDGET[commandlifecycle/projections]=4
 DEP_BUDGET[decider]=10
 DEP_BUDGET[graph]=3
 DEP_BUDGET[scenario]=3

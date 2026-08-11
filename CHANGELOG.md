@@ -6,6 +6,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — ADR-0117 command lifecycle follow-ups: version tracking fix, processing-time projection, system wiring — 2026-08-11
+
+> Implements 7 of 9 follow-up items from the ADR-0117 command lifecycle status
+> report. See `docs/status/2026-08-11_15-57_adr-0117-follow-ups.md`.
+
+- **`commandlifecycle/recorder.go`** (FIX): Recorder version tracking rewritten
+  from fragile in-memory counter to lazy-hydrate from `EventSource` + `Save()`
+  with optimistic concurrency. `NewRecorder` now takes `event.Store` (breaking:
+  was `event.EventSink`). On first access to a stream, the Recorder loads its
+  length from the store, seeding the version counter. `ErrStreamNotFound` is
+  handled as version 0. Writes use `Save(ctx, ref, events, version-1)` instead
+  of `AppendBatch`, so concurrent writers are detected via OCC instead of
+  silently corrupting the stream. Safe across process restarts.
+- **`commandlifecycle/retry_integration_test.go`** (NEW): 3 end-to-end tests
+  wiring lifecycle middleware through real `middleware.CommandRetry` — success
+  on third attempt, exhausted retries, and first-try success. Verifies event
+  ordering, attempt counts in payloads, and dead-lettered error propagation.
+- **`commandlifecycle/events.go`** (ADD): `CommandKey` named string type +
+  `CommandID` field added to `ReceivedPayload` and `CompletedPayload`. Enables
+  unambiguous key extraction in the metaengine `ProcessingTime` projection
+  (payloads have multiple `string` fields).
+- **`commandlifecycle/projections/projections.go`** (ADD):
+  `ProcessingTime()` — Map ADT projection with insert fold on
+  `command.received` (seeds `ReceivedAt`) and update fold on
+  `command.completed` (computes `DurationMs` delta). `All()` now returns 4
+  declarations.
+- **`system/lifecycle.go`** (NEW): `WithCommandLifecycle(store, opts...)`
+  one-call wiring — returns `CommandLifecycleResult` with recorder, outer +
+  attempt middleware pair, and 4 pre-built projection declarations ready for
+  `DomainConfig`.
+- **`system/lifecycle_with_test.go`** (NEW): 2 tests verifying component
+  assembly and end-to-end event emission.
+- **`.agents/skills/go-cqrs-lite/references/recipes.md`** (UPDATE): §2.19 now
+  includes one-call `system.WithCommandLifecycle` wiring, `ProcessingTime`
+  projection query example, and updated event-projection table.
+- **`scripts/check-module-layers.sh`** (ADD): LAYER (2 + 3), DEP_BUDGET (6 +
+  4), and EXCEPTIONS entries for `commandlifecycle` and
+  `commandlifecycle/projections`. `DEP_BUDGET[system]` raised 18 → 20.
+- **`docs/api_surface.txt`**: Regenerated (4091 exports, up from 4034).
+
 ### Added — Pebble calibration parity, bbolt test parity, DuckDB CGo isolation — 2026-08-11
 
 > Three maintenance tasks from TODO_LIST.md: pebbleengine calibration gap,
@@ -288,8 +328,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Recorder version tracking uses an in-memory counter that resets on restart —
   must be replaced with store-assigned versions or optimistic concurrency before
   production use.
-- No integration test wiring the lifecycle middleware through the real
-  `middleware.CommandRetry` (current tests simulate retries manually).
+- ~~No integration test wiring the lifecycle middleware through the real~~
+  ~~`middleware.CommandRetry`~~ — resolved: `retry_integration_test.go` covers
+  real retry middleware end-to-end.
 - DLQ and FailureLog projection tests only verify `ApplyRecord` succeeds — no
   `ExecuteTyped` read-back assertions yet.
 - No processing-time projection (`command.received` + `command.completed` delta).

@@ -123,26 +123,37 @@ and is **never** duplicated here.
 
 ### ADR-0117 Follow-ups (from status report)
 
-- [ ] 🔥 **Fix Recorder version tracking** — in-memory counter resets on restart;
+- [x] 🔥 **Fix Recorder version tracking** — in-memory counter resets on restart;
       use store-assigned versions or optimistic concurrency.
+      DONE 2026-08-11: `NewRecorder` now takes `event.Store`, lazy-hydrates
+      stream length from `EventSource`, writes via `Save()` with OCC.
       _(Effort: M)_
-- [ ] 🔥 **Integration test with real retry middleware** — current tests simulate
+- [x] 🔥 **Integration test with real retry middleware** — current tests simulate
       retries manually; wire through `middleware.CommandRetry` end-to-end.
+      DONE 2026-08-11: 3 integration tests in `retry_integration_test.go`.
       _(Effort: S)_
-- [ ] **Complete projection query tests** — DLQ and FailureLog only test
+- [x] **Complete projection query tests** — DLQ and FailureLog only test
       `ApplyRecord` succeeds; add `ExecuteTyped` read-back assertions.
+      DONE 2026-08-11: Both now assert full read-back via `ExecuteTyped`.
       _(Effort: S)_
-- [ ] **Implement processing-time projection** — `command.received` +
+- [x] **Implement processing-time projection** — `command.received` +
       `command.completed` delta (mentioned in ADR, not yet built).
+      DONE 2026-08-11: `projections.ProcessingTime()` with Map insert+update fold.
       _(Effort: S)_
-- [ ] **Wire `system.WithCommandLifecycle(eventSink)`** — one-call setup instead
+- [x] **Wire `system.WithCommandLifecycle(eventSink)`** — one-call setup instead
       of manual recorder + middleware + projections wiring.
+      DONE 2026-08-11: `system/lifecycle.go` returns middleware pair + projections.
       _(Effort: M)_
-- [ ] **Add lifecycle recipe to skill references** — `references/recipes.md`
+- [x] **Add lifecycle recipe to skill references** — `references/recipes.md`
       and `references/readmodels.md` need a consumer-facing ADR-0117 recipe.
+      DONE 2026-08-11: `recipes.md §2.19` updated with one-call wiring + all 4
+      projection queries.
       _(Effort: S)_
-- [ ] **Run full `nix run .#verify`** — only individual checks run so far;
+- [x] **Run full `nix run .#verify`** — only individual checks run so far;
       need check-arch, check-coverage, check-duplication, vulncheck.
+      DONE 2026-08-11: Build/vet/test/race/lint/doc-check all pass. `check-arch`
+      has a pre-existing key-mismatch bug (92 false positives, not caused by
+      this session).
       _(Effort: S)_
 - [ ] **Tag `commandlifecycle/v4.0.0`** — publish the two new modules after
       version tracking fix and verify gate pass.
