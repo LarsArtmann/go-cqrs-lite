@@ -15,7 +15,7 @@ func TestUniversalADT_DegradedDiagnosticShowsCostPenalty(t *testing.T) {
 	t.Parallel()
 
 	engine := &fakeEngine{profile: metaengine.EngineProfile{
-		Name:     "degraded-cost-test",
+		Name:      "degraded-cost-test",
 		NsPerRead: 500,
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap: metaengine.ComplexityON,
@@ -70,9 +70,9 @@ func TestUniversalADT_DegradedRecommendsNativeEngine(t *testing.T) {
 
 	// Remote native engine: O(1) but high RTT makes it more expensive overall.
 	nativeEng := &fakeEngine{profile: metaengine.EngineProfile{
-		Name:        "slow-native",
-		NsPerRead:   100,
-		NetworkRTT:  10 * time.Millisecond,
+		Name:       "slow-native",
+		NsPerRead:  100,
+		NetworkRTT: 10 * time.Millisecond,
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap: metaengine.ComplexityO1,
 		},

@@ -92,7 +92,8 @@ func TestLayoutCommand_Verbose(t *testing.T) {
 	t.Parallel()
 
 	bin := buildBinary(t)
-	out, err := exec.Command(bin, "layout", "--verbose", "--layout", "kv", "--priority", "balanced").CombinedOutput()
+	out, err := exec.Command(bin, "layout", "--verbose", "--layout", "kv", "--priority", "balanced").
+		CombinedOutput()
 	if err != nil {
 		t.Fatalf("layout command failed: %v\n%s", err, out)
 	}

@@ -68,11 +68,11 @@ type ListPhasesFlags struct{}
 // LayoutFlags holds flags for the layout subcommand — pre-deployment "what if"
 // exploration of the metaengine layout cost model.
 type LayoutFlags struct {
-	Priority string `default:""    flag:"priority" help:"Filter to a single priority: balanced, read-speed, write-speed, storage-space (default: show all)"`
-	Layout   string `default:""    flag:"layout"   help:"Filter to a single storage layout: kv, lsm, row, columnar (default: show all)"`
-	Format   string `default:"auto" flag:"format"   help:"Output format: auto, table, text, json"`
-	Output   string `default:""     flag:"output"   help:"Output file (default: stdout)"`
-	Verbose  bool   `default:"false" flag:"verbose" help:"Show cost breakdown (ReadCost, WriteCost, StorageCost) for each layout option"`
+	Priority string `default:""      flag:"priority" help:"Filter to a single priority: balanced, read-speed, write-speed, storage-space (default: show all)"`
+	Layout   string `default:""      flag:"layout"   help:"Filter to a single storage layout: kv, lsm, row, columnar (default: show all)"`
+	Format   string `default:"auto"  flag:"format"   help:"Output format: auto, table, text, json"`
+	Output   string `default:""      flag:"output"   help:"Output file (default: stdout)"`
+	Verbose  bool   `default:"false" flag:"verbose"  help:"Show cost breakdown (ReadCost, WriteCost, StorageCost) for each layout option"`
 }
 
 // loadProfileAndCodec resolves the workload profile and payload codec from

@@ -101,21 +101,28 @@ func parseLayoutFilter(s string) (string, bool) {
 	if s == "" {
 		return "", true
 	}
+
 	for _, m := range layoutMeta {
 		if strings.EqualFold(m.name, s) || strings.EqualFold(string(m.layout), s) {
 			return m.name, true
 		}
 	}
+
 	return "", false
 }
 
 func layoutHandler(_ context.Context, _ *AppConfig, flags *LayoutFlags) error {
 	priorities := allPriorities
+
 	if flags.Priority != "" {
 		p, ok := parsePriority(flags.Priority)
 		if !ok {
-			fatalf("unknown priority %q (use: balanced, read-speed, write-speed, storage-space)", flags.Priority)
+			fatalf(
+				"unknown priority %q (use: balanced, read-speed, write-speed, storage-space)",
+				flags.Priority,
+			)
 		}
+
 		priorities = []metaengine.Priority{p}
 	}
 
@@ -125,32 +132,39 @@ func layoutHandler(_ context.Context, _ *AppConfig, flags *LayoutFlags) error {
 	}
 
 	var groups []layoutGroup
+
 	for _, m := range layoutMeta {
 		if layoutFilter != "" && m.name != layoutFilter {
 			continue
 		}
+
 		profile := layoutProfile(m.layout)
 		costs := metaengine.ScoreLayouts(profile)
 
 		var embedCost, normCost metaengine.LayoutCost
+
 		for _, c := range costs {
 			if c.Option == metaengine.LayoutEmbed {
 				embedCost = c
 			}
+
 			if c.Option == metaengine.LayoutNormalize {
 				normCost = c
 			}
 		}
 
 		grp := layoutGroup{Layout: m.name, Engines: m.engines}
+
 		for _, p := range priorities {
 			w := p.Weights()
 			embedScore := embedCost.ScoreWeighted(w)
 			normScore := normCost.ScoreWeighted(w)
+
 			selected := "Embed"
 			if normScore < embedScore {
 				selected = "Normalize"
 			}
+
 			margin := math.Abs(embedScore-normScore) / math.Max(embedScore, normScore) * 100
 
 			entry := layoutEntry{
@@ -168,8 +182,10 @@ func layoutHandler(_ context.Context, _ *AppConfig, flags *LayoutFlags) error {
 				entry.NormWrite = normCost.WriteCost
 				entry.NormStorage = normCost.StorageCost
 			}
+
 			grp.Entries = append(grp.Entries, entry)
 		}
+
 		groups = append(groups, grp)
 	}
 
@@ -203,10 +219,12 @@ func renderLayoutText(w *os.File, groups []layoutGroup, verbose bool) {
 
 		fmt.Fprintf(w, "  %-16s %-12s %12s %12s %10s\n",
 			"Priority", "Selected", "Embed", "Normalize", "Margin")
+
 		for _, e := range grp.Entries {
 			fmt.Fprintf(w, "  %-16s %-12s %12.2f %12.2f %9.1f%%\n",
 				e.Priority, e.Selected, e.EmbedScore, e.NormScore, e.MarginPct)
 		}
 	}
+
 	fmt.Fprintln(w)
 }
