@@ -56,12 +56,22 @@ UIs), denormalization wins. Genuinely per-workload.
 
 ## 4. The `[]Attachment` vs `[]AttachmentID` Insight
 
+### Constraint vs Intent — Two Different Things
+
 Initial thinking: the type distinction (`[]Attachment` vs `[]AttachmentID`)
 could express developer storage intent (embed vs. normalize).
 
-**Corrected:** `[]AttachmentID` is just a serializable pointer to
-`[]Attachment`. The type distinction tells the planner **nothing about desired
-layout** — it tells the planner **what data is literally in the event payload.**
+**Corrected.** There are two orthogonal axes that must not be conflated:
+
+| Axis | Who controls it | What it means |
+| --- | --- | --- |
+| **Domain shape (constraint)** | Developer (involuntarily) | What layouts are *physically possible* given the payload bytes |
+| **Storage intent (objective)** | Operator (voluntarily) | What layout to *prefer* given cost trade-offs |
+
+`[]AttachmentID` is not storage intent — it is **payload reality.** The developer
+chose to put IDs in the event (a domain modeling decision), and that choice
+*constrains* what the planner can do. It does not express a preference for any
+particular layout.
 
 | Event field type | What's in the payload | Embed possible? | Split possible? | Shared collection possible? |
 | --- | --- | --- | --- | --- |
@@ -70,13 +80,22 @@ layout** — it tells the planner **what data is literally in the event payload.
 | `[]AttachmentID` | Only IDs (no payload) | **No** — nothing to embed | **Yes** (store IDs) | **Yes** — but join requires the Attachment collection to exist elsewhere |
 | `[]*AttachmentID` | Only IDs | **No** | **Yes** | **Yes** — same as above |
 
-The planner can't embed bytes it wasn't given. `[]AttachmentID` *forces*
-normalization because the event literally doesn't contain the attachment data.
-That's not a storage decision — it's a consequence of what the developer chose
-to put in the event. **The planner reads reality, not intent.**
+The planner can't embed bytes it wasn't given. When the event carries
+`[]AttachmentID`, normalization is the *only valid layout* — not because the
+developer "wanted" normalization, but because embedding is physically
+impossible. Conversely, when the event carries `[]Attachment` full struct
+values, the planner CAN embed OR normalize — and the operator's priority
+decides which.
 
-**Conclusion: The developer expresses zero storage intent. Ever.** Layout is
-100% the operator's call via priorities + the planner's cost model.
+**This is not a contradiction.** The developer's type choice constrains the
+planner's option set (domain shape). The operator's priority selects within
+that option set (storage intent). A constraint that eliminates an option is not
+the same as an intent that expresses a preference.
+
+> **Key distinction:** `[]AttachmentID` *constrains* the planner (can't embed
+> absent data) but does NOT express storage *intent*. The developer expresses
+> zero storage intent — ever. Layout selection within the constraint set is
+> 100% the operator's call via priorities + the cost model.
 
 ---
 

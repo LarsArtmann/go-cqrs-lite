@@ -705,7 +705,11 @@ and is **never** duplicated here.
       `docs/status/2026-08-11_05-09_fold-inference-adr0116-layer1-status.md`.
 
       Not yet implemented (separate tasks below):
-      - Slice/struct normalization → see Phase 6b (operator-driven layout planning)
+      - **Fold inference gap:** `Infer()` does not decompose `[]Struct` fields
+        in *event types* (only handles `Items []T` in *result types* via
+        `collectionElementType`). This is a fold-generation gap, orthogonal to
+        Phase 6b layout planning. Layout planning decides physical shape
+        (embed vs normalize); fold inference generates the fold functions.
       - Fold inference override API
       - `InferFromNamedEvents()` for wire event types
       - Sort inference, composite keys, filter operators beyond `FilterEq`
@@ -729,6 +733,11 @@ and is **never** duplicated here.
 > Key insight: `[]Attachment` vs `[]AttachmentID` tells the planner what data
 > is in the payload, NOT what layout to pick. The planner reads reality, not
 > intent. Layout is 100% the operator's call.
+>
+> **Layout planning ≠ fold inference.** Fold inference (ADR-0116 Layer 1)
+> generates fold functions (how events map to projection entries). Layout
+> planning decides the physical storage shape of those projections (embed vs.
+> normalize within an engine). They are orthogonal concerns.
 
 - [ ] 🔥 **Operator priority system** — define `Priority` enum
       (`WriteSpeed` / `ReadSpeed` / `StorageSpace` / `Balanced`) and a priority

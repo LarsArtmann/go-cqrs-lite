@@ -289,16 +289,13 @@ It is Tier 3 (Aggregation) — conceptually aggregates Records into query-optimi
 
 ### Canonical Design Docs (read before working on metaengine)
 
-- [Project definition](docs/planning/meta-engine-project-definition.md)
-- [Design/vision](docs/planning/meta-engine-design.md)
-- [Assumptions & query-planning](docs/planning/meta-engine-assumptions-and-query-planning.md)
-- [Domain vocabulary](docs/METAENGINE_DOMAIN_LANGUAGE.md) (ADTs, fold DSL, cost model, 9 engines, key codec, projection adapter)
+
 
 ### v2 Architecture (ADRs 0111-0117)
 
 ES-native planner depends on the `Record` type ([ADR-0111](docs/adr/0111-record-type-extraction.md)) and understands typed records, not opaque `any` blobs. Tombstones are domain events ([ADR-0114](docs/adr/0114-tombstone-as-domain-event.md)), not mutable metadata. GraphBackend is deleted; `graph.GraphDriver` implements `metaengine.Engine` ([ADR-0113](docs/adr/0113-delete-graphbackend.md)). SQLite engine moves to `metaengine/sqliteengine/` ([ADR-0115](docs/adr/0115-sqlite-engine-extraction.md)). Auto-projection is layered ([ADR-0116](docs/adr/0116-layered-auto-projection.md)): 80% auto-generated from type inspection, 100% auto-routed. Command lifecycle (DLQ, retries) is event streams ([ADR-0117](docs/adr/0117-command-lifecycle-as-events.md)).
 
-Additional ADRs: [0061](docs/adr/0061-metaengine-sqlite-engine.md), [0062](docs/adr/0062-metaengine-dependency-boundary.md) (amended), [0063](docs/adr/0063-metaengine-pushdown.md), [0073](docs/adr/0073-metaengine-layout-planning.md), [0092](docs/adr/0092-duckdb-columnar-native-storage.md), [0093](docs/adr/0093-metaengine-replication-model.md), [0094](docs/adr/0094-metaengine-universal-adt-support.md), [0096](docs/adr/0096-iroh-distributed-engine-bridge-evaluation.md), [0098](docs/adr/0098-metaengine-persistence-enum.md).
+
 
 ### Live Cost Measurement (dynamic NetworkRTT / per-op latency)
 

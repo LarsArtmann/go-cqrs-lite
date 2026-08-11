@@ -1,8 +1,8 @@
 # ADR-0116: Layered Auto-Projection
 
 **Date:** 2026-08-06
-**Status:** Accepted (Layer 1 implemented)
-**Related:** ADR-0112 (ES-native metaengine), ADR-0111 (Record type)
+**Status:** Accepted (Layer 1 implemented; Layer 4 added by [ADR-0124](0124-operator-driven-layout-planning.md))
+**Related:** ADR-0112 (ES-native metaengine), ADR-0111 (Record type), ADR-0124 (operator-driven layout planning)
 
 ## Context
 
@@ -72,6 +72,12 @@ engine.
 
 Both auto-generated and explicit folds are routed by the cost-based planner to
 the best available engine. The consumer never touches infrastructure.
+
+> **Layer 4 (Physical Layout)** was added by
+> [ADR-0124](0124-operator-driven-layout-planning.md). It is orthogonal to
+> Layers 1–3: it decides embed vs. normalize within the chosen engine, based on
+> operator priorities. Layers 1–3 decide *which fold* and *which engine*;
+> Layer 4 decides *what physical shape the projection entries take*.
 
 ```
 Consumer: defines Commands, Events, Queries + relationships
