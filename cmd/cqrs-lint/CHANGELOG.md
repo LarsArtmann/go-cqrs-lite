@@ -5,6 +5,37 @@ Tags use the full module path: `cmd/cqrs-lint/vX.Y.Z`.
 
 ## [Unreleased]
 
+### Added — Per-module coaching rule migration — 2026-08-11
+
+> Completes the per-module feature profile feedback item (cqrs-htmx issue 2).
+> The infrastructure (`DetectFeaturesPerModule`, `ProfileForFile`) was already
+> wired; this session migrated 18 rules that still read the workspace-global
+> `ctx.FeatureProfile` to evaluate per-module. An example app's `ListenAndServe`
+> or SQLite import no longer flips `server=true` / `store=sqlite` for the
+> library module. See
+> `docs/status/2026-08-11_19-20_per-module-feature-profiles-cqrs-lint.md`.
+
+- **15 adoption coaching rules migrated to `coachingScopes`** — F003, F004,
+  F007, F009, F012, F013, F017, F022, F023, F024, F025, F026, F027, F028, F029
+  now iterate one `moduleScope` per Go module, evaluating each module's own
+  feature profile + file set independently. A library module (no server) is
+  no longer coached about missing OTel/Prometheus/transport/idempotency just
+  because an example sub-module has a server.
+- **3 resilience rules migrated to per-finding `ProfileForFile`** — B029
+  (retry middleware), B030 (circuit breaker), B031 (DLQ config) now check
+  `ctx.ProfileForFile(pos.Filename).HasServer` per finding, matching the
+  existing S002/S003/S006/S007 pattern.
+- **File-slice-scoped scan helpers** — all ctx-based scan helpers
+  (`importsPath`, `projectHasCallAny`, `projectHasSelector`, `firstCallPos`,
+  `firstFilePos`, `firstFuncDeclPos`, `firstCallByName`, `firstManualSortPos`,
+  `firstManualFilterPos`, `firstManualPaginationPos`, `firstManualAggregationPos`,
+  `firstNewReaderPos`, `hasTimeBasedPatterns`, `hasWebFrameworkHandlers`,
+  `countCalls`) now delegate to `In` variants that accept an explicit file slice.
+  Zero duplication — the ctx wrappers are one-line delegations.
+- **Per-module regression tests** — 9 tests verifying F003/F013/F022 library
+  suppression, F022 store isolation, B029/B031 library suppression, and
+  single-module backward compatibility.
+
 ### Added
 
 - **CSV and TSV output formats** — `--format csv` and `--format tsv` render findings as flat delimited tables (Rule, Severity, File, Line, Column, Message, Suggestion, Category, Confidence) via go-output's `delimited` renderer. Ideal for spreadsheet analysis, CI pipeline ingestion, and diffing finding sets between runs. Grouping (`--group-by`) is ignored for delimited formats since CSV/TSV are inherently flat.
