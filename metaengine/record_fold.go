@@ -42,6 +42,10 @@ func OnRecordTyped[E any](eventType string, sample E, handler any) Fold {
 }
 
 func onRecordFold[E any](eventType string, sample E, handler any) Fold {
+	if rs, ok := handler.(removeSignal); ok {
+		return &removeFold{eventType: eventType, sample: sample, valueType: rs.valueType}
+	}
+
 	handlerType := reflect.TypeOf(handler)
 	if handlerType == nil || handlerType.Kind() != reflect.Func {
 		panic(fmt.Sprintf(

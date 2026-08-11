@@ -13,7 +13,7 @@ go get github.com/larsartmann/go-cqrs-lite/listing/v4
 The `listing` module provides:
 
 - **Aggregate listing** with cursor-based pagination
-- **Tombstone detection** — tri-state status: Active, Tombstoned, Undetermined
+- **Soft-delete detection** — bi-state status: Active, Deleted
 - **Rebirth support** — undo soft-deletes via rebirth events
 - **Projection-backed SQL reader** for production
 - **In-memory reader** for testing

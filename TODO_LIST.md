@@ -628,34 +628,45 @@ and is **never** duplicated here.
 
 ### Phase 6: Auto-Projection (the killer feature)
 
-- [x] 🔥🔥 **Planner-time fold inference (ADR-0116 Layer 1)** — DONE
-      2026-08-11. The `metaengine.Infer(samples...)` API lets consumers declare
-      zero folds: the planner inspects event/query struct shapes at `Plan()`
-      time and auto-generates insert/update/delete folds. Implements:
-      convention detection (`*Created`/`*Updated`/`*Deleted` suffixes), key
-      field auto-detection (from query input type, falling back to `"ID"`),
+- [x] 🔥🔥 **Planner-time fold inference (ADR-0116 Layer 1)** — IMPLEMENTED
+      2026-08-11 (code complete, tests green, **NOT verify-gated**). The
+      `metaengine.Infer(samples...)` API lets consumers declare zero folds:
+      the planner inspects event/query struct shapes at `Plan()` time and
+      auto-generates insert/update/delete folds. Implements: convention
+      detection (`*Created`/`*Updated`/`*Deleted` suffixes), key field
+      auto-detection (from query input type, falling back to `"ID"`),
       field-name matching (incl. nested struct flattening via `srcPath []int`),
       filter auto-detection (query input fields → `FilterOnField`), collection
       result support (`R{Items []T}` → element type T). 12 tests, 145 total
-      green. ADR-0116 status updated to "Layer 1 implemented". API golden
-      regenerated (3993 exports). **Not recommended for production domain
-      models** — hides projection logic behind conventions; prefer explicit
-      `OnRecord`/`AutoInsert` folds. Disclaimer added to Go doc, ADR, and skill
-      reference.
-      
+      `go test` green (workspace mode). ADR-0116 status updated to "Layer 1
+      implemented". API golden regenerated (3993 exports).
+      **Not recommended for production domain models** — hides projection logic
+      behind conventions; prefer explicit `OnRecord`/`AutoInsert` folds.
+      Disclaimer added to Go doc, ADR, and skill reference.
+      **WARNING: `nix run .#verify` NOT YET RUN.** `nix fmt` not run. File
+      line-count violations likely (`query.go` at 417, limit 350). See
+      `docs/status/2026-08-11_05-09_fold-inference-adr0116-layer1-status.md`.
+
       Not yet implemented (separate tasks below):
       - Slices → separate collections (struct-composition-driven multi-collection)
       - Fold inference override API
+      - `InferFromNamedEvents()` for wire event types
+      - Sort inference, composite keys, filter operators beyond `FilterEq`
+- [ ] 🔥 **Run `nix run .#verify` for fold inference** — the Infer() feature
+      was committed without the full CI gate. Must fix: `nix fmt`, file
+      line-count violations (`query.go` 417 > 350 limit), lint, arch, dedup,
+      coverage, race. See status report for full gap list.
+      _(Effort: M)_
+- [ ] **Fold inference override API** — when auto-projection gets it wrong,
+      consumer can override with an explicit `OnRecord` fold for a specific
+      event/query pair. Override replaces (not supplements) the generated fold.
+      Without this, `Infer()` is all-or-nothing.
+      _(Effort: M)_
 - [ ] **Struct-composition-driven multi-collection** — when an event has a
       `[]Attachment` field and a query requests `MessageView` (which has
       `Attachments`), auto-generate a second collection for attachments.
       Planners sees the relationship and generates a join-aware read path.
       _(Effort: L)_
-- [ ] **Fold inference override API** — when auto-projection gets it wrong,
-      consumer can override with an explicit `OnRecord` fold for a specific
-      event/query pair. Override replaces (not supplements) the generated fold.
-      _(Effort: M)_
-
 ### Phase 7: Universal Engine Coverage
 
 - [ ] 🔥 **Multi-collection batch atomicity** — when one event triggers folds

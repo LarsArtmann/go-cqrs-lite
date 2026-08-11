@@ -13,6 +13,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > `Plan()` time and auto-generates insert/update/delete folds. **Not recommended
 > for production domain models** — hides projection logic behind naming
 > conventions; prefer explicit `OnRecord`/`AutoInsert` folds.
+>
+> **Verification status:** `go test` green (145/145, workspace mode). `nix run
+> .#verify` NOT YET RUN — `nix fmt`, lint, arch, dedup, coverage, and race
+> gates pending. `query.go` at 417 lines exceeds the 350-line CI limit (split
+> needed). See
+> `docs/status/2026-08-11_05-09_fold-inference-adr0116-layer1-status.md`.
 
 - **`metaengine.Infer(samples...)`** (**NEW**): planner-time fold inference.
   Pass event samples (`UserCreated{}`, `UserDeleted{}`) instead of explicit
