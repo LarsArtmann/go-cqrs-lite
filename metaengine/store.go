@@ -325,6 +325,12 @@ func (s *Store) ApplyRecord(
 
 // applyWithRecord dispatches a payload through all matching folds, setting the
 // Record context on RecordAwareFold implementations before invoke.
+//
+// Fold operations are grouped by engine and applied atomically: when an engine
+// implements Transactional, all its fold operations for this event execute in a
+// single RunInTx. This ensures that if one fold fails, the engine's transaction
+// rolls back — preserving the invariant that an event is an atomic batch boundary.
+// Cross-engine atomicity is NOT guaranteed (two-phase commit is not supported).
 func (s *Store) applyWithRecord(
 	ctx context.Context,
 	eventType string,
@@ -340,6 +346,14 @@ func (s *Store) applyWithRecord(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	// Collect matching folds grouped by engine for batch atomicity (ADR-0116 Phase 7).
+	type foldTask struct {
+		q    queryMeta
+		fold Fold
+	}
+
+	byEngine := make(map[Engine][]foldTask)
+
 	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
 		q := s.queries[name]
 
@@ -353,8 +367,35 @@ func (s *Store) applyWithRecord(
 			ra.SetCurrentRecord(rec)
 		}
 
-		if err := s.applyFold(ctx, q, fold, payload); err != nil {
-			return fmt.Errorf("query %q fold for %s: %w", q.QueryName(), eventType, err)
+		eng := q.QueryEngine()
+		byEngine[eng] = append(byEngine[eng], foldTask{q: q, fold: fold})
+	}
+
+	// Apply each engine's fold operations, using RunInTx where available.
+	for _, eng := range s.engines {
+		tasks, ok := byEngine[eng]
+		if !ok {
+			continue
+		}
+
+		applyAll := func(ctx context.Context) error {
+			for _, t := range tasks {
+				if err := s.applyFold(ctx, t.q, t.fold, payload); err != nil {
+					return fmt.Errorf("query %q fold for %s: %w", t.q.QueryName(), eventType, err)
+				}
+			}
+
+			return nil
+		}
+
+		if tx, ok := eng.(Transactional); ok {
+			if err := tx.RunInTx(ctx, applyAll); err != nil {
+				return fmt.Errorf("batch apply on %s: %w", eng.Profile().Name, err)
+			}
+		} else {
+			if err := applyAll(ctx); err != nil {
+				return err
+			}
 		}
 	}
 
