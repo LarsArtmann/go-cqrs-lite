@@ -7,6 +7,7 @@ Tags use the full module path: `cmd/cqrs-lint/vX.Y.Z`.
 
 ### Added
 
+- **CSV and TSV output formats** — `--format csv` and `--format tsv` render findings as flat delimited tables (Rule, Severity, File, Line, Column, Message, Suggestion, Category, Confidence) via go-output's `delimited` renderer. Ideal for spreadsheet analysis, CI pipeline ingestion, and diffing finding sets between runs. Grouping (`--group-by`) is ignored for delimited formats since CSV/TSV are inherently flat.
 - **Scorecard SARIF output** — `cqrs-lint scorecard --format sarif` emits the adoption scorecard as a SARIF 2.1.0 report for CI integration (GitHub Code Scanning, Azure DevOps). Missing modules appear as info-level results; the adoption summary (coverage %, grade, used/missing counts) lives in `run.properties` for CI script extraction.
 - **Aggregate/module grouping in markdown output** — `--group-by aggregate` and `--group-by module` now work with `--format markdown`. Each group renders as a `## GroupName (N)` section with the findings formatted as markdown within that section. Previously grouping only affected text output.
 - **Scorecard markdown output** — `cqrs-lint scorecard --format markdown` (alias `md`) renders the adoption scorecard as a GitHub-flavored Markdown document with tables. Ideal for PR comments, README badges, and CI artifacts.

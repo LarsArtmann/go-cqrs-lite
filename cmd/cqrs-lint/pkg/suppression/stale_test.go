@@ -230,3 +230,61 @@ type Foo struct{}
 		t.Errorf("rule = %s, want block:A001", stale[0].Rule)
 	}
 }
+
+func TestAuditSuppressions_ClassifiesAllStatuses(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "example.go")
+
+	content := `package main
+
+//cqrs-lint:ignore(C007) this one is active
+type Handler struct{}
+
+//cqrs-lint:ignore(D002) this one is stale
+type Config struct{}
+
+//cqrs-lint:ignore(X999) this one has an unknown rule
+type Legacy struct{}
+`
+	_ = os.WriteFile(src, []byte(content), 0o644)
+
+	findings := []finding.Finding{
+		{Rule: "C007", Position: finding.Position{File: finding.FilePath(src), Line: 4}},
+	}
+
+	knownRuleIDs := map[string]bool{
+		"C007": true,
+		"D002": true,
+	}
+
+	entries := suppression.AuditSuppressions([]string{src}, findings, knownRuleIDs)
+	if len(entries) != 3 {
+		t.Fatalf("got %d entries, want 3", len(entries))
+	}
+
+	statusByRule := make(map[string]suppression.AuditStatus, len(entries))
+	for _, e := range entries {
+		statusByRule[e.Rule] = e.Status
+	}
+
+	if statusByRule["C007"] != suppression.AuditActive {
+		t.Errorf("C007 status = %s, want active", statusByRule["C007"])
+	}
+	if statusByRule["D002"] != suppression.AuditStale {
+		t.Errorf("D002 status = %s, want stale", statusByRule["D002"])
+	}
+	if statusByRule["X999"] != suppression.AuditUnknownRule {
+		t.Errorf("X999 status = %s, want unknown-rule", statusByRule["X999"])
+	}
+}
+
+func TestAuditSuppressions_EmptyFiles(t *testing.T) {
+	t.Parallel()
+
+	entries := suppression.AuditSuppressions(nil, nil, nil)
+	if len(entries) != 0 {
+		t.Errorf("got %d entries, want 0", len(entries))
+	}
+}

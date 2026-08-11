@@ -90,6 +90,20 @@ func NewServiceActor(serviceID string) ActorID {
 	return ActorID{kind: ActorService, raw: serviceID}
 }
 
+// NewActorID creates an ActorID from an explicit kind and raw string.
+// This is the generic constructor used when reconstructing from event
+// payloads or databases where the kind is already known. For new actors,
+// prefer the kind-specific constructors (NewUserActor, NewBotActor, etc.).
+func NewActorID(kind ActorKind, raw string) ActorID {
+	return ActorID{kind: kind, raw: raw}
+}
+
+// ParseActorKind converts a kind string ("user", "bot", "system", "service")
+// to its ActorKind value. Returns ActorUnknown and false for unrecognized strings.
+func ParseActorKind(s string) (ActorKind, bool) {
+	return parseActorKind(s)
+}
+
 // ParseActorID reconstructs an ActorID from its prefixed string form
 // ("kind:raw"). Returns an error if the format is invalid or the kind
 // prefix is unrecognized.

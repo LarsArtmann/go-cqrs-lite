@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-finding"
+	"github.com/larsartmann/go-output/delimited"
 )
 
 func TestFormatFindingsText_Empty(t *testing.T) {
@@ -176,6 +177,56 @@ func TestFormatFindingsText_HonorsForceColor(t *testing.T) {
 
 	if !hasANSI(buf.String()) {
 		t.Errorf("FORCE_COLOR=1 must produce ANSI in findings text, got plain: %q", buf.String())
+	}
+}
+
+func TestFindingsToTable_CSV(t *testing.T) {
+	t.Parallel()
+
+	out, err := delimited.RenderCSV(findingsToTable([]finding.Finding{sampleErrorFinding(t)}))
+	if err != nil {
+		t.Fatalf("RenderCSV failed: %v", err)
+	}
+
+	for _, col := range []string{"Rule", "Severity", "File", "Line", "Column", "Message", "Suggestion", "Category", "Confidence"} {
+		if !strings.Contains(out, col) {
+			t.Errorf("CSV output missing column %q, got: %q", col, out)
+		}
+	}
+
+	if !strings.Contains(out, "C001") {
+		t.Error("expected rule ID C001 in CSV output")
+	}
+
+	if !strings.Contains(out, "example.go") {
+		t.Error("expected file path example.go in CSV output")
+	}
+}
+
+func TestFindingsToTable_TSV_UsesTabs(t *testing.T) {
+	t.Parallel()
+
+	out, err := delimited.RenderTSV(findingsToTable([]finding.Finding{sampleErrorFinding(t)}))
+	if err != nil {
+		t.Fatalf("RenderTSV failed: %v", err)
+	}
+
+	if !strings.Contains(out, "\t") {
+		t.Errorf("TSV output must contain tab separators, got: %q", out)
+	}
+}
+
+func TestFindingsToTable_EmptyFindings_OnlyHeader(t *testing.T) {
+	t.Parallel()
+
+	csvOut, err := delimited.RenderCSV(findingsToTable(nil))
+	if err != nil {
+		t.Fatalf("RenderCSV failed: %v", err)
+	}
+
+	lines := strings.Split(strings.TrimSpace(csvOut), "\n")
+	if len(lines) != 1 {
+		t.Errorf("expected header-only CSV (1 line) for no findings, got %d lines: %q", len(lines), csvOut)
 	}
 }
 
