@@ -145,8 +145,12 @@ Capabilities:
 - Accept a **real workload trace** from the operator, or **synthesize** one
   from declared queries.
 
-> **Open question:** Benchmark mode as a CLI tool (extends existing
-> `cqrs-bench`), a runtime API, or both? See §10.
+**Delivery: both** — CLI for pre-deployment "what if" exploration, runtime API
+for ongoing monitoring + adaptive re-tuning.
+
+**Workload source: both** — synthesize from declared queries by default (zero
+operator effort, covers the 80% case), accept real operator-provided traces for
+calibration when precision matters.
 
 ---
 
@@ -172,9 +176,11 @@ foundation pays off here: the event stream is the source of truth, projections
 are rebuildable caches, so re-layout is always possible. Migration is never
 lossy.
 
-> **Open question:** When two engines hold the same projection simultaneously,
-> are they kept in sync via the normal fold pipeline (event → both projections
-> in one transaction) or via a separate replication mechanism? See §10.
+**Sync strategy: role-based** — active read + dual-use roles sync via the fold
+pipeline (event → all projections in one transaction, strong consistency).
+Backup + migration roles sync via async replication (eventual consistency,
+failure-isolated). This matches the operational reality: roles that serve live
+traffic need atomicity; roles that are safety nets don't.
 
 ---
 
@@ -221,19 +227,31 @@ choosing blind.
 
 ---
 
-## 11. Open Questions
+## 11. Resolved Decisions
 
-1. **Benchmark mode delivery:** CLI tool (extends `cqrs-bench`), runtime API,
-   or both? Does the operator provide a workload trace, or does the planner
-   synthesize one from declared queries?
+All four open questions resolved 2026-08-11:
 
-2. **Dual-use sync mechanism:** When two engines hold the same projection
-   simultaneously, sync via the fold pipeline (event → both projections in one
-   transaction) or via a separate replication mechanism?
+| Decision | Choice | Rationale |
+| --- | --- | --- |
+| **Benchmark delivery** | Both (CLI + runtime) | CLI for pre-deployment "what if" exploration. Runtime API for ongoing monitoring + adaptive re-tuning. |
+| **Benchmark workload** | Both (synthesize + real trace) | Synthesize from declared queries by default (zero operator effort). Accept real traces for calibration when precision matters. |
+| **Dual-use sync** | Role-based | Fold pipeline (strong) for active read + dual-use. Async replication (eventual) for backup + migration. Matches operational reality. |
+| **Re-layout trigger** | Threshold-based | Small projections (<N events) rebuild automatically. Large ones require explicit operator confirmation. Balances safety and automation. |
 
-3. **Re-layout trigger:** When the operator changes a priority and the planner
-   re-layouts, who triggers the rebuild? Automatic on priority change? Manual
-   operator command? Configurable?
+### Re-layout Trigger (detail)
+
+When the operator changes a priority, the planner:
+
+1. Computes the new plan and identifies which projections must change.
+2. For each affected projection, estimates rebuild cost (event count, data size).
+3. **Small projections** (below threshold): rebuild automatically from the event
+   log. No operator intervention.
+4. **Large projections** (above threshold): present the plan diff + cost estimate
+   and wait for explicit operator confirmation before rebuilding.
+
+The threshold is operator-configurable (default: e.g. 100K events or 1GB
+projected data). This prevents a global priority change from silently launching
+massive parallel rebuilds that could overwhelm the system.
 
 ---
 

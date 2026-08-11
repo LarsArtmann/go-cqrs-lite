@@ -597,7 +597,10 @@ func TestMultiPackageModulesHaveArchLintConfig(t *testing.T) {
 		// Find nested go.mod directories to exclude from package count.
 		nestedMods := make(map[string]bool)
 		_ = filepath.Walk(path, func(sub string, subInfo os.FileInfo, subErr error) error {
-			if subErr != nil || sub == path {
+			if subErr != nil {
+				return subErr
+			}
+			if sub == path {
 				return nil
 			}
 			if _, e := os.Stat(filepath.Join(sub, "go.mod")); e == nil {
@@ -610,7 +613,10 @@ func TestMultiPackageModulesHaveArchLintConfig(t *testing.T) {
 		// Count production packages (directories with non-test .go files).
 		pkgDirs := make(map[string]bool)
 		_ = filepath.Walk(path, func(sub string, subInfo os.FileInfo, subErr error) error {
-			if subErr != nil || subInfo.IsDir() {
+			if subErr != nil {
+				return subErr
+			}
+			if subInfo.IsDir() {
 				return nil
 			}
 			name := subInfo.Name()

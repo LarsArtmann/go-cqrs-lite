@@ -479,11 +479,6 @@ linters:
           - sqlclosecheck
           - wrapcheck
           - varnamelen
-      # Dgraph engine: retry utilities prepared for future wiring.
-      - path: metaengine/dgraphengine/retry\.go$
-        linters:
-          - unused
-
       # ── system/ deployer composition root ────────────────────────
       # The system/ module wires infrastructure via reflection and dynamic
       # dispatch (driver registry, auto-wired projections). Many style
