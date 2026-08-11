@@ -220,10 +220,10 @@ func resolveMinSeverity(presetMinSeverity, userMinSeverity string) string {
 }
 
 // isStrictMode reports whether either --strict or --strict-load is set.
-// --strict is the short alias advertised in warning messages; --strict-load
-// is the original name kept for backward compatibility.
+// --strict is cmdguard's built-in strict-mode flag; --strict-load is the
+// cqrs-lint-specific alias. Both cause load errors to fail the run.
 func isStrictMode(cfg *AppConfig) bool {
-	return cfg.StrictLoad || cfg.Strict
+	return cfg.StrictLoad || cfg.StrictMode
 }
 
 // handleLoadErrors processes package-loading failures and returns an error

@@ -1187,6 +1187,7 @@ id/func IsAggregateIDULID
 id/func IsDerivedCommandID
 id/func IsStreamIDULID
 id/func New
+id/func NewActorID
 id/func NewAggregateID
 id/func NewAggregateRef
 id/func NewBotActor
@@ -1204,6 +1205,7 @@ id/func NewUserActor
 id/func NewUserID
 id/func Parse
 id/func ParseActorID
+id/func ParseActorKind
 id/func ParseAggregateID
 id/func ParseAggregateIDStrict
 id/func ParseAggregateType
