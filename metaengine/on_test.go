@@ -171,3 +171,36 @@ var _ = Describe("Query constructor panics", func() {
 		})
 	})
 })
+
+var _ = Describe("Deprecated On/OnTyped constructors (v5 removal)", func() {
+	// The payload-only On/OnTyped constructors are deprecated but retained
+	// until the v5 cut. These smoke tests guard against accidental breakage
+	// during the transition so consumers can migrate incrementally.
+
+	type legacyEvent struct {
+		ID   string
+		Name string
+	}
+
+	type legacyResult struct{ Name string }
+
+	It("On still classifies an insert fold", func() {
+		fold := metaengine.On(legacyEvent{}, func(e legacyEvent) (string, legacyResult) {
+			return e.ID, legacyResult{Name: e.Name}
+		})
+		Expect(fold.Kind()).To(Equal(metaengine.FoldInsert))
+		Expect(fold.EventType()).To(Equal("legacyEvent"))
+	})
+
+	It("OnTyped binds the explicit event type", func() {
+		fold := metaengine.OnTyped("legacy.created", legacyEvent{}, func(e legacyEvent) (string, legacyResult) {
+			return e.ID, legacyResult{Name: e.Name}
+		})
+		Expect(fold.EventType()).To(Equal("legacy.created"))
+	})
+
+	It("On accepts Remove[V]() deletion", func() {
+		fold := metaengine.On(legacyEvent{}, metaengine.Remove[legacyResult]())
+		Expect(fold.Kind()).To(Equal(metaengine.FoldRemove))
+	})
+})
