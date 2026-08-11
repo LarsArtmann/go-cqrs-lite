@@ -214,6 +214,7 @@ One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, sta
 - **Private Go module auth (non-interactive fetch)** — devShell sets `GOWORK=off`, so `go mod download` fetches internal modules from VCS. `GOPRIVATE` uses HTTPS which fails without credentials. The flake `shellHook` exports `GIT_CONFIG_*` to redirect HTTPS → SSH. Symptom: `git ls-remote -q origin ... exit status 128` inside `~/go/pkg/mod/cache/vcs/`.
 - **Auto-commit daemon can break the build** — Always run `go build -tags "goexperiment.jsonv2" ./...` after a daemon commit, not just `nix run .#build` (which uses `allPaths` — verify cmd/* modules actually compile).
 - **Version-sequence breaks in published tags** — tags must be monotonically increasing in BOTH semver AND commit ancestry. Always tag with NEXT semver above all existing: `git tag -l '<module>/v4*' | sort -V | tail -1`.
+- **`check-module-layers.sh` LAYER keys use ` / ` (spaces around slash)** — Multi-segment keys in the LAYER map use spaces for readability (`LAYER[storage / memory]`), but EXCEPTIONS deps use standard `/` (`storage/memory`). The test `TestExceptionsAreMinimal` normalizes ` / ` → `/` when parsing. When adding new multi-segment LAYER entries, use spaces for readability. When adding EXCEPTIONS, use `/` without spaces. The parser handles the mismatch.
 - **WithoutGlobalRegistration for isolated OTel providers** — `otel.Setup(cqrsotel.WithoutGlobalRegistration())` skips global calls. Use in tests and multi-service setups where global state would conflict.
 
 ### Language & Library Footguns
