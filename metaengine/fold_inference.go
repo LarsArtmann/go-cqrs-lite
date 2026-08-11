@@ -20,6 +20,16 @@ type inferenceRequest struct {
 // naming conventions (Created/Updated/Deleted suffixes) to synthesize folds
 // automatically. The consumer declares zero folds for the 80% case.
 //
+// IMPORTANT: Not recommended for production domain models. Explicit folds
+// (OnRecord, On, AutoInsert, etc.) are strongly preferred because they make
+// the projection semantics visible, testable, and auditable at the call site.
+// Infer trades that clarity for brevity — the projection logic is hidden
+// behind naming conventions and reflection. Use Infer only for quick
+// prototypes, throwaway demos, or genuinely trivial CRUD views where the
+// field mapping is so obvious that an explicit fold would add zero
+// information. For any projection with business meaning, write the fold
+// explicitly so the reader can see how events become read models.
+//
 // Key field is auto-detected from the query input type Q: if Q has exactly
 // one non-pagination field, its Go type identifies the key. The matching
 // field in the Created event struct becomes the key extractor.

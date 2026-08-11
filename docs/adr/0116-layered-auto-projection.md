@@ -148,6 +148,15 @@ The planner infers at `Plan()` time:
 
 Pre-existing helpers (`AutoInsert`, `AutoUpdate`, `AutoDelete`, `AutoCRUD`, `AutoCRUDByConvention`) remain for consumer-time fold generation. `Infer()` defers to Plan() time.
 
+> **Recommendation: prefer explicit folds for production domain models.**
+> `Infer()` is a convenience for prototypes, demos, and genuinely trivial CRUD
+> views. It hides projection semantics behind naming conventions and reflection,
+> making the event-to-read-model mapping invisible at the call site. For any
+> projection with business meaning, write explicit folds (`OnRecord`, `On`,
+> `AutoInsert`, etc.) so the reader can see and audit how events become read
+> models. Convention-over-configuration trades clarity for brevity; in a domain
+> model, clarity wins.
+
 ### Layer 2: Available (explicit folds)
 
 `On()`, `OnRecord()`, and friends provide explicit fold handlers for the 20% case.
