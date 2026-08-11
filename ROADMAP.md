@@ -155,6 +155,19 @@ map lock consistency, `DecodeFloatResults` bounds guard, stale README claims.
   into matching result fields (`record_stamp.go`)
 - ✅ **Tombstone deprecation** — all tombstone API `// Deprecated:`, migration
   guide written. Functional in v4, removal in v5 (ADR-0114)
+- ✅ **Bbolt/MySQL/Turso engines** — `metaengine/bboltengine/`,
+  `metaengine/mysqlengine/`, `metaengine/tursoengine/` modules with self-registering
+  drivers. Bbolt source-of-truth tests, MySQL/Turso driver registration.
+- ✅ **Live Cost Measurement** — runtime `NetworkRTT` via `ProbeEngine`,
+  `LatencyTracker`, `Store.Replan`, `CheckRouting`, `StartAutoReplan`. PG/Dgraph/
+  MySQL/Turso probers wired. `Doctor()`/`ExplainPlan()` live-latency output.
+- ✅ **Operator-driven layout planning (ADR-0124)** — `Priority` enum + config
+  hierarchy, embed-vs-normalize scoring, `ReplanLayout`, `ConfirmRebuild`,
+  `Store.SetPriority`, layout warnings in `Doctor()`/`ExplainPlan()`.
+- ✅ **Command lifecycle as event streams (ADR-0117)** — `commandlifecycle/`
+  events, `Recorder`, middleware, DLQ/retry/failure projections.
+
+**Remaining (short-term):** See [TODO_LIST.md](TODO_LIST.md) — fold inference verify gate, layout planning follow-ups, command lifecycle follow-ups, calibration benchmark regression.
 
 **Remaining (long-term, ROADMAP):**
 
@@ -168,16 +181,17 @@ map lock consistency, `DecodeFloatResults` bounds guard, stale README claims.
   for full `system.Bundle` integration.
 - **ADR-0112: Command sourcing** — folding over command history (not just events).
   Requires `CommandAwareFold` interface + command journal replay.
-- **ADR-0113 Phases 3–4: Delete `GraphBackend` interface entirely** — currently
-  still defined in `metaengine/engine.go:394`, used by `memoryEngine`. Planner
-  still uses type assertion. Full removal requires routing ADTGraph via adapter
-  only.
+- ✅ **ADR-0113 Phases 3–4: Delete `GraphBackend` interface entirely** — DONE.
+  `GraphBackend` removed from `metaengine/engine.go`, all engines route ADTGraph
+  through `graphadapter`. `adttest.RunMatrix` updated.
 - **ADR-0116 Layers 2–3** — Layer 2 (100% codegen from struct inspection),
   Layer 3 (100% auto-route from declared queries). Currently Layer 1 (reflection)
   is shipped.
-- **ADR-0117: Command Lifecycle as Event Streams** — DLQ, retries, status
-  tracking as event streams, not status fields. Zero implementation; needs
-  lifecycle event types, projections, replay design.
+- 🧪 **ADR-0117: Command Lifecycle as Event Streams** — `commandlifecycle/`
+  module shipped with event types, `Recorder`, middleware, and DLQ/retry/failure
+  projections. Remaining: version tracking fix, real retry middleware
+  integration, `system.WithCommandLifecycle(eventSink)` one-call setup, skill
+  docs. See [TODO_LIST.md](TODO_LIST.md).
 - **`metaengine-gen` code generator** — `cmd/metaengine-gen` for typed Store
   methods from query declarations. Go AST parsing + template generation.
 - **Structured query expression tree** — `query.Or`/`query.And`/`query.Gt`
@@ -186,12 +200,13 @@ map lock consistency, `DecodeFloatResults` bounds guard, stale README claims.
   extracts all exported fields into native typed SQL columns (float64→DOUBLE,
   int→INTEGER). Vectorized GROUP BY/SUM/AVG on DuckDB.
 - **Postgres GIN containment Indexes** — `@>` operator for JSONB containment
-- **Operator-driven engine selection (partially shipped via `system/`)** —
-  the `system/` package implements the operator-configured topology with a
-  driver registry (database/sql model). Auto event-decoders (`NewTypeDecoder`+
-  `Register`, `AutoCRUDByConvention`) eliminate the per-event decoder switch.
-  HealthCheck, GracefulClose, Drain, configurable checkpoint store, README Quick
-  Start all shipped. Remaining: NATS/Redis bus driver registration.
+- ✅ **Operator-driven engine selection + layout planning** — `system/` self-registering
+  driver registry shipped; `metaengine/` registry moved from `system/`. All 10 drivers
+  (memory, sqlite, pebble, bbolt, duckdb, postgres, mysql, badger, dgraph,
+  turso) self-register. Layout planning (ADR-0124) shipped with priority system,
+  embed-vs-normalize scoring, `ReplanLayout`, `ConfirmRebuild`. Live cost
+  measurement shipped with `ProbeEngine`, `LatencyTracker`, `Store.Replan`,
+  `CheckRouting`. Remaining: NATS/Redis bus driver registration, role-based sync.
 
 ### 2. Benchkit → Evidence-Grade
 
@@ -421,8 +436,10 @@ LagPerProjection/LagDuration/WorkerStatus/RegisterCloser shipped. Drainer
 interface + RegisterDrainer shipped. orderedEngines topological sort shipped.
 example/taskmanager migrated to `system.New()`.
 
-**Remaining:** NATS/Redis bus driver registration, Dgraph real-instance testing.
-See [TODO_LIST.md](TODO_LIST.md) → System Package.
+**Remaining:** NATS/Redis bus driver registration, Dgraph real-instance testing,
+command lifecycle integration, layout planning verify gate. See
+[TODO_LIST.md](TODO_LIST.md) → Integration Test Infrastructure, Metaengine
+Coverage Gaps, and v5 Unification.
 
 ### 12. FoundationDB Backend (design-doc-backed)
 
@@ -520,6 +537,9 @@ Phase 2: Dead code removal (GraphBackend, simpleBus → watermill)
 Phase 3: Self-registration infrastructure (registry → metaengine/)
 Phase 4: All 8 backends self-register
 Phase 5: Record-typed default folds
+Phase 6: Auto-projection (Infer / OnRecord default)
+Phase 6b: Operator-driven layout planning
+Phase 7: Universal engine coverage + batch atomicity
 
 Phase 8: Delete v1 tiers + stack.Bundle → cut v5.0.0
 ```

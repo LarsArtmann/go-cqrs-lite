@@ -251,16 +251,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Cost model multipliers (`scoreEmbed`/`scoreNormalize`) are uncalibrated
   placeholder constants — must be benchmarked before production use.
-- `Store.Backfill(ctx)` is not idempotent for Counter/Set ADTs (double-counts).
-- `Store.ConfirmRebuild` is a stub — does not execute actual rebuilds.
-- `LayoutWarnings()` emits noise — warns on every KV engine query regardless
-  of selected layout.
-- No `cqrs-bench layout` CLI subcommand (runtime API only).
-- No real workload trace format / recorder / player.
 - Role-based sync (fold pipeline for Active+DualUse, async for Backup+Migration)
   is designed but not wired into the fold pipeline.
 - Priority not wired into deployment YAML (`EngineConfig`/`QueryDecl`).
-- Layout warnings not surfaced in `Doctor()` or `EXPLAIN` output.
+- `cqrs-bench layout` CLI subcommand not started (runtime API exists).
+- No real workload trace format / recorder / player.
 - Full `nix run .#verify` gate not yet run.
 
 ### Added — ADR-0117: Command lifecycle as event streams — 2026-08-11
