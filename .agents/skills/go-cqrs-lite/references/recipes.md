@@ -751,6 +751,20 @@ defer bundle.Close() // stops recorder automatically
 // Access for trigger wiring: bundle.FlightRecorder()
 ```
 
+## Metadata Serialization in KV Engines (Contributor Note)
+
+When adding a new KV-backed engine (pebble, bbolt, or a future 3rd engine), the
+`record.CommonMetadata` type contains `id.ActorID` which implements
+`json.Marshaler` but NOT `cbor.Marshaler`. fxamacker/cbor uses reflection and
+encodes ActorID as `{}`, silently losing the actor kind and ID.
+
+The fix (used by `storage/pebble` and `storage/bbolt`): store metadata as JSON
+bytes inside the CBOR envelope using a custom `n` type (see
+`storage/pebble/serialization.go` or `storage/bbolt/serialization.go` for the
+reference implementation). The `n` type implements both `MarshalJSON`/`UnmarshalJSON`
+and `MarshalCBOR`/`UnmarshalCBOR`, ensuring correct roundtrip regardless of the
+outer envelope codec.
+
 ## Metaengine + Stack Bundle Integration
 
 Wire a cost-based query planner into the Bundle lifecycle with one option.

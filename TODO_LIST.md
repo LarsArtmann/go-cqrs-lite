@@ -705,7 +705,7 @@ and is **never** duplicated here.
       `docs/status/2026-08-11_05-09_fold-inference-adr0116-layer1-status.md`.
 
       Not yet implemented (separate tasks below):
-      - Slices → separate collections (struct-composition-driven multi-collection)
+      - Slice/struct normalization → see Phase 6b (operator-driven layout planning)
       - Fold inference override API
       - `InferFromNamedEvents()` for wire event types
       - Sort inference, composite keys, filter operators beyond `FilterEq`
@@ -719,18 +719,60 @@ and is **never** duplicated here.
       event/query pair. Override replaces (not supplements) the generated fold.
       Without this, `Infer()` is all-or-nothing.
       _(Effort: M)_
-- [ ] **Struct-composition-driven multi-collection** — when an event has a
-      `[]Attachment` field and a query requests `MessageView` (which has
-      `Attachments`), auto-generate a second collection for attachments.
-      Planners sees the relationship and generates a join-aware read path.
+### Phase 6b: Operator-Driven Layout Planning (replaces M9)
+
+> **Original M9 was wrong.** It assumed normalization is always correct and put
+> storage intent on the developer. The revised model: the developer is silent,
+> the operator controls layout via priorities + the cost model. See the full
+> design rationale in [`docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md`](docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md).
+>
+> Key insight: `[]Attachment` vs `[]AttachmentID` tells the planner what data
+> is in the payload, NOT what layout to pick. The planner reads reality, not
+> intent. Layout is 100% the operator's call.
+
+- [ ] 🔥 **Operator priority system** — define `Priority` enum
+      (`WriteSpeed` / `ReadSpeed` / `StorageSpace` / `Balanced`) and a priority
+      hierarchy: `GLOBAL` (whole deployment) → per-Engine → per-Query (most
+      specific wins). Wire into `EngineConfig` / `QueryDecl` / deployment config.
+      The priority weights the existing cost model — it does not bypass it.
       _(Effort: L)_
+- [ ] 🔥 **Cost model: embed-vs-normalize scoring** — extend the cost model to
+      score embed (denormalized) vs. normalize (child collection + join) per
+      field, per priority, per backend. The per-backend truth: KV favors embed,
+      SQL favors normalize, graph favors normalize, DuckDB is workload-dependent.
+      Even single nested structs (not just slices) can be normalized if the
+      priority justifies it. The operator's control has no structural floor.
+      _(Effort: L)_
+- [ ] **Benchmark mode** — let the operator try multiple plans against real or
+      simulated workloads and see measured results + scaling predictions before
+      committing. Delivery: both CLI (extends `cqrs-bench`, pre-deployment "what
+      if") and runtime API (ongoing monitoring + adaptive re-tuning). Workload:
+      synthesize from declared queries by default; accept real operator-provided
+      traces for calibration.
+      _(Effort: L)_
+- [ ] **Runtime backend addition + dual-use / migration / backup** — the
+      planner maintains parallel projections across engines with explicit roles:
+      active read, migration target, backup replica, dual-use. New backends added
+      at runtime; planner generates plan + backfills from event log. Sync is
+      role-based: fold pipeline (strong) for active + dual-use; async replication
+      (eventual) for backup + migration.
+      _(Effort: XL)_
+- [ ] **Threshold-based re-layout trigger** — when the operator changes a
+      priority, small projections (below threshold) rebuild automatically from
+      the event log; large ones require explicit operator confirmation. Threshold
+      is operator-configurable. Prevents a global priority change from silently
+      launching massive parallel rebuilds.
+      _(Effort: M)_
+
 ### Phase 7: Universal Engine Coverage
 
 - [ ] 🔥 **Multi-collection batch atomicity** — when one event triggers folds
-      for multiple collections, all writes commit atomically in one engine
-      transaction. Modify `store.ApplyRecord` to batch all fold operations and
-      execute them in a single engine transaction. The batch boundary is the
-      event, not the collection. Replaces RelationalProjection's per-event tx.
+      for multiple collections (e.g. parent + normalized child from Phase 6b
+      layout planning), all writes commit atomically in one engine transaction.
+      Modify `store.ApplyRecord` to batch all fold operations and execute them in
+      a single engine transaction. The batch boundary is the event, not the
+      collection. Replaces RelationalProjection's per-event tx. See
+      [`METAENGINE-LAYOUT-PLANNING-MODEL.md`](docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md) §6 (dual-use sync).
       _(Effort: L)_
 - [ ] **Universal ADT coverage per engine** — audit each engine for missing
       ADT backends. Add degraded fallbacks where native support is impossible:
