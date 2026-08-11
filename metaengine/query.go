@@ -143,6 +143,7 @@ type QueryDecl[Q any, R any] struct {
 	// Folds/ADT/ReadPattern are populated at Plan() time by ensureFolds().
 	eventSamples   []any
 	needsInference bool
+	overrides      []overrideFold
 
 	// Runtime-assigned by planQuery — eliminates the queryRuntime twin.
 	engine      Engine
@@ -171,8 +172,12 @@ func Query[Q any, R any](name string, args ...any) QueryDecl[Q, R] {
 
 	needsInference := false
 
+	var inferenceOverrides []overrideFold
+
 	for _, arg := range args {
 		switch a := arg.(type) {
+		case overrideFold:
+			inferenceOverrides = append(inferenceOverrides, a)
 		case Fold:
 			folds = append(folds, a)
 		case QueryOption:
@@ -182,7 +187,7 @@ func Query[Q any, R any](name string, args ...any) QueryDecl[Q, R] {
 			needsInference = true
 		default:
 			panic(fmt.Sprintf(
-				"metaengine.Query(%q): unexpected argument type %T (expected Fold, QueryOption, or Infer)",
+				"metaengine.Query(%q): unexpected argument type %T (expected Fold, QueryOption, Infer, or Override)",
 				name,
 				arg,
 			))
@@ -191,7 +196,14 @@ func Query[Q any, R any](name string, args ...any) QueryDecl[Q, R] {
 
 	if needsInference && len(folds) > 0 {
 		panic(fmt.Sprintf(
-			"metaengine.Query(%q): Infer() cannot be combined with explicit folds", name,
+			"metaengine.Query(%q): Infer() cannot be combined with explicit folds (use Override instead)",
+			name,
+		))
+	}
+
+	if len(inferenceOverrides) > 0 && !needsInference {
+		panic(fmt.Sprintf(
+			"metaengine.Query(%q): Override() requires Infer() — use explicit folds instead", name,
 		))
 	}
 
@@ -204,6 +216,7 @@ func Query[Q any, R any](name string, args ...any) QueryDecl[Q, R] {
 		Config:         cfg,
 		eventSamples:   eventSamples,
 		needsInference: needsInference,
+		overrides:      inferenceOverrides,
 		querySample:    *new(Q),
 		resultSample:   *new(R),
 	}

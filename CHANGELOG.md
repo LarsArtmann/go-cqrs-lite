@@ -6,6 +6,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — pgengine Calibration embedding (live-latency dead-code bug) — 2026-08-11
+
+> `pgEngine` used a named `cal metaengine.Calibration` field instead of
+> embedding it. This meant `*pgEngine` never satisfied `TrackerHost` (no
+> promoted `SetRTTTracker`/`SetReadTracker`) or `liveLatencyReporter` (no
+> promoted `LiveLatency()`), so `ProbeEngine` silently couldn't install
+> trackers and `GetEngineStats` never saw live data. The entire live-latency
+> system was dead code for the real PG engine — only the fake-engine unit
+> tests passed because the test double embedded `Calibration` correctly.
+> Same bug likely exists in `dgraphengine` and `badgerengine` (not yet fixed).
+> See
+> `docs/status/2026-08-11_05-53_pg-probeengine-integration-test-calibration-embedding-fix.md`.
+
+- **`metaengine/pgengine/engine.go`** (**BUGFIX**): `pgEngine` now embeds
+  `metaengine.Calibration` instead of a named `cal` field. Removed the
+  redundant explicit `SetCalibration` passthrough (now promoted). Changed
+  `e.cal.ApplyCalibration(&p)` → `e.ApplyCalibration(&p)` in `Profile()`.
+
+### Added — PG ProbeEngine integration test — 2026-08-11
+
+> First integration test proving the live-latency measurement loop works
+> end-to-end against a real Postgres instance (not just the fake engine).
+> Uncovered the Calibration embedding bug above.
+
+- **`metaengine/pgengine/probe_live_test.go`** (**NEW**): 2 tests.
+  `TestProbeEngine_RealPostgres_LiveRTT` verifies `ProbeEngine`'s background
+  probes produce real RTT samples via `PingContext`, `GetEngineStats` surfaces
+  them as fresh/live, `FormatLiveLatency` renders `"rtt=live"`, the
+  `TransactMeasurer` read-latency tracker populates, and `Failures() == 0`.
+  `TestProbeEngine_RealPostgres_StaleAfterStop` verifies the measurement
+  transitions to `Stale` after the probe loop stops + stale-after window.
+
 ### Added — bboltengine source-of-truth integration tests — 2026-08-11
 
 > Four test files (352 lines) added to `metaengine/bboltengine/` to match

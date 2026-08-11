@@ -313,6 +313,8 @@ func (q *QueryDecl[Q, R]) ensureFolds() error {
 
 	folds := generateInferredFolds(classified, resultType, keyField)
 
+	folds = applyOverrides(folds, q.overrides)
+
 	q.Config = autoInferFilters(queryType, resultType, keyField, q.Config)
 
 	adt, err := classifyADT(folds)

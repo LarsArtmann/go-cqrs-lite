@@ -462,10 +462,17 @@ and is **never** duplicated here.
 - [x] **Run `nix run .#verify`** — DONE 2026-08-11. Full verify gate GREEN
       including live-latency code. No stale-GREEN risk.
       See `docs/status/2026-08-11_04-04_verify-green-and-lint-cleanup.md`.
-- [ ] **Integration test: real PG testcontainer + ProbeEngine** — verify
-      `GetEngineStats` shows live RTT against a real Postgres instance.
-      Currently only the fake engine proves the mechanism.
-      _(Effort: M — deferred to next session)_
+- [x] **Integration test: real PG testcontainer + ProbeEngine** — DONE
+      2026-08-11. Two tests in `metaengine/pgengine/probe_live_test.go`:
+      `TestProbeEngine_RealPostgres_LiveRTT` (verifies live RTT samples,
+      `HasLiveRTT`, `FormatLiveLatency` renders `rtt=live`, `TransactMeasurer`
+      read tracker, `Failures()==0`) and `TestProbeEngine_RealPostgres_StaleAfterStop`
+      (verifies stale transition after probe loop stops). Both pass with `-race`.
+      **Also fixed a production wiring bug:** `pgEngine` used a named `cal` field
+      instead of embedding `metaengine.Calibration`, so `ProbeEngine` could never
+      install trackers — the entire live-latency system was dead code for real PG.
+      See `docs/status/2026-08-11_05-53_pg-probeengine-integration-test-calibration-embedding-fix.md`.
+      _(Effort: M)_
 - [x] **Update AGENTS.md + skill docs** — DONE 2026-08-10. CHANGELOG updated,
       TODO_LIST updated, API golden regenerated (3992 exports). Skill recipes
       pending — tracked separately.
@@ -476,10 +483,9 @@ and is **never** duplicated here.
 
 #### Live Cost Measurement — Improvement Backlog (from phase 2 self-review)
 
-- [ ] **Integration test: real PG testcontainer + ProbeEngine** — verify
-      `GetEngineStats` shows live RTT against a real Postgres instance.
-      Currently only the fake engine proves the mechanism. Requires cross-module
-      test dependency (metaengine → pgengine).
+- [x] **Integration test: real PG testcontainer + ProbeEngine** — DONE
+      2026-08-11 (duplicate of item above — both tracked the same work).
+      See `docs/status/2026-08-11_05-53_pg-probeengine-integration-test-calibration-embedding-fix.md`.
       _(Effort: M)_
 - [x] **Add `WithRoutingHysteresis(float64)` Store option** —
       DONE 2026-08-11. `WithRoutingHysteresis` + `WithRoutingMinDelta` plan
@@ -524,6 +530,39 @@ and is **never** duplicated here.
 - [x] **Probe failure observability** —
       DONE 2026-08-11. `ProbeHandle.Failures()` counter +
       `WithProbeErrorHandler` option + slog.Debug for probe failures (`probe.go`).
+- [ ] 🔥 **Fix dgraphengine Calibration embedding** — same bug as pgengine:
+      `dgraphEngine` uses a named `cal` field instead of embedding
+      `metaengine.Calibration`, so `ProbeEngine` cannot install trackers and
+      `GetEngineStats` never sees live data. `Prober` + `TransactMeasurer` are
+      implemented but dead-wired. Mechanical fix: embed `Calibration`, remove
+      explicit `SetCalibration` passthrough.
+      _(Effort: XS)_
+- [ ] 🔥 **Fix badgerengine Calibration embedding** — same bug: `badgerEngine`
+      uses a named `cal` field. `ProbeEngine` is a no-op for this engine.
+      Note: badger is local-only (`IsRemote` guard prevents probing), so this
+      is lower urgency than dgraph.
+      _(Effort: XS)_
+- [ ] **Verify tursoengine Calibration/probe wiring** — turso uses
+      `sqliteengine.SetProber` pattern. Did not verify whether `Calibration` is
+      correctly embedded for `TrackerHost`/`liveLatencyReporter` satisfaction.
+      Suspect same class of bug.
+      _(Effort: S)_
+- [ ] **Add compile-time `TrackerHost` assertions to all remote engines** —
+      `var _ metaengine.TrackerHost = (*pgEngine)(nil)` etc. in every engine.
+      Catches embedding bugs at build time instead of at integration-test time.
+      The pgengine bug survived 3 phases of live-latency work because no
+      compile-time check existed.
+      _(Effort: S)_
+- [ ] **ProbeEngine should warn on missing `TrackerHost`** — currently
+      silently no-ops when an engine implements `Prober` but not `TrackerHost`.
+      This is a wiring bug, not graceful degradation. Should log `slog.Warn` or
+      return an error. Design decision needed: contract violation vs acceptable.
+      _(Effort: S — needs user decision)_
+- [ ] **Regenerate api-stability golden after pgengine embedding change** —
+      the embedding change removes the explicit `SetCalibration` method
+      declaration (now promoted). May or may not change the golden file.
+      Run `cd cmd/api-stability && GOWORK=off go run main.go -update`.
+      _(Effort: XS)_
 
 ---
 

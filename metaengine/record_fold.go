@@ -184,7 +184,7 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			invoke := func(event any) any {
 				return callWithRecord(event)[0].Interface()
 			}
-			f := &setFold{eventType: eventType, sample: sample, invoke: invoke}
+			f := &setFold{eventType: eventType, sample: sample, keyType: outType, invoke: invoke}
 			f.recordSetter = func(r record.Record) { recHolder.rec = r }
 			return f
 		}

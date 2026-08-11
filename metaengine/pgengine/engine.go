@@ -69,7 +69,7 @@ type pgEngine struct {
 	done           bool
 	layoutMu       sync.Mutex
 	appliedLayouts map[string]bool
-	cal            metaengine.Calibration
+	metaengine.Calibration
 }
 
 // New creates a Postgres-backed metaengine Engine from a DSN.
@@ -195,14 +195,9 @@ func (e *pgEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSortedMap: metaengine.LayoutRow,
 		},
 	}
-	e.cal.ApplyCalibration(&p)
+	e.ApplyCalibration(&p)
 
 	return p
-}
-
-// SetCalibration implements metaengine.Calibratable.
-func (e *pgEngine) SetCalibration(costs metaengine.CalibrationCosts) {
-	e.cal.SetCalibration(costs)
 }
 
 // Close closes the underlying database. Safe to call multiple times.
