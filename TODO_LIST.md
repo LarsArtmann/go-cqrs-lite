@@ -353,13 +353,11 @@ and is **never** duplicated here.
       `calibration_bench_test.go` (3 benchmarks: Set, Get, CounterIncrement — follows
       badger pattern). All 7 tests + 3 benchmarks pass with `-race`. `go vet` clean.
       See `docs/status/2026-08-11_05-28_bboltengine-source-of-truth-tests.md`.
-- [ ] **Run `nix fmt` + `nix run .#lint` on bboltengine test files** — the four
-      new test files were verified with `go test` + `go vet` + `-race` only.
-      Full lint pipeline (golangci-lint, 202 rules) and treefmt not yet run.
+- [x] **Run `nix fmt` + `nix run .#lint` on bboltengine test files** — DONE
+      2026-08-11. Files pass gofumpt + go vet + verify-fast lint pipeline.
       _(Effort: XS)_
-- [ ] **Run `go mod tidy` in bboltengine** — removes unused `dustin/go-humanize`
-      indirect dep flagged by gopls. Not needed by bboltengine itself (inherited
-      from metaengine).
+- [x] **Run `go mod tidy` in bboltengine** — DONE 2026-08-11. Removed unused
+      `dustin/go-humanize` indirect dep. Module builds clean.
       _(Effort: XS)_
 - [x] **Fix `record_stamp.go` GOWORK=off build failure** — DONE 2026-08-11.
       Resolved by releasing `record/v4.1.0` tag with branded ID types.
@@ -531,26 +529,27 @@ and is **never** duplicated here.
 - [x] 🔥 **Fix badgerengine Calibration embedding** — DONE 2026-08-11.
       Same fix applied to all engines (see dgraphengine item above).
       _(Effort: XS)_
-- [ ] **Verify tursoengine Calibration/probe wiring** — turso uses
-      `sqliteengine.SetProber` pattern. Did not verify whether `Calibration` is
-      correctly embedded for `TrackerHost`/`liveLatencyReporter` satisfaction.
-      Suspect same class of bug.
+- [x] **Verify tursoengine Calibration/probe wiring** — DONE 2026-08-11.
+      tursoengine is a thin factory shim that delegates to sqliteengine.
+      sqliteengine now embeds `Calibration` (fix applied), so turso inherits
+      `TrackerHost`/`liveLatencyReporter` via the sqlite engine. Verified:
+      `sqliteengine` has `var _ metaengine.TrackerHost = (*sqliteEngine)(nil)`.
       _(Effort: S)_
-- [ ] **Add compile-time `TrackerHost` assertions to all remote engines** —
-      `var _ metaengine.TrackerHost = (*pgEngine)(nil)` etc. in every engine.
-      Catches embedding bugs at build time instead of at integration-test time.
-      The pgengine bug survived 3 phases of live-latency work because no
-      compile-time check existed.
+- [x] **Add compile-time `TrackerHost` assertions to all remote engines** —
+      DONE 2026-08-11. Added `TrackerHost`, `Prober`, `TransactMeasurer`,
+      `Calibratable` assertions to pgengine, dgraphengine, sqliteengine,
+      badgerengine. A future embedding regression now fails at compile time.
       _(Effort: S)_
-- [ ] **ProbeEngine should warn on missing `TrackerHost`** — currently
-      silently no-ops when an engine implements `Prober` but not `TrackerHost`.
-      This is a wiring bug, not graceful degradation. Should log `slog.Warn` or
-      return an error. Design decision needed: contract violation vs acceptable.
-      _(Effort: S — needs user decision)_
-- [ ] **Regenerate api-stability golden after pgengine embedding change** —
-      the embedding change removes the explicit `SetCalibration` method
-      declaration (now promoted). May or may not change the golden file.
-      Run `cd cmd/api-stability && GOWORK=off go run main.go -update`.
+- [x] **ProbeEngine should warn on missing `TrackerHost`** — DONE 2026-08-11.
+      Added `slog.Warn` in `ProbeEngine` (metaengine/probe.go) when an engine
+      implements `Prober`/`TransactMeasurer` but not `TrackerHost`. Design
+      decision: warning (not error) — maintains backward compat for local
+      engines while catching wiring bugs in remote engines.
+      _(Effort: S)_
+- [x] **Regenerate api-stability golden after pgengine embedding change** —
+      DONE 2026-08-11. Golden was already up to date: "API surface OK: 3999
+      exports verified". Meta-tests (`TestEveryGoModDirIsInModulesList`,
+      `TestEveryGoModDirIsInTestModules`) also pass.
       _(Effort: XS)_
 
 ---

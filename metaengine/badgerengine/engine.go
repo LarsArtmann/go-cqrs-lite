@@ -221,6 +221,7 @@ var (
 	_ metaengine.StreamLogBackend = (*badgerEngine)(nil)
 	_ metaengine.AtomicAppender   = (*badgerEngine)(nil)
 	_ metaengine.Calibratable     = (*badgerEngine)(nil)
+	_ metaengine.TrackerHost      = (*badgerEngine)(nil)
 )
 
 var (

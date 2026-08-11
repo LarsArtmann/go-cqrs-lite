@@ -267,6 +267,14 @@ func ProbeEngine(eng Engine, opts ...ProbeOption) *ProbeHandle {
 		if read != nil {
 			host.SetReadTracker(read)
 		}
+	} else {
+		slog.Warn(
+			"metaengine: engine implements Prober/TransactMeasurer but not TrackerHost; live latency samples will not feed Profile()",
+			"engine",
+			eng.Profile().Name,
+			"hint",
+			"embed metaengine.Calibration in the engine struct to promote TrackerHost methods",
+		)
 	}
 
 	ctx, cancel := context.WithCancel(c.ctx)

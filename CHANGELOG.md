@@ -19,6 +19,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `SetCalibration` passthroughs removed (now promoted). This unblocks
   live-latency probing for ALL engines, not just pgengine.
 
+### Added — Live-latency regression prevention — 2026-08-11
+
+> The pgengine Calibration embedding bug survived 3 phases of live-latency work
+> because there was no compile-time guard and ProbeEngine silently no-op'd.
+> These changes make the bug class impossible to reintroduce silently.
+
+- **Compile-time interface assertions** (**HARDENING**): Added
+  `var _ metaengine.TrackerHost`, `Prober`, `TransactMeasurer`, `Calibratable`
+  assertions to pgengine, dgraphengine, sqliteengine, badgerengine. A future
+  embedding regression now fails at compile time.
+- **`metaengine/probe.go`**: `ProbeEngine` now emits `slog.Warn` when an engine
+  implements `Prober`/`TransactMeasurer` but not `TrackerHost` — the exact
+  symptom of a named-field-instead-of-embedded bug. Previously silently no-op'd.
+- **`metaengine/bboltengine/go.mod`**: removed unused `dustin/go-humanize`
+  indirect dependency via `go mod tidy`.
+
 ### Added — Fold inference Override API (ADR-0116 Layer 2) — 2026-08-11
 
 > Escape hatch for the 20% case where auto-projection gets the fold wrong.

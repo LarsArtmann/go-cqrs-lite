@@ -367,4 +367,8 @@ var (
 	_ metaengine.StreamLogBackend = (*pgEngine)(nil)
 	_ metaengine.AtomicAppender   = (*pgEngine)(nil)
 	_ metaengine.Transactional    = (*pgEngine)(nil)
+	_ metaengine.Calibratable     = (*pgEngine)(nil)
+	_ metaengine.TrackerHost      = (*pgEngine)(nil)
+	_ metaengine.Prober           = (*pgEngine)(nil)
+	_ metaengine.TransactMeasurer = (*pgEngine)(nil)
 )

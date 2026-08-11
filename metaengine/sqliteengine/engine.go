@@ -605,4 +605,7 @@ var (
 	_ metaengine.CounterBackend    = (*sqliteEngine)(nil)
 	_ metaengine.MultimapBackend   = (*sqliteEngine)(nil)
 	_ metaengine.LogBackend        = (*sqliteEngine)(nil)
+	_ metaengine.Calibratable      = (*sqliteEngine)(nil)
+	_ metaengine.TrackerHost       = (*sqliteEngine)(nil)
+	_ metaengine.Prober            = (*sqliteEngine)(nil)
 )
