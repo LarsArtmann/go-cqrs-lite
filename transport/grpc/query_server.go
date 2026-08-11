@@ -6,7 +6,8 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 	"google.golang.org/grpc"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-codec"
+
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4/proto"

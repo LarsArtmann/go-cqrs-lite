@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-codec"
 )
 
 // BenchPayload is the synthetic event payload used by the benchmark generator.

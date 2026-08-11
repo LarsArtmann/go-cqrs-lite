@@ -330,7 +330,7 @@ const (
 	eventImports = `import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-codec"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 

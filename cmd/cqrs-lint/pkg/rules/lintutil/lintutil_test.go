@@ -123,7 +123,7 @@ func TestImportQualifierMap(t *testing.T) {
 import (
 	cqrs "github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
-	. "github.com/larsartmann/go-cqrs-lite/codec/v4"
+	. "github.com/larsartmann/go-codec"
 	_ "github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 `
@@ -143,7 +143,7 @@ import (
 		t.Errorf("command: got %q", m["command"])
 	}
 
-	if m["."] != "github.com/larsartmann/go-cqrs-lite/codec/v4" {
+	if m["."] != "github.com/larsartmann/go-codec" {
 		t.Errorf("dot import: got %q", m["."])
 	}
 

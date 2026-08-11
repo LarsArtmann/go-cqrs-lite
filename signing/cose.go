@@ -8,7 +8,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-codec"
 )
 
 // COSESigner signs raw byte strings and reports the COSE algorithm identifier.

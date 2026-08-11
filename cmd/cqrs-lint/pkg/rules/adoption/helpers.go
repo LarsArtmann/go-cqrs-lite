@@ -10,22 +10,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules/lintutil"
 )
 
-// importsPath reports whether any non-test file imports a path containing
-// suffix. Works with AST-level import declarations so it is testable via
-// analyzer.BuildContextFromSource.
-func importsPath(ctx *analyzer.AnalysisContext, suffix string) bool {
-	return importsPathIn(ctx.GoFiles, suffix)
-}
-
-// usesMetaengine reports whether the project imports the metaengine core
-// package or any of its sub-packages (engine backends, projection adapter,
-// ADT test harness). Uses strings.Contains so "go-cqrs-lite/metaengine"
-// matches both the root and sub-packages like
-// "go-cqrs-lite/metaengine/pebbleengine".
-func usesMetaengine(ctx *analyzer.AnalysisContext) bool {
-	return importsPath(ctx, "go-cqrs-lite/metaengine")
-}
-
 // isFoldConstructor reports whether fnName is a metaengine fold
 // constructor: the deprecated payload-only pair (On/OnTyped) and the
 // record-aware default pair (OnRecord/OnRecordTyped).
@@ -47,12 +31,6 @@ func projectHasCall(ctx *analyzer.AnalysisContext, pkgName, funcName string) boo
 // on pkgName.
 func projectHasCallAny(ctx *analyzer.AnalysisContext, pkgName string, funcNames ...string) bool {
 	return hasCallIn(ctx.GoFiles, pkgName, funcNames...)
-}
-
-// projectHasSelector reports whether any non-test file references pkgName.selName
-// in any selector expression (covers type usage, composite literals, calls).
-func projectHasSelector(ctx *analyzer.AnalysisContext, pkgName, selName string) bool {
-	return hasSelectorIn(ctx.GoFiles, pkgName, selName)
 }
 
 // firstCallPos returns the position of the first call to pkgName.funcName
@@ -90,16 +68,6 @@ func astInspectCalls(root ast.Node, fn func(*ast.CallExpr) bool) {
 
 		return fn(call)
 	})
-}
-
-// firstCallByName returns the position of the first call to a function named
-// funcName, regardless of package qualifier. Useful for detecting calls like
-// NewDispatcher where the package qualifier varies.
-func firstCallByName(
-	ctx *analyzer.AnalysisContext,
-	funcName string,
-) (token.Position, bool) {
-	return firstCallByNameIn(ctx.Fset, ctx.GoFiles, funcName)
 }
 
 // singleInfoFinding builds and returns a single info-level finding with the

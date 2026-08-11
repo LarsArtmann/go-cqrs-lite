@@ -31,7 +31,7 @@ func main() {
 `
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"/repo/lib/bus.go":         libSrc,
+		"/repo/lib/bus.go":           libSrc,
 		"/repo/examples/app/main.go": exampleSrc,
 	})
 
@@ -114,7 +114,7 @@ func main() {
 `
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"/repo/lib/proj.go":        libSrc,
+		"/repo/lib/proj.go":          libSrc,
 		"/repo/examples/app/main.go": exampleSrc,
 	})
 
@@ -169,5 +169,55 @@ func main() {
 
 	if len(findings) != 1 {
 		t.Errorf("expected 1 finding for single-module server project, got %d", len(findings))
+	}
+}
+
+// TestB030_PerModuleSuppressesLibraryModule verifies that B030 (missing
+// circuit breaker) evaluates HasServer per-module: a bus in a library module
+// (no server) must NOT fire when an example sub-module has a server.
+func TestB030_PerModuleSuppressesLibraryModule(t *testing.T) {
+	t.Parallel()
+
+	libSrc := `package lib
+func init() {
+	eventBus := struct{}{}
+	eventBus.Use()
+}
+`
+
+	exampleSrc := `package main
+import "net/http"
+func main() {
+	commandBus := struct{}{}
+	commandBus.Use()
+	_ = http.ListenAndServe(":8080", nil)
+}
+`
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"/repo/lib/bus.go":           libSrc,
+		"/repo/examples/app/main.go": exampleSrc,
+	})
+
+	ctx.FeatureProfiles = map[string]analyzer.FeatureProfile{
+		"/repo/lib":          {HasServer: false},
+		"/repo/examples/app": {HasServer: true},
+	}
+	ctx.FeatureProfile = analyzer.FeatureProfile{HasServer: true}
+
+	det := NewB030Detector(ctx)
+	findings, err := det.Detect(context.Background())
+	if err != nil {
+		t.Fatalf("B030 detect: %v", err)
+	}
+
+	// B030 should fire exactly once — for the example module's commandBus
+	// (server module, no circuit breaker). The library's eventBus (no server)
+	// must not fire.
+	if len(findings) != 1 {
+		t.Errorf("expected 1 finding (example module only), got %d", len(findings))
+		for _, f := range findings {
+			t.Logf("  finding: %s @ %s", f.Message, f.Position.File)
+		}
 	}
 }

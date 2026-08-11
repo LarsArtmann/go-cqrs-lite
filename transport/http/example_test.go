@@ -3,7 +3,8 @@ package http_test
 import (
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-codec"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v4"

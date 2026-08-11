@@ -7,7 +7,7 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0
 	github.com/knadh/koanf/providers/file v1.2.1
 	github.com/knadh/koanf/v2 v2.3.6
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
+	github.com/larsartmann/go-codec v0.1.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.0.0

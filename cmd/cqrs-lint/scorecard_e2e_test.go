@@ -29,7 +29,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
-	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-codec"
 )
 
 func main() {}
@@ -112,7 +112,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
-	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-codec"
 )
 
 func main() {}

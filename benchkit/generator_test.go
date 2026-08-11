@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-codec"
 )
 
 func TestGenerator_Deterministic(t *testing.T) {

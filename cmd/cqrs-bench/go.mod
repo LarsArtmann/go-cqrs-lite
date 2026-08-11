@@ -5,7 +5,7 @@ go 1.26.5
 require (
 	github.com/larsartmann/cmdguard/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
+	github.com/larsartmann/go-codec v0.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.3.0

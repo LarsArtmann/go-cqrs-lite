@@ -717,7 +717,7 @@ func TestGenerate_Event(t *testing.T) {
 		t.Error("missing event import")
 	}
 
-	if !strings.Contains(code, "github.com/larsartmann/go-cqrs-lite/codec/v4") {
+	if !strings.Contains(code, "github.com/larsartmann/go-codec") {
 		t.Error("missing codec import")
 	}
 

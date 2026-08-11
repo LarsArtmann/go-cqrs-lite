@@ -61,7 +61,7 @@ type sqliteQuerySet struct {
 	journalReadAll  string
 	journalReadFrom string
 	// Graph (iterative BFS on meta_graph_edges)
-	graphAddEdge   string
+	graphAddEdge string
 	// DDL
 	ddl string
 }
@@ -120,8 +120,8 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		streamRead:       `SELECT value FROM meta_stream_log WHERE collection = ? AND stream_id = ? ORDER BY seq`,
 		streamVersion:    `SELECT COUNT(*) FROM meta_stream_log WHERE collection = ? AND stream_id = ?`,
 		streamAppendExp:  `INSERT INTO meta_stream_log (collection, stream_id, value) VALUES (?, ?, ?)`,
-		journalReadAll:  `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
-		journalReadFrom: `SELECT value FROM meta_stream_log WHERE collection = ? AND seq > ? ORDER BY seq LIMIT ?`,
+		journalReadAll:   `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
+		journalReadFrom:  `SELECT value FROM meta_stream_log WHERE collection = ? AND seq > ? ORDER BY seq LIMIT ?`,
 		// Graph (recursive CTE)
 		graphAddEdge: `INSERT OR IGNORE INTO meta_graph_edges (collection, from_node, to_node) VALUES (?, ?, ?)`,
 	}

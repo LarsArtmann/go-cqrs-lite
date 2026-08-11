@@ -6,6 +6,65 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — Metaengine ADT coverage, degraded rule enhancement, engine test parity — 2026-08-11
+
+> Closes 4 Phase 7 tasks: capability-degradation planner rule, engine test
+> parity gaps, engine compile-time assertion gaps, and partial universal ADT
+> coverage. All builds and tests pass across 6 engine modules. `nix run .#verify`
+> NOT yet run — lint, doc-check, duplication, arch not verified.
+>
+> See `docs/status/2026-08-11_20-17_metaengine-adt-coverage-degraded-rule-test-parity.md`.
+
+- **`metaengine/dgraphengine/stream_log.go`** (NEW): `StreamLogBackend` (5
+  methods) + `AtomicAppender` on Dgraph via append-ordered nodes with
+  nanosecond-timestamp global sequence. `StreamAppendExpected` uses Dgraph
+  upsert with `@if(eq(len(entry), N))` conditional mutation. 4 new schema
+  predicates (`cqrs.stream_log_collection/stream/seq/value`). Profile declares
+  `ADTStreamLog: ComplexityOLogN` (native). 6 tests (skip without Dgraph).
+- **`metaengine/dgraphengine/map_backend.go`** (NEW): Extracted MapSet/MapGet/
+  MapDelete from `engine.go` to bring it under the 350-line file limit.
+- **`metaengine/sqliteengine/graph.go`** (NEW): Native `graphBackend` dispatch
+  via dedicated `meta_graph_edges` table + iterative BFS. `GraphAddEdge` uses
+  `INSERT OR IGNORE`; `GraphNeighbors` performs level-by-level BFS using
+  indexed `SELECT to_node WHERE from_node = ?`. Works on all SQL engines
+  including Turso/libSQL (which does not support `WITH RECURSIVE`). 7 tests.
+- **`metaengine/sqliteengine/engine.go`**: Added `meta_graph_edges` DDL +
+  `idx_graph_edges_from` index. Added `graphAddEdge` query to `sqliteQuerySet`.
+- **`metaengine/engine.go`**: `SQLiteEngineProfile()` changed `ADTGraph` from
+  `ComplexityON` (degraded) to `ComplexityODegree` (native recursive). Removed
+  `ADTGraph` from `DegradedADTs` map.
+- **`metaengine/rule_degraded_adt.go`** (ENHANCED): `degradedADTRule` now
+  includes estimated latency (`est %.2fms`) in the diagnostic message, scans
+  store engines for native alternatives, and recommends a better engine by name
+  (`native engine "X" recommended` or `no native engine available`). RuleTrace
+  entries include recommendation status.
+- **`metaengine/doctor_degraded.go`** (NEW): `--- Degraded ADTs ---` section in
+  `Doctor()` showing per-query degraded routing with latency estimates and
+  native-engine recommendations.
+- **`metaengine/explain.go`**: Wired `degradedDoctorSection()` between the
+  Latency and Routing sections.
+- **`metaengine/mysqlengine/explain.go`** (NEW): `ExplainableScan` +
+  `ExplainableAggregate` implementations using MySQL JSON path operators
+  (`value->'$.field'`, `CAST(? AS JSON)`). Compile-time assertions added.
+- **`metaengine/mysqlengine/engine.go`**: Added `Calibratable` compile-time
+  assertion (interface already satisfied via embedded `Calibration`).
+- **Engine test parity files** (NEW, 10 files):
+  - mysqlengine: `stream_log_test.go` (2 tests), `pushdown_test.go` (3 tests),
+    `calibration_bench_test.go` (3 benchmarks)
+  - tursoengine: `record_stamp_test.go`, `soak_autocrud_test.go`,
+    `healthcheck_test.go`
+  - bboltengine: `edge_cases_test.go` (4 tests adapted for `MapBackend`/
+    `ScanBackend` — NOT `RawScanReader`/`LayoutPlanner`), `fuzz_test.go`
+    (fuzz MapSet/Get), `scan_bench_test.go` (2 benchmarks at 100/1K/10K)
+- **`metaengine/degraded_adt_enhanced_test.go`** (NEW): 5 tests for cost
+  penalty display, native-engine recommendation, Doctor section integration.
+- **`metaengine/graph_cte_e2e_test.go`** (NEW): 2 e2e Store integration tests
+  for native graph on SQLite (Plan → Apply → Execute pipeline, Doctor section).
+- **`metaengine/sqliteengine/graph_test.go`** (NEW): 7 tests for native graph
+  dispatch (depth limits, cycle handling, idempotent edges, profile checks).
+- **`metaengine/dgraphengine/stream_log_test.go`** (NEW): 6 tests for
+  StreamLogBackend on Dgraph (append/read, version, journal, atomic appender).
+
 ### Fixed — Layout calibration: KV/LSM scoring split restores operator levers — 2026-08-11
 
 > Fixes a regression from an earlier calibration commit that applied

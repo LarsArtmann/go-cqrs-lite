@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/transport/http/v4
 go 1.26.5
 
 require (
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
+	github.com/larsartmann/go-codec v0.1.0
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
@@ -44,4 +44,3 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 )
 
-replace github.com/larsartmann/go-cqrs-lite/codec/v4 => ../../codec

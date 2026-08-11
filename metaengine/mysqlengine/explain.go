@@ -88,9 +88,12 @@ func (e *mysqlEngine) ExplainAggregateQuery(
 	} else {
 		agg := mysqlAggExpr(opts.Fn, escapeJSONPath(opts.Column))
 		if opts.GroupBy != "" {
-			fmt.Fprintf(&b,
+			fmt.Fprintf(
+				&b,
 				`SELECT value->'$.%s' AS group_key, %s AS agg_val FROM meta_map WHERE collection = ?`,
-				escapeJSONPath(opts.GroupBy), agg)
+				escapeJSONPath(opts.GroupBy),
+				agg,
+			)
 		} else {
 			fmt.Fprintf(&b, `SELECT %s FROM meta_map WHERE collection = ?`, agg)
 		}

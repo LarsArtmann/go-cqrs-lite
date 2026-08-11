@@ -341,28 +341,38 @@ DONE 2026-08-10/11. See [CHANGELOG.md](CHANGELOG.md) and status reports
       graph traversal via recursive CTE on SQLite/PG/MySQL; brute-force vector
       search on Memory/Pebble; StreamLog on Dgraph (append-ordered nodes).
       Every engine must handle every ADT.
-      **Partial progress 2026-08-11:** Graph fallback via MultimapBackend BFS
-      implemented (`graph_fallback.go`). ADTGraph added (degraded) to SQLite
-      + MySQL profiles. 4 unit tests. Still missing: StreamLog on Dgraph,
-      recursive CTE optimization, e2e Store integration test.
+      **Partial progress 2026-08-11 (session 2):** StreamLog implemented on
+      Dgraph (`stream_log.go`, 5 methods + AtomicAppender, 6 tests). Native
+      graph dispatch implemented on SQLite/Turso (`meta_graph_edges` table +
+      iterative BFS, 7 tests + 2 e2e Store tests). Profile upgraded from
+      degraded `ComplexityON` to native `ComplexityODegree`. Graph fallback via
+      MultimapBackend BFS still exists for non-graph engines. **Still missing:**
+      brute-force vector search on Pebble/bbolt, native graph on MySQL/PG
+      (still degraded), recursive CTE optimization for deep traversals.
+      See `docs/status/2026-08-11_20-17_metaengine-adt-coverage-degraded-rule-test-parity.md`.
       _(Effort: XL)_
-- [ ] **Capability-degradation planner rule** — new `PlanRule` that emits
-      WARN/INFO when an ADT is routed to an engine whose `EngineProfile`
-      declares that ADT as degraded. Shows estimated cost penalty + recommends
-      a better engine if one is available. Integrates into `ExplainPlan()` and
-      `Doctor()`.
-      _(Effort: M)_
-- [ ] **Engine test parity gaps (remaining)** — mysqlengine lacks
-      `stream_log_test.go`, `pushdown_test.go`, `calibration_bench_test.go`,
-      and `explain.go` (`ExplainableScan`/`ExplainableAggregate`); tursoengine
-      lacks `record_stamp_test.go`, `soak_autocrud_test.go`,
-      `healthcheck_test.go`. bboltengine still lacks `edge_cases_test.go`,
-      `fuzz_test.go`, `scan_bench_test.go` (may be pebble-specific).
-      _(Effort: M — bbolt partial done, mysql + turso remaining)_
-- [ ] **Engine compile-time assertion gaps** — bboltengine missing
-      `HealthChecker` and `StreamingScan` assertions; mysqlengine missing
-      `Calibratable` and `HealthChecker` assertions.
-      _(Effort: S)_
+- [x] **Capability-degradation planner rule** — `degradedADTRule` now emits
+      estimated latency penalty (`est %.2fms`), scans store engines for native
+      alternatives, and recommends a better engine by name. New `--- Degraded
+      ADTs ---` section in `Doctor()` shows runtime inventory. 5 new tests.
+      **Note:** `ExplainPlan()` integration not yet done (only `Doctor()`).
+      _(Effort: M)_ — DONE 2026-08-11.
+      See `docs/status/2026-08-11_20-17_metaengine-adt-coverage-degraded-rule-test-parity.md`.
+- [x] **Engine test parity gaps (remaining)** — mysqlengine gained
+      `stream_log_test.go` (2 tests), `pushdown_test.go` (3 tests),
+      `calibration_bench_test.go` (3 benchmarks), and `explain.go`
+      (`ExplainableScan`/`ExplainableAggregate`); tursoengine gained
+      `record_stamp_test.go`, `soak_autocrud_test.go`, `healthcheck_test.go`.
+      bboltengine gained `edge_cases_test.go` (4 tests adapted for
+      `MapBackend`/`ScanBackend`), `fuzz_test.go`, `scan_bench_test.go`
+      (2 benchmarks). All tests pass.
+      _(Effort: M)_ — DONE 2026-08-11.
+      See `docs/status/2026-08-11_20-17_metaengine-adt-coverage-degraded-rule-test-parity.md`.
+- [x] **Engine compile-time assertion gaps** — mysqlengine gained
+      `Calibratable` assertion (interface already satisfied via embedded
+      `Calibration`). bboltengine was already complete (both `HealthChecker`
+      and `StreamingScan` assertions existed — task premise was incorrect).
+      _(Effort: S)_ — DONE 2026-08-11.
 - [x] ✅ **Fix bench fold `reflect.Call` panic** — fixed in commit
       `7ba946377` ("reify prev value in OnRecord update folds"). OnRecord update
       folds now call `reifyReflect(prev, prevType)` to bridge
@@ -382,7 +392,7 @@ DONE 2026-08-10/11. See [CHANGELOG.md](CHANGELOG.md) and status reports
       tursoengine gaps remain open. bboltengine `edge_cases_test.go`,
       `fuzz_test.go`, `scan_bench_test.go` still missing (pebble-specific,
       may not port cleanly).
-      _(Effort: L — partial, ~40% done)_
+      _(Effort: L — DONE 2026-08-11)_
 
 ### Phase 8: Deletion + v5 Cut
 

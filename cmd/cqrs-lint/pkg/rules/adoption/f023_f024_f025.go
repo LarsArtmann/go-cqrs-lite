@@ -152,13 +152,6 @@ func NewF025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// firstManualFilterPos returns the position of the first "filter into a new
-// slice" idiom: a for/range loop whose body contains an if-statement whose
-// body contains an append() call.
-func firstManualFilterPos(ctx *analyzer.AnalysisContext) (token.Position, bool) {
-	return firstManualFilterPosIn(ctx.Fset, ctx.GoFiles)
-}
-
 func firstManualFilterPosIn(
 	fset *token.FileSet,
 	files []*analyzer.GoFile,
@@ -196,13 +189,6 @@ func firstManualFilterPosIn(
 	return token.Position{}, false
 }
 
-// firstManualPaginationPos returns the position of the first slice expression
-// whose indices reference pagination-like variables (offset, limit, start,
-// end, page, size, skip, take).
-func firstManualPaginationPos(ctx *analyzer.AnalysisContext) (token.Position, bool) {
-	return firstManualPaginationPosIn(ctx.Fset, ctx.GoFiles)
-}
-
 func firstManualPaginationPosIn(
 	fset *token.FileSet,
 	files []*analyzer.GoFile,
@@ -238,13 +224,6 @@ func firstManualPaginationPosIn(
 	}
 
 	return token.Position{}, false
-}
-
-// firstManualAggregationPos returns the position of the first "manual count or
-// sum" idiom: a for/range loop whose body contains an increment (++) or
-// compound assignment (+=, -=).
-func firstManualAggregationPos(ctx *analyzer.AnalysisContext) (token.Position, bool) {
-	return firstManualAggregationPosIn(ctx.Fset, ctx.GoFiles)
 }
 
 func firstManualAggregationPosIn(

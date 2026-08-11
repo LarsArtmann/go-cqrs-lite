@@ -33,24 +33,6 @@ func eventCountIn(ctx *analyzer.AnalysisContext, files []*analyzer.GoFile) int {
 	return count
 }
 
-// distinctAggregateCount returns the number of distinct aggregate types
-// inferred from event type prefixes (the segment before the first dot).
-// Event types without dots each count as a separate aggregate.
-func distinctAggregateCount(ctx *analyzer.AnalysisContext) int {
-	aggregates := make(map[string]bool)
-
-	for eventType := range ctx.Registry.EventTypesEmitted {
-		prefix := eventType
-		if idx := strings.Index(eventType, "."); idx > 0 {
-			prefix = eventType[:idx]
-		}
-
-		aggregates[prefix] = true
-	}
-
-	return len(aggregates)
-}
-
 // distinctAggregateCountIn returns the number of distinct aggregate types
 // emitted from files in the given slice. Used by per-module coaching rules.
 func distinctAggregateCountIn(ctx *analyzer.AnalysisContext, files []*analyzer.GoFile) int {
@@ -74,12 +56,6 @@ func distinctAggregateCountIn(ctx *analyzer.AnalysisContext, files []*analyzer.G
 	}
 
 	return len(aggregates)
-}
-
-// hasPIIInEventPayloads scans event payload structs for PII-like field names.
-// Returns the position of the first PII field found.
-func hasPIIInEventPayloads(ctx *analyzer.AnalysisContext) (token.Position, bool) {
-	return hasPIIInEventPayloadsIn(ctx.Fset, ctx.GoFiles)
 }
 
 func hasPIIInEventPayloadsIn(
@@ -157,12 +133,6 @@ func hasTimeBasedPatternsIn(
 	}
 
 	return token.Position{}, false
-}
-
-// hasTraversalPatterns detects signals that the domain needs graph-like
-// traversal (recursive queries, ancestry, path-finding).
-func hasTraversalPatterns(ctx *analyzer.AnalysisContext) (token.Position, bool) {
-	return hasTraversalPatternsIn(ctx.Fset, ctx.GoFiles)
 }
 
 func hasTraversalPatternsIn(
