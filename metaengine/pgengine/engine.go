@@ -63,13 +63,14 @@ const PG_NsPerRead = 5000.0
 
 // pgEngine implements metaengine.Engine with Postgres as the backend.
 type pgEngine struct {
+	metaengine.Calibration
+
 	db             *sql.DB
 	mu             sync.Mutex
 	activeTx       atomic.Pointer[sql.Tx] // non-nil inside RunInTx
 	done           bool
 	layoutMu       sync.Mutex
 	appliedLayouts map[string]bool
-	metaengine.Calibration
 }
 
 // New creates a Postgres-backed metaengine Engine from a DSN.

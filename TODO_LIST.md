@@ -347,10 +347,14 @@ and is **never** duplicated here.
       Removed scattered blank imports from 4 test files.
       Deleted `system/engines_test.go` (absorbed into main_test.go).
       _(Effort: S)_
-- [ ] **Consider moving CGo DuckDB test to a sub-module** — `duckdbengine` adds
-      ~20 indirect deps to `system/go.mod` (Arrow, FlatBuffers, 6 platform
-      DuckDB binding packages). A `system/integration/` sub-module follows the
-      `testutil/pgtestcontainer` precedent and keeps the system module lean.
+- [x] **Consider moving CGo DuckDB test to a sub-module** — DONE 2026-08-11.
+      Created `system/integration/` sub-module (`go.mod`, `doc.go`, `duckdb_test.go`).
+      Moved CGo-gated DuckDB integration test + blank import out of `system/`.
+      Removed `duckdbengine` direct dep from `system/go.mod` — `go mod tidy`
+      eliminated ~20 indirect deps (Arrow, FlatBuffers, 6 DuckDB platform bindings).
+      Registered in `go.work`, `flake.nix` testModules, `cmd/api-stability` modules.
+      `system/` now builds and tests CGo-free. DuckDB test passes with `CGO_ENABLED=1`.
+      See `docs/status/2026-08-11_09-03_pebble-calibration-bbolt-parity-duckdb-cgo-isolation.md`.
       _(Effort: M)_
 - [x] **Add bbolt source-of-truth integration test** — DONE 2026-08-11.
       Four files added to `metaengine/bboltengine/` (352 lines): `persistence_test.go`
@@ -370,14 +374,18 @@ and is **never** duplicated here.
       Resolved by releasing `record/v4.1.0` tag with branded ID types.
       Engine modules can now resolve branded types under GOWORK=off.
       _(Effort: S)_
-- [ ] **Add `CounterIncrement` benchmark to pebbleengine calibration** — badger
-      and bbolt have it; pebble does not. All engines should have calibration
-      data for all ADT operations.
+- [x] **Add `CounterIncrement` benchmark to pebbleengine calibration** — DONE
+      2026-08-11. Added `BenchmarkCalibration_PebbleCounterIncrement` matching the
+      badger/bbolt pattern. All three engines now have Set + Get + CounterIncrement
+      calibration parity.
       _(Effort: XS)_
-- [ ] **bboltengine parity gaps** — pebbleengine has `edge_cases_test.go`,
-      `fuzz_test.go`, `stream_log_test.go`, `watcher_test.go`, `scan_bench_test.go`
-      that bboltengine lacks. Prioritize by which ADT operations bbolt actually
-      supports differently from pebble.
+- [x] **bboltengine parity gaps** — DONE 2026-08-11. Ported 2 of 5 pebble test
+      files: `stream_log_test.go` (delegates to `enginetest.RunStreamLogBackendTest` +
+      `RunAtomicAppenderTest`), `watcher_test.go` (2 regression tests for delete
+      notification + replay seq). 3 files NOT ported by design: `edge_cases_test.go`,
+      `fuzz_test.go`, `scan_bench_test.go` — all exercise `LayoutPlanner` +
+      `RawScanReader` (pebble-specific, bbolt doesn't implement). Documented in
+      `helper_test.go` package doc comment.
       _(Effort: M)_
 
 ---

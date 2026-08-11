@@ -1,8 +1,3 @@
-// Package metadata provides CustomData and map helpers for event/command
-// metadata. This module is deprecated — model metadata as a standalone struct
-// embedding [record.CommonMetadata] directly instead (see command.Metadata
-// and query.Metadata for the pattern). The module will not be removed this
-// major version but no new features will be added.
 package metadata
 
 import (

@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
@@ -114,7 +115,7 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 	}
 
 	// List with ExcludeDeleted → should use TombstoneQuerier fast path.
-	results, err := mat.List(ctx, stack.ExcludeDeleted)
+	results, err := mat.List(ctx, listing.DeleteExclude)
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
@@ -142,7 +143,7 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 	}
 
 	// List with ExcludeDeleted → 0 results (server-side filtered).
-	results, err = mat.List(ctx, stack.ExcludeDeleted)
+	results, err = mat.List(ctx, listing.DeleteExclude)
 	if err != nil {
 		t.Fatalf("List after tombstone: %v", err)
 	}
@@ -152,7 +153,7 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 	}
 
 	// List with OnlyDeleted → 1 result.
-	results, err = mat.List(ctx, stack.OnlyDeleted)
+	results, err = mat.List(ctx, listing.DeleteOnly)
 	if err != nil {
 		t.Fatalf("List only deleted: %v", err)
 	}

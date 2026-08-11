@@ -94,7 +94,7 @@ func formatBytes(b int64) string {
 //
 // Future versions will execute real read/write operations against live engines.
 func BenchmarkPlan(
-	ctx context.Context,
+	_ context.Context,
 	engines []Engine,
 	queries []any,
 	cfg BenchmarkConfig,

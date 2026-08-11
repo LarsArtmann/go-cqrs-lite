@@ -43,13 +43,14 @@ const MySQLNsPerRead = 5000.0
 var _ metaengine.TrackerHost = (*mysqlEngine)(nil)
 
 type mysqlEngine struct {
+	metaengine.Calibration
+
 	db             *sql.DB
 	mu             sync.Mutex
 	activeTx       atomic.Pointer[sql.Tx] // non-nil inside RunInTx
 	done           bool
 	layoutMu       sync.Mutex
 	appliedLayouts map[string]bool
-	metaengine.Calibration
 }
 
 // New creates a MySQL-backed metaengine Engine from a DSN.

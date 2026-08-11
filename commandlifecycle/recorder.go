@@ -53,7 +53,10 @@ func WithClock(clock func() time.Time) RecorderOption {
 func NewRecorder(sink event.EventSink, opts ...RecorderOption) *Recorder {
 	r := &Recorder{
 		sink:     sink,
+		logger:   slog.Default(),
+		strict:   false,
 		clock:    time.Now,
+		mu:       sync.Mutex{},
 		versions: make(map[string]event.Version),
 	}
 	for _, opt := range opts {

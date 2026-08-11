@@ -160,17 +160,3 @@ func (s *Store) SetPriority(ctx context.Context, pc *PriorityConfig) error {
 
 	return s.Replan(ctx)
 }
-
-// resolvedPriority returns the effective priority for a given engine+query,
-// reading from the stored priorityConfig. Returns PriorityBalanced when no
-// config is set.
-func (s *Store) resolvedPriority(engineName, queryName string) Priority {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	if s.priorityConfig == nil {
-		return PriorityBalanced
-	}
-
-	return s.priorityConfig.Resolve(engineName, queryName)
-}

@@ -45,6 +45,8 @@ const DuckDBNsPerRead = 1200.0
 var _ metaengine.TrackerHost = (*duckdbEngine)(nil)
 
 type duckdbEngine struct {
+	metaengine.Calibration
+
 	db          *sql.DB
 	persistence metaengine.Persistence
 	mu          sync.Mutex
@@ -52,7 +54,6 @@ type duckdbEngine struct {
 	took        bool                   // closed flag
 	plans       map[string]metaengine.LayoutPlan
 	layoutMu    sync.RWMutex
-	metaengine.Calibration
 }
 
 // New creates a DuckDB-backed metaengine Engine.

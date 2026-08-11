@@ -242,10 +242,6 @@ func (s *Store) StartAutoReplan(ctx context.Context, interval time.Duration) (st
 		interval = 30 * time.Second
 	}
 
-	if ctx == nil {
-		ctx = context.Background()
-	}
-
 	ctx, cancel := context.WithCancel(ctx)
 
 	go s.autoReplanLoop(ctx, interval)

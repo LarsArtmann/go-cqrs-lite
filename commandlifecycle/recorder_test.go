@@ -366,11 +366,11 @@ func TestNew_FullRetryScenario_SucceedsOnThirdAttempt(t *testing.T) {
 
 	// Simulate retry middleware wrapping the attempt handler.
 	maxAttempts := 3
-	composed := outer(func(_ context.Context, c command.Command) error {
+	composed := outer(func(ctx context.Context, c command.Command) error {
 		var lastErr error
 
 		for a := 0; a < maxAttempts; a++ {
-			lastErr = innerHandler(context.Background(), c)
+			lastErr = innerHandler(ctx, c)
 			if lastErr == nil {
 				return nil
 			}
@@ -407,11 +407,11 @@ func TestNew_FullRetryScenario_ExhaustedAllAttempts(t *testing.T) {
 	})
 
 	maxAttempts := 3
-	composed := outer(func(_ context.Context, c command.Command) error {
+	composed := outer(func(ctx context.Context, c command.Command) error {
 		var lastErr error
 
 		for a := 0; a < maxAttempts; a++ {
-			lastErr = innerHandler(context.Background(), c)
+			lastErr = innerHandler(ctx, c)
 			if lastErr == nil {
 				return nil
 			}

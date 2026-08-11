@@ -53,6 +53,8 @@ const PebbleNsPerWrite = 2500.0
 var _ metaengine.TrackerHost = (*pebbleEngine)(nil)
 
 type pebbleEngine struct {
+	metaengine.Calibration
+
 	db          *pebble.DB
 	ownsDB      bool
 	persistence metaengine.Persistence
@@ -63,7 +65,6 @@ type pebbleEngine struct {
 	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
 	layoutMu    sync.Mutex
 	layouts     map[string]layoutPlan // collection → layout plan (secondary indexes)
-	metaengine.Calibration
 }
 
 // NewPebbleEngine creates a Pebble-backed metaengine engine. If dir is empty,

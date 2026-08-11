@@ -53,6 +53,8 @@ const BboltNsPerWrite = 5000.0
 var _ metaengine.TrackerHost = (*bboltEngine)(nil)
 
 type bboltEngine struct {
+	metaengine.Calibration
+
 	db          *bolt.DB
 	ownsDB      bool
 	tmpPath     string // non-empty when we created a temp file (volatile mode)
@@ -63,7 +65,6 @@ type bboltEngine struct {
 	mmSeq       sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
 	streamSeq   sync.Map   // "col\x00sid" → *atomic.Int64 (per-stream sequence)
 	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
-	metaengine.Calibration
 }
 
 // NewBboltEngine creates a bbolt-backed metaengine engine. If path is empty,

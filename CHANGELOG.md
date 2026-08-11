@@ -6,6 +6,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — Pebble calibration parity, bbolt test parity, DuckDB CGo isolation — 2026-08-11
+
+> Three maintenance tasks from TODO_LIST.md: pebbleengine calibration gap,
+> bboltengine test parity gaps, and CGo dependency isolation for the system
+> module. See
+> `docs/status/2026-08-11_09-03_pebble-calibration-bbolt-parity-duckdb-cgo-isolation.md`.
+
+- **`metaengine/pebbleengine/calibration_bench_test.go`** (ADD): Added
+  `BenchmarkCalibration_PebbleCounterIncrement` — pebble now has Set + Get +
+  CounterIncrement calibration parity with badger and bbolt. Updated header
+  comment to reference `PebbleNsPerOp`/`PebbleNsPerRead`/`PebbleNsPerWrite`.
+- **`metaengine/bboltengine/stream_log_test.go`** (NEW): Ported from
+  pebbleengine. Delegates to `enginetest.RunStreamLogBackendTest` +
+  `RunAtomicAppenderTest` (bbolt implements both `StreamLogBackend` and
+  `AtomicAppender`).
+- **`metaengine/bboltengine/watcher_test.go`** (NEW, 124 lines): Ported from
+  pebbleengine. 2 regression tests: delete notification delivers zero value,
+  `WithReplay` records typed seq. Uses engine-agnostic `metaengine.Plan` +
+  `metaengine.NewWatcher` at Store level.
+- **`metaengine/bboltengine/helper_test.go`** (ADD): Package doc comment
+  documenting which pebble test files were ported, which were not, and why
+  (`LayoutPlanner`/`RawScanReader` are pebble-specific).
+- **`metaengine/bboltengine/go.mod`**: `record/v4` promoted from indirect to
+  direct (watcher_test.go imports `record.Record`).
+- **`system/integration/`** (**NEW MODULE**): CGo-isolated sub-module following
+  the `testutil/pgtestcontainer` precedent. Contains `go.mod`, `doc.go`
+  (package rationale), and `duckdb_test.go` (self-contained DuckDB integration
+  test with its own `TestMain` + domain types). Replaces
+  `system/integration_duckdb_test.go` + `system/main_cgo_test.go`.
+- **`system/go.mod`** (SLIMMED): Removed `duckdbengine/v4` direct dep.
+  `go mod tidy` eliminated ~20 indirect deps (Arrow, FlatBuffers, 6 DuckDB
+  platform binding packages). The system module is now CGo-free — builds and
+  tests without a C compiler.
+- **`system/main_test.go`** (UPDATED): Comment now points to
+  `system/integration/` for CGo-gated DuckDB tests.
+- **`go.work`**, **`flake.nix`** (testModules), **`cmd/api-stability/main.go`**
+  (modules list): Registered `system/integration`.
+
 ### Changed — Layout planning quality: sort fix, ExplainPlan layout annotations, test coverage — 2026-08-11
 
 > Addresses follow-up quality items from the ADR-0124 layout planning rollout:

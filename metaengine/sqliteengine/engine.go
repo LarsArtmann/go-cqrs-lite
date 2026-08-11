@@ -21,6 +21,8 @@ import (
 // It is the first persistent engine for the metaengine, enabling data
 // to survive process restarts.
 type sqliteEngine struct {
+	metaengine.Calibration
+
 	db      *sql.DB
 	queries sqliteQuerySet
 	cache   *stmtCache
@@ -29,8 +31,7 @@ type sqliteEngine struct {
 	plans    map[string]metaengine.LayoutPlan
 	txMu     sync.Mutex
 	activeTx atomic.Pointer[txExecutor]
-	metaengine.Calibration
-	probeFn func(context.Context) (time.Duration, error)
+	probeFn  func(context.Context) (time.Duration, error)
 }
 
 // sqliteQuerySet holds pre-built SQL strings for each operation.

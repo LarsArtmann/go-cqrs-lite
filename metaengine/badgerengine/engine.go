@@ -44,6 +44,8 @@ const BadgerNsPerRead = 1200.0
 const BadgerNsPerWrite = 4300.0
 
 type badgerEngine struct {
+	metaengine.Calibration
+
 	db          *badger.DB
 	ownsDB      bool
 	persistence metaengine.Persistence
@@ -52,7 +54,6 @@ type badgerEngine struct {
 	mmSeq       sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
 	streamSeq   sync.Map   // "col\x00sid" → *atomic.Int64 (per-stream sequence)
 	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
-	metaengine.Calibration
 }
 
 // NewBadgerEngine creates a Badger-backed metaengine engine. If dir is empty,

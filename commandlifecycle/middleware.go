@@ -15,7 +15,10 @@ type attemptTracker struct {
 }
 
 func newAttemptTracker() *attemptTracker {
-	return &attemptTracker{attempts: make(map[string]int)}
+	return &attemptTracker{
+		mu:       sync.Mutex{},
+		attempts: make(map[string]int),
+	}
 }
 
 func (t *attemptTracker) next(cmdID string) int {
@@ -58,7 +61,7 @@ func (t *attemptTracker) clear(cmdID string) {
 //
 //	outer, _ := commandlifecycle.New(recorder)
 //	dispatcher.Use(outer)
-func New(recorder *Recorder) (outer, attempt command.Middleware) {
+func New(recorder *Recorder) (command.Middleware, command.Middleware) {
 	tracker := newAttemptTracker()
 
 	return outerMiddleware(recorder, tracker), attemptMiddleware(recorder, tracker)

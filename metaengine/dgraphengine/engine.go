@@ -52,12 +52,13 @@ const DG_NsPerWrite = 2_500_000.0
 
 // dgraphEngine implements metaengine.Engine with Dgraph as the backend.
 type dgraphEngine struct {
+	metaengine.Calibration
+
 	client         *dgo.Dgraph
 	mu             sync.Mutex
 	done           bool
 	schemaMu       sync.Mutex
 	appliedSchemas map[string]bool
-	metaengine.Calibration
 }
 
 // New creates a Dgraph-backed metaengine Engine from a gRPC address.

@@ -73,7 +73,7 @@ func TestReifyReflect_NilFallsBackToZero(t *testing.T) {
 }
 
 // TestOnRecord_UpdateFold_ReifyMapPrev is the direct regression test for the
-// bug fixed in record_fold.go:115. Before the fix, the OnRecord update path
+// fixed bug in record_fold.go:115. Before the fix, the OnRecord update path
 // passed prev directly to reflect.ValueOf(prev), which panics when prev is
 // map[string]any (as returned by SQL engines). The fix calls reifyReflect to
 // rebuild the typed value via JSON round-trip.
