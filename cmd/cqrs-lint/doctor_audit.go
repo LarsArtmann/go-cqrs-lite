@@ -50,9 +50,9 @@ func runSuppressionAudit(
 // renderSuppressionAudit prints the audit report grouped by status.
 func renderSuppressionAudit(w io.Writer, entries []suppression.SuppressionAuditEntry) {
 	if len(entries) == 0 {
-		fmt.Fprintln(w, "No inline suppressions found.")
-		fmt.Fprintln(w)
-		fmt.Fprintln(w, "Inline suppressions use: //cqrs-lint:ignore(RULE) reason text")
+		_, _ = fmt.Fprintln(w, "No inline suppressions found.")
+		_, _ = fmt.Fprintln(w)
+		_, _ = fmt.Fprintln(w, "Inline suppressions use: //cqrs-lint:ignore(RULE) reason text")
 		return
 	}
 
@@ -69,45 +69,45 @@ func renderSuppressionAudit(w io.Writer, entries []suppression.SuppressionAuditE
 	}
 
 	total := len(entries)
-	fmt.Fprintf(w, "SUPPRESSION AUDIT — %d total\n", total)
-	fmt.Fprintln(w, strings.Repeat("─", len(fmt.Sprintf("SUPPRESSION AUDIT — %d total", total))))
-	fmt.Fprintln(w)
-	fmt.Fprintf(w, "  Active:       %d  (suppressing a real finding)\n", len(active))
-	fmt.Fprintf(w, "  Stale:        %d  (no finding fires — safe to remove)\n", len(stale))
-	fmt.Fprintf(w, "  Unknown rule: %d  (typo or removed rule ID)\n", len(unknown))
-	fmt.Fprintln(w)
+	_, _ = fmt.Fprintf(w, "SUPPRESSION AUDIT — %d total\n", total)
+	_, _ = fmt.Fprintln(w, strings.Repeat("─", len(fmt.Sprintf("SUPPRESSION AUDIT — %d total", total))))
+	_, _ = fmt.Fprintln(w)
+	_, _ = fmt.Fprintf(w, "  Active:       %d  (suppressing a real finding)\n", len(active))
+	_, _ = fmt.Fprintf(w, "  Stale:        %d  (no finding fires — safe to remove)\n", len(stale))
+	_, _ = fmt.Fprintf(w, "  Unknown rule: %d  (typo or removed rule ID)\n", len(unknown))
+	_, _ = fmt.Fprintln(w)
 
 	if len(stale) > 0 {
-		fmt.Fprintln(w, "STALE SUPPRESSIONS (safe to remove)")
-		fmt.Fprintln(w, "──────────────────────────────────")
-		fmt.Fprintln(w)
+		_, _ = fmt.Fprintln(w, "STALE SUPPRESSIONS (safe to remove)")
+		_, _ = fmt.Fprintln(w, "──────────────────────────────────")
+		_, _ = fmt.Fprintln(w)
 		for _, e := range stale {
 			renderAuditEntry(w, e)
 		}
 	}
 
 	if len(unknown) > 0 {
-		fmt.Fprintln(w, "UNKNOWN-RULE SUPPRESSIONS (typo or removed rule)")
-		fmt.Fprintln(w, "─────────────────────────────────────────────────")
-		fmt.Fprintln(w)
+		_, _ = fmt.Fprintln(w, "UNKNOWN-RULE SUPPRESSIONS (typo or removed rule)")
+		_, _ = fmt.Fprintln(w, "─────────────────────────────────────────────────")
+		_, _ = fmt.Fprintln(w)
 		for _, e := range unknown {
 			renderAuditEntry(w, e)
 		}
 	}
 
 	if len(active) > 0 {
-		fmt.Fprintln(w, "ACTIVE SUPPRESSIONS (working correctly)")
-		fmt.Fprintln(w, "────────────────────────────────────────")
-		fmt.Fprintln(w)
+		_, _ = fmt.Fprintln(w, "ACTIVE SUPPRESSIONS (working correctly)")
+		_, _ = fmt.Fprintln(w, "────────────────────────────────────────")
+		_, _ = fmt.Fprintln(w)
 		for _, e := range active {
 			renderAuditEntry(w, e)
 		}
 	}
 
 	if len(stale) > 0 || len(unknown) > 0 {
-		fmt.Fprintln(w)
-		fmt.Fprintf(w, "  %d of %d suppression(s) need attention.\n", len(stale)+len(unknown), total)
-		fmt.Fprintln(w, "  Remove stale suppressions and fix unknown-rule references.")
+		_, _ = fmt.Fprintln(w)
+		_, _ = fmt.Fprintf(w, "  %d of %d suppression(s) need attention.\n", len(stale)+len(unknown), total)
+		_, _ = fmt.Fprintln(w, "  Remove stale suppressions and fix unknown-rule references.")
 	}
 }
 
@@ -119,7 +119,7 @@ func renderAuditEntry(w io.Writer, e suppression.SuppressionAuditEntry) {
 
 	rel := e.File
 	short := shortenPath(rel)
-	fmt.Fprintf(w, "  %s:%d  [%s]  %s\n", short, e.Line, e.Rule, reason)
+	_, _ = fmt.Fprintf(w, "  %s:%d  [%s]  %s\n", short, e.Line, e.Rule, reason)
 }
 
 // shortenPath reduces a file path to its last 2 segments for readability.
