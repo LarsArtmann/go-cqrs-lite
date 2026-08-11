@@ -25,9 +25,13 @@ type testFindTask struct {
 func testTaskQuery() QueryDecl[testFindTask, testTask] {
 	return Query[testFindTask, testTask](
 		"tasks",
-		OnRecordTyped("task_created", testTask{}, func(_ record.Record, e testTask) (testTaskID, testTask) {
-			return e.ID, e
-		}),
+		OnRecordTyped(
+			"task_created",
+			testTask{},
+			func(_ record.Record, e testTask) (testTaskID, testTask) {
+				return e.ID, e
+			},
+		),
 	)
 }
 
@@ -133,9 +137,13 @@ func _skipped_sqlite_0(t *testing.T) {
 		WithDryRun(),
 		Query[testFindTask, testTask](
 			"find_filtered",
-			OnRecordTyped("task_created", testTask{}, func(_ record.Record, e testTask) (testTaskID, testTask) {
-				return e.ID, e
-			}),
+			OnRecordTyped(
+				"task_created",
+				testTask{},
+				func(_ record.Record, e testTask) (testTaskID, testTask) {
+					return e.ID, e
+				},
+			),
 			FilterOnField[testTask]("status", FilterEq),
 			SortOnField[testTask]("title", false),
 		),

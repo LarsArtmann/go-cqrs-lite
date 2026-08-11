@@ -469,9 +469,13 @@ func TestCrashRecovery_PanicPoisonsCollection(t *testing.T) {
 	// Query with a fold that panics.
 	panicQuery := Query[testFindTask, testTask](
 		"panic_tasks",
-		OnRecordTyped("panic_event", testTask{}, func(_ record.Record, e testTask) (testTaskID, testTask) {
-			panic("intentional crash")
-		}),
+		OnRecordTyped(
+			"panic_event",
+			testTask{},
+			func(_ record.Record, e testTask) (testTaskID, testTask) {
+				panic("intentional crash")
+			},
+		),
 	)
 
 	store, err := Plan([]Engine{eng}, panicQuery)
@@ -708,14 +712,22 @@ func TestProperty_RandomOpsMaintainConsistency(t *testing.T) {
 	// Query with insert, update, and delete folds.
 	updateQuery := Query[testFindTask, testTask](
 		"prop_tasks",
-		OnRecordTyped("task_created", testTask{}, func(_ record.Record, e testTask) (testTaskID, testTask) {
-			return e.ID, e
-		}),
-		OnRecordTyped("task_title_changed", testTask{}, func(_ record.Record, e testTask, prev testTask) testTask {
-			prev.Title = e.Title
+		OnRecordTyped(
+			"task_created",
+			testTask{},
+			func(_ record.Record, e testTask) (testTaskID, testTask) {
+				return e.ID, e
+			},
+		),
+		OnRecordTyped(
+			"task_title_changed",
+			testTask{},
+			func(_ record.Record, e testTask, prev testTask) testTask {
+				prev.Title = e.Title
 
-			return prev
-		}),
+				return prev
+			},
+		),
 		OnRecordTyped("task_deleted", testTask{}, Remove[testTask]()),
 	)
 

@@ -193,9 +193,13 @@ var _ = Describe("Deprecated On/OnTyped constructors (v5 removal)", func() {
 	})
 
 	It("OnTyped binds the explicit event type", func() {
-		fold := metaengine.OnTyped("legacy.created", legacyEvent{}, func(e legacyEvent) (string, legacyResult) {
-			return e.ID, legacyResult{Name: e.Name}
-		})
+		fold := metaengine.OnTyped(
+			"legacy.created",
+			legacyEvent{},
+			func(e legacyEvent) (string, legacyResult) {
+				return e.ID, legacyResult{Name: e.Name}
+			},
+		)
 		Expect(fold.EventType()).To(Equal("legacy.created"))
 	})
 

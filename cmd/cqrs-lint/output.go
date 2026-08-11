@@ -13,6 +13,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -146,8 +147,8 @@ func findingsToTable(findings []finding.Finding) *output.Table {
 			string(f.Rule),
 			f.Severity.String(),
 			string(f.Position.File),
-			fmt.Sprintf("%d", f.Position.Line),
-			fmt.Sprintf("%d", f.Position.Column),
+			strconv.Itoa(f.Position.Line),
+			strconv.Itoa(f.Position.Column),
 			f.Message,
 			f.Suggestion,
 			f.Category.String(),

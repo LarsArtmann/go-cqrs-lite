@@ -25,21 +25,51 @@ func TestApplyFoldExhaustiveness(t *testing.T) {
 	t.Parallel()
 
 	folds := []Fold{
-		OnRecord(event{}, func(_ record.Record, e event) (string, int) { return e.ID, 1 }),          // insertFold
-		OnRecord(event{}, func(_ record.Record, e event, prev int) int { return prev + 1 }),         // updateFold
-		OnRecord(event{}, Remove[int]()),                                                            // removeFold
-		OnRecord(event{}, func(_ record.Record, e event) Delta { return Delta{e.ID: 1} }),           // countFold
-		OnRecord(event{}, func(_ record.Record, e event) Edge { return Edge{From: e.ID, To: "x"} }), // edgeFold
+		OnRecord(
+			event{},
+			func(_ record.Record, e event) (string, int) { return e.ID, 1 },
+		), // insertFold
+		OnRecord(
+			event{},
+			func(_ record.Record, e event, prev int) int { return prev + 1 },
+		), // updateFold
+		OnRecord(event{}, Remove[int]()), // removeFold
+		OnRecord(
+			event{},
+			func(_ record.Record, e event) Delta { return Delta{e.ID: 1} },
+		), // countFold
+		OnRecord(
+			event{},
+			func(_ record.Record, e event) Edge { return Edge{From: e.ID, To: "x"} },
+		), // edgeFold
 		OnRecord(
 			event{},
 			func(_ record.Record, e event) string { return e.ID },
 		), // setFold (default in classifySingleReturn)
-		OnRecord(event{}, func(_ record.Record, e event) Skip { return Skip{} }),                       // skipFold
-		OnRecord(event{}, func(_ record.Record, e event) MultiEntry { return MultiEntry{Key: e.ID} }),  // multiInsertFold
-		OnRecord(event{}, func(_ record.Record, e event) Append { return Append{Value: e.ID} }),        // appendFold
-		OnRecord(event{}, func(_ record.Record, e event) Embedding { return Embedding{ID: e.ID} }),     // vectorFold
-		OnRecord(event{}, func(_ record.Record, e event) IndexedText { return IndexedText{ID: e.ID} }), // searchFold
-		OnRecord(event{}, func(_ record.Record, e event) Point { return Point{ID: e.ID, X: 1, Y: 2} }), // spatialFold
+		OnRecord(
+			event{},
+			func(_ record.Record, e event) Skip { return Skip{} },
+		), // skipFold
+		OnRecord(
+			event{},
+			func(_ record.Record, e event) MultiEntry { return MultiEntry{Key: e.ID} },
+		), // multiInsertFold
+		OnRecord(
+			event{},
+			func(_ record.Record, e event) Append { return Append{Value: e.ID} },
+		), // appendFold
+		OnRecord(
+			event{},
+			func(_ record.Record, e event) Embedding { return Embedding{ID: e.ID} },
+		), // vectorFold
+		OnRecord(
+			event{},
+			func(_ record.Record, e event) IndexedText { return IndexedText{ID: e.ID} },
+		), // searchFold
+		OnRecord(
+			event{},
+			func(_ record.Record, e event) Point { return Point{ID: e.ID, X: 1, Y: 2} },
+		), // spatialFold
 	}
 
 	if len(folds) != len(AllFoldKinds()) {

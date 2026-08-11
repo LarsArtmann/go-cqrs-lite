@@ -16,6 +16,7 @@ type QueryConfig struct {
 	filterAccessors []filterAccessor
 	sortAccessor    sortAccessor
 	columnarLayout  bool
+	layoutPriority  Priority // developer per-query layout priority (ADR-0124 Layer 4)
 }
 
 // Volume sets the expected query volume (events/sec) for cost estimation.
@@ -41,6 +42,63 @@ func WithLatencyBudget(ms int64) QueryOption {
 // accurate SQL types require LayoutPlanApplier (currently implemented by DuckDB).
 func WithColumnarLayout() QueryOption {
 	return func(c *QueryConfig) { c.columnarLayout = true }
+}
+
+// layoutAssignment pairs a query name with a per-query layout priority
+// (ADR-0124). The planner applies it on top of the operator's PriorityConfig;
+// a value of PriorityBalanced is a no-op (defer to the config).
+type layoutAssignment struct {
+	queryName string
+	priority  Priority
+}
+
+// WithLayoutPriority sets a per-query layout priority override (ADR-0124
+// Layer 4). This is the developer-side counterpart to the operator's
+// DeploymentConfig priorities: the developer pins the layout objective for
+// ONE query, the operator still controls Global/per-Engine priorities.
+//
+// The most specific priority wins:
+//
+//	per-Query (this) > per-Query (operator config) > per-Engine > Global
+//
+// Query name in the operator's PriorityConfig.PerQuery map still takes
+// precedence over this option: operator wins over developer. Use
+// WithLayoutPriority when a single query has a different optimization
+// objective than the rest of the deployment.
+func WithLayoutPriority(p Priority) QueryOption {
+	return func(c *QueryConfig) {
+		if p.Valid() {
+			c.layoutPriority = p
+		}
+	}
+}
+
+// layoutPriority returns the developer-declared layout priority for this
+// query, or PriorityBalanced when none was set.
+func (c QueryConfig) layoutPriorityOr(p Priority) Priority {
+	if c.layoutPriority.Valid() {
+		return c.layoutPriority
+	}
+
+	return p
+}
+
+// priorityForQuery returns the most specific priority for a query, combining
+// the operator's PriorityConfig with the developer's WithLayoutPriority
+// option. Resolution order: per-Query (operator config) → developer
+// WithLayoutPriority → per-Engine → Global → Balanced.
+func (s *Store) priorityForQuery(engineName, queryName string, cfg QueryConfig) Priority {
+	if s.priorityConfig != nil {
+		if p, ok := s.priorityConfig.PerQuery[queryName]; ok && p.Valid() {
+			return p
+		}
+
+		if s.priorityConfig.PerEngine != nil || s.priorityConfig.Global != "" {
+			return s.priorityConfig.Resolve(engineName, queryName)
+		}
+	}
+
+	return cfg.layoutPriorityOr(PriorityBalanced)
 }
 
 // filterAccessor stores a typed closure that extracts a filterable field value

@@ -19,9 +19,13 @@ func TestWatcher_ReceivesDeleteNotification(t *testing.T) {
 
 	deleteQuery := Query[testFindTask, testTask](
 		"del_tasks",
-		OnRecordTyped("task_created", testTask{}, func(_ record.Record, e testTask) (testTaskID, testTask) {
-			return e.ID, e
-		}),
+		OnRecordTyped(
+			"task_created",
+			testTask{},
+			func(_ record.Record, e testTask) (testTaskID, testTask) {
+				return e.ID, e
+			},
+		),
 		OnRecordTyped("task_deleted", testTask{}, Remove[testTask]()),
 	)
 
@@ -74,9 +78,13 @@ func TestWatcherWithSeq_ReceivesDeleteNotification(t *testing.T) {
 
 	deleteQuery := Query[testFindTask, testTask](
 		"del_seq_tasks",
-		OnRecordTyped("task_created", testTask{}, func(_ record.Record, e testTask) (testTaskID, testTask) {
-			return e.ID, e
-		}),
+		OnRecordTyped(
+			"task_created",
+			testTask{},
+			func(_ record.Record, e testTask) (testTaskID, testTask) {
+				return e.ID, e
+			},
+		),
 		OnRecordTyped("task_deleted", testTask{}, Remove[testTask]()),
 	)
 
@@ -201,9 +209,13 @@ func TestSQLiteWatcher_ReceivesDeleteNotification(t *testing.T) {
 
 	deleteQuery := Query[testFindTask, testTask](
 		"sqlite_del_tasks",
-		OnRecordTyped("task_created", testTask{}, func(_ record.Record, e testTask) (testTaskID, testTask) {
-			return e.ID, e
-		}),
+		OnRecordTyped(
+			"task_created",
+			testTask{},
+			func(_ record.Record, e testTask) (testTaskID, testTask) {
+				return e.ID, e
+			},
+		),
 		OnRecordTyped("task_deleted", testTask{}, Remove[testTask]()),
 	)
 

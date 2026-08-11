@@ -32,12 +32,29 @@ import (
 //	    engine: primary
 //	acknowledge_warnings:
 //	  - "volatile-source-of-truth:source-of-truth"
+//	priority:
+//	  global: WriteSpeed
+//	  perEngine:
+//	    primary: ReadSpeed
+//	  perQuery:
+//	    find_tasks: StorageSpace
+//	engines:
+//	  primary:
+//	    driver: sqlite
+//	    dsn: file:events.db
+//	    pragmas: [journal_mode=wal, foreign_keys=on]
+//	    priority: Balanced
+//
+// Priority values: WriteSpeed, ReadSpeed, StorageSpace, Balanced (default).
 //
 // Env var overrides use the CQRS_ prefix with double-underscore as the
 // map/nested separator. koanf merges env on top of YAML (env wins):
 //
 //	CQRS_ENGINES__PRIMARY__DRIVER=sqlite       → engines.primary.driver
 //	CQRS_ENGINES__PRIMARY__DSN=file:events.db  → engines.primary.dsn
+//	CQRS_ENGINES__PRIMARY__PRIORITY=ReadSpeed  → engines.primary.priority
+//	CQRS_PRIORITY__GLOBAL=WriteSpeed           → priority.global
+//	CQRS_PRIORITY__PERENGINE__PRIMARY=ReadSpeed → priority.perEngine.primary
 //	CQRS_BUSES__LOCAL__DRIVER=gochannel        → buses.local.driver
 //	CQRS_INSTANCES__0__DURABILITY=strict       → instances[0].durability
 //

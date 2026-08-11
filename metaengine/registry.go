@@ -13,6 +13,12 @@ import (
 type DriverConfig struct {
 	DSN     string
 	Pragmas []string
+
+	// Priority is the operator's layout-planning objective for this engine
+	// (ADR-0124). An empty value resolves to PriorityBalanced. Drivers may
+	// consult it to adapt engine-level defaults (e.g., a SQLite engine could
+	// prefer normalized layouts under WriteSpeed).
+	Priority Priority
 }
 
 // DriverFactory creates an Engine from a DriverConfig. Implementations are

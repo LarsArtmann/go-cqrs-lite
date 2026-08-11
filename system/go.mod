@@ -107,3 +107,7 @@ require (
 replace github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 => ../commandlifecycle
 
 replace github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 => ../commandlifecycle/projections
+
+replace github.com/larsartmann/go-cqrs-lite/id/v4 => ../id
+
+replace github.com/larsartmann/go-cqrs-lite/id/v4 => ../id

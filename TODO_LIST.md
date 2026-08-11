@@ -130,6 +130,15 @@ and is **never** duplicated here.
 - [ ] **Tag `commandlifecycle/v4.0.0`** — publish the two new modules after
       version tracking fix and verify gate pass.
       _(Effort: S)_
+      **BLOCKED (2026-08-11):** id.ActorID release gap. Published
+      `record/v4.1.0`, `command/v4.4.0`, `metaengine/v4.8.0` reference
+      `id.ActorID`, but newest `id/v4` tag is v4.2.0 (no ActorID) → consumer
+      GOWORK=off builds fail. Fix: tag `id/v4.3.0` → re-tag record/v4.2.0,
+      command/v4.5.0, metaengine/v4.9.0 → then commandlifecycle. See
+      `docs/status/2026-08-11_17-05_actorid-release-gap-blocks-commandlifecycle.md`.
+- [x] **Tag `benchkit/v4.4.0`** — already tagged (7d5cd10c7), contains
+      `Truncate`/`TitleCase`. Closed 2026-08-11.
+      _(Effort: XS)_
 
 - [ ] **Run calibration benchmarks against baseline** — verify
       `calibration-baseline.md` accuracy; add CI regression check.

@@ -56,10 +56,15 @@ func TestSpike_Batch_SQLTransactionApproach(t *testing.T) {
 	// This works for SQLite/Postgres/DuckDB — they all implement Transactional.
 
 	// Register a trivial query so Plan succeeds.
-	dummyQuery := Query[struct{ ID string }, spikeBatchView]("spike_batch_dummy",
-		OnRecordTyped("test.event", spikeBatchEvent{}, func(_ record.Record, e spikeBatchEvent) (string, spikeBatchView) {
-			return e.ID, spikeBatchView(e)
-		}),
+	dummyQuery := Query[struct{ ID string }, spikeBatchView](
+		"spike_batch_dummy",
+		OnRecordTyped(
+			"test.event",
+			spikeBatchEvent{},
+			func(_ record.Record, e spikeBatchEvent) (string, spikeBatchView) {
+				return e.ID, spikeBatchView(e)
+			},
+		),
 	)
 
 	store, err := Plan([]Engine{NewMemoryEngine()}, dummyQuery)

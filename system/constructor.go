@@ -153,7 +153,9 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 			}
 
 			if len(projEngines) > 0 && len(processedProjections) > 0 {
-				store, err := metaengine.Plan(projEngines, processedProjections...)
+				planOpts := []any{metaengine.WithPriorityConfig(deployment.Priority.toMeta())}
+
+				store, err := metaengine.Plan(projEngines, append(planOpts, processedProjections...)...)
 				if err != nil {
 					return nil, fmt.Errorf("system: plan projections: %w", err)
 				}

@@ -158,7 +158,7 @@ func (s *Store) ExplainPlan() string {
 		profile := q.QueryEngine().Profile()
 		fmt.Fprintf(&b, "  %s: %s via %s (%s)%s", name, q.QueryADT(),
 			profile.Name, q.QueryComplexity(),
-			layoutExplainAnnotation(s.priorityConfig, profile, name))
+			layoutExplainAnnotation(s.priorityConfig, profile, name, q.QueryConfig()))
 
 		if s.plan != nil {
 			for _, qa := range s.plan.Queries {

@@ -239,4 +239,6 @@ var (
 	_ metaengine.StreamLogBackend = (*bboltEngine)(nil)
 	_ metaengine.AtomicAppender   = (*bboltEngine)(nil)
 	_ metaengine.Calibratable     = (*bboltEngine)(nil)
+	_ metaengine.HealthChecker    = (*bboltEngine)(nil)
+	_ metaengine.StreamingScan    = (*bboltEngine)(nil)
 )

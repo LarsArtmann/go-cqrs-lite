@@ -18,8 +18,9 @@ func createEngineFromDriver(ctx context.Context, cfg EngineConfig) (metaengine.E
 	}
 
 	eng, err := factory(ctx, metaengine.DriverConfig{
-		DSN:     cfg.DSN,
-		Pragmas: cfg.Pragmas,
+		DSN:      cfg.DSN,
+		Pragmas:  cfg.Pragmas,
+		Priority: cfg.Priority,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("system: driver %q create: %w", cfg.Driver, err)

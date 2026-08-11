@@ -53,3 +53,5 @@ require (
 replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ./sqliteengine
 
 replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../record
+
+replace github.com/larsartmann/go-cqrs-lite/id/v4 => ../id

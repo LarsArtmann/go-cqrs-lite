@@ -1736,6 +1736,7 @@ metaengine/func WithFilter
 metaengine/func WithHooks
 metaengine/func WithIn
 metaengine/func WithLatencyBudget
+metaengine/func WithLayoutPriority
 metaengine/func WithLimit
 metaengine/func WithMetrics
 metaengine/func WithNetworkRTT

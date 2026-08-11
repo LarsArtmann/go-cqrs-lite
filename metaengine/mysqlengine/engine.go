@@ -237,4 +237,5 @@ var (
 	_ metaengine.StreamLogBackend = (*mysqlEngine)(nil)
 	_ metaengine.AtomicAppender   = (*mysqlEngine)(nil)
 	_ metaengine.Transactional    = (*mysqlEngine)(nil)
+	_ metaengine.HealthChecker    = (*mysqlEngine)(nil)
 )

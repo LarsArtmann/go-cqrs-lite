@@ -33,7 +33,7 @@ type AppConfig struct {
 	cmdguard.Config
 
 	Path                    string `default:"."     flag:"path"                       help:"Path to lint"`
-	Format                  string `default:"text"  flag:"format"                     help:"Output format: text, json, sarif, markdown, csv, tsv"                                                                           short:"o"`
+	Format                  string `default:"text"  flag:"format"                     help:"Output format: text, json, sarif, markdown, csv, tsv"                                    short:"o"`
 	MinSeverity             string `default:"info"  flag:"min-severity"               help:"Minimum severity"`
 	MinConfidence           string `default:"low"   flag:"min-confidence"             help:"Minimum confidence"`
 	Fix                     bool   `default:"false" flag:"fix"                        help:"Apply auto-fixes"`

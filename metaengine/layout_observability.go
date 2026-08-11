@@ -28,9 +28,11 @@ func (s *Store) GetLayoutInfo() []LayoutInfo {
 		q := s.queries[name]
 		engine := q.QueryEngine()
 
+		// Resolve the effective priority: developer per-query
+		// WithLayoutPriority first, then operator PriorityConfig.
 		resolvedPriority := PriorityBalanced
-		if s.priorityConfig != nil && engine != nil {
-			resolvedPriority = s.priorityConfig.Resolve(engine.Profile().Name, name)
+		if engine != nil {
+			resolvedPriority = s.priorityForQuery(engine.Profile().Name, name, q.QueryConfig())
 		}
 
 		info := LayoutInfo{
@@ -89,8 +91,6 @@ func (s *Store) LayoutWarnings() []LayoutWarning {
 
 	var warnings []LayoutWarning
 
-	pc := s.priorityConfig
-
 	for _, name := range sortedQueryNames(s.queries) {
 		q := s.queries[name]
 		engine := q.QueryEngine()
@@ -101,10 +101,7 @@ func (s *Store) LayoutWarnings() []LayoutWarning {
 		profile := engine.Profile()
 		storageLayout := defaultStorageLayout(profile)
 
-		resolvedPriority := PriorityBalanced
-		if pc != nil {
-			resolvedPriority = pc.Resolve(profile.Name, name)
-		}
+		resolvedPriority := s.priorityForQuery(profile.Name, name, q.QueryConfig())
 
 		selectedOption, _ := SelectLayout(profile, resolvedPriority)
 
@@ -132,12 +129,18 @@ func (s *Store) LayoutWarnings() []LayoutWarning {
 // layoutExplainAnnotation returns a compact layout+priority tag for ExplainPlan
 // query lines, e.g. " layout=Embed(Balanced)". It is a pure function — callers
 // must hold the store read lock (no re-locking to avoid deadlock).
-func layoutExplainAnnotation(pc *PriorityConfig, profile EngineProfile, queryName string) string {
+func layoutExplainAnnotation(
+	pc *PriorityConfig,
+	profile EngineProfile,
+	queryName string,
+	cfg QueryConfig,
+) string {
 	resolved := PriorityBalanced
-	if pc != nil {
+	if cfg.layoutPriority.Valid() {
+		resolved = cfg.layoutPriority
+	} else if pc != nil {
 		resolved = pc.Resolve(profile.Name, queryName)
 	}
-
 	layout, _ := SelectLayout(profile, resolved)
 
 	return fmt.Sprintf(" layout=%s(%s)", layout, resolved)

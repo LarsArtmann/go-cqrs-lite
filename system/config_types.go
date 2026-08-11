@@ -4,6 +4,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
 
@@ -123,6 +124,37 @@ type DeploymentConfig struct {
 	// is saved to this path for the next restart.
 	// Leave empty to disable plan-drift detection.
 	ManifestPath string `koanf:"manifest_path"`
+
+	// Priority is the operator's layout-planning objective for the whole
+	// deployment (ADR-0124): one of "WriteSpeed", "ReadSpeed",
+	// "StorageSpace", or "Balanced" (default). Resolution order:
+	// query-level (perQuery) → engine-level (perEngine/engine priority) →
+	// global (here) → Balanced. Leave empty for Balanced everywhere.
+	Priority *PriorityConfig `koanf:"priority"`
+}
+
+// PriorityConfig is the operator-facing YAML shape for layout-planning
+// priorities (ADR-0124). It maps to metaengine.PriorityConfig with PerEngine
+// keyed by engine name and PerQuery keyed by query name.
+type PriorityConfig struct {
+	// Global applies to every query unless a more specific level is set.
+	Global metaengine.Priority `koanf:"global"`
+
+	// PerEngine overrides the global priority for queries routed to a named
+	// engine (key = engine name from Engines).
+	PerEngine map[string]metaengine.Priority `koanf:"perEngine"`
+
+	// PerQuery overrides all other levels for a named query (key = query name).
+	PerQuery map[string]metaengine.Priority `koanf:"perQuery"`
+}
+
+// toMeta returns the metaengine equivalent of this config.
+func (pc PriorityConfig) toMeta() *metaengine.PriorityConfig {
+	return &metaengine.PriorityConfig{
+		Global:    pc.Global,
+		PerEngine: pc.PerEngine,
+		PerQuery:  pc.PerQuery,
+	}
 }
 
 // EngineConfig declares a named storage engine.
@@ -130,6 +162,13 @@ type EngineConfig struct {
 	Driver  string   `koanf:"driver"`  // "sqlite", "memory", "pebble", "duckdb", "postgres"
 	DSN     string   `koanf:"dsn"`     // connection string (empty for memory)
 	Pragmas []string `koanf:"pragmas"` // SQLite pragmas (e.g., "wal", "foreign_keys")
+
+	// Priority is the operator's layout-planning objective for this engine
+	// (ADR-0124): one of "WriteSpeed", "ReadSpeed", "StorageSpace", or
+	// "Balanced" (default). It flows into DriverConfig.Priority and weights
+	// the cost model's scoring for queries routed to this engine. Leave
+	// empty for the global default.
+	Priority metaengine.Priority `koanf:"priority"`
 }
 
 // BusConfig declares a named message bus.

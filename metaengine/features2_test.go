@@ -238,9 +238,13 @@ func TestSchemaEnforcement_DetectsTypeMismatch(t *testing.T) {
 	// Fold returns testTask but query declares testWrongResult as result type.
 	q := Query[testFindTask, testWrongResult](
 		"schema_mismatch_test",
-		OnRecordTyped("task_created", testTask{}, func(_ record.Record, e testTask) (testTaskID, testTask) {
-			return e.ID, e
-		}),
+		OnRecordTyped(
+			"task_created",
+			testTask{},
+			func(_ record.Record, e testTask) (testTaskID, testTask) {
+				return e.ID, e
+			},
+		),
 	)
 
 	store, err := Plan([]Engine{NewMemoryEngine()}, q)

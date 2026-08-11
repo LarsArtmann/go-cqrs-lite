@@ -46,6 +46,16 @@ func (b *lookupBuilder[R]) On(eventType string, sample any) *lookupBuilder[R] {
 	return b
 }
 
+// Priority pins the layout-planning objective for this query
+// (ADR-0124 Layer 4). The operator's per-query PriorityConfig still takes
+// precedence; this is the developer-side per-query override for queries
+// with a different optimization objective than the deployment default.
+func (b *lookupBuilder[R]) Priority(p metaengine.Priority) *lookupBuilder[R] {
+	b.layoutPriority = p
+
+	return b
+}
+
 // Done finalizes the projection declaration.
 func (b *lookupBuilder[R]) Done() ProjectionDeclaration {
 	keyField := b.keyField

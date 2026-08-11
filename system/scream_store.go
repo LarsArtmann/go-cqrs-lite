@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // ScreamTier classifies the severity of a safety violation.
@@ -62,6 +64,38 @@ var ErrUnsafeChange = errors.New("system: unsafe deployment change detected (SCR
 // against a pinned SerializablePlan manifest.
 func CheckSafety(_ context.Context, deployment DeploymentConfig) (*ScreamReport, error) {
 	report := &ScreamReport{}
+
+	// Rule: layout-planning priorities must be recognized values
+	// (ADR-0124). A typo'd priority silently resolves to Balanced, which
+	// hides the operator's intent — surface it at startup.
+	invalid := func(p metaengine.Priority, where string) {
+		if p != "" && !p.Valid() {
+			report.Diagnostics = append(report.Diagnostics, ScreamDiagnostic{
+				Tier: TierAdvisory,
+				Rule: "invalid-priority",
+				Detail: fmt.Sprintf(
+					"priority %q on %s is not a recognized value (WriteSpeed, ReadSpeed, StorageSpace, Balanced) — resolves to Balanced",
+					p, where,
+				),
+			})
+		}
+	}
+
+	if deployment.Priority != nil {
+		invalid(deployment.Priority.Global, "global priority config")
+
+		for name, p := range deployment.Priority.PerEngine {
+			invalid(p, fmt.Sprintf("engine %q", name))
+		}
+
+		for name, p := range deployment.Priority.PerQuery {
+			invalid(p, fmt.Sprintf("query %q", name))
+		}
+	}
+
+	for name, engCfg := range deployment.Engines {
+		invalid(engCfg.Priority, fmt.Sprintf("engine %q", name))
+	}
 
 	// Rule: source-of-truth must use a persistent engine (not "memory")
 	for _, inst := range deployment.Instances {

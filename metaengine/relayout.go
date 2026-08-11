@@ -74,9 +74,18 @@ func (s *Store) ReplanLayout(ctx context.Context, pc *PriorityConfig) ([]LayoutD
 		}
 
 		profile := engine.Profile()
-		resolvedPriority := PriorityBalanced
+
+		// Effective priority: developer WithLayoutPriority or operator config.
+		// WithLayoutPriority set per-query is NOT overridden by ReplanLayout's
+		// proposed pc (operator's what-if tool); the developer pin still wins
+		// unless the operator explicitly overrides per-query.
+		resolvedPriority := s.priorityForQuery(profile.Name, name, q.QueryConfig())
 		if pc != nil {
-			resolvedPriority = pc.Resolve(profile.Name, name)
+			if p, ok := pc.PerQuery[name]; ok && p.Valid() {
+				resolvedPriority = p
+			} else if !q.QueryConfig().layoutPriority.Valid() {
+				resolvedPriority = pc.Resolve(profile.Name, name)
+			}
 		}
 
 		newOption, _ := SelectLayout(profile, resolvedPriority)
