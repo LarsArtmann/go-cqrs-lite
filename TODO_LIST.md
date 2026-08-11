@@ -41,10 +41,39 @@ and is **never** duplicated here.
 > context. Each is a verified false positive or missing detection in a real
 > consumer codebase.
 
-- [ ] **Per-module feature profiles** — when analyzing a multi-`go.mod`
+- [x] **Per-module feature profiles** — when analyzing a multi-`go.mod`
       workspace, detect features per-module and apply each module's profile
       only to its own packages. (cqrs-htmx)
-      _(Effort: L)_
+      _(Effort: L)_ — DONE 2026-08-11. Infrastructure (`DetectFeaturesPerModule`,
+      `ProfileForFile`, `FeatureProfiles`) was already wired in the loader.
+      This session migrated **18 rules** from workspace-global `ctx.FeatureProfile`
+      to per-module evaluation: 15 adoption coaching rules (F003, F004, F007,
+      F009, F012, F013, F017, F022–F029) via new `coachingScopes()` iterator;
+      3 resilience rules (B029, B030, B031) via per-finding `ProfileForFile`.
+      All ctx-based scan helpers refactored to delegate to file-slice-scoped
+      `In` variants (zero duplication). 9 per-module regression tests added.
+      See `docs/status/2026-08-11_19-20_per-module-feature-profiles-cqrs-lint.md`.
+  - [ ] **Migrate F015/F016 to per-module** — count-based coaching (query
+        registrations, aggregate types) uses workspace-global helpers
+        (`countCalls`, `distinctAggregateCount`). Cross-module counting can
+        trigger coaching when no single module crosses the threshold.
+        _(Effort: S)_
+  - [ ] **Migrate F018–F021 to per-module** — metaengine coaching rules use
+        workspace-global `usesMetaengine(ctx)` gate. Low leakage risk but
+        inconsistent with the per-module pattern.
+        _(Effort: S)_
+  - [ ] **Audit F006/F008/F010/F011 workspace-global scans** — PII detection,
+        event count, traversal patterns, filter patterns scan all workspace
+        files. May need per-module scoping.
+        _(Effort: M)_
+  - [ ] **Add per-module tests for remaining 13 migrated rules** — only F003,
+        F013, F022, B029, B031 have per-module regression tests. F004, F007,
+        F009, F012, F017, F023–F025, F026–F029, B030 lack them.
+        _(Effort: M)_
+  - [ ] **Integration test on real multi-module `go.work`** — current tests
+        use synthetic source via `BuildContextFromSource`. A test with real
+        `go.work` + 2+ `go.mod` files would catch wiring issues.
+        _(Effort: M)_
 
 ---
 

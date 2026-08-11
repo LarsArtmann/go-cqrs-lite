@@ -51,22 +51,31 @@ type layoutGroup struct {
 	Entries []layoutEntry `json:"entries"`
 }
 
-var layoutMeta = []struct {
+// layoutMetaDescriptor describes one storage layout for the exploration tool.
+type layoutMetaDescriptor struct {
 	layout  metaengine.StorageLayout
 	name    string
 	engines string
-}{
-	{metaengine.LayoutKV, "KV", "Memory (hash map)"},
-	{metaengine.LayoutLSM, "LSM", "Pebble, bbolt"},
-	{metaengine.LayoutRow, "Row", "SQLite, PostgreSQL, MySQL"},
-	{metaengine.LayoutColumnar, "Columnar", "DuckDB"},
 }
 
-var allPriorities = []metaengine.Priority{
-	metaengine.PriorityBalanced,
-	metaengine.PriorityReadSpeed,
-	metaengine.PriorityWriteSpeed,
-	metaengine.PriorityStorageSpace,
+// allLayoutMeta returns the storage layouts the cost model understands.
+func allLayoutMeta() []layoutMetaDescriptor {
+	return []layoutMetaDescriptor{
+		{metaengine.LayoutKV, "KV", "Memory (hash map)"},
+		{metaengine.LayoutLSM, "LSM", "Pebble, bbolt"},
+		{metaengine.LayoutRow, "Row", "SQLite, PostgreSQL, MySQL"},
+		{metaengine.LayoutColumnar, "Columnar", "DuckDB"},
+	}
+}
+
+// allPriorities returns the four operator priorities in display order.
+func allPriorities() []metaengine.Priority {
+	return []metaengine.Priority{
+		metaengine.PriorityBalanced,
+		metaengine.PriorityReadSpeed,
+		metaengine.PriorityWriteSpeed,
+		metaengine.PriorityStorageSpace,
+	}
 }
 
 func layoutProfile(layout metaengine.StorageLayout) metaengine.EngineProfile {
@@ -102,7 +111,7 @@ func parseLayoutFilter(s string) (string, bool) {
 		return "", true
 	}
 
-	for _, m := range layoutMeta {
+	for _, m := range allLayoutMeta() {
 		if strings.EqualFold(m.name, s) || strings.EqualFold(string(m.layout), s) {
 			return m.name, true
 		}
@@ -112,7 +121,7 @@ func parseLayoutFilter(s string) (string, bool) {
 }
 
 func layoutHandler(_ context.Context, _ *AppConfig, flags *LayoutFlags) error {
-	priorities := allPriorities
+	priorities := allPriorities()
 
 	if flags.Priority != "" {
 		p, ok := parsePriority(flags.Priority)
@@ -133,7 +142,7 @@ func layoutHandler(_ context.Context, _ *AppConfig, flags *LayoutFlags) error {
 
 	var groups []layoutGroup
 
-	for _, m := range layoutMeta {
+	for _, m := range allLayoutMeta() {
 		if layoutFilter != "" && m.name != layoutFilter {
 			continue
 		}

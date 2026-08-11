@@ -106,7 +106,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0 // indirect
@@ -180,7 +180,7 @@ require (
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/term v0.45.0 // indirect
-	golang.org/x/text v0.40.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.75.3 // indirect
@@ -189,3 +189,15 @@ require (
 	modernc.org/sqlite v1.56.0 // indirect
 	turso.tech/database/tursogo v0.7.2 // indirect
 )
+
+replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../metaengine
+
+replace github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 => ../../testutil/pgtestcontainer
+
+replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record
+
+replace github.com/larsartmann/go-cqrs-lite/id/v4 => ../../id
+
+replace github.com/larsartmann/go-cqrs-lite/command/v4 => ../../command
+
+replace github.com/larsartmann/go-cqrs-lite/event/v4 => ../../event
