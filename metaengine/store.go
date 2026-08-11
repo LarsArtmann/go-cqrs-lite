@@ -345,78 +345,7 @@ func (s *Store) applyWithRecord(
 		s.eventLog.Record(eventType, payload)
 	}
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	// Collect matching folds grouped by engine for batch atomicity (ADR-0116 Phase 7).
-	type foldTask struct {
-		q    queryMeta
-		fold Fold
-	}
-
-	byEngine := make(map[Engine][]foldTask)
-
-	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
-		q := s.queries[name]
-
-		foldIdx, ok := q.QueryFoldByEvent()[eventType]
-		if !ok {
-			continue
-		}
-
-		fold := q.QueryFolds()[foldIdx]
-
-		eng := q.QueryEngine()
-		byEngine[eng] = append(byEngine[eng], foldTask{q: q, fold: fold})
-	}
-
-	// Apply each engine's fold operations, using RunInTx where available.
-	for _, eng := range s.engines {
-		tasks, ok := byEngine[eng]
-		if !ok {
-			continue
-		}
-
-		applyAll := func(ctx context.Context) error {
-			for _, t := range tasks {
-				// Lock around SetCurrentRecord + invoke because the fold's
-				// recordHolder is shared mutable state. Without this lock,
-				// concurrent Apply calls race on recHolder.rec.
-				s.foldMu.Lock()
-
-				if ra, ok := t.fold.(RecordAwareFold); ok {
-					ra.SetCurrentRecord(rec)
-				}
-
-				applyErr := s.applyFold(ctx, t.q, t.fold, payload)
-
-				s.foldMu.Unlock()
-
-				if applyErr != nil {
-					return fmt.Errorf(
-						"query %q fold for %s: %w",
-						t.q.QueryName(),
-						eventType,
-						applyErr,
-					)
-				}
-			}
-
-			return nil
-		}
-
-		if tx, ok := eng.(Transactional); ok {
-			if err := tx.RunInTx(ctx, applyAll); err != nil {
-				return fmt.Errorf("batch apply on %s: %w", eng.Profile().Name, err)
-			}
-		} else {
-			if err := applyAll(ctx); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
+	return s.dispatchFolds(ctx, eventType, rec, payload, nil)
 }
 
 // ApplyIdempotent processes an event with deduplication by event ID. If the

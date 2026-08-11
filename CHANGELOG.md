@@ -6,6 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — Layout planning follow-ups: safe backfill, correct warnings, real rebuilds — 2026-08-11
+
+> Fixes the 3 critical bugs (🔥) from the ADR-0124 layout planning rollout, plus
+> adds the `SetPriority` runtime API and `Doctor()` layout section. Also
+> eliminates code duplication by extracting `dispatchFolds`.
+
+- **`metaengine/runtime_backend.go`** (FIX+REFACTOR): `Backfill` now detects
+  non-idempotent fold types (Counter, Graph, Log, Multimap, Vector, Search,
+  Spatial, Map-update) and REFUSES to replay by default. Use
+  `WithBackfillForce()` to override on empty projections. Also fixed
+  double-logging bug: extracted `dispatchFolds` shared helper that both
+  `applyWithRecord` and `applyReplay` call — replay path skips EventLog
+  recording. `ConfirmRebuild` now replays events for affected queries via
+  `dispatchFolds` with query filtering. Added `isIdempotentFold` classifier.
+- **`metaengine/layout_observability.go`** (FIX): `LayoutWarnings()` now
+  computes actual selected layout via `SelectLayout(profile, resolvedPriority)`
+  and only warns when Normalize is selected on KV/LSM — no more noise on every
+  KV query. `GetLayoutInfo()` now reports the actual selected layout instead of
+  hardcoded `LayoutEmbed`. Added `LayoutDoctorSection()` for `Doctor()` output.
+- **`metaengine/relayout.go`** (FIX): `ConfirmRebuild` now replays events from
+  EventLog for affected queries, with idempotency safety. Errors without
+  EventLog. Skips auto-rebuild diffs.
+- **`metaengine/priority.go`** (ADD): `Store.SetPriority(ctx, pc)` runtime API —
+  stores priorityConfig and triggers Replan. Added `resolvedPriority` internal
+  helper.
+- **`metaengine/store.go`** (REFACTOR): Simplified `applyWithRecord` to delegate
+  to `dispatchFolds`. Added `priorityConfig` field to Store struct.
+- **`metaengine/explain.go`** (ADD): `Doctor()` now includes `--- Layout ---`
+  section with per-query layout info and warnings.
+- **`metaengine/layout_followup_test.go`** (NEW, 16 tests): SetPriority,
+  LayoutWarnings correctness (Embed=no warning, Normalize on KV=warning, SQL=no
+  warning), Backfill idempotency safety (refuses counter, succeeds with force,
+  succeeds for insert-only), ConfirmRebuild (empty diffs, no EventLog error,
+  replay with EventLog, skip auto-rebuild), Doctor layout section, multi-engine
+  backfill integration (no double-logging).
+
 ### Fixed — Data race: SetCurrentRecord + fold invoke — 2026-08-11
 
 > `Store.applyWithRecord` called `fold.SetCurrentRecord(rec)` in a collection

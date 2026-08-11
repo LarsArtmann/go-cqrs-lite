@@ -1718,6 +1718,7 @@ metaengine/func VerifyChecksum
 metaengine/func Volume
 metaengine/func WatchTyped
 metaengine/func WatchTypedWithSeq
+metaengine/func WithBackfillForce
 metaengine/func WithColumnarLayout
 metaengine/func WithCursor
 metaengine/func WithCursorString
@@ -2047,6 +2048,7 @@ metaengine/method Kind
 metaengine/method Kind
 metaengine/method Kind
 metaengine/method LatestSeq
+metaengine/method LayoutDoctorSection
 metaengine/method LayoutWarnings
 metaengine/method Len
 metaengine/method Limit
@@ -2133,6 +2135,7 @@ metaengine/method SetCurrentRecord
 metaengine/method SetCurrentRecord
 metaengine/method SetCurrentRecord
 metaengine/method SetCurrentRecord
+metaengine/method SetPriority
 metaengine/method SetRTTTracker
 metaengine/method SetReadTracker
 metaengine/method Snapshot
@@ -2439,6 +2442,7 @@ metaengine/tursoengine/const Turso_NetworkRTT
 metaengine/tursoengine/func New
 metaengine/type ADT
 metaengine/type AggregateFn
+metaengine/type BackfillOption
 metaengine/type Complexity
 metaengine/type Delta
 metaengine/type Diagnostics

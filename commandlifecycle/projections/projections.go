@@ -68,7 +68,7 @@ func DeadLetterQueue() metaengine.QueryDecl[DeadLetterQuery, DeadLetterEntry] {
 		"command_dlq",
 		metaengine.OnRecordTyped(
 			string(commandlifecycle.TypeDeadLettered),
-			commandlifecycle.DeadLetteredPayload{},
+			commandlifecycle.DeadLetteredPayload{}, //nolint:exhaustruct // type inference hint for OnRecordTyped
 			func(rec record.Record, payload commandlifecycle.DeadLetteredPayload) (string, DeadLetterEntry) {
 				return rec.MetaData.CausationID.String(), payload
 			},
@@ -86,7 +86,7 @@ func RetryCount() metaengine.QueryDecl[RetryCountQuery, map[string]int64] {
 		"command_retry_count",
 		metaengine.OnRecordTyped(
 			string(commandlifecycle.TypeRetried),
-			commandlifecycle.RetriedPayload{},
+			commandlifecycle.RetriedPayload{}, //nolint:exhaustruct // type inference hint for OnRecordTyped
 			func(rec record.Record, _ commandlifecycle.RetriedPayload) metaengine.Delta {
 				return metaengine.Delta{rec.MetaData.CausationID.String(): 1}
 			},
@@ -104,7 +104,7 @@ func FailureLog() metaengine.QueryDecl[FailureLogQuery, []commandlifecycle.Faile
 		"command_failure_log",
 		metaengine.OnRecordTyped(
 			string(commandlifecycle.TypeFailed),
-			commandlifecycle.FailedPayload{},
+			commandlifecycle.FailedPayload{}, //nolint:exhaustruct // type inference hint for OnRecordTyped
 			func(_ record.Record, payload commandlifecycle.FailedPayload) metaengine.Append {
 				return metaengine.Append{Value: payload}
 			},

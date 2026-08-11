@@ -831,28 +831,38 @@ and is **never** duplicated here.
       different queries.
       _(Effort: M)_
 
-- [ ] 🔥 **Wire `ConfirmRebuild` to execute rebuilds** — currently a stub.
-      Must trigger actual event-log replay for affected projections.
-- [ ] 🔥 **Fix `Backfill` double-counting** — Counter/Set ADTs are not
-      idempotent. Either refuse for non-idempotent ADTs, clear-first, or
-      implement per-fold idempotency keys.
-- [ ] 🔥 **Fix `LayoutWarnings()` noise** — currently warns on EVERY KV engine
-      query regardless of actual selected layout. Must check the resolved
-      layout option before emitting JOIN_AMPLIFICATION.
-- [ ] **`Store.SetPriority(ctx, pc)` runtime API** — change priorities after
-      `Plan()` returns, triggering replan + threshold-based rebuild.
-- [ ] **Integrate `ReplanLayout` with `Store.Replan`/`CheckRouting`** — avoid
-      two parallel planning systems that will conflict.
+- [x] 🔥 **Wire `ConfirmRebuild` to execute rebuilds** — DONE. Now replays events
+      from EventLog via `dispatchFolds` for affected queries only. Errors
+      without EventLog. Skips auto-rebuild diffs. Same idempotency safety as
+      Backfill. Files: `relayout.go`, `runtime_backend.go`.
+- [x] 🔥 **Fix `Backfill` double-counting** — DONE. Now detects non-idempotent
+      fold types (Counter, Graph, Log, Multimap, Vector, Search, Spatial,
+      Map-update) and REFUSES to replay by default. Use `WithBackfillForce()` to
+      override on empty projections. Also fixed double-logging bug (replay path
+      skips EventLog recording). File: `runtime_backend.go`.
+- [x] 🔥 **Fix `LayoutWarnings()` noise** — DONE. Now computes actual selected
+      layout via `SelectLayout(profile, resolvedPriority)` and only warns when
+      Normalize is selected on KV/LSM. No warning when Embed is selected
+      (natural KV layout). Also fixed `GetLayoutInfo()` to report actual layout.
+      File: `layout_observability.go`.
+- [x] **`Store.SetPriority(ctx, pc)` runtime API** — DONE. Stores priorityConfig
+      on Store and triggers Replan. Used by LayoutWarnings, GetLayoutInfo, and
+      Doctor. File: `priority.go`.
+- [x] **Wire layout warnings into `Doctor()` + `EXPLAIN`** — DONE (Doctor).
+      Added `--- Layout ---` section with per-query layout info and warnings.
+      File: `layout_observability.go` (`LayoutDoctorSection`).
 - [ ] **`cqrs-bench layout` CLI subcommand** — pre-deployment "what if"
       exploration tool.
 - [ ] **Real workload trace format** — JSON-lines spec, trace recorder, trace
       player for benchmark calibration.
-- [ ] **Wire layout warnings into `Doctor()` + `EXPLAIN`** — `--- Layout
-      Warnings ---` section, layout annotations in EXPLAIN output.
+- [ ] **Integrate `ReplanLayout` with `Store.Replan`/`CheckRouting`** —
+      `SetPriority` calls `Replan` but layout diffs require separate
+      `ReplanLayout` call. These should converge into one planning pass.
 - [ ] **Calibrate cost model multipliers** — replace placeholder constants
       (0.5, 1.0, 1.3, 2.0) with measured values from real engine benchmarks.
-- [ ] **Multi-engine integration test** — two real MemoryEngines, add at
-      runtime, backfill, verify both serve correct query results.
+- [ ] **Multi-engine integration test with two real backends** — current test
+      uses one MemoryEngine + Backfill replay. Need two engines with data,
+      verify both serve correct query results after AddEngine + Backfill.
 - [ ] **Wire `Priority` into deployment YAML** — `EngineConfig`/`DriverConfig`
       + `QueryDecl` builder options + config validation.
 - [ ] **Fold-pipeline sync for Active+DualUse roles** — event → all
@@ -866,8 +876,9 @@ and is **never** duplicated here.
       when, in `GetEngineStats()`.
 - [ ] **Update SKILL.md + skill references** — layout planning concepts,
       priority system, benchmark mode consumer docs.
-- [ ] **Run `nix run .#verify`** — full CI gate not yet run on layout planning
-      code. Must pass before tagging any release that includes ADR-0124.
+- [ ] **Run `nix run .#verify` clean** — current failures: cqrs-lint catalog
+      count (expected 33 got 34, pre-existing), 5 pre-existing duplication
+      clones, 4 modules missing from arch maps. None from layout planning.
 
 ### Phase 7: Universal Engine Coverage
 

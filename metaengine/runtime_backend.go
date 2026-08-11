@@ -172,22 +172,24 @@ func (s *Store) replayEvents(
 	return nil
 }
 
-// applyReplay dispatches an event through matching folds WITHOUT recording to
-// the EventLog. When queryFilter is non-nil, only folds for the named queries
-// are applied.
-func (s *Store) applyReplay(
+// foldTask pairs a query with one of its folds for batch dispatch.
+type foldTask struct {
+	q    queryMeta
+	fold Fold
+}
+
+// dispatchFolds collects matching folds for eventType, groups them by engine,
+// and applies them atomically per engine. When queryFilter is non-nil, only
+// folds for named queries are dispatched. The caller must NOT hold s.mu.
+func (s *Store) dispatchFolds(
 	ctx context.Context,
 	eventType string,
+	rec record.Record,
 	payload any,
 	queryFilter map[string]bool,
 ) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-
-	type foldTask struct {
-		q    queryMeta
-		fold Fold
-	}
 
 	byEngine := make(map[Engine][]foldTask)
 
@@ -197,7 +199,6 @@ func (s *Store) applyReplay(
 		}
 
 		q := s.queries[name]
-
 		foldIdx, ok := q.QueryFoldByEvent()[eventType]
 		if !ok {
 			continue
@@ -219,7 +220,7 @@ func (s *Store) applyReplay(
 				s.foldMu.Lock()
 
 				if ra, ok := t.fold.(RecordAwareFold); ok {
-					ra.SetCurrentRecord(record.Record{Type: eventType})
+					ra.SetCurrentRecord(rec)
 				}
 
 				applyErr := s.applyFold(ctx, t.q, t.fold, payload)
@@ -251,6 +252,18 @@ func (s *Store) applyReplay(
 	}
 
 	return nil
+}
+
+// applyReplay dispatches an event through matching folds WITHOUT recording to
+// the EventLog. When queryFilter is non-nil, only folds for the named queries
+// are applied.
+func (s *Store) applyReplay(
+	ctx context.Context,
+	eventType string,
+	payload any,
+	queryFilter map[string]bool,
+) error {
+	return s.dispatchFolds(ctx, eventType, record.Record{Type: eventType}, payload, queryFilter)
 }
 
 // BackfillOption configures Backfill behavior.

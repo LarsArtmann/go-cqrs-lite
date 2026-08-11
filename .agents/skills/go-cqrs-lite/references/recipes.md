@@ -751,6 +751,64 @@ defer bundle.Close() // stops recorder automatically
 // Access for trigger wiring: bundle.FlightRecorder()
 ```
 
+### 2.19. Command Lifecycle Tracking (ADR-0117)
+
+Track the full lifecycle of commands — received, failed, retried,
+dead-lettered, completed — as event streams. Dead-letter queues, retry
+counts, and failure logs emerge as projections.
+
+**Wire the middleware** (best-effort by default):
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
+import "github.com/larsartmann/go-cqrs-lite/middleware/v4"
+
+recorder := commandlifecycle.NewRecorder(eventStore,
+    commandlifecycle.WithLogger(logger),
+)
+
+outer, attempt := commandlifecycle.New(recorder)
+
+dispatcher.Use(
+    outer,                           // emits received, completed, dead-lettered
+    middleware.CommandRetry(config), // handles retries
+    attempt,                         // emits failed, retried (per attempt)
+)
+```
+
+For auditable systems where lifecycle tracking must not silently fail,
+use `commandlifecycle.WithStrict()`.
+
+**Query the projections** (via metaengine):
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4"
+
+store, _ := metaengine.Plan(engines,
+    projections.DeadLetterQueue(),
+    projections.RetryCount(),
+    projections.FailureLog(),
+)
+
+// DLQ: "Which commands are dead-lettered?"
+result, _ := metaengine.ExecuteTyped[projections.DeadLetterQuery, projections.DeadLetterEntry](
+    ctx, store, projections.DeadLetterQuery{CommandID: "01J..."},
+)
+
+// Retry count: "How many retries for cmd-X?"
+counts, _ := metaengine.ExecuteTyped[projections.RetryCountQuery, map[string]int64](
+    ctx, store, projections.RetryCountQuery{},
+)
+```
+
+| Event type               | Emitted when                  | Projection   |
+| ------------------------ | ----------------------------- | ------------ |
+| `command.received`       | Server accepts command        | (lifecycle)  |
+| `command.failed`         | Single attempt fails          | FailureLog   |
+| `command.retried`        | Before each retry             | RetryCount   |
+| `command.dead-lettered`  | All retries exhausted         | DLQ          |
+| `command.completed`      | Command processed successfully | (lifecycle) |
+
 ## Metadata Serialization in KV Engines (Contributor Note)
 
 When adding a new KV-backed engine (pebble, bbolt, or a future 3rd engine), the
