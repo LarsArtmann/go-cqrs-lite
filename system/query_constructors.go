@@ -13,9 +13,10 @@ import (
 // lookupBuilder builds a point-lookup projection. The engine builds a hash
 // map keyed by ID, giving O(1) reads.
 type lookupBuilder[R any] struct {
-	name     string
-	keyField string
-	samples  []metaengine.NamedSample
+	name           string
+	keyField       string
+	samples        []metaengine.NamedSample
+	layoutPriority metaengine.Priority
 }
 
 // Lookup declares a point-lookup projection: read a single row by key.
@@ -72,7 +73,7 @@ func (b *lookupBuilder[R]) Done() ProjectionDeclaration {
 		resultType: rt,
 		build: func(evoIndex map[reflect.Type]*evolutionSpec) (any, []decoderEntry, error) {
 			if len(samplesCopy) > 0 {
-				return buildCRUDQuery[LookupInput[string], R](name, keyField, samplesCopy)
+				return buildCRUDQuery[LookupInput[string], R](name, keyField, samplesCopy, layoutPriority)
 			}
 
 			if evo, ok := evoIndex[rt]; ok {

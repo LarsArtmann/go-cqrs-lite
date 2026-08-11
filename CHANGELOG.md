@@ -6,6 +6,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — Docs-health: verify gate blockers, test normalization, go-output audit renderer — 2026-08-11
+
+> Unblocks `verify-fast` for all future sessions. Three fixes that were
+> pre-existing blockers discovered during the docs-health Pareto plan execution.
+> See `docs/status/2026-08-11_17-32_docs-health-execution-and-go-output-audit-fix.md`.
+
+- **`cmd/cqrs-lint/pkg/analyzer/module_catalog_test.go`** (FIX): Added
+  `system/integration` to `excludedModules` map — the CGo-isolated test
+  sub-module existed in `go.work` but was not registered, causing
+  `TestCatalogEveryGoWorkModuleCovered` to fail.
+- **`cmd/api-stability/main_test.go`** (FIX): Normalized ` / ` → `/` in LAYER
+  key parsing for `TestExceptionsAreMinimal`. The shell script
+  (`check-module-layers.sh`) uses spaces around `/` in multi-segment LAYER keys
+  (`LAYER[storage / memory]`), but EXCEPTIONS deps use standard `/`
+  (`storage/memory`). The test now normalizes after regex parse so both formats
+  match.
+- **`cmd/cqrs-lint/doctor_audit.go`** (REWRITE): `renderSuppressionAudit` now
+  uses `go-output` `table.Render` with `ColorMode` threading instead of
+  hand-rolled `fmt.Fprintf`/`fmt.Fprintln`. Entry lists render as proper tables
+  (columns: File, Line, Rule, Reason) with color consistency matching the rest
+  of cqrs-lint. `renderAuditEntry` replaced by `renderAuditSection`. Fallback
+  to flat `fmt.Fprintf` on `table.Render` error.
+- **`AGENTS.md`** (ADD): Documented the `check-module-layers.sh` LAYER-key
+  format convention (` / ` vs `/`) in the Module & Dependency Management
+  gotchas section.
+- **`ROADMAP.md`** (QUALITY): `[Unreleased]` highlights cell restructured from
+  a 2229-character wall-of-text to 11 `<br/>`-separated bullet points.
+- **`docs/status/`**: 36 reports from `2026-08-1*` annotated and archived to
+  `docs/status/archive/`. 6 genuinely open items harvested into TODO_LIST
+  Phase 7 (engine test parity, compile-time assertions, calibration gaps).
+- **`docs/api_surface.txt`**: Regenerated (4094 exports, up from 4085).
+
 ### Added — ADR-0117 command lifecycle follow-ups: version tracking fix, processing-time projection, system wiring — 2026-08-11
 
 > Implements 7 of 9 follow-up items from the ADR-0117 command lifecycle status

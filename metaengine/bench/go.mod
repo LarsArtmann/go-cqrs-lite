@@ -74,3 +74,5 @@ replace (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../sqliteengine
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../
 )
+
+replace github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 => ../bboltengine

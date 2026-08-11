@@ -286,14 +286,13 @@ DONE 2026-08-10/11. See [CHANGELOG.md](CHANGELOG.md) and status reports
       a better engine if one is available. Integrates into `ExplainPlan()` and
       `Doctor()`.
       _(Effort: M)_
-- [ ] **Engine test parity gaps** — bboltengine lacks 5 test files that pebble
-      has (`edge_cases_test.go`, `fuzz_test.go`, `stream_log_test.go`,
-      `watcher_test.go`, `scan_bench_test.go`); mysqlengine lacks
+- [ ] **Engine test parity gaps (remaining)** — mysqlengine lacks
       `stream_log_test.go`, `pushdown_test.go`, `calibration_bench_test.go`,
       and `explain.go` (`ExplainableScan`/`ExplainableAggregate`); tursoengine
       lacks `record_stamp_test.go`, `soak_autocrud_test.go`,
-      `healthcheck_test.go`.
-      _(Effort: L)_
+      `healthcheck_test.go`. bboltengine still lacks `edge_cases_test.go`,
+      `fuzz_test.go`, `scan_bench_test.go` (may be pebble-specific).
+      _(Effort: M — bbolt partial done, mysql + turso remaining)_
 - [ ] **Engine compile-time assertion gaps** — bboltengine missing
       `HealthChecker` and `StreamingScan` assertions; mysqlengine missing
       `Calibratable` and `HealthChecker` assertions.
@@ -304,12 +303,20 @@ DONE 2026-08-10/11. See [CHANGELOG.md](CHANGELOG.md) and status reports
       `map[string]any` (SQL engine decode) → typed struct before
       `reflect.Call`. All 3 tests pass with `-race`.
       _(Effort: M)_
-- [ ] **Pebble `CounterIncrement` calibration benchmark** — verify
-      pebble's counter increment performance is correctly cost-modeled.
+- [x] ✅ **Pebble `CounterIncrement` calibration benchmark** — done.
+      `metaengine/pebbleengine/calibration_bench_test.go` has
+      `BenchmarkCalibration_PebbleCounterIncrement` (parity with badger/bbolt).
       _(Effort: S)_
-- [ ] **Batch atomicity rollback test** — `batch_atomicity_test.go` only has
-      happy-path tests; needs a failure-path test verifying rollback semantics.
+- [x] ✅ **Batch atomicity rollback test** — done.
+      `metaengine/batch_atomicity_rollback_test.go` covers failure-path rollback
+      semantics.
       _(Effort: S)_
+- [x] ✅ **Engine test parity gaps (partial)** — bboltengine `stream_log_test.go`
+      + `watcher_test.go` ported from pebble (2 of 5 files). mysqlengine and
+      tursoengine gaps remain open. bboltengine `edge_cases_test.go`,
+      `fuzz_test.go`, `scan_bench_test.go` still missing (pebble-specific,
+      may not port cleanly).
+      _(Effort: L — partial, ~40% done)_
 
 ### Phase 8: Deletion + v5 Cut
 
