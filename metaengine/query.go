@@ -79,22 +79,34 @@ func (c QueryConfig) layoutPriorityOr(p Priority) Priority {
 	return p
 }
 
+// resolvePriority is the shared priority-resolution function used by both
+// planQuery (engine routing + layout scoring) and ReplanLayout (layout diffing).
+// Resolution order: operator per-Query → operator per-Engine/Global → developer
+// WithLayoutPriority → Balanced.
+func resolvePriority(
+	pc *PriorityConfig,
+	engineName, queryName string,
+	devFallback Priority,
+) Priority {
+	if pc != nil {
+		if p, ok := pc.PerQuery[queryName]; ok && p.Valid() {
+			return p
+		}
+
+		if pc.PerEngine != nil || pc.Global != "" {
+			return pc.Resolve(engineName, queryName)
+		}
+	}
+
+	return devFallback
+}
+
 // priorityForQuery returns the most specific priority for a query, combining
 // the operator's PriorityConfig with the developer's WithLayoutPriority
 // option. Resolution order: per-Query (operator config) → developer
 // WithLayoutPriority → per-Engine → Global → Balanced.
 func (s *Store) priorityForQuery(engineName, queryName string, cfg QueryConfig) Priority {
-	if s.priorityConfig != nil {
-		if p, ok := s.priorityConfig.PerQuery[queryName]; ok && p.Valid() {
-			return p
-		}
-
-		if s.priorityConfig.PerEngine != nil || s.priorityConfig.Global != "" {
-			return s.priorityConfig.Resolve(engineName, queryName)
-		}
-	}
-
-	return cfg.layoutPriorityOr(PriorityBalanced)
+	return resolvePriority(s.priorityConfig, engineName, queryName, cfg.layoutPriorityOr(PriorityBalanced))
 }
 
 // filterAccessor stores a typed closure that extracts a filterable field value

@@ -55,7 +55,8 @@ func (d Diagnostics) HasErrors() bool {
 	return false
 }
 
-// QueryAssignment shows the full plan for one query: engine, ADT, read pattern, cost.
+// QueryAssignment shows the full plan for one query: engine, ADT, read pattern,
+// cost, and the operator-driven layout decision (ADR-0124).
 type QueryAssignment struct {
 	QueryName   string
 	ADT         ADT
@@ -64,6 +65,7 @@ type QueryAssignment struct {
 	ReadPattern ReadPattern
 	IsPaginated bool
 	Cost        CostEstimate
+	Layout      LayoutOption // selected physical layout (Embed/Normalize) — ADR-0124
 	Diagnostics []Diagnostic
 }
 

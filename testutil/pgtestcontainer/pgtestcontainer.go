@@ -156,23 +156,53 @@ func DSN(tb testing.TB) string {
 	return dsn
 }
 
-// replaceDBInDSN swaps the database name in a URL-format Postgres DSN:
-// postgres://user:pass@host:port/olddb?params → .../newdb?params
+// replaceDBInDSN swaps the database name in a Postgres DSN. Supports both
+// URL format (postgres://user:pass@host:port/db?params) and keyword/value
+// format (host=localhost port=5432 dbname=mydb sslmode=disable). If the DSN
+// has no parseable database name, the original is returned unchanged.
 func replaceDBInDSN(dsn, newDB string) string {
-	queryStart := strings.Index(dsn, "?")
+	// URL format: scheme://user:pass@host:port/db?params
+	if strings.Contains(dsn, "://") {
+		queryStart := strings.Index(dsn, "?")
 
-	pathPart := dsn
-	query := ""
+		pathPart := dsn
+		query := ""
 
-	if queryStart >= 0 {
-		pathPart = dsn[:queryStart]
-		query = dsn[queryStart:]
+		if queryStart >= 0 {
+			pathPart = dsn[:queryStart]
+			query = dsn[queryStart:]
+		}
+
+		lastSlash := strings.LastIndex(pathPart, "/")
+		if lastSlash < 0 {
+			return dsn
+		}
+
+		return pathPart[:lastSlash+1] + newDB + query
 	}
 
-	lastSlash := strings.LastIndex(pathPart, "/")
-	if lastSlash < 0 {
-		return dsn
+	// Keyword/value format: key=value pairs separated by spaces.
+	const key = "dbname="
+
+	idx := strings.Index(dsn, key)
+	if idx < 0 {
+		// No dbname keyword — append one so the per-test DB takes effect.
+		sep := " "
+		if len(dsn) == 0 || dsn[len(dsn)-1] == ' ' {
+			sep = ""
+		}
+
+		return dsn + sep + key + newDB
 	}
 
-	return pathPart[:lastSlash+1] + newDB + query
+	start := idx + len(key)
+	rest := dsn[start:]
+
+	// Value ends at the next space or end of string.
+	end := strings.IndexByte(rest, ' ')
+	if end < 0 {
+		return dsn[:start] + newDB
+	}
+
+	return dsn[:start] + newDB + rest[end:]
 }

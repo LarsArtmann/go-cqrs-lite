@@ -280,6 +280,13 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 	assignment.Complexity = best.complexity
 	assignment.Cost = best.cost
 
+	// Compute the layout decision (ADR-0124) so the plan carries it. This
+	// converges engine routing and layout scoring into one planning pass —
+	// ReplanLayout reads this field instead of assuming LayoutEmbed.
+	resolvedPriority := resolvePriority(pc.priority, best.engine.Profile().Name, meta.QueryName(),
+		cfg.layoutPriorityOr(PriorityBalanced))
+	assignment.Layout, _ = SelectLayout(best.engine.Profile(), resolvedPriority)
+
 	assignment.Diagnostics = planDiagnostics(meta, best, cfg)
 
 	meta.assignPlan(best.engine, best.complexity, foldByEvent)

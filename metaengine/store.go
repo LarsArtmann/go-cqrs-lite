@@ -68,7 +68,10 @@ func (s *Store) replanWithTrigger(ctx context.Context, trigger string) error {
 		return fmt.Errorf("metaengine.Store.Replan: %w", err)
 	}
 
-	cfg := planConfig{writeAmplificationBudget: DefaultWriteAmplificationBudget}
+	cfg := planConfig{
+		writeAmplificationBudget: DefaultWriteAmplificationBudget,
+		priority:                 s.priorityConfig,
+	}
 
 	// Phase 1: re-assign engines under the write lock (mutates QueryDecl).
 	plan := &PlanResult{}
