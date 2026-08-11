@@ -152,7 +152,6 @@ and is **never** duplicated here.
       `calibration-baseline.md` accuracy; add CI regression check.
       _(Effort: M)_
 
-
 ---
 
 ## v5 Unification
