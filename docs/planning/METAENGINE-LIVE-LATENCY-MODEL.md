@@ -10,7 +10,7 @@
 > path to honest measurement. No code was written; this is a design proposal
 > grounded in the actual codebase.
 >
-> **Status:** P1, P2, P3, and the GetStats/Doctor UX wiring are IMPLEMENTED.
+> **Status:** P1, P2, P3, Phase 3 improvement backlog, and the GetStats/Doctor/EXPLAIN UX wiring are ALL IMPLEMENTED.
 > See "Implementation Status" below for the per-phase mapping to code.
 > **Date:** 2026-08-10
 
@@ -57,14 +57,15 @@ the number honest.
 
 ## Implementation Status
 
-All four work items are implemented and covered by tests in `metaengine/`:
+All four work items plus the Phase 3 improvement backlog are implemented and covered by tests in `metaengine/`:
 
 | Phase | What shipped | Code |
 | --- | --- | --- |
-| **P1 — Probe & measure** | `Prober` / `TransactMeasurer` interfaces, `LatencyTracker` (ring buffer + incremental EWMA + P50/P95/P99), `ProbeEngine()` helper, `CalibrationCosts.NetworkRTT` prior, `Calibration` hosts live RTT + per-read trackers whose EWMA `ApplyCalibration` merges into `Profile()`. Test-double engine proves a live RTT shift changes `Profile()`. PG `SELECT 1` + Dgraph healthcheck probes wired. | `latency.go`, `probe.go`, `reliability.go`, `engine.go` (`RequiresNetwork`), `pgengine/probe.go`, `dgraphengine/probe.go` |
+| **P1 — Probe & measure** | `Prober` / `TransactMeasurer` interfaces, `LatencyTracker` (ring buffer + incremental EWMA + P50/P95/P99), `ProbeEngine()` helper returning `ProbeHandle` (Stop + Failures), `CalibrationCosts.NetworkRTT` prior, `Calibration` hosts live RTT + per-read trackers whose EWMA `ApplyCalibration` merges into `Profile()`. Test-double engine proves a live RTT shift changes `Profile()`. PG `SELECT 1` + `meta_map` point lookup, MySQL `SELECT 1` + `meta_map`, Dgraph healthcheck + predicate index seek, Turso `PingContext` via `sqliteengine.SetProber`. | `latency.go`, `probe.go`, `reliability.go`, `engine.go` (`RequiresNetwork`), `pgengine/probe.go`, `dgraphengine/probe.go`, `mysqlengine/probe.go`, `sqliteengine/probe.go`, `tursoengine/register.go` |
 | **P2 — Live planner view + Store stats** | `Store.GetEngineStats()` returns `EngineStats {profile, measured RTT, samples, lastProbe, stale}`; `EXPLAIN`/`Doctor` show `rtt=live … (p95, n)` and stale labelling; `liveLatencyRule` emits a WARN when routing relies on a prior/stale RTT for a remote engine; `WithNetworkRTT` doc now says "prior, not constant." The plan-time `Profile()` read is already live, so a re-plan automatically picks up fresh numbers (gate test: routing flips on an RTT shift). | `engine_stats.go`, `rule_live_latency.go`, `explain.go`, `planner.go`, `rules.go` |
 | **P3 — Open measurement ingress** | Exported `StatSink` / `LatencySample` / `SampleKind`; `LatencyTracker` forwards every sample to a configured sink; `ProbeEngine` accepts `WithProbeSink`. External engines can push measurements through a sink without internal helpers. Test: fake prober drives planner decisions with/without live stats. | `probe.go`, `latency.go` (`WithTrackerSink`) |
-| **UX — GetStats / Doctor** | `Doctor` adds a `--- Latency ---` section; `ExplainPlan` shows the live-latency line per remote engine; `FormatLiveLatency` renders live/stale/local. | `explain.go`, `engine_stats.go` |
+| **UX — GetStats / Doctor** | `Doctor` adds `--- Latency ---` + `--- Routing ---` sections (plan version, replan count, hysteresis, drift summary); `ExplainPlan` shows the live-latency line per remote engine; `FormatLiveLatency` renders live/stale/local. | `explain.go`, `engine_stats.go` |
+| **Phase 3 — Improvement backlog** | `Store.Replan(ctx)` three-phase locking; `Store.CheckRouting(ctx)` differential re-scoring with configurable hysteresis (`WithRoutingHysteresis`, `WithRoutingMinDelta`); `Store.StartAutoReplan(ctx, interval)` with parent context; `ProbeHandle` with `Failures()` counter + `WithProbeErrorHandler`; turso live probing via `sqliteengine.SetProber`; RTT amortization for scan-pattern fallback costs; slog-based observability for CheckRouting and Replan; concurrency stress test. | `store.go`, `store_routing.go`, `probe.go`, `engine.go`, `planner.go`, `sqliteengine/probe.go` |
 
 Backward compatibility: the `Engine` interface is unchanged (`Profile()+Close()`); `Profile()` is free to return a live view. Engines without a tracker behave exactly as before. The new profile field `RequiresNetwork` and `CalibrationCosts.NetworkRTT` default to zero (local / no override), so every existing engine compiles and plans unchanged.
 

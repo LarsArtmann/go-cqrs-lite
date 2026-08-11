@@ -25,3 +25,23 @@ func (e *mysqlEngine) Probe(ctx context.Context) (time.Duration, error) {
 
 	return time.Since(start), nil
 }
+
+// MeasureTransact times a real point-lookup query against meta_map, exercising
+// the full read path (parse + plan + B-tree index seek + JSON decode). It
+// implements [metaengine.TransactMeasurer] so ProbeEngine can build a live
+// per-read latency tracker that feeds Profile().NsPerRead. The query targets a
+// sentinel key that never exists, so it always returns zero rows — the timing
+// captures index traversal cost without depending on user data.
+// art-dupl:accept intentional cross-module duplicate — separate go.mod
+func (e *mysqlEngine) MeasureTransact(ctx context.Context) (time.Duration, error) {
+	start := time.Now()
+	_, err := e.db.ExecContext(ctx,
+		`SELECT value FROM meta_map WHERE collection = ? AND `+"`key`"+` = ? LIMIT 1`,
+		"__probe", "__probe",
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	return time.Since(start), nil
+}

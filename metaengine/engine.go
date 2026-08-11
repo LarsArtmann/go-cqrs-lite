@@ -141,6 +141,10 @@ type ReadCosts struct {
 //  2. NsPerRead (legacy scalar)
 //  3. NsPerOp
 //  4. defaultNsPerOp (100ns)
+//
+// For scan-type patterns on remote engines, the fallback cost is adjusted to
+// subtract per-read network overhead (RTT is added once per query by
+// estimateCost, not per row — a 10K-row scan pays RTT once, not 10K times).
 func (p EngineProfile) NsForRead(pattern ReadPattern) float64 {
 	switch pattern {
 	case ReadPointLookup, ReadMembership, ReadMultiLookup, ReadLogTail:
@@ -161,7 +165,27 @@ func (p EngineProfile) NsForRead(pattern ReadPattern) float64 {
 		}
 	}
 
-	return p.ReadNsPerOp()
+	base := p.ReadNsPerOp()
+
+	if isScanReadPattern(pattern) && p.NetworkRTT > 0 {
+		if rttNs := float64(p.NetworkRTT.Nanoseconds()); base > rttNs {
+			return base - rttNs
+		}
+	}
+
+	return base
+}
+
+// isScanReadPattern reports whether the read pattern scans multiple rows in a
+// single query (paying RTT once, not per row).
+func isScanReadPattern(p ReadPattern) bool {
+	switch p {
+	case ReadScan, ReadFilteredScan, ReadTraversal,
+		ReadVectorSearch, ReadFullTextSearch, ReadSpatialRange:
+		return true
+	}
+
+	return false
 }
 
 // ReadNsPerOp returns the calibrated per-read-operation cost, falling back to

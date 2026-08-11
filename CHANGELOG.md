@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — Planner-time fold inference `metaengine.Infer()` (ADR-0116 Layer 1) — 2026-08-11
+
+> New API: `metaengine.Infer(samples...)` lets consumers declare zero folds for
+> CRUD-shaped projections. The planner inspects event/query struct shapes at
+> `Plan()` time and auto-generates insert/update/delete folds. **Not recommended
+> for production domain models** — hides projection logic behind naming
+> conventions; prefer explicit `OnRecord`/`AutoInsert` folds.
+
+- **`metaengine.Infer(samples...)`** (**NEW**): planner-time fold inference.
+  Pass event samples (`UserCreated{}`, `UserDeleted{}`) instead of explicit
+  folds. The planner classifies by naming convention (`*Created`/`*Updated`/
+  `*Deleted`), auto-detects the key field from the query input type (falling
+  back to `"ID"`), maps event fields to result fields by name (including
+  nested struct flattening), and auto-infers `FilterOnField` declarations from
+  query input fields that match result fields. Collection result types
+  (`R{Items []T}`) use the element type T for fold generation. 12 tests added,
+  145 total green.
+- **`metaengine/auto_fold.go`**: enhanced `fieldMapping` with `srcPath []int`
+  for nested struct field access. `matchFields` now flattens nested structs:
+  `Event{Address{City, Zip}}` → `Result{City, Zip}` by field name.
+- **`metaengine/query.go`**: `Query()` accepts `inferenceRequest` (from
+  `Infer()`) as an alternative to explicit `Fold` args. New `ensureFolds()`
+  method on `queryMeta` interface, called by `Plan()` and `RegisterQuery()`.
+- **`metaengine/planner.go` + `register_query.go`**: `Plan()` and
+  `RegisterQuery()` call `ensureFolds()` before `planQuery()`.
+- **`docs/adr/0116-layered-auto-projection.md`**: status updated to "Layer 1
+  implemented" with implementation details and recommendation to prefer
+  explicit folds for production.
+
 ### Fixed — Metadata roundtrip + verify gate green — 2026-08-11
 
 > `nix run .#verify` passes end-to-end (build, vet, test, race, lint, arch,

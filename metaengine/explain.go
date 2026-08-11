@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // ExplainOptions controls what EXPLAIN returns.
@@ -302,6 +303,44 @@ func (s *Store) Doctor(ctx context.Context) string {
 
 	if !latAny {
 		b.WriteString("  all engines local\n")
+	}
+
+	b.WriteString("\n--- Routing ---\n")
+
+	s.mu.RLock()
+	version := 0
+	computedAt := time.Time{}
+	if s.plan != nil {
+		version = s.plan.Version
+		computedAt = s.plan.ComputedAt
+	}
+
+	replanCount := s.replanCount
+	lastReplan := s.lastReplanAt
+	hysteresis := s.routingHysteresis
+	s.mu.RUnlock()
+
+	fmt.Fprintf(&b, "  plan version: %d\n", version)
+	if !computedAt.IsZero() {
+		fmt.Fprintf(&b, "  computed: %s ago\n", roundDur(time.Since(computedAt)))
+	}
+
+	if replanCount > 0 {
+		fmt.Fprintf(&b, "  replans: %d (last %s ago)\n", replanCount, roundDur(time.Since(lastReplan)))
+	} else {
+		b.WriteString("  replans: 0 (never)\n")
+	}
+
+	fmt.Fprintf(&b, "  hysteresis: %.0f%%\n", hysteresis*100)
+
+	driftDiags := s.CheckRouting(ctx)
+	if len(driftDiags) > 0 {
+		fmt.Fprintf(&b, "  drift: %d queries would benefit from re-routing\n", len(driftDiags))
+		for _, d := range driftDiags {
+			fmt.Fprintf(&b, "    %s\n", d.Message)
+		}
+	} else {
+		b.WriteString("  drift: none\n")
 	}
 
 	return b.String()

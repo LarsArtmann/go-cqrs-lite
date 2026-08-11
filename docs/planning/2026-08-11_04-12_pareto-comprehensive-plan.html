@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pareto Plan — go-cqrs-lite (2026-08-11)</title>
+    <style>
+      :root {
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .top-bar { background: var(--text); color: var(--surface); padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
+      .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 1rem; align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none; }
+      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
+      .sidebar .label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--text); }
+      .sidebar a { font-size: 0.86rem; color: var(--text); text-decoration: none; padding: 0.5rem 0.75rem; border-left: 4px solid transparent; font-weight: 600; transition: all 0.15s ease; line-height: 1.4; }
+      .sidebar a:hover, .sidebar a.active { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); color: var(--accent); }
+      .main { flex: 1; min-width: 0; }
+      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 900; letter-spacing: -0.02em; color: var(--text); }
+      h1 { font-size: clamp(1.9rem, 4.5vw, 2.8rem); line-height: 1.05; margin: 0 0 0.6rem; }
+      h2 { font-size: 1.5rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 3px solid var(--text); display: flex; align-items: baseline; gap: 0.7rem; }
+      h2 .num { font-family: var(--font-mono); font-size: 0.82rem; color: var(--accent); font-weight: 700; letter-spacing: 0.04em; }
+      h3 { font-size: 1.15rem; margin: 0 0 0.4rem; font-weight: 700; }
+      h4 { font-size: 1rem; margin: 0 0 0.3rem; font-weight: 700; }
+      p { margin: 0 0 1rem; }
+      .hero { padding: 1.5rem 0 2rem; margin-bottom: 1.5rem; border-bottom: 3px solid var(--text); }
+      .eyebrow { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; color: var(--accent); margin-bottom: 0.9rem; }
+      .subtitle { font-size: 1.1rem; color: var(--text-muted); max-width: 70ch; margin: 0 0 1rem; }
+      .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+      .tag { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; padding: 0.25rem 0.6rem; background: var(--surface-sunken); color: var(--text); border: 1px solid var(--border-strong); }
+      .tag.amber { background: var(--warning); border-color: var(--warning); color: var(--text); }
+      .tag.teal { background: var(--solution); border-color: var(--solution); color: var(--surface); }
+      .scorecard, .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0; margin: 1.5rem 0 2rem; border: 3px solid var(--text); }
+      .score-card, .stat-card { padding: 1.3rem 1rem; text-align: center; border-right: 3px solid var(--text); background: var(--surface-raised); }
+      .score-card:last-child, .stat-card:last-child { border-right: none; }
+      .score, .stat-value { font-family: var(--font-heading); font-size: 2.6rem; font-weight: 900; line-height: 1; letter-spacing: -0.04em; }
+      .score-card .label, .stat-label { font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 0.5rem; }
+      .score-bad { background: var(--problem); color: var(--surface); }
+      .score-warn { background: var(--warning); color: var(--text); }
+      .score-good { background: var(--solution); color: var(--surface); }
+      .card { background: var(--surface-raised); border: 2px solid var(--text); padding: 1.2rem 1.4rem; margin-bottom: 1rem; border-left: 8px solid var(--border-strong); }
+      .card-problem { border-left-color: var(--problem); }
+      .card-solution { border-left-color: var(--solution); }
+      .card-warning { border-left-color: var(--warning); }
+      .callout { margin: 0.8rem 0 0; padding: 0.8rem 1rem; border: 1px solid var(--border-strong); border-left: 4px solid var(--border-strong); background: var(--surface-sunken); font-size: 0.92rem; }
+      .callout strong { display: inline-block; margin-right: 0.4rem; }
+      .callout-teal, .callout-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, var(--surface-raised)); }
+      .callout-amber, .callout-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 18%, var(--surface-raised)); }
+      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
+      .strength { display: grid; grid-template-columns: auto 1fr; gap: 0.9rem; padding: 0.75rem 0; border-bottom: 2px solid var(--border); }
+      .strength .check { font-family: var(--font-mono); font-weight: 900; color: var(--solution); font-size: 1.3rem; line-height: 1.3; }
+      .strength .text strong { display: block; margin-bottom: 0.15rem; }
+      .strength .text span { color: var(--text-muted); font-size: 0.92rem; }
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.88rem; border: 2px solid var(--text); }
+      th { text-align: left; padding: 0.55rem 0.7rem; background: var(--text); color: var(--surface); font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border-right: 1px solid var(--border-strong); }
+      th:last-child { border-right: none; }
+      td { padding: 0.5rem 0.7rem; border-top: 1px solid var(--border); border-right: 1px solid var(--border); vertical-align: top; }
+      td:last-child { border-right: none; }
+      tr:nth-child(even) td { background: var(--surface-sunken); }
+      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.58rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.18rem 0.5rem; border: 1px solid var(--text); color: var(--text); white-space: nowrap; }
+      .badge-critical { background: var(--problem); color: var(--surface); }
+      .badge-high { background: var(--warning); }
+      .badge-medium { background: var(--surface-sunken); }
+      .badge-low { background: var(--surface-raised); color: var(--text-muted); }
+      .tier-0 { color: var(--problem); font-weight: 700; }
+      .tier-1 { color: var(--warning); font-weight: 700; }
+      .tier-2 { color: var(--solution); font-weight: 700; }
+      .tier-3 { color: var(--text-muted); font-weight: 700; }
+      .atomic td:first-child { font-family: var(--font-mono); font-size: 0.78rem; white-space: nowrap; color: var(--text-faint); }
+      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 3px solid var(--text); font-size: 0.82rem; color: var(--text-muted); font-family: var(--font-mono); }
+      @media (min-width: 1024px) { .sidebar { display: block; } }
+      @media (max-width: 768px) { .layout { flex-direction: column; padding: 1rem; } .top-bar { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.3rem; } .scorecard, .stat-grid { grid-template-columns: repeat(2, 1fr); } .score-card:nth-child(2), .stat-card:nth-child(2) { border-right: none; } .score-card:nth-child(1), .stat-card:nth-child(1), .score-card:nth-child(2), .stat-card:nth-child(2) { border-bottom: 3px solid var(--text); } }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>PARETO PLAN</span>
+      <span>2026-08-11</span>
+      <span>go-cqrs-lite</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#scorecard">Scorecard</a>
+          <a href="#pareto">Pareto Tiers</a>
+          <a href="#medium">Medium Plan</a>
+          <a href="#atomic">Atomic Breakdown</a>
+          <a href="#gates">Decision Gates</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="eyebrow">PARETO PLAN &middot; 2026-08-11</div>
+          <h1>Comprehensive Execution Plan</h1>
+          <p class="subtitle">
+            Every open TODO in go-cqrs-lite, Pareto-ranked by strategic impact
+            against the north star (metaengine = zero storage-layer thinking),
+            then decomposed into atomic tasks of &le;12 minutes each.
+          </p>
+          <div class="meta">
+            <span class="tag amber">27 medium tasks</span>
+            <span class="tag">150 atomic tasks</span>
+            <span class="tag teal">Source: TODO_LIST + status report</span>
+          </div>
+        </header>
+
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-bad">
+            <div class="score">5</div>
+            <div class="label">Tier 0 &middot; 1% &rarr; 51%</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">6</div>
+            <div class="label">Tier 1 &middot; 4% &rarr; 64%</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">8</div>
+            <div class="label">Tier 2 &middot; 20% &rarr; 80%</div>
+          </div>
+          <div class="score-card">
+            <div class="score">8</div>
+            <div class="label">Tier 3 &middot; polish</div>
+          </div>
+        </section>
+
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            The verify gate is GREEN. The remaining work splits cleanly: the
+            <strong>strategic future</strong> (auto-projection / fold inference)
+            is the 1% that delivers 51% of value; everything else is enabler,
+            tech debt, or polish. Three items unblock downstream consumers
+            immediately and cost under an hour total.
+          </p>
+          <div class="callout callout-amber">
+            <strong>Start here</strong>
+            M6 (release record/v4 tag, ~20 min) unblocks all downstream
+            GOWORK=off builds. M1 (On&rarr;OnRecord migration, ~2h) is the
+            prerequisite for M2/M5 (the killer feature) and removes the single
+            largest lint debt.
+          </div>
+        </section>
+
+        <section id="pareto">
+          <h2><span class="num">01</span>Pareto Tiers</h2>
+          <p>Ranked against the three north-star invariants: developer declares/operator deploys, graceful degradation never failure, zero storage-layer thinking.</p>
+          <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Tier</th><th>Delivers</th><th>Theme</th><th>What's in it</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="tier-0">T0 &middot; 1%</td><td>51% of value</td><td>Strategic core &mdash; the killer feature</td><td>Auto-projection (fold inference), OnRecord default, batch atomicity, Record consolidation, On&rarr;OnRecord migration</td></tr>
+              <tr><td class="tier-1">T1 &middot; 4%</td><td>64% of value</td><td>Enablers &amp; graceful degradation</td><td>record/v4 tag, capability-degradation rule, universal ADT coverage, multi-collection, override API, command lifecycle (ADR-0117)</td></tr>
+              <tr><td class="tier-2">T2 &middot; 20%</td><td>80% of value</td><td>Tech debt, tests, infra</td><td>PG probe integration test, calibration benchmarks, arch-script smoke test, lint-exclusion audit, bbolt test suite, quick doc/code fixes</td></tr>
+              <tr><td class="tier-3">T3</td><td>polish</td><td>Deferred / needs-decision</td><td>v5 deletions, v5 cut, cqrs-lint profiles, Redis/NATS/Dgraph tests, macOS PG, DuckDB sub-module, nix apps</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="medium">
+          <h2><span class="num">02</span>Comprehensive Plan &mdash; 27 Medium Tasks</h2>
+          <p>Sorted by importance / impact / effort / customer-value. Effort: XS&lt;1h, S 1-2h, M 2-4h, L 4-8h, XL 8h+.</p>
+          <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Tier</th><th>Task</th><th>Effort</th><th>Impact / Customer Value</th><th>Depends</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>M1</td><td class="tier-0">T0</td><td>Migrate metaengine.On &rarr; OnRecord (58 SA1019 / 33 files) + stack/ test files</td><td><span class="badge badge-medium">M</span></td><td>Removes largest lint exclusion; prerequisite for OnRecord-as-default. Pure mechanical.</td><td>&mdash;</td></tr>
+              <tr><td>M2</td><td class="tier-0">T0</td><td>Make OnRecord the default fold constructor + deprecate On/OnTyped</td><td><span class="badge badge-medium">M</span></td><td>v5 Phase 5; gates the killer feature. Consumer API becomes record-typed.</td><td>M1</td></tr>
+              <tr><td>M3</td><td class="tier-0">T0</td><td>Finish Record consolidation (ADR-0111 residual): audit event/command/query.Metadata &rarr; record.CommonMetadata</td><td><span class="badge badge-high">L</span></td><td>Type foundation; single structural base. Much already done &mdash; verify + mop up.</td><td>&mdash;</td></tr>
+              <tr><td>M4</td><td class="tier-0">T0</td><td>Multi-collection batch atomicity (v5 Phase 7): store.ApplyRecord batches in one engine tx</td><td><span class="badge badge-high">L</span></td><td>Correctness for auto-projection. Batch boundary = event, not collection.</td><td>&mdash;</td></tr>
+              <tr><td>M5</td><td class="tier-0">T0</td><td>&#128293;&#128293; Planner-time fold inference (ADR-0116 Layer 1) &mdash; THE killer feature</td><td><span class="badge badge-critical">XL</span></td><td>Consumer declares zero folds for the 80% case. Fulfillment of "zero storage thinking".</td><td>M2</td></tr>
+              <tr><td>M6</td><td class="tier-1">T1</td><td>Release record/v4 tag (Merge method) + pin metadata/downstream go.mod</td><td><span class="badge badge-low">S</span></td><td>UNBLOCKS all downstream GOWORK=off builds. Highest value-per-minute.</td><td>&mdash;</td></tr>
+              <tr><td>M7</td><td class="tier-1">T1</td><td>Capability-degradation planner rule (WARN on degraded ADT routing)</td><td><span class="badge badge-medium">M</span></td><td>Invariant #2 (graceful degradation never failure). Advisory diagnostics, never errors.</td><td>&mdash;</td></tr>
+              <tr><td>M8</td><td class="tier-1">T1</td><td>Universal ADT coverage per engine (recursive CTE, brute-force vector, StreamLog)</td><td><span class="badge badge-critical">XL</span></td><td>Every engine handles every ADT. Invariant #2 + #3.</td><td>M7</td></tr>
+              <tr><td>M9</td><td class="tier-1">T1</td><td>Struct-composition-driven multi-collection (extends fold inference)</td><td><span class="badge badge-high">L</span></td><td>Event with []Attachment auto-generates secondary collection + join-aware read.</td><td>M5</td></tr>
+              <tr><td>M10</td><td class="tier-1">T1</td><td>Fold inference override API (escape hatch for the 20%)</td><td><span class="badge badge-medium">M</span></td><td>When auto-projection gets it wrong, explicit OnRecord replaces inferred fold.</td><td>M5</td></tr>
+              <tr><td>M11</td><td class="tier-1">T1</td><td>ADR-0117 command lifecycle as event streams (DLQ + retries, no status fields)</td><td><span class="badge badge-high">L</span></td><td>Metaengine completeness; design done, no code yet.</td><td>&mdash;</td></tr>
+              <tr><td>M12</td><td class="tier-2">T2</td><td>Real PG testcontainer + ProbeEngine integration test</td><td><span class="badge badge-medium">M</span></td><td>Proves live RTT against real PG (currently only fake engine).</td><td>&mdash;</td></tr>
+              <tr><td>M13</td><td class="tier-2">T2</td><td>Calibration benchmarks vs baseline + CI regression check</td><td><span class="badge badge-medium">M</span></td><td>Verify cost constants; catch perf regressions.</td><td>&mdash;</td></tr>
+              <tr><td>M14</td><td class="tier-2">T2</td><td>Smoke test for check-module-layers.sh + synthetic submodule test</td><td><span class="badge badge-low">S</span></td><td>Script had 2 silent bugs; no regression test exists.</td><td>&mdash;</td></tr>
+              <tr><td>M15</td><td class="tier-2">T2</td><td>Audit + narrow .golangci.yml exclusions; fix code-level findings</td><td><span class="badge badge-medium">M</span></td><td>~40 exclusion rules; categorize permanent vs temporary + fix flightrecorder/id/mysqlengine/api-stability/dgraphengine.</td><td>M1</td></tr>
+              <tr><td>M16</td><td class="tier-2">T2</td><td>Quick doc/code fixes batch</td><td><span class="badge badge-low">S</span></td><td>listing README stale claim, taskmanager setup.go type mismatch, CHANGELOG, recipes docs.</td><td>&mdash;</td></tr>
+              <tr><td>M17</td><td class="tier-2">T2</td><td>bbolt source-of-truth integration test suite</td><td><span class="badge badge-medium">M</span></td><td>Match pebbleengine coverage (persistence, restart_safety, disk_backed, calibration).</td><td>&mdash;</td></tr>
+              <tr><td>M18</td><td class="tier-2">T2</td><td>Per-test database isolation for PG integration test</td><td><span class="badge badge-medium">M</span></td><td>Wire pgtestcontainer per-test-database; prevent table collisions.</td><td>&mdash;</td></tr>
+              <tr><td>M19</td><td class="tier-2">T2</td><td>Consolidate driver registration into shared TestMain</td><td><span class="badge badge-low">S</span></td><td>Each integration test registers drivers in init(); shared TestMain prevents dups.</td><td>&mdash;</td></tr>
+              <tr><td>M20</td><td class="tier-3">T3</td><td>[NEEDS-DECISION] tombstone vocab rename + DeletePolicy unification + aliases + metadata/ fate</td><td><span class="badge badge-high">L</span></td><td>Large blast radius; breaking change. Requires user decision before starting.</td><td>decision</td></tr>
+              <tr><td>M21</td><td class="tier-3">T3</td><td>Per-module feature profiles for cqrs-lint (cqrs-htmx)</td><td><span class="badge badge-high">L</span></td><td>Multi-go.mod workspace analysis; consumer-requested.</td><td>&mdash;</td></tr>
+              <tr><td>M22</td><td class="tier-3">T3</td><td>Integration tests: Redis/NATS/Dgraph actual Go roundtrips</td><td><span class="badge badge-medium">M</span></td><td>Ephemeral scripts exist but no Go tests use them.</td><td>&mdash;</td></tr>
+              <tr><td>M23</td><td class="tier-3">T3</td><td>macOS verification of ephemeral PG</td><td><span class="badge badge-medium">M</span></td><td>Script claims cross-platform, untested on Darwin.</td><td>&mdash;</td></tr>
+              <tr><td>M24</td><td class="tier-3">T3</td><td>Move CGo DuckDB test to sub-module</td><td><span class="badge badge-medium">M</span></td><td>Remove ~20 Arrow/FlatBuffers indirect deps from system/go.mod.</td><td>&mdash;</td></tr>
+              <tr><td>M25</td><td class="tier-3">T3</td><td>v5 deletions (stack.Materialize, RelationalProjection, view, GraphProjection, Bundle, RunProjections)</td><td><span class="badge badge-high">L</span></td><td>Gated behind auto-projection (M5). Removes dual paths.</td><td>M5</td></tr>
+              <tr><td>M26</td><td class="tier-3">T3</td><td>v5 migration guide + cut v5.0.0</td><td><span class="badge badge-high">L</span></td><td>Document v4&rarr;v5 path; tag all modules.</td><td>M25</td></tr>
+              <tr><td>M27</td><td class="tier-3">T3</td><td>Nix apps + infra polish (#sweep, #check-lint-config, #verify-ci, register.go, indirect-dep audit)</td><td><span class="badge badge-medium">M</span></td><td>Maintenance improvements; lint-drift prevention.</td><td>&mdash;</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="atomic">
+          <h2><span class="num">03</span>Atomic Breakdown &mdash; 150 Tasks (&le;12 min each)</h2>
+          <p>Each row is a single focused unit of work. Grouped by parent medium task; ordered by priority (T0 first).</p>
+          <div class="table-wrap">
+          <table class="atomic">
+            <thead>
+              <tr><th>ID</th><th>Task</th><th>Parent</th><th>~Time</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>A1</td><td>Grep SA1019 On/OnTyped; generate exact 33-file migration checklist</td><td>M1</td><td>8m</td></tr>
+              <tr><td>A2</td><td>Migrate metaengine/ core test files (batch 1, ~6 files)</td><td>M1</td><td>12m</td></tr>
+              <tr><td>A3</td><td>Migrate metaengine/ core test files (batch 2, ~6 files)</td><td>M1</td><td>12m</td></tr>
+              <tr><td>A4</td><td>Migrate metaengine/*engine test files (sqlite/pebble/bbolt, ~6 files)</td><td>M1</td><td>12m</td></tr>
+              <tr><td>A5</td><td>Migrate metaengine/*engine test files (duckdb/badger/dgraph/turso/mysql/pg, ~6 files)</td><td>M1</td><td>12m</td></tr>
+              <tr><td>A6</td><td>Migrate metaengine/projectionadapter + keycodec + adttest (~5 files)</td><td>M1</td><td>12m</td></tr>
+              <tr><td>A7</td><td>Migrate stack/ test files (metaengine_test.go, memory/metaengine_integration_test.go)</td><td>M1</td><td>10m</td></tr>
+              <tr><td>A8</td><td>Migrate example/* + system/ files</td><td>M1</td><td>10m</td></tr>
+              <tr><td>A9</td><td>Remove On/OnTyped SA1019 blanket exclusion in .golangci.yml</td><td>M1</td><td>5m</td></tr>
+              <tr><td>A10</td><td>Run affected module tests + lint; verify 0 SA1019 remain</td><td>M1</td><td>12m</td></tr>
+
+              <tr><td>A11</td><td>Add // Deprecated godoc to On/OnTyped with migration pointer</td><td>M2</td><td>8m</td></tr>
+              <tr><td>A12</td><td>Update example/taskmanager to use OnRecord</td><td>M2</td><td>12m</td></tr>
+              <tr><td>A13</td><td>Update example/getting-started + readme-quickstart to OnRecord</td><td>M2</td><td>10m</td></tr>
+              <tr><td>A14</td><td>Update example/metaengine-quickstart to OnRecord</td><td>M2</td><td>10m</td></tr>
+              <tr><td>A15</td><td>Update skill docs (core.md, recipes.md, advanced.md) to OnRecord</td><td>M2</td><td>12m</td></tr>
+              <tr><td>A16</td><td>Update auto-projection Infer() to emit OnRecord by default</td><td>M2</td><td>12m</td></tr>
+              <tr><td>A17</td><td>Run verify-fast + doc-check</td><td>M2</td><td>10m</td></tr>
+
+              <tr><td>A18</td><td>Audit: grep event.Metadata, command.Metadata, query.Metadata definitions + usages</td><td>M3</td><td>10m</td></tr>
+              <tr><td>A19</td><td>For each duplicate type, decide alias-to-record.CommonMetadata vs keep</td><td>M3</td><td>12m</td></tr>
+              <tr><td>A20</td><td>Apply type aliases / consolidations</td><td>M3</td><td>12m</td></tr>
+              <tr><td>A21</td><td>Update affected tests + regenerate API golden</td><td>M3</td><td>12m</td></tr>
+              <tr><td>A22</td><td>Run verify-fast</td><td>M3</td><td>10m</td></tr>
+
+              <tr><td>A23</td><td>Write design note (batch boundary = event, single engine tx, rollback)</td><td>M4</td><td>12m</td></tr>
+              <tr><td>A24</td><td>Define engine ApplyBatch interface (or extend existing)</td><td>M4</td><td>12m</td></tr>
+              <tr><td>A25</td><td>Refactor store.ApplyRecord to collect all fold ops before commit</td><td>M4</td><td>12m</td></tr>
+              <tr><td>A26</td><td>Implement batch in memory engine</td><td>M4</td><td>10m</td></tr>
+              <tr><td>A27</td><td>Implement batch in sqlite engine</td><td>M4</td><td>12m</td></tr>
+              <tr><td>A28</td><td>Implement batch in pebble engine</td><td>M4</td><td>12m</td></tr>
+              <tr><td>A29</td><td>Implement batch in bbolt engine</td><td>M4</td><td>12m</td></tr>
+              <tr><td>A30</td><td>Implement batch in pg/duckdb engines</td><td>M4</td><td>12m</td></tr>
+              <tr><td>A31</td><td>Implement batch in mysql/turso engines</td><td>M4</td><td>12m</td></tr>
+              <tr><td>A32</td><td>Atomic rollback + partial-failure tests</td><td>M4</td><td>12m</td></tr>
+              <tr><td>A33</td><td>Concurrency tests under -race</td><td>M4</td><td>12m</td></tr>
+              <tr><td>A34</td><td>Update ExplainPlan + docs</td><td>M4</td><td>10m</td></tr>
+
+              <tr><td>A35</td><td>Write detailed design doc (field-name matching, composition, conventions)</td><td>M5</td><td>12m</td></tr>
+              <tr><td>A36</td><td>Implement TypeInspector: enumerate struct fields + types</td><td>M5</td><td>12m</td></tr>
+              <tr><td>A37</td><td>Implement field-name matching (event.X &rarr; result.X)</td><td>M5</td><td>12m</td></tr>
+              <tr><td>A38</td><td>Implement nested-struct composition handling</td><td>M5</td><td>12m</td></tr>
+              <tr><td>A39</td><td>Implement slice-field &rarr; separate-collection detection</td><td>M5</td><td>12m</td></tr>
+              <tr><td>A40</td><td>Implement convention detection (Created/Updated/Deleted suffixes)</td><td>M5</td><td>12m</td></tr>
+              <tr><td>A41</td><td>Implement fold synthesis (emit OnRecord folds)</td><td>M5</td><td>12m</td></tr>
+              <tr><td>A42</td><td>Wire Infer() into Plan() pipeline</td><td>M5</td><td>12m</td></tr>
+              <tr><td>A43</td><td>Unit tests: field-name matching</td><td>M5</td><td>12m</td></tr>
+              <tr><td>A44</td><td>Unit tests: convention detection</td><td>M5</td><td>12m</td></tr>
+              <tr><td>A45</td><td>Unit tests: composition + slices</td><td>M5</td><td>12m</td></tr>
+              <tr><td>A46</td><td>Integration test: taskmanager zero-fold declaration</td><td>M5</td><td>12m</td></tr>
+              <tr><td>A47</td><td>Property tests (rapid) for inference</td><td>M5</td><td>12m</td></tr>
+              <tr><td>A48</td><td>Update ExplainPlan() to show inferred folds</td><td>M5</td><td>10m</td></tr>
+              <tr><td>A49</td><td>Update skill recipes + ADR-0116 docs</td><td>M5</td><td>12m</td></tr>
+
+              <tr><td>A50</td><td>Verify record/v4 latest tag + commit ancestry of Merge</td><td>M6</td><td>6m</td></tr>
+              <tr><td>A51</td><td>Tag record/v4.0.1 (or v4.1.0) via scripts/tag-release.sh</td><td>M6</td><td>8m</td></tr>
+              <tr><td>A52</td><td>Update metadata/go.mod (and dependents) to new record tag</td><td>M6</td><td>10m</td></tr>
+              <tr><td>A53</td><td>Run GOWORK=off go test on dependents to confirm resolution</td><td>M6</td><td>12m</td></tr>
+
+              <tr><td>A54</td><td>Define degraded-ADT marker on EngineProfile (audit existing flags)</td><td>M7</td><td>10m</td></tr>
+              <tr><td>A55</td><td>Implement DegradationRule: PlanRule emitting WARN/INFO</td><td>M7</td><td>12m</td></tr>
+              <tr><td>A56</td><td>Wire into Plan() rules pipeline</td><td>M7</td><td>10m</td></tr>
+              <tr><td>A57</td><td>Integrate cost-penalty estimate + engine recommendation</td><td>M7</td><td>12m</td></tr>
+              <tr><td>A58</td><td>Surface in ExplainPlan() + Doctor()</td><td>M7</td><td>12m</td></tr>
+              <tr><td>A59</td><td>Tests: degraded routing emits diagnostic</td><td>M7</td><td>12m</td></tr>
+              <tr><td>A60</td><td>Docs</td><td>M7</td><td>8m</td></tr>
+
+              <tr><td>A61</td><td>Audit matrix: each engine &times; each ADT (graph, vector, stream, map, list)</td><td>M8</td><td>12m</td></tr>
+              <tr><td>A62</td><td>Implement recursive-CTE graph traversal (sqlite engine)</td><td>M8</td><td>12m</td></tr>
+              <tr><td>A63</td><td>Implement recursive-CTE graph traversal (pg engine)</td><td>M8</td><td>12m</td></tr>
+              <tr><td>A64</td><td>Implement recursive-CTE graph traversal (mysql engine)</td><td>M8</td><td>12m</td></tr>
+              <tr><td>A65</td><td>Implement brute-force vector search (memory engine)</td><td>M8</td><td>12m</td></tr>
+              <tr><td>A66</td><td>Implement brute-force vector search (pebble engine)</td><td>M8</td><td>12m</td></tr>
+              <tr><td>A67</td><td>Implement StreamLog fallback (dgraph engine)</td><td>M8</td><td>12m</td></tr>
+              <tr><td>A68</td><td>Engine parity tests via adttest.RunMatrix</td><td>M8</td><td>12m</td></tr>
+              <tr><td>A69</td><td>Docs: degradation notes per engine</td><td>M8</td><td>10m</td></tr>
+
+              <tr><td>A70</td><td>Extend TypeInspector: []SubField &rarr; secondary collection plan</td><td>M9</td><td>12m</td></tr>
+              <tr><td>A71</td><td>Generate join-aware read path for parent+child collections</td><td>M9</td><td>12m</td></tr>
+              <tr><td>A72</td><td>Tests: Attachment[] &rarr; MessageView.Attachments</td><td>M9</td><td>12m</td></tr>
+              <tr><td>A73</td><td>Docs</td><td>M9</td><td>8m</td></tr>
+
+              <tr><td>A74</td><td>Design override semantics (replace, not supplement)</td><td>M10</td><td>10m</td></tr>
+              <tr><td>A75</td><td>Implement OnRecord override registration per event/query pair</td><td>M10</td><td>12m</td></tr>
+              <tr><td>A76</td><td>Tests: override replaces inferred fold</td><td>M10</td><td>12m</td></tr>
+              <tr><td>A77</td><td>Docs</td><td>M10</td><td>8m</td></tr>
+
+              <tr><td>A78</td><td>Design: DLQ as event streams (no status fields)</td><td>M11</td><td>12m</td></tr>
+              <tr><td>A79</td><td>Design: retries as event streams</td><td>M11</td><td>12m</td></tr>
+              <tr><td>A80</td><td>Implement command-lifecycle event types + fold</td><td>M11</td><td>12m</td></tr>
+              <tr><td>A81</td><td>Implement DLQ projection from lifecycle stream</td><td>M11</td><td>12m</td></tr>
+              <tr><td>A82</td><td>Implement retry scheduler from lifecycle stream</td><td>M11</td><td>12m</td></tr>
+              <tr><td>A83</td><td>Tests + docs</td><td>M11</td><td>12m</td></tr>
+
+              <tr><td>A84</td><td>Write testcontainer PG setup (reuse pgtestcontainer)</td><td>M12</td><td>12m</td></tr>
+              <tr><td>A85</td><td>ProbeEngine() against real PG; assert GetEngineStats shows live RTT</td><td>M12</td><td>12m</td></tr>
+              <tr><td>A86</td><td>Assert RTT within plausible range + sample count</td><td>M12</td><td>10m</td></tr>
+              <tr><td>A87</td><td>Run under -race</td><td>M12</td><td>8m</td></tr>
+
+              <tr><td>A88</td><td>Run calibration benchmarks; capture baseline numbers</td><td>M13</td><td>12m</td></tr>
+              <tr><td>A89</td><td>Compare to calibration-baseline.md; fix drift</td><td>M13</td><td>12m</td></tr>
+              <tr><td>A90</td><td>Add CI regression check (bench threshold)</td><td>M13</td><td>12m</td></tr>
+              <tr><td>A91</td><td>Docs update</td><td>M13</td><td>6m</td></tr>
+
+              <tr><td>A92</td><td>Smoke test: run check-module-layers.sh on known-good tree, assert exit 0</td><td>M14</td><td>12m</td></tr>
+              <tr><td>A93</td><td>Synthetic submodule test: submodule importing disallowed dep &rarr; detected</td><td>M14</td><td>12m</td></tr>
+              <tr><td>A94</td><td>Wire into nix run .#test or dedicated check</td><td>M14</td><td>10m</td></tr>
+
+              <tr><td>A95</td><td>Categorize .golangci.yml exclusions: permanent vs temporary (removal condition)</td><td>M15</td><td>12m</td></tr>
+              <tr><td>A96</td><td>Fix flightrecorder/alias.go 13 findings (reformat deprecation notices)</td><td>M15</td><td>12m</td></tr>
+              <tr><td>A97</td><td>Fix id/actor_id.go 16 findings (constants, receiver, strings.Cut)</td><td>M15</td><td>12m</td></tr>
+              <tr><td>A98</td><td>Fix mysqlengine sqlclosecheck (CloseRows indirection)</td><td>M15</td><td>10m</td></tr>
+              <tr><td>A99</td><td>Clean cmd/api-stability/main_test.go (nilerr, gocognit)</td><td>M15</td><td>10m</td></tr>
+              <tr><td>A100</td><td>Decide dgraphengine/retry.go: wire or remove unused utilities</td><td>M15</td><td>10m</td></tr>
+              <tr><td>A101</td><td>Remove narrowed exclusions; run lint; verify 0 new issues</td><td>M15</td><td>12m</td></tr>
+
+              <tr><td>A102</td><td>Fix listing/README.md:16 (tri-state &rarr; bi-state claim)</td><td>M16</td><td>4m</td></tr>
+              <tr><td>A103</td><td>Fix example/taskmanager/setup.go:113 type mismatch</td><td>M16</td><td>8m</td></tr>
+              <tr><td>A104</td><td>Update CHANGELOG with lint/arch/dedup session fixes</td><td>M16</td><td>10m</td></tr>
+              <tr><td>A105</td><td>Document metadataPayload pattern in recipes.md</td><td>M16</td><td>10m</td></tr>
+              <tr><td>A106</td><td>Track On/OnTyped migration checklist in TODO_LIST</td><td>M16</td><td>6m</td></tr>
+
+              <tr><td>A107</td><td>Add persistence_test for bboltengine</td><td>M17</td><td>12m</td></tr>
+              <tr><td>A108</td><td>Add restart_safety_test for bboltengine</td><td>M17</td><td>12m</td></tr>
+              <tr><td>A109</td><td>Add disk_backed_test for bboltengine</td><td>M17</td><td>12m</td></tr>
+              <tr><td>A110</td><td>Add calibration_bench_test for bboltengine (match pebbleengine)</td><td>M17</td><td>12m</td></tr>
+
+              <tr><td>A111</td><td>Wire pgtestcontainer per-test-database pattern into system PG test</td><td>M18</td><td>12m</td></tr>
+              <tr><td>A112</td><td>Test parallel isolation (no table collisions)</td><td>M18</td><td>12m</td></tr>
+
+              <tr><td>A113</td><td>Audit init() driver registrations across integration test files</td><td>M19</td><td>10m</td></tr>
+              <tr><td>A114</td><td>Consolidate into shared TestMain (handle CGo DuckDB tag)</td><td>M19</td><td>12m</td></tr>
+              <tr><td>A115</td><td>Verify no duplicate registration panics</td><td>M19</td><td>8m</td></tr>
+
+              <tr><td>A116</td><td>[DECISION] approve rename tombstone vocab + DeletePolicy unification + aliases</td><td>M20</td><td>block</td></tr>
+              <tr><td>A117</td><td>Add backward-compat aliases (TombstonePolicy = DeletePolicy)</td><td>M20</td><td>10m</td></tr>
+              <tr><td>A118</td><td>Rename OnTombstone/OnRebirth/isMaterializedTombstoned/tombstoner</td><td>M20</td><td>12m</td></tr>
+              <tr><td>A119</td><td>Rename kv.TombstoneQuerier/AutoMapperWithTombstone/TombstoneColumn/IsTombstoned</td><td>M20</td><td>12m</td></tr>
+              <tr><td>A120</td><td>Unify DeletePolicy constants (listing vs stack naming)</td><td>M20</td><td>12m</td></tr>
+              <tr><td>A121</td><td>Regenerate goldens + verify</td><td>M20</td><td>12m</td></tr>
+              <tr><td>A122</td><td>[DECISION] decide metadata/ module fate (keep/move/delete)</td><td>M20</td><td>block</td></tr>
+
+              <tr><td>A123</td><td>Design per-module feature profile detection</td><td>M21</td><td>12m</td></tr>
+              <tr><td>A124</td><td>Implement module-boundary detection in analyzer</td><td>M21</td><td>12m</td></tr>
+              <tr><td>A125</td><td>Apply each module's profile only to its packages</td><td>M21</td><td>12m</td></tr>
+              <tr><td>A126</td><td>Tests against cqrs-htmx multi-module fixture</td><td>M21</td><td>12m</td></tr>
+              <tr><td>A127</td><td>Docs</td><td>M21</td><td>6m</td></tr>
+
+              <tr><td>A128</td><td>Write Go Redis Streams roundtrip test using ephemeral-redis.sh</td><td>M22</td><td>12m</td></tr>
+              <tr><td>A129</td><td>Write Go NATS JetStream roundtrip test using ephemeral-nats.sh</td><td>M22</td><td>12m</td></tr>
+              <tr><td>A130</td><td>Write Go Dgraph system-level integration test</td><td>M22</td><td>12m</td></tr>
+
+              <tr><td>A131</td><td>Test scripts/ephemeral-pg.sh on Darwin; fix platform issues</td><td>M23</td><td>12m</td></tr>
+
+              <tr><td>A132</td><td>Create system/integration/ sub-module; move DuckDB test</td><td>M24</td><td>12m</td></tr>
+              <tr><td>A133</td><td>Slim system/go.mod (remove ~20 Arrow/FlatBuffers deps)</td><td>M24</td><td>12m</td></tr>
+              <tr><td>A134</td><td>Verify GOWORK=off build + test</td><td>M24</td><td>10m</td></tr>
+
+              <tr><td>A135</td><td>Delete stack.Materialize (after auto-projection)</td><td>M25</td><td>10m</td></tr>
+              <tr><td>A136</td><td>Delete storage.RelationalProjection + storage/view</td><td>M25</td><td>12m</td></tr>
+              <tr><td>A137</td><td>Delete graph.GraphProjection</td><td>M25</td><td>8m</td></tr>
+              <tr><td>A138</td><td>Delete stack.Bundle + 8 stack presets</td><td>M25</td><td>12m</td></tr>
+              <tr><td>A139</td><td>Delete stack.RunProjections</td><td>M25</td><td>6m</td></tr>
+              <tr><td>A140</td><td>Update all consumers/examples; regenerate goldens</td><td>M25</td><td>12m</td></tr>
+
+              <tr><td>A141</td><td>Write v5 migration guide (v4 tiers &rarr; v5 system.System)</td><td>M26</td><td>12m</td></tr>
+              <tr><td>A142</td><td>Update CHANGELOG, README, SKILL.md, examples for v5</td><td>M26</td><td>12m</td></tr>
+              <tr><td>A143</td><td>Tag all modules v5.0.0; run full verify gate</td><td>M26</td><td>12m</td></tr>
+
+              <tr><td>A144</td><td>Add #check-lint-config nix app (validate .golangci.yml + excluded paths exist)</td><td>M27</td><td>12m</td></tr>
+              <tr><td>A145</td><td>Add #verify-ci nix app (mirror GH Actions GOWORK=off per-module)</td><td>M27</td><td>12m</td></tr>
+              <tr><td>A146</td><td>Add #sweep to pre-commit/cron hook</td><td>M27</td><td>10m</td></tr>
+              <tr><td>A147</td><td>Consolidate engine register.go patterns (helper to reduce boilerplate)</td><td>M27</td><td>12m</td></tr>
+              <tr><td>A148</td><td>Audit + trim indirect deps in metaengine/go.mod (modernc sqlite chain)</td><td>M27</td><td>12m</td></tr>
+              <tr><td>A149</td><td>Extract metadataPayload to storage/serialization/ (if 3rd KV engine needed)</td><td>M27</td><td>12m</td></tr>
+              <tr><td>A150</td><td>Add property-based tests for metadataPayload CBOR roundtrip</td><td>M27</td><td>12m</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section id="gates">
+          <h2><span class="num">04</span>Decision Gates &amp; Sequencing</h2>
+          <div class="card card-problem">
+            <h3>Blocking decisions (require user input before work starts)</h3>
+            <p>
+              <strong>A116</strong> &mdash; approve the breaking tombstone-vocabulary rename +
+              DeletePolicy unification + backward-compat aliases (M20). <strong>A122</strong> &mdash;
+              decide metadata/ module fate. These gate M20 entirely.
+            </p>
+          </div>
+          <div class="card card-warning">
+            <h3>Dependency chain (the critical path to the killer feature)</h3>
+            <p>
+              M6 (record tag) &rarr; M1 (On&rarr;OnRecord migration) &rarr; M2 (OnRecord default) &rarr;
+              M5 (fold inference) &rarr; M9/M10 (multi-collection + override) &rarr; M4 (batch atomicity) &rarr;
+              M25 (v5 deletions) &rarr; M26 (v5 cut).
+            </p>
+          </div>
+          <div class="callout callout-teal">
+            <strong>The 80/20 read</strong>
+            M6 + M1 + M16 + M14 + M15 deliver the bulk of hygiene + unblocking value
+            in roughly one focused day, and clear the runway for the strategic
+            work (M2 &rarr; M5). Everything in Tier 3 can wait until the
+            auto-projection milestone.
+          </div>
+        </section>
+
+        <footer class="footer">
+          <p>Generated 2026-08-11 &middot; Source: TODO_LIST.md + docs/status/2026-08-11_04-04_verify-green-and-lint-cleanup.md &middot; Living list maintained in TODO_LIST.md (harvest pending)</p>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) { return l.getAttribute("href").slice(1); });
+        var sections = ids.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              links.forEach(function (link) {
+                link.classList.toggle("active", link.getAttribute("href") === "#" + entry.target.id);
+              });
+            }
+          });
+        }, { rootMargin: "-80px 0px -60% 0px", threshold: 0 });
+        sections.forEach(function (s) { observer.observe(s); });
+      })();
+    </script>
+  </body>
+</html>

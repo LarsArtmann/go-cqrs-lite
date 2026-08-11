@@ -3,6 +3,7 @@ package metaengine
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"maps"
 	"reflect"
 	"slices"
@@ -13,19 +14,26 @@ import (
 )
 
 type Store struct {
-	mu          sync.RWMutex
-	engines     []Engine
-	queries     map[string]queryMeta
-	byInputType map[string]string
-	plan        *PlanResult
-	poison      *poisonTracker
-	idempotency *idempotencyTracker
-	meter       *workloadMeter
-	subs        *subscriberHub
-	hooks       *Hooks // observability hooks (nil = no-op)
-	eventLog    *EventLog
-	queryDecls  []any          // original query declarations (for Verify)
-	coalescer   *ReadCoalescer // optional read coalescer (nil = disabled)
+	mu                sync.RWMutex
+	engines           []Engine
+	queries           map[string]queryMeta
+	byInputType       map[string]string
+	plan              *PlanResult
+	poison            *poisonTracker
+	idempotency       *idempotencyTracker
+	meter             *workloadMeter
+	subs              *subscriberHub
+	hooks             *Hooks // observability hooks (nil = no-op)
+	eventLog          *EventLog
+	queryDecls        []any          // original query declarations (for Verify)
+	coalescer         *ReadCoalescer // optional read coalescer (nil = disabled)
+	routingHysteresis float64        // min fractional improvement before suggesting re-route
+	routingMinDelta   float64        // min absolute improvement (ms) before suggesting re-route
+	lastReplanAt      time.Time
+	replanCount       int
+	routingMu         sync.Mutex // protects routingSig + routingDiags
+	routingSig        string
+	routingDiags      []Diagnostic
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }
@@ -87,6 +95,11 @@ func (s *Store) Replan(ctx context.Context) error {
 
 	plan.ComputedAt = time.Now()
 	s.plan = plan
+	s.lastReplanAt = plan.ComputedAt
+	s.replanCount++
+
+	slog.Info("metaengine: replan completed",
+		"version", plan.Version, "queries", len(plan.Queries))
 
 	return nil
 }

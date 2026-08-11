@@ -2,7 +2,10 @@ package metaengine
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"math/rand/v2"
+	"sync/atomic"
 	"time"
 )
 
@@ -73,15 +76,16 @@ func NopSink() StatSink { return nopSink{} }
 type ProbeOption func(*probeConfig)
 
 type probeConfig struct {
-	interval time.Duration
-	timeout  time.Duration
-	jitter   float64
-	ctx      context.Context
-	sink     StatSink
-	name     string
-	window   int
-	alpha    float64
-	stale    time.Duration
+	interval      time.Duration
+	timeout       time.Duration
+	jitter        float64
+	ctx           context.Context
+	sink          StatSink
+	name          string
+	window        int
+	alpha         float64
+	stale         time.Duration
+	errorHandler  func(error)
 }
 
 // WithProbeInterval sets the time between probes (default 1s).
@@ -163,21 +167,59 @@ func WithProbeStale(d time.Duration) ProbeOption {
 	}
 }
 
+// WithProbeErrorHandler sets a callback invoked for every failed probe (network
+// error, timeout, engine unreachable). When unset, failures are logged at Debug
+// level via slog. Use this to wire custom observability (e.g., incrementing a
+// Prometheus counter, sending to an alerting channel). The handler is called
+// from the probe goroutine — it must not block.
+func WithProbeErrorHandler(fn func(error)) ProbeOption {
+	return func(c *probeConfig) {
+		if fn != nil {
+			c.errorHandler = fn
+		}
+	}
+}
+
+// ProbeHandle controls a background probe loop and exposes failure telemetry.
+// Call Stop to halt probing and wait for the goroutine to exit. Use Failures to
+// inspect how many probes failed (network errors, timeouts).
+type ProbeHandle struct {
+	stop     func()
+	failures atomic.Int64
+}
+
+// Stop halts the probe loop and waits for the goroutine to exit. Safe to call
+// multiple times.
+func (h *ProbeHandle) Stop() {
+	if h != nil && h.stop != nil {
+		h.stop()
+	}
+}
+
+// Failures returns the number of probes that returned an error since the loop
+// started. Probes that succeed or are never attempted (local engine no-op) do
+// not increment this counter.
+func (h *ProbeHandle) Failures() int64 {
+	if h == nil {
+		return 0
+	}
+	return h.failures.Load()
+}
+
 // ProbeEngine starts a background loop that measures the live RTT (and, when the
 // engine implements TransactMeasurer, per-read latency) of an engine and feeds
 // it into Profile() through the engine's embedded Calibration. It returns a
-// stop function that halts the loop and waits for it to exit.
+// ProbeHandle whose Stop method halts the loop and waits for it to exit.
 //
 // For engines that implement neither Prober nor TransactMeasurer (all local
-// engines), ProbeEngine is a no-op and returns a stop function that does
+// engines), ProbeEngine is a no-op and returns a ProbeHandle whose Stop does
 // nothing — calling it unconditionally is always safe.
 //
-//	store, _ := metaengine.Plan([]metaengine.Engine{pg}, query)
-//	stop := metaengine.ProbeEngine(pg,
-//	    metaengine.WithProbeInterval(time.Second),
-//	)
-//	defer stop()
-func ProbeEngine(eng Engine, opts ...ProbeOption) (stop func()) {
+// 	ph := metaengine.ProbeEngine(pg,
+// 	    metaengine.WithProbeInterval(time.Second),
+// 	)
+// 	defer ph.Stop()
+func ProbeEngine(eng Engine, opts ...ProbeOption) *ProbeHandle {
 	c := probeConfig{
 		interval: time.Second,
 		timeout:  5 * time.Second,
@@ -194,8 +236,11 @@ func ProbeEngine(eng Engine, opts ...ProbeOption) (stop func()) {
 
 	prober, hasProbe := eng.(Prober)
 	measurer, hasMeasure := eng.(TransactMeasurer)
+	if hasProbe && !eng.Profile().IsRemote() {
+		hasProbe, prober = false, nil
+	}
 	if !hasProbe && !hasMeasure {
-		return func() {}
+		return &ProbeHandle{}
 	}
 
 	var rtt, read *LatencyTracker
@@ -227,15 +272,19 @@ func ProbeEngine(eng Engine, opts ...ProbeOption) (stop func()) {
 	ctx, cancel := context.WithCancel(c.ctx)
 	done := make(chan struct{})
 
+	handle := &ProbeHandle{}
+
 	go func() {
 		defer close(done)
-		runProbeLoop(ctx, c, prober, hasProbe, measurer, hasMeasure, rtt, read)
+		runProbeLoop(ctx, c, prober, hasProbe, measurer, hasMeasure, rtt, read, &handle.failures)
 	}()
 
-	return func() {
+	handle.stop = func() {
 		cancel()
 		<-done
 	}
+
+	return handle
 }
 
 func runProbeLoop(
@@ -244,7 +293,18 @@ func runProbeLoop(
 	prober Prober, hasProbe bool,
 	measurer TransactMeasurer, hasMeasure bool,
 	rtt, read *LatencyTracker,
+	failures *atomic.Int64,
 ) {
+	handleError := func(stage string, err error) {
+		failures.Add(1)
+		if c.errorHandler != nil {
+			c.errorHandler(fmt.Errorf("probe %s: %w", stage, err))
+			return
+		}
+		slog.Debug("metaengine: probe failed",
+			"stage", stage, "engine", c.name, "err", err)
+	}
+
 	probeOnce := func() {
 		pctx, cancel := context.WithTimeout(ctx, c.timeout)
 		defer cancel()
@@ -252,11 +312,15 @@ func runProbeLoop(
 		if hasProbe {
 			if d, err := prober.Probe(pctx); err == nil {
 				rtt.Record(d)
+			} else {
+				handleError("rtt", err)
 			}
 		}
 		if hasMeasure {
 			if d, err := measurer.MeasureTransact(pctx); err == nil {
 				read.Record(d)
+			} else {
+				handleError("transact", err)
 			}
 		}
 	}

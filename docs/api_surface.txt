@@ -1463,6 +1463,7 @@ metaengine/const ComplexityOLogN
 metaengine/const ComplexityON
 metaengine/const ComplexityONLogN
 metaengine/const DefaultRoutingHysteresis
+metaengine/const DefaultRoutingMinDelta
 metaengine/const DefaultWriteAmplificationBudget
 metaengine/const DiagLevelDegraded
 metaengine/const DiagLevelInfo
@@ -1530,6 +1531,7 @@ metaengine/dgraphengine/method MapDelete
 metaengine/dgraphengine/method MapGet
 metaengine/dgraphengine/method MapScan
 metaengine/dgraphengine/method MapSet
+metaengine/dgraphengine/method MeasureTransact
 metaengine/dgraphengine/method MultiAdd
 metaengine/dgraphengine/method MultiGet
 metaengine/dgraphengine/method Probe
@@ -1682,6 +1684,7 @@ metaengine/func WithNetworkRTT
 metaengine/func WithOr
 metaengine/func WithProbeAlpha
 metaengine/func WithProbeContext
+metaengine/func WithProbeErrorHandler
 metaengine/func WithProbeInterval
 metaengine/func WithProbeJitter
 metaengine/func WithProbeSink
@@ -1691,6 +1694,8 @@ metaengine/func WithProbeWindow
 metaengine/func WithRange
 metaengine/func WithReadCoalescer
 metaengine/func WithReplication
+metaengine/func WithRoutingHysteresis
+metaengine/func WithRoutingMinDelta
 metaengine/func WithSSEHeartbeat
 metaengine/func WithSSEMaxBuffer
 metaengine/func WithSSEReplayLimit
@@ -1935,6 +1940,7 @@ metaengine/method Explain
 metaengine/method ExplainAggregate
 metaengine/method ExplainPlan
 metaengine/method Export
+metaengine/method Failures
 metaengine/method Fresh
 metaengine/method Get
 metaengine/method Get
@@ -2078,6 +2084,7 @@ metaengine/method SpatialRange
 metaengine/method StartAutoReplan
 metaengine/method Stats
 metaengine/method Stats
+metaengine/method Stop
 metaengine/method StreamAppend
 metaengine/method StreamAppendExpected
 metaengine/method StreamRead
@@ -2129,6 +2136,7 @@ metaengine/mysqlengine/method MapDelete
 metaengine/mysqlengine/method MapGet
 metaengine/mysqlengine/method MapScan
 metaengine/mysqlengine/method MapSet
+metaengine/mysqlengine/method MeasureTransact
 metaengine/mysqlengine/method Probe
 metaengine/mysqlengine/method Profile
 metaengine/mysqlengine/method PushdownMapScan
@@ -2229,6 +2237,7 @@ metaengine/sqliteengine/func NewFromDSN
 metaengine/sqliteengine/func NewPlannedSQLiteEngine
 metaengine/sqliteengine/func NewSQLiteEngine
 metaengine/sqliteengine/func PlanFromDSN
+metaengine/sqliteengine/interface ProberSetter
 metaengine/sqliteengine/method Aggregate
 metaengine/sqliteengine/method ApplyLayout
 metaengine/sqliteengine/method ApplyLayoutPlan
@@ -2254,6 +2263,7 @@ metaengine/sqliteengine/method MultiAdd
 metaengine/sqliteengine/method MultiAggregate
 metaengine/sqliteengine/method MultiGet
 metaengine/sqliteengine/method MultiGroupedAggregate
+metaengine/sqliteengine/method Probe
 metaengine/sqliteengine/method Profile
 metaengine/sqliteengine/method PushdownMapScan
 metaengine/sqliteengine/method RunInTx
@@ -2261,6 +2271,7 @@ metaengine/sqliteengine/method ScanRawValues
 metaengine/sqliteengine/method SetAdd
 metaengine/sqliteengine/method SetCalibration
 metaengine/sqliteengine/method SetContains
+metaengine/sqliteengine/method SetProber
 metaengine/sqliteengine/method SnapshotDelete
 metaengine/sqliteengine/method SnapshotLoad
 metaengine/sqliteengine/method SnapshotLoadAtVersion
@@ -2272,6 +2283,7 @@ metaengine/sqliteengine/method StreamReadAsOfVersion
 metaengine/sqliteengine/method StreamReadFromVersion
 metaengine/sqliteengine/method StreamScan
 metaengine/sqliteengine/method StreamVersion
+metaengine/sqliteengine/var ErrNoProber
 metaengine/struct AggregateSpec
 metaengine/struct Append
 metaengine/struct ApplyError
@@ -2318,6 +2330,7 @@ metaengine/struct PlannedColumn
 metaengine/struct PlannedIndex
 metaengine/struct Point
 metaengine/struct PrefetchCache
+metaengine/struct ProbeHandle
 metaengine/struct QueryAssignment
 metaengine/struct QueryBuilder
 metaengine/struct QueryChange

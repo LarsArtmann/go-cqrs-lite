@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -29,6 +30,7 @@ type sqliteEngine struct {
 	txMu     sync.Mutex
 	activeTx atomic.Pointer[txExecutor]
 	cal      metaengine.Calibration
+	probeFn  func(context.Context) (time.Duration, error)
 }
 
 // sqliteQuerySet holds pre-built SQL strings for each operation.

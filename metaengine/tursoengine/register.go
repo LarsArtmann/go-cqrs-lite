@@ -16,10 +16,9 @@
 //
 // When the DSN is a remote URL, the engine declares a same-datacenter RTT prior
 // (Turso_NetworkRTT) via calibration so the planner routes correctly. Live
-// probing (ProbeEngine) requires the engine itself to implement Prober; because
-// turso delegates to sqliteEngine (unexported), the standard ProbeEngine path is
-// a no-op — the prior stands and is labelled "stale" by GetEngineStats until a
-// future sqliteengine API allows injecting a probe function.
+// probing is wired through sqliteengine.SetProber: the probe function times a
+// db.PingContext round-trip to the remote libSQL server, and ProbeEngine's
+// IsRemote guard ensures it only runs for remote configurations.
 //
 // Sync configuration is handled at the connection level via the DSN. The
 // metaengine Engine interface does not expose sync operations — they are
@@ -83,6 +82,19 @@ func New(dsn string) (metaengine.Engine, error) {
 		if cal, ok := eng.(metaengine.Calibratable); ok {
 			cal.SetCalibration(metaengine.CalibrationCosts{
 				NetworkRTT: Turso_NetworkRTT,
+			})
+		}
+
+		// Inject a live probe function so ProbeEngine can measure real RTT.
+		// The probe times a PingContext round-trip to the remote libSQL server.
+		if prober, ok := eng.(sqliteengine.ProberSetter); ok {
+			prober.SetProber(func(ctx context.Context) (time.Duration, error) {
+				start := time.Now()
+				if err := db.PingContext(ctx); err != nil {
+					return 0, err
+				}
+
+				return time.Since(start), nil
 			})
 		}
 	}

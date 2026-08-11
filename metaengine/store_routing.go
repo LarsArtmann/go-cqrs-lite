@@ -3,6 +3,8 @@ package metaengine
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"strings"
 	"time"
 )
 
@@ -11,7 +13,29 @@ import (
 // means an alternative engine must be at least 20% cheaper than the current
 // assignment before a REPLAN-SUGGESTED diagnostic is emitted. This deadband
 // prevents oscillation when live RTT measurements jitter around the tie point.
+// Override per-Store with WithRoutingHysteresis.
 const DefaultRoutingHysteresis = 0.20
+
+// DefaultRoutingMinDelta is the minimum absolute cost improvement (in
+// milliseconds) required before CheckRouting suggests re-routing. This floor
+// prevents re-routing on tiny absolute differences for very cheap queries
+// (e.g. two local engines at 0.01ms), where a 20% fractional improvement is
+// negligible. Override per-Store with WithRoutingMinDelta.
+const DefaultRoutingMinDelta = 0.5
+
+func defaultRoutingHysteresis(v float64) float64 {
+	if v > 0 {
+		return v
+	}
+	return DefaultRoutingHysteresis
+}
+
+func defaultRoutingMinDelta(v float64) float64 {
+	if v > 0 {
+		return v
+	}
+	return DefaultRoutingMinDelta
+}
 
 // CheckRouting evaluates whether the current plan's engine assignments are
 // still optimal given live latency measurements. For each query where a
@@ -37,6 +61,18 @@ func (s *Store) CheckRouting(ctx context.Context) []Diagnostic {
 		return nil
 	}
 
+	// Differential: if no engine's RTT changed since the last check, the result
+		// is identical — return the cached diagnostics without re-scoring.
+	sig := s.routingSignature()
+
+	s.routingMu.Lock()
+	if sig == s.routingSig {
+		cached := s.routingDiags
+		s.routingMu.Unlock()
+		return cached
+	}
+	s.routingMu.Unlock()
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -52,13 +88,42 @@ func (s *Store) CheckRouting(ctx context.Context) []Diagnostic {
 			continue
 		}
 
-		diag := checkQueryRouting(q, qa, s.engines)
+		diag := checkQueryRouting(q, qa, s.engines, s.routingHysteresis, s.routingMinDelta)
 		if diag != nil {
 			diags = append(diags, *diag)
 		}
 	}
 
+	// Cache the result with the current signature.
+	s.routingMu.Lock()
+	s.routingSig = sig
+	s.routingDiags = diags
+	s.routingMu.Unlock()
+
+	if len(diags) > 0 {
+		slog.Info("metaengine: routing drift detected",
+			"drift_count", len(diags), "queries", len(s.plan.Queries))
+	}
+
 	return diags
+}
+
+// routingSignature computes a string fingerprint of all engines' current
+// NetworkRTT values. If this signature hasn't changed since the last
+// CheckRouting call, the routing result is identical and can be served from
+// cache. Only NetworkRTT varies at runtime (via live trackers); all other
+// profile fields are static after construction.
+func (s *Store) routingSignature() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var sb strings.Builder
+	for _, eng := range s.engines {
+		p := eng.Profile()
+		fmt.Fprintf(&sb, "%s=%d|", p.Name, p.NetworkRTT.Nanoseconds())
+	}
+
+	return sb.String()
 }
 
 // checkQueryRouting re-scores all eligible engines for a single query and
@@ -72,6 +137,8 @@ func checkQueryRouting(
 	q queryMeta,
 	qa QueryAssignment,
 	engines []Engine,
+	hysteresis float64,
+	minDelta float64,
 ) *Diagnostic {
 	adt := q.QueryADT()
 	cfg := q.QueryConfig()
@@ -113,7 +180,13 @@ func checkQueryRouting(
 	}
 
 	fraction := improvement / currentCost
-	if fraction <= DefaultRoutingHysteresis {
+	if fraction <= hysteresis {
+		return nil
+	}
+
+	// Absolute floor: skip when the improvement is tiny in absolute terms,
+	// even if the fraction is large (e.g. 50% of 0.01ms = 0.005ms).
+	if improvement < minDelta {
 		return nil
 	}
 
@@ -152,17 +225,28 @@ func (s *Store) autoReplanLoop(ctx context.Context, interval time.Duration) {
 // StartAutoReplan launches a background goroutine that periodically checks
 // whether live latency shifts make a different engine cheaper and, when so,
 // re-plans automatically. The interval controls how often the check runs
-// (default 30s if zero). Cancelling the context stops the loop. The returned
-// function can be called to stop the loop early (it cancels the context).
+// (default 30s if zero). Cancelling ctx stops the loop. The returned function
+// can be called to stop the loop early (it cancels a child context derived from
+// ctx).
+//
+// Pass a parent context so the goroutine's lifetime is tied to the caller's
+// context tree — when the parent is cancelled, the loop stops:
+//
+//	autoStop := store.StartAutoReplan(ctx, 30*time.Second)
+//	defer autoStop()
 //
 // This is the convenience path for long-lived Stores with ProbeEngine running.
 // For finer control, use CheckRouting + Replan manually.
-func (s *Store) StartAutoReplan(interval time.Duration) (stop func()) {
+func (s *Store) StartAutoReplan(ctx context.Context, interval time.Duration) (stop func()) {
 	if interval <= 0 {
 		interval = 30 * time.Second
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
 
 	go s.autoReplanLoop(ctx, interval)
 

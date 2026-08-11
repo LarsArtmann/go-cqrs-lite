@@ -300,6 +300,25 @@ ES-native planner depends on the `Record` type ([ADR-0111](docs/adr/0111-record-
 
 Additional ADRs: [0061](docs/adr/0061-metaengine-sqlite-engine.md), [0062](docs/adr/0062-metaengine-dependency-boundary.md) (amended), [0063](docs/adr/0063-metaengine-pushdown.md), [0073](docs/adr/0073-metaengine-layout-planning.md), [0092](docs/adr/0092-duckdb-columnar-native-storage.md), [0093](docs/adr/0093-metaengine-replication-model.md), [0094](docs/adr/0094-metaengine-universal-adt-support.md), [0096](docs/adr/0096-iroh-distributed-engine-bridge-evaluation.md), [0098](docs/adr/0098-metaengine-persistence-enum.md).
 
+### Live Cost Measurement (dynamic NetworkRTT / per-op latency)
+
+Remote engines (PG, MySQL, Dgraph, Turso) declare compile-time RTT priors. The live measurement system replaces those priors with runtime observations so the cost-based planner routes on honest data.
+
+| Component | Role |
+| --- | --- |
+| `Prober` / `TransactMeasurer` | Optional engine capability interfaces (Probe = RTT, MeasureTransact = per-read latency). PG: `SELECT 1` + `meta_map` point lookup. MySQL: same. Dgraph: healthcheck query + predicate index seek. Turso: `db.PingContext` via `sqliteengine.SetProber`. |
+| `ProbeEngine(eng, opts...) *ProbeHandle` | Starts background probe loop, installs live trackers via `Calibration`. Returns `ProbeHandle` with `Stop()` + `Failures()`. No-op for local engines (IsRemote guard). |
+| `LatencyTracker` | Ring buffer + incremental EWMA + P50/P95/P99. Configurable window, alpha, stale-after. `Fresh()` is RTT-specific (read-only tracker doesn't set it). |
+| `Calibration.ApplyCalibration` | Layers live tracker EWMA into `Profile()` when fresh. Precedence: compile-time defaults → calibration priors → live measurement (highest). |
+| `Store.Replan(ctx)` | In-place re-plan picking up live latency shifts. Three-phase locking (assign → rules → swap). Increments plan version. |
+| `Store.CheckRouting(ctx)` | Execution-time re-scoring with hysteresis deadband. Differential: caches result until any engine's RTT changes. Emits `REPLAN-SUGGESTED` beyond threshold. |
+| `Store.StartAutoReplan(ctx, interval)` | Background loop calling CheckRouting + Replan when drift detected. Parent context controls lifecycle. |
+| `WithRoutingHysteresis` / `WithRoutingMinDelta` | Plan options to tune the re-routing deadband (fractional + absolute floor). |
+| `GetEngineStats` / `Doctor` / `EXPLAIN` | Surface live RTT, stale labels, and routing drift in diagnostics. Doctor includes `--- Routing ---` section with plan version, replan count, and drift summary. |
+| `NsForRead` RTT amortization | Scan-pattern fallback costs subtract RTT to avoid overestimating batch reads (a 10K-row scan pays RTT once, not 10K times). |
+
+Design doc: [`METAENGINE-LIVE-LATENCY-MODEL.md`](docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md). Recipe: `recipes.md` §2.11.
+
 ### User's vision statement (the north star)
 
 This is the guiding intent for every metaengine decision. When design choices conflict, defer to this.

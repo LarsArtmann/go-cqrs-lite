@@ -22,6 +22,8 @@ type planConfig struct {
 	stats                    map[string]WorkloadStats
 	replicationOverride      *Replication   // overrides all engines' declared replication for cost estimation
 	networkRTTOverride       *time.Duration // overrides all engines' declared NetworkRTT for cost estimation
+	routingHysteresis        float64        // min fractional improvement for re-routing suggestions
+	routingMinDeltaMs        float64        // min absolute improvement (ms) for re-routing suggestions
 }
 
 type planOption func(*planConfig)
@@ -71,6 +73,32 @@ func WithNetworkRTT(rtt time.Duration) planOption {
 	return func(c *planConfig) { c.networkRTTOverride = &rtt }
 }
 
+// WithRoutingHysteresis sets the minimum fractional cost improvement required
+// before CheckRouting suggests re-routing a query to a different engine. For
+// example, 0.15 means an alternative engine must be at least 15% cheaper.
+// Defaults to DefaultRoutingHysteresis (0.20 = 20%). Lower values make the
+// planner more sensitive to latency shifts but risk oscillation from jitter.
+func WithRoutingHysteresis(fraction float64) planOption {
+	return func(c *planConfig) {
+		if fraction > 0 {
+			c.routingHysteresis = fraction
+		}
+	}
+}
+
+// WithRoutingMinDelta sets the minimum absolute cost improvement (in
+// milliseconds) required before CheckRouting suggests re-routing. This floor
+// prevents re-routing on tiny absolute differences for very cheap queries
+// (e.g. 0.01ms), where a 20% fractional improvement is negligible. Defaults
+// to DefaultRoutingMinDelta (0.5ms).
+func WithRoutingMinDelta(delta time.Duration) planOption {
+	return func(c *planConfig) {
+		if delta > 0 {
+			c.routingMinDeltaMs = float64(delta.Microseconds()) / 1e3
+		}
+	}
+}
+
 // Plan creates a storage plan from available engines and declared queries.
 // Each query gets its own independent projection — the same event updates
 // each matching query's projection separately.
@@ -98,14 +126,16 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 
 	plan := &PlanResult{}
 	store := &Store{
-		engines:     engines,
-		queries:     make(map[string]queryMeta),
-		byInputType: make(map[string]string),
-		queryDecls:  queries,
-		poison:      newPoisonTracker(),
-		idempotency: newIdempotencyTracker(),
-		meter:       newWorkloadMeter(),
-		subs:        newSubscriberHub(),
+		engines:           engines,
+		queries:           make(map[string]queryMeta),
+		byInputType:       make(map[string]string),
+		queryDecls:        queries,
+		poison:            newPoisonTracker(),
+		idempotency:       newIdempotencyTracker(),
+		meter:             newWorkloadMeter(),
+		subs:              newSubscriberHub(),
+		routingHysteresis: defaultRoutingHysteresis(cfg.routingHysteresis),
+		routingMinDelta:   defaultRoutingMinDelta(cfg.routingMinDeltaMs),
 	}
 
 	for _, q := range queries {

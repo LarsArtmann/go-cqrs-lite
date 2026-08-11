@@ -115,7 +115,7 @@ func TestProbeEngine_FeedsProfileViaBackgroundLoop(t *testing.T) {
 		metaengine.WithProbeTimeout(time.Second),
 		metaengine.WithProbeJitter(0),
 	)
-	defer stop()
+	defer stop.Stop()
 
 	// Wait for the probe loop to record enough samples to dominate the prior.
 	deadline := time.Now().Add(2 * time.Second)
@@ -137,7 +137,7 @@ func TestProbeEngine_FeedsProfileViaBackgroundLoop(t *testing.T) {
 func TestProbeEngine_NoopForLocalEngine(t *testing.T) {
 	local := metaengine.NewMemoryEngine()
 	stop := metaengine.ProbeEngine(local)
-	stop() // must not block or panic
+	stop.Stop() // must not block or panic
 
 	if got := local.Profile().NetworkRTT; got != 0 {
 		t.Errorf("local engine RTT = %s, want 0", got)

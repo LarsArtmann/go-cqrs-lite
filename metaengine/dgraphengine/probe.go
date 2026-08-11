@@ -24,3 +24,21 @@ func (e *dgraphEngine) Probe(ctx context.Context) (time.Duration, error) {
 
 	return time.Since(start), nil
 }
+
+// MeasureTransact times a real point-lookup query against the map collection,
+// exercising the full Dgraph read path (predicate index seek + filter +
+// response decode). It implements [metaengine.TransactMeasurer] so ProbeEngine
+// can build a live per-read latency tracker that feeds Profile().NsPerRead. The
+// query targets a sentinel key that never exists, so it always returns zero
+// results — the timing captures index traversal cost without depending on user
+// data.
+func (e *dgraphEngine) MeasureTransact(ctx context.Context) (time.Duration, error) {
+	start := time.Now()
+	_, err := e.client.NewTxn().Query(ctx,
+		`{ q(func: eq(collection, "__probe")) @filter(eq(key, "__probe")) { uid } }`)
+	if err != nil {
+		return 0, err
+	}
+
+	return time.Since(start), nil
+}

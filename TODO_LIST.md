@@ -115,6 +115,25 @@ and is **never** duplicated here.
       subtle `set -euo pipefail` + `grep` exit-code bug and a submodule
       detection gap. Both fixed 2026-08-11 but no regression test exists.
       _(Effort: S)_
+- [ ] **Lint code-fix batch (narrow exclusions by fixing the code)** —
+      surfaced by the 2026-08-11 lint-cleanup session. Each is currently
+      suppressed by a blanket exclusion; fix the code instead:
+      `flightrecorder/alias.go` (13 deprecatedComment findings),
+      `id/actor_id.go` (16 findings: constants, receiver, strings.Cut),
+      `mysqlengine` (4 sqlclosecheck — use CloseRows indirection like
+      pgengine), `cmd/api-stability/main_test.go` (nilerr, gocognit),
+      `dgraphengine/retry.go` (wire or remove unused retry utilities).
+      _(Effort: M)_
+- [ ] **Infrastructure polish (nix apps + shared helpers)** — add
+      `#check-lint-config` (validate `.golangci.yml` + excluded paths exist),
+      `#verify-ci` (mirror GH Actions GOWORK=off per-module), wire `#sweep`
+      to pre-commit/cron, consolidate engine `register.go` boilerplate (7
+      modules), audit/trim indirect deps in `metaengine/go.mod`
+      (modernc sqlite chain), add property-based tests for `metadataPayload`
+      CBOR roundtrip, extract `metadataPayload` to `storage/serialization/`
+      if a 3rd KV engine is added. See plan
+      `docs/planning/2026-08-11_04-12_pareto-comprehensive-plan.html` (M27).
+      _(Effort: M)_
 - [x] **Extract bbolt/pebble backup lifecycle test suite** — DONE 2026-08-10.
       New `storage/backuptest/v4` module with `Backend` interface, `Factory`
       struct, `RunFullLifecycle()`, `RunIncrementalCheckpoints()`. bbolt: 255→75
@@ -262,6 +281,13 @@ and is **never** duplicated here.
   replace directives are needed for dev; consumers resolving the published
   modules depend on the real tagged versions (go-finding v1.4.1, go-must
   v0.1.2).
+- [ ] 🔥 **Release `record/v4` tag** — the `Merge` method was added to
+      `record/` after `record/v4.0.0` was tagged. Downstream modules that
+      depend on it (e.g. `metadata/`) fail `GOWORK=off go test` until a new
+      tag (`record/v4.0.1` or `v4.1.0`) exists. Tag via
+      `scripts/tag-release.sh`, then pin `metadata/go.mod` (and other
+      dependents) to the new tag. Highest value-per-minute unblock.
+      _(Effort: S)_
 - [x] 🔥 **Cut CHANGELOG `[Unreleased]` → `[v4.7.0]`** — DONE 2026-08-10.
       `TestTagContentMatchesChangelog` passes (metaengine/v4.7.0 tag exists).
       [Unreleased] section moved to [v4.7.0]. Additional module tags can be
@@ -423,60 +449,52 @@ and is **never** duplicated here.
 
 - [ ] **Integration test: real PG testcontainer + ProbeEngine** — verify
       `GetEngineStats` shows live RTT against a real Postgres instance.
-      Currently only the fake engine proves the mechanism.
+      Currently only the fake engine proves the mechanism. Requires cross-module
+      test dependency (metaengine → pgengine).
       _(Effort: M)_
-- [ ] **Add `WithRoutingHysteresis(float64)` Store option** —
-      `DefaultRoutingHysteresis` is a const (0.20); consumers can't tune the
-      deadband without forking the function.
-      _(Effort: XS)_
-- [ ] **Accept parent context in `StartAutoReplan`** — currently uses
-      `context.Background()` internally; if the Store lives inside a request-
-      scoped context tree, the goroutine outlives the parent.
-      _(Effort: XS)_
-- [ ] **Wire OTel spans/metrics into `CheckRouting` and `Replan`** — operators
-      can't observe how often routing drifts or how long replans take.
-      _(Effort: S)_
-- [ ] **Differential `CheckRouting`** — skip queries whose assigned engine's
-      tracker hasn't changed since last check instead of re-scoring all queries
-      × engines every call.
-      _(Effort: S)_
-- [ ] **Fix turso live probing gap** — sqliteengine delegation prevents adding
-      `Prober`. Options: export `sqliteEngine`, add `SetProber` injection point,
-      or create a turso wrapper type. API design decision needed.
-      _(Effort: S)_
-- [ ] **Add absolute minimum delta to hysteresis** — percentage-based deadband
-      (20%) is negligible for very cheap queries (0.01ms). Consider adding an
-      absolute floor (e.g. 0.5ms).
-      _(Effort: XS)_
-- [ ] **Concurrency stress test** — multiple goroutines calling `Replan` +
-      `Execute` + `CheckRouting` simultaneously. Lock structure should handle
-      it but no test proves it under load.
-      _(Effort: S)_
-- [ ] **Edge case tests** — zero queries, zero engines, nil plan for both
-      `Replan` and `CheckRouting`.
-      _(Effort: XS)_
-- [ ] **Add `Replan` to Doctor report** — show plan version + last replan time
-      + routing drift count.
-      _(Effort: XS)_
-- [ ] **Wire `TransactMeasurer` on mysqlengine** — same `SELECT ... LIMIT 1`
-      pattern as PG.
-      _(Effort: XS)_
-- [ ] **Wire `TransactMeasurer` on dgraphengine** — time a real single-node
-      `Query`.
-      _(Effort: XS)_
-- [ ] **Add live-latency section to AGENTS.md metaengine section** — mention
-      `RequiresNetwork`, `ProbeEngine`, `LatencyTracker`, `Replan`,
-      `CheckRouting`, `StartAutoReplan`.
-      _(Effort: S)_
-- [ ] **Update `METAENGINE-LIVE-LATENCY-MODEL.md` implementation status** — P2
-      now complete; update the implementation status table.
-      _(Effort: XS)_
-- [ ] **Cost model: RTT amortization for batch reads** — `estimateCost` formula
-      `(ops × nsPerOp / 1e6) + RTT` is additive; a scan reading 10K rows over
-      the network pays RTT once, not 10K times. Formula overestimates remote
-      scan cost.
-      _(Effort: M)_
-- [ ] **Probe failure observability** — `ProbeEngine` drops failed probes
+- [x] **Add `WithRoutingHysteresis(float64)` Store option** —
+      DONE 2026-08-11. `WithRoutingHysteresis` + `WithRoutingMinDelta` plan
+      options added in `planner.go`. `DefaultRoutingMinDelta = 0.5` (ms).
+- [x] **Accept parent context in `StartAutoReplan`** —
+      DONE 2026-08-11. Signature changed to `StartAutoReplan(ctx, interval)`.
+- [x] **Wire structured logging into `CheckRouting` and `Replan`** —
+      DONE 2026-08-11. slog-based Info logging for replan completions and
+      routing drift detection. `WithProbeErrorHandler` for probe failures.
+      OTel deferred (metaengine has no otel dep).
+- [x] **Differential `CheckRouting`** —
+      DONE 2026-08-11. `routingSignature()` caches results until any engine's
+      RTT changes (`store_routing.go`).
+- [x] **Fix turso live probing gap** —
+      DONE 2026-08-11. `sqliteengine.SetProber` + `ProberSetter` interface.
+      Turso injects `db.PingContext` probe for remote DSNs. ProbeEngine's
+      `IsRemote()` guard prevents probing local SQLite.
+- [x] **Add absolute minimum delta to hysteresis** —
+      DONE 2026-08-11. `DefaultRoutingMinDelta = 0.5ms`. `WithRoutingMinDelta`.
+- [x] **Concurrency stress test** —
+      DONE 2026-08-11. `TestConcurrency_ReplanCheckRoutingStress` in
+      `live_latency_phase3_test.go`. Replan + CheckRouting + tracker shift +
+      GetEngineStats in parallel goroutines. Passes with `-race`.
+- [x] **Edge case tests** —
+      DONE 2026-08-11. `TestCheckRouting_SingleEngineNoAlternative`,
+      `TestReplan_SingleEngine`, `TestCheckRouting_CancelledContextReturnsNil`.
+- [x] **Add `Replan` to Doctor report** —
+      DONE 2026-08-11. `--- Routing ---` section in Doctor with plan version,
+      replan count, hysteresis, and drift summary (`explain.go`).
+- [x] **Wire `TransactMeasurer` on mysqlengine** —
+      DONE 2026-08-11. `meta_map` point lookup with backtick-escaped `key`.
+- [x] **Wire `TransactMeasurer` on dgraphengine** —
+      DONE 2026-08-11. Predicate index seek on sentinel `__probe` key.
+- [x] **Add live-latency section to AGENTS.md metaengine section** —
+      DONE 2026-08-11. Full component table added under `### Live Cost Measurement`.
+- [x] **Update `METAENGINE-LIVE-LATENCY-MODEL.md` implementation status** —
+      DONE 2026-08-11. Phase 3 row added to status table. Header updated.
+- [x] **Cost model: RTT amortization for batch reads** —
+      DONE 2026-08-11. `NsForRead` subtracts RTT from scan-pattern fallback
+      costs when `NsPerRead > RTT` (`engine.go`). Prevents overestimating
+      remote scan cost.
+- [x] **Probe failure observability** —
+      DONE 2026-08-11. `ProbeHandle.Failures()` counter +
+      `WithProbeErrorHandler` option + slog.Debug for probe failures (`probe.go`).
       silently (no log, no metric). Add an error counter + structured log.
       _(Effort: S)_
 
@@ -612,14 +630,24 @@ and is **never** duplicated here.
 
 ### Phase 6: Auto-Projection (the killer feature)
 
-- [ ] 🔥🔥 **Planner-time fold inference (ADR-0116 Layer 1)** — the planner
-      inspects event and query struct shapes at `Plan()` time and synthesizes
-      folds automatically. Field-name matching (`event.ID` → result `ID`,
-      `event.Status` → filter field `status`). Struct composition (nested
-      structs, slices → separate collections). Convention detection
-      (Created/Updated/Deleted suffixes → insert/update/delete folds). Consumer
-      declares zero folds for the 80% case.
-      _(Effort: XL)_
+- [x] 🔥🔥 **Planner-time fold inference (ADR-0116 Layer 1)** — DONE
+      2026-08-11. The `metaengine.Infer(samples...)` API lets consumers declare
+      zero folds: the planner inspects event/query struct shapes at `Plan()`
+      time and auto-generates insert/update/delete folds. Implements:
+      convention detection (`*Created`/`*Updated`/`*Deleted` suffixes), key
+      field auto-detection (from query input type, falling back to `"ID"`),
+      field-name matching (incl. nested struct flattening via `srcPath []int`),
+      filter auto-detection (query input fields → `FilterOnField`), collection
+      result support (`R{Items []T}` → element type T). 12 tests, 145 total
+      green. ADR-0116 status updated to "Layer 1 implemented". API golden
+      regenerated (3993 exports). **Not recommended for production domain
+      models** — hides projection logic behind conventions; prefer explicit
+      `OnRecord`/`AutoInsert` folds. Disclaimer added to Go doc, ADR, and skill
+      reference.
+      
+      Not yet implemented (separate tasks below):
+      - Slices → separate collections (struct-composition-driven multi-collection)
+      - Fold inference override API
 - [ ] **Struct-composition-driven multi-collection** — when an event has a
       `[]Attachment` field and a query requests `MessageView` (which has
       `Attachments`), auto-generate a second collection for attachments.

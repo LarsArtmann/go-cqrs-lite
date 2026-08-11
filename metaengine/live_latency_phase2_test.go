@@ -121,7 +121,7 @@ func TestStore_StartAutoReplan_StopsCleanly(t *testing.T) {
 	remote := newFakeRemote("remote", 1, 1*time.Millisecond)
 	store := planWith(t, remote)
 
-	stop := store.StartAutoReplan(10 * time.Millisecond)
+	stop := store.StartAutoReplan(context.Background(), 10*time.Millisecond)
 	stop()
 	// Calling stop twice should not panic.
 	stop()
@@ -194,7 +194,7 @@ func TestProbeOptions_TuneTracker(t *testing.T) {
 		metaengine.WithProbeAlpha(0.5),
 		metaengine.WithProbeStale(time.Minute),
 	)
-	defer stop()
+	defer stop.Stop()
 
 	// Wait for samples to accumulate.
 	deadline := time.Now().Add(2 * time.Second)
