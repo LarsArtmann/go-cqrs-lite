@@ -215,9 +215,12 @@ func TestAdapter_EventDecoder_ReceivesFullEvent(t *testing.T) {
 
 	q := metaengine.Query[findItem, benchItem](
 		"find-item-ed",
-		metaengine.OnRecord(eventWithID{}, func(_ record.Record, e eventWithID) (string, benchItem) {
-			return e.ID, e.Payload
-		}),
+		metaengine.OnRecord(
+			eventWithID{},
+			func(_ record.Record, e eventWithID) (string, benchItem) {
+				return e.ID, e.Payload
+			},
+		),
 	)
 
 	store, err := metaengine.Plan(

@@ -29,31 +29,30 @@ var _ = Describe("On constructor", func() {
 			fold := metaengine.OnRecord(sample, handler)
 			Expect(fold.Kind()).To(Equal(expectedKind))
 		},
-		Entry("insert: func(e) (K, V)",
-			func(e event) (string, result) { return e.ID, result{Name: e.Name} },
+		Entry("insert: func(rec, e) (K, V)",
+			func(_ record.Record, e event) (string, result) { return e.ID, result{Name: e.Name} },
 			metaengine.FoldInsert),
-		Entry("update: func(e, prev V) V",
-			func(e event, prev result) result {
+		Entry("update: func(rec, e, prev V) V",
+			func(_ record.Record, e event, prev result) result {
 				prev.Name = e.Name
 
 				return prev
 			},
 			metaengine.FoldUpdate),
-		Entry("set: func(e) K",
-			func(e event) string { return e.ID },
+		Entry("set: func(rec, e) K",
+			func(_ record.Record, e event) string { return e.ID },
 			metaengine.FoldSet),
-		Entry("count: func(e) Delta",
-			func(e event) metaengine.Delta { return metaengine.Delta{"count": +1} },
+		Entry("count: func(rec, e) Delta",
+			func(_ record.Record, e event) metaengine.Delta { return metaengine.Delta{"count": +1} },
 			metaengine.FoldCount),
-		Entry("edge: func(e) Edge",
-			func(e event) metaengine.Edge { return metaengine.Edge{From: e.ID, To: e.Name} },
+		Entry("edge: func(rec, e) Edge",
+			func(_ record.Record, e event) metaengine.Edge { return metaengine.Edge{From: e.ID, To: e.Name} },
 			metaengine.FoldEdge),
 		Entry("remove: Remove[V]()",
 			metaengine.Remove[result](),
 			metaengine.FoldRemove),
-		Entry("skip: func(e) Skip",
-			func(e event) metaengine.Skip { return metaengine.Skip{} },
-			metaengine.FoldSkip),
+		Entry("skip: func(rec, e) Skip",
+			func(_ record.Record, e event) metaengine.Skip { return metaengine.Skip{} },
 	)
 
 	Describe("recording the event type", func() {

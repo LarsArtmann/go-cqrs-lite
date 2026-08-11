@@ -12,8 +12,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
-	"github.com/larsartmann/go-cqrs-lite/system/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
 func TestSystem_HealthCheck_Healthy(t *testing.T) {
@@ -171,10 +171,15 @@ func (s *recordingCheckpointStore) Close() error { return nil }
 // taskProjectionQuery returns a metaengine query declaration for a task view
 // projection. Used by multiple hardening tests.
 func taskProjectionQuery(collection string) any {
-	return metaengine.Query[FindTask, TaskView](collection,
-		metaengine.OnRecordTyped("task.created", TaskCreated{}, func(_ record.Record, e TaskCreated) (string, TaskView) {
-			return e.Title, TaskView{Title: e.Title, Status: "pending"}
-		}),
+	return metaengine.Query[FindTask, TaskView](
+		collection,
+		metaengine.OnRecordTyped(
+			"task.created",
+			TaskCreated{},
+			func(_ record.Record, e TaskCreated) (string, TaskView) {
+				return e.Title, TaskView{Title: e.Title, Status: "pending"}
+			},
+		),
 	)
 }
 

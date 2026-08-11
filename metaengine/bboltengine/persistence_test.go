@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	bolt "go.etcd.io/bbolt"
 	. "github.com/onsi/gomega"
+	bolt "go.etcd.io/bbolt"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4"
 )

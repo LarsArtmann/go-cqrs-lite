@@ -31,9 +31,12 @@ type meBenchItemCreated struct {
 func meBenchMapQuery() metaengine.QueryDecl[struct{}, map[string]meBenchItem] {
 	return metaengine.Query[struct{}, map[string]meBenchItem](
 		"bench_items",
-		metaengine.OnRecord(meBenchItemCreated{}, func(_ record.Record, e meBenchItemCreated) (string, meBenchItem) {
-			return e.ID, meBenchItem(e)
-		}),
+		metaengine.OnRecord(
+			meBenchItemCreated{},
+			func(_ record.Record, e meBenchItemCreated) (string, meBenchItem) {
+				return e.ID, meBenchItem(e)
+			},
+		),
 		metaengine.FilterOnField[meBenchItem]("status", metaengine.FilterEq),
 		metaengine.SortOnField[meBenchItem]("priority", true),
 	)

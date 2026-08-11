@@ -218,12 +218,15 @@ var _ = Describe("PushdownScan", func() {
 			// applied by Plan() — no need for manual NewMemoryEngine.
 			pdQuery := metaengine.Query[ListTasksByStatus, ListTasksByStatusResult](
 				"pd_tasks",
-				metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
-					return e.ID, FindTaskResult{
-						ID: e.ID, Title: e.Title, Assignee: e.Assignee,
-						Status: e.Status, Priority: e.Priority,
-					}
-				}),
+				metaengine.OnRecord(
+					TaskCreated{},
+					func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
+						return e.ID, FindTaskResult{
+							ID: e.ID, Title: e.Title, Assignee: e.Assignee,
+							Status: e.Status, Priority: e.Priority,
+						}
+					},
+				),
 				metaengine.FilterOnField[FindTaskResult]("Status", metaengine.FilterEq),
 				metaengine.SortOnField[FindTaskResult]("Priority", true),
 			)

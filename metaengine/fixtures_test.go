@@ -59,17 +59,23 @@ type FindTaskResult struct {
 func findTaskQuery() metaengine.QueryDecl[FindTask, FindTaskResult] {
 	return metaengine.Query[FindTask, FindTaskResult](
 		"find_task",
-		metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
-			return e.ID, FindTaskResult{
-				ID: e.ID, Title: e.Title, Assignee: e.Assignee,
-				Status: e.Status, Priority: e.Priority,
-			}
-		}),
-		metaengine.OnRecord(TaskCompleted{}, func(_ record.Record, e TaskCompleted, prev FindTaskResult) FindTaskResult {
-			prev.Status = "completed"
+		metaengine.OnRecord(
+			TaskCreated{},
+			func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
+				return e.ID, FindTaskResult{
+					ID: e.ID, Title: e.Title, Assignee: e.Assignee,
+					Status: e.Status, Priority: e.Priority,
+				}
+			},
+		),
+		metaengine.OnRecord(
+			TaskCompleted{},
+			func(_ record.Record, e TaskCompleted, prev FindTaskResult) FindTaskResult {
+				prev.Status = "completed"
 
-			return prev
-		}),
+				return prev
+			},
+		),
 		metaengine.OnRecord(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
 	)
 }
@@ -105,17 +111,23 @@ type ListTasksByStatusResult struct {
 func listTasksByStatusQuery() metaengine.QueryDecl[ListTasksByStatus, ListTasksByStatusResult] {
 	return metaengine.Query[ListTasksByStatus, ListTasksByStatusResult](
 		"list_tasks_by_status",
-		metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
-			return e.ID, FindTaskResult{
-				ID: e.ID, Title: e.Title, Assignee: e.Assignee,
-				Status: e.Status, Priority: e.Priority,
-			}
-		}),
-		metaengine.OnRecord(TaskCompleted{}, func(_ record.Record, e TaskCompleted, prev FindTaskResult) FindTaskResult {
-			prev.Status = "completed"
+		metaengine.OnRecord(
+			TaskCreated{},
+			func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
+				return e.ID, FindTaskResult{
+					ID: e.ID, Title: e.Title, Assignee: e.Assignee,
+					Status: e.Status, Priority: e.Priority,
+				}
+			},
+		),
+		metaengine.OnRecord(
+			TaskCompleted{},
+			func(_ record.Record, e TaskCompleted, prev FindTaskResult) FindTaskResult {
+				prev.Status = "completed"
 
-			return prev
-		}),
+				return prev
+			},
+		),
 		metaengine.OnRecord(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
 		metaengine.FilterOn(func(r FindTaskResult) string { return r.Status }),
 		metaengine.SortOn(func(r FindTaskResult) int { return r.Priority }),
@@ -132,9 +144,12 @@ func countByStatusQuery() metaengine.QueryDecl[CountByStatus, map[string]int64] 
 		metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) metaengine.Delta {
 			return metaengine.Delta{e.Status: +1}
 		}),
-		metaengine.OnRecord(TaskCompleted{}, func(_ record.Record, e TaskCompleted) metaengine.Delta {
-			return metaengine.Delta{"open": -1, "completed": +1}
-		}),
+		metaengine.OnRecord(
+			TaskCompleted{},
+			func(_ record.Record, e TaskCompleted) metaengine.Delta {
+				return metaengine.Delta{"open": -1, "completed": +1}
+			},
+		),
 	)
 }
 

@@ -96,11 +96,14 @@ func TestTypedReader_Scan(t *testing.T) {
 	// Use FilterOnField/SortOnField so the auto-layout kicks in.
 	q := metaengine.Query[ListTasksByStatus, ListTasksByStatusResult](
 		"typed_scan_tasks",
-		metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
-			return e.ID, FindTaskResult{
-				ID: e.ID, Title: e.Title, Status: e.Status, Priority: e.Priority,
-			}
-		}),
+		metaengine.OnRecord(
+			TaskCreated{},
+			func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
+				return e.ID, FindTaskResult{
+					ID: e.ID, Title: e.Title, Status: e.Status, Priority: e.Priority,
+				}
+			},
+		),
 		metaengine.FilterOnField[FindTaskResult]("Status", metaengine.FilterEq),
 		metaengine.SortOnField[FindTaskResult]("Priority", true),
 	)

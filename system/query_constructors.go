@@ -319,9 +319,13 @@ func buildCounterQuery(
 		delta := e.delta
 		key := e.key
 
-		fold := metaengine.OnRecordTyped(e.eventType, e.sample, func(_ record.Record, _ any) metaengine.Delta {
-			return metaengine.Delta{key: delta}
-		})
+		fold := metaengine.OnRecordTyped(
+			e.eventType,
+			e.sample,
+			func(_ record.Record, _ any) metaengine.Delta {
+				return metaengine.Delta{key: delta}
+			},
+		)
 		folds = append(folds, fold)
 
 		decEntries = append(decEntries, decoderEntry{

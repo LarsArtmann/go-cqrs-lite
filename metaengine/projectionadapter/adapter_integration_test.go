@@ -148,9 +148,12 @@ func TestAdapter_ProjectionHostIntegration(t *testing.T) {
 	// Build a metaengine Store with a simple Map query that counts increments.
 	counterQuery := metaengine.Query[FindCounter, CounterState](
 		"counter",
-		metaengine.OnRecord(CounterIncremented{}, func(_ record.Record, e CounterIncremented) (CounterID, CounterState) {
-			return e.ID, CounterState{Value: e.Amount}
-		}),
+		metaengine.OnRecord(
+			CounterIncremented{},
+			func(_ record.Record, e CounterIncremented) (CounterID, CounterState) {
+				return e.ID, CounterState{Value: e.Amount}
+			},
+		),
 		metaengine.OnRecord(
 			CounterIncremented{},
 			func(_ record.Record, e CounterIncremented, prev CounterState) CounterState {
@@ -268,9 +271,12 @@ func TestAdapter_NameAndTypes(t *testing.T) {
 
 	counterQuery := metaengine.Query[FindCounter, CounterState](
 		"counter",
-		metaengine.OnRecord(CounterIncremented{}, func(_ record.Record, e CounterIncremented) (CounterID, CounterState) {
-			return e.ID, CounterState{Value: e.Amount}
-		}),
+		metaengine.OnRecord(
+			CounterIncremented{},
+			func(_ record.Record, e CounterIncremented) (CounterID, CounterState) {
+				return e.ID, CounterState{Value: e.Amount}
+			},
+		),
 	)
 
 	store, err := metaengine.Plan(

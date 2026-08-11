@@ -28,9 +28,12 @@ func TestSpatialFoldPipeline_EndToEnd(t *testing.T) {
 		[]metaengine.Engine{metaengine.NewMemoryEngine()},
 		metaengine.Query[NearbySearchInput, metaengine.SpatialResult](
 			"nearby_places",
-			metaengine.OnRecord(PlaceLocated{}, func(_ record.Record, e PlaceLocated) metaengine.Point {
-				return metaengine.Point{ID: e.ID, X: e.Lon, Y: e.Lat}
-			}),
+			metaengine.OnRecord(
+				PlaceLocated{},
+				func(_ record.Record, e PlaceLocated) metaengine.Point {
+					return metaengine.Point{ID: e.ID, X: e.Lon, Y: e.Lat}
+				},
+			),
 		),
 	)
 	if err != nil {
@@ -99,9 +102,12 @@ func TestSpatialFoldPipeline_Classification(t *testing.T) {
 		[]metaengine.Engine{metaengine.NewMemoryEngine()},
 		metaengine.Query[NearbySearchInput, metaengine.SpatialResult](
 			"spatial_classify",
-			metaengine.OnRecord(PlaceLocated{}, func(_ record.Record, e PlaceLocated) metaengine.Point {
-				return metaengine.Point{ID: e.ID, X: e.Lon, Y: e.Lat}
-			}),
+			metaengine.OnRecord(
+				PlaceLocated{},
+				func(_ record.Record, e PlaceLocated) metaengine.Point {
+					return metaengine.Point{ID: e.ID, X: e.Lon, Y: e.Lat}
+				},
+			),
 		),
 	)
 	if err != nil {

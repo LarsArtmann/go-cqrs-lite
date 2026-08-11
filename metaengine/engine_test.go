@@ -35,9 +35,12 @@ type mmResult struct{ Tasks []TaskID }
 func multimapQuery() metaengine.QueryDecl[mmInput, mmResult] {
 	return metaengine.Query[mmInput, mmResult](
 		"mm_tasks",
-		metaengine.OnRecord(TaskAssigned{}, func(_ record.Record, e TaskAssigned) metaengine.MultiEntry {
-			return metaengine.MultiEntry{Key: e.Assignee, Value: e.TaskID}
-		}),
+		metaengine.OnRecord(
+			TaskAssigned{},
+			func(_ record.Record, e TaskAssigned) metaengine.MultiEntry {
+				return metaengine.MultiEntry{Key: e.Assignee, Value: e.TaskID}
+			},
+		),
 	)
 }
 

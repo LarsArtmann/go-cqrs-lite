@@ -70,9 +70,12 @@ var _ = Describe("Cost model", func() {
 			It("populates the cost estimate with the volume", func() {
 				q := metaengine.Query[FindTask, FindTaskResult](
 					"find_task_vol",
-					metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
-						return e.ID, FindTaskResult{ID: e.ID, Title: e.Title}
-					}),
+					metaengine.OnRecord(
+						TaskCreated{},
+						func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
+							return e.ID, FindTaskResult{ID: e.ID, Title: e.Title}
+						},
+					),
 					metaengine.OnRecord(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
 					metaengine.Volume(500_000),
 				)
@@ -109,9 +112,12 @@ var _ = Describe("Cost model", func() {
 			It("emits a WARN diagnostic naming the estimated latency", func() {
 				q := metaengine.Query[ListTasksByStatus, ListTasksByStatusResult](
 					"list_budget",
-					metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
-						return e.ID, FindTaskResult{ID: e.ID, Title: e.Title, Status: e.Status}
-					}),
+					metaengine.OnRecord(
+						TaskCreated{},
+						func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
+							return e.ID, FindTaskResult{ID: e.ID, Title: e.Title, Status: e.Status}
+						},
+					),
 					metaengine.OnRecord(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
 					metaengine.FilterOn(func(r FindTaskResult) string { return r.Status }),
 					metaengine.Volume(1_000_000),
@@ -137,9 +143,12 @@ var _ = Describe("Cost model", func() {
 			It("emits a WARN diagnostic suggesting a disk-backed engine", func() {
 				q := metaengine.Query[FindTask, FindTaskResult](
 					"find_task_huge",
-					metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
-						return e.ID, FindTaskResult{ID: e.ID, Title: e.Title}
-					}),
+					metaengine.OnRecord(
+						TaskCreated{},
+						func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
+							return e.ID, FindTaskResult{ID: e.ID, Title: e.Title}
+						},
+					),
 					metaengine.OnRecord(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
 					metaengine.Volume(50_000_000),
 				)
@@ -164,9 +173,12 @@ var _ = Describe("Cost model", func() {
 			It("does not emit a scale threshold warning", func() {
 				q := metaengine.Query[FindTask, FindTaskResult](
 					"find_task_normal",
-					metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
-						return e.ID, FindTaskResult{ID: e.ID, Title: e.Title}
-					}),
+					metaengine.OnRecord(
+						TaskCreated{},
+						func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
+							return e.ID, FindTaskResult{ID: e.ID, Title: e.Title}
+						},
+					),
 					metaengine.OnRecord(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
 					metaengine.Volume(10_000),
 				)
@@ -197,9 +209,12 @@ var _ = Describe("Write amplification budget", func() {
 		It("emits a write amplification warning with the default budget of 3", func() {
 			extra := metaengine.Query[FindTask, FindTaskResult](
 				"find_task_extra",
-				metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
-					return e.ID, FindTaskResult{ID: e.ID}
-				}),
+				metaengine.OnRecord(
+					TaskCreated{},
+					func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
+						return e.ID, FindTaskResult{ID: e.ID}
+					},
+				),
 				metaengine.OnRecord(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
 			)
 

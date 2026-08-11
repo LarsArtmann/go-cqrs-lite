@@ -5,10 +5,10 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func metaEngineFactory(t *testing.T) Factory {

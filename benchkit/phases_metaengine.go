@@ -56,9 +56,12 @@ type meBenchIncrementEvent struct {
 func meBenchCounterQuery() metaengine.QueryDecl[meBenchCounterInput, map[string]int64] {
 	return metaengine.Query[meBenchCounterInput, map[string]int64](
 		"bench_counter",
-		metaengine.OnRecord(meBenchIncrementEvent{}, func(_ record.Record, e meBenchIncrementEvent) metaengine.Delta {
-			return metaengine.Delta{e.Status: +1}
-		}),
+		metaengine.OnRecord(
+			meBenchIncrementEvent{},
+			func(_ record.Record, e meBenchIncrementEvent) metaengine.Delta {
+				return metaengine.Delta{e.Status: +1}
+			},
+		),
 	)
 }
 

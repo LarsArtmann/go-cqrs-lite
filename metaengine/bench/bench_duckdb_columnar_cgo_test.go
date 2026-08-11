@@ -44,9 +44,12 @@ type benchColumnarInput struct {
 func columnarScanQuery() metaengine.QueryDecl[benchColumnarInput, benchColumnarItem] {
 	return metaengine.Query[benchColumnarInput, benchColumnarItem](
 		"columnar_scan",
-		metaengine.OnRecord(benchColumnarItem{}, func(_ record.Record, e benchColumnarItem) (string, benchColumnarItem) {
-			return e.ID, e
-		}),
+		metaengine.OnRecord(
+			benchColumnarItem{},
+			func(_ record.Record, e benchColumnarItem) (string, benchColumnarItem) {
+				return e.ID, e
+			},
+		),
 		metaengine.FilterOnField[benchColumnarItem]("Status", metaengine.FilterEq),
 		metaengine.SortOnField[benchColumnarItem]("Amount", true),
 		metaengine.WithColumnarLayout(),
@@ -56,9 +59,12 @@ func columnarScanQuery() metaengine.QueryDecl[benchColumnarInput, benchColumnarI
 func pushdownScanQuery() metaengine.QueryDecl[benchColumnarInput, benchColumnarItem] {
 	return metaengine.Query[benchColumnarInput, benchColumnarItem](
 		"pushdown_scan",
-		metaengine.OnRecord(benchColumnarItem{}, func(_ record.Record, e benchColumnarItem) (string, benchColumnarItem) {
-			return e.ID, e
-		}),
+		metaengine.OnRecord(
+			benchColumnarItem{},
+			func(_ record.Record, e benchColumnarItem) (string, benchColumnarItem) {
+				return e.ID, e
+			},
+		),
 		metaengine.FilterOnField[benchColumnarItem]("Status", metaengine.FilterEq),
 		metaengine.SortOnField[benchColumnarItem]("Amount", true),
 	)

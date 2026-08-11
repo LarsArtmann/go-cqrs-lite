@@ -348,10 +348,39 @@ and is **never** duplicated here.
       DuckDB binding packages). A `system/integration/` sub-module follows the
       `testutil/pgtestcontainer` precedent and keeps the system module lean.
       _(Effort: M)_
-- [ ] **Add bbolt source-of-truth integration test** — `metaengine/bboltengine/`
-      module now exists (created 2026-08-10). Needs persistence_test,
-      restart_safety_test, disk_backed_test, and calibration_bench_test to
-      match pebbleengine coverage. Badger and Pebble already covered.
+- [x] **Add bbolt source-of-truth integration test** — DONE 2026-08-11.
+      Four files added to `metaengine/bboltengine/` (352 lines): `persistence_test.go`
+      (3 tests: volatile/persistent profile), `restart_safety_test.go` (2 tests:
+      seq-counter seeding across close→reopen for StreamLog+Map+Multimap+FromDB),
+      `disk_backed_test.go` (2 tests: on-disk persists, volatile does not),
+      `calibration_bench_test.go` (3 benchmarks: Set, Get, CounterIncrement — follows
+      badger pattern). All 7 tests + 3 benchmarks pass with `-race`. `go vet` clean.
+      See `docs/status/2026-08-11_05-28_bboltengine-source-of-truth-tests.md`.
+- [ ] **Run `nix fmt` + `nix run .#lint` on bboltengine test files** — the four
+      new test files were verified with `go test` + `go vet` + `-race` only.
+      Full lint pipeline (golangci-lint, 202 rules) and treefmt not yet run.
+      _(Effort: XS)_
+- [ ] **Run `go mod tidy` in bboltengine** — removes unused `dustin/go-humanize`
+      indirect dep flagged by gopls. Not needed by bboltengine itself (inherited
+      from metaengine).
+      _(Effort: XS)_
+- [ ] **Fix `record_stamp.go` GOWORK=off build failure** — `record_stamp.go`
+      calls `.String()` on `CorrelationID`/`CausationID`/`ActorID` branded types
+      that resolve to plain `string` in published `record/v4.0.0`. Under
+      `GOWORK=off`, the `replace record/v4 => ../record` in metaengine's go.mod
+      is invisible to engine submodules, breaking `go test` for ALL engine
+      modules. Either replace `.String()` with `string(...)` casts, or add
+      `replace` directives to each engine go.mod, or release `record/v4.0.1`.
+      _(Effort: S — needs user decision on approach)_
+- [ ] **Add `CounterIncrement` benchmark to pebbleengine calibration** — badger
+      and bbolt have it; pebble does not. All engines should have calibration
+      data for all ADT operations.
+      _(Effort: XS)_
+- [ ] **bboltengine parity gaps** — pebbleengine has `edge_cases_test.go`,
+      `fuzz_test.go`, `stream_log_test.go`, `watcher_test.go`, `scan_bench_test.go`
+      that bboltengine lacks. Prioritize by which ADT operations bbolt actually
+      supports differently from pebble.
+      _(Effort: M)_
 
 ---
 

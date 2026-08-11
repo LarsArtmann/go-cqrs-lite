@@ -356,9 +356,12 @@ func TestDuckDBEngine_LayoutMetaenginePlan(t *testing.T) {
 		[]metaengine.Engine{eng},
 		metaengine.Query[CountInput, map[string]int64](
 			"category_counts_layout",
-			metaengine.OnRecord(ItemCreated{}, func(_ record.Record, e ItemCreated) metaengine.Delta {
-				return metaengine.Delta{e.Category: 1}
-			}),
+			metaengine.OnRecord(
+				ItemCreated{},
+				func(_ record.Record, e ItemCreated) metaengine.Delta {
+					return metaengine.Delta{e.Category: 1}
+				},
+			),
 		),
 	)
 	if err != nil {
@@ -492,14 +495,17 @@ func TestDuckDBEngine_ColumnarLayoutWithPlan(t *testing.T) {
 		[]metaengine.Engine{eng},
 		metaengine.Query[ProductInput, ProductView](
 			"products",
-			metaengine.OnRecord(ProductCreated{}, func(_ record.Record, e ProductCreated) (string, ProductView) {
-				return e.ID, ProductView{
-					Name:     e.Name,
-					Category: e.Category,
-					Price:    e.Price,
-					Quantity: e.Quantity,
-				}
-			}),
+			metaengine.OnRecord(
+				ProductCreated{},
+				func(_ record.Record, e ProductCreated) (string, ProductView) {
+					return e.ID, ProductView{
+						Name:     e.Name,
+						Category: e.Category,
+						Price:    e.Price,
+						Quantity: e.Quantity,
+					}
+				},
+			),
 			metaengine.WithColumnarLayout(),
 		),
 	)
@@ -588,14 +594,17 @@ func TestDuckDBEngine_ColumnarAggregation(t *testing.T) {
 		[]metaengine.Engine{eng},
 		metaengine.Query[ProductInput, ProductView](
 			"products_agg",
-			metaengine.OnRecord(ProductCreated{}, func(_ record.Record, e ProductCreated) (string, ProductView) {
-				return e.ID, ProductView{
-					Name:     e.Name,
-					Category: e.Category,
-					Price:    e.Price,
-					Quantity: e.Quantity,
-				}
-			}),
+			metaengine.OnRecord(
+				ProductCreated{},
+				func(_ record.Record, e ProductCreated) (string, ProductView) {
+					return e.ID, ProductView{
+						Name:     e.Name,
+						Category: e.Category,
+						Price:    e.Price,
+						Quantity: e.Quantity,
+					}
+				},
+			),
 			metaengine.WithColumnarLayout(),
 		),
 	)

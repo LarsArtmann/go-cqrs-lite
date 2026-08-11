@@ -12,8 +12,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/system/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
 // ── T23: ProjectionPlan/VerifyProjections/ProjectionExplain tests ──
@@ -49,10 +49,15 @@ func TestSystem_ProjectionPlan_WithProjectionStore(t *testing.T) {
 
 	ctx := context.Background()
 
-	taskViewQuery := metaengine.Query[FindTask, TaskView]("task_views",
-		metaengine.OnRecordTyped("task.created", TaskCreated{}, func(_ record.Record, e TaskCreated) (string, TaskView) {
-			return e.Title, TaskView{Title: e.Title, Status: "pending"}
-		}),
+	taskViewQuery := metaengine.Query[FindTask, TaskView](
+		"task_views",
+		metaengine.OnRecordTyped(
+			"task.created",
+			TaskCreated{},
+			func(_ record.Record, e TaskCreated) (string, TaskView) {
+				return e.Title, TaskView{Title: e.Title, Status: "pending"}
+			},
+		),
 	)
 
 	domain := system.DomainConfig{

@@ -284,30 +284,7 @@ func (s *Store) notifyWatchers(collection string, key any, value any) {
 // Each query has its own independent projection — the same event updates
 // each matching query's collection separately.
 func (s *Store) Apply(ctx context.Context, eventType string, payload any) error {
-	s.meter.IncWrite()
-
-	if s.eventLog != nil {
-		s.eventLog.Record(eventType, payload)
-	}
-
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
-		q := s.queries[name]
-
-		foldIdx, ok := q.QueryFoldByEvent()[eventType]
-		if !ok {
-			continue
-		}
-
-		fold := q.QueryFolds()[foldIdx]
-		if err := s.applyFold(ctx, q, fold, payload); err != nil {
-			return fmt.Errorf("query %q fold for %s: %w", q.QueryName(), eventType, err)
-		}
-	}
-
-	return nil
+	return s.applyWithRecord(ctx, eventType, record.Record{Type: eventType}, payload)
 }
 
 // EventInput pairs an event type with its payload for batch application.

@@ -14,9 +14,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	_ "github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4" // self-registers "pebble"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // TestIntegration_SQLiteSource_MemoryProjection_HealthCheck verifies a
@@ -29,10 +29,15 @@ func TestIntegration_SQLiteSource_MemoryProjection_HealthCheck(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	taskViewQuery := metaengine.Query[FindTask, TaskView]("task_views_sqlmem",
-		metaengine.OnRecordTyped("task.created", TaskCreated{}, func(_ record.Record, e TaskCreated) (string, TaskView) {
-			return e.Title, TaskView{Title: e.Title, Status: "pending"}
-		}),
+	taskViewQuery := metaengine.Query[FindTask, TaskView](
+		"task_views_sqlmem",
+		metaengine.OnRecordTyped(
+			"task.created",
+			TaskCreated{},
+			func(_ record.Record, e TaskCreated) (string, TaskView) {
+				return e.Title, TaskView{Title: e.Title, Status: "pending"}
+			},
+		),
 	)
 
 	domain := system.DomainConfig{

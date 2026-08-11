@@ -24,9 +24,12 @@ type TasksForUserResult struct {
 func tasksForUserQuery() metaengine.QueryDecl[TasksForUser, TasksForUserResult] {
 	return metaengine.Query[TasksForUser, TasksForUserResult](
 		"tasks_for_user",
-		metaengine.OnRecord(TaskAssigned{}, func(_ record.Record, e TaskAssigned) metaengine.MultiEntry {
-			return metaengine.MultiEntry{Key: e.Assignee, Value: e.TaskID}
-		}),
+		metaengine.OnRecord(
+			TaskAssigned{},
+			func(_ record.Record, e TaskAssigned) metaengine.MultiEntry {
+				return metaengine.MultiEntry{Key: e.Assignee, Value: e.TaskID}
+			},
+		),
 	)
 }
 

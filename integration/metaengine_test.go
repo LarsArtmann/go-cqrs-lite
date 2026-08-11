@@ -24,12 +24,18 @@ type IntegItemCompleted struct{}
 func integCounterQuery() metaengine.QueryDecl[integCounterInput, map[string]int64] {
 	return metaengine.Query[integCounterInput, map[string]int64](
 		"integ_task_counts",
-		metaengine.OnRecord(IntegItemCreated{}, func(_ record.Record, e IntegItemCreated) metaengine.Delta {
-			return metaengine.Delta{e.Status: +1}
-		}),
-		metaengine.OnRecord(IntegItemCompleted{}, func(_ record.Record, e IntegItemCompleted) metaengine.Delta {
-			return metaengine.Delta{"active": -1, "completed": +1}
-		}),
+		metaengine.OnRecord(
+			IntegItemCreated{},
+			func(_ record.Record, e IntegItemCreated) metaengine.Delta {
+				return metaengine.Delta{e.Status: +1}
+			},
+		),
+		metaengine.OnRecord(
+			IntegItemCompleted{},
+			func(_ record.Record, e IntegItemCompleted) metaengine.Delta {
+				return metaengine.Delta{"active": -1, "completed": +1}
+			},
+		),
 	)
 }
 
@@ -136,9 +142,12 @@ func TestMetaEngine_MapPipeline(t *testing.T) {
 
 	queryDecl := metaengine.Query[integFindItem, integItemResult](
 		"integ_items",
-		metaengine.OnRecord(IntegItemEvent{}, func(_ record.Record, e IntegItemEvent) (integItemKey, integItemResult) {
-			return e.ID, integItemResult{ID: e.ID, Title: e.Title}
-		}),
+		metaengine.OnRecord(
+			IntegItemEvent{},
+			func(_ record.Record, e IntegItemEvent) (integItemKey, integItemResult) {
+				return e.ID, integItemResult{ID: e.ID, Title: e.Title}
+			},
+		),
 	)
 
 	eng := metaengine.NewMemoryEngine()

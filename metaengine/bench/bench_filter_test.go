@@ -27,9 +27,12 @@ type benchListInput struct {
 func benchFilterQuery() metaengine.QueryDecl[benchListInput, benchItemResult] {
 	return metaengine.Query[benchListInput, benchItemResult](
 		"bench_filter_scan",
-		metaengine.OnRecord(benchItemResult{}, func(_ record.Record, e benchItemResult) (string, benchItemResult) {
-			return e.ID, e
-		}),
+		metaengine.OnRecord(
+			benchItemResult{},
+			func(_ record.Record, e benchItemResult) (string, benchItemResult) {
+				return e.ID, e
+			},
+		),
 		metaengine.FilterOnField[benchItemResult]("Status", metaengine.FilterEq),
 		metaengine.SortOnField[benchItemResult]("Priority", true),
 	)

@@ -49,9 +49,12 @@ func TestExecuteTyped_SQLite_UnexportedFieldsLost(t *testing.T) {
 
 	query := metaengine.Query[recordQuery, recordResult](
 		"record_lookup",
-		metaengine.OnRecord(recordEvent{}, func(_ record.Record, e recordEvent) (string, recordResult) {
-			return e.ID, recordResult{ID: e.ID, secret: "hidden-value"}
-		}),
+		metaengine.OnRecord(
+			recordEvent{},
+			func(_ record.Record, e recordEvent) (string, recordResult) {
+				return e.ID, recordResult{ID: e.ID, secret: "hidden-value"}
+			},
+		),
 	)
 
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, query)
@@ -91,9 +94,12 @@ func ExampleNewSQLiteEngine() {
 		[]metaengine.Engine{metaengine.NewMemoryEngine(), sqliteEng},
 		metaengine.Query[recordQuery, recordResult](
 			"example_record",
-			metaengine.OnRecord(recordEvent{}, func(_ record.Record, e recordEvent) (string, recordResult) {
-				return e.ID, recordResult{ID: e.ID}
-			}),
+			metaengine.OnRecord(
+				recordEvent{},
+				func(_ record.Record, e recordEvent) (string, recordResult) {
+					return e.ID, recordResult{ID: e.ID}
+				},
+			),
 		),
 	)
 	defer store.Close()
@@ -124,9 +130,12 @@ func BenchmarkExecuteTyped_SQLite_Reify(b *testing.B) {
 
 	query := metaengine.Query[recordQuery, recordResult](
 		"bench_reify",
-		metaengine.OnRecord(recordEvent{}, func(_ record.Record, e recordEvent) (string, recordResult) {
-			return e.ID, recordResult{ID: e.ID, secret: "hidden"}
-		}),
+		metaengine.OnRecord(
+			recordEvent{},
+			func(_ record.Record, e recordEvent) (string, recordResult) {
+				return e.ID, recordResult{ID: e.ID, secret: "hidden"}
+			},
+		),
 	)
 
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, query)

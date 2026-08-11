@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — bboltengine source-of-truth integration tests — 2026-08-11
+
+> Four test files (352 lines) added to `metaengine/bboltengine/` to match
+> pebbleengine/badgerengine coverage. All 7 tests + 3 benchmarks pass with
+> `-race`; `go vet` clean. Full lint gate (`nix run .#lint`) and `nix fmt` not
+> yet run. See `docs/status/2026-08-11_05-28_bboltengine-source-of-truth-tests.md`.
+
+- **`metaengine/bboltengine/persistence_test.go`**: 3 tests verifying volatile vs
+  persistent `EngineProfile` for `NewBboltEngine("")`, `NewBboltEngine(dir)`, and
+  `NewBboltEngineFromDB(db)`.
+- **`metaengine/bboltengine/restart_safety_test.go`**: 2 tests verifying seq-counter
+  seeding survives close→reopen — StreamLog (events + journal), Map, and Multimap
+  ADTs retain all data without key collisions. Covers both `NewBboltEngine(dir)`
+  and `NewBboltEngineFromDB(db)` paths.
+- **`metaengine/bboltengine/disk_backed_test.go`**: 2 tests verifying on-disk data
+  persists across engine reopen and volatile mode (temp file) does not.
+- **`metaengine/bboltengine/calibration_bench_test.go`**: 3 benchmarks (MapSet,
+  MapGet, CounterIncrement) for `BboltNsPer*` calibration. Initial measurements:
+  Set ~23µs, Get ~13µs, CounterIncrement ~17µs.
+
 ### Added — Planner-time fold inference `metaengine.Infer()` (ADR-0116 Layer 1) — 2026-08-11
 
 > New API: `metaengine.Infer(samples...)` lets consumers declare zero folds for

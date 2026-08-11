@@ -12,8 +12,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/system/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
 // ── Types for TypeDecoder-based projection test ──
@@ -45,11 +45,13 @@ func TestSystem_ProjectionTypeDecoder_MapByKey(t *testing.T) {
 	// Declare a Map query keyed by stream ID. The fold handler receives
 	// EventWithID[itemCreatedEvt] which wraps the payload with the stream ID.
 	itemQuery := metaengine.Query[findByID, itemView]("item_views_typed",
-		metaengine.OnRecordTyped("item.created",
+		metaengine.OnRecordTyped(
+			"item.created",
 			projectionadapter.EventWithID[itemCreatedEvt]{},
 			func(_ record.Record, e projectionadapter.EventWithID[itemCreatedEvt]) (string, itemView) {
 				return e.ID, itemView{ID: e.ID, Name: e.Payload.Name}
-			}),
+			},
+		),
 	)
 
 	// Build the TypeDecoder — replaces the old PayloadDecoder switch/case.
@@ -150,11 +152,13 @@ func TestSystem_ProjectionEventDecoder(t *testing.T) {
 	defer cancel()
 
 	itemQuery := metaengine.Query[findByID, itemView]("item_views_evtdec",
-		metaengine.OnRecordTyped("item.created",
+		metaengine.OnRecordTyped(
+			"item.created",
 			projectionadapter.EventWithID[itemCreatedEvt]{},
 			func(_ record.Record, e projectionadapter.EventWithID[itemCreatedEvt]) (string, itemView) {
 				return e.ID, itemView{ID: e.ID, Name: e.Payload.Name}
-			}),
+			},
+		),
 	)
 
 	// Custom EventDecoder — same effect as TypeDecoder but manual.

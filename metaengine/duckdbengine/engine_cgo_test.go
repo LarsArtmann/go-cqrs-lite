@@ -135,9 +135,12 @@ func TestDuckDBEngine_MetaenginePlan(t *testing.T) {
 		[]metaengine.Engine{eng},
 		metaengine.Query[CountInput, map[string]int64](
 			"category_counts",
-			metaengine.OnRecord(ItemCreated{}, func(_ record.Record, e ItemCreated) metaengine.Delta {
-				return metaengine.Delta{e.Category: e.Count}
-			}),
+			metaengine.OnRecord(
+				ItemCreated{},
+				func(_ record.Record, e ItemCreated) metaengine.Delta {
+					return metaengine.Delta{e.Category: e.Count}
+				},
+			),
 		),
 	)
 	if err != nil {

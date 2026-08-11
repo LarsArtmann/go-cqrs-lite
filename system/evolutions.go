@@ -140,17 +140,21 @@ func (b *evolutionBuilder[R]) Done() EvolutionSpec {
 // makeExplicitFold creates a metaengine update fold from an explicit fold entry.
 // It reifies prev to the result type, applies the mutation, and returns the result.
 func makeExplicitFold(resultType reflect.Type, ef explicitFoldEntry) metaengine.Fold {
-	return metaengine.OnRecordTyped(ef.eventType, ef.sample, func(_ record.Record, e any, prev any) any {
-		v := reflect.New(resultType)
+	return metaengine.OnRecordTyped(
+		ef.eventType,
+		ef.sample,
+		func(_ record.Record, e any, prev any) any {
+			v := reflect.New(resultType)
 
-		if prev != nil {
-			reifyTo(prev, v.Interface())
-		}
+			if prev != nil {
+				reifyTo(prev, v.Interface())
+			}
 
-		ef.mutate(e, v.Interface())
+			ef.mutate(e, v.Interface())
 
-		return v.Elem().Interface()
-	})
+			return v.Elem().Interface()
+		},
+	)
 }
 
 // reifyTo converts a raw value (potentially map[string]any from JSON engines)

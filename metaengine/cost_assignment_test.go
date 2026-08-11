@@ -57,9 +57,12 @@ var _ = Describe("Regression: cost model picks the cheaper engine", func() {
 
 		filteredMapQ := metaengine.Query[FindTask, FindTaskResult](
 			"filtered_find_task",
-			metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
-				return e.ID, FindTaskResult{ID: e.ID, Title: e.Title, Status: e.Status}
-			}),
+			metaengine.OnRecord(
+				TaskCreated{},
+				func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
+					return e.ID, FindTaskResult{ID: e.ID, Title: e.Title, Status: e.Status}
+				},
+			),
 			metaengine.OnRecord(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
 			metaengine.FilterOnField[FindTaskResult]("Status", metaengine.FilterEq),
 			metaengine.Volume(100_000),
