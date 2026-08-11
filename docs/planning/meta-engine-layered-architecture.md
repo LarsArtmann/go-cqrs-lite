@@ -329,7 +329,7 @@ type Embedding struct {
     Vector []float32 // e.g., 1536-dim from OpenAI text-embedding-3-small
 }
 
-// metaengine.On(DocumentIndexed{}, func(e DocumentIndexed) metaengine.Embedding {
+// metaengine.OnRecord(DocumentIndexed{}, func(_ record.Record, e DocumentIndexed) metaengine.Embedding {
 //     return metaengine.Embedding{ID: e.ID, Vector: e.Embedding}
 // })
 ```
@@ -620,7 +620,7 @@ type SimilarDoc struct {
 }
 
 findSimilar := metaengine.Query[FindSimilar, SimilarDoc]("similar_docs",
-    metaengine.On(DocumentIndexed{}, func(e DocumentIndexed) metaengine.Embedding {
+    metaengine.OnRecord(DocumentIndexed{}, func(_ record.Record, e DocumentIndexed) metaengine.Embedding {
         return metaengine.Embedding{ID: e.ID, Vector: e.Embedding}
     }),
 )
@@ -652,10 +652,10 @@ type AccountBalance struct {
 }
 
 balanceQuery := metaengine.Query[AccountBalance, BalanceResult]("balance",
-    metaengine.On(DepositRecorded{}, func(e DepositRecorded) (AccountID, BalanceResult) {
+    metaengine.OnRecord(DepositRecorded{}, func(_ record.Record, e DepositRecorded) (AccountID, BalanceResult) {
         return e.AccountID, BalanceResult{Amount: e.Amount}
     }),
-    metaengine.On(WithdrawalRecorded{}, func(e WithdrawalRecorded, prev BalanceResult) BalanceResult {
+    metaengine.OnRecord(WithdrawalRecorded{}, func(_ record.Record, e WithdrawalRecorded, prev BalanceResult) BalanceResult {
         prev.Amount -= e.Amount
         return prev
     }),

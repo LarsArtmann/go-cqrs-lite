@@ -67,7 +67,7 @@ func NewF020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // denormalization would reduce write pressure.
 //
 // Per-query analysis: each metaengine.Query call is inspected individually.
-// Only queries with 3+ direct On/OnTyped fold arguments trigger a finding.
+// Only queries with 3+ direct fold-constructor arguments trigger a finding.
 // This avoids false positives when folds are spread across many queries
 // (e.g., 5 queries with 1 fold each = no amplification, vs. 1 query with
 // 5 folds = real amplification).
@@ -94,13 +94,19 @@ func NewF021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			pos, ok := firstCallPos(ctx, "metaengine", "OnTyped")
+			pos, ok := firstCallPos(ctx, "metaengine", "OnRecordTyped")
 			if !ok {
-				pos, ok = firstCallPos(ctx, "metaengine", "On")
+				pos, ok = firstCallPos(ctx, "metaengine", "OnTyped")
 				if !ok {
-					pos, ok = firstFilePos(ctx)
+					pos, ok = firstCallPos(ctx, "metaengine", "OnRecord")
 					if !ok {
-						return nil, nil
+						pos, ok = firstCallPos(ctx, "metaengine", "On")
+						if !ok {
+							pos, ok = firstFilePos(ctx)
+							if !ok {
+								return nil, nil
+							}
+						}
 					}
 				}
 			}
@@ -131,8 +137,8 @@ type queryFoldCount struct {
 }
 
 // findQueriesWithFolds scans for metaengine.Query calls and counts the
-// On/OnTyped fold arguments directly nested in each call. Returns one
-// entry per Query call plus the total count of On/OnTyped calls seen
+// fold-constructor arguments directly nested in each call. Returns one
+// entry per Query call plus the total count of fold constructors seen
 // anywhere in non-test files.
 func findQueriesWithFolds(
 	ctx *analyzer.AnalysisContext,
@@ -158,7 +164,7 @@ func findQueriesWithFolds(
 				return true
 			}
 
-			isFold := sel.Sel.Name == "On" || sel.Sel.Name == "OnTyped"
+			isFold := isFoldConstructor(sel.Sel.Name)
 			if isFold {
 				totalFolds++
 			}
@@ -194,7 +200,7 @@ func findQueriesWithFolds(
 					continue
 				}
 
-				if argSel.Sel.Name == "On" || argSel.Sel.Name == "OnTyped" {
+				if isFoldConstructor(argSel.Sel.Name) {
 					foldCount++
 				}
 			}

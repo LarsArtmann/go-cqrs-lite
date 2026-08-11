@@ -79,7 +79,7 @@ Vector → Search → Spatial → Graph → Counter → Multimap → Log → Set
 store, _ := metaengine.Plan(
     []metaengine.Engine{metaengine.NewMemoryEngine()},
     metaengine.Query[SemanticSearch, metaengine.VectorResult]("semantic_search",
-        metaengine.On(DocEmbedded{}, func(e DocEmbedded) metaengine.Embedding {
+        metaengine.OnRecord(DocEmbedded{}, func(_ record.Record, e DocEmbedded) metaengine.Embedding {
             return metaengine.Embedding{ID: e.ID, Values: e.Values}
         }),
     ),

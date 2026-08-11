@@ -157,7 +157,7 @@ defer eng.Close()
 // Use with the metaengine planner
 store, err := metaengine.Plan([]metaengine.Engine{eng},
     metaengine.Query[Input, Output]("my_query",
-        metaengine.On(MyEvent{}, func(e MyEvent) (string, Output) {
+        metaengine.OnRecord(MyEvent{}, func(_ record.Record, e MyEvent) (string, Output) {
             return e.ID, Output{...}
         }),
     ),

@@ -480,10 +480,10 @@ store, _ := metaengine.Plan(
         // sqliteEngine, // sqliteengine.NewSQLiteEngine(db)
     },
     q,
-    metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, FindTaskResult) {
+    metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
         return e.ID, FindTaskResult{ID: e.ID, Title: e.Title}
     }),
-    metaengine.On(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
+    metaengine.OnRecord(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
 )
 
 // Execute: the engine routes to the cheapest backend
@@ -859,10 +859,10 @@ store, _ := metaengine.Plan(
     []metaengine.Engine{metaengine.NewMemoryEngine()},
     metaengine.Query[StatusCounts, map[string]int64](
         "task_counts",
-        metaengine.On(TaskCreated{}, func(e TaskCreated) metaengine.Delta {
+        metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) metaengine.Delta {
             return metaengine.Delta{e.Status: +1}
         }),
-        metaengine.On(TaskCompleted{}, func(e TaskCompleted) metaengine.Delta {
+        metaengine.OnRecord(TaskCompleted{}, func(_ record.Record, e TaskCompleted) metaengine.Delta {
             return metaengine.Delta{"active": -1, "completed": +1}
         }),
     ),
@@ -908,10 +908,10 @@ type itemView struct {
 }
 
 query := metaengine.Query[listInput, itemView]("items",
-    metaengine.On(createdEvt{}, func(e createdEvt) (string, itemView) {
+    metaengine.OnRecord(createdEvt{}, func(_ record.Record, e createdEvt) (string, itemView) {
         return e.ID, itemView{ID: e.ID, Status: "open", Priority: e.Priority}
     }),
-    metaengine.On(deletedEvt{}, metaengine.Remove[itemView]()),
+    metaengine.OnRecord(deletedEvt{}, metaengine.Remove[itemView]()),
     metaengine.FilterOnField[itemView]("status", metaengine.FilterEq),
     metaengine.SortOnField[itemView]("priority", true),
 )
@@ -953,9 +953,9 @@ decoder := projectionadapter.NewTypeDecoder(
 adapter := projectionadapter.NewWithDecoder("items", store, decoder)
 
 // Fold handlers receive EventWithID[P]:
-//   metaengine.OnTyped("created",
+//   metaengine.OnRecordTyped("created",
 //       projectionadapter.EventWithID[CreatedPayload]{},
-//       func(e projectionadapter.EventWithID[CreatedPayload]) (string, ItemView) {
+//       func(_ record.Record, e projectionadapter.EventWithID[CreatedPayload]) (string, ItemView) {
 //           return e.ID, ItemView{ID: e.ID, Name: e.Payload.Name}
 //       })
 
@@ -994,7 +994,7 @@ type SemanticSearchInput struct {
 store, _ := metaengine.Plan(
     []metaengine.Engine{metaengine.NewMemoryEngine()},
     metaengine.Query[SemanticSearchInput, []metaengine.VectorResult]("embeddings",
-        metaengine.On(DocEmbedded{}, func(e DocEmbedded) metaengine.Embedding {
+        metaengine.OnRecord(DocEmbedded{}, func(_ record.Record, e DocEmbedded) metaengine.Embedding {
             return metaengine.Embedding{ID: e.ID, Values: e.Values}
         }),
     ),
@@ -1026,7 +1026,7 @@ type FullTextSearchInput struct {
 store, _ := metaengine.Plan(
     []metaengine.Engine{metaengine.NewMemoryEngine()},
     metaengine.Query[FullTextSearchInput, []metaengine.SearchResult]("docs",
-        metaengine.On(DocIndexed{}, func(e DocIndexed) metaengine.IndexedText {
+        metaengine.OnRecord(DocIndexed{}, func(_ record.Record, e DocIndexed) metaengine.IndexedText {
             return metaengine.IndexedText{ID: e.ID, Content: e.Content}
         }),
     ),
@@ -1061,7 +1061,7 @@ type NearbySearchInput struct {
 store, _ := metaengine.Plan(
     []metaengine.Engine{metaengine.NewMemoryEngine()},
     metaengine.Query[NearbySearchInput, []metaengine.SpatialResult]("places",
-        metaengine.On(PlaceLocated{}, func(e PlaceLocated) metaengine.Point {
+        metaengine.OnRecord(PlaceLocated{}, func(_ record.Record, e PlaceLocated) metaengine.Point {
             return metaengine.Point{ID: e.ID, X: e.X, Y: e.Y}
         }),
     ),
@@ -1108,7 +1108,7 @@ store, _ := metaengine.Plan(
     []metaengine.Engine{eng},
     // Counter queries benefit from DuckDB's vectorized GROUP BY
     metaengine.Query[CountInput, map[string]int64]("category_counts",
-        metaengine.On(ItemCreated{}, func(e ItemCreated) metaengine.Delta {
+        metaengine.OnRecord(ItemCreated{}, func(_ record.Record, e ItemCreated) metaengine.Delta {
             return metaengine.Delta{e.Category: e.Count}
         }),
     ),
@@ -1131,7 +1131,7 @@ store, _ := metaengine.Plan(
     []metaengine.Engine{eng},
     // Map and Counter queries with ON CONFLICT upserts
     metaengine.Query[GetInput, TodoView]("todos",
-        metaengine.On(TodoCreated{}, func(e TodoCreated) (string, TodoView) {
+        metaengine.OnRecord(TodoCreated{}, func(_ record.Record, e TodoCreated) (string, TodoView) {
             return e.ID, TodoView{ID: e.ID, Title: e.Title}
         }),
     ),

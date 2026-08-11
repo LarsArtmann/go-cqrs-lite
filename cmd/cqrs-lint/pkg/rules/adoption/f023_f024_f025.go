@@ -125,7 +125,7 @@ func NewF025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"store but no metaengine — full collection scanned for every count",
 				"Use the metaengine Counter ADT for pre-materialized O(1) counts. "+
 					"Declare a counter query with metaengine.Query[Q,R](name, "+
-					"metaengine.On(Event{}, func(e Event) metaengine.Delta{ "+
+					"metaengine.OnRecord(Event{}, func(_ record.Record, e Event) metaengine.Delta{ "+
 					"return metaengine.Delta{e.Status: +1} })) and read via "+
 					"metaengine.ExecuteTyped[Q, map[string]int64](ctx, store, input).",
 				pos, finding.ConfidenceMedium,

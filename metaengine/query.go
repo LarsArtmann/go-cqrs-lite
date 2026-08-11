@@ -155,9 +155,9 @@ type QueryDecl[Q any, R any] struct {
 // Folds and QueryOptions are separated by type at construction time:
 //
 //	findUser := metaengine.Query[FindUser, FindUserResult]("find_user",
-//	    metaengine.On(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) { ... }),
-//	    metaengine.On(UserSuspended{}, func(e UserSuspended, prev FindUserResult) FindUserResult { ... }),
-//	    metaengine.On(UserDeleted{}, metaengine.Remove[FindUserResult]()),
+//	    metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) (UserID, FindUserResult) { ... }),
+//	    metaengine.OnRecord(UserSuspended{}, func(_ record.Record, e UserSuspended, prev FindUserResult) FindUserResult { ... }),
+//	    metaengine.OnRecord(UserDeleted{}, metaengine.Remove[FindUserResult]()),
 //	    metaengine.Volume(1_000_000),
 //	)
 //

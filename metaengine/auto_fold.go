@@ -128,7 +128,7 @@ func matchNestedFields(nestedType reflect.Type, dstIndex map[string]dstFieldEntr
 //
 // This is equivalent to the manual fold:
 //
-//	metaengine.On(UserCreated{}, func(e UserCreated) (string, UserView) {
+//	metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) (string, UserView) {
 //	    return e.ID, UserView{ID: e.ID, Name: e.Name, Email: e.Email}
 //	})
 //
@@ -165,7 +165,7 @@ func AutoDelete[E any](keyField string) Fold {
 //
 // This is equivalent to the manual fold:
 //
-//	metaengine.On(UserUpdated{}, func(e UserUpdated, prev UserView) UserView {
+//	metaengine.OnRecord(UserUpdated{}, func(_ record.Record, e UserUpdated, prev UserView) UserView {
 //	    if prev.ID == "" { prev.ID = e.ID }
 //	    if e.Name != "" { prev.Name = e.Name }
 //	    if e.Email != "" { prev.Email = e.Email }

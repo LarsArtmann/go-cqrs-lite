@@ -872,7 +872,7 @@ Returns the same sealed `EvolutionSpec`. No `[]any` leak.
 | **State type**                  | Separate `TaskState` struct                               | **Unified.** Evolution result type IS the state type.                                                     |
 | **View**                        | `system.View[R,K]("name")`                                | **Deleted.** Queries (`Lookup`, `QuerySet`, `Count`, `Traversal`) replace it.                             |
 | **Decider**                     | `decider.Decider[State]{Initial, Fold}`                   | **Auto-generated.** System builds from Evolution fold.                                                    |
-| **Fold**                        | `metaengine.On(...)` / `OnTyped(...)`                     | **On Evolution.** Auto-generated for L1/L2.                                                               |
+| **Fold**                        | `metaengine.OnRecord(...)` / `OnRecordTyped(...)`          | **On Evolution.** Auto-generated for L1/L2.                                                               |
 | **ADT**                         | Manual classification                                     | **Inferred** from result type shape (struct → Map, From/To fields → Graph, map\[string\]int64 → Counter). |
 | **Decoder**                     | `ProjectionTypeDecoder`, `EventDecoder`, `PayloadDecoder` | **Auto-generated** from event struct types.                                                               |
 | **Projection adapter**          | `projectionadapter.New(...)`                              | **Auto-wired.**                                                                                           |
@@ -893,16 +893,16 @@ Returns the same sealed `EvolutionSpec`. No `[]any` leak.
 func buildProjections() ([]any, *projectionadapter.TypeDecoder) {
     taskCounts := metaengine.Query[taskCountsInput, map[string]int64](
         "task_counts_by_status",
-        metaengine.OnTyped(string(evtTaskCreated),
+        metaengine.OnRecordTyped(string(evtTaskCreated),
             projectionadapter.EventWithID[TaskCreatedPayload]{},
-            func(_ projectionadapter.EventWithID[TaskCreatedPayload]) metaengine.Delta {
+            func(_ record.Record, _ projectionadapter.EventWithID[TaskCreatedPayload]) metaengine.Delta {
                 return metaengine.Delta{string(StatusPending): 1}
             }),
         // ... 10 more folds ...
     )
     taskViews := metaengine.Query[listTasksInput, TaskView](
         "task_views",
-        metaengine.OnTyped(string(evtTaskCreated), ...),
+        metaengine.OnRecordTyped(string(evtTaskCreated), ...),
         // ... 10 more folds ...
         metaengine.FilterOnField[TaskView]("status", metaengine.FilterEq),
         metaengine.SortOnField[TaskView]("priority", true),

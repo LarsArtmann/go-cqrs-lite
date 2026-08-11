@@ -154,11 +154,13 @@ DONE 2026-08-10/11. See [CHANGELOG.md](CHANGELOG.md) and status reports
 
 ### Phase 5: Record-Typed Default Folds
 
-- [ ] 🔥 **Make `OnRecord` the default fold constructor** — change examples,
+- [x] 🔥 **Make `OnRecord` the default fold constructor** — change examples,
       docs, and auto-projection to use `OnRecord`/`OnRecordTyped` instead of
       `On`. Fold handlers receive `record.Record` as the first parameter.
       Deprecate payload-only `On` (mark deprecated, remove in v5 cut).
-      _(Effort: M)_
+      _(Effort: M)_ — DONE 2026-08-11. All metaengine tests, cqrs-lint
+      detectors/fixtures, examples, and living docs migrated. `On`/`OnTyped`
+      carry `Deprecated:` godoc and will be removed in the v5 cut.
 
 ### Phase 6: Auto-Projection (the killer feature)
 

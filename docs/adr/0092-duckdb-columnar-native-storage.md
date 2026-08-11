@@ -51,7 +51,7 @@ Currently implemented by DuckDB only. SQLite and Postgres fall back to
 
 ```go
 metaengine.Query[Input, ProductView]("products",
-    metaengine.On(ProductCreated{}, ...),
+    metaengine.OnRecord(ProductCreated{}, func(_ record.Record, e ProductCreated) (string, ProductView) { return e.ID, ProductView{...} }),
     metaengine.WithColumnarLayout(),
 )
 ```

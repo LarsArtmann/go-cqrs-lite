@@ -31,10 +31,10 @@ type FindUserResult struct { ID UserID; Name string; JoinedAt time.Time }
 
 // 3. Query declaration — folds define how events update this query's projection
 findUser := metaengine.Query[FindUser, FindUserResult]("find_user",
-    metaengine.On(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) {
+    metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) (UserID, FindUserResult) {
         return e.ID, FindUserResult{ID: e.ID, Name: e.Name, JoinedAt: e.At}
     }),
-    metaengine.On(UserDeleted{}, metaengine.Remove[FindUserResult]()),
+    metaengine.OnRecord(UserDeleted{}, metaengine.Remove[FindUserResult]()),
 )
 
 // 4. Plan — the optimizer assigns engines to queries
@@ -80,9 +80,9 @@ import "github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 
 // 1. Declare a query using EventWithID (wraps payload with stream ID)
 var findUser = metaengine.Query[FindUser, FindUserResult]("find_user",
-    metaengine.OnTyped("user.created",
+    metaengine.OnRecordTyped("user.created",
         projectionadapter.EventWithID[UserCreated]{},
-        func(e projectionadapter.EventWithID[UserCreated]) (string, FindUserResult) {
+        func(_ record.Record, e projectionadapter.EventWithID[UserCreated]) (string, FindUserResult) {
             return e.ID, FindUserResult{ID: e.ID, Name: e.Payload.Name}
         }),
 )
@@ -192,7 +192,7 @@ The fold function's return type IS the declaration:
 
 ```go
 listByStatus := metaengine.Query[ListByStatus, ListByStatusResult]("list_by_status",
-    metaengine.On(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) { ... }),
+    metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) (UserID, FindUserResult) { ... }),
     metaengine.FilterOn(func(r FindUserResult) string { return r.Status }),
     metaengine.SortOn(func(r FindUserResult) time.Time { return r.JoinedAt }),
 )
@@ -472,9 +472,9 @@ WHERE/ORDER BY clauses, achieving O(logN) instead of O(N):
 
 ```go
 listTasks := metaengine.Query[ListTasks, TaskView]("task_views",
-    metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, TaskView) { ... }),
-    metaengine.On(TaskCompleted{}, func(e TaskCompleted, prev TaskView) TaskView { ... }),
-    metaengine.On(TaskDeleted{}, metaengine.Remove[TaskView]()),
+    metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, TaskView) { ... }),
+    metaengine.OnRecord(TaskCompleted{}, func(_ record.Record, e TaskCompleted, prev TaskView) TaskView { ... }),
+    metaengine.OnRecord(TaskDeleted{}, metaengine.Remove[TaskView]()),
     metaengine.FilterOnField[TaskView]("status", metaengine.FilterEq),
     metaengine.SortOnField[TaskView]("priority", true),
 )

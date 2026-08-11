@@ -55,10 +55,10 @@ mat := stack.Materialize[TodoView, TodoID]{
 store, _ := metaengine.Plan(
     []metaengine.Engine{metaengine.NewMemoryEngine()},
     metaengine.Query[ListInput, []TodoView]("todos",
-        metaengine.On(TodoCreated{}, func(e TodoCreated) (string, TodoView) {
+        metaengine.OnRecord(TodoCreated{}, func(_ record.Record, e TodoCreated) (string, TodoView) {
             return e.ID, TodoView{ID: e.ID, Title: e.Title, Completed: false}
         }),
-        metaengine.On(TodoCompleted{}, func(e TodoCompleted) (string, TodoView) {
+        metaengine.OnRecord(TodoCompleted{}, func(_ record.Record, e TodoCompleted) (string, TodoView) {
             return e.ID, TodoView{ID: e.ID, Completed: true}
         }),
     ),
@@ -112,10 +112,10 @@ host.Register(adapter)
 store, _ := metaengine.Plan(
     []metaengine.Engine{metaengine.NewMemoryEngine()},
     metaengine.Query[CountInput, map[string]int64]("todo_counts",
-        metaengine.On(TodoCreated{}, func(e TodoCreated) metaengine.Delta {
+        metaengine.OnRecord(TodoCreated{}, func(_ record.Record, e TodoCreated) metaengine.Delta {
             return metaengine.Delta{"open": 1}
         }),
-        metaengine.On(TodoCompleted{}, func(e TodoCompleted) metaengine.Delta {
+        metaengine.OnRecord(TodoCompleted{}, func(_ record.Record, e TodoCompleted) metaengine.Delta {
             return metaengine.Delta{"open": -1, "done": 1}
         }),
     ),

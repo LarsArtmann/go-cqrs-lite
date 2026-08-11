@@ -21,8 +21,8 @@ var ErrNoFoldForEventType = errors.New("projectionadapter: no fold registered fo
 // This is the canonical wrapper for all queries that key on the entity ID.
 // Use it as the fold handler input type:
 //
-//	metaengine.OnTyped("user.created", projectionadapter.EventWithID[UserCreated]{},
-//	    func(e projectionadapter.EventWithID[UserCreated]) (string, UserView) {
+//	metaengine.OnRecordTyped("user.created", projectionadapter.EventWithID[UserCreated]{},
+//	    func(_ record.Record, e projectionadapter.EventWithID[UserCreated]) (string, UserView) {
 //	        return e.ID, UserView{ID: e.ID, Name: e.Payload.Name}
 //	    })
 //

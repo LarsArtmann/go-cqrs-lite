@@ -32,9 +32,11 @@ const (
 // no nil slots to accidentally invoke, eliminating the nil-panic class entirely.
 //
 // The concrete types (insertFold, updateFold, etc.) are unexported, making the
-// union sealed: only the On/OnTyped constructors can create Fold values.
+// union sealed: only the OnRecord/OnRecordTyped constructors can create Fold
+// values (and the deprecated On/OnTyped wrappers).
 //
-// Fold structs are created by the On constructor and should not be built by hand.
+// Fold structs are created by the OnRecord constructor and should not be
+// built by hand.
 type Fold interface {
 	fold() // sealed — unexported method prevents external implementations
 	EventType() string

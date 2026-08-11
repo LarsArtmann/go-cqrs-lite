@@ -114,8 +114,8 @@ Every fold handler must type-switch internally:
 
 ```go
 // Current DX — clean, one handler per event type:
-metaengine.On(TaskCreated{}, func(e TaskCreated) (string, TaskView) { ... }),
-metaengine.On(TaskCompleted{}, func(e TaskCompleted, prev TaskView) TaskView { ... }),
+metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (string, TaskView) { ... }),
+metaengine.OnRecord(TaskCompleted{}, func(_ record.Record, e TaskCompleted, prev TaskView) TaskView { ... }),
 
 // Sum-type DX — switch statement in every fold:
 func(e TaskEvent) (string, TaskView) {
@@ -227,7 +227,7 @@ The current design already implements this. Consumer code never touches `any`:
 
 - `metaengine.NewReader[V]` → typed reads
 - `metaengine.ExecuteTyped[I,V]` → typed execute
-- `metaengine.On(E{}, func(e E) ...)` → typed fold registration
+- `metaengine.OnRecord(E{}, func(_ record.Record, e E) ...)` → typed fold registration
 - `projectionadapter.WithEventDecoder` → typed event decoding
 
 The casts are internal to Store/Engine — they're implementation details that consumers never see.

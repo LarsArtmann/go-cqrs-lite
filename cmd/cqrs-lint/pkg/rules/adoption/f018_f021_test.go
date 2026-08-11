@@ -101,7 +101,7 @@ import metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 
 func _() {
 	_ = metaengine.Query[any, any]("q",
-		metaengine.OnTyped("evt", nil, func(e any) (any, any) { return nil, nil }),
+		metaengine.OnRecordTyped("evt", nil, func(e any) (any, any) { return nil, nil }),
 	)
 }
 `,
@@ -121,7 +121,7 @@ import metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 
 func _() {
 	_ = metaengine.Query[any, any]("q",
-		metaengine.OnTyped("evt", nil, func(e any) (any, any) { return nil, nil }),
+		metaengine.OnRecordTyped("evt", nil, func(e any) (any, any) { return nil, nil }),
 		metaengine.Volume(100000),
 	)
 }
@@ -209,11 +209,11 @@ import metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 
 func _() {
 	_ = metaengine.Query[any, any]("q",
-		metaengine.OnTyped("e1", nil, f),
-		metaengine.OnTyped("e2", nil, f),
-		metaengine.OnTyped("e3", nil, f),
-		metaengine.OnTyped("e4", nil, f),
-		metaengine.OnTyped("e5", nil, f),
+		metaengine.OnRecordTyped("e1", nil, f),
+		metaengine.OnRecordTyped("e2", nil, f),
+		metaengine.OnRecordTyped("e3", nil, f),
+		metaengine.OnRecordTyped("e4", nil, f),
+		metaengine.OnRecordTyped("e5", nil, f),
 	)
 }
 
@@ -235,8 +235,8 @@ import metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 
 func _() {
 	_ = metaengine.Query[any, any]("q",
-		metaengine.OnTyped("e1", nil, f),
-		metaengine.OnTyped("e2", nil, f),
+		metaengine.OnRecordTyped("e1", nil, f),
+		metaengine.OnRecordTyped("e2", nil, f),
 	)
 }
 
@@ -258,9 +258,9 @@ import metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 
 func _() {
 	_ = metaengine.Query[any, any]("q",
-		metaengine.OnTyped("e1", nil, f),
-		metaengine.OnTyped("e2", nil, f),
-		metaengine.OnTyped("e3", nil, f),
+		metaengine.OnRecordTyped("e1", nil, f),
+		metaengine.OnRecordTyped("e2", nil, f),
+		metaengine.OnRecordTyped("e3", nil, f),
 	)
 }
 
@@ -286,12 +286,12 @@ import metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 
 func _() {
 	_ = metaengine.Query[any, any]("q1",
-		metaengine.OnTyped("e1", nil, f),
-		metaengine.OnTyped("e2", nil, f),
+		metaengine.OnRecordTyped("e1", nil, f),
+		metaengine.OnRecordTyped("e2", nil, f),
 	)
 	_ = metaengine.Query[any, any]("q2",
-		metaengine.OnTyped("e3", nil, f),
-		metaengine.OnTyped("e4", nil, f),
+		metaengine.OnRecordTyped("e3", nil, f),
+		metaengine.OnRecordTyped("e4", nil, f),
 	)
 }
 
@@ -315,12 +315,12 @@ import metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 
 func _() {
 	_ = metaengine.Query[any, any]("ok",
-		metaengine.OnTyped("e1", nil, f),
+		metaengine.OnRecordTyped("e1", nil, f),
 	)
 	_ = metaengine.Query[any, any]("amplified",
-		metaengine.OnTyped("e2", nil, f),
-		metaengine.OnTyped("e3", nil, f),
-		metaengine.OnTyped("e4", nil, f),
+		metaengine.OnRecordTyped("e2", nil, f),
+		metaengine.OnRecordTyped("e3", nil, f),
+		metaengine.OnRecordTyped("e4", nil, f),
 	)
 }
 

@@ -43,7 +43,7 @@ No metadata mutation. The event type `"task.deleted"` IS the signal.
 ### 2. Metaengine Projection — Remove on Delete
 
 ```go
-metaengine.OnTyped(
+metaengine.OnRecordTyped(
     string(evtTaskDeleted),
     projectionadapter.EventWithID[TaskDeletedPayload]{},
     metaengine.Remove[TaskView](),               // hard-remove from the Map ADT

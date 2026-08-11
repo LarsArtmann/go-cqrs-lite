@@ -209,37 +209,37 @@ type FriendsOfResult  struct { IDs []UserID }
 // ════════════ 3. QUERIES (event → result relationship) ════════════
 
 findUser := metaengine.Query[FindUser, FindUserResult]("find_user",
-    metaengine.On(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) {
+    metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) (UserID, FindUserResult) {
         return e.ID, FindUserResult{
             ID: e.ID, Name: e.Name, Email: e.Email,
             Status: "active", Country: e.Country, JoinedAt: e.At,
         }
     }),
-    metaengine.On(UserSuspended{}, func(e UserSuspended, prev FindUserResult) FindUserResult {
+    metaengine.OnRecord(UserSuspended{}, func(_ record.Record, e UserSuspended, prev FindUserResult) FindUserResult {
         prev.Status = "suspended"
         return prev
     }),
-    metaengine.On(UserDeleted{}, metaengine.Remove[FindUserResult]()),
+    metaengine.OnRecord(UserDeleted{}, metaengine.Remove[FindUserResult]()),
 
     metaengine.Volume(1_000_000), // optional cardinality hint
 )
 
 checkEmail := metaengine.Query[CheckEmail, CheckEmailResult]("check_email",
-    metaengine.On(UserCreated{}, func(e UserCreated) string {
+    metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) string {
         return e.Email // just the key — this is a Set
     }),
-    metaengine.On(UserDeleted{}, metaengine.Remove[string]()),
+    metaengine.OnRecord(UserDeleted{}, metaengine.Remove[string]()),
 )
 
 listByStatus := metaengine.Query[ListByStatus, ListByStatusResult]("list_by_status",
-    metaengine.On(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) {
+    metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) (UserID, FindUserResult) {
         return e.ID, FindUserResult{..., Status: "active", JoinedAt: e.At}
     }),
-    metaengine.On(UserSuspended{}, func(e UserSuspended, prev FindUserResult) FindUserResult {
+    metaengine.OnRecord(UserSuspended{}, func(_ record.Record, e UserSuspended, prev FindUserResult) FindUserResult {
         prev.Status = "suspended"
         return prev
     }),
-    metaengine.On(UserDeleted{}, metaengine.Remove[FindUserResult]()),
+    metaengine.OnRecord(UserDeleted{}, metaengine.Remove[FindUserResult]()),
 
     // Filter/sort declared via TYPED field accessors — no strings, no column names
     metaengine.FilterOn(func(r FindUserResult) string { return r.Status }),
@@ -247,19 +247,19 @@ listByStatus := metaengine.Query[ListByStatus, ListByStatusResult]("list_by_stat
 )
 
 countByStatus := metaengine.Query[CountByStatus, CountByStatusResult]("count_by_status",
-    metaengine.On(UserCreated{}, func(e UserCreated) metaengine.Delta {
+    metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) metaengine.Delta {
         return metaengine.Delta{"active": +1}
     }),
-    metaengine.On(UserSuspended{}, func(e UserSuspended) metaengine.Delta {
+    metaengine.OnRecord(UserSuspended{}, func(_ record.Record, e UserSuspended) metaengine.Delta {
         return metaengine.Delta{"active": -1, "suspended": +1}
     }),
-    metaengine.On(UserDeleted{}, func(e UserDeleted) metaengine.Delta {
+    metaengine.OnRecord(UserDeleted{}, func(_ record.Record, e UserDeleted) metaengine.Delta {
         return metaengine.Delta{"suspended": -1, "deleted": +1}
     }),
 )
 
 friendsOf := metaengine.Query[FriendsOf, FriendsOfResult]("friends_of",
-    metaengine.On(Friendship{}, func(e Friendship) metaengine.Edge {
+    metaengine.OnRecord(Friendship{}, func(_ record.Record, e Friendship) metaengine.Edge {
         return metaengine.Edge{From: e.From, To: e.To}
     }),
 )
@@ -291,31 +291,31 @@ type IS the declaration. The planner inspects it at startup.
 
 ```go
 // ══ MAP ADT ══
-metaengine.On(Event{}, func(e Event) (Key, Value) { ... })
+metaengine.OnRecord(Event{}, func(_ record.Record, e Event) (Key, Value) { ... })
 // Returns (key, value) → planner infers Map<Key, Value>
 // Physical structures: hash index (Pebble, Memory), B-tree table (SQLite)
 
 // ══ SET ADT ══
-metaengine.On(Event{}, func(e Event) Key { ... })
+metaengine.OnRecord(Event{}, func(_ record.Record, e Event) Key { ... })
 // Returns just a key → planner infers Set<Key>
 // Physical structures: hash set (Memory), Bloom filter (Memory/Pebble), UNIQUE index (SQL)
 
 // ══ COUNTER ADT ══
-metaengine.On(Event{}, func(e Event) metaengine.Delta { ... })
+metaengine.OnRecord(Event{}, func(_ record.Record, e Event) metaengine.Delta { ... })
 // Returns Delta{key: ±n} → planner infers Counter
 // Physical structures: atomic counter (Memory), rollup table (SQLite), HyperLogLog (approx)
 
 // ══ GRAPH ADT ══
-metaengine.On(Event{}, func(e Event) metaengine.Edge { ... })
+metaengine.OnRecord(Event{}, func(_ record.Record, e Event) metaengine.Edge { ... })
 // Returns Edge{From, To} → planner infers Graph
 // Physical structures: adjacency list (Memory), graph DB (Neo4j), recursive CTE (SQL)
 
 // ══ REMOVE signal ══
-metaengine.On(Event{}, metaengine.Remove[Value]())
+metaengine.OnRecord(Event{}, metaengine.Remove[Value]())
 // Returns Remove → signals deletion of this key from whatever ADT it's in
 
 // ══ SKIP signal ══
-metaengine.On(Event{}, func(e Event) metaengine.Skip { return metaengine.Skip })
+metaengine.OnRecord(Event{}, func(_ record.Record, e Event) metaengine.Skip { return metaengine.Skip })
 // Returns Skip → this event doesn't apply to this projection (no-op)
 ```
 
@@ -330,8 +330,8 @@ metaengine.On(Event{}, func(e Event) metaengine.Skip { return metaengine.Skip })
    → Developer is doing the planner's job manually. Column names as strings. Leaky.
 
 ✅ DERIVED (this design):
-   metaengine.On(Event{}, func(e Event) (Key, Value) { ... })  // return type = Map
-   metaengine.On(Event{}, func(e Event) metaengine.Delta { ... }) // return type = Counter
+   metaengine.OnRecord(Event{}, func(_ record.Record, e Event) (Key, Value) { ... })  // return type = Map
+   metaengine.OnRecord(Event{}, func(_ record.Record, e Event) metaengine.Delta { ... }) // return type = Counter
    → The fold function's signature IS the ADT declaration. No strings. No manual planning.
 ```
 
@@ -440,11 +440,11 @@ type UserCreated struct { ID UserID; Email, Name string }
 
 // A query fold can use metadata just like payload fields:
 metaengine.Query[AuditTrail, AuditResult]("user_audit_trail",
-    metaengine.On(UserCreated{}, func(e UserCreated, md metaengine.Metadata) (time.Time, AuditEntry) {
-        return md.Timestamp, AuditEntry{
+    metaengine.OnRecord(UserCreated{}, func(rec record.Record, e UserCreated) (time.Time, AuditEntry) {
+        return rec.MetaData.Timestamp, AuditEntry{
             Action: "created",
-            CorrelationID: md.CorrelationID,
-            CommandID: md.Causation.CommandID,
+            CorrelationID: rec.MetaData.CorrelationID,
+            CausationID: rec.MetaData.CausationID,
         }
     }),
     metaengine.RangeFilter("timestamp"),  // query by time range
@@ -500,14 +500,14 @@ type CommandsByUser struct { UserID UserID; Limit int }
 type CommandsByUserResult struct { Commands []CommandRecord; Next *metaengine.Cursor }
 
 commandsByUser := metaengine.Query[CommandsByUser, CommandsByUserResult]("commands_by_user",
-    metaengine.On(CommandSucceeded{}, func(c CommandSucceeded, md metaengine.Metadata) (UserID, CommandRecord) {
+    metaengine.OnRecord(CommandSucceeded{}, func(rec record.Record, c CommandSucceeded) (UserID, CommandRecord) {
         return extractUser(c.Payload), CommandRecord{
-            Type: c.Type, Timestamp: md.Timestamp, Payload: c.Payload,
+            Type: c.Type, Timestamp: rec.MetaData.Timestamp, Payload: c.Payload,
         }
     }),
-    metaengine.On(CommandRejected{}, func(c CommandRejected, md metaengine.Metadata) (UserID, CommandRecord) {
+    metaengine.OnRecord(CommandRejected{}, func(rec record.Record, c CommandRejected) (UserID, CommandRecord) {
         return extractUser(c.Payload), CommandRecord{
-            Type: c.Type, Rejected: true, Reason: c.Reason, Timestamp: md.Timestamp,
+            Type: c.Type, Rejected: true, Reason: c.Reason, Timestamp: rec.MetaData.Timestamp,
         }
     }),
 )
@@ -520,14 +520,14 @@ type WhatDidThisCommandCause struct { CommandID string }
 type WhatDidThisCommandCauseResult struct { Events []EventRecord; Commands []CommandRecord }
 
 causationChain := metaengine.Query[WhatDidThisCommandCause, WhatDidThisCommandCauseResult]("causation_chain",
-    metaengine.On(CommandSucceeded{}, func(c CommandSucceeded, md metaengine.Metadata) metaengine.Edge {
-        if md.Causation.CommandID != "" {
-            return metaengine.Edge{From: md.Causation.CommandID, To: c.ID}
+    metaengine.OnRecord(CommandSucceeded{}, func(rec record.Record, c CommandSucceeded) metaengine.Edge {
+        if rec.MetaData.CausationID != "" {
+            return metaengine.Edge{From: rec.MetaData.CausationID, To: c.ID}
         }
         return metaengine.Skip
     }),
-    metaengine.On(UserCreated{}, func(e UserCreated, md metaengine.Metadata) metaengine.Edge {
-        return metaengine.Edge{From: md.Causation.CommandID, To: e.ID}
+    metaengine.OnRecord(UserCreated{}, func(rec record.Record, e UserCreated) metaengine.Edge {
+        return metaengine.Edge{From: rec.MetaData.CausationID, To: e.ID}
     }),
 )
 ```
