@@ -256,6 +256,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"storage/pebble":                 "low-level Pebble store (covered by stack/pebble)",
 		"storage/turso":                  "low-level Turso connector (covered by stack/turso)",
 		"system":                         "system-level utilities (not a domain module)",
+		"system/integration":             "test sub-module (covered by system)",
 		"testutil":                       "test utility package",
 		"testutil/pgtestcontainer":       "test utility sub-package (covered by testutil)",
 	}

@@ -2,6 +2,8 @@ package commandlifecycle
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 	"sync"
 	"time"
@@ -10,17 +12,25 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// Recorder writes command lifecycle events to an [event.EventSink]. Each
-// method creates a lifecycle event and appends it to the command's lifecycle
-// stream (CommandLifecycle/<cmd-id>).
+// Recorder writes command lifecycle events to an [event.Store]. Each method
+// creates a lifecycle event and appends it to the command's lifecycle stream
+// (CommandLifecycle/<cmd-id>).
+//
+// Versions are derived from the store, not an ephemeral counter: on first
+// access to a stream the Recorder loads its current length and seeds the
+// in-memory counter. This makes the Recorder safe across process restarts.
+// Writes use [event.EventSink.Save] with optimistic concurrency so concurrent
+// writers to the same lifecycle stream are detected instead of silently
+// corrupting the stream.
 //
 // Recording is best-effort by default: if the sink write fails, the error is
 // logged and nil is returned (the command dispatch is not affected). Use
 // [WithStrict] to make recording failures propagate to the caller.
 type Recorder struct {
-	sink   event.EventSink
+	store  event.Store
 	logger *slog.Logger
 	strict bool
 	clock  func() time.Time
@@ -49,10 +59,13 @@ func WithClock(clock func() time.Time) RecorderOption {
 	return func(r *Recorder) { r.clock = clock }
 }
 
-// NewRecorder creates a Recorder that appends lifecycle events to sink.
-func NewRecorder(sink event.EventSink, opts ...RecorderOption) *Recorder {
+// NewRecorder creates a Recorder that appends lifecycle events to store.
+// The store must implement both [event.EventSink] and [event.EventSource]
+// (i.e. [event.Store]) so the Recorder can derive stream versions from the
+// existing event log and survive process restarts.
+func NewRecorder(store event.Store, opts ...RecorderOption) *Recorder {
 	r := &Recorder{
-		sink:     sink,
+		store:    store,
 		logger:   slog.Default(),
 		strict:   false,
 		clock:    time.Now,
@@ -69,6 +82,7 @@ func NewRecorder(sink event.EventSink, opts ...RecorderOption) *Recorder {
 // RecordReceived emits a command.received event.
 func (r *Recorder) RecordReceived(ctx context.Context, cmd command.Command) error {
 	return r.emit(ctx, cmd, TypeReceived, ReceivedPayload{
+		CommandID:       CommandKey(cmd.ID().String()),
 		CommandType:     cmd.Type().String(),
 		CommandStreamID: cmd.StreamID().String(),
 		ReceivedAt:      r.now(),
@@ -122,6 +136,7 @@ func (r *Recorder) RecordDeadLettered(
 // RecordCompleted emits a command.completed event after successful processing.
 func (r *Recorder) RecordCompleted(ctx context.Context, cmd command.Command) error {
 	return r.emit(ctx, cmd, TypeCompleted, CompletedPayload{
+		CommandID:   CommandKey(cmd.ID().String()),
 		CommandType: cmd.Type().String(),
 		CompletedAt: r.now(),
 	})
@@ -134,7 +149,11 @@ func (r *Recorder) emit(
 	payload any,
 ) error {
 	ref := LifecycleStreamRef(cmd)
-	version := r.nextVersion(ref.StreamKey())
+
+	version, err := r.nextVersion(ctx, ref.StreamKey(), ref)
+	if err != nil {
+		return r.handleError(err, "resolve lifecycle version", eventType, cmd)
+	}
 
 	evt, err := event.New(
 		eventType,
@@ -149,26 +168,51 @@ func (r *Recorder) emit(
 		return r.handleError(err, "create lifecycle event", eventType, cmd)
 	}
 
-	if err := r.sink.AppendBatch(ctx, ref, []event.Event{evt}); err != nil {
+	if err := r.store.Save(ctx, ref, []event.Event{evt}, version-1); err != nil {
 		return r.handleError(err, "append lifecycle event", eventType, cmd)
 	}
 
 	return nil
 }
 
-func (r *Recorder) nextVersion(streamKey string) event.Version {
+func (r *Recorder) nextVersion(
+	ctx context.Context,
+	streamKey string,
+	ref id.StreamRef,
+) (event.Version, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	v := r.versions[streamKey] + 1
-	r.versions[streamKey] = v
+	if _, ok := r.versions[streamKey]; !ok {
+		seed, err := r.seedVersion(ctx, ref)
+		if err != nil {
+			return 0, err
+		}
 
-	return v
+		r.versions[streamKey] = seed
+	}
+
+	r.versions[streamKey]++
+
+	return r.versions[streamKey], nil
 }
 
-// ResetVersion resets the version counter for a stream key. This is useful
-// when reconnecting to a persistent store where lifecycle events already
-// exist for a command.
+func (r *Recorder) seedVersion(ctx context.Context, ref id.StreamRef) (event.Version, error) {
+	existing, err := r.store.Load(ctx, ref)
+	if err != nil {
+		if errors.Is(err, event.ErrStreamNotFound) {
+			return 0, nil
+		}
+
+		return 0, fmt.Errorf("load lifecycle stream: %w", err)
+	}
+
+	return event.Version(len(existing)), nil
+}
+
+// ResetVersion clears the cached version for a stream key, forcing the next
+// emit to re-hydrate from the store. Useful when you know the stream was
+// modified externally (e.g. by another process).
 func (r *Recorder) ResetVersion(streamKey string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()

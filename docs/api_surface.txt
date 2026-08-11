@@ -581,9 +581,12 @@ commandlifecycle/method ResetVersion
 commandlifecycle/projections/func All
 commandlifecycle/projections/func DeadLetterQueue
 commandlifecycle/projections/func FailureLog
+commandlifecycle/projections/func ProcessingTime
 commandlifecycle/projections/func RetryCount
 commandlifecycle/projections/struct DeadLetterQuery
 commandlifecycle/projections/struct FailureLogQuery
+commandlifecycle/projections/struct ProcessingTimeEntry
+commandlifecycle/projections/struct ProcessingTimeQuery
 commandlifecycle/projections/struct RetryCountQuery
 commandlifecycle/projections/type DeadLetterEntry
 commandlifecycle/struct CompletedPayload
@@ -592,6 +595,7 @@ commandlifecycle/struct FailedPayload
 commandlifecycle/struct ReceivedPayload
 commandlifecycle/struct Recorder
 commandlifecycle/struct RetriedPayload
+commandlifecycle/type CommandKey
 commandlifecycle/type RecorderOption
 decider/const DefaultStateCacheCapacity
 decider/func NewRepository
@@ -3779,6 +3783,7 @@ system/func RegisterCommand
 system/func RegisterDecider
 system/func RegisterQuery
 system/func Where
+system/func WithCommandLifecycle
 system/func WithCommandSerialization
 system/func WithQuerySerialization
 system/func WithSerialization
@@ -3876,6 +3881,7 @@ system/struct CacheConfig
 system/struct CacheTierInfo
 system/struct CachedEventStore
 system/struct CommandAdapter
+system/struct CommandLifecycleResult
 system/struct CountInput
 system/struct DeploymentConfig
 system/struct DispatcherInfo

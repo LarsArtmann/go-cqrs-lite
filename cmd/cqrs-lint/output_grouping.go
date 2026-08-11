@@ -17,7 +17,7 @@ import (
 // reason, for use with --show-suppressed. These findings are excluded from
 // the normal output, health score, and exit-code check — this is an audit view.
 func formatSuppressedFindings(w io.Writer, findings []finding.Finding, cm output.ColorMode) {
-	useColor := shouldColor(cm, w)
+	useColor := cm.ShouldColor()
 
 	_, _ = fmt.Fprintf(w, "\n--- Suppressed Findings (%d) ---\n\n", len(findings))
 
@@ -105,7 +105,7 @@ func outputFindings(ctx context.Context, findings []finding.Finding, cfg *AppCon
 // printFindingsGrouped prints findings grouped by module directory.
 // Each group is preceded by a header showing the module path and finding count.
 func printFindingsGrouped(w io.Writer, findings []finding.Finding, cm output.ColorMode) {
-	useColor := shouldColor(cm, w)
+	useColor := cm.ShouldColor()
 
 	groups := groupFindingsByModule(findings)
 
@@ -213,7 +213,7 @@ func groupFindingsByAggregate(findings []finding.Finding) []findingGroup {
 // Each group is preceded by a header showing the aggregate name and finding
 // count. Groups are ordered by severity (most findings first).
 func printFindingsByAggregate(w io.Writer, findings []finding.Finding, cm output.ColorMode) {
-	useColor := shouldColor(cm, w)
+	useColor := cm.ShouldColor()
 
 	groups := groupFindingsByAggregate(findings)
 

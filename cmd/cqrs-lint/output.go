@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"os"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -13,38 +12,18 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules"
 )
 
+// parseColorMode resolves a --color flag value into a go-output ColorMode.
+// It delegates to output.ParseColorMode so the accepted values, case mapping,
+// and error type stay in lockstep with the library that actually consumes the
+// mode. Invalid input falls back to ColorModeAuto (lenient, preserves prior
+// behavior) instead of failing the whole run over a cosmetic flag.
 func parseColorMode(s string) output.ColorMode {
-	switch strings.ToLower(s) {
-	case "always":
-		return output.ColorModeAlways
-	case "never":
-		return output.ColorModeNever
-	default:
+	cm, err := output.ParseColorMode(strings.ToLower(s))
+	if err != nil {
 		return output.ColorModeAuto
 	}
-}
 
-func shouldColor(cm output.ColorMode, w io.Writer) bool {
-	switch cm {
-	case output.ColorModeAlways:
-		return true
-	case output.ColorModeNever:
-		return false
-	case output.ColorModeAuto:
-		f, ok := w.(*os.File)
-		if !ok {
-			return false
-		}
-
-		info, err := f.Stat()
-		if err != nil {
-			return false
-		}
-
-		return (info.Mode() & os.ModeCharDevice) != 0
-	default:
-		return false
-	}
+	return cm
 }
 
 // ANSI color codes for terminal output.
@@ -145,7 +124,7 @@ func renderHealthScore(hs HealthScore, colorMode output.ColorMode) string {
 }
 
 func formatFindingsText(w io.Writer, findings []finding.Finding, cm output.ColorMode) {
-	useColor := shouldColor(cm, w)
+	useColor := cm.ShouldColor()
 
 	for _, f := range findings {
 		sevStr := strings.ToUpper(f.Severity.String())

@@ -371,7 +371,10 @@ func TestExceptionsAreMinimal(t *testing.T) {
 		}
 		if m := layerRe.FindStringSubmatch(line); m != nil {
 			n, _ := strconv.Atoi(m[2])
-			layers[m[1]] = n
+			// Normalize " / " → "/" so LAYER[storage / memory] matches EXCEPTIONS dep "storage/memory".
+			// The shell script uses spaces around "/" for readability in multi-segment keys.
+			normalizedKey := strings.ReplaceAll(m[1], " / ", "/")
+			layers[normalizedKey] = n
 		}
 	}
 	if len(layers) == 0 {

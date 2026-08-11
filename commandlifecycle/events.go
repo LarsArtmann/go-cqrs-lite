@@ -64,8 +64,16 @@ const (
 	TypeCompleted event.Type = event.Type("command.completed")
 )
 
+// CommandKey is a named string type used for command IDs in lifecycle event
+// payloads. The distinct type enables unambiguous key extraction in
+// metaengine projections that join events by command ID (e.g. ProcessingTime).
+type CommandKey string
+
 // ReceivedPayload is the payload for command.received events.
 type ReceivedPayload struct {
+	// CommandID is the unique identifier of the command.
+	CommandID CommandKey `json:"commandId"`
+
 	// CommandType is the type of the command that was received.
 	CommandType string `json:"commandType"`
 
@@ -120,6 +128,9 @@ type DeadLetteredPayload struct {
 
 // CompletedPayload is the payload for command.completed events.
 type CompletedPayload struct {
+	// CommandID is the unique identifier of the command.
+	CommandID CommandKey `json:"commandId"`
+
 	// CommandType is the type of the command that completed.
 	CommandType string `json:"commandType"`
 

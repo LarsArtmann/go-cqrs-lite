@@ -28,6 +28,8 @@
 package projections
 
 import (
+	"time"
+
 	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
@@ -112,6 +114,57 @@ func FailureLog() metaengine.QueryDecl[FailureLogQuery, []commandlifecycle.Faile
 	)
 }
 
+// ProcessingTimeQuery queries the processing time for a specific command.
+type ProcessingTimeQuery struct {
+	CommandID commandlifecycle.CommandKey `json:"commandId"`
+}
+
+// ProcessingTimeEntry is the materialized view of a command's processing time.
+// It captures the delta between command.received and command.completed.
+type ProcessingTimeEntry struct {
+	CommandID   commandlifecycle.CommandKey `json:"commandId"`
+	ReceivedAt  time.Time                   `json:"receivedAt"`
+	CompletedAt time.Time                   `json:"completedAt"`
+	DurationMs  int64                       `json:"durationMs"`
+}
+
+// ProcessingTime returns a metaengine projection declaration that folds
+// command.received and command.completed events into a Map keyed by command ID.
+// The received event seeds the entry with ReceivedAt; the completed event
+// updates it with CompletedAt and computes the duration in milliseconds.
+//
+// ADT: Map (key = CommandKey from payload.CommandID, insert on received, update on completed).
+func ProcessingTime() metaengine.QueryDecl[ProcessingTimeQuery, ProcessingTimeEntry] {
+	return metaengine.Query[ProcessingTimeQuery, ProcessingTimeEntry](
+		"command_processing_time",
+		metaengine.OnRecordTyped(
+			string(commandlifecycle.TypeReceived),
+			commandlifecycle.ReceivedPayload{}, //nolint:exhaustruct // type inference hint for OnRecordTyped
+			func(_ record.Record, p commandlifecycle.ReceivedPayload) (commandlifecycle.CommandKey, ProcessingTimeEntry) {
+				return p.CommandID, ProcessingTimeEntry{
+					CommandID:   p.CommandID,
+					ReceivedAt:  p.ReceivedAt,
+					CompletedAt: time.Time{},
+					DurationMs:  0,
+				}
+			},
+		),
+		metaengine.OnRecordTyped(
+			string(commandlifecycle.TypeCompleted),
+			commandlifecycle.CompletedPayload{}, //nolint:exhaustruct // type inference hint for OnRecordTyped
+			func(_ record.Record, p commandlifecycle.CompletedPayload, prev ProcessingTimeEntry) ProcessingTimeEntry {
+				prev.CompletedAt = p.CompletedAt
+
+				if !prev.ReceivedAt.IsZero() {
+					prev.DurationMs = p.CompletedAt.Sub(prev.ReceivedAt).Milliseconds()
+				}
+
+				return prev
+			},
+		),
+	)
+}
+
 // All returns all pre-built lifecycle projection declarations. Pass them to
 // metaengine.Plan or system.DomainConfig.Projections.
 func All() []any {
@@ -119,5 +172,6 @@ func All() []any {
 		DeadLetterQueue(),
 		RetryCount(),
 		FailureLog(),
+		ProcessingTime(),
 	}
 }

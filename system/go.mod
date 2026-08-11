@@ -9,6 +9,8 @@ require (
 	github.com/knadh/koanf/v2 v2.3.6
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
@@ -101,3 +103,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.75.3 // indirect
 )
+
+replace github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 => ../commandlifecycle
+
+replace github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 => ../commandlifecycle/projections

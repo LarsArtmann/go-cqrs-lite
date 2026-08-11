@@ -3,6 +3,7 @@ package projections_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	. "github.com/onsi/gomega"
 
@@ -23,6 +24,7 @@ func TestDeclarations_ConstructWithoutPanic(t *testing.T) {
 		{"DeadLetterQueue", func() any { return projections.DeadLetterQueue() }},
 		{"RetryCount", func() any { return projections.RetryCount() }},
 		{"FailureLog", func() any { return projections.FailureLog() }},
+		{"ProcessingTime", func() any { return projections.ProcessingTime() }},
 	}
 
 	for _, tt := range tests {
@@ -34,12 +36,12 @@ func TestDeclarations_ConstructWithoutPanic(t *testing.T) {
 	}
 }
 
-func TestAll_ReturnsThreeDeclarations(t *testing.T) {
+func TestAll_ReturnsFourDeclarations(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
 	all := projections.All()
-	g.Expect(all).To(HaveLen(3))
+	g.Expect(all).To(HaveLen(4))
 }
 
 func TestAll_ProjectionsPlanTogether(t *testing.T) {
@@ -109,6 +111,16 @@ func TestDeadLetterQueue_AppliesAndStores(t *testing.T) {
 		makeRecord("command.dead-lettered", cmdID),
 		dlPayload,
 	)).To(Succeed())
+
+	result, err := metaengine.ExecuteTyped[projections.DeadLetterQuery, projections.DeadLetterEntry](
+		context.Background(),
+		store,
+		projections.DeadLetterQuery{CommandID: cmdID.String()},
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result.CommandType).To(Equal("create_user"))
+	g.Expect(result.Error).To(Equal("database timeout"))
+	g.Expect(result.Attempts).To(Equal(3))
 }
 
 func TestFailureLog_AppliesAndAppends(t *testing.T) {
@@ -132,6 +144,63 @@ func TestFailureLog_AppliesAndAppends(t *testing.T) {
 			},
 		)).To(Succeed())
 	}
+
+	result, err := metaengine.ExecuteTyped[projections.FailureLogQuery, []commandlifecycle.FailedPayload](
+		context.Background(),
+		store,
+		projections.FailureLogQuery{Limit: 10},
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).To(HaveLen(3))
+	g.Expect(result[0].Error).To(Equal("timeout"))
+	g.Expect(result[0].Attempt).To(Equal(1))
+	g.Expect(result[2].Attempt).To(Equal(3))
+}
+
+func TestProcessingTime_AppliesAndComputesDuration(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	store, err := metaengine.Plan(
+		[]metaengine.Engine{metaengine.NewMemoryEngine()},
+		projections.ProcessingTime(),
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	cmdID := id.NewCommandID()
+	received := time.Date(2026, 8, 11, 10, 0, 0, 0, time.UTC)
+	completed := received.Add(150 * time.Millisecond)
+
+	g.Expect(store.ApplyRecord(
+		context.Background(),
+		makeRecord("command.received", cmdID),
+		commandlifecycle.ReceivedPayload{
+			CommandID:   commandlifecycle.CommandKey(cmdID.String()),
+			CommandType: "create_user",
+			ReceivedAt:  received,
+		},
+	)).To(Succeed())
+
+	g.Expect(store.ApplyRecord(
+		context.Background(),
+		makeRecord("command.completed", cmdID),
+		commandlifecycle.CompletedPayload{
+			CommandID:   commandlifecycle.CommandKey(cmdID.String()),
+			CommandType: "create_user",
+			CompletedAt: completed,
+		},
+	)).To(Succeed())
+
+	result, err := metaengine.ExecuteTyped[projections.ProcessingTimeQuery, projections.ProcessingTimeEntry](
+		context.Background(),
+		store,
+		projections.ProcessingTimeQuery{CommandID: commandlifecycle.CommandKey(cmdID.String())},
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result.CommandID).To(Equal(commandlifecycle.CommandKey(cmdID.String())))
+	g.Expect(result.ReceivedAt).To(Equal(received))
+	g.Expect(result.CompletedAt).To(Equal(completed))
+	g.Expect(result.DurationMs).To(Equal(int64(150)))
 }
 
 func makeRecord(eventType string, cmdID id.CommandID) record.Record {

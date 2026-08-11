@@ -755,9 +755,26 @@ defer bundle.Close() // stops recorder automatically
 
 Track the full lifecycle of commands — received, failed, retried,
 dead-lettered, completed — as event streams. Dead-letter queues, retry
-counts, and failure logs emerge as projections.
+counts, failure logs, and processing time emerge as projections.
 
-**Wire the middleware** (best-effort by default):
+**One-call wiring** (via `system.WithCommandLifecycle`):
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/system/v4"
+
+cl := system.WithCommandLifecycle(eventStore)
+
+config := system.DomainConfig{
+    Middleware: []command.Middleware{
+        cl.OuterMiddleware,                    // received, completed, dead-lettered
+        middleware.CommandRetry(config),       // handles retries
+        cl.AttemptMiddleware,                  // failed, retried (per attempt)
+    },
+    Projections: cl.Projections,               // DLQ, RetryCount, FailureLog, ProcessingTime
+}
+```
+
+**Manual wiring** (if not using `system.DomainConfig`):
 
 ```go
 import "github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
@@ -788,9 +805,10 @@ store, _ := metaengine.Plan(engines,
     projections.DeadLetterQueue(),
     projections.RetryCount(),
     projections.FailureLog(),
+    projections.ProcessingTime(),
 )
 
-// DLQ: "Which commands are dead-lettered?"
+// DLQ: "Is cmd-01J... dead-lettered?"
 result, _ := metaengine.ExecuteTyped[projections.DeadLetterQuery, projections.DeadLetterEntry](
     ctx, store, projections.DeadLetterQuery{CommandID: "01J..."},
 )
@@ -799,15 +817,21 @@ result, _ := metaengine.ExecuteTyped[projections.DeadLetterQuery, projections.De
 counts, _ := metaengine.ExecuteTyped[projections.RetryCountQuery, map[string]int64](
     ctx, store, projections.RetryCountQuery{},
 )
+
+// Processing time: "How long did cmd-01J... take?"
+pt, _ := metaengine.ExecuteTyped[projections.ProcessingTimeQuery, projections.ProcessingTimeEntry](
+    ctx, store, projections.ProcessingTimeQuery{CommandID: "01J..."},
+)
+// pt.DurationMs is the delta between received and completed
 ```
 
-| Event type               | Emitted when                  | Projection   |
-| ------------------------ | ----------------------------- | ------------ |
-| `command.received`       | Server accepts command        | (lifecycle)  |
-| `command.failed`         | Single attempt fails          | FailureLog   |
-| `command.retried`        | Before each retry             | RetryCount   |
-| `command.dead-lettered`  | All retries exhausted         | DLQ          |
-| `command.completed`      | Command processed successfully | (lifecycle) |
+| Event type               | Emitted when                   | Projection      |
+| ------------------------ | ------------------------------ | --------------- |
+| `command.received`       | Server accepts command         | ProcessingTime  |
+| `command.failed`         | Single attempt fails           | FailureLog      |
+| `command.retried`        | Before each retry              | RetryCount      |
+| `command.dead-lettered`  | All retries exhausted          | DLQ             |
+| `command.completed`      | Command processed successfully | ProcessingTime  |
 
 ## Metadata Serialization in KV Engines (Contributor Note)
 

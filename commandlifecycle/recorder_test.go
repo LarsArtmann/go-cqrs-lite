@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	. "github.com/onsi/gomega"
 
@@ -179,6 +180,35 @@ func TestRecorder_VersionIncrementing(t *testing.T) {
 
 	events := loadLifecycleEvents(t, store, cmd)
 	g.Expect(events).To(HaveLen(4))
+	g.Expect(events[0].Version()).To(Equal(event.Version(1)))
+	g.Expect(events[1].Version()).To(Equal(event.Version(2)))
+	g.Expect(events[2].Version()).To(Equal(event.Version(3)))
+	g.Expect(events[3].Version()).To(Equal(event.Version(4)))
+}
+
+func TestRecorder_SurvivesRestart_VersionContinuity(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	store := newMemoryStore(t)
+	cmd := newTestCommand(t)
+
+	// First "process" records two events.
+	rec1 := commandlifecycle.NewRecorder(store)
+	g.Expect(rec1.RecordReceived(context.Background(), cmd)).To(Succeed())
+	g.Expect(rec1.RecordFailed(context.Background(), cmd, errors.New("boom"), 1)).To(Succeed())
+
+	events := loadLifecycleEvents(t, store, cmd)
+	g.Expect(events).To(HaveLen(2))
+
+	// Simulate restart: a brand-new Recorder with no in-memory cache.
+	rec2 := commandlifecycle.NewRecorder(store)
+	g.Expect(rec2.RecordRetried(context.Background(), cmd, 1)).To(Succeed())
+	g.Expect(rec2.RecordCompleted(context.Background(), cmd)).To(Succeed())
+
+	events = loadLifecycleEvents(t, store, cmd)
+	g.Expect(events).To(HaveLen(4))
+	// Versions continue from where the store left off — no reset to 1.
 	g.Expect(events[0].Version()).To(Equal(event.Version(1)))
 	g.Expect(events[1].Version()).To(Equal(event.Version(2)))
 	g.Expect(events[2].Version()).To(Equal(event.Version(3)))
@@ -441,7 +471,7 @@ func TestNew_FullRetryScenario_ExhaustedAllAttempts(t *testing.T) {
 	g.Expect(payload.Error).To(Equal("always fails"))
 }
 
-// closedSink is an EventSink that always errors, simulating a broken store.
+// closedSink is an event.Store that always errors, simulating a broken store.
 type closedSink struct{}
 
 func (closedSink) Save(_ context.Context, _ id.StreamRef, _ []event.Event, _ event.Version) error {
@@ -450,4 +480,32 @@ func (closedSink) Save(_ context.Context, _ id.StreamRef, _ []event.Event, _ eve
 
 func (closedSink) AppendBatch(_ context.Context, _ id.StreamRef, _ []event.Event) error {
 	return errors.New("sink closed")
+}
+
+func (closedSink) Load(_ context.Context, _ id.StreamRef) ([]event.Event, error) {
+	return nil, errors.New("sink closed")
+}
+
+func (closedSink) LoadFromVersion(
+	_ context.Context,
+	_ id.StreamRef,
+	_ event.Version,
+) ([]event.Event, error) {
+	return nil, errors.New("sink closed")
+}
+
+func (closedSink) LoadToVersion(
+	_ context.Context,
+	_ id.StreamRef,
+	_ event.Version,
+) ([]event.Event, error) {
+	return nil, errors.New("sink closed")
+}
+
+func (closedSink) LoadToTimestamp(
+	_ context.Context,
+	_ id.StreamRef,
+	_ time.Time,
+) ([]event.Event, error) {
+	return nil, errors.New("sink closed")
 }
