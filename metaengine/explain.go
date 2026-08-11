@@ -303,6 +303,8 @@ func (s *Store) Doctor(ctx context.Context) string {
 		b.WriteString("  all engines local\n")
 	}
 
+	b.WriteString(s.degradedDoctorSection())
+
 	b.WriteString("\n--- Routing ---\n")
 
 	s.mu.RLock()
