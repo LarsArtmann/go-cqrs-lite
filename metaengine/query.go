@@ -53,18 +53,22 @@ type layoutAssignment struct {
 }
 
 // WithLayoutPriority sets a per-query layout priority override (ADR-0124
-// Layer 4). This is the developer-side counterpart to the operator's
-// DeploymentConfig priorities: the developer pins the layout objective for
-// ONE query, the operator still controls Global/per-Engine priorities.
+// Layer 4, clarified by ADR-0125). This is the developer-side counterpart to
+// the operator's DeploymentConfig priorities: the developer pins the layout
+// objective for ONE query, the operator still controls Global/per-Engine
+// priorities.
+//
+// LAYOUT-ONLY: This option influences the physical layout (Embed vs Normalize)
+// via SelectLayout. It does NOT influence engine ranking — engine selection is
+// 100% the operator's call via PriorityConfig (ADR-0125).
 //
 // The most specific priority wins:
 //
-//	per-Query (this) > per-Query (operator config) > per-Engine > Global
+//	per-Query (operator config) > per-Query (this) > per-Engine > Global
 //
-// Query name in the operator's PriorityConfig.PerQuery map still takes
-// precedence over this option: operator wins over developer. Use
-// WithLayoutPriority when a single query has a different optimization
-// objective than the rest of the deployment.
+// The operator's PriorityConfig.PerQuery map takes precedence over this option:
+// operator wins over developer. Use WithLayoutPriority when a single query has
+// a different optimization objective than the rest of the deployment.
 func WithLayoutPriority(p Priority) QueryOption {
 	return func(c *QueryConfig) {
 		if p.Valid() {

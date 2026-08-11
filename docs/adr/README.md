@@ -226,5 +226,6 @@ watermill/     — Watermill protocol adapter
 | [0122](0122-withclock-injectable-time.md)                    | WithClock — Injectable Time for CRDT Testing               | 2026-08-09 | Accepted                                                                                                                      |
 | [0123](0123-v5-unification-single-composition-root.md)       | v5 Unification — Single Composition Root                   | 2026-08-09 | Proposed                                                                                                                      |
 | [0124](0124-operator-driven-layout-planning.md)              | Operator-Driven Layout Planning                            | 2026-08-11 | Accepted                                                                                                                      |
+| [0125](0125-developer-priority-is-layout-only.md)            | Developer Priority Is Layout-Only                          | 2026-08-11 | Accepted                                                                                                                      |
 
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).

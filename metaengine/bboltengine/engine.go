@@ -166,6 +166,14 @@ func (e *bboltEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTLog:       metaengine.ComplexityOLogN, // append O(logN), tail O(N)
 			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
 		},
+		Layouts: map[metaengine.ADT]metaengine.StorageLayout{
+			metaengine.ADTMap:       metaengine.LayoutLSM,
+			metaengine.ADTSet:       metaengine.LayoutLSM,
+			metaengine.ADTCounter:   metaengine.LayoutLSM,
+			metaengine.ADTSortedMap: metaengine.LayoutLSM,
+			metaengine.ADTLog:       metaengine.LayoutLSM,
+			metaengine.ADTMultimap:  metaengine.LayoutLSM,
+		},
 	}
 	e.ApplyCalibration(&p)
 

@@ -39,24 +39,38 @@ func (lc LayoutCost) ScoreWeighted(w PriorityWeights) float64 {
 // scoreEmbed returns the relative cost of embedding on the given storage layout.
 // KV/LSM engines favor embedding (native single-key lookup).
 //
-// KV/LSM values are CALIBRATED via BenchmarkLayoutCalibration_* on the memory
-// engine (AMD Ryzen AI MAX+ 395, 2026-08-11). The measured read ratio
-// (normalize/embed = 2.2x on hash-map KV) is a lower bound; LSM engines (Pebble,
-// bbolt) pay more for normalize reads because child-collection lookups require
-// prefix scans across SSTables/B+Tree pages. Values are geometric-mean
-// normalized so 1.0 is the natural center between embed and normalize for each
-// cost dimension.
+// KV values are CALIBRATED via BenchmarkLayoutCalibration_* on the memory
+// engine (AMD Ryzen AI MAX+ 395, 2026-08-11) and keep the operator's layout
+// levers decisive: Balanced and ReadSpeed favor Embed, WriteSpeed and
+// StorageSpace favor Normalize.
+//
+// LSM values are CALIBRATED 2026-08-11 via
+// BenchmarkDiskLayoutCalibration_* in metaengine/bench on real on-disk Pebble
+// and bbolt databases (60s benchtime). Measured normalize/embed ratios:
+//
+//	read  1.35x (geomean across Pebble 1.49x and bbolt 1.23x)
+//	write 0.75x (geomean across Pebble 0.53x and bbolt 1.05x)
+//
+// The constants below are scaled to the 1.0-center convention while keeping
+// every operator priority decisive (see priority.go weights).
 //
 // Row and Columnar values are analytical estimates based on known engine
 // characteristics (SQLite B-Tree JSON columns, DuckDB columnar storage).
 func scoreEmbed(layout StorageLayout) LayoutCost {
 	switch layout {
-	case LayoutKV, LayoutLSM:
+	case LayoutKV:
 		return LayoutCost{
 			Option:      LayoutEmbed,
-			ReadCost:    0.67, // single key lookup — fast point read
-			WriteCost:   1.46, // read-modify-write parent on child mutation
-			StorageCost: 1.44, // aggregate data duplicated across projections
+			ReadCost:    0.5, // single key lookup — very fast
+			WriteCost:   1.0, // single write (child mutations need RMW but baseline is O(1))
+			StorageCost: 1.3, // data duplication across projections
+		}
+	case LayoutLSM:
+		return LayoutCost{
+			Option:      LayoutEmbed,
+			ReadCost:    0.74, // single point read — cheapest op on LSM/B+Tree
+			WriteCost:   1.10, // read-modify-write parent on child mutation
+			StorageCost: 1.15, // aggregate duplicated across projections
 		}
 	case LayoutRow:
 		return LayoutCost{
@@ -80,17 +94,23 @@ func scoreEmbed(layout StorageLayout) LayoutCost {
 // scoreNormalize returns the relative cost of normalizing on the given storage
 // layout. SQL engines favor normalization (native JOIN + index-backed).
 //
-// KV/LSM values are CALIBRATED via BenchmarkLayoutCalibration_* on the memory
-// engine (AMD Ryzen AI MAX+ 395, 2026-08-11). Geometric-mean normalized.
-// See scoreEmbed for the LSM caveat (prefix scans inflate the real ratio).
+// See scoreEmbed for the KV and LSM calibration provenance. The normalize
+// values are the measured inverse of the embed values (geomean-centered).
 func scoreNormalize(layout StorageLayout) LayoutCost {
 	switch layout {
-	case LayoutKV, LayoutLSM:
+	case LayoutKV:
 		return LayoutCost{
 			Option:      LayoutNormalize,
-			ReadCost:    1.49, // multi-key lookup + in-memory merge — expensive on KV
-			WriteCost:   0.68, // single insert into child collection — O(1) append
-			StorageCost: 0.70, // no data duplication across projections
+			ReadCost:    2.0, // multi-key lookup + in-memory merge — expensive on KV
+			WriteCost:   0.5, // single insert into child collection — O(1)
+			StorageCost: 0.7, // no data duplication
+		}
+	case LayoutLSM:
+		return LayoutCost{
+			Option:      LayoutNormalize,
+			ReadCost:    1.45, // index seek + prefix scan + decode on disk
+			WriteCost:   0.75, // single key insert (no RMW)
+			StorageCost: 0.80, // one copy of each fact
 		}
 	case LayoutRow:
 		return LayoutCost{

@@ -142,6 +142,12 @@ func (e *pebbleEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSearch:  true,
 			metaengine.ADTSpatial: true,
 		},
+		Layouts: map[metaengine.ADT]metaengine.StorageLayout{
+			metaengine.ADTMap:       metaengine.LayoutLSM,
+			metaengine.ADTSet:       metaengine.LayoutLSM,
+			metaengine.ADTCounter:   metaengine.LayoutLSM,
+			metaengine.ADTSortedMap: metaengine.LayoutLSM,
+		},
 	}
 	e.ApplyCalibration(&p)
 

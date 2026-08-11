@@ -16,7 +16,8 @@ const (
 	LayoutColumnar StorageLayout = "columnar"
 
 	// LayoutLSM stores data in a log-structured merge tree — optimal for
-	// write-heavy workloads with point reads. Used by Pebble.
+	// write-heavy workloads with point reads. Used by Pebble, bbolt (B+Tree,
+	// disk-backed). Scored with disk-measured constants (see layout_scoring.go).
 	LayoutLSM StorageLayout = "lsm"
 
 	// LayoutKV stores data as key-value pairs — optimal for simple
