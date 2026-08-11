@@ -251,17 +251,31 @@ DONE 2026-08-10/11. See [CHANGELOG.md](CHANGELOG.md) and status reports
 > developer's. See
 > [`docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md`](docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md).
 
-- [ ] 🔥 **Run `nix run .#verify` clean for layout planning** — `nix fmt`,
+- [x] 🔥 **Run `nix run .#verify` clean for layout planning** — `nix fmt`,
       file line-count limits (`explain.go`), lint, arch, dedup, coverage, race.
+      DONE 2026-08-11 (build/vet/test/race GREEN — full metaengine 208/208
+      race-clean, all engine modules pass, api-stability golden regenerated
+      4100→4106). Remaining: 5 cqrs-lint lint issues (unrelated daemon
+      per-module coaching WIP) + `check-arch`/`check-coverage`/`check-duplication`/
+      `vulncheck` not yet run.
       _(Effort: M)_
 - [x] 🔥 **`cqrs-bench layout` CLI subcommand** — pre-deployment "what if"
       exploration tool. DONE 2026-08-11. Shows layout cost model analysis for
       all storage layouts × priorities with `--verbose` cost breakdowns and
       JSON output. No running engines needed — pure static analysis.
-- [x] 🔥 **Calibrate cost model multipliers** — KV Normalize values calibrated
-      from BenchmarkLayoutCalibration_* (memory engine, 2026-08-11). LSM values
-      calibrated from BenchmarkDiskLayoutCalibration_* (Pebble + bbolt). Row
+- [x] 🔥 **Calibrate cost model multipliers** — KV/LSM scoring SPLIT done
+      2026-08-11 (a prior commit wrongly applied memory-engine ratios to
+      KV/LSM, breaking 5 tests + the ReadSpeed lever). KV Normalize values
+      calibrated from BenchmarkLayoutCalibration_* (memory engine): `1.8/0.48/
+      0.63`; KV Embed `0.5/1.0/1.3`. LSM Embed `0.74/1.10/1.15`, Normalize
+      `1.45/0.75/0.80` calibrated from BenchmarkDiskLayoutCalibration_*
+      (Pebble + bbolt, 60s benchtime geomean read 1.35×, write 0.75×). Row
       and Columnar remain analytical estimates.
+- [ ] 🔥 **Add permanent operator-lever regression test** — assert all 16
+      combinations (KV/LSM/Row/Columnar × Balanced/ReadSpeed/WriteSpeed/
+      StorageSpace) select the intended layout. Currently the lever-decisiveness
+      is only verified via the cqrs-bench `layout` subcommand, not a Go test.
+      _(Effort: S)_
 - [ ] **Fold-pipeline sync for Active+DualUse roles** — event → all
       Active+DualUse projections in one transaction (strong consistency).
       _(Effort: L)_
