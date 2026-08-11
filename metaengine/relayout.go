@@ -90,8 +90,10 @@ func (s *Store) ReplanLayout(ctx context.Context, pc *PriorityConfig) ([]LayoutD
 
 		newOption, _ := SelectLayout(profile, resolvedPriority)
 
-		// The current layout is Embed by default (existing behavior)
-		currentOption := LayoutEmbed
+		// Read the actual current layout from the plan (computed during the
+		// last Plan/Replan pass). Falls back to Embed for plans created before
+		// the Layout field was added (ADR-0124 convergence).
+		currentOption := s.currentLayoutForQuery(name)
 
 		if newOption != currentOption {
 			vol := q.QueryConfig().Volume
@@ -168,4 +170,22 @@ func (s *Store) ConfirmRebuild(ctx context.Context, diffs []LayoutDiff) error {
 // sortedQueryNames returns query names in sorted order for deterministic output.
 func sortedQueryNames(queries map[string]queryMeta) []string {
 	return slices.Sorted(maps.Keys(queries))
+}
+
+// currentLayoutForQuery reads the LayoutOption recorded for the named query in
+// the current plan. Returns LayoutEmbed when the plan is nil or the query has
+// no recorded layout (backward compat for plans created before ADR-0124
+// convergence). Must be called with s.mu held (at least RLock).
+func (s *Store) currentLayoutForQuery(queryName string) LayoutOption {
+	if s.plan == nil {
+		return LayoutEmbed
+	}
+
+	for _, q := range s.plan.Queries {
+		if q.QueryName == queryName && q.Layout != "" {
+			return q.Layout
+		}
+	}
+
+	return LayoutEmbed
 }
