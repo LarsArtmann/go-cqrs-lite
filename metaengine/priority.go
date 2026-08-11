@@ -1,5 +1,10 @@
 package metaengine
 
+import (
+	"context"
+	"fmt"
+)
+
 // Priority represents an operator's optimization objective for layout planning
 // (ADR-0124). The priority weights the cost model's scoring function, influencing
 // which engine/layout the planner selects for each query.
@@ -135,4 +140,37 @@ func priorityFactor(p Priority, c Complexity) float64 {
 // per-Query → per-Engine → Global → Balanced (default).
 func WithPriorityConfig(pc *PriorityConfig) planOption {
 	return func(c *planConfig) { c.priority = pc }
+}
+
+// SetPriority changes the operator's layout priority at runtime and triggers a
+// re-plan so queries are re-scored under the new weights (ADR-0124 §5). This is
+// the primary runtime API for adjusting layout decisions after Plan() returns.
+//
+// After SetPriority, call ReplanLayout to see which projections would change
+// layout, then ConfirmRebuild to execute rebuilds that exceed the auto-rebuild
+// threshold.
+func (s *Store) SetPriority(ctx context.Context, pc *PriorityConfig) error {
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("metaengine.Store.SetPriority: %w", err)
+	}
+
+	s.mu.Lock()
+	s.priorityConfig = pc
+	s.mu.Unlock()
+
+	return s.Replan(ctx)
+}
+
+// resolvedPriority returns the effective priority for a given engine+query,
+// reading from the stored priorityConfig. Returns PriorityBalanced when no
+// config is set.
+func (s *Store) resolvedPriority(engineName, queryName string) Priority {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.priorityConfig == nil {
+		return PriorityBalanced
+	}
+
+	return s.priorityConfig.Resolve(engineName, queryName)
 }

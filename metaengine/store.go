@@ -35,6 +35,7 @@ type Store struct {
 	routingMu         sync.Mutex // protects routingSig + routingDiags
 	routingSig        string
 	routingDiags      []Diagnostic
+	priorityConfig    *PriorityConfig // operator-driven layout priority (ADR-0124)
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }

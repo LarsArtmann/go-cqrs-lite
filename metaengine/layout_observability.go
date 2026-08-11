@@ -1,5 +1,10 @@
 package metaengine
 
+import (
+	"fmt"
+	"strings"
+)
+
 // LayoutInfo describes the current physical layout of a query's projection
 // (ADR-0124 Layer 4). This is surfaced by Store.GetLayoutInfo for observability.
 type LayoutInfo struct {
@@ -23,16 +28,24 @@ func (s *Store) GetLayoutInfo() []LayoutInfo {
 		q := s.queries[name]
 		engine := q.QueryEngine()
 
+		resolvedPriority := PriorityBalanced
+		if s.priorityConfig != nil && engine != nil {
+			resolvedPriority = s.priorityConfig.Resolve(engine.Profile().Name, name)
+		}
+
 		info := LayoutInfo{
 			QueryName:   name,
 			ReadPattern: q.QueryReadPattern(),
 			Complexity:  q.QueryComplexity(),
-			Layout:      LayoutEmbed, // current default
-			Priority:    PriorityBalanced,
+			Priority:    resolvedPriority,
 		}
 
 		if engine != nil {
-			info.EngineName = engine.Profile().Name
+			profile := engine.Profile()
+			info.EngineName = profile.Name
+			info.Layout, _ = SelectLayout(profile, resolvedPriority)
+		} else {
+			info.Layout = LayoutEmbed
 		}
 
 		infos = append(infos, info)
@@ -65,11 +78,18 @@ const (
 
 // LayoutWarnings returns advisory warnings about current layout decisions.
 // The planner obeys operator priorities but surfaces concerns through warnings.
+//
+// A warning is emitted ONLY when the resolved priority actually selects a
+// normalized layout on a KV/LSM engine (which requires in-memory joins).
+// When the priority selects Embed (the natural KV layout), no warning is
+// emitted — the system is operating as designed.
 func (s *Store) LayoutWarnings() []LayoutWarning {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	var warnings []LayoutWarning
+
+	pc := s.priorityConfig
 
 	for _, name := range sortedQueryNames(s.queries) {
 		q := s.queries[name]
@@ -79,24 +99,65 @@ func (s *Store) LayoutWarnings() []LayoutWarning {
 		}
 
 		profile := engine.Profile()
+		storageLayout := defaultStorageLayout(profile)
 
-		// Check if the engine is KV/LSM and the layout would be normalized
-		// (this requires in-memory joins — expensive on KV)
-		layout := defaultStorageLayout(profile)
+		resolvedPriority := PriorityBalanced
+		if pc != nil {
+			resolvedPriority = pc.Resolve(profile.Name, name)
+		}
 
-		if layout == LayoutKV || layout == LayoutLSM {
-			// On KV engines, normalization requires in-memory joins
-			// This is a potential warning if the operator chose WriteSpeed/StorageSpace
-			// (which favor normalization on KV)
+		selectedOption, _ := SelectLayout(profile, resolvedPriority)
+
+		// Warn only when Normalize is selected on a KV/LSM engine.
+		// Normalization on KV requires in-memory joins — expensive.
+		if (storageLayout == LayoutKV || storageLayout == LayoutLSM) &&
+			selectedOption == LayoutNormalize {
 			warnings = append(warnings, LayoutWarning{
 				Type:       WarnJoinAmplification,
 				QueryName:  name,
 				EngineName: profile.Name,
-				Message:    "KV engine with normalized layout requires in-memory joins (consider ReadSpeed for this engine)",
-				Severity:   "INFO",
+				Message: fmt.Sprintf(
+					"priority=%s selected Normalize on %s engine — requires in-memory joins (consider ReadSpeed for this engine)",
+					resolvedPriority,
+					storageLayout,
+				),
+				Severity: "WARN",
 			})
 		}
 	}
 
 	return warnings
+}
+
+// LayoutDoctorSection returns the "--- Layout ---" text block for Doctor()
+// output. Shows the resolved priority, layout option, and any warnings per query.
+func (s *Store) LayoutDoctorSection() string {
+	var b strings.Builder
+
+	b.WriteString("\n--- Layout ---\n")
+
+	infos := s.GetLayoutInfo()
+	layoutAny := false
+
+	for _, info := range infos {
+		fmt.Fprintf(&b, "  %s: %s on %s (priority=%s, %s)\n",
+			info.QueryName, info.Layout, info.EngineName,
+			info.Priority, info.Complexity)
+		layoutAny = true
+	}
+
+	if !layoutAny {
+		b.WriteString("  no queries\n")
+	}
+
+	warnings := s.LayoutWarnings()
+	if len(warnings) > 0 {
+		b.WriteString("\n  Warnings:\n")
+
+		for _, w := range warnings {
+			fmt.Fprintf(&b, "    [%s] %s: %s\n", w.Severity, w.QueryName, w.Message)
+		}
+	}
+
+	return b.String()
 }
