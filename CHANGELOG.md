@@ -6,6 +6,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — Layout calibration: KV/LSM scoring split restores operator levers — 2026-08-11
+
+> Fixes a regression from an earlier calibration commit that applied
+> **memory-engine-only** ratios uniformly to KV/LSM. That broke 5 layout tests
+> (Balanced flipped Embed→Normalize) and silently disabled the operator's
+> ReadSpeed lever. Layout scoring now splits KV from LSM, each calibrated
+> against its own engine family with 60-second on-disk benchmarks. All 5 tests
+> pass; every operator priority lever is decisive again.
+>
+> See `docs/status/2026-08-11_19-49_layout-calibration-verify-green-and-session-honest-review.md`.
+
+- **`metaengine/layout_scoring.go`** (FIX): Split KV/LSM scoring. KV Normalize
+  recalibrated to `1.8/0.48/0.63` (from memory calibration — 2.2× read, 2.1×
+  write, 2.06× storage @3 projections); KV Embed kept at `0.5/1.0/1.3`. LSM
+  Embed `0.74/1.10/1.15`, LSM Normalize `1.45/0.75/0.80` (from
+  `BenchmarkDiskLayoutCalibration_*` — Pebble+bbolt geomean 1.35× read, 0.75×
+  write). Row/Columnar remain analytical estimates. Constants chosen so all 4
+  operator levers are decisive: Balanced/ReadSpeed→Embed, WriteSpeed/
+  StorageSpace→Normalize on both KV and LSM.
+- **`metaengine/layout_type.go`**: `LayoutLSM` comment now covers bbolt
+  (B+Tree, disk-backed) and references the on-disk calibration provenance.
+- **`metaengine/pebbleengine/engine.go`** + **`metaengine/bboltengine/engine.go`**
+  (FIX): Declared a `Layouts` map (all supported ADTs → `LayoutLSM`) in
+  `Profile()`. Previously pebble/bbolt fell through to the engine-wide default
+  `LayoutKV`, so the planner scored them as hash-maps instead of disk LSMs.
+- **`metaengine/bench/bench_layout_calibration_disk_test.go`** (NEW): On-disk
+  calibration bench — real `NewPebbleEngine(dir)` + `NewBboltEngine(path)` × 4
+  ops (EmbedRead/EmbedWrite/NormalizeRead/NormalizeWrite), 1000 seeded rows,
+  `-benchtime` configurable. Calibration benches must run ≥60s: the 0.5s
+  numbers were wrong (bbolt write ratio flipped 0.83→1.05, read 2.05→1.23).
+- **`cmd/cqrs-bench/layout.go`** (NEW, cqrs-bench): `layout` subcommand —
+  pre-deployment "what if" exploration of the layout cost model. Shows
+  Embed/Normalize scores + margin for all layouts × priorities with `--verbose`
+  cost breakdowns and JSON output. No running engines needed.
+- **`docs/api_surface.txt`** (UPDATED): Regenerated 4100→4106 — 6 new dgraph
+  journal/stream methods (`JournalReadAll`, `JournalReadFrom`, `StreamAppend`,
+  `StreamAppendExpected`, `StreamRead`, `StreamVersion`).
+
 ### Added — Fold inference gaps: composite keys, filter operators, sort inference, InferFromNamedEvents, time.Time fix — 2026-08-11
 
 > Resolves the five `Fold inference gaps` TODO items from Phase 6: Auto-Projection.
