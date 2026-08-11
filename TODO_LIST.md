@@ -287,11 +287,11 @@ DONE 2026-08-10/11. See [CHANGELOG.md](CHANGELOG.md) and status reports
       `HealthChecker` and `StreamingScan` assertions; mysqlengine missing
       `Calibratable` and `HealthChecker` assertions.
       _(Effort: S)_
-- [ ] 🔥 **Fix bench fold `reflect.Call` panic** — 3 tests fail
-      (`TestPromise_CostModelAccuracy`, `TestPromise_CrossEngine_ParityAtScale`,
-      `TestPromise_ParityWithDuckDB`) because bench fold inference passes
-      `map[string]interface{}` where `bench_test.OrderView` is expected.
-      Blocks `nix run .#verify` GREEN.
+- [x] ✅ **Fix bench fold `reflect.Call` panic** — fixed in commit
+      `7ba946377` ("reify prev value in OnRecord update folds"). OnRecord update
+      folds now call `reifyReflect(prev, prevType)` to bridge
+      `map[string]any` (SQL engine decode) → typed struct before
+      `reflect.Call`. All 3 tests pass with `-race`.
       _(Effort: M)_
 - [ ] **Pebble `CounterIncrement` calibration benchmark** — verify
       pebble's counter increment performance is correctly cost-modeled.
