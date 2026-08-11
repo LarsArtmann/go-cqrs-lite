@@ -48,7 +48,12 @@ func formatSuppressedFindings(w io.Writer, findings []finding.Finding, cm output
 	}
 }
 
-func outputFindings(ctx context.Context, findings []finding.Finding, cfg *AppConfig, loadErrorCount int) error {
+func outputFindings(
+	ctx context.Context,
+	findings []finding.Finding,
+	cfg *AppConfig,
+	loadErrorCount int,
+) error {
 	report := finding.NewReport(finding.ToolInfo{Name: "cqrs-lint", Version: version})
 	report.AddFindings(findings)
 
@@ -107,7 +112,9 @@ func outputFindings(ctx context.Context, findings []finding.Finding, cfg *AppCon
 		if len(findings) == 0 {
 			if !cfg.Quiet {
 				if loadErrorCount > 0 {
-					fmt.Println("No findings in analyzed files — but analysis was INCOMPLETE (see above).")
+					fmt.Println(
+						"No findings in analyzed files — but analysis was INCOMPLETE (see above).",
+					)
 				} else {
 					fmt.Println("No findings. Clean!")
 				}

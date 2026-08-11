@@ -3,6 +3,8 @@ package metaengine
 import (
 	"errors"
 	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // TestApplyFoldExhaustiveness verifies that every concrete Fold type is handled
@@ -10,34 +12,34 @@ import (
 // switch, this test fails — preventing silent fallthrough to the default
 // errUnknownFoldKind error path.
 //
-// The test creates one fold of each registered FoldKind via the On constructor,
-// then passes each through a mirror of the applyFold type switch. The mirror's
-// default case fails the test.
+// The test creates one fold of each registered FoldKind via the OnRecord
+// constructor, then passes each through a mirror of the applyFold type switch.
+// The mirror's default case fails the test.
 //
 // Additionally, the test asserts that the number of created folds matches
 // len(AllFoldKinds()), so adding a new FoldKind constant without a corresponding
 // fold type + test entry is also caught.
+type event struct{ ID string }
+
 func TestApplyFoldExhaustiveness(t *testing.T) {
 	t.Parallel()
 
-	type event struct{ ID string }
-
 	folds := []Fold{
-		On(event{}, func(e event) (string, int) { return e.ID, 1 }),          // insertFold
-		On(event{}, func(e event, prev int) int { return prev + 1 }),         // updateFold
-		On(event{}, Remove[int]()),                                           // removeFold
-		On(event{}, func(e event) Delta { return Delta{e.ID: 1} }),           // countFold
-		On(event{}, func(e event) Edge { return Edge{From: e.ID, To: "x"} }), // edgeFold
-		On(
+		OnRecord(event{}, func(_ record.Record, e event) (string, int) { return e.ID, 1 }),          // insertFold
+		OnRecord(event{}, func(_ record.Record, e event, prev int) int { return prev + 1 }),         // updateFold
+		OnRecord(event{}, Remove[int]()),                                                            // removeFold
+		OnRecord(event{}, func(_ record.Record, e event) Delta { return Delta{e.ID: 1} }),           // countFold
+		OnRecord(event{}, func(_ record.Record, e event) Edge { return Edge{From: e.ID, To: "x"} }), // edgeFold
+		OnRecord(
 			event{},
-			func(e event) string { return e.ID },
+			func(_ record.Record, e event) string { return e.ID },
 		), // setFold (default in classifySingleReturn)
-		On(event{}, func(e event) Skip { return Skip{} }),                       // skipFold
-		On(event{}, func(e event) MultiEntry { return MultiEntry{Key: e.ID} }),  // multiInsertFold
-		On(event{}, func(e event) Append { return Append{Value: e.ID} }),        // appendFold
-		On(event{}, func(e event) Embedding { return Embedding{ID: e.ID} }),     // vectorFold
-		On(event{}, func(e event) IndexedText { return IndexedText{ID: e.ID} }), // searchFold
-		On(event{}, func(e event) Point { return Point{ID: e.ID, X: 1, Y: 2} }), // spatialFold
+		OnRecord(event{}, func(_ record.Record, e event) Skip { return Skip{} }),                       // skipFold
+		OnRecord(event{}, func(_ record.Record, e event) MultiEntry { return MultiEntry{Key: e.ID} }),  // multiInsertFold
+		OnRecord(event{}, func(_ record.Record, e event) Append { return Append{Value: e.ID} }),        // appendFold
+		OnRecord(event{}, func(_ record.Record, e event) Embedding { return Embedding{ID: e.ID} }),     // vectorFold
+		OnRecord(event{}, func(_ record.Record, e event) IndexedText { return IndexedText{ID: e.ID} }), // searchFold
+		OnRecord(event{}, func(_ record.Record, e event) Point { return Point{ID: e.ID, X: 1, Y: 2} }), // spatialFold
 	}
 
 	if len(folds) != len(AllFoldKinds()) {
@@ -96,7 +98,7 @@ func TestApplyFoldWrapsErrorWithApplyError(t *testing.T) {
 		[]Engine{eng},
 		Query[event, map[string]int](
 			"test_exhaustiveness",
-			On(event{}, func(e event) (string, int) { return e.ID, 1 }),
+			OnRecord(event{}, func(_ record.Record, e event) (string, int) { return e.ID, 1 }),
 		),
 	)
 	if err != nil {

@@ -14,6 +14,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // --- Stats tests ---
@@ -467,7 +469,7 @@ func TestCrashRecovery_PanicPoisonsCollection(t *testing.T) {
 	// Query with a fold that panics.
 	panicQuery := Query[testFindTask, testTask](
 		"panic_tasks",
-		OnTyped("panic_event", testTask{}, func(e testTask) (testTaskID, testTask) {
+		OnRecordTyped("panic_event", testTask{}, func(_ record.Record, e testTask) (testTaskID, testTask) {
 			panic("intentional crash")
 		}),
 	)
@@ -706,15 +708,15 @@ func TestProperty_RandomOpsMaintainConsistency(t *testing.T) {
 	// Query with insert, update, and delete folds.
 	updateQuery := Query[testFindTask, testTask](
 		"prop_tasks",
-		OnTyped("task_created", testTask{}, func(e testTask) (testTaskID, testTask) {
+		OnRecordTyped("task_created", testTask{}, func(_ record.Record, e testTask) (testTaskID, testTask) {
 			return e.ID, e
 		}),
-		OnTyped("task_title_changed", testTask{}, func(e testTask, prev testTask) testTask {
+		OnRecordTyped("task_title_changed", testTask{}, func(_ record.Record, e testTask, prev testTask) testTask {
 			prev.Title = e.Title
 
 			return prev
 		}),
-		OnTyped("task_deleted", testTask{}, Remove[testTask]()),
+		OnRecordTyped("task_deleted", testTask{}, Remove[testTask]()),
 	)
 
 	store, err := Plan([]Engine{eng}, updateQuery)

@@ -1,2 +1,4 @@
 github.com/larsartmann/go-flightrecorder v0.1.1 h1:w1aWpv8Jm2WR9emMW13HjMPt6kY4lBTCzSj/bWRrZZI=
 github.com/larsartmann/go-flightrecorder v0.1.1/go.mod h1:KOAVyRuxUX0eeKPc3mjAwOKsenSS1SjBqnJ0KKPxyhA=
+github.com/larsartmann/go-flightrecorder v0.2.0 h1:vCyd+jXA5SsJxTS7zaOvlzJiNPqy+79fJ24irY+adGA=
+github.com/larsartmann/go-flightrecorder v0.2.0/go.mod h1:KOAVyRuxUX0eeKPc3mjAwOKsenSS1SjBqnJ0KKPxyhA=

@@ -21,7 +21,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.3.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/go-flightrecorder v0.1.1
+	github.com/larsartmann/go-flightrecorder v0.2.0
 	modernc.org/sqlite v1.56.0
 )
 

@@ -284,7 +284,10 @@ func handleLoadErrors(cfg *AppConfig, actx *analyzer.AnalysisContext) error {
 			"WARNING: %d package(s) failed to load; analysis is partial.\n",
 			len(actx.LoadErrors),
 		)
-		fmt.Fprintln(os.Stderr, "Use --verbose for details or --strict-load to fail on any load error.")
+		fmt.Fprintln(
+			os.Stderr,
+			"Use --verbose for details or --strict-load to fail on any load error.",
+		)
 		fmt.Fprintln(os.Stderr)
 	}
 

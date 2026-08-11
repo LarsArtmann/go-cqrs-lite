@@ -68,8 +68,7 @@ func NewF019Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			if !projectHasCall(ctx, "metaengine", "Query") &&
-				!projectHasCall(ctx, "metaengine", "On") &&
-				!projectHasCall(ctx, "metaengine", "OnTyped") {
+				!projectHasCallAny(ctx, "metaengine", "On", "OnTyped", "OnRecord", "OnRecordTyped") {
 				return nil, nil
 			}
 

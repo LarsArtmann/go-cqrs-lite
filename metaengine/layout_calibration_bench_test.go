@@ -19,10 +19,10 @@ import (
 // calibOrder simulates an aggregate root with embedded child items.
 // This is the "Embed" layout: the whole aggregate is one value.
 type calibOrder struct {
-	ID     string       `json:"id"`
-	Total  float64      `json:"total"`
-	Status string       `json:"status"`
-	Items  []calibItem  `json:"items"`
+	ID     string      `json:"id"`
+	Total  float64     `json:"total"`
+	Status string      `json:"status"`
+	Items  []calibItem `json:"items"`
 }
 
 type calibItem struct {

@@ -44,6 +44,18 @@ func usesMetaengine(ctx *analyzer.AnalysisContext) bool {
 	return importsPath(ctx, "go-cqrs-lite/metaengine")
 }
 
+// isFoldConstructor reports whether fnName is a metaengine fold
+// constructor: the deprecated payload-only pair (On/OnTyped) and the
+// record-aware default pair (OnRecord/OnRecordTyped).
+func isFoldConstructor(fnName string) bool {
+	switch fnName {
+	case "On", "OnTyped", "OnRecord", "OnRecordTyped":
+		return true
+	default:
+		return false
+	}
+}
+
 // projectHasCall reports whether any non-test file calls pkgName.funcName.
 func projectHasCall(ctx *analyzer.AnalysisContext, pkgName, funcName string) bool {
 	return projectHasCallAny(ctx, pkgName, funcName)

@@ -15,6 +15,8 @@ import (
 	"context"
 	"errors"
 	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ── Types for the spike ──
@@ -55,7 +57,7 @@ func TestSpike_Batch_SQLTransactionApproach(t *testing.T) {
 
 	// Register a trivial query so Plan succeeds.
 	dummyQuery := Query[struct{ ID string }, spikeBatchView]("spike_batch_dummy",
-		OnTyped("test.event", spikeBatchEvent{}, func(e spikeBatchEvent) (string, spikeBatchView) {
+		OnRecordTyped("test.event", spikeBatchEvent{}, func(_ record.Record, e spikeBatchEvent) (string, spikeBatchView) {
 			return e.ID, spikeBatchView(e)
 		}),
 	)

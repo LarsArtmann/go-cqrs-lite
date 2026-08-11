@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // --- P0-1: IN filter silent-drop fix ---
@@ -236,7 +238,7 @@ func TestSchemaEnforcement_DetectsTypeMismatch(t *testing.T) {
 	// Fold returns testTask but query declares testWrongResult as result type.
 	q := Query[testFindTask, testWrongResult](
 		"schema_mismatch_test",
-		OnTyped("task_created", testTask{}, func(e testTask) (testTaskID, testTask) {
+		OnRecordTyped("task_created", testTask{}, func(_ record.Record, e testTask) (testTaskID, testTask) {
 			return e.ID, e
 		}),
 	)

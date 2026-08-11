@@ -226,7 +226,11 @@ func TestFindingsToTable_EmptyFindings_OnlyHeader(t *testing.T) {
 
 	lines := strings.Split(strings.TrimSpace(csvOut), "\n")
 	if len(lines) != 1 {
-		t.Errorf("expected header-only CSV (1 line) for no findings, got %d lines: %q", len(lines), csvOut)
+		t.Errorf(
+			"expected header-only CSV (1 line) for no findings, got %d lines: %q",
+			len(lines),
+			csvOut,
+		)
 	}
 }
 

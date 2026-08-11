@@ -70,7 +70,10 @@ func renderSuppressionAudit(w io.Writer, entries []suppression.SuppressionAuditE
 
 	total := len(entries)
 	_, _ = fmt.Fprintf(w, "SUPPRESSION AUDIT — %d total\n", total)
-	_, _ = fmt.Fprintln(w, strings.Repeat("─", len(fmt.Sprintf("SUPPRESSION AUDIT — %d total", total))))
+	_, _ = fmt.Fprintln(
+		w,
+		strings.Repeat("─", len(fmt.Sprintf("SUPPRESSION AUDIT — %d total", total))),
+	)
 	_, _ = fmt.Fprintln(w)
 	_, _ = fmt.Fprintf(w, "  Active:       %d  (suppressing a real finding)\n", len(active))
 	_, _ = fmt.Fprintf(w, "  Stale:        %d  (no finding fires — safe to remove)\n", len(stale))
@@ -106,7 +109,12 @@ func renderSuppressionAudit(w io.Writer, entries []suppression.SuppressionAuditE
 
 	if len(stale) > 0 || len(unknown) > 0 {
 		_, _ = fmt.Fprintln(w)
-		_, _ = fmt.Fprintf(w, "  %d of %d suppression(s) need attention.\n", len(stale)+len(unknown), total)
+		_, _ = fmt.Fprintf(
+			w,
+			"  %d of %d suppression(s) need attention.\n",
+			len(stale)+len(unknown),
+			total,
+		)
 		_, _ = fmt.Fprintln(w, "  Remove stale suppressions and fix unknown-rule references.")
 	}
 }
