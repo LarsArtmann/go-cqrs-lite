@@ -295,6 +295,7 @@ developer never declares "I need a Map" or "I need a Counter."
 | Record-aware folds            | `OnRecord`/`OnRecordTyped` constructors + `ApplyRecord()` dispatch + `RecordAwareFold` interface. Folds receive StreamID, Version, metadata (ADR-0112)                                                                                            | 🧪     |
 | `event.AsRecord()`            | Bridges the ES pipeline to `record.Record`. `projectionadapter.Handle()` calls `ApplyRecord()`                                                                                                                                                    | 🧪     |
 | Auto-projection               | `AutoInsert[E,R]`, `AutoUpdate[E,R]`, `AutoDelete[E]`, `AutoCRUD[C,U,D,R]` — reflection-based field-mapping inference. Zero per-event reflection cost (ADR-0116 Layer 1)                                                                          | 🧪     |
+| Planner-time fold inference   | `metaengine.Infer(samples...)` inspects event/result types and generates folds automatically (composite keys, filter operators, sort fields, named events). `Override()` replaces a specific inferred fold. `OnRecord`/`OnRecordTyped` are the default constructors (ADR-0116 Layers 1-2) | 🧪     |
 | AutoCRUDByConvention          | Suffix-based naming inference (`*Created`/`*Updated`/`*Deleted`) routes event types without explicit strings                                                                                                                                      | 🧪     |
 | Record stamping               | `AutoInsert`/`AutoUpdate` auto-stamp Record metadata (StreamID, Version, CorrelationID) into matching result fields (`record_stamp.go`)                                                                                                           | 🧪     |
 | Tombstone deprecation         | All tombstone API carries `// Deprecated:` → migration guide. Functional in v4, removal in v5 (ADR-0114)                                                                                                                                          | 🧪     |
@@ -302,8 +303,8 @@ developer never declares "I need a Map" or "I need a Counter."
 | `mysqlengine/`                | MySQL metaengine backend. Self-registering driver. Pure Go (`go-sql-driver/mysql`). `Prober` + `TransactMeasurer` wired                                                                                                                            | 🧪     |
 | `tursoengine/`                | Turso/libSQL shim over `sqliteengine`. Self-registering driver. Remote DSN detection + `PingContext` prober                                                                                                                                        | 🧪     |
 | Live Cost Measurement         | `ProbeEngine`, `LatencyTracker` (EWMA + P50/P95/P99), `Store.Replan`, `Store.CheckRouting`, `StartAutoReplan`. Remote RTT measured at runtime, surfaced in `Doctor()`/`ExplainPlan()`                                                               | 🧪     |
-| Operator-driven layout planning | `Priority` enum + `PriorityConfig` hierarchy, embed-vs-normalize scoring, `ReplanLayout`, `ConfirmRebuild`, `Store.SetPriority`, layout warnings in `Doctor()`/`ExplainPlan()` (ADR-0124)                                                       | 🧪     |
-| Command lifecycle as events   | `commandlifecycle/` events, `Recorder`, middleware, DLQ/retry/failure-log projections (ADR-0117)                                                                                                                                                 | 🧪     |
+| Operator-driven layout planning | `Priority` enum + `PriorityConfig` hierarchy (Global→Engine→Query), embed-vs-normalize scoring (KV/LSM split, 60s on-disk calibrated), `ReplanLayout`, `ConfirmRebuild`, `Store.SetPriority`, layout warnings in `Doctor()`/`ExplainPlan()`, plan audit trail (`PlanHistory`, bounded ring buffer, trigger attribution), `WithLayoutPriority` (layout-only per ADR-0125) (ADR-0124, ADR-0125) | 🧪     |
+| Command lifecycle as events   | `commandlifecycle/` events, `Recorder` (OCC version tracking, restart-safe), middleware pair, DLQ/retry/failure-log/processing-time projections, `system.WithCommandLifecycle()` wiring (ADR-0117)                                                                              | 🧪     |
 
 **Coverage:** ~80% (`go test -tags "goexperiment.jsonv2" -cover`). 174 BDD specs
 
@@ -455,7 +456,7 @@ and [evidence metrics ADR](docs/adr/0090-benchkit-evidence-metrics.md).
 | List      | `--list-phases` — list all benchmark phase names                             | 🔧     |
 | Quiet     | `--quiet` — suppress detailed output, show summary only                      | 🔧     |
 | Profiling | `--cpuprofile file` and `--memprofile file` — pprof output                   | 🔧     |
-| Version   | `--version` via `runtime/debug.ReadBuildInfo()`                              | 🔧     |
+| `layout` | Pre-deployment "what-if" layout exploration: 4×4 matrix (KV/LSM/Row/Columnar × Balanced/ReadSpeed/WriteSpeed/StorageSpace), `--priority`, `--verbose` cost breakdowns, `--format json`. No running engines needed — pure static analysis | 🔧     |
 
 ---
 
@@ -1213,7 +1214,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | Config presets | `local-cli`, `library`, `server`, `full-stack` — sugar over feature flags | ✅ |
 | JSONC config loader | `.cqrs-lint.json` supports comments (`//`, `/* */`) via `stripJSONComments` parser | ✅ |
 | Feature profile system | Auto-detects which go-cqrs-lite modules a consumer uses (store, command-flow, server, soft-delete, tracing, snapshot) and adapts rules | ✅ |
-| Per-module detection | `ProfileForFile` evaluates feature profiles per-module in multi-module workspaces (C017, S002, S003, S006, S007, C036, A015, A016, B014, E009, A012, A009, E016 migrated; ~20 detectors still on primary profile) | 🧪 |
+| Per-module detection | All 28 adoption (F003–F029) + resilience (B029–B031) rules evaluate per-module via `coachingScopes()` + `ProfileForFile`. 86 per-module profiles verified by `integration_multimodule_test.go`. F001/F002/F005/F014 remain workspace-global by design | ✅ |
 | Self-lint mode | `IsLibrarySelfLint()` auto-skips 29 consumer-coaching rules when linting the library source | ✅ |
 | Import-alias resolution | `QualifierToImportPath` + `ImportQualifierMap` — rules work with aliased imports | ✅ |
 | Monorepo support | Multi-module scanning via go.mod discovery | ✅ |
@@ -1271,7 +1272,6 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 | Feature                       | Description                                                       |
 | ----------------------------- | ----------------------------------------------------------------- |
-| PostgreSQL testcontainers     | ✅ DONE — testcontainers-go adopted (v0.43.0, postgres:16-alpine) |
 | Documentation site            | Docusaurus/MkDocs/Hugo site                                       |
 | Transport adapters            | gRPC ✅, NATS/ValKey (ADR-0025 accepted, no code)                 |
 | Distributed projection runner | Leader election, multi-node coordination — raw idea               |
@@ -1280,7 +1280,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 ## Module Maturity Matrix
 
-> 78 independently importable modules in `go.work` (79 `go.mod` files incl. root workspace + nested eventtest). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
+> 86 `go.mod` files across the workspace (multi-module `go.work`). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
 
 | Module                           | Import Path                           | Maturity                                                                                                                                                   |
 | -------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1293,7 +1293,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `dispatcher`                     | `…/dispatcher/v4`                     | ✅ Production                                                                                                                                              |
 | `schema`                         | `…/schema/v4`                         | ✅ Production                                                                                                                                              |
 | `snapshot`                       | `…/snapshot/v4`                       | ✅ Production                                                                                                                                              |
-| `codec`                          | `…/codec/v4`                          | ✅ Production                                                                                                                                              |
+| `codec`                         | `…/codec/v4`                          | ✅ Production (deprecated alias — re-exports `go-codec`, ADR pending)                                                                                      |
 | `kv`                             | `…/kv/v4`                             | ✅ Production                                                                                                                                              |
 | `metadata`                       | `…/metadata/v4`                       | ✅ Production                                                                                                                                              |
 | `dedup`                          | `…/dedup/v4`                          | ✅ Production                                                                                                                                              |
@@ -1355,8 +1355,8 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `metaengine/pebbleengine`        | `…/metaengine/pebbleengine/v4`        | 🧪 Experimental (Pebble LSM engine: MapBackend, ScanBackend, LayoutPlanner, sort index)                                                                    |
 | `metaengine/duckdbengine`        | `…/metaengine/duckdbengine/v4`        | 🧪 Experimental (DuckDB columnar engine: MapBackend, CounterBackend, PushdownScan. CGo)                                                                    |
 | `metaengine/pgengine`            | `…/metaengine/pgengine/v4`            | 🧪 Experimental (Postgres engine: MapBackend, CounterBackend, ScanBackend, PushdownScan, LayoutPlanner. Pure Go)                                           |
-| `metaengine/commandlifecycle`    | `…/metaengine/commandlifecycle/v4`    | 🧪 Experimental (ADR-0117: command lifecycle as event streams — events, Recorder, middleware)                                                              |
-| `metaengine/commandlifecycle/projections` | `…/metaengine/commandlifecycle/projections/v4` | 🧪 Experimental (ADR-0117: DLQ/retry/failure-log projections for command lifecycle)                                                               |
+| `commandlifecycle`             | `…/commandlifecycle/v4`              | 🧪 Experimental (ADR-0117: command lifecycle as event streams — events, Recorder, middleware)                                                              |
+| `commandlifecycle/projections` | `…/commandlifecycle/projections/v4`  | 🧪 Experimental (ADR-0117: DLQ/retry/failure-log/processing-time projections for command lifecycle)                                                               |
 | `metaengine/adttest`             | `…/metaengine/adttest/v4`             | 🧪 Test harness (RunMatrix cross-engine parity for 10 ADTs)                                                                                                |
 | `metaengine/enginetest`          | `…/metaengine/enginetest/v4`          | 🧪 Test harness (RunMatrix, RunTransactionalTest, RunStreamLogBackendTest, RunAtomicAppenderTest)                                                          |
 | `metaengine/keycodec`            | `…/metaengine/keycodec/v4`            | 🧪 Utility (composite key encoding/decoding for LSM backends — Badger, Pebble)                                                                             |

@@ -1,5 +1,7 @@
 # Status Report: Full Docs-Health Execution + go-output Audit Fix
 
+> **✅ FULLY RESOLVED 2026-08-11 — archived.** Every actionable item in this report shipped. See CHANGELOG `[Unreleased]` for where the work landed and TODO_LIST.md for any remaining follow-ups (none specific to this report).
+
 **Date:** 2026-08-11 17:32
 **Session scope:** Execute the full Pareto-optimized docs-health plan (9 tasks), then fix `doctor_audit.go` to use `go-output` instead of hand-rolled `fmt.Fprintf`.
 **Outcome:** All planned docs-health work done. `doctor_audit.go` rewritten with `go-output`. 5 pre-existing test failures from concurrent sessions remain.

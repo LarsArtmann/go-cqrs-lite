@@ -3,6 +3,7 @@
 **Date:** 2026-08-11
 **Type:** Release-blocking discovery (no tags created — awaiting dedicated release session)
 **TODO items:** "Tag commandlifecycle/v4.0.0" and "Tag benchkit/v4.4.0" (latter verified already tagged)
+**Update 2026-08-11:** Still OPEN — no tags created. Tracked in TODO_LIST → Release/Tagging (BLOCKED on user approval + go-codec publish).
 
 ## Summary
 

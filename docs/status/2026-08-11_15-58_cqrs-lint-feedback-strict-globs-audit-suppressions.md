@@ -9,7 +9,7 @@
 ## a) FULLY DONE
 
 ### 1. BUG: `--strict` hard-fail on load errors
-**Status**: Functionally complete. Two uncommitted fixes remain (see c).
+**Status**: ~~Functionally complete. Two uncommitted fixes remain (see c).~~ ✅ FULLY COMMITTED — `isStrictMode` and `loadErrorCount` are in the codebase (`run.go:225`, `output_grouping.go:55`). See CHANGELOG `[Unreleased]`.
 
 - **`run.go:225`** — Added `isStrictMode(cfg)` helper that checks both `cfg.StrictLoad` AND `cfg.StrictMode` (cmdguard's built-in `--strict` flag, short `-s`). The `handleLoadErrors` function now calls `isStrictMode()` instead of checking only `cfg.StrictLoad`.
 - **`run.go:279`** — Fixed misleading warning message: changed `--strict` → `--strict-load` in the partial-analysis warning text.

@@ -1,5 +1,7 @@
 # Status Report: Fold Inference Gaps — Composite Keys, Filter Operators, Sort, Named Events
 
+> **✅ FULLY RESOLVED 2026-08-11 — archived.** Every actionable item in this report shipped. See CHANGELOG `[Unreleased]` for where the work landed and TODO_LIST.md for any remaining follow-ups (none specific to this report).
+
 **Date:** 2026-08-11 18:41
 **Session scope:** Resolving the 5-item "Fold inference gaps" TODO from Phase 6: Auto-Projection
 **Task source:** `TODO_LIST.md` → Phase 6 → `Fold inference gaps`

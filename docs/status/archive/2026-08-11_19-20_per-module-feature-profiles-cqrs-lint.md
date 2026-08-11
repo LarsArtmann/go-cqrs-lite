@@ -1,5 +1,7 @@
 # Status: Per-Module Feature Profiles for cqrs-lint Coaching Rules
 
+> **✅ FULLY RESOLVED 2026-08-11 — archived.** Every actionable item in this report shipped. See CHANGELOG `[Unreleased]` for where the work landed and TODO_LIST.md for any remaining follow-ups (none specific to this report).
+
 > **Date:** 2026-08-11 19:20
 > **Session scope:** Consumer feedback item "Per-module feature profiles" from cqrs-htmx feedback (2026-08-04)
 > **Feedback file:** `docs/feedback/new/2026-08-04_cqrs-htmx_cqrs-lint-feedback-round2.md` Issue 2

@@ -1,5 +1,7 @@
 # Status Report — Layout Calibration Verify-GREEN + Honest Session Review
 
+> **✅ FULLY RESOLVED 2026-08-11 — archived.** Every actionable item in this report shipped. See CHANGELOG `[Unreleased]` for where the work landed and TODO_LIST.md for any remaining follow-ups (none specific to this report).
+
 Date: 2026-08-11 19:49 CEST
 Branch: master
 HEAD: `d8feba1f1` (docs(metaengine): document Fold inference Override API + dgraph journal/stream surface)

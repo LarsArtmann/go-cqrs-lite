@@ -3,6 +3,12 @@
 > **From**: browser-history consumer (5-module Go workspace, 99 files, 23 inline suppressions)
 > **Date**: 2026-08-11
 > **Priority**: High (1 functional bug, 2 UX improvements)
+> **Status: ✅ ALL 4 ITEMS RESOLVED 2026-08-11** — `--strict` hard-fail
+> (`isStrictMode`, `run.go:225`), exclude globs (`matchExcludePattern`,
+> `filters.go`), suppression-drift audit (`AuditSuppressions`, `doctor_audit.go`),
+> doctor multi-module config (`mergeMostPermissiveProfile`). Commits `1551bd396`,
+> `515b50bbf`. See CHANGELOG `[Unreleased]` and
+> `docs/status/2026-08-11_15-58_cqrs-lint-feedback-strict-globs-audit-suppressions.md`.
 
 ---
 

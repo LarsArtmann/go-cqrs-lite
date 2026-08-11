@@ -58,10 +58,10 @@
 4. **Shared `resolvePriority` helper:** Extracted from `priorityForQuery` so `planQuery` and `ReplanLayout` use the same resolution logic.
 5. **Tests:** `convergence_test.go` (3 tests) — PlanCarriesLayout, SetPriorityUpdatesLayoutInPlan, ReplanLayoutReadsActualLayout. All PASS.
 
-**What is INCOMPLETE / BROKEN (see section d):**
-- `SerializableQuery` does NOT have a `Layout` field → `Serialize()` silently drops the layout decision.
-- `QueryAssignment.String()` does NOT render `Layout` → EXPLAIN output doesn't show it.
-- `layout_observability.go` still calls the old `s.priorityForQuery` instead of the shared `resolvePriority` (consistency missed, not a bug).
+**What is ~~INCOMPLETE / BROKEN~~ NOW RESOLVED (see section d):**
+- ~~`SerializableQuery` does NOT have a `Layout` field~~ — ✅ FIXED (`serializable.go:55`).
+- ~~`QueryAssignment.String()` does NOT render `Layout`~~ — ✅ FIXED (`plan_types.go:151`).
+- `layout_observability.go` still calls the old `s.priorityForQuery` instead of the shared `resolvePriority` (consistency missed, not a bug) — still open (TODO_LIST).
 
 ---
 
@@ -81,7 +81,8 @@
 
 ## d) TOTALLY FUCKED UP (bugs I introduced)
 
-### BUG 1: `SerializableQuery` drops the new `Layout` field
+### ~~BUG 1: `SerializableQuery` drops the new `Layout` field~~ — ✅ FIXED
+~~`SerializableQuery.Layout string` now exists (`serializable.go:55`) and `Serialize()` populates it.~~
 - **Location:** `metaengine/serializable.go:27-39`.
 - **What:** I added `Layout LayoutOption` to `QueryAssignment` but did NOT add it to `SerializableQuery` or update `Serialize()`.
 - **Impact:** When a plan is serialized (`Serialize`, `SerializeToJSON`) for diffing (`PlanDiff`), fingerprinting (`PlanFingerprint`), or persistence (`Manifest`/`SaveManifest`), the layout decision is **silently lost**. This means:
@@ -91,7 +92,8 @@
 - **Severity:** HIGH. This undermines the convergence work.
 - **Fix needed:** Add `Layout string` to `SerializableQuery`, populate it in `Serialize()` from `q.Layout`.
 
-### BUG 2: `QueryAssignment.String()` does not render `Layout`
+### ~~BUG 2: `QueryAssignment.String()` does not render `Layout`~~ — ✅ FIXED
+~~`String()` now renders `[layout=%s]` (`plan_types.go:151`).~~
 - **Location:** `metaengine/plan_types.go:71-88` (the `String()` method).
 - **What:** The EXPLAIN output format doesn't include the new `Layout` field.
 - **Impact:** `EXPLAIN` and any consumer of `QueryAssignment.String()` will not show whether a query is Embed or Normalize. Operators cannot see the layout decision in the standard plan report.
@@ -123,8 +125,8 @@
 ## f) Up to 50 things to do next
 
 ### Critical (fix the bugs I introduced)
-1. **Add `Layout` to `SerializableQuery` + populate in `Serialize()`** — closes BUG 1.
-2. **Add `[layout=X]` to `QueryAssignment.String()`** — closes BUG 2.
+1. ~~**Add `Layout` to `SerializableQuery` + populate in `Serialize()`**~~ — ✅ done (`serializable.go:55`).
+2. ~~**Add `[layout=X]` to `QueryAssignment.String()`**~~ — ✅ done (`plan_types.go:151`).
 3. **Add a round-trip test: `Serialize` → `PlanDiff` detects layout changes.**
 4. **Run `nix run .#verify`** — the mandatory gate I skipped.
 5. **Run `nix fmt`** — format all new files.

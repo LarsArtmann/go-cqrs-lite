@@ -1,7 +1,12 @@
 # Comprehensive Execution Plan: Operator-Driven Layout Planning
 
 **Date:** 2026-08-11 06:39
-**Status:** Active
+**Status:** ~~Active~~ ✅ EXECUTED 2026-08-11 — core implementation shipped across
+multiple sessions (priority system, KV/LSM cost split, `ReplanLayout`, audit
+trail, `cqrs-bench layout` CLI, convergence). See CHANGELOG `[Unreleased]` and
+ADR-0124/0125. Remaining long-horizon items (fold-pipeline sync, async
+replication, role transition API, real workload trace format) tracked in
+TODO_LIST → Layout roles.
 **Source:** `docs/status/2026-08-11_06-37_m9-reframe-layout-planning-design.md`
 **Scope:** All work surfaced by the M9 reframing session — immediate fixes, design anchoring, de-risking spikes, and full implementation of the operator-driven layout planning model.
 

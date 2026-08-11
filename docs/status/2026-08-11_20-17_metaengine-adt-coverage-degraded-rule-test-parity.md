@@ -6,6 +6,10 @@ Implemented 4 tasks from the metaengine TODO list: universal ADT coverage gaps,
 capability-degradation planner rule enhancement, engine test parity, and
 compile-time assertion gaps. All builds and tests pass across 6 engine modules.
 
+> **Update 2026-08-11:** All 4 tasks shipped — see CHANGELOG `[Unreleased]`.
+> Remaining universal-ADT gaps (vector on Pebble/bbolt, native graph on
+> PG/MySQL) tracked in TODO_LIST → Universal ADT Coverage.
+
 ---
 
 ## a) FULLY DONE

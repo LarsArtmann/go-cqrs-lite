@@ -1,5 +1,7 @@
 # Status: Per-Module Feature Profile Migration — F006–F021 + Dead Code Cleanup
 
+> **✅ FULLY RESOLVED 2026-08-11 — archived.** Every actionable item in this report shipped. See CHANGELOG `[Unreleased]` for where the work landed and TODO_LIST.md for any remaining follow-ups (none specific to this report).
+
 > **Date:** 2026-08-11 20:49
 > **Session scope:** Completing the per-module coaching migration started in `2026-08-11_19-20_per-module-feature-profiles-cqrs-lint.md`
 > **Feedback file:** `docs/feedback/new/2026-08-04_cqrs-htmx_cqrs-lint-feedback-round2.md` Issue 2

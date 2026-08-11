@@ -6,6 +6,139 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — Layout convergence, audit trail, operator-lever regression matrix, DSN keyword/value fix — 2026-08-11
+
+> Completes 7 layout-planning follow-up items. The in-memory plan now carries
+> the layout decision end-to-end (assignment → serialization → EXPLAIN), and
+> every replan is attributed to a trigger in a bounded audit trail. Also fixes a
+> silent bug in `pgtestcontainer` DSN isolation.
+>
+> See `docs/status/2026-08-11_21-22_metaengine-layout-convergence-audit-trail-and-dsn-hardening.md`.
+
+- **`metaengine/layout_matrix_test.go`** (NEW, 133 lines): 16-combination
+  regression test iterating all cells (KV/LSM/Row/Columnar ×
+  Balanced/ReadSpeed/WriteSpeed/StorageSpace), asserting the expected
+  `LayoutOption` for each. Documents the two fragile cells (LSM×Balanced margin
+  0.01; Columnar×ReadSpeed exact tie). Any recalibration flip fails this test.
+- **`metaengine/plan_audit.go`** (NEW, 122 lines) + `plan_audit_test.go` (210
+  lines, 6 tests): `PlanAuditEntry` struct (Version, At, Trigger, Priority
+  snapshot). Bounded ring buffer on `Store` (`planHistory`, max 32).
+  `Store.PlanHistory()` returns deep-cloned snapshots. `replanWithTrigger()`
+  attributes all 4 replan paths (`manual`, `priority-change`, `engine-added`,
+  `engine-removed`, `auto-reroute`). Doctor `--- Routing ---` includes `audit:`
+  line showing last 5 transitions.
+- **Layout convergence** (`metaengine/serializable.go`,
+  `metaengine/plan_types.go`, `metaengine/convergence_test.go`): `Layout
+  LayoutOption` added to `QueryAssignment`; `SerializableQuery.Layout`
+  populates in `Serialize()` (layout survives plan diff/fingerprint/manifest);
+  `QueryAssignment.String()` renders `[layout=X]` in EXPLAIN output. Shared
+  `resolvePriority` helper extracted so `planQuery` and `ReplanLayout` use the
+  same resolution logic. 3 convergence tests.
+- **`testutil/pgtestcontainer/pgtestcontainer.go`** (FIX): `replaceDBInDSN`
+  rewrote — the old version only handled URL format (`postgres://...`); for
+  keyword/value format (`host=localhost dbname=mydb`) it silently returned the
+  original DSN unchanged, meaning every test shared one database. Now detects
+  `://` for URL format, otherwise parses keyword/value pairs. 10 test cases.
+
+### Changed — Per-module coaching migration complete (all 28 adoption + resilience rules) — 2026-08-11
+
+> cqrs-lint adoption coaching (F003-F029) and resilience rules (B029-B031) now
+> evaluate **per-module** in multi-`go.work` analysis. Each module's feature
+> profile applies only to its own packages — no cross-module leakage. 86
+> per-module profiles verified by a new integration test.
+
+- **`cmd/cqrs-lint/pkg/analyzer/module_scope.go`** + `scan_in.go` (NEW):
+  `moduleScope` struct, `coachingScopes()` iterator, `attributeModule()`,
+  file-slice-scoped `In` scan helpers. 14 existing scan helpers refactored to
+  delegate to `In` variants (zero duplication). 11 dead workspace-global
+  ctx-wrapper functions removed.
+- 28 rules migrated: F003-F029 (adoption) + B029-B031 (resilience).
+  F001/F002/F005/F014 remain workspace-global by design (low leakage risk).
+- **Tests**: `coaching_permodule_test.go` (18 tests),
+  `coaching_permodule_extra_test.go` (551 lines), `b029_b031_permodule_test.go`,
+  `integration_multimodule_test.go` (NEW, 140 lines — 86 per-module profiles
+  verified on a synthetic multi-`go.work`).
+
+### Added — cqrs-lint: --strict hard-fail, exclude globs, suppression-drift audit, CSV/TSV output, NO_COLOR fix — 2026-08-11
+
+> Consumer-feedback-driven (browser-history). Four detector/UX improvements +
+> two output-format upgrades + a color-consistency regression fix.
+>
+> See `docs/status/2026-08-11_15-58_cqrs-lint-feedback-strict-globs-audit-suppressions.md`
+> and `docs/status/2026-08-11_15-59_cqrs-lint-go-output-superb-upgrade-self-review.md`.
+
+- **`--strict` hard-fail on load errors** (`run.go`): `isStrictMode()` helper;
+  broken packages no longer silently skipped with a "Clean!" result. INCOMPLETE
+  ANALYSIS banner surfaces the skipped-file count. 3 regression tests
+  (`TestFormatFindingsText_HonorsNoColor/_HonorsCIEnv/_HonorsForceColor`).
+- **`exclude` glob patterns** (`filters.go`): `matchExcludePattern()` with 3
+  matching modes; path globs (`**/*_templ.go`) now work, not just filename globs.
+- **Suppression-drift detection** (`pkg/suppression/stale.go`,
+  `doctor_audit.go`): `AuditSuppressions()` + `--audit-suppressions` flag.
+  Flags inline suppressions whose reasoning no longer matches the code.
+- **Doctor multi-module suggested config**: `mergeMostPermissiveProfile()` +
+  5 helpers.
+- **CSV/TSV output formats** (`output.go`, `output_grouping.go`):
+  `findingsToTable()` helper, `--format=csv|tsv` dispatch, `delimited` promoted
+  to direct dep. 3 format tests.
+- **NO_COLOR / CI color consistency**: delegated to `go-output`'s env-aware
+  `ColorMode.ShouldColor()` everywhere (honors `NO_COLOR`, `CI`,
+  `FORCE_COLOR`). Eliminates the split where findings text was colored but
+  tables were not within one run.
+
+### Added — Priority wired into deployment YAML + ADR-0125 (developer priority is layout-only) — 2026-08-11
+
+> The `Priority` system (ADR-0124) is now wired through the deployment config
+> layer. ADR-0125 documents the boundary: `WithLayoutPriority` influences
+> **layout** selection (embed vs. normalize), never engine ranking.
+
+- **`system/config_types.go`**: `EngineConfig.Priority`, `DeploymentConfig.Priority
+  *PriorityConfig`, `system.PriorityConfig` YAML shape.
+- **`system/scream_store.go`**: `CheckSafety` validates invalid priorities.
+- **`metaengine/registry.go`**: `DriverConfig.Priority`.
+- **`metaengine/query.go`**: `WithLayoutPriority(p)` + builder `.Priority()`
+  methods on `lookupBuilder`/`querySetBuilder`/`countBuilder`.
+- **`metaengine/layout_observability.go`**: `GetLayoutInfo`, `LayoutWarnings`.
+- **`docs/adr/0125-developer-priority-is-layout-only.md`** (NEW): ownership
+  split table (developer = layout priority; operator = engine + global priority).
+
+### Changed — OnRecord is the default fold constructor (Phase 5) — 2026-08-11
+
+> `OnRecord`/`OnRecordTyped` (receiving `record.Record`) are now the default
+> fold constructors. `On`/`OnTyped` (payload-only) carry `Deprecated:` godoc
+> and will be removed in the v5 cut.
+
+- All metaengine tests (27 fold calls), cqrs-lint detectors/fixtures (20),
+  examples, and living docs (~60 call sites) migrated to `OnRecord`.
+- `cmd/cqrs-lint/pkg/analyzer/helpers.go`: `isFoldConstructor()` helper wired
+  into F019/F021/F025 so the linter recognizes both constructors.
+- Deprecation guard tests in `on_test.go` (3 specs).
+
+### Added — cqrs-bench `layout` CLI subcommand + KV cost-model calibration — 2026-08-11
+
+> Pre-deployment "what-if" exploration tool. Shows layout cost-model analysis
+> for all storage layouts × priorities. No running engines needed — pure static
+> analysis.
+
+- **`cmd/cqrs-bench/layout.go`** (NEW, 212 lines) + `layout_test.go` (106
+  lines, 5 tests): 4×4 matrix, `--priority`, `--layout`, `--verbose` cost
+  breakdowns, `--format json`, `--output`.
+- **`metaengine/layout_calibration_bench_test.go`** (NEW): 5 calibration
+  benchmarks. KV constants updated from placeholder estimates to
+  benchmark-derived values (ReadCost 2.0→1.8, WriteCost 0.5→0.48, StorageCost
+  0.7→0.63).
+
+### Added — Dgraph integration tests — 2026-08-11
+
+> First real-DB integration tests for `dgraphengine` beyond the ephemeral runner.
+
+- **`metaengine/dgraphengine/scan_backend_test.go`**: `ScanBackend` contract
+  test (filter/sort/pagination) via `enginetest.RunScanBackendTest`.
+- **`metaengine/dgraphengine/soak_autocrud_test.go`**: AutoCRUD soak (45,650
+  events, CRUD lifecycle, memory-leak check).
+- `flake.nix`: `integration-dgraph` nix app; `ephemeral-dgraph.sh` default
+  runner. `go.mod` standalone-build fix (missing `id/v4` replace).
+
 ### Changed — Extract codec/ into standalone go-codec repo — 2026-08-11
 
 - **`codec/`** is now a **deprecated re-export alias** for the standalone
@@ -495,16 +628,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Known Gaps (ADR-0124 follow-ups)
 
-> Tracked as open items in TODO_LIST.md → "Phase 6b Follow-ups".
+> Most resolved 2026-08-11; remaining open items tracked in TODO_LIST.md.
 
-- Cost model multipliers (`scoreEmbed`/`scoreNormalize`) are uncalibrated
-  placeholder constants — must be benchmarked before production use.
+- ~~Cost model multipliers (`scoreEmbed`/`scoreNormalize`) are uncalibrated
+  placeholder constants~~ — **calibrated** with 60s on-disk benchmarks; KV/LSM
+  scoring split (see "Layout calibration" entry above). Row/Columnar remain
+  analytical estimates (open in TODO_LIST).
 - Role-based sync (fold pipeline for Active+DualUse, async for Backup+Migration)
-  is designed but not wired into the fold pipeline.
-- Priority not wired into deployment YAML (`EngineConfig`/`QueryDecl`).
-- `cqrs-bench layout` CLI subcommand not started (runtime API exists).
-- No real workload trace format / recorder / player.
-- Full `nix run .#verify` gate not yet run.
+  is designed but not wired into the fold pipeline. **Still open** (L effort).
+- ~~Priority not wired into deployment YAML (`EngineConfig`/`QueryDecl`)~~ —
+  **wired** (see "Priority wired into deployment YAML" entry above).
+- ~~`cqrs-bench layout` CLI subcommand not started~~ — **shipped** (see
+  "cqrs-bench layout CLI subcommand" entry above).
+- No real workload trace format / recorder / player. **Still open** (M effort).
+- ~~Full `nix run .#verify` gate not yet run~~ — **still open** (stale-GREEN
+  backlog; tracked in TODO_LIST).
 
 ### Added — ADR-0117: Command lifecycle as event streams — 2026-08-11
 
@@ -531,19 +669,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Known Gaps (ADR-0117 follow-ups)
 
-> Tracked as open items in TODO_LIST.md → "ADR-0117 Follow-ups".
+> Resolved 2026-08-11 by `86458d36e`; see "ADR-0117 command lifecycle
+> follow-ups" entry above. Remaining open: release tagging (blocked on
+> `id.ActorID` gap) and calibration benchmarks (TODO_LIST).
 
-- Recorder version tracking uses an in-memory counter that resets on restart —
-  must be replaced with store-assigned versions or optimistic concurrency before
-  production use.
-- ~~No integration test wiring the lifecycle middleware through the real~~
-  ~~`middleware.CommandRetry`~~ — resolved: `retry_integration_test.go` covers
-  real retry middleware end-to-end.
-- DLQ and FailureLog projection tests only verify `ApplyRecord` succeeds — no
-  `ExecuteTyped` read-back assertions yet.
-- No processing-time projection (`command.received` + `command.completed` delta).
-- No `system.WithCommandLifecycle()` convenience wiring.
-- Full `nix run .#verify` gate not yet run (only individual checks passed).
+- ~~Recorder version tracking uses an in-memory counter that resets on restart~~
+  — **fixed**: `NewRecorder` lazy-hydrates version from `EventSource`; `Save()`
+  uses optimistic concurrency control; `seedVersion` helper; restart-continuity
+  test.
+- ~~No integration test wiring the lifecycle middleware through the real
+  `middleware.CommandRetry`~~ — **resolved**: `retry_integration_test.go` (3
+  tests).
+- ~~DLQ and FailureLog projection tests only verify `ApplyRecord` succeeds~~ —
+  **resolved**: `ExecuteTyped` read-back assertions added.
+- ~~No processing-time projection~~ — **resolved**: `ProcessingTime()` (Map ADT,
+  `command.received` + `command.completed` delta).
+- ~~No `system.WithCommandLifecycle()` convenience wiring~~ — **resolved**:
+  `system/lifecycle.go` + `system/lifecycle_with_test.go`.
+- ~~Full `nix run .#verify` gate not yet run~~ — **still open** (stale-GREEN
+  backlog; tracked in TODO_LIST).
 
 ### Fixed — Calibration embedding across ALL engines — 2026-08-11
 

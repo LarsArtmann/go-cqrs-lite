@@ -3,6 +3,7 @@
 **Date:** 2026-08-11 15:59
 **Session scope:** Continuation of the go-output adoption audit. Task: lock the NO_COLOR color-consistency fix with regression tests, clear the stale-GREEN via `nix run .#verify`, then upgrade cqrs-lint to use go-output "superbly" (CSV/TSV formats). User demanded a comprehensive plan (table view, ≤12 min tasks), execution, then a brutal self-review.
 **Outcome:** All 12 planned tasks executed and GREEN. cqrs-lint now has 6 output formats (was 4), 7 new regression tests, env-aware color consistency. BUT several process failures and blind spots remain (see Fucked Up).
+**Update 2026-08-11:** CSV/TSV formats + NO_COLOR fix shipped — see CHANGELOG `[Unreleased]`. Deferred Wave 3-6 items (HTML/XML formats, GitHub annotations) are long-term; not in TODO_LIST.
 
 ---
 

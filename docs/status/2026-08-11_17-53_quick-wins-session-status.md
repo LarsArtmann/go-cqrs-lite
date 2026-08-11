@@ -2,6 +2,7 @@
 
 **Date:** 2026-08-11 17:53
 **Scope:** Execute the 5 agreed quick wins from TODO_LIST.md; negotiate scope when blocked.
+**Update 2026-08-11:** 4/5 done (benchkit tag, batch atomicity test, compile-time assertions, SQLite e2e graph fallback) — see CHANGELOG `[Unreleased]`. The 5th (commandlifecycle tag) is BLOCKED on the `id.ActorID` gap — tracked in TODO_LIST → Release/Tagging.
 
 ---
 

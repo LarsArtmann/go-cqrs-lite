@@ -1,5 +1,7 @@
 # Status: 2026-08-11 18:10 — ADR-0125 Priority Boundary Documentation
 
+> **✅ FULLY RESOLVED 2026-08-11 — archived.** Every actionable item in this report shipped. See CHANGELOG `[Unreleased]` for where the work landed and TODO_LIST.md for any remaining follow-ups (none specific to this report).
+
 **Session scope:** Document the developer/operator priority boundary (`WithLayoutPriority` = layout-only, not engine ranking).
 
 ---

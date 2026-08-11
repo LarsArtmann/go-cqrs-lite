@@ -1,5 +1,7 @@
 # Status Report: OnRecord Default Fold Migration (Phase 5 M2)
 
+> **✅ FULLY RESOLVED 2026-08-11 — archived.** Every actionable item in this report shipped. See CHANGELOG `[Unreleased]` for where the work landed and TODO_LIST.md for any remaining follow-ups (none specific to this report).
+
 > **Date:** 2026-08-11 17:03
 > **Session goal:** Execute Phase 5 M2 — make `OnRecord`/`OnRecordTyped` the default fold constructors; deprecate payload-only `On`/`OnTyped`
 > **Outcome:** FULLY DONE and committed (3 commits). Working tree CLEAN. All verification gates pass except 5 pre-existing layout failures unrelated to this work.

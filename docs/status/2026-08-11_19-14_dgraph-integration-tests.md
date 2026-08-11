@@ -3,6 +3,7 @@
 **Date:** 2026-08-11 19:14
 **Session scope:** Writing actual Dgraph integration tests in Go (TODO_LIST item)
 **Result:** PARTIALLY DONE — new tests pass, 3 pre-existing bugs discovered
+**Update 2026-08-11:** Tests shipped — see CHANGELOG `[Unreleased]`. The 2 remaining bugs (CounterBackend DQL colon, JournalReadFrom seq offset) are tracked in TODO_LIST → Universal ADT Coverage.
 
 ---
 

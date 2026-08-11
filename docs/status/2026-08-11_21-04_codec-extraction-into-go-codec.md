@@ -2,6 +2,10 @@
 
 > Extraction of `codec/` into a standalone `go-codec` repo. Functional but
 > with known gaps and one correctness issue.
+>
+> **Update 2026-08-11:** Extraction shipped — see CHANGELOG `[Unreleased]`.
+> Remaining open (publish go-codec to GitHub, delete dead dirs, write ADR) tracked
+> in TODO_LIST → Codec Extraction.
 
 ---
 

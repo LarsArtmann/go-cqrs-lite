@@ -1,5 +1,7 @@
 # Status Report: Layout CLI Subcommand + Cost Model Calibration
 
+> **✅ FULLY RESOLVED 2026-08-11 — archived.** Every actionable item in this report shipped. See CHANGELOG `[Unreleased]` for where the work landed and TODO_LIST.md for any remaining follow-ups (none specific to this report).
+
 **Date:** 2026-08-11 18:41
 **Session scope:** Two Phase 6b TODO items — `cqrs-bench layout` CLI subcommand (M) + Calibrate cost model multipliers (L)
 **Task source:** `TODO_LIST.md` → Phase 6b → items 3 and 4

@@ -3,6 +3,7 @@
 **Date:** 2026-08-11 17:49
 **Session goal:** Wire `Priority` into deployment YAML — `EngineConfig`/`DriverConfig` + `QueryDecl` builder options + config validation (Effort: M)
 **Outcome:** Functionally wired and compiles, system tests pass. But cut corners on tests, left behind duplicate replace directives, dead code, and a half-wired design gap. Marking myself a B-, not an A.
+**Update 2026-08-11:** ~~dead code~~ (`layoutPriorities`/`layoutAssignment`) **removed** by a later session (`d8feba1f1`). ADR-0125 written (boundary documented). Remaining open: tests for resolution order, duplicate `replace` directives (TODO_LIST).
 
 ---
 
