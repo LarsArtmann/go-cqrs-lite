@@ -40,7 +40,7 @@ func BenchmarkIdempotency_CommandOverhead(b *testing.B) {
 
 	// With idempotency middleware.
 	b.Run("with-idempotency", func(b *testing.B) {
-		store := idempotency.NewMemoryStore(5 * time.Minute) //nolint:staticcheck // test-only
+		store := idempotency.NewMemoryStore(5 * time.Minute)
 		defer store.Close()
 
 		disp := command.NewDispatcher()
@@ -70,7 +70,7 @@ func BenchmarkIdempotency_CommandOverhead(b *testing.B) {
 // duplicate command (cache hit path).
 func BenchmarkIdempotency_DuplicateDetection(b *testing.B) {
 	ctx := context.Background()
-	store := idempotency.NewMemoryStore(5 * time.Minute) //nolint:staticcheck // test-only
+	store := idempotency.NewMemoryStore(5 * time.Minute)
 	defer store.Close()
 
 	disp := command.NewDispatcher()

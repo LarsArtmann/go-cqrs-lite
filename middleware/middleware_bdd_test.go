@@ -239,7 +239,7 @@ var _ = Describe("Command Idempotency Middleware", func() {
 	Describe("As a developer protecting against duplicate commands", func() {
 		Context("when the same command is dispatched twice", func() {
 			It("should execute the handler once and reject the duplicate", func() {
-				store := idempotency.NewMemoryStore(0) //nolint:staticcheck // test-only
+				store := idempotency.NewMemoryStore(0)
 				defer store.Close()
 
 				var callCount int32
@@ -264,7 +264,7 @@ var _ = Describe("Command Idempotency Middleware", func() {
 
 		Context("when two different commands arrive", func() {
 			It("should execute the handler for both", func() {
-				store := idempotency.NewMemoryStore(0) //nolint:staticcheck // test-only
+				store := idempotency.NewMemoryStore(0)
 				defer store.Close()
 
 				var callCount int32
@@ -293,7 +293,7 @@ var _ = Describe("Command Idempotency Middleware", func() {
 
 		Context("when a custom key extractor returns empty", func() {
 			It("should skip dedup and always pass through", func() {
-				store := idempotency.NewMemoryStore(0) //nolint:staticcheck // test-only
+				store := idempotency.NewMemoryStore(0)
 				defer store.Close()
 
 				var callCount int32
@@ -336,7 +336,7 @@ var _ = Describe("Query Idempotency Middleware", func() {
 	Describe("As a developer protecting against duplicate queries", func() {
 		Context("when the same query key is seen twice", func() {
 			It("should return a result once and reject the duplicate", func() {
-				store := idempotency.NewMemoryStore(0) //nolint:staticcheck // test-only
+				store := idempotency.NewMemoryStore(0)
 				defer store.Close()
 
 				var callCount int32
@@ -367,7 +367,7 @@ var _ = Describe("Query Idempotency Middleware", func() {
 
 		Context("when the nil keyExtractor is provided", func() {
 			It("should panic at construction with a clear message", func() {
-				store := idempotency.NewMemoryStore(0) //nolint:staticcheck // test-only
+				store := idempotency.NewMemoryStore(0)
 				defer store.Close()
 
 				Expect(func() {
@@ -388,7 +388,7 @@ var _ = Describe("Event Idempotency Middleware", func() {
 	Describe("As a developer protecting against duplicate events", func() {
 		Context("when the same event is seen twice", func() {
 			It("should process the handler once and reject the duplicate", func() {
-				store := idempotency.NewMemoryStore(0) //nolint:staticcheck // test-only
+				store := idempotency.NewMemoryStore(0)
 				defer store.Close()
 
 				var callCount int32
@@ -412,7 +412,7 @@ var _ = Describe("Event Idempotency Middleware", func() {
 
 		Context("when two different events arrive", func() {
 			It("should process both events", func() {
-				store := idempotency.NewMemoryStore(0) //nolint:staticcheck // test-only
+				store := idempotency.NewMemoryStore(0)
 				defer store.Close()
 
 				var callCount int32
@@ -437,7 +437,7 @@ var _ = Describe("Event Idempotency Middleware", func() {
 
 		Context("when a custom key extractor returns empty", func() {
 			It("should skip dedup and process all events", func() {
-				store := idempotency.NewMemoryStore(0) //nolint:staticcheck // test-only
+				store := idempotency.NewMemoryStore(0)
 				defer store.Close()
 
 				var callCount int32
