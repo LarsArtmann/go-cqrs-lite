@@ -418,7 +418,9 @@ codec/var AutoDetect
 codec/var CBORDecMode
 codec/var CBOREncMode
 codec/var COSEAlgHeader
+codec/var COSEEncrypt0Diagnostic
 codec/var COSEEncrypt0String
+codec/var COSESign1Diagnostic
 codec/var COSESign1String
 codec/var DecodeBase64String
 codec/var Diagnose

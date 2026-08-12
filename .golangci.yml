@@ -137,6 +137,7 @@ linters:
             - github.com/larsartmann/go-cqrs-lite
             - github.com/larsartmann/go-retry
             - github.com/larsartmann/go-idempotency
+            - github.com/larsartmann/go-codec
             - github.com/larsartmann/go-composable-business-types
             - github.com/larsartmann/go-branded-id
             - github.com/larsartmann/go-sse

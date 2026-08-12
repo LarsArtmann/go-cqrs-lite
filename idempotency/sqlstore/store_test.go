@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-idempotency"
 	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
-	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
 )
 
 func newSQLiteStore(t *testing.T) *sqlstore.Store {

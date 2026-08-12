@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
+	"github.com/larsartmann/go-idempotency"
 )
 
 func TestQueryIdempotency_NilKeyExtractorPanics(t *testing.T) {

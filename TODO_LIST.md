@@ -129,17 +129,10 @@ and is **never** duplicated here.
 
 ## Codec Extraction
 
-> `codec/` extracted into standalone `go-codec` repo (local at `../go-codec`).
+> `codec/` extracted into standalone `go-codec` repo (published `go-codec@v0.1.0`).
 > `codec/` is now a deprecated re-export alias. 53 consumer modules migrated.
-> See CHANGELOG `[Unreleased]`.
+> `go.work` replace directive removed; `../go-codec` added to `use` block.
 
-- [BLOCKED] 🔥 **Publish `go-codec` to GitHub + tag `v0.1.0`** — the `go.work`
-  `replace` directive is a workaround; `go mod tidy` is **broken in all 53
-  consumer modules** until the repo is published with a real tag. Needs user
-  action (create `github.com/larsartmann/go-codec`).
-- [ ] **Remove `go.work` replace → add `../go-codec` to `use` block** — after
-      publish. Same pattern as `go-retry` / `go-idempotency`.
-      _(Effort: XS)_
 - [ ] **Delete dead dirs `codec/testdata/` and `codec/reports/`** — testdata
       (fuzz + golden) and reports (coverage.out) remain after the alias
       conversion; nothing references them.
@@ -154,6 +147,70 @@ and is **never** duplicated here.
 
 ---
 
+## Deprecated Module Removal
+
+> All four extracted packages (`go-codec@v0.1.0`, `go-idempotency@v0.1.2`,
+> `go-retry@v0.3.1`, `go-flightrecorder@v0.2.0`) are published. Their
+> `go-cqrs-lite/` shim modules are pure re-export aliases with zero internal
+> source consumers. Removing them reduces module count, simplifies the
+> workspace, and eliminates maintenance burden.
+
+- [ ] 🔥 **Delete `codec/` shim module** — all source already imports
+      `go-codec` directly. Remove dir + `go.work` entry + `flake.nix`
+      `testModules` entry + `cmd/api-stability` modules list entry.
+      _(Effort: S)_
+- [ ] 🔥 **Delete `retry/` shim module** — zero internal source imports.
+      Same removal checklist as codec.
+      _(Effort: XS)_
+- [ ] 🔥 **Delete `idempotency/` shim module** — all source (middleware,
+      kvstore, sqlstore, integration, example) already imports
+      `go-idempotency` directly. The `idempotency/store_test.go` and
+      `property_test.go` tests still reference the shim — delete them too.
+      _(Effort: S)_
+- [ ] 🔥 **Delete `flightrecorder/` shim module** — zero internal source
+      imports. Same removal checklist.
+      _(Effort: XS)_
+- [ ] **Update `cmd/cqrs-lint` after shim deletion** — module catalog
+      ImportHints, E001 tier-0 list, F007/F008 detectors, architecture rules.
+      The linter should only recognize the external packages after shims
+      are gone.
+      _(Effort: M)_
+- [ ] **Update AGENTS.md module map** — remove the four shim rows, note
+      that the external repos are the canonical source.
+      _(Effort: S)_
+- [ ] **Update SKILL.md + references** — remove deprecated module docs,
+      point consumers to the external repos.
+      _(Effort: M)_
+- [ ] **Add deprecated `COSESign1String` / `COSEEncrypt0String` backward-compat
+      aliases in `codec/alias.go`** — the pre-extraction names were silently
+      dropped. Add them before any codec shim removal to avoid breaking
+      consumers. (Moot if codec/ is deleted in the v5 cut instead.)
+      _(Effort: XS)_
+- [ ] **Regenerate API surface golden** after any module deletion —
+      `cmd/api-stability` `modules` slice must match the actual module set.
+      Meta-test `TestEveryGoModDirIsInModulesList` enforces this.
+      _(Effort: XS)_
+- [ ] **Run `nix run .#verify` after all deletions** — catch dangling
+      references, broken builds, stale golden files.
+      _(Effort: S)_
+
+### Cleanup opportunities to consider alongside deletion
+
+- [ ] **Audit `idempotency/kvstore/` and `idempotency/sqlstore/` module
+      paths** — should they move out of the `idempotency/` namespace now
+      that the parent shim is gone? (e.g., `kvstore/` or keep as-is for
+      consumer stability)
+      _(Effort: S)_
+- [ ] **Consolidate indirect dep references** — after new module tags are
+      published, the transitive `go-cqrs-lite/{codec,retry,idempotency,
+      flightrecorder}/v4` indirect deps will clean up. Track and verify.
+      _(Effort: M)_
+- [ ] **Verify `go.work` use block ordering** — external deps should be
+      alphabetically consistent after removing local shim modules.
+      _(Effort: XS)_
+
+---
+
 ## Release / Tagging
 
 - [BLOCKED] 🔥 **Tag `id/v4.3.0` → re-tag record/command/metaengine → tag
@@ -163,8 +220,7 @@ and is **never** duplicated here.
   Fix chain: tag `id/v4.3.0` → re-tag `record/v4.2.0`, `command/v4.5.0`,
   `metaengine/v4.9.0` → tag `commandlifecycle/v4.0.0` +
   `commandlifecycle/projections/v4.0.0` → bump 66 downstream `go.mod` requires.
-  Needs user approval (never tag without explicit instruction). Blocked
-  downstream by the go-codec publish above.
+  Needs user approval (never tag without explicit instruction).
 - [ ] **Run calibration benchmarks against baseline** — verify
       `calibration-baseline.md` accuracy; add CI regression check.
       _(Effort: M)_

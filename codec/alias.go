@@ -116,12 +116,16 @@ func PrepareCOSESetup[Cfg any, O ~func(*Cfg)](cfg *Cfg, opts []O, alg int64) ([]
 }
 
 var (
-	MarshalCOSESign1      = gocodec.MarshalCOSESign1
-	UnmarshalCOSESign1    = gocodec.UnmarshalCOSESign1
-	MarshalCOSEEncrypt0   = gocodec.MarshalCOSEEncrypt0
-	UnmarshalCOSEEncrypt0 = gocodec.UnmarshalCOSEEncrypt0
-	SigStructure          = gocodec.SigStructure
-	EncStructure0         = gocodec.EncStructure0
-	COSESign1String       = gocodec.COSESign1String
-	COSEEncrypt0String    = gocodec.COSEEncrypt0String
+	MarshalCOSESign1       = gocodec.MarshalCOSESign1
+	UnmarshalCOSESign1     = gocodec.UnmarshalCOSESign1
+	MarshalCOSEEncrypt0    = gocodec.MarshalCOSEEncrypt0
+	UnmarshalCOSEEncrypt0  = gocodec.UnmarshalCOSEEncrypt0
+	SigStructure           = gocodec.SigStructure
+	EncStructure0          = gocodec.EncStructure0
+	COSESign1Diagnostic    = gocodec.COSESign1Diagnostic
+	COSEEncrypt0Diagnostic = gocodec.COSEEncrypt0Diagnostic
+	// Deprecated: use COSESign1Diagnostic (renamed in go-codec v0.1.0).
+	COSESign1String = gocodec.COSESign1Diagnostic
+	// Deprecated: use COSEEncrypt0Diagnostic (renamed in go-codec v0.1.0).
+	COSEEncrypt0String = gocodec.COSEEncrypt0Diagnostic
 )

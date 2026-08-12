@@ -12,7 +12,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/graph/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.0.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.2.0
@@ -29,6 +28,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.1.0
 	github.com/larsartmann/go-error-family v0.10.0
+	github.com/larsartmann/go-idempotency v0.1.2
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
 	go.opentelemetry.io/otel v1.45.0
@@ -67,6 +67,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.1.0 // indirect

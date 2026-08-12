@@ -29,7 +29,7 @@ func NewF007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				if importsPathIn(sc.files, "go-cqrs-lite/idempotency") {
+				if importsPathIn(sc.files, "go-cqrs-lite/idempotency", "go-idempotency") {
 					continue
 				}
 

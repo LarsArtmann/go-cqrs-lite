@@ -14,7 +14,7 @@ import (
 // but scan an explicit file slice instead of the whole workspace. The ctx
 // helpers delegate to these so all callers share one code path.
 
-func importsPathIn(files []*analyzer.GoFile, suffix string) bool {
+func importsPathIn(files []*analyzer.GoFile, suffixes ...string) bool {
 	for _, gf := range files {
 		if gf.IsTest {
 			continue
@@ -23,8 +23,11 @@ func importsPathIn(files []*analyzer.GoFile, suffix string) bool {
 			if imp == nil || imp.Path == nil {
 				continue
 			}
-			if strings.Contains(strings.Trim(imp.Path.Value, `"`), suffix) {
-				return true
+			path := strings.Trim(imp.Path.Value, `"`)
+			for _, suffix := range suffixes {
+				if strings.Contains(path, suffix) {
+					return true
+				}
 			}
 		}
 	}
