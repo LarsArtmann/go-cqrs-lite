@@ -17,4 +17,6 @@ require (
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
+	golang.org/x/mod v0.39.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 )

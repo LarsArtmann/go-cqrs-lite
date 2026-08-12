@@ -29,6 +29,8 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.45.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.45.0 // indirect
+	golang.org/x/mod v0.39.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 	pgregory.net/rapid v1.3.0 // indirect
 )
 

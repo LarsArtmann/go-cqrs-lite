@@ -23,7 +23,10 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.49
 )
 
-require github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0 // indirect
+require (
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0 // indirect
+	golang.org/x/mod v0.39.0 // indirect
+)
 
 require (
 	charm.land/fang/v2 v2.0.1 // indirect

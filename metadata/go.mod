@@ -9,4 +9,5 @@ require (
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	golang.org/x/text v0.41.0 // indirect
 )
