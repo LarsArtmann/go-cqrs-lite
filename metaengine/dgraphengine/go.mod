@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/dgraph-io/dgo/v240 v240.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.8.0
 	google.golang.org/grpc v1.83.0
 )
 
@@ -23,10 +23,4 @@ require (
 	golang.org/x/text v0.40.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260807164820-c8921c73eeea // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
-)
-
-replace (
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../sqliteengine
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../
-	github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record
 )

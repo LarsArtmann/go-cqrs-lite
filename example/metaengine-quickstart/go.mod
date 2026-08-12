@@ -26,14 +26,3 @@ require (
 	go.opentelemetry.io/otel v1.45.0 // indirect
 	go.opentelemetry.io/otel/trace v1.45.0 // indirect
 )
-
-replace (
-	github.com/larsartmann/go-cqrs-lite/event/v4 => ../../event
-	github.com/larsartmann/go-cqrs-lite/id/v4 => ../../id
-	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 => ../../metaengine/projectionadapter
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../../metaengine/sqliteengine
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../metaengine
-	github.com/larsartmann/go-cqrs-lite/projection/v4 => ../../projection
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 => ../../projectionhost
-	github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record
-)

@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/duckdb/duckdb-go/v2 v2.10505.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.8.0
 )
 
 require (
@@ -32,5 +32,3 @@ require (
 	golang.org/x/exp v0.0.0-20260727155853-b88d891fe743 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../

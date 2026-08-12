@@ -78,6 +78,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 )
-
-// Workspace-local replace. flightrecorder is not yet tagged.
-replace github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 => ../flightrecorder

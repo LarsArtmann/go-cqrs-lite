@@ -6,7 +6,6 @@ require (
 	git.coopcloud.tech/decentral1se/iroh-go v0.0.0-20260731195909-77011195d3d6
 	github.com/fxamacker/cbor/v2 v2.9.2
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
 	github.com/onsi/gomega v1.42.1
 )
@@ -22,9 +21,4 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
-)
-
-replace (
-	github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4 => ../
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../
 )

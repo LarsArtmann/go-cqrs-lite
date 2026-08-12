@@ -17,7 +17,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0
