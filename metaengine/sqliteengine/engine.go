@@ -12,7 +12,6 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -21,8 +20,6 @@ import (
 // It is the first persistent engine for the metaengine, enabling data
 // to survive process restarts.
 type sqliteEngine struct {
-	metaengine.Calibration
-
 	db      *sql.DB
 	queries sqliteQuerySet
 	cache   *stmtCache
@@ -31,7 +28,7 @@ type sqliteEngine struct {
 	plans    map[string]metaengine.LayoutPlan
 	txMu     sync.Mutex
 	activeTx atomic.Pointer[txExecutor]
-	probeFn  func(context.Context) (time.Duration, error)
+	cal      metaengine.Calibration
 }
 
 // sqliteQuerySet holds pre-built SQL strings for each operation.
@@ -60,8 +57,6 @@ type sqliteQuerySet struct {
 	streamAppendExp string
 	journalReadAll  string
 	journalReadFrom string
-	// Graph (iterative BFS on meta_graph_edges)
-	graphAddEdge string
 	// DDL
 	ddl string
 }
@@ -96,11 +91,6 @@ func defaultSQLiteQueries() sqliteQuerySet {
 	);
 	CREATE INDEX IF NOT EXISTS idx_stream_log_stream ON meta_stream_log(collection, stream_id, seq);
 	CREATE INDEX IF NOT EXISTS idx_stream_log_journal ON meta_stream_log(collection, seq);
-	CREATE TABLE IF NOT EXISTS meta_graph_edges (
-		collection TEXT NOT NULL, from_node TEXT NOT NULL, to_node TEXT NOT NULL,
-		PRIMARY KEY (collection, from_node, to_node)
-	);
-	CREATE INDEX IF NOT EXISTS idx_graph_edges_from ON meta_graph_edges(collection, from_node);
 	CREATE TABLE IF NOT EXISTS meta_snapshot (
 		collection TEXT NOT NULL, stream_id TEXT NOT NULL, version INTEGER NOT NULL, data BLOB NOT NULL,
 		PRIMARY KEY (collection, stream_id)
@@ -122,8 +112,6 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		streamAppendExp:  `INSERT INTO meta_stream_log (collection, stream_id, value) VALUES (?, ?, ?)`,
 		journalReadAll:   `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
 		journalReadFrom:  `SELECT value FROM meta_stream_log WHERE collection = ? AND seq > ? ORDER BY seq LIMIT ?`,
-		// Graph (recursive CTE)
-		graphAddEdge: `INSERT OR IGNORE INTO meta_graph_edges (collection, from_node, to_node) VALUES (?, ?, ?)`,
 	}
 }
 
@@ -147,9 +135,14 @@ func NewSQLiteEngine(database *sql.DB) (metaengine.Engine, error) {
 	return eng, nil
 }
 
+// SetCalibration implements metaengine.Calibratable for runtime cost calibration.
+func (e *sqliteEngine) SetCalibration(costs metaengine.CalibrationCosts) {
+	e.cal.SetCalibration(costs)
+}
+
 func (e *sqliteEngine) Profile() metaengine.EngineProfile {
 	p := metaengine.SQLiteEngineProfile()
-	e.ApplyCalibration(&p)
+	e.cal.ApplyCalibration(&p)
 
 	return p
 }
@@ -502,7 +495,7 @@ func (e *sqliteEngine) StreamScan(
 	return func(yield func(any, error) bool) {
 		query, args := e.buildStreamQuery(col, filters, sort)
 
-		rows, err := e.xd().QueryContext(ctx, query, args...) //nolint:sqlclosecheck
+		rows, err := e.xd().QueryContext(ctx, query, args...)
 		if err != nil {
 			yield(nil, err)
 
@@ -601,21 +594,17 @@ func (e *sqliteEngine) buildStreamQuery(
 
 // Compile-time assertions.
 var (
-	_ metaengine.Engine            = (*sqliteEngine)(nil)
-	_ metaengine.MapBackend        = (*sqliteEngine)(nil)
-	_ metaengine.MapUpdater        = (*sqliteEngine)(nil)
-	_ metaengine.ScanBackend       = (*sqliteEngine)(nil)
-	_ metaengine.PushdownScan      = (*sqliteEngine)(nil)
-	_ metaengine.StreamingScan     = (*sqliteEngine)(nil)
-	_ metaengine.LayoutPlanner     = (*sqliteEngine)(nil)
-	_ metaengine.LayoutPlanApplier = (*sqliteEngine)(nil)
-	_ metaengine.RawValueReader    = (*sqliteEngine)(nil)
-	_ metaengine.RawScanReader     = (*sqliteEngine)(nil)
-	_ metaengine.SetBackend        = (*sqliteEngine)(nil)
-	_ metaengine.CounterBackend    = (*sqliteEngine)(nil)
-	_ metaengine.MultimapBackend   = (*sqliteEngine)(nil)
-	_ metaengine.LogBackend        = (*sqliteEngine)(nil)
-	_ metaengine.Calibratable      = (*sqliteEngine)(nil)
-	_ metaengine.TrackerHost       = (*sqliteEngine)(nil)
-	_ metaengine.Prober            = (*sqliteEngine)(nil)
+	_ metaengine.Engine          = (*sqliteEngine)(nil)
+	_ metaengine.MapBackend      = (*sqliteEngine)(nil)
+	_ metaengine.MapUpdater      = (*sqliteEngine)(nil)
+	_ metaengine.ScanBackend     = (*sqliteEngine)(nil)
+	_ metaengine.PushdownScan    = (*sqliteEngine)(nil)
+	_ metaengine.StreamingScan   = (*sqliteEngine)(nil)
+	_ metaengine.LayoutPlanner   = (*sqliteEngine)(nil)
+	_ metaengine.RawValueReader  = (*sqliteEngine)(nil)
+	_ metaengine.RawScanReader   = (*sqliteEngine)(nil)
+	_ metaengine.SetBackend      = (*sqliteEngine)(nil)
+	_ metaengine.CounterBackend  = (*sqliteEngine)(nil)
+	_ metaengine.MultimapBackend = (*sqliteEngine)(nil)
+	_ metaengine.LogBackend      = (*sqliteEngine)(nil)
 )

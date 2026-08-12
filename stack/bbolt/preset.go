@@ -23,9 +23,6 @@ import (
 )
 
 // Option configures the bbolt preset.
-
-const bboltTimeout = 5 * time.Second
-
 type Option func(*config)
 
 type config struct {
@@ -71,7 +68,7 @@ func New(path string, opts ...Option) (*stack.Bundle, error) {
 		opt(&cfg)
 	}
 
-	boltOpts := &bolt.Options{Timeout: bboltTimeout}
+	boltOpts := &bolt.Options{Timeout: 5 * time.Second}
 	if cfg.durability == stack.DurabilityRelaxed {
 		boltOpts.NoSync = true
 		boltOpts.NoFreelistSync = true

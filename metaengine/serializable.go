@@ -29,7 +29,6 @@ type SerializableQuery struct {
 	ADT              ADT                    `json:"adt"`
 	Engine           string                 `json:"engine"`
 	Complexity       string                 `json:"complexity"`
-	ReadPattern      ReadPattern            `json:"read_pattern,omitempty"`
 	LatencyMs        float64                `json:"latency_ms"`
 	ReadCosts        *SerializableReadCosts `json:"read_costs,omitempty"`
 	Persistence      Persistence            `json:"persistence,omitempty"`
@@ -79,12 +78,11 @@ func Serialize(result *PlanResult, engines []Engine) *SerializablePlan {
 
 	for _, q := range result.Queries {
 		sq := SerializableQuery{
-			Name:        q.QueryName,
-			ADT:         q.ADT,
-			Engine:      q.EngineName,
-			Complexity:  string(q.Complexity),
-			ReadPattern: q.ReadPattern,
-			LatencyMs:   q.Cost.EstimatedLatencyMs,
+			Name:       q.QueryName,
+			ADT:        q.ADT,
+			Engine:     q.EngineName,
+			Complexity: string(q.Complexity),
+			LatencyMs:  q.Cost.EstimatedLatencyMs,
 		}
 
 		if eng, ok := engineByName[q.EngineName]; ok {

@@ -4,13 +4,18 @@ import (
 	"context"
 	"testing"
 
+	pgengine "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 func TestPostgresHealthCheck_Healthy(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewPgEngine(t)
+	eng, err := pgengine.New(pgDSN(t))
+	if err != nil {
+		t.Skipf("Postgres not available: %v", err)
+	}
+	defer eng.Close()
 
 	hc, ok := eng.(metaengine.HealthChecker)
 	if !ok {
@@ -25,7 +30,10 @@ func TestPostgresHealthCheck_Healthy(t *testing.T) {
 func TestPostgresHealthCheck_ClosedDB(t *testing.T) {
 	t.Parallel()
 
-	eng := newPgEngineOrSkip(t)
+	eng, err := pgengine.New(pgDSN(t))
+	if err != nil {
+		t.Skipf("Postgres not available: %v", err)
+	}
 
 	eng.Close()
 

@@ -3,6 +3,9 @@ package pebbleengine_test
 import (
 	"testing"
 
+	"github.com/onsi/gomega"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
 )
@@ -24,7 +27,12 @@ func TestPebbleADTMatrix(t *testing.T) {
 		{
 			Name: "pebble",
 			Create: func(t *testing.T) metaengine.Engine {
-				return newPebbleEngineOrSkip(t)
+				t.Helper()
+
+				eng, err := pebbleengine.NewPebbleEngine("")
+				gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+
+				return eng
 			},
 		},
 	})

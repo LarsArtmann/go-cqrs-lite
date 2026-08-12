@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"testing"
 	"time"
-
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // TestWatcher_ReceivesDeleteNotification verifies that remove/delete
@@ -19,14 +17,10 @@ func TestWatcher_ReceivesDeleteNotification(t *testing.T) {
 
 	deleteQuery := Query[testFindTask, testTask](
 		"del_tasks",
-		OnRecordTyped(
-			"task_created",
-			testTask{},
-			func(_ record.Record, e testTask) (testTaskID, testTask) {
-				return e.ID, e
-			},
-		),
-		OnRecordTyped("task_deleted", testTask{}, Remove[testTask]()),
+		OnTyped("task_created", testTask{}, func(e testTask) (testTaskID, testTask) {
+			return e.ID, e
+		}),
+		OnTyped("task_deleted", testTask{}, Remove[testTask]()),
 	)
 
 	store, err := Plan([]Engine{eng}, deleteQuery)
@@ -78,14 +72,10 @@ func TestWatcherWithSeq_ReceivesDeleteNotification(t *testing.T) {
 
 	deleteQuery := Query[testFindTask, testTask](
 		"del_seq_tasks",
-		OnRecordTyped(
-			"task_created",
-			testTask{},
-			func(_ record.Record, e testTask) (testTaskID, testTask) {
-				return e.ID, e
-			},
-		),
-		OnRecordTyped("task_deleted", testTask{}, Remove[testTask]()),
+		OnTyped("task_created", testTask{}, func(e testTask) (testTaskID, testTask) {
+			return e.ID, e
+		}),
+		OnTyped("task_deleted", testTask{}, Remove[testTask]()),
 	)
 
 	store, err := Plan([]Engine{eng}, deleteQuery)
@@ -209,14 +199,10 @@ func TestSQLiteWatcher_ReceivesDeleteNotification(t *testing.T) {
 
 	deleteQuery := Query[testFindTask, testTask](
 		"sqlite_del_tasks",
-		OnRecordTyped(
-			"task_created",
-			testTask{},
-			func(_ record.Record, e testTask) (testTaskID, testTask) {
-				return e.ID, e
-			},
-		),
-		OnRecordTyped("task_deleted", testTask{}, Remove[testTask]()),
+		OnTyped("task_created", testTask{}, func(e testTask) (testTaskID, testTask) {
+			return e.ID, e
+		}),
+		OnTyped("task_deleted", testTask{}, Remove[testTask]()),
 	)
 
 	store, err := Plan([]Engine{eng}, deleteQuery)

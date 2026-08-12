@@ -3,9 +3,10 @@ package metaengine
 import (
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
+
+	"github.com/dustin/go-humanize"
 )
 
 // Diagnostic levels for plan output.
@@ -55,8 +56,7 @@ func (d Diagnostics) HasErrors() bool {
 	return false
 }
 
-// QueryAssignment shows the full plan for one query: engine, ADT, read pattern,
-// cost, and the operator-driven layout decision (ADR-0124).
+// QueryAssignment shows the full plan for one query: engine, ADT, read pattern, cost.
 type QueryAssignment struct {
 	QueryName   string
 	ADT         ADT
@@ -65,7 +65,6 @@ type QueryAssignment struct {
 	ReadPattern ReadPattern
 	IsPaginated bool
 	Cost        CostEstimate
-	Layout      LayoutOption // selected physical layout (Embed/Normalize) — ADR-0124
 	Diagnostics []Diagnostic
 }
 
@@ -79,7 +78,7 @@ func (a QueryAssignment) String() string {
 	if a.Cost.Volume > 0 {
 		parts = append(
 			parts,
-			fmt.Sprintf("latency<%sms", strconv.FormatFloat(a.Cost.EstimatedLatencyMs, 'f', 0, 64)),
+			fmt.Sprintf("latency<%sms", humanize.Commaf(a.Cost.EstimatedLatencyMs)),
 		)
 	}
 

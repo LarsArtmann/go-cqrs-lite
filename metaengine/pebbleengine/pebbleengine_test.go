@@ -7,6 +7,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
+	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -16,7 +17,9 @@ import (
 func TestPebbleMapSetGet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	ctx := context.Background()
 	mb := eng.(metaengine.MapBackend)
@@ -32,7 +35,9 @@ func TestPebbleMapSetGet(t *testing.T) {
 func TestPebbleMapDelete(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	ctx := context.Background()
 	mb := eng.(metaengine.MapBackend)
@@ -48,7 +53,9 @@ func TestPebbleMapDelete(t *testing.T) {
 func TestPebbleSetAddContains(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	ctx := context.Background()
 	sb := eng.(metaengine.SetBackend)
@@ -68,7 +75,9 @@ func TestPebbleSetAddContains(t *testing.T) {
 func TestPebbleCounter(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	ctx := context.Background()
 	cb := eng.(metaengine.CounterBackend)
@@ -86,7 +95,9 @@ func TestPebbleCounter(t *testing.T) {
 func TestPebbleMultimap(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	ctx := context.Background()
 	mb := eng.(metaengine.MultimapBackend)
@@ -105,7 +116,9 @@ func TestPebbleMultimap(t *testing.T) {
 func TestPebbleLog(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	ctx := context.Background()
 	lb := eng.(metaengine.LogBackend)
@@ -128,7 +141,9 @@ func TestPebbleLog(t *testing.T) {
 func TestPebbleMapUpdate(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	ctx := context.Background()
 	mu := eng.(metaengine.MapUpdater)
@@ -153,7 +168,9 @@ func TestPebbleMapUpdate(t *testing.T) {
 func TestPebbleMapScan(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	ctx := context.Background()
 	mb := eng.(metaengine.MapBackend)
@@ -191,7 +208,9 @@ func TestPebbleMapScan(t *testing.T) {
 func TestPebbleProfile(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	p := eng.Profile()
 	g.Expect(p.Name).To(Equal("pebble"))
@@ -206,7 +225,9 @@ func TestPebbleProfile(t *testing.T) {
 func TestPebbleMapUpdateConcurrent(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	ctx := context.Background()
 	mu := eng.(metaengine.MapUpdater)

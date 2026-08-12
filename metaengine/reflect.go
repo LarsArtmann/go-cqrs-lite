@@ -98,42 +98,14 @@ func reflectFields(v any) []reflectField {
 
 // extractKeyValueByType finds a field in the input struct whose type matches
 // the projection's key type. The engine matches purely by Go type, not name.
-// For composite keys (dynamic struct types from reflect.StructOf), each
-// component field is extracted individually by type and assembled into the
-// composite key value.
+// extractKeyValueByType finds a field in the input struct whose type matches
+// the projection's key type. The engine matches purely by Go type, not name.
 func extractKeyValueByType(input any, keyType reflect.Type) any {
 	if keyType == nil {
 		return nil
 	}
 
-	key := findValueByType(input, keyType, func(string) bool { return false })
-	if key != nil {
-		return key
-	}
-
-	if keyType.Kind() == reflect.Struct && keyType.PkgPath() == "" {
-		return buildCompositeKeyFromInput(input, keyType)
-	}
-
-	return nil
-}
-
-// buildCompositeKeyFromInput constructs a composite key value by extracting
-// each component field from the input struct by type. Returns nil if any
-// component is missing or ambiguous.
-func buildCompositeKeyFromInput(input any, compositeType reflect.Type) any {
-	result := reflect.New(compositeType).Elem()
-
-	for i := range compositeType.NumField() {
-		fieldVal := findValueByType(input, compositeType.Field(i).Type, isMetaFieldName)
-		if fieldVal == nil {
-			return nil
-		}
-
-		result.Field(i).Set(reflect.ValueOf(fieldVal))
-	}
-
-	return result.Interface()
+	return findValueByType(input, keyType, func(string) bool { return false })
 }
 
 // findValueByType finds the first exported field of input's struct whose type

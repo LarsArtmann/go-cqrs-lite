@@ -70,7 +70,7 @@ func (e *sqliteEngine) ScanRawValues(
 
 func scanRawStandard(
 	ctx context.Context,
-	db metaengine.SQLExec,
+	db dbExec,
 	col string,
 	filters []metaengine.FilterSpec,
 	sort *metaengine.SortSpec,
@@ -183,7 +183,7 @@ func buildPlannedSelectQuery(
 
 func scanRawPlanned(
 	ctx context.Context,
-	db metaengine.SQLExec,
+	db dbExec,
 	plan metaengine.LayoutPlan,
 	filters []metaengine.FilterSpec,
 	sort *metaengine.SortSpec,
@@ -197,12 +197,12 @@ func scanRawPlanned(
 
 func scanSingleColumn(
 	ctx context.Context,
-	db metaengine.SQLExec,
+	db dbExec,
 	query string,
 	decode func(valStr string) any,
 	args ...any,
 ) ([]any, error) {
-	rows, err := db.QueryContext(ctx, query, args...) //nolint:sqlclosecheck
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
@@ -224,13 +224,8 @@ func scanSingleColumn(
 	return result, rows.Err() //nolint:wrapcheck // passthrough
 }
 
-func scanRawRows(
-	ctx context.Context,
-	db metaengine.SQLExec,
-	query string,
-	args ...any,
-) ([][]byte, error) {
-	rows, err := db.QueryContext(ctx, query, args...) //nolint:sqlclosecheck
+func scanRawRows(ctx context.Context, db dbExec, query string, args ...any) ([][]byte, error) {
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}

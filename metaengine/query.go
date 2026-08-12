@@ -16,7 +16,6 @@ type QueryConfig struct {
 	filterAccessors []filterAccessor
 	sortAccessor    sortAccessor
 	columnarLayout  bool
-	layoutPriority  Priority // developer per-query layout priority (ADR-0124 Layer 4)
 }
 
 // Volume sets the expected query volume (events/sec) for cost estimation.
@@ -42,76 +41,6 @@ func WithLatencyBudget(ms int64) QueryOption {
 // accurate SQL types require LayoutPlanApplier (currently implemented by DuckDB).
 func WithColumnarLayout() QueryOption {
 	return func(c *QueryConfig) { c.columnarLayout = true }
-}
-
-// WithLayoutPriority sets a per-query layout priority override (ADR-0124
-// Layer 4, clarified by ADR-0125). This is the developer-side counterpart to
-// the operator's DeploymentConfig priorities: the developer pins the layout
-// objective for ONE query, the operator still controls Global/per-Engine
-// priorities.
-//
-// LAYOUT-ONLY: This option influences the physical layout (Embed vs Normalize)
-// via SelectLayout. It does NOT influence engine ranking — engine selection is
-// 100% the operator's call via PriorityConfig (ADR-0125).
-//
-// The most specific priority wins:
-//
-//	per-Query (operator config) > per-Query (this) > per-Engine > Global
-//
-// The operator's PriorityConfig.PerQuery map takes precedence over this option:
-// operator wins over developer. Use WithLayoutPriority when a single query has
-// a different optimization objective than the rest of the deployment.
-func WithLayoutPriority(p Priority) QueryOption {
-	return func(c *QueryConfig) {
-		if p.Valid() {
-			c.layoutPriority = p
-		}
-	}
-}
-
-// layoutPriority returns the developer-declared layout priority for this
-// query, or PriorityBalanced when none was set.
-func (c QueryConfig) layoutPriorityOr(p Priority) Priority {
-	if c.layoutPriority.Valid() {
-		return c.layoutPriority
-	}
-
-	return p
-}
-
-// resolvePriority is the shared priority-resolution function used by both
-// planQuery (engine routing + layout scoring) and ReplanLayout (layout diffing).
-// Resolution order: operator per-Query → operator per-Engine/Global → developer
-// WithLayoutPriority → Balanced.
-func resolvePriority(
-	pc *PriorityConfig,
-	engineName, queryName string,
-	devFallback Priority,
-) Priority {
-	if pc != nil {
-		if p, ok := pc.PerQuery[queryName]; ok && p.Valid() {
-			return p
-		}
-
-		if pc.PerEngine != nil || pc.Global != "" {
-			return pc.Resolve(engineName, queryName)
-		}
-	}
-
-	return devFallback
-}
-
-// priorityForQuery returns the most specific priority for a query, combining
-// the operator's PriorityConfig with the developer's WithLayoutPriority
-// option. Resolution order: per-Query (operator config) → developer
-// WithLayoutPriority → per-Engine → Global → Balanced.
-func (s *Store) priorityForQuery(engineName, queryName string, cfg QueryConfig) Priority {
-	return resolvePriority(
-		s.priorityConfig,
-		engineName,
-		queryName,
-		cfg.layoutPriorityOr(PriorityBalanced),
-	)
 }
 
 // filterAccessor stores a typed closure that extracts a filterable field value
@@ -210,13 +139,6 @@ type QueryDecl[Q any, R any] struct {
 	querySample  Q
 	resultSample R
 
-	// Inference support (ADR-0116 Layer 1). When needsInference is true,
-	// Folds/ADT/ReadPattern are populated at Plan() time by ensureFolds().
-	eventSamples   []any
-	namedSamples   []NamedSample
-	needsInference bool
-	overrides      []overrideFold
-
 	// Runtime-assigned by planQuery — eliminates the queryRuntime twin.
 	engine      Engine
 	complexity  Complexity
@@ -227,9 +149,9 @@ type QueryDecl[Q any, R any] struct {
 // Folds and QueryOptions are separated by type at construction time:
 //
 //	findUser := metaengine.Query[FindUser, FindUserResult]("find_user",
-//	    metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) (UserID, FindUserResult) { ... }),
-//	    metaengine.OnRecord(UserSuspended{}, func(_ record.Record, e UserSuspended, prev FindUserResult) FindUserResult { ... }),
-//	    metaengine.OnRecord(UserDeleted{}, metaengine.Remove[FindUserResult]()),
+//	    metaengine.On(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) { ... }),
+//	    metaengine.On(UserSuspended{}, func(e UserSuspended, prev FindUserResult) FindUserResult { ... }),
+//	    metaengine.On(UserDeleted{}, metaengine.Remove[FindUserResult]()),
 //	    metaengine.Volume(1_000_000),
 //	)
 //
@@ -240,75 +162,25 @@ func Query[Q any, R any](name string, args ...any) QueryDecl[Q, R] {
 
 	var folds []Fold
 
-	var eventSamples []any
-
-	var namedSamples []NamedSample
-
-	needsInference := false
-
-	var inferenceOverrides []overrideFold
-
 	for _, arg := range args {
 		switch a := arg.(type) {
-		case overrideFold:
-			inferenceOverrides = append(inferenceOverrides, a)
 		case Fold:
 			folds = append(folds, a)
 		case QueryOption:
 			a(&cfg)
-		case inferenceRequest:
-			eventSamples = a.samples
-			needsInference = true
-		case namedInferenceRequest:
-			namedSamples = a.samples
-			needsInference = true
 		default:
 			panic(fmt.Sprintf(
-				"metaengine.Query(%q): unexpected argument type %T (expected Fold, QueryOption, Infer, or Override)",
-				name,
-				arg,
+				"metaengine.Query(%q): unexpected argument type %T (expected Fold or QueryOption)",
+				name, arg,
 			))
 		}
 	}
 
-	if needsInference && len(folds) > 0 {
-		panic(fmt.Sprintf(
-			"metaengine.Query(%q): Infer() cannot be combined with explicit folds (use Override instead)",
-			name,
-		))
-	}
-
-	if len(inferenceOverrides) > 0 && !needsInference {
-		panic(fmt.Sprintf(
-			"metaengine.Query(%q): Override() requires Infer() — use explicit folds instead", name,
-		))
-	}
-
-	if !needsInference && len(folds) == 0 {
+	if len(folds) == 0 {
 		panic(fmt.Sprintf("metaengine.Query(%q): at least one fold required", name))
 	}
 
-	q := QueryDecl[Q, R]{
-		Name:           name,
-		Config:         cfg,
-		eventSamples:   eventSamples,
-		namedSamples:   namedSamples,
-		needsInference: needsInference,
-		overrides:      inferenceOverrides,
-		querySample:    *new(Q),
-		resultSample:   *new(R),
-	}
-	q.InputTypeName = qualifiedTypeName(q.querySample)
-
-	if needsInference {
-		return q
-	}
-
-	q.Folds = folds
-
-	var err error
-
-	q.ADT, err = classifyADT(folds)
+	adt, err := classifyADT(folds)
 	if err != nil {
 		panic(fmt.Sprintf("metaengine.Query(%q): %v", name, err))
 	}
@@ -317,6 +189,15 @@ func Query[Q any, R any](name string, args ...any) QueryDecl[Q, R] {
 		panic(fmt.Sprintf("metaengine.Query(%q): %v", name, err))
 	}
 
+	q := QueryDecl[Q, R]{
+		Name:         name,
+		Folds:        folds,
+		ADT:          adt,
+		Config:       cfg,
+		querySample:  *new(Q),
+		resultSample: *new(R),
+	}
+	q.InputTypeName = qualifiedTypeName(q.querySample)
 	q.infer()
 
 	return q
@@ -408,11 +289,6 @@ type queryMeta interface {
 	QueryComplexity() Complexity
 	QueryFoldByEvent() map[string]int
 	assignPlan(engine Engine, complexity Complexity, foldByEvent map[string]int)
-
-	// ensureFolds runs planner-time fold inference for queries declared with
-	// Infer(). For queries with explicit folds, this is a no-op. Called by
-	// Plan() before planQuery().
-	ensureFolds() error
 }
 
 // asQueryMeta adapts a value to queryMeta. Query() returns a value type

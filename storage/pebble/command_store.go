@@ -112,7 +112,7 @@ func (s *CommandStore) Save(
 	}
 
 	batch := s.db.NewBatch()
-	defer deferClose(batch)
+	defer func() { _ = batch.Close() }()
 
 	err = s.writeCommandToBatch(batch, ref, cmd.ID(), jKey, data)
 	if err != nil {
@@ -149,7 +149,7 @@ func (s *CommandStore) AppendBatch(
 	defer span.End()
 
 	batch := s.db.NewBatch()
-	defer deferClose(batch)
+	defer func() { _ = batch.Close() }()
 
 	seen := make(map[id.CommandID]struct{}, len(cmds))
 

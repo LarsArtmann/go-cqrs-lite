@@ -3,11 +3,10 @@ package stack
 import (
 	"io"
 
-	"github.com/larsartmann/go-codec"
-	flightrecorder "github.com/larsartmann/go-flightrecorder"
-
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	flightrecorder "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"

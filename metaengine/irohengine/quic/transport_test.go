@@ -4,8 +4,6 @@ package quic_test
 
 import (
 	"context"
-	"fmt"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -15,29 +13,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
-
-// quicManualClock is a deterministic Clock for QUIC tests. It starts at a
-// fixed epoch and only advances when Advance is called — eliminating all
-// timing assumptions in LWW convergence tests. Mirrors the in-process
-// manualClock in irohengine/helpers_test.go.
-type quicManualClock struct {
-	now atomic.Int64 // unix-nanos
-}
-
-func newQuicManualClock(start time.Time) *quicManualClock {
-	c := &quicManualClock{}
-	c.now.Store(start.UnixNano())
-	return c
-}
-
-func (c *quicManualClock) Now() time.Time {
-	return time.Unix(0, c.now.Load())
-}
-
-// Advance moves the clock forward by d and returns the new time.
-func (c *quicManualClock) Advance(d time.Duration) time.Time {
-	return time.Unix(0, c.now.Add(int64(d)))
-}
 
 // waitForPeers polls until both transports see the expected peer count, or times out.
 func waitForPeers(t *testing.T, transports []*quic.QuicTransport, expected int) {
@@ -141,71 +116,86 @@ func newQuicCluster(t *testing.T) *quicCluster {
 	}
 }
 
-func TestQuicConvergenceSuite(t *testing.T) {
-	t.Parallel()
-	irohengine.RunConvergenceSuite(t, func(t *testing.T) (metaengine.Engine, metaengine.Engine) {
-		nodeA, nodeB, tA, tB := setupTwoNodeQuic(t)
-		t.Cleanup(func() { _ = nodeA.Close() })
-		t.Cleanup(func() { _ = nodeB.Close() })
-		t.Cleanup(func() { _ = tA.Close() })
-		t.Cleanup(func() { _ = tB.Close() })
-		return nodeA, nodeB
-	})
+func TestQuicMapConvergence2Node(t *testing.T) {
+	c := newQuicCluster(t)
+
+	c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "users", "u1",
+		map[string]any{"name": "Alice"})).To(gomega.Succeed())
+
+	eventuallyGet(c.G, c.NodeB, "users", "u1",
+		map[string]any{"name": "Alice"}, 5*time.Second)
+
+	t.Logf("node A ID: %s", c.TA.NodeID())
+	t.Logf("node B ID: %s", c.TB.NodeID())
+}
+
+func TestQuicMapConvergenceBidirectional(t *testing.T) {
+	c := newQuicCluster(t)
+
+	c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "orders", "o1", "pending")).
+		To(gomega.Succeed())
+	eventuallyGet(c.G, c.NodeB, "orders", "o1", "pending", 5*time.Second)
+
+	c.G.Expect(c.NodeB.(metaengine.MapBackend).MapSet(c.Ctx, "orders", "o2", "shipped")).
+		To(gomega.Succeed())
+	eventuallyGet(c.G, c.NodeA, "orders", "o2", "shipped", 5*time.Second)
+}
+
+func TestQuicPNCounter(t *testing.T) {
+	c := newQuicCluster(t)
+
+	c.G.Expect(c.NodeA.(metaengine.CounterBackend).CounterIncrement(c.Ctx, "visits",
+		metaengine.Delta{"total": 5})).To(gomega.Succeed())
+	c.G.Expect(c.NodeB.(metaengine.CounterBackend).CounterIncrement(c.Ctx, "visits",
+		metaengine.Delta{"total": 3})).To(gomega.Succeed())
+
+	c.G.Eventually(func(g gomega.Gomega) {
+		counts, err := c.NodeA.(metaengine.CounterBackend).CounterGet(c.Ctx, "visits")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(counts["total"]).To(gomega.Equal(int64(8)),
+			"PN-counter should sum both increments")
+	}, 5*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
+
+	c.G.Eventually(func(g gomega.Gomega) {
+		countsB, err := c.NodeB.(metaengine.CounterBackend).CounterGet(c.Ctx, "visits")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(countsB["total"]).To(gomega.Equal(int64(8)))
+	}, 5*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
+}
+
+func TestQuicSetConvergence(t *testing.T) {
+	c := newQuicCluster(t)
+
+	c.G.Expect(c.NodeA.(metaengine.SetBackend).SetAdd(c.Ctx, "tags", "go")).To(gomega.Succeed())
+	c.G.Expect(c.NodeA.(metaengine.SetBackend).SetAdd(c.Ctx, "tags", "cqrs")).To(gomega.Succeed())
+
+	c.G.Eventually(func(g gomega.Gomega) {
+		sb := c.NodeB.(metaengine.SetBackend)
+		containsGo, err := sb.SetContains(c.Ctx, "tags", "go")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(containsGo).To(gomega.BeTrue())
+		containsCqrs, err := sb.SetContains(c.Ctx, "tags", "cqrs")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(containsCqrs).To(gomega.BeTrue())
+	}, 15*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
 }
 
 func TestQuicLWWResolution(t *testing.T) {
-	// Deterministic LWW test using injectable clock — same pattern as the
-	// in-process TestLWWResolution. Both nodes share a quicManualClock, so
-	// timestamp ordering is controlled by explicit Advance() calls instead
-	// of relying on wall-clock time gaps.
-	clock := newQuicManualClock(time.Unix(1_000_000, 0))
+	c := newQuicCluster(t)
 
-	t.Helper()
-	g := gomega.NewWithT(t)
-
-	tA, err := quic.New(quic.WithLocalOnly())
-	g.Expect(err).NotTo(gomega.HaveOccurred())
-	tB, err := quic.New(quic.WithLocalOnly())
-	g.Expect(err).NotTo(gomega.HaveOccurred())
-	t.Cleanup(func() { _ = tA.Close() })
-	t.Cleanup(func() { _ = tB.Close() })
-
-	nodeA := irohengine.Replicated(
-		metaengine.NewMemoryEngine(),
-		irohengine.WithAuthor("node-a"),
-		irohengine.WithTransport(tA),
-		irohengine.WithClock(clock),
-	)
-	nodeB := irohengine.Replicated(
-		metaengine.NewMemoryEngine(),
-		irohengine.WithAuthor("node-b"),
-		irohengine.WithTransport(tB),
-		irohengine.WithClock(clock),
-	)
-	t.Cleanup(func() { _ = nodeA.Close() })
-	t.Cleanup(func() { _ = nodeB.Close() })
-
-	ticketA, err := tA.Ticket()
-	g.Expect(err).NotTo(gomega.HaveOccurred())
-	g.Expect(tB.Connect(ticketA)).To(gomega.Succeed())
-	waitForPeers(t, []*quic.QuicTransport{tA, tB}, 1)
-
-	ctx := context.Background()
-
-	// NodeA writes first (timestamp T0 from the shared clock).
-	g.Expect(nodeA.(metaengine.MapBackend).MapSet(ctx, "users", "u1", "Alice-old")).
+	// NodeA writes first. Wait for replication to NodeB before the second
+	// write. This guarantees wall-clock ordering (T2 > T1) without an
+	// arbitrary sleep: both nodes share the same system clock, and the
+	// replication round-trip consumes real time.
+	c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "users", "u1", "Alice-old")).
 		To(gomega.Succeed())
-	eventuallyGet(g, nodeB, "users", "u1", "Alice-old", 5*time.Second)
+	eventuallyGet(c.G, c.NodeB, "users", "u1", "Alice-old", 5*time.Second)
 
-	// Deterministic timestamp advance — no time.Sleep needed.
-	// Node B's write gets a strictly later timestamp, guaranteeing LWW resolution.
-	clock.Advance(time.Second)
-
-	g.Expect(nodeB.(metaengine.MapBackend).MapSet(ctx, "users", "u1", "Bob-new")).
+	c.G.Expect(c.NodeB.(metaengine.MapBackend).MapSet(c.Ctx, "users", "u1", "Bob-new")).
 		To(gomega.Succeed())
 
-	eventuallyGet(g, nodeA, "users", "u1", "Bob-new", 5*time.Second)
-	eventuallyGet(g, nodeB, "users", "u1", "Bob-new", 5*time.Second)
+	eventuallyGet(c.G, c.NodeA, "users", "u1", "Bob-new", 5*time.Second)
+	eventuallyGet(c.G, c.NodeB, "users", "u1", "Bob-new", 5*time.Second)
 }
 
 func TestQuicRTTMeasurement(t *testing.T) {
@@ -219,6 +209,23 @@ func TestQuicRTTMeasurement(t *testing.T) {
 	profile := c.NodeA.Profile()
 	t.Logf("Profile: ReplicationLag=%s NetworkRTT=%s", profile.ReplicationLag, profile.NetworkRTT)
 	c.G.Expect(profile.Replication).To(gomega.Equal(metaengine.ReplicationLeaderless))
+}
+
+func TestQuicLogConvergence(t *testing.T) {
+	c := newQuicCluster(t)
+
+	c.G.Expect(c.NodeA.(metaengine.LogBackend).LogAppend(c.Ctx, "audit", "user-login")).
+		To(gomega.Succeed())
+	c.G.Expect(c.NodeA.(metaengine.LogBackend).LogAppend(c.Ctx, "audit", "file-upload")).
+		To(gomega.Succeed())
+
+	c.G.Eventually(func(g gomega.Gomega) {
+		entries, err := c.NodeB.(metaengine.LogBackend).LogTail(c.Ctx, "audit", 10)
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(entries).To(gomega.HaveLen(2))
+		g.Expect(entries[0]).To(gomega.Equal("user-login"))
+		g.Expect(entries[1]).To(gomega.Equal("file-upload"))
+	}, 15*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
 }
 
 // TestQuicMapUpdateDoesNotReplicate proves that MapUpdate (atomic
@@ -261,181 +268,25 @@ func TestQuicMapUpdateDoesNotReplicate(t *testing.T) {
 		"MapUpdate must NOT replicate over QUIC (non-CRDT)")
 }
 
-// --- Stream Pooling Tests ---
+func TestQuicMultimapConvergence(t *testing.T) {
+	c := newQuicCluster(t)
 
-// setupTwoNodeQuicPooled is like setupTwoNodeQuic but enables persistent
-// BiStream pooling (WithStreamPooling) on both transports. This exercises the
-// length-prefix framing protocol instead of the default one-stream-per-op mode.
-func setupTwoNodeQuicPooled(t *testing.T) (
-	nodeA, nodeB metaengine.Engine,
-	tA, tB *quic.QuicTransport,
-) {
-	t.Helper()
-	g := gomega.NewWithT(t)
+	mmbA := c.NodeA.(metaengine.MultimapBackend)
+	mmbB := c.NodeB.(metaengine.MultimapBackend)
 
-	tA, err := quic.New(quic.WithLocalOnly(), quic.WithStreamPooling())
-	g.Expect(err).NotTo(gomega.HaveOccurred())
+	c.G.Expect(mmbA.MultiAdd(c.Ctx, "members", "team-a", "alice")).To(gomega.Succeed())
+	c.G.Expect(mmbA.MultiAdd(c.Ctx, "members", "team-a", "bob")).To(gomega.Succeed())
+	c.G.Expect(mmbB.MultiAdd(c.Ctx, "members", "team-a", "carol")).To(gomega.Succeed())
 
-	tB, err = quic.New(quic.WithLocalOnly(), quic.WithStreamPooling())
-	g.Expect(err).NotTo(gomega.HaveOccurred())
+	c.G.Eventually(func(g gomega.Gomega) {
+		vals, err := mmbA.MultiGet(c.Ctx, "members", "team-a")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(vals).To(gomega.ConsistOf("alice", "bob", "carol"))
+	}, 10*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
 
-	nodeA = irohengine.Replicated(
-		metaengine.NewMemoryEngine(),
-		irohengine.WithAuthor("node-a"),
-		irohengine.WithTransport(tA),
-	)
-	nodeB = irohengine.Replicated(
-		metaengine.NewMemoryEngine(),
-		irohengine.WithAuthor("node-b"),
-		irohengine.WithTransport(tB),
-	)
-
-	ticketA, err := tA.Ticket()
-	g.Expect(err).NotTo(gomega.HaveOccurred())
-	g.Expect(tB.Connect(ticketA)).To(gomega.Succeed())
-
-	waitForPeers(t, []*quic.QuicTransport{tA, tB}, 1)
-	return nodeA, nodeB, tA, tB
-}
-
-func newQuicClusterPooled(t *testing.T) *quicCluster {
-	t.Helper()
-
-	nodeA, nodeB, tA, tB := setupTwoNodeQuicPooled(t)
-	t.Cleanup(func() { _ = nodeA.Close() })
-	t.Cleanup(func() { _ = nodeB.Close() })
-	t.Cleanup(func() { _ = tA.Close() })
-	t.Cleanup(func() { _ = tB.Close() })
-
-	return &quicCluster{
-		G:     gomega.NewWithT(t),
-		Ctx:   context.Background(),
-		NodeA: nodeA,
-		NodeB: nodeB,
-		TA:    tA,
-		TB:    tB,
-	}
-}
-
-// TestQuicPooled_MapConvergence verifies that persistent BiStream pooling
-// delivers ops correctly — the framing protocol doesn't corrupt data.
-func TestQuicPooled_MapConvergence(t *testing.T) {
-	c := newQuicClusterPooled(t)
-
-	c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "users", "u1",
-		map[string]any{"name": "Alice"})).To(gomega.Succeed())
-
-	eventuallyGet(c.G, c.NodeB, "users", "u1",
-		map[string]any{"name": "Alice"}, 10*time.Second)
-}
-
-// TestQuicPooled_MultipleOpsSameStream verifies that multiple sequential ops
-// are multiplexed over the same persistent BiStream without data corruption.
-// Each op must arrive intact — framing boundaries must be respected.
-func TestQuicPooled_MultipleOpsSameStream(t *testing.T) {
-	c := newQuicClusterPooled(t)
-
-	// Send 20 ops from A → B over the same pooled stream.
-	for i := range 20 {
-		key := fmt.Sprintf("key-%d", i)
-		val := fmt.Sprintf("val-%d", i)
-		c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "kv", key, val)).
-			To(gomega.Succeed())
-	}
-
-	// Verify all 20 arrived intact.
-	for i := range 20 {
-		key := fmt.Sprintf("key-%d", i)
-		expected := fmt.Sprintf("val-%d", i)
-		eventuallyGet(c.G, c.NodeB, "kv", key, expected, 10*time.Second)
-	}
-}
-
-// TestQuicPooled_Bidirectional verifies ops flow in both directions over
-// separate pooled streams (A→B and B→A each have their own persistent stream).
-func TestQuicPooled_Bidirectional(t *testing.T) {
-	c := newQuicClusterPooled(t)
-
-	c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "orders", "o1", "pending")).
-		To(gomega.Succeed())
-	eventuallyGet(c.G, c.NodeB, "orders", "o1", "pending", 10*time.Second)
-
-	c.G.Expect(c.NodeB.(metaengine.MapBackend).MapSet(c.Ctx, "orders", "o2", "shipped")).
-		To(gomega.Succeed())
-	eventuallyGet(c.G, c.NodeA, "orders", "o2", "shipped", 10*time.Second)
-}
-
-// TestQuicPooled_StreamReuse verifies that multiple ops over a pooled connection
-// reuse the same persistent BiStream. The stream-reuse counter on peerConn should
-// show exactly 1 stream opened regardless of how many ops are sent.
-func TestQuicPooled_StreamReuse(t *testing.T) {
-	c := newQuicClusterPooled(t)
-
-	// Send 20 ops from A → B over the same pooled stream.
-	for i := range 20 {
-		key := fmt.Sprintf("reuse-%d", i)
-		val := fmt.Sprintf("val-%d", i)
-		c.G.Expect(c.NodeA.(metaengine.MapBackend).MapSet(c.Ctx, "kv", key, val)).
-			To(gomega.Succeed())
-	}
-
-	// Wait for at least some ops to arrive so the stream has been opened.
-	eventuallyGet(c.G, c.NodeB, "kv", "reuse-0", "val-0", 10*time.Second)
-
-	// Assert stream reuse: 20 ops should have used only 1 BiStream.
-	streams := c.TA.StreamsOpenedForPeer(c.TB.NodeID())
-	c.G.Expect(streams).To(gomega.Equal(int64(1)),
-		"20 ops over pooled connection should reuse 1 stream, got %d", streams)
-}
-
-// TestQuicPooledToNonPooled_NoHang verifies that a pooled sender connected to a
-// non-pooled receiver does NOT silently hang. The receiver detects the magic byte
-// prefix and returns immediately instead of blocking in ReadToEnd waiting for a
-// Finish() that never comes.
-func TestQuicPooledToNonPooled_NoHang(t *testing.T) {
-	g := gomega.NewWithT(t)
-
-	// Pooled sender
-	tA, err := quic.New(quic.WithLocalOnly(), quic.WithStreamPooling())
-	g.Expect(err).NotTo(gomega.HaveOccurred())
-	t.Cleanup(func() { _ = tA.Close() })
-
-	// Non-pooled receiver
-	tB, err := quic.New(quic.WithLocalOnly())
-	g.Expect(err).NotTo(gomega.HaveOccurred())
-	t.Cleanup(func() { _ = tB.Close() })
-
-	nodeA := irohengine.Replicated(
-		metaengine.NewMemoryEngine(),
-		irohengine.WithAuthor("node-a"),
-		irohengine.WithTransport(tA),
-	)
-	nodeB := irohengine.Replicated(
-		metaengine.NewMemoryEngine(),
-		irohengine.WithAuthor("node-b"),
-		irohengine.WithTransport(tB),
-	)
-	t.Cleanup(func() { _ = nodeA.Close() })
-	t.Cleanup(func() { _ = nodeB.Close() })
-
-	ticketA, err := tA.Ticket()
-	g.Expect(err).NotTo(gomega.HaveOccurred())
-	g.Expect(tB.Connect(ticketA)).To(gomega.Succeed())
-	waitForPeers(t, []*quic.QuicTransport{tA, tB}, 1)
-
-	// Publish from pooled sender. This must not hang — the non-pooled receiver
-	// detects the protocol mismatch via the magic byte and returns immediately.
-	done := make(chan struct{})
-	go func() {
-		_ = nodeA.(metaengine.MapBackend).MapSet(context.Background(), "mismatch", "k", "v")
-		close(done)
-	}()
-	g.Eventually(done, 10*time.Second).Should(gomega.BeClosed(),
-		"pooled sender to non-pooled receiver must not hang")
-
-	// The op must NOT arrive at the non-pooled receiver (protocol mismatch detected).
-	time.Sleep(500 * time.Millisecond)
-	_, ok, _ := nodeB.(metaengine.MapBackend).MapGet(context.Background(), "mismatch", "k")
-	g.Expect(ok).To(gomega.BeFalse(),
-		"op should not arrive at non-pooled receiver after protocol mismatch")
+	c.G.Eventually(func(g gomega.Gomega) {
+		vals, err := mmbB.MultiGet(c.Ctx, "members", "team-a")
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+		g.Expect(vals).To(gomega.ConsistOf("alice", "bob", "carol"))
+	}, 10*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
 }

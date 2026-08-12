@@ -93,12 +93,12 @@ func (r *SQLStreamReader) buildListQuery(opts listing.ListOptions) (string, []an
 	args = append(args, string(opts.Type))
 	pi++
 
-	switch opts.DeletePolicy {
-	case listing.DeleteExclude:
+	switch opts.Tombstone {
+	case listing.TombstoneExclude:
 		conditions = append(conditions, "tombstone_status = 0")
-	case listing.DeleteOnly:
+	case listing.TombstoneOnly:
 		conditions = append(conditions, "tombstone_status = 1")
-	case listing.DeleteInclude:
+	case listing.TombstoneInclude:
 	}
 
 	if !opts.After.IsZero() {
@@ -158,7 +158,7 @@ func scanStreamStatuses(rows *sql.Rows) ([]listing.StreamStatus, error) {
 				Version:    event.Version(version),
 				EventCount: count,
 			},
-			Status: listing.Status(statusInt),
+			Status: event.TombstoneStatus(statusInt),
 		})
 	}
 

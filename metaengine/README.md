@@ -31,10 +31,10 @@ type FindUserResult struct { ID UserID; Name string; JoinedAt time.Time }
 
 // 3. Query declaration — folds define how events update this query's projection
 findUser := metaengine.Query[FindUser, FindUserResult]("find_user",
-    metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) (UserID, FindUserResult) {
+    metaengine.On(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) {
         return e.ID, FindUserResult{ID: e.ID, Name: e.Name, JoinedAt: e.At}
     }),
-    metaengine.OnRecord(UserDeleted{}, metaengine.Remove[FindUserResult]()),
+    metaengine.On(UserDeleted{}, metaengine.Remove[FindUserResult]()),
 )
 
 // 4. Plan — the optimizer assigns engines to queries
@@ -80,9 +80,9 @@ import "github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 
 // 1. Declare a query using EventWithID (wraps payload with stream ID)
 var findUser = metaengine.Query[FindUser, FindUserResult]("find_user",
-    metaengine.OnRecordTyped("user.created",
+    metaengine.OnTyped("user.created",
         projectionadapter.EventWithID[UserCreated]{},
-        func(_ record.Record, e projectionadapter.EventWithID[UserCreated]) (string, FindUserResult) {
+        func(e projectionadapter.EventWithID[UserCreated]) (string, FindUserResult) {
             return e.ID, FindUserResult{ID: e.ID, Name: e.Payload.Name}
         }),
 )
@@ -192,7 +192,7 @@ The fold function's return type IS the declaration:
 
 ```go
 listByStatus := metaengine.Query[ListByStatus, ListByStatusResult]("list_by_status",
-    metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) (UserID, FindUserResult) { ... }),
+    metaengine.On(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) { ... }),
     metaengine.FilterOn(func(r FindUserResult) string { return r.Status }),
     metaengine.SortOn(func(r FindUserResult) time.Time { return r.JoinedAt }),
 )
@@ -472,9 +472,9 @@ WHERE/ORDER BY clauses, achieving O(logN) instead of O(N):
 
 ```go
 listTasks := metaengine.Query[ListTasks, TaskView]("task_views",
-    metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) (TaskID, TaskView) { ... }),
-    metaengine.OnRecord(TaskCompleted{}, func(_ record.Record, e TaskCompleted, prev TaskView) TaskView { ... }),
-    metaengine.OnRecord(TaskDeleted{}, metaengine.Remove[TaskView]()),
+    metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, TaskView) { ... }),
+    metaengine.On(TaskCompleted{}, func(e TaskCompleted, prev TaskView) TaskView { ... }),
+    metaengine.On(TaskDeleted{}, metaengine.Remove[TaskView]()),
     metaengine.FilterOnField[TaskView]("status", metaengine.FilterEq),
     metaengine.SortOnField[TaskView]("priority", true),
 )
@@ -528,12 +528,9 @@ For raw domain event streaming (bus-to-client), use
 ## Optional Engine Interfaces
 
 Engines implement whichever ADT backends they support (`MapBackend`,
-`SetBackend`, `CounterBackend`, `MultimapBackend`,
-`LogBackend`). Not all engines implement all backends — for example,
-`SearchBackend` (full-text search) is implemented by only a subset of engines
-(e.g. Dgraph, Iroh). Check each engine's compile-time assertions or `Profile().Supports` map
-for the definitive list. Additionally, engines can implement these optional
-capability interfaces for optimized read paths:
+`SetBackend`, `CounterBackend`, `GraphBackend`, `MultimapBackend`,
+`LogBackend`). Additionally, engines can implement these optional capability
+interfaces for optimized read paths:
 
 | Interface        | Method            | Benefit                               |
 | ---------------- | ----------------- | ------------------------------------- |

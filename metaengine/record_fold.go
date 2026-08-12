@@ -42,10 +42,6 @@ func OnRecordTyped[E any](eventType string, sample E, handler any) Fold {
 }
 
 func onRecordFold[E any](eventType string, sample E, handler any) Fold {
-	if rs, ok := handler.(removeSignal); ok {
-		return &removeFold{eventType: eventType, sample: sample, valueType: rs.valueType}
-	}
-
 	handlerType := reflect.TypeOf(handler)
 	if handlerType == nil || handlerType.Kind() != reflect.Func {
 		panic(fmt.Sprintf(
@@ -68,10 +64,6 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			"metaengine.OnRecord(%s): first param must be record.Record, got %v",
 			eventType, recordType,
 		))
-	}
-
-	if err := verifyRecordEventParam[E](handlerType, eventType); err != nil {
-		panic(err.Error())
 	}
 
 	hv := reflect.ValueOf(handler)
@@ -112,82 +104,59 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			}
 			prevType := hv.Type().In(2)
 			if prev != nil {
-				args = append(args, reifyReflect(prev, prevType))
+				args = append(args, reflect.ValueOf(prev))
 			} else {
 				args = append(args, reflect.Zero(prevType))
 			}
 			return hv.Call(args)[0].Interface()
 		}
 		f := &updateFold{
-			eventType: eventType,
-			sample:    sample,
-			valueType: handlerType.Out(0),
-			invoke:    invoke,
+			eventType:    eventType,
+			sample:       sample,
+			valueType:    handlerType.Out(0),
+			invoke:       invoke,
+			keyExtractor: func(event any) any { return event },
 		}
 		f.recordSetter = func(r record.Record) { recHolder.rec = r }
 		return f
 
 	case numIn == 2 && numOut == 1:
 		outType := handlerType.Out(0)
-
-		switch outType {
-		case reflect.TypeFor[Delta]():
+		if outType == reflect.TypeFor[Delta]() {
 			invoke := func(event any) Delta {
 				return callWithRecord(event)[0].Interface().(Delta)
 			}
-			f := &countFold{eventType: eventType, sample: sample, invoke: invoke}
-			f.recordSetter = func(r record.Record) { recHolder.rec = r }
-			return f
-
-		case reflect.TypeFor[Edge]():
-			invoke := func(event any) Edge {
-				return callWithRecord(event)[0].Interface().(Edge)
+			f := &countFold{
+				eventType: eventType,
+				sample:    sample,
+				invoke:    invoke,
 			}
-			f := &edgeFold{eventType: eventType, sample: sample, invoke: invoke}
-			f.recordSetter = func(r record.Record) { recHolder.rec = r }
-			return f
-
-		case reflect.TypeFor[Embedding]():
-			invoke := func(event any) Embedding {
-				return callWithRecord(event)[0].Interface().(Embedding)
-			}
-			return &vectorFold{eventType: eventType, sample: sample, invoke: invoke}
-
-		case reflect.TypeFor[IndexedText]():
-			invoke := func(event any) IndexedText {
-				return callWithRecord(event)[0].Interface().(IndexedText)
-			}
-			return &searchFold{eventType: eventType, sample: sample, invoke: invoke}
-
-		case reflect.TypeFor[Point]():
-			invoke := func(event any) Point {
-				return callWithRecord(event)[0].Interface().(Point)
-			}
-			return &spatialFold{eventType: eventType, sample: sample, invoke: invoke}
-
-		case reflect.TypeFor[Skip]():
-			return &skipFold{eventType: eventType, sample: sample}
-
-		case reflect.TypeFor[MultiEntry]():
-			invoke := func(event any) MultiEntry {
-				return callWithRecord(event)[0].Interface().(MultiEntry)
-			}
-			return &multiInsertFold{eventType: eventType, sample: sample, invoke: invoke}
-
-		case reflect.TypeFor[Append]():
-			invoke := func(event any) Append {
-				return callWithRecord(event)[0].Interface().(Append)
-			}
-			return &appendFold{eventType: eventType, sample: sample, invoke: invoke}
-
-		default:
-			invoke := func(event any) any {
-				return callWithRecord(event)[0].Interface()
-			}
-			f := &setFold{eventType: eventType, sample: sample, keyType: outType, invoke: invoke}
 			f.recordSetter = func(r record.Record) { recHolder.rec = r }
 			return f
 		}
+		if outType == reflect.TypeFor[Edge]() {
+			invoke := func(event any) Edge {
+				return callWithRecord(event)[0].Interface().(Edge)
+			}
+			f := &edgeFold{
+				eventType: eventType,
+				sample:    sample,
+				invoke:    invoke,
+			}
+			f.recordSetter = func(r record.Record) { recHolder.rec = r }
+			return f
+		}
+
+		invoke := func(event any) any {
+			return callWithRecord(event)[0].Interface()
+		}
+		f := &setFold{
+			eventType: eventType,
+			sample:    sample,
+			invoke:    invoke,
+		}
+		f.recordSetter = func(r record.Record) { recHolder.rec = r }
+		return f
 	}
 
 	panic(fmt.Sprintf(

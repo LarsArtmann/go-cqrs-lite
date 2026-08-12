@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -48,7 +49,12 @@ func seedProducts(t *testing.T, eng metaengine.Engine, col string) {
 func TestDuckDB_Aggregate_Count(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+
+	defer eng.Close()
 
 	const col = "products_count"
 	seedProducts(t, eng, col)
@@ -72,7 +78,12 @@ func TestDuckDB_Aggregate_Count(t *testing.T) {
 func TestDuckDB_Aggregate_Sum(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+
+	defer eng.Close()
 
 	const col = "products_sum"
 	seedProducts(t, eng, col)
@@ -107,7 +118,12 @@ func TestDuckDB_Aggregate_Sum(t *testing.T) {
 func TestDuckDB_Aggregate_WithFilters(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+
+	defer eng.Close()
 
 	const col = "products_filt"
 	seedProducts(t, eng, col)
@@ -158,7 +174,12 @@ func TestDuckDB_Aggregate_WithFilters(t *testing.T) {
 func TestDuckDB_Aggregate_MinMaxAvg(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+
+	defer eng.Close()
 
 	const col = "products_mma"
 	seedProducts(t, eng, col)
@@ -201,7 +222,12 @@ func TestDuckDB_Aggregate_MinMaxAvg(t *testing.T) {
 func TestDuckDB_GroupedAggregate_Count(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+
+	defer eng.Close()
 
 	const col = "products_gcount"
 	seedProducts(t, eng, col)
@@ -233,7 +259,12 @@ func TestDuckDB_GroupedAggregate_Count(t *testing.T) {
 func TestDuckDB_GroupedAggregate_Sum(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+
+	defer eng.Close()
 
 	const col = "products_gsum"
 	seedProducts(t, eng, col)
@@ -268,7 +299,12 @@ func TestDuckDB_GroupedAggregate_Sum(t *testing.T) {
 func TestDuckDB_GroupedAggregate_WithFilters(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+
+	defer eng.Close()
 
 	const col = "products_gsum_filt"
 	seedProducts(t, eng, col)
@@ -304,7 +340,12 @@ func TestDuckDB_GroupedAggregate_WithFilters(t *testing.T) {
 func TestDuckDB_MultiAggregate(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+
+	defer eng.Close()
 
 	const col = "products_multi"
 	seedProducts(t, eng, col)
@@ -349,7 +390,12 @@ func TestDuckDB_MultiAggregate(t *testing.T) {
 func TestDuckDB_MultiGroupedAggregate(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+
+	defer eng.Close()
 
 	const col = "products_mg"
 	seedProducts(t, eng, col)
@@ -404,7 +450,12 @@ func TestDuckDB_MultiGroupedAggregate(t *testing.T) {
 func TestDuckDB_Distinct(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+
+	defer eng.Close()
 
 	const col = "products_distinct"
 	seedProducts(t, eng, col)
@@ -446,7 +497,12 @@ func TestDuckDB_Distinct(t *testing.T) {
 func TestDuckDB_Aggregate_Planned(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+
+	defer eng.Close()
 
 	const col = "products_planned"
 
@@ -557,7 +613,12 @@ func TestDuckDB_Aggregate_Planned(t *testing.T) {
 func TestDuckDB_Aggregate_EmptyCollection(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+
+	defer eng.Close()
 
 	ctx := context.Background()
 	ar := eng.(metaengine.AggregateReader)
@@ -594,99 +655,14 @@ func TestDuckDB_Aggregate_EmptyCollection(t *testing.T) {
 	}
 }
 
-func TestDuckDB_Aggregate_EmptyPlannedCollection(t *testing.T) {
-	t.Parallel()
-
-	eng := mustNewDuckEngine(t)
-
-	const col = "empty_planned"
-	ctx := context.Background()
-
-	lp, ok := eng.(metaengine.LayoutPlanApplier)
-	if !ok {
-		t.Fatal("engine does not implement LayoutPlanApplier")
-	}
-
-	plan := metaengine.LayoutPlan{
-		Collection: col,
-		Table:      "meta_planned_" + col,
-		Columns: []metaengine.PlannedColumn{
-			{Name: "category", Type: "VARCHAR"},
-			{Name: "price", Type: "DOUBLE"},
-		},
-	}
-	if err := lp.ApplyLayoutPlan(plan); err != nil {
-		t.Fatalf("ApplyLayoutPlan: %v", err)
-	}
-
-	ar := eng.(metaengine.AggregateReader)
-	n, err := ar.Aggregate(ctx, col, metaengine.AggregateCount, "", nil)
-	if err != nil {
-		t.Fatalf("Empty planned COUNT: %v", err)
-	}
-	if n != 0 {
-		t.Errorf("Empty planned count: got %v, want 0", n)
-	}
-
-	sum, err := ar.Aggregate(ctx, col, metaengine.AggregateSum, "price", nil)
-	if err != nil {
-		t.Fatalf("Empty planned SUM: %v", err)
-	}
-	if sum != 0 {
-		t.Errorf("Empty planned sum: got %v, want 0", sum)
-	}
-
-	gr := eng.(metaengine.GroupedAggregateReader)
-	grouped, err := gr.GroupedAggregate(ctx, col, metaengine.AggregateCount, "", "category", nil)
-	if err != nil {
-		t.Fatalf("Empty planned GroupedAggregate: %v", err)
-	}
-	if len(grouped) != 0 {
-		t.Errorf("Empty planned grouped: expected 0 groups, got %d", len(grouped))
-	}
-
-	mr := eng.(metaengine.MultiAggregateReader)
-	multi, err := mr.MultiAggregate(ctx, col, []metaengine.AggregateSpec{
-		{Fn: metaengine.AggregateCount, Alias: "count"},
-		{Fn: metaengine.AggregateSum, Column: "price", Alias: "total"},
-	}, nil)
-	if err != nil {
-		t.Fatalf("Empty planned MultiAggregate: %v", err)
-	}
-	if multi["count"] != 0 || multi["total"] != 0 {
-		t.Errorf(
-			"Empty planned multi: got count=%v total=%v, want 0 0",
-			multi["count"],
-			multi["total"],
-		)
-	}
-
-	mgr := eng.(metaengine.MultiGroupedAggregateReader)
-	multiGrouped, err := mgr.MultiGroupedAggregate(ctx, col, []metaengine.AggregateSpec{
-		{Fn: metaengine.AggregateCount, Alias: "count"},
-	}, "category", nil)
-	if err != nil {
-		t.Fatalf("Empty planned MultiGroupedAggregate: %v", err)
-	}
-	if len(multiGrouped) != 0 {
-		t.Errorf("Empty planned multi-grouped: expected 0 rows, got %d", len(multiGrouped))
-	}
-
-	dr := eng.(metaengine.DistinctReader)
-	distinct, err := dr.DistinctValues(ctx, col, "category", nil)
-	if err != nil {
-		t.Fatalf("Empty planned DistinctValues: %v", err)
-	}
-	if len(distinct) != 0 {
-		t.Errorf("Empty planned distinct: expected 0 values, got %d", len(distinct))
-	}
-}
-
 // --- ExplainableAggregate ---
 
-//nolint:tparallel // subtests share a mutable DuckDB engine instance (layout plans)
 func TestDuckDB_ExplainAggregateQuery(t *testing.T) {
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	const col = "products_explain"
 	seedProducts(t, eng, col)

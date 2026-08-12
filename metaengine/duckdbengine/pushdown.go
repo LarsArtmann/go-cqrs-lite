@@ -30,7 +30,7 @@ func (e *duckdbEngine) PushdownMapScan(
 	cursor any,
 	limit int,
 ) (metaengine.ScanResult, error) {
-	if plan, ok := e.lookupPlan(collection); ok {
+	if plan, ok := e.plans[collection]; ok {
 		return e.pushdownMapScanPlanned(ctx, plan, filters, sort, cursor, limit)
 	}
 
@@ -113,7 +113,7 @@ func jsonPath(field string) string {
 // scanDuckDBJSONValues executes the query and decodes each row's JSON value.
 func scanDuckDBJSONValues(
 	ctx context.Context,
-	db metaengine.SQLExec,
+	db dbExec,
 	query string,
 	args ...any,
 ) ([]any, error) {

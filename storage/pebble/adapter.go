@@ -108,7 +108,7 @@ func (adapter *KVAdapter) Get(_ context.Context, key []byte) ([]byte, error) {
 			fmt.Sprintf("get %q", key))
 	}
 
-	defer deferClose(closer)
+	defer func() { _ = closer.Close() }()
 
 	return slices.Clone(val), nil
 }

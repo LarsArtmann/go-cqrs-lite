@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ontyped_test.go verifies OnTyped binds a fold to an explicit event-type
@@ -28,10 +27,10 @@ func TestOnTyped_BindsToExplicitEventTypeString(t *testing.T) {
 	q := metaengine.Query[onTypedInput, string](
 		"ontyped_lookup",
 		// Bind to the wire string "user.created", NOT the struct name.
-		metaengine.OnRecordTyped(
+		metaengine.OnTyped(
 			"user.created",
 			onTypedUserCreated{},
-			func(_ record.Record, e onTypedUserCreated) (string, string) {
+			func(e onTypedUserCreated) (string, string) {
 				return e.ID, e.Name
 			},
 		),

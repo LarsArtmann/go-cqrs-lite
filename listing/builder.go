@@ -22,8 +22,8 @@ func NewListBuilder(reader StreamReader) *ListBuilder {
 	return &ListBuilder{
 		reader: reader,
 		opts: ListOptions{ //nolint:exhaustruct // builder pattern: Type and After set via methods
-			Limit:        defaultPageSize,
-			DeletePolicy: DeleteExclude,
+			Limit:     defaultPageSize,
+			Tombstone: TombstoneExclude,
 		},
 	}
 }
@@ -57,16 +57,16 @@ func (b *ListBuilder) PageSize(n uint) *ListBuilder {
 	return b
 }
 
-// IncludeDeleted shows all streams, including deleted ones.
+// IncludeDeleted shows all streams, including tombstoned ones.
 func (b *ListBuilder) IncludeDeleted() *ListBuilder {
-	b.opts.DeletePolicy = DeleteInclude
+	b.opts.Tombstone = TombstoneInclude
 
 	return b
 }
 
-// OnlyDeleted shows only deleted streams.
+// OnlyDeleted shows only tombstoned streams.
 func (b *ListBuilder) OnlyDeleted() *ListBuilder {
-	b.opts.DeletePolicy = DeleteOnly
+	b.opts.Tombstone = TombstoneOnly
 
 	return b
 }

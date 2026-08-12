@@ -10,13 +10,16 @@ import (
 
 	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func TestDuckDBEngine_ApplyLayout(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	lp, ok := eng.(metaengine.LayoutPlanner)
 	if !ok {
@@ -60,7 +63,11 @@ func TestDuckDBEngine_ApplyLayout(t *testing.T) {
 func TestDuckDBEngine_ApplyLayoutConflict(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	lp, ok := eng.(metaengine.LayoutPlanner)
 	if !ok {
@@ -72,7 +79,7 @@ func TestDuckDBEngine_ApplyLayoutConflict(t *testing.T) {
 	}
 
 	// Different columns on same collection → ErrLayoutConflict.
-	err := lp.ApplyLayout("conflict", []string{"Name"}, nil)
+	err = lp.ApplyLayout("conflict", []string{"Name"}, nil)
 	if err == nil {
 		t.Fatal("expected ErrLayoutConflict, got nil")
 	}
@@ -81,7 +88,11 @@ func TestDuckDBEngine_ApplyLayoutConflict(t *testing.T) {
 func TestDuckDBEngine_LayoutMapSetGet(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	ctx := context.Background()
 
@@ -131,7 +142,11 @@ func TestDuckDBEngine_LayoutMapSetGet(t *testing.T) {
 func TestDuckDBEngine_LayoutMapDelete(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	ctx := context.Background()
 
@@ -171,7 +186,11 @@ func TestDuckDBEngine_LayoutMapDelete(t *testing.T) {
 func TestDuckDBEngine_LayoutPushdownFilterSortLimit(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	ctx := context.Background()
 
@@ -228,7 +247,11 @@ func TestDuckDBEngine_LayoutPushdownFilterSortLimit(t *testing.T) {
 func TestDuckDBEngine_LayoutPushdownCursor(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	ctx := context.Background()
 
@@ -288,7 +311,11 @@ func TestDuckDBEngine_LayoutPushdownCursor(t *testing.T) {
 func TestDuckDBEngine_LayoutPushdownFilterIn(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	ctx := context.Background()
 
@@ -342,7 +369,11 @@ func TestDuckDBEngine_LayoutPushdownFilterIn(t *testing.T) {
 func TestDuckDBEngine_LayoutMetaenginePlan(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	// Verify that Plan auto-calls ApplyLayout when the engine implements
 	// LayoutPlanner and the query uses FilterOnField/SortOnField.
@@ -356,12 +387,9 @@ func TestDuckDBEngine_LayoutMetaenginePlan(t *testing.T) {
 		[]metaengine.Engine{eng},
 		metaengine.Query[CountInput, map[string]int64](
 			"category_counts_layout",
-			metaengine.OnRecord(
-				ItemCreated{},
-				func(_ record.Record, e ItemCreated) metaengine.Delta {
-					return metaengine.Delta{e.Category: 1}
-				},
-			),
+			metaengine.On(ItemCreated{}, func(e ItemCreated) metaengine.Delta {
+				return metaengine.Delta{e.Category: 1}
+			}),
 		),
 	)
 	if err != nil {
@@ -495,17 +523,14 @@ func TestDuckDBEngine_ColumnarLayoutWithPlan(t *testing.T) {
 		[]metaengine.Engine{eng},
 		metaengine.Query[ProductInput, ProductView](
 			"products",
-			metaengine.OnRecord(
-				ProductCreated{},
-				func(_ record.Record, e ProductCreated) (string, ProductView) {
-					return e.ID, ProductView{
-						Name:     e.Name,
-						Category: e.Category,
-						Price:    e.Price,
-						Quantity: e.Quantity,
-					}
-				},
-			),
+			metaengine.On(ProductCreated{}, func(e ProductCreated) (string, ProductView) {
+				return e.ID, ProductView{
+					Name:     e.Name,
+					Category: e.Category,
+					Price:    e.Price,
+					Quantity: e.Quantity,
+				}
+			}),
 			metaengine.WithColumnarLayout(),
 		),
 	)
@@ -594,17 +619,14 @@ func TestDuckDBEngine_ColumnarAggregation(t *testing.T) {
 		[]metaengine.Engine{eng},
 		metaengine.Query[ProductInput, ProductView](
 			"products_agg",
-			metaengine.OnRecord(
-				ProductCreated{},
-				func(_ record.Record, e ProductCreated) (string, ProductView) {
-					return e.ID, ProductView{
-						Name:     e.Name,
-						Category: e.Category,
-						Price:    e.Price,
-						Quantity: e.Quantity,
-					}
-				},
-			),
+			metaengine.On(ProductCreated{}, func(e ProductCreated) (string, ProductView) {
+				return e.ID, ProductView{
+					Name:     e.Name,
+					Category: e.Category,
+					Price:    e.Price,
+					Quantity: e.Quantity,
+				}
+			}),
 			metaengine.WithColumnarLayout(),
 		),
 	)

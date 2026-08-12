@@ -15,7 +15,6 @@ type config struct {
 	namespace string
 	author    string
 	transport Transport
-	clock     Clock
 }
 
 const defaultAuthor = "default"
@@ -40,25 +39,9 @@ func WithTransport(t Transport) Option {
 	return func(c *config) { c.transport = t }
 }
 
-// Clock provides the current time. Used for LWW timestamps in CRDT convergence.
-// In tests, inject a deterministic clock to eliminate timing assumptions.
-type Clock interface {
-	Now() time.Time
-}
-
-type realClock struct{}
-
-func (realClock) Now() time.Time { return time.Now() }
-
-// WithClock sets a custom clock for deterministic LWW timestamps in tests.
-func WithClock(clock Clock) Option {
-	return func(c *config) { c.clock = clock }
-}
-
 func defaultConfig() *config {
 	return &config{
 		author: defaultAuthor,
-		clock:  realClock{},
 	}
 }
 

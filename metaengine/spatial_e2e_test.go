@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 type PlaceLocated struct {
@@ -28,12 +27,9 @@ func TestSpatialFoldPipeline_EndToEnd(t *testing.T) {
 		[]metaengine.Engine{metaengine.NewMemoryEngine()},
 		metaengine.Query[NearbySearchInput, metaengine.SpatialResult](
 			"nearby_places",
-			metaengine.OnRecord(
-				PlaceLocated{},
-				func(_ record.Record, e PlaceLocated) metaengine.Point {
-					return metaengine.Point{ID: e.ID, X: e.Lon, Y: e.Lat}
-				},
-			),
+			metaengine.On(PlaceLocated{}, func(e PlaceLocated) metaengine.Point {
+				return metaengine.Point{ID: e.ID, X: e.Lon, Y: e.Lat}
+			}),
 		),
 	)
 	if err != nil {
@@ -102,12 +98,9 @@ func TestSpatialFoldPipeline_Classification(t *testing.T) {
 		[]metaengine.Engine{metaengine.NewMemoryEngine()},
 		metaengine.Query[NearbySearchInput, metaengine.SpatialResult](
 			"spatial_classify",
-			metaengine.OnRecord(
-				PlaceLocated{},
-				func(_ record.Record, e PlaceLocated) metaengine.Point {
-					return metaengine.Point{ID: e.ID, X: e.Lon, Y: e.Lat}
-				},
-			),
+			metaengine.On(PlaceLocated{}, func(e PlaceLocated) metaengine.Point {
+				return metaengine.Point{ID: e.ID, X: e.Lon, Y: e.Lat}
+			}),
 		),
 	)
 	if err != nil {

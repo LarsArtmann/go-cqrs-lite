@@ -215,7 +215,7 @@ func TestCommandBusMetadataRoundTrip(t *testing.T) {
 		t.Fatalf("correlation_id mismatch: got %s, want %s",
 			md.CorrelationID, correlationID)
 	}
-	if !md.ActorID.Equal(id.NewUserActor(userID)) {
+	if md.UserID != userID {
 		t.Fatalf("user_id mismatch")
 	}
 	if md.Custom["tenant"] != "acme" {

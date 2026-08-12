@@ -3,7 +3,6 @@
 package quic
 
 import (
-	"log/slog"
 	"time"
 
 	iroh_ffi "git.coopcloud.tech/decentral1se/iroh-go"
@@ -49,11 +48,7 @@ func (t *QuicTransport) handleConnection(conn *iroh_ffi.Connection, peerID strin
 		if err != nil {
 			return // connection closed
 		}
-		if t.cfg.poolStreams {
-			go t.handlePooledStream(conn, peerID, stream)
-		} else {
-			go t.handleStream(conn, peerID, stream)
-		}
+		go t.handleStream(conn, peerID, stream)
 	}
 }
 
@@ -62,30 +57,10 @@ func (t *QuicTransport) handleStream(
 	sourcePeerID string,
 	stream *iroh_ffi.BiStream,
 ) {
-	// Peek at the first byte to detect protocol mismatch: a pooled sender
-	// writes a magic byte before any framing. If we see it here, the sender
-	// is pooled but we are not — return immediately instead of hanging in
-	// ReadToEnd waiting for a Finish() that never comes.
-	firstByte, err := stream.Recv().ReadExact(1)
+	data, err := stream.Recv().ReadToEnd(maxOpSize)
 	if err != nil {
 		return
 	}
-
-	if firstByte[0] == pooledStreamMagic {
-		slog.Error("quic handleStream: protocol mismatch — pooled sender connected " +
-			"to non-pooled receiver; enable WithStreamPooling on both nodes")
-		_ = stream.Send().Finish() // unblock sender's ReadExact so it doesn't hang
-		return
-	}
-
-	// Non-pooled sender: read the rest of the op data and combine with first byte
-	rest, err := stream.Recv().ReadToEnd(maxOpSize)
-	if err != nil {
-		return
-	}
-	data := make([]byte, 0, 1+len(rest))
-	data = append(data, firstByte...)
-	data = append(data, rest...)
 
 	// Send empty ack so sender's ReadToEnd completes
 	_ = stream.Send().WriteAll([]byte{})
@@ -141,21 +116,17 @@ func (t *QuicTransport) relayToOthers(sourcePeerID string, op irohengine.WriteOp
 	}
 
 	t.mu.RLock()
-	var targets []*peerConn
+	var targets []*iroh_ffi.Connection
 	for id, pc := range t.conns {
 		if id != sourcePeerID {
-			targets = append(targets, pc)
+			targets = append(targets, pc.conn)
 		}
 	}
 	t.mu.RUnlock()
 
-	for _, pc := range targets {
-		go func(pc *peerConn) {
-			if t.cfg.poolStreams {
-				t.sendOpPooled(pc, data)
-			} else {
-				t.sendOp(pc.conn, data)
-			}
-		}(pc)
+	for _, conn := range targets {
+		go func(c *iroh_ffi.Connection) {
+			t.sendOp(c, data)
+		}(conn)
 	}
 }

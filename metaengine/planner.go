@@ -7,10 +7,9 @@ import (
 )
 
 type rankedEngine struct {
-	engine            Engine
-	complexity        Complexity
-	cost              CostEstimate
-	weightedLatencyMs float64 // priority-adjusted latency for ranking (ADR-0124)
+	engine     Engine
+	complexity Complexity
+	cost       CostEstimate
 }
 
 // DefaultWriteAmplificationBudget is the default maximum number of projections
@@ -21,11 +20,8 @@ type planConfig struct {
 	writeAmplificationBudget int
 	dryRun                   bool
 	stats                    map[string]WorkloadStats
-	replicationOverride      *Replication    // overrides all engines' declared replication for cost estimation
-	networkRTTOverride       *time.Duration  // overrides all engines' declared NetworkRTT for cost estimation
-	routingHysteresis        float64         // min fractional improvement for re-routing suggestions
-	routingMinDeltaMs        float64         // min absolute improvement (ms) for re-routing suggestions
-	priority                 *PriorityConfig // operator-driven layout priorities (ADR-0124)
+	replicationOverride      *Replication   // overrides all engines' declared replication for cost estimation
+	networkRTTOverride       *time.Duration // overrides all engines' declared NetworkRTT for cost estimation
 }
 
 type planOption func(*planConfig)
@@ -66,39 +62,11 @@ func WithReplication(r Replication) planOption {
 }
 
 // WithNetworkRTT overrides the network round-trip time for all engines.
-// This is a PRIOR for the initial plan, not a constant: it seeds planning
-// before any live probe runs and is replaced by a live measurement (via
-// ProbeEngine) once fresh samples exist. Use it when the deployment topology
-// differs from the engine's declared profile (e.g., Postgres in another
-// region), or to simulate a what-if RTT without spinning up a probe.
+// This adds a fixed per-query latency overhead to the cost estimate.
+// Use this when the engine's actual network distance differs from its
+// declared profile (e.g., Postgres in a different region).
 func WithNetworkRTT(rtt time.Duration) planOption {
 	return func(c *planConfig) { c.networkRTTOverride = &rtt }
-}
-
-// WithRoutingHysteresis sets the minimum fractional cost improvement required
-// before CheckRouting suggests re-routing a query to a different engine. For
-// example, 0.15 means an alternative engine must be at least 15% cheaper.
-// Defaults to DefaultRoutingHysteresis (0.20 = 20%). Lower values make the
-// planner more sensitive to latency shifts but risk oscillation from jitter.
-func WithRoutingHysteresis(fraction float64) planOption {
-	return func(c *planConfig) {
-		if fraction > 0 {
-			c.routingHysteresis = fraction
-		}
-	}
-}
-
-// WithRoutingMinDelta sets the minimum absolute cost improvement (in
-// milliseconds) required before CheckRouting suggests re-routing. This floor
-// prevents re-routing on tiny absolute differences for very cheap queries
-// (e.g. 0.01ms), where a 20% fractional improvement is negligible. Defaults
-// to DefaultRoutingMinDelta (0.5ms).
-func WithRoutingMinDelta(delta time.Duration) planOption {
-	return func(c *planConfig) {
-		if delta > 0 {
-			c.routingMinDeltaMs = float64(delta.Microseconds()) / 1e3
-		}
-	}
 }
 
 // Plan creates a storage plan from available engines and declared queries.
@@ -128,26 +96,20 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 
 	plan := &PlanResult{}
 	store := &Store{
-		engines:           engines,
-		queries:           make(map[string]queryMeta),
-		byInputType:       make(map[string]string),
-		queryDecls:        queries,
-		poison:            newPoisonTracker(),
-		idempotency:       newIdempotencyTracker(),
-		meter:             newWorkloadMeter(),
-		subs:              newSubscriberHub(),
-		routingHysteresis: defaultRoutingHysteresis(cfg.routingHysteresis),
-		routingMinDelta:   defaultRoutingMinDelta(cfg.routingMinDeltaMs),
+		engines:     engines,
+		queries:     make(map[string]queryMeta),
+		byInputType: make(map[string]string),
+		queryDecls:  queries,
+		poison:      newPoisonTracker(),
+		idempotency: newIdempotencyTracker(),
+		meter:       newWorkloadMeter(),
+		subs:        newSubscriberHub(),
 	}
 
 	for _, q := range queries {
 		meta, ok := asQueryMeta(q)
 		if !ok {
 			return nil, fmt.Errorf("%w: %T", errNotQueryMeta, q)
-		}
-
-		if err := meta.ensureFolds(); err != nil {
-			return nil, fmt.Errorf("metaengine.Plan: %w", err)
 		}
 
 		if _, exists := store.queries[meta.QueryName()]; exists {
@@ -229,24 +191,15 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 			}
 
 			readC := effectiveReadComplexity(meta.QueryReadPattern(), c)
-			cost := estimateCost(
-				readC,
-				cfg.Volume,
-				profile.NsForRead(meta.QueryReadPattern()),
-				profile.NetworkRTT,
-			)
-
-			weightedMs := cost.EstimatedLatencyMs
-			if pc.priority != nil {
-				p := pc.priority.Resolve(profile.Name, meta.QueryName())
-				weightedMs = cost.EstimatedLatencyMs * priorityFactor(p, readC)
-			}
-
 			ranked = append(ranked, rankedEngine{
-				engine:            eng,
-				complexity:        c,
-				cost:              cost,
-				weightedLatencyMs: weightedMs,
+				engine:     eng,
+				complexity: c,
+				cost: estimateCost(
+					readC,
+					cfg.Volume,
+					profile.NsForRead(meta.QueryReadPattern()),
+					profile.NetworkRTT,
+				),
 			})
 		}
 	}
@@ -268,8 +221,8 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 	}
 
 	sort.SliceStable(ranked, func(i, j int) bool {
-		if ranked[i].weightedLatencyMs != ranked[j].weightedLatencyMs {
-			return ranked[i].weightedLatencyMs < ranked[j].weightedLatencyMs
+		if ranked[i].cost.EstimatedLatencyMs != ranked[j].cost.EstimatedLatencyMs {
+			return ranked[i].cost.EstimatedLatencyMs < ranked[j].cost.EstimatedLatencyMs
 		}
 
 		return complexityRank(ranked[i].complexity) < complexityRank(ranked[j].complexity)
@@ -279,13 +232,6 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 	assignment.EngineName = best.engine.Profile().Name
 	assignment.Complexity = best.complexity
 	assignment.Cost = best.cost
-
-	// Compute the layout decision (ADR-0124) so the plan carries it. This
-	// converges engine routing and layout scoring into one planning pass —
-	// ReplanLayout reads this field instead of assuming LayoutEmbed.
-	resolvedPriority := resolvePriority(pc.priority, best.engine.Profile().Name, meta.QueryName(),
-		cfg.layoutPriorityOr(PriorityBalanced))
-	assignment.Layout, _ = SelectLayout(best.engine.Profile(), resolvedPriority)
 
 	assignment.Diagnostics = planDiagnostics(meta, best, cfg)
 

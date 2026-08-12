@@ -2,10 +2,10 @@
 // metaengine.Engine interface, making graph-shaped read models available to
 // the cost-based planner (ADR-0113).
 //
-// The adapter wraps a graph.MemoryDriver and implements metaengine.Engine
-// (Profile + Close) with GraphAddEdge + GraphNeighbors methods for graph
-// dispatch. Simple Edge{From, To} folds from planner queries are synthesized
-// into graph.MergeEdge calls with auto-created NodeRefs.
+// The adapter wraps a graph.MemoryDriver and implements both metaengine.Engine
+// (Profile + Close) and metaengine.GraphBackend (GraphAddEdge +
+// GraphNeighbors). Simple Edge{From, To} folds from planner queries are
+// synthesized into graph.MergeEdge calls with auto-created NodeRefs.
 package graphadapter
 
 import (
@@ -21,7 +21,10 @@ type Adapter struct {
 	driver *graph.MemoryDriver
 }
 
-var _ metaengine.Engine = (*Adapter)(nil)
+var (
+	_ metaengine.Engine       = (*Adapter)(nil)
+	_ metaengine.GraphBackend = (*Adapter)(nil)
+)
 
 // New creates a graphadapter backed by a fresh graph.MemoryDriver.
 func New() *Adapter {

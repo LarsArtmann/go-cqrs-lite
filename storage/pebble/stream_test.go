@@ -67,7 +67,7 @@ func seedPebbleStreamEvents(
 }
 
 func drainPebbleIter(iter event.EventIterator) ([]event.Event, error) {
-	defer deferClose(iter)
+	defer func() { _ = iter.Close() }()
 
 	var out []event.Event
 	for {

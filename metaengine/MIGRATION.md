@@ -39,16 +39,16 @@ type itemView struct {
 
 query := metaengine.Query[listInput, itemView]("items",
     // Insert fold: creates a new entry keyed by ID
-    metaengine.OnRecord(itemCreated{}, func(_ record.Record, e itemCreated) (string, itemView) {
+    metaengine.On(itemCreated{}, func(e itemCreated) (string, itemView) {
         return e.ID, itemView{ID: e.ID, Title: e.Title, Status: "open"}
     }),
     // Update fold: modifies existing entry
-    metaengine.OnRecord(itemCompleted{}, func(_ record.Record, e itemCompleted, prev itemView) itemView {
+    metaengine.On(itemCompleted{}, func(e itemCompleted, prev itemView) itemView {
         prev.Status = "completed"
         return prev
     }),
     // Remove fold: deletes entry
-    metaengine.OnRecord(itemDeleted{}, metaengine.Remove[itemView]()),
+    metaengine.On(itemDeleted{}, metaengine.Remove[itemView]()),
     // Declarative filter for SQLite pushdown
     metaengine.FilterOnField[itemView]("status", metaengine.FilterEq),
     // Declarative sort for SQLite pushdown
@@ -155,10 +155,10 @@ the TypedReader exclusively.
 
 ```go
 counterQ := metaengine.Query[countInput, map[string]int64]("counts",
-    metaengine.OnRecord(itemCreated{}, func(_ record.Record, e itemCreated) metaengine.Delta {
+    metaengine.On(itemCreated{}, func(e itemCreated) metaengine.Delta {
         return metaengine.Delta{e.Status: +1}
     }),
-    metaengine.OnRecord(itemCompleted{}, func(_ record.Record, e itemCompleted) metaengine.Delta {
+    metaengine.On(itemCompleted{}, func(e itemCompleted) metaengine.Delta {
         return metaengine.Delta{"open": -1, "completed": +1}
     }),
 )

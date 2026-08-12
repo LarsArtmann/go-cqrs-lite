@@ -8,6 +8,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
+	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -22,7 +23,9 @@ func setupRawScanTest(t *testing.T) (
 
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	t.Cleanup(func() { _ = eng.Close() })
 
 	ctx := context.Background()
 
@@ -32,7 +35,9 @@ func setupRawScanTest(t *testing.T) (
 func TestPebbleGetRawValue(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	ctx := context.Background()
 	mb := eng.(metaengine.MapBackend)
@@ -54,7 +59,9 @@ func TestPebbleGetRawValue(t *testing.T) {
 func TestPebbleGetRawValueNotFound(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	rvr := eng.(metaengine.RawValueReader)
 
@@ -241,7 +248,9 @@ func TestPebbleScanRawValuesWithFilterAndSort(t *testing.T) {
 func TestPebbleRawValueReaderInterface(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	_, ok := eng.(metaengine.RawValueReader)
 	g.Expect(ok).To(BeTrue(), "pebble engine must implement RawValueReader")
@@ -250,7 +259,9 @@ func TestPebbleRawValueReaderInterface(t *testing.T) {
 func TestPebbleRawScanReaderInterface(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	_, ok := eng.(metaengine.RawScanReader)
 	g.Expect(ok).To(BeTrue(), "pebble engine must implement RawScanReader")
@@ -262,7 +273,9 @@ func TestPebbleRawScanReaderInterface(t *testing.T) {
 func TestPebbleRawValueBytesAreCopies(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	ctx := context.Background()
 	mb := eng.(metaengine.MapBackend)
@@ -409,7 +422,9 @@ func TestPebbleScanRawValuesCursorDesc(t *testing.T) {
 func TestPebbleScanRawValuesEmptyCollection(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(HaveOccurred())
+	defer eng.Close()
 
 	rsr := eng.(metaengine.RawScanReader)
 

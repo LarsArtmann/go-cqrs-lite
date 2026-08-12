@@ -2,7 +2,6 @@ package bench_test
 
 import (
 	"database/sql"
-	"testing"
 
 	_ "modernc.org/sqlite" // register sqlite driver for all metaengine tests
 
@@ -23,19 +22,15 @@ func newSQLiteEngine() (metaengine.Engine, *sql.DB) {
 	return eng, db
 }
 
-func newPlannedSQLiteEngine(
-	t *testing.T,
-	plans []metaengine.LayoutPlan,
-) (metaengine.Engine, *sql.DB) {
-	t.Helper()
-	db, err := sql.Open("sqlite", ":memory:")
+func newSQLiteEngineForPath(path string) (metaengine.Engine, *sql.DB) {
+	db, err := sql.Open("sqlite", path)
 	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
+		panic(err)
 	}
 	db.SetMaxOpenConns(1)
-	eng, err := sqliteengine.NewPlannedSQLiteEngine(db, plans)
+	eng, err := sqliteengine.NewSQLiteEngine(db)
 	if err != nil {
-		t.Fatalf("NewPlannedSQLiteEngine: %v", err)
+		panic(err)
 	}
 	return eng, db
 }

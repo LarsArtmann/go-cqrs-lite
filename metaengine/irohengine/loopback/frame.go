@@ -2,18 +2,10 @@ package loopback
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
-
-	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 )
-
-// frameHeaderSize is aliased from irohengine.FrameHeaderSize so all transports
-// share one source of truth for the wire-format constant.
-const frameHeaderSize = irohengine.FrameHeaderSize
-
-// errFrameTooLarge is aliased from irohengine.ErrFrameTooLarge.
-var errFrameTooLarge = irohengine.ErrFrameTooLarge
 
 // writeFrame writes a length-prefixed message to w.
 // Format: [4-byte big-endian length][payload bytes].
@@ -55,3 +47,6 @@ func readFrame(r io.Reader) ([]byte, error) {
 
 	return data, nil
 }
+
+// errFrameTooLarge is returned when a received frame exceeds maxOpSize.
+var errFrameTooLarge = errors.New("frame too large")

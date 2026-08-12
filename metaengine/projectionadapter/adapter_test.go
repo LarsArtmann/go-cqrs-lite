@@ -10,7 +10,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ─── Shared test types ───
@@ -35,7 +34,7 @@ func setupItemAdapter(
 
 	q := metaengine.Query[findItem, benchItem](
 		"find-item",
-		metaengine.OnRecord(benchItem{}, func(_ record.Record, e benchItem) (string, benchItem) {
+		metaengine.On(benchItem{}, func(e benchItem) (string, benchItem) {
 			return e.ID, e
 		}),
 	)
@@ -156,7 +155,7 @@ func TestAdapter_SuccessfulHandle(t *testing.T) {
 func BenchmarkAdapter_Handle(b *testing.B) {
 	q := metaengine.Query[findItem, benchItem](
 		"find-item",
-		metaengine.OnRecord(benchItem{}, func(_ record.Record, e benchItem) (string, benchItem) {
+		metaengine.On(benchItem{}, func(e benchItem) (string, benchItem) {
 			return e.ID, e
 		}),
 	)
@@ -215,12 +214,9 @@ func TestAdapter_EventDecoder_ReceivesFullEvent(t *testing.T) {
 
 	q := metaengine.Query[findItem, benchItem](
 		"find-item-ed",
-		metaengine.OnRecord(
-			eventWithID{},
-			func(_ record.Record, e eventWithID) (string, benchItem) {
-				return e.ID, e.Payload
-			},
-		),
+		metaengine.On(eventWithID{}, func(e eventWithID) (string, benchItem) {
+			return e.ID, e.Payload
+		}),
 	)
 
 	store, err := metaengine.Plan(
@@ -289,7 +285,7 @@ func TestAdapter_EventDecoder_PrecedenceOverPayloadDecoder(t *testing.T) {
 
 	q := metaengine.Query[findItem, benchItem](
 		"find-item-prec",
-		metaengine.OnRecord(benchItem{}, func(_ record.Record, e benchItem) (string, benchItem) {
+		metaengine.On(benchItem{}, func(e benchItem) (string, benchItem) {
 			return e.ID, e
 		}),
 	)

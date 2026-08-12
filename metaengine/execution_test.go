@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 var _ = Describe("Apply and Execute", func() {
@@ -235,10 +234,10 @@ var _ = Describe("Concurrent FoldUpdate atomicity", func() {
 	It("preserves all increments under concurrent access", func() {
 		q := metaengine.Query[input, val](
 			"counters",
-			metaengine.OnRecord(evt{}, func(_ record.Record, e evt) (string, val) {
+			metaengine.On(evt{}, func(e evt) (string, val) {
 				return e.ID, val{ID: e.ID, Total: e.Amount}
 			}),
-			metaengine.OnRecord(evt{}, func(_ record.Record, e evt, prev val) val {
+			metaengine.On(evt{}, func(e evt, prev val) val {
 				prev.Total += e.Amount
 
 				return prev

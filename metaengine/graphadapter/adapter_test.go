@@ -9,10 +9,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
-// graphadapter implements only GraphBackend (not MapBackend), so
-// RunRecordStampTest does not apply — AutoInsert requires MapBackend to
-// store projected values. All 7 MapBackend-capable engines (Memory, Pebble,
-// SQLite, DuckDB, Postgres, Badger, Dgraph) have record-stamp coverage.
 func TestAdapter_Profile(t *testing.T) {
 	t.Parallel()
 
@@ -61,8 +57,9 @@ func TestAdapter_ImplementsInterfaces(t *testing.T) {
 	var eng metaengine.Engine = graphadapter.New()
 	defer eng.Close()
 
-	if !metaengine.HasGraphSupport(eng) {
-		t.Fatal("Adapter does not implement graph dispatch (GraphAddEdge + GraphNeighbors)")
+	gb := eng.(metaengine.GraphBackend)
+	if gb == nil {
+		t.Fatal("Adapter does not implement GraphBackend")
 	}
 }
 
@@ -84,14 +81,10 @@ func TestAdapter_StoreIntegration_RecordAware(t *testing.T) {
 
 	store, err := metaengine.Plan(
 		[]metaengine.Engine{eng},
-		metaengine.Query[AssignmentsInput, string](
-			"assignments",
-			metaengine.OnRecord(
-				TaskAssigned{},
-				func(_ record.Record, e TaskAssigned) metaengine.Edge {
-					return metaengine.Edge{From: e.UserID, To: e.TaskID}
-				},
-			),
+		metaengine.Query[AssignmentsInput, string]("assignments",
+			metaengine.On(TaskAssigned{}, func(e TaskAssigned) metaengine.Edge {
+				return metaengine.Edge{From: e.UserID, To: e.TaskID}
+			}),
 		),
 	)
 	if err != nil {

@@ -2,14 +2,22 @@ package duckdbengine
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
-
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
+
+// dbExec is the common interface between *sql.DB and *sql.Tx. Every engine
+// operation routes through conn() so that writes and reads participate in the
+// active transaction when one exists.
+type dbExec interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+}
 
 // conn returns the active transaction if RunInTx is in progress, otherwise
 // the engine's *sql.DB.
-func (e *duckdbEngine) conn() metaengine.SQLExec {
+func (e *duckdbEngine) conn() dbExec {
 	if tx := e.activeTx.Load(); tx != nil {
 		return tx
 	}
@@ -41,7 +49,7 @@ func (e *duckdbEngine) RunInTx(ctx context.Context, fn func(context.Context) err
 
 	e.activeTx.Store(nil)
 
-	if fnErr != nil { // art-dupl:accept cross-module tx error handling — separate go.mod
+	if fnErr != nil { //art-dupl:accept cross-module tx error handling — separate go.mod
 		_ = tx.Rollback()
 
 		return fnErr

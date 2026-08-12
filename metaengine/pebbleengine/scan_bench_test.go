@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -14,7 +15,12 @@ func BenchmarkPebbleScanRawValues_FilterIndex(b *testing.B) {
 	for _, n := range []int{100, 1000, 10000} {
 		b.Run(fmt.Sprintf("n=%d", n), func(b *testing.B) {
 			ctx := context.Background()
-			eng := mustNewPebbleEngine(b)
+			eng, err := pebbleengine.NewPebbleEngine("")
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			defer eng.Close()
 
 			lp := eng.(metaengine.LayoutPlanner)
 			if err := lp.ApplyLayout("items", []string{"score"}, nil); err != nil {
@@ -55,7 +61,12 @@ func BenchmarkPebbleScanRawValues_FullScan(b *testing.B) {
 	for _, n := range []int{100, 1000, 10000} {
 		b.Run(fmt.Sprintf("n=%d", n), func(b *testing.B) {
 			ctx := context.Background()
-			eng := mustNewPebbleEngine(b)
+			eng, err := pebbleengine.NewPebbleEngine("")
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			defer eng.Close()
 
 			mb := eng.(metaengine.MapBackend)
 			for i := range n {
@@ -88,7 +99,12 @@ func BenchmarkPebbleScanRawValues_SortIndex(b *testing.B) {
 	for _, n := range []int{100, 1000, 10000} {
 		b.Run(fmt.Sprintf("n=%d", n), func(b *testing.B) {
 			ctx := context.Background()
-			eng := mustNewPebbleEngine(b)
+			eng, err := pebbleengine.NewPebbleEngine("")
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			defer eng.Close()
 
 			lp := eng.(metaengine.LayoutPlanner)
 			if err := lp.ApplyLayout("items", nil, []string{"score"}); err != nil {
@@ -125,7 +141,11 @@ func BenchmarkPebbleScanRawValues_SortIndex(b *testing.B) {
 // given a cursor from page 1.
 func BenchmarkPebbleScanRawValues_CursorPagination100K(b *testing.B) {
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(b)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	if err != nil {
+		b.Fatal(err)
+	}
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	_ = lp.ApplyLayout("items", []string{"score"}, nil)

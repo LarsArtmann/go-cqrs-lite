@@ -70,7 +70,7 @@ func (e *sqliteEngine) CounterIncrement(
 }
 
 func (e *sqliteEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
-	rows, err := e.xd().QueryContext(ctx, e.queries.counterGet, col) //nolint:sqlclosecheck
+	rows, err := e.xd().QueryContext(ctx, e.queries.counterGet, col)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
@@ -98,12 +98,7 @@ func (e *sqliteEngine) CounterGet(ctx context.Context, col string) (map[string]i
 // JSON-encoded rows, decoding each into an any. Rows that fail JSON decoding
 // fall back to their raw string form. Used by PushdownMapScan, MultiGet, and
 // LogTail — all paths where direct callers expect decoded values.
-func scanJSONValues(
-	ctx context.Context,
-	db metaengine.SQLExec,
-	query string,
-	args ...any,
-) ([]any, error) {
+func scanJSONValues(ctx context.Context, db dbExec, query string, args ...any) ([]any, error) {
 	return scanSingleColumn(ctx, db, query, metaengine.DecodeStreamValue, args...)
 }
 

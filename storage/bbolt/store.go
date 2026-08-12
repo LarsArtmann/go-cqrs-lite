@@ -94,7 +94,6 @@ func (s *EventStore) Save(
 
 		eventsBucket := tx.Bucket([]byte(bucketEvents))
 		journalBucket := tx.Bucket([]byte(bucketJournal))
-		idxBucket := tx.Bucket([]byte(bucketJournalIdx))
 
 		for i, evt := range events {
 			if err := validateEventOwnership(evt, ref); err != nil {
@@ -125,11 +124,6 @@ func (s *EventStore) Save(
 				return errorfamily.WrapInfrastructure(err, "bbolt.put_journal",
 					fmt.Sprintf("put journal entry %d", i))
 			}
-
-			if err := idxBucket.Put([]byte(evt.ID().String()), jk); err != nil {
-				return errorfamily.WrapInfrastructure(err, "bbolt.put_journal_idx",
-					fmt.Sprintf("put journal index entry %d", i))
-			}
 		}
 
 		return nil
@@ -158,7 +152,6 @@ func (s *EventStore) AppendBatch(
 	err := s.db.Update(func(tx *bolt.Tx) error {
 		eventsBucket := tx.Bucket([]byte(bucketEvents))
 		journalBucket := tx.Bucket([]byte(bucketJournal))
-		idxBucket := tx.Bucket([]byte(bucketJournalIdx))
 
 		for _, evt := range events {
 			data, err := serializeEvent(evt)
@@ -177,11 +170,6 @@ func (s *EventStore) AppendBatch(
 			if err := journalBucket.Put(jk, data); err != nil {
 				return errorfamily.WrapInfrastructure(err, "bbolt.put_journal",
 					"put journal "+evt.ID().String())
-			}
-
-			if err := idxBucket.Put([]byte(evt.ID().String()), jk); err != nil {
-				return errorfamily.WrapInfrastructure(err, "bbolt.put_journal_idx",
-					"put journal index "+evt.ID().String())
 			}
 		}
 

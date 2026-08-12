@@ -28,6 +28,4 @@ type StreamRef = id.StreamRef
 // Deprecated: use id.NewStreamRef.
 var NewAggregateRef = id.NewStreamRef
 
-// Deprecated: use metadata.CustomData[K]. Retained for v3 consumers that
-// reference event.CustomData. The canonical type now lives in metadata/.
 type CustomData[K ~string] = metadata.CustomData[K]

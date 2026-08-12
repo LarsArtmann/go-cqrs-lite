@@ -5,7 +5,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 var _ = Describe("Regression: cost model picks the cheaper engine", func() {
@@ -57,13 +56,10 @@ var _ = Describe("Regression: cost model picks the cheaper engine", func() {
 
 		filteredMapQ := metaengine.Query[FindTask, FindTaskResult](
 			"filtered_find_task",
-			metaengine.OnRecord(
-				TaskCreated{},
-				func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
-					return e.ID, FindTaskResult{ID: e.ID, Title: e.Title, Status: e.Status}
-				},
-			),
-			metaengine.OnRecord(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
+			metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, FindTaskResult) {
+				return e.ID, FindTaskResult{ID: e.ID, Title: e.Title, Status: e.Status}
+			}),
+			metaengine.On(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
 			metaengine.FilterOnField[FindTaskResult]("Status", metaengine.FilterEq),
 			metaengine.Volume(100_000),
 		)

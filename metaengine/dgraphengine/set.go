@@ -14,10 +14,9 @@ func (e *dgraphEngine) SetAdd(ctx context.Context, col string, key any) error {
 	keyStr := fmt.Sprint(key)
 
 	req := &api.Request{CommitNow: true}
-	req.Query = `query entry($col: string, $key: string) {
-		entry as var(func: eq(cqrs.set_collection, $col)) @filter(eq(cqrs.set_key, $key))
-	}`
-	req.Vars = map[string]string{"$col": col, "$key": keyStr}
+	req.Query = fmt.Sprintf(`{
+		entry as var(func: eq(cqrs.set_collection, %s)) @filter(eq(cqrs.set_key, %s))
+	}`, dqlString(col), dqlString(keyStr))
 
 	createJSON, _ := json.Marshal(map[string]any{
 		"uid":                 "_:new",
@@ -40,14 +39,13 @@ func (e *dgraphEngine) SetAdd(ctx context.Context, col string, key any) error {
 func (e *dgraphEngine) SetContains(ctx context.Context, col string, key any) (bool, error) {
 	keyStr := fmt.Sprint(key)
 
-	q := `query entry($col: string, $key: string) {
-		entry(func: eq(cqrs.set_collection, $col)) @filter(eq(cqrs.set_key, $key)) {
+	q := fmt.Sprintf(`{
+		entry(func: eq(cqrs.set_collection, %s)) @filter(eq(cqrs.set_key, %s)) {
 			count(uid)
 		}
-	}`
+	}`, dqlString(col), dqlString(keyStr))
 
-	resp, err := e.client.NewReadOnlyTxn().
-		QueryWithVars(ctx, q, map[string]string{"$col": col, "$key": keyStr})
+	resp, err := e.client.NewReadOnlyTxn().Query(ctx, q)
 	if err != nil {
 		return false, fmt.Errorf("dgraphengine.SetContains: %w", err)
 	}

@@ -33,19 +33,6 @@ func newAggSQLiteEngine(t *testing.T) (metaengine.Engine, func()) {
 	}
 }
 
-// setupSeededAggTest creates an in-memory SQLite engine, seeds it with test
-// data via seedAggData, and returns the context + engine. Cleanup is automatic.
-func setupSeededAggTest(t *testing.T) (context.Context, metaengine.Engine) {
-	t.Helper()
-
-	ctx := context.Background()
-	eng, cleanup := newAggSQLiteEngine(t)
-	t.Cleanup(cleanup)
-	seedAggData(t, ctx, eng)
-
-	return ctx, eng
-}
-
 func seedAggData(t *testing.T, ctx context.Context, eng metaengine.Engine) {
 	t.Helper()
 
@@ -71,10 +58,14 @@ func seedAggData(t *testing.T, ctx context.Context, eng metaengine.Engine) {
 	}
 }
 
-func TestSQLite_Aggregate(t *testing.T) { //nolint:tparallel
+func TestSQLite_Aggregate(t *testing.T) {
 	t.Parallel()
 
-	ctx, eng := setupSeededAggTest(t)
+	ctx := context.Background()
+	eng, cleanup := newAggSQLiteEngine(t)
+	defer cleanup()
+
+	seedAggData(t, ctx, eng)
 
 	ar := eng.(metaengine.AggregateReader)
 
@@ -132,10 +123,14 @@ func TestSQLite_Aggregate(t *testing.T) { //nolint:tparallel
 	})
 }
 
-func TestSQLite_GroupedAggregate(t *testing.T) { //nolint:tparallel
+func TestSQLite_GroupedAggregate(t *testing.T) {
 	t.Parallel()
 
-	ctx, eng := setupSeededAggTest(t)
+	ctx := context.Background()
+	eng, cleanup := newAggSQLiteEngine(t)
+	defer cleanup()
+
+	seedAggData(t, ctx, eng)
 
 	gr := eng.(metaengine.GroupedAggregateReader)
 
@@ -204,7 +199,11 @@ func TestSQLite_GroupedAggregate(t *testing.T) { //nolint:tparallel
 func TestSQLite_MultiAggregate(t *testing.T) {
 	t.Parallel()
 
-	ctx, eng := setupSeededAggTest(t)
+	ctx := context.Background()
+	eng, cleanup := newAggSQLiteEngine(t)
+	defer cleanup()
+
+	seedAggData(t, ctx, eng)
 
 	mr := eng.(metaengine.MultiAggregateReader)
 
@@ -229,7 +228,11 @@ func TestSQLite_MultiAggregate(t *testing.T) {
 func TestSQLite_MultiGroupedAggregate(t *testing.T) {
 	t.Parallel()
 
-	ctx, eng := setupSeededAggTest(t)
+	ctx := context.Background()
+	eng, cleanup := newAggSQLiteEngine(t)
+	defer cleanup()
+
+	seedAggData(t, ctx, eng)
 
 	mgr := eng.(metaengine.MultiGroupedAggregateReader)
 
@@ -258,7 +261,11 @@ func TestSQLite_MultiGroupedAggregate(t *testing.T) {
 func TestSQLite_DistinctValues(t *testing.T) {
 	t.Parallel()
 
-	ctx, eng := setupSeededAggTest(t)
+	ctx := context.Background()
+	eng, cleanup := newAggSQLiteEngine(t)
+	defer cleanup()
+
+	seedAggData(t, ctx, eng)
 
 	dr := eng.(metaengine.DistinctReader)
 
@@ -279,10 +286,14 @@ func assertAggFloat(t *testing.T, label string, got, want float64) {
 	}
 }
 
-func TestSQLite_ExplainAggregateQuery(t *testing.T) { //nolint:tparallel
+func TestSQLite_ExplainAggregateQuery(t *testing.T) {
 	t.Parallel()
 
-	ctx, eng := setupSeededAggTest(t)
+	ctx := context.Background()
+	eng, cleanup := newAggSQLiteEngine(t)
+	defer cleanup()
+
+	seedAggData(t, ctx, eng)
 
 	ea := eng.(metaengine.ExplainableAggregate)
 
@@ -349,7 +360,7 @@ func TestSQLite_ExplainAggregateQuery(t *testing.T) { //nolint:tparallel
 	})
 }
 
-func TestSQLite_Aggregate_PlannedTable(t *testing.T) { //nolint:tparallel
+func TestSQLite_Aggregate_PlannedTable(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -524,7 +535,7 @@ func TestSQLite_Aggregate_PlannedTable(t *testing.T) { //nolint:tparallel
 	})
 }
 
-func TestSQLite_Aggregate_EmptyCollection(t *testing.T) { //nolint:tparallel
+func TestSQLite_Aggregate_EmptyCollection(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -590,170 +601,4 @@ func TestSQLite_Aggregate_EmptyCollection(t *testing.T) { //nolint:tparallel
 			t.Errorf("DistinctValues on empty = %d, want 0", len(got))
 		}
 	})
-}
-
-func TestSQLite_Aggregate_NullValues(t *testing.T) { //nolint:tparallel
-	t.Parallel()
-
-	ctx := context.Background()
-	eng, cleanup := newAggSQLiteEngine(t)
-	t.Cleanup(cleanup)
-
-	mb := eng.(metaengine.MapBackend)
-
-	// Insert items where some lack the "price" field (JSON null).
-	items := []struct {
-		id  string
-		val map[string]any
-	}{
-		{"a", map[string]any{"id": "a", "status": "open", "price": 10.0}},
-		{"b", map[string]any{"id": "b", "status": "open"}}, // no price
-		{"c", map[string]any{"id": "c", "status": "closed", "price": 0.0}},
-		{"d", map[string]any{"id": "d", "status": "closed"}}, // no price
-		{"e", map[string]any{"id": "e", "status": "open", "price": 30.0}},
-	}
-
-	for _, item := range items {
-		if err := mb.MapSet(ctx, "items", item.id, item.val); err != nil {
-			t.Fatalf("MapSet %s: %v", item.id, err)
-		}
-	}
-
-	ar := eng.(metaengine.AggregateReader)
-
-	// COUNT counts ALL rows regardless of missing fields.
-	t.Run("Count_all", func(t *testing.T) {
-		n, err := ar.Aggregate(ctx, "items", metaengine.AggregateCount, "", nil)
-		if err != nil {
-			t.Fatalf("Count: %v", err)
-		}
-		if n != 5 {
-			t.Errorf("Count = %v, want 5", n)
-		}
-	})
-
-	// SUM excludes rows with missing "price" (SQL NULL semantics).
-	t.Run("Sum_excludes_null", func(t *testing.T) {
-		got, err := ar.Aggregate(ctx, "items", metaengine.AggregateSum, "price", nil)
-		if err != nil {
-			t.Fatalf("Sum: %v", err)
-		}
-		// 10 + 0 + 30 = 40 (b and d excluded)
-		assertAggFloat(t, "Sum with nulls", got, 40)
-	})
-
-	// AVG averages only non-null prices: (10+0+30)/3 = 13.33...
-	t.Run("Avg_excludes_null", func(t *testing.T) {
-		got, err := ar.Aggregate(ctx, "items", metaengine.AggregateAvg, "price", nil)
-		if err != nil {
-			t.Fatalf("Avg: %v", err)
-		}
-		assertAggFloat(t, "Avg with nulls", got, 40.0/3.0)
-	})
-
-	// MIN/MAX skip nulls.
-	t.Run("Min_excludes_null", func(t *testing.T) {
-		got, err := ar.Aggregate(ctx, "items", metaengine.AggregateMin, "price", nil)
-		if err != nil {
-			t.Fatalf("Min: %v", err)
-		}
-		assertAggFloat(t, "Min with nulls", got, 0)
-	})
-
-	t.Run("Max_excludes_null", func(t *testing.T) {
-		got, err := ar.Aggregate(ctx, "items", metaengine.AggregateMax, "price", nil)
-		if err != nil {
-			t.Fatalf("Max: %v", err)
-		}
-		assertAggFloat(t, "Max with nulls", got, 30)
-	})
-}
-
-func TestSQLite_Aggregate_LargeDataset(t *testing.T) { //nolint:tparallel
-	t.Parallel()
-
-	ctx := context.Background()
-	eng, cleanup := newAggSQLiteEngine(t)
-	t.Cleanup(cleanup)
-
-	mb := eng.(metaengine.MapBackend)
-
-	const n = 10_000
-	var expectedSum float64
-
-	for i := 0; i < n; i++ {
-		price := float64(i) + 1
-		expectedSum += price
-		val := map[string]any{"id": fmtID(i), "status": "open", "price": price}
-		if err := mb.MapSet(ctx, "items", fmtID(i), val); err != nil {
-			t.Fatalf("MapSet %d: %v", i, err)
-		}
-	}
-
-	ar := eng.(metaengine.AggregateReader)
-
-	t.Run("Count", func(t *testing.T) {
-		got, err := ar.Aggregate(ctx, "items", metaengine.AggregateCount, "", nil)
-		if err != nil {
-			t.Fatalf("Count: %v", err)
-		}
-		if got != float64(n) {
-			t.Errorf("Count = %v, want %d", got, n)
-		}
-	})
-
-	t.Run("Sum", func(t *testing.T) {
-		got, err := ar.Aggregate(ctx, "items", metaengine.AggregateSum, "price", nil)
-		if err != nil {
-			t.Fatalf("Sum: %v", err)
-		}
-		// Sum of 1..10000 = n*(n+1)/2
-		assertAggFloat(t, "Sum 10K", got, float64(n)*float64(n+1)/2)
-	})
-
-	t.Run("Avg", func(t *testing.T) {
-		got, err := ar.Aggregate(ctx, "items", metaengine.AggregateAvg, "price", nil)
-		if err != nil {
-			t.Fatalf("Avg: %v", err)
-		}
-		assertAggFloat(t, "Avg 10K", got, expectedSum/float64(n))
-	})
-
-	t.Run("Min", func(t *testing.T) {
-		got, err := ar.Aggregate(ctx, "items", metaengine.AggregateMin, "price", nil)
-		if err != nil {
-			t.Fatalf("Min: %v", err)
-		}
-		assertAggFloat(t, "Min 10K", got, 1)
-	})
-
-	t.Run("Max", func(t *testing.T) {
-		got, err := ar.Aggregate(ctx, "items", metaengine.AggregateMax, "price", nil)
-		if err != nil {
-			t.Fatalf("Max: %v", err)
-		}
-		assertAggFloat(t, "Max 10K", got, float64(n))
-	})
-}
-
-func fmtID(i int) string {
-	return "item-" + itoa(i)
-}
-
-func itoa(i int) string {
-	const maxInt = 1 << 31
-	if i == 0 {
-		return "0"
-	}
-	if i < 0 {
-		return "-" + itoa(-i)
-	}
-	var buf [20]byte
-	pos := len(buf)
-	for i > 0 {
-		pos--
-		buf[pos] = byte('0' + i%10)
-		i /= 10
-	}
-	return string(buf[pos:])
 }

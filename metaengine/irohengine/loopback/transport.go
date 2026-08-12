@@ -32,6 +32,9 @@ import (
 // maxOpSize is the maximum serialized WriteOp size accepted over a TCP connection.
 const maxOpSize = 16 * 1024 * 1024 // 16 MB
 
+// frameHeaderSize is the number of bytes used for the length-prefix header.
+const frameHeaderSize = 4
+
 // rttWindowSize is how many latency samples we keep for percentile computation.
 const rttWindowSize = 256
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/onsi/gomega"
 
+	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -15,7 +16,9 @@ func TestPebbleLayoutPlanner_SecondaryIndex(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp, ok := eng.(metaengine.LayoutPlanner)
 	if !ok {
@@ -84,7 +87,9 @@ func TestPebbleLayoutPlanner_UpdateReindexes(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	if err := lp.ApplyLayout("items", []string{"cat"}, nil); err != nil {
@@ -134,7 +139,9 @@ func TestPebbleLayoutPlanner_DeleteRemovesIndex(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	if err := lp.ApplyLayout("users", []string{"status"}, nil); err != nil {
@@ -192,7 +199,9 @@ func TestPebbleLayoutPlanner_MapUpdateReindexes(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	if err := lp.ApplyLayout("items", []string{"cat"}, nil); err != nil {
@@ -256,7 +265,9 @@ func TestPebbleLayoutPlanner_RangeFilters(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	if err := lp.ApplyLayout("items", []string{"score"}, nil); err != nil {
@@ -341,7 +352,9 @@ func TestPebbleLayoutPlanner_NumericRangeMixedDigits(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	if err := lp.ApplyLayout("items", []string{"score"}, nil); err != nil {
@@ -417,7 +430,9 @@ func TestPebbleLayoutPlanner_SortIndexAscending(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	gomega.NewWithT(t).
@@ -455,7 +470,9 @@ func TestPebbleLayoutPlanner_SortIndexDescending(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	gomega.NewWithT(t).
@@ -493,7 +510,9 @@ func TestPebbleLayoutPlanner_SortIndexCursorAscending(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	gomega.NewWithT(t).Expect(lp.ApplyLayout("paged", nil, []string{"id"})).To(gomega.Succeed())
@@ -530,7 +549,9 @@ func TestPebbleLayoutPlanner_SortIndexCursorDescending(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	gomega.NewWithT(t).Expect(lp.ApplyLayout("paged", nil, []string{"id"})).To(gomega.Succeed())
@@ -559,7 +580,9 @@ func TestPebbleLayoutPlanner_SortIndexFilterAndSort(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	// Declare both filter and sort fields — the sort index path is preferred.
@@ -605,7 +628,9 @@ func TestPebbleLayoutPlanner_SortIndexUpdateReindexes(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	gomega.NewWithT(t).
@@ -645,7 +670,9 @@ func TestPebbleLayoutPlanner_SortIndexDeleteRemovesIndex(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	gomega.NewWithT(t).
@@ -684,7 +711,9 @@ func TestPebbleLayoutPlanner_SortIndexEarlyTermination(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	gomega.NewWithT(t).Expect(lp.ApplyLayout("items", nil, []string{"score"})).To(gomega.Succeed())
@@ -713,7 +742,9 @@ func TestPebbleLayoutPlanner_FilterIndexCursorAscending(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	// "score" is a filter field only (not a sort field) so the filter index
 	// path is used, not the sort index path.
@@ -761,7 +792,9 @@ func TestPebbleLayoutPlanner_FilterIndexCursorDescending(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	gomega.NewWithT(t).Expect(lp.ApplyLayout("items", []string{"score"}, nil)).To(gomega.Succeed())
@@ -791,7 +824,9 @@ func TestPebbleLayoutPlanner_SortIndexStringValues(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	lp := eng.(metaengine.LayoutPlanner)
 	gomega.NewWithT(t).Expect(lp.ApplyLayout("users", nil, []string{"name"})).To(gomega.Succeed())

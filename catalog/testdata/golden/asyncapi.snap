@@ -38,7 +38,7 @@
     },
     "queries.GetOrder": {
       "address": "order-svc.queries.get.order",
-      "title": "Get Order query Channel",
+      "title": "Get Order querie Channel",
       "description": "Get order by ID",
       "messages": {
         "queries": {
@@ -57,7 +57,7 @@
       },
       "messages": [
         {
-          "$ref": "#/channels/queries.GetOrder/messages/queries"
+          "$ref": "#/components/messages/query.GetOrder"
         }
       ],
       "tags": [
@@ -78,7 +78,7 @@
       },
       "messages": [
         {
-          "$ref": "#/channels/events.OrderCreated/messages/events"
+          "$ref": "#/components/messages/event.OrderCreated"
         }
       ],
       "tags": [
@@ -99,7 +99,7 @@
       },
       "messages": [
         {
-          "$ref": "#/channels/commands.CreateOrder/messages/commands"
+          "$ref": "#/components/messages/command.CreateOrder"
         }
       ],
       "tags": [
@@ -117,6 +117,8 @@
       "command.CreateOrder": {
         "properties": {
           "orderId": {
+            "deprecated": false,
+            "nullable": false,
             "type": "string"
           }
         },
@@ -142,7 +144,8 @@
           {
             "name": "commands"
           }
-        ]
+        ],
+        "deprecated": false
       },
       "event.OrderCreated": {
         "name": "OrderCreated",
@@ -156,7 +159,8 @@
           {
             "name": "events"
           }
-        ]
+        ],
+        "deprecated": false
       },
       "query.GetOrder": {
         "name": "GetOrder",
@@ -170,7 +174,8 @@
           {
             "name": "queries"
           }
-        ]
+        ],
+        "deprecated": false
       }
     }
   }
@@ -206,7 +211,7 @@ channels:
                 $ref: '#/components/messages/event.OrderCreated'
     queries.GetOrder:
         address: order-svc.queries.get.order
-        title: Get Order query Channel
+        title: Get Order querie Channel
         description: Get order by ID
         messages:
             queries:
@@ -219,7 +224,7 @@ operations:
         channel:
             $ref: '#/channels/queries.GetOrder'
         messages:
-            -   $ref: '#/channels/queries.GetOrder/messages/queries'
+            -   $ref: '#/components/messages/query.GetOrder'
         tags:
             -   name: queries
             -   name: order-svc
@@ -230,7 +235,7 @@ operations:
         channel:
             $ref: '#/channels/events.OrderCreated'
         messages:
-            -   $ref: '#/channels/events.OrderCreated/messages/events'
+            -   $ref: '#/components/messages/event.OrderCreated'
         tags:
             -   name: events
             -   name: order-svc
@@ -241,7 +246,7 @@ operations:
         channel:
             $ref: '#/channels/commands.CreateOrder'
         messages:
-            -   $ref: '#/channels/commands.CreateOrder/messages/commands'
+            -   $ref: '#/components/messages/command.CreateOrder'
         tags:
             -   name: commands
             -   name: order-svc
@@ -250,6 +255,8 @@ components:
         command.CreateOrder:
             properties:
                 orderId:
+                    deprecated: false
+                    nullable: false
                     type: string
             type: object
         event.OrderCreated:

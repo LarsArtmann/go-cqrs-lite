@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"pgregory.net/rapid"
-
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func TestMemoryEngine_VersionedStorage(t *testing.T) {
@@ -251,14 +249,14 @@ func TestStore_ExecuteAsOf_Integration(t *testing.T) {
 		[]Engine{eng},
 		Query[FindUser, UserView](
 			"users",
-			OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) (UserID, UserView) {
+			On(UserCreated{}, func(e UserCreated) (UserID, UserView) {
 				return e.ID, UserView(e)
 			}),
-			OnRecord(UserUpdated{}, func(_ record.Record, e UserUpdated, prev UserView) UserView {
+			On(UserUpdated{}, func(e UserUpdated, prev UserView) UserView {
 				prev.Name = e.Name
 				return prev
 			}),
-			OnRecord(UserDeleted{}, Remove[UserView]()),
+			On(UserDeleted{}, Remove[UserView]()),
 		),
 	)
 	if err != nil {

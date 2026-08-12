@@ -20,15 +20,14 @@ func (e *dgraphEngine) MapScan(
 	cursor any,
 	limit int,
 ) (metaengine.ScanResult, error) {
-	q := `query entry($col: string) {
-		entry(func: eq(cqrs.map_collection, $col)) {
+	q := fmt.Sprintf(`{
+		entry(func: eq(cqrs.map_collection, %s)) {
 			cqrs.map_key
 			cqrs.map_value
 		}
-	}`
+	}`, dqlString(collection))
 
-	resp, err := e.client.NewReadOnlyTxn().
-		QueryWithVars(ctx, q, map[string]string{"$col": collection})
+	resp, err := e.client.NewReadOnlyTxn().Query(ctx, q)
 	if err != nil {
 		return metaengine.ScanResult{}, fmt.Errorf("dgraphengine.MapScan: %w", err)
 	}

@@ -5,7 +5,7 @@ go 1.26.5
 require (
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.0.0
@@ -21,10 +21,7 @@ require (
 )
 
 require (
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0-20260806213546-b16fbd9b0b19 // indirect
 	go.etcd.io/bbolt v1.5.0 // indirect
 )
 
@@ -72,8 +69,8 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-codec v0.1.0
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
@@ -85,7 +82,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.0.0-20260806214138-8d8ddbef777b
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.0.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/turso/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0 // indirect

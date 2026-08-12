@@ -5,7 +5,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 var _ = Describe("On constructor", func() {
@@ -26,50 +25,46 @@ var _ = Describe("On constructor", func() {
 	DescribeTable(
 		"classifying handler signatures into fold kinds",
 		func(handler any, expectedKind metaengine.FoldKind) {
-			fold := metaengine.OnRecord(sample, handler)
+			fold := metaengine.On(sample, handler)
 			Expect(fold.Kind()).To(Equal(expectedKind))
 		},
-		Entry("insert: func(rec, e) (K, V)",
-			func(_ record.Record, e event) (string, result) { return e.ID, result{Name: e.Name} },
+		Entry("insert: func(e) (K, V)",
+			func(e event) (string, result) { return e.ID, result{Name: e.Name} },
 			metaengine.FoldInsert),
-		Entry("update: func(rec, e, prev V) V",
-			func(_ record.Record, e event, prev result) result {
+		Entry("update: func(e, prev V) V",
+			func(e event, prev result) result {
 				prev.Name = e.Name
 
 				return prev
 			},
 			metaengine.FoldUpdate),
-		Entry("set: func(rec, e) K",
-			func(_ record.Record, e event) string { return e.ID },
+		Entry("set: func(e) K",
+			func(e event) string { return e.ID },
 			metaengine.FoldSet),
-		Entry(
-			"count: func(rec, e) Delta",
-			func(_ record.Record, e event) metaengine.Delta { return metaengine.Delta{"count": +1} },
-			metaengine.FoldCount,
-		),
-		Entry(
-			"edge: func(rec, e) Edge",
-			func(_ record.Record, e event) metaengine.Edge { return metaengine.Edge{From: e.ID, To: e.Name} },
-			metaengine.FoldEdge,
-		),
+		Entry("count: func(e) Delta",
+			func(e event) metaengine.Delta { return metaengine.Delta{"count": +1} },
+			metaengine.FoldCount),
+		Entry("edge: func(e) Edge",
+			func(e event) metaengine.Edge { return metaengine.Edge{From: e.ID, To: e.Name} },
+			metaengine.FoldEdge),
 		Entry("remove: Remove[V]()",
 			metaengine.Remove[result](),
 			metaengine.FoldRemove),
-		Entry("skip: func(rec, e) Skip",
-			func(_ record.Record, e event) metaengine.Skip { return metaengine.Skip{} },
+		Entry("skip: func(e) Skip",
+			func(e event) metaengine.Skip { return metaengine.Skip{} },
 			metaengine.FoldSkip),
 	)
 
 	Describe("recording the event type", func() {
 		It("uses the Go struct name as the event type", func() {
-			fold := metaengine.OnRecord(sample, func(_ record.Record, e event) (string, result) {
+			fold := metaengine.On(sample, func(e event) (string, result) {
 				return e.ID, result{Name: e.Name}
 			})
 			Expect(fold.EventType()).To(Equal("event"))
 		})
 
 		It("unwraps pointer samples to get the struct name", func() {
-			fold := metaengine.OnRecord(&sample, func(_ record.Record, e event) (string, result) {
+			fold := metaengine.On(&sample, func(e event) (string, result) {
 				return e.ID, result{Name: e.Name}
 			})
 			Expect(fold.EventType()).To(Equal("event"))
@@ -79,7 +74,7 @@ var _ = Describe("On constructor", func() {
 	When("the handler is not a function", func() {
 		It("panics with a clear message", func() {
 			Expect(func() {
-				metaengine.OnRecord(sample, 42)
+				metaengine.On(sample, 42)
 			}).To(PanicWith(MatchRegexp("handler must be a function")))
 		})
 	})
@@ -87,7 +82,7 @@ var _ = Describe("On constructor", func() {
 	When("the handler has the wrong first parameter type", func() {
 		It("panics with a clear message naming the expected and actual types", func() {
 			Expect(func() {
-				metaengine.OnRecord(sample, func(_ record.Record, e string) (string, result) {
+				metaengine.On(sample, func(e string) (string, result) {
 					return e, result{}
 				})
 			}).To(PanicWith(MatchRegexp("handler first param must be")))
@@ -97,10 +92,10 @@ var _ = Describe("On constructor", func() {
 	When("the handler has too many parameters", func() {
 		It("panics", func() {
 			Expect(func() {
-				metaengine.OnRecord(sample, func(_ record.Record, e event, x string, y int) result {
+				metaengine.On(sample, func(e event, x string, y int) result {
 					return result{}
 				})
-			}).To(PanicWith(MatchRegexp("unsupported handler signature")))
+			}).To(PanicWith(MatchRegexp("handler must have 1-2 params")))
 		})
 	})
 })
@@ -109,22 +104,22 @@ var _ = Describe("Remove sentinel", func() {
 	type value struct{ Data string }
 
 	It("records the value type for projection matching", func() {
-		fold := metaengine.OnRecord(struct{ ID string }{}, metaengine.Remove[value]())
+		fold := metaengine.On(struct{ ID string }{}, metaengine.Remove[value]())
 		Expect(fold.Kind()).To(Equal(metaengine.FoldRemove))
 	})
 
 	It("works with different value types in the same query", func() {
 		type other struct{ Count int }
-		fold := metaengine.OnRecord(struct{ ID string }{}, metaengine.Remove[other]())
+		fold := metaengine.On(struct{ ID string }{}, metaengine.Remove[other]())
 		Expect(fold.Kind()).To(Equal(metaengine.FoldRemove))
 	})
 })
 
 var _ = Describe("Skip sentinel", func() {
 	It("is classified as FoldSkip", func() {
-		fold := metaengine.OnRecord(
+		fold := metaengine.On(
 			struct{ ID string }{},
-			func(_ record.Record, e struct{ ID string }) metaengine.Skip { return metaengine.Skip{} },
+			func(e struct{ ID string }) metaengine.Skip { return metaengine.Skip{} },
 		)
 		Expect(fold.Kind()).To(Equal(metaengine.FoldSkip))
 	})
@@ -151,9 +146,9 @@ var _ = Describe("Query constructor panics", func() {
 			Expect(func() {
 				_ = metaengine.Query[qInput, qResult](
 					"bad_args",
-					metaengine.OnRecord(
+					metaengine.On(
 						struct{ ID string }{},
-						func(_ record.Record, e struct{ ID string }) (string, qResult) {
+						func(e struct{ ID string }) (string, qResult) {
 							return e.ID, qResult{}
 						},
 					),
@@ -169,42 +164,5 @@ var _ = Describe("Query constructor panics", func() {
 				_ = metaengine.Query[qInput, qResult]("no_folds", metaengine.Volume(100))
 			}).To(PanicWith(MatchRegexp("at least one fold required")))
 		})
-	})
-})
-
-var _ = Describe("Deprecated On/OnTyped constructors (v5 removal)", func() {
-	// The payload-only On/OnTyped constructors are deprecated but retained
-	// until the v5 cut. These smoke tests guard against accidental breakage
-	// during the transition so consumers can migrate incrementally.
-
-	type legacyEvent struct {
-		ID   string
-		Name string
-	}
-
-	type legacyResult struct{ Name string }
-
-	It("On still classifies an insert fold", func() {
-		fold := metaengine.On(legacyEvent{}, func(e legacyEvent) (string, legacyResult) {
-			return e.ID, legacyResult{Name: e.Name}
-		})
-		Expect(fold.Kind()).To(Equal(metaengine.FoldInsert))
-		Expect(fold.EventType()).To(Equal("legacyEvent"))
-	})
-
-	It("OnTyped binds the explicit event type", func() {
-		fold := metaengine.OnTyped(
-			"legacy.created",
-			legacyEvent{},
-			func(e legacyEvent) (string, legacyResult) {
-				return e.ID, legacyResult{Name: e.Name}
-			},
-		)
-		Expect(fold.EventType()).To(Equal("legacy.created"))
-	})
-
-	It("On accepts Remove[V]() deletion", func() {
-		fold := metaengine.On(legacyEvent{}, metaengine.Remove[legacyResult]())
-		Expect(fold.Kind()).To(Equal(metaengine.FoldRemove))
 	})
 })

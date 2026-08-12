@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	pgengine "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
@@ -45,7 +46,14 @@ func seedProducts(t *testing.T, eng metaengine.Engine, col string) {
 // PushdownScan type assertion.
 func newPostgresPushdown(t *testing.T) metaengine.Engine {
 	t.Helper()
-	return mustNewPgEngine(t)
+
+	eng, err := pgengine.New(pgDSN(t))
+	if err != nil {
+		t.Skipf("Postgres not available: %v", err)
+	}
+	t.Cleanup(func() { _ = eng.Close() })
+
+	return eng
 }
 
 func TestPostgresEngine_PushdownFilter(t *testing.T) {

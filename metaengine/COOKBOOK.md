@@ -13,13 +13,13 @@ Track counts by status for a dashboard endpoint. O(1) aggregate reads.
 type countInput struct{}
 
 statusCounts := metaengine.Query[countInput, map[string]int64]("status_counts",
-    metaengine.OnRecord(itemCreated{}, func(_ record.Record, e itemCreated) metaengine.Delta {
+    metaengine.On(itemCreated{}, func(e itemCreated) metaengine.Delta {
         return metaengine.Delta{"open": +1}
     }),
-    metaengine.OnRecord(itemCompleted{}, func(_ record.Record, e itemCompleted) metaengine.Delta {
+    metaengine.On(itemCompleted{}, func(e itemCompleted) metaengine.Delta {
         return metaengine.Delta{"open": -1, "completed": +1}
     }),
-    metaengine.OnRecord(itemDeleted{}, func(_ record.Record, e itemDeleted) metaengine.Delta {
+    metaengine.On(itemDeleted{}, func(e itemDeleted) metaengine.Delta {
         return metaengine.Delta{"completed": -1}
     }),
 )
@@ -38,7 +38,7 @@ Track request counts per user for rate limiting.
 type rateInput struct{ UserID string }
 
 rateLimit := metaengine.Query[rateInput, map[string]int64]("rate_limit",
-    metaengine.OnRecord(requestEvent{}, func(_ record.Record, e requestEvent) metaengine.Delta {
+    metaengine.On(requestEvent{}, func(e requestEvent) metaengine.Delta {
         return metaengine.Delta{e.UserID: +1}
     }),
 )
@@ -60,14 +60,14 @@ type itemView struct {
 }
 
 items := metaengine.Query[listInput, itemView]("items",
-    metaengine.OnRecord(createdEvt{}, func(_ record.Record, e createdEvt) (string, itemView) {
+    metaengine.On(createdEvt{}, func(e createdEvt) (string, itemView) {
         return e.ID, itemView{ID: e.ID, Title: e.Title, Status: "open"}
     }),
-    metaengine.OnRecord(updatedEvt{}, func(_ record.Record, e updatedEvt, prev itemView) itemView {
+    metaengine.On(updatedEvt{}, func(e updatedEvt, prev itemView) itemView {
         prev.Title = e.Title
         return prev
     }),
-    metaengine.OnRecord(deletedEvt{}, metaengine.Remove[itemView]()),
+    metaengine.On(deletedEvt{}, metaengine.Remove[itemView]()),
     metaengine.FilterOnField[itemView]("status", metaengine.FilterEq),
     metaengine.SortOnField[itemView]("priority", true),
 )

@@ -6,7 +6,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // Type identifies a query type.
@@ -47,7 +46,7 @@ type MetadataKey string
 // (Tombstone, Causation). Each module owns its own Metadata so a change to
 // the event's shape cannot silently reshape queries.
 type Metadata struct {
-	record.CommonMetadata
+	metadata.Tracing
 
 	Custom map[MetadataKey]string `json:"custom,omitempty"`
 }
@@ -55,8 +54,8 @@ type Metadata struct {
 // Clone returns a copy of m with a cloned Custom map.
 func (m Metadata) Clone() Metadata {
 	return Metadata{
-		CommonMetadata: m.CommonMetadata,
-		Custom:         maps.Clone(m.Custom),
+		Tracing: m.Tracing,
+		Custom:  maps.Clone(m.Custom),
 	}
 }
 
@@ -64,8 +63,8 @@ func (m Metadata) Clone() Metadata {
 // overlaid onto m.
 func (m Metadata) Merge(other Metadata) Metadata {
 	return Metadata{
-		CommonMetadata: m.CommonMetadata.Merge(other.CommonMetadata),
-		Custom:         metadata.MergeCustomMaps(m.Custom, other.Custom),
+		Tracing: m.Tracing.Merge(other.Tracing),
+		Custom:  metadata.MergeCustomMaps(m.Custom, other.Custom),
 	}
 }
 
@@ -80,8 +79,8 @@ func (m Metadata) WithCustom(key MetadataKey, value string) Metadata {
 	custom[key] = value
 
 	return Metadata{
-		CommonMetadata: m.CommonMetadata,
-		Custom:         custom,
+		Tracing: m.Tracing,
+		Custom:  custom,
 	}
 }
 
@@ -98,9 +97,9 @@ func WithCausationID(v id.CausationID) Option {
 	return func(q *BasicQuery) { q.metadata.CausationID = v }
 }
 
-// WithUserID sets the user who issued the query as the ActorID.
+// WithUserID sets the user ID who issued the query.
 func WithUserID(v id.UserID) Option {
-	return func(q *BasicQuery) { q.metadata.ActorID = id.NewUserActor(v) }
+	return func(q *BasicQuery) { q.metadata.UserID = v }
 }
 
 // WithRequestID sets the request ID for debugging.

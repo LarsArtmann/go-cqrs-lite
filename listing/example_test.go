@@ -62,6 +62,20 @@ func ExampleNewListBuilder() {
 	// 1 false
 }
 
+func ExampleStatusMiddleware() {
+	bus := eventtest.NewFakeBus()
+
+	deleteTypes := []event.Type{"user.deleted"}
+	rebirthTypes := []event.Type{"user.restored"}
+
+	_ = bus.UsePublish(listing.StatusMiddleware(deleteTypes, rebirthTypes))
+
+	fmt.Println("StatusMiddleware installed")
+
+	// Output:
+	// StatusMiddleware installed
+}
+
 func ExampleCacheInvalidationMiddleware() {
 	store := memory.NewMemoryStore()
 	reader := listing.NewInMemoryStreamReader(store)

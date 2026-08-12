@@ -2,6 +2,7 @@ package sqliteengine
 
 import (
 	"context"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"strings"
@@ -10,8 +11,6 @@ import (
 )
 
 // SQLite implementations of the grouped/multi/distinct aggregate interfaces.
-// art-dupl:accept cross-engine structural parallelism with
-// duckdbengine/aggregations.go — same algorithm, different SQL dialects.
 // These mirror the DuckDB engine's implementations but use SQLite placeholder
 // syntax (?) and rely on SQLite's json_extract returning native types (no
 // CAST AS DOUBLE needed).
@@ -97,7 +96,7 @@ func (e *sqliteEngine) scanGroupedSQLite(
 	query string,
 	args []any,
 ) (map[string]float64, error) {
-	rows, err := e.xd().QueryContext(ctx, query, args...) //nolint:sqlclosecheck
+	rows, err := e.xd().QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("sqliteengine.GroupedAggregate: %w", err)
 	}
@@ -209,14 +208,27 @@ func (e *sqliteEngine) scanMultiSQLite(
 	args []any,
 	specs []metaengine.AggregateSpec,
 ) (map[string]float64, error) {
-	return metaengine.MultiAggregateScan(
-		ctx,
-		e.xd(),
-		query,
-		args,
-		specs,
-		"sqliteengine.MultiAggregate",
-	)
+	raws := make([]any, len(specs))
+	ptrs := make([]any, len(specs))
+	for i := range raws {
+		ptrs[i] = &raws[i]
+	}
+
+	if err := e.xd().QueryRowContext(ctx, query, args...).Scan(ptrs...); err != nil {
+		return nil, fmt.Errorf("sqliteengine.MultiAggregate: %w", err)
+	}
+
+	result := make(map[string]float64, len(specs))
+	for i, s := range specs {
+		val, err := sqliteDecodeFloat(raws[i])
+		if err != nil {
+			return nil, fmt.Errorf("sqliteengine.MultiAggregate alias %q: %w", s.AliasOr(), err)
+		}
+
+		result[s.AliasOr()] = val
+	}
+
+	return result, nil
 }
 
 // ---------------------------------------------------------------------------
@@ -254,8 +266,7 @@ func (e *sqliteEngine) multiGroupedAggregateStandard(
 
 	grpExpr := fmt.Sprintf("json_extract(value, '%s')", jsonPath(groupBy))
 
-	selectCols := make([]string, 0, 1+len(specs))
-	selectCols = append(selectCols, grpExpr+" AS group_key")
+	selectCols := []string{grpExpr + " AS group_key"}
 	for _, s := range specs {
 		selectCols = append(selectCols, fmt.Sprintf("%s AS %s",
 			aggExprSQLite(s.Fn, s.Column, false),
@@ -287,8 +298,7 @@ func (e *sqliteEngine) multiGroupedAggregatePlanned(
 
 	grpExpr := metaengine.QuoteIdent(groupBy)
 
-	selectCols := make([]string, 0, 1+len(specs))
-	selectCols = append(selectCols, grpExpr+" AS group_key")
+	selectCols := []string{grpExpr + " AS group_key"}
 	for _, s := range specs {
 		selectCols = append(selectCols, fmt.Sprintf("%s AS %s",
 			aggExprSQLite(s.Fn, s.Column, true),
@@ -316,7 +326,7 @@ func (e *sqliteEngine) scanMultiGroupedSQLite(
 	args []any,
 	specs []metaengine.AggregateSpec,
 ) ([]metaengine.GroupedAggregateRow, error) {
-	rows, err := e.xd().QueryContext(ctx, query, args...) //nolint:sqlclosecheck
+	rows, err := e.xd().QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("sqliteengine.MultiGroupedAggregate: %w", err)
 	}
@@ -342,7 +352,7 @@ func (e *sqliteEngine) scanMultiGroupedSQLite(
 
 		values := make(map[string]float64, len(specs))
 		for i, s := range specs {
-			val, err := metaengine.DecodeFloat(raws[i])
+			val, err := sqliteDecodeFloat(raws[i])
 			if err != nil {
 				return nil, fmt.Errorf("sqliteengine.MultiGroupedAggregate alias %q: %w",
 					s.AliasOr(), err)
@@ -398,13 +408,7 @@ func (e *sqliteEngine) distinctStandard(
 		appendStandardFilter(&b, &args, f)
 	}
 
-	return metaengine.ScanDistinctValues(
-		ctx,
-		e.xd(),
-		b.String(),
-		args,
-		"sqliteengine.DistinctValues",
-	)
+	return e.scanDistinctSQLite(ctx, b.String(), args)
 }
 
 func (e *sqliteEngine) distinctPlanned(
@@ -426,13 +430,38 @@ func (e *sqliteEngine) distinctPlanned(
 		appendPlannedFilter(&b, &args, f, &whereStarted)
 	}
 
-	return metaengine.ScanDistinctValues(
-		ctx,
-		e.xd(),
-		b.String(),
-		args,
-		"sqliteengine.DistinctValues",
-	)
+	return e.scanDistinctSQLite(ctx, b.String(), args)
+}
+
+func (e *sqliteEngine) scanDistinctSQLite(
+	ctx context.Context,
+	query string,
+	args []any,
+) ([]any, error) {
+	rows, err := e.xd().QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("sqliteengine.DistinctValues: %w", err)
+	}
+
+	defer metaengine.DeferClose(rows)
+
+	var result []any
+
+	for rows.Next() {
+		var raw any
+
+		if err := rows.Scan(&raw); err != nil {
+			return nil, fmt.Errorf("sqliteengine.DistinctValues: scan: %w", err)
+		}
+
+		result = append(result, raw)
+	}
+
+	if err := rows.Err(); err != nil {
+		return result, fmt.Errorf("sqliteengine.DistinctValues: %w", err)
+	}
+
+	return result, nil
 }
 
 // ---------------------------------------------------------------------------
@@ -451,6 +480,35 @@ func aggExprSQLite(fn metaengine.AggregateFn, column string, planned bool) strin
 	}
 
 	return fmt.Sprintf("%s(json_extract(value, '%s'))", fn, jsonPath(column))
+}
+
+// sqliteDecodeFloat converts a SQLite scan value to float64. SQLite returns
+// float64 for SUM/AVG, int64 for COUNT, and nil for empty sets.
+func sqliteDecodeFloat(raw any) (float64, error) {
+	if raw == nil {
+		return 0, nil
+	}
+
+	switch v := raw.(type) {
+	case float64:
+		return v, nil
+	case float32:
+		return float64(v), nil
+	case int64:
+		return float64(v), nil
+	case int:
+		return float64(v), nil
+	case []byte:
+		var f float64
+
+		if err := json.Unmarshal(v, &f); err != nil {
+			return 0, fmt.Errorf("sqliteengine sqliteDecodeFloat: %w", err)
+		}
+
+		return f, nil
+	default:
+		return 0, fmt.Errorf("sqliteengine sqliteDecodeFloat: unexpected type %T", raw)
+	}
 }
 
 // Compile-time assertions for the new interfaces.

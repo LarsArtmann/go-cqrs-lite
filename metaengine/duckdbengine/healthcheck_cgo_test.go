@@ -6,13 +6,18 @@ import (
 	"context"
 	"testing"
 
+	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 func TestDuckDBHealthCheck_Healthy(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	hc, ok := eng.(metaengine.HealthChecker)
 	if !ok {
@@ -27,7 +32,10 @@ func TestDuckDBHealthCheck_Healthy(t *testing.T) {
 func TestDuckDBHealthCheck_ClosedDB(t *testing.T) {
 	t.Parallel()
 
-	eng := newDuckEngineOrSkip(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
 
 	eng.Close()
 

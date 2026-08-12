@@ -42,18 +42,15 @@ const DuckDBNsPerOp = 15000.0
 const DuckDBNsPerRead = 1200.0
 
 // duckdbEngine implements metaengine.Engine with DuckDB as the backend.
-var _ metaengine.TrackerHost = (*duckdbEngine)(nil)
-
 type duckdbEngine struct {
-	metaengine.Calibration
-
 	db          *sql.DB
 	persistence metaengine.Persistence
 	mu          sync.Mutex
 	activeTx    atomic.Pointer[sql.Tx] // non-nil inside RunInTx
 	took        bool                   // closed flag
 	plans       map[string]metaengine.LayoutPlan
-	layoutMu    sync.RWMutex
+	layoutMu    sync.Mutex
+	cal         metaengine.Calibration
 }
 
 // New creates a DuckDB-backed metaengine Engine.
@@ -182,9 +179,14 @@ func (e *duckdbEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSortedMap: metaengine.LayoutColumnar,
 		},
 	}
-	e.ApplyCalibration(&p)
+	e.cal.ApplyCalibration(&p)
 
 	return p
+}
+
+// SetCalibration implements metaengine.Calibratable.
+func (e *duckdbEngine) SetCalibration(costs metaengine.CalibrationCosts) {
+	e.cal.SetCalibration(costs)
 }
 
 // Close closes the underlying database. Safe to call multiple times.
@@ -213,24 +215,8 @@ func (e *duckdbEngine) HealthCheck(ctx context.Context) error {
 
 // --- MapBackend ---
 
-// lookupPlan returns the layout plan for a collection under a read lock.
-//
-// The returned LayoutPlan is a struct copy, but slice fields (Columns, Indexes)
-// share the underlying array with the map entry. All current callers treat the
-// plan as read-only (passing it to SQL-building helpers that only read field
-// values). Do NOT mutate the returned plan's slice fields — if mutation is
-// needed, deep-copy the slices first.
-func (e *duckdbEngine) lookupPlan(collection string) (metaengine.LayoutPlan, bool) {
-	e.layoutMu.RLock()
-	defer e.layoutMu.RUnlock()
-
-	plan, ok := e.plans[collection]
-
-	return plan, ok
-}
-
 func (e *duckdbEngine) MapSet(ctx context.Context, col string, key any, value any) error {
-	if plan, ok := e.lookupPlan(col); ok {
+	if plan, ok := e.plans[col]; ok {
 		return e.mapSetPlanned(ctx, plan, key, value)
 	}
 
@@ -254,7 +240,7 @@ func (e *duckdbEngine) MapSet(ctx context.Context, col string, key any, value an
 }
 
 func (e *duckdbEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
-	if plan, ok := e.lookupPlan(col); ok {
+	if plan, ok := e.plans[col]; ok {
 		return e.mapGetPlanned(ctx, plan, key)
 	}
 
@@ -282,7 +268,7 @@ func (e *duckdbEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 }
 
 func (e *duckdbEngine) MapDelete(ctx context.Context, col string, key any) error {
-	if plan, ok := e.lookupPlan(col); ok {
+	if plan, ok := e.plans[col]; ok {
 		return e.mapDeletePlanned(ctx, plan, key)
 	}
 

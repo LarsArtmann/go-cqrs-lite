@@ -89,7 +89,7 @@ func BenchmarkInMemoryList(b *testing.B) {
 	}
 }
 
-func BenchmarkInMemoryList_DeleteFilter(b *testing.B) {
+func BenchmarkInMemoryList_TombstoneFilter(b *testing.B) {
 	b.ReportAllocs()
 	store := memory.NewMemoryStore()
 	ctx := context.Background()
@@ -112,17 +112,21 @@ func BenchmarkInMemoryList_DeleteFilter(b *testing.B) {
 		payload, _ := json.Marshal(
 			map[string]string{"name": "deleted"},
 		)
-		evt, _ := event.NewEvent("DocDeleted", streamID, "Doc", 1, payload)
+		evt, _ := event.NewEvent("DocCreated", streamID, "Doc", 1, payload)
 		_ = store.AppendBatch(
 			ctx,
 			id.NewStreamRef(id.StreamType("Doc"), streamID),
 			[]event.Event{evt},
 		)
+		marked, _ := event.MarkTombstone(evt)
+		_ = store.AppendBatch(
+			ctx,
+			id.NewStreamRef(id.StreamType("Doc"), streamID),
+			[]event.Event{marked},
+		)
 	}
 
-	reader := listing.NewInMemoryStreamReader(store,
-		listing.WithDeleteTypes("DocDeleted"),
-	)
+	reader := listing.NewInMemoryStreamReader(store)
 
 	b.ResetTimer()
 

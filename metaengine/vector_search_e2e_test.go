@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // --- Test event + query types for Vector ADT end-to-end pipeline ---
@@ -38,12 +37,9 @@ func TestVectorFoldPipeline_EndToEnd(t *testing.T) {
 		[]metaengine.Engine{metaengine.NewMemoryEngine()},
 		metaengine.Query[SemanticSearchInput, metaengine.VectorResult](
 			"semantic_search",
-			metaengine.OnRecord(
-				DocEmbedded{},
-				func(_ record.Record, e DocEmbedded) metaengine.Embedding {
-					return metaengine.Embedding{ID: e.ID, Values: e.Values}
-				},
-			),
+			metaengine.On(DocEmbedded{}, func(e DocEmbedded) metaengine.Embedding {
+				return metaengine.Embedding{ID: e.ID, Values: e.Values}
+			}),
 		),
 	)
 	if err != nil {
@@ -104,12 +100,9 @@ func TestSearchFoldPipeline_EndToEnd(t *testing.T) {
 		[]metaengine.Engine{metaengine.NewMemoryEngine()},
 		metaengine.Query[FullTextSearchInput, metaengine.SearchResult](
 			"full_text_search",
-			metaengine.OnRecord(
-				DocIndexed{},
-				func(_ record.Record, e DocIndexed) metaengine.IndexedText {
-					return metaengine.IndexedText{ID: e.ID, Content: e.Content}
-				},
-			),
+			metaengine.On(DocIndexed{}, func(e DocIndexed) metaengine.IndexedText {
+				return metaengine.IndexedText{ID: e.ID, Content: e.Content}
+			}),
 		),
 	)
 	if err != nil {
@@ -163,12 +156,9 @@ func TestVectorFoldPipeline_Classification(t *testing.T) {
 		[]metaengine.Engine{metaengine.NewMemoryEngine()},
 		metaengine.Query[SemanticSearchInput, metaengine.VectorResult](
 			"vec_classify",
-			metaengine.OnRecord(
-				DocEmbedded{},
-				func(_ record.Record, e DocEmbedded) metaengine.Embedding {
-					return metaengine.Embedding{ID: e.ID, Values: e.Values}
-				},
-			),
+			metaengine.On(DocEmbedded{}, func(e DocEmbedded) metaengine.Embedding {
+				return metaengine.Embedding{ID: e.ID, Values: e.Values}
+			}),
 		),
 	)
 	if err != nil {
@@ -199,12 +189,9 @@ func TestSearchFoldPipeline_Classification(t *testing.T) {
 		[]metaengine.Engine{metaengine.NewMemoryEngine()},
 		metaengine.Query[FullTextSearchInput, metaengine.SearchResult](
 			"search_classify",
-			metaengine.OnRecord(
-				DocIndexed{},
-				func(_ record.Record, e DocIndexed) metaengine.IndexedText {
-					return metaengine.IndexedText{ID: e.ID, Content: e.Content}
-				},
-			),
+			metaengine.On(DocIndexed{}, func(e DocIndexed) metaengine.IndexedText {
+				return metaengine.IndexedText{ID: e.ID, Content: e.Content}
+			}),
 		),
 	)
 	if err != nil {

@@ -3,8 +3,8 @@ module github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4
 go 1.26.5
 
 require (
+	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.3.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/go-idempotency v0.1.2
 	modernc.org/sqlite v1.56.0
 	pgregory.net/rapid v1.3.0
 )
@@ -12,6 +12,7 @@ require (
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect

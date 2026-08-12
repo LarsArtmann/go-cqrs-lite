@@ -2,20 +2,13 @@ package metaengine_test
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"sync"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
-
-// graphBackend is the local graph dispatch contract for tests. Engines with
-// graph support (graphadapter, dgraphengine) implement this structurally.
-type graphBackend interface {
-	GraphAddEdge(ctx context.Context, collection string, edge metaengine.Edge) error
-	GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error)
-}
 
 // TestConcurrentExecuteTypedUnderWritePressure (#30): concurrent reads via
 // ExecuteTyped while Apply is writing from multiple goroutines. Catches
@@ -35,10 +28,10 @@ func TestConcurrentExecuteTypedUnderWritePressure(t *testing.T) {
 
 	q := metaengine.Query[input, val](
 		"counters",
-		metaengine.OnRecord(evt{}, func(_ record.Record, e evt) (string, val) {
+		metaengine.On(evt{}, func(e evt) (string, val) {
 			return e.ID, val{ID: e.ID, Total: e.Amount}
 		}),
-		metaengine.OnRecord(evt{}, func(_ record.Record, e evt, prev val) val {
+		metaengine.On(evt{}, func(e evt, prev val) val {
 			prev.Total += e.Amount
 
 			return prev
@@ -97,7 +90,6 @@ func TestConcurrentExecuteTypedUnderWritePressure(t *testing.T) {
 // memory and SQLite engines. Verify both produce the same logical results
 // for the same sequence of appends.
 func TestCrossEngineLogTailParity(t *testing.T) {
-	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	ctx := context.Background()
@@ -144,7 +136,6 @@ func TestCrossEngineLogTailParity(t *testing.T) {
 // from both engines. Verify both produce equivalent adjacency for the same
 // edge additions.
 func TestCrossEngineGraphNeighborsParity(t *testing.T) {
-	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
 	ctx := context.Background()
@@ -162,9 +153,9 @@ func TestCrossEngineGraphNeighborsParity(t *testing.T) {
 	for name, eng := range engines {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			gb, ok := eng.(graphBackend)
+			gb, ok := eng.(metaengine.GraphBackend)
 			if !ok {
-				t.Skipf("%s engine does not implement graphBackend", name)
+				t.Fatalf("%s engine does not implement GraphBackend", name)
 			}
 
 			for _, e := range edges {
@@ -196,14 +187,28 @@ func TestCrossEngineGraphNeighborsParity(t *testing.T) {
 
 func mustSQLiteEngine(t *testing.T) metaengine.Engine {
 	t.Helper()
-	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
-	return nil
+
+	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
+	if err != nil {
+		t.Fatalf("sql.Open: %v", err)
+	}
+
+	db.SetMaxOpenConns(1)
+	t.Cleanup(func() { _ = db.Close() })
+
+	eng, err := metaengine.NewMemoryEngine(), nil
+	if err != nil {
+		t.Fatalf("NewSQLiteEngine: %v", err)
+	}
+
+	return eng
 }
 
 // TestNonStructFoldUpdateSQLite (#31): FoldUpdate with a non-struct value
 // type (int) on SQLite engine. Verifies the reify path handles primitive
 // types, not just structs.
 func TestNonStructFoldUpdateSQLite(t *testing.T) {
+	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Skip("SQLite-specific — moved to sqliteengine module after ADR-0115")
 	t.Parallel()
 
@@ -215,10 +220,10 @@ func TestNonStructFoldUpdateSQLite(t *testing.T) {
 
 	q := metaengine.Query[input, int](
 		"counters",
-		metaengine.OnRecord(evt{}, func(_ record.Record, e evt) (string, int) {
+		metaengine.On(evt{}, func(e evt) (string, int) {
 			return e.ID, e.Delta
 		}),
-		metaengine.OnRecord(evt{}, func(_ record.Record, e evt, prev int) int {
+		metaengine.On(evt{}, func(e evt, prev int) int {
 			return prev + e.Delta
 		}),
 	)

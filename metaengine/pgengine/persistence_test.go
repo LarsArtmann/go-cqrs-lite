@@ -10,7 +10,11 @@ import (
 func TestPostgresPersistence_NewIsPersistent(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewPgEngine(t)
+	eng, err := pgengine.New(pgDSN(t))
+	if err != nil {
+		t.Skipf("Postgres not available: %v", err)
+	}
+	defer eng.Close()
 
 	if !eng.Profile().IsPersistent() {
 		t.Error("Postgres engine should always be persistent")

@@ -60,7 +60,6 @@ func defaultRules(cfg planConfig) []PlanRule {
 		&degradedADTRule{},
 		&mapUpdateReplicationRule{},
 		&durabilityRule{},
-		&liveLatencyRule{},
 	}
 
 	if len(cfg.stats) > 0 {

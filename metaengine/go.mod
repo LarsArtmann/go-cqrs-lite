@@ -4,9 +4,8 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0
 	github.com/larsartmann/go-sse v0.4.0
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
@@ -18,9 +17,8 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
-	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	modernc.org/libc v1.75.3 // indirect
+	modernc.org/libc v1.75.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 )
@@ -28,7 +26,7 @@ require (
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/dustin/go-humanize v1.0.1
 	github.com/gkampitakis/go-snaps v0.5.23 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
@@ -53,5 +51,3 @@ require (
 replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ./sqliteengine
 
 replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../record
-
-replace github.com/larsartmann/go-cqrs-lite/id/v4 => ../id

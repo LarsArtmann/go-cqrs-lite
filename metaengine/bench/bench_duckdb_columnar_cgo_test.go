@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ─── M4.2: DuckDB Columnar Extraction 3-Way Comparison ───
@@ -44,12 +43,9 @@ type benchColumnarInput struct {
 func columnarScanQuery() metaengine.QueryDecl[benchColumnarInput, benchColumnarItem] {
 	return metaengine.Query[benchColumnarInput, benchColumnarItem](
 		"columnar_scan",
-		metaengine.OnRecord(
-			benchColumnarItem{},
-			func(_ record.Record, e benchColumnarItem) (string, benchColumnarItem) {
-				return e.ID, e
-			},
-		),
+		metaengine.On(benchColumnarItem{}, func(e benchColumnarItem) (string, benchColumnarItem) {
+			return e.ID, e
+		}),
 		metaengine.FilterOnField[benchColumnarItem]("Status", metaengine.FilterEq),
 		metaengine.SortOnField[benchColumnarItem]("Amount", true),
 		metaengine.WithColumnarLayout(),
@@ -59,12 +55,9 @@ func columnarScanQuery() metaengine.QueryDecl[benchColumnarInput, benchColumnarI
 func pushdownScanQuery() metaengine.QueryDecl[benchColumnarInput, benchColumnarItem] {
 	return metaengine.Query[benchColumnarInput, benchColumnarItem](
 		"pushdown_scan",
-		metaengine.OnRecord(
-			benchColumnarItem{},
-			func(_ record.Record, e benchColumnarItem) (string, benchColumnarItem) {
-				return e.ID, e
-			},
-		),
+		metaengine.On(benchColumnarItem{}, func(e benchColumnarItem) (string, benchColumnarItem) {
+			return e.ID, e
+		}),
 		metaengine.FilterOnField[benchColumnarItem]("Status", metaengine.FilterEq),
 		metaengine.SortOnField[benchColumnarItem]("Amount", true),
 	)

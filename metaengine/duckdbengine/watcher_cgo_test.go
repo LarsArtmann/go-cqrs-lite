@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
+	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // watcherTaskID is a distinct key type so Remove[V]() can identify the key
@@ -30,18 +30,22 @@ type watcherTask struct {
 func TestDuckDBWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	q := metaengine.Query[watcherTask, watcherTask](
 		"duckdb_watcher_tasks",
-		metaengine.OnRecordTyped(
+		metaengine.OnTyped(
 			"task_created",
 			watcherTask{},
-			func(_ record.Record, e watcherTask) (watcherTaskID, watcherTask) {
+			func(e watcherTask) (watcherTaskID, watcherTask) {
 				return e.ID, e
 			},
 		),
-		metaengine.OnRecordTyped("task_deleted", watcherTask{}, metaengine.Remove[watcherTask]()),
+		metaengine.OnTyped("task_deleted", watcherTask{}, metaengine.Remove[watcherTask]()),
 	)
 
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
@@ -94,7 +98,11 @@ func TestDuckDBWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 func TestDuckDBWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	enginetest.RunWatcherReplayTest[watcherTask](
 		t, eng,
@@ -103,10 +111,10 @@ func TestDuckDBWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 			Build: func(t *testing.T, eng metaengine.Engine) (*metaengine.Store, *metaengine.Watcher[watcherTask]) {
 				q := metaengine.Query[watcherTask, watcherTask](
 					"duckdb_replay_tasks",
-					metaengine.OnRecordTyped(
+					metaengine.OnTyped(
 						"task_created",
 						watcherTask{},
-						func(_ record.Record, e watcherTask) (watcherTaskID, watcherTask) {
+						func(e watcherTask) (watcherTaskID, watcherTask) {
 							return e.ID, e
 						},
 					),

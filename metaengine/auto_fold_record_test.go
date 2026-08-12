@@ -5,7 +5,6 @@ import (
 	"encoding/json/v2"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
@@ -47,8 +46,6 @@ func TestAutoFold_RecordAware_Insert(t *testing.T) {
 	}
 	defer store.Close()
 
-	correlationID := id.NewCorrelationID()
-
 	rec := record.Record{
 		Type:       "productCreated",
 		Payload:    []byte(`{"ID":"p1","Name":"Widget","Price":999}`),
@@ -56,8 +53,8 @@ func TestAutoFold_RecordAware_Insert(t *testing.T) {
 		StreamType: "Product",
 		Version:    5,
 		MetaData: record.CommonMetadata{
-			CorrelationID: correlationID,
-			ActorID:       id.NewSystemActor("test"),
+			CorrelationID: "corr-abc",
+			ActorID:       "user-xyz",
 		},
 	}
 
@@ -87,8 +84,8 @@ func TestAutoFold_RecordAware_Insert(t *testing.T) {
 		t.Errorf("Version = %d, want 5", result.Version)
 	}
 
-	if result.CorrelationID != correlationID.String() {
-		t.Errorf("CorrelationID = %q, want %q", result.CorrelationID, correlationID.String())
+	if result.CorrelationID != "corr-abc" {
+		t.Errorf("CorrelationID = %q, want %q", result.CorrelationID, "corr-abc")
 	}
 
 	if result.Name != "Widget" {

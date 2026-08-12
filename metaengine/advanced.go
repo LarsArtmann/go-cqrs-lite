@@ -323,7 +323,7 @@ func contractGraph(t interface {
 	Errorf(format string, args ...any)
 }, eng Engine, ctx context.Context,
 ) {
-	gb, ok := eng.(graphBackend)
+	gb, ok := eng.(GraphBackend)
 	if !ok {
 		return
 	}

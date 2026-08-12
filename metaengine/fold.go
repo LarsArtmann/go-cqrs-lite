@@ -32,11 +32,9 @@ const (
 // no nil slots to accidentally invoke, eliminating the nil-panic class entirely.
 //
 // The concrete types (insertFold, updateFold, etc.) are unexported, making the
-// union sealed: only the OnRecord/OnRecordTyped constructors can create Fold
-// values (and the deprecated On/OnTyped wrappers).
+// union sealed: only the On/OnTyped constructors can create Fold values.
 //
-// Fold structs are created by the OnRecord constructor and should not be
-// built by hand.
+// Fold structs are created by the On constructor and should not be built by hand.
 type Fold interface {
 	fold() // sealed — unexported method prevents external implementations
 	EventType() string
@@ -268,10 +266,6 @@ func Remove[V any]() removeSignal {
 //
 // For folds that need Record context (StreamID, Version, metadata), see
 // OnRecord — it passes record.Record as the first handler parameter.
-//
-// Deprecated: Use OnRecord instead. OnRecord provides the same functionality
-// plus access to the full Record context (StreamID, Version, metadata).
-// On and OnTyped will be removed in the v5.0.0 release.
 func On[E any](sample E, handler any) Fold {
 	return onFold(EventTypeName(sample), sample, handler)
 }
@@ -281,10 +275,6 @@ func On[E any](sample E, handler any) Fold {
 // CQRS events whose wire type string (event.Type(), e.g. "user.created") does
 // not match the payload struct name (e.g. "UserCreated"). store.Apply(ctx,
 // eventType, payload) matches folds by this string.
-//
-// Deprecated: Use OnRecordTyped instead. OnRecordTyped provides the same
-// functionality plus access to the full Record context. OnTyped will be
-// removed in the v5.0.0 release.
 func OnTyped[E any](eventType string, sample E, handler any) Fold {
 	return onFold(eventType, sample, handler)
 }
@@ -431,10 +421,6 @@ func verifyEventParam[E any](handlerType reflect.Type, eventType string) error {
 	var sample E
 
 	expectedType := reflect.TypeOf(sample)
-	if expectedType == nil {
-		return nil // E is any/interface — handler accepts any event type
-	}
-
 	if expectedType.Kind() == reflect.Pointer {
 		expectedType = expectedType.Elem()
 	}
@@ -447,31 +433,6 @@ func verifyEventParam[E any](handlerType reflect.Type, eventType string) error {
 	if paramType != expectedType {
 		return fmt.Errorf("metaengine.On(%s): %w %s, got %s",
 			eventType, errInvalidEventType, expectedType, handlerType.In(0))
-	}
-
-	return nil
-}
-
-func verifyRecordEventParam[E any](handlerType reflect.Type, eventType string) error {
-	var sample E
-
-	expectedType := reflect.TypeOf(sample)
-	if expectedType == nil {
-		return nil
-	}
-
-	if expectedType.Kind() == reflect.Pointer {
-		expectedType = expectedType.Elem()
-	}
-
-	paramType := handlerType.In(1)
-	if paramType.Kind() == reflect.Pointer {
-		paramType = paramType.Elem()
-	}
-
-	if paramType != expectedType {
-		return fmt.Errorf("metaengine.OnRecord(%s): %w %s, got %s",
-			eventType, errInvalidEventType, expectedType, handlerType.In(1))
 	}
 
 	return nil

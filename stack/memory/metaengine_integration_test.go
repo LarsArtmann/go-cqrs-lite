@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	stackmemory "github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
@@ -37,12 +36,9 @@ func TestNew_WithMetaEngine(t *testing.T) {
 		[]metaengine.Engine{eng},
 		metaengine.Query[meItemKey, meItemView](
 			"items",
-			metaengine.OnRecord(
-				meItemCreated{},
-				func(_ record.Record, e meItemCreated) (meItemKey, meItemView) {
-					return e.ID, meItemView(e)
-				},
-			),
+			metaengine.On(meItemCreated{}, func(e meItemCreated) (meItemKey, meItemView) {
+				return e.ID, meItemView(e)
+			}),
 		),
 	)
 	if err != nil {

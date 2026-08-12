@@ -4,32 +4,25 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
-	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
-// DeletePolicy controls which records appear in [Materialize.List] results.
-// It is an alias for [listing.DeletePolicy] so that the listing and stack
-// packages share a single canonical enum (ADR-0114 cleanup).
-type DeletePolicy = listing.DeletePolicy
+// TombstonePolicy controls which records appear in [Materialize.List] results.
+type TombstonePolicy int
 
-// Deprecated aliases for backward compatibility. New code should use
-// [listing.DeleteExclude], [listing.DeleteInclude], and [listing.DeleteOnly]
-// directly.
 const (
-	// Deprecated: use [listing.DeleteInclude].
-	IncludeDeleted = listing.DeleteInclude
-	// Deprecated: use [listing.DeleteExclude].
-	ExcludeDeleted = listing.DeleteExclude
-	// Deprecated: use [listing.DeleteOnly].
-	OnlyDeleted = listing.DeleteOnly
+	// IncludeTombstoned returns all records, including tombstoned ones.
+	IncludeTombstoned TombstonePolicy = iota
+	// ExcludeTombstoned filters out tombstoned records (default behavior).
+	ExcludeTombstoned
+	// OnlyTombstoned returns only tombstoned records.
+	OnlyTombstoned
 )
 
 // Materialize turns a stream of events into a materialized view stored in a
@@ -78,22 +71,14 @@ type Materialize[V any, K fmt.Stringer] struct {
 	// If the record does not exist, the event is skipped.
 	OnUpdate func(ctx context.Context, evt event.Event, existing *V) (*V, error)
 
-	// OnTombstone handles a delete event (soft-delete, ADR-0114).
-	// Triggered when the event type matches one of DeleteTypes.
+	// OnTombstone handles a tombstone event (soft-delete).
 	// The record is NOT deleted from the store — it is marked tombstoned
 	// and excluded from default query results.
 	OnTombstone func(ctx context.Context, evt event.Event, existing *V) (*V, error)
 
-	// DeleteTypes are the event types that trigger OnTombstone (ADR-0114).
-	// Tombstones are domain events, not metadata markers.
-	DeleteTypes []event.Type
-
 	// OnRebirth handles a rebirth event (undo tombstone).
-	// Triggered when the event type matches one of RebirthTypes.
+	// The record is restored to active status.
 	OnRebirth func(ctx context.Context, evt event.Event, existing *V) (*V, error)
-
-	// RebirthTypes are the event types that trigger OnRebirth (ADR-0114).
-	RebirthTypes []event.Type
 
 	// ProjectionName optionally sets the name returned by [Name] for
 	// diagnostics and runner registration. Defaults to "materialize".
@@ -155,8 +140,10 @@ func (m *Materialize[V, K]) handleEvent(ctx context.Context, evt event.Event) er
 			"extract key from event")
 	}
 
-	// Check for delete/rebirth event types (ADR-0114: tombstones are domain events).
-	if isEventType(evt, m.DeleteTypes) && m.OnTombstone != nil {
+	md := evt.Metadata()
+
+	// Check for tombstone/rebirth marks.
+	if md.Tombstone != nil {
 		existing, getErr := m.Store.Get(ctx, key)
 		if getErr != nil && !errors.Is(getErr, kv.ErrNotFound) {
 			return errorfamily.Wrap(getErr, errorfamily.Classify(getErr),
@@ -167,31 +154,31 @@ func (m *Materialize[V, K]) handleEvent(ctx context.Context, evt event.Event) er
 			existing = nil
 		}
 
-		updated, err := m.OnTombstone(ctx, evt, existing)
-		if err != nil {
-			return err
+		switch md.Tombstone.Status {
+		case event.TombstoneTombstoned:
+			if m.OnTombstone != nil {
+				updated, err := m.OnTombstone(ctx, evt, existing)
+				if err != nil {
+					return err
+				}
+
+				return m.Store.Set(ctx, key, updated)
+			}
+		case event.TombstoneActive:
+			if m.OnRebirth != nil {
+				updated, err := m.OnRebirth(ctx, evt, existing)
+				if err != nil {
+					return err
+				}
+
+				return m.Store.Set(ctx, key, updated)
+			}
+		case event.TombstoneUndetermined:
+			// Can't determine status — skip projection. A subsequent event
+			// with a definitive status will resolve the stream state.
 		}
 
-		return m.Store.Set(ctx, key, updated)
-	}
-
-	if isEventType(evt, m.RebirthTypes) && m.OnRebirth != nil {
-		existing, getErr := m.Store.Get(ctx, key)
-		if getErr != nil && !errors.Is(getErr, kv.ErrNotFound) {
-			return errorfamily.Wrap(getErr, errorfamily.Classify(getErr),
-				"stack.materialize.load_rebirth", "load existing for rebirth")
-		}
-
-		if errors.Is(getErr, kv.ErrNotFound) {
-			existing = nil
-		}
-
-		updated, err := m.OnRebirth(ctx, evt, existing)
-		if err != nil {
-			return err
-		}
-
-		return m.Store.Set(ctx, key, updated)
+		return nil
 	}
 
 	// Regular event: try OnUpdate first, fall back to OnCreate.
@@ -233,27 +220,27 @@ func (m *Materialize[V, K]) View(ctx context.Context, key K) (*V, error) {
 	return m.Store.Get(ctx, key)
 }
 
-// List returns all records matching the given delete policy.
+// List returns all records matching the given tombstone policy.
 // Records are returned in lexicographic key order.
 //
 // When the backing store implements [kv.TombstoneQuerier] (e.g. SQL-backed
 // stores with a configured tombstone column), the filter is pushed to SQL —
 // only matching records are loaded. Otherwise, all records are loaded and
 // filtered in Go.
-func (m *Materialize[V, K]) List(ctx context.Context, policy DeletePolicy) ([]*V, error) {
+func (m *Materialize[V, K]) List(ctx context.Context, policy TombstonePolicy) ([]*V, error) {
 	if tq, ok := m.Store.(kv.TombstoneQuerier[V]); ok {
 		results, err := tq.QueryByTombstone(
 			ctx,
-			policy == listing.DeleteExclude,
-			policy == listing.DeleteOnly,
+			policy == ExcludeTombstoned,
+			policy == OnlyTombstoned,
 		)
 		if err != nil {
 			return nil, err
 		}
 
 		// Safety net: stores without a tombstone column return all records.
-		// FilterDeleted is a no-op when the store already filtered.
-		return FilterDeleted(results, policy), nil
+		// FilterTombstoned is a no-op when the store already filtered.
+		return FilterTombstoned(results, policy), nil
 	}
 
 	all, err := m.Store.Scan(ctx, nil)
@@ -261,14 +248,14 @@ func (m *Materialize[V, K]) List(ctx context.Context, policy DeletePolicy) ([]*V
 		return nil, err
 	}
 
-	return FilterDeleted(all, policy), nil
+	return FilterTombstoned(all, policy), nil
 }
 
-// FilterDeleted filters a slice of records according to the given delete policy.
+// FilterTombstoned filters a slice of records according to the given tombstone policy.
 // Records whose value type implements `IsTombstoned() bool` are checked; all others
 // are treated as active.
-func FilterDeleted[V any](all []*V, policy DeletePolicy) []*V {
-	if policy == listing.DeleteInclude {
+func FilterTombstoned[V any](all []*V, policy TombstonePolicy) []*V {
+	if policy == IncludeTombstoned {
 		return all
 	}
 
@@ -278,9 +265,9 @@ func FilterDeleted[V any](all []*V, policy DeletePolicy) []*V {
 		isTombstoned := isMaterializedTombstoned(v)
 
 		switch {
-		case policy == listing.DeleteExclude && !isTombstoned:
+		case policy == ExcludeTombstoned && !isTombstoned:
 			filtered = append(filtered, v)
-		case policy == listing.DeleteOnly && isTombstoned:
+		case policy == OnlyTombstoned && isTombstoned:
 			filtered = append(filtered, v)
 		}
 	}
@@ -302,9 +289,4 @@ func isMaterializedTombstoned[V any](v *V) bool {
 	}
 
 	return false
-}
-
-// isEventType returns true if the event's type matches any of the given types.
-func isEventType(evt event.Event, types []event.Type) bool {
-	return slices.Contains(types, evt.Type())
 }

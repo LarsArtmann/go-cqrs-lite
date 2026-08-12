@@ -407,11 +407,6 @@ func TestSerializeEvent_SmallerThanJSON(t *testing.T) {
 		t.Fatalf("create event: %v", err)
 	}
 
-	metadataJSON, err := event.MarshalMetadataJSON(evt.Metadata(), "test")
-	if err != nil {
-		t.Fatalf("marshal metadata: %v", err)
-	}
-
 	s := serializableEvent{
 		ID:         evt.ID(),
 		Type:       string(evt.Type()),
@@ -419,7 +414,6 @@ func TestSerializeEvent_SmallerThanJSON(t *testing.T) {
 		StreamType: string(evt.StreamType()),
 		Version:    evt.Version().Int(),
 		Payload:    payload,
-		Metadata:   metadataPayload(metadataJSON),
 		OccurredAt: evt.OccurredAt().UnixNano(),
 		Encoding:   string(evt.Encoding()),
 	}
@@ -447,13 +441,11 @@ func TestDeserializeEvent_CBORWithMetadata(t *testing.T) {
 	streamID := id.NewStreamID()
 	corrID := id.NewCorrelationID()
 	causeID := id.NewCausationID()
-	actor := id.NewUserActor(id.NewUserID())
 
 	evt, err := event.NewEvent("WithMeta", streamID, "Test", event.Version(1),
 		[]byte(`{"x":1}`),
 		event.WithCorrelationID(corrID),
-		event.WithCausationID(causeID),
-		event.WithActor(actor))
+		event.WithCausationID(causeID))
 	if err != nil {
 		t.Fatalf("create event: %v", err)
 	}
@@ -474,13 +466,5 @@ func TestDeserializeEvent_CBORWithMetadata(t *testing.T) {
 
 	if got.Metadata().CausationID != causeID {
 		t.Errorf("causation ID: want %s, got %s", causeID, got.Metadata().CausationID)
-	}
-
-	if !got.Metadata().ActorID.Equal(actor) {
-		t.Errorf(
-			"actor ID: want %s, got %s",
-			actor.PrefixedString(),
-			got.Metadata().ActorID.PrefixedString(),
-		)
 	}
 }

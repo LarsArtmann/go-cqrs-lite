@@ -13,7 +13,7 @@ go get github.com/larsartmann/go-cqrs-lite/listing/v4
 The `listing` module provides:
 
 - **Aggregate listing** with cursor-based pagination
-- **Soft-delete detection** — bi-state status: Active, Deleted
+- **Tombstone detection** — tri-state status: Active, Tombstoned, Undetermined
 - **Rebirth support** — undo soft-deletes via rebirth events
 - **Projection-backed SQL reader** for production
 - **In-memory reader** for testing
@@ -25,12 +25,12 @@ This module is **read-only**. It never writes events. It queries via `event.Jour
 
 | Type              | Purpose                                                                |
 | ----------------- | ---------------------------------------------------------------------- |
-| `StreamListing`   | Lightweight identity: ID, Type, Version, EventCount, LastEventAt       |
-| `StreamStatus`    | Pairs a `StreamListing` with its `Status` (Active/Deleted)             |
+| `AggregateRef`    | Lightweight identity: ID, Type, Version, EventCount, LastEventAt       |
+| `AggregateStatus` | Pairs an `AggregateRef` with its `TombstoneStatus`                     |
 | `Page[T]`         | Cursor-based page: `Items []T` + `HasMore bool` (no TotalCount)        |
-| `ListOptions`     | Query params: Type (required), After (cursor), Limit, DeletePolicy     |
-| `DeletePolicy`    | `DeleteExclude` (default), `DeleteInclude`, `DeleteOnly`               |
-| `StreamReader`    | Interface: `List` and `ListWithStatus`                                 |
+| `ListOptions`     | Query params: Type (required), After (cursor), Limit, Tombstone policy |
+| `TombstonePolicy` | `TombstoneExclude` (default), `TombstoneInclude`, `TombstoneOnly`      |
+| `AggregateReader` | Interface: `List` and `ListWithStatus`                                 |
 
 ## Setup
 
@@ -51,18 +51,18 @@ page, err := listing.NewListBuilder(reader).
     List(ctx)
 ```
 
-## Delete Type Configuration
+## Tombstone Middleware
 
-Configure which event types signal stream deletion (ADR-0114):
+Auto-mark tombstone and rebirth events on publish:
 
 ```go
-reader := listing.NewInMemoryStreamReader(store,
-    listing.WithDeleteTypes("user.deleted", "order.cancelled"),
-)
+bus.UsePublish(listing.StatusMiddleware(
+    []event.Type{"user.deleted", "order.cancelled"},    // tombstone types
+    []event.Type{"user.reactivated", "order.restored"},  // rebirth types
+))
 ```
 
-Streams whose last event matches a delete type show `StatusDeleted`. Without
-configuration, all streams are `StatusActive`.
+Unmatched events pass through unchanged.
 
 ## Listing with Status
 
@@ -79,7 +79,7 @@ statusPage, _ := listing.NewListBuilder(reader).
     ListWithStatus(ctx)
 
 for _, item := range statusPage.Items {
-    if item.Status.IsDeleted() {
+    if item.Status.IsTombstoned() {
         fmt.Printf("Deleted: %s\n", item.Ref.ID)
     }
 }
@@ -112,34 +112,43 @@ if page1.HasMore {
 
 `PageSize` is clamped to `[1, 100]`. Zero defaults to 20.
 
-## Stream Status
+## Tombstone Status
 
-The `listing.Status` enum has two states:
+The `event.TombstoneStatus` enum has three states:
 
-| Status          | Value | Meaning                                      |
-| --------------- | ----- | -------------------------------------------- |
-| `StatusActive`  | 0     | Stream is live                               |
-| `StatusDeleted` | 1     | Stream's last event is a configured delete type |
+| Status                  | Value | Meaning                                      |
+| ----------------------- | ----- | -------------------------------------------- |
+| `TombstoneActive`       | 0     | Aggregate is live                            |
+| `TombstoneTombstoned`   | 1     | Aggregate is soft-deleted                    |
+| `TombstoneUndetermined` | 2     | No metadata found (no middleware configured) |
 
-Detection uses the **last event** in the stream. Configure delete types via
-`WithDeleteTypes(...)` on the reader.
-
-## StreamReader Interface
+Detection uses the **last event** in the listing. Rebirth takes precedence.
 
 ```go
-type StreamReader interface {
-    List(ctx context.Context, opts ListOptions) (*Page[StreamListing], error)
-    ListWithStatus(ctx context.Context, opts ListOptions) (*Page[StreamStatus], error)
+// Detect from event listing
+status := event.DetectTombstone(events)
+
+// Mark manually (usually done by middleware)
+marked, _ := event.MarkTombstone(evt)
+marked, _ := event.MarkRebirth(evt)
+```
+
+## AggregateReader Interface
+
+```go
+type AggregateReader interface {
+    List(ctx context.Context, opts ListOptions) (*Page[AggregateRef], error)
+    ListWithStatus(ctx context.Context, opts ListOptions) (*Page[AggregateStatus], error)
 }
 ```
 
-Implementations: `InMemoryStreamReader`, `SQLStreamReader`.
+Implementations: `InMemoryAggregateReader`, `SQLAggregateReader`.
 
 ## Dependencies
 
 | Dependency                            | Purpose                          |
 | ------------------------------------- | -------------------------------- |
-| [event](../event/README.md)           | Event types, journal                  |
+| [event](../event/README.md)           | Event types, tombstone detection |
 | [id](../id/README.md)                 | AggregateID                      |
 | [memory](../storage/memory/README.md) | In-memory reader for testing     |
 

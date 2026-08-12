@@ -25,9 +25,9 @@ import (
 //   - StreamID      ← record.NewStreamRef("", cmd.StreamID().String())
 //   - StreamType    ← "" (commands do not carry a stream type)
 //   - Version       ← 0 (commands have no version)
-//   - CorrelationID ← cmd.Metadata().CorrelationID (from CommonMetadata)
-//   - CausationID   ← cmd.Metadata().CausationID (from CommonMetadata)
-//   - ActorID       ← cmd.Metadata().ActorID (from CommonMetadata)
+//   - CorrelationID ← cmd.Metadata().Tracing.CorrelationID
+//   - CausationID   ← cmd.Metadata().Tracing.CausationID
+//   - ActorID       ← cmd.Metadata().Tracing.UserID (the "who")
 //   - SchemaVersion ← 0 (commands have no schema version)
 //
 // A nil command returns a zero-valued Record.
@@ -37,11 +37,29 @@ func AsRecord(cmd *BasicCommand) record.Record {
 	}
 
 	md := cmd.Metadata()
+	tracing := md.Tracing
 
 	return record.Record{
 		Type:       string(cmd.Type()),
 		StreamID:   record.NewStreamRef("", cmd.StreamID().String()),
 		StreamType: "",
-		MetaData:   md.CommonMetadata,
+		MetaData: record.CommonMetadata{
+			CorrelationID: brandedString(tracing.CorrelationID),
+			CausationID:   brandedString(tracing.CausationID),
+			ActorID:       brandedString(tracing.UserID),
+		},
 	}
+}
+
+// brandedString returns the string form of a branded ID, or "" if it is zero.
+// Prevents zero-value ULIDs from leaking as "0000..." into Record metadata.
+func brandedString[T interface {
+	String() string
+	IsZero() bool
+}](v T) string {
+	if v.IsZero() {
+		return ""
+	}
+
+	return v.String()
 }

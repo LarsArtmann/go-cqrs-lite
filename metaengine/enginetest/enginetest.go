@@ -49,8 +49,6 @@ func ScanBackendProducts() []ScanBackendItem {
 // (engine creation, skip on missing engine, seeding the fixture collection,
 // type-asserting PushdownScan) is shared across all five scenarios in each
 // engine's pushdown test file (filter, sort, filter+sort+limit, cursor, IN).
-//
-// The caller is responsible for closing the engine.
 func RunPushdownTest(
 	t *testing.T,
 	eng metaengine.Engine,
@@ -298,8 +296,6 @@ type WatcherReplaySetup[V any] struct {
 // expectedID is the ID asserted on the live and replayed values. seqTimeout
 // is the duration to wait for the watcher's first notification (Postgres may
 // need a longer timeout than DuckDB).
-//
-// The caller is responsible for closing the engine.
 func RunWatcherReplayTest[V any](
 	t *testing.T,
 	eng metaengine.Engine,
@@ -410,50 +406,6 @@ func engineName(eng metaengine.Engine) string {
 	return t.Name()
 }
 
-// assertTxCommitSetup asserts Transactional + MapBackend, sets up a context
-// and collection, then verifies the commit path (RunInTx with MapSet, then
-// MapGet to confirm visibility). Shared by RunTransactionalTest and
-// RunTransactionalBaselineTest.
-func assertTxCommitSetup(
-	t *testing.T,
-	eng metaengine.Engine,
-	colPrefix string,
-) (metaengine.Transactional, metaengine.MapBackend, context.Context, string) {
-	t.Helper()
-
-	tx, ok := eng.(metaengine.Transactional)
-	if !ok {
-		t.Fatalf("engine %T does not implement Transactional", eng)
-	}
-
-	mb, ok := eng.(metaengine.MapBackend)
-	if !ok {
-		t.Fatalf("engine %T does not implement MapBackend", eng)
-	}
-
-	ctx := context.Background()
-	col := colPrefix + engineName(eng)
-
-	// 1. Successful transaction commits.
-	err := tx.RunInTx(ctx, func(ctx context.Context) error {
-		return mb.MapSet(ctx, col, "committed", "v1")
-	})
-	if err != nil {
-		t.Fatalf("RunInTx commit path: %v", err)
-	}
-
-	_, found, err := mb.MapGet(ctx, col, "committed")
-	if err != nil {
-		t.Fatalf("MapGet after commit: %v", err)
-	}
-
-	if !found {
-		t.Fatalf("expected key to exist after commit")
-	}
-
-	return tx, mb, ctx, col
-}
-
 // RunTransactionalTest exercises the standard Transactional (RunInTx) contract:
 //  1. A successful transaction commits all writes
 //  2. A failed transaction rolls back all writes
@@ -469,12 +421,42 @@ func assertTxCommitSetup(
 func RunTransactionalTest(t *testing.T, eng metaengine.Engine) {
 	t.Helper()
 
-	tx, mb, ctx, col := assertTxCommitSetup(t, eng, "tx_test_")
+	tx, ok := eng.(metaengine.Transactional)
+	if !ok {
+		t.Fatalf("engine %T does not implement Transactional", eng)
+	}
+
+	mb, ok := eng.(metaengine.MapBackend)
+	if !ok {
+		t.Fatalf("engine %T does not implement MapBackend", eng)
+	}
+
+	ctx := context.Background()
+	col := "tx_test_" + engineName(eng)
+
+	// 1. Successful transaction commits.
+	err := tx.RunInTx(ctx, func(ctx context.Context) error {
+		return mb.MapSet(ctx, col, "committed", "v1")
+	})
+	if err != nil {
+		t.Fatalf("RunInTx commit path: %v", err)
+	}
+
+	val, found, err := mb.MapGet(ctx, col, "committed")
+	if err != nil {
+		t.Fatalf("MapGet after commit: %v", err)
+	}
+
+	if !found {
+		t.Fatalf("expected key to exist after commit")
+	}
+
+	_ = val // value is JSON-decoded; just checking existence
 
 	// 2. Failed transaction rolls back.
 	sentinel := errors.New("rollback sentinel")
 
-	err := tx.RunInTx(ctx, func(ctx context.Context) error {
+	err = tx.RunInTx(ctx, func(ctx context.Context) error {
 		if e := mb.MapSet(ctx, col, "rolled-back", "v2"); e != nil {
 			return e
 		}
@@ -496,7 +478,7 @@ func RunTransactionalTest(t *testing.T, eng metaengine.Engine) {
 	}
 
 	// 3. Verify rollback: the key should NOT exist outside the tx.
-	_, found, err := mb.MapGet(ctx, col, "rolled-back")
+	_, found, err = mb.MapGet(ctx, col, "rolled-back")
 	if err != nil {
 		t.Fatalf("MapGet after rollback: %v", err)
 	}
@@ -740,8 +722,6 @@ func runLogTxSubtest(
 // distinct key inside separate transactions; both must complete successfully.
 //
 // The engine must implement Transactional and MapBackend.
-//
-// The caller is responsible for closing the engine.
 func RunConcurrentTxTest(t *testing.T, eng metaengine.Engine) {
 	t.Helper()
 
@@ -808,12 +788,40 @@ func RunConcurrentTxTest(t *testing.T, eng metaengine.Engine) {
 func RunTransactionalBaselineTest(t *testing.T, eng metaengine.Engine) {
 	t.Helper()
 
-	tx, mb, ctx, col := assertTxCommitSetup(t, eng, "tx_baseline_")
+	tx, ok := eng.(metaengine.Transactional)
+	if !ok {
+		t.Fatalf("engine %T does not implement Transactional", eng)
+	}
+
+	mb, ok := eng.(metaengine.MapBackend)
+	if !ok {
+		t.Fatalf("engine %T does not implement MapBackend", eng)
+	}
+
+	ctx := context.Background()
+	col := "tx_baseline_" + engineName(eng)
+
+	// 1. Successful transaction commits.
+	err := tx.RunInTx(ctx, func(ctx context.Context) error {
+		return mb.MapSet(ctx, col, "committed", "v1")
+	})
+	if err != nil {
+		t.Fatalf("RunInTx commit path: %v", err)
+	}
+
+	_, found, err := mb.MapGet(ctx, col, "committed")
+	if err != nil {
+		t.Fatalf("MapGet after commit: %v", err)
+	}
+
+	if !found {
+		t.Fatalf("expected key to exist after commit")
+	}
 
 	// 2. Error propagation: RunInTx returns the callback's error.
 	sentinel := errors.New("baseline sentinel")
 
-	err := tx.RunInTx(ctx, func(_ context.Context) error {
+	err = tx.RunInTx(ctx, func(_ context.Context) error {
 		return sentinel
 	})
 	if !errors.Is(err, sentinel) {
@@ -833,7 +841,7 @@ func RunTransactionalBaselineTest(t *testing.T, eng metaengine.Engine) {
 		t.Fatalf("expected sentinel error, got %v", err)
 	}
 
-	_, found, err := mb.MapGet(ctx, col, "no-rollback")
+	_, found, err = mb.MapGet(ctx, col, "no-rollback")
 	if err != nil {
 		t.Fatalf("MapGet no-rollback: %v", err)
 	}

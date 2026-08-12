@@ -62,10 +62,10 @@ func TestMaterialize_ListUsesTombstoneQuerier(t *testing.T) {
 
 	ctx := context.Background()
 
-	// ExcludeDeleted → should call QueryByTombstone(true, false).
-	results, err := mat.List(ctx, stack.ExcludeDeleted)
+	// ExcludeTombstoned → should call QueryByTombstone(true, false).
+	results, err := mat.List(ctx, stack.ExcludeTombstoned)
 	if err != nil {
-		t.Fatalf("List ExcludeDeleted: %v", err)
+		t.Fatalf("List ExcludeTombstoned: %v", err)
 	}
 
 	if !store.queryCalled {
@@ -77,14 +77,14 @@ func TestMaterialize_ListUsesTombstoneQuerier(t *testing.T) {
 			store.excludeTombFlag, store.onlyTombFlag)
 	}
 
-	// The safety-net FilterDeleted should have removed Bob.
+	// The safety-net FilterTombstoned should have removed Bob.
 	if len(results) != 1 || results[0].Name != "Alice" {
 		t.Fatalf("results: got %d records, first=%s; want 1, Alice",
 			len(results), safeUserName(results))
 	}
 }
 
-func TestMaterialize_ListOnlyDeleted(t *testing.T) {
+func TestMaterialize_ListOnlyTombstoned(t *testing.T) {
 	t.Parallel()
 
 	store := &mockTombstoneStore{
@@ -100,9 +100,9 @@ func TestMaterialize_ListOnlyDeleted(t *testing.T) {
 		KeyFromEvent: func(evt event.Event) (stringKey, error) { return "", nil },
 	}
 
-	results, err := mat.List(context.Background(), stack.OnlyDeleted)
+	results, err := mat.List(context.Background(), stack.OnlyTombstoned)
 	if err != nil {
-		t.Fatalf("List OnlyDeleted: %v", err)
+		t.Fatalf("List OnlyTombstoned: %v", err)
 	}
 
 	if !store.queryCalled {
@@ -114,7 +114,7 @@ func TestMaterialize_ListOnlyDeleted(t *testing.T) {
 			store.excludeTombFlag, store.onlyTombFlag)
 	}
 
-	// Safety net: only deleted records survive.
+	// Safety net: only tombstoned records survive.
 	if len(results) != 2 {
 		t.Fatalf("results: got %d, want 2", len(results))
 	}
@@ -138,8 +138,8 @@ func TestMaterialize_ListFallsBackToScan(t *testing.T) {
 		KeyFromEvent: func(evt event.Event) (stringKey, error) { return "", nil },
 	}
 
-	// List with ExcludeDeleted should fall back to Scan + Go filter.
-	results, err := mat.List(ctx, stack.ExcludeDeleted)
+	// List with ExcludeTombstoned should fall back to Scan + Go filter.
+	results, err := mat.List(ctx, stack.ExcludeTombstoned)
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 type dslInput struct{}
@@ -40,7 +39,7 @@ func TestPlanFromMemory_OneShot(t *testing.T) {
 
 	q := metaengine.Query[dslFindByID, dslItem](
 		"dsl_find",
-		metaengine.OnRecord(dslItem{}, func(_ record.Record, e dslItem) (string, dslItem) {
+		metaengine.On(dslItem{}, func(e dslItem) (string, dslItem) {
 			return e.ID, e
 		}),
 	)
@@ -80,7 +79,7 @@ func TestPlanFromMemory_PlansAcrossEngines(t *testing.T) {
 
 	q := metaengine.Query[dslInput, map[string]int64](
 		"dsl_counts",
-		metaengine.OnRecord(dslItem{}, func(_ record.Record, e dslItem) metaengine.Delta {
+		metaengine.On(dslItem{}, func(e dslItem) metaengine.Delta {
 			return metaengine.Delta{e.Name: 1}
 		}),
 	)
@@ -107,7 +106,7 @@ func TestStore_LogPlan_OutputsQueryAssignments(t *testing.T) {
 
 	q := metaengine.Query[dslInput, map[string]int64](
 		"logplan_counts",
-		metaengine.OnRecord(dslItem{}, func(_ record.Record, e dslItem) metaengine.Delta {
+		metaengine.On(dslItem{}, func(e dslItem) metaengine.Delta {
 			return metaengine.Delta{e.Name: 1}
 		}),
 	)
@@ -142,7 +141,7 @@ func TestStore_LogPlan_NilPlan_NoOp(t *testing.T) {
 
 	q := metaengine.Query[dslInput, map[string]int64](
 		"nilplan_counts",
-		metaengine.OnRecord(dslItem{}, func(_ record.Record, e dslItem) metaengine.Delta {
+		metaengine.On(dslItem{}, func(e dslItem) metaengine.Delta {
 			return metaengine.Delta{e.Name: 1}
 		}),
 	)

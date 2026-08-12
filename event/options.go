@@ -4,8 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/larsartmann/go-codec"
-
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
@@ -62,9 +61,9 @@ func WithCausationID(v id.CausationID) Option {
 	return apply(func(m *Metadata, v id.CausationID) { m.CausationID = v }, v)
 }
 
-// WithUserID sets the user who triggered the event as the ActorID.
+// WithUserID sets the user ID who triggered the event.
 func WithUserID(v id.UserID) Option {
-	return apply(func(m *Metadata, v id.UserID) { m.ActorID = id.NewUserActor(v) }, v)
+	return apply(func(m *Metadata, v id.UserID) { m.UserID = v }, v)
 }
 
 // WithRequestID sets the request ID for debugging.
@@ -104,13 +103,7 @@ func WithCustom(key MetadataKey, value string) Option {
 	}
 }
 
-// WithActor sets the ActorID for this event, supporting users, bots,
-// system processes, and services (ADR-0111). Use WithUserID for the common
-// case of a human user.
-func WithActor(a id.ActorID) Option {
-	return apply(func(m *Metadata, v id.ActorID) { m.ActorID = v }, a)
-}
-
+// WithSchemaVersion sets the schema version of the event payload.
 // Defaults to 1. Use when reconstructing events from storage or
 // when creating events with a known schema version.
 func WithSchemaVersion(v SchemaVersion) Option {

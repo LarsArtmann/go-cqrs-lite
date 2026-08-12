@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 var _ = Describe("Sorting by non-numeric keys", func() {
@@ -26,7 +25,7 @@ var _ = Describe("Sorting by non-numeric keys", func() {
 		BeforeEach(func() {
 			q := metaengine.Query[sInput, sResult](
 				"by_name",
-				metaengine.OnRecord(sEvent{}, func(_ record.Record, e sEvent) (string, sItem) {
+				metaengine.On(sEvent{}, func(e sEvent) (string, sItem) {
 					return e.ID, sItem{Name: e.Name}
 				}),
 				metaengine.SortOn(func(r sItem) string { return r.Name }),
@@ -79,7 +78,7 @@ var _ = Describe("Sorting by non-numeric keys", func() {
 		BeforeEach(func() {
 			q := metaengine.Query[tInput, tResult](
 				"by_time",
-				metaengine.OnRecord(tEvent{}, func(_ record.Record, e tEvent) (string, tItem) {
+				metaengine.On(tEvent{}, func(e tEvent) (string, tItem) {
 					return e.ID, tItem{At: e.At}
 				}),
 				metaengine.SortOn(func(r tItem) time.Time { return r.At }),

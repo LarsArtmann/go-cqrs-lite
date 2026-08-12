@@ -11,10 +11,7 @@ import (
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
-func openSQLiteListingDB(
-	t *testing.T,
-	opts ...StreamProjectionOption,
-) (*sql.DB, *StreamProjection) {
+func openSQLiteListingDB(t *testing.T) (*sql.DB, *StreamProjection) {
 	t.Helper()
 
 	db, err := OpenSQLiteInMemory()
@@ -22,12 +19,7 @@ func openSQLiteListingDB(
 		t.Fatalf("OpenSQLiteInMemory: %v", err)
 	}
 
-	proj, err := NewStreamProjection(
-		context.Background(),
-		db,
-		"test_",
-		sqlpkg.SQLiteDialect{},
-		opts...)
+	proj, err := NewStreamProjection(context.Background(), db, "test_", sqlpkg.SQLiteDialect{})
 	if err != nil {
 		t.Fatalf("NewStreamProjection: %v", err)
 	}
@@ -230,7 +222,7 @@ func TestSQLStreamReader_List_Pagination(t *testing.T) {
 
 func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 	t.Parallel()
-	db, proj := openSQLiteListingDB(t, WithDeleteTypes(event.Type("user.deleted")))
+	db, proj := openSQLiteListingDB(t)
 	defer func() { _ = db.Close() }()
 
 	ctx := context.Background()
@@ -242,21 +234,26 @@ func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 	)
 	_ = proj.Handle(ctx, evt)
 
-	deleteEvt, err := event.NewEvent(
+	tombstoneEvt, err := event.NewEvent(
 		event.Type("user.deleted"), streamID, id.StreamType("User"),
 		event.Version(2), []byte(`{}`),
 	)
 	if err != nil {
-		t.Fatalf("NewEvent delete: %v", err)
+		t.Fatalf("NewEvent tombstone: %v", err)
 	}
 
-	_ = proj.Handle(ctx, deleteEvt)
+	marked, err := event.MarkTombstone(tombstoneEvt)
+	if err != nil {
+		t.Fatalf("MarkTombstone: %v", err)
+	}
+
+	_ = proj.Handle(ctx, marked)
 
 	reader, _ := NewSQLStreamReader(db, "test_", sqlpkg.SQLiteDialect{})
 
 	activePage, err := reader.ListWithStatus(ctx, listing.ListOptions{
-		Type:         "User",
-		DeletePolicy: listing.DeleteExclude,
+		Type:      "User",
+		Tombstone: listing.TombstoneExclude,
 	})
 	if err != nil {
 		t.Fatalf("ListWithStatus Exclude: %v", err)
@@ -267,8 +264,8 @@ func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 	}
 
 	tombstonedPage, err := reader.ListWithStatus(ctx, listing.ListOptions{
-		Type:         "User",
-		DeletePolicy: listing.DeleteOnly,
+		Type:      "User",
+		Tombstone: listing.TombstoneOnly,
 	})
 	if err != nil {
 		t.Fatalf("ListWithStatus Only: %v", err)
@@ -278,13 +275,13 @@ func TestSQLStreamReader_List_TombstoneFilter(t *testing.T) {
 		t.Fatalf("expected 1 tombstoned item, got %d", len(tombstonedPage.Items))
 	}
 
-	if tombstonedPage.Items[0].Status != listing.StatusDeleted {
-		t.Fatalf("expected StatusDeleted, got %d", tombstonedPage.Items[0].Status)
+	if tombstonedPage.Items[0].Status != event.TombstoneTombstoned {
+		t.Fatalf("expected TombstoneTombstoned, got %d", tombstonedPage.Items[0].Status)
 	}
 
 	allPage, err := reader.ListWithStatus(ctx, listing.ListOptions{
-		Type:         "User",
-		DeletePolicy: listing.DeleteInclude,
+		Type:      "User",
+		Tombstone: listing.TombstoneInclude,
 	})
 	if err != nil {
 		t.Fatalf("ListWithStatus Include: %v", err)

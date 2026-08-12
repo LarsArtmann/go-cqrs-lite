@@ -41,9 +41,9 @@ type Edge struct {
 }
 
 // MultiEntry is a sentinel return type for multimap folds: one key maps to many values.
-// Return it from OnRecord to classify the fold as a multimap insert:
+// Return it from On to classify the fold as a multimap insert:
 //
-//	metaengine.OnRecord(TaskAssigned{}, func(_ record.Record, e TaskAssigned) metaengine.MultiEntry {
+//	metaengine.On(TaskAssigned{}, func(e TaskAssigned) metaengine.MultiEntry {
 //	    return metaengine.MultiEntry{Key: e.Assignee, Value: e.TaskID}
 //	})
 type MultiEntry struct {
@@ -52,9 +52,9 @@ type MultiEntry struct {
 }
 
 // Append is a sentinel return type for log folds: append a value to an ordered log.
-// Return it from OnRecord to classify the fold as a log append:
+// Return it from On to classify the fold as a log append:
 //
-//	metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) metaengine.Append {
+//	metaengine.On(TaskCreated{}, func(e TaskCreated) metaengine.Append {
 //	    return metaengine.Append{Value: e}
 //	})
 type Append struct {
@@ -62,9 +62,9 @@ type Append struct {
 }
 
 // Skip is a sentinel return type signaling that an event does not apply
-// to this projection (no-op). Return it from an OnRecord fold handler:
+// to this projection (no-op). Return it from an On fold handler:
 //
-//	metaengine.OnRecord(SomeEvent{}, func(_ record.Record, e SomeEvent) metaengine.Skip { return metaengine.Skip{} })
+//	metaengine.On(SomeEvent{}, func(e SomeEvent) metaengine.Skip { return metaengine.Skip{} })
 type Skip struct{}
 
 // Cursor marks a position in a paginated stream for continuation.

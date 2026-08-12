@@ -1,10 +1,9 @@
 package decider
 
 import (
-	"github.com/larsartmann/go-codec"
-	flightrecorder "github.com/larsartmann/go-flightrecorder"
-
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	flightrecorder "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
 

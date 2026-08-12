@@ -66,7 +66,7 @@ func TestNewPersistedCommand_Success(t *testing.T) {
 	}
 
 	meta := cmd.Metadata()
-	if !meta.CorrelationID.IsZero() || !meta.CausationID.IsZero() || !meta.ActorID.IsZero() ||
+	if !meta.CorrelationID.IsZero() || !meta.CausationID.IsZero() || !meta.UserID.IsZero() ||
 		!meta.RequestID.IsZero() {
 		t.Error("Metadata() should return zero tracing fields")
 	}

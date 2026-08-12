@@ -5,13 +5,11 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"math/big"
 	"strings"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
-
-// art-dupl:accept cross-engine structural parallelism with
-// sqliteengine/aggregations_grouped.go — same algorithm, different SQL dialects.
 
 // DuckDB's vectorized columnar execution engine makes aggregate queries
 // (COUNT, SUM, AVG, MIN, MAX, GROUP BY, DISTINCT) its killer feature.
@@ -162,16 +160,6 @@ func initialArgs(col string, plan metaengine.LayoutPlan) []any {
 	return []any{col}
 }
 
-// stdQueryInit initialises the standard (no-layout) query builder state:
-// args, argIdx, and the zero-value plan. Used by every "standard" path
-// function that builds SQL against the json_extract schema.
-func stdQueryInit(
-	col string,
-) ([]any, int, metaengine.LayoutPlan) { //nolint:unparam // plan is always zero for the no-layout path
-	plan := metaengine.LayoutPlan{}
-	return initialArgs(col, plan), initialArgIndex(plan), plan
-}
-
 // ---------------------------------------------------------------------------
 // AggregateReader (scalar aggregates: COUNT, SUM, MIN, MAX, AVG)
 // ---------------------------------------------------------------------------
@@ -183,7 +171,7 @@ func (e *duckdbEngine) Aggregate(
 	column string,
 	filters []metaengine.FilterSpec,
 ) (float64, error) {
-	if plan, ok := e.lookupPlan(col); ok {
+	if plan, ok := e.plans[col]; ok {
 		return e.aggregatePlanned(ctx, plan, fn, column, filters)
 	}
 
@@ -199,7 +187,8 @@ func (e *duckdbEngine) aggregateStandard(
 ) (float64, error) {
 	var b strings.Builder
 
-	args, argIdx, _ := stdQueryInit(col)
+	args := initialArgs(col, metaengine.LayoutPlan{})
+	argIdx := initialArgIndex(metaengine.LayoutPlan{})
 
 	fmt.Fprintf(
 		&b,
@@ -257,7 +246,39 @@ func (e *duckdbEngine) scanScalar(
 		return 0, fmt.Errorf("duckdbengine.Aggregate %s %s(%s): %w", col, fn, column, err)
 	}
 
-	return metaengine.DecodeFloat(raw)
+	return decodeFloat(raw)
+}
+
+// decodeFloat converts a DuckDB scalar scan value to float64. DuckDB returns
+// float64 for SUM/AVG over DOUBLE columns, HUGEINT (mapped to *big.Int by the
+// driver) for SUM over INTEGER columns, int64 for COUNT, and nil for empty sets.
+func decodeFloat(raw any) (float64, error) {
+	if raw == nil {
+		return 0, nil
+	}
+
+	switch v := raw.(type) {
+	case float64:
+		return v, nil
+	case float32:
+		return float64(v), nil
+	case int64:
+		return float64(v), nil
+	case int:
+		return float64(v), nil
+	case *big.Int:
+		f, _ := v.Float64()
+		return f, nil
+	case []byte:
+		var f float64
+		if err := json.Unmarshal(v, &f); err != nil {
+			return 0, fmt.Errorf("duckdbengine decodeFloat: %w", err)
+		}
+
+		return f, nil
+	default:
+		return 0, fmt.Errorf("duckdbengine decodeFloat: unexpected type %T", raw)
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -272,7 +293,7 @@ func (e *duckdbEngine) GroupedAggregate(
 	groupBy string,
 	filters []metaengine.FilterSpec,
 ) (map[string]float64, error) {
-	if plan, ok := e.lookupPlan(col); ok {
+	if plan, ok := e.plans[col]; ok {
 		return e.groupedAggregatePlanned(ctx, plan, fn, column, groupBy, filters)
 	}
 
@@ -289,7 +310,9 @@ func (e *duckdbEngine) groupedAggregateStandard(
 ) (map[string]float64, error) {
 	var b strings.Builder
 
-	args, argIdx, plan := stdQueryInit(col)
+	args := initialArgs(col, metaengine.LayoutPlan{})
+	argIdx := initialArgIndex(metaengine.LayoutPlan{})
+	plan := metaengine.LayoutPlan{}
 
 	gExpr := groupExpr(groupBy, plan)
 
@@ -362,7 +385,7 @@ func (e *duckdbEngine) scanGrouped(
 			return nil, fmt.Errorf("duckdbengine.GroupedAggregate: scan: %w", err)
 		}
 
-		val, err := metaengine.DecodeFloat(raw)
+		val, err := decodeFloat(raw)
 		if err != nil {
 			return nil, err
 		}
@@ -391,7 +414,7 @@ func (e *duckdbEngine) MultiAggregate(
 		return nil, errors.New("duckdbengine.MultiAggregate: no specs provided")
 	}
 
-	if plan, ok := e.lookupPlan(col); ok {
+	if plan, ok := e.plans[col]; ok {
 		return e.multiAggregatePlanned(ctx, plan, specs, filters)
 	}
 
@@ -406,7 +429,9 @@ func (e *duckdbEngine) multiAggregateStandard(
 ) (map[string]float64, error) {
 	var b strings.Builder
 
-	args, argIdx, plan := stdQueryInit(col)
+	args := initialArgs(col, metaengine.LayoutPlan{})
+	argIdx := initialArgIndex(metaengine.LayoutPlan{})
+	plan := metaengine.LayoutPlan{}
 
 	selectCols := make([]string, len(specs))
 	for i, s := range specs {
@@ -473,14 +498,28 @@ func (e *duckdbEngine) scanMulti(
 	args []any,
 	specs []metaengine.AggregateSpec,
 ) (map[string]float64, error) {
-	return metaengine.MultiAggregateScan(
-		ctx,
-		e.conn(),
-		query,
-		args,
-		specs,
-		"duckdbengine.MultiAggregate",
-	)
+	raws := make([]any, len(specs))
+
+	ptrs := make([]any, len(specs))
+	for i := range raws {
+		ptrs[i] = &raws[i]
+	}
+
+	if err := e.conn().QueryRowContext(ctx, query, args...).Scan(ptrs...); err != nil {
+		return nil, fmt.Errorf("duckdbengine.MultiAggregate: %w", err)
+	}
+
+	result := make(map[string]float64, len(specs))
+	for i, s := range specs {
+		val, err := decodeFloat(raws[i])
+		if err != nil {
+			return nil, fmt.Errorf("duckdbengine.MultiAggregate alias %q: %w", s.AliasOr(), err)
+		}
+
+		result[s.AliasOr()] = val
+	}
+
+	return result, nil
 }
 
 // ---------------------------------------------------------------------------
@@ -498,7 +537,7 @@ func (e *duckdbEngine) MultiGroupedAggregate(
 		return nil, errors.New("duckdbengine.MultiGroupedAggregate: no specs provided")
 	}
 
-	if plan, ok := e.lookupPlan(col); ok {
+	if plan, ok := e.plans[col]; ok {
 		return e.multiGroupedAggregatePlanned(ctx, plan, specs, groupBy, filters)
 	}
 
@@ -514,7 +553,9 @@ func (e *duckdbEngine) multiGroupedAggregateStandard(
 ) ([]metaengine.GroupedAggregateRow, error) {
 	var b strings.Builder
 
-	args, argIdx, plan := stdQueryInit(col)
+	args := initialArgs(col, metaengine.LayoutPlan{})
+	argIdx := initialArgIndex(metaengine.LayoutPlan{})
+	plan := metaengine.LayoutPlan{}
 
 	gExpr := groupExpr(groupBy, plan)
 
@@ -622,7 +663,7 @@ func (e *duckdbEngine) scanMultiGrouped(
 
 		values := make(map[string]float64, len(specs))
 		for i, s := range specs {
-			val, err := metaengine.DecodeFloat(raws[i])
+			val, err := decodeFloat(raws[i])
 			if err != nil {
 				return nil, fmt.Errorf(
 					"duckdbengine.MultiGroupedAggregate alias %q: %w",
@@ -654,7 +695,7 @@ func (e *duckdbEngine) DistinctValues(
 	column string,
 	filters []metaengine.FilterSpec,
 ) ([]any, error) {
-	if plan, ok := e.lookupPlan(col); ok {
+	if plan, ok := e.plans[col]; ok {
 		return e.distinctPlanned(ctx, plan, column, filters)
 	}
 
@@ -669,7 +710,9 @@ func (e *duckdbEngine) distinctStandard(
 ) ([]any, error) {
 	var b strings.Builder
 
-	args, argIdx, plan := stdQueryInit(col)
+	args := initialArgs(col, metaengine.LayoutPlan{})
+	argIdx := initialArgIndex(metaengine.LayoutPlan{})
+	plan := metaengine.LayoutPlan{}
 
 	fmt.Fprintf(&b, "SELECT DISTINCT %s AS dv %s", columnExpr(column, plan), fromClause(col, plan))
 
@@ -677,13 +720,7 @@ func (e *duckdbEngine) distinctStandard(
 		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
 	}
 
-	return metaengine.ScanDistinctValues(
-		ctx,
-		e.conn(),
-		b.String(),
-		args,
-		"duckdbengine.DistinctValues",
-	)
+	return e.scanDistinct(ctx, b.String(), args)
 }
 
 func (e *duckdbEngine) distinctPlanned(
@@ -715,11 +752,35 @@ func (e *duckdbEngine) distinctPlanned(
 		appendDuckDBFilter(&b, &args, &argIdx, f, plan)
 	}
 
-	return metaengine.ScanDistinctValues(
-		ctx,
-		e.conn(),
-		b.String(),
-		args,
-		"duckdbengine.DistinctValues",
-	)
+	return e.scanDistinct(ctx, b.String(), args)
+}
+
+func (e *duckdbEngine) scanDistinct(
+	ctx context.Context,
+	query string,
+	args []any,
+) ([]any, error) {
+	rows, err := e.conn().QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("duckdbengine.DistinctValues: %w", err)
+	}
+
+	defer metaengine.DeferClose(rows)
+
+	var result []any
+
+	for rows.Next() {
+		var raw any
+		if err := rows.Scan(&raw); err != nil {
+			return nil, fmt.Errorf("duckdbengine.DistinctValues: scan: %w", err)
+		}
+
+		result = append(result, raw)
+	}
+
+	if err := rows.Err(); err != nil {
+		return result, fmt.Errorf("duckdbengine.DistinctValues: %w", err)
+	}
+
+	return result, nil
 }

@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // TestStore_BoundaryKeyTypeValidation verifies that Execute returns
@@ -45,7 +43,7 @@ func TestStore_BoundaryKeyTypeMismatch(t *testing.T) {
 
 	q := Query[input, bool](
 		"mismatch_test",
-		OnRecord(event{}, func(_ record.Record, e event) (int, bool) {
+		On(event{}, func(e event) (int, bool) {
 			return e.ID, true
 		}),
 	)

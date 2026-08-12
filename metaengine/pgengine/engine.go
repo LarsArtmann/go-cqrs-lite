@@ -63,14 +63,13 @@ const PG_NsPerRead = 5000.0
 
 // pgEngine implements metaengine.Engine with Postgres as the backend.
 type pgEngine struct {
-	metaengine.Calibration
-
 	db             *sql.DB
 	mu             sync.Mutex
 	activeTx       atomic.Pointer[sql.Tx] // non-nil inside RunInTx
 	done           bool
 	layoutMu       sync.Mutex
 	appliedLayouts map[string]bool
+	cal            metaengine.Calibration
 }
 
 // New creates a Postgres-backed metaengine Engine from a DSN.
@@ -145,11 +144,6 @@ func (e *pgEngine) Profile() metaengine.EngineProfile {
 		NsPerOp:     PG_NsPerOp,
 		NsPerRead:   PG_NsPerRead,
 		Persistence: metaengine.PersistencePersistent, // remote server — always survives
-		// Postgres is a networked service. RequiresNetwork declares the structural
-		// fact; NetworkRTT is a same-datacenter PRIOR replaced by a live probe
-		// (SELECT 1) once ProbeEngine runs. See METAENGINE-LIVE-LATENCY-MODEL.md.
-		RequiresNetwork: true,
-		NetworkRTT:      PG_NetworkRTT,
 		// Per-read-pattern calibrated costs (see calibration_bench_test.go).
 		// Postgres has a real B-tree index on meta_map PK, so point lookups
 		// are genuinely fast (unlike DuckDB's columnar scan). Scan/aggregation
@@ -196,9 +190,14 @@ func (e *pgEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSortedMap: metaengine.LayoutRow,
 		},
 	}
-	e.ApplyCalibration(&p)
+	e.cal.ApplyCalibration(&p)
 
 	return p
+}
+
+// SetCalibration implements metaengine.Calibratable.
+func (e *pgEngine) SetCalibration(costs metaengine.CalibrationCosts) {
+	e.cal.SetCalibration(costs)
 }
 
 // Close closes the underlying database. Safe to call multiple times.
@@ -368,8 +367,4 @@ var (
 	_ metaengine.StreamLogBackend = (*pgEngine)(nil)
 	_ metaengine.AtomicAppender   = (*pgEngine)(nil)
 	_ metaengine.Transactional    = (*pgEngine)(nil)
-	_ metaengine.Calibratable     = (*pgEngine)(nil)
-	_ metaengine.TrackerHost      = (*pgEngine)(nil)
-	_ metaengine.Prober           = (*pgEngine)(nil)
-	_ metaengine.TransactMeasurer = (*pgEngine)(nil)
 )

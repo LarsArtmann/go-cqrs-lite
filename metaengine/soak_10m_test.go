@@ -9,7 +9,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // TestSoak_MemoryBounded_10M verifies that processing 10M events into a bounded
@@ -47,10 +46,10 @@ func TestSoak_MemoryBounded_10M(t *testing.T) {
 
 	q := metaengine.Query[lookup, state](
 		"counters-10m",
-		metaengine.OnRecord(updateEvent{}, func(_ record.Record, e updateEvent) (string, state) {
+		metaengine.On(updateEvent{}, func(e updateEvent) (string, state) {
 			return e.Key, state{Key: e.Key, Total: e.Value}
 		}),
-		metaengine.OnRecord(updateEvent{}, func(_ record.Record, e updateEvent, prev state) state {
+		metaengine.On(updateEvent{}, func(e updateEvent, prev state) state {
 			prev.Total += e.Value
 
 			return prev

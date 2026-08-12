@@ -63,27 +63,12 @@ type EngineProfile struct {
 	// staleness is a freshness property, not a performance cost.
 	ReplicationLag time.Duration
 
-	// NetworkRTT is the round-trip time to reach this engine's data
+	// NetworkRTT is the typical round-trip time to reach this engine's data
 	// (DDIA Ch1). Zero for in-process engines (Memory, SQLite, Pebble, DuckDB).
 	// Non-zero for any engine accessed over a network. Used by the cost
 	// estimator as an additive fixed latency component — it does NOT scale
 	// with query volume.
-	//
-	// This is a PRIOR, not a fact. For remote engines it seeds planning before
-	// the first live probe; once a LatencyTracker has fresh samples, Profile()
-	// returns the measured EWMA here instead (see ApplyCalibration). Set
-	// RequiresNetwork to declare the structural fact "this engine does network
-	// I/O" independently of the current measured value.
 	NetworkRTT time.Duration
-
-	// RequiresNetwork declares the structural fact that this engine reaches its
-	// data over a network (DDIA Ch1: "networked services"). It is a compile-time
-	// truth, distinct from the measured NetworkRTT value: an engine is remote
-	// even before the first probe runs, and stays remote if a probe goes stale.
-	// The planner uses it to emit a WARN diagnostic when routing relies on a
-	// prior or stale RTT, and GetEngineStats uses it to label remote engines
-	// that have no fresh live measurement. Local engines leave it false.
-	RequiresNetwork bool
 
 	// DegradedADTs marks ADTs that the engine can execute only via a brute-force
 	// fallback (e.g. Vector search via O(N) scan on SQLite). An ADT in both
@@ -141,10 +126,6 @@ type ReadCosts struct {
 //  2. NsPerRead (legacy scalar)
 //  3. NsPerOp
 //  4. defaultNsPerOp (100ns)
-//
-// For scan-type patterns on remote engines, the fallback cost is adjusted to
-// subtract per-read network overhead (RTT is added once per query by
-// estimateCost, not per row — a 10K-row scan pays RTT once, not 10K times).
 func (p EngineProfile) NsForRead(pattern ReadPattern) float64 {
 	switch pattern {
 	case ReadPointLookup, ReadMembership, ReadMultiLookup, ReadLogTail:
@@ -165,27 +146,7 @@ func (p EngineProfile) NsForRead(pattern ReadPattern) float64 {
 		}
 	}
 
-	base := p.ReadNsPerOp()
-
-	if isScanReadPattern(pattern) && p.NetworkRTT > 0 {
-		if rttNs := float64(p.NetworkRTT.Nanoseconds()); base > rttNs {
-			return base - rttNs
-		}
-	}
-
-	return base
-}
-
-// isScanReadPattern reports whether the read pattern scans multiple rows in a
-// single query (paying RTT once, not per row).
-func isScanReadPattern(p ReadPattern) bool {
-	switch p {
-	case ReadScan, ReadFilteredScan, ReadTraversal,
-		ReadVectorSearch, ReadFullTextSearch, ReadSpatialRange:
-		return true
-	}
-
-	return false
+	return p.ReadNsPerOp()
 }
 
 // ReadNsPerOp returns the calibrated per-read-operation cost, falling back to
@@ -324,17 +285,10 @@ const (
 // FilterSpec is a declarative filter that can be pushed down to the database
 // engine. Column is a JSON path within the stored value (e.g. "status"),
 // producing json_extract(value, '$.status') on SQLite.
-//
-// InputColumn optionally names a DIFFERENT field in the query input struct
-// from which the filter value is extracted. When empty, Column is used for
-// both the result column and the input field. This separation enables
-// convention-based operator inference: a query input field named "MinScore"
-// maps to FilterSpec{Column: "Score", Op: FilterGe, InputColumn: "MinScore"}.
 type FilterSpec struct {
-	Column      string
-	Op          FilterOp
-	Value       any
-	InputColumn string
+	Column string
+	Op     FilterOp
+	Value  any
 }
 
 // SortSpec is a declarative sort directive that can be pushed down to the
@@ -435,6 +389,11 @@ type SetBackend interface {
 type CounterBackend interface {
 	CounterIncrement(ctx context.Context, collection string, deltas Delta) error
 	CounterGet(ctx context.Context, collection string) (map[string]int64, error)
+}
+
+type GraphBackend interface {
+	GraphAddEdge(ctx context.Context, collection string, edge Edge) error
+	GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error)
 }
 
 // MultimapBackend handles one-to-many key-to-values collections.
@@ -574,17 +533,6 @@ func DeferClose(c Closer) {
 }
 
 // Engine is a storage backend with a cost profile.
-//
-// Concurrency safety varies by implementation:
-//   - Memory: safe for concurrent use (sync.RWMutex on all backends).
-//   - Pebble/Badger: safe (LSM handles concurrent access internally).
-//   - Postgres: safe (pgx connection pool serializes access).
-//   - DuckDB: safe for concurrent reads; layout-plan mutations are guarded by
-//     an internal RWMutex. Single-writer SQL model (RunInTx enforces exclusivity).
-//   - SQLite: single-writer model (MaxOpenConns(1)); safe for concurrent
-//     reads but writes serialize.
-//   - Dgraph: safe (gRPC client, server-side serialization).
-//   - GraphAdapter: inherits the underlying GraphDriver's safety guarantees.
 type Engine interface {
 	Profile() EngineProfile
 	Closer
@@ -598,6 +546,7 @@ var (
 	_ ScanBackend      = (*memoryEngine)(nil)
 	_ SetBackend       = (*memoryEngine)(nil)
 	_ CounterBackend   = (*memoryEngine)(nil)
+	_ GraphBackend     = (*memoryEngine)(nil)
 	_ MultimapBackend  = (*memoryEngine)(nil)
 	_ LogBackend       = (*memoryEngine)(nil)
 	_ StreamLogBackend = (*memoryEngine)(nil)
@@ -624,7 +573,6 @@ func SQLiteEngineProfile() EngineProfile {
 			ADTSortedMap: ComplexityOLogN,
 			ADTLog:       ComplexityOLogN,
 			ADTMultimap:  ComplexityOLogN,
-			ADTGraph:     ComplexityODegree, // native recursive CTE on meta_graph_edges
 			ADTVector:    ComplexityON,
 			ADTSearch:    ComplexityON,
 			ADTSpatial:   ComplexityON,

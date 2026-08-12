@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ─── T14-T15: WithReplication / WithNetworkRTT plan options ───
@@ -304,7 +303,7 @@ func TestMapUpdateReplicationRule_NoWarnForInsertOnlyMap(t *testing.T) {
 
 	q := metaengine.Query[simpleInput, simpleResult](
 		"simple_items",
-		metaengine.OnRecord(itemAdded{}, func(_ record.Record, e itemAdded) (string, simpleResult) {
+		metaengine.On(itemAdded{}, func(e itemAdded) (string, simpleResult) {
 			return e.ID, simpleResult{Name: e.Name}
 		}),
 	)

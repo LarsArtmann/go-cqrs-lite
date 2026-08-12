@@ -8,8 +8,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // --- P0-1: IN filter silent-drop fix ---
@@ -238,13 +236,9 @@ func TestSchemaEnforcement_DetectsTypeMismatch(t *testing.T) {
 	// Fold returns testTask but query declares testWrongResult as result type.
 	q := Query[testFindTask, testWrongResult](
 		"schema_mismatch_test",
-		OnRecordTyped(
-			"task_created",
-			testTask{},
-			func(_ record.Record, e testTask) (testTaskID, testTask) {
-				return e.ID, e
-			},
-		),
+		OnTyped("task_created", testTask{}, func(e testTask) (testTaskID, testTask) {
+			return e.ID, e
+		}),
 	)
 
 	store, err := Plan([]Engine{NewMemoryEngine()}, q)
@@ -330,6 +324,91 @@ func TestTransaction_CommitRollback(t *testing.T) {
 	val, found, _ = mb.MapGet(ctx, "col1", "key1")
 	if !found || val != "value1" {
 		t.Error("after rollback: key1 should still exist")
+	}
+}
+
+func _skipped_sqlite_test_0(t *testing.T) {
+	t.Skip("requires SQLite engine — moved to sqliteengine module after ADR-0115")
+	t.Parallel()
+
+	db, _ := sql.Open("sqlite", ":memory:")
+	defer db.Close()
+
+	eng := NewMemoryEngine()
+	store, err := Plan([]Engine{eng}, testTaskQuery())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := context.Background()
+
+	// Atomic batch: both events succeed → both visible
+	err = store.InTransaction(ctx, func(ctx context.Context) error {
+		if err := store.Apply(ctx, "task_created", testTask{ID: "t1"}); err != nil {
+			return err
+		}
+
+		return store.Apply(ctx, "task_created", testTask{ID: "t2"})
+	})
+	if err != nil {
+		t.Fatalf("InTransaction commit: %v", err)
+	}
+
+	r1, err := ExecuteTyped[testFindTask, testTask](ctx, store, testFindTask{ID: "t1"})
+	if err != nil {
+		t.Errorf("t1 should exist after commit: %v", err)
+	}
+	if r1.ID != "t1" {
+		t.Errorf("expected t1, got %s", r1.ID)
+	}
+
+	// Failed batch: second event fails → first must rollback
+	err = store.InTransaction(ctx, func(ctx context.Context) error {
+		if err := store.Apply(ctx, "task_created", testTask{ID: "t3"}); err != nil {
+			return err
+		}
+
+		return errors.New("deliberate failure")
+	})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	_, err = ExecuteTyped[testFindTask, testTask](ctx, store, testFindTask{ID: "t3"})
+	if !errors.Is(err, ErrNotFound) {
+		t.Errorf("t3 should NOT exist after rollback: %v", err)
+	}
+}
+
+func _skipped_sqlite_test_1(t *testing.T) {
+	t.Skip("requires SQLite engine — moved to sqliteengine module after ADR-0115")
+	t.Parallel()
+
+	db, _ := sql.Open("sqlite", ":memory:")
+	defer db.Close()
+
+	eng := NewMemoryEngine()
+	ctx := context.Background()
+
+	mb := eng.(MapBackend)
+	_ = mb.MapSet(ctx, "col", "k", 10)
+
+	// MapUpdate inside a transaction must work without nested BeginTx
+	txEng := eng.(Transactional)
+	err := txEng.RunInTx(ctx, func(ctx context.Context) error {
+		mu := eng.(MapUpdater)
+
+		return mu.MapUpdate(ctx, "col", "k", func(prev any) any {
+			return prev.(float64) + 5
+		})
+	})
+	if err != nil {
+		t.Fatalf("MapUpdate in tx: %v", err)
+	}
+
+	val, _, _ := mb.MapGet(ctx, "col", "k")
+	if val != float64(15) {
+		t.Errorf("expected 15, got %v", val)
 	}
 }
 

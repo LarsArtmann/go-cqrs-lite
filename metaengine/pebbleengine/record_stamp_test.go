@@ -3,6 +3,7 @@ package pebbleengine_test
 import (
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
 
@@ -12,7 +13,12 @@ import (
 func TestPebble_RecordStamping(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	if err != nil {
+		t.Fatalf("NewPebbleEngine: %v", err)
+	}
+
+	defer eng.Close()
 
 	enginetest.RunRecordStampTest(t, eng)
 }

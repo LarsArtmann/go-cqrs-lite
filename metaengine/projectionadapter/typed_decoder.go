@@ -3,7 +3,6 @@ package projectionadapter
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
@@ -21,17 +20,16 @@ var ErrNoFoldForEventType = errors.New("projectionadapter: no fold registered fo
 // This is the canonical wrapper for all queries that key on the entity ID.
 // Use it as the fold handler input type:
 //
-//	metaengine.OnRecordTyped("user.created", projectionadapter.EventWithID[UserCreated]{},
-//	    func(_ record.Record, e projectionadapter.EventWithID[UserCreated]) (string, UserView) {
+//	metaengine.OnTyped("user.created", projectionadapter.EventWithID[UserCreated]{},
+//	    func(e projectionadapter.EventWithID[UserCreated]) (string, UserView) {
 //	        return e.ID, UserView{ID: e.ID, Name: e.Payload.Name}
 //	    })
 //
 // For Counter/Set queries that don't need the entity ID, use the payload
 // type directly (the fold handler can accept the raw payload).
 type EventWithID[P any] struct {
-	ID         string
-	Payload    P
-	OccurredAt time.Time
+	ID      string
+	Payload P
 }
 
 // EventRegistration is a single event-type-to-payload-type mapping, created
@@ -65,11 +63,7 @@ func Register[E any](eventType event.Type, _ E) EventRegistration {
 				}
 			}
 
-			return EventWithID[E]{
-				ID:         evt.StreamID().String(),
-				Payload:    p,
-				OccurredAt: evt.OccurredAt(),
-			}, nil
+			return EventWithID[E]{ID: evt.StreamID().String(), Payload: p}, nil
 		},
 	}
 }
@@ -90,11 +84,7 @@ func RegisterString[E any](eventType string, _ E) EventRegistration {
 				}
 			}
 
-			return EventWithID[E]{
-				ID:         evt.StreamID().String(),
-				Payload:    p,
-				OccurredAt: evt.OccurredAt(),
-			}, nil
+			return EventWithID[E]{ID: evt.StreamID().String(), Payload: p}, nil
 		},
 	}
 }

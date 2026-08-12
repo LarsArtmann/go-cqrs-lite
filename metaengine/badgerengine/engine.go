@@ -44,8 +44,6 @@ const BadgerNsPerRead = 1200.0
 const BadgerNsPerWrite = 4300.0
 
 type badgerEngine struct {
-	metaengine.Calibration
-
 	db          *badger.DB
 	ownsDB      bool
 	persistence metaengine.Persistence
@@ -54,6 +52,7 @@ type badgerEngine struct {
 	mmSeq       sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
 	streamSeq   sync.Map   // "col\x00sid" → *atomic.Int64 (per-stream sequence)
 	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
+	cal         metaengine.Calibration
 }
 
 // NewBadgerEngine creates a Badger-backed metaengine engine. If dir is empty,
@@ -123,9 +122,14 @@ func (e *badgerEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
 		},
 	}
-	e.ApplyCalibration(&p)
+	e.cal.ApplyCalibration(&p)
 
 	return p
+}
+
+// SetCalibration implements metaengine.Calibratable.
+func (e *badgerEngine) SetCalibration(costs metaengine.CalibrationCosts) {
+	e.cal.SetCalibration(costs)
 }
 
 // HealthCheck verifies the underlying Badger DB is responsive by opening a
@@ -133,7 +137,7 @@ func (e *badgerEngine) Profile() metaengine.EngineProfile {
 // closed or corrupted DB returns an error.
 // Implements [metaengine.HealthChecker] for Kubernetes-style liveness probes.
 func (e *badgerEngine) HealthCheck(_ context.Context) error {
-	return e.db.View(func(_ *badger.Txn) error {
+	return e.db.View(func(txn *badger.Txn) error {
 		return nil
 	})
 }
@@ -196,7 +200,7 @@ func (e *badgerEngine) seedSeqCounters() error {
 			col := parts[1]
 
 			var seq int64
-			_, _ = fmt.Sscanf(parts[2], "%020d", &seq)
+			fmt.Sscanf(parts[2], "%020d", &seq)
 
 			actual, _ := e.logSeq.LoadOrStore(col, &atomic.Int64{})
 			existing := actual.(*atomic.Int64).Load()
@@ -222,7 +226,6 @@ var (
 	_ metaengine.StreamLogBackend = (*badgerEngine)(nil)
 	_ metaengine.AtomicAppender   = (*badgerEngine)(nil)
 	_ metaengine.Calibratable     = (*badgerEngine)(nil)
-	_ metaengine.TrackerHost      = (*badgerEngine)(nil)
 )
 
 var (

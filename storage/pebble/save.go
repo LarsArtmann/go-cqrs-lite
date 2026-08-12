@@ -45,7 +45,7 @@ func (a *EventStore) countEvents(ref id.StreamRef) (int, error) {
 			"failed to create count iterator")
 	}
 
-	defer deferClose(iter)
+	defer func() { _ = iter.Close() }()
 
 	if !iter.Last() {
 		err := iter.Error()

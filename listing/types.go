@@ -22,38 +22,10 @@ type StreamListing struct {
 // Deprecated: use StreamListing.
 type AggregateListing = StreamListing
 
-// Status is the computed lifecycle state of a stream.
-// Determined by checking whether the stream's last event type
-// matches a configured delete type (ADR-0114).
-type Status int
-
-const (
-	// StatusActive means the stream is live and visible.
-	StatusActive Status = iota
-	// StatusDeleted means the stream's last event signals deletion.
-	StatusDeleted
-)
-
-func (s Status) String() string {
-	switch s {
-	case StatusActive:
-		return "active"
-	case StatusDeleted:
-		return "deleted"
-	default:
-		return fmt.Sprintf("Status(%d)", int(s))
-	}
-}
-
-// IsDeleted returns true if the stream is in the Deleted state.
-func (s Status) IsDeleted() bool {
-	return s == StatusDeleted
-}
-
-// StreamStatus pairs a stream listing with its computed lifecycle state.
+// StreamStatus pairs a stream listing with its computed tombstone state.
 type StreamStatus struct {
 	Ref    StreamListing
-	Status Status
+	Status event.TombstoneStatus
 }
 
 // Deprecated: use StreamStatus.
@@ -66,28 +38,28 @@ type Page[T any] struct {
 	HasMore bool `json:"hasMore"`
 }
 
-// DeletePolicy controls visibility of soft-deleted streams.
-type DeletePolicy int
+// TombstonePolicy controls visibility of soft-deleted streams.
+type TombstonePolicy int
 
 const (
-	// DeleteExclude hides deleted streams (default).
-	DeleteExclude DeletePolicy = iota
-	// DeleteInclude shows all streams, with Status.
-	DeleteInclude
-	// DeleteOnly shows only deleted streams.
-	DeleteOnly
+	// TombstoneExclude hides tombstoned streams (default).
+	TombstoneExclude TombstonePolicy = iota
+	// TombstoneInclude shows all streams, with Status.
+	TombstoneInclude
+	// TombstoneOnly shows only tombstoned streams.
+	TombstoneOnly
 )
 
-func (p DeletePolicy) String() string {
+func (p TombstonePolicy) String() string {
 	switch p {
-	case DeleteExclude:
+	case TombstoneExclude:
 		return "exclude"
-	case DeleteInclude:
+	case TombstoneInclude:
 		return "include"
-	case DeleteOnly:
+	case TombstoneOnly:
 		return "only"
 	default:
-		return fmt.Sprintf("DeletePolicy(%d)", int(p))
+		return fmt.Sprintf("TombstonePolicy(%d)", p)
 	}
 }
 
@@ -115,7 +87,7 @@ type ListOptions struct {
 	// Zero defaults to the reader's default page size.
 	Limit uint
 
-	// DeletePolicy controls visibility of deleted streams.
-	// Default is DeleteExclude.
-	DeletePolicy DeletePolicy
+	// Tombstone controls visibility of soft-deleted streams.
+	// Default is TombstoneExclude.
+	Tombstone TombstonePolicy
 }

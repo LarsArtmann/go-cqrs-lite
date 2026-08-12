@@ -5,23 +5,20 @@ import (
 	"fmt"
 	"testing"
 
+	dgraphengine "github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
-
-// graphBackend is the local graph dispatch contract for tests. The Dgraph
-// engine implements this structurally via its GraphAddEdge/GraphNeighbors
-// methods (ADR-0113: the exported metaengine.GraphBackend was deleted).
-type graphBackend interface {
-	GraphAddEdge(ctx context.Context, collection string, edge metaengine.Edge) error
-	GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error)
-}
 
 // TestProfile verifies the Dgraph engine profile without requiring a running
 // Dgraph instance. The profile values are compile-time constants.
 func TestProfile(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDgraphEngine(t)
+	eng, err := dgraphengine.New(dgraphAddr())
+	if err != nil {
+		t.Skipf("Dgraph not available: %v", err)
+	}
+	defer metaengine.DeferClose(eng)
 
 	profile := eng.Profile()
 
@@ -73,7 +70,11 @@ func TestProfile(t *testing.T) {
 func TestMapBackend(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDgraphEngine(t)
+	eng, err := dgraphengine.New(dgraphAddr())
+	if err != nil {
+		t.Skipf("Dgraph not available: %v", err)
+	}
+	defer metaengine.DeferClose(eng)
 
 	ctx := context.Background()
 	mb := eng.(metaengine.MapBackend)
@@ -126,14 +127,18 @@ func TestMapBackend(t *testing.T) {
 	}
 }
 
-// TestGraphOperations exercises the Graph ADT — Dgraph's killer feature.
-func TestGraphOperations(t *testing.T) {
+// TestGraphBackend exercises the Graph ADT — Dgraph's killer feature.
+func TestGraphBackend(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDgraphEngine(t)
+	eng, err := dgraphengine.New(dgraphAddr())
+	if err != nil {
+		t.Skipf("Dgraph not available: %v", err)
+	}
+	defer metaengine.DeferClose(eng)
 
 	ctx := context.Background()
-	gb := eng.(graphBackend)
+	gb := eng.(metaengine.GraphBackend)
 
 	// Build: A→B, A→C, B→D (bidirectional).
 	edges := []metaengine.Edge{

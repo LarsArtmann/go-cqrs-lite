@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	iroh_ffi "git.coopcloud.tech/decentral1se/iroh-go"
@@ -62,16 +61,6 @@ type QuicTransport struct {
 type peerConn struct {
 	conn   *iroh_ffi.Connection
 	peerID string
-
-	// Pooled stream for multiplexing ops over a persistent BiStream.
-	// Lazily opened on first sendOpPooled. Protected by streamMu.
-	streamMu sync.Mutex
-	stream   *iroh_ffi.BiStream
-
-	// streamsOpened counts how many BiStreams have been opened to this peer.
-	// In pooled mode, N ops should reuse 1 stream (count stays at 1).
-	// In non-pooled mode, N ops open N streams (count == N).
-	streamsOpened atomic.Int64
 }
 
 var errQuicTransportClosed = errors.New("transport closed")
@@ -142,18 +131,6 @@ func (t *QuicTransport) PeerCount() int {
 	return len(t.conns)
 }
 
-// StreamsOpenedForPeer returns the number of BiStreams opened to the given peer.
-// In pooled mode, N ops should reuse 1 stream (returns 1). In non-pooled mode,
-// N ops open N streams (returns N). Useful for tests asserting stream reuse.
-func (t *QuicTransport) StreamsOpenedForPeer(peerID string) int64 {
-	t.mu.RLock()
-	defer t.mu.RUnlock()
-	if pc, ok := t.conns[peerID]; ok {
-		return pc.streamsOpened.Load()
-	}
-	return 0
-}
-
 // Connect dials a remote endpoint using its ticket string and establishes
 // a QUIC connection. The remote endpoint's accept loop will register the
 // connection automatically.
@@ -197,40 +174,29 @@ func (t *QuicTransport) Publish(_ context.Context, op irohengine.WriteOp) error 
 	}
 
 	t.mu.RLock()
-	peers := make([]*peerConn, 0, len(t.conns))
+	conns := make([]*iroh_ffi.Connection, 0, len(t.conns))
 	for _, pc := range t.conns {
-		peers = append(peers, pc)
+		conns = append(conns, pc.conn)
 	}
 	t.mu.RUnlock()
 
-	if len(peers) == 0 {
+	if len(conns) == 0 {
 		return nil // no peers — local-only write
 	}
 
 	var wg sync.WaitGroup
-	for _, pc := range peers {
+	for _, conn := range conns {
 		wg.Add(1)
-		go func(pc *peerConn) {
+		go func(c *iroh_ffi.Connection) {
 			defer wg.Done()
-			if t.cfg.poolStreams {
-				t.sendOpPooled(pc, data)
-			} else {
-				t.sendOp(pc.conn, data)
-			}
-		}(pc)
+			t.sendOp(c, data)
+		}(conn)
 	}
 	wg.Wait()
 
 	return nil
 }
 
-// sendOp opens a bidirectional stream, writes the encoded op, finishes the
-// send side, then reads the empty ack. This is the default one-stream-per-op
-// mode — simple and robust, with one QUIC stream ID allocation per op.
-//
-// For high-throughput scenarios, enable WithStreamPooling() to use persistent
-// BiStreams with length-prefix framing (sendOpPooled), eliminating per-op
-// stream creation overhead.
 func (t *QuicTransport) sendOp(conn *iroh_ffi.Connection, data []byte) {
 	stream, err := conn.OpenBi()
 	if err != nil {
@@ -270,16 +236,6 @@ func (t *QuicTransport) Close() error {
 	conns := make([]*iroh_ffi.Connection, 0, len(t.conns))
 	for _, pc := range t.conns {
 		conns = append(conns, pc.conn)
-		// Clean up pooled streams
-		if t.cfg.poolStreams {
-			pc.streamMu.Lock()
-			if pc.stream != nil {
-				_ = pc.stream.Send().Finish()
-				pc.stream.Destroy()
-				pc.stream = nil
-			}
-			pc.streamMu.Unlock()
-		}
 	}
 	t.mu.Unlock()
 

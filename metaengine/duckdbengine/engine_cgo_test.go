@@ -6,15 +6,19 @@ import (
 	"context"
 	"testing"
 
+	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func TestDuckDBEngine_MapBackend(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	ctx := context.Background()
 
@@ -54,7 +58,11 @@ func TestDuckDBEngine_MapBackend(t *testing.T) {
 func TestDuckDBEngine_CounterBackend(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	ctx := context.Background()
 
@@ -92,7 +100,11 @@ func TestDuckDBEngine_CounterBackend(t *testing.T) {
 func TestDuckDBEngine_Profile(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	profile := eng.Profile()
 
@@ -122,7 +134,11 @@ func TestDuckDBEngine_Profile(t *testing.T) {
 func TestDuckDBEngine_MetaenginePlan(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+	defer eng.Close()
 
 	type ItemCreated struct {
 		Category string
@@ -135,12 +151,9 @@ func TestDuckDBEngine_MetaenginePlan(t *testing.T) {
 		[]metaengine.Engine{eng},
 		metaengine.Query[CountInput, map[string]int64](
 			"category_counts",
-			metaengine.OnRecord(
-				ItemCreated{},
-				func(_ record.Record, e ItemCreated) metaengine.Delta {
-					return metaengine.Delta{e.Category: e.Count}
-				},
-			),
+			metaengine.On(ItemCreated{}, func(e ItemCreated) metaengine.Delta {
+				return metaengine.Delta{e.Category: e.Count}
+			}),
 		),
 	)
 	if err != nil {
@@ -179,7 +192,12 @@ func TestDuckDBEngine_MetaenginePlan(t *testing.T) {
 func TestDuckDBEngine_ScanBackend(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDuckEngine(t)
+	eng, err := duckdbengine.New("")
+	if err != nil {
+		t.Skipf("DuckDB not available: %v", err)
+	}
+
+	defer eng.Close()
 
 	enginetest.RunScanBackendTest(t, eng, "products")
 }

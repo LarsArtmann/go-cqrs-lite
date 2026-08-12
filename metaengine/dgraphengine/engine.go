@@ -2,9 +2,9 @@
 //
 // Dgraph is a distributed graph database with native DQL (GraphQL+-) query
 // support. This engine implements MapBackend, CounterBackend, ScanBackend,
-// graph dispatch, SetBackend, and SearchBackend.
+// GraphBackend, SetBackend, and SearchBackend.
 //
-// Graph dispatch is Dgraph's native strength — O(degree^depth) traversal with
+// GraphBackend is Dgraph's native strength — O(degree^depth) traversal with
 // zero degradation. SearchBackend leverages Dgraph's built-in term index
 // (@index(term)) for efficient full-text search. MapBackend uses Dgraph's
 // exact index (@index(exact)) for O(logN) point lookups.
@@ -19,6 +19,7 @@ package dgraphengine
 
 import (
 	"context"
+	"encoding/json/v2"
 	"fmt"
 	"strings"
 	"sync"
@@ -32,32 +33,19 @@ import (
 )
 
 // DG_NsPerOp models production Dgraph (RAFT consensus + gRPC round-trip).
-// Calibrated 2026-08-08 via benchmarks against Dgraph 25.4.0 single-node:
-// writes (MapSet, GraphAddEdge, SearchInsert) average ~2.5ms due to RAFT
-// consensus commit. Reads are cheaper (see DG_NsPerRead).
-const DG_NsPerOp = 2_500_000.0
+const DG_NsPerOp = 10000.0
 
-// DG_NsPerRead models production Dgraph read-only transactions.
-// Calibrated 2026-08-08: NewReadOnlyTxn bypasses RAFT entirely.
-// Measured reads: MapGet 344µs, GraphNeighbors depth-1 420µs,
-// SearchQuery 882µs, GraphNeighbors depth-3 963µs. Average ~650µs.
-const DG_NsPerRead = 600_000.0
-
-// DG_NsPerWrite models production Dgraph write transactions.
-// Calibrated 2026-08-08: all writes go through RAFT consensus.
-// Measured writes: MapSet 2.7ms, CounterIncrement 2.4ms, SetAdd 2.1ms,
-// GraphAddEdge 2.8ms, SearchInsert 2.5ms. Average ~2.5ms.
-const DG_NsPerWrite = 2_500_000.0
+// DG_NsPerRead models production Dgraph (index lookup + gRPC response).
+const DG_NsPerRead = 8000.0
 
 // dgraphEngine implements metaengine.Engine with Dgraph as the backend.
 type dgraphEngine struct {
-	metaengine.Calibration
-
 	client         *dgo.Dgraph
 	mu             sync.Mutex
 	done           bool
 	schemaMu       sync.Mutex
 	appliedSchemas map[string]bool
+	cal            metaengine.Calibration
 }
 
 // New creates a Dgraph-backed metaengine Engine from a gRPC address.
@@ -66,7 +54,6 @@ type dgraphEngine struct {
 func New(addr string) (metaengine.Engine, error) {
 	client, err := dgo.NewClient(addr,
 		dgo.WithGrpcOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
-		dgo.WithGrpcOption(grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(64*1024*1024))),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.New: connect: %w", err)
@@ -108,16 +95,6 @@ func (e *dgraphEngine) init() error {
 		cqrs.search_collection: string @index(exact) .
 		cqrs.search_id: string @index(exact) @upsert .
 		cqrs.search_content: string @index(term) .
-		cqrs.multimap_collection: string @index(exact) .
-		cqrs.multimap_key: string @index(exact) .
-		cqrs.multimap_value: string .
-		cqrs.log_collection: string @index(exact) .
-		cqrs.log_seq: int @index(int) .
-		cqrs.log_value: string .
-		cqrs.stream_log_collection: string @index(exact) .
-		cqrs.stream_log_stream: string @index(exact) .
-		cqrs.stream_log_seq: int @index(int) .
-		cqrs.stream_log_value: string .
 	`
 
 	return e.client.Alter(context.Background(), &api.Operation{Schema: schema})
@@ -129,19 +106,13 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 		Name:        "dgraph",
 		NsPerOp:     DG_NsPerOp,
 		NsPerRead:   DG_NsPerRead,
-		NsPerWrite:  DG_NsPerWrite,
 		Persistence: metaengine.PersistencePersistent,
 		Replication: metaengine.ReplicationSingleLeader,
-		// Dgraph is a networked gRPC service using RAFT consensus. RequiresNetwork
-		// declares the structural fact; NetworkRTT is a same-datacenter PRIOR replaced
-		// by a live probe (healthcheck query) once ProbeEngine runs.
-		RequiresNetwork: true,
-		NetworkRTT:      DG_NetworkRTT,
 		ReadCosts: metaengine.ReadCosts{
-			NsPerPointLookup:  350_000, // MapGet ~344µs
-			NsPerFilteredScan: 900_000, // SearchQuery anyofterms ~882µs
-			NsPerAggregate:    950_000, // GraphNeighbors depth-3 ~963µs
-			NsPerScan:         450_000, // GraphNeighbors depth-1 ~420µs
+			NsPerPointLookup:  8_000,
+			NsPerFilteredScan: 1_000,
+			NsPerAggregate:    500,
+			NsPerScan:         2_000,
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityOLogN,
@@ -150,9 +121,6 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSet:       metaengine.ComplexityOLogN,
 			metaengine.ADTSortedMap: metaengine.ComplexityON,
 			metaengine.ADTSearch:    metaengine.ComplexityOLogN,
-			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
-			metaengine.ADTLog:       metaengine.ComplexityOLogN,
-			metaengine.ADTStreamLog: metaengine.ComplexityOLogN,
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
 			metaengine.ADTSortedMap: true,
@@ -166,9 +134,14 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSearch:    metaengine.LayoutKV,
 		},
 	}
-	e.ApplyCalibration(&p)
+	e.cal.ApplyCalibration(&p)
 
 	return p
+}
+
+// SetCalibration implements metaengine.Calibratable.
+func (e *dgraphEngine) SetCalibration(costs metaengine.CalibrationCosts) {
+	e.cal.SetCalibration(costs)
 }
 
 // HealthCheck verifies the Dgraph gRPC connection is responsive by executing
@@ -195,7 +168,136 @@ func (e *dgraphEngine) Close() error {
 	return nil
 }
 
+// --- MapBackend ---
+
+func (e *dgraphEngine) MapSet(ctx context.Context, col string, key any, value any) error {
+	keyStr := fmt.Sprint(key)
+
+	data, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Errorf("dgraphengine.MapSet: marshal: %w", err)
+	}
+
+	valueStr := string(data)
+
+	req := &api.Request{CommitNow: true}
+	req.Query = fmt.Sprintf(`{
+		entry as var(func: eq(cqrs.map_collection, %s)) @filter(eq(cqrs.map_key, %s))
+	}`, dqlString(col), dqlString(keyStr))
+
+	createJSON, _ := json.Marshal(map[string]any{
+		"uid":                 "_:new",
+		"cqrs.map_collection": col,
+		"cqrs.map_key":        keyStr,
+		"cqrs.map_value":      valueStr,
+		"dgraph.type":         []string{"MetaMapEntry"},
+	})
+
+	updateJSON, _ := json.Marshal(map[string]any{
+		"uid":            "uid(entry)",
+		"cqrs.map_value": valueStr,
+	})
+
+	req.Mutations = []*api.Mutation{
+		{SetJson: createJSON, Cond: "@if(eq(len(entry), 0))"},
+		{SetJson: updateJSON, Cond: "@if(eq(len(entry), 1))"},
+	}
+
+	if _, err := e.client.NewTxn().Do(ctx, req); err != nil {
+		return fmt.Errorf("dgraphengine.MapSet: %w", err)
+	}
+
+	return nil
+}
+
+func (e *dgraphEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
+	keyStr := fmt.Sprint(key) //art-dupl:accept dgraph key formatting idiom
+
+	q := fmt.Sprintf(`{
+		entry(func: eq(cqrs.map_collection, %s)) @filter(eq(cqrs.map_key, %s)) {
+			cqrs.map_value
+		}
+	}`, dqlString(col), dqlString(keyStr))
+
+	resp, err := e.client.NewReadOnlyTxn().Query(ctx, q)
+	if err != nil {
+		return nil, false, fmt.Errorf("dgraphengine.MapGet: %w", err)
+	}
+
+	var result struct {
+		Entry []struct {
+			MapValue string `json:"cqrs.map_value"`
+		} `json:"entry"`
+	}
+
+	if err := json.Unmarshal(resp.GetJson(), &result); err != nil {
+		return nil, false, fmt.Errorf("dgraphengine.MapGet: unmarshal: %w", err)
+	}
+
+	if len(result.Entry) == 0 {
+		return nil, false, nil
+	}
+
+	var val any
+
+	if err := json.Unmarshal([]byte(result.Entry[0].MapValue), &val); err != nil {
+		return nil, false, fmt.Errorf("dgraphengine.MapGet: decode value: %w", err)
+	}
+
+	return val, true, nil
+}
+
+func (e *dgraphEngine) MapDelete(ctx context.Context, col string, key any) error {
+	keyStr := fmt.Sprint(key) //art-dupl:accept dgraph key formatting idiom
+
+	req := &api.Request{CommitNow: true}
+	req.Query = fmt.Sprintf(`{
+		entry as var(func: eq(cqrs.map_collection, %s)) @filter(eq(cqrs.map_key, %s))
+	}`, dqlString(col), dqlString(keyStr))
+
+	deleteJSON, _ := json.Marshal(map[string]any{
+		"uid": "uid(entry)",
+	})
+
+	req.Mutations = []*api.Mutation{
+		{DeleteJson: deleteJSON},
+	}
+
+	if _, err := e.client.NewTxn().Do(ctx, req); err != nil {
+		return fmt.Errorf("dgraphengine.MapDelete: %w", err)
+	}
+
+	return nil
+}
+
 // --- Helpers ---
+
+// dqlString escapes a Go string into a DQL string literal (double-quoted).
+func dqlString(s string) string {
+	var b strings.Builder
+	b.WriteByte('"')
+
+	for _, r := range s {
+		switch r {
+		case '"':
+			b.WriteString(`\"`)
+		case '\\':
+			b.WriteString(`\\`)
+		case '\n':
+			b.WriteString(`\n`)
+		case '\r':
+			b.WriteString(`\r`)
+		case '\t':
+			b.WriteString(`\t`)
+		default:
+			b.WriteRune(r)
+		}
+	}
+
+	b.WriteByte('"')
+
+	return b.String()
+}
 
 // sanitizePredicate builds a safe Dgraph predicate name from components.
 func sanitizePredicate(parts ...string) string {
@@ -250,18 +352,12 @@ func (e *dgraphEngine) ensureEdgeSchema(ctx context.Context, collection string) 
 
 // Compile-time assertions.
 var (
-	_ metaengine.Engine           = (*dgraphEngine)(nil)
-	_ metaengine.MapBackend       = (*dgraphEngine)(nil)
-	_ metaengine.CounterBackend   = (*dgraphEngine)(nil)
-	_ metaengine.ScanBackend      = (*dgraphEngine)(nil)
-	_ metaengine.SetBackend       = (*dgraphEngine)(nil)
-	_ metaengine.SearchBackend    = (*dgraphEngine)(nil)
-	_ metaengine.MultimapBackend  = (*dgraphEngine)(nil)
-	_ metaengine.LogBackend       = (*dgraphEngine)(nil)
-	_ metaengine.StreamLogBackend = (*dgraphEngine)(nil)
-	_ metaengine.AtomicAppender   = (*dgraphEngine)(nil)
-	_ metaengine.Calibratable     = (*dgraphEngine)(nil)
-	_ metaengine.TrackerHost      = (*dgraphEngine)(nil)
-	_ metaengine.Prober           = (*dgraphEngine)(nil)
-	_ metaengine.TransactMeasurer = (*dgraphEngine)(nil)
+	_ metaengine.Engine         = (*dgraphEngine)(nil)
+	_ metaengine.MapBackend     = (*dgraphEngine)(nil)
+	_ metaengine.CounterBackend = (*dgraphEngine)(nil)
+	_ metaengine.ScanBackend    = (*dgraphEngine)(nil)
+	_ metaengine.GraphBackend   = (*dgraphEngine)(nil)
+	_ metaengine.SetBackend     = (*dgraphEngine)(nil)
+	_ metaengine.SearchBackend  = (*dgraphEngine)(nil)
+	_ metaengine.Calibratable   = (*dgraphEngine)(nil)
 )

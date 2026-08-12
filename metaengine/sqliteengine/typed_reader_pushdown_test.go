@@ -9,7 +9,6 @@ import (
 
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // TestTypedReader_PushdownViaSQLite verifies that TypedReader aggregate
@@ -28,13 +27,13 @@ type pushItem struct {
 func pushItemQuery() metaengine.QueryDecl[struct{}, pushItem] {
 	return metaengine.Query[struct{}, pushItem](
 		"push_items",
-		metaengine.OnRecord(pushItem{}, func(_ record.Record, e pushItem) (string, pushItem) {
+		metaengine.On(pushItem{}, func(e pushItem) (string, pushItem) {
 			return e.ID, e
 		}),
 	)
 }
 
-func TestTypedReader_PushdownViaSQLite(t *testing.T) { //nolint:tparallel
+func TestTypedReader_PushdownViaSQLite(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()

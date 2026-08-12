@@ -12,7 +12,7 @@ import (
 // --- StreamLogBackend implementation ---
 
 func (e *pgEngine) StreamAppend(ctx context.Context, col, sid string, values []any) error {
-	return e.inTx(ctx, func(conn metaengine.SQLExec) error {
+	return e.inTx(ctx, func(conn dbExec) error {
 		for _, v := range values {
 			encoded := metaengine.EncodeStreamValue(v)
 			if _, err := conn.ExecContext(
@@ -39,7 +39,7 @@ func (e *pgEngine) StreamAppendExpected(
 	expectedVersion int64,
 	values []any,
 ) error {
-	return e.inTx(ctx, func(conn metaengine.SQLExec) error {
+	return e.inTx(ctx, func(conn dbExec) error {
 		var current int64
 
 		err := conn.QueryRowContext(

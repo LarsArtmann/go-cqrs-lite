@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json/v2"
 	"fmt"
-	"strings"
 
 	"github.com/dgraph-io/dgo/v240/protos/api"
 
@@ -12,11 +11,6 @@ import (
 )
 
 // --- CounterBackend ---
-
-// counterKeyFilterFmt is the DQL filter fragment for matching a single counter
-// key via a $keyN variable. Split as a const so the DQL-injection test does
-// not flag it (the format inserts a DQL variable name, never user input).
-const counterKeyFilterFmt = "eq(cqrs.counter_key, %s)"
 
 func (e *dgraphEngine) CounterIncrement(
 	ctx context.Context,
@@ -27,53 +21,33 @@ func (e *dgraphEngine) CounterIncrement(
 		return nil
 	}
 
-	return e.counterIncrementBatch(ctx, col, deltas)
+	for key, delta := range deltas {
+		if err := e.counterIncrementOne(ctx, col, key, delta); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-// counterIncrementBatch reads all matching counters in a single query, then
-// writes all updates in a single mutation. This reduces N-key deltas from N
-// sequential RAFT commits to 1 — a major improvement for multi-key Deltas.
-func (e *dgraphEngine) counterIncrementBatch(
+// counterIncrementOne atomically increments a single counter key using a
+// read-modify-write within a single Dgraph transaction.
+func (e *dgraphEngine) counterIncrementOne(
 	ctx context.Context,
-	col string,
-	deltas metaengine.Delta,
+	col, key string,
+	delta int64,
 ) error {
 	txn := e.client.NewTxn()
 	defer func() { _ = txn.Discard(ctx) }()
 
-	// Query only the delta keys (not the entire collection) to avoid over-reading.
-	// For small delta sets (≤20 keys), we build a DQL @filter with eq() per key
-	// using $keyN variables (not string interpolation) to prevent DQL injection.
-	// For larger sets, the filter expression would be excessively long and we
-	// fall back to querying all counters in the collection.
-	vars := map[string]string{"$col": col}
-	q := `query counters($col: string) {
-		counter(func: eq(cqrs.counter_collection, $col)) {
+	q := fmt.Sprintf(`{
+		counter(func: eq(cqrs.counter_collection, %s)) @filter(eq(cqrs.counter_key, %s)) {
 			uid
-			cqrs.counter_key
 			cqrs.counter_value
 		}
-	}`
+	}`, dqlString(col), dqlString(key))
 
-	if len(deltas) <= 20 {
-		parts := make([]string, 0, len(deltas))
-		i := 0
-		for key := range deltas {
-			varName := fmt.Sprintf("$key%d", i)
-			parts = append(parts, fmt.Sprintf(counterKeyFilterFmt, varName))
-			vars[varName] = key
-			i++
-		}
-		q = fmt.Sprintf(`query counters($col: string, %s) {
-			counter(func: eq(cqrs.counter_collection, $col)) @filter(%s) {
-				uid
-				cqrs.counter_key
-				cqrs.counter_value
-			}
-		}`, strings.Join(keyVarDecls(len(deltas)), ", "), strings.Join(parts, " OR "))
-	}
-
-	resp, err := txn.QueryWithVars(ctx, q, vars)
+	resp, err := txn.Query(ctx, q)
 	if err != nil {
 		return fmt.Errorf("dgraphengine.CounterIncrement: query: %w", err)
 	}
@@ -81,7 +55,6 @@ func (e *dgraphEngine) counterIncrementBatch(
 	var result struct {
 		Counter []struct {
 			UID              string `json:"uid"`
-			CqrsCounterKey   string `json:"cqrs.counter_key"`
 			CqrsCounterValue int64  `json:"cqrs.counter_value"`
 		} `json:"counter"`
 	}
@@ -90,38 +63,22 @@ func (e *dgraphEngine) counterIncrementBatch(
 		return fmt.Errorf("dgraphengine.CounterIncrement: unmarshal: %w", err)
 	}
 
-	// Index existing counters by key for O(1) lookup.
-	existing := make(map[string]struct {
-		uid   string
-		value int64
-	}, len(result.Counter))
-	for _, c := range result.Counter {
-		existing[c.CqrsCounterKey] = struct {
-			uid   string
-			value int64
-		}{uid: c.UID, value: c.CqrsCounterValue}
+	newValue := delta
+	node := map[string]any{
+		"cqrs.counter_collection": col,
+		"cqrs.counter_key":        key,
+		"cqrs.counter_value":      newValue,
+		"dgraph.type":             []string{"MetaCounterEntry"},
 	}
 
-	// Build all mutations in a single request — one RAFT commit for all deltas.
-	setJSON := make([]map[string]any, 0, len(deltas))
-	for key, delta := range deltas {
-		if ex, ok := existing[key]; ok {
-			setJSON = append(setJSON, map[string]any{
-				"uid":                ex.uid,
-				"cqrs.counter_value": ex.value + delta,
-			})
-		} else {
-			setJSON = append(setJSON, map[string]any{
-				"uid":                     "_:new_" + sanitizeKey(key),
-				"cqrs.counter_collection": col,
-				"cqrs.counter_key":        key,
-				"cqrs.counter_value":      delta,
-				"dgraph.type":             []string{"MetaCounterEntry"},
-			})
-		}
+	if len(result.Counter) > 0 {
+		node["uid"] = result.Counter[0].UID
+		node["cqrs.counter_value"] = result.Counter[0].CqrsCounterValue + delta
+	} else {
+		node["uid"] = "_:new"
 	}
 
-	data, _ := json.Marshal(setJSON)
+	data, _ := json.Marshal(node)
 
 	if _, err := txn.Mutate(ctx, &api.Mutation{
 		SetJson:   data,
@@ -133,42 +90,15 @@ func (e *dgraphEngine) counterIncrementBatch(
 	return nil
 }
 
-// sanitizeKey strips characters that are unsafe in Dgraph blank-node labels.
-// Blank node labels must match [a-zA-Z_][a-zA-Z0-9_]*.
-func sanitizeKey(s string) string {
-	var b strings.Builder
-	for _, r := range s {
-		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
-			(r >= '0' && r <= '9') || r == '_' {
-			b.WriteRune(r)
-		} else {
-			b.WriteByte('_')
-		}
-	}
-
-	return b.String()
-}
-
-// keyVarDecls produces DQL variable declarations for n counter keys:
-// ["$key0 string", "$key1 string", ...]. Used in the query header so
-// QueryWithVars can bind each key safely without string interpolation.
-func keyVarDecls(n int) []string {
-	decls := make([]string, n)
-	for i := range n {
-		decls[i] = fmt.Sprintf("$key%d string", i)
-	}
-	return decls
-}
-
 func (e *dgraphEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
-	q := `query counter($col: string) {
-		counter(func: eq(cqrs.counter_collection, $col)) {
+	q := fmt.Sprintf(`{
+		counter(func: eq(cqrs.counter_collection, %s)) {
 			cqrs.counter_key
 			cqrs.counter_value
 		}
-	}`
+	}`, dqlString(col))
 
-	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, q, map[string]string{"$col": col})
+	resp, err := e.client.NewReadOnlyTxn().Query(ctx, q)
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.CounterGet: %w", err)
 	}

@@ -5,9 +5,6 @@ import (
 	"encoding/json/v2"
 	"fmt"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
@@ -111,15 +108,6 @@ func (a *Adapter) EventTypes() []event.Type { return a.types }
 func (a *Adapter) Handle(ctx context.Context, evt event.Event) error {
 	eventType := string(evt.Type())
 	payload := evt.Payload()
-
-	if span := trace.SpanFromContext(ctx); span.IsRecording() {
-		span.SetAttributes(
-			attribute.String("projectionadapter.event_type", eventType),
-			attribute.String("projectionadapter.stream_id", evt.StreamID().String()),
-			attribute.String("projectionadapter.stream_type", string(evt.StreamType())),
-			attribute.Int64("projectionadapter.version", int64(evt.Version())),
-		)
-	}
 
 	var decoded any
 

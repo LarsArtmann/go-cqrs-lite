@@ -3,7 +3,6 @@ package metaengine
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"maps"
 	"reflect"
 	"slices"
@@ -14,110 +13,22 @@ import (
 )
 
 type Store struct {
-	mu                sync.RWMutex
-	foldMu            sync.Mutex // serializes SetCurrentRecord + invoke (shared fold state)
-	engines           []Engine
-	queries           map[string]queryMeta
-	byInputType       map[string]string
-	plan              *PlanResult
-	poison            *poisonTracker
-	idempotency       *idempotencyTracker
-	meter             *workloadMeter
-	subs              *subscriberHub
-	hooks             *Hooks // observability hooks (nil = no-op)
-	eventLog          *EventLog
-	queryDecls        []any          // original query declarations (for Verify)
-	coalescer         *ReadCoalescer // optional read coalescer (nil = disabled)
-	routingHysteresis float64        // min fractional improvement before suggesting re-route
-	routingMinDelta   float64        // min absolute improvement (ms) before suggesting re-route
-	lastReplanAt      time.Time
-	replanCount       int
-	planHistory       []PlanAuditEntry // bounded audit trail (max maxPlanHistory)
-	routingMu         sync.Mutex       // protects routingSig + routingDiags
-	routingSig        string
-	routingDiags      []Diagnostic
-	priorityConfig    *PriorityConfig // operator-driven layout priority (ADR-0124)
+	mu          sync.RWMutex
+	engines     []Engine
+	queries     map[string]queryMeta
+	byInputType map[string]string
+	plan        *PlanResult
+	poison      *poisonTracker
+	idempotency *idempotencyTracker
+	meter       *workloadMeter
+	subs        *subscriberHub
+	hooks       *Hooks // observability hooks (nil = no-op)
+	eventLog    *EventLog
+	queryDecls  []any          // original query declarations (for Verify)
+	coalescer   *ReadCoalescer // optional read coalescer (nil = disabled)
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }
-
-// Replan recomputes the plan using current engine profiles. This is the primary
-// mechanism for picking up live latency measurements: ProbeEngine continuously
-// updates trackers via background probing, and Replan re-reads Profile() which
-// reflects those updates through ApplyCalibration. Call Replan periodically
-// (e.g. every 30s) or after detecting a significant latency shift.
-//
-// Replan is safe for concurrent use: it holds the Store's write lock only
-// during engine re-assignment (mutating QueryDecl) and the atomic plan swap.
-// The rule pipeline runs without the lock — same as Plan() — because rules
-// read from the Store and would self-deadlock if the write lock were held.
-//
-// The plan version is incremented on each successful Replan. Consumers can
-// compare versions to detect that a re-plan occurred without inspecting the
-// full PlanResult.
-func (s *Store) Replan(ctx context.Context) error {
-	return s.replanWithTrigger(ctx, triggerManual)
-}
-
-// replanWithTrigger is the shared body of every re-plan path. The trigger
-// string is recorded in the audit trail so operators can distinguish a manual
-// Replan from one caused by SetPriority, AddEngine/RemoveEngine, or the
-// auto-reroute loop.
-func (s *Store) replanWithTrigger(ctx context.Context, trigger string) error {
-	if err := ctx.Err(); err != nil {
-		return fmt.Errorf("metaengine.Store.Replan: %w", err)
-	}
-
-	cfg := planConfig{
-		writeAmplificationBudget: DefaultWriteAmplificationBudget,
-		priority:                 s.priorityConfig,
-	}
-
-	// Phase 1: re-assign engines under the write lock (mutates QueryDecl).
-	plan := &PlanResult{}
-
-	s.mu.Lock()
-	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
-		q := s.queries[name]
-
-		assignment, err := planQuery(q, s.engines, cfg)
-		if err != nil {
-			s.mu.Unlock()
-			return fmt.Errorf("metaengine.Store.Replan: %w", err)
-		}
-
-		plan.Queries = append(plan.Queries, assignment)
-	}
-	s.mu.Unlock()
-
-	// Phase 2: run rules without the lock (rules read from Store and would
-	// self-deadlock if the write lock were held — same pattern as Plan()).
-	pipeline := NewRulePipeline(defaultRules(cfg)...)
-	if err := pipeline.Apply(plan, PlanContext{Store: s, Config: cfg}); err != nil {
-		return fmt.Errorf("metaengine.Store.Replan: %w", err)
-	}
-
-	// Phase 3: atomically swap the plan under the write lock.
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if s.plan != nil {
-		plan.Version = s.plan.Version + 1
-	} else {
-		plan.Version = 1
-	}
-
-	plan.ComputedAt = time.Now()
-	s.plan = plan
-	s.lastReplanAt = plan.ComputedAt
-	s.replanCount++
-	s.appendPlanAudit(plan.Version, plan.ComputedAt, trigger, s.priorityConfig)
-
-	slog.Info("metaengine: replan completed",
-		"version", plan.Version, "queries", len(plan.Queries), "trigger", trigger)
-
-	return nil
-}
 
 // CollectionInfo describes a planned query collection.
 type CollectionInfo struct {
@@ -299,7 +210,30 @@ func (s *Store) notifyWatchers(collection string, key any, value any) {
 // Each query has its own independent projection — the same event updates
 // each matching query's collection separately.
 func (s *Store) Apply(ctx context.Context, eventType string, payload any) error {
-	return s.applyWithRecord(ctx, eventType, record.Record{Type: eventType}, payload)
+	s.meter.IncWrite()
+
+	if s.eventLog != nil {
+		s.eventLog.Record(eventType, payload)
+	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
+		q := s.queries[name]
+
+		foldIdx, ok := q.QueryFoldByEvent()[eventType]
+		if !ok {
+			continue
+		}
+
+		fold := q.QueryFolds()[foldIdx]
+		if err := s.applyFold(ctx, q, fold, payload); err != nil {
+			return fmt.Errorf("query %q fold for %s: %w", q.QueryName(), eventType, err)
+		}
+	}
+
+	return nil
 }
 
 // EventInput pairs an event type with its payload for batch application.
@@ -340,12 +274,6 @@ func (s *Store) ApplyRecord(
 
 // applyWithRecord dispatches a payload through all matching folds, setting the
 // Record context on RecordAwareFold implementations before invoke.
-//
-// Fold operations are grouped by engine and applied atomically: when an engine
-// implements Transactional, all its fold operations for this event execute in a
-// single RunInTx. This ensures that if one fold fails, the engine's transaction
-// rolls back — preserving the invariant that an event is an atomic batch boundary.
-// Cross-engine atomicity is NOT guaranteed (two-phase commit is not supported).
 func (s *Store) applyWithRecord(
 	ctx context.Context,
 	eventType string,
@@ -358,7 +286,28 @@ func (s *Store) applyWithRecord(
 		s.eventLog.Record(eventType, payload)
 	}
 
-	return s.dispatchFolds(ctx, eventType, rec, payload, nil)
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
+		q := s.queries[name]
+
+		foldIdx, ok := q.QueryFoldByEvent()[eventType]
+		if !ok {
+			continue
+		}
+
+		fold := q.QueryFolds()[foldIdx]
+		if ra, ok := fold.(RecordAwareFold); ok {
+			ra.SetCurrentRecord(rec)
+		}
+
+		if err := s.applyFold(ctx, q, fold, payload); err != nil {
+			return fmt.Errorf("query %q fold for %s: %w", q.QueryName(), eventType, err)
+		}
+	}
+
+	return nil
 }
 
 // ApplyIdempotent processes an event with deduplication by event ID. If the
@@ -591,7 +540,7 @@ func (s *Store) applyFoldEdge(
 	col := q.QueryName()
 	edge := fold.invoke(payload)
 
-	if gb, ok := q.QueryEngine().(graphBackend); ok {
+	if gb, ok := q.QueryEngine().(GraphBackend); ok {
 		if err := gb.GraphAddEdge(ctx, col, edge); err != nil {
 			return fmt.Errorf("graph add edge %s: %w", col, err)
 		}
@@ -599,8 +548,7 @@ func (s *Store) applyFoldEdge(
 		return nil
 	}
 
-	// Degraded fallback: store edge via MultimapBackend (O(N) traversal).
-	return graphAddEdgeFallback(ctx, q.QueryEngine(), col, edge)
+	return unsupportedEngine(errUnsupportedGraphOps, q.QueryEngine().Profile().Name)
 }
 
 func (s *Store) applyFoldSet(

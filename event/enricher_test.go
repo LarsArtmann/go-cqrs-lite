@@ -31,7 +31,7 @@ func TestEnrichEvent(t *testing.T) {
 		t.Error("expected correlation ID to be set")
 	}
 
-	if meta.ActorID.IsZero() {
+	if meta.UserID.IsZero() {
 		t.Error("expected user ID to be set")
 	}
 }

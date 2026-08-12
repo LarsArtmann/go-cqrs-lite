@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 type (
@@ -41,22 +40,16 @@ type FindTaskResult struct {
 func findTaskQuery() metaengine.QueryDecl[FindTask, FindTaskResult] {
 	return metaengine.Query[FindTask, FindTaskResult](
 		"find_task",
-		metaengine.OnRecord(
-			TaskCreated{},
-			func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
-				return e.ID, FindTaskResult{
-					ID: e.ID, Title: e.Title, Assignee: e.Assignee,
-					Status: e.Status, Priority: e.Priority,
-				}
-			},
-		),
-		metaengine.OnRecord(
-			TaskCompleted{},
-			func(_ record.Record, e TaskCompleted, prev FindTaskResult) FindTaskResult {
-				prev.Status = "completed"
+		metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, FindTaskResult) {
+			return e.ID, FindTaskResult{
+				ID: e.ID, Title: e.Title, Assignee: e.Assignee,
+				Status: e.Status, Priority: e.Priority,
+			}
+		}),
+		metaengine.On(TaskCompleted{}, func(e TaskCompleted, prev FindTaskResult) FindTaskResult {
+			prev.Status = "completed"
 
-				return prev
-			},
-		),
+			return prev
+		}),
 	)
 }

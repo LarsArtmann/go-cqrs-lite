@@ -24,10 +24,6 @@ func (s *Store) RegisterQuery(query any) error {
 		return fmt.Errorf("%w: %T", errNotQueryMeta, query)
 	}
 
-	if err := meta.ensureFolds(); err != nil {
-		return fmt.Errorf("metaengine.RegisterQuery: %w", err)
-	}
-
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

@@ -5,7 +5,6 @@ import (
 	"encoding/json/v2"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
@@ -55,16 +54,12 @@ func RunRecordStampTest(t *testing.T, eng metaengine.Engine) {
 		StreamType: "Item",
 		Version:    3,
 		MetaData: record.CommonMetadata{
-			CorrelationID: id.NewCorrelationID(),
-			ActorID:       id.NewSystemActor("test"),
+			CorrelationID: "corr-123",
+			ActorID:       "user-456",
 		},
 	}
 
-	if err := store.ApplyRecord(
-		ctx,
-		rec,
-		stampItemCreated{ID: "item-1", Name: "test"},
-	); err != nil {
+	if err := store.ApplyRecord(ctx, rec, stampItemCreated{ID: "item-1", Name: "test"}); err != nil {
 		t.Fatalf("ApplyRecord: %v", err)
 	}
 

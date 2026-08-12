@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ─── DOMAIN TYPES (shared across BDD specs) ───
@@ -59,24 +58,18 @@ type FindTaskResult struct {
 func findTaskQuery() metaengine.QueryDecl[FindTask, FindTaskResult] {
 	return metaengine.Query[FindTask, FindTaskResult](
 		"find_task",
-		metaengine.OnRecord(
-			TaskCreated{},
-			func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
-				return e.ID, FindTaskResult{
-					ID: e.ID, Title: e.Title, Assignee: e.Assignee,
-					Status: e.Status, Priority: e.Priority,
-				}
-			},
-		),
-		metaengine.OnRecord(
-			TaskCompleted{},
-			func(_ record.Record, e TaskCompleted, prev FindTaskResult) FindTaskResult {
-				prev.Status = "completed"
+		metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, FindTaskResult) {
+			return e.ID, FindTaskResult{
+				ID: e.ID, Title: e.Title, Assignee: e.Assignee,
+				Status: e.Status, Priority: e.Priority,
+			}
+		}),
+		metaengine.On(TaskCompleted{}, func(e TaskCompleted, prev FindTaskResult) FindTaskResult {
+			prev.Status = "completed"
 
-				return prev
-			},
-		),
-		metaengine.OnRecord(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
+			return prev
+		}),
+		metaengine.On(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
 	)
 }
 
@@ -89,7 +82,7 @@ type CheckAssignee struct {
 func checkAssigneeQuery() metaengine.QueryDecl[CheckAssignee, bool] {
 	return metaengine.Query[CheckAssignee, bool](
 		"check_assignee",
-		metaengine.OnRecord(TaskAssigned{}, func(_ record.Record, e TaskAssigned) UserID {
+		metaengine.On(TaskAssigned{}, func(e TaskAssigned) UserID {
 			return e.Assignee
 		}),
 	)
@@ -111,24 +104,18 @@ type ListTasksByStatusResult struct {
 func listTasksByStatusQuery() metaengine.QueryDecl[ListTasksByStatus, ListTasksByStatusResult] {
 	return metaengine.Query[ListTasksByStatus, ListTasksByStatusResult](
 		"list_tasks_by_status",
-		metaengine.OnRecord(
-			TaskCreated{},
-			func(_ record.Record, e TaskCreated) (TaskID, FindTaskResult) {
-				return e.ID, FindTaskResult{
-					ID: e.ID, Title: e.Title, Assignee: e.Assignee,
-					Status: e.Status, Priority: e.Priority,
-				}
-			},
-		),
-		metaengine.OnRecord(
-			TaskCompleted{},
-			func(_ record.Record, e TaskCompleted, prev FindTaskResult) FindTaskResult {
-				prev.Status = "completed"
+		metaengine.On(TaskCreated{}, func(e TaskCreated) (TaskID, FindTaskResult) {
+			return e.ID, FindTaskResult{
+				ID: e.ID, Title: e.Title, Assignee: e.Assignee,
+				Status: e.Status, Priority: e.Priority,
+			}
+		}),
+		metaengine.On(TaskCompleted{}, func(e TaskCompleted, prev FindTaskResult) FindTaskResult {
+			prev.Status = "completed"
 
-				return prev
-			},
-		),
-		metaengine.OnRecord(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
+			return prev
+		}),
+		metaengine.On(TaskDeleted{}, metaengine.Remove[FindTaskResult]()),
 		metaengine.FilterOn(func(r FindTaskResult) string { return r.Status }),
 		metaengine.SortOn(func(r FindTaskResult) int { return r.Priority }),
 	)
@@ -141,15 +128,12 @@ type CountByStatus struct{}
 func countByStatusQuery() metaengine.QueryDecl[CountByStatus, map[string]int64] {
 	return metaengine.Query[CountByStatus, map[string]int64](
 		"count_by_status",
-		metaengine.OnRecord(TaskCreated{}, func(_ record.Record, e TaskCreated) metaengine.Delta {
+		metaengine.On(TaskCreated{}, func(e TaskCreated) metaengine.Delta {
 			return metaengine.Delta{e.Status: +1}
 		}),
-		metaengine.OnRecord(
-			TaskCompleted{},
-			func(_ record.Record, e TaskCompleted) metaengine.Delta {
-				return metaengine.Delta{"open": -1, "completed": +1}
-			},
-		),
+		metaengine.On(TaskCompleted{}, func(e TaskCompleted) metaengine.Delta {
+			return metaengine.Delta{"open": -1, "completed": +1}
+		}),
 	)
 }
 
@@ -167,7 +151,7 @@ type TasksByAssigneeResult struct {
 func tasksByAssigneeQuery() metaengine.QueryDecl[TasksByAssignee, TasksByAssigneeResult] {
 	return metaengine.Query[TasksByAssignee, TasksByAssigneeResult](
 		"tasks_by_assignee",
-		metaengine.OnRecord(TaskAssigned{}, func(_ record.Record, e TaskAssigned) metaengine.Edge {
+		metaengine.On(TaskAssigned{}, func(e TaskAssigned) metaengine.Edge {
 			return metaengine.Edge{From: e.Assignee, To: e.TaskID}
 		}),
 	)

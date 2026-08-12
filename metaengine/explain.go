@@ -7,7 +7,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // ExplainOptions controls what EXPLAIN returns.
@@ -138,11 +137,8 @@ func (s *Store) ExplainPlan() string {
 				p.Name, p.ReadNsPerOp(), p.WriteNsPerOp())
 		}
 		if p.IsReplicated() {
-			fmt.Fprintf(&b, " replication=%s, lag=%s",
-				p.Replication, p.EffectiveReplicationLag())
-		}
-		if p.IsRemote() {
-			fmt.Fprintf(&b, " %s", FormatLiveLatency(buildEngineStats(eng)))
+			fmt.Fprintf(&b, " replication=%s, lag=%s, rtt=%s",
+				p.Replication, p.EffectiveReplicationLag(), p.EffectiveNetworkRTT())
 		}
 		if p.IsVolatile() {
 			fmt.Fprintf(&b, " volatile")
@@ -155,10 +151,8 @@ func (s *Store) ExplainPlan() string {
 
 	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
 		q := s.queries[name]
-		profile := q.QueryEngine().Profile()
-		fmt.Fprintf(&b, "  %s: %s via %s (%s)%s", name, q.QueryADT(),
-			profile.Name, q.QueryComplexity(),
-			layoutExplainAnnotation(s.priorityConfig, profile, name, q.QueryConfig()))
+		fmt.Fprintf(&b, "  %s: %s via %s (%s)", name, q.QueryADT(),
+			q.QueryEngine().Profile().Name, q.QueryComplexity())
 
 		if s.plan != nil {
 			for _, qa := range s.plan.Queries {
@@ -167,9 +161,13 @@ func (s *Store) ExplainPlan() string {
 						fmt.Fprintf(&b, " est=%.3fms", qa.Cost.EstimatedLatencyMs)
 					}
 
-					if rc := profile.ReadCosts; rc.NsPerPointLookup > 0 ||
+					if rc := q.QueryEngine().Profile().ReadCosts; rc.NsPerPointLookup > 0 ||
 						rc.NsPerFilteredScan > 0 || rc.NsPerAggregate > 0 || rc.NsPerScan > 0 {
-						fmt.Fprintf(&b, " read=%.0fns", profile.NsForRead(qa.ReadPattern))
+						fmt.Fprintf(
+							&b,
+							" read=%.0fns",
+							q.QueryEngine().Profile().NsForRead(qa.ReadPattern),
+						)
 					}
 				}
 			}
@@ -267,125 +265,5 @@ func (s *Store) Doctor(ctx context.Context) string {
 		b.WriteString("  all persistent\n")
 	}
 
-	b.WriteString("\n--- Aggregate Pushdown ---\n")
-
-	aggAny := false
-	s.mu.RLock()
-	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
-		eng := s.queries[name].QueryEngine()
-		caps := aggregateCapabilities(eng)
-		if caps == "" {
-			continue
-		}
-
-		fmt.Fprintf(&b, "  %s: %s\n", name, caps)
-		aggAny = true
-	}
-	s.mu.RUnlock()
-
-	if !aggAny {
-		b.WriteString("  none\n")
-	}
-
-	b.WriteString("\n--- Latency ---\n")
-
-	latAny := false
-	for _, st := range s.GetEngineStats(ctx) {
-		if !st.Profile.IsRemote() {
-			continue
-		}
-
-		fmt.Fprintf(&b, "  %s: %s\n", st.Name, FormatLiveLatency(st))
-		latAny = true
-	}
-
-	if !latAny {
-		b.WriteString("  all engines local\n")
-	}
-
-	b.WriteString(s.degradedDoctorSection())
-
-	b.WriteString("\n--- Routing ---\n")
-
-	s.mu.RLock()
-	version := 0
-	computedAt := time.Time{}
-	if s.plan != nil {
-		version = s.plan.Version
-		computedAt = s.plan.ComputedAt
-	}
-
-	replanCount := s.replanCount
-	lastReplan := s.lastReplanAt
-	hysteresis := s.routingHysteresis
-	s.mu.RUnlock()
-
-	fmt.Fprintf(&b, "  plan version: %d\n", version)
-	if !computedAt.IsZero() {
-		fmt.Fprintf(&b, "  computed: %s ago\n", roundDur(time.Since(computedAt)))
-	}
-
-	if replanCount > 0 {
-		fmt.Fprintf(
-			&b,
-			"  replans: %d (last %s ago)\n",
-			replanCount,
-			roundDur(time.Since(lastReplan)),
-		)
-	} else {
-		b.WriteString("  replans: 0 (never)\n")
-	}
-
-	if hist := s.formatPlanAuditTrail(); hist != "" {
-		fmt.Fprintf(&b, "  audit: %s\n", hist)
-	}
-
-	fmt.Fprintf(&b, "  hysteresis: %.0f%%\n", hysteresis*100)
-
-	driftDiags := s.CheckRouting(ctx)
-	if len(driftDiags) > 0 {
-		fmt.Fprintf(&b, "  drift: %d queries would benefit from re-routing\n", len(driftDiags))
-		for _, d := range driftDiags {
-			fmt.Fprintf(&b, "    %s\n", d.Message)
-		}
-	} else {
-		b.WriteString("  drift: none\n")
-	}
-
-	b.WriteString(s.LayoutDoctorSection())
-
 	return b.String()
-}
-
-// aggregateCapabilities returns a human-readable description of the aggregate
-// pushdown interfaces an engine implements. Returns "" if the engine has no
-// aggregate pushdown support.
-func aggregateCapabilities(eng Engine) string {
-	var caps []string
-
-	if _, ok := eng.(AggregateReader); ok {
-		caps = append(caps, "scalar")
-	}
-
-	if _, ok := eng.(GroupedAggregateReader); ok {
-		caps = append(caps, "grouped")
-	}
-
-	if _, ok := eng.(MultiAggregateReader); ok {
-		caps = append(caps, "multi")
-	}
-
-	if _, ok := eng.(MultiGroupedAggregateReader); ok {
-		caps = append(caps, "multi-grouped")
-	}
-
-	if _, ok := eng.(DistinctReader); ok {
-		caps = append(caps, "distinct")
-	}
-
-	if len(caps) == 0 {
-		return ""
-	}
-
-	return "pushdown: " + strings.Join(caps, ", ")
 }

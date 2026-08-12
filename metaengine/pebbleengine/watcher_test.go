@@ -7,8 +7,8 @@ import (
 
 	"github.com/onsi/gomega"
 
+	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // watcherTaskID is a distinct key type so Remove[V]() can unambiguously
@@ -31,18 +31,20 @@ type watcherTask struct {
 func TestPebbleWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 	g := gomega.NewWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	q := metaengine.Query[watcherTask, watcherTask](
 		"pebble_watcher_tasks",
-		metaengine.OnRecordTyped(
+		metaengine.OnTyped(
 			"task_created",
 			watcherTask{},
-			func(_ record.Record, e watcherTask) (watcherTaskID, watcherTask) {
+			func(e watcherTask) (watcherTaskID, watcherTask) {
 				return e.ID, e
 			},
 		),
-		metaengine.OnRecordTyped("task_deleted", watcherTask{}, metaengine.Remove[watcherTask]()),
+		metaengine.OnTyped("task_deleted", watcherTask{}, metaengine.Remove[watcherTask]()),
 	)
 
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
@@ -84,14 +86,16 @@ func TestPebbleWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 func TestPebbleWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 	g := gomega.NewWithT(t)
 
-	eng := mustNewPebbleEngine(t)
+	eng, err := pebbleengine.NewPebbleEngine("")
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	defer eng.Close()
 
 	q := metaengine.Query[watcherTask, watcherTask](
 		"pebble_replay_tasks",
-		metaengine.OnRecordTyped(
+		metaengine.OnTyped(
 			"task_created",
 			watcherTask{},
-			func(_ record.Record, e watcherTask) (watcherTaskID, watcherTask) {
+			func(e watcherTask) (watcherTaskID, watcherTask) {
 				return e.ID, e
 			},
 		),

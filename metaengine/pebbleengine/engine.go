@@ -50,11 +50,7 @@ const PebbleNsPerRead = 1300.0
 // Used by the planner's write-cost path (EngineProfile.WriteNsPerOp).
 const PebbleNsPerWrite = 2500.0
 
-var _ metaengine.TrackerHost = (*pebbleEngine)(nil)
-
 type pebbleEngine struct {
-	metaengine.Calibration
-
 	db          *pebble.DB
 	ownsDB      bool
 	persistence metaengine.Persistence
@@ -65,6 +61,7 @@ type pebbleEngine struct {
 	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
 	layoutMu    sync.Mutex
 	layouts     map[string]layoutPlan // collection → layout plan (secondary indexes)
+	cal         metaengine.Calibration
 }
 
 // NewPebbleEngine creates a Pebble-backed metaengine engine. If dir is empty,
@@ -142,16 +139,15 @@ func (e *pebbleEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSearch:  true,
 			metaengine.ADTSpatial: true,
 		},
-		Layouts: map[metaengine.ADT]metaengine.StorageLayout{
-			metaengine.ADTMap:       metaengine.LayoutLSM,
-			metaengine.ADTSet:       metaengine.LayoutLSM,
-			metaengine.ADTCounter:   metaengine.LayoutLSM,
-			metaengine.ADTSortedMap: metaengine.LayoutLSM,
-		},
 	}
-	e.ApplyCalibration(&p)
+	e.cal.ApplyCalibration(&p)
 
 	return p
+}
+
+// SetCalibration implements metaengine.Calibratable.
+func (e *pebbleEngine) SetCalibration(costs metaengine.CalibrationCosts) {
+	e.cal.SetCalibration(costs)
 }
 
 func (e *pebbleEngine) Close() error {
