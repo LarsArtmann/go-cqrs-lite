@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
@@ -24,12 +23,9 @@ type meTestResult struct {
 func meQueryDecl() metaengine.QueryDecl[meTestKey, meTestResult] {
 	return metaengine.Query[meTestKey, meTestResult](
 		"me_test_items",
-		metaengine.OnRecord(
-			itemCreated{},
-			func(_ record.Record, e itemCreated) (meTestKey, meTestResult) {
-				return e.ID, meTestResult(e)
-			},
-		),
+		metaengine.On(itemCreated{}, func(e itemCreated) (meTestKey, meTestResult) {
+			return e.ID, meTestResult(e)
+		}),
 	)
 }
 

@@ -72,7 +72,7 @@ func DeadLetterQueue() metaengine.QueryDecl[DeadLetterQuery, DeadLetterEntry] {
 			string(commandlifecycle.TypeDeadLettered),
 			commandlifecycle.DeadLetteredPayload{}, //nolint:exhaustruct // type inference hint for OnRecordTyped
 			func(rec record.Record, payload commandlifecycle.DeadLetteredPayload) (string, DeadLetterEntry) {
-				return rec.MetaData.CausationID.String(), payload
+				return rec.MetaData.CausationID, payload
 			},
 		),
 	)
@@ -90,7 +90,7 @@ func RetryCount() metaengine.QueryDecl[RetryCountQuery, map[string]int64] {
 			string(commandlifecycle.TypeRetried),
 			commandlifecycle.RetriedPayload{}, //nolint:exhaustruct // type inference hint for OnRecordTyped
 			func(rec record.Record, _ commandlifecycle.RetriedPayload) metaengine.Delta {
-				return metaengine.Delta{rec.MetaData.CausationID.String(): 1}
+				return metaengine.Delta{rec.MetaData.CausationID: 1}
 			},
 		),
 	)

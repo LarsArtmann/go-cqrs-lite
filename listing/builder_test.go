@@ -45,8 +45,8 @@ func TestListBuilder_DefaultOptions(t *testing.T) {
 				t.Errorf("default limit = %d, want 20", opts.Limit)
 			}
 
-			if opts.DeletePolicy != listing.DeleteExclude {
-				t.Errorf("default delete policy = %v, want DeleteExclude", opts.DeletePolicy)
+			if opts.Tombstone != listing.TombstoneExclude {
+				t.Errorf("default tombstone = %v, want TombstoneExclude", opts.Tombstone)
 			}
 
 			return &listing.Page[listing.StreamListing]{}, nil
@@ -90,23 +90,23 @@ func (s *stubReader) ListWithStatus(
 	return &listing.Page[listing.StreamStatus]{}, nil
 }
 
-func TestDeletePolicy_String(t *testing.T) {
+func TestTombstonePolicy_String(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		policy listing.DeletePolicy
+		policy listing.TombstonePolicy
 		want   string
 	}{
-		{listing.DeleteExclude, "exclude"},
-		{listing.DeleteInclude, "include"},
-		{listing.DeleteOnly, "only"},
-		{listing.DeletePolicy(99), "DeletePolicy(99)"},
+		{listing.TombstoneExclude, "exclude"},
+		{listing.TombstoneInclude, "include"},
+		{listing.TombstoneOnly, "only"},
+		{listing.TombstonePolicy(99), "TombstonePolicy(99)"},
 	}
 
 	for _, tt := range tests {
 		got := tt.policy.String()
 		if got != tt.want {
-			t.Errorf("DeletePolicy(%d).String() = %q, want %q", tt.policy, got, tt.want)
+			t.Errorf("TombstonePolicy(%d).String() = %q, want %q", tt.policy, got, tt.want)
 		}
 	}
 }
@@ -125,7 +125,7 @@ func TestStreamStatus_MarshalJSON(t *testing.T) {
 			EventCount:  3,
 			LastEventAt: ts,
 		},
-		Status: listing.StatusActive,
+		Status: event.TombstoneActive,
 	}
 
 	data, err := json.Marshal(status)

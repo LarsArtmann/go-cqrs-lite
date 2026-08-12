@@ -23,9 +23,7 @@ var _ = Describe("ListBuilder", func() {
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
 		store = memory.NewMemoryStore()
-		reader = listing.NewInMemoryStreamReader(store,
-			listing.WithDeleteTypes("user.deleted"),
-		)
+		reader = listing.NewInMemoryStreamReader(store)
 	})
 
 	AfterEach(func() {
@@ -108,6 +106,7 @@ func seedStreamEvents(ctx context.Context, store *memory.MemoryStore) {
 	deletedEvt, err := event.NewEvent(
 		"user.deleted", deletedID, "User",
 		event.Version(1), []byte(`{"reason":"gdpr"}`),
+		event.WithCustom(event.MetadataKeyTombstone, "true"),
 	)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(

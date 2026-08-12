@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
@@ -25,12 +24,9 @@ func TestPreset_WithMetaEngine(t *testing.T) {
 
 	countQ := metaengine.Query[countInput, map[string]int64](
 		"preset_counts",
-		metaengine.OnRecord(
-			presetItemCreated{},
-			func(_ record.Record, e presetItemCreated) metaengine.Delta {
-				return metaengine.Delta{e.Status: +1}
-			},
-		),
+		metaengine.On(presetItemCreated{}, func(e presetItemCreated) metaengine.Delta {
+			return metaengine.Delta{e.Status: +1}
+		}),
 	)
 
 	store, err := metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine()}, countQ)

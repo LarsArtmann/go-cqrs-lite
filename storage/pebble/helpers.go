@@ -27,7 +27,7 @@ func (a *EventStore) AppendBatch(
 
 	batch := a.db.NewBatch()
 
-	defer deferClose(batch)
+	defer func() { _ = batch.Close() }()
 
 	for _, evt := range events {
 		key := a.eventKey(ref, evt.Version())

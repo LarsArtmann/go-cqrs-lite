@@ -74,29 +74,19 @@ func RunStoreSuite(t *testing.T, factory StoreFactory) {
 	})
 }
 
-// saveOneCommand creates a fresh stream ref, saves a single user.create
-// command, and returns the context, ref, and command for follow-up assertions.
-func saveOneCommand(
-	t *testing.T,
-	store StoreSuite,
-) (context.Context, command.StreamRef, *command.PersistedCommand) {
+func testSaveAndLoad(t *testing.T, store StoreSuite) {
 	t.Helper()
 
 	ctx := context.Background()
-	ref := command.NewStreamRef("User", id.NewStreamID())
+
+	streamID := id.NewStreamID()
+	ref := command.NewStreamRef("User", streamID)
+
 	cmd := MustCreateCommand(t, "user.create", ref)
 
 	if err := store.Save(ctx, ref, cmd); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
-
-	return ctx, ref, cmd
-}
-
-func testSaveAndLoad(t *testing.T, store StoreSuite) {
-	t.Helper()
-
-	ctx, ref, cmd := saveOneCommand(t, store)
 
 	loaded, err := store.Load(ctx, ref)
 	if err != nil {
@@ -119,7 +109,16 @@ func testSaveAndLoad(t *testing.T, store StoreSuite) {
 func testDuplicateDetection(t *testing.T, store StoreSuite) {
 	t.Helper()
 
-	ctx, ref, cmd := saveOneCommand(t, store)
+	ctx := context.Background()
+
+	streamID := id.NewStreamID()
+	ref := command.NewStreamRef("User", streamID)
+
+	cmd := MustCreateCommand(t, "user.create", ref)
+
+	if err := store.Save(ctx, ref, cmd); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
 
 	err := store.Save(ctx, ref, cmd)
 	if !errors.Is(err, command.ErrDuplicateCommand) {

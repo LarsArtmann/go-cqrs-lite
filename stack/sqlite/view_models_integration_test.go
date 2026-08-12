@@ -3,6 +3,7 @@ package sqlite_test
 import (
 	"context"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -10,7 +11,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
-	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
@@ -36,6 +36,14 @@ func buildViewMessage(evt event.Event, eventType string) *message.Message {
 	msg.Metadata.Set("aggregate_type", string(evt.StreamType()))
 	msg.Metadata.Set("version", "1")
 	msg.Metadata.Set("schema_version", "1")
+
+	md := evt.Metadata()
+	if md.Tombstone != nil {
+		msg.Metadata.Set("tombstone_status", strconv.Itoa(int(md.Tombstone.Status)))
+		if md.Tombstone.Reason != "" {
+			msg.Metadata.Set("tombstone_reason", md.Tombstone.Reason)
+		}
+	}
 
 	return msg
 }
@@ -72,7 +80,6 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 		OnUpdate: func(_ context.Context, evt event.Event, existing *sqlUserView) (*sqlUserView, error) {
 			return &sqlUserView{Name: existing.Name + " Updated", Email: existing.Email}, nil
 		},
-		DeleteTypes: []event.Type{"user.deleted"},
 	}
 
 	ctx := context.Background()
@@ -114,8 +121,8 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 		t.Fatalf("View after update: name=%s, want 'Alice Updated'", got.Name)
 	}
 
-	// List with ExcludeDeleted → should use TombstoneQuerier fast path.
-	results, err := mat.List(ctx, listing.DeleteExclude)
+	// List with ExcludeTombstoned → should use TombstoneQuerier fast path.
+	results, err := mat.List(ctx, stack.ExcludeTombstoned)
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
@@ -133,6 +140,7 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 		event.Version(3),
 		nil,
 	)
+	tombEvt, _ = event.MarkTombstone(tombEvt)
 
 	mat.OnTombstone = func(_ context.Context, _ event.Event, existing *sqlUserView) (*sqlUserView, error) {
 		return &sqlUserView{Name: existing.Name, Email: existing.Email, Tombstoned: true}, nil
@@ -142,8 +150,8 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 		t.Fatalf("Handler tombstone: %v", err)
 	}
 
-	// List with ExcludeDeleted → 0 results (server-side filtered).
-	results, err = mat.List(ctx, listing.DeleteExclude)
+	// List with ExcludeTombstoned → 0 results (server-side filtered).
+	results, err = mat.List(ctx, stack.ExcludeTombstoned)
 	if err != nil {
 		t.Fatalf("List after tombstone: %v", err)
 	}
@@ -152,14 +160,14 @@ func TestIntegration_SQLViewStoreWithMaterialize(t *testing.T) {
 		t.Fatalf("List after tombstone: got %d, want 0", len(results))
 	}
 
-	// List with OnlyDeleted → 1 result.
-	results, err = mat.List(ctx, listing.DeleteOnly)
+	// List with OnlyTombstoned → 1 result.
+	results, err = mat.List(ctx, stack.OnlyTombstoned)
 	if err != nil {
-		t.Fatalf("List only deleted: %v", err)
+		t.Fatalf("List only tombstoned: %v", err)
 	}
 
 	if len(results) != 1 {
-		t.Fatalf("List only deleted: got %d, want 1", len(results))
+		t.Fatalf("List only tombstoned: got %d, want 1", len(results))
 	}
 
 	// Query via SQLViewStore directly (proves real columns work).

@@ -104,20 +104,19 @@ func addAgentOperation(doc *Document, agentID catalog.AgentID, msg catalog.Messa
 	kind := messageKindForKind(msg.Kind)
 	channelKey := string(kind) + "." + string(messageID)
 	componentKey := string(msg.Kind) + "." + string(messageID)
-	componentRef := "#/components/messages/" + componentKey
-	channelMsgRef := "#/channels/" + channelKey + "/messages/" + string(kind)
+	ref := "#/components/messages/" + componentKey
 
 	ensureMessageComponent(doc, msg, componentKey)
-	ensureChannel(doc, agentID, msg, kind, channelKey, componentRef)
+	ensureChannel(doc, agentID, msg, kind, channelKey, ref)
 
 	opName := action + "." + string(agentID) + "." + string(messageID)
 
 	doc.Operations[opName] = Operation{
-		Title:    action + " " + safeName(msg) + " (agent: " + string(agentID) + ")",
+		Title:    action + " " + string(msg.Name) + " (agent: " + string(agentID) + ")",
 		Summary:  string(msg.Summary),
 		Action:   action,
 		Channel:  Ref{Ref: "#/channels/" + channelKey},
-		Messages: []Ref{{Ref: channelMsgRef}},
+		Messages: []Ref{{Ref: ref}},
 		Tags:     buildTags(kind, catalog.ServiceID(agentID), msg),
 		Reply:    nil,
 	}
@@ -164,7 +163,7 @@ func ensureChannel(
 			kind,
 			dotSeparated(string(catalog.Key(msg))),
 		),
-		Title:       safeName(msg) + " " + kindSingular(kind) + " Channel",
+		Title:       string(msg.Name) + " " + strings.TrimSuffix(string(kind), "s") + " Channel",
 		Description: string(msg.Summary),
 		Messages:    map[string]Ref{string(kind): {Ref: ref}},
 	}
@@ -203,27 +202,6 @@ func messageKindForKind(kind catalog.MessageKind) messageKind {
 	}
 }
 
-func kindSingular(kind messageKind) string {
-	switch kind {
-	case kindCommand:
-		return "command"
-	case kindEvent:
-		return "event"
-	case kindQuery:
-		return "query"
-	default:
-		return string(kind)
-	}
-}
-
-func safeName(msg catalog.Message) string {
-	if msg.Name != "" {
-		return string(msg.Name)
-	}
-
-	return string(catalog.Key(msg))
-}
-
 func (e *Exporter) addMessage(
 	doc *Document,
 	serviceID catalog.ServiceID,
@@ -243,7 +221,7 @@ func (e *Exporter) addMessage(
 	ref := "#/components/messages/" + componentKey
 
 	addChannel(doc, serviceID, msg, kind, channelKey, ref)
-	addOperation(doc, serviceID, msg, kind, cfg, channelKey, messageID)
+	addOperation(doc, serviceID, msg, kind, cfg, channelKey, ref, messageID)
 
 	e.addMessageSchema(doc, msg)
 }
@@ -262,7 +240,7 @@ func addChannel(
 			kind,
 			dotSeparated(string(catalog.Key(msg))),
 		),
-		Title:       safeName(msg) + " " + kindSingular(kind) + " Channel",
+		Title:       string(msg.Name) + " " + strings.TrimSuffix(string(kind), "s") + " Channel",
 		Description: string(msg.Summary),
 		Messages:    map[string]Ref{string(kind): {Ref: ref}},
 	}
@@ -274,18 +252,17 @@ func addOperation(
 	msg catalog.Message,
 	kind messageKind,
 	cfg *messageConfig,
-	channelKey string,
+	channelKey, ref string,
 	messageID catalog.MessageID,
 ) {
-	opTitle, opName := operationTitleAndName(safeName(msg), kind, cfg, messageID)
-	channelMsgRef := "#/channels/" + channelKey + "/messages/" + string(kind)
+	opTitle, opName := operationTitleAndName(string(msg.Name), kind, cfg, messageID)
 
 	doc.Operations[opName] = Operation{
 		Title:    opTitle,
 		Summary:  string(msg.Summary),
 		Action:   cfg.action,
 		Channel:  Ref{Ref: "#/channels/" + channelKey},
-		Messages: []Ref{{Ref: channelMsgRef}},
+		Messages: []Ref{{Ref: ref}},
 		Tags:     buildTags(kind, serviceID, msg),
 		Reply:    nil,
 	}
@@ -297,11 +274,6 @@ func operationTitleAndName(
 	cfg *messageConfig,
 	messageID catalog.MessageID,
 ) (string, string) {
-	name := msgName
-	if name == "" {
-		name = string(messageID)
-	}
-
 	switch kind {
 	case kindEvent:
 		opName := "publish" + string(messageID)
@@ -309,13 +281,13 @@ func operationTitleAndName(
 			opName = actionReceive + string(messageID)
 		}
 
-		return "Publish " + name, opName
+		return "Publish " + msgName, opName
 	case kindCommand:
-		return "Receive " + name, actionReceive + string(messageID)
+		return "Receive " + msgName, actionReceive + string(messageID)
 	case kindQuery:
-		return "Handle " + name, "handle" + string(messageID)
+		return "Handle " + msgName, "handle" + string(messageID)
 	default:
-		return "Handle " + name, "handle" + string(messageID)
+		return "Handle " + msgName, "handle" + string(messageID)
 	}
 }
 

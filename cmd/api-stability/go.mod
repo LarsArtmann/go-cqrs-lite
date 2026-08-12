@@ -7,6 +7,8 @@ require (
 	github.com/spf13/cobra v1.10.2
 )
 
+require golang.org/x/exp v0.0.0-20260811152304-ee035b5b010f // indirect
+
 require (
 	charm.land/fang/v2 v2.0.1 // indirect
 	charm.land/lipgloss/v2 v2.0.6 // indirect

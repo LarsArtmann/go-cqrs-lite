@@ -10,8 +10,6 @@ package record
 import (
 	"fmt"
 	"time"
-
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // StreamRef identifies a stream as "StreamType/EntityID", e.g. "User/01J...".
@@ -28,80 +26,35 @@ type CommonMetadata struct {
 	// CorrelationID links a chain of related records across the system.
 	// A user action that triggers a command, which emits events, which trigger
 	// sagas that emit more commands — all share one CorrelationID.
-	CorrelationID id.CorrelationID `json:"correlationId"`
+	CorrelationID string
 
 	// CausationID identifies what caused this record. For events emitted by a
 	// command, this is the command ID. For scheduled commands, the timer ID.
-	// For direct user actions, this is zero — the ActorID covers the "who".
-	CausationID id.CausationID `json:"causationId"`
+	// For direct user actions, this is empty — the ActorID covers the "who".
+	CausationID string
 
-	// ActorID identifies who or what produced this record: a user, a bot,
-	// a system process, or a named service. See [id.ActorID] for the full
-	// kind taxonomy.
-	ActorID id.ActorID `json:"actorId"`
-
-	// RequestID identifies the specific request that produced this record.
-	// Useful for debugging distributed flows.
-	RequestID id.RequestID `json:"requestId"`
+	// ActorID identifies who or what produced this record: a user ID, a service
+	// name, a cron job identifier, or "system" for internal processes.
+	ActorID string
 
 	// ClientCreatedAt is the client's clock at the moment of creation. This may
 	// lie (clock skew, offline tampering). Use for offline-first conflict
 	// resolution and UX ("you created this at...").
-	ClientCreatedAt time.Time `json:"clientCreatedAt,omitempty"`
+	ClientCreatedAt time.Time
 
 	// ServerReceivedAt is the server clock when the record arrived. Trustworthy
 	// for server-side ordering but not for client intent. Set before store.Save.
-	ServerReceivedAt time.Time `json:"serverReceivedAt,omitempty"`
+	ServerReceivedAt time.Time
 
 	// ServerStoredAt is the database's acknowledgment timestamp. This is what
 	// the DB told us, not necessarily what it did internally. Use for
 	// audit trails and eventual-consistency reconciliation.
-	ServerStoredAt time.Time `json:"serverStoredAt,omitempty"`
+	ServerStoredAt time.Time
 
 	// SchemaVersion is the payload schema version. Set once at record creation
 	// and never changed. Enables upcasting: different versions of the same
 	// logical event type can coexist in the stream.
-	SchemaVersion int `json:"schemaVersion,omitempty"`
-}
-
-// Merge overlays non-zero fields from other onto the receiver,
-// returning a new value. The receiver is unchanged.
-func (cm CommonMetadata) Merge(other CommonMetadata) CommonMetadata {
-	result := cm
-
-	if !other.CorrelationID.IsZero() {
-		result.CorrelationID = other.CorrelationID
-	}
-
-	if !other.CausationID.IsZero() {
-		result.CausationID = other.CausationID
-	}
-
-	if !other.ActorID.IsZero() {
-		result.ActorID = other.ActorID
-	}
-
-	if !other.RequestID.IsZero() {
-		result.RequestID = other.RequestID
-	}
-
-	if !other.ClientCreatedAt.IsZero() {
-		result.ClientCreatedAt = other.ClientCreatedAt
-	}
-
-	if !other.ServerReceivedAt.IsZero() {
-		result.ServerReceivedAt = other.ServerReceivedAt
-	}
-
-	if !other.ServerStoredAt.IsZero() {
-		result.ServerStoredAt = other.ServerStoredAt
-	}
-
-	if other.SchemaVersion != 0 {
-		result.SchemaVersion = other.SchemaVersion
-	}
-
-	return result
+	SchemaVersion int
 }
 
 // Record is the shared structural base for Commands and Events (ADR-0111).

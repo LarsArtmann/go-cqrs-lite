@@ -55,8 +55,8 @@ func RunRecordStampTest(t *testing.T, eng metaengine.Engine) {
 		StreamType: "Item",
 		Version:    3,
 		MetaData: record.CommonMetadata{
-			CorrelationID: id.NewCorrelationID(),
-			ActorID:       id.NewSystemActor("test"),
+			CorrelationID: id.NewCorrelationID().String(),
+			ActorID:       id.NewSystemActor("test").String(),
 		},
 	}
 

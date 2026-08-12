@@ -7,7 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
+	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 )
 
 func TestEventOptions(t *testing.T) {
@@ -33,20 +33,19 @@ func TestEventOptions(t *testing.T) {
 	}
 
 	m := evt.Metadata()
-	if !m.CorrelationID.Equal(idtest.ParseCorrelationID(t, "01HK154EJG2GP2SR75DK1Q1TBH")) {
+	if m.CorrelationID != idtest.ParseCorrelationID(t, "01HK154EJG2GP2SR75DK1Q1TBH") {
 		t.Errorf("expected correlation ID corr-123, got %s", m.CorrelationID)
 	}
 
-	if !m.CausationID.Equal(idtest.ParseCausationID(t, "01HK154FHRS5276AC3V7GRNTYM")) {
+	if m.CausationID != idtest.ParseCausationID(t, "01HK154FHRS5276AC3V7GRNTYM") {
 		t.Errorf("expected causation ID cause-456, got %s", m.CausationID)
 	}
 
-	if m.ActorID.Kind() != id.ActorUser ||
-		m.ActorID.Raw() != idtest.ParseUserID(t, "01HK1543TRR6BB4AF65NQX5V8S").String() {
-		t.Errorf("expected user ID user-789, got %s", m.ActorID)
+	if m.UserID != idtest.ParseUserID(t, "01HK1543TRR6BB4AF65NQX5V8S") {
+		t.Errorf("expected user ID user-789, got %s", m.UserID)
 	}
 
-	if !m.RequestID.Equal(idtest.ParseRequestID(t, "01HK154GH03H0ZJCWQ2PEYSCZW")) {
+	if m.RequestID != idtest.ParseRequestID(t, "01HK154GH03H0ZJCWQ2PEYSCZW") {
 		t.Errorf("expected request ID req-001, got %s", m.RequestID)
 	}
 
@@ -67,9 +66,6 @@ func TestEventOptions(t *testing.T) {
 	}
 }
 
-// TestNewMetadata covers zero-value construction and lazy Custom map
-// initialization. The deprecated event.EnsureCustom call exercises the
-// backward-compat lazy-init path; it will not be removed until EnsureCustom is.
 func TestNewMetadata(t *testing.T) {
 	t.Parallel()
 
@@ -156,24 +152,22 @@ func TestWithMetadata_MergesInsteadOfReplace(t *testing.T) {
 		1,
 		nil,
 		event.WithCorrelationID(correlationID),
-		event.WithMetadata(
-			event.Metadata{CommonMetadata: record.CommonMetadata{ActorID: id.NewUserActor(userID)}},
-		),
+		event.WithMetadata(event.Metadata{Tracing: metadata.Tracing{UserID: userID}}),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	meta := evt.Metadata()
-	if !meta.CorrelationID.Equal(correlationID) {
+	if meta.CorrelationID != correlationID {
 		t.Errorf(
 			"correlation ID should be preserved after WithMetadata, got %s",
 			meta.CorrelationID,
 		)
 	}
 
-	if meta.ActorID.Kind() != id.ActorUser || meta.ActorID.Raw() != userID.String() {
-		t.Errorf("user ID should be merged from WithMetadata, got %v", meta.ActorID)
+	if meta.UserID != userID {
+		t.Errorf("user ID should be merged from WithMetadata, got %s", meta.UserID)
 	}
 }
 
@@ -350,10 +344,10 @@ func TestEnsureMetadata_WhenNil(t *testing.T) {
 	opt := event.WithCorrelationID(idtest.ParseCorrelationID(t, "01HK154EJG2GP2SR75DK1Q1TBH"))
 	opt(core)
 
-	if !core.Metadata().CorrelationID.Equal(idtest.ParseCorrelationID(
+	if core.Metadata().CorrelationID != idtest.ParseCorrelationID(
 		t,
 		"01HK154EJG2GP2SR75DK1Q1TBH",
-	)) {
+	) {
 		t.Errorf("expected correlation ID to be set, got %s", core.Metadata().CorrelationID)
 	}
 }

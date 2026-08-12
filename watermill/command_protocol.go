@@ -8,7 +8,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
+	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 )
 
 // Metadata keys for command field mapping. Tracing and custom keys are shared
@@ -49,7 +49,7 @@ func CommandToMessage(cmd command.Command) *message.Message {
 
 	if mp, ok := cmd.(metadataProvider); ok {
 		m := mp.Metadata()
-		writeCommonMetadata(md, m.CommonMetadata)
+		writeTracing(md, m.Tracing)
 		writeCustomEntries(md, m.Custom)
 	}
 
@@ -95,22 +95,21 @@ func MessageToCommand(topic string, msg *message.Message) (*command.BasicCommand
 	return cmd, nil
 }
 
-// writeCommonMetadata writes the 4 shared tracing identifiers from
-// record.CommonMetadata into message metadata. Both event.Metadata and
-// command.Metadata embed record.CommonMetadata, so this is reused by both
-// protocols.
-func writeCommonMetadata(md message.Metadata, cm record.CommonMetadata) {
-	if !cm.CorrelationID.IsZero() {
-		md.Set(metaCorrelationID, cm.CorrelationID.String())
+// writeTracing writes the 4 shared tracing identifiers from metadata.Tracing
+// into message metadata. Both event.Metadata and command.Metadata embed
+// metadata.Tracing, so this is reused by both protocols.
+func writeTracing(md message.Metadata, t metadata.Tracing) {
+	if !t.CorrelationID.IsZero() {
+		md.Set(metaCorrelationID, t.CorrelationID.String())
 	}
-	if !cm.CausationID.IsZero() {
-		md.Set(metaCausationID, cm.CausationID.String())
+	if !t.CausationID.IsZero() {
+		md.Set(metaCausationID, t.CausationID.String())
 	}
-	if !cm.ActorID.IsZero() {
-		md.Set(metaUserID, cm.ActorID.Raw())
+	if !t.UserID.IsZero() {
+		md.Set(metaUserID, t.UserID.String())
 	}
-	if !cm.RequestID.IsZero() {
-		md.Set(metaRequestID, cm.RequestID.String())
+	if !t.RequestID.IsZero() {
+		md.Set(metaRequestID, t.RequestID.String())
 	}
 }
 

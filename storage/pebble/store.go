@@ -163,7 +163,7 @@ func (a *EventStore) Save(
 
 	batch := a.db.NewBatch()
 
-	defer deferClose(batch)
+	defer func() { _ = batch.Close() }()
 
 	err = a.writeEventsToBatch(
 		batch, ref, events, expectedVersion,

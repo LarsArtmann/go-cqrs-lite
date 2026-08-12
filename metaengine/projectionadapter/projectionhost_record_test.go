@@ -44,7 +44,7 @@ func TestProjectionHost_RecordAwareLifecycle(t *testing.T) {
 				ID:       e.ID,
 				StreamID: rec.StreamID.String(),
 				Version:  rec.Version,
-				CorrID:   rec.MetaData.CorrelationID.String(),
+				CorrID:   rec.MetaData.CorrelationID,
 			}
 		}),
 	)

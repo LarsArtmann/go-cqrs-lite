@@ -10,7 +10,6 @@ import (
 const (
 	bucketEvents      = "cqrs_events"
 	bucketJournal     = "cqrs_journal"
-	bucketJournalIdx  = "cqrs_journal_idx"
 	bucketSnapshots   = "cqrs_snapshots"
 	bucketCheckpoints = "cqrs_checkpoints"
 	bucketKV          = "cqrs_kv"
@@ -31,7 +30,7 @@ type storeBase struct {
 func createBuckets(db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		for _, name := range []string{
-			bucketEvents, bucketJournal, bucketJournalIdx, bucketSnapshots,
+			bucketEvents, bucketJournal, bucketSnapshots,
 			bucketCheckpoints, bucketKV, bucketCommands,
 			bucketCmdJournal, bucketQueries,
 		} {

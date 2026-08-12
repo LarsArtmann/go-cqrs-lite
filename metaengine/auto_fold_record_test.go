@@ -56,8 +56,8 @@ func TestAutoFold_RecordAware_Insert(t *testing.T) {
 		StreamType: "Product",
 		Version:    5,
 		MetaData: record.CommonMetadata{
-			CorrelationID: correlationID,
-			ActorID:       id.NewSystemActor("test"),
+			CorrelationID: correlationID.String(),
+			ActorID:       id.NewSystemActor("test").String(),
 		},
 	}
 

@@ -34,7 +34,7 @@ func (a *EventStore) iterateEvents(
 			"failed to create iterator")
 	}
 
-	defer deferClose(iter)
+	defer func() { _ = iter.Close() }()
 
 	var events []event.Event
 

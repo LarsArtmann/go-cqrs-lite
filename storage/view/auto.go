@@ -58,9 +58,6 @@ func AutoMapper[V any](table string) ViewMapper[V] {
 //
 // Panics if V is not a struct or a pointer to a struct — this is a programmer
 // error detected at startup, not a runtime condition.
-//
-// AutoMapperWithDelete is a deprecated alias. New code should use
-// AutoMapperWithDelete; AutoMapperWithTombstone will be removed in v5.
 func AutoMapperWithTombstone[V any](table, tombstoneCol string) ViewMapper[V] {
 	var zero V
 
@@ -195,11 +192,4 @@ func goTypeToSQL(rt reflect.Type) (string, bool) {
 
 		return sqlTypeText, false
 	}
-}
-
-// AutoMapperWithDelete is the canonical name for [AutoMapperWithTombstone].
-// AutoMapperWithTombstone is kept as a deprecated alias for backward
-// compatibility and will be removed in v5.
-func AutoMapperWithDelete[V any](table, deleteCol string) ViewMapper[V] {
-	return AutoMapperWithTombstone[V](table, deleteCol)
 }

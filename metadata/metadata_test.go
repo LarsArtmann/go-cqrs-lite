@@ -5,12 +5,139 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // testKey is a named string type for testing the generic CustomData[K].
 type testKey string
 
+// TestTracing_IsZero covers the zero-value check for all four tracing fields.
+func TestTracing_IsZero(t *testing.T) {
+	t.Parallel()
+
+	t.Run("empty is zero", func(t *testing.T) {
+		t.Parallel()
+		if !(Tracing{}).IsZero() {
+			t.Error("zero-value Tracing should be zero")
+		}
+	})
+
+	t.Run("correlationID set is non-zero", func(t *testing.T) {
+		t.Parallel()
+		tr := Tracing{CorrelationID: id.NewCorrelationID()}
+		if tr.IsZero() {
+			t.Error("Tracing with CorrelationID should be non-zero")
+		}
+	})
+
+	t.Run("causationID set is non-zero", func(t *testing.T) {
+		t.Parallel()
+		tr := Tracing{CausationID: id.NewCausationID()}
+		if tr.IsZero() {
+			t.Error("Tracing with CausationID should be non-zero")
+		}
+	})
+
+	t.Run("userID set is non-zero", func(t *testing.T) {
+		t.Parallel()
+		tr := Tracing{UserID: id.NewUserID()}
+		if tr.IsZero() {
+			t.Error("Tracing with UserID should be non-zero")
+		}
+	})
+
+	t.Run("requestID set is non-zero", func(t *testing.T) {
+		t.Parallel()
+		tr := Tracing{RequestID: id.NewRequestID()}
+		if tr.IsZero() {
+			t.Error("Tracing with RequestID should be non-zero")
+		}
+	})
+}
+
+// TestTracing_Merge covers overlay semantics: non-zero fields from other win.
+func TestTracing_Merge(t *testing.T) {
+	t.Parallel()
+
+	corr1 := id.NewCorrelationID()
+	caus1 := id.NewCausationID()
+	user1 := id.NewUserID()
+	req1 := id.NewRequestID()
+
+	corr2 := id.NewCorrelationID()
+
+	t.Run("other all-zero returns base unchanged", func(t *testing.T) {
+		t.Parallel()
+		base := Tracing{CorrelationID: corr1, CausationID: caus1}
+		merged := base.Merge(Tracing{})
+
+		if merged.CorrelationID != corr1 {
+			t.Error("CorrelationID should survive merge with zero other")
+		}
+
+		if merged.CausationID != caus1 {
+			t.Error("CausationID should survive merge with zero other")
+		}
+	})
+
+	t.Run("other overlays non-zero fields", func(t *testing.T) {
+		t.Parallel()
+		base := Tracing{CorrelationID: corr1, UserID: user1}
+		other := Tracing{CorrelationID: corr2, RequestID: req1}
+		merged := base.Merge(other)
+
+		if merged.CorrelationID != corr2 {
+			t.Error("CorrelationID should be overlaid by other")
+		}
+
+		if merged.UserID != user1 {
+			t.Error("UserID should survive (other has zero)")
+		}
+
+		if merged.RequestID != req1 {
+			t.Error("RequestID should come from other")
+		}
+	})
+
+	t.Run("full overlay", func(t *testing.T) {
+		t.Parallel()
+		base := Tracing{CorrelationID: corr1, CausationID: caus1, UserID: user1, RequestID: req1}
+		allNew := Tracing{
+			CorrelationID: corr2,
+			CausationID:   id.NewCausationID(),
+			UserID:        id.NewUserID(),
+			RequestID:     id.NewRequestID(),
+		}
+		merged := base.Merge(allNew)
+
+		if merged.CorrelationID != allNew.CorrelationID {
+			t.Error("CorrelationID should be fully overlaid")
+		}
+
+		if merged.CausationID != allNew.CausationID {
+			t.Error("CausationID should be fully overlaid")
+		}
+
+		if merged.UserID != allNew.UserID {
+			t.Error("UserID should be fully overlaid")
+		}
+
+		if merged.RequestID != allNew.RequestID {
+			t.Error("RequestID should be fully overlaid")
+		}
+	})
+
+	t.Run("merge is non-destructive to base", func(t *testing.T) {
+		t.Parallel()
+		base := Tracing{CorrelationID: corr1}
+		_ = base.Merge(Tracing{CorrelationID: corr2})
+
+		if base.CorrelationID != corr1 {
+			t.Error("base should not be mutated by Merge")
+		}
+	})
+}
+
+// TestCustomData_Clone covers nil and populated custom maps.
 func TestCustomData_Clone(t *testing.T) {
 	t.Parallel()
 
@@ -18,7 +145,6 @@ func TestCustomData_Clone(t *testing.T) {
 
 	t.Run("nil custom map", func(t *testing.T) {
 		t.Parallel()
-
 		d := CustomData[key]{}
 		cloned := d.Clone()
 
@@ -29,10 +155,9 @@ func TestCustomData_Clone(t *testing.T) {
 
 	t.Run("populated custom map is independent", func(t *testing.T) {
 		t.Parallel()
-
 		d := CustomData[key]{
-			CommonMetadata: record.CommonMetadata{CorrelationID: id.NewCorrelationID()},
-			Custom:         map[key]string{"a": "1", "b": "2"},
+			Tracing: Tracing{CorrelationID: id.NewCorrelationID()},
+			Custom:  map[key]string{"a": "1", "b": "2"},
 		}
 		cloned := d.Clone()
 
@@ -40,6 +165,7 @@ func TestCustomData_Clone(t *testing.T) {
 			t.Errorf("cloned Custom missing entries: %v", cloned.Custom)
 		}
 
+		// Mutate clone, original should be unaffected.
 		cloned.Custom["a"] = "modified"
 
 		if d.Custom["a"] != "1" {
@@ -47,11 +173,12 @@ func TestCustomData_Clone(t *testing.T) {
 		}
 
 		if cloned.CorrelationID != d.CorrelationID {
-			t.Error("CommonMetadata should be copied")
+			t.Error("Tracing should be copied")
 		}
 	})
 }
 
+// TestCustomData_Merge covers tracing + custom merge semantics.
 func TestCustomData_Merge(t *testing.T) {
 	t.Parallel()
 
@@ -59,7 +186,6 @@ func TestCustomData_Merge(t *testing.T) {
 
 	t.Run("nil custom maps on both sides", func(t *testing.T) {
 		t.Parallel()
-
 		base := CustomData[key]{}
 		other := CustomData[key]{}
 		merged := base.Merge(other)
@@ -69,17 +195,16 @@ func TestCustomData_Merge(t *testing.T) {
 		}
 	})
 
-	t.Run("other overlays common metadata and custom", func(t *testing.T) {
+	t.Run("other overlays tracing and custom", func(t *testing.T) {
 		t.Parallel()
-
 		base := CustomData[key]{
-			CommonMetadata: record.CommonMetadata{ActorID: id.NewUserActor(id.NewUserID())},
-			Custom:         map[key]string{"keep": "base", "override": "base-val"},
+			Tracing: Tracing{UserID: id.NewUserID()},
+			Custom:  map[key]string{"keep": "base", "override": "base-val"},
 		}
 		corrOther := id.NewCorrelationID()
 		other := CustomData[key]{
-			CommonMetadata: record.CommonMetadata{CorrelationID: corrOther},
-			Custom:         map[key]string{"override": "other-val", "new": "added"},
+			Tracing: Tracing{CorrelationID: corrOther},
+			Custom:  map[key]string{"override": "other-val", "new": "added"},
 		}
 		merged := base.Merge(other)
 
@@ -87,8 +212,8 @@ func TestCustomData_Merge(t *testing.T) {
 			t.Error("CorrelationID should come from other")
 		}
 
-		if merged.ActorID.IsZero() {
-			t.Error("ActorID should survive from base")
+		if merged.UserID.IsZero() {
+			t.Error("UserID should survive from base")
 		}
 
 		if merged.Custom["keep"] != "base" {
@@ -106,7 +231,6 @@ func TestCustomData_Merge(t *testing.T) {
 
 	t.Run("merge is non-destructive", func(t *testing.T) {
 		t.Parallel()
-
 		base := CustomData[key]{Custom: map[key]string{"a": "1"}}
 		_ = base.Merge(CustomData[key]{Custom: map[key]string{"a": "2"}})
 
@@ -116,6 +240,7 @@ func TestCustomData_Merge(t *testing.T) {
 	})
 }
 
+// TestCustomData_EnsureCustom covers lazy map initialization.
 func TestCustomData_EnsureCustom(t *testing.T) {
 	t.Parallel()
 
@@ -123,7 +248,6 @@ func TestCustomData_EnsureCustom(t *testing.T) {
 
 	t.Run("nil map becomes initialized", func(t *testing.T) {
 		t.Parallel()
-
 		d := &CustomData[key]{}
 		d.EnsureCustom()
 
@@ -138,7 +262,6 @@ func TestCustomData_EnsureCustom(t *testing.T) {
 
 	t.Run("existing map preserved", func(t *testing.T) {
 		t.Parallel()
-
 		existing := map[key]string{"x": "y"}
 		d := &CustomData[key]{Custom: existing}
 		d.EnsureCustom()
@@ -149,6 +272,7 @@ func TestCustomData_EnsureCustom(t *testing.T) {
 	})
 }
 
+// TestCustomData_WithCustom covers the functional (non-mutating) custom setter.
 func TestCustomData_WithCustom(t *testing.T) {
 	t.Parallel()
 
@@ -156,8 +280,8 @@ func TestCustomData_WithCustom(t *testing.T) {
 
 	t.Run("returns new value with key set", func(t *testing.T) {
 		t.Parallel()
-
 		d := CustomData[key]{}
+
 		updated := d.WithCustom("role", "admin")
 
 		if updated.Custom["role"] != "admin" {
@@ -167,8 +291,8 @@ func TestCustomData_WithCustom(t *testing.T) {
 
 	t.Run("original is not modified", func(t *testing.T) {
 		t.Parallel()
-
 		d := CustomData[key]{Custom: map[key]string{"existing": "val"}}
+
 		_ = d.WithCustom("new", "val2")
 
 		if _, ok := d.Custom["new"]; ok {
@@ -182,8 +306,8 @@ func TestCustomData_WithCustom(t *testing.T) {
 
 	t.Run("nil map is initialized lazily", func(t *testing.T) {
 		t.Parallel()
-
 		d := CustomData[key]{}
+
 		updated := d.WithCustom("k", "v")
 
 		if updated.Custom == nil {
@@ -193,8 +317,8 @@ func TestCustomData_WithCustom(t *testing.T) {
 
 	t.Run("existing entries are preserved", func(t *testing.T) {
 		t.Parallel()
-
 		d := CustomData[key]{Custom: map[key]string{"a": "1", "b": "2"}}
+
 		updated := d.WithCustom("c", "3")
 
 		if updated.Custom["a"] != "1" || updated.Custom["b"] != "2" {
@@ -204,8 +328,8 @@ func TestCustomData_WithCustom(t *testing.T) {
 
 	t.Run("overrides existing key", func(t *testing.T) {
 		t.Parallel()
-
 		d := CustomData[key]{Custom: map[key]string{"k": "old"}}
+
 		updated := d.WithCustom("k", "new")
 
 		if updated.Custom["k"] != "new" {
@@ -218,14 +342,14 @@ func TestCustomData_WithCustom(t *testing.T) {
 	})
 }
 
+// TestMergeCustomMaps covers the standalone merge helper.
 func TestMergeCustomMaps(t *testing.T) {
 	t.Parallel()
 
 	type key = testKey
 
-	t.Run("empty other returns base unchanged", func(t *testing.T) {
+	t.Run("empty other returns base unchanged (no allocation)", func(t *testing.T) {
 		t.Parallel()
-
 		base := map[key]string{"a": "1"}
 		result := MergeCustomMaps(base, nil)
 
@@ -236,8 +360,9 @@ func TestMergeCustomMaps(t *testing.T) {
 
 	t.Run("empty other with empty base", func(t *testing.T) {
 		t.Parallel()
-
 		result := MergeCustomMaps[key](nil, nil)
+		// MergeCustomMaps with empty other returns base directly.
+		// When other is empty AND base is nil, result is nil.
 		if result != nil {
 			t.Errorf("expected nil, got %v", result)
 		}
@@ -245,7 +370,6 @@ func TestMergeCustomMaps(t *testing.T) {
 
 	t.Run("both populated", func(t *testing.T) {
 		t.Parallel()
-
 		base := map[key]string{"a": "1", "b": "2"}
 		other := map[key]string{"b": "3", "c": "4"}
 		result := MergeCustomMaps(base, other)
@@ -265,13 +389,11 @@ func TestMergeCustomMaps(t *testing.T) {
 
 	t.Run("result is independent from inputs", func(t *testing.T) {
 		t.Parallel()
-
 		base := map[key]string{"a": "1"}
 		other := map[key]string{"b": "2"}
 		result := MergeCustomMaps(base, other)
 
 		result["a"] = "modified"
-
 		if base["a"] != "1" {
 			t.Error("base should not be affected by result mutation")
 		}

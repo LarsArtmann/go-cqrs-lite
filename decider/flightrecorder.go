@@ -5,8 +5,7 @@ import (
 	"log/slog"
 	"time"
 
-	flightrecorder "github.com/larsartmann/go-flightrecorder"
-
+	flightrecorder "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 

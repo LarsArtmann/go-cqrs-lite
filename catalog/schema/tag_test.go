@@ -244,22 +244,3 @@ func TestFromType_TopLevelTime(t *testing.T) {
 		t.Errorf("expected string for time.Time, got %s", s.Type)
 	}
 }
-
-func TestFromType_OmitZeroTreatedAsOptional(t *testing.T) {
-	t.Parallel()
-
-	type WithOmitZero struct {
-		RequiredField string `json:"required_field"`
-		OptionalField string `json:"optional_field,omitzero"`
-	}
-
-	s := schema.FromType[WithOmitZero]()
-
-	if len(s.Required) != 1 || s.Required[0] != "required_field" {
-		t.Errorf("expected only required_field in required, got %v", s.Required)
-	}
-
-	if _, ok := s.Properties["optional_field"]; !ok {
-		t.Error("optional_field should be present in properties")
-	}
-}

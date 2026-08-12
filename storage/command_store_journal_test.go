@@ -199,7 +199,7 @@ func TestSQLCommandStore_MetadataRoundtrip(t *testing.T) {
 		Custom: map[command.MetadataKey]string{"source": "test"},
 	}
 	meta.CorrelationID = id.NewCorrelationID()
-	meta.ActorID = id.NewUserActor(id.NewUserID())
+	meta.UserID = id.NewUserID()
 
 	cmd, err := command.NewPersistedCommand(
 		"CreateUser", ref, []byte(`{"name":"Alice"}`),
@@ -227,8 +227,8 @@ func TestSQLCommandStore_MetadataRoundtrip(t *testing.T) {
 		t.Errorf("CorrelationID mismatch: got %v, want %v", got.CorrelationID, meta.CorrelationID)
 	}
 
-	if !got.ActorID.Equal(meta.ActorID) {
-		t.Errorf("ActorID mismatch: got %v, want %v", got.ActorID, meta.ActorID)
+	if got.UserID != meta.UserID {
+		t.Errorf("UserID mismatch: got %v, want %v", got.UserID, meta.UserID)
 	}
 
 	if got.Custom["source"] != "test" {

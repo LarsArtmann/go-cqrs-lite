@@ -6,7 +6,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func TestMergeCustomMaps_BothNil(t *testing.T) {
@@ -124,22 +123,22 @@ func TestCustomData_Merge_OverlaysTracingAndCustom(t *testing.T) {
 	cid := id.NewCorrelationID()
 
 	base := metadata.CustomData[event.MetadataKey]{
-		CommonMetadata: record.CommonMetadata{CorrelationID: cid},
-		Custom:         map[event.MetadataKey]string{"tenant": "acme"},
+		Tracing: metadata.Tracing{CorrelationID: cid},
+		Custom:  map[event.MetadataKey]string{"tenant": "acme"},
 	}
 	other := metadata.CustomData[event.MetadataKey]{
-		CommonMetadata: record.CommonMetadata{ActorID: id.NewUserActor(id.NewUserID())},
-		Custom:         map[event.MetadataKey]string{"region": "us-east-1"},
+		Tracing: metadata.Tracing{UserID: id.NewUserID()},
+		Custom:  map[event.MetadataKey]string{"region": "us-east-1"},
 	}
 
 	result := base.Merge(other)
 
-	if !result.CorrelationID.Equal(cid) {
+	if result.CorrelationID != cid {
 		t.Errorf("base CorrelationID not preserved: got %v", result.CorrelationID)
 	}
 
-	if result.ActorID.IsZero() {
-		t.Error("overlay ActorID not merged")
+	if result.UserID.IsZero() {
+		t.Error("overlay UserID not merged")
 	}
 
 	if result.Custom["tenant"] != "acme" {
@@ -168,8 +167,6 @@ func TestCustomData_Merge_DoesNotMutateBase(t *testing.T) {
 	}
 }
 
-// TestCustomData_EnsureCustom covers the deprecated EnsureCustom method for
-// backward-compat coverage. It will not be removed until EnsureCustom is.
 func TestCustomData_EnsureCustom(t *testing.T) {
 	t.Parallel()
 

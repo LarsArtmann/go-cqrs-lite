@@ -24,7 +24,7 @@ func TestCommand_Metadata_Defaults(t *testing.T) {
 		t.Error("expected zero CausationID by default")
 	}
 
-	if !m.ActorID.IsZero() {
+	if !m.UserID.IsZero() {
 		t.Error("expected zero UserID by default")
 	}
 
@@ -70,9 +70,8 @@ func TestCommand_WithUserID(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	if cmd.Metadata().ActorID.Kind() != id.ActorUser ||
-		cmd.Metadata().ActorID.Raw() != uid.String() {
-		t.Errorf("UserID = %v, want %v", cmd.Metadata().ActorID, uid)
+	if cmd.Metadata().UserID != uid {
+		t.Errorf("UserID = %v, want %v", cmd.Metadata().UserID, uid)
 	}
 }
 
@@ -118,8 +117,8 @@ func TestCommand_AllMetadata(t *testing.T) {
 		t.Errorf("CausationID = %v, want %v", m.CausationID, caid)
 	}
 
-	if m.ActorID.Kind() != id.ActorUser || m.ActorID.Raw() != uid.String() {
-		t.Errorf("UserID = %v, want %v", m.ActorID, uid)
+	if m.UserID != uid {
+		t.Errorf("UserID = %v, want %v", m.UserID, uid)
 	}
 
 	if m.RequestID != rid {
@@ -158,7 +157,7 @@ func TestCommand_MetadataMerge(t *testing.T) {
 	overlay := command.Metadata{
 		Custom: map[command.MetadataKey]string{"region": "us-east-1"},
 	}
-	overlay.ActorID = id.NewUserActor(id.NewUserID())
+	overlay.UserID = id.NewUserID()
 
 	merged := base.Merge(overlay)
 
@@ -167,8 +166,8 @@ func TestCommand_MetadataMerge(t *testing.T) {
 			merged.CorrelationID, base.CorrelationID)
 	}
 
-	if !merged.ActorID.Equal(overlay.ActorID) {
-		t.Errorf("UserID not overlaid: got %v, want %v", merged.ActorID, overlay.ActorID)
+	if merged.UserID != overlay.UserID {
+		t.Errorf("UserID not overlaid: got %v, want %v", merged.UserID, overlay.UserID)
 	}
 
 	if merged.Custom["tenant"] != "acme" {

@@ -1,6 +1,6 @@
 package event
 
-import "github.com/larsartmann/go-codec"
+import "github.com/larsartmann/go-cqrs-lite/codec/v4"
 
 // Backward-compatibility re-exports. The canonical implementations live in
 // [codec] — event re-exports them so existing callers that import event/

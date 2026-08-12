@@ -8,6 +8,60 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
+// StatusMiddleware returns PublishMiddleware that marks tombstone/rebirth metadata
+// on events whose type is in the configured sets.
+//
+// Usage:
+//
+//	bus.UsePublish(listing.StatusMiddleware(
+//	    []event.Type{"user.deleted", "order.cancelled"},   // tombstone types
+//	    []event.Type{"user.reactivated", "order.restored"}, // rebirth types
+//	))
+func StatusMiddleware(deleteTypes, rebirthTypes []event.Type) event.PublishMiddleware {
+	deletes := event.NewTypeSet(deleteTypes)
+	rebirths := event.NewTypeSet(rebirthTypes)
+
+	return func(next event.Publisher) event.Publisher {
+		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
+			marked := make([]event.Event, 0, len(events))
+
+			for _, evt := range events {
+				_, isDelete := deletes[evt.Type()]
+				_, isRebirth := rebirths[evt.Type()]
+
+				switch {
+				case isDelete:
+					m, err := event.MarkTombstone(evt)
+					if err != nil {
+						return errorfamily.WrapInfrastructure(
+							err,
+							"listing.tombstone",
+							"status middleware tombstone "+string(evt.Type()),
+						)
+					}
+
+					marked = append(marked, m)
+				case isRebirth:
+					m, err := event.MarkRebirth(evt)
+					if err != nil {
+						return errorfamily.WrapInfrastructure(
+							err,
+							"listing.rebirth",
+							"status middleware rebirth "+string(evt.Type()),
+						)
+					}
+
+					marked = append(marked, m)
+				default:
+					marked = append(marked, evt)
+				}
+			}
+
+			return next.Publish(ctx, marked...)
+		})
+	}
+}
+
 // CacheInvalidator clears the cached stream index after successful publish.
 // Implemented by *InMemoryStreamReader.
 type CacheInvalidator interface {

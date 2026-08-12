@@ -17,26 +17,10 @@ const (
 	aggregateIDCol   = "aggregate_id"
 )
 
-// StreamProjectionOption configures a [StreamProjection].
-type StreamProjectionOption func(*StreamProjection)
-
-// WithDeleteTypes configures which event types signal stream deletion
-// (ADR-0114). When the projection receives an event whose type matches one of
-// these, it marks the stream as deleted (tombstone_status = 1). Without this
-// option, all streams are considered active.
-func WithDeleteTypes(types ...event.Type) StreamProjectionOption {
-	return func(p *StreamProjection) {
-		for _, t := range types {
-			p.deleteTypes[t] = struct{}{}
-		}
-	}
-}
-
 type StreamProjection struct {
-	db          *sql.DB
-	dialect     sqlpkg.Dialect
-	table       listingTable
-	deleteTypes map[event.Type]struct{}
+	db      *sql.DB
+	dialect sqlpkg.Dialect
+	table   listingTable
 }
 
 func NewStreamProjection(
@@ -44,7 +28,6 @@ func NewStreamProjection(
 	db *sql.DB,
 	tablePrefix string,
 	dialect sqlpkg.Dialect,
-	opts ...StreamProjectionOption,
 ) (*StreamProjection, error) {
 	tbl, err := newListingTable(tablePrefix)
 	if err != nil {
@@ -53,14 +36,9 @@ func NewStreamProjection(
 	}
 
 	p := &StreamProjection{
-		db:          db,
-		dialect:     dialect,
-		table:       tbl,
-		deleteTypes: map[event.Type]struct{}{},
-	}
-
-	for _, opt := range opts {
-		opt(p)
+		db:      db,
+		dialect: dialect,
+		table:   tbl,
 	}
 
 	err = p.createTable(ctx)
@@ -80,9 +58,42 @@ func (p *StreamProjection) Name() string { return "listing.aggregate_projection"
 func (p *StreamProjection) EventTypes() []event.Type { return nil }
 
 func (p *StreamProjection) Handle(ctx context.Context, evt event.Event) error {
-	statusInt := 0 // active
-	if _, isDelete := p.deleteTypes[evt.Type()]; isDelete {
-		statusInt = 1 // deleted
+	status := detectStatusFromMetadata(evt)
+
+	if status == event.TombstoneUndetermined {
+		p1 := p.dialect.Placeholder(1)
+		p2 := p.dialect.Placeholder(2)
+		p3 := p.dialect.Placeholder(3)
+		p4 := p.dialect.Placeholder(4)
+
+		setExprs := []string{
+			"version = " + p.dialect.ExcludedRef("version"),
+			"event_count = " + p.table.name + ".event_count + 1",
+			"last_event_at = " + p.dialect.ExcludedRef("last_event_at"),
+		}
+		_, err := p.db.ExecContext(
+			ctx,
+			fmt.Sprintf(
+				`INSERT INTO %s
+				(aggregate_type, aggregate_id, version, event_count, last_event_at, tombstone_status)
+				VALUES (%s, %s, %s, 1, %s, 0) %s`,
+				p.table.name,
+				p1,
+				p2,
+				p3,
+				p4,
+				p.dialect.OnConflictDoUpdate(
+					[]string{aggregateTypeCol, aggregateIDCol},
+					setExprs,
+				),
+			),
+			evt.StreamType(),
+			evt.StreamID().String(),
+			evt.Version().Int(),
+			evt.OccurredAt(),
+		)
+
+		return err
 	}
 
 	p1 := p.dialect.Placeholder(1)
@@ -108,7 +119,7 @@ func (p *StreamProjection) Handle(ctx context.Context, evt event.Event) error {
 		evt.StreamID().String(),
 		evt.Version().Int(),
 		evt.OccurredAt(),
-		statusInt,
+		int(status),
 	)
 
 	return err
@@ -126,6 +137,23 @@ func (p *StreamProjection) createTable(ctx context.Context) error {
 	)`, p.table.name))
 
 	return err
+}
+
+func detectStatusFromMetadata(evt event.Event) event.TombstoneStatus {
+	md := evt.Metadata()
+	if md.Custom == nil {
+		return event.TombstoneUndetermined
+	}
+
+	if md.Custom[event.MetadataKeyRebirth] == "true" {
+		return event.TombstoneActive
+	}
+
+	if md.Custom[event.MetadataKeyTombstone] == "true" {
+		return event.TombstoneTombstoned
+	}
+
+	return event.TombstoneUndetermined
 }
 
 // Deprecated: use StreamProjection.

@@ -145,7 +145,7 @@ func (s *CommandStore) scanCommands(
 			"create command iterator")
 	}
 
-	defer deferClose(iter)
+	defer func() { _ = iter.Close() }()
 
 	skipping := skipUntilID != ""
 

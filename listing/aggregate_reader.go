@@ -11,11 +11,11 @@ import (
 // or enumerate via Journal.
 type StreamReader interface {
 	// List returns a page of stream listings.
-	// Deleted streams are excluded by default (DeleteExclude).
+	// Tombstoned streams are excluded by default (TombstoneExclude).
 	List(ctx context.Context, opts ListOptions) (*Page[StreamListing], error)
 
-	// ListWithStatus returns streams with their computed lifecycle status.
-	// Use this when you need to know which streams are deleted.
+	// ListWithStatus returns streams with their computed tombstone status.
+	// Use this when you need to know which streams are tombstoned.
 	ListWithStatus(ctx context.Context, opts ListOptions) (*Page[StreamStatus], error)
 }
 

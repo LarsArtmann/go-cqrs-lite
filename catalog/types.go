@@ -135,7 +135,7 @@ type Message struct {
 	Examples    []jsontext.Value  `json:"examples,omitempty"`
 	Owners      []string          `json:"owners,omitempty"`
 	Labels      map[string]string `json:"labels,omitempty"`
-	Deprecated  bool              `json:"deprecated,omitzero"`
+	Deprecated  bool              `json:"deprecated,omitempty"`
 	Deprecation *DeprecationInfo  `json:"deprecation,omitempty"`
 	Channels    []ChannelID       `json:"channels,omitempty"`
 	Changelog   []Change          `json:"changelog,omitempty"`
@@ -167,7 +167,7 @@ type Service struct {
 	Badges         []Badge         `json:"badges,omitempty"`
 	Specifications []Specification `json:"specifications,omitempty"`
 	Attachments    []Attachment    `json:"attachments,omitempty"`
-	ExternalSystem bool            `json:"externalSystem,omitzero"`
+	ExternalSystem bool            `json:"externalSystem,omitempty"`
 }
 
 type Domain struct {

@@ -95,7 +95,7 @@ func TestSoak_RecordAwarePipeline(t *testing.T) {
 			StreamType: "Item",
 			Version:    int64(i/numKeys + 1),
 			MetaData: record.CommonMetadata{
-				CorrelationID: id.NewCorrelationID(),
+				CorrelationID: id.NewCorrelationID().String(),
 			},
 		}
 

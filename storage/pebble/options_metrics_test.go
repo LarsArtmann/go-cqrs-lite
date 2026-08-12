@@ -64,7 +64,7 @@ func TestBackendMetrics(t *testing.T) {
 	dir := t.TempDir()
 	backend, err := Open(dir, nil, slog.Default())
 	g.Expect(err).NotTo(gomega.HaveOccurred())
-	defer deferClose(backend)
+	defer func() { _ = backend.Close() }()
 
 	m := backend.Metrics()
 	g.Expect(m.NumFilesTotal).To(gomega.BeNumerically(">=", 0))
@@ -82,7 +82,7 @@ func TestDefaultOptions_OpensRealDBAndWorks(t *testing.T) {
 		t.Fatalf("Open with DefaultOptions: %v", err)
 	}
 
-	defer deferClose(backend)
+	defer func() { _ = backend.Close() }()
 
 	store := backend.EventStore()
 	cfg := issueStoreConfig()

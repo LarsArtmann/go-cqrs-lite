@@ -11,10 +11,10 @@ import (
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
-	flightrecorder "github.com/larsartmann/go-flightrecorder"
 
 	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	flightrecorder "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 )

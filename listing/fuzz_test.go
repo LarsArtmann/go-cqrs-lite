@@ -71,9 +71,9 @@ func FuzzStreamListing_JSON_Roundtrip(f *testing.F) {
 	})
 }
 
-// FuzzDeletePolicy_String ensures DeletePolicy.String() always returns
+// FuzzTombstonePolicy_String ensures TombstonePolicy.String() always returns
 // one of the canonical values or a default format.
-func FuzzDeletePolicy_String(f *testing.F) {
+func FuzzTombstonePolicy_String(f *testing.F) {
 	f.Add(int(0))
 	f.Add(int(1))
 	f.Add(int(2))
@@ -82,7 +82,7 @@ func FuzzDeletePolicy_String(f *testing.F) {
 	f.Add(int(math.MaxInt32))
 
 	f.Fuzz(func(t *testing.T, raw int) {
-		policy := listing.DeletePolicy(raw)
+		policy := listing.TombstonePolicy(raw)
 
 		got := policy.String()
 		if raw >= 0 && raw <= 2 {
@@ -90,7 +90,7 @@ func FuzzDeletePolicy_String(f *testing.F) {
 			if got != expected {
 				t.Errorf("String(%d): got %q, want %q", raw, got, expected)
 			}
-		} else if !strings.HasPrefix(got, "DeletePolicy(") {
+		} else if !strings.HasPrefix(got, "TombstonePolicy(") {
 			// Out-of-range must use default format
 			t.Errorf("out-of-range String(%d): got %q, want default format", raw, got)
 		}
@@ -100,7 +100,7 @@ func FuzzDeletePolicy_String(f *testing.F) {
 // FuzzStreamStatus_MarshalOnly verifies the MarshalJSON path of
 // StreamStatus without asserting full roundtrip — there is currently no
 // custom UnmarshalJSON (it inherits the default, which expects an int for
-// Status, but Marshal emits a string). We just verify marshaling
+// TombstoneStatus, but Marshal emits a string). We just verify marshaling
 // never panics on any status value.
 func FuzzStreamStatus_MarshalOnly(f *testing.F) {
 	f.Add("01H4S2Z4QX8N1P5K3M7R9T0V2W", "User", int64(1), uint(5), int(0))
@@ -120,7 +120,7 @@ func FuzzStreamStatus_MarshalOnly(f *testing.F) {
 				return
 			}
 
-			status := listing.Status(statusInt)
+			status := event.TombstoneStatus(statusInt)
 
 			original := listing.StreamStatus{
 				Ref: listing.StreamListing{
@@ -139,9 +139,9 @@ func FuzzStreamStatus_MarshalOnly(f *testing.F) {
 				t.Fatalf("Marshal: %v", err)
 			}
 
-			// The marshaled status is a string ("active", "deleted", or "Status(N)").
-			if statusInt >= 0 && statusInt <= 1 {
-				expected := []string{`"active"`, `"deleted"`}[statusInt]
+			// The marshaled status is a string ("active", "tombstoned", "undetermined", or "TombstoneStatus(N)").
+			if statusInt >= 0 && statusInt <= 2 {
+				expected := []string{`"active"`, `"tombstoned"`, `"undetermined"`}[statusInt]
 				if !strings.Contains(string(data), expected) {
 					t.Errorf("Marshal: expected to contain %s, got %s", expected, data)
 				}
