@@ -42,9 +42,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
@@ -94,13 +94,13 @@ require (
 )
 
 require (
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.4.0

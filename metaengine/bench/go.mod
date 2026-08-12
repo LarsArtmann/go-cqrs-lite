@@ -3,10 +3,12 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/bench/v4
 go 1.26.5
 
 require (
+	github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.0.0-20260812202622-996a79dc3ce4
 	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.9.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0
 	modernc.org/sqlite v1.56.0
 )
 
@@ -42,7 +44,6 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-sse v0.4.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
@@ -57,7 +58,8 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect
-	golang.org/x/exp v0.0.0-20260811152304-ee035b5b010f // indirect
+	go.etcd.io/bbolt v1.5.0 // indirect
+	golang.org/x/exp v0.0.0-20260812173653-3d80eb74bc5b // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
