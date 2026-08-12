@@ -2,6 +2,7 @@ package adoption
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-finding"
@@ -401,9 +402,11 @@ func TestF008_PerModuleEventCountIsolation(t *testing.T) {
 	t.Parallel()
 
 	libEvents := ""
+	var libEventsSb404 strings.Builder
 	for i := 0; i < 5; i++ {
-		libEvents += "event.New(\"agg.event" + itoa(i) + "\", nil)\n"
+		libEventsSb404.WriteString("event.New(\"agg.event" + itoa(i) + "\", nil)\n")
 	}
+	libEvents += libEventsSb404.String()
 
 	libSrc := "package lib\n" +
 		"import \"github.com/larsartmann/go-cqrs-lite/event/v4\"\n" +
@@ -493,9 +496,11 @@ func TestF016_PerModuleAggregateCountIsolation(t *testing.T) {
 	t.Parallel()
 
 	libEvents := ""
+	var libEventsSb496 strings.Builder
 	for _, agg := range []string{"user", "order", "product", "payment", "shipping"} {
-		libEvents += "event.New(\"" + agg + ".created\", nil)\n"
+		libEventsSb496.WriteString("event.New(\"" + agg + ".created\", nil)\n")
 	}
+	libEvents += libEventsSb496.String()
 
 	libSrc := "package lib\n" +
 		"import \"github.com/larsartmann/go-cqrs-lite/event/v4\"\n" +

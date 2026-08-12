@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"math"
 	"os"
 	"strings"
+
+	"encoding/json/jsontext"
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 
@@ -201,9 +203,9 @@ func layoutHandler(_ context.Context, _ *AppConfig, flags *LayoutFlags) error {
 	withOutput(flags.Output, func(w *os.File) {
 		switch resolveFormat(flags.Format) {
 		case formatJSON:
-			enc := json.NewEncoder(w)
+			enc := jsontext.NewEncoder(w)
 			enc.SetIndent("", "  ")
-			_ = enc.Encode(groups)
+			_ = json.MarshalEncode(enc, groups)
 		default:
 			renderLayoutText(w, groups, flags.Verbose)
 		}

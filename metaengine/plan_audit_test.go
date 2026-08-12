@@ -201,10 +201,16 @@ func TestPlanAudit_PrioritySnapshotIsImmutable(t *testing.T) {
 
 	snap := hist[0].Priority
 	if snap.Global != metaengine.PriorityReadSpeed {
-		t.Errorf("snapshot Global = %s, want ReadSpeed (should be immune to post-call mutation)", snap.Global)
+		t.Errorf(
+			"snapshot Global = %s, want ReadSpeed (should be immune to post-call mutation)",
+			snap.Global,
+		)
 	}
 
 	if got := snap.PerEngine["audit-engine"]; got != metaengine.PriorityBalanced {
-		t.Errorf("snapshot PerEngine = %s, want Balanced (should be immune to post-call mutation)", got)
+		t.Errorf(
+			"snapshot PerEngine = %s, want Balanced (should be immune to post-call mutation)",
+			got,
+		)
 	}
 }

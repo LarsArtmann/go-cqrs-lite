@@ -36,7 +36,10 @@ func TestConvergence_PlanCarriesLayout(t *testing.T) {
 
 	for _, q := range plan.Queries {
 		if q.Layout == "" {
-			t.Errorf("query %s has empty Layout — plan should carry the layout decision", q.QueryName)
+			t.Errorf(
+				"query %s has empty Layout — plan should carry the layout decision",
+				q.QueryName,
+			)
 		}
 	}
 }
@@ -129,8 +132,12 @@ func TestConvergence_ReplanLayoutReadsActualLayout(t *testing.T) {
 
 	for _, d := range diffs {
 		if d.From == d.To {
-			t.Errorf("ReplanLayout produced a no-op diff for %s: %s → %s (should have been suppressed)",
-				d.QueryName, d.From, d.To)
+			t.Errorf(
+				"ReplanLayout produced a no-op diff for %s: %s → %s (should have been suppressed)",
+				d.QueryName,
+				d.From,
+				d.To,
+			)
 		}
 	}
 }

@@ -64,10 +64,14 @@ func TestLayoutMatrix_All16Combinations(t *testing.T) {
 
 				t.Logf(
 					"%s: %s (embed %.3f vs norm %.3f, margin %.3f, read=%.2f write=%.2f storage=%.2f)",
-					cell, got,
-					embedScore(layout, priority), normScore(layout, priority),
+					cell,
+					got,
+					embedScore(layout, priority),
+					normScore(layout, priority),
 					embedScore(layout, priority)-normScore(layout, priority),
-					cost.ReadCost, cost.WriteCost, cost.StorageCost,
+					cost.ReadCost,
+					cost.WriteCost,
+					cost.StorageCost,
 				)
 			})
 		}
@@ -76,7 +80,10 @@ func TestLayoutMatrix_All16Combinations(t *testing.T) {
 
 // expectedLayout is the authoritative expected decision for each cell. Any
 // change to the cost model that flips a decision MUST update this table.
-func expectedLayout(layout metaengine.StorageLayout, priority metaengine.Priority) metaengine.LayoutOption {
+func expectedLayout(
+	layout metaengine.StorageLayout,
+	priority metaengine.Priority,
+) metaengine.LayoutOption {
 	switch layout {
 	case metaengine.LayoutKV, metaengine.LayoutLSM:
 		switch priority {

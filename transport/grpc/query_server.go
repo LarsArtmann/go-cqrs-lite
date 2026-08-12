@@ -3,10 +3,9 @@ package grpc
 import (
 	"context"
 
+	"github.com/larsartmann/go-codec"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"google.golang.org/grpc"
-
-	"github.com/larsartmann/go-codec"
 
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"

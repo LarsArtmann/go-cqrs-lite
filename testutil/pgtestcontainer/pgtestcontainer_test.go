@@ -45,7 +45,13 @@ func TestReplaceDBInDSN_URLFormat(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			got := replaceDBInDSN(tc.dsn, tc.newDB)
 			if got != tc.expect {
-				t.Errorf("replaceDBInDSN(%q, %q)\n  got:  %q\n  want: %q", tc.dsn, tc.newDB, got, tc.expect)
+				t.Errorf(
+					"replaceDBInDSN(%q, %q)\n  got:  %q\n  want: %q",
+					tc.dsn,
+					tc.newDB,
+					got,
+					tc.expect,
+				)
 			}
 		})
 	}
@@ -98,7 +104,13 @@ func TestReplaceDBInDSN_KeywordValueFormat(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			got := replaceDBInDSN(tc.dsn, tc.newDB)
 			if got != tc.expect {
-				t.Errorf("replaceDBInDSN(%q, %q)\n  got:  %q\n  want: %q", tc.dsn, tc.newDB, got, tc.expect)
+				t.Errorf(
+					"replaceDBInDSN(%q, %q)\n  got:  %q\n  want: %q",
+					tc.dsn,
+					tc.newDB,
+					got,
+					tc.expect,
+				)
 			}
 		})
 	}

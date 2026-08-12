@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-codec"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // TypedStore is a typed read-model store over an untyped [Store].

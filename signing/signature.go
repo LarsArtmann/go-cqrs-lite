@@ -5,9 +5,8 @@ import (
 	"encoding/base64"
 	"slices"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-codec"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Signature is an opaque, serializable event signature.

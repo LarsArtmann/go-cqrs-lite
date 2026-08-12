@@ -1,9 +1,8 @@
 package encryption
 
 import (
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-codec"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const EncryptionEncoding codec.Encoding = "encrypted"

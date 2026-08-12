@@ -10,15 +10,17 @@ import (
 
 // --- Types ---
 
-type Encoding = gocodec.Encoding
-type Codec = gocodec.Codec
-type BufferEncoder = gocodec.BufferEncoder
-type CBORCodec = gocodec.CBORCodec
-type JSONCodec = gocodec.JSONCodec
-type CBORCompactCodec = gocodec.CBORCompactCodec
-type RawCodec = gocodec.RawCodec
-type COSESign1 = gocodec.COSESign1
-type COSEEncrypt0 = gocodec.COSEEncrypt0
+type (
+	Encoding         = gocodec.Encoding
+	Codec            = gocodec.Codec
+	BufferEncoder    = gocodec.BufferEncoder
+	CBORCodec        = gocodec.CBORCodec
+	JSONCodec        = gocodec.JSONCodec
+	CBORCompactCodec = gocodec.CBORCompactCodec
+	RawCodec         = gocodec.RawCodec
+	COSESign1        = gocodec.COSESign1
+	COSEEncrypt0     = gocodec.COSEEncrypt0
+)
 
 // --- Encoding constants ---
 
@@ -53,13 +55,13 @@ const (
 // --- Error sentinels ---
 
 var (
-	ErrUnknownEncoding      = gocodec.ErrUnknownEncoding
-	ErrEncodeRawType        = gocodec.ErrEncodeRawType
-	ErrDecodeRawType        = gocodec.ErrDecodeRawType
-	ErrInvalidCOSESign1     = gocodec.ErrInvalidCOSESign1
-	ErrInvalidCOSEEncrypt0  = gocodec.ErrInvalidCOSEEncrypt0
+	ErrUnknownEncoding       = gocodec.ErrUnknownEncoding
+	ErrEncodeRawType         = gocodec.ErrEncodeRawType
+	ErrDecodeRawType         = gocodec.ErrDecodeRawType
+	ErrInvalidCOSESign1      = gocodec.ErrInvalidCOSESign1
+	ErrInvalidCOSEEncrypt0   = gocodec.ErrInvalidCOSEEncrypt0
 	ErrCOSEAlgorithmOverflow = gocodec.ErrCOSEAlgorithmOverflow
-	ErrCOSEInvalidAlgorithm = gocodec.ErrCOSEInvalidAlgorithm
+	ErrCOSEInvalidAlgorithm  = gocodec.ErrCOSEInvalidAlgorithm
 )
 
 // --- Codec lookup and detection ---
@@ -84,19 +86,19 @@ var (
 // --- Envelope ---
 
 var (
-	WrapEncode    = gocodec.WrapEncode
-	UnwrapDecode  = gocodec.UnwrapDecode
+	WrapEncode   = gocodec.WrapEncode
+	UnwrapDecode = gocodec.UnwrapDecode
 )
 
 // --- Base64 JSON helpers ---
 
 var (
-	DecodeBase64String       = gocodec.DecodeBase64String
-	MarshalBase64JSON        = gocodec.MarshalBase64JSON
+	DecodeBase64String          = gocodec.DecodeBase64String
+	MarshalBase64JSON           = gocodec.MarshalBase64JSON
 	MarshalBase64JSONWithModule = gocodec.MarshalBase64JSONWithModule
-	UnmarshalBase64JSON      = gocodec.UnmarshalBase64JSON
-	AssignBase64JSON         = gocodec.AssignBase64JSON
-	WrapCOSEMarshal          = gocodec.WrapCOSEMarshal
+	UnmarshalBase64JSON         = gocodec.UnmarshalBase64JSON
+	AssignBase64JSON            = gocodec.AssignBase64JSON
+	WrapCOSEMarshal             = gocodec.WrapCOSEMarshal
 )
 
 // --- COSE structure ---
@@ -114,12 +116,12 @@ func PrepareCOSESetup[Cfg any, O ~func(*Cfg)](cfg *Cfg, opts []O, alg int64) ([]
 }
 
 var (
-	MarshalCOSESign1           = gocodec.MarshalCOSESign1
-	UnmarshalCOSESign1         = gocodec.UnmarshalCOSESign1
-	MarshalCOSEEncrypt0        = gocodec.MarshalCOSEEncrypt0
-	UnmarshalCOSEEncrypt0      = gocodec.UnmarshalCOSEEncrypt0
-	SigStructure               = gocodec.SigStructure
-	EncStructure0              = gocodec.EncStructure0
-	COSESign1String            = gocodec.COSESign1String
-	COSEEncrypt0String         = gocodec.COSEEncrypt0String
+	MarshalCOSESign1      = gocodec.MarshalCOSESign1
+	UnmarshalCOSESign1    = gocodec.UnmarshalCOSESign1
+	MarshalCOSEEncrypt0   = gocodec.MarshalCOSEEncrypt0
+	UnmarshalCOSEEncrypt0 = gocodec.UnmarshalCOSEEncrypt0
+	SigStructure          = gocodec.SigStructure
+	EncStructure0         = gocodec.EncStructure0
+	COSESign1String       = gocodec.COSESign1String
+	COSEEncrypt0String    = gocodec.COSEEncrypt0String
 )

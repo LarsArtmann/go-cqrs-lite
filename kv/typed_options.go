@@ -3,9 +3,8 @@ package kv
 import (
 	"fmt"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-codec"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // errNilTypedValue is returned by [TypedStore.Set] when val is nil.

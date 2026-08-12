@@ -20,12 +20,12 @@ require (
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
-	github.com/gkampitakis/go-snaps v0.5.23 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0 // indirect

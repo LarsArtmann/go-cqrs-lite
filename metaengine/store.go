@@ -33,7 +33,7 @@ type Store struct {
 	lastReplanAt      time.Time
 	replanCount       int
 	planHistory       []PlanAuditEntry // bounded audit trail (max maxPlanHistory)
-	routingMu         sync.Mutex // protects routingSig + routingDiags
+	routingMu         sync.Mutex       // protects routingSig + routingDiags
 	routingSig        string
 	routingDiags      []Diagnostic
 	priorityConfig    *PriorityConfig // operator-driven layout priority (ADR-0124)

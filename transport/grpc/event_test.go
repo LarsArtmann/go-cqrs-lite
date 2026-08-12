@@ -6,10 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-codec"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"github.com/larsartmann/go-codec"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"

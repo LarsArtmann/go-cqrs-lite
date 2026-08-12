@@ -6,9 +6,8 @@ import (
 	"crypto/sha256"
 	"slices"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-codec"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // COSESigner signs raw byte strings and reports the COSE algorithm identifier.

@@ -106,7 +106,12 @@ func resolvePriority(
 // option. Resolution order: per-Query (operator config) → developer
 // WithLayoutPriority → per-Engine → Global → Balanced.
 func (s *Store) priorityForQuery(engineName, queryName string, cfg QueryConfig) Priority {
-	return resolvePriority(s.priorityConfig, engineName, queryName, cfg.layoutPriorityOr(PriorityBalanced))
+	return resolvePriority(
+		s.priorityConfig,
+		engineName,
+		queryName,
+		cfg.layoutPriorityOr(PriorityBalanced),
+	)
 }
 
 // filterAccessor stores a typed closure that extracts a filterable field value

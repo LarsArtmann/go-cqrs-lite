@@ -111,7 +111,10 @@ func TestMultiModuleBuildContext_FileAttribution(t *testing.T) {
 		// Check load errors — might be a transient resolution issue
 		for _, e := range ctx.LoadErrors {
 			if strings.Contains(e.Module, "deriver") {
-				t.Skipf("deriver module failed to load (expected in some environments): %v", e.Errors)
+				t.Skipf(
+					"deriver module failed to load (expected in some environments): %v",
+					e.Errors,
+				)
 			}
 		}
 		t.Errorf("no GoFiles attributed to %s — ModuleDir wiring is broken", deriverDir)

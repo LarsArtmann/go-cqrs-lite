@@ -4,9 +4,8 @@ import (
 	"crypto/rand"
 	"io"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-codec"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // COSEEncrypter encrypts plaintext with authenticated additional data and reports
