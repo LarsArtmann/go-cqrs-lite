@@ -3,11 +3,11 @@
     "cmdguard": {
       "flake": false,
       "locked": {
-        "lastModified": 1786087174,
-        "narHash": "sha256-/E+9Px23NdV1XgwAeCr3iE+p3IYlgmubv6N+FEP5zcA=",
+        "lastModified": 1786522980,
+        "narHash": "sha256-Bt5CSqtl7YGShVyPx8Ciqb27I07mLLFi/FJ7RzTMT/8=",
         "owner": "LarsArtmann",
         "repo": "cmdguard",
-        "rev": "e29b5c0df8ae1ec2355d64fc28af7f23873d27fd",
+        "rev": "1479b5b02661dfe136ad9439f0bee457261f7daf",
         "type": "github"
       },
       "original": {
@@ -125,11 +125,11 @@
     "go-nix-helpers": {
       "flake": false,
       "locked": {
-        "lastModified": 1786374450,
-        "narHash": "sha256-xynqP898epL7hJQsOSPsxN+YpDBht4OAiam9fFFetrw=",
+        "lastModified": 1786525710,
+        "narHash": "sha256-Bh02sYLZYuB3Gql5kIudyyG/aVOlsbOj3pNRd3XZWyI=",
         "owner": "LarsArtmann",
         "repo": "go-nix-helpers",
-        "rev": "0122702048ca9b063b9001be0273ae3deba6cfda",
+        "rev": "e6d392b95252bbfb99777bf7b2f531bbe7bcd4d0",
         "type": "github"
       },
       "original": {
@@ -210,11 +210,11 @@
     "samber-do-auditlog": {
       "flake": false,
       "locked": {
-        "lastModified": 1786521207,
-        "narHash": "sha256-n/93aXnmWEDyfeVHC6ndK6lg2j5xY7SdWw9koLe1Isk=",
+        "lastModified": 1786522793,
+        "narHash": "sha256-epICtJ3DSRTQFjg1x+YXtxET2UjAu/yL3kL73sFSrM8=",
         "owner": "LarsArtmann",
         "repo": "samber-do-auditlog",
-        "rev": "bfb29da8a00ccb8c797e5b9fa5265bb6cfbbbc84",
+        "rev": "e1053d11037890f8dff816087ac006de7a486d0e",
         "type": "github"
       },
       "original": {
