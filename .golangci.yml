@@ -903,6 +903,11 @@ linters:
           - gocritic
           - wrapcheck
           - nolintlint
+      # codec/alias.go — backward-compat re-export of go-codec symbols.
+      - path: codec/alias\.go
+        linters:
+          - gochecknoglobals
+          - wrapcheck
       # sync/ — experimental sync primitives.
       - path: sync/
         linters:

@@ -3,8 +3,6 @@ package middleware
 import (
 	"testing"
 	"time"
-
-	"github.com/larsartmann/go-idempotency"
 )
 
 func TestQueryIdempotency_NilKeyExtractorPanics(t *testing.T) {
@@ -16,5 +14,5 @@ func TestQueryIdempotency_NilKeyExtractorPanics(t *testing.T) {
 		}
 	}()
 
-	QueryIdempotency(idempotency.NewMemoryStore(0), time.Minute, nil)
+	QueryIdempotency(newTestIdempotencyStore(t), time.Minute, nil)
 }

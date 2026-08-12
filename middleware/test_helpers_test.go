@@ -6,7 +6,9 @@ import (
 	"log/slog"
 	"sync"
 	"testing"
+	"time"
 
+	"github.com/larsartmann/go-idempotency"
 	"go.opentelemetry.io/otel/sdk/metric"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
@@ -14,6 +16,20 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
+
+//nolint:staticcheck // MemoryStore is the intended test impl
+func newTestIdempotencyStore(tb testing.TB) *idempotency.MemoryStore {
+	tb.Helper()
+
+	return idempotency.NewMemoryStore(0)
+}
+
+//nolint:staticcheck // MemoryStore is the intended test impl
+func newBenchIdempotencyStore(b *testing.B, sweepInterval time.Duration) *idempotency.MemoryStore {
+	b.Helper()
+
+	return idempotency.NewMemoryStore(sweepInterval)
+}
 
 type testCommand struct {
 	commandID id.CommandID

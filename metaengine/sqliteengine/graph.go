@@ -88,7 +88,7 @@ func (e *sqliteEngine) queryGraphNeighbors(
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var neighbors []string
 

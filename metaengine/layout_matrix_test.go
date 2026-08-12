@@ -43,8 +43,6 @@ func TestLayoutMatrix_All16Combinations(t *testing.T) {
 
 	for _, layout := range layouts {
 		for _, priority := range priorities {
-			layout, priority := layout, priority
-
 			profile := syntheticProfileFor(layout)
 
 			expected := expectedLayout(layout, priority)

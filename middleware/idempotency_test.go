@@ -28,7 +28,7 @@ func newIdempotencyTestCmd() *testCommand {
 func TestCommandIdempotency_FirstCallPassesThrough(t *testing.T) {
 	t.Parallel()
 
-	store := idempotency.NewMemoryStore(0)
+	store := newTestIdempotencyStore(t)
 	defer store.Close()
 
 	var called bool
@@ -50,7 +50,7 @@ func TestCommandIdempotency_FirstCallPassesThrough(t *testing.T) {
 func TestCommandIdempotency_DuplicateReturnsErrDuplicate(t *testing.T) {
 	t.Parallel()
 
-	store := idempotency.NewMemoryStore(0)
+	store := newTestIdempotencyStore(t)
 	defer store.Close()
 
 	var callCount int
@@ -77,7 +77,7 @@ func TestCommandIdempotency_DuplicateReturnsErrDuplicate(t *testing.T) {
 func TestCommandIdempotency_DifferentCommandsBothPass(t *testing.T) {
 	t.Parallel()
 
-	store := idempotency.NewMemoryStore(0)
+	store := newTestIdempotencyStore(t)
 	defer store.Close()
 
 	var callCount int
@@ -100,7 +100,7 @@ func TestCommandIdempotency_DifferentCommandsBothPass(t *testing.T) {
 func TestCommandIdempotency_CustomKeyExtractor(t *testing.T) {
 	t.Parallel()
 
-	store := idempotency.NewMemoryStore(0)
+	store := newTestIdempotencyStore(t)
 	defer store.Close()
 
 	var callCount int
@@ -129,7 +129,7 @@ func TestCommandIdempotency_CustomKeyExtractor(t *testing.T) {
 func TestCommandIdempotency_EmptyKeyPassesThrough(t *testing.T) {
 	t.Parallel()
 
-	store := idempotency.NewMemoryStore(0)
+	store := newTestIdempotencyStore(t)
 	defer store.Close()
 
 	var callCount int
@@ -179,7 +179,7 @@ func TestCommandIdempotency_StoreErrorIsTransient(t *testing.T) {
 func TestEventIdempotency_FirstCallPassesThrough(t *testing.T) {
 	t.Parallel()
 
-	store := idempotency.NewMemoryStore(0)
+	store := newTestIdempotencyStore(t)
 	defer store.Close()
 
 	var called bool
@@ -206,7 +206,7 @@ func TestEventIdempotency_FirstCallPassesThrough(t *testing.T) {
 func TestEventIdempotency_DuplicateReturnsErrDuplicate(t *testing.T) {
 	t.Parallel()
 
-	store := idempotency.NewMemoryStore(0)
+	store := newTestIdempotencyStore(t)
 	defer store.Close()
 
 	var callCount int
@@ -237,7 +237,7 @@ func TestEventIdempotency_DuplicateReturnsErrDuplicate(t *testing.T) {
 func TestEventIdempotency_DifferentEventsBothPass(t *testing.T) {
 	t.Parallel()
 
-	store := idempotency.NewMemoryStore(0)
+	store := newTestIdempotencyStore(t)
 	defer store.Close()
 
 	var callCount int
@@ -269,7 +269,7 @@ func TestEventIdempotency_DifferentEventsBothPass(t *testing.T) {
 func TestQueryIdempotency_DeduplicatesByKey(t *testing.T) {
 	t.Parallel()
 
-	store := idempotency.NewMemoryStore(0)
+	store := newTestIdempotencyStore(t)
 	defer store.Close()
 
 	var callCount int
@@ -308,7 +308,7 @@ func TestQueryIdempotency_DeduplicatesByKey(t *testing.T) {
 func TestQueryIdempotency_EmptyKeyPassesThrough(t *testing.T) {
 	t.Parallel()
 
-	store := idempotency.NewMemoryStore(0)
+	store := newTestIdempotencyStore(t)
 	defer store.Close()
 
 	var callCount int

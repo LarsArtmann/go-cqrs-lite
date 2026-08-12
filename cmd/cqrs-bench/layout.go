@@ -202,8 +202,7 @@ func layoutHandler(_ context.Context, _ *AppConfig, flags *LayoutFlags) error {
 	withOutput(flags.Output, func(w *os.File) {
 		switch resolveFormat(flags.Format) {
 		case formatJSON:
-			enc := jsontext.NewEncoder(w)
-			enc.SetIndent("", "  ")
+			enc := jsontext.NewEncoder(w, jsontext.WithIndent("  "))
 			_ = json.MarshalEncode(enc, groups)
 		default:
 			renderLayoutText(w, groups, flags.Verbose)
