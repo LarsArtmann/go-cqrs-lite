@@ -59,7 +59,11 @@ func RunRecordStampTest(t *testing.T, eng metaengine.Engine) {
 		},
 	}
 
-	if err := store.ApplyRecord(ctx, rec, stampItemCreated{ID: "item-1", Name: "test"}); err != nil {
+	if err := store.ApplyRecord(
+		ctx,
+		rec,
+		stampItemCreated{ID: "item-1", Name: "test"},
+	); err != nil {
 		t.Fatalf("ApplyRecord: %v", err)
 	}
 
