@@ -2,13 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
 	"math"
 	"os"
 	"strings"
-
-	"encoding/json/jsontext"
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 
