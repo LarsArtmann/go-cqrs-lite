@@ -115,7 +115,7 @@ func (w *worker) process(ctx context.Context) error {
 
 	// Phase 2: live subscription (if configured).
 	if w.opts.subscriber != nil {
-		return w.processLive(ctx)
+		return w.processLive(ctx, afterID)
 	}
 
 	return nil
@@ -151,14 +151,42 @@ func (w *worker) handleProcessEventError(
 	return nil
 }
 
-// processLive subscribes to live events via the configured subscriber. Events
-// already processed during journal drain are silently skipped. Blocks until the
-// context is cancelled, the subscriber returns an error, or the worker is stopped.
-func (w *worker) processLive(ctx context.Context) error {
+// processLive subscribes to live events via the configured subscriber, then
+// performs a catch-up drain to close the TOCTOU race window between the initial
+// journal drain and subscriber registration.
+//
+// For non-blocking subscribers (in-process buses like simpleBus), SubscribeAll
+// returns immediately after registering the callback. The catch-up drain then
+// reads events published between the initial drain and subscription — closing
+// the race window where events could be silently lost.
+//
+// For blocking subscribers (message brokers like NATS, Postgres LISTEN/NOTIFY),
+// SubscribeAll blocks until context cancellation. The broker retains messages,
+// so there is no gap. The catch-up drain runs after SubscribeAll returns (on
+// shutdown) and is a no-op because the context is already cancelled.
+//
+// The handleMu mutex serializes event processing between the catch-up drain
+// and the live handler callback, preventing concurrent projection.Handle calls.
+func (w *worker) processLive(ctx context.Context, afterID id.EventID) error {
+	//cqrs-lint:ignore(A005,C027) library code or intentional pattern
+	if err := w.opts.subscriber.SubscribeAll(w.liveHandler(ctx)); err != nil {
+		return fmt.Errorf("subscribe live events: %w", err)
+	}
+
+	if err := w.drainCatchUp(ctx, afterID); err != nil {
+		return fmt.Errorf("catch-up drain: %w", err)
+	}
+
 	w.setStatus(WorkerLive)
 
-	//cqrs-lint:ignore(A005,C027) library code or intentional pattern
-	if err := w.opts.subscriber.SubscribeAll(func(_ context.Context, evt event.Event) error {
+	return nil
+}
+
+// liveHandler returns the event.Handler callback for the live subscriber.
+// The handler acquires handleMu to serialize with any concurrent catch-up
+// drain processing.
+func (w *worker) liveHandler(ctx context.Context) event.Handler {
+	return func(_ context.Context, evt event.Event) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -167,7 +195,9 @@ func (w *worker) processLive(ctx context.Context) error {
 		default:
 		}
 
-		// Dedup: skip events that were already processed during journal drain.
+		w.handleMu.Lock()
+		defer w.handleMu.Unlock()
+
 		if w.wasSeen(evt.ID().String()) {
 			return nil
 		}
@@ -204,9 +234,89 @@ func (w *worker) processLive(ctx context.Context) error {
 		w.lastProcessedNs.Store(time.Now().UnixNano())
 
 		return nil
-	}); err != nil {
-		return fmt.Errorf("subscribe live events: %w", err)
 	}
+}
 
-	return nil
+// drainCatchUp reads events from the journal starting at afterID, processing
+// any that were published between the initial drain completing and the live
+// subscriber being registered. This closes the TOCTOU race window where events
+// could be silently lost with non-blocking subscribers.
+//
+// Each event is processed under handleMu to serialize with concurrent live
+// handler callbacks. The seenIDs ring prevents double-processing at the overlap.
+func (w *worker) drainCatchUp(ctx context.Context, afterID id.EventID) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-w.stop:
+			return nil
+		default:
+		}
+
+		events, err := w.journal.ReadFrom(ctx, afterID, w.opts.batchSize)
+		if err != nil {
+			return fmt.Errorf("read journal batch: %w", err)
+		}
+
+		if len(events) == 0 {
+			return nil
+		}
+
+		for _, evt := range events {
+			select {
+			case <-ctx.Done():
+				return nil
+			case <-w.stop:
+				return nil
+			default:
+			}
+
+			w.handleMu.Lock()
+
+			if !w.shouldHandle(evt) {
+				afterID = evt.ID()
+				w.markSeen(evt.ID().String())
+				w.handleMu.Unlock()
+
+				continue
+			}
+
+			start := time.Now()
+			err := w.applyWithRetry(ctx, evt)
+			duration := time.Since(start)
+
+			if err != nil {
+				if e := w.handleProcessEventError(ctx, evt, err); e != nil {
+					w.handleMu.Unlock()
+
+					return e
+				}
+			} else {
+				w.recordMetric(func(m MetricsRecorder) {
+					m.EventProcessed(w.name, string(evt.Type()), duration)
+				})
+			}
+
+			afterID = evt.ID()
+			w.processed.Add(1)
+			w.markSeen(evt.ID().String())
+			w.lastProcessedNs.Store(time.Now().UnixNano())
+
+			w.handleMu.Unlock()
+		}
+
+		if err := w.cpStore.Save(ctx, w.name, event.Checkpoint{
+			EventID:     afterID,
+			ProcessedAt: time.Now(),
+		}); err != nil {
+			return fmt.Errorf("save checkpoint: %w", err)
+		}
+
+		w.setCheckpoint(afterID.String())
+
+		if len(events) < w.opts.batchSize {
+			return nil
+		}
+	}
 }

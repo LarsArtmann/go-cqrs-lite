@@ -47,9 +47,18 @@ type worker struct {
 	// seenIDs is a bounded ring of event IDs accumulated during journal drain
 	// so the live phase can skip events that overlap the replay→live boundary.
 	// Bounded to dedup.DefaultCapacity entries — never grows during live
-	// processing. Not safe for concurrent use; only accessed during drain
-	// (single goroutine).
+	// processing. Protected by handleMu during the catch-up drain and live
+	// phases (when both the drain loop and the subscriber callback may access
+	// it concurrently). During the initial drain, only the worker goroutine
+	// accesses it (no concurrency).
 	seenIDs *dedup.Ring
+
+	// handleMu serializes event processing between the catch-up drain and the
+	// live subscriber callback. Without this, a non-blocking subscriber (e.g.
+	// simpleBus) could deliver an event via the callback while the catch-up
+	// drain is processing a different event from the journal, causing
+	// concurrent projection.Handle calls and races on seenIDs/cpStore.
+	handleMu sync.Mutex
 
 	stop chan struct{}
 	done chan struct{}
