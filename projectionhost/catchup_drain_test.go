@@ -116,7 +116,10 @@ func TestHost_CatchUpDrain_LiveDeliveryWorksAfterCatchUp(t *testing.T) {
 		appended: make(chan struct{}),
 	}
 
-	proj := &countingProjection{name: "live-after-catchup", eventTypes: []event.Type{"task.created"}}
+	proj := &countingProjection{
+		name:       "live-after-catchup",
+		eventTypes: []event.Type{"task.created"},
+	}
 
 	host, err := projectionhost.New(
 		journal, cpStore,
@@ -154,5 +157,68 @@ func TestHost_CatchUpDrain_LiveDeliveryWorksAfterCatchUp(t *testing.T) {
 	})
 
 	cancel()
+	_ = host.Stop()
+}
+
+// TestHost_CatchUpDrain_WorkerLiveVisibleDuringBlockingSubscribe verifies that
+// WorkerLive status is set BEFORE SubscribeAll, so it is visible during the
+// blocking subscriber's lifetime (not just nanoseconds before WorkerStopped).
+//
+// Without this, consumers polling host.Status() for WorkerLive readiness would
+// never see it when using blocking subscribers (Watermill, NATS, etc.).
+func TestHost_CatchUpDrain_WorkerLiveVisibleDuringBlockingSubscribe(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+
+	// channelSubscriber blocks in SubscribeAll (range over channel) — mimicking
+	// a blocking message-broker subscriber like Watermill GoChannel.
+	liveSub := newChannelSubscriber()
+
+	proj := &countingProjection{name: "blocking-live", eventTypes: []event.Type{"task.created"}}
+
+	host, err := projectionhost.New(
+		journal, cpStore,
+		projectionhost.WithSubscriber(liveSub),
+		projectionhost.WithBatchSize(10),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if err := host.Register(proj); err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := host.Start(ctx); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+
+	// The channelSubscriber blocks in SubscribeAll. If WorkerLive is set AFTER
+	// SubscribeAll (the regression), this poll will time out because the worker
+	// never reaches WorkerLive — it's stuck inside SubscribeAll.
+	requireEventually(t, 3*time.Second, func() bool {
+		for _, s := range host.Status() {
+			if s.Status == "live" {
+				return true
+			}
+		}
+
+		return false
+	})
+
+	// Send a live event — should be delivered via the blocking subscriber.
+	liveSub.send(makeEvent("task.created"))
+
+	requireEventually(t, 3*time.Second, func() bool {
+		return proj.count.Load() == 1
+	})
+
+	cancel()
+	liveSub.close()
 	_ = host.Stop()
 }

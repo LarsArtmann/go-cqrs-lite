@@ -155,19 +155,22 @@ func (w *worker) handleProcessEventError(
 // performs a catch-up drain to close the TOCTOU race window between the initial
 // journal drain and subscriber registration.
 //
+// WorkerLive is set BEFORE SubscribeAll because SubscribeAll IS the live phase:
+// for blocking subscribers (NATS, Postgres LISTEN/NOTIFY, Watermill GoChannel),
+// the call blocks for the entire lifetime of the projection while delivering
+// events via the callback. Setting WorkerLive after would mean it is never
+// visible during operation.
+//
 // For non-blocking subscribers (in-process buses like simpleBus), SubscribeAll
 // returns immediately after registering the callback. The catch-up drain then
 // reads events published between the initial drain and subscription — closing
 // the race window where events could be silently lost.
 //
-// For blocking subscribers (message brokers like NATS, Postgres LISTEN/NOTIFY),
-// SubscribeAll blocks until context cancellation. The broker retains messages,
-// so there is no gap. The catch-up drain runs after SubscribeAll returns (on
-// shutdown) and is a no-op because the context is already cancelled.
-//
 // The handleMu mutex serializes event processing between the catch-up drain
 // and the live handler callback, preventing concurrent projection.Handle calls.
 func (w *worker) processLive(ctx context.Context, afterID id.EventID) error {
+	w.setStatus(WorkerLive)
+
 	//cqrs-lint:ignore(A005,C027) library code or intentional pattern
 	if err := w.opts.subscriber.SubscribeAll(w.liveHandler(ctx)); err != nil {
 		return fmt.Errorf("subscribe live events: %w", err)
@@ -176,8 +179,6 @@ func (w *worker) processLive(ctx context.Context, afterID id.EventID) error {
 	if err := w.drainCatchUp(ctx, afterID); err != nil {
 		return fmt.Errorf("catch-up drain: %w", err)
 	}
-
-	w.setStatus(WorkerLive)
 
 	return nil
 }
@@ -299,6 +300,7 @@ func (w *worker) drainCatchUp(ctx context.Context, afterID id.EventID) error {
 			}
 
 			afterID = evt.ID()
+
 			w.processed.Add(1)
 			w.markSeen(evt.ID().String())
 			w.lastProcessedNs.Store(time.Now().UnixNano())
