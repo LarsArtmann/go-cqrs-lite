@@ -52,7 +52,11 @@ func TestEventOptions(t *testing.T) {
 
 	expectedActor := id.NewSystemActor("scheduler")
 	if !m.ActorID.Equal(expectedActor) {
-		t.Errorf("expected actor %s, got %s", expectedActor.PrefixedString(), m.ActorID.PrefixedString())
+		t.Errorf(
+			"expected actor %s, got %s",
+			expectedActor.PrefixedString(),
+			m.ActorID.PrefixedString(),
+		)
 	}
 
 	if m.Source.String() != "test-service" {
