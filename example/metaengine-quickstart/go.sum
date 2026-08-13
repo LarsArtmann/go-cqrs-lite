@@ -46,8 +46,8 @@ github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0 h1:crv4LiYKOql624v
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0/go.mod h1:ftzLBt4BpjwVqSWoy9QJoztDJnxMYcsNDv3pDBg25GI=
 github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 h1:1Yk+FwA6cYEzPhRdtPct0+N9KdGYil5sYixfpz5mwW4=
 github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0/go.mod h1:AuZLD6VfU2mPj7DENWMRag8kXzsf4+dHgM6fAbODszQ=
-github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.3.0 h1:QoHd1P6OIfmX1T3CvBwIOtb6RkjwAdbNuW9DYf1XMAk=
-github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.3.0/go.mod h1:OOPJ9Mn5Na9nwVmIKy80Mgx1utTsRMhSRPqA2k5ihD0=
+github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.4.0 h1:cG2ectcbpR90OoFlpmP/1gP+obocV+yyjsARQqfHsJY=
+github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.4.0/go.mod h1:cDboCYTCqa2ClUnSBMyUDAwhoyRc6IUN0N7rjdAbfs8=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 h1:s9XLaYa8jLAK3uBl6giJKStiQA+1ag9VmjQEU4AKZbg=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0/go.mod h1:KRlv3IxoiThNnX6vd7krsol84JJR3nZf9DWst8StbgM=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0 h1:axNv6S9pIzvEPN7E7liORtGTfLnHAhM0FBHlhh7qsuY=

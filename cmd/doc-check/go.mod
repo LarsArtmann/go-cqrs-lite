@@ -13,9 +13,9 @@ require (
 	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260811164956-006e29f97886 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20260812204455-68fa937c71be // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect
-	github.com/charmbracelet/x/exp/charmtone v0.0.0-20260811151704-00c6608f106b // indirect
+	github.com/charmbracelet/x/exp/charmtone v0.0.0-20260812204851-3e0d13df57b2 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
@@ -48,7 +48,7 @@ require (
 	github.com/larsartmann/go-output/serialization v0.37.0 // indirect
 	github.com/larsartmann/go-output/table v0.37.0 // indirect
 	github.com/larsartmann/go-output/tree v0.37.0 // indirect
-	github.com/larsartmann/samber-do-auditlog v0.8.1 // indirect
+	github.com/larsartmann/samber-do-auditlog v0.9.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.27 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect

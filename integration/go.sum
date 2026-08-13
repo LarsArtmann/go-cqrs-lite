@@ -96,8 +96,8 @@ github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.1.0 h1:9D+xCVjQEZDlnBKxUmt9
 github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.1.0/go.mod h1:eODkdf4RyWS5PmLjtDyp6q2SSnLEOd/aDx2PPyJRKXs=
 github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.1.0 h1:m/pTawdU4gAU2A55TlmGJKbkmaylxxsPbT1qUUq6EFg=
 github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.1.0/go.mod h1:/ugVrzL6BOYBIQnwZXauZSY+2ydYWxSUUrA7j7yMF0M=
-github.com/larsartmann/go-cqrs-lite/event/v4 v4.5.0 h1:7CBtsr3gC53IVZxL/0jMyWFi0sh517pX/j4opjksE4I=
-github.com/larsartmann/go-cqrs-lite/event/v4 v4.5.0/go.mod h1:39PBrn0BzPw42VNcXnYMQB/kxx5Fsnpe/KcBxh2Ro6w=
+github.com/larsartmann/go-cqrs-lite/event/v4 v4.6.0 h1:gprfquYISeWc16RUrBc5xDEbKc0lNlQ2G4cPAk7S8vo=
+github.com/larsartmann/go-cqrs-lite/event/v4 v4.6.0/go.mod h1:dLKmqZIBwCeBRdcxwUzl+wo0CHW+4vLkxqKgZcso4Gg=
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0 h1:crv4LiYKOql624vrc2XvClk9vgo9/qumWU1M0IEPmMc=
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0/go.mod h1:ftzLBt4BpjwVqSWoy9QJoztDJnxMYcsNDv3pDBg25GI=
 github.com/larsartmann/go-cqrs-lite/graph/v4 v4.1.0 h1:gdGpNsjlWdVpnaDdXaTS98m/uefF5AQzExlp+2AB/+k=
@@ -110,8 +110,8 @@ github.com/larsartmann/go-cqrs-lite/kv/v4 v4.1.0 h1:/BCyknlKgls1D/+Sm8ROTUnBZjRa
 github.com/larsartmann/go-cqrs-lite/kv/v4 v4.1.0/go.mod h1:Egsxf6eiUzXLx2kWzZAm6q6Ik8VK7INW5gjjBqCw+1E=
 github.com/larsartmann/go-cqrs-lite/listing/v4 v4.0.3 h1:sSqnScQC8b6K6qAVIuQUKy654TkcTvz01puTGxkoGwg=
 github.com/larsartmann/go-cqrs-lite/listing/v4 v4.0.3/go.mod h1:jd8OCVEFzRJIgSPnbkQriJo1O3szOlroZ8AQglDn/7Q=
-github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.3.0 h1:QoHd1P6OIfmX1T3CvBwIOtb6RkjwAdbNuW9DYf1XMAk=
-github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.3.0/go.mod h1:OOPJ9Mn5Na9nwVmIKy80Mgx1utTsRMhSRPqA2k5ihD0=
+github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.4.0 h1:cG2ectcbpR90OoFlpmP/1gP+obocV+yyjsARQqfHsJY=
+github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.4.0/go.mod h1:cDboCYTCqa2ClUnSBMyUDAwhoyRc6IUN0N7rjdAbfs8=
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.2.0 h1:axPWRQdaw2WVO1pGCmW55dw+wnBs/OC0fuyvpDJCa9Y=
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.2.0/go.mod h1:rglhgqAPPYG5wnGkxHeM7ZbGzXGruvwUp7AGyat7Iw4=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.2.0 h1:i2kGSC5u8J9d181DUTQhW+YNIzIT3EiYhPG2/ZAeYxs=
