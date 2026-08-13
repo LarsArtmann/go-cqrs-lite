@@ -137,6 +137,17 @@ func (q *BasicQuery) Type() Type { return q.queryType }
 // Metadata returns a defensive copy of the query metadata.
 func (q *BasicQuery) Metadata() Metadata { return q.metadata.Clone() }
 
+// ApplyOptions applies metadata options to an already-constructed query.
+// Intended for pipeline enrichment: transport adapters inject request-scoped
+// metadata (actor IDs, correlation IDs) after the domain decoder creates the
+// query but before dispatch. Options that set already-populated fields
+// will overwrite them.
+func (q *BasicQuery) ApplyOptions(opts ...Option) {
+	for _, opt := range opts {
+		opt(q)
+	}
+}
+
 // New creates a new query with validation.
 func New(queryType Type, opts ...Option) (*BasicQuery, error) {
 	if queryType == "" {

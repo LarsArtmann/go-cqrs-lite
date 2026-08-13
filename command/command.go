@@ -60,6 +60,17 @@ func (c *BasicCommand) ID() id.CommandID { return c.commandID }
 // Metadata returns the command metadata.
 func (c *BasicCommand) Metadata() Metadata { return c.metadata.Clone() }
 
+// ApplyOptions applies metadata options to an already-constructed command.
+// Intended for pipeline enrichment: transport adapters inject request-scoped
+// metadata (actor IDs, correlation IDs) after the domain decoder creates the
+// command but before dispatch. Options that set already-populated fields
+// will overwrite them.
+func (c *BasicCommand) ApplyOptions(opts ...Option) {
+	for _, opt := range opts {
+		opt(c)
+	}
+}
+
 // New creates a new command with validation.
 func New(commandType Type, streamID id.StreamID, opts ...Option) (*BasicCommand, error) {
 	if commandType == "" {

@@ -118,9 +118,6 @@ audit-log.*
 workflow-audit-log.*
 .buildflow-workflow-baseline.json
 
-## AI assistant state files (never track these)
-.ai-run-state.json
-
 ## Go
 go.work
 
@@ -135,11 +132,12 @@ go.work
 .eslintcache
 .cache/
 .parcel-cache/
-npm-debug.log*
+pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 # <<< buildflow-managed (.gitignore) <<<
+
 example/taskmanager/taskmanager
 example/getting-started/getting-started
 example/readme-quickstart/readme-quickstart
