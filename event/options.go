@@ -66,6 +66,12 @@ func WithUserID(v id.UserID) Option {
 	return apply(func(m *Metadata, v id.UserID) { m.UserID = v }, v)
 }
 
+// WithActor sets the effective actor (user, bot, system, or service) that
+// initiated the event. This is the primary audit-trail field for compliance.
+func WithActor(v id.ActorID) Option {
+	return apply(func(m *Metadata, v id.ActorID) { m.ActorID = v }, v)
+}
+
 // WithRequestID sets the request ID for debugging.
 func WithRequestID(v id.RequestID) Option {
 	return apply(func(m *Metadata, v id.RequestID) { m.RequestID = v }, v)

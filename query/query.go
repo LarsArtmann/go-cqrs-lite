@@ -102,6 +102,12 @@ func WithUserID(v id.UserID) Option {
 	return func(q *BasicQuery) { q.metadata.UserID = v }
 }
 
+// WithActor sets the effective actor (user, bot, system, or service) that
+// issued the query. This is the primary audit-trail field for compliance.
+func WithActor(v id.ActorID) Option {
+	return func(q *BasicQuery) { q.metadata.ActorID = v }
+}
+
 // WithRequestID sets the request ID for debugging.
 func WithRequestID(v id.RequestID) Option {
 	return func(q *BasicQuery) { q.metadata.RequestID = v }

@@ -56,6 +56,21 @@ func TestQuery_MetadataKeyIsLocal(t *testing.T) {
 	}
 }
 
+func TestQuery_WithActor(t *testing.T) {
+	t.Parallel()
+
+	actor := id.NewSystemActor("scheduler")
+	q, err := query.New("GetUser", query.WithActor(actor))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if !q.Metadata().ActorID.Equal(actor) {
+		t.Errorf("ActorID = %s, want %s",
+			q.Metadata().ActorID.PrefixedString(), actor.PrefixedString())
+	}
+}
+
 func TestQuery_WithCustomMetadata(t *testing.T) {
 	t.Parallel()
 

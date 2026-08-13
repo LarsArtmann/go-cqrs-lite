@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — `metadata.Tracing.ActorID` + `WithActor` options — 2026-08-13
+
+> Implements the actor-chain audit trail terminus that cqrs-htmx's
+> `EventOptionsFromContext` and `CommandOptionsFromContext` already attempt to
+> propagate. See `docs/feedback/new/2026-08-13_implement-event-command-withactor.md`.
+
+- **`metadata.Tracing.ActorID`** (`id.ActorID`, `json:"actorId,omitempty"`): new
+  field for the effective actor (user, bot, system, or service) that produced a
+  record. Zero value is omitted from JSON. `IsZero()` and `Merge()` updated.
+- **`event.WithActor(id.ActorID)`**: sets the actor on event metadata.
+- **`command.WithActor(id.ActorID)`**: sets the actor on command metadata.
+- **`query.WithActor(id.ActorID)`**: sets the actor on query metadata (symmetric
+  counterpart, same pattern as `WithUserID`).
+
 ### Added — Layout convergence, audit trail, operator-lever regression matrix, DSN keyword/value fix — 2026-08-11
 
 > Completes 7 layout-planning follow-up items. The in-memory plan now carries

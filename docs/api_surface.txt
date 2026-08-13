@@ -467,6 +467,7 @@ command/func ParseAggregateType
 command/func ParseStreamType
 command/func ParseType
 command/func RegisterTyped
+command/func WithActor
 command/func WithCausationID
 command/func WithCommandID
 command/func WithCommandMetadata
@@ -827,6 +828,7 @@ event/func Single
 event/func SliceFromVersion
 event/func SliceToVersion
 event/func UnmarshalMetadataJSON
+event/func WithActor
 event/func WithCausation
 event/func WithCausationID
 event/func WithClientID
@@ -2799,6 +2801,7 @@ query/func NewPersistedQuery
 query/func NewTypedQueryStore
 query/func ParseType
 query/func RegisterTyped
+query/func WithActor
 query/func WithCausationID
 query/func WithCorrelationID
 query/func WithCustomMetadata

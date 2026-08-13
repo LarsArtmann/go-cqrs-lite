@@ -23,6 +23,7 @@ func TestEventOptions(t *testing.T) {
 		event.WithCausationID(idtest.ParseCausationID(t, "01HK154FHRS5276AC3V7GRNTYM")),
 		event.WithUserID(idtest.ParseUserID(t, "01HK1543TRR6BB4AF65NQX5V8S")),
 		event.WithRequestID(idtest.ParseRequestID(t, "01HK154GH03H0ZJCWQ2PEYSCZW")),
+		event.WithActor(id.NewSystemActor("scheduler")),
 		event.WithSource(event.Source("test-service")),
 		event.WithIPAddress(event.IPAddress("127.0.0.1")),
 		event.WithUserAgent(event.UserAgent("test-agent")),
@@ -47,6 +48,11 @@ func TestEventOptions(t *testing.T) {
 
 	if m.RequestID != idtest.ParseRequestID(t, "01HK154GH03H0ZJCWQ2PEYSCZW") {
 		t.Errorf("expected request ID req-001, got %s", m.RequestID)
+	}
+
+	expectedActor := id.NewSystemActor("scheduler")
+	if !m.ActorID.Equal(expectedActor) {
+		t.Errorf("expected actor %s, got %s", expectedActor.PrefixedString(), m.ActorID.PrefixedString())
 	}
 
 	if m.Source.String() != "test-service" {

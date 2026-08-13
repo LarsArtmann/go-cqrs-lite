@@ -75,6 +75,21 @@ func TestCommand_WithUserID(t *testing.T) {
 	}
 }
 
+func TestCommand_WithActor(t *testing.T) {
+	t.Parallel()
+
+	actor := id.NewServiceActor("api-gateway")
+	cmd, err := command.New("CreateUser", id.NewStreamID(), command.WithActor(actor))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if !cmd.Metadata().ActorID.Equal(actor) {
+		t.Errorf("ActorID = %s, want %s",
+			cmd.Metadata().ActorID.PrefixedString(), actor.PrefixedString())
+	}
+}
+
 func TestCommand_WithRequestID(t *testing.T) {
 	t.Parallel()
 
@@ -96,6 +111,7 @@ func TestCommand_AllMetadata(t *testing.T) {
 	caid := id.NewCausationID()
 	uid := id.NewUserID()
 	rid := id.NewRequestID()
+	actor := id.NewBotActor("ci-runner")
 
 	cmd, err := command.New(
 		"CreateUser", id.NewStreamID(),
@@ -103,6 +119,7 @@ func TestCommand_AllMetadata(t *testing.T) {
 		command.WithCausationID(caid),
 		command.WithUserID(uid),
 		command.WithRequestID(rid),
+		command.WithActor(actor),
 	)
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -123,6 +140,10 @@ func TestCommand_AllMetadata(t *testing.T) {
 
 	if m.RequestID != rid {
 		t.Errorf("RequestID = %v, want %v", m.RequestID, rid)
+	}
+
+	if !m.ActorID.Equal(actor) {
+		t.Errorf("ActorID = %s, want %s", m.ActorID.PrefixedString(), actor.PrefixedString())
 	}
 }
 

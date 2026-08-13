@@ -83,6 +83,12 @@ func WithUserID(v id.UserID) Option {
 	return func(c *BasicCommand) { c.metadata.UserID = v }
 }
 
+// WithActor sets the effective actor (user, bot, system, or service) that
+// issued the command. This is the primary audit-trail field for compliance.
+func WithActor(v id.ActorID) Option {
+	return func(c *BasicCommand) { c.metadata.ActorID = v }
+}
+
 // WithRequestID sets the request ID for debugging.
 func WithRequestID(v id.RequestID) Option {
 	return func(c *BasicCommand) { c.metadata.RequestID = v }

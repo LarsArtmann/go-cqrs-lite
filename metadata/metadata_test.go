@@ -1,7 +1,9 @@
 package metadata
 
 import (
+	"encoding/json/v2"
 	"maps"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -52,6 +54,14 @@ func TestTracing_IsZero(t *testing.T) {
 			t.Error("Tracing with RequestID should be non-zero")
 		}
 	})
+
+	t.Run("actorID set is non-zero", func(t *testing.T) {
+		t.Parallel()
+		tr := Tracing{ActorID: id.NewSystemActor("scheduler")}
+		if tr.IsZero() {
+			t.Error("Tracing with ActorID should be non-zero")
+		}
+	})
 }
 
 // TestTracing_Merge covers overlay semantics: non-zero fields from other win.
@@ -98,6 +108,33 @@ func TestTracing_Merge(t *testing.T) {
 		}
 	})
 
+	t.Run("actorID overlays in merge", func(t *testing.T) {
+		t.Parallel()
+		base := Tracing{CorrelationID: corr1}
+		actor := id.NewSystemActor("scheduler")
+		other := Tracing{ActorID: actor}
+		merged := base.Merge(other)
+
+		if !merged.ActorID.Equal(actor) {
+			t.Error("ActorID should come from other")
+		}
+
+		if merged.CorrelationID != corr1 {
+			t.Error("CorrelationID should survive (other has zero)")
+		}
+	})
+
+	t.Run("zero actorID in other does not clear base", func(t *testing.T) {
+		t.Parallel()
+		actor := id.NewBotActor("ci-bot")
+		base := Tracing{ActorID: actor}
+		merged := base.Merge(Tracing{CorrelationID: corr1})
+
+		if !merged.ActorID.Equal(actor) {
+			t.Error("ActorID should survive merge with zero other")
+		}
+	})
+
 	t.Run("full overlay", func(t *testing.T) {
 		t.Parallel()
 		base := Tracing{CorrelationID: corr1, CausationID: caus1, UserID: user1, RequestID: req1}
@@ -106,6 +143,7 @@ func TestTracing_Merge(t *testing.T) {
 			CausationID:   id.NewCausationID(),
 			UserID:        id.NewUserID(),
 			RequestID:     id.NewRequestID(),
+			ActorID:       id.NewServiceActor("api-gateway"),
 		}
 		merged := base.Merge(allNew)
 
@@ -123,6 +161,10 @@ func TestTracing_Merge(t *testing.T) {
 
 		if merged.RequestID != allNew.RequestID {
 			t.Error("RequestID should be fully overlaid")
+		}
+
+		if !merged.ActorID.Equal(allNew.ActorID) {
+			t.Error("ActorID should be fully overlaid")
 		}
 	})
 
@@ -396,6 +438,57 @@ func TestMergeCustomMaps(t *testing.T) {
 		result["a"] = "modified"
 		if base["a"] != "1" {
 			t.Error("base should not be affected by result mutation")
+		}
+	})
+}
+
+// TestTracing_JSON covers JSON serialization of Tracing, especially the
+// omitempty behavior of ActorID when zero vs set.
+func TestTracing_JSON(t *testing.T) {
+	t.Parallel()
+
+	t.Run("zero ActorID is omitted from JSON", func(t *testing.T) {
+		t.Parallel()
+		tr := Tracing{}
+		data, err := json.Marshal(tr)
+		if err != nil {
+			t.Fatalf("marshal error: %v", err)
+		}
+
+		if strings.Contains(string(data), "actorId") {
+			t.Errorf("zero ActorID should be omitted, got %s", data)
+		}
+	})
+
+	t.Run("set ActorID appears in JSON", func(t *testing.T) {
+		t.Parallel()
+		tr := Tracing{ActorID: id.NewSystemActor("scheduler")}
+		data, err := json.Marshal(tr)
+		if err != nil {
+			t.Fatalf("marshal error: %v", err)
+		}
+
+		expected := `"actorId":"system:scheduler"`
+		if !strings.Contains(string(data), expected) {
+			t.Errorf("expected %s in JSON, got %s", expected, data)
+		}
+	})
+
+	t.Run("roundtrip preserves ActorID", func(t *testing.T) {
+		t.Parallel()
+		original := Tracing{ActorID: id.NewBotActor("ci-runner")}
+		data, err := json.Marshal(original)
+		if err != nil {
+			t.Fatalf("marshal error: %v", err)
+		}
+
+		var decoded Tracing
+		if err := json.Unmarshal(data, &decoded); err != nil {
+			t.Fatalf("unmarshal error: %v", err)
+		}
+
+		if !decoded.ActorID.Equal(original.ActorID) {
+			t.Errorf("roundtrip mismatch: got %v, want %v", decoded.ActorID, original.ActorID)
 		}
 	})
 }

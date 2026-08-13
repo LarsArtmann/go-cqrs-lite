@@ -18,6 +18,7 @@ type Tracing struct {
 	CausationID   id.CausationID   `json:"causationId"`
 	UserID        id.UserID        `json:"userId"`
 	RequestID     id.RequestID     `json:"requestId"`
+	ActorID       id.ActorID       `json:"actorId,omitempty"`
 }
 
 // IsZero returns true when no tracing field has been set.
@@ -25,7 +26,8 @@ func (t Tracing) IsZero() bool {
 	return t.CorrelationID.IsZero() &&
 		t.CausationID.IsZero() &&
 		t.UserID.IsZero() &&
-		t.RequestID.IsZero()
+		t.RequestID.IsZero() &&
+		t.ActorID.IsZero()
 }
 
 // Merge returns a Tracing with non-zero fields from other overlaid onto t.
@@ -46,6 +48,10 @@ func (t Tracing) Merge(other Tracing) Tracing {
 
 	if !other.RequestID.IsZero() {
 		result.RequestID = other.RequestID
+	}
+
+	if !other.ActorID.IsZero() {
+		result.ActorID = other.ActorID
 	}
 
 	return result
