@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-codec v0.1.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
 	pgregory.net/rapid v1.3.0
 )
@@ -38,6 +38,5 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/mod v0.39.0 // indirect
-	golang.org/x/text v0.41.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

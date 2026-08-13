@@ -136,8 +136,6 @@ github.com/larsartmann/go-branded-id v0.5.1 h1:4Cyv41AkbtQuf66TuNfWugjqHYA48I3Kf
 github.com/larsartmann/go-branded-id v0.5.1/go.mod h1:ElTJY6HNf3ziPytNA5mpW32bxjfsZ/C8ILn4nPQdbmI=
 github.com/larsartmann/go-codec v0.1.0 h1:Qc24tP5Sg4GQUDO/5kDjznYDiW62p2cUcCrw7ThiYbw=
 github.com/larsartmann/go-codec v0.1.0/go.mod h1:Ay1+MFkEQaPV70rbMucLfX/3LYcq7i8EkARoXChG2Co=
-github.com/larsartmann/go-cqrs-lite/codec/v4 v4.3.0 h1:u4HnUo2sfyWEGcf5Tdmaa5Rjav/6PBPTBiF9CiLD+YY=
-github.com/larsartmann/go-cqrs-lite/codec/v4 v4.3.0/go.mod h1:iGSvrAdFbNlxoeqkk62ILhJmFWORpMzVNojf3UOUNic=
 github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 h1:PnUN4VdglHJpPJQEhg/seGAw5v7hoPcxFUDjEiu6fKU=
 github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0/go.mod h1:V3O2zg2zp+X831dyEbJByDJU0kVSvMEk3oWsoihHo30=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.5.0 h1:QD4vl4kLh2AUDTOLqOlLxR50BErbjxX1LtprkOxkQiw=
@@ -172,8 +170,6 @@ github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.0 h1:2I
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.0/go.mod h1:ao9+WMapDQzOjYLXOGLXI5AxYFKkz4IWo3CXRxg6Ls0=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.1 h1:5eGUYEhm4lJFy3MpXDvVOSelgHT2FSJkuxN9sgy3Wa0=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.1/go.mod h1:QTnPkjd8wav+ObrKdd5pQrnvAhD+br06md+c6an1M2k=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.9.0 h1:n86MH95SzIvHlz0qAhqwP3m8OElXxsMn72t/yDDONo8=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.9.0/go.mod h1:bZnwfSTZrwOlJYkp08HXyhoFne0l7lxedo8n+b2IQ0o=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0 h1:GV9SgoAf4MIH2w9gbEsMqajsZ8mp9a0P+2rsaqrgZq4=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0/go.mod h1:lpkl+zFKy7FhhyKgH6S2i7+INp7PUk6yg4GsPbO/hCo=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.3.0 h1:1iybvmhuQBCuEy8cqTLPL2H/xGlTj+oxIyTHv8GuzFY=
@@ -198,8 +194,8 @@ github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0 h1:Rkc2Wn3QZUkFXhFR
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0/go.mod h1:Brzk1RPFo/+2j0Xq+biSM0JWlStPcvlec84K4IZsvKo=
 github.com/larsartmann/go-cqrs-lite/storage/v4 v4.4.0 h1:Y4jAXiOlaFjfPl1mRp+ab/EZyXTkEMy8/eMnBhBALYA=
 github.com/larsartmann/go-cqrs-lite/storage/v4 v4.4.0/go.mod h1:yqvJqPo+QIIVQCmUkCqTbwiUBd9g8XDMQsWK20vMI1M=
-github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0-20260808223431-099e6e1268fb h1:TrHln4uJwagorYNA4mwVMi7T9qa6E1aFbyZ6BSmzw5M=
-github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0-20260808223431-099e6e1268fb/go.mod h1:lE+fQJp1cnB4Usb93bHaIwOqTD2iRuue6cwSf5EIdyA=
+github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0 h1:QwJEMIav0UVqcoQHSGBPWQgZcO/rFjFl7akwuruIhTc=
+github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0/go.mod h1:e9SZtNrJIcWygwQqxZuvKFIqnq50na/ZCWN1dGeCXA0=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0 h1:Quk6HrTJU/cvGezrkSl/mSTULraGvNd3kSoaRTf3hHc=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.1.0/go.mod h1:mLyJ2JYRDO56bfoSDNYlGy25fA2fiteiVr53hFmnMFE=
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0 h1:uXTKwYa7mUUwsCg+ycwg7TtFjBmLsVOmy6MYXkI0sS0=
@@ -210,8 +206,8 @@ github.com/larsartmann/go-idempotency v0.1.2 h1:Uk0fQTD6j8IISIDnQoi8j1R92rYIwjyI
 github.com/larsartmann/go-idempotency v0.1.2/go.mod h1:ee9VieA/IrJBaZ47+lnbwR9l4Td9VpEnruNJfCjDpyU=
 github.com/larsartmann/go-retry v0.3.1 h1:PFCNacuGUQ8Io6hK6RFOiNQRwRCQ9vzfOguWnqof/+8=
 github.com/larsartmann/go-retry v0.3.1/go.mod h1:Lbi4UAbiRgM4BqfRtMFPW8umNF4qnIApNLw0RRoTqVg=
-github.com/larsartmann/go-sse v0.4.0 h1:cHeOMbVGcIqeetic8bdZIITo4xsPSpWiPhtvQTxNd+4=
-github.com/larsartmann/go-sse v0.4.0/go.mod h1:B9mLj83rwtrnbqSqBcRuMV8vnOvAaPlJtH+9U/fMeRQ=
+github.com/larsartmann/go-sse v0.5.0 h1:6KC4fh/cDxNvaZE10ByT39y6ib65KH+nQIgw8sfVYRY=
+github.com/larsartmann/go-sse v0.5.0/go.mod h1:kj1Gv+cnHIWKeqL0hRvbzkyM96/ZHAfub4FpgFtehHg=
 github.com/lithammer/shortuuid/v3 v3.0.7 h1:trX0KTHy4Pbwo/6ia8fscyHoGA+mf1jWbPJVuvyJQQ8=
 github.com/lithammer/shortuuid/v3 v3.0.7/go.mod h1:vMk8ke37EmiewwolSO1NLW8vP4ZaKlRuDIi8tWWmAts=
 github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 h1:eveIIGn4BGM3qknO74omf6HYr30/exH+eVUTuAgwjZ0=
