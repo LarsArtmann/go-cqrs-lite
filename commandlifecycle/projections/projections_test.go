@@ -204,14 +204,12 @@ func TestProcessingTime_AppliesAndComputesDuration(t *testing.T) {
 }
 
 func makeRecord(eventType string, cmdID id.CommandID) record.Record {
-	causationID, _ := id.ParseCausationID(cmdID.String())
-
 	return record.Record{
 		Type:       eventType,
 		StreamType: string(commandlifecycle.StreamTypeCommandLifecycle),
 		StreamID:   record.NewStreamRef("CommandLifecycle", cmdID.String()),
 		MetaData: record.CommonMetadata{
-			CausationID: causationID,
+			CausationID: cmdID.String(),
 		},
 	}
 }

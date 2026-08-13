@@ -3,12 +3,8 @@
 {
   "correlationId": "01HK1540X0841Y0A6BSX1VKR97",
   "causationId": null,
-  "actorId": "",
+  "userId": null,
   "requestId": null,
-  "clientCreatedAt": "0001-01-01T00:00:00Z",
-  "serverReceivedAt": "0001-01-01T00:00:00Z",
-  "serverStoredAt": "0001-01-01T00:00:00Z",
-  "schemaVersion": 0,
   "custom": {
     "event.signature": "sBPi91Lx6HSs81VE4fzRVFap9TOjo1XXmn7nEgBEbaQ="
   }

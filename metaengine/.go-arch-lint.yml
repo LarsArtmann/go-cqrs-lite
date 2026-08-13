@@ -1,0 +1,47 @@
+# go-arch-lint configuration for the metaengine module (intra-module rules)
+#
+# Run via: scripts/check-arch.sh (from the metaengine/ directory)
+# Enforces package-level dependency rules WITHIN the metaengine module.
+# Cross-module rules are enforced by scripts/check-module-layers.sh.
+
+version: 3
+
+allow:
+  depOnAnyVendor: true
+
+excludeFiles:
+  - "^.*_test\\.go$"
+  - "^.*testdata/.*$"
+  - "^badgerengine/.*$" # separate module
+  - "^bboltengine/.*$" # separate module
+  - "^bench/.*$" # separate module
+  - "^dgraphengine/.*$" # separate module
+  - "^duckdbengine/.*$" # separate module
+  - "^graphadapter/.*$" # separate module
+  - "^irohengine/.*$" # separate module
+  - "^mysqlengine/.*$" # separate module
+  - "^pebbleengine/.*$" # separate module
+  - "^pgengine/.*$" # separate module
+  - "^projectionadapter/.*$" # separate module
+  - "^sqliteengine/.*$" # separate module
+  - "^tursoengine/.*$" # separate module
+
+components:
+  core: { in: . }
+  adttest: { in: adttest }
+  enginetest: { in: enginetest }
+  keycodec: { in: keycodec }
+
+deps:
+  core:
+    anyProjectDeps: false
+    anyVendorDeps: true
+  adttest:
+    mayDependOn:
+      - core
+  enginetest:
+    mayDependOn:
+      - core
+  keycodec:
+    anyProjectDeps: false
+    anyVendorDeps: true

@@ -2,6 +2,7 @@ package watermill
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -153,5 +154,89 @@ func TestCatchUpSubscriber_NilChecks(t *testing.T) {
 	_, err = NewCatchUpSubscriber(store, NewSubscriberAdapter(bus), nil, nil)
 	if err == nil {
 		t.Error("expected error for nil checkpoint store")
+	}
+}
+
+// publishingJournal wraps a SeekableJournal and publishes an event to the
+// live bus on the first ReadFrom call. This deterministically triggers the
+// TOCTOU race: the event appears during the replay window, between live
+// subscribe and journal drain.
+type publishingJournal struct {
+	event.SeekableJournal
+
+	bus      event.Publisher
+	once     sync.Once
+	streamID id.StreamID
+}
+
+func (j *publishingJournal) ReadFrom(
+	ctx context.Context, after id.EventID, limit int,
+) ([]event.Event, error) {
+	j.once.Do(func() {
+		liveEvt, _ := event.NewEvent(
+			"test.race", j.streamID, "TestStream", event.Version(2),
+			[]byte(`{"msg":"live-during-replay"}`),
+		)
+		_ = j.bus.Publish(ctx, liveEvt)
+	})
+
+	return j.SeekableJournal.ReadFrom(ctx, after, limit)
+}
+
+// TestCatchUpSubscriber_PicksUpEventsPublishedDuringReplay verifies that
+// events published to the live bus during the replay window are NOT lost.
+// Before the TOCTOU fix, these events were dropped because the live
+// subscriber was not registered until after replay completed.
+func TestCatchUpSubscriber_PicksUpEventsPublishedDuringReplay(t *testing.T) {
+	t.Parallel()
+
+	store := eventtest.NewFakeStore()
+	bus := eventtest.NewFakeBus()
+	cpStore := memory.NewMemoryCheckpointStore()
+
+	streamID := id.NewStreamID()
+
+	historicalEvt, _ := event.NewEvent(
+		"test.race", streamID, "TestStream", event.Version(1),
+		[]byte(`{"msg":"historical"}`),
+	)
+	_ = store.AppendBatch(context.Background(),
+		id.NewStreamRef("TestStream", streamID),
+		[]event.Event{historicalEvt})
+
+	journal := &publishingJournal{
+		SeekableJournal: store,
+		bus:             bus,
+		streamID:        streamID,
+	}
+
+	liveSub := NewSubscriberAdapter(bus)
+
+	catchUp, err := NewCatchUpSubscriber(journal, liveSub, cpStore, nil)
+	if err != nil {
+		t.Fatalf("NewCatchUpSubscriber: %v", err)
+	}
+	defer catchUp.Close()
+
+	ch, err := catchUp.Subscribe(context.Background(), "test.race")
+	if err != nil {
+		t.Fatalf("Subscribe: %v", err)
+	}
+
+	received := 0
+	timeout := time.After(5 * time.Second)
+
+	for received < 2 {
+		select {
+		case msg := <-ch:
+			if msg == nil {
+				t.Fatalf("nil message after %d events", received)
+			}
+
+			msg.Ack()
+			received++
+		case <-timeout:
+			t.Fatalf("timed out: received %d of 2 events (TOCTOU race)", received)
+		}
 	}
 }

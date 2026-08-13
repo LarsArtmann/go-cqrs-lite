@@ -2,6 +2,7 @@ package watermill
 
 import (
 	"context"
+	"errors"
 	"slices"
 
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -42,19 +43,21 @@ func (b *EventBus) rebuildHandlerChain() {
 	}
 
 	inner := event.Handler(func(ctx context.Context, evt event.Event) error {
+		var errs []error
+
 		for _, h := range allHandlers {
 			if err := h(ctx, evt); err != nil {
-				return err
+				errs = append(errs, err)
 			}
 		}
 
 		for _, h := range typeSnapshot[evt.Type()] {
 			if err := h(ctx, evt); err != nil {
-				return err
+				errs = append(errs, err)
 			}
 		}
 
-		return nil
+		return errors.Join(errs...)
 	})
 
 	for _, v := range slices.Backward(b.middleware) {

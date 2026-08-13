@@ -2,7 +2,6 @@ package watermill
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"sync"
 	"time"
@@ -140,9 +139,25 @@ func (s *CatchUpSubscriber) Subscribe(
 	return output, nil
 }
 
-// runCatchUp orchestrates the replay → live handoff for one subscription.
+// runCatchUp orchestrates the catch-up for one subscription: subscribe
+// live first (to close the TOCTOU race window), then replay historical events
+// from the journal, then drain live messages (deduplicating against IDs seen
+// during replay).
 func (s *CatchUpSubscriber) runCatchUp(ctx context.Context, sub *catchUpSubscription) {
 	defer close(sub.output)
+
+	// Subscribe to live BEFORE replay. Events published during replay are
+	// buffered by the live subscriber and deduplicated against replayIDs
+	// after replay completes. Without this ordering, events published in the
+	// gap between replay draining and live subscribing would be lost.
+	//cqrs-lint:ignore(C027) library code or intentional pattern
+	liveMsgs, err := s.live.Subscribe(ctx, sub.topic)
+	if err != nil {
+		s.logger.Error("catch-up: subscribe live failed",
+			"topic", sub.topic, "error", err)
+
+		return
+	}
 
 	// Phase 1: Replay from journal.
 	if err := s.replayPhase(ctx, sub); err != nil {
@@ -151,31 +166,27 @@ func (s *CatchUpSubscriber) runCatchUp(ctx context.Context, sub *catchUpSubscrip
 		return
 	}
 
-	// Phase 2: Live handoff.
-	if err := s.livePhase(ctx, sub); err != nil {
-		s.logger.Error("catch-up live phase failed", "topic", sub.topic, "error", err)
-
-		return
-	}
+	// Phase 2: Drain live messages, dedup against replay.
+	s.drainLive(ctx, sub, liveMsgs)
 }
 
-func (s *CatchUpSubscriber) livePhase(ctx context.Context, sub *catchUpSubscription) error {
-	//cqrs-lint:ignore(C027) library code or intentional pattern
-	liveMsgs, err := s.live.Subscribe(ctx, sub.topic)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "watermill.catchup.subscribe_live",
-			fmt.Sprintf("subscribe live for %s", sub.topic))
-	}
-
+// drainLive forwards messages from the live subscriber channel to the
+// output channel, skipping events already seen during replay (matched by
+// EventID via the replayIDs ring).
+func (s *CatchUpSubscriber) drainLive(
+	ctx context.Context,
+	sub *catchUpSubscription,
+	liveMsgs <-chan *message.Message,
+) {
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return
 		case <-s.closeCh:
-			return nil
+			return
 		case msg, ok := <-liveMsgs:
 			if !ok {
-				return nil
+				return
 			}
 
 			// Dedup: skip events already seen during replay.
@@ -198,9 +209,9 @@ func (s *CatchUpSubscriber) livePhase(ctx context.Context, sub *catchUpSubscript
 					}
 				}
 			case <-ctx.Done():
-				return ctx.Err()
+				return
 			case <-s.closeCh:
-				return nil
+				return
 			}
 		}
 	}

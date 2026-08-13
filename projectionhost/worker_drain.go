@@ -62,32 +62,11 @@ func (w *worker) process(ctx context.Context) error {
 			default:
 			}
 
-			if !w.shouldHandle(evt) {
-				afterID = evt.ID()
-				w.markSeen(evt.ID().String())
-
-				continue
-			}
-
-			start := time.Now()
-			err := w.applyWithRetry(ctx, evt)
-			duration := time.Since(start)
-
-			if err != nil {
-				if e := w.handleProcessEventError(ctx, evt, err); e != nil {
-					return e
-				}
-			} else {
-				w.recordMetric(func(m MetricsRecorder) {
-					m.EventProcessed(w.name, string(evt.Type()), duration)
-				})
+			if err := w.processEvent(ctx, evt); err != nil {
+				return err
 			}
 
 			afterID = evt.ID()
-
-			w.processed.Add(1)
-			w.markSeen(evt.ID().String())
-			w.lastProcessedNs.Store(time.Now().UnixNano())
 		}
 
 		if err := w.cpStore.Save(ctx, w.name, event.Checkpoint{
@@ -238,6 +217,39 @@ func (w *worker) liveHandler(ctx context.Context) event.Handler {
 	}
 }
 
+// processEvent applies a single event to the projection (with retry), recording
+// metrics and updating internal counters. Events that don't match the
+// projection's filter are skipped (marked as seen but not processed). Returns
+// a fatal error if the event cannot be processed even after retries and DLQ
+// routing. Shared by the initial drain and the catch-up drain.
+func (w *worker) processEvent(ctx context.Context, evt event.Event) error {
+	if !w.shouldHandle(evt) {
+		w.markSeen(evt.ID().String())
+
+		return nil
+	}
+
+	start := time.Now()
+	err := w.applyWithRetry(ctx, evt)
+	duration := time.Since(start)
+
+	if err != nil {
+		if e := w.handleProcessEventError(ctx, evt, err); e != nil {
+			return e
+		}
+	} else {
+		w.recordMetric(func(m MetricsRecorder) {
+			m.EventProcessed(w.name, string(evt.Type()), duration)
+		})
+	}
+
+	w.processed.Add(1)
+	w.markSeen(evt.ID().String())
+	w.lastProcessedNs.Store(time.Now().UnixNano())
+
+	return nil
+}
+
 // drainCatchUp reads events from the journal starting at afterID, processing
 // any that were published between the initial drain completing and the live
 // subscriber being registered. This closes the TOCTOU race window where events
@@ -274,38 +286,14 @@ func (w *worker) drainCatchUp(ctx context.Context, afterID id.EventID) error {
 			}
 
 			w.handleMu.Lock()
+			perr := w.processEvent(ctx, evt)
+			w.handleMu.Unlock()
 
-			if !w.shouldHandle(evt) {
-				afterID = evt.ID()
-				w.markSeen(evt.ID().String())
-				w.handleMu.Unlock()
-
-				continue
-			}
-
-			start := time.Now()
-			err := w.applyWithRetry(ctx, evt)
-			duration := time.Since(start)
-
-			if err != nil {
-				if e := w.handleProcessEventError(ctx, evt, err); e != nil {
-					w.handleMu.Unlock()
-
-					return e
-				}
-			} else {
-				w.recordMetric(func(m MetricsRecorder) {
-					m.EventProcessed(w.name, string(evt.Type()), duration)
-				})
+			if perr != nil {
+				return perr
 			}
 
 			afterID = evt.ID()
-
-			w.processed.Add(1)
-			w.markSeen(evt.ID().String())
-			w.lastProcessedNs.Store(time.Now().UnixNano())
-
-			w.handleMu.Unlock()
 		}
 
 		if err := w.cpStore.Save(ctx, w.name, event.Checkpoint{
