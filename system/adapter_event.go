@@ -137,12 +137,7 @@ func (a *EventAdapter) AppendBatch(
 // ─── EventSource ───
 
 func (a *EventAdapter) Load(ctx context.Context, ref id.StreamRef) ([]event.Event, error) {
-	values, err := a.Backend.StreamRead(ctx, a.Collection, ref.StreamKey())
-	if err != nil {
-		return nil, fmt.Errorf("event adapter: load: %w", err)
-	}
-
-	return a.FromAny(values)
+	return a.LoadStream(ctx, ref.StreamKey())
 }
 
 // loadVersioned implements the temporal-fast-path-then-fallback pattern shared

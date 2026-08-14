@@ -2,7 +2,6 @@ package system
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -78,12 +77,7 @@ func (a *CommandAdapter) AppendBatch(
 func (a *CommandAdapter) Load(
 	ctx context.Context, ref command.StreamRef,
 ) ([]*command.PersistedCommand, error) {
-	values, err := a.Backend.StreamRead(ctx, a.Collection, ref.StreamKey())
-	if err != nil {
-		return nil, fmt.Errorf("command adapter: load: %w", err)
-	}
-
-	return a.FromAny(values)
+	return a.LoadStream(ctx, ref.StreamKey())
 }
 
 func (a *CommandAdapter) LoadFromTimestamp(
