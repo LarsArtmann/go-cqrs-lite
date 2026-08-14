@@ -8,8 +8,19 @@
 > governance concerns that motivated the fork. If you are starting fresh,
 > pick ValKey (or NATS, or Kafka) instead.
 
-**Status:** Accepted (ADR-0025). Implementation pending.
-**Module:** `transport/redis/`
+**Status:** Superseded by the `watermill/` bridge (ADR-0025).
+**Module:** none — no `transport/redis/` module is planned.
+
+> **⚠️ SUPERSEDED — this module will never be built.**
+> ADR-0025 was corrected on 2026-06-28: broker transports are served by the
+> existing [`watermill/`](../../watermill/) bridge, not native modules. Inject
+> any Watermill-compatible backend (Redis Streams / [ValKey](https://valkey.io),
+> NATS JetStream, Kafka, …) via `watermill.NewEventPublisher(publisher, topic)`
+> or the `EventBus`/`CommandBus` `WithBackend()` / `WithCommandBackend()`
+> options with the official
+> [watermill-redisstream](https://github.com/ThreeDotsLabs/watermill-redisstream)
+> plugin. This spike is retained as a historical reference only — do NOT
+> implement it.
 
 ## Problem
 

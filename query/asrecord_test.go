@@ -17,15 +17,6 @@ func TestAsRecord_MapsStructuralFields(t *testing.T) {
 	userID := id.NewUserID()
 	receivedAt := time.Date(2026, 8, 14, 12, 0, 0, 0, time.UTC)
 
-	q, err := query.NewPersistedQuery(
-		"get_user",
-		[]byte(`{"id":"42"}`),
-		query.WithQueryReceivedAt(receivedAt),
-	)
-	if err != nil {
-		t.Fatalf("NewPersistedQuery: %v", err)
-	}
-
 	md := query.Metadata{}
 	md.CorrelationID = correlationID
 	md.CausationID = causationID
@@ -50,7 +41,7 @@ func TestAsRecord_MapsStructuralFields(t *testing.T) {
 		t.Errorf("Payload = %q, want encoded query", got.Payload)
 	}
 
-	if got.StreamID != record.NewStreamRef("", q.ID().String()) {
+	if got.StreamID != record.NewStreamRef("", qWithMeta.ID().String()) {
 		t.Errorf("StreamID = %q, want request-ID based ref", got.StreamID)
 	}
 
@@ -93,7 +84,8 @@ func TestAsRecord_ZeroTracingYieldsEmptyStrings(t *testing.T) {
 
 	got := query.AsRecord(q)
 
-	if got.MetaData.CorrelationID != "" || got.MetaData.CausationID != "" || got.MetaData.ActorID != "" {
+	if got.MetaData.CorrelationID != "" || got.MetaData.CausationID != "" ||
+		got.MetaData.ActorID != "" {
 		t.Errorf("zero tracing must map to empty strings, got %+v", got.MetaData)
 	}
 }

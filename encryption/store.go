@@ -15,7 +15,10 @@ import (
 // EncryptMiddleware guards against nil.
 func EncryptSinkTransform(encrypter Encrypter, opts ...MiddlewareOption) event.SinkTransform {
 	if encrypter == nil {
-		return rejectSink("encryption.nil_encrypter", "EncryptSinkTransform called with nil encrypter")
+		return rejectSink(
+			"encryption.nil_encrypter",
+			"EncryptSinkTransform called with nil encrypter",
+		)
 	}
 
 	cfg := middlewareConfig{} //nolint:exhaustruct // zero-valued fields are ready
@@ -47,7 +50,10 @@ func EncryptSinkTransform(encrypter Encrypter, opts ...MiddlewareOption) event.S
 // "encryption.nil_decrypter" rejection.
 func DecryptSourceTransform(decrypter Decrypter) event.SourceTransform {
 	if decrypter == nil {
-		return rejectSink("encryption.nil_decrypter", "DecryptSourceTransform called with nil decrypter")
+		return rejectSink(
+			"encryption.nil_decrypter",
+			"DecryptSourceTransform called with nil decrypter",
+		)
 	}
 
 	return func(events []event.Event) ([]event.Event, error) {

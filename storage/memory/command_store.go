@@ -4,26 +4,21 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"slices"
-	"sync"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
-	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // MemoryCommandStore is an in-memory implementation of command.Store.
 // It is safe for concurrent use. Designed for testing and single-process deployments.
+//
+// It embeds the generic [LogStore] core; this file supplies only the
+// command-specific policies (duplicate detection, stream-not-found errors).
 type MemoryCommandStore struct {
-	dispatcher.Lifecycle
-
-	mu             sync.RWMutex
-	globalLog      []*command.PersistedCommand // canonical command storage
-	streamIndex    map[string][]int            // streamKey → indices into globalLog
-	commandIDIndex map[id.CommandID]int        // index into globalLog for duplicate detection
+*LogStore[*command.PersistedCommand, id.CommandID]
 }
 
 var (
@@ -36,8 +31,23 @@ var (
 // NewMemoryCommandStore creates a new in-memory command store.
 func NewMemoryCommandStore() *MemoryCommandStore {
 	return &MemoryCommandStore{
-		streamIndex:    make(map[string][]int),
-		commandIDIndex: make(map[id.CommandID]int),
+		LogStore: NewLogStore(LogStoreConfig[*command.PersistedCommand, id.CommandID]{
+			GetID:     func(cmd *command.PersistedCommand) id.CommandID { return cmd.ID() },
+			IsZeroID:  func(cmdID id.CommandID) bool { return cmdID == (id.CommandID{}) },
+			ClosedErr: command.ErrStoreClosed,
+			NewDupErr: func(cmdID id.CommandID, suffix string) error {
+				return errorfamily.WrapConflict(
+					command.ErrDuplicateCommand,
+					"memory.duplicate_command",
+					fmt.Sprintf("command with ID %s already exists%s", cmdID, suffix))
+			},
+			NewNotFound: func(op, streamKey string) error {
+				return errorfamily.WrapRejection(command.ErrCommandNotFound,
+					"memory.command_not_found",
+					fmt.Sprintf("memory %s stream %s not found", op, streamKey))
+			},
+			TrackStreams: true,
+		}),
 	}
 }
 
@@ -47,48 +57,15 @@ func (s *MemoryCommandStore) Save(
 	ref command.StreamRef,
 	cmd *command.PersistedCommand,
 ) error {
-	return s.withWriteLock("memory.save_failed", "memory command store save", func() error {
-		if dupErr := s.checkDuplicate(cmd.ID(), ""); dupErr != nil {
+	return s.WithWrite("memory.save_failed", "memory command store save", func() error {
+		if dupErr := s.CheckDuplicateLocked(cmd.ID(), ""); dupErr != nil {
 			return dupErr
 		}
 
-		s.appendCommand(ref.StreamKey(), cmd)
+		s.AppendLocked(ref.StreamKey(), []*command.PersistedCommand{cmd})
 
 		return nil
 	})
-}
-
-// withWriteLock checks the store is open, acquires the write lock, and runs fn
-// under the lock. Centralises the wrapClosed + Lock + defer Unlock preamble
-// shared by all write-side methods.
-func (s *MemoryCommandStore) withWriteLock(code, msg string, fn func() error) error {
-	if err := wrapClosed(s.CheckClosed(command.ErrStoreClosed), code, msg); err != nil {
-		return err
-	}
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	return fn()
-}
-
-// withCommandReadLock is the read-side companion to withWriteLock. Top-level
-// generic function because Go does not permit generic methods.
-func withCommandReadLock[T any](
-	s *MemoryCommandStore,
-	code, msg string,
-	fn func() (T, error),
-) (T, error) {
-	if err := wrapClosed(s.CheckClosed(command.ErrStoreClosed), code, msg); err != nil {
-		var zero T
-
-		return zero, err
-	}
-
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	return fn()
 }
 
 // AppendBatch appends multiple commands without duplicate checks on individual commands.
@@ -98,7 +75,7 @@ func (s *MemoryCommandStore) AppendBatch(
 	ref command.StreamRef,
 	cmds []*command.PersistedCommand,
 ) error {
-	return s.withWriteLock(
+	return s.WithWrite(
 		"memory.append_batch_failed",
 		"memory command store append batch",
 		func() error {
@@ -115,16 +92,13 @@ func (s *MemoryCommandStore) AppendBatch(
 
 				seen[cmd.ID()] = struct{}{}
 
-				dupErr := s.checkDuplicate(cmd.ID(), " in batch")
+				dupErr := s.CheckDuplicateLocked(cmd.ID(), " in batch")
 				if dupErr != nil {
 					return dupErr
 				}
 			}
 
-			key := ref.StreamKey()
-			for _, cmd := range cmds {
-				s.appendCommand(key, cmd)
-			}
+			s.AppendLocked(ref.StreamKey(), cmds)
 
 			return nil
 		},
@@ -145,13 +119,10 @@ func (s *MemoryCommandStore) LoadFromTimestamp(
 	ref command.StreamRef,
 	after time.Time,
 ) ([]*command.PersistedCommand, error) {
-	return s.loadFiltered(
-		ref,
-		"load from timestamp",
+	return s.loadFiltered(ref, "load from timestamp",
 		func(cmds []*command.PersistedCommand) []*command.PersistedCommand {
-			return filterByTimestampAfter(cmds, after)
-		},
-	)
+			return filterCommandsByTimestampAfter(cmds, after)
+		})
 }
 
 // LoadToTimestamp retrieves commands where ReceivedAt <= maxTime.
@@ -160,88 +131,40 @@ func (s *MemoryCommandStore) LoadToTimestamp(
 	ref command.StreamRef,
 	maxTime time.Time,
 ) ([]*command.PersistedCommand, error) {
-	return s.loadFiltered(
-		ref,
-		"load to timestamp",
+	return s.loadFiltered(ref, "load to timestamp",
 		func(cmds []*command.PersistedCommand) []*command.PersistedCommand {
-			return filterByTimestampTo(cmds, maxTime)
-		},
-	)
-}
-
-// Close marks the store as closed. Subsequent operations return ErrStoreClosed.
-func (s *MemoryCommandStore) Close() error {
-	return s.Lifecycle.Close()
+			return filterCommandsByTimestampTo(cmds, maxTime)
+		})
 }
 
 // ReadAll returns all commands across all streams, ordered by insertion
 // (which matches ReceivedAt order since commands are appended on receipt).
 // Implements command.CommandJournal.
 func (s *MemoryCommandStore) ReadAll(_ context.Context) ([]*command.PersistedCommand, error) {
-	return withCommandReadLock(
-		s,
+	return WithReadLock(s.LogStore,
 		"memory.readall_failed",
 		"memory command journal readall",
 		func() ([]*command.PersistedCommand, error) {
-			return slices.Clone(s.globalLog), nil
+			return s.ReadAllLocked(), nil
 		},
 	)
 }
 
 // ReadFrom returns commands after the given CommandID, ordered by insertion.
-// Implements command.SeekableCommandJournal for position-based command replay.
+// A missing start position returns nothing — an unknown position means
+// nothing new. Implements command.SeekableCommandJournal.
 func (s *MemoryCommandStore) ReadFrom(
 	_ context.Context,
 	afterCommandID id.CommandID,
 	limit int,
 ) ([]*command.PersistedCommand, error) {
-	return withCommandReadLock(
-		s,
+	return WithReadLock(s.LogStore,
 		"memory.readfrom_failed",
 		"memory command journal readfrom",
 		func() ([]*command.PersistedCommand, error) {
-			startIdx := 0
-
-			if afterCommandID != (id.CommandID{}) {
-				idx, exists := s.commandIDIndex[afterCommandID]
-				if !exists {
-					return nil, nil
-				}
-
-				startIdx = idx + 1
-			}
-
-			end := len(s.globalLog)
-			if limit > 0 {
-				end = min(startIdx+limit, len(s.globalLog))
-			}
-
-			if startIdx >= len(s.globalLog) {
-				return nil, nil
-			}
-
-			return slices.Clone(s.globalLog[startIdx:end]), nil
+			return s.ReadFromLocked(afterCommandID, limit, false), nil
 		},
 	)
-}
-
-func (s *MemoryCommandStore) checkDuplicate(cmdID id.CommandID, suffix string) error {
-	if _, exists := s.commandIDIndex[cmdID]; exists {
-		return errorfamily.WrapConflict(
-			command.ErrDuplicateCommand,
-			"memory.duplicate_command",
-			fmt.Sprintf("command with ID %s already exists%s", cmdID, suffix),
-		)
-	}
-
-	return nil
-}
-
-func (s *MemoryCommandStore) appendCommand(streamKey string, cmd *command.PersistedCommand) {
-	idx := len(s.globalLog)
-	s.commandIDIndex[cmd.ID()] = idx
-	s.globalLog = append(s.globalLog, cmd)
-	s.streamIndex[streamKey] = append(s.streamIndex[streamKey], idx)
 }
 
 func (s *MemoryCommandStore) loadFiltered(
@@ -249,35 +172,17 @@ func (s *MemoryCommandStore) loadFiltered(
 	op string,
 	filter func([]*command.PersistedCommand) []*command.PersistedCommand,
 ) ([]*command.PersistedCommand, error) {
-	return withCommandReadLock(
-		s,
+	return WithReadLock(
+		s.LogStore,
 		"memory.load_failed",
 		fmt.Sprintf("memory command store %s failed", op),
 		func() ([]*command.PersistedCommand, error) {
-			key := ref.StreamKey()
-
-			indices, exists := s.streamIndex[key]
-			if !exists {
-				return nil, errorfamily.WrapRejection(command.ErrCommandNotFound,
-					"memory.command_not_found",
-					fmt.Sprintf("memory %s stream %s not found", op, ref))
-			}
-
-			cmds := make([]*command.PersistedCommand, len(indices))
-			for i, idx := range indices {
-				cmds[i] = s.globalLog[idx]
-			}
-
-			if filter != nil {
-				cmds = filter(cmds)
-			}
-
-			return slices.Clone(cmds), nil
+			return s.LoadStreamLocked(op, ref.StreamKey(), filter)
 		},
 	)
 }
 
-func filterByTimestampAfter(
+func filterCommandsByTimestampAfter(
 	cmds []*command.PersistedCommand,
 	after time.Time,
 ) []*command.PersistedCommand {
@@ -292,7 +197,7 @@ func filterByTimestampAfter(
 	return result
 }
 
-func filterByTimestampTo(
+func filterCommandsByTimestampTo(
 	cmds []*command.PersistedCommand,
 	maxTime time.Time,
 ) []*command.PersistedCommand {

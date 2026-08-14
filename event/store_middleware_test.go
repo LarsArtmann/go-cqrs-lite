@@ -348,11 +348,24 @@ func TestDecorateStore_InnerLacksOptionalCapabilities(t *testing.T) {
 		t.Errorf("ReadAll() error = %v, want ErrInnerStoreNotJournal", err)
 	}
 
-	if _, err := store.(SeekableJournal).ReadFrom(ctx, id.EventID{}, 1); !errors.Is(err, ErrInnerStoreNotSeekable) {
+	if _, err := store.(SeekableJournal).ReadFrom(
+		ctx,
+		id.EventID{},
+		1,
+	); !errors.Is(
+		err,
+		ErrInnerStoreNotSeekable,
+	) {
 		t.Errorf("ReadFrom() error = %v, want ErrInnerStoreNotSeekable", err)
 	}
 
-	if _, err := store.(BackwardsSource).LoadBackwards(ctx, testRef()); !errors.Is(err, ErrInnerStoreNotBackwards) {
+	if _, err := store.(BackwardsSource).LoadBackwards(
+		ctx,
+		testRef(),
+	); !errors.Is(
+		err,
+		ErrInnerStoreNotBackwards,
+	) {
 		t.Errorf("LoadBackwards() error = %v, want ErrInnerStoreNotBackwards", err)
 	}
 

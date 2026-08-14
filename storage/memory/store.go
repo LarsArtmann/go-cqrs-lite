@@ -2,25 +2,22 @@ package memory
 
 import (
 	"context"
+	"fmt"
 	"io"
-	"sync"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // MemoryStore is an in-memory implementation of event.Store and event.Journal.
 // It is safe for concurrent use. Designed for testing and single-process deployments.
+//
+// It embeds the generic [LogStore] core; this file supplies only the
+// event-specific policies (version conflicts, stream-not-found errors).
 type MemoryStore struct {
-	dispatcher.Lifecycle
-
-	mu           sync.RWMutex
-	globalLog    []event.Event      // canonical event storage (single copy)
-	streamIndex  map[string][]int   // streamKey → indices into globalLog
-	eventIDIndex map[id.EventID]int // index into globalLog for SeekableJournal
+*LogStore[event.Event, id.EventID]
 }
 
 var (
@@ -35,23 +32,19 @@ var (
 // NewMemoryStore creates a new in-memory event store.
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
-		streamIndex:  make(map[string][]int),
-		eventIDIndex: make(map[id.EventID]int),
+		LogStore: NewLogStore(LogStoreConfig[event.Event, id.EventID]{
+			GetID:      func(evt event.Event) id.EventID { return evt.ID() },
+			IsZeroID:   func(evtID id.EventID) bool { return evtID.IsZero() },
+			ClosedErr:  event.ErrStoreClosed,
+			NewDupErr:  nil,
+			NewNotFound: func(op, streamKey string) error {
+				return errorfamily.WrapRejection(event.ErrStreamNotFound,
+					"memory.aggregate_not_found",
+					fmt.Sprintf("memory %s stream %s not found", op, streamKey))
+			},
+			TrackStreams: true,
+		}),
 	}
-}
-
-// withWriteLock centralises the wrapClosed + Lock + defer Unlock preamble for
-// write-side methods. The closure body runs under the lock.
-// cqrs-lint:ignore(A021) library code or intentional pattern
-func (s *MemoryStore) withWriteLock(code, msg string, fn func() error) error {
-	if err := wrapClosed(s.CheckClosed(event.ErrStoreClosed), code, msg); err != nil {
-		return err
-	}
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	return fn()
 }
 
 // Save appends events to a stream with optimistic concurrency check.
@@ -62,16 +55,15 @@ func (s *MemoryStore) Save(
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
-	return s.withWriteLock("memory.save_failed", "memory store save", func() error {
+	return s.WithWrite("memory.save_failed", "memory store save", func() error {
 		key := ref.StreamKey()
-		streamLen := len(s.streamIndex[key])
 
-		err := event.CheckVersionConflict(streamLen, expectedVersion)
+		err := event.CheckVersionConflict(s.StreamLenLocked(key), expectedVersion)
 		if err != nil {
 			return errorfamily.WrapInfrastructure(err, "memory.save_failed", "memory store save")
 		}
 
-		s.appendToGlobalLog(key, events)
+		s.AppendLocked(key, events)
 
 		return nil
 	})
@@ -83,9 +75,8 @@ func (s *MemoryStore) AppendBatch(
 	ref id.StreamRef,
 	events []event.Event,
 ) error {
-	return s.withWriteLock("memory.append_batch_failed", "memory store append batch", func() error {
-		key := ref.StreamKey()
-		s.appendToGlobalLog(key, events)
+	return s.WithWrite("memory.append_batch_failed", "memory store append batch", func() error {
+		s.AppendLocked(ref.StreamKey(), events)
 
 		return nil
 	})
@@ -97,29 +88,15 @@ func (s *MemoryStore) SaveMultiBatch(
 	_ context.Context,
 	entries []event.MultiBatchEntry,
 ) error {
-	return s.withWriteLock(
+	return s.WithWrite(
 		"memory.save_multi_batch_failed",
 		"memory store save multi batch",
 		func() error {
 			for _, entry := range entries {
-				s.appendToGlobalLog(entry.Ref.StreamKey(), entry.Events)
+				s.AppendLocked(entry.Ref.StreamKey(), entry.Events)
 			}
 
 			return nil
 		},
 	)
-}
-
-// Close marks the store as closed. Subsequent operations return ErrStoreClosed.
-func (s *MemoryStore) Close() error {
-	return s.Lifecycle.Close()
-}
-
-func (s *MemoryStore) appendToGlobalLog(streamKey string, events []event.Event) {
-	for _, evt := range events {
-		idx := len(s.globalLog)
-		s.eventIDIndex[evt.ID()] = idx
-		s.globalLog = append(s.globalLog, evt)
-		s.streamIndex[streamKey] = append(s.streamIndex[streamKey], idx)
-	}
 }

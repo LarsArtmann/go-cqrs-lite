@@ -36,7 +36,7 @@ func (r *runner) metaEngineSQLiteWorkload(ctx context.Context) error {
 	db.SetMaxOpenConns(1) // SQLite serializes writes
 	defer db.Close()
 
-	eng, err := sqliteengine.NewSQLiteEngine(db) //nolint:contextcheck // no ctx param
+	eng, err := sqliteengine.NewSQLiteEngine(db)
 	if err != nil {
 		return fmt.Errorf("metaengine sqlite: create engine: %w", err)
 	}

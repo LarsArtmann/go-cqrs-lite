@@ -1,7 +1,20 @@
 # Design Spike: NATS Transport Adapter
 
-**Status:** Accepted (ADR-0025). Implementation pending.
-**Module:** `transport/nats/`
+> **⚠️ SUPERSEDED — this module will never be built.**
+> ADR-0025 was corrected on 2026-06-28: broker transports are served by the
+> existing [`watermill/`](../../watermill/) bridge, not native modules. Inject
+> any Watermill-compatible backend (NATS JetStream, Redis Streams, Kafka, …)
+> via `watermill.NewEventPublisher(publisher, topic)` or the
+> `EventBus`/`CommandBus` `WithBackend()` / `WithCommandBackend()` options
+> with the official
+> [watermill-nats](https://github.com/ThreeDotsLabs/watermill-nats) plugin.
+> This spike is retained as a historical reference only — do NOT implement it.
+> For the sanctioned JetStream recipe (stream config, subject mapping, durable
+> consumers, catch-up integration), see
+> [`docs/planning/nats-transport-design.md`](../planning/nats-transport-design.md).
+
+**Status:** Superseded by the `watermill/` bridge (ADR-0025).
+**Module:** none — no `transport/nats/` module is planned.
 
 ## Problem
 
