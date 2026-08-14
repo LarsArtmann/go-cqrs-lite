@@ -8,9 +8,9 @@ import (
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/go-idempotency"
 
 	"github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4"
-	"github.com/larsartmann/go-idempotency"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 

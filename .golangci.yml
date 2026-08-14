@@ -426,11 +426,13 @@ linters:
           - staticcheck
         text: "SA1019: .*EnsureCustom.*is deprecated"
 
-      # ── Idempotency MemoryStore in middleware tests ──────────────
+      # ── Idempotency MemoryStore in tests ─────────────────────────
       # go-idempotency deprecates MemoryStore/NewMemoryStore for production
       # use; the deprecation notice names tests as the sanctioned consumer.
-      # Middleware test pipelines intentionally exercise the in-memory store.
-      - path: middleware/.*_test\.go$
+      # Middleware test pipelines and kvstore test matrices intentionally
+      # exercise the in-memory store (kvstore compares it against the
+      # KV-backed store in the same table).
+      - path: (middleware|idempotency)/.*_test\.go$
         linters:
           - staticcheck
         text: "SA1019: .*(NewMemoryStore|MemoryStore) is deprecated"

@@ -18,7 +18,6 @@ import (
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-idempotency"
 )
 

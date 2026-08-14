@@ -126,8 +126,11 @@ module.
   text-scoped to MemoryStore) following the tombstone/EnsureCustom precedent;
   removed the 2 now-redundant per-line nolints in test_helpers_test.go.
 
-Result: all verify phases green (build/vet/test/race/lint/arch/depguard/
-duplication/coverage/api-stability/doc-check + doc assertions).
+Result: build/vet/test/race/arch/depguard/duplication/coverage/api-stability/
+doc-check + doc assertions all green. Lint is NOT yet green — 15 issues remain
+in cmd/cqrs-lint (golines ×1), idempotency/kvstore (gci ×4, gofumpt ×4,
+SA1019 NewMemoryStore ×3), idempotency/sqlstore (gci ×3). Same mechanical
+class as the four modules already fixed; see the 2026-08-15 follow-up report.
 
 ## Not done (deliberately)
 
