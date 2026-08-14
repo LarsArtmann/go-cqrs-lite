@@ -77,6 +77,33 @@ messages, _ := subscriber.Subscribe(ctx, "user.created")
 // Use with standard Watermill handler funcs
 ```
 
+#### 6.4.1 Broker Backends (NATS / Redis / ValKey / Kafka) — the sanctioned path
+
+No native `transport/nats/` or `transport/redis/` modules exist — and none are
+planned (ADR-0025, superseded). The `watermill/` adapter is broker-agnostic:
+inject any Watermill-compatible `message.Publisher`/`message.Subscriber` from
+the official plugins ([watermill-nats](https://github.com/ThreeDotsLabs/watermill-nats),
+[watermill-redisstream](https://github.com/ThreeDotsLabs/watermill-redisstream),
+Kafka, Google Pub/Sub, …).
+
+```go
+// Direction 1: publish cqrs events TO a broker (JetStream shown)
+pub := watermill.NewEventPublisher(natsPublisher, "cqrs.events") // event.Publisher
+cmdPub := watermill.NewCommandPublisher(natsPublisher, "cqrs.commands")
+
+// Direction 2: full EventBus/CommandBus over a broker backend
+bus, _ := watermill.NewEventBus(
+    watermill.WithBackend(natsPublisher, natsSubscriber, natsCloser),
+)
+cmdBus, _ := watermill.NewCommandBus(
+    watermill.WithCommandBackend(/* publisher, subscriber, closer */),
+)
+```
+
+For the JetStream recipe (stream config, subject mapping `cqrs.events.<type>`,
+durable consumers, CatchUpSubscriber replay integration), see
+`docs/planning/nats-transport-design.md`.
+
 ### 6.5 Turso Offline-First
 
 ```go
