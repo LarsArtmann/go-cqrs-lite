@@ -215,3 +215,23 @@ tree right now), and `example/taskmanager` (SSE migration, uncommitted).
    `#verify` early).
 4. **Command/query inserts stay row-by-row** (per-item duplicate attribution
    > negligible round-trip savings) — documented in Inserter doc comment.
+
+---
+
+## Close-Out Addendum (2026-08-14, later session)
+
+All four "Next Steps" above are DONE. WAL Unification is closed.
+
+| Item | Outcome |
+| ---- | ------- |
+| `LoadStream` migration | `EventAdapter.Load` + `CommandAdapter.Load` now delegate to `AdapterCore.LoadStream`; system tests 3× `-race` green (118 tests) |
+| `#check-duplication` | 10 new groups judged: 1 harmful clone consolidated (`verifyEventParam`/`verifyRecordEventParam` → `verifyTypedParam` in `metaengine/fold.go`, error text preserved), 9 intentional accepted (cross-engine parity tests, test setup boilerplate, idiomatic locks, Dgraph query strings, asrecord structural adapters, insert-vs-update + On/OnRecord parallels). Baseline re-pinned: 92 → 97 groups |
+| `#check-coverage` | Gate had been BROKEN since `baf2fb1f0` (2026-08-11): `storage / memory` key (spaces) crashed the `tr ' ' '\n'` loop under `set -u` AND broke the `./$mod/...` path; the loop-piped-to-`sort` pattern also silently dropped DRIFT counting (subshell). Fixed all three; removed stale `[codec]=69.2` (module has no tests since extraction); refreshed EXPECTED to actuals (metaengine 83.3, schema 92.2 improvements). Gate green |
+| `#verify` | Full GREEN after three fixes: benchkit hang-thresholds raised to flat 30s (the `raceEnabled` branch was mis-modeled — parallel verify load inflates wall-clock in the non-race phase too; 14s observed vs 5s ceiling), and `.go-arch-lint.yml` codec component/deps removed (dangling after the concurrent session deleted `codec/` in `1ff2b53d0`) |
+
+Plan doc `2026-08-14_11-27_WAL-UNIFICATION.md` now carries an EXECUTED status
+banner (incl. the task-29 deviation: SQL event-store insert deliberately NOT
+moved onto `Inserter[T]` — it already owns cached templates + batched inserts).
+
+Deferred items (unchanged, see Next Steps 5): `DecorateJournal` for
+`VersionedSeekableJournal`; `brandedString` extraction.

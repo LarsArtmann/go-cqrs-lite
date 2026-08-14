@@ -53,7 +53,7 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 | Int. All   | `nix run .#test-integration` or `nix run .#test-all-backends` (SQLite+Pebble+bbolt+DuckDB+PG+MySQL)                                            |
 | CI         | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                  |
 
-Multi-module Go workspace (`go.work`) with 79 `go.mod` files. Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
+Multi-module Go workspace (`go.work`) with 82 `go.mod` files (incl. root). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
 
 Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
 
@@ -80,12 +80,11 @@ Compact reference — see [`references/modules.md`](.agents/skills/go-cqrs-lite/
 | `projectionhost/`                                              | Managed projection host: crash-restart, DLQ, checkpoint                                            | Reads SeekableJournal directly                    |
 | `kv/`                                                          | Layer-0 KV: Store, TypedStore[T,K], Cache[T,K], ViewStore[V,K]                                     |                                                   |
 | `graph/`                                                       | Graph projection tier: NodeRef, EdgeRef, MemoryDriver, GraphProjection                             | ADR-0033, ADR-0039                                |
-| `codec/`                                                       | **DEPRECATED** — re-export alias for `go-codec`. Import `github.com/larsartmann/go-codec` directly | Extracted to standalone repo                        |
 | `dedup/`                                                       | Bounded dedup ring buffer (O(1) fixed-capacity)                                                    |                                                   |
 | `listing/`                                                     | StreamListing, stream status (Active/Deleted), DeletePolicy, WithDeleteTypes                      |                                                   |
 | `scenario/`                                                    | Fluent BDD DSL: Given/When/Then for deciders + projections                                         |                                                   |
 | `scheduling/`                                                  | Durable deadline timers (TimerStore, Scheduler)                                                    |                                                   |
-| `idempotency/`                                                 | Re-export of go-idempotency. kvstore/ + sqlstore/ local                                            | ADR-0065                                          |
+| `idempotency/kvstore/` `idempotency/sqlstore/`                 | KV/SQL idempotency stores (over external `go-idempotency`)                                         | ADR-0065, ADR-0128                                |
 | `signing/`                                                     | Event signing: HMAC-SHA256, Ed25519, multisig, middleware                                          |                                                   |
 | `encryption/`                                                  | Payload encryption: XChaCha20-Poly1305, AES-256-GCM, codec wrapper                                 |                                                   |
 | `middleware/`                                                  | Logging, Retry, Recovery, Validation, Idempotency, Metrics, OTel, Circuit Breaker, Flight Recorder |                                                   |
@@ -94,7 +93,6 @@ Compact reference — see [`references/modules.md`](.agents/skills/go-cqrs-lite/
 | `transport/http/`                                              | **DEPRECATED** (ADR-0127, removal at v5): SSE delivery. Use go-sse or watermill/                     |                                                   |
 | `transport/grpc/`                                              | **DEPRECATED** (ADR-0127, removal at v5): gRPC dispatch. Use watermill/ brokers                      |                                                   |
 | `watermill/`                                                   | Watermill adapter: EventBus, CommandBus, CatchUpSubscriber                                         |                                                   |
-| `flightrecorder/`                                              | Go 1.25 runtime/trace FlightRecorder wrapper                                                       |                                                   |
 | `storage/memory/`                                              | In-memory test impls (MemoryStore, etc. over generic `LogStore[T,ID]`)                             |                                                   |
 | `storage/`                                                     | SQLBackend facade, SQL stores, relational projections, views                                       |                                                   |
 | `storage/eventstore/`                                          | SQLEventStore, SQLSnapshotStore, SQLCheckpointStore                                                |                                                   |
@@ -109,7 +107,6 @@ Compact reference — see [`references/modules.md`](.agents/skills/go-cqrs-lite/
 | `storage/turso/`                                               | Turso connector, indexing advisor                                                                  |                                                   |
 | `testutil/`                                                    | Shared test helpers (NewCmd, RaceEnabled)                                                          |                                                   |
 | `testutil/pgtestcontainer/`                                    | Shared Postgres testcontainer helpers                                                              |                                                   |
-| `retry/`                                                       | **DEPRECATED** — re-export of go-retry. Import directly                                            | ADR-0064                                          |
 | `catalog/`                                                     | Registry, SchemaFromType[T](<>), AsyncAPI/D2/OpenAPI exporters                                     |                                                   |
 | `integration/`                                                 | Cross-module tests                                                                                 |                                                   |
 | `benchkit/`                                                    | Factory-driven benchmarking suite                                                                  |                                                   |
@@ -216,7 +213,7 @@ One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, sta
 - **Private Go module auth (non-interactive fetch)** — devShell sets `GOWORK=off`, so `go mod download` fetches internal modules from VCS. `GOPRIVATE` uses HTTPS which fails without credentials. The flake `shellHook` exports `GIT_CONFIG_*` to redirect HTTPS → SSH. Symptom: `git ls-remote -q origin ... exit status 128` inside `~/go/pkg/mod/cache/vcs/`.
 - **Auto-commit daemon can break the build** — Always run `go build -tags "goexperiment.jsonv2" ./...` after a daemon commit, not just `nix run .#build` (which uses `allPaths` — verify cmd/* modules actually compile).
 - **Version-sequence breaks in published tags** — tags must be monotonically increasing in BOTH semver AND commit ancestry. Always tag with NEXT semver above all existing: `git tag -l '<module>/v4*' | sort -V | tail -1`.
-- **`check-module-layers.sh` LAYER keys use ` / ` (spaces around slash)** — Multi-segment keys in the LAYER map use spaces for readability (`LAYER[storage / memory]`), but EXCEPTIONS deps use standard `/` (`storage/memory`). The test `TestExceptionsAreMinimal` normalizes ` / ` → `/` when parsing. When adding new multi-segment LAYER entries, use spaces for readability. When adding EXCEPTIONS, use `/` without spaces. The parser handles the mismatch.
+- **Bash maps keyed by module use plain paths, never ` / ` spaces** — `check-module-layers.sh` LAYER/DEP_BUDGET keys MUST be literal module dirs (`LAYER[storage/memory]`, `LAYER[cmd/cqrs-gen]`). Spaced keys (`LAYER[storage / memory]`) silently disabled the budget/layer checks for all multi-segment modules because `"storage / memory/go.mod"` never exists (fixed 2026-08-14; the coverage check caught it as 94 gaps). EXCEPTIONS deps also use plain `/` (`storage/memory`); `TestExceptionsAreMinimal` normalizes defensively. Test-infra modules (`event/v4/eventtest`, `testutil`, `testutil/pgtestcontainer`) are exempt from layer ordering via `TEST_INFRA_MODULES`.
 - **WithoutGlobalRegistration for isolated OTel providers** — `otel.Setup(cqrsotel.WithoutGlobalRegistration())` skips global calls. Use in tests and multi-service setups where global state would conflict.
 
 ### Language & Library Footguns
@@ -268,7 +265,7 @@ nix run .#check-duplication  # no-new-clones gate
 Seven-tier model — see [ADR-0046](docs/adr/0046-seven-tier-model.md) and [SEVEN-TIER-MODEL.md](docs/architecture-understanding/SEVEN-TIER-MODEL.md) for full mapping (78 modules across 7 tiers).
 
 ```
-Tier 0 — Primitives: id/, dispatcher/, codec/ (DEPRECATED → go-codec), kv/, dedup/, record/, flightrecorder/, retry/ (DEPRECATED)
+Tier 0 — Primitives: id/, dispatcher/, kv/, dedup/, record/ (codec, retry, flightrecorder extracted → external repos, ADR-0128)
 Tier 1 — Core Domain: event/, command/, query/, scheduling/, metadata/
 Tier 2 — Domain Utilities: schema/, snapshot/, projection/, idempotency/, deriver/, commandlifecycle/, idempotency/kvstore/, idempotency/sqlstore/
 Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/, metaengine/, commandlifecycle/projections/
@@ -285,7 +282,7 @@ Rules only — see each module's `go.mod` for the actual package list.
 - **Production deps per module**: enforced by `nix run .#check-arch` (Layer 1 cross-module rules). Adding production deps requires budget review.
 - **Test-only packages** (gomega, ginkgo, rapid, go-snaps, testcontainers) are excluded from dep budget counts.
 - **CGo isolation**: Only `stack/duckdb` and `metaengine/duckdbengine` require CGo. Each is in its own module so consumers who don't import them never need a C compiler.
-- **External extracted modules**: `retry/` → go-retry, `idempotency/` → go-idempotency. These are re-export aliases for backward compat.
+- **External extracted modules**: `go-codec`, `go-retry`, `go-idempotency`, `go-flightrecorder`. The in-repo re-export shims were deleted (ADR-0128); import the external paths directly. Workspace `use` block points at sibling checkouts.
 
 ## Metaengine
 

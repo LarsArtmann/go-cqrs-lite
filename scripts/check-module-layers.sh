@@ -11,7 +11,6 @@ set -euo pipefail
 declare -A LAYER
 LAYER[id]=0
 LAYER[dispatcher]=0
-LAYER[codec]=0
 LAYER[kv]=0
 LAYER[dedup]=0
 LAYER[event]=1
@@ -22,10 +21,9 @@ LAYER[metadata]=1
 LAYER[schema]=2
 LAYER[snapshot]=2
 LAYER[projection]=2
-LAYER[idempotency]=2
 LAYER[deriver]=2
 LAYER[commandlifecycle]=2
-LAYER[commandlifecycle / projections]=3
+LAYER[commandlifecycle/projections]=3
 LAYER[listing]=3
 LAYER[decider]=3
 LAYER[graph]=3
@@ -34,78 +32,77 @@ LAYER[projectionhost]=3
 LAYER[signing]=4
 LAYER[encryption]=4
 LAYER[otel]=4
-LAYER[storage / memory]=4
+LAYER[storage/memory]=4
 LAYER[middleware]=5
 LAYER[storage]=5
 # listing is Aggregation (Tier 3) — depends on event/id, not infrastructure
 LAYER[watermill]=5
-LAYER[transport / http]=5
-LAYER[transport / grpc]=5
+LAYER[transport/http]=5
+LAYER[transport/grpc]=5
 LAYER[prometheus]=5
-LAYER[storage / pebble]=5
-LAYER[storage / bbolt]=5
-LAYER[storage / backuptest]=5
-LAYER[storage / turso]=5
-LAYER[metaengine / pebbleengine]=5
-LAYER[metaengine / duckdbengine]=5
-LAYER[metaengine / pgengine]=5
-LAYER[metaengine / badgerengine]=5
-LAYER[metaengine / dgraphengine]=5
-LAYER[metaengine / graphadapter]=5
-LAYER[metaengine / sqliteengine]=5
-LAYER[metaengine / projectionadapter]=5
-LAYER[metaengine / bboltengine]=5
-LAYER[metaengine / mysqlengine]=5
-LAYER[metaengine / tursoengine]=5
-LAYER[metaengine / keycodec]=5
-LAYER[metaengine / adttest]=7
-LAYER[metaengine / enginetest]=7
-LAYER[metaengine / projectionadapter]=5
-LAYER[metaengine / irohengine]=5
-LAYER[metaengine / irohengine / loopback]=5
-LAYER[metaengine / irohengine / quic]=5
+LAYER[storage/pebble]=5
+LAYER[storage/bbolt]=5
+LAYER[storage/backuptest]=5
+LAYER[storage/turso]=5
+LAYER[metaengine/pebbleengine]=5
+LAYER[metaengine/duckdbengine]=5
+LAYER[metaengine/pgengine]=5
+LAYER[metaengine/badgerengine]=5
+LAYER[metaengine/dgraphengine]=5
+LAYER[metaengine/graphadapter]=5
+LAYER[metaengine/sqliteengine]=5
+LAYER[metaengine/projectionadapter]=5
+LAYER[metaengine/bboltengine]=5
+LAYER[metaengine/mysqlengine]=5
+LAYER[metaengine/tursoengine]=5
+LAYER[metaengine/keycodec]=5
+LAYER[metaengine/adttest]=7
+LAYER[metaengine/enginetest]=7
+LAYER[metaengine/projectionadapter]=5
+LAYER[metaengine/irohengine]=5
+LAYER[metaengine/irohengine/loopback]=5
+LAYER[metaengine/irohengine/quic]=5
 LAYER[record]=0
-LAYER[scheduling / sqlstore]=5
+LAYER[scheduling/sqlstore]=5
 LAYER[testutil]=5
 # NOTE: testutil is also referenced as a direct dep in some lower-tier modules'
 # go.mod (projectionhost, transport/http, etc.) for test helpers. The
 # EXCEPTIONS map handles those. See comment below for modules that intentionally
 # omit testutil from LAYER.
 LAYER[stack]=6
-LAYER[stack / memory]=6
-LAYER[stack / sqlite]=6
-LAYER[stack / pebble]=6
-LAYER[stack / bbolt]=6
-LAYER[stack / postgres]=6
-LAYER[stack / duckdb]=6
-LAYER[stack / mysql]=6
-LAYER[stack / turso]=6
+LAYER[stack/memory]=6
+LAYER[stack/sqlite]=6
+LAYER[stack/pebble]=6
+LAYER[stack/bbolt]=6
+LAYER[stack/postgres]=6
+LAYER[stack/duckdb]=6
+LAYER[stack/mysql]=6
+LAYER[stack/turso]=6
 LAYER[system]=6
+LAYER[system/integration]=7
 LAYER[catalog]=7
 LAYER[integration]=7
-LAYER[stack / bench]=7
-LAYER[metaengine / bench]=7
+LAYER[stack/bench]=7
+LAYER[metaengine/bench]=7
 LAYER[benchkit]=7
-LAYER[cmd / cqrs - gen]=7
-LAYER[cmd / cqrs - lint]=7
-LAYER[cmd / cqrs - bench]=7
-LAYER[cmd / api - stability]=7
-LAYER[cmd / doc - check]=7
-LAYER[example / taskmanager]=7
-LAYER[example / getting - started]=7
-LAYER[example / readme - quickstart]=7
-LAYER[example / metaengine - quickstart]=7
-LAYER[event / v4 / eventtest]=7
-LAYER[testutil / pgtestcontainer]=5
+LAYER[cmd/cqrs-gen]=7
+LAYER[cmd/cqrs-lint]=7
+LAYER[cmd/cqrs-bench]=7
+LAYER[cmd/api-stability]=7
+LAYER[cmd/doc-check]=7
+LAYER[example/taskmanager]=7
+LAYER[example/getting-started]=7
+LAYER[example/readme-quickstart]=7
+LAYER[example/metaengine-quickstart]=7
+LAYER[event/v4/eventtest]=7
+LAYER[testutil/pgtestcontainer]=5
 # testutil is test-only infrastructure used from _test.go files across layers.
 # It has LAYER[testutil]=5 above, but lower-tier modules that import it from
 # _test.go files get exceptions below. This avoids false layer violations while
 # still budgeting its production deps.
 LAYER[metaengine]=3
-LAYER[flightrecorder]=0
-LAYER[retry]=0
-LAYER[idempotency / kvstore]=2
-LAYER[idempotency / sqlstore]=2
+LAYER[idempotency/kvstore]=2
+LAYER[idempotency/sqlstore]=2
 
 # EXCEPTIONS: each entry suppresses a layer violation that is architecturally
 # legitimate. The script cannot distinguish production imports from test-only
@@ -152,9 +149,9 @@ EXCEPTIONS[listing]="storage/memory"
 EXCEPTIONS[commandlifecycle]="middleware storage/memory"
 
 # projectionhost (L3) — storage/memory test-only (integration/stress tests);
-# otel PRODUCTION (tracing in worker.go, options.go, worker_drain.go);
-# testutil + testutil/pgtestcontainer test-only (host + PG container tests)
-EXCEPTIONS[projectionhost]="storage/memory otel testutil testutil/pgtestcontainer"
+# otel PRODUCTION (tracing in worker.go, options.go, worker_drain.go).
+# (testutil + testutil/pgtestcontainer are covered by TEST_INFRA_MODULES.)
+EXCEPTIONS[projectionhost]="storage/memory otel"
 
 # metaengine (L3) — metaengine/sqliteengine test-only (cross-engine ADT
 # matrix + concurrency-gap tests reference the real SQLite engine for parity)
@@ -164,13 +161,19 @@ EXCEPTIONS[metaengine]="metaengine/sqliteengine"
 # These are test infrastructure (assertions, PBT, mocking) used across all modules.
 TEST_PACKAGES="github.com/onsi/gomega github.com/onsi/ginkgo/v2 pgregory.net/rapid"
 
+# Test-infrastructure MODULES: exempt from the layer-ordering check. Their
+# entire purpose is to be imported from _test.go files in ANY layer (golden
+# assertions, race helpers, testcontainers), so an apparent upward dependency
+# is always test-only usage, never production coupling. Their own production
+# deps still count against their DEP_BUDGET.
+TEST_INFRA_MODULES="event/v4/eventtest testutil testutil/pgtestcontainer"
+
 # Dependency budgets: maximum direct PRODUCTION dependencies per module.
 # Budgets are intentionally tight — new deps require explicit review.
 # Test-only deps (gomega, rapid, ginkgo) are excluded from the count.
 declare -A DEP_BUDGET
 DEP_BUDGET[id]=3
 DEP_BUDGET[dispatcher]=0
-DEP_BUDGET[codec]=2
 DEP_BUDGET[kv]=3
 DEP_BUDGET[dedup]=0
 DEP_BUDGET[event]=13
@@ -181,10 +184,9 @@ DEP_BUDGET[metadata]=1
 DEP_BUDGET[schema]=4
 DEP_BUDGET[snapshot]=5
 DEP_BUDGET[projection]=2
-DEP_BUDGET[idempotency]=4
 DEP_BUDGET[deriver]=4
 DEP_BUDGET[commandlifecycle]=6
-DEP_BUDGET[commandlifecycle / projections]=4
+DEP_BUDGET[commandlifecycle/projections]=4
 DEP_BUDGET[decider]=10
 DEP_BUDGET[graph]=3
 DEP_BUDGET[scenario]=3
@@ -198,62 +200,62 @@ DEP_BUDGET[listing]=6
 DEP_BUDGET[watermill]=9
 # codec is required for CBORToJSONTransform (SSE CBOR->JSON adapter composes
 # the codec.TranscodeToJSON primitive — ADR-0052, deletes per-consumer dupes).
-DEP_BUDGET[transport / http]=6
+DEP_BUDGET[transport/http]=6
 DEP_BUDGET[prometheus]=5
-DEP_BUDGET[storage / pebble]=10
-DEP_BUDGET[storage / bbolt]=10
-DEP_BUDGET[storage / backuptest]=3
-DEP_BUDGET[storage / turso]=10
-DEP_BUDGET[storage / memory]=8
+DEP_BUDGET[storage/pebble]=10
+DEP_BUDGET[storage/bbolt]=10
+DEP_BUDGET[storage/backuptest]=3
+DEP_BUDGET[storage/turso]=10
+DEP_BUDGET[storage/memory]=8
 DEP_BUDGET[stack]=18
-DEP_BUDGET[stack / memory]=10
-DEP_BUDGET[stack / sqlite]=10
-DEP_BUDGET[stack / pebble]=10
-DEP_BUDGET[stack / bbolt]=10
-DEP_BUDGET[stack / postgres]=10
-DEP_BUDGET[stack / duckdb]=8
-DEP_BUDGET[stack / mysql]=10
-DEP_BUDGET[stack / turso]=13
-DEP_BUDGET[stack / bench]=25
+DEP_BUDGET[stack/memory]=10
+DEP_BUDGET[stack/sqlite]=10
+DEP_BUDGET[stack/pebble]=10
+DEP_BUDGET[stack/bbolt]=10
+DEP_BUDGET[stack/postgres]=10
+DEP_BUDGET[stack/duckdb]=8
+DEP_BUDGET[stack/mysql]=10
+DEP_BUDGET[stack/turso]=13
+DEP_BUDGET[stack/bench]=25
 DEP_BUDGET[catalog]=4
 DEP_BUDGET[integration]=21
 DEP_BUDGET[benchkit]=25
 DEP_BUDGET[testutil]=5
 DEP_BUDGET[metaengine]=5
-DEP_BUDGET[metaengine / pebbleengine]=5
-DEP_BUDGET[metaengine / duckdbengine]=5
-DEP_BUDGET[metaengine / pgengine]=5
-DEP_BUDGET[metaengine / badgerengine]=2
-DEP_BUDGET[metaengine / dgraphengine]=3
-DEP_BUDGET[metaengine / graphadapter]=2
-DEP_BUDGET[metaengine / sqliteengine]=3
-DEP_BUDGET[metaengine / projectionadapter]=10
-DEP_BUDGET[metaengine / bboltengine]=5
-DEP_BUDGET[metaengine / mysqlengine]=5
-DEP_BUDGET[metaengine / tursoengine]=5
-DEP_BUDGET[flightrecorder]=0
-DEP_BUDGET[retry]=1
-DEP_BUDGET[transport / grpc]=12
-DEP_BUDGET[idempotency / kvstore]=7
-DEP_BUDGET[idempotency / sqlstore]=5
-DEP_BUDGET[scheduling / sqlstore]=7
+DEP_BUDGET[metaengine/pebbleengine]=5
+DEP_BUDGET[metaengine/duckdbengine]=5
+DEP_BUDGET[metaengine/pgengine]=5
+DEP_BUDGET[metaengine/badgerengine]=2
+DEP_BUDGET[metaengine/dgraphengine]=3
+DEP_BUDGET[metaengine/graphadapter]=2
+DEP_BUDGET[metaengine/sqliteengine]=3
+DEP_BUDGET[metaengine/projectionadapter]=10
+DEP_BUDGET[metaengine/bboltengine]=5
+DEP_BUDGET[metaengine/mysqlengine]=5
+DEP_BUDGET[metaengine/tursoengine]=5
+DEP_BUDGET[transport/grpc]=12
+DEP_BUDGET[idempotency/kvstore]=7
+DEP_BUDGET[idempotency/sqlstore]=5
+DEP_BUDGET[scheduling/sqlstore]=7
 DEP_BUDGET[system]=20
-DEP_BUDGET[metaengine / irohengine]=2
-DEP_BUDGET[metaengine / irohengine / loopback]=4
-DEP_BUDGET[metaengine / irohengine / quic]=5
-DEP_BUDGET[cmd / cqrs - gen]=2
-DEP_BUDGET[cmd / cqrs - lint]=8
-DEP_BUDGET[cmd / cqrs - bench]=18
-DEP_BUDGET[cmd / api - stability]=3
-DEP_BUDGET[cmd / doc - check]=2
-DEP_BUDGET[example / taskmanager]=25
-DEP_BUDGET[example / getting - started]=10
-DEP_BUDGET[example / readme - quickstart]=6
-DEP_BUDGET[example / metaengine - quickstart]=4
-DEP_BUDGET[event / v4 / eventtest]=5
+DEP_BUDGET[system/integration]=7
+DEP_BUDGET[metaengine/irohengine]=2
+DEP_BUDGET[metaengine/irohengine/loopback]=4
+DEP_BUDGET[metaengine/irohengine/quic]=5
+DEP_BUDGET[cmd/cqrs-gen]=2
+DEP_BUDGET[cmd/cqrs-lint]=8
+# metaengine/v4 added for the `cqrs-bench layout` planning CLI.
+DEP_BUDGET[cmd/cqrs-bench]=19
+DEP_BUDGET[cmd/api-stability]=3
+DEP_BUDGET[cmd/doc-check]=2
+DEP_BUDGET[example/taskmanager]=25
+DEP_BUDGET[example/getting-started]=10
+DEP_BUDGET[example/readme-quickstart]=6
+DEP_BUDGET[example/metaengine-quickstart]=4
+DEP_BUDGET[event/v4/eventtest]=5
 DEP_BUDGET[record]=0
-DEP_BUDGET[testutil / pgtestcontainer]=3
-DEP_BUDGET[metaengine / bench]=5
+DEP_BUDGET[testutil/pgtestcontainer]=3
+DEP_BUDGET[metaengine/bench]=5
 
 failed=0
 
@@ -370,12 +372,20 @@ for mod in "${!LAYER[@]}"; do
 
 		# Extract module name from import path
 		# github.com/larsartmann/go-cqrs-lite/EVENT/v4 -> event
-		dep_mod=$(echo "$req" | sed 's|github.com/larsartmann/go-cqrs-lite/||; s|/v[0-9]\+||')
+		# Only a TRAILING /vN is stripped: nested modules like event/v4/eventtest
+		# keep their full path so the LAYER lookup matches the map key.
+		dep_mod=$(echo "$req" | sed 's|github.com/larsartmann/go-cqrs-lite/||; s|/v[0-9]\+$||')
 
 		# Skip root module and examples/cmd (not in layer map)
 		if [ -z "${LAYER[$dep_mod]:-}" ]; then
 			continue
 		fi
+
+		# Test-infrastructure modules are test-only imports by design; an
+		# upward layer edge against them is not production coupling.
+		case " $TEST_INFRA_MODULES " in
+			*" $dep_mod "*) continue ;;
+		esac
 
 		# Check exceptions
 		exc="${EXCEPTIONS[$mod]:-}"

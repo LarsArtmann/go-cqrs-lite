@@ -428,6 +428,20 @@ func classifySingleReturn[E any](
 }
 
 func verifyEventParam[E any](handlerType reflect.Type, eventType string) error {
+	return verifyTypedParam[E](handlerType, eventType, "On", 0)
+}
+
+func verifyRecordEventParam[E any](handlerType reflect.Type, eventType string) error {
+	return verifyTypedParam[E](handlerType, eventType, "OnRecord", 1)
+}
+
+// verifyTypedParam checks that the handler's event parameter (at paramIndex,
+// after the Record parameter for OnRecord) matches E's concrete type.
+func verifyTypedParam[E any](
+	handlerType reflect.Type,
+	eventType, caller string,
+	paramIndex int,
+) error {
 	var sample E
 
 	expectedType := reflect.TypeOf(sample)
@@ -439,39 +453,14 @@ func verifyEventParam[E any](handlerType reflect.Type, eventType string) error {
 		expectedType = expectedType.Elem()
 	}
 
-	paramType := handlerType.In(0)
+	paramType := handlerType.In(paramIndex)
 	if paramType.Kind() == reflect.Pointer {
 		paramType = paramType.Elem()
 	}
 
 	if paramType != expectedType {
-		return fmt.Errorf("metaengine.On(%s): %w %s, got %s",
-			eventType, errInvalidEventType, expectedType, handlerType.In(0))
-	}
-
-	return nil
-}
-
-func verifyRecordEventParam[E any](handlerType reflect.Type, eventType string) error {
-	var sample E
-
-	expectedType := reflect.TypeOf(sample)
-	if expectedType == nil {
-		return nil
-	}
-
-	if expectedType.Kind() == reflect.Pointer {
-		expectedType = expectedType.Elem()
-	}
-
-	paramType := handlerType.In(1)
-	if paramType.Kind() == reflect.Pointer {
-		paramType = paramType.Elem()
-	}
-
-	if paramType != expectedType {
-		return fmt.Errorf("metaengine.OnRecord(%s): %w %s, got %s",
-			eventType, errInvalidEventType, expectedType, handlerType.In(1))
+		return fmt.Errorf("metaengine.%s(%s): %w %s, got %s",
+			caller, eventType, errInvalidEventType, expectedType, handlerType.In(paramIndex))
 	}
 
 	return nil

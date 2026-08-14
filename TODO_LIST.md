@@ -20,14 +20,6 @@ and is **never** duplicated here.
 > 16-combination regression test, `cqrs-bench layout` CLI. KV/LSM scoring
 > split with 60s on-disk calibration. See ADR-0124, ADR-0125.
 
-- [ ] 🔥 **Update `METAENGINE-LAYOUT-PLANNING-MODEL.md`** — design doc still
-      says "defaults to embedding"; on-disk calibration data contradicts this
-      (Normalize wins WriteSpeed/StorageSpace on KV/LSM). Correct §4.
-      _(Effort: S)_
-- [ ] **Add calibration-correction addendum to ADR-0124** — record the KV-vs-LSM
-      split and the measured ratios (KV: `1.8/0.48/0.63` embed, `0.5/1.0/1.3`
-      normalize; LSM: `0.74/1.10/1.15` embed, `1.45/0.75/0.80` normalize).
-      _(Effort: S)_
 - [ ] **Calibrate DuckDB (Columnar)** — the Columnar × ReadSpeed cell is an
       exact tie (2.65 vs 2.65); float-comparison fragility. Run 60s disk bench.
       _(Effort: M)_
@@ -38,16 +30,6 @@ and is **never** duplicated here.
       uses one MemoryEngine + Backfill replay. Need two live engines with data,
       verify both serve correct query results after `AddEngine` + `Backfill`.
       _(Effort: M)_
-- [ ] **Converge `ReplanLayout` into `Store.Replan`** — `SetPriority` calls
-      `Replan` but layout diffs require a separate `ReplanLayout` call. The
-      in-memory plan now carries layout (`QueryAssignment.Layout`,
-      `SerializableQuery.Layout`, `String()` renders it — all fixed), but the
-      two planning passes have not merged into one.
-      _(Effort: M)_
-- [ ] **Refactor `layout_observability.go`** to call shared `resolvePriority`
-      directly (currently delegates via `priorityForQuery` — correct but
-      inconsistent with the convergence refactor).
-      _(Effort: S)_
 
 ### Layout roles (long-horizon, depend on a design doc first)
 
@@ -83,11 +65,6 @@ and is **never** duplicated here.
 > StreamLog on Dgraph, native graph on SQLite/Turso (iterative BFS), degraded
       rule with latency estimates, engine test parity all shipped 2026-08-11.
 
-- [ ] 🔥 **Fix Dgraph `CounterBackend` DQL colon bug** — `keyVarDecls()`
-      (`metaengine/dgraphengine/counter.go:155`) emits `$key%d string` (missing
-      colon). DQL requires `$key%d: string`. `CounterIncrement` is completely
-      broken for ≤20 keys. Single-character fix.
-      _(Effort: XS)_
 - [ ] **Fix Dgraph `JournalReadFrom` seq offset mismatch** — position-based
       resumption is off-by-one for Dgraph `StreamLogBackend`.
       _(Effort: S)_
@@ -112,10 +89,6 @@ and is **never** duplicated here.
 > verified by `integration_multimodule_test.go`. F001/F002/F005/F014 remain
 > workspace-global by design (low leakage risk).
 
-- [ ] **Extract `mergeMostPermissiveProfile` from `doctor.go`** — `doctor.go`
-      is 568 lines, exceeds the 350-line CI limit. Move the profile-merge logic
-      + helpers into `doctor_profile.go`.
-      _(Effort: S)_
 - [ ] **Add per-module regression tests for remaining migrated rules** —
       F004, F007, F009, F012, F017, F023-F029, B030 lack dedicated per-module
       tests (only F003/F013/F022/B029/B031 + the F006-F021 batch have them).
@@ -133,13 +106,6 @@ and is **never** duplicated here.
 > `codec/` is now a deprecated re-export alias. 53 consumer modules migrated.
 > `go.work` replace directive removed; `../go-codec` added to `use` block.
 
-- [ ] **Delete dead dirs `codec/testdata/` and `codec/reports/`** — testdata
-      (fuzz + golden) and reports (coverage.out) remain after the alias
-      conversion; nothing references them.
-      _(Effort: XS)_
-- [ ] **Write ADR for codec extraction** — every prior extraction has an ADR
-      (retry → ADR-0064, idempotency → ADR-0065). Next number: ADR-0126.
-      _(Effort: S)_
 - [ ] **Complete go-codec project scaffolding** — missing `.golangci.yml`,
       `.github/workflows/ci.yml`, FEATURES.md, ROADMAP.md, SECURITY.md (the
       go-retry/go-idempotency repos set the pattern).
@@ -149,78 +115,32 @@ and is **never** duplicated here.
 
 ## Deprecated Module Removal
 
-> All four extracted packages (`go-codec@v0.1.0`, `go-idempotency@v0.1.2`,
-> `go-retry@v0.3.1`, `go-flightrecorder@v0.2.0`) are published. Their
-> `go-cqrs-lite/` shim modules are pure re-export aliases with zero internal
-> source consumers. Removing them reduces module count, simplifies the
-> workspace, and eliminates maintenance burden.
+> **DONE 2026-08-14** — all four shim modules deleted; see
+> [ADR-0128](docs/adr/0128-extract-codec-and-remove-shim-modules.md) and the
+> [status report](docs/status/2026-08-14_20-46_todo-execution-shims-layout-dgraph.md).
+> `idempotency/{kvstore,sqlstore}` stay in their existing paths (consumer
+> stability — decided, do not revisit). Remaining follow-up:
 
-- [ ] 🔥 **Delete `codec/` shim module** — all source already imports
-      `go-codec` directly. Remove dir + `go.work` entry + `flake.nix`
-      `testModules` entry + `cmd/api-stability` modules list entry.
-      _(Effort: S)_
-- [ ] 🔥 **Delete `retry/` shim module** — zero internal source imports.
-      Same removal checklist as codec.
-      _(Effort: XS)_
-- [ ] 🔥 **Delete `idempotency/` shim module** — all source (middleware,
-      kvstore, sqlstore, integration, example) already imports
-      `go-idempotency` directly. The `idempotency/store_test.go` and
-      `property_test.go` tests still reference the shim — delete them too.
-      _(Effort: S)_
-- [ ] 🔥 **Delete `flightrecorder/` shim module** — zero internal source
-      imports. Same removal checklist.
-      _(Effort: XS)_
-- [ ] **Update `cmd/cqrs-lint` after shim deletion** — module catalog
-      ImportHints, E001 tier-0 list, F007/F008 detectors, architecture rules.
-      The linter should only recognize the external packages after shims
-      are gone.
-      _(Effort: M)_
-- [ ] **Update AGENTS.md module map** — remove the four shim rows, note
-      that the external repos are the canonical source.
-      _(Effort: S)_
-- [ ] **Update SKILL.md + references** — remove deprecated module docs,
-      point consumers to the external repos.
-      _(Effort: M)_
-- [ ] **Add deprecated `COSESign1String` / `COSEEncrypt0String` backward-compat
-      aliases in `codec/alias.go`** — the pre-extraction names were silently
-      dropped. Add them before any codec shim removal to avoid breaking
-      consumers. (Moot if codec/ is deleted in the v5 cut instead.)
-      _(Effort: XS)_
-- [ ] **Regenerate API surface golden** after any module deletion —
-      `cmd/api-stability` `modules` slice must match the actual module set.
-      Meta-test `TestEveryGoModDirIsInModulesList` enforces this.
-      _(Effort: XS)_
-- [ ] **Run `nix run .#verify` after all deletions** — catch dangling
-      references, broken builds, stale golden files.
-      _(Effort: S)_
-
-### Cleanup opportunities to consider alongside deletion
-
-- [ ] **Audit `idempotency/kvstore/` and `idempotency/sqlstore/` module
-      paths** — should they move out of the `idempotency/` namespace now
-      that the parent shim is gone? (e.g., `kvstore/` or keep as-is for
-      consumer stability)
-      _(Effort: S)_
 - [ ] **Consolidate indirect dep references** — after new module tags are
       published, the transitive `go-cqrs-lite/{codec,retry,idempotency,
-      flightrecorder}/v4` indirect deps will clean up. Track and verify.
+      flightrecorder}/v4` indirect deps in consumer go.mod files will clean
+      up. Track and verify.
       _(Effort: M)_
-- [ ] **Verify `go.work` use block ordering** — external deps should be
-      alphabetically consistent after removing local shim modules.
-      _(Effort: XS)_
 
 ---
 
 ## Release / Tagging
 
-- [BLOCKED] 🔥 **Tag `id/v4.3.0` → re-tag record/command/metaengine → tag
-  `commandlifecycle/v4.0.0`** — `id.ActorID` (commit `7e374b753`) was never
-  released; published `id/v4.2.0` lacks `actor_id.go`, so consumer
-  `GOWORK=off` builds of `record/v4`, `command/v4`, `metaengine/v4` fail.
-  Fix chain: tag `id/v4.3.0` → re-tag `record/v4.2.0`, `command/v4.5.0`,
-  `metaengine/v4.9.0` → tag `commandlifecycle/v4.0.0` +
-  `commandlifecycle/projections/v4.0.0` → bump 66 downstream `go.mod` requires.
-  Needs user approval (never tag without explicit instruction).
+- [ ] 🔥 **Tag the unpublished fixes parked behind replaces** — the old
+  BLOCKED tag chain completed upstream (id/v4.4.0 contains `actor_id.go`;
+  commandlifecycle/v4.0.0 + projections/v4.0.0 exist), so the old
+  `commandlifecycle`/`id`/`record` replaces were removed 2026-08-14. Still
+  unpublished: engine driver self-registration (v4.0.1 tags predate it) and
+  the watermill handler-independence fix (`errors.Join`). `system/go.mod`
+  carries temporary replaces for sqliteengine/badgerengine/pebbleengine/
+  pgengine + watermill — remove after tagging engine v4.0.2+ and
+  watermill/v4.5.0. Needs user approval (never tag without explicit
+  instruction).
 - [ ] **Run calibration benchmarks against baseline** — verify
       `calibration-baseline.md` accuracy; add CI regression check.
       _(Effort: M)_
@@ -229,16 +149,13 @@ and is **never** duplicated here.
 
 ## Code Quality / Infrastructure
 
-- [ ] 🔥 **Clear the stale-GREEN backlog** — multiple 2026-08-11 sessions
-      shipped code without running `nix run .#verify` (layout convergence, fold
-      inference, ADT coverage, codec extraction, per-module coaching). Run the
-      full gate (`#verify`: build + vet + test + race + lint + doc-check +
-      doc-assertions) and fix everything it surfaces.
+- [ ] 🔥 **Clear the stale-GREEN backlog** — `system/` standalone (GOWORK=off)
+      was red on master: unpublished driver self-registration + watermill
+      handler-independence fix (both now parked behind replaces, see
+      Release/Tagging) and a missing middleware golden `.json` (fixed
+      2026-08-14). Remaining: run the full gate (`nix run .#verify`) after
+      large changes and fix anything it surfaces.
       _(Effort: M)_
-- [ ] **Audit/remove duplicate `replace` directives** — `system/go.mod` has 3
-      replace directives, `record/go.mod` has 1. Verify each is still needed
-      (several were temp workarounds for the ActorID gap).
-      _(Effort: S)_
 - [ ] **Infrastructure polish (nix apps + shared helpers)** — add
       `#check-lint-config`, `#verify-ci` (mirror GH Actions GOWORK=off
       per-module), wire `#sweep` to pre-commit/cron, consolidate engine
@@ -287,12 +204,6 @@ and is **never** duplicated here.
       `encryption.ErrInnerStoreNot*` aliases, `metadata.CustomData`. Internal
       code is already off them (compat tests pin external behavior).
       _(Effort: S)_
-- [ ] **Fix `check-arch` module-catalog coverage (94 gaps)** — the coverage
-      meta-check in `scripts/check-module-layers.sh` fails on master: ~47
-      modules lack `LAYER`/`DEP_BUDGET` entries (e.g. `transport/http`). All
-      existing budget checks pass; the gate is red purely on missing catalog
-      data. Pre-dates the WAL unification (verified at `6aaca6b0e`).
-      _(Effort: M)_
 - [ ] **Delete `transport/http` + `transport/grpc` modules** (ADR-0127) —
       delivery is `watermill/` + go-sse + cqrs-htmx. `example/taskmanager` is
       migrated (metaengine.ServeSSE on the task_views watcher); cqrs-lint F030

@@ -135,12 +135,9 @@ func layoutExplainAnnotation(
 	queryName string,
 	cfg QueryConfig,
 ) string {
-	resolved := PriorityBalanced
-	if cfg.layoutPriority.Valid() {
-		resolved = cfg.layoutPriority
-	} else if pc != nil {
-		resolved = pc.Resolve(profile.Name, queryName)
-	}
+	// Same resolution order as the planner: operator per-Query →
+	// per-Engine/Global → developer WithLayoutPriority → Balanced.
+	resolved := resolvePriority(pc, profile.Name, queryName, cfg.layoutPriorityOr(PriorityBalanced))
 	layout, _ := SelectLayout(profile, resolved)
 
 	return fmt.Sprintf(" layout=%s(%s)", layout, resolved)

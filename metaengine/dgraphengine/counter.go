@@ -150,12 +150,12 @@ func sanitizeKey(s string) string {
 }
 
 // keyVarDecls produces DQL variable declarations for n counter keys:
-// ["$key0 string", "$key1 string", ...]. Used in the query header so
+// ["$key0: string", "$key1: string", ...]. Used in the query header so
 // QueryWithVars can bind each key safely without string interpolation.
 func keyVarDecls(n int) []string {
 	decls := make([]string, n)
 	for i := range n {
-		decls[i] = fmt.Sprintf("$key%d string", i)
+		decls[i] = fmt.Sprintf("$key%d: string", i)
 	}
 	return decls
 }

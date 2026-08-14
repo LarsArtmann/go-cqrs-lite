@@ -19,20 +19,21 @@ cd "$(git rev-parse --show-toplevel)"
 # larger is real drift that should update AGENTS.md.
 TOLERANCE=2.0
 
-# Module → documented coverage (verified 2027-07-27). Keep in sync with AGENTS.md.
+# Module → documented coverage (verified 2026-08-14). Keep in sync with AGENTS.md.
+# Keys are plain module paths; codec was deleted (ADR-0128) and retry/
+# flightrecorder/idempotency shims never had coverage claims.
 declare -A EXPECTED=(
 	[decider]=96.1
-	[storage / memory]=97.0
+	[storage/memory]=95.7
 	[snapshot]=91.9
-	[schema]=89.9
-	[command]=89.7
-	[event]=88.6
-	[id]=86.4
-	[metaengine]=81.0
-	[query]=85.3
+	[schema]=92.2
+	[command]=88.5
+	[event]=87.3
+	[id]=86.5
+	[metaengine]=83.3
+	[query]=84.5
 	[dispatcher]=81.5
 	[kv]=71.9
-	[codec]=69.2
 )
 
 # Modules are measured in workspace mode (go.work replacements) with the
@@ -41,8 +42,10 @@ TAGS="goexperiment.jsonv2"
 
 compute_coverage() {
 	local mod="$1"
+	# Defensive: strip any spaces if someone reintroduces spaced display keys.
+	local path="${mod// /}"
 	# Take the primary package's coverage line (first "coverage:" occurrence).
-	go test -tags "$TAGS" -cover "./$mod/..." 2>/dev/null |
+	go test -tags "$TAGS" -cover "./$path/..." 2>/dev/null |
 		grep -oE 'coverage: [0-9]+\.[0-9]+%' |
 		head -1 |
 		grep -oE '[0-9]+\.[0-9]+'
@@ -62,7 +65,8 @@ drifted=0
 printf "%-18s %8s %10s %8s %s\n" "MODULE" "DOC" "ACTUAL" "DELTA" "STATUS"
 printf "%-18s %8s %10s %8s %s\n" "------" "---" "------" "-----" "------"
 
-for mod in $(echo "${!EXPECTED[@]}" | tr ' ' '\n' | sort); do
+rows=""
+for mod in "${!EXPECTED[@]}"; do
 	expected="${EXPECTED[$mod]}"
 	actual="$(compute_coverage "$mod" || echo '0.0')"
 	delta=$(awk -v a="$actual" -v e="$expected" 'BEGIN { printf "%.1f", a - e }')
@@ -73,8 +77,9 @@ for mod in $(echo "${!EXPECTED[@]}" | tr ' ' '\n' | sort); do
 	else
 		status="ok"
 	fi
-	printf "%-18s %7s%% %9s%% %7s%% %s\n" "$mod" "$expected" "$actual" "$delta" "$status"
+	rows+="$(printf "%-18s %7s%% %9s%% %7s%% %s" "$mod" "$expected" "$actual" "$delta" "$status")"$'\n'
 done
+printf '%s' "$rows" | sort
 
 echo ""
 if [ "$drifted" -gt 0 ]; then

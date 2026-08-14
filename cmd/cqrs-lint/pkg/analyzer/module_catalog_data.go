@@ -103,7 +103,7 @@ func buildDefaultCatalog() []ModuleEntry {
 		},
 		{
 			Key: "flightrecorder", DisplayName: "Flight Recorder", Category: CategoryObservability,
-			ImportHints: []string{"go-cqrs-lite/flightrecorder", "go-flightrecorder"},
+			ImportHints: []string{"go-flightrecorder"},
 			Description: "Go 1.25 runtime/trace flight recorder for slow/error capture",
 			Suggestion:  "Capture execution traces on slow commands or errors",
 		},
@@ -125,7 +125,7 @@ func buildDefaultCatalog() []ModuleEntry {
 		// ── Reliability ────────────────────────────────────────────────
 		{
 			Key: "idempotency", DisplayName: "Idempotency", Category: CategoryReliability,
-			ImportHints: []string{"go-cqrs-lite/idempotency", "go-idempotency"},
+			ImportHints: []string{"go-idempotency", "go-cqrs-lite/idempotency/kvstore", "go-cqrs-lite/idempotency/sqlstore"},
 			Description: "At-least-once delivery dedup (MemoryStore, SQLStore)",
 			Suggestion:  "Dedup at-least-once delivery for command/event handlers",
 		},
@@ -137,7 +137,7 @@ func buildDefaultCatalog() []ModuleEntry {
 		},
 		{
 			Key: "retry", DisplayName: "Retry", Category: CategoryReliability,
-			ImportHints: []string{"go-cqrs-lite/retry", "go-retry"},
+			ImportHints: []string{"go-retry"},
 			Description: "Exponential backoff retry with configurable strategies",
 			Suggestion:  "Exponential backoff for transient error recovery",
 		},
@@ -236,7 +236,7 @@ func buildDefaultCatalog() []ModuleEntry {
 		// ── Optimization ───────────────────────────────────────────────
 		{
 			Key: "codec", DisplayName: "Codec", Category: CategoryOptimization,
-			ImportHints: []string{"go-cqrs-lite/codec", "go-codec"},
+			ImportHints: []string{"go-codec"},
 			Description: "Payload encoding (JSON, CBOR deterministic, Raw)",
 			Suggestion:  "CBOR codec for ~35% smaller event payloads",
 		},

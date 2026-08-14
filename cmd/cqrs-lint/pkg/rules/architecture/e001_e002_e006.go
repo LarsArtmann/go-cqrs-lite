@@ -21,7 +21,6 @@ func NewE001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			tier0Modules := map[string]bool{
 				"go-cqrs-lite/id":         true,
-				"go-cqrs-lite/codec":      true,
 				"go-cqrs-lite/kv":         true,
 				"go-cqrs-lite/dedup":      true,
 				"go-cqrs-lite/dispatcher": true,

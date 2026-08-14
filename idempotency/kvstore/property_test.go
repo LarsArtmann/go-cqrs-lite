@@ -15,7 +15,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4"
 	idemsqlstore "github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
-	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
+	"github.com/larsartmann/go-idempotency"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 

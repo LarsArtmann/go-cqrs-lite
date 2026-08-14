@@ -200,3 +200,35 @@ refuse. The operator may have good reasons for a seemingly pathological layout
 - **Negative:** Re-layout of large projections is expensive (full event-log
   replay). The threshold-based confirmation mechanism prevents accidental
   massive rebuilds but doesn't make them cheap.
+
+---
+
+## Addendum: Calibration Correction (2026-08-11, post-implementation)
+
+The original cost model assumed KV/LSM engines natively favor embedding across
+all priorities. 60-second on-disk calibration benchmarks
+(`BenchmarkDiskLayoutCalibration_*` in `metaengine/bench` on real Pebble and
+bbolt databases, plus `BenchmarkLayoutCalibration_*` on the memory engine)
+corrected this to a per-priority split. The measured ratios are encoded in
+`metaengine/layout_scoring.go`:
+
+| Storage layout | Embed (read/write/storage) | Normalize (read/write/storage) | ReadSpeed winner | WriteSpeed winner | StorageSpace winner |
+| --- | --- | --- | --- | --- | --- |
+| **KV** (memory engine) | 0.5 / 1.0 / 1.3 | 1.8 / 0.48 / 0.63 | Embed | **Normalize** | **Normalize** |
+| **LSM** (Pebble + bbolt, geomean) | 0.74 / 1.10 / 1.15 | 1.45 / 0.75 / 0.80 | Embed | **Normalize** | **Normalize** |
+
+Conclusions:
+
+- Embedding's single-key read advantage survived measurement (normalize reads
+  cost 1.8-2.4x embed reads due to multi-key lookup + application-level merge).
+- Embedding's assumed write advantage did not: a normalized child insert is a
+  single O(1) write with no parent read-modify-write, measuring 0.48x (KV) and
+  0.75x (LSM) of an embed write.
+- Embedding duplicates the aggregate across projections; normalize stores one
+  copy of each fact (0.63x / 0.80x storage).
+- Row (SQLite/PG/MySQL) and Columnar (DuckDB) multipliers remain analytical
+  estimates pending the same 60s disk calibration (tracked in TODO_LIST.md).
+
+The planner behavior is unchanged — it already selects by weighted score — but
+the design doc's "defaults to embedding" phrasing was corrected to reflect that
+the default depends on priority, not engine family.

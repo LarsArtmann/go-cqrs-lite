@@ -425,7 +425,7 @@ boundaries. With it, latency histograms use CQRS-optimized buckets
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/idempotency/v4"
+    "github.com/larsartmann/go-idempotency"
     "github.com/larsartmann/go-cqrs-lite/middleware/v4"
 )
 
@@ -594,7 +594,7 @@ Zero-dependency retry with exponential backoff and jitter.
 
 ```go
 import (
-    "github.com/larsartmann/go-cqrs-lite/retry/v4"
+    "github.com/larsartmann/go-retry"
 )
 
 config := retry.Config{
@@ -660,7 +660,7 @@ The transform is applied uniformly across live, replay, and backfill paths.
 When you need schema-aware JSON (reconstructing field names from `toarray`
 structs) or custom logging, call `codec.TranscodeToJSON` directly inside your
 own `func(event.Event) []byte` and use `event.DecodePayloadAuto[T]` for typed
-decoding. See `codec/README.md` → "CBOR → JSON Transcoding".
+decoding. See the [go-codec](https://github.com/larsartmann/go-codec) README → "CBOR → JSON Transcoding".
 
 ### 2.16 Metaengine SSE Streaming with Reconnection (metaengine)
 
@@ -736,7 +736,7 @@ with `go tool trace`.
 
 ```go
 import (
-    flightrecorder "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
+    flightrecorder "github.com/larsartmann/go-flightrecorder"
     "github.com/larsartmann/go-cqrs-lite/middleware/v4"
 )
 

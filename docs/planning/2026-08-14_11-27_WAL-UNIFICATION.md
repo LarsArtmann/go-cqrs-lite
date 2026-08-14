@@ -2,6 +2,15 @@
 
 > **Goal:** Eliminate the triplicated persistence layer for Commands, Events, and PersistedQueries. All three are append-only logs (WALs). `record.Record` already captures this — the storage layer needs to follow through.
 
+> **Status: ✅ EXECUTED (2026-08-14).** All phases landed: `metadata.Metadata[K]` aliases (Phase 1),
+> `storage/memory.LogStore[T, ID]` (Phase 2), `SinkTransform`/`SourceTransform`/`DecorateStore` (Phase 3,
+> [ADR-0126](../adr/0126-metadata-generic-store-transforms-wal-unification.md)), `query.AsRecord()` (Phase 4),
+> `storage/sql.Inserter[T]` (Phase 5), `system.AdapterCore[T]` incl. shared `LoadStream` (Phase 6), docs +
+> gates (Phase 7). **Conscious deviation from task 29:** the SQL *event* store insert path was NOT moved onto
+> `Inserter[T]` — it already owns cached SQL templates + batched multi-VALUES inserts; only its dead
+> `buildInsertEventSQL` scaffolding was removed. Execution reports:
+> [`2026-08-14_16-44_WAL-UNIFICATION-PHASES-5-7-EXECUTION.md`](../status/2026-08-14_16-44_WAL-UNIFICATION-PHASES-5-7-EXECUTION.md).
+
 ## Problem
 
 The codebase treats Commands, Events, and PersistedQueries as completely separate concepts at the persistence layer, despite all three being append-only logs with the same fundamental shape. This creates massive triplication:

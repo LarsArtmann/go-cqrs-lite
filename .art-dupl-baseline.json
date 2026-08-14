@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "threshold": 3,
-  "recordedAt": "2026-08-10T18:34:54.477040644Z",
+  "recordedAt": "2026-08-14T18:18:27.951136308Z",
   "entries": [
     {
       "hash": "042a25ea73339942",
@@ -61,6 +61,14 @@
       "tokens": 6
     },
     {
+      "hash": "0c1a91d5d1c4cec8",
+      "files": [
+        "metaengine/pebbleengine/restart_safety_test.go",
+        "metaengine/bboltengine/restart_safety_test.go"
+      ],
+      "tokens": 34
+    },
+    {
       "hash": "0c9116afe1248bbb",
       "files": [
         "command/command.go",
@@ -86,6 +94,15 @@
       "tokens": 12
     },
     {
+      "hash": "1ade92ea7a5813d4",
+      "files": [
+        "command/asrecord.go",
+        "event/asrecord.go",
+        "query/asrecord.go"
+      ],
+      "tokens": 9
+    },
+    {
       "hash": "1bc5b79e8249e81f",
       "files": [
         "storage/bbolt/query_serialization.go",
@@ -103,12 +120,12 @@
       "tokens": 12
     },
     {
-      "hash": "1d64ba1df38df174",
+      "hash": "2061d8d68b3d5ddc",
       "files": [
-        "system/integration_badger_test.go",
-        "system/integration_duckdb_test.go"
+        "metaengine/dgraphengine/counter.go",
+        "metaengine/dgraphengine/stream_log.go"
       ],
-      "tokens": 44
+      "tokens": 6
     },
     {
       "hash": "22ad9ed13dfe7b35",
@@ -178,12 +195,33 @@
       "tokens": 30
     },
     {
+      "hash": "2a824ee3710ac704",
+      "files": [
+        "metaengine/infer_gaps_test.go",
+        "metaengine/fold_inference_test.go",
+        "metaengine/infer_gaps_test.go",
+        "metaengine/infer_gaps_test.go",
+        "metaengine/infer_gaps_test.go",
+        "metaengine/infer_gaps_test.go",
+        "metaengine/fold_inference_test.go"
+      ],
+      "tokens": 35
+    },
+    {
       "hash": "2ab96772b9fe5d45",
       "files": [
         "metaengine/bboltengine/engine.go",
         "metaengine/badgerengine/engine.go"
       ],
       "tokens": 38
+    },
+    {
+      "hash": "32a7fc8072619481",
+      "files": [
+        "metaengine/explain.go",
+        "metaengine/store_routing.go"
+      ],
+      "tokens": 6
     },
     {
       "hash": "3707958ee3b43137",
@@ -219,12 +257,12 @@
       "tokens": 8
     },
     {
-      "hash": "40c0d13d03ea41ae",
+      "hash": "400cb594ecae3d8d",
       "files": [
-        "storage/bbolt/serialization.go",
-        "storage/pebble/serialization.go"
+        "metaengine/fold.go",
+        "metaengine/record_fold.go"
       ],
-      "tokens": 30
+      "tokens": 6
     },
     {
       "hash": "4540881f22df307d",
@@ -267,15 +305,20 @@
       "tokens": 6
     },
     {
+      "hash": "4d59df111b5dfc70",
+      "files": [
+        "flightrecorder/recorder.go",
+        "flightrecorder/recorder.go"
+      ],
+      "tokens": 6
+    },
+    {
       "hash": "4f356606f49514ed",
       "files": [
-        "storage/memory/errors.go",
         "storage/memory/checkpoint.go",
-        "storage/memory/command_store.go",
-        "storage/memory/snapshot.go",
-        "storage/memory/query_store.go"
+        "storage/memory/snapshot.go"
       ],
-      "tokens": 15
+      "tokens": 6
     },
     {
       "hash": "550f4ba1d7b15437",
@@ -284,7 +327,6 @@
         "catalog/d2/snaps_clean_test.go",
         "catalog/eventcatalog/snaps_clean_test.go",
         "catalog/openapi/snaps_clean_test.go",
-        "codec/snaps_clean_test.go",
         "listing/snaps_clean_test.go",
         "middleware/snaps_clean_test.go",
         "otel/snaps_clean_test.go",
@@ -297,7 +339,7 @@
         "storage/turso/snaps_clean_test.go",
         "watermill/snaps_clean_test.go"
       ],
-      "tokens": 48
+      "tokens": 45
     },
     {
       "hash": "5a46df6a5b2a2414",
@@ -367,9 +409,10 @@
       "hash": "723214000a979c8d",
       "files": [
         "command/commandtest/store_suite.go",
+        "command/commandtest/store_suite.go",
         "event/v4/eventtest/fake_store_test.go"
       ],
-      "tokens": 6
+      "tokens": 9
     },
     {
       "hash": "73ca26d8ebb04bd3",
@@ -398,14 +441,6 @@
       "files": [
         "metaengine/irohengine/loopback/transport.go",
         "metaengine/irohengine/quic/transport.go"
-      ],
-      "tokens": 6
-    },
-    {
-      "hash": "7c71b69eec4f8ee8",
-      "files": [
-        "command/commandtest/store_suite.go",
-        "listing/in_memory_test.go"
       ],
       "tokens": 6
     },
@@ -464,15 +499,6 @@
         "metaengine/enginetest/enginetest.go"
       ],
       "tokens": 6
-    },
-    {
-      "hash": "9091985b22737058",
-      "files": [
-        "stack/contracttest/multidb.go",
-        "schema/versioned_source_test.go",
-        "schema/benchmark_test.go"
-      ],
-      "tokens": 9
     },
     {
       "hash": "915e606d0cb5da34",
@@ -600,13 +626,11 @@
     {
       "hash": "b87288a24d3e70e3",
       "files": [
-        "storage/memory/store.go",
+        "storage/memory/log_store.go",
         "storage/memory/checkpoint.go",
-        "storage/memory/snapshot.go",
-        "storage/memory/command_store.go",
-        "storage/memory/query_store.go"
+        "storage/memory/snapshot.go"
       ],
-      "tokens": 15
+      "tokens": 9
     },
     {
       "hash": "be000f4453570138",
@@ -640,10 +664,9 @@
       "files": [
         "command/commandtest/store_suite.go",
         "command/commandtest/store_suite.go",
-        "command/commandtest/store_suite.go",
         "command/commandtest/store_suite.go"
       ],
-      "tokens": 12
+      "tokens": 9
     },
     {
       "hash": "cefe1fb3211d57c7",
@@ -652,6 +675,22 @@
         "metaengine/pebbleengine/stream_log.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "d0aaeae1bd2ebcc1",
+      "files": [
+        "command/commandtest/store_suite.go",
+        "command/commandtest/store_suite.go"
+      ],
+      "tokens": 12
+    },
+    {
+      "hash": "d1c0b5a8f1ce1955",
+      "files": [
+        "metaengine/pebbleengine/restart_safety_test.go",
+        "metaengine/bboltengine/restart_safety_test.go"
+      ],
+      "tokens": 62
     },
     {
       "hash": "d2127563fae3897c",
@@ -665,7 +704,7 @@
       "hash": "d29d0bfec5881782",
       "files": [
         "metaengine/dgraphengine/multimap_log.go",
-        "metaengine/dgraphengine/engine.go"
+        "metaengine/dgraphengine/map_backend.go"
       ],
       "tokens": 6
     },
@@ -726,6 +765,14 @@
       "tokens": 14
     },
     {
+      "hash": "e3261683484162f0",
+      "files": [
+        "metaengine/infer_composite.go",
+        "metaengine/infer_composite.go"
+      ],
+      "tokens": 8
+    },
+    {
       "hash": "e8f7b5d3f4958925",
       "files": [
         "watermill/event_bus.go",
@@ -773,14 +820,6 @@
         "metaengine/pgengine/scan.go"
       ],
       "tokens": 26
-    },
-    {
-      "hash": "ffbebccc2fa0de75",
-      "files": [
-        "command/metadata.go",
-        "query/query.go"
-      ],
-      "tokens": 16
     }
   ]
 }

@@ -37,6 +37,21 @@ multi-engine.
 
 The choice isn't universal. It's per-engine, per-query.
 
+**On-disk calibration addendum (2026-08-11):** 60s benchmarks on real Pebble
+and bbolt databases plus the memory engine (see `metaengine/layout_scoring.go`)
+show the per-priority split on KV/LSM is the OPPOSITE of the naive "KV always
+embeds" reading of the table above:
+
+| Priority | Winner on KV/LSM | Measured ratios (normalize ÷ embed) |
+| --- | --- | --- |
+| ReadSpeed | **Embed** | KV read 1.8 vs 0.5; LSM read 1.45 vs 0.74 |
+| WriteSpeed | **Normalize** | KV write 0.48 vs 1.0; LSM write 0.75 vs 1.10 |
+| StorageSpace | **Normalize** | KV storage 0.63 vs 1.3; LSM storage 0.80 vs 1.15 |
+
+Embedding's single-key read advantage survives measurement; its assumed write
+and storage advantage does not. Normalized child inserts are O(1) with no
+read-modify-write, and embedding duplicates the aggregate across projections.
+
 ---
 
 ## 3. The Event-Sourcing Wrinkle (Write Side)
@@ -294,10 +309,11 @@ reflection") is **wrong** because it:
 | Developer burden | Must model types carefully | **Zero** — developer is silent |
 | Layout migration | Not considered | Rebuild from event log (retroactive) |
 
-**One sentence:** The planner defaults to embedding, adapts based on operator
-priorities and measured costs, and lets the operator benchmark real plans
-before committing — because the developer's job is to declare the domain, and
-the operator's job is to tune the deployment.
+**One sentence:** The planner selects the layout from the operator priority
+plus the calibrated cost model — on KV/LSM, ReadSpeed selects Embed while
+WriteSpeed and StorageSpace select Normalize — and lets the operator benchmark
+real plans before committing, because the developer's job is to declare the
+domain, and the operator's job is to tune the deployment.
 
 ---
 
@@ -343,10 +359,13 @@ a fold inference concern (Layer 1, ADR-0116). Fold inference generates *how
 events map to projection entries*. Layout planning decides *the physical shape
 of those entries* (one embedded row vs. parent + child collection).
 
-The current behavior — embed the whole slice as a single field — is the
-correct default. Normalization (decomposing into a child collection) happens
-when the operator's priority + the cost model justify it, not when the type
-shape triggers it.
+The pre-Phase-6b behavior — embed the whole slice as a single field — was a
+reasonable starting point, but on-disk calibration corrected the assumed
+default: embedding wins only under ReadSpeed priority. Under WriteSpeed or
+StorageSpace priority the cost model selects normalization even on KV/LSM
+engines (see the §2 calibration addendum). Normalization (decomposing into a
+child collection) happens when the operator's priority + the calibrated cost
+model justify it, not when the type shape triggers it.
 
 ### What needs to happen for normalization support
 

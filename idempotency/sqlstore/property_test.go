@@ -14,7 +14,7 @@ import (
 	"pgregory.net/rapid"
 
 	"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
-	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
+	"github.com/larsartmann/go-idempotency"
 )
 
 var propDBCounter atomic.Int64

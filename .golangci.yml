@@ -361,7 +361,7 @@ linters:
       # kv.Store, projection.Projection, etc.). Factory functions return
       # these interfaces by design — ireturn's "don't return interfaces"
       # rule conflicts with the library's composition philosophy.
-      - path: (kv|otel|stack|decider|schema|snapshot|codec|graph|projectionhost|catalog|middleware|transport)/
+      - path: (kv|otel|stack|decider|schema|snapshot|graph|projectionhost|catalog|middleware|transport)/
         linters:
           - ireturn
 
@@ -391,10 +391,6 @@ linters:
       - path: schema.*\.go$
         linters:
           - exhaustruct
-      # codec/cbor.go has package-level codec registration globals.
-      - path: codec/cbor.*\.go$
-        linters:
-          - gochecknoglobals
 
       # ── Integration tests ────────────────────────────────────────
       # Cross-module integration tests exceed cognitive complexity
@@ -430,18 +426,14 @@ linters:
           - staticcheck
         text: "SA1019: .*EnsureCustom.*is deprecated"
 
-      # ── flightrecorder/ deprecated re-export module ─────────────
-      # This module re-exports github.com/larsartmann/go-flightrecorder
-      # for backward compat. The depguard, gocritic, and wrapcheck
-      # findings are inherent to its nature as a thin shim.
-      - path: flightrecorder/
+      # ── Idempotency MemoryStore in middleware tests ──────────────
+      # go-idempotency deprecates MemoryStore/NewMemoryStore for production
+      # use; the deprecation notice names tests as the sanctioned consumer.
+      # Middleware test pipelines intentionally exercise the in-memory store.
+      - path: middleware/.*_test\.go$
         linters:
-          - depguard
-          - gocritic
-          - inamedparam
-          - wrapcheck
-          - recvcheck
-          - nolintlint
+          - staticcheck
+        text: "SA1019: .*(NewMemoryStore|MemoryStore) is deprecated"
 
       # ── id/ branded-ID module ───────────────────────────────────
       # ActorID uses unexported fields with custom Marshaler/Unmarshaler
@@ -881,10 +873,6 @@ linters:
           - embeddedstructfieldcheck
 
       # ── Module-specific small exclusions ─────────────────────────
-      # idempotency/ — re-export module, staticcheck noise on aliases.
-      - path: idempotency/
-        linters:
-          - staticcheck
       # kv/viewstoretest/ — shared contract test suite; complex setup.
       - path: kv/viewstoretest/
         linters:
@@ -903,17 +891,6 @@ linters:
           - wrapcheck
           - exhaustruct
           - nolintlint
-      # retry/ — thin re-export wrapper around go-retry.
-      - path: retry/
-        linters:
-          - gocritic
-          - wrapcheck
-          - nolintlint
-      # codec/alias.go — backward-compat re-export of go-codec symbols.
-      - path: codec/alias\.go
-        linters:
-          - gochecknoglobals
-          - wrapcheck
       # sync/ — experimental sync primitives.
       - path: sync/
         linters:

@@ -18,7 +18,7 @@
 # The component and deps sections below mirror check-module-layers.sh.
 #
 # Layer model (higher layers may depend on lower layers only):
-#   Layer 0: id, dispatcher, codec, kv            (leaf modules, no internal deps)
+#   Layer 0: id, dispatcher, kv                   (leaf modules, no internal deps)
 #   Layer 1: event, command, query                 (domain types + interfaces)
 #   Layer 2: schema, snapshot, graph               (domain services)
 #   Layer 3: decider                               (aggregate orchestration)
@@ -46,7 +46,6 @@ excludeFiles:
 components:
   id: { in: id/** }
   dispatcher: { in: dispatcher/** }
-  codec: { in: codec/** }
   kv: { in: kv/** }
   event: { in: event/** }
   command: { in: command/** }
@@ -78,7 +77,6 @@ components:
 deps:
   id: { anyProjectDeps: false, anyVendorDeps: true }
   dispatcher: { anyProjectDeps: false, anyVendorDeps: true }
-  codec: { anyProjectDeps: false, anyVendorDeps: true }
   kv: { anyProjectDeps: false, anyVendorDeps: true }
   event: { anyProjectDeps: false, anyVendorDeps: true }
   command: { anyProjectDeps: false, anyVendorDeps: true }

@@ -371,8 +371,10 @@ func TestExceptionsAreMinimal(t *testing.T) {
 		}
 		if m := layerRe.FindStringSubmatch(line); m != nil {
 			n, _ := strconv.Atoi(m[2])
-			// Normalize " / " → "/" so LAYER[storage / memory] matches EXCEPTIONS dep "storage/memory".
-			// The shell script uses spaces around "/" for readability in multi-segment keys.
+			// Keys are plain module paths (storage/memory, cmd/cqrs-gen). The
+			// ReplaceAll is defensive: it keeps parsing correct even if someone
+			// reintroduces spaced keys (LAYER[storage / memory]), which the shell
+			// coverage check would reject anyway.
 			normalizedKey := strings.ReplaceAll(m[1], " / ", "/")
 			layers[normalizedKey] = n
 		}

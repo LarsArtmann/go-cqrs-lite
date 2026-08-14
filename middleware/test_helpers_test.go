@@ -17,14 +17,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
-//nolint:staticcheck // MemoryStore is the intended test impl
 func newTestIdempotencyStore(tb testing.TB) *idempotency.MemoryStore {
 	tb.Helper()
 
 	return idempotency.NewMemoryStore(0)
 }
 
-//nolint:staticcheck // MemoryStore is the intended test impl
 func newBenchIdempotencyStore(b *testing.B, sweepInterval time.Duration) *idempotency.MemoryStore {
 	b.Helper()
 

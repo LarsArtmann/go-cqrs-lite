@@ -450,11 +450,10 @@ func TestRun_DurationAborts(t *testing.T) {
 
 	elapsed := time.Since(start)
 
-	// Under -race with parallel test load, setup + teardown adds overhead.
-	hangThreshold := 5 * time.Second
-	if raceEnabled {
-		hangThreshold = 30 * time.Second
-	}
+	// Hang detection only: parallel verify load inflates setup + teardown
+	// wall-clock well past 10x regardless of the race detector, so the ceiling
+	// must be generous. A true hang is still caught by the go test timeout.
+	hangThreshold := 30 * time.Second
 
 	// The run should finish quickly.
 	if elapsed > hangThreshold {
@@ -483,11 +482,10 @@ func TestRun_CancelledContext(t *testing.T) {
 
 	elapsed := time.Since(start)
 
-	// Under -race with parallel test load, overhead inflates runtime.
-	hangThreshold := 5 * time.Second
-	if raceEnabled {
-		hangThreshold = 30 * time.Second
-	}
+	// Hang detection only: parallel verify load inflates wall-clock well past
+	// 10x regardless of the race detector, so the ceiling must be generous.
+	// A true hang is still caught by the go test timeout.
+	hangThreshold := 30 * time.Second
 
 	// Must not hang.
 	if elapsed > hangThreshold {

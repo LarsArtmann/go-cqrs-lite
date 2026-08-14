@@ -173,7 +173,6 @@
             "dispatcher"
             "schema"
             "snapshot"
-            "codec"
             "dedup"
             "deriver"
             "graph"
@@ -200,7 +199,6 @@
             "watermill"
             "encryption"
             "kv"
-            "idempotency"
             "listing"
             "otel"
             "testutil"
@@ -221,7 +219,6 @@
             "cmd/cqrs-lint"
             "cmd/cqrs-bench"
             "cmd/doc-check"
-            "retry"
             "idempotency/kvstore"
             "idempotency/sqlstore"
             "metaengine"
@@ -242,7 +239,6 @@
             "metaengine/mysqlengine"
             "system"
             "system/integration"
-            "flightrecorder"
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
@@ -932,7 +928,7 @@
             '';
 
             check-wasm = mkApp "check-wasm" goModules ''
-              wasmMods="id codec dispatcher event command query decider"
+              wasmMods="id dispatcher event command query decider"
               failed=0
               for mod in $wasmMods; do
                 echo "==> WASM build: $mod"

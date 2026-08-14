@@ -75,11 +75,11 @@ func main() { fmt.Println("hello") }
 func TestDetectUsedModules_PathBoundaryIDvsIdempotency(t *testing.T) {
 	t.Parallel()
 
-	// Import idempotency — must NOT trigger the "id" module match.
+	// Import go-idempotency — must NOT trigger the "id" module match.
 	src := `package main
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/idempotency"
+	"github.com/larsartmann/go-idempotency"
 )
 
 func main() {}

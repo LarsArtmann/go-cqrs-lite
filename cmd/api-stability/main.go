@@ -24,11 +24,8 @@ var modules = []string{
 	"id",
 	"id/idtest",
 	"dispatcher",
-	"codec",
 	"kv",
 	"dedup",
-	"retry",
-	"flightrecorder",
 	"record",
 	// Layer 1
 	"event",
@@ -39,7 +36,6 @@ var modules = []string{
 	"commandlifecycle/projections",
 	"query",
 	"query/querytest",
-	"idempotency",
 	"idempotency/kvstore",
 	"idempotency/sqlstore",
 	// Layer 2

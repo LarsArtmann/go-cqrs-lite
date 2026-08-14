@@ -13,7 +13,6 @@ use (
 	./cmd/cqrs-gen
 	./cmd/cqrs-lint
 	./cmd/doc-check
-	./codec
 	./command
 	./commandlifecycle
 	./commandlifecycle/projections
@@ -28,10 +27,8 @@ use (
 	./example/metaengine-quickstart
 	./example/readme-quickstart
 	./example/taskmanager
-	./flightrecorder
 	./graph
 	./id
-	./idempotency
 	./idempotency/kvstore
 	./idempotency/sqlstore
 	./integration
@@ -61,7 +58,6 @@ use (
 	./prometheus
 	./query
 	./record
-	./retry
 	./scenario
 	./scheduling
 	./scheduling/sqlstore

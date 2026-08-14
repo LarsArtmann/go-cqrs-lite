@@ -26,7 +26,7 @@ func TestE001_DetectsLayerViolation(t *testing.T) {
 	})
 	ctx.Packages = []*packages.Package{
 		{
-			PkgPath: "github.com/larsartmann/go-cqrs-lite/codec",
+			PkgPath: "github.com/larsartmann/go-cqrs-lite/kv",
 			Imports: map[string]*packages.Package{
 				"github.com/larsartmann/go-cqrs-lite/decider": {
 					PkgPath: "github.com/larsartmann/go-cqrs-lite/decider",
