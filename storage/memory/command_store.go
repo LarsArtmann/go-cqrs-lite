@@ -18,7 +18,7 @@ import (
 // It embeds the generic [LogStore] core; this file supplies only the
 // command-specific policies (duplicate detection, stream-not-found errors).
 type MemoryCommandStore struct {
-*LogStore[*command.PersistedCommand, id.CommandID]
+	*LogStore[*command.PersistedCommand, id.CommandID]
 }
 
 var (

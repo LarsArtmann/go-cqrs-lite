@@ -20,14 +20,12 @@ type EventAdapterOption func(*EventAdapter)
 // on write and decoded on read. For the Memory engine, this option should NOT
 // be set — events are stored as direct pointers.
 func WithSerialization() EventAdapterOption {
-	return func(a *EventAdapter) { a.serialize = true }
+	return func(a *EventAdapter) { a.Serialize = true }
 }
 
 // EventAdapter wraps a [metaengine.StreamLogBackend] as an [event.Store].
 type EventAdapter struct {
-	backend    metaengine.StreamLogBackend
-	collection string
-	serialize  bool
+	AdapterCore[event.Event]
 
 	// temporal is non-nil when the backend implements StreamTemporalReader,
 	// enabling efficient version-bounded reads without loading the full stream.
@@ -43,10 +41,14 @@ func NewEventAdapter(
 	collection string,
 	opts ...EventAdapterOption,
 ) *EventAdapter {
-	a := &EventAdapter{
-		backend:    backend,
-		collection: collection,
-		seqCache:   make(map[string]int64),
+	a := &EventAdapter{seqCache: make(map[string]int64)}
+	a.AdapterCore = AdapterCore[event.Event]{
+		Backend:    backend,
+		Collection: collection,
+		Noun:       "event",
+		Encode:     a.encodeEvent,
+		Decode:     a.decodeEvent,
+		IDOf:       func(evt event.Event) string { return evt.ID().String() },
 	}
 
 	for _, opt := range opts {
@@ -77,12 +79,12 @@ func (a *EventAdapter) Save(
 	expectedVersion event.Version,
 ) error {
 	sid := ref.StreamKey()
-	values := a.eventsToAny(events)
+	values := a.ToAny(events)
 
-	if ap, ok := a.backend.(metaengine.AtomicAppender); ok {
+	if ap, ok := a.Backend.(metaengine.AtomicAppender); ok {
 		if err := ap.StreamAppendExpected(
 			ctx,
-			a.collection,
+			a.Collection,
 			sid,
 			int64(expectedVersion),
 			values,
@@ -97,9 +99,9 @@ func (a *EventAdapter) Save(
 		return nil
 	}
 
-	if tx, ok := a.backend.(metaengine.Transactional); ok {
+	if tx, ok := a.Backend.(metaengine.Transactional); ok {
 		return tx.RunInTx(ctx, func(ctx context.Context) error {
-			current, err := a.backend.StreamVersion(ctx, a.collection, sid)
+			current, err := a.Backend.StreamVersion(ctx, a.Collection, sid)
 			if err != nil {
 				return fmt.Errorf("event adapter: stream version: %w", err)
 			}
@@ -108,11 +110,11 @@ func (a *EventAdapter) Save(
 				return err
 			}
 
-			return a.backend.StreamAppend(ctx, a.collection, sid, values)
+			return a.Backend.StreamAppend(ctx, a.Collection, sid, values)
 		})
 	}
 
-	current, err := a.backend.StreamVersion(ctx, a.collection, sid)
+	current, err := a.Backend.StreamVersion(ctx, a.Collection, sid)
 	if err != nil {
 		return fmt.Errorf("event adapter: stream version: %w", err)
 	}
@@ -121,7 +123,7 @@ func (a *EventAdapter) Save(
 		return err
 	}
 
-	return a.backend.StreamAppend(ctx, a.collection, sid, values)
+	return a.Backend.StreamAppend(ctx, a.Collection, sid, values)
 }
 
 func (a *EventAdapter) AppendBatch(
@@ -129,18 +131,18 @@ func (a *EventAdapter) AppendBatch(
 	ref id.StreamRef,
 	events []event.Event,
 ) error {
-	return a.backend.StreamAppend(ctx, a.collection, ref.StreamKey(), a.eventsToAny(events))
+	return a.Backend.StreamAppend(ctx, a.Collection, ref.StreamKey(), a.ToAny(events))
 }
 
 // ─── EventSource ───
 
 func (a *EventAdapter) Load(ctx context.Context, ref id.StreamRef) ([]event.Event, error) {
-	values, err := a.backend.StreamRead(ctx, a.collection, ref.StreamKey())
+	values, err := a.Backend.StreamRead(ctx, a.Collection, ref.StreamKey())
 	if err != nil {
 		return nil, fmt.Errorf("event adapter: load: %w", err)
 	}
 
-	return a.anyToEvents(values)
+	return a.FromAny(values)
 }
 
 // loadVersioned implements the temporal-fast-path-then-fallback pattern shared
@@ -159,7 +161,7 @@ func (a *EventAdapter) loadVersioned(
 			return nil, fmt.Errorf("event adapter: %s: %w", errLabel, err)
 		}
 
-		return a.anyToEvents(values)
+		return a.FromAny(values)
 	}
 
 	all, err := a.Load(ctx, ref)
@@ -179,7 +181,7 @@ func (a *EventAdapter) LoadFromVersion(
 		ctx, ref,
 		func() ([]any, error) {
 			return a.temporal.StreamReadFromVersion(
-				ctx, a.collection, ref.StreamKey(), int64(version)+1,
+				ctx, a.Collection, ref.StreamKey(), int64(version)+1,
 			)
 		},
 		"load from version",
@@ -196,7 +198,7 @@ func (a *EventAdapter) LoadToVersion(
 		ctx, ref,
 		func() ([]any, error) {
 			return a.temporal.StreamReadAsOfVersion(
-				ctx, a.collection, ref.StreamKey(), int64(maxVersion),
+				ctx, a.Collection, ref.StreamKey(), int64(maxVersion),
 			)
 		},
 		"load to version",
@@ -224,16 +226,7 @@ func (a *EventAdapter) LoadToTimestamp(
 	return result, nil
 }
 
-// ─── Journal ───
-
-func (a *EventAdapter) ReadAll(ctx context.Context) ([]event.Event, error) {
-	values, err := a.backend.JournalReadAll(ctx, a.collection)
-	if err != nil {
-		return nil, fmt.Errorf("event adapter: read all: %w", err)
-	}
-
-	return a.anyToEvents(values)
-}
+// ReadAll is promoted from AdapterCore and satisfies event.Journal.
 
 // ─── SeekableJournal ───
 
@@ -244,12 +237,12 @@ func (a *EventAdapter) ReadFrom(
 ) ([]event.Event, error) {
 	afterSeq := a.lookupSeq(ctx, afterEventID)
 
-	values, err := a.backend.JournalReadFrom(ctx, a.collection, afterSeq, limit)
+	values, err := a.Backend.JournalReadFrom(ctx, a.Collection, afterSeq, limit)
 	if err != nil {
 		return nil, fmt.Errorf("event adapter: read from: %w", err)
 	}
 
-	events, err := a.anyToEvents(values)
+	events, err := a.FromAny(values)
 	if err != nil {
 		return nil, err
 	}
@@ -275,12 +268,12 @@ func (a *EventAdapter) lookupSeq(ctx context.Context, eventID id.EventID) int64 
 		return seq
 	}
 
-	all, err := a.backend.JournalReadAll(ctx, a.collection)
+	all, err := a.Backend.JournalReadAll(ctx, a.Collection)
 	if err != nil {
 		return 0
 	}
 
-	events, _ := a.anyToEvents(all)
+	events, _ := a.FromAny(all)
 
 	a.seqCacheMu.Lock()
 	defer a.seqCacheMu.Unlock()

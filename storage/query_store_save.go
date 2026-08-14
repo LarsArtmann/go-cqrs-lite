@@ -45,9 +45,9 @@ func (s *SQLQueryStore) SaveQuery(
 // queryInserter builds the shared write path for the queries table.
 func (s *SQLQueryStore) queryInserter() *sqlpkg.Inserter[*query.PersistedQuery] {
 	return &sqlpkg.Inserter[*query.PersistedQuery]{
-		Dialect: s.Dialect,
-		Table:   sqlpkg.TableQueries,
-		Columns: []string{"id", "query_type", "payload", "metadata", "received_at"},
+		Dialect:        s.Dialect,
+		Table:          sqlpkg.TableQueries,
+		Columns:        []string{"id", "query_type", "payload", "metadata", "received_at"},
 		EntityNoun:     "query",
 		MarshalErrCode: "storage.marshal_query_metadata",
 		InsertErrCode:  "storage.insert_query",

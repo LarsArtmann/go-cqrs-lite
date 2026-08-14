@@ -18,15 +18,13 @@ type QueryAdapterOption func(*QueryAdapter)
 // on write and decoded on read. For the Memory engine, this option should NOT
 // be set — queries are stored as direct pointers.
 func WithQuerySerialization() QueryAdapterOption {
-	return func(a *QueryAdapter) { a.serialize = true }
+	return func(a *QueryAdapter) { a.Serialize = true }
 }
 
 // QueryAdapter wraps a [metaengine.StreamLogBackend] as a [query.QueryStore].
 // Queries are stream-keyed append-only logs, just like events and commands.
 type QueryAdapter struct {
-	backend    metaengine.StreamLogBackend
-	collection string
-	serialize  bool
+	AdapterCore[*query.PersistedQuery]
 }
 
 // NewQueryAdapter creates a query.QueryStore backed by a StreamLogBackend.
@@ -35,7 +33,15 @@ func NewQueryAdapter(
 	collection string,
 	opts ...QueryAdapterOption,
 ) *QueryAdapter {
-	a := &QueryAdapter{backend: backend, collection: collection}
+	a := &QueryAdapter{}
+	a.AdapterCore = AdapterCore[*query.PersistedQuery]{
+		Backend:    backend,
+		Collection: collection,
+		Noun:       "query",
+		Encode:     a.encodeQuery,
+		Decode:     a.decodeQuery,
+		IDOf:       func(q *query.PersistedQuery) string { return q.ID().String() },
+	}
 
 	for _, opt := range opts {
 		opt(a)
@@ -54,11 +60,11 @@ func (a *QueryAdapter) SaveQuery(ctx context.Context, q *query.PersistedQuery) e
 	// Use the query's request ID as the stream key for per-query isolation.
 	sid := q.ID().String()
 
-	return a.backend.StreamAppend(
+	return a.Backend.StreamAppend(
 		ctx,
-		a.collection,
+		a.Collection,
 		sid,
-		a.queriesToAny([]*query.PersistedQuery{q}),
+		a.ToAny([]*query.PersistedQuery{q}),
 	)
 }
 
@@ -66,12 +72,12 @@ func (a *QueryAdapter) LoadQueries(
 	ctx context.Context,
 	after time.Time,
 ) ([]*query.PersistedQuery, error) {
-	values, err := a.backend.JournalReadAll(ctx, a.collection)
+	values, err := a.Backend.JournalReadAll(ctx, a.Collection)
 	if err != nil {
 		return nil, fmt.Errorf("query adapter: load queries: %w", err)
 	}
 
-	all, err := a.anyToQueries(values)
+	all, err := a.FromAny(values)
 	if err != nil {
 		return nil, fmt.Errorf("query adapter: load queries: %w", err)
 	}
@@ -86,13 +92,10 @@ func (a *QueryAdapter) LoadQueries(
 	return result, nil
 }
 
-func (a *QueryAdapter) ReadAllQueries(ctx context.Context) ([]*query.PersistedQuery, error) {
-	values, err := a.backend.JournalReadAll(ctx, a.collection)
-	if err != nil {
-		return nil, fmt.Errorf("query adapter: read all: %w", err)
-	}
+// ReadAllQueries is promoted ReadAll renamed to satisfy query.QueryJournal.
 
-	return a.anyToQueries(values)
+func (a *QueryAdapter) ReadAllQueries(ctx context.Context) ([]*query.PersistedQuery, error) {
+	return a.ReadAll(ctx)
 }
 
 func (a *QueryAdapter) ReadQueriesFrom(
@@ -100,34 +103,12 @@ func (a *QueryAdapter) ReadQueriesFrom(
 	afterRequestID id.RequestID,
 	limit int,
 ) ([]*query.PersistedQuery, error) {
-	afterSeq := int64(0)
-
+	after := ""
 	if afterRequestID != (id.RequestID{}) {
-		all, err := a.backend.JournalReadAll(ctx, a.collection)
-		if err != nil {
-			return nil, fmt.Errorf("query adapter: read from: %w", err)
-		}
-
-		queries, err := a.anyToQueries(all)
-		if err != nil {
-			return nil, fmt.Errorf("query adapter: read from: %w", err)
-		}
-
-		for i, q := range queries {
-			if q.ID() == afterRequestID {
-				afterSeq = int64(i + 1)
-
-				break
-			}
-		}
+		after = afterRequestID.String()
 	}
 
-	values, err := a.backend.JournalReadFrom(ctx, a.collection, afterSeq, limit)
-	if err != nil {
-		return nil, fmt.Errorf("query adapter: read from: %w", err)
-	}
-
-	return a.anyToQueries(values)
+	return a.ReadFromAfter(ctx, after, limit)
 }
 
 func (a *QueryAdapter) Close() error { return nil }

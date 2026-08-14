@@ -114,48 +114,48 @@ the next biggest jump in production trust.
 > Sorted by: blocked-status → impact → effort → dependency order.
 | ID  | Task                                                                                         | Impact   | Effort | Est (min) | Depends   | Category          |
 |-----|----------------------------------------------------------------------------------------------|----------|--------|-----------|-----------|-------------------|
-| T01 | 🔥 **Clear stale-GREEN backlog** — `nix run .#verify`, fix all failures                      | 🔥🔥     | M      | 100       | —         | Code Quality      |
-| T02 | [BLOCKED] 🔥 **Publish `go-codec` to GitHub + tag `v0.1.0`**                                  | 🔥🔥     | XS     | 15        | User      | Codec             |
-| T03 | [BLOCKED] 🔥 **Tag release chain: `id/v4.3.0` → record/command/metaengine → commandlifecycle** | 🔥🔥     | S      | 45        | T02       | Release           |
-| T04 | **Fix Dgraph CounterBackend DQL colon bug** (`counter.go:155`)                               | 🔥       | XS     | 10        | —         | ADT Coverage      |
-| T05 | **Delete dead dirs** `codec/testdata/` + `codec/reports/`                                    | High     | XS     | 10        | —         | Codec             |
-| T06 | **Write ADR-0126** for codec extraction                                                      | High     | S      | 30        | —         | Codec             |
-| T07 | **Extract `mergeMostPermissiveProfile` from `doctor.go`** → `doctor_profile.go`              | 🔥       | S      | 30        | —         | cqrs-lint         |
-| T08 | **Audit/remove duplicate `replace` directives** in `system/go.mod`, `record/go.mod`           | High     | S      | 30        | T03       | Code Quality      |
-| T09 | **Update `METAENGINE-LAYOUT-PLANNING-MODEL.md`** — fix §4 "defaults to embedding"             | High     | S      | 30        | —         | Layout Planning   |
-| T10 | **Add calibration addendum to ADR-0124**                                                      | Medium   | S      | 30        | —         | Layout Planning   |
-| T11 | **Refactor `layout_observability.go`** to use shared `resolvePriority`                        | Medium   | S      | 30        | —         | Layout Planning   |
-| T12 | **Fix Dgraph `JournalReadFrom` seq offset**                                                   | Medium   | S      | 30        | —         | ADT Coverage      |
-| T13 | **Remove `go.work` replace** → add `../go-codec` to `use` block                               | High     | XS     | 10        | T02       | Codec             |
-| T14 | **Calibrate DuckDB (Columnar)** — 60s disk bench                                               | Medium   | M      | 60        | T01       | Layout Planning   |
-| T15 | **Calibrate Row-layout engines** (SQLite/PG/MySQL)                                            | Medium   | M      | 90        | T01       | Layout Planning   |
-| T16 | **Converge `ReplanLayout` into `Store.Replan`**                                               | Medium   | M      | 90        | T11       | Layout Planning   |
-| T17 | **Multi-engine integration test** (two real backends)                                          | Medium   | M      | 80        | —         | Layout Planning   |
-| T18 | **Complete go-codec project scaffolding** (CI, lint, FEATURES, SECURITY)                      | Medium   | M      | 90        | T02       | Codec             |
-| T19 | **Per-module regression tests** for remaining cqrs-lint rules                                  | Medium   | M      | 90        | T07       | cqrs-lint         |
-| T20 | **Brute-force vector search** on Pebble/bbolt                                                  | Low      | M      | 80        | —         | ADT Coverage      |
-| T21 | **Native graph dispatch on PG/MySQL** (recursive CTE)                                         | Low      | M      | 90        | —         | ADT Coverage      |
-| T22 | **Recursive CTE optimization** for deep traversals                                            | Low      | M      | 80        | T21       | ADT Coverage      |
-| T23 | **macOS ephemeral PG verification**                                                            | Low      | M      | 60        | —         | Integration       |
-| T24 | **Redis/NATS integration tests**                                                               | Low      | M      | 90        | —         | Integration       |
-| T25 | **Infrastructure polish** (nix apps, engine boilerplate)                                       | Low      | M      | 90        | —         | Code Quality      |
-| T26 | **`.golangci.yml` exclusion audit**                                                            | Low      | M      | 60        | T01       | Code Quality      |
-| T27 | **Calibration benchmarks against baseline**                                                    | Low      | M      | 60        | —         | Code Quality      |
-| T28 | **Clean stale v5 Phase items from TODO_LIST** (mark 15 done items `[x]`, move to CHANGELOG)   | High     | S      | 30        | —         | Docs Hygiene      |
-| T29 | **Fold-pipeline sync** (Active+DualUse roles)                                                  | Low      | L      | 180       | Design doc | Layout Roles     |
-| T30 | **Async replication** (Backup+Migration roles)                                                 | Low      | L      | 180       | Design doc | Layout Roles     |
-| T31 | **Role transition API**                                                                        | Low      | M      | 90        | T29,T30   | Layout Roles      |
-| T32 | **Real workload trace format**                                                                 | Low      | M      | 90        | —         | Layout Roles      |
-| T33 | **Aggregate boundary config** (`WithSharedCollection`)                                        | Low      | M      | 80        | —         | Layout Roles      |
-| T34 | **Per-fold mutex** instead of global `foldMu`                                                  | Low      | M      | 80        | —         | Layout Roles      |
-| T35 | **Multi-collection batch atomicity**                                                           | Low      | L      | 180       | Design doc | v5 Phase 7       |
-| T36 | **Delete `stack.Materialize`**                                                                 | Low      | S      | 30        | T35       | v5 Phase 8       |
-| T37 | **Delete `storage.RelationalProjection` + `storage/view`**                                    | Low      | M      | 80        | T35       | v5 Phase 8       |
-| T38 | **Delete `graph.GraphProjection`**                                                             | Low      | S      | 30        | —         | v5 Phase 8       |
-| T39 | **Delete `stack.Bundle` + 8 presets**                                                           | Low      | M      | 90        | T36       | v5 Phase 8       |
-| T40 | **Delete `stack.RunProjections`**                                                              | Low      | S      | 30        | —         | v5 Phase 8       |
-| T41 | **Write v5 migration guide**                                                                   | Low      | L      | 120       | T36-T40   | v5 Phase 8       |
-| T42 | **Cut v5.0.0** — tag all modules                                                               | Low      | M      | 90        | T41       | v5 Phase 8       |
+| T01 | 🔥 **Clear stale-GREEN backlog** — `nix run .#verify`, fix all failures                      | 🔥🔥     | M      | 100       | —         | Code Quality      | Partial — gate GREEN 08-14, re-staled by WAL work |
+| T02 | [BLOCKED] 🔥 **Publish `go-codec` to GitHub + tag `v0.1.0`**                                  | 🔥🔥     | XS     | 15        | User      | Codec             | Done at `6f9199f0c` |
+| T03 | [BLOCKED] 🔥 **Tag release chain: `id/v4.3.0` → record/command/metaengine → commandlifecycle** | 🔥🔥     | S      | 45        | T02       | Release           | Done — tags cut 08-12/13 |
+| T04 | **Fix Dgraph CounterBackend DQL colon bug** (`counter.go:155`)                               | 🔥       | XS     | 10        | —         | ADT Coverage      | Open |
+| T05 | **Delete dead dirs** `codec/testdata/` + `codec/reports/`                                    | High     | XS     | 10        | —         | Codec             | Open — `codec/testdata/` still present |
+| T06 | **Write ADR-0126** for codec extraction                                                      | High     | S      | 30        | —         | Codec             | Open |
+| T07 | **Extract `mergeMostPermissiveProfile` from `doctor.go`** → `doctor_profile.go`              | 🔥       | S      | 30        | —         | cqrs-lint         | Open — doctor.go still 568 lines |
+| T08 | **Audit/remove duplicate `replace` directives** in `system/go.mod`, `record/go.mod`           | High     | S      | 30        | T03       | Code Quality      | Done — no duplicate replaces remain |
+| T09 | **Update `METAENGINE-LAYOUT-PLANNING-MODEL.md`** — fix §4 "defaults to embedding"             | High     | S      | 30        | —         | Layout Planning   | Open |
+| T10 | **Add calibration addendum to ADR-0124**                                                      | Medium   | S      | 30        | —         | Layout Planning   | Open |
+| T11 | **Refactor `layout_observability.go`** to use shared `resolvePriority`                        | Medium   | S      | 30        | —         | Layout Planning   | Open |
+| T12 | **Fix Dgraph `JournalReadFrom` seq offset**                                                   | Medium   | S      | 30        | —         | ADT Coverage      | Open |
+| T13 | **Remove `go.work` replace** → add `../go-codec` to `use` block                               | High     | XS     | 10        | T02       | Codec             | Done at `6f9199f0c` |
+| T14 | **Calibrate DuckDB (Columnar)** — 60s disk bench                                               | Medium   | M      | 60        | T01       | Layout Planning   | Open |
+| T15 | **Calibrate Row-layout engines** (SQLite/PG/MySQL)                                            | Medium   | M      | 90        | T01       | Layout Planning   | Open |
+| T16 | **Converge `ReplanLayout` into `Store.Replan`**                                               | Medium   | M      | 90        | T11       | Layout Planning   | Open — ReplanLayout still separate |
+| T17 | **Multi-engine integration test** (two real backends)                                          | Medium   | M      | 80        | —         | Layout Planning   | Open |
+| T18 | **Complete go-codec project scaffolding** (CI, lint, FEATURES, SECURITY)                      | Medium   | M      | 90        | T02       | Codec             | Done — see ../go-codec repo |
+| T19 | **Per-module regression tests** for remaining cqrs-lint rules                                  | Medium   | M      | 90        | T07       | cqrs-lint         | Done at `a86722224`, `f3c29ec76` |
+| T20 | **Brute-force vector search** on Pebble/bbolt                                                  | Low      | M      | 80        | —         | ADT Coverage      | Open — irohengine only |
+| T21 | **Native graph dispatch on PG/MySQL** (recursive CTE)                                         | Low      | M      | 90        | —         | ADT Coverage      | Open |
+| T22 | **Recursive CTE optimization** for deep traversals                                            | Low      | M      | 80        | T21       | ADT Coverage      | Open |
+| T23 | **macOS ephemeral PG verification**                                                            | Low      | M      | 60        | —         | Integration       | Open |
+| T24 | **Redis/NATS integration tests**                                                               | Low      | M      | 90        | —         | Integration       | Open |
+| T25 | **Infrastructure polish** (nix apps, engine boilerplate)                                       | Low      | M      | 90        | —         | Code Quality      | Open |
+| T26 | **`.golangci.yml` exclusion audit**                                                            | Low      | M      | 60        | T01       | Code Quality      | Open |
+| T27 | **Calibration benchmarks against baseline**                                                    | Low      | M      | 60        | —         | Code Quality      | Open |
+| T28 | **Clean stale v5 Phase items from TODO_LIST** (mark 15 done items `[x]`, move to CHANGELOG)   | High     | S      | 30        | —         | Docs Hygiene      | Done at `6f9199f0c`, `0cd4b19e4` |
+| T29 | **Fold-pipeline sync** (Active+DualUse roles)                                                  | Low      | L      | 180       | Design doc | Layout Roles     | Open |
+| T30 | **Async replication** (Backup+Migration roles)                                                 | Low      | L      | 180       | Design doc | Layout Roles     | Open |
+| T31 | **Role transition API**                                                                        | Low      | M      | 90        | T29,T30   | Layout Roles      | Open |
+| T32 | **Real workload trace format**                                                                 | Low      | M      | 90        | —         | Layout Roles      | Open |
+| T33 | **Aggregate boundary config** (`WithSharedCollection`)                                        | Low      | M      | 80        | —         | Layout Roles      | Open |
+| T34 | **Per-fold mutex** instead of global `foldMu`                                                  | Low      | M      | 80        | —         | Layout Roles      | Open — foldMu still global |
+| T35 | **Multi-collection batch atomicity**                                                           | Low      | L      | 180       | Design doc | v5 Phase 7       | Open |
+| T36 | **Delete `stack.Materialize`**                                                                 | Low      | S      | 30        | T35       | v5 Phase 8       | Open |
+| T37 | **Delete `storage.RelationalProjection` + `storage/view`**                                    | Low      | M      | 80        | T35       | v5 Phase 8       | Open |
+| T38 | **Delete `graph.GraphProjection`**                                                             | Low      | S      | 30        | —         | v5 Phase 8       | Open |
+| T39 | **Delete `stack.Bundle` + 8 presets**                                                           | Low      | M      | 90        | T36       | v5 Phase 8       | Open |
+| T40 | **Delete `stack.RunProjections`**                                                              | Low      | S      | 30        | —         | v5 Phase 8       | Open |
+| T41 | **Write v5 migration guide**                                                                   | Low      | L      | 120       | T36-T40   | v5 Phase 8       | Open — no guide yet |
+| T42 | **Cut v5.0.0** — tag all modules                                                               | Low      | M      | 90        | T41       | v5 Phase 8       | Open — zero v5 tags |
 
 **Total: ~3,525 min (~59 hours)**
 

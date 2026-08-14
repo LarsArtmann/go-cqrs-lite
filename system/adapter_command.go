@@ -18,14 +18,12 @@ type CommandAdapterOption func(*CommandAdapter)
 // envelope strings on write and decoded on read. For the Memory engine,
 // this option should NOT be set — commands are stored as direct pointers.
 func WithCommandSerialization() CommandAdapterOption {
-	return func(a *CommandAdapter) { a.serialize = true }
+	return func(a *CommandAdapter) { a.Serialize = true }
 }
 
 // CommandAdapter wraps a [metaengine.StreamLogBackend] as a [command.Store].
 type CommandAdapter struct {
-	backend    metaengine.StreamLogBackend
-	collection string
-	serialize  bool
+	AdapterCore[*command.PersistedCommand]
 }
 
 // NewCommandAdapter creates a command.Store backed by a StreamLogBackend.
@@ -34,7 +32,15 @@ func NewCommandAdapter(
 	collection string,
 	opts ...CommandAdapterOption,
 ) *CommandAdapter {
-	a := &CommandAdapter{backend: backend, collection: collection}
+	a := &CommandAdapter{}
+	a.AdapterCore = AdapterCore[*command.PersistedCommand]{
+		Backend:    backend,
+		Collection: collection,
+		Noun:       "command",
+		Encode:     a.encodeCommand,
+		Decode:     a.decodeCommand,
+		IDOf:       func(cmd *command.PersistedCommand) string { return cmd.ID().String() },
+	}
 
 	for _, opt := range opts {
 		opt(a)
@@ -53,11 +59,11 @@ func (a *CommandAdapter) Save(
 	ref command.StreamRef,
 	cmd *command.PersistedCommand,
 ) error {
-	return a.backend.StreamAppend(
+	return a.Backend.StreamAppend(
 		ctx,
-		a.collection,
+		a.Collection,
 		ref.StreamKey(),
-		a.commandsToAny([]*command.PersistedCommand{cmd}),
+		a.ToAny([]*command.PersistedCommand{cmd}),
 	)
 }
 
@@ -66,18 +72,18 @@ func (a *CommandAdapter) AppendBatch(
 	ref command.StreamRef,
 	cmds []*command.PersistedCommand,
 ) error {
-	return a.backend.StreamAppend(ctx, a.collection, ref.StreamKey(), a.commandsToAny(cmds))
+	return a.Backend.StreamAppend(ctx, a.Collection, ref.StreamKey(), a.ToAny(cmds))
 }
 
 func (a *CommandAdapter) Load(
 	ctx context.Context, ref command.StreamRef,
 ) ([]*command.PersistedCommand, error) {
-	values, err := a.backend.StreamRead(ctx, a.collection, ref.StreamKey())
+	values, err := a.Backend.StreamRead(ctx, a.Collection, ref.StreamKey())
 	if err != nil {
 		return nil, fmt.Errorf("command adapter: load: %w", err)
 	}
 
-	return a.anyToCommands(values)
+	return a.FromAny(values)
 }
 
 func (a *CommandAdapter) LoadFromTimestamp(
@@ -116,46 +122,17 @@ func (a *CommandAdapter) loadFiltered(
 	return result, nil
 }
 
-func (a *CommandAdapter) ReadAll(ctx context.Context) ([]*command.PersistedCommand, error) {
-	values, err := a.backend.JournalReadAll(ctx, a.collection)
-	if err != nil {
-		return nil, fmt.Errorf("command adapter: read all: %w", err)
-	}
-
-	return a.anyToCommands(values)
-}
+// ReadAll is promoted from AdapterCore and satisfies command.CommandJournal.
 
 func (a *CommandAdapter) ReadFrom(
 	ctx context.Context,
 	afterCommandID id.CommandID,
 	limit int,
 ) ([]*command.PersistedCommand, error) {
-	afterSeq := int64(0)
-
+	after := ""
 	if afterCommandID != (id.CommandID{}) {
-		all, err := a.backend.JournalReadAll(ctx, a.collection)
-		if err != nil {
-			return nil, fmt.Errorf("command adapter: read from: %w", err)
-		}
-
-		cmds, err := a.anyToCommands(all)
-		if err != nil {
-			return nil, fmt.Errorf("command adapter: read from: %w", err)
-		}
-
-		for i, cmd := range cmds {
-			if cmd.ID() == afterCommandID {
-				afterSeq = int64(i + 1)
-
-				break
-			}
-		}
+		after = afterCommandID.String()
 	}
 
-	values, err := a.backend.JournalReadFrom(ctx, a.collection, afterSeq, limit)
-	if err != nil {
-		return nil, fmt.Errorf("command adapter: read from: %w", err)
-	}
-
-	return a.anyToCommands(values)
+	return a.ReadFromAfter(ctx, after, limit)
 }

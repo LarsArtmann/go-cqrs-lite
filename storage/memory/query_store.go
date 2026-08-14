@@ -19,7 +19,7 @@ import (
 // scoping, so stream tracking is disabled; the store is a single global log
 // keyed by request ID.
 type MemoryQueryStore struct {
-*LogStore[*query.PersistedQuery, id.RequestID]
+	*LogStore[*query.PersistedQuery, id.RequestID]
 }
 
 var (

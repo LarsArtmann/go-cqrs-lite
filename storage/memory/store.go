@@ -17,7 +17,7 @@ import (
 // It embeds the generic [LogStore] core; this file supplies only the
 // event-specific policies (version conflicts, stream-not-found errors).
 type MemoryStore struct {
-*LogStore[event.Event, id.EventID]
+	*LogStore[event.Event, id.EventID]
 }
 
 var (
@@ -33,10 +33,10 @@ var (
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
 		LogStore: NewLogStore(LogStoreConfig[event.Event, id.EventID]{
-			GetID:      func(evt event.Event) id.EventID { return evt.ID() },
-			IsZeroID:   func(evtID id.EventID) bool { return evtID.IsZero() },
-			ClosedErr:  event.ErrStoreClosed,
-			NewDupErr:  nil,
+			GetID:     func(evt event.Event) id.EventID { return evt.ID() },
+			IsZeroID:  func(evtID id.EventID) bool { return evtID.IsZero() },
+			ClosedErr: event.ErrStoreClosed,
+			NewDupErr: nil,
 			NewNotFound: func(op, streamKey string) error {
 				return errorfamily.WrapRejection(event.ErrStreamNotFound,
 					"memory.aggregate_not_found",

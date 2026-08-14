@@ -84,7 +84,9 @@ func (s *SQLCommandStore) AppendBatch(
 // commandInserter builds the shared write path for the commands table. It is
 // constructed per call so RowArgs can capture the caller's stream ref, which
 // is what the table's aggregate_type/aggregate_id columns record.
-func (s *SQLCommandStore) commandInserter(ref command.StreamRef) *sqlpkg.Inserter[*command.PersistedCommand] {
+func (s *SQLCommandStore) commandInserter(
+	ref command.StreamRef,
+) *sqlpkg.Inserter[*command.PersistedCommand] {
 	return &sqlpkg.Inserter[*command.PersistedCommand]{
 		Dialect: s.Dialect,
 		Table:   sqlpkg.TableCommands,
