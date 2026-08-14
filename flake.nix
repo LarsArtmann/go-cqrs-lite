@@ -612,10 +612,10 @@
               owner = "golang";
               repo = "perf";
               rev = "master";
-              hash = "sha256-NA6V4sHZlvHCfdV2758IoMrDFAszmfrTjszZ+HB+PbM=";
+              hash = "sha256-YgMIIF9DAjyAPpZJtVoOKSatNhRPg/nPOYr0P06Fi5s=";
             };
             subPackages = [ "cmd/benchstat" ];
-            vendorHash = "sha256-qGQpf0T1qBcu+25VF2xnbvImj+Fs81Ru9tho/0RJwzo=";
+            vendorHash = "sha256-AZx9tPzsPvjc5kpmiBa6eYKtrw0hczYi0sbcd/lkiiA=";
           };
         in
         {
@@ -684,6 +684,17 @@
           checks = {
             build = config.packages.default;
             format = config.treefmt.build.check self;
+            # Fast vendorHash drift checks: force realization of the goModules
+            # FODs. If vendorHash doesn't match go.sum, the FOD fails with a
+            # clear hash mismatch error — before any Go code compiles.
+            vendor-hash-cqrs-lint = pkgs.runCommand "vendor-hash-cqrs-lint" { } ''
+              echo "vendor hash verified: ${config.packages.cqrs-lint.goModules}"
+              touch $out
+            '';
+            vendor-hash-benchstat = pkgs.runCommand "vendor-hash-benchstat" { } ''
+              echo "vendor hash verified: ${benchstat.goModules}"
+              touch $out
+            '';
           }
           // lib.optionalAttrs pkgs.stdenv.isLinux {
             # NixOS VM tests — hermetic, cached by Nix.
