@@ -33,12 +33,10 @@ func (s *SQLCommandStore) Save(
 	defer span.End()
 
 	return sqlpkg.RunInTx(ctx, s.DB, span, func(tx *sql.Tx) error {
-		err := s.insertCommand(ctx, tx, ref, cmd)
-		if err != nil {
+		if err := s.commandInserter(ref).Insert(ctx, tx, cmd); err != nil {
 			cqrsotel.RecordError(span, err)
 
-			return errorfamily.WrapInfrastructure(err, "storage.insert_command",
-				fmt.Sprintf("insert command %s for %s", cmd.Type(), ref))
+			return err
 		}
 
 		return nil
@@ -73,72 +71,55 @@ func (s *SQLCommandStore) AppendBatch(
 	defer span.End()
 
 	return sqlpkg.RunInTx(ctx, s.DB, span, func(tx *sql.Tx) error {
-		for _, cmd := range cmds {
-			err := s.insertCommand(ctx, tx, ref, cmd)
-			if err != nil {
-				cqrsotel.RecordError(span, err)
+		if err := s.commandInserter(ref).InsertAll(ctx, tx, cmds); err != nil {
+			cqrsotel.RecordError(span, err)
 
-				return errorfamily.WrapInfrastructure(err, "storage.insert_command",
-					fmt.Sprintf("insert command %s for %s", cmd.Type(), ref))
-			}
+			return err
 		}
 
 		return nil
 	})
 }
 
-func (s *SQLCommandStore) insertCommand(
-	ctx context.Context,
-	tx *sql.Tx,
-	ref command.StreamRef,
-	cmd *command.PersistedCommand,
-) error {
-	ph := make([]string, 7)
-	for i := range 7 {
-		ph[i] = s.Dialect.Placeholder(i + 1)
-	}
+// commandInserter builds the shared write path for the commands table. It is
+// constructed per call so RowArgs can capture the caller's stream ref, which
+// is what the table's aggregate_type/aggregate_id columns record.
+func (s *SQLCommandStore) commandInserter(ref command.StreamRef) *sqlpkg.Inserter[*command.PersistedCommand] {
+	return &sqlpkg.Inserter[*command.PersistedCommand]{
+		Dialect: s.Dialect,
+		Table:   sqlpkg.TableCommands,
+		Columns: []string{
+			"id", "command_type", "aggregate_type", "aggregate_id",
+			"payload", "metadata", "received_at",
+		},
+		EntityNoun:     "command",
+		MarshalErrCode: "storage.marshal_metadata",
+		InsertErrCode:  "storage.insert_command",
+		Describe: func(cmd *command.PersistedCommand) string {
+			return fmt.Sprintf("%s for %s", cmd.Type(), ref)
+		},
+		RowArgs: func(cmd *command.PersistedCommand) ([]any, error) {
+			metadata, err := sqlpkg.MarshalMetadata(cmd.Metadata())
+			if err != nil {
+				return nil, err
+			}
 
-	insertSQL := fmt.Sprintf(
-		`INSERT INTO `+sqlpkg.TableCommands+` (id, command_type, aggregate_type, aggregate_id, payload, metadata, received_at)
-		VALUES (%s, %s, %s, %s, %s, %s, %s)`,
-		ph[0],
-		ph[1],
-		ph[2],
-		ph[3],
-		ph[4],
-		ph[5],
-		ph[6],
-	)
-
-	metadata, err := sqlpkg.MarshalMetadata(cmd.Metadata())
-	if err != nil {
-		return errorfamily.WrapCorruption(err, "storage.marshal_metadata",
-			"marshal metadata for command "+string(cmd.Type()))
-	}
-
-	_, err = tx.ExecContext(
-		ctx,
-		insertSQL,
-		cmd.ID(),
-		string(cmd.Type()),
-		string(ref.Type),
-		ref.ID,
-		cmd.Payload(),
-		metadata,
-		s.Dialect.FormatTime(cmd.ReceivedAt()),
-	)
-	if err != nil {
-		if sqlpkg.IsDuplicateKeyError(err) {
+			return []any{
+				cmd.ID(),
+				string(cmd.Type()),
+				string(ref.Type),
+				ref.ID,
+				cmd.Payload(),
+				metadata,
+				s.Dialect.FormatTime(cmd.ReceivedAt()),
+			}, nil
+		},
+		Duplicate: func(err error, cmd *command.PersistedCommand) error {
 			return errorfamily.WrapConflict(
 				command.ErrDuplicateCommand,
 				"storage.duplicate_command",
 				fmt.Sprintf("command with ID %s already exists", cmd.ID()),
 			)
-		}
-
-		return errorfamily.WrapInfrastructure(err, "storage.insert_command",
-			"insert command "+string(cmd.Type()))
+		},
 	}
-
-	return nil
 }

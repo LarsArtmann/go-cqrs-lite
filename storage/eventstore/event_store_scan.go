@@ -13,8 +13,6 @@ import (
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
-const eventColumnCount = 10
-
 func (s *SQLEventStore) scanEvents(rows *sql.Rows) ([]event.Event, error) {
 	return sqlpkg.ScanSlice(rows, s.scanEvent)
 }
@@ -86,26 +84,4 @@ func (s *SQLEventStore) insertEvents(
 	events []event.Event,
 ) error {
 	return sqlpkg.SharedBatchInsertEvents(ctx, tx, ref, events, s.Dialect, s.Dialect.FormatTime)
-}
-
-func buildInsertEventSQL(d sqlpkg.Dialect) string {
-	ph := make([]string, eventColumnCount)
-	for i := range eventColumnCount {
-		ph[i] = d.Placeholder(i + 1)
-	}
-
-	return fmt.Sprintf(
-		`INSERT INTO `+sqlpkg.TableEvents+` (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at)
-		VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)`,
-		ph[0],
-		ph[1],
-		ph[2],
-		ph[3],
-		ph[4],
-		ph[5],
-		ph[6],
-		ph[7],
-		ph[8],
-		ph[9],
-	)
 }

@@ -32,58 +32,48 @@ func (s *SQLQueryStore) SaveQuery(
 	defer span.End()
 
 	return sqlpkg.RunInTx(ctx, s.DB, span, func(tx *sql.Tx) error {
-		err := s.insertQuery(ctx, tx, q)
-		if err != nil {
+		if err := s.queryInserter().Insert(ctx, tx, q); err != nil {
 			cqrsotel.RecordError(span, err)
-			return errorfamily.WrapInfrastructure(err, "storage.insert_query",
-				fmt.Sprintf("insert query %s", q.Type()))
+
+			return err
 		}
+
 		return nil
 	})
 }
 
-func (s *SQLQueryStore) insertQuery(
-	ctx context.Context,
-	tx *sql.Tx,
-	q *query.PersistedQuery,
-) error {
-	ph := make([]string, 5)
-	for i := range 5 {
-		ph[i] = s.Dialect.Placeholder(i + 1)
-	}
+// queryInserter builds the shared write path for the queries table.
+func (s *SQLQueryStore) queryInserter() *sqlpkg.Inserter[*query.PersistedQuery] {
+	return &sqlpkg.Inserter[*query.PersistedQuery]{
+		Dialect: s.Dialect,
+		Table:   sqlpkg.TableQueries,
+		Columns: []string{"id", "query_type", "payload", "metadata", "received_at"},
+		EntityNoun:     "query",
+		MarshalErrCode: "storage.marshal_query_metadata",
+		InsertErrCode:  "storage.insert_query",
+		Describe: func(q *query.PersistedQuery) string {
+			return string(q.Type())
+		},
+		RowArgs: func(q *query.PersistedQuery) ([]any, error) {
+			metadata, err := sqlpkg.MarshalMetadata(q.Metadata())
+			if err != nil {
+				return nil, err
+			}
 
-	insertSQL := fmt.Sprintf(
-		`INSERT INTO `+sqlpkg.TableQueries+` (id, query_type, payload, metadata, received_at)
-		VALUES (%s, %s, %s, %s, %s)`,
-		ph[0], ph[1], ph[2], ph[3], ph[4],
-	)
-
-	metadata, err := sqlpkg.MarshalMetadata(q.Metadata())
-	if err != nil {
-		return errorfamily.WrapCorruption(err, "storage.marshal_query_metadata",
-			"marshal metadata for query "+string(q.Type()))
-	}
-
-	_, err = tx.ExecContext(
-		ctx,
-		insertSQL,
-		q.ID(),
-		string(q.Type()),
-		q.Payload(),
-		metadata,
-		s.Dialect.FormatTime(q.ReceivedAt()),
-	)
-	if err != nil {
-		if sqlpkg.IsDuplicateKeyError(err) {
+			return []any{
+				q.ID(),
+				string(q.Type()),
+				q.Payload(),
+				metadata,
+				s.Dialect.FormatTime(q.ReceivedAt()),
+			}, nil
+		},
+		Duplicate: func(err error, q *query.PersistedQuery) error {
 			return errorfamily.WrapConflict(
 				query.ErrDuplicateQuery,
 				"storage.duplicate_query",
 				fmt.Sprintf("query with ID %s already exists", q.ID()),
 			)
-		}
-		return errorfamily.WrapInfrastructure(err, "storage.insert_query",
-			"insert query "+string(q.Type()))
+		},
 	}
-
-	return nil
 }

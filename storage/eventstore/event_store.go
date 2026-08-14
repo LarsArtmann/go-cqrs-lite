@@ -16,8 +16,6 @@ import (
 // SQLEventStore persists events in a SQL database with optimistic concurrency.
 type SQLEventStore struct {
 	*sqlpkg.OwnedDBHandle
-
-	insertEventSQL string
 }
 
 // NewSQLEventStore creates a new SQL-backed event store using PostgreSQL dialect.
@@ -48,7 +46,7 @@ func newSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, 
 		return nil, err
 	}
 
-	return &SQLEventStore{OwnedDBHandle: handle, insertEventSQL: buildInsertEventSQL(d)}, nil
+	return &SQLEventStore{OwnedDBHandle: handle}, nil
 }
 
 // cqrs-lint:ignore(A021) library code or intentional pattern
