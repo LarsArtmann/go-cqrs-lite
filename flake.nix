@@ -819,10 +819,23 @@
               export CGO_ENABLED=1
               configFile="$PWD/.golangci.yml"
               failed=0
+              failedMods=""
+              total=0
               for mod in ${builtins.concatStringsSep " " lintModules}; do
+                total=$((total + 1))
                 echo "==> Linting $mod"
-                (cd "$mod" && ${pkgs.golangci-lint}/bin/golangci-lint run --config "$configFile" ./...) || failed=1
+                if (cd "$mod" && ${pkgs.golangci-lint}/bin/golangci-lint run --config "$configFile" ./...); then
+                  :
+                else
+                  failed=1
+                  failedMods="$failedMods $mod"
+                fi
               done
+              if [ "$failed" -eq 0 ]; then
+                echo "✅ Lint: $total/$total modules clean"
+              else
+                echo "❌ Lint: findings in:$failedMods"
+              fi
               exit "$failed"
             '';
 

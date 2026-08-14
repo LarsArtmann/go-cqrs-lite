@@ -157,7 +157,7 @@
 
 ### Idempotency ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/idempotency/v4"`
+> `import "github.com/larsartmann/go-idempotency"` (external module — see ADR-0128)
 
 | Feature         | Detail                                                                                                                            | Status |
 | --------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -462,7 +462,7 @@ and [evidence metrics ADR](docs/adr/0090-benchkit-evidence-metrics.md).
 
 ## Flight Recorder 🧪 EXPERIMENTAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"`
+> `import "github.com/larsartmann/go-flightrecorder"` (external module — see ADR-0128)
 
 Go 1.25 `runtime/trace` capture on slow/error/always triggers. Zero-dependency
 module (stdlib only). One active recorder per process (ADR-0089).

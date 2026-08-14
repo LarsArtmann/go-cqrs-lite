@@ -487,9 +487,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 
-	// System + FlightRecorder + Benchkit
+	// System + Benchkit
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
-	"github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 
 	// Messaging & Transport
@@ -504,11 +503,9 @@ import (
 
 	// Cross-Cutting
 	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
-	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	"github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/prometheus/v4"
-	"github.com/larsartmann/go-cqrs-lite/retry/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 	"github.com/larsartmann/go-cqrs-lite/schema/v4"
 	"github.com/larsartmann/go-cqrs-lite/scenario/v4"
