@@ -487,6 +487,7 @@ command/interface SeekableCommandJournal
 command/interface Store
 command/interface Subscriber
 command/method AppendBatch
+command/method ApplyOptions
 command/method Clone
 command/method Close
 command/method Dispatch
@@ -2816,6 +2817,7 @@ query/interface QuerySink
 query/interface QuerySource
 query/interface QueryStore
 query/interface SeekableQueryJournal
+query/method ApplyOptions
 query/method Clone
 query/method Close
 query/method Dispatch
