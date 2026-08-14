@@ -1,6 +1,8 @@
 package encryption
 
 import (
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -40,20 +42,17 @@ var (
 		"COSE algorithm does not match decrypter",
 	)
 
-	ErrInnerStoreNotJournal = errorfamily.NewRejection(
-		"encryption.inner_store_not_journal",
-		"inner store does not implement event.Journal",
-	)
+	// Deprecated: NewEncryptedStore is now built on event.DecorateStore, which
+	// reports unsupported inner-store capabilities via the event package's
+	// own sentinels. These aliases remain so existing errors.Is checks keep
+	// matching.
+	ErrInnerStoreNotJournal = event.ErrInnerStoreNotJournal
 
-	ErrInnerStoreNotSeekable = errorfamily.NewRejection(
-		"encryption.inner_store_not_seekable",
-		"inner store does not implement event.SeekableJournal",
-	)
+	// Deprecated: See ErrInnerStoreNotJournal.
+	ErrInnerStoreNotSeekable = event.ErrInnerStoreNotSeekable
 
-	ErrInnerStoreNotBackwards = errorfamily.NewRejection(
-		"encryption.inner_store_not_backwards",
-		"inner store does not implement event.BackwardsSource",
-	)
+	// Deprecated: See ErrInnerStoreNotJournal.
+	ErrInnerStoreNotBackwards = event.ErrInnerStoreNotBackwards
 
 	ErrUnknownAlgorithm = errorfamily.NewRejection(
 		"encryption.unknown_algorithm",

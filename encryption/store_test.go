@@ -187,7 +187,7 @@ func TestEncryptedStore_ReadAll(t *testing.T) {
 	ctx := context.Background()
 	_ = env.store.Save(ctx, env.ref, []event.Event{evt}, 0)
 
-	all, err := env.store.ReadAll(ctx)
+	all, err := env.store.(event.Journal).ReadAll(ctx)
 	if err != nil {
 		t.Fatalf("ReadAll: %v", err)
 	}
@@ -212,7 +212,7 @@ func TestEncryptedStore_ReadFrom(t *testing.T) {
 	ctx := context.Background()
 	_ = env.store.Save(ctx, env.ref, []event.Event{evt}, 0)
 
-	fromResult, err := env.store.ReadFrom(ctx, id.NewEventID(), 10)
+	fromResult, err := env.store.(event.SeekableJournal).ReadFrom(ctx, id.NewEventID(), 10)
 	if err != nil {
 		t.Fatalf("ReadFrom: %v", err)
 	}
@@ -231,7 +231,7 @@ func TestEncryptedStore_LoadBackwards_NotSupported(t *testing.T) {
 
 	env := newEncTestEnv(t)
 
-	_, err := env.store.LoadBackwards(context.Background(), env.ref)
+	_, err := env.store.(event.BackwardsSource).LoadBackwards(context.Background(), env.ref)
 	if err == nil {
 		t.Fatal("expected error for LoadBackwards on non-BackwardsSource store")
 	}

@@ -33,20 +33,24 @@ func ExtractOrPassThrough[T any](
 	return result, false, nil
 }
 
+// RejectingPublishMiddleware returns a PublishMiddleware whose publisher
+// rejects every publish with the given code and message.
+//
+// Deprecated: Use [event.RejectingPublishMiddleware] — the canonical,
+// shared implementation in the event package. Kept as a forwarder so
+// existing consumer code keeps compiling.
 func RejectingPublishMiddleware(code, msg string) event.PublishMiddleware {
-	return func(_ event.Publisher) event.Publisher {
-		return event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
-			return errorfamily.NewRejection(code, msg)
-		})
-	}
+	return event.RejectingPublishMiddleware(code, msg)
 }
 
+// RejectingHandlerMiddleware returns a Middleware whose handler rejects
+// every event with the given code and message.
+//
+// Deprecated: Use [event.RejectingHandlerMiddleware] — the canonical,
+// shared implementation in the event package. Kept as a forwarder so
+// existing consumer code keeps compiling.
 func RejectingHandlerMiddleware(code, msg string) event.Middleware {
-	return func(_ event.Handler) event.Handler {
-		return func(_ context.Context, _ event.Event) error {
-			return errorfamily.NewRejection(code, msg)
-		}
-	}
+	return event.RejectingHandlerMiddleware(code, msg)
 }
 
 // SignMiddleware returns event.PublishMiddleware that signs every published event.
@@ -57,7 +61,7 @@ func RejectingHandlerMiddleware(code, msg string) event.Middleware {
 //	bus.UsePublish(signing.SignMiddleware(signer))
 func SignMiddleware(signer Signer) event.PublishMiddleware {
 	if signer == nil {
-		return RejectingPublishMiddleware(
+		return event.RejectingPublishMiddleware(
 			"signing.nil_signer",
 			"SignMiddleware called with nil signer",
 		)
@@ -103,7 +107,7 @@ func SignMiddleware(signer Signer) event.PublishMiddleware {
 //	bus.Use(signing.VerifyMiddleware(signer))
 func VerifyMiddleware(verifier Verifier) event.Middleware {
 	if verifier == nil {
-		return RejectingHandlerMiddleware(
+		return event.RejectingHandlerMiddleware(
 			"signing.nil_verifier",
 			"VerifyMiddleware called with nil verifier",
 		)
@@ -137,7 +141,7 @@ func VerifyMiddleware(verifier Verifier) event.Middleware {
 // without signatures. Use when all events in a stream must be signed.
 func RequireSignatureMiddleware(verifier Verifier) event.Middleware {
 	if verifier == nil {
-		return RejectingHandlerMiddleware(
+		return event.RejectingHandlerMiddleware(
 			"signing.nil_verifier",
 			"RequireSignatureMiddleware called with nil verifier",
 		)

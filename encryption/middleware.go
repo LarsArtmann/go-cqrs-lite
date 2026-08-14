@@ -3,8 +3,6 @@ package encryption
 import (
 	"context"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
@@ -18,46 +16,21 @@ func WithMiddlewareKeyID(id KeyID) MiddlewareOption {
 	return func(c *middlewareConfig) { c.keyID = id }
 }
 
-func rejectingPublishMiddleware(code, msg string) event.PublishMiddleware {
-	return func(_ event.Publisher) event.Publisher {
-		return event.PublisherFunc(func(_ context.Context, _ ...event.Event) error {
-			return errorfamily.NewRejection(code, msg)
-		})
-	}
-}
-
-func rejectingHandlerMiddleware(code, msg string) event.Middleware {
-	return func(_ event.Handler) event.Handler {
-		return func(_ context.Context, _ event.Event) error {
-			return errorfamily.NewRejection(code, msg)
-		}
-	}
-}
-
 func EncryptMiddleware(encrypter Encrypter, opts ...MiddlewareOption) event.PublishMiddleware {
 	if encrypter == nil {
-		return rejectingPublishMiddleware(
+		return event.RejectingPublishMiddleware(
 			"encryption.nil_encrypter",
 			"EncryptMiddleware called with nil encrypter",
 		)
 	}
 
-	cfg := middlewareConfig{} //nolint:exhaustruct // zero-valued fields are ready
-	for _, o := range opts {
-		o(&cfg)
-	}
+	transform := EncryptSinkTransform(encrypter, opts...)
 
 	return func(next event.Publisher) event.Publisher {
 		return event.PublisherFunc(func(ctx context.Context, events ...event.Event) error {
-			encrypted := make([]event.Event, 0, len(events))
-
-			for _, evt := range events {
-				enc, err := encryptEvent(evt, encrypter, cfg.keyID)
-				if err != nil {
-					return err
-				}
-
-				encrypted = append(encrypted, enc)
+			encrypted, err := transform(events)
+			if err != nil {
+				return err
 			}
 
 			return next.Publish(ctx, encrypted...)
@@ -67,7 +40,7 @@ func EncryptMiddleware(encrypter Encrypter, opts ...MiddlewareOption) event.Publ
 
 func DecryptMiddleware(decrypter Decrypter) event.Middleware {
 	if decrypter == nil {
-		return rejectingHandlerMiddleware(
+		return event.RejectingHandlerMiddleware(
 			"encryption.nil_decrypter",
 			"DecryptMiddleware called with nil decrypter",
 		)

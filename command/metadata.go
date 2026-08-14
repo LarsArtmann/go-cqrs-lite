@@ -1,8 +1,6 @@
 package command
 
 import (
-	"maps"
-
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 )
@@ -13,51 +11,15 @@ import (
 type MetadataKey string
 
 // Metadata contains tracing and contextual information for commands.
-// It is a standalone struct (not a type alias) so that Clone and Merge return
-// command.Metadata directly. The JSON shape is identical to the previous
-// metadata.CustomData[MetadataKey] alias (ADR-0031).
+// It is a type alias for [metadata.Metadata] keyed by the command-local
+// MetadataKey, so Clone, Merge, and WithCustom are inherited from the
+// canonical generic (ADR-0031, WAL unification). The JSON shape is
+// unchanged: {"correlationId": ..., "custom": {...}}.
 //
 // Unlike event.Metadata, command.Metadata does NOT carry event-only concerns
 // (Tombstone, Causation): commands have no tombstones and no event-causation
 // link.
-type Metadata struct {
-	metadata.Tracing
-
-	Custom map[MetadataKey]string `json:"custom,omitempty"`
-}
-
-// Clone returns a copy of m with a cloned Custom map.
-func (m Metadata) Clone() Metadata {
-	return Metadata{
-		Tracing: m.Tracing,
-		Custom:  maps.Clone(m.Custom),
-	}
-}
-
-// Merge returns a new Metadata with tracing and custom entries from other
-// overlaid onto m.
-func (m Metadata) Merge(other Metadata) Metadata {
-	return Metadata{
-		Tracing: m.Tracing.Merge(other.Tracing),
-		Custom:  metadata.MergeCustomMaps(m.Custom, other.Custom),
-	}
-}
-
-// WithCustom returns a copy of m with the given key-value pair added to
-// Custom. The original Metadata is not modified.
-func (m Metadata) WithCustom(key MetadataKey, value string) Metadata {
-	custom := maps.Clone(m.Custom)
-	if custom == nil {
-		custom = make(map[MetadataKey]string)
-	}
-
-	custom[key] = value
-
-	return Metadata{
-		Tracing: m.Tracing,
-		Custom:  custom,
-	}
-}
+type Metadata = metadata.Metadata[MetadataKey]
 
 // Option configures command creation.
 type Option func(*BasicCommand)

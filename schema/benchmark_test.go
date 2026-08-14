@@ -47,10 +47,7 @@ func BenchmarkVersionedStore_Load(b *testing.B) {
 	store := memory.NewMemoryStore()
 	b.Cleanup(func() { _ = store.Close() })
 
-	versionedStore, err := schema.NewVersionedStore(store, benchUpcaster)
-	if err != nil {
-		b.Fatalf("NewVersionedStore: %v", err)
-	}
+	versionedStore := event.DecorateStore(store, nil, schema.UpcastSourceTransform(benchUpcaster))
 
 	ctx := context.Background()
 	streamID := id.NewStreamID()

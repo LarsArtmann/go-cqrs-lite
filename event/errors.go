@@ -74,6 +74,13 @@ var (
 	ErrBusClosed   = errorfamily.NewInfrastructure("event.bus_closed", "event bus is closed")
 	ErrNilBus      = errorfamily.NewInfrastructure("event.nil_bus", "nil bus")
 
+	// Optional-capability errors returned by DecorateStore when the inner
+	// store does not implement the asserted optional interface.
+	ErrInnerStoreNotJournal   = errorfamily.NewRejection("event.inner_store_not_journal", "inner store does not implement Journal")
+	ErrInnerStoreNotSeekable  = errorfamily.NewRejection("event.inner_store_not_seekable", "inner store does not implement SeekableJournal")
+	ErrInnerStoreNotBackwards = errorfamily.NewRejection("event.inner_store_not_backwards", "inner store does not implement BackwardsSource")
+	ErrInnerStoreNotMultiSink = errorfamily.NewRejection("event.inner_store_not_multi_sink", "inner store does not implement MultiSink")
+
 	// Time and date validation errors — returned by NewDate and NewWallTime.
 	ErrInvalidDate = errorfamily.NewRejection("event.invalid_date", "invalid calendar date")
 	ErrInvalidHour = errorfamily.NewRejection(

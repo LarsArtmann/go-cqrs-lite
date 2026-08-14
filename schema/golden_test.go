@@ -71,10 +71,7 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 		t.Fatalf("save: %v", err)
 	}
 
-	vs, err := schema.NewVersionedStore(store, upcaster)
-	if err != nil {
-		t.Fatalf("create versioned store: %v", err)
-	}
+	vs := event.DecorateStore(store, nil, schema.UpcastSourceTransform(upcaster))
 
 	upcasted, err := vs.Load(t.Context(), ref)
 	if err != nil {

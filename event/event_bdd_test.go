@@ -264,8 +264,7 @@ var _ = Describe("Schema Evolution", func() {
 				).To(Succeed())
 
 				upcaster := makeUpcaster("UserCreated", 1, []byte(`{"name":"Alice","email":""}`))
-				versioned, err := schema.NewVersionedStore(store, upcaster)
-				Expect(err).ToNot(HaveOccurred())
+				versioned := event.DecorateStore(store, nil, schema.UpcastSourceTransform(upcaster))
 
 				loaded, err := versioned.Load(ctx, id.NewStreamRef(streamType, streamID))
 				Expect(err).ToNot(HaveOccurred())
@@ -295,8 +294,7 @@ var _ = Describe("Schema Evolution", func() {
 					).To(Succeed())
 
 					upcaster := makeUpcaster("UserCreated", 1, []byte(`{"name":"","email":""}`))
-					versioned, err := schema.NewVersionedStore(store, upcaster)
-					Expect(err).ToNot(HaveOccurred())
+					versioned := event.DecorateStore(store, nil, schema.UpcastSourceTransform(upcaster))
 
 					loaded, err := versioned.Load(ctx, id.NewStreamRef(streamType, streamID))
 					Expect(err).ToNot(HaveOccurred())
@@ -333,8 +331,7 @@ var _ = Describe("Schema Evolution", func() {
 					2,
 					[]byte(`{"fullName":"Alice","email":"","verified":false}`),
 				)
-				versioned, err := schema.NewVersionedStore(store, upcasterV1toV2, upcasterV2toV3)
-				Expect(err).ToNot(HaveOccurred())
+				versioned := event.DecorateStore(store, nil, schema.UpcastSourceTransform(upcasterV1toV2, upcasterV2toV3))
 
 				loaded, err := versioned.Load(ctx, id.NewStreamRef(streamType, streamID))
 				Expect(err).ToNot(HaveOccurred())

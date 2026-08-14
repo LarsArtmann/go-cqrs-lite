@@ -12,12 +12,13 @@
 //	    )
 //	})
 //
-//	versioned, _ := schema.NewVersionedStore(store, upcaster)
+//	versioned := event.DecorateStore(store, nil, schema.UpcastSourceTransform(upcaster))
 //	events, _ := versioned.Load(ctx, ref)
 //
-// # VersionedStore
+// # Upcasting stores
 //
-// Wraps any event.Store and applies upcasters transparently on read.
-// The upcaster chain is validated at construction — cycle detection prevents
+// UpcastSourceTransform composes with event.DecorateStore and applies
+// upcasters transparently on every read path. The upcaster chain is
+// validated at construction — cycle detection prevents
 // infinite loops from misconfigured version jumps.
 package schema

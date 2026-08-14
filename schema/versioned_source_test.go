@@ -27,10 +27,7 @@ func TestVersionedStore_Load_NoUpcasters(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	versioned, err := schema.NewVersionedStore(store)
-	if err != nil {
-		t.Fatalf("new versioned store: %v", err)
-	}
+	versioned := event.DecorateStore(store, nil, schema.UpcastSourceTransform())
 
 	ctx := context.Background()
 	streamID := id.NewStreamID()
@@ -55,9 +52,10 @@ func TestVersionedStore_Load_NoUpcasters(t *testing.T) {
 	}
 }
 
-func TestVersionedStore_NewVersionedStore_NilStore(t *testing.T) {
+func TestVersionedStore_CompatShell_NilStore(t *testing.T) {
 	t.Parallel()
 
+	// The deprecated NewVersionedStore constructor must keep rejecting nil.
 	versioned, err := schema.NewVersionedStore(nil)
 	if versioned != nil {
 		t.Fatal("expected nil VersionedStore")
@@ -72,10 +70,7 @@ func TestVersionedStore_NewVersionedStore_NilUpcasters(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	versioned, err := schema.NewVersionedStore(store)
-	if err != nil {
-		t.Fatal(err)
-	}
+	versioned := event.DecorateStore(store, nil, schema.UpcastSourceTransform())
 	if versioned == nil {
 		t.Fatal("expected non-nil VersionedStore")
 	}
@@ -117,10 +112,7 @@ func TestVersionedStore_UpcastIntegration(t *testing.T) {
 	)
 	saveTestEvents(t, ctx, store, streamID, evt)
 
-	versioned, err := schema.NewVersionedStore(store, versionUpcaster{})
-	if err != nil {
-		t.Fatal(err)
-	}
+	versioned := event.DecorateStore(store, nil, schema.UpcastSourceTransform(versionUpcaster{}))
 	loaded, err := versioned.Load(ctx, id.NewStreamRef(id.StreamType("Test"), streamID))
 	if err != nil {
 		t.Fatalf("load: %v", err)
@@ -166,10 +158,7 @@ func TestVersionedStore_LoadFromVersion_Upcast(t *testing.T) {
 	)
 	saveTestEvents(t, ctx, store, streamID, evt1, evt2)
 
-	versioned, err := schema.NewVersionedStore(store, versionUpcaster{})
-	if err != nil {
-		t.Fatal(err)
-	}
+	versioned := event.DecorateStore(store, nil, schema.UpcastSourceTransform(versionUpcaster{}))
 	loaded, err := versioned.LoadFromVersion(
 		ctx,
 		id.NewStreamRef(id.StreamType("Test"), streamID),
@@ -223,10 +212,7 @@ func TestVersionedStore_LoadToVersion_Upcast(t *testing.T) {
 	)
 	saveTestEvents(t, ctx, store, streamID, evt1, evt2, evt3)
 
-	versioned, err := schema.NewVersionedStore(store, versionUpcaster{})
-	if err != nil {
-		t.Fatal(err)
-	}
+	versioned := event.DecorateStore(store, nil, schema.UpcastSourceTransform(versionUpcaster{}))
 
 	loaded, err := versioned.LoadToVersion(
 		ctx,
@@ -281,10 +267,7 @@ func TestVersionedStore_LoadToTimestamp_Upcast(t *testing.T) {
 	)
 	saveTestEvents(t, ctx, store, streamID, evt1, evt2)
 
-	versioned, err := schema.NewVersionedStore(store, versionUpcaster{})
-	if err != nil {
-		t.Fatal(err)
-	}
+	versioned := event.DecorateStore(store, nil, schema.UpcastSourceTransform(versionUpcaster{}))
 
 	loaded, err := versioned.LoadToTimestamp(
 		ctx,
@@ -328,12 +311,9 @@ func TestVersionedStore_LoadToVersion_UpcastError(t *testing.T) {
 	saveTestEvents(t, ctx, store, streamID, evt)
 
 	failingUpcaster := &failingUpcaster{}
-	versioned, err := schema.NewVersionedStore(store, failingUpcaster)
-	if err != nil {
-		t.Fatal(err)
-	}
+	versioned := event.DecorateStore(store, nil, schema.UpcastSourceTransform(failingUpcaster))
 
-	_, err = versioned.LoadToVersion(
+	_, err := versioned.LoadToVersion(
 		ctx,
 		id.NewStreamRef(id.StreamType("Test"), streamID),
 		1,
@@ -364,12 +344,9 @@ func TestVersionedStore_LoadToTimestamp_UpcastError(t *testing.T) {
 	saveTestEvents(t, ctx, store, streamID, evt)
 
 	failingUpcaster := &failingUpcaster{}
-	versioned, err := schema.NewVersionedStore(store, failingUpcaster)
-	if err != nil {
-		t.Fatal(err)
-	}
+	versioned := event.DecorateStore(store, nil, schema.UpcastSourceTransform(failingUpcaster))
 
-	_, err = versioned.LoadToTimestamp(
+	_, err := versioned.LoadToTimestamp(
 		ctx,
 		id.NewStreamRef(id.StreamType("Test"), streamID),
 		time.Now().Add(time.Hour),
@@ -403,5 +380,38 @@ func saveTestEvents(
 		0,
 	); err != nil {
 		t.Fatalf("save: %v", err)
+	}
+}
+
+// TestVersionedStore_CompatShell_Upcasts verifies the deprecated
+// NewVersionedStore shell still applies upcasters and forwards Close.
+func TestVersionedStore_CompatShell_Upcasts(t *testing.T) {
+	t.Parallel()
+
+	store := memory.NewMemoryStore()
+
+	ctx := context.Background()
+	streamID := id.NewStreamID()
+
+	evt, _ := event.NewEvent(
+		"test.upcast", streamID, "Test", 1, []byte("v1"), event.WithSchemaVersion(1))
+	saveTestEvents(t, ctx, store, streamID, evt)
+
+	versioned, err := schema.NewVersionedStore(store, versionUpcaster{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	loaded, err := versioned.Load(ctx, id.NewStreamRef(id.StreamType("Test"), streamID))
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+
+	if string(loaded[0].Payload()) != "v2" {
+		t.Errorf("payload = %q, want v2 (compat shell must upcast)", loaded[0].Payload())
+	}
+
+	if err := versioned.Close(); err != nil {
+		t.Fatalf("close: %v", err)
 	}
 }

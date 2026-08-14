@@ -35,7 +35,7 @@ func ExampleNewEvent() {
 	// 1
 }
 
-func ExampleNewVersionedStore() {
+func ExampleDecorateStore_upcasting() {
 	streamID := id.NewStreamID()
 
 	v1Event, _ := event.NewEvent(
@@ -61,12 +61,7 @@ func ExampleNewVersionedStore() {
 		[]byte(`{"name":"Alice","fullname":"Alice Wonderland"}`),
 	)
 
-	versioned, err := schema.NewVersionedStore(store, upcaster)
-	if err != nil {
-		fmt.Println("error:", err)
-
-		return
-	}
+	versioned := event.DecorateStore(store, nil, schema.UpcastSourceTransform(upcaster))
 
 	events, err := versioned.Load(
 		context.Background(),

@@ -1,97 +1,65 @@
 package schema
 
 import (
-	"context"
-	"fmt"
 	"io"
-	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-var _ event.EventSource = (*VersionedStore)(nil)
+// UpcastSourceTransform returns an [event.SourceTransform] that applies the
+// given upcasters to every loaded event. Compose it with
+// [event.DecorateStore] to add schema evolution to any event store:
+//
+//	store := event.DecorateStore(raw, nil, schema.UpcastSourceTransform(u1, u2))
+//
+// Unlike the deprecated VersionedStore, the decorated store preserves ALL
+// inner-store capabilities: Journal, SeekableJournal, BackwardsSource,
+// MultiSink, and io.Closer all keep working with upcasting applied.
+func UpcastSourceTransform(upcasters ...Upcaster) event.SourceTransform {
+	registry := newUpcasterRegistryFrom(upcasters)
 
-type VersionedStore struct {
-	inner event.Store
-
-	registry *upcasterRegistry
+	return registry.upcastAll
 }
 
+// VersionedStore is the pre-transform wrapper around an event store with
+// upcaster support.
+//
+// Deprecated: Use [UpcastSourceTransform] with [event.DecorateStore]:
+//
+//	versioned := event.DecorateStore(store, nil, schema.UpcastSourceTransform(uc))
+//
+// The deprecated shell still works: it embeds the decorated store, so all
+// Store methods are available, and it additionally forwards Close.
+type VersionedStore struct {
+	event.Store
+}
+
+// NewVersionedStore wraps an event.Store with upcaster support on reads.
+//
+// Deprecated: Use [UpcastSourceTransform] with [event.DecorateStore]. Kept
+// so existing consumers keep compiling; returns the compatibility shell.
 func NewVersionedStore(store event.Store, upcasters ...Upcaster) (*VersionedStore, error) {
 	if store == nil {
 		return nil, ErrNilStore
 	}
 
-	reg := newUpcasterRegistryFrom(upcasters)
-
-	return &VersionedStore{inner: store, registry: reg}, nil
+	return &VersionedStore{
+		Store: event.DecorateStore(store, nil, UpcastSourceTransform(upcasters...)),
+	}, nil
 }
 
-func (s *VersionedStore) Load(
-	ctx context.Context,
-	ref id.StreamRef,
-) ([]event.Event, error) {
-	return s.loadAndUpcast(func() ([]event.Event, error) {
-		return s.inner.Load(ctx, ref)
-	}, "schema.versioned_load", fmt.Sprintf("versioned store load %s", ref))
-}
-
-func (s *VersionedStore) LoadFromVersion(
-	ctx context.Context,
-	ref id.StreamRef,
-	version event.Version,
-) ([]event.Event, error) {
-	return s.loadAndUpcast(func() ([]event.Event, error) {
-		return s.inner.LoadFromVersion(ctx, ref, version)
-	}, "schema.versioned_load_from_version",
-		fmt.Sprintf("versioned store load from version %s@%s", ref, version))
-}
-
-func (s *VersionedStore) LoadToVersion(
-	ctx context.Context,
-	ref id.StreamRef,
-	maxVersion event.Version,
-) ([]event.Event, error) {
-	return s.loadAndUpcast(func() ([]event.Event, error) {
-		return s.inner.LoadToVersion(ctx, ref, maxVersion)
-	}, "schema.versioned_load_to_version",
-		fmt.Sprintf("versioned store load to version %s@%s", ref, maxVersion))
-}
-
-func (s *VersionedStore) LoadToTimestamp(
-	ctx context.Context,
-	ref id.StreamRef,
-	maxTime time.Time,
-) ([]event.Event, error) {
-	return s.loadAndUpcast(func() ([]event.Event, error) {
-		return s.inner.LoadToTimestamp(ctx, ref, maxTime)
-	}, "schema.versioned_load_to_timestamp",
-		fmt.Sprintf("versioned store load to timestamp %s@%s", ref,
-			maxTime.Format(time.RFC3339)))
-}
-
-func (s *VersionedStore) loadAndUpcast(
-	load func() ([]event.Event, error),
-	code, msg string,
-) ([]event.Event, error) {
-	events, err := load()
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, code, msg)
+// Close closes the underlying store when it implements io.Closer.
+func (s *VersionedStore) Close() error {
+	c, ok := s.Store.(io.Closer)
+	if !ok {
+		return nil
 	}
 
-	return s.registry.upcastAll(events)
-}
-
-func (s *VersionedStore) Close() error {
-	if c, ok := s.inner.(io.Closer); ok {
-		err := c.Close()
-		if err != nil {
-			return errorfamily.WrapInfrastructure(err, "schema.versioned_close",
-				"close versioned store")
-		}
+	if err := c.Close(); err != nil {
+		return errorfamily.WrapInfrastructure(err, "schema.versioned_close",
+			"close versioned store")
 	}
 
 	return nil

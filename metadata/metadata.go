@@ -57,50 +57,53 @@ func (t Tracing) Merge(other Tracing) Tracing {
 	return result
 }
 
-// CustomData is a reusable base for metadata types that carry tracing
-// identifiers and a custom key-value map (ADR-0031). command.Metadata and
-// query.Metadata were originally aliases for CustomData but are now
-// standalone structs that embed metadata.Tracing directly; CustomData
-// remains for external consumers who want the same pattern.
+// Metadata is the canonical metadata shape shared by all record types:
+// tracing identifiers plus a custom key-value map (ADR-0031, WAL unification).
 //
-// Deprecated: Model metadata as a standalone struct embedding metadata.Tracing
-// directly instead of using CustomData. See command.Metadata and query.Metadata
-// for the preferred pattern. CustomData will not be removed this major version.
-type CustomData[K ~string] struct {
+// command.Metadata and query.Metadata are type aliases for this generic with
+// their module-local key types. The key type parameter keeps the module
+// boundaries clean: a command.MetadataKey never collides with a
+// query.MetadataKey, and neither gains event-only fields (Tombstone,
+// Causation).
+//
+// When embedded anonymously in a struct, encoding/json promotes these fields
+// to the parent level, preserving the JSON shape:
+// {"correlationId": "...", "causationId": "...", "custom": {...}}.
+type Metadata[K ~string] struct {
 	Tracing
 
 	Custom map[K]string `json:"custom,omitempty"`
 }
 
-// Clone returns a copy of d with a cloned Custom map.
-func (d CustomData[K]) Clone() CustomData[K] {
-	return CustomData[K]{
-		Tracing: d.Tracing,
-		Custom:  maps.Clone(d.Custom),
+// Clone returns a copy of m with a cloned Custom map.
+func (m Metadata[K]) Clone() Metadata[K] {
+	return Metadata[K]{
+		Tracing: m.Tracing,
+		Custom:  maps.Clone(m.Custom),
 	}
 }
 
-// Merge returns a new CustomData with tracing and custom entries from other
-// overlaid onto d.
-func (d CustomData[K]) Merge(other CustomData[K]) CustomData[K] {
-	return CustomData[K]{
-		Tracing: d.Tracing.Merge(other.Tracing),
-		Custom:  MergeCustomMaps(d.Custom, other.Custom),
+// Merge returns a new Metadata with tracing and custom entries from other
+// overlaid onto m.
+func (m Metadata[K]) Merge(other Metadata[K]) Metadata[K] {
+	return Metadata[K]{
+		Tracing: m.Tracing.Merge(other.Tracing),
+		Custom:  MergeCustomMaps(m.Custom, other.Custom),
 	}
 }
 
-// WithCustom returns a copy of d with the given key-value pair added to
-// Custom. The original CustomData is not modified.
-func (d CustomData[K]) WithCustom(key K, value string) CustomData[K] {
-	custom := maps.Clone(d.Custom)
+// WithCustom returns a copy of m with the given key-value pair added to
+// Custom. The original Metadata is not modified.
+func (m Metadata[K]) WithCustom(key K, value string) Metadata[K] {
+	custom := maps.Clone(m.Custom)
 	if custom == nil {
 		custom = make(map[K]string)
 	}
 
 	custom[key] = value
 
-	return CustomData[K]{
-		Tracing: d.Tracing,
+	return Metadata[K]{
+		Tracing: m.Tracing,
 		Custom:  custom,
 	}
 }
@@ -110,11 +113,18 @@ func (d CustomData[K]) WithCustom(key K, value string) CustomData[K] {
 // Deprecated: Use WithCustom, which returns a new value without mutating
 // the receiver. EnsureCustom mutates in place via a pointer receiver,
 // breaking the immutability contract that Clone and Merge establish.
-func (d *CustomData[K]) EnsureCustom() {
-	if d.Custom == nil {
-		d.Custom = make(map[K]string)
+func (m *Metadata[K]) EnsureCustom() {
+	if m.Custom == nil {
+		m.Custom = make(map[K]string)
 	}
 }
+
+// CustomData is the pre-unification name for [Metadata].
+//
+// Deprecated: Use Metadata[K] directly. CustomData is kept as a generic type
+// alias so existing consumer code keeps compiling; it will not be removed
+// this major version.
+type CustomData[K ~string] = Metadata[K]
 
 // MergeCustomMaps returns a new map containing every entry from base overlaid
 // with every entry from other. When other is empty the original base map is

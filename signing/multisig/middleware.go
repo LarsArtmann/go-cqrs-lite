@@ -21,7 +21,7 @@ import (
 //	bus.UsePublish(multisig.MultiSignMiddleware(serverSigner))
 func MultiSignMiddleware(signer *MultiSigner) event.PublishMiddleware {
 	if signer == nil {
-		return signing.RejectingPublishMiddleware(
+		return event.RejectingPublishMiddleware(
 			"signing.nil_signer",
 			"MultiSignMiddleware called with nil signer",
 		)
@@ -55,7 +55,7 @@ func MultiSignMiddleware(signer *MultiSigner) event.PublishMiddleware {
 // (to support mixed streams). Use RequireMultiSigMiddleware to enforce presence.
 func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 	if signer == nil {
-		return signing.RejectingHandlerMiddleware(
+		return event.RejectingHandlerMiddleware(
 			"signing.nil_verifier",
 			"MultiVerifyMiddleware called with nil signer",
 		)
@@ -103,7 +103,7 @@ func MultiVerifyMiddleware(signer *MultiSigner) event.Middleware {
 // a Verifier and just want to check one actor's signature.
 func MultiVerifyMiddlewareFor(actor Actor, verifier signing.Verifier) event.Middleware {
 	if verifier == nil {
-		return signing.RejectingHandlerMiddleware(
+		return event.RejectingHandlerMiddleware(
 			"signing.nil_verifier",
 			"MultiVerifyMiddlewareFor called with nil verifier",
 		)
