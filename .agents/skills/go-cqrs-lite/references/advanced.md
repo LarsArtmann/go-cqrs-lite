@@ -26,7 +26,7 @@ store.Save(ctx, ref, []event.Event{deleted}, expectedVersion)
 
 // Detect: use listing/ to check stream status
 page, _ := listingBuilder.ListWithStatus(ctx)
-// page.Items[i].Status → listing.StatusActive | listing.StatusDeleted
+// page.Items[i].Status → event.TombstoneActive | event.TombstoneTombstoned
 
 // Rebirth: emit a new event after the deletion event
 // See example/taskmanager/ for the full tombstone + rebirth cycle

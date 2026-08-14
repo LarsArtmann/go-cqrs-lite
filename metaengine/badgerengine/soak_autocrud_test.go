@@ -12,9 +12,9 @@ import (
 // behavior differ from Pebble — this test catches LSM-specific issues
 // (e.g. value log growth, compaction stall). Completes the LSM soak matrix
 // alongside Pebble.
+//
+// NOT parallel: RunAutoCRUDSoak asserts on the process-global heap.
 func TestSoak_AutoCRUD_Badger(t *testing.T) {
-	t.Parallel()
-
 	eng := mustNewBadgerEngine(t)
 
 	enginetest.RunAutoCRUDSoak(t, eng)

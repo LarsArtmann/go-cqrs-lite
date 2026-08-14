@@ -498,7 +498,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 
 	// Security
-	"github.com/larsartmann/go-cqrs-lite/codec/v4"
+	"github.com/larsartmann/go-codec"
 	"github.com/larsartmann/go-cqrs-lite/encryption/v4"
 	"github.com/larsartmann/go-cqrs-lite/signing/v4"
 

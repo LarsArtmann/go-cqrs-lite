@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/larsartmann/go-codec"
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-codec"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 

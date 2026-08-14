@@ -69,7 +69,7 @@ func (s *Subscriber) Subscribe(ctx context.Context, eventType event.Type) (<-cha
 
 - `github.com/redis/go-redis/v9` (production — also works with [ValKey](https://valkey.io), the recommended alternative)
 - `github.com/larsartmann/go-cqrs-lite/event/v4`
-- `github.com/larsartmann/go-cqrs-lite/codec/v4`
+- `github.com/larsartmann/go-codec`
 
 ### Testing Strategy
 

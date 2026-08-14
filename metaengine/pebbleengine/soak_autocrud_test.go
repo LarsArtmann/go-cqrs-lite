@@ -11,9 +11,9 @@ import (
 // correctness under sustained write load. Pebble's LSM compaction and SST
 // accumulation behave differently from the Memory engine's map — this test
 // catches backend-specific leaks.
+//
+// NOT parallel: RunAutoCRUDSoak asserts on the process-global heap.
 func TestSoak_AutoCRUD_Pebble(t *testing.T) {
-	t.Parallel()
-
 	eng := newPebbleEngineOrSkip(t)
 
 	// store.Close() inside RunAutoCRUDSoak closes the engine.

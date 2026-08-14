@@ -22,6 +22,9 @@ import (
 //
 // Skips in -short mode. Skips when SOAK_SKIP_10M=1 (for CI that cannot afford
 // the runtime). Runtime: ~5s without -race, ~25s with -race.
+//
+// NOT parallel: asserts on the process-global heap (runtime.ReadMemStats),
+// which parallel tests would pollute with their own live allocations.
 func TestSoak_MemoryBounded_10M(t *testing.T) {
 	if testing.Short() {
 		t.Skip("10M soak test: skips in -short mode")
@@ -30,8 +33,6 @@ func TestSoak_MemoryBounded_10M(t *testing.T) {
 	if os.Getenv("SOAK_SKIP_10M") == "1" {
 		t.Skip("10M soak test: skipped by SOAK_SKIP_10M=1")
 	}
-
-	t.Parallel()
 
 	type updateEvent struct {
 		Key   string

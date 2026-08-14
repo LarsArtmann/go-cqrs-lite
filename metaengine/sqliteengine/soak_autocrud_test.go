@@ -15,9 +15,9 @@ import (
 // correctness under sustained write load. SQLite's B-tree page management and
 // WAL behavior differ from Memory and Pebble — this test catches SQL-specific
 // issues (e.g. unbounded statement cache, connection pool leaks).
+//
+// NOT parallel: RunAutoCRUDSoak asserts on the process-global heap.
 func TestSoak_AutoCRUD_SQLite(t *testing.T) {
-	t.Parallel()
-
 	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
 	if err != nil {
 		t.Fatalf("sql.Open: %v", err)

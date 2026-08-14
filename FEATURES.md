@@ -571,7 +571,7 @@ as a library primitive.
 
 ## Payload Codec ✅ FULLY_FUNCTIONAL
 
-> `import "github.com/larsartmann/go-cqrs-lite/codec/v4"`
+> `import "github.com/larsartmann/go-codec"`
 
 | Feature               | Detail                                                                                  | Status |
 | --------------------- | --------------------------------------------------------------------------------------- | ------ |

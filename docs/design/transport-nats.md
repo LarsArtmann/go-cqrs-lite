@@ -59,7 +59,7 @@ func (s *Subscriber) SubscribeAll(ctx context.Context) (<-chan event.Event, erro
 
 - `github.com/nats-io/nats.go` (production)
 - `github.com/larsartmann/go-cqrs-lite/event/v4`
-- `github.com/larsartmann/go-cqrs-lite/codec/v4`
+- `github.com/larsartmann/go-codec`
 
 ### Testing Strategy
 

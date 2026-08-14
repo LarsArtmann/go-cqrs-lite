@@ -12,9 +12,10 @@ import (
 // V4: Stress test — seed 100K events and verify scan correctness + point-lookup
 // accuracy + memory stability. This proves metaengine handles production-scale
 // volumes without OOM or correctness regressions.
-func TestStress_100KEvents(t *testing.T) { //nolint:tparallel // subtests share the parent's store
-	t.Parallel()
-
+//
+// NOT parallel: the MemoryStability subtest asserts on the process-global heap
+// (runtime.ReadMemStats), which parallel tests would pollute.
+func TestStress_100KEvents(t *testing.T) {
 	const N = 100_000
 
 	store, reader := setupBenchStore(t, N, true)

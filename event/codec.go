@@ -3,9 +3,8 @@ package event
 import (
 	"strconv"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-codec"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // DefaultCodec is the codec used by [New] when no [WithCodec] option is

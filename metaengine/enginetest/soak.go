@@ -45,6 +45,13 @@ type soakTaskQuery struct{ ID string }
 //     deleted items gone, re-created items restored.
 //
 // The caller is responsible for closing the engine.
+//
+// The caller's test MUST NOT call t.Parallel(): this soak asserts on the
+// process-global heap (runtime.ReadMemStats), and any concurrently running
+// test's live allocations would be miscounted as a leak in this test (and
+// this test's heap would break theirs). Sequential tests never overlap with
+// other tests, so omitting t.Parallel guarantees an exclusive measurement
+// window.
 func RunAutoCRUDSoak(t *testing.T, eng metaengine.Engine) {
 	t.Helper()
 

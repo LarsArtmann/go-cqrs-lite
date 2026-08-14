@@ -7,8 +7,6 @@ import (
 )
 
 func TestSoak_AutoCRUD_Bbolt(t *testing.T) {
-	t.Parallel()
-
 	eng := mustNewBboltEngine(t)
 
 	enginetest.RunAutoCRUDSoak(t, eng)

@@ -18,12 +18,12 @@ import (
 //
 // Skips in -short mode. Skips when SOAK_SKIP_DUCKDB=1 (for CI that cannot
 // afford the ~80-100s runtime). Runtime: ~80s without -race, ~100s with -race.
+//
+// NOT parallel: RunAutoCRUDSoak asserts on the process-global heap.
 func TestSoak_AutoCRUD_DuckDB(t *testing.T) {
 	if os.Getenv("SOAK_SKIP_DUCKDB") == "1" {
 		t.Skip("DuckDB soak: skipped by SOAK_SKIP_DUCKDB=1")
 	}
-
-	t.Parallel()
 
 	eng, err := duckdbengine.New("")
 	if err != nil {

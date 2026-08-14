@@ -22,12 +22,13 @@ import (
 // This complements TestSoak_MemoryBounded_10M, which exercises the legacy
 // Apply path. The ApplyRecord path has a different dispatch (SetCurrentRecord
 // on every event) that warrants its own soak.
+//
+// NOT parallel: asserts on the process-global heap (runtime.ReadMemStats),
+// which parallel tests would pollute with their own live allocations.
 func TestSoak_RecordAwarePipeline(t *testing.T) {
 	if testing.Short() {
 		t.Skip("record-aware soak: skips in -short mode")
 	}
-
-	t.Parallel()
 
 	type createdEvent struct {
 		ID    string

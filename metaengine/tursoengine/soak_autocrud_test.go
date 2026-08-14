@@ -10,8 +10,9 @@ import (
 // Turso engine (libSQL backend) to verify CRUD lifecycle correctness under
 // sustained write load. Turso delegates to sqliteengine, so this exercises
 // the same SQL paths through the libSQL driver.
+//
+// NOT parallel: RunAutoCRUDSoak asserts on the process-global heap.
 func TestSoak_AutoCRUD_Turso(t *testing.T) {
-	t.Parallel()
 	eng := mustNewTursoEngine(t)
 	enginetest.RunAutoCRUDSoak(t, eng)
 }

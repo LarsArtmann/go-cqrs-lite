@@ -17,8 +17,10 @@ import (
 //
 // The soak logic lives in enginetest.RunAutoCRUDSoak so that Pebble, DuckDB,
 // and PG engine modules can run the same workload against their backends.
+//
+// NOT parallel: RunAutoCRUDSoak asserts on the process-global heap
+// (runtime.ReadMemStats), which parallel tests would pollute with their own
+// live allocations.
 func TestSoak_AutoCRUDByConvention(t *testing.T) {
-	t.Parallel()
-
 	enginetest.RunAutoCRUDSoak(t, metaengine.NewMemoryEngine())
 }

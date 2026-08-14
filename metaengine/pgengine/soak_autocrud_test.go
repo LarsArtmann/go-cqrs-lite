@@ -12,9 +12,9 @@ import (
 // lifecycle correctness under sustained write load. Postgres's MVCC bloat and
 // JSONB storage differ from SQLite and Pebble — this test catches server-side
 // issues (e.g. connection lifecycle, transaction leaks).
+//
+// NOT parallel: RunAutoCRUDSoak asserts on the process-global heap.
 func TestSoak_AutoCRUD_Postgres(t *testing.T) {
-	t.Parallel()
-
 	eng, err := pgengine.New(pgDSN(t))
 	if err != nil {
 		t.Skipf("Postgres not available: %v", err)

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	gochannel "github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
-
 	"github.com/larsartmann/go-codec"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )

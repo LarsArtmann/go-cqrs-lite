@@ -220,7 +220,7 @@ storage/parquet/go.mod:
 
   require (
       github.com/larsartmann/go-cqrs-lite/event/v4 v4.x.x
-      github.com/larsartmann/go-cqrs-lite/codec/v4 v4.x.x
+      github.com/larsartmann/go-codec v0.1.x
       github.com/larsartmann/go-error-family v0.9.0
       github.com/parquet-go/parquet-go v0.23.x
   )

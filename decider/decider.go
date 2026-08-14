@@ -5,10 +5,10 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/larsartmann/go-codec"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"golang.org/x/sync/singleflight"
 
-	"github.com/larsartmann/go-codec"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	flightrecorder "github.com/larsartmann/go-cqrs-lite/flightrecorder/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
