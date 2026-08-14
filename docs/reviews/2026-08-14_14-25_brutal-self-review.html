@@ -1202,10 +1202,12 @@
         <h2 id="missed"><span class="num">07</span>Totally Missed (never done)</h2>
 
         <div class="card card-problem">
-          <p><strong>Broker transports.</strong> NATS + Redis are <em>Accepted designs never built</em>
-          (docs/design/transport-nats.md, transport-redis.md both say "Implementation pending"). transport/ has
-          only http + grpc. Ephemeral NATS/Redis scripts exist but zero Go tests use them. A CQRS library with no
-          broker story in 2026.</p>
+          <p><strong>Broker roundtrip tests (corrected 2026-08-14).</strong> The broker story is NOT missing —
+          the <code>watermill/</code> adapter is broker-agnostic by design (<code>NewEventPublisher(message.Publisher, topic)</code>,
+          <code>WithBackend()</code>); ADR-0025 superseded native transport modules on 2026-06-28. Real gaps:
+          <code>broker_integration_test.go</code> corpse stubs skip unconditionally, and zero roundtrips run against
+          the existing ephemeral NATS/Redis scripts. Stale design docs claiming "implementation pending" — fixed
+          same day with superseded banners.</p>
           <p><strong>Transactional outbox.</strong> ADR-0016 designed it; zero Outbox symbols exist; there is
           literally a REMOVE-OUTBOX-PLAN.md. For an event-sourcing library this is the most conspicuous absence —
           every serious competitor has one.</p>
@@ -1246,8 +1248,8 @@
               flightrecorder, apply it everywhere in the same edit.</li>
             <li><strong>Trash the junk</strong> — t/, result/, reports/, codec/testdata, benchmarks/ dump,
               metaengine/bench module.</li>
-            <li><strong>Then, and only then</strong>: outbox (biggest user-facing gap), NATS/Redis transports
-              (or delete the design docs), per-module CHANGELOGs.</li>
+            <li><strong>Then, and only then</strong>: outbox (biggest user-facing gap), broker roundtrip tests via
+              <code>watermill/</code> + official plugins (design-doc ghost resolved), per-module CHANGELOGs.</li>
           </ol>
         </div>
 

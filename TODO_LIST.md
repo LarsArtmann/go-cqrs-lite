@@ -247,9 +247,16 @@ and is **never** duplicated here.
 - [ ] **macOS verification of ephemeral PG** — `scripts/ephemeral-pg.sh` claims
       cross-platform but was never tested on Darwin.
       _(Effort: M)_
-- [ ] **Write actual Redis/NATS integration tests** — `ephemeral-redis.sh` and
-      `ephemeral-nats.sh` exist but no Go tests use them. Watermill Redis
-      Streams and NATS JetStream roundtrips untested.
+- [ ] **Write actual Redis/NATS broker roundtrip tests** — the sanctioned
+      broker path is `watermill/` + official plugins (ADR-0025 superseded the
+      native `transport/nats|redis` modules — see
+      `docs/planning/nats-transport-design.md`). Add `watermill-redisstream` +
+      `watermill-nats` as test-only deps (excluded from dep budget), then write
+      real roundtrips against `ephemeral-redis.sh` / `ephemeral-nats.sh`. The
+      current stubs in `watermill/broker_integration_test.go` skip
+      unconditionally EVEN when `REDIS_PORT`/`NATS_PORT` is set — replace them,
+      they are corpse tests. Verify broker edges the gochannel tests can't
+      catch: redelivery duplicates, NATS queue groups, message size limits.
       _(Effort: M)_
 
 ---

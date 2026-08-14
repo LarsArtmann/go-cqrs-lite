@@ -179,7 +179,7 @@ taskmanager carries `replace github.com/larsartmann/go-must => /home/lars/projec
 | Gap | Status |
 | --- | --- |
 | **Transactional outbox** | Designed (ADR-0016), zero code, then a REMOVE-OUTBOX-PLAN.md. Most conspicuous hole in an ES library — every serious competitor has one. |
-| **Broker transports (NATS, Redis)** | `docs/design/transport-{nats,redis}.md` both say "Accepted, implementation pending". transport/ is http+grpc only. Ephemeral broker scripts exist with zero Go tests. |
+| **Broker roundtrip tests (NATS, Redis)** | **Correction (2026-08-14):** the broker story EXISTS — the `watermill/` adapter is broker-agnostic by design (`NewEventPublisher(message.Publisher, topic)`, `WithBackend()`/`WithCommandBackend()`); ADR-0025 already superseded native `transport/nats|redis` modules (2026-06-28). The real gaps: `watermill/broker_integration_test.go` stubs skip unconditionally even when env vars are set (corpse tests), and no roundtrips against `ephemeral-{nats,redis}.sh` exist. Stale design docs `docs/design/transport-{nats,redis}.md` still claimed "Accepted, implementation pending" — **fixed 2026-08-14** (superseded banners added). |
 | **Per-module CHANGELOGs** | 6 of 86 modules have one. Users importing one module cannot see what changed in it. |
 | **Distributed projection running** | Leader election / sharding for projectionhost — design doc only. |
 | **Event archival / stream compaction** | Design docs only; long-lived streams grow unbounded. |
@@ -211,7 +211,7 @@ taskmanager carries `replace github.com/larsartmann/go-must => /home/lars/projec
 7. **One bench system** — pick benchkit+cqrs-bench, delete the rest, one baseline, make regression CI fail on breach.
 8. **Tell one deprecation story** — pick the policy for codec/retry/idempotency/flightrecorder, apply it everywhere in the same edit.
 9. **Trash the junk** — `t/`, `result/`, `reports/`, `codec/testdata`, `benchmarks/` dump, `metaengine/bench` module.
-10. **Then, and only then**: outbox (biggest user-facing gap), NATS/Redis transports (or delete the design docs), per-module CHANGELOGs.
+10. **Then, and only then**: outbox (biggest user-facing gap), broker roundtrip tests via `watermill/` + official plugins (the design-doc ghost is now resolved), per-module CHANGELOGs.
 
 ---
 
