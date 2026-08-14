@@ -121,10 +121,11 @@ func NewE009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				findings = append(findings, singleFinding(
 					ctx,
 					"E009",
-					"Module has command and query dispatchers but no HTTP/gRPC transport layer — "+
+					"Module has command and query dispatchers but no external delivery layer — "+
 						"commands and queries can only be dispatched programmatically",
-					"Add transport/http (SSE event delivery, HTTP handlers), transport/grpc, "+
-						"or cqrs-htmx to expose the CQRS API to external clients",
+					"Use the watermill/ bridge with a broker backend (NATS, Redis, Kafka) for "+
+						"distributed dispatch, go-sse or cqrs-htmx for HTTP/SSE delivery. "+
+						"The transport/* modules are deprecated.",
 					state.firstPos,
 					finding.SeverityInfo,
 					finding.ConfidenceLow,

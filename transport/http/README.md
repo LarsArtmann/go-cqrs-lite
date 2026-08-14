@@ -1,4 +1,14 @@
-# transport/http — Server-Sent Events (SSE) Event Delivery
+# transport/http — DEPRECATED (ADR-0127)
+
+> **⚠️ This module is deprecated and will be removed at v5.**
+>
+> | You used it for | Use instead |
+> | --- | --- |
+> | SSE event delivery | [`github.com/larsartmann/go-sse`](https://pkg.go.dev/github.com/larsartmann/go-sse) — the standalone SSE library already used by `metaengine.ServeSSE` |
+> | Broker transport (NATS/Redis/Kafka) | the [`watermill/`](../../watermill/) bridge — `NewEventPublisher(publisher, topic)` / `WithBackend()` |
+> | HTTP UI delivery | cqrs-htmx |
+>
+> New projects must not import this module.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/transport/http/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/transport/http/v4)
 

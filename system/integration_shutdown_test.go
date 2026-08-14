@@ -52,7 +52,7 @@ func TestIntegration_ShutdownDependency(t *testing.T) {
 		Engines: map[string]system.EngineConfig{
 			"event-store": {
 				Driver: "sqlite",
-				DSN:    "file:" + t.Name() + "?mode=memory&cache=shared",
+				DSN:    sqliteTestDSN(t),
 			},
 			"projections": {Driver: "memory"},
 		},

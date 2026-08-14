@@ -84,11 +84,11 @@ func TestCatalogHasExpectedCounts(t *testing.T) {
 	if len(core) != 6 {
 		t.Fatalf("expected 6 core entries, got %d: %+v", len(core), core)
 	}
-	if len(scored) != 34 {
-		t.Fatalf("expected 34 scored entries, got %d", len(scored))
+	if len(scored) != 32 {
+		t.Fatalf("expected 32 scored entries, got %d", len(scored))
 	}
-	if len(all) != 40 {
-		t.Fatalf("expected 40 total entries, got %d", len(all))
+	if len(all) != 38 {
+		t.Fatalf("expected 38 total entries, got %d", len(all))
 	}
 }
 
@@ -131,9 +131,10 @@ func TestCatalogRelevantForProfile(t *testing.T) {
 		relevantKeys[e.Key] = true
 	}
 
-	// Transport and server-infra modules should NOT be relevant for local-cli.
+	// Server-infra modules should NOT be relevant for local-cli. (The
+	// deprecated transport/http + transport/grpc entries were removed from
+	// the catalog entirely — see module_catalog_data.go.)
 	serverOnlyKeys := []ModuleKey{
-		"transport/http", "transport/grpc",
 		"prometheus", "watermill",
 		"stack/postgres", "stack/mysql", "stack/turso",
 	}
@@ -259,6 +260,8 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"system/integration":             "test sub-module (covered by system)",
 		"testutil":                       "test utility package",
 		"testutil/pgtestcontainer":       "test utility sub-package (covered by testutil)",
+		"transport/grpc":                 "deprecated module (removal at v5, ADR-0127; watermill/ is the sanctioned broker path)",
+		"transport/http":                 "deprecated module (removal at v5, ADR-0127; go-sse + watermill/ are the sanctioned delivery paths)",
 	}
 
 	// Also exclude external workspace entries (../go-* paths).

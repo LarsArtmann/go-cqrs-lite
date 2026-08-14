@@ -546,7 +546,8 @@ as a library primitive.
 | Upcaster                 | `Upcaster` interface — transforms old schema versions to newer on load                                    | ✅     |
 | Upcaster constructor     | `NewUpcaster(eventType, fromVersion, fn)` — version-gated transform                                       | ✅     |
 | Cycle detection          | Registry detects schema version revisits during upcast chain                                              | ✅     |
-| VersionedStore           | `VersionedStore` wraps any `event.Store` — transparent upcasting on all read methods                      | ✅     |
+| Upcasting transform    | `UpcastSourceTransform(...)` — composable read transform for `event.DecorateStore`                        | ✅     |
+| VersionedStore           | Deprecated shell over `DecorateStore` — kept for external consumers, removal at v5                        | ✅     |
 | VersionedSeekableJournal | `VersionedSeekableJournal` wraps `SeekableJournal` — upcasting for projection host (`ReadAll`/`ReadFrom`) | ✅     |
 | Full load API            | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp` — all with upcasting                        | ✅     |
 | Schema validator         | `Validator` with `RegisterType[T]()`, strict/lenient modes, custom codecs (ADR-0017)                      | ✅     |
@@ -740,9 +741,13 @@ Retry middleware emits `retry.attempt.N` child spans per attempt. See `docs/SPAN
 
 Deleted — generic utility with no CQRS dependencies and zero consumers.
 
-### SSE Broker ✅ (moved to transport/http/)
+### SSE Broker ⚠️ DEPRECATED (ADR-0127, removal at v5)
 
 > `import "github.com/larsartmann/go-cqrs-lite/transport/http/v4"`
+>
+> **Deprecated:** use [`github.com/larsartmann/go-sse`](https://pkg.go.dev/github.com/larsartmann/go-sse)
+> (already used by `metaengine.ServeSSE`) or the `watermill/` bridge. The
+> feature table below documents the module until its v5 removal.
 
 | Feature              | Detail                                                                                                                              | Status |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -762,11 +767,15 @@ Deleted — generic utility with no CQRS dependencies and zero consumers.
 | Dedup ring           | Bounded `dedup.Ring` (1024 entries) for replay→live deduplication — O(1), memory-bounded                                            | ✅     |
 | Replay metrics       | `ReplayMetrics` struct + OTel instruments (duration histogram, event counter, incomplete counter)                                   | ✅     |
 
-### gRPC Transport ✅ FULLY_FUNCTIONAL
+### gRPC Transport ⚠️ DEPRECATED (ADR-0127, removal at v5)
 
 > `import "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"`
+>
+> **Deprecated:** use the `watermill/` bridge (`NewCommandPublisher` /
+> `WithBackend`) over a broker, or bridge your dispatcher over grpc-go
+> directly. The feature table below documents the module until its v5 removal.
 
-Remote gRPC transport for command & query dispatch (ADR-0025). Bridges gRPC clients to local dispatchers.
+Remote gRPC transport for command & query dispatch (superseded ADR-0025 → ADR-0127). Bridges gRPC clients to local dispatchers.
 
 | Feature           | Detail                                                                  | Status |
 | ----------------- | ----------------------------------------------------------------------- | ------ |

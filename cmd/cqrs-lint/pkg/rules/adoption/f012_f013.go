@@ -60,8 +60,9 @@ func NewF012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // F013 detects server-mode projects with manual HTTP handlers for command/query
-// dispatch that do not use the transport modules. The transport/http module
-// provides SSE delivery, and transport/grpc provides remote dispatch.
+// dispatch that do not use any sanctioned delivery module: the watermill/
+// bridge (broker backends), go-sse (SSE), or cqrs-htmx. The transport/*
+// modules are deprecated and no longer coached.
 //
 //nolint:ireturn // factory returns public interface
 func NewF013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -99,12 +100,12 @@ func NewF013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				out = append(out, singleInfoFinding(
 					ctx,
 					"F013",
-					"Manual HTTP handlers for dispatch but transport module is not "+
-						"used — hand-rolled HTTP/gRPC lacks SSE delivery and typed "+
-						"remote dispatch",
-					"Import transport/http for SSE event delivery (SSEBroker, "+
-						"BackfillHandler) or transport/grpc for typed remote "+
-						"command/query dispatch (CommandClient, QueryClient).",
+					"Manual HTTP handlers for dispatch but no delivery module is used — "+
+						"hand-rolled HTTP lacks broker fanout, SSE delivery, and "+
+						"trace-context propagation",
+					"Use the watermill/ bridge (NewEventPublisher/WithBackend) for "+
+						"broker-backed dispatch, go-sse for SSE streams, or cqrs-htmx. "+
+						"The transport/* modules are deprecated.",
 					pos, finding.ConfidenceLow,
 				)...)
 			}

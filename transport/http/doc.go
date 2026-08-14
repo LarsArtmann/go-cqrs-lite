@@ -1,10 +1,18 @@
-// Package http provides HTTP transport adapters for CQRS event streams.
+// Package http is DEPRECATED (ADR-0127). Use go-sse or the watermill/ bridge.
+// Removal at v5. New projects must not import this module.
 //
-// SSEBroker bridges an event.Bus to Server-Sent Events HTTP clients,
-// enabling real-time event delivery to browsers and other HTTP consumers.
+// This package provided HTTP transport adapters for CQRS event streams:
+// SSEBroker bridged an event.Bus to Server-Sent Events HTTP clients. The
+// library doctrine is "not a framework — no opinionated transport": generic
+// delivery mechanisms belong in dedicated libraries, and better ones now
+// exist:
 //
-// This module implements ADR-0025's transport/http/ boundary.
-// Future transports (gRPC, NATS, Redis) will live as sibling modules under transport/.
+//   - SSE delivery: github.com/larsartmann/go-sse — the standalone SSE
+//     library already used by metaengine.ServeSSE for read-model push.
+//   - Broker transport: the watermill/ module bridges event.Bus and
+//     command.Bus to any Watermill-compatible broker (NATS, Redis, Kafka)
+//     via NewEventPublisher / WithBackend.
+//   - HTTP UI delivery: cqrs-htmx.
 //
 // # DESIGN DECISIONS — Why things are the way they are
 //

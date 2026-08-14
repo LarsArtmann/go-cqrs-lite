@@ -7,6 +7,11 @@
 > 100-30min tasks, then to 12min micro-tasks.
 > **Warning:** Verschlimmbesserung = death. Verify before doing. Delete only
 > what's dead. The user will cut off your balls.
+>
+> **ANNOTATED 2026-08-14:** per-task verdicts inline (Status column in §2,
+> section notes in §1/§3/§4/§7, evidence in §8). Headline: Wave 0 mostly
+> shipped — go-codec published, release chain tagged, TODO cleaned; 7/42
+> done, T01 partial; Waves 2-3 untouched — effort pivoted to WAL unification.
 
 ---
 
@@ -51,6 +56,12 @@ categories:
 ---
 
 ## 1. Pareto Analysis
+
+> **ANNOTATED 2026-08-14:** every P-item below duplicates a T-item in §2 —
+> P1-P12 = T01-T12, P13-P18 = T14-T19, P19-P26 = T20-T27, P27-P33 = T29-T35,
+> P34-P40 = T36-T42. Per-item verdicts live in the §2 Status column. Done:
+> P2, P3, P8, P17, P18 (plus T13/T28, which appear only in §2). Partial: P1.
+> All other P-items remain open.
 
 ### The 1% that delivers 51%
 
@@ -112,8 +123,8 @@ the next biggest jump in production trust.
 ## 2. Comprehensive Plan — Tasks at 100-30min granularity
 
 > Sorted by: blocked-status → impact → effort → dependency order.
-| ID  | Task                                                                                         | Impact   | Effort | Est (min) | Depends   | Category          |
-|-----|----------------------------------------------------------------------------------------------|----------|--------|-----------|-----------|-------------------|
+| ID  | Task                                                                                         | Impact   | Effort | Est (min) | Depends   | Category          | Status (2026-08-14) |
+|-----|----------------------------------------------------------------------------------------------|----------|--------|-----------|-----------|-------------------|---------------------|
 | T01 | 🔥 **Clear stale-GREEN backlog** — `nix run .#verify`, fix all failures                      | 🔥🔥     | M      | 100       | —         | Code Quality      | Partial — gate GREEN 08-14, re-staled by WAL work |
 | T02 | [BLOCKED] 🔥 **Publish `go-codec` to GitHub + tag `v0.1.0`**                                  | 🔥🔥     | XS     | 15        | User      | Codec             | Done at `6f9199f0c` |
 | T03 | [BLOCKED] 🔥 **Tag release chain: `id/v4.3.0` → record/command/metaengine → commandlifecycle** | 🔥🔥     | S      | 45        | T02       | Release           | Done — tags cut 08-12/13 |
@@ -164,6 +175,10 @@ the next biggest jump in production trust.
 ## 3. Fine-Grained Breakdown — Key Tasks at 12min granularity
 
 > Tasks T01-T16 (the 20% that delivers 80%) decomposed to 12min micro-tasks.
+>
+> **ANNOTATED 2026-08-14:** sub-task tables inherit their parent's §2 verdict.
+> T01's micro-tasks were largely executed across the 2026-08-14 lint-sweep and
+> soak-fix sessions (see §8). T04/T07/T09/T16 were never started.
 
 ### T01: Clear stale-GREEN backlog (100min → 9 micro-tasks)
 
@@ -217,6 +232,12 @@ the next biggest jump in production trust.
 ---
 
 ## 4. Execution Strategy
+
+> **ANNOTATED 2026-08-14:** Wave 0 mostly shipped (T02, T03, T08, T13, T28
+> done; T01 partial). Wave 1: only T18, T19 done. Waves 2-3 never started —
+> effort pivoted to WAL unification
+> (docs/planning/2026-08-14_11-27_WAL-UNIFICATION.md), which preserves old
+> APIs and thereby defers this plan's v5 breaking-cut endgame.
 
 ### Wave 0: Unblock (1% → 51%) — ~2.5 hours
 
@@ -370,8 +391,60 @@ graph TD
 
 | Tier | Tasks | Est time | Deliverable |
 |------|-------|----------|-------------|
-| **1% → 51%** | T01-T08, T13, T28 | ~5h | Verify GREEN; releases tagged; dead code gone; TODO clean |
-| **4% → 64%** | T09-T19 | ~9h | Layout design honest; calibration complete; convergence done; tests complete |
-| **20% → 80%** | T20-T27 | ~8h | Universal ADT; integration tests; infra polish |
-| **Remaining 20%** | T29-T42 | ~20h | Layout roles; Phase 8 deletion; v5.0.0 cut |
-| **Total** | T01-T42 | ~59h | v5.0.0 shipped |
+| **1% → 51%** | T01-T08, T13, T28 | ~5h | Verify GREEN; releases tagged; dead code gone; TODO clean — **PARTIAL:** releases + TODO yes; verify re-staled; T04/T05 open |
+| **4% → 64%** | T09-T19 | ~9h | Layout design honest; calibration complete; convergence done; tests complete — **MOSTLY NOT:** only T18/T19 done |
+| **20% → 80%** | T20-T27 | ~8h | Universal ADT; integration tests; infra polish — **NOT STARTED** |
+| **Remaining 20%** | T29-T42 | ~20h | Layout roles; Phase 8 deletion; v5.0.0 cut — **NOT STARTED**; superseded in priority by WAL unification |
+| **Total** | T01-T42 | ~59h | v5.0.0 shipped — **NOT shipped**; 7/42 done |
+
+---
+
+## 8. Resolution (2026-08-14)
+
+Verified against tree `f42794fb2` (2026-08-14), `git tag`, and `git log` —
+not against memory.
+
+### Done (7)
+
+| Task | Evidence |
+|------|----------|
+| T02 | `codec/go.mod` requires `github.com/larsartmann/go-codec v0.1.0`; imports migrated at `1ff2b53d0` |
+| T03 | Tags: `id/v4.3.0` (`1ca41444f`), `commandlifecycle/v4.0.0` (`8108cad5f`), `metaengine/v4.10.0` (`5406bea5d`), `record/v4.2.0`, `command/v4.6.0` |
+| T08 | `system/go.mod` carries 3 distinct replaces, no duplicates; `record/go.mod` clean |
+| T13 | `go.work` has `../go-codec` in `use` block (`6f9199f0c`) |
+| T18 | `../go-codec`: `.github/workflows/ci.yml`, FEATURES.md, SECURITY.md, fuzz tests |
+| T19 | Per-module feature profiles + coaching tests (`e3b2725ca`, `a86722224`, `f3c29ec76`) |
+| T28 | TODO_LIST carries zero stale v5 items; "Phases 1-7 done" header (`6f9199f0c`, `0cd4b19e4`) |
+
+### Partial (1)
+
+- **T01** — verify gate driven to GREEN across 2026-08-14 sessions (lint
+  sweep `af4b60841`, soak heap fix `5c4dd294b`; report
+  `docs/status/2026-08-14_14-20_SOAK-HEAP-PARALLEL-FIX-VERIFY-GATE.md`), then
+  WAL phases 1-4 (`b5fb09002`, `562f1534a`) shipped with `#verify`
+  deliberately deferred → gate stale again.
+
+### Checked-and-open (34)
+
+Spot-evidence for the ones a future reader will double-check: T04
+`metaengine/dgraphengine/counter.go:158` still `$key%d string`; T05
+`codec/testdata/` still present (`codec/reports/` has no git history at all);
+T07 `doctor.go` still 568 lines; T09 design doc still says "defaults to
+embedding"; T11 `resolvePriority` not used in `layout_observability.go`; T16
+`ReplanLayout` still separate (`metaengine/relayout.go:57`); T17
+`system/integration` has only a single-engine DuckDB test; T20 VectorSearch
+implemented only in irohengine; T21/T22 zero `WITH RECURSIVE` in tree; T34
+`foldMu` still global (`metaengine/store.go:18`); T36-T40 all deletion targets
+still exist (`stack/accessors.go:150`, `stack/run_projections.go:35`,
+`stack/bundle.go:34`, `graph/projection.go`, `storage/relational`,
+`storage/view`); T41 no v5 migration guide; T42 zero v5 tags (all modules
+still v4.x).
+
+### Direction note
+
+The 2026-08-14 sessions did NOT follow Waves 1-3 of this plan. They executed
+codec-deprecation migration and WAL unification
+(`docs/planning/2026-08-14_11-27_WAL-UNIFICATION.md`) — which deliberately
+preserves old APIs, contradicting this plan's v5 breaking-cut endgame
+(T36-T42). Before resuming Phase 8, decide whether that no-breakage constraint
+still holds.

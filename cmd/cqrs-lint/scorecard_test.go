@@ -82,8 +82,9 @@ func TestComputeScorecard_NoneUsed(t *testing.T) {
 func TestComputeScorecard_ProfileFilterExcludesTransport(t *testing.T) {
 	t.Parallel()
 
-	// local-cli profile: no server. Transport/server-infra modules should
-	// be in Irrelevant, not in Missing.
+	// local-cli profile: no server. Server-infra modules should
+	// be in Irrelevant, not in Missing. (The deprecated transport/http +
+	// transport/grpc entries were removed from the catalog — ADR-0127.)
 	usage := make(map[analyzer.ModuleKey]analyzer.ModuleUsage)
 	for _, e := range analyzer.DefaultCatalog.Scored() {
 		usage[e.Key] = analyzer.ModuleUsage{
@@ -109,7 +110,6 @@ func TestComputeScorecard_ProfileFilterExcludesTransport(t *testing.T) {
 	}
 
 	serverOnlyModules := []string{
-		"transport/http", "transport/grpc",
 		"prometheus", "watermill",
 		"stack/postgres", "stack/mysql", "stack/turso",
 	}

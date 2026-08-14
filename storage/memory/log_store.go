@@ -145,7 +145,7 @@ func (s *LogStore[T, ID]) LoadStreamLocked(
 	filter func([]T) []T,
 ) ([]T, error) {
 	if s.cfg.NewNotFound == nil {
-		return nil, fmt.Errorf("memory: store has no stream scoping: %s", op)
+		return nil, fmt.Errorf("memory: %s: %w", op, ErrNoStreamScoping)
 	}
 
 	indices, exists := s.streamIndex[streamKey]

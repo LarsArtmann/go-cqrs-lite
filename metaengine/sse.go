@@ -15,11 +15,11 @@ import (
 // SSEConfig configures Server-Sent Events streaming behavior.
 //
 // This SSE implementation watches a metaengine Store collection for changes
-// (collection-watch + replay from journal). For event-bus-to-client SSE
-// (bridging an event.Bus to HTTP clients), see transport/http.SSEBroker.
-// The two implementations serve different layers: metaengine SSE streams
-// materialized query results (read-model push), while transport/http SSE
-// streams raw domain events (event-bus push).
+// (collection-watch + replay from journal), built on
+// github.com/larsartmann/go-sse. For streaming raw domain events to HTTP
+// clients, bridge event.Bus through the watermill/ module (any broker) or
+// serve via go-sse directly; the deprecated transport/http.SSEBroker is
+// removed at v5 (ADR-0127).
 type SSEConfig struct {
 	// Timeout is the maximum duration the SSE stream stays open.
 	// Zero means no timeout (stream until client disconnects).

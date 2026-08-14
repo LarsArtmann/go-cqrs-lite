@@ -154,7 +154,12 @@ cqrs-gen -type . -output handlers_gen.go -pkg myapp
 
 Generates typed `Register*` boilerplate.
 
-### 6.8 gRPC Transport (remote command/query dispatch)
+### 6.8 gRPC Transport (remote command/query dispatch) — DEPRECATED
+
+> **ADR-0127:** `transport/grpc` is deprecated, removal at v5. For remote
+> command/event distribution use the `watermill/` bridge (`NewCommandPublisher`,
+> `WithBackend`) over a broker; for plain gRPC, bridge your dispatcher over
+> grpc-go directly. The example below works until v5.
 
 Expose local dispatchers over gRPC, or dispatch to a remote CQRS server.
 
@@ -497,7 +502,8 @@ provider, handler, _ = prometheus.Setup(prometheus.WithRegistry(myRegistry))
 
 ### 6.15 SSE Streaming vs CatchUpSubscriber — Which Replay Path?
 
-Both `transport/http.SSEBroker` and `watermill.CatchUpSubscriber` solve the
+Both `transport/http.SSEBroker` (deprecated, ADR-0127 — prefer `go-sse` or
+`watermill/`) and `watermill.CatchUpSubscriber` solve the
 **catch-up problem**: deliver historical events (replay) then seamlessly
 transition to live events. They share the same dedup ring and batched journal
 read patterns. **Pick based on where events need to arrive:**
@@ -592,7 +598,7 @@ hit the same cache entry.
 These are the failure modes we see most often. Read them before reaching for an advanced pattern.
 
 - **Replaying the full journal on every restart.** If you use `bus.SubscribeAll` without a `CheckpointStore`, projections re-process the entire event history each boot. Pair it with a `SeekableJournal` + checkpoint so you resume from where you left off (see §6.9 Managed Projection Host).
-- **Snapshot without schema evolution.** A snapshot serializes state at a point in time. If your event payload shape changes, loading an old snapshot + replaying post-snapshot events can double-apply a transform or miss fields. Always run `schema.VersionedStore` **and** snapshot together — the upcaster runs on read, before the snapshot is applied.
+- **Snapshot without schema evolution.** A snapshot serializes state at a point in time. If your event payload shape changes, loading an old snapshot + replaying post-snapshot events can double-apply a transform or miss fields. Always run an upcasting source transform (`event.DecorateStore(store, nil, schema.UpcastSourceTransform(...))`) **and** snapshot together — the upcaster runs on read, before the snapshot is applied.
 - **Signing after encryption.** If you sign the ciphertext, you can only detect tampering of the encrypted blob, not the original event. The correct order: sign the **plaintext** event, then encrypt. On read: decrypt first, then verify the signature. (recipes §2.6 + §2.7 document this ordering.)
 - **Using `deriver` for orchestration that needs compensation.** Derivers are deterministic event→command functions — great for fan-out (welcome email + CRM sync from `user.created`). They are NOT a replacement for a saga that must compensate on failure. If you need rollback semantics, model it as its own event-sourced stream.
 - **Forgetting that `graph` projections don't tombstone-mark.** The `listing/` tombstone-aware status model (advanced §6.3) works on the relational/KV tier. Graph projections need their own deletion handling in the projection handler — a soft-deleted stream won't auto-prune its edges.

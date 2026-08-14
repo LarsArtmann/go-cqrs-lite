@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json/v2"
 	"errors"
-	"fmt"
 	"path/filepath"
 	"slices"
 	"testing"
@@ -26,7 +25,7 @@ func sqliteDeployment(t *testing.T) system.DeploymentConfig {
 		Engines: map[string]system.EngineConfig{
 			"primary": {
 				Driver:  "sqlite",
-				DSN:     fmt.Sprintf("file:%s?mode=memory&cache=shared", t.Name()),
+				DSN:     sqliteTestDSN(t),
 				Pragmas: []string{"journal_mode=wal"},
 			},
 		},

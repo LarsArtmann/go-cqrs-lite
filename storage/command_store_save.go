@@ -91,8 +91,8 @@ func (s *SQLCommandStore) commandInserter(
 		Dialect: s.Dialect,
 		Table:   sqlpkg.TableCommands,
 		Columns: []string{
-			"id", "command_type", "aggregate_type", "aggregate_id",
-			"payload", "metadata", "received_at",
+			"id", "command_type", aggregateTypeCol, aggregateIDCol,
+			"payload", colMetadata, colReceivedAt,
 		},
 		EntityNoun:     "command",
 		MarshalErrCode: "storage.marshal_metadata",
@@ -116,7 +116,7 @@ func (s *SQLCommandStore) commandInserter(
 				s.Dialect.FormatTime(cmd.ReceivedAt()),
 			}, nil
 		},
-		Duplicate: func(err error, cmd *command.PersistedCommand) error {
+		Duplicate: func(_ error, cmd *command.PersistedCommand) error {
 			return errorfamily.WrapConflict(
 				command.ErrDuplicateCommand,
 				"storage.duplicate_command",

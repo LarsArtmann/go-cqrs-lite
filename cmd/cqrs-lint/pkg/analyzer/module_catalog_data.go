@@ -193,25 +193,15 @@ func buildDefaultCatalog() []ModuleEntry {
 		},
 
 		// ── Messaging ──────────────────────────────────────────────────
+		// NOTE: transport/http and transport/grpc were removed from the catalog
+		// when the modules were deprecated (2026-08-14). External delivery is
+		// served by the watermill/ bridge (brokers), go-sse (SSE), and
+		// cqrs-htmx (HTTP). Deprecated modules are not adoption targets.
 		{
 			Key: "watermill", DisplayName: "Watermill", Category: CategoryMessaging,
 			ImportHints: []string{"go-cqrs-lite/watermill"},
 			Description: "Distributed event/command bus (NATS, Redis, Kafka backends)",
 			Suggestion:  "Distributed event/command bus for multi-process deployments",
-			Profiles:    []ConfigPreset{PresetProduction},
-		},
-		{
-			Key: "transport/http", DisplayName: "HTTP Transport", Category: CategoryMessaging,
-			ImportHints: []string{"go-cqrs-lite/transport/http"},
-			Description: "SSE event delivery over HTTP",
-			Suggestion:  "SSE event delivery for real-time HTTP clients",
-			Profiles:    []ConfigPreset{PresetProduction},
-		},
-		{
-			Key: "transport/grpc", DisplayName: "gRPC Transport", Category: CategoryMessaging,
-			ImportHints: []string{"go-cqrs-lite/transport/grpc"},
-			Description: "gRPC transport for remote command/query dispatch",
-			Suggestion:  "Remote command/query dispatch over gRPC",
 			Profiles:    []ConfigPreset{PresetProduction},
 		},
 		{

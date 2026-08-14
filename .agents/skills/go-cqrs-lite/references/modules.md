@@ -35,7 +35,7 @@
 | `mysql`    | `stack/mysql/v4`    | MySQL/MariaDB preset (pure-Go driver, no CGo). `New(dsn)`, `SQLViewModel[V,K]`. `parseTime=true` required in DSN. Multi-DB topology via `WithDSN`.                                                                                                                                                      |
 | `kv`       | `kv/v4`             | `Store` (Reader+Writer+Closer), `MemStore`, `Iterator`, `Batch`, `TypedStore[T,K]`, `Cache[T,K]` (Otter LRU).                                                                                                                                                                                           |
 | `snapshot` | `snapshot/v4`       | `Snapshot`, `SnapshotSink`/`Source`/`Store`, `SnapshotStrategy`, `EveryNEvents(n)`, `NewReadPressure(loads)`.                                                                                                                                                                                           |
-| `schema`   | `schema/v4`         | `Upcaster`, `VersionedStore`, `VersionedSeekableJournal`, `Validator`, `RegisterType[T]()`. Schema evolution on read.                                                                                                                                                                                   |
+| `schema`   | `schema/v4`         | `Upcaster`, `UpcastSourceTransform`, `VersionedStore` (deprecated shell), `VersionedSeekableJournal`, `Validator`, `RegisterType[T]()`. Schema evolution on read; wrap stores via `event.DecorateStore`.                                                                                                                                                                                   |
 
 ### Cross-cutting (Layer 4–5)
 
@@ -44,7 +44,7 @@
 | `signing`        | `signing/v4`        | `NewHMAC`, `NewEd25519`, `multisig`, `SignMiddleware`/`VerifyMiddleware`. Tamper-proof streams.                                                |
 | `encryption`     | `encryption/v4`     | `NewXChaCha20Poly1305`, `NewAES256GCM`, `Codec` wrapper, `EncryptMiddleware`/`DecryptMiddleware`, `StaticKeyResolver`.                         |
 | `middleware`     | `middleware/v4`     | `Logging`, `Retry`, `Recovery`, `Validation`, `Metrics`, `CircuitBreaker`, `EventTracing`, `CommandMetrics`, etc. For command + event + query. |
-| `transport/http` | `transport/http/v4` | `NewSSEBroker`, `SSEHandler`. Bridges `event.Bus` to Server-Sent Events HTTP clients.                                                          |
+| `transport/http` | `transport/http/v4` | **DEPRECATED** (ADR-0127, removal at v5). `NewSSEBroker`, `SSEHandler`. Use `github.com/larsartmann/go-sse` or `watermill/` instead.   |
 | `otel`           | `otel/v4`           | `Tracer`, `Meter`, `Spans`, `Attributes`. Re-exports — import this, not go.opentelemetry.io.                                                   |
 | `catalog`        | `catalog/v4`        | `Registry`, `SchemaFromType[T]()`, exporters: `asyncapi`, `d2`, `eventcatalog`, `openapi`.                                                     |
 | `watermill`      | `watermill/v4`      | `EventBus` (GoChannel-backed, replaces `memory.MemoryBus`), `CatchUpSubscriber`, `EventPublisher`, `MessageToEvent`. ADR-0028.                 |
@@ -77,7 +77,7 @@
 | `cmd/api-stability` | (go install)         | API surface checker: compares exports against `docs/api_surface.txt` golden file.                                            |
 | `cmd/cqrs-bench`    | (go build)           | Benchmarking CLI: synthetic event workloads against memory/sqlite/pebble. `cqrs-bench run --backend sqlite --profile small`. |
 | `benchkit`          | `benchkit/v4`        | Factory-driven benchmarking suite: `Run`/`Compare`, latency percentiles, throughput, memory. Mirrors contracttest pattern.   |
-| `transport/grpc`    | `transport/grpc/v4`  | `RegisterCommandService`, `RegisterQueryService`, `NewCommandClient`, `NewQueryClient`. gRPC transport.                      |
+| `transport/grpc`    | `transport/grpc/v4`  | **DEPRECATED** (ADR-0127, removal at v5). `RegisterCommandService`, `RegisterQueryService`, `NewCommandClient`, `NewQueryClient`. Use `watermill/` brokers instead. |
 
 ### Reactive & Advanced Read Models (Layer 2–5)
 

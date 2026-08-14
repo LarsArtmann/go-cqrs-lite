@@ -224,8 +224,8 @@ var webFrameworkImportPaths = []string{ //nolint:gochecknoglobals // static look
 
 // hasWebFrameworkHandlers reports whether the project imports any third-party
 // web framework (chi, gin, echo, fiber, gorilla/mux, httprouter). These
-// frameworks are used for manual HTTP handler registration, which is an
-// alternative to go-cqrs-lite transport/http + transport/grpc.
+// frameworks are used for manual HTTP handler registration, an alternative to
+// the sanctioned delivery modules (watermill/, go-sse, cqrs-htmx).
 func hasWebFrameworkHandlersIn(files []*analyzer.GoFile) bool {
 	for _, prefix := range webFrameworkImportPaths {
 		if importsPathIn(files, prefix) {

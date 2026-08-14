@@ -33,10 +33,11 @@ type FeatureProfile struct {
 	// HasAsyncBus is true when a distributed event bus (Watermill-backed)
 	// is wired. In-memory buses don't need dedup; distributed buses do.
 	HasAsyncBus bool
-	// HasTransport is true when a CQRS transport layer (transport/http,
-	// transport/grpc, or an external cqrs-htmx module) is wired. When true,
-	// adoption rules that suggest adopting a transport module are suppressed —
-	// the project already has one.
+	// HasTransport is true when an external-delivery layer is wired: the
+	// watermill/ bridge (any broker backend), go-sse, cqrs-htmx, or a legacy
+	// deprecated transport/http / transport/grpc import. When true, adoption
+	// rules that suggest adopting a transport are suppressed — the project
+	// already has one.
 	HasTransport bool
 	// ServerLocal is true when HasServer is detected but the server lacks
 	// production signals (no TLS, no graceful Shutdown, no health endpoint).

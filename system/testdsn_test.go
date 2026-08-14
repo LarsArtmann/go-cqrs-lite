@@ -1,0 +1,20 @@
+package system_test
+
+import (
+	"fmt"
+	"sync/atomic"
+	"testing"
+)
+
+// testDSNSeq makes SQLite test DSNs unique across -count replays, which run
+// in one process where t.Name() alone would repeat.
+var testDSNSeq atomic.Int64
+
+// sqliteTestDSN returns a shared-cache in-memory SQLite DSN unique per
+// invocation. Keying only on t.Name() makes repeated runs (-count>1) share
+// one database, so journal rows accumulate across replays.
+func sqliteTestDSN(t *testing.T) string {
+	t.Helper()
+
+	return fmt.Sprintf("file:%s-%d?mode=memory&cache=shared", t.Name(), testDSNSeq.Add(1))
+}

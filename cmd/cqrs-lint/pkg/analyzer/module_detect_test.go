@@ -127,8 +127,8 @@ func TestDetectUsedModules_TransportPaths(t *testing.T) {
 	src := `package main
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/transport/http"
-	"github.com/larsartmann/go-cqrs-lite/transport/grpc"
+	"github.com/larsartmann/go-cqrs-lite/watermill"
+	"github.com/larsartmann/go-sse"
 )
 
 func main() {}
@@ -138,8 +138,7 @@ func main() {}
 
 	usage := DetectUsedModules(nil, []*GoFile{gf}, DefaultCatalog)
 
-	checkStatus(t, usage, "transport/http", UsageImported)
-	checkStatus(t, usage, "transport/grpc", UsageImported)
+	checkStatus(t, usage, "watermill", UsageImported)
 }
 
 func TestDetectUsedModules_MultiFileUnion(t *testing.T) {

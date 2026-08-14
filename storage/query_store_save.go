@@ -47,7 +47,7 @@ func (s *SQLQueryStore) queryInserter() *sqlpkg.Inserter[*query.PersistedQuery] 
 	return &sqlpkg.Inserter[*query.PersistedQuery]{
 		Dialect:        s.Dialect,
 		Table:          sqlpkg.TableQueries,
-		Columns:        []string{"id", "query_type", "payload", "metadata", "received_at"},
+		Columns:        []string{"id", "query_type", "payload", colMetadata, colReceivedAt},
 		EntityNoun:     "query",
 		MarshalErrCode: "storage.marshal_query_metadata",
 		InsertErrCode:  "storage.insert_query",
@@ -68,7 +68,7 @@ func (s *SQLQueryStore) queryInserter() *sqlpkg.Inserter[*query.PersistedQuery] 
 				s.Dialect.FormatTime(q.ReceivedAt()),
 			}, nil
 		},
-		Duplicate: func(err error, q *query.PersistedQuery) error {
+		Duplicate: func(_ error, q *query.PersistedQuery) error {
 			return errorfamily.WrapConflict(
 				query.ErrDuplicateQuery,
 				"storage.duplicate_query",

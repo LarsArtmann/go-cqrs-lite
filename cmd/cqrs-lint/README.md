@@ -88,9 +88,10 @@ B014 OTel) consult these flags instead of guessing.
 error severity. Also supports `"internal"` and `"security"`. Auto-detected from
 event/command type names but can be overridden here.
 
-**`transport`** — true when `transport/http`, `transport/grpc`, or an external
-transport module (like cqrs-htmx) is imported. When true, adoption rules that
-suggest adopting a transport module are suppressed.
+**`transport`** — true when an external-delivery layer is imported: the
+`watermill/` bridge (any broker backend), `go-sse`, cqrs-htmx, or a legacy
+deprecated `transport/http` / `transport/grpc` import. When true, adoption
+rules that suggest adopting a delivery module are suppressed.
 
 **`server-local`** — true when a server (HTTP or gRPC) is detected but lacks
 production signals (no TLS, no graceful `Shutdown`, no health endpoint). This
@@ -164,7 +165,7 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 | `tracing`      | string | `off`, `on`                                                                  |
 | `snapshot`     | string | `off`, `on`                                                                  |
 | `domain`       | string | `financial` (escalates security/money rules), `internal`, `security`         |
-| `transport`    | bool   | `true` if transport/http or transport/grpc imported                          |
+| `transport`    | bool   | `true` if watermill/, go-sse, cqrs-htmx, or deprecated transport/* imported  |
 | `server-local` | bool   | `true` if server lacks production signals                                    |
 | `async-bus`    | bool   | `true` if a distributed (Watermill) bus is wired                             |
 

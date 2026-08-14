@@ -3,7 +3,7 @@
 | Field   | Value        |
 | ------- | ------------ |
 | Date    | 2026-06-19   |
-| Status  | Implemented  |
+| Status  | Superseded by [ADR-0127](0127-deprecate-transport-modules.md) (transport/* deprecated; watermill/ + go-sse are the delivery paths) |
 | Decider | Lars Artmann |
 
 ## Context

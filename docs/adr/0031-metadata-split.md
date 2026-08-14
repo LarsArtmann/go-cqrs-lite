@@ -14,6 +14,14 @@
 > not standalone structs as this ADR proposes. The `Tracing` extraction and
 > typed `TombstoneMark`/`Causation` fields were implemented. The final
 > alias-to-struct conversion is deferred to a future major version.
+>
+> **Status note (2026-08-14):** Decision 3's alias-to-struct stance is
+> superseded by [ADR-0126](0126-metadata-generic-store-transforms-wal-unification.md):
+> the aliases now point at the canonical `metadata.Metadata[K]` generic
+> (which owns `Clone`/`Merge`/`WithCustom`), and `CustomData[K]` is the
+> deprecated alias instead. Standalone structs remain rejected — the branded
+> key parameter delivers the same safety without breaking external
+> consumers.
 
 ## Context
 

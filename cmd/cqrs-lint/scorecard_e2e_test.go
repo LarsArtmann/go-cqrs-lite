@@ -129,12 +129,12 @@ func main() {}
 		analyzer.PresetLocalCLI,
 	)
 
-	// Transport and server-infra modules should be Irrelevant.
+	// Server-infra modules should be Irrelevant.
 	irrelevantKeys := make(map[string]bool)
 	for _, m := range result.Irrelevant {
 		irrelevantKeys[m.Key] = true
 	}
-	for _, k := range []string{"transport/http", "transport/grpc", "prometheus", "watermill"} {
+	for _, k := range []string{"prometheus", "watermill"} {
 		if !irrelevantKeys[k] {
 			t.Errorf("module %s should be Irrelevant for local-cli profile", k)
 		}
@@ -149,7 +149,7 @@ func main() {}
 
 	// Denominator should be less than total scored (since some are irrelevant).
 	if result.Summary.RelevantTotal >= len(analyzer.DefaultCatalog.Scored()) {
-		t.Errorf("local-cli denominator (%d) should be < total scored (%d) — transport excluded",
+		t.Errorf("local-cli denominator (%d) should be < total scored (%d) — server-infra excluded",
 			result.Summary.RelevantTotal, len(analyzer.DefaultCatalog.Scored()))
 	}
 }
@@ -164,7 +164,7 @@ func TestScorecard_E2E_ProductionProfile(t *testing.T) {
 
 import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
-	"github.com/larsartmann/go-cqrs-lite/transport/http/v4"
+	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 	"github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/prometheus/v4"
 )
@@ -183,28 +183,25 @@ func main() {}
 		analyzer.PresetProduction,
 	)
 
-	// Transport and prometheus should be in Used, not Irrelevant.
+	// Watermill and prometheus should be in Used, not Irrelevant.
 	usedKeys := make(map[string]bool)
 	for _, m := range result.Used {
 		usedKeys[m.Key] = true
 	}
-	if !usedKeys["transport/http"] {
-		t.Error("transport/http should be Used for production profile with HTTP import")
+	if !usedKeys["watermill"] {
+		t.Error("watermill should be Used for production profile with watermill import")
 	}
 	if !usedKeys["prometheus"] {
 		t.Error("prometheus should be Used for production profile with prometheus import")
 	}
 
-	// No transport modules should be Irrelevant.
+	// No server-infra modules should be Irrelevant.
 	irrelevantKeys := make(map[string]bool)
 	for _, m := range result.Irrelevant {
 		irrelevantKeys[m.Key] = true
 	}
-	if irrelevantKeys["transport/http"] {
-		t.Error("transport/http should NOT be Irrelevant for production profile")
-	}
-	if irrelevantKeys["transport/grpc"] {
-		t.Error("transport/grpc should NOT be Irrelevant for production profile")
+	if irrelevantKeys["watermill"] {
+		t.Error("watermill should NOT be Irrelevant for production profile")
 	}
 }
 

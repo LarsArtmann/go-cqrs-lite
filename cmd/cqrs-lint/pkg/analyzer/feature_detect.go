@@ -206,7 +206,13 @@ func detectImports(
 		fp.HasAsyncBus = true
 	}
 
+	// HasTransport covers every sanctioned external-delivery path: the
+	// watermill/ bridge (broker transports), go-sse (SSE delivery), cqrs-htmx,
+	// and the deprecated transport/* modules (kept so legacy projects do not
+	// get coached while migrating).
 	if strings.Contains(path, "go-cqrs-lite/transport") ||
+		strings.Contains(path, "go-cqrs-lite/watermill") ||
+		strings.Contains(path, "larsartmann/go-sse") ||
 		strings.Contains(path, "cqrs-htmx") {
 		fp.HasTransport = true
 	}

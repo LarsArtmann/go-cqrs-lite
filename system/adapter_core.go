@@ -119,7 +119,11 @@ func (c *AdapterCore[T]) ReadAll(ctx context.Context) ([]T, error) {
 // matches afterID. An empty afterID reads from the start of the journal.
 // The cursor is resolved by scanning the journal once; adapters that need
 // cheaper resolution (EventAdapter's sequence cache) implement their own.
-func (c *AdapterCore[T]) ReadFromAfter(ctx context.Context, afterID string, limit int) ([]T, error) {
+func (c *AdapterCore[T]) ReadFromAfter(
+	ctx context.Context,
+	afterID string,
+	limit int,
+) ([]T, error) {
 	afterSeq := int64(0)
 
 	if afterID != "" {

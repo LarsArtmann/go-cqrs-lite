@@ -6,6 +6,67 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Deprecated — transport/* modules: watermill/ + go-sse are the delivery paths — 2026-08-14
+
+> **ADR-0127** (supersedes ADR-0025). `transport/http` and `transport/grpc`
+> are deprecated; removal at v5. The library doctrine is "not a framework —
+> no opinionated transport": SSE delivery belongs to
+> `github.com/larsartmann/go-sse` (already used by `metaengine.ServeSSE`),
+> broker transports to the `watermill/` bridge (`NewEventPublisher`,
+> `WithBackend`) + official plugins, HTTP UI to cqrs-htmx.
+
+- **`transport/http` + `transport/grpc`**: DEPRECATED notices in `doc.go` +
+  README, with a need→replacement mapping table. APIs unchanged until v5.
+- **`cmd/cqrs-lint`**: `HasTransport` now detects `watermill/`, `go-sse`,
+  and `cqrs-htmx` (legacy `transport/*` imports still count, so migrating
+  projects aren't coached). E009/F013 suggestions point at the sanctioned
+  paths. `transport/http` + `transport/grpc` removed from the module catalog
+  (34 → 32 scored entries) — deprecated modules are not adoption targets.
+  New E009 suppression tests for watermill and go-sse.
+- **`docs/design/transport-{nats,redis}.md`**: marked superseded (native
+  modules never planned post-ADR-0025 correction; watermill bridge is the path).
+- **ADR-0025**: status → Superseded by ADR-0127.
+
+### Changed — WAL unification: metadata generic, store transforms, shared WAL cores — 2026-08-14
+
+> Deduplicates the event/command/query write-ahead-log machinery across three
+> layers with zero external API breaks. Deprecated shells stay for external
+> consumers; internal code uses the canonical forms. See
+> [ADR-0126](docs/adr/0126-metadata-generic-store-transforms-wal-unification.md)
+> and `docs/status/2026-08-14_14-59_WAL-UNIFICATION-EXECUTION-SNAPSHOT.md`.
+
+- **`metadata.Metadata[K ~string]`** is the canonical typed metadata;
+  `command.Metadata` / `query.Metadata` are now aliases of it (their duplicated
+  `Clone`/`Merge`/`WithCustom` deleted). `metadata.CustomData[K]` is the
+  deprecated alias. `event.Metadata` stays standalone (embedding would break
+  external composite literals — documented in ADR-0126).
+- **`event.DecorateStore(store, sinkT, sourceT)`** + `SinkTransform` /
+  `SourceTransform` replace hand-written store wrappers. `encryption` exposes
+  `EncryptSinkTransform` / `DecryptSourceTransform`; `schema` exposes
+  `UpcastSourceTransform`. Wrapped stores now forward ALL optional capabilities
+  (the old `encryptedStore` silently lacked `MultiSink`). Unsupported-capability
+  sentinels moved to `event.ErrInnerStoreNot*` (`encryption.ErrInnerStoreNot*`
+  are deprecated aliases — `errors.Is` unaffected).
+- **`storage/memory.LogStore[T, ID]`** generic core replaces three forked
+  store hierarchies; `LogStoreConfig` injects duplicate/not-found policy and
+  missing-position semantics (events replay from start; commands/queries
+  return empty).
+- **`storage/sql.Inserter[T]`** (NEW): write-side counterpart of
+  `JournalReader[T]` for the command/query SQL stores. Duplicate-key
+  violations still surface as `command.ErrDuplicateCommand` /
+  `query.ErrDuplicateQuery`; event batches keep the chunked multi-VALUES path.
+- **`system.AdapterCore[T]`** (NEW): shared backend/collection/serialize
+  machinery + value dispatch for EventAdapter / CommandAdapter / QueryAdapter.
+  EventAdapter keeps version-conflict, temporal-reader, and seq-cache logic.
+- **`query.AsRecord`**: PersistedQuery joins events/commands as a `record.Record`.
+- **Test isolation fix (system)**: SQLite test DSNs keyed only on `t.Name()`
+  shared one database across `-count` replays (journal rows accumulated);
+  `sqliteTestDSN` makes them unique.
+- **cqrs-lint**: S010 detection recognizes `EncryptSinkTransform` /
+  `DecryptSourceTransform` and suggests the `DecorateStore` form (the old
+  suggestion referenced a nonexistent `signing.NewSignedStore`); F005 suggests
+  `UpcastSourceTransform` over the deprecated `NewVersionedStore`.
+
 ### Added — Layout convergence, audit trail, operator-lever regression matrix, DSN keyword/value fix — 2026-08-11
 
 > Completes 7 layout-planning follow-up items. The in-memory plan now carries

@@ -12,6 +12,12 @@ type SQLCommandStore struct {
 	*sqlpkg.OwnedDBHandle
 }
 
+// Shared journal column names used by the command/query store files.
+const (
+	colReceivedAt = "received_at"
+	colMetadata   = "metadata"
+)
+
 // NewSQLCommandStore creates a new PostgreSQL-backed command store.
 // The *sql.DB is borrowed, not owned — the caller is responsible for closing it.
 // Returns an error if db is nil.

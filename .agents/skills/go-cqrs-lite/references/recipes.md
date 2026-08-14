@@ -285,8 +285,8 @@ upcaster := schema.NewUpcaster("UserCreated", 1, func(evt event.Event) (*event.I
         newPayload, event.WithSchemaVersion(2))
 })
 
-versioned := schema.NewVersionedStore(eventStore, upcaster)
-// versioned.Load transparently applies upcasters
+versioned := event.DecorateStore(eventStore, nil, schema.UpcastSourceTransform(upcaster))
+// versioned.Load transparently applies upcasters (all capabilities forwarded)
 ```
 
 ### 2.6 Tamper-Proof Event Streams (signing)
@@ -323,6 +323,38 @@ resolver := encryption.NewStaticKeyResolver(map[encryption.KeyID]encryption.Decr
     "key-v2": newDecrypter,
 })
 ```
+
+### 2.7b Decorating Stores — Encryption/Upcasting at the Store Layer (event)
+
+Middleware encrypts in transit; transforms encrypt or upcast at the store.
+`event.DecorateStore` wraps any store once and forwards every capability
+(Store, Journal, SeekableJournal, BackwardsSource, MultiSink, Closer).
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/event/v4"
+    "github.com/larsartmann/go-cqrs-lite/encryption/v4"
+    "github.com/larsartmann/go-cqrs-lite/schema/v4"
+)
+
+// Encrypt at rest: sink encrypts writes, source decrypts reads
+encryptedStore := event.DecorateStore(eventStore,
+    encryption.EncryptSinkTransform(encrypter),
+    encryption.DecryptSourceTransform(decrypter))
+
+// Upcast old payloads on read (nil sink = pass-through)
+versioned := event.DecorateStore(eventStore, nil,
+    schema.UpcastSourceTransform(upcaster1, upcaster2))
+
+// Stack both: encrypt outer, upcast inner reads
+stacked := event.DecorateStore(
+    event.DecorateStore(eventStore, nil, schema.UpcastSourceTransform(upcaster)),
+    encryption.EncryptSinkTransform(encrypter),
+    encryption.DecryptSourceTransform(decrypter))
+```
+
+Deprecated wrappers (`encryption.NewEncryptedStore`, `schema.NewVersionedStore`)
+forward to DecorateStore internally; prefer the composable forms above.
 
 ### 2.8 Observability & Middleware (otel + middleware)
 
@@ -603,6 +635,10 @@ the integration shape, ordering guarantees, and materialization strategies.
 > these backends.
 
 ### 2.15 CBOR→JSON for Browser SSE Clients (codec + transport/http)
+
+> **Deprecated module:** `transport/http` is deprecated (ADR-0127, removal at
+> v5). The `codec.TranscodeToJSON` primitive itself is NOT deprecated — pair it
+> with `go-sse` in new code. The recipe below works until v5.
 
 Store events in compact CBOR but serve JSON over SSE to browsers. The
 `codec.TranscodeToJSON` primitive decodes CBOR generically and re-encodes as

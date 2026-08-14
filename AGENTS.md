@@ -91,15 +91,15 @@ Compact reference — see [`references/modules.md`](.agents/skills/go-cqrs-lite/
 | `middleware/`                                                  | Logging, Retry, Recovery, Validation, Idempotency, Metrics, OTel, Circuit Breaker, Flight Recorder |                                                   |
 | `otel/`                                                        | Shared OTel helpers — re-export instead of go.opentelemetry.io directly                            |                                                   |
 | `prometheus/`                                                  | OTel→Prometheus metrics bridge                                                                     |                                                   |
-| `transport/http/`                                              | SSE event delivery: SSEBroker, BackfillHandler                                                     |                                                   |
-| `transport/grpc/`                                              | gRPC transport: CommandService, QueryService                                                       |                                                   |
+| `transport/http/`                                              | **DEPRECATED** (ADR-0127, removal at v5): SSE delivery. Use go-sse or watermill/                     |                                                   |
+| `transport/grpc/`                                              | **DEPRECATED** (ADR-0127, removal at v5): gRPC dispatch. Use watermill/ brokers                      |                                                   |
 | `watermill/`                                                   | Watermill adapter: EventBus, CommandBus, CatchUpSubscriber                                         |                                                   |
 | `flightrecorder/`                                              | Go 1.25 runtime/trace FlightRecorder wrapper                                                       |                                                   |
-| `storage/memory/`                                              | In-memory test impls (MemoryStore, etc.)                                                           |                                                   |
+| `storage/memory/`                                              | In-memory test impls (MemoryStore, etc. over generic `LogStore[T,ID]`)                             |                                                   |
 | `storage/`                                                     | SQLBackend facade, SQL stores, relational projections, views                                       |                                                   |
 | `storage/eventstore/`                                          | SQLEventStore, SQLSnapshotStore, SQLCheckpointStore                                                |                                                   |
 | `storage/readmodel/`                                           | SQLKVStore (kv.Store backed by SQL)                                                                |                                                   |
-| `storage/sql/`                                                 | Dialect, DBHandle, QueryEngine, RunInTx, IsDuplicateKeyError, ScanSlice                            | Shared SQL helpers                                |
+| `storage/sql/`                                                 | Dialect, DBHandle, QueryEngine, RunInTx, IsDuplicateKeyError, ScanSlice, JournalReader[T], Inserter[T] | Shared SQL helpers                                |
 | `storage/relational/`                                          | RelationalSchema, RelationalProjection, RelationalStore, ProjectionSink                            | Multi-table SQL, rollup counters                  |
 | `storage/view/`                                                | SQLViewStore[V,K], ViewMapper, AutoMapper                                                          | Queryable columns                                 |
 | `storage/migrations/`                                          | Embedded .sql DDL (postgres/sqlite/duckdb) via //go:embed                                          |                                                   |
@@ -113,7 +113,7 @@ Compact reference — see [`references/modules.md`](.agents/skills/go-cqrs-lite/
 | `catalog/`                                                     | Registry, SchemaFromType[T](<>), AsyncAPI/D2/OpenAPI exporters                                     |                                                   |
 | `integration/`                                                 | Cross-module tests                                                                                 |                                                   |
 | `benchkit/`                                                    | Factory-driven benchmarking suite                                                                  |                                                   |
-| `system/`                                                      | Deployer-driven composition root: DomainConfig + DeploymentConfig                                  | The strategic composition layer (D6, D9, D11)     |
+| `system/`                                                      | Deployer-driven composition root: DomainConfig + DeploymentConfig, AdapterCore[T]                  | The strategic composition layer (D6, D9, D11)     |
 | `stack/`                                                       | Stack types + durability tiers (Strict/Normal/Relaxed)                                             |                                                   |
 | `stack/memory/` `stack/sqlite/` `stack/pebble/` `stack/bbolt/` | Bundle presets (one-call infrastructure)                                                           |                                                   |
 | `stack/postgres/` `stack/mysql/` `stack/turso/`                | External-server bundle presets                                                                     |                                                   |
@@ -152,6 +152,8 @@ Non-obvious conventions that apply when editing code inside this repo. Consumer-
 13. **Error-wrapping helpers** — When `if err != nil { return WrapX(err, code, msg) }; return nil` appears 3+ times in a module, extract an unexported `wrapXOrOK(err, code, msg) error` (returns nil when err is nil). Keep per-module — see [ADR-0069](docs/adr/0069-error-wrapping-helpers.md). When modules share a dependency (e.g., encryption + signing → codec), push the helper into the shared module.
 14. **Dedup helper patterns** — `storage/memory` uses `withWriteLock(code, msg, fn)` + `withReadLock[T](s, code, msg, fn)` + `wrapClosed(err, code, msg)`. `metaengine.DeferClose(c Closer)` replaces `defer func() { _ = x.Close() }()` across all engine modules (47 production + 17 test sites). The `.art-dupl-baseline.json` golden + `nix run .#check-duplication` gate enforce no-new-clones; run `art-dupl baseline . --threshold 3 --semantic` to update after a consolidation.
 15. **bbolt secondary index** — `storage/bbolt` uses a `cqrs_journal_idx` bucket (eventID → journalKey) as a secondary index for O(log N) Seek-based reads in `ReadStreamFrom`. Old databases without the index fall back to linear scan transparently. The `cqrs_journal` bucket holds the event journal; `cqrs_journal_idx` is the index. Both are created at DB init in `base.go`.
+16. **Store wrapping goes through `event.DecorateStore`** ([ADR-0126](docs/adr/0126-metadata-generic-store-transforms-wal-unification.md)) — Never hand-write Store wrapper structs: they drop optional capabilities (the old `encryptedStore` silently lost MultiSink). Compose `SinkTransform`/`SourceTransform` instead (`encryption.EncryptSinkTransform`, `schema.UpcastSourceTransform`). Deprecated shells (`schema.VersionedStore`, `signing.Rejecting*`, `encryption.ErrInnerStoreNot*`, `metadata.CustomData`) exist for external consumers only — internal code uses the canonical forms; removal at v5.
+17. **WAL cores are generic, policies injected** (ADR-0126) — `storage/memory.LogStore[T, ID]` (via `LogStoreConfig`), `storage/sql.Inserter[T]` (write-side counterpart of `JournalReader[T]`), and `system.AdapterCore[T]` own the shared mechanics. Divergent semantics (duplicate/not-found policy, missing-position replay, per-entity conflict sentinels) live in config funcs, not forked code. New stores embed the core instead of copying it.
 
 ## Error Handling
 
@@ -208,7 +210,7 @@ One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, sta
 ### Module & Dependency Management
 
 - **`testModules` ↔ `lintModules` coupling** — `testModules` in `flake.nix` feeds BOTH `nix run .#test` AND `nix run .#lint`. Adding a new module requires adding its path to `testModules` — otherwise it's silently never built, tested, or linted. Meta-test: `TestEveryGoModDirIsInTestModules`.
-- **API-surface changes require golden regen in the same edit** — Whenever you add/rename/remove an exported symbol, immediately regenerate: `cd cmd/api-stability && GOWORK=off go run main.go -update`. Don't rely on the `#verify` gate — it catches it but wastes a 3-4 min cycle.
+- **API-surface changes require golden regen in the same edit** — Whenever you add/rename/remove an exported symbol, immediately regenerate: `cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" . --update`. Don't rely on the `#verify` gate — it catches it but wastes a 3-4 min cycle.
 - **Every directory with a `go.mod` must be in the api-stability modules list** — Meta-test `TestEveryGoModDirIsInModulesList` enforces this. Add new modules to `cmd/api-stability/main.go` `modules` slice in the same change.
 - **Verify module version exists before requiring it** — Before adding `require .../module/v4 v4.x.y`, ALWAYS check the tag exists: `git tag -l '<module>/v4.x.y'`. Commit `169b5d42` shipped a broken go.mod because a tag was assumed but never created.
 - **Private Go module auth (non-interactive fetch)** — devShell sets `GOWORK=off`, so `go mod download` fetches internal modules from VCS. `GOPRIVATE` uses HTTPS which fails without credentials. The flake `shellHook` exports `GIT_CONFIG_*` to redirect HTTPS → SSH. Symptom: `git ls-remote -q origin ... exit status 128` inside `~/go/pkg/mod/cache/vcs/`.
@@ -240,13 +242,13 @@ One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, sta
 3. Add the module path to `testModules` in `flake.nix` (feeds both `#test` and `#lint`)
 4. Add the module path to `cmd/api-stability/main.go` `modules` slice
 5. Run `go build -tags "goexperiment.jsonv2" ./...` to verify compilation
-6. Run `cd cmd/api-stability && GOWORK=off go run main.go -update` to generate golden
+6. Run `cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" . --update` to generate golden
 7. Run the meta-tests: `cd cmd/api-stability && GOWORK=off go test -tags "goexperiment.jsonv2" -run TestEvery .`
 
 ### Change an Exported Symbol
 
 1. Make the code change
-2. Immediately: `cd cmd/api-stability && GOWORK=off go run main.go -update` (regenerate golden)
+2. Immediately: `cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" . --update` (regenerate golden)
 3. Update any affected skill references (`.agents/skills/go-cqrs-lite/references/*.md`)
 4. Run `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`
 5. Run `nix run .#verify` (or at minimum `nix run .#verify-fast`)

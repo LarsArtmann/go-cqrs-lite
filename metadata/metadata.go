@@ -18,7 +18,7 @@ type Tracing struct {
 	CausationID   id.CausationID   `json:"causationId"`
 	UserID        id.UserID        `json:"userId"`
 	RequestID     id.RequestID     `json:"requestId"`
-	ActorID       id.ActorID       `json:"actorId,omitempty"`
+	ActorID       id.ActorID       `json:"actorId,omitzero"`
 }
 
 // IsZero returns true when no tracing field has been set.

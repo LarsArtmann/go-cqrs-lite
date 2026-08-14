@@ -188,7 +188,7 @@ func TestSystem_ProjectionWithSQLite(t *testing.T) {
 
 	deployment := system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{
-			"primary": {Driver: "sqlite", DSN: "file:" + t.Name() + "?mode=memory&cache=shared"},
+			"primary": {Driver: "sqlite", DSN: sqliteTestDSN(t)},
 		},
 		Instances: []system.InstanceConfig{
 			{Role: system.RoleSourceOfTruth, Engine: "primary"},

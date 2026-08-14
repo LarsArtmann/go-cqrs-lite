@@ -489,7 +489,7 @@ func TestSystem_HealthCheck_SQLite(t *testing.T) {
 		Engines: map[string]system.EngineConfig{
 			"primary": {
 				Driver:  "sqlite",
-				DSN:     "file:" + t.Name() + "?mode=memory&cache=shared",
+				DSN:     sqliteTestDSN(t),
 				Pragmas: []string{"journal_mode=wal"},
 			},
 		},
@@ -597,7 +597,7 @@ func TestSystem_ResetProjection_RestartAndReplay(t *testing.T) {
 	defer cancel()
 
 	cpStore := &recordingCheckpointStore{}
-	dsn := "file:" + t.Name() + "?mode=memory&cache=shared"
+	dsn := sqliteTestDSN(t)
 
 	deployment := system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{

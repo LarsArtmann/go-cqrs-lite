@@ -10,6 +10,13 @@ var ErrHandlerNil = errorfamily.NewRejection(
 	"handler must not be nil",
 )
 
+// ErrNoStreamScoping is returned when a stream-scoped read hits a LogStore
+// configured without stream support (global-only stores, e.g. queries).
+var ErrNoStreamScoping = errorfamily.NewRejection(
+	"memory.no_stream_scoping",
+	"store has no stream scoping",
+)
+
 // wrapClosed returns nil when err is nil, otherwise wraps it as an
 // Infrastructure error with the given code and message. Centralises the
 // CheckClosed → errorfamily.WrapInfrastructure boilerplate used by every

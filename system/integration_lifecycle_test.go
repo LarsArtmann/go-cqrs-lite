@@ -67,7 +67,7 @@ func TestIntegration_SQLiteSource_MemoryProjection_HealthCheck(t *testing.T) {
 		Engines: map[string]system.EngineConfig{
 			"sqlite-store": {
 				Driver: "sqlite",
-				DSN:    "file:" + t.Name() + "?mode=memory&cache=shared",
+				DSN:    sqliteTestDSN(t),
 			},
 			"memory-proj": {Driver: "memory"},
 		},

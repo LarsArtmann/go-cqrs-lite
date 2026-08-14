@@ -282,6 +282,23 @@ and is **never** duplicated here.
 - [ ] **Delete `stack.RunProjections`** — `projectionhost.Host` is the only
       projection runner.
       _(Effort: S)_
+- [ ] **Delete deprecated compat shells from ADR-0126** — `schema.VersionedStore`
+      + `NewVersionedStore`, `signing.Rejecting*` forwarders,
+      `encryption.ErrInnerStoreNot*` aliases, `metadata.CustomData`. Internal
+      code is already off them (compat tests pin external behavior).
+      _(Effort: S)_
+- [ ] **Fix `check-arch` module-catalog coverage (94 gaps)** — the coverage
+      meta-check in `scripts/check-module-layers.sh` fails on master: ~47
+      modules lack `LAYER`/`DEP_BUDGET` entries (e.g. `transport/http`). All
+      existing budget checks pass; the gate is red purely on missing catalog
+      data. Pre-dates the WAL unification (verified at `6aaca6b0e`).
+      _(Effort: M)_
+- [ ] **Delete `transport/http` + `transport/grpc` modules** (ADR-0127) —
+      delivery is `watermill/` + go-sse + cqrs-htmx. First migrate
+      `example/taskmanager` off `cqrshttp.NewSSEBroker` (go-sse or
+      `metaengine.ServeSSE`), drop the modules from `go.work`/flake
+      `testModules`/api-stability list, then delete.
+      _(Effort: M)_
 - [ ] **Write v5 migration guide** — document the path from v4 (stack presets,
       v1 tiers) to v5 (`system.System`, auto-projection). Before/after examples
       for each v1 tier.

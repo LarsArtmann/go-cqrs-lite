@@ -27,7 +27,7 @@ Query   → Dispatcher → Handler → Read Model
 | **Write model**   | How do I decide + persist changes?          | `event`, `command`, `decider`, `id`                                                  |
 | **Read model**    | How do I build queryable state from events? | `stack.Materialize`, `kv` (`TypedStore`, `Cache`), `listing`, `query`                |
 | **Storage**       | Where do events/snapshots/checkpoints live? | `storage/memory`, `storage`, `storage/pebble`, `storage/turso`, `kv`, `stack`        |
-| **Cross-cutting** | Security, evolution, observability, docs    | `signing`, `encryption`, `schema`, `middleware`, `otel`, `catalog`, `transport/http` |
+| **Cross-cutting** | Security, evolution, observability, docs    | `signing`, `encryption`, `schema`, `middleware`, `otel`, `catalog` (delivery: `watermill/`, `go-sse`) |
 
 You do NOT need all of them. Start with the 30-second quickstart below, then use §1 to pick modules.
 
@@ -110,7 +110,7 @@ with projection + read model.
 | Soft-delete streams without data loss                                 | `listing` (event-type detection, ADR-0114)                                                     | advanced §6.1   |
 | Generate typed handler boilerplate                                    | `cmd/cqrs-gen`                                                                                 | advanced §6.7   |
 | Publish events to Watermill router                                    | `watermill`                                                                                    | advanced §6.4   |
-| Dispatch commands/queries over gRPC                                   | `transport/grpc`                                                                               | advanced §6.8   |
+| Dispatch commands/queries remotely (deprecated path)                  | `transport/grpc` (ADR-0127 — prefer `watermill/`)                                               | advanced §6.8   |
 | Verify doc code references compile                                    | `cmd/doc-check`                                                                                | modules §5      |
 | In-memory command bus (typed pub/sub)                                 | `command` (`NewMemoryBus`)                                                                     | recipes §2.1    |
 | In-memory implementations for tests/dev                               | `memory`                                                                                       | recipes §2.1    |
@@ -126,9 +126,9 @@ with projection + read model.
 | Derive commands reactively from events                                | `deriver`                                                                                      | advanced §6.12  |
 | Build graph/traversal read models (nodes + edges)                     | `graph`                                                                                        | advanced §6.13  |
 | Expose CQRS metrics via Prometheus `/metrics`                         | `prometheus`                                                                                   | advanced §6.14  |
-| Stream events to browsers via SSE                                     | `transport/http` (`SSEBroker`)                                                                 | advanced §6.15  |
-| Replay events to reconnecting clients (catch-up)                      | `transport/http` (Last-Event-ID) or `watermill` (`CatchUpSubscriber`)                          | advanced §6.15  |
-| Pull-based event backfill (REST endpoint)                             | `transport/http` (`BackfillHandler`)                                                           | advanced §6.15  |
+| Stream events to browsers via SSE                                     | `go-sse` (or deprecated `transport/http` `SSEBroker` until v5)                                 | advanced §6.15  |
+| Replay events to reconnecting clients (catch-up)                      | `watermill` (`CatchUpSubscriber`) — or `go-sse` Last-Event-ID                                   | advanced §6.15  |
+| Pull-based event backfill (REST endpoint)                             | deprecated `transport/http` (`BackfillHandler`) until v5 — or `watermill` catch-up              | advanced §6.15  |
 | Capture execution trace on slow/error operations                      | `flightrecorder` + `middleware`                                                                | recipes §2.17   |
 
 > **§2 (recipes), §5 (module reference), §6 (advanced patterns)** live in the on-demand `references/` files. This is the progressive-disclosure design — this file holds the decision material needed on every trigger; the references hold long copy-paste recipes loaded only when needed.
@@ -287,7 +287,7 @@ Layer 1: event/ (→id, codec), command/ (→id, dispatcher), query/ (→dispatc
 Layer 2: schema/ (→event), snapshot/ (→event), graph/ (→event), projection/ (→event), deriver/ (→event, command)
 Layer 3: decider/ (→event, snapshot), scenario/ (→event, id, projection), projectionhost/ (→event, id, projection)
 Layer 4: storage/memory/, signing/, encryption/, otel/
-Layer 5: middleware/, storage/, listing/, watermill/, transport/http/, transport/grpc/, storage/pebble/, storage/turso/, prometheus/
+Layer 5: middleware/, storage/, listing/, watermill/, storage/pebble/, storage/turso/, prometheus/ (transport/http+grpc deprecated, ADR-0127)
 Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd/doc-check
 ```
 

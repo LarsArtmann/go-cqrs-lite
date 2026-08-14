@@ -43,7 +43,9 @@ func NewS010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					callStr := analyzer.ExprString(call.Fun)
 
 					if strings.Contains(callStr, "NewSignedStore") ||
-						strings.Contains(callStr, "NewEncryptedStore") {
+						strings.Contains(callStr, "NewEncryptedStore") ||
+						strings.Contains(callStr, "EncryptSinkTransform") ||
+						strings.Contains(callStr, "DecryptSourceTransform") {
 						storeWrapped = true
 					}
 
@@ -82,15 +84,22 @@ func NewS010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			if (busEncrypted || busSigned) && !storeWrapped {
 				f, err := finding.NewBuilder(
-					"S010", toolName,
+					"S010",
+					toolName,
 					"Bus has encryption/signing middleware but store is not wrapped — events stored in cleartext",
 					finding.SeverityError,
-					finding.Pos(finding.FilePath(triggerPos.Filename), triggerPos.Line, triggerPos.Column),
+					finding.Pos(
+						finding.FilePath(triggerPos.Filename),
+						triggerPos.Line,
+						triggerPos.Column,
+					),
 				).
 					WithCategory(finding.CategorySecurity).
 					WithConfidence(finding.ConfidenceMedium).
 					WithFixStrategy(finding.FixStrategySuggest).
-					WithSuggestion("Wrap the store with signing.NewSignedStore or encryption.NewEncryptedStore to match bus protection").
+					WithSuggestion("Wrap the store with event.DecorateStore(store, " +
+						"encryption.EncryptSinkTransform(enc), encryption.DecryptSourceTransform(enc)) " +
+						"to match bus protection").
 					WithSnippet(ctx.SourceLine(triggerPos.Filename, triggerPos.Line)).
 					Build()
 				lintutil.AppendBuild(&findings, f, err)

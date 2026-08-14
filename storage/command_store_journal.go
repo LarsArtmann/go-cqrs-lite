@@ -33,7 +33,7 @@ func (s *SQLCommandStore) commandJournalReader() *sqlpkg.JournalReader[*command.
 		Table:           sqlpkg.TableCommands,
 		AllColumns:      sqlpkg.CommandColumns,
 		PositionColumns: "e.id, e.command_type, e.aggregate_type, e.aggregate_id, e.payload, e.metadata, e.received_at",
-		TimestampColumn: "received_at",
+		TimestampColumn: colReceivedAt,
 
 		Scan: s.scanCommands,
 	}

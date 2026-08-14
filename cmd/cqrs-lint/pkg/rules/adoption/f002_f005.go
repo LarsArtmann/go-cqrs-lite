@@ -81,7 +81,7 @@ func NewF005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				ctx, "F005", msg,
 				"Use schema.NewUpcaster(eventType, fromVersion, migrateFn) to transform "+
 					"old event payloads to the current schema on load. Register upcasters "+
-					"via schema.NewVersionedStore.",
+					"via event.DecorateStore(store, nil, schema.UpcastSourceTransform(...)).",
 				pos, finding.ConfidenceLow,
 			), nil
 		},

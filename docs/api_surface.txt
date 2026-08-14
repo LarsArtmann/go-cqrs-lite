@@ -3393,6 +3393,7 @@ storage/memory/struct MemoryQueryStore
 storage/memory/struct MemorySnapshotStore
 storage/memory/struct MemoryStore
 storage/memory/var ErrHandlerNil
+storage/memory/var ErrNoStreamScoping
 storage/method AppendBatch
 storage/method Cancel
 storage/method CheckpointStore
@@ -3601,6 +3602,8 @@ storage/sql/method FormatTime
 storage/sql/method FormatTime
 storage/sql/method FormatTime
 storage/sql/method HealthCheck
+storage/sql/method Insert
+storage/sql/method InsertAll
 storage/sql/method KVSchema
 storage/sql/method KVSchema
 storage/sql/method KVSchema
@@ -3646,6 +3649,7 @@ storage/sql/method TimerSchema
 storage/sql/method TimerSchema
 storage/sql/struct DBHandle
 storage/sql/struct DuckDBDialect
+storage/sql/struct Inserter
 storage/sql/struct JournalReader
 storage/sql/struct LoadParams
 storage/sql/struct MySQLDialect
@@ -3841,6 +3845,7 @@ system/method EngineNames
 system/method EventStore
 system/method Explain
 system/method Filterable
+system/method FromAny
 system/method GracefulClose
 system/method HasErrors
 system/method HasWarnings
@@ -3882,11 +3887,11 @@ system/method Publishers
 system/method QueryDispatcher
 system/method ReadAll
 system/method ReadAll
-system/method ReadAll
 system/method ReadAllQueries
 system/method ReadFrom
 system/method ReadFrom
 system/method ReadFrom
+system/method ReadFromAfter
 system/method ReadQueriesFrom
 system/method RegisterCloser
 system/method RegisterDrainer
@@ -3905,9 +3910,11 @@ system/method Sortable
 system/method Start
 system/method StreamID
 system/method StreamType
+system/method ToAny
 system/method UseCommandMiddleware
 system/method VerifyProjections
 system/method WorkerStatus
+system/struct AdapterCore
 system/struct BusConfig
 system/struct BusTopology
 system/struct CacheConfig

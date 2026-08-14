@@ -245,8 +245,8 @@ A **cost-based storage planner** (CBO) for event-sourced projections. The metaen
 | **CommandBus**       | `command.Bus` backed by Watermill GoChannel                                                             | `watermill.NewCommandBus()` — command distribution over any broker              |
 | **EventPublisher**   | Wraps a Watermill `message.Publisher` as `event.Publisher`                                              | `watermill.NewEventPublisher(wmPublisher, topic)` — injects W3C trace context   |
 | **CommandPublisher** | Wraps a Watermill `message.Publisher` as `command.Publisher`                                            | `watermill.NewCommandPublisher(wmPublisher, topic)`                             |
-| **SSE Broker**       | Bridges `event.Bus` to HTTP clients via Server-Sent Events                                              | `http.NewSSEBroker(bus)` — `WithReconnectJournal` enables Last-Event-ID replay  |
-| **gRPC Transport**   | Remote command/query/event dispatch over gRPC                                                           | `grpc.RegisterCommandService(srv, dispatcher)`, `grpc.RegisterQueryService()`   |
+| **SSE Broker**       | _Deprecated (ADR-0127)._ Bridged `event.Bus` to HTTP clients via SSE; removal at v5        | Use `github.com/larsartmann/go-sse` (see `metaengine.ServeSSE`) or `watermill/` |
+| **gRPC Transport**   | _Deprecated (ADR-0127)._ Remote command/query dispatch over gRPC; removal at v5            | Use `watermill/` brokers or bridge grpc-go directly                             |
 | **Saga**             | _Not a module._ Multi-step orchestration emerges from `bus.SubscribeAll` + command dispatch + `deriver` | See `example/taskmanager/` for the pattern                                      |
 
 ---
@@ -649,7 +649,7 @@ var _ = []any{
 	dedup.DefaultCapacity,
 	scheduling.NewMemoryTimerStore,
 	scheduling.New,
-	schema.NewVersionedStore,
+	schema.NewVersionedStore, // deprecated shell — prefer event.DecorateStore + schema.UpcastSourceTransform
 	schema.NewVersionedSeekableJournal,
 	schema.NewValidator,
 	scenario.Given,

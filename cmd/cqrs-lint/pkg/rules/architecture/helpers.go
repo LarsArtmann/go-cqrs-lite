@@ -48,8 +48,8 @@ func fileImportsPath(gf *analyzer.GoFile, suffix string) bool {
 }
 
 // fileImportsCustomHTTP reports whether the file imports net/http or a common
-// third-party HTTP framework. Used by E009 to detect custom transport layers
-// that aren't go-cqrs-lite transport/http.
+// third-party HTTP framework. Used by E009 to detect hand-rolled delivery
+// layers outside the sanctioned modules (watermill/, go-sse, cqrs-htmx).
 func fileImportsCustomHTTP(gf *analyzer.GoFile) bool {
 	for _, imp := range gf.AST.Imports {
 		if imp == nil || imp.Path == nil {

@@ -31,7 +31,7 @@ func TestS010_NoFindingWhenStoreWrapped(t *testing.T) {
 
 func setup() {
 	bus.Use(encryption.EncryptMiddleware(enc))
-	store = signing.NewSignedStore(store, signer)
+	store = event.DecorateStore(store, encryption.EncryptSinkTransform(enc), nil)
 }
 `,
 	})

@@ -105,6 +105,52 @@ func setup() {
 	ruletest.AssertRule(t, findings, "E009", 0)
 }
 
+// TestE009_NoFindingWithWatermill verifies the sanctioned broker path: a
+// watermill/ import satisfies external delivery and suppresses E009.
+func TestE009_NoFindingWithWatermill(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/command"
+	"github.com/larsartmann/go-cqrs-lite/query"
+	"github.com/larsartmann/go-cqrs-lite/watermill"
+)
+
+func setup() {
+	_ = command.BasicCommand{}
+	_ = query.PaginatedResult[any]{}
+	_ = watermill.EventBus{}
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE009Detector(ctx))
+	ruletest.AssertRule(t, findings, "E009", 0)
+}
+
+// TestE009_NoFindingWithGoSSE verifies the sanctioned SSE path: a go-sse
+// import (the delivery layer used by metaengine.ServeSSE) suppresses E009.
+func TestE009_NoFindingWithGoSSE(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/command"
+	"github.com/larsartmann/go-cqrs-lite/query"
+	sse "github.com/larsartmann/go-sse"
+)
+
+func setup() {
+	_ = command.BasicCommand{}
+	_ = query.PaginatedResult[any]{}
+	_ = sse.Broker{}
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE009Detector(ctx))
+	ruletest.AssertRule(t, findings, "E009", 0)
+}
+
 func TestE009_NoFindingWithOnlyCommand(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main

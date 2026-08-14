@@ -76,7 +76,7 @@ func (s *SQLQueryStore) queryJournalReader() *sqlpkg.JournalReader[*query.Persis
 		Table:           sqlpkg.TableQueries,
 		AllColumns:      sqlpkg.QueryColumns,
 		PositionColumns: "e.id, e.query_type, e.payload, e.metadata, e.received_at",
-		TimestampColumn: "received_at",
+		TimestampColumn: colReceivedAt,
 
 		Scan: s.scanQueries,
 	}

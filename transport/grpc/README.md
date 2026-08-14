@@ -1,4 +1,13 @@
-# transport/grpc — gRPC Transport for Command and Query Dispatch
+# transport/grpc — DEPRECATED (ADR-0127)
+
+> **⚠️ This module is deprecated and will be removed at v5.**
+>
+> | You used it for | Use instead |
+> | --- | --- |
+> | Remote command/event distribution | the [`watermill/`](../../watermill/) bridge — `NewCommandPublisher(publisher, topic)` / `NewEventPublisher(publisher, topic)` over any broker (NATS, Redis, Kafka) |
+> | Plain gRPC dispatch | bridge your own dispatcher over grpc-go directly — the transport is a thin adapter, not domain logic |
+>
+> New projects must not import this module.
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/transport/grpc/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/transport/grpc/v4)
 
