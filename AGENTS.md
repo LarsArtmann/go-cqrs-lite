@@ -202,6 +202,7 @@ One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, sta
 - **NEVER commit code that doesn't compile** — Commit `b3931503` shipped `slices.Contains()` with zero arguments. If you bypass the pre-commit hook, run `go build ./...` manually.
 - **Verification gate: `nix run .#verify`** — build + vet + test + race + lint + doc-check + doc-assertions. Run before tagging releases.
 - **"Stale GREEN" anti-pattern** — every session that changes code, go.mod, or docs must run `nix run .#verify` (or at minimum `nix run .#verify-fast`) before claiming GREEN. A stale GREEN claim is worse than no claim.
+- **Exit codes after pipes lie** — `cmd | tail -N; echo "EXIT=$?"` prints tail's exit code, not cmd's (and `PIPESTATUS[0]` can come back empty in this shell). A golangci run with 11 issues printed `EXIT=0` this way. Always capture gates as `cmd > /tmp/x.log 2>&1; echo $?` and grep the full log — never trust a `| tail` view or a post-pipe `$?`.
 - **NEVER use `git checkout <commit> -- .`** — destructively overwrites the working tree. Use `git worktree add /tmp/work <commit>` instead.
 
 ### Module & Dependency Management
