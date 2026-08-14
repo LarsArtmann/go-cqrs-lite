@@ -91,7 +91,9 @@ event/command type names but can be overridden here.
 **`transport`** — true when an external-delivery layer is imported: the
 `watermill/` bridge (any broker backend), `go-sse`, cqrs-htmx, or a legacy
 deprecated `transport/http` / `transport/grpc` import. When true, adoption
-rules that suggest adopting a delivery module are suppressed.
+rules that suggest adopting a delivery module are suppressed. Independently,
+F030 flags any deprecated `transport/*` import with its ADR-0127 migration
+path (warning severity, removed at v5).
 
 **`server-local`** — true when a server (HTTP or gRPC) is detected but lacks
 production signals (no TLS, no graceful `Shutdown`, no health endpoint). This
@@ -186,7 +188,7 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 
 ## Rule Count
 
-**202 rules** across 10 categories: correctness (42), API misuse (32), boilerplate (31), consistency (18), architecture (17), security (10), performance (9), version (6), testing (8), adoption (29).
+**203 rules** across 10 categories: correctness (42), API misuse (32), boilerplate (31), consistency (18), architecture (17), security (10), performance (9), version (6), testing (8), adoption (30).
 
 ## Correctness Rules (bugs)
 
@@ -373,7 +375,7 @@ Adoption rules (F-series) are advisory: they suggest modules and patterns that i
 | F010 | no-graph-projections             | Info     | Graph-traversal patterns but no graph module — recursive SQL CTEs are slow for deep traversals                     |
 | F011 | no-relational-projections        | Info     | Multi-statement SQL projections without storage.RelationalProjection — manual writes lack atomicity                |
 | F012 | no-deriver-module                | Info     | Saga-like SubscribeAll + command dispatch but no deriver module                                                    |
-| F013 | no-transport-module              | Info     | Manual HTTP handlers for dispatch but no transport module                                                          |
+| F013 | no-transport-module              | Info     | Manual HTTP handlers for dispatch but no delivery module (watermill/go-sse/cqrs-htmx)                              |
 | F014 | no-kv-cache                      | Info     | kv.NewTypedStore without kv.NewCache — read model hits backing store on every read                                 |
 | F015 | no-metaengine                    | Info     | 3+ query registrations but no metaengine cost-based planner — SQL pushdown and layout optimization unavailable     |
 | F016 | no-listing-module                | Info     | Many aggregate types but no listing module — stream status tracking unavailable                                    |
@@ -390,6 +392,7 @@ Adoption rules (F-series) are advisory: they suggest modules and patterns that i
 | F027 | missing-otel-sdk-init            | Info     | Server-mode project with no cqrsotel.Setup call — traces are no-op                                                 |
 | F028 | missing-slog-setdefault          | Info     | Server-mode project using slog without slog.SetDefault — default logger has no structured output                   |
 | F029 | missing-span-creation            | Info     | OTel import but no span creation in handlers — distributed traces are empty                                        |
+| F030 | deprecated-transport-import       | Warning  | Deprecated transport/* import — removed at v5; migrate per ADR-0127                                                |
 
 ## CLI
 

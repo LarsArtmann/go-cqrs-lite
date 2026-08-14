@@ -115,6 +115,17 @@ func (c *AdapterCore[T]) ReadAll(ctx context.Context) ([]T, error) {
 	return c.FromAny(values)
 }
 
+// LoadStream reads one stream by key and decodes its values. Shared body of
+// EventAdapter.Load and CommandAdapter.Load.
+func (c *AdapterCore[T]) LoadStream(ctx context.Context, streamKey string) ([]T, error) {
+	values, err := c.Backend.StreamRead(ctx, c.Collection, streamKey)
+	if err != nil {
+		return nil, fmt.Errorf("%s adapter: load: %w", c.Noun, err)
+	}
+
+	return c.FromAny(values)
+}
+
 // ReadFromAfter returns up to limit journal items after the item whose IDOf
 // matches afterID. An empty afterID reads from the start of the journal.
 // The cursor is resolved by scanning the journal once; adapters that need

@@ -96,3 +96,32 @@ func singleInfoFinding(
 
 	return []finding.Finding{f}
 }
+
+// singleWarningFinding builds and returns a single warning-level finding with
+// the common F-series defaults: CategoryBestPractice, FixStrategySuggest.
+// Used for migration deadlines (e.g. deprecated modules removed at v5) where
+// the finding is more urgent than an optional coaching hint.
+func singleWarningFinding(
+	ctx *analyzer.AnalysisContext,
+	ruleID, message, suggestion string,
+	pos token.Position,
+	confidence finding.Confidence,
+) []finding.Finding {
+	f, err := finding.NewBuilder(
+		finding.RuleName(ruleID), toolName,
+		message,
+		finding.SeverityWarning,
+		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+	).
+		WithCategory(finding.CategoryBestPractice).
+		WithConfidence(confidence).
+		WithFixStrategy(finding.FixStrategySuggest).
+		WithSuggestion(suggestion).
+		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
+		Build()
+	if err != nil {
+		return nil
+	}
+
+	return []finding.Finding{f}
+}

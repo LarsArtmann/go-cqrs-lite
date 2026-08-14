@@ -92,7 +92,7 @@ func (s *SQLCommandStore) commandInserter(
 		Table:   sqlpkg.TableCommands,
 		Columns: []string{
 			"id", "command_type", aggregateTypeCol, aggregateIDCol,
-			"payload", colMetadata, colReceivedAt,
+			colPayload, colMetadata, colReceivedAt,
 		},
 		EntityNoun:     "command",
 		MarshalErrCode: "storage.marshal_metadata",

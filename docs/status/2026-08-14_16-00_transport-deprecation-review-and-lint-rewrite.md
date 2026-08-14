@@ -75,17 +75,17 @@
 
 ## b) PARTIALLY DONE
 
-1. **Deprecation sweep of transport/** — code + docs done; `example/taskmanager` still consumes `transport/http` (the one internal consumer). Removal blocked on its migration.
-2. **Broker roundtrip story** — recipe + docs + detection done; actual Redis/NATS roundtrip tests still absent (`broker_integration_test.go` corpse stubs still skip unconditionally — flagged in TODO, not fixed).
+1. ~~**Deprecation sweep of transport/** — code + docs done; `example/taskmanager` still consumes `transport/http` (the one internal consumer). Removal blocked on its migration.~~ Resolved same day: taskmanager migrated to `metaengine.ServeSSE` (watcher on `task_views`, Last-Event-ID replay) with a new SSE integration test; `transport/http` dep dropped from the example's go.mod.
+2. ~~**Broker roundtrip story** — recipe + docs + detection done; actual Redis/NATS roundtrip tests still absent (`broker_integration_test.go` corpse stubs still skip unconditionally — flagged in TODO, not fixed).~~ Resolved same day: `TestRedisStreamRoundtrip` exercises EventBus + CommandBus over a real Redis Streams broker (watermill-redisstream plugin) — passes via `scripts/ephemeral-redis.sh`. NATS stub deleted: no maintained JetStream plugin exists (`watermill-nats` = deprecated NATS Streaming on a watermill-RC); documented in watermill/README.md.
 3. **Review report accuracy** — reports corrected for the broker finding; the six other REALLY BAD findings (broken id release chain, capability fraud, Dgraph bugs, ADR-0114 fiction, v4/v5 chimera, taskmanager replace/E005) remain open items, not fixes.
 
 ## c) NOT STARTED (from this session's own findings)
 
-1. taskmanager migration off `transport/http`.
-2. Lint rule coaching migration away from deprecated transport imports.
-3. `watermill/README.md` "canonical path" note.
+1. ~~taskmanager migration off `transport/http`.~~ Done: `metaengine.ServeSSE` on the task_views watcher.
+2. ~~Lint rule coaching migration away from deprecated transport imports.~~ Done: cqrs-lint F030 (warning/high) with per-module ADR-0127 migration suggestions.
+3. ~~`watermill/README.md` "canonical path" note.~~ Done: canonical-path banner + broker recipe + JetStream status.
 4. v5 migration guide (transport section feeds into it).
-5. Fixing the corpse broker tests.
+5. ~~Fixing the corpse broker tests.~~ Done: real Redis roundtrip passes; NATS corpse deleted (no maintained JetStream plugin — documented).
 6. Every fix in the review's Pareto list (release chain, capability fraud, Dgraph bugs, ADR-0114 reconciliation, E005 `system.RegisterCommand` awareness, v5 cut, bench consolidation, deprecation-story unification for codec/retry/idempotency/flightrecorder, junk cleanup).
 
 ## d) TOTALLY FUCKED UP
@@ -113,12 +113,12 @@
 5. Remove taskmanager's local `replace` (`go.mod:88`).
 
 **P1 — this session's direct follow-ups:**
-6. Migrate taskmanager off `cqrshttp.NewSSEBroker` → go-sse or `metaengine.ServeSSE`.
-7. New cqrs-lint rule: deprecated-module detected (transport/*, codec, retry) → migration coaching, low severity.
+6. ~~Migrate taskmanager off `cqrshttp.NewSSEBroker` → go-sse or `metaengine.ServeSSE`.~~ Done — `metaengine.ServeSSE` chosen (example already runs metaengine projections; zero new deps; free reconnection).
+7. ~~New cqrs-lint rule: deprecated-module detected (transport/*, codec, retry) → migration coaching, low severity.~~ Done for transport/* (F030, warning severity). Codec/retry deprecation coaching still open — folded into P3 item 27 (deprecation-story unification).
 8. Teach E005 `system.RegisterCommand`; regenerate `taskmanager_golden.txt` (kills 10 enshrined false positives).
-9. Audit F012 message body + `catalog_extra.go` for transport references.
-10. `watermill/README.md`: canonical-delivery-path note + broker recipe link.
-11. Replace corpse broker tests with real roundtrips (watermill-redisstream + watermill-nats as test-only deps, ephemeral scripts).
+9. ~~Audit F012 message body + `catalog_extra.go` for transport references.~~ Done: F012 clean (deriver-only); E009/F013 catalog descriptions aligned with ADR-0127.
+10. ~~`watermill/README.md`: canonical-delivery-path note + broker recipe link.~~ Done.
+11. ~~Replace corpse broker tests with real roundtrips (watermill-redisstream + watermill-nats as test-only deps, ephemeral scripts).~~ Done for Redis (watermill-redisstream, real broker, passing). watermill-nats deliberately NOT adopted: it is NATS Streaming (deprecated tech) built against watermill v1.2-rc — JetStream waits for a maintained adapter. `scripts/ephemeral-nats.sh` is ready for it.
 12. Delete `t/` junk dir, `result/` (16MB root-owned), `reports/coverage.out` (empty), `reports/jscpd-report.json`.
 13. Add metaengine-quickstart to flake `examplePaths` + CI (currently never builds).
 
@@ -167,9 +167,25 @@
 
 ## g) QUESTIONS (cannot determine myself)
 
-1. **taskmanager migration target:** when we take it off `transport/http`, do you want raw-event SSE via **go-sse directly**, read-model push via **`metaengine.ServeSSE`**, or broker fanout via **watermill**? (Changes the flagship example's architecture, not just its imports — your call.)
-2. **Transport removal timing:** delete `transport/*` only at the **v5 cut** as ADR-0127 says, or ship a final frozen **v4.x** release of them first so downstream users have a stable last-v4 target to pin? (Release strategy — affects tag sequencing, which is already fragile per the broken id chain.)
-3. **cqrs-htmx status:** it's now named in the sanctioned-paths table and lint detection, but it lives outside this repo and I haven't audited it. Still maintained and aligned, or should I drop it from the sanctioned list (leaving watermill + go-sse only)?
+1. ~~**taskmanager migration target:**~~ ANSWERED by close-out session: **`metaengine.ServeSSE`** — the example already runs metaengine projections, so the watcher path adds zero dependencies and ships reconnection/replay for free. Shipped with an integration test proving the watcher fires for auto-projections.
+2. ~~**Transport removal timing:**~~ ANSWERED: **both** — tag final v4.x patch releases of `transport/http` + `transport/grpc` (with the deprecation notices in them) so downstream has a stable last-v4 pin, THEN delete at the v5 cut. Encoded in TODO_LIST v5 Phase 8 item.
+3. ~~**cqrs-htmx status:**~~ ANSWERED: **stays on the sanctioned list** — verified actively maintained (active repo at `~/projects/cqrs-htmx` with tests/benchmarks/adminui; aligned with the ADR-0127 doctrine).
+
+---
+
+## Resolution (2026-08-14 close-out)
+
+All five known loose ends from this report were closed in a follow-up session
+the same day: taskmanager migration (metaengine.ServeSSE + integration test),
+F030 deprecated-transport lint rule (203 rules total), F012/catalog_extra
+audit, watermill README canonical-path update, and the broker corpse tests
+(real Redis Streams roundtrip passing; NATS stub deleted with documented
+reason). Bonus fixes surfaced by the close-out: C015 no longer false-positives
+on void-returning `Close()` methods (signature checked via type info), and the
+cqrs-lint `BuildContextWithTypes` test helper had a FileSet mismatch that
+silently zeroed all positions (fixed). Full cqrs-lint suite 17/17 GREEN;
+taskmanager suite GREEN; Redis roundtrip GREEN against a real broker. Change
+details in CHANGELOG `[Unreleased]`.
 
 ---
 

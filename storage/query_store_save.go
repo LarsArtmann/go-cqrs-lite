@@ -47,7 +47,7 @@ func (s *SQLQueryStore) queryInserter() *sqlpkg.Inserter[*query.PersistedQuery] 
 	return &sqlpkg.Inserter[*query.PersistedQuery]{
 		Dialect:        s.Dialect,
 		Table:          sqlpkg.TableQueries,
-		Columns:        []string{"id", "query_type", "payload", colMetadata, colReceivedAt},
+		Columns:        []string{"id", "query_type", colPayload, colMetadata, colReceivedAt},
 		EntityNoun:     "query",
 		MarshalErrCode: "storage.marshal_query_metadata",
 		InsertErrCode:  "storage.insert_query",

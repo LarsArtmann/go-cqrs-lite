@@ -677,7 +677,7 @@ func architectureRules() []RuleInfo {
 			Category:    "architecture",
 			Severity:    "info",
 			Confidence:  "low",
-			Description: "Command and query dispatchers present but no HTTP/gRPC transport",
+			Description: "Command and query dispatchers present but no delivery layer — watermill bridge, go-sse, or cqrs-htmx (ADR-0127)",
 			AutoFix:     false,
 		},
 		{
@@ -1047,7 +1047,7 @@ func adoptionRules() []RuleInfo {
 			Category:    "adoption",
 			Severity:    "info",
 			Confidence:  "low",
-			Description: "Manual HTTP handlers for dispatch but no transport module",
+			Description: "Manual HTTP handlers for dispatch but no delivery module (watermill bridge, go-sse, or cqrs-htmx)",
 			AutoFix:     false,
 		},
 		{
@@ -1192,6 +1192,15 @@ func adoptionRules() []RuleInfo {
 			Severity:    "info",
 			Confidence:  "medium",
 			Description: "Project has OTel but no tracing middleware — handlers are not instrumented",
+			AutoFix:     false,
+		},
+		{
+			ID:          "F030",
+			Name:        "deprecated-transport-import",
+			Category:    "adoption",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "Import of deprecated transport/* module — removed at v5; migrate to go-sse, watermill bridge, or cqrs-htmx (ADR-0127)",
 			AutoFix:     false,
 		},
 	}

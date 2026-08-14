@@ -294,10 +294,12 @@ and is **never** duplicated here.
       data. Pre-dates the WAL unification (verified at `6aaca6b0e`).
       _(Effort: M)_
 - [ ] **Delete `transport/http` + `transport/grpc` modules** (ADR-0127) —
-      delivery is `watermill/` + go-sse + cqrs-htmx. First migrate
-      `example/taskmanager` off `cqrshttp.NewSSEBroker` (go-sse or
-      `metaengine.ServeSSE`), drop the modules from `go.work`/flake
-      `testModules`/api-stability list, then delete.
+      delivery is `watermill/` + go-sse + cqrs-htmx. `example/taskmanager` is
+      migrated (metaengine.ServeSSE on the task_views watcher); cqrs-lint F030
+      coaches consumers off the deprecated imports. Remaining steps: tag final
+      v4.x patch releases of both modules (deprecation notices included), drop
+      the modules from `go.work`/flake `testModules`/api-stability list, then
+      delete at the v5 cut.
       _(Effort: M)_
 - [ ] **Write v5 migration guide** — document the path from v4 (stack presets,
       v1 tiers) to v5 (`system.System`, auto-projection). Before/after examples

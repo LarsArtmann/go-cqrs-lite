@@ -251,6 +251,8 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 			adoption.NewF027Detector(ctx),
 			adoption.NewF028Detector(ctx),
 			adoption.NewF029Detector(ctx),
+			// Deprecated-module migration coaching (ADR-0127)
+			adoption.NewF030Detector(ctx),
 		)
 	}
 

@@ -160,6 +160,8 @@ linters:
             - github.com/mattn/go-sqlite3
             - turso.tech/database/tursogo
             - github.com/ThreeDotsLabs/watermill
+            - github.com/ThreeDotsLabs/watermill-redisstream
+            - github.com/redis/go-redis/v9
             - github.com/samber/ro
             - github.com/samber/lo
             - github.com/fxamacker/cbor
@@ -893,10 +895,13 @@ linters:
           - wrapcheck
           - exhaustruct
           - nolintlint
-      # query/ — functional options trigger wrapcheck noise.
+      # query/ — functional options trigger exhaustruct/wrapcheck noise
+      # (same shape as command/; AsRecord leaves store-side fields zero).
       - path: query/
         linters:
           - wrapcheck
+          - exhaustruct
+          - nolintlint
       # retry/ — thin re-export wrapper around go-retry.
       - path: retry/
         linters:

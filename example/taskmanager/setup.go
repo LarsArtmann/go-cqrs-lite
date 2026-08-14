@@ -25,7 +25,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/signing/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
-	cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
 )
 
 const (
@@ -36,6 +35,8 @@ const (
 	shutdownTimeoutSecs  = 30
 	projectionSettleMs   = 100
 	primaryEngine        = "primary"
+	sseReplayCapacity    = 256
+	sseHeartbeatSecs     = 30
 )
 
 // Server holds the System and HTTP lifecycle. Infrastructure (event store,
@@ -50,7 +51,7 @@ type Server struct {
 	otelProvider *cqrsotel.Provider
 	signer       signing.SignerVerifier
 	httpServer   *http.Server
-	sseBroker    *cqrshttp.SSEBroker
+	taskWatcher  *metaengine.Watcher[TaskView]
 }
 
 // Config configures the Server.
@@ -176,13 +177,14 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		return nil, fmt.Errorf("setup: register deriver: %w", err)
 	}
 
-	// ── SSE broker: real-time event streaming over HTTP ──────────────────
-	broker, err := cqrshttp.NewSSEBroker(sys.Bus())
-	if err != nil {
-		return nil, fmt.Errorf("setup: SSE broker: %w", err)
+	// ── SSE: live read-model updates via metaengine watcher (ADR-0127) ──
+	// Streams TaskView changes over go-sse (metaengine.ServeSSE), with
+	// Last-Event-ID reconnection via the replay journal. Replaces the
+	// deprecated transport/http.SSEBroker raw-event stream.
+	if sys.MetaEngine() != nil {
+		srv.taskWatcher = metaengine.NewWatcher[TaskView](sys.MetaEngine(), "task_views")
+		srv.taskWatcher.WithReplay(sseReplayCapacity)
 	}
-
-	srv.sseBroker = broker
 
 	return srv, nil
 }
@@ -232,6 +234,10 @@ func (s *Server) Stop() error {
 	if s.otelProvider != nil {
 		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = s.otelProvider.Shutdown(ctx)
+	}
+
+	if s.taskWatcher != nil {
+		s.taskWatcher.Close()
 	}
 
 	return s.Sys.Close()

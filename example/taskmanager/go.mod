@@ -21,7 +21,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/transport/http/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-idempotency v0.1.2
 	go.opentelemetry.io/otel v1.45.0

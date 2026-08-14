@@ -16,6 +16,7 @@ type SQLCommandStore struct {
 const (
 	colReceivedAt = "received_at"
 	colMetadata   = "metadata"
+	colPayload    = "payload"
 )
 
 // NewSQLCommandStore creates a new PostgreSQL-backed command store.

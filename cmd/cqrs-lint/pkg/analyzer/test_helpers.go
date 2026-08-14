@@ -154,7 +154,14 @@ func BuildContextWithTypes(
 		t.Fatalf("packages.Load: %v", err)
 	}
 
+	// Use the FileSet the loaded packages were parsed into — a fresh empty
+	// FileSet resolves every position to zero, silently breaking
+	// position-based finding builders in tests.
 	fset := token.NewFileSet()
+	if len(pkgs) > 0 && pkgs[0].Fset != nil {
+		fset = pkgs[0].Fset
+	}
+
 	ctx := &AnalysisContext{
 		Fset:     fset,
 		Registry: NewCQRSRegistry(),

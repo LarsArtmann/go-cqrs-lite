@@ -26,6 +26,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`docs/design/transport-{nats,redis}.md`**: marked superseded (native
   modules never planned post-ADR-0025 correction; watermill bridge is the path).
 - **ADR-0025**: status → Superseded by ADR-0127.
+- **`example/taskmanager`**: migrated off `transport/http` — `/events` now
+  streams TaskView updates via `metaengine.ServeSSE` (go-sse watcher on the
+  `task_views` collection, Last-Event-ID replay). New integration test proves
+  the SSE roundtrip; `transport/http` dependency dropped from the example.
+- **`cmd/cqrs-lint` F030** (new, warning/high): flags any deprecated
+  `transport/*` import with its ADR-0127 migration path. Rule count 202 → 203.
+- **`cmd/cqrs-lint` C015**: no longer fires on `Close()` calls that return no
+  value (e.g. `metaengine.Watcher.Close`) — signature checked via type info.
+- **`watermill/`**: broker roundtrip is now a REAL test — `TestRedisStreamRoundtrip`
+  exercises EventBus + CommandBus over Redis Streams via the official
+  watermill-redisstream plugin (`bash scripts/ephemeral-redis.sh ...`). The
+  unconditional-skip NATS corpse stub is deleted: no maintained JetStream
+  plugin exists (`watermill-nats` is deprecated NATS Streaming on a
+  watermill-RC). README documents the canonical broker path + JetStream status.
 
 ### Changed — WAL unification: metadata generic, store transforms, shared WAL cores — 2026-08-14
 

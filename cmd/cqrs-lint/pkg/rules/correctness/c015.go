@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
+	"go/types"
 	"slices"
 
 	"github.com/larsartmann/go-finding"
@@ -57,7 +58,9 @@ func NewC015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					if exprStmt, ok := n.(*ast.ExprStmt); ok {
 						if call, ok := exprStmt.X.(*ast.CallExpr); ok && isCloseCall(call) {
-							reportUncheckedClose(ctx, &findings, call)
+							if closeReturnsValue(gf, call) {
+								reportUncheckedClose(ctx, &findings, call)
+							}
 						}
 
 						return true
@@ -172,6 +175,34 @@ func isCloseCall(call *ast.CallExpr) bool {
 	}
 
 	return sel.Sel.Name == "Close"
+}
+
+// closeReturnsValue reports whether the callee of a `.Close()` call returns
+// at least one value. Void Close() methods (e.g. metaengine.Watcher.Close)
+// have no error to discard — firing there is a false positive. Without type
+// information the call is assumed to return an error (classic io.Closer).
+func closeReturnsValue(gf *analyzer.GoFile, call *ast.CallExpr) bool {
+	if gf.Pkg == nil || gf.Pkg.TypesInfo == nil {
+		return true
+	}
+
+	sel, ok := call.Fun.(*ast.SelectorExpr)
+	if !ok {
+		return true
+	}
+
+	obj := gf.Pkg.TypesInfo.ObjectOf(sel.Sel)
+	fn, ok := obj.(*types.Func)
+	if !ok || fn == nil {
+		return true
+	}
+
+	sig, ok := fn.Type().(*types.Signature)
+	if !ok {
+		return true
+	}
+
+	return sig.Results().Len() > 0
 }
 
 func reportUncheckedClose(

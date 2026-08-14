@@ -13,7 +13,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
 )
 
 const (
@@ -34,12 +33,22 @@ func (s *Server) routes() *http.ServeMux {
 	mux.HandleFunc("DELETE /api/tasks/", s.handleTaskSubresource)
 	mux.HandleFunc("GET /api/stats", s.handleGetTaskStats)
 
-	// SSE: real-time event stream for clients
-	if s.sseBroker != nil {
-		mux.Handle("GET /events", cqrshttp.SSEHandler(s.sseBroker))
+	// SSE: live TaskView updates from the metaengine read model
+	if s.taskWatcher != nil {
+		mux.HandleFunc("GET /events", s.handleEvents)
 	}
 
 	return mux
+}
+
+// handleEvents streams TaskView updates as Server-Sent Events. Clients
+// reconnect with the Last-Event-ID header to replay missed updates. Built on
+// go-sse via metaengine.ServeSSE (ADR-0127); replaces the deprecated
+// transport/http.SSEBroker.
+func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
+	_ = metaengine.ServeSSE(w, r, s.taskWatcher,
+		metaengine.WithSSEHeartbeat(sseHeartbeatSecs*time.Second),
+	)
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
