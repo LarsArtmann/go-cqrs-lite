@@ -39,7 +39,7 @@ require (
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260812204455-68fa937c71be // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect
-	github.com/charmbracelet/x/exp/charmtone v0.0.0-20260812204851-3e0d13df57b2 // indirect
+	github.com/charmbracelet/x/exp/charmtone v0.0.0-20260813141921-f091cedeaf78 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
@@ -90,7 +90,7 @@ require (
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/larsartmann/go-atomic-write v0.4.1 // indirect
+	github.com/larsartmann/go-atomic-write v0.5.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.3.0 // indirect
@@ -128,7 +128,7 @@ require (
 	github.com/larsartmann/go-output/serialization v0.37.0 // indirect
 	github.com/larsartmann/go-output/tree v0.37.0 // indirect
 	github.com/larsartmann/go-sse v0.5.0 // indirect
-	github.com/larsartmann/samber-do-auditlog v0.9.1 // indirect
+	github.com/larsartmann/samber-do-auditlog v0.9.2 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
@@ -178,7 +178,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.45.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/exp v0.0.0-20260812173653-3d80eb74bc5b // indirect
+	golang.org/x/exp v0.0.0-20260813180055-c1d0aacb2297 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/term v0.45.0 // indirect

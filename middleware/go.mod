@@ -26,7 +26,7 @@ require (
 )
 
 require (
-	github.com/bits-and-blooms/bitset v1.24.6 // indirect
+	github.com/bits-and-blooms/bitset v1.25.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect

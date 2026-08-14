@@ -40,11 +40,11 @@
     "go-atomic-write": {
       "flake": false,
       "locked": {
-        "lastModified": 1785332197,
-        "narHash": "sha256-1jaQ3f6BfBsTRbtSiaW5GUs8YZHkUuv6WqM68GAOGgA=",
+        "lastModified": 1786709595,
+        "narHash": "sha256-D8Yc3/7LkH5IWhJ4JGvwj399wHjGgHmIpQKaNjD8KRc=",
         "owner": "LarsArtmann",
         "repo": "go-atomic-write",
-        "rev": "2232124a11af26457e0a5be21591c25551d2b609",
+        "rev": "01b072f01f45ab1af365039e225129893b56009c",
         "type": "github"
       },
       "original": {
@@ -175,11 +175,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1786384358,
-        "narHash": "sha256-RzPPiWeUtuvymnpuEWsdtzli5w4kjZs49FqEs3/1u+I=",
+        "lastModified": 1786599213,
+        "narHash": "sha256-yNJd40f11EzXBjSByCB7IPpeFFAdeoSKKM67dGkfFoU=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "2fcb964de67fcf60b43471c55d5d99e61a9ccb5a",
+        "rev": "0e251e24a4f24e036a084b6b4b2d2491af4167f4",
         "type": "github"
       },
       "original": {
@@ -210,11 +210,11 @@
     "samber-do-auditlog": {
       "flake": false,
       "locked": {
-        "lastModified": 1786587519,
-        "narHash": "sha256-Rtg0s8Ldkh6phAWev+029u2B3cYDu9a7VrIxG9saTN8=",
+        "lastModified": 1786590622,
+        "narHash": "sha256-op0QSYlzHJGjsJdDybGQJTjqksH/tXycIPSj+GOOKXk=",
         "owner": "LarsArtmann",
         "repo": "samber-do-auditlog",
-        "rev": "33bda487a2e350738685db000e3ea3244942c4d3",
+        "rev": "f8ea2f433cd2bd8b8bed42ab0e57929fb347571d",
         "type": "github"
       },
       "original": {

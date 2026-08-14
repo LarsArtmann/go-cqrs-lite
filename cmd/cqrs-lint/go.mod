@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-output/delimited v0.37.0
 	github.com/larsartmann/go-output/table v0.37.0
 	github.com/spf13/cobra v1.10.2
-	golang.org/x/tools v0.48.0
+	golang.org/x/tools v0.49.0
 )
 
 require (
@@ -23,7 +23,7 @@ require (
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260812204455-68fa937c71be // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect
-	github.com/charmbracelet/x/exp/charmtone v0.0.0-20260812204851-3e0d13df57b2 // indirect
+	github.com/charmbracelet/x/exp/charmtone v0.0.0-20260813141921-f091cedeaf78 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
@@ -42,7 +42,7 @@ require (
 	github.com/knadh/koanf/parsers/toml v0.1.0 // indirect
 	github.com/knadh/koanf/parsers/yaml v1.1.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
-	github.com/larsartmann/go-atomic-write v0.4.1 // indirect
+	github.com/larsartmann/go-atomic-write v0.5.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
@@ -55,7 +55,7 @@ require (
 	github.com/larsartmann/go-output/plantuml v0.37.0 // indirect
 	github.com/larsartmann/go-output/serialization v0.37.0 // indirect
 	github.com/larsartmann/go-output/tree v0.37.0 // indirect
-	github.com/larsartmann/samber-do-auditlog v0.9.1 // indirect
+	github.com/larsartmann/samber-do-auditlog v0.9.2 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.27 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
@@ -76,7 +76,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260811152304-ee035b5b010f // indirect
-	golang.org/x/mod v0.39.0 // indirect
+	golang.org/x/mod v0.40.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/term v0.45.0 // indirect

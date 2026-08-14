@@ -29,7 +29,7 @@ require (
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.2 // indirect
-	github.com/bits-and-blooms/bitset v1.24.6 // indirect
+	github.com/bits-and-blooms/bitset v1.25.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/failsafe-go/failsafe-go v0.9.6 // indirect
