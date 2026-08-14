@@ -12,7 +12,7 @@
 //
 // To migrate, change your import from:
 //
-//	import "github.com/larsartmann/go-cqrs-lite/codec/v4"
+//	import "github.com/larsartmann/go-codec"
 //
 // to:
 //

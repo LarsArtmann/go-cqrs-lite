@@ -5,7 +5,7 @@ import (
 )
 
 // This file re-exports all public symbols from github.com/larsartmann/go-codec
-// so that existing imports of github.com/larsartmann/go-cqrs-lite/codec/v4
+// so that existing imports of github.com/larsartmann/go-codec
 // continue to work. New code should import go-codec directly.
 
 // --- Types ---
