@@ -160,7 +160,8 @@ linters:
             - github.com/mattn/go-sqlite3
             - turso.tech/database/tursogo
             - github.com/ThreeDotsLabs/watermill
-            - github.com/ThreeDotsLabs/watermill-redisstream
+            # watermill-redisstream is covered by the watermill prefix above;
+            # listing it explicitly breaks depguard's prefix resolution.
             - github.com/redis/go-redis/v9
             - github.com/samber/ro
             - github.com/samber/lo

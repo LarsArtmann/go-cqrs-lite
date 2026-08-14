@@ -3,6 +3,7 @@ package system_test
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -139,8 +140,10 @@ func TestSystem_ResetProjection_NoHost(t *testing.T) {
 }
 
 // recordingCheckpointStore is a minimal CheckpointStore that records calls
-// for test assertions.
+// for test assertions. Safe for concurrent use: Save is called from
+// projectionhost worker goroutines.
 type recordingCheckpointStore struct {
+	mu      sync.Mutex
 	saved   map[string]event.Checkpoint
 	saveCnt int
 }
@@ -150,6 +153,9 @@ func (s *recordingCheckpointStore) Save(
 	projection string,
 	cp event.Checkpoint,
 ) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if s.saved == nil {
 		s.saved = make(map[string]event.Checkpoint)
 	}
@@ -164,10 +170,29 @@ func (s *recordingCheckpointStore) Load(
 	_ context.Context,
 	projection string,
 ) (event.Checkpoint, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	return s.saved[projection], nil
 }
 
 func (s *recordingCheckpointStore) Close() error { return nil }
+
+// count returns the number of Save calls (race-safe for assertions).
+func (s *recordingCheckpointStore) count() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.saveCnt
+}
+
+// checkpoint returns the last saved checkpoint for a projection (race-safe).
+func (s *recordingCheckpointStore) checkpoint(projection string) event.Checkpoint {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.saved[projection]
+}
 
 // taskProjectionQuery returns a metaengine query declaration for a task view
 // projection. Used by multiple hardening tests.
@@ -285,7 +310,7 @@ func TestSystem_CustomCheckpointStore(t *testing.T) {
 	}
 
 	// The custom checkpoint store must have been used.
-	if cpStore.saveCnt == 0 {
+	if cpStore.count() == 0 {
 		t.Fatal("expected recordingCheckpointStore.saveCnt > 0, got 0 — custom store was not used")
 	}
 }
@@ -413,7 +438,7 @@ func TestSystem_ResetProjection_Positive(t *testing.T) {
 	}
 
 	// Record the checkpoint count before reset.
-	saveCntBeforeReset := cpStore.saveCnt
+	saveCntBeforeReset := cpStore.count()
 	if saveCntBeforeReset == 0 {
 		t.Fatal("expected checkpoint saves before reset, got 0")
 	}
@@ -429,12 +454,12 @@ func TestSystem_ResetProjection_Positive(t *testing.T) {
 	}
 
 	// The reset should have saved a zero-value checkpoint, incrementing saveCnt.
-	if cpStore.saveCnt <= saveCntBeforeReset {
-		t.Fatalf("expected saveCnt > %d after reset, got %d", saveCntBeforeReset, cpStore.saveCnt)
+	if cpStore.count() <= saveCntBeforeReset {
+		t.Fatalf("expected saveCnt > %d after reset, got %d", saveCntBeforeReset, cpStore.count())
 	}
 
 	// The last saved checkpoint for "projections" should be the zero value (cleared).
-	lastCp := cpStore.saved["projections"]
+	lastCp := cpStore.checkpoint("projections")
 	if !lastCp.IsZero() {
 		t.Fatalf("expected zero-value checkpoint after reset, got %v", lastCp)
 	}
@@ -652,7 +677,7 @@ func TestSystem_ResetProjection_RestartAndReplay(t *testing.T) {
 	}
 
 	// Checkpoint should be zero-value after reset.
-	lastCp := cpStore.saved["projections"]
+	lastCp := cpStore.checkpoint("projections")
 	if !lastCp.IsZero() {
 		t.Fatalf("expected zero-value checkpoint after reset, got %v", lastCp)
 	}

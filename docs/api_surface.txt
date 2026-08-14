@@ -3866,6 +3866,7 @@ system/method LoadFromTimestamp
 system/method LoadFromVersion
 system/method LoadFromVersion
 system/method LoadQueries
+system/method LoadStream
 system/method LoadToTimestamp
 system/method LoadToTimestamp
 system/method LoadToTimestamp
