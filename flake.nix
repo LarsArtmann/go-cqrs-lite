@@ -85,13 +85,32 @@
       # public and served by proxy.golang.org during the vendor phase.
       version = self.rev or self.dirtyRev or "dev";
 
+      # Go toolchain for the whole flake. nixpkgs' go_1_26 currently ships
+      # 1.26.5 while the workspace (go.work) and sibling repos (go-codec et al)
+      # require >= 1.26.6; GOTOOLCHAIN=local forbids auto-download, so the patch
+      # version is pinned here until nixpkgs catches up. When bumping: update
+      # version, fetch the new src hash via
+      #   nix store prefetch-file --hash-type sha256 https://go.dev/dl/go<ver>.src.tar.gz
+      # and mirror the bump in go.work + .go-version.
+      goToolchain =
+        pkgs:
+        pkgs.go_1_26.overrideAttrs (
+          finalAttrs: _prevAttrs: {
+            version = "1.26.6";
+            src = pkgs.fetchurl {
+              url = "https://go.dev/dl/go${finalAttrs.version}.src.tar.gz";
+              hash = "sha256-oHIcVMaIkBRI13rZs+x+p8R0cwdV/4kTgukuy5P/LLE=";
+            };
+          }
+        );
+
       mkCqrsLintSource =
         pkgs:
         let
           inherit (pkgs) lib;
           mkPreparedSourceFn = import (go-nix-helpers + "/mkPreparedSource.nix") {
             inherit pkgs lib;
-            goPkg = pkgs.go_1_26;
+            goPkg = goToolchain pkgs;
           };
         in
         mkPreparedSourceFn {
@@ -155,7 +174,7 @@
         }:
         let
           inherit (pkgs) lib;
-          goPkg = pkgs.go_1_26;
+          goPkg = goToolchain pkgs;
 
           goTags = [
             "goexperiment.jsonv2"
@@ -643,6 +662,9 @@
               pkgs.gosec
               pkgs.go-arch-lint
               pkgs.govulncheck
+              pkgs.go-licenses
+              pkgs.dprint
+              pkgs.vulnix
               pkgs.gitleaks
               pkgs.gcc
               pkgs.redis
@@ -747,7 +769,7 @@
           # Built from cmd/cqrs-lint/ which has its own go.mod (standalone module).
           # Only go-finding is replaced via mkPreparedSource (private repo);
           # all other LarsArtmann deps are public and served by proxy.golang.org.
-          packages.cqrs-lint = (pkgs.buildGoModule.override { go = pkgs.go_1_26; }) {
+          packages.cqrs-lint = (pkgs.buildGoModule.override { go = goPkg; }) {
             pname = "cqrs-lint";
             inherit version;
 
