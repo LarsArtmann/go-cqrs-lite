@@ -65,9 +65,21 @@ and is **never** duplicated here.
 > StreamLog on Dgraph, native graph on SQLite/Turso (iterative BFS), degraded
       rule with latency estimates, engine test parity all shipped 2026-08-11.
 
-- [ ] **Fix Dgraph `JournalReadFrom` seq offset mismatch** — position-based
-      resumption is off-by-one for Dgraph `StreamLogBackend`.
-      _(Effort: S)_
+- [x] **Fix Dgraph `JournalReadFrom` seq offset mismatch** — DONE 2026-08-15:
+      `JournalReadFrom` now skips `afterSeq` leading entries (positional
+      semantics) instead of `gt(seq)` filtering, because Dgraph seqs are sparse
+      UnixNano timestamps and the system adapters derive `afterSeq` from entry
+      indexes. Exact-count local test + `enginetest.RunStreamLogBackendTest`
+      parity wired in. Verified against live Dgraph.
+- [ ] **Seq-carrying journal reads (deeper fix)** — `EventAdapter.lookupSeq`
+      caches `index+1` positions as seqs and `ReadFrom` resumes with
+      `afterSeq+i+1` arithmetic. This is only exactly right for engines with
+      dense per-collection seqs; sqlite uses a GLOBAL autoincrement (gaps
+      within a collection under cross-collection interleaving → duplicate
+      re-delivery after resume). Add a seq-carrying read API
+      (`JournalReadAllWithSeq` or `StreamLogEntry{Seq, Value}`) and make
+      adapters resume on true engine seqs.
+      _(Effort: M)_
 - [ ] **Brute-force vector search on Pebble/bbolt** — Vector ADT currently
       memory-only. Add degraded O(N) brute-force for LSM engines.
       _(Effort: M)_

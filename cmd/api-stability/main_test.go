@@ -475,6 +475,59 @@ func TestExceptionsAreMinimal(t *testing.T) {
 	}
 }
 
+// TestLayerScriptKeysMapToModules asserts that every module key referenced by
+// scripts/check-module-layers.sh (LAYER keys, DEP_BUDGET keys, EXCEPTIONS keys
+// and dep values, TEST_INFRA_MODULES entries) points at a directory containing
+// a go.mod. The script silently skips keys whose go.mod is missing, so a
+// deleted module quietly drops out of layer and budget enforcement. This test
+// catches that drift.
+func TestLayerScriptKeysMapToModules(t *testing.T) {
+	t.Parallel()
+
+	projectRoot := filepath.Join(".", "..", "..")
+	scriptBytes, err := os.ReadFile(filepath.Join(projectRoot, "scripts", "check-module-layers.sh"))
+	if err != nil {
+		t.Fatalf("read layer check script: %v", err)
+	}
+
+	keyRe := regexp.MustCompile(`^(LAYER|DEP_BUDGET|EXCEPTIONS)\[([^\]]+)\]`)
+	excValRe := regexp.MustCompile(`^EXCEPTIONS\[[^\]]+\]="([^"]+)"`)
+	infraRe := regexp.MustCompile(`^TEST_INFRA_MODULES="([^"]+)"`)
+
+	keys := make(map[string]struct{})
+	for line := range strings.SplitSeq(string(scriptBytes), "\n") {
+		if strings.HasPrefix(strings.TrimSpace(line), "#") {
+			continue
+		}
+		if m := keyRe.FindStringSubmatch(line); m != nil {
+			keys[strings.ReplaceAll(m[2], " / ", "/")] = struct{}{}
+		}
+		if m := excValRe.FindStringSubmatch(line); m != nil {
+			for dep := range strings.FieldsSeq(m[1]) {
+				keys[dep] = struct{}{}
+			}
+		}
+		if m := infraRe.FindStringSubmatch(line); m != nil {
+			for mod := range strings.FieldsSeq(m[1]) {
+				keys[mod] = struct{}{}
+			}
+		}
+	}
+	if len(keys) == 0 {
+		t.Fatal("failed to parse any module keys from check-module-layers.sh")
+	}
+
+	for key := range keys {
+		if _, err := os.Stat(filepath.Join(projectRoot, key, "go.mod")); os.IsNotExist(err) {
+			t.Errorf("check-module-layers.sh references %q but %s/go.mod does not exist; "+
+				"remove the stale entry (module deleted, or it is a package inside a "+
+				"module and needs no LAYER/DEP_BUDGET entry)", key, key)
+		} else if err != nil {
+			t.Fatalf("stat %s/go.mod: %v", key, err)
+		}
+	}
+}
+
 // TestGoArchLintConfigsAreValid verifies that every .go-arch-lint.yml in the
 // repo is well-formed: contains version/components/deps sections, and every
 // component's `in:` path resolves to a real directory. This prevents stale

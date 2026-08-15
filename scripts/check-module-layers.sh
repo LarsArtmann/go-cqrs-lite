@@ -55,10 +55,9 @@ LAYER[metaengine/projectionadapter]=5
 LAYER[metaengine/bboltengine]=5
 LAYER[metaengine/mysqlengine]=5
 LAYER[metaengine/tursoengine]=5
-LAYER[metaengine/keycodec]=5
-LAYER[metaengine/adttest]=7
-LAYER[metaengine/enginetest]=7
-LAYER[metaengine/projectionadapter]=5
+# NOTE: metaengine/{adttest,enginetest,keycodec} are PACKAGES inside the
+# metaengine module (import path metaengine/v4/<name>), not separate modules —
+# they have no go.mod and therefore no LAYER entries.
 LAYER[metaengine/irohengine]=5
 LAYER[metaengine/irohengine/loopback]=5
 LAYER[metaengine/irohengine/quic]=5

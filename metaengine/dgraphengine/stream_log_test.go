@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	enginetest "github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
 
 // TestStreamLog_AppendRead verifies StreamAppend + StreamRead round-trip on
@@ -91,7 +92,9 @@ func TestStreamLog_JournalReadAll(t *testing.T) {
 	}
 }
 
-// TestStreamLog_JournalReadFrom verifies position-based resumption.
+// TestStreamLog_JournalReadFrom verifies position-based resumption:
+// afterSeq skips exactly that many leading journal entries (the same
+// semantics every other engine provides via dense 1-based seqs).
 func TestStreamLog_JournalReadFrom(t *testing.T) {
 	eng := mustNewDgraphEngine(t)
 
@@ -108,22 +111,26 @@ func TestStreamLog_JournalReadFrom(t *testing.T) {
 		t.Fatalf("JournalReadAll: %v", err)
 	}
 
-	if len(all) < 3 {
-		t.Fatalf("expected >= 3 entries, got %d", len(all))
+	if len(all) != 3 {
+		t.Fatalf("expected 3 entries, got %d", len(all))
 	}
 
-	// Read from after the first entry — should skip it.
+	// Skip exactly one entry — sparse UnixNano seqs must not leak through.
 	fromFirst, err := sl.JournalReadFrom(ctx, col, 1, 0)
 	if err != nil {
 		t.Fatalf("JournalReadFrom(1, 0): %v", err)
 	}
 
-	if len(fromFirst) >= len(all) {
-		t.Errorf("JournalReadFrom(1,0) returned %d entries, expected fewer than %d",
-			len(fromFirst), len(all))
+	if len(fromFirst) != 2 {
+		t.Errorf("JournalReadFrom(1,0) returned %d entries, want 2 (skip exactly one)",
+			len(fromFirst))
 	}
 
-	// Limit check.
+	if got, _ := fromFirst[0].(string); got != "v1" {
+		t.Errorf("JournalReadFrom(1,0)[0] = %v, want %q (append order)", fromFirst[0], "v1")
+	}
+
+	// Limit check: first entry only.
 	limited, err := sl.JournalReadFrom(ctx, col, 0, 1)
 	if err != nil {
 		t.Fatalf("JournalReadFrom(0, 1): %v", err)
@@ -132,6 +139,28 @@ func TestStreamLog_JournalReadFrom(t *testing.T) {
 	if len(limited) != 1 {
 		t.Errorf("JournalReadFrom(0,1) returned %d, expected 1", len(limited))
 	}
+
+	if got, _ := limited[0].(string); got != "v0" {
+		t.Errorf("JournalReadFrom(0,1)[0] = %v, want %q", limited[0], "v0")
+	}
+
+	// Resuming past the end returns empty, not an error.
+	past, err := sl.JournalReadFrom(ctx, col, 3, 0)
+	if err != nil {
+		t.Fatalf("JournalReadFrom(3, 0): %v", err)
+	}
+
+	if len(past) != 0 {
+		t.Errorf("JournalReadFrom(3,0) returned %d entries, want 0", len(past))
+	}
+}
+
+// TestStreamLog_HarnessParity runs the shared cross-engine contract suite:
+// JournalReadFrom positional semantics must match every other engine.
+// Uses a unique collection — the Dgraph server persists across tests, and
+// the default "events" collection is also written by the ADT matrix.
+func TestStreamLog_HarnessParity(t *testing.T) {
+	enginetest.RunStreamLogBackendTestIn(t, mustNewDgraphEngine(t), "events_parity")
 }
 
 // TestStreamLog_AppendExpected verifies optimistic concurrency control.

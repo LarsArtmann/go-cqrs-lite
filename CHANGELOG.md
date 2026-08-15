@@ -6,6 +6,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — Dgraph JournalReadFrom re-delivered the entire journal on resume — 2026-08-15
+
+- **`metaengine/dgraphengine`**: `JournalReadFrom` filtered with `gt(seq, afterSeq)`, but
+  Dgraph journal seqs are sparse UnixNano timestamps while callers pass position-based
+  resumption cursors (`EventAdapter.lookupSeq` derives them from entry indexes) — every
+  resume re-delivered the whole collection. It now skips `afterSeq` leading entries,
+  matching the positional semantics every dense-seq engine already provides. Exact-count
+  tests added; `enginetest.RunStreamLogBackendTest` parity wired in (Dgraph previously the
+  only StreamLog engine not running the shared contract suite). Verified 24/24 against a
+  live ephemeral Dgraph.
+- **`metaengine/enginetest`**: new `RunStreamLogBackendTestIn(t, eng, col)` variant for
+  engines whose storage persists across tests on a shared server (Dgraph) — the default
+  wrapper keeps the old signature for isolated-database engines.
+
+### Changed — shim modules deleted: codec/retry/idempotency/flightrecorder go fully external — 2026-08-15
+
+> **ADR-0128** (follows ADR-0064/ADR-0065). The four deprecated re-export shim
+> modules are deleted from the monorepo. Consumers import the external repos
+> directly; published `*/v4` tags keep building via the module proxy. Same
+> commit also lands Dgraph counter observability and idempotency cache tuning.
+
+- **Deleted modules**: `codec/` (→ `github.com/larsartmann/go-codec` v0.1.0),
+  `retry/` (→ `go-retry` v0.3.1), `idempotency/` parent (→ `go-idempotency`
+  v0.1.2), `flightrecorder/` (→ `go-flightrecorder` v0.2.0).
+  `idempotency/{kvstore,sqlstore}` REMAIN at their existing paths (consumer
+  stability — decided, do not revisit).
+- **Internal consumers migrated**: `decider`, `middleware`, `projectionhost`,
+  `stack` now depend on `go-flightrecorder` directly; `middleware`,
+  `idempotency/{kvstore,sqlstore}` on `go-idempotency`.
+- **Registry sweep**: all four removed from `go.work`, flake `testModules` /
+  `wasmMods`, the api-stability modules slice, cqrs-lint's catalog
+  (ImportHints + E001 tier-0 list), `check-module-layers.sh`, and
+  `.golangci.yml` path exclusions. `docs/api_surface.txt` regenerated.
+- **`metaengine/dgraphengine`**: counter writes now record per-counter batch
+  sizes, write latencies, and conflict counts in a structured telemetry sink
+  (`counter_test.go` covers happy/conflict/empty-batch paths).
+- **`idempotency/{kvstore,sqlstore}`**: opt-in in-process dedup cache size
+  knob (default unchanged); property + coverage tests exercise default and
+  configured-size eviction paths. `stack/` + `projectionhost/` forward the
+  option through.
+- **`scripts/check-module-layers.sh`**: LAYER/DEP_BUDGET keys fixed — they
+  were silently mis-spaced (`storage / memory`), which disabled budget
+  enforcement for every multi-segment module path.
+
 ### Deprecated — transport/* modules: watermill/ + go-sse are the delivery paths — 2026-08-14
 
 > **ADR-0127** (supersedes ADR-0025). `transport/http` and `transport/grpc`

@@ -79,7 +79,29 @@ func RunPushdownTest(
 //
 // The engine must already implement StreamLogBackend. The caller is responsible
 // for closing the engine (typically via t.Cleanup).
+// RunStreamLogBackendTest exercises the standard StreamLogBackend contract
+// against the default "events" collection. Engines backed by an isolated
+// per-test database can use this directly. Engines that share one server
+// across tests (e.g. Dgraph) must use RunStreamLogBackendTestIn with a
+// unique collection to avoid cross-test data pollution.
 func RunStreamLogBackendTest(t *testing.T, eng metaengine.Engine) {
+	t.Helper()
+
+	RunStreamLogBackendTestIn(t, eng, "events")
+}
+
+// RunStreamLogBackendTestIn is RunStreamLogBackendTest with a caller-chosen
+// collection, for engines whose storage outlives a single test.
+//
+//  1. StreamAppend to two streams — s1 (3 items) and s2 (1 item)
+//  2. StreamRead returns the 3 items for s1
+//  3. StreamVersion returns 3 for s1
+//  4. JournalReadAll returns 4 total entries
+//  5. JournalReadFrom(2, 0) returns 2 entries
+//
+// The engine must already implement StreamLogBackend. The caller is responsible
+// for closing the engine (typically via t.Cleanup).
+func RunStreamLogBackendTestIn(t *testing.T, eng metaengine.Engine, col string) {
 	t.Helper()
 
 	slb, ok := eng.(metaengine.StreamLogBackend)
@@ -90,16 +112,16 @@ func RunStreamLogBackendTest(t *testing.T, eng metaengine.Engine) {
 	ctx := context.Background()
 
 	// Append to two streams.
-	if err := slb.StreamAppend(ctx, "events", "s1", []any{"e1", "e2", "e3"}); err != nil {
+	if err := slb.StreamAppend(ctx, col, "s1", []any{"e1", "e2", "e3"}); err != nil {
 		t.Fatalf("StreamAppend s1: %v", err)
 	}
 
-	if err := slb.StreamAppend(ctx, "events", "s2", []any{"e4"}); err != nil {
+	if err := slb.StreamAppend(ctx, col, "s2", []any{"e4"}); err != nil {
 		t.Fatalf("StreamAppend s2: %v", err)
 	}
 
 	// Verify StreamRead.
-	values, err := slb.StreamRead(ctx, "events", "s1")
+	values, err := slb.StreamRead(ctx, col, "s1")
 	if err != nil {
 		t.Fatalf("StreamRead s1: %v", err)
 	}
@@ -109,7 +131,7 @@ func RunStreamLogBackendTest(t *testing.T, eng metaengine.Engine) {
 	}
 
 	// Verify StreamVersion.
-	ver, err := slb.StreamVersion(ctx, "events", "s1")
+	ver, err := slb.StreamVersion(ctx, col, "s1")
 	if err != nil {
 		t.Fatalf("StreamVersion s1: %v", err)
 	}
@@ -119,7 +141,7 @@ func RunStreamLogBackendTest(t *testing.T, eng metaengine.Engine) {
 	}
 
 	// Verify JournalReadAll.
-	journal, err := slb.JournalReadAll(ctx, "events")
+	journal, err := slb.JournalReadAll(ctx, col)
 	if err != nil {
 		t.Fatalf("JournalReadAll: %v", err)
 	}
@@ -129,7 +151,7 @@ func RunStreamLogBackendTest(t *testing.T, eng metaengine.Engine) {
 	}
 
 	// Verify JournalReadFrom.
-	from2, err := slb.JournalReadFrom(ctx, "events", 2, 0)
+	from2, err := slb.JournalReadFrom(ctx, col, 2, 0)
 	if err != nil {
 		t.Fatalf("JournalReadFrom: %v", err)
 	}

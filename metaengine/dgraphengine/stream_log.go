@@ -18,8 +18,9 @@ import (
 // This mirrors the LogBackend approach but adds per-stream partitioning.
 //
 // The global sequence (cqrs.stream_log_seq) uses UnixNano timestamps for
-// JournalReadAll/JournalReadFrom ordering. Per-stream ordering is also by
-// the same timestamp since RAFT consensus serializes commits.
+// JournalReadAll ordering. JournalReadFrom does NOT filter on raw seq values:
+// its afterSeq parameter is a position-based resumption cursor (see the
+// method comment), so it skips entries by index instead.
 
 func (e *dgraphEngine) StreamAppend(
 	ctx context.Context,
@@ -168,17 +169,32 @@ func (e *dgraphEngine) JournalReadFrom(
 	afterSeq int64,
 	limit int,
 ) ([]any, error) {
-	firstClause := ""
-	if limit > 0 {
-		firstClause = fmt.Sprintf(", first: %d", limit)
+	// afterSeq is a POSITION-based resumption cursor, not a raw seq value:
+	// the system adapters (EventAdapter.lookupSeq / ReadFrom) derive it from
+	// entry indexes over JournalReadAll, so it is only a valid seq on engines
+	// with dense per-collection sequences. Dgraph seqs are sparse UnixNano
+	// timestamps, so a gt(seq) filter would re-deliver the entire journal on
+	// every resume. Skip afterSeq leading entries instead, matching the
+	// dense-seq engines (memory, pebble, sqlite) where position == seq.
+	if afterSeq < 0 {
+		afterSeq = 0
 	}
 
-	// afterSeq is int64 — %d emits only digits, injection-safe by construction.
+	firstClause := ""
+	if limit > 0 {
+		// Fetch afterSeq+limit entries server-side, then drop the first
+		// afterSeq client-side: one round-trip, no reliance on DQL offset
+		// semantics.
+		firstClause = fmt.Sprintf(", first: %d", afterSeq+int64(limit))
+	}
+
+	// afterSeq and limit are non-negative int64s — %d emits only digits,
+	// injection-safe by construction.
 	q := fmt.Sprintf(`query sl($col: string) {
-		entries(func: eq(cqrs.stream_log_collection, $col), orderasc: cqrs.stream_log_seq%s) @filter(gt(cqrs.stream_log_seq, %d)) {
+		entries(func: eq(cqrs.stream_log_collection, $col), orderasc: cqrs.stream_log_seq%s) {
 			cqrs.stream_log_value
 		}
-	}`, firstClause, afterSeq)
+	}`, firstClause)
 
 	resp, err := e.client.NewReadOnlyTxn().QueryWithVars(ctx, q,
 		map[string]string{"$col": col})
@@ -196,8 +212,14 @@ func (e *dgraphEngine) JournalReadFrom(
 		return nil, fmt.Errorf("dgraphengine.JournalReadFrom: unmarshal: %w", err)
 	}
 
-	out := make([]any, 0, len(result.Entries))
-	for _, e := range result.Entries {
+	if afterSeq >= int64(len(result.Entries)) {
+		return []any{}, nil
+	}
+
+	entries := result.Entries[afterSeq:]
+
+	out := make([]any, 0, len(entries))
+	for _, e := range entries {
 		out = append(out, metaengine.DecodeStreamValue(e.Value))
 	}
 
