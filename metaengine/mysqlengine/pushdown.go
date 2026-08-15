@@ -59,15 +59,19 @@ func (e *mysqlEngine) PushdownMapScan(
 		}
 
 		fmt.Fprintf(&b, ` AND %s %s %s`,
-			e.jsonCompareExpr(sort.Column), op, e.jsonParamPlaceholder())
+			e.jsonCursorExpr(sort.Column, cursor), op, e.jsonParamPlaceholder())
 		args = append(args, e.jsonFilterParam(cursor))
 	}
 
 	if sort != nil {
-		fmt.Fprintf(&b, ` ORDER BY %s`, e.jsonFieldExpr(sort.Column))
-		if sort.Desc {
-			b.WriteString(` DESC`)
+		exprs := e.jsonSortExprs(sort.Column)
+		for i := range exprs {
+			if sort.Desc {
+				exprs[i] += ` DESC`
+			}
 		}
+
+		fmt.Fprintf(&b, ` ORDER BY %s`, strings.Join(exprs, ", "))
 	}
 
 	if limit > 0 {

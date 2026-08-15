@@ -335,6 +335,10 @@ func TestTagContentMatchesChangelog(t *testing.T) {
 	}
 }
 
+func normalizeLayerKey(key string) string {
+	return strings.ReplaceAll(strings.Trim(key, `"`), " / ", "/")
+}
+
 // TestExceptionsAreMinimal verifies that every EXCEPTIONS entry in
 // scripts/check-module-layers.sh is actually necessary. An exception is dead
 // in two cases:
@@ -375,7 +379,7 @@ func TestExceptionsAreMinimal(t *testing.T) {
 			// ReplaceAll is defensive: it keeps parsing correct even if someone
 			// reintroduces spaced keys (LAYER[storage / memory]), which the shell
 			// coverage check would reject anyway.
-			normalizedKey := strings.ReplaceAll(m[1], " / ", "/")
+			normalizedKey := normalizeLayerKey(m[1])
 			layers[normalizedKey] = n
 		}
 	}
@@ -400,7 +404,7 @@ func TestExceptionsAreMinimal(t *testing.T) {
 		if m == nil {
 			continue
 		}
-		module := m[1]
+		module := normalizeLayerKey(m[1])
 		modLayer, ok := layers[module]
 		if !ok {
 			t.Errorf("EXCEPTIONS[%s] references module not in LAYER map", module)
@@ -500,7 +504,7 @@ func TestLayerScriptKeysMapToModules(t *testing.T) {
 			continue
 		}
 		if m := keyRe.FindStringSubmatch(line); m != nil {
-			keys[strings.ReplaceAll(m[2], " / ", "/")] = struct{}{}
+			keys[normalizeLayerKey(m[2])] = struct{}{}
 		}
 		if m := excValRe.FindStringSubmatch(line); m != nil {
 			for dep := range strings.FieldsSeq(m[1]) {
@@ -553,7 +557,7 @@ func TestEveryModuleHasLayerEntry(t *testing.T) {
 			continue
 		}
 		if m := layerRe.FindStringSubmatch(line); m != nil {
-			layerKeys[strings.ReplaceAll(m[1], " / ", "/")] = struct{}{}
+			layerKeys[normalizeLayerKey(m[1])] = struct{}{}
 		}
 		if m := infraRe.FindStringSubmatch(line); m != nil {
 			for mod := range strings.FieldsSeq(m[1]) {

@@ -1,6 +1,7 @@
 package mysqlengine
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -118,5 +119,66 @@ func TestMariaDBFilterParamScalarBinding(t *testing.T) {
 
 	if p := e.jsonFilterParam(map[string]any{"a": 1.0}); p != `{"a":1}` {
 		t.Errorf("object param = %v, want JSON text", p)
+	}
+}
+
+// TestMariaDBNumericSafeSortRendering verifies the MariaDB dialect renders a
+// numeric-safe ORDER BY (DECIMAL cast primary key + text tiebreak) and a
+// cursor predicate matching the primary key, so multi-digit numbers sort
+// numerically instead of lexically ("10" before "2").
+func TestMariaDBNumericSafeSortRendering(t *testing.T) {
+	t.Parallel()
+
+	e := &mysqlEngine{dialect: dialectMariaDB}
+
+	exprs := e.jsonSortExprs("priority")
+	want := []string{
+		`CAST(JSON_EXTRACT(value, '$.priority') AS DECIMAL(65,10))`,
+		`JSON_UNQUOTE(JSON_EXTRACT(value, '$.priority'))`,
+	}
+	if !slices.Equal(exprs, want) {
+		t.Errorf("jsonSortExprs = %v, want %v", exprs, want)
+	}
+
+	numCursor := `CAST(JSON_EXTRACT(value, '$.priority') AS DECIMAL(65,10))`
+	if got := e.jsonCursorExpr("priority", float64(10)); got != numCursor {
+		t.Errorf("float jsonCursorExpr = %q, want %q", got, numCursor)
+	}
+
+	if got := e.jsonCursorExpr("priority", int64(10)); got != numCursor {
+		t.Errorf("int jsonCursorExpr = %q, want %q", got, numCursor)
+	}
+
+	textCursor := `JSON_UNQUOTE(JSON_EXTRACT(value, '$.status'))`
+	if got := e.jsonCursorExpr("status", "open"); got != textCursor {
+		t.Errorf("text jsonCursorExpr = %q, want %q", got, textCursor)
+	}
+
+	sql, _ := e.ExplainScanQuery(t.Context(), "c", metaengine.ExplainOptions{
+		Sort:   &metaengine.SortSpec{Column: "priority"},
+		Cursor: float64(10),
+	})
+
+	const wantOrderBy = `ORDER BY CAST(JSON_EXTRACT(value, '$.priority') AS DECIMAL(65,10)), ` +
+		`JSON_UNQUOTE(JSON_EXTRACT(value, '$.priority'))`
+	if !strings.Contains(sql, wantOrderBy) {
+		t.Errorf("MariaDB SQL %q missing dual sort key %q", sql, wantOrderBy)
+	}
+}
+
+// TestMySQLDialectSingleKeySort verifies MySQL keeps the single JSON-typed
+// sort key: JSON values compare numbers natively there, no cast is needed.
+func TestMySQLDialectSingleKeySort(t *testing.T) {
+	t.Parallel()
+
+	e := &mysqlEngine{dialect: dialectMySQL}
+
+	exprs := e.jsonSortExprs("priority")
+	if len(exprs) != 1 || exprs[0] != `value->'$.priority'` {
+		t.Errorf("jsonSortExprs = %v, want [value->'$.priority']", exprs)
+	}
+
+	if got := e.jsonCursorExpr("priority", float64(10)); got != `value->'$.priority'` {
+		t.Errorf("jsonCursorExpr = %q, want value->'$.priority'", got)
 	}
 }

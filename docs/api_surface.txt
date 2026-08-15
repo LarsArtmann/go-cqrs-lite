@@ -3480,6 +3480,7 @@ storage/sql/const TableQueries
 storage/sql/const TableSnapshots
 storage/sql/func AppendLimit
 storage/sql/func BuildWhereClause
+storage/sql/func BuildWhereClauseChecked
 storage/sql/func CloseRows
 storage/sql/func CommitTx
 storage/sql/func DeleteByAggregate
@@ -3513,6 +3514,8 @@ storage/sql/func StartSaveSpan
 storage/sql/func StartStreamSpan
 storage/sql/func Tracer
 storage/sql/func UnmarshalEventMetadata
+storage/sql/func ValidateIdentifier
+storage/sql/func ValidateOperator
 storage/sql/interface Dialect
 storage/sql/interface Executor
 storage/sql/method CheckClosed

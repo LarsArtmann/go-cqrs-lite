@@ -17,11 +17,18 @@ import (
 // When q.Conditions is empty, all records are counted. The OrderBy, Limit, and
 // Offset fields of q are ignored — only Conditions are used.
 func (s *SQLViewStore[V, K]) Count(ctx context.Context, q kv.ViewQuery) (int64, error) {
+	if err := s.validateConditions(q.Conditions); err != nil {
+		return 0, err
+	}
+
 	var b strings.Builder
 
 	fmt.Fprintf(&b, "SELECT COUNT(*) FROM %s", s.mapper.Table)
 
-	whereClause, args := sqlpkg.BuildWhereClause(q.Conditions, s.Dialect.Placeholder)
+	whereClause, args, err := sqlpkg.BuildWhereClauseChecked(q.Conditions, s.Dialect.Placeholder)
+	if err != nil {
+		return 0, errorfamily.WrapRejection(err, "storage.view.conditions", "validate count conditions")
+	}
 
 	if whereClause != "" {
 		fmt.Fprintf(&b, " WHERE %s", whereClause)
@@ -39,7 +46,7 @@ func (s *SQLViewStore[V, K]) Count(ctx context.Context, q kv.ViewQuery) (int64, 
 
 	var count int64
 
-	err := s.executor().QueryRowContext(ctx, b.String(), args...).Scan(&count)
+	err = s.executor().QueryRowContext(ctx, b.String(), args...).Scan(&count)
 	if err != nil {
 		return 0, errorfamily.WrapTransient(err, "storage.view.count", "count records")
 	}

@@ -252,15 +252,39 @@ func sameSetAny(actual []any, expected []string) bool {
 
 // sameLogTail checks that an []any slice (from LogTail) matches the expected
 // []string in ORDER — logs are append-only, so order is meaningful.
+// sameLogTail compares a replicated log tail against the expected values as
+// an unordered multiset: replicated log transports guarantee eventual
+// delivery, not cross-op ordering (per-op streams apply concurrently on the
+// receiver, so two appends can land in either order under load). Order-
+// sensitive consumers need a sequenced log, which these engines do not
+// promise.
 func sameLogTail(actual []any, expected []string) bool {
 	if len(actual) != len(expected) {
 		return false
 	}
-	for i, v := range actual {
+
+	remaining := make([]string, len(expected))
+	copy(remaining, expected)
+
+	for _, v := range actual {
 		s, ok := v.(string)
-		if !ok || s != expected[i] {
+		if !ok {
+			return false
+		}
+
+		matched := false
+		for i, want := range remaining {
+			if s == want {
+				remaining = append(remaining[:i], remaining[i+1:]...)
+				matched = true
+				break
+			}
+		}
+
+		if !matched {
 			return false
 		}
 	}
+
 	return true
 }

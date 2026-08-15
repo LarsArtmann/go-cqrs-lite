@@ -16,6 +16,10 @@ import (
 // in one query (O(1) round trips) instead of the degraded multimap BFS
 // fallback (O(N * degree^depth)). The composite index on (collection,
 // from_node) makes each expansion step an index lookup.
+//
+// No capability probe is needed (unlike mysqlengine/sqliteengine): Postgres
+// has shipped WITH RECURSIVE since 8.4 (2009), so every server a modern
+// driver can connect to supports it.
 
 // pgGraphNeighborsCTE walks the depth-limited neighborhood in one query.
 // UNION deduplicates (node, depth) pairs; SELECT DISTINCT collapses a node

@@ -32,6 +32,10 @@ func (s *SQLViewStore[V, K]) Query(ctx context.Context, q kv.ViewQuery) ([]*V, e
 	}
 	orderClauses = normaliseOrderClauses(orderClauses)
 
+	if err := s.validateQuery(q, orderClauses); err != nil {
+		return nil, err
+	}
+
 	// Accumulate WHERE fragments and their args, tracking a single sequential
 	// placeholder index across all sources (conditions, raw, keyset). This is
 	// required for Postgres-style $N placeholders; SQLite ? placeholders are
@@ -42,10 +46,12 @@ func (s *SQLViewStore[V, K]) Query(ctx context.Context, q kv.ViewQuery) ([]*V, e
 	args := []any{}
 	paramIdx := 1
 
-	if condClause, condArgs := sqlpkg.BuildWhereClause(
+	if condClause, condArgs, err := sqlpkg.BuildWhereClauseChecked(
 		q.Conditions,
 		s.Dialect.Placeholder,
-	); condClause != "" {
+	); err != nil {
+		return nil, errorfamily.WrapRejection(err, "storage.view.conditions", "validate query conditions")
+	} else if condClause != "" {
 		whereFragments = append(whereFragments, condClause)
 		args = append(args, condArgs...)
 		paramIdx += len(condArgs)
@@ -76,7 +82,7 @@ func (s *SQLViewStore[V, K]) Query(ctx context.Context, q kv.ViewQuery) ([]*V, e
 		fmt.Fprintf(&b, " WHERE %s", strings.Join(whereFragments, " AND "))
 	}
 
-	fmt.Fprintf(&b, " ORDER BY %s", orderClauseSQL(orderClauses))
+	fmt.Fprintf(&b, " ORDER BY %s", orderClauseSQL(orderClauses, s.Dialect.QuoteIdentifier))
 
 	// Pagination. Keyset pagination ignores Offset (the cursor is the
 	// position); Limit caps the page size. When no keyset is set, fall back
@@ -106,6 +112,56 @@ func (s *SQLViewStore[V, K]) Query(ctx context.Context, q kv.ViewQuery) ([]*V, e
 	return s.scanRows(rows)
 }
 
+// validateQuery rejects column references that are not declared mapper
+// columns (fail-closed against request-derived names reaching SQL) and
+// operators outside the supported set. It covers filter conditions, ORDER BY
+// clauses, and keyset cursor columns.
+func (s *SQLViewStore[V, K]) validateQuery(q kv.ViewQuery, order []kv.OrderClause) error {
+	if err := s.validateConditions(q.Conditions); err != nil {
+		return err
+	}
+
+	for i, clause := range order {
+		if _, ok := s.allowedCols[clause.Column]; !ok {
+			return s.rejectUnknownColumn(clause.Column, fmt.Sprintf("order clause %d", i))
+		}
+	}
+
+	if q.Keyset == nil {
+		return nil
+	}
+
+	for i, col := range q.Keyset.Columns {
+		if _, ok := s.allowedCols[col]; !ok {
+			return s.rejectUnknownColumn(col, fmt.Sprintf("keyset column %d", i))
+		}
+	}
+
+	return nil
+}
+
+// validateConditions rejects conditions whose column is not a declared mapper
+// column or whose operator is not supported.
+func (s *SQLViewStore[V, K]) validateConditions(conditions []kv.Condition) error {
+	for i, cond := range conditions {
+		if _, ok := s.allowedCols[cond.Column]; !ok {
+			return s.rejectUnknownColumn(cond.Column, fmt.Sprintf("condition %d", i))
+		}
+
+		if !sqlpkg.ValidateOperator(cond.Op) {
+			return errorfamily.NewRejection("storage.view.unsupported_operator",
+				fmt.Sprintf("condition %d: unsupported operator %q", i, cond.Op))
+		}
+	}
+
+	return nil
+}
+
+func (s *SQLViewStore[V, K]) rejectUnknownColumn(column, source string) error {
+	return errorfamily.NewRejection("storage.view.unknown_column",
+		fmt.Sprintf("%s: column %q is not declared in the view mapper", source, column))
+}
+
 // normaliseOrderClauses returns a copy of clauses with empty Column names
 // replaced by the key column. It does not mutate the input.
 func normaliseOrderClauses(clauses []kv.OrderClause) []kv.OrderClause {
@@ -133,15 +189,17 @@ func defaultKeysetColumns(order []kv.OrderClause) []string {
 	return cols
 }
 
-// orderClauseSQL renders clauses as "col1 DESC, col2 ASC".
-func orderClauseSQL(order []kv.OrderClause) string {
+// orderClauseSQL renders clauses as "col1 DESC, col2 ASC". Column names are
+// passed through quote so dialects that require delimiters (MySQL backticks)
+// emit them; callers must have validated the names already.
+func orderClauseSQL(order []kv.OrderClause, quote func(string) string) string {
 	parts := make([]string, len(order))
 	for i, c := range order {
 		dir := "ASC"
 		if c.Desc {
 			dir = "DESC"
 		}
-		parts[i] = c.Column + " " + dir
+		parts[i] = quote(c.Column) + " " + dir
 	}
 	return strings.Join(parts, ", ")
 }

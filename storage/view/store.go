@@ -107,6 +107,12 @@ type SQLViewStore[V any, K fmt.Stringer] struct {
 	selectCols string // comma-separated column names for SELECT
 	colCount   int    // number of data columns (excluding key)
 
+	// allowedCols is the closed set of column names queries may reference
+	// (mapper columns, the key column, and the optional tombstone column).
+	// Query/Count validate ORDER BY, filter, and keyset columns against it so
+	// request-derived names can never inject SQL.
+	allowedCols map[string]struct{}
+
 	// exec optionally scopes data operations to a caller-managed transaction
 	// (see [SQLViewStore.InTx]). When nil, operations run against the
 	// connection pool ([DBHandle.DB], auto-commit). Schema migration methods
@@ -195,10 +201,11 @@ func newViewStore[V any, K fmt.Stringer](
 	}
 
 	s := &SQLViewStore[V, K]{
-		DBHandle:   handle,
-		mapper:     mapper,
-		selectCols: buildSelectCols(mapper),
-		colCount:   len(mapper.Columns),
+		DBHandle:    handle,
+		mapper:      mapper,
+		selectCols:  buildSelectCols(mapper),
+		colCount:    len(mapper.Columns),
+		allowedCols: buildAllowedColumns(mapper),
 	}
 
 	if cfg.autoMigrate {
@@ -260,6 +267,24 @@ func validateMapper[V any](m ViewMapper[V]) error {
 	}
 
 	return nil
+}
+
+// buildAllowedColumns returns the closed set of column names a query may
+// reference: every mapper column, the key column, and the optional tombstone
+// column.
+func buildAllowedColumns[V any](mapper ViewMapper[V]) map[string]struct{} {
+	cols := make(map[string]struct{}, len(mapper.Columns)+2)
+	cols[keyColumnName] = struct{}{}
+
+	if mapper.TombstoneColumn != "" {
+		cols[mapper.TombstoneColumn] = struct{}{}
+	}
+
+	for _, col := range mapper.Columns {
+		cols[col.Name] = struct{}{}
+	}
+
+	return cols
 }
 
 func buildSelectCols[V any](mapper ViewMapper[V]) string {

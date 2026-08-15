@@ -99,6 +99,82 @@ func TestMySQLPushdownMapScan_EmptyResult(t *testing.T) {
 	g.Expect(results.Items).To(gomega.BeEmpty())
 }
 
+// TestMySQLPushdownMapScan_MultiDigitSortPagination sorts multi-digit
+// numbers through full keyset pagination. On MariaDB a bare JSON_EXTRACT
+// ORDER BY text-sorts numbers ("10" < "2"), so this catches a numeric-safety
+// regression the single-digit data in the tests above cannot.
+func TestMySQLPushdownMapScan_MultiDigitSortPagination(t *testing.T) {
+	t.Parallel()
+
+	eng := mustNewMySQLEngine(t)
+
+	ctx := context.Background()
+	mb := eng.(metaengine.MapBackend)
+	ps := eng.(metaengine.PushdownScan)
+
+	items := []struct {
+		key   string
+		value map[string]any
+	}{
+		{"k1", map[string]any{"priority": float64(2), "title": "zeta"}},
+		{"k2", map[string]any{"priority": float64(10), "title": "alpha"}},
+		{"k3", map[string]any{"priority": float64(9), "title": "kilo"}},
+		{"k4", map[string]any{"priority": float64(100), "title": "mike"}},
+		{"k5", map[string]any{"priority": float64(3), "title": "delta"}},
+	}
+
+	for _, item := range items {
+		g := gomega.NewWithT(t)
+		g.Expect(mb.MapSet(ctx, "multidigit_sort", item.key, item.value)).To(gomega.Succeed())
+	}
+
+	g := gomega.NewWithT(t)
+
+	var got []float64
+
+	var cursor any
+
+	const pageSize = 2
+
+	for range 5 {
+		results, err := ps.PushdownMapScan(ctx, "multidigit_sort", nil,
+			&metaengine.SortSpec{Column: "priority"}, cursor, pageSize)
+		g.Expect(err).NotTo(gomega.HaveOccurred())
+
+		page := extractFloatField(results.Items, "priority")
+		got = append(got, page...)
+
+		if !results.HasMore {
+			break
+		}
+
+		cursor = page[len(page)-1]
+	}
+
+	g.Expect(got).To(gomega.Equal([]float64{2, 3, 9, 10, 100}))
+
+	// Text fields must keep lexical order through the same sort path
+	// (MariaDB's DECIMAL cast ties at 0 for text; the tiebreak decides).
+	textResults, err := ps.PushdownMapScan(ctx, "multidigit_sort", nil,
+		&metaengine.SortSpec{Column: "title"}, nil, 0)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	titles := extractStringField(textResults.Items, "title")
+	g.Expect(titles).To(gomega.Equal([]string{"alpha", "delta", "kilo", "mike", "zeta"}))
+}
+
+func extractStringField(items []any, field string) []string {
+	var vals []string
+	for _, item := range items {
+		if m, ok := item.(map[string]any); ok {
+			if v, ok := m[field].(string); ok {
+				vals = append(vals, v)
+			}
+		}
+	}
+	return vals
+}
+
 func extractFloatField(items []any, field string) []float64 {
 	var vals []float64
 	for _, item := range items {

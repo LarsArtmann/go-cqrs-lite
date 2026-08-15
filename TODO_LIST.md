@@ -202,8 +202,13 @@ and is **never** duplicated here.
       shared fixed collections ("events"/"s1") on one server — stream-log
       tests now use unique collections (`RunStreamLogBackendTestIn`, new
       `RunAtomicAppenderTestIn`). Verified live against MySQL 8.4 AND MariaDB
-      11.8 (docker), 3x stable each. Known MariaDB limitation: JSON-path
-      ORDER BY is text-ordered (multi-digit numbers sort lexicographically).
+      11.8 (docker), 3x stable each. The former MariaDB ORDER BY text-sort
+      limitation is FIXED (2026-08-15 follow-up): sorts render a dual key
+      (`CAST(JSON_EXTRACT(...) AS DECIMAL(65,10))` + text tiebreak) and
+      cursor predicates match the cursor type — multi-digit pagination
+      regression-tested on both servers. mysqlengine also CTE-probes at
+      construction; MySQL 5.7 / MariaDB <10.2 fall back to iterative BFS
+      over `meta_graph_edges`.
 - [x] **Brute-force vector search on Pebble/bbolt** — DONE 2026-08-15:
       `VectorInsert`/`VectorSearch` on both engines via `keycodec.VectorKey`
       prefix (`vec\x00<col>\x00<id>`, JSON-encoded float32 dims) + exported

@@ -6,6 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — metaengine ADT roadmap: MariaDB dialect, LSM vector search, native graph dispatch — 2026-08-15
+
+- **mysqlengine MariaDB compatibility**: the server dialect is detected once
+  at construction (`SELECT VERSION()` → `Dialect()`); MariaDB gets
+  `JSON_EXTRACT`/`JSON_UNQUOTE` filter forms with natively-bound scalar
+  parameters instead of the MySQL-8-only `->` operator and
+  `CAST(? AS JSON)` (both rejected by MariaDB with Error 1064 — this is what
+  the nix integration envs actually run, via `pkgs.mariadb`).
+  `ApplyLayout` no-ops on MariaDB (no functional indexes). Verified against
+  live MySQL 8.4 and MariaDB 11.8 servers.
+- **Numeric-safe ORDER BY on MariaDB**: `JSON_EXTRACT` returns LONGTEXT, so a
+  bare sort text-sorted numbers ("10" before "2"). Sorts now render a dual
+  key — `CAST(JSON_EXTRACT(...) AS DECIMAL(65,10))` primary, unquoted text
+  tiebreak — and keyset cursors compare through the same expression as
+  their cursor type (numeric → DECIMAL cast, text → unquoted form), keeping
+  pagination consistent with the sort order. MySQL keeps the single
+  JSON-typed `->` key. Multi-digit pagination regression-tested on both
+  servers.
+- **Vector search on LSM engines** (`pebbleengine`, `bboltengine`):
+  `VectorInsert`/`VectorSearch` via shared `keycodec.VectorKey` layouts —
+  prefix scan + `metaengine.VectorDistance` + `TopKNearest`, with metric
+  parity against the in-memory vector index (cosine/dot/euclidean) and
+  shared helpers `metaengine.DecodeVectorJSON`/`TopKNearest`.
+- **Native graph dispatch on Postgres/MySQL**: dedicated `meta_graph_edges`
+  table (composite PK + `(collection, from_node)` index);
+  `GraphNeighbors` resolves the whole depth-limited neighborhood in one
+  `WITH RECURSIVE` query (cycle-safe, deduplicated, start node excluded).
+  mysqlengine probes CTE support at construction — MySQL 5.7 / MariaDB
+  <10.2 fall back to iterative BFS over the same index instead of failing
+  graph reads. pgengine needs no probe (Postgres ships recursive CTEs
+  since 8.4). Profile upgraded from degraded `ComplexityON` to
+  `ComplexityODegree`.
+- **SQLite deep-traversal optimization**: `sqliteengine.GraphNeighbors` uses
+  a recursive CTE (probed at construction) instead of one query per node
+  per level; drivers without `WITH RECURSIVE` keep the iterative BFS.
+
 ### Added — metaengine layout roles: engine roles, shadow replication, promote/cutover, workload traces, shared-collection boundaries — 2026-08-15
 
 - **Engine roles** (`AddEngine(ctx, eng, WithEngineRole(metaengine.RoleBackup))`):

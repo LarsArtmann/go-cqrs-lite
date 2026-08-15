@@ -83,6 +83,59 @@ func (e *mysqlEngine) jsonParamPlaceholder() string {
 	return "CAST(? AS JSON)"
 }
 
+// jsonSortExprs renders the ORDER BY expressions for a sort field.
+//
+//	MySQL:   value->'$.field' (JSON-typed: numbers compare numerically)
+//	MariaDB: CAST(JSON_EXTRACT(value, '$.field') AS DECIMAL(65,10)),
+//	         JSON_UNQUOTE(JSON_EXTRACT(value, '$.field'))
+//
+// MariaDB's JSON_EXTRACT returns LONGTEXT, so a bare sort text-sorts numbers
+// ("10" < "2"). The dual key sorts numbers numerically while preserving
+// lexical order for text fields: non-numeric text CASTs to 0 with a warning
+// and the text tiebreak decides. Verified against MariaDB 11.8 and MySQL 8.4.
+func (e *mysqlEngine) jsonSortExprs(field string) []string {
+	if !e.isMariaDB() {
+		return []string{e.jsonFieldExpr(field)}
+	}
+
+	escaped := escapeJSONPath(field)
+
+	return []string{
+		fmt.Sprintf("CAST(JSON_EXTRACT(value, '$.%s') AS DECIMAL(65,10))", escaped),
+		fmt.Sprintf("JSON_UNQUOTE(JSON_EXTRACT(value, '$.%s'))", escaped),
+	}
+}
+
+// jsonCursorExpr renders the keyset-pagination predicate expression for a
+// cursor against a sort field. It must match the primary ORDER BY semantics:
+// on MariaDB a numeric cursor compares through the DECIMAL cast (numeric
+// order), any other cursor compares the unquoted text form (lexical order,
+// which is total because the numeric cast ties at 0 for text values).
+func (e *mysqlEngine) jsonCursorExpr(field string, cursor any) string {
+	if !e.isMariaDB() {
+		return e.jsonFieldExpr(field)
+	}
+
+	if isNativeNumber(cursor) {
+		return fmt.Sprintf(
+			"CAST(JSON_EXTRACT(value, '$.%s') AS DECIMAL(65,10))", escapeJSONPath(field))
+	}
+
+	return fmt.Sprintf("JSON_UNQUOTE(JSON_EXTRACT(value, '$.%s'))", escapeJSONPath(field))
+}
+
+// isNativeNumber reports whether v is a Go numeric type (excluding bool).
+func isNativeNumber(v any) bool {
+	switch v.(type) {
+	case int, int8, int16, int32, int64,
+		uint, uint8, uint16, uint32, uint64,
+		float32, float64:
+		return true
+	default:
+		return false
+	}
+}
+
 // jsonFilterParam converts a Go filter value to the parameter bound against
 // jsonCompareExpr. The MySQL dialect always binds the JSON-encoded text (the
 // CAST re-parses it). MariaDB binds scalars natively so the text comparison

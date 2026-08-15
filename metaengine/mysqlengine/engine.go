@@ -47,6 +47,7 @@ type mysqlEngine struct {
 
 	db             *sql.DB
 	dialect        string // "mysql" or "mariadb" (detected via SELECT VERSION())
+	graphCTE       bool   // server supports WITH RECURSIVE (probed at init)
 	mu             sync.Mutex
 	activeTx       atomic.Pointer[sql.Tx] // non-nil inside RunInTx
 	done           bool
@@ -124,6 +125,7 @@ func (e *mysqlEngine) init() error {
 	}
 
 	e.dialect = detectDialect(e.db)
+	e.graphCTE = probeRecursiveCTE(e.db)
 
 	return nil
 }

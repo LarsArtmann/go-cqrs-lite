@@ -35,15 +35,19 @@ func (e *mysqlEngine) ExplainScanQuery(
 		}
 
 		fmt.Fprintf(&b, ` AND %s %s %s`,
-			e.jsonCompareExpr(opts.Sort.Column), op, e.jsonParamPlaceholder())
+			e.jsonCursorExpr(opts.Sort.Column, opts.Cursor), op, e.jsonParamPlaceholder())
 		args = append(args, e.jsonFilterParam(opts.Cursor))
 	}
 
 	if opts.Sort != nil {
-		fmt.Fprintf(&b, ` ORDER BY %s`, e.jsonFieldExpr(opts.Sort.Column))
-		if opts.Sort.Desc {
-			b.WriteString(` DESC`)
+		exprs := e.jsonSortExprs(opts.Sort.Column)
+		for i := range exprs {
+			if opts.Sort.Desc {
+				exprs[i] += ` DESC`
+			}
 		}
+
+		fmt.Fprintf(&b, ` ORDER BY %s`, strings.Join(exprs, ", "))
 	}
 
 	if opts.Limit > 0 {

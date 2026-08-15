@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
 	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -70,7 +71,12 @@ func (s *RelationalStore) Count(
 	table string,
 	conditions []kv.Condition,
 ) (int64, error) {
-	if err := s.requireTable(table); err != nil {
+	tbl, err := s.requireTable(table)
+	if err != nil {
+		return 0, err
+	}
+
+	if err := tbl.validateConditions(conditions); err != nil {
 		return 0, err
 	}
 
@@ -78,10 +84,14 @@ func (s *RelationalStore) Count(
 
 	fmt.Fprintf(&b, "SELECT COUNT(*) FROM %s", table)
 
-	whereClause, args := sqlpkg.BuildWhereClause(
+	whereClause, args, err := sqlpkg.BuildWhereClauseChecked(
 		formatConditions(conditions, s.dialect),
 		s.dialect.Placeholder,
 	)
+	if err != nil {
+		return 0, errorfamily.WrapRejection(err, "relational.conditions",
+			"count "+table+": validate conditions")
+	}
 
 	if whereClause != "" {
 		fmt.Fprintf(&b, " WHERE %s", whereClause)
@@ -134,7 +144,8 @@ func (s *RelationalStore) Query(
 	q kv.ViewQuery,
 	scanFn func(scan func(dest ...any) error) error,
 ) error {
-	if err := s.requireTable(table); err != nil {
+	tbl, err := s.requireTable(table)
+	if err != nil {
 		return err
 	}
 
@@ -145,16 +156,31 @@ func (s *RelationalStore) Query(
 		)
 	}
 
+	for i, col := range columns {
+		if err := tbl.requireColumn(col,
+			fmt.Sprintf("query %s: select column %d", table, i)); err != nil {
+			return err
+		}
+	}
+
+	if err := tbl.validateConditions(q.Conditions); err != nil {
+		return err
+	}
+
 	colList := strings.Join(columns, ", ")
 
 	var b strings.Builder
 
 	fmt.Fprintf(&b, "SELECT %s FROM %s", colList, table)
 
-	whereClause, args := sqlpkg.BuildWhereClause(
+	whereClause, args, err := sqlpkg.BuildWhereClauseChecked(
 		formatConditions(q.Conditions, s.dialect),
 		s.dialect.Placeholder,
 	)
+	if err != nil {
+		return errorfamily.WrapRejection(err, "relational.conditions",
+			"query "+table+": validate conditions")
+	}
 
 	if whereClause != "" {
 		fmt.Fprintf(&b, " WHERE %s", whereClause)
@@ -163,6 +189,8 @@ func (s *RelationalStore) Query(
 	orderCol := q.OrderBy
 	if orderCol == "" {
 		orderCol = s.defaultOrder(table)
+	} else if err := tbl.requireColumn(orderCol, "query "+table+": order by"); err != nil {
+		return err
 	}
 
 	dir := "ASC"
@@ -170,7 +198,7 @@ func (s *RelationalStore) Query(
 		dir = "DESC"
 	}
 
-	fmt.Fprintf(&b, " ORDER BY %s %s", orderCol, dir)
+	fmt.Fprintf(&b, " ORDER BY %s %s", s.dialect.QuoteIdentifier(orderCol), dir)
 
 	paramIdx := len(args) + 1
 
@@ -223,12 +251,51 @@ func (s *RelationalStore) defaultOrder(table string) string {
 	return "rowid"
 }
 
-func (s *RelationalStore) requireTable(table string) error {
-	if s.schema.Table(table) == nil {
-		return errorfamily.NewRejection(
+func (s *RelationalStore) requireTable(table string) (*RelationalTable, error) {
+	t := s.schema.Table(table)
+	if t == nil {
+		return nil, errorfamily.NewRejection(
 			"relational.unknown_table",
 			fmt.Sprintf("query: table %q not declared in schema", table),
 		)
+	}
+
+	return t, nil
+}
+
+// requireColumn rejects a column reference that is not declared on the table
+// (primary-key columns and the SQLite rowid alias are always allowed for
+// ordering). Fail-closed: request-derived column names must never interpolate
+// into SQL.
+func (t RelationalTable) requireColumn(column, source string) error {
+	if slices.ContainsFunc(t.Columns, func(c RelationalColumn) bool { return c.Name == column }) {
+		return nil
+	}
+
+	if slices.Contains(t.PrimaryKey, column) {
+		return nil
+	}
+
+	if column == "rowid" {
+		return nil
+	}
+
+	return errorfamily.NewRejection("relational.unknown_column",
+		fmt.Sprintf("%s: column %q is not declared on table %q", source, column, t.Name))
+}
+
+// validateConditions rejects conditions that reference undeclared columns or
+// use unsupported operators.
+func (t RelationalTable) validateConditions(conditions []kv.Condition) error {
+	for i, cond := range conditions {
+		if err := t.requireColumn(cond.Column, fmt.Sprintf("condition %d", i)); err != nil {
+			return err
+		}
+
+		if !sqlpkg.ValidateOperator(cond.Op) {
+			return errorfamily.NewRejection("relational.unsupported_operator",
+				fmt.Sprintf("condition %d: unsupported operator %q", i, cond.Op))
+		}
 	}
 
 	return nil
