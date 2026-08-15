@@ -20,7 +20,9 @@ import (
 // Two cells are deliberately fragile and documented:
 //
 //   - LSM × Balanced: Embed wins by a margin of 0.01 (2.99 vs 3.00).
-//   - Columnar × ReadSpeed: exact tie (2.65 vs 2.65); Embed wins on tie-break.
+//   - Columnar × ReadSpeed: Embed wins by a measured margin of 0.08
+//     (3.35 vs 3.43) — the DuckDB calibration (2026-08-15) turned the former
+//     exact tie into a real margin; if recalibration flips it, update here.
 //
 // If a future recalibration intentionally flips a cell, update expectedLayout
 // here in the same change. An accidental flip will fail this test.
@@ -94,7 +96,7 @@ func expectedLayout(
 		return metaengine.LayoutNormalize // JOIN is always cheaper on SQL engines
 	case metaengine.LayoutColumnar:
 		if priority == metaengine.PriorityReadSpeed {
-			return metaengine.LayoutEmbed // exact tie → Embed on tie-break
+			return metaengine.LayoutEmbed // measured margin 0.08 (DuckDB calibration)
 		}
 		return metaengine.LayoutNormalize
 	default:

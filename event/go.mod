@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
@@ -40,3 +40,5 @@ require (
 	golang.org/x/tools v0.48.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )
+
+replace github.com/larsartmann/go-cqrs-lite/schema/v4 => ../schema

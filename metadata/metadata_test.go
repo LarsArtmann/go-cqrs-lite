@@ -1,6 +1,7 @@
 package metadata
 
 import (
+	jsonv1 "encoding/json"
 	"encoding/json/v2"
 	"maps"
 	"strings"
@@ -474,21 +475,64 @@ func TestTracing_JSON(t *testing.T) {
 		}
 	})
 
-	t.Run("roundtrip preserves ActorID", func(t *testing.T) {
+		t.Run("roundtrip preserves ActorID", func(t *testing.T) {
+			t.Parallel()
+			original := Tracing{ActorID: id.NewBotActor("ci-runner")}
+			data, err := json.Marshal(original)
+			if err != nil {
+				t.Fatalf("marshal error: %v", err)
+			}
+
+			var decoded Tracing
+			if err := json.Unmarshal(data, &decoded); err != nil {
+				t.Fatalf("unmarshal error: %v", err)
+			}
+
+			if !decoded.ActorID.Equal(original.ActorID) {
+				t.Errorf("roundtrip mismatch: got %v, want %v", decoded.ActorID, original.ActorID)
+			}
+		})
+}
+
+// TestTracing_JSONv1Fallback covers the same serialization under
+// encoding/json v1, which supports the omitzero tag since Go 1.24 and
+// delegates to ActorID.IsZero. Consumers building without the jsonv2
+// experiment still get the same wire shape.
+func TestTracing_JSONv1Fallback(t *testing.T) {
+	t.Parallel()
+
+	t.Run("zero ActorID is omitted", func(t *testing.T) {
 		t.Parallel()
-		original := Tracing{ActorID: id.NewBotActor("ci-runner")}
-		data, err := json.Marshal(original)
+		data, err := jsonv1.Marshal(Tracing{})
 		if err != nil {
 			t.Fatalf("marshal error: %v", err)
 		}
 
+		if strings.Contains(string(data), "actorId") {
+			t.Errorf("zero ActorID should be omitted under json/v1, got %s", data)
+		}
+	})
+
+	t.Run("set ActorID appears and roundtrips", func(t *testing.T) {
+		t.Parallel()
+		original := Tracing{ActorID: id.NewUserActor(id.NewUserID())}
+		data, err := jsonv1.Marshal(original)
+		if err != nil {
+			t.Fatalf("marshal error: %v", err)
+		}
+
+		if !strings.Contains(string(data), `"actorId":"user:`) {
+			t.Errorf("expected prefixed actorId in json/v1 output, got %s", data)
+		}
+
 		var decoded Tracing
-		if err := json.Unmarshal(data, &decoded); err != nil {
+		if err := jsonv1.Unmarshal(data, &decoded); err != nil {
 			t.Fatalf("unmarshal error: %v", err)
 		}
 
 		if !decoded.ActorID.Equal(original.ActorID) {
-			t.Errorf("roundtrip mismatch: got %v, want %v", decoded.ActorID, original.ActorID)
+			t.Errorf("roundtrip mismatch: got %v, want %v",
+				decoded.ActorID.PrefixedString(), original.ActorID.PrefixedString())
 		}
 	})
 }

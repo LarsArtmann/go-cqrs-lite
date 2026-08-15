@@ -105,6 +105,37 @@ func TestMarshalMetadata_Roundtrip(t *testing.T) {
 	}
 }
 
+func TestMarshalMetadata_ActorRoundtrip(t *testing.T) {
+	t.Parallel()
+
+	actor := id.NewUserActor(id.NewUserID())
+	m := event.Metadata{}
+	m.ActorID = actor
+	m.CorrelationID = id.NewCorrelationID()
+
+	data, err := sqlpkg.MarshalMetadata(m)
+	if err != nil {
+		t.Fatalf("MarshalMetadata: %v", err)
+	}
+
+	opts, err := sqlpkg.UnmarshalEventMetadata(data, "test.event")
+	if err != nil {
+		t.Fatalf("UnmarshalEventMetadata: %v", err)
+	}
+
+	reconstructed, err := event.NewEvent(
+		"test.event", id.NewStreamID(), "Test", 1, []byte(`{}`), opts...)
+	if err != nil {
+		t.Fatalf("reconstruct: %v", err)
+	}
+
+	got := reconstructed.Metadata().ActorID
+	if !got.Equal(actor) {
+		t.Errorf("actor lost through SQL metadata scan path: got %q, want %q",
+			got.PrefixedString(), actor.PrefixedString())
+	}
+}
+
 func TestOwnedDBHandle_NilDB(t *testing.T) {
 	t.Parallel()
 

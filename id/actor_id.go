@@ -166,6 +166,26 @@ func (a ActorID) IsZero() bool {
 	return a.raw == ""
 }
 
+// Validate reports whether the ActorID is well-formed. The zero value (no
+// actor) is valid, mirroring [ActorID.IsZero]. A non-zero ActorID must carry
+// a known kind: a raw value without a kind — possible only via
+// NewActorID(ActorUnknown, "x") — cannot be round-tripped through the
+// "kind:raw" wire format nor interpreted by trust-level decisions.
+func (a ActorID) Validate() error {
+	if a.raw == "" {
+		return nil
+	}
+
+	if a.kind == ActorUnknown {
+		return fmt.Errorf(
+			"actor id raw %q: missing kind (use NewUserActor, NewBotActor, NewSystemActor, NewServiceActor, or ParseActorID)",
+			a.raw,
+		)
+	}
+
+	return nil
+}
+
 // Equal reports whether two ActorIDs have the same kind and raw value.
 func (a ActorID) Equal(other ActorID) bool {
 	return a.kind == other.kind && a.raw == other.raw

@@ -303,6 +303,33 @@ func TestDeriver_Idempotent_SourceEventMetadata(t *testing.T) {
 	}
 }
 
+func TestDeriver_Idempotent_PreservesActor(t *testing.T) {
+	t.Parallel()
+
+	streamID := id.NewStreamID()
+	actor := id.NewServiceActor("notification-worker")
+
+	d := Deriver(func(_ context.Context, _ cqrsevent.Event) ([]cqrscommand.Command, error) {
+		cmd, _ := cqrscommand.New("cmd.derived", streamID, cqrscommand.WithActor(actor))
+		return []cqrscommand.Command{cmd}, nil
+	}).Idempotent()
+
+	cmds, err := d(context.Background(), testEvent(t, "source.event"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	bc, ok := cmds[0].(*cqrscommand.BasicCommand)
+	if !ok {
+		t.Fatal("expected *BasicCommand")
+	}
+
+	if got := bc.Metadata().ActorID; !got.Equal(actor) {
+		t.Errorf("actor = %q, want %q (Idempotent re-stamp must not strip actor)",
+			got.PrefixedString(), actor.PrefixedString())
+	}
+}
+
 func TestDeriver_Idempotent_ErrorPropagation(t *testing.T) {
 	t.Parallel()
 

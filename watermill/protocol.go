@@ -248,6 +248,13 @@ func buildMetadata(md message.Metadata) (event.Metadata, error) {
 		func(v id.RequestID) { m.RequestID = v },
 		&errs,
 	)
+	parseIDField(
+		md,
+		metaActorID,
+		id.ParseActorID,
+		func(v id.ActorID) { m.ActorID = v },
+		&errs,
+	)
 
 	if v := md.Get(metaSource); v != "" {
 		m.Source = event.Source(v)

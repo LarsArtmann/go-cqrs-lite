@@ -18,6 +18,7 @@ func TestCommandRoundTrip(t *testing.T) {
 	causationID := id.NewCausationID()
 	userID := id.NewUserID()
 	requestID := id.NewRequestID()
+	actor := id.NewSystemActor("scheduler")
 
 	original, err := command.New(
 		"user.create", streamID,
@@ -25,6 +26,7 @@ func TestCommandRoundTrip(t *testing.T) {
 		command.WithCausationID(causationID),
 		command.WithUserID(userID),
 		command.WithRequestID(requestID),
+		command.WithActor(actor),
 		command.WithCustomMetadata("tenant", "acme"),
 		command.WithCustomMetadata("source", "web"),
 	)
@@ -52,6 +54,10 @@ func TestCommandRoundTrip(t *testing.T) {
 	}
 	if msg.Metadata.Get("request_id") != requestID.String() {
 		t.Fatalf("request_id mismatch")
+	}
+	if msg.Metadata.Get("actor_id") != "system:scheduler" {
+		t.Fatalf("actor_id: got %q, want %q",
+			msg.Metadata.Get("actor_id"), "system:scheduler")
 	}
 	if msg.Metadata.Get("custom.tenant") != "acme" {
 		t.Fatalf("custom.tenant: got %q", msg.Metadata.Get("custom.tenant"))
@@ -84,6 +90,10 @@ func TestCommandRoundTrip(t *testing.T) {
 	}
 	if md.RequestID != requestID {
 		t.Fatalf("request_id mismatch after round-trip")
+	}
+	if !md.ActorID.Equal(actor) {
+		t.Fatalf("actor_id mismatch after round-trip: got %q, want %q",
+			md.ActorID.PrefixedString(), actor.PrefixedString())
 	}
 	if md.Custom["tenant"] != "acme" {
 		t.Fatalf("custom.tenant mismatch after round-trip")

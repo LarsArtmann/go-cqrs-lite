@@ -80,3 +80,5 @@ require (
 )
 
 // Workspace-local replace. flightrecorder is not yet tagged.
+
+replace github.com/larsartmann/go-cqrs-lite/event/v4 => ../event

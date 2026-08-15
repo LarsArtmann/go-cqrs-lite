@@ -141,6 +141,34 @@ func (s *DeciderScenario[Cmd, State]) Then(expectedEventTypes ...event.Type) {
 	}
 }
 
+// ThenEvents hands the full events produced by the decide function to inspect
+// for arbitrary assertions beyond event types and folded state — metadata
+// (actor, correlation), payloads, versions. Use t.Errorf inside inspect so
+// remaining assertions still run. Returns the scenario for chaining:
+//
+//	scenario.Given[Cmd, State](t, apply, initial).
+//	    When(cmd, decide).
+//	    ThenEvents(func(events []event.Event) {
+//	        if events[0].Metadata().ActorID.IsZero() {
+//	            t.Error("expected actor on emitted event")
+//	        }
+//	    }).
+//	    Then("user.created")
+func (s *DeciderScenario[Cmd, State]) ThenEvents(
+	inspect func(events []event.Event),
+) *DeciderScenario[Cmd, State] {
+	state := s.prepareThen("ThenEvents")
+
+	events, err := s.decide(state, s.cmd)
+	if err != nil {
+		s.t.Fatalf("When: decide returned error: %v", err)
+	}
+
+	inspect(events)
+
+	return s
+}
+
 // ThenError asserts that the decide function returns an error matching target.
 func (s *DeciderScenario[Cmd, State]) ThenError(target error) {
 	state := s.prepareThen("ThenError")

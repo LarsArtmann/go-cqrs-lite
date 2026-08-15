@@ -15,6 +15,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
 	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 	wm "github.com/larsartmann/go-cqrs-lite/watermill/v4"
@@ -54,6 +55,7 @@ func TestGolden_MessageMetadata(t *testing.T) {
 				CorrelationID: corrID,
 				CausationID:   causID,
 				UserID:        userID,
+				ActorID:       id.NewServiceActor("order-api"),
 			},
 			Source:    "test-service",
 			IPAddress: "10.0.0.1",

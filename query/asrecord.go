@@ -1,6 +1,7 @@
 package query
 
 import (
+	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
@@ -28,7 +29,7 @@ import (
 //   - Version         ← 0 (queries have no version)
 //   - CorrelationID   ← q.Metadata().Tracing.CorrelationID
 //   - CausationID     ← q.Metadata().Tracing.CausationID
-//   - ActorID         ← q.Metadata().Tracing.UserID (the "who")
+//   - ActorID         ← Tracing.ActorID ("kind:raw") when set, else Tracing.UserID
 //   - ClientCreatedAt ← q.ReceivedAt()
 //   - SchemaVersion   ← 0 (queries have no schema version)
 //
@@ -49,7 +50,7 @@ func AsRecord(q *PersistedQuery) record.Record {
 		MetaData: record.CommonMetadata{
 			CorrelationID:   brandedString(tracing.CorrelationID),
 			CausationID:     brandedString(tracing.CausationID),
-			ActorID:         brandedString(tracing.UserID),
+			ActorID:         actorString(tracing),
 			ClientCreatedAt: q.ReceivedAt(),
 		},
 	}
@@ -66,4 +67,15 @@ func brandedString[T interface {
 	}
 
 	return v.String()
+}
+
+// actorString resolves the Record's ActorID: the kind-discriminated
+// Tracing.ActorID in its self-describing "kind:raw" form when set, falling
+// back to the bare Tracing.UserID for records that predate ActorID.
+func actorString(tracing metadata.Tracing) string {
+	if !tracing.ActorID.IsZero() {
+		return tracing.ActorID.PrefixedString()
+	}
+
+	return brandedString(tracing.UserID)
 }

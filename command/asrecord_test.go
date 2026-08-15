@@ -70,6 +70,28 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 	}
 }
 
+func TestAsRecord_ActorPrecedence(t *testing.T) {
+	t.Parallel()
+
+	userID := id.NewUserID()
+	actor := id.NewSystemActor("migration")
+
+	cmd, err := command.New("user.create", id.NewStreamID(),
+		command.WithUserID(userID),
+		command.WithActor(actor),
+	)
+	if err != nil {
+		t.Fatalf("command.New: %v", err)
+	}
+
+	rec := command.AsRecord(cmd)
+
+	if rec.MetaData.ActorID != "system:migration" {
+		t.Errorf("ActorID: got %q, want %q (kind-discriminated actor must win)",
+			rec.MetaData.ActorID, "system:migration")
+	}
+}
+
 func TestAsRecord_ZeroMetadata(t *testing.T) {
 	t.Parallel()
 

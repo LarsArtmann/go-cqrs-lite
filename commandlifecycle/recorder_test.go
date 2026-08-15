@@ -234,6 +234,38 @@ func TestRecorder_CausationLinksToCommand(t *testing.T) {
 	g.Expect(md.Causation.CommandType).To(Equal("create_user"))
 }
 
+func TestRecorder_PropagatesCommandTracing(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	store := newMemoryStore(t)
+	recorder := commandlifecycle.NewRecorder(store)
+
+	actor := id.NewUserActor(id.NewUserID())
+	correlationID := id.NewCorrelationID()
+	userID := id.NewUserID()
+
+	cmd, err := command.New(
+		"create_user", id.NewStreamID(),
+		command.WithActor(actor),
+		command.WithCorrelationID(correlationID),
+		command.WithUserID(userID),
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(recorder.RecordFailed(context.Background(), cmd, errors.New("boom"), 1)).To(Succeed())
+
+	events := loadLifecycleEvents(t, store, cmd)
+	g.Expect(events).To(HaveLen(1))
+
+	md := events[0].Metadata()
+	g.Expect(md.ActorID.Equal(actor)).To(BeTrue(),
+		"lifecycle events must answer 'who triggered the command that failed?'")
+	g.Expect(md.ActorID.PrefixedString()).To(HavePrefix("user:"))
+	g.Expect(md.CorrelationID).To(Equal(correlationID))
+	g.Expect(md.UserID).To(Equal(userID))
+}
+
 func TestRecorder_BestEffort_DoesNotFail(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)

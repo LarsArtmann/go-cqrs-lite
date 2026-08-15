@@ -8,6 +8,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
@@ -91,6 +92,42 @@ func TestTypedCommandStore_PreservesMetadata(t *testing.T) {
 	got := loaded[0].Metadata.Custom["user_id"]
 	if got != "user-123" {
 		t.Errorf("metadata user_id = %q, want %q", got, "user-123")
+	}
+}
+
+func TestTypedCommandStore_CBORPreservesActor(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	store := memory.NewMemoryCommandStore()
+
+	ts := command.NewTypedCommandStore[createTodoPayload](store, codec.CBORCodec{})
+
+	ref := command.NewStreamRef("Todo", id.NewStreamID())
+	actor := id.NewUserActor(id.NewUserID())
+
+	err := ts.Save(ctx, ref, command.TypedPersistedCommand[createTodoPayload]{
+		Type:     "todo.create",
+		Payload:  createTodoPayload{Title: "test"},
+		Metadata: command.Metadata{Tracing: metadata.Tracing{ActorID: actor}},
+	})
+	if err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	loaded, err := ts.Load(ctx, ref)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if len(loaded) != 1 {
+		t.Fatalf("expected 1 command, got %d", len(loaded))
+	}
+
+	got := loaded[0].Metadata.ActorID
+	if !got.Equal(actor) {
+		t.Errorf("CBOR roundtrip lost actor: got %q, want %q",
+			got.PrefixedString(), actor.PrefixedString())
 	}
 }
 

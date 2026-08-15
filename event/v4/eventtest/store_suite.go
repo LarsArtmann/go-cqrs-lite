@@ -245,11 +245,13 @@ func TestStoreMetadataRoundtrip(
 	aggID := id.NewStreamID()
 	cid := id.NewCorrelationID()
 	uid := id.NewUserID()
+	actor := id.NewUserActor(uid)
 
 	evt := cfg.NewTestEvent(
 		t, aggID, 1,
 		event.WithCorrelationID(cid),
 		event.WithUserID(uid),
+		event.WithActor(actor),
 		event.WithCustom("env", customEnv),
 	)
 
@@ -271,6 +273,10 @@ func TestStoreMetadataRoundtrip(
 
 	if meta.UserID != uid {
 		t.Errorf("UserID = %v, want %v", meta.UserID, uid)
+	}
+
+	if !meta.ActorID.Equal(actor) {
+		t.Errorf("ActorID = %v, want %v", meta.ActorID.PrefixedString(), actor.PrefixedString())
 	}
 
 	if meta.Custom["env"] != customEnv {

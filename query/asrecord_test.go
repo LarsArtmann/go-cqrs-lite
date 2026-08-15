@@ -74,6 +74,29 @@ func TestAsRecord_MapsStructuralFields(t *testing.T) {
 	}
 }
 
+func TestAsRecord_ActorPrecedence(t *testing.T) {
+	t.Parallel()
+
+	actor := id.NewBotActor("report-generator")
+
+	q, err := query.New("get_user", query.WithActor(actor))
+	if err != nil {
+		t.Fatalf("query.New: %v", err)
+	}
+
+	pq, err := query.NewPersistedQuery("get_user", []byte("x"),
+		query.WithQueryMetadata(q.Metadata()),
+	)
+	if err != nil {
+		t.Fatalf("NewPersistedQuery: %v", err)
+	}
+
+	if got := query.AsRecord(pq).MetaData.ActorID; got != "bot:report-generator" {
+		t.Errorf("ActorID = %q, want %q (kind-discriminated actor must win)",
+			got, "bot:report-generator")
+	}
+}
+
 func TestAsRecord_ZeroTracingYieldsEmptyStrings(t *testing.T) {
 	t.Parallel()
 

@@ -48,81 +48,114 @@ type LayoutDiff struct {
 	AutoRebuild bool
 }
 
-// ReplanLayout computes new layouts for all queries given a priority config,
-// identifies which projections must change, and returns the diffs.
+// ReplanLayout applies an optional new operator priority config, re-plans
+// through the same single replan path as Store.Replan, and returns the
+// per-query layout diffs between the previous and the new plan.
 //
-// This is the operator's "what would happen if I changed the priority?" tool.
-// It does NOT execute any rebuilds — it only computes the plan diff.
-// Call ConfirmRebuild to execute the changes.
+// Convergence (ADR-0124 §5): routing and layout scoring happen in ONE
+// planning pass (planQuery records both); this method no longer keeps a
+// separate scoring copy. With pc == nil it re-plans under the current
+// priority config (e.g. to pick up live latency calibration); with pc != nil
+// it is equivalent to SetPriority followed by Replan, audited as
+// "priority-change".
+//
+// Layout changes do NOT execute rebuilds — diffs with AutoRebuild=false are
+// executed by ConfirmRebuild; AutoRebuild=true diffs are handled by Backfill.
 func (s *Store) ReplanLayout(ctx context.Context, pc *PriorityConfig) ([]LayoutDiff, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("metaengine.Store.ReplanLayout: %w", err)
 	}
 
-	threshold := DefaultRebuildThreshold()
+	s.mu.Lock()
+	if pc != nil {
+		s.priorityConfig = pc
+	}
+
+	previous := s.layoutSnapshotLocked()
+	s.mu.Unlock()
+
+	trigger := triggerManual
+	if pc != nil {
+		trigger = triggerPriority
+	}
+
+	if err := s.replanWithTrigger(ctx, trigger); err != nil {
+		return nil, err
+	}
 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	var diffs []LayoutDiff
+	return s.layoutDiffsLocked(previous), nil
+}
 
-	for _, name := range sortedQueryNames(s.queries) {
-		q := s.queries[name]
-		engine := q.QueryEngine()
-		if engine == nil {
-			continue
-		}
+// layoutSnapshotLocked captures each query's current layout from the active
+// plan. Queries without a recorded layout default to LayoutEmbed (plans from
+// before the Layout field existed). The caller must hold s.mu.
+func (s *Store) layoutSnapshotLocked() map[string]LayoutOption {
+	snapshot := make(map[string]LayoutOption)
 
-		profile := engine.Profile()
+	if s.plan == nil {
+		return snapshot
+	}
 
-		// Effective priority: developer WithLayoutPriority or operator config.
-		// WithLayoutPriority set per-query is NOT overridden by ReplanLayout's
-		// proposed pc (operator's what-if tool); the developer pin still wins
-		// unless the operator explicitly overrides per-query.
-		resolvedPriority := s.priorityForQuery(profile.Name, name, q.QueryConfig())
-		if pc != nil {
-			if p, ok := pc.PerQuery[name]; ok && p.Valid() {
-				resolvedPriority = p
-			} else if !q.QueryConfig().layoutPriority.Valid() {
-				resolvedPriority = pc.Resolve(profile.Name, name)
-			}
-		}
-
-		newOption, _ := SelectLayout(profile, resolvedPriority)
-
-		// Read the actual current layout from the plan (computed during the
-		// last Plan/Replan pass). Falls back to Embed for plans created before
-		// the Layout field was added (ADR-0124 convergence).
-		currentOption := s.currentLayoutForQuery(name)
-
-		if newOption != currentOption {
-			vol := q.QueryConfig().Volume
-			if vol <= 0 {
-				vol = 1000
-			}
-
-			estimatedBytes := vol * 256 // ~256B per entry
-
-			diff := LayoutDiff{
-				QueryName: name,
-				From:      currentOption,
-				To:        newOption,
-				Reason: fmt.Sprintf(
-					"priority=%s on %s engine",
-					resolvedPriority,
-					profile.Name,
-				),
-				EstimatedRebuildEvents: vol,
-				EstimatedRebuildBytes:  estimatedBytes,
-				AutoRebuild: vol < threshold.MaxEventCount &&
-					estimatedBytes < threshold.MaxDataBytes,
-			}
-
-			diffs = append(diffs, diff)
+	for _, q := range s.plan.Queries {
+		if q.Layout != "" {
+			snapshot[q.QueryName] = q.Layout
+		} else {
+			snapshot[q.QueryName] = LayoutEmbed
 		}
 	}
 
-	return diffs, nil
+	return snapshot
+}
+
+// layoutDiffsLocked diffs the new plan's layouts against a pre-replan
+// snapshot, with rebuild estimates for every changed projection. The caller
+// must hold s.mu (at least RLock).
+func (s *Store) layoutDiffsLocked(previous map[string]LayoutOption) []LayoutDiff {
+	threshold := DefaultRebuildThreshold()
+
+	var diffs []LayoutDiff
+
+	for _, qa := range s.plan.Queries {
+		from, ok := previous[qa.QueryName]
+		if !ok {
+			from = LayoutEmbed
+		}
+
+		if qa.Layout == from {
+			continue
+		}
+
+		q, ok := s.queries[qa.QueryName]
+		if !ok {
+			continue
+		}
+
+		vol := q.QueryConfig().Volume
+		if vol <= 0 {
+			vol = 1000
+		}
+
+		estimatedBytes := vol * 256 // ~256B per entry
+
+		diffs = append(diffs, LayoutDiff{
+			QueryName: qa.QueryName,
+			From:      from,
+			To:        qa.Layout,
+			Reason: fmt.Sprintf(
+				"priority change on %s engine (plan v%d)",
+				qa.EngineName, s.plan.Version,
+			),
+			EstimatedRebuildEvents: vol,
+			EstimatedRebuildBytes:  estimatedBytes,
+			AutoRebuild: vol < threshold.MaxEventCount &&
+				estimatedBytes < threshold.MaxDataBytes,
+		})
+	}
+
+	return diffs
 }
 
 // ConfirmRebuild executes the layout rebuilds that require operator confirmation
@@ -170,22 +203,4 @@ func (s *Store) ConfirmRebuild(ctx context.Context, diffs []LayoutDiff) error {
 // sortedQueryNames returns query names in sorted order for deterministic output.
 func sortedQueryNames(queries map[string]queryMeta) []string {
 	return slices.Sorted(maps.Keys(queries))
-}
-
-// currentLayoutForQuery reads the LayoutOption recorded for the named query in
-// the current plan. Returns LayoutEmbed when the plan is nil or the query has
-// no recorded layout (backward compat for plans created before ADR-0124
-// convergence). Must be called with s.mu held (at least RLock).
-func (s *Store) currentLayoutForQuery(queryName string) LayoutOption {
-	if s.plan == nil {
-		return LayoutEmbed
-	}
-
-	for _, q := range s.plan.Queries {
-		if q.QueryName == queryName && q.Layout != "" {
-			return q.Layout
-		}
-	}
-
-	return LayoutEmbed
 }

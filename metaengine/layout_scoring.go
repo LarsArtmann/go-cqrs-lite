@@ -57,8 +57,27 @@ func (lc LayoutCost) ScoreWeighted(w PriorityWeights) float64 {
 //	read  1.35x (geomean across Pebble 1.49x and bbolt 1.23x)
 //	write 0.75x (geomean across Pebble 0.53x and bbolt 1.05x)
 //
-// Row and Columnar values are analytical estimates based on known engine
-// characteristics (SQLite B-Tree JSON columns, DuckDB columnar storage).
+// Row values are CALIBRATED 2026-08-15 via BenchmarkRowLayoutCalibration_* in
+// metaengine/bench on file-backed SQLite, Postgres 16 (ephemeral local), and
+// MySQL (QEMU port-forward; ratios corroborate Postgres). Embed is measured
+// through the engine MapBackend API (meta_map JSON column); normalize against
+// dedicated parent/child tables (LEFT JOIN read, O(1) child insert). Measured
+// normalize/embed ratios (geomean sqlite 1.95/1.00/1.06 read, 0.66/0.38/0.56
+// write, 0.33/0.33/0.41 storage):
+//
+//	read  1.27x   write 0.52x   storage 0.35x
+//
+// Columnar values are CALIBRATED 2026-08-15 via
+// BenchmarkColumnarLayoutCalibration_* on file-backed DuckDB. Measured
+// normalize/embed ratios:
+//
+//	read  2.62x (point lookups on OLAP engine favor embed strongly)
+//	write 0.20x (DuckDB row UPDATE costs ~5x an insert)
+//	storage 0.59x (columnar compression absorbs embed duplication)
+//
+// All calibrated cells are geometric-mean centered: per cost dimension the
+// embed/normalize pair multiplies to 1.0, so only the measured ratio drives
+// decisions.
 func scoreEmbed(layout StorageLayout) LayoutCost {
 	switch layout {
 	case LayoutKV:
@@ -78,16 +97,16 @@ func scoreEmbed(layout StorageLayout) LayoutCost {
 	case LayoutRow:
 		return LayoutCost{
 			Option:      LayoutEmbed,
-			ReadCost:    0.7, // JSON column read — fast but loses child queryability
-			WriteCost:   1.5, // rewrite entire JSON column on child mutation
-			StorageCost: 1.2,
+			ReadCost:    0.89, // JSON column read — measured (Row read ratio 1.27x)
+			WriteCost:   1.39, // rewrite entire JSON column on child mutation — measured 0.52x inverse
+			StorageCost: 1.68, // JSON duplication across 3 projections — measured 0.35x inverse
 		}
 	case LayoutColumnar:
 		return LayoutCost{
 			Option:      LayoutEmbed,
-			ReadCost:    0.6, // nested/repeated column — fast for analytics
-			WriteCost:   1.3,
-			StorageCost: 1.1,
+			ReadCost:    0.62, // embedded nested value — DuckDB point reads favor embed (2.62x)
+			WriteCost:   2.23, // UPDATE on columnar engine — measured 5x an insert
+			StorageCost: 1.30, // compression absorbs most duplication (0.59x)
 		}
 	default:
 		return LayoutCost{Option: LayoutEmbed, ReadCost: 1.0, WriteCost: 1.0, StorageCost: 1.0}
@@ -118,16 +137,16 @@ func scoreNormalize(layout StorageLayout) LayoutCost {
 	case LayoutRow:
 		return LayoutCost{
 			Option:      LayoutNormalize,
-			ReadCost:    0.8, // JOIN is native — efficient
-			WriteCost:   0.6, // single row insert into child table
-			StorageCost: 0.8,
+			ReadCost:    1.13, // LEFT JOIN read — measured ≈ par with JSON row on server engines
+			WriteCost:   0.72, // single row insert into child table — measured
+			StorageCost: 0.59, // one copy of each fact — measured
 		}
 	case LayoutColumnar:
 		return LayoutCost{
 			Option:      LayoutNormalize,
-			ReadCost:    1.0, // long/narrow child table — fine for analytics
-			WriteCost:   0.7,
-			StorageCost: 0.8,
+			ReadCost:    1.62, // long/narrow child table — point reads pay 2.62x vs embed
+			WriteCost:   0.45, // O(1) insert vs row UPDATE — measured 0.20x ratio
+			StorageCost: 0.77, // columnar layout of child tables — measured 0.59x
 		}
 	default:
 		return LayoutCost{Option: LayoutNormalize, ReadCost: 1.0, WriteCost: 1.0, StorageCost: 1.0}

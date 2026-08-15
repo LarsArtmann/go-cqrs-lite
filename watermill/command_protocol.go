@@ -16,6 +16,7 @@ import (
 const (
 	metaCommandID   = "command_id"
 	metaCommandType = "command_type"
+	metaActorID     = "actor_id"
 )
 
 // metadataProvider is the optional interface a command implements to expose
@@ -95,9 +96,10 @@ func MessageToCommand(topic string, msg *message.Message) (*command.BasicCommand
 	return cmd, nil
 }
 
-// writeTracing writes the 4 shared tracing identifiers from metadata.Tracing
+// writeTracing writes the shared tracing identifiers from metadata.Tracing
 // into message metadata. Both event.Metadata and command.Metadata embed
-// metadata.Tracing, so this is reused by both protocols.
+// metadata.Tracing, so this is reused by both protocols. ActorID uses its
+// self-describing "kind:raw" prefixed form so the kind survives the wire.
 func writeTracing(md message.Metadata, t metadata.Tracing) {
 	if !t.CorrelationID.IsZero() {
 		md.Set(metaCorrelationID, t.CorrelationID.String())
@@ -110,6 +112,9 @@ func writeTracing(md message.Metadata, t metadata.Tracing) {
 	}
 	if !t.RequestID.IsZero() {
 		md.Set(metaRequestID, t.RequestID.String())
+	}
+	if !t.ActorID.IsZero() {
+		md.Set(metaActorID, t.ActorID.PrefixedString())
 	}
 }
 
@@ -145,6 +150,10 @@ func parseCommandOptions(md message.Metadata) []command.Option {
 	parseIDOption(
 		md, metaRequestID, id.ParseRequestID,
 		func(v id.RequestID) { opts = append(opts, command.WithRequestID(v)) },
+	)
+	parseIDOption(
+		md, metaActorID, id.ParseActorID,
+		func(v id.ActorID) { opts = append(opts, command.WithActor(v)) },
 	)
 
 	for k, v := range md {

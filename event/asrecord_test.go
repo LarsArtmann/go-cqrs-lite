@@ -70,6 +70,25 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("ActorID = %q, want %q", rec.MetaData.ActorID, userID.String())
 	}
 
+	t.Run("kind-discriminated ActorID wins over UserID", func(t *testing.T) {
+		t.Parallel()
+
+		actor := id.NewServiceActor("api-gateway")
+		evtWithActor, err := New(
+			"user.created", streamID, "User", Version(3), payload,
+			WithUserID(userID),
+			WithActor(actor),
+		)
+		if err != nil {
+			t.Fatalf("New: %v", err)
+		}
+
+		got := AsRecord(evtWithActor).MetaData.ActorID
+		if got != "service:api-gateway" {
+			t.Errorf("ActorID = %q, want %q", got, "service:api-gateway")
+		}
+	})
+
 	if rec.MetaData.SchemaVersion != 2 {
 		t.Errorf("SchemaVersion = %d, want 2", rec.MetaData.SchemaVersion)
 	}

@@ -99,6 +99,36 @@ func TestRoundTrip(t *testing.T) {
 	})
 }
 
+func TestEventToMessage_ActorRoundtrip(t *testing.T) {
+	t.Parallel()
+
+	actor := id.NewUserActor(id.NewUserID())
+
+	original, err := event.NewEvent(
+		"user.created", id.NewStreamID(), "User", 1,
+		[]byte(`{"name":"Alice"}`),
+		event.WithActor(actor),
+	)
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+
+	msg := wm.EventToMessage(original)
+	if got := msg.Metadata.Get("actor_id"); got != actor.PrefixedString() {
+		t.Fatalf("actor_id metadata: got %q, want %q", got, actor.PrefixedString())
+	}
+
+	reconstructed, err := wm.MessageToEvent("user.created", msg)
+	if err != nil {
+		t.Fatalf("MessageToEvent: %v", err)
+	}
+
+	if got := reconstructed.Metadata().ActorID; !got.Equal(actor) {
+		t.Fatalf("actor mismatch after round-trip: got %q, want %q",
+			got.PrefixedString(), actor.PrefixedString())
+	}
+}
+
 func TestPublisherAdapter_BadMetadata(t *testing.T) {
 	t.Parallel()
 

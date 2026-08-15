@@ -66,6 +66,38 @@ func TestGiven_When_Then_EventTypes(t *testing.T) {
 		Then(evtIncremented)
 }
 
+func TestGiven_When_ThenEvents_ActorMetadata(t *testing.T) {
+	t.Parallel()
+
+	actor := id.NewSystemActor("test-runner")
+
+	scenario.Given[incrementCmd, counterState](t, foldCounter, counterState{}).
+		When(incrementCmd{}, func(s counterState, _ incrementCmd) ([]event.Event, error) {
+			return []event.Event{mustEventWithActor(evtIncremented, actor)}, nil
+		}).
+		ThenEvents(func(events []event.Event) {
+			if len(events) != 1 {
+				t.Fatalf("ThenEvents: got %d events, want 1", len(events))
+			}
+
+			got := events[0].Metadata().ActorID
+			if !got.Equal(actor) {
+				t.Errorf("actor = %q, want %q", got.PrefixedString(), actor.PrefixedString())
+			}
+		}).
+		Then(evtIncremented)
+}
+
+func mustEventWithActor(t event.Type, actor id.ActorID) event.Event {
+	evt, err := event.New(t, id.NewStreamID(), "Counter", 1, map[string]any{"v": 1},
+		event.WithActor(actor))
+	if err != nil {
+		panic(err)
+	}
+
+	return evt
+}
+
 func TestGiven_When_Then_FoldsPriorEvents(t *testing.T) {
 	t.Parallel()
 	scenario.Given[incrementCmd, counterState](

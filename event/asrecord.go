@@ -2,6 +2,7 @@ package event
 
 import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
@@ -22,7 +23,7 @@ import (
 //   - Version          ← evt.Version()
 //   - CorrelationID    ← evt.Metadata().Tracing.CorrelationID
 //   - CausationID      ← see precedence rule below
-//   - ActorID          ← evt.Metadata().Tracing.UserID (the "who")
+//   - ActorID          ← see precedence rule below
 //   - ClientCreatedAt  ← evt.OccurredAt() (best available creation timestamp)
 //   - ServerReceivedAt ← zero (unknown at the event layer; set by the store)
 //   - ServerStoredAt   ← zero (unknown at the event layer; set by the store)
@@ -36,6 +37,10 @@ import (
 //  2. Otherwise, Tracing.CausationID is used. This is the generic tracing-level
 //     causation chain, set by middleware.
 //  3. If both are zero, CausationID is empty.
+//
+// ActorID precedence: the kind-discriminated Tracing.ActorID wins when set,
+// serialized in its self-describing "kind:raw" form (e.g. "user:01ARZ...").
+// When no actor was recorded, Tracing.UserID is used as the legacy fallback.
 //
 // A nil Event returns a zero-valued Record.
 func AsRecord(evt Event) record.Record {
@@ -62,7 +67,7 @@ func AsRecord(evt Event) record.Record {
 		MetaData: record.CommonMetadata{
 			CorrelationID:   brandedString(tracing.CorrelationID),
 			CausationID:     causationID,
-			ActorID:         brandedString(tracing.UserID),
+			ActorID:         actorString(tracing),
 			ClientCreatedAt: evt.OccurredAt(),
 			SchemaVersion:   int(evt.SchemaVersion()),
 		},
@@ -80,6 +85,17 @@ func brandedString[T interface {
 	}
 
 	return v.String()
+}
+
+// actorString resolves the Record's ActorID: the kind-discriminated
+// Tracing.ActorID in its self-describing "kind:raw" form when set, falling
+// back to the bare Tracing.UserID for records that predate ActorID.
+func actorString(tracing metadata.Tracing) string {
+	if !tracing.ActorID.IsZero() {
+		return tracing.ActorID.PrefixedString()
+	}
+
+	return brandedString(tracing.UserID)
 }
 
 // Compile-time: verify the branded ID types satisfy the constraint.

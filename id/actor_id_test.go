@@ -210,6 +210,102 @@ func TestActorID_String(t *testing.T) {
 	}
 }
 
+func TestActorID_Validate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		a         ActorID
+		wantError bool
+	}{
+		{name: "zero", a: ActorID{}},
+		{name: "kind_without_raw", a: ActorID{kind: ActorUser}},
+		{name: "user", a: NewUserActor(mustParseUserID(t, "01H4S2Z4QX8N1P5K3M7R9T0V2W"))},
+		{name: "bot", a: NewBotActor("ci-runner")},
+		{name: "system", a: NewSystemActor("gc")},
+		{name: "service", a: NewServiceActor("api-gateway")},
+		{name: "raw_without_kind", a: NewActorID(ActorUnknown, "someone"), wantError: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := tt.a.Validate()
+			if tt.wantError && err == nil {
+				t.Fatalf("expected error, got nil")
+			}
+
+			if !tt.wantError && err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestActorID_BinaryRoundtrip(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		a    ActorID
+	}{
+		{"user", NewUserActor(mustParseUserID(t, "01H4S2Z4QX8N1P5K3M7R9T0V2W"))},
+		{"bot", NewBotActor("ci-runner")},
+		{"system", NewSystemActor("gc")},
+		{"service", NewServiceActor("api-gateway")},
+		{"colon_in_raw", NewSystemActor("job:42")},
+		{"zero", ActorID{}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			data, err := tt.a.MarshalBinary()
+			if err != nil {
+				t.Fatalf("MarshalBinary: %v", err)
+			}
+
+			if got := string(data); got != tt.a.PrefixedString() {
+				t.Errorf("MarshalBinary() = %q, want %q", got, tt.a.PrefixedString())
+			}
+
+			var got ActorID
+			if err := got.UnmarshalBinary(data); err != nil {
+				t.Fatalf("UnmarshalBinary: %v", err)
+			}
+
+			if !got.Equal(tt.a) {
+				t.Errorf("roundtrip = %v, want %v", got.PrefixedString(), tt.a.PrefixedString())
+			}
+		})
+	}
+}
+
+func TestActorID_UnmarshalBinary_Errors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		data string
+	}{
+		{name: "missing_colon", data: "userraw"},
+		{name: "unknown_kind", data: "alien:raw"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var got ActorID
+			if err := got.UnmarshalBinary([]byte(tt.data)); err == nil {
+				t.Fatal("expected error, got nil")
+			}
+		})
+	}
+}
+
 func TestActorKind_String(t *testing.T) {
 	t.Parallel()
 

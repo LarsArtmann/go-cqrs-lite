@@ -163,6 +163,7 @@ func (r *Recorder) emit(
 		payload,
 		event.WithCausation(cmd.Type().String(), cmd.ID()),
 		event.FromContext(ctx),
+		commandTracing(cmd),
 	)
 	if err != nil {
 		return r.handleError(err, "create lifecycle event", eventType, cmd)
@@ -173,6 +174,26 @@ func (r *Recorder) emit(
 	}
 
 	return nil
+}
+
+// metadataProvider is the optional interface a command implements to expose
+// its metadata. *command.BasicCommand satisfies this.
+type metadataProvider interface {
+	Metadata() command.Metadata
+}
+
+// commandTracing returns an option propagating the command's tracing
+// identifiers (CorrelationID, CausationID, UserID, RequestID, ActorID) onto
+// the lifecycle event, so audit trails answer "who triggered the command
+// that failed?". Commands that do not expose metadata are recorded without
+// tracing; zero identifiers do not overwrite anything (Merge semantics).
+func commandTracing(cmd command.Command) event.Option {
+	mp, ok := cmd.(metadataProvider)
+	if !ok {
+		return func(*event.ImmutableEvent) {}
+	}
+
+	return event.WithMetadata(event.Metadata{Tracing: mp.Metadata().Tracing})
 }
 
 func (r *Recorder) nextVersion(

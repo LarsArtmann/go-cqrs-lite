@@ -1,6 +1,7 @@
 package command
 
 import (
+	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
@@ -27,7 +28,7 @@ import (
 //   - Version       ← 0 (commands have no version)
 //   - CorrelationID ← cmd.Metadata().Tracing.CorrelationID
 //   - CausationID   ← cmd.Metadata().Tracing.CausationID
-//   - ActorID       ← cmd.Metadata().Tracing.UserID (the "who")
+//   - ActorID       ← Tracing.ActorID ("kind:raw") when set, else Tracing.UserID
 //   - SchemaVersion ← 0 (commands have no schema version)
 //
 // A nil command returns a zero-valued Record.
@@ -46,7 +47,7 @@ func AsRecord(cmd *BasicCommand) record.Record {
 		MetaData: record.CommonMetadata{
 			CorrelationID: brandedString(tracing.CorrelationID),
 			CausationID:   brandedString(tracing.CausationID),
-			ActorID:       brandedString(tracing.UserID),
+			ActorID:       actorString(tracing),
 		},
 	}
 }
@@ -62,4 +63,15 @@ func brandedString[T interface {
 	}
 
 	return v.String()
+}
+
+// actorString resolves the Record's ActorID: the kind-discriminated
+// Tracing.ActorID in its self-describing "kind:raw" form when set, falling
+// back to the bare Tracing.UserID for records that predate ActorID.
+func actorString(tracing metadata.Tracing) string {
+	if !tracing.ActorID.IsZero() {
+		return tracing.ActorID.PrefixedString()
+	}
+
+	return brandedString(tracing.UserID)
 }

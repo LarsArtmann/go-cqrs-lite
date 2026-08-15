@@ -71,6 +71,48 @@ func TestQuery_WithActor(t *testing.T) {
 	}
 }
 
+func TestQuery_AllMetadata(t *testing.T) {
+	t.Parallel()
+
+	cid := id.NewCorrelationID()
+	caid := id.NewCausationID()
+	uid := id.NewUserID()
+	rid := id.NewRequestID()
+	actor := id.NewBotActor("ci-runner")
+
+	q, err := query.New("GetUser",
+		query.WithCorrelationID(cid),
+		query.WithCausationID(caid),
+		query.WithUserID(uid),
+		query.WithRequestID(rid),
+		query.WithActor(actor),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	m := q.Metadata()
+	if m.CorrelationID != cid {
+		t.Errorf("CorrelationID = %v, want %v", m.CorrelationID, cid)
+	}
+
+	if m.CausationID != caid {
+		t.Errorf("CausationID = %v, want %v", m.CausationID, caid)
+	}
+
+	if m.UserID != uid {
+		t.Errorf("UserID = %v, want %v", m.UserID, uid)
+	}
+
+	if m.RequestID != rid {
+		t.Errorf("RequestID = %v, want %v", m.RequestID, rid)
+	}
+
+	if !m.ActorID.Equal(actor) {
+		t.Errorf("ActorID = %s, want %s", m.ActorID.PrefixedString(), actor.PrefixedString())
+	}
+}
+
 func TestQuery_WithCustomMetadata(t *testing.T) {
 	t.Parallel()
 
