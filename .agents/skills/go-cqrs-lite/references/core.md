@@ -239,6 +239,21 @@ ctx = event.WithCommandCausality(ctx, "user.create", cmdID)
 cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 ```
 
+Record **who** initiated the change (audit trail) — the actor counterpart to causality:
+
+```go
+actor := id.NewUserActor(userID)                       // also NewBotActor/NewSystemActor/NewServiceActor
+basic, _ := command.New("user.create", streamID, command.WithActor(actor))
+dispatcher.Use(middleware.CommandActorContext())        // cmd metadata → handler context
+repo, _ := decider.NewRepository[State](store, bus, d,
+    decider.WithEnricher(event.ActorEnricher))          // context → event metadata
+// later: evt.Metadata().ActorID.PrefixedString() == "user:01ARZ..."
+```
+
+The actor wire format is `"kind:raw"` (kinds: `user`, `bot`, `system`, `service`), stored as
+`Tracing.ActorID` (JSON `actorId`, `omitzero`). `id.ActorID.Validate()` rejects a raw value
+without a kind. Full recipe: recipes §2.21.
+
 ---
 
 ## 4. Anti-Patterns to Avoid
@@ -386,6 +401,14 @@ qDisp.Use(middleware.QueryTypedMetrics(recorder))
 // Scenario testing — GivenState (no unused Cmd type param)
 scenario.GivenState[CounterState](t, fold, initial, events...).
     When(nil, decideFunc).Then(expectedTypes...)
+
+// Actor propagation — who initiated the change (audit trail)
+actor := id.NewSystemActor("scheduler")                 // or NewUserActor/NewBotActor/NewServiceActor
+basic, _ := command.New("user.create", streamID, command.WithActor(actor))
+cmds.Use(middleware.CommandActorContext())              // cmd metadata → handler context
+repo, _ := decider.NewRepository[State](store, bus, d,
+    decider.WithEnricher(event.ActorEnricher))          // context → event metadata
+who := evt.Metadata().ActorID.PrefixedString()          // "system:scheduler"
 
 // Schema evolution — VersionedSeekableJournal (upcast events during projection replay)
 vjournal, _ := schema.NewVersionedSeekableJournal(journal, upcaster1, upcaster2)

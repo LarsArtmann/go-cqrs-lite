@@ -138,7 +138,18 @@ func (r *replicator) applyWithRetry(ctx context.Context, job repJob) error {
 // engine transaction when supported. Lock-free: fold tasks come from the
 // immutable task snapshot (see task_snapshot.go).
 func (r *replicator) applyJob(ctx context.Context, job repJob) error {
-	tasks := r.store.tasksFor(job.eventType)
+	return r.applyJobFilter(ctx, job, nil)
+}
+
+// applyJobFilter is applyJob restricted to the named queries (nil = all). The
+// demotion catch-up replays only the collections the demoted engine never
+// served; everything it already holds must not be re-applied.
+func (r *replicator) applyJobFilter(
+	ctx context.Context,
+	job repJob,
+	queryFilter map[string]bool,
+) error {
+	tasks := filterTasks(r.store.tasksFor(job.eventType), queryFilter)
 	if len(tasks) == 0 {
 		return nil
 	}

@@ -50,7 +50,11 @@ func (s *SQLViewStore[V, K]) Query(ctx context.Context, q kv.ViewQuery) ([]*V, e
 		q.Conditions,
 		s.Dialect.Placeholder,
 	); err != nil {
-		return nil, errorfamily.WrapRejection(err, "storage.view.conditions", "validate query conditions")
+		return nil, errorfamily.WrapRejection(
+			err,
+			"storage.view.conditions",
+			"validate query conditions",
+		)
 	} else if condClause != "" {
 		whereFragments = append(whereFragments, condClause)
 		args = append(args, condArgs...)

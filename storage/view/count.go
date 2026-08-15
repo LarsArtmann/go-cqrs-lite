@@ -27,7 +27,11 @@ func (s *SQLViewStore[V, K]) Count(ctx context.Context, q kv.ViewQuery) (int64, 
 
 	whereClause, args, err := sqlpkg.BuildWhereClauseChecked(q.Conditions, s.Dialect.Placeholder)
 	if err != nil {
-		return 0, errorfamily.WrapRejection(err, "storage.view.conditions", "validate count conditions")
+		return 0, errorfamily.WrapRejection(
+			err,
+			"storage.view.conditions",
+			"validate count conditions",
+		)
 	}
 
 	if whereClause != "" {

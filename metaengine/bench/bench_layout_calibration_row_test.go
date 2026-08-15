@@ -131,8 +131,11 @@ func (h rowCalibHarness) createNormTables(parent, child string) error {
 		fmt.Sprintf(
 			"CREATE TABLE %s (id VARCHAR(64) PRIMARY KEY, total %s, status VARCHAR(32))",
 			parent, h.double),
-		fmt.Sprintf("CREATE TABLE %s (\n\t\t\tparent_id VARCHAR(64) NOT NULL, sku VARCHAR(64), qty BIGINT, price %s)",
-			child, h.double),
+		fmt.Sprintf(
+			"CREATE TABLE %s (\n\t\t\tparent_id VARCHAR(64) NOT NULL, sku VARCHAR(64), qty BIGINT, price %s)",
+			child,
+			h.double,
+		),
 		fmt.Sprintf("CREATE INDEX %s_pid ON %s (parent_id)", child, child),
 	}
 	for _, s := range stmts {
@@ -161,8 +164,15 @@ func (h rowCalibHarness) seedNorm(parent, child string, n int) error {
 		}
 		for _, item := range order.Items {
 			if _, err := tx.Exec(
-				fmt.Sprintf("INSERT INTO %s (parent_id, sku, qty, price) VALUES (%s)", child, h.ph(4)),
-				order.ID, item.SKU, item.Qty, item.Price,
+				fmt.Sprintf(
+					"INSERT INTO %s (parent_id, sku, qty, price) VALUES (%s)",
+					child,
+					h.ph(4),
+				),
+				order.ID,
+				item.SKU,
+				item.Qty,
+				item.Price,
 			); err != nil {
 				return fmt.Errorf("seed child: %w", err)
 			}
@@ -185,7 +195,12 @@ func (h rowCalibHarness) seedNormChunked(parent, child string, n int) error {
 		}
 	}
 
-	if err := chunkedInsert(h.db, h.tuple, "INSERT INTO "+parent+" (id, total, status) VALUES ", parents); err != nil {
+	if err := chunkedInsert(
+		h.db,
+		h.tuple,
+		"INSERT INTO "+parent+" (id, total, status) VALUES ",
+		parents,
+	); err != nil {
 		return err
 	}
 

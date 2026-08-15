@@ -102,7 +102,13 @@ func BenchmarkColumnarLayoutCalibration_EmbedWrite(b *testing.B) {
 // BenchmarkColumnarLayoutCalibration_NormalizeRead: parent + children in one
 // LEFT JOIN — columnar-native child table read.
 func BenchmarkColumnarLayoutCalibration_NormalizeRead(b *testing.B) {
-	h := rowCalibHarness{name: "duckdbDisk", db: newDuckRawFile(b), ph: dollarPH, tuple: dollarTuple, double: "DOUBLE"}
+	h := rowCalibHarness{
+		name:   "duckdbDisk",
+		db:     newDuckRawFile(b),
+		ph:     dollarPH,
+		tuple:  dollarTuple,
+		double: "DOUBLE",
+	}
 	parent := "calib_p_" + rowCalibNonce("dnr")
 	child := "calib_c_" + rowCalibNonce("dnr")
 	if err := h.createNormTables(parent, child); err != nil {
@@ -120,7 +126,9 @@ func BenchmarkColumnarLayoutCalibration_NormalizeRead(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 	for i := range b.N {
-		if err := scanJoinRows(h.db.QueryContext(ctx, query, fmt.Sprintf("order-%d", i%1000))); err != nil {
+		if err := scanJoinRows(
+			h.db.QueryContext(ctx, query, fmt.Sprintf("order-%d", i%1000)),
+		); err != nil {
 			b.Fatalf("query: %v", err)
 		}
 	}
@@ -128,7 +136,13 @@ func BenchmarkColumnarLayoutCalibration_NormalizeRead(b *testing.B) {
 
 // BenchmarkColumnarLayoutCalibration_NormalizeWrite: single child-row insert.
 func BenchmarkColumnarLayoutCalibration_NormalizeWrite(b *testing.B) {
-	h := rowCalibHarness{name: "duckdbDisk", db: newDuckRawFile(b), ph: dollarPH, tuple: dollarTuple, double: "DOUBLE"}
+	h := rowCalibHarness{
+		name:   "duckdbDisk",
+		db:     newDuckRawFile(b),
+		ph:     dollarPH,
+		tuple:  dollarTuple,
+		double: "DOUBLE",
+	}
 	parent := "calib_p_" + rowCalibNonce("dnw")
 	child := "calib_c_" + rowCalibNonce("dnw")
 	if err := h.createNormTables(parent, child); err != nil {

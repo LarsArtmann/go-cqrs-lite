@@ -475,23 +475,23 @@ func TestTracing_JSON(t *testing.T) {
 		}
 	})
 
-		t.Run("roundtrip preserves ActorID", func(t *testing.T) {
-			t.Parallel()
-			original := Tracing{ActorID: id.NewBotActor("ci-runner")}
-			data, err := json.Marshal(original)
-			if err != nil {
-				t.Fatalf("marshal error: %v", err)
-			}
+	t.Run("roundtrip preserves ActorID", func(t *testing.T) {
+		t.Parallel()
+		original := Tracing{ActorID: id.NewBotActor("ci-runner")}
+		data, err := json.Marshal(original)
+		if err != nil {
+			t.Fatalf("marshal error: %v", err)
+		}
 
-			var decoded Tracing
-			if err := json.Unmarshal(data, &decoded); err != nil {
-				t.Fatalf("unmarshal error: %v", err)
-			}
+		var decoded Tracing
+		if err := json.Unmarshal(data, &decoded); err != nil {
+			t.Fatalf("unmarshal error: %v", err)
+		}
 
-			if !decoded.ActorID.Equal(original.ActorID) {
-				t.Errorf("roundtrip mismatch: got %v, want %v", decoded.ActorID, original.ActorID)
-			}
-		})
+		if !decoded.ActorID.Equal(original.ActorID) {
+			t.Errorf("roundtrip mismatch: got %v, want %v", decoded.ActorID, original.ActorID)
+		}
+	})
 }
 
 // TestTracing_JSONv1Fallback covers the same serialization under

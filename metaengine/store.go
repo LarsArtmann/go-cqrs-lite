@@ -69,6 +69,24 @@ func (s *Store) Replan(ctx context.Context) error {
 // Replan from one caused by SetPriority, AddEngine/RemoveEngine, or the
 // auto-reroute loop.
 func (s *Store) replanWithTrigger(ctx context.Context, trigger string) error {
+	return s.replanWithTransition(ctx, trigger, nil)
+}
+
+// replanWithTransition re-plans with an optional transition hook executed at
+// the start of Phase 1 under the SAME store write lock that re-assigns query
+// engines. Role transitions (PromoteEngine, DemoteEngine) use the hook so the
+// role flip, the replicator swap, and the assignment mutation are atomic:
+// concurrent events (dispatch + replication under one read lock) either see
+// the world entirely before the transition or entirely after it, so an engine
+// receives each event exactly once, never twice, never zero times
+// (ADR-0124 §7, METAENGINE-LAYOUT-ROLES.md §4).
+//
+// A hook error aborts the re-plan before any mutation happens.
+func (s *Store) replanWithTransition(
+	ctx context.Context,
+	trigger string,
+	underLock func() error,
+) error {
 	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("metaengine.Store.Replan: %w", err)
 	}
@@ -85,6 +103,14 @@ func (s *Store) replanWithTrigger(ctx context.Context, trigger string) error {
 	plan := &PlanResult{}
 
 	s.mu.Lock()
+
+	if underLock != nil {
+		if err := underLock(); err != nil {
+			s.mu.Unlock()
+			return fmt.Errorf("metaengine.Store.Replan: %w", err)
+		}
+	}
+
 	routable := s.routableLocked()
 
 	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
@@ -397,28 +423,38 @@ func (s *Store) applyWithRecord(
 
 	s.meter.IncWrite()
 
+	// Record, dispatch, and replicate under ONE read-lock section so a
+	// concurrent role transition (PromoteEngine/DemoteEngine, write-locked)
+	// can never land between them: every event reaches each engine either as
+	// a primary fold or via replication, never both and never neither, and
+	// the transition's EventLog snapshot splits history at exactly the same
+	// point the routing flips.
+	s.mu.RLock()
+
 	if s.eventLog != nil {
 		s.eventLog.Record(eventType, payload)
 	}
 
-	if err := s.dispatchFolds(ctx, eventType, rec, payload, nil); err != nil {
-		return err
+	dispatchErr := s.dispatchFoldsLocked(ctx, eventType, rec, payload, nil)
+	if dispatchErr == nil {
+		// Replication follows APPLIED state (not the event log): only
+		// successful primary dispatches are mirrored.
+		s.replicateLocked(eventType, rec, payload)
 	}
+	s.mu.RUnlock()
 
-	// Replication follows APPLIED state (not the event log): only successful
-	// primary dispatches are mirrored. Enqueue is atomic against PromoteEngine.
-	s.replicate(eventType, rec, payload)
+	if dispatchErr != nil {
+		return dispatchErr
+	}
 
 	return nil
 }
 
-// replicate fans a successfully applied event out to all shadow engines.
-// Non-blocking: failure isolation is a design invariant (I3) — a slow or
-// broken mirror must never stall the primary write path.
-func (s *Store) replicate(eventType string, rec record.Record, payload any) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
+// replicateLocked fans a successfully applied event out to all shadow
+// engines. Non-blocking: failure isolation is a design invariant (I3), a slow
+// or broken mirror must never stall the primary write path. The caller must
+// hold s.mu (at least RLock).
+func (s *Store) replicateLocked(eventType string, rec record.Record, payload any) {
 	for _, rep := range s.replicas {
 		rep.tryEnqueue(repJob{eventType: eventType, rec: rec, payload: payload})
 	}

@@ -258,7 +258,7 @@ type foldTask struct {
 
 // dispatchFolds collects matching folds for eventType, groups them by engine,
 // and applies them atomically per engine. When queryFilter is non-nil, only
-// folds for named queries are dispatched. The caller must NOT hold s.mu.
+// folds for named queries are dispatched.
 func (s *Store) dispatchFolds(
 	ctx context.Context,
 	eventType string,
@@ -269,6 +269,20 @@ func (s *Store) dispatchFolds(
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	return s.dispatchFoldsLocked(ctx, eventType, rec, payload, queryFilter)
+}
+
+// dispatchFoldsLocked is dispatchFolds for callers already holding s.mu (read
+// or write). Shadow engines (registered replicas) never receive primary
+// folds: the replicator owns their state. The skip keeps dispatch safe when a
+// demoted engine is still referenced by not-yet-replanned assignments.
+func (s *Store) dispatchFoldsLocked(
+	ctx context.Context,
+	eventType string,
+	rec record.Record,
+	payload any,
+	queryFilter map[string]bool,
+) error {
 	byEngine := make(map[Engine][]foldTask)
 
 	for _, t := range filterTasks(s.tasksFor(eventType), queryFilter) {
@@ -278,6 +292,10 @@ func (s *Store) dispatchFolds(
 	for _, eng := range s.engines {
 		tasks, ok := byEngine[eng]
 		if !ok || len(tasks) == 0 {
+			continue
+		}
+
+		if _, shadow := s.replicas[eng.Profile().Name]; shadow {
 			continue
 		}
 

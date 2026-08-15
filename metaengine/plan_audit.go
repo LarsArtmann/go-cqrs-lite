@@ -17,6 +17,7 @@ const (
 	triggerEngineAdd     = "engine-added"
 	triggerEngineRemove  = "engine-removed"
 	triggerEnginePromote = "engine-promoted"
+	triggerEngineDemote  = "engine-demoted"
 	triggerAutoReroute   = "auto-reroute"
 )
 

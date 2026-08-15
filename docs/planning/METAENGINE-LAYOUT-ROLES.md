@@ -153,11 +153,45 @@ RemoveEngine(ctx, oldEng.Profile().Name)
 Same as cutover minus the backfill step if the backup was kept current:
 `PromoteEngine(ctx, backupName)` once `ReplicationStatus` shows it caught up.
 
-### 4.4 No demote in v1
+### 4.4 `DemoteEngine(ctx, name, opts...)` (v2, shipped 2026-08-15)
 
-Active → Backup is not exposed; an Active engine may have queries routed to
-it, and silently freezing it would strand reads. Demote requires
-drain-then-unroute sequencing (future API: `DemoteEngine`).
+Active → shadow (Backup by default, Migration via `WithDemoteRole`). The
+drain-then-unroute sequencing concern is solved by atomicity, not sequencing:
+
+1. Preflight (no mutation): engine must be routable, another routable engine
+   must remain, every served query must be servable by a remaining engine
+   (ADT support), and an EventLog must be attached when queries exist.
+   Non-idempotent served folds require `WithDemoteForce` (same contract as
+   `WithBackfillForce`: the receiving projections are empty for those queries,
+   but emptiness cannot be proven when engines previously mirrored them).
+2. Transition: role flip + replicator registration + EventLog snapshot +
+   query re-assignment all happen under ONE write-lock section inside the
+   re-plan (`replanWithTransition`, trigger `engine-demoted`, audited).
+   Because `applyWithRecord` records to the log, dispatches primary folds,
+   and fans out replication under one READ-lock section, every event is
+   either fully before the transition (applied to the demoted engine as
+   primary) or fully after (dispatched to the new engines + mirrored) —
+   exactly once, never dropped, never doubled. `dispatchFolds` additionally
+   never applies primary folds to engines registered as replicas, keeping
+   dispatch safe under any stale assignment.
+3. Targeted catch-up replays from the transition-time snapshot:
+   - the demoted engine receives history for the collections it NEVER served
+     (filtered through the replicator's own apply semantics), completing the
+     mirror so a later `PromoteEngine` is safe;
+   - the queries it DID serve receive their history on their new engines via
+     the standard replay path. On failure the affected queries are poisoned
+     (loud reads) instead of serving silently-wrong results.
+   The replicator's applier starts only after the mirror catch-up so history
+   lands before buffered live events (chronological mirror state); more than
+   `replicationBufferJobs` live events during catch-up mark the engine stale
+   (loud; recover via remove + re-add + backfill).
+4. Do NOT call `Backfill` after `DemoteEngine`: it replays full history into
+   every shadow engine, re-applying collections the demoted engine already
+   holds.
+
+Symmetric hardening: `PromoteEngine` now performs drain + role flip inside the
+same transition lock, closing the pre-existing window where events could pass
+between the replica deregistration and the re-plan's re-assignment.
 
 ## 5. Workload Trace Format
 

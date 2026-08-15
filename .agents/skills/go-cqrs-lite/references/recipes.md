@@ -12,6 +12,7 @@
 > - [§2.7 Encrypted Payloads](#27-encrypted-payloads-encryption)
 > - [§2.8 Observability & Middleware](#28-observability--middleware-otel--middleware)
 > - [§2.9 Auto-Documentation](#29-auto-documentation-catalog)
+> - [§2.21 Actor Propagation — "Who Did It" Audit Trail](#221-actor-propagation--who-did-it-audit-trail-id--command--middleware--event)
 
 ### 2.0 Bundle Presets — one-call infrastructure wiring
 
@@ -933,6 +934,73 @@ store, _ := metaengine.Plan(engines, queries...,
     metaengine.WithSharedCollection("sharedAttachment"), // Go type name
 )
 ```
+
+### 2.21. Actor Propagation — "Who Did It" Audit Trail (id + command + middleware + event)
+
+Every event records **who** initiated it: `id.ActorID` (kind: `user`/`bot`/`system`/`service`)
+flows from command metadata through the handler context into event metadata. Wire format is
+`"kind:raw"` (e.g. `"user:01ARZ3NDEKTSV4RRFFQ69G5FAV"`), stored on `Tracing.ActorID`
+(JSON `actorId`, `omitzero` so old data stays byte-compatible).
+
+The full chain — three pieces, verified by `integration/actor_propagation_test.go`:
+
+```go
+actor := id.NewUserActor(id.NewUserID()) // or NewBotActor/NewSystemActor("gc")/NewServiceActor("order-api")
+
+// 1. Stamp the actor on the command at creation
+basic, _ := command.New("user.create", streamID, command.WithActor(actor))
+// (queries: query.New("user.get", query.WithActor(actor)); events: event.WithActor(actor))
+
+// 2. Middleware lifts cmd.ActorID into the handler context
+cmds := command.NewDispatcher()
+cmds.Use(middleware.CommandActorContext())
+
+// 3. Enricher stamps it onto every event the decider saves
+repo, _ := decider.NewRepository[State](store, bus, d,
+    decider.WithEnricher(event.ActorEnricher))
+
+// After dispatch, the audit trail is on the stored event:
+// evt.Metadata().ActorID.PrefixedString() == "user:01ARZ..."
+// evt.Metadata().ActorID.Kind() == id.ActorUser
+```
+
+Manual context control (non-command entry points — schedulers, projections that dispatch):
+
+```go
+ctx = event.WithActorContext(ctx, id.NewSystemActor("reconciler"))
+actor, ok := event.ActorFromContext(ctx)
+```
+
+**Scheduling** — timer-driven commands should attribute to the scheduler, not to "nobody".
+`scheduling.Scheduler` is generic over payload P; the DispatchFunc is the caller's hook:
+
+```go
+scheduler := scheduling.New[CancelOrderCmd](timerStore,
+    func(ctx context.Context, t scheduling.Timer[CancelOrderCmd]) error {
+        ctx = event.WithActorContext(ctx, id.NewSystemActor("scheduler"))
+        return cmds.Dispatch(ctx, &CancelOrderCmd{OrderID: t.Payload.OrderID})
+    })
+```
+
+The scheduler itself is payload-agnostic; attribution is the DispatchFunc's job — set the actor
+context (and/or stamp `command.WithActor`) there, never inside the decider.
+
+**Trust levels / validation** — kind-discriminated actors enable authorization decisions
+(a `system` actor may cancel orders, a `bot` may not). Reject malformed IDs at the boundary:
+
+```go
+if err := actor.Validate(); err != nil { /* raw without kind */ }
+parsed, err := id.ParseActorID("service:order-api") // round-trips PrefixedString()
+```
+
+**Transport notes** — the watermill command protocol carries the actor as metadata key
+`actor_id` (value `"kind:raw"`), both directions; messages without it pass through unchanged.
+ActorID implements `MarshalBinary`/`UnmarshalBinary`, so it survives the CBOR typed stores
+(kv/snapshot/command/query) — without them it silently decoded to zero. `AsRecord` projections
+prefer `Tracing.ActorID` and fall back to legacy `Tracing.UserID` (rendered `"user:<ulid>"`).
+
+**Golden/BDD** — assert the audit trail with `scenario.ThenEvents` (full event assertions
+incl. metadata) or `eventtest.AssertGolden`.
 
 ## Metadata Serialization in KV Engines (Contributor Note)
 

@@ -142,11 +142,11 @@ func (s *Store) roleOfNameLocked(name string) ProjectionRole {
 // PromoteEngine transitions a shadow engine (Backup or Migration) to RoleActive
 // (ADR-0124 §7 cutover/promote, METAENGINE-LAYOUT-ROLES.md §4).
 //
-// Promotion drains the replication backlog first — while briefly holding the
-// store write lock, which blocks concurrent applies — so the promoted engine is
-// fully caught up at the instant it becomes routable. After the role flip, the
-// store re-plans with trigger "engine-promoted" so queries can be routed to
-// the promoted engine.
+// Promotion drains the replication backlog and flips the role atomically with
+// the re-plan's engine re-assignment (one write-lock section), so there is no
+// window where events bypass the engine: before the transition it is mirrored,
+// after it it receives primary folds. The store re-plans with trigger
+// "engine-promoted" so queries can be routed to the promoted engine.
 //
 // Promoting a stale engine fails: recover it first (remove, fix, re-add,
 // backfill). The context bounds the drain wait.
@@ -155,33 +155,53 @@ func (s *Store) PromoteEngine(ctx context.Context, name string) error {
 		return fmt.Errorf("metaengine.PromoteEngine: %w", err)
 	}
 
-	s.mu.Lock()
-
+	s.mu.RLock()
 	role, known := s.roleByNameLocked(name)
 	if !known {
-		s.mu.Unlock()
+		s.mu.RUnlock()
 		return fmt.Errorf("metaengine.PromoteEngine: engine %q not found", name)
 	}
 
 	if !role.IsShadow() {
-		s.mu.Unlock()
+		s.mu.RUnlock()
 		return fmt.Errorf(
 			"metaengine.PromoteEngine: engine %q has role %s — only %s/%s engines can be promoted",
 			name, role, RoleMigration, RoleBackup,
 		)
 	}
 
-	rep, ok := s.replicas[name]
-	if ok {
-		if err := rep.stopAndDrain(ctx); err != nil {
-			s.mu.Unlock()
-			return fmt.Errorf("metaengine.PromoteEngine(%s): %w", name, err)
-		}
+	rep, hasRep := s.replicas[name]
+	stale := hasRep && rep.isStale()
+	s.mu.RUnlock()
+
+	if stale {
+		return fmt.Errorf(
+			"metaengine.PromoteEngine(%s): engine is stale (%s) — recover via remove+re-add+backfill",
+			name, rep.lastError(),
+		)
 	}
 
-	delete(s.replicas, name)
-	s.engineRoles[name] = RoleActive
-	s.mu.Unlock()
+	err := s.replanWithTransition(ctx, triggerEnginePromote, func() error {
+		role, known := s.roleByNameLocked(name)
+		if !known || !role.IsShadow() {
+			return fmt.Errorf("engine %q is no longer promotable (role changed concurrently)", name)
+		}
 
-	return s.replanWithTrigger(ctx, triggerEnginePromote)
+		rep, ok := s.replicas[name]
+		if ok {
+			if err := rep.stopAndDrain(ctx); err != nil {
+				return err
+			}
+		}
+
+		delete(s.replicas, name)
+		s.engineRoles[name] = RoleActive
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("metaengine.PromoteEngine(%s): %w", name, err)
+	}
+
+	return nil
 }

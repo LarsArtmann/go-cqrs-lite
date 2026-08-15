@@ -94,7 +94,10 @@ func TestActorPropagationEndToEnd(t *testing.T) {
 		t.Fatalf("new command: %v", err)
 	}
 
-	if err := cmdDispatcher.Dispatch(ctx, &CreateUser{BasicCommand: basic, Name: "Alice"}); err != nil {
+	if err := cmdDispatcher.Dispatch(
+		ctx,
+		&CreateUser{BasicCommand: basic, Name: "Alice"},
+	); err != nil {
 		t.Fatalf("dispatch: %v", err)
 	}
 

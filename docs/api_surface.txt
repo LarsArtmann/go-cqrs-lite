@@ -710,6 +710,8 @@ event/const TombstoneActive
 event/const TombstoneTombstoned
 event/const TombstoneUndetermined
 event/const Transient
+event/func ActorEnricher
+event/func ActorFromContext
 event/func AsRecord
 event/func CheckVersionConflict
 event/func CommandCausalityEnricher
@@ -759,6 +761,7 @@ event/func SliceFromVersion
 event/func SliceToVersion
 event/func UnmarshalMetadataJSON
 event/func WithActor
+event/func WithActorContext
 event/func WithCausation
 event/func WithCausationID
 event/func WithClientID
@@ -1168,6 +1171,7 @@ id/method IsZero
 id/method IsZero
 id/method IsZero
 id/method Kind
+id/method MarshalBinary
 id/method MarshalJSON
 id/method PrefixedString
 id/method Raw
@@ -1176,7 +1180,9 @@ id/method String
 id/method String
 id/method String
 id/method String
+id/method UnmarshalBinary
 id/method UnmarshalJSON
+id/method Validate
 id/method Validate
 id/struct ActorID
 id/struct CausationMarker
@@ -2469,6 +2475,7 @@ middleware/const MetadataKeyOTelCorrelationID
 middleware/func AsCommand
 middleware/func AsEvent
 middleware/func AsQuery
+middleware/func CommandActorContext
 middleware/func CommandCircuitBreaker
 middleware/func CommandFlightRecorder
 middleware/func CommandIdempotency
@@ -2834,6 +2841,7 @@ scenario/func GivenState
 scenario/method Then
 scenario/method ThenError
 scenario/method ThenError
+scenario/method ThenEvents
 scenario/method ThenNoError
 scenario/method ThenQueryResult
 scenario/method ThenState
