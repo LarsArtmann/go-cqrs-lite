@@ -113,11 +113,19 @@ func TestBboltVector_UpsertOverwrites(t *testing.T) {
 
 	col := "vec_bolt_upsert"
 
-	if err := vb.VectorInsert(ctx, col, metaengine.Embedding{ID: "x", Values: []float32{1, 0}}); err != nil {
+	if err := vb.VectorInsert(
+		ctx,
+		col,
+		metaengine.Embedding{ID: "x", Values: []float32{1, 0}},
+	); err != nil {
 		t.Fatalf("VectorInsert 1: %v", err)
 	}
 
-	if err := vb.VectorInsert(ctx, col, metaengine.Embedding{ID: "x", Values: []float32{0, 1}}); err != nil {
+	if err := vb.VectorInsert(
+		ctx,
+		col,
+		metaengine.Embedding{ID: "x", Values: []float32{0, 1}},
+	); err != nil {
 		t.Fatalf("VectorInsert 2: %v", err)
 	}
 

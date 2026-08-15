@@ -4,6 +4,16 @@
 **Scope:** TODO_LIST §"Layout roles (long-horizon, depend on a design doc first)" — all 7 items
 **Working tree state:** metaengine tests **RED** (one panic — item 5, fix known, see §D)
 
+> **RESOLVED 2026-08-15 ~20:30 (follow-up session):** item-5 panic fixed
+> (`Elem()` guarded to Map kind; matches deduped per type; regression test
+> `TestSharedTypesInResult_CoversAllFieldShapes`). Full metaengine suite
+> GREEN `-race` (~135s); soak `-race -count=3` GREEN; lint 0 findings;
+> API golden regenerated (`TraceRecorder.Err` added); docs updated
+> (TODO_LIST 7×[x], CHANGELOG, ADR-0124 cross-ref, v5 plan T29–T35,
+> recipes §2.20, doc-check 816 refs OK). Standalone-build fixes:
+> `system/go.mod` + `cmd/cqrs-bench/go.mod` temporary replaces (unpublished
+> `metaengine.VectorDistance` / `metadata.Metadata[K]`). §F/§G remain open.
+
 ---
 
 ## Context

@@ -3,6 +3,7 @@ package metaengine
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -132,7 +133,11 @@ func TestTrace_ChainsExistingHooks(t *testing.T) {
 	var buf bytes.Buffer
 	rec := RecordTrace(store, &buf)
 
-	if err := store.Apply(context.Background(), "roleItemCreated", roleItemCreated{ID: "c", Name: "c"}); err != nil {
+	if err := store.Apply(
+		context.Background(),
+		"roleItemCreated",
+		roleItemCreated{ID: "c", Name: "c"},
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -167,9 +172,40 @@ func TestTrace_CloseStopsRecording(t *testing.T) {
 
 	content := buf.String()
 	if strings.Count(content, "\n") != 1 {
-		t.Fatalf("expected exactly 1 recorded line after Close, got %d", strings.Count(content, "\n"))
+		t.Fatalf(
+			"expected exactly 1 recorded line after Close, got %d",
+			strings.Count(content, "\n"),
+		)
 	}
 }
+
+// TestTrace_SurfacesEncodeError proves a failing writer is reported via
+// TraceRecorder.Err instead of silently dropping trace lines.
+func TestTrace_SurfacesEncodeError(t *testing.T) {
+	t.Parallel()
+
+	store, _ := newTraceStore(t)
+
+	rec := RecordTrace(store, errWriter{})
+
+	if err := store.Apply(
+		context.Background(),
+		"roleItemCreated",
+		roleItemCreated{ID: "e", Name: "e"},
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	if rec.Err() == nil {
+		t.Fatal("expected Err() to surface the writer failure")
+	}
+
+	rec.Close()
+}
+
+type errWriter struct{}
+
+func (errWriter) Write([]byte) (int, error) { return 0, errors.New("disk full") }
 
 func TestTrace_ReplaySkipsUnknownOps(t *testing.T) {
 	t.Parallel()

@@ -40,7 +40,8 @@ func (e *pgEngine) GraphAddEdge(
 	const q = `INSERT INTO meta_graph_edges (collection, from_node, to_node)
 VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`
 
-	if _, err := e.conn().ExecContext(ctx, q, col, encodeNodeKey(edge.From), encodeNodeKey(edge.To)); err != nil {
+	if _, err := e.conn().
+		ExecContext(ctx, q, col, encodeNodeKey(edge.From), encodeNodeKey(edge.To)); err != nil {
 		return fmt.Errorf("pgengine.GraphAddEdge: %w", err)
 	}
 

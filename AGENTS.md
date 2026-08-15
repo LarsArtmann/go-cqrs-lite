@@ -34,7 +34,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 **Contributing to the skill:** edit the `.md` files under `.agents/skills/go-cqrs-lite/`, then verify:
 
 ```bash
-cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md
+cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md
 ```
 
 ## Quick Reference
@@ -229,6 +229,8 @@ One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, sta
 - **Dgraph 25.x `DeleteJson` requires explicit null predicates** — bare `{"uid": "0x1"}` does NOT delete predicates in 25.x. You MUST list each predicate as `null`: `{"uid": "0x1", "cqrs.map_collection": null, ...}`. `dgraphengine.MapDelete` handles this via upsert pattern.
 - **DuckDB/CGo isolation** — `stack/duckdb` is the ONLY module requiring CGo (`//go:build cgo` on `drivers.go`). DuckDB's `metadata` column is `BLOB` (not VARCHAR) to avoid byte-slice escaping. DuckDB dialect uses `$1` placeholders and returns `time.Time` natively.
 - **eventtest nested module** — `event/v4/eventtest/` directory MUST match module path. `go mod tidy` in consumers emits warnings; run `go mod tidy -e` to suppress. See [ADR-0045](docs/adr/0045-eventtest-module-path-fix.md).
+- **Replace directives do NOT cascade** — a dependency module's own `replace` lines are ignored when it is built as a dependency (only the MAIN module's replaces apply). Consequence: any module that replaces an engine (e.g. `metaengine/pebbleengine/v4 => ../metaengine/pebbleengine`) must ALSO replace `metaengine/v4 => ../metaengine` whenever the local engine uses unpublished metaengine symbols — otherwise GOWORK=off standalone builds resolve published metaengine and fail with `undefined:`. Same class bit `cmd/cqrs-bench` (via local `command` → unpublished `metadata.Metadata[K]`).
+- **Cross-engine dialect SQL similarity is baselined, not deduplicated** — engine modules are dep-isolated by design; pg/mysql `graph.go` (and `encodeNodeKey`) intentionally repeat structure with dialect-specific SQL. Resolution is `art-dupl baseline . --threshold 3 --semantic` (documented intentional similarity), NOT exporting shared SQL fragments. Real logic duplication (e.g. `decodeVector`/`topKNearest` → `metaengine.DecodeVectorJSON`/`TopKNearest`) IS deduplicated.
 
 ### Release
 
@@ -251,7 +253,7 @@ One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, sta
 1. Make the code change
 2. Immediately: `cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" . --update` (regenerate golden)
 3. Update any affected skill references (`.agents/skills/go-cqrs-lite/references/*.md`)
-4. Run `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`
+4. Run `cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`
 5. Run `nix run .#verify` (or at minimum `nix run .#verify-fast`)
 
 ### Verify Before Release

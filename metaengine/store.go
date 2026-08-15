@@ -18,8 +18,8 @@ type Store struct {
 	mu                sync.RWMutex
 	foldLocks         *foldLocks // per-query fold locks (shared fold state; see fold_locks.go)
 	engines           []Engine
-	engineRoles       map[string]ProjectionRole      // engine name → role; missing = Active (guarded by mu)
-	replicas          map[string]*replicator         // shadow-engine replicators (guarded by mu)
+	engineRoles       map[string]ProjectionRole             // engine name → role; missing = Active (guarded by mu)
+	replicas          map[string]*replicator                // shadow-engine replicators (guarded by mu)
 	taskSnap          atomic.Pointer[map[string][]foldTask] // immutable event→tasks index (lock-free reads)
 	queries           map[string]queryMeta
 	byInputType       map[string]string

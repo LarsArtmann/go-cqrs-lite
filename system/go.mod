@@ -123,4 +123,6 @@ replace github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 => ../met
 
 replace github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 => ../metaengine/pgengine
 
+replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../metaengine
+
 replace github.com/larsartmann/go-cqrs-lite/watermill/v4 => ../watermill

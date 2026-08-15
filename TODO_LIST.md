@@ -25,7 +25,11 @@ and is **never** duplicated here.
       v4.0.2+ ×4 (+ metaengine, system, stack/sqlite, stack/pebble consumers
       as needed — the SQL `JournalReadFrom` positional fix is INVISIBLE to
       consumers until these land; consumers on v4.0.1 double-process on
-      resume). Then remove the 5 temporary replaces in `system/go.mod`.
+      resume). Then remove the 6 temporary replaces in `system/go.mod` (the
+      6th, `metaengine/v4 => ../metaengine` added 2026-08-15, unblocks the
+      local `pebbleengine/vector.go` → unpublished `metaengine.VectorDistance`)
+      and the 1 in `cmd/cqrs-bench/go.mod` (`metadata/v4` — unpublished
+      generic `metadata.Metadata[K]`).
       _(Effort: M)_
 - [ ] [BLOCKED] **Cut `command/v4.6.1`** — v4.6.0 was published pinning
       `storage/memory v4.2.0` whose `ReadFrom` bug fails
@@ -46,7 +50,9 @@ and is **never** duplicated here.
       up. Track and verify.
       _(Effort: M)_
 - [ ] **Run the pre-tag checklist** — `nix run .#vulncheck` +
-      `#check-arch` (verify covered the rest).
+      `#check-arch` (verify covered the rest) + GOWORK=off `go test ./...`
+      on the module AND its test subpackages (the command/v4.6.0
+      commandtest failure class).
       _(Effort: S)_
 - [ ] **Run calibration benchmarks against baseline** — verify
       `calibration-baseline.md` accuracy; add CI regression check.
@@ -79,6 +85,15 @@ and is **never** duplicated here.
 - [ ] **Add CI leg for GOWORK=off standalone builds of leaf modules**
       (integration/, examples/, benchkit/) to catch pin rot early.
       _(Effort: S)_
+- [ ] **`system/integration` DuckDB standalone failure** —
+      `TestIntegration_DuckDBSource_HealthCheck` fails GOWORK=off with
+      `unknown driver "duckdb"` although the blank import chain
+      (test → duckdbengine v4.0.1 → drivers.go `//go:build cgo` →
+      duckdb-go/v2 `sql.Register`) looks complete; verified pre-existing at
+      `d807deebb` (2026-08-15). Workspace mode unaffected. Probably needs a
+      `replace metaengine/duckdbengine/v4 => ../../metaengine/duckdbengine`
+      in `system/integration/go.mod` or a driver-name guard.
+      _(Effort: S)_
 
 ---
 
@@ -106,30 +121,51 @@ and is **never** duplicated here.
 
 ### Layout roles (long-horizon, depend on a design doc first)
 
-- [ ] **Fold-pipeline sync for Active+DualUse roles** — event → all
-      Active+DualUse projections in one engine transaction (strong consistency).
-      Needs transactional fold pipeline redesign.
-      _(Effort: L)_
-- [ ] **Async replication for Backup+Migration roles** — eventual consistency,
-      failure-isolated. Needs replication subsystem design.
-      _(Effort: L)_
-- [ ] **Role transition API** — Backup→Active promote, Migration→Active cutover.
-      Depends on the role model above.
-      _(Effort: M)_
-- [ ] **Real workload trace format** — JSON-lines spec, trace recorder, trace
-      player for benchmark calibration.
-      _(Effort: M)_
-- [ ] **Aggregate boundary config** — `WithSharedCollection("Attachment")`
-      opt-in for shared-by-type collections. Needs collection-grouping design.
-      _(Effort: M)_
-- [ ] **Per-fold mutex instead of global `foldMu`** — current `foldMu`
-      serializes all fold execution; per-fold would allow parallel writes across
-      different queries. High risk without soak testing.
-      _(Effort: M)_
-- [ ] **Multi-collection batch atomicity** — when one event triggers folds for
-      multiple collections, all writes commit atomically in one engine
-      transaction. Replaces `RelationalProjection`'s per-event tx.
-      _(Effort: L)_
+> ALL 7 items DONE 2026-08-15 — design doc
+> [`docs/planning/METAENGINE-LAYOUT-ROLES.md`](docs/planning/METAENGINE-LAYOUT-ROLES.md)
+> (roles/invariants I1–I4, replication v1 semantics, JSONL trace spec, cutover
+> runbook). Tests prove invariants by name (I1 routing closure, I2 mirror
+> completeness, I3 failure isolation, I4 no cross-engine atomicity).
+
+- [x] **Fold-pipeline sync for Active+DualUse roles** — DONE 2026-08-15:
+      `dispatchFolds` groups folds per engine and wraps the batch in
+      `Transactional.RunInTx`; shadows excluded via `routableLocked()`.
+      _(was: Effort L)_
+- [x] **Async replication for Backup+Migration roles** — DONE 2026-08-15:
+      `replicator.go` (bounded buffer 1024, retry×3, 3s op timeout,
+      stale+halt on overflow — never skip; recovery = remove + re-add +
+      `Backfill(WithBackfillForce())`). Enqueue after successful primary
+      dispatch; mirrors applied state under store RLock.
+      _(was: Effort L)_
+- [x] **Role transition API** — DONE 2026-08-15: `AddEngine(ctx, eng,
+      WithEngineRole(...))`, `EngineRole(name)`, `Store.PromoteEngine(ctx,
+      name)` (write-locked drain → flip to Active → replan
+      `triggerEnginePromote`), `Store.ReplicationStatus(name)`.
+      DemoteEngine deferred to v2.
+      _(was: Effort M)_
+- [x] **Real workload trace format** — DONE 2026-08-15: JSONL spec
+      (`{"v":1,"ts","op","name","dur_ms","err"}`), `RecordTrace` (chains
+      existing hooks, `Err()` surfaces writer failure), `ReadTrace`,
+      `TraceStats`, `ReplayTrace` + `StoreTraceSink` (payloads synthesized
+      via caller factories — traces carry shape/mix only).
+      _(was: Effort M)_
+- [x] **Aggregate boundary config** — DONE 2026-08-15:
+      `WithSharedCollection(typeNames...)` planOption + `shared-collection`
+      rule (forces LayoutNormalize on queries carrying a shared child by
+      type name — direct/`*T`/`[]T`/map-value fields; INFO per type, WARN
+      when spanning ≥2 collections; survives replan).
+      _(was: Effort M)_
+- [x] **Per-fold mutex instead of global `foldMu`** — DONE 2026-08-15:
+      `fold_locks.go` — one mutex per query name (folds are query-owned;
+      serializes exactly the shared `SetCurrentRecord` state), lock-free
+      task snapshot via `atomic.Pointer` swap. Soak: 2 queries × 16
+      goroutines × 200 applies `-race -count=3`, no lost updates.
+      _(was: Effort M)_
+- [x] **Multi-collection batch atomicity** — DONE (verified shipped
+      2026-08-15): `batch_atomicity*_test.go` already prove one-event →
+      multi-collection writes commit atomically per engine; item 1's
+      dispatch grouping formalized the engine-transaction boundary.
+      _(was: Effort L)_
 
 ---
 
@@ -301,7 +337,8 @@ and is **never** duplicated here.
       module; no engine go.mod depends on it (verified 2026-08-15).
       _(Effort: S)_
 - [ ] **Delete junk from repo root** — `t/`, `result/` (16MB root-owned),
-      `reports/coverage.out` (empty), `reports/jscpd-report.json`.
+      `reports/coverage.out` (empty), `reports/jscpd-report.json`; drop the
+      orphaned `stash@{0}` (WIP @ `e87be3143`, pre-recovery leftovers).
       _(Effort: XS)_
 - [ ] **One bench system** — keep benchkit + cqrs-bench; delete the redundant
       harnesses (metaengine/bench, integration/ bench files, v2-era baseline);

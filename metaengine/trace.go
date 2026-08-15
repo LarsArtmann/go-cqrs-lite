@@ -48,6 +48,7 @@ type TraceRecorder struct {
 	enc   *json.Encoder
 	store *Store
 	prev  *Hooks
+	err   error
 }
 
 // RecordTrace attaches a TraceRecorder to the store. The returned recorder
@@ -101,7 +102,18 @@ func (tr *TraceRecorder) record(op, name string, d time.Duration, err error) {
 	tr.mu.Lock()
 	defer tr.mu.Unlock()
 
-	_ = tr.enc.Encode(opRecord)
+	if encErr := tr.enc.Encode(opRecord); encErr != nil && tr.err == nil {
+		tr.err = encErr
+	}
+}
+
+// Err returns the first trace-encoding error (writer failure), if any. A nil
+// result means every recorded op reached the writer.
+func (tr *TraceRecorder) Err() error {
+	tr.mu.Lock()
+	defer tr.mu.Unlock()
+
+	return tr.err
 }
 
 // Close detaches the recorder and restores the hooks that were installed

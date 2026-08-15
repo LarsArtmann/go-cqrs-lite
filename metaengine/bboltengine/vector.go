@@ -3,9 +3,7 @@ package bboltengine
 import (
 	"bytes"
 	"context"
-	"encoding/json/v2"
 	"fmt"
-	"sort"
 	"strings"
 
 	bolt "go.etcd.io/bbolt"
@@ -32,7 +30,10 @@ func (e *bboltEngine) VectorInsert(
 
 	return e.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketName))
-		return bucket.Put(k, encodeJSON(emb.Values)) //nolint:wrapcheck // bbolt error is self-describing
+		return bucket.Put(
+			k,
+			encodeJSON(emb.Values),
+		) //nolint:wrapcheck // bbolt error is self-describing
 	})
 }
 
@@ -54,7 +55,7 @@ func (e *bboltEngine) VectorSearch(
 		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
 			id := strings.TrimPrefix(string(k), string(prefix))
 
-			vec, err := decodeVector(v)
+			vec, err := metaengine.DecodeVectorJSON(v)
 			if err != nil {
 				return fmt.Errorf("bboltengine.VectorSearch: decode %s: %w", id, err)
 			}
@@ -71,29 +72,5 @@ func (e *bboltEngine) VectorSearch(
 		return nil, err //nolint:wrapcheck // passthrough
 	}
 
-	return topKNearest(results, k), nil
-}
-
-// decodeVector decodes a JSON-encoded embedding.
-func decodeVector(data []byte) ([]float32, error) {
-	var vec []float32
-	if err := json.Unmarshal(data, &vec); err != nil {
-		return nil, err
-	}
-
-	return vec, nil
-}
-
-// topKNearest sorts ascending by distance (the "dot" metric is negated by
-// VectorDistance so ascending is always nearest-first) and truncates to k.
-func topKNearest(results []metaengine.VectorResult, k int) []metaengine.VectorResult {
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].Distance < results[j].Distance
-	})
-
-	if k > 0 && k < len(results) {
-		results = results[:k]
-	}
-
-	return results
+	return metaengine.TopKNearest(results, k), nil
 }

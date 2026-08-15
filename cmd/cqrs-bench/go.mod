@@ -202,4 +202,6 @@ replace github.com/larsartmann/go-cqrs-lite/id/v4 => ../../id
 
 replace github.com/larsartmann/go-cqrs-lite/command/v4 => ../../command
 
+replace github.com/larsartmann/go-cqrs-lite/metadata/v4 => ../../metadata
+
 replace github.com/larsartmann/go-cqrs-lite/event/v4 => ../../event

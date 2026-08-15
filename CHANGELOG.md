@@ -6,6 +6,61 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — metaengine layout roles: engine roles, shadow replication, promote/cutover, workload traces, shared-collection boundaries — 2026-08-15
+
+- **Engine roles** (`AddEngine(ctx, eng, WithEngineRole(metaengine.RoleBackup))`):
+  `Active`/`DualUse` are routable and served by the synchronous fold pipeline;
+  `Migration`/`Backup` are shadows — mirrored via async replication, never
+  routed (invariant I1) until promoted. Design doc:
+  `docs/planning/METAENGINE-LAYOUT-ROLES.md` (ADR-0124 §7).
+- **Async shadow replication** (v1, in-process): bounded buffer (1024 jobs),
+  3 retries with 3s per-op timeout, stale+halt on overflow (never skip —
+  recovery = remove + re-add + `Backfill(WithBackfillForce())`). Mirrors ALL
+  collections (I2); a failing/hung shadow never blocks primaries beyond the
+  op timeout (I3); no cross-engine atomicity (I4).
+- **Role transition**: `Store.PromoteEngine(ctx, name)` — drains the shadow's
+  replicator under the write lock, flips the role to Active, replans
+  (`engine-promoted` trigger); refuses stale/non-shadow/unknown engines.
+  `Store.ReplicationStatus(name)` reports applied count + staleness.
+- **Workload traces**: `RecordTrace(store, w)` writes JSONL
+  (`{"v":1,"ts","op","name","dur_ms","err"}`), chains existing hooks, and
+  surfaces writer failures via `TraceRecorder.Err()`. `ReadTrace`,
+  `TraceStats`, and `ReplayTrace`+`StoreTraceSink` replay a recorded
+  workload into a fresh store for benchmark calibration (payloads are
+  synthesized via caller factories — traces carry shape/mix only).
+- **Aggregate boundaries**: `WithSharedCollection("sharedAttachment")`
+  opt-in forces `LayoutNormalize` on queries whose result carries the shared
+  child type (direct/`*T`/`[]T`/map-value fields); INFO diagnostic per type,
+  WARN when a type spans ≥2 collections. Survives replans.
+- **Per-query fold locks** replace the global `foldMu`: folds are query-owned,
+  so one mutex per query name serializes exactly the shared fold state while
+  different queries apply in parallel. Lock-free event→folds task snapshot
+  (`atomic.Pointer` swap) lets the replicator resolve folds without the read
+  lock during promote drains. Soak-tested `-race -count=3` (no lost updates).
+
+### Fixed — metaengine lint + panic hardening — 2026-08-15
+
+- `rule_shared_collection.go`: scalar result fields (e.g. `ID string`)
+  panicked the shared-collection rule via an unconditional `Elem()` — now
+  guarded (map-value fallback only), and matches are deduplicated per type.
+- `benchmark.go`: removed a wasted label reassignment (wastedassign).
+- **Deduplication gate**: `decodeVector`/`topKNearest` were byte-identical in
+  bboltengine + pebbleengine — extracted as exported
+  `metaengine.DecodeVectorJSON`/`metaengine.TopKNearest` (vector helpers now
+  live beside `VectorDistance`). The pg/mysql `graph.go` insert blocks remain
+  intentionally similar (dialect SQL; engine modules are dep-isolated) and
+  were added to the `.art-dupl-baseline.json` (same precedent as
+  `encodeNodeKey`).
+- `cmd/cqrs-bench`: standalone (GOWORK=off) build failed — local `command`
+  (via replace) uses the unpublished generic `metadata.Metadata[K]`, but
+  `metadata` resolved to published v4.4.0 which lacks the type. Added the
+  temporary `replace metadata/v4 => ../../metadata` (same convention as
+  `system/go.mod`; remove when `metadata` is next tagged).
+- `system/go.mod`: added the 6th temporary replace
+  (`metaengine/v4 => ../metaengine`) — replace directives do not cascade, so
+  local engines' unpublished `metaengine.VectorDistance`/`VectorResult` uses
+  broke the standalone build while it resolved published metaengine v4.10.0.
+
 ### Fixed — repo gates: false-GREEN coverage check, silent lint failures, parallel heap-test flake — 2026-08-15
 
 - **`scripts/check-coverage.sh`**: had been a false GREEN for 3 days (since

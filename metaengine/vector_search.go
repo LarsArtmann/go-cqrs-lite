@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"encoding/json"
 	"math"
 	"sort"
 )
@@ -130,6 +131,33 @@ func (m *MemoryVectorIndex) search(query []float32, k int, metric string) []Vect
 // numerically identical across engines (the adttest matrix asserts parity).
 func VectorDistance(a, b []float32, metric string) float32 {
 	return computeDistance(a, b, metric)
+}
+
+// DecodeVectorJSON decodes a JSON-encoded embedding ([]float32) — the
+// storage format used by KV/LSM engines' brute-force vector backends.
+func DecodeVectorJSON(data []byte) ([]float32, error) {
+	var vec []float32
+	if err := json.Unmarshal(data, &vec); err != nil {
+		return nil, err
+	}
+
+	return vec, nil
+}
+
+// TopKNearest sorts results ascending by distance (the "dot" metric is
+// negated by VectorDistance so ascending is always nearest-first) and
+// truncates to k. Shared by engines' brute-force VectorSearch paths so
+// truncation semantics are identical.
+func TopKNearest(results []VectorResult, k int) []VectorResult {
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Distance < results[j].Distance
+	})
+
+	if k > 0 && k < len(results) {
+		results = results[:k]
+	}
+
+	return results
 }
 
 func computeDistance(a, b []float32, metric string) float32 {

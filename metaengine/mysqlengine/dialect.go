@@ -21,7 +21,8 @@ const (
 // failure the conservative default is the MySQL dialect (previous behavior).
 func detectDialect(db *sql.DB) string {
 	var version string
-	if err := db.QueryRowContext(context.Background(), "SELECT VERSION()").Scan(&version); err != nil {
+	if err := db.QueryRowContext(context.Background(), "SELECT VERSION()").
+		Scan(&version); err != nil {
 		return dialectMySQL
 	}
 

@@ -123,10 +123,10 @@ func (s *Store) ReplicationStatus(name string) (ReplicationStatus, bool) {
 	}
 
 	return ReplicationStatus{
-		Role:     s.roleOfNameLocked(name),
-		Queued:   rep.queued(),
-		Applied:  rep.appliedCount(),
-		Stale:    rep.isStale(),
+		Role:      s.roleOfNameLocked(name),
+		Queued:    rep.queued(),
+		Applied:   rep.appliedCount(),
+		Stale:     rep.isStale(),
 		LastError: rep.lastError(),
 	}, true
 }

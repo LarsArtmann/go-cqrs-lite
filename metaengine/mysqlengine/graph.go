@@ -39,7 +39,8 @@ func (e *mysqlEngine) GraphAddEdge(
 ) error {
 	const q = `INSERT IGNORE INTO meta_graph_edges (collection, from_node, to_node) VALUES (?, ?, ?)`
 
-	if _, err := e.conn().ExecContext(ctx, q, col, encodeNodeKey(edge.From), encodeNodeKey(edge.To)); err != nil {
+	if _, err := e.conn().
+		ExecContext(ctx, q, col, encodeNodeKey(edge.From), encodeNodeKey(edge.To)); err != nil {
 		return fmt.Errorf("mysqlengine.GraphAddEdge: %w", err)
 	}
 

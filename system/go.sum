@@ -178,8 +178,6 @@ github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.4.0 h1:cG2ectcbpR90OoFlpmP/1g
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.4.0/go.mod h1:cDboCYTCqa2ClUnSBMyUDAwhoyRc6IUN0N7rjdAbfs8=
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.0 h1:2Ihda7CmJmsZOSctQ+lRGQdY1A9betjW3gKE8NKitbk=
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.0/go.mod h1:ao9+WMapDQzOjYLXOGLXI5AxYFKkz4IWo3CXRxg6Ls0=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0 h1:GV9SgoAf4MIH2w9gbEsMqajsZ8mp9a0P+2rsaqrgZq4=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0/go.mod h1:lpkl+zFKy7FhhyKgH6S2i7+INp7PUk6yg4GsPbO/hCo=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.3.0 h1:1iybvmhuQBCuEy8cqTLPL2H/xGlTj+oxIyTHv8GuzFY=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.3.0/go.mod h1:0r/d+dn/oVO4qQLNaJfYdKlAf6Y4EybIhnWs2qBOR5Y=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 h1:s9XLaYa8jLAK3uBl6giJKStiQA+1ag9VmjQEU4AKZbg=

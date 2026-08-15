@@ -63,7 +63,7 @@ func (s *Store) newReplicatorLocked(engine Engine) *replicator {
 
 	return &replicator{
 		store: s, name: engine.Profile().Name, engine: engine,
-		ch: make(chan repJob, replicationBufferJobs),
+		ch:     make(chan repJob, replicationBufferJobs),
 		stopCh: make(chan struct{}), doneCh: make(chan struct{}),
 		baseCtx: ctx, cancel: cancel, accepting: true,
 	}
@@ -281,14 +281,15 @@ func (r *replicator) lastError() string {
 	return r.lastErr
 }
 
-func (r *replicator) queued() int          { return len(r.ch) }
-func (r *replicator) appliedCount() int64  { return r.applied.Load() }
+func (r *replicator) queued() int         { return len(r.ch) }
+func (r *replicator) appliedCount() int64 { return r.applied.Load() }
 
 // shadowQuery redirects one query's fold writes to a shadow engine. Everything
 // else (name, folds, config) delegates to the planned query, so the shadow
 // hosts the same collection names with the same fold semantics.
 type shadowQuery struct {
 	queryMeta
+
 	eng Engine
 }
 

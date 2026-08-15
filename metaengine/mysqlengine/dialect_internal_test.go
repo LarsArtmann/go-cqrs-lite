@@ -51,9 +51,11 @@ func TestMariaDBSQLContainsNoMySQL8OnlySyntax(t *testing.T) {
 	}
 
 	sql, args := e.ExplainScanQuery(t.Context(), "c", metaengine.ExplainOptions{
-		Filters: []metaengine.FilterSpec{{Column: "status", Op: metaengine.FilterEq, Value: "open"}},
-		Sort:    &metaengine.SortSpec{Column: "priority", Desc: true},
-		Cursor:  float64(2),
+		Filters: []metaengine.FilterSpec{
+			{Column: "status", Op: metaengine.FilterEq, Value: "open"},
+		},
+		Sort:   &metaengine.SortSpec{Column: "priority", Desc: true},
+		Cursor: float64(2),
 	})
 
 	for _, banned := range []string{"->", "CAST(? AS JSON)"} {

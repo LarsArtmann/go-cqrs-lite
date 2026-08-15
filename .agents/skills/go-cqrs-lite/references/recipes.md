@@ -869,6 +869,71 @@ pt, _ := metaengine.ExecuteTyped[projections.ProcessingTimeQuery, projections.Pr
 | `command.dead-lettered`  | All retries exhausted          | DLQ             |
 | `command.completed`      | Command processed successfully | ProcessingTime  |
 
+### 2.20 Engine Roles, Shadow Replication & Promote Cutover (metaengine)
+
+ADR-0124 §7 + [`docs/planning/METAENGINE-LAYOUT-ROLES.md`](../../../../docs/planning/METAENGINE-LAYOUT-ROLES.md).
+`Active`/`DualUse` engines are routable and synced by the fold pipeline;
+`Migration`/`Backup` engines are shadows — mirrored asynchronously, never
+routed until promoted.
+
+**Add a shadow (backup or migration target) and promote it**:
+
+```go
+// Shadow engine: mirrors ALL collections, never serves queries.
+if err := store.AddEngine(ctx, newEngine,
+    metaengine.WithEngineRole(metaengine.RoleBackup)); err != nil { ... }
+
+// Watch replication health (bounded buffer; Stale=true means halted —
+// never a silent gap; recovery = RemoveEngine + AddEngine + Backfill force).
+if st, ok := store.ReplicationStatus("backup-1"); ok && st.Stale {
+    // re-add the shadow, then:
+    _ = store.Backfill(ctx, metaengine.WithBackfillForce())
+}
+
+// Cutover: drains the shadow under the write lock, flips it to Active,
+// replans (trigger "engine-promoted"). Refuses stale shadows.
+if err := store.PromoteEngine(ctx, "backup-1"); err != nil { ... }
+role, known := store.EngineRole("backup-1") // → RoleActive, true
+```
+
+Invariants (proven by test): shadows are never routed (I1); shadows mirror
+ALL collections (I2); a failing/hung shadow cannot stall primaries beyond the
+3s per-op timeout (I3); there is no cross-engine atomicity (I4) — promote
+drains first, then flips.
+
+**Record and replay a workload trace** (JSONL, for benchmark calibration):
+
+```go
+var buf bytes.Buffer
+rec := metaengine.RecordTrace(store, &buf)
+defer rec.Close()
+// ... run production-shaped traffic ...
+if err := rec.Err(); err != nil { /* writer failed mid-trace */ }
+
+ops, _ := metaengine.ReadTrace(bytes.NewReader(buf.Bytes()))
+summary := metaengine.TraceStats(ops) // applies/queries + per-name counts
+
+// Replay into a fresh store; payloads are synthesized via factories
+// (traces carry shape/mix only — no arbitrary Go values are JSON-safe).
+sink := metaengine.StoreTraceSink(
+    freshStore,
+    func(eventType string, seq int) any { return TaskCreated{ID: ids[seq]} },
+    func(name string, seq int) any      { return FindTask{ID: ids[seq]} },
+)
+_ = metaengine.ReplayTrace(ctx, ops, sink)
+```
+
+**Shared child collections** (aggregate-boundary opt-in, ADR-0124): declare a
+child Go type as shared and the planner forces `LayoutNormalize` on every
+query result carrying it (embedding would duplicate the shared child), with a
+WARN when the type spans multiple collections:
+
+```go
+store, _ := metaengine.Plan(engines, queries...,
+    metaengine.WithSharedCollection("sharedAttachment"), // Go type name
+)
+```
+
 ## Metadata Serialization in KV Engines (Contributor Note)
 
 When adding a new KV-backed engine (pebble, bbolt, or a future 3rd engine), the

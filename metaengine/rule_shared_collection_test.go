@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -46,18 +47,24 @@ type findSharedComment struct{ ID string }
 func sharedTaskQuery() any {
 	return Query[findSharedTask, sharedTaskResult](
 		"shared_tasks",
-		OnRecord(sharedTaskCreated{}, func(_ record.Record, e sharedTaskCreated) (string, sharedTaskResult) {
-			return e.ID, sharedTaskResult{ID: e.ID, Attachments: []sharedAttachment{e.Att}}
-		}),
+		OnRecord(
+			sharedTaskCreated{},
+			func(_ record.Record, e sharedTaskCreated) (string, sharedTaskResult) {
+				return e.ID, sharedTaskResult{ID: e.ID, Attachments: []sharedAttachment{e.Att}}
+			},
+		),
 	)
 }
 
 func sharedCommentQuery() any {
 	return Query[findSharedComment, sharedCommentResult](
 		"shared_comments",
-		OnRecord(sharedCommentCreated{}, func(_ record.Record, e sharedCommentCreated) (string, sharedCommentResult) {
-			return e.ID, sharedCommentResult{ID: e.ID, Attachment: &e.Att}
-		}),
+		OnRecord(
+			sharedCommentCreated{},
+			func(_ record.Record, e sharedCommentCreated) (string, sharedCommentResult) {
+				return e.ID, sharedCommentResult{ID: e.ID, Attachment: &e.Att}
+			},
+		),
 	)
 }
 
@@ -142,7 +149,8 @@ func TestWithSharedCollection_WarnsWhenSpanningCollections(t *testing.T) {
 		t.Fatal("expected a WARN for sharedAttachment spanning collections")
 	}
 
-	if !strings.Contains(spanningWarn, "shared_tasks") || !strings.Contains(spanningWarn, "shared_comments") {
+	if !strings.Contains(spanningWarn, "shared_tasks") ||
+		!strings.Contains(spanningWarn, "shared_comments") {
 		t.Fatalf("WARN should name both collections: %q", spanningWarn)
 	}
 }
@@ -164,7 +172,10 @@ func TestWithoutSharedCollection_DefaultLocalChild(t *testing.T) {
 
 	for _, diag := range store.Plan().Diagnostics {
 		if strings.Contains(diag.Message, "shared") && strings.Contains(diag.Message, "Normalize") {
-			t.Fatalf("unexpected shared-collection diagnostic without declaration: %q", diag.Message)
+			t.Fatalf(
+				"unexpected shared-collection diagnostic without declaration: %q",
+				diag.Message,
+			)
 		}
 	}
 }
@@ -198,5 +209,40 @@ func TestWithSharedCollection_SurvivesReplan(t *testing.T) {
 		if qa.Layout != LayoutNormalize {
 			t.Fatalf("query %q lost forced Normalize after replan: %s", qa.QueryName, qa.Layout)
 		}
+	}
+}
+
+// TestSharedTypesInResult_CoversAllFieldShapes locks the reflection contract:
+// scalar fields must never panic (regression: unconditional Elem() on string),
+// and direct/pointer/slice/map-value child shapes must all match by type name.
+func TestSharedTypesInResult_CoversAllFieldShapes(t *testing.T) {
+	t.Parallel()
+
+	type mixedResult struct {
+		ID         string
+		Title      string
+		Direct     sharedAttachment
+		Ptr        *sharedAttachment
+		Slice      []sharedAttachment
+		PtrSlice   []*sharedAttachment
+		ByMap      map[string]sharedAttachment
+		local      sharedNote //nolint:unused // exercises unexported skip
+		unexported []sharedAttachment
+		Note       sharedNote
+	}
+
+	shared := map[string]bool{"sharedAttachment": true}
+
+	got := sharedTypesInResult(reflect.TypeFor[mixedResult](), shared)
+	if len(got) != 1 {
+		t.Fatalf("expected exactly one distinct match (sharedAttachment), got %v", got)
+	}
+
+	if got[0] != "sharedAttachment" {
+		t.Fatalf("expected sharedAttachment, got %q", got[0])
+	}
+
+	if sharedTypesInResult(reflect.TypeFor[findSharedTask](), shared) != nil {
+		t.Fatal("pure-scalar result type must produce no matches and must not panic")
 	}
 }

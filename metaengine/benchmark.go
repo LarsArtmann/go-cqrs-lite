@@ -114,11 +114,9 @@ func BenchmarkPlan(
 	summary := &BenchmarkSummary{Results: make([]BenchmarkResult, 0, len(cfg.PriorityConfigs))}
 
 	for i, pc := range cfg.PriorityConfigs {
-		label := ""
+		label := fmt.Sprintf("plan-%d", i)
 		if i < len(cfg.Labels) {
 			label = cfg.Labels[i]
-		} else {
-			label = fmt.Sprintf("plan-%d", i)
 		}
 
 		// Create a dry-run plan with this priority config

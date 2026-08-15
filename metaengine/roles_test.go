@@ -12,6 +12,7 @@ import (
 // every backend interface (MapBackend, ScanBackend, ...) promoted.
 type renamedEngine struct {
 	*memoryEngine
+
 	name string
 }
 
@@ -40,9 +41,11 @@ func roleTestStore(t *testing.T) (*Store, Engine) {
 	return store, primary
 }
 
-type roleItemCreated struct{ ID, Name string }
-type roleItem struct{ Name string }
-type roleFindItem struct{ ID string }
+type (
+	roleItemCreated struct{ ID, Name string }
+	roleItem        struct{ Name string }
+	roleFindItem    struct{ ID string }
+)
 
 func roleItemQuery() any {
 	return Query[roleFindItem, roleItem](
@@ -86,7 +89,11 @@ func TestShadowEngine_NeverRouted(t *testing.T) {
 
 	store, _ := roleTestStore(t)
 
-	if err := store.AddEngine(context.Background(), renamed("shadow"), WithEngineRole(RoleBackup)); err != nil {
+	if err := store.AddEngine(
+		context.Background(),
+		renamed("shadow"),
+		WithEngineRole(RoleBackup),
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -145,7 +152,11 @@ func TestDualUseEngine_IsRoutable(t *testing.T) {
 
 	store, _ := roleTestStore(t)
 
-	if err := store.AddEngine(context.Background(), renamed("dual"), WithEngineRole(RoleDualUse)); err != nil {
+	if err := store.AddEngine(
+		context.Background(),
+		renamed("dual"),
+		WithEngineRole(RoleDualUse),
+	); err != nil {
 		t.Fatal(err)
 	}
 

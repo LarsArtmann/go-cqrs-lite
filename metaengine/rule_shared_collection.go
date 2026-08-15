@@ -82,18 +82,23 @@ func (r *sharedCollectionRule) warnSpanning(result *PlanResult, spanning map[str
 
 		sort.Strings(queries)
 
+		msg := fmt.Sprintf(
+			"shared type %q spans %d collections (%s) — without a shared collection these copies drift independently",
+			typeName,
+			len(queries),
+			strings.Join(queries, ", "),
+		)
+
 		result.Diagnostics = append(result.Diagnostics, Diagnostic{
-			Level: DiagLevelWarn,
-			Message: fmt.Sprintf(
-				"shared type %q spans %d collections (%s) — without a shared collection these copies drift independently",
-				typeName, len(queries), strings.Join(queries, ", "),
-			),
+			Level:   DiagLevelWarn,
+			Message: msg,
 		})
 	}
 }
 
-// sharedTypesInResult returns the declared-shared type names carried by a
-// query result type — directly, as *T, or as []T (top-level fields only).
+// sharedTypesInResult returns the distinct declared-shared type names carried
+// by a query result type — directly, as *T, as []T, or as a map value
+// (top-level fields only).
 func sharedTypesInResult(rt reflect.Type, shared map[string]bool) []string {
 	if len(shared) == 0 || rt == nil {
 		return nil
@@ -105,6 +110,7 @@ func sharedTypesInResult(rt reflect.Type, shared map[string]bool) []string {
 	}
 
 	var out []string
+	seen := make(map[string]bool)
 
 	for i := range rt.NumField() {
 		field := rt.Field(i)
@@ -113,15 +119,16 @@ func sharedTypesInResult(rt reflect.Type, shared map[string]bool) []string {
 		}
 
 		core := derefStructType(field.Type)
-		if core == nil {
-			core = derefStructType(field.Type.Elem()) // slice/array element
+		if core == nil && field.Type.Kind() == reflect.Map {
+			core = derefStructType(field.Type.Elem()) // map value type
 		}
 
 		if core == nil {
 			continue
 		}
 
-		if name := core.Name(); name != "" && shared[name] {
+		if name := core.Name(); name != "" && shared[name] && !seen[name] {
+			seen[name] = true
 			out = append(out, name)
 		}
 	}

@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "threshold": 3,
-  "recordedAt": "2026-08-14T18:18:27.951136308Z",
+  "recordedAt": "2026-08-15T18:36:15.953236385Z",
   "entries": [
     {
       "hash": "042a25ea73339942",
@@ -82,6 +82,14 @@
       "files": [
         "metaengine/badgerengine/stream_log.go",
         "metaengine/bboltengine/stream_log.go"
+      ],
+      "tokens": 6
+    },
+    {
+      "hash": "176ddf196053619f",
+      "files": [
+        "metaengine/mysqlengine/graph.go",
+        "metaengine/pgengine/graph.go"
       ],
       "tokens": 6
     },
@@ -305,14 +313,6 @@
       "tokens": 6
     },
     {
-      "hash": "4d59df111b5dfc70",
-      "files": [
-        "flightrecorder/recorder.go",
-        "flightrecorder/recorder.go"
-      ],
-      "tokens": 6
-    },
-    {
       "hash": "4f356606f49514ed",
       "files": [
         "storage/memory/checkpoint.go",
@@ -406,6 +406,14 @@
       "tokens": 6
     },
     {
+      "hash": "71cc7145e4496ca9",
+      "files": [
+        "metaengine/mysqlengine/graph.go",
+        "metaengine/pgengine/graph.go"
+      ],
+      "tokens": 22
+    },
+    {
       "hash": "723214000a979c8d",
       "files": [
         "command/commandtest/store_suite.go",
@@ -453,14 +461,6 @@
       "tokens": 10
     },
     {
-      "hash": "7f45526a1bf64f72",
-      "files": [
-        "metaengine/mysqlengine/pushdown.go",
-        "metaengine/pgengine/pushdown.go"
-      ],
-      "tokens": 14
-    },
-    {
       "hash": "83c4a53e18bcfd32",
       "files": [
         "metaengine/pebbleengine/stream_log.go",
@@ -501,18 +501,18 @@
       "tokens": 6
     },
     {
+      "hash": "8bb31faaf27e5951",
+      "files": [
+        "metaengine/mysqlengine/pushdown.go",
+        "metaengine/pgengine/pushdown.go"
+      ],
+      "tokens": 10
+    },
+    {
       "hash": "915e606d0cb5da34",
       "files": [
         "storage/bbolt/serialization.go",
         "storage/pebble/serialization.go"
-      ],
-      "tokens": 8
-    },
-    {
-      "hash": "93f9ee621b8d6b30",
-      "files": [
-        "metaengine/pgengine/pushdown.go",
-        "metaengine/mysqlengine/pushdown.go"
       ],
       "tokens": 8
     },

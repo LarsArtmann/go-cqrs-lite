@@ -1581,6 +1581,7 @@ metaengine/func ContractSuite
 metaengine/func DecodeFloat
 metaengine/func DecodeFloatResults
 metaengine/func DecodeStreamValue
+metaengine/func DecodeVectorJSON
 metaengine/func DefaultRebuildThreshold
 metaengine/func DeferClose
 metaengine/func DeserializePlan
@@ -1659,6 +1660,7 @@ metaengine/func SortOn
 metaengine/func SortOnField
 metaengine/func SpatialExecuteTyped
 metaengine/func StoreTraceSink
+metaengine/func TopKNearest
 metaengine/func TraceStats
 metaengine/func VectorDistance
 metaengine/func VectorExecuteTyped
@@ -1915,6 +1917,7 @@ metaengine/method EffectiveReplicationLag
 metaengine/method Encode
 metaengine/method EngineNames
 metaengine/method EngineRole
+metaengine/method Err
 metaengine/method Error
 metaengine/method EventSample
 metaengine/method EventSample

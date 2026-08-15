@@ -104,7 +104,12 @@ func StoreTraceSink(
 	payloadFor func(eventType string, seq int) any,
 	inputFor func(name string, seq int) any,
 ) TraceSink {
-	return &storeSink{store: store, payloadFor: payloadFor, inputFor: inputFor, seq: make(map[string]int)}
+	return &storeSink{
+		store:      store,
+		payloadFor: payloadFor,
+		inputFor:   inputFor,
+		seq:        make(map[string]int),
+	}
 }
 
 type storeSink struct {

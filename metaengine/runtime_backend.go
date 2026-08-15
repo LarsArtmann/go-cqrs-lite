@@ -234,7 +234,11 @@ func (s *Store) replayShadows(ctx context.Context, events []EventInput) error {
 
 	for _, rep := range reps {
 		for _, evt := range events {
-			job := repJob{eventType: evt.Type, rec: record.Record{Type: evt.Type}, payload: evt.Payload}
+			job := repJob{
+				eventType: evt.Type,
+				rec:       record.Record{Type: evt.Type},
+				payload:   evt.Payload,
+			}
 			if err := rep.applyJob(ctx, job); err != nil {
 				return fmt.Errorf("metaengine: backfill shadow %s: %w", rep.name, err)
 			}
@@ -277,18 +281,18 @@ func (s *Store) dispatchFolds(
 			continue
 		}
 
-	applyAll := func(ctx context.Context) error {
-		for _, t := range tasks {
-			l := s.foldLocks.get(t.q.QueryName())
-			l.Lock()
+		applyAll := func(ctx context.Context) error {
+			for _, t := range tasks {
+				l := s.foldLocks.get(t.q.QueryName())
+				l.Lock()
 
-			if ra, ok := t.fold.(RecordAwareFold); ok {
-				ra.SetCurrentRecord(rec)
-			}
+				if ra, ok := t.fold.(RecordAwareFold); ok {
+					ra.SetCurrentRecord(rec)
+				}
 
-			applyErr := s.applyFold(ctx, t.q, t.fold, payload)
+				applyErr := s.applyFold(ctx, t.q, t.fold, payload)
 
-			l.Unlock()
+				l.Unlock()
 
 				if applyErr != nil {
 					return fmt.Errorf(

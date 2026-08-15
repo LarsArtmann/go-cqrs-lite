@@ -31,6 +31,7 @@ func waitFor(t *testing.T, d time.Duration, cond func() bool) bool {
 // simulating a broken Backup engine.
 type failingShadowEngine struct {
 	*memoryEngine
+
 	name string
 }
 
@@ -54,6 +55,7 @@ func (f *failingShadowEngine) MapSet(
 // simulating a hopelessly slow Backup engine for buffer-overflow testing.
 type gatedShadowEngine struct {
 	*memoryEngine
+
 	name string
 	gate chan struct{}
 }

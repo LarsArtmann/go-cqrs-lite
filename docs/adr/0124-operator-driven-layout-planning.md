@@ -122,6 +122,13 @@ with explicit roles:
 New backends can be added at runtime. The planner generates a plan for the new
 engine, backfills from the event log, and brings it online.
 
+> **Implemented 2026-08-15** — see
+> [`docs/planning/METAENGINE-LAYOUT-ROLES.md`](../planning/METAENGINE-LAYOUT-ROLES.md):
+> `AddEngine(ctx, eng, WithEngineRole(...))` assigns roles; shadows
+> (Migration/Backup) mirror ALL collections via async replication and are
+> never routed until `Store.PromoteEngine(ctx, name)`. Invariants I1–I4 are
+> proven by test.
+
 ### Re-layout Trigger (threshold-based)
 
 When the operator changes a priority:
