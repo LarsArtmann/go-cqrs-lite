@@ -40,11 +40,11 @@
     "go-atomic-write": {
       "flake": false,
       "locked": {
-        "lastModified": 1786719117,
-        "narHash": "sha256-SJesuJYfw1n6Ubh0rDb9tG/YznTTy0q+maeqhzZGkEU=",
+        "lastModified": 1786808405,
+        "narHash": "sha256-KyGxUQCjN70PW8JhYmPgXeGrzevy23+xmdxXO4ZX1lM=",
         "owner": "LarsArtmann",
         "repo": "go-atomic-write",
-        "rev": "b381ca6a310dadee902f88ac73d0c43a1a2e8f35",
+        "rev": "9a4218db61767ac8bd45c3c7ee00023c5da6bf02",
         "type": "github"
       },
       "original": {

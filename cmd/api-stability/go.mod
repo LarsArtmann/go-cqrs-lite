@@ -35,7 +35,7 @@ require (
 	github.com/knadh/koanf/parsers/yaml v1.1.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
 	github.com/larsartmann/cmdguard/v4 v4.0.2
-	github.com/larsartmann/go-atomic-write v0.5.0 // indirect
+	github.com/larsartmann/go-atomic-write v0.5.1 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
 	github.com/larsartmann/go-output v0.37.0 // indirect
