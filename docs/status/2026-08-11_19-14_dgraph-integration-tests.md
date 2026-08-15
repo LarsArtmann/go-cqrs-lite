@@ -112,18 +112,18 @@ stream_log_test.go:122: JournalReadFrom(1,0) returned 3 entries, expected fewer 
 
 ### Critical (fix now)
 
-1. **Fix CounterBackend DQL colon bug** — `$key%d string` → `$key%d: string` in `keyVarDecls()`. Single character fix, unblocks 2 failing tests.
-2. **Fix JournalReadFrom seq offset** — Investigate whether `from` is 0-indexed or 1-indexed, align with contract.
-3. **Run `nix fmt`** on all changed files.
-4. **Run `nix run .#verify`** (or at least `verify-fast`).
-5. **Run `nix run .#lint`** on dgraphengine module.
-6. **Run `nix run .#check-arch`** to verify dep budget not exceeded.
+~~1. **Fix CounterBackend DQL colon bug** — `$key%d string` → `$key%d: string` in `keyVarDecls()`. Single character fix, unblocks 2 failing tests.~~ done - colon fix + regression guard (2026-08-14 session); counter path reworked at 5127039da
+~~2. **Fix JournalReadFrom seq offset** — Investigate whether `from` is 0-indexed or 1-indexed, align with contract.~~ done at 7c0a62c98 (positional JournalReadFrom + shared stream-log contract suite; live 24/24)
+~~3. **Run `nix fmt`** on all changed files.~~ done - lint/fmt clean since 444be10a7
+~~4. **Run `nix run .#verify`** (or at least `verify-fast`).~~ done at 5f2198189 (three GREENs since)
+~~5. **Run `nix run .#lint`** on dgraphengine module.~~ done - 76/76 modules clean since 444be10a7
+~~6. **Run `nix run .#check-arch`** to verify dep budget not exceeded.~~ done - Check Arch green inside #verify since 8c384f0f5
 
 ### Dgraph engine improvements
 
 7. **Add `Transactional` support** — Implement `RunInTx` so `enginetest.RunTransactionalTest` can run. Dgraph supports transactions natively; the engine just doesn't expose the interface.
-8. **Add `ConcurrentTx` test** — Depends on #7.
-9. **Fix collection name collisions in parallel tests** — Use `t.Name()`-derived collection prefixes.
+8. **Add `ConcurrentTx` test** — Depends on #7. <- OPEN. RunConcurrentTxTest harness exists in enginetest - gated on item 7 (dgraph RunInTx)
+~~9. **Fix collection name collisions in parallel tests** — Use `t.Name()`-derived collection prefixes.~~ done - RunStreamLogBackendTestIn(t, eng, col) + events_parity collection (2026-08-15 session)
 10. **Add `integration` build tag** — Match PG convention for separating integration from unit tests.
 11. **Add per-test DropAll or namespace isolation** — Prevent parallel test interference.
 12. **Add `SearchBackend` integration test via enginetest** — No shared harness exists for SearchBackend; create one or add dgraph-specific.
@@ -137,12 +137,12 @@ stream_log_test.go:122: JournalReadFrom(1,0) returned 3 entries, expected fewer 
 
 ### Engine test harness improvements
 
-20. **Add `RunSearchBackendTest`** to `enginetest/` — Search is a first-class ADT; dgraph and potentially Turso implement it.
-21. **Add `RunSetBackendTest`** to `enginetest/` — Set ADT has no shared contract test.
-22. **Add `RunMultimapBackendTest`** to `enginetest/` — Multimap only has dgraph-specific tests.
-23. **Add `RunLogBackendTest`** to `enginetest/` — Log ADT only has dgraph-specific tests.
-24. **Add `RunGraphBackendTest`** to `enginetest/` — Graph is dgraph's killer feature but has no shared harness (only dgraph-specific GraphRAG tests).
-25. **Add `RunCounterBackendTest`** to `enginetest/` — Counter has no shared contract; bugs like the DQL colon issue would be caught across all engines.
+20. **Add `RunSearchBackendTest`** to `enginetest/` — Search is a first-class ADT; dgraph and potentially Turso implement it. <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)' (adttest.RunMatrix; Search harness missing)
+21. **Add `RunSetBackendTest`** to `enginetest/` — Set ADT has no shared contract test. <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)' (Set harness missing)
+22. **Add `RunMultimapBackendTest`** to `enginetest/` — Multimap only has dgraph-specific tests. <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)' (Multimap harness missing)
+~~23. **Add `RunLogBackendTest`** to `enginetest/` — Log ADT only has dgraph-specific tests.~~ done - enginetest.RunStreamLogBackendTest(In) incl. interleaved-collections phase; dgraph parity wired
+24. **Add `RunGraphBackendTest`** to `enginetest/` — Graph is dgraph's killer feature but has no shared harness (only dgraph-specific GraphRAG tests). <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)'; graph work in flight in the concurrent session
+25. **Add `RunCounterBackendTest`** to `enginetest/` — Counter has no shared contract; bugs like the DQL colon issue would be caught across all engines. <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)' (Counter harness missing - would have caught the colon bug)
 
 ### Documentation
 
@@ -150,19 +150,19 @@ stream_log_test.go:122: JournalReadFrom(1,0) returned 3 entries, expected fewer 
 27. **Update references/recipes.md** — Add Dgraph integration test recipe.
 28. **Add ADR** — Document why dgraphengine doesn't implement Transactional (Dgraph transaction semantics differ).
 29. **Update FEATURES.md** — Mark Dgraph integration testing as DONE (was likely PARTIALLY DONE or PLANNED).
-30. **Document the CounterBackend bug** — If not fixed in this session, add to TODO_LIST as critical.
+~~30. **Document the CounterBackend bug** — If not fixed in this session, add to TODO_LIST as critical.~~ done - the bug itself is fixed (2026-08-14) with counter_test.go regression guard; CHANGELOG covers it
 
 ### Broader metaengine improvements noticed
 
 31. **Add `b.Loop()` migration** — bench_test.go uses deprecated `b.N` pattern (4 gopls warnings).
 32. **Fix `atomic.Int64` modernization** — stress_test.go:90 uses `var idx int64` + `atomic.AddInt64` instead of `atomic.Int64`.
-33. **Fix go.mod version** — `go 1.26.5` vs AGENTS.md `Go 1.26.4` across all modules.
+33. **Fix go.mod version** — `go 1.26.5` vs AGENTS.md `Go 1.26.4` across all modules. <- OPEN. rides the Go 1.26.6 direction decision - ROADMAP 'Open Questions' #2
 34. **Add `json/v2` stdversion suppression** — 6 gopls `stdversion` warnings in counter.go and scan.go about `encoding/json/v2` requiring go1.27. These are expected under `goexperiment.jsonv2` but noisy.
-35. **Fix `commandlifecycle/projections` unused deps** — go.mod has 4 unused requires (failsafe-go, flightrecorder, idempotency, otel).
+~~35. **Fix `commandlifecycle/projections` unused deps** — go.mod has 4 unused requires (failsafe-go, flightrecorder, idempotency, otel).~~ done at 94261a568 - mass tidy; standalone builds green
 
 ### Dgraph engine deeper work
 
-36. **Calibrate cost model** — The `DG_NsPerOp` / `DG_NsPerRead` / `DG_NsPerWrite` constants say "Calibrated 2026-08-08" but the CounterBackend path is broken — the calibration likely only tested Map/Graph/Search, not Counter.
+36. **Calibrate cost model** — The `DG_NsPerOp` / `DG_NsPerRead` / `DG_NsPerWrite` constants say "Calibrated 2026-08-08" but the CounterBackend path is broken — the calibration likely only tested Map/Graph/Search, not Counter. <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks - re-verify Counter constants post-fix)
 37. **Add `Transactional` to Profile.Supports** — If/when RunInTx is implemented, declare it.
 38. **Add `HealthChecker` integration test** — `HealthCheck(ctx)` exists but has no test.
 39. **Add `Prober` integration test** — `Probe()` exists for live latency measurement but has no test.
@@ -233,3 +233,16 @@ stream_log_test.go:122: JournalReadFrom(1,0) returned 3 entries, expected fewer 
 | `scripts/ephemeral-dgraph.sh` | Added default test runner |
 | `flake.nix` | Added `integration-dgraph` app |
 | `TODO_LIST.md` | Marked task `[x]` |
+
+
+---
+
+## Resolution (2026-08-15, docs-health pass)
+
+16 of 50 items carry verdicts. The critical block (1-6) fully closed: colon
+bug fixed with regression guard, JournalReadFrom made positional + shared
+contract suite (`7c0a62c98`), collection collisions solved via
+`RunStreamLogBackendTestIn`, gates green 3x since `5f2198189`. The shared
+harness wishlist (20-25 minus Log) tracks in TODO_LIST "Metaengine —
+Universal ADT Coverage (Phase 7)"; the deep-dgraph test wishlist (37-45)
+and CI/pipeline items (16-19, 46-50) remain open. Stays active.

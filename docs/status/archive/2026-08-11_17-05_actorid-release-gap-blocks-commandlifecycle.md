@@ -3,7 +3,7 @@
 **Date:** 2026-08-11
 **Type:** Release-blocking discovery (no tags created — awaiting dedicated release session)
 **TODO items:** "Tag commandlifecycle/v4.0.0" and "Tag benchkit/v4.4.0" (latter verified already tagged)
-**Update 2026-08-11:** Still OPEN — no tags created. Tracked in TODO_LIST → Release/Tagging (BLOCKED on user approval + go-codec publish).
+**Update 2026-08-11:** ~~Still OPEN — no tags created.~~ RESOLVED 2026-08-13: the full chain tagged (see Proposed fix verdicts below).
 
 ## Summary
 
@@ -49,18 +49,18 @@ Consumers requiring `record/v4 v4.1.0` (61 modules), `command/v4 v4.4.0`,
 
 ## Proposed fix (for dedicated release session)
 
-1. **Tag `id/v4.3.0`** — publishes `actor_id.go`, `actor_id_json.go`, tests
+~~1. **Tag `id/v4.3.0`** — publishes `actor_id.go`, `actor_id_json.go`, tests~~ done - id/v4.4.0 tagged 2026-08-13, contains actor_id.go (verified via git tag --contains)
    (currently in workspace since 7e374b753). Additive; api_surface.txt already
    contains the new exports (`id/func NewActorID`, `id/func ParseActorID`,
    `id/struct ActorID`, constructors NewUserActor/NewBotActor/NewSystemActor/
    NewServiceActor, `id/type ActorKind`).
-2. **Re-tag `record/v4.2.0`** with go.mod requiring `id/v4 v4.3.0`.
-3. **Re-tag `command/v4.5.0`** with go.mod requiring `id/v4 v4.3.0`.
-4. **Re-tag `metaengine/v4.9.0`** with go.mod requiring `id/v4 v4.3.0`.
-5. **Tag `commandlifecycle/v4.0.0`** and **`commandlifecycle/projections/v4.0.0`**
+~~2. **Re-tag `record/v4.2.0`** with go.mod requiring `id/v4 v4.3.0`.~~ done - record/v4.2.0 tagged (flattened string types; standalone green)
+~~3. **Re-tag `command/v4.5.0`** with go.mod requiring `id/v4 v4.3.0`.~~ done - landed as command/v4.6.0 (WithActor wave, 2026-08-13)
+~~4. **Re-tag `metaengine/v4.9.0`** with go.mod requiring `id/v4 v4.3.0`.~~ done - landed as metaengine/v4.10.0 (2026-08-13)
+~~5. **Tag `commandlifecycle/v4.0.0`** and **`commandlifecycle/projections/v4.0.0`**~~ done - commandlifecycle/v4.0.0 + commandlifecycle/projections/v4.0.0 tagged 2026-08-13
    (projections go.mod already pins `commandlifecycle/v4 v4.0.0`; tag in
    dependency order).
-6. **Bump downstream go.mod requires** for all modules that use ActorID
+~~6. **Bump downstream go.mod requires** for all modules that use ActorID~~ done - mass upgrade of 79 modules at 94261a568 (59 go.mod files)
    (event, query, metadata, storage/bbolt, storage/pebble, watermill, etc. —
    66 modules require id/v4) to avoid MVS pinning the broken id/v4.2.0.
 
@@ -75,3 +75,15 @@ go run . -update`) before tagging. Run `nix run .#verify` first.
   `Truncate`/`TitleCase` — TODO item can be closed.
 - This mirrors the DuckDB/PG go.mod drift note in CHANGELOG Unreleased
   (require pinned below actual published version).
+
+
+---
+
+## Resolution (2026-08-15, docs-health pass)
+
+The entire proposed fix executed on 2026-08-13 (version numbers ran slightly
+ahead of the proposal: id/v4.4.0, record/v4.2.0, command/v4.6.0,
+metaengine/v4.10.0, commandlifecycle x2), followed by the mass downstream
+bump (`94261a568`). The release chain builds standalone; the brutal review's
+"release chain does not build" headline was this doc's issue, long since
+closed. Archived.

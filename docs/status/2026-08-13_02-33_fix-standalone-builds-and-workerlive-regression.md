@@ -130,56 +130,56 @@ The prior session's WorkerLive regression was fixed cleanly this session. No new
 
 ### Critical (uncommitted / unstable state)
 
-1. **Commit the 43 go.mod/go.sum files** — staged but not committed
-2. **Run `nix fmt`** on all changed files before committing
-3. **Run `nix run .#verify`** — full build/vet/test/race/lint/doc-check gate
+~~1. **Commit the 43 go.mod/go.sum files** — staged but not committed~~ done - daemon committed the go.mod/go.sum wave (standalone builds green since)
+~~2. **Run `nix fmt`** on all changed files before committing~~ done - lint 76/76 clean since 444be10a7
+~~3. **Run `nix run .#verify`** — full build/vet/test/race/lint/doc-check gate~~ done at 5f2198189
 
 ### High Priority (bugs discovered this session)
 
-4. **Fix `TestEventBus_HandlerIndependence`** — system bus should dispatch to all handlers independently, not stop on first error
-5. **Fix 3 LSP errors in test files** — `ActorID` on event.Metadata, `CausationID` type mismatch
-6. **Fix watermill CatchUpSubscriber TOCTOU race** — same class as projectionhost fix
-7. **Add CI step for standalone (GOWORK=off) builds** — per-module `go build` check
+~~4. **Fix `TestEventBus_HandlerIndependence`** — system bus should dispatch to all handlers independently, not stop on first error~~ done - watermill errors.Join handler-independence fix exists locally (ships with the v4.5.0 tag - TODO_LIST 'Release / Tagging')
+~~5. **Fix 3 LSP errors in test files** — `ActorID` on event.Metadata, `CausationID` type mismatch~~ done - integration/commandlifecycle test files compile; tests green in every verify since
+~~6. **Fix watermill CatchUpSubscriber TOCTOU race** — same class as projectionhost fix~~ done at 1b4e79b78 (subscribe-live-first + replayIDs dedup)
+7. **Add CI step for standalone (GOWORK=off) builds** — per-module `go build` check <- OPEN. TODO_LIST 'Pin & Standalone-Build Hygiene' (#verify-standalone) + 'Code Quality' (#verify-ci)
 
 ### Medium Priority (from feedback, explicitly approved)
 
-8. **Implement DuckDB `AggregateReader`** — push GROUP BY to columnar SQL
-9. **Refactor `drainCatchUp` + `process()` to share drain loop** — eliminate ~60 lines duplication
-10. **Design metaengine cross-projection JOIN ADR**
-11. **Fix 3 pre-existing doc-check failures** (advanced.md, readmodels.md)
+8. **Implement DuckDB `AggregateReader`** — push GROUP BY to columnar SQL <- OPEN. TODO_LIST 'Metaengine' (DuckDB aggregation pushdown)
+~~9. **Refactor `drainCatchUp` + `process()` to share drain loop** — eliminate ~60 lines duplication~~ done at 1b4e79b78 (worker_drain.go shared processEvent/handleProcessEventError)
+10. **Design metaengine cross-projection JOIN ADR** <- OPEN. deferred to a dedicated ADR; not yet ticketed
+~~11. **Fix 3 pre-existing doc-check failures** (advanced.md, readmodels.md)~~ done - fixed by the 12-40 session (tombstone renames)
 
 ### Release & Infrastructure
 
-12. **Run `nix run .#check-arch`** — dependency budget enforcement
-13. **Run `nix run .#check-duplication`** — no-new-clones gate (drainCatchUp may trigger)
-14. **Run `nix run .#check-coverage`** — coverage drift
-15. **Regenerate API stability golden** — `cd cmd/api-stability && GOWORK=off go run main.go -update`
-16. **Run meta-tests** — `cd cmd/api-stability && GOWORK=off go test -tags "goexperiment.jsonv2" -run TestEvery .`
+~~12. **Run `nix run .#check-arch`** — dependency budget enforcement~~ done - Check Arch green in every verify since (keys repaired at 8c384f0f5)
+~~13. **Run `nix run .#check-duplication`** — no-new-clones gate (drainCatchUp may trigger)~~ done - baseline re-pinned; gate green since
+~~14. **Run `nix run .#check-coverage`** — coverage drift~~ done - gate repaired at 875bb689b; green since
+~~15. **Regenerate API stability golden** — `cd cmd/api-stability && GOWORK=off go run main.go -update`~~ done - golden current (4133 exports, green in every verify)
+~~16. **Run meta-tests** — `cd cmd/api-stability && GOWORK=off go test -tags "goexperiment.jsonv2" -run TestEvery .`~~ done - meta-tests green (TestEvery* + LAYER keys both directions)
 
 ### Documentation
 
 17. **Update projectionhost `host.go` Start() doc comment** — still says "not a live stream consumer"
-18. **Document catch-up drain pattern in SKILL.md recipes**
-19. **Move reviewed feedback docs** — they're committed but still in `new/` directory
-20. **Add `WithoutViewAutoMigrate` to SKILL.md recipes** — only in README now
-21. **Document `Increment` non-clamping philosophy in SKILL.md FAQ**
+18. **Document catch-up drain pattern in SKILL.md recipes** <- OPEN. TODO_LIST 'Docs Honesty' (recipes item)
+~~19. **Move reviewed feedback docs** — they're committed but still in `new/` directory~~ done - 5/6 moved at triage; the TOCTOU doc moves in this docs-health pass (2026-08-15)
+20. **Add `WithoutViewAutoMigrate` to SKILL.md recipes** — only in README now <- OPEN. TODO_LIST 'Docs Honesty' (recipes item)
+21. **Document `Increment` non-clamping philosophy in SKILL.md FAQ** <- OPEN. TODO_LIST 'Docs Honesty' (recipes item)
 
 ### cqrs-lint Wishlist
 
-22. `--doctor --fix` flag
-23. Stale-suppression detection as default
-24. Show config-disabled rules in health breakdown
-25. Feature-profile-aware C008 (`monetary: false` → auto-INFO)
+22. `--doctor --fix` flag <- OPEN. TODO_LIST 'cqrs-lint' Wishlist
+23. Stale-suppression detection as default <- OPEN. TODO_LIST 'cqrs-lint' Wishlist
+24. Show config-disabled rules in health breakdown <- OPEN. TODO_LIST 'cqrs-lint' Wishlist
+25. Feature-profile-aware C008 (`monetary: false` → auto-INFO) <- OPEN. TODO_LIST 'cqrs-lint' Wishlist
 26. `examples/` exclusion or `demo` preset
 27. Per-module evaluation of every global detector
 
 ### Strategic (future sessions)
 
-28. Write `relational → metaengine` migration guide
-29. Research DuckDB vectorized aggregation paths
+28. Write `relational → metaengine` migration guide <- OPEN. TODO_LIST 'v5 Unification Phase 8' (migration guide)
+29. Research DuckDB vectorized aggregation paths <- OPEN. ROADMAP (DuckDB aggregation sections)
 30. FTS5 integration for metaengine SearchBackend
 31. Date/time function pushdown in metaengine
-32. `--doctor --fix` auto-write features
+32. `--doctor --fix` auto-write features <- NOT-DO/DUPLICATE - same item as 22 above
 
 ---
 
@@ -196,3 +196,17 @@ The system bus (`system/bus.go` → `watermill.EventBus`) dispatches to typed ha
 ### 3. Should I push the local `id/v4.4.0` and `metaengine/v4.10.0` tags?
 
 These were created last session and are listed as pushed in the terminal output the user shared. But `git push --tags` may have pushed ALL tags including these. I need to verify they're on the remote — if not, consumers can't resolve them.
+
+
+---
+
+## Resolution (2026-08-15, docs-health pass)
+
+27 of 32 items carry verdicts. Regression chain closed: WorkerLive + watermill
+race (`8108cad5f`, `1b4e79b78`), handler-independence fixed locally (ships
+with watermill/v4.5.0 - TODO_LIST "Release / Tagging"), all gates green 3x
+since `5f2198189`. Open-unrouted: 17 (host.go Start() doc comment), 26-27
+(cqrs-lint wishlist tail), 30-31 (FTS5, date/time pushdown). The g-questions
+were answered by events (daemon committed; handler independence = real bug,
+fixed; push authorization = standing ROADMAP Open Questions #1). Stays
+active.

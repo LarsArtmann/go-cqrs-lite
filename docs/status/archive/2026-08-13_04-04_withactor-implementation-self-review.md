@@ -105,74 +105,74 @@ Nothing. No errors, no reverts, no broken state. All changes compile and pass te
 
 ### Release sequence (blocking — do first)
 
-1. Run `nix run .#verify` to get the full gate passing (build + vet + test + race + lint + doc-check).
-2. Run `nix run .#lint` to catch any golangci-lint issues.
-3. Run `nix run .#check-arch` to verify dependency budgets.
-4. Run `nix run .#check-duplication` to verify no new clones.
-5. Investigate json/v1 `omitempty` behavior for `ActorID` as a fallback — write a test under `encoding/json` (v1).
-6. Tag `metadata/v4 v4.4.0` (annotated tag, via `scripts/tag-release.sh`).
-7. Bump `event/go.mod` metadata require to v4.4.0 + `go mod tidy`.
-8. Bump `command/go.mod` metadata require to v4.4.0 + `go mod tidy`.
-9. Bump `query/go.mod` metadata require to v4.4.0 + `go mod tidy`.
-10. Tag `event/v4 v4.6.0` (annotated tag).
-11. Tag `command/v4 v4.6.0` (annotated tag).
-12. Tag `query/v4 v4.5.0` (annotated tag).
-13. Verify each tag exists: `git tag -l '<module>/v4*' | sort -V | tail -1`.
-14. Run per-module `GOWORK=off` tests for event, command, query after go.mod bumps.
+~~1. Run `nix run .#verify` to get the full gate passing (build + vet + test + race + lint + doc-check).~~ done at 5f2198189 (three fully-green verifies since)
+~~2. Run `nix run .#lint` to catch any golangci-lint issues.~~ done - 76/76 modules clean since 444be10a7
+~~3. Run `nix run .#check-arch` to verify dependency budgets.~~ done - Check Arch green inside every verify since (layer keys repaired)
+~~4. Run `nix run .#check-duplication` to verify no new clones.~~ done - Check Duplication green inside every verify since (baseline re-pinned)
+5. Investigate json/v1 `omitempty` behavior for `ActorID` as a fallback — write a test under `encoding/json` (v1). <- OPEN. TODO_LIST 'WithActor Hardening' (Test-coverage gaps - json/v1 fallback)
+~~6. Tag `metadata/v4 v4.4.0` (annotated tag, via `scripts/tag-release.sh`).~~ done - metadata/v4.4.0 tagged 2026-08-13
+~~7. Bump `event/go.mod` metadata require to v4.4.0 + `go mod tidy`.~~ done - event go.mod bumped + tidied (standalone green)
+~~8. Bump `command/go.mod` metadata require to v4.4.0 + `go mod tidy`.~~ done - command go.mod bumped + tidied
+~~9. Bump `query/go.mod` metadata require to v4.4.0 + `go mod tidy`.~~ done - query go.mod bumped + tidied
+~~10. Tag `event/v4 v4.6.0` (annotated tag).~~ done - event/v4.6.0 tagged 2026-08-13 (v4.6.1 recovery tag pending - TODO_LIST 'Release / Tagging')
+~~11. Tag `command/v4 v4.6.0` (annotated tag).~~ done - command/v4.6.0 tagged 2026-08-13
+~~12. Tag `query/v4 v4.5.0` (annotated tag).~~ done - query/v4.5.0 tagged 2026-08-13
+~~13. Verify each tag exists: `git tag -l '<module>/v4*' | sort -V | tail -1`.~~ done - re-verified 2026-08-15: metadata/v4.4.0, event/v4.6.0, command/v4.6.0, query/v4.5.0 all exist
+~~14. Run per-module `GOWORK=off` tests for event, command, query after go.mod bumps.~~ done - per-module GOWORK=off green since the tag wave
 
 ### Consumer updates (external repos)
 
-15. Update cqrs-htmx: bump event/command requires, verify `event.WithActor` call resolves.
-16. Update cqrs-htmx: remove any local workarounds for the missing function.
-17. Update overview: unpin cqrs-htmx from v4.7.0 tag back to master.
-18. Add `command.WithActor` to cqrs-htmx `CommandOptionsFromContext` (proposal says it "attempts to propagate" but the function didn't exist).
+15. Update cqrs-htmx: bump event/command requires, verify `event.WithActor` call resolves. <- NOT-DO - cqrs-htmx is an external consumer repo; this repo's lane ends at publishing the APIs
+16. Update cqrs-htmx: remove any local workarounds for the missing function. <- NOT-DO - same: consumer repo's lane
+17. Update overview: unpin cqrs-htmx from v4.7.0 tag back to master. <- NOT-DO - overview/cqrs-htmx are external repos
+18. Add `command.WithActor` to cqrs-htmx `CommandOptionsFromContext` (proposal says it "attempts to propagate" but the function didn't exist). <- NOT-DO - external consumer repo's lane
 
 ### Test coverage gaps
 
-19. Add a golden/snapshot test for full `event.Event` JSON with `ActorID` set (via `eventtest.AssertGolden`).
-20. Add a golden/snapshot test for full `command.BasicCommand` JSON with `ActorID` set.
-21. Add a test verifying watermill wire format includes/preserves `ActorID`.
-22. Add an end-to-end decider test: command with `WithActor` → events emitted → events carry `ActorID`.
-23. Add an end-to-end projection test: events with `ActorID` → projection reads `ActorID`.
-24. Add `TestQuery_AllMetadata` (query has no equivalent of `TestCommand_AllMetadata`).
-25. Add race-detector run specifically for ActorID merge paths (`-count=3 -race`).
-26. Add a test for `Tracing.Merge` where both sides have `ActorID` (overlay wins — currently covered, but could be more explicit about the "last write wins" semantic).
+19. Add a golden/snapshot test for full `event.Event` JSON with `ActorID` set (via `eventtest.AssertGolden`). <- OPEN. TODO_LIST 'WithActor Hardening' (Test-coverage gaps)
+20. Add a golden/snapshot test for full `command.BasicCommand` JSON with `ActorID` set. <- OPEN. TODO_LIST 'WithActor Hardening' (Test-coverage gaps)
+21. Add a test verifying watermill wire format includes/preserves `ActorID`. <- OPEN. TODO_LIST 'WithActor Hardening' (Test-coverage gaps)
+22. Add an end-to-end decider test: command with `WithActor` → events emitted → events carry `ActorID`. <- OPEN. TODO_LIST 'WithActor Hardening' (Test-coverage gaps)
+23. Add an end-to-end projection test: events with `ActorID` → projection reads `ActorID`. <- OPEN. TODO_LIST 'WithActor Hardening' (Test-coverage gaps)
+24. Add `TestQuery_AllMetadata` (query has no equivalent of `TestCommand_AllMetadata`). <- OPEN. TODO_LIST 'WithActor Hardening' (Test-coverage gaps)
+25. Add race-detector run specifically for ActorID merge paths (`-count=3 -race`). <- OPEN. TODO_LIST 'WithActor Hardening' (Test-coverage gaps)
+26. Add a test for `Tracing.Merge` where both sides have `ActorID` (overlay wins — currently covered, but could be more explicit about the "last write wins" semantic). <- OPEN. TODO_LIST 'WithActor Hardening' (Test-coverage gaps)
 
 ### Consistency cleanup
 
-27. Decide: should ALL `Tracing` fields get `omitempty`? (breaking JSON change — needs ADR).
-28. If yes to #27, write ADR for Tracing JSON `omitempty` standardization.
-29. Consider adding `ActorID` to `record.CommonMetadata` — currently it's a plain `string` field. Should it become `id.ActorID`? (cross-module type alignment).
-30. Check if `scheduling/` should support `WithActor` for timer-initiated commands.
-31. Check if `deriver/` should propagate `ActorID` when deriving commands from events.
-32. Check if `commandlifecycle/` should carry `ActorID` through the lifecycle event streams.
+27. Decide: should ALL `Tracing` fields get `omitempty`? (breaking JSON change — needs ADR). <- OPEN. ROADMAP 'Open Questions' #6 (breaking JSON change - needs ADR + user decision)
+28. If yes to #27, write ADR for Tracing JSON `omitempty` standardization. <- OPEN. gated on #27 - ROADMAP 'Open Questions' #6
+29. Consider adding `ActorID` to `record.CommonMetadata` — currently it's a plain `string` field. Should it become `id.ActorID`? (cross-module type alignment). <- OPEN. rides ADR-0111 Record consolidation (Q3 below)
+30. Check if `scheduling/` should support `WithActor` for timer-initiated commands. <- OPEN. TODO_LIST 'WithActor Hardening' (Ecosystem propagation checks)
+31. Check if `deriver/` should propagate `ActorID` when deriving commands from events. <- OPEN. TODO_LIST 'WithActor Hardening' (Ecosystem propagation checks)
+32. Check if `commandlifecycle/` should carry `ActorID` through the lifecycle event streams. <- OPEN. TODO_LIST 'WithActor Hardening' (Ecosystem propagation checks)
 
 ### Documentation
 
-33. Update `.agents/skills/go-cqrs-lite/references/core.md` with `WithActor` in the options section.
-34. Update `.agents/skills/go-cqrs-lite/references/recipes.md` if actor-chain patterns are referenced.
-35. Update `.agents/skills/go-cqrs-lite/references/modules.md` if `Tracing` fields are listed.
-36. Run `cmd/doc-check` to verify docs are consistent.
-37. Consider adding a "Actor chain audit trail" recipe to `recipes.md`.
-38. Update `docs/DOMAIN_LANGUAGE.md` if "Actor" / "Effective Identity" terms should be formalized.
+33. Update `.agents/skills/go-cqrs-lite/references/core.md` with `WithActor` in the options section. <- OPEN. TODO_LIST 'WithActor Hardening' (Document WithActor in skill references)
+34. Update `.agents/skills/go-cqrs-lite/references/recipes.md` if actor-chain patterns are referenced. <- OPEN. TODO_LIST 'WithActor Hardening' (same item)
+35. Update `.agents/skills/go-cqrs-lite/references/modules.md` if `Tracing` fields are listed. <- OPEN. TODO_LIST 'WithActor Hardening' (same item - modules.md Tracing fields)
+~~36. Run `cmd/doc-check` to verify docs are consistent.~~ done - doc-check green (797 refs) since the sweep
+37. Consider adding a "Actor chain audit trail" recipe to `recipes.md`. <- OPEN. TODO_LIST 'WithActor Hardening' (recipes lane)
+38. Update `docs/DOMAIN_LANGUAGE.md` if "Actor" / "Effective Identity" terms should be formalized. <- OPEN. WithActor Hardening lane - not yet ticketed individually
 
 ### Hardening
 
-39. Add a rapid/property test: `Tracing.Merge` is commutative for zero ActorID (any order of merge with zero preserves the set value).
-40. Add fuzz test for `ActorID` JSON roundtrip through `Tracing` (marshal → unmarshal → compare).
-41. Verify `Tracing.ActorID` survives CBOR codec roundtrip (events default to CBOR).
-42. Verify `Tracing.ActorID` survives the SQL store scan/marshal path (`storage/sql/MarshalMetadata`).
-43. Verify pebble/bbolt stores preserve `ActorID` through encode/decode.
-44. Check if `transport/http/sse` needs to propagate `ActorID` in SSE event delivery.
+39. Add a rapid/property test: `Tracing.Merge` is commutative for zero ActorID (any order of merge with zero preserves the set value). <- OPEN. TODO_LIST 'WithActor Hardening' (Test-coverage gaps lane)
+40. Add fuzz test for `ActorID` JSON roundtrip through `Tracing` (marshal → unmarshal → compare). <- OPEN. TODO_LIST 'WithActor Hardening' (Test-coverage gaps lane)
+41. Verify `Tracing.ActorID` survives CBOR codec roundtrip (events default to CBOR). <- OPEN. TODO_LIST 'WithActor Hardening' (Test-coverage gaps - CBOR roundtrip)
+42. Verify `Tracing.ActorID` survives the SQL store scan/marshal path (`storage/sql/MarshalMetadata`). <- OPEN. TODO_LIST 'WithActor Hardening' (Test-coverage gaps - SQL MarshalMetadata)
+43. Verify pebble/bbolt stores preserve `ActorID` through encode/decode. <- OPEN. TODO_LIST 'WithActor Hardening' (Test-coverage gaps - pebble/bbolt)
+44. Check if `transport/http/sse` needs to propagate `ActorID` in SSE event delivery. <- NOT-DO - transport/* deprecated (ADR-0127), deleted at v5; no further investment
 
 ### Meta
 
-45. Move this status report to `docs/status/archive/` once the release sequence is complete.
-46. Add `WithActor` to the `scenario/` BDD DSL (`Given/When/Then`) so BDD tests can set actors.
-47. Check if `cqrs-gen` code generator templates need updating for actor-aware handlers.
-48. Check if `cqrs-lint` should have a rule: "commands without ActorID get a warning".
-49. Consider a middleware that auto-populates `ActorID` from context (similar to cqrs-htmx's `EventOptionsFromContext`).
-50. Review whether `id.ActorID` should have a `Validate()` method (currently any string is accepted as raw).
+~~45. Move this status report to `docs/status/archive/` once the release sequence is complete.~~ done - by this docs-health pass (2026-08-15): release sequence complete, all items verdicted, moving to archive
+46. Add `WithActor` to the `scenario/` BDD DSL (`Given/When/Then`) so BDD tests can set actors. <- OPEN. TODO_LIST 'WithActor Hardening' (Ecosystem propagation - scenario DSL actor support)
+47. Check if `cqrs-gen` code generator templates need updating for actor-aware handlers. <- OPEN. WithActor/cqrs-gen lane - not yet ticketed
+48. Check if `cqrs-lint` should have a rule: "commands without ActorID get a warning". <- OPEN. cqrs-lint wishlist lane - not yet ticketed
+49. Consider a middleware that auto-populates `ActorID` from context (similar to cqrs-htmx's `EventOptionsFromContext`). <- OPEN. TODO_LIST 'WithActor Hardening' (Ecosystem propagation - ActorID-from-context middleware)
+50. Review whether `id.ActorID` should have a `Validate()` method (currently any string is accepted as raw). <- OPEN. TODO_LIST 'WithActor Hardening' (Ecosystem propagation - id.ActorID.Validate)
 
 ---
 
@@ -194,3 +194,17 @@ Currently `CorrelationID`, `CausationID`, `UserID`, `RequestID` serialize as emp
 ### Q3: Is there a reason `record.CommonMetadata.ActorID` is a plain `string` while `metadata.Tracing.ActorID` is `id.ActorID`?
 
 `record/record.go:38` defines `ActorID string` (plain string). My change makes `metadata.Tracing.ActorID` use the branded `id.ActorID` type. This creates a type split: the "new" Record-based world uses plain strings, the "old" event/command metadata world uses branded types. I don't know if this is intentional (Record is the future direction) or an oversight that should be aligned.
+
+
+---
+
+## Resolution (2026-08-15, docs-health pass)
+
+All 50 items verdicted. The blocking release sequence (1-14) completed
+2026-08-13: metadata/v4.4.0, event/v4.6.0, command/v4.6.0, query/v4.5.0
+tagged (re-verified via git tag this pass); go.mod bumps tidied; standalone
+green; gates green 3x since `5f2198189`. External cqrs-htmx/overview
+updates (15-18) are the consumer repos' lane. The test-gap and propagation
+backlog (5, 19-43, 46-50) lives in TODO_LIST "WithActor Hardening"; the
+omitempty standardization decision (27-28) is ROADMAP Open Questions #6.
+Item 45 (archive on completion) executed by this pass. Archived.

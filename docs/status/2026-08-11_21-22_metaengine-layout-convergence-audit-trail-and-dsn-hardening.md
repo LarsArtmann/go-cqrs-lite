@@ -128,26 +128,26 @@
 1. ~~**Add `Layout` to `SerializableQuery` + populate in `Serialize()`**~~ — ✅ done (`serializable.go:55`).
 2. ~~**Add `[layout=X]` to `QueryAssignment.String()`**~~ — ✅ done (`plan_types.go:151`).
 3. **Add a round-trip test: `Serialize` → `PlanDiff` detects layout changes.**
-4. **Run `nix run .#verify`** — the mandatory gate I skipped.
-5. **Run `nix fmt`** — format all new files.
+~~4. **Run `nix run .#verify`** — the mandatory gate I skipped.~~ done at 5f2198189 (three fully-green verifies since)
+~~5. **Run `nix fmt`** — format all new files.~~ done - lint/fmt clean since 444be10a7
 6. **Fix the `gopls slicesbackward` hint** on `plan_audit.go:112` (or document why the indexed loop is intentional — the AGENTS.md documents the `slices.Backward` copy footgun).
 
 ### High priority (complete the convergence)
-7. **Refactor `layout_observability.go`** to call `resolvePriority` directly (consistency with the shared helper).
+~~7. **Refactor `layout_observability.go`** to call `resolvePriority` directly (consistency with the shared helper).~~ done - layout_observability calls resolvePriority directly (2026-08-14 session)
 8. **Add `Layout` to `PlanDiff`'s `QueryChange` detection** so serialized plan diffs flag layout flips.
 9. **Add EXPLAIN test** asserting the layout appears in output.
 10. **Verify the `formatPlanAuditTrail` locking** — confirm no nested-lock deadlock when called from Doctor.
-11. **Migrate `storage/pg_testcontainer_test.go`** to the shared module (or document the divergence).
-12. **Update CHANGELOG.md** with the audit trail + convergence + DSN fix entries.
+11. **Migrate `storage/pg_testcontainer_test.go`** to the shared module (or document the divergence). <- OPEN. storage/pg_testcontainer_test.go still hand-rolls the container (no pgtestcontainer import) - minor
+~~12. **Update CHANGELOG.md** with the audit trail + convergence + DSN fix entries.~~ done - CHANGELOG [Unreleased] entries landed (prior docs-health audit + waves)
 
 ### From the original TODO list (not started)
-13. **#5 Multi-engine integration test** — two real backends (SQLite + Pebble), AddEngine + Backfill, verify both serve correct results.
-14. **#2 Fold-pipeline sync** — transactional fold to all Active+DualUse projections (strong consistency). Design doc first.
-15. **#3 Async replication** — Backup+Migration roles, eventual consistency, failure isolation.
-16. **#4 Role transition API** — Backup→Active promote, Migration→Active cutover.
-17. **#8 Real workload trace format** — JSON-lines spec, trace recorder, trace player for benchmark calibration.
-18. **#10 Aggregate boundary config** — `WithSharedCollection("Attachment")` opt-in.
-19. **#16 Per-fold mutex** — replace global `foldMu` with per-fold locking for parallel writes.
+13. **#5 Multi-engine integration test** — two real backends (SQLite + Pebble), AddEngine + Backfill, verify both serve correct results. <- OPEN. TODO_LIST 'Metaengine' (multi-engine, two real backends)
+14. **#2 Fold-pipeline sync** — transactional fold to all Active+DualUse projections (strong consistency). Design doc first. <- OPEN. TODO_LIST 'Metaengine - Layout Planning' (fold-pipeline sync)
+15. **#3 Async replication** — Backup+Migration roles, eventual consistency, failure isolation. <- OPEN. TODO_LIST 'Metaengine - Layout Planning' (async replication)
+16. **#4 Role transition API** — Backup→Active promote, Migration→Active cutover. <- OPEN. TODO_LIST 'Metaengine - Layout Planning' (role transition API)
+17. **#8 Real workload trace format** — JSON-lines spec, trace recorder, trace player for benchmark calibration. <- OPEN. TODO_LIST 'Metaengine - Layout Planning' (workload trace format)
+18. **#10 Aggregate boundary config** — `WithSharedCollection("Attachment")` opt-in. <- OPEN. TODO_LIST 'Metaengine - Layout Planning' (aggregate boundary config)
+19. **#16 Per-fold mutex** — replace global `foldMu` with per-fold locking for parallel writes. <- OPEN. in flight - fold_locks.go in the concurrent session's untracked set
 
 ### Polish / hardening
 20. **Add `Layout` rendering to `PlanResult.Report()`** (`plan_types.go:121`).
@@ -155,17 +155,17 @@
 22. **Add a concurrency test** for `PlanHistory` (parallel reads during Replan).
 23. **Add a `replaceDBInDSN` test for URL with no path** (e.g., `postgres://user:pass@host` — no `/db` segment).
 24. **Add a `replaceDBInDSN` test for IPv6 host** (`postgres://user@[::1]:5432/db`).
-25. **Verify the Columnar/ReadSpeed tie** is stable across platforms (float comparison).
+25. **Verify the Columnar/ReadSpeed tie** is stable across platforms (float comparison). <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks - DuckDB tie)
 26. **Add a `Doctor()` golden test** so the audit line format is locked.
 27. **Document the `trigger*` constants** as public-facing (currently unexported — operators can't reference them).
 28. **Add `PlanAuditEntry` to `SerializablePlan`** so the audit trail survives serialization.
 29. **Wire the audit trail into `GetEngineStats`** (currently only in Doctor).
 30. **Add a metric** for replan count (OTel counter).
 31. **Stale comment cleanup** — consumer wrappers (`metaengine/pgengine/testcontainer_test.go:17-18`) still document pre-M18 behavior.
-32. **Run `nix run .#check-arch`** — dependency budget enforcement (I added no new deps, but verify).
-33. **Run `nix run .#check-duplication`** — the `resolvePriority` extraction may have left duplicate logic.
-34. **Run `nix run .#check-coverage`** — coverage drift check.
-35. **Update `docs/adr/0124-operator-driven-layout-planning.md`** to reference the new audit trail + convergence.
+~~32. **Run `nix run .#check-arch`** — dependency budget enforcement (I added no new deps, but verify).~~ done - Check Arch green inside #verify since 8c384f0f5
+~~33. **Run `nix run .#check-duplication`** — the `resolvePriority` extraction may have left duplicate logic.~~ done - baseline re-pinned; gate green
+~~34. **Run `nix run .#check-coverage`** — coverage drift check.~~ done - gate repaired at 875bb689b; green since
+~~35. **Update `docs/adr/0124-operator-driven-layout-planning.md`** to reference the new audit trail + convergence.~~ done - ADR-0124 carries the calibration-correction addendum (2026-08-14)
 36. **Add a `CONTRIBUTING.md` note** about the layout matrix test (how to update it when recalibrating).
 37. **Verify `planQuery`'s `resolvePriority` call uses `meta.QueryConfig()` not `cfg`** — I need to double-check I passed the right config.
 38. **Add a fuzz test for `replaceDBInDSN`** — random DSN strings.
@@ -180,7 +180,7 @@
 47. **Review whether `clonePriorityConfig` is needed** — the PriorityConfig is small; maybe value semantics suffice.
 48. **Add a `Doctor()` test for the `audit:` line format** (parse the `←`-separated chain).
 49. **Consider adding layout to `Explain(ctx, queryName)`** output (per-query, not just Doctor).
-50. **Run `nix run .#vulncheck`** — per-module standalone build (catches version-sequence breaks).
+50. **Run `nix run .#vulncheck`** — per-module standalone build (catches version-sequence breaks). <- OPEN. TODO_LIST 'Release / Tagging' (pre-tag checklist)
 
 ---
 
@@ -216,3 +216,16 @@ The `storage` package has its own copy of the PG testcontainer setup (pre-M18), 
 ---
 
 _Honest assessment: the session shipped real value (5 solid items) but the convergence (#7) was declared done prematurely — the serialization gap means it's half-finished. The verification gate was skipped entirely, which violates the project's "stale GREEN" anti-pattern rule. Fix BUG 1 and BUG 2, run `nix run .#verify`, then this session's work is actually trustworthy._
+
+
+---
+
+## Resolution (2026-08-15, docs-health pass)
+
+18 of 50 items carry verdicts on top of the two self-struck items (1-2).
+Gates (4-5, 32-34) green since `5f2198189`; the resolvePriority refactor
+(7) and ADR-0124 addendum (35) closed by the 2026-08-14 session. The layout
+long-horizon block (14-19) tracks in TODO_LIST "Metaengine — Layout
+Planning" (per-fold mutex in flight via fold_locks.go). The large test
+wishlist (3, 8-10, 20-24, 26-31, 36-49) remains open - absence = open.
+Stays active as the layout-audit-trail test backlog source.

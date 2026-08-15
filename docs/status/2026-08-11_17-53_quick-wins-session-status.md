@@ -56,71 +56,83 @@ E6. **Quick win #5 could have been caught as already-done**: an e2e test already
 ## f) UP TO 50 THINGS TO GET DONE NEXT 📋
 
 **Release / Publish (do first — consumers are broken)**
-1. Tag `id/v4.3.0` (publishes ActorID; api_surface already contains exports).
-2. Re-tag `record/v4.2.0` with go.mod requiring `id/v4 v4.3.0`.
-3. Re-tag `command/v4.5.0` with go.mod requiring `id/v4 v4.3.0`.
-4. Re-tag `metaengine/v4.9.0` with go.mod requiring `id/v4 v4.3.0`.
-5. Tag `commandlifecycle/v4.0.0`.
-6. Tag `commandlifecycle/projections/v4.0.0` (needs CL first — go.mod already pins it).
-7. Bump downstream go.mod requires: all modules that use ActorID (event, query, metadata, storage/bbolt, storage/pebble, watermill, etc. — 66 modules require id/v4).
-8. Run `nix run .#verify` + `nix run .#vulncheck` before pushing tags.
-9. Push tags (needs user approval), then verify proxy pickup via `GOPROXY=proxy.golang.org go list -m`.
-10. Add CHANGELOG entries for the new versions (Unreleased section).
-11. Regenerate `docs/api_surface.txt` if any export changed (probably just id).
+~~1. Tag `id/v4.3.0` (publishes ActorID; api_surface already contains exports).~~ done - landed as id/v4.4.0 (2026-08-13)
+~~2. Re-tag `record/v4.2.0` with go.mod requiring `id/v4 v4.3.0`.~~ done - record/v4.2.0 tagged
+~~3. Re-tag `command/v4.5.0` with go.mod requiring `id/v4 v4.3.0`.~~ done - landed as command/v4.6.0
+~~4. Re-tag `metaengine/v4.9.0` with go.mod requiring `id/v4 v4.3.0`.~~ done - landed as metaengine/v4.10.0
+~~5. Tag `commandlifecycle/v4.0.0`.~~ done - commandlifecycle/v4.0.0 tagged
+~~6. Tag `commandlifecycle/projections/v4.0.0` (needs CL first — go.mod already pins it).~~ done - commandlifecycle/projections/v4.0.0 tagged
+~~7. Bump downstream go.mod requires: all modules that use ActorID (event, query, metadata, storage/bbolt, storage/pebble, watermill, etc. — 66 modules require id/v4).~~ done at 94261a568 (mass upgrade, 79 modules / 59 go.mod files)
+~~8. Run `nix run .#verify` + `nix run .#vulncheck` before pushing tags.~~ done for verify (5f2198189); vulncheck OPEN - TODO_LIST 'Release / Tagging' pre-tag checklist
+~~9. Push tags (needs user approval), then verify proxy pickup via `GOPROXY=proxy.golang.org go list -m`.~~ done - tags pushed; proxy serving confirmed (2026-08-13 release session)
+~~10. Add CHANGELOG entries for the new versions (Unreleased section).~~ done - CHANGELOG [Unreleased] + versioned entries
+~~11. Regenerate `docs/api_surface.txt` if any export changed (probably just id).~~ done - api_surface current (4133 exports)
 
 **Fix daemon/layout WIP (verify gate is RED)**
-12. Finish the `priorityForQuery` refactor so `LayoutWarnings` behavior matches tests (or update tests to the new intended behavior).
-13. Fix `relayout_test.go` ReplanLayout expectations (2 failures).
-14. Fix `layout_followup_test.go` SetPriority/GetLayoutInfo expectations (3 failures).
-15. Fix `system/query_constructors.go:80: undefined: layoutPriority` lint error.
-16. Run full `nix run .#verify` and get GREEN before any further releases.
+~~12. Finish the `priorityForQuery` refactor so `LayoutWarnings` behavior matches tests (or update tests to the new intended behavior).~~ done - priority resolution shipped and tested (priority_test.go); behavior consistent
+~~13. Fix `relayout_test.go` ReplanLayout expectations (2 failures).~~ done - relayout/layout tests green in every verify since 5f2198189
+~~14. Fix `layout_followup_test.go` SetPriority/GetLayoutInfo expectations (3 failures).~~ done - same
+~~15. Fix `system/query_constructors.go:80: undefined: layoutPriority` lint error.~~ done - system builds; lint 76/76 clean since 444be10a7
+~~16. Run full `nix run .#verify` and get GREEN before any further releases.~~ done at 5f2198189 (three GREENs since)
 17. Investigate `markdown-lint`/`codespell`/`gomod-check` pre-commit findings (90+ go.mod mixed requires) — part of buildflow preflight.
 
 **Metaengine follow-ups from this session**
-18. Fix TODO text: "mysqlengine missing Calibratable" → either add `SetCalibration` to mysqlengine or correct the TODO.
-19. Add `SetCalibration` micro-benchmark impl to mysqlengine (Calibratable) — needs a probe/measure approach.
-20. Consider `bboltengine` Calibratable parity is already there — verify mysql only missing piece is SetCalibration.
+~~18. Fix TODO text: "mysqlengine missing Calibratable" → either add `SetCalibration` to mysqlengine or correct the TODO.~~ done - mysqlengine implements Calibratable/SetCalibration (engine.go)
+~~19. Add `SetCalibration` micro-benchmark impl to mysqlengine (Calibratable) — needs a probe/measure approach.~~ done - same
+~~20. Consider `bboltengine` Calibratable parity is already there — verify mysql only missing piece is SetCalibration.~~ done - verified present
 21. Add failure-path test for `Multi-collection batch atomicity` (Phase 7 🔥) — extend my rollback test to 3 collections.
 22. Add rollback test for `ApplyRecord` (Record-aware folds) — my test uses `Apply`; ensure Record path rolls back too.
 23. Add rollback test with `InTransaction` wrapper + failing fold inside (Store.InTransaction → Apply → Apply).
-24. Consider `per-fold mutex` (TODO item) — my fake engine serializes foldMu globally; per-fold would parallelize; note the interaction.
+24. Consider `per-fold mutex` (TODO item) — my fake engine serializes foldMu globally; per-fold would parallelize; note the interaction. <- OPEN. in flight - fold_locks.go in the concurrent session's untracked set
 25. Verify `spike_batch_atomicity_test.go` recommendations still hold (memory engine snapshot/rollback) — flagged as ~6h task; my fake engine already implements it for tests.
 
 **Test/Quality**
-26. Run my 3 new test files with `-count=3 -race` across metaengine + bboltengine (lean-budget threshold discipline).
+~~26. Run my 3 new test files with `-count=3 -race` across metaengine + bboltengine (lean-budget threshold discipline).~~ done - race phase green 3x since 5f2198189
 27. Add property-based test for `metadataPayload` CBOR roundtrip (from TODO M).
 28. Consider moving `metadataPayload` extraction to `storage/serialization/` when a 3rd KV engine is added.
-29. Fix `.golangci.yml` exclusion audit (system/ 20, cqrs-lint 17, metaengine 24 disabled) — track removability after migrations.
-30. Add `#check-lint-config` nix app + `#verify-ci` mirror (TODO M).
-31. Wire `#sweep` to pre-commit/cron.
-32. Consolidate engine `register.go` boilerplate (7 modules).
-33. Audit/trim indirect deps in `metaengine/go.mod` (modernc sqlite chain).
+29. Fix `.golangci.yml` exclusion audit (system/ 20, cqrs-lint 17, metaengine 24 disabled) — track removability after migrations. <- OPEN. TODO_LIST 'Code Quality' (.golangci.yml exclusion audit)
+30. Add `#check-lint-config` nix app + `#verify-ci` mirror (TODO M). <- OPEN. TODO_LIST 'Code Quality' (Infrastructure polish)
+31. Wire `#sweep` to pre-commit/cron. <- OPEN. TODO_LIST 'Code Quality' (Infrastructure polish)
+32. Consolidate engine `register.go` boilerplate (7 modules). <- OPEN. TODO_LIST 'Code Quality' (Infrastructure polish)
+~~33. Audit/trim indirect deps in `metaengine/go.mod` (modernc sqlite chain).~~ done at 94261a568 - mass tidy; check-arch green
 
 **Docs**
-34. Document commandlifecycle in skill references (modules.md, recipes.md, advanced.md) — TODO S.
+~~34. Document commandlifecycle in skill references (modules.md, recipes.md, advanced.md) — TODO S.~~ done - commandlifecycle documented in modules.md (Recorder, lifecycle types, projections)
 35. Update `calibration-baseline.md` with bbolt HealthChecker/StreamingScan calibration results.
 36. Add a release-gap runbook entry to CONTRIBUTING.md ("if a module references an untagged symbol, tag the dependency first").
-37. Update the status report above's findings into TODO_LIST (any new items).
-38. Consider adding a "daemon safety" note to AGENTS.md: staged work is safe, unstaged/untracked work can be clobbered.
+~~37. Update the status report above's findings into TODO_LIST (any new items).~~ done - harvested by the 08-11 audit + this pass
+~~38. Consider adding a "daemon safety" note to AGENTS.md: staged work is safe, unstaged/untracked work can be clobbered.~~ done - existing AGENTS gotcha covers daemon safety ('always run go build after a daemon commit')
 
 **Integration / infra**
-39. macOS verification of ephemeral PG script (TODO M).
-40. Write actual Redis/NATS integration tests (ephemeral scripts exist, no Go tests).
-41. Write actual Dgraph integration tests in Go.
-42. Tag `benchkit/v4.4.0` — verify `cmd/cqrs-bench` now works under GOWORK=off (release validation).
-43. Publish go-finding + go-must tagged modules (BLOCKED item) — unblocks consumers of cmd/cqrs-lint.
+39. macOS verification of ephemeral PG script (TODO M). <- OPEN. TODO_LIST 'Code Quality' (macOS ephemeral-pg)
+~~40. Write actual Redis/NATS integration tests (ephemeral scripts exist, no Go tests).~~ done for Redis at d8c73be0a; NATS deliberately not adopted (deprecated adapter) - broker edges = TODO_LIST 'Code Quality'
+~~41. Write actual Dgraph integration tests in Go.~~ done - dgraphengine Go test suite runs against live Dgraph (integration-dgraph, 24/24 incl. ADT matrix)
+~~42. Tag `benchkit/v4.4.0` — verify `cmd/cqrs-bench` now works under GOWORK=off (release validation).~~ done - benchkit/v4.4.0 exists (7d5cd10c7)
+43. Publish go-finding + go-must tagged modules (BLOCKED item) — unblocks consumers of cmd/cqrs-lint. <- OPEN. external repos' lane (go-finding/go-must publish status not verifiable here)
 
 **v5 / layout (context)**
-44. Run `nix run .#verify` clean for fold inference (Infer) — TODO 🔥.
-45. Run `nix run .#verify` clean for layout planning — TODO 🔥 (overlaps #12-16).
-46. cqrs-bench layout CLI subcommand.
-47. Calibrate cost model multipliers (replace 0.5/1.0/1.3/2.0 placeholders).
-48. Role transition API (Backup→Active promote) + async replication.
-49. Multi-engine integration test with two real backends.
-50. e2e Store test for graph fallback already done (this session) — mark TODO `[x]`; same for batch atomicity rollback test TODO.
+~~44. Run `nix run .#verify` clean for fold inference (Infer) — TODO 🔥.~~ done at 5f2198189
+~~45. Run `nix run .#verify` clean for layout planning — TODO 🔥 (overlaps #12-16).~~ done at 5f2198189
+~~46. cqrs-bench layout CLI subcommand.~~ done - cqrs-bench layout CLI shipped (CHANGELOG [Unreleased])
+47. Calibrate cost model multipliers (replace 0.5/1.0/1.3/2.0 placeholders). <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks)
+48. Role transition API (Backup→Active promote) + async replication. <- OPEN. TODO_LIST 'Metaengine - Layout Planning'
+49. Multi-engine integration test with two real backends. <- OPEN. TODO_LIST 'Metaengine' (multi-engine, two real backends)
+~~50. e2e Store test for graph fallback already done (this session) — mark TODO `[x]`; same for batch atomicity rollback test TODO.~~ done - TODO cleaned by the audits
 
 ## g) 3 Questions I CANNOT answer myself ❓
 
 1. **Push policy**: The `id/v4.3.0` + re-tag chain fixes *currently-broken consumers*. Do you want me to (a) prepare all tags locally and list them for your explicit push approval, or (b) keep this in the dedicated release session and NOT touch tags at all?
 2. **Daemon coordination**: The auto-commit daemon committed its incomplete layout refactor mixed into the commit carrying my tests. Should I (a) coordinate by committing my work in micro-batches first (recommended), or (b) disable/suspend the daemon during feature sessions, or (c) is this acceptable noise you'd rather I just work around?
 3. **Scope of "verify gate" for MY changes**: Since the daemon's layout WIP makes the full suite RED, is it acceptable that I validated only my affected modules (metaengine, bboltengine, mysqlengine) + race, deferring `nix run .#verify` until the layout WIP lands? Or do you want me to fix the 5 layout failures myself (they're the daemon's WIP, but I can take them over)?
+
+
+---
+
+## Resolution (2026-08-15, docs-health pass)
+
+37 of 50 items carry verdicts. The entire release-chain block (1-11) executed
+on 2026-08-13; the layout/priority test triage (12-16) closed; mysqlengine
+Calibratable (18-20) and Dgraph Go integration tests (41) shipped. Gates
+green 3x since `5f2198189`. Open-unrouted: 17 (pre-commit tool noise),
+21-23 (rollback/failure-path tests), 25 (spike recheck), 27-28 (CBOR
+property test), 35-36 (bbolt calibration doc, runbook). Stays active.

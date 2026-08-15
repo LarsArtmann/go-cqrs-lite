@@ -141,9 +141,9 @@ When I stashed to test baselines, the daemon generated unrelated scratch files (
 
 ### Immediate (block GREEN)
 
-1. **Remove duplicate `replace` directives** in `record/go.mod`, `system/go.mod`, `metaengine/go.mod` — keep 0 or 1 copy (temp only).
-2. **Remove dead `layoutPriorities` field** from `Store` struct and dead `layoutAssignment` type from `query.go`.
-3. **Write tests for `Store.priorityForQuery` resolution order** — 5 levels: per-Query operator > per-Query developer > per-Engine > Global > Balanced.
+~~1. **Remove duplicate `replace` directives** in `record/go.mod`, `system/go.mod`, `metaengine/go.mod` — keep 0 or 1 copy (temp only).~~ done - replace audit by the 20-46 session (pareto T08 confirmed: no duplicates; record/go.mod clean)
+~~2. **Remove dead `layoutPriorities` field** from `Store` struct and dead `layoutAssignment` type from `query.go`.~~ done - layoutPriorities/layoutAssignment gone from the tree (verified by grep, 2026-08-15)
+~~3. **Write tests for `Store.priorityForQuery` resolution order** — 5 levels: per-Query operator > per-Query developer > per-Engine > Global > Balanced.~~ done - priority resolution tests exist (metaengine/priority_test.go ginkgo suite: nil/empty/global/engine/query override levels)
 4. **Write tests for builder `.Priority()` methods** — Lookup, QuerySet, Count.
 5. **Write test for `CheckSafety` invalid-priority diagnostic** — ADVISORY tier, actionable message.
 6. **Write test for `system.PriorityConfig` YAML parsing** — verify koanf tags resolve correctly.
@@ -151,9 +151,9 @@ When I stashed to test baselines, the daemon generated unrelated scratch files (
 
 ### Should-have (close the quality gap)
 
-8. **Run `nix fmt`** on all changed files.
+~~8. **Run `nix fmt`** on all changed files.~~ done - lint/fmt clean since 444be10a7
 9. **Update skill references** (`.agents/skills/go-cqrs-lite/references/recipes.md`) with Priority YAML config + builder `.Priority()` examples.
-10. **Run `nix run .#verify`** — haven't run it this session.
+~~10. **Run `nix run .#verify`** — haven't run it this session.~~ done at 5f2198189 (three fully-green verifies since)
 11. **Add a YAML config example to `system/README.md`** showing the 3-level priority hierarchy.
 12. **Test that `constructor.go` nil-guards `deployment.Priority`** — explicit nil-config test (currently implicit).
 13. **Test that env var overrides work** — `CQRS_PRIORITY__GLOBAL=WriteSpeed`.
@@ -166,16 +166,16 @@ When I stashed to test baselines, the daemon generated unrelated scratch files (
 
 ### Release hygiene
 
-17. **Tag `id/v4.3.0`** to unblock the `id.ActorID` release gap (the root cause of the temp replaces).
-18. **Re-tag `record/v4.2.0`, `command/v4.5.0`, `metaengine/v4.9.0`** after id/v4.3.0.
-19. **Remove temp replaces after id/v4.3.0 is tagged.**
-20. **Run `nix run .#check-arch`** — dependency budget enforcement (new metaengine import in system/config_types.go).
+~~17. **Tag `id/v4.3.0`** to unblock the `id.ActorID` release gap (the root cause of the temp replaces).~~ done - landed as id/v4.4.0 (2026-08-13)
+~~18. **Re-tag `record/v4.2.0`, `command/v4.5.0`, `metaengine/v4.9.0`** after id/v4.3.0.~~ done - landed as record/v4.2.0, command/v4.6.0, metaengine/v4.10.0
+19. **Remove temp replaces after id/v4.3.0 is tagged.** <- OPEN in part - the id/record-era replaces were removed; the CURRENT 5 temporary engine+watermill replaces await the v4.0.2+/v4.5.0 tags - TODO_LIST 'Release / Tagging'
+~~20. **Run `nix run .#check-arch`** — dependency budget enforcement (new metaengine import in system/config_types.go).~~ done - Check Arch green inside #verify since 8c384f0f5
 
 ### The 5 pre-existing metaengine layout test failures (tracked separately)
 
-21. **Investigate root cause of the 5 layout-test failures** (`relayout_test.go:49,103`, `layout_followup_test.go:72,103,512`). Suspect `cda48b41d` KV/LSM re-score changed `SelectLayout` outcomes but tests weren't updated.
-22. **Fix or update the 5 layout tests** to match the calibrated scoring from `cda48b41d`.
-23. **Run `nix run .#verify` once layout tests are GREEN** — closes the verification-deferred loop.
+~~21. **Investigate root cause of the 5 layout-test failures** (`relayout_test.go:49,103`, `layout_followup_test.go:72,103,512`). Suspect `cda48b41d` KV/LSM re-score changed `SelectLayout` outcomes but tests weren't updated.~~ done - layout tests green in every verify since (root-caused by the calibration follow-ups)
+~~22. **Fix or update the 5 layout tests** to match the calibrated scoring from `cda48b41d`.~~ done - same
+~~23. **Run `nix run .#verify` once layout tests are GREEN** — closes the verification-deferred loop.~~ done at 5f2198189
 
 ---
 
@@ -203,3 +203,15 @@ I added it to `Store` intending to cache per-query layout assignments, but ended
 
 (a) Delete them (they're dead code), or
 (b) Wire them (cache resolved priorities per query for performance)?
+
+
+---
+
+## Resolution (2026-08-15, docs-health pass)
+
+12 of 23 items carry verdicts. The release-chain block (17-19) executed on
+2026-08-13; dead-field cleanup, priority tests, and the layout-test triage
+all closed; verify green 3x since `5f2198189`. Open-unrouted: 4-7 (builder
+priority tests, CheckSafety diagnostic test, planQuery wiring decision),
+9 (priority recipe in references), 11-16 (README example, nil-guard/env
+tests, three design questions). Stays active.

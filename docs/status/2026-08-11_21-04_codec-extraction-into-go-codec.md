@@ -146,69 +146,69 @@
 ## f) Up to 50 Things to Get Done Next
 
 ### Critical (blocks publish/CI)
-1. Publish `go-codec` to GitHub (`github.com/larsartmann/go-codec`)
-2. Tag `go-codec` with `v0.1.0`
-3. Remove `replace` directive from `go.work`, add `../go-codec` to `use` block
-4. Run `go mod tidy` in all 53 consumer modules to get proper go.sum entries
-5. Verify `go mod tidy` works in consumer modules after publish
-6. Delete `codec/testdata/` (dead directory)
-7. Check and clean up `codec/reports/` if stale
-8. Run `nix run .#verify` (or at minimum `#verify-fast`)
-9. Run `nix run .#lint` to check for lint issues across all modules
-10. Run `nix run .#check-arch` to verify dependency budgets still pass
+~~1. Publish `go-codec` to GitHub (`github.com/larsartmann/go-codec`)~~ done - published (github.com/larsartmann/go-codec)
+~~2. Tag `go-codec` with `v0.1.0`~~ done - v0.1.0+ resolving through the proxy
+~~3. Remove `replace` directive from `go.work`, add `../go-codec` to `use` block~~ done - ../go-codec in the go.work use block
+~~4. Run `go mod tidy` in all 53 consumer modules to get proper go.sum entries~~ done - mass tidy via 94261a568 (79 modules)
+~~5. Verify `go mod tidy` works in consumer modules after publish~~ done - tides green; standalone builds green
+6. Delete `codec/testdata/` (dead directory) <- NOT-DO - codec/ deleted entirely at 5127039da (ADR-0128); testdata gone with it
+7. Check and clean up `codec/reports/` if stale <- NOT-DO - same: reports/ gone with the deletion
+~~8. Run `nix run .#verify` (or at minimum `#verify-fast`)~~ done at 5f2198189
+~~9. Run `nix run .#lint` to check for lint issues across all modules~~ done - 76/76 clean since 444be10a7
+~~10. Run `nix run .#check-arch` to verify dependency budgets still pass~~ done - Check Arch green since 8c384f0f5
 
 ### go-codec project setup
-11. Add `.golangci.yml` to go-codec (copy from go-retry pattern)
-12. Add `.github/workflows/ci.yml` to go-codec
+~~11. Add `.golangci.yml` to go-codec (copy from go-retry pattern)~~ done - go-codec has .golangci.yml (pareto T18 verified)
+~~12. Add `.github/workflows/ci.yml` to go-codec~~ done - .github/workflows/ci.yml present (pareto T18)
 13. Add `.github/dependabot.yml` to go-codec
-14. Write `FEATURES.md` for go-codec
+~~14. Write `FEATURES.md` for go-codec~~ done - FEATURES.md present (pareto T18)
 15. Write `ROADMAP.md` for go-codec
 16. Write `TODO_LIST.md` for go-codec
-17. Write `SECURITY.md` for go-codec
+~~17. Write `SECURITY.md` for go-codec~~ done - SECURITY.md present (pareto T18)
 18. Verify go-codec passes `golangci-lint run` standalone
 19. Add go-codec to the go-codec README: detailed usage sections (CBOR tags, streaming, etc.)
 
 ### Documentation
-20. Write ADR for codec extraction (next ADR number after latest)
-21. Update `docs/DOMAIN_LANGUAGE.md` — change codec import path
-22. Update `flake.nix` — add comment noting codec/ is deprecated alias
-23. Update `.agents/skills/go-cqrs-lite/references/modules.md` — annotate codec as deprecated
-24. Update SKILL.md if it references codec module map entry
-25. Scan all `.agents/skills/go-cqrs-lite/references/*.md` for codec usage examples
-26. Update `cmd/cqrs-gen/main.go` template if it generates codec imports in consumer code
-27. Verify `cmd/cqrs-lint` architecture rules still recognize go-codec as Tier 0
+~~20. Write ADR for codec extraction (next ADR number after latest)~~ done - ADR-0128 written and shipped
+~~21. Update `docs/DOMAIN_LANGUAGE.md` — change codec import path~~ done - DOMAIN_LANGUAGE import paths fixed (12-40 session)
+22. Update `flake.nix` — add comment noting codec/ is deprecated alias <- NOT-DO - codec/ removed from flake entirely at 5127039da
+~~23. Update `.agents/skills/go-cqrs-lite/references/modules.md` — annotate codec as deprecated~~ done - references point at the external repo; doc-check green
+~~24. Update SKILL.md if it references codec module map entry~~ done - SKILL.md swept; doc-check green
+~~25. Scan all `.agents/skills/go-cqrs-lite/references/*.md` for codec usage examples~~ done - references swept at 2e9a2fc28-wave; doc-check 797 refs green
+~~26. Update `cmd/cqrs-gen/main.go` template if it generates codec imports in consumer code~~ done - cqrs-gen builds; no stale codec imports possible (module gone)
+~~27. Verify `cmd/cqrs-lint` architecture rules still recognize go-codec as Tier 0~~ done - cqrs-lint F007 + ImportHints recognize go-codec; lint green
 
 ### Testing & Verification
-28. Run full test suite with `-race` across all modules
-29. Run `nix run .#test-integration` to verify integration tests pass
-30. Run `nix run .#check-coverage` — verify coverage drift detection passes
-31. Run `nix run .#check-duplication` — verify no new clones introduced
-32. Run `nix run .#vulncheck` — per-module standalone build check
-33. Verify `cmd/api-stability` golden file is correct (diff against expected)
-34. Test that a consumer can still import `codec/v4` (backward compat verification)
-35. Test that a consumer can import `go-codec` directly (new path verification)
+~~28. Run full test suite with `-race` across all modules~~ done - race phase green 3x since 5f2198189
+~~29. Run `nix run .#test-integration` to verify integration tests pass~~ done - integration suites green in verify
+~~30. Run `nix run .#check-coverage` — verify coverage drift detection passes~~ done - gate repaired at 875bb689b; green since
+~~31. Run `nix run .#check-duplication` — verify no new clones introduced~~ done - baseline re-pinned; green since
+32. Run `nix run .#vulncheck` — per-module standalone build check <- OPEN. TODO_LIST 'Release / Tagging' (pre-tag checklist)
+~~33. Verify `cmd/api-stability` golden file is correct (diff against expected)~~ done - golden current (4133 exports)
+34. Test that a consumer can still import `codec/v4` (backward compat verification) <- NOT-DO - codec/ deleted (ADR-0128); consumers advised to import go-codec directly (CHANGELOG advisory)
+~~35. Test that a consumer can import `go-codec` directly (new path verification)~~ done - all internal consumers migrated to direct imports
 
 ### Cleanup & Polish
-36. Update `codec/CHANGELOG.md` to note deprecation and extraction
-37. Update `codec/CONTRIBUTING.md` to point to go-codec
-38. Add `// Deprecated:` comments to every symbol in `codec/alias.go` (per Go convention)
-39. Verify `codec/go.sum` can be generated (run `go mod tidy` in codec/ after publish)
-40. Check if any `example/` modules need go.sum updates
-41. Verify `stack/contracttest/` still works (imports codec)
-42. Check `integration/` tests pass with new import paths
-43. Verify `system/` module tests pass (composition root)
-44. Run `nix fmt` to ensure formatting is correct
+36. Update `codec/CHANGELOG.md` to note deprecation and extraction <- NOT-DO - module deleted
+37. Update `codec/CONTRIBUTING.md` to point to go-codec <- NOT-DO - module deleted
+38. Add `// Deprecated:` comments to every symbol in `codec/alias.go` (per Go convention) <- NOT-DO - alias.go deleted with the module
+39. Verify `codec/go.sum` can be generated (run `go mod tidy` in codec/ after publish) <- NOT-DO - module deleted
+~~40. Check if any `example/` modules need go.sum updates~~ done - example go.sum updated via the mass tidy
+~~41. Verify `stack/contracttest/` still works (imports codec)~~ done - workspace builds/tests green
+~~42. Check `integration/` tests pass with new import paths~~ done - green in every verify since
+~~43. Verify `system/` module tests pass (composition root)~~ done - same
+~~44. Run `nix fmt` to ensure formatting is correct~~ done - lint clean since 444be10a7
 
 ### Strategic
 45. Consider whether `go-codec` should depend on `go-error-family` directly or
     create its own error types (currently depends on go-error-family)
 46. Consider whether COSE types/functions belong in go-codec or should be
     extracted separately (they're only used by signing/encryption)
-47. Evaluate if the alias module should eventually be deleted entirely (like
+~~47. Evaluate if the alias module should eventually be deleted entirely (like~~ done - deleted outright at 5127039da (ADR-0128)
     retry/ will be) or maintained indefinitely
 48. Add go-codec to the `website-launch` pipeline if public docs are wanted
-49. Consider adding `go-codec` to the `go-cqrs-lite` README as an external dependency
-50. Review whether the `depguard` allow list in `.golangci.yml` needs `go-codec` added
+49. Consider adding `go-codec` to the `go-cqrs-lite` README as an external dependency <- OPEN. README.md does not mention go-codec as external dep yet - minor docs gap
+~~50. Review whether the `depguard` allow list in `.golangci.yml` needs `go-codec` added~~ done - depguard Main allow list entry landed at 6f9199f0c
 
 ---
 
@@ -229,3 +229,17 @@
    is marked for deletion) or maintained as a permanent compatibility shim?**
    The retry/ and idempotency/ alias modules are marked DEPRECATED with intent
    to eventually remove. Should codec/ follow the same lifecycle?
+
+
+---
+
+## Resolution (2026-08-15, docs-health pass)
+
+39 of 50 items carry verdicts. The extraction completed far beyond this
+plan's ask: instead of a deprecation alias, the codec/ module was deleted
+outright (ADR-0128, `5127039da`), mooting the backward-compat and alias
+items (6-7, 22, 34, 36-39). Publication + tidy + gates all green; go-codec
+repo scaffolding partially verified (ci.yml, FEATURES, SECURITY per pareto
+T18). Untouched: 13/15/16/18/19 (go-codec repo details, external lane),
+45-46 (design considerations), 48 (website). Stays active for the README
+gap (49) + vulncheck (32).

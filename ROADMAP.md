@@ -582,6 +582,11 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
    rotted while WIRED because the script was broken). Only `#vulncheck` sits
    outside `#verify`. Fold it in (+time per run), keep it a manual pre-tag
    step (current TODO_LIST pre-tag checklist), or wire it into CI?
+6. **Tracing JSON `omitempty` standardization** (from the WithActor review):
+   only `ActorID` omits zero; `CorrelationID`/`CausationID`/`UserID`/`RequestID`
+   serialize as empty strings. Making them all omit-zero is cleaner but a
+   breaking JSON change for consumers parsing the raw shape. Standardize
+   (needs ADR) or leave asymmetric?
 
 ---
 

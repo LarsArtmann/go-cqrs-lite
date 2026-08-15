@@ -246,7 +246,7 @@ Make `simpleBus` retain published events and replay them to new `SubscribeAll` c
 
 ## Additional findings
 
-### 1. `processLive` status ordering
+### 1. ~~`processLive` status ordering~~ **NOT-DO as written — the shipped ordering is the OPPOSITE: WorkerLive is set BEFORE SubscribeAll (`8108cad5f`), because blocking subscribers never return from SubscribeAll; the catch-up drain closes the race regardless of status ordering.**
 
 `setStatus(WorkerLive)` is called **before** `SubscribeAll`. Any consumer polling for readiness sees "live" and assumes the projection is catching events. The status should be set to `WorkerLive` **after** `SubscribeAll` returns, or a new `WorkerSubscribing` status should cover the gap.
 
@@ -254,7 +254,7 @@ Make `simpleBus` retain published events and replay them to new `SubscribeAll` c
 
 Each worker is started with a `i * 10ms` stagger delay (`host.go:170`). With N projections, the last worker doesn't start draining until `N * 10ms` after `Start()` returns. For systems with many projections, this widens the race window significantly.
 
-### 3. No `System.WaitReady(ctx)` API
+### 3. ~~No `System.WaitReady(ctx)` API~~ **Won't implement — declined in the TOCTOU review round (TODO_LIST "Declined / Rejected"); polling Status() is the supported readiness signal.**
 
 There is no public API to wait for projection readiness. Consumers must either:
 - Poll `ProjectionHost().Status()` (requires knowing worker state semantics)
@@ -276,3 +276,18 @@ A `System.WaitReady(ctx) error` method that blocks until all projections have re
 | `system/v4@v4.3.0/bus.go` | 113-151 | `simpleBus.dispatch()` — iterates handlers at call time |
 | `system/v4@v4.3.0/bus.go` | 162-169 | `simpleBus.SubscribeAll()` — appends handler, returns immediately |
 | `system/v4@v4.3.0/constructor.go` | 194-201 | Auto-wires `simpleBus` as projection subscriber |
+
+
+---
+
+## Resolution (2026-08-15, docs-health pass)
+
+Option A (post-subscribe catch-up drain) shipped as `d60d72ed4`, with the
+blocking-subscriber status regression fixed at `8108cad5f` and regression
+tests in `projectionhost/catchup_drain_test.go`. The same-class watermill
+CatchUpSubscriber race closed at `1b4e79b78` (subscribe-first + replayIDs
+dedup). Finding 1 was resolved opposite to its recommendation (see inline);
+finding 3 declined (TODO_LIST Declined); finding 2 (stagger amplification)
+remains an open observation. Reviewed counterpart:
+`docs/feedback/reviewed/2026-08-13_file-renamer_drain-live-toctou-race-review.md`.
+Archived.

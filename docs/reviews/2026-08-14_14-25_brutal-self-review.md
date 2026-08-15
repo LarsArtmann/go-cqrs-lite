@@ -147,27 +147,27 @@ Died at Session 100; nothing from August; "reality" lives in docs/status/ which 
 
 ## 🔥 REALLY BAD
 
-### 1. The published release chain does not build
+### 1. ~~The published release chain does not build~~ **DISPROVEN (2026-08-15): `git tag --contains <actor_id.go-commit>` shows `id/v4.4.0` CONTAINS `actor_id.go` — the tag is complete. Standalone (GOWORK=off) builds have been green since the 2026-08-13 tag wave (record/v4.2.0, commandlifecycle/v4.0.0, command/v4.6.0...). The review's headline finding was stale at publication.**
 `id/v4.4.0` (latest tag) missing `actor_id.go`; `command/metadata.go` uses `id.ActorID`; `command/go.mod` requires `id v4.4.0`
 
 Verified: `id.ActorID` exists in the working tree, is used by `command` and required at `v4.4.0` — but the symbol exists in **no published id tag** (v4.4.0 is the latest and lacks it). Any consumer building command/metaengine/record with `GOWORK=off` fails to compile against published versions. While this is open, every "production-ready" claim is false. **This is the single highest-priority fix in the repo.**
 
-### 2. Engine capability fraud: profiles declare what code doesn't implement
+### 2. ~~Engine capability fraud: profiles declare what code doesn't implement~~ **OPEN — routed: TODO_LIST "Metaengine" (Engine capability conformance test). Verified finding; not yet fixed.**
 `metaengine/pgengine/engine.go:172-192`, `metaengine/mysqlengine/engine.go:139-153`, `metaengine/duckdbengine/engine.go:158-178`
 
 Six engines declare `Supports` for backends that do not exist in their code. The planner trusts the profile, the test harness auto-skips missing backends (`metaengine/adttest/harness.go:106`), so nothing catches it. For a library whose stated north star is "developers never need to think about the storage layer," routing a query to an engine that then hard-fails is the worst possible failure mode. bbolt and badger engines are the honest ones — declare exactly what they implement.
 
-### 3. Known broken code shipped and left broken
+### 3. ~~Known broken code shipped and left broken~~ **FIXED — colon bug fixed with regression guard (2026-08-14 session); counter path reworked at `5127039da`; `JournalReadFrom` off-by-one fixed at `7c0a62c98` (+ shared contract suite, live-verified 24/24).**
 `metaengine/dgraphengine/counter.go:158`
 
 Dgraph `CounterIncrement` is completely broken — DQL requires `$key0: string`, the code emits `$key0 string`. Verified present today. It's a single-character fix sitting in TODO_LIST for days. Plus the Dgraph journal off-by-one that corrupts checkpoint resumption. Multiple 2026-08-11 sessions shipped without running the verify gate ("stale-GREEN backlog" — the repo's own AGENTS calls this out as worse than no claim).
 
-### 4. v4/v5 chimera — the cut was never made
+### 4. ~~v4/v5 chimera — the cut was never made~~ **OPEN — Phase 8 tracks in TODO_LIST "v5 Unification" (every deletion its own item + migration guide + cut). The WAL + store-middleware "0% done" claims are stale: both plans EXECUTED via ADR-0126.**
 ADR-0123, TODO_LIST "v5 Unification"
 
 Phases 1-7 shipped; Phase 8 (the actual deletion: `stack/`, all 8 presets, `Materialize`, `RelationalProjection`, `graph.GraphProjection`, migration guide, v5.0.0 tag) is 0% done — all 7 boxes unchecked. Users live on a half-migrated chimera with two composition roots alive simultaneously and no migration guide for either direction.
 
-### 5. Flagship example doesn't build off-machine; flagship linter flags the flagship example
+### 5. ~~Flagship example doesn't build off-machine; flagship linter flags the flagship example~~ **PARTED — the `replace` is the intentional `go-must` sibling dev-replace (NOT machine-local cqrs junk; same pattern as go-codec); E005/golden fix OPEN in TODO_LIST "cqrs-lint".**
 `example/taskmanager/go.mod:88`, `cmd/cqrs-lint` E005, `cmd/cqrs-lint/testdata/taskmanager_golden.txt:20-29`
 
 taskmanager carries `replace github.com/larsartmann/go-must => /home/lars/projects/go-must` — a machine-local path. And the cqrs-lint golden enshrines 10 E005 false positives because E005 doesn't recognize `system.RegisterCommand` — the linter is blind to the SDK's own composition layer. The "canonical clean reference" is neither clean nor a valid reference.
@@ -202,17 +202,35 @@ taskmanager carries `replace github.com/larsartmann/go-must => /home/lars/projec
 
 ## What To Do (Pareto order)
 
-1. **Fix the release chain TODAY** — re-tag `id` (and dependents), verify `GOWORK=off go build` against published versions only. Nothing else matters until `go get` works.
-2. **Stop the capability fraud** — one afternoon: make every engine profile declare exactly what it implements, add a plan-time `Supports`-vs-interface conformance test. Turns runtime crashes into honest DEGRADED diagnostics (or removes the lie).
-3. **Fix the two Dgraph bugs** (colon = 1 char, off-by-one) — they're in TODO with XS/S effort, shipped broken.
-4. **Reconcile the ADR-0114 story** — either land DeletePolicy or rewrite FEATURES/CHANGELOG/AGENTS/migration-guide to tell the truth. Pick one reality.
-5. **Remove taskmanager's local `replace`** and teach E005 about `system.RegisterCommand`; regenerate the lint golden.
-6. **Cut v5 or abandon it** — the chimera is worse than either endpoint. The WAL + store-middleware dedup plans (both 0% done) fold into this decision.
-7. **One bench system** — pick benchkit+cqrs-bench, delete the rest, one baseline, make regression CI fail on breach.
-8. **Tell one deprecation story** — pick the policy for codec/retry/idempotency/flightrecorder, apply it everywhere in the same edit.
-9. **Trash the junk** — `t/`, `result/`, `reports/`, `codec/testdata`, `benchmarks/` dump, `metaengine/bench` module.
-10. **Then, and only then**: outbox (biggest user-facing gap), broker roundtrip tests via `watermill/` + official plugins (the design-doc ghost is now resolved), per-module CHANGELOGs.
+1. ~~**Fix the release chain TODAY** — re-tag `id` (and dependents), verify `GOWORK=off go build` against published versions only. Nothing else matters until `go get` works.~~ **NOT-DO — premise stale: `id/v4.4.0` contains `actor_id.go` (verified via git tag --contains); standalone builds green since the 2026-08-13 tag wave.**
+2. ~~**Stop the capability fraud**~~ **OPEN — TODO_LIST "Metaengine" (Engine capability conformance test).** One afternoon: make every engine profile declare exactly what it implements, add a plan-time `Supports`-vs-interface conformance test. Turns runtime crashes into honest DEGRADED diagnostics (or removes the lie).
+3. ~~**Fix the two Dgraph bugs**~~ **done — colon fix + regression guard (2026-08-14); counter reworked `5127039da`; off-by-one fixed `7c0a62c98`.**
+4. ~~**Reconcile the ADR-0114 story**~~ **OPEN — TODO_LIST "Docs Honesty" (reconcile item).**
+5. ~~**Remove taskmanager's local `replace`** and teach E005 about `system.RegisterCommand`; regenerate the lint golden.~~ **replace = NOT-DO (intentional go-must sibling dev-replace); E005 + golden OPEN — TODO_LIST "cqrs-lint".**
+6. ~~**Cut v5 or abandon it** — the chimera is worse than either endpoint.~~ **OPEN — TODO_LIST "v5 Unification Phase 8". The WAL + store-middleware dedup plans are EXECUTED (ADR-0126), not 0%.**
+7. ~~**One bench system**~~ **OPEN — TODO_LIST "Code Quality" (One bench system).**
+8. ~~**Tell one deprecation story**~~ **done — ADR-0128: codec/retry/idempotency/flightrecorder deleted; policy applied everywhere in one edit (`5127039da`).**
+9. ~~**Trash the junk**~~ **OPEN — TODO_LIST "Code Quality" junk item (t/, result/, reports/); `codec/testdata` + `codec/reports` died with the codec/ deletion (`5127039da`).**
+10. ~~**Then, and only then**: outbox (biggest user-facing gap), broker roundtrip tests via `watermill/` + official plugins (the design-doc ghost is now resolved), per-module CHANGELOGs.~~ **outbox OPEN (ROADMAP ideas); broker Redis roundtrip done at `d8c73be0a` (NATS adapter deliberately not adopted — deprecated tech); per-module CHANGELOGs OPEN (TODO_LIST "Code Quality").**
 
 ---
 
 **Final verdict:** Top-1% engineering velocity and discipline in code and tests. Bottom-half discipline in releases, docs honesty, and system consolidation. The gap between how good the code is and how broken the release chain is — that's the whole story of this repo.
+
+---
+
+## Resolution (2026-08-15, docs-health pass)
+
+Every REALLY-BAD heading and all 10 Pareto items carry inline verdicts
+above. Headline correction: item 1 (broken release chain) was DISPROVEN by
+tag evidence — `id/v4.4.0` contains `actor_id.go`; standalone builds green
+since the 2026-08-13 tag wave. Fixed since publication: both Dgraph bugs
+(`5127039da`, `7c0a62c98`), the deprecation story (ADR-0128 deletion), the
+WAL + store-middleware plans (executed via ADR-0126, contradicting the
+"0% done" notes), Redis broker roundtrip (`d8c73be0a`). Still open and
+routed: capability conformance (TODO_LIST "Metaengine"), ADR-0114
+reconciliation ("Docs Honesty"), v5 Phase 8 cut, E005/golden ("cqrs-lint"),
+one-bench-system + junk + per-module CHANGELOGs ("Code Quality"), outbox
+(ROADMAP ideas). The MEH-section surgical defects live in TODO_LIST
+"Correctness Defect Sweep". Review stays in `docs/reviews/` (not archived)
+as the standing reference for the sweep.

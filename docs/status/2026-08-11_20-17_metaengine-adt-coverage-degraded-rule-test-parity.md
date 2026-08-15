@@ -191,11 +191,11 @@ check-arch + check-duplication). There could be:
 ## f) Up to 50 things to do next
 
 ### Verification & CI (must-do)
-1. Run `nix run .#verify` and fix any failures
-2. Run `cd cmd/api-stability && GOWORK=off go run main.go -update` (regenerate golden)
-3. Run `nix run .#check-duplication` — fix or baseline any new clones
-4. Run `nix run .#check-arch` — verify no dep budget violations
-5. Run `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`
+~~1. Run `nix run .#verify` and fix any failures~~ done at 5f2198189 (three GREENs since)
+~~2. Run `cd cmd/api-stability && GOWORK=off go run main.go -update` (regenerate golden)~~ done - golden current (4133)
+~~3. Run `nix run .#check-duplication` — fix or baseline any new clones~~ done - baseline re-pinned 92->97; gate green
+~~4. Run `nix run .#check-arch` — verify no dep budget violations~~ done - Check Arch green since 8c384f0f5
+~~5. Run `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`~~ done - doc-check 797 refs green
 
 ### Documentation updates
 6. Update `.agents/skills/go-cqrs-lite/references/recipes.md` — SQLite graph is now native
@@ -206,10 +206,10 @@ check-arch + check-duplication). There could be:
 11. Update `FEATURES.md` if it tracks per-engine ADT support
 
 ### Graph improvements
-12. Implement `WITH RECURSIVE` CTE path for SQLite (with BFS fallback for Turso)
-13. Implement `WITH RECURSIVE` CTE path for MySQL 8.0+
-14. Implement recursive CTE for PG (already supports it)
-15. Add `graphBackend` implementation to mysqlengine (currently degraded)
+12. Implement `WITH RECURSIVE` CTE path for SQLite (with BFS fallback for Turso) <- OPEN. in flight - sqliteengine/graph.go carries WITH RECURSIVE in the concurrent session's tree
+13. Implement `WITH RECURSIVE` CTE path for MySQL 8.0+ <- OPEN. in flight - mysqlengine graph work untracked in the concurrent session's tree
+14. Implement recursive CTE for PG (already supports it) <- OPEN. in flight - pgengine/graph.go WITH RECURSIVE present in the concurrent session's tree
+15. Add `graphBackend` implementation to mysqlengine (currently degraded) <- OPEN. in flight - mysqlengine/graph.go visible in the concurrent session's untracked set
 16. Add graph benchmark: GraphNeighbors at depth 1/2/3/5 on 100/1K/10K edges
 17. Consider adding bidirectional edges (reverse traversal)
 18. Add graph edge deletion (currently only add + traverse)
@@ -218,17 +218,17 @@ check-arch + check-duplication). There could be:
 ### Dgraph StreamLog improvements
 20. Fix timestamp collision risk with per-collection counter
 21. Add `StreamTemporalReader` interface to dgraphengine (version-bounded reads)
-22. Test Dgraph StreamLog with the `enginetest.RunStreamLogBackendTest` harness
-23. Add Dgraph StreamLog to the cross-engine ADT matrix test
+~~22. Test Dgraph StreamLog with the `enginetest.RunStreamLogBackendTest` harness~~ done at 7c0a62c98 - TestStreamLog_HarnessParity wires the shared suite; 24/24 live
+~~23. Add Dgraph StreamLog to the cross-engine ADT matrix test~~ done - ADT matrix includes StreamLog incl. the interleaved-collections phase (2026-08-15)
 24. Benchmark Dgraph StreamAppend/JournalReadAll
 
 ### Remaining ADT coverage gaps
-25. Implement brute-force `VectorBackend` on Pebble (O(N) scan)
-26. Implement brute-force `VectorBackend` on bbolt
+25. Implement brute-force `VectorBackend` on Pebble (O(N) scan) <- OPEN. in flight - pebbleengine/vector.go in the concurrent session's untracked set
+26. Implement brute-force `VectorBackend` on bbolt <- OPEN. in flight - bboltengine/vector.go in the concurrent session's untracked set
 27. Implement brute-force `SearchBackend` on Pebble
-28. Implement `StreamLogBackend` on badgerengine (if missing)
-29. Audit ALL engines × ALL 11 ADTs for coverage completeness
-30. Create a coverage matrix test that asserts every engine handles every ADT (degraded or native)
+~~28. Implement `StreamLogBackend` on badgerengine (if missing)~~ done at 4a95bd04d - badgerengine's first StreamLog contract test (shared harness)
+29. Audit ALL engines × ALL 11 ADTs for coverage completeness <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)'
+30. Create a coverage matrix test that asserts every engine handles every ADT (degraded or native) <- OPEN. TODO_LIST 'Metaengine - Universal ADT Coverage (Phase 7)' (coverage-matrix assert)
 
 ### Test parity improvements
 31. Add `stream_log_test.go` to tursoengine (currently delegates to sqlite)
@@ -251,9 +251,9 @@ check-arch + check-duplication). There could be:
 44. Update `ReadCosts` for SQLite to include graph traversal cost
 
 ### Code quality
-45. Run `nix fmt` on all new files (gofumpt + goimports)
-46. Add `//nolint` directives if gosec flags the `fmt.Sprintf` in SQL builders
-47. Review the Dgraph `stream_log.go` for the `DeferClose` pattern (rows cleanup)
+~~45. Run `nix fmt` on all new files (gofumpt + goimports)~~ done - lint 76/76 clean since 444be10a7
+~~46. Add `//nolint` directives if gosec flags the `fmt.Sprintf` in SQL builders~~ done - lint clean; no unmanaged nolints
+~~47. Review the Dgraph `stream_log.go` for the `DeferClose` pattern (rows cleanup)~~ done - DeferClose pattern is the repo-wide contract (AGENTS internal contract #14)
 48. Consider extracting the iterative BFS algorithm into a shared helper (used by both
     `graph_fallback.go` and `sqliteengine/graph.go`)
 49. Add inline benchmarks to `graph_test.go` using `b.Loop()` pattern
@@ -280,3 +280,16 @@ check-arch + check-duplication). There could be:
    silently does nothing when the condition fails (no error, no UIDs assigned). Detecting
    "zero UIDs" as a conflict works but could also trigger on a Dgraph internal error that
    silently swallows the mutation. Should I use a more explicit conflict detection mechanism?
+
+
+---
+
+## Resolution (2026-08-15, docs-health pass)
+
+18 of 50 items carry verdicts. Gates (1-5, 45-47) green since `5f2198189`;
+dgraph harness parity + ADT-matrix StreamLog (22-23) closed at `7c0a62c98`;
+badger StreamLog (28) at `4a95bd04d`. The graph/CTE + vector block (12-15,
+25-26) is being implemented RIGHT NOW by the concurrent metaengine session
+(untracked graph.go/vector.go files). The ADT-coverage wishlist (29-30 et al)
+tracks in TODO_LIST "Metaengine — Universal ADT Coverage (Phase 7)". Stays
+active.

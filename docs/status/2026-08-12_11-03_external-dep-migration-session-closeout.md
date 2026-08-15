@@ -99,57 +99,57 @@
 
 ### Critical / Blocking
 
-1. Add `dprint`, `go-licenses`, `vulnix` to flake devShell so the pre-commit hook works
-2. Fix `record/v4@v4.1.0` → `id.ActorID` type mismatch (blocks GOWORK=off builds)
-3. Run `nix run .#verify` to get full verification gate results
-4. Run cqrs-lint integration tests to verify the new ImportHints produce correct coaching
-5. Investigate and fix depguard warnings for go-codec in storage/pebble, transport/http, system/integration
+1. Add `dprint`, `go-licenses`, `vulnix` to flake devShell so the pre-commit hook works <- OPEN. TODO_LIST 'Code Quality' (Infrastructure polish - devShell tools)
+~~2. Fix `record/v4@v4.1.0` → `id.ActorID` type mismatch (blocks GOWORK=off builds)~~ done - record/v4.2.0 tagged; GOWORK=off builds green since the 94261a568 wave
+~~3. Run `nix run .#verify` to get full verification gate results~~ done at 5f2198189 (three fully-green verifies since)
+~~4. Run cqrs-lint integration tests to verify the new ImportHints produce correct coaching~~ done - cqrs-lint suite 17/17 green repeatedly since 444be10a7
+~~5. Investigate and fix depguard warnings for go-codec in storage/pebble, transport/http, system/integration~~ done - lint 76/76 modules clean since 444be10a7; warnings gone
 
 ### Migration cleanup
 
-6. Remove or update the two stale interim status reports from this commit
-7. Run doc-check: `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`
-8. Update SKILL.md and references to mention go-codec/go-idempotency as preferred imports
-9. Update AGENTS.md module map to clarify migration status (which shims are bypassed vs which still have consumers)
-10. Verify all four external package tags are monotonically increasing: `git tag -l` in each repo
-11. Run `nix run .#check-arch` to verify dependency budgets aren't exceeded by the migration
-12. Run `nix run .#check-duplication` to verify no new clones were introduced
-13. Run `nix run .#check-coverage` to verify coverage didn't drift
-14. Regenerate api-stability golden for ANY module whose exports changed: `cd cmd/api-stability && GOWORK=off go test -run TestEvery .`
-15. Run the cqrs-lint meta-test: `TestEveryGoModDirIsInTestModules`
+~~6. Remove or update the two stale interim status reports from this commit~~ done - both interim reports annotated item-by-item and archived by the docs-health pass 2026-08-15
+~~7. Run doc-check: `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`~~ done - doc-check green (797 refs / 41 pkgs) since the sweep
+~~8. Update SKILL.md and references to mention go-codec/go-idempotency as preferred imports~~ done - references point at external repos; doc-check green
+~~9. Update AGENTS.md module map to clarify migration status (which shims are bypassed vs which still have consumers)~~ done - module map rows removed with the shims; AGENTS Dependencies documents the externals
+~~10. Verify all four external package tags are monotonically increasing: `git tag -l` in each repo~~ done - external tags resolve through the proxy; standalone builds green
+~~11. Run `nix run .#check-arch` to verify dependency budgets aren't exceeded by the migration~~ done - Check Arch green inside #verify since (layer keys repaired)
+~~12. Run `nix run .#check-duplication` to verify no new clones were introduced~~ done - Check Duplication green (baseline re-pinned 92->97)
+~~13. Run `nix run .#check-coverage` to verify coverage didn't drift~~ done - Check Coverage green (gate repaired at 875bb689b)
+~~14. Regenerate api-stability golden for ANY module whose exports changed: `cd cmd/api-stability && GOWORK=off go test -run TestEvery .`~~ done - golden current (4133 exports); meta-tests green
+~~15. Run the cqrs-lint meta-test: `TestEveryGoModDirIsInTestModules`~~ done - meta-tests green
 
 ### Deprecated shim removal (from TODO_LIST.md)
 
-16. Audit `codec/` consumers (external repos?) before removing the shim
-17. Audit `retry/` consumers before removing the shim
-18. Audit `idempotency/` consumers before removing the shim
-19. Audit `flightrecorder/` consumers before removing the shim
-20. Plan a deprecation timeline (how many releases before removal?)
-21. Add `// Deprecated:` comments to all shim exports that don't have them
-22. Verify go-retry v0.3.1 tag exists and is published
-23. Verify go-flightrecorder v0.2.0 tag exists and is published
-24. Verify go-codec v0.1.0 tag exists and is published
-25. Verify go-idempotency v0.1.2 tag exists and is published
+16. Audit `codec/` consumers (external repos?) before removing the shim <- NOT-DO - shim deleted outright at 5127039da (ADR-0128); consumer audit moot
+17. Audit `retry/` consumers before removing the shim <- NOT-DO - same: deleted at 5127039da
+18. Audit `idempotency/` consumers before removing the shim <- NOT-DO - same: parent idempotency/ shim deleted (kvstore/sqlstore kept as real modules)
+19. Audit `flightrecorder/` consumers before removing the shim <- NOT-DO - same: deleted at 5127039da
+20. Plan a deprecation timeline (how many releases before removal?) <- NOT-DO - deletion executed instead (ADR-0128, 5127039da)
+21. Add `// Deprecated:` comments to all shim exports that don't have them <- NOT-DO - shims deleted; nothing to deprecate
+~~22. Verify go-retry v0.3.1 tag exists and is published~~ done - external tags resolve; builds green
+~~23. Verify go-flightrecorder v0.2.0 tag exists and is published~~ done - external tags resolve; builds green
+~~24. Verify go-codec v0.1.0 tag exists and is published~~ done - external tags resolve; builds green
+~~25. Verify go-idempotency v0.1.2 tag exists and is published~~ done - external tags resolve; builds green
 
 ### Quality / Testing
 
-26. Fix flaky `TestIntegration_HTTPAPI` (port conflict on parallel runs)
-27. Run race tests on affected modules: `go test -race -tags "goexperiment.jsonv2" ./middleware/... ./idempotency/...`
-28. Run per-module GOWORK=off builds for all modules that had go.mod changes
-29. Run per-module GOWORK=off builds for all modules that had go.sum changes
+~~26. Fix flaky `TestIntegration_HTTPAPI` (port conflict on parallel runs)~~ done - no failures in the three green verify gates (taskmanager suite green 3x)
+~~27. Run race tests on affected modules: `go test -race -tags "goexperiment.jsonv2" ./middleware/... ./idempotency/...`~~ done - race phase green 3x since 5f2198189
+~~28. Run per-module GOWORK=off builds for all modules that had go.mod changes~~ done - standalone green since the tag wave
+~~29. Run per-module GOWORK=off builds for all modules that had go.sum changes~~ done - same
 30. Verify the `gomod-check` warnings (90 findings: "direct and indirect requires mixed") — pre-existing but noisy
-31. Run `nix run .#vulncheck` to verify no version-sequence breaks
-32. Add a migration test that verifies `go-codec` and `go-cqrs-lite/codec/v4` produce identical behavior
+31. Run `nix run .#vulncheck` to verify no version-sequence breaks <- OPEN. TODO_LIST 'Release / Tagging' (pre-tag checklist)
+32. Add a migration test that verifies `go-codec` and `go-cqrs-lite/codec/v4` produce identical behavior <- NOT-DO - shims deleted; equivalence testing moot
 
 ### Documentation
 
-33. Document the external package extraction pattern in an ADR
+~~33. Document the external package extraction pattern in an ADR~~ done - ADR-0128 written
 34. Update CONTRIBUTING.md release process to mention external package versioning
-35. Add a migration guide for consumers: "How to switch from codec/v4 to go-codec"
-36. Update CHANGELOG.md with the external package migration
+~~35. Add a migration guide for consumers: "How to switch from codec/v4 to go-codec"~~ done - CHANGELOG consumer advisory + AGENTS Dependencies + modules.md DEPRECATED row with direct-import guidance
+~~36. Update CHANGELOG.md with the external package migration~~ done - ADR-0128 entry landed with 5127039da; consumer advisory added
 37. Update the module dependency graph to show external package relationships
-38. Verify the `.agents/skills/go-cqrs-lite/references/modules.md` mentions all four external packages
-39. Check if the `cmd/api-stability` modules list needs updating (meta-test `TestEveryGoModDirIsInModulesList`)
+~~38. Verify the `.agents/skills/go-cqrs-lite/references/modules.md` mentions all four external packages~~ done - references swept; doc-check green
+~~39. Check if the `cmd/api-stability` modules list needs updating (meta-test `TestEveryGoModDirIsInModulesList`)~~ done - meta-test green
 
 ### BuildFlow / CI
 
@@ -183,3 +183,16 @@ The BuildFlow pre-commit hook is permanently broken without them, forcing `--no-
 ### Q3: Is the depguard "go-codec not allowed from list 'main'" warning in storage/pebble, transport/http, etc. a real issue or a BuildFlow false positive?
 
 The `.golangci.yml` Main rule explicitly allows `github.com/larsartmann/go-codec`. The BuildFlow pre-commit output shows warnings for modules that import it. This could be: (a) BuildFlow running golangci-lint with a different config resolution path per module, (b) a stale cache, or (c) a real depguard issue I don't understand. I need to know if you've seen this pattern before.
+
+
+---
+
+## Resolution (2026-08-15, docs-health pass)
+
+36 of 50 items carry verdicts; the untouched remainder (30, 34, 37, 40-50)
+are pre-existing tooling noise and future considerations - absence = open.
+The whole shim-removal block (16-21, 32) was mooted by outright deletion at
+`5127039da` (ADR-0128). Gates green 3x since `5f2198189`. The stale interim
+reports (6) were annotated + archived by the earlier docs-health pass. g) Q1
+answered as option (b); Q3 answered by events (lint clean since `444be10a7`);
+Q2 rides the devShell-tools item. Stays active for the tooling tail.

@@ -164,62 +164,62 @@ my regression, not pre-existing.
 ## f) Up to 50 Things to Do Next
 
 ### Critical (blocks CI / correctness)
-1. Run `go test ./... -tags "goexperiment.jsonv2"` — full test suite, catalog ALL failures
-2. Verify `TestEventBus_HandlerIndependence` on clean master via `git worktree`
-3. Fix or retract the poisoned `record/v4@v4.1.0` tag
-4. Run `go mod tidy` on ALL 79 modules to sync go.sum after codec/metaengine restoration
-5. Regenerate api-stability golden: `cd cmd/api-stability && GOWORK=off go run main.go -update`
-6. Run `nix run .#verify` — the full gate
-7. Verify GOWORK=off builds for all 79 modules (CI does this)
+~~1. Run `go test ./... -tags "goexperiment.jsonv2"` — full test suite, catalog ALL failures~~ done at 5f2198189 - 239 ok packages, 0 FAIL; cataloged across the 08-14/15 sessions
+~~2. Verify `TestEventBus_HandlerIndependence` on clean master via `git worktree`~~ done - fixed for real at 1b4e79b78 (errors.Join handler independence); pre-existing-ness confirmed by the 01-02 review
+~~3. Fix or retract the poisoned `record/v4@v4.1.0` tag~~ done - record/v4.2.0 published (flattened string types); stale replaces removed by the 20-46 session
+~~4. Run `go mod tidy` on ALL 79 modules to sync go.sum after codec/metaengine restoration~~ done - mass tidy via 94261a568 (79 modules) + later waves
+~~5. Regenerate api-stability golden: `cd cmd/api-stability && GOWORK=off go run main.go -update`~~ done - golden current (4133 exports, green in every verify)
+~~6. Run `nix run .#verify` — the full gate~~ done at 5f2198189
+~~7. Verify GOWORK=off builds for all 79 modules (CI does this)~~ done - standalone green since the tag wave
 
 ### High priority (merge hygiene)
-8. Commit the 2 unstaged middleware formatter files
-9. Run `cmd/doc-check` — verify no broken import paths in docs
-10. Run `nix run .#check-arch` — dependency budget enforcement
-11. Run `nix run .#check-duplication` — no-new-clones gate
-12. Audit which of the 58 restored metaengine files are actually needed vs dead code
-13. Decide: keep master's metaengine refactor direction, or keep the restored full version?
-14. If keeping restored: tag new versions of all affected published modules
-15. If keeping master's direction: surgically extract only what system/ needs
+~~8. Commit the 2 unstaged middleware formatter files~~ done - daemon committed; lint clean since
+~~9. Run `cmd/doc-check` — verify no broken import paths in docs~~ done - doc-check green (797 refs)
+~~10. Run `nix run .#check-arch` — dependency budget enforcement~~ done - green inside #verify since (layer keys repaired)
+~~11. Run `nix run .#check-duplication` — no-new-clones gate~~ done - baseline re-pinned; green since
+~~12. Audit which of the 58 restored metaengine files are actually needed vs dead code~~ done - the restored subsystems (live latency, inference, runtime backend, plan audit) are all live, documented in AGENTS, and in active development today
+~~13. Decide: keep master's metaengine refactor direction, or keep the restored full version?~~ done - decided: keep the restored full version (g/1 answered by events - the subsystems are the strategic core)
+14. If keeping restored: tag new versions of all affected published modules <- OPEN. TODO_LIST 'Release / Tagging' (engine v4.0.2+ chain)
+15. If keeping master's direction: surgically extract only what system/ needs <- NOT-DO - decision was (a) keep the full restored version; surgical extraction moot
 
 ### Medium priority (tech debt exposed)
-16. Fix `TestEventBus_HandlerIndependence` — watermill handler isolation bug
-17. Complete the codec extraction (all consumers → `go-codec` directly) OR document the alias as permanent
-18. Add CI gate: master must pass `go build ./...` before merge
-19. Review master's `a6613ef0d` commit — was it meant to be pushed? Should it be reverted on master?
-20. Check if `graph_fallback.go`, `infer_*.go`, `runtime_backend.go` are referenced by tests (dead code?)
-21. Run `nix run .#check-coverage` — coverage drift after restoration
-22. Update AGENTS.md module map if module count changed
-23. Verify `flake.nix` testModules matches actual module directories (meta-test)
-24. Run the meta-test: `cd cmd/api-stability && GOWORK=off go test -run TestEvery .`
-25. Check if any restored engine module has stale `replace` directives
+~~16. Fix `TestEventBus_HandlerIndependence` — watermill handler isolation bug~~ done at 1b4e79b78 (watermill errors.Join)
+~~17. Complete the codec extraction (all consumers → `go-codec` directly) OR document the alias as permanent~~ done - completed: all consumers on go-codec directly; shims deleted (5127039da, ADR-0128)
+~~18. Add CI gate: master must pass `go build ./...` before merge~~ done - ci.yml gates build/vet/test/lint/race (known: the Benchmarks job is red - tracked)
+19. Review master's `a6613ef0d` commit — was it meant to be pushed? Should it be reverted on master? <- NOT-DO - moot: merge 0e4a16a8a restored everything; history stands
+~~20. Check if `graph_fallback.go`, `infer_*.go`, `runtime_backend.go` are referenced by tests (dead code?)~~ done - all live today (runtime_backend.go/plan_audit.go actively developed)
+~~21. Run `nix run .#check-coverage` — coverage drift after restoration~~ done - gate repaired at 875bb689b; green since
+~~22. Update AGENTS.md module map if module count changed~~ done - module count 82 across AGENTS/FEATURES/ROADMAP (docs-health 2026-08-15)
+~~23. Verify `flake.nix` testModules matches actual module directories (meta-test)~~ done - meta-test green
+~~24. Run the meta-test: `cd cmd/api-stability && GOWORK=off go test -run TestEvery .`~~ done - meta-tests green
+~~25. Check if any restored engine module has stale `replace` directives~~ done - replace-directive audit done by the 20-46 session (dead ones removed; 5 temporary engine replaces tracked in TODO_LIST)
 
 ### Lower priority (cleanup)
-26. Review `go.work` for orphaned entries
+~~26. Review `go.work` for orphaned entries~~ done - cleaned at 2e9a2fc28; meta-tests enforce
 27. Run `nix flake check` — flake-level validation
-28. Tag `record/v4` with a new version if the type change is intentional
+~~28. Tag `record/v4` with a new version if the type change is intentional~~ done - record/v4.2.0 published
 29. Update `docs/architecture-understanding/SEVEN-TIER-MODEL.md` if tiers changed
-30. Review if master's `concurrent agent refactor` doc (`docs/status/2026-08-12_12-45_*.md`) needs updating
+~~30. Review if master's `concurrent agent refactor` doc (`docs/status/2026-08-12_12-45_*.md`) needs updating~~ done - 12-45 annotated item-by-item and archived by the docs-health pass 2026-08-15
 31. Check if `metaengine/COOKBOOK.md` and `MIGRATION.md` are accurate after restoration
-32. Verify the 4 restored modules' tests pass with `-race`
-33. Run soak tests on restored modules
-34. Check `metaengine/bench/` still compiles (it imports all engines)
-35. Verify `stack/bench/` cross-preset suite still works
-36. Check if `integration/` cross-module tests need attention
-37. Review `cmd/cqrs-bench/` — it may reference deleted metaengine APIs
-38. Review `cmd/cqrs-lint/` — 202 rules may reference deleted types
-39. Check `example/metaengine-quickstart/` still compiles
-40. Verify `benchkit/` go.mod is consistent (LSP showed `id/v4 not in go.mod` warnings)
-41. Run `nix fmt` — formatting may have drifted
-42. Check for orphaned `.go-arch-lint.yml` references (master deleted some)
-43. Review if `metaengine/adttest/aggregate_harness.go` (deleted by master) is needed by restored modules
-44. Verify `storage/bbolt` and `storage/pebble` still work with restored `backuptest`
-45. Check if any `//go:embed` directives reference deleted files
-46. Review git tags for all restored modules — may need version bumps
-47. Consider squashing the merge if the history is too noisy
-48. Update `CONTRIBUTING.md` if release process changed
-49. Review `docs/sessions/SESSION_MILESTONES.md` — record this recovery
-50. Schedule a full `nix run .#verify` + `nix run .#vulncheck` before any release
+~~32. Verify the 4 restored modules' tests pass with `-race`~~ done - race phase green 3x since 5f2198189
+~~33. Run soak tests on restored modules~~ done - soak green in every verify since (incl. the interleaved-collections contract phase)
+~~34. Check `metaengine/bench/` still compiles (it imports all engines)~~ done - builds green (its proposed deletion is a separate TODO: One bench system)
+~~35. Verify `stack/bench/` cross-preset suite still works~~ done - verify green 3x
+~~36. Check if `integration/` cross-module tests need attention~~ done - integration suites green
+~~37. Review `cmd/cqrs-bench/` — it may reference deleted metaengine APIs~~ done - cqrs-bench builds; the layout CLI shipped
+~~38. Review `cmd/cqrs-lint/` — 202 rules may reference deleted types~~ done - 203 rules; meta_test at 203 detectors
+~~39. Check `example/metaengine-quickstart/` still compiles~~ done - builds green in the workspace (its absence from examplePaths CI is a separate TODO item)
+~~40. Verify `benchkit/` go.mod is consistent (LSP showed `id/v4 not in go.mod` warnings)~~ done at 4a95bd04d - pins bumped; standalone green 34s
+~~41. Run `nix fmt` — formatting may have drifted~~ done - lint clean since 444be10a7
+~~42. Check for orphaned `.go-arch-lint.yml` references (master deleted some)~~ done - TestGoArchLintConfigsAreValid green (codec dangle fixed by the 00-48 session)
+~~43. Review if `metaengine/adttest/aggregate_harness.go` (deleted by master) is needed by restored modules~~ done - adttest is alive and exported (RunMatrix harness)
+44. Verify `storage/bbolt` and `storage/pebble` still work with restored `backuptest` <- OPEN. TODO_LIST 'Code Quality' (storage/backuptest: wire or delete - no engine go.mod depends on it today)
+~~45. Check if any `//go:embed` directives reference deleted files~~ done - build green (embeds resolve)
+46. Review git tags for all restored modules — may need version bumps <- OPEN. TODO_LIST 'Release / Tagging'
+47. Consider squashing the merge if the history is too noisy <- NOT-DO - history preserved deliberately (01-02 review: the merge stands)
+48. Update `CONTRIBUTING.md` if release process changed <- OPEN. minor - fold into the v5 release pass
+49. Review `docs/sessions/SESSION_MILESTONES.md` — record this recovery <- OPEN. TODO_LIST 'Docs Honesty' (SESSION_MILESTONES)
+50. Schedule a full `nix run .#verify` + `nix run .#vulncheck` before any release <- OPEN. TODO_LIST 'Release / Tagging' (pre-tag checklist)
 
 ---
 
@@ -240,3 +240,18 @@ my regression, not pre-existing.
    locally but not pushed. The 2 unstaged files and the GOWORK=off build failures mean the branch
    is not CI-ready. Do you want me to push as-is, fix the GOWORK=off issues first, or leave it for
    you to handle?
+
+
+---
+
+## Resolution (2026-08-15, docs-health pass)
+
+43 of 50 items carry verdicts; untouched: 27 (nix flake check), 29
+(SEVEN-TIER doc), 31 (COOKBOOK/MIGRATION accuracy) - unverified, open. The
+recovery itself aged well: every "BIGGEST RISK" concern resolved - the
+restored metaengine subsystems are the strategic core and in active
+development (12-13, 20), record/v4.2.0 unpoisoned the tag (3, 28), the
+handler-independence bug was fixed for real (`1b4e79b78`), and the codec
+split-brain ended with full deletion (ADR-0128). Gates green 3x since
+`5f2198189`. All three g-questions answered by events. Stays active for the
+release chain (14, 46, 50) and backuptest (44).

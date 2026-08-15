@@ -153,13 +153,13 @@ the next biggest jump in production trust.
 | T26 | **`.golangci.yml` exclusion audit**                                                            | Low      | M      | 60        | T01       | Code Quality      | Open |
 | T27 | **Calibration benchmarks against baseline**                                                    | Low      | M      | 60        | —         | Code Quality      | Open |
 | T28 | **Clean stale v5 Phase items from TODO_LIST** (mark 15 done items `[x]`, move to CHANGELOG)   | High     | S      | 30        | —         | Docs Hygiene      | Done at `6f9199f0c`, `0cd4b19e4` |
-| T29 | **Fold-pipeline sync** (Active+DualUse roles)                                                  | Low      | L      | 180       | Design doc | Layout Roles     | Open |
-| T30 | **Async replication** (Backup+Migration roles)                                                 | Low      | L      | 180       | Design doc | Layout Roles     | Open |
-| T31 | **Role transition API**                                                                        | Low      | M      | 90        | T29,T30   | Layout Roles      | Open |
-| T32 | **Real workload trace format**                                                                 | Low      | M      | 90        | —         | Layout Roles      | Open |
-| T33 | **Aggregate boundary config** (`WithSharedCollection`)                                        | Low      | M      | 80        | —         | Layout Roles      | Open |
-| T34 | **Per-fold mutex** instead of global `foldMu`                                                  | Low      | M      | 80        | —         | Layout Roles      | Open — foldMu still global |
-| T35 | **Multi-collection batch atomicity**                                                           | Low      | L      | 180       | Design doc | v5 Phase 7       | Open |
+| T29 | **Fold-pipeline sync** (Active+DualUse roles)                                                  | Low      | L      | 180       | Design doc | Layout Roles     | Done 2026-08-15 — `METAENGINE-LAYOUT-ROLES.md`; dispatchFolds per-engine RunInTx |
+| T30 | **Async replication** (Backup+Migration roles)                                                 | Low      | L      | 180       | Design doc | Layout Roles     | Done 2026-08-15 — replicator.go, stale+halt semantics |
+| T31 | **Role transition API**                                                                        | Low      | M      | 90        | T29,T30   | Layout Roles      | Done 2026-08-15 — WithEngineRole + PromoteEngine |
+| T32 | **Real workload trace format**                                                                 | Low      | M      | 90        | —         | Layout Roles      | Done 2026-08-15 — JSONL trace + RecordTrace/ReplayTrace |
+| T33 | **Aggregate boundary config** (`WithSharedCollection`)                                        | Low      | M      | 80        | —         | Layout Roles      | Done 2026-08-15 — rule forces Normalize, WARN on spanning |
+| T34 | **Per-fold mutex** instead of global `foldMu`                                                  | Low      | M      | 80        | —         | Layout Roles      | Done 2026-08-15 — per-query foldLocks + atomic task snapshot |
+| T35 | **Multi-collection batch atomicity**                                                           | Low      | L      | 180       | Design doc | v5 Phase 7       | Done 2026-08-15 — verified shipped (batch_atomicity tests) |
 | T36 | **Delete `stack.Materialize`**                                                                 | Low      | S      | 30        | T35       | v5 Phase 8       | Open |
 | T37 | **Delete `storage.RelationalProjection` + `storage/view`**                                    | Low      | M      | 80        | T35       | v5 Phase 8       | Open |
 | T38 | **Delete `graph.GraphProjection`**                                                             | Low      | S      | 30        | —         | v5 Phase 8       | Open |
@@ -448,3 +448,16 @@ codec-deprecation migration and WAL unification
 preserves old APIs, contradicting this plan's v5 breaking-cut endgame
 (T36-T42). Before resuming Phase 8, decide whether that no-breakage constraint
 still holds.
+
+### §8 addendum (2026-08-15, docs-health pass)
+
+Of the "Checked-and-open" list above, these have since CLOSED: T04 (counter
+colon bug fixed 2026-08-14, reworked at `5127039da`), T05 (moot — codec/
+deleted entirely, ADR-0128), T07 (doctor.go split into three files), T09
+(layout-planning doc corrected 2026-08-14), T11 (`resolvePriority` now used).
+T01 finally closed: the first fully-green verify gate since ADR-0128 is
+`5f2198189` (2026-08-15, three GREENs since). Everything else in the open
+set (T06, T10, T12, T14-T17, T20-T42) remains open and is routed item-by-item
+in TODO_LIST ("Metaengine", "v5 Unification Phase 8", "Correctness Defect
+Sweep", "Release / Tagging"). Vector/graph work (T20-T22, T34) is in flight
+in the concurrent metaengine session.

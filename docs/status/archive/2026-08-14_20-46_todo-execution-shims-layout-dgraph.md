@@ -138,3 +138,15 @@ class as the four modules already fixed; see the 2026-08-15 follow-up report.
   — transport removal needs final v4.x patch tags first (user approval).
 - DuckDB/Row layout calibration benches (M each, benchmark runs).
 - go-codec repo scaffolding (external repo work, not this repo).
+
+## Resolution (2026-08-15, docs-health pass)
+
+No numbered next-list in this report; its claims were re-verified: the shim
+deletion landed at `5127039da`, the check-arch spaced-key root cause and fix
+are real (87 plain-key LAYER entries, green in `#verify`), and the 15
+remaining lint issues closed at `444be10a7` (first fully-green verify:
+`5f2198189`). The three deliberate non-goals stay routed: v5 Phase 8
+deletions -> TODO_LIST "v5 Unification Phase 8"; DuckDB/Row calibration ->
+TODO_LIST "Metaengine"; go-codec scaffolding -> sibling repo. The 5 temporary
+system/go.mod replaces still await the engine v4.0.2+ / watermill v4.5.0
+tags (TODO_LIST "Release / Tagging", ROADMAP Open Questions #1). Archived.

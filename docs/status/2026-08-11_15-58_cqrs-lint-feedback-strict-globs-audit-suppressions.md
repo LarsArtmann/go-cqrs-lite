@@ -98,15 +98,15 @@ Commit `515b50bbf` (committed by the auto-commit daemon) contains the broken `St
 ## f) Up to 50 Things to Get Done Next
 
 ### Critical (blocks shipping)
-1. **Commit the `--strict` flag collision fix** (main.go + run.go) — the binary is broken without it
-2. **Extract `mergeMostPermissiveProfile` + helpers from doctor.go** into `doctor_profile.go` to get under 350 lines
-3. **Regenerate api-surface golden** — `cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" main.go -update` (may need build-tag fix first)
-4. **Run `nix run .#verify`** — full verification gate (build + vet + test + race + lint + doc-check)
+~~1. **Commit the `--strict` flag collision fix** (main.go + run.go) — the binary is broken without it~~ done - committed (banner at top of this report confirms; CHANGELOG [Unreleased])
+~~2. **Extract `mergeMostPermissiveProfile` + helpers from doctor.go** into `doctor_profile.go` to get under 350 lines~~ done - doctor.go split into doctor/doctor_profile/doctor_suppressions (2026-08-14)
+~~3. **Regenerate api-surface golden** — `cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" main.go -update` (may need build-tag fix first)~~ done - golden current (4133 exports, green in every verify)
+~~4. **Run `nix run .#verify`** — full verification gate (build + vet + test + race + lint + doc-check)~~ done at 5f2198189 (three fully-green verifies since)
 
 ### Tests
-5. **Write integration test for `--strict` hard-fail** — create a testdata fixture with a compile error, verify exit code is non-zero
-6. **Write integration test for `--strict-load` hard-fail** — same scenario, verify the specific error message
-7. **Write test for `outputFindings` with `loadErrorCount > 0`** — verify the INCOMPLETE banner appears and "Clean!" does not
+~~5. **Write integration test for `--strict` hard-fail** — create a testdata fixture with a compile error, verify exit code is non-zero~~ done - strict tests in run_test.go / run_severity_test.go
+~~6. **Write integration test for `--strict-load` hard-fail** — same scenario, verify the specific error message~~ done - same
+~~7. **Write test for `outputFindings` with `loadErrorCount > 0`** — verify the INCOMPLETE banner appears and "Clean!" does not~~ done - loadErrorCount tests in run_test.go
 8. **Write test for `matchExcludePattern` with Windows-style backslash paths** — verify cross-platform behavior
 9. **Write test for `mergeMostPermissiveProfile`** — verify each feature axis (CommandFlow, Tracing, Snapshot, Store, Domain) picks the most permissive value
 10. **Add `doctor --audit-suppressions` to the doctor render tests** (`doctor_render_test.go`) — verify the audit output format
@@ -115,7 +115,7 @@ Commit `515b50bbf` (committed by the auto-commit daemon) contains the broken `St
 13. **Test `--audit-suppressions` with unknown-rule suppressions** — verify typo detection
 
 ### Documentation
-14. **Add CHANGELOG entries** for all 4 fixes (strict-fail, exclude glob, suppression audit, multi-module doctor)
+~~14. **Add CHANGELOG entries** for all 4 fixes (strict-fail, exclude glob, suppression audit, multi-module doctor)~~ done - CHANGELOG/ROADMAP [Unreleased] document --strict, exclude globs, suppression-drift audit, multi-module doctor
 15. **Update cqrs-lint README.md** — document `--strict` flag, `**` glob patterns, `doctor --audit-suppressions`
 16. **Update explain.go** — add `--audit-suppressions` to the doctor section
 17. **Update the long help text in main.go** — add `doctor --audit-suppressions` to the SUPPRESSIONS section
@@ -133,20 +133,20 @@ Commit `515b50bbf` (committed by the auto-commit daemon) contains the broken `St
 ### Feedback Item Follow-ups
 26. **Implement "Option B" from feedback item 1** — the full banner with skipped-file count (currently shows package count, not file count: "1 package(s) failed to load (79 files skipped)")
 27. **Count and display skipped files** — the WARNING line says "1 package(s) failed to load" but doesn't say how many files were skipped
-28. **Add `cqrs-lint doctor --audit-suppressions --fix`** — auto-remove stale suppression comments
-29. **Add suppression "reason drift" detection** (feedback item 3, bullet 4) — flag comments referencing code patterns that no longer exist
+28. **Add `cqrs-lint doctor --audit-suppressions --fix`** — auto-remove stale suppression comments <- OPEN. TODO_LIST 'cqrs-lint' Wishlist (--doctor --fix)
+~~29. **Add suppression "reason drift" detection** (feedback item 3, bullet 4) — flag comments referencing code patterns that no longer exist~~ done - stale-suppression detection shipped (doctor_audit.go; 'suppression-drift audit' in ROADMAP highlights)
 30. **Add suppression "age" tracking** — show when a suppression was first added (via git blame) for audit context
-31. **Support per-module `.cqrs-lint.json`** (feedback item 4, option 3) — monorepo inheritance for feature profiles
+~~31. **Support per-module `.cqrs-lint.json`** (feedback item 4, option 3) — monorepo inheritance for feature profiles~~ done - per-module .cqrs-lint.json supported (pkg/analyzer/rules_config.go)
 32. **Add `doctor` warning when pinning workspace profile** — explicitly state which sub-module findings will be silenced
 
 ### Code Quality
-33. **Run `nix fmt`** on all changed files — ensure gofumpt + goimports compliance
-34. **Run `nix run .#lint`** — golangci-lint may catch issues (gosec, depguard, etc.)
-35. **Check depguard allow-list** — the new `io` import in `doctor_audit.go` and `finding` import in `doctor.go` need to be in the allow list (if enforced)
-36. **Add `//nolint` comments if needed** — for any lint exceptions in the new code
-37. **Run `nix run .#check-duplication`** — verify no new code duplication was introduced
-38. **Run `nix run .#check-arch`** — verify dependency budget compliance
-39. **Verify the `art-dupl-baseline.json`** doesn't need updating for the new glob-matching code
+~~33. **Run `nix fmt`** on all changed files — ensure gofumpt + goimports compliance~~ done - lint 76/76 clean since 444be10a7
+~~34. **Run `nix run .#lint`** — golangci-lint may catch issues (gosec, depguard, etc.)~~ done - same
+~~35. **Check depguard allow-list** — the new `io` import in `doctor_audit.go` and `finding` import in `doctor.go` need to be in the allow list (if enforced)~~ done - lint clean; depguard green
+~~36. **Add `//nolint` comments if needed** — for any lint exceptions in the new code~~ done - no unmanaged nolints (nolintlint clean)
+~~37. **Run `nix run .#check-duplication`** — verify no new code duplication was introduced~~ done - Check Duplication green (baseline re-pinned)
+~~38. **Run `nix run .#check-arch`** — verify dependency budget compliance~~ done - Check Arch green inside #verify since 8c384f0f5
+~~39. **Verify the `art-dupl-baseline.json`** doesn't need updating for the new glob-matching code~~ done - baseline re-pinned 92->97; gate green
 
 ### Polish
 40. **Color the audit status labels** — `ACTIVE` in green, `STALE` in yellow, `UNKNOWN` in red
@@ -175,3 +175,14 @@ This determines whether it can be used as a CI gate. The normal lint run exits n
 
 ### Q3: The auto-commit daemon committed intermediate (broken) versions of my work. Should I force-push/amend, or just commit the fix on top?
 Commit `515b50bbf` contains the `flag:"strict"` collision that panics on `--help`. The fix is in my working tree. Since the AGENTS.md says "NEVER force push" and "NEVER git reset," the only option seems to be a follow-up commit. But if this were a published tag, the broken commit would be a problem. What's the policy for fixing broken daemon commits?
+
+
+---
+
+## Resolution (2026-08-15, docs-health pass)
+
+17 of 50 items carry verdicts. The critical block (1-4) and gates (33-39)
+closed across the 2026-08-14/15 waves; doctor split and per-module config
+shipped. The large test/doc/robustness tail (8-13, 15-27, 30, 32, 40-27,
+43-50) remains OPEN - absence of a marker is the open signal; the cqrs-lint
+wishlist items route to TODO_LIST "cqrs-lint". Stays active.
