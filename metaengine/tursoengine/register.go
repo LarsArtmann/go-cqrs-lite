@@ -29,6 +29,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -52,6 +53,40 @@ func isRemoteDSN(dsn string) bool {
 		strings.HasPrefix(dsn, "http://")
 }
 
+// redactDSN strips credentials from a DSN so connection errors never leak
+// secrets into logs. It removes URL userinfo (libsql://token@host) and the
+// authToken query parameter; non-URL DSNs (file paths, :memory:) pass through
+// unchanged. Redaction is best-effort: an unparseable URL is replaced with a
+// fixed placeholder rather than risked in an error message.
+func redactDSN(dsn string) string {
+	if !isRemoteDSN(dsn) {
+		return dsn
+	}
+
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return "libsql://[redacted]"
+	}
+
+	if u.User != nil {
+		u.User = url.User("redacted")
+	}
+
+	if u.RawQuery != "" {
+		q := u.Query()
+		for key := range q {
+			if strings.EqualFold(key, "authtoken") ||
+				strings.EqualFold(key, "token") ||
+				strings.EqualFold(key, "apikey") {
+				q.Set(key, "[redacted]")
+			}
+		}
+		u.RawQuery = q.Encode()
+	}
+
+	return u.String()
+}
+
 // New creates a Turso-backed metaengine Engine from a DSN. The DSN must be a
 // valid Turso/libSQL connection string (file path, ":memory:", or remote URL).
 // Empty DSN defaults to ":memory:".
@@ -66,7 +101,7 @@ func New(dsn string) (metaengine.Engine, error) {
 
 	db, err := sql.Open("turso", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("tursoengine: open %q: %w", dsn, err)
+		return nil, fmt.Errorf("tursoengine: open %q: %w", redactDSN(dsn), err)
 	}
 
 	db.SetMaxOpenConns(1)
