@@ -15,7 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `CAST(? AS JSON)` (both rejected by MariaDB with Error 1064 — this is what
   the nix integration envs actually run, via `pkgs.mariadb`).
   `ApplyLayout` no-ops on MariaDB (no functional indexes). Verified against
-  live MySQL 8.4 and MariaDB 11.8 servers.
+  live MySQL 8.4 and MariaDB 11.8 servers. `enginetest.RunAtomicAppenderTestIn`
+  (collection-parameterized variant, alongside `RunStreamLogBackendTestIn`)
+  stops parallel tests from sharing fixed collections on one server.
 - **Numeric-safe ORDER BY on MariaDB**: `JSON_EXTRACT` returns LONGTEXT, so a
   bare sort text-sorted numbers ("10" before "2"). Sorts now render a dual
   key — `CAST(JSON_EXTRACT(...) AS DECIMAL(65,10))` primary, unquoted text
@@ -96,6 +98,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   (`metaengine/v4 => ../metaengine`) — replace directives do not cascade, so
   local engines' unpublished `metaengine.VectorDistance`/`VectorResult` uses
   broke the standalone build while it resolved published metaengine v4.10.0.
+
+### Fixed — shfmt key mangling root cause, quic convergence order-tolerance, storage SQL injection guards — 2026-08-15
+
+- **Recurring script-key mangling root-caused (4th occurrence)**: the
+  buildflow pre-commit hook runs shfmt on staged `.sh` files, and shfmt
+  reformats unquoted slashed subscripts as arithmetic — `LAYER[storage/memory]`
+  → `LAYER[storage / memory]` — silently disabling layer/budget enforcement.
+  Durable fix: every slashed map key in `scripts/check-module-layers.sh` and
+  `scripts/check-coverage.sh` is now quoted (`LAYER["storage/memory"]`);
+  bash semantics are identical and shfmt leaves quoted subscripts untouched.
+  `cmd/api-stability` meta-tests parse both forms via `normalizeLayerKey`.
+- **`metaengine/irohengine`: convergence suite order-tolerance** — `sameLogTail`
+  compared the replicated log tail in exact order, but the quic transport's
+  default `sendOp` opens one bidirectional stream per op, so the receiver
+  applies ops concurrently and cross-op ordering is not guaranteed — the Log
+  convergence test flaked under `-race`/load. Now compares as an unordered
+  multiset (Multimap/Counter helpers were already order-free; Log was the only
+  order-asserting one).
+- **`storage/{sql,view,relational}`: SQL injection guards** — new
+  `storage/sql.ValidateIdentifier` + `ValidateOperator` allowlist checks;
+  `BuildWhereClause` is deprecated (interpolated column names/operators) in
+  favor of `BuildWhereClauseChecked`; `SQLViewStore` validates queries via
+  `validateQuery`/`validateConditions`/`rejectUnknownColumn` and quotes ORDER
+  BY columns through `orderClauseSQL`; `relational.Store.requireColumn`
+  rejects unknown columns. Closes the where.go/view ORDER BY injection surface
+  from the brutal-review defect sweep.
 
 ### Fixed — repo gates: false-GREEN coverage check, silent lint failures, parallel heap-test flake — 2026-08-15
 

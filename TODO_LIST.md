@@ -16,7 +16,7 @@ and is **never** duplicated here.
 ## Release / Tagging 🔥
 
 > Blocked on user authorization (never tag/push without explicit instruction).
-> The verify gate has been GREEN three times since ADR-0128 (latest:
+> The verify gate has been GREEN four times since ADR-0128 (latest:
   2026-08-15, 239 ok packages, lint 76/76) — this is the release checkpoint.
 
 - [ ] [BLOCKED] **Tag the unpublished fixes parked behind replaces** — engine
@@ -121,51 +121,14 @@ and is **never** duplicated here.
 
 ### Layout roles (long-horizon, depend on a design doc first)
 
-> ALL 7 items DONE 2026-08-15 — design doc
-> [`docs/planning/METAENGINE-LAYOUT-ROLES.md`](docs/planning/METAENGINE-LAYOUT-ROLES.md)
-> (roles/invariants I1–I4, replication v1 semantics, JSONL trace spec, cutover
-> runbook). Tests prove invariants by name (I1 routing closure, I2 mirror
-> completeness, I3 failure isolation, I4 no cross-engine atomicity).
+> Shipped 2026-08-15 — engine roles, async shadow replication, promote/
+> cutover, workload traces, shared-collection boundaries, per-fold locks.
+> See CHANGELOG and
+> [`docs/planning/METAENGINE-LAYOUT-ROLES.md`](docs/planning/METAENGINE-LAYOUT-ROLES.md).
 
-- [x] **Fold-pipeline sync for Active+DualUse roles** — DONE 2026-08-15:
-      `dispatchFolds` groups folds per engine and wraps the batch in
-      `Transactional.RunInTx`; shadows excluded via `routableLocked()`.
-      _(was: Effort L)_
-- [x] **Async replication for Backup+Migration roles** — DONE 2026-08-15:
-      `replicator.go` (bounded buffer 1024, retry×3, 3s op timeout,
-      stale+halt on overflow — never skip; recovery = remove + re-add +
-      `Backfill(WithBackfillForce())`). Enqueue after successful primary
-      dispatch; mirrors applied state under store RLock.
-      _(was: Effort L)_
-- [x] **Role transition API** — DONE 2026-08-15: `AddEngine(ctx, eng,
-      WithEngineRole(...))`, `EngineRole(name)`, `Store.PromoteEngine(ctx,
-      name)` (write-locked drain → flip to Active → replan
-      `triggerEnginePromote`), `Store.ReplicationStatus(name)`.
-      DemoteEngine deferred to v2.
-      _(was: Effort M)_
-- [x] **Real workload trace format** — DONE 2026-08-15: JSONL spec
-      (`{"v":1,"ts","op","name","dur_ms","err"}`), `RecordTrace` (chains
-      existing hooks, `Err()` surfaces writer failure), `ReadTrace`,
-      `TraceStats`, `ReplayTrace` + `StoreTraceSink` (payloads synthesized
-      via caller factories — traces carry shape/mix only).
-      _(was: Effort M)_
-- [x] **Aggregate boundary config** — DONE 2026-08-15:
-      `WithSharedCollection(typeNames...)` planOption + `shared-collection`
-      rule (forces LayoutNormalize on queries carrying a shared child by
-      type name — direct/`*T`/`[]T`/map-value fields; INFO per type, WARN
-      when spanning ≥2 collections; survives replan).
-      _(was: Effort M)_
-- [x] **Per-fold mutex instead of global `foldMu`** — DONE 2026-08-15:
-      `fold_locks.go` — one mutex per query name (folds are query-owned;
-      serializes exactly the shared `SetCurrentRecord` state), lock-free
-      task snapshot via `atomic.Pointer` swap. Soak: 2 queries × 16
-      goroutines × 200 applies `-race -count=3`, no lost updates.
-      _(was: Effort M)_
-- [x] **Multi-collection batch atomicity** — DONE (verified shipped
-      2026-08-15): `batch_atomicity*_test.go` already prove one-event →
-      multi-collection writes commit atomically per engine; item 1's
-      dispatch grouping formalized the engine-transaction boundary.
-      _(was: Effort L)_
+- [ ] **`DemoteEngine` (role transition v2)** — `PromoteEngine` shipped;
+      demotion (Active → shadow) deferred to replication v2.
+      _(Effort: M)_
 
 ---
 
@@ -174,7 +137,12 @@ and is **never** duplicated here.
 > StreamLog on Dgraph, native graph on SQLite/Turso (iterative BFS), degraded
 > rule with latency estimates, engine test parity shipped 2026-08-11.
 > `JournalReadFrom` positional fixes (Dgraph + all SQL engines) shipped
-> 2026-08-15 with shared-contract regressions.
+> 2026-08-15 with shared-contract regressions. MariaDB dialect + numeric-safe
+> sort + CTE probe, LSM vector search, native graph on PG/MySQL, and the
+> SQLite recursive CTE shipped 2026-08-15 — see CHANGELOG.
+>
+> Follow-ups below harvested from
+> `docs/status/2026-08-15_22-04_metaengine-followup-closeout.md` §f.
 
 - [ ] **Seq-carrying journal reads (perf follow-up)** — the OFFSET-based
       positional skip scans past skipped index rows (O(offset) per page);
@@ -193,46 +161,70 @@ and is **never** duplicated here.
       Go maps instead of pushing GROUP BY to columnar SQL. Highest-leverage
       DuckDB item.
       _(Effort: L)_
-- [x] **mysqlengine vs MariaDB (nspawn) compatibility** — DONE 2026-08-15:
-      dialect detection via `SELECT VERSION()` ("mariadb" vs "mysql") at
-      engine construction; MariaDB gets `JSON_EXTRACT`/`JSON_UNQUOTE` SQL
-      with natively-bound scalar params, MySQL 8 keeps `->` + `CAST(? AS JSON)`;
-      functional-index DDL skipped on MariaDB (unsupported, graceful
-      degradation). Also fixed the "ADTMatrix fails" class: parallel tests
-      shared fixed collections ("events"/"s1") on one server — stream-log
-      tests now use unique collections (`RunStreamLogBackendTestIn`, new
-      `RunAtomicAppenderTestIn`). Verified live against MySQL 8.4 AND MariaDB
-      11.8 (docker), 3x stable each. The former MariaDB ORDER BY text-sort
-      limitation is FIXED (2026-08-15 follow-up): sorts render a dual key
-      (`CAST(JSON_EXTRACT(...) AS DECIMAL(65,10))` + text tiebreak) and
-      cursor predicates match the cursor type — multi-digit pagination
-      regression-tested on both servers. mysqlengine also CTE-probes at
-      construction; MySQL 5.7 / MariaDB <10.2 fall back to iterative BFS
-      over `meta_graph_edges`.
-- [x] **Brute-force vector search on Pebble/bbolt** — DONE 2026-08-15:
-      `VectorInsert`/`VectorSearch` on both engines via `keycodec.VectorKey`
-      prefix (`vec\x00<col>\x00<id>`, JSON-encoded float32 dims) + exported
-      `metaengine.VectorDistance` for numeric parity with MemoryVectorIndex.
-      bbolt now declares `ADTVector: ComplexityON` degraded; adttest Vector
-      scenario runs against both engines (previously skipped) with
-      cross-engine parity.
-- [x] **Native graph dispatch on Postgres/MySQL** — DONE 2026-08-15:
-      `meta_graph_edges` table + `GraphAddEdge` (INSERT IGNORE / ON CONFLICT
-      DO NOTHING) + `GraphNeighbors` via a single `WITH RECURSIVE` CTE
-      (depth-capped, DISTINCT, start-node excluded). Profiles upgraded to
-      `ComplexityODegree`, no longer degraded — planner emits no DEGRADED
-      diagnostic for graph. Verified live: PG 16 (testcontainer), MySQL 8.4,
-      MariaDB 11.8. DuckDB intentionally left degraded (follow-up candidate).
-- [x] **Recursive CTE optimization for deep traversals** — DONE 2026-08-15:
-      sqliteengine probes `WITH RECURSIVE` support once at construction; when
-      available (plain SQLite) `GraphNeighbors` runs as a single recursive-CTE
-      query instead of one query per node per level. Drivers/servers without
-      CTE support (some libSQL/Turso deployments) auto-fall back to the
-      iterative BFS — graceful degradation, no operator configuration.
 - [ ] **Dgraph engine hardening** — `Transactional` (RunInTx) support or an
       ADR documenting why not; per-test collection isolation for the shared
       persistent server; add Dgraph to `test-all-backends`/CI matrix
       (AGENTS quick-ref lists no Dgraph backend today).
+      _(Effort: M)_
+- [ ] **DuckDB native graph via recursive CTE** — DuckDB supports
+      `WITH RECURSIVE`; mirror the pgengine `meta_graph_edges` implementation
+      (currently intentionally degraded).
+      _(Effort: M)_
+- [ ] **Turso explicit CTE-probe test** — the sqliteengine probe covers
+      local drivers; add a tursoengine test confirming it holds over the
+      remote protocol.
+      _(Effort: S)_
+- [ ] **Badger engine vector + graph parity audit** — has neither; audit
+      against the pebble/bbolt precedent and either implement or document
+      the gap.
+      _(Effort: S)_
+- [ ] **Vector search at scale** — quantization/HNSW spike for LSM engines
+      when collections exceed ~100K vectors (brute-force scan is O(N)).
+      _(Effort: L)_
+- [ ] **`VectorResult` filtered k-NN** — metadata-filtered vector search
+      (filter + top-k in one query); API currently returns bare top-k.
+      _(Effort: M)_
+- [ ] **`GraphRemoveEdge`** — the edges table exists but nothing removes
+      edges; tombstone events should drive edge removal (ADR-0114 style).
+      _(Effort: M)_
+- [ ] **Graph directed-vs-undirected option** — `GraphNeighbors` is
+      directed-only today.
+      _(Effort: S)_
+- [ ] **mysqlengine upsert semantics audit** — confirm `MapSet` uses
+      `INSERT ... ON DUPLICATE KEY UPDATE` consistently with pg's
+      `ON CONFLICT` (atomicity + affected-rows parity).
+      _(Effort: S)_
+- [ ] **MariaDB functional-index alternative** — generated columns + plain
+      index instead of the current `ApplyLayout` no-op.
+      _(Effort: M)_
+- [ ] **enginetest per-run collection suffixes** — shared-server engines
+      accumulate state under `-count>1` (documented constraint that bit the
+      race runs); per-run suffixes in the helpers would remove the class.
+      _(Effort: M)_
+- [ ] **adttest: graph depth>2 + cycle scenarios in `RunMatrix`** — current
+      matrix is depth-limited; the CTE/iterative divergence only shows at
+      depth>2 with cycles/diamonds.
+      _(Effort: S)_
+- [ ] **adttest: Vector scenario on pgengine** — parity check for the
+      degraded scan path against the in-memory index.
+      _(Effort: S)_
+- [ ] **Convergence suite order-tolerance audit** — `sameLogTail` was the
+      only order-asserting helper (fixed 2026-08-15); sweep the remaining
+      `waitFor*` helpers for hidden order assumptions.
+      _(Effort: S)_
+- [ ] **quic pooled-stream ordering guarantee** — default `sendOp` uses one
+      stream per op (no cross-op order); verify + document that pooled mode
+      (`sendOpPooled`, one stream per peer) DOES order ops.
+      _(Effort: S)_
+- [ ] **Bench: CTE vs iterative BFS crossover** — at which depth does the
+      MySQL CTE beat the iterative fallback? Feeds the planner's cost model.
+      _(Effort: S)_
+- [ ] **Bench: MariaDB dual-key sort cost** — measure the
+      `CAST(... AS DECIMAL)` overhead vs MySQL's single JSON key.
+      _(Effort: S)_
+- [ ] **Run `nix run .#integration-mysql-nspawn`** (needs root) — real-env
+      verification incl. `stack/mysql`; live verification so far used docker
+      probes only.
       _(Effort: M)_
 
 ---
@@ -341,6 +333,32 @@ and is **never** duplicated here.
 - [ ] **`storage/backuptest`: wire into bbolt/pebble or delete** — orphan
       module; no engine go.mod depends on it (verified 2026-08-15).
       _(Effort: S)_
+- [ ] **CI `shfmt -d` drift check on `scripts/`** — the pre-commit hook
+      formats staged files only; a CI check on the whole tree catches
+      formatter drift before it reaches a hook (root cause of the 4x key
+      mangling).
+      _(Effort: XS)_
+- [ ] **`reset_db` helper for docker mysql/mariadb/pg test loops** —
+      reset-before each run, not just after; a shared-DB `-count>1` run
+      polluted state mid-loop on 2026-08-15.
+      _(Effort: XS)_
+- [ ] **Re-run soak suite** (`SOAK_SKIP_*` unset) after the graph/vector
+      engine additions.
+      _(Effort: S)_
+- [ ] **quic convergence flake watch in CI** — `TestQuicConvergenceSuite`
+      under `-race -count=3` in the matrix; the Log order-tolerance fix
+      landed 2026-08-15, watch for recurrence.
+      _(Effort: S)_
+- [ ] **metaengine-quickstart: graph + vector demos** — 4 engines now ship
+      them; the example covers maps only.
+      _(Effort: S)_
+- [ ] **Prune docker test images** — mysql:8 + mariadb:11 probe images
+      (~1.2GB) after the 2026-08-15 container cleanup; keep
+      postgres:16-alpine (testcontainers reuses it).
+      _(Effort: XS)_
+- [ ] **`#verify` per-module timeout headroom** — quic convergence hit a
+      15s near-miss under load; revisit per-package `-timeout` tuning.
+      _(Effort: XS)_
 - [ ] **Delete junk from repo root** — `t/`, `result/` (16MB root-owned),
       `reports/coverage.out` (empty), `reports/jscpd-report.json`; drop the
       orphaned `stash@{0}` (WIP @ `e87be3143`, pre-recovery leftovers).
@@ -369,11 +387,12 @@ and is **never** duplicated here.
 > From `docs/reviews/2026-08-14_14-25_brutal-self-review.md` — verified
 > findings, not yet fixed. Grouped by module.
 
-- [ ] **SQL injection surface** — `FilterOp`/column allowlists
-      (`storage/sql/where.go`); quote ORDER BY columns
-      (`storage/view/query.go:137`); stop leaking DSNs in errors
-      (`tursoengine/register.go:69`).
-      _(Effort: M)_
+- [ ] **SQL injection surface (remainder)** — allowlists + ORDER BY quoting
+      SHIPPED 2026-08-15 (`storage/sql.ValidateIdentifier`/`ValidateOperator`,
+      `BuildWhereClauseChecked`, view query validation — see CHANGELOG).
+      Remaining: stop leaking DSNs in errors (`tursoengine/register.go:69`);
+      fuzz `ValidateIdentifier` against sqlite/pg/mysql metacharacter sets.
+      _(Effort: S)_
 - [ ] **Resource leaks** — `sqliteengine`/`tursoengine` self-opened
       `*sql.DB` `Close()` leak.
       _(Effort: S)_
@@ -408,11 +427,20 @@ and is **never** duplicated here.
       _(Effort: S)_
 - [ ] **Skill reference recipes** — catch-up drain pattern (projectionhost
       TOCTOU fix); `WithoutViewAutoMigrate` (README-only today); `Increment`
-      non-clamping philosophy (FAQ).
+      non-clamping philosophy (FAQ); MariaDB dialect + numeric-safe sort
+      recipe (recipes.md §2.x).
       _(Effort: S)_
-- [ ] **README feature-table honesty** — stop selling tombstone soft-delete
-      as the headline deletion story (ADR-0114 made deletion a domain event).
+- [ ] **storage/view validated-WHERE rollout review** — the validated-checked
+      WHERE changes (query.go/store.go, landed 2026-08-15) need an API-doc
+      pass in the skill references.
       _(Effort: S)_
+- [ ] **docs/DOMAIN_LANGUAGE.md additions** — "dialect", "capability probe",
+      "degraded ADT" became load-bearing terms with the MariaDB/CTE-probe
+      work; define them.
+      _(Effort: XS)_
+- [ ] **pebbleengine/bboltengine README symmetry** — note graph=unsupported
+      (pebble) and audit bbolt, matching the new vector rows.
+      _(Effort: XS)_
 - [ ] **`integration/README.md`** lists 5 of ~15 suites — enumerate or
       point at the flake apps.
       _(Effort: XS)_
@@ -449,6 +477,10 @@ and is **never** duplicated here.
       `encryption.ErrInnerStoreNot*` aliases, `metadata.CustomData`. Internal
       code is already off them (compat tests pin external behavior).
       _(Effort: S)_
+- [ ] **Delete `storage/sql.BuildWhereClause`** — deprecated 2026-08-15
+      (interpolates column names/operators); `BuildWhereClauseChecked` is
+      the validated replacement.
+      _(Effort: XS)_
 - [ ] **Delete `transport/http` + `transport/grpc` modules** (ADR-0127) —
       delivery is `watermill/` + go-sse + cqrs-htmx. `example/taskmanager` is
       migrated (metaengine.ServeSSE on the task_views watcher); cqrs-lint F030

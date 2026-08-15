@@ -587,6 +587,15 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
    serialize as empty strings. Making them all omit-zero is cleaner but a
    breaking JSON change for consumers parsing the raw shape. Standardize
    (needs ADR) or leave asymmetric?
+7. **MySQL-8 nix backend** (2026-08-15): the nix integration envs run MariaDB
+   (`pkgs.mariadb`), but MySQL 8 has meaningfully different JSON behavior
+   (functional indexes, native JSON type). Add a real MySQL-8 nix VM check
+   (`mysql8-vm`, ~130s in CI), or stay MariaDB-only and treat MySQL via
+   docker probes as today?
+8. **`mysqlengine.Dialect()` export** (2026-08-15): mysqlengine exports
+   `Dialect() string` ("mysql"/"mariadb"). Keep as stable public API, or
+   demote to internal and expose via `Profile()` metadata (avoids a
+   stringly-typed API surface before the v5 freeze)?
 
 ---
 
