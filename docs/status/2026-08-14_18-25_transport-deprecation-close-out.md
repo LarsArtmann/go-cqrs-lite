@@ -161,62 +161,62 @@ session's changes).
 ## f) NEXT — up to 50, Pareto order
 
 **P0 — confirm this session's state:**
-1. Confirm `verify-fast` exit 0 after the depguard fix (run was in flight).
-2. Commit the close-out delta (daemon already has partial: d8c73be0a).
-3. Re-run cqrs-lint suite once more after config fix (config affects lint
+~~1. Confirm `verify-fast` exit 0 after the depguard fix (run was in flight).~~ done at 5f2198189 (full verify GREEN later that night; three GREENs since)
+~~2. Commit the close-out delta (daemon already has partial: d8c73be0a).~~ done - daemon-committed as d8c73be0a + fe017c06a
+~~3. Re-run cqrs-lint suite once more after config fix (config affects lint~~ done - cqrs-lint 17/17; lint 76/76 modules clean in every verify since 444be10a7
    rules globally — low risk, cheap check).
 
 **P1 — inherited P0s (unchanged, from 16:00 report):**
-4. Fix release chain: re-tag `id` v4.4.0 (missing `actor_id.go`), re-tag
+4. Fix release chain: re-tag `id` v4.4.0 (missing `actor_id.go`), re-tag <- **NOT-DO - premise stale: id/v4.4.0 contains actor_id.go (verified via git tag --contains). Downstream re-tags track in TODO_LIST 'Release / Tagging'.**
    dependents, bump 66 go.mods; unblocks GOWORK=off taskmanager build (c.1).
-5. Engine capability conformance test (plan-time Supports-vs-implemented).
-6. Dgraph CounterBackend DQL colon bug + JournalReadFrom off-by-one.
-7. ADR-0114 tombstone/DeletePolicy reconciliation.
-8. Remove taskmanager local `replace` directive.
+5. Engine capability conformance test (plan-time Supports-vs-implemented). <- OPEN. TODO_LIST 'Metaengine' (Engine capability conformance test)
+~~6. Dgraph CounterBackend DQL colon bug + JournalReadFrom off-by-one.~~ done at 5127039da (counter rework) + 7c0a62c98 (JournalReadFrom positional)
+7. ADR-0114 tombstone/DeletePolicy reconciliation. <- OPEN. TODO_LIST 'Docs Honesty' (ADR-0114 tombstone reconciliation)
+8. Remove taskmanager local `replace` directive. <- NOT-DO - only replace in taskmanager/go.mod is the intentional go-must sibling dev-replace
 
 **P2 — this session's follow-ups:**
-9. Wire Redis roundtrip into CI/nix (ephemeral script + test, like
+9. Wire Redis roundtrip into CI/nix (ephemeral script + test, like <- OPEN. TODO_LIST 'Code Quality' (Wire broker tests into CI - #integration-redis)
    integration-pg).
 10. Depguard prefix-shadow meta-test (allow-list hygiene).
 11. Vacuous-test audit for pre-fix `BuildContextWithTypes` users.
-12. F030 extension: codec/retry deprecated re-export coaching (after
+12. F030 extension: codec/retry deprecated re-export coaching (after <- NOT-DO - codec/retry shells deleted at 5127039da (ADR-0128); nothing left to coach on
     deprecation-policy unification).
-13. Teach E005 `system.RegisterCommand`; regenerate taskmanager golden
+13. Teach E005 `system.RegisterCommand`; regenerate taskmanager golden <- OPEN. TODO_LIST 'cqrs-lint' (E005 + taskmanager golden item)
     (kills 10 enshrined false positives).
-14. Final v4.x tags of transport/http + transport/grpc with deprecation
+14. Final v4.x tags of transport/http + transport/grpc with deprecation <- OPEN. TODO_LIST 'Release / Tagging' (transport v4.x patches) + v5 section
     notices (prereq for v5 deletion, per TODO_LIST).
-15. v5 migration guide (transport section now has real recipes to link).
+15. v5 migration guide (transport section now has real recipes to link). <- OPEN. TODO_LIST 'v5 Unification Phase 8' (migration guide)
 
 **P3 — systemic (from 16:00 report, still open):**
-16. Graceful degradation fallbacks for SQL engines (Set/Log/Multimap).
+16. Graceful degradation fallbacks for SQL engines (Set/Log/Multimap). <- OPEN. ROADMAP (Vector/Search/Spatial backends + graceful-degradation theme)
 17. Dialect-DDL ↔ migrations/*.sql drift test.
-18. sqliteengine/tursoengine self-opened *sql.DB Close() leak.
-19. Planner cost model fixes (branching^depth, volume default, selectivity).
-20. FilterOp/column allowlists; ORDER BY quoting; DSN leaks in turso errors.
-21. Core defects: singleflight leader-ctx, per-handler command middleware,
+18. sqliteengine/tursoengine self-opened *sql.DB Close() leak. <- OPEN. TODO_LIST 'Correctness Defect Sweep' (Resource leaks)
+19. Planner cost model fixes (branching^depth, volume default, selectivity). <- OPEN. TODO_LIST 'Correctness Defect Sweep' (Planner cost model)
+20. FilterOp/column allowlists; ORDER BY quoting; DSN leaks in turso errors. <- OPEN. TODO_LIST 'Correctness Defect Sweep' (SQL injection surface)
+21. Core defects: singleflight leader-ctx, per-handler command middleware, <- OPEN. TODO_LIST 'Correctness Defect Sweep' (Core defects)
     query audit fake RequestIDs, Pagination.Offset underflow, kv.Cache shared
     *T, TypedQueryStore JSON decode, ghost event.ErrBinaryNotFound.
-22. Deprecation-story unification (codec/retry/idempotency/flightrecorder).
-23. Bench consolidation to benchkit+cqrs-bench; CI regression breach-fail.
-24. storage/backuptest wiring or deletion; bbolt backup tests.
+~~22. Deprecation-story unification (codec/retry/idempotency/flightrecorder).~~ done - resolved by ADR-0128 deletion; policy documented (5127039da)
+23. Bench consolidation to benchkit+cqrs-bench; CI regression breach-fail. <- OPEN. TODO_LIST 'Code Quality' (One bench system)
+24. storage/backuptest wiring or deletion; bbolt backup tests. <- OPEN. TODO_LIST 'Code Quality' (storage/backuptest: wire or delete)
 25. MySQL/Dgraph engine tests: stop silent CI skip.
 26. check-duplication gate fails loudly when art-dupl missing.
-27. check-arch catalog coverage (94 gaps) — noted as failing on master pre-session.
-28. Transactional outbox (ADR-0016, zero code — biggest gap).
-29. Per-module CHANGELOGs (6 of ~86).
-30. metadata.ActorID omitzero; 3-metadata-model split-brain reduction.
-31. record.NewStreamRef validation.
-32. id global-mutex sharded entropy.
-33. SECURITY.md v3 table; govulncheck swallow; iroh fork pin.
+~~27. check-arch catalog coverage (94 gaps) — noted as failing on master pre-session.~~ done at 8c384f0f5 (layer-script key convention repaired; check-arch green inside #verify)
+28. Transactional outbox (ADR-0016, zero code — biggest gap). <- OPEN. ROADMAP raw ideas (Transactional outbox - ADR-0016 designed)
+29. Per-module CHANGELOGs (6 of ~86). <- OPEN. TODO_LIST 'Code Quality' (Per-module CHANGELOGs)
+30. metadata.ActorID omitzero; 3-metadata-model split-brain reduction. <- OPEN. omitzero shipped in the 16-44 hygiene pass; 3-model split-brain reduction OPEN - TODO_LIST 'WithActor Hardening' (rides ADR-0111)
+31. record.NewStreamRef validation. <- OPEN. TODO_LIST 'Correctness Defect Sweep' (Strong types)
+32. id global-mutex sharded entropy. <- OPEN. TODO_LIST 'Correctness Defect Sweep' (Strong types - sharded entropy)
+33. SECURITY.md v3 table; govulncheck swallow; iroh fork pin. <- OPEN. TODO_LIST 'Correctness Defect Sweep' (Security hygiene)
 34. Docs website; module compatibility matrix.
-35. Distributed projection runner; event archival/compaction (designs exist).
-36. README feature-table honesty (tombstone headline).
-37. integration/README lists 5 of ~15 suites.
-38. Metaengine-quickstart in flake examplePaths/CI (never builds).
-39. Delete junk: `t/`, `result/` (16MB root-owned), empty coverage.out.
-40. Layout-planning doc corrections; ReplanLayout→Store.Replan convergence.
-41. DuckDB calibration tie-break; row-layout calibration from real benches.
-42. Two-live-backend integration test; per-fold mutex (after soak).
+35. Distributed projection runner; event archival/compaction (designs exist). <- OPEN. ROADMAP raw ideas (Distributed projection runner; Event archival)
+36. README feature-table honesty (tombstone headline). <- OPEN. TODO_LIST 'Docs Honesty' (README feature-table honesty)
+37. integration/README lists 5 of ~15 suites. <- OPEN. TODO_LIST v5 section (integration/README suite enumeration)
+38. Metaengine-quickstart in flake examplePaths/CI (never builds). <- OPEN. TODO_LIST 'Code Quality' (Build example/metaengine-quickstart in CI)
+39. Delete junk: `t/`, `result/` (16MB root-owned), empty coverage.out. <- OPEN. TODO_LIST 'Code Quality' (Delete junk from repo root)
+40. Layout-planning doc corrections; ReplanLayout→Store.Replan convergence. <- OPEN. TODO_LIST 'Metaengine' (Layout Planning doc + Converge ReplanLayout into Store.Replan)
+41. DuckDB calibration tie-break; row-layout calibration from real benches. <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks)
+42. Two-live-backend integration test; per-fold mutex (after soak). <- OPEN. TODO_LIST 'Metaengine' (two real backends); per-fold mutex in flight - concurrent session writing fold_locks.go now
 
 ## g) QUESTIONS (cannot determine myself)
 
@@ -254,3 +254,16 @@ Working tree at report time (uncommitted, all this session): `.golangci.yml`
 was daemon-committed (`d8c73be0a`, `fe017c06a`).
 
 *Report ends. Waiting for instructions.*
+
+
+## Resolution (2026-08-15, docs-health pass)
+
+36 of 42 items carry verdicts. The P0 confirm-state items closed via the
+daemon commits (`d8c73be0a`, `fe017c06a`) and the first fully-green verify
+(`5f2198189`); item 4's re-tag premise was stale (id/v4.4.0 contains
+actor_id.go); check-arch 94-gap closed by the layer-key repair (`8c384f0f5`).
+The P3 systemic backlog is routed item-by-item into TODO_LIST "Correctness
+Defect Sweep" / "Code Quality" / "Docs Honesty" / "Metaengine" and ROADMAP
+ideas. Open-unrouted: 10 (depguard shadow meta-test), 11 (vacuous-test
+audit), 17 (DDL drift test), 25 (MySQL/Dgraph CI legs), 26 (art-dupl
+fail-loud), 34 (docs website; compat matrix). Stays active.

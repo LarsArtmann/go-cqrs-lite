@@ -293,6 +293,13 @@ and is **never** duplicated here.
 - [ ] **macOS verification of ephemeral PG** — `scripts/ephemeral-pg.sh` claims
       cross-platform but was never tested on Darwin.
       _(Effort: M)_
+- [ ] **Build `example/metaengine-quickstart` in CI** — not in flake
+      `examplePaths` (getting-started, readme-quickstart, taskmanager are);
+      never built by `#verify`/CI.
+      _(Effort: XS)_
+- [ ] **`storage/backuptest`: wire into bbolt/pebble or delete** — orphan
+      module; no engine go.mod depends on it (verified 2026-08-15).
+      _(Effort: S)_
 - [ ] **Delete junk from repo root** — `t/`, `result/` (16MB root-owned),
       `reports/coverage.out` (empty), `reports/jscpd-report.json`.
       _(Effort: XS)_
@@ -354,6 +361,9 @@ and is **never** duplicated here.
       slightly different stories. Land DeletePolicy or rewrite all four to
       one truth.
       _(Effort: M)_
+- [ ] **README feature table honesty** — stop selling tombstone soft-delete
+      as the headline capability; lead with what consumers actually import.
+      _(Effort: S)_
 - [ ] **Skill reference recipes** — catch-up drain pattern (projectionhost
       TOCTOU fix); `WithoutViewAutoMigrate` (README-only today); `Increment`
       non-clamping philosophy (FAQ).

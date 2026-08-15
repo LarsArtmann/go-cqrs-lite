@@ -161,8 +161,8 @@ func (e *mysqlEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTMultimap:  metaengine.ComplexityON,
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
-			metaengine.ADTSet:    true,
-			metaengine.ADTLog:    true,
+			metaengine.ADTSet:      true,
+			metaengine.ADTLog:      true,
 			metaengine.ADTMultimap: true,
 		},
 		Layouts: map[metaengine.ADT]metaengine.StorageLayout{

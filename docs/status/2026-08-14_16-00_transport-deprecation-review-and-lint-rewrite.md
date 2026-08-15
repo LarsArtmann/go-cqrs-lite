@@ -106,64 +106,64 @@
 ## f) NEXT — up to 50, in Pareto order
 
 **P0 — invalidates everything while broken:**
-1. Fix release chain: re-tag `id` (missing `actor_id.go` in v4.4.0), re-tag dependents (record/command/metaengine), bump 66 downstream go.mods; verify `GOWORK=off` build against published versions only.
-2. Engine capability conformance test: plan-time `Supports`-vs-implemented-interfaces check (catches pg/mysql/duckdb declaring Set/Log/Multimap/Graph/Vector with no implementations).
-3. Fix Dgraph `CounterBackend` DQL colon bug (`counter.go:158`, 1 char) + `JournalReadFrom` off-by-one.
-4. Reconcile ADR-0114 fiction: land DeletePolicy or rewrite FEATURES/CHANGELOG/AGENTS/migration-guide/DOMAIN_LANGUAGE to tell the tombstone truth.
-5. Remove taskmanager's local `replace` (`go.mod:88`).
+1. Fix release chain: re-tag `id` (missing `actor_id.go` in v4.4.0), re-tag dependents (record/command/metaengine), bump 66 downstream go.mods; verify `GOWORK=off` build against published versions only. <- **NOT-DO - premise stale: id/v4.4.0 already contains actor_id.go (verified via git tag --contains, 2026-08-15); no re-tag cascade needed. Downstream tagging tracks in TODO_LIST 'Release / Tagging'.**
+2. Engine capability conformance test: plan-time `Supports`-vs-implemented-interfaces check (catches pg/mysql/duckdb declaring Set/Log/Multimap/Graph/Vector with no implementations). <- OPEN. TODO_LIST 'Metaengine' (Engine capability conformance test)
+~~3. Fix Dgraph `CounterBackend` DQL colon bug (`counter.go:158`, 1 char) + `JournalReadFrom` off-by-one.~~ done - counter path reworked at 5127039da ($keyN variable binding, injection test, per-counter observability; live ADT matrix incl. counters green 24/24); JournalReadFrom at 7c0a62c98
+4. Reconcile ADR-0114 fiction: land DeletePolicy or rewrite FEATURES/CHANGELOG/AGENTS/migration-guide/DOMAIN_LANGUAGE to tell the tombstone truth. <- OPEN. TODO_LIST 'Docs Honesty' (ADR-0114 tombstone reconciliation)
+5. Remove taskmanager's local `replace` (`go.mod:88`). <- NOT-DO - the only replace in taskmanager/go.mod is the intentional go-must sibling dev-replace (present at report time too); no cqrs-lite local replace to remove
 
 **P1 — this session's direct follow-ups:**
 6. ~~Migrate taskmanager off `cqrshttp.NewSSEBroker` → go-sse or `metaengine.ServeSSE`.~~ Done — `metaengine.ServeSSE` chosen (example already runs metaengine projections; zero new deps; free reconnection).
 7. ~~New cqrs-lint rule: deprecated-module detected (transport/*, codec, retry) → migration coaching, low severity.~~ Done for transport/* (F030, warning severity). Codec/retry deprecation coaching still open — folded into P3 item 27 (deprecation-story unification).
-8. Teach E005 `system.RegisterCommand`; regenerate `taskmanager_golden.txt` (kills 10 enshrined false positives).
+8. Teach E005 `system.RegisterCommand`; regenerate `taskmanager_golden.txt` (kills 10 enshrined false positives). <- OPEN. TODO_LIST 'cqrs-lint' (E005 + taskmanager golden item)
 9. ~~Audit F012 message body + `catalog_extra.go` for transport references.~~ Done: F012 clean (deriver-only); E009/F013 catalog descriptions aligned with ADR-0127.
 10. ~~`watermill/README.md`: canonical-delivery-path note + broker recipe link.~~ Done.
 11. ~~Replace corpse broker tests with real roundtrips (watermill-redisstream + watermill-nats as test-only deps, ephemeral scripts).~~ Done for Redis (watermill-redisstream, real broker, passing). watermill-nats deliberately NOT adopted: it is NATS Streaming (deprecated tech) built against watermill v1.2-rc — JetStream waits for a maintained adapter. `scripts/ephemeral-nats.sh` is ready for it.
-12. Delete `t/` junk dir, `result/` (16MB root-owned), `reports/coverage.out` (empty), `reports/jscpd-report.json`.
-13. Add metaengine-quickstart to flake `examplePaths` + CI (currently never builds).
+12. Delete `t/` junk dir, `result/` (16MB root-owned), `reports/coverage.out` (empty), `reports/jscpd-report.json`. <- OPEN. TODO_LIST 'Code Quality' (Delete junk from repo root - t/, result/, reports/)
+13. Add metaengine-quickstart to flake `examplePaths` + CI (currently never builds). <- OPEN. TODO_LIST 'Code Quality' (Build example/metaengine-quickstart in CI)
 
 **P2 — v5 cut (ADR-0123 Phase 8, now including transport):**
-14. Write v5 migration guide (stack presets → system; transport/* → watermill/go-sse; v1 tiers).
-15. Delete `stack.Materialize`, `storage.RelationalProjection` + `storage/view`, `graph.GraphProjection`, `stack.Bundle` + 8 presets, `stack.RunProjections`.
-16. Delete `transport/http` + `transport/grpc` (after 6).
-17. Delete ADR-0126 compat shells (`schema.VersionedStore`, `signing.Rejecting*`, `encryption.ErrInnerStoreNot*`, `metadata.CustomData`).
-18. Execute WAL-unification remaining phases (`metadata.Metadata[K]` is done per ADR-0126; verify `query.AsRecord` adapter, `Inserter`, `AdapterCore` coverage).
-19. Execute store-middleware-simplification plan (`SinkTransform`/`SourceTransform` — 0% when last checked; the S010 diff in the tree suggests the parallel session is on it — coordinate, don't duplicate).
-20. Cut v5.0.0 tags.
+14. Write v5 migration guide (stack presets → system; transport/* → watermill/go-sse; v1 tiers). <- OPEN. TODO_LIST 'v5 Unification Phase 8' (migration guide)
+15. Delete `stack.Materialize`, `storage.RelationalProjection` + `storage/view`, `graph.GraphProjection`, `stack.Bundle` + 8 presets, `stack.RunProjections`. <- OPEN. TODO_LIST 'v5 Unification Phase 8' (each deletion is its own item)
+16. Delete `transport/http` + `transport/grpc` (after 6). <- OPEN. TODO_LIST 'v5 Unification Phase 8' (transport registry drop after final v4.x patches)
+17. Delete ADR-0126 compat shells (`schema.VersionedStore`, `signing.Rejecting*`, `encryption.ErrInnerStoreNot*`, `metadata.CustomData`). <- OPEN. TODO_LIST 'v5 Unification Phase 8' (ADR-0126 compat shells)
+~~18. Execute WAL-unification remaining phases (`metadata.Metadata[K]` is done per ADR-0126; verify `query.AsRecord` adapter, `Inserter`, `AdapterCore` coverage).~~ done - WAL-unification plan executed end-to-end (EXECUTED banner on the plan doc; 16-44 close-out; Inserter at 44a8a895e, AdapterCore at 80d41da33)
+~~19. Execute store-middleware-simplification plan (`SinkTransform`/`SourceTransform` — 0% when last checked; the S010 diff in the tree suggests the parallel session is on it — coordinate, don't duplicate).~~ done - executed via ADR-0126 (SinkTransform/SourceTransform shipped, d0e0b682b); plan doc annotated
+20. Cut v5.0.0 tags. <- OPEN. TODO_LIST 'v5 Unification Phase 8' (cut v5.0.0)
 
 **P3 — review findings (systemic):**
-21. Graceful degradation: implement Set/Log/Multimap fallbacks (brute-force) for SQL engines, or downgrade profiles to honest declarations.
+21. Graceful degradation: implement Set/Log/Multimap fallbacks (brute-force) for SQL engines, or downgrade profiles to honest declarations. <- OPEN. ROADMAP 'Vector/Search/Spatial engine backends' + graceful-degradation theme (planner warns honestly about cost)
 22. Dialect-DDL ↔ `migrations/*.sql` drift test (DDL exists in 4+ places).
-23. `sqliteengine`/`tursoengine`: fix self-opened `*sql.DB` Close() leak.
-24. Planner: graph cost `branching^depth`; volume without silent default; filter selectivity.
-25. `FilterOp`/column allowlists (`storage/sql/where.go`); quote ORDER BY columns (`storage/view/query.go:137`); stop leaking DSNs in errors (`tursoengine/register.go:69`).
-26. Core defects: singleflight leader-ctx capture (`decider/load.go:32`); command bus per-handler middleware (`memory_bus.go:115`); query audit fake RequestIDs (`audit.go:95`); `Pagination.Offset()` underflow; `kv.Cache` shared `*T`; TypedQueryStore hardcoded JSON decode (`query/typed.go:97`); ghost `event.ErrBinaryNotFound`.
-27. Reconcile deprecation story for codec/retry/idempotency/flightrecorder (one policy, everywhere).
-28. One bench system: keep benchkit+cqrs-bench; delete `metaengine/bench` module, `integration/` bench files, v2-era baseline; make CI regression fail on breach.
-29. `storage/backuptest`: wire into bbolt/pebble or delete (orphan module); write bbolt backup tests.
-30. Revive or retire SESSION_MILESTONES.md; fix module counts (68/86/88) everywhere.
+23. `sqliteengine`/`tursoengine`: fix self-opened `*sql.DB` Close() leak. <- OPEN. TODO_LIST 'Correctness Defect Sweep' (Resource leaks)
+24. Planner: graph cost `branching^depth`; volume without silent default; filter selectivity. <- OPEN. TODO_LIST 'Correctness Defect Sweep' (Planner cost model)
+25. `FilterOp`/column allowlists (`storage/sql/where.go`); quote ORDER BY columns (`storage/view/query.go:137`); stop leaking DSNs in errors (`tursoengine/register.go:69`). <- OPEN. TODO_LIST 'Correctness Defect Sweep' (SQL injection surface)
+26. Core defects: singleflight leader-ctx capture (`decider/load.go:32`); command bus per-handler middleware (`memory_bus.go:115`); query audit fake RequestIDs (`audit.go:95`); `Pagination.Offset()` underflow; `kv.Cache` shared `*T`; TypedQueryStore hardcoded JSON decode (`query/typed.go:97`); ghost `event.ErrBinaryNotFound`. <- OPEN. TODO_LIST 'Correctness Defect Sweep' (Core defects)
+~~27. Reconcile deprecation story for codec/retry/idempotency/flightrecorder (one policy, everywhere).~~ done - resolved by ADR-0128 deletion; policy documented in AGENTS Dependencies + CHANGELOG consumer advisory (5127039da)
+28. One bench system: keep benchkit+cqrs-bench; delete `metaengine/bench` module, `integration/` bench files, v2-era baseline; make CI regression fail on breach. <- OPEN. TODO_LIST 'Code Quality' (One bench system)
+29. `storage/backuptest`: wire into bbolt/pebble or delete (orphan module); write bbolt backup tests. <- OPEN. TODO_LIST 'Code Quality' (storage/backuptest: wire or delete)
+30. Revive or retire SESSION_MILESTONES.md; fix module counts (68/86/88) everywhere. <- OPEN. TODO_LIST 'Docs Honesty' (SESSION_MILESTONES) + module counts fixed to 82 in AGENTS/FEATURES/ROADMAP (docs-health 2026-08-15)
 31. MySQL/Dgraph engine tests: stop silent CI skip (nix services exist).
 32. `check-duplication` gate exits 0 when art-dupl missing — make it fail loudly.
 
 **P4 — user-facing gaps:**
-33. Transactional outbox (designed ADR-0016, zero code — biggest ES-library gap).
-34. Per-module CHANGELOGs (6 of ~86 have one).
-35. `metadata.ActorID` omitempty→omitzero; event/ record/ split-brain reduction (3 metadata models).
-36. `record.NewStreamRef` validation + `Split()` on `/` in stream types.
-37. `id` global-mutex throughput ceiling (sharded ULID entropy).
-38. Security: SECURITY.md v3 table stale; govulncheck swallow in release.yml; remove iroh fork pin (`git.coopcloud.tech` supply-chain flag).
+33. Transactional outbox (designed ADR-0016, zero code — biggest ES-library gap). <- OPEN. ROADMAP raw ideas (Transactional outbox - ADR-0016 designed)
+34. Per-module CHANGELOGs (6 of ~86 have one). <- OPEN. TODO_LIST 'Code Quality' (Per-module CHANGELOGs)
+35. `metadata.ActorID` omitempty→omitzero; event/ record/ split-brain reduction (3 metadata models). <- OPEN. TODO_LIST 'WithActor Hardening' (omitempty coverage; metadata split-brain rides the ADR-0111 Record consolidation)
+36. `record.NewStreamRef` validation + `Split()` on `/` in stream types. <- OPEN. TODO_LIST 'Correctness Defect Sweep' (Strong types)
+37. `id` global-mutex throughput ceiling (sharded ULID entropy). <- OPEN. TODO_LIST 'Correctness Defect Sweep' (Strong types - sharded ULID entropy)
+38. Security: SECURITY.md v3 table stale; govulncheck swallow in release.yml; remove iroh fork pin (`git.coopcloud.tech` supply-chain flag). <- OPEN. TODO_LIST 'Correctness Defect Sweep' (Security hygiene)
 39. Docs website / published versioned docs.
 40. Module compatibility matrix for independently tagged modules.
-41. Distributed projection runner (leader election) — design exists.
-42. Event archival/compaction — designs exist.
-43. README feature table: stop selling tombstone soft-delete as headline.
-44. `integration/README.md` lists 5 of ~15 suites.
-45. Publish layout-planning doc corrections (TODO already tracks: KV/LSM calibration vs "defaults to embedding").
-46. `ReplanLayout` → `Store.Replan` convergence (TODO tracks).
-47. DuckDB Columnar calibration tie-break (exact 2.65 vs 2.65).
-48. Row-layout (SQLite/PG/MySQL) calibration from real benchmarks.
-49. Multi-engine integration test with two live backends (currently Memory + backfill only).
-50. Per-fold mutex replacing global `foldMu` (needs soak testing first).
+41. Distributed projection runner (leader election) — design exists. <- OPEN. ROADMAP raw ideas (Distributed projection runner)
+42. Event archival/compaction — designs exist. <- OPEN. ROADMAP raw ideas (Event archival)
+43. README feature table: stop selling tombstone soft-delete as headline. <- OPEN. TODO_LIST 'Docs Honesty' (README feature-table honesty)
+44. `integration/README.md` lists 5 of ~15 suites. <- OPEN. TODO_LIST v5 section (integration/README.md suite enumeration)
+45. Publish layout-planning doc corrections (TODO already tracks: KV/LSM calibration vs "defaults to embedding"). <- OPEN. TODO_LIST 'Metaengine - Layout Planning'
+46. `ReplanLayout` → `Store.Replan` convergence (TODO tracks). <- OPEN. TODO_LIST 'Metaengine' (Converge ReplanLayout into Store.Replan)
+47. DuckDB Columnar calibration tie-break (exact 2.65 vs 2.65). <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks)
+48. Row-layout (SQLite/PG/MySQL) calibration from real benchmarks. <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks)
+49. Multi-engine integration test with two live backends (currently Memory + backfill only). <- OPEN. TODO_LIST 'Metaengine' (multi-engine, two real backends)
+50. Per-fold mutex replacing global `foldMu` (needs soak testing first). <- OPEN. in flight - concurrent metaengine session writing fold_locks.go now
 
 ## g) QUESTIONS (cannot determine myself)
 
@@ -190,3 +190,20 @@ details in CHANGELOG `[Unreleased]`.
 ---
 
 *Report ends. Waiting for instructions.*
+
+
+---
+
+## Resolution addendum (2026-08-15, docs-health pass)
+
+The same-day close-out appendix above resolved items 6/7/9/10/11 and g)1-3.
+This pass resolved the remaining 45 inline: P0 items 1 (NOT-DO - premise
+stale, id/v4.4.0 contains actor_id.go), 3 (counter rework `5127039da` +
+`7c0a62c98`), 5 (NOT-DO - no cqrs-lite replace exists); 18/19 (both plans
+executed via ADR-0126/WAL close-out); 27 (ADR-0128 policy). The P3 review
+backlog (21-26, 29, 33-38, 41-43, 45-50) is routed item-by-item into
+TODO_LIST "Correctness Defect Sweep" / "Metaengine" / "Docs Honesty" and
+ROADMAP raw ideas (outbox, distributed runner, archival). Open-unrouted:
+22 (DDL drift test), 31 (MySQL/Dgraph CI legs), 32 (art-dupl fail-loud),
+39 (docs website), 40 (compatibility matrix). Stays active - the largest
+open backlog carrier of the 08-14 batch.

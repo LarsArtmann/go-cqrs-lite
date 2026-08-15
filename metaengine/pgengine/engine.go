@@ -189,12 +189,12 @@ func (e *pgEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSpatial:   metaengine.ComplexityON,
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
-			metaengine.ADTSet:    true,
-			metaengine.ADTLog:    true,
+			metaengine.ADTSet:      true,
+			metaengine.ADTLog:      true,
 			metaengine.ADTMultimap: true,
-			metaengine.ADTVector: true,
-			metaengine.ADTSearch: true,
-			metaengine.ADTSpatial: true,
+			metaengine.ADTVector:   true,
+			metaengine.ADTSearch:   true,
+			metaengine.ADTSpatial:  true,
 		},
 		Layouts: map[metaengine.ADT]metaengine.StorageLayout{
 			metaengine.ADTMap:       metaengine.LayoutRow,

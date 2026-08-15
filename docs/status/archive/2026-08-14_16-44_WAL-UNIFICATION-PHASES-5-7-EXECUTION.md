@@ -193,15 +193,15 @@ tree right now), and `example/taskmanager` (SSE migration, uncommitted).
 
 ## Next Steps (ordered)
 
-1. Finish `LoadStream`: migrate EventAdapter.Load + CommandAdapter.Load onto
+~~1. Finish `LoadStream`: migrate EventAdapter.Load + CommandAdapter.Load onto~~ done - EventAdapter.Load + CommandAdapter.Load delegate to AdapterCore.LoadStream; system 3x -race green (see Close-Out Addendum below; landed via 875bb689b)
    it; run system tests 3× race.
-2. `nix run .#check-duplication`; judge remaining groups (accept intentional
+~~2. `nix run .#check-duplication`; judge remaining groups (accept intentional~~ done at 875bb689b - 10 groups judged, 1 consolidated, 9 accepted; baseline re-pinned 92->97
    parallels); `art-dupl baseline . --threshold 3 --semantic` to re-pin.
-3. `nix run .#check-coverage`.
-4. Re-run `nix run .#verify` once the concurrent session's example/taskmanager
+~~3. `nix run .#check-coverage`.~~ done at 875bb689b - gate itself was broken since baf2fb1f0 (false GREEN 3 days); repaired + EXPECTED refreshed
+~~4. Re-run `nix run .#verify` once the concurrent session's example/taskmanager~~ done at 5f2198189 - first fully green verify after the wave; three GREENs since
    work lands (their goldens regenerate on their side, or with
    CQRS_LINT_UPDATE_GOLDEN=1 if the C015 is intentional).
-5. Optional (deferred): `DecorateJournal` for `VersionedSeekableJournal`;
+5. Optional (deferred): `DecorateJournal` for `VersionedSeekableJournal`; <- OPEN. TODO_LIST 'Code Quality' (DecorateJournal + brandedString items, both deferred deliberately)
    extracting `brandedString` into `record` (pending — the asrecord clone
    pair is larger than the helper, so helper extraction alone won't clear it).
 
@@ -235,3 +235,11 @@ moved onto `Inserter[T]` — it already owns cached templates + batched inserts)
 
 Deferred items (unchanged, see Next Steps 5): `DecorateJournal` for
 `VersionedSeekableJournal`; `brandedString` extraction.
+
+
+## Resolution (2026-08-15, docs-health pass)
+
+Inline markers added above (the Close-Out Addendum already carried the
+detail as a table; this pass marked the list itself). Items 1-4 closed
+across `875bb689b` and `5f2198189`; item 5's two deferred pieces live in
+TODO_LIST "Code Quality". WAL Unification remains CLOSED. Archived.

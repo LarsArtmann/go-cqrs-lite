@@ -499,6 +499,8 @@ can try it while v1 paths still work. v5 is the clean cut.
 > _Triage 2026-08-04: 14 items reviewed. `cqrs-lint init` SHOWSTOPPER removed (fixed). None stale._
 
 - Event stream compaction / log truncation strategies
+- Transactional outbox (ADR-0016 designed, zero code — the biggest ES-library
+  gap per the 2026-08-14 review)
 - Multi-tenant event store (schema-per-tenant)
 - Distributed projection runner (leader election, multi-node coordination)
 - Event archival to S3 / GCS / Azure Blob
