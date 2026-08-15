@@ -160,7 +160,11 @@ func TestDemoteEngine_HappyPath(t *testing.T) {
 	}
 
 	// Live events after demotion: survivor serves, mirror replicates.
-	if err := store.Apply(ctx, "roleItemCreated", roleItemCreated{ID: "item-z", Name: "nz"}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"roleItemCreated",
+		roleItemCreated{ID: "item-z", Name: "nz"},
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -255,7 +259,11 @@ func TestDemoteEngine_NonIdempotentGuard(t *testing.T) {
 	store, _, counts := demoteTestStore(t)
 
 	for range 3 {
-		if err := store.Apply(ctx, "roleItemCreated", roleItemCreated{ID: "i", Name: "n"}); err != nil {
+		if err := store.Apply(
+			ctx,
+			"roleItemCreated",
+			roleItemCreated{ID: "i", Name: "n"},
+		); err != nil {
 			t.Fatal(err)
 		}
 	}

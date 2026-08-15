@@ -8,9 +8,9 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.0.0-20260812202622-996a79dc3ce4
 	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0

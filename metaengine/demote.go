@@ -131,7 +131,7 @@ func (s *Store) DemoteEngine(ctx context.Context, name string, opts ...DemoteOpt
 	if rep == nil {
 		return fmt.Errorf(
 			"metaengine.DemoteEngine(%s): replicator vanished during transition "+
-			"(engine removed concurrently)", name,
+				"(engine removed concurrently)", name,
 		)
 	}
 
@@ -178,8 +178,9 @@ func (s *Store) DemoteEngine(ctx context.Context, name string, opts ...DemoteOpt
 
 				return fmt.Errorf(
 					"metaengine.DemoteEngine(%s): demoted, but catch-up of the re-routed queries failed: %w "+
-					"— the affected queries are poisoned until the store is recreated",
-					name, err,
+						"— the affected queries are poisoned until the store is recreated",
+					name,
+					err,
 				)
 			}
 		}

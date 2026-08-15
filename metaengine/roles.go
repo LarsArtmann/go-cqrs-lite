@@ -177,7 +177,8 @@ func (s *Store) PromoteEngine(ctx context.Context, name string) error {
 	if stale {
 		return fmt.Errorf(
 			"metaengine.PromoteEngine(%s): engine is stale (%s) — recover via remove+re-add+backfill",
-			name, rep.lastError(),
+			name,
+			rep.lastError(),
 		)
 	}
 
