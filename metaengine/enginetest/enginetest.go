@@ -159,6 +159,50 @@ func RunStreamLogBackendTestIn(t *testing.T, eng metaengine.Engine, col string) 
 	if len(from2) != 2 {
 		t.Fatalf("expected 2 entries after seq 2, got %d", len(from2))
 	}
+
+	// Interleaved-collections regression: engine seq counters may be shared
+	// across collections (global AUTOINCREMENT). Appending to another
+	// collection BEFORE this one pushes this collection's raw seqs above 1,
+	// so JournalReadFrom(afterSeq) must skip by POSITION within the
+	// collection, never by filtering raw seq values.
+	other := col + "_other"
+
+	steps := []struct {
+		col     string
+		stream  string
+		entries []any
+	}{
+		{other, "x1", []any{"noise-before"}},
+		{col, "s3", []any{"a1", "a2"}},
+		{other, "x2", []any{"noise-between"}},
+		{col, "s4", []any{"a3"}},
+	}
+
+	for _, step := range steps {
+		if err := slb.StreamAppend(ctx, step.col, step.stream, step.entries); err != nil {
+			t.Fatalf("StreamAppend %s/%s: %v", step.col, step.stream, err)
+		}
+	}
+
+	// Journal for col is now e1..e4, a1..a3 (7 entries). Position 5 is a1.
+	from5, err := slb.JournalReadFrom(ctx, col, 5, 0)
+	if err != nil {
+		t.Fatalf("JournalReadFrom interleaved: %v", err)
+	}
+
+	if len(from5) != 2 || from5[0] != "a2" || from5[1] != "a3" {
+		t.Fatalf("JournalReadFrom(col, 5, 0) = %v, want exactly [a2 a3] "+
+			"(positional skip; raw-seq filtering re-delivers a1)", from5)
+	}
+
+	limited, err := slb.JournalReadFrom(ctx, col, 4, 1)
+	if err != nil {
+		t.Fatalf("JournalReadFrom interleaved limited: %v", err)
+	}
+
+	if len(limited) != 1 || limited[0] != "a1" {
+		t.Fatalf("JournalReadFrom(col, 4, 1) = %v, want exactly [a1]", limited)
+	}
 }
 
 // RunAtomicAppenderTest exercises the standard AtomicAppender contract:

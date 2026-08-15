@@ -18,9 +18,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0
@@ -81,7 +81,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-sse v0.5.0 // indirect

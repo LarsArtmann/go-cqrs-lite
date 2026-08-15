@@ -81,6 +81,14 @@ var backendInterfaces = map[string]reflect.Type{ //nolint:gochecknoglobals // im
 // backend interface (Scenario.Requires) are skipped automatically. If
 // Factory.Supports is non-nil, it is called as an additional capability gate.
 // Cross-engine parity is checked in a cleanup hook.
+//
+// Scenario collections are FIXED constants (e.g. "events", "tasks_by_user")
+// and scenario assertions are absolute (exact values, versions, counts).
+// Engines backed by a server shared across tests (e.g. one persistent Dgraph
+// instance) must point each RunMatrix invocation at a fresh database or
+// namespace, and must never run RunMatrix twice against the same server or
+// share these collections with other tests in the same run — accumulated
+// state breaks both the assertions and the cross-engine parity check.
 func RunMatrix(t *testing.T, factories []Factory) {
 	t.Helper()
 

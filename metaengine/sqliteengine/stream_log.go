@@ -50,13 +50,17 @@ func (e *sqliteEngine) JournalReadFrom(
 	afterSeq int64,
 	limit int,
 ) ([]any, error) {
+	// afterSeq is a journal POSITION within the collection, not a raw seq:
+	// seq is a global AUTOINCREMENT shared across collections, so filtering
+	// on seq values re-delivers entries when collections interleave. Skipping
+	// is done via OFFSET over the collection-filtered, seq-ordered result.
 	if limit <= 0 {
 		return e.scanStreamValues(ctx,
-			`SELECT value FROM meta_stream_log WHERE collection = ? AND seq > ? ORDER BY seq`,
+			`SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq LIMIT -1 OFFSET ?`,
 			col, afterSeq)
 	}
 
-	return e.scanStreamValues(ctx, e.queries.journalReadFrom, col, afterSeq, limit)
+	return e.scanStreamValues(ctx, e.queries.journalReadFrom, col, limit, afterSeq)
 }
 
 // StreamAppendExpected appends values atomically if the stream version matches.

@@ -28,6 +28,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/onsi/gomega v1.42.1
+	modernc.org/sqlite v1.56.0
 )
 
 require (
@@ -112,7 +113,6 @@ require (
 	modernc.org/libc v1.75.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
-	modernc.org/sqlite v1.56.0 // indirect
 )
 
 replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../metaengine/sqliteengine

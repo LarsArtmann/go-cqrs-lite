@@ -9,7 +9,28 @@ import (
 	_ "modernc.org/sqlite"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
+
+func TestStreamLogBackend_Contract(t *testing.T) {
+	t.Parallel()
+
+	db, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	defer db.Close()
+
+	eng, err := NewSQLiteEngine(db)
+	if err != nil {
+		t.Fatalf("NewSQLiteEngine: %v", err)
+	}
+	defer eng.Close()
+
+	// Shared StreamLogBackend contract suite, including the
+	// interleaved-collections positional-resumption regression.
+	enginetest.RunStreamLogBackendTest(t, eng)
+}
 
 func TestStreamLogBackend_SQLiteRoundtrip(t *testing.T) {
 	t.Parallel()

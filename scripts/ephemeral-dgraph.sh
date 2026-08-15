@@ -4,7 +4,12 @@
 # For dgraphengine integration testing with a real Dgraph instance.
 # No Docker daemon, no VM — just processes from the Nix store.
 #
-# Usage:
+# NOTE: the `dgraph` binary only exists on PATH inside the Nix app
+# (`nix run .#integration-dgraph`). Direct `bash scripts/ephemeral-dgraph.sh`
+# fails with "dgraph: command not found" unless dgraph is on your PATH.
+# Prefer: nix run .#integration-dgraph
+#
+# Usage (when dgraph is on PATH, e.g. inside the nix app):
 #   bash scripts/ephemeral-dgraph.sh                # run dgraphengine tests
 #   bash scripts/ephemeral-dgraph.sh go test ./...  # arbitrary go command
 #

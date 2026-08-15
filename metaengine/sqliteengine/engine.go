@@ -121,7 +121,9 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		streamVersion:    `SELECT COUNT(*) FROM meta_stream_log WHERE collection = ? AND stream_id = ?`,
 		streamAppendExp:  `INSERT INTO meta_stream_log (collection, stream_id, value) VALUES (?, ?, ?)`,
 		journalReadAll:   `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
-		journalReadFrom:  `SELECT value FROM meta_stream_log WHERE collection = ? AND seq > ? ORDER BY seq LIMIT ?`,
+		// afterSeq is a journal position within the collection (seq is a
+		// global AUTOINCREMENT shared across collections — see JournalReadFrom).
+		journalReadFrom: `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq LIMIT ? OFFSET ?`,
 		// Graph (recursive CTE)
 		graphAddEdge: `INSERT OR IGNORE INTO meta_graph_edges (collection, from_node, to_node) VALUES (?, ?, ?)`,
 	}

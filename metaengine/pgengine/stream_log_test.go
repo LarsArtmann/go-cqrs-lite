@@ -14,61 +14,7 @@ func TestPostgresEngine_StreamLogRoundtrip(t *testing.T) {
 
 	eng := mustNewPgEngine(t)
 
-	ctx := context.Background()
-
-	slb, ok := eng.(metaengine.StreamLogBackend)
-	if !ok {
-		t.Fatal("pgEngine does not implement StreamLogBackend")
-	}
-
-	// Append to two streams.
-	if err := slb.StreamAppend(ctx, "events", "s1", []any{"e1", "e2", "e3"}); err != nil {
-		t.Fatalf("StreamAppend s1: %v", err)
-	}
-
-	if err := slb.StreamAppend(ctx, "events", "s2", []any{"e4"}); err != nil {
-		t.Fatalf("StreamAppend s2: %v", err)
-	}
-
-	// Verify StreamRead.
-	values, err := slb.StreamRead(ctx, "events", "s1")
-	if err != nil {
-		t.Fatalf("StreamRead s1: %v", err)
-	}
-
-	if len(values) != 3 {
-		t.Fatalf("expected 3 values, got %d", len(values))
-	}
-
-	// Verify StreamVersion.
-	ver, err := slb.StreamVersion(ctx, "events", "s1")
-	if err != nil {
-		t.Fatalf("StreamVersion s1: %v", err)
-	}
-
-	if ver != 3 {
-		t.Fatalf("expected version 3, got %d", ver)
-	}
-
-	// Verify JournalReadAll (cross-stream ordering).
-	journal, err := slb.JournalReadAll(ctx, "events")
-	if err != nil {
-		t.Fatalf("JournalReadAll: %v", err)
-	}
-
-	if len(journal) != 4 {
-		t.Fatalf("expected 4 journal entries, got %d", len(journal))
-	}
-
-	// Verify JournalReadFrom (position-based resumption).
-	from2, err := slb.JournalReadFrom(ctx, "events", 2, 0)
-	if err != nil {
-		t.Fatalf("JournalReadFrom: %v", err)
-	}
-
-	if len(from2) != 2 {
-		t.Fatalf("expected 2 entries after seq 2, got %d", len(from2))
-	}
+	enginetest.RunStreamLogBackendTest(t, eng)
 }
 
 func TestPostgresEngine_StreamLogAtomicAppender(t *testing.T) {

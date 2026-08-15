@@ -111,18 +111,22 @@ func (e *duckdbEngine) JournalReadFrom(
 	afterSeq int64,
 	limit int,
 ) ([]any, error) {
+	// afterSeq is a journal POSITION within the collection, not a raw seq:
+	// seq is shared across collections, so filtering on seq values re-delivers
+	// entries when collections interleave. Skip via OFFSET over the
+	// collection-filtered, seq-ordered result instead.
 	if limit <= 0 {
 		return e.scanStreamValues(ctx,
-			`SELECT value FROM meta_stream_log WHERE collection = $1 AND seq > $2 ORDER BY seq`,
+			`SELECT value FROM meta_stream_log WHERE collection = $1 ORDER BY seq LIMIT ALL OFFSET $2`,
 			col, afterSeq)
 	}
 
 	return e.scanStreamValues(
 		ctx,
-		`SELECT value FROM meta_stream_log WHERE collection = $1 AND seq > $2 ORDER BY seq LIMIT $3`,
+		`SELECT value FROM meta_stream_log WHERE collection = $1 ORDER BY seq LIMIT $2 OFFSET $3`,
 		col,
-		afterSeq,
 		limit,
+		afterSeq,
 	)
 }
 

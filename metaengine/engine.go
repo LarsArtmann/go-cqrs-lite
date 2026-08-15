@@ -478,10 +478,17 @@ type StreamLogBackend interface {
 	// ordered by global append sequence. Used by projectionhost for full replay.
 	JournalReadAll(ctx context.Context, collection string) ([]any, error)
 
-	// JournalReadFrom reads values across all streams starting after afterSeq,
-	// ordered by global append sequence. Used for position-based resumption
-	// (CatchUpSubscriber, incremental projection processing).
-	// If limit <= 0, returns all remaining values.
+	// JournalReadFrom reads values across all streams starting after the
+	// afterSeq-th entry of the collection's journal, in JournalReadAll order.
+	// Used for position-based resumption (CatchUpSubscriber, incremental
+	// projection processing). If limit <= 0, returns all remaining values.
+	//
+	// afterSeq is a POSITION within the collection's journal (0 = from the
+	// start), NOT a raw engine sequence number: engine seq counters may be
+	// shared across collections (e.g. a global AUTOINCREMENT), so filtering on
+	// raw seq values re-delivers entries when collections interleave. Engines
+	// with a shared seq counter must implement the skip via OFFSET (or
+	// equivalent) over the collection-filtered, seq-ordered result.
 	JournalReadFrom(
 		ctx context.Context,
 		collection string,

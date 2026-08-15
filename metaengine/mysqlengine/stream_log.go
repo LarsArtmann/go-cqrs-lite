@@ -105,18 +105,23 @@ func (e *mysqlEngine) JournalReadFrom(
 	afterSeq int64,
 	limit int,
 ) ([]any, error) {
+	// afterSeq is a journal POSITION within the collection, not a raw seq:
+	// seq is an AUTO_INCREMENT shared across collections, so filtering on seq
+	// values re-delivers entries when collections interleave. Skip via OFFSET
+	// over the collection-filtered, seq-ordered result instead. MySQL requires
+	// a LIMIT clause before OFFSET; 2^64-1 is the conventional "no limit".
 	if limit <= 0 {
 		return e.scanStreamValues(ctx,
-			`SELECT value FROM meta_stream_log WHERE collection = ? AND seq > ? ORDER BY seq`,
+			`SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq LIMIT 18446744073709551615 OFFSET ?`,
 			col, afterSeq)
 	}
 
 	return e.scanStreamValues(
 		ctx,
-		`SELECT value FROM meta_stream_log WHERE collection = ? AND seq > ? ORDER BY seq LIMIT ?`,
+		`SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq LIMIT ? OFFSET ?`,
 		col,
-		afterSeq,
 		limit,
+		afterSeq,
 	)
 }
 

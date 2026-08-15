@@ -528,6 +528,90 @@ func TestLayerScriptKeysMapToModules(t *testing.T) {
 	}
 }
 
+// TestEveryModuleHasLayerEntry asserts the reverse direction of
+// TestLayerScriptKeysMapToModules: every directory containing a go.mod (except
+// test-infra modules, examples, integration, and the root workspace) has a
+// LAYER[...] entry in scripts/check-module-layers.sh. A module without a LAYER
+// key silently skips cross-module layer enforcement — the script never errors
+// on a module it simply does not know about.
+func TestEveryModuleHasLayerEntry(t *testing.T) {
+	t.Parallel()
+
+	projectRoot := filepath.Join(".", "..", "..")
+	scriptBytes, err := os.ReadFile(filepath.Join(projectRoot, "scripts", "check-module-layers.sh"))
+	if err != nil {
+		t.Fatalf("read layer check script: %v", err)
+	}
+
+	layerKeys := make(map[string]struct{})
+	infra := make(map[string]struct{})
+	layerRe := regexp.MustCompile(`^LAYER\[([^\]]+)\]`)
+	infraRe := regexp.MustCompile(`^TEST_INFRA_MODULES="([^"]+)"`)
+
+	for line := range strings.SplitSeq(string(scriptBytes), "\n") {
+		if strings.HasPrefix(strings.TrimSpace(line), "#") {
+			continue
+		}
+		if m := layerRe.FindStringSubmatch(line); m != nil {
+			layerKeys[strings.ReplaceAll(m[1], " / ", "/")] = struct{}{}
+		}
+		if m := infraRe.FindStringSubmatch(line); m != nil {
+			for mod := range strings.FieldsSeq(m[1]) {
+				infra[mod] = struct{}{}
+			}
+		}
+	}
+	if len(layerKeys) == 0 {
+		t.Fatal("failed to parse any LAYER keys from check-module-layers.sh")
+	}
+
+	excluded := map[string]bool{
+		".":           true, // root workspace go.mod
+		"integration": true, // workspace-only cross-module tests
+	}
+
+	err = filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			return nil
+		}
+		name := info.Name()
+		if name == ".git" || name == "vendor" ||
+			(len(name) > 0 && name[0] == '.' && path != projectRoot) {
+			return filepath.SkipDir
+		}
+		if _, statErr := os.Stat(filepath.Join(path, "go.mod")); os.IsNotExist(statErr) {
+			return nil
+		} else if statErr != nil {
+			return statErr
+		}
+		rel, relErr := filepath.Rel(projectRoot, path)
+		if relErr != nil {
+			return relErr
+		}
+		if excluded[rel] {
+			return nil
+		}
+		if _, isInfra := infra[rel]; isInfra {
+			return nil
+		}
+		if strings.HasPrefix(rel, "example/") {
+			return nil
+		}
+		if _, ok := layerKeys[rel]; !ok {
+			t.Errorf("module %q has a go.mod but no LAYER entry in check-module-layers.sh — "+
+				"it silently skips layer enforcement; add LAYER[%s]=<tier>", rel, rel)
+		}
+
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("walk failed: %v", err)
+	}
+}
+
 // TestGoArchLintConfigsAreValid verifies that every .go-arch-lint.yml in the
 // repo is well-formed: contains version/components/deps sections, and every
 // component's `in:` path resolves to a real directory. This prevents stale

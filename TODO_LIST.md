@@ -71,14 +71,29 @@ and is **never** duplicated here.
       UnixNano timestamps and the system adapters derive `afterSeq` from entry
       indexes. Exact-count local test + `enginetest.RunStreamLogBackendTest`
       parity wired in. Verified against live Dgraph.
-- [ ] **Seq-carrying journal reads (deeper fix)** — `EventAdapter.lookupSeq`
-      caches `index+1` positions as seqs and `ReadFrom` resumes with
-      `afterSeq+i+1` arithmetic. This is only exactly right for engines with
-      dense per-collection seqs; sqlite uses a GLOBAL autoincrement (gaps
-      within a collection under cross-collection interleaving → duplicate
-      re-delivery after resume). Add a seq-carrying read API
-      (`JournalReadAllWithSeq` or `StreamLogEntry{Seq, Value}`) and make
-      adapters resume on true engine seqs.
+- [x] **Fix `JournalReadFrom` raw-seq filtering on SQL engines** — DONE
+      2026-08-15: sqlite/pg/mysql/duckdb filtered `seq > afterSeq` on a seq
+      counter GLOBAL across collections, while the contract (and every caller)
+      passes a position within the collection's journal → re-delivery whenever
+      collections interleaved (e.g. commands written before events). All four
+      engines now skip via `OFFSET` over the collection-filtered, seq-ordered
+      result. Interleaved-collections phase added to
+      `enginetest.RunStreamLogBackendTest(In)`; pg/mysql verified live;
+      end-to-end regression `system.TestEventAdapter_ReadFrom_InterleavedCollections`
+      (proven failing against the old sqliteengine).
+- [ ] **Seq-carrying journal reads (perf follow-up)** — the OFFSET-based
+      positional skip scans past skipped index rows (O(offset) per page);
+      true-seq resumption (`JournalReadAllWithSeq` or `StreamLogEntry{Seq,
+      Value}`, adapters resume on engine seqs) would make it O(log n) via
+      index seek. Correctness is now guaranteed; this is purely a
+      large-journal performance item.
+      _(Effort: M)_
+- [ ] **mysqlengine vs MariaDB (nspawn) compatibility** — 3 pushdown tests
+      emit MySQL-8 JSON path syntax (`>'$.x' = CAST(? AS JSON)`) that
+      MariaDB rejects (Error 1064); ADTMatrix + HealthCheck fail with
+      "invalid connection" in that env. Pre-existing (found 2026-08-15 while
+      live-verifying the JournalReadFrom fix, which itself PASSES there).
+      Decide: MariaDB dialect support or a real MySQL-8 test backend.
       _(Effort: M)_
 - [ ] **Brute-force vector search on Pebble/bbolt** — Vector ADT currently
       memory-only. Add degraded O(N) brute-force for LSM engines.

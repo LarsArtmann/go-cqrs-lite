@@ -6,6 +6,48 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — SQL engines re-delivered journal entries when collections interleaved — 2026-08-15
+
+- **`metaengine/{sqliteengine,pgengine,mysqlengine,duckdbengine}`**: `JournalReadFrom`
+  filtered `seq > afterSeq` on a seq counter that is **global across collections**
+  (AUTOINCREMENT/SERIAL), while the `StreamLogBackend` contract (and every caller —
+  `system.EventAdapter.ReadFrom`, `AdapterCore.ReadFromAfter`, the shared harness)
+  passes a **position within the collection's journal**. When another collection's
+  appends pushed this collection's raw seqs above 1 (e.g. "commands" written before
+  "events"), positional resumes re-delivered already-processed entries — duplicate
+  projection processing for any consumer running two collections on one SQL engine.
+  All four engines now skip via `OFFSET` over the collection-filtered, seq-ordered
+  result. Verified against live Postgres and MySQL; sqlite/duckdb covered by the new
+  harness regression. (`memory`, `dgraph`, `pebble`, `bbolt`, `badger` were already
+  positional — per-collection counters/keys.)
+- **`metaengine/enginetest`**: `RunStreamLogBackendTest(In)` gained an
+  interleaved-collections phase (append to a second collection before/around the
+  first, then assert exact positional resumption) — the exact regression above;
+  single-collection tests could not see it. `pgengine` now runs the shared suite
+  (its hand-rolled roundtrip was a subset); `sqliteengine` gained the contract
+  test; `badgerengine` gained its first-ever StreamLog contract test.
+- **`metaengine/engine.go`**: `JournalReadFrom` doc now states the positional
+  contract explicitly ("afterSeq is a POSITION, not a raw engine sequence").
+  `metaengine/adttest.RunMatrix` doc pins the fixed-collection/fresh-database
+  constraint for shared-server engines.
+
+### Fixed — benchkit pinned stale stack presets, failing deterministically outside the workspace — 2026-08-15
+
+- **`benchkit`**: `go.mod` pinned `stack/sqlite` and `stack/pebble` at **v4.1.0**
+  (published tags are v4.3.0). Under `GOWORK=off` (per-module runs), `stack/sqlite`
+  v4.1.0 lacked the `SetMaxOpenConns(1)` pool cap → concurrent WAL writers → instant
+  `SQLITE_BUSY (517)` in `TestRun_AnalyticalJournalScans`; `stack/pebble` v4.1.0
+  lacked the `WithDiskSize` wiring → `TestRun_Pebble_DiskSizerInterface` saw 0 bytes.
+  Both passed only inside the workspace (which resolves local modules) — a
+  version-skew bug. Pins bumped to v4.3.0; both tests plus the full suite pass
+  standalone.
+
+### Changed — verify gate test-phase timeout 5m → 8m — 2026-08-15
+
+- **`flake.nix`**: the plain (non-`-short`) Test phase ran with `-timeout=5m` while
+  the slower Race phase already had 8m — backwards asymmetry. duckdbengine takes
+  ~150s clean and hit the 5m ceiling once under load. Test now matches Race at 8m.
+
 ### Fixed — Dgraph JournalReadFrom re-delivered the entire journal on resume — 2026-08-15
 
 - **`metaengine/dgraphengine`**: `JournalReadFrom` filtered with `gt(seq, afterSeq)`, but

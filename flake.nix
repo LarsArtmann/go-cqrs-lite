@@ -1219,7 +1219,7 @@
                   echo "=== Module Coverage ===" && nix run .#check-modules && \
                   echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \
                   echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} && \
-                  echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 -timeout=5m && \
+                  echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 -timeout=8m && \
                   echo "=== Race ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 -timeout=8m && \
                   echo "=== Lint ===" && nix run .#lint && \
                   echo "=== Check Arch ===" && nix run .#check-arch && \
