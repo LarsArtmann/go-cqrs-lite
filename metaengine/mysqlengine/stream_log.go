@@ -111,9 +111,12 @@ func (e *mysqlEngine) JournalReadFrom(
 	// over the collection-filtered, seq-ordered result instead. MySQL requires
 	// a LIMIT clause before OFFSET; 2^64-1 is the conventional "no limit".
 	if limit <= 0 {
-		return e.scanStreamValues(ctx,
+		return e.scanStreamValues(
+			ctx,
 			`SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq LIMIT 18446744073709551615 OFFSET ?`,
-			col, afterSeq)
+			col,
+			afterSeq,
+		)
 	}
 
 	return e.scanStreamValues(

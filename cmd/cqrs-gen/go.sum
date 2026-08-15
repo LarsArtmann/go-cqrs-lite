@@ -93,8 +93,8 @@ github.com/larsartmann/go-output/testhelpers/graphtest v0.37.0 h1:nG8o0DeTKVCRgC
 github.com/larsartmann/go-output/testhelpers/graphtest v0.37.0/go.mod h1:6/wyVNbz5sGg02mBqQlWx8TX74X6Pcq6SW2xigOyfkU=
 github.com/larsartmann/go-output/tree v0.37.0 h1:MTH3noReMY3AE9J+VBVLN15rJod+deE9WAMz9mOj6ls=
 github.com/larsartmann/go-output/tree v0.37.0/go.mod h1:uSH510k+u3XVZRSW3wsumLwDhSP4doWJZSb+DmALEjc=
-github.com/larsartmann/samber-do-auditlog v0.9.2 h1:2CHxZxKr7I1UdDDCuSS1ky6aQkMKybMftSPbBKF09nc=
-github.com/larsartmann/samber-do-auditlog v0.9.2/go.mod h1:62hRU2YyKVOo5d9YfOIcaQgxoAIg2OPEwD7Nna27vlU=
+github.com/larsartmann/samber-do-auditlog v0.10.0 h1:3V5yGMy7wbw9ikDd/dI107CHi8KAxX0nojoiAJW4eRg=
+github.com/larsartmann/samber-do-auditlog v0.10.0/go.mod h1:yfSF5NPXzPqySyFaHU4tItdOXMBqMLaZlbkeBbCcYk8=
 github.com/lucasb-eyer/go-colorful v1.4.1 h1:1EO+WB73+EH8EVbzlrG3KLAfEypQWVHIBqlTf+2hNss=
 github.com/lucasb-eyer/go-colorful v1.4.1/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=
 github.com/mattn/go-runewidth v0.0.27 h1:Feg/Oou5zI/wnpgDF6omIU0OokC9GxLC/WRknhVlIR0=

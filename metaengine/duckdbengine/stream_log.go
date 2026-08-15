@@ -116,9 +116,12 @@ func (e *duckdbEngine) JournalReadFrom(
 	// entries when collections interleave. Skip via OFFSET over the
 	// collection-filtered, seq-ordered result instead.
 	if limit <= 0 {
-		return e.scanStreamValues(ctx,
+		return e.scanStreamValues(
+			ctx,
 			`SELECT value FROM meta_stream_log WHERE collection = $1 ORDER BY seq LIMIT ALL OFFSET $2`,
-			col, afterSeq)
+			col,
+			afterSeq,
+		)
 	}
 
 	return e.scanStreamValues(
