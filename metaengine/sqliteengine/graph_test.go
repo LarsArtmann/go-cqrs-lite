@@ -3,6 +3,7 @@ package sqliteengine_test
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"sort"
 	"testing"
 
@@ -196,6 +197,88 @@ func TestGraph_IdempotentEdgeAdd(t *testing.T) {
 	if len(neighbors) != 1 {
 		t.Errorf("expected 1 neighbor after idempotent add, got %d: %v",
 			len(neighbors), neighbors)
+	}
+}
+
+// TestGraph_DeepChainCTE verifies the single-query recursive-CTE traversal
+// on a deep graph: a 100-node chain traversed to full depth returns every
+// node, and a mid-depth traversal returns exactly the prefix. This is the
+// shape where the CTE path outperforms the old per-node-per-level queries.
+func TestGraph_DeepChainCTE(t *testing.T) {
+	t.Parallel()
+
+	eng := newGraphTestEngine(t)
+	gb := eng.(graphBackend)
+
+	ctx := context.Background()
+	col := "test_graph_deep_chain"
+
+	const chainLen = 100
+	for i := 0; i < chainLen; i++ {
+		e := metaengine.Edge{From: fmt.Sprintf("n%03d", i), To: fmt.Sprintf("n%03d", i+1)}
+		if err := gb.GraphAddEdge(ctx, col, e); err != nil {
+			t.Fatalf("GraphAddEdge %v: %v", e, err)
+		}
+	}
+
+	full, err := gb.GraphNeighbors(ctx, col, "n000", chainLen)
+	if err != nil {
+		t.Fatalf("GraphNeighbors full chain: %v", err)
+	}
+
+	got := sortedStrings(full)
+	if len(got) != chainLen {
+		t.Fatalf("full traversal: expected %d neighbors, got %d", chainLen, len(got))
+	}
+
+	if got[0] != "n001" || got[chainLen-1] != "n100" {
+		t.Errorf("full traversal endpoints = [%s, %s], want [n001, n100]", got[0], got[chainLen-1])
+	}
+
+	// Depth 5 from n000 reaches exactly n001..n005.
+	partial, err := gb.GraphNeighbors(ctx, col, "n000", 5)
+	if err != nil {
+		t.Fatalf("GraphNeighbors depth 5: %v", err)
+	}
+
+	gotPartial := sortedStrings(partial)
+	if len(gotPartial) != 5 || gotPartial[4] != "n005" {
+		t.Errorf("depth-5 traversal = %v, want [n001..n005]", gotPartial)
+	}
+}
+
+// TestGraph_CTEDiamondDedup verifies a node reachable via multiple paths of
+// different lengths appears exactly once in the CTE result.
+func TestGraph_CTEDiamondDedup(t *testing.T) {
+	t.Parallel()
+
+	eng := newGraphTestEngine(t)
+	gb := eng.(graphBackend)
+
+	ctx := context.Background()
+	col := "test_graph_diamond"
+
+	edges := []metaengine.Edge{
+		{From: "A", To: "B"},
+		{From: "A", To: "C"},
+		{From: "B", To: "D"},
+		{From: "C", To: "D"},
+		{From: "A", To: "D"},
+	}
+	for _, e := range edges {
+		if err := gb.GraphAddEdge(ctx, col, e); err != nil {
+			t.Fatalf("GraphAddEdge %v: %v", e, err)
+		}
+	}
+
+	neighbors, err := gb.GraphNeighbors(ctx, col, "A", 3)
+	if err != nil {
+		t.Fatalf("GraphNeighbors diamond: %v", err)
+	}
+
+	got := sortedStrings(neighbors)
+	if len(got) != 3 || got[0] != "B" || got[1] != "C" || got[2] != "D" {
+		t.Errorf("diamond neighbors = %v, want [B C D] (D exactly once)", got)
 	}
 }
 

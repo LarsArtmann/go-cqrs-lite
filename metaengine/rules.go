@@ -67,5 +67,9 @@ func defaultRules(cfg planConfig) []PlanRule {
 		rules = append(rules, &materializeRule{stats: cfg.stats})
 	}
 
+	if len(cfg.sharedCollections) > 0 {
+		rules = append(rules, &sharedCollectionRule{shared: cfg.sharedCollections})
+	}
+
 	return rules
 }

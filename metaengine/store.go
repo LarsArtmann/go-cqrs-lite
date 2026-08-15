@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"slices"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
@@ -15,8 +16,11 @@ import (
 
 type Store struct {
 	mu                sync.RWMutex
-	foldMu            sync.Mutex // serializes SetCurrentRecord + invoke (shared fold state)
+	foldLocks         *foldLocks // per-query fold locks (shared fold state; see fold_locks.go)
 	engines           []Engine
+	engineRoles       map[string]ProjectionRole      // engine name → role; missing = Active (guarded by mu)
+	replicas          map[string]*replicator         // shadow-engine replicators (guarded by mu)
+	taskSnap          atomic.Pointer[map[string][]foldTask] // immutable event→tasks index (lock-free reads)
 	queries           map[string]queryMeta
 	byInputType       map[string]string
 	plan              *PlanResult
@@ -37,6 +41,7 @@ type Store struct {
 	routingSig        string
 	routingDiags      []Diagnostic
 	priorityConfig    *PriorityConfig // operator-driven layout priority (ADR-0124)
+	sharedCollections map[string]bool // child types shared across collections (ADR-0124 boundaries)
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }
@@ -71,16 +76,21 @@ func (s *Store) replanWithTrigger(ctx context.Context, trigger string) error {
 	cfg := planConfig{
 		writeAmplificationBudget: DefaultWriteAmplificationBudget,
 		priority:                 s.priorityConfig,
+		sharedCollections:        s.sharedCollections,
 	}
 
 	// Phase 1: re-assign engines under the write lock (mutates QueryDecl).
+	// Only routable engines (Active/DualUse) are candidates — shadow engines
+	// (Backup/Migration) never serve reads (METAENGINE-LAYOUT-ROLES.md I1).
 	plan := &PlanResult{}
 
 	s.mu.Lock()
+	routable := s.routableLocked()
+
 	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
 		q := s.queries[name]
 
-		assignment, err := planQuery(q, s.engines, cfg)
+		assignment, err := planQuery(q, routable, cfg)
 		if err != nil {
 			s.mu.Unlock()
 			return fmt.Errorf("metaengine.Store.Replan: %w", err)
@@ -255,6 +265,20 @@ func (s *Store) EventTypes() []string {
 }
 
 func (s *Store) Close() error {
+	s.mu.Lock()
+	reps := make([]*replicator, 0, len(s.replicas))
+
+	for _, rep := range s.replicas {
+		reps = append(reps, rep)
+	}
+
+	s.replicas = nil
+	s.mu.Unlock()
+
+	for _, rep := range reps {
+		rep.halt()
+	}
+
 	var firstErr error
 	for _, eng := range s.engines {
 		if err := eng.Close(); err != nil && firstErr == nil {
@@ -293,6 +317,17 @@ func keysMatch(a, b any) bool {
 // notifyWatchers delegates to the subscriber hub.
 func (s *Store) notifyWatchers(collection string, key any, value any) {
 	s.subs.notify(collection, key, value)
+}
+
+// notifyLive notifies watchers unless the write comes from the replication
+// shim (shadow engine): primaries already notified, and replaying a shadow
+// write would double-append watcher replay sequences (METAENGINE-LAYOUT-ROLES §3.2).
+func (s *Store) notifyLive(q queryMeta, collection string, key any, value any) {
+	if q.isShadow() {
+		return
+	}
+
+	s.notifyWatchers(collection, key, value)
 }
 
 // Apply processes an event through ALL queries that listen to it.
@@ -351,14 +386,42 @@ func (s *Store) applyWithRecord(
 	eventType string,
 	rec record.Record,
 	payload any,
-) error {
+) (err error) {
+	start := time.Now()
+
+	defer func() {
+		if s.hooks != nil && s.hooks.OnApply != nil {
+			s.hooks.OnApply(eventType, time.Since(start), err)
+		}
+	}()
+
 	s.meter.IncWrite()
 
 	if s.eventLog != nil {
 		s.eventLog.Record(eventType, payload)
 	}
 
-	return s.dispatchFolds(ctx, eventType, rec, payload, nil)
+	if err := s.dispatchFolds(ctx, eventType, rec, payload, nil); err != nil {
+		return err
+	}
+
+	// Replication follows APPLIED state (not the event log): only successful
+	// primary dispatches are mirrored. Enqueue is atomic against PromoteEngine.
+	s.replicate(eventType, rec, payload)
+
+	return nil
+}
+
+// replicate fans a successfully applied event out to all shadow engines.
+// Non-blocking: failure isolation is a design invariant (I3) — a slow or
+// broken mirror must never stall the primary write path.
+func (s *Store) replicate(eventType string, rec record.Record, payload any) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, rep := range s.replicas {
+		rep.tryEnqueue(repJob{eventType: eventType, rec: rec, payload: payload})
+	}
 }
 
 // ApplyIdempotent processes an event with deduplication by event ID. If the
@@ -482,7 +545,7 @@ func (s *Store) applyFoldInsert(
 			return fmt.Errorf("map set %s: %w", col, err)
 		}
 
-		s.notifyWatchers(col, key, value)
+		s.notifyLive(q, col, key, value)
 
 		return nil
 	}
@@ -510,7 +573,7 @@ func (s *Store) applyFoldUpdate(
 			return fmt.Errorf("map update %s: %w", col, err)
 		}
 
-		s.notifyWatchers(col, key, updatedVal)
+		s.notifyLive(q, col, key, updatedVal)
 
 		return nil
 	}
@@ -532,7 +595,7 @@ func (s *Store) applyFoldUpdate(
 			return fmt.Errorf("map set %s: %w", col, err)
 		}
 
-		s.notifyWatchers(col, key, updated)
+		s.notifyLive(q, col, key, updated)
 
 		return nil
 	}
@@ -554,7 +617,7 @@ func (s *Store) applyFoldRemove(
 			return fmt.Errorf("map delete %s: %w", col, err)
 		}
 
-		s.notifyWatchers(col, key, nil)
+		s.notifyLive(q, col, key, nil)
 
 		return nil
 	}

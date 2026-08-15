@@ -88,7 +88,7 @@ func (s *Store) CheckRouting(ctx context.Context) []Diagnostic {
 			continue
 		}
 
-		diag := checkQueryRouting(q, qa, s.engines, s.routingHysteresis, s.routingMinDelta)
+		diag := checkQueryRouting(q, qa, s.routableLocked(), s.routingHysteresis, s.routingMinDelta)
 		if diag != nil {
 			diags = append(diags, *diag)
 		}

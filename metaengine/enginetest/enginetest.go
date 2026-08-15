@@ -211,8 +211,17 @@ func RunStreamLogBackendTestIn(t *testing.T, eng metaengine.Engine, col string) 
 //  3. Append at version 0 (stale) → fails with ErrVersionConflict
 //
 // The engine must already implement AtomicAppender. The caller is responsible
-// for closing the engine.
+// for closing the engine. It uses the shared "events" collection — engines
+// whose storage is shared across parallel tests (e.g. one server for the
+// whole suite) should prefer RunAtomicAppenderTestIn with a unique collection.
 func RunAtomicAppenderTest(t *testing.T, eng metaengine.Engine) {
+	t.Helper()
+	RunAtomicAppenderTestIn(t, eng, "events")
+}
+
+// RunAtomicAppenderTestIn is RunAtomicAppenderTest with a caller-chosen
+// collection, for engines whose storage is shared across parallel tests.
+func RunAtomicAppenderTestIn(t *testing.T, eng metaengine.Engine, col string) {
 	t.Helper()
 
 	ap, ok := eng.(metaengine.AtomicAppender)
@@ -223,17 +232,17 @@ func RunAtomicAppenderTest(t *testing.T, eng metaengine.Engine) {
 	ctx := context.Background()
 
 	// Append at version 0 → succeeds.
-	if err := ap.StreamAppendExpected(ctx, "events", "s1", 0, []any{"a", "b"}); err != nil {
+	if err := ap.StreamAppendExpected(ctx, col, "s1", 0, []any{"a", "b"}); err != nil {
 		t.Fatalf("StreamAppendExpected v0: %v", err)
 	}
 
 	// Append at version 2 → succeeds.
-	if err := ap.StreamAppendExpected(ctx, "events", "s1", 2, []any{"c"}); err != nil {
+	if err := ap.StreamAppendExpected(ctx, col, "s1", 2, []any{"c"}); err != nil {
 		t.Fatalf("StreamAppendExpected v2: %v", err)
 	}
 
 	// Append at version 0 (stale) → fails with ErrVersionConflict.
-	err := ap.StreamAppendExpected(ctx, "events", "s1", 0, []any{"d"})
+	err := ap.StreamAppendExpected(ctx, col, "s1", 0, []any{"d"})
 	if !errors.Is(err, metaengine.ErrVersionConflict) {
 		t.Fatalf("expected ErrVersionConflict, got %v", err)
 	}

@@ -124,6 +124,14 @@ func (m *MemoryVectorIndex) search(query []float32, k int, metric string) []Vect
 	return results
 }
 
+// VectorDistance returns the distance between two vectors under the given
+// metric ("cosine", "dot", "euclidean"; "" defaults to euclidean). Engines
+// with brute-force VectorSearch implementations call this so results are
+// numerically identical across engines (the adttest matrix asserts parity).
+func VectorDistance(a, b []float32, metric string) float32 {
+	return computeDistance(a, b, metric)
+}
+
 func computeDistance(a, b []float32, metric string) float32 {
 	switch metric {
 	case "cosine":

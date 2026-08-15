@@ -11,6 +11,7 @@ import (
 // memoryEngine implements all ADT backends for testing and development.
 type memoryEngine struct {
 	mu         sync.RWMutex
+	name       string // Profile name; empty = "memory". Overridable for multi-engine test setups.
 	data       *memData
 	vectorIdx  *MemoryVectorIndex
 	searchIdx  *MemorySearchIndex
@@ -75,8 +76,13 @@ func (m *memoryEngine) SetCalibration(costs CalibrationCosts) {
 }
 
 func (m *memoryEngine) Profile() EngineProfile {
+	name := m.name
+	if name == "" {
+		name = "memory"
+	}
+
 	p := EngineProfile{
-		Name:    "memory",
+		Name:    name,
 		NsPerOp: MemoryNsPerOp,
 		Supports: map[ADT]Complexity{
 			ADTMap:       ComplexityO1,

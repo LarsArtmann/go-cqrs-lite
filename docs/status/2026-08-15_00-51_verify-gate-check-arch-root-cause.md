@@ -133,53 +133,53 @@ layout docs, replace-directive audit) is in the
 ## f) NEXT — up to 50, ordered by leverage
 
 **Immediate (finish this session's work):**
-1. Fix the 15 remaining lint issues (golines/gci/gofumpt via `--fix` in
+~~1. Fix the 15 remaining lint issues (golines/gci/gofumpt via `--fix` in~~ done at 444be10a7 (15/15 fixed; per-module tests re-run green - see Follow-up below)
    cmd/cqrs-lint, idempotency/kvstore, idempotency/sqlstore).
-2. Extend the SA1019 MemoryStore exclusion to `idempotency/.*_test\.go$`
+~~2. Extend the SA1019 MemoryStore exclusion to `idempotency/.*_test\.go$`~~ done at 444be10a7 (exclusion widened to (middleware|idempotency)/.*_test.go$)
    (same text-scoped rule as middleware).
-3. Re-run `nix run .#lint` → expect exit 0.
-4. Re-run `nix run .#verify` FULL — expect the first genuinely green full
+~~3. Re-run `nix run .#lint` → expect exit 0.~~ done at 444be10a7 (76/76 modules clean, exit 0)
+~~4. Re-run `nix run .#verify` FULL — expect the first genuinely green full~~ done at 5f2198189 (first genuinely green full verify since ADR-0128; three GREENs since)
    gate since the shim deletion.
-5. Commit the change set (subject to user's answer on commit policy).
+~~5. Commit the change set (subject to user's answer on commit policy).~~ done - daemon committed the set as 5127039da + 875bb689b (Follow-up #1)
 
 **Release (unblocks system/ replaces):**
-6. User approval + tag engine v4.0.2 for sqliteengine, badgerengine,
+6. User approval + tag engine v4.0.2 for sqliteengine, badgerengine, <- OPEN. awaiting user approval - TODO_LIST 'Release / Tagging'
    pebbleengine, pgengine (driver self-registration).
-7. User approval + tag watermill/v4.5.0 (errors.Join handler independence).
-8. Delete the 5 temporary replaces from system/go.mod; re-verify GOWORK=off.
-9. After re-tag chain: tidy the ~49 go.mod files carrying stale `// indirect`
+7. User approval + tag watermill/v4.5.0 (errors.Join handler independence). <- OPEN. awaiting user approval - TODO_LIST 'Release / Tagging'
+8. Delete the 5 temporary replaces from system/go.mod; re-verify GOWORK=off. <- OPEN. gated on the engine tags - TODO_LIST 'Release / Tagging'
+9. After re-tag chain: tidy the ~49 go.mod files carrying stale `// indirect` <- OPEN. TODO_LIST 'Release / Tagging' (~49 stale indirect refs)
    shim refs; verify each standalone build.
-10. Tag final v4.x patches of transport/http + transport/grpc (deprecation
+10. Tag final v4.x patches of transport/http + transport/grpc (deprecation <- OPEN. TODO_LIST 'Release / Tagging' (transport v4.x patches)
     notices included) — prerequisite for the v5 deletion.
 
 **Gate hardening:**
-11. Add `FAILED MODULES:` summary to the lint app script (flake.nix).
-12. Meta-test: every LAYER/DEP_BUDGET key maps to an existing go.mod (kills
+~~11. Add `FAILED MODULES:` summary to the lint app script (flake.nix).~~ done at 2e9a2fc28 (failedMods summary line in the lint app)
+~~12. Meta-test: every LAYER/DEP_BUDGET key maps to an existing go.mod (kills~~ done at 4a95bd04d (LAYER meta-tests in cmd/api-stability/main_test.go)
     the spaced-key bug class forever).
 13. Consider check-module-layers.sh → Go tool or TOML catalog (deferred
     before; the two bugs found tonight raise the priority).
 
 **TODO_LIST top items (unchanged, 33 open):**
-14. Dgraph `JournalReadFrom` seq offset off-by-one (S).
-15. cqrs-lint per-module regression tests F004/F007/F009/F012/F017/F023-F029/
+~~14. Dgraph `JournalReadFrom` seq offset off-by-one (S).~~ done at 7c0a62c98 (JournalReadFrom made position-based; shared contract suite wired)
+15. cqrs-lint per-module regression tests F004/F007/F009/F012/F017/F023-F029/ <- OPEN. TODO_LIST 'cqrs-lint' (per-module regression tests)
     B030 (M).
-16. `.golangci.yml` exclusion audit — system/ (20 linters off), cmd/cqrs-lint/
+16. `.golangci.yml` exclusion audit — system/ (20 linters off), cmd/cqrs-lint/ <- OPEN. TODO_LIST 'Code Quality' (.golangci.yml exclusion audit)
     (17), metaengine/ (24) (M).
-17. DuckDB Columnar calibration bench — the 2.65 vs 2.65 tie (M).
-18. SQLite/Postgres/MySQL Row-layout calibration (M).
-19. Multi-engine integration test with two real backends (M).
-20. Real Redis/NATS broker roundtrips — replace the corpse stubs in
+17. DuckDB Columnar calibration bench — the 2.65 vs 2.65 tie (M). <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks)
+18. SQLite/Postgres/MySQL Row-layout calibration (M). <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks)
+19. Multi-engine integration test with two real backends (M). <- OPEN. TODO_LIST 'Metaengine' (multi-engine, two real backends)
+20. Real Redis/NATS broker roundtrips — replace the corpse stubs in <- OPEN. Redis roundtrip shipped at d8c73be0a; NATS + broker edges = TODO_LIST 'Code Quality' (Wire broker tests into CI)
     watermill/broker_integration_test.go (M).
-21. v5 Phase 8 deletions: stack.Materialize, RelationalProjection + view,
+21. v5 Phase 8 deletions: stack.Materialize, RelationalProjection + view, <- OPEN. TODO_LIST 'v5 Unification Phase 8'
     graph.GraphProjection, stack.Bundle + 8 presets, stack.RunProjections,
     ADR-0126 compat shells (S/M each).
-22. v5 migration guide (L); then cut v5.0.0 (M).
+22. v5 migration guide (L); then cut v5.0.0 (M). <- OPEN. TODO_LIST 'v5 Unification Phase 8' (migration guide)
 23. go-codec repo scaffolding (.golangci.yml, CI, FEATURES/ROADMAP/SECURITY)
     (M).
-24. macOS verification of scripts/ephemeral-pg.sh (M).
-25. Nix infrastructure polish: #check-lint-config, #verify-ci, wire #sweep,
+24. macOS verification of scripts/ephemeral-pg.sh (M). <- OPEN. TODO_LIST 'Code Quality' (macOS ephemeral-pg)
+25. Nix infrastructure polish: #check-lint-config, #verify-ci, wire #sweep, <- OPEN. TODO_LIST 'Code Quality' (Infrastructure polish)
     consolidate 7× engine register.go boilerplate (M).
-26. Layout roles design doc prerequisites: fold-pipeline sync, async
+26. Layout roles design doc prerequisites: fold-pipeline sync, async <- OPEN. TODO_LIST 'Metaengine - Layout Planning' (concurrent session designing METAENGINE-LAYOUT-ROLES.md)
     replication, role transition API, workload trace format, aggregate
     boundary config, per-fold mutex, multi-collection atomicity (L each).
 
@@ -244,3 +244,15 @@ Benign noise observed in Doc Check: warnings for `../../flightrecorder`,
 the doc-checker probing for sibling checkouts of the externalized repos
 that are not present locally. Non-blocking; references themselves are the
 correct external paths.
+
+
+---
+
+## Resolution (2026-08-15)
+
+24 of 26 items carry verdicts. Items 1-5 and 11-12 closed by the same-night
+follow-up and the next sessions (`444be10a7`, `5f2198189`, `2e9a2fc28`,
+`4a95bd04d`); item 14 closed at `7c0a62c98`. The release-chain items (6-10)
+stay OPEN pending user approval - TODO_LIST "Release / Tagging". Items 13
+(layer script -> Go/TOML) and 23 (go-codec repo scaffolding, external repo)
+remain open without routing. Stays active for the release chain.

@@ -26,6 +26,7 @@ type planConfig struct {
 	routingHysteresis        float64         // min fractional improvement for re-routing suggestions
 	routingMinDeltaMs        float64         // min absolute improvement (ms) for re-routing suggestions
 	priority                 *PriorityConfig // operator-driven layout priorities (ADR-0124)
+	sharedCollections        map[string]bool // child Go types shared across collections (ADR-0124 aggregate boundaries)
 }
 
 type planOption func(*planConfig)
@@ -136,6 +137,10 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 		idempotency:       newIdempotencyTracker(),
 		meter:             newWorkloadMeter(),
 		subs:              newSubscriberHub(),
+		foldLocks:         newFoldLocks(),
+		engineRoles:       make(map[string]ProjectionRole),
+		replicas:          make(map[string]*replicator),
+		sharedCollections: cfg.sharedCollections,
 		routingHysteresis: defaultRoutingHysteresis(cfg.routingHysteresis),
 		routingMinDelta:   defaultRoutingMinDelta(cfg.routingMinDeltaMs),
 	}
@@ -169,6 +174,8 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 	if err := pipeline.Apply(plan, PlanContext{Store: store, Config: cfg}); err != nil {
 		return nil, fmt.Errorf("metaengine.Plan: %w", err)
 	}
+
+	store.rebuildTaskSnapLocked()
 
 	store.plan = plan
 	plan.Version = 1

@@ -4,15 +4,19 @@
 
 ---
 
-**v4.7.0 tagged** (2026-08-10); **v5 unification in progress** (ADR-0123). 86
+**v4.7.0 tagged** (2026-08-10); **v5 unification in progress** (ADR-0123). 82
 `go.mod` files. The `[Unreleased]` window covers the largest change set in the
 project's history: full v5 unification (Phases 1-7 — type foundation, dead-code
 removal, self-registration, all-engine porting, record-typed default folds,
 planner-time fold inference, operator-driven layout planning, universal ADT
-coverage), command lifecycle as event streams (ADR-0117), `codec/` extraction
-into standalone `go-codec`, per-module cqrs-lint coaching (all 28 rules), live
-cost measurement (dynamic NetworkRTT), and a calibrated KV/LSM layout cost
-model. See CHANGELOG `[Unreleased]` for the full per-entry detail.
+coverage), WAL unification (ADR-0126: `metadata.Metadata[K]`, `DecorateStore`,
+`LogStore`/`Inserter`/`AdapterCore` shared cores), transport deprecation
+(ADR-0127), shim-module deletion (ADR-0128: codec/retry/idempotency/
+flightrecorder go fully external), command lifecycle as event streams
+(ADR-0117), per-module cqrs-lint coaching, live cost measurement (dynamic
+NetworkRTT), a calibrated KV/LSM layout cost model, and positional
+`JournalReadFrom` fixes across Dgraph + all SQL engines. See CHANGELOG
+`[Unreleased]` for the full per-entry detail.
 
 ---
 
@@ -20,7 +24,7 @@ model. See CHANGELOG `[Unreleased]` for the full per-entry detail.
 
 | Version      | Date       | Highlights                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | ------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [Unreleased] | —          | • **v5 unification Phases 1-7** (ADR-0123): type foundation, dead-code removal, self-registration, all-engine porting, record-typed default folds (`OnRecord`), planner-time fold inference (`Infer`/`Override`), operator-driven layout planning, universal ADT coverage<br/>• **Operator-driven layout planning** (ADR-0124/0125): priority system, KV/LSM cost split (60s on-disk calibrated), `ReplanLayout`, audit trail, `cqrs-bench layout` CLI<br/>• **Command lifecycle as events** (ADR-0117): `commandlifecycle/` + projections<br/>• **Live cost measurement**: dynamic NetworkRTT, ProbeEngine, auto-replan<br/>• **cqrs-lint**: all 28 adoption+resilience rules per-module, `--strict`, suppression-drift audit, CSV/TSV output<br/>• **`codec/` extracted** into standalone `go-codec`<br/>• **Dgraph**: StreamLog, native graph on SQLite/Turso |
+| [Unreleased] | —          | • **v5 unification Phases 1-7** (ADR-0123): type foundation, dead-code removal, self-registration, all-engine porting, record-typed default folds (`OnRecord`), planner-time fold inference (`Infer`/`Override`), operator-driven layout planning, universal ADT coverage<br/>• **Operator-driven layout planning** (ADR-0124/0125): priority system, KV/LSM cost split (60s on-disk calibrated), `ReplanLayout`, audit trail, `cqrs-bench layout` CLI<br/>• **WAL unification** (ADR-0126): `metadata.Metadata[K]` canonical, `event.DecorateStore` + Sink/SourceTransforms, shared `LogStore`/`Inserter`/`AdapterCore` cores<br/>• **transport/* deprecated** (ADR-0127): watermill + go-sse are the delivery paths; cqrs-lint F030 coaching; taskmanager migrated to `metaengine.ServeSSE`; real Redis Streams broker roundtrip test<br/>• **Shim modules deleted** (ADR-0128): codec/retry/idempotency/flightrecorder fully external<br/>• **Command lifecycle as events** (ADR-0117): `commandlifecycle/` + projections<br/>• **Live cost measurement**: dynamic NetworkRTT, ProbeEngine, auto-replan<br/>• **cqrs-lint**: all 28 adoption+resilience rules per-module, `--strict`, suppression-drift audit, CSV/TSV output, 203 rules<br/>• **Dgraph**: StreamLog, native graph on SQLite/Turso; positional `JournalReadFrom` fixes on Dgraph + all SQL engines (2026-08-15)<br/>• **WithActor** actor lifecycle: `event/command/query.WithActor` + `Tracing.ActorID` (released 2026-08-13) |
 | v4.2.0       | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | v4.1.0       | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | v4.0.4       | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
@@ -39,90 +43,33 @@ The metaengine proves the Event-Query Model works: fold return types infer ADTs,
 typed closures avoid strings, pagination is detected from input structs. The
 production maturity chain is complete:
 
-- ✅ **Real SQLite engine** — `SQLiteEngine` wrapping `SQLViewStore` (ADR-0061)
-- ✅ **Cost model calibration** — `EngineProfile.NsPerOp` with benchmark-driven
-  constants (Memory=500ns, SQLite=7000ns), now split into `NsPerRead`/`NsPerWrite`
-- ✅ **Projection adapter** — `metaengine/projectionadapter` implements
-  `projection.Projection` for `projectionhost.Host` (ADR-0062)
-- ✅ **Pebble engine** — `metaengine/pebbleengine` with LSM point reads
-  (~7x faster than SQLite on MapGet). Separate module (ADR-0074)
-- ✅ **Pebble LayoutPlanner** — secondary index with O(matches) prefix scan
-  (108x speedup over full scan). Range filters via index bounds.
-  Sort index (1,233x speedup via `'o'` prefix key structure)
-- ✅ **Raw value readers** — `RawValueReader`/`RawScanReader` skip JSON decode
-  for filter/sort/cursor paths (single-pass decode)
-- ✅ **SQL pushdown** — `FilterOnField`/`SortOnField` push WHERE/ORDER BY/LIMIT
-  into SQLite via `json_extract()` (ADR-0072). pgengine via JSONB `->>`,
-  duckdbengine via `json_extract()`
-- ✅ **Layout planning** — `LayoutPlan` generates indexed-column DDL from
-  declared query fields — 10x speedup on filter+sort (ADR-0073). pgengine
-  expression indexes on JSONB paths
-- ✅ **Streaming reads** — `StreamScan(ctx) iter.Seq2` for OOM-safe iteration
-  (Memory + SQLite + Pebble)
-- ✅ **SSE event delivery** — `ServeSSE` with Last-Event-ID reconnection,
-  backpressure, dedup ring, byte-budgeted replay
-- ✅ **PrefetchCache** — cursor-encoded auto-population, thread-safe
-- ✅ **Watcher** — reactive notifications with per-key filtering
-- ✅ **Transaction API** — fully threaded `*sql.Tx` through engine ops
-- ✅ **ADT test harness** — `adttest.RunMatrix` cross-engine parity tests
-  for all 10 ADTs (Map, Set, Counter, Multimap, Log, Graph, SortedMap, Scan,
-  Vector, Search, Spatial)
-- ✅ **Taskmanager integration** — Counter ADT query with `/api/stats` endpoint
-- ✅ **DuckDB engine** — `metaengine/duckdbengine` with MapBackend,
-  CounterBackend, PushdownScan. Separate module (ADR-0086)
-- ✅ **Postgres engine** — `metaengine/pgengine` with MapBackend, CounterBackend,
-  ScanBackend, PushdownScan (JSONB operators), LayoutPlanner (expression
-  indexes). Pure Go (pgx). Separate module (ADR-0087)
-- ✅ **Vector/Search/Spatial ADTs** (ADR-0085) — k-NN similarity (cosine/
-  euclidean/dot), full-text search (TF-IDF inverted index), geo range queries
-  (haversine). Memory-only (brute-force); future backends below
-- ✅ **Rule pipeline** — `PlanRule` interface + `RulePipeline`. Composable rules
-  extracted from monolithic `planner.go` (279→226 lines). 4 rules: schemaRule,
-  layoutRule, writeAmpRule (ADR-0083)
-- ✅ **Materialize-vs-replay** — `ReplayCost`/`MaterializeCost`/
-  `ShouldMaterialize`. Advisory INFO/WARN diagnostics when materialization is
-  cheaper than replay. The ES-specific killer feature
-- ✅ **StorageLayout + cost matrix** — `Layout{Row, Columnar, LSM, KV}`,
-  `(ADT × Layout) → Complexity` mapping, `EngineProfile.Layouts`, `RuleTrace`
-- ✅ **SerializablePlan** — JSON-serializable `PlanResult` for diff/pin/round-trip
-- ✅ **VersionedStorage** — temporal queries (`ExecuteAsOf`) on Memory engine
-- ✅ **Fold sealed interface** — 12 concrete unexported fold types replace the
-  11-field `any` god-struct. Zero nil-panic risk
-- ✅ **ScanResult explicit HasMore** — across all 5 engines and 3 scan interfaces
-- ✅ **Property-based cross-engine parity** — `pgregory.net/rapid` generates
-  random operation sequences, verifies Memory and SQLite agree
-- ✅ **Postgres testcontainer tests** — first real-DB tests for pgengine
-- ✅ **Dead code wiring** — branded unit types (`NsPerRead`, `NsPerWrite`,
-  `ByteSize`) have `Valid()` called in `planQuery()`. `ApplyError` wraps fold
-  failures in `applyFold()`
-- ✅ **Exhaustiveness guard** — `TestApplyFoldExhaustiveness` count check +
-  mirror switch catches unhandled fold types at test time
-- ✅ **DuckDB LayoutPlanner** — columnar layout planning with type coercion
-  and aggregation via `LayoutPlanApplier`
-- ✅ **Reification failure tracking** — `IncReificationFailure()` /
-  `ReificationFailures()` surfaces type mismatches between planned and stored
-  types
-- ✅ **Replication model** (ADR-0093) — `EngineProfile.Replication`/
-  `ReplicationLag`/`NetworkRTT` (DDIA Ch5). `replicationRule` +
-  `mapUpdateReplicationRule` diagnostics. `WithReplication`/`WithNetworkRTT`
-  plan options. `CollectionInfo` exposure. `SerializablePlan` replication fields.
-  `ExplainPlan`/`Doctor` replication output. Foundation for distributed engines
-- ✅ **Universal ADT Phase 3** (ADR-0094) — `DegradedADTs`: all 5 engines
-  declare 10/10 ADTs. Non-native ADTs run in O(N) degraded mode. Eliminates
-  `ErrUnsupportedADT`. `degradedADTRule` SCREAM diagnostics
-- ✅ **WatchTyped** — `WatchTyped[V]`/`WatchTypedWithSeq[V]` typed watcher
-  convenience functions
-- ✅ **Boundary key validation** — `ErrKeyTypeMismatch` at `Store.Execute`/
-  `ExecuteTyped` boundary
-- ✅ **CalibrateEngine** — `calibratable` interface; copy-discard bug fixed
-- ✅ **AtomicAppender** — `StreamAppendExpected(ctx, collection, streamID,
-expectedVersion, entries)` — atomic optimistic concurrency under a single
-  lock. Memory + SQLite. `ErrVersionConflict` sentinel
-- ✅ **StreamLogBackend** — 5-method interface for stream-keyed event journals.
-  Memory + SQLite implementations. Foundation for the `system/` package
+The production maturity chain is complete. Highlights (full per-entry detail in
+[CHANGELOG.md](CHANGELOG.md) `[Unreleased]`; every item shipped and tested):
 
-**Remaining (short-term):** See [TODO_LIST.md](TODO_LIST.md) — DuckDB `plans`
-map lock consistency, `DecodeFloatResults` bounds guard, stale README claims.
+- **10 engine backends** — Memory, SQLite, Pebble, bbolt, DuckDB, Postgres,
+  MySQL, Badger, Dgraph, Turso (+ Iroh replication prototype). Each in its own
+  module (dep isolation); SQLite/Pebble/Bbolt/DuckDB/PG all implement
+  StreamLogBackend; DuckDB + PG have AtomicAppender
+- **SQL pushdown + layout planning** — `FilterOnField`/`SortOnField` pushdown
+  per dialect (json_extract / JSONB `->>`); `LayoutPlan` generates indexed-column
+  DDL from declared query fields (10x filter+sort); pgengine expression indexes;
+  DuckDB columnar planning
+- **Streaming + reactive reads** — `StreamScan(ctx) iter.Seq2`, raw-value
+  readers (single-pass decode), `ServeSSE` with Last-Event-ID replay,
+  `Watcher`/`WatchTyped`, `PrefetchCache`
+- **Cost model + rules** — `EngineProfile` with NsPerRead/NsPerWrite, ReadCosts,
+  Replication/Persistence/NetworkRTT fields; composable `RulePipeline`;
+  materialize-vs-replay advisory; `SerializablePlan`; `Calibratable` +
+  `Calibration` for external engines; live RTT via `ProbeEngine`/`LatencyTracker`
+- **Correctness rails** — fold sealed interface (no `any` god-struct),
+  exhaustiveness guard, property-based cross-engine parity (rapid), Postgres
+  testcontainers, `adttest.RunMatrix` over all 10 ADTs,
+  `enginetest` shared contract suites (incl. StreamLog positional semantics),
+  `AtomicAppender` optimistic concurrency, boundary key validation
+
+**Remaining (short-term):** See [TODO_LIST.md](TODO_LIST.md) — DuckDB
+`DecodeFloatResults` bounds guard, layout calibration, seq-carrying journal
+reads.
 
 **Metaengine v2 (ADRs 0111-0119) — ES-native architecture shipped:**
 
@@ -161,7 +108,9 @@ map lock consistency, `DecodeFloatResults` bounds guard, stale README claims.
 - ✅ **Command lifecycle as event streams (ADR-0117)** — `commandlifecycle/`
   events, `Recorder`, middleware, DLQ/retry/failure projections.
 
-**Remaining (short-term):** See [TODO_LIST.md](TODO_LIST.md) — fold inference verify gate, layout planning follow-ups, command lifecycle follow-ups, calibration benchmark regression.
+**Remaining (short-term):** See [TODO_LIST.md](TODO_LIST.md) → Metaengine
+sections — layout calibration, capability conformance test, DuckDB aggregation
+pushdown, seq-carrying journal reads, calibration benchmark regression check.
 
 **Remaining (long-term, ROADMAP):**
 
@@ -231,13 +180,14 @@ Evidence-grade metrics added (2026-08-01, ADR-0090).
 
 ### 3. cqrs-lint → Trustworthy
 
-The linter grew from 65 to **202 rules** across 10 categories. Quality has been
+The linter grew from 65 to **203 rules** across 10 categories. Quality has been
 hardened through multiple brutal review passes and 7 consumer feedback rounds.
 
-- ✅ **202 rules shipped** across correctness, API misuse, boilerplate, adoption,
+- ✅ **203 rules shipped** across correctness, API misuse, boilerplate, adoption,
   architecture, consistency, security, performance, testing, version.
   Metaengine-aware detection (F018-F026). Resilience rules (B029-B031).
   Observability rules (F027-F029). Optimistic concurrency rules (C041-C042).
+  Deprecated-transport coaching (F030, ADR-0127).
 - ✅ **Feature profile system** — auto-detects consumer module usage and adapts
   context-dependent rules. TLS-aware server detection, ServerLocal heuristic.
   Per-module detection infrastructure (`ProfileForFile`) — C017, S002, S003,
@@ -430,10 +380,11 @@ LagPerProjection/LagDuration/WorkerStatus/RegisterCloser shipped. Drainer
 interface + RegisterDrainer shipped. orderedEngines topological sort shipped.
 example/taskmanager migrated to `system.New()`.
 
-**Remaining:** NATS/Redis bus driver registration, Dgraph real-instance testing,
-command lifecycle integration, layout planning verify gate. See
-[TODO_LIST.md](TODO_LIST.md) → Integration Test Infrastructure, Metaengine
-Coverage Gaps, and v5 Unification.
+**Remaining:** NATS/Redis bus driver registration, command lifecycle
+integration (see [TODO_LIST.md](TODO_LIST.md) → WithActor Hardening and
+ADR-0117 follow-ups). Dgraph real-instance testing and the layout-planning
+verify gate are DONE (24/24 live Dgraph 2026-08-15; regression matrix
+2026-08-11).
 
 ### 12. FoundationDB Backend (design-doc-backed)
 
@@ -601,6 +552,34 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
 
 > Items with design docs graduate to a Theme above, then to [TODO_LIST.md](TODO_LIST.md)
 > when actively worked.
+
+---
+
+## Open Questions (user decisions pending)
+
+> Standing questions from recent sessions that block or shape work. Answers
+> should be folded into TODO_LIST once decided.
+
+1. **Tag + push authorization** (critical, standing since 2026-08-14): engine
+   v4.0.2+ tags (sqlite/badger/pebble/pg) + watermill/v4.5.0 + command/v4.6.1 —
+   the `JournalReadFrom` re-delivery fix is invisible to consumers until tagged.
+   Tag now as a standalone pass, or batched with the final transport/* v4.x
+   patches? Is pushing tags + master to the remote authorized?
+2. **Go 1.26.6 direction**: adopt repo-wide (go.mod sweep + CI + nix go pin +
+   .go-version) or hold at 1.26.5? The go.work-only bump is a half-state that
+   keeps gopls noisy.
+3. **SA1019 exclusion permanence**: keep the scoped
+   `(middleware|idempotency)/.*_test\.go$` exclusion permanently, or migrate
+   kvstore test matrices onto the go-idempotency contract suite before v5?
+4. **Stale-pin sweep policy**: may future sessions bump ALL sibling-module pins
+   repo-wide to latest tags mechanically (gate-verified), or only on breakage?
+   A yes also greenlights the pin-drift meta-test failing on staleness.
+5. **Vulncheck placement**: check-coverage / check-duplication / check-arch /
+   check-depguard already run inside `#verify` (wired since `6f7c88388`,
+   2026-08-03 — the Aug-14 "gates are unwired" premise was wrong; check-coverage
+   rotted while WIRED because the script was broken). Only `#vulncheck` sits
+   outside `#verify`. Fold it in (+time per run), keep it a manual pre-tag
+   step (current TODO_LIST pre-tag checklist), or wire it into CI?
 
 ---
 

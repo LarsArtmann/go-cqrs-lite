@@ -21,6 +21,12 @@ type Hooks struct {
 	// Use for debug logging, error tracking, and metrics.
 	OnFold func(collection, eventType string, kind FoldKind, d time.Duration, _ error)
 
+	// OnApply is called after each Apply/ApplyRecord/ApplyBatch event with the
+	// event type, total duration (dispatch + replication enqueue), and any
+	// error (nil on success). One call per event — unlike OnFold, which fires
+	// per fold. Used by TraceRecorder.
+	OnApply func(eventType string, d time.Duration, _ error)
+
 	// OnExecute is called after each Execute/ExecuteCtx call with the
 	// collection name, read pattern, duration, and any error (nil on success).
 	OnExecute func(collection string, pattern ReadPattern, d time.Duration, _ error)

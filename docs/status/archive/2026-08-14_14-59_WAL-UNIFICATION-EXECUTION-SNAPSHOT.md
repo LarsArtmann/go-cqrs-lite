@@ -111,24 +111,18 @@ constraint. The API-stability golden regen, ADR, doc sweep, and `nix run
 
 ## PARTIALLY DONE (started, work remains)
 
-- **Phase 2 leftovers:** none code-wise, but the plan's Line-count/function-
-  size CI rules (max 350/file, 30/function) have not been machine-verified on
-  the rewritten files, and `nix fmt` (golines 120) has not run on the new
-  files. `store_middleware.go`'s `decoratedStore` var-block alignment was only
-  gofmt'd.
+~~**Phase 2 leftovers:** none code-wise, but the plan's Line-count/function-
+size CI rules (max 350/file, 30/function) have not been machine-verified on
+the rewritten files, and `nix fmt` (golines 120) has not run on the new
+files.~~ Resolved later the same day — `nix fmt` run at `5c4dd294b`;
+350-line limits enforced by every subsequent lint gate (76/76 clean since
+`444be10a7`).
 
-## NOT STARTED (planned, untouched)
+## NOT STARTED (planned, untouched) — ALL DONE 2026-08-14
 
-- **Phase 5 — SQL store dedup:** `storage/sql.Inserter[T]` generic; rewrite of
-  the three SQL stores' insert/scan/save paths (~300 lines estimated).
-- **Phase 6 — System adapter dedup:** `system.AdapterCore[T]` extraction from
-  `EventAdapter`/`CommandAdapter`/`QueryAdapter` (~300 lines estimated).
-- **Phase 7 — Ship:** new ADR superseding ADR-0031's Decision-3 stance +
-  documenting the DecorateStore error-code moves; API-stability golden regen +
-  meta-tests; skill-reference sweep (`.agents/skills/go-cqrs-lite/references/`
-  still recommend `NewVersionedStore` in places); AGENTS.md internal-contract
-  update; doc-check; `nix run .#verify` (build+vet+test+race+lint+doc);
-  `nix run .#check-arch` / `#check-duplication` / `#check-coverage`.
+- ~~**Phase 5 — SQL store dedup:** `storage/sql.Inserter[T]` generic~~ done at `44a8a895e` (Inserter shipped; deliberate task-29 deviation documented on the plan doc)
+- ~~**Phase 6 — System adapter dedup:** `system.AdapterCore[T]`~~ done at `80d41da33` + `4e9c1190` (LoadStream migration closed it)
+- ~~**Phase 7 — Ship:** ADR + golden regen + skill sweep + verify~~ done at `d0e0b682b` (ADR-0126); full verify GREEN 3× since (`5f2198189`)
 
 ## TOTALLY FUCKED UP (nothing here — honest close calls)
 
@@ -167,65 +161,73 @@ recorded so future sessions don't re-trip:
 
 ## UP TO 50 NEXT STEPS
 
-1.  Regenerate API stability golden (`cmd/api-stability -update`).
-2.  Run API stability meta-tests (`TestEveryGoModDirIsInModulesList` etc.).
-3.  Write ADR-0118 (or next free): `metadata.Metadata[K]` unification; supersede ADR-0031 Decision 3.
-4.  Same ADR: record the `encryption.*` → `event.*` unsupported-capability error-code migration.
-5.  Same ADR: document why `event.Metadata` does NOT embed `Metadata[K]` (composite-literal break).
-6.  Update ADR-0031 status note to point at the new ADR.
-7.  Sweep `.agents/skills/go-cqrs-lite/references/*.md` for `NewVersionedStore`/`NewEncryptedStore` recommendations → DecorateStore + transforms.
-8.  Update `AGENTS.md` module map + internal contracts (store-middleware section).
-9.  Run `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`.
-10. Run `nix fmt`.
-11. Run `nix run .#verify` (expect golden + possibly lint findings; fix).
-12. Run `nix run .#check-arch` (dep budgets — query gained record dep).
-13. Run `nix run .#check-duplication` (new brandedString 3rd copy risk; update baseline only after judgment).
-14. Run `nix run .#check-coverage` (drift check).
-15. Verify 350-line file limit on all rewritten files.
-16. Read the three SQL stores (`storage/eventstore`, command/query SQL stores).
-17. Design `storage/sql.Inserter[T]` (dialect placeholders, SQLite 999-param chunking reuse).
-18. Implement `Inserter.Save` + `AppendBatch`.
-19. Migrate SQL command store inserts to `Inserter[T]`.
-20. Migrate SQL query store inserts to `Inserter[T]`.
-21. Migrate SQL event store inserts to `Inserter[T]`.
-22. Run SQL store tests (SQLite) 3× with `-count=3 -race`.
-23. Run PG/MySQL integration tests if inserts touched shared paths.
-24. Read `system/adapter_event.go` / `adapter_command.go` / `adapter_query.go` + serial helpers.
-25. Design `system.AdapterCore[T]`.
-26. Extract `AdapterCore[T]` (backend, collection, serialize/deserialize).
-27. Migrate `EventAdapter` onto `AdapterCore`.
-28. Migrate `CommandAdapter` onto `AdapterCore`.
-29. Migrate `QueryAdapter` onto `AdapterCore`.
-30. Run system + integration module tests.
-31. Add `event.DecorateStore` recipe to `.agents/skills/go-cqrs-lite/references/recipes.md`.
-32. Add `memory.LogStore` note to modules reference.
-33. Double-check no internal production code references deprecated symbols (`rg "schema.NewVersionedStore|signing.Rejecting" --type go` minus tests/docs).
-34. Add compat test asserting `encryption.ErrInnerStoreNotJournal` aliases `event.ErrInnerStoreNotJournal`.
-35. Re-run `go mod tidy` + standalone `GOWORK=off go build` per touched module (vulncheck parity).
-36. Check `query/go.mod` record dep moved out of `// indirect` after tidy.
-37. Soak-test env sanity run (`SOAK_SKIP_10M=1`) since memory store core changed.
-38. Consider `DecorateJournal` helper for `VersionedSeekableJournal`.
-39. Update TODO_LIST.md: mark WAL-unification items 1–4 done, 5–7 open.
-40. Update FEATURES.md if it enumerates EncryptedStore/VersionedStore behavior.
-41. Re-read plan docs; annotate completed tasks to keep them honest.
-42. Race-run event + storage/memory suites (`-race -count=3`) after core change.
-43. Consider extracting `brandedString` into `record` (pending dup gate).
-44. Bench sanity: `BenchmarkVersionedStore_Load` + memory store benchmarks.
-45. Check `cmd/cqrs-lint` S010 still behaves (mentions NewEncryptedStore in suggestions).
-46. Grep docs/ for stale `VersionedStore` narratives; fix wording.
-47. Delete stale plan checkboxes or convert remaining ones into TODO_LIST entries.
-48. Final `nix run .#verify` + tag decision per release process (only on request).
-49. Scan for new gopls phantom errors after file rewrites (restart LSP if needed).
-50. Mark this report DONE in TODO_LIST when Phases 5–7 land.
+1. ~~Regenerate API stability golden (`cmd/api-stability -update`).~~ done at `d0e0b682b`
+2. ~~Run API stability meta-tests (`TestEveryGoModDirIsInModulesList` etc.).~~ done at `d0e0b682b`
+3. ~~Write ADR-0118 (or next free): `metadata.Metadata[K]` unification; supersede ADR-0031 Decision 3.~~ done — ADR-0126, `d0e0b682b`
+4. ~~Same ADR: record the `encryption.*` → `event.*` unsupported-capability error-code migration.~~ done (ADR-0126)
+5. ~~Same ADR: document why `event.Metadata` does NOT embed `Metadata[K]` (composite-literal break).~~ done (ADR-0126; permanent for v4)
+6. ~~Update ADR-0031 status note to point at the new ADR.~~ done at `d0e0b682b`
+7. ~~Sweep `.agents/skills/go-cqrs-lite/references/*.md` for `NewVersionedStore`/`NewEncryptedStore` recommendations → DecorateStore + transforms.~~ done at `d0e0b682b` (recipe 2.7b added)
+8. ~~Update `AGENTS.md` module map + internal contracts (store-middleware section).~~ done at `d0e0b682b` (contracts #16/#17)
+9. ~~Run `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`.~~ done — 1020 refs, 0 warnings since `2e9a2fc28`
+10. ~~Run `nix fmt`.~~ done at `5c4dd294b`
+11. ~~Run `nix run .#verify` (expect golden + possibly lint findings; fix).~~ done — GREEN 3× since (`5f2198189`)
+12. ~~Run `nix run .#check-arch` (dep budgets — query gained record dep).~~ done (green after the spaced-keys fix, `5127039da`)
+13. ~~Run `nix run .#check-duplication` (new brandedString 3rd copy risk; update baseline only after judgment).~~ done — baseline re-pinned 92→97 at `875bb689b`
+14. ~~Run `nix run .#check-coverage` (drift check).~~ done — gate repaired at `875bb689b`
+15. ~~Verify 350-line file limit on all rewritten files.~~ done (76/76 lint clean)
+16. ~~Read the three SQL stores (`storage/eventstore`, command/query SQL stores).~~ done at `44a8a895e`
+17. ~~Design `storage/sql.Inserter[T]` (dialect placeholders, SQLite 999-param chunking reuse).~~ done at `44a8a895e`
+18. ~~Implement `Inserter.Save` + `AppendBatch`.~~ done at `44a8a895e`
+19. ~~Migrate SQL command store inserts to `Inserter[T]`.~~ done at `44a8a895e`
+20. ~~Migrate SQL query store inserts to `Inserter[T]`.~~ done at `44a8a895e`
+21. ~~Migrate SQL event store inserts to `Inserter[T]`.~~ **NOT-DO — documented deviation (task 29)**: event store keeps cached templates + batched multi-VALUES deliberately
+22. ~~Run SQL store tests (SQLite) 3× with `-count=3 -race`.~~ done at `44a8a895e`
+23. ~~Run PG/MySQL integration tests if inserts touched shared paths.~~ done (live-verified 2026-08-15, `4a95bd04d`)
+24. ~~Read `system/adapter_event.go` / `adapter_command.go` / `adapter_query.go` + serial helpers.~~ done at `80d41da33`
+25. ~~Design `system.AdapterCore[T]`.~~ done at `80d41da33`
+26. ~~Extract `AdapterCore[T]` (backend, collection, serialize/deserialize).~~ done at `80d41da33`
+27. ~~Migrate `EventAdapter` onto `AdapterCore`.~~ done at `80d41da33` + `4e9c1190`
+28. ~~Migrate `CommandAdapter` onto `AdapterCore`.~~ done at `4e9c1190`
+29. ~~Migrate `QueryAdapter` onto `AdapterCore`.~~ done at `80d41da33`
+30. ~~Run system + integration module tests.~~ done (118 tests, 3× race)
+31. ~~Add `event.DecorateStore` recipe to `.agents/skills/go-cqrs-lite/references/recipes.md`.~~ done at `d0e0b682b`
+32. ~~Add `memory.LogStore` note to modules reference.~~ done at `d0e0b682b`
+33. ~~Double-check no internal production code references deprecated symbols (`rg "schema.NewVersionedStore|signing.Rejecting" --type go` minus tests/docs).~~ done at `d0e0b682b`
+34. ~~Add compat test asserting `encryption.ErrInnerStoreNotJournal` aliases `event.ErrInnerStoreNotJournal`.~~ done (compat_aliases_test.go, `d0e0b682b`)
+35. ~~Re-run `go mod tidy` + standalone `GOWORK=off go build` per touched module (vulncheck parity).~~ done at `5c4dd294b`
+36. ~~Check `query/go.mod` record dep moved out of `// indirect` after tidy.~~ done at `d0e0b682b`
+37. ~~Soak-test env sanity run (`SOAK_SKIP_10M=1`) since memory store core changed.~~ done (verify gates since)
+38. Consider `DecorateJournal` helper for `VersionedSeekableJournal`. ← **open — tracked in TODO_LIST → Code Quality**
+39. ~~Update TODO_LIST.md: mark WAL-unification items 1–4 done, 5–7 open.~~ done
+40. ~~Update FEATURES.md if it enumerates EncryptedStore/VersionedStore behavior.~~ done at `d0e0b682b`
+41. ~~Re-read plan docs; annotate completed tasks to keep them honest.~~ done (EXECUTED banner, `875bb689b`)
+42. ~~Race-run event + storage/memory suites (`-race -count=3`) after core change.~~ done (16-44 verification matrix)
+43. Consider extracting `brandedString` into `record` (pending dup gate). ← **open — tracked in TODO_LIST → Code Quality**
+44. ~~Bench sanity: `BenchmarkVersionedStore_Load` + memory store benchmarks.~~ done (verify race legs)
+45. ~~Check `cmd/cqrs-lint` S010 still behaves (mentions NewEncryptedStore in suggestions).~~ done — S010/F005 de-staled at `d0e0b682b`
+46. ~~Grep docs/ for stale `VersionedStore` narratives; fix wording.~~ done at `d0e0b682b`
+47. ~~Delete stale plan checkboxes or convert remaining ones into TODO_LIST entries.~~ done (EXECUTED banner)
+48. ~~Final `nix run .#verify` + tag decision per release process (only on request).~~ verify done; **tagging open — TODO_LIST → Release/Tagging**
+49. ~~Scan for new gopls phantom errors after file rewrites (restart LSP if needed).~~ done (restarted in later sessions)
+50. ~~Mark this report DONE in TODO_LIST when Phases 5–7 land.~~ done — WAL Unification closed; annotated + archived 2026-08-15
 
 ## QUESTIONS I CANNOT FIGURE OUT MYSELF (max 3)
 
-1. **event.Metadata embedding:** I skipped it because embedding breaks external
-   `event.Metadata{Tracing: …}` literals. Do you accept that as permanent, or
-   do you want a v5 major-version plan where the field move is intentional?
-2. **Deprecated shell lifetime:** Should `schema.VersionedStore` /
-   `NewVersionedStore` (and `metadata.CustomData`) be removed at v5, or kept
-   indefinitely? This decides the ADR's deprecation-window wording.
-3. **Execution order:** Continue straight into Phase 5 (SQL `Inserter`) and
-   Phase 6 (`AdapterCore`) now, or pause and land Phase 7 (ADR + golden regen +
-   verify) first so the repo is formally green before more refactoring?
+1. ~~**event.Metadata embedding:** I skipped it because embedding breaks external
+   `event.Metadata{Tracing: …}` literals.~~ Answered: permanent for v4 —
+   documented in ADR-0126; revisit only as an explicit v5 break.
+2. ~~**Deprecated shell lifetime:**~~ Answered: removed at v5 (ADR-0123 horizon;
+   TODO_LIST Phase 8 entry).
+3. ~~**Execution order:**~~ Moot — all phases executed; WAL Unification closed
+   2026-08-15.
+
+---
+
+## Resolution (2026-08-15)
+
+All 7 phases shipped (Phases 1–4 here, 5–7 in the successor report
+`2026-08-14_16-44`, close-out in `2026-08-15_00-48`). All 50 next-steps closed:
+47 shipped (hashes inline), 1 documented deviation (task 29), 2 deferred with
+TODO_LIST pointers (DecorateJournal, brandedString). Full verify gate GREEN 3×
+since. Archived.

@@ -165,6 +165,10 @@ func (e *bboltEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSortedMap: metaengine.ComplexityON,    // scan + Go sort
 			metaengine.ADTLog:       metaengine.ComplexityOLogN, // append O(logN), tail O(N)
 			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
+			metaengine.ADTVector:    metaengine.ComplexityON, // brute-force scan (degraded)
+		},
+		DegradedADTs: map[metaengine.ADT]bool{
+			metaengine.ADTVector: true, // O(N·D) brute-force, no ANN index
 		},
 		Layouts: map[metaengine.ADT]metaengine.StorageLayout{
 			metaengine.ADTMap:       metaengine.LayoutLSM,

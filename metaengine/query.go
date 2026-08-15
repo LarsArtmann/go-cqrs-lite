@@ -413,6 +413,11 @@ type queryMeta interface {
 	// Infer(). For queries with explicit folds, this is a no-op. Called by
 	// Plan() before planQuery().
 	ensureFolds() error
+
+	// isShadow reports whether fold writes on this query must skip watcher
+	// notifications. True only for the replication shim that redirects writes
+	// to a shadow (Backup/Migration) engine — primaries already notified.
+	isShadow() bool
 }
 
 // asQueryMeta adapts a value to queryMeta. Query() returns a value type
@@ -450,6 +455,7 @@ func (q QueryDecl[Q, R]) QueryConfig() QueryConfig      { return q.Config }
 func (q QueryDecl[Q, R]) QueryEngine() Engine              { return q.engine }
 func (q QueryDecl[Q, R]) QueryComplexity() Complexity      { return q.complexity }
 func (q QueryDecl[Q, R]) QueryFoldByEvent() map[string]int { return q.foldByEvent }
+func (q QueryDecl[Q, R]) isShadow() bool                   { return false }
 
 func (q *QueryDecl[Q, R]) assignPlan(
 	engine Engine,

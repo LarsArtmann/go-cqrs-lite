@@ -24,7 +24,7 @@ TOLERANCE=2.0
 # flightrecorder/idempotency shims never had coverage claims.
 declare -A EXPECTED=(
 	[decider]=96.1
-	[storage / memory]=95.7
+	[storage/memory]=95.7
 	[snapshot]=91.9
 	[schema]=92.2
 	[command]=88.5

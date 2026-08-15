@@ -135,10 +135,21 @@ The sibling's bump was NOT touched (not my change to revert).
 
 ## Open items for the user
 
-1. **Tagging** (still awaiting approval, unchanged): engine v4.0.2 (×4) + watermill/v4.5.0,
+1. **Tagging** (still awaiting approval, unchanged): engine v4.0.2 (×4) + watermill/v4.5.0, <- OPEN. TODO_LIST 'Release / Tagging' + ROADMAP 'Open Questions' #1
    then remove the 5 temporary replaces in system/go.mod and tidy the ~49 stale indirect refs.
    Never tag/push without explicit instruction.
-2. **Go 1.26.6 direction**: the sibling go-codec is mid-upgrade (uncommitted). Decide whether
+2. **Go 1.26.6 direction**: the sibling go-codec is mid-upgrade (uncommitted). Decide whether <- OPEN. ROADMAP 'Open Questions' #2
    go-cqrs-lite formally moves to Go 1.26.6 (per-module go.mod + CI + nixpkgs go pin) or the
    sibling bump lands back at 1.26.5. The go.work-only bump unblocks dev but is a half-state.
-3. SA1019 exclusion permanence (from prior session, unchanged).
+3. SA1019 exclusion permanence (from prior session, unchanged). <- OPEN. TODO_LIST 'v5 Unification Phase 8' (kvstore SA1019 decision) + ROADMAP 'Open Questions' #3
+
+
+---
+
+## Resolution (2026-08-15)
+
+All 3 user-items routed: tagging -> TODO_LIST "Release / Tagging" + ROADMAP
+Open Questions #1; Go 1.26.6 -> Open Questions #2; SA1019 -> TODO_LIST v5 +
+Open Questions #3. Everything else in this report was verified done at the
+time (committed across `7c0a62c98` + `2e9a2fc28`). Archived by the
+docs-health annotation pass.

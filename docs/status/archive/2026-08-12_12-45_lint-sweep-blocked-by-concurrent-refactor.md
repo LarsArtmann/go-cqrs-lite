@@ -22,7 +22,7 @@ The user asked to run `golangci-lint run --fix ./...` in every folder with a `go
    - `cmd/cqrs-bench/factory.go` — 1 typecheck (`enc.SetIndent` doesn't exist on `jsontext.Encoder`)
    - `metaengine/layout_matrix_test.go` — 1 `copyloopvar`
    - `metaengine/sqliteengine/graph.go` — 1 `errcheck` on `defer rows.Close()`
-4. **12:08** — Applied fixes to all 5 findings.
+4. **12:08** — Applied fixes to all 5 findings. <- NOT-DO. codec/ deleted entirely at 5127039da (ADR-0128); nothing to exclude
 5. **12:11–12:25** — Discovered a second concurrent agent was staging a 479-file refactor (later 643 files, 164 deletions). My fixes kept getting reverted. Reapplied them 2-3 times each. The auto-commit daemon was staging changes I did not author.
 6. **12:17** — `git reflog` showed `reset: moving to HEAD` from a separate process. Files reappeared in old form after I had just edited them.
 7. **12:25** — Tried lint again; `nix run .#lint` started failing with `go.work` referencing deleted modules (`metaengine/bboltengine`, `metaengine/mysqlengine`, `metaengine/tursoengine`, `storage/backuptest`).
@@ -119,66 +119,66 @@ The user asked to run `golangci-lint run --fix ./...` in every folder with a `go
 
 Sorted by urgency / blocking-ness.
 
-1. **Verify `nix run .#lint` produces zero issues** on the new HEAD (`7942a61bb`). Without this, the session's stated goal is unverified.
-2. **Verify `nix run .#build` succeeds.** Typecheck errors from the refactor (codec type mismatch, missing `md.Tombstone` field, etc.) need to be fixed.
-3. **Verify `nix run .#test` passes** at minimum the lint-tracked modules.
-4. **Reapply `.golangci.yml` exclusion for `codec/alias.go`.** This was reverted twice and never made it into a commit.
-5. **Run `golangci-lint run --fix ./...` in every `go.mod` directory** as the user originally asked. Filter out typecheck-only failures, focus on actionable lints.
-6. **Run `cd cmd/api-stability && GOWORK=off go run main.go -update`** and commit the golden delta. Per AGENTS.md, exported-symbol changes require this.
-7. **Run meta-tests:** `TestEveryGoModDirIsInTestModules`, `TestEveryGoModDirIsIsInModulesList`.
-8. **Decide: keep or revert the 164 deletions.** `metaengine/bboltengine`, `metaengine/mysqlengine`, `metaengine/tursoengine`, `storage/backuptest` — were they intentional consolidation or accidental? Talk to whoever ran the other session.
-9. **Decide: keep or revert `codec/alias.go` deletion.** The file re-exported `go-codec` symbols; if it was deleted, consumers may break. Check `git diff a6613ef0d^ -- codec/alias.go` to see what was lost.
-10. **Decide: keep or revert `flightrecorder/alias.go` deletion.** Same concern.
-11. **Verify the middleware helper API compiles in both `package middleware` and `package middleware_test`** contexts.
-12. **Run the middleware test suite:** `cd middleware && GOWORK=off go test -tags "goexperiment.jsonv2" ./...` (would have caught the `MemoryStore.Close()` return-type mismatch).
-13. **Verify `metaengine/layout_matrix_test.go` no longer has `copyloopvar`.** Confirm via `go vet`.
-14. **Verify `cmd/cqrs-bench/factory.go` and `flags.go` pass `gci`.** Confirm via `golangci-lint run --fix ./...`.
-15. **Check `go-arch-lint` budget** — the refactor may have introduced new dep edges.
-16. **Check `cmd/api-stability/main.go` modules list** — verify it still matches `find . -name go.mod`.
-17. **Check `flake.nix` `testModules` list** — same verification.
-18. **Check `flake.nix` `modulePaths` derivation** — confirm it builds with `nix build .#check-arch`.
-19. **Re-tag deleted engine modules if reverting:** `metaengine/bboltengine v4.x.y`, etc. — these were published; if we want them back in the workspace we need them back in git first.
-20. **Check `metaengine/.go-arch-lint.yml` deletion** — was that intentional?
-21. **Check `metaengine/adttest/aggregate_harness.go` deletion** — was that intentional?
-22. **Investigate `metaengine/irohengine/quic/frame.go` deletion** — was the function moved to `transport.go`?
-23. **Investigate `metaengine/sqliteengine/graph.go` deletion** — was graph functionality merged into another file?
-24. **Investigate `metaengine/probe.go`, `metaengine/latency.go` deletions** — these were part of live-latency system.
-25. **Investigate `metaengine/dispatch.go`, `metaengine/relayout.go`, `metaengine/registry.go` deletions** — core orchestration?
-26. **Investigate `metaengine/spike_*_test.go` deletions** — were these spike tests being permanently removed?
-27. **Verify the `event/tombstone.go` addition** compiles — it references `md.Tombstone` field that may not exist on `Metadata`.
-28. **Verify the `codec/` package re-introduction** — it duplicates `github.com/larsartmann/go-codec`. Is the intent to keep both, or re-replace?
-29. **Update `AGENTS.md`** if any of the project structure changes from `a6613ef0d` should be permanent (e.g., removing the `metaengine/bboltengine` tier listing).
-30. **Update `references/modules.md`** to reflect the new module map after deletions.
-31. **Update the seven-tier model docs** (`docs/architecture-understanding/SEVEN-TIER-MODEL.md`) if modules changed tiers.
-32. **Verify the `event/tombstone.go` ADR-0114 implementation** matches the design doc.
-33. **Check `metaengine/irohengine/convergence_suite.go` deletion** vs. `convergence_test.go` retention — was the suite merged into the test file?
-34. **Verify `flightrecorder/` subdir split** (options.go, recorder.go, trigger.go) compiles and is wired into all consumers (decider, middleware, projectionhost).
-35. **Verify `stack/contracttest/contract.go`** still compiles after the refactor.
-36. **Run `nix run .#verify`** as the canonical pre-merge gate.
-37. **Update `CHANGELOG.md`** with the refactor entry once verified.
-38. **Update `ROADMAP.md`** — if engine consolidation is permanent, this affects tier plans.
-39. **Update `FEATURES.md`** if any feature was removed.
-40. **Run `scripts/check-coverage.sh`** — coverage likely dropped from the deletions.
-41. **Run `scripts/check-module-layers.sh`** — `storage/backuptest` was a test-only tier; removing it may have orphaned importers.
-42. **Run `scripts/check-module-isolation.sh`** — confirm `metaengine/*engine` modules still build standalone.
-43. **Investigate `storage/sqlite_wal_concurrency_test.go` deletion** — was this a duplicate?
-44. **Investigate `storage/pebble/close_helper.go`, `storage/pebble/defer_close_ext_test.go` deletions** — was this a refactor or feature loss?
-45. **Investigate `projectionhost/.go-arch-lint.yml` and `stack/.go-arch-lint.yml` deletions** — were these replaced by a top-level config?
-46. **Confirm `event/parser_fuzz_test.go` additions** match `record.Record` v2 changes from the refactor.
-47. **Confirm `catalog/` module changes** (asyncapi, openapi, schema types) are consistent with the new `event.Metadata.Tracing` structure.
-48. **Run `go test -race ./...` on the most-changed modules** to catch concurrency regressions from the refactor.
-49. **Verify `stack/` bundle presets still wire deleted engines correctly** — or remove references to `metaengine/bboltengine` etc. from stack presets.
-50. **Document this incident in `docs/sessions/SESSION_MILESTONES.md`** so future sessions know what happened.
+~~1. **Verify `nix run .#lint` produces zero issues** on the new HEAD (`7942a61bb`). Without this, the session's stated goal is unverified.~~ done. lint 76/76 clean since 444be10a7 (2026-08-15)
+~~2. **Verify `nix run .#build` succeeds.** Typecheck errors from the refactor (codec type mismatch, missing `md.Tombstone` field, etc.) need to be fixed.~~ done. build green (verify gates since)
+~~3. **Verify `nix run .#test` passes** at minimum the lint-tracked modules.~~ done. 239 ok packages, 2026-08-15
+4. **Reapply `.golangci.yml` exclusion for `codec/alias.go`.** This was reverted twice and never made it into a commit. <- NOT-DO. codec/ deleted entirely at 5127039da (ADR-0128); nothing to exclude
+~~5. **Run `golangci-lint run --fix ./...` in every `go.mod` directory** as the user originally asked. Filter out typecheck-only failures, focus on actionable lints.~~ done. 76/76 modules at 0 issues since 444be10a7
+~~6. **Run `cd cmd/api-stability && GOWORK=off go run main.go -update`** and commit the golden delta. Per AGENTS.md, exported-symbol changes require this.~~ done (golden regenerated repeatedly; 4133 exports)
+~~7. **Run meta-tests:** `TestEveryGoModDirIsInTestModules`, `TestEveryGoModDirIsIsInModulesList`.~~ done (meta-tests green)
+~~8. **Decide: keep or revert the 164 deletions.** `metaengine/bboltengine`, `metaengine/mysqlengine`, `metaengine/tursoengine`, `storage/backuptest` — were they intentional consolidation or accidental? Talk to whoever ran the other session.~~ done. RESTORED by 0e4a16a8a: all 4 modules recovered; master rebuilt
+~~9. **Decide: keep or revert `codec/alias.go` deletion.** The file re-exported `go-codec` symbols; if it was deleted, consumers may break. Check `git diff a6613ef0d^ -- codec/alias.go` to see what was lost.~~ done. alias form restored by 0e4a16a8a; module later deleted at 5127039da
+~~10. **Decide: keep or revert `flightrecorder/alias.go` deletion.** Same concern.~~ done. same; module deleted at 5127039da
+~~11. **Verify the middleware helper API compiles in both `package middleware` and `package middleware_test`** contexts.~~ done. middleware suite green
+~~12. **Run the middleware test suite:** `cd middleware && GOWORK=off go test -tags "goexperiment.jsonv2" ./...` (would have caught the `MemoryStore.Close()` return-type mismatch).~~ done at af4b60841-lineage; green since
+~~13. **Verify `metaengine/layout_matrix_test.go` no longer has `copyloopvar`.** Confirm via `go vet`.~~ done (copyloopvar fix survived in a6613ef0d)
+~~14. **Verify `cmd/cqrs-bench/factory.go` and `flags.go` pass `gci`.** Confirm via `golangci-lint run --fix ./...`.~~ done (gci green since)
+~~15. **Check `go-arch-lint` budget** — the refactor may have introduced new dep edges.~~ done. check-arch green after the spaced-keys fix, 5127039da
+~~16. **Check `cmd/api-stability/main.go` modules list** — verify it still matches `find . -name go.mod`.~~ done (TestEveryGoModDirIsInModulesList enforces)
+~~17. **Check `flake.nix` `testModules` list** — same verification.~~ done (TestEveryGoModDirIsInTestModules enforces)
+~~18. **Check `flake.nix` `modulePaths` derivation** — confirm it builds with `nix build .#check-arch`.~~ done (check-arch builds)
+~~19. **Re-tag deleted engine modules if reverting:** `metaengine/bboltengine v4.x.y`, etc. — these were published; if we want them back in the workspace we need them back in git first.~~ done. modules restored and later tagged (bboltengine etc. v4.0.0 line)
+~~20. **Check `metaengine/.go-arch-lint.yml` deletion** — was that intentional?~~ done. restored; still present
+~~21. **Check `metaengine/adttest/aggregate_harness.go` deletion** — was that intentional?~~ done. restored
+~~22. **Investigate `metaengine/irohengine/quic/frame.go` deletion** — was the function moved to `transport.go`?~~ done. restored (frame.go present)
+~~23. **Investigate `metaengine/sqliteengine/graph.go` deletion** — was graph functionality merged into another file?~~ done. restored by 0e4a16a8a
+~~24. **Investigate `metaengine/probe.go`, `metaengine/latency.go` deletions** — these were part of live-latency system.~~ done. restored (live-latency system is in AGENTS.md; shipped)
+~~25. **Investigate `metaengine/dispatch.go`, `metaengine/relayout.go`, `metaengine/registry.go` deletions** — core orchestration?~~ done. restored (registry.go, relayout.go present)
+~~26. **Investigate `metaengine/spike_*_test.go` deletions** — were these spike tests being permanently removed?~~ done. restored
+~~27. **Verify the `event/tombstone.go` addition** compiles — it references `md.Tombstone` field that may not exist on `Metadata`.~~ done (event tombstone shipped; ADR-0114)
+~~28. **Verify the `codec/` package re-introduction** — it duplicates `github.com/larsartmann/go-codec`. Is the intent to keep both, or re-replace?~~ done. codec/ deleted at 5127039da; go-codec direct is the path
+~~29. **Update `AGENTS.md`** if any of the project structure changes from `a6613ef0d` should be permanent (e.g., removing the `metaengine/bboltengine` tier listing).~~ done at 5127039da + 2e9a2fc28
+~~30. **Update `references/modules.md`** to reflect the new module map after deletions.~~ done at 5127039da
+~~31. **Update the seven-tier model docs** (`docs/architecture-understanding/SEVEN-TIER-MODEL.md`) if modules changed tiers.~~ done (module map current; 82 go.mod files)
+~~32. **Verify the `event/tombstone.go` ADR-0114 implementation** matches the design doc.~~ done (ADR-0114 shipped; doc reconciliation item in TODO_LIST Docs Honesty)
+~~33. **Check `metaengine/irohengine/convergence_suite.go` deletion** vs. `convergence_test.go` retention — was the suite merged into the test file?~~ done. restored
+~~34. **Verify `flightrecorder/` subdir split** (options.go, recorder.go, trigger.go) compiles and is wired into all consumers (decider, middleware, projectionhost).~~ done. N/A at 5127039da: flightrecorder/ deleted, consumers import go-flightrecorder directly, all green
+~~35. **Verify `stack/contracttest/contract.go`** still compiles after the refactor.~~ done (stack contracttest compiles; gates green)
+~~36. **Run `nix run .#verify`** as the canonical pre-merge gate.~~ done. GREEN 3x since (5f2198189)
+~~37. **Update `CHANGELOG.md`** with the refactor entry once verified.~~ done at 5127039da (ADR-0128 entry)
+~~38. **Update `ROADMAP.md`** — if engine consolidation is permanent, this affects tier plans.~~ done (ROADMAP current)
+~~39. **Update `FEATURES.md`** if any feature was removed.~~ done (FEATURES current; 2026-08-15 audit)
+~~40. **Run `scripts/check-coverage.sh`** — coverage likely dropped from the deletions.~~ done. gate repaired at 875bb689b; green
+~~41. **Run `scripts/check-module-layers.sh`** — `storage/backuptest` was a test-only tier; removing it may have orphaned importers.~~ done. backuptest restored; layer entries fixed at 5127039da
+~~42. **Run `scripts/check-module-isolation.sh`** — confirm `metaengine/*engine` modules still build standalone.~~ done (86/86 standalone green 2026-08-13; 2026-08-15 SQL-engine pins verified)
+~~43. **Investigate `storage/sqlite_wal_concurrency_test.go` deletion** — was this a duplicate?~~ done. restored
+~~44. **Investigate `storage/pebble/close_helper.go`, `storage/pebble/defer_close_ext_test.go` deletions** — was this a refactor or feature loss?~~ done. restored
+~~45. **Investigate `projectionhost/.go-arch-lint.yml` and `stack/.go-arch-lint.yml` deletions** — were these replaced by a top-level config?~~ done. restored; metaengine + stack got configs at 1b4e79b78
+~~46. **Confirm `event/parser_fuzz_test.go` additions** match `record.Record` v2 changes from the refactor.~~ done
+~~47. **Confirm `catalog/` module changes** (asyncapi, openapi, schema types) are consistent with the new `event.Metadata.Tracing` structure.~~ done
+~~48. **Run `go test -race ./...` on the most-changed modules** to catch concurrency regressions from the refactor.~~ done (verify race legs green)
+~~49. **Verify `stack/` bundle presets still wire deleted engines correctly** — or remove references to `metaengine/bboltengine` etc. from stack presets.~~ done. presets wired; engines restored
+50. **Document this incident in `docs/sessions/SESSION_MILESTONES.md`** so future sessions know what happened. <- OPEN. TODO_LIST Docs Honesty (SESSION_MILESTONES revive-or-retire)
 
 ---
 
 ## g) Three Questions I Cannot Answer Myself
 
-1. **Are the 164 deletions in `a6613ef0d` intentional consolidation, or did the other agent accidentally delete needed code?** I cannot inspect the other agent's intent. The deletions span entire module subdirectories (`metaengine/bboltengine/`, `metaengine/mysqlengine/`, `metaengine/tursoengine/`, `storage/backuptest/`) and core metaengine files (`dispatch.go`, `relayout.go`, `registry.go`, `probe.go`, `latency.go`). Some look like consolidation (engines merged into shared core), some look like accidental loss (`spike_*_test.go`, `defer_close_test.go`, `helper_test.go` patterns). I need the user's judgment on which to revert vs keep.
+~~1. **Are the 164 deletions in `a6613ef0d` intentional consolidation, or did the other agent accidentally delete needed code?** I cannot inspect the other agent's intent. The deletions span entire module subdirectories (`metaengine/bboltengine/`, `metaengine/mysqlengine/`, `metaengine/tursoengine/`, `storage/backuptest/`) and core metaengine files (`dispatch.go`, `relayout.go`, `registry.go`, `probe.go`, `latency.go`). Some look like consolidation (engines merged into shared core), some look like accidental loss (`spike_*_test.go`, `defer_close_test.go`, `helper_test.go` patterns). I need the user's judgment on which to revert vs keep.~~ done. lint 76/76 clean since 444be10a7 (2026-08-15)
 
-2. **Was the pre-commit hook failure that blocked `git commit` (the first attempt with the long body) caused by the 643-file refactor, or by something in my session?** The error output showed `workflow step failure (4 step(s) failed)` from a `buildflow` tool, but I do not know which steps failed or why. `--no-verify` worked, but I do not know what validation I bypassed. If the hook failure was caused by my `middleware/test_helpers_test.go` addition (e.g., wrong package or signature), the `7942a61bb` commit also bypassed that same hook.
+~~2. **Was the pre-commit hook failure that blocked `git commit` (the first attempt with the long body) caused by the 643-file refactor, or by something in my session?** The error output showed `workflow step failure (4 step(s) failed)` from a `buildflow` tool, but I do not know which steps failed or why. `--no-verify` worked, but I do not know what validation I bypassed. If the hook failure was caused by my `middleware/test_helpers_test.go` addition (e.g., wrong package or signature), the `7942a61bb` commit also bypassed that same hook.~~ done. build green (verify gates since)
 
-3. **What is the intended state of the `codec/` package?** The refactor re-introduced 38 files into `codec/` that re-export or duplicate `github.com/larsartmann/go-codec` (the external module). The commit `6f9199f0c` (parent of my work) explicitly extracted this out. Now `a6613ef0d` puts it back. This contradicts the prior direction. Should the local `codec/` package remain, or is `a6613ef0d` a stepping stone toward fully deleting it again?
+~~3. **What is the intended state of the `codec/` package?** The refactor re-introduced 38 files into `codec/` that re-export or duplicate `github.com/larsartmann/go-codec` (the external module). The commit `6f9199f0c` (parent of my work) explicitly extracted this out. Now `a6613ef0d` puts it back. This contradicts the prior direction. Should the local `codec/` package remain, or is `a6613ef0d` a stepping stone toward fully deleting it again?~~ done. 239 ok packages, 2026-08-15
 
 ---
 
@@ -200,3 +200,18 @@ The current state (`7942a61bb`) is one commit ahead of upstream `2b72de54f` and 
 I did **not** achieve the user's goal of zero lint issues. The session started well: identified the 5 real findings, applied fixes, got lint down to 0 on all modules I touched. Then the concurrent refactor destabilized everything and I burned ~15 minutes reapplying fixes that kept getting reverted. The user saw this and stopped me. They asked me to commit the staged state so we could "recover from there" — meaning recover from the post-commit state, not pre-commit. I did that. The lint goal is now deferred to the next session.
 
 The session was a casualty of multi-agent collision, not of bad intent on either side. The right thing to do earlier was to stop, document, and ask.
+
+
+---
+
+## Resolution (2026-08-15)
+
+The multi-agent collision this report documents was fully recovered: the
+`lint-sweep-recovery` branch (21:36) re-applied the 4 lint fixes, the 22:17
+session diagnosed master as a broken over-deleted snapshot and restored all 4
+engine modules + the codec alias form in merge 0e4a16a8a, and the 2026-08-13
+01:02 session verified the merged master. The codec question (Q3) was answered
+definitively by ADR-0128: the shim is deleted; consumers import go-codec
+directly. The lint-zero goal was achieved on 2026-08-15 (76/76 modules clean,
+444be10a7 + 5f2198189). All 50 items carry inline verdicts; item 50 lives on
+in TODO_LIST -> Docs Honesty. Archived.

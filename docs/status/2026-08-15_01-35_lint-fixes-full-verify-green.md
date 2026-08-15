@@ -129,33 +129,33 @@
 
 ## f) NEXT — ordered by leverage
 
-1. USER: approve/decline tagging engine v4.0.2 ×4 + watermill/v4.5.0
+1. USER: approve/decline tagging engine v4.0.2 ×4 + watermill/v4.5.0 <- OPEN. awaiting user approval - TODO_LIST 'Release / Tagging'; standing question in ROADMAP 'Open Questions'
    (unblocks 2–4). Verify gate is green; this is the release checkpoint.
-2. After tags: remove the 5 temporary replaces from system/go.mod, then
+2. After tags: remove the 5 temporary replaces from system/go.mod, then <- OPEN. gated on the engine tags - TODO_LIST 'Release / Tagging'
    `GOWORK=off go build + test` re-verification of system/.
-3. After tags: `go mod tidy` sweep of the ~49 stale `// indirect` shim refs
+3. After tags: `go mod tidy` sweep of the ~49 stale `// indirect` shim refs <- OPEN. TODO_LIST 'Release / Tagging' (~49 stale indirect refs)
    across go.mod files (cosmetic today; becomes real once replaces drop).
-4. Remove stale `../../flightrecorder|retry|idempotency` paths from the
+~~4. Remove stale `../../flightrecorder|retry|idempotency` paths from the~~ done at 2e9a2fc28 (stale references cleaned; doc-check at 0 warnings since 2026-08-15)
    doc-check invocation in flake.nix (kills Doc Check warning noise).
-5. flake.nix #lint app: final summary line + explicit exit marker (e2).
-6. Meta-test: LAYER/DEP_BUDGET/TEST_INFRA_MODULES keys ⇄ existing go.mod
+~~5. flake.nix #lint app: final summary line + explicit exit marker (e2).~~ done at 2e9a2fc28 (failedMods summary + explicit exit marker in the lint app)
+~~6. Meta-test: LAYER/DEP_BUDGET/TEST_INFRA_MODULES keys ⇄ existing go.mod~~ done at 4a95bd04d (LAYER meta-tests in cmd/api-stability/main_test.go)
    dirs (e4).
-7. Run `nix run .#vulncheck` + `nix run .#check-arch` as pre-tag release
+7. Run `nix run .#vulncheck` + `nix run .#check-arch` as pre-tag release <- OPEN. TODO_LIST 'Release / Tagging' (pre-tag checklist)
    checklist steps (verify covered the rest).
-8. Harvest still-open items from the 2026-08-14/15 status reports into
+~~8. Harvest still-open items from the 2026-08-14/15 status reports into~~ done - TODO_LIST rebuilt and 2026-08-1x reports annotated/archived by the docs-health audit 2026-08-15
    TODO_LIST.md and mark the reports done (docs-health HARVEST).
-9. Dgraph JournalReadFrom off-by-one fix (S) — carried.
-10. cqrs-lint per-module regression tests — carried.
-11. `.golangci.yml` exclusion audit (all exclusions justified + minimal,
+~~9. Dgraph JournalReadFrom off-by-one fix (S) — carried.~~ done at 7c0a62c98 (position-based JournalReadFrom + shared stream-log contract suite)
+10. cqrs-lint per-module regression tests — carried. <- OPEN. TODO_LIST 'cqrs-lint' (per-module regression tests)
+11. `.golangci.yml` exclusion audit (all exclusions justified + minimal, <- OPEN. TODO_LIST 'Code Quality' (.golangci.yml exclusion audit)
     including the one added this session) — carried.
-12. DuckDB/Row calibration benchmarks — carried.
-13. Real Redis/NATS broker roundtrips for the watermill adapter — carried.
-14. v5 Phase 8: delete transport/http, transport/grpc, and deprecated
+12. DuckDB/Row calibration benchmarks — carried. <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks)
+13. Real Redis/NATS broker roundtrips for the watermill adapter — carried. <- OPEN. Redis roundtrip shipped at d8c73be0a; NATS + broker edges = TODO_LIST 'Code Quality' (Wire broker tests into CI)
+14. v5 Phase 8: delete transport/http, transport/grpc, and deprecated <- OPEN. TODO_LIST 'v5 Unification Phase 8'
     shells; write the migration guide — carried.
 15. go-codec repo scaffolding — carried.
-16. v5 decision: keep the kvstore SA1019 exclusion permanently or migrate
+16. v5 decision: keep the kvstore SA1019 exclusion permanently or migrate <- OPEN. TODO_LIST 'v5 Unification Phase 8' (kvstore SA1019 decision item)
     tests onto the go-idempotency contract suite (g3).
-17. CHANGELOG `[Unreleased]`: confirm the ADR-0128 extraction + verify-green
+~~17. CHANGELOG `[Unreleased]`: confirm the ADR-0128 extraction + verify-green~~ done - CHANGELOG [Unreleased] carries the ADR-0128 consumer advisory + gate-repair entries
     state is described (gate counts entries; content not inspected this
     session).
 
@@ -171,3 +171,15 @@
    `(middleware|idempotency)/.*_test\.go$` acceptable as the permanent
    answer, or should the kvstore test migration onto the go-idempotency
    contract suite be scheduled before v5?
+
+
+---
+
+## Resolution (2026-08-15)
+
+16 of 17 items carry verdicts (item 15, go-codec repo scaffolding, is
+external-repo work and stays open unrouted). Closed: doc-check noise + lint
+summary (2e9a2fc28), LAYER meta-test (4a95bd04d), Dgraph fix (7c0a62c98),
+CHANGELOG coverage, and the docs-health harvest (this pass). The release
+chain (1-3, 7) stays OPEN pending user approval - TODO_LIST "Release /
+Tagging". Stays active for the release chain.

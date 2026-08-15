@@ -12,11 +12,12 @@ import (
 // recorded in PlanAuditEntry so operators can reconstruct "who changed what
 // priority when" from the audit trail surfaced in Doctor() and PlanHistory().
 const (
-	triggerManual       = "manual"
-	triggerPriority     = "priority-change"
-	triggerEngineAdd    = "engine-added"
-	triggerEngineRemove = "engine-removed"
-	triggerAutoReroute  = "auto-reroute"
+	triggerManual        = "manual"
+	triggerPriority      = "priority-change"
+	triggerEngineAdd     = "engine-added"
+	triggerEngineRemove  = "engine-removed"
+	triggerEnginePromote = "engine-promoted"
+	triggerAutoReroute   = "auto-reroute"
 )
 
 // maxPlanHistory bounds the in-memory audit ring so a long-running Store does
@@ -32,7 +33,7 @@ type PlanAuditEntry struct {
 	// At is when the re-plan completed (equals PlanResult.ComputedAt).
 	At time.Time
 	// Trigger names the cause: manual, priority-change, engine-added,
-	// engine-removed, or auto-reroute.
+	// engine-removed, engine-promoted, or auto-reroute.
 	Trigger string
 	// Priority is a snapshot of the active PriorityConfig (nil = no operator
 	// priority set, resolves to Balanced everywhere).

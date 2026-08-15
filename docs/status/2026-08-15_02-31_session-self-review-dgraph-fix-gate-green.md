@@ -98,52 +98,52 @@
 ## f) NEXT — up to 50, ordered by leverage
 
 **Release (blocked on g1):**
-1. Tag engines v4.0.2 (sqlite/badger/pebble/pg) + watermill/v4.5.0 (annotated, via scripts/tag-release.sh).
-2. Drop the 5 temporary replaces in system/go.mod; re-verify system standalone (GOWORK=off).
-3. `go mod tidy` sweep of the ~49 stale indirect shim refs; verify no-diff in go.sum noise.
-4. Run `nix run .#vulncheck` + `#check-arch` as the pre-tag checklist.
+1. Tag engines v4.0.2 (sqlite/badger/pebble/pg) + watermill/v4.5.0 (annotated, via scripts/tag-release.sh). <- OPEN. awaiting user approval - TODO_LIST 'Release / Tagging' + ROADMAP 'Open Questions' #1
+2. Drop the 5 temporary replaces in system/go.mod; re-verify system standalone (GOWORK=off). <- OPEN. gated on the engine tags - TODO_LIST 'Release / Tagging'
+3. `go mod tidy` sweep of the ~49 stale indirect shim refs; verify no-diff in go.sum noise. <- OPEN. TODO_LIST 'Release / Tagging' (~49 stale indirect refs)
+4. Run `nix run .#vulncheck` + `#check-arch` as the pre-tag checklist. <- OPEN. TODO_LIST 'Release / Tagging' (pre-tag checklist)
 
 **Toolchain:**
-5. Decide Go 1.26.6: repo-wide adoption (go.mod sweep, CI matrix, nix go pin, .go-version) or sibling revert; then align.
-6. Restart gopls / refresh snapshot after go.work changes (30-error flood is noise).
-7. Add `nix fmt` to my end-of-session checklist (gofmt -l alone is weaker than gofumpt+golines).
+5. Decide Go 1.26.6: repo-wide adoption (go.mod sweep, CI matrix, nix go pin, .go-version) or sibling revert; then align. <- OPEN. ROADMAP 'Open Questions' #2
+6. Restart gopls / refresh snapshot after go.work changes (30-error flood is noise). <- NOT-DO - transient gopls snapshot staleness after the go.work bump; moot once reindexed
+~~7. Add `nix fmt` to my end-of-session checklist (gofmt -l alone is weaker than gofumpt+golines).~~ WONT - personal-session checklist, no repo artifact to verify
 
 **Metaengine correctness/depth:**
-8. Seq-carrying journal reads — `JournalReadAllWithSeq` or `StreamLogEntry{Seq,Value}`; adapters resume on true engine seqs (sqlite global AUTOINCREMENT + positional `index+1` cache in `EventAdapter.lookupSeq` can duplicate entries when collections interleave). NEW TODO item from this session.
-9. Dgraph `JournalReadFrom` deep-resume over-fetch (fetches afterSeq+limit then slices; fine now, cursor/offset later if journals grow).
+~~8. Seq-carrying journal reads — `JournalReadAllWithSeq` or `StreamLogEntry{Seq,Value}`; adapters resume on true engine seqs (sqlite global AUTOINCREMENT + positional `index+1` cache in `EventAdapter.lookupSeq` can duplicate entries when collections interleave). NEW TODO item from this session.~~ done at 4a95bd04d (position-based journal resumption on SQL engines - the interleaving-duplication class fixed without a new API)
+9. Dgraph `JournalReadFrom` deep-resume over-fetch (fetches afterSeq+limit then slices; fine now, cursor/offset later if journals grow). <- **Won't implement - deliberate: single-roundtrip fetch is fine at current journal sizes; cursor/offset only if journals grow.**
 10. Audit adttest harness hardcoded collections for shared-server engines.
-11. Two-live-engine integration test (AddEngine + Backfill correctness).
-12. Brute-force vector search on Pebble/bbolt (Vector ADT memory-only today).
-13. Recursive CTE graph dispatch for PG/MySQL.
-14. Recursive CTE optimization for deep SQLite traversals.
-15. DuckDB (Columnar) 60s disk calibration — the exact-tie cell (2.65 vs 2.65).
-16. SQLite/PG/MySQL Row-layout calibration (still analytical estimates).
-17. Calibration-baseline CI regression check.
-18. Layout long-horizon: fold-pipeline sync (Active+DualUse), async replication (Backup), role transitions, workload trace format, aggregate boundary config, per-fold mutex, multi-collection batch atomicity.
+11. Two-live-engine integration test (AddEngine + Backfill correctness). <- OPEN. TODO_LIST 'Metaengine' (multi-engine, two real backends)
+12. Brute-force vector search on Pebble/bbolt (Vector ADT memory-only today). <- OPEN. in flight - the concurrent metaengine session is writing bbolt/pebble vector backends now (untracked vector.go files)
+13. Recursive CTE graph dispatch for PG/MySQL. <- OPEN. in flight - pgengine/graph.go + mysqlengine/graph.go visible in the concurrent session's untracked set
+14. Recursive CTE optimization for deep SQLite traversals. <- OPEN. in flight - sqliteengine/graph.go modified in the concurrent session's tree
+15. DuckDB (Columnar) 60s disk calibration — the exact-tie cell (2.65 vs 2.65). <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks)
+16. SQLite/PG/MySQL Row-layout calibration (still analytical estimates). <- OPEN. TODO_LIST 'Metaengine' (calibration benchmarks)
+17. Calibration-baseline CI regression check. <- OPEN. TODO_LIST 'Metaengine' (calibration CI regression check)
+18. Layout long-horizon: fold-pipeline sync (Active+DualUse), async replication (Backup), role transitions, workload trace format, aggregate boundary config, per-fold mutex, multi-collection batch atomicity. <- OPEN. TODO_LIST 'Metaengine - Layout Planning'
 
 **Hardening / tests:**
-19. benchkit timing tests: mark load-sensitive or compute bounds relative (TestRun_SQLite_DurationAborts failed 6.0s vs 5s under contention).
-20. duckdbengine: 150s clean vs 300s timeout — split the soak or raise its per-package budget.
-21. Reverse LAYER coverage meta-test (every go.mod dir has a LAYER entry).
-22. cqrs-lint per-module regression tests (F004, F007, F009, F012, F017, F023–F029, B030).
-23. `.golangci.yml` exclusion audit (system/ 20 linters, cmd/cqrs-lint/ 17, metaengine/ 24).
-24. Real broker edges on watermill-redisstream: redelivery duplicates, consumer-group rebalance, message size limits (gochannel tests can't catch these).
-25. macOS verification of scripts/ephemeral-pg.sh.
+~~19. benchkit timing tests: mark load-sensitive or compute bounds relative (TestRun_SQLite_DurationAborts failed 6.0s vs 5s under contention).~~ done at 875bb689b (flat 30s hang ceiling for DurationAborts + CancelledContext); the remaining raceEnabled audit is a separate TODO_LIST item
+20. duckdbengine: 150s clean vs 300s timeout — split the soak or raise its per-package budget. <- OPEN. TODO_LIST 'Code Quality' (duckdbengine suite split)
+~~21. Reverse LAYER coverage meta-test (every go.mod dir has a LAYER entry).~~ done at 4a95bd04d (TestEveryModuleHasLayerEntry - reverse direction)
+22. cqrs-lint per-module regression tests (F004, F007, F009, F012, F017, F023–F029, B030). <- OPEN. TODO_LIST 'cqrs-lint' (per-module regression tests)
+23. `.golangci.yml` exclusion audit (system/ 20 linters, cmd/cqrs-lint/ 17, metaengine/ 24). <- OPEN. TODO_LIST 'Code Quality' (.golangci.yml exclusion audit)
+24. Real broker edges on watermill-redisstream: redelivery duplicates, consumer-group rebalance, message size limits (gochannel tests can't catch these). <- OPEN. TODO_LIST 'Code Quality' (Wire broker tests into CI)
+25. macOS verification of scripts/ephemeral-pg.sh. <- OPEN. TODO_LIST 'Code Quality' (macOS ephemeral-pg)
 
 **Infrastructure polish:**
-26. `#check-lint-config` + `#verify-ci` nix apps (mirror GH Actions GOWORK=off per-module).
-27. Wire `#sweep` to pre-commit/cron.
-28. Consolidate engine `register.go` boilerplate (7 modules).
-29. ephemeral-dgraph.sh: document that direct `bash` invocation needs dgraph on PATH (or self-exec via nix), so the header's usage example stops lying.
-30. AGENTS.md: add the gate-exclusivity gotcha (see e1).
+26. `#check-lint-config` + `#verify-ci` nix apps (mirror GH Actions GOWORK=off per-module). <- OPEN. TODO_LIST 'Code Quality' (Infrastructure polish)
+27. Wire `#sweep` to pre-commit/cron. <- OPEN. TODO_LIST 'Code Quality' (Infrastructure polish)
+28. Consolidate engine `register.go` boilerplate (7 modules). <- OPEN. TODO_LIST 'Code Quality' (Infrastructure polish)
+~~29. ephemeral-dgraph.sh: document that direct `bash` invocation needs dgraph on PATH (or self-exec via nix), so the header's usage example stops lying.~~ done at 4a95bd04d (script header NOTE documents the PATH constraint)
+~~30. AGENTS.md: add the gate-exclusivity gotcha (see e1).~~ done - AGENTS.md gotcha 'Never run integration suites concurrently with #verify' present
 
 **v5 (Phase 8):**
-31. Delete stack.Materialize; 32. Delete storage.RelationalProjection + storage/view; 33. Delete graph.GraphProjection; 34. Delete stack.Bundle + 8 presets; 35. Delete stack.RunProjections; 36. Delete ADR-0126 compat shells; 37. Final v4.x patches + drop transport/http+grpc from registries; 38. v5 migration guide; 39. Cut v5.0.0.
+31. Delete stack.Materialize; 32. Delete storage.RelationalProjection + storage/view; 33. Delete graph.GraphProjection; 34. Delete stack.Bundle + 8 presets; 35. Delete stack.RunProjections; 36. Delete ADR-0126 compat shells; 37. Final v4.x patches + drop transport/http+grpc from registries; 38. v5 migration guide; 39. Cut v5.0.0. <- OPEN. items 31-39 all live in TODO_LIST 'v5 Unification Phase 8' as individual entries (Materialize, RelationalProjection+view, GraphProjection, Bundle+presets, RunProjections, compat shells, transport registries, migration guide, cut)
 
 **Docs/debt:**
-40. Harvest remaining open items from 2026-08-14/15 status reports into TODO_LIST.md (docs-health HARVEST pass).
+~~40. Harvest remaining open items from 2026-08-14/15 status reports into TODO_LIST.md (docs-health HARVEST pass).~~ done - TODO_LIST rebuilt + 2026-08-1x reports annotated/archived by the docs-health audit 2026-08-15
 41. go-codec repo scaffolding (sibling lane; FEATURES/ROADMAP/SECURITY/CI).
-42. Re-check `cmd/doc-check` warning count stays 0 in CI (regression tripwire?).
+42. Re-check `cmd/doc-check` warning count stays 0 in CI (regression tripwire?). <- OPEN. TODO_LIST 'Code Quality' (Doc-check 0-warning CI tripwire)
 
 ## g) QUESTIONS (cannot figure these out myself)
 
@@ -164,3 +164,17 @@
 - dgraphengine vs live Dgraph: 24/24 PASS (/tmp/dgraph-fixed2.log)
 - watermill Redis roundtrip vs live Redis: PASS (/tmp/redis-verify.log)
 - `verify-docs.sh`: PASS (re-run after the CHANGELOG addition in this review)
+
+
+---
+
+## Resolution (2026-08-15)
+
+39 of 42 items carry verdicts. Closed since the report: seq-carrying reads
+superseded by position-based resumption (`4a95bd04d`), reverse LAYER
+meta-test + dgraph script note (`4a95bd04d`), benchkit flat ceilings
+(`875bb689b`), AGENTS gate-exclusivity gotcha, harvest (this pass). Items
+12-14 are being implemented right now by the concurrent metaengine session
+(vector backends, recursive-CTE graph). Items 10 (adttest collection audit)
+and 41 (go-codec scaffolding, external lane) stay open unrouted; release
+chain + v5 track in TODO_LIST. Stays active.

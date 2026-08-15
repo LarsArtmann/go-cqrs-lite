@@ -28,12 +28,14 @@ engine, err := pebbleengine.NewPebbleEngine("")
 | Counter  | O(1) incr, O(N) get    | Increment is atomic; CounterGet is prefix scan |
 | Multimap | O(1) add, O(N) get     | Prefix scan for retrieval                      |
 | Log      | O(1) append, O(N) tail | Prefix scan for tail reads                     |
-| Graph    | O(N^d)                 | BFS via prefix scan (degraded, no indexes)     |
+| Vector   | O(N·D) search          | Brute-force scan (degraded, no ANN index)      |
 
 ## Backends
 
-All 7 metaengine ADT backends are implemented: MapBackend, ScanBackend,
-SetBackend, CounterBackend, GraphBackend, MultimapBackend, LogBackend.
+MapBackend, ScanBackend, SetBackend, CounterBackend, MultimapBackend,
+LogBackend, and VectorBackend (degraded brute-force). Graph traversals use
+the multimap BFS fallback — declare a graph-capable engine alongside Pebble
+for O(degree^depth) traversal.
 
 Plus RawValueReader and RawScanReader for zero-JSON-decode point lookups
 and filtered scans — eliminates the JSON decode tax on hot paths.

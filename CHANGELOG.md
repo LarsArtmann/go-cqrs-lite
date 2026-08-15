@@ -6,6 +6,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — repo gates: false-GREEN coverage check, silent lint failures, parallel heap-test flake — 2026-08-15
+
+- **`scripts/check-coverage.sh`**: had been a false GREEN for 3 days (since
+  `baf2fb1f0`, 2026-08-11) — the spaced `[storage / memory]` display key crashed
+  the `tr` iteration under `set -u`, path construction kept the space (0%
+  coverage), and the loop-piped-to-`sort` subshell silently discarded the DRIFT
+  counter. All fixed; EXPECTED refreshed to actuals (two real coverage
+  improvements that the broken gate had hidden are now visible).
+- **`flake.nix` `#lint`**: prints a final `✅ Lint: 76/76 modules clean` /
+  `❌ findings in: <modules>` summary — failures could previously hide mid-log
+  because the loop continues past them.
+- **metaengine + engine soak tests**: 13 heap-measuring tests dropped
+  `t.Parallel()` — they asserted on process-global `runtime.ReadMemStats()`
+  while other parallel tests' allocations landed in the same snapshot (a 63MB
+  "leak" that was actually neighbor-test data). Documented caller contract in
+  `enginetest/soak.go`.
+- **`cmd/api-stability` meta-tests**: `TestLayerScriptKeysMapToModules` (every
+  LAYER/DEP_BUDGET/TEST_INFRA key resolves to a real go.mod dir — found 3 dead
+  keys on first run) and `TestEveryModuleHasLayerEntry` (reverse direction;
+  81/81 today) make the silent-enforcement-killer class structurally impossible
+  to reintroduce.
+
+### Consumer advisory — avoid `codec/v4 v4.3.0` — 2026-08-15
+
+- The `codec/v4` re-export tag **v4.3.0** defined `Encoding` (and siblings) as
+  its OWN types instead of aliases of `github.com/larsartmann/go-codec` —
+  importing both in one build caused cross-module type mismatches. v4.4.0
+  restored pure aliases. The whole `codec/` shim module is now deleted
+  (ADR-0128): import `github.com/larsartmann/go-codec` directly; if you must
+  stay on the old path, require `codec/v4 v4.4.0` — never v4.3.0.
+
 ### Fixed — SQL engines re-delivered journal entries when collections interleaved — 2026-08-15
 
 - **`metaengine/{sqliteengine,pgengine,mysqlengine,duckdbengine}`**: `JournalReadFrom`

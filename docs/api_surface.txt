@@ -1405,6 +1405,8 @@ metaengine/bboltengine/method StreamAppendExpected
 metaengine/bboltengine/method StreamRead
 metaengine/bboltengine/method StreamScan
 metaengine/bboltengine/method StreamVersion
+metaengine/bboltengine/method VectorInsert
+metaengine/bboltengine/method VectorSearch
 metaengine/const ADTCounter
 metaengine/const ADTGraph
 metaengine/const ADTLog
@@ -1488,6 +1490,8 @@ metaengine/const RoleMigration
 metaengine/const SQLiteNsPerOp
 metaengine/const SampleRTT
 metaengine/const SampleRead
+metaengine/const TraceOpApply
+metaengine/const TraceOpQuery
 metaengine/const WarnJoinAmplification
 metaengine/const WarnPriorityMismatch
 metaengine/const WarnWriteAmplification
@@ -1634,10 +1638,13 @@ metaengine/func PlansColumnCompatible
 metaengine/func ProbeEngine
 metaengine/func Query
 metaengine/func QuoteIdent
+metaengine/func ReadTrace
+metaengine/func RecordTrace
 metaengine/func RegisterDriver
 metaengine/func RegisteredDrivers
 metaengine/func Remove
 metaengine/func ReplayCost
+metaengine/func ReplayTrace
 metaengine/func SQLiteEngineProfile
 metaengine/func SaveManifest
 metaengine/func ScanDistinctValues
@@ -1651,6 +1658,9 @@ metaengine/func ShouldMaterialize
 metaengine/func SortOn
 metaengine/func SortOnField
 metaengine/func SpatialExecuteTyped
+metaengine/func StoreTraceSink
+metaengine/func TraceStats
+metaengine/func VectorDistance
 metaengine/func VectorExecuteTyped
 metaengine/func VerifyChecksum
 metaengine/func Volume
@@ -1662,6 +1672,7 @@ metaengine/func WithCursor
 metaengine/func WithCursorString
 metaengine/func WithDebug
 metaengine/func WithDryRun
+metaengine/func WithEngineRole
 metaengine/func WithEventLog
 metaengine/func WithFilter
 metaengine/func WithHooks
@@ -1691,6 +1702,7 @@ metaengine/func WithSSEHeartbeat
 metaengine/func WithSSEMaxBuffer
 metaengine/func WithSSEReplayLimit
 metaengine/func WithSSETimeout
+metaengine/func WithSharedCollection
 metaengine/func WithSlowQueryLog
 metaengine/func WithSort
 metaengine/func WithSortColumns
@@ -1748,6 +1760,7 @@ metaengine/interface StatSink
 metaengine/interface StreamLogBackend
 metaengine/interface StreamTemporalReader
 metaengine/interface StreamingScan
+metaengine/interface TraceSink
 metaengine/interface Tracer
 metaengine/interface TrackerHost
 metaengine/interface TransactMeasurer
@@ -1866,6 +1879,8 @@ metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
 metaengine/method Apply
+metaengine/method Apply
+metaengine/method Apply
 metaengine/method ApplyBatch
 metaengine/method ApplyBatch
 metaengine/method ApplyCalibration
@@ -1879,6 +1894,7 @@ metaengine/method CheckAndRecord
 metaengine/method CheckRouting
 metaengine/method Clear
 metaengine/method Clear
+metaengine/method Close
 metaengine/method Close
 metaengine/method Close
 metaengine/method Close
@@ -1898,6 +1914,7 @@ metaengine/method EffectiveNetworkRTT
 metaengine/method EffectiveReplicationLag
 metaengine/method Encode
 metaengine/method EngineNames
+metaengine/method EngineRole
 metaengine/method Error
 metaengine/method EventSample
 metaengine/method EventSample
@@ -1971,6 +1988,7 @@ metaengine/method IsPersistent
 metaengine/method IsPoisoned
 metaengine/method IsRemote
 metaengine/method IsReplicated
+metaengine/method IsShadow
 metaengine/method IsVolatile
 metaengine/method JournalReadAll
 metaengine/method JournalReadFrom
@@ -2020,6 +2038,7 @@ metaengine/method Name
 metaengine/method Name
 metaengine/method Name
 metaengine/method Name
+metaengine/method Name
 metaengine/method NsForRead
 metaengine/method ObservedWorkloadStats
 metaengine/method Persistence
@@ -2028,11 +2047,14 @@ metaengine/method PlanHistory
 metaengine/method Poison
 metaengine/method Primary
 metaengine/method Profile
+metaengine/method PromoteEngine
 metaengine/method Put
+metaengine/method Query
 metaengine/method Query
 metaengine/method QueryADT
 metaengine/method QueryComplexity
 metaengine/method QueryConfig
+metaengine/method QueryEngine
 metaengine/method QueryEngine
 metaengine/method QueryFoldByEvent
 metaengine/method QueryFolds
@@ -2055,6 +2077,7 @@ metaengine/method ReplanLayout
 metaengine/method Replay
 metaengine/method Replay
 metaengine/method ReplicationMode
+metaengine/method ReplicationStatus
 metaengine/method Report
 metaengine/method Report
 metaengine/method ReportSample
@@ -2113,6 +2136,7 @@ metaengine/method Valid
 metaengine/method Valid
 metaengine/method Valid
 metaengine/method Valid
+metaengine/method Valid
 metaengine/method VectorInsert
 metaengine/method VectorSearch
 metaengine/method Verify
@@ -2136,8 +2160,11 @@ metaengine/mysqlengine/method ApplyLayout
 metaengine/mysqlengine/method Close
 metaengine/mysqlengine/method CounterGet
 metaengine/mysqlengine/method CounterIncrement
+metaengine/mysqlengine/method Dialect
 metaengine/mysqlengine/method ExplainAggregateQuery
 metaengine/mysqlengine/method ExplainScanQuery
+metaengine/mysqlengine/method GraphAddEdge
+metaengine/mysqlengine/method GraphNeighbors
 metaengine/mysqlengine/method HealthCheck
 metaengine/mysqlengine/method JournalReadAll
 metaengine/mysqlengine/method JournalReadFrom
@@ -2187,6 +2214,8 @@ metaengine/pebbleengine/method StreamAppendExpected
 metaengine/pebbleengine/method StreamRead
 metaengine/pebbleengine/method StreamScan
 metaengine/pebbleengine/method StreamVersion
+metaengine/pebbleengine/method VectorInsert
+metaengine/pebbleengine/method VectorSearch
 metaengine/pgengine/const PG_NetworkRTT
 metaengine/pgengine/const PG_NsPerOp
 metaengine/pgengine/const PG_NsPerRead
@@ -2200,6 +2229,8 @@ metaengine/pgengine/method CounterIncrement
 metaengine/pgengine/method DistinctValues
 metaengine/pgengine/method ExplainAggregateQuery
 metaengine/pgengine/method ExplainScanQuery
+metaengine/pgengine/method GraphAddEdge
+metaengine/pgengine/method GraphNeighbors
 metaengine/pgengine/method GroupedAggregate
 metaengine/pgengine/method HealthCheck
 metaengine/pgengine/method JournalReadAll
@@ -2359,6 +2390,7 @@ metaengine/struct RawScanResult
 metaengine/struct ReadCoalescer
 metaengine/struct ReadCosts
 metaengine/struct RebuildThreshold
+metaengine/struct ReplicationStatus
 metaengine/struct RulePipeline
 metaengine/struct RuleTraceEntry
 metaengine/struct SSEConfig
@@ -2379,6 +2411,9 @@ metaengine/struct SpatialResult
 metaengine/struct Store
 metaengine/struct TTLConfig
 metaengine/struct TieredStore
+metaengine/struct TraceOp
+metaengine/struct TraceRecorder
+metaengine/struct TraceSummary
 metaengine/struct TypedReader
 metaengine/struct VectorResult
 metaengine/struct Watcher
@@ -2386,6 +2421,7 @@ metaengine/struct WorkloadStats
 metaengine/tursoengine/const Turso_NetworkRTT
 metaengine/tursoengine/func New
 metaengine/type ADT
+metaengine/type AddEngineOption
 metaengine/type AggregateFn
 metaengine/type BackfillOption
 metaengine/type Complexity

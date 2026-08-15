@@ -127,6 +127,13 @@ func (e *pgEngine) init() error {
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_stream_log_stream ON meta_stream_log(collection, stream_id, seq)`,
 		`CREATE INDEX IF NOT EXISTS idx_stream_log_journal ON meta_stream_log(collection, seq)`,
+		`CREATE TABLE IF NOT EXISTS meta_graph_edges (
+			collection TEXT NOT NULL,
+			from_node TEXT NOT NULL,
+			to_node TEXT NOT NULL,
+			PRIMARY KEY (collection, from_node, to_node)
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_graph_edges_from ON meta_graph_edges(collection, from_node)`,
 	}
 
 	for _, ddl := range ddls {
@@ -174,7 +181,7 @@ func (e *pgEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTCounter:   metaengine.ComplexityO1,
 			metaengine.ADTSortedMap: metaengine.ComplexityOLogN,
 			metaengine.ADTSet:       metaengine.ComplexityON,
-			metaengine.ADTGraph:     metaengine.ComplexityON,
+			metaengine.ADTGraph:     metaengine.ComplexityODegree, // native WITH RECURSIVE on meta_graph_edges
 			metaengine.ADTLog:       metaengine.ComplexityON,
 			metaengine.ADTMultimap:  metaengine.ComplexityON,
 			metaengine.ADTVector:    metaengine.ComplexityON,
@@ -182,13 +189,12 @@ func (e *pgEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSpatial:   metaengine.ComplexityON,
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
-			metaengine.ADTSet:      true,
-			metaengine.ADTGraph:    true,
-			metaengine.ADTLog:      true,
+			metaengine.ADTSet:    true,
+			metaengine.ADTLog:    true,
 			metaengine.ADTMultimap: true,
-			metaengine.ADTVector:   true,
-			metaengine.ADTSearch:   true,
-			metaengine.ADTSpatial:  true,
+			metaengine.ADTVector: true,
+			metaengine.ADTSearch: true,
+			metaengine.ADTSpatial: true,
 		},
 		Layouts: map[metaengine.ADT]metaengine.StorageLayout{
 			metaengine.ADTMap:       metaengine.LayoutRow,

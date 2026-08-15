@@ -10,10 +10,11 @@ import (
 )
 
 // PushdownMapScan pushes WHERE/ORDER BY/LIMIT into MySQL using JSON
-// operators (value->'$.field'), avoiding the full-table load that MapScan
-// performs. MySQL 5.7+ supports the JSON path operator -> for extraction.
+// operators, avoiding the full-table load that MapScan performs. MySQL 5.7+
+// supports the JSON path operator -> for extraction; MariaDB (detected at
+// construction) gets the equivalent JSON_EXTRACT form.
 //
-// Using value->'$.field' preserves the native JSON type for numeric
+// Using value->'$.field' on MySQL preserves the native JSON type for numeric
 // comparisons. Keyset pagination adds a WHERE clause on the sort column.
 // art-dupl:accept cross-module SQL engine pattern — separate go.mod
 func (e *mysqlEngine) PushdownMapScan(
@@ -38,18 +39,16 @@ func (e *mysqlEngine) PushdownMapScan(
 
 			placeholders := make([]string, len(values))
 			for i, v := range values {
-				jb, _ := json.Marshal(v)
-				placeholders[i] = "CAST(? AS JSON)"
-				args = append(args, string(jb))
+				placeholders[i] = e.jsonParamPlaceholder()
+				args = append(args, e.jsonFilterParam(v))
 			}
 
-			fmt.Fprintf(&b, ` AND value->'$.%s' IN (%s)`,
-				escapeJSONPath(f.Column), strings.Join(placeholders, ", "))
+			fmt.Fprintf(&b, ` AND %s IN (%s)`,
+				e.jsonCompareExpr(f.Column), strings.Join(placeholders, ", "))
 		} else {
-			jb, _ := json.Marshal(f.Value)
-			fmt.Fprintf(&b, ` AND value->'$.%s' %s CAST(? AS JSON)`,
-				escapeJSONPath(f.Column), string(f.Op))
-			args = append(args, string(jb))
+			fmt.Fprintf(&b, ` AND %s %s %s`,
+				e.jsonCompareExpr(f.Column), string(f.Op), e.jsonParamPlaceholder())
+			args = append(args, e.jsonFilterParam(f.Value))
 		}
 	}
 
@@ -59,14 +58,13 @@ func (e *mysqlEngine) PushdownMapScan(
 			op = "<"
 		}
 
-		jb, _ := json.Marshal(cursor)
-		fmt.Fprintf(&b, ` AND value->'$.%s' %s CAST(? AS JSON)`,
-			escapeJSONPath(sort.Column), op)
-		args = append(args, string(jb))
+		fmt.Fprintf(&b, ` AND %s %s %s`,
+			e.jsonCompareExpr(sort.Column), op, e.jsonParamPlaceholder())
+		args = append(args, e.jsonFilterParam(cursor))
 	}
 
 	if sort != nil {
-		fmt.Fprintf(&b, ` ORDER BY value->'$.%s'`, escapeJSONPath(sort.Column))
+		fmt.Fprintf(&b, ` ORDER BY %s`, e.jsonFieldExpr(sort.Column))
 		if sort.Desc {
 			b.WriteString(` DESC`)
 		}
@@ -91,7 +89,9 @@ func (e *mysqlEngine) PushdownMapScan(
 
 // ApplyLayout implements metaengine.LayoutPlanner. It creates functional
 // indexes on the meta_map table for the declared filter/sort fields.
-// MySQL 8.0.13+ supports functional key parts.
+// MySQL 8.0.13+ supports functional key parts; MariaDB does not — there the
+// layout is recorded as applied and queries rely on JSON_EXTRACT scans
+// (graceful degradation, per the metaengine routing invariants).
 // art-dupl:accept cross-module SQL engine pattern — separate go.mod
 func (e *mysqlEngine) ApplyLayout(collection string, filterFields, sortFields []string) error {
 	e.layoutMu.Lock()
@@ -103,6 +103,11 @@ func (e *mysqlEngine) ApplyLayout(collection string, filterFields, sortFields []
 
 	key := collection
 	if e.appliedLayouts[key] {
+		return nil
+	}
+
+	if e.isMariaDB() {
+		e.appliedLayouts[key] = true
 		return nil
 	}
 

@@ -85,6 +85,15 @@ func (s *Store) SwapEngine(oldName, _ string, newEngine Engine) error {
 		return fmt.Errorf("%w: %q", errSwapEngineNotFound, oldName)
 	}
 
+	// A swapped-out shadow engine stops replicating; the replacement starts
+	// fresh as an Active engine (re-add + backfill to rebuild a mirror).
+	if rep, ok := s.replicas[oldName]; ok {
+		rep.halt()
+		delete(s.replicas, oldName)
+	}
+
+	delete(s.engineRoles, oldName)
+
 	// Reassign queries
 	for _, q := range s.queries {
 		if q.QueryEngine().Profile().Name == oldName {

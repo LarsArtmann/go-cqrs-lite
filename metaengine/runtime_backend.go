@@ -43,12 +43,19 @@ type AddedEngine struct {
 // AddEngine registers a new engine at runtime and triggers a re-plan so the
 // planner can route queries to it if it offers a better cost profile (ADR-0124).
 //
-// The engine is added with RoleActive by default. After re-planning, queries
-// that are cheaper on the new engine are re-routed to it.
+// The engine is added with RoleActive by default; pass WithEngineRole to
+// assign another role. Shadow roles (RoleMigration, RoleBackup) mirror ALL
+// collections via async replication and are excluded from routing until
+// PromoteEngine. After re-planning, queries that are cheaper on the new
+// engine are re-routed to it.
 //
 // If an EventLog is attached (via WithEventLog), call Backfill(ctx) afterward
 // to replay events into the new engine's projections.
-func (s *Store) AddEngine(ctx context.Context, engine Engine) error {
+func (s *Store) AddEngine(
+	ctx context.Context,
+	engine Engine,
+	opts ...AddEngineOption,
+) error {
 	if engine == nil {
 		return errors.New("metaengine.Store.AddEngine: engine is nil")
 	}
@@ -56,6 +63,15 @@ func (s *Store) AddEngine(ctx context.Context, engine Engine) error {
 	name := engine.Profile().Name
 	if name == "" {
 		return errors.New("metaengine.Store.AddEngine: engine has empty Name in profile")
+	}
+
+	cfg := addEngineConfig{role: RoleActive}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	if !cfg.role.Valid() {
+		return fmt.Errorf("metaengine.Store.AddEngine: invalid role %q", cfg.role)
 	}
 
 	s.mu.Lock()
@@ -67,6 +83,23 @@ func (s *Store) AddEngine(ctx context.Context, engine Engine) error {
 	}
 
 	s.engines = append(s.engines, engine)
+
+	if s.engineRoles == nil {
+		s.engineRoles = make(map[string]ProjectionRole)
+	}
+
+	if s.replicas == nil {
+		s.replicas = make(map[string]*replicator)
+	}
+
+	s.engineRoles[name] = cfg.role
+
+	if cfg.role.IsShadow() {
+		rep := s.newReplicatorLocked(engine)
+		s.replicas[name] = rep
+		go rep.run()
+	}
+
 	s.mu.Unlock()
 
 	return s.replanWithTrigger(ctx, triggerEngineAdd)
@@ -74,7 +107,8 @@ func (s *Store) AddEngine(ctx context.Context, engine Engine) error {
 
 // RemoveEngine deregisters an engine at runtime and triggers a re-plan.
 // Queries routed to the removed engine are re-routed to the next-best engine.
-// The engine is NOT closed — the caller owns its lifecycle.
+// The engine is NOT closed — the caller owns its lifecycle. A shadow engine's
+// pending replication jobs are abandoned (the engine is going away).
 func (s *Store) RemoveEngine(ctx context.Context, name string) error {
 	s.mu.Lock()
 
@@ -92,7 +126,16 @@ func (s *Store) RemoveEngine(ctx context.Context, name string) error {
 	}
 
 	s.engines = append(s.engines[:idx], s.engines[idx+1:]...)
+	delete(s.engineRoles, name)
+
+	rep, ok := s.replicas[name]
+	delete(s.replicas, name)
+
 	s.mu.Unlock()
+
+	if ok {
+		rep.halt()
+	}
 
 	return s.replanWithTrigger(ctx, triggerEngineRemove)
 }
@@ -169,6 +212,37 @@ func (s *Store) replayEvents(
 		}
 	}
 
+	return s.replayShadows(ctx, events)
+}
+
+// replayShadows synchronously replays events into every shadow engine — the
+// initial population path for Backup/Migration roles (Backfill). Same
+// failure semantics as the replicator: an error here fails the backfill.
+func (s *Store) replayShadows(ctx context.Context, events []EventInput) error {
+	if len(events) == 0 {
+		return nil
+	}
+
+	s.mu.RLock()
+	reps := make([]*replicator, 0, len(s.replicas))
+
+	for _, rep := range s.replicas {
+		reps = append(reps, rep)
+	}
+
+	s.mu.RUnlock()
+
+	for _, rep := range reps {
+		for _, evt := range events {
+			job := repJob{eventType: evt.Type, rec: record.Record{Type: evt.Type}, payload: evt.Payload}
+			if err := rep.applyJob(ctx, job); err != nil {
+				return fmt.Errorf("metaengine: backfill shadow %s: %w", rep.name, err)
+			}
+
+			rep.applied.Add(1)
+		}
+	}
+
 	return nil
 }
 
@@ -193,39 +267,28 @@ func (s *Store) dispatchFolds(
 
 	byEngine := make(map[Engine][]foldTask)
 
-	for _, name := range sortedQueryNames(s.queries) {
-		if queryFilter != nil && !queryFilter[name] {
-			continue
-		}
-
-		q := s.queries[name]
-		foldIdx, ok := q.QueryFoldByEvent()[eventType]
-		if !ok {
-			continue
-		}
-
-		fold := q.QueryFolds()[foldIdx]
-		eng := q.QueryEngine()
-		byEngine[eng] = append(byEngine[eng], foldTask{q: q, fold: fold})
+	for _, t := range filterTasks(s.tasksFor(eventType), queryFilter) {
+		byEngine[t.q.QueryEngine()] = append(byEngine[t.q.QueryEngine()], t)
 	}
 
 	for _, eng := range s.engines {
 		tasks, ok := byEngine[eng]
-		if !ok {
+		if !ok || len(tasks) == 0 {
 			continue
 		}
 
-		applyAll := func(ctx context.Context) error {
-			for _, t := range tasks {
-				s.foldMu.Lock()
+	applyAll := func(ctx context.Context) error {
+		for _, t := range tasks {
+			l := s.foldLocks.get(t.q.QueryName())
+			l.Lock()
 
-				if ra, ok := t.fold.(RecordAwareFold); ok {
-					ra.SetCurrentRecord(rec)
-				}
+			if ra, ok := t.fold.(RecordAwareFold); ok {
+				ra.SetCurrentRecord(rec)
+			}
 
-				applyErr := s.applyFold(ctx, t.q, t.fold, payload)
+			applyErr := s.applyFold(ctx, t.q, t.fold, payload)
 
-				s.foldMu.Unlock()
+			l.Unlock()
 
 				if applyErr != nil {
 					return fmt.Errorf(

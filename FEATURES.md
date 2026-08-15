@@ -272,7 +272,7 @@ developer never declares "I need a Map" or "I need a Counter."
 | CalibrateEngine               | `calibratable` interface. Memory + SQLite support runtime cost calibration. External engines embed `Calibration` (see line below)                                                                                                                 | 🧪     |
 | ExplainPlan + Doctor          | `store.Explain(ctx)` shows engine assignments + rule diagnostics + replication suffix. `store.Doctor()` health check with `--- Replication ---` section                                                                                           | 🧪     |
 | Persistence enum (ADR-0098)   | `EngineProfile.Persistence` (`PersistenceVolatile`/`PersistencePersistent`). `durabilityRule` WARN when volatile engines hold materialized projections. DDIA Ch1 reliability axis                                                                 | ✅     |
-| StreamLogBackend              | 5-method interface for stream-keyed event journals. ALL 5 engines implement it (Memory, SQLite, Pebble, DuckDB, Postgres)                                                                                                                         | ✅     |
+| StreamLogBackend              | 5-method interface for stream-keyed event journals. ALL 5 engines implement it (Memory, SQLite, Pebble, DuckDB, Postgres). `JournalReadFrom` is POSITIONAL on every engine (2026-08-15 fixes: Dgraph sparse-seq skip + SQL OFFSET skip); `enginetest.RunStreamLogBackendTest(In)` enforces the shared contract incl. interleaved collections | ✅     |
 | AtomicAppender                | `StreamAppendExpected(ctx, collection, streamID, expectedVersion, entries)` — atomic optimistic concurrency under a single lock. Memory + SQLite + DuckDB + Postgres. `ErrVersionConflict` sentinel                                               | ✅     |
 | SQLite stream log             | `meta_stream_log` table with indexes on `(collection, stream_id, seq)` and `(collection, seq)`. `StreamAppendExpected` uses `RunInTx`                                                                                                             | ✅     |
 | Stream codec                  | `EncodeStreamValue` / `DecodeStreamValue` consolidated in `metaengine/stream_codec.go`. Used by DuckDB + Postgres engines                                                                                                                         | ✅     |
@@ -1122,6 +1122,8 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Custom metadata      | `custom.*` prefix preserves all custom metadata entries                                                  | ✅     |
 | Correlation ID MW    | `CorrelationIDMiddleware()` — injects correlation ID into message metadata                               | ✅     |
 | Retry middleware     | `NewRetryMiddleware(config)` + `DefaultRetryConfig()` — retry with backoff for handler errors            | ✅     |
+| **Broker backends**  | `WithBackend`/`WithCommandBackend` wire any official watermill plugin (Redis Streams roundtrip tested against a real broker; NATS JetStream waits for a maintained adapter) | ✅     |
+| **Handler independence** | Handler chains collect ALL handler errors via `errors.Join` — one failing handler never starves the others | ✅     |
 
 ---
 
@@ -1236,7 +1238,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | F-series adoption coaching | 21 rules (F001–F021) that proactively coach consumers toward unused features | ✅ |
 | T-series testing quality | 8 rules (T001–T008) detecting missing test helpers, parallel coverage gaps, snapshot store misuse | ✅ |
 | E-series architecture | 17 rules (E001–E017) detecting consumer design issues (preset bypass, missing HTTP, signing disabled, etc.) | ✅ |
-| 202 total rules | Correctness, API misuse, boilerplate, adoption, architecture, consistency, performance, security, testing, version. Metaengine-aware detection (F018-F026). Resilience rules (B029-B031: retry/circuit-breaker/DLQ). Observability rules (F027-F029: OTel init/slog/spans). Optimistic concurrency rules (C041-C042) | ✅ |
+| 203 total rules | Correctness, API misuse, boilerplate, adoption, architecture, consistency, performance, security, testing, version. Metaengine-aware detection (F018-F026). Resilience rules (B029-B031: retry/circuit-breaker/DLQ). Observability rules (F027-F029: OTel init/slog/spans). Optimistic concurrency rules (C041-C042). Deprecated-transport coaching (F030, ADR-0127) | ✅ |
 | A033 branded-ID roundtrip | Flags code that converts branded `id.Of[T]` to `string` and back (breaks type safety) | ✅ |
 | C037 codec mismatch | Detects codec mismatches across all typed stores: snapshot, command, query, kv (CBOR events + JSON snapshots = deserialization failure) | ✅ |
 | C038 event-type mismatch | Detects near-miss event type strings in `switch evt.Type()` blocks (Levenshtein distance) | ✅ |
@@ -1289,7 +1291,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 
 ## Module Maturity Matrix
 
-> 86 `go.mod` files across the workspace (multi-module `go.work`). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
+> 82 `go.mod` files across the workspace (multi-module `go.work`). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
 
 | Module                           | Import Path                           | Maturity                                                                                                                                                   |
 | -------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1378,7 +1380,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `flightrecorder`                 | `…/flightrecorder/v4`                 | 🧪 Experimental (Go 1.25 runtime/trace capture. Zero-dep. ADR-0089)                                                                                        |
 | `benchkit`                       | `…/benchkit/v4`                       | 🧪 Experimental (functional, 88 tests, `--repeat N` available)                                                                                             |
 | `cmd/cqrs-bench`                 | `…/cmd/cqrs-bench`                    | 🔧 Tool                                                                                                                                                    |
-| `cmd/cqrs-lint`                  | `…/cmd/cqrs-lint`                     | 🔧 Tool (202-rule domain-aware linter: correctness, API misuse, boilerplate, adoption, architecture, consistency, performance, security, testing, version) |
+| `cmd/cqrs-lint`                  | `…/cmd/cqrs-lint`                     | 🔧 Tool (203-rule domain-aware linter: correctness, API misuse, boilerplate, adoption, architecture, consistency, performance, security, testing, version) |
 
 ---
 

@@ -46,6 +46,7 @@ type mysqlEngine struct {
 	metaengine.Calibration
 
 	db             *sql.DB
+	dialect        string // "mysql" or "mariadb" (detected via SELECT VERSION())
 	mu             sync.Mutex
 	activeTx       atomic.Pointer[sql.Tx] // non-nil inside RunInTx
 	done           bool
@@ -107,6 +108,13 @@ func (e *mysqlEngine) init() error {
 			INDEX idx_stream_log_stream (collection, stream_id, seq),
 			INDEX idx_stream_log_journal (collection, seq)
 		)`,
+		`CREATE TABLE IF NOT EXISTS meta_graph_edges (
+			collection VARCHAR(255) NOT NULL,
+			from_node VARCHAR(255) NOT NULL,
+			to_node VARCHAR(255) NOT NULL,
+			PRIMARY KEY (collection, from_node, to_node),
+			INDEX idx_graph_edges_from (collection, from_node)
+		)`,
 	}
 
 	for _, ddl := range ddls {
@@ -115,8 +123,15 @@ func (e *mysqlEngine) init() error {
 		}
 	}
 
+	e.dialect = detectDialect(e.db)
+
 	return nil
 }
+
+// Dialect returns the detected server dialect: "mysql" or "mariadb".
+// MariaDB lacks the -> JSON operator and CAST(expr AS JSON); the engine
+// emits MariaDB-compatible JSON_EXTRACT syntax for that dialect.
+func (e *mysqlEngine) Dialect() string { return e.dialect }
 
 // Profile returns the cost profile for this MySQL engine.
 func (e *mysqlEngine) Profile() metaengine.EngineProfile {
@@ -141,14 +156,13 @@ func (e *mysqlEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTCounter:   metaengine.ComplexityO1,
 			metaengine.ADTSortedMap: metaengine.ComplexityOLogN,
 			metaengine.ADTSet:       metaengine.ComplexityON,
-			metaengine.ADTGraph:     metaengine.ComplexityON, // brute-force BFS via multimap fallback
+			metaengine.ADTGraph:     metaengine.ComplexityODegree, // native WITH RECURSIVE on meta_graph_edges
 			metaengine.ADTLog:       metaengine.ComplexityON,
 			metaengine.ADTMultimap:  metaengine.ComplexityON,
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
-			metaengine.ADTSet:      true,
-			metaengine.ADTGraph:    true,
-			metaengine.ADTLog:      true,
+			metaengine.ADTSet:    true,
+			metaengine.ADTLog:    true,
 			metaengine.ADTMultimap: true,
 		},
 		Layouts: map[metaengine.ADT]metaengine.StorageLayout{

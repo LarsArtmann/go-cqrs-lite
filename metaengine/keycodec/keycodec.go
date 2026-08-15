@@ -13,8 +13,10 @@
 //	counterPrefix      : "c\x00<col>\x00"
 //	multimapPrefix     : "mm\x00<col>\x00<key>\x00"
 //	logPrefix          : "l\x00<col>\x00"
+//	vectorPrefix       : "vec\x00<col>\x00"
 //	multimapKey        : "mm\x00<col>\x00<key>\x00<seq:%020d>"
 //	logKey             : "l\x00<col>\x00<seq:%020d>"
+//	vectorKey          : "vec\x00<col>\x00<id>"
 //
 // Both engines must stay in sync on these key shapes — they share the same
 // on-disk layout so that migration between engines is lossless.
@@ -78,6 +80,18 @@ func MultimapKey(col, key string, seq int64) []byte {
 // matches numeric order.
 func LogKey(col string, seq int64) []byte {
 	return fmt.Appendf(nil, "l%s%s%s%020d", Sep, col, Sep, seq)
+}
+
+// VectorKey returns the full key for a (collection, id) pair in the
+// VectorBackend. Values are the JSON-encoded embedding dimensions.
+func VectorKey(col, id string) []byte {
+	return []byte("vec" + Sep + col + Sep + id)
+}
+
+// VectorPrefix returns the scan prefix for the vector embeddings of a
+// collection.
+func VectorPrefix(col string) []byte {
+	return []byte("vec" + Sep + col + Sep)
 }
 
 // EncodeJSON marshals v to JSON, falling back to fmt.Sprintf("%v", v) on error.

@@ -2,6 +2,7 @@ package sqliteengine
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -9,16 +10,49 @@ import (
 
 // --- graph dispatch ---
 //
-// SQLite/Turso implements graph traversal natively via iterative BFS on
-// meta_graph_edges. Each level of traversal issues simple indexed SELECTs
-// (WHERE collection = ? AND from_node = ?), avoiding the need for recursive
-// CTEs which are not supported by all SQL engines (notably libSQL/Turso).
+// SQLite implements graph traversal natively on meta_graph_edges in two
+// modes, chosen automatically at construction time:
 //
-// This is O(degree^depth) — far better than the degraded multimap BFS fallback
-// (O(N * degree^depth)). The dedicated edges table with a composite index
-// ensures each level lookup is O(logN).
+//   - recursive CTE: a single WITH RECURSIVE statement walks the whole
+//     depth-limited neighborhood in one query. This is much faster for deep
+//     graphs than per-level round trips (O(1) queries instead of
+//     O(nodes-per-level)).
+//   - iterative BFS: one indexed SELECT per node per level
+//     (WHERE collection = ? AND from_node = ?). Used when the driver or
+//     server does not support WITH RECURSIVE — probed at construction, so
+//     libSQL/Turso deployments that lack recursive CTEs degrade gracefully
+//     instead of failing.
+//
+// Both modes are O(degree^depth) lookups — far better than the degraded
+// multimap BFS fallback (O(N * degree^depth)). The dedicated edges table
+// with a composite index ensures each level lookup is O(logN).
 
 const graphNeighborsDirectSQL = `SELECT to_node FROM meta_graph_edges WHERE collection = ? AND from_node = ?`
+
+// graphNeighborsCTE walks the depth-limited neighborhood in one query.
+// UNION deduplicates (node, depth) pairs; SELECT DISTINCT collapses a node
+// reached at multiple depths; the outer WHERE excludes the start node (the
+// iterative BFS marks it visited, and cycles would otherwise re-admit it).
+const graphNeighborsCTE = `WITH RECURSIVE walk(node, depth) AS (
+	SELECT to_node, 1 FROM meta_graph_edges WHERE collection = ? AND from_node = ?
+	UNION
+	SELECT g.to_node, w.depth + 1
+	FROM meta_graph_edges g JOIN walk w ON g.collection = ? AND g.from_node = w.node
+	WHERE w.depth < ?
+)
+SELECT DISTINCT node FROM walk WHERE node <> ?`
+
+// cteProbeSQL verifies the driver/server executes WITH RECURSIVE. Any error
+// (unsupported syntax, restricted remote protocol) disables the CTE path.
+const cteProbeSQL = `WITH RECURSIVE cqrs_cte_probe(x) AS (
+	SELECT 1 UNION ALL SELECT x+1 FROM cqrs_cte_probe WHERE x < 1
+) SELECT x FROM cqrs_cte_probe`
+
+// probeRecursiveCTE reports whether the database executes recursive CTEs.
+func probeRecursiveCTE(db *sql.DB) bool {
+	var got int
+	return db.QueryRowContext(context.Background(), cteProbeSQL).Scan(&got) == nil
+}
 
 func (e *sqliteEngine) GraphAddEdge(
 	ctx context.Context,
@@ -45,6 +79,57 @@ func (e *sqliteEngine) GraphNeighbors(
 		return []any{}, nil
 	}
 
+	if e.graphCTE {
+		return e.graphNeighborsCTE(ctx, col, node, depth)
+	}
+
+	return e.graphNeighborsIterative(ctx, col, node, depth)
+}
+
+// graphNeighborsCTE resolves the depth-limited neighborhood in a single
+// recursive-CTE query.
+func (e *sqliteEngine) graphNeighborsCTE(
+	ctx context.Context,
+	col string,
+	node any,
+	depth int,
+) ([]any, error) {
+	start := encodeKey(node)
+	rows, err := e.xd().QueryContext(ctx, graphNeighborsCTE, col, start, col, depth, start)
+	if err != nil {
+		return nil, fmt.Errorf("sqliteengine.GraphNeighbors: %w", err)
+	}
+	defer func() { _ = rows.Close() }()
+
+	var result []any
+	for rows.Next() {
+		var nb string
+		if err := rows.Scan(&nb); err != nil {
+			return nil, fmt.Errorf("sqliteengine.GraphNeighbors: row: %w", err)
+		}
+
+		result = append(result, nb)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("sqliteengine.GraphNeighbors: %w", err)
+	}
+
+	if result == nil {
+		result = []any{}
+	}
+
+	return result, nil
+}
+
+// graphNeighborsIterative is the fallback for drivers without WITH RECURSIVE:
+// one indexed lookup per node per level.
+func (e *sqliteEngine) graphNeighborsIterative(
+	ctx context.Context,
+	col string,
+	node any,
+	depth int,
+) ([]any, error) {
 	startNode := encodeKey(node)
 	visited := map[string]bool{startNode: true}
 	frontier := []string{startNode}

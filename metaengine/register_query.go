@@ -39,7 +39,7 @@ func (s *Store) RegisterQuery(query any) error {
 
 	assignment, err := planQuery(
 		meta,
-		s.engines,
+		s.routableLocked(),
 		planConfig{writeAmplificationBudget: DefaultWriteAmplificationBudget},
 	)
 	if err != nil {
@@ -52,6 +52,7 @@ func (s *Store) RegisterQuery(query any) error {
 
 	s.queries[meta.QueryName()] = meta
 	s.byInputType[meta.QueryInputTypeName()] = meta.QueryName()
+	s.rebuildTaskSnapLocked()
 
 	if s.plan != nil {
 		s.plan.Queries = append(s.plan.Queries, assignment)

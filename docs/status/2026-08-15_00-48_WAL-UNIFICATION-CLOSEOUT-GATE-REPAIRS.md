@@ -87,8 +87,11 @@ Radical honesty, including my own messes:
 
 ## e) WHAT WE SHOULD IMPROVE
 
-1. **Unwired gates rot — proven.** check-coverage, check-arch, check-duplication, and
-   vulncheck are separate nix apps that nothing runs automatically. check-coverage rotted
+1. **Unwired gates rot — proven.** ~~check-coverage, check-arch, check-duplication, and
+   vulncheck are separate nix apps that nothing runs automatically.~~ _[Correction,
+   2026-08-15: wrong — the gates have run inside `#verify` since `6f7c88388` (2026-08-03).
+   check-coverage rotted while WIRED: the script itself was broken (false GREEN), fixed at
+   `875bb689b`. Only `#vulncheck` sits outside `#verify`.]_ check-coverage rotted
    for 3 days unnoticed. Fix: add them to `#verify` (accepting +5-10 min) or to CI on every
    PR. The current state is "gates that only fire when someone remembers".
 2. **No meta-test guards script-owned maps.** `.go-arch-lint.yml` has
@@ -117,26 +120,26 @@ Radical honesty, including my own messes:
 
 | # | Task | Impact | Effort | Category |
 |---|------|--------|--------|----------|
-| 1 | Wire `check-coverage` + `check-duplication` (+ `check-arch`) into `#verify` or CI | Critical | M | Quality |
-| 2 | Add meta-test: every `check-coverage.sh` EXPECTED key resolves to an existing module dir (codec-dangle class) | High | S | Quality |
-| 3 | Run docs-health HARVEST: pull this report's section (f) into TODO_LIST.md | High | S | Documentation |
-| 4 | Confirm concurrent session's `event/v4` restructure + module deletions landed clean; run `#verify` once at a clean tree | High | S | Verification |
-| 5 | Re-pin `.art-dupl-baseline.json` at the next clean tree (current pin includes in-flight foreign code) | Medium | S | Quality |
-| 6 | Sweep other root configs/scripts for deleted-module references (go.work is clean; check flake.nix `testModules`, check-module-layers.sh, api-stability modules list) after the deletion wave settles | High | S | Cleanup |
-| 7 | Audit benchkit's remaining wall-clock assertions (`raceEnabled` use at benchkit_test.go:823) for the same load-sensitivity mis-model | Medium | S | Quality |
-| 8 | Make `check-coverage.sh --update` auto-stamp the "verified" date comment | Low | S | Quality |
-| 9 | Add `//art-dupl:accept` directives at the 9 intentional clone sites (document intent in-place) | Low | S | Quality |
-| 10 | Add dirty-tree guard to duplication baseline command (warn or refuse) | Medium | S | Quality |
-| 11 | `DecorateJournal` for `VersionedSeekableJournal` (deferred from ADR-0126 work) | Medium | M | Feature |
-| 12 | Decide + implement (or permanently drop) `brandedString` extraction into `record/` | Low | S | Cleanup |
+~~| 1 | Wire `check-coverage` + `check-duplication` (+ `check-arch`) into `#verify` or CI | Critical | M | Quality |~~ done (existing wiring): gates have run inside #verify since 6f7c88388 (2026-08-03); this report's premise was wrong - check-coverage was BROKEN, not unwired; script fixed at 875bb689b
+| 2 | Add meta-test: every `check-coverage.sh` EXPECTED key resolves to an existing module dir (codec-dangle class) | High | S | Quality | <- OPEN. TODO_LIST 'Code Quality' (check-coverage.sh hardening)
+~~| 3 | Run docs-health HARVEST: pull this report's section (f) into TODO_LIST.md | High | S | Documentation |~~ done. TODO_LIST carries the harvest (Duplication-baseline hygiene, benchkit wall-clock audit, DecorateJournal, brandedString items) - docs-health audit 2026-08-15
+~~| 4 | Confirm concurrent session's `event/v4` restructure + module deletions landed clean; run `#verify` once at a clean tree | High | S | Verification |~~ done at 5f2198189 (first fully-green verify gate after the wave; three GREENs since)
+| 5 | Re-pin `.art-dupl-baseline.json` at the next clean tree (current pin includes in-flight foreign code) | Medium | S | Quality | <- OPEN. TODO_LIST 'Code Quality' (Duplication-baseline hygiene)
+~~| 6 | Sweep other root configs/scripts for deleted-module references (go.work is clean; check flake.nix `testModules`, check-module-layers.sh, api-stability modules list) after the deletion wave settles | High | S | Cleanup |~~ done at 2e9a2fc28 (stale references to extracted modules cleaned; meta-tests enforce lists since)
+| 7 | Audit benchkit's remaining wall-clock assertions (`raceEnabled` use at benchkit_test.go:823) for the same load-sensitivity mis-model | Medium | S | Quality | <- OPEN. TODO_LIST 'Code Quality' (benchkit wall-clock audit; raceEnabled still at benchkit_test.go:821)
+| 8 | Make `check-coverage.sh --update` auto-stamp the "verified" date comment | Low | S | Quality | <- OPEN. TODO_LIST 'Code Quality' (check-coverage.sh hardening covers the --update date stamp)
+| 9 | Add `//art-dupl:accept` directives at the 9 intentional clone sites (document intent in-place) | Low | S | Quality | <- OPEN. TODO_LIST 'Code Quality' (Duplication-baseline hygiene)
+| 10 | Add dirty-tree guard to duplication baseline command (warn or refuse) | Medium | S | Quality | <- OPEN. TODO_LIST 'Code Quality' (Duplication-baseline hygiene)
+| 11 | `DecorateJournal` for `VersionedSeekableJournal` (deferred from ADR-0126 work) | Medium | M | Feature | <- OPEN. TODO_LIST 'Code Quality' (DecorateJournal item)
+| 12 | Decide + implement (or permanently drop) `brandedString` extraction into `record/` | Low | S | Cleanup | <- OPEN. TODO_LIST 'Code Quality' (brandedString item)
 | 13 | Tee verify output to `docs/../.logs/` or `/tmp` by default inside the verify script | Medium | S | Quality |
 | 14 | Investigate golangci-lint fact-cache warnings on `/mnt/buildcache` during parallel sessions (shared cache races) | Low | S | Quality |
-| 15 | Curate CHANGELOG [Unreleased] entries for gate repairs (coverage false-GREEN fix, benchkit thresholds, arch-lint de-dangle) | Medium | S | Documentation |
-| 16 | v5 deprecated-shell deletion sweep (transport/*, codec/retry shells, `metadata.CustomData`, `schema.VersionedStore`, `signing.Rejecting*`) — TODO_LIST Phase-8 entry exists | High | L | Cleanup |
-| 17 | check-arch 94-gap catalog issue (pre-existing, ticketed earlier) — still open | Medium | M | Quality |
+~~| 15 | Curate CHANGELOG [Unreleased] entries for gate repairs (coverage false-GREEN fix, benchkit thresholds, arch-lint de-dangle) | Medium | S | Documentation |~~ done. CHANGELOG [Unreleased] 'repo gates' entry (docs-health session 2026-08-15)
+| 16 | v5 deprecated-shell deletion sweep (transport/*, codec/retry shells, `metadata.CustomData`, `schema.VersionedStore`, `signing.Rejecting*`) — TODO_LIST Phase-8 entry exists | High | L | Cleanup | <- OPEN. TODO_LIST 'v5 Unification Phase 8' (codec/retry shells already deleted at 5127039da; transport/* + ADR-0126 compat shells wait for the v5 cut)
+~~| 17 | check-arch 94-gap catalog issue (pre-existing, ticketed earlier) — still open | Medium | M | Quality |~~ done at 8c384f0f5 (layer-map key convention repaired, 87 plain-key LAYER entries, check-arch green inside #verify)
 | 18 | Consider making `verify-parallel` the default `#verify` to cut wall-clock and reduce exposure to concurrent-session interference | Medium | M | Quality |
 | 19 | Add `LoadStream` error-path tests (noun-wrapped backend failure) in system if coverage there is thin | Low | S | Quality |
-| 20 | Document the GOWORK-positional gotcha (workspace env + package-dir CWD = false failures) in AGENTS.md alongside the existing GOWORK notes | Low | S | Documentation |
+~~| 20 | Document the GOWORK-positional gotcha (workspace env + package-dir CWD = false failures) in AGENTS.md alongside the existing GOWORK notes | Low | S | Documentation |~~ done. AGENTS.md gotcha 'GOWORK env is positional' (docs-health session 2026-08-15)
 
 ---
 
@@ -159,3 +162,16 @@ Radical honesty, including my own messes:
 
 *Report written 2026-08-15 00:48 CEST. WAL Unification is CLOSED; all gates GREEN at time
 of writing (verify log: /tmp/verify-final.log, 238 ok / 0 FAIL).*
+
+
+---
+
+## Resolution (2026-08-15)
+
+16 of 20 items resolved or routed; items 13 (tee verify), 14 (golangci
+fact-cache), 18 (verify-parallel default), 19 (LoadStream error-path tests)
+remain open and unrouted, so this report stays active. Notable finding
+while annotating: item 1's premise was factually wrong - the gates have run
+inside `#verify` since `6f7c88388` (2026-08-03); check-coverage was broken,
+not unwired (script fixed at `875bb689b`). Item 17 closed by the layer-map
+key-convention repair at `8c384f0f5`.

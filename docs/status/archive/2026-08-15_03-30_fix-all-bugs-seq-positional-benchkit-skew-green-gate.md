@@ -64,13 +64,13 @@
 
 ## c) Found but deliberately NOT fixed (recorded, needs decisions)
 
-1. **mysqlengine vs MariaDB**: 3 pushdown tests emit MySQL-8 JSON path syntax
+1. **mysqlengine vs MariaDB**: 3 pushdown tests emit MySQL-8 JSON path syntax <- OPEN. TODO_LIST 'Metaengine' (mysqlengine vs MariaDB compatibility, line 160)
    (`>'$.x' = CAST(? AS JSON)`) MariaDB rejects; ADTMatrix/HealthCheck fail
    "invalid connection" in nspawn. TODO_LIST item — dialect support is a
    feature decision.
-2. **Seq-carrying journal reads** stays open as a PERFORMANCE item only
+2. **Seq-carrying journal reads** stays open as a PERFORMANCE item only <- OPEN. TODO_LIST 'Metaengine' (Seq-carrying journal reads perf follow-up, line 143)
    (correctness fixed); OFFSET skip is O(offset) per page on huge journals.
-3. The 3 user questions from 02:31 (g1 tag/push, g2 Go 1.26.6, g3 SA1019) —
+3. The 3 user questions from 02:31 (g1 tag/push, g2 Go 1.26.6, g3 SA1019) — <- OPEN. all three routed: tag/push = TODO_LIST 'Release / Tagging' + ROADMAP 'Open Questions' #1; Go 1.26.6 = OQ #2; SA1019 = TODO_LIST v5 + OQ #3
    still waiting; nothing tagged, nothing pushed, go.mod toolchain untouched.
 
 ## d) Process notes
@@ -79,3 +79,15 @@
   gate ran alone, report written AFTER the gate (lesson d4).
 - Bisect used `git worktree` (never checkout/reset); probe tests deleted after
   use; temp sqlite fix-revert restored from backup copy.
+
+
+---
+
+## Resolution (2026-08-15)
+
+All session work (a) was committed as `4a95bd04d` and re-verified by the
+docs-health pass: reverse LAYER meta-test, interleaved-collections contract
+phase, benchkit pin bumps, timeout asymmetry fix, AGENTS gotcha, dgraph
+script header all present in the tree. The three deliberately-unfixed items
+are routed (MariaDB + seq-carrying perf live in TODO_LIST "Metaengine"; the
+three user questions in ROADMAP "Open Questions"). Archived.

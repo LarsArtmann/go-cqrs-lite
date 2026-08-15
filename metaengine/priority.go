@@ -142,6 +142,27 @@ func WithPriorityConfig(pc *PriorityConfig) planOption {
 	return func(c *planConfig) { c.priority = pc }
 }
 
+// WithSharedCollection declares child Go types (by type name, e.g.
+// "Attachment") whose data is shared across aggregates (ADR-0124 §Aggregate
+// Boundaries, METAENGINE-LAYOUT-ROLES.md §6).
+//
+// Default aggregate boundaries are LOCAL: each []T child field belongs to its
+// carrying query's collection. Declaring a type shared opts it out: queries
+// whose result type carries that child are forced to LayoutNormalize
+// (embedding duplicates a shared child into every embedding collection) and
+// the plan emits diagnostics showing where the type spans collections.
+func WithSharedCollection(typeNames ...string) planOption {
+	return func(c *planConfig) {
+		if c.sharedCollections == nil {
+			c.sharedCollections = make(map[string]bool)
+		}
+
+		for _, name := range typeNames {
+			c.sharedCollections[name] = true
+		}
+	}
+}
+
 // SetPriority changes the operator's layout priority at runtime and triggers a
 // re-plan so queries are re-scored under the new weights (ADR-0124 §5). This is
 // the primary runtime API for adjusting layout decisions after Plan() returns.

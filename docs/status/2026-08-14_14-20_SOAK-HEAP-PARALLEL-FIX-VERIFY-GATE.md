@@ -56,35 +56,35 @@ Goal: kill the last verify failure (`TestSoak_AutoCRUDByConvention` heap growth)
 ## f) NEXT (up to 50, ordered)
 
 **Immediate pipeline (blocked only on verify job 11C finishing):**
-1. Read job 11C output → confirm ✅ GREEN end-to-end
-2. Commit: soak parallel fix + 85 codec-cleanup files (one commit, message covering docs/pins/golden/gci/soak)
-3. Add AGENTS.md gotcha entry: heap tests never parallel (same commit or follow-up)
-4. Post-commit `go build -tags "goexperiment.jsonv2" ./...`
-5. `nix run .#vulncheck` (per-module standalone — also catches version-sequence breaks)
-6. `nix run .#check-coverage` (coverage drift)
-7. Confirm api-stability golden is current (`#check-api-stability` ran inside verify; regen only if drifted)
-8. Audit OTHER modules for `ReadMemStats` + `t.Parallel()` co-occurrence; fix any found
-9. Decide + implement enforcement for the heap/parallel rule (cqrs-lint rule vs check script)
+~~1. Read job 11C output → confirm ✅ GREEN end-to-end~~ done at 5f2198189 (first fully green verify since ADR-0128; three GREENs since)
+~~2. Commit: soak parallel fix + 85 codec-cleanup files (one commit, message covering docs/pins/golden/gci/soak)~~ done - landed via the daemon commits 5127039da + 875bb689b
+~~3. Add AGENTS.md gotcha entry: heap tests never parallel (same commit or follow-up)~~ done - AGENTS.md gotcha 'Heap-measuring tests must NEVER be t.Parallel()' (docs-health session 2026-08-15)
+~~4. Post-commit `go build -tags "goexperiment.jsonv2" ./...`~~ done - build phase green in every verify since 5f2198189
+5. `nix run .#vulncheck` (per-module standalone — also catches version-sequence breaks) <- OPEN. TODO_LIST 'Release / Tagging' (pre-tag checklist)
+~~6. `nix run .#check-coverage` (coverage drift)~~ done - runs inside #verify (GREEN 3x since 5f2198189)
+~~7. Confirm api-stability golden is current (`#check-api-stability` ran inside verify; regen only if drifted)~~ done - Check API Stability phase green in every verify since
+~~8. Audit OTHER modules for `ReadMemStats` + `t.Parallel()` co-occurrence; fix any found~~ done - repo-wide audit came back clean (13 files were the full set; recorded in TODO_LIST heap-contract item)
+9. Decide + implement enforcement for the heap/parallel rule (cqrs-lint rule vs check script) <- OPEN. TODO_LIST 'Code Quality' (Enforce the heap-measurement contract mechanically); enforcement-flavor choice = g) Q3
 
 **Releases (blocked on user answers below):**
-10. Tag `metaengine/sqliteengine` v4.0.2 (publishes register.go driver self-registration)
-11. Audit every module with uncommitted exported-surface changes vs its latest tag; tag each (monotonic semver + ancestry — see AGENTS.md Release)
-12. Verify `go get`/build for `example/taskmanager` standalone (GOWORK=off) after sqliteengine tag
-13. Confirm codec/v4 v4.4.0 propagates through all proxy-resolved consumers
+10. Tag `metaengine/sqliteengine` v4.0.2 (publishes register.go driver self-registration) <- OPEN. TODO_LIST 'Release / Tagging'
+11. Audit every module with uncommitted exported-surface changes vs its latest tag; tag each (monotonic semver + ancestry — see AGENTS.md Release) <- OPEN. TODO_LIST 'Release / Tagging'
+12. Verify `go get`/build for `example/taskmanager` standalone (GOWORK=off) after sqliteengine tag <- OPEN. gated on the engine tags - TODO_LIST 'Release / Tagging'
+13. Confirm codec/v4 v4.4.0 propagates through all proxy-resolved consumers <- NOT-DO - codec/ shims deleted at 5127039da (ADR-0128); consumers moved to external go-codec; propagation concern moot
 14. CONTRIBUTING.md release-process pass if tagging surfaces friction
 
 **codec/ lifecycle (blocked on Q1):**
-15. User decision → either schedule codec/ deletion (major-bump path + deprecation window) or keep documented alias forever
+~~15. User decision → either schedule codec/ deletion (major-bump path + deprecation window) or keep documented alias forever~~ done - decided: deletion, executed at 5127039da (ADR-0128)
 
 **Technical debt / hygiene:**
-16. Fix `nix fmt` (treefmt/golines) vs golangci gci import-grouping conflict at the tooling level
-17. Port ~40 follow-up tasks from `2026-08-14_12-40` report §f into TODO_LIST.md with triage
-18. Consider making soak runners process-isolated (subtest-free, own binary via build tag) if flakiness ever recurs
+16. Fix `nix fmt` (treefmt/golines) vs golangci gci import-grouping conflict at the tooling level <- OPEN. TODO_LIST 'Code Quality' (nix fmt vs gci tooling fix)
+~~17. Port ~40 follow-up tasks from `2026-08-14_12-40` report §f into TODO_LIST.md with triage~~ done - 12-40 f-list resolved item-by-item by the docs-health annotation pass 2026-08-15 (see its Resolution appendix)
+18. Consider making soak runners process-isolated (subtest-free, own binary via build tag) if flakiness ever recurs <- **Won't implement - sequential-by-design fixed the class; revisit only if flakiness recurs.**
 19. metaengine suite: ginkgo suite + stdlib soak tests coexist; consider consistent harness (low priority)
 20. Re-check `verify-parallel.sh` script interplay with now-sequential soaks (wall-time impact was nil-to-positive in measurement, but confirm on CI)
 21. Sweep remaining `//nolint:tparallel` instances repo-wide for staleness (one was removed this session)
-22. Update `docs/sessions/SESSION_MILESTONES.md` with codec-migration + soak-fix outcomes
-23. Update FEATURES.md/CHANGELOG.md entries if soak behavior change merits a line
+22. Update `docs/sessions/SESSION_MILESTONES.md` with codec-migration + soak-fix outcomes <- OPEN. TODO_LIST 'Docs Honesty' (SESSION_MILESTONES reconciliation)
+~~23. Update FEATURES.md/CHANGELOG.md entries if soak behavior change merits a line~~ done - CHANGELOG [Unreleased] 'Fixed - repo gates' entry covers the 13 heap-parallel fixes
 24. Add a CI annotation or doc note that soak tests are sequential-by-design (prevents "make it parallel for speed" regressions)
 
 *(24 items — the remaining carried tasks are enumerated in the 12-40 report §f and deliberately not duplicated here.)*
@@ -98,3 +98,16 @@ Goal: kill the last verify failure (`TestSoak_AutoCRUDByConvention` heap growth)
 ---
 
 **Bottom line:** The blocking failure was a measurement artifact, not a leak — fixed at the root across 13 files, independently verified (3x + race). Verify gate re-run in flight; commit + gates + releases are the remaining runway, gated on the verify result and 3 answers.
+
+
+---
+
+## Resolution (2026-08-15)
+
+19 of 24 items carry verdicts. The immediate pipeline (1-9 minus the
+pre-tag items) closed across `5127039da`, `875bb689b`, `5f2198189` and the
+docs-health pass (AGENTS heap gotcha, CHANGELOG entry, repo-wide
+heap/parallel audit). codec/ lifecycle resolved by deletion (ADR-0128,
+`5127039da`), mooting item 13. Release items (10-12) and g) Q2 live in
+TODO_LIST "Release / Tagging" + ROADMAP Open Questions #1. Open-unrouted:
+14, 19, 20, 21, 24 (minor hygiene). Stays active.

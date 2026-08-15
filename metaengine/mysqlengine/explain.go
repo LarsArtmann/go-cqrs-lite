@@ -2,7 +2,6 @@ package mysqlengine
 
 import (
 	"context"
-	"encoding/json/v2"
 	"fmt"
 	"strings"
 
@@ -12,7 +11,8 @@ import (
 // ExplainScanQuery implements metaengine.ExplainableScan. It returns the SQL
 // that PushdownMapScan would execute for the given collection and options,
 // without running the query. MySQL uses JSON path operators (value->'$.field')
-// for column access and CAST(? AS JSON) placeholders for filter values.
+// for column access and CAST(? AS JSON) placeholders for filter values;
+// MariaDB gets JSON_EXTRACT/JSON_UNQUOTE forms (see dialect.go).
 func (e *mysqlEngine) ExplainScanQuery(
 	_ context.Context,
 	collection string,
@@ -25,7 +25,7 @@ func (e *mysqlEngine) ExplainScanQuery(
 	b.WriteString(`SELECT CAST(value AS CHAR) FROM meta_map WHERE collection = ?`)
 
 	for _, f := range opts.Filters {
-		appendMySQLExplainFilter(&b, &args, f)
+		e.appendExplainFilter(&b, &args, f)
 	}
 
 	if opts.Sort != nil && opts.Cursor != nil {
@@ -34,14 +34,13 @@ func (e *mysqlEngine) ExplainScanQuery(
 			op = "<"
 		}
 
-		jb, _ := json.Marshal(opts.Cursor)
-		fmt.Fprintf(&b, ` AND value->'$.%s' %s CAST(? AS JSON)`,
-			escapeJSONPath(opts.Sort.Column), op)
-		args = append(args, string(jb))
+		fmt.Fprintf(&b, ` AND %s %s %s`,
+			e.jsonCompareExpr(opts.Sort.Column), op, e.jsonParamPlaceholder())
+		args = append(args, e.jsonFilterParam(opts.Cursor))
 	}
 
 	if opts.Sort != nil {
-		fmt.Fprintf(&b, ` ORDER BY value->'$.%s'`, escapeJSONPath(opts.Sort.Column))
+		fmt.Fprintf(&b, ` ORDER BY %s`, e.jsonFieldExpr(opts.Sort.Column))
 		if opts.Sort.Desc {
 			b.WriteString(` DESC`)
 		}
@@ -67,31 +66,31 @@ func (e *mysqlEngine) ExplainAggregateQuery(
 
 	if opts.Distinct != "" {
 		fmt.Fprintf(&b,
-			`SELECT DISTINCT value->'$.%s' AS dv FROM meta_map WHERE collection = ?`,
-			escapeJSONPath(opts.Distinct))
+			`SELECT DISTINCT %s AS dv FROM meta_map WHERE collection = ?`,
+			e.jsonFieldExpr(opts.Distinct))
 	} else if len(opts.Specs) > 0 {
 		selectCols := make([]string, len(opts.Specs))
 		for i, s := range opts.Specs {
 			selectCols[i] = fmt.Sprintf("%s AS %s",
-				mysqlAggExpr(s.Fn, escapeJSONPath(s.Column)),
+				e.aggExpr(s.Fn, s.Column),
 				metaengine.QuoteIdent(s.AliasOr()))
 		}
 
 		cols := strings.Join(selectCols, ", ")
 		if opts.GroupBy != "" {
 			fmt.Fprintf(&b,
-				`SELECT value->'$.%s' AS group_key, %s FROM meta_map WHERE collection = ?`,
-				escapeJSONPath(opts.GroupBy), cols)
+				`SELECT %s AS group_key, %s FROM meta_map WHERE collection = ?`,
+				e.jsonFieldExpr(opts.GroupBy), cols)
 		} else {
 			fmt.Fprintf(&b, `SELECT %s FROM meta_map WHERE collection = ?`, cols)
 		}
 	} else {
-		agg := mysqlAggExpr(opts.Fn, escapeJSONPath(opts.Column))
+		agg := e.aggExpr(opts.Fn, opts.Column)
 		if opts.GroupBy != "" {
 			fmt.Fprintf(
 				&b,
-				`SELECT value->'$.%s' AS group_key, %s AS agg_val FROM meta_map WHERE collection = ?`,
-				escapeJSONPath(opts.GroupBy),
+				`SELECT %s AS group_key, %s AS agg_val FROM meta_map WHERE collection = ?`,
+				e.jsonFieldExpr(opts.GroupBy),
 				agg,
 			)
 		} else {
@@ -100,7 +99,7 @@ func (e *mysqlEngine) ExplainAggregateQuery(
 	}
 
 	for _, f := range opts.Filters {
-		appendMySQLExplainFilter(&b, &args, f)
+		e.appendExplainFilter(&b, &args, f)
 	}
 
 	if opts.GroupBy != "" {
@@ -110,31 +109,31 @@ func (e *mysqlEngine) ExplainAggregateQuery(
 	return b.String(), args
 }
 
-func appendMySQLExplainFilter(
+func (e *mysqlEngine) appendExplainFilter(
 	b *strings.Builder,
 	args *[]any,
 	f metaengine.FilterSpec,
 ) {
-	jb, _ := json.Marshal(f.Value)
-	fmt.Fprintf(b, ` AND value->'$.%s' %s CAST(? AS JSON)`,
-		escapeJSONPath(f.Column), string(f.Op))
-	*args = append(*args, string(jb))
+	fmt.Fprintf(b, ` AND %s %s %s`,
+		e.jsonCompareExpr(f.Column), string(f.Op), e.jsonParamPlaceholder())
+	*args = append(*args, e.jsonFilterParam(f.Value))
 }
 
-func mysqlAggExpr(fn metaengine.AggregateFn, column string) string {
+func (e *mysqlEngine) aggExpr(fn metaengine.AggregateFn, column string) string {
+	field := e.jsonFieldExpr(column)
 	switch fn {
 	case metaengine.AggregateCount:
 		return "COUNT(*)"
 	case metaengine.AggregateSum:
-		return fmt.Sprintf("SUM(value->'$.%s')", column)
+		return fmt.Sprintf("SUM(%s)", field)
 	case metaengine.AggregateMin:
-		return fmt.Sprintf("MIN(value->'$.%s')", column)
+		return fmt.Sprintf("MIN(%s)", field)
 	case metaengine.AggregateMax:
-		return fmt.Sprintf("MAX(value->'$.%s')", column)
+		return fmt.Sprintf("MAX(%s)", field)
 	case metaengine.AggregateAvg:
-		return fmt.Sprintf("AVG(value->'$.%s')", column)
+		return fmt.Sprintf("AVG(%s)", field)
 	default:
-		return fmt.Sprintf("SUM(value->'$.%s')", column)
+		return fmt.Sprintf("SUM(%s)", field)
 	}
 }
 

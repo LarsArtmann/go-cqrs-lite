@@ -26,6 +26,9 @@ type sqliteEngine struct {
 	db      *sql.DB
 	queries sqliteQuerySet
 	cache   *stmtCache
+	// graphCTE enables the single-query recursive-CTE traversal when the
+	// driver/server supports WITH RECURSIVE (probed at construction).
+	graphCTE bool
 	// seq counters for multimap and log (SQLite AUTOINCREMENT handles log).
 	multiSeq sync.Map // collection→*multiSeqCounter
 	plans    map[string]metaengine.LayoutPlan
@@ -133,9 +136,10 @@ func defaultSQLiteQueries() sqliteQuerySet {
 // the *sql.DB. Tables are created automatically if they don't exist.
 func NewSQLiteEngine(database *sql.DB) (metaengine.Engine, error) {
 	eng := &sqliteEngine{
-		db:      database,
-		queries: defaultSQLiteQueries(),
-		cache:   newStmtCache(database),
+		db:       database,
+		queries:  defaultSQLiteQueries(),
+		cache:    newStmtCache(database),
+		graphCTE: probeRecursiveCTE(database),
 	}
 
 	if _, err := database.ExecContext(context.Background(), eng.queries.ddl); err != nil {
