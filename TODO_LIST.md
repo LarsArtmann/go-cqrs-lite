@@ -95,7 +95,7 @@ and is **never** duplicated here.
 
 > Blocked on user authorization (never tag/push without explicit instruction).
 > The verify gate has been GREEN four times since ADR-0128 (latest:
-  2026-08-15, 239 ok packages, lint 76/76) — this is the release checkpoint.
+> 2026-08-15, 239 ok packages, lint 76/76) — this is the release checkpoint.
 
 - [ ] [BLOCKED] **Tag the unpublished fixes parked behind replaces** — engine
       self-registration (sqlite/badger/pebble/pg v4.0.1 tags predate it) and
@@ -354,8 +354,8 @@ and is **never** duplicated here.
 > (metadata/v4.4.0, event/v4.6.0, command/v4.6.0, query/v4.5.0 — 2026-08-13).
 > id/v4.4.0 contains `actor_id.go` (verified in tag).
 
-- [ ] **Document `WithActor` in skill references** — `core.md` options
-      section + `modules.md` Tracing fields (consumer-facing gap).
+- [x] **Document `WithActor` in skill references** — core.md §3.8 + recipes
+      §2.21 + modules.md row all shipped (verified 2026-08-16).
       _(Effort: S)_
 - [ ] **Test-coverage gaps** — golden JSON for full `event.Event`/`command.
       BasicCommand` with ActorID; watermill wire-format preservation; CBOR
@@ -503,6 +503,23 @@ and is **never** duplicated here.
 - [ ] **Security hygiene** — SECURITY.md v3 table stale; govulncheck failures
       swallowed in release.yml; remove iroh fork pin (`git.coopcloud.tech`
       supply-chain flag).
+      _(Effort: S)_
+- [ ] **Serialize or re-budget the system projection-wait tests** —
+      `TestSystem_ResetProjection_RestartAndReplay` (tight 5s
+      `waitForProjectionProcessed` budget) overlaps the `t.Parallel`-ed
+      `TestSystem_HealthCheck_FailedProjection`; load-flaky on busy machines
+      (observed 2026-08-16, pre-existing). The deterministic "phase-2 replay
+      dead" defect this was originally filed under turned out to be a test
+      fixture bug — the shared-cache in-memory SQLite DSN was wiped once engines
+      began closing self-opened `*sql.DB`; fixed by `5d66308c3` (file-backed
+      `sqliteFileDSN`), verified green 3x. Evidence:
+      `docs/status/2026-08-16_03-44_withactor-resume-gate-investigation-two-defects.md` §h.
+      _(Effort: S)_
+- [ ] **Enforce api-stability golden regen mechanically** — three consecutive
+      feature commits (`842741cab`, `313d14b02`, plus sqliteengine DSN/OwnDB)
+      shipped new exports without regenerating `docs/api_surface.txt`; every
+      fresh checkout of those revisions fails the gate. Add the checker as a
+      pre-commit hook step (fast: ~1s GOWORK=off run) so the drift cannot land.
       _(Effort: S)_
 
 ---

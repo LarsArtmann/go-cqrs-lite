@@ -820,12 +820,12 @@
           apps = {
             test = mkApp "test" goModules ''
               export CGO_ENABLED=1
-              ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 "$@"
+              ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 -timeout=20m "$@"
             '';
 
             test-race = mkApp "test-race" goModules ''
               export CGO_ENABLED=1
-              ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 "$@"
+              ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 -timeout=20m "$@"
             '';
 
             build = mkApp "build" goModules ''
@@ -1237,6 +1237,10 @@
               mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc ]
                 ''
                   export CGO_ENABLED=1
+                  # The bbolt AutoCRUD soak measures 8-12m solo, above the 8m
+                  # per-package timeout below; skip it here and cover it via
+                  # dedicated soak runs (#test, #test-all-backends, manual).
+                  export SOAK_SKIP_BOLT=1
                   ${pkgs.bash}/bin/bash scripts/verify-docs.sh && \
                   echo "=== Module Coverage ===" && nix run .#check-modules && \
                   echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \

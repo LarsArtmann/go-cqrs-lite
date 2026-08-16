@@ -71,8 +71,8 @@ in the WRONG state and needs a decision before the gates can pass.
 ## d) TOTALLY FUCKED UP (honest ledger)
 
 1. **I edited `go.work` (1.26.6 → 1.26.5) BEFORE understanding the root cause.** The bump
-   was legitimate — the sibling checkout `../go-codec` has an *uncommitted* `go.mod` bump to
-   `go 1.26.6`, so `go work` demands ≥1.26.6. My downgrade made the build fail *differently*
+   was legitimate — the sibling checkout `../go-codec` has an _uncommitted_ `go.mod` bump to
+   `go 1.26.6`, so `go work` demands ≥1.26.6. My downgrade made the build fail _differently_
    ("module ../go-codec requires go >= 1.26.6"). **`go.work` is NOW in a state I believe is
    wrong and it is UNCOMMITTED** — needs restore to 1.26.6 (or a decision on the sibling,
    which is not my change to revert). Violated my own READ-ROOT-CAUSE-FIRST rule.
@@ -106,6 +106,7 @@ in the WRONG state and needs a decision before the gates can pass.
 ## f) NEXT — up to 50 things, in order
 
 **Unblock the build (critical path):**
+
 1. Decide go.work direction (see questions) — likely restore `go 1.26.6`.
 2. Compute SRI hash for go1.26.6 src tarball using `python3` (no xxd needed).
 3. Add `go_1_26.overrideAttrs` (version + src hash) — or a local overlay — in flake.nix
@@ -118,40 +119,40 @@ in the WRONG state and needs a decision before the gates can pass.
 **Ship this session's work:**
 8. `git status` review — confirm no unexpected daemon commits mid-flight.
 9. Commit follow-up: integration go.mod fix (bump+replaces+genproto pin), api_surface.txt
-   golden, skill docs (core/modules/recipes), fmt-only fixes; note replaces-to-strip-at-release.
+golden, skill docs (core/modules/recipes), fmt-only fixes; note replaces-to-strip-at-release.
 10. Re-run doc-check after any doc touch-ups.
 
 **Ancillary gates (after verify green):**
 11. `nix run .#check-arch` (dep budgets).
 12. `nix run .#check-coverage` (coverage drift — new code added this feature).
 13. `nix run .#check-duplication` (`actorString` helper now in 3 asrecord.go files — may
-    need baselining or dedup judgment).
+need baselining or dedup judgment).
 14. `nix run .#vulncheck`.
 
 **Release follow-ups (from prior session, still open):**
 15. Tag `metadata` minor (Metadata[K] WAL-unification symbols are unpublished → command/query
-    standalone builds only work via replace today).
+standalone builds only work via replace today).
 16. Tag `schema` minor (`UpcastSourceTransform` unpublished; event's test dep).
 17. Tag `event` minor (ActorEnricher/WithActorContext/ActorFromContext).
 18. Tag `middleware` minor (CommandActorContext).
 19. Tag `command` patch if needed; then strip replaces from event/command/query/middleware/
-    integration go.mods in one sweep.
+integration go.mods in one sweep.
 20. Confirm module version-sequence rule before tagging (`git tag -l '<module>/v4*' | sort -V`).
 
 **Hardening leftovers worth considering:**
 21. Decide/document AsRecord `"user:<ulid>"` legacy-UserID fallback (open question from prior
-    session — consumers previously saw bare ULID).
+session — consumers previously saw bare ULID).
 22. `.golangci.yml` depguard: no new external deps added, but verify after go.mod edits.
 23. `TestStoreMetadataRoundtrip` actor assertion — confirm it ran against pebble AND bbolt in
-    this session's runs (it did via module tests; keep as regression canary).
+this session's runs (it did via module tests; keep as regression canary).
 24. Consider golden/snapshot for watermill actor roundtrip already regenerated — verify the
-    `.snap` deletion didn't break `snaps.Clean` meta-tests (covered by watermill tests green).
+`.snap` deletion didn't break `snaps.Clean` meta-tests (covered by watermill tests green).
 25. gopls/LSP noise (`go.work requires go >= 1.26.6`) will disappear once toolchain matches.
 26. Consider pinning `.go-version` file in go-cqrs-lite to 1.26.6 for non-nix users.
 27. Document the genproto split-pin in integration/go.mod with a comment (why it's required).
 28. Consider extracting the actor-propagation e2e pattern into `example/` (optional, YAGNI-check).
 29. Update `CHANGELOG.md` [Unreleased] with the WithActor hardening entries if project
-    convention requires (verify — doc-assertion currently passes with 1 section).
+convention requires (verify — doc-assertion currently passes with 1 section).
 30. Session-milestones entry for WithActor hardening completion.
 
 ## g) QUESTIONS (cannot be resolved from the repo alone)
@@ -172,13 +173,13 @@ in the WRONG state and needs a decision before the gates can pass.
 
 ### Working-tree right now (uncommitted, all session-authored)
 
-| File | Change |
-|---|---|
-| `go.work` | ⚠ 1.26.6 → 1.26.5 (**wrong direction**, restore pending Q1) |
-| `integration/go.mod` + `go.sum` | command bump v4.6.0, event+middleware replaces, genproto pin, query v4.5.0 |
-| `docs/api_surface.txt` | golden regen (+8 exports) |
-| `.agents/skills/go-cqrs-lite/references/{core,modules,recipes}.md` | actor docs |
-| `storage/view/{count,query}.go`, `metadata/metadata_test.go`, `integration/actor_propagation_test.go`, `metaengine/bench/*_test.go` | fmt-only |
+| File                                                                                                                                | Change                                                                     |
+| ----------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `go.work`                                                                                                                           | ⚠ 1.26.6 → 1.26.5 (**wrong direction**, restore pending Q1)                |
+| `integration/go.mod` + `go.sum`                                                                                                     | command bump v4.6.0, event+middleware replaces, genproto pin, query v4.5.0 |
+| `docs/api_surface.txt`                                                                                                              | golden regen (+8 exports)                                                  |
+| `.agents/skills/go-cqrs-lite/references/{core,modules,recipes}.md`                                                                  | actor docs                                                                 |
+| `storage/view/{count,query}.go`, `metadata/metadata_test.go`, `integration/actor_propagation_test.go`, `metaengine/bench/*_test.go` | fmt-only                                                                   |
 
 **Gate status: doc-assertions GREEN · per-module tests GREEN (13 modules + integration) · `#build`/`#verify-fast` RED (toolchain) · full `#verify` NOT RUN.**
 
@@ -222,24 +223,30 @@ entire time; all shared-tree work below was sequenced around its activity.
 1. **Toolchain fix verified independently** — `nix run .#build` green at committed HEAD
    (multiple runs). The flake's `goToolchain` overrideAttrs uses the same SRI hash this
    session computed independently (`sha256-oHIcV…/LLE=`) — cross-validated.
-2. **`TestSystem_ResetProjection_RestartAndReplay` failure is ENVIRONMENTAL, not a
-   code regression.** Evidence chain:
-   - Fails (deterministically, 6/6) in any tree during 02:14–02:52 — exactly the window
-     the parallel session was running heavy gates on the main tree.
-   - PASSES in pristine worktrees at `5127039da`, `7c0a62c98`, `1153c7d11` (actor),
-     `4a95bd04d`, AND `626f7426c`/`dba6f007b` once the machine went quiet (~02:56+).
-   - The minimal pair `TestSystem_HealthCheck_FailedProjection` (t.Parallel) +
-     `RestartAndReplay` fails under load with `processed=0` after the ~5s wait budget —
-     a cross-test interference with a tight timing budget, amplified by ambient load
-     (load avg was 10–27 from multiple concurrent agent sessions; see AGENTS.md's
-     "never run integration suites concurrently" — this extends it: *any* two
-     concurrent gate-class runs on this machine corrupt timing-sensitive results).
-   - **The actor commit (`1153c7d11`) is verified clean** for this test.
-   - Recommendation: raise the `waitForProjectionProcessed` budget or serialize the
-     projection-wait tests; left for the system/ owner.
-3. **`TestSoak_AutoCRUD_Bbolt` timed out at the verify gate's 8m per-package limit**
-   during the loaded window. Not re-tested solo-quiet; treat as load-suspect first,
-   regression second.
+2. **`TestSystem_ResetProjection_RestartAndReplay` — TWO stacked causes (corrected
+   after deeper bisect; the initial load-only theory was incomplete):**
+   - **DETERMINISTIC REGRESSION at `313d14b02`** ("calibrate Row+Columnar layouts,
+     ship DemoteEngine, converge replan" — the only code commit in 626f→a298).
+     Full-suite reproduction: `cd system && GOWORK=off go test -count=1 ./...` —
+     FAILS on a quiet machine; every commit 5127039da→626f7426c passes the same
+     command. Phase-2 replay is DEAD, not slow: raising the test's 5s wait budget
+     to 60s still yields `processed=0 errors=0`. Suspects: replan-convergence /
+     DemoteEngine role defaults altering `system.New` phase-2 journal reads, or
+     `replicator.applyJobFilter` skipping never-served collections. Fix belongs
+     with the DemoteEngine owner.
+   - **Pre-existing load sensitivity (≤ 626f7426c):** the same test also fails under
+     heavy concurrent gate load (observed 02:14 in a full-suite run at 626f, which
+     passes when quiet). Tight ~5s budget + t.Parallel overlap with
+     `TestSystem_HealthCheck_FailedProjection`'s failing-decoder host. Recommendation:
+     raise the `waitForProjectionProcessed` budget or serialize the projection-wait
+     tests.
+   - **The actor commit (`1153c7d11`) is verified clean** in both scopes (pair and
+     full suite).
+3. **`TestSoak_AutoCRUD_Bbolt` timed out at the verify gate's 8m per-package limit
+   twice (loaded and quiet windows).** Duration measurement in flight; if it
+   legitimately exceeds 8m the verify app needs a soak-specific budget (or
+   SOAK_SKIP wiring), if it hangs it is a second committed regression in the same
+   window.
 4. **api-stability golden drift is the REAL repo-wide defect** (deterministic): the
    parallel session repeatedly commits new exports without regenerating
    `docs/api_surface.txt` (DemoteEngine: 4081→4085, sqliteengine DSN/OwnDB:
@@ -257,3 +264,18 @@ entire time; all shared-tree work below was sequenced around its activity.
 6. **Worktree isolation pattern validated** for gating a shared moving master:
    `git worktree add` at a pinned SHA + symlinks for go.work's sibling `use` entries
    (or place the worktree in `~/projects/` where `../go-codec` etc. resolve naturally).
+
+## j) RESOLUTION (2026-08-16 ~04:30, next session)
+
+§i's two gate blockers are both closed — details in
+`2026-08-16_03-44_withactor-resume-gate-investigation-two-defects.md` §h:
+
+- The `313d14b02` "phase-2 replay dead" finding was a **test fixture bug**, not
+  DemoteEngine logic: the in-memory shared-cache SQLite DSN was wiped when
+  engines began closing self-opened `*sql.DB`. Fixed upstream by `5d66308c3`
+  (`sqliteFileDSN`); verified green 3x at HEAD. The DemoteEngine suspects in §i.2
+  were wrong.
+- The bbolt soak gate timeout is resolved by policy: `SOAK_SKIP_BOLT=1` is
+  exported by the full `#verify` app; `#test`/`#test-race` got explicit
+  `-timeout=20m` so dedicated runs keep soak coverage.
+- `/tmp/bigtest` was already gone (user approved trashing; tmpfs back to 1%).
