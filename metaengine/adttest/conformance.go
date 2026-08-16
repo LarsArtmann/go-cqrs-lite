@@ -30,19 +30,49 @@ type adtContract struct {
 // GraphNeighbors) mirroring metaengine's per-engine graph methods; ADR-0113
 // keeps the public GraphDriver in the graph module.
 var adtContracts = map[metaengine.ADT]adtContract{ //nolint:gochecknoglobals // immutable lookup table
-	metaengine.ADTMap:       {backend: reflect.TypeFor[metaengine.MapBackend](), declarationRequired: true},
-	metaengine.ADTSet:       {backend: reflect.TypeFor[metaengine.SetBackend](), declarationRequired: true},
-	metaengine.ADTCounter:   {backend: reflect.TypeFor[metaengine.CounterBackend](), declarationRequired: true},
-	metaengine.ADTMultimap:  {backend: reflect.TypeFor[metaengine.MultimapBackend](), declarationRequired: true},
-	metaengine.ADTLog:       {backend: reflect.TypeFor[metaengine.LogBackend](), declarationRequired: true},
-	metaengine.ADTSortedMap: {backend: reflect.TypeFor[metaengine.ScanBackend](), declarationRequired: true},
-	metaengine.ADTGraph:     {backend: reflect.TypeFor[graphBackend](), declarationRequired: true},
-	metaengine.ADTVector:    {backend: reflect.TypeFor[metaengine.VectorBackend](), declarationRequired: true},
-	metaengine.ADTSearch:    {backend: reflect.TypeFor[metaengine.SearchBackend](), declarationRequired: true},
-	metaengine.ADTSpatial:   {backend: reflect.TypeFor[metaengine.SpatialBackend](), declarationRequired: true},
+	metaengine.ADTMap: {
+		backend:             reflect.TypeFor[metaengine.MapBackend](),
+		declarationRequired: true,
+	},
+	metaengine.ADTSet: {
+		backend:             reflect.TypeFor[metaengine.SetBackend](),
+		declarationRequired: true,
+	},
+	metaengine.ADTCounter: {
+		backend:             reflect.TypeFor[metaengine.CounterBackend](),
+		declarationRequired: true,
+	},
+	metaengine.ADTMultimap: {
+		backend:             reflect.TypeFor[metaengine.MultimapBackend](),
+		declarationRequired: true,
+	},
+	metaengine.ADTLog: {
+		backend:             reflect.TypeFor[metaengine.LogBackend](),
+		declarationRequired: true,
+	},
+	metaengine.ADTSortedMap: {
+		backend:             reflect.TypeFor[metaengine.ScanBackend](),
+		declarationRequired: true,
+	},
+	metaengine.ADTGraph: {backend: reflect.TypeFor[graphBackend](), declarationRequired: true},
+	metaengine.ADTVector: {
+		backend:             reflect.TypeFor[metaengine.VectorBackend](),
+		declarationRequired: true,
+	},
+	metaengine.ADTSearch: {
+		backend:             reflect.TypeFor[metaengine.SearchBackend](),
+		declarationRequired: true,
+	},
+	metaengine.ADTSpatial: {
+		backend:             reflect.TypeFor[metaengine.SpatialBackend](),
+		declarationRequired: true,
+	},
 	// StreamLog is routed structurally (StreamLogBackend type assertions in
 	// system adapters), not via Supports; declaring it is not yet required.
-	metaengine.ADTStreamLog: {backend: reflect.TypeFor[metaengine.StreamLogBackend](), declarationRequired: false},
+	metaengine.ADTStreamLog: {
+		backend:             reflect.TypeFor[metaengine.StreamLogBackend](),
+		declarationRequired: false,
+	},
 }
 
 // KnownGaps documents an ADT that violates a conformance rule with the reason
@@ -182,7 +212,10 @@ func capabilityTable(
 	return table, violations, notes
 }
 
-func degradedSubsetViolations(engineName string, profile metaengine.EngineProfile) (violations, notes []string) {
+func degradedSubsetViolations(
+	engineName string,
+	profile metaengine.EngineProfile,
+) (violations, notes []string) {
 	for adt := range profile.DegradedADTs {
 		if _, declared := profile.Supports[adt]; !declared {
 			violations = append(violations, fmt.Sprintf(

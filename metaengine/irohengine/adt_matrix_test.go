@@ -45,5 +45,10 @@ func TestProfileIsReplicated(t *testing.T) {
 func TestCapabilityConformance(t *testing.T) {
 	t.Parallel()
 
-	adttest.RunCapabilityConformance(t, "iroh", irohengine.Replicated(metaengine.NewMemoryEngine()), nil)
+	adttest.RunCapabilityConformance(
+		t,
+		"iroh",
+		irohengine.Replicated(metaengine.NewMemoryEngine()),
+		nil,
+	)
 }

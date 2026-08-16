@@ -37,14 +37,14 @@ construction.
 
 ## 2. Current State (verified facts)
 
-| Engine | `afterSeq` semantics | Skip mechanism | Per-page cost | Evidence |
-| --- | --- | --- | --- | --- |
-| sqlite / turso | position | `LIMIT -1 OFFSET ?` | O(offset) | `sqliteengine/stream_log.go:59` |
-| pg | position | OFFSET over ordered rows | O(offset) | `pgengine/stream_log.go:92+` |
-| mysql / duckdb | position | same OFFSET pattern | O(offset) | dialect twins of the above |
-| pebble | per-collection dense seq | `NewIter(LowerBound: journalKey(col, afterSeq+1))` | O(log n) seek | `pebbleengine/stream_log.go:129-141` |
-| bbolt | per-collection dense seq | `Cursor.Seek(journalKey(col, afterSeq+1))` | O(log n) seek | `bboltengine/stream_log.go:196-226` |
-| memory | per-collection seq | linear `journal[start].seq <= afterSeq` scan | O(n) worst | `memory_stream_log.go:113+` |
+| Engine         | `afterSeq` semantics     | Skip mechanism                                     | Per-page cost | Evidence                             |
+| -------------- | ------------------------ | -------------------------------------------------- | ------------- | ------------------------------------ |
+| sqlite / turso | position                 | `LIMIT -1 OFFSET ?`                                | O(offset)     | `sqliteengine/stream_log.go:59`      |
+| pg             | position                 | OFFSET over ordered rows                           | O(offset)     | `pgengine/stream_log.go:92+`         |
+| mysql / duckdb | position                 | same OFFSET pattern                                | O(offset)     | dialect twins of the above           |
+| pebble         | per-collection dense seq | `NewIter(LowerBound: journalKey(col, afterSeq+1))` | O(log n) seek | `pebbleengine/stream_log.go:129-141` |
+| bbolt          | per-collection dense seq | `Cursor.Seek(journalKey(col, afterSeq+1))`         | O(log n) seek | `bboltengine/stream_log.go:196-226`  |
+| memory         | per-collection seq       | linear `journal[start].seq <= afterSeq` scan       | O(n) worst    | `memory_stream_log.go:113+`          |
 
 Two additional costs hidden above the engine layer:
 
@@ -59,7 +59,7 @@ Two additional costs hidden above the engine layer:
 The interface contract itself explains why positions exist
 (`metaengine/engine.go:481-491`): SQL engines share one global
 AUTOINCREMENT/BIGSERIAL counter across collections, so a raw `seq > X`
-filter was (correctly) judged unsafe *when X is a position*. The design below
+filter was (correctly) judged unsafe _when X is a position_. The design below
 keeps the safety argument and removes the scan.
 
 ## 3. The Design
@@ -108,7 +108,7 @@ construction:
    (or 0). Monotonicity + uniqueness of the append counter mean
    `{e ∈ collection : e.seq ≤ cursor}` is exactly the set already
    delivered.
-2. Interleaved appends to *other* collections are invisible: the
+2. Interleaved appends to _other_ collections are invisible: the
    `collection = ?` predicate is part of the seek.
 3. Gaps (deletions, failed transactions burning sequence values) are
    harmless to `seq > cursor` — unlike position arithmetic
@@ -117,14 +117,14 @@ construction:
 
 Per-engine token sources:
 
-| Engine | Token | Monotonicity guarantee | Seek implementation |
-| --- | --- | --- | --- |
-| sqlite/turso | `INTEGER PRIMARY KEY AUTOINCREMENT` | AUTOINCREMENT never reuses | range scan on `idx_stream_log_journal(collection, seq)` |
-| pg | `BIGSERIAL PRIMARY KEY` | sequence, never reused | same index shape (`pgengine/engine.go:133`) |
-| mysql | `AUTO_INCREMENT` PK | same | same |
-| duckdb | seq column (verify identity semantics) | append-only table ⇒ monotonic | same |
-| pebble/bbolt | seq embedded in journal key | per-collection append counter | existing `Seek`/`NewIter` — additionally return the key's seq |
-| memory | existing `streamJournal[col][i].seq` field | append counter under mutex | binary search on seq (upgrade from linear) |
+| Engine       | Token                                      | Monotonicity guarantee        | Seek implementation                                           |
+| ------------ | ------------------------------------------ | ----------------------------- | ------------------------------------------------------------- |
+| sqlite/turso | `INTEGER PRIMARY KEY AUTOINCREMENT`        | AUTOINCREMENT never reuses    | range scan on `idx_stream_log_journal(collection, seq)`       |
+| pg           | `BIGSERIAL PRIMARY KEY`                    | sequence, never reused        | same index shape (`pgengine/engine.go:133`)                   |
+| mysql        | `AUTO_INCREMENT` PK                        | same                          | same                                                          |
+| duckdb       | seq column (verify identity semantics)     | append-only table ⇒ monotonic | same                                                          |
+| pebble/bbolt | seq embedded in journal key                | per-collection append counter | existing `Seek`/`NewIter` — additionally return the key's seq |
+| memory       | existing `streamJournal[col][i].seq` field | append counter under mutex    | binary search on seq (upgrade from linear)                    |
 
 All SQL engines already create the required `(collection, seq)` index —
 **no schema migration is needed for the seek itself.**
@@ -209,7 +209,7 @@ trivial; adapters localized).
 - **Dgraph**: journal model differs (predicate-based); capability stays
   unimplemented there until its journal backend exists — the optional
   interface makes that a non-event.
-- **Token leakage**: if a caller persists a Seq across engine *migrations*
+- **Token leakage**: if a caller persists a Seq across engine _migrations_
   (e.g. sqlite → pg), tokens are meaningless. Document: tokens are
   engine-instance-local, unlike positions which are at least
   engine-family-portable on dense journals. Checkpoint stores that persist

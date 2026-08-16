@@ -224,7 +224,11 @@ func TestDecorateJournal_ReadStream_AppliesTransformAcrossChunks(t *testing.T) {
 
 	got := drainIter(t, iter)
 	if len(got) != total*2 {
-		t.Fatalf("ReadStream() yielded %d events, want %d across chunk boundaries", len(got), total*2)
+		t.Fatalf(
+			"ReadStream() yielded %d events, want %d across chunk boundaries",
+			len(got),
+			total*2,
+		)
 	}
 }
 
