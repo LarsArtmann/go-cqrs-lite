@@ -215,41 +215,75 @@ and is **never** duplicated here.
       arm — the 4-arm form is illegal in both), dgraph (alias of directed:
       storage is symmetric), iroh (passthrough); graphadapter deliberately
       does NOT implement it (documented gap). (pebble/bbolt: no graph ADT.)
-- [ ] **mysqlengine upsert semantics audit** — confirm `MapSet` uses
+- [x] **mysqlengine upsert semantics audit** — confirm `MapSet` uses
       `INSERT ... ON DUPLICATE KEY UPDATE` consistently with pg's
       `ON CONFLICT` (atomicity + affected-rows parity).
-      _(Effort: S)_
-- [ ] **MariaDB functional-index alternative** — generated columns + plain
+      _(Effort: S)_ — done 2026-08-16: parity confirmed for `MapSet`,
+      `CounterIncrement`, `GraphAddEdge` (single-statement atomic upserts;
+      affected-rows difference unobservable); caveats documented in
+      `mysqlengine/backends.go` (any-unique-key trigger widening, VALUES()
+      deprecation note).
+- [x] **MariaDB functional-index alternative** — generated columns + plain
       index instead of the current `ApplyLayout` no-op.
-      _(Effort: M)_
-- [ ] **enginetest per-run collection suffixes** — shared-server engines
+      _(Effort: M)_ — done 2026-08-16: `applyMariaDBLayout` adds a VIRTUAL
+      TEXT generated column (no truncation, no table rebuild) + composite
+      `(collection, gc(N))` prefix index per field; `filterExpr` rewrites
+      pushdown filters to the column (MariaDB does NOT substitute generated
+      columns into JSON expressions — verified 11.4); EXPLAIN-verified
+      `ref` access; integration test `TestMariaDBApplyLayout_GeneratedColumnFilter`.
+- [x] **enginetest per-run collection suffixes** — shared-server engines
       accumulate state under `-count>1` (documented constraint that bit the
       race runs); per-run suffixes in the helpers would remove the class.
-      _(Effort: M)_
-- [ ] **adttest: graph depth>2 + cycle scenarios in `RunMatrix`** — current
+      _(Effort: M)_ — done 2026-08-16: `enginetest.ScopedCollection` at all
+      helper chokepoints + adttest `Scenarios()` run-suffix (per-RUN token,
+      keeping cross-engine parity comparable within a run); mysqlengine
+      verified GREEN `-count=3` against a shared MariaDB; twin fix in
+      `stack/mysql` (DROP before CREATE for derived multidb databases).
+- [x] **adttest: graph depth>2 + cycle scenarios in `RunMatrix`** — current
       matrix is depth-limited; the CTE/iterative divergence only shows at
       depth>2 with cycles/diamonds.
-      _(Effort: S)_
-- [ ] **adttest: Vector scenario on pgengine** — parity check for the
+      _(Effort: S)_ — done 2026-08-16: `GraphDepth3Diamond`, `GraphCycle`,
+      `GraphDepthBound` scenarios; parity GREEN incl. pg CTE path.
+- [x] **adttest: Vector scenario on pgengine** — parity check for the
       degraded scan path against the in-memory index.
-      _(Effort: S)_
-- [ ] **Convergence suite order-tolerance audit** — `sameLogTail` was the
+      _(Effort: S)_ — done 2026-08-16: pgengine gained a real degraded
+      `VectorBackend` (was declared but unimplemented — queries would have
+      failed); `meta_vector` DDL + shared `metaengine` distance helpers;
+      GREEN against real Postgres.
+- [x] **Convergence suite order-tolerance audit** — `sameLogTail` was the
       only order-asserting helper (fixed 2026-08-15); sweep the remaining
       `waitFor*` helpers for hidden order assumptions.
-      _(Effort: S)_
-- [ ] **quic pooled-stream ordering guarantee** — default `sendOp` uses one
+      _(Effort: S)_ — done 2026-08-16: all helpers order-safe; one stale
+      contradictory doc paragraph on `sameLogTail` removed.
+- [x] **quic pooled-stream ordering guarantee** — default `sendOp` uses one
       stream per op (no cross-op order); verify + document that pooled mode
       (`sendOpPooled`, one stream per peer) DOES order ops.
-      _(Effort: S)_
-- [ ] **Bench: CTE vs iterative BFS crossover** — at which depth does the
+      _(Effort: S)_ — done 2026-08-16: per-peer FIFO verified (sender mutex
+      serialization + sequential receiver loop + QUIC stream ordering);
+      documented in `options.go`, `transport.go`, `pool.go`.
+- [x] **Bench: CTE vs iterative BFS crossover** — at which depth does the
       MySQL CTE beat the iterative fallback? Feeds the planner's cost model.
-      _(Effort: S)_
-- [ ] **Bench: MariaDB dual-key sort cost** — measure the
+      _(Effort: S)_ — done 2026-08-16: `graph_bench_test.go`; crossover at
+      depth 2-3 (iterative wins depth 1 by 2-4x, CTE wins ≥3 up to 6x,
+      size-independent 1k-100k, same shape MariaDB 11.4 + MySQL 8.4);
+      table in `METAENGINE-LIVE-LATENCY-MODEL.md` §9. Follow-up item below.
+- [x] **Bench: MariaDB dual-key sort cost** — measure the
       `CAST(... AS DECIMAL)` overhead vs MySQL's single JSON key.
-      _(Effort: S)_
-- [ ] **Run `nix run .#integration-mysql-nspawn`** (needs root) — real-env
+      _(Effort: S)_ — done 2026-08-16: `sort_bench_test.go`; dual-key costs
+      +26% vs single-expression on both servers; MySQL JSON-typed arrow
+      form is 2.5x faster than MariaDB's dual-key (19 vs 47ms / 50k rows);
+      table in `METAENGINE-LIVE-LATENCY-MODEL.md` §9.
+- [ ] **mysqlengine: depth-1 graph short-circuit** — measured 2-4x win
+      (bench table in `METAENGINE-LIVE-LATENCY-MODEL.md` §9): route
+      `GraphNeighbors(depth==1)` to the direct adjacency query (+ `AND
+      to_node <> ?` to preserve start-node exclusion) instead of the
+      recursive CTE.
+      _(Effort: XS)_
+- [ ] [BLOCKED] **Run `nix run .#integration-mysql-nspawn`** (needs root) — real-env
       verification incl. `stack/mysql`; live verification so far used docker
-      probes only.
+      probes only. Partially covered 2026-08-16: userspace MariaDB 11.4
+      verified mysqlengine (`-count=3`) + stack/mysql (`-count=3`) — but the
+      nspawn env runs the full app-level flow.
       _(Effort: M)_
 
 ---
@@ -291,75 +325,127 @@ and is **never** duplicated here.
 
 ## Code Quality / Infrastructure
 
-- [ ] **CHANGELOG honesty gate** — lint that every `pkg.Symbol` identifier
+- [x] **CHANGELOG honesty gate** — lint that every `pkg.Symbol` identifier
       cited in CHANGELOG Added/Changed entries exists in the api-stability
       golden. Kills the reverted-work fiction class mechanically (the
       2026-08-10/11 tombstone entries described `e406edcfb`, which was
       reverted by `a6613ef0d` before any tag — CHANGELOG never recorded the
       reversion; corrected 2026-08-16).
-      _(Effort: S)_
-- [ ] **api-stability: fail loudly on parse-skip** — the checker prints `skip
+      _(Effort: S)_ — done 2026-08-16: `scripts/check-changelog-symbols.sh`
+      (CI + nix-less grep gate) scopes `[Unreleased]` Added/Changed headings
+      (inclusive), resolves `alias.Symbol` against golden last-segment,
+      module-root prefix, and repo source-dir fallback (subpackage citations
+      like `enginetest.X`); caught two inaccuracies in this session's own
+      CHANGELOG fold on first run.
+- [x] **api-stability: fail loudly on parse-skip** — the checker prints `skip
       <module>:` and proceeds when a file is unparseable, so a corrupted
       module looks identical to a legitimately-removed one in the golden
       (a silently-shrinking golden is the corruption tell, 07:12 report §e.2).
       Cheapest corruption tripwire available.
-      _(Effort: XS)_
-- [ ] **BuildFlow pre-commit: `gofmt -l` syntax gate on staged `.go` files** —
+      _(Effort: XS)_ — done 2026-08-16: unparseable modules now return a hard
+      error instead of `skip <module>:` + continue.
+- [x] **BuildFlow pre-commit: `gofmt -l` syntax gate on staged `.go` files** —
       concurrent-session mid-write corruption entered the index twice on
       2026-08-16 (`func (w *workor)`, `fojection.`); a 1s syntax check on
       staged files blocks the class.
-      _(Effort: XS)_
-- [ ] **Pre-gate load-sweep script** — run timing-assertion tests
+      _(Effort: XS)_ — done 2026-08-16: `scripts/check-staged-go.sh` (gofmt
+      `-e -l`, `|| true` so gofmt's exit-2 on parse errors feeds the message
+      check instead of tripping `set -e`), wired into the installed hook,
+      `scripts/install-hooks.sh` (canonical restorer of BOTH post-BuildFlow
+      gates), and `scripts/pre-commit.sh`. Negative test: staged corrupt file
+      → precise parse errors, exit 1.
+- [x] **Pre-gate load-sweep script** — run timing-assertion tests
       (`-run 'Latency|Timer|Deadline'`) under a CPU soaker before `#verify`;
       the 12:39 session burned two full gate cycles (~20 min each)
       discovering load-sensitive flakes one at a time.
-      _(Effort: S)_
-- [ ] **Guard against local-path `replace` directives** — cqrs-lint rule,
+      _(Effort: S)_ — done 2026-08-16: `scripts/load-sweep.sh` + `nix run
+      .#load-sweep` (nproc-1 soakers, 8 timing-test modules, per-module
+      GOWORK=off, logs to /tmp/load-sweep-*.log).
+- [x] **Guard against local-path `replace` directives** — cqrs-lint rule,
       buildflow check, or both: reject `replace … => /home/…` (broke CI
       Release on every push until `ceb88738b`; dev-against-siblings belongs
       in `go.work` `use`, never in a published go.mod). Approach is a user
       question (11:00 report §g Q2).
-      _(Effort: S)_
-- [ ] **Clean up registered git worktrees** — `/tmp/cqrs-tagwt` (tag chain,
+      _(Effort: S)_ — done 2026-08-16 (approach decided: extend the existing
+      CI-wired script, cheapest complete enforcement; cqrs-lint rule would be
+      duplicate machinery): `check-replace-directives.sh` now rejects
+      absolute-path targets outright; relative sibling replaces stay the
+      documented convention (stripped by `tag-release.sh` at cut time).
+- [x] **Clean up registered git worktrees** — `/tmp/cqrs-tagwt` (tag chain,
       commits `092b5e8a8`/`4907b6afc` stranded there), `/home/lars/projects/
       wt-head`, `/tmp/gcl-verify`, `go-cqrs-lite-pin` still registered.
       After the stranded-commit cherry-pick lands.
-      _(Effort: XS)_
-- [ ] **Infrastructure polish (nix apps + shared helpers)** — add
+      _(Effort: XS)_ — done 2026-08-16: the valuable stranded commit
+      `092b5e8a8` (metadata/v4.5.0 pin fix + retracts + tag-release.sh
+      GOWORK=off-build gate) was cherry-picked to master as `491379a2b` and
+      verified with standalone GOWORK=off builds of command+query;
+      `4907b6afc` was obsolete (bboltengine v4.0.0 pin already on master);
+      all four worktrees removed (pin's dirty docs were a dubious
+      `npx`→`pnpm dlx` sweep over archive files — discarded deliberately).
+- [x] **Infrastructure polish (nix apps + shared helpers)** — add
       `#check-lint-config`, `#verify-ci` (mirror GH Actions GOWORK=off
       per-module), wire `#sweep` to pre-commit/cron, consolidate engine
       `register.go` boilerplate (7 modules), add missing devShell tools
       (dprint, go-licenses, vulnix — their absence forces `--no-verify`).
-      _(Effort: M)_
-- [ ] **Fix `nix fmt` vs golangci-gci import-grouping conflict at the tooling
+      _(Effort: M)_ — done 2026-08-16: `#check-lint-config` (golangci config
+      verify + depguard), `#verify-ci`, `#load-sweep`, `#integration-redis`
+      apps added (flake eval verified); devShell already had dprint/
+      go-licenses/vulnix (stale premise); `register.go` "consolidation" = 8
+      files standardized with `//art-dupl:accept` directives — Go REQUIRES a
+      per-package `init()` for driver self-registration (database/sql
+      pattern), so cross-module dedup is impossible by design (documented in
+      AGENTS.md #19); `#sweep` stays manual/cron (not in pre-commit — its
+      5-minute lint pass would dwarf every other gate).
+      cron line: `0 * * * * cd <repo> && nix run .#sweep`
+- [x] **Fix `nix fmt` vs golangci-gci import-grouping conflict at the tooling
       level** — the class re-broke 95+ files once; it WILL recur on every
       future import addition. Make the treefmt formatter config aware of gci
       section rules (or vice versa).
-      _(Effort: S)_
-- [ ] **Enforce the heap-measurement contract mechanically** — tests calling
+      _(Effort: S)_ — done 2026-08-16 ("vice versa"): gci REMOVED from
+      `.golangci.yml` formatters — treefmt goimports `-local` owns the
+      3-group layout, CI's `nix fmt --fail-on-change` enforces it
+      mechanically; one tool owns grouping, the formatter. treefmt-nix has
+      no gci program at the pinned rev, and golangci-as-treefmt-formatter
+      would type-check on every `nix fmt`.
+- [x] **Enforce the heap-measurement contract mechanically** — tests calling
       `runtime.ReadMemStats` must never `t.Parallel()` (13 files fixed
       2026-08-14; repo-wide audit came back clean, but nothing prevents
       reintroduction). cqrs-lint rule or check-script grep.
-      _(Effort: S)_
-- [ ] **Audit benchkit's remaining wall-clock assertions** —
+      _(Effort: S)_ — done 2026-08-16: `scripts/check-heap-parallel.sh`
+      (same-file grep tripwire, CI-wired); cross-file callers of soak runners
+      remain a review concern (documented in-script).
+- [x] **Audit benchkit's remaining wall-clock assertions** —
       `raceEnabled` branch at `benchkit_test.go:821` may share the
       load-sensitivity mis-model already fixed for `DurationAborts`/
       `CancelledContext` (flat 30s).
-      _(Effort: S)_
-- [ ] **Wire broker tests into CI** — `TestRedisStreamRoundtrip` passes only
+      _(Effort: S)_ — done 2026-08-16: confirmed the mis-model (5s non-race
+      ceiling under parallel load); aligned `TestRun_SQLite_DurationAborts`
+      to the flat-30s hang-detection model; verified 3x under `-race`
+      (22s, green).
+- [x] **Wire broker tests into CI** — `TestRedisStreamRoundtrip` passes only
       via manual `ephemeral-redis.sh`; add a `#integration-redis` nix app
       (mirrors `#integration-pg`). Then extend to broker edges the gochannel
       tests can't catch: redelivery duplicates, consumer-group rebalance,
       message size limits.
-      _(Effort: M)_
-- [ ] **Doc-check 0-warning CI tripwire** — warnings are at 0 since
+      _(Effort: M)_ — done 2026-08-16: `#integration-redis` app + CI
+      `redis-integration` job; `ephemeral-redis.sh` default command now runs
+      the watermill suite; new `watermill/broker_edge_redis_test.go` covers
+      Nack redelivery (NackResendSleep), consumer-group exactly-once across
+      two subscribers (20 msgs, no dupes/losses), and 2 MiB payload
+      integrity — all green against a real ephemeral broker.
+- [x] **Doc-check 0-warning CI tripwire** — warnings are at 0 since
       2026-08-15; add a regression guard so warning spam can't creep back.
-      _(Effort: XS)_
-- [ ] **Skill docs: capability diagnostics recipe** — `recipes.md` section on
+      _(Effort: XS)_ — done 2026-08-16: doc-check now collects warnings
+      (unreadable dirs, empty exports, unparseable files) and FAILS on any;
+      the zero-references case (silent no-op verification) is an error too.
+      Full verify file set passes with 0 warnings (1139 refs).
+- [x] **Skill docs: capability diagnostics recipe** — `recipes.md` section on
       `CapabilityAudit`/Doctor's `--- Capability ---` section
       (consumer-facing declared-vs-implemented diagnostics), and a
       `modules.md` metaengine row note. Shipped 2026-08-16, undocumented.
-      _(Effort: XS)_
+      _(Effort: XS)_ — done 2026-08-16: recipes §2.12 (CapabilityAudit +
+      Doctor snippet + RunCapabilityConformance gate) + modules.md metaengine
+      row note; doc-check green (1139 refs).
 - [ ] **Duplication-baseline hygiene** — add `//art-dupl:accept` directives
       at the 9 intentional clone sites; dirty-tree guard for baseline
       re-pins; re-pin at next clean tree (current pin includes in-flight
@@ -369,24 +455,47 @@ and is **never** duplicated here.
       and consolidated 2 groups (metaengine `enginesSnapshot`, event
       `seekableReadFrom`) — gate green, baseline untouched (annotations
       suppress live). The 9 legacy sites + dirty-tree guard remain.
-- [ ] **check-coverage.sh hardening** — meta-test asserting every EXPECTED
+      2026-08-16 (infra wave): dirty-tree guard DONE (`#check-duplication`
+      refuses uncommitted baseline changes); 8 `register.go` driver files
+      annotated (`//art-dupl:accept`). REMAINING: 13 NEW clone groups flagged
+      by art-dupl live in the in-flight concurrent mysqlengine/
+      undirected-graph session's files (cross-engine dialect class —
+      documented-intentional, but the owning session must annotate or the
+      `#verify` duplication gate stays red); re-pin still deferred to a
+      clean tree.
+- [x] **check-coverage.sh hardening** — meta-test asserting every EXPECTED
       key resolves to a real module dir (codec-dangle class); make
       `--update` auto-stamp the "verified" date.
-      _(Effort: S)_
-- [ ] **duckdbengine suite split** — 76-91s observed under the (now 8m)
+      _(Effort: S)_ — done 2026-08-16: dangling EXPECTED keys fail fast with
+      a precise message; `--update` rewrites the header's `(verified …)`
+      date via sed. Gate green (all 11 modules within ±2%).
+- [x] **duckdbengine suite split** — 76-91s observed under the (now 8m)
       ceiling; worth splitting the soak into its own budget.
-      _(Effort: S)_
+      _(Effort: S)_ — done 2026-08-16: the soak's comment CLAIMED `-short`
+      skip but the code never checked it (doc-vs-code split brain —
+      `#verify-fast` was running the 80-100s soak); `testing.Short()` gate
+      added, verified skipping under `-short`. Full `#test`/
+      `#test-all-backends` still cover it.
 - [ ] **macOS verification of ephemeral PG** — `scripts/ephemeral-pg.sh` claims
       cross-platform but was never tested on Darwin.
-      _(Effort: M)_
-- [ ] **Delete junk from repo root** — `t/`, `result/` (16MB root-owned),
+      _(Effort: M)_ — 2026-08-16: static review done (portability note added
+      to the script header; no Linux-isms found, /dev/kvm check
+      uname-guarded); hardware verification on a real Mac remains open.
+- [x] **Delete junk from repo root** — `t/`, `result/` (16MB root-owned),
       `reports/coverage.out` (empty), `reports/jscpd-report.json`; drop the
       orphaned `stash@{0}` (WIP @ `e87be3143`, pre-recovery leftovers).
-      _(Effort: XS)_
-- [ ] **Per-module CHANGELOGs** — 6 of ~82 modules have one. Decide policy
+      _(Effort: XS)_ — done 2026-08-16: all three dirs trashed (root-owned
+      `result/` moved via parent-dir rename), stash dropped (dropped-hash
+      `cfca37601` recoverable from reflog-era output if ever needed).
+- [x] **Per-module CHANGELOGs** — 6 of ~82 modules have one. Decide policy
       (root CHANGELOG only vs per-module) and either write them or document
       the decision.
-      _(Effort: L)_
+      _(Effort: L)_ — done 2026-08-16 (decision: ROOT ONLY): survey found 4
+      (not 6) module files, all orphaned (nothing read them) and stale —
+      three described already-tagged work as `[Unreleased]`. Unmirrored
+      content folded into the root CHANGELOG (the honesty gate caught two
+      inaccurate symbol citations during the fold), files deleted, policy
+      + enforcement documented in CONTRIBUTING.md and AGENTS.md #20.
 
 ---
 

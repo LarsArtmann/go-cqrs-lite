@@ -45,6 +45,71 @@ func TestGraphCTEProbeEnabledOnModernServers(t *testing.T) {
 	}
 }
 
+// TestGraphNeighborsUndirected_IterativeMatchesCTE is the undirected twin of
+// TestGraphNeighbors_IterativeMatchesCTE: forces the both-directions BFS
+// fallback and verifies it matches the undirected CTE walk. Guards the
+// shared graphWalk skeleton's undirected adjacency selection.
+func TestGraphNeighborsUndirected_IterativeMatchesCTE(t *testing.T) {
+	t.Parallel()
+
+	e := newInternalEngine(t)
+
+	ctx := context.Background()
+	col := "graph_und_cte_parity_internal"
+
+	edges := []metaengine.Edge{
+		{From: "b", To: "a"}, // incoming edge for a
+		{From: "a", To: "c"}, // outgoing edge for a
+		{From: "c", To: "b"}, // cycle back into the frontier
+	}
+
+	for _, edge := range edges {
+		if err := e.GraphAddEdge(ctx, col, edge); err != nil {
+			t.Fatalf("GraphAddEdge(%v): %v", edge, err)
+		}
+	}
+
+	cteNeighbors, err := e.GraphNeighborsUndirected(ctx, col, "a", 2)
+	if err != nil {
+		t.Fatalf("GraphNeighborsUndirected (CTE): %v", err)
+	}
+
+	e.graphCTE = false
+
+	iterativeNeighbors, err := e.GraphNeighborsUndirected(ctx, col, "a", 2)
+	if err != nil {
+		t.Fatalf("GraphNeighborsUndirected (iterative): %v", err)
+	}
+
+	sortNeighbors := func(items []any) []string {
+		out := make([]string, 0, len(items))
+		for _, v := range items {
+			s, ok := v.(string)
+			if !ok {
+				t.Fatalf("neighbor %v is %T, want string", v, v)
+			}
+
+			out = append(out, s)
+		}
+
+		slices.Sort(out)
+
+		return out
+	}
+
+	cte := sortNeighbors(cteNeighbors)
+	iter := sortNeighbors(iterativeNeighbors)
+
+	if !slices.Equal(cte, iter) {
+		t.Errorf("iterative undirected neighborhood %v != CTE %v", iter, cte)
+	}
+
+	want := []string{"b", "c"}
+	if !slices.Equal(cte, want) {
+		t.Errorf("undirected neighborhood = %v, want %v", cte, want)
+	}
+}
+
 // TestGraphNeighbors_IterativeMatchesCTE forces the pre-CTE fallback path
 // (as a MySQL 5.7 / MariaDB <10.2 server would take) and verifies it returns
 // the same neighborhood as the CTE path: cycle-safe, deduplicated, and the

@@ -119,7 +119,7 @@ func (e *mysqlEngine) appendExplainFilter(
 	f metaengine.FilterSpec,
 ) {
 	fmt.Fprintf(b, ` AND %s %s %s`,
-		e.jsonCompareExpr(f.Column), string(f.Op), e.jsonParamPlaceholder())
+		e.filterExpr(f.Column), string(f.Op), e.jsonParamPlaceholder())
 	*args = append(*args, e.jsonFilterParam(f.Value))
 }
 

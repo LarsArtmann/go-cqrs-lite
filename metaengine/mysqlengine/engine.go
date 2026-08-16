@@ -53,6 +53,7 @@ type mysqlEngine struct {
 	done           bool
 	layoutMu       sync.Mutex
 	appliedLayouts map[string]bool
+	gcColumns      atomic.Pointer[map[string]string] // MariaDB generated columns (field→name)
 }
 
 // New creates a MySQL-backed metaengine Engine from a DSN.

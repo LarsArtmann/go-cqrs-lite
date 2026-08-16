@@ -468,7 +468,65 @@ without live stats.
 
 ---
 
-## 9. References
+## 9. Measured Dialect Costs (2026-08-16, mysqlengine benchmarks)
+
+Benchmarks live in `metaengine/mysqlengine/graph_bench_test.go` and
+`sort_bench_test.go` (run with `MYSQL_TEST_DSN` against each server;
+`-benchtime 10x/20x`). Environment: localhost TCP, AMD Ryzen AI MAX+ 395,
+MariaDB 11.4.12 (userspace) and MySQL 8.4.11 (Docker) — so absolute numbers
+include ~60-100µs loopback RTT; ratios are the durable signal.
+
+### Graph traversal: recursive CTE vs iterative BFS (crossover table)
+
+Synthetic graph, out-degree 2 (chain + scattered edge), start node 0,
+`GraphNeighbors(depth)`; median of forced-mode runs (ns/op, 10x):
+
+| depth | MariaDB CTE | MariaDB iter | MySQL CTE | MySQL iter | Winner |
+| ----- | ----------- | ------------ | --------- | ---------- | ------ |
+| 1     | 160-253µs   | **65-109µs** | 137-253µs | **69-98µs** | iterative (2-4x) |
+| 2     | 111-167µs   | 96-168µs     | 169-181µs | 137-138µs   | ~parity |
+| 3     | 128-143µs   | 176-232µs    | 117-175µs | 220-241µs   | CTE (1.3-1.9x) |
+| 4     | 144-189µs   | 308-330µs    | 117-142µs | 380-415µs   | CTE (2.2-2.9x) |
+| 5     | 156-275µs   | 470-571µs    | 134-239µs | 620-735µs   | CTE (3.0-4.3x) |
+| 6     | 169-245µs   | 887-963µs    | 176-221µs | 1013-1339µs | CTE (4.4-6.1x) |
+
+Findings (identical shape on both servers, independent of graph size 1k-100k):
+
+1. **CTE cost is depth-flat; iterative cost is depth-linear** (one RTT per
+   frontier node per level). Crossover sits between depth 1 and 2.
+2. **Depth-1 walks are 2-4x faster via the direct adjacency query** — the
+   WITH RECURSIVE machinery (UNION dedup + DISTINCT) is pure overhead there.
+   Optimization candidate: short-circuit `depth == 1` to
+   `mysqlGraphNeighborsDirect` (+ `AND to_node <> ?` to preserve the
+   start-node exclusion). Unimplemented; see TODO_LIST.
+3. For the cost model: model CTE graph reads as ~flat in depth (one RTT +
+   small per-level CPU), iterative as `RTT × frontier_size × depth`.
+
+### Sort pushdown: MariaDB dual-key vs MySQL JSON-typed ORDER BY
+
+50k shuffled numeric-priority rows in `meta_map`, `ORDER BY ... LIMIT 100`
+(20x runs):
+
+| Form | MariaDB 11.4 | MySQL 8.4 |
+| ---- | ------------ | --------- |
+| dual-key `CAST(... AS DECIMAL), JSON_UNQUOTE(...)` (engine's MariaDB form) | 47.0ms | 48.1ms |
+| single `JSON_UNQUOTE(JSON_EXTRACT(...))` (text-order control) | 37.4ms | 37.7ms |
+| single `value->'$.p'` (JSON-typed; engine's MySQL form) | n/a (1064) | **19.0ms** |
+
+Findings:
+
+1. The DECIMAL dual-key costs **+26%** over the single-expression form on
+   both servers — the price of numeric text-sort correctness on MariaDB.
+2. MySQL's JSON-typed arrow form is **2.5x faster** than MariaDB's dual-key
+   (19.0 vs 47.0ms) and even 2x faster than the unquoted-text control on
+   MySQL itself: typed JSON comparison skips per-row string materialization.
+3. For the cost model: numeric sort pushdown on MariaDB ≈ 2.5x the MySQL
+   cost for the same row count — relevant when both engines are candidates
+   for a sort-heavy read model.
+
+---
+
+## 10. References
 
 - [ADR-0093 — Metaengine Replication Model](../adr/0093-metaengine-replication-model.md) — defines
   NetworkRTT, explicitly defers auto-calibration

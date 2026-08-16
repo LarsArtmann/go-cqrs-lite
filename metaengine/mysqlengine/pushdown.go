@@ -44,10 +44,10 @@ func (e *mysqlEngine) PushdownMapScan(
 			}
 
 			fmt.Fprintf(&b, ` AND %s IN (%s)`,
-				e.jsonCompareExpr(f.Column), strings.Join(placeholders, ", "))
+				e.filterExpr(f.Column), strings.Join(placeholders, ", "))
 		} else {
 			fmt.Fprintf(&b, ` AND %s %s %s`,
-				e.jsonCompareExpr(f.Column), string(f.Op), e.jsonParamPlaceholder())
+				e.filterExpr(f.Column), string(f.Op), e.jsonParamPlaceholder())
 			args = append(args, e.jsonFilterParam(f.Value))
 		}
 	}
@@ -91,11 +91,11 @@ func (e *mysqlEngine) PushdownMapScan(
 	return metaengine.ScanResult{Items: rows, HasMore: hasMore}, nil
 }
 
-// ApplyLayout implements metaengine.LayoutPlanner. It creates functional
-// indexes on the meta_map table for the declared filter/sort fields.
-// MySQL 8.0.13+ supports functional key parts; MariaDB does not — there the
-// layout is recorded as applied and queries rely on JSON_EXTRACT scans
-// (graceful degradation, per the metaengine routing invariants).
+// ApplyLayout implements metaengine.LayoutPlanner. MySQL 8.0.13+ gets
+// functional key parts directly on meta_map. MariaDB lacks them, so each
+// field gets a VIRTUAL generated column plus a plain composite index (see
+// applyMariaDBLayout); PushdownMapScan then filters on the generated column
+// via filterExpr, which the index covers.
 // art-dupl:accept cross-module SQL engine pattern — separate go.mod
 func (e *mysqlEngine) ApplyLayout(collection string, filterFields, sortFields []string) error {
 	e.layoutMu.Lock()
@@ -111,7 +111,12 @@ func (e *mysqlEngine) ApplyLayout(collection string, filterFields, sortFields []
 	}
 
 	if e.isMariaDB() {
+		if err := e.applyMariaDBLayout(filterFields, sortFields); err != nil {
+			return err
+		}
+
 		e.appliedLayouts[key] = true
+
 		return nil
 	}
 

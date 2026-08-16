@@ -102,46 +102,15 @@ func (e *mysqlEngine) graphNeighborsUndirectedCTE(
 }
 
 // graphNeighborsUndirectedIterative is the fallback for servers without WITH
-// RECURSIVE: one indexed lookup per node per level per direction.
+// RECURSIVE: one indexed lookup per node per level per direction, via the
+// shared graphWalk skeleton.
 func (e *mysqlEngine) graphNeighborsUndirectedIterative(
 	ctx context.Context,
 	col string,
 	node any,
 	depth int,
 ) ([]any, error) {
-	startNode := encodeNodeKey(node)
-	visited := map[string]bool{startNode: true}
-	frontier := []string{startNode}
-	var result []any
-
-	for level := 0; level < depth && len(frontier) > 0; level++ {
-		var next []string
-
-		for _, n := range frontier {
-			neighbors, err := e.graphNeighborsBothDirections(ctx, col, n)
-			if err != nil {
-				return nil, fmt.Errorf("mysqlengine.GraphNeighborsUndirected: %w", err)
-			}
-
-			for _, nb := range neighbors {
-				if visited[nb] {
-					continue
-				}
-
-				visited[nb] = true
-				result = append(result, nb)
-				next = append(next, nb)
-			}
-		}
-
-		frontier = next
-	}
-
-	if result == nil {
-		result = []any{}
-	}
-
-	return result, nil
+	return e.graphWalk(ctx, col, node, depth, e.graphNeighborsBothDirections) //nolint:wrapcheck
 }
 
 // graphNeighborsBothDirections reads a node's outgoing and incoming adjacency.
