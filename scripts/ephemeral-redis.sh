@@ -59,8 +59,9 @@ if [ $# -gt 0 ]; then
 	echo "==> Running: $*"
 	"$@"
 else
-	echo "==> No command specified. Redis is running at $REDIS_URL"
-	echo "    Set REDIS_URL and run your tests in another terminal."
-	echo "    Press Ctrl+C to stop."
-	wait "$REDIS_PID"
+	echo "==> Running watermill broker tests (default; pass a command to override)"
+	(
+		cd watermill
+		GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1 -v
+	)
 fi

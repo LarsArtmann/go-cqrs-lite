@@ -905,6 +905,47 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-depguard.sh"
             '';
 
+            # check-lint-config: validate the lint configuration itself.
+            # golangci-lint config verify catches schema drift after version
+            # bumps; check-depguard keeps the allow-list honest against go.mod.
+            check-lint-config =
+              mkApp "check-lint-config" [ pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep ]
+                ''
+                  echo "==> golangci-lint config verify"
+                  ${pkgs.golangci-lint}/bin/golangci-lint config verify --config "$PWD/.golangci.yml"
+                  echo "==> depguard allow-list vs go.mod"
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-depguard.sh"
+                '';
+
+            # verify-ci: mirror the GitHub Actions per-module job locally —
+            # every module built AND tested under GOWORK=off (consumer
+            # perspective). Catches replace-directive and pin drift that the
+            # workspace mode of #verify masks.
+            verify-ci = mkApp "verify-ci" [ goPkg pkgs.bash pkgs.gcc ] ''
+              export CGO_ENABLED=1
+              failed=0
+              for mod in ${builtins.concatStringsSep " " testModules}; do
+                echo "==> $mod"
+                (
+                  cd "$mod"
+                  GOWORK=off ${goPkg}/bin/go build -tags "goexperiment.jsonv2" ./... \
+                    && GOWORK=off ${goPkg}/bin/go test -tags "goexperiment.jsonv2" ./... -count=1 -timeout=15m
+                ) || failed=1
+              done
+              if [ "$failed" -ne 0 ]; then
+                echo "❌ verify-ci failed (see module above)"
+                exit 1
+              fi
+              echo "✅ verify-ci passed (GOWORK=off per-module build+test)"
+            '';
+
+            # load-sweep: run timing-assertion tests under deliberate CPU load
+            # BEFORE #verify — front-loads discovery of load-sensitive flakes
+            # (the 12:39 session burned two ~20min gate cycles on these).
+            load-sweep = mkApp "load-sweep" [ goPkg pkgs.bash pkgs.coreutils ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/load-sweep.sh" "$@"
+            '';
+
             # Rebuild catalog/docserver/static/docs-ui.css from docs-ui.src.css
             # + templ-components module sources (pinned tailwindcss v4).
             build-docserver-css =
@@ -1005,10 +1046,19 @@
             # introduced relative to the committed baseline (.art-dupl-baseline.json).
             # Requires art-dupl in PATH (go install github.com/larsartmann/art-dupl@latest).
             # To accept new clones: `art-dupl baseline . --threshold 3`
-            check-duplication = mkApp "check-duplication" [ pkgs.bash ] ''
+            check-duplication = mkApp "check-duplication" [ pkgs.bash pkgs.git ] ''
               if ! command -v art-dupl >/dev/null 2>&1; then
                 echo "SKIP: art-dupl not installed (go install github.com/larsartmann/art-dupl@latest)"
                 exit 0
+              fi
+              # Dirty-tree guard: the gate must run against a COMMITTED baseline.
+              # Re-pinning while the baseline is uncommitted validates against
+              # in-flight state and invites pinning foreign half-done code.
+              if ! git diff --quiet -- .art-dupl-baseline.json 2>/dev/null \
+                 || ! git diff --cached --quiet -- .art-dupl-baseline.json 2>/dev/null; then
+                echo "ERROR: .art-dupl-baseline.json has uncommitted changes."
+                echo "Commit the baseline first, or restore it: git restore .art-dupl-baseline.json"
+                exit 1
               fi
               echo "==> Duplication check (threshold=3, semantic)"
               art-dupl check . --threshold 3 --semantic
@@ -1109,6 +1159,22 @@
                   export CGO_ENABLED=1
                   export GOEXPERIMENT=jsonv2
                   bash "$PWD/scripts/ephemeral-pg.sh" "$@"
+                '';
+
+            # Ephemeral Redis Streams broker (nixpkgs, no Docker/VM) for the
+            # watermill adapter tests (TestRedisStreamRoundtrip + broker-edge
+            # suite). Mirrors .#integration-pg.
+            # Usage: nix run .#integration-redis
+            #        nix run .#integration-redis -- go test -C watermill -run TestRedis ./...
+            integration-redis =
+              mkApp "integration-redis"
+                [
+                  goPkg
+                  pkgs.redis
+                ]
+                ''
+                  export GOEXPERIMENT=jsonv2
+                  bash "$PWD/scripts/ephemeral-redis.sh" "$@"
                 '';
 
             # NixOS VM integration tests — boot a QEMU VM with the database

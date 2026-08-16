@@ -4,6 +4,12 @@
 # Replaces Docker/testcontainers for local integration testing.
 # No Docker daemon, no VM, no network — just a process from the Nix store.
 #
+# Portability: Linux (NixOS) verified. macOS: static review 2026-08-16 found
+# no Linux-isms — nixpkgs provides the same pg_ctl/initdb/createdb binaries,
+# mktemp/python3/pgrep\ -u\ -f/pkill\ -f behave identically on Darwin, and the
+# /dev/kvm check is uname-guarded. NOT yet exercised on real Mac hardware;
+# if it breaks there, check `unix_socket_directories` permissions first.
+#
 # Usage:
 #   nix run .#integration-pg                           # run all PG integration tests
 #   nix run .#integration-pg -- -run TestPostgresEventStore_CRUD  # specific test

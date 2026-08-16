@@ -27,6 +27,9 @@ cat >"$HOOK_PATH" <<'HOOK_EOF'
 # Installed by scripts/install-hooks.sh
 #
 # Scope detection: skip lint for doc-only commits to save ~45s per commit.
+# NOTE: `buildflow precommit install` REGENERATES this file and wipes the
+# appended blocks below (api-stability + staged-syntax gates) — re-run
+# scripts/install-hooks.sh after reinstalling BuildFlow's hook.
 
 set -e
 
@@ -50,9 +53,30 @@ END=$(date +%s)
 DURATION=$((END-START))
 
 echo "BuildFlow completed in ${DURATION}s"
+
+# ── Post-BuildFlow appended gates (wiped by `buildflow precommit install`;
+#    this script is the canonical restorer) ─────────────────────────────────
+
+# API surface golden check — prevents shipping exports without regenerating
+# docs/api_surface.txt. Fast (~1s GOWORK=off run). Only when .go files staged.
+ROOT="$(git rev-parse --show-toplevel)"
+if echo "$STAGED_FILES" | grep -qE '\.go$' && echo "$STAGED_FILES" | grep -vqE '^(docs/|\.agents/|scripts/)'; then
+	echo "==> Checking api_surface.txt is up to date"
+	if ! (cd "$ROOT/cmd/api-stability" && GOWORK=off go run -tags "goexperiment.jsonv2" .); then
+		echo "ERROR: docs/api_surface.txt is stale. Run: cd cmd/api-stability && GOWORK=off go run -tags 'goexperiment.jsonv2' . --update"
+		exit 1
+	fi
+fi
+
+# Staged .go syntax gate — blocks concurrent-session mid-write corruption
+# ("func (w *workor)", "fojection." landed staged twice on 2026-08-16).
+if echo "$STAGED_FILES" | grep -qE '\.go$'; then
+	bash "$ROOT/scripts/check-staged-go.sh"
+fi
 HOOK_EOF
 
 chmod +x "$HOOK_PATH"
 
 echo "Installed pre-commit hook to $HOOK_PATH"
 echo "Scope detection: doc-only commits skip lint, all others run BuildFlow."
+echo "Includes post-BuildFlow gates: api-stability golden + staged-syntax."

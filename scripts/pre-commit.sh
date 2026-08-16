@@ -42,4 +42,7 @@ if ! (cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" .); 
 	exit 1
 fi
 
+echo "==> Syntax gate: staged .go files must parse and be gofmt-clean"
+bash scripts/check-staged-go.sh
+
 echo "✅ Pre-commit checks passed"
