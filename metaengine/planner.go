@@ -363,6 +363,19 @@ func planDiagnostics(meta queryMeta, best rankedEngine, cfg QueryConfig) []Diagn
 		})
 	}
 
+	if fc := cfg.FilterCount(); fc > 0 && (best.complexity == ComplexityON || best.complexity == ComplexityONLogN) {
+		sel := filterSelectivity(fc)
+		diags = append(diags, Diagnostic{
+			Level: DiagLevelInfo,
+			Query: meta.QueryName(),
+			Message: fmt.Sprintf(
+				"%d filter(s) on %s scan; estimated selectivity %.4f (not applied to routing cost). "+
+					"Engines with index pushdown (FilterOnField) avoid the full scan.",
+				fc, best.complexity, sel,
+			),
+		})
+	}
+
 	if diag := checkScaleThreshold(meta.QueryADT(), cfg.Volume); diag != nil {
 		diag.Query = meta.QueryName()
 		diags = append(diags, *diag)
