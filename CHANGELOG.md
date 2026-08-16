@@ -121,6 +121,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `event/v2` references) and root `benchmark-baseline.txt`. A baseline from
   different hardware/era manufactured false confidence.
 
+### Fixed — lint gate was red on master (leftover from the selectivity revert)
+
+- The `157ed48e1` revert (filter selectivity back to diagnostic-only) left the
+  `filterCount` parameter in `metaengine.estimateCost` unused while its doc
+  comment still promised a selectivity discount — revive flagged it, failing
+  `nix run .#lint` on master. The parameter is now removed from `estimateCost`
+  and all three call sites (planner, store routing, durability rule) plus
+  tests; the doc comment states explicitly that selectivity is deliberately
+  not applied (see `filterSelectivity`).
+- The new badgerengine/bboltengine `StreamLog` tail similarity is annotated
+  `//art-dupl:accept` (dep-isolated engines implementing the same contract)
+  rather than re-pinning the art-dupl baseline.
+
 ## [storage/v4.7.1] — 2026-08-16
 
 > Module-only patch release of `storage/v4`. Retracts the broken `v4.7.0`
