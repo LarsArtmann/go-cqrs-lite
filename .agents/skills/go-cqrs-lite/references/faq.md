@@ -225,3 +225,18 @@ when you're not dispatching through CQRS types.
 
 See `middleware/circuit_breaker.go` for the integration pattern if you need
 to wire circuit breaking into a custom execution path.
+
+### "ProjectionSink.Increment went negative — shouldn't it clamp to zero?"
+
+No — this is deliberate. `Increment` emits
+`counter = COALESCE(counter, 0) + delta` and does NOT clamp on negative
+deltas. A negative rollup counter is a loud signal that your projection saw
+a `DELETE` (or decrement) for a row that never had the matching `CREATE`
+(increment) — usually a replay bug, a missed event, or a handler ordering
+problem. Silently clamping to zero would hide that data-loss bug behind a
+plausible-looking number.
+
+What to do instead: fix the fold so increments and decrements pair up
+(replay the projection from zero if the rollups are already wrong), and
+monitor for `counter < 0` as a projection-health alert. See
+`storage/relational/sink.go` (`Increment` doc comment) for the rationale.
