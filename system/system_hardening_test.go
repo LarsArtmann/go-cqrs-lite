@@ -622,7 +622,7 @@ func TestSystem_ResetProjection_RestartAndReplay(t *testing.T) {
 	defer cancel()
 
 	cpStore := &recordingCheckpointStore{}
-	dsn := sqliteTestDSN(t)
+	dsn := sqliteFileDSN(t)
 
 	deployment := system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{
