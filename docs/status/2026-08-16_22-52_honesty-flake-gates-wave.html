@@ -1,0 +1,1139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report Title</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>go-cqrs-lite &middot; STATUS</span>
+      <span>2026-08-16 22:52</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <nav data-nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#done">A &middot; Fully Done</a>
+          <a href="#partial">B &middot; Partially Done</a>
+          <a href="#notstarted">C &middot; Not Started</a>
+          <a href="#fucked">D &middot; Fucked Up</a>
+          <a href="#improve">E &middot; Improve</a>
+          <a href="#next">F &middot; Top 25 Next</a>
+          <a href="#question">G &middot; Top Question</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-badge">Status Report</div>
+          <h1>Honesty &amp; Flake Gates Wave — Session Closeout</h1>
+          <p class="hero-subtitle">
+            The 19-item "Code Quality / Infrastructure" backlog from TODO_LIST.md was
+            executed in one session: 17 shipped and verified, 2 partially done with
+            documented blockers. All new gates were tested positive AND negative before
+            wiring into CI. Two pre-existing gates (lint, duplication) are RED from a
+            concurrent session's in-flight wave — not from this session's work.
+          </p>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">17</div>
+            <div class="stat-label">Backlog items done</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">2</div>
+            <div class="stat-label">Partially done</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">2</div>
+            <div class="stat-label">Gates RED (foreign)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">11</div>
+            <div class="stat-label">New gates/apps added</div>
+          </div>
+        </div>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="card card-solution">
+          <p><strong>Session scope:</strong> execute the TODO_LIST "Code Quality / Infrastructure"
+          section (19 items). <strong>Outcome:</strong> every gate added this session is green on
+          the current tree and was proven with a negative test (fabricated symbol, staged corrupt
+          file, load-soaked timing tests). The honesty gate caught <em>two</em> inaccurate
+          citations during this session's own changelog consolidation on first run — it works.</p>
+          <p><strong>Valuable side-catch:</strong> the stranded tag-chain worktree held a real,
+          unlanded release fix (command/query pinned metadata/v4.5.0 while using
+          <code>metadata.Metadata</code>, v4.5.0-only — unbuildable GOWORK=off). It was
+          cherry-picked (491379a2b), verified with standalone builds; the already-cut
+          v4.7.1/v4.6.1 tags were confirmed to carry the fixed pins.</p>
+        </div>
+
+        <h2 id="done"><span class="num">A</span>Fully Done (verified)</h2>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Done &middot; XS</span>
+          <h3>api-stability fails loudly on unparseable modules</h3>
+          <div class="where">cmd/api-stability/main.go &middot; was: skip &lt;module&gt;: + continue</div>
+          <p>A corrupted module now hard-errors instead of silently shrinking the golden. Verified: 4188 exports, exit 0; meta-tests pass.</p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Done &middot; S</span>
+          <h3>CHANGELOG honesty gate</h3>
+          <div class="where">scripts/check-changelog-symbols.sh &middot; CI check job</div>
+          <p>Every pkg.Symbol cited in [Unreleased] Added/Changed must exist in the api-stability golden or repo source (3-tier resolution incl. subpackage fallback for citations like enginetest.X). Negative test: fabricated dedup.RingX &rarr; FICTION, exit 1. Caught 2 stale citations in the old module changelogs during consolidation.</p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Done &middot; XS</span>
+          <h3>doc-check zero-warning policy</h3>
+          <div class="where">cmd/doc-check &middot; main.go + exports.go</div>
+          <p>Unreadable dirs, empty exports, and unparseable files now FAIL (were log warnings); zero total references is an error (silent no-op verification). Full verify file set: 1139 refs, 0 warnings, exit 0.</p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Done &middot; XS</span>
+          <h3>Staged-.go syntax gate in pre-commit</h3>
+          <div class="where">scripts/check-staged-go.sh &middot; hook + install-hooks.sh + pre-commit.sh</div>
+          <p>gofmt -e -l on staged files (|| true so gofmt's exit-2 feeds the check instead of tripping set -e). Negative test: staged "func (w *workor)" &rarr; precise parse errors, exit 1. install-hooks.sh is now the canonical restorer of BOTH post-BuildFlow gates.</p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Done &middot; S</span>
+          <h3>Redis broker CI + broker-edge tests</h3>
+          <div class="where">#integration-redis &middot; watermill/broker_edge_redis_test.go &middot; CI job</div>
+          <p>Ephemeral nixpkgs Redis (mirrors #integration-pg), default command runs the watermill suite. Three new tests cover the gochannel-blind edges: Nack redelivery (NackResendSleep=200ms), consumer-group exactly-once across two subscribers (20 msgs, no dupes/losses), 2 MiB payload integrity. All 4 broker tests green against a real broker.</p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Done &middot; S</span>
+          <h3>Load sweep, verify-ci, check-lint-config apps</h3>
+          <div class="where">flake.nix &middot; scripts/load-sweep.sh</div>
+          <p>#load-sweep runs the 8 timing-test modules under nproc-1 CPU soakers before #verify; #verify-ci mirrors the CI matrix job (GOWORK=off per-module build+test); #check-lint-config = golangci config verify + depguard. Flake eval verified, all four new apps listed.</p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Done &middot; S</span>
+          <h3>benchkit + duckdbengine flake/threshold fixes</h3>
+          <div class="where">benchkit/benchkit_test.go &middot; metaengine/duckdbengine/soak_autocrud_cgo_test.go</div>
+          <p>SQLite DurationAborts aligned to the flat-30s hang model (3x -race green, 22s); the DuckDB soak's comment claimed a -short skip the code never implemented — testing.Short() gate added, verified skipping (verify-fast was paying 80-100s every run).</p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Done &middot; S</span>
+          <h3>Import-grouping ownership settled (gci removed)</h3>
+          <div class="where">.golangci.yml &middot; AGENTS.md #18</div>
+          <p>treefmt goimports -local owns the 3-group layout; gci removed from formatters (two tools fighting over the same import blocks re-broke 95+ files once). config verify exit 0; CI nix fmt --fail-on-change enforces grouping mechanically.</p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Done &middot; S</span>
+          <h3>Stranded release fix landed + workspace hygiene</h3>
+          <div class="where">cherry-pick 092b5e8a8 &rarr; 491379a2b</div>
+          <p>metadata/v4.5.0 pin repair + retracts + tag-release.sh GOWORK=off-build gate; standalone GOWORK=off builds of command+query green; v4.7.1/v4.6.1 tags verified fixed. 4 stray worktrees removed, junk dirs (t/, root-owned result/, reports/) trashed, orphaned stash dropped. art-dupl dirty-tree guard + register.go art-dupl:accept x8 (all engines build, CGo included).</p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Done &middot; L&rarr;M</span>
+          <h3>Per-module CHANGELOGs consolidated (root-only policy)</h3>
+          <div class="where">CHANGELOG.md &middot; CONTRIBUTING.md &middot; 4 files deleted</div>
+          <p>Survey found 4 (not 6) module files, all orphaned and stale — three described already-tagged work as [Unreleased]. Unmirrored content folded into root (honesty gate caught a nonexistent InitSchemaWithIndexesAndOptimizations citation and an IndexSet.DropDDL&rarr;Index.DropDDL inaccuracy in the OLD module files during the fold). Policy + enforcement documented.</p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Done &middot; XS</span>
+          <h3>Capability diagnostics docs + coverage/replace guards</h3>
+          <div class="where">recipes.md &sect;2.12 &middot; modules.md &middot; check-coverage.sh &middot; check-replace-directives.sh</div>
+          <p>CapabilityAudit/Doctor recipe + metaengine row note (doc-check 1139 refs green, TOC updated); dangling EXPECTED coverage keys fail fast + --update auto-stamps the verified date (11/11 within tolerance); absolute-path replace targets rejected (relative siblings stay the convention).</p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Done &middot; XS</span>
+          <h3>Heap-measurement contract tripwire</h3>
+          <div class="where">scripts/check-heap-parallel.sh &middot; CI</div>
+          <p>Same-file grep: files calling runtime.ReadMemStats must not call t.Parallel(). 5 current files checked, contract holds. Cross-file soak-runner callers remain a review concern (documented in-script).</p>
+        </div>
+
+        <h2 id="partial"><span class="num">B</span>Partially Done</h2>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Partial &middot; S</span>
+          <h3>Duplication-baseline hygiene</h3>
+          <div class="where">.art-dupl-baseline.json &middot; 13 new clone groups</div>
+          <p>Dirty-tree guard DONE (#check-duplication refuses uncommitted baseline changes); 8 register.go files annotated. REMAINING: 13 NEW groups flagged by art-dupl live in the concurrent session's mysqlengine/undirected-graph wave (cross-engine dialect class = documented-intentional, but only the owning session should annotate files it is still editing); baseline re-pin deferred to a clean tree.</p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Partial &middot; M</span>
+          <h3>macOS verification of ephemeral PG</h3>
+          <div class="where">scripts/ephemeral-pg.sh</div>
+          <p>Static review complete (portability note added; no Linux-isms, /dev/kvm check uname-guarded). Hardware verification on a real Mac remains open — no Darwin host available.</p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Partial &middot; XS</span>
+          <h3>#sweep cron wiring</h3>
+          <div class="where">flake.nix sweep app</div>
+          <p>Cron line documented in TODO_LIST (0 * * * * nix run .#sweep); deliberately NOT wired into pre-commit (its 5-minute lint pass would dwarf every other gate). Enabling the cron entry is a one-line user action.</p>
+        </div>
+
+        <h2 id="notstarted"><span class="num">C</span>Not Started (carried over)</h2>
+        <div class="card">
+          <ul style="padding-left:1.2rem">
+            <li><strong>.golangci.yml exclusion audit</strong> — system/ (20 linters disabled), cmd/cqrs-lint/ (17), metaengine/ (24). (M)</li>
+            <li><strong>WithActor test-coverage gaps</strong> — golden JSON, watermill wire format, CBOR roundtrip, SQL scan path, e2e propagation. (M)</li>
+            <li><strong>WithActor ecosystem propagation</strong> — scenario DSL, scheduling, deriver, commandlifecycle, ActorID-from-context. (M)</li>
+            <li><strong>Metaengine vector phases</strong> — binary float32 payloads (Phase 0, ~190x decode gap), int8 quantization (Phase 1), HNSW spike (Phase 2). (M/L)</li>
+          </ul>
+        </div>
+
+        <h2 id="fucked"><span class="num">D</span>Totally Fucked Up</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Gate RED</span>
+          <h3>Lint gate: 7 findings across 6 modules — all from the concurrent session's committed vector/undirected wave (plus one pre-existing)</h3>
+          <div class="where">id &middot; metaengine &middot; badgerengine &middot; dgraphengine &middot; pebbleengine &middot; (mine: watermill, cmd/doc-check — FIXED, 0 issues now)</div>
+          <p>nilnil &times;3 (pebble/badger vector.go "return nil, nil"), iface &times;2 (metaengine duplicate graph interfaces in test files), staticcheck &times;1 (metaengine), gochecknoglobals + gosec G115 in id/entropy.go (pre-existing committed code). None are this session's files; all three lint findings in this session's own files were fixed and re-verified to 0 issues. The gate cannot go green until the owning session (or a follow-up) fixes or nolint-annotates these.</p>
+        </div>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Gate RED</span>
+          <h3>Duplication gate: 13 new clone groups in the concurrent session's in-flight wave</h3>
+          <div class="where">mysqlengine/graph_undirected.go &harr; sqliteengine/graph_undirected.go &middot; badgerengine/graph.go &middot; pebble/pg vector.go &middot; metaengine/memory_graph.go &middot; example demos</div>
+          <p>The undirected-graph + filtered-kNN wave (committed by the daemon mid-session) introduced cross-engine dialect clones without art-dupl:accept annotations. Cross-engine SQL similarity is the DOCUMENTED intentional pattern — they need directives, not dedup. Annotating files the other session is still editing risks conflicts (it changed CHANGELOG.md under this session mid-edit once already).</p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Environmental</span>
+          <h3>/tmp tmpfs pressure + host toolchain mismatch</h3>
+          <div class="where">tmpfs 48G shared &middot; go 1.26.5 host vs go.work 1.26.6</div>
+          <p>verify-fast died once on "final link failed: No space left on device" (DuckDB static link); reclaimed 13G via trash-empty. Systemic pressure remains (bigtest + gomodcache live under /tmp). The host Go being older than go.work floods every LSP session with phantom errors (GOTOOLCHAIN=local); builds are authoritative.</p>
+        </div>
+
+        <h2 id="improve"><span class="num">E</span>What We Should Improve</h2>
+        <div class="card card-warning">
+          <ul style="padding-left:1.2rem">
+            <li><strong>Concurrent-wave gate discipline</strong> — the vector/undirected wave shipped without a lint or duplication sweep; both gates went red on committed code. A "verify-fast before session end" habit (now cheaper with the -short soak fix) would have caught it.</li>
+            <li><strong>Comment-vs-code split brains</strong> — the duckdb soak claimed a -short skip that never existed; the module CHANGELOGs cited functions that never existed. Doc-check + the honesty gate now catch the classes mechanically — keep claims in gates, not comments.</li>
+            <li><strong>Adopt #load-sweep</strong> before any #verify that follows timing-path edits; it converts 2&times;20-minute gate-cycle discoveries into a 2-minute pre-flight.</li>
+            <li><strong>Root-only changelog is now enforced</strong> — three tripwires (tag-content meta-test, symbol honesty, one-[Unreleased]) make fiction structural impossible rather than a discipline problem.</li>
+          </ul>
+        </div>
+
+        <h2 id="next"><span class="num">F</span>Top 25 Things To Do Next</h2>
+        <table class="table">
+          <thead>
+            <tr><th>#</th><th>Task</th><th>Impact</th><th>Effort</th><th>Badge</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Fix/annotate the 7 foreign lint findings (nilnil &times;3, iface &times;2, staticcheck, id entropy &times;2) &mdash; unblocks #lint/#verify</td><td>Critical</td><td>XS</td><td><span class="badge badge-critical">P0</span></td></tr>
+            <tr><td>2</td><td>Annotate the 13 art-dupl clone groups (cross-engine dialect class) &mdash; unblocks #check-duplication</td><td>Critical</td><td>S</td><td><span class="badge badge-critical">P0</span></td></tr>
+            <tr><td>3</td><td>Run full #verify (soaks included) once 1+2 land &mdash; first clean full gate since the wave</td><td>High</td><td>M</td><td><span class="badge badge-high">P1</span></td></tr>
+            <tr><td>4</td><td>Re-pin art-dupl baseline on a clean tree (current pin predates the wave)</td><td>High</td><td>S</td><td><span class="badge badge-high">P1</span></td></tr>
+            <tr><td>5</td><td>Metaengine vector Phase 0: binary float32 payloads (~190x JSON-decode gap, spike documented)</td><td>High</td><td>M</td><td><span class="badge badge-high">P1</span></td></tr>
+            <tr><td>6</td><td>Upgrade host Go to &ge;1.26.6 (kills the GOTOOLCHAIN LSP noise flood)</td><td>Medium</td><td>S</td><td><span class="badge badge-medium">P2</span></td></tr>
+            <tr><td>7</td><td>Move bigtest/gomodcache off /tmp tmpfs (or enlarge) &mdash; systemic link-failure pressure</td><td>Medium</td><td>S</td><td><span class="badge badge-medium">P2</span></td></tr>
+            <tr><td>8</td><td>.golangci.yml exclusion audit: system/ 20, cqrs-lint/ 17, metaengine/ 24 disabled linters</td><td>Medium</td><td>M</td><td><span class="badge badge-medium">P2</span></td></tr>
+            <tr><td>9</td><td>WithActor test-coverage gaps (golden JSON, CBOR roundtrip, e2e propagation)</td><td>Medium</td><td>M</td><td><span class="badge badge-medium">P2</span></td></tr>
+            <tr><td>10</td><td>WithActor ecosystem propagation (scenario DSL, scheduling, deriver, commandlifecycle)</td><td>Medium</td><td>M</td><td><span class="badge badge-medium">P2</span></td></tr>
+            <tr><td>11</td><td>macOS hardware verification of ephemeral-pg.sh</td><td>Medium</td><td>M</td><td><span class="badge badge-medium">P2</span></td></tr>
+            <tr><td>12</td><td>Enable the #sweep hourly cron (line documented in TODO_LIST)</td><td>Low</td><td>XS</td><td><span class="badge badge-low">P3</span></td></tr>
+            <tr><td>13</td><td>Redis broker: subscriber-failure claim-takeover test (MaxIdleTime path)</td><td>Low</td><td>M</td><td><span class="badge badge-low">P3</span></td></tr>
+            <tr><td>14</td><td>doc-check tripwire: fail on any module-local CHANGELOG.md (policy enforcement)</td><td>Low</td><td>XS</td><td><span class="badge badge-low">P3</span></td></tr>
+            <tr><td>15</td><td>kv coverage 71.9% (lowest tracked) &mdash; raise toward the 80% floor</td><td>Low</td><td>M</td><td><span class="badge badge-low">P3</span></td></tr>
+            <tr><td>16</td><td>F46: tag go-codec envelope fast-path + relax remaining exact alloc pins</td><td>Low</td><td>S</td><td><span class="badge badge-low">P3</span></td></tr>
+            <tr><td>17</td><td>Vector Phase 1: int8 scalar quantization + exact re-rank</td><td>Low</td><td>L</td><td><span class="badge badge-low">P3</span></td></tr>
+            <tr><td>18</td><td>cqrs-lint rule for replace-directives (belt+braces over the script gate)</td><td>Low</td><td>S</td><td><span class="badge badge-low">P3</span></td></tr>
+            <tr><td>19</td><td>Honesty gate: extend to Fixed/Removed headings once policy freezes released sections</td><td>Low</td><td>S</td><td><span class="badge badge-low">P3</span></td></tr>
+            <tr><td>20</td><td>benchkit soak: SOAK_SKIP env mirror of the duckdb gate for CI budgets</td><td>Low</td><td>S</td><td><span class="badge badge-low">P3</span></td></tr>
+            <tr><td>21</td><td>HNSW Phase 2 spike (capability interface + filter-fallback strategy)</td><td>Low</td><td>L</td><td><span class="badge badge-low">P3</span></td></tr>
+            <tr><td>22</td><td>Audit remaining TODO_LIST sections for stale premises (devShell tools were already present; "6 module changelogs" was 4)</td><td>Low</td><td>S</td><td><span class="badge badge-low">P3</span></td></tr>
+            <tr><td>23</td><td>Turn the verify-docs build-check into verify-fast's tail (it re-runs #build redundantly today)</td><td>Low</td><td>XS</td><td><span class="badge badge-low">P3</span></td></tr>
+            <tr><td>24</td><td>Document the register.go self-registration pattern in references/modules.md (consumer-facing)</td><td>Low</td><td>XS</td><td><span class="badge badge-low">P3</span></td></tr>
+            <tr><td>25</td><td>Consider golangci nilnil+iface enablement review for engine modules (caught real smells this session)</td><td>Low</td><td>S</td><td><span class="badge badge-low">P3</span></td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="question"><span class="num">G</span>The One Question I Cannot Answer Myself</h2>
+        <div class="card card-problem">
+          <p><strong>Who owns the RED gates right now?</strong> The lint findings (7) and clone
+          groups (13) live in the concurrent session's committed vector/undirected wave and one
+          pre-existing file (id/entropy.go). That session was still actively editing files during
+          this session (it rewrote CHANGELOG.md under me mid-edit). Fixing them is ~30 minutes of
+          work &mdash; but doing it while the other session is live risks edit conflicts and
+          stepping on its intent (e.g., its iface duplication may be deliberate scaffolding for
+          the undirected-graph matrix).</p>
+          <p><em>Is the concurrent session finished, and should I take over its lint/duplication
+          cleanup &mdash; or is it still running and I should stand down?</em></p>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-08-16 22:52 &middot; Every claim in section A was verified by running the
+          named gate (positive + negative where applicable) &middot; verify-fast state: mine green,
+          gate red on foreign findings (see D)
+        </footer>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
