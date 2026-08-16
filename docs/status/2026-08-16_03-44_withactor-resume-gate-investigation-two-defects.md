@@ -56,23 +56,28 @@ occurred (see d).
 
 ## b) PARTIALLY DONE
 
-1. **Full `nix run .#verify`** — runs completed but RED: Build ✓ Vet ✓ Test ✗ (system replay
+~~1. **Full `nix run .#verify`** — runs completed but RED: Build ✓ Vet ✓ Test ✗ (system replay
    regression + bbolt soak budget); lint/doc-check/api-stability phases never reached. Cannot go
-   green until the two defects in (a.7) are fixed.
-2. **Ancillary gates** (`#check-arch`, `#check-coverage`, `#check-duplication`, `#vulncheck`) — NOT
-   run. Note: vulncheck + license check ran inside the buildflow pre-commit hook and passed.
-3. **bbolt soak timing after `cdc525fd5`** (the other session's metadata-deserialize perf fix landed
-   mid-session and may shorten it) — measurement killed to free CPU; one data point pending.
+   green until the two defects in (a.7) are fixed.~~ done — full `#verify` GREEN 2026-08-16 13:15 (run #4) after both defects closed + parallel wave landed
+
+~~2. **Ancillary gates** (`#check-arch`, `#check-coverage`, `#check-duplication`, `#vulncheck`) — NOT
+   run. Note: vulncheck + license check ran inside the buildflow pre-commit hook and passed.~~ partial — `#check-coverage` + `#check-duplication` EXIT=0 at 13-15; `#check-arch`/`#vulncheck` runs not recorded
+
+~~3. **bbolt soak timing after `cdc525fd5`** (the other session's metadata-deserialize perf fix landed
+   mid-session and may shorten it) — measurement killed to free CPU; one data point pending.~~ done — measured 1145.001s at `06e046c2f` (§h post-resolution); cdc525fd5 did NOT shorten it, spread is load-driven
 
 ## c) NOT STARTED
 
-1. Fix for the `313d14b02` system phase-2 replay regression (suspects: replan-convergence / DemoteEngine
+~~1. Fix for the `313d14b02` system phase-2 replay regression (suspects: replan-convergence / DemoteEngine
    role defaults breaking `system.New` phase-2 journal reads, or `replicator.applyJobFilter` skipping
-   never-served collections).
-2. Verify-gate budget fix for the soak (soak-specific timeout or SOAK_SKIP wiring in the verify app).
-3. `#verify-fast` re-run on the final tree (last run failed only on the same two test defects).
-4. Release follow-ups f.15–f.20 from the prior report (tag metadata/schema/event/middleware minors;
-   strip sibling replaces from event/command/query/middleware/integration go.mods).
+   never-served collections).~~ done upstream — root cause was a test-fixture bug (shared-cache in-memory DSN), fixed by parallel session `5d66308c3` (§h.2)
+
+~~2. Verify-gate budget fix for the soak (soak-specific timeout or SOAK_SKIP wiring in the verify app).~~ done — `SOAK_SKIP_BOLT=1` in the verify app + `-timeout=20m`→`30m` dedicated budgets (§h.3)
+
+~~3. `#verify-fast` re-run on the final tree (last run failed only on the same two test defects).~~ done — `#verify` + `#verify-fast` GREEN (13-15 run #4)
+
+~~4. Release follow-ups f.15–f.20 from the prior report (tag metadata/schema/event/middleware minors;
+   strip sibling replaces from event/command/query/middleware/integration go.mods).~~ partial — metadata/schema/event/middleware minors tagged in the 22-tag chain (04:12–04:24); replace-strip sweep still open (TODO_LIST)
 
 ## d) TOTALLY FUCKED UP (honest ledger)
 
@@ -117,21 +122,30 @@ occurred (see d).
 
 ## f) NEXT — in order
 
-1. Re-measure `TestSoak_AutoCRUD_Bbolt` at current HEAD (`f836c7f1c`) — `cdc525fd5` (skip metadata
-   JSON round-trip on deserialize) may have shortened it; under `-race` too.
-2. Fix verify-gate soak budget: per-package `-timeout=8m` → soak-appropriate budget (or wire
-   SOAK_SKIP_*=env into the verify app; -short already excludes soaks in verify-fast).
-3. Diagnose + fix the `313d14b02` system phase-2 replay regression (DemoteEngine owner's fresh
-   feature; `replanWithTransition`, `applyJobFilter`, role defaults are the suspects).
-4. Re-run full `#verify` (exclusive) on the fixed tree.
-5. `#verify-fast`, then ancillary gates: `#check-arch`, `#check-coverage`, `#check-duplication`
-   (note: `actorString` helper now in 3 asrecord.go files — baselining may be needed), `#vulncheck`.
-6. Add api-stability checker as pre-commit step (TODO entry exists).
-7. Raise `waitForProjectionProcessed` budget (5s→15s+) or serialize projection-wait tests (load flake).
-8. Release follow-ups: tag metadata/schema/event/middleware minors; strip sibling replaces from
-   event/command/query/middleware/integration go.mods in one sweep.
-9. `/tmp/bigtest` owner decision + gate-app GOTMPDIR hardening.
-10. Optional: worktree-with-pinned-SHA gate procedure into AGENTS.md (pattern proven this session).
+~~1. Re-measure `TestSoak_AutoCRUD_Bbolt` at current HEAD (`f836c7f1c`) — `cdc525fd5` (skip metadata
+   JSON round-trip on deserialize) may have shortened it; under `-race` too.~~ done — 1145.001s at `06e046c2f` under load; cdc525fd5 not a shortener (§h)
+
+~~2. Fix verify-gate soak budget: per-package `-timeout=8m` → soak-appropriate budget (or wire
+   SOAK_SKIP_*=env into the verify app; -short already excludes soaks in verify-fast).~~ done — `SOAK_SKIP_BOLT=1` exported by the full verify app; bboltengine 9.5s in the pinned-`954cef1a4` checkpoint; `#test`/`#test-race` at `-timeout=30m` (§h)
+
+~~3. Diagnose + fix the `313d14b02` system phase-2 replay regression (DemoteEngine owner's fresh
+   feature; `replanWithTransition`, `applyJobFilter`, role defaults are the suspects).~~ done upstream — `5d66308c3` file-backed DSN fixture fix (§h.2)
+
+~~4. Re-run full `#verify` (exclusive) on the fixed tree.~~ done — full `#verify` GREEN at 13-15 run #4 (golden regen landed with the parallel wave)
+
+~~5. `#verify-fast`, then ancillary gates: `#check-arch`, `#check-coverage`, `#check-duplication`
+   (note: `actorString` helper now in 3 asrecord.go files — baselining may be needed), `#vulncheck`.~~ partial — coverage + duplication EXIT=0 (13-15); `#check-arch`/`#vulncheck` runs not recorded
+
+~~6. Add api-stability checker as pre-commit step (TODO entry exists).~~ open — tracked at TODO_LIST "Enforce api-stability golden regen mechanically" (pre-commit hook step)
+
+~~7. Raise `waitForProjectionProcessed` budget (5s→15s+) or serialize projection-wait tests (load flake).~~ open — load-flake concern remains the only TODO_LIST leftover from §h.4
+
+~~8. Release follow-ups: tag metadata/schema/event/middleware minors; strip sibling replaces from
+   event/command/query/middleware/integration go.mods in one sweep.~~ partial — all four minors tagged in the 22-tag chain; replace-strip sweep still open (TODO_LIST Release batch)
+
+~~9. `/tmp/bigtest` owner decision + gate-app GOTMPDIR hardening.~~ partial — /tmp/bigtest resolved (§h.1, already gone); gate-app GOTMPDIR hardening not wired (flake.nix has no GOTMPDIR; AGENTS.md documents the manual workaround)
+
+~~10. Optional: worktree-with-pinned-SHA gate procedure into AGENTS.md (pattern proven this session).~~ partial — the never-checkout gotcha documents the worktree escape hatch (AGENTS.md); a full pinned-SHA gate procedure was not added
 
 ## g) QUESTIONS (cannot resolve from the repo alone)
 

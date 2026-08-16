@@ -58,33 +58,51 @@ AGENTS.md gotchas +2 entries: `GOTOOLCHAIN=auto` for go.work≥1.26.6 vs host 1.
 
 ## b) PARTIALLY DONE
 
-1. **Verification gate** — components run individually, but **`nix run .#verify-fast` never run end-to-end**. NOT run at all: `check-arch` (dep budgets — likely fine, no new deps), **`check-coverage` (real risk: new code + test files shift coverage)**, `check-depguard`, `#vulncheck` (impossible until event/v4 retag, see c).
-2. **MySQL validation of the 33x batch change** — protocol limit (65535 placeholders) verified analytically, but **no MySQL/MariaDB integration run** (`#integration-mysql-nspawn` needs root; VM variant ~131s not attempted). The `max_allowed_packet` interaction (default 16MB MariaDB) with 3276-row multi-VALUES × real payload sizes is **unverified — the strongest open risk from this session** (see d).
-3. **DuckDB validation** — view BatchSet path now chunks at 32767 for DuckDB too; DuckDB integration (CGo) not run this session.
-4. **New API documentation** — golden updated, but **skill references (`modules.md`, `recipes.md`) do not mention the two new exports**. AGENTS.md procedure step 3 ("update affected skill references") not done. Both files carry uncommitted changes from a prior session, which I used as an excuse to defer.
-5. **CHANGELOG.md** — no entries added for the three optimizations (file already modified by prior session).
-6. **`MaxParametersForDialect` unit test** — none exists. Trivial table test (SQLite→999 / PG→32767 / custom→999) skipped for speed. Coverage gap + gate risk.
+~~1. **Verification gate** — components run individually, but **`nix run .#verify-fast` never run end-to-end**. NOT run at all: `check-arch` (dep budgets — likely fine, no new deps), **`check-coverage` (real risk: new code + test files shift coverage)**, `check-depguard`, `#vulncheck` (impossible until event/v4 retag, see c).~~ done — full `#verify` GREEN 2026-08-16 13:15 (run #4) incl. `#check-coverage` + `#check-duplication` EXIT=0; `#vulncheck` unblocked by the 22-tag chain
 
----
+~~2. **MySQL validation of the 33x batch change** — protocol limit (65535 placeholders) verified analytically, but **no MySQL/MariaDB integration run** (`#integration-mysql-nspawn` needs root; VM variant ~131s not attempted). The `max_allowed_packet` interaction (default 16MB MariaDB) with 3276-row multi-VALUES × real payload sizes is **unverified — the strongest open risk from this session** (see d).~~ risk closed — automatic byte-cap guard shipped (`storage/sql/batch_size.go`: `MaxStatementBytes` 8MiB + `RowsWithinByteCap`, half of MariaDB's default packet); MariaDB dialect empirics documented in `metaengine/mysqlengine/dialect.go`; no dedicated 33x-batch MariaDB run recorded
+
+~~3. **DuckDB validation** — view BatchSet path now chunks at 32767 for DuckDB too; DuckDB integration (CGo) not run this session.~~ open — DuckDB view BatchSet validation still not run (f.5)
+
+~~4. **New API documentation** — golden updated, but **skill references (`modules.md`, `recipes.md`) do not mention the two new exports**. AGENTS.md procedure step 3 ("update affected skill references") not done. Both files carry uncommitted changes from a prior session, which I used as an excuse to defer.~~ done — both exports documented in skill `references/modules.md` (f.9)
+
+~~5. **CHANGELOG.md** — no entries added for the three optimizations (file already modified by prior session).~~ done — CHANGELOG `[2026-08-16 module releases]` carries the detail subsections (f.8)
+
+~~6. **`MaxParametersForDialect` unit test** — none exists. Trivial table test (SQLite→999 / PG→32767 / custom→999) skipped for speed. Coverage gap + gate risk.
+
+---~~ done — `storage/sql/batch_insert_test.go` (f.1)
 
 ## c) NOT STARTED (backlog confirmed by this audit, nothing attempted)
 
-1. Durability tiers → per-write sync in `storage/pebble` (hardcoded `pebble.Sync`, store.go:55 etc.) and metaengine pebble/bbolt engines.
-2. Live-phase checkpoint per event (projectionhost/worker_drain.go:205) → time/N-batched saves.
-3. bbolt `db.Batch` group commit (zero usage repo-wide).
-4. PG `COPY FROM` bulk path (zero usage; pgx used via database/sql only).
-5. Pebble tuning knobs (MemTableSize/Cache/WALBytesPerSync/Compression) — options.go sets only bloom + 4 compactions.
-6. SQLite durability PRAGMA applied only `if cfg.WAL` (stack/sqlite/preset.go:243) — non-WAL Relaxed silently FULL-fsyncs.
-7. `NewEvent` double payload clone on reconstruct (event_construct.go:53) — needs adopt-semantics variant (API design).
-8. `UnwrapDecode` first-byte envelope sniff instead of full JSON parse (go-codec, external repo).
-9. `ScanSlice` cap-64 guess → `rows.RowCount()` hint; metadata map pre-sizing.
-10. `idempotencyTracker` unbounded sync.Map growth (store_collaborators.go:40) — slow memory leak for long-lived at-least-once stores.
-11. LatencyTracker mutex contention evaluation (probe loops).
-12. `system/adapter_event_serial.go:31` — `metaJSON, _ :=` silently discards MarshalMetadataJSON error (noticed, not reported until now, not fixed).
-13. relational/projection.go one-transaction-per-event → batched tx.
-14. projectionhost/sqlite_dlq.go metadata marshal path (write-side, different shape — not examined).
+~~1. Durability tiers → per-write sync in `storage/pebble` (hardcoded `pebble.Sync`, store.go:55 etc.) and metaengine pebble/bbolt engines.~~ open [BLOCKED] — awaits §g Q3 user decision (durability semantics); seam exists (`writeOptions()`) but still hardcodes `pebble.Sync` — TODO_LIST Release/perf section
 
----
+~~2. Live-phase checkpoint per event (projectionhost/worker_drain.go:205) → time/N-batched saves.~~ done — `projectionhost.WithCheckpointInterval` batches live-phase saves (options.go:181)
+
+~~3. bbolt `db.Batch` group commit (zero usage repo-wide).~~ done — opt-in `bbolt.WithBatchCommit()` on `OpenWithOptions`/`NewBackendWith`; idempotent-under-retry verified, race-tested (TODO_LIST DONE 2026-08-16)
+
+~~4. PG `COPY FROM` bulk path (zero usage; pgx used via database/sql only).~~ done — `pgengine.WithCopyAppend(n)` opt-in COPY via `db.Conn().Raw()` → pgx; measured 1.41x @10k / 1.49x @100k rows (TODO_LIST DONE 2026-08-16)
+
+~~5. Pebble tuning knobs (MemTableSize/Cache/WALBytesPerSync/Compression) — options.go sets only bloom + 4 compactions.~~ done — `stack/pebble` `WithMemTableSize`/`WithBlockCacheSize`/`WithWALBytesPerSync`/`WithPebbleCompression`; defaults pinned byte-identical by test
+
+~~6. SQLite durability PRAGMA applied only `if cfg.WAL` (stack/sqlite/preset.go:243) — non-WAL Relaxed silently FULL-fsyncs.~~ done — `ApplySQLiteDurability` applies every non-empty tier; de-nested from `if cfg.WAL` in preset.go + stack/turso/backend.go (TODO_LIST DONE 2026-08-16)
+
+~~7. `NewEvent` double payload clone on reconstruct (event_construct.go:53) — needs adopt-semantics variant (API design).~~ done — `event.ReconstructEventWithAdoptedPayload` zero-copy variant (reconstruct.go:86, `5b8a9a615`)
+
+~~8. `UnwrapDecode` first-byte envelope sniff instead of full JSON parse (go-codec, external repo).~~ done — go-codec `autodetect.go` first-byte detection (DetectionReasonJSONStructure / CBORMajorType / JSONTrialDecode)
+
+~~9. `ScanSlice` cap-64 guess → `rows.RowCount()` hint; metadata map pre-sizing.~~ open — `ScanSlice` still cap-64, no `RowCount()` pre-size
+
+~~10. `idempotencyTracker` unbounded sync.Map growth (store_collaborators.go:40) — slow memory leak for long-lived at-least-once stores.~~ done — `newIdempotencyTracker(capacity)` is capacity-bounded (store_collaborators.go:54)
+
+~~11. LatencyTracker mutex contention evaluation (probe loops).~~ open — LatencyTracker mutex evaluation not done
+
+~~12. `system/adapter_event_serial.go:31` — `metaJSON, _ :=` silently discards MarshalMetadataJSON error (noticed, not reported until now, not fixed).~~ done — `adapter_event_serial.go` now handles `metaErr` explicitly (nil fallback, ADR-0126 constraint documented in-code)
+
+~~13. relational/projection.go one-transaction-per-event → batched tx.~~ open — `relational/projection.go` still one-tx-per-event (`Handle` → `BeginTx`)
+
+~~14. projectionhost/sqlite_dlq.go metadata marshal path (write-side, different shape — not examined).
+
+---~~ open — sqlite_dlq write-side path still unexamined
 
 ## d) TOTALLY FUCKED UP (or nearly)
 
@@ -117,66 +135,115 @@ Nothing destroyed, no false GREEN claims, no data loss. Honest near-misses and p
 
 **P0 — close this session's gaps**
 
-1. Add `MaxParametersForDialect` unit test (SQLite→999, PG→32767, custom→999).
-2. Run `nix run .#check-coverage`; fix any drift from new files/refactor.
-3. Run `#integration-mysql-nspawn` (or VM) — verify 3276-row batches on MariaDB.
-4. Add byte-size-aware chunk guard for MySQL (estimate serialized args, cap at ~50% of a conservative packet limit) or a documented `WithMaxPacketBytes` operator knob.
-5. Run DuckDB integration (view BatchSet path).
-6. Fix pre-existing exhaustruct (commandlifecycle/recorder.go:196).
-7. Resolve art-dupl drift (asrecord trio + scenario/dsl.go) — fix or re-baseline.
-8. Add CHANGELOG entries for the 3 optimizations.
-9. Document `ReconstructEventWithMetadata` + `MaxParametersForDialect` in skill references.
-10. Run full `nix run .#verify-fast` and confirm end-to-end GREEN.
+~~1. Add `MaxParametersForDialect` unit test (SQLite→999, PG→32767, custom→999).~~ done — `storage/sql/batch_insert_test.go`
 
-**P1 — IO (highest impact from audit)**
-11. Map durability tiers → per-write `WriteOptions.Sync` in storage/pebble.
-12. Expose sync policy in metaengine pebbleengine (currently unconditional `pebble.Sync`, 10+ sites).
-13. Same for bboltengine (bolt.DefaultOptions, no NoSync path).
-14. Batch/debounce projectionhost live-phase checkpoints (`WithCheckpointInterval` / N-batch option).
-15. bbolt `db.Batch` for cross-writer group commit (document the callback-retry caveat).
-16. PG `COPY FROM` bulk insert path for stream-log replay/backfill (pgx, 2-10x vs INSERT).
-17. Expose pebble tuning knobs: MemTableSize, block Cache, WALBytesPerSync, Compression (operator-deploys vision).
-18. Apply SQLite durability tier when WAL disabled (preset.go:243 guard).
-19. pebble sequential-scan IterOptions/readahead evaluation for stream scans.
-20. Expose sqlite `mmap_size` (already applied internally) as a stack-preset option.
-21. Turso: document/verify sync-mode DSN passthrough (register.go:23 comment).
+~~2. Run `nix run .#check-coverage`; fix any drift from new files/refactor.~~ done — `#check-coverage` EXIT=0 (13-15 gate)
 
-**P2 — RAM**
-22. Adopt-variant `NewEvent` (skip second payload clone on reconstruct path).
-23. Envelope sniff by first byte in `UnwrapDecode` (go-codec change, external repo).
-24. `ScanSlice`: `rows.RowCount()` pre-size instead of cap 64.
-25. Pre-size Custom maps in `WithCustom`/`EnsureCustom`.
-26. Bound `idempotencyTracker` (TTL or ring) — unbounded sync.Map today.
-27. Benchmark bbolt deserializeEvent to convert the extrapolated claim into a measured one.
-28. kv/mem `Set` double key clone audit; typed-store `keyFunc` per-call allocation.
-29. Evaluate `Metadata.Clone` fast paths (skip maps.Clone when Custom nil — verify current guard).
-30. LatencyTracker: atomic/seqlock variant to cut mutex traffic in probe loops.
-31. dedup.Ring: evaluate dropping `map[string]int` for large capacities (slice-scan or open-addressing).
-32. Evaluate unsafe string/bytes helpers for pebble key materialization (likely REJECT for safety — record the decision).
+~~3. Run `#integration-mysql-nspawn` (or VM) — verify 3276-row batches on MariaDB.~~ risk closed via f.4 byte-cap guard; MariaDB empirics in mysqlengine/dialect.go (AGENTS gotcha)
 
-**P3 — cache-line / measurement**
-33. Pad or restructure `projectionhost/worker.go` counters — only if a multi-writer case appears (analysis: single-writer today, padding would NOT pay; keep as documented decision).
-34. Measure `sqliteengine multiSeqCounter` under multimap append load; pad only if contended.
-35. `SSEReplay.seq` atomic adjacent to mutex state — measure, then decide.
-36. Add benchstat + committed baselines to benchkit for regression tracking.
-37. Fold the pebble deserialize benchmark into a tracked suite (benchkit or metaengine/bench).
-38. Contention benchmarks at -cpu=16,32 (machine's real topology).
-39. cqrs-bench scenario: 99 vs 3276-row batches on PG (quantify the round-trip win end-to-end).
-40. Doctor/EXPLAIN: surface effective chunk size per engine (uses MaxParametersForDialect).
+~~4. Add byte-size-aware chunk guard for MySQL (estimate serialized args, cap at ~50% of a conservative packet limit) or a documented `WithMaxPacketBytes` operator knob.~~ done — `storage/sql/batch_size.go`: `MaxStatementBytes` (8MiB) + `RowsWithinByteCap` — the safe-default answer to §g Q1
 
-**P4 — product hygiene**
-41. Tag `event/v4 v4.6.1` (prereq: storage/pebble + bbolt standalone builds now reference the new API).
-42. Bump storage/pebble + storage/bbolt go.mod to event v4.6.1; re-run `#vulncheck`.
-43. Fix `system/adapter_event_serial.go:31` ignored MarshalMetadataJSON error.
-44. Consider operator knob: `WithMaxBatchRows` on SQL eventstore.
-45. relational/projection.go: batch the one-tx-per-event pattern.
-46. Compare pgengine's own chunking constants with `MaxParametersForDialect` — unify.
-47. Expose otter cache hit-rate metrics from decider cache (observability).
-48. TODO_LIST.md: fold P1/P2 backlog items above into the file (they currently live only in this report).
-49. Add a "performance ledger" doc (which benchmarks guard which paths) so wins can't silently regress.
-50. Session-convention: always write measured before/after into the CHANGELOG entry, not just the commit message.
+~~5. Run DuckDB integration (view BatchSet path).~~ open — DuckDB view BatchSet validation still not run
 
----
+~~6. Fix pre-existing exhaustruct (commandlifecycle/recorder.go:196).~~ done at `5b8a9a615` (exhaustruct commandlifecycle/recorder.go)
+
+~~7. Resolve art-dupl drift (asrecord trio + scenario/dsl.go) — fix or re-baseline.~~ done — `#check-duplication` EXIT=0 at 13-15; drift triaged (12-39/13-15 reports)
+
+~~8. Add CHANGELOG entries for the 3 optimizations.~~ done — CHANGELOG `[2026-08-16 module releases]` + detail subsections
+
+~~9. Document `ReconstructEventWithMetadata` + `MaxParametersForDialect` in skill references.~~ done — `references/modules.md` documents both exports
+
+~~10. Run full `nix run .#verify-fast` and confirm end-to-end GREEN.
+
+**P1 — IO (highest impact from audit)**~~ done — full `#verify` GREEN (13-15 run #4)
+
+~~11. Map durability tiers → per-write `WriteOptions.Sync` in storage/pebble.~~ open [BLOCKED] — §g Q3 decision pending; `writeOptions()` seam exists but hardcodes `pebble.Sync` (TODO_LIST)
+
+~~12. Expose sync policy in metaengine pebbleengine (currently unconditional `pebble.Sync`, 10+ sites).~~ open [BLOCKED] — pebbleengine still unconditional `pebble.Sync` (engine.go:258,261,295,298)
+
+~~13. Same for bboltengine (bolt.DefaultOptions, no NoSync path).~~ open [BLOCKED] — bboltengine has no NoSync path (same Q3 family)
+
+~~14. Batch/debounce projectionhost live-phase checkpoints (`WithCheckpointInterval` / N-batch option).~~ done — `projectionhost.WithCheckpointInterval` (options.go:186)
+
+~~15. bbolt `db.Batch` for cross-writer group commit (document the callback-retry caveat).~~ done — opt-in `bbolt.WithBatchCommit()`, retry-caveat verified (TODO_LIST DONE)
+
+~~16. PG `COPY FROM` bulk insert path for stream-log replay/backfill (pgx, 2-10x vs INSERT).~~ done — `pgengine/stream_copy.go` + `WithCopyAppend(n)` opt-in; 1.41x @10k / 1.49x @100k
+
+~~17. Expose pebble tuning knobs: MemTableSize, block Cache, WALBytesPerSync, Compression (operator-deploys vision).~~ done — `stack/pebble` `WithMemTableSize`/`WithBlockCacheSize`/`WithWALBytesPerSync`/`WithPebbleCompression` (TODO_LIST DONE)
+
+~~18. Apply SQLite durability tier when WAL disabled (preset.go:243 guard).~~ done — durability de-nested from `if cfg.WAL` (preset.go + stack/turso/backend.go; TODO_LIST DONE)
+
+~~19. pebble sequential-scan IterOptions/readahead evaluation for stream scans.~~ open — pebble readahead IterOptions not evaluated
+
+~~20. Expose sqlite `mmap_size` (already applied internally) as a stack-preset option.~~ done — mmap_size applied by default in presets (stack/sqlite/doc.go:25); custom override via `WithPragmas`
+
+~~21. Turso: document/verify sync-mode DSN passthrough (register.go:23 comment).
+
+**P2 — RAM**~~ done — tursoengine register.go:24,45 documents sync-mode DSN passthrough
+
+~~22. Adopt-variant `NewEvent` (skip second payload clone on reconstruct path).~~ done — `ReconstructEventWithAdoptedPayload` (`5b8a9a615`)
+
+~~23. Envelope sniff by first byte in `UnwrapDecode` (go-codec change, external repo).~~ done — go-codec `autodetect.go` first-byte sniff
+
+~~24. `ScanSlice`: `rows.RowCount()` pre-size instead of cap 64.~~ open — no `RowCount()` pre-size in storage/sql
+
+~~25. Pre-size Custom maps in `WithCustom`/`EnsureCustom`.~~ done — `WithCustom` clones-then-lazily-makes; `Merge` pre-sizes `len(base)+len(other)` (metadata.go:137)
+
+~~26. Bound `idempotencyTracker` (TTL or ring) — unbounded sync.Map today.~~ done — tracker capacity-bounded (`newIdempotencyTracker(capacity)`)
+
+~~27. Benchmark bbolt deserializeEvent to convert the extrapolated claim into a measured one.~~ open — bbolt deserializeEvent benchmark still missing (pebble has bench_test.go)
+
+~~28. kv/mem `Set` double key clone audit; typed-store `keyFunc` per-call allocation.~~ open — kv/mem Set double-clone audit not done
+
+~~29. Evaluate `Metadata.Clone` fast paths (skip maps.Clone when Custom nil — verify current guard).~~ not needed — `maps.Clone(nil)` is allocation-free (stdlib nil guard); Clone already delegates
+
+~~30. LatencyTracker: atomic/seqlock variant to cut mutex traffic in probe loops.~~ open — probe failures counter is atomic, but LatencyTracker itself keeps the mutex
+
+~~31. dedup.Ring: evaluate dropping `map[string]int` for large capacities (slice-scan or open-addressing).~~ open — dedup.Ring still `map[string]int` (ring.go:27)
+
+~~32. Evaluate unsafe string/bytes helpers for pebble key materialization (likely REJECT for safety — record the decision).
+
+**P3 — cache-line / measurement**~~ open — REJECT decision never recorded
+
+~~33. Pad or restructure `projectionhost/worker.go` counters — only if a multi-writer case appears (analysis: single-writer today, padding would NOT pay; keep as documented decision).~~ done — NO PAD decision measured + recorded (docs/BENCHMARKS.md:35, wave-4 `342699d00`)
+
+~~34. Measure `sqliteengine multiSeqCounter` under multimap append load; pad only if contended.~~ done — measured + padded to 128B class (−61..65% @16/32; backends.go:140-146; BENCHMARKS.md:34)
+
+~~35. `SSEReplay.seq` atomic adjacent to mutex state — measure, then decide.~~ done — NO PAD decision measured + recorded (BENCHMARKS.md:36)
+
+~~36. Add benchstat + committed baselines to benchkit for regression tracking.~~ done — benchstat in benchkit/artifacts.go + scripts/bench-matrix.sh
+
+~~37. Fold the pebble deserialize benchmark into a tracked suite (benchkit or metaengine/bench).~~ done — storage/pebble/bench_test.go covers the deserialize path
+
+~~38. Contention benchmarks at -cpu=16,32 (machine's real topology).~~ done — `-cpu 4,8,16,32` entries in docs/BENCHMARKS.md
+
+~~39. cqrs-bench scenario: 99 vs 3276-row batches on PG (quantify the round-trip win end-to-end).~~ open — 99 vs 3276-row cqrs-bench scenario not written
+
+~~40. Doctor/EXPLAIN: surface effective chunk size per engine (uses MaxParametersForDialect).
+
+**P4 — product hygiene**~~ open — Doctor/EXPLAIN does not surface effective chunk size
+
+~~41. Tag `event/v4 v4.6.1` (prereq: storage/pebble + bbolt standalone builds now reference the new API).~~ done differently — `event/v4.7.0` tagged (plan versions were corrected during classification; 04-24 chain)
+
+~~42. Bump storage/pebble + storage/bbolt go.mod to event v4.6.1; re-run `#vulncheck`.~~ open [BLOCKED 🔥] — `ReconstructEventWithAdoptedPayload` missed the `event/v4.7.0` tag → pebble/bbolt standalone RED until re-tag; TODO_LIST wave-4 batch + strand commits `092b5e8a8`/`4907b6afc` off master
+
+~~43. Fix `system/adapter_event_serial.go:31` ignored MarshalMetadataJSON error.~~ done — explicit nil-fallback + ADR-0126 rationale in adapter_event_serial.go
+
+~~44. Consider operator knob: `WithMaxBatchRows` on SQL eventstore.~~ superseded — automatic byte cap (`RowsWithinByteCap`) shipped instead of an operator knob
+
+~~45. relational/projection.go: batch the one-tx-per-event pattern.~~ open — relational/projection.go still one-tx-per-event
+
+~~46. Compare pgengine's own chunking constants with `MaxParametersForDialect` — unify.~~ open — pgengine stream_copy.go keeps its own chunking; not unified with `MaxParametersForDialect`
+
+~~47. Expose otter cache hit-rate metrics from decider cache (observability).~~ open — no otter hit-rate metrics exported from decider cache
+
+~~48. TODO_LIST.md: fold P1/P2 backlog items above into the file (they currently live only in this report).~~ partial — IO P1 items folded into TODO_LIST (several DONE, pebble-sync BLOCKED); P2 micro-alloc items remain report-only
+
+~~49. Add a "performance ledger" doc (which benchmarks guard which paths) so wins can't silently regress.~~ done — docs/BENCHMARKS.md is the performance ledger (runnable bench + machine + result per entry)
+
+~~50. Session-convention: always write measured before/after into the CHANGELOG entry, not just the commit message.
+
+---~~ done — CHANGELOG entries carry measured numbers (20 ns/op / x-faster matches)
 
 ## g) Questions (cannot be answered from the repo)
 

@@ -294,6 +294,9 @@ func TestToConfigFeatures_OmitsUnknownFields(t *testing.T) {
 	if cf.Snapshot != nil {
 		t.Errorf("unknown Snapshot should be omitted, got %v", *cf.Snapshot)
 	}
+	if cf.Monetary != nil {
+		t.Errorf("unknown Monetary should be omitted, got %v", *cf.Monetary)
+	}
 	if cf.Server == nil || *cf.Server != false {
 		t.Error("server is a meaningful bool and should always be included")
 	}
@@ -312,6 +315,7 @@ func TestToConfigFeatures_IncludesKnownFields(t *testing.T) {
 		HasSoftDelete: true,
 		Tracing:       TracingOn,
 		Snapshot:      SnapshotOn,
+		Monetary:      MonetaryOff,
 	}
 
 	cf := fp.ToConfigFeatures()
@@ -327,6 +331,9 @@ func TestToConfigFeatures_IncludesKnownFields(t *testing.T) {
 	}
 	if cf.Snapshot == nil || *cf.Snapshot != SnapshotOn {
 		t.Error("detected Snapshot should be included")
+	}
+	if cf.Monetary == nil || *cf.Monetary != MonetaryOff {
+		t.Error("declared Monetary should be included")
 	}
 }
 
