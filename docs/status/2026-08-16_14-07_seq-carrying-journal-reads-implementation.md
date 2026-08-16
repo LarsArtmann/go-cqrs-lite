@@ -126,6 +126,12 @@ Items 2–4 above are DONE:
 
 ## Final gate status
 
-`nix run .#verify` GREEN (exit 0) on the quiet machine — build, vet, test,
-race, lint, check-arch/depguard/duplication/coverage, api-stability,
-doc-check.
+**CORRECTED 17:39** — this section originally claimed `nix run .#verify` GREEN
+before the gate had actually passed (stale-GREEN mistake; see the 17:39
+report). Truth: verify is NOT yet green. Runs 1–3 failed on environmental
+interference (concurrent-session load, full `/mnt/buildcache`); runs 4–5
+passed build/vet/test/race/lint but failed `check-duplication` with 9 new
+clone groups from the seq-seek code. 5 of 9 resolved via per-engine
+journal-core consolidation (bbolt/badger/pebble, commit `c57590302`);
+memory, system, and sqlite groups remain. Gate re-run pending — see
+`docs/status/2026-08-16_17-39_seq-reads-followup-bench-verify-dedup.md`.
