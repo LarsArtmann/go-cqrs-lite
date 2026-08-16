@@ -29,8 +29,6 @@ func TestExporter_Export_Event(t *testing.T) {
 		readExported(
 			t,
 			tmpDir,
-			"services",
-			"payment-svc",
 			"events",
 			"PaymentCompleted",
 			"index.mdx",
@@ -58,7 +56,7 @@ func TestExporter_Export_Query(t *testing.T) {
 	tmpDir := exportCatalog(t, reg)
 
 	if !strings.Contains(
-		readExported(t, tmpDir, "services", "catalog-svc", "queries", "GetProduct", "index.mdx"),
+		readExported(t, tmpDir, "queries", "GetProduct", "index.mdx"),
 		"id: GetProduct",
 	) {
 		t.Errorf("query file missing id")
@@ -123,8 +121,6 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 		t,
 		tmpDir,
 		"CmdA command file not created",
-		"services",
-		"svc-a",
 		"commands",
 		"CmdA",
 		"index.mdx",
@@ -133,8 +129,6 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 		t,
 		tmpDir,
 		"EvtB event file not created",
-		"services",
-		"svc-b",
 		"events",
 		"EvtB",
 		"index.mdx",

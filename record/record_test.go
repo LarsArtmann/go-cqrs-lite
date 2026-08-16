@@ -109,7 +109,12 @@ func TestStreamRef_ConstructSplitRoundTrip(t *testing.T) {
 		ref := record.NewStreamRef(tc.streamType, tc.entityID)
 
 		if err := ref.Validate(); err != nil {
-			t.Errorf("Validate(NewStreamRef(%q, %q)) = %v, want nil", tc.streamType, tc.entityID, err)
+			t.Errorf(
+				"Validate(NewStreamRef(%q, %q)) = %v, want nil",
+				tc.streamType,
+				tc.entityID,
+				err,
+			)
 		}
 
 		gotType, gotID := ref.Split()

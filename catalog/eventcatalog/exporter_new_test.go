@@ -116,7 +116,7 @@ func TestExporter_Export_DataStore(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	path := filepath.Join(tmpDir, "data", "orders-db", "index.mdx")
+	path := filepath.Join(tmpDir, "containers", "orders-db", "index.mdx")
 	data, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("read data store file: %v", err)
@@ -426,7 +426,7 @@ func TestExporter_Export_MessageWithProducersConsumers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	path := filepath.Join(tmpDir, "services", "order-svc", "events", "OrderCreated", "index.mdx")
+	path := filepath.Join(tmpDir, "events", "OrderCreated", "index.mdx")
 	data, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("read event file: %v", err)
@@ -480,7 +480,7 @@ func TestExporter_Export_FullIntegration(t *testing.T) {
 		"events/OrderCreated/index.mdx",
 		"domains/orders/index.mdx",
 		"channels/order-events/index.mdx",
-		"data/orders-db/index.mdx",
+		"containers/orders-db/index.mdx",
 		"flows/create-order/index.mdx",
 		"teams/order-team.mdx",
 		"users/alice.mdx",

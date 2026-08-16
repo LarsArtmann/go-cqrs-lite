@@ -141,7 +141,7 @@ func TestExporter_Export_MessageWithSchemaWriteError(t *testing.T) {
 
 	cat := reg.Build()
 
-	cmdDir := filepath.Join(tmpDir, "services", "svc", "commands", "Cmd")
+	cmdDir := filepath.Join(tmpDir, "commands", "Cmd")
 
 	err := os.MkdirAll(cmdDir, 0o750)
 	if err != nil {
@@ -198,7 +198,7 @@ func TestExporter_Export_SchemaDirPermissionError(t *testing.T) {
 
 	cat := reg.Build()
 
-	cmdDir := filepath.Join(tmpDir, "services", "svc", "commands", "Cmd")
+	cmdDir := filepath.Join(tmpDir, "commands", "Cmd")
 
 	err := os.MkdirAll(cmdDir, 0o750)
 	if err != nil {
@@ -269,7 +269,7 @@ func TestExporter_Export_MessageSummaryWithSchema(t *testing.T) {
 	}
 
 	data, err := os.ReadFile(
-		filepath.Join(tmpDir, "services", "svc", "commands", "Cmd", "index.mdx"),
+		filepath.Join(tmpDir, "commands", "Cmd", "index.mdx"),
 	)
 	if err != nil {
 		t.Fatal(err)

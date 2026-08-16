@@ -135,7 +135,7 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 
 	cattest.AssertContentContains(
 		t,
-		readExported(t, tmpDir, "services", "svc", "commands", "CreateOrder", "examples.json"),
+		readExported(t, tmpDir, "commands", "CreateOrder", "examples.json"),
 		"examples.json",
 		"orderId",
 		"42.5",
@@ -185,7 +185,7 @@ func TestExporter_Export_MessageWithoutSummary(t *testing.T) {
 
 	tmpDir := exportCatalog(t, reg)
 
-	content := readExported(t, tmpDir, "services", "svc", "events", "PlainEvent", "index.mdx")
+	content := readExported(t, tmpDir, "events", "PlainEvent", "index.mdx")
 
 	if strings.Contains(content, "summary:") {
 		t.Errorf("message without summary should not have summary field, got:\n%s", content)

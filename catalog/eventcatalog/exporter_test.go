@@ -114,28 +114,12 @@ func TestExporter_Export_ServiceWithCommand(t *testing.T) {
 		"# Order Service",
 	)
 
-	cmdContent := readExported(
-		t,
-		tmpDir,
-		"services",
-		"order-svc",
-		"commands",
-		"CreateOrder",
-		"index.mdx",
-	)
+	cmdContent := readExported(t, tmpDir, "commands", "CreateOrder", "index.mdx")
 	cattest.AssertContentContains(t, cmdContent, "command file", "id: CreateOrder")
 
 	var schema map[string]any
 	schemaData, err := os.ReadFile(
-		filepath.Join(
-			tmpDir,
-			"services",
-			"order-svc",
-			"commands",
-			"CreateOrder",
-			"schemas",
-			"schema.json",
-		),
+		filepath.Join(tmpDir, "commands", "CreateOrder", "schemas", "schema.json"),
 	)
 	if err != nil {
 		t.Fatalf("read schema file: %v", err)

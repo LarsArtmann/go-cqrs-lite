@@ -293,3 +293,71 @@ upstream `iroh-go` module path exists (web fetch timed out mid-session).
 *Session verified GREEN at module level: `record` (build+tests), `metaengine`
 (full suite), `system` (2 targeted tests, 3x race), api-stability golden
 regenerated + verified. Workspace-level gates outstanding.*
+
+---
+
+## h) ADDENDUM — resume session, same day (~19:00): batch CLOSED
+
+All remaining work from §f executed and verified.
+
+### Answers to §g (resolved autonomously where code-decidable)
+
+2. **Breaking `NewStreamRef` at v5** → YES, queued as a Phase 8 item in
+   TODO_LIST ("Breaking `record.NewStreamRef` validation"), not ADR-0127
+   (that ADR is transport-deletion specific; the TODO v5 section is the
+   working breaking-cut checklist).
+3. **ULID monotonicity contract** → the question posed a false dichotomy
+   (one lock vs. sharded pools). Third option implemented: **lock-free
+   millisecond-epoch generator** (`id/entropy.go`) — per-ms 48-bit crypto
+   prefix + 32-bit GLOBAL atomic counter. Strict same-ms ordering across ALL
+   goroutines (stronger than the mutex design), uniqueness by construction,
+   no lock on the fast path. Numbers (32-core, `-benchtime 2s -count 3`):
+
+   | Benchmark      | Before (mutex) | After (lock-free) | Δ        |
+   | -------------- | -------------- | ----------------- | -------- |
+   | New (seq)      | 85–95 ns/op    | 56 ns/op          | 1.6x     |
+   | NewParallel    | 145–164 ns/op  | 14.5–15.1 ns/op   | **10.6x**|
+   | allocs/op      | 1 (16 B)       | 0                 | —        |
+
+   Race-clean 3x (`id` full suite). New tests: parallel per-ms
+   uniqueness/prefix/suffix stress (8×4096), epoch layout+ordering,
+   backwards-clock pinning. Entropy note documented: cross-ms randomness is
+   48 bits (was 80) — IDs are identifiers, not secrets; same-ms successor
+   predictability is unchanged (monotonic readers always had it).
+1. **iroh fork endgame** → still an owner risk-appetite call; SECURITY.md
+   disclosure stands as the interim mitigation.
+
+### Additional defects found & fixed during the resume
+
+- **Split/Validate inconsistency (§f open item)** — `Split("/01JTEST")`
+   returned `("", "")` while `Validate` accepted it. `Split` relaxed to
+   return `("", "01JTEST")`; round-trip test added (incl. empty streamType).
+- **Selectivity diagnostic gated on the wrong axis** — my original gate used
+   `best.complexity` (ADT complexity: Map ⇒ O(1)) so the INFO never fired for
+   the common case (Map-ADT filtered scans). Fixed: `rankedEngine` now carries
+   `readComplexity` (the axis `estimateCost` actually uses); gate + message
+   use it. Pre-existing diagnostics at planner.go:330/338 have the same
+   ADT-vs-read gating question — left untouched (out of scope, noted here).
+- **metaengine tests added** — `cost_unit_test.go` (graph ops = 100
+  regression lock, volume default+override, filterSelectivity table incl.
+  clamp) and `cost_diagnostics_test.go` (volume INFO present/absent,
+  selectivity INFO present/absent). Full Ginkgo suite: 212/212.
+
+### Verification state (resume session)
+
+- `record`: full suite GREEN (7 StreamRef tests + round-trip). `event`
+  AsRecord tests GREEN. `id`: full suite GREEN, 3x `-race` GREEN.
+- `metaengine`: full module suite GREEN (EXIT=0).
+- doc-check: 898 references valid. Workspace-wide per-module build loop: see
+  §i. Full `nix run .#verify` gate: see §i.
+
+### §i) ENVIRONMENT INCIDENT (user action required)
+
+**`/mnt/buildcache` (ext4 on /dev/sda1, 99% full) failed mid-session**:
+mounted `emergency_ro`, all reads/writes return I/O errors. This is where
+`GOCACHE`/`GOMODCACHE` lived — every Go command was dead. Workaround applied
+for this session: `GOCACHE=$HOME/.cache/go-build GOMODCACHE=$HOME/go/pkg/mod`
+(root fs, 69G free; toolchain go1.26.6 re-downloaded there). The mount needs
+fsck + remount (root) — and the disk is at 99% capacity, which likely
+contributed. Until fixed, nix-based gates may also misbehave if they read
+/mnt/buildcache.

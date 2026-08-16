@@ -204,14 +204,14 @@ func (e *bboltEngine) journalEntries(
 
 		return nil
 	})
-		//art-dupl:accept dep-isolated engines; same StreamLog tail as badgerengine
-		if err != nil {
-			return nil, err //nolint:wrapcheck // passthrough
-		}
+	//art-dupl:accept dep-isolated engines; same StreamLog tail as badgerengine
+	if err != nil {
+		return nil, err //nolint:wrapcheck // passthrough
+	}
 
-		if result == nil {
-			result = []metaengine.StreamLogEntry{}
-		}
+	if result == nil {
+		result = []metaengine.StreamLogEntry{}
+	}
 
 	return result, nil
 }

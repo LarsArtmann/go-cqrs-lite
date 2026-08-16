@@ -112,7 +112,7 @@ func TestExporter_DataStoreWithNewFields(t *testing.T) {
 	})
 
 	tmpDir := exportCatalog(t, reg)
-	content := readExported(t, tmpDir, "data", "primary-db", "index.mdx")
+	content := readExported(t, tmpDir, "containers", "primary-db", "index.mdx")
 
 	cattest.AssertContentContains(
 		t, content, "data store with new fields",
@@ -145,7 +145,7 @@ func TestExporter_MessageWithDeprecationInfo(t *testing.T) {
 	})
 
 	tmpDir := exportCatalog(t, reg)
-	content := readExported(t, tmpDir, "services", "svc", "events", "old-event", "index.mdx")
+	content := readExported(t, tmpDir, "events", "old-event", "index.mdx")
 
 	cattest.AssertContentContains(
 		t, content, "deprecation info",
@@ -174,7 +174,7 @@ func TestExporter_MessageWithChannels(t *testing.T) {
 	})
 
 	tmpDir := exportCatalog(t, reg)
-	content := readExported(t, tmpDir, "services", "svc", "commands", "do-thing", "index.mdx")
+	content := readExported(t, tmpDir, "commands", "do-thing", "index.mdx")
 
 	cattest.AssertContentContains(
 		t, content, "message with channels",
@@ -206,7 +206,7 @@ func TestExporter_MessageWithSchemas(t *testing.T) {
 	})
 
 	tmpDir := exportCatalog(t, reg)
-	content := readExported(t, tmpDir, "services", "svc", "commands", "create-order", "index.mdx")
+	content := readExported(t, tmpDir, "commands", "create-order", "index.mdx")
 
 	cattest.AssertContentContains(
 		t, content, "message with schemas",

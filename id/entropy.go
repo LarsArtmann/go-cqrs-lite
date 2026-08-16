@@ -38,9 +38,9 @@ import (
 
 // idEpoch is one millisecond window of ULID generation.
 type idEpoch struct {
-	ms       uint64   // ULID millisecond timestamp stamped on every ID of this epoch
-	prefix   [6]byte  // per-epoch crypto-random entropy (high 48 bits of the 80-bit ULID entropy)
-	firstSeq uint64   // global counter value when this epoch was published (draws are strictly greater)
+	ms       uint64  // ULID millisecond timestamp stamped on every ID of this epoch
+	prefix   [6]byte // per-epoch crypto-random entropy (high 48 bits of the 80-bit ULID entropy)
+	firstSeq uint64  // global counter value when this epoch was published (draws are strictly greater)
 }
 
 var (

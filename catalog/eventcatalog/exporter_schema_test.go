@@ -19,7 +19,7 @@ func TestExporter_Export_NoSchema(t *testing.T) {
 	tmpDir := exportCatalog(t, reg)
 
 	_, err := os.Stat(
-		filepath.Join(tmpDir, "services", "svc", "commands", "NoSchema", "schemas", "schema.json"),
+		filepath.Join(tmpDir, "commands", "NoSchema", "schemas", "schema.json"),
 	)
 	if !os.IsNotExist(err) {
 		t.Error("schema.json should not exist when no schema is provided")
@@ -43,7 +43,7 @@ func TestExporter_Export_SchemaPathInFrontmatter(t *testing.T) {
 
 	tmpDir := exportCatalog(t, reg)
 
-	content := readExported(t, tmpDir, "services", "svc", "commands", "CreateOrder", "index.mdx")
+	content := readExported(t, tmpDir, "commands", "CreateOrder", "index.mdx")
 	if !strings.Contains(content, "schemaPath: schemas/schema.json") {
 		t.Errorf("message frontmatter missing schemaPath: %s", content)
 	}
@@ -63,7 +63,7 @@ func TestExporter_Export_NoSchemaPathWhenNoSchema(t *testing.T) {
 	tmpDir := exportCatalog(t, reg)
 
 	if strings.Contains(
-		readExported(t, tmpDir, "services", "svc", "commands", "NoSchema", "index.mdx"),
+		readExported(t, tmpDir, "commands", "NoSchema", "index.mdx"),
 		"schemaPath",
 	) {
 		t.Error("schemaPath should not appear when no schema provided")

@@ -35,7 +35,11 @@ func TestEstimateCost_VolumeDefaultAppliedAndReported(t *testing.T) {
 		}
 
 		if ce.EstimatedOps != 1000 {
-			t.Errorf("estimateCost(volume=%d).EstimatedOps = %v, want 1000", volume, ce.EstimatedOps)
+			t.Errorf(
+				"estimateCost(volume=%d).EstimatedOps = %v, want 1000",
+				volume,
+				ce.EstimatedOps,
+			)
 		}
 	}
 
