@@ -195,3 +195,101 @@ func TestLoad_WithLoadCoalescingDisabled(t *testing.T) {
 		)
 	}
 }
+
+// gateLoadStore holds Load open until released, letting a test sequence a
+// leader, a coalesced follower, and a leader-context cancellation
+// deterministically.
+type gateLoadStore struct {
+	event.Store
+
+	entered chan struct{}
+	release chan struct{}
+	count   atomic.Int32
+}
+
+func (g *gateLoadStore) Load(ctx context.Context, ref id.StreamRef) ([]event.Event, error) {
+	g.count.Add(1)
+	close(g.entered)
+	<-g.release
+
+	return g.Store.Load(ctx, ref)
+}
+
+// TestLoad_LeaderCancelDoesNotAbortCoalescedLoad pins the WithoutCancel fix:
+// the leader's cancelled context must not abort the shared in-flight load
+// for coalesced followers.
+func TestLoad_LeaderCancelDoesNotAbortCoalescedLoad(t *testing.T) {
+	t.Parallel()
+
+	inner := eventtest.NewFakeStore()
+	bus := eventtest.NewFakeBus()
+	store := &gateLoadStore{
+		Store:   inner,
+		entered: make(chan struct{}),
+		release: make(chan struct{}),
+	}
+
+	d := decider.Decider[counterState]{Initial: counterState{}, Apply: applyCounter}
+
+	repo, err := decider.NewRepository(store, bus, d)
+	if err != nil {
+		t.Fatalf("NewRepository: %v", err)
+	}
+
+	streamID := id.NewStreamID()
+
+	mustAppendBatch(t, store, "Counter", streamID, []event.Event{
+		makeEvent(t, "CounterCreated", streamID, 1),
+	})
+
+	leaderCtx, cancelLeader := context.WithCancel(context.Background())
+
+	type loadResult struct {
+		version event.Version
+		err     error
+	}
+
+	leaderRes := make(chan loadResult, 1)
+	go func() {
+		_, version, loadErr := repo.Load(leaderCtx, streamID, "Counter")
+		leaderRes <- loadResult{version: version, err: loadErr}
+	}()
+
+	<-store.entered // leader is inside store.Load, inside singleflight.Do
+
+	followerRes := make(chan loadResult, 1)
+	go func() {
+		_, version, loadErr := repo.Load(context.Background(), streamID, "Counter")
+		followerRes <- loadResult{version: version, err: loadErr}
+	}()
+
+	// Give the follower a moment to join the in-flight singleflight group.
+	time.Sleep(50 * time.Millisecond)
+
+	cancelLeader() // leader gives up — the shared load must keep running
+	close(store.release)
+
+	select {
+	case res := <-followerRes:
+		if res.err != nil {
+			t.Fatalf("follower Load aborted by leader cancellation: %v", res.err)
+		}
+		if res.version != 1 {
+			t.Errorf("follower version = %d, want 1", res.version)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("follower Load did not finish")
+	}
+
+	select {
+	case <-leaderRes:
+		// The leader may observe success (WithoutCancel) or its own
+		// cancellation; only the follower's success is the contract.
+	case <-time.After(5 * time.Second):
+		t.Fatal("leader Load did not finish")
+	}
+
+	if got := store.count.Load(); got != 1 {
+		t.Errorf("store.Load called %d times, want 1 (coalesced)", got)
+	}
+}

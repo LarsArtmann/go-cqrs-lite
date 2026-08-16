@@ -59,6 +59,36 @@ func TestPagination_Offset(t *testing.T) {
 	}
 }
 
+// TestPagination_OffsetZeroPageGuard pins the underflow fix: a Pagination
+// built as a raw struct literal (not via NewPagination) with Page 0 must
+// yield offset 0, not a wrapped-around astronomically large skip.
+func TestPagination_OffsetZeroPageGuard(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		p    Pagination
+	}{
+		{"zero value", Pagination{}},
+		{"zero page with page size", Pagination{Page: 0, PageSize: 20}},
+		{"zero page zero page size", Pagination{Page: 0, PageSize: 0}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := tt.p.Offset(); got != 0 {
+				t.Errorf("Offset() = %d, want 0", got)
+			}
+		})
+	}
+
+	if got := (Pagination{Page: 2, PageSize: 20}).Offset(); got != 20 {
+		t.Errorf("Offset() = %d, want 20 for raw Page 2", got)
+	}
+}
+
 func TestPagination_Validate(t *testing.T) {
 	t.Parallel()
 

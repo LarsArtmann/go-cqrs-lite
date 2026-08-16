@@ -3,6 +3,7 @@ package command_test
 import (
 	"context"
 	"errors"
+	"sync/atomic"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -134,5 +135,57 @@ func TestMemoryBus_NilHandler(t *testing.T) {
 	err = bus.SubscribeAll(nil)
 	if err == nil {
 		t.Fatal("SubscribeAll nil: expected error")
+	}
+}
+
+// TestMemoryBus_MiddlewareRunsOncePerCommand pins the once-per-command
+// middleware semantics: with several handlers registered (typed + catch-all),
+// the chain must wrap the dispatch ONCE. Per-handler wrapping double-counts
+// side effects (metrics, idempotency records, retries).
+func TestMemoryBus_MiddlewareRunsOncePerCommand(t *testing.T) {
+	t.Parallel()
+
+	bus := command.NewMemoryBus()
+	ctx := context.Background()
+
+	var middlewareCalls atomic.Int32
+
+	_ = bus.Use(func(next command.Handler) command.Handler {
+		return func(ctx context.Context, cmd command.Command) error {
+			middlewareCalls.Add(1)
+
+			return next(ctx, cmd)
+		}
+	})
+
+	var handled atomic.Int32
+
+	for range 2 {
+		_ = bus.Subscribe("test.cmd", func(_ context.Context, _ command.Command) error {
+			handled.Add(1)
+
+			return nil
+		})
+	}
+
+	_ = bus.SubscribeAll(func(_ context.Context, _ command.Command) error {
+		handled.Add(1)
+
+		return nil
+	})
+
+	streamID := id.NewStreamID()
+	cmd, _ := command.New("test.cmd", streamID)
+
+	if err := bus.Publish(ctx, cmd); err != nil {
+		t.Fatalf("Publish: %v", err)
+	}
+
+	if got := handled.Load(); got != 3 {
+		t.Fatalf("handlers invoked %d times, want 3", got)
+	}
+
+	if got := middlewareCalls.Load(); got != 1 {
+		t.Errorf("middleware invoked %d times, want 1 (once per command, not per handler)", got)
 	}
 }
