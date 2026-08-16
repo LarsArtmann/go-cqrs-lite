@@ -92,6 +92,7 @@ func advanceEpoch(nowMs uint64) *idEpoch {
 // taking a lock on the generation fast path.
 func newULID() ulid.ULID {
 	now := ulid.Now()
+
 	epoch := currentEpoch.Load()
 	if epoch == nil || now > epoch.ms {
 		epoch = advanceEpoch(now)

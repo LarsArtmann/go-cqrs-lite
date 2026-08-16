@@ -35,7 +35,7 @@ func stableCatalogID(title string) string {
 func parseHexUUID(s string) []byte {
 	out := make([]byte, 16)
 
-	for i := 0; i < 16; i++ {
+	for i := range 16 {
 		hi := hexVal(s[i*2])
 		lo := hexVal(s[i*2+1])
 		out[i] = hi<<4 | lo
@@ -59,5 +59,6 @@ func hexVal(c byte) byte {
 
 func formatUUID(b []byte) string {
 	hexed := hex.EncodeToString(b)
+
 	return hexed[0:8] + "-" + hexed[8:12] + "-" + hexed[12:16] + "-" + hexed[16:20] + "-" + hexed[20:32]
 }

@@ -248,6 +248,7 @@ func commandsOf(cat *catalog.Catalog) []catalog.Message {
 	for _, svc := range cat.Services {
 		out = append(out, svc.Commands...)
 	}
+
 	return out
 }
 
@@ -256,6 +257,7 @@ func eventsOf(cat *catalog.Catalog) []catalog.Message {
 	for _, svc := range cat.Services {
 		out = append(out, svc.Events...)
 	}
+
 	return out
 }
 
@@ -264,6 +266,7 @@ func queriesOf(cat *catalog.Catalog) []catalog.Message {
 	for _, svc := range cat.Services {
 		out = append(out, svc.Queries...)
 	}
+
 	return out
 }
 
