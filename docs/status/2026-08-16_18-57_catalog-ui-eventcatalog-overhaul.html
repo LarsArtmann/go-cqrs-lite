@@ -1,0 +1,1171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Catalog UI/UX + EventCatalog Integration — Status Report</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  
+<body>
+    <div class="top-bar">
+      <span>STATUS REPORT</span>
+      <span>2026-08-16 18:57</span>
+      <span>catalog/ — UI/UX + EventCatalog integration</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#done">Fully Done</a>
+          <a href="#partial">Partially Done</a>
+          <a href="#notstarted">Not Started</a>
+          <a href="#fucked">Totally Fucked Up</a>
+          <a href="#improve">Improvements</a>
+          <a href="#next">Top 50 Next Tasks</a>
+          <a href="#questions">Top 3 Questions</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Mid-Flight Snapshot</div>
+          <h1>Catalog UI/UX + EventCatalog Integration Overhaul</h1>
+          <p class="hero-subtitle">
+            Session scope: the user called the catalog/ UI/UX and EventCatalog integration "very bad".
+            Research verified three real integration defects against current EventCatalog source; all three are now fixed and green.
+            The docserver UI rewrite (templ-components adoption) is designed but not yet implemented.
+          </p>
+        </div>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Integration defects fixed (verified vs upstream)</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">14/14</div>
+            <div class="stat-label">Catalog packages green (full module suite)</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Docserver UI code changes so far</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">0/5</div>
+            <div class="stat-label">Docs/doc-check/verify gates run</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">1</div>
+            <div class="stat-label">Dead build-cache mount (/mnt)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">50</div>
+            <div class="stat-label">Next tasks catalogued below</div>
+          </div>
+        </div>
+
+        <div class="card card-solution">
+          <h4>Headline</h4>
+          <p>
+            The generated EventCatalog project was <strong>invalid against current EventCatalog</strong>:
+            missing the required <code>cId</code>, an invalid empty <code>landingPage</code> URL, data stores written to a
+            directory EventCatalog no longer collects (<code>data/</code> instead of <code>containers/</code>), and one duplicate
+            message page per service for shared messages. All fixed this session. The docserver UI (bare 2-line HTML shells,
+            no index page, unregistered D2 route) is the remaining "very bad" part — adoption of
+            <code>templ-components</code> v1.8.3 is decided and researched, implementation not started.
+          </p>
+        </div>
+
+        <h2 id="done"><span class="num">01</span>Fully Done</h2>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Upstream verification of every claim</strong>
+              <span>Read eventcatalog/eventcatalog main via GitHub API: config schema (cId required, tagline/homepageLink valid keys, llmsTxt), content.config.ts collection globs (containers/**, **/events/*, services/*), examples/default layout. No claim in this report rests on memory alone.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>cId fix — catalog/eventcatalog/catalogid.go (new)</strong>
+              <span>Deterministic RFC 4122 v5 UUID derived from catalog title, so regeneration is idempotent and never invalidates catalog identity. Emitted in eventcatalog.config.js.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Config generation fix — writer.go</strong>
+              <span>Dropped invalid <code>landingPage: ''</code> (empty URL; EventCatalog defaults when absent); added tagline and <code>llmsTxt: { enabled: true }</code> (verified valid key).</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Data stores now land in containers/ — exporter_resources.go</strong>
+              <span>Current EventCatalog has NO data/ collection; writes there were dead files. Frontmatter already carried container_type etc. — only the directory was wrong.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Messages deduplicated to canonical top-level layout — exporter.go, exporter_message.go</strong>
+              <span>Events/commands/queries written once to &lt;kind&gt;/&lt;id&gt;/index.mdx with producers/consumers derived across all services (autoDeriveProducersConsumers). Previously every shared message produced one duplicate page per service (duplicate content IDs in EventCatalog).</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Test suite migrated + green</strong>
+              <span>9 eventcatalog test files moved to the new paths, eventcatalog-config.snap regenerated. Full catalog module: 14/14 packages ok (go test, count=1).</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>templ-components adoption research (decision-ready)</strong>
+              <span>v1.8.3 published (tag verified). Budget: catalog DEP_BUDGET=4, prod deps 2 → 3 with templ-components; a-h/templ is its only runtime dep. Go-side composition via templ.WithChildren verified. CSSPath=""/HTMXVersion="" suppression verified. nixpkgs tailwindcss_4 = 4.3.3 (exact match to library's build). Minimal wrapper strategy for Scalar/AsyncAPI SPAs chosen.</span>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="partial"><span class="num">02</span>Partially Done</h2>
+        <div class="card card-warning">
+          <h4>Docserver UI overhaul — designed, not implemented</h4>
+          <p>
+            Page inventory (index at DocsPath, Scalar wrapper, AsyncAPI wrapper, D2 view), component mapping
+            (Base/Nav/PageHeader/Grid/Card/StatCard/Badge/CopyButton/ThemeToggle/ThemeScript), CSS supply strategy
+            (committed Tailwind v4 build via nix + drift gate) are all decided. Zero lines of docserver code changed yet.
+          </p>
+        </div>
+        <div class="card card-warning">
+          <h4>Verification gates — partially run</h4>
+          <p>
+            go build + go test green for the catalog module only. NOT yet run: nix run .#verify, lint, doc-check,
+            api-stability meta-tests, check-arch (dep budget with new dep), check-duplication.
+          </p>
+        </div>
+
+        <h2 id="notstarted"><span class="num">03</span>Not Started</h2>
+        <div class="card">
+          <h4>Everything downstream of the docserver rewrite</h4>
+          <p>
+            templ-components dependency wiring; CSS pipeline; page implementations; route registration for index + D2;
+            docserver tests; README/FEATURES/skill-reference updates; AGENTS.md adoption table; CHANGELOG entry for the
+            exporter layout change; example app refresh; TODO_LIST harvest.
+          </p>
+        </div>
+
+        <h2 id="fucked"><span class="num">04</span>Totally Fucked Up</h2>
+        <div class="card card-problem">
+          <h4>/mnt/buildcache died mid-session</h4>
+          <p>
+            "No such device" on /mnt/buildcache — GOCACHE/GOTMPDIR defaults broke; golangci-lint LSP cache also fails
+            (input/output error), so lint diagnostics are unusable this session. Worked around with
+            GOCACHE=$HOME/.cache/go-build. The mount needs restoring or env defaults repointing; any workspace-wide
+            test run will hit this.
+          </p>
+        </div>
+        <div class="card card-problem">
+          <h4>Auto-commit daemon muddied history</h4>
+          <p>
+            Commit fe7c1d2e5 bundled this session's catalog changes together with unrelated id/metaengine/record changes
+            from another session. Nothing lost, but per-concern commit hygiene is gone for that batch.
+          </p>
+        </div>
+
+        <h2 id="improve"><span class="num">05</span>What We Should Improve</h2>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Honesty gap</span>
+          <h3>Goldens only assert our own output — never the real EventCatalog build</h3>
+          <div class="where">catalog/eventcatalog/golden_test.go</div>
+          <p>
+            Three upstream-format defects shipped and passed every golden test because the goldens verify shape, not
+            compatibility. Nothing executes <code>npx @eventcatalog/cli build</code> against generated output.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Fix</strong>
+            Add an opt-in integration test (env-gated, Node available in nix devShell) that builds a generated catalog
+            with the real CLI and asserts exit 0.
+          </div>
+        </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Reproducibility</span>
+          <h3>package.json pins @eventcatalog/core to "latest"</h3>
+          <div class="where">catalog/eventcatalog/writer.go — writePackageJSON</div>
+          <p>
+            "latest" means generated projects break whenever upstream shifts format again, with no pin to detect it.
+          </p>
+        </div>
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Nice to have</span>
+          <h3>cId override option</h3>
+          <div class="where">catalog/eventcatalog/exporter.go</div>
+          <p>
+            Deterministic v5-from-title is right by default; an Option to supply an explicit catalog identity would
+            cover orgs that manage cIds centrally.
+          </p>
+        </div>
+
+        <h2 id="next"><span class="num">06</span>Top 50 Next Tasks</h2>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Priority</th><th>Task</th><th>Area</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td><span class="badge badge-critical">Critical</span></td><td>Add templ-components v1.8.3 to catalog go.mod + .golangci.yml depguard allowlist (budget 3/4)</td><td>docserver</td></tr>
+            <tr><td>2</td><td><span class="badge badge-critical">Critical</span></td><td>CSS pipeline: docs.css.src + nix attr running tailwindcss_4 + committed-artifact drift gate</td><td>docserver</td></tr>
+            <tr><td>3</td><td><span class="badge badge-critical">Critical</span></td><td>Docs index page at DocsPath: Base + Nav + PageHeader + Card grid + StatCards (service/message counts)</td><td>docserver</td></tr>
+            <tr><td>4</td><td><span class="badge badge-critical">Critical</span></td><td>Run nix run .#verify after docserver work (full gate incl. lint, doc-check)</td><td>verification</td></tr>
+            <tr><td>5</td><td><span class="badge badge-high">High</span></td><td>Scalar wrapper page: slim header, back-to-index link, favicon, noscript, CSP-safe script</td><td>docserver</td></tr>
+            <tr><td>6</td><td><span class="badge badge-high">High</span></td><td>AsyncAPI wrapper page: same chrome treatment as Scalar wrapper</td><td>docserver</td></tr>
+            <tr><td>7</td><td><span class="badge badge-high">High</span></td><td>D2 view page: source block + CopyButton + download link + register under DocsPath</td><td>docserver</td></tr>
+            <tr><td>8</td><td><span class="badge badge-high">High</span></td><td>Tests for all new pages/routes (index, d2, wrappers render + content assertions)</td><td>docserver</td></tr>
+            <tr><td>9</td><td><span class="badge badge-high">High</span></td><td>CHANGELOG entry: exporter layout change is behavior-breaking for path consumers</td><td>docs</td></tr>
+            <tr><td>10</td><td><span class="badge badge-high">High</span></td><td>Update catalog README EventCatalog section (top-level messages, containers/, cId)</td><td>docs</td></tr>
+            <tr><td>11</td><td><span class="badge badge-high">High</span></td><td>Update FEATURES.md docserver/eventcatalog feature rows</td><td>docs</td></tr>
+            <tr><td>12</td><td><span class="badge badge-high">High</span></td><td>Update skill references (modules.md, recipes.md) for new layout + docserver plan</td><td>docs</td></tr>
+            <tr><td>13</td><td><span class="badge badge-high">High</span></td><td>Add templ-components adoption table to catalog/AGENTS.md (skill consumer tip)</td><td>docs</td></tr>
+            <tr><td>14</td><td><span class="badge badge-high">High</span></td><td>Run cmd/doc-check over skill references + AGENTS.md</td><td>verification</td></tr>
+            <tr><td>15</td><td><span class="badge badge-high">High</span></td><td>Verify schemas.txt/llms.txt writers reference new top-level message paths</td><td>eventcatalog</td></tr>
+            <tr><td>16</td><td><span class="badge badge-medium">Medium</span></td><td>Pin @eventcatalog/core version in generated package.json (drop "latest")</td><td>eventcatalog</td></tr>
+            <tr><td>17</td><td><span class="badge badge-medium">Medium</span></td><td>Env-gated integration test: build generated catalog with real @eventcatalog/cli</td><td>eventcatalog</td></tr>
+            <tr><td>18</td><td><span class="badge badge-medium">Medium</span></td><td>Exporter Option to override cId explicitly</td><td>eventcatalog</td></tr>
+            <tr><td>19</td><td><span class="badge badge-medium">Medium</span></td><td>Index page: raw spec links (openapi/asyncapi .json+.yaml) + catalog.json</td><td>docserver</td></tr>
+            <tr><td>20</td><td><span class="badge badge-medium">Medium</span></td><td>Index page: EventCatalog section pointing at GenerateEventCatalog output + llms.txt</td><td>docserver</td></tr>
+            <tr><td>21</td><td><span class="badge badge-medium">Medium</span></td><td>Dark mode: ThemeScript + ThemeToggle on index; confirm Scalar/AsyncAPI dark defaults</td><td>docserver</td></tr>
+            <tr><td>22</td><td><span class="badge badge-medium">Medium</span></td><td>check-arch + check-duplication runs for the new dep and generated pages</td><td>verification</td></tr>
+            <tr><td>23</td><td><span class="badge badge-medium">Medium</span></td><td>api-stability golden regen + TestEveryGoModDir meta-tests (no new module, verify no-op)</td><td>verification</td></tr>
+            <tr><td>24</td><td><span class="badge badge-medium">Medium</span></td><td>example/ app demonstrating docserver + eventcatalog end-to-end</td><td>examples</td></tr>
+            <tr><td>25</td><td><span class="badge badge-medium">Medium</span></td><td>Restore /mnt/buildcache mount or repoint GOCACHE/GOTMPDIR defaults</td><td>environment</td></tr>
+            <tr><td>26</td><td><span class="badge badge-medium">Medium</span></td><td>EC exporter: versioned/ directories for multi-version messages</td><td>eventcatalog</td></tr>
+            <tr><td>27</td><td><span class="badge badge-medium">Medium</span></td><td>EC exporter: systems/ nesting (domain→system→service) as opt-in</td><td>eventcatalog</td></tr>
+            <tr><td>28</td><td><span class="badge badge-medium">Medium</span></td><td>D2 client-side render investigation (d2-wasm size budget)</td><td>docserver</td></tr>
+            <tr><td>29</td><td><span class="badge badge-medium">Medium</span></td><td>TODO_LIST.md harvest from this report (docs-health HARVEST)</td><td>docs</td></tr>
+            <tr><td>30</td><td><span class="badge badge-medium">Medium</span></td><td>Update example/taskmanager EventCatalog references to new layout</td><td>examples</td></tr>
+            <tr><td>31</td><td><span class="badge badge-low">Low</span></td><td>Favicon: inline SVG data URI shared across docserver pages</td><td>docserver</td></tr>
+            <tr><td>32</td><td><span class="badge badge-low">Low</span></td><td>noscript + JS-failure fallback copy on wrapper pages</td><td>docserver</td></tr>
+            <tr><td>33</td><td><span class="badge badge-low">Low</span></td><td>Absolute DocsPath-anchored asset URLs (proxy-safety hardening)</td><td>docserver</td></tr>
+            <tr><td>34</td><td><span class="badge badge-low">Low</span></td><td>ETag/cache headers for embedded static assets</td><td>docserver</td></tr>
+            <tr><td>35</td><td><span class="badge badge-low">Low</span></td><td>gzip for JSON/YAML spec endpoints</td><td>docserver</td></tr>
+            <tr><td>36</td><td><span class="badge badge-low">Low</span></td><td>HealthCheckHandler: include doc URLs in healthy payload + test JSON shape</td><td>docserver</td></tr>
+            <tr><td>37</td><td><span class="badge badge-low">Low</span></td><td>catalog CLI: serve subcommand wrapping DocsServer</td><td>tooling</td></tr>
+            <tr><td>38</td><td><span class="badge badge-low">Low</span></td><td>EC exporter: changelog.(md|mdx) sidecar support</td><td>eventcatalog</td></tr>
+            <tr><td>39</td><td><span class="badge badge-low">Low</span></td><td>EC exporter: ubiquitous-language.mdx for domains</td><td>eventcatalog</td></tr>
+            <tr><td>40</td><td><span class="badge badge-low">Low</span></td><td>EC exporter: adrs/ and diagrams (mermaid) resources</td><td>eventcatalog</td></tr>
+            <tr><td>41</td><td><span class="badge badge-low">Low</span></td><td>ADR documenting the templ-components adoption decision in catalog</td><td>docs</td></tr>
+            <tr><td>42</td><td><span class="badge badge-low">Low</span></td><td>Spec endpoints: content negotiation (?format=yaml)</td><td>docserver</td></tr>
+            <tr><td>43</td><td><span class="badge badge-low">Low</span></td><td>writeExamples coverage check post-move</td><td>eventcatalog</td></tr>
+            <tr><td>44</td><td><span class="badge badge-low">Low</span></td><td>LSP golangci cache path fix (per-machine)</td><td>environment</td></tr>
+            <tr><td>45</td><td><span class="badge badge-low">Low</span></td><td>Review daemon commit fe7c1d2e5 bundling for split-brain risk</td><td>git</td></tr>
+            <tr><td>46</td><td><span class="badge badge-low">Low</span></td><td>cqrs-gen: emit catalog registration hints for handlers</td><td>tooling</td></tr>
+            <tr><td>47</td><td><span class="badge badge-low">Low</span></td><td>Index page: search/filter over services and messages (client-side)</td><td>docserver</td></tr>
+            <tr><td>48</td><td><span class="badge badge-low">Low</span></td><td>Docserver: expose spec download links with copyable curl commands</td><td>docserver</td></tr>
+            <tr><td>49</td><td><span class="badge badge-low">Low</span></td><td>EC exporter: badge/owner propagation spot-checks in goldens</td><td>eventcatalog</td></tr>
+            <tr><td>50</td><td><span class="badge badge-low">Low</span></td><td>Session close-out: update docs/status index and retire superseded notes</td><td>docs</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="questions"><span class="num">07</span>Top 3 Questions</h2>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Q1</span>
+          <h3>Ship the layout change as-is in v4?</h3>
+          <div class="where">catalog/eventcatalog (behavior change)</div>
+          <p>
+            Generated paths moved (services/&lt;svc&gt;/&lt;kind&gt;/&lt;id&gt; → &lt;kind&gt;/&lt;id&gt;; data/ → containers/). Consumers that read
+            those paths break; consumers that just run the EventCatalog CLI get strictly better output. Ship now on v4,
+            or gate behind an Exporter option / defer to v5?
+          </p>
+        </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Q2</span>
+          <h3>Approve templ-components as a catalog production dependency?</h3>
+          <div class="where">catalog/go.mod (DEP_BUDGET 3/4 after)</div>
+          <p>
+            Decision made in-session: adopt for docserver pages, CSS via committed Tailwind v4 build with a nix drift
+            gate. This adds templ-components + a-h/templ to every catalog consumer's module graph. Confirm, or prefer a
+            zero-dep hand-rolled UI for the embedded pages?
+          </p>
+        </div>
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Q3</span>
+          <h3>Which @eventcatalog/core should generated projects pin?</h3>
+          <div class="where">catalog/eventcatalog/writer.go</div>
+          <p>
+            Today package.json says "latest". Should we pin a verified major/minor, and do you want the real-CLI build
+            test (task 17) wired into CI before unpinning?
+          </p>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-08-16 18:57 &middot; All upstream claims verified against event-catalog/eventcatalog@main via
+          GitHub API &middot; catalog module tests: 14/14 ok
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
