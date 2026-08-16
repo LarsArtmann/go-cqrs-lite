@@ -85,9 +85,11 @@ eventstore).
   suppression + memory-engine negative control).
 - Wired into **10 places**: root `metaengine/adt_matrix_test.go` (memory,
   sqlite) + all 9 engine modules (pebble, bbolt, badger, pg, mysql, duckdb,
-  dgraph, turso, iroh). Vet-OK everywhere; **ran green** on
+  dgraph, turso, iroh). Vet-OK everywhere; ~~**ran green** on
   memory/sqlite/pebble/bbolt/badger/iroh/pg/duckdb (pg/duckdb via their
-  live/testcontainer paths).
+  live/testcontainer paths).~~ CORRECTION (2026-08-16): iroh was later found RED
+  by the conformance suite (11-33 report) and fixed (12-39) — the 09:13 "iroh green"
+  observation was module-suite green, not conformance green.
 - **Finding**: the historic "6 engines over-declare" issue is ALREADY
   neutralized — every unimplemented ADT on pg/duckdb is marked degraded, not
   claimed native. The skeleton now enforces that permanently; drift fails CI.
@@ -101,26 +103,29 @@ eventstore).
 
 ## b) PARTIALLY DONE
 
-- **Final full verify** — NOT run yet. All per-module gates green
+~~- **Final full verify** — NOT run yet. All per-module gates green
   (tests/race/lint/golden/doc-check where touched), but the end-to-end
   `nix run .#verify` (build + vet + test + race + lint + doc-check +
   doc-assertions, all 82 modules) is still owed before any "wave 4 GREEN"
   claim. Also un-run: `#check-coverage` (schema/event coverage moved),
   `#check-duplication` (new decorator/shell code), `#check-arch` (no new
-  deps added, should pass).
-- **mysql / dgraph / turso conformance tests** — wired and vet-clean but not
+  deps added, should pass).~~ done — full `#verify` GREEN (2026-08-16 13:15 run #4) incl. race + doc-check + doc-assertions; `#check-coverage` + `#check-duplication` also EXIT=0
+
+~~- **mysql / dgraph / turso conformance tests** — wired and vet-clean but not
   executed locally (need running servers; they skip cleanly without them, as
-  their ADT matrices already do). Will run under `#test-integration`.
+  their ADT matrices already do). Will run under `#test-integration`.~~ partial — iroh conformance was found RED later that day (11-33) and fixed (12-39); mysql/dgraph/turso live conformance runs still not recorded
 
 ## c) NOT STARTED
 
-- **F46** — go-codec `UnwrapDecode` first-byte sniff (external sibling repo
-  `/home/lars/projects/go-codec`).
-- **F47-F49** — benchstat baselines for the 5 BENCHMARKS.md ledger paths;
+~~- **F46** — go-codec `UnwrapDecode` first-byte sniff (external sibling repo
+  `/home/lars/projects/go-codec`).~~ done — go-codec `autodetect.go` first-byte sniff shipped
+
+~~- **F47-F49** — benchstat baselines for the 5 BENCHMARKS.md ledger paths;
   false-sharing measure-then-pad for worker counters / multiSeqCounter /
-  SSEReplay.seq @-cpu=16,32.
-- Report addendum for the 08:19 HTML report (this file supersedes that
-  need for wave-4 content).
+  SSEReplay.seq @-cpu=16,32.~~ done — benchstat baselines + all three measure-then-pad decisions recorded in `docs/BENCHMARKS.md`
+
+~~- Report addendum for the 08:19 HTML report (this file supersedes that
+  need for wave-4 content).~~ moot — no 08-19 file exists in docs/status/ (this report superseded it)
 
 ## d) TOTALLY FUCKED UP (owned, all caught + fixed in-session)
 
@@ -162,40 +167,61 @@ eventstore).
 
 ## f) NEXT (up to 50, priority order)
 
-1. Run `nix run .#verify` end-to-end; fix anything it catches.
-2. Run `nix run .#check-coverage`; re-baseline if schema/event coverage moved
-   (tests were added — expect upward drift, fix by re-baselining UP).
-3. Run `nix run .#check-duplication`; baseline if decorator/shell similarity
-   flags.
-4. F46: go-codec `UnwrapDecode` first-byte sniff (external repo; load its
-   AGENTS.md first; run its verify gate).
-5. F47: contention benches @-cpu=16,32 for workloadMeter; commit benchstat
-   baselines for the 5 BENCHMARKS.md ledger paths.
-6. F48: worker-counter false-sharing measurement @32P; pad only if >10%;
-   record decision.
-7. F49: multiSeqCounter + SSEReplay.seq same protocol.
-8. Annotate the 08:19 HTML report (or write a short addendum pointing here).
-9. Wire `AuditCapability` into metaengine `Doctor` output (declared-vs-
-   implemented section).
-10. Run conformance under `nix run .#test-integration` so mysql/dgraph/turso
-    rows are exercised for real.
-11. Implement F59 rollout step 1: `SeqSeekableStreamLog` + conformance tests
-    in metaengine (design doc §5).
-12. F59 step 2: sqlite/turso `seq > ?` journal query.
-13. F59 step 3: pg/mysql/duckdb `seq > ?` journal query.
-14. F59 step 4: pebble/bbolt key-decoded seq + memory `sort.Search`.
-15. F59 step 5: EventAdapter token-backed seqCache + benchkit drain bench +
-    BENCHMARKS.md row.
-16. Verify F56/F57/F58 status (singleflight leader-ctx, turso DSN leak,
+~~1. Run `nix run .#verify` end-to-end; fix anything it catches.~~ done — 13-15 run #4 GREEN end-to-end
+
+~~2. Run `nix run .#check-coverage`; re-baseline if schema/event coverage moved
+   (tests were added — expect upward drift, fix by re-baselining UP).~~ done — `#check-coverage` EXIT=0
+
+~~3. Run `nix run .#check-duplication`; baseline if decorator/shell similarity
+   flags.~~ done — `#check-duplication` EXIT=0
+
+~~4. F46: go-codec `UnwrapDecode` first-byte sniff (external repo; load its
+   AGENTS.md first; run its verify gate).~~ done — go-codec `autodetect.go`
+
+~~5. F47: contention benches @-cpu=16,32 for workloadMeter; commit benchstat
+   baselines for the 5 BENCHMARKS.md ledger paths.~~ done — `-cpu 4,8,16,32` ledger entries + benchstat in benchkit
+
+~~6. F48: worker-counter false-sharing measurement @32P; pad only if >10%;
+   record decision.~~ done — NO PAD, measured (BENCHMARKS.md:35)
+
+~~7. F49: multiSeqCounter + SSEReplay.seq same protocol.~~ done — multiSeqCounter padded, SSEReplay NO PAD (BENCHMARKS.md:34,36)
+
+~~8. Annotate the 08:19 HTML report (or write a short addendum pointing here).~~ moot — no 08-19 report exists on disk
+
+~~9. Wire `AuditCapability` into metaengine `Doctor` output (declared-vs-
+   implemented section).~~ done — `AuditCapability` shipped into Doctor (11-33, `30711eb79b`)
+
+~~10. Run conformance under `nix run .#test-integration` so mysql/dgraph/turso
+    rows are exercised for real.~~ partial — iroh exercised (RED→fixed, 11-33/12-39); mysql/dgraph/turso live runs not recorded
+
+~~11. Implement F59 rollout step 1: `SeqSeekableStreamLog` + conformance tests
+    in metaengine (design doc §5).~~ done — `a1334d8c5` (all engines), flipped IMPLEMENTED (`f2bbf4621`)
+
+~~12. F59 step 2: sqlite/turso `seq > ?` journal query.~~ done — sqlite/turso `seq > ?` shipped in `a1334d8c5`
+
+~~13. F59 step 3: pg/mysql/duckdb `seq > ?` journal query.~~ done — pg/mysql/duckdb shipped in `a1334d8c5`
+
+~~14. F59 step 4: pebble/bbolt key-decoded seq + memory `sort.Search`.~~ done — pebble/bbolt key-decoded seq + memory `sort.Search` shipped
+
+~~15. F59 step 5: EventAdapter token-backed seqCache + benchkit drain bench +
+    BENCHMARKS.md row.~~ done — EventAdapter seqCache + bench files landed 2026-08-16 (`metaengine/sqliteengine/stream_log_bench_test.go`, bench recalibration)
+
+~~16. Verify F56/F57/F58 status (singleflight leader-ctx, turso DSN leak,
     Close() leak) — they were not in my resumed queue; confirm whether an
-    earlier wave shipped them before claiming wave 4 complete.
-17. Harvest this report into TODO_LIST (docs-health discipline).
-18. DuckDB `AggregateReader` real pushdown (TODO_LIST; highest-leverage
-    DuckDB item).
-19. Dgraph engine hardening (`Transactional` or explicit rejection).
-20. `brandedString` extraction decision (record/ or drop).
-21. Per-module CHANGELOG policy decision.
-22. One bench system consolidation (delete redundant harnesses).
+    earlier wave shipped them before claiming wave 4 complete.~~ confirmed — F56 `9541df676` (singleflight), F57 `921147a01` (turso DSN), F58 `9541df676` (Close leaks)
+
+~~17. Harvest this report into TODO_LIST (docs-health discipline).~~ done — TODO_LIST carries the wave-4 release batch + capability/seq-carrying items
+
+~~18. DuckDB `AggregateReader` real pushdown (TODO_LIST; highest-leverage
+    DuckDB item).~~ open — DuckDB AggregateReader pushdown still TODO_LIST-standing
+
+~~19. Dgraph engine hardening (`Transactional` or explicit rejection).~~ open — Dgraph Transactional hardening not done
+
+~~20. `brandedString` extraction decision (record/ or drop).~~ done — extracted as `metadata/ids.go` (`BrandedString`/`ActorString`)
+
+~~21. Per-module CHANGELOG policy decision.~~ done in practice — root CHANGELOG `[2026-08-16 module releases]` carries per-module entries
+
+~~22. One bench system consolidation (delete redundant harnesses).~~ open — benchkit + metaengine/bench + stack/bench all still exist
 
 ## g) QUESTIONS (cannot resolve myself)
 

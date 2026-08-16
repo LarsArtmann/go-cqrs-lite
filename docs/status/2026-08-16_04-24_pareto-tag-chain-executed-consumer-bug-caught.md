@@ -22,6 +22,10 @@ All affected module suites green standalone (decider, command, query, sqliteengi
 
 ### 2. T1 Tag Chain — 20 Tags Created & Pushed (the session's main deliverable)
 
+> Day total: 22 tags + 3 aux submodule tags. Later additions: `storage/v4.7.1` (10:32,
+> retract session), `metaengine/irohengine/loopback/v4.0.0` (09:02),
+> `metaengine/graphadapter/v4.0.0` (22:23), quic aux.
+
 Executed in 4 waves from a **clean git worktree** (`/tmp/cqrs-tagwt`) pinned at HEAD — because TWO concurrent sessions kept the main tree permanently dirty (see §d):
 
 - **Wave 1:** `id/v4.5.0`, `record/v4.3.0`, `metadata/v4.5.0`, `schema/v4.3.0`
@@ -55,16 +59,23 @@ Scratch-consumer verification (`/tmp/proxycheck`: `go mod init` + tidy + build a
 
 ## b) NOT DONE — Honestly Incomplete
 
-1. **Three worktree commits are NOT on master** (only reachable via pushed tags): `d25e8a959` (golden regen), `092b5e8a8` (hardened tag-release.sh + retracts + metadata pins), `4907b6afc` (bench tidy). **Master's `command`/`query` go.mod still pin metadata v4.4.0** — workspace masks it, but any future tag from raw master re-breaks. These need cherry-pick (golden regen may collide with the withactor session's in-flight `docs/api_surface.txt` edits — regen on top of master instead of cherry-picking that one).
-2. **Chain replaces not yet dropped (F1.9)**: system ×6, cqrs-bench ×7, integration ×2, command/query/metadata dev replaces. Now droppable — all targets have real tags.
-3. **Standalone re-verify after replace-drops** — not run.
-4. **F1.3 `nix run .#vulncheck`** — skipped this session (load + time; two sessions were hammering the box).
-5. **F1.10 docs**: TODO_LIST release section not updated; the plan doc §T1 still carries WRONG versions (patch bumps; reality was minor bumps). Not fixed.
-6. **T2–T17 entirely unstarted** in this session (transport final tags, GitHub releases, pin sweep T3, meta-test T4, CI legs T6/T7, v5 cut T12–T15, G6 ADR T16, docs honesty T17).
-7. **Full `#verify` at the final tag point was verify-equivalent, not literal**: verify-fast RED→fixed(system), full verify RED→fixed(golden), then api-stability suite green standalone. I did not re-run the entire full verify once more end-to-end after the golden fix (all other modules were green in the full run and untouched since).
-8. **Two retracted tags (`command/v4.7.0`, `query/v4.6.0`) are permanently on the proxy.** Consumers pinning them explicitly get a warning, not an error.
+~~1. **Three worktree commits are NOT on master** (only reachable via pushed tags): `d25e8a959` (golden regen), `092b5e8a8` (hardened tag-release.sh + retracts + metadata pins), `4907b6afc` (bench tidy). **Master's `command`/`query` go.mod still pin metadata v4.4.0** — workspace masks it, but any future tag from raw master re-breaks. These need cherry-pick (golden regen may collide with the withactor session's in-flight `docs/api_surface.txt` edits — regen on top of master instead of cherry-picking that one).~~ partial — golden regen landed on master via the later session; `092b5e8a8` + `4907b6afc` still off master (verified 2026-08-16); tracked TODO_LIST 🔥
 
----
+~~2. **Chain replaces not yet dropped (F1.9)**: system ×6, cqrs-bench ×7, integration ×2, command/query/metadata dev replaces. Now droppable — all targets have real tags.~~ partial — system ×6 + cqrs-bench dropped; integration (event/middleware/metadata) + command/query/event/middleware dev replaces remain until `metadata/v4.5.1+` ships (TODO_LIST)
+
+~~3. **Standalone re-verify after replace-drops** — not run.~~ open — no standalone re-verify recorded after the partial drops
+
+~~4. **F1.3 `nix run .#vulncheck`** — skipped this session (load + time; two sessions were hammering the box).~~ open — `#vulncheck` still not recorded
+
+~~5. **F1.10 docs**: TODO_LIST release section not updated; the plan doc §T1 still carries WRONG versions (patch bumps; reality was minor bumps). Not fixed.~~ partial — TODO_LIST Release section now records the corrected chain; plan §T1 still carries the pre-classification versions (superseded by TODO_LIST + CHANGELOG truth)
+
+~~6. **T2–T17 entirely unstarted** in this session (transport final tags, GitHub releases, pin sweep T3, meta-test T4, CI legs T6/T7, v5 cut T12–T15, G6 ADR T16, docs honesty T17).~~ partial — T4 pin-drift meta-test shipped (`8961bb6c3`, `pin_drift_test.go`); T2 transport final tags, T3/T5 sweeps, T6/T7 CI legs, T12–T15 v5 cut, G6 ADR remainder, T17 docs honesty still open
+
+~~7. **Full `#verify` at the final tag point was verify-equivalent, not literal**: verify-fast RED→fixed(system), full verify RED→fixed(golden), then api-stability suite green standalone. I did not re-run the entire full verify once more end-to-end after the golden fix (all other modules were green in the full run and untouched since).~~ done — full literal `#verify` GREEN end-to-end (2026-08-16 13:15 run #4)
+
+~~8. **Two retracted tags (`command/v4.7.0`, `query/v4.6.0`) are permanently on the proxy.** Consumers pinning them explicitly get a warning, not an error.
+
+---~~ acknowledged-permanent — retract directives live in the `v4.7.1`/`v4.6.1`/`storage/v4.7.1` trees; landing `092b5e8a8` on master is the remaining remedy
 
 ## c) SURPRISES — Discovered During the Run
 
@@ -120,30 +131,43 @@ Scratch-consumer verification (`/tmp/proxycheck`: `go mod init` + tidy + build a
 4. Whether `git worktree` + `nix develop` leaves the daemon or sessions able to clobber `/tmp/cqrs-tagwt` (it hasn't, but nothing enforces it).
 5. Cleanup: `/tmp/cqrs-tagwt` worktree is still registered (`git worktree list` will show it).
 6. Whether origin's tag push triggered any CI (unknown; tags push objects but CI config on master may not run for tag refs).
-7. The withactor session's `metadata/ids.go` (untracked when I last looked) may rename/change ID APIs → next metadata/event majors.
-8. Whether their asrecord work changes `AsRecord` wire format (Q3 prefix decision still formally unanswered).
+~~7. The withactor session's `metadata/ids.go` (untracked when I last looked) may rename/change ID APIs → next metadata/event majors.~~ resolved — `metadata/ids.go` landed as `BrandedString`/`ActorString`, no renames; unpublished in `metadata/v4.5.0`, wave-4 batch will tag v4.5.1+ (TODO_LIST)
+
+~~8. Whether their asrecord work changes `AsRecord` wire format (Q3 prefix decision still formally unanswered).~~ resolved — no wire-format change; locked by `event/asrecord_test.go:69` (01-33 §h.2)
+
 9. Whether `eventtest` needs a v4.3.0 once their work lands (33 unreleased commits there, currently chore-only).
-10. `storage/sql.MaxParametersForDialect` and `event.ReconstructEventWithMetadata` — committed by perf/withactor sessions; I recorded the exports but did NOT review those APIs.
-11. The scratch consumer imported 8 modules; waves not directly imported: id, record, metadata, schema, duckdbengine(untagged), dgraphengine(untagged), graphadapter(untagged), engines' loopback/quic submodules — their consumer-buildability is unverified (build gate now covers future tags).
+~~10. `storage/sql.MaxParametersForDialect` and `event.ReconstructEventWithMetadata` — committed by perf/withactor sessions; I recorded the exports but did NOT review those APIs.~~ resolved — both documented in skill `references/modules.md`; the adopt-variant `ReconstructEventWithAdoptedPayload` was added on top (`5b8a9a615`)
+
+~~11. The scratch consumer imported 8 modules; waves not directly imported: id, record, metadata, schema, duckdbengine(untagged), dgraphengine(untagged), graphadapter(untagged), engines' loopback/quic submodules — their consumer-buildability is unverified (build gate now covers future tags).~~ partial — graphadapter, loopback, quic now tagged `v4.0.0`; duckdbengine/dgraphengine remain untagged
+
 12. `scheduling/sqlstore`, `system/integration`, `example/metaengine-quickstart` remain NEVER-TAGGED.
 13. Whether `#verify`'s benchkit Duration-aborts flake reappears under the perf session's load (their `954cef1a4` skipped the 8–12m bbolt soak in the gate — good).
 14. `git tag -l` glob-depth trap (my first enumeration script was wrong — glob `*` crosses `/`); a proper release-manifest script should exist.
-15. The api-stability golden on master is STILL stale relative to the withactor session's in-flight API changes (they'll regen when they land).
-16. `GOFLAGS=-tags=goexperiment.jsonv2` comes from the devShell only — the hardened script hardcodes the tag; bare `go test ./...` outside devShell still misleads.
-17. gopls still reports phantom go.work 1.26.5 errors (stale index; `lsp_restart gopls` needed).
+~~15. The api-stability golden on master is STILL stale relative to the withactor session's in-flight API changes (they'll regen when they land).~~ done — golden regen landed; api-stability green (13-15 run #4)
+
+~~16. `GOFLAGS=-tags=goexperiment.jsonv2` comes from the devShell only — the hardened script hardcodes the tag; bare `go test ./...` outside devShell still misleads.~~ known — AGENTS.md Internal Contract #10 documents the `goexperiment.jsonv2` tag requirement
+
+~~17. gopls still reports phantom go.work 1.26.5 errors (stale index; `lsp_restart gopls` needed).~~ known noise — AGENTS.md gopls gotcha; `go build -tags goexperiment.jsonv2` is authoritative
+
 18. The buildflow preflight warns go-licenses/codespell/shellcheck not in PATH (nix develop fallback worked, but the warnings hide real findings).
 19. govulncheck output showed `encryption/errors.go: undefined: event.ErrInnerStoreNot*` — analysis artifact (encryption tests pass in verify) but never root-caused.
-20. `irohengine/loopback` lint failure blocked my first repair commit — their lane, never fixed by me, still failing for them.
-21. BuildFlow auto-fixed 31 projectionhost + 11 deriver findings in the CONCURRENT session's dirty files during my commit attempt — their tree, their call; unreviewed by me.
+~~20. `irohengine/loopback` lint failure blocked my first repair commit — their lane, never fixed by me, still failing for them.~~ done — lint 76/76 GREEN (13-15); the loopback failure is gone
+
+~~21. BuildFlow auto-fixed 31 projectionhost + 11 deriver findings in the CONCURRENT session's dirty files during my commit attempt — their tree, their call; unreviewed by me.~~ moot — the concurrent wave landed (`a1334d8c5` and follow-ups)
+
 22. Whether the withactor session knows `command/query/metadata` go.mod pins changed under them (via my repair commits once landed).
-23. `flake.lock`/`flake.nix` are being edited by the perf session (dirty at last check) — their vendorHash refresh (`dba6f007b` pattern) may be needed for the new go.mod states.
-24. `docs/api_surface.txt` regen on master will conflict with their edits — coordinate or regenerate after they land.
-25. The `metadata.Metadata` generic (v4.5.0) — I never verified event/middleware DON'T also need it at their pinned versions (their scratch builds passed, so empirically fine).
+~~23. `flake.lock`/`flake.nix` are being edited by the perf session (dirty at last check) — their vendorHash refresh (`dba6f007b` pattern) may be needed for the new go.mod states.~~ moot — perf session landed its flake updates; builds green since
+
+~~24. `docs/api_surface.txt` regen on master will conflict with their edits — coordinate or regenerate after they land.~~ moot — regen landed clean on master
+
+~~25. The `metadata.Metadata` generic (v4.5.0) — I never verified event/middleware DON'T also need it at their pinned versions (their scratch builds passed, so empirically fine).~~ done — standalone builds verified again 2026-08-16 (integration `replace metadata` restored after `BrandedString` drift)
+
 26. `watermill/v4.5.0` requires `query/v4 v4.1.0` (indirect) — stale indirect pin, MVS-safe but untidy; sweep territory.
 27. `metaengine/v4.11.0` test-requires sqliteengine v4.0.1 (established circular-test pattern, not fixed by me).
 28. `system` module still untagged (12 unreleased commits) — needs v4.5.0 in the sweep; its 6 replaces are the F1.9 target.
 29. `stack/*` presets all have unreleased commits — none tagged (sweep).
-30. Whether `#check-coverage` and `#check-duplication` still pass at the tag point (not run this session; race-adjacent coverage drift possible from the new tests).
+~~30. Whether `#check-coverage` and `#check-duplication` still pass at the tag point (not run this session; race-adjacent coverage drift possible from the new tests).~~ done — `#check-coverage` + `#check-duplication` EXIT=0 (13-15)
+
 31. The plan's F1.5 asked for GOWORK=off TESTS (not just builds) on engine modules — I ran builds for all 10 + full tests only for sqliteengine; others' test suites ran inside the worktree verify (covered), but not standalone-per-module.
 32. `example/*` modules: 4 with 30–150 unreleased commits, none tagged (intentional, sweep).
 33. `cmd/cqrs-lint` (+82) / `cmd/api-stability` (+66) / `cmd/cqrs-gen` (+18) unreleased — tools, sweep.
@@ -152,17 +176,24 @@ Scratch-consumer verification (`/tmp/proxycheck`: `go mod init` + tidy + build a
 36. Whether retracted-version sumdb entries cause issues for consumers with GONOSUMCHECK unset — GOPRIVATE path again.
 37. Nobody validated `go get github.com/larsartmann/go-cqrs-lite@v4.x` (root module) — root go.mod untouched this session.
 38. `record/v4.3.0` adopted branded IDs in CommonMetadata — downstream `command/query` indirect `record v4.2.0` pins: MVS picks max when both required; direct-only consumers of record get v4.2.0 unless bumped (sweep).
-39. The 3 `example/readme-quickstart` (+31) docs in SKILL.md may reference APIs that changed (doc-check not run this session).
-40. `docs/planning/2026-08-16_03-18_PERF-PARETO-SAFETY-FIRST-EXECUTION.md` — the perf session's plan; overlaps my T3/T5 sweep — coordinate to avoid double-sweeping.
+~~39. The 3 `example/readme-quickstart` (+31) docs in SKILL.md may reference APIs that changed (doc-check not run this session).~~ done — doc-check phase green in the 13-15 verify
+
+~~40. `docs/planning/2026-08-16_03-18_PERF-PARETO-SAFETY-FIRST-EXECUTION.md` — the perf session's plan; overlaps my T3/T5 sweep — coordinate to avoid double-sweeping.~~ partial — T4 meta-test shipped; T3/T5 sweeps still open
+
 41. Their `fde8f9444` "Record/MadrviseHugepage groundwork" touched `record/` — AFTER my record/v4.3.0 tag; fine (next release), but the sweep must not assume record is clean.
-42. Whether `nix run .#test` (testModules list) now covers the two new test files I added — they're in existing modules, so yes.
-43. `TestEveryGoModDirIsInTestModules` / `TestEveryGoModDirIsInModulesList` — unaffected (no new modules).
-44. The `.art-dupl-baseline.json` may need a refresh after my `requestIDOf`/`gateLoadStore` helpers (duplication gate not run).
+~~42. Whether `nix run .#test` (testModules list) now covers the two new test files I added — they're in existing modules, so yes.~~ done — verify green incl. testModules coverage of those files
+
+~~43. `TestEveryGoModDirIsInTestModules` / `TestEveryGoModDirIsInModulesList` — unaffected (no new modules).~~ done — both meta-tests green (no new modules since)
+
+~~44. The `.art-dupl-baseline.json` may need a refresh after my `requestIDOf`/`gateLoadStore` helpers (duplication gate not run).~~ done — duplication drift triaged (12-39/13-15); `#check-duplication` EXIT=0
+
 45. My regression tests use `t.Parallel()` + `time.Sleep(50ms)` gate — benign, but under extreme CI load the 5s timeouts could flake; noted, not hardened.
-46. `sqliteFileDSN` leaves WAL/SHM files in t.TempDir() — auto-cleaned, no action.
+~~46. `sqliteFileDSN` leaves WAL/SHM files in t.TempDir() — auto-cleaned, no action.~~ no action — t.TempDir() auto-cleans (as stated)
+
 47. The hardened script builds but doesn't TEST the stripped module (test-dep drift class remains — e.g. eventtest pinning; accepted risk, sweep covers).
 48. Nobody has confirmed the 20 tag annotations render correctly on GitHub (tag messages set, unviewed).
-49. Origin branch tips: master was pushed by the perf session mid-run — I did NOT push it myself (authorized but unnecessary in the end).
+~~49. Origin branch tips: master was pushed by the perf session mid-run — I did NOT push it myself (authorized but unnecessary in the end).~~ done — origin/master synced and pushed (verified 2026-08-16: local == origin)
+
 50. This report is the session's final action per user instruction — the worktree, scratch dirs, and logs (/tmp/*.log) are left in place for the next session.
 
 ### e.5 SUCCESS CRITERIA (is the job done?)

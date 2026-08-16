@@ -6,8 +6,8 @@ This is a library/SDK. Only the latest release line receives security fixes.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| v3.x    | :white_check_mark: |
-| < v3    | :x:                |
+| v4.x    | :white_check_mark: |
+| < v4    | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -43,3 +43,13 @@ protection.
 - Test-only dependencies (`ginkgo`, `gomega`, `rapid`) are excluded from
   production builds.
 - Per-module dependency budgets are enforced by `nix run .#check-layers`.
+
+## Supply-Chain Notes
+
+- **`metaengine/irohengine/quic`** depends on a third-party fork
+  (`git.coopcloud.tech/decentral1se/iroh-go`) — CGo bindings to Iroh's QUIC
+  stack, not published on the official Go module proxy. This module is
+  **opt-in** and isolated in its own `go.mod` so consumers who never import
+  it are unaffected. Until a canonical upstream module path is available,
+  import only if you understand the supply-chain implications of pulling
+  from a non-proxy Git host.

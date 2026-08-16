@@ -165,133 +165,18 @@ func (e *bboltEngine) StreamVersion(
 	return count, err //nolint:wrapcheck // passthrough
 }
 
-func (e *bboltEngine) JournalReadAll(
-	_ context.Context,
-	col string,
-) ([]any, error) {
-	prefix := journalPrefix(col)
-
-	var result []any
-
-	err := e.db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(bucketName))
-		c := bucket.Cursor()
-
-		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
-			result = append(result, extractJournalValue(cloneBytes(v)))
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
-	}
-
-	if result == nil {
-		result = []any{}
-	}
-
-	return result, nil
-}
-
-func (e *bboltEngine) JournalReadFrom(
-	_ context.Context,
-	col string,
-	afterSeq int64,
-	limit int,
-) ([]any, error) {
-	prefix := journalPrefix(col)
-
-	startKey := journalKey(col, afterSeq+1)
-
-	var result []any
-
-	count := 0
-
-	err := e.db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(bucketName))
-		c := bucket.Cursor()
-
-		for k, v := c.Seek(startKey); k != nil; k, v = c.Next() {
-			if !bytes.HasPrefix(k, prefix) {
-				break
-			}
-
-			if limit > 0 && count >= limit {
-				break
-			}
-
-			result = append(result, extractJournalValue(cloneBytes(v)))
-			count++
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
-	}
-
-	if result == nil {
-		result = []any{}
-	}
-
-	return result, nil
-}
-
-// JournalReadAllWithSeq returns every journal entry with its resume token
-// (the per-collection journal seq embedded in the journal key). Implements
-// metaengine.SeqSeekableStreamLog.
-func (e *bboltEngine) JournalReadAllWithSeq(
-	_ context.Context,
-	col string,
-) ([]metaengine.StreamLogEntry, error) {
-	prefix := journalPrefix(col)
-
-	var result []metaengine.StreamLogEntry
-
-	err := e.db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(bucketName))
-		c := bucket.Cursor()
-
-		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
-			if seq, ok := keycodec.JournalSeq(k); ok {
-				result = append(result, metaengine.StreamLogEntry{
-					Seq:   seq,
-					Value: extractJournalValue(cloneBytes(v)),
-				})
-			}
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
-	}
-
-	if result == nil {
-		result = []metaengine.StreamLogEntry{}
-	}
-
-	return result, nil
-}
-
-// JournalReadFromSeq returns up to limit entries with Seq > afterSeq by
-// seeking journalKey(col, afterSeq+1) — the same O(log n) Cursor.Seek
-// JournalReadFrom performs. Implements metaengine.SeqSeekableStreamLog. The
-// token is read back out of the journal key, so callers resume on true
-// engine seqs.
-func (e *bboltEngine) JournalReadFromSeq(
-	_ context.Context,
+// journalEntries iterates the journal of col strictly after afterSeq (the
+// dense per-collection journal seq — the positional cursor and seq tokens
+// share this key space), up to limit entries (limit <= 0 = all).
+func (e *bboltEngine) journalEntries(
 	col string,
 	afterSeq int64,
 	limit int,
 ) ([]metaengine.StreamLogEntry, error) {
 	prefix := journalPrefix(col)
-
 	startKey := journalKey(col, afterSeq+1)
 
 	var result []metaengine.StreamLogEntry
-
 	count := 0
 
 	err := e.db.View(func(tx *bolt.Tx) error {
@@ -328,6 +213,60 @@ func (e *bboltEngine) JournalReadFromSeq(
 	}
 
 	return result, nil
+}
+
+// entryValues strips the resume tokens, keeping only the values.
+func entryValues(entries []metaengine.StreamLogEntry, err error) ([]any, error) {
+	if err != nil {
+		return nil, err //nolint:wrapcheck // passthrough
+	}
+
+	values := make([]any, len(entries))
+	for i, entry := range entries {
+		values[i] = entry.Value
+	}
+
+	return values, nil
+}
+
+func (e *bboltEngine) JournalReadAll(
+	_ context.Context,
+	col string,
+) ([]any, error) {
+	return entryValues(e.journalEntries(col, 0, 0))
+}
+
+func (e *bboltEngine) JournalReadFrom(
+	_ context.Context,
+	col string,
+	afterSeq int64,
+	limit int,
+) ([]any, error) {
+	return entryValues(e.journalEntries(col, afterSeq, limit))
+}
+
+// JournalReadAllWithSeq returns every journal entry with its resume token
+// (the per-collection journal seq embedded in the journal key). Implements
+// metaengine.SeqSeekableStreamLog.
+func (e *bboltEngine) JournalReadAllWithSeq(
+	_ context.Context,
+	col string,
+) ([]metaengine.StreamLogEntry, error) {
+	return e.journalEntries(col, 0, 0)
+}
+
+// JournalReadFromSeq returns up to limit entries with Seq > afterSeq by
+// seeking journalKey(col, afterSeq+1) — the same O(log n) Cursor.Seek
+// JournalReadFrom performs. Implements metaengine.SeqSeekableStreamLog. The
+// token is read back out of the journal key, so callers resume on true
+// engine seqs.
+func (e *bboltEngine) JournalReadFromSeq(
+	_ context.Context,
+	col string,
+	afterSeq int64,
+	limit int,
+) ([]metaengine.StreamLogEntry, error) {
+	return e.journalEntries(col, afterSeq, limit)
 }
 
 // --- StreamingScan ---

@@ -33,17 +33,22 @@
 
 ## b) PARTIALLY DONE
 
-1. **F12 `#check-coverage` — RED, uninvestigated**: `event` 87.3% (−2.7%) and `query` 84.5% (−5.4%) drifted beyond ±2%. Prime suspect: the asrecord `brandedString`/`actorString` dedup (my prior session) removed covered local helpers from `event/asrecord.go`/`query/asrecord.go` — coverage moved to `metadata/ids.go`, which those modules' own coverage doesn't count. Needs either test backfill in event/query or an honest `--update` re-baseline.
-2. **F50 SQLite durability outside WAL — researched, not implemented**: both call sites found (`stack/sqlite/preset.go:243`, `stack/turso/backend.go:63`); root cause identified — `ApplySQLiteDurability`'s `Normal` early-return comment is WAL-specific ("NORMAL is already set by SQLiteEnableWAL"), and the whole tier application is nested under `if cfg.WAL`. Fix shape: apply tier unconditionally (drop the Normal early-return for non-WAL or make the helper WAL-aware) + a `Relaxed ≠ FULL` test. Interrupted by this status request.
-3. **F51/F52 — researched only**: `encodeEvent`'s ignored error cannot propagate through `AdapterCore.Encode func(T) string` (ADR-0126 core constraint) → plan-sanctioned "explicit discard w/ comment + safe fallback" is the design; ScanSlice pre-size is `make([]T, 0, 64)` at `storage/sql/reconstruction.go:48`.
+~~1. **F12 `#check-coverage` — RED, uninvestigated**: `event` 87.3% (−2.7%) and `query` 84.5% (−5.4%) drifted beyond ±2%. Prime suspect: the asrecord `brandedString`/`actorString` dedup (my prior session) removed covered local helpers from `event/asrecord.go`/`query/asrecord.go` — coverage moved to `metadata/ids.go`, which those modules' own coverage doesn't count. Needs either test backfill in event/query or an honest `--update` re-baseline.~~ done — `#check-coverage` EXIT=0 (13-15 gate)
 
----
+~~2. **F50 SQLite durability outside WAL — researched, not implemented**: both call sites found (`stack/sqlite/preset.go:243`, `stack/turso/backend.go:63`); root cause identified — `ApplySQLiteDurability`'s `Normal` early-return comment is WAL-specific ("NORMAL is already set by SQLiteEnableWAL"), and the whole tier application is nested under `if cfg.WAL`. Fix shape: apply tier unconditionally (drop the Normal early-return for non-WAL or make the helper WAL-aware) + a `Relaxed ≠ FULL` test. Interrupted by this status request.~~ done — durability de-nested from `if cfg.WAL`; `WithoutWAL` + `RelaxedWithoutWAL` tests (TODO_LIST DONE 2026-08-16)
+
+~~3. **F51/F52 — researched only**: `encodeEvent`'s ignored error cannot propagate through `AdapterCore.Encode func(T) string` (ADR-0126 core constraint) → plan-sanctioned "explicit discard w/ comment + safe fallback" is the design; ScanSlice pre-size is `make([]T, 0, 64)` at `storage/sql/reconstruction.go:48`.
+
+---~~ partial — F51 shipped (explicit nil-fallback, ADR-0126 rationale in-code); F52 ScanSlice pre-size still open
 
 ## c) NOT STARTED (Wave 4 remainder + standing)
 
-- F41 bbolt deserialize bench · F42-F43 payload adopt-variant · F44-F45 idempotencyTracker bound · F46 go-codec sniff (external PR) · F47 benchstat baselines @-cpu=16,32 · F48-F49 measure-then-pad candidates
-- F53 pin-drift meta-test · F54 system/integration DuckDB standalone · F55 DecorateJournal · F59 seq-carrying journal reads · F60 capability conformance skeleton
-- Standing TODO_LIST sections untouched: cqrs-lint (4), WithActor Hardening (3), Metaengine Phase 6b/7 (22), v5 Unification, Docs Honesty
+~~- F41 bbolt deserialize bench · F42-F43 payload adopt-variant · F44-F45 idempotencyTracker bound · F46 go-codec sniff (external PR) · F47 benchstat baselines @-cpu=16,32 · F48-F49 measure-then-pad candidates~~ partial — everything shipped except F41 (bbolt deserialize bench); F42-F43 done in-tree but release-blocked on the event re-tag (see 04-00 f.28-46 for per-item verdicts)
+
+~~- F53 pin-drift meta-test · F54 system/integration DuckDB standalone · F55 DecorateJournal · F59 seq-carrying journal reads · F60 capability conformance skeleton~~ partial — cqrs-lint wishlist shipped 2026-08-16 (`47692f8d0`); WithActor/Metaengine/v5/Docs sections still standing in TODO_LIST
+
+~~- Standing TODO_LIST sections untouched: cqrs-lint (4), WithActor Hardening (3), Metaengine Phase 6b/7 (22), v5 Unification, Docs Honesty~~ partial — replace-drop half done (system ×6, cqrs-bench); the 3 stranded worktree commits are STILL off master (verified 2026-08-16, TODO_LIST 🔥); T2 GitHub Releases not done
+
 - From the OTHER session's report §b (their lane, listed for visibility): 3 worktree commits to cherry-pick to master (retracts + hardened tag script + metadata pins — **release-critical**, master's command/query still pin metadata v4.4.0), replace-drop sweep, T2 GitHub Releases.
 
 ---
@@ -71,74 +76,123 @@
 
 **Close the open gates (do first):**
 
-1. Investigate + close coverage drift: backfill event/query tests for asrecord paths OR `bash scripts/check-coverage.sh --update` re-baseline (+ AGENTS.md line) — decide honestly which.
-2. `nix run .#verify` (full, incl. race) once — verify-fast covered tests+lint; full adds race + doc-assertions.
-3. `nix run .#check-duplication` — new `writeTx` triplication (storeBase/KVAdapter/bboltBatch) may trip the clone gate; if so, consolidate or baseline.
+~~1. Investigate + close coverage drift: backfill event/query tests for asrecord paths OR `bash scripts/check-coverage.sh --update` re-baseline (+ AGENTS.md line) — decide honestly which.~~ done — `#check-coverage` EXIT=0 (13-15)
 
-**Ship the tags (consumer-reachability):**
-4. Tag `storage/bbolt v4.7.0` (WithBatchCommit + constructors), `metaengine/pgengine v4.1.1` (COPY + batching), `stack/pebble v4.x` (knobs) via the hardened `scripts/tag-release.sh` (includes standalone-build gate).
-5. Cherry-pick the other session's 3 stranded worktree commits (`092b5e8a8` retracts+script, `4907b6afc` bench tidy) — release-critical, master go.mods still pin metadata v4.4.0.
-6. Replace-drop sweep (system ×6, cqrs-bench ×7, integration ×2) now all targets are tagged; GOWORK=off re-verify each.
+~~2. `nix run .#verify` (full, incl. race) once — verify-fast covered tests+lint; full adds race + doc-assertions.~~ done — full `#verify` GREEN (13-15 run #4)
 
-**Wave 4 quick wins (XS-S, no design):**
-7. F50 SQLite durability outside WAL (design already settled — §b.2) + Relaxed≠FULL test.
-8. F51 `encodeEvent` explicit-discard comment + safe fallback (`Metadata: metaJSON` stays nil-JSON on marshal error).
-9. F52 ScanSlice `RowCount()` pre-size when available + Custom map size hints.
-10. F41 bbolt deserialize benchmark (mirror pebble's; convert extrapolated claim to measured).
-11. F22/F51-class: grep repo for remaining `metaJSON, _ :=` patterns.
-12. F47 benchstat baselines for BatchInsert/COPY/deserialize benches; contention pass @-cpu=16,32.
-13. F48 measure worker-counter false sharing @32P; record decision either way (TODO says single-writer → likely NO pad).
-14. F49 same for multiSeqCounter + SSEReplay.seq.
+~~3. `nix run .#check-duplication` — new `writeTx` triplication (storeBase/KVAdapter/bboltBatch) may trip the clone gate; if so, consolidate or baseline.
 
-**Wave 4 medium:**
-15. F44-F45 idempotencyTracker TTL/ring bound + 1M-ID memory test.
-16. F42-F43 payload adopt-variant (`reconstructEventAdopt` unexported, equivalence + race tests, wire pebble+bbolt).
-17. F53 pin-drift meta-test (required-vs-latest tags, fail on staleness).
-18. F55 `DecorateJournal` for VersionedSeekableJournal (ADR-0126 completion).
-19. F54 system/integration DuckDB standalone (replace directive or driver guard).
-20. F59 seq-carrying journal reads design (`StreamLogEntry{Seq,Value}`).
-21. F60 capability conformance skeleton (declared vs implemented table).
-22. F46 go-codec `UnwrapDecode` first-byte sniff (external PR; verify-external-claims first).
-23. api-stability: fail on parse-skip (§e.2).
-24. BuildFlow: `gofmt -l` staged-Go syntax gate (§e.1).
-25. AGENTS.md: document `golangci-lint fmt` as THE formatter (§e.3).
+**Ship the tags (consumer-reachability):**~~ done — `#check-duplication` EXIT=0 (13-15)
 
-**Benchmarks/observability:**
-26. benchkit phase for bbolt WithBatchCommit (group-commit scaling curve vs writer count).
-27. benchkit phase for pgengine COPY (insert-vs-copy crossover table into BENCHMARKS.md).
-28. benchstat files committed under `benchmarks/` for the 5 ledger paths.
-29. BENCHMARKS.md: add CI check that every ledger-named benchmark still exists (doc-drift guard).
+~~4. Tag `storage/bbolt v4.7.0` (WithBatchCommit + constructors), `metaengine/pgengine v4.1.1` (COPY + batching), `stack/pebble v4.x` (knobs) via the hardened `scripts/tag-release.sh` (includes standalone-build gate).~~ partial — `stack/pebble` tagged through `v4.3.0`; `storage/bbolt` (WithBatchCommit) and `pgengine v4.1.1` (COPY) tags NOT cut — bbolt is blocked on the event re-tag 🔥
 
-**Docs honesty:**
-30. Correct plan doc §T1 version numbers (other session's F1.10).
-31. CHANGELOG: retract incident entry + SKILL FAQ recipe (their §g Q1, default T17).
-32. TODO_LIST: prune `Session verification gap` item (closed by this session's gates, modulo coverage decision).
-33. modules.md: bbolt row already added — verify pgengine/pebble rows render in SKILL.md ToC checks.
+~~5. Cherry-pick the other session's 3 stranded worktree commits (`092b5e8a8` retracts+script, `4907b6afc` bench tidy) — release-critical, master go.mods still pin metadata v4.4.0.~~ open — `092b5e8a8`/`4907b6afc` still off master (TODO_LIST 🔥)
 
-**Test-debt:**
-34. `kv.Cache` shared `*T` defect (open in defect sweep).
-35. TypedQueryStore hardcoded JSON decode (`query/typed.go`).
-36. Ghost `event.ErrBinaryNotFound` — document or delete.
-37. Fuzz `ValidateIdentifier` vs sqlite/pg/mysql metacharacter sets.
-38. Golden-safety: api-stability meta-test that export COUNT never drops >N% in one regen (corruption tripwire).
+~~6. Replace-drop sweep (system ×6, cqrs-bench ×7, integration ×2) now all targets are tagged; GOWORK=off re-verify each.
 
-**Metaengine:**
-39. Phase 6b layout remainder (22 items — see TODO_LIST).
-40. Live-latency: export COPY-aware costs for StreamAppend (planner should know COPY changed write costs).
-41. `metaengine/bench` go.mod tidy drift (their §b.3).
-42. Dgraph/DuckDB/Turso engine gaps (standing).
+**Wave 4 quick wins (XS-S, no design):**~~ partial — system ×6 + cqrs-bench dropped; integration/event/middleware/metadata replaces remain until `metadata/v4.5.1+`
 
-**Release/infra:**
-43. T2: GitHub Releases ×20 tags (needs `gh` auth check).
-44. CI leg for GOWORK=off leaf-module standalone builds.
-45. `#verify-standalone` nix app decision.
-46. Check how long CI Benchmarks job has been red (`gh run list`).
-47. Cleanup `/tmp/cqrs-tagwt` worktree registration.
-48. `stack/*` presets sweep-tag (all have unreleased commits).
-49. `system` module v4.5.0 tag (12 unreleased commits, 6 replaces to drop first).
-50. v5 cut planning (transport/* final tags, deprecated-shell deletions).
+~~7. F50 SQLite durability outside WAL (design already settled — §b.2) + Relaxed≠FULL test.~~ done — TODO_LIST DONE entry with tests
 
----
+~~8. F51 `encodeEvent` explicit-discard comment + safe fallback (`Metadata: metaJSON` stays nil-JSON on marshal error).~~ done — explicit discard + nil-JSON fallback documented in adapter_event_serial.go
+
+~~9. F52 ScanSlice `RowCount()` pre-size when available + Custom map size hints.~~ open — ScanSlice still cap-64
+
+~~10. F41 bbolt deserialize benchmark (mirror pebble's; convert extrapolated claim to measured).~~ open — bbolt deserialize benchmark still missing
+
+~~11. F22/F51-class: grep repo for remaining `metaJSON, _ :=` patterns.~~ open — two `metaJSON, _ :=` sites remain (`system/adapter_command_serial.go:26`, `adapter_query_serial.go:24`)
+
+~~12. F47 benchstat baselines for BatchInsert/COPY/deserialize benches; contention pass @-cpu=16,32.~~ done — benchstat in benchkit + `-cpu 4,8,16,32` ledger entries
+
+~~13. F48 measure worker-counter false sharing @32P; record decision either way (TODO says single-writer → likely NO pad).~~ done — NO PAD decision measured + recorded (BENCHMARKS.md:35)
+
+~~14. F49 same for multiSeqCounter + SSEReplay.seq.
+
+**Wave 4 medium:**~~ done — multiSeqCounter padded; SSEReplay NO PAD (BENCHMARKS.md:34,36)
+
+~~15. F44-F45 idempotencyTracker TTL/ring bound + 1M-ID memory test.~~ done — capacity-bounded tracker + memory test (`idempotency_tracker_test.go`)
+
+~~16. F42-F43 payload adopt-variant (`reconstructEventAdopt` unexported, equivalence + race tests, wire pebble+bbolt).~~ done in-tree, release-blocked — `ReconstructEventWithAdoptedPayload` shipped (`5b8a9a615`) but missed `event/v4.7.0`; pebble/bbolt standalone RED until re-tag
+
+~~17. F53 pin-drift meta-test (required-vs-latest tags, fail on staleness).~~ done — `8961bb6c3` + `cmd/api-stability/pin_drift_test.go`
+
+~~18. F55 `DecorateJournal` for VersionedSeekableJournal (ADR-0126 completion).~~ done — `ca64b3517` `event.DecorateJournal` (ADR-0126)
+
+~~19. F54 system/integration DuckDB standalone (replace directive or driver guard).~~ done — system no longer imports stack/duckdb (driver string only)
+
+~~20. F59 seq-carrying journal reads design (`StreamLogEntry{Seq,Value}`).~~ done — `a1334d8c5` seq-carrying reads; flipped IMPLEMENTED (`f2bbf4621`)
+
+~~21. F60 capability conformance skeleton (declared vs implemented table).~~ done — `30711eb79b` capability audit + conformance skeleton (09-13)
+
+~~22. F46 go-codec `UnwrapDecode` first-byte sniff (external PR; verify-external-claims first).~~ done — go-codec `autodetect.go` first-byte sniff
+
+~~23. api-stability: fail on parse-skip (§e.2).~~ open — TODO_LIST "api-stability: fail loudly on parse-skip"
+
+~~24. BuildFlow: `gofmt -l` staged-Go syntax gate (§e.1).~~ open — TODO_LIST "BuildFlow pre-commit: gofmt -l syntax gate"
+
+~~25. AGENTS.md: document `golangci-lint fmt` as THE formatter (§e.3).
+
+**Benchmarks/observability:**~~ open — AGENTS.md documents `nix fmt`/gofumpt, not `golangci-lint fmt` as THE formatter
+
+~~26. benchkit phase for bbolt WithBatchCommit (group-commit scaling curve vs writer count).~~ done — bbolt concurrent-writers group-commit row in BENCHMARKS.md:18
+
+~~27. benchkit phase for pgengine COPY (insert-vs-copy crossover table into BENCHMARKS.md).~~ done — COPY crossover numbers in BENCHMARKS.md:17 (1.41x @10k, 1.49x @100k)
+
+~~28. benchstat files committed under `benchmarks/` for the 5 ledger paths.~~ partial — benchstat wiring exists in benchkit; committed baseline files under `benchmarks/` not verified
+
+~~29. BENCHMARKS.md: add CI check that every ledger-named benchmark still exists (doc-drift guard).
+
+**Docs honesty:**~~ open — no CI ledger-existence check
+
+~~30. Correct plan doc §T1 version numbers (other session's F1.10).~~ open — plan §T1 left as-written; superseded by TODO_LIST Release section + CHANGELOG
+
+~~31. CHANGELOG: retract incident entry + SKILL FAQ recipe (their §g Q1, default T17).~~ partial — CHANGELOG documents the retract incident (`[2026-08-16 module releases]`); SKILL FAQ retract recipe not added
+
+~~32. TODO_LIST: prune `Session verification gap` item (closed by this session's gates, modulo coverage decision).~~ done — item pruned from TODO_LIST
+
+~~33. modules.md: bbolt row already added — verify pgengine/pebble rows render in SKILL.md ToC checks.
+
+**Test-debt:**~~ done — modules.md rows present; doc-check green (13-15)
+
+~~34. `kv.Cache` shared `*T` defect (open in defect sweep).~~ open — `kv.Cache` still caches shared `*T` (kv/cache.go:33)
+
+~~35. TypedQueryStore hardcoded JSON decode (`query/typed.go`).~~ open — tracked TODO_LIST (query/typed.go hardcoded JSON)
+
+~~36. Ghost `event.ErrBinaryNotFound` — document or delete.~~ open — tracked TODO_LIST (document or delete ErrBinaryNotFound)
+
+~~37. Fuzz `ValidateIdentifier` vs sqlite/pg/mysql metacharacter sets.~~ open — no ValidateIdentifier fuzz tests
+
+~~38. Golden-safety: api-stability meta-test that export COUNT never drops >N% in one regen (corruption tripwire).
+
+**Metaengine:**~~ open — no export-count-drop tripwire meta-test
+
+~~39. Phase 6b layout remainder (22 items — see TODO_LIST).~~ open — standing TODO_LIST section
+
+~~40. Live-latency: export COPY-aware costs for StreamAppend (planner should know COPY changed write costs).~~ open — planner costs do not model COPY (no COPY refs in cost/profile)
+
+~~41. `metaengine/bench` go.mod tidy drift (their §b.3).~~ done — metaengine/bench go.mod retidied with the 2026-08-16 bench recalibration commits
+
+~~42. Dgraph/DuckDB/Turso engine gaps (standing).
+
+**Release/infra:**~~ open — standing engine gaps
+
+~~43. T2: GitHub Releases ×20 tags (needs `gh` auth check).~~ open — GitHub Releases never created
+
+~~44. CI leg for GOWORK=off leaf-module standalone builds.~~ open — no GOWORK=off CI leg
+
+~~45. `#verify-standalone` nix app decision.~~ open — no `#verify-standalone` app
+
+~~46. Check how long CI Benchmarks job has been red (`gh run list`).~~ open — CI Benchmarks job state unverified
+
+~~47. Cleanup `/tmp/cqrs-tagwt` worktree registration.~~ open — `/tmp/cqrs-tagwt` worktree STILL registered (verified 2026-08-16)
+
+~~48. `stack/*` presets sweep-tag (all have unreleased commits).~~ open — stack presets untagged (sweep)
+
+~~49. `system` module v4.5.0 tag (12 unreleased commits, 6 replaces to drop first).~~ open — `system` never tagged
+
+~~50. v5 cut planning (transport/* final tags, deprecated-shell deletions).
+
+---~~ open — 2026-08-09 v5 plans exist; the newer v5 endgame plan sits in a stash, not on master
 
 ## g) QUESTIONS (cannot figure out myself)
 

@@ -68,7 +68,7 @@ jobs:
             | sort)
           for mod in $MODULES; do
             echo "::group::govulncheck $mod"
-            (cd "$mod" && GOWORK=off govulncheck ./... 2>/dev/null || echo "WARN: govulncheck skipped for $mod")
+            (cd "$mod" && GOWORK=off govulncheck ./...)
             echo "::endgroup::"
           done
 

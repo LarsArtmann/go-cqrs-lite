@@ -84,4 +84,14 @@
 
 ---
 
-**Session verdict:** 3 of 6 wishlist/TODO items fully shipped with tests (E005, monetary C008, health transparency), 1 structurally improved (stale-default), 1 designed-not-built (`--doctor --fix`), 1 verified-stale (per-module tests). Verification debt: module suite re-run, api-stability golden, fmt, docs — all queued in f.
+**Mid-flight verdict (at time of writing):** 3 of 6 wishlist/TODO items fully shipped with tests (E005, monetary C008, health transparency), 1 structurally improved (stale-default), 1 designed-not-built (`--doctor --fix`), 1 verified-stale (per-module tests). Verification debt: module suite re-run, api-stability golden, fmt, docs — all queued in f.
+
+## h) RESOLUTION ADDENDUM (same session, resumed 2026-08-16)
+
+All three questions resolved autonomously; all remaining items shipped:
+
+1. **Fix blast radius → stale whole-line only.** Unknown-rule directives stay manual (may be typos the user wants to correct, not delete). Shipped in `pkg/suppression/fix.go` (`RemoveStaleInlineSuppressions` + `FixResult`), wired via `doctor --fix` (implies `--audit-suppressions`). E2E-verified against a real fixture: whole-line stale directives removed, trailing-on-code preserved + listed as "left in place … remove manually". 8 fixer tests + 3 render/wiring tests.
+2. **`--fail-on-stale-suppressions` stays opt-in.** Warnings are now format-independent (stderr, every format; `--quiet` still silences) — visibility fixed without breaking CI exit contracts. Regression-tested for text/json/sarif/csv + quiet.
+3. **S006 wired to `monetary: off` → detector skips entirely** (premise void for a declared non-monetary project; mirrors the encryption-import guard, same trust model as C008). `on`/`unknown` are no-ops for S006 — its tiers already escalate from lexical evidence. Test: `TestS006_MonetaryOffConfigSkipsDetector`.
+
+Also completed this continuation: stale-warning format-independence tests, api-stability golden regen (+18 exports, all from the in-flight metaengine stream-log family — cmd modules track only their root package), TODO_LIST/CHANGELOG/README/feedback-review doc updates, `ToConfigFeatures` Monetary assertions, golines tag-alignment fix in `doctorFlags`, three mechanical lint fixes in the in-flight tree (`system/adapter_core.go` nolintlint, `metaengine/bench` gci, `metaengine/sqliteengine` perfsprint), and the art-dupl baseline regen (99 → 111 groups — the committed cross-engine `SeqSeekableStreamLog`/`JournalReadFromSeq` family is the documented structural shift, AGENTS contract #14).

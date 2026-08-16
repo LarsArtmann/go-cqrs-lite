@@ -94,149 +94,27 @@ func (e *pebbleEngine) StreamVersion(_ context.Context, col, sid string) (int64,
 	return n, nil
 }
 
-func (e *pebbleEngine) JournalReadAll(_ context.Context, col string) ([]any, error) {
-	iter, err := e.newPrefixIter(journalPrefix(col))
-	if err != nil {
-		return nil, fmt.Errorf("pebbleengine.JournalReadAll: %w", err)
-	}
-
-	defer metaengine.DeferClose(iter)
-
-	var result []any
-
-	for iter.First(); iter.Valid(); iter.Next() {
-		// Journal entries are stored as "streamID\x00value".
-		// Extract the value part.
-		raw := iter.Value()
-		idx := bytes.Index(raw, []byte(sep))
-		if idx >= 0 {
-			result = append(result, decodeJSON(raw[idx+1:]))
-		} else {
-			result = append(result, decodeJSON(raw))
-		}
-	}
-
-	if err := iter.Error(); err != nil {
-		return nil, fmt.Errorf("pebbleengine.JournalReadAll iter: %w", err)
-	}
-
-	if result == nil {
-		result = []any{}
-	}
-
-	return result, nil
-}
-
-func (e *pebbleEngine) JournalReadFrom(
-	_ context.Context,
+// journalEntries iterates the journal of col strictly after afterSeq (the
+// dense per-collection journal seq — the positional cursor and seq tokens
+// share this key space), up to limit entries (limit <= 0 = all).
+func (e *pebbleEngine) journalEntries(
 	col string,
 	afterSeq int64,
 	limit int,
-) ([]any, error) {
-	upperBound := nextKey(journalPrefix(col))
-
-	// LowerBound is exclusive of afterSeq: start at afterSeq+1.
-	startKey := journalKey(col, afterSeq+1)
-
+) ([]metaengine.StreamLogEntry, error) {
 	iter, err := e.db.NewIter(&pebble.IterOptions{
-		LowerBound: startKey,
-		UpperBound: upperBound,
+		// LowerBound is exclusive of afterSeq: start at afterSeq+1.
+		LowerBound: journalKey(col, afterSeq+1),
+		UpperBound: nextKey(journalPrefix(col)),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("pebbleengine.JournalReadFrom: %w", err)
-	}
-
-	defer metaengine.DeferClose(iter)
-
-	var result []any
-	count := 0
-
-	for iter.First(); iter.Valid(); iter.Next() {
-		if limit > 0 && count >= limit {
-			break
-		}
-
-		raw := iter.Value()
-		idx := bytes.Index(raw, []byte(sep))
-		if idx >= 0 {
-			result = append(result, decodeJSON(raw[idx+1:]))
-		} else {
-			result = append(result, decodeJSON(raw))
-		}
-
-		count++
-	}
-
-	if err := iter.Error(); err != nil {
-		return nil, fmt.Errorf("pebbleengine.JournalReadFrom iter: %w", err)
-	}
-
-	if result == nil {
-		result = []any{}
-	}
-
-	return result, nil
-}
-
-// JournalReadAllWithSeq returns every journal entry with its resume token
-// (the per-collection journal seq embedded in the journal key). Implements
-// metaengine.SeqSeekableStreamLog.
-func (e *pebbleEngine) JournalReadAllWithSeq(
-	_ context.Context,
-	col string,
-) ([]metaengine.StreamLogEntry, error) {
-	iter, err := e.newPrefixIter(journalPrefix(col))
-	if err != nil {
-		return nil, fmt.Errorf("pebbleengine.JournalReadAllWithSeq: %w", err)
+		return nil, fmt.Errorf("pebbleengine.journalEntries: %w", err)
 	}
 
 	defer metaengine.DeferClose(iter)
 
 	var result []metaengine.StreamLogEntry
 
-	for iter.First(); iter.Valid(); iter.Next() {
-		if entry, ok := journalEntryFromKey(iter.Key(), iter.Value()); ok {
-			result = append(result, entry)
-		}
-	}
-
-	if err := iter.Error(); err != nil {
-		return nil, fmt.Errorf("pebbleengine.JournalReadAllWithSeq iter: %w", err)
-	}
-
-	if result == nil {
-		result = []metaengine.StreamLogEntry{}
-	}
-
-	return result, nil
-}
-
-// JournalReadFromSeq returns up to limit entries with Seq > afterSeq by
-// seeking journalKey(col, afterSeq+1) — the same O(log n) seek JournalReadFrom
-// performs. Implements metaengine.SeqSeekableStreamLog. The token is read back
-// out of the journal key, so callers resume on true engine seqs.
-func (e *pebbleEngine) JournalReadFromSeq(
-	_ context.Context,
-	col string,
-	afterSeq int64,
-	limit int,
-) ([]metaengine.StreamLogEntry, error) {
-	upperBound := nextKey(journalPrefix(col))
-
-	// LowerBound is exclusive of afterSeq: start at afterSeq+1.
-	startKey := journalKey(col, afterSeq+1)
-
-	iter, err := e.db.NewIter(&pebble.IterOptions{
-		LowerBound: startKey,
-		UpperBound: upperBound,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("pebbleengine.JournalReadFromSeq: %w", err)
-	}
-
-	defer metaengine.DeferClose(iter)
-
-	var result []metaengine.StreamLogEntry
 	count := 0
 
 	for iter.First(); iter.Valid(); iter.Next() {
@@ -251,7 +129,7 @@ func (e *pebbleEngine) JournalReadFromSeq(
 	}
 
 	if err := iter.Error(); err != nil {
-		return nil, fmt.Errorf("pebbleengine.JournalReadFromSeq iter: %w", err)
+		return nil, fmt.Errorf("pebbleengine.journalEntries iter: %w", err)
 	}
 
 	if result == nil {
@@ -259,6 +137,56 @@ func (e *pebbleEngine) JournalReadFromSeq(
 	}
 
 	return result, nil
+}
+
+// entryValues strips the resume tokens, keeping only the values.
+func entryValues(entries []metaengine.StreamLogEntry, err error) ([]any, error) {
+	if err != nil {
+		return nil, err //nolint:wrapcheck // passthrough
+	}
+
+	values := make([]any, len(entries))
+	for i, entry := range entries {
+		values[i] = entry.Value
+	}
+
+	return values, nil
+}
+
+func (e *pebbleEngine) JournalReadAll(_ context.Context, col string) ([]any, error) {
+	return entryValues(e.journalEntries(col, 0, 0))
+}
+
+func (e *pebbleEngine) JournalReadFrom(
+	_ context.Context,
+	col string,
+	afterSeq int64,
+	limit int,
+) ([]any, error) {
+	return entryValues(e.journalEntries(col, afterSeq, limit))
+}
+
+// JournalReadAllWithSeq returns every journal entry with its resume token
+// (the per-collection journal seq embedded in the journal key). Implements
+// metaengine.SeqSeekableStreamLog.
+func (e *pebbleEngine) JournalReadAllWithSeq(
+	_ context.Context,
+	col string,
+) ([]metaengine.StreamLogEntry, error) {
+	return e.journalEntries(col, 0, 0)
+}
+
+// JournalReadFromSeq returns up to limit entries with Seq > afterSeq by
+// seeking journalKey(col, afterSeq+1) — the same O(log n) seek JournalReadFrom
+// performs. Implements metaengine.SeqSeekableStreamLog. The token is read back
+// out of the journal key, so callers resume on true engine seqs.
+func (e *pebbleEngine) JournalReadFromSeq(
+	_ context.Context,
+	col string,
+	afterSeq int64,
+	limit int,
+) ([]metaengine.StreamLogEntry, error) {
+	return e.journalEntries(col, afterSeq, limit)
 }
 
 // journalEntryFromKey builds a StreamLogEntry from a journal key and its raw

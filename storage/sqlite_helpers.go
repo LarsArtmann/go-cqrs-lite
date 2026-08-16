@@ -2,7 +2,9 @@ package storage
 
 import (
 	"context"
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"strings"
@@ -43,20 +45,27 @@ func OpenSQLite(dbPath string) (*sql.DB, error) {
 	return db, nil
 }
 
-// OpenSQLiteInMemory returns an isolated in-memory SQLite database. The pool
-// is pinned to a single connection: modernc.org/sqlite gives every pooled
-// connection to "file::memory:" its own private, empty database, so without
-// the pin any query that overlaps another connection's lifetime (e.g. a
-// background scheduler polling while a transaction is open) lands on a fresh
-// database with no schema — surfacing as flaky "no such table" errors.
-// Callers serialize on the one connection, which is correct and fast enough
-// for test-sized workloads.
+// OpenSQLiteInMemory returns an isolated in-memory SQLite database. Each call
+// generates a unique shared-cache DSN (file:<random>?mode=memory&cache=shared)
+// so that all pooled connections within one DB share the same in-memory schema.
+// modernc.org/sqlite gives every pooled connection to "file::memory:" its own
+// private, empty database; the named shared-cache DSN avoids that pitfall
+// without pinning the pool to a single connection, allowing read concurrency.
 func OpenSQLiteInMemory() (*sql.DB, error) {
-	db, err := OpenSQLite("file::memory:")
+	var buf [8]byte
+	if _, err := rand.Read(buf[:]); err != nil {
+		return nil, errorfamily.WrapInfrastructure(
+			err,
+			"storage.open_sqlite_in_memory",
+			"generate random DSN suffix",
+		)
+	}
+	name := "mem-" + hex.EncodeToString(buf[:])
+	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared&_loc=auto&_time_format=sqlite", name)
+	db, err := OpenSQLite(dsn)
 	if err != nil {
 		return nil, err
 	}
-	ConfigureSQLitePool(db)
 	return db, nil
 }
 
