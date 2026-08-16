@@ -35,6 +35,63 @@ func TestStreamRef_SplitInvalid(t *testing.T) {
 	}
 }
 
+func TestStreamRef_SplitLeadingSlash(t *testing.T) {
+	t.Parallel()
+
+	// Leading slash = empty stream type → invalid.
+	streamType, entityID := record.StreamRef("/01JTEST").Split()
+	if streamType != "" || entityID != "" {
+		t.Errorf("Split() on leading-slash ref = (%q, %q), want (\"\", \"\")", streamType, entityID)
+	}
+}
+
+func TestStreamRef_SplitTrailingSlash(t *testing.T) {
+	t.Parallel()
+
+	// Trailing slash = empty entity ID → invalid.
+	streamType, entityID := record.StreamRef("User/").Split()
+	if streamType != "" || entityID != "" {
+		t.Errorf(
+			"Split() on trailing-slash ref = (%q, %q), want (\"\", \"\")",
+			streamType,
+			entityID,
+		)
+	}
+}
+
+func TestStreamRef_Validate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		ref     record.StreamRef
+		wantErr bool
+	}{
+		{record.NewStreamRef("User", "01JTEST"), false},
+		{
+			record.NewStreamRef("", "01JTEST"),
+			false,
+		}, // empty streamType allowed (command/query pattern)
+		{record.StreamRef("no-slash"), true}, // missing separator
+		{
+			record.StreamRef("/01JTEST"),
+			false,
+		}, // empty streamType but entityID present → valid
+		{record.StreamRef("User/"), true}, // empty entityID → invalid
+		{record.StreamRef(""), true},      // completely empty → invalid
+	}
+
+	for _, tt := range tests {
+		err := tt.ref.Validate()
+		if tt.wantErr && err == nil {
+			t.Errorf("Validate(%q) = nil, want error", tt.ref)
+		}
+
+		if !tt.wantErr && err != nil {
+			t.Errorf("Validate(%q) = %v, want nil", tt.ref, err)
+		}
+	}
+}
+
 func TestRecord_JSONRoundTrip(t *testing.T) {
 	t.Parallel()
 

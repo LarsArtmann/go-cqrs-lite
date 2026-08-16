@@ -147,17 +147,17 @@ clean tree).~~ Chain later executed 04:12–04:24 — all 22 tags + 3 aux (graph
 ~~5. Tag `metaengine` **v4.11.0**.~~ done — `metaengine/v4.11.0`
 
 ~~6. Bump engine requires → tag `sqliteengine`/`pebbleengine`/`pgengine` **v4.1.0**,
-   `badgerengine` **v4.0.2**.~~ done — sqlite/pebble/pg `v4.1.0` + `badgerengine/v4.0.2`
+`badgerengine` **v4.0.2**.~~ done — sqlite/pebble/pg `v4.1.0` + `badgerengine/v4.0.2`
 
 ~~7. Tag `watermill` **v4.5.0**.~~ done — `watermill/v4.5.0`
 
 ~~8. First releases (pending Q2): `mysqlengine` v4.0.0, `bboltengine` v4.0.0 (un-poisons bench's
-   pseudo-version), `tursoengine` v4.0.0, `irohengine` v4.0.0; verify graphadapter/loopback/quic.~~ done — all four `v4.0.0` first releases tagged; graphadapter, loopback, quic also `v4.0.0`
+pseudo-version), `tursoengine` v4.0.0, `irohengine` v4.0.0; verify graphadapter/loopback/quic.~~ done — all four `v4.0.0` first releases tagged; graphadapter, loopback, quic also `v4.0.0`
 
 ~~9. Push tags + master; verify proxy serves each tag (scratch dir, `GOPROXY=off go get`).~~ done — tags + master pushed, chain LIVE on the proxy (TODO_LIST Release section); storage retract handled via `v4.7.1`
 
 ~~10. Drop the 7 chain replaces (system ×6, cqrs-bench ×1) + integration's event/middleware +
-    command's metadata replaces; `go mod tidy`; standalone re-verify (F1.9).~~ partial — the 7 chain replaces (system ×6, cqrs-bench ×1) dropped; integration's event/middleware + command/query/event/middleware metadata replaces remain until `metadata/v4.5.1+` (BrandedString) ships — tracked in TODO_LIST Release batch (wave-4)
+command's metadata replaces; `go mod tidy`; standalone re-verify (F1.9).~~ partial — the 7 chain replaces (system ×6, cqrs-bench ×1) dropped; integration's event/middleware + command/query/event/middleware metadata replaces remain until `metadata/v4.5.1+` (BrandedString) ships — tracked in TODO_LIST Release batch (wave-4)
 
 ~~11. Update TODO_LIST Release section + plan doc §T1 with corrected versions (F1.10).~~ partial — TODO_LIST Release section records the corrected chain; plan §T1 left as-written (pre-classification versions), superseded by TODO_LIST + CHANGELOG truth
 

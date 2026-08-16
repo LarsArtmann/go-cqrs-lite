@@ -363,7 +363,8 @@ func planDiagnostics(meta queryMeta, best rankedEngine, cfg QueryConfig) []Diagn
 		})
 	}
 
-	if fc := cfg.FilterCount(); fc > 0 && (best.complexity == ComplexityON || best.complexity == ComplexityONLogN) {
+	if fc := cfg.FilterCount(); fc > 0 &&
+		(best.complexity == ComplexityON || best.complexity == ComplexityONLogN) {
 		sel := filterSelectivity(fc)
 		diags = append(diags, Diagnostic{
 			Level: DiagLevelInfo,
@@ -371,7 +372,9 @@ func planDiagnostics(meta queryMeta, best rankedEngine, cfg QueryConfig) []Diagn
 			Message: fmt.Sprintf(
 				"%d filter(s) on %s scan; estimated selectivity %.4f (not applied to routing cost). "+
 					"Engines with index pushdown (FilterOnField) avoid the full scan.",
-				fc, best.complexity, sel,
+				fc,
+				best.complexity,
+				sel,
 			),
 		})
 	}

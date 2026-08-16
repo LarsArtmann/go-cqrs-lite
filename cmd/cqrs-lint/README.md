@@ -169,9 +169,9 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 | `tracing`      | string | `off`, `on`                                                                  |
 | `snapshot`     | string | `off`, `on`                                                                  |
 | `domain`       | string | `financial` (escalates security/money rules), `internal`, `security`         |
-| `monetary`     | string | `on`, `off`, `unknown` (default) — declares whether the project handles     |
-|                |        | money; `off` downgrades C008 to Info and skips S006 entirely, `on` keeps    |
-|                |        | C008's Warning regardless of naming, `unknown` defers to the heuristics    |
+| `monetary`     | string | `on`, `off`, `unknown` (default) — declares whether the project handles      |
+|                |        | money; `off` downgrades C008 to Info and skips S006 entirely, `on` keeps     |
+|                |        | C008's Warning regardless of naming, `unknown` defers to the heuristics      |
 | `transport`    | bool   | `true` if watermill/, go-sse, cqrs-htmx, or deprecated transport/* imported  |
 | `server-local` | bool   | `true` if server lacks production signals                                    |
 | `async-bus`    | bool   | `true` if a distributed (Watermill) bus is wired                             |

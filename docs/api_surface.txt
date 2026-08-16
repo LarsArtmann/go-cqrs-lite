@@ -1991,6 +1991,7 @@ metaengine/method ExplainAggregate
 metaengine/method ExplainPlan
 metaengine/method Export
 metaengine/method Failures
+metaengine/method FilterCount
 metaengine/method FormatTable
 metaengine/method Fresh
 metaengine/method Get
@@ -2882,9 +2883,11 @@ query/var ErrTypeAssertion
 record/func NewStreamRef
 record/method Split
 record/method String
+record/method Validate
 record/struct CommonMetadata
 record/struct Record
 record/type StreamRef
+record/var ErrInvalidStreamRef
 scenario/func Given
 scenario/func GivenProjection
 scenario/func GivenState

@@ -63,9 +63,9 @@ report appeared at 14:09).
      count + all referenced paths re-verified.
 5. **Wave D — 03-18 planning doc annotated** (`7d96181f1`): all **87 items**
    (T1–T27 + F1–F60 + 11 Step-1 prose items) verdicted inline — strikethrough
-   + `done at <hash>` for 85, **2 OPEN** (F26 pebble/bbolt pin bump, F56
-   singleflight leader-ctx, both already TODO_LIST-tracked). Tables got skill
-   -sanctioned Status columns.
+   - `done at <hash>` for 85, **2 OPEN** (F26 pebble/bbolt pin bump, F56
+     singleflight leader-ctx, both already TODO_LIST-tracked). Tables got skill
+     -sanctioned Status columns.
 6. **Live defect discovered + harvested** (the audit doing its job): **storage
    /pebble and storage/bbolt standalone builds are RED** — both pin
    `event/v4 v4.6.0` but `serialization.go` calls

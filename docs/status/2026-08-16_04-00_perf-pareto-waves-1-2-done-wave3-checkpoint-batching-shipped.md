@@ -88,30 +88,30 @@
 ## (b) Partially done
 
 ~~- **F11 verify-fast**: first run executed while I was mid-edit on projectionhost (see (d)),
-  hit a transient unused-import build failure, then failed `system/v4
+hit a transient unused-import build failure, then failed `system/v4
   TestSystem_ResetProjection_RestartAndReplay`. **Proven PRE-EXISTING**: fails at pre-session
-  baseline `f836c7f1c` in a clean worktree (and at `06e046c2f`). A CONCURRENT session is already
-  on it (staged `system/system_hardening_test.go`/`system/testdsn_test.go` +
-  `docs/status/2026-08-16_03-44_withactor-resume-gate-investigation-two-defects.md`). Clean
-  end-to-end verify-fast re-run still owed.~~ done — frozen-tree `#verify` GREEN 2026-08-16 13:15 (run #4), api-surface green after the parallel wave's golden regen; the replay failure was the 03-44 fixture bug, fixed upstream `5d66308c3`
+baseline `f836c7f1c` in a clean worktree (and at `06e046c2f`). A CONCURRENT session is already
+on it (staged `system/system_hardening_test.go`/`system/testdsn_test.go` +
+`docs/status/2026-08-16_03-44_withactor-resume-gate-investigation-two-defects.md`). Clean
+end-to-end verify-fast re-run still owed.~~ done — frozen-tree `#verify` GREEN 2026-08-16 13:15 (run #4), api-surface green after the parallel wave's golden regen; the replay failure was the 03-44 fixture bug, fixed upstream `5d66308c3`
 
 ~~- **F14 lint gate**: exhaustruct fix is compile+test green, but `nix run .#lint` itself not re-run.~~ done — `#lint` 76/76 GREEN (13-15 run #4)
 
 ~~- **F31 docs for checkpoint batching**: recipes.md note + modules.md projectionhost row MISSING.~~ done — readmodels.md checkpoint note + modules.md projectionhost row document both options
 
 ~~- **Golden for the 2 new projectionhost options NOT regenerated** (same-edit rule violated — top
-  of next-50).~~ done — golden regenerated with the parallel wave; api-surface phase green at 13-15
+of next-50).~~ done — golden regenerated with the parallel wave; api-surface phase green at 13-15
 
 ~~- **F9**: MySQL/DuckDB results recorded in CHANGELOG but not yet in a status follow-up (this file
-  closes that gap).~~ closed — this file + CHANGELOG `[2026-08-16 module releases]` record the MySQL/DuckDB results
+closes that gap).~~ closed — this file + CHANGELOG `[2026-08-16 module releases]` record the MySQL/DuckDB results
 
 ## (c) Not started
 
 ~~- F24–F27 tag chain ([BLOCKED:user] — now a FOUR-module chain, see Q1).~~ partial — the 22-tag chain shipped (metadata `v4.5.0`, event `v4.7.0`, storage `v4.7.0`→retracted→`v4.7.1`); projectionhost checkpoint-options tag + master pin bumps (command/query→metadata v4.5.0, pebble/bbolt→event, stack/mysql→storage) still pending — TODO_LIST wave-4 batch + strand commits `092b5e8a8`/`4907b6afc` off master
 
 ~~- Wave 3 remainder: F32–F34 bbolt `db.Batch` opt-in path; F35–F36 PG COPY spike+bench; F37–F38
-  pebble knobs + preset wiring; F39 perf ledger `docs/BENCHMARKS.md`; F40 TODO_LIST harvest of
-  Wave 3/4 leftovers.~~ done — bbolt `WithBatchCommit`, PG COPY `WithCopyAppend` (1.41x/1.49x), pebble knobs (defaults pinned byte-identical), `docs/BENCHMARKS.md` ledger, TODO_LIST harvest
+pebble knobs + preset wiring; F39 perf ledger `docs/BENCHMARKS.md`; F40 TODO_LIST harvest of
+Wave 3/4 leftovers.~~ done — bbolt `WithBatchCommit`, PG COPY `WithCopyAppend` (1.41x/1.49x), pebble knobs (defaults pinned byte-identical), `docs/BENCHMARKS.md` ledger, TODO_LIST harvest
 
 ~~- All of Wave 4 (F41–F60).~~ done — F55–F59 shipped (`9541df676`, `921147a01`), F60 conformance skeleton GREEN (`30711eb79b`), capability audit + false-sharing pads measured (`342699d00`); only F41 (bbolt deserialize bench) still open
 
@@ -162,7 +162,7 @@
 ~~8. CHANGELOG entry for checkpoint batching (Wave 3 ship note).~~ done — CHANGELOG "Wave-3 IO wins" section (line 289)
 
 ~~9. Coordinate on `TestSystem_ResetProjection_RestartAndReplay` with the concurrent session
-   (my baseline-proof at `f836c7f1c` is useful input; their fixes are staged, not mine to touch).~~ done — resolved upstream: fixture bug fixed by the concurrent session `5d66308c3` (03-44 §h.2)
+(my baseline-proof at `f836c7f1c` is useful input; their fixes are staged, not mine to touch).~~ done — resolved upstream: fixture bug fixed by the concurrent session `5d66308c3` (03-44 §h.2)
 
 ~~10. Re-run `#check-duplication` + `#check-arch` after the above (pre-tag standing gates).~~ partial — `#check-duplication` EXIT=0 (13-15); `#check-arch` run not recorded
 
@@ -243,10 +243,10 @@
 ~~48. AGENTS.md gotcha: stale QEMU/port 33070 check before MySQL VM runs.~~ open — port-33070 gotcha not added to AGENTS.md
 
 ~~49. AGENTS.md gotcha: `#integration-mysql-vm` default path = GOWORK=off published tags; use
-    `-- go test ...` (repo root, workspace mode) to verify uncommitted storage changes.~~ open — `#integration-mysql-vm` path gotcha not added to AGENTS.md
+`-- go test ...` (repo root, workspace mode) to verify uncommitted storage changes.~~ open — `#integration-mysql-vm` path gotcha not added to AGENTS.md
 
 ~~50. AGENTS.md gotcha: VM mode (MYSQL_TEST_DSN) shares ONE database — no per-test isolation;
-    count assertions must tolerate cross-test state.~~ open — VM single-database isolation gotcha not added to AGENTS.md
+count assertions must tolerate cross-test state.~~ open — VM single-database isolation gotcha not added to AGENTS.md
 
 ## (g) Questions for you
 

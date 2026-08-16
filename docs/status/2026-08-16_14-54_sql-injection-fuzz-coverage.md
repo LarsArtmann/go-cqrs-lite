@@ -12,11 +12,11 @@
 
 Created `storage/sql/validate_fuzz_test.go` with three fuzz targets:
 
-| Fuzz Target | What It Proves | Execs (10s run) | Result |
-|---|---|---|---|
-| `FuzzValidateIdentifier_RejectsAllNonIdentifiers` | `ValidateIdentifier(s) == true` IFF `s` matches `[A-Za-z_][A-Za-z0-9_]*` — cross-checked against an independent oracle (`isBareIdentifier`) | 193,641 | PASS |
-| `FuzzValidateIdentifier_MetacharacterCombinations` | No string containing ANY SQL metacharacter (union of SQLite/PG/MySQL sets) passes validation — metacharacter inserted at start/middle/end of valid base identifiers | 75,169 | PASS |
-| `FuzzBuildWhereClauseChecked_NeverPanics` | `BuildWhereClauseChecked` never panics on hostile input; error cases return empty clause; success cases only accept validated identifiers | 182,701 | PASS |
+| Fuzz Target                                        | What It Proves                                                                                                                                                      | Execs (10s run) | Result |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------ |
+| `FuzzValidateIdentifier_RejectsAllNonIdentifiers`  | `ValidateIdentifier(s) == true` IFF `s` matches `[A-Za-z_][A-Za-z0-9_]*` — cross-checked against an independent oracle (`isBareIdentifier`)                         | 193,641         | PASS   |
+| `FuzzValidateIdentifier_MetacharacterCombinations` | No string containing ANY SQL metacharacter (union of SQLite/PG/MySQL sets) passes validation — metacharacter inserted at start/middle/end of valid base identifiers | 75,169          | PASS   |
+| `FuzzBuildWhereClauseChecked_NeverPanics`          | `BuildWhereClauseChecked` never panics on hostile input; error cases return empty clause; success cases only accept validated identifiers                           | 182,701         | PASS   |
 
 ### Metacharacter coverage
 
@@ -39,6 +39,7 @@ The `sqlMetacharacters` rune set is the union of injection-relevant characters a
 ### TODO_LIST.md item closed
 
 The item at TODO_LIST.md line 623-626 reads:
+
 > SHIPPED 2026-08-15 (`storage/sql.ValidateIdentifier`/`ValidateOperator`, `BuildWhereClauseChecked`, view query validation — see CHANGELOG). tursoengine DSN-redaction SHIPPED 2026-08-16 (`redactDSN` on every open error, `tursoengine/register.go`). Remaining: fuzz `ValidateIdentifier` against sqlite/pg/mysql metacharacter sets. (Effort: S)
 
 The "Remaining" clause is now fulfilled.
@@ -89,6 +90,7 @@ The fuzz tests don't use `testdata/fuzz/` corpus directories. If the fuzzer find
 ### 4. `BuildWhereClauseChecked` fuzz only covers single-condition `OpEq`
 
 The fuzz target `FuzzBuildWhereClauseChecked_NeverPanics` only constructs a single condition with `OpEq`. It doesn't exercise:
+
 - Multiple conditions (the `AND` join path)
 - `OpIn` with hostile `Values` slices
 - `OpIsNull` / `OpIsNotNull` (no-arg paths)
@@ -191,14 +193,14 @@ The current regex rejects dots. If consumers need to query across schemas (e.g.,
 
 ## Session summary
 
-| Metric | Value |
-|---|---|
-| Files created | 1 (`storage/sql/validate_fuzz_test.go`) |
-| Fuzz targets added | 3 |
-| Total fuzz executions (30s across 3 targets) | 451,511 |
-| Crashes found | 0 |
-| Failures found | 0 |
-| API surface changes | 0 (test-only, package `sql_test`) |
-| Production dep added | 0 |
-| Gates passed | `go test`, `go test -race`, `go vet`, `gofmt`, `gofumpt` |
-| TODO_LIST item | Closed |
+| Metric                                       | Value                                                    |
+| -------------------------------------------- | -------------------------------------------------------- |
+| Files created                                | 1 (`storage/sql/validate_fuzz_test.go`)                  |
+| Fuzz targets added                           | 3                                                        |
+| Total fuzz executions (30s across 3 targets) | 451,511                                                  |
+| Crashes found                                | 0                                                        |
+| Failures found                               | 0                                                        |
+| API surface changes                          | 0 (test-only, package `sql_test`)                        |
+| Production dep added                         | 0                                                        |
+| Gates passed                                 | `go test`, `go test -race`, `go vet`, `gofmt`, `gofumpt` |
+| TODO_LIST item                               | Closed                                                   |

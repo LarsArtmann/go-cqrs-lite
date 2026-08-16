@@ -45,10 +45,10 @@ OPPOSITE of the naive "KV always embeds" reading of the table above. The
 values unboundedly; the disk embed-write's typed assertion never matched, so
 the mutation silently no-oped) and switched to median-of-10 exclusive runs:
 
-| Priority     | Winner on KV/LSM | Measured ratios (normalize ÷ embed)                            |
-| ------------ | ---------------- | -------------------------------------------------------------- |
-| ReadSpeed    | **Embed**        | KV read 1.8 vs 0.5; LSM read 1.67 (floor-pinned) vs 0.74       |
-| WriteSpeed   | **Normalize**    | KV write 0.84 vs 1.0; LSM write 0.62 vs 1.10                   |
+| Priority     | Winner on KV/LSM | Measured ratios (normalize ÷ embed)                           |
+| ------------ | ---------------- | ------------------------------------------------------------- |
+| ReadSpeed    | **Embed**        | KV read 1.8 vs 0.5; LSM read 1.67 (floor-pinned) vs 0.74      |
+| WriteSpeed   | **Normalize**    | KV write 0.84 vs 1.0; LSM write 0.62 vs 1.10                  |
 | StorageSpace | **Normalize**    | KV storage 0.63 vs 1.3 (JSON model); LSM storage 0.98 vs 1.15 |
 
 Embedding's single-key read advantage survives measurement; its assumed write

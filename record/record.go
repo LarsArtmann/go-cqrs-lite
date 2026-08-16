@@ -8,7 +8,8 @@
 package record
 
 import (
-	"fmt"
+	"errors"
+	"strings"
 	"time"
 )
 
@@ -87,19 +88,43 @@ type Record struct {
 	MetaData CommonMetadata
 }
 
+// ErrInvalidStreamRef is returned by Validate when a StreamRef is malformed.
+var ErrInvalidStreamRef = errors.New(
+	"invalid stream reference: must be \"Type/EntityID\" with non-empty components",
+)
+
 // NewStreamRef constructs a StreamRef from a stream type and entity ID.
+// The streamType may be empty (for command/query records that store the
+// type separately), but entityID must be non-empty.
 func NewStreamRef(streamType, entityID string) StreamRef {
-	return StreamRef(fmt.Sprintf("%s/%s", streamType, entityID))
+	return StreamRef(streamType + "/" + entityID)
+}
+
+// Validate returns an error if the StreamRef is malformed: either no '/'
+// separator, or the entity ID (component after the first '/') is empty.
+// A non-empty stream type is recommended but not required, since command
+// and query records store the type separately in Record.StreamType.
+func (s StreamRef) Validate() error {
+	idx := strings.IndexByte(string(s), '/')
+	if idx < 0 {
+		return ErrInvalidStreamRef
+	}
+
+	if idx == len(s)-1 {
+		return ErrInvalidStreamRef
+	}
+
+	return nil
 }
 
 // Split returns the stream type and entity ID components of the StreamRef.
-// Returns ("", "") if the format is invalid.
+// Returns ("", "") if the format is invalid (no '/' found, or empty
+// component before/after the first '/').
 func (s StreamRef) Split() (string, string) {
-	for i := range len(s) {
-		if s[i] == '/' {
-			return string(s[:i]), string(s[i+1:])
-		}
+	idx := strings.IndexByte(string(s), '/')
+	if idx <= 0 || idx == len(s)-1 {
+		return "", ""
 	}
 
-	return "", ""
+	return string(s[:idx]), string(s[idx+1:])
 }

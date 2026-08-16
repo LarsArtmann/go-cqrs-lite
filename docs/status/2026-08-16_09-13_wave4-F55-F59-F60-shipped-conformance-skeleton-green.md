@@ -104,28 +104,28 @@ eventstore).
 ## b) PARTIALLY DONE
 
 ~~- **Final full verify** — NOT run yet. All per-module gates green
-  (tests/race/lint/golden/doc-check where touched), but the end-to-end
-  `nix run .#verify` (build + vet + test + race + lint + doc-check +
-  doc-assertions, all 82 modules) is still owed before any "wave 4 GREEN"
-  claim. Also un-run: `#check-coverage` (schema/event coverage moved),
-  `#check-duplication` (new decorator/shell code), `#check-arch` (no new
-  deps added, should pass).~~ done — full `#verify` GREEN (2026-08-16 13:15 run #4) incl. race + doc-check + doc-assertions; `#check-coverage` + `#check-duplication` also EXIT=0
+(tests/race/lint/golden/doc-check where touched), but the end-to-end
+`nix run .#verify` (build + vet + test + race + lint + doc-check +
+doc-assertions, all 82 modules) is still owed before any "wave 4 GREEN"
+claim. Also un-run: `#check-coverage` (schema/event coverage moved),
+`#check-duplication` (new decorator/shell code), `#check-arch` (no new
+deps added, should pass).~~ done — full `#verify` GREEN (2026-08-16 13:15 run #4) incl. race + doc-check + doc-assertions; `#check-coverage` + `#check-duplication` also EXIT=0
 
 ~~- **mysql / dgraph / turso conformance tests** — wired and vet-clean but not
-  executed locally (need running servers; they skip cleanly without them, as
-  their ADT matrices already do). Will run under `#test-integration`.~~ partial — iroh conformance was found RED later that day (11-33) and fixed (12-39); mysql/dgraph/turso live conformance runs still not recorded
+executed locally (need running servers; they skip cleanly without them, as
+their ADT matrices already do). Will run under `#test-integration`.~~ partial — iroh conformance was found RED later that day (11-33) and fixed (12-39); mysql/dgraph/turso live conformance runs still not recorded
 
 ## c) NOT STARTED
 
 ~~- **F46** — go-codec `UnwrapDecode` first-byte sniff (external sibling repo
-  `/home/lars/projects/go-codec`).~~ done — go-codec `autodetect.go` first-byte sniff shipped
+`/home/lars/projects/go-codec`).~~ done — go-codec `autodetect.go` first-byte sniff shipped
 
 ~~- **F47-F49** — benchstat baselines for the 5 BENCHMARKS.md ledger paths;
-  false-sharing measure-then-pad for worker counters / multiSeqCounter /
-  SSEReplay.seq @-cpu=16,32.~~ done — benchstat baselines + all three measure-then-pad decisions recorded in `docs/BENCHMARKS.md`
+false-sharing measure-then-pad for worker counters / multiSeqCounter /
+SSEReplay.seq @-cpu=16,32.~~ done — benchstat baselines + all three measure-then-pad decisions recorded in `docs/BENCHMARKS.md`
 
 ~~- Report addendum for the 08:19 HTML report (this file supersedes that
-  need for wave-4 content).~~ moot — no 08-19 file exists in docs/status/ (this report superseded it)
+need for wave-4 content).~~ moot — no 08-19 file exists in docs/status/ (this report superseded it)
 
 ## d) TOTALLY FUCKED UP (owned, all caught + fixed in-session)
 
@@ -170,32 +170,32 @@ eventstore).
 ~~1. Run `nix run .#verify` end-to-end; fix anything it catches.~~ done — 13-15 run #4 GREEN end-to-end
 
 ~~2. Run `nix run .#check-coverage`; re-baseline if schema/event coverage moved
-   (tests were added — expect upward drift, fix by re-baselining UP).~~ done — `#check-coverage` EXIT=0
+(tests were added — expect upward drift, fix by re-baselining UP).~~ done — `#check-coverage` EXIT=0
 
 ~~3. Run `nix run .#check-duplication`; baseline if decorator/shell similarity
-   flags.~~ done — `#check-duplication` EXIT=0
+flags.~~ done — `#check-duplication` EXIT=0
 
 ~~4. F46: go-codec `UnwrapDecode` first-byte sniff (external repo; load its
-   AGENTS.md first; run its verify gate).~~ done — go-codec `autodetect.go`
+AGENTS.md first; run its verify gate).~~ done — go-codec `autodetect.go`
 
 ~~5. F47: contention benches @-cpu=16,32 for workloadMeter; commit benchstat
-   baselines for the 5 BENCHMARKS.md ledger paths.~~ done — `-cpu 4,8,16,32` ledger entries + benchstat in benchkit
+baselines for the 5 BENCHMARKS.md ledger paths.~~ done — `-cpu 4,8,16,32` ledger entries + benchstat in benchkit
 
 ~~6. F48: worker-counter false-sharing measurement @32P; pad only if >10%;
-   record decision.~~ done — NO PAD, measured (BENCHMARKS.md:35)
+record decision.~~ done — NO PAD, measured (BENCHMARKS.md:35)
 
 ~~7. F49: multiSeqCounter + SSEReplay.seq same protocol.~~ done — multiSeqCounter padded, SSEReplay NO PAD (BENCHMARKS.md:34,36)
 
 ~~8. Annotate the 08:19 HTML report (or write a short addendum pointing here).~~ moot — no 08-19 report exists on disk
 
 ~~9. Wire `AuditCapability` into metaengine `Doctor` output (declared-vs-
-   implemented section).~~ done — `AuditCapability` shipped into Doctor (11-33, `30711eb79b`)
+implemented section).~~ done — `AuditCapability` shipped into Doctor (11-33, `30711eb79b`)
 
 ~~10. Run conformance under `nix run .#test-integration` so mysql/dgraph/turso
-    rows are exercised for real.~~ partial — iroh exercised (RED→fixed, 11-33/12-39); mysql/dgraph/turso live runs not recorded
+rows are exercised for real.~~ partial — iroh exercised (RED→fixed, 11-33/12-39); mysql/dgraph/turso live runs not recorded
 
 ~~11. Implement F59 rollout step 1: `SeqSeekableStreamLog` + conformance tests
-    in metaengine (design doc §5).~~ done — `a1334d8c5` (all engines), flipped IMPLEMENTED (`f2bbf4621`)
+in metaengine (design doc §5).~~ done — `a1334d8c5` (all engines), flipped IMPLEMENTED (`f2bbf4621`)
 
 ~~12. F59 step 2: sqlite/turso `seq > ?` journal query.~~ done — sqlite/turso `seq > ?` shipped in `a1334d8c5`
 
@@ -204,16 +204,16 @@ eventstore).
 ~~14. F59 step 4: pebble/bbolt key-decoded seq + memory `sort.Search`.~~ done — pebble/bbolt key-decoded seq + memory `sort.Search` shipped
 
 ~~15. F59 step 5: EventAdapter token-backed seqCache + benchkit drain bench +
-    BENCHMARKS.md row.~~ done — EventAdapter seqCache + bench files landed 2026-08-16 (`metaengine/sqliteengine/stream_log_bench_test.go`, bench recalibration)
+BENCHMARKS.md row.~~ done — EventAdapter seqCache + bench files landed 2026-08-16 (`metaengine/sqliteengine/stream_log_bench_test.go`, bench recalibration)
 
 ~~16. Verify F56/F57/F58 status (singleflight leader-ctx, turso DSN leak,
-    Close() leak) — they were not in my resumed queue; confirm whether an
-    earlier wave shipped them before claiming wave 4 complete.~~ confirmed — F56 `9541df676` (singleflight), F57 `921147a01` (turso DSN), F58 `9541df676` (Close leaks)
+Close() leak) — they were not in my resumed queue; confirm whether an
+earlier wave shipped them before claiming wave 4 complete.~~ confirmed — F56 `9541df676` (singleflight), F57 `921147a01` (turso DSN), F58 `9541df676` (Close leaks)
 
 ~~17. Harvest this report into TODO_LIST (docs-health discipline).~~ done — TODO_LIST carries the wave-4 release batch + capability/seq-carrying items
 
 ~~18. DuckDB `AggregateReader` real pushdown (TODO_LIST; highest-leverage
-    DuckDB item).~~ open — DuckDB AggregateReader pushdown still TODO_LIST-standing
+DuckDB item).~~ open — DuckDB AggregateReader pushdown still TODO_LIST-standing
 
 ~~19. Dgraph engine hardening (`Transactional` or explicit rejection).~~ open — Dgraph Transactional hardening not done
 

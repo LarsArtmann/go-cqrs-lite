@@ -45,20 +45,20 @@
 
 > `import "github.com/larsartmann/go-cqrs-lite/query/v4"`
 
-| Feature                | Detail                                                                             | Status |
-| ---------------------- | ---------------------------------------------------------------------------------- | ------ |
-| Query dispatch         | `Dispatcher.Dispatch(ctx, query)` returns `(any, error)`                           | ✅     |
-| Typed dispatch         | `DispatchTyped[T](ctx, dispatcher, query)` — generic type-safe result extraction   | ✅     |
-| Handler registration   | Same pattern as command — duplicate guard, lifecycle                               | ✅     |
-| Middleware chain       | Same pattern as command                                                            | ✅     |
-| Pagination             | `Pagination` struct with `Page`, `PageSize`, `Offset()`, `Validate()`              | ✅     |
-| Paginated results      | `PaginatedResult[T]` with `HasNext()`, `HasPrev()`, computed `TotalPages`          | ✅     |
-| TypedHandler[Q, R]     | `RegisterTyped[Q, R]` — type-safe handler receiving `Q` and returning `(R, error)` | ✅     |
-| PersistedQuery         | Stored query with full audit metadata (ID, Type, ReceivedAt, Payload, Metadata)    | ✅     |
-| Query store interfaces | `QuerySink`, `QuerySource`, `QueryStore` (Sink+Source) — persisted query log       | ✅     |
-| QueryJournal           | `ReadAllQueries(ctx)` — global query log for audit ("who queried what and when?")  | ✅     |
-| SeekableQueryJournal   | `ReadQueriesFrom(ctx, afterRequestID, limit)` — position-based query replay        | ✅     |
-| Record adapter          | `AsRecord(*PersistedQuery) record.Record` — bridges persisted queries to `record.Record` (v4.6.0+)                                                                 | ✅     |
+| Feature                | Detail                                                                                             | Status |
+| ---------------------- | -------------------------------------------------------------------------------------------------- | ------ |
+| Query dispatch         | `Dispatcher.Dispatch(ctx, query)` returns `(any, error)`                                           | ✅     |
+| Typed dispatch         | `DispatchTyped[T](ctx, dispatcher, query)` — generic type-safe result extraction                   | ✅     |
+| Handler registration   | Same pattern as command — duplicate guard, lifecycle                                               | ✅     |
+| Middleware chain       | Same pattern as command                                                                            | ✅     |
+| Pagination             | `Pagination` struct with `Page`, `PageSize`, `Offset()`, `Validate()`                              | ✅     |
+| Paginated results      | `PaginatedResult[T]` with `HasNext()`, `HasPrev()`, computed `TotalPages`                          | ✅     |
+| TypedHandler[Q, R]     | `RegisterTyped[Q, R]` — type-safe handler receiving `Q` and returning `(R, error)`                 | ✅     |
+| PersistedQuery         | Stored query with full audit metadata (ID, Type, ReceivedAt, Payload, Metadata)                    | ✅     |
+| Query store interfaces | `QuerySink`, `QuerySource`, `QueryStore` (Sink+Source) — persisted query log                       | ✅     |
+| QueryJournal           | `ReadAllQueries(ctx)` — global query log for audit ("who queried what and when?")                  | ✅     |
+| SeekableQueryJournal   | `ReadQueriesFrom(ctx, afterRequestID, limit)` — position-based query replay                        | ✅     |
+| Record adapter         | `AsRecord(*PersistedQuery) record.Record` — bridges persisted queries to `record.Record` (v4.6.0+) | ✅     |
 
 **Defaults:** Page 1, PageSize 20, max 100.
 **Sentinel errors:** `ErrHandlerNotFound`, `ErrDispatcherClosed`, `ErrEmptyQueryType`, `ErrTypeAssertion`
@@ -105,11 +105,11 @@
 | Checkpoint            | `Checkpoint` struct + `CheckpointSink/Source/Store` interfaces for projection positioning                                                                                                                                                                                                                                                   | ✅     |
 | Clock injection       | `Clock` type + `WithClock` option for deterministic testing                                                                                                                                                                                                                                                                                 | ✅     |
 | Error taxonomy        | 6-family: Rejection / Conflict / Transient / Infrastructure / Orchestration / Corruption; 14 helper funcs (`New*`, `Wrap*`, `Wrap*f`, `Classify`, `IsRetryable`); 16 sentinel errors                                                                                                                                                        | ✅     |
-| Event reconstruction  | `ReconstructEventFromFields` (shared for all stores), `ReconstructEventWithMetadata` (pre-decoded metadata, no JSON round-trip — pebble −46% ns/op), `ReconstructEventWithAdoptedPayload` (zero-copy payload adopt)                                                                                                                              | ✅     |
+| Event reconstruction  | `ReconstructEventFromFields` (shared for all stores), `ReconstructEventWithMetadata` (pre-decoded metadata, no JSON round-trip — pebble −46% ns/op), `ReconstructEventWithAdoptedPayload` (zero-copy payload adopt)                                                                                                                         | ✅     |
 | JSON metadata         | `MarshalMetadataJSON`, `UnmarshalMetadataJSON` — DB-safe metadata serialization                                                                                                                                                                                                                                                             | ✅     |
-| Actor propagation     | `WithActor(id.ActorID)` + context API: `WithActorContext`, `ActorFromContext`, `ActorEnricher` (command/query/middleware mirror it)                                                                                                                                                                                          | ✅     |
-| Store transforms      | `SinkTransform`/`SourceTransform` + `DecorateStore` — capability-preserving store wrapping (ADR-0126)                                                                                                                                                                                                                       | ✅     |
-| Journal transforms    | `DecorateJournal(j, sourceT)` — wraps read-only journals preserving Journal/Seekable/Streaming/Closer; sentinel `ErrInnerStoreNotStreaming`                                                                                                                                                                                  | ✅     |
+| Actor propagation     | `WithActor(id.ActorID)` + context API: `WithActorContext`, `ActorFromContext`, `ActorEnricher` (command/query/middleware mirror it)                                                                                                                                                                                                         | ✅     |
+| Store transforms      | `SinkTransform`/`SourceTransform` + `DecorateStore` — capability-preserving store wrapping (ADR-0126)                                                                                                                                                                                                                                       | ✅     |
+| Journal transforms    | `DecorateJournal(j, sourceT)` — wraps read-only journals preserving Journal/Seekable/Streaming/Closer; sentinel `ErrInnerStoreNotStreaming`                                                                                                                                                                                                 | ✅     |
 
 ### Decider (Pure-Function Event Sourcing) ✅ FULLY_FUNCTIONAL
 
@@ -226,7 +226,7 @@ developer never declares "I need a Map" or "I need a Counter."
 | SQLite engine                   | `SQLiteEngine` wrapping `storage/view.SQLViewStore` — first production backend (ADR-0061)                                                                                                                                                                                                                                                                                                     | 🧪     |
 | Pebble engine                   | `metaengine/pebbleengine` — LSM point reads (~7x faster than SQLite), VectorInsert/VectorSearch via `keycodec` layouts; separate module (ADR-0074)                                                                                                                                                                                                                                            | 🧪     |
 | DuckDB engine                   | `metaengine/duckdbengine` — MapBackend, CounterBackend, PushdownScan, LayoutPlanner (columnar); CGo required (ADR-0086)                                                                                                                                                                                                                                                                       | 🧪     |
-| Postgres engine                 | `metaengine/pgengine` — MapBackend, CounterBackend, ScanBackend, PushdownScan (JSONB), LayoutPlanner, native GraphBackend via `WITH RECURSIVE` on `meta_graph_edges` (ADR-0087); bulk `StreamAppend` (chunked multi-VALUES) + `WithCopyAppend` COPY route (1.4–1.5x @10k–100k rows)                                                                             | 🧪     |
+| Postgres engine                 | `metaengine/pgengine` — MapBackend, CounterBackend, ScanBackend, PushdownScan (JSONB), LayoutPlanner, native GraphBackend via `WITH RECURSIVE` on `meta_graph_edges` (ADR-0087); bulk `StreamAppend` (chunked multi-VALUES) + `WithCopyAppend` COPY route (1.4–1.5x @10k–100k rows)                                                                                                           | 🧪     |
 | Planner                         | Cost-based optimizer: assigns engines to queries, produces `PlanResult` with diagnostics                                                                                                                                                                                                                                                                                                      | 🧪     |
 | Rule pipeline                   | `PlanRule` interface + `RulePipeline`. 4 composable rules: schemaRule, layoutRule, writeAmpRule (ADR-0083)                                                                                                                                                                                                                                                                                    | 🧪     |
 | Materialize-vs-replay           | `ReplayCost`/`MaterializeCost`/`ShouldMaterialize` — ES-specific cost formula for projection decisions                                                                                                                                                                                                                                                                                        | 🧪     |
@@ -309,8 +309,8 @@ developer never declares "I need a Map" or "I need a Counter."
 | Live Cost Measurement           | `ProbeEngine`, `LatencyTracker` (EWMA + P50/P95/P99), `Store.Replan`, `Store.CheckRouting`, `StartAutoReplan`. Remote RTT measured at runtime, surfaced in `Doctor()`/`ExplainPlan()`                                                                                                                                                                                                         | 🧪     |
 | Operator-driven layout planning | `Priority` enum + `PriorityConfig` hierarchy (Global→Engine→Query), embed-vs-normalize scoring (KV/LSM split, 60s on-disk calibrated), `ReplanLayout`, `ConfirmRebuild`, `Store.SetPriority`, layout warnings in `Doctor()`/`ExplainPlan()`, plan audit trail (`PlanHistory`, bounded ring buffer, trigger attribution), `WithLayoutPriority` (layout-only per ADR-0125) (ADR-0124, ADR-0125) | 🧪     |
 | Command lifecycle as events     | `commandlifecycle/` events, `Recorder` (OCC version tracking, restart-safe), middleware pair, DLQ/retry/failure-log/processing-time projections, `system.WithCommandLifecycle()` wiring (ADR-0117)                                                                                                                                                                                            | 🧪     |
-| Capability audit                | `CapabilityAudit`/`CapabilityAuditResult` enforce declared-vs-implemented engine capabilities (over/under-declaration, DegradedADTs ⊆ Supports); `Store.Doctor` renders a per-engine `--- Capability ---` section — lying engines surface at runtime                                                                            | 🧪     |
-| Idempotency window              | `WithIdempotencyCapacity(n)` bounds the in-memory dedup window of `Store.ApplyIdempotent` (default 131072; oldest IDs evicted — best-effort dedup within the at-least-once contract; `<= 0` = legacy unbounded)                                                                                                                  | 🧪     |
+| Capability audit                | `CapabilityAudit`/`CapabilityAuditResult` enforce declared-vs-implemented engine capabilities (over/under-declaration, DegradedADTs ⊆ Supports); `Store.Doctor` renders a per-engine `--- Capability ---` section — lying engines surface at runtime                                                                                                                                          | 🧪     |
+| Idempotency window              | `WithIdempotencyCapacity(n)` bounds the in-memory dedup window of `Store.ApplyIdempotent` (default 131072; oldest IDs evicted — best-effort dedup within the at-least-once contract; `<= 0` = legacy unbounded)                                                                                                                                                                               | 🧪     |
 
 **Coverage:** ~80% (`go test -tags "goexperiment.jsonv2" -cover`). 174 BDD specs
 
@@ -506,20 +506,20 @@ The "last loop every consumer rewrites", as a library module. Composes any
 `event.SeekableJournal` + `event.CheckpointStore` + `projection.Projection`s
 into a managed lifecycle.
 
-| Feature                   | Detail                                                                                                                 | Status |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------ |
-| Host                      | `Host` — manages projection workers, lifecycle, and health                                                             | ✅     |
-| Per-projection goroutines | Each registered projection runs independently in its own goroutine                                                     | ✅     |
-| Crash auto-restart        | Workers restart on panic/error with exponential backoff (configurable initial/max)                                     | ✅     |
-| Checkpoint persistence    | Survives restarts — reads resume from the last committed checkpoint (no event loss)                                    | ✅     |
-| Dead-letter queue         | `DeadLetterStore` / `MemoryDeadLetterStore` / `SQLiteDeadLetterStore` — poison messages captured, checkpoint advances  | ✅     |
-| DLQ admin                 | `DeadLetterStoreAdmin` (optional): `Count`, `ListPaged`, `PurgeBefore` — pagination, depth metrics, time-bounded purge | ✅     |
-| Health / liveness         | `Status()` reports per-worker state + processed/errors/restarts counters                                               | ✅     |
-| Graceful drain            | `Stop()` waits for in-flight events (30s timeout)                                                                      | ✅     |
-| RegisterAndWait           | Convenience: register + start + block until ctx cancelled                                                              | ✅     |
-| Lag monitoring            | `LagDuration()` + `LagPerProjection()` — wall-clock lag for dashboards/alerting                                        | ✅     |
-| CheckStaleness            | `WithMaxStaleness(d)` — reject reads whose projection lag exceeds threshold                                            | ✅     |
-| Checkpoint batching       | `WithCheckpointEvery(n)` / `WithCheckpointInterval(d)` — batch live-phase checkpoint saves; flushed on `Stop()`/worker exit (at-least-once, ≤ n−1 live events reprocessed)             | ✅     |
+| Feature                   | Detail                                                                                                                                                                     | Status |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Host                      | `Host` — manages projection workers, lifecycle, and health                                                                                                                 | ✅     |
+| Per-projection goroutines | Each registered projection runs independently in its own goroutine                                                                                                         | ✅     |
+| Crash auto-restart        | Workers restart on panic/error with exponential backoff (configurable initial/max)                                                                                         | ✅     |
+| Checkpoint persistence    | Survives restarts — reads resume from the last committed checkpoint (no event loss)                                                                                        | ✅     |
+| Dead-letter queue         | `DeadLetterStore` / `MemoryDeadLetterStore` / `SQLiteDeadLetterStore` — poison messages captured, checkpoint advances                                                      | ✅     |
+| DLQ admin                 | `DeadLetterStoreAdmin` (optional): `Count`, `ListPaged`, `PurgeBefore` — pagination, depth metrics, time-bounded purge                                                     | ✅     |
+| Health / liveness         | `Status()` reports per-worker state + processed/errors/restarts counters                                                                                                   | ✅     |
+| Graceful drain            | `Stop()` waits for in-flight events (30s timeout)                                                                                                                          | ✅     |
+| RegisterAndWait           | Convenience: register + start + block until ctx cancelled                                                                                                                  | ✅     |
+| Lag monitoring            | `LagDuration()` + `LagPerProjection()` — wall-clock lag for dashboards/alerting                                                                                            | ✅     |
+| CheckStaleness            | `WithMaxStaleness(d)` — reject reads whose projection lag exceeds threshold                                                                                                | ✅     |
+| Checkpoint batching       | `WithCheckpointEvery(n)` / `WithCheckpointInterval(d)` — batch live-phase checkpoint saves; flushed on `Stop()`/worker exit (at-least-once, ≤ n−1 live events reprocessed) | ✅     |
 
 Worker states: `idle`, `running`, `live`, `backoff`, `draining`, `stopped`, `failed`.
 Reads directly from `event.SeekableJournal` — no message-bus dependency. For
@@ -941,39 +941,39 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 > `import "github.com/larsartmann/go-cqrs-lite/storage/v4"`
 
-| Feature                    | Detail                                                                                                                                       | Status |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| PostgreSQL event store     | `NewSQLEventStore(db)` implements `event.Store`                                                                                              | ✅     |
-| SQLite event store         | `NewSQLiteEventStore(db)` — `?` placeholders, `BLOB`/`TEXT` DDL                                                                              | ✅     |
-| MySQL/MariaDB event store  | `NewMySQLBackend(db)` — `LONGBLOB`/`JSON` DDL, `ON DUPLICATE KEY UPDATE` upsert                                                              | ✅     |
-| Custom dialect             | `NewSQLEventStoreWithDialect(db, d)` — pluggable SQL backend                                                                                 | ✅     |
-| Schema DDL                 | `Schema()` PostgreSQL, `SQLiteSchema()` for SQLite/Turso                                                                                     | ✅     |
-| Per-table DDL              | `SnapshotSchema`, `CheckpointSchema` + SQLite variants                                                                                       | ✅     |
-| Optimistic concurrency     | `Save` checks version in transaction                                                                                                         | ✅     |
-| AppendBatch                | Appends without concurrency check                                                                                                            | ✅     |
-| Full load API              | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`                                                                                | ✅     |
-| LoadBackwards              | Implements `event.BackwardsSource` — newest-first                                                                                            | ✅     |
-| Time-travel SQL queries    | `LoadToVersion`, `LoadToTimestamp` with composite timestamp index                                                                            | ✅     |
-| Journal / SeekableJournal  | `ReadAll()`, `ReadFrom(afterEventID, limit)`                                                                                                 | ✅     |
-| Stream loading             | `LoadStream()` returns cursor-based `sqlEventStream` — memory-efficient iteration                                                            | ✅     |
-| Metadata persistence       | Full roundtrip: correlation IDs, user IDs, custom metadata                                                                                   | ✅     |
-| SQL SnapshotStore          | PostgreSQL + SQLite variants, upsert, version-aware load, delete                                                                             | ✅     |
-| SQL CheckpointStore        | PostgreSQL + SQLite variants, upsert, `sql.ErrNoRows` handling                                                                               | ✅     |
-| SQL CommandStore           | `SQLCommandStore` implements `command.Store` — Save, AppendBatch, Load, LoadFromTimestamp, LoadToTimestamp                                   | ✅     |
-| SQL Backend                | `SQLBackend` facade returning `EventStore()`, `SnapshotStore()`, `CheckpointStore()`, `CommandStore()`                                       | ✅     |
-| StreamProjection           | Maintains SQL read-model tables from event streams with tombstone detection                                                                  | ✅     |
-| Incremental rollups        | `ProjectionSink.Increment(ctx, table, key, counterCol, delta)` — atomic counter via `ON CONFLICT DO UPDATE` (ADR-0033)                       | ✅     |
-| RelationalProjection.Reset | `Reset(ctx)` implements `projectionhost.Resettable` — wipes all tables for zero-based replay                                                 | ✅     |
-| SQLStreamReader            | `listing.StreamReader` implementation reading from projection tables                                                                         | ✅     |
-| DB helpers                 | `OpenSQLite`, `OpenSQLiteInMemory`, `SQLiteInitSchema`, `SQLiteEnableWAL`, `ConfigureSQLitePool`, `ConfigureTursoPool`, `PostgresInitSchema` | ✅     |
-| Dialect abstraction        | `Dialect` interface with `Placeholder`, `FormatTime`, `ScanTimeDest`, `ParseTime`, 5 schema methods, 4 upsert/quoting methods (ADR-0080)     | ✅     |
-| SQL sub-package            | `storage/sql` — `DBHandle`, `OwnedDBHandle`, generic `LoadWithSpan[T]`, `QueryRows[T]`, `ScanSlice[T]`, `ReconstructEvent`                   | ✅     |
-| Eventstore sub-package     | `storage/eventstore` — `SQLEventStore`, `SQLSnapshotStore`, `SQLCheckpointStore` (re-exported via aliases in `storage/`)                     | ✅     |
-| Readmodel sub-package      | `storage/readmodel` — `SQLKVStore` (re-exported via aliases in `storage/`)                                                                   | ✅     |
-| Close lifecycle            | No-op `Close()` — does not close `*sql.DB`; caller owns DB lifecycle                                                                         | ✅     |
-| HealthCheck (all stores)   | `OwnedDBHandle.HealthCheck(ctx)` — inherited by all SQL stores via embedding. Pings DB, checks closed state                                  | ✅     |
-| Keyset pagination         | `ReadFrom`/`ReadStreamFrom` paginate via `sql.ResolveCursorTimestamp` + `sql.KeysetPositionQuery` — full drains drop from O(N²) self-JOIN to index range scans (~285x on a 200k-event SQLite journal)        | ✅     |
-| Packet-safe chunking      | `sql.MaxParametersForDialect`, `sql.MaxStatementBytes`, `sql.RowsWithinByteCap` — multi-VALUES INSERTs chunked by param limit AND byte cap (8 MiB default) | ✅     |
+| Feature                       | Detail                                                                                                                                                                                                                                                                    | Status |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| PostgreSQL event store        | `NewSQLEventStore(db)` implements `event.Store`                                                                                                                                                                                                                           | ✅     |
+| SQLite event store            | `NewSQLiteEventStore(db)` — `?` placeholders, `BLOB`/`TEXT` DDL                                                                                                                                                                                                           | ✅     |
+| MySQL/MariaDB event store     | `NewMySQLBackend(db)` — `LONGBLOB`/`JSON` DDL, `ON DUPLICATE KEY UPDATE` upsert                                                                                                                                                                                           | ✅     |
+| Custom dialect                | `NewSQLEventStoreWithDialect(db, d)` — pluggable SQL backend                                                                                                                                                                                                              | ✅     |
+| Schema DDL                    | `Schema()` PostgreSQL, `SQLiteSchema()` for SQLite/Turso                                                                                                                                                                                                                  | ✅     |
+| Per-table DDL                 | `SnapshotSchema`, `CheckpointSchema` + SQLite variants                                                                                                                                                                                                                    | ✅     |
+| Optimistic concurrency        | `Save` checks version in transaction                                                                                                                                                                                                                                      | ✅     |
+| AppendBatch                   | Appends without concurrency check                                                                                                                                                                                                                                         | ✅     |
+| Full load API                 | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`                                                                                                                                                                                                             | ✅     |
+| LoadBackwards                 | Implements `event.BackwardsSource` — newest-first                                                                                                                                                                                                                         | ✅     |
+| Time-travel SQL queries       | `LoadToVersion`, `LoadToTimestamp` with composite timestamp index                                                                                                                                                                                                         | ✅     |
+| Journal / SeekableJournal     | `ReadAll()`, `ReadFrom(afterEventID, limit)`                                                                                                                                                                                                                              | ✅     |
+| Stream loading                | `LoadStream()` returns cursor-based `sqlEventStream` — memory-efficient iteration                                                                                                                                                                                         | ✅     |
+| Metadata persistence          | Full roundtrip: correlation IDs, user IDs, custom metadata                                                                                                                                                                                                                | ✅     |
+| SQL SnapshotStore             | PostgreSQL + SQLite variants, upsert, version-aware load, delete                                                                                                                                                                                                          | ✅     |
+| SQL CheckpointStore           | PostgreSQL + SQLite variants, upsert, `sql.ErrNoRows` handling                                                                                                                                                                                                            | ✅     |
+| SQL CommandStore              | `SQLCommandStore` implements `command.Store` — Save, AppendBatch, Load, LoadFromTimestamp, LoadToTimestamp                                                                                                                                                                | ✅     |
+| SQL Backend                   | `SQLBackend` facade returning `EventStore()`, `SnapshotStore()`, `CheckpointStore()`, `CommandStore()`                                                                                                                                                                    | ✅     |
+| StreamProjection              | Maintains SQL read-model tables from event streams with tombstone detection                                                                                                                                                                                               | ✅     |
+| Incremental rollups           | `ProjectionSink.Increment(ctx, table, key, counterCol, delta)` — atomic counter via `ON CONFLICT DO UPDATE` (ADR-0033)                                                                                                                                                    | ✅     |
+| RelationalProjection.Reset    | `Reset(ctx)` implements `projectionhost.Resettable` — wipes all tables for zero-based replay                                                                                                                                                                              | ✅     |
+| SQLStreamReader               | `listing.StreamReader` implementation reading from projection tables                                                                                                                                                                                                      | ✅     |
+| DB helpers                    | `OpenSQLite`, `OpenSQLiteInMemory`, `SQLiteInitSchema`, `SQLiteEnableWAL`, `ConfigureSQLitePool`, `ConfigureTursoPool`, `PostgresInitSchema`                                                                                                                              | ✅     |
+| Dialect abstraction           | `Dialect` interface with `Placeholder`, `FormatTime`, `ScanTimeDest`, `ParseTime`, 5 schema methods, 4 upsert/quoting methods (ADR-0080)                                                                                                                                  | ✅     |
+| SQL sub-package               | `storage/sql` — `DBHandle`, `OwnedDBHandle`, generic `LoadWithSpan[T]`, `QueryRows[T]`, `ScanSlice[T]`, `ReconstructEvent`                                                                                                                                                | ✅     |
+| Eventstore sub-package        | `storage/eventstore` — `SQLEventStore`, `SQLSnapshotStore`, `SQLCheckpointStore` (re-exported via aliases in `storage/`)                                                                                                                                                  | ✅     |
+| Readmodel sub-package         | `storage/readmodel` — `SQLKVStore` (re-exported via aliases in `storage/`)                                                                                                                                                                                                | ✅     |
+| Close lifecycle               | No-op `Close()` — does not close `*sql.DB`; caller owns DB lifecycle                                                                                                                                                                                                      | ✅     |
+| HealthCheck (all stores)      | `OwnedDBHandle.HealthCheck(ctx)` — inherited by all SQL stores via embedding. Pings DB, checks closed state                                                                                                                                                               | ✅     |
+| Keyset pagination             | `ReadFrom`/`ReadStreamFrom` paginate via `sql.ResolveCursorTimestamp` + `sql.KeysetPositionQuery` — full drains drop from O(N²) self-JOIN to index range scans (~285x on a 200k-event SQLite journal)                                                                     | ✅     |
+| Packet-safe chunking          | `sql.MaxParametersForDialect`, `sql.MaxStatementBytes`, `sql.RowsWithinByteCap` — multi-VALUES INSERTs chunked by param limit AND byte cap (8 MiB default)                                                                                                                | ✅     |
 | In-memory SQLite shared-cache | `OpenSQLiteInMemory` uses a unique `file:<random>?mode=memory&cache=shared` DSN per call — modernc `file::memory:` gives each pooled connection a private DB; the named shared-cache DSN fixes this without pinning the pool to one connection, enabling read concurrency | ✅     |
 
 ### Pebble Key-Value Store
@@ -1001,25 +1001,25 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 > `import "github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4"`
 
-| Feature                | Detail                                                                                                                                                                           | Status |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| EventStore             | `NewStore(db, logger)` implements `event.Store` + `Journal` + `SeekableJournal` (B+tree)                                                                                         | ✅     |
-| CBOR envelope          | Events serialized as CBOR                                                                                                                                                        | ✅     |
-| Optimistic concurrency | `Save` checks version before commit (single-writer, atomic in one tx)                                                                                                            | ✅     |
-| AppendBatch            | Appends without concurrency check                                                                                                                                                | ✅     |
-| Full load API          | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`                                                                                                                    | ✅     |
-| Journal / Seekable     | `ReadAll()` + `ReadFrom(afterEventID, limit)`                                                                                                                                    | ✅     |
-| SnapshotStore          | `NewSnapshotStore` — ignores older versions on Save                                                                                                                              | ✅     |
-| CheckpointStore        | `NewCheckpointStore` — returns zero checkpoint if missing                                                                                                                        | ✅     |
-| KVAdapter              | `kv.Store` adapter via `cqrs_kv` bucket                                                                                                                                          | ✅     |
-| CommandStore           | `CommandStore` + `CommandJournal` (audit trail)                                                                                                                                  | ✅     |
-| QueryStore             | `QueryStore` + `QueryJournal` (audit trail)                                                                                                                                      | ✅     |
-| Backend facade         | `Open(path, logger)` / `OpenWith(path, opts, logger)` — closes DB + all stores                                                                                                   | ✅     |
-| Shared DB              | All stores share one `*bbolt.DB` via disjoint buckets (`cqrs_events`, `cqrs_snapshots`, …)                                                                                       | ✅     |
-| Durability tiers       | `WithDurability` (Strict/Normal/Relaxed) via `stack/bbolt` preset                                                                                                                | ✅     |
-| Streaming iterators    | `event.StreamingSource` (LoadStream, LoadStreamFromVersion) + `event.StreamingJournal` (ReadStream, ReadStreamFrom). Long-lived read tx, lazy Next, prefix/upper-bound filtering | ✅     |
-| OTel spans             | Full span instrumentation across all public methods (EventStore 12, SnapshotStore 4, CheckpointStore 2, CommandStore 7, QueryStore 4) via `otel.go`                              | ✅     |
-| Contract test suite    | 16 tests + 8 streaming tests (eventtest contract coverage)                                                                                       | ✅     |
+| Feature                | Detail                                                                                                                                                                                                        | Status |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| EventStore             | `NewStore(db, logger)` implements `event.Store` + `Journal` + `SeekableJournal` (B+tree)                                                                                                                      | ✅     |
+| CBOR envelope          | Events serialized as CBOR                                                                                                                                                                                     | ✅     |
+| Optimistic concurrency | `Save` checks version before commit (single-writer, atomic in one tx)                                                                                                                                         | ✅     |
+| AppendBatch            | Appends without concurrency check                                                                                                                                                                             | ✅     |
+| Full load API          | `Load`, `LoadFromVersion`, `LoadToVersion`, `LoadToTimestamp`                                                                                                                                                 | ✅     |
+| Journal / Seekable     | `ReadAll()` + `ReadFrom(afterEventID, limit)`                                                                                                                                                                 | ✅     |
+| SnapshotStore          | `NewSnapshotStore` — ignores older versions on Save                                                                                                                                                           | ✅     |
+| CheckpointStore        | `NewCheckpointStore` — returns zero checkpoint if missing                                                                                                                                                     | ✅     |
+| KVAdapter              | `kv.Store` adapter via `cqrs_kv` bucket                                                                                                                                                                       | ✅     |
+| CommandStore           | `CommandStore` + `CommandJournal` (audit trail)                                                                                                                                                               | ✅     |
+| QueryStore             | `QueryStore` + `QueryJournal` (audit trail)                                                                                                                                                                   | ✅     |
+| Backend facade         | `Open(path, logger)` / `OpenWith(path, opts, logger)` — closes DB + all stores                                                                                                                                | ✅     |
+| Shared DB              | All stores share one `*bbolt.DB` via disjoint buckets (`cqrs_events`, `cqrs_snapshots`, …)                                                                                                                    | ✅     |
+| Durability tiers       | `WithDurability` (Strict/Normal/Relaxed) via `stack/bbolt` preset                                                                                                                                             | ✅     |
+| Streaming iterators    | `event.StreamingSource` (LoadStream, LoadStreamFromVersion) + `event.StreamingJournal` (ReadStream, ReadStreamFrom). Long-lived read tx, lazy Next, prefix/upper-bound filtering                              | ✅     |
+| OTel spans             | Full span instrumentation across all public methods (EventStore 12, SnapshotStore 4, CheckpointStore 2, CommandStore 7, QueryStore 4) via `otel.go`                                                           | ✅     |
+| Contract test suite    | 16 tests + 8 streaming tests (eventtest contract coverage)                                                                                                                                                    | ✅     |
 | Group commit (opt-in)  | `WithBatchCommit()` on `OpenWithOptions`/`NewBackendWith` — concurrent writers share one tx + one fsync per group (default per-call `db.Update` unchanged; journal byte-identical under 8 concurrent writers) | ✅     |
 
 ### Turso Database Connector
@@ -1135,7 +1135,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Retry middleware         | `NewRetryMiddleware(config)` + `DefaultRetryConfig()` — retry with backoff for handler errors                                                                               | ✅     |
 | **Broker backends**      | `WithBackend`/`WithCommandBackend` wire any official watermill plugin (Redis Streams roundtrip tested against a real broker; NATS JetStream waits for a maintained adapter) | ✅     |
 | **Handler independence** | Handler chains collect ALL handler errors via `errors.Join` — one failing handler never starves the others                                                                  | ✅     |
-| **CatchUpSubscriber**   | Replay → live handoff drains events published during replay — no gap at the boundary (v4.5.0 fix, regression-tested)                                                          | ✅     |
+| **CatchUpSubscriber**    | Replay → live handoff drains events published during replay — no gap at the boundary (v4.5.0 fix, regression-tested)                                                        | ✅     |
 
 ---
 
@@ -1202,12 +1202,12 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 > `go run github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v4`
 
-| Feature                | Detail                                                      | Status |
-| ---------------------- | ----------------------------------------------------------- | ------ |
-| Module scanning        | Parses all exported symbols from consumer-facing modules    | ✅     |
-| Golden file comparison | Compares current API surface against `docs/api_surface.txt` | ✅     |
-| Update mode            | `-update` flag regenerates golden file                      | ✅     |
-| Diff reporting         | Reports REMOVED/NEW exports — CI gate for breaking changes  | ✅     |
+| Feature                | Detail                                                                                                                          | Status |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Module scanning        | Parses all exported symbols from consumer-facing modules                                                                        | ✅     |
+| Golden file comparison | Compares current API surface against `docs/api_surface.txt`                                                                     | ✅     |
+| Update mode            | `-update` flag regenerates golden file                                                                                          | ✅     |
+| Diff reporting         | Reports REMOVED/NEW exports — CI gate for breaking changes                                                                      | ✅     |
 | Pin-drift guard        | `TestSiblingModulePinsResolve` — standalone-build (GOWORK=off) pin graph: missing tags, pseudo-version pins, staleness warnings | ✅     |
 
 ### doc-check 🔧
@@ -1345,7 +1345,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `stack`                          | `…/stack/v4`                          | ✅ Production                                                                                                                                                                             |
 | `stack/memory`                   | `…/stack/memory/v4`                   | ✅ Production                                                                                                                                                                             |
 | `stack/sqlite`                   | `…/stack/sqlite/v4`                   | ✅ Production                                                                                                                                                                             |
-| `stack/pebble`                   | `…/stack/pebble/v4`                   | ✅ Production (operator knobs: `WithMemTableSize`, `WithBlockCacheSize`, `WithWALBytesPerSync`, `WithPebbleCompression` — defaults byte-identical)                                          |
+| `stack/pebble`                   | `…/stack/pebble/v4`                   | ✅ Production (operator knobs: `WithMemTableSize`, `WithBlockCacheSize`, `WithWALBytesPerSync`, `WithPebbleCompression` — defaults byte-identical)                                        |
 | `stack/postgres`                 | `…/stack/postgres/v4`                 | ⚠️ Partial (testcontainer tests pass locally; coverage still low)                                                                                                                          |
 | `stack/turso`                    | `…/stack/turso/v4`                    | ✅ Production                                                                                                                                                                             |
 | `stack/duckdb`                   | `…/stack/duckdb/v4`                   | ✅ Production (analytical OLAP, CGo required — ADR-0071)                                                                                                                                  |

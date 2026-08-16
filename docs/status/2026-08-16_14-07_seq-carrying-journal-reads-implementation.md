@@ -9,29 +9,30 @@ scans, end to end across the engine + adapter stack.
 
 ### Core + Conformance
 
-| Change                                   | State |
-| ---------------------------------------- | ----- |
-| `metaengine/seq_seek.go` — `StreamLogEntry{Seq, Value}` + `SeqSeekableStreamLog` capability interface | DONE |
-| `metaengine/memory_stream_log.go` — memory engine impl (binary-search seek via `sort.Search`) | DONE |
-| `metaengine/enginetest/seqseek.go` — exported conformance suite `RunSeqSeekableStreamLogTest` (monotonic tokens, suffix equivalence, interleaved collections, limit, past-end, dense-journal agreement with position reads) | DONE |
-| `metaengine/seq_seek_gap_test.go` — gap-tolerance test (simulated journal entry deletion) | DONE, PASS |
+| Change                                                                                                                                                                                                                      | State      |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| `metaengine/seq_seek.go` — `StreamLogEntry{Seq, Value}` + `SeqSeekableStreamLog` capability interface                                                                                                                       | DONE       |
+| `metaengine/memory_stream_log.go` — memory engine impl (binary-search seek via `sort.Search`)                                                                                                                               | DONE       |
+| `metaengine/enginetest/seqseek.go` — exported conformance suite `RunSeqSeekableStreamLogTest` (monotonic tokens, suffix equivalence, interleaved collections, limit, past-end, dense-journal agreement with position reads) | DONE       |
+| `metaengine/seq_seek_gap_test.go` — gap-tolerance test (simulated journal entry deletion)                                                                                                                                   | DONE, PASS |
 
 ### Engines (all implement the capability + conformance test wired)
 
-| Engine      | Change                                                                                     | Test state |
-| ----------- | ------------------------------------------------------------------------------------------ | ---------- |
-| sqlite      | `journalReadAllWithSeq` / `journalReadFromSeq` queries in `sqliteQuerySet`, `scanStreamEntries` | PASS      |
-| pg          | `seq > $n` range seeks on `idx_stream_log_journal`, `scanStreamEntries`                      | build OK; server test NOT run |
-| mysql       | same pattern (`?` placeholders)                                                              | build OK; server test NOT run |
-| duckdb      | same pattern; conformance PASSES → design risk #1 (SEQUENCE semantics) resolved by test      | PASS       |
-| pebble      | `journalEntryFromKey` + `keycodec.JournalSeq` key-tail parsing                               | PASS       |
-| bbolt       | same key-parsing pattern                                                                     | PASS       |
-| badger      | same key-parsing pattern                                                                     | PASS       |
-| memory      | see core above                                                                              | PASS       |
-| dgraph/iroh | intentionally NOT implemented (design §7: optional capability, journal model differs)        | n/a        |
+| Engine      | Change                                                                                          | Test state                    |
+| ----------- | ----------------------------------------------------------------------------------------------- | ----------------------------- |
+| sqlite      | `journalReadAllWithSeq` / `journalReadFromSeq` queries in `sqliteQuerySet`, `scanStreamEntries` | PASS                          |
+| pg          | `seq > $n` range seeks on `idx_stream_log_journal`, `scanStreamEntries`                         | build OK; server test NOT run |
+| mysql       | same pattern (`?` placeholders)                                                                 | build OK; server test NOT run |
+| duckdb      | same pattern; conformance PASSES → design risk #1 (SEQUENCE semantics) resolved by test         | PASS                          |
+| pebble      | `journalEntryFromKey` + `keycodec.JournalSeq` key-tail parsing                                  | PASS                          |
+| bbolt       | same key-parsing pattern                                                                        | PASS                          |
+| badger      | same key-parsing pattern                                                                        | PASS                          |
+| memory      | see core above                                                                                  | PASS                          |
+| dgraph/iroh | intentionally NOT implemented (design §7: optional capability, journal model differs)           | n/a                           |
 
 `metaengine/keycodec/keycodec.go` gained `JournalSeq(key []byte) (int64, bool)`
-+ unit tests. Turso inherits via sqliteengine delegation.
+
+- unit tests. Turso inherits via sqliteengine delegation.
 
 ### System Adapters (the actual perf win)
 
