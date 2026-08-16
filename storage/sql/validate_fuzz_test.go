@@ -173,7 +173,11 @@ func FuzzValidateIdentifier_MetacharacterCombinations(f *testing.F) {
 			// metacharacters. If we find one, that's a bypass.
 			for _, mc := range sqlMetacharacters {
 				if strings.ContainsRune(input, mc) {
-					t.Errorf("ValidateIdentifier(%q) = true but contains metacharacter %q", input, mc)
+					t.Errorf(
+						"ValidateIdentifier(%q) = true but contains metacharacter %q",
+						input,
+						mc,
+					)
 				}
 			}
 		}
@@ -228,7 +232,11 @@ func FuzzBuildWhereClauseChecked_NeverPanics(f *testing.F) {
 		// identifier (only [A-Za-z0-9_] chars). This confirms no
 		// metacharacter leaked into the SQL.
 		if !sqlpkg.ValidateIdentifier(column) {
-			t.Errorf("BuildWhereClauseChecked accepted hostile column %q (clause=%q)", column, clause)
+			t.Errorf(
+				"BuildWhereClauseChecked accepted hostile column %q (clause=%q)",
+				column,
+				clause,
+			)
 		}
 	})
 }
